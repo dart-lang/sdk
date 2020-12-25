@@ -378,6 +378,7 @@ eq
 equation
 erasure
 es
+establish
 established
 estimate
 eval
@@ -401,6 +402,7 @@ factor
 factored
 fangorn
 fasta
+favored
 favoring
 fc
 fcon
@@ -1332,6 +1334,7 @@ wn
 worthwhile
 worthy
 writeln
+wrongfully
 wrt
 wtf
 www

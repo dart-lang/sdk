@@ -197,9 +197,11 @@ abstract class JClassEnv {
   /// Whether the class is an unnamed mixin application.
   bool get isUnnamedMixinApplication;
 
-  /// Whether the class is a mixin application that mixes in methods with super
-  /// calls.
-  bool get isSuperMixinApplication;
+  /// Whether the class is a mixin application with its own members.
+  ///
+  /// This occurs when a mixin contains methods with super calls or when
+  /// the mixin application contains forwarding super stubs.
+  bool get isMixinApplicationWithMembers;
 
   /// Return the [MemberEntity] for the member [name] in the class. If [setter]
   /// is `true`, the setter or assignable field corresponding to [name] is
@@ -235,13 +237,13 @@ class JClassEnvImpl implements JClassEnv {
   final Map<String, ir.Member> _setterMap;
   final List<ir.Member> _members; // in declaration order.
   @override
-  final bool isSuperMixinApplication;
+  final bool isMixinApplicationWithMembers;
 
   /// Constructor bodies created for this class.
   List<ConstructorBodyEntity> _constructorBodyList;
 
   JClassEnvImpl(this.cls, this._constructorMap, this._memberMap,
-      this._setterMap, this._members, this.isSuperMixinApplication);
+      this._setterMap, this._members, this.isMixinApplicationWithMembers);
 
   factory JClassEnvImpl.readFromDataSource(DataSource source) {
     source.begin(tag);
@@ -268,7 +270,7 @@ class JClassEnvImpl implements JClassEnv {
     sink.writeStringMap(_memberMap, sink.writeMemberNode);
     sink.writeStringMap(_setterMap, sink.writeMemberNode);
     sink.writeMemberNodes(_members);
-    sink.writeBool(isSuperMixinApplication);
+    sink.writeBool(isMixinApplicationWithMembers);
     sink.end(tag);
   }
 
@@ -372,7 +374,7 @@ class RecordEnv implements JClassEnv {
   bool get isUnnamedMixinApplication => false;
 
   @override
-  bool get isSuperMixinApplication => false;
+  bool get isMixinApplicationWithMembers => false;
 
   @override
   ir.Class get cls => null;

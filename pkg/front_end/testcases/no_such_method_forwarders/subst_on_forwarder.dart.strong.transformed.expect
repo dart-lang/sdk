@@ -39,6 +39,9 @@ abstract class _A&Object&M extends core::Object implements self::M /*isAnonymous
   const synthetic constructor •() → self::_A&Object&M*
     : super core::Object::•()
     ;
+  method noSuchMethod(core::Invocation* i) → dynamic {
+    return null;
+  }
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -48,16 +51,13 @@ abstract class _A&Object&M extends core::Object implements self::M /*isAnonymous
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  method noSuchMethod(core::Invocation* i) → dynamic {
-    return null;
-  }
 }
 class A extends self::_A&Object&M implements self::I<core::int*> {
   synthetic constructor •() → self::A*
     : super self::_A&Object&M::•()
     ;
   no-such-method-forwarder method foo() → core::int*
-    return this.{self::M::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::int*;
+    return this.{self::_A&Object&M::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::int*;
 }
 static method main() → dynamic {}
 

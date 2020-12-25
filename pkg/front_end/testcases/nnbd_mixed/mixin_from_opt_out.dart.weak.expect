@@ -9,6 +9,8 @@ abstract class _Class&Object&Mixin = core::Object with mix::Mixin /*isAnonymousM
   const synthetic constructor •() → self::_Class&Object&Mixin
     : super core::Object::•()
     ;
+  mixin-super-stub method /*isLegacy*/ method(core::int* i) → core::int*
+    return super.{mix::Mixin::method}(i);
   abstract member-signature operator /*isLegacy*/ ==(dynamic other) → core::bool*; -> core::Object::==
 }
 class Class extends self::_Class&Object&Mixin {
@@ -17,7 +19,7 @@ class Class extends self::_Class&Object&Mixin {
     ;
 }
 static method main() → dynamic {
-  core::print(new self::Class::•().{mix::Mixin::method}(null));
+  core::print(new self::Class::•().{self::_Class&Object&Mixin::method}(null));
 }
 
 library;

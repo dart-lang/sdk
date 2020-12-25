@@ -1125,8 +1125,24 @@ class Printer extends Visitor<Null> {
     writeModifier(node.isAbstract, 'abstract');
     writeModifier(node.isForwardingStub, 'forwarding-stub');
     writeModifier(node.isForwardingSemiStub, 'forwarding-semi-stub');
-    writeModifier(node.isMemberSignature, 'member-signature');
-    writeModifier(node.isNoSuchMethodForwarder, 'no-such-method-forwarder');
+    switch (node.stubKind) {
+      case ProcedureStubKind.Regular:
+      case ProcedureStubKind.ForwardingStub:
+      case ProcedureStubKind.ForwardingSuperStub:
+        break;
+      case ProcedureStubKind.NoSuchMethodForwarder:
+        writeWord('no-such-method-forwarder');
+        break;
+      case ProcedureStubKind.MemberSignature:
+        writeWord('member-signature');
+        break;
+      case ProcedureStubKind.MixinStub:
+        writeWord('mixin-stub');
+        break;
+      case ProcedureStubKind.MixinSuperStub:
+        writeWord('mixin-super-stub');
+        break;
+    }
     writeWord(procedureKindToString(node.kind));
     List<String> features = <String>[];
     if (node.enclosingLibrary.isNonNullableByDefault !=

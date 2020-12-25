@@ -81,11 +81,6 @@ abstract class KernelToElementMap {
   /// Returns the [ClassEntity] corresponding to the class [node].
   ClassEntity getClass(ir.Class node);
 
-  /// Returns the super [MemberEntity] for a super invocation, get or set of
-  /// [name] from the member [context].
-  MemberEntity getSuperMember(MemberEntity context, ir.Name name,
-      {bool setter: false});
-
   /// Returns the `noSuchMethod` [FunctionEntity] call from a
   /// `super.noSuchMethod` invocation within [cls].
   FunctionEntity getSuperNoSuchMethod(ClassEntity cls);
@@ -190,26 +185,16 @@ enum ForeignKind {
 bool memberIsIgnorable(ir.Member node, {ir.Class cls}) {
   if (node is! ir.Procedure) return false;
   ir.Procedure member = node;
-  if ((member.isMemberSignature || member.isForwardingStub) &&
-      member.isAbstract) {
-    // Skip abstract forwarding stubs. These are never emitted but they
-    // might shadow the inclusion of a mixed in method in code like:
-    //
-    //     class Super {}
-    //     class Mixin<T> {
-    //       void method(T t) {}
-    //     }
-    //     class Class extends Super with Mixin<int> {}
-    //     main() => new Class().method();
-    //
-    // Here a stub is created for `Super&Mixin.method` hiding that
-    // `Mixin.method` is inherited by `Class`.
-    return true;
-  }
-  if (cls != null &&
-      (member.isMemberSignature || member.isForwardingStub) &&
-      cls.isAnonymousMixin) {
-    return true;
+  switch (member.stubKind) {
+    case ir.ProcedureStubKind.Regular:
+    case ir.ProcedureStubKind.ForwardingSuperStub:
+    case ir.ProcedureStubKind.NoSuchMethodForwarder:
+      return false;
+    case ir.ProcedureStubKind.ForwardingStub:
+    case ir.ProcedureStubKind.MemberSignature:
+    case ir.ProcedureStubKind.MixinStub:
+    case ir.ProcedureStubKind.MixinSuperStub:
+      return true;
   }
   return false;
 }

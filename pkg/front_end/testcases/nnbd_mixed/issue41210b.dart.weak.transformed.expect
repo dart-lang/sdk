@@ -9,6 +9,8 @@ abstract class _C&Object&A extends core::Object implements iss::A /*isAnonymousM
   const synthetic constructor •() → self::_C&Object&A*
     : super core::Object::•()
     ;
+  method /* from org-dartlang-testcase:///issue41210b_lib1.dart */ method({core::String* s = #C1}) → core::String*
+    return s;
   abstract member-signature get /* from org-dartlang-testcase:///issue41210b_lib1.dart */ _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method /* from org-dartlang-testcase:///issue41210b_lib1.dart */ _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method /* from org-dartlang-testcase:///issue41210b_lib1.dart */ _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -19,8 +21,6 @@ abstract class _C&Object&A extends core::Object implements iss::A /*isAnonymousM
   abstract member-signature method /* from org-dartlang-testcase:///issue41210b_lib1.dart */ toString() → core::String*; -> core::Object::toString
   abstract member-signature method /* from org-dartlang-testcase:///issue41210b_lib1.dart */ noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get /* from org-dartlang-testcase:///issue41210b_lib1.dart */ runtimeType() → core::Type*; -> core::Object::runtimeType
-  method /* from org-dartlang-testcase:///issue41210b_lib1.dart */ method({core::String* s = #C1}) → core::String*
-    return s;
 }
 abstract class _C&Object&A&B extends self::_C&Object&A implements iss::B /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C&Object&A&B*
@@ -44,7 +44,7 @@ class C extends self::_C&Object&A&B {
     ;
 }
 static method main() → dynamic {
-  core::print(new self::C::•().{iss::A::method}());
+  core::print(new self::C::•().{self::_C&Object&A::method}());
 }
 
 library;

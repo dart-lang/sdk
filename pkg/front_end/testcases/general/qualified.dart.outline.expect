@@ -51,6 +51,8 @@ abstract class _WithMixin&Supertype&Mixin = lib::Supertype with lib::Mixin /*isA
   synthetic constructor •() → self::_WithMixin&Supertype&Mixin*
     : super lib::Supertype::•()
     ;
+  mixin-super-stub method foo() → dynamic
+    return super.{lib::Mixin::foo}();
 }
 class WithMixin extends self::_WithMixin&Supertype&Mixin {
   synthetic constructor •() → self::WithMixin*

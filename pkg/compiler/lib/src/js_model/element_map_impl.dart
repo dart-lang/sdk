@@ -807,32 +807,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   }
 
   @override
-  MemberEntity getSuperMember(MemberEntity context, ir.Name name,
-      {bool setter: false}) {
-    // We can no longer trust the interface target of the super access since it
-    // might be a member that we have cloned.
-    ClassEntity cls = getMemberThisType(context).element;
-    assert(
-        cls != null,
-        failedAt(context,
-            "No enclosing class for super member access in $context."));
-    IndexedClass superclass = getSuperType(cls)?.element;
-    while (superclass != null) {
-      JClassEnv env = classes.getEnv(superclass);
-      MemberEntity superMember =
-          env.lookupMember(this, name.text, setter: setter);
-      if (superMember != null) {
-        if (!superMember.isInstanceMember) return null;
-        if (!superMember.isAbstract) {
-          return superMember;
-        }
-      }
-      superclass = getSuperType(superclass)?.element;
-    }
-    return null;
-  }
-
-  @override
   ConstructorEntity getConstructor(ir.Member node) =>
       getConstructorInternal(node);
 
@@ -1067,10 +1041,10 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     return env.isUnnamedMixinApplication;
   }
 
-  bool _isSuperMixinApplication(IndexedClass cls) {
+  bool _isMixinApplicationWithMembers(IndexedClass cls) {
     assert(checkFamily(cls));
     JClassEnv env = classes.getEnv(cls);
-    return env.isSuperMixinApplication;
+    return env.isMixinApplicationWithMembers;
   }
 
   void _forEachSupertype(IndexedClass cls, void f(InterfaceType supertype)) {
@@ -2242,8 +2216,8 @@ class JsElementEnvironment extends ElementEnvironment
   }
 
   @override
-  bool isSuperMixinApplication(ClassEntity cls) {
-    return elementMap._isSuperMixinApplication(cls);
+  bool isMixinApplicationWithMembers(ClassEntity cls) {
+    return elementMap._isMixinApplicationWithMembers(cls);
   }
 
   @override

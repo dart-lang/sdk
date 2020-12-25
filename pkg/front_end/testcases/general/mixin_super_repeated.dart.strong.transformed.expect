@@ -63,11 +63,11 @@ abstract class _Named&S&M&N extends self::_Named&S&M implements self::N /*isAnon
   synthetic constructor •() → self::_Named&S&M&N*
     : super self::_Named&S&M::•()
     ;
+  get superM() → dynamic
+    return super.{self::M::m};
   set superM(dynamic value) → void {
     super.{self::M::m} = value;
   }
-  get superM() → dynamic
-    return super.{self::M::m};
 }
 class Named extends self::_Named&S&M&N implements self::M /*isEliminatedMixin*/  {
   field dynamic m = null;
@@ -87,12 +87,12 @@ class Named extends self::_Named&S&M&N implements self::M /*isEliminatedMixin*/ 
 }
 static method main() → dynamic {
   self::Named* named = new self::Named::•();
-  named.{self::M::m} = 42;
-  named.{self::N::superM} = 87;
-  if(!named.{self::M::m}.{core::Object::==}(42)) {
+  named.{self::Named::m} = 42;
+  named.{self::_Named&S&M&N::superM} = 87;
+  if(!named.{self::Named::m}.{core::Object::==}(42)) {
     throw "Bad mixin translation of set:superM";
   }
-  if(!named.{self::N::superM}.{core::Object::==}(87)) {
+  if(!named.{self::_Named&S&M&N::superM}.{core::Object::==}(87)) {
     throw "Bad mixin translation of get:superM";
   }
 }

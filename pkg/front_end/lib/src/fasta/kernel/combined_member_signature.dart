@@ -28,6 +28,8 @@ import 'member_covariance.dart';
 abstract class CombinedMemberSignatureBase<T> {
   ClassHierarchyBase get hierarchy;
 
+  Name get name;
+
   /// The target class for the combined member signature.
   ///
   /// The [_memberTypes] are computed in terms of each member is inherited into
@@ -156,11 +158,9 @@ abstract class CombinedMemberSignatureBase<T> {
             candidateIndex++) {
           DartType candidateType = getMemberType(candidateIndex);
           if (!_isMoreSpecific(bestTypeSoFar, candidateType, forSetter)) {
-            if (!shouldOverrideProblemBeOverlooked(classBuilder)) {
-              bestSoFarIndex = null;
-              bestTypeSoFar = null;
-              _mutualSubtypes = null;
-            }
+            int favoredIndex = getOverlookedOverrideProblemChoice(classBuilder);
+            bestSoFarIndex = favoredIndex;
+            _mutualSubtypes = null;
             break;
           }
         }
@@ -508,10 +508,14 @@ abstract class CombinedMemberSignatureBase<T> {
       {bool copyLocation}) {
     assert(copyLocation != null);
     Class enclosingClass = classBuilder.cls;
-    Procedure referenceFrom;
+    Reference reference;
     if (classBuilder.referencesFromIndexed != null) {
-      referenceFrom = classBuilder.referencesFromIndexed
-          .lookupProcedureNotSetter(member.name.text);
+      reference = classBuilder.referencesFromIndexed
+          .lookupProcedureNotSetter(member.name.text)
+          ?.reference;
+      reference ??= classBuilder.referencesFromIndexed
+          .lookupField(member.name.text)
+          ?.getterReference;
     }
     Uri fileUri;
     int startFileOffset;
@@ -531,7 +535,7 @@ abstract class CombinedMemberSignatureBase<T> {
       new FunctionNode(null, returnType: type),
       isAbstract: true,
       fileUri: fileUri,
-      reference: referenceFrom?.reference,
+      reference: reference,
       isSynthetic: true,
       stubKind: ProcedureStubKind.MemberSignature,
       stubTarget: member.memberSignatureOrigin ?? member,
@@ -554,10 +558,14 @@ abstract class CombinedMemberSignatureBase<T> {
     assert(isGenericCovariantImpl != null);
     assert(copyLocation != null);
     Class enclosingClass = classBuilder.cls;
-    Procedure referenceFrom;
+    Reference reference;
     if (classBuilder.referencesFromIndexed != null) {
-      referenceFrom = classBuilder.referencesFromIndexed
-          .lookupProcedureSetter(member.name.text);
+      reference = classBuilder.referencesFromIndexed
+          .lookupProcedureSetter(member.name.text)
+          ?.reference;
+      reference ??= classBuilder.referencesFromIndexed
+          .lookupField(member.name.text)
+          ?.setterReference;
     }
     Uri fileUri;
     int startFileOffset;
@@ -583,7 +591,7 @@ abstract class CombinedMemberSignatureBase<T> {
           ]),
       isAbstract: true,
       fileUri: fileUri,
-      reference: referenceFrom?.reference,
+      reference: reference,
       isSynthetic: true,
       stubKind: ProcedureStubKind.MemberSignature,
       stubTarget: member.memberSignatureOrigin ?? member,
@@ -713,9 +721,11 @@ abstract class CombinedMemberSignatureBase<T> {
 class CombinedClassMemberSignature
     extends CombinedMemberSignatureBase<ClassMember> {
   /// The class hierarchy builder used for building this class.
+  @override
   final ClassHierarchyBuilder hierarchy;
 
   /// The list of the members inherited into or overridden in [classBuilder].
+  @override
   final List<ClassMember> members;
 
   /// Creates a [CombinedClassMemberSignature] whose canonical member is already
@@ -736,8 +746,13 @@ class CombinedClassMemberSignature
       {bool forSetter})
       : super(classBuilder, forSetter: forSetter);
 
+  @override
+  Name get name => members.first.name;
+
+  @override
   Types get _types => hierarchy.types;
 
+  @override
   Member _getMember(int index) {
     ClassMember candidate = members[index];
     Member target = candidate.getMember(hierarchy);
@@ -774,6 +789,9 @@ class CombinedMemberSignatureBuilder
       {bool forSetter})
       : _types = new Types(hierarchy),
         super(classBuilder, forSetter: forSetter);
+
+  @override
+  Name get name => members.first.name;
 
   @override
   Member _getMember(int index) => members[index];

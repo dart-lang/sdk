@@ -63,10 +63,14 @@ class CanonicalNameError {
   final String message;
 
   CanonicalNameError(this.message);
+
+  String toString() => 'CanonicalNameError: $message';
 }
 
 class CanonicalNameSdkError extends CanonicalNameError {
   CanonicalNameSdkError(String message) : super(message);
+
+  String toString() => 'CanonicalNameSdkError: $message';
 }
 
 class _ComponentIndex {
@@ -631,11 +635,10 @@ class BinaryBuilder {
           bool checkReferenceNode = true;
           if (child.reference == null) {
             // OK for "if private: URI of library" part of "Qualified name"...
-            Iterable<CanonicalName> children = child.childrenOrNull;
-            if (parent.parent != null &&
-                children != null &&
-                children.isNotEmpty &&
-                children.first.name.startsWith("_")) {
+            // TODO(johnniwinther): This wrongfully skips checking of variable
+            // synthesized by the VM transformations. The kind of canonical
+            // name types maybe should be directly available.
+            if (parent.parent != null && child.name.contains(':')) {
               // OK then.
               checkReferenceNode = false;
             } else {

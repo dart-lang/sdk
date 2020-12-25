@@ -7,6 +7,9 @@ library from "org-dartlang-test:///libA.dart" as libA {
     const synthetic constructor •() → libA::_Bar&Object&Foo*
       : super dart.core::Object::•()
       ;
+    method /* from org-dartlang-test:///main.dart */ method() → dynamic {
+      dart.core::print("A");
+    }
     abstract member-signature get /* from org-dartlang-test:///main.dart */ _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
     abstract member-signature method /* from org-dartlang-test:///main.dart */ _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
     abstract member-signature method /* from org-dartlang-test:///main.dart */ _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
@@ -17,16 +20,13 @@ library from "org-dartlang-test:///libA.dart" as libA {
     abstract member-signature method /* from org-dartlang-test:///main.dart */ toString() → dart.core::String*; -> dart.core::Object::toString
     abstract member-signature method /* from org-dartlang-test:///main.dart */ noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
     abstract member-signature get /* from org-dartlang-test:///main.dart */ runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
-    method /* from org-dartlang-test:///main.dart */ method() → dynamic {
-      dart.core::print("A");
-    }
   }
   class Bar extends libA::_Bar&Object&Foo {
     synthetic constructor •() → libA::Bar*
       : super libA::_Bar&Object&Foo::•()
       ;
     method method2() → dynamic {
-      this.{main::Foo::method}();
+      this.{libA::_Bar&Object&Foo::method}();
     }
   }
 }

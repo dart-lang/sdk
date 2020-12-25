@@ -6,6 +6,8 @@ abstract class _B&Object&M1 extends core::Object implements self::M1 /*isAnonymo
   const synthetic constructor •() → self::_B&Object&M1*
     : super core::Object::•()
     ;
+  method m() → dynamic
+    return core::print("M1");
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -16,8 +18,6 @@ abstract class _B&Object&M1 extends core::Object implements self::M1 /*isAnonymo
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  method m() → dynamic
-    return core::print("M1");
 }
 abstract class _B&Object&M1&M2 extends self::_B&Object&M1 implements self::M2 /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_B&Object&M1&M2*
@@ -79,6 +79,8 @@ abstract class _C&Object&M1 extends core::Object implements self::M1 /*isAnonymo
   const synthetic constructor •() → self::_C&Object&M1*
     : super core::Object::•()
     ;
+  method m() → dynamic
+    return core::print("M1");
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -89,8 +91,6 @@ abstract class _C&Object&M1 extends core::Object implements self::M1 /*isAnonymo
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  method m() → dynamic
-    return core::print("M1");
 }
 abstract class _C&Object&M1&M2 extends self::_C&Object&M1 implements self::M2 /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C&Object&M1&M2*
@@ -135,6 +135,8 @@ abstract class _D&Object&G1<S extends core::Object* = dynamic> extends core::Obj
   const synthetic constructor •() → self::_D&Object&G1<self::_D&Object&G1::S*>*
     : super core::Object::•()
     ;
+  method m() → dynamic
+    return core::print(self::_D&Object&G1::S*);
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -145,8 +147,6 @@ abstract class _D&Object&G1<S extends core::Object* = dynamic> extends core::Obj
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  method m() → dynamic
-    return core::print(self::_D&Object&G1::S*);
 }
 class D<S extends core::Object* = dynamic> extends self::_D&Object&G1<self::D::S*> {
   synthetic constructor •() → self::D<self::D::S*>*
@@ -154,9 +154,9 @@ class D<S extends core::Object* = dynamic> extends self::_D&Object&G1<self::D::S
     ;
 }
 static method main() → dynamic {
-  new self::B::•(null).{self::M2::m}();
-  new self::C::•(null).{self::M2::m}();
-  new self::D::•<dynamic>().{self::G1::m}();
-  new self::D::•<core::int*>().{self::G1::m}();
-  new self::D::•<core::List<core::int*>*>().{self::G1::m}();
+  new self::B::•(null).{self::_B&Object&M1&M2::m}();
+  new self::C::•(null).{self::_C&Object&M1&M2::m}();
+  new self::D::•<dynamic>().{self::_D&Object&G1::m}();
+  new self::D::•<core::int*>().{self::_D&Object&G1::m}();
+  new self::D::•<core::List<core::int*>*>().{self::_D&Object&G1::m}();
 }

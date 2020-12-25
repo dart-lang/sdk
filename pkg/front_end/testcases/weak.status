@@ -72,7 +72,6 @@ nnbd_mixed/messages_with_types_opt_in: TypeCheckError
 nnbd_mixed/messages_with_types_opt_out: TypeCheckError
 none/equals: TypeCheckError
 none/method_invocation: TypeCheckError
-none/mixin_covariant: TypeCheckError
 none/operator: TypeCheckError
 none/property_get: TypeCheckError
 none/property_set: TypeCheckError

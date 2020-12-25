@@ -2315,9 +2315,9 @@ enum ProcedureStubKind {
   ///       method(Class c) => super.method();
   ///     }
   ///
-  /// would use `Mixin.method` as its target, which would to be update to match
-  /// the cloning of mixin member performed for instance by the VM. By adding
-  /// the mixin super stub to `Class`, all accesses both before and after
+  /// would use `Mixin.method` as its target, which would need to be updated to
+  /// match the clone of mixin member performed for instance by the VM. By
+  /// adding the mixin super stub to `Class`, all accesses both before and after
   /// cloning will point to `Class.method`.
   ///
   /// The stub target is the called mixin member.

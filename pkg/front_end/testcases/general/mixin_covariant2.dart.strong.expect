@@ -52,11 +52,14 @@ abstract class _Class&Superclass&Mixin = self::Superclass with self::Mixin /*isA
   synthetic constructor •() → self::_Class&Superclass&Mixin*
     : super self::Superclass::•()
     ;
-  abstract forwarding-stub method method2(covariant core::num* argument1, core::num* argument2) → core::String*;
+  mixin-super-stub method method1(core::num* argument1, core::num* argument2) → core::String*
+    return super.{self::Mixin::method1}(argument1, argument2);
+  forwarding-stub method method2(covariant core::num* argument1, core::num* argument2) → core::String*
+    return super.{self::Mixin::method2}(argument1, argument2);
   forwarding-stub method method3(core::num* argument1, covariant core::num* argument2) → core::String*
-    return super.{self::Superclass::method3}(argument1, argument2);
+    return super.{self::Mixin::method3}(argument1, argument2);
   forwarding-stub method method4(covariant core::num* argument1, covariant core::num* argument2) → core::String*
-    return super.{self::Superclass::method4}(argument1, argument2);
+    return super.{self::Mixin::method4}(argument1, argument2);
 }
 class Class extends self::_Class&Superclass&Mixin {
   synthetic constructor •() → self::Class*
@@ -65,7 +68,7 @@ class Class extends self::_Class&Superclass&Mixin {
 }
 static method main() → dynamic {
   self::Class* c = new self::Class::•();
-  self::expect("Mixin", c.{self::Mixin::method1}(0, 1));
+  self::expect("Mixin", c.{self::_Class&Superclass&Mixin::method1}(0, 1));
   self::expect("Mixin", c.{self::_Class&Superclass&Mixin::method2}(0, 1));
   self::expect("Mixin", c.{self::_Class&Superclass&Mixin::method3}(0, 1));
   self::expect("Mixin", c.{self::_Class&Superclass&Mixin::method4}(0, 1));
