@@ -10,11 +10,9 @@
 #include <openssl/ssl.h>
 
 #include "platform/globals.h"
+#include "platform/syslog.h"
 
 #include "bin/file.h"
-#include "bin/secure_socket_filter.h"
-#include "bin/security_context.h"
-#include "platform/syslog.h"
 
 namespace dart {
 namespace bin {
