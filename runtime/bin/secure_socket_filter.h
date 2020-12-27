@@ -5,6 +5,8 @@
 #ifndef RUNTIME_BIN_SECURE_SOCKET_FILTER_H_
 #define RUNTIME_BIN_SECURE_SOCKET_FILTER_H_
 
+#if !defined(DART_IO_SECURE_SOCKET_DISABLED)
+
 #include <openssl/bio.h>
 #include <openssl/ssl.h>
 #include <openssl/x509.h>
@@ -157,5 +159,7 @@ class SSLFilter : public ReferenceCounted<SSLFilter> {
 
 }  // namespace bin
 }  // namespace dart
+
+#endif // !defined(DART_IO_SECURE_SOCKET_DISABLED)
 
 #endif  // RUNTIME_BIN_SECURE_SOCKET_FILTER_H_

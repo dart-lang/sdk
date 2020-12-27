@@ -8,7 +8,9 @@
 #include "bin/eventhandler.h"
 #include "bin/isolate_data.h"
 #include "bin/process.h"
-#include "bin/secure_socket_filter.h"
+#if !defined(DART_IO_SECURE_SOCKET_DISABLED)
+  #include "bin/secure_socket_filter.h"
+#endif
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "bin/vmservice_impl.h"

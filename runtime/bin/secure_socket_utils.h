@@ -5,6 +5,8 @@
 #ifndef RUNTIME_BIN_SECURE_SOCKET_UTILS_H_
 #define RUNTIME_BIN_SECURE_SOCKET_UTILS_H_
 
+#if !defined(DART_IO_SECURE_SOCKET_DISABLED)
+
 #include <openssl/bio.h>
 #include <openssl/err.h>
 #include <openssl/pkcs12.h>
@@ -177,5 +179,7 @@ typedef ScopedSSLStackType<STACK_OF(X509), X509, X509_free> ScopedX509Stack;
 
 }  // namespace bin
 }  // namespace dart
+
+#endif // !defined(DART_IO_SECURE_SOCKET_DISABLED)
 
 #endif  // RUNTIME_BIN_SECURE_SOCKET_UTILS_H_
