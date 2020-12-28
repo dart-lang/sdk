@@ -13,6 +13,7 @@
 #include "platform/syslog.h"
 
 #include "bin/file.h"
+#include "bin/utils.h"
 
 namespace dart {
 namespace bin {
