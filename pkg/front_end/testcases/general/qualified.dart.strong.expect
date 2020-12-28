@@ -73,7 +73,7 @@ class IllegalSupertype extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class C<T extends core::Object* = dynamic> extends core::Object { // from org-dartlang-testcase:///qualified_part.dart
-  static field dynamic _redirecting# = <dynamic>[self::C::b];
+  static final field dynamic _redirecting# = <dynamic>[self::C::b];
   constructor •() → self::C<self::C::T*>*
     : super core::Object::•()
     ;
@@ -114,7 +114,7 @@ import "org-dartlang-testcase:///qualified.dart" as main;
 
 typedef VoidFunction = () →* void;
 class C<T extends core::Object* = dynamic> extends self::C<lib::C::T*> {
-  static field dynamic _redirecting# = <dynamic>[lib::C::b];
+  static final field dynamic _redirecting# = <dynamic>[lib::C::b];
   constructor •() → lib::C<lib::C::T*>*
     : super self::C::•()
     ;

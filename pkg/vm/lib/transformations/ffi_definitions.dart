@@ -712,14 +712,13 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       Class struct, Map<Abi, int> sizes, IndexedClass indexedClass) {
     var name = Name("#sizeOf");
     var lookupField = indexedClass?.lookupField(name.text);
-    final Field sizeOf = Field(name,
+    final Field sizeOf = Field.immutable(name,
         isStatic: true,
         isFinal: true,
         initializer: _runtimeBranchOnLayout(sizes),
         type: InterfaceType(intClass, Nullability.legacy),
         fileUri: struct.fileUri,
-        getterReference: lookupField?.getterReference,
-        setterReference: lookupField?.setterReference)
+        getterReference: lookupField?.getterReference)
       ..fileOffset = struct.fileOffset;
     _makeEntryPoint(sizeOf);
     struct.addField(sizeOf);

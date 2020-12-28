@@ -1234,10 +1234,10 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     }
     for (Field field in classNode.fields) {
       if (field.isStatic) continue;
-      if (!setters && field.hasImplicitGetter) {
+      if (!setters) {
         memberMap[field.name] = field;
       }
-      if (setters && field.hasImplicitSetter) {
+      if (setters && field.hasSetter) {
         memberMap[field.name] = field;
       }
     }

@@ -21,7 +21,7 @@ import 'package:kernel/ast.dart'
 main() async {
   await asyncTest(() async {
     Library library = new Library(Uri.parse("org.dartlang.fasta:library"));
-    Field field = new Field(new Name("_exports#", library),
+    Field field = new Field.immutable(new Name("_exports#", library),
         initializer: new StringLiteral('{"main":"Problem with main"}'));
     library.addField(field);
     Component component = new Component(libraries: <Library>[library]);

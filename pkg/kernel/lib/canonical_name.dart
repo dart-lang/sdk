@@ -192,6 +192,9 @@ class CanonicalName {
   }
 
   void bindTo(Reference target) {
+    if (target == null) {
+      throw '$this cannot be bound to null';
+    }
     if (reference == target) return;
     if (reference != null) {
       throw '$this is already bound';

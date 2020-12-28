@@ -50,7 +50,7 @@ class P<T extends core::Object = core::Object> extends core::Object /*hasConstCo
     ;
 }
 class CP<T extends core::Object = core::Object> extends opt::P<opt::CP::T> /*hasConstConstructor*/  {
-  static field dynamic _redirecting# = <dynamic>[opt::CP::•]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[opt::CP::•]/*isLegacy*/;
   const constructor _(core::Object token) → opt::CP<opt::CP::T>
     : super opt::P::_(token)
     ;
@@ -63,7 +63,7 @@ class Token<T extends core::Object = core::Object> extends core::Object /*hasCon
     ;
 }
 class VP<T extends core::Object = core::Object> extends opt::P<opt::VP::T> /*hasConstConstructor*/  {
-  static field dynamic _redirecting# = <dynamic>[opt::VP::forToken]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[opt::VP::forToken]/*isLegacy*/;
   const constructor _(core::Object token, opt::VP::T useValue) → opt::VP<opt::VP::T>
     : super opt::P::_(token)
     ;

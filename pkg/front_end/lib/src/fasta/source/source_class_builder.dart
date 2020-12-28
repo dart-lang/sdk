@@ -861,12 +861,12 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (constructorsField == null) {
       ListLiteral literal = new ListLiteral(<Expression>[]);
       Name name = new Name(redirectingName, library.library);
-      Field field = new Field(name,
+      Field field = new Field.immutable(name,
           isStatic: true,
+          isFinal: true,
           initializer: literal,
           fileUri: cls.fileUri,
-          getterReference: referenceFrom?.getterReference,
-          setterReference: referenceFrom?.setterReference)
+          getterReference: referenceFrom?.getterReference)
         ..fileOffset = cls.fileOffset;
       cls.addField(field);
       constructorsField = new DillFieldBuilder(field, this);

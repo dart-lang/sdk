@@ -456,10 +456,10 @@ class FieldHelper {
     kFinal = 1 << 0,
     kConst = 1 << 1,
     kStatic = 1 << 2,
-    kIsCovariant = 1 << 5,
-    kIsGenericCovariantImpl = 1 << 6,
-    kIsLate = 1 << 7,
-    kExtensionMember = 1 << 8,
+    kIsCovariant = 1 << 3,
+    kIsGenericCovariantImpl = 1 << 4,
+    kIsLate = 1 << 5,
+    kExtensionMember = 1 << 6,
   };
 
   explicit FieldHelper(KernelReaderHelper* helper)

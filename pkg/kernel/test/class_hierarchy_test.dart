@@ -698,8 +698,8 @@ class Z {}
     var abstractMethod = newEmptyMethod('abstractMethod', isAbstract: true);
     var abstractGetter = newEmptyGetter('abstractGetter', isAbstract: true);
     var abstractSetter = newEmptySetter('abstractSetter', isAbstract: true);
-    var nonFinalField = new Field(new Name('nonFinalField'));
-    var finalField = new Field(new Name('finalField'), isFinal: true);
+    var nonFinalField = new Field.mutable(new Name('nonFinalField'));
+    var finalField = new Field.immutable(new Name('finalField'), isFinal: true);
     var a = addClass(new Class(
         isAbstract: true,
         name: 'A',
@@ -929,8 +929,8 @@ class C implements self::B {}
     var abstractMethod = newEmptyMethod('abstractMethod', isAbstract: true);
     var abstractGetter = newEmptyGetter('abstractGetter', isAbstract: true);
     var abstractSetter = newEmptySetter('abstractSetter', isAbstract: true);
-    var nonFinalField = new Field(new Name('nonFinalField'));
-    var finalField = new Field(new Name('finalField'), isFinal: true);
+    var nonFinalField = new Field.mutable(new Name('nonFinalField'));
+    var finalField = new Field.immutable(new Name('finalField'), isFinal: true);
     var a = addClass(new Class(
         isAbstract: true,
         name: 'A',
@@ -984,8 +984,8 @@ abstract class A {
     var abstractMethod = newEmptyMethod('abstractMethod', isAbstract: true);
     var abstractGetter = newEmptyGetter('abstractGetter', isAbstract: true);
     var abstractSetter = newEmptySetter('abstractSetter', isAbstract: true);
-    var nonFinalField = new Field(new Name('nonFinalField'));
-    var finalField = new Field(new Name('finalField'), isFinal: true);
+    var nonFinalField = new Field.mutable(new Name('nonFinalField'));
+    var finalField = new Field.immutable(new Name('finalField'), isFinal: true);
 
     var a = addClass(new Class(name: 'A', supertype: objectSuper, fields: [
       nonFinalField,
@@ -1049,13 +1049,15 @@ class D = core::Object with self::A {}
     var method_a = newEmptyMethod('method');
     var getter_a = newEmptyGetter('getter');
     var setter_a = newEmptySetter('setter');
-    var nonFinalField_a = new Field(new Name('nonFinalField'));
-    var finalField_a = new Field(new Name('finalField'), isFinal: true);
+    var nonFinalField_a = new Field.mutable(new Name('nonFinalField'));
+    var finalField_a =
+        new Field.immutable(new Name('finalField'), isFinal: true);
     var method_b = newEmptyMethod('method');
     var getter_b = newEmptyGetter('getter');
     var setter_b = newEmptySetter('setter');
-    var nonFinalField_b = new Field(new Name('nonFinalField'));
-    var finalField_b = new Field(new Name('finalField'), isFinal: true);
+    var nonFinalField_b = new Field.mutable(new Name('nonFinalField'));
+    var finalField_b =
+        new Field.immutable(new Name('finalField'), isFinal: true);
 
     var a = addClass(new Class(
         name: 'A',
@@ -1119,13 +1121,15 @@ abstract class C implements self::A, self::B {}
     var getter_a = newEmptyGetter('getter');
     var setter_a = newEmptySetter('setter');
     var nonShadowedSetter_a = newEmptySetter('nonShadowedSetter');
-    var nonFinalField_a = new Field(new Name('nonFinalField'));
-    var finalField_a = new Field(new Name('finalField'), isFinal: true);
+    var nonFinalField_a = new Field.mutable(new Name('nonFinalField'));
+    var finalField_a =
+        new Field.immutable(new Name('finalField'), isFinal: true);
     var method_b = newEmptyMethod('method');
     var getter_b = newEmptyGetter('getter');
     var setter_b = newEmptySetter('setter');
-    var nonFinalField_b = new Field(new Name('nonFinalField'));
-    var finalField_b = new Field(new Name('finalField'), isFinal: true);
+    var nonFinalField_b = new Field.mutable(new Name('nonFinalField'));
+    var finalField_b =
+        new Field.immutable(new Name('finalField'), isFinal: true);
 
     var a = addClass(new Class(name: 'A', supertype: objectSuper, fields: [
       nonFinalField_a,

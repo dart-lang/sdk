@@ -375,15 +375,12 @@ class WidgetCreatorTracker {
       _locationFieldName,
       _hasCreationLocationClass.enclosingLibrary,
     );
-    final Field locationField = new Field(fieldName,
+    final Field locationField = new Field.immutable(fieldName,
         type:
             new InterfaceType(_locationClass, clazz.enclosingLibrary.nullable),
         isFinal: true,
         getterReference: clazz.reference.canonicalName
             ?.getChildFromFieldWithName(fieldName)
-            ?.reference,
-        setterReference: clazz.reference.canonicalName
-            ?.getChildFromFieldSetterWithName(fieldName)
             ?.reference);
     clazz.addField(locationField);
 

@@ -1077,16 +1077,8 @@ class Printer extends Visitor<Null> {
     writeModifier(node.isConst, 'const');
     // Only show implicit getter/setter modifiers in cases where they are
     // out of the ordinary.
-    if (node.isStatic) {
-      writeModifier(node.hasImplicitGetter, '[getter]');
-      writeModifier(node.hasImplicitSetter, '[setter]');
-    } else {
-      writeModifier(!node.hasImplicitGetter, '[no-getter]');
-      if (node.isFinal) {
-        writeModifier(node.hasImplicitSetter, '[setter]');
-      } else {
-        writeModifier(!node.hasImplicitSetter, '[no-setter]');
-      }
+    if (node.isFinal) {
+      writeModifier(node.hasSetter, '[setter]');
     }
     writeWord('field');
     writeSpace();

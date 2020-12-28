@@ -774,20 +774,28 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
     final Uri activeFileUriSaved = _activeFileUri;
     _activeFileUri = node.fileUri ?? _activeFileUri;
 
-    Field result = new Field(node.name,
-        type: visitType(node.type),
-        initializer: cloneOptional(node.initializer),
-        isCovariant: node.isCovariant,
-        isFinal: node.isFinal,
-        isConst: node.isConst,
-        isStatic: node.isStatic,
-        isLate: node.isLate,
-        hasImplicitGetter: node.hasImplicitGetter,
-        hasImplicitSetter: node.hasImplicitSetter,
-        transformerFlags: node.transformerFlags,
-        fileUri: _activeFileUri,
-        getterReference: getterReference,
-        setterReference: setterReference)
+    Field result;
+    if (node.hasSetter) {
+      result = new Field.mutable(node.name,
+          type: visitType(node.type),
+          initializer: cloneOptional(node.initializer),
+          transformerFlags: node.transformerFlags,
+          fileUri: _activeFileUri,
+          getterReference: getterReference,
+          setterReference: setterReference);
+    } else {
+      assert(
+          setterReference == null,
+          "Cannot use setter reference $setterReference "
+          "for clone of an immutable field.");
+      result = new Field.immutable(node.name,
+          type: visitType(node.type),
+          initializer: cloneOptional(node.initializer),
+          transformerFlags: node.transformerFlags,
+          fileUri: _activeFileUri,
+          getterReference: getterReference);
+    }
+    result
       ..annotations = cloneAnnotations && !node.annotations.isEmpty
           ? node.annotations.map(super.clone).toList()
           : const <Expression>[]

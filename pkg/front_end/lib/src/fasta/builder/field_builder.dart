@@ -227,8 +227,13 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
       assert(lateIsSetReferenceFrom == null);
       assert(getterReferenceFrom == null);
       assert(setterReferenceFrom == null);
-      _fieldEncoding = new RegularFieldEncoding(fileUri, charOffset,
-          charEndOffset, reference, library.isNonNullableByDefault);
+      _fieldEncoding = new RegularFieldEncoding(
+          fileUri, charOffset, charEndOffset, reference,
+          isFinal: isFinal,
+          isConst: isConst,
+          isLate: isLate,
+          hasInitializer: hasInitializer,
+          isNonNullableByDefault: library.isNonNullableByDefault);
     }
   }
 
@@ -587,12 +592,33 @@ abstract class FieldEncoding {
 class RegularFieldEncoding implements FieldEncoding {
   Field _field;
 
-  RegularFieldEncoding(Uri fileUri, int charOffset, int charEndOffset,
-      Field reference, bool isNonNullableByDefault) {
-    _field = new Field(null,
-        fileUri: fileUri,
-        getterReference: reference?.getterReference,
-        setterReference: reference?.setterReference)
+  RegularFieldEncoding(
+      Uri fileUri, int charOffset, int charEndOffset, Field reference,
+      {bool isFinal,
+      bool isConst,
+      bool isLate,
+      bool hasInitializer,
+      bool isNonNullableByDefault}) {
+    assert(isFinal != null);
+    assert(isConst != null);
+    assert(isLate != null);
+    assert(hasInitializer != null);
+    bool isImmutable =
+        isLate ? (isFinal && hasInitializer) : (isFinal || isConst);
+    _field = isImmutable
+        ? new Field.immutable(null,
+            isFinal: isFinal,
+            isConst: isConst,
+            isLate: isLate,
+            fileUri: fileUri,
+            getterReference: reference?.getterReference)
+        : new Field.mutable(null,
+            isFinal: isFinal,
+            isLate: isLate,
+            fileUri: fileUri,
+            getterReference: reference?.getterReference,
+            setterReference: reference?.setterReference);
+    _field
       ..fileOffset = charOffset
       ..fileEndOffset = charEndOffset
       ..isNonNullableByDefault = isNonNullableByDefault;
@@ -630,10 +656,7 @@ class RegularFieldEncoding implements FieldEncoding {
   @override
   void build(
       SourceLibraryBuilder libraryBuilder, SourceFieldBuilder fieldBuilder) {
-    _field
-      ..isCovariant = fieldBuilder.isCovariant
-      ..isFinal = fieldBuilder.isFinal
-      ..isConst = fieldBuilder.isConst;
+    _field..isCovariant = fieldBuilder.isCovariant;
     String fieldName;
     if (fieldBuilder.isExtensionMember) {
       ExtensionBuilder extension = fieldBuilder.parent;
@@ -641,8 +664,6 @@ class RegularFieldEncoding implements FieldEncoding {
           FieldNameType.Field, fieldBuilder.name,
           isExtensionMethod: true, extensionName: extension.name);
       _field
-        ..hasImplicitGetter = false
-        ..hasImplicitSetter = false
         ..isStatic = true
         ..isExtensionMember = true;
     } else {
@@ -654,11 +675,6 @@ class RegularFieldEncoding implements FieldEncoding {
           FieldNameType.Field, fieldBuilder.name,
           isInstanceMember: isInstanceMember, className: className);
       _field
-        ..hasImplicitGetter = isInstanceMember
-        ..hasImplicitSetter = isInstanceMember &&
-            !fieldBuilder.isConst &&
-            (!fieldBuilder.isFinal ||
-                (fieldBuilder.isLate && !fieldBuilder.hasInitializer))
         ..isStatic = !isInstanceMember
         ..isExtensionMember = false;
     }
@@ -806,7 +822,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         _isSetStrategy = isSetStrategy,
         _forceIncludeIsSetField =
             isSetStrategy == late_lowering.IsSetStrategy.forceUseIsSetField {
-    _field = new Field(null,
+    _field = new Field.mutable(null,
         fileUri: fileUri,
         getterReference: referenceFrom?.getterReference,
         setterReference: referenceFrom?.setterReference)
@@ -821,7 +837,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         break;
       case late_lowering.IsSetStrategy.forceUseIsSetField:
       case late_lowering.IsSetStrategy.useIsSetFieldOrNull:
-        _lateIsSetField = new Field(null,
+        _lateIsSetField = new Field.mutable(null,
             fileUri: fileUri,
             getterReference: lateIsSetReferenceFrom?.getterReference,
             setterReference: lateIsSetReferenceFrom?.setterReference)
@@ -1042,16 +1058,12 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       ExtensionBuilder extension = fieldBuilder.parent;
       extensionName = extension.name;
       _field
-        ..hasImplicitGetter = false
-        ..hasImplicitSetter = false
         ..isStatic = true
         ..isExtensionMember = isExtensionMember;
       isInstanceMember = false;
     } else {
       isInstanceMember = !fieldBuilder.isStatic && !fieldBuilder.isTopLevel;
       _field
-        ..hasImplicitGetter = isInstanceMember
-        ..hasImplicitSetter = isInstanceMember
         ..isStatic = !isInstanceMember
         ..isExtensionMember = false;
       if (isInstanceMember) {
@@ -1079,8 +1091,6 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
                 isSynthesized: true),
             libraryBuilder.library)
         ..isStatic = !isInstanceMember
-        ..hasImplicitGetter = isInstanceMember
-        ..hasImplicitSetter = isInstanceMember
         ..isStatic = _field.isStatic
         ..isExtensionMember = isExtensionMember;
     }

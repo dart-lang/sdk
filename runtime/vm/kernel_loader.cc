@@ -970,8 +970,8 @@ void KernelLoader::CheckForInitializer(const Field& field) {
         converter.IsSimple(helper_.ReaderOffset() + 1);
     if (!has_simple_initializer || !converter.SimpleValue().IsNull()) {
       field.set_has_nontrivial_initializer(true);
-      return;
     }
+    return;
   }
   field.set_has_initializer(false);
   field.set_has_nontrivial_initializer(false);

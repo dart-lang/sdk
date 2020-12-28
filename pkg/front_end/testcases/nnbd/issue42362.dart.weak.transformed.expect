@@ -103,7 +103,7 @@ import "dart:core" as core;
 
 class A extends core::Object {
   final field core::int i;
-  static field dynamic _redirecting# = <dynamic>[self::A::factory3, self::A::factory4, self::A::factory5, self::A::factory6, self::A::factory7]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[self::A::factory3, self::A::factory4, self::A::factory5, self::A::factory6, self::A::factory7]/*isLegacy*/;
   constructor constructor1([core::int i = #C1]) → self::A
     : self::A::i = i, super core::Object::•()
     ;
@@ -170,7 +170,7 @@ abstract class B extends core::Object {
 }
 class C extends core::Object implements self::B {
   field core::int i;
-  static field dynamic _redirecting# = <dynamic>[self::C::factory3, self::C::factory4, self::C::factory5, self::C::factory6, self::C::factory7]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[self::C::factory3, self::C::factory4, self::C::factory5, self::C::factory6, self::C::factory7]/*isLegacy*/;
   constructor constructor1([core::int i = #C1]) → self::C
     : self::C::i = i, super core::Object::•()
     ;

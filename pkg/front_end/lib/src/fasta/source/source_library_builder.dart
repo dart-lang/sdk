@@ -980,12 +980,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     if (unserializableExports != null) {
       Field referenceFrom = referencesFromIndexed?.lookupField("_exports#");
-      library.addField(new Field(new Name("_exports#", library),
+      library.addField(new Field.immutable(new Name("_exports#", library),
           initializer: new StringLiteral(jsonEncode(unserializableExports)),
           isStatic: true,
           isConst: true,
-          getterReference: referenceFrom?.getterReference,
-          setterReference: referenceFrom?.setterReference));
+          getterReference: referenceFrom?.getterReference));
     }
 
     return library;
@@ -1287,7 +1286,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                     // so replacing a field with a getter/setter pair still
                     // exports correctly.
                     library.additionalExports.add(member.getterReference);
-                    library.additionalExports.add(member.setterReference);
+                    if (member.hasSetter) {
+                      library.additionalExports.add(member.setterReference);
+                    }
                   } else {
                     library.additionalExports.add(member.reference);
                   }

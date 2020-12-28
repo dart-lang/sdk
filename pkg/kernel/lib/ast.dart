@@ -545,9 +545,11 @@ class Library extends NamedNode
     for (int i = 0; i < fields.length; ++i) {
       Field field = fields[i];
       canonicalName.getChildFromField(field).bindTo(field.getterReference);
-      canonicalName
-          .getChildFromFieldSetter(field)
-          .bindTo(field.setterReference);
+      if (field.hasSetter) {
+        canonicalName
+            .getChildFromFieldSetter(field)
+            .bindTo(field.setterReference);
+      }
     }
     for (int i = 0; i < procedures.length; ++i) {
       Procedure member = procedures[i];
@@ -1192,9 +1194,11 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     for (int i = 0; i < fields.length; ++i) {
       Field member = fields[i];
       canonicalName.getChildFromField(member).bindTo(member.getterReference);
-      canonicalName
-          .getChildFromFieldSetter(member)
-          .bindTo(member.setterReference);
+      if (member.hasSetter) {
+        canonicalName
+            .getChildFromFieldSetter(member)
+            .bindTo(member.setterReference);
+      }
     }
     for (int i = 0; i < procedures.length; ++i) {
       Procedure member = procedures[i];
@@ -1683,26 +1687,42 @@ class Field extends Member {
   CanonicalName get getterCanonicalName => getterReference?.canonicalName;
   CanonicalName get setterCanonicalName => setterReference?.canonicalName;
 
-  Field(Name name,
+  Field.mutable(Name name,
+      {this.type: const DynamicType(),
+      this.initializer,
+      bool isCovariant: false,
+      bool isFinal: false,
+      bool isStatic: false,
+      bool isLate: false,
+      int transformerFlags: 0,
+      Uri fileUri,
+      Reference getterReference,
+      Reference setterReference})
+      : this.setterReference = setterReference ?? new Reference(),
+        super(name, fileUri, getterReference) {
+    this.setterReference.node = this;
+    assert(type != null);
+    initializer?.parent = this;
+    this.isCovariant = isCovariant;
+    this.isFinal = isFinal;
+    this.isStatic = isStatic;
+    this.isLate = isLate;
+    this.transformerFlags = transformerFlags;
+  }
+
+  Field.immutable(Name name,
       {this.type: const DynamicType(),
       this.initializer,
       bool isCovariant: false,
       bool isFinal: false,
       bool isConst: false,
       bool isStatic: false,
-      bool hasImplicitGetter,
-      bool hasImplicitSetter,
       bool isLate: false,
       int transformerFlags: 0,
       Uri fileUri,
-      Reference getterReference,
-      Reference setterReference})
-      :
-        // TODO(jensj): Maybe don't create one for final fields?
-        // ('final' is a mutable setting though).
-        this.setterReference = setterReference ?? new Reference(),
+      Reference getterReference})
+      : this.setterReference = null,
         super(name, fileUri, getterReference) {
-    this.setterReference.node = this;
     assert(type != null);
     initializer?.parent = this;
     this.isCovariant = isCovariant;
@@ -1710,31 +1730,26 @@ class Field extends Member {
     this.isConst = isConst;
     this.isStatic = isStatic;
     this.isLate = isLate;
-    this.hasImplicitGetter = hasImplicitGetter ?? !isStatic;
-    this.hasImplicitSetter = hasImplicitSetter ??
-        (!isStatic &&
-            !isConst &&
-            (!isFinal || (isLate && initializer == null)));
     this.transformerFlags = transformerFlags;
   }
 
   @override
   void _relinkNode() {
     super._relinkNode();
-    this.setterReference.node = this;
+    if (hasSetter) {
+      this.setterReference.node = this;
+    }
   }
 
   static const int FlagFinal = 1 << 0; // Must match serialized bit positions.
   static const int FlagConst = 1 << 1;
   static const int FlagStatic = 1 << 2;
-  static const int FlagHasImplicitGetter = 1 << 3;
-  static const int FlagHasImplicitSetter = 1 << 4;
-  static const int FlagCovariant = 1 << 5;
-  static const int FlagGenericCovariantImpl = 1 << 6;
-  static const int FlagLate = 1 << 7;
-  static const int FlagExtensionMember = 1 << 8;
-  static const int FlagNonNullableByDefault = 1 << 9;
-  static const int FlagInternalImplementation = 1 << 10;
+  static const int FlagCovariant = 1 << 3;
+  static const int FlagGenericCovariantImpl = 1 << 4;
+  static const int FlagLate = 1 << 5;
+  static const int FlagExtensionMember = 1 << 6;
+  static const int FlagNonNullableByDefault = 1 << 7;
+  static const int FlagInternalImplementation = 1 << 8;
 
   /// Whether the field is declared with the `covariant` keyword.
   bool get isCovariant => flags & FlagCovariant != 0;
@@ -1745,26 +1760,6 @@ class Field extends Member {
 
   @override
   bool get isExtensionMember => flags & FlagExtensionMember != 0;
-
-  /// If true, a getter should be generated for this field.
-  ///
-  /// If false, there may or may not exist an explicit getter in the same class
-  /// with the same name as the field.
-  ///
-  /// By default, all non-static fields have implicit getters.
-  bool get hasImplicitGetter => flags & FlagHasImplicitGetter != 0;
-
-  /// If true, a setter should be generated for this field.
-  ///
-  /// If false, there may or may not exist an explicit setter in the same class
-  /// with the same name as the field.
-  ///
-  /// Final fields never have implicit setters, but a field without an implicit
-  /// setter is not necessarily final, as it may be mutated by direct field
-  /// access.
-  ///
-  /// By default, all non-static, non-final fields have implicit setters.
-  bool get hasImplicitSetter => flags & FlagHasImplicitSetter != 0;
 
   /// Indicates whether the implicit setter associated with this field needs to
   /// contain a runtime type check to deal with generic covariance.
@@ -1804,18 +1799,6 @@ class Field extends Member {
         value ? (flags | FlagExtensionMember) : (flags & ~FlagExtensionMember);
   }
 
-  void set hasImplicitGetter(bool value) {
-    flags = value
-        ? (flags | FlagHasImplicitGetter)
-        : (flags & ~FlagHasImplicitGetter);
-  }
-
-  void set hasImplicitSetter(bool value) {
-    flags = value
-        ? (flags | FlagHasImplicitSetter)
-        : (flags & ~FlagHasImplicitSetter);
-  }
-
   void set isGenericCovariantImpl(bool value) {
     flags = value
         ? (flags | FlagGenericCovariantImpl)
@@ -1832,11 +1815,9 @@ class Field extends Member {
         : (flags & ~FlagInternalImplementation);
   }
 
-  /// True if the field is neither final nor const.
-  bool get isMutable => flags & (FlagFinal | FlagConst) == 0;
   bool get isInstanceMember => !isStatic;
   bool get hasGetter => true;
-  bool get hasSetter => isMutable || isLate && initializer == null;
+  bool get hasSetter => setterReference != null;
 
   bool get isExternal => false;
   void set isExternal(bool value) {

@@ -6,7 +6,7 @@ import "package:expect/expect.dart" as exp;
 import "package:expect/expect.dart";
 
 class A extends core::Object /*hasConstConstructor*/  {
-  static field dynamic _redirecting# = <dynamic>[self::A::•];
+  static final field dynamic _redirecting# = <dynamic>[self::A::•];
   const constructor empty() → self::A*
     : super core::Object::•()
     ;

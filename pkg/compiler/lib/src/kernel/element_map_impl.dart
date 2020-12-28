@@ -1342,7 +1342,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     bool isStatic = node.isStatic;
     IndexedField field = createField(library, enclosingClass, name,
         isStatic: isStatic,
-        isAssignable: node.isMutable,
+        isAssignable: node.hasSetter,
         isConst: node.isConst);
     return members.register<IndexedField, KFieldData>(
         field, new KFieldDataImpl(node));

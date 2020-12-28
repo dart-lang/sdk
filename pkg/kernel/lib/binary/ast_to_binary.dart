@@ -1260,13 +1260,20 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitField(Field node) {
-    if (node.getterCanonicalName == null || node.setterCanonicalName == null) {
+    if (node.getterCanonicalName == null) {
+      throw new ArgumentError('Missing canonical name for $node');
+    }
+    if (node.hasSetter && node.setterCanonicalName == null) {
       throw new ArgumentError('Missing canonical name for $node');
     }
     enterScope(memberScope: true);
     writeByte(Tag.Field);
     writeNonNullCanonicalNameReference(getCanonicalNameOfMemberGetter(node));
-    writeNonNullCanonicalNameReference(getCanonicalNameOfMemberSetter(node));
+    if (node.hasSetter) {
+      writeNonNullCanonicalNameReference(getCanonicalNameOfMemberSetter(node));
+    } else {
+      writeNullAllowedReference(null);
+    }
     writeUriReference(node.fileUri);
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);

@@ -1361,14 +1361,18 @@ class BinaryBuilder {
     CanonicalName getterCanonicalName = readCanonicalNameReference();
     Reference getterReference = getterCanonicalName.getReference();
     CanonicalName setterCanonicalName = readCanonicalNameReference();
-    Reference setterReference = setterCanonicalName.getReference();
+    Reference setterReference = setterCanonicalName?.getReference();
     Field node = getterReference.node;
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
     if (node == null) {
-      node = new Field(null,
-          getterReference: getterReference, setterReference: setterReference);
+      if (setterReference != null) {
+        node = new Field.mutable(null,
+            getterReference: getterReference, setterReference: setterReference);
+      } else {
+        node = new Field.immutable(null, getterReference: getterReference);
+      }
     }
     Uri fileUri = readUriReference();
     int fileOffset = readOffset();

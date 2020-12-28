@@ -131,7 +131,7 @@ class KLibraryEnv {
           }
         } else if (member is ir.Field) {
           _memberMap[member.name.text] = member;
-          if (member.isMutable) {
+          if (member.hasSetter) {
             _setterMap[member.name.text] = member;
           }
         } else {
@@ -334,7 +334,7 @@ class KClassEnvImpl implements KClassEnv {
       if (isRedirectingFactoryField(member)) return;
       var name = member.name.text;
       _memberMap[name] = member;
-      if (member.isMutable) {
+      if (member.hasSetter) {
         _setterMap[name] = member;
       }
       members.add(member);
