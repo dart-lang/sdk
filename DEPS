@@ -159,7 +159,7 @@ vars = {
   "test_reflective_loader_rev": "b76ae201ab9c6f3b90643958965e7cc215a38e9b",
   "test_rev": "e37a93bbeae23b215972d1659ac865d71287ff6a",
   "typed_data_tag": "f94fc57b8e8c0e4fe4ff6cfd8290b94af52d3719",
-  "usage_tag": "16fbfd90c58f16e016a295a880bc722d2547d2c9",
+  "usage_rev": "6c64d9e7b6b3758d06d030efcb5afe20bfc04dde",
   "vector_math_rev": "0c9f5d68c047813a6dcdeb88ba7a42daddf25025",
   "watcher_rev": "1fb0a84acd8d195103f10aba03ba6bd6fdb424e5",
   "webdriver_rev": "5a8d6805d9cf8a3cbb4fcd64849b538b7491e50e",
@@ -444,7 +444,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/typed_data":
       Var("dart_git") + "typed_data.git" + "@" + Var("typed_data_tag"),
   Var("dart_root") + "/third_party/pkg/usage":
-      Var("dart_git") + "usage.git" + "@" + Var("usage_tag"),
+      Var("dart_git") + "usage.git" + "@" + Var("usage_rev"),
   Var("dart_root") + "/third_party/pkg/vector_math":
       Var("dart_git") + "external/github.com/google/vector_math.dart.git" +
       "@" + Var("vector_math_rev"),
