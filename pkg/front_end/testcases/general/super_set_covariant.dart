@@ -7,7 +7,7 @@ class SuperClass {
 }
 
 abstract class Class extends SuperClass {
-  // TODO(johnniwinther): Should this introduce a forwarding super stub, and
+  // TODO(johnniwinther): Should this introduce a concrete forwarding stub, and
   // if so, should the target of the super set below be the forwarding super
   // stub?
   void set setter(covariant int o);

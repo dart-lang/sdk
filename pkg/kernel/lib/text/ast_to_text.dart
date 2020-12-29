@@ -1119,8 +1119,8 @@ class Printer extends Visitor<Null> {
     writeModifier(node.isForwardingSemiStub, 'forwarding-semi-stub');
     switch (node.stubKind) {
       case ProcedureStubKind.Regular:
-      case ProcedureStubKind.ForwardingStub:
-      case ProcedureStubKind.ForwardingSuperStub:
+      case ProcedureStubKind.AbstractForwardingStub:
+      case ProcedureStubKind.ConcreteForwardingStub:
         break;
       case ProcedureStubKind.NoSuchMethodForwarder:
         writeWord('no-such-method-forwarder');
@@ -1128,10 +1128,10 @@ class Printer extends Visitor<Null> {
       case ProcedureStubKind.MemberSignature:
         writeWord('member-signature');
         break;
-      case ProcedureStubKind.MixinStub:
+      case ProcedureStubKind.AbstractMixinStub:
         writeWord('mixin-stub');
         break;
-      case ProcedureStubKind.MixinSuperStub:
+      case ProcedureStubKind.ConcreteMixinStub:
         writeWord('mixin-super-stub');
         break;
     }

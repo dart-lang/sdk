@@ -343,14 +343,14 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
       problem(
           node, "Member signature must have a member signature origin $node.");
     }
-    if (node.forwardingStubInterfaceTarget != null &&
+    if (node.abstractForwardingStubTarget != null &&
         !(node.isForwardingStub || node.isForwardingSemiStub)) {
       problem(
           node,
           "Only forwarding stubs can have a forwarding stub interface target "
           "$node.");
     }
-    if (node.forwardingStubSuperTarget != null &&
+    if (node.concreteForwardingStubTarget != null &&
         !(node.isForwardingStub || node.isForwardingSemiStub)) {
       problem(
           node,

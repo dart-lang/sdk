@@ -1494,7 +1494,7 @@ class BinaryBuilder {
     node.stubKind = stubKind;
     node.stubTargetReference = stubTargetReference;
 
-    assert((node.stubKind == ProcedureStubKind.ForwardingSuperStub &&
+    assert((node.stubKind == ProcedureStubKind.ConcreteForwardingStub &&
             node.stubTargetReference != null) ||
         !(node.isForwardingStub && node.function.body != null));
     assert(!(node.isMemberSignature && node.stubTargetReference == null),

@@ -271,15 +271,15 @@ bool memberEntityIsInWebLibrary(MemberEntity entity) {
 
 /// Returns the effective target of a super access of [target].
 ///
-/// If [target] is a mixin super stub then the stub target is returned instead
-/// of the mixin super stub. This is done to avoid unnecessary indirections
-/// in super accesses.
+/// If [target] is a concrete mixin stub then the stub target is returned
+/// instead of the concrete mixin stub. This is done to avoid unnecessary
+/// indirections in super accesses.
 ///
-/// See [ir.ProcedureStubKind.MixinSuperStub] for why mixin super stubs are
-/// inserted in the first place.
+/// See [ir.ProcedureStubKind.ConcreteMixinStub] for why concrete mixin stubs
+/// are inserted in the first place.
 ir.Member getEffectiveSuperTarget(ir.Member target) {
   if (target is ir.Procedure) {
-    if (target.stubKind == ir.ProcedureStubKind.MixinSuperStub) {
+    if (target.stubKind == ir.ProcedureStubKind.ConcreteMixinStub) {
       return getEffectiveSuperTarget(target.stubTarget);
     }
   }

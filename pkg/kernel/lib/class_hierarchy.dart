@@ -1201,7 +1201,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     if (members != null) return members;
 
     // To support that mixin application can declare their own members, for
-    // instance cloned mixin members and forwarding super stubs, we first
+    // instance cloned mixin members and concrete forwarding stubs, we first
     // collect the members in a map before creating the list of members, so that
     // declared members can replace mixed in members.
     Map<Name, Member> memberMap = {};

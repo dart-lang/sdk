@@ -1880,8 +1880,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (member.isGetter) return const [];
 
     var enclosingClass = member.enclosingClass;
-    var superMember = member.forwardingStubSuperTarget ??
-        member.forwardingStubInterfaceTarget;
+    var superMember = member.concreteForwardingStubTarget ??
+        member.abstractForwardingStubTarget;
 
     if (superMember == null) return const [];
 

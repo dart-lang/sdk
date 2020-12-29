@@ -80,7 +80,7 @@ class ScopeOffsetValidator extends Visitor<void> {
             ? member.isNoSuchMethodForwarder ||
                 member.isAbstract ||
                 member.isForwardingStub ||
-                member.stubKind == ProcedureStubKind.MixinSuperStub
+                member.stubKind == ProcedureStubKind.ConcreteMixinStub
             : (member is Field)
                 ? member.name.name.contains(redirectingName)
                 : false;

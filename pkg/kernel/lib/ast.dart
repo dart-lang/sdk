@@ -2144,16 +2144,16 @@ enum ProcedureStubKind {
   ///        void method2(int o) {}
   ///     }
   ///     class C implements A<int>, B {
-  ///        // Forwarding stub needed because the parameter is covariant in
-  ///        // `B.method1` but not in `A.method1`.
+  ///        // Abstract forwarding stub needed because the parameter is
+  ///        // covariant in `B.method1` but not in `A.method1`.
   ///        void method1(covariant num o);
-  ///        // Forwarding stub needed because the parameter is a generic
-  ///        // covariant impl in `A.method2` but not in `B.method2`.
+  ///        // Abstract forwarding stub needed because the parameter is a
+  ///        // generic covariant impl in `A.method2` but not in `B.method2`.
   ///        void method2(/*generic-covariant-impl*/ int o);
   ///     }
   ///
   /// The stub target is one of the overridden members.
-  ForwardingStub,
+  AbstractForwardingStub,
 
   /// A concrete procedure inserted to add `isCovariant` and
   /// `isGenericCovariantImpl` checks to parameters before calling the
@@ -2172,15 +2172,15 @@ enum ProcedureStubKind {
   ///        void method2(int o) {}
   ///     }
   ///     class C extends A<int> implements B {
-  ///        // Forwarding stub needed because the parameter is covariant in
-  ///        // `B.method1` but not in `A.method1`.
+  ///        // Concrete forwarding stub needed because the parameter is
+  ///        // covariant in `B.method1` but not in `A.method1`.
   ///        void method1(covariant num o) => super.method1(o);
-  ///        // No need for a super stub for `A.method2` because it has the
-  ///        // right covariance flags already.
+  ///        // No need for a concrete forwarding stub for `A.method2` because
+  ///        // it has the right covariance flags already.
   ///     }
   ///
   /// The stub target is the called superclass member.
-  ForwardingSuperStub,
+  ConcreteForwardingStub,
 
   /// A concrete procedure inserted to forward calls to `noSuchMethod` for
   /// an inherited member that it does not implement.
@@ -2255,22 +2255,23 @@ enum ProcedureStubKind {
   ///        void method();
   ///     }
   ///     class Class = Super with Mixin
-  ///       // A mixin stub for `A.method` is added to `Class`
+  ///       // An abstract mixin stub for `A.method` is added to `Class`
   ///       void method();
   ///     ;
   ///
   /// This is added to ensure that interface targets are resolved consistently
-  /// in face of cloning. For instance, without the mixin stub, this call:
+  /// in face of cloning. For instance, without the abstract mixin stub, this
+  /// call:
   ///
   ///     method(Class c) => c.method();
   ///
-  /// would use `Mixin.method` as its target, but after load from a VM .dill
+  /// would use `Mixin.method` as its target, but after loading from a VM .dill
   /// (which clones all mixin members) the call would resolve to `Class.method`
   /// instead. By adding the mixin stub to `Class`, all accesses both before
   /// and after .dill will point to `Class.method`.
   ///
   /// The stub target is the mixin member.
-  MixinStub,
+  AbstractMixinStub,
 
   /// A concrete procedure inserted for the application of a concrete mixin
   /// member. The implementation calls the mixin member via a super-call.
@@ -2283,26 +2284,26 @@ enum ProcedureStubKind {
   ///        void method() {}
   ///     }
   ///     class Class = Super with Mixin
-  ///       // A mixin stub for `A.method` is added to `Class` which calls
-  ///       // `A.method`.
+  ///       // A concrete mixin stub for `A.method` is added to `Class` which
+  ///       // calls `A.method`.
   ///       void method() => super.method();
   ///     ;
   ///
   /// This is added to ensure that super accesses are resolved correctly, even
-  /// in face of cloning. For instance, without the mixin super stub, this super
-  /// call:
+  /// in face of cloning. For instance, without the concrete mixin stub, this
+  /// super call:
   ///
   ///     class Subclass extends Class {
   ///       method(Class c) => super.method();
   ///     }
   ///
   /// would use `Mixin.method` as its target, which would need to be updated to
-  /// match the clone of mixin member performed for instance by the VM. By
-  /// adding the mixin super stub to `Class`, all accesses both before and after
-  /// cloning will point to `Class.method`.
+  /// match the clone of the mixin member performed for instance by the VM. By
+  /// adding the concrete mixin stub to `Class`, all accesses both before and
+  /// after cloning will point to `Class.method`.
   ///
   /// The stub target is the called mixin member.
-  MixinSuperStub,
+  ConcreteMixinStub,
 }
 
 /// A method, getter, setter, index-getter, index-setter, operator overloader,
@@ -2438,22 +2439,19 @@ class Procedure extends Member {
 
   /// If set, this flag indicates that this function's implementation exists
   /// solely for the purpose of type checking arguments and forwarding to
-  /// [forwardingStubSuperTarget].
+  /// [concreteForwardingStubTarget].
   ///
   /// Note that just because this bit is set doesn't mean that the function was
   /// not declared in the source; it's possible that this is a forwarding
   /// semi-stub (see isForwardingSemiStub).  To determine whether this function
   /// was present in the source, consult [isSyntheticForwarder].
   bool get isForwardingStub =>
-      stubKind == ProcedureStubKind.ForwardingStub ||
-      stubKind == ProcedureStubKind.ForwardingSuperStub;
+      stubKind == ProcedureStubKind.AbstractForwardingStub ||
+      stubKind == ProcedureStubKind.ConcreteForwardingStub;
 
   /// If set, this flag indicates that although this function is a forwarding
   /// stub, it was present in the original source as an abstract method.
-  bool get isForwardingSemiStub =>
-      !isSynthetic &&
-      (stubKind == ProcedureStubKind.ForwardingStub ||
-          stubKind == ProcedureStubKind.ForwardingSuperStub);
+  bool get isForwardingSemiStub => !isSynthetic && isForwardingStub;
 
   /// If set, this method is a class member added to show the type of an
   /// inherited member.
@@ -2472,7 +2470,7 @@ class Procedure extends Member {
 
   /// If set, this flag indicates that this function was not present in the
   /// source, and it exists solely for the purpose of type checking arguments
-  /// and forwarding to [forwardingStubSuperTarget].
+  /// and forwarding to [concreteForwardingStubTarget].
   bool get isSyntheticForwarder => isForwardingStub && !isForwardingSemiStub;
   bool get isSynthetic => flags & FlagSynthetic != 0;
 
@@ -2531,13 +2529,13 @@ class Procedure extends Member {
         : (flags & ~FlagNonNullableByDefault);
   }
 
-  Member get forwardingStubSuperTarget =>
-      stubKind == ProcedureStubKind.ForwardingSuperStub
+  Member get concreteForwardingStubTarget =>
+      stubKind == ProcedureStubKind.ConcreteForwardingStub
           ? stubTargetReference?.asMember
           : null;
 
-  Member get forwardingStubInterfaceTarget =>
-      stubKind == ProcedureStubKind.ForwardingStub
+  Member get abstractForwardingStubTarget =>
+      stubKind == ProcedureStubKind.AbstractForwardingStub
           ? stubTargetReference?.asMember
           : null;
 

@@ -200,7 +200,7 @@ abstract class JClassEnv {
   /// Whether the class is a mixin application with its own members.
   ///
   /// This occurs when a mixin contains methods with super calls or when
-  /// the mixin application contains forwarding super stubs.
+  /// the mixin application contains concrete forwarding stubs.
   bool get isMixinApplicationWithMembers;
 
   /// Return the [MemberEntity] for the member [name] in the class. If [setter]

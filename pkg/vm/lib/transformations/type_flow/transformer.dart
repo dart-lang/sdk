@@ -592,17 +592,17 @@ class TreeShaker {
         m.type.accept(typeVisitor);
       } else if (m is Procedure) {
         func = m.function;
-        if (m.forwardingStubSuperTarget != null) {
+        if (m.concreteForwardingStubTarget != null) {
           m.stubTarget = fieldMorpher.adjustInstanceCallTarget(
-              m.forwardingStubSuperTarget,
+              m.concreteForwardingStubTarget,
               isSetter: m.isSetter);
-          addUsedMember(m.forwardingStubSuperTarget);
+          addUsedMember(m.concreteForwardingStubTarget);
         }
-        if (m.forwardingStubInterfaceTarget != null) {
+        if (m.abstractForwardingStubTarget != null) {
           m.stubTarget = fieldMorpher.adjustInstanceCallTarget(
-              m.forwardingStubInterfaceTarget,
+              m.abstractForwardingStubTarget,
               isSetter: m.isSetter);
-          addUsedMember(m.forwardingStubInterfaceTarget);
+          addUsedMember(m.abstractForwardingStubTarget);
         }
         if (m.memberSignatureOrigin != null) {
           m.stubTarget = fieldMorpher.adjustInstanceCallTarget(
@@ -1328,8 +1328,8 @@ class _TreeShakerPass2 extends Transformer {
           _makeUnreachableBody(node.function);
         }
         node.function.asyncMarker = AsyncMarker.Sync;
-        if (node.forwardingStubSuperTarget != null ||
-            node.forwardingStubInterfaceTarget != null) {
+        if (node.concreteForwardingStubTarget != null ||
+            node.abstractForwardingStubTarget != null) {
           node.stubTarget = null;
         }
         Statistics.methodBodiesDropped++;

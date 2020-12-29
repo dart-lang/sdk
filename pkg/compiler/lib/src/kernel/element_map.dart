@@ -187,13 +187,13 @@ bool memberIsIgnorable(ir.Member node, {ir.Class cls}) {
   ir.Procedure member = node;
   switch (member.stubKind) {
     case ir.ProcedureStubKind.Regular:
-    case ir.ProcedureStubKind.ForwardingSuperStub:
+    case ir.ProcedureStubKind.ConcreteForwardingStub:
     case ir.ProcedureStubKind.NoSuchMethodForwarder:
       return false;
-    case ir.ProcedureStubKind.ForwardingStub:
+    case ir.ProcedureStubKind.AbstractForwardingStub:
     case ir.ProcedureStubKind.MemberSignature:
-    case ir.ProcedureStubKind.MixinStub:
-    case ir.ProcedureStubKind.MixinSuperStub:
+    case ir.ProcedureStubKind.AbstractMixinStub:
+    case ir.ProcedureStubKind.ConcreteMixinStub:
       return true;
   }
   return false;

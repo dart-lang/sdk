@@ -245,7 +245,7 @@ abstract class KClassEnv {
   /// Whether the class is a mixin application with its own members.
   ///
   /// This occurs when a mixin contains methods with super calls or when
-  /// the mixin application contains forwarding super stubs.
+  /// the mixin application contains concrete forwarding stubs.
   bool get isMixinApplicationWithMembers;
 
   /// Ensures that all members have been computed for [cls].

@@ -101,9 +101,9 @@ class ForwardingNode {
       if (needsForwardingStub || needMixinStub) {
         ProcedureStubKind stubKind;
         if (needsForwardingStub) {
-          stubKind = ProcedureStubKind.ForwardingStub;
+          stubKind = ProcedureStubKind.AbstractForwardingStub;
         } else {
-          stubKind = ProcedureStubKind.MixinStub;
+          stubKind = ProcedureStubKind.AbstractMixinStub;
         }
 
         // This is a forward stub.
@@ -114,10 +114,10 @@ class ForwardingNode {
             case ProcedureStubKind.NoSuchMethodForwarder:
               finalTarget = interfaceMember;
               break;
-            case ProcedureStubKind.ForwardingStub:
-            case ProcedureStubKind.ForwardingSuperStub:
-            case ProcedureStubKind.MixinStub:
-            case ProcedureStubKind.MixinSuperStub:
+            case ProcedureStubKind.AbstractForwardingStub:
+            case ProcedureStubKind.ConcreteForwardingStub:
+            case ProcedureStubKind.AbstractMixinStub:
+            case ProcedureStubKind.ConcreteMixinStub:
             case ProcedureStubKind.MemberSignature:
               finalTarget = interfaceMember.stubTarget;
               break;
@@ -168,7 +168,7 @@ class ForwardingNode {
         _superClassMember.getMember(_combinedMemberSignature.hierarchy);
     if (superTarget is Procedure && superTarget.isForwardingStub) {
       Procedure superProcedure = superTarget;
-      superTarget = superProcedure.forwardingStubSuperTarget;
+      superTarget = superProcedure.concreteForwardingStubTarget;
     } else {
       superTarget = superTarget.memberSignatureOrigin ?? superTarget;
     }
@@ -213,8 +213,8 @@ class ForwardingNode {
     function.body = new ReturnStatement(superCall)..parent = function;
     procedure.transformerFlags |= TransformerFlag.superCalls;
     procedure.stubKind = isForwardingStub
-        ? ProcedureStubKind.ForwardingSuperStub
-        : ProcedureStubKind.MixinSuperStub;
+        ? ProcedureStubKind.ConcreteForwardingStub
+        : ProcedureStubKind.ConcreteMixinStub;
     procedure.stubTarget = superTarget;
   }
 }

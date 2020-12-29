@@ -2408,7 +2408,7 @@ abstract class JElementEnvironment extends ElementEnvironment {
   /// Returns `true` if [cls] is a mixin application with its own members.
   ///
   /// This occurs when a mixin contains methods with super calls or when
-  /// the mixin application contains forwarding super stubs.
+  /// the mixin application contains concrete forwarding stubs.
   bool isMixinApplicationWithMembers(ClassEntity cls);
 
   /// The default type of the [typeVariable].

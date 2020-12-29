@@ -675,18 +675,18 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
           this, _summary, _receiver, _fnTypeVariables, _genericInterfacesInfo);
 
       // Handle forwarding stubs. We need to check types against the types of
-      // the forwarding stub's target, [member.forwardingStubSuperTarget].
+      // the forwarding stub's target, [member.concreteForwardingStubTarget].
       FunctionNode useTypesFrom = member.function;
       if (member is Procedure &&
           member.isForwardingStub &&
-          member.forwardingStubSuperTarget != null) {
-        final target = member.forwardingStubSuperTarget;
+          member.concreteForwardingStubTarget != null) {
+        final target = member.concreteForwardingStubTarget;
         if (target is Field) {
           useTypesFrom = FunctionNode(null, positionalParameters: [
             VariableDeclaration("value", type: target.type)
           ]);
         } else {
-          useTypesFrom = member.forwardingStubSuperTarget.function;
+          useTypesFrom = member.concreteForwardingStubTarget.function;
         }
       }
 

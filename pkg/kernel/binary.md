@@ -399,12 +399,12 @@ enum ProcedureKind {
 /*
 enum ProcedureStubKind {
   Regular,
-  ForwardingStub,
-  ForwardingSuperStub,
+  AbstractForwardingStub,
+  ConcreteForwardingStub,
   NoSuchMethodForwarder,
   MemberSignature,
-  MixinStub,
-  MixinSuperStub,
+  AbstractMixinStub,
+  ConcreteMixinStub,
 }
 */
 
