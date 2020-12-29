@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:dds/dds.dart';
+import 'package:dds/src/dds_impl.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:pedantic/pedantic.dart';
 import 'package:test/test.dart';
