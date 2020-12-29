@@ -95,7 +95,7 @@
       "name": "analyzer_utilities",
       "rootUri": "../pkg/analyzer_utilities",
       "packageUri": "lib/",
-      "languageVersion": "2.1"
+      "languageVersion": "2.12"
     },
     {
       "name": "args",

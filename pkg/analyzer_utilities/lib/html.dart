@@ -76,7 +76,7 @@ dom.Element makeElement(
  * Mixin class for generating HTML.
  */
 mixin HtmlGenerator {
-  List<dom.Node> _html;
+  List<dom.Node> _html = [];
 
   /**
    * Add the given [node] to the HTML output.
@@ -99,7 +99,7 @@ mixin HtmlGenerator {
    * [writeln], [add], [addAll] or [element], and return the result as a list
    * of HTML nodes.
    */
-  List<dom.Node> collectHtml(void callback()) {
+  List<dom.Node> collectHtml(void Function()? callback) {
     List<dom.Node> oldHtml = _html;
     try {
       _html = <dom.Node>[];
@@ -117,7 +117,7 @@ mixin HtmlGenerator {
    * [name] and [attributes].
    */
   void element(String name, Map<dynamic, String> attributes,
-      [void callback()]) {
+      [void Function()? callback]) {
     add(makeElement(name, attributes, collectHtml(callback)));
   }
 

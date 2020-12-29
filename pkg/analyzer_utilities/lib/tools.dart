@@ -56,7 +56,7 @@ typedef Future<String> FileContentsComputer(String pkgPath);
  * Mixin class for generating code.
  */
 class CodeGenerator {
-  _CodeGeneratorState _state;
+  _CodeGeneratorState _state = _CodeGeneratorState();
 
   /**
    * Settings that specialize code generation behavior for a given
@@ -98,16 +98,23 @@ class CodeGenerator {
    */
   void docComment(List<dom.Node> docs, {bool removeTrailingNewLine: false}) {
     if (containsOnlyWhitespace(docs)) return;
-    if (codeGeneratorSettings.docCommentStartMarker != null)
-      writeln(codeGeneratorSettings.docCommentStartMarker);
+
+    var startMarker = codeGeneratorSettings.docCommentStartMarker;
+    if (startMarker != null) {
+      writeln(startMarker);
+    }
+
     int width = codeGeneratorSettings.commentLineLength;
     bool javadocStyle = codeGeneratorSettings.languageName == 'java';
     indentBy(codeGeneratorSettings.docCommentLineLeader, () {
       write(nodesToText(docs, width - _state.indent.length, javadocStyle,
           removeTrailingNewLine: removeTrailingNewLine));
     });
-    if (codeGeneratorSettings.docCommentEndMarker != null)
-      writeln(codeGeneratorSettings.docCommentEndMarker);
+
+    var endMarker = codeGeneratorSettings.docCommentEndMarker;
+    if (endMarker != null) {
+      writeln(endMarker);
+    }
   }
 
   /**
@@ -154,7 +161,7 @@ class CodeGenerator {
     });
   }
 
-  void outputHeader({bool javaStyle: false, String year = null}) {
+  void outputHeader({bool javaStyle: false, String? year = null}) {
     String header;
     if (codeGeneratorSettings.languageName == 'java') {
       header = '''
@@ -224,7 +231,7 @@ class CodeGeneratorSettings {
   /**
    * Start marker for doc comments.
    */
-  String docCommentStartMarker;
+  String? docCommentStartMarker;
 
   /**
    * Line leader for body lines in doc comments.
@@ -234,7 +241,7 @@ class CodeGeneratorSettings {
   /**
    * End marker for doc comments.
    */
-  String docCommentEndMarker;
+  String? docCommentEndMarker;
 
   /**
    * Line length for doc comment lines.
@@ -273,15 +280,19 @@ class DartFormat {
 
   static void formatFile(File file) {
     ProcessResult result = Process.runSync(_dartfmtPath, ['-w', file.path]);
-    if (result.exitCode != 0) throw result.stderr;
+    _throwIfExitCode(result);
   }
 
   static String formatText(String text) {
     File file = new File(join(Directory.systemTemp.path, 'gen.dart'));
     file.writeAsStringSync(text);
     ProcessResult result = Process.runSync(_dartfmtPath, ['-w', file.path]);
-    if (result.exitCode != 0) throw result.stderr;
+    _throwIfExitCode(result);
     return file.readAsStringSync();
+  }
+
+  static void _throwIfExitCode(ProcessResult result) {
+    if (result.exitCode != 0) throw result.stderr as Object;
   }
 }
 
@@ -383,8 +394,9 @@ class GeneratedDirectory extends GeneratedContent {
     Directory outputDirectory = output(pkgPath);
     Map<String, FileContentsComputer> map = directoryContentsComputer(pkgPath);
     try {
-      for (String file in map.keys) {
-        FileContentsComputer fileContentsComputer = map[file];
+      for (var entry in map.entries) {
+        String file = entry.key;
+        FileContentsComputer fileContentsComputer = entry.value;
         String expectedContents = await fileContentsComputer(pkgPath);
         File outputFile = new File(posix.join(outputDirectory.path, file));
         String actualContents = outputFile.readAsStringSync();
@@ -433,8 +445,9 @@ class GeneratedDirectory extends GeneratedContent {
 
     // generate all of the files in the directory
     Map<String, FileContentsComputer> map = directoryContentsComputer(pkgPath);
-    for (String file in map.keys) {
-      FileContentsComputer fileContentsComputer = map[file];
+    for (var entry in map.entries) {
+      String file = entry.key;
+      FileContentsComputer fileContentsComputer = entry.value;
       File outputFile = new File(posix.join(outputDirectory.path, file));
       print('  ${outputFile.path}');
       String contents = await fileContentsComputer(pkgPath);
@@ -510,7 +523,7 @@ class GeneratedFile extends GeneratedContent {
  * for enclosing inside a <pre> element.
  */
 abstract class HtmlCodeGenerator {
-  _HtmlCodeGeneratorState _state;
+  _HtmlCodeGeneratorState _state = _HtmlCodeGeneratorState();
 
   /**
    * Add the given [node] to the HTML output.
@@ -533,7 +546,7 @@ abstract class HtmlCodeGenerator {
    * [writeln], [add], or [addAll], and return the result as a list of DOM
    * nodes.
    */
-  List<dom.Node> collectHtml(void callback()) {
+  List<dom.Node> collectHtml(void Function()? callback) {
     _HtmlCodeGeneratorState oldState = _state;
     try {
       _state = new _HtmlCodeGeneratorState();
@@ -551,7 +564,7 @@ abstract class HtmlCodeGenerator {
    * [name] and [attributes].
    */
   void element(String name, Map<dynamic, String> attributes,
-      [void callback()]) {
+      [void Function()? callback]) {
     add(makeElement(name, attributes, collectHtml(callback)));
   }
 
