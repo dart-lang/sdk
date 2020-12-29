@@ -511,11 +511,7 @@ abstract class CombinedMemberSignatureBase<T> {
     Reference reference;
     if (classBuilder.referencesFromIndexed != null) {
       reference = classBuilder.referencesFromIndexed
-          .lookupProcedureNotSetter(member.name.text)
-          ?.reference;
-      reference ??= classBuilder.referencesFromIndexed
-          .lookupField(member.name.text)
-          ?.getterReference;
+          .lookupGetterReference(member.name.text);
     }
     Uri fileUri;
     int startFileOffset;
@@ -561,11 +557,7 @@ abstract class CombinedMemberSignatureBase<T> {
     Reference reference;
     if (classBuilder.referencesFromIndexed != null) {
       reference = classBuilder.referencesFromIndexed
-          .lookupProcedureSetter(member.name.text)
-          ?.reference;
-      reference ??= classBuilder.referencesFromIndexed
-          .lookupField(member.name.text)
-          ?.setterReference;
+          .lookupSetterReference(member.name.text);
     }
     Uri fileUri;
     int startFileOffset;
@@ -606,11 +598,8 @@ abstract class CombinedMemberSignatureBase<T> {
       {bool copyLocation}) {
     assert(copyLocation != null);
     Class enclosingClass = classBuilder.cls;
-    Procedure referenceFrom;
-    if (classBuilder.referencesFromIndexed != null) {
-      referenceFrom = classBuilder.referencesFromIndexed
-          .lookupProcedureNotSetter(procedure.name.text);
-    }
+    Reference reference = classBuilder.referencesFromIndexed
+        ?.lookupGetterReference(procedure.name.text);
     Uri fileUri;
     int startFileOffset;
     int fileOffset;
@@ -667,7 +656,7 @@ abstract class CombinedMemberSignatureBase<T> {
           requiredParameterCount: function.requiredParameterCount),
       isAbstract: true,
       fileUri: fileUri,
-      reference: referenceFrom?.reference,
+      reference: reference,
       isSynthetic: true,
       stubKind: ProcedureStubKind.MemberSignature,
       stubTarget: procedure.memberSignatureOrigin ?? procedure,

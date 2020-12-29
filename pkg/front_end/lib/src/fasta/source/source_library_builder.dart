@@ -62,7 +62,7 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
 
 import 'package:kernel/reference_from_index.dart'
-    show IndexedClass, IndexedLibrary;
+    show IndexedClass, IndexedContainer, IndexedLibrary;
 
 import 'package:kernel/src/bounds_checks.dart'
     show
@@ -979,12 +979,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     library.procedures.sort(compareProcedures);
 
     if (unserializableExports != null) {
-      Field referenceFrom = referencesFromIndexed?.lookupField("_exports#");
+      Reference getterReference =
+          referencesFromIndexed?.lookupGetterReference("_exports#");
       library.addField(new Field.immutable(new Name("_exports#", library),
           initializer: new StringLiteral(jsonEncode(unserializableExports)),
           isStatic: true,
           isConst: true,
-          getterReference: referenceFrom?.getterReference));
+          getterReference: getterReference));
     }
 
     return library;
@@ -2134,10 +2135,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (hasInitializer) {
       modifiers |= hasInitializerMask;
     }
-    Field referenceFrom;
-    Field lateIsSetReferenceFrom;
-    Procedure getterReferenceFrom;
-    Procedure setterReferenceFrom;
     final bool fieldIsLateWithLowering = (modifiers & lateMask) != 0 &&
         loader.target.backendTarget.isLateFieldLoweringEnabled(
             hasInitializer: hasInitializer,
@@ -2156,6 +2153,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (isExtension) {
       extensionName = currentTypeParameterScopeBuilder.name;
     }
+
+    Reference fieldGetterReference;
+    Reference fieldSetterReference;
+    Reference lateIsSetGetterReference;
+    Reference lateIsSetSetterReference;
+    Reference getterReference;
+    Reference setterReference;
     if (referencesFrom != null) {
       String nameToLookup = SourceFieldBuilder.createFieldName(
           FieldNameType.Field, name,
@@ -2164,80 +2168,53 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           isExtensionMethod: isExtension,
           extensionName: extensionName,
           isSynthesized: fieldIsLateWithLowering);
-
-      if (_currentClassReferencesFromIndexed != null) {
-        referenceFrom =
-            _currentClassReferencesFromIndexed.lookupField(nameToLookup);
-        if (fieldIsLateWithLowering) {
-          lateIsSetReferenceFrom = _currentClassReferencesFromIndexed
-              .lookupField(SourceFieldBuilder.createFieldName(
-                  FieldNameType.IsSetField, name,
-                  isInstanceMember: isInstanceMember,
-                  className: className,
-                  isExtensionMethod: isExtension,
-                  extensionName: extensionName,
-                  isSynthesized: fieldIsLateWithLowering));
-          getterReferenceFrom =
-              _currentClassReferencesFromIndexed.lookupProcedureNotSetter(
-                  SourceFieldBuilder.createFieldName(FieldNameType.Getter, name,
-                      isInstanceMember: isInstanceMember,
-                      className: className,
-                      isExtensionMethod: isExtension,
-                      extensionName: extensionName,
-                      isSynthesized: fieldIsLateWithLowering));
-          setterReferenceFrom =
-              _currentClassReferencesFromIndexed.lookupProcedureSetter(
-                  SourceFieldBuilder.createFieldName(FieldNameType.Setter, name,
-                      isInstanceMember: isInstanceMember,
-                      className: className,
-                      isExtensionMethod: isExtension,
-                      extensionName: extensionName,
-                      isSynthesized: fieldIsLateWithLowering));
-        }
-      } else {
-        referenceFrom = referencesFromIndexed.lookupField(nameToLookup);
-        if (fieldIsLateWithLowering) {
-          lateIsSetReferenceFrom = referencesFromIndexed.lookupField(
-              SourceFieldBuilder.createFieldName(FieldNameType.IsSetField, name,
-                  isInstanceMember: isInstanceMember,
-                  className: className,
-                  isExtensionMethod: isExtension,
-                  extensionName: extensionName,
-                  isSynthesized: fieldIsLateWithLowering));
-          getterReferenceFrom = referencesFromIndexed.lookupProcedureNotSetter(
-              SourceFieldBuilder.createFieldName(FieldNameType.Getter, name,
-                  isInstanceMember: isInstanceMember,
-                  className: className,
-                  isExtensionMethod: isExtension,
-                  extensionName: extensionName,
-                  isSynthesized: fieldIsLateWithLowering));
-          setterReferenceFrom = referencesFromIndexed.lookupProcedureSetter(
-              SourceFieldBuilder.createFieldName(FieldNameType.Setter, name,
-                  isInstanceMember: isInstanceMember,
-                  className: className,
-                  isExtensionMethod: isExtension,
-                  extensionName: extensionName,
-                  isSynthesized: fieldIsLateWithLowering));
-        }
+      IndexedContainer indexedContainer =
+          _currentClassReferencesFromIndexed ?? referencesFromIndexed;
+      fieldGetterReference =
+          indexedContainer.lookupGetterReference(nameToLookup);
+      fieldSetterReference =
+          indexedContainer.lookupSetterReference(nameToLookup);
+      if (fieldIsLateWithLowering) {
+        String lateIsSetName = SourceFieldBuilder.createFieldName(
+            FieldNameType.IsSetField, name,
+            isInstanceMember: isInstanceMember,
+            className: className,
+            isExtensionMethod: isExtension,
+            extensionName: extensionName,
+            isSynthesized: fieldIsLateWithLowering);
+        lateIsSetGetterReference =
+            indexedContainer.lookupGetterReference(lateIsSetName);
+        lateIsSetSetterReference =
+            indexedContainer.lookupSetterReference(lateIsSetName);
+        getterReference = indexedContainer.lookupGetterReference(
+            SourceFieldBuilder.createFieldName(FieldNameType.Getter, name,
+                isInstanceMember: isInstanceMember,
+                className: className,
+                isExtensionMethod: isExtension,
+                extensionName: extensionName,
+                isSynthesized: fieldIsLateWithLowering));
+        setterReference = indexedContainer.lookupSetterReference(
+            SourceFieldBuilder.createFieldName(FieldNameType.Setter, name,
+                isInstanceMember: isInstanceMember,
+                className: className,
+                isExtensionMethod: isExtension,
+                extensionName: extensionName,
+                isSynthesized: fieldIsLateWithLowering));
       }
     }
-    SourceFieldBuilder fieldBuilder = new SourceFieldBuilder(
-        metadata,
-        type,
-        name,
-        modifiers,
-        isTopLevel,
-        this,
-        charOffset,
-        charEndOffset,
-        referenceFrom,
-        lateIsSetReferenceFrom,
-        getterReferenceFrom,
-        setterReferenceFrom);
+
+    SourceFieldBuilder fieldBuilder = new SourceFieldBuilder(metadata, type,
+        name, modifiers, isTopLevel, this, charOffset, charEndOffset,
+        fieldGetterReference: fieldGetterReference,
+        fieldSetterReference: fieldSetterReference,
+        lateIsSetGetterReference: lateIsSetGetterReference,
+        lateIsSetSetterReference: lateIsSetSetterReference,
+        getterReference: getterReference,
+        setterReference: setterReference);
     fieldBuilder.constInitializerToken = constInitializerToken;
     addBuilder(name, fieldBuilder, charOffset,
-        getterReference: referenceFrom?.getterReference,
-        setterReference: referenceFrom?.setterReference);
+        getterReference: fieldGetterReference,
+        setterReference: fieldSetterReference);
     if (type == null && fieldBuilder.next == null) {
       // Only the first one (the last one in the linked list of next pointers)
       // are added to the tree, had parent pointers and can infer correctly.
@@ -2340,16 +2317,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         returnType = addVoidType(charOffset);
       }
     }
-    Procedure referenceFrom;
-    Procedure tearOffReferenceFrom;
+    Reference procedureReference;
+    Reference tearOffReference;
     if (referencesFrom != null) {
       if (_currentClassReferencesFromIndexed != null) {
         if (kind == ProcedureKind.Setter) {
-          referenceFrom =
-              _currentClassReferencesFromIndexed.lookupProcedureSetter(name);
+          procedureReference =
+              _currentClassReferencesFromIndexed.lookupSetterReference(name);
         } else {
-          referenceFrom =
-              _currentClassReferencesFromIndexed.lookupProcedureNotSetter(name);
+          procedureReference =
+              _currentClassReferencesFromIndexed.lookupGetterReference(name);
         }
       } else {
         if (currentTypeParameterScopeBuilder.kind ==
@@ -2362,11 +2339,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               currentTypeParameterScopeBuilder.name,
               name);
           if (extensionIsStatic && kind == ProcedureKind.Setter) {
-            referenceFrom =
-                referencesFromIndexed.lookupProcedureSetter(nameToLookup);
+            procedureReference =
+                referencesFromIndexed.lookupSetterReference(nameToLookup);
           } else {
-            referenceFrom =
-                referencesFromIndexed.lookupProcedureNotSetter(nameToLookup);
+            procedureReference =
+                referencesFromIndexed.lookupGetterReference(nameToLookup);
           }
           if (kind == ProcedureKind.Method) {
             String tearOffNameToLookup =
@@ -2376,15 +2353,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                     ProcedureKind.Getter,
                     currentTypeParameterScopeBuilder.name,
                     name);
-            tearOffReferenceFrom = referencesFromIndexed
-                .lookupProcedureNotSetter(tearOffNameToLookup);
+            tearOffReference = referencesFromIndexed
+                .lookupGetterReference(tearOffNameToLookup);
           }
         } else {
           if (kind == ProcedureKind.Setter) {
-            referenceFrom = referencesFromIndexed.lookupProcedureSetter(name);
+            procedureReference =
+                referencesFromIndexed.lookupSetterReference(name);
           } else {
-            referenceFrom =
-                referencesFromIndexed.lookupProcedureNotSetter(name);
+            procedureReference =
+                referencesFromIndexed.lookupGetterReference(name);
           }
         }
       }
@@ -2402,8 +2380,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         charOffset,
         charOpenParenOffset,
         charEndOffset,
-        referenceFrom,
-        tearOffReferenceFrom,
+        procedureReference,
+        tearOffReference,
         asyncModifier,
         isExtensionInstanceMember,
         nativeMethodName);
@@ -2411,7 +2389,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         procedureBuilder.procedure, documentationComment);
     checkTypeVariables(typeVariables, procedureBuilder);
     addBuilder(name, procedureBuilder, charOffset,
-        getterReference: referenceFrom?.reference);
+        getterReference: procedureReference);
     if (nativeMethodName != null) {
       addNativeMethod(procedureBuilder);
     }
@@ -2449,8 +2427,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       procedureName = name;
     }
 
-    Procedure referenceFrom = _currentClassReferencesFromIndexed
-        ?.lookupProcedureNotSetter(procedureName);
+    Reference reference = _currentClassReferencesFromIndexed
+        ?.lookupGetterReference(procedureName);
 
     ProcedureBuilder procedureBuilder;
     if (redirectionTarget != null) {
@@ -2469,7 +2447,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           charOffset,
           charOpenParenOffset,
           charEndOffset,
-          referenceFrom,
+          reference,
           nativeMethodName,
           redirectionTarget);
     } else {
@@ -2489,7 +2467,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           charOffset,
           charOpenParenOffset,
           charEndOffset,
-          referenceFrom,
+          reference,
           null,
           asyncModifier,
           /* isExtensionInstanceMember = */ false,
@@ -2514,7 +2492,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     factoryDeclaration.resolveTypes(procedureBuilder.typeVariables, this);
     addBuilder(procedureName, procedureBuilder, charOffset,
-        getterReference: referenceFrom?.reference);
+        getterReference: reference);
     if (nativeMethodName != null) {
       addNativeMethod(procedureBuilder);
     }
@@ -3820,15 +3798,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     } else if (referencesFrom != null) {
       _currentClassReferencesFromIndexed =
           referencesFromIndexed.lookupIndexedClass(name);
-    }
-  }
-
-  Procedure lookupLibraryReferenceProcedure(String name, bool setter) {
-    if (referencesFrom == null) return null;
-    if (setter) {
-      return referencesFromIndexed.lookupProcedureSetter(name);
-    } else {
-      return referencesFromIndexed.lookupProcedureNotSetter(name);
     }
   }
 }

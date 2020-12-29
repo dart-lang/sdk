@@ -118,15 +118,15 @@ class MixinFullResolution {
       }
 
       for (var field in class_.mixin.fields) {
-        Reference getterReference;
-        Reference setterReference;
-        Field referenceFrom = indexedClass?.lookupField(field.name.text);
-        if (referenceFrom != null) {
-          getterReference = referenceFrom.getterReference;
-          setterReference = referenceFrom.setterReference;
-        } else {
+        Reference getterReference =
+            indexedClass?.lookupGetterReference(field.name.text);
+        Reference setterReference =
+            indexedClass?.lookupSetterReference(field.name.text);
+        if (getterReference == null) {
           getterReference = nonSetters[field.name]?.reference;
           getterReference?.canonicalName?.unbind();
+        }
+        if (setterReference == null) {
           setterReference = setters[field.name]?.reference;
           setterReference?.canonicalName?.unbind();
         }
@@ -164,13 +164,11 @@ class MixinFullResolution {
       // NoSuchMethod forwarders aren't cloned.
       if (procedure.isNoSuchMethodForwarder) continue;
 
-      Procedure referenceFrom;
+      Reference reference;
       if (procedure.isSetter) {
-        referenceFrom =
-            indexedClass?.lookupProcedureSetter(procedure.name.text);
+        reference = indexedClass?.lookupSetterReference(procedure.name.text);
       } else {
-        referenceFrom =
-            indexedClass?.lookupProcedureNotSetter(procedure.name.text);
+        reference = indexedClass?.lookupGetterReference(procedure.name.text);
       }
 
       // Linear search for a forwarding stub with the same name.
@@ -194,10 +192,9 @@ class MixinFullResolution {
         }
       }
       if (originalIndex != null) {
-        referenceFrom ??= class_.procedures[originalIndex];
+        reference ??= class_.procedures[originalIndex]?.reference;
       }
-      Procedure clone =
-          cloner.cloneProcedure(procedure, referenceFrom?.reference);
+      Procedure clone = cloner.cloneProcedure(procedure, reference);
       if (originalIndex != null) {
         Procedure originalProcedure = class_.procedures[originalIndex];
         FunctionNode src = originalProcedure.function;

@@ -117,10 +117,12 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
       SourceLibraryBuilder libraryBuilder,
       int charOffset,
       int charEndOffset,
-      Field reference,
-      Field lateIsSetReferenceFrom,
-      Procedure getterReferenceFrom,
-      Procedure setterReferenceFrom)
+      {Reference fieldGetterReference,
+      Reference fieldSetterReference,
+      Reference lateIsSetGetterReference,
+      Reference lateIsSetSetterReference,
+      Reference getterReference,
+      Reference setterReference})
       : super(libraryBuilder, charOffset) {
     Uri fileUri = libraryBuilder?.fileUri;
     // If in mixed mode, late lowerings cannot use `null` as a sentinel on
@@ -128,8 +130,8 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
     late_lowering.IsSetStrategy isSetStrategy =
         late_lowering.computeIsSetStrategy(libraryBuilder);
     if (isAbstract || isExternal) {
-      _fieldEncoding = new AbstractOrExternalFieldEncoding(fileUri, charOffset,
-          charEndOffset, getterReferenceFrom, setterReferenceFrom,
+      _fieldEncoding = new AbstractOrExternalFieldEncoding(
+          fileUri, charOffset, charEndOffset, getterReference, setterReference,
           isAbstract: isAbstract,
           isExternal: isExternal,
           isFinal: isFinal,
@@ -147,10 +149,12 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
               fileUri,
               charOffset,
               charEndOffset,
-              reference,
-              lateIsSetReferenceFrom,
-              getterReferenceFrom,
-              setterReferenceFrom,
+              fieldGetterReference,
+              fieldSetterReference,
+              lateIsSetGetterReference,
+              lateIsSetSetterReference,
+              getterReference,
+              setterReference,
               isCovariant,
               isSetStrategy);
         } else {
@@ -159,10 +163,12 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
               fileUri,
               charOffset,
               charEndOffset,
-              reference,
-              lateIsSetReferenceFrom,
-              getterReferenceFrom,
-              setterReferenceFrom,
+              fieldGetterReference,
+              fieldSetterReference,
+              lateIsSetGetterReference,
+              lateIsSetSetterReference,
+              getterReference,
+              setterReference,
               isCovariant,
               isSetStrategy);
         }
@@ -173,10 +179,12 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
               fileUri,
               charOffset,
               charEndOffset,
-              reference,
-              lateIsSetReferenceFrom,
-              getterReferenceFrom,
-              setterReferenceFrom,
+              fieldGetterReference,
+              fieldSetterReference,
+              lateIsSetGetterReference,
+              lateIsSetSetterReference,
+              getterReference,
+              setterReference,
               isCovariant,
               isSetStrategy);
         } else {
@@ -185,10 +193,12 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
               fileUri,
               charOffset,
               charEndOffset,
-              reference,
-              lateIsSetReferenceFrom,
-              getterReferenceFrom,
-              setterReferenceFrom,
+              fieldGetterReference,
+              fieldSetterReference,
+              lateIsSetGetterReference,
+              lateIsSetSetterReference,
+              getterReference,
+              setterReference,
               isCovariant,
               isSetStrategy);
         }
@@ -204,10 +214,12 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
             fileUri,
             charOffset,
             charEndOffset,
-            reference,
-            lateIsSetReferenceFrom,
-            getterReferenceFrom,
-            setterReferenceFrom,
+            fieldGetterReference,
+            fieldSetterReference,
+            lateIsSetGetterReference,
+            lateIsSetSetterReference,
+            getterReference,
+            setterReference,
             isCovariant,
             isSetStrategy);
       } else {
@@ -216,24 +228,29 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
             fileUri,
             charOffset,
             charEndOffset,
-            reference,
-            lateIsSetReferenceFrom,
-            getterReferenceFrom,
-            setterReferenceFrom,
+            fieldGetterReference,
+            fieldSetterReference,
+            lateIsSetGetterReference,
+            lateIsSetSetterReference,
+            getterReference,
+            setterReference,
             isCovariant,
             isSetStrategy);
       }
     } else {
-      assert(lateIsSetReferenceFrom == null);
-      assert(getterReferenceFrom == null);
-      assert(setterReferenceFrom == null);
+      assert(lateIsSetGetterReference == null);
+      assert(lateIsSetSetterReference == null);
+      assert(getterReference == null);
+      assert(setterReference == null);
       _fieldEncoding = new RegularFieldEncoding(
-          fileUri, charOffset, charEndOffset, reference,
+          fileUri, charOffset, charEndOffset,
           isFinal: isFinal,
           isConst: isConst,
           isLate: isLate,
           hasInitializer: hasInitializer,
-          isNonNullableByDefault: library.isNonNullableByDefault);
+          isNonNullableByDefault: library.isNonNullableByDefault,
+          getterReference: fieldGetterReference,
+          setterReference: fieldSetterReference);
     }
   }
 
@@ -592,13 +609,14 @@ abstract class FieldEncoding {
 class RegularFieldEncoding implements FieldEncoding {
   Field _field;
 
-  RegularFieldEncoding(
-      Uri fileUri, int charOffset, int charEndOffset, Field reference,
+  RegularFieldEncoding(Uri fileUri, int charOffset, int charEndOffset,
       {bool isFinal,
       bool isConst,
       bool isLate,
       bool hasInitializer,
-      bool isNonNullableByDefault}) {
+      bool isNonNullableByDefault,
+      Reference getterReference,
+      Reference setterReference}) {
     assert(isFinal != null);
     assert(isConst != null);
     assert(isLate != null);
@@ -611,13 +629,13 @@ class RegularFieldEncoding implements FieldEncoding {
             isConst: isConst,
             isLate: isLate,
             fileUri: fileUri,
-            getterReference: reference?.getterReference)
+            getterReference: getterReference)
         : new Field.mutable(null,
             isFinal: isFinal,
             isLate: isLate,
             fileUri: fileUri,
-            getterReference: reference?.getterReference,
-            setterReference: reference?.setterReference);
+            getterReference: getterReference,
+            setterReference: setterReference);
     _field
       ..fileOffset = charOffset
       ..fileEndOffset = charEndOffset
@@ -811,10 +829,12 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       Uri fileUri,
       int charOffset,
       int charEndOffset,
-      Field referenceFrom,
-      Field lateIsSetReferenceFrom,
-      Procedure getterReferenceFrom,
-      Procedure setterReferenceFrom,
+      Reference fieldGetterReference,
+      Reference fieldSetterReference,
+      Reference lateIsSetGetterReference,
+      Reference lateIsSetSetterReference,
+      Reference getterReference,
+      Reference setterReference,
       bool isCovariant,
       late_lowering.IsSetStrategy isSetStrategy)
       : fileOffset = charOffset,
@@ -824,8 +844,8 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
             isSetStrategy == late_lowering.IsSetStrategy.forceUseIsSetField {
     _field = new Field.mutable(null,
         fileUri: fileUri,
-        getterReference: referenceFrom?.getterReference,
-        setterReference: referenceFrom?.setterReference)
+        getterReference: fieldGetterReference,
+        setterReference: fieldSetterReference)
       ..fileOffset = charOffset
       ..fileEndOffset = charEndOffset
       ..isNonNullableByDefault = true
@@ -839,8 +859,8 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       case late_lowering.IsSetStrategy.useIsSetFieldOrNull:
         _lateIsSetField = new Field.mutable(null,
             fileUri: fileUri,
-            getterReference: lateIsSetReferenceFrom?.getterReference,
-            setterReference: lateIsSetReferenceFrom?.setterReference)
+            getterReference: lateIsSetGetterReference,
+            setterReference: lateIsSetSetterReference)
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset
           ..isNonNullableByDefault = true
@@ -854,11 +874,11 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset,
         fileUri: fileUri,
-        reference: getterReferenceFrom?.reference)
+        reference: getterReference)
       ..fileOffset = charOffset
       ..fileEndOffset = charEndOffset
       ..isNonNullableByDefault = true;
-    _lateSetter = _createSetter(name, fileUri, charOffset, setterReferenceFrom,
+    _lateSetter = _createSetter(name, fileUri, charOffset, setterReference,
         isCovariant: isCovariant);
   }
 
@@ -967,7 +987,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       Expression initializer, bool useNewMethodInvocationEncoding);
 
   Procedure _createSetter(
-      String name, Uri fileUri, int charOffset, Procedure referenceFrom,
+      String name, Uri fileUri, int charOffset, Reference reference,
       {bool isCovariant}) {
     assert(isCovariant != null);
     VariableDeclaration parameter = new VariableDeclaration(null)
@@ -981,7 +1001,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
           ..fileOffset = charOffset
           ..fileEndOffset = fileEndOffset,
         fileUri: fileUri,
-        reference: referenceFrom?.reference)
+        reference: reference)
       ..fileOffset = charOffset
       ..fileEndOffset = fileEndOffset
       ..isNonNullableByDefault = true;
@@ -1221,10 +1241,12 @@ class LateFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
       Uri fileUri,
       int charOffset,
       int charEndOffset,
-      Field referenceFrom,
-      Field lateIsSetReferenceFrom,
-      Procedure getterReferenceFrom,
-      Procedure setterReferenceFrom,
+      Reference fieldGetterReference,
+      Reference fieldSetterReference,
+      Reference lateIsSetGetterReference,
+      Reference lateIsSetSetterReference,
+      Reference getterReference,
+      Reference setterReference,
       bool isCovariant,
       late_lowering.IsSetStrategy isSetStrategy)
       : super(
@@ -1232,10 +1254,12 @@ class LateFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
             fileUri,
             charOffset,
             charEndOffset,
-            referenceFrom,
-            lateIsSetReferenceFrom,
-            getterReferenceFrom,
-            setterReferenceFrom,
+            fieldGetterReference,
+            fieldSetterReference,
+            lateIsSetGetterReference,
+            lateIsSetSetterReference,
+            getterReference,
+            setterReference,
             isCovariant,
             isSetStrategy);
 }
@@ -1247,10 +1271,12 @@ class LateFieldWithInitializerEncoding extends AbstractLateFieldEncoding
       Uri fileUri,
       int charOffset,
       int charEndOffset,
-      Field referenceFrom,
-      Field lateIsSetReferenceFrom,
-      Procedure getterReferenceFrom,
-      Procedure setterReferenceFrom,
+      Reference fieldGetterReference,
+      Reference fieldSetterReference,
+      Reference lateIsSetGetterReference,
+      Reference lateIsSetSetterReference,
+      Reference getterReference,
+      Reference setterReference,
       bool isCovariant,
       late_lowering.IsSetStrategy isSetStrategy)
       : super(
@@ -1258,10 +1284,12 @@ class LateFieldWithInitializerEncoding extends AbstractLateFieldEncoding
             fileUri,
             charOffset,
             charEndOffset,
-            referenceFrom,
-            lateIsSetReferenceFrom,
-            getterReferenceFrom,
-            setterReferenceFrom,
+            fieldGetterReference,
+            fieldSetterReference,
+            lateIsSetGetterReference,
+            lateIsSetSetterReference,
+            getterReference,
+            setterReference,
             isCovariant,
             isSetStrategy);
 
@@ -1288,10 +1316,12 @@ class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
       Uri fileUri,
       int charOffset,
       int charEndOffset,
-      Field referenceFrom,
-      Field lateIsSetReferenceFrom,
-      Procedure getterReferenceFrom,
-      Procedure setterReferenceFrom,
+      Reference fieldGetterReference,
+      Reference fieldSetterReference,
+      Reference lateIsSetGetterReference,
+      Reference lateIsSetSetterReference,
+      Reference getterReference,
+      Reference setterReference,
       bool isCovariant,
       late_lowering.IsSetStrategy isSetStrategy)
       : super(
@@ -1299,10 +1329,12 @@ class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
             fileUri,
             charOffset,
             charEndOffset,
-            referenceFrom,
-            lateIsSetReferenceFrom,
-            getterReferenceFrom,
-            setterReferenceFrom,
+            fieldGetterReference,
+            fieldSetterReference,
+            lateIsSetGetterReference,
+            lateIsSetSetterReference,
+            getterReference,
+            setterReference,
             isCovariant,
             isSetStrategy);
 
@@ -1330,10 +1362,12 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
       Uri fileUri,
       int charOffset,
       int charEndOffset,
-      Field referenceFrom,
-      Field lateIsSetReferenceFrom,
-      Procedure getterReferenceFrom,
-      Procedure setterReferenceFrom,
+      Reference fieldGetterReference,
+      Reference fieldSetterReference,
+      Reference lateIsSetGetterReference,
+      Reference lateIsSetSetterReference,
+      Reference getterReference,
+      Reference setterReference,
       bool isCovariant,
       late_lowering.IsSetStrategy isSetStrategy)
       : super(
@@ -1341,10 +1375,12 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
             fileUri,
             charOffset,
             charEndOffset,
-            referenceFrom,
-            lateIsSetReferenceFrom,
-            getterReferenceFrom,
-            setterReferenceFrom,
+            fieldGetterReference,
+            fieldSetterReference,
+            lateIsSetGetterReference,
+            lateIsSetSetterReference,
+            getterReference,
+            setterReference,
             isCovariant,
             isSetStrategy);
   @override
@@ -1365,7 +1401,7 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
 
   @override
   Procedure _createSetter(
-          String name, Uri fileUri, int charOffset, Procedure referenceFrom,
+          String name, Uri fileUri, int charOffset, Reference reference,
           {bool isCovariant}) =>
       null;
 
@@ -1541,7 +1577,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
   Procedure _setter;
 
   AbstractOrExternalFieldEncoding(Uri fileUri, int charOffset,
-      int charEndOffset, Procedure getterReference, Procedure setterReference,
+      int charEndOffset, Reference getterReference, Reference setterReference,
       {this.isAbstract,
       this.isExternal,
       bool isFinal,
@@ -1553,7 +1589,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
         assert(isCovariant != null),
         assert(isNonNullableByDefault != null) {
     _getter = new Procedure(null, ProcedureKind.Getter, new FunctionNode(null),
-        fileUri: fileUri, reference: getterReference?.reference)
+        fileUri: fileUri, reference: getterReference)
       ..fileOffset = charOffset
       ..fileEndOffset = charEndOffset
       ..isNonNullableByDefault = isNonNullableByDefault;
@@ -1570,7 +1606,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
             ..fileOffset = charOffset
             ..fileEndOffset = charEndOffset,
           fileUri: fileUri,
-          reference: setterReference?.reference)
+          reference: setterReference)
         ..fileOffset = charOffset
         ..fileEndOffset = charEndOffset
         ..isNonNullableByDefault = isNonNullableByDefault;

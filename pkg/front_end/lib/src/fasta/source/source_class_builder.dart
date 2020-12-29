@@ -843,7 +843,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   void _addRedirectingConstructor(ProcedureBuilder constructorBuilder,
-      SourceLibraryBuilder library, Field referenceFrom) {
+      SourceLibraryBuilder library, Reference getterReference) {
     // Add a new synthetic field to this class for representing factory
     // constructors. This is used to support resolving such constructors in
     // source code.
@@ -866,7 +866,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           isFinal: true,
           initializer: literal,
           fileUri: cls.fileUri,
-          getterReference: referenceFrom?.getterReference)
+          getterReference: getterReference)
         ..fileOffset = cls.fileOffset;
       cls.addField(field);
       constructorsField = new DillFieldBuilder(field, this);
@@ -908,9 +908,10 @@ class SourceClassBuilder extends ClassBuilderImpl
                 // is actually in the kernel tree. This call creates a StaticGet
                 // to [declaration.target] in a field `_redirecting#` which is
                 // only legal to do to things in the kernel tree.
-                Field referenceFrom =
-                    referencesFromIndexed?.lookupField("_redirecting#");
-                _addRedirectingConstructor(declaration, library, referenceFrom);
+                Reference getterReference = referencesFromIndexed
+                    ?.lookupGetterReference("_redirecting#");
+                _addRedirectingConstructor(
+                    declaration, library, getterReference);
               }
               if (targetBuilder is FunctionBuilder) {
                 List<DartType> typeArguments = declaration.typeArguments ??

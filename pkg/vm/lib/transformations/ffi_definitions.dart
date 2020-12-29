@@ -676,8 +676,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     final Procedure getter = Procedure(field.name, ProcedureKind.Getter,
         FunctionNode(getterStatement, returnType: field.type),
         fileUri: field.fileUri,
-        reference:
-            indexedClass?.lookupProcedureNotSetter(field.name.text)?.reference)
+        reference: indexedClass?.lookupGetterReference(field.name.text))
       ..fileOffset = field.fileOffset
       ..isNonNullableByDefault = field.isNonNullableByDefault;
 
@@ -694,8 +693,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           FunctionNode(setterStatement,
               returnType: VoidType(), positionalParameters: [argument]),
           fileUri: field.fileUri,
-          reference:
-              indexedClass?.lookupProcedureSetter(field.name.text)?.reference)
+          reference: indexedClass?.lookupSetterReference(field.name.text))
         ..fileOffset = field.fileOffset
         ..isNonNullableByDefault = field.isNonNullableByDefault;
     }
@@ -711,14 +709,14 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   void _replaceSizeOfMethod(
       Class struct, Map<Abi, int> sizes, IndexedClass indexedClass) {
     var name = Name("#sizeOf");
-    var lookupField = indexedClass?.lookupField(name.text);
+    var getterReference = indexedClass?.lookupGetterReference(name.text);
     final Field sizeOf = Field.immutable(name,
         isStatic: true,
         isFinal: true,
         initializer: _runtimeBranchOnLayout(sizes),
         type: InterfaceType(intClass, Nullability.legacy),
         fileUri: struct.fileUri,
-        getterReference: lookupField?.getterReference)
+        getterReference: getterReference)
       ..fileOffset = struct.fileOffset;
     _makeEntryPoint(sizeOf);
     struct.addField(sizeOf);
