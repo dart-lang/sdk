@@ -2,23 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Tools for manipulating HTML during code generation of analyzer and analysis
- * server.
- */
+/// Tools for manipulating HTML during code generation of analyzer and analysis
+/// server.
 import 'package:html/dom.dart' as dom;
 
-/**
- * Make a deep copy of the given HTML nodes.
- */
+/// Make a deep copy of the given HTML nodes.
 List<dom.Node> cloneHtmlNodes(List<dom.Node> nodes) =>
     nodes.map((dom.Node node) => node.clone(true)).toList();
 
-/**
- * Return true if the given iterable contains only whitespace text nodes.
- */
+/// Return true if the given iterable contains only whitespace text nodes.
 bool containsOnlyWhitespace(Iterable<dom.Node> nodes) {
-  for (dom.Node node in nodes) {
+  for (var node in nodes) {
     if (!isWhitespaceNode(node)) {
       return false;
     }
@@ -26,11 +20,9 @@ bool containsOnlyWhitespace(Iterable<dom.Node> nodes) {
   return true;
 }
 
-/**
- * Get the text contents of the element, ignoring all markup.
- */
+/// Get the text contents of the element, ignoring all markup.
 String innerText(dom.Element parent) {
-  StringBuffer buffer = new StringBuffer();
+  var buffer = StringBuffer();
   void recurse(dom.Element parent) {
     for (dom.Node child in parent.nodes) {
       if (child is dom.Text) {
@@ -45,10 +37,8 @@ String innerText(dom.Element parent) {
   return buffer.toString();
 }
 
-/**
- * Return true if the given node is a text node containing only whitespace, or
- * a comment.
- */
+/// Return true if the given node is a text node containing only whitespace, or
+/// a comment.
 bool isWhitespaceNode(dom.Node node) {
   if (node is dom.Element) {
     return false;
@@ -59,48 +49,38 @@ bool isWhitespaceNode(dom.Node node) {
   return true;
 }
 
-/**
- * Create an HTML element with the given name, attributes, and child nodes.
- */
+/// Create an HTML element with the given name, attributes, and child nodes.
 dom.Element makeElement(
     String name, Map<dynamic, String> attributes, List<dom.Node> children) {
-  dom.Element result = new dom.Element.tag(name);
+  var result = dom.Element.tag(name);
   result.attributes.addAll(attributes);
-  for (dom.Node child in children) {
+  for (var child in children) {
     result.append(child);
   }
   return result;
 }
 
-/**
- * Mixin class for generating HTML.
- */
+/// Mixin class for generating HTML.
 mixin HtmlGenerator {
   List<dom.Node> _html = [];
 
-  /**
-   * Add the given [node] to the HTML output.
-   */
+  /// Add the given [node] to the HTML output.
   void add(dom.Node node) {
     _html.add(node);
   }
 
-  /**
-   * Add the given [nodes] to the HTML output.
-   */
+  /// Add the given [nodes] to the HTML output.
   void addAll(Iterable<dom.Node> nodes) {
-    for (dom.Node node in nodes) {
+    for (var node in nodes) {
       add(node);
     }
   }
 
-  /**
-   * Execute [callback], collecting any code that is output using [write],
-   * [writeln], [add], [addAll] or [element], and return the result as a list
-   * of HTML nodes.
-   */
+  /// Execute [callback], collecting any code that is output using [write],
+  /// [writeln], [add], [addAll] or [element], and return the result as a list
+  /// of HTML nodes.
   List<dom.Node> collectHtml(void Function()? callback) {
-    List<dom.Node> oldHtml = _html;
+    var oldHtml = _html;
     try {
       _html = <dom.Node>[];
       if (callback != null) {
@@ -112,25 +92,19 @@ mixin HtmlGenerator {
     }
   }
 
-  /**
-   * Execute [callback], wrapping its output in an element with the given
-   * [name] and [attributes].
-   */
+  /// Execute [callback], wrapping its output in an element with the given
+  /// [name] and [attributes].
   void element(String name, Map<dynamic, String> attributes,
       [void Function()? callback]) {
     add(makeElement(name, attributes, collectHtml(callback)));
   }
 
-  /**
-   * Output text without ending the current line.
-   */
+  /// Output text without ending the current line.
   void write(String text) {
-    _html.add(new dom.Text(text));
+    _html.add(dom.Text(text));
   }
 
-  /**
-   * Output text, ending the current line.
-   */
+  /// Output text, ending the current line.
   void writeln([Object obj = '']) {
     write('$obj\n');
   }
