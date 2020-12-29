@@ -1067,6 +1067,10 @@ bool isTypeParameterTypeWithoutNullabilityMarker(
 /// and Null are nullable, but aren't considered applications of the nullable
 /// type constructor.
 bool isNullableTypeConstructorApplication(DartType type) {
+  if (type is TypeParameterType && type.promotedBound != null) {
+    // Promoted types are never considered applications of ?.
+    return false;
+  }
   return type.declaredNullability == Nullability.nullable &&
       type is! DynamicType &&
       type is! VoidType &&
