@@ -167,6 +167,12 @@ class ReferenceUpdater extends RecursiveVisitor<void> {
   }
 
   @override
+  void visitProcedure(Procedure node) {
+    super.visitProcedure(node);
+    node.stubTarget = _resolveNewInterfaceTarget(node.stubTarget);
+  }
+
+  @override
   visitPropertyGet(PropertyGet node) {
     node.interfaceTarget = _resolveNewInterfaceTarget(node.interfaceTarget);
     super.visitPropertyGet(node);
