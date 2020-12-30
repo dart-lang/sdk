@@ -148,6 +148,20 @@ class DartDevelopmentServiceClient {
       (parameters) => dds.isolateManager.resumeIsolate(this, parameters),
     );
 
+    _clientPeer.registerMethod('getStreamHistory', (parameters) {
+      final stream = parameters['stream'].asString;
+      final events = dds.streamManager.getStreamHistory(stream);
+      if (events == null) {
+        throw json_rpc.RpcException.invalidParams(
+          "Event history is not collected for stream '$stream'",
+        );
+      }
+      return <String, dynamic>{
+        'type': 'StreamHistory',
+        'history': events,
+      };
+    });
+
     _clientPeer.registerMethod(
         'getLogHistorySize',
         (parameters) => {

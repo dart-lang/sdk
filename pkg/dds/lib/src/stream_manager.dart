@@ -176,6 +176,15 @@ class StreamManager {
     }
   }
 
+  List<Map<String, dynamic>> getStreamHistory(String stream) {
+    if (!loggingRepositories.containsKey(stream)) {
+      return null;
+    }
+    return [
+      for (final event in loggingRepositories[stream]()) event,
+    ];
+  }
+
   /// Unsubscribes `client` from a stream.
   ///
   /// If `client` is the last client to unsubscribe from `stream`, DDS will
