@@ -313,8 +313,13 @@ class InterfaceType extends DartType {
   final ClassEntity element;
   final List<DartType> typeArguments;
 
-  InterfaceType._(this.element, this.typeArguments)
-      : assert(typeArguments.every((e) => e != null));
+  InterfaceType._allocate(this.element, this.typeArguments);
+
+  factory InterfaceType._(ClassEntity element, List<DartType> typeArguments) {
+    assert(typeArguments.every((e) => e != null));
+    if (typeArguments.isEmpty) typeArguments = const [];
+    return InterfaceType._allocate(element, typeArguments);
+  }
 
   factory InterfaceType._readFromDataSource(
       DataSource source, List<FunctionTypeVariable> functionTypeVariables) {
