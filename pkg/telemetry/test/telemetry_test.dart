@@ -6,7 +6,6 @@ import 'dart:io';
 
 import 'package:telemetry/telemetry.dart';
 import 'package:test/test.dart';
-import 'package:usage/usage.dart';
 
 void main() {
   group('telemetry', () {
