@@ -14,7 +14,6 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 class RuntimeCompletionComputer {

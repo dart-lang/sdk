@@ -42,7 +42,6 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';

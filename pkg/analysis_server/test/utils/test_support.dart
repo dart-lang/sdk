@@ -8,7 +8,6 @@
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
 

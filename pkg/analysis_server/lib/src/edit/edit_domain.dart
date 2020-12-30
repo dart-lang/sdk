@@ -40,7 +40,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/results.dart' as engine;

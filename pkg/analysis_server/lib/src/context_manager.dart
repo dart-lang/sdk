@@ -16,7 +16,6 @@ import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';

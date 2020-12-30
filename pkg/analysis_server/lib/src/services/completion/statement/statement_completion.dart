@@ -14,7 +14,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
