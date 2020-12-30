@@ -45,6 +45,12 @@ abstract class _DwB0&C0&B = mix::C0 with mix2::B /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_DwB0&C0&B
     : super mix::C0::•()
     ;
+  mixin-super-stub get /*isLegacy*/ a() → core::List<(core::int) → core::int>
+    return super.{mix2::B::a};
+  mixin-super-stub set /*isLegacy*/ a(core::List<(core::int) → core::int> _) → void
+    return super.{mix2::B::a} = _;
+  mixin-super-stub method /*isLegacy*/ m((core::int) → core::int x) → (core::int) → core::int
+    return super.{mix2::B::m}(x);
   abstract member-signature get _identityHashCode() → core::int; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool; -> core::Object::_simpleInstanceOf
@@ -64,6 +70,12 @@ abstract class _DwBq0&C0&Bq = mix::C0 with mix2::Bq /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_DwBq0&C0&Bq
     : super mix::C0::•()
     ;
+  mixin-super-stub get /*isLegacy*/ a() → core::List<(core::int?) → core::int?>
+    return super.{mix2::Bq::a};
+  mixin-super-stub set /*isLegacy*/ a(core::List<(core::int?) → core::int?> _) → void
+    return super.{mix2::Bq::a} = _;
+  mixin-super-stub method /*isLegacy*/ m((core::int?) → core::int? x) → (core::int?) → core::int?
+    return super.{mix2::Bq::m}(x);
   abstract member-signature get _identityHashCode() → core::int; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool; -> core::Object::_simpleInstanceOf
@@ -117,6 +129,12 @@ abstract class _DwB3&C3&B = mix::C3 with mix2::B /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_DwB3&C3&B
     : super mix::C3::•()
     ;
+  mixin-super-stub get /*isLegacy*/ a() → core::List<(core::int) → core::int>
+    return super.{mix2::B::a};
+  mixin-super-stub set /*isLegacy*/ a(core::List<(core::int) → core::int> _) → void
+    return super.{mix2::B::a} = _;
+  mixin-super-stub method /*isLegacy*/ m((core::int) → core::int x) → (core::int) → core::int
+    return super.{mix2::B::m}(x);
   abstract member-signature get _identityHashCode() → core::int; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool; -> core::Object::_simpleInstanceOf
@@ -136,6 +154,12 @@ abstract class _DwBq3&C3&Bq = mix::C3 with mix2::Bq /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_DwBq3&C3&Bq
     : super mix::C3::•()
     ;
+  mixin-super-stub get /*isLegacy*/ a() → core::List<(core::int?) → core::int?>
+    return super.{mix2::Bq::a};
+  mixin-super-stub set /*isLegacy*/ a(core::List<(core::int?) → core::int?> _) → void
+    return super.{mix2::Bq::a} = _;
+  mixin-super-stub method /*isLegacy*/ m((core::int?) → core::int? x) → (core::int?) → core::int?
+    return super.{mix2::Bq::m}(x);
   abstract member-signature get _identityHashCode() → core::int; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool; -> core::Object::_simpleInstanceOf

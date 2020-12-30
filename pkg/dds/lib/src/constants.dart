@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dds;
-
-abstract class _RPCResponses {
+abstract class RPCResponses {
   static const success = <String, dynamic>{
     'type': 'Success',
   };
@@ -16,13 +14,13 @@ abstract class _RPCResponses {
   };
 }
 
-abstract class _PauseTypeMasks {
+abstract class PauseTypeMasks {
   static const pauseOnStartMask = 1 << 0;
   static const pauseOnReloadMask = 1 << 1;
   static const pauseOnExitMask = 1 << 2;
 }
 
-abstract class _ServiceEvents {
+abstract class ServiceEvents {
   static const isolateExit = 'IsolateExit';
   static const isolateSpawn = 'IsolateSpawn';
   static const isolateStart = 'IsolateStart';

@@ -6,7 +6,6 @@
 /// entities.
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/element/element.dart' as engine;
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:path/path.dart' as pathos;
 
 /// Return a protocol [Element] corresponding to the given [engine.Element].

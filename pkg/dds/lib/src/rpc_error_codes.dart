@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dds;
+import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 
-abstract class _RpcErrorCodes {
+abstract class RpcErrorCodes {
   static json_rpc.RpcException buildRpcException(int code, {dynamic data}) {
     return json_rpc.RpcException(
       code,
@@ -18,15 +18,18 @@ abstract class _RpcErrorCodes {
   // static const kParseError = -32700;
   // static const kInvalidRequest = -32600;
   static const kMethodNotFound = -32601;
+
   // static const kInvalidParams = -32602;
   // static const kInternalError = -32603;
 
   // static const kExtensionError = -32000;
 
   static const kFeatureDisabled = 100;
+
   // static const kCannotAddBreakpoint = 102;
   static const kStreamAlreadySubscribed = 103;
   static const kStreamNotSubscribed = 104;
+
   // static const kIsolateMustBeRunnable = 105;
   // static const kIsolateMustBePaused = 106;
   // static const kCannotResume = 107;
@@ -36,6 +39,7 @@ abstract class _RpcErrorCodes {
   static const kServiceAlreadyRegistered = 111;
   static const kServiceDisappeared = 112;
   static const kExpressionCompilationError = 113;
+
   // static const kInvalidTimelineRequest = 114;
 
   // Experimental (used in private rpcs).

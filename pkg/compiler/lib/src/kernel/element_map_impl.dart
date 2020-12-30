@@ -425,32 +425,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   }
 
   @override
-  MemberEntity getSuperMember(MemberEntity context, ir.Name name,
-      {bool setter: false}) {
-    // We can no longer trust the interface target of the super access since it
-    // might be a member that we have cloned.
-    ClassEntity cls = context.enclosingClass;
-    assert(
-        cls != null,
-        failedAt(context,
-            "No enclosing class for super member access in $context."));
-    IndexedClass superclass = getSuperType(cls)?.element;
-    while (superclass != null) {
-      KClassEnv env = classes.getEnv(superclass);
-      MemberEntity superMember =
-          env.lookupMember(this, name.text, setter: setter);
-      if (superMember != null) {
-        if (!superMember.isInstanceMember) return null;
-        if (!superMember.isAbstract) {
-          return superMember;
-        }
-      }
-      superclass = getSuperType(superclass)?.element;
-    }
-    return null;
-  }
-
-  @override
   ConstructorEntity getConstructor(ir.Member node) =>
       getConstructorInternal(node);
 
@@ -1368,7 +1342,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     bool isStatic = node.isStatic;
     IndexedField field = createField(library, enclosingClass, name,
         isStatic: isStatic,
-        isAssignable: node.isMutable,
+        isAssignable: node.hasSetter,
         isConst: node.isConst);
     return members.register<IndexedField, KFieldData>(
         field, new KFieldDataImpl(node));

@@ -50,10 +50,10 @@ class Class<T extends core::Object* = dynamic> extends self::_Class&Object&Mixin
     : super self::_Class&Object&Mixin1&Mixin2::•()
     ;
   set field((dynamic) →* core::Type* value) → void {
-    super.{mai::Mixin2::field};
-    super.{mai::Mixin2::field} = value;
-    super.{mai::Mixin2::method1}();
-    super.{mai::Mixin2::method2}(null);
+    super.{self::_Class&Object&Mixin1&Mixin2::field};
+    super.{self::_Class&Object&Mixin1&Mixin2::field} = value;
+    super.{self::_Class&Object&Mixin1&Mixin2::method1}();
+    super.{self::_Class&Object&Mixin1&Mixin2::method2}(null);
   }
 }
 static method main() → dynamic {}

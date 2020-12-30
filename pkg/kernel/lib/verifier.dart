@@ -284,6 +284,27 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
       problem(node, "The const field '${node.name.text}' should be static",
           context: node);
     }
+    bool isImmutable = node.isLate
+        ? (node.isFinal && node.initializer != null)
+        : (node.isFinal || node.isConst);
+    if (isImmutable == node.hasSetter) {
+      if (node.hasSetter) {
+        problem(node,
+            "The immutable field '${node.name.text}' has a setter reference",
+            context: node);
+      } else {
+        if (isOutline && node.isLate) {
+          // TODO(johnniwinther): Should we add a flag on Field for having
+          // a declared initializer?
+          // The initializer is not included in the outline so we can't tell
+          // whether it has an initializer or not.
+        } else {
+          problem(node,
+              "The mutable field '${node.name.text}' has no setter reference",
+              context: node);
+        }
+      }
+    }
     classTypeParametersAreInScope = !node.isStatic;
     node.initializer?.accept(this);
     node.type.accept(this);
@@ -322,14 +343,14 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
       problem(
           node, "Member signature must have a member signature origin $node.");
     }
-    if (node.forwardingStubInterfaceTarget != null &&
+    if (node.abstractForwardingStubTarget != null &&
         !(node.isForwardingStub || node.isForwardingSemiStub)) {
       problem(
           node,
           "Only forwarding stubs can have a forwarding stub interface target "
           "$node.");
     }
-    if (node.forwardingStubSuperTarget != null &&
+    if (node.concreteForwardingStubTarget != null &&
         !(node.isForwardingStub || node.isForwardingSemiStub)) {
       problem(
           node,

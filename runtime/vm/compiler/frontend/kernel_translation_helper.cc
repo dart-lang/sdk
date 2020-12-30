@@ -1102,8 +1102,9 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
     }
       FALL_THROUGH;
     case kStubTarget:
-      if (stub_kind_ == kForwardingSuperStubKind) {
-        forwarding_stub_super_target_ = helper_->ReadCanonicalNameReference();
+      if (stub_kind_ == kConcreteForwardingStubKind) {
+        concrete_forwarding_stub_target_ =
+            helper_->ReadCanonicalNameReference();
       } else {
         helper_->ReadCanonicalNameReference();
       }

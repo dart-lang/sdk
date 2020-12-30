@@ -260,7 +260,7 @@ class ClassPropertyModel {
           fieldModel.isVirtual(field) ||
           field.isCovariant ||
           field.isGenericCovariantImpl) {
-        virtualFields[field] = js_ast.TemporaryId(name);
+        virtualFields[field] = js_ast.TemporaryId(js_ast.toJSIdentifier(name));
       }
     }
   }

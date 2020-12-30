@@ -63,10 +63,14 @@ class CanonicalNameError {
   final String message;
 
   CanonicalNameError(this.message);
+
+  String toString() => 'CanonicalNameError: $message';
 }
 
 class CanonicalNameSdkError extends CanonicalNameError {
   CanonicalNameSdkError(String message) : super(message);
+
+  String toString() => 'CanonicalNameSdkError: $message';
 }
 
 class _ComponentIndex {
@@ -631,11 +635,10 @@ class BinaryBuilder {
           bool checkReferenceNode = true;
           if (child.reference == null) {
             // OK for "if private: URI of library" part of "Qualified name"...
-            Iterable<CanonicalName> children = child.childrenOrNull;
-            if (parent.parent != null &&
-                children != null &&
-                children.isNotEmpty &&
-                children.first.name.startsWith("_")) {
+            // TODO(johnniwinther): This wrongfully skips checking of variable
+            // synthesized by the VM transformations. The kind of canonical
+            // name types maybe should be directly available.
+            if (parent.parent != null && child.name.contains(':')) {
               // OK then.
               checkReferenceNode = false;
             } else {
@@ -1358,14 +1361,18 @@ class BinaryBuilder {
     CanonicalName getterCanonicalName = readCanonicalNameReference();
     Reference getterReference = getterCanonicalName.getReference();
     CanonicalName setterCanonicalName = readCanonicalNameReference();
-    Reference setterReference = setterCanonicalName.getReference();
+    Reference setterReference = setterCanonicalName?.getReference();
     Field node = getterReference.node;
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
     if (node == null) {
-      node = new Field(null,
-          getterReference: getterReference, setterReference: setterReference);
+      if (setterReference != null) {
+        node = new Field.mutable(null,
+            getterReference: getterReference, setterReference: setterReference);
+      } else {
+        node = new Field.immutable(null, getterReference: getterReference);
+      }
     }
     Uri fileUri = readUriReference();
     int fileOffset = readOffset();
@@ -1487,7 +1494,7 @@ class BinaryBuilder {
     node.stubKind = stubKind;
     node.stubTargetReference = stubTargetReference;
 
-    assert((node.stubKind == ProcedureStubKind.ForwardingSuperStub &&
+    assert((node.stubKind == ProcedureStubKind.ConcreteForwardingStub &&
             node.stubTargetReference != null) ||
         !(node.isForwardingStub && node.function.body != null));
     assert(!(node.isMemberSignature && node.stubTargetReference == null),

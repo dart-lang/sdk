@@ -167,12 +167,12 @@ abstract class ImpactRegistry {
   void registerInstanceSet(
       ir.DartType receiverType, ClassRelation relation, ir.Member target);
 
-  void registerSuperInvocation(ir.Name name, int positionalArguments,
+  void registerSuperInvocation(ir.Member target, int positionalArguments,
       List<String> namedArguments, List<ir.DartType> typeArguments);
 
-  void registerSuperGet(ir.Name name);
+  void registerSuperGet(ir.Member target);
 
-  void registerSuperSet(ir.Name name);
+  void registerSuperSet(ir.Member target);
 
   void registerSuperInitializer(
       ir.Constructor source,
@@ -590,19 +590,22 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
   @override
   void handleSuperMethodInvocation(ir.SuperMethodInvocation node,
       ArgumentTypes argumentTypes, ir.DartType returnType) {
-    registerSuperInvocation(node.name, node.arguments.positional.length,
-        _getNamedArguments(node.arguments), node.arguments.types);
+    registerSuperInvocation(
+        getEffectiveSuperTarget(node.interfaceTarget),
+        node.arguments.positional.length,
+        _getNamedArguments(node.arguments),
+        node.arguments.types);
   }
 
   @override
   void handleSuperPropertyGet(
       ir.SuperPropertyGet node, ir.DartType resultType) {
-    registerSuperGet(node.name);
+    registerSuperGet(getEffectiveSuperTarget(node.interfaceTarget));
   }
 
   @override
   void handleSuperPropertySet(ir.SuperPropertySet node, ir.DartType valueType) {
-    registerSuperSet(node.name);
+    registerSuperSet(getEffectiveSuperTarget(node.interfaceTarget));
   }
 
   @override

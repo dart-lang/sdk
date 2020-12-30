@@ -26,16 +26,24 @@ abstract class _Class&Object&Mixin1&Mixin2<T extends core::Object* = dynamic> = 
   synthetic constructor •() → self::_Class&Object&Mixin1&Mixin2<self::_Class&Object&Mixin1&Mixin2::T*>*
     : super self::_Class&Object&Mixin1::•()
     ;
+  mixin-super-stub set field((dynamic) →* core::Type* value) → void
+    return super.{mai::Mixin2::field} = value;
+  mixin-super-stub get field() → (dynamic) →* core::Type*
+    return super.{mai::Mixin2::field};
+  mixin-super-stub method method1() → (dynamic) →* core::Type*
+    return super.{mai::Mixin2::method1}();
+  mixin-super-stub method method2((dynamic) →* core::Type* t) → void
+    return super.{mai::Mixin2::method2}(t);
 }
 class Class<T extends core::Object* = dynamic> extends self::_Class&Object&Mixin1&Mixin2<self::Class::T*> {
   synthetic constructor •() → self::Class<self::Class::T*>*
     : super self::_Class&Object&Mixin1&Mixin2::•()
     ;
   set field((dynamic) →* core::Type* value) → void {
-    super.{mai::Mixin2::field};
-    super.{mai::Mixin2::field} = value;
-    super.{mai::Mixin2::method1}();
-    super.{mai::Mixin2::method2}(null);
+    super.{self::_Class&Object&Mixin1&Mixin2::field};
+    super.{self::_Class&Object&Mixin1&Mixin2::field} = value;
+    super.{self::_Class&Object&Mixin1&Mixin2::method1}();
+    super.{self::_Class&Object&Mixin1&Mixin2::method2}(null);
   }
 }
 static method main() → dynamic {}

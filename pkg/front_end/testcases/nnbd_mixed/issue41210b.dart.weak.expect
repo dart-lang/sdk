@@ -9,6 +9,8 @@ abstract class _C&Object&A = core::Object with iss::A /*isAnonymousMixin,hasCons
   const synthetic constructor •() → self::_C&Object&A*
     : super core::Object::•()
     ;
+  mixin-super-stub method method({core::String* s = #C1}) → core::String*
+    return super.{iss::A::method}(s: s);
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -31,7 +33,7 @@ class C extends self::_C&Object&A&B {
     ;
 }
 static method main() → dynamic {
-  core::print(new self::C::•().{iss::A::method}());
+  core::print(new self::C::•().{self::_C&Object&A::method}());
 }
 
 library;

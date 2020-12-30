@@ -7,7 +7,6 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../../services/refactoring/abstract_rename.dart';
 import 'fix_processor.dart';
 
 void main() {

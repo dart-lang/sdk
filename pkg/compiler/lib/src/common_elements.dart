@@ -2405,9 +2405,11 @@ abstract class JElementEnvironment extends ElementEnvironment {
   void forEachNestedClosure(
       MemberEntity member, void f(FunctionEntity closure));
 
-  /// Returns `true` if [cls] is a mixin application that mixes in methods with
-  /// super calls.
-  bool isSuperMixinApplication(ClassEntity cls);
+  /// Returns `true` if [cls] is a mixin application with its own members.
+  ///
+  /// This occurs when a mixin contains methods with super calls or when
+  /// the mixin application contains concrete forwarding stubs.
+  bool isMixinApplicationWithMembers(ClassEntity cls);
 
   /// The default type of the [typeVariable].
   ///

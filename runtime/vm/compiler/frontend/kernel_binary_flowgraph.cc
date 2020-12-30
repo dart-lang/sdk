@@ -1114,7 +1114,7 @@ void StreamingFlowGraphBuilder::ReadForwardingStubTarget(
     procedure_helper.ReadUntilExcluding(ProcedureHelper::kFunction);
     if (procedure_helper.IsForwardingStub() && !procedure_helper.IsAbstract()) {
       const NameIndex target_name =
-          procedure_helper.forwarding_stub_super_target_;
+          procedure_helper.concrete_forwarding_stub_target_;
       ASSERT(target_name != NameIndex::kInvalidName);
       const String& name = function.IsSetterFunction()
                                ? H.DartSetterName(target_name)

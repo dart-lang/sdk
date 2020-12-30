@@ -39,6 +39,8 @@ abstract class _A&Object&M = core::Object with self::M /*isAnonymousMixin,hasCon
   const synthetic constructor •() → self::_A&Object&M*
     : super core::Object::•()
     ;
+  mixin-super-stub method noSuchMethod(core::Invocation* i) → dynamic
+    return super.{self::M::noSuchMethod}(i);
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -54,7 +56,7 @@ class A extends self::_A&Object&M implements self::I<core::int*> {
     : super self::_A&Object&M::•()
     ;
   no-such-method-forwarder method foo() → core::int*
-    return this.{self::M::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::int*;
+    return this.{self::_A&Object&M::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::int*;
 }
 static method main() → dynamic {}
 

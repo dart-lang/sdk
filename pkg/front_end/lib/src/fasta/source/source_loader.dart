@@ -1521,7 +1521,7 @@ class Set<E> {
   factory Set() = Set<E>._fake;
   external factory Set._fake();
   external factory Set.of();
-  void add(E element) {}
+  bool add(E element) {}
   void addAll(Iterable<E> iterable) {}
 }
 

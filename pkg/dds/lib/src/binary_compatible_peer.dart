@@ -2,7 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dds;
+import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:async/async.dart';
+import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
+import 'package:stream_channel/stream_channel.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+
+import 'stream_manager.dart';
 
 /// Adds support for binary events send from the VM service, which are not part
 /// of the official JSON RPC 2.0 specification.
@@ -17,10 +26,10 @@ part of dds;
 /// ```
 /// where `metadata` is the JSON body of the event.
 ///
-/// [_BinaryCompatiblePeer] assumes that only stream events can contain a
+/// [BinaryCompatiblePeer] assumes that only stream events can contain a
 /// binary payload (e.g., clients cannot send a `BinaryEvent` to the VM service).
-class _BinaryCompatiblePeer extends json_rpc.Peer {
-  _BinaryCompatiblePeer(WebSocketChannel ws, _StreamManager streamManager)
+class BinaryCompatiblePeer extends json_rpc.Peer {
+  BinaryCompatiblePeer(WebSocketChannel ws, StreamManager streamManager)
       : super(
           ws.transform<String>(
             StreamChannelTransformer(
@@ -39,7 +48,7 @@ class _BinaryCompatiblePeer extends json_rpc.Peer {
         );
 
   static void _transformStream(
-      _StreamManager streamManager, dynamic data, EventSink<String> sink) {
+      StreamManager streamManager, dynamic data, EventSink<String> sink) {
     if (data is String) {
       // Non-binary messages come in as Strings. Simply forward to the sink.
       sink.add(data);

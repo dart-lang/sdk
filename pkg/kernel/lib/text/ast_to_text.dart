@@ -1077,16 +1077,8 @@ class Printer extends Visitor<Null> {
     writeModifier(node.isConst, 'const');
     // Only show implicit getter/setter modifiers in cases where they are
     // out of the ordinary.
-    if (node.isStatic) {
-      writeModifier(node.hasImplicitGetter, '[getter]');
-      writeModifier(node.hasImplicitSetter, '[setter]');
-    } else {
-      writeModifier(!node.hasImplicitGetter, '[no-getter]');
-      if (node.isFinal) {
-        writeModifier(node.hasImplicitSetter, '[setter]');
-      } else {
-        writeModifier(!node.hasImplicitSetter, '[no-setter]');
-      }
+    if (node.isFinal) {
+      writeModifier(node.hasSetter, '[setter]');
     }
     writeWord('field');
     writeSpace();
@@ -1125,8 +1117,24 @@ class Printer extends Visitor<Null> {
     writeModifier(node.isAbstract, 'abstract');
     writeModifier(node.isForwardingStub, 'forwarding-stub');
     writeModifier(node.isForwardingSemiStub, 'forwarding-semi-stub');
-    writeModifier(node.isMemberSignature, 'member-signature');
-    writeModifier(node.isNoSuchMethodForwarder, 'no-such-method-forwarder');
+    switch (node.stubKind) {
+      case ProcedureStubKind.Regular:
+      case ProcedureStubKind.AbstractForwardingStub:
+      case ProcedureStubKind.ConcreteForwardingStub:
+        break;
+      case ProcedureStubKind.NoSuchMethodForwarder:
+        writeWord('no-such-method-forwarder');
+        break;
+      case ProcedureStubKind.MemberSignature:
+        writeWord('member-signature');
+        break;
+      case ProcedureStubKind.AbstractMixinStub:
+        writeWord('mixin-stub');
+        break;
+      case ProcedureStubKind.ConcreteMixinStub:
+        writeWord('mixin-super-stub');
+        break;
+    }
     writeWord(procedureKindToString(node.kind));
     List<String> features = <String>[];
     if (node.enclosingLibrary.isNonNullableByDefault !=

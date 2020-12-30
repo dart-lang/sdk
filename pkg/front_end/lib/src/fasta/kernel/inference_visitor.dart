@@ -5996,12 +5996,10 @@ class InferenceVisitor
         inferrer.thisType.classNode.supertype.classNode,
         inferrer.library.library);
 
-    ObjectAccessTarget writeTarget = inferrer.findInterfaceMember(
-        receiverType, node.name, node.fileOffset,
-        setter: true, instrumented: true);
-    if (writeTarget.isInstanceMember || writeTarget.isObjectMember) {
-      node.interfaceTarget = writeTarget.member;
-    }
+    ObjectAccessTarget writeTarget = node.interfaceTarget != null
+        ? new ObjectAccessTarget.interfaceMember(node.interfaceTarget,
+            isPotentiallyNullable: false)
+        : const ObjectAccessTarget.missing();
     DartType writeContext = inferrer.getSetterType(writeTarget, receiverType);
     ExpressionInferenceResult rhsResult = inferrer.inferExpression(
         node.value, writeContext ?? const UnknownType(), true,

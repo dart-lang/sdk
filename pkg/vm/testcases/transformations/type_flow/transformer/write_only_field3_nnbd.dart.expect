@@ -20,7 +20,7 @@ class B extends core::Object {
     [@vm.direct-call.metadata=#lib::B.x] [@vm.inferred-type.metadata=!? (skip check)] this.{self::B::x} = 3;
   }
 }
-[@vm.inferred-type.metadata=dart.core::_Smi (value: 4)] [@vm.unboxing-info.metadata=(i)->i]late static final field core::int staticLateB;
+[@vm.inferred-type.metadata=dart.core::_Smi (value: 4)] [@vm.unboxing-info.metadata=(i)->i]late static final [setter] field core::int staticLateB;
 static method main() → void {
   [@vm.direct-call.metadata=#lib::A.use] [@vm.inferred-type.metadata=!? (skip check)] new self::A::•().{self::A::use}();
   [@vm.direct-call.metadata=#lib::B.use] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•().{self::B::use}();

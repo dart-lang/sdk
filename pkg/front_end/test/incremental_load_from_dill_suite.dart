@@ -1202,7 +1202,6 @@ Result<TestData> checkClassHierarchy(TestIncrementalCompiler compiler,
         Set<Member> members = info.lazyDeclaredGettersAndCalls.toSet();
         for (Field f in c.fields) {
           if (f.isStatic) continue;
-          if (!f.hasImplicitGetter) continue;
           if (!members.remove(f)) {
             return new Result<TestData>(
                 data,
@@ -1240,7 +1239,7 @@ Result<TestData> checkClassHierarchy(TestIncrementalCompiler compiler,
         Set<Member> members = info.lazyDeclaredSetters.toSet();
         for (Field f in c.fields) {
           if (f.isStatic) continue;
-          if (!f.hasImplicitSetter) continue;
+          if (!f.hasSetter) continue;
           if (!members.remove(f)) {
             return new Result<TestData>(data, ClassHierarchyError,
                 "Didn't find $f in lazyDeclaredSetters for $c");
@@ -1915,13 +1914,10 @@ void doSimulateTransformer(Component c) {
         .toList()
         .isNotEmpty) continue;
     Name fieldName = new Name("unique_SimulateTransformer");
-    Field field = new Field(fieldName,
+    Field field = new Field.immutable(fieldName,
         isFinal: true,
         getterReference: lib.reference.canonicalName
             ?.getChildFromFieldWithName(fieldName)
-            ?.reference,
-        setterReference: lib.reference.canonicalName
-            ?.getChildFromFieldSetterWithName(fieldName)
             ?.reference);
     lib.addField(field);
     for (Class c in lib.classes) {
@@ -1930,13 +1926,10 @@ void doSimulateTransformer(Component c) {
           .toList()
           .isNotEmpty) continue;
       fieldName = new Name("unique_SimulateTransformer");
-      field = new Field(fieldName,
+      field = new Field.immutable(fieldName,
           isFinal: true,
           getterReference: c.reference.canonicalName
               ?.getChildFromFieldWithName(fieldName)
-              ?.reference,
-          setterReference: c.reference.canonicalName
-              ?.getChildFromFieldSetterWithName(fieldName)
               ?.reference);
       c.addField(field);
     }

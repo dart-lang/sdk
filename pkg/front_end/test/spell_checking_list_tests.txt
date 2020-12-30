@@ -25,6 +25,7 @@ alt
 amortized
 analyses
 animal
+animated
 annoying
 anon
 aoo
@@ -494,6 +495,7 @@ okay
 ol
 onull
 ooo
+opacity
 operate
 ops
 optimal
@@ -544,6 +546,7 @@ property8b
 protected
 proved
 provider
+proxy
 pseudocode
 pubspec
 pv

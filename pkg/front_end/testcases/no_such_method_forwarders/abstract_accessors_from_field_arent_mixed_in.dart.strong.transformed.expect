@@ -44,6 +44,10 @@ abstract class _C&Object&B extends core::Object implements self::B /*isAnonymous
   const synthetic constructor •() → self::_C&Object&B*
     : super core::Object::•()
     ;
+  method noSuchMethod(core::Invocation* i) → dynamic {
+    self::count = self::count.{core::num::+}(1);
+    return null;
+  }
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -53,10 +57,6 @@ abstract class _C&Object&B extends core::Object implements self::B /*isAnonymous
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  method noSuchMethod(core::Invocation* i) → dynamic {
-    self::count = self::count.{core::num::+}(1);
-    return null;
-  }
 }
 class C extends self::_C&Object&B {
   synthetic constructor •() → self::C*

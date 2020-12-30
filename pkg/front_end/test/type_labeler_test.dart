@@ -182,17 +182,17 @@ main() {
   check({funGenericBar: "T Function<T extends Bar<T>>(T)"}, 1);
 
   // Add some members for testing instance constants
-  Field booField = new Field(new Name("boo"), type: boolType);
+  Field booField = new Field.immutable(new Name("boo"), type: boolType);
   fooClass.fields.add(booField);
-  Field valueField = new Field(new Name("value"), type: intType);
+  Field valueField = new Field.immutable(new Name("value"), type: intType);
   foo2Class.fields.add(valueField);
-  Field nextField = new Field(new Name("next"), type: foo2);
+  Field nextField = new Field.immutable(new Name("next"), type: foo2);
   foo2Class.fields.add(nextField);
-  Field xField = new Field(new Name("x"),
+  Field xField = new Field.immutable(new Name("x"),
       type: new TypeParameterType(
           bazClass.typeParameters[0], Nullability.legacy));
   bazClass.fields.add(xField);
-  Field yField = new Field(new Name("y"),
+  Field yField = new Field.immutable(new Name("y"),
       type: new TypeParameterType(
           bazClass.typeParameters[1], Nullability.legacy));
   bazClass.fields.add(yField);

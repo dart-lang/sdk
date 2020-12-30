@@ -10,8 +10,8 @@ class Class extends core::Object {
   late field self::Class lateInstanceFieldThis;
   late final field self::Class lateFinalInstanceFieldThis;
   late static field core::int lateStaticField;
-  late static final field core::int lateFinalStaticField1;
-  late static final field core::int lateFinalStaticField2;
+  late static final [setter] field core::int lateFinalStaticField1;
+  late static final [setter] field core::int lateFinalStaticField2;
   late static final field core::int lateFinalStaticFieldWithInit;
   synthetic constructor •() → self::Class
     ;
@@ -21,7 +21,7 @@ class Class extends core::Object {
     ;
 }
 late static field core::int lateTopLevelField;
-late static final field core::int lateFinalTopLevelField;
+late static final [setter] field core::int lateFinalTopLevelField;
 late static final field core::int lateFinalTopLevelFieldWithInit;
 static method main() → dynamic
   ;

@@ -6,7 +6,6 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/generated/source.dart';
 
 /// A computer for [CompilationUnit] closing labels.
 class DartUnitClosingLabelsComputer {

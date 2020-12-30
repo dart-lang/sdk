@@ -545,9 +545,11 @@ class Library extends NamedNode
     for (int i = 0; i < fields.length; ++i) {
       Field field = fields[i];
       canonicalName.getChildFromField(field).bindTo(field.getterReference);
-      canonicalName
-          .getChildFromFieldSetter(field)
-          .bindTo(field.setterReference);
+      if (field.hasSetter) {
+        canonicalName
+            .getChildFromFieldSetter(field)
+            .bindTo(field.setterReference);
+      }
     }
     for (int i = 0; i < procedures.length; ++i) {
       Procedure member = procedures[i];
@@ -1192,9 +1194,11 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     for (int i = 0; i < fields.length; ++i) {
       Field member = fields[i];
       canonicalName.getChildFromField(member).bindTo(member.getterReference);
-      canonicalName
-          .getChildFromFieldSetter(member)
-          .bindTo(member.setterReference);
+      if (member.hasSetter) {
+        canonicalName
+            .getChildFromFieldSetter(member)
+            .bindTo(member.setterReference);
+      }
     }
     for (int i = 0; i < procedures.length; ++i) {
       Procedure member = procedures[i];
@@ -1683,26 +1687,42 @@ class Field extends Member {
   CanonicalName get getterCanonicalName => getterReference?.canonicalName;
   CanonicalName get setterCanonicalName => setterReference?.canonicalName;
 
-  Field(Name name,
+  Field.mutable(Name name,
+      {this.type: const DynamicType(),
+      this.initializer,
+      bool isCovariant: false,
+      bool isFinal: false,
+      bool isStatic: false,
+      bool isLate: false,
+      int transformerFlags: 0,
+      Uri fileUri,
+      Reference getterReference,
+      Reference setterReference})
+      : this.setterReference = setterReference ?? new Reference(),
+        super(name, fileUri, getterReference) {
+    this.setterReference.node = this;
+    assert(type != null);
+    initializer?.parent = this;
+    this.isCovariant = isCovariant;
+    this.isFinal = isFinal;
+    this.isStatic = isStatic;
+    this.isLate = isLate;
+    this.transformerFlags = transformerFlags;
+  }
+
+  Field.immutable(Name name,
       {this.type: const DynamicType(),
       this.initializer,
       bool isCovariant: false,
       bool isFinal: false,
       bool isConst: false,
       bool isStatic: false,
-      bool hasImplicitGetter,
-      bool hasImplicitSetter,
       bool isLate: false,
       int transformerFlags: 0,
       Uri fileUri,
-      Reference getterReference,
-      Reference setterReference})
-      :
-        // TODO(jensj): Maybe don't create one for final fields?
-        // ('final' is a mutable setting though).
-        this.setterReference = setterReference ?? new Reference(),
+      Reference getterReference})
+      : this.setterReference = null,
         super(name, fileUri, getterReference) {
-    this.setterReference.node = this;
     assert(type != null);
     initializer?.parent = this;
     this.isCovariant = isCovariant;
@@ -1710,31 +1730,26 @@ class Field extends Member {
     this.isConst = isConst;
     this.isStatic = isStatic;
     this.isLate = isLate;
-    this.hasImplicitGetter = hasImplicitGetter ?? !isStatic;
-    this.hasImplicitSetter = hasImplicitSetter ??
-        (!isStatic &&
-            !isConst &&
-            (!isFinal || (isLate && initializer == null)));
     this.transformerFlags = transformerFlags;
   }
 
   @override
   void _relinkNode() {
     super._relinkNode();
-    this.setterReference.node = this;
+    if (hasSetter) {
+      this.setterReference.node = this;
+    }
   }
 
   static const int FlagFinal = 1 << 0; // Must match serialized bit positions.
   static const int FlagConst = 1 << 1;
   static const int FlagStatic = 1 << 2;
-  static const int FlagHasImplicitGetter = 1 << 3;
-  static const int FlagHasImplicitSetter = 1 << 4;
-  static const int FlagCovariant = 1 << 5;
-  static const int FlagGenericCovariantImpl = 1 << 6;
-  static const int FlagLate = 1 << 7;
-  static const int FlagExtensionMember = 1 << 8;
-  static const int FlagNonNullableByDefault = 1 << 9;
-  static const int FlagInternalImplementation = 1 << 10;
+  static const int FlagCovariant = 1 << 3;
+  static const int FlagGenericCovariantImpl = 1 << 4;
+  static const int FlagLate = 1 << 5;
+  static const int FlagExtensionMember = 1 << 6;
+  static const int FlagNonNullableByDefault = 1 << 7;
+  static const int FlagInternalImplementation = 1 << 8;
 
   /// Whether the field is declared with the `covariant` keyword.
   bool get isCovariant => flags & FlagCovariant != 0;
@@ -1745,26 +1760,6 @@ class Field extends Member {
 
   @override
   bool get isExtensionMember => flags & FlagExtensionMember != 0;
-
-  /// If true, a getter should be generated for this field.
-  ///
-  /// If false, there may or may not exist an explicit getter in the same class
-  /// with the same name as the field.
-  ///
-  /// By default, all non-static fields have implicit getters.
-  bool get hasImplicitGetter => flags & FlagHasImplicitGetter != 0;
-
-  /// If true, a setter should be generated for this field.
-  ///
-  /// If false, there may or may not exist an explicit setter in the same class
-  /// with the same name as the field.
-  ///
-  /// Final fields never have implicit setters, but a field without an implicit
-  /// setter is not necessarily final, as it may be mutated by direct field
-  /// access.
-  ///
-  /// By default, all non-static, non-final fields have implicit setters.
-  bool get hasImplicitSetter => flags & FlagHasImplicitSetter != 0;
 
   /// Indicates whether the implicit setter associated with this field needs to
   /// contain a runtime type check to deal with generic covariance.
@@ -1804,18 +1799,6 @@ class Field extends Member {
         value ? (flags | FlagExtensionMember) : (flags & ~FlagExtensionMember);
   }
 
-  void set hasImplicitGetter(bool value) {
-    flags = value
-        ? (flags | FlagHasImplicitGetter)
-        : (flags & ~FlagHasImplicitGetter);
-  }
-
-  void set hasImplicitSetter(bool value) {
-    flags = value
-        ? (flags | FlagHasImplicitSetter)
-        : (flags & ~FlagHasImplicitSetter);
-  }
-
   void set isGenericCovariantImpl(bool value) {
     flags = value
         ? (flags | FlagGenericCovariantImpl)
@@ -1832,11 +1815,9 @@ class Field extends Member {
         : (flags & ~FlagInternalImplementation);
   }
 
-  /// True if the field is neither final nor const.
-  bool get isMutable => flags & (FlagFinal | FlagConst) == 0;
   bool get isInstanceMember => !isStatic;
   bool get hasGetter => true;
-  bool get hasSetter => isMutable || isLate && initializer == null;
+  bool get hasSetter => setterReference != null;
 
   bool get isExternal => false;
   void set isExternal(bool value) {
@@ -2163,16 +2144,16 @@ enum ProcedureStubKind {
   ///        void method2(int o) {}
   ///     }
   ///     class C implements A<int>, B {
-  ///        // Forwarding stub needed because the parameter is covariant in
-  ///        // `B.method1` but not in `A.method1`.
+  ///        // Abstract forwarding stub needed because the parameter is
+  ///        // covariant in `B.method1` but not in `A.method1`.
   ///        void method1(covariant num o);
-  ///        // Forwarding stub needed because the parameter is a generic
-  ///        // covariant impl in `A.method2` but not in `B.method2`.
+  ///        // Abstract forwarding stub needed because the parameter is a
+  ///        // generic covariant impl in `A.method2` but not in `B.method2`.
   ///        void method2(/*generic-covariant-impl*/ int o);
   ///     }
   ///
   /// The stub target is one of the overridden members.
-  ForwardingStub,
+  AbstractForwardingStub,
 
   /// A concrete procedure inserted to add `isCovariant` and
   /// `isGenericCovariantImpl` checks to parameters before calling the
@@ -2191,15 +2172,15 @@ enum ProcedureStubKind {
   ///        void method2(int o) {}
   ///     }
   ///     class C extends A<int> implements B {
-  ///        // Forwarding stub needed because the parameter is covariant in
-  ///        // `B.method1` but not in `A.method1`.
+  ///        // Concrete forwarding stub needed because the parameter is
+  ///        // covariant in `B.method1` but not in `A.method1`.
   ///        void method1(covariant num o) => super.method1(o);
-  ///        // No need for a super stub for `A.method2` because it has the
-  ///        // right covariance flags already.
+  ///        // No need for a concrete forwarding stub for `A.method2` because
+  ///        // it has the right covariance flags already.
   ///     }
   ///
   /// The stub target is the called superclass member.
-  ForwardingSuperStub,
+  ConcreteForwardingStub,
 
   /// A concrete procedure inserted to forward calls to `noSuchMethod` for
   /// an inherited member that it does not implement.
@@ -2274,22 +2255,23 @@ enum ProcedureStubKind {
   ///        void method();
   ///     }
   ///     class Class = Super with Mixin
-  ///       // A mixin stub for `A.method` is added to `Class`
+  ///       // An abstract mixin stub for `A.method` is added to `Class`
   ///       void method();
   ///     ;
   ///
   /// This is added to ensure that interface targets are resolved consistently
-  /// in face of cloning. For instance, without the mixin stub, this call:
+  /// in face of cloning. For instance, without the abstract mixin stub, this
+  /// call:
   ///
   ///     method(Class c) => c.method();
   ///
-  /// would use `Mixin.method` as its target, but after load from a VM .dill
+  /// would use `Mixin.method` as its target, but after loading from a VM .dill
   /// (which clones all mixin members) the call would resolve to `Class.method`
   /// instead. By adding the mixin stub to `Class`, all accesses both before
   /// and after .dill will point to `Class.method`.
   ///
   /// The stub target is the mixin member.
-  MixinStub,
+  AbstractMixinStub,
 
   /// A concrete procedure inserted for the application of a concrete mixin
   /// member. The implementation calls the mixin member via a super-call.
@@ -2302,26 +2284,26 @@ enum ProcedureStubKind {
   ///        void method() {}
   ///     }
   ///     class Class = Super with Mixin
-  ///       // A mixin stub for `A.method` is added to `Class` which calls
-  ///       // `A.method`.
+  ///       // A concrete mixin stub for `A.method` is added to `Class` which
+  ///       // calls `A.method`.
   ///       void method() => super.method();
   ///     ;
   ///
   /// This is added to ensure that super accesses are resolved correctly, even
-  /// in face of cloning. For instance, without the mixin super stub, this super
-  /// call:
+  /// in face of cloning. For instance, without the concrete mixin stub, this
+  /// super call:
   ///
   ///     class Subclass extends Class {
   ///       method(Class c) => super.method();
   ///     }
   ///
-  /// would use `Mixin.method` as its target, which would to be update to match
-  /// the cloning of mixin member performed for instance by the VM. By adding
-  /// the mixin super stub to `Class`, all accesses both before and after
-  /// cloning will point to `Class.method`.
+  /// would use `Mixin.method` as its target, which would need to be updated to
+  /// match the clone of the mixin member performed for instance by the VM. By
+  /// adding the concrete mixin stub to `Class`, all accesses both before and
+  /// after cloning will point to `Class.method`.
   ///
   /// The stub target is the called mixin member.
-  MixinSuperStub,
+  ConcreteMixinStub,
 }
 
 /// A method, getter, setter, index-getter, index-setter, operator overloader,
@@ -2457,22 +2439,19 @@ class Procedure extends Member {
 
   /// If set, this flag indicates that this function's implementation exists
   /// solely for the purpose of type checking arguments and forwarding to
-  /// [forwardingStubSuperTarget].
+  /// [concreteForwardingStubTarget].
   ///
   /// Note that just because this bit is set doesn't mean that the function was
   /// not declared in the source; it's possible that this is a forwarding
   /// semi-stub (see isForwardingSemiStub).  To determine whether this function
   /// was present in the source, consult [isSyntheticForwarder].
   bool get isForwardingStub =>
-      stubKind == ProcedureStubKind.ForwardingStub ||
-      stubKind == ProcedureStubKind.ForwardingSuperStub;
+      stubKind == ProcedureStubKind.AbstractForwardingStub ||
+      stubKind == ProcedureStubKind.ConcreteForwardingStub;
 
   /// If set, this flag indicates that although this function is a forwarding
   /// stub, it was present in the original source as an abstract method.
-  bool get isForwardingSemiStub =>
-      !isSynthetic &&
-      (stubKind == ProcedureStubKind.ForwardingStub ||
-          stubKind == ProcedureStubKind.ForwardingSuperStub);
+  bool get isForwardingSemiStub => !isSynthetic && isForwardingStub;
 
   /// If set, this method is a class member added to show the type of an
   /// inherited member.
@@ -2491,7 +2470,7 @@ class Procedure extends Member {
 
   /// If set, this flag indicates that this function was not present in the
   /// source, and it exists solely for the purpose of type checking arguments
-  /// and forwarding to [forwardingStubSuperTarget].
+  /// and forwarding to [concreteForwardingStubTarget].
   bool get isSyntheticForwarder => isForwardingStub && !isForwardingSemiStub;
   bool get isSynthetic => flags & FlagSynthetic != 0;
 
@@ -2550,13 +2529,13 @@ class Procedure extends Member {
         : (flags & ~FlagNonNullableByDefault);
   }
 
-  Member get forwardingStubSuperTarget =>
-      stubKind == ProcedureStubKind.ForwardingSuperStub
+  Member get concreteForwardingStubTarget =>
+      stubKind == ProcedureStubKind.ConcreteForwardingStub
           ? stubTargetReference?.asMember
           : null;
 
-  Member get forwardingStubInterfaceTarget =>
-      stubKind == ProcedureStubKind.ForwardingStub
+  Member get abstractForwardingStubTarget =>
+      stubKind == ProcedureStubKind.AbstractForwardingStub
           ? stubTargetReference?.asMember
           : null;
 

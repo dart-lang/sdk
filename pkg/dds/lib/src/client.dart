@@ -2,34 +2,46 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dds;
+import 'dart:async';
+
+import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
+import 'package:meta/meta.dart';
+import 'package:sse/server/sse_handler.dart';
+import 'package:stream_channel/stream_channel.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+
+import '../dds.dart';
+import 'constants.dart';
+import 'dds_impl.dart';
+import 'rpc_error_codes.dart';
+import 'stream_manager.dart';
 
 /// Representation of a single DDS client which manages the connection and
 /// DDS request intercepting / forwarding.
-class _DartDevelopmentServiceClient {
-  factory _DartDevelopmentServiceClient.fromWebSocket(
+class DartDevelopmentServiceClient {
+  factory DartDevelopmentServiceClient.fromWebSocket(
     DartDevelopmentService dds,
     WebSocketChannel ws,
     json_rpc.Peer vmServicePeer,
   ) =>
-      _DartDevelopmentServiceClient._(
+      DartDevelopmentServiceClient._(
         dds,
         ws,
         vmServicePeer,
       );
 
-  factory _DartDevelopmentServiceClient.fromSSEConnection(
+  factory DartDevelopmentServiceClient.fromSSEConnection(
     DartDevelopmentService dds,
     SseConnection sse,
     json_rpc.Peer vmServicePeer,
   ) =>
-      _DartDevelopmentServiceClient._(
+      DartDevelopmentServiceClient._(
         dds,
         sse,
         vmServicePeer,
       );
 
-  _DartDevelopmentServiceClient._(
+  DartDevelopmentServiceClient._(
     this.dds,
     this.connection,
     json_rpc.Peer vmServicePeer,
@@ -39,7 +51,7 @@ class _DartDevelopmentServiceClient {
       // .cast<String>() as cast() results in addStream() being called,
       // binding the underlying sink. This results in a StateError being thrown
       // if we try and add directly to the sink, which we do for binary events
-      // in _StreamManager's streamNotify().
+      // in StreamManager's streamNotify().
       StreamChannel<String>(
         connection.stream.cast(),
         StreamController(sync: true)
@@ -88,21 +100,21 @@ class _DartDevelopmentServiceClient {
     _clientPeer.registerMethod('streamListen', (parameters) async {
       final streamId = parameters['streamId'].asString;
       await dds.streamManager.streamListen(this, streamId);
-      return _RPCResponses.success;
+      return RPCResponses.success;
     });
 
     _clientPeer.registerMethod('streamCancel', (parameters) async {
       final streamId = parameters['streamId'].asString;
       await dds.streamManager.streamCancel(this, streamId);
-      return _RPCResponses.success;
+      return RPCResponses.success;
     });
 
     _clientPeer.registerMethod('registerService', (parameters) async {
       final serviceId = parameters['service'].asString;
       final alias = parameters['alias'].asString;
       if (services.containsKey(serviceId)) {
-        throw _RpcErrorCodes.buildRpcException(
-          _RpcErrorCodes.kServiceAlreadyRegistered,
+        throw RpcErrorCodes.buildRpcException(
+          RpcErrorCodes.kServiceAlreadyRegistered,
         );
       }
       services[serviceId] = alias;
@@ -112,7 +124,7 @@ class _DartDevelopmentServiceClient {
         serviceId,
         alias,
       );
-      return _RPCResponses.success;
+      return RPCResponses.success;
     });
 
     _clientPeer.registerMethod(
@@ -136,13 +148,26 @@ class _DartDevelopmentServiceClient {
       (parameters) => dds.isolateManager.resumeIsolate(this, parameters),
     );
 
+    _clientPeer.registerMethod('getStreamHistory', (parameters) {
+      final stream = parameters['stream'].asString;
+      final events = dds.streamManager.getStreamHistory(stream);
+      if (events == null) {
+        throw json_rpc.RpcException.invalidParams(
+          "Event history is not collected for stream '$stream'",
+        );
+      }
+      return <String, dynamic>{
+        'type': 'StreamHistory',
+        'history': events,
+      };
+    });
+
     _clientPeer.registerMethod(
         'getLogHistorySize',
         (parameters) => {
               'type': 'Size',
-              'size': _StreamManager
-                  .loggingRepositories[_StreamManager.kLoggingStream]
-                  .bufferSize,
+              'size': StreamManager
+                  .loggingRepositories[StreamManager.kLoggingStream].bufferSize,
             });
 
     _clientPeer.registerMethod('setLogHistorySize', (parameters) {
@@ -152,9 +177,9 @@ class _DartDevelopmentServiceClient {
           "'size' must be greater or equal to zero",
         );
       }
-      _StreamManager.loggingRepositories[_StreamManager.kLoggingStream]
+      StreamManager.loggingRepositories[StreamManager.kLoggingStream]
           .resize(size);
-      return _RPCResponses.success;
+      return RPCResponses.success;
     });
 
     _clientPeer.registerMethod('getDartDevelopmentServiceVersion',
@@ -219,21 +244,21 @@ class _DartDevelopmentServiceClient {
           [
             // Forward the request to the service client or...
             serviceClient.sendRequest(method, parameters.asMap).catchError((_) {
-              throw _RpcErrorCodes.buildRpcException(
-                _RpcErrorCodes.kServiceDisappeared,
+              throw RpcErrorCodes.buildRpcException(
+                RpcErrorCodes.kServiceDisappeared,
               );
             }, test: (error) => error is StateError),
             // if the service client closes, return an error response.
             serviceClient._clientPeer.done.then(
-              (_) => throw _RpcErrorCodes.buildRpcException(
-                _RpcErrorCodes.kServiceDisappeared,
+              (_) => throw RpcErrorCodes.buildRpcException(
+                RpcErrorCodes.kServiceDisappeared,
               ),
             ),
           ],
         );
       }
       throw json_rpc.RpcException(
-        _RpcErrorCodes.kMethodNotFound,
+        RpcErrorCodes.kMethodNotFound,
         'Unknown service: ${parameters.method}',
       );
     });
@@ -260,12 +285,12 @@ class _DartDevelopmentServiceClient {
   String get name => _name;
 
   // NOTE: this should not be called directly except from:
-  //   - `_ClientManager._clearClientName`
-  //   - `_ClientManager._setClientNameHelper`
+  //   - `ClientManager._clearClientName`
+  //   - `ClientManager._setClientNameHelper`
   set name(String n) => _name = n ?? defaultClientName;
   String _name;
 
-  final _DartDevelopmentService dds;
+  final DartDevelopmentServiceImpl dds;
   final StreamChannel connection;
   final Map<String, String> services = {};
   final json_rpc.Peer _vmServicePeer;

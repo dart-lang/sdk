@@ -113,16 +113,6 @@ abstract class _Class1&Object&TestMixin extends core::Object implements self::Te
   const synthetic constructor •() → self::_Class1&Object&TestMixin*
     : super core::Object::•()
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
   method test(generic-covariant-impl asy::Future<self::Response<core::String*>*>* fetch) → asy::Future<core::String*>* /* originally async */ {
     final asy::_Future<core::String*>* :async_future = new asy::_Future::•<core::String*>();
     core::bool* :is_sync = false;
@@ -168,20 +158,6 @@ abstract class _Class1&Object&TestMixin extends core::Object implements self::Te
     :is_sync = true;
     return :async_future;
   }
-}
-class Class1 extends self::_Class1&Object&TestMixin {
-  synthetic constructor •() → self::Class1*
-    : super self::_Class1&Object&TestMixin::•()
-    ;
-  method _test() → dynamic {
-    final self::Response<core::String*>* response = new self::Response::•<core::String*>("test");
-    this.{self::TestMixin::test}(asy::Future::value<self::Response<core::String*>*>(response));
-  }
-}
-abstract class _Class2&Object&TestMixin extends core::Object implements self::TestMixin<self::PagingResponse<core::String*>*, core::String*> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_Class2&Object&TestMixin*
-    : super core::Object::•()
-    ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -192,6 +168,20 @@ abstract class _Class2&Object&TestMixin extends core::Object implements self::Te
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Class1 extends self::_Class1&Object&TestMixin {
+  synthetic constructor •() → self::Class1*
+    : super self::_Class1&Object&TestMixin::•()
+    ;
+  method _test() → dynamic {
+    final self::Response<core::String*>* response = new self::Response::•<core::String*>("test");
+    this.{self::_Class1&Object&TestMixin::test}(asy::Future::value<self::Response<core::String*>*>(response));
+  }
+}
+abstract class _Class2&Object&TestMixin extends core::Object implements self::TestMixin<self::PagingResponse<core::String*>*, core::String*> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_Class2&Object&TestMixin*
+    : super core::Object::•()
+    ;
   method test(generic-covariant-impl asy::Future<self::PagingResponse<core::String*>*>* fetch) → asy::Future<core::String*>* /* originally async */ {
     final asy::_Future<core::String*>* :async_future = new asy::_Future::•<core::String*>();
     core::bool* :is_sync = false;
@@ -237,6 +227,16 @@ abstract class _Class2&Object&TestMixin extends core::Object implements self::Te
     :is_sync = true;
     return :async_future;
   }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Class2 extends self::_Class2&Object&TestMixin {
   synthetic constructor •() → self::Class2*
@@ -244,7 +244,7 @@ class Class2 extends self::_Class2&Object&TestMixin {
     ;
   method _test() → dynamic {
     final self::PagingResponse<core::String*>* response = new self::PagingResponse::•<core::String*>(new self::PagingResponseData::•<core::String*>(<core::String*>["test"]));
-    this.{self::TestMixin::test}(asy::Future::value<self::PagingResponse<core::String*>*>(response));
+    this.{self::_Class2&Object&TestMixin::test}(asy::Future::value<self::PagingResponse<core::String*>*>(response));
   }
 }
 static method main() → dynamic {}

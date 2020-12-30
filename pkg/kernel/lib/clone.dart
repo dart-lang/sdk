@@ -747,12 +747,12 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
     return result;
   }
 
-  Procedure cloneProcedure(Procedure node, Procedure referenceFrom) {
+  Procedure cloneProcedure(Procedure node, Reference reference) {
     final Uri activeFileUriSaved = _activeFileUri;
     _activeFileUri = node.fileUri ?? _activeFileUri;
     Procedure result = new Procedure(
         node.name, node.kind, super.clone(node.function),
-        reference: referenceFrom?.reference,
+        reference: reference,
         transformerFlags: node.transformerFlags,
         fileUri: _activeFileUri,
         stubKind: node.stubKind,
@@ -769,24 +769,33 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
     return result;
   }
 
-  Field cloneField(Field node, Field referenceFrom) {
+  Field cloneField(
+      Field node, Reference getterReference, Reference setterReference) {
     final Uri activeFileUriSaved = _activeFileUri;
     _activeFileUri = node.fileUri ?? _activeFileUri;
 
-    Field result = new Field(node.name,
-        type: visitType(node.type),
-        initializer: cloneOptional(node.initializer),
-        isCovariant: node.isCovariant,
-        isFinal: node.isFinal,
-        isConst: node.isConst,
-        isStatic: node.isStatic,
-        isLate: node.isLate,
-        hasImplicitGetter: node.hasImplicitGetter,
-        hasImplicitSetter: node.hasImplicitSetter,
-        transformerFlags: node.transformerFlags,
-        fileUri: _activeFileUri,
-        getterReference: referenceFrom?.getterReference,
-        setterReference: referenceFrom?.setterReference)
+    Field result;
+    if (node.hasSetter) {
+      result = new Field.mutable(node.name,
+          type: visitType(node.type),
+          initializer: cloneOptional(node.initializer),
+          transformerFlags: node.transformerFlags,
+          fileUri: _activeFileUri,
+          getterReference: getterReference,
+          setterReference: setterReference);
+    } else {
+      assert(
+          setterReference == null,
+          "Cannot use setter reference $setterReference "
+          "for clone of an immutable field.");
+      result = new Field.immutable(node.name,
+          type: visitType(node.type),
+          initializer: cloneOptional(node.initializer),
+          transformerFlags: node.transformerFlags,
+          fileUri: _activeFileUri,
+          getterReference: getterReference);
+    }
+    result
       ..annotations = cloneAnnotations && !node.annotations.isEmpty
           ? node.annotations.map(super.clone).toList()
           : const <Expression>[]
@@ -825,6 +834,93 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
 
     _activeFileUri = activeFileUriSaved;
     return result;
+  }
+}
+
+/// Cloner that resolves super calls in mixin declarations.
+class MixinApplicationCloner extends CloneVisitorWithMembers {
+  final Class mixinApplicationClass;
+  Map<Name, Member> _getterMap;
+  Map<Name, Member> _setterMap;
+
+  MixinApplicationCloner(this.mixinApplicationClass,
+      {Map<TypeParameter, DartType> typeSubstitution,
+      Map<TypeParameter, TypeParameter> typeParams,
+      bool cloneAnnotations = true})
+      : super(
+            typeSubstitution: typeSubstitution,
+            typeParams: typeParams,
+            cloneAnnotations: cloneAnnotations);
+
+  Member _findSuperMember(Name name, {bool isSetter}) {
+    assert(isSetter != null);
+    Map<Name, Member> cache;
+    if (isSetter) {
+      cache = _setterMap ??= {};
+    } else {
+      cache = _getterMap ??= {};
+    }
+    Member member = cache[name];
+    if (member != null) {
+      return member;
+    }
+    Class superClass = mixinApplicationClass.superclass;
+    while (superClass != null) {
+      for (Procedure procedure in superClass.procedures) {
+        if (procedure.name == name) {
+          if (isSetter) {
+            if (procedure.kind == ProcedureKind.Setter &&
+                !procedure.isAbstract) {
+              return cache[name] = procedure;
+            }
+          } else {
+            if (procedure.kind != ProcedureKind.Setter &&
+                !procedure.isAbstract) {
+              return cache[name] = procedure;
+            }
+          }
+        }
+      }
+      for (Field field in superClass.fields) {
+        if (field.name == name) {
+          if (isSetter) {
+            if (field.hasSetter) {
+              return cache[name] = field;
+            }
+          } else {
+            return cache[name] = field;
+          }
+        }
+      }
+
+      superClass = superClass.superclass;
+    }
+    // TODO(johnniwinther): Throw instead when the CFE reports missing concrete
+    // super members.
+    // throw new StateError(
+    //     'No super member found for $name in $mixinApplicationClass');
+    return null;
+  }
+
+  @override
+  SuperMethodInvocation visitSuperMethodInvocation(SuperMethodInvocation node) {
+    SuperMethodInvocation cloned = super.visitSuperMethodInvocation(node);
+    cloned.interfaceTarget = _findSuperMember(node.name, isSetter: false);
+    return cloned;
+  }
+
+  @override
+  SuperPropertyGet visitSuperPropertyGet(SuperPropertyGet node) {
+    SuperPropertyGet cloned = super.visitSuperPropertyGet(node);
+    cloned.interfaceTarget = _findSuperMember(node.name, isSetter: false);
+    return cloned;
+  }
+
+  @override
+  SuperPropertySet visitSuperPropertySet(SuperPropertySet node) {
+    SuperPropertySet cloned = super.visitSuperPropertySet(node);
+    cloned.interfaceTarget = _findSuperMember(node.name, isSetter: true);
+    return cloned;
   }
 }
 

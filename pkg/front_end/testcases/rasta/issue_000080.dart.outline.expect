@@ -23,6 +23,12 @@ abstract class _Foo&Object&Mixin = core::Object with self::Mixin /*isAnonymousMi
   synthetic constructor •() → self::_Foo&Object&Mixin*
     : super core::Object::•()
     ;
+  mixin-super-stub method foo() → dynamic
+    return super.{self::Mixin::foo}();
+  mixin-super-stub get field() → dynamic
+    return super.{self::Mixin::field};
+  mixin-super-stub set field(dynamic value) → void
+    return super.{self::Mixin::field} = value;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf

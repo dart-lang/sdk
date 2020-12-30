@@ -60,6 +60,12 @@ Future writeComponentToBinary(Component component, String path) {
   return future;
 }
 
+List<int> writeComponentToBytes(Component component) {
+  BytesSink sink = new BytesSink();
+  new BinaryPrinter(sink).writeComponentFile(component);
+  return sink.builder.toBytes();
+}
+
 void writeLibraryToText(Library library, {String path}) {
   StringBuffer buffer = new StringBuffer();
   new Printer(buffer).writeLibraryFile(library);

@@ -1620,6 +1620,7 @@ class ClassHierarchyNodeBuilder {
               result = InheritedImplementationInterfaceConflict.combined(
                   classBuilder,
                   mixedInMember,
+                  /*isSuperClassMemberMixedIn = */ true,
                   extendedMember,
                   forSetter,
                   shouldModifyKernel,
@@ -1637,6 +1638,21 @@ class ClassHierarchyNodeBuilder {
           } else {
             if (mixedInMember.isAbstract) {
               recordAbstractMember(mixedInMember);
+            } else {
+              if (!mixedInMember.isSynthesized) {
+                mixedInMember = new InterfaceConflict(
+                    classBuilder,
+                    mixedInMember,
+                    /*_isSuperClassMemberMixedIn = */ true,
+                    [mixedInMember],
+                    mixedInMember.isProperty,
+                    forSetter,
+                    shouldModifyKernel,
+                    mixedInMember.isAbstract,
+                    mixedInMember.name,
+                    isImplicitlyAbstract: mixedInMember.isAbstract);
+                hierarchy.registerMemberComputation(mixedInMember);
+              }
             }
             return mixedInMember;
           }
@@ -1659,6 +1675,8 @@ class ClassHierarchyNodeBuilder {
             if (!extendedMember.isSynthesized) {
               extendedMember = new InterfaceConflict(
                   classBuilder,
+                  extendedMember.concrete,
+                  /*_isSuperClassMemberMixedIn = */ false,
                   [extendedMember],
                   extendedMember.isProperty,
                   forSetter,
@@ -1750,6 +1768,7 @@ class ClassHierarchyNodeBuilder {
                   result = InheritedImplementationInterfaceConflict.combined(
                       classBuilder,
                       classMember,
+                      /* _isSuperClassMemberMixedIn = */ false,
                       interfaceMember,
                       forSetter,
                       shouldModifyKernel);
@@ -1775,6 +1794,8 @@ class ClassHierarchyNodeBuilder {
                 if (!interfaceMember.isSynthesized) {
                   interfaceMember = new InterfaceConflict(
                       classBuilder,
+                      null,
+                      /*_isSuperClassMemberMixedIn = */ false,
                       [interfaceMember],
                       interfaceMember.isProperty,
                       forSetter,
@@ -2580,6 +2601,7 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
   Member _member;
   Covariance _covariance;
   final ClassMember concreteMember;
+  final bool _isSuperClassMemberMixedIn;
 
   @override
   final bool isInheritableConflict;
@@ -2587,6 +2609,7 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
   InheritedImplementationInterfaceConflict(
       ClassBuilder parent,
       this.concreteMember,
+      this._isSuperClassMemberMixedIn,
       List<ClassMember> declarations,
       bool isProperty,
       bool isSetter,
@@ -2623,8 +2646,16 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
           }
         }
       }
-      InterfaceConflict interfaceConflict = new InterfaceConflict(classBuilder,
-          declarations, isProperty, isSetter, modifyKernel, isAbstract, name);
+      InterfaceConflict interfaceConflict = new InterfaceConflict(
+          classBuilder,
+          concreteMember,
+          /*_isSuperClassMemberMixedIn = */ _isSuperClassMemberMixedIn,
+          declarations,
+          isProperty,
+          isSetter,
+          modifyKernel,
+          isAbstract,
+          name);
       _member = interfaceConflict.getMember(hierarchy);
       _covariance = interfaceConflict.getCovariance(hierarchy);
     }
@@ -2646,8 +2677,16 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
   DelayedMember withParent(ClassBuilder parent) {
     return parent == this.classBuilder
         ? this
-        : new InheritedImplementationInterfaceConflict(parent, concreteMember,
-            [this], isProperty, isSetter, modifyKernel, isAbstract, name);
+        : new InheritedImplementationInterfaceConflict(
+            parent,
+            concreteMember,
+            /*_isSuperClassMemberMixedIn = */ false,
+            [this],
+            isProperty,
+            isSetter,
+            modifyKernel,
+            isAbstract,
+            name);
   }
 
   @override
@@ -2659,6 +2698,7 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
   static ClassMember combined(
       ClassBuilder parent,
       ClassMember concreteImplementation,
+      bool isSuperClassMemberMixedIn,
       ClassMember other,
       bool isSetter,
       bool createForwarders,
@@ -2683,6 +2723,7 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
       return new InheritedImplementationInterfaceConflict(
           parent,
           concreteImplementation.concrete,
+          isSuperClassMemberMixedIn,
           declarations,
           concreteImplementation.isProperty,
           isSetter,
@@ -2695,10 +2736,14 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
 }
 
 class InterfaceConflict extends DelayedMember {
+  final ClassMember _superClassMember;
+  final bool _isSuperClassMemberMixedIn;
   final bool isImplicitlyAbstract;
 
   InterfaceConflict(
       ClassBuilder parent,
+      this._superClassMember,
+      this._isSuperClassMemberMixedIn,
       List<ClassMember> declarations,
       bool isProperty,
       bool isSetter,
@@ -2778,8 +2823,9 @@ class InterfaceConflict extends DelayedMember {
           "ForwardingNode($classBuilder, "
           "${combinedMemberSignature.canonicalMember}, "
           "$declarations, $kind)");
-      Member stub =
-          new ForwardingNode(combinedMemberSignature, kind).finalize();
+      Member stub = new ForwardingNode(combinedMemberSignature, kind,
+              _superClassMember, _isSuperClassMemberMixedIn)
+          .finalize();
       if (stub != null && classBuilder.cls == stub.enclosingClass) {
         if (stub is Procedure) {
           classBuilder.cls.addProcedure(stub);
@@ -2835,8 +2881,16 @@ class InterfaceConflict extends DelayedMember {
   DelayedMember withParent(ClassBuilder parent) {
     return parent == this.classBuilder
         ? this
-        : new InterfaceConflict(parent, [this], isProperty, isSetter,
-            modifyKernel, isAbstract, name,
+        : new InterfaceConflict(
+            parent,
+            _superClassMember,
+            /*_isSuperClassMemberMixedIn = */ false,
+            [this],
+            isProperty,
+            isSetter,
+            modifyKernel,
+            isAbstract,
+            name,
             isImplicitlyAbstract: isImplicitlyAbstract);
   }
 
@@ -2866,6 +2920,8 @@ class InterfaceConflict extends DelayedMember {
     } else {
       return new InterfaceConflict(
           parent,
+          null,
+          /*_isSuperClassMemberMixedIn = */ false,
           declarations,
           a.isProperty,
           isSetter,
@@ -2930,7 +2986,9 @@ class AbstractMemberOverridingImplementation extends DelayedMember {
                 new CombinedClassMemberSignature.internal(
                     hierarchy, classBuilder, 1, declarations,
                     forSetter: isSetter),
-                kind)
+                kind,
+                concrete,
+                /*_isSuperClassMemberMixedIn =*/ false)
             .finalize();
       }
     }

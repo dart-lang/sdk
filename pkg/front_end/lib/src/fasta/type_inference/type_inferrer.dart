@@ -1584,7 +1584,7 @@ class TypeInferrerImpl implements TypeInferrer {
   /// Otherwise return the given [member].
   Member getRealTarget(Member member) {
     if (member is Procedure && member.isForwardingStub) {
-      return member.forwardingStubInterfaceTarget;
+      return member.abstractForwardingStubTarget;
     }
     return member;
   }

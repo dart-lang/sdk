@@ -456,10 +456,10 @@ class FieldHelper {
     kFinal = 1 << 0,
     kConst = 1 << 1,
     kStatic = 1 << 2,
-    kIsCovariant = 1 << 5,
-    kIsGenericCovariantImpl = 1 << 6,
-    kIsLate = 1 << 7,
-    kExtensionMember = 1 << 8,
+    kIsCovariant = 1 << 3,
+    kIsGenericCovariantImpl = 1 << 4,
+    kIsLate = 1 << 5,
+    kExtensionMember = 1 << 6,
   };
 
   explicit FieldHelper(KernelReaderHelper* helper)
@@ -537,12 +537,12 @@ class ProcedureHelper {
 
   enum StubKind {
     kRegularStubKind,
-    kForwardingStubKind,
-    kForwardingSuperStubKind,
+    kAbstractForwardingStubKind,
+    kConcreteForwardingStubKind,
     kNoSuchMethodForwarderStubKind,
     kMemberSignatureStubKind,
-    kMixinStubKind,
-    kMixinSuperStubKind,
+    kAbstractMixinStubKind,
+    kConcreteMixinStubKind,
   };
 
   enum Flag {
@@ -574,8 +574,8 @@ class ProcedureHelper {
   bool IsExternal() const { return (flags_ & kExternal) != 0; }
   bool IsConst() const { return (flags_ & kConst) != 0; }
   bool IsForwardingStub() const {
-    return stub_kind_ == kForwardingStubKind ||
-           stub_kind_ == kForwardingSuperStubKind;
+    return stub_kind_ == kAbstractForwardingStubKind ||
+           stub_kind_ == kConcreteForwardingStubKind;
   }
   bool IsRedirectingFactoryConstructor() const {
     return (flags_ & kRedirectingFactoryConstructor) != 0;
@@ -599,7 +599,7 @@ class ProcedureHelper {
   StubKind stub_kind_;
 
   // Only valid if the 'isForwardingStub' flag is set.
-  NameIndex forwarding_stub_super_target_;
+  NameIndex concrete_forwarding_stub_target_;
 
  private:
   KernelReaderHelper* helper_;

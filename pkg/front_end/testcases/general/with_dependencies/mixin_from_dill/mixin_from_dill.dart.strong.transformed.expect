@@ -14,11 +14,11 @@ static method main() → dynamic {
     throw "what?";
   foo1.{mix::_Foo&B&D::x}();
   mix2::Foo* foo2 = new mix2::Foo::•();
-  if(foo2.{mix2::D::==}(null))
+  if(foo2.{mix2::_Foo&B&D::==}(null))
     throw "what?";
-  if(!foo2.{mix2::D::==}(foo2))
+  if(!foo2.{mix2::_Foo&B&D::==}(foo2))
     throw "what?";
-  foo2.{mix2::D::x}();
+  foo2.{mix2::_Foo&B&D::x}();
 }
 
 library;

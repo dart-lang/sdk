@@ -10,7 +10,7 @@ import 'package:kernel/binary/ast_to_binary.dart';
 
 main() {
   final Library lib1 = new Library(Uri.parse('org-dartlang:///lib.dart'));
-  final Field field = new Field(new Name("f"));
+  final Field field = new Field.mutable(new Name("f"));
   lib1.addField(field);
   final Block libProcedureBody = new Block([
     new ExpressionStatement(new StaticSet(field, new IntLiteral(42))),
@@ -88,7 +88,7 @@ main() {
   // Replace getter/setter with field.
   lib1.procedures.remove(getter);
   lib1.procedures.remove(setter);
-  final Field fieldReplacement = new Field(new Name("f"),
+  final Field fieldReplacement = new Field.mutable(new Name("f"),
       getterReference: getter.reference, setterReference: setter.reference);
   // Important: Unbind any old canonical name
   // (nulling out the canonical name is not enough, see above).

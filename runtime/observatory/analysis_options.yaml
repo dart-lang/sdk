@@ -1,7 +1,4 @@
 analyzer:
-  enable-experiment:
-    - non-nullable
-
   errors:
     dead_code: info
     getter_not_subtype_setter_types: info

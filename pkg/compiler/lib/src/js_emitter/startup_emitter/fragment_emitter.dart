@@ -54,6 +54,16 @@ function copyProperties(from, to) {
     to[key] = from[key];
   }
 }
+// Copies the own properties from [from] to [to] if not already present in [to].
+function mixinProperties(from, to) {
+  var keys = Object.keys(from);
+  for (var i = 0; i < keys.length; i++) {
+    var key = keys[i];
+    if (!to.hasOwnProperty(key)) {
+      to[key] = from[key];
+    }
+  }
+}
 
 // Only use direct proto access to construct the prototype chain (instead of
 // copying properties) on platforms where we know it works well (Chrome / d8).
@@ -111,7 +121,7 @@ function inheritMany(sup, classes) {
 
 // Mixes in the properties of [mixin] into [cls].
 function mixin(cls, mixin) {
-  copyProperties(mixin.prototype, cls.prototype);
+  mixinProperties(mixin.prototype, cls.prototype);
   cls.prototype.constructor = cls;
 }
 

@@ -76,7 +76,7 @@ main() {
     'Member redeclared',
     (TestHarness test) {
       Field field =
-          new Field(new Name('field'), initializer: new NullLiteral());
+          new Field.mutable(new Name('field'), initializer: new NullLiteral());
       test.addNode(Class(
           name: 'Test',
           supertype: test.objectClass.asRawSupertype,
@@ -166,7 +166,7 @@ main() {
     'Class type parameter in static field',
     (TestHarness test) {
       TypeParameter node = test.classTypeParameter;
-      test.addNode(Field(new Name('field'),
+      test.addNode(Field.mutable(new Name('field'),
           initializer:
               new TypeLiteral(new TypeParameterType(node, Nullability.legacy)),
           isStatic: true));
@@ -235,7 +235,7 @@ main() {
   negative1Test(
     'Dangling field get',
     (TestHarness test) {
-      Field orphan = new Field(new Name('foo'));
+      Field orphan = new Field.mutable(new Name('foo'));
       test.addNode(new PropertyGet(new NullLiteral(), orphan.name, orphan));
       return orphan;
     },
@@ -421,7 +421,7 @@ main() {
           'Foo',
           new FunctionType(
               [test.otherLegacyRawType], const VoidType(), Nullability.legacy));
-      var field = new Field(new Name('field'),
+      var field = new Field.mutable(new Name('field'),
           type: new TypedefType(typedef_, Nullability.legacy), isStatic: true);
       test.enclosingLibrary.addTypedef(typedef_);
       test.enclosingLibrary.addField(field);
@@ -632,8 +632,8 @@ main() {
       var foo =
           new Typedef('Foo', test.otherLegacyRawType, typeParameters: [param]);
       var typedefType = new TypedefType(foo, Nullability.legacy, []);
-      var field =
-          new Field(new Name('field'), type: typedefType, isStatic: true);
+      var field = new Field.mutable(new Name('field'),
+          type: typedefType, isStatic: true);
       test.enclosingLibrary.addTypedef(foo);
       test.enclosingLibrary.addField(field);
       return typedefType;
@@ -646,7 +646,7 @@ main() {
     'Dangling typedef reference',
     (TestHarness test) {
       var foo = new Typedef('Foo', test.otherLegacyRawType, typeParameters: []);
-      var field = new Field(new Name('field'),
+      var field = new Field.mutable(new Name('field'),
           type: new TypedefType(foo, Nullability.legacy, []), isStatic: true);
       test.enclosingLibrary.addField(field);
       return foo;
@@ -656,7 +656,7 @@ main() {
   negative1Test(
     'Non-static top-level field',
     (TestHarness test) {
-      var field = new Field(new Name('field'));
+      var field = new Field.mutable(new Name('field'));
       test.enclosingLibrary.addField(field);
       return null;
     },
