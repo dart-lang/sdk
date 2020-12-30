@@ -44,8 +44,6 @@ import 'package:vm/kernel_front_end.dart'
     show autoDetectNullSafetyMode, createLoadedLibrariesSet;
 import 'package:vm/http_filesystem.dart';
 import 'package:vm/target/vm.dart' show VmTarget;
-import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions, parseExperimentalFlags;
 
 final bool verbose = new bool.fromEnvironment('DFE_VERBOSE');
 final bool dumpKernel = new bool.fromEnvironment('DFE_DUMP_KERNEL');
