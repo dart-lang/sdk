@@ -164,7 +164,7 @@ vars = {
   "watcher_rev": "1fb0a84acd8d195103f10aba03ba6bd6fdb424e5",
   "webdriver_rev": "5a8d6805d9cf8a3cbb4fcd64849b538b7491e50e",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
-  "web_socket_channel_rev": "490061ef0e22d3c8460ad2802f9948219365ad6b",
+  "web_socket_channel_rev": "680358915e331fda823908234f80beba1ed4ec83",
   "WebCore_rev": "fb11e887f77919450e497344da570d780e078bc8",
   "yaml_rev": "cca02c9e4f6826d62644901ed65c6d72b90a0713",
   "zlib_rev": "c44fb7248079cc3d5563b14b3f758aee60d6b415",
