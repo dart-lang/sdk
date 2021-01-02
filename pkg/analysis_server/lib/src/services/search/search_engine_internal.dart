@@ -71,8 +71,9 @@ class SearchEngineImpl implements SearchEngine {
   Future<List<SearchMatch>> searchMemberDeclarations(String name) async {
     var allDeclarations = <SearchMatch>[];
     var drivers = _drivers.toList();
+    var searchedFiles = _createSearchedFiles(drivers);
     for (var driver in drivers) {
-      var elements = await driver.search.classMembers(name);
+      var elements = await driver.search.classMembers(name, searchedFiles);
       allDeclarations.addAll(elements.map(SearchMatchImpl.forElement));
     }
     return allDeclarations;
