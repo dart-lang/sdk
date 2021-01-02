@@ -111,6 +111,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_type_annotat
 import 'package:analysis_server/src/services/correction/dart/remove_type_arguments.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_cast.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_new.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_parentheses.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_catch_clause.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_catch_stack.dart';
@@ -477,6 +478,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.unnecessary_overrides: [
       RemoveMethodDeclaration.newInstance,
+    ],
+    LintNames.unnecessary_parenthesis: [
+      RemoveUnnecessaryParentheses.newInstance,
     ],
     LintNames.unnecessary_this: [
       RemoveThisExpression.newInstance,

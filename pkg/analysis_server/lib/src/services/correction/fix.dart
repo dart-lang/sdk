@@ -400,6 +400,11 @@ class DartFixKind {
       'Remove unnecessary const keyword');
   static const REMOVE_UNNECESSARY_NEW = FixKind(
       'dart.fix.remove.unnecessaryNew', 50, 'Remove unnecessary new keyword');
+  static const REMOVE_UNNECESSARY_PARENTHESES = FixKind(
+      'dart.fix.remove.unnecessaryParentheses',
+      50,
+      'Remove unnecessary parentheses',
+      appliedTogetherMessage: 'Remove all unnecessary parentheses in file');
   static const REMOVE_UNUSED_CATCH_CLAUSE = FixKind(
       'dart.fix.remove.unusedCatchClause', 50, "Remove unused 'catch' clause");
   static const REMOVE_UNUSED_CATCH_STACK = FixKind(
