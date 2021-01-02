@@ -49,6 +49,17 @@ class AbstractContextTest with ResourceProviderMixin {
   final Map<String, String> _declaredVariables = {};
   AnalysisContextCollection _analysisContextCollection;
 
+  List<AnalysisContext> get allContexts {
+    _createAnalysisContexts();
+    return _analysisContextCollection.contexts;
+  }
+
+  List<AnalysisDriver> get allDrivers {
+    return allContexts
+        .map((e) => (e as DriverBasedAnalysisContext).driver)
+        .toList();
+  }
+
   /// The file system specific `/home/test/analysis_options.yaml` path.
   String get analysisOptionsPath =>
       convertPath('/home/test/analysis_options.yaml');

@@ -84,7 +84,8 @@ class B {
 ''');
     var a = findElement.class_('A');
     var b = findElement.class_('B');
-    expect(await driver.search.classMembers('test'),
+
+    expect(await _findClassMembers('test'),
         unorderedEquals([a.methods[0], b.fields[0]]));
   }
 
@@ -92,7 +93,7 @@ class B {
     await resolveTestCode('''
 import 'not-dart.txt';
 ''');
-    expect(await driver.search.classMembers('test'), isEmpty);
+    expect(await _findClassMembers('test'), isEmpty);
   }
 
   test_classMembers_mixin() async {
@@ -110,7 +111,7 @@ mixin B {
 ''');
     var a = findElement.mixin('A');
     var b = findElement.mixin('B');
-    expect(await driver.search.classMembers('test'),
+    expect(await _findClassMembers('test'),
         unorderedEquals([a.methods[0], b.fields[0]]));
   }
 
@@ -1825,6 +1826,11 @@ class NoMatchABCDEF {}
       {int length}) {
     return _expectId(element, kind, search,
         isQualified: false, isResolved: false, length: length);
+  }
+
+  Future<List<Element>> _findClassMembers(String name) {
+    var searchedFiles = SearchedFiles();
+    return driver.search.classMembers(name, searchedFiles);
   }
 
   Future<void> _verifyNameReferences(
