@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -38,6 +39,8 @@ class MakeVariableNullable extends CorrectionProducer {
         await _forFieldFormalParameter(builder, node, parent);
       } else if (parent is AssignmentExpression &&
           parent.rightHandSide == node) {
+        await _forAssignment(builder, node as Expression, parent);
+      } else if (parent is VariableDeclaration && parent.initializer == node) {
         await _forVariableDeclaration(builder, node, parent);
       }
     }
@@ -69,6 +72,31 @@ class MakeVariableNullable extends CorrectionProducer {
       currentBlock = currentBlock.parent.thisOrAncestorOfType<Block>();
     }
     return null;
+  }
+
+  Future<void> _forAssignment(ChangeBuilder builder, Expression node,
+      AssignmentExpression parent) async {
+    var leftHandSide = parent.leftHandSide;
+    if (leftHandSide is SimpleIdentifier) {
+      var element = leftHandSide.staticElement;
+      if (element is LocalVariableElement) {
+        var oldType = element.type;
+        var newType = node.staticType;
+        if (node is NullLiteral) {
+          newType = (oldType as InterfaceTypeImpl)
+              .withNullability(NullabilitySuffix.question);
+        } else if (!typeSystem.isAssignableTo(
+            oldType, typeSystem.promoteToNonNull(newType))) {
+          return;
+        }
+        var declarationList =
+            _findDeclaration(element, parent.thisOrAncestorOfType<Block>());
+        if (declarationList == null || declarationList.variables.length > 1) {
+          return;
+        }
+        await _updateVariableType(builder, declarationList, newType);
+      }
+    }
   }
 
   /// Makes [parameter] nullable if possible.
@@ -119,47 +147,26 @@ class MakeVariableNullable extends CorrectionProducer {
     });
   }
 
-  Future<void> _forVariableDeclaration(
-      ChangeBuilder builder, AstNode node, AssignmentExpression parent) async {
-    var leftHandSide = parent.leftHandSide;
-    if (leftHandSide is SimpleIdentifier) {
-      var element = leftHandSide.staticElement;
-      if (element is LocalVariableElement) {
-        var oldType = element.type;
-        var newType = (node as Expression).staticType;
-        if (node is NullLiteral) {
-          newType = (oldType as InterfaceTypeImpl)
-              .withNullability(NullabilitySuffix.question);
-        } else if (!typeSystem.isAssignableTo(
-            oldType, typeSystem.promoteToNonNull(newType))) {
-          return;
-        }
-        var declarationList =
-            _findDeclaration(element, parent.thisOrAncestorOfType<Block>());
-        if (declarationList == null || declarationList.variables.length > 1) {
-          return;
-        }
-        var variable = declarationList.variables[0];
-        _variableName = variable.name.name;
-        await builder.addDartFileEdit(file, (builder) {
-          var keyword = declarationList.keyword;
-          if (keyword != null && keyword.type == Keyword.VAR) {
-            builder.addReplacement(range.token(keyword), (builder) {
-              builder.writeType(newType);
-            });
-          } else if (keyword == null) {
-            if (declarationList.type == null) {
-              builder.addInsertion(variable.offset, (builder) {
-                builder.writeType(newType);
-                builder.write(' ');
-              });
-            } else {
-              builder.addSimpleInsertion(declarationList.type.end, '?');
-            }
-          }
-        });
-      }
+  Future<void> _forVariableDeclaration(ChangeBuilder builder, Expression node,
+      VariableDeclaration parent) async {
+    var grandParent = parent.parent;
+    if (grandParent is! VariableDeclarationList) {
+      return;
     }
+    var declarationList = grandParent as VariableDeclarationList;
+    if (declarationList.variables.length > 1) {
+      return;
+    }
+    var oldType = parent.declaredElement.type;
+    var newType = node.staticType;
+    if (node is NullLiteral) {
+      newType = (oldType as InterfaceTypeImpl)
+          .withNullability(NullabilitySuffix.question);
+    } else if (!typeSystem.isAssignableTo(
+        oldType, typeSystem.promoteToNonNull(newType))) {
+      return;
+    }
+    await _updateVariableType(builder, declarationList, newType);
   }
 
   bool _typeCanBeMadeNullable(TypeAnnotation typeAnnotation) {
@@ -171,6 +178,31 @@ class MakeVariableNullable extends CorrectionProducer {
       return false;
     }
     return true;
+  }
+
+  /// Add edits to the [builder] to update the type in the [declarationList] to
+  /// match the [newType].
+  Future<void> _updateVariableType(ChangeBuilder builder,
+      VariableDeclarationList declarationList, DartType newType) async {
+    var variable = declarationList.variables[0];
+    _variableName = variable.name.name;
+    await builder.addDartFileEdit(file, (builder) {
+      var keyword = declarationList.keyword;
+      if (keyword != null && keyword.type == Keyword.VAR) {
+        builder.addReplacement(range.token(keyword), (builder) {
+          builder.writeType(newType);
+        });
+      } else if (keyword == null) {
+        if (declarationList.type == null) {
+          builder.addInsertion(variable.offset, (builder) {
+            builder.writeType(newType);
+            builder.write(' ');
+          });
+        } else {
+          builder.addSimpleInsertion(declarationList.type.end, '?');
+        }
+      }
+    });
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
