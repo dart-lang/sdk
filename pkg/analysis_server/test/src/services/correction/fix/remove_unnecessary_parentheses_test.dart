@@ -47,7 +47,9 @@ void f() {
   ((42));
 }
 ''');
-    await assertNoFix(errorFilter: (e) => e.offset == 14);
+    await assertNoFix(
+      errorFilter: (e) => e.offset == testCode.indexOf('(42'),
+    );
   }
 
   Future<void> test_double_atOuter() async {
@@ -60,7 +62,7 @@ void f() {
 void f() {
   (42);
 }
-''', errorFilter: (e) => e.offset == 13);
+''', errorFilter: (e) => e.offset == testCode.indexOf('((42'));
   }
 
   Future<void> test_single() async {
