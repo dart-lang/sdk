@@ -31,6 +31,19 @@ abstract class FixProcessorLintTest extends FixProcessorTest {
   /// Return the lint code being tested.
   String get lintCode;
 
+  /// Return the [LintCode] for the [lintCode] (which is actually a name).
+  Future<LintCode> lintCodeByName(String name) async {
+    var errors = await _computeErrors();
+    var lintCodeSet = errors
+        .map((error) => error.errorCode)
+        .where((errorCode) => errorCode.name == name)
+        .toSet();
+    if (lintCodeSet.length != 1) {
+      fail('Expected exactly one LintCode, actually: $lintCodeSet');
+    }
+    return lintCodeSet.single;
+  }
+
   bool Function(AnalysisError) lintNameFilter(String name) {
     return (e) {
       return e.errorCode is LintCode && e.errorCode.name == name;
