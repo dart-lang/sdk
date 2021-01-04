@@ -72,14 +72,7 @@ class AvoidTypeToString extends LintRule implements NodeLintRule {
     registry.addMixinDeclaration(this, visitor);
     registry.addExtensionDeclaration(this, visitor);
 
-    // These nodes delegate to general visitArgumentList,
-    // since SimpleAstVisitor only calls visits for concrete node subtypes.
-    // TODO: replace these with addArgumentList(...) once it's added to the registry API.
-    // Context: https://github.com/dart-lang/linter/pull/2209#discussion_r465196745
-    registry.addFunctionExpressionInvocation(this, visitor);
-    registry.addInstanceCreationExpression(this, visitor);
-    registry.addRedirectingConstructorInvocation(this, visitor);
-    registry.addSuperConstructorInvocation(this, visitor);
+    registry.addArgumentList(this, visitor);
 
     // Actually checking things at these nodes.
     // Also delegates to visitArgumentList.
@@ -113,27 +106,6 @@ class _Visitor extends SimpleAstVisitor {
     thisType = (node.declaredElement.extendedType is InterfaceType)
         ? node.declaredElement.extendedType as InterfaceType
         : null;
-  }
-
-  @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    visitArgumentList(node.argumentList);
-  }
-
-  @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    visitArgumentList(node.argumentList);
-  }
-
-  @override
-  void visitRedirectingConstructorInvocation(
-      RedirectingConstructorInvocation node) {
-    visitArgumentList(node.argumentList);
-  }
-
-  @override
-  void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    visitArgumentList(node.argumentList);
   }
 
   @override
