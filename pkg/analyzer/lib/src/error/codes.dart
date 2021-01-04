@@ -9204,7 +9204,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR =
       CompileTimeErrorCode(
     'RETURN_OF_INVALID_TYPE',
-    "A value of type '{0}' can't be returned from constructor '{2}' "
+    "A value of type '{0}' can't be returned from the constructor '{2}' "
         "because it has a return type of '{1}'.",
     hasPublishedDocs: true,
     uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR',
@@ -9247,7 +9247,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode RETURN_OF_INVALID_TYPE_FROM_FUNCTION =
       CompileTimeErrorCode(
     'RETURN_OF_INVALID_TYPE',
-    "A value of type '{0}' can't be returned from function '{2}' because "
+    "A value of type '{0}' can't be returned from the function '{2}' because "
         "it has a return type of '{1}'.",
     hasPublishedDocs: true,
     uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_FUNCTION',
@@ -9262,7 +9262,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode RETURN_OF_INVALID_TYPE_FROM_METHOD =
       CompileTimeErrorCode(
     'RETURN_OF_INVALID_TYPE',
-    "A value of type '{0}' can't be returned from method '{2}' because "
+    "A value of type '{0}' can't be returned from the method '{2}' because "
         "it has a return type of '{1}'.",
     hasPublishedDocs: true,
     uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_METHOD',
