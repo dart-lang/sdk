@@ -2078,8 +2078,8 @@ environment:
     expect(errorOutput, contains('1 analysis issue found:'));
     expect(
         errorOutput,
-        contains("A value of type 'Null' can't be returned from function 'f' "
-            "because it has a return type of 'int'"));
+        contains("A value of type 'Null' can't be returned from the function "
+            "'f' because it has a return type of 'int'"));
     expect(errorOutput, contains('Set the lower SDK constraint'));
   }
 
