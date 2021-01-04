@@ -315,12 +315,14 @@ FastaUsageLong/example: Fail
 FastaUsageShort/analyzerCode: Fail
 FastaUsageShort/example: Fail
 FfiDartTypeMismatch/analyzerCode: Fail
+FfiEmptyStruct/analyzerCode: Fail
 FfiExceptionalReturnNull/analyzerCode: Fail
 FfiExpectedConstant/analyzerCode: Fail
 FfiExpectedExceptionalReturn/analyzerCode: Fail
 FfiExpectedNoExceptionalReturn/analyzerCode: Fail
 FfiExtendsOrImplementsSealedClass/analyzerCode: Fail
 FfiFieldAnnotation/analyzerCode: Fail
+FfiFieldCyclic/analyzerCode: Fail
 FfiFieldInitializer/analyzerCode: Fail
 FfiFieldNoAnnotation/analyzerCode: Fail
 FfiNotStatic/analyzerCode: Fail
@@ -486,6 +488,8 @@ JsInteropJSClassExtendsDartClass/analyzerCode: Fail # Web compiler specific
 JsInteropJSClassExtendsDartClass/example: Fail # Web compiler specific
 JsInteropNamedParameters/analyzerCode: Fail # Web compiler specific
 JsInteropNamedParameters/example: Fail # Web compiler specific
+JsInteropNativeClassInAnnotation/analyzerCode: Fail # Web compiler specific
+JsInteropNativeClassInAnnotation/example: Fail # Web compiler specific
 JsInteropNonExternalConstructor/analyzerCode: Fail # Web compiler specific
 JsInteropNonExternalConstructor/example: Fail # Web compiler specific
 JsInteropNonExternalMember/analyzerCode: Fail # Web compiler specific
@@ -629,8 +633,6 @@ OperatorParameterMismatch1/example: Fail
 OperatorParameterMismatch2/example: Fail
 OperatorWithOptionalFormals/analyzerCode: Fail
 OperatorWithOptionalFormals/example: Fail
-OptionalNonNullableWithoutInitializerError/analyzerCode: Fail
-OptionalNonNullableWithoutInitializerWarning/analyzerCode: Fail
 OverrideFewerNamedArguments/example: Fail
 OverrideFewerPositionalArguments/example: Fail
 OverrideMismatchNamedParameter/example: Fail

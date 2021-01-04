@@ -6,7 +6,6 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:dartdev/dartdev.dart';
-import 'package:dartdev/src/analytics.dart' show disabledAnalytics;
 import 'package:test/test.dart';
 
 import '../utils.dart';
@@ -20,7 +19,7 @@ void command() {
   // For each command description, assert that the values are not empty, don't
   // have trailing white space and end with a period.
   test('description formatting', () {
-    DartdevRunner(['--disable-dartdev-analytics'], disabledAnalytics)
+    DartdevRunner(['--no-analytics'])
         .commands
         .forEach((String commandKey, Command command) {
       expect(commandKey, isNotEmpty);
@@ -32,7 +31,7 @@ void command() {
 
   // Assert that all found usageLineLengths are the same and null
   test('argParser usageLineLength', () {
-    DartdevRunner(['--disable-dartdev-analytics'], disabledAnalytics)
+    DartdevRunner(['--no-analytics'])
         .commands
         .forEach((String commandKey, Command command) {
       if (command.argParser != null) {
@@ -62,7 +61,7 @@ void help() {
 
   test('--help', () {
     p = project();
-    var result = p.runSync('--help', []);
+    var result = p.runSync(['--help']);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -80,7 +79,7 @@ void help() {
 
   test('--help --verbose', () {
     p = project();
-    var result = p.runSync('--help', ['--verbose']);
+    var result = p.runSync(['--help', '--verbose']);
 
     expect(result.exitCode, 0);
     expect(result.stdout, isEmpty);
@@ -90,7 +89,7 @@ void help() {
 
   test('--help -v', () {
     p = project();
-    var result = p.runSync('--help', ['-v']);
+    var result = p.runSync(['--help', '-v']);
 
     expect(result.exitCode, 0);
     expect(result.stdout, isEmpty);
@@ -100,7 +99,7 @@ void help() {
 
   test('help', () {
     p = project();
-    var result = p.runSync('help', []);
+    var result = p.runSync(['help']);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -118,7 +117,7 @@ void help() {
 
   test('help --verbose', () {
     p = project();
-    var result = p.runSync('help', ['--verbose']);
+    var result = p.runSync(['help', '--verbose']);
 
     expect(result.exitCode, 0);
     expect(result.stdout, contains('migrate '));
@@ -126,7 +125,7 @@ void help() {
 
   test('help -v', () {
     p = project();
-    var result = p.runSync('help', ['-v']);
+    var result = p.runSync(['help', '-v']);
 
     expect(result.exitCode, 0);
     expect(result.stdout, contains('migrate '));

@@ -83,6 +83,11 @@ config("dart_os_config") {
     defines += [ "TARGET_OS_MACOS" ]
   } else if (target_os == "win") {
     defines += [ "TARGET_OS_WINDOWS" ]
+  } else if (target_os == "winuwp") {
+    defines += [
+      "TARGET_OS_WINDOWS",
+      "TARGET_OS_WINDOWS_UWP",
+    ]
   } else {
     print("Unknown target_os: $target_os")
     assert(false)

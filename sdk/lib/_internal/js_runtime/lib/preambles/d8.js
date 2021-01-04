@@ -10,7 +10,7 @@
 var self = this;
 if (typeof global != "undefined") self = global;  // Node.js.
 
-(function(self) {
+(function(self, scriptArguments) {
   // Using strict mode to avoid accidentally defining global variables.
   "use strict"; // Should be first statement of this function.
 
@@ -270,9 +270,9 @@ if (typeof global != "undefined") self = global;  // Node.js.
   // Global properties. "self" refers to the global object, so adding a
   // property to "self" defines a global variable.
   self.self = self;
-  self.dartMainRunner = function(main, args) {
+  self.dartMainRunner = function(main, ignored_args) {
     // Initialize.
-    var action = function() { main(args); }
+    var action = function() { main(scriptArguments, null); }
     eventLoop(action);
   };
   self.setTimeout = addTimer;
@@ -345,4 +345,4 @@ if (typeof global != "undefined") self = global;  // Node.js.
   // so pretend they don't exist.
   // TODO(30217): Try to use D8's worker.
   delete self.Worker;
-})(self);
+})(self, arguments);

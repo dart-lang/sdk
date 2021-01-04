@@ -19,7 +19,7 @@ import 'strong_components.dart';
 /// JavaScript modules concatenated together, and a second containing the byte
 /// offsets by module name for each JavaScript module in JSON format.
 ///
-/// Ths format is analgous to the dill and .incremental.dill in that during
+/// Ths format is analogous to the dill and .incremental.dill in that during
 /// an incremental build, a different file is written for each which contains
 /// only the updated libraries.
 class JavaScriptBundler {
@@ -42,6 +42,8 @@ class JavaScriptBundler {
         nameRoot: _originalComponent.root,
         uriToSource: _originalComponent.uriToSource,
       );
+      summaryComponent.setMainMethodAndMode(
+          null, false, _originalComponent.mode);
       _summaries.add(summaryComponent);
       _summaryUris.add(uri);
 

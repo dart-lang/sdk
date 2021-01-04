@@ -9,7 +9,7 @@ import 'link_implementation.dart'
 
 class Link<T> implements Iterable<T> {
   T get head => throw new StateError("no elements");
-  Link<T> get tail => null;
+  Link<T>? get tail => null;
 
   const Link();
 
@@ -22,16 +22,9 @@ class Link<T> implements Iterable<T> {
   void printOn(StringBuffer buffer, [separatedBy]) {}
 
   List<T> toList({bool growable: true}) {
-    List<T> result;
-    if (!growable) {
-      result = new List<T>(slowLength());
-    } else {
-      result = new List<T>();
-      result.length = slowLength();
-    }
-    int i = 0;
-    for (Link<T> link = this; !link.isEmpty; link = link.tail) {
-      result[i++] = link.head;
+    List<T> result = <T>[];
+    for (Link<T> link = this; !link.isEmpty; link = link.tail!) {
+      result.add(link.head);
     }
     return result;
   }
@@ -43,16 +36,17 @@ class Link<T> implements Iterable<T> {
 
   /// Invokes `fn` for every item in the linked list and returns the results
   /// in a [List].
-  List<E> mapToList<E>(E fn(T item), {bool growable: true}) {
-    List<E> result;
+  /// TODO(scheglov) Rewrite to `List<E>`, or remove.
+  List<E?> mapToList<E>(E fn(T item), {bool growable: true}) {
+    List<E?> result;
     if (!growable) {
-      result = new List<E>(slowLength());
+      result = new List<E?>.filled(slowLength(), null);
     } else {
-      result = new List<E>();
+      result = <E?>[];
       result.length = slowLength();
     }
     int i = 0;
-    for (Link<T> link = this; !link.isEmpty; link = link.tail) {
+    for (Link<T> link = this; !link.isEmpty; link = link.tail!) {
       result[i++] = fn(link.head);
     }
     return result;
@@ -65,7 +59,7 @@ class Link<T> implements Iterable<T> {
 
   Link<T> reversePrependAll(Link<T> from) {
     if (from.isEmpty) return this;
-    return this.prepend(from.head).reversePrependAll(from.tail);
+    return this.prepend(from.head).reversePrependAll(from.tail!);
   }
 
   Link<T> skip(int n) {
@@ -91,8 +85,8 @@ class Link<T> implements Iterable<T> {
   int slowLength() => 0;
 
   // TODO(ahe): Remove this method?
-  bool contains(Object element) {
-    for (Link<T> link = this; !link.isEmpty; link = link.tail) {
+  bool contains(Object? element) {
+    for (Link<T> link = this; !link.isEmpty; link = link.tail!) {
       if (link.head == element) return true;
     }
     return false;
@@ -101,7 +95,7 @@ class Link<T> implements Iterable<T> {
   // TODO(ahe): Remove this method?
   T get single {
     if (isEmpty) throw new StateError('No elements');
-    if (!tail.isEmpty) throw new StateError('More than one element');
+    if (!tail!.isEmpty) throw new StateError('More than one element');
     return head;
   }
 
@@ -115,7 +109,7 @@ class Link<T> implements Iterable<T> {
   ///
   /// Returns true for the empty list.
   bool every(bool f(T e)) {
-    for (Link<T> link = this; !link.isEmpty; link = link.tail) {
+    for (Link<T> link = this; !link.isEmpty; link = link.tail!) {
       if (!f(link.head)) return false;
     }
     return true;
@@ -128,18 +122,18 @@ class Link<T> implements Iterable<T> {
   Iterable<T> cast<T>() => _unsupported('cast');
   T elementAt(int i) => _unsupported('elementAt');
   Iterable<K> expand<K>(Iterable<K> f(T e)) => _unsupported('expand');
-  T firstWhere(bool f(T e), {T orElse()}) => _unsupported('firstWhere');
+  T firstWhere(bool f(T e), {T orElse()?}) => _unsupported('firstWhere');
   K fold<K>(K initialValue, K combine(K value, T element)) {
     return _unsupported('fold');
   }
 
   Iterable<T> followedBy(Iterable<T> other) => _unsupported('followedBy');
   T get last => _unsupported('get:last');
-  T lastWhere(bool f(T e), {T orElse()}) => _unsupported('lastWhere');
+  T lastWhere(bool f(T e), {T orElse()?}) => _unsupported('lastWhere');
   String join([separator = '']) => _unsupported('join');
   T reduce(T combine(T a, T b)) => _unsupported('reduce');
   Iterable<T> retype<T>() => _unsupported('retype');
-  T singleWhere(bool f(T e), {T orElse()}) => _unsupported('singleWhere');
+  T singleWhere(bool f(T e), {T orElse()?}) => _unsupported('singleWhere');
   Iterable<T> skipWhile(bool f(T e)) => _unsupported('skipWhile');
   Iterable<T> take(int n) => _unsupported('take');
   Iterable<T> takeWhile(bool f(T e)) => _unsupported('takeWhile');
@@ -170,10 +164,10 @@ abstract class LinkBuilder<T> {
   T get first;
 
   /// Returns the number of elements in the list being built.
-  final int length;
+  int get length;
 
   /// Returns `true` if the list being built is empty.
-  final bool isEmpty;
+  bool get isEmpty;
 
   /// Removes all added elements and resets the builder.
   void clear();

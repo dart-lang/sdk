@@ -2,33 +2,39 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/issue40954.dart:8:31: Error: Optional parameter 'a' should have a default value because its type 'A' doesn't allow null.
+// pkg/front_end/testcases/nnbd/issue40954.dart:8:31: Error: The parameter 'a' can't have a value of 'null' because of its type 'A', but the implicit default value is 'null'.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/issue40954.dart'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   static void test1(var v, [A a]) {}
 //                               ^
 //
-// pkg/front_end/testcases/nnbd/issue40954.dart:10:31: Error: Optional parameter 'a' should have a default value because its type 'A' doesn't allow null.
+// pkg/front_end/testcases/nnbd/issue40954.dart:10:31: Error: The parameter 'a' can't have a value of 'null' because of its type 'A', but the implicit default value is 'null'.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/issue40954.dart'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   static void test2(var v, {A a}) {}
 //                               ^
 //
-// pkg/front_end/testcases/nnbd/issue40954.dart:12:25: Error: Optional parameter 'a' should have a default value because its type 'A' doesn't allow null.
+// pkg/front_end/testcases/nnbd/issue40954.dart:12:25: Error: The parameter 'a' can't have a value of 'null' because of its type 'A', but the implicit default value is 'null'.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/issue40954.dart'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   void test11(var v, [A a]) {}
 //                         ^
 //
-// pkg/front_end/testcases/nnbd/issue40954.dart:14:25: Error: Optional parameter 'a' should have a default value because its type 'A' doesn't allow null.
+// pkg/front_end/testcases/nnbd/issue40954.dart:14:25: Error: The parameter 'a' can't have a value of 'null' because of its type 'A', but the implicit default value is 'null'.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/issue40954.dart'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   void test22(var v, {A a}) {}
 //                         ^
 //
-// pkg/front_end/testcases/nnbd/issue40954.dart:17:22: Error: Optional parameter 'a' should have a default value because its type 'A' doesn't allow null.
+// pkg/front_end/testcases/nnbd/issue40954.dart:17:22: Error: The parameter 'a' can't have a value of 'null' because of its type 'A', but the implicit default value is 'null'.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/issue40954.dart'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 // void test1(var v, [A a]) {}
 //                      ^
 //
-// pkg/front_end/testcases/nnbd/issue40954.dart:19:22: Error: Optional parameter 'a' should have a default value because its type 'A' doesn't allow null.
+// pkg/front_end/testcases/nnbd/issue40954.dart:19:22: Error: The parameter 'a' can't have a value of 'null' because of its type 'A', but the implicit default value is 'null'.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/issue40954.dart'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 // void test2(var v, {A a}) {}
 //                      ^
 //

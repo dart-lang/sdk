@@ -9,7 +9,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary2/package_bundle_format.dart';
 
 /// A [ConflictingSummaryException] indicates that two different summaries
 /// provided to a [SummaryDataStore] conflict.
@@ -109,8 +109,8 @@ class InSummaryUriResolver extends UriResolver {
 /// summary package bundles.  It contains maps which can be used to find linked
 /// and unlinked summaries by URI.
 class SummaryDataStore {
-  /// List of all [PackageBundle]s.
-  final List<PackageBundle> bundles = <PackageBundle>[];
+  /// List of all [PackageBundleReader]s.
+  final List<PackageBundleReader> bundles = [];
 
   /// Map from the URI of a unit to the summary path that contained it.
   final Map<String, String> uriToSummaryPath = <String, String>{};
@@ -126,19 +126,17 @@ class SummaryDataStore {
   }
 
   /// Add the given [bundle] loaded from the file with the given [path].
-  void addBundle(String path, PackageBundle bundle) {
+  void addBundle(String path, PackageBundleReader bundle) {
     bundles.add(bundle);
 
-    if (bundle.bundle2 != null) {
-      for (var library in bundle.bundle2.libraries) {
-        var libraryUri = library.uriStr;
-        _libraryUris.add(libraryUri);
-        for (var unit in library.units) {
-          var unitUri = unit.uriStr;
-          uriToSummaryPath[unitUri] = path;
-          if (unitUri != libraryUri) {
-            _partUris.add(unitUri);
-          }
+    for (var library in bundle.libraries) {
+      var libraryUri = library.uriStr;
+      _libraryUris.add(libraryUri);
+      for (var unit in library.units) {
+        var unitUri = unit.uriStr;
+        uriToSummaryPath[unitUri] = path;
+        if (unitUri != libraryUri) {
+          _partUris.add(unitUri);
         }
       }
     }
@@ -162,15 +160,15 @@ class SummaryDataStore {
   }
 
   void _fillMaps(String path, ResourceProvider resourceProvider) {
-    List<int> buffer;
+    List<int> bytes;
     if (resourceProvider != null) {
       var file = resourceProvider.getFile(path);
-      buffer = file.readAsBytesSync();
+      bytes = file.readAsBytesSync();
     } else {
       io.File file = io.File(path);
-      buffer = file.readAsBytesSync();
+      bytes = file.readAsBytesSync();
     }
-    PackageBundle bundle = PackageBundle.fromBuffer(buffer);
+    var bundle = PackageBundleReader(bytes);
     addBundle(path, bundle);
   }
 }

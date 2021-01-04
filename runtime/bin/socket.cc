@@ -431,7 +431,8 @@ void FUNCTION_NAME(Socket_CreateUnixDomainBindConnect)(
   RawAddr sourceAddr;
   address = Dart_GetNativeArgument(args, 2);
   if (Dart_IsNull(address)) {
-    Dart_SetReturnValue(args,
+    return Dart_SetReturnValue(
+        args,
         DartUtils::NewDartArgumentError("expect address to be of type String"));
   }
   result = SocketAddress::GetUnixDomainSockAddr(
@@ -462,7 +463,8 @@ void FUNCTION_NAME(Socket_CreateUnixDomainConnect)(Dart_NativeArguments args) {
   RawAddr addr;
   Dart_Handle address = Dart_GetNativeArgument(args, 1);
   if (Dart_IsNull(address)) {
-    Dart_SetReturnValue(args,
+    return Dart_SetReturnValue(
+        args,
         DartUtils::NewDartArgumentError("expect address to be of type String"));
   }
   Dart_Handle result = SocketAddress::GetUnixDomainSockAddr(

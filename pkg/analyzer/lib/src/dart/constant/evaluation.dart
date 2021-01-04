@@ -81,7 +81,7 @@ class ConstantEvaluationEngine {
   /// arguments are correct, `false` if there is an error.
   bool checkFromEnvironmentArguments(
       LibraryElementImpl library,
-      NodeList<Expression> arguments,
+      List<Expression> arguments,
       List<DartObjectImpl> argumentValues,
       Map<String, DartObjectImpl> namedArgumentValues,
       InterfaceType expectedDefaultValueType) {
@@ -271,7 +271,7 @@ class ConstantEvaluationEngine {
       constant = (constant as ConstructorElement).declaration;
     }
     if (constant is VariableElement) {
-      VariableElementImpl declaration = constant.declaration;
+      var declaration = constant.declaration as VariableElementImpl;
       Expression initializer = declaration.constantInitializer;
       if (initializer != null) {
         initializer.accept(referenceFinder);
@@ -406,7 +406,7 @@ class ConstantEvaluationEngine {
     }
 
     int argumentCount = arguments.length;
-    var argumentValues = List<DartObjectImpl>(argumentCount);
+    var argumentValues = List<DartObjectImpl>.filled(argumentCount, null);
     Map<String, NamedExpression> namedNodes;
     Map<String, DartObjectImpl> namedValues;
     for (int i = 0; i < argumentCount; i++) {
@@ -497,7 +497,7 @@ class ConstantEvaluationEngine {
         definingType,
       );
     }
-    ConstructorElementImpl constructorBase = constructor.declaration;
+    var constructorBase = constructor.declaration as ConstructorElementImpl;
     List<ConstructorInitializer> initializers =
         constructorBase.constantInitializers;
     if (initializers == null) {
@@ -1550,7 +1550,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       return false;
     } else if (element is SpreadElement) {
       DartObjectImpl elementResult = element.expression.accept(this);
-      Map<DartObject, DartObject> value = elementResult?.toMapValue();
+      Map<DartObjectImpl, DartObjectImpl> value = elementResult?.toMapValue();
       if (value == null) {
         return true;
       }
@@ -1662,9 +1662,9 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         return value.value;
       }
     } else if (variableElement is ExecutableElement) {
-      ExecutableElement function = element;
+      var function = element as ExecutableElement;
       if (function.isStatic) {
-        var functionType = node.staticType;
+        var functionType = node.staticType as ParameterizedType;
         return DartObjectImpl(
           typeSystem,
           functionType,
@@ -1689,7 +1689,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         _typeProvider.typeType,
         TypeState(_typeProvider.dynamicType),
       );
-    } else if (variableElement is FunctionTypeAliasElement) {
+    } else if (variableElement is TypeAliasElement) {
       var type = variableElement.instantiate(
         typeArguments: variableElement.typeParameters
             .map((t) => _typeProvider.dynamicType)

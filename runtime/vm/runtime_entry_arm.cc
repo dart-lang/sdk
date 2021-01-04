@@ -51,22 +51,20 @@ void RuntimeEntry::CallInternal(const RuntimeEntry* runtime_entry,
   if (runtime_entry->is_leaf()) {
     ASSERT(argument_count == runtime_entry->argument_count());
     __ LoadFromOffset(
-        kWord, TMP, THR,
-        compiler::target::Thread::OffsetFromThread(runtime_entry));
+        TMP, THR, compiler::target::Thread::OffsetFromThread(runtime_entry));
     __ str(TMP,
            compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
     __ blx(TMP);
     __ LoadImmediate(TMP, VMTag::kDartTagId);
     __ str(TMP,
            compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
-    ASSERT((kAbiPreservedCpuRegs & (1 << THR)) != 0);
-    ASSERT((kAbiPreservedCpuRegs & (1 << PP)) != 0);
+    COMPILE_ASSERT(IsAbiPreservedRegister(THR));
+    COMPILE_ASSERT(IsAbiPreservedRegister(PP));
   } else {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.
     __ LoadFromOffset(
-        kWord, R9, THR,
-        compiler::target::Thread::OffsetFromThread(runtime_entry));
+        R9, THR, compiler::target::Thread::OffsetFromThread(runtime_entry));
     __ LoadImmediate(R4, argument_count);
     __ BranchLinkToRuntime();
   }

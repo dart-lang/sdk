@@ -1,0 +1,15 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class1 extends core::Object {
+  field core::int field;
+  constructor •(core::int field) → self::Class1
+    ;
+  method method(dynamic o) → dynamic
+    ;
+}
+static method test(self::Class1 nonNullableClass1, self::Class1? nullableClass1, dynamic dyn, Never never) → dynamic
+  ;
+static method main() → dynamic
+  ;

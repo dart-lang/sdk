@@ -29,6 +29,52 @@ class PubspecGenerator extends YamlCompletionGenerator {
     // TODO(brianwilkerson) Suggest names already listed under 'dependencies'
     //  and 'dev_dependencies'.
     'dependency_overrides': EmptyProducer(),
+    'flutter': MapProducer({
+      'assets': ListProducer(FilePathProducer()),
+      'fonts': ListProducer(MapProducer({
+        'family': EmptyProducer(),
+        'fonts': ListProducer(MapProducer({
+          'asset': EmptyProducer(),
+          'style': EnumProducer(['italic', 'normal']),
+          'weight': EnumProducer(
+              ['100', '200', '300', '400', '500', '600', '700', '800', '900']),
+        })),
+      })),
+      'generate': BooleanProducer(),
+      'module': MapProducer({
+        'androidX': BooleanProducer(),
+        'androidPackage': EmptyProducer(),
+        'iosBundleIdentifier': EmptyProducer(),
+      }),
+      'plugin': MapProducer({
+        'platforms': MapProducer({
+          'android': MapProducer({
+            'package': EmptyProducer(),
+            'pluginClass': EmptyProducer(),
+          }),
+          'ios': MapProducer({
+            'pluginClass': EmptyProducer(),
+          }),
+          'linux': MapProducer({
+            'dartPluginClass': EmptyProducer(),
+            'pluginClass': EmptyProducer(),
+          }),
+          'macos': MapProducer({
+            'dartPluginClass': EmptyProducer(),
+            'pluginClass': EmptyProducer(),
+          }),
+          'web': MapProducer({
+            'fileName': EmptyProducer(),
+            'pluginClass': EmptyProducer(),
+          }),
+          'windows': MapProducer({
+            'dartPluginClass': EmptyProducer(),
+            'pluginClass': EmptyProducer(),
+          }),
+        }),
+      }),
+      'uses-material-design': BooleanProducer(),
+    }),
   });
 
   /// Initialize a newly created suggestion generator for pubspec files.

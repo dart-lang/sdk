@@ -320,7 +320,7 @@ void JSONStream::PrintValue(Breakpoint* bpt) {
 
 void JSONStream::PrintValue(TokenPosition tp) {
   PrintCommaIfNeeded();
-  PrintValue(tp.value());
+  PrintValue(static_cast<intptr_t>(tp.Serialize()));
 }
 
 void JSONStream::PrintValue(const ServiceEvent* event) {
@@ -346,16 +346,6 @@ void JSONStream::PrintValue(Isolate* isolate, bool ref) {
 void JSONStream::PrintValue(IsolateGroup* isolate_group, bool ref) {
   PrintCommaIfNeeded();
   isolate_group->PrintJSON(this, ref);
-}
-
-void JSONStream::PrintValue(ThreadRegistry* reg) {
-  PrintCommaIfNeeded();
-  reg->PrintJSON(this);
-}
-
-void JSONStream::PrintValue(Thread* thread) {
-  PrintCommaIfNeeded();
-  thread->PrintJSON(this);
 }
 
 void JSONStream::PrintValue(const TimelineEvent* timeline_event) {
@@ -406,16 +396,6 @@ void JSONStream::PrintProperty(const char* name, MessageQueue* queue) {
 void JSONStream::PrintProperty(const char* name, Isolate* isolate) {
   PrintPropertyName(name);
   PrintValue(isolate);
-}
-
-void JSONStream::PrintProperty(const char* name, ThreadRegistry* reg) {
-  PrintPropertyName(name);
-  PrintValue(reg);
-}
-
-void JSONStream::PrintProperty(const char* name, Thread* thread) {
-  PrintPropertyName(name);
-  PrintValue(thread);
 }
 
 void JSONStream::PrintProperty(const char* name,

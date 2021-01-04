@@ -172,8 +172,9 @@ void StubCodeCompiler::GenerateSharedStubGeneric(
     std::function<void()> perform_runtime_call) {
   // We want the saved registers to appear like part of the caller's frame, so
   // we push them before calling EnterStubFrame.
-  __ PushRegisters(kDartAvailableCpuRegs,
-                   save_fpu_registers ? kAllFpuRegistersList : 0);
+  const RegisterSet saved_registers(
+      kDartAvailableCpuRegs, save_fpu_registers ? kAllFpuRegistersList : 0);
+  __ PushRegisters(saved_registers);
 
   const intptr_t kSavedCpuRegisterSlots =
       Utils::CountOneBitsWord(kDartAvailableCpuRegs);
@@ -197,8 +198,7 @@ void StubCodeCompiler::GenerateSharedStubGeneric(
   // Copy up the return address (in case it was changed).
   __ popq(TMP);
   __ movq(Address(RSP, kAllSavedRegistersSlots * target::kWordSize), TMP);
-  __ PopRegisters(kDartAvailableCpuRegs,
-                  save_fpu_registers ? kAllFpuRegistersList : 0);
+  __ PopRegisters(saved_registers);
   __ ret();
 }
 
@@ -230,8 +230,7 @@ void StubCodeCompiler::GenerateSharedStub(
 void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
   RegisterSet all_registers;
   all_registers.AddAllGeneralRegisters();
-  __ PushRegisters(all_registers.cpu_registers(),
-                   all_registers.fpu_registers());
+  __ PushRegisters(all_registers);
 
   __ EnterFrame(0);
   __ ReserveAlignedFrameSpace(0);
@@ -239,15 +238,14 @@ void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
   __ CallCFunction(RAX);
   __ LeaveFrame();
 
-  __ PopRegisters(all_registers.cpu_registers(), all_registers.fpu_registers());
+  __ PopRegisters(all_registers);
   __ ret();
 }
 
 void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
   RegisterSet all_registers;
   all_registers.AddAllGeneralRegisters();
-  __ PushRegisters(all_registers.cpu_registers(),
-                   all_registers.fpu_registers());
+  __ PushRegisters(all_registers);
 
   __ EnterFrame(0);
   __ ReserveAlignedFrameSpace(0);
@@ -262,7 +260,7 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
   __ CallCFunction(RAX);
   __ LeaveFrame();
 
-  __ PopRegisters(all_registers.cpu_registers(), all_registers.fpu_registers());
+  __ PopRegisters(all_registers);
   __ ret();
 }
 
@@ -292,6 +290,10 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
 }
 
 #if !defined(DART_PRECOMPILER)
+static const RegisterSet kArgumentRegisterSet(
+    CallingConventions::kArgumentRegisters,
+    CallingConventions::kFpuArgumentRegisters);
+
 void StubCodeCompiler::GenerateJITCallbackTrampolines(
     Assembler* assembler,
     intptr_t next_callback_id) {
@@ -324,8 +326,7 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   __ pushq(RAX);
 
   // Save all registers which might hold arguments.
-  __ PushRegisters(CallingConventions::kArgumentRegisters,
-                   CallingConventions::kFpuArgumentRegisters);
+  __ PushRegisters(kArgumentRegisterSet);
 
   // Load the thread, verify the callback ID and exit the safepoint.
   //
@@ -346,8 +347,7 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   }
 
   // Restore the arguments.
-  __ PopRegisters(CallingConventions::kArgumentRegisters,
-                  CallingConventions::kFpuArgumentRegisters);
+  __ PopRegisters(kArgumentRegisterSet);
 
   // Restore the callback ID.
   __ popq(RAX);
@@ -765,9 +765,9 @@ static void PushArrayOfArguments(Assembler* assembler) {
   // RBX: address of first argument in array.
   Label loop, loop_condition;
 #if defined(DEBUG)
-  static const bool kJumpLength = Assembler::kFarJump;
+  static auto const kJumpLength = Assembler::kFarJump;
 #else
-  static const bool kJumpLength = Assembler::kNearJump;
+  static auto const kJumpLength = Assembler::kNearJump;
 #endif  // DEBUG
   __ jmp(&loop_condition, kJumpLength);
   __ Bind(&loop);
@@ -1111,7 +1111,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
       __ Bind(&done);
 
       // Get the class index and insert it into the tags.
-      uint32_t tags = target::MakeTagWordForNewSpaceObject(cid, 0);
+      uword tags = target::MakeTagWordForNewSpaceObject(cid, 0);
       __ orq(RDI, Immediate(tags));
       __ movq(FieldAddress(RAX, target::Array::tags_offset()), RDI);  // Tags.
     }
@@ -1138,9 +1138,9 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     __ Bind(&init_loop);
     __ cmpq(RDI, RCX);
 #if defined(DEBUG)
-    static const bool kJumpLength = Assembler::kFarJump;
+    static auto const kJumpLength = Assembler::kFarJump;
 #else
-    static const bool kJumpLength = Assembler::kNearJump;
+    static auto const kJumpLength = Assembler::kNearJump;
 #endif  // DEBUG
     __ j(ABOVE_EQUAL, &done, kJumpLength);
     // No generational barrier needed, since we are storing null.
@@ -1180,7 +1180,7 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub(
   // For test purpose call allocation stub without inline allocation attempt.
   if (!FLAG_use_slow_path) {
     Label slow_case;
-    __ TryAllocate(compiler::MintClass(), &slow_case, /*near_jump=*/true,
+    __ TryAllocate(compiler::MintClass(), &slow_case, Assembler::kNearJump,
                    AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
     __ Ret();
 
@@ -1200,7 +1200,7 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub(
   // For test purpose call allocation stub without inline allocation attempt.
   if (!FLAG_use_slow_path) {
     Label slow_case;
-    __ TryAllocate(compiler::MintClass(), &slow_case, /*near_jump=*/true,
+    __ TryAllocate(compiler::MintClass(), &slow_case, Assembler::kNearJump,
                    AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
     __ Ret();
 
@@ -1214,6 +1214,10 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub(
       /*allow_return=*/true,
       /*store_runtime_result_in_result_register=*/true);
 }
+
+static const RegisterSet kCalleeSavedRegisterSet(
+    CallingConventions::kCalleeSaveCpuRegisters,
+    CallingConventions::kCalleeSaveXmmRegisters);
 
 // Called when invoking Dart code from C++ (VM code).
 // Input parameters:
@@ -1245,8 +1249,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ pushq(kArgDescReg);
 
   // Save C++ ABI callee-saved registers.
-  __ PushRegisters(CallingConventions::kCalleeSaveCpuRegisters,
-                   CallingConventions::kCalleeSaveXmmRegisters);
+  __ PushRegisters(kCalleeSavedRegisterSet);
 
   // If any additional (or fewer) values are pushed, the offsets in
   // target::frame_layout.exit_link_slot_from_entry_fp will need to be changed.
@@ -1356,8 +1359,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 #endif
 
   // Restore C++ ABI callee-saved registers.
-  __ PopRegisters(CallingConventions::kCalleeSaveCpuRegisters,
-                  CallingConventions::kCalleeSaveXmmRegisters);
+  __ PopRegisters(kCalleeSavedRegisterSet);
   __ set_constant_pool_allowed(false);
 
   // Restore the frame pointer.
@@ -1432,7 +1434,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
     // RAX: new object.
     // R10: number of context variables.
     // R13: size and bit tags.
-    uint32_t tags = target::MakeTagWordForNewSpaceObject(kContextCid, 0);
+    uword tags = target::MakeTagWordForNewSpaceObject(kContextCid, 0);
     __ orq(R13, Immediate(tags));
     __ movq(FieldAddress(RAX, target::Object::tags_offset()), R13);  // Tags.
   }
@@ -1471,9 +1473,9 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
       Label loop, entry;
       __ leaq(R13, FieldAddress(RAX, target::Context::variable_offset(0)));
 #if defined(DEBUG)
-      static const bool kJumpLength = Assembler::kFarJump;
+      static auto const kJumpLength = Assembler::kFarJump;
 #else
-      static const bool kJumpLength = Assembler::kNearJump;
+      static auto const kJumpLength = Assembler::kNearJump;
 #endif  // DEBUG
       __ jmp(&entry, kJumpLength);
       __ Bind(&loop);
@@ -1633,13 +1635,11 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   }
 
   // Update the tags that this object has been remembered.
-  // Note that we use 32 bit operations here to match the size of the
-  // background sweeper which is also manipulating this 32 bit word.
   // RDX: Address being stored
   // RAX: Current tag value
-  // lock+andl is an atomic read-modify-write.
+  // lock+andq is an atomic read-modify-write.
   __ lock();
-  __ andl(FieldAddress(RDX, target::Object::tags_offset()),
+  __ andq(FieldAddress(RDX, target::Object::tags_offset()),
           Immediate(~(1 << target::ObjectLayout::kOldAndNotRememberedBit)));
 
   // Save registers being destroyed.
@@ -1686,16 +1686,14 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ movq(TMP, RAX);  // RAX is fixed implicit operand of CAS.
 
   // Atomically clear kOldAndNotMarkedBit.
-  // Note that we use 32 bit operations here to match the size of the
-  // background marker which is also manipulating this 32 bit word.
   Label retry, lost_race, marking_overflow;
-  __ movl(RAX, FieldAddress(TMP, target::Object::tags_offset()));
+  __ movq(RAX, FieldAddress(TMP, target::Object::tags_offset()));
   __ Bind(&retry);
-  __ movl(RCX, RAX);
-  __ testl(RCX, Immediate(1 << target::ObjectLayout::kOldAndNotMarkedBit));
+  __ movq(RCX, RAX);
+  __ testq(RCX, Immediate(1 << target::ObjectLayout::kOldAndNotMarkedBit));
   __ j(ZERO, &lost_race);  // Marked by another thread.
-  __ andl(RCX, Immediate(~(1 << target::ObjectLayout::kOldAndNotMarkedBit)));
-  __ LockCmpxchgl(FieldAddress(TMP, target::Object::tags_offset()), RCX);
+  __ andq(RCX, Immediate(~(1 << target::ObjectLayout::kOldAndNotMarkedBit)));
+  __ LockCmpxchgq(FieldAddress(TMP, target::Object::tags_offset()), RCX);
   __ j(NOT_EQUAL, &retry, Assembler::kNearJump);
 
   __ movq(RAX, Address(THR, target::Thread::marking_stack_block_offset()));
@@ -1819,9 +1817,9 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
       __ Bind(&init_loop);
       __ cmpq(kNextFieldReg, kNewTopReg);
 #if defined(DEBUG)
-      static const bool kJumpLength = Assembler::kFarJump;
+      static auto const kJumpLength = Assembler::kFarJump;
 #else
-      static const bool kJumpLength = Assembler::kNearJump;
+      static auto const kJumpLength = Assembler::kNearJump;
 #endif  // DEBUG
       __ j(ABOVE_EQUAL, &done, kJumpLength);
       __ StoreIntoObjectNoBarrier(RAX, Address(kNextFieldReg, 0), kNullReg);
@@ -1949,7 +1947,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
   // User-defined classes should always be allocatable in new space.
   RELEASE_ASSERT(target::Heap::IsAllocatableInNewSpace(instance_size));
 
-  const uint32_t tags =
+  const uword tags =
       target::MakeTagWordForNewSpaceObject(cls_id, instance_size);
 
   // Note: Keep in sync with helper function.
@@ -2566,9 +2564,9 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub(
   __ movzxb(RAX, Address(RAX, target::Isolate::single_step_offset()));
   __ cmpq(RAX, Immediate(0));
 #if defined(DEBUG)
-  static const bool kJumpLength = Assembler::kFarJump;
+  static auto const kJumpLength = Assembler::kFarJump;
 #else
-  static const bool kJumpLength = Assembler::kNearJump;
+  static auto const kJumpLength = Assembler::kNearJump;
 #endif  // DEBUG
   __ j(NOT_EQUAL, &stepping, kJumpLength);
   __ Bind(&done_stepping);
@@ -2735,8 +2733,9 @@ void StubCodeCompiler::GenerateDebugStepCheckStub(Assembler* assembler) {
 // Input registers (from TypeTestABI struct):
 //   - kSubtypeTestCacheReg: SubtypeTestCacheLayout
 //   - kInstanceReg: instance to test against (must be preserved).
-//   - kInstantiatorTypeArgumentsReg: instantiator type arguments (for n>=4).
-//   - kFunctionTypeArgumentsReg: function type arguments (for n>=4).
+//   - kDstTypeReg: destination type (for n>=3).
+//   - kInstantiatorTypeArgumentsReg : instantiator type arguments (for n>=5).
+//   - kFunctionTypeArgumentsReg : function type arguments (for n>=5).
 // Inputs from stack:
 //   - TOS + 0: return address.
 //
@@ -2745,7 +2744,7 @@ void StubCodeCompiler::GenerateDebugStepCheckStub(Assembler* assembler) {
 // Result in SubtypeTestCacheReg::kResultReg: null -> not found, otherwise
 // result (true or false).
 static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
-  ASSERT(n == 1 || n == 2 || n == 4 || n == 6);
+  ASSERT(n == 1 || n == 3 || n == 5 || n == 7);
 
   // Until we have the result, we use the result register to store the null
   // value for quick access. This has the side benefit of initializing the
@@ -2753,18 +2752,14 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   const Register kNullReg = TypeTestABI::kSubtypeTestCacheResultReg;
   __ LoadObject(kNullReg, NullObject());
 
-  // All of these must be distinct from TypeTestABI::kSubtypeTestCacheResultReg
-  // since it is used for kNullReg as well.
-  const Register kCacheArrayReg = RDI;
   const Register kScratchReg = TypeTestABI::kScratchReg;
-  const Register kInstanceCidOrFunction = R10;
-  const Register kInstanceInstantiatorTypeArgumentsReg = R13;
-  // Only used for n >= 6, so set conditionally in that case to catch misuse.
+
+  // Only used for n >= 7, so set conditionally in that case to catch misuse.
   Register kInstanceParentFunctionTypeArgumentsReg = kNoRegister;
   Register kInstanceDelayedFunctionTypeArgumentsReg = kNoRegister;
 
-  // Free up these 2 registers to be used for 6-value test.
-  if (n >= 6) {
+  // Free up these 2 registers to be used for 7-value test.
+  if (n >= 7) {
     kInstanceParentFunctionTypeArgumentsReg = PP;
     kInstanceDelayedFunctionTypeArgumentsReg = CODE_REG;
     __ pushq(kInstanceParentFunctionTypeArgumentsReg);
@@ -2776,33 +2771,34 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 
   // We avoid a load-acquire barrier here by relying on the fact that all other
   // loads from the array are data-dependent loads.
-  __ movq(kCacheArrayReg,
+  __ movq(STCInternalRegs::kCacheEntryReg,
           FieldAddress(TypeTestABI::kSubtypeTestCacheReg,
                        target::SubtypeTestCache::cache_offset()));
-  __ addq(kCacheArrayReg,
+  __ addq(STCInternalRegs::kCacheEntryReg,
           Immediate(target::Array::data_offset() - kHeapObjectTag));
 
   Label loop, not_closure;
-  if (n >= 4) {
-    __ LoadClassIdMayBeSmi(kInstanceCidOrFunction, TypeTestABI::kInstanceReg);
+  if (n >= 5) {
+    __ LoadClassIdMayBeSmi(STCInternalRegs::kInstanceCidOrFunctionReg,
+                           TypeTestABI::kInstanceReg);
   } else {
-    __ LoadClassId(kInstanceCidOrFunction, TypeTestABI::kInstanceReg);
+    __ LoadClassId(STCInternalRegs::kInstanceCidOrFunctionReg,
+                   TypeTestABI::kInstanceReg);
   }
-  __ cmpq(kInstanceCidOrFunction, Immediate(kClosureCid));
+  __ cmpq(STCInternalRegs::kInstanceCidOrFunctionReg, Immediate(kClosureCid));
   __ j(NOT_EQUAL, &not_closure, Assembler::kNearJump);
 
   // Closure handling.
   {
-    __ movq(kInstanceCidOrFunction,
+    __ movq(STCInternalRegs::kInstanceCidOrFunctionReg,
             FieldAddress(TypeTestABI::kInstanceReg,
                          target::Closure::function_offset()));
-    if (n >= 2) {
+    if (n >= 3) {
       __ movq(
-          kInstanceInstantiatorTypeArgumentsReg,
+          STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg,
           FieldAddress(TypeTestABI::kInstanceReg,
                        target::Closure::instantiator_type_arguments_offset()));
-      if (n >= 6) {
-        ASSERT(n == 6);
+      if (n >= 7) {
         __ movq(
             kInstanceParentFunctionTypeArgumentsReg,
             FieldAddress(TypeTestABI::kInstanceReg,
@@ -2818,10 +2814,10 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // Non-Closure handling.
   {
     __ Bind(&not_closure);
-    if (n >= 2) {
+    if (n >= 3) {
       Label has_no_type_arguments;
-      __ LoadClassById(kScratchReg, kInstanceCidOrFunction);
-      __ movq(kInstanceInstantiatorTypeArgumentsReg, kNullReg);
+      __ LoadClassById(kScratchReg, STCInternalRegs::kInstanceCidOrFunctionReg);
+      __ movq(STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg, kNullReg);
       __ movl(
           kScratchReg,
           FieldAddress(kScratchReg,
@@ -2829,16 +2825,16 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
                            host_type_arguments_field_offset_in_words_offset()));
       __ cmpl(kScratchReg, Immediate(target::Class::kNoTypeArguments));
       __ j(EQUAL, &has_no_type_arguments, Assembler::kNearJump);
-      __ movq(kInstanceInstantiatorTypeArgumentsReg,
+      __ movq(STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg,
               FieldAddress(TypeTestABI::kInstanceReg, kScratchReg, TIMES_8, 0));
       __ Bind(&has_no_type_arguments);
 
-      if (n >= 6) {
+      if (n >= 7) {
         __ movq(kInstanceParentFunctionTypeArgumentsReg, kNullReg);
         __ movq(kInstanceDelayedFunctionTypeArgumentsReg, kNullReg);
       }
     }
-    __ SmiTag(kInstanceCidOrFunction);
+    __ SmiTag(STCInternalRegs::kInstanceCidOrFunctionReg);
   }
 
   Label found, not_found, next_iteration;
@@ -2846,49 +2842,54 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // Loop header.
   __ Bind(&loop);
   __ movq(kScratchReg,
-          Address(kCacheArrayReg,
+          Address(STCInternalRegs::kCacheEntryReg,
                   target::kWordSize *
                       target::SubtypeTestCache::kInstanceClassIdOrFunction));
   __ cmpq(kScratchReg, kNullReg);
   __ j(EQUAL, &not_found, Assembler::kNearJump);
-  __ cmpq(kScratchReg, kInstanceCidOrFunction);
+  __ cmpq(kScratchReg, STCInternalRegs::kInstanceCidOrFunctionReg);
   if (n == 1) {
     __ j(EQUAL, &found, Assembler::kNearJump);
   } else {
     __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-    __ cmpq(kInstanceInstantiatorTypeArgumentsReg,
-            Address(kCacheArrayReg,
+    __ cmpq(TypeTestABI::kDstTypeReg,
+            Address(STCInternalRegs::kCacheEntryReg,
+                    target::kWordSize *
+                        target::SubtypeTestCache::kDestinationType));
+    __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
+    __ cmpq(STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg,
+            Address(STCInternalRegs::kCacheEntryReg,
                     target::kWordSize *
                         target::SubtypeTestCache::kInstanceTypeArguments));
-    if (n == 2) {
+    if (n == 3) {
       __ j(EQUAL, &found, Assembler::kNearJump);
     } else {
       __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
       __ cmpq(
           TypeTestABI::kInstantiatorTypeArgumentsReg,
-          Address(kCacheArrayReg,
+          Address(STCInternalRegs::kCacheEntryReg,
                   target::kWordSize *
                       target::SubtypeTestCache::kInstantiatorTypeArguments));
       __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
       __ cmpq(TypeTestABI::kFunctionTypeArgumentsReg,
-              Address(kCacheArrayReg,
+              Address(STCInternalRegs::kCacheEntryReg,
                       target::kWordSize *
                           target::SubtypeTestCache::kFunctionTypeArguments));
 
-      if (n == 4) {
+      if (n == 5) {
         __ j(EQUAL, &found, Assembler::kNearJump);
       } else {
-        ASSERT(n == 6);
+        ASSERT(n == 7);
         __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
 
         __ cmpq(kInstanceParentFunctionTypeArgumentsReg,
-                Address(kCacheArrayReg,
+                Address(STCInternalRegs::kCacheEntryReg,
                         target::kWordSize *
                             target::SubtypeTestCache::
                                 kInstanceParentFunctionTypeArguments));
         __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
         __ cmpq(kInstanceDelayedFunctionTypeArgumentsReg,
-                Address(kCacheArrayReg,
+                Address(STCInternalRegs::kCacheEntryReg,
                         target::kWordSize *
                             target::SubtypeTestCache::
                                 kInstanceDelayedFunctionTypeArguments));
@@ -2898,18 +2899,18 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   }
 
   __ Bind(&next_iteration);
-  __ addq(kCacheArrayReg,
+  __ addq(STCInternalRegs::kCacheEntryReg,
           Immediate(target::kWordSize *
                     target::SubtypeTestCache::kTestEntryLength));
   __ jmp(&loop, Assembler::kNearJump);
 
   __ Bind(&found);
   __ movq(TypeTestABI::kSubtypeTestCacheResultReg,
-          Address(kCacheArrayReg,
+          Address(STCInternalRegs::kCacheEntryReg,
                   target::kWordSize * target::SubtypeTestCache::kTestResult));
 
   __ Bind(&not_found);
-  if (n >= 6) {
+  if (n >= 7) {
     __ popq(kInstanceDelayedFunctionTypeArgumentsReg);
     __ popq(kInstanceParentFunctionTypeArgumentsReg);
   }
@@ -2922,232 +2923,18 @@ void StubCodeCompiler::GenerateSubtype1TestCacheStub(Assembler* assembler) {
 }
 
 // See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype2TestCacheStub(Assembler* assembler) {
-  GenerateSubtypeNTestCacheStub(assembler, 2);
+void StubCodeCompiler::GenerateSubtype3TestCacheStub(Assembler* assembler) {
+  GenerateSubtypeNTestCacheStub(assembler, 3);
 }
 
 // See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype4TestCacheStub(Assembler* assembler) {
-  GenerateSubtypeNTestCacheStub(assembler, 4);
+void StubCodeCompiler::GenerateSubtype5TestCacheStub(Assembler* assembler) {
+  GenerateSubtypeNTestCacheStub(assembler, 5);
 }
 
 // See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype6TestCacheStub(Assembler* assembler) {
-  GenerateSubtypeNTestCacheStub(assembler, 6);
-}
-
-// The <X>TypeTestStubs are used to test whether a given value is of a given
-// type. All variants have the same calling convention:
-//
-// Inputs (from TypeTestABI struct):
-//   - kSubtypeTestCacheReg: RawSubtypeTestCache
-//   - kInstanceReg: instance to test against.
-//   - kInstantiatorTypeArgumentsReg : instantiator type arguments (if needed).
-//   - kFunctionTypeArgumentsReg : function type arguments (if needed).
-//
-// See GenerateSubtypeNTestCacheStub for registers that may need saving by the
-// caller.
-//
-// Output (from TypeTestABI struct):
-//   - kResultReg: checked instance.
-//
-// Throws if the check is unsuccessful.
-//
-// Note of warning: The caller will not populate CODE_REG and we have therefore
-// no access to the pool.
-void StubCodeCompiler::GenerateDefaultTypeTestStub(Assembler* assembler) {
-  __ movq(CODE_REG, Address(THR, target::Thread::slow_type_test_stub_offset()));
-  __ jmp(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-}
-
-// Used instead of DefaultTypeTestStub when null is assignable.
-void StubCodeCompiler::GenerateDefaultNullableTypeTestStub(
-    Assembler* assembler) {
-  Label done;
-
-  // Fast case for 'null'.
-  __ CompareObject(TypeTestABI::kInstanceReg, NullObject());
-  __ BranchIf(EQUAL, &done);
-
-  __ movq(CODE_REG, Address(THR, target::Thread::slow_type_test_stub_offset()));
-  __ jmp(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-
-  __ Bind(&done);
-  __ Ret();
-}
-
-void StubCodeCompiler::GenerateTopTypeTypeTestStub(Assembler* assembler) {
-  __ Ret();
-}
-
-void StubCodeCompiler::GenerateUnreachableTypeTestStub(Assembler* assembler) {
-  __ Breakpoint();
-}
-
-static void InvokeTypeCheckFromTypeTestStub(Assembler* assembler,
-                                            TypeCheckMode mode) {
-  __ PushObject(NullObject());  // Make room for result.
-  __ pushq(TypeTestABI::kInstanceReg);
-  __ pushq(TypeTestABI::kDstTypeReg);
-  __ pushq(TypeTestABI::kInstantiatorTypeArgumentsReg);
-  __ pushq(TypeTestABI::kFunctionTypeArgumentsReg);
-  __ PushObject(NullObject());
-  __ pushq(TypeTestABI::kSubtypeTestCacheReg);
-  __ PushImmediate(Immediate(target::ToRawSmi(mode)));
-  __ CallRuntime(kTypeCheckRuntimeEntry, 7);
-  __ Drop(1);  // mode
-  __ popq(TypeTestABI::kSubtypeTestCacheReg);
-  __ Drop(1);
-  __ popq(TypeTestABI::kFunctionTypeArgumentsReg);
-  __ popq(TypeTestABI::kInstantiatorTypeArgumentsReg);
-  __ popq(TypeTestABI::kDstTypeReg);
-  __ popq(TypeTestABI::kInstanceReg);
-  __ Drop(1);  // Discard return value.
-}
-
-void StubCodeCompiler::GenerateLazySpecializeTypeTestStub(
-    Assembler* assembler) {
-  __ movq(
-      CODE_REG,
-      Address(THR, target::Thread::lazy_specialize_type_test_stub_offset()));
-  __ EnterStubFrame();
-  InvokeTypeCheckFromTypeTestStub(assembler, kTypeCheckFromLazySpecializeStub);
-  __ LeaveStubFrame();
-  __ Ret();
-}
-
-// Used instead of LazySpecializeTypeTestStub when null is assignable.
-void StubCodeCompiler::GenerateLazySpecializeNullableTypeTestStub(
-    Assembler* assembler) {
-  Label done;
-
-  // Fast case for 'null'.
-  __ CompareObject(TypeTestABI::kInstanceReg, NullObject());
-  __ BranchIf(EQUAL, &done);
-
-  __ movq(
-      CODE_REG,
-      Address(THR, target::Thread::lazy_specialize_type_test_stub_offset()));
-  __ EnterStubFrame();
-  InvokeTypeCheckFromTypeTestStub(assembler, kTypeCheckFromLazySpecializeStub);
-  __ LeaveStubFrame();
-
-  __ Bind(&done);
-  __ Ret();
-}
-
-static void BuildTypeParameterTypeTestStub(Assembler* assembler,
-                                           bool allow_null) {
-  Label done;
-
-  if (allow_null) {
-    __ CompareObject(TypeTestABI::kInstanceReg, NullObject());
-    __ BranchIf(EQUAL, &done);
-  }
-
-  Label function_type_param;
-  __ cmpw(FieldAddress(TypeTestABI::kDstTypeReg,
-                       TypeParameter::parameterized_class_id_offset()),
-          Immediate(kFunctionCid));
-  __ BranchIf(EQUAL, &function_type_param);
-
-  auto handle_case = [&](Register tav) {
-    __ CompareObject(tav, NullObject());
-    __ BranchIf(EQUAL, &done);
-    __ movzxw(
-        TypeTestABI::kScratchReg,
-        FieldAddress(TypeTestABI::kDstTypeReg, TypeParameter::index_offset()));
-    __ movq(TypeTestABI::kScratchReg,
-            FieldAddress(tav, TypeTestABI::kScratchReg, TIMES_8,
-                         target::TypeArguments::InstanceSize()));
-    __ jmp(FieldAddress(TypeTestABI::kScratchReg,
-                        AbstractType::type_test_stub_entry_point_offset()));
-  };
-
-  // Class type parameter: If dynamic we're done, otherwise dereference type
-  // parameter and tail call.
-  handle_case(TypeTestABI::kInstantiatorTypeArgumentsReg);
-
-  // Function type parameter: If dynamic we're done, otherwise dereference type
-  // parameter and tail call.
-  __ Bind(&function_type_param);
-  handle_case(TypeTestABI::kFunctionTypeArgumentsReg);
-
-  __ Bind(&done);
-  __ Ret();
-}
-
-void StubCodeCompiler::GenerateNullableTypeParameterTypeTestStub(
-    Assembler* assembler) {
-  BuildTypeParameterTypeTestStub(assembler, /*allow_null=*/true);
-}
-
-void StubCodeCompiler::GenerateTypeParameterTypeTestStub(Assembler* assembler) {
-  BuildTypeParameterTypeTestStub(assembler, /*allow_null=*/false);
-}
-
-void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
-  Label done, call_runtime;
-
-  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
-    __ movq(CODE_REG,
-            Address(THR, target::Thread::slow_type_test_stub_offset()));
-  }
-  __ EnterStubFrame();
-
-  // If the subtype-cache is null, it needs to be lazily-created by the runtime.
-  __ CompareObject(TypeTestABI::kSubtypeTestCacheReg, NullObject());
-  __ BranchIf(EQUAL, &call_runtime);
-
-  // If this is not a [Type] object, we'll go to the runtime.
-  Label is_simple_case, is_complex_case;
-  __ LoadClassId(TypeTestABI::kScratchReg, TypeTestABI::kDstTypeReg);
-  __ cmpq(TypeTestABI::kScratchReg, Immediate(kTypeCid));
-  __ BranchIf(NOT_EQUAL, &is_complex_case);
-
-  // Check whether this [Type] is instantiated/uninstantiated.
-  __ cmpb(
-      FieldAddress(TypeTestABI::kDstTypeReg, target::Type::type_state_offset()),
-      Immediate(target::AbstractTypeLayout::kTypeStateFinalizedInstantiated));
-  __ BranchIf(NOT_EQUAL, &is_complex_case);
-
-  // Check whether this [Type] is a function type.
-  __ movq(
-      TypeTestABI::kScratchReg,
-      FieldAddress(TypeTestABI::kDstTypeReg, target::Type::signature_offset()));
-  __ CompareObject(TypeTestABI::kScratchReg, NullObject());
-  __ BranchIf(NOT_EQUAL, &is_complex_case);
-
-  // This [Type] could be a FutureOr. Subtype2TestCache does not support Smi.
-  __ BranchIfSmi(TypeTestABI::kInstanceReg, &is_complex_case);
-
-  // Fall through to &is_simple_case
-
-  __ Bind(&is_simple_case);
-  {
-    __ Call(StubCodeSubtype2TestCache());
-    __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
-                     CastHandle<Object>(TrueObject()));
-    __ BranchIf(EQUAL, &done);  // Cache said: yes.
-    __ Jump(&call_runtime);
-  }
-
-  __ Bind(&is_complex_case);
-  {
-    __ Call(StubCodeSubtype6TestCache());
-    __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
-                     CastHandle<Object>(TrueObject()));
-    __ BranchIf(EQUAL, &done);  // Cache said: yes.
-    // Fall through to runtime_call
-  }
-
-  __ Bind(&call_runtime);
-
-  InvokeTypeCheckFromTypeTestStub(assembler, kTypeCheckFromSlowStub);
-
-  __ Bind(&done);
-  __ LeaveStubFrame();
-  __ Ret();
+void StubCodeCompiler::GenerateSubtype7TestCacheStub(Assembler* assembler) {
+  GenerateSubtypeNTestCacheStub(assembler, 7);
 }
 
 // Return the current stack pointer address, used to stack alignment
@@ -3729,7 +3516,8 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
   Label call_runtime;
   __ pushq(AllocateTypedDataArrayABI::kLengthReg);
 
-  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, &call_runtime, false));
+  NOT_IN_PRODUCT(
+      __ MaybeTraceAllocation(cid, &call_runtime, Assembler::kFarJump));
   __ movq(RDI, AllocateTypedDataArrayABI::kLengthReg);
   /* Check that length is a positive Smi. */
   /* RDI: requested array length argument. */
@@ -3790,8 +3578,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     __ Bind(&done);
 
     /* Get the class index and insert it into the tags. */
-    uint32_t tags =
-        target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
+    uword tags = target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
     __ orq(RDI, Immediate(tags));
     __ movq(FieldAddress(RAX, target::Object::tags_offset()), RDI); /* Tags. */
   }

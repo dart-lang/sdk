@@ -139,8 +139,8 @@ class TestCompiler {
 
     final Set<String> formattedErrors = new Set<String>();
     final Set<String> formattedWarnings = new Set<String>();
-    final List<Code> formattedErrorsCodes = new List<Code>();
-    final List<Code> formattedWarningsCodes = new List<Code>();
+    final List<Code> formattedErrorsCodes = <Code>[];
+    final List<Code> formattedWarningsCodes = <Code>[];
 
     options.onDiagnostic = (DiagnosticMessage message) {
       String stringId = message.ansiFormatted.join("\n");

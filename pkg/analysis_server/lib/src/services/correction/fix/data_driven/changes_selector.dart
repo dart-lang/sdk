@@ -26,7 +26,8 @@ class ConditionalChangesSelector implements ChangesSelector {
   @override
   List<Change> getChanges(TemplateContext context) {
     for (var entry in changeMap.entries) {
-      if (entry.key.evaluateIn(context)) {
+      var value = entry.key.evaluateIn(context);
+      if (value is bool && value) {
         return entry.value;
       }
     }

@@ -15,3 +15,8 @@ constants  {
   #C5 = "dart-ext:/usr/local/somewhere"
   #C6 = _in::ExternalName {name:#C5}
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///external_import.dart:
+- ExternalName. (from org-dartlang-sdk:///sdk/lib/internal/internal.dart:92:9)

@@ -237,7 +237,7 @@ void Precompiler::DoCompileAll() {
           /*including_nonchanging_cids=*/FLAG_use_bare_instructions);
 
       {
-        CompilerState state(thread_, /*is_aot=*/true);
+        CompilerState state(thread_, /*is_aot=*/true, /*is_optimizing=*/true);
         PrecompileConstructors();
       }
 
@@ -416,7 +416,6 @@ void Precompiler::DoCompileAll() {
       I->object_store()->set_simple_instance_of_function(null_function);
       I->object_store()->set_simple_instance_of_true_function(null_function);
       I->object_store()->set_simple_instance_of_false_function(null_function);
-      I->object_store()->set_async_set_thread_stack_trace(null_function);
       I->object_store()->set_async_star_move_next_helper(null_function);
       I->object_store()->set_complete_on_async_return(null_function);
       I->object_store()->set_async_star_stream_controller(null_class);
@@ -1123,7 +1122,7 @@ void Precompiler::AddInstantiatedClass(const Class& cls) {
 
   class_count_++;
   cls.set_is_allocated(true);
-  error_ = cls.EnsureIsFinalized(T);
+  error_ = cls.EnsureIsAllocateFinalized(T);
   if (!error_.IsNull()) {
     Jump(error_);
   }
@@ -2117,48 +2116,12 @@ void Precompiler::TraceTypesFromRetainedClasses() {
 }
 
 void Precompiler::DropMetadata() {
-  Library& lib = Library::Handle(Z);
-  const GrowableObjectArray& null_growable_list =
-      GrowableObjectArray::Handle(Z);
-  Array& dependencies = Array::Handle(Z);
-  Namespace& ns = Namespace::Handle(Z);
-  const Field& null_field = Field::Handle(Z);
-  GrowableObjectArray& metadata = GrowableObjectArray::Handle(Z);
-  Field& metadata_field = Field::Handle(Z);
+  SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
 
+  Library& lib = Library::Handle(Z);
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
-    metadata ^= lib.metadata();
-    for (intptr_t j = 0; j < metadata.Length(); j++) {
-      metadata_field ^= metadata.At(j);
-      if (metadata_field.is_static()) {
-        // Although this field will become garbage after clearing the list
-        // below, we also need to clear its value from the field table.
-        // The value may be an instance of an otherwise dead class, and if
-        // it remains in the field table we can get an instance on the heap
-        // with a deleted class.
-        metadata_field.SetStaticValue(Object::null_instance(),
-                                      /*save_initial_value=*/true);
-      }
-    }
-
-    lib.set_metadata(null_growable_list);
-
-    dependencies = lib.imports();
-    for (intptr_t j = 0; j < dependencies.Length(); j++) {
-      ns ^= dependencies.At(j);
-      if (!ns.IsNull()) {
-        ns.set_metadata_field(null_field);
-      }
-    }
-
-    dependencies = lib.exports();
-    for (intptr_t j = 0; j < dependencies.Length(); j++) {
-      ns ^= dependencies.At(j);
-      if (!ns.IsNull()) {
-        ns.set_metadata_field(null_field);
-      }
-    }
+    lib.set_metadata(Array::null_array());
   }
 }
 
@@ -2560,7 +2523,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       ZoneGrowableArray<const ICData*>* ic_data_array = nullptr;
       const Function& function = parsed_function()->function();
 
-      CompilerState compiler_state(thread(), /*is_aot=*/true,
+      CompilerState compiler_state(thread(), /*is_aot=*/true, optimized(),
                                    CompilerState::ShouldTrace(function));
 
       {
@@ -2597,16 +2560,6 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
                                                              &pass_state);
       } else if (optimized()) {
         TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
-
-        pass_state.inline_id_to_function.Add(&function);
-        // We do not add the token position now because we don't know the
-        // position of the inlined call until later. A side effect of this
-        // is that the length of |inline_id_to_function| is always larger
-        // than the length of |inline_id_to_token_pos| by one.
-        // Top scope function has no caller (-1). We do this because we expect
-        // all token positions to be at an inlined call.
-        // Top scope function has no caller (-1).
-        pass_state.caller_inline_id.Add(-1);
 
         AotCallSpecializer call_specializer(precompiler_, flow_graph,
                                             &speculative_policy);

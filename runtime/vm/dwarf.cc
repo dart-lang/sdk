@@ -15,21 +15,19 @@ namespace dart {
 
 class DwarfPosition {
  public:
-  // The DWARF standard uses 0 to denote missing line or column information.
-  DwarfPosition(intptr_t line, intptr_t column)
-      : line_(line > 0 ? line : 0), column_(column > 0 ? column : 0) {
+  DwarfPosition(int32_t line, int32_t column) : line_(line), column_(column) {
     // Should only have no line information if also no column information.
-    ASSERT(line_ > 0 || column_ == 0);
+    ASSERT(line_ > 0 || column_ <= 0);
   }
-  explicit DwarfPosition(intptr_t line) : DwarfPosition(line, 0) {}
-  constexpr DwarfPosition() : line_(0), column_(0) {}
+  explicit DwarfPosition(int32_t line) : DwarfPosition(line, -1) {}
+  constexpr DwarfPosition() : line_(-1), column_(-1) {}
 
-  intptr_t line() const { return line_; }
-  intptr_t column() const { return column_; }
+  int32_t line() const { return line_; }
+  int32_t column() const { return column_; }
 
  private:
-  intptr_t line_;
-  intptr_t column_;
+  int32_t line_;
+  int32_t column_;
 };
 
 static constexpr auto kNoDwarfPositionInfo = DwarfPosition();
@@ -392,15 +390,6 @@ void Dwarf::WriteConcreteFunctions(DwarfWriteStream* stream) {
   }
 }
 
-static DwarfPosition ReadPosition(ReadStream* stream) {
-  const intptr_t line = stream->Read<int32_t>();
-  if (!FLAG_dwarf_stack_traces_mode) {
-    return DwarfPosition(line);
-  }
-  const intptr_t column = stream->Read<int32_t>();
-  return DwarfPosition(line, column);
-}
-
 // Our state machine encodes position metadata such that we don't know the
 // end pc for an inlined function until it is popped, but DWARF DIEs encode
 // it where the function is pushed. We expand the state transitions into
@@ -431,21 +420,24 @@ InliningNode* Dwarf::ExpandInliningTree(const Code& code) {
   node_stack.Add(root_node);
 
   while (stream.PendingBytes() > 0) {
-    uint8_t opcode = stream.Read<uint8_t>();
+    int32_t arg1;
+    int32_t arg2 = -1;
+    const uint8_t opcode = CodeSourceMapOps::Read(&stream, &arg1, &arg2);
     switch (opcode) {
-      case CodeSourceMapBuilder::kChangePosition: {
-        token_positions[token_positions.length() - 1] = ReadPosition(&stream);
+      case CodeSourceMapOps::kChangePosition: {
+        const DwarfPosition& old_pos =
+            token_positions[token_positions.length() - 1];
+        token_positions[token_positions.length() - 1] =
+            DwarfPosition(Utils::AddWithWrapAround(old_pos.line(), arg1), arg2);
         break;
       }
-      case CodeSourceMapBuilder::kAdvancePC: {
-        int32_t delta = stream.Read<int32_t>();
-        current_pc_offset += delta;
+      case CodeSourceMapOps::kAdvancePC: {
+        current_pc_offset += arg1;
         break;
       }
-      case CodeSourceMapBuilder::kPushFunction: {
-        int32_t func = stream.Read<int32_t>();
+      case CodeSourceMapOps::kPushFunction: {
         const Function& child_func =
-            Function::ZoneHandle(zone_, Function::RawCast(functions.At(func)));
+            Function::ZoneHandle(zone_, Function::RawCast(functions.At(arg1)));
         InliningNode* child_node = new (zone_)
             InliningNode(child_func, token_positions.Last(), current_pc_offset);
         node_stack.Last()->AppendChild(child_node);
@@ -453,7 +445,7 @@ InliningNode* Dwarf::ExpandInliningTree(const Code& code) {
         token_positions.Add(kNoDwarfPositionInfo);
         break;
       }
-      case CodeSourceMapBuilder::kPopFunction: {
+      case CodeSourceMapOps::kPopFunction: {
         // We never pop the root function.
         ASSERT(node_stack.length() > 1);
         ASSERT(token_positions.length() > 1);
@@ -462,8 +454,7 @@ InliningNode* Dwarf::ExpandInliningTree(const Code& code) {
         token_positions.RemoveLast();
         break;
       }
-      case CodeSourceMapBuilder::kNullCheck: {
-        stream.Read<int32_t>();
+      case CodeSourceMapOps::kNullCheck: {
         break;
       }
       default:
@@ -499,10 +490,13 @@ void Dwarf::WriteInliningNode(DwarfWriteStream* stream,
   stream->OffsetFromSymbol(root_asm_name, node->end_pc_offset);
   // DW_AT_call_file
   stream->uleb128(file);
+
+  // The DWARF standard uses 0 to denote missing line or column information.
+
   // DW_AT_call_line
-  stream->uleb128(node->position.line());
+  stream->uleb128(node->position.line() < 0 ? 0 : node->position.line());
   // DW_at_call_column
-  stream->uleb128(node->position.column());
+  stream->uleb128(node->position.column() < 0 ? 0 : node->position.column());
 
   for (InliningNode* child = node->children_head; child != NULL;
        child = child->children_next) {
@@ -609,16 +603,20 @@ void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
     token_positions.Add(kNoDwarfPositionInfo);
 
     while (code_map_stream.PendingBytes() > 0) {
-      uint8_t opcode = code_map_stream.Read<uint8_t>();
+      int32_t arg1;
+      int32_t arg2 = -1;
+      const uint8_t opcode =
+          CodeSourceMapOps::Read(&code_map_stream, &arg1, &arg2);
       switch (opcode) {
-        case CodeSourceMapBuilder::kChangePosition: {
-          token_positions[token_positions.length() - 1] =
-              ReadPosition(&code_map_stream);
+        case CodeSourceMapOps::kChangePosition: {
+          const DwarfPosition& old_pos =
+              token_positions[token_positions.length() - 1];
+          token_positions[token_positions.length() - 1] = DwarfPosition(
+              Utils::AddWithWrapAround(old_pos.line(), arg1), arg2);
           break;
         }
-        case CodeSourceMapBuilder::kAdvancePC: {
-          int32_t delta = code_map_stream.Read<int32_t>();
-          current_pc_offset += delta;
+        case CodeSourceMapOps::kAdvancePC: {
+          current_pc_offset += arg1;
 
           const Function& function = *(function_stack.Last());
           script = function.script();
@@ -632,8 +630,14 @@ void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
           }
 
           // 2. Update LNP line.
-          const intptr_t line = token_positions.Last().line();
-          const intptr_t column = token_positions.Last().column();
+          // The DWARF standard uses 0 to denote missing line or column
+          // information.
+          const intptr_t line = token_positions.Last().line() < 0
+                                    ? 0
+                                    : token_positions.Last().line();
+          const intptr_t column = token_positions.Last().column() < 0
+                                      ? 0
+                                      : token_positions.Last().column();
           if (line != previous_line) {
             stream->u1(DW_LNS_advance_line);
             stream->sleb128(line - previous_line);
@@ -668,15 +672,14 @@ void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
           previous_pc_offset = current_pc_offset;
           break;
         }
-        case CodeSourceMapBuilder::kPushFunction: {
-          int32_t func_index = code_map_stream.Read<int32_t>();
-          const Function& child_func = Function::Handle(
-              zone_, Function::RawCast(functions.At(func_index)));
+        case CodeSourceMapOps::kPushFunction: {
+          const Function& child_func =
+              Function::Handle(zone_, Function::RawCast(functions.At(arg1)));
           function_stack.Add(&child_func);
           token_positions.Add(kNoDwarfPositionInfo);
           break;
         }
-        case CodeSourceMapBuilder::kPopFunction: {
+        case CodeSourceMapOps::kPopFunction: {
           // We never pop the root function.
           ASSERT(function_stack.length() > 1);
           ASSERT(token_positions.length() > 1);
@@ -684,8 +687,7 @@ void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
           token_positions.RemoveLast();
           break;
         }
-        case CodeSourceMapBuilder::kNullCheck: {
-          code_map_stream.Read<int32_t>();
+        case CodeSourceMapOps::kNullCheck: {
           break;
         }
         default:

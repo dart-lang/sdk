@@ -9,7 +9,6 @@ abstract class TestMixin<R extends core::Object? = dynamic, T extends core::Obje
     final asy::_Future<self::TestMixin::T%> :async_future = new asy::_Future::•<self::TestMixin::T%>();
     core::bool* :is_sync = false;
     FutureOr<self::TestMixin::T%>? :return_value;
-    dynamic :async_stack_trace;
     (dynamic) → dynamic :async_op_then;
     (core::Object, core::StackTrace) → dynamic :async_op_error;
     core::int :await_jump_var = 0;
@@ -45,7 +44,6 @@ abstract class TestMixin<R extends core::Object? = dynamic, T extends core::Obje
       on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
         asy::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
       }
-    :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
     :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
     :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
     :async_op.call();
@@ -79,7 +77,6 @@ abstract class _Class1&Object&TestMixin extends core::Object implements self::Te
     final asy::_Future<core::String> :async_future = new asy::_Future::•<core::String>();
     core::bool* :is_sync = false;
     FutureOr<core::String>? :return_value;
-    dynamic :async_stack_trace;
     (dynamic) → dynamic :async_op_then;
     (core::Object, core::StackTrace) → dynamic :async_op_error;
     core::int :await_jump_var = 0;
@@ -115,7 +112,6 @@ abstract class _Class1&Object&TestMixin extends core::Object implements self::Te
       on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
         asy::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
       }
-    :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
     :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
     :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
     :async_op.call();
@@ -129,7 +125,7 @@ class Class1 extends self::_Class1&Object&TestMixin {
     ;
   method _test() → dynamic {
     final self::Response<core::String> response = new self::Response::•<core::String>("test");
-    this.{self::TestMixin::test}(asy::Future::value<self::Response<core::String>>(response));
+    this.{self::_Class1&Object&TestMixin::test}(asy::Future::value<self::Response<core::String>>(response));
   }
 }
 abstract class _Class2&Object&TestMixin extends core::Object implements self::TestMixin<self::PagingResponse<core::String>, core::String> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
@@ -140,7 +136,6 @@ abstract class _Class2&Object&TestMixin extends core::Object implements self::Te
     final asy::_Future<core::String> :async_future = new asy::_Future::•<core::String>();
     core::bool* :is_sync = false;
     FutureOr<core::String>? :return_value;
-    dynamic :async_stack_trace;
     (dynamic) → dynamic :async_op_then;
     (core::Object, core::StackTrace) → dynamic :async_op_error;
     core::int :await_jump_var = 0;
@@ -176,7 +171,6 @@ abstract class _Class2&Object&TestMixin extends core::Object implements self::Te
       on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
         asy::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
       }
-    :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
     :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
     :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
     :async_op.call();
@@ -190,7 +184,7 @@ class Class2 extends self::_Class2&Object&TestMixin {
     ;
   method _test() → dynamic {
     final self::PagingResponse<core::String> response = new self::PagingResponse::•<core::String>(new self::PagingResponseData::•<core::String>(<core::String>["test"]));
-    this.{self::TestMixin::test}(asy::Future::value<self::PagingResponse<core::String>>(response));
+    this.{self::_Class2&Object&TestMixin::test}(asy::Future::value<self::PagingResponse<core::String>>(response));
   }
 }
 static method main() → dynamic {}

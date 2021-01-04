@@ -114,7 +114,7 @@ void main() {new A().f^}''');
     await computeSuggestions();
 
     assertSuggestMethod('foo', 'A', 'bool',
-        defaultArgListString: 'bar, baz: null');
+        defaultArgListString: 'bar, baz: baz');
   }
 
   Future<void> test_ArgumentList() async {

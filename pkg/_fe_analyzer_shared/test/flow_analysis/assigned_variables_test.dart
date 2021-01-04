@@ -137,13 +137,17 @@ main() {
     assignedVariables.declare(v1);
     assignedVariables.beginNode();
     assignedVariables.beginNode();
+    assignedVariables.beginNode();
     assignedVariables.write(v1);
     assignedVariables.endNode(_Node(),
         isClosureOrLateVariableInitializer: true);
-    var node = _Node();
-    assignedVariables.endNode(node);
+    var innerNode = _Node();
+    assignedVariables.endNode(innerNode);
+    var outerNode = _Node();
+    assignedVariables.endNode(outerNode);
     assignedVariables.finish();
-    expect(assignedVariables.capturedInNode(node), {v1});
+    expect(assignedVariables.capturedInNode(innerNode), {v1});
+    expect(assignedVariables.capturedInNode(outerNode), {v1});
   });
 
   group('Variables do not percolate beyond the scope they were declared in',

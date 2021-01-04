@@ -258,10 +258,7 @@ class _MapBaseValueIterator<K, V> implements Iterator<V> {
     return false;
   }
 
-  V get current {
-    final cur = _current;
-    return (cur != null) ? cur : cur as V;
-  }
+  V get current => _current as V;
 }
 
 /// Mixin that overrides mutating map operations with implementations that
@@ -288,7 +285,7 @@ abstract class _UnmodifiableMapMixin<K, V> implements Map<K, V> {
   }
 
   /// This operation is not supported by an unmodifiable map.
-  V remove(Object? key) {
+  V? remove(Object? key) {
     throw UnsupportedError("Cannot modify unmodifiable map");
   }
 

@@ -21,7 +21,7 @@ import 'package:path/path.dart' as path;
 
 import 'src/package.dart';
 
-main(List<String> args) async {
+void main(List<String> args) async {
   ArgResults parsedArgs = parseArguments(args);
 
   Sdk sdk = Sdk(parsedArgs['sdk'] as String);

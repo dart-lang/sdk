@@ -209,15 +209,11 @@ static int ParseArguments(int argc,
                           char** argv,
                           CommandLineOptions* vm_options,
                           CommandLineOptions* inputs) {
-  const char* kPrefix = "-";
-  const intptr_t kPrefixLen = strlen(kPrefix);
-
   // Skip the binary name.
   int i = 1;
 
   // Parse out the vm options.
-  while ((i < argc) &&
-         OptionProcessor::IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
+  while ((i < argc) && OptionProcessor::IsValidShortFlag(argv[i])) {
     if (OptionProcessor::TryProcess(argv[i], vm_options)) {
       i += 1;
       continue;

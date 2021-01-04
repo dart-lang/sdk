@@ -1,0 +1,15 @@
+M(r1 int32, r2 int32, r3 int32, S+0 int32) Compound(size: 16)
+S+4 float
+M(S+8 int32, S+12 int32, S+16 int32, S+20 int32) Compound(size: 16)
+M(S+24 int32, S+28 int32, S+32 int32, S+36 int32) Compound(size: 16)
+M(S+40 int32, S+44 int32, S+48 int32, S+52 int32) Compound(size: 16)
+M(S+56 int32, S+60 int32, S+64 int32, S+68 int32) Compound(size: 16)
+M(S+72 int32, S+76 int32, S+80 int32, S+84 int32) Compound(size: 16)
+M(S+88 int32, S+92 int32, S+96 int32, S+100 int32) Compound(size: 16)
+M(S+104 int32, S+108 int32, S+112 int32, S+116 int32) Compound(size: 16)
+M(S+120 int32, S+124 int32, S+128 int32, S+132 int32) Compound(size: 16)
+S+136 float
+S+140 int32[int8]
+M(S+144 int32, S+148 int32, S+152 int32, S+156 int32) Compound(size: 16)
+=>
+P(r0 uint32) Compound(size: 16)

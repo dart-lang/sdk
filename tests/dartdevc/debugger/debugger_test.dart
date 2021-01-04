@@ -127,7 +127,7 @@ main() async {
   // Cache blocker is a workaround for:
   // https://code.google.com/p/dart/issues/detail?id=11834
   var cacheBlocker = new DateTime.now().millisecondsSinceEpoch;
-  var goldenUrl = '/root_dart/tests/dartdevc_2/debugger/'
+  var goldenUrl = '/root_dart/tests/dartdevc/debugger/'
       'debugger_test_golden.txt?cacheBlock=$cacheBlocker';
 
   String? golden;
@@ -324,7 +324,7 @@ window.ExampleJSClass = function ExampleJSClass(x) {
     if (actualStr != golden) {
       var helpMessage =
           'Debugger output does not match the golden data found in:\n'
-          'tests/dartdevc_2/debugger/debugger_test_golden.txt\n'
+          'tests/dartdevc/debugger/debugger_test_golden.txt\n'
           'The new golden data is copied to the clipboard when you click on '
           'this window.\n'
           'Please update the golden file with the following output and review '
@@ -352,12 +352,6 @@ window.ExampleJSClass = function ExampleJSClass(x) {
         }
       });
     }
-    // TODO(vsm): This comparison appears to be badly broken for several
-    // reasons:
-    //   (1) The golden file isn't properly read on the bots or locally (see try
-    //       / catch above).
-    //   (2) The actual string appears to vary locally vs on the bots.
-    //   (3) Because of (2), visualizing the diff is difficult.
-    // expect(actualStr == golden, isTrue);
+    expect(actualStr == golden, isTrue);
   });
 }

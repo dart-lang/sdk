@@ -50,6 +50,16 @@ void _treeshakeProtos(Target target, Component component, CoreTypes coreTypes,
   component.metadata.clear();
 }
 
+/// Called by the signature shaker to exclude the positional parameters of
+/// certain members whose first few parameters are depended upon by the
+/// protobuf-aware tree shaker.
+bool excludePositionalParametersFromSignatureShaking(Member member) {
+  return member.enclosingClass?.name == 'BuilderInfo' &&
+      member.enclosingLibrary.importUri ==
+          Uri.parse('package:protobuf/protobuf.dart') &&
+      _UnusedFieldMetadataPruner.fieldAddingMethods.contains(member.name.name);
+}
+
 InfoCollector removeUnusedProtoReferences(
     Component component, CoreTypes coreTypes, TransformationInfo info) {
   final protobufUri = Uri.parse('package:protobuf/protobuf.dart');
@@ -213,6 +223,17 @@ class _UnusedFieldMetadataPruner extends TreeVisitor<void> {
     node.body.accept(this);
   }
 
+  String _extractFieldName(Expression expression) {
+    if (expression is StringLiteral) {
+      return expression.value;
+    }
+    if (expression is ConditionalExpression) {
+      return _extractFieldName(expression.otherwise);
+    }
+    throw ArgumentError.value(
+        expression, 'expression', 'Unsupported  expression');
+  }
+
   void _changeCascadeEntry(Expression initializer) {
     if (initializer is MethodInvocation &&
         initializer.interfaceTarget?.enclosingClass == builderInfoClass &&
@@ -222,7 +243,7 @@ class _UnusedFieldMetadataPruner extends TreeVisitor<void> {
       if (!usedTagNumbers.contains(tagNumber)) {
         if (info != null) {
           final fieldName =
-              (initializer.arguments.positional[1] as StringLiteral).value;
+              _extractFieldName(initializer.arguments.positional[1]);
           info.removedMessageFields.add("${visitedClass.name}.$fieldName");
         }
 

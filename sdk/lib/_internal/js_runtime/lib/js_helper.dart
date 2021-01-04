@@ -2960,24 +2960,20 @@ Future<Null> _loadHunk(String hunkName) {
   return completer.future;
 }
 
-class MainError extends Error implements NoSuchMethodError {
-  final String _message;
-
-  MainError(this._message);
-
-  String toString() => 'NoSuchMethodError: $_message';
-}
-
-void missingMain() {
-  throw new MainError("No top-level function named 'main'.");
-}
-
-void badMain() {
-  throw new MainError("'main' is not a function.");
-}
-
-void mainHasTooManyParameters() {
-  throw new MainError("'main' expects too many parameters.");
+/// Converts a raw JavaScript array into a `List<String>`.
+/// Called from generated code.
+List<String> convertMainArgumentList(Object? args) {
+  List<String> result = [];
+  if (args == null) return result;
+  if (args is JSArray) {
+    for (int i = 0; i < args.length; i++) {
+      JS('', '#.push(String(#[#]))', result, args, i);
+    }
+    return result;
+  }
+  // Single non-Array element. Convert to a String.
+  JS('', '#.push(String(#))', result, args);
+  return result;
 }
 
 class _AssertionError extends AssertionError {
@@ -3027,3 +3023,26 @@ bool isRequired(Object? value) => identical(kRequiredSentinel, value);
 
 /// Called by generated code to throw a LateInitializationError.
 void throwLateInitializationError(String name) => throw LateError(name);
+
+/// Checks that [f] is a function that supports interop.
+@pragma('dart2js:tryInline')
+bool isJSFunction(Function f) => JS('bool', 'typeof(#) == "function"', f);
+
+/// Asserts that if [value] is a function, it is a JavaScript function or has
+/// been wrapped by [allowInterop].
+///
+/// This function does not recurse if [value] is a collection.
+void assertInterop(Object? value) {
+  assert(value is! Function || isJSFunction(value),
+      'Dart function requires `allowInterop` to be passed to JavaScript.');
+}
+
+/// Like [assertInterop], except iterates over a list of arguments
+/// non-recursively.
+///
+/// This function intentionally avoids using [assertInterop] so that this
+/// function can become a no-op if assertions are disabled.
+void assertInteropArgs(List<Object?> args) {
+  assert(args.every((arg) => arg is! Function || isJSFunction(arg)),
+      'Dart function requires `allowInterop` to be passed to JavaScript.');
+}

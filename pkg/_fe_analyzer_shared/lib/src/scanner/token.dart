@@ -39,13 +39,13 @@ class BeginToken extends SimpleToken {
   /**
    * The token that corresponds to this token.
    */
-  Token endToken;
+  Token? endToken;
 
   /**
    * Initialize a newly created token to have the given [type] at the given
    * [offset].
    */
-  BeginToken(TokenType type, int offset, [CommentToken precedingComment])
+  BeginToken(TokenType type, int offset, [CommentToken? precedingComment])
       : super(type, offset, precedingComment) {
     assert(type == TokenType.LT ||
         type == TokenType.OPEN_CURLY_BRACKET ||
@@ -58,12 +58,12 @@ class BeginToken extends SimpleToken {
   Token copy() => new BeginToken(type, offset, copyComments(precedingComments));
 
   @override
-  Token get endGroup => endToken;
+  Token? get endGroup => endToken;
 
   /**
    * Set the token that corresponds to this token.
    */
-  set endGroup(Token token) {
+  set endGroup(Token? token) {
     endToken = token;
   }
 }
@@ -75,7 +75,7 @@ class CommentToken extends StringToken {
   /**
    * The token that contains this comment.
    */
-  SimpleToken parent;
+  SimpleToken? parent;
 
   /**
    * Initialize a newly created token to represent a token of the given [type]
@@ -93,12 +93,13 @@ class CommentToken extends StringToken {
    * This is used when we decide to interpret the comment as syntax.
    */
   void remove() {
+    Token? previous = this.previous;
     if (previous != null) {
       previous.setNextWithoutSettingPrevious(next);
       next?.previous = previous;
     } else {
-      assert(parent.precedingComments == this);
-      parent.precedingComments = next;
+      assert(parent!.precedingComments == this);
+      parent!.precedingComments = next as CommentToken?;
     }
   }
 }
@@ -472,7 +473,7 @@ class KeywordToken extends SimpleToken {
    * Initialize a newly created token to represent the given [keyword] at the
    * given [offset].
    */
-  KeywordToken(this.keyword, int offset, [CommentToken precedingComment])
+  KeywordToken(this.keyword, int offset, [CommentToken? precedingComment])
       : super(keyword, offset, precedingComment);
 
   @override
@@ -537,15 +538,15 @@ class SimpleToken implements Token {
    * The previous token in the token stream.
    */
   @override
-  Token previous;
+  Token? previous;
 
   @override
-  Token next;
+  Token? next;
 
   /**
    * The first comment in the list of comments that precede this token.
    */
-  CommentToken _precedingComment;
+  CommentToken? _precedingComment;
 
   /**
    * Initialize a newly created token to have the given [type] and [offset].
@@ -564,10 +565,10 @@ class SimpleToken implements Token {
   int get charEnd => end;
 
   @override
-  Token get beforeSynthetic => null;
+  Token? get beforeSynthetic => null;
 
   @override
-  set beforeSynthetic(Token previous) {
+  set beforeSynthetic(Token? previous) {
     // ignored
   }
 
@@ -575,7 +576,7 @@ class SimpleToken implements Token {
   int get end => offset + length;
 
   @override
-  Token get endGroup => null;
+  Token? get endGroup => null;
 
   @override
   bool get isEof => type == TokenType.EOF;
@@ -605,7 +606,7 @@ class SimpleToken implements Token {
   bool get isUserDefinableOperator => type.isUserDefinableOperator;
 
   @override
-  Keyword get keyword => null;
+  Keyword? get keyword => null;
 
   @override
   int get kind => type.kind;
@@ -617,31 +618,31 @@ class SimpleToken implements Token {
   String get lexeme => type.lexeme;
 
   @override
-  CommentToken get precedingComments => _precedingComment;
+  CommentToken? get precedingComments => _precedingComment;
 
-  void set precedingComments(CommentToken comment) {
+  void set precedingComments(CommentToken? comment) {
     _precedingComment = comment;
     _setCommentParent(_precedingComment);
   }
 
   @override
-  String get stringValue => type.stringValue;
+  String? get stringValue => type.stringValue;
 
   @override
   Token copy() =>
       new SimpleToken(type, offset, copyComments(precedingComments));
 
   @override
-  Token copyComments(Token token) {
+  CommentToken? copyComments(CommentToken? token) {
     if (token == null) {
       return null;
     }
-    Token head = token.copy();
+    CommentToken head = token.copy();
     Token tail = head;
-    token = token.next;
+    token = token.next as CommentToken?;
     while (token != null) {
       tail = tail.setNext(token.copy());
-      token = token.next;
+      token = token.next as CommentToken?;
     }
     return head;
   }
@@ -665,7 +666,7 @@ class SimpleToken implements Token {
   }
 
   @override
-  Token setNextWithoutSettingPrevious(Token token) {
+  Token? setNextWithoutSettingPrevious(Token? token) {
     next = token;
     return token;
   }
@@ -680,10 +681,10 @@ class SimpleToken implements Token {
    * Sets the `parent` property to `this` for the given [comment] and all the
    * next tokens.
    */
-  void _setCommentParent(CommentToken comment) {
+  void _setCommentParent(CommentToken? comment) {
     while (comment != null) {
       comment.parent = this;
-      comment = comment.next;
+      comment = comment.next as CommentToken?;
     }
   }
 }
@@ -695,14 +696,14 @@ class StringToken extends SimpleToken {
   /**
    * The lexeme represented by this token.
    */
-  String _value;
+  late String _value;
 
   /**
    * Initialize a newly created token to represent a token of the given [type]
    * with the given [value] at the given [offset].
    */
   StringToken(TokenType type, String value, int offset,
-      [CommentToken precedingComment])
+      [CommentToken? precedingComment])
       : super(type, offset, precedingComment) {
     this._value = StringUtilities.intern(value);
   }
@@ -730,7 +731,7 @@ class SyntheticBeginToken extends BeginToken {
    * [offset].
    */
   SyntheticBeginToken(TokenType type, int offset,
-      [CommentToken precedingComment])
+      [CommentToken? precedingComment])
       : super(type, offset, precedingComment);
 
   @override
@@ -765,7 +766,7 @@ class SyntheticKeywordToken extends KeywordToken {
  * A token whose value is independent of it's type.
  */
 class SyntheticStringToken extends StringToken {
-  final int _length;
+  final int? _length;
 
   /**
    * Initialize a newly created token to represent a token of the given [type]
@@ -792,7 +793,7 @@ class SyntheticToken extends SimpleToken {
   SyntheticToken(TokenType type, int offset) : super(type, offset);
 
   @override
-  Token beforeSynthetic;
+  Token? beforeSynthetic;
 
   @override
   bool get isSynthetic => true;
@@ -818,7 +819,7 @@ class ReplacementToken extends SyntheticToken {
   }
 
   @override
-  Token beforeSynthetic;
+  Token? beforeSynthetic;
 
   @override
   bool get isSynthetic => true;
@@ -840,13 +841,13 @@ abstract class Token implements SyntacticEntity {
   /**
    * Initialize a newly created token to have the given [type] and [offset].
    */
-  factory Token(TokenType type, int offset, [CommentToken preceedingComment]) =
+  factory Token(TokenType type, int offset, [CommentToken? preceedingComment]) =
       SimpleToken;
 
   /**
    * Initialize a newly created end-of-file token to have the given [offset].
    */
-  factory Token.eof(int offset, [CommentToken precedingComments]) {
+  factory Token.eof(int offset, [CommentToken? precedingComments]) {
     Token eof = new SimpleToken(TokenType.EOF, offset, precedingComments);
     // EOF points to itself so there's always infinite look-ahead.
     eof.previous = eof;
@@ -873,13 +874,13 @@ abstract class Token implements SyntacticEntity {
    * The token before this synthetic token,
    * or `null` if this is not a synthetic `)`, `]`, `}`, or `>` token.
    */
-  Token get beforeSynthetic;
+  Token? get beforeSynthetic;
 
   /**
    * Set token before this synthetic `)`, `]`, `}`, or `>` token,
    * and ignored otherwise.
    */
-  set beforeSynthetic(Token previous);
+  set beforeSynthetic(Token? previous);
 
   @override
   int get end;
@@ -888,7 +889,7 @@ abstract class Token implements SyntacticEntity {
    * The token that corresponds to this token, or `null` if this token is not
    * the first of a pair of matching tokens (such as parentheses).
    */
-  Token get endGroup => null;
+  Token? get endGroup => null;
 
   /**
    * Return `true` if this token represents an end of file.
@@ -944,7 +945,7 @@ abstract class Token implements SyntacticEntity {
   /**
    * Return the keyword, if a keyword token, or `null` otherwise.
    */
-  Keyword get keyword;
+  Keyword? get keyword;
 
   /**
    * The kind enum of this token as determined by its [type].
@@ -964,12 +965,12 @@ abstract class Token implements SyntacticEntity {
   /**
    * Return the next token in the token stream.
    */
-  Token get next;
+  Token? get next;
 
   /**
    * Return the next token in the token stream.
    */
-  void set next(Token next);
+  void set next(Token? next);
 
   @override
   int get offset;
@@ -990,17 +991,17 @@ abstract class Token implements SyntacticEntity {
    * the first preceding comment token will have a lexeme of `/* one */` and
    * the next comment token will have a lexeme of `/* two */`.
    */
-  CommentToken get precedingComments;
+  CommentToken? get precedingComments;
 
   /**
    * Return the previous token in the token stream.
    */
-  Token get previous;
+  Token? get previous;
 
   /**
    * Set the previous token in the token stream to the given [token].
    */
-  void set previous(Token token);
+  void set previous(Token? token);
 
   /**
    * For symbol and keyword tokens, returns the string value represented by this
@@ -1020,7 +1021,7 @@ abstract class Token implements SyntacticEntity {
    * declaration using [:identical(next.stringValue, '('):], which (rightfully)
    * returns false because stringValue returns [:null:].
    */
-  String get stringValue;
+  String? get stringValue;
 
   /**
    * Return the type of the token.
@@ -1037,7 +1038,7 @@ abstract class Token implements SyntacticEntity {
   /**
    * Copy a linked list of comment tokens identical to the given comment tokens.
    */
-  Token copyComments(Token token);
+  CommentToken? copyComments(CommentToken? token);
 
   /**
    * Return `true` if this token has any one of the given [types].
@@ -1056,7 +1057,7 @@ abstract class Token implements SyntacticEntity {
    * which token is the previous token for the given token. Return the token
    * that was passed in.
    */
-  Token setNextWithoutSettingPrevious(Token token);
+  Token? setNextWithoutSettingPrevious(Token? token);
 
   /**
    * Returns a textual representation of this token to be used for debugging
@@ -1083,12 +1084,12 @@ abstract class Token implements SyntacticEntity {
    * `null`. Return the token with the smallest offset, or `null` if the list is
    * empty or if all of the elements of the list are `null`.
    */
-  static Token lexicallyFirst(List<Token> tokens) {
-    Token first = null;
+  static Token? lexicallyFirst(List<Token?> tokens) {
+    Token? first = null;
     int offset = -1;
     int length = tokens.length;
     for (int i = 0; i < length; i++) {
-      Token token = tokens[i];
+      Token? token = tokens[i];
       if (token != null && (offset < 0 || token.offset < offset)) {
         first = token;
         offset = token.offset;
@@ -1693,14 +1694,14 @@ class TokenType {
   /**
    * See [Token.stringValue] for an explanation.
    */
-  final String stringValue;
+  final String? stringValue;
 
   const TokenType(this.lexeme, this.name, this.precedence, this.kind,
       {this.isModifier: false,
       this.isOperator: false,
       this.isTopLevelKeyword: false,
       this.isUserDefinableOperator: false,
-      String stringValue: 'unspecified'})
+      String? stringValue: 'unspecified'})
       : this.stringValue = stringValue == 'unspecified' ? lexeme : stringValue;
 
   /**

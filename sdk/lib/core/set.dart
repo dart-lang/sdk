@@ -91,6 +91,16 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   factory Set.of(Iterable<E> elements) = LinkedHashSet<E>.of;
 
   /**
+   * Creates an unmodifiable [Set] from [elements].
+   *
+   * The new set behaves like the result of [Set.of],
+   * except that the set returned by this constructor is not modifiable.
+   */
+  @Since("2.12")
+  factory Set.unmodifiable(Iterable<E> elements) =>
+      UnmodifiableSetView<E>(<E>{...elements});
+
+  /**
    * Adapts [source] to be a `Set<T>`.
    *
    * If [newSet] is provided, it is used to create the new sets returned
@@ -136,7 +146,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   Iterator<E> get iterator;
 
   /**
-   * Returns true if [value] is in the set.
+   * Returns `true` if [value] is in the set.
    */
   bool contains(Object? value);
 
@@ -172,9 +182,9 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   void addAll(Iterable<E> elements);
 
   /**
-   * Removes [value] from the set. Returns true if [value] was
-   * in the set. Returns false otherwise. The method has no effect
-   * if [value] value was not in the set.
+   * Removes [value] from the set. Returns `true` if [value] was
+   * in the set. Returns `false` otherwise. The method has no effect
+   * if [value] was not in the set.
    */
   bool remove(Object? value);
 
@@ -205,7 +215,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
    * Checks for each element of [elements] whether there is an element in this
    * set that is equal to it (according to `this.contains`), and if so, the
    * equal element in this set is retained, and elements that are not equal
-   * to any element in `elements` are removed.
+   * to any element in [elements] are removed.
    */
   void retainAll(Iterable<Object?> elements);
 

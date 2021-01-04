@@ -367,7 +367,10 @@ class DuplicateDefinitionVerifier {
     }
 
     ErrorCode getError(Element previous, Element current) {
-      if (previous is PrefixElement) {
+      if (previous is FieldFormalParameterElement &&
+          current is FieldFormalParameterElement) {
+        return CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER;
+      } else if (previous is PrefixElement) {
         return CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER;
       }
       return CompileTimeErrorCode.DUPLICATE_DEFINITION;
@@ -383,7 +386,9 @@ class DuplicateDefinitionVerifier {
       if (_isGetterSetterPair(element, previous)) {
         // OK
       } else if (element is FieldFormalParameterElement &&
-          previous is FieldFormalParameterElement) {
+          previous is FieldFormalParameterElement &&
+          element.field != null &&
+          element.field.isFinal) {
         // Reported as CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES.
       } else {
         _errorReporter.reportErrorForNode(

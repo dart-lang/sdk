@@ -30,7 +30,6 @@ class ObjectPointerVisitor;
   V(AssignIndexToken, "[]=")                                                   \
   V(AsyncFuture, ":async_future")                                              \
   V(AsyncOperation, ":async_op")                                               \
-  V(AsyncStackTraceVar, ":async_stack_trace")                                  \
   V(AsyncStarMoveNextHelper, "_asyncStarMoveNextHelper")                       \
   V(AwaitContextVar, ":await_ctx_var")                                         \
   V(AwaitJumpVar, ":await_jump_var")                                           \
@@ -46,7 +45,6 @@ class ObjectPointerVisitor;
   V(CheckLoaded, "_checkLoaded")                                               \
   V(Class, "Class")                                                            \
   V(ClassID, "ClassID")                                                        \
-  V(ClearAsyncThreadStackTrace, "_clearAsyncThreadStackTrace")                 \
   V(ClosureData, "ClosureData")                                                \
   V(ClosureParameter, ":closure")                                              \
   V(Code, "Code")                                                              \
@@ -66,12 +64,10 @@ class ObjectPointerVisitor;
   V(Current, "current")                                                        \
   V(CurrentContextVar, ":current_context_var")                                 \
   V(CyclicInitializationError, "CyclicInitializationError")                    \
-  V(LateInitializationError, "_LateInitializationError")                       \
   V(DartAsync, "dart:async")                                                   \
   V(DartCollection, "dart:collection")                                         \
   V(DartCore, "dart:core")                                                     \
   V(DartDeveloper, "dart:developer")                                           \
-  V(DartDeveloperCausalAsyncStacks, "dart.developer.causal_async_stacks")      \
   V(DartDeveloperTimeline, "dart.developer.timeline")                          \
   V(DartExtensionScheme, "dart-ext:")                                          \
   V(DartFfi, "dart:ffi")                                                       \
@@ -97,6 +93,8 @@ class ObjectPointerVisitor;
   V(Default, "Default")                                                        \
   V(DefaultLabel, ":L")                                                        \
   V(DotCreate, "._create")                                                     \
+  V(DotFieldNI, ".fieldNI")                                                    \
+  V(DotFieldADI, ".fieldADI")                                                  \
   V(DotRange, ".range")                                                        \
   V(DotUnder, "._")                                                            \
   V(DotValue, ".value")                                                        \
@@ -199,6 +197,7 @@ class ObjectPointerVisitor;
   V(IteratorParameter, ":iterator")                                            \
   V(KernelProgramInfo, "KernelProgramInfo")                                    \
   V(LanguageError, "LanguageError")                                            \
+  V(LateError, "LateError")                                                    \
   V(LeftShiftOperator, "<<")                                                   \
   V(Length, "length")                                                          \
   V(LessEqualOperator, "<=")                                                   \
@@ -247,7 +246,6 @@ class ObjectPointerVisitor;
   V(Script, "Script")                                                          \
   V(SecondArg, "y")                                                            \
   V(Set, "set")                                                                \
-  V(SetAsyncThreadStackTrace, "_setAsyncThreadStackTrace")                     \
   V(SetterPrefix, "set:")                                                      \
   V(SignatureData, "SignatureData")                                            \
   V(SingleTargetCache, "SingleTargetCache")                                    \
@@ -258,14 +256,13 @@ class ObjectPointerVisitor;
   V(SpaceWhereNewLine, " where\n")                                             \
   V(StackOverflowError, "StackOverflowError")                                  \
   V(StackTraceParameter, ":stack_trace")                                       \
-  V(StackTraceVar, ":stack_trace_var")                                         \
   V(Stream, "stream")                                                          \
   V(StreamController, "StreamController")                                      \
   V(StreamIterator, "StreamIterator")                                          \
   V(StreamIteratorConstructor, "StreamIterator.")                              \
   V(StringBase, "_StringBase")                                                 \
   V(Struct, "Struct")                                                          \
-  V(StructFromPointer, "#fromPointer")                                         \
+  V(StructFromTypedDataBase, "#fromTypedDataBase")                             \
   V(SubtypeTestCache, "SubtypeTestCache")                                      \
   V(LoadingUnit, "LoadingUnit")                                                \
   V(SwitchExpr, ":switch_expr")                                                \
@@ -428,6 +425,7 @@ class ObjectPointerVisitor;
   V(_Utf8Decoder, "_Utf8Decoder")                                              \
   V(_VariableMirror, "_VariableMirror")                                        \
   V(_WeakProperty, "_WeakProperty")                                            \
+  V(_addressOf, "_addressOf")                                                  \
   V(_classRangeCheck, "_classRangeCheck")                                      \
   V(_current, "_current")                                                      \
   V(_ensureScheduleImmediate, "_ensureScheduleImmediate")                      \
@@ -463,6 +461,9 @@ class ObjectPointerVisitor;
   V(controller, "controller")                                                  \
   V(current_character, ":current_character")                                   \
   V(current_position, ":current_position")                                     \
+  V(dynamic_assert_assignable_stc_check,                                       \
+    ":dynamic_assert_assignable_stc_check")                                    \
+  V(getID, "getID")                                                            \
   V(hashCode, "get:hashCode")                                                  \
   V(identityHashCode, "identityHashCode")                                      \
   V(index_temp, ":index_temp")                                                 \
@@ -478,10 +479,12 @@ class ObjectPointerVisitor;
   V(position_registers, ":position_registers")                                 \
   V(print, "print")                                                            \
   V(removeLast, "removeLast")                                                  \
-  V(result, ":result")                                                         \
+  V(c_result, ":result")                                                       \
+  V(result, "result")                                                          \
   V(stack, ":stack")                                                           \
   V(stack_pointer, ":stack_pointer")                                           \
   V(start_index_param, ":start_index_param")                                   \
+  V(state, "state")                                                            \
   V(string_param, ":string_param")                                             \
   V(string_param_length, ":string_param_length")                               \
   V(toString, "toString")                                                      \
@@ -493,7 +496,8 @@ class ObjectPointerVisitor;
   V(vm_non_nullable_result_type, "vm:non-nullable-result-type")                \
   V(vm_recognized, "vm:recognized")                                            \
   V(vm_trace_entrypoints, "vm:testing.unsafe.trace-entrypoints-fn")            \
-  V(vm_procedure_attributes_metadata, "vm.procedure-attributes.metadata")
+  V(vm_procedure_attributes_metadata, "vm.procedure-attributes.metadata")      \
+  V(vm_ffi_struct_fields, "vm:ffi:struct-fields")
 
 // Contains a list of frequently used strings in a canonicalized form. This
 // list is kept in the vm_isolate in order to share the copy across isolates

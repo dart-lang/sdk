@@ -345,19 +345,32 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       safepoint_handler_(new SafepointHandler(this)),
       shared_class_table_(new SharedClassTable()),
       object_store_(object_store),
-#if defined(DART_PRECOMPILED_RUNTIME)
       class_table_(new ClassTable(shared_class_table_.get())),
-#else
-      class_table_(nullptr),
-#endif
       store_buffer_(new StoreBuffer()),
       heap_(nullptr),
       saved_unlinked_calls_(Array::null()),
+      initial_field_table_(new FieldTable(/*isolate=*/nullptr)),
       symbols_lock_(new SafepointRwLock()),
       type_canonicalization_mutex_(
           NOT_IN_PRODUCT("IsolateGroup::type_canonicalization_mutex_")),
       type_arguments_canonicalization_mutex_(NOT_IN_PRODUCT(
           "IsolateGroup::type_arguments_canonicalization_mutex_")),
+      subtype_test_cache_mutex_(
+          NOT_IN_PRODUCT("IsolateGroup::subtype_test_cache_mutex_")),
+      megamorphic_table_mutex_(
+          NOT_IN_PRODUCT("IsolateGroup::megamorphic_table_mutex_")),
+      type_feedback_mutex_(
+          NOT_IN_PRODUCT("IsolateGroup::type_feedback_mutex_")),
+      patchable_call_mutex_(
+          NOT_IN_PRODUCT("IsolateGroup::patchable_call_mutex_")),
+      constant_canonicalization_mutex_(
+          NOT_IN_PRODUCT("IsolateGroup::constant_canonicalization_mutex_")),
+      kernel_data_lib_cache_mutex_(
+          NOT_IN_PRODUCT("IsolateGroup::kernel_data_lib_cache_mutex_")),
+      kernel_data_class_cache_mutex_(
+          NOT_IN_PRODUCT("IsolateGroup::kernel_data_class_cache_mutex_")),
+      kernel_constants_mutex_(
+          NOT_IN_PRODUCT("IsolateGroup::kernel_constants_mutex_")),
       program_lock_(new SafepointRwLock()),
       active_mutators_monitor_(new Monitor()),
       max_active_mutators_(Scavenger::MaxMutatorThreadCount()) {
@@ -376,14 +389,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
 
 IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
                            void* embedder_data)
-    : IsolateGroup(source,
-                   embedder_data,
-#if !defined(DART_PRECOMPILED_RUNTIME)
-                   // in JIT, with --enable_isolate_groups keep object store
-                   // on isolate, rather than on isolate group
-                   FLAG_enable_isolate_groups ? nullptr :
-#endif
-                                              new ObjectStore()) {
+    : IsolateGroup(source, embedder_data, new ObjectStore()) {
   if (object_store() != nullptr) {
     object_store()->InitStubs();
   }
@@ -412,7 +418,7 @@ void IsolateGroup::RegisterIsolateLocked(Isolate* isolate) {
 
 bool IsolateGroup::ContainsOnlyOneIsolate() {
   SafepointReadRwLocker ml(Thread::Current(), isolates_lock_.get());
-  return isolate_count_ == 0;
+  return isolate_count_ == 1;
 }
 
 void IsolateGroup::RunWithLockedGroup(std::function<void()> fun) {
@@ -543,8 +549,6 @@ Thread* IsolateGroup::ScheduleThreadLocked(MonitorLocker* ml,
 
     // Now get a free Thread structure.
     ASSERT(thread != nullptr);
-
-    thread->ResetHighWatermark();
 
     // Set up other values and set the TLS value.
     thread->isolate_ = nullptr;
@@ -738,16 +742,9 @@ void IsolateGroup::PrintToJSONObject(JSONObject* jsobj, bool ref) {
 }
 
 void IsolateGroup::PrintMemoryUsageJSON(JSONStream* stream) {
-  int64_t used = 0;
-  int64_t capacity = 0;
-  int64_t external_used = 0;
-
-  for (auto it = isolates_.Begin(); it != isolates_.End(); ++it) {
-    Isolate* isolate = *it;
-    used += isolate->heap()->TotalUsedInWords();
-    capacity += isolate->heap()->TotalCapacityInWords();
-    external_used += isolate->heap()->TotalExternalInWords();
-  }
+  int64_t used = heap()->TotalUsedInWords();
+  int64_t capacity = heap()->TotalCapacityInWords();
+  int64_t external_used = heap()->TotalExternalInWords();
 
   JSONObject jsobj(stream);
   // This is the same "MemoryUsage" that the isolate-specific "getMemoryUsage"
@@ -888,8 +885,36 @@ void Isolate::ValidateClassTable() {
 }
 #endif  // DEBUG
 
-void Isolate::RegisterStaticField(const Field& field) {
-  field_table()->Register(field);
+void IsolateGroup::RegisterStaticField(const Field& field,
+                                       const Instance& initial_value) {
+  ASSERT(program_lock()->IsCurrentThreadWriter());
+
+  ASSERT(field.is_static());
+  const bool need_to_grow_backing_store =
+      initial_field_table()->Register(field);
+  const intptr_t field_id = field.field_id();
+  initial_field_table()->SetAt(field_id, initial_value.raw());
+
+  if (need_to_grow_backing_store) {
+    // We have to stop other isolates from accessing their field state, since
+    // we'll have to grow the backing store.
+    SafepointOperationScope ops(Thread::Current());
+    for (auto isolate : isolates_) {
+      auto field_table = isolate->field_table();
+      if (field_table->IsReadyToUse()) {
+        field_table->Register(field, field_id);
+        field_table->SetAt(field_id, initial_value.raw());
+      }
+    }
+  } else {
+    for (auto isolate : isolates_) {
+      auto field_table = isolate->field_table();
+      if (field_table->IsReadyToUse()) {
+        field_table->Register(field, field_id);
+        field_table->SetAt(field_id, initial_value.raw());
+      }
+    }
+  }
 }
 
 void Isolate::RehashConstants() {
@@ -1604,16 +1629,12 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       default_tag_(UserTag::null()),
       ic_miss_code_(Code::null()),
       shared_class_table_(isolate_group->shared_class_table()),
-      field_table_(new FieldTable()),
+      field_table_(new FieldTable(/*isolate=*/this)),
       isolate_group_(isolate_group),
       isolate_object_store_(
           new IsolateObjectStore(isolate_group->object_store())),
       object_store_shared_ptr_(isolate_group->object_store_shared_ptr()),
-#if defined(DART_PRECOMPILED_RUNTIME)
       class_table_(isolate_group->class_table_shared_ptr()),
-#else
-      class_table_(new ClassTable(shared_class_table_)),
-#endif
 #if !defined(DART_PRECOMPILED_RUNTIME)
       native_callback_trampolines_(),
 #endif
@@ -1633,15 +1654,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       on_cleanup_callback_(Isolate::CleanupCallback()),
       random_(),
       mutex_(NOT_IN_PRODUCT("Isolate::mutex_")),
-      constant_canonicalization_mutex_(
-          NOT_IN_PRODUCT("Isolate::constant_canonicalization_mutex_")),
-      megamorphic_mutex_(NOT_IN_PRODUCT("Isolate::megamorphic_mutex_")),
-      kernel_data_lib_cache_mutex_(
-          NOT_IN_PRODUCT("Isolate::kernel_data_lib_cache_mutex_")),
-      kernel_data_class_cache_mutex_(
-          NOT_IN_PRODUCT("Isolate::kernel_data_class_cache_mutex_")),
-      kernel_constants_mutex_(
-          NOT_IN_PRODUCT("Isolate::kernel_constants_mutex_")),
       pending_deopts_(new MallocGrowableArray<PendingLazyDeopt>()),
       tag_table_(GrowableObjectArray::null()),
       deoptimized_code_array_(GrowableObjectArray::null()),
@@ -1755,12 +1767,7 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
     // Non-vm isolates need to have isolate object store initialized is that
     // exit_listeners have to be null-initialized as they will be used if
     // we fail to create isolate below, have to do low level shutdown.
-    if (result->object_store() == nullptr) {
-      // in JIT with --enable-isolate-groups each isolate still
-      // has to have its own object store
-      result->set_object_store(new ObjectStore());
-      result->object_store()->InitStubs();
-    }
+    ASSERT(result->object_store() != nullptr);
     result->isolate_object_store()->Init();
   }
 
@@ -2784,9 +2791,7 @@ void IsolateGroup::VisitObjectPointers(ObjectPointerVisitor* visitor,
     object_store()->VisitObjectPointers(visitor);
   }
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&saved_unlinked_calls_));
-  if (saved_initial_field_table() != nullptr) {
-    saved_initial_field_table()->VisitObjectPointers(visitor);
-  }
+  initial_field_table()->VisitObjectPointers(visitor);
   VisitStackPointers(visitor, validate_frames);
 }
 
@@ -3031,12 +3036,6 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     jsobj.AddProperty("rootLib", lib);
   }
 
-  intptr_t zone_handle_count = thread_registry()->CountZoneHandles(this);
-  intptr_t scoped_handle_count = thread_registry()->CountScopedHandles(this);
-
-  jsobj.AddProperty("_numZoneHandles", zone_handle_count);
-  jsobj.AddProperty("_numScopedHandles", scoped_handle_count);
-
   if (FLAG_profiler) {
     JSONObject tagCounters(&jsobj, "_tagCounters");
     vm_tag_counters()->PrintToJSONObject(&tagCounters);
@@ -3095,8 +3094,6 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
       }
     }
   }
-
-  jsobj.AddProperty("_threads", thread_registry());
 
   {
     JSONObject isolate_group(&jsobj, "isolate_group");

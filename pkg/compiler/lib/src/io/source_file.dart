@@ -225,6 +225,9 @@ class Utf8BytesSourceFile extends SourceFile<List<int>> {
   @override
   set length(int v) => lengthCache = v;
   int lengthCache = -1;
+
+  @override
+  void release() {}
 }
 
 class CachingUtf8BytesSourceFile extends Utf8BytesSourceFile {
@@ -241,6 +244,12 @@ class CachingUtf8BytesSourceFile extends Utf8BytesSourceFile {
       cachedText = super.slowText();
     }
     return cachedText;
+  }
+
+  @override
+  void release() {
+    cachedText = null;
+    super.release();
   }
 }
 
@@ -277,17 +286,30 @@ class StringSourceFile extends SourceFile<List<int>> {
 
   @override
   String slowSubstring(int start, int end) => text.substring(start, end);
+
+  @override
+  void release() {}
 }
 
 /// Binary input data.
 class Binary implements Input<List<int>> {
   @override
   final Uri uri;
-  @override
-  final List<int> data;
+  List<int> /*?*/ _data;
 
-  Binary(this.uri, this.data);
+  Binary(this.uri, List<int> data) : _data = data;
+
+  @override
+  List<int> get data {
+    if (_data != null) return _data;
+    throw StateError("'get data' after 'release()'");
+  }
 
   @override
   InputKind get inputKind => InputKind.binary;
+
+  @override
+  void release() {
+    _data = null;
+  }
 }

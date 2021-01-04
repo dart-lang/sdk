@@ -1,0 +1,12 @@
+M(r0 int64) Compound(size: 3)
+M(r1 int64) Compound(size: 3)
+M(r2 int64) Compound(size: 3)
+M(r3 int64) Compound(size: 3)
+M(r4 int64) Compound(size: 3)
+M(r5 int64) Compound(size: 3)
+M(r6 int64) Compound(size: 3)
+M(r7 int64) Compound(size: 3)
+M(S+0 int64) Compound(size: 3)
+M(S+8 int64) Compound(size: 3)
+=>
+M(r0 int64) Compound(size: 3)

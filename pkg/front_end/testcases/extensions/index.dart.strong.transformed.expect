@@ -26,9 +26,9 @@ extension Extension<K extends core::Object* = dynamic, V extends core::Object* =
   operator [] = self::Extension|[];
   operator []= = self::Extension|[]=;
 }
-static method Extension|[]<K extends core::Object* = dynamic, V extends core::Object* = dynamic>(final self::MapLike<self::Extension|[]::K*, self::Extension|[]::V*>* #this, core::Object* key) → self::Extension|[]::V*
+static method Extension|[]<K extends core::Object* = dynamic, V extends core::Object* = dynamic>(lowered final self::MapLike<self::Extension|[]::K*, self::Extension|[]::V*>* #this, core::Object* key) → self::Extension|[]::V*
   return #this.{self::MapLike::get}(key);
-static method Extension|[]=<K extends core::Object* = dynamic, V extends core::Object* = dynamic>(final self::MapLike<self::Extension|[]=::K*, self::Extension|[]=::V*>* #this, self::Extension|[]=::K* key, self::Extension|[]=::V* value) → void
+static method Extension|[]=<K extends core::Object* = dynamic, V extends core::Object* = dynamic>(lowered final self::MapLike<self::Extension|[]=::K*, self::Extension|[]=::V*>* #this, self::Extension|[]=::K* key, self::Extension|[]=::V* value) → void
   return #this.{self::MapLike::put}(key, value);
 static method main() → dynamic {
   self::implicit();
@@ -70,23 +70,23 @@ static method explicitWithTypeArguments() → dynamic {
   self::expect(null, self::Extension|[]<core::int*, core::String*>(map1, 1));
   self::Extension|[]=<core::int*, core::String*>(map1, 1, "1");
   self::expect("1", self::Extension|[]<core::int*, core::String*>(map1, 1));
-  self::expect("2", let final self::MapLike<core::int*, core::String*>* #t43 = map1 in let final core::int* #t44 = 1 in let final core::String* #t45 = "2" in let final void #t46 = self::Extension|[]=<core::int*, core::String*>(#t43, #t44, #t45) in #t45);
+  self::expect("2", let final self::MapLike<core::int*, core::String*>* #t43 = map1 in let final core::String* #t44 = "2" in let final void #t45 = self::Extension|[]=<core::int*, core::String*>(#t43, 1, #t44) in #t44);
   self::expect("2", self::Extension|[]<core::int*, core::String*>(map1, 1));
-  let final self::MapLike<core::int*, core::String*>* #t47 = map1 in let final core::int* #t48 = 1 in self::Extension|[]<core::int*, core::String*>(#t47, #t48).{core::String::==}(null) ?{core::String*} self::Extension|[]=<core::int*, core::String*>(#t47, #t48, "3") : null;
+  let final self::MapLike<core::int*, core::String*>* #t46 = map1 in let final core::int* #t47 = 1 in self::Extension|[]<core::int*, core::String*>(#t46, #t47).{core::String::==}(null) ?{core::String*} self::Extension|[]=<core::int*, core::String*>(#t46, #t47, "3") : null;
   self::expect("2", self::Extension|[]<core::int*, core::String*>(map1, 1));
-  self::expect("2", let final self::MapLike<core::int*, core::String*>* #t49 = map1 in let final core::int* #t50 = 1 in let final core::String* #t51 = self::Extension|[]<core::int*, core::String*>(#t49, #t50) in #t51.{core::String::==}(null) ?{core::String*} let final core::String* #t52 = "4" in let final void #t53 = self::Extension|[]=<core::int*, core::String*>(#t49, #t50, #t52) in #t52 : #t51);
+  self::expect("2", let final self::MapLike<core::int*, core::String*>* #t48 = map1 in let final core::int* #t49 = 1 in let final core::String* #t50 = self::Extension|[]<core::int*, core::String*>(#t48, #t49) in #t50.{core::String::==}(null) ?{core::String*} let final core::String* #t51 = "4" in let final void #t52 = self::Extension|[]=<core::int*, core::String*>(#t48, #t49, #t51) in #t51 : #t50);
   self::expect("2", self::Extension|[]<core::int*, core::String*>(map1, 1));
-  let final self::MapLike<core::int*, core::String*>* #t54 = map1 in let final core::int* #t55 = 2 in self::Extension|[]<core::int*, core::String*>(#t54, #t55).{core::String::==}(null) ?{core::String*} self::Extension|[]=<core::int*, core::String*>(#t54, #t55, "2") : null;
+  let final self::MapLike<core::int*, core::String*>* #t53 = map1 in let final core::int* #t54 = 2 in self::Extension|[]<core::int*, core::String*>(#t53, #t54).{core::String::==}(null) ?{core::String*} self::Extension|[]=<core::int*, core::String*>(#t53, #t54, "2") : null;
   self::expect("2", self::Extension|[]<core::int*, core::String*>(map1, 2));
-  self::expect("3", let final self::MapLike<core::int*, core::String*>* #t56 = map1 in let final core::int* #t57 = 3 in let final core::String* #t58 = self::Extension|[]<core::int*, core::String*>(#t56, #t57) in #t58.{core::String::==}(null) ?{core::String*} let final core::String* #t59 = "3" in let final void #t60 = self::Extension|[]=<core::int*, core::String*>(#t56, #t57, #t59) in #t59 : #t58);
+  self::expect("3", let final self::MapLike<core::int*, core::String*>* #t55 = map1 in let final core::int* #t56 = 3 in let final core::String* #t57 = self::Extension|[]<core::int*, core::String*>(#t55, #t56) in #t57.{core::String::==}(null) ?{core::String*} let final core::String* #t58 = "3" in let final void #t59 = self::Extension|[]=<core::int*, core::String*>(#t55, #t56, #t58) in #t58 : #t57);
   self::expect("3", self::Extension|[]<core::int*, core::String*>(map1, 3));
   self::MapLike<core::int*, core::int*>* map2 = new self::MapLike::•<core::int*, core::int*>();
-  self::expect(1, let final self::MapLike<core::int*, core::int*>* #t61 = map2 in let final core::int* #t62 = 0 in let final core::int* #t63 = 1 in let final void #t64 = self::Extension|[]=<core::int*, core::int*>(#t61, #t62, #t63) in #t63);
-  self::expect(3, let final self::MapLike<core::int*, core::int*>* #t65 = map2 in let final core::int* #t66 = 0 in let final core::int* #t67 = self::Extension|[]<core::int*, core::int*>(#t65, #t66).{core::num::+}(2) in let final void #t68 = self::Extension|[]=<core::int*, core::int*>(#t65, #t66, #t67) in #t67);
-  self::expect(5, let final self::MapLike<core::int*, core::int*>* #t69 = map2 in let final core::int* #t70 = 0 in let final core::int* #t71 = self::Extension|[]<core::int*, core::int*>(#t69, #t70).{core::num::+}(2) in let final void #t72 = self::Extension|[]=<core::int*, core::int*>(#t69, #t70, #t71) in #t71);
-  self::expect(5, let final self::MapLike<core::int*, core::int*>* #t73 = map2 in let final core::int* #t74 = 0 in let final core::int* #t75 = self::Extension|[]<core::int*, core::int*>(#t73, #t74) in let final void #t76 = self::Extension|[]=<core::int*, core::int*>(#t73, #t74, #t75.{core::num::+}(1)) in #t75);
+  self::expect(1, let final self::MapLike<core::int*, core::int*>* #t60 = map2 in let final core::int* #t61 = 1 in let final void #t62 = self::Extension|[]=<core::int*, core::int*>(#t60, 0, #t61) in #t61);
+  self::expect(3, let final self::MapLike<core::int*, core::int*>* #t63 = map2 in let final core::int* #t64 = 0 in let final core::int* #t65 = self::Extension|[]<core::int*, core::int*>(#t63, #t64).{core::num::+}(2) in let final void #t66 = self::Extension|[]=<core::int*, core::int*>(#t63, #t64, #t65) in #t65);
+  self::expect(5, let final self::MapLike<core::int*, core::int*>* #t67 = map2 in let final core::int* #t68 = 0 in let final core::int* #t69 = self::Extension|[]<core::int*, core::int*>(#t67, #t68).{core::num::+}(2) in let final void #t70 = self::Extension|[]=<core::int*, core::int*>(#t67, #t68, #t69) in #t69);
+  self::expect(5, let final self::MapLike<core::int*, core::int*>* #t71 = map2 in let final core::int* #t72 = 0 in let final core::int* #t73 = self::Extension|[]<core::int*, core::int*>(#t71, #t72) in let final void #t74 = self::Extension|[]=<core::int*, core::int*>(#t71, #t72, #t73.{core::num::+}(1)) in #t73);
   self::expect(6, self::Extension|[]<core::int*, core::int*>(map2, 0));
-  self::expect(5, let final self::MapLike<core::int*, core::int*>* #t77 = map2 in let final core::int* #t78 = 0 in let final core::int* #t79 = self::Extension|[]<core::int*, core::int*>(#t77, #t78).{core::num::-}(1) in let final void #t80 = self::Extension|[]=<core::int*, core::int*>(#t77, #t78, #t79) in #t79);
+  self::expect(5, let final self::MapLike<core::int*, core::int*>* #t75 = map2 in let final core::int* #t76 = 0 in let final core::int* #t77 = self::Extension|[]<core::int*, core::int*>(#t75, #t76).{core::num::-}(1) in let final void #t78 = self::Extension|[]=<core::int*, core::int*>(#t75, #t76, #t77) in #t77);
   self::expect(5, self::Extension|[]<core::int*, core::int*>(map2, 0));
 }
 static method explicitInferredTypeArguments() → dynamic {
@@ -97,23 +97,23 @@ static method explicitInferredTypeArguments() → dynamic {
   self::expect(null, self::Extension|[]<core::int*, core::String*>(map1, 1));
   self::Extension|[]=<core::int*, core::String*>(map1, 1, "1");
   self::expect("1", self::Extension|[]<core::int*, core::String*>(map1, 1));
-  self::expect("2", let final self::MapLike<core::int*, core::String*>* #t81 = map1 in let final core::int* #t82 = 1 in let final core::String* #t83 = "2" in let final void #t84 = self::Extension|[]=<core::int*, core::String*>(#t81, #t82, #t83) in #t83);
+  self::expect("2", let final self::MapLike<core::int*, core::String*>* #t79 = map1 in let final core::String* #t80 = "2" in let final void #t81 = self::Extension|[]=<core::int*, core::String*>(#t79, 1, #t80) in #t80);
   self::expect("2", self::Extension|[]<core::int*, core::String*>(map1, 1));
-  let final self::MapLike<core::int*, core::String*>* #t85 = map1 in let final core::int* #t86 = 1 in self::Extension|[]<core::int*, core::String*>(#t85, #t86).{core::String::==}(null) ?{core::String*} self::Extension|[]=<core::int*, core::String*>(#t85, #t86, "3") : null;
+  let final self::MapLike<core::int*, core::String*>* #t82 = map1 in let final core::int* #t83 = 1 in self::Extension|[]<core::int*, core::String*>(#t82, #t83).{core::String::==}(null) ?{core::String*} self::Extension|[]=<core::int*, core::String*>(#t82, #t83, "3") : null;
   self::expect("2", self::Extension|[]<core::int*, core::String*>(map1, 1));
-  self::expect("2", let final self::MapLike<core::int*, core::String*>* #t87 = map1 in let final core::int* #t88 = 1 in let final core::String* #t89 = self::Extension|[]<core::int*, core::String*>(#t87, #t88) in #t89.{core::String::==}(null) ?{core::String*} let final core::String* #t90 = "4" in let final void #t91 = self::Extension|[]=<core::int*, core::String*>(#t87, #t88, #t90) in #t90 : #t89);
+  self::expect("2", let final self::MapLike<core::int*, core::String*>* #t84 = map1 in let final core::int* #t85 = 1 in let final core::String* #t86 = self::Extension|[]<core::int*, core::String*>(#t84, #t85) in #t86.{core::String::==}(null) ?{core::String*} let final core::String* #t87 = "4" in let final void #t88 = self::Extension|[]=<core::int*, core::String*>(#t84, #t85, #t87) in #t87 : #t86);
   self::expect("2", self::Extension|[]<core::int*, core::String*>(map1, 1));
-  let final self::MapLike<core::int*, core::String*>* #t92 = map1 in let final core::int* #t93 = 2 in self::Extension|[]<core::int*, core::String*>(#t92, #t93).{core::String::==}(null) ?{core::String*} self::Extension|[]=<core::int*, core::String*>(#t92, #t93, "2") : null;
+  let final self::MapLike<core::int*, core::String*>* #t89 = map1 in let final core::int* #t90 = 2 in self::Extension|[]<core::int*, core::String*>(#t89, #t90).{core::String::==}(null) ?{core::String*} self::Extension|[]=<core::int*, core::String*>(#t89, #t90, "2") : null;
   self::expect("2", self::Extension|[]<core::int*, core::String*>(map1, 2));
-  self::expect("3", let final self::MapLike<core::int*, core::String*>* #t94 = map1 in let final core::int* #t95 = 3 in let final core::String* #t96 = self::Extension|[]<core::int*, core::String*>(#t94, #t95) in #t96.{core::String::==}(null) ?{core::String*} let final core::String* #t97 = "3" in let final void #t98 = self::Extension|[]=<core::int*, core::String*>(#t94, #t95, #t97) in #t97 : #t96);
+  self::expect("3", let final self::MapLike<core::int*, core::String*>* #t91 = map1 in let final core::int* #t92 = 3 in let final core::String* #t93 = self::Extension|[]<core::int*, core::String*>(#t91, #t92) in #t93.{core::String::==}(null) ?{core::String*} let final core::String* #t94 = "3" in let final void #t95 = self::Extension|[]=<core::int*, core::String*>(#t91, #t92, #t94) in #t94 : #t93);
   self::expect("3", self::Extension|[]<core::int*, core::String*>(map1, 3));
   self::MapLike<core::int*, core::int*>* map2 = new self::MapLike::•<core::int*, core::int*>();
-  self::expect(1, let final self::MapLike<core::int*, core::int*>* #t99 = map2 in let final core::int* #t100 = 0 in let final core::int* #t101 = 1 in let final void #t102 = self::Extension|[]=<core::int*, core::int*>(#t99, #t100, #t101) in #t101);
-  self::expect(3, let final self::MapLike<core::int*, core::int*>* #t103 = map2 in let final core::int* #t104 = 0 in let final core::int* #t105 = self::Extension|[]<core::int*, core::int*>(#t103, #t104).{core::num::+}(2) in let final void #t106 = self::Extension|[]=<core::int*, core::int*>(#t103, #t104, #t105) in #t105);
-  self::expect(5, let final self::MapLike<core::int*, core::int*>* #t107 = map2 in let final core::int* #t108 = 0 in let final core::int* #t109 = self::Extension|[]<core::int*, core::int*>(#t107, #t108).{core::num::+}(2) in let final void #t110 = self::Extension|[]=<core::int*, core::int*>(#t107, #t108, #t109) in #t109);
-  self::expect(5, let final self::MapLike<core::int*, core::int*>* #t111 = map2 in let final core::int* #t112 = 0 in let final core::int* #t113 = self::Extension|[]<core::int*, core::int*>(#t111, #t112) in let final void #t114 = self::Extension|[]=<core::int*, core::int*>(#t111, #t112, #t113.{core::num::+}(1)) in #t113);
+  self::expect(1, let final self::MapLike<core::int*, core::int*>* #t96 = map2 in let final core::int* #t97 = 1 in let final void #t98 = self::Extension|[]=<core::int*, core::int*>(#t96, 0, #t97) in #t97);
+  self::expect(3, let final self::MapLike<core::int*, core::int*>* #t99 = map2 in let final core::int* #t100 = 0 in let final core::int* #t101 = self::Extension|[]<core::int*, core::int*>(#t99, #t100).{core::num::+}(2) in let final void #t102 = self::Extension|[]=<core::int*, core::int*>(#t99, #t100, #t101) in #t101);
+  self::expect(5, let final self::MapLike<core::int*, core::int*>* #t103 = map2 in let final core::int* #t104 = 0 in let final core::int* #t105 = self::Extension|[]<core::int*, core::int*>(#t103, #t104).{core::num::+}(2) in let final void #t106 = self::Extension|[]=<core::int*, core::int*>(#t103, #t104, #t105) in #t105);
+  self::expect(5, let final self::MapLike<core::int*, core::int*>* #t107 = map2 in let final core::int* #t108 = 0 in let final core::int* #t109 = self::Extension|[]<core::int*, core::int*>(#t107, #t108) in let final void #t110 = self::Extension|[]=<core::int*, core::int*>(#t107, #t108, #t109.{core::num::+}(1)) in #t109);
   self::expect(6, self::Extension|[]<core::int*, core::int*>(map2, 0));
-  self::expect(5, let final self::MapLike<core::int*, core::int*>* #t115 = map2 in let final core::int* #t116 = 0 in let final core::int* #t117 = self::Extension|[]<core::int*, core::int*>(#t115, #t116).{core::num::-}(1) in let final void #t118 = self::Extension|[]=<core::int*, core::int*>(#t115, #t116, #t117) in #t117);
+  self::expect(5, let final self::MapLike<core::int*, core::int*>* #t111 = map2 in let final core::int* #t112 = 0 in let final core::int* #t113 = self::Extension|[]<core::int*, core::int*>(#t111, #t112).{core::num::-}(1) in let final void #t114 = self::Extension|[]=<core::int*, core::int*>(#t111, #t112, #t113) in #t113);
   self::expect(5, self::Extension|[]<core::int*, core::int*>(map2, 0));
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
@@ -150,7 +150,6 @@ Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:46:18 -> IntConstan
 Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:46:18 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:48:20 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:48:20 -> IntConstant(0)
-Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:60:44 -> IntConstant(1)
 Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:60:49 -> StringConstant("2")
 Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:60:49 -> StringConstant("2")
 Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:62:32 -> IntConstant(1)
@@ -165,7 +164,6 @@ Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:68:44 -> IntConstan
 Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:68:44 -> IntConstant(3)
 Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:68:51 -> StringConstant("3")
 Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:68:51 -> StringConstant("3")
-Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:72:39 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:72:44 -> IntConstant(1)
 Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:72:44 -> IntConstant(1)
 Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:73:39 -> IntConstant(0)
@@ -176,7 +174,6 @@ Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:75:39 -> IntConstan
 Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:75:39 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:77:41 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:77:41 -> IntConstant(0)
-Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:89:31 -> IntConstant(1)
 Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:89:36 -> StringConstant("2")
 Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:89:36 -> StringConstant("2")
 Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:91:19 -> IntConstant(1)
@@ -191,7 +188,6 @@ Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:97:31 -> IntConstan
 Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:97:31 -> IntConstant(3)
 Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:97:38 -> StringConstant("3")
 Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:97:38 -> StringConstant("3")
-Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:101:29 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:101:34 -> IntConstant(1)
 Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:101:34 -> IntConstant(1)
 Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:102:29 -> IntConstant(0)
@@ -202,4 +198,4 @@ Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:104:29 -> IntConsta
 Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:104:29 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:106:31 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///index.dart:106:31 -> IntConstant(0)
-Extra constant evaluation: evaluated: 579, effectively constant: 78
+Extra constant evaluation: evaluated: 571, effectively constant: 74

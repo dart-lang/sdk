@@ -2,6 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/*library: 
+ output_units=[f1: {units: [1{lib}], usedBy: [], needs: []}],
+ steps=[lib=(f1)]
+*/
+
 // @dart = 2.7
 
 // Test that loading of a library (with top-level functions only) can

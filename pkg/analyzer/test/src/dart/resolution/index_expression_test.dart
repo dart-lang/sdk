@@ -16,6 +16,32 @@ main() {
 
 @reflectiveTest
 class IndexExpressionTest extends PubPackageResolutionTest {
+  test_invalid_inDefaultValue_nullAware() async {
+    await assertInvalidTestCode(r'''
+void f({a = b?[0]}) {}
+''');
+
+    assertIndexExpression(
+      findNode.index('[0]'),
+      readElement: null,
+      writeElement: null,
+      type: 'dynamic',
+    );
+  }
+
+  test_invalid_inDefaultValue_nullAware2() async {
+    await assertInvalidTestCode(r'''
+typedef void F({a = b?[0]});
+''');
+
+    assertIndexExpression(
+      findNode.index('[0]'),
+      readElement: null,
+      writeElement: null,
+      type: 'dynamic',
+    );
+  }
+
   test_read() async {
     await assertNoErrorsInCode(r'''
 class A {

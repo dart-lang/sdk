@@ -1389,12 +1389,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     List<FormalParameterBuilder> formals =
         parameters.positionalParameters.length == 0
             ? null
-            : new List<FormalParameterBuilder>(
-                parameters.positionalParameters.length);
+            : new List<FormalParameterBuilder>.filled(
+                parameters.positionalParameters.length, null);
     for (int i = 0; i < parameters.positionalParameters.length; i++) {
       VariableDeclaration formal = parameters.positionalParameters[i];
       formals[i] = new FormalParameterBuilder(
-          null, 0, null, formal.name, libraryBuilder, formal.fileOffset, uri)
+          null, 0, null, formal.name, libraryBuilder, formal.fileOffset,
+          fileUri: uri)
         ..variable = formal;
     }
     enterLocalScope(
@@ -1415,7 +1416,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
 
     ReturnStatementImpl fakeReturn = new ReturnStatementImpl(true, expression);
-
+    if (formals != null) {
+      for (int i = 0; i < formals.length; i++) {
+        typeInferrer?.flowAnalysis?.declare(formals[i].variable, true);
+      }
+    }
     Statement inferredStatement = typeInferrer?.inferFunctionBody(
         this, fileOffset, const DynamicType(), AsyncMarker.Sync, fakeReturn);
     assert(
@@ -3129,7 +3134,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (isSet) {
       buildLiteralSet(typeArguments, constKeyword, leftBrace, setOrMapEntries);
     } else {
-      List<MapEntry> mapEntries = new List<MapEntry>(setOrMapEntries.length);
+      List<MapEntry> mapEntries =
+          new List<MapEntry>.filled(setOrMapEntries.length, null);
       for (int i = 0; i < setOrMapEntries.length; ++i) {
         if (setOrMapEntries[i] is MapEntry) {
           mapEntries[i] = setOrMapEntries[i];
@@ -3562,7 +3568,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
     } else {
       parameter = new FormalParameterBuilder(null, modifiers, type?.builder,
-          name?.name, libraryBuilder, offsetForToken(nameToken), uri)
+          name?.name, libraryBuilder, offsetForToken(nameToken),
+          fileUri: uri)
         ..hasDeclaredInitializer = (initializerStart != null);
     }
     VariableDeclaration variable = parameter.build(
@@ -3966,7 +3973,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   /// name.
   void pushQualifiedReference(Token start, Token periodBeforeName) {
     assert(checkState(start, [
-      /*suffix*/ if (periodBeforeName != null) ValueKinds.Identifier,
+      /*suffix*/ if (periodBeforeName != null)
+        unionOfKinds([ValueKinds.Identifier, ValueKinds.ParserRecovery]),
       /*type arguments*/ ValueKinds.TypeArgumentsOrNull,
       /*type*/ unionOfKinds([
         ValueKinds.Generator,
@@ -3975,7 +3983,18 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         ValueKinds.ParserRecovery
       ])
     ]));
-    Identifier suffix = popIfNotNull(periodBeforeName);
+    Object suffixObject = popIfNotNull(periodBeforeName);
+    Identifier suffix;
+    if (suffixObject is Identifier) {
+      suffix = suffixObject;
+    } else {
+      assert(
+          suffixObject == null || suffixObject is ParserRecovery,
+          "Unexpected qualified name suffix $suffixObject "
+          "(${suffixObject.runtimeType})");
+      // There was a `.` without a suffix.
+    }
+
     Identifier identifier;
     List<UnresolvedType> typeArguments = pop();
     Object type = pop();
@@ -5452,7 +5471,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     int count = labelCount + expressionCount;
     List<Object> labelsAndExpressions =
         const FixedNullableList<Object>().pop(stack, count);
-    List<Label> labels = labelCount == 0 ? null : new List<Label>(labelCount);
+    List<Label> labels =
+        labelCount == 0 ? null : new List<Label>.filled(labelCount, null);
     List<Expression> expressions =
         new List<Expression>.filled(expressionCount, null, growable: true);
     int labelIndex = 0;
@@ -5946,11 +5966,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (builder?.next != null) {
       // Duplicated name, already reported.
       return <Initializer>[
-        new LocalInitializer(new VariableDeclaration.forValue(buildProblem(
-            fasta.templateDuplicatedDeclarationUse.withArguments(name),
-            fieldNameOffset,
-            name.length)))
-          ..fileOffset = fieldNameOffset
+        buildInvalidInitializer(
+            buildProblem(
+                fasta.templateDuplicatedDeclarationUse.withArguments(name),
+                fieldNameOffset,
+                name.length),
+            fieldNameOffset)
       ];
     } else if (builder is FieldBuilder && builder.isDeclarationInstanceMember) {
       initializedFields ??= <String, int>{};

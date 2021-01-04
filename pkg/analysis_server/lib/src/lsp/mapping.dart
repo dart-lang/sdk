@@ -8,8 +8,6 @@ import 'dart:math';
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart'
     as lsp;
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart' as lsp;
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart'
-    show ResponseError;
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart' as lsp;
@@ -30,10 +28,10 @@ import 'package:analyzer/diagnostic/diagnostic.dart' as analyzer;
 import 'package:analyzer/error/error.dart' as server;
 import 'package:analyzer/source/line_info.dart' as server;
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/source.dart' as server;
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/services/available_declarations.dart' as dec;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
+import 'package:analyzer_plugin/utilities/pair.dart';
 import 'package:meta/meta.dart';
 
 const diagnosticTagsForErrorCode = <server.ErrorCode, List<lsp.DiagnosticTag>>{
@@ -74,14 +72,22 @@ String buildSnippetStringWithTabStops(
         RegExp(r'[$}\\]'), // Replace any of $ } \
         (c) => '\\${c[0]}', // Prefix with a backslash
       );
+
   // Snippets syntax is documented in the LSP spec:
-  // https://microsoft.github.io/language-server-protocol/specifications/specification-3-14/#snippet-syntax
+  // https://microsoft.github.io/language-server-protocol/specifications/specification-current/#snippet_syntax
   //
   // $1, $2, etc. are used for tab stops and ${1:foo} inserts a placeholder of foo.
 
   final output = [];
   var offset = 0;
-  var tabStopNumber = 1;
+
+  // When there's only a single tabstop, it should be ${0} as this is treated
+  // specially as the final cursor position (if we use 1, the editor will insert
+  // a 0 at the end of the string which is not what we expect).
+  // When there are multiple, start with ${1} since these are placeholders the
+  // user can tab through and the editor-inserted ${0} at the end is expected.
+  var tabStopNumber = offsetLengthPairs.length <= 2 ? 0 : 1;
+
   for (var i = 0; i < offsetLengthPairs.length; i += 2) {
     final pairOffset = offsetLengthPairs[i];
     final pairLength = offsetLengthPairs[i + 1];
@@ -215,43 +221,67 @@ lsp.CompletionItem declarationToCompletionItem(
   int replacementOffset,
   int replacementLength, {
   @required bool includeCommitCharacters,
+  @required bool completeFunctionCalls,
 }) {
-  // Build display labels and text to insert. insertText and filterText may
-  // differ from label (for ex. if the label includes things like (…)). If
-  // either are missing then label will be used by the client.
-  String label;
-  String insertText;
-  String filterText;
+  final supportsSnippets =
+      completionCapabilities?.completionItem?.snippetSupport == true;
+
+  String completion;
   switch (declaration.kind) {
     case DeclarationKind.ENUM_CONSTANT:
-      label = '${declaration.parent.name}.${declaration.name}';
+      completion = '${declaration.parent.name}.${declaration.name}';
       break;
     case DeclarationKind.GETTER:
     case DeclarationKind.FIELD:
-      label = declaration.parent != null &&
+      completion = declaration.parent != null &&
               declaration.parent.name != null &&
               declaration.parent.name.isNotEmpty
           ? '${declaration.parent.name}.${declaration.name}'
           : declaration.name;
       break;
     case DeclarationKind.CONSTRUCTOR:
-      label = declaration.parent.name;
+      completion = declaration.parent.name;
       if (declaration.name.isNotEmpty) {
-        label += '.${declaration.name}';
+        completion += '.${declaration.name}';
       }
-      insertText = label;
-      filterText = label;
-      label += declaration.parameterNames?.isNotEmpty ?? false ? '(…)' : '()';
-      break;
-    case DeclarationKind.FUNCTION:
-      label = declaration.name;
-      insertText = label;
-      filterText = label;
-      label += declaration.parameterNames?.isNotEmpty ?? false ? '(…)' : '()';
       break;
     default:
-      label = declaration.name;
+      completion = declaration.name;
+      break;
   }
+  // By default, label is the same as the completion text, but may be added to
+  // later (parens/snippets).
+  var label = completion;
+
+  // isCallable is used to suffix the label with parens so it's clear the item
+  // is callable.
+  final declarationKind = declaration.kind;
+  final isCallable = declarationKind == DeclarationKind.CONSTRUCTOR ||
+      declarationKind == DeclarationKind.FUNCTION ||
+      declarationKind == DeclarationKind.METHOD;
+
+  if (isCallable) {
+    label += declaration.parameterNames?.isNotEmpty ?? false ? '(…)' : '()';
+  }
+
+  final insertTextInfo = _buildInsertText(
+    supportsSnippets: supportsSnippets,
+    includeCommitCharacters: includeCommitCharacters,
+    completeFunctionCalls: completeFunctionCalls,
+    isCallable: isCallable,
+    // For SuggestionSets, we don't have a CompletionKind to check if it's
+    // an invocation, but since they do not show in show/hide combinators
+    // we can assume if an item is callable it's probably being used in a context
+    // that can invoke it.
+    isInvocation: isCallable,
+    defaultArgumentListString: declaration.defaultArgumentListString,
+    defaultArgumentListTextRanges: declaration.defaultArgumentListTextRanges,
+    completion: completion,
+    selectionOffset: 0,
+    selectionLength: 0,
+  );
+  final insertText = insertTextInfo.first;
+  final insertTextFormat = insertTextInfo.last;
 
   final supportsDeprecatedFlag =
       completionCapabilities?.completionItem?.deprecatedSupport == true;
@@ -294,14 +324,17 @@ lsp.CompletionItem declarationToCompletionItem(
     //  10 -> 999990
     //   1 -> 999999
     sortText: (1000000 - itemRelevance).toString(),
-    filterText: filterText != label
-        ? filterText
+    filterText: completion != label
+        ? completion
         : null, // filterText uses label if not set
     insertText: insertText != label
         ? insertText
         : null, // insertText uses label if not set
+    insertTextFormat: insertTextFormat != lsp.InsertTextFormat.PlainText
+        ? insertTextFormat
+        : null, // Defaults to PlainText if not supplied
     // data, used for completionItem/resolve.
-    data: lsp.CompletionItemResolutionInfo(
+    data: lsp.DartCompletionItemResolutionInfo(
         file: file,
         offset: offset,
         libId: includedSuggestionSet.id,
@@ -783,13 +816,12 @@ lsp.CompletionItem toCompletionItem(
   int replacementLength, {
   @required bool includeCommitCharacters,
   @required bool completeFunctionCalls,
+  Object resolutionData,
 }) {
   // Build display labels and text to insert. insertText and filterText may
   // differ from label (for ex. if the label includes things like (…)). If
   // either are missing then label will be used by the client.
   var label = suggestion.displayText ?? suggestion.completion;
-  var insertText = suggestion.completion;
-  var filterText = suggestion.completion;
 
   // Trim any trailing comma from the (displayed) label.
   if (label.endsWith(',')) {
@@ -832,35 +864,20 @@ lsp.CompletionItem toCompletionItem(
       : suggestionKindToCompletionItemKind(
           supportedCompletionItemKinds, suggestion.kind, label);
 
-  var insertTextFormat = lsp.InsertTextFormat.PlainText;
-
-  // If the client supports snippets, we can support completeFunctionCalls or
-  // setting a selection.
-  if (supportsSnippets) {
-    // completeFunctionCalls should only work if commit characters are disabled
-    // otherwise the editor may insert parens that we're also inserting.
-    if (!includeCommitCharacters &&
-        completeFunctionCalls &&
-        isCallable &&
-        isInvocation) {
-      insertTextFormat = lsp.InsertTextFormat.Snippet;
-      final hasRequiredParameters =
-          (suggestion.defaultArgumentListTextRanges?.length ?? 0) > 0;
-      final functionCallSuffix = hasRequiredParameters
-          ? buildSnippetStringWithTabStops(
-              suggestion.defaultArgumentListString,
-              suggestion.defaultArgumentListTextRanges,
-            )
-          : '\${1:}'; // No required params still gets a tabstop in the parens.
-      insertText += '($functionCallSuffix)';
-    } else if (suggestion.selectionOffset != 0) {
-      insertTextFormat = lsp.InsertTextFormat.Snippet;
-      insertText = buildSnippetStringWithTabStops(
-        suggestion.completion,
-        [suggestion.selectionOffset, suggestion.selectionLength],
-      );
-    }
-  }
+  final insertTextInfo = _buildInsertText(
+    supportsSnippets: supportsSnippets,
+    includeCommitCharacters: includeCommitCharacters,
+    completeFunctionCalls: completeFunctionCalls,
+    isCallable: isCallable,
+    isInvocation: isInvocation,
+    defaultArgumentListString: suggestion.defaultArgumentListString,
+    defaultArgumentListTextRanges: suggestion.defaultArgumentListTextRanges,
+    completion: suggestion.completion,
+    selectionOffset: suggestion.selectionOffset,
+    selectionLength: suggestion.selectionLength,
+  );
+  final insertText = insertTextInfo.first;
+  final insertTextFormat = insertTextInfo.last;
 
   // Because we potentially send thousands of these items, we should minimise
   // the generated JSON as much as possible - for example using nulls in place
@@ -876,6 +893,7 @@ lsp.CompletionItem toCompletionItem(
         : null,
     commitCharacters:
         includeCommitCharacters ? dartCompletionCommitCharacters : null,
+    data: resolutionData,
     detail: getCompletionDetail(suggestion, completionKind,
         supportsDeprecatedFlag || supportsDeprecatedTag),
     documentation:
@@ -887,8 +905,8 @@ lsp.CompletionItem toCompletionItem(
     //  10 -> 999990
     //   1 -> 999999
     sortText: (1000000 - suggestion.relevance).toString(),
-    filterText: filterText != label
-        ? filterText
+    filterText: suggestion.completion != label
+        ? suggestion.completion
         : null, // filterText uses label if not set
     insertText: insertText != label
         ? insertText
@@ -1072,7 +1090,8 @@ ErrorOr<int> toOffset(
   lsp.Position pos, {
   failureIsCritial = false,
 }) {
-  if (pos.line > lineInfo.lineCount) {
+  // line is zero-based so cannot equal lineCount
+  if (pos.line >= lineInfo.lineCount) {
     return ErrorOr<int>.error(lsp.ResponseError(
         code: failureIsCritial
             ? lsp.ServerErrorCodes.ClientServerInconsistentState
@@ -1189,7 +1208,10 @@ lsp.SignatureHelp toSignatureHelp(List<lsp.MarkupKind> preferredFormats,
 lsp.TextDocumentEdit toTextDocumentEdit(FileEditInformation edit) {
   return lsp.TextDocumentEdit(
     textDocument: edit.doc,
-    edits: edit.edits.map((e) => toTextEdit(edit.lineInfo, e)).toList(),
+    edits: edit.edits
+        .map((e) => Either2<TextEdit, AnnotatedTextEdit>.t1(
+            toTextEdit(edit.lineInfo, e)))
+        .toList(),
   );
 }
 
@@ -1255,4 +1277,60 @@ lsp.MarkupContent _asMarkup(
       : lsp.MarkupKind.Markdown;
 
   return lsp.MarkupContent(kind: format, value: content);
+}
+
+Pair<String, lsp.InsertTextFormat> _buildInsertText({
+  @required bool supportsSnippets,
+  @required bool includeCommitCharacters,
+  @required bool completeFunctionCalls,
+  @required bool isCallable,
+  @required bool isInvocation,
+  @required String defaultArgumentListString,
+  @required List<int> defaultArgumentListTextRanges,
+  @required String completion,
+  @required int selectionOffset,
+  @required int selectionLength,
+}) {
+  var insertText = completion;
+  var insertTextFormat = lsp.InsertTextFormat.PlainText;
+
+  // SuggestionBuilder already does the equiv of completeFunctionCalls for
+  // some methods (for example Flutter's setState). If the completion already
+  // includes any `(` then disable our own insertion as the special-cased code
+  // will likely provide better code.
+  if (completion.contains('(')) {
+    completeFunctionCalls = false;
+  }
+
+  // If the client supports snippets, we can support completeFunctionCalls or
+  // setting a selection.
+  if (supportsSnippets) {
+    // completeFunctionCalls should only work if commit characters are disabled
+    // otherwise the editor may insert parens that we're also inserting.
+    if (!includeCommitCharacters &&
+        completeFunctionCalls &&
+        isCallable &&
+        isInvocation) {
+      insertTextFormat = lsp.InsertTextFormat.Snippet;
+      final hasRequiredParameters =
+          (defaultArgumentListTextRanges?.length ?? 0) > 0;
+      final functionCallSuffix = hasRequiredParameters
+          ? buildSnippetStringWithTabStops(
+              defaultArgumentListString,
+              defaultArgumentListTextRanges,
+            )
+          : '\${0:}'; // No required params still gets a tabstop in the parens.
+      insertText += '($functionCallSuffix)';
+    } else if (selectionOffset != 0 &&
+        // We don't need a tabstop if the selection is the end of the string.
+        selectionOffset != completion.length) {
+      insertTextFormat = lsp.InsertTextFormat.Snippet;
+      insertText = buildSnippetStringWithTabStops(
+        completion,
+        [selectionOffset, selectionLength],
+      );
+    }
+  }
+
+  return Pair(insertText, insertTextFormat);
 }

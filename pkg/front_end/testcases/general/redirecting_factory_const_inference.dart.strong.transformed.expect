@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class _X<T extends core::Object* = dynamic> extends core::Object {
-  static field dynamic _redirecting# = <dynamic>[self::_X::•];
+  static final field dynamic _redirecting# = <dynamic>[self::_X::•];
   static factory •<T extends core::Object* = dynamic>() → self::_X<self::_X::•::T*>*
     let<BottomType> #redirecting_factory = self::_Y::• in let self::_X::•::T* #typeArg0 = null in invalid-expression;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -63,3 +63,9 @@ static method main() → dynamic {
 constants  {
   #C1 = self::_Y<Null> {}
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///redirecting_factory_const_inference.dart:
+- _Y. (from org-dartlang-testcase:///redirecting_factory_const_inference.dart:14:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)

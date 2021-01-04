@@ -54,6 +54,7 @@
   CONSTANT(String, kMaxElements)                                               \
   CONSTANT(SubtypeTestCache, kFunctionTypeArguments)                           \
   CONSTANT(SubtypeTestCache, kInstanceClassIdOrFunction)                       \
+  CONSTANT(SubtypeTestCache, kDestinationType)                                 \
   CONSTANT(SubtypeTestCache, kInstanceDelayedFunctionTypeArguments)            \
   CONSTANT(SubtypeTestCache, kInstanceParentFunctionTypeArguments)             \
   CONSTANT(SubtypeTestCache, kInstanceTypeArguments)                           \
@@ -180,7 +181,6 @@
   FIELD(Thread, allocate_object_slow_entry_point_offset)                       \
   FIELD(Thread, allocate_object_slow_stub_offset)                              \
   FIELD(Thread, api_top_scope_offset)                                          \
-  FIELD(Thread, async_stack_trace_offset)                                      \
   FIELD(Thread, auto_scope_native_wrapper_entry_point_offset)                  \
   FIELD(Thread, bool_false_offset)                                             \
   FIELD(Thread, bool_true_offset)                                              \
@@ -256,6 +256,7 @@
   FIELD(Thread, write_barrier_entry_point_offset)                              \
   FIELD(Thread, write_barrier_mask_offset)                                     \
   FIELD(Thread, callback_code_offset)                                          \
+  FIELD(Thread, callback_stack_return_offset)                                  \
   FIELD(TimelineStream, enabled_offset)                                        \
   FIELD(TwoByteString, data_offset)                                            \
   FIELD(Type, arguments_offset)                                                \
@@ -266,6 +267,7 @@
   FIELD(Type, nullability_offset)                                              \
   FIELD(TypeParameter, parameterized_class_id_offset)                          \
   FIELD(TypeParameter, index_offset)                                           \
+  FIELD(TypeParameter, nullability_offset)                                     \
   FIELD(TypeArguments, instantiations_offset)                                  \
   FIELD(TypeArguments, length_offset)                                          \
   FIELD(TypeArguments, nullability_offset)                                     \
@@ -284,6 +286,8 @@
   FIELD(MonomorphicSmiableCall, expected_cid_offset)                           \
   FIELD(MonomorphicSmiableCall, entrypoint_offset)                             \
   FIELD(MonomorphicSmiableCall, target_offset)                                 \
+  FIELD(WeakProperty, key_offset)                                              \
+  FIELD(WeakProperty, value_offset)                                            \
   ARRAY(Array, element_offset)                                                 \
   ARRAY(TypeArguments, type_at_offset)                                         \
   NOT_IN_PRODUCT(ARRAY(ClassTable, ClassOffsetFor))                            \

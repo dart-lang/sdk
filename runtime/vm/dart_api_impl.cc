@@ -671,7 +671,7 @@ bool Api::GetNativeFieldsOfArgument(NativeArguments* arguments,
     memset(field_values, 0, (num_fields * sizeof(field_values[0])));
     return true;
   }
-  ASSERT(class_num_fields == Smi::Value(native_fields->ptr()->length_));
+  ASSERT(class_num_fields == Smi::Value(native_fields->ptr()->length()));
   intptr_t* native_values =
       reinterpret_cast<intptr_t*>(native_fields->ptr()->data());
   memmove(field_values, native_values, (num_fields * sizeof(field_values[0])));
@@ -1308,10 +1308,9 @@ static bool IsServiceOrKernelIsolateName(const char* name) {
   return false;
 }
 
-Isolate* CreateWithinExistingIsolateGroupAOT(IsolateGroup* group,
-                                             const char* name,
-                                             char** error) {
-#if defined(DART_PRECOMPILED_RUNTIME)
+Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
+                                          const char* name,
+                                          char** error) {
   API_TIMELINE_DURATION(Thread::Current());
   CHECK_NO_ISOLATE(Isolate::Current());
 
@@ -1326,171 +1325,6 @@ Isolate* CreateWithinExistingIsolateGroupAOT(IsolateGroup* group,
   ASSERT(isolate->source() == source);
 
   return isolate;
-#else
-  UNREACHABLE();
-#endif
-}
-
-Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
-                                          const char* name,
-                                          char** error) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  API_TIMELINE_DURATION(Thread::Current());
-  CHECK_NO_ISOLATE(Isolate::Current());
-
-  // During isolate start we'll make a temporary anonymous group from the same
-  // [source]. Once the isolate has been fully loaded we will merge it's heap
-  // into the shared heap.
-  auto spawning_group = new IsolateGroup(group->shareable_source(),
-                                         /*isolate_group_data=*/nullptr);
-  IsolateGroup::RegisterIsolateGroup(spawning_group);
-  spawning_group->CreateHeap(
-      /*is_vm_isolate=*/false,
-      IsServiceOrKernelIsolateName(group->source()->name));
-
-  Isolate* isolate = reinterpret_cast<Isolate*>(
-      CreateIsolate(spawning_group, /*is_new_group=*/false, name,
-                    /*isolate_data=*/nullptr, error));
-  if (isolate == nullptr) return nullptr;
-
-  auto source = spawning_group->source();
-  ASSERT(isolate->source() == source);
-
-  if (source->script_kernel_buffer != nullptr) {
-    Dart_EnterScope();
-    {
-      Thread* T = Thread::Current();
-      TransitionNativeToVM transition(T);
-      HANDLESCOPE(T);
-      StackZone zone(T);
-
-      // NOTE: We do not attach a finalizer for this object, because the
-      // embedder will free it once the isolate group has shutdown.
-      const auto& td = ExternalTypedData::Handle(ExternalTypedData::New(
-          kExternalTypedDataUint8ArrayCid,
-          const_cast<uint8_t*>(source->script_kernel_buffer),
-          source->script_kernel_size, Heap::kOld));
-
-      std::unique_ptr<kernel::Program> program =
-          kernel::Program::ReadFromTypedData(td,
-                                             const_cast<const char**>(error));
-      if (program == nullptr) {
-        UNIMPLEMENTED();
-      }
-      const Object& tmp =
-          kernel::KernelLoader::LoadEntireProgram(program.get());
-
-      // If the existing isolate could spawn with a root library we should be
-      // able to do the same
-      RELEASE_ASSERT(!tmp.IsNull() && tmp.IsLibrary());
-      isolate->object_store()->set_root_library(Library::Cast(tmp));
-    }
-    Dart_ExitScope();
-  }
-
-  // If we are running in AppJIT training mode we'll have to remap class ids.
-  if (auto permutation_map = group->source()->cid_permutation_map.get()) {
-    Dart_EnterScope();
-    {
-      auto T = Thread::Current();
-      TransitionNativeToVM transition(T);
-      HANDLESCOPE(T);
-
-      // Remap all class ids loaded atm (e.g. from snapshot) and do appropriate
-      // re-hashing of constants and types.
-      ClassFinalizer::RemapClassIds(permutation_map);
-      // Types use cid's as part of their hashes.
-      ClassFinalizer::RehashTypes();
-      // Const objects use cid's as part of their hashes.
-      isolate->RehashConstants();
-    }
-    Dart_ExitScope();
-  }
-
-  auto thread = Thread::Current();
-  {
-    TransitionNativeToVM native_to_vm(thread);
-
-    // Ensure there are no helper threads running.
-    BackgroundCompiler::Stop(isolate);
-    isolate->heap()->WaitForMarkerTasks(thread);
-    isolate->heap()->WaitForSweeperTasks(thread);
-    SafepointOperationScope safepoint_operation(thread);
-    isolate->group()->ReleaseStoreBuffers();
-    RELEASE_ASSERT(isolate->heap()->old_space()->tasks() == 0);
-  }
-
-  Dart_ExitIsolate();
-  {
-    const bool kBypassSafepoint = false;
-    Thread::EnterIsolateGroupAsHelper(group, Thread::kUnknownTask,
-                                      kBypassSafepoint);
-    ASSERT(group == IsolateGroup::Current());
-
-    {
-      auto thread = Thread::Current();
-
-      // Prevent additions of new isolates to [group] until we're done.
-      group->RunWithLockedGroup([&]() {
-        // Ensure no other old space GC tasks are running and "occupy" the old
-        // space.
-        SafepointOperationScope safepoint_scope(thread);
-        {
-          auto old_space = group->heap()->old_space();
-          MonitorLocker ml(old_space->tasks_lock());
-          while (old_space->tasks() > 0) {
-            ml.Wait();
-          }
-          old_space->set_tasks(1);
-        }
-
-        // Merge the heap from [spawning_group] to [group].
-        group->heap()->MergeFrom(isolate->group()->heap());
-
-        spawning_group->UnregisterIsolate(isolate);
-        const bool shutdown_group =
-            spawning_group->UnregisterIsolateDecrementCount(isolate);
-        ASSERT(shutdown_group);
-
-        isolate->isolate_group_ = group;
-        group->RegisterIsolateLocked(isolate);
-        isolate->class_table()->shared_class_table_ =
-            group->shared_class_table();
-        isolate->set_shared_class_table(group->shared_class_table());
-
-        // Even though the mutator thread was descheduled, it will still
-        // retain its [Thread] structure with valid isolate/isolate_group
-        // pointers.
-        // If GC happens before the mutator gets scheduled again, we have to
-        // ensure the isolate group change is reflected in the threads
-        // structure.
-        ASSERT(isolate->mutator_thread() != nullptr);
-        ASSERT(isolate->mutator_thread()->isolate_group() == spawning_group);
-        isolate->mutator_thread()->isolate_group_ = group;
-
-        // Allow other old space GC tasks to run again.
-        {
-          auto old_space = group->heap()->old_space();
-          MonitorLocker ml(old_space->tasks_lock());
-          ASSERT(old_space->tasks() == 1);
-          old_space->set_tasks(0);
-          ml.NotifyAll();
-        }
-      });
-    }
-
-    Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
-  }
-
-  spawning_group->Shutdown();
-
-  Dart_EnterIsolate(Api::CastIsolate(isolate));
-  ASSERT(Thread::Current()->isolate_group() == isolate->group());
-
-  return isolate;
-#else
-  UNREACHABLE();
-#endif
 }
 
 DART_EXPORT void Dart_IsolateFlagsInitialize(Dart_IsolateFlags* flags) {
@@ -1579,9 +1413,17 @@ Dart_CreateIsolateInGroup(Dart_Isolate group_member,
 
   *error = nullptr;
 
+  if (!FLAG_enable_isolate_groups) {
+    *error = Utils::StrDup(
+        "Lightweight isolates are only implemented in AOT "
+        "mode and need to be explicitly enabled by passing "
+        "--enable-isolate-groups.");
+    return nullptr;
+  }
+
   Isolate* isolate;
 #if defined(DART_PRECOMPILED_RUNTIME)
-  isolate = CreateWithinExistingIsolateGroupAOT(member->group(), name, error);
+  isolate = CreateWithinExistingIsolateGroup(member->group(), name, error);
   if (isolate != nullptr) {
     isolate->set_origin_id(member->origin_id());
     isolate->set_init_callback_data(child_isolate_data);
@@ -1692,10 +1534,16 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
   // TODO(http://dartbug.com/16615): Validate isolate parameter.
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
   if (!Thread::EnterIsolate(iso)) {
-    FATAL(
-        "Unable to Enter Isolate : "
-        "Multiple mutators entering an isolate / "
-        "Dart VM is shutting down");
+    if (iso->IsScheduled()) {
+      FATAL(
+          "Isolate %s is already scheduled on mutator thread %p, "
+          "failed to schedule from os thread 0x%" Px "\n",
+          iso->name(), iso->scheduled_mutator_thread(),
+          OSThread::ThreadIdToIntPtr(OSThread::GetCurrentThreadId()));
+    } else {
+      FATAL("Unable to enter isolate %s as Dart VM is shutting down",
+            iso->name());
+    }
   }
   // A Thread structure has been associated to the thread, we do the
   // safepoint transition explicitly here instead of using the
@@ -4613,7 +4461,7 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
     return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
   }
 #endif
-  CHECK_ERROR_HANDLE(cls.EnsureIsFinalized(T));
+  CHECK_ERROR_HANDLE(cls.EnsureIsAllocateFinalized(T));
   return Api::NewHandle(T, AllocateObject(T, cls));
 }
 
@@ -4639,7 +4487,7 @@ Dart_AllocateWithNativeFields(Dart_Handle type,
     return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
   }
 #endif
-  CHECK_ERROR_HANDLE(cls.EnsureIsFinalized(T));
+  CHECK_ERROR_HANDLE(cls.EnsureIsAllocateFinalized(T));
   if (num_native_fields != cls.num_native_fields()) {
     return Api::NewError(
         "%s: invalid number of native fields %" Pd " passed in, expected %d",
@@ -5501,11 +5349,6 @@ StringPtr Api::GetEnvironmentValue(Thread* thread, const String& name) {
     if (Symbols::DartIsVM().Equals(name)) {
       return Symbols::True().raw();
     }
-    if (FLAG_causal_async_stacks) {
-      if (Symbols::DartDeveloperCausalAsyncStacks().Equals(name)) {
-        return Symbols::True().raw();
-      }
-    }
   }
   return result.raw();
 }
@@ -6004,7 +5847,7 @@ DART_EXPORT Dart_Handle Dart_GetImportsOfScheme(Dart_Handle scheme) {
     for (intptr_t j = 0; j < imports.Length(); j++) {
       ns ^= imports.At(j);
       if (ns.IsNull()) continue;
-      importee = ns.library();
+      importee = ns.target();
       importee_uri = importee.url();
       if (importee_uri.StartsWith(scheme_vm)) {
         result.Add(importer);
@@ -6086,8 +5929,9 @@ static Dart_Handle DeferredLoadComplete(intptr_t loading_unit_id,
 
   if (error) {
     CHECK_NULL(error_message);
-    unit.CompleteLoad(String::Handle(String::New(error_message)),
-                      transient_error);
+    return Api::NewHandle(
+        T, unit.CompleteLoad(String::Handle(String::New(error_message)),
+                             transient_error));
   } else {
 #if defined(SUPPORT_TIMELINE)
     TimelineBeginEndScope tbes(T, Timeline::GetIsolateStream(),
@@ -6111,10 +5955,8 @@ static Dart_Handle DeferredLoadComplete(intptr_t loading_unit_id,
       return Api::NewHandle(T, error.raw());
     }
 
-    unit.CompleteLoad(String::Handle(), false);
+    return Api::NewHandle(T, unit.CompleteLoad(String::Handle(), false));
   }
-
-  return Api::Success();
 }
 
 DART_EXPORT Dart_Handle
@@ -6693,7 +6535,8 @@ DART_EXPORT Dart_Handle Dart_Precompile() {
     return result;
   }
   CHECK_CALLBACK_STATE(T);
-  CompilerState state(Thread::Current(), /*is_aot=*/true);
+  CompilerState state(Thread::Current(), /*is_aot=*/true,
+                      /*is_optimizing=*/true);
   CHECK_ERROR_HANDLE(Precompiler::CompileAll());
   return Api::Success();
 #endif

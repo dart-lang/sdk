@@ -1,0 +1,35 @@
+void foo1({required int x1}) {
+print(x);
+}
+
+void foo2({required x2}) {
+print(x);
+}
+
+void foo3({required required x3}) {
+print(x);
+}
+
+class Foo {
+void foo4({required covariant int x4}) {
+print(x);
+}
+}
+
+void[KeywordToken] foo1[StringToken]([BeginToken]{[BeginToken]required[StringToken] int[StringToken] x1[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]x[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+void[KeywordToken] foo2[StringToken]([BeginToken]{[BeginToken]required[StringToken] x2[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]x[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+void[KeywordToken] foo3[StringToken]([BeginToken]{[BeginToken]required[StringToken] required[StringToken] x3[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]x[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] Foo[StringToken] {[BeginToken]
+void[KeywordToken] foo4[StringToken]([BeginToken]{[BeginToken]required[StringToken] covariant[KeywordToken] int[StringToken] x4[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]x[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken][SimpleToken]

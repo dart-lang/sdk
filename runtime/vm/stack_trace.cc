@@ -12,7 +12,9 @@ namespace dart {
 
 // Keep in sync with
 // sdk/lib/async/stream_controller.dart:_StreamController._STATE_SUBSCRIBED.
-const intptr_t kStreamController_StateSubscribed = 1;
+const intptr_t k_StreamController__STATE_SUBSCRIBED = 1;
+// sdk/lib/async/future_impl.dart:_FutureListener.stateWhencomplete.
+const intptr_t k_FutureListener_stateWhencomplete = 8;
 
 // Find current yield index from async closure.
 // Async closures contains a variable, :await_jump_var that holds the index into
@@ -66,6 +68,8 @@ CallerClosureFinder::CallerClosureFinder(Zone* zone)
       stream_iterator_class(Class::Handle(zone)),
       future_result_or_listeners_field(Field::Handle(zone)),
       callback_field(Field::Handle(zone)),
+      future_listener_state_field(Field::Handle(zone)),
+      future_listener_result_field(Field::Handle(zone)),
       controller_controller_field(Field::Handle(zone)),
       var_data_field(Field::Handle(zone)),
       state_field(Field::Handle(zone)),
@@ -107,6 +111,12 @@ CallerClosureFinder::CallerClosureFinder(Zone* zone)
   callback_field =
       future_listener_class.LookupFieldAllowPrivate(Symbols::callback());
   ASSERT(!callback_field.IsNull());
+  future_listener_state_field =
+      future_listener_class.LookupFieldAllowPrivate(Symbols::state());
+  ASSERT(!future_listener_state_field.IsNull());
+  future_listener_result_field =
+      future_listener_class.LookupFieldAllowPrivate(Symbols::result());
+  ASSERT(!future_listener_result_field.IsNull());
   // - async*:
   controller_controller_field =
       async_start_stream_controller_class.LookupFieldAllowPrivate(
@@ -126,14 +136,22 @@ CallerClosureFinder::CallerClosureFinder(Zone* zone)
   ASSERT(!state_data_field.IsNull());
 }
 
-ClosurePtr CallerClosureFinder::GetCallerInFutureImpl(const Object& future_) {
-  ASSERT(!future_.IsNull());
-  ASSERT(future_.GetClassId() == future_impl_class.id());
+ClosurePtr CallerClosureFinder::GetCallerInFutureImpl(const Object& future) {
+  ASSERT(!future.IsNull());
+  ASSERT(future.GetClassId() == future_impl_class.id());
 
-  listener_ =
-      Instance::Cast(future_).GetField(future_result_or_listeners_field);
+  listener_ = Instance::Cast(future).GetField(future_result_or_listeners_field);
   if (listener_.GetClassId() != future_listener_class.id()) {
     return Closure::null();
+  }
+
+  // If the _FutureListener is a whenComplete listener, follow the Future being
+  // completed, `result`, instead of the dangling whenComplete `callback`.
+  state_ = Instance::Cast(listener_).GetField(future_listener_state_field);
+  ASSERT(state_.IsSmi());
+  if (Smi::Cast(state_).Value() == k_FutureListener_stateWhencomplete) {
+    future_ = Instance::Cast(listener_).GetField(future_listener_result_field);
+    return GetCallerInFutureImpl(future_);
   }
 
   callback_ = Instance::Cast(listener_).GetField(callback_field);
@@ -166,7 +184,7 @@ ClosurePtr CallerClosureFinder::FindCallerInAsyncGenClosure(
 
   state_ = Instance::Cast(controller_).GetField(state_field);
   ASSERT(state_.IsSmi());
-  if (Smi::Cast(state_).Value() != kStreamController_StateSubscribed) {
+  if (Smi::Cast(state_).Value() != k_StreamController__STATE_SUBSCRIBED) {
     return Closure::null();
   }
 
@@ -477,39 +495,6 @@ intptr_t StackTraceUtils::CollectFrames(Thread* thread,
     collected_frames_count++;
   }
   return collected_frames_count;
-}
-
-intptr_t StackTraceUtils::ExtractAsyncStackTraceInfo(
-    Thread* thread,
-    Function* async_function,
-    StackTrace* async_stack_trace_out,
-    Array* async_code_array,
-    Array* async_pc_offset_array) {
-  if (thread->async_stack_trace() == StackTrace::null()) {
-    return 0;
-  }
-  *async_stack_trace_out = thread->async_stack_trace();
-  ASSERT(!async_stack_trace_out->IsNull());
-  const StackTrace& async_stack_trace =
-      StackTrace::Handle(thread->async_stack_trace());
-  const intptr_t async_stack_trace_length = async_stack_trace.Length();
-  // At least two entries (0: gap marker, 1: async function).
-  RELEASE_ASSERT(async_stack_trace_length >= 2);
-  // Validate the structure of this stack trace.
-  *async_code_array = async_stack_trace.code_array();
-  ASSERT(!async_code_array->IsNull());
-  *async_pc_offset_array = async_stack_trace.pc_offset_array();
-  ASSERT(!async_pc_offset_array->IsNull());
-  // We start with the asynchronous gap marker.
-  ASSERT(async_code_array->At(0) != Code::null());
-  ASSERT(async_code_array->At(0) == StubCode::AsynchronousGapMarker().raw());
-  const Object& code_object = Object::Handle(async_code_array->At(1));
-  ASSERT(code_object.IsCode());
-  *async_function = Code::Cast(code_object).function();
-  ASSERT(!async_function->IsNull());
-  ASSERT(async_function->IsAsyncFunction() ||
-         async_function->IsAsyncGenerator());
-  return async_stack_trace_length;
 }
 
 }  // namespace dart

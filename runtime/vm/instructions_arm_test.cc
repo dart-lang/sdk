@@ -16,9 +16,11 @@ namespace dart {
 #define __ assembler->
 
 ASSEMBLER_TEST_GENERATE(Call, assembler) {
-  // Code accessing pp is generated, but not executed. Uninitialized pp is OK.
-  __ set_constant_pool_allowed(true);
+  // Code is generated, but not executed. Just parsed with CallPattern.
+  __ set_constant_pool_allowed(true);  // Uninitialized pp is OK.
+  SPILLS_LR_TO_FRAME({});              // Clobbered LR is OK.
   __ BranchLinkPatchable(StubCode::InvokeDartCode());
+  RESTORES_LR_FROM_FRAME({});  // Clobbered LR is OK.
   __ Ret();
 }
 

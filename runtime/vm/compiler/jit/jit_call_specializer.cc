@@ -35,7 +35,7 @@ JitCallSpecializer::JitCallSpecializer(
     SpeculativeInliningPolicy* speculative_policy)
     : CallSpecializer(flow_graph,
                       speculative_policy,
-                      Field::ShouldCloneFields()) {}
+                      CompilerState::Current().should_clone_fields()) {}
 
 bool JitCallSpecializer::IsAllowedForInlining(intptr_t deopt_id) const {
   return true;
@@ -203,12 +203,16 @@ void JitCallSpecializer::VisitStoreInstanceField(
           THR_Print("  getter usage count: %" Pd "\n", getter.usage_counter());
         }
       }
-      ASSERT(field.IsOriginal());
-      field.set_is_unboxing_candidate(false);
-      Thread* thread = Thread::Current();
-      SafepointWriteRwLocker ml(thread,
-                                thread->isolate_group()->program_lock());
-      field.DeoptimizeDependentCode();
+      // We determined it's not beneficial for performance to unbox the
+      // field, therefore we mark it as boxed here.
+      //
+      // Calling `DisableFieldUnboxing` will cause transition the field to
+      // boxed and deoptimize dependent code.
+      //
+      // NOTE: It will also, as a side-effect, change our field clone's
+      // `is_unboxing_candidate()` bit. So we assume the compiler has so far
+      // not relied on this bit.
+      field.DisableFieldUnboxing();
     } else {
       flow_graph()->parsed_function().AddToGuardedFields(&field);
     }
@@ -226,7 +230,7 @@ void JitCallSpecializer::LowerContextAllocation(
   ASSERT(alloc->IsAllocateContext() || alloc->IsCloneContext());
 
   AllocateUninitializedContextInstr* replacement =
-      new AllocateUninitializedContextInstr(alloc->token_pos(),
+      new AllocateUninitializedContextInstr(alloc->source(),
                                             context_variables.length());
   alloc->ReplaceWith(replacement, current_iterator());
 
@@ -236,7 +240,7 @@ void JitCallSpecializer::LowerContextAllocation(
   if (context_value != NULL) {
     LoadFieldInstr* load =
         new (Z) LoadFieldInstr(context_value->CopyWithType(Z),
-                               Slot::Context_parent(), alloc->token_pos());
+                               Slot::Context_parent(), alloc->source());
     flow_graph()->InsertAfter(cursor, load, NULL, FlowGraph::kValue);
     cursor = load;
     initial_value = new (Z) Value(load);
@@ -245,7 +249,7 @@ void JitCallSpecializer::LowerContextAllocation(
   }
   StoreInstanceFieldInstr* store = new (Z) StoreInstanceFieldInstr(
       Slot::Context_parent(), new (Z) Value(replacement), initial_value,
-      kNoStoreBarrier, alloc->token_pos(),
+      kNoStoreBarrier, alloc->source(),
       StoreInstanceFieldInstr::Kind::kInitializing);
   flow_graph()->InsertAfter(cursor, store, nullptr, FlowGraph::kEffect);
   cursor = replacement;
@@ -253,7 +257,7 @@ void JitCallSpecializer::LowerContextAllocation(
   for (auto& slot : context_variables) {
     if (context_value != nullptr) {
       LoadFieldInstr* load = new (Z) LoadFieldInstr(
-          context_value->CopyWithType(Z), *slot, alloc->token_pos());
+          context_value->CopyWithType(Z), *slot, alloc->source());
       flow_graph()->InsertAfter(cursor, load, nullptr, FlowGraph::kValue);
       cursor = load;
       initial_value = new (Z) Value(load);
@@ -263,7 +267,7 @@ void JitCallSpecializer::LowerContextAllocation(
 
     store = new (Z) StoreInstanceFieldInstr(
         *slot, new (Z) Value(replacement), initial_value, kNoStoreBarrier,
-        alloc->token_pos(), StoreInstanceFieldInstr::Kind::kInitializing);
+        alloc->source(), StoreInstanceFieldInstr::Kind::kInitializing);
     flow_graph()->InsertAfter(cursor, store, nullptr, FlowGraph::kEffect);
     cursor = store;
   }

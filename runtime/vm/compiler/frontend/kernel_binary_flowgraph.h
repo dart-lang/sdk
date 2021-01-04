@@ -94,11 +94,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment ShortcutForUserDefinedEquals(const Function& dart_function,
                                         LocalVariable* first_parameter);
   Fragment TypeArgumentsHandling(const Function& dart_function);
-  void CheckArgumentTypesAsNecessary(const Function& dart_function,
-                                     intptr_t type_parameters_offset,
-                                     Fragment* explicit_checks,
-                                     Fragment* implicit_checks,
-                                     Fragment* implicit_redefinitions);
   Fragment CompleteBodyWithYieldContinuations(Fragment body);
 
   static UncheckedEntryPointStyle ChooseEntryPointStyle(
@@ -222,8 +217,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment StringInterpolate(TokenPosition position);
   Fragment StringInterpolateSingle(TokenPosition position);
   Fragment ThrowTypeError();
-  Fragment ThrowLateInitializationError(TokenPosition position,
-                                        const String& name);
   Fragment LoadInstantiatorTypeArguments();
   Fragment LoadFunctionTypeArguments();
   Fragment InstantiateType(const AbstractType& type);

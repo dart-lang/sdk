@@ -2,45 +2,45 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/issue43290.dart:11:25: Error: Not a constant expression.
+// pkg/front_end/testcases/general/issue43290.dart:15:25: Error: Not a constant expression.
 //     const Class(length: length);
 //                         ^^^^^^
 //
-// pkg/front_end/testcases/general/issue43290.dart:19:15: Error: Not a constant expression.
+// pkg/front_end/testcases/general/issue43290.dart:23:15: Error: Not a constant expression.
 //     const a = length;
 //               ^^^^^^
 //
-// pkg/front_end/testcases/general/issue43290.dart:7:11: Error: Constant evaluation error:
+// pkg/front_end/testcases/general/issue43290.dart:11:11: Error: Constant evaluation error:
 //     const Class(length: this.length);
 //           ^
-// pkg/front_end/testcases/general/issue43290.dart:7:30: Context: Not a constant expression.
+// pkg/front_end/testcases/general/issue43290.dart:11:30: Context: Not a constant expression.
 //     const Class(length: this.length);
 //                              ^
 //
-// pkg/front_end/testcases/general/issue43290.dart:11:11: Error: Constant evaluation error:
+// pkg/front_end/testcases/general/issue43290.dart:15:11: Error: Constant evaluation error:
 //     const Class(length: length);
 //           ^
-// pkg/front_end/testcases/general/issue43290.dart:11:25: Context: Not a constant expression.
+// pkg/front_end/testcases/general/issue43290.dart:15:25: Context: Not a constant expression.
 //     const Class(length: length);
 //                         ^
 //
-// pkg/front_end/testcases/general/issue43290.dart:15:20: Error: Constant evaluation error:
+// pkg/front_end/testcases/general/issue43290.dart:19:20: Error: Constant evaluation error:
 //     const a = this.length;
 //                    ^
-// pkg/front_end/testcases/general/issue43290.dart:15:20: Context: Not a constant expression.
+// pkg/front_end/testcases/general/issue43290.dart:19:20: Context: Not a constant expression.
 //     const a = this.length;
 //                    ^
-// pkg/front_end/testcases/general/issue43290.dart:15:11: Context: While analyzing:
+// pkg/front_end/testcases/general/issue43290.dart:19:11: Context: While analyzing:
 //     const a = this.length;
 //           ^
 //
-// pkg/front_end/testcases/general/issue43290.dart:19:15: Error: Constant evaluation error:
+// pkg/front_end/testcases/general/issue43290.dart:23:15: Error: Constant evaluation error:
 //     const a = length;
 //               ^
-// pkg/front_end/testcases/general/issue43290.dart:19:15: Context: Not a constant expression.
+// pkg/front_end/testcases/general/issue43290.dart:23:15: Context: Not a constant expression.
 //     const a = length;
 //               ^
-// pkg/front_end/testcases/general/issue43290.dart:19:11: Context: While analyzing:
+// pkg/front_end/testcases/general/issue43290.dart:23:11: Context: While analyzing:
 //     const a = length;
 //           ^
 //

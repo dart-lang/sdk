@@ -14,16 +14,12 @@ general_nnbd_opt_out/override_check_with_covariant_modifier: TypeCheckError
 general_nnbd_opt_out/override_setter_with_field: TypeCheckError
 general/abstract_members: TypeCheckError
 general/bug30695: TypeCheckError
-general/constants/const_collections: TypeCheckError
 general/covariant_field: TypeCheckError
 general/getter_vs_setter_type: TypeCheckError
 general/infer_field_from_multiple: TypeCheckError
 general/invalid_operator: TypeCheckError
 general/invalid_operator_override: TypeCheckError
-general/issue41210a: TypeCheckError
-general/issue41210b/issue41210: TypeCheckError
 general/mixin_application_override: TypeCheckError
-general/mixin_covariant2: TypeCheckError
 general/override_check_accessor_after_inference: TypeCheckError
 general/override_check_accessor_basic: TypeCheckError
 general/override_check_accessor_with_covariant_modifier: TypeCheckError
@@ -48,7 +44,4 @@ late_lowering/covariant_late_field: TypeCheckError
 nnbd/covariant_late_field: TypeCheckError
 nnbd/getter_vs_setter_type: TypeCheckError
 nnbd/issue42603: TypeCheckError
-none/mixin_covariant: TypeCheckError
 rasta/native_is_illegal: Pass # Issue 29763
-runtime_checks_new/mixin_forwarding_stub_field: TypeCheckError
-runtime_checks_new/mixin_forwarding_stub_setter: TypeCheckError

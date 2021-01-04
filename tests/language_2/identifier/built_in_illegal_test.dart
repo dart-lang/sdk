@@ -131,7 +131,6 @@ class part { }
 // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
 // [cfe] Expected an identifier, but got 'part'.
 // [error line 123, column 12, length 0]
-// [analyzer] COMPILE_TIME_ERROR.PART_OF_NON_PART
 // [cfe] Expected ';' after this.
 //         ^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_EXECUTABLE

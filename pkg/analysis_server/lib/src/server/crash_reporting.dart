@@ -8,16 +8,11 @@ import 'package:analyzer/instrumentation/plugin_data.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:telemetry/crash_reporting.dart';
 
-const _angularPluginName = 'Angular Analysis Plugin';
-
 class CrashReportingInstrumentation extends NoopInstrumentationService {
   // A prod reporter, for analysis server crashes.
   final CrashReportSender serverReporter;
 
-  // The angular plugin crash reporter.
-  final CrashReportSender angularReporter;
-
-  CrashReportingInstrumentation(this.serverReporter, this.angularReporter);
+  CrashReportingInstrumentation(this.serverReporter);
 
   @override
   void logException(dynamic exception,
@@ -48,14 +43,7 @@ class CrashReportingInstrumentation extends NoopInstrumentationService {
     dynamic exception,
     StackTrace stackTrace,
   ) {
-    if (plugin.name == _angularPluginName) {
-      angularReporter.sendReport(exception, stackTrace).catchError((error) {
-        // We silently ignore errors sending crash reports (network issues, ...).
-      });
-    } else {
-      _sendServerReport(exception, stackTrace,
-          comment: 'plugin: ${plugin.name}');
-    }
+    _sendServerReport(exception, stackTrace, comment: 'plugin: ${plugin.name}');
   }
 
   void _sendServerReport(Object exception, Object stackTrace,

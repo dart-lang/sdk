@@ -3,9 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
-import 'package:kernel/class_hierarchy.dart' as ir;
-import 'package:kernel/core_types.dart' as ir;
-import 'package:kernel/type_environment.dart' as ir;
 
 import '../common.dart';
 import '../elements/entities.dart';
@@ -270,4 +267,21 @@ bool memberEntityIsInWebLibrary(MemberEntity entity) {
   var importUri = entity?.library?.canonicalUri;
   if (importUri == null) return false;
   return _isWebLibrary(importUri);
+}
+
+/// Returns the effective target of a super access of [target].
+///
+/// If [target] is a concrete mixin stub then the stub target is returned
+/// instead of the concrete mixin stub. This is done to avoid unnecessary
+/// indirections in super accesses.
+///
+/// See [ir.ProcedureStubKind.ConcreteMixinStub] for why concrete mixin stubs
+/// are inserted in the first place.
+ir.Member getEffectiveSuperTarget(ir.Member target) {
+  if (target is ir.Procedure) {
+    if (target.stubKind == ir.ProcedureStubKind.ConcreteMixinStub) {
+      return getEffectiveSuperTarget(target.stubTarget);
+    }
+  }
+  return target;
 }

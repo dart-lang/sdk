@@ -245,7 +245,7 @@ class OutputParser {
   String _boundaryKey;
   bool _readingSources;
 
-  List<String> allReceived = new List<String>();
+  List<String> allReceived = <String>[];
 
   void listener(String s) {
     allReceived.add(s);
@@ -331,7 +331,7 @@ abstract class Logger {
 }
 
 class StdoutLogger extends Logger {
-  List<String> _log = new List<String>();
+  List<String> _log = <String>[];
 
   @override
   void logExpectedResult(String testName) {

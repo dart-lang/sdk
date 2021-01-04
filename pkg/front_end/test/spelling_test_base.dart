@@ -102,7 +102,7 @@ class SpellTest extends Step<TestDescription, TestDescription, SpellContext> {
         scanner.lineStarts, rawBytes, description.uri, description.uri);
     void addErrorMessage(
         int offset, String word, bool denylisted, List<String> alternatives) {
-      errors ??= new List<String>();
+      errors ??= <String>[];
       String message;
       if (denylisted) {
         message = "Misspelled word: '$word' has explicitly been denylisted.";

@@ -58,9 +58,11 @@ dart_2/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel 
 [ $builder_tag == tsan ]
 dart/appjit_cha_deopt_test: SkipSlow
 dart/regress_40462_test: SkipSlow
+dart/regress_40753_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatly fails to locate its coredump.
 dart/trigger_gc_in_native_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatly fails to locate its coredump.
 dart_2/appjit_cha_deopt_test: SkipSlow
 dart_2/regress_40462_test: SkipSlow
+dart_2/regress_40753_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatly fails to locate its coredump.
 dart_2/trigger_gc_in_native_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatly fails to locate its coredump.
 
 [ $compiler == app_jitk ]
@@ -115,6 +117,7 @@ dart_2/data_uri_import_test/badencodeddate: CompileTimeError
 
 [ $mode == debug ]
 cc/CorelibIsolateStartup: SkipByDesign # This is a benchmark that is not informative in debug mode.
+cc/SixtyThousandDartClasses: SkipSlow # Finalization of 64K classes is too slow in debug mode.
 cc/VerifyExplicit_Crash: Crash # Negative tests of VerifiedMemory should crash iff in DEBUG mode. TODO(koda): Improve support for negative tests.
 cc/VerifyImplicit_Crash: Crash # Negative tests of VerifiedMemory should crash iff in DEBUG mode. TODO(koda): Improve support for negative tests.
 dart/appjit_cha_deopt_test: Pass, Slow # Quite slow in debug mode, uses --optimization-counter-threshold=100
@@ -138,6 +141,20 @@ dart_2/redirection_type_shuffling_test: SkipByDesign # Imports dart:mirrors
 
 [ $nnbd == legacy ]
 dart/*: SkipByDesign # Migrated tests are not supposed to run on non-NNBD bots.
+
+[ $runtime == vm ]
+dart/isolates/*: Pass, Slow # https://dartbug.com/36097: Slower while isolate groups are being gradually enabled in JIT mode.
+dart/issue_31959_31960_test: Pass, Slow # https://dartbug.com/36097: Slower while isolate groups are being gradually enabled in JIT mode.
+dart/sendandexit_test: Pass, Slow # https://dartbug.com/36097: Slower while isolate groups are being gradually enabled in JIT mode.
+dart/spawn_infinite_loop_test: Pass, Slow # https://dartbug.com/36097: Slower while isolate groups are being gradually enabled in JIT mode.
+dart/transferable_test: Pass, Slow # https://dartbug.com/36097: Slower while isolate groups are being gradually enabled in JIT mode.
+dart/transferable_throws_test: Pass, Slow # https://dartbug.com/36097: Slower while isolate groups are being gradually enabled in JIT mode.
+dart_2/isolates/*: Pass, Slow # https://dartbug.com/36097: Slower while isolate groups are being gradually enabled in JIT mode.
+dart_2/issue_31959_31960_test: Pass, Slow # https://dartbug.com/36097: Slower while isolate groups are being gradually enabled in JIT mode.
+dart_2/sendandexit_test: Pass, Slow # https://dartbug.com/36097: Slower while isolate groups are being gradually enabled in JIT mode.
+dart_2/spawn_infinite_loop_test: Pass, Slow # https://dartbug.com/36097: Slower while isolate groups are being gradually enabled in JIT mode.
+dart_2/transferable_test: Pass, Slow # https://dartbug.com/36097: Slower while isolate groups are being gradually enabled in JIT mode.
+dart_2/transferable_throws_test: Pass, Slow # https://dartbug.com/36097: Slower while isolate groups are being gradually enabled in JIT mode.
 
 [ $system == android ]
 dart/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # On android this test does not work due to not being able to identify library uri.

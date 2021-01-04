@@ -99,38 +99,53 @@ class MixinFullResolution {
     var substitution = getSubstitutionMap(class_.mixedInType);
     var cloner = new CloneVisitorWithMembers(typeSubstitution: substitution);
 
-    // When we copy a field from the mixed in class, we remove any
-    // forwarding-stub getters/setters from the superclass, but copy their
-    // covariance-bits onto the new field.
-    var nonSetters = <Name, Procedure>{};
-    var setters = <Name, Procedure>{};
-    for (var procedure in class_.procedures) {
-      if (procedure.isSetter) {
-        setters[procedure.name] = procedure;
-      } else {
-        nonSetters[procedure.name] = procedure;
-      }
-    }
-
     IndexedLibrary indexedLibrary =
         referenceFromIndex?.lookupLibrary(enclosingLibrary);
     IndexedClass indexedClass = indexedLibrary?.lookupIndexedClass(class_.name);
 
-    for (var field in class_.mixin.fields) {
-      Field clone =
-          cloner.cloneField(field, indexedClass?.lookupField(field.name.text));
-      Procedure setter = setters[field.name];
-      if (setter != null) {
-        setters.remove(field.name);
-        VariableDeclaration parameter =
-            setter.function.positionalParameters.first;
-        clone.isGenericCovariantImpl = parameter.isGenericCovariantImpl;
+    if (class_.mixin.fields.isNotEmpty) {
+      // When we copy a field from the mixed in class, we remove any
+      // forwarding-stub getters/setters from the superclass, but copy their
+      // covariance-bits onto the new field.
+      var nonSetters = <Name, Procedure>{};
+      var setters = <Name, Procedure>{};
+      for (var procedure in class_.procedures) {
+        if (procedure.isSetter) {
+          setters[procedure.name] = procedure;
+        } else {
+          nonSetters[procedure.name] = procedure;
+        }
       }
-      nonSetters.remove(field.name);
-      class_.addField(clone);
+
+      for (var field in class_.mixin.fields) {
+        Reference getterReference =
+            indexedClass?.lookupGetterReference(field.name.text);
+        Reference setterReference =
+            indexedClass?.lookupSetterReference(field.name.text);
+        if (getterReference == null) {
+          getterReference = nonSetters[field.name]?.reference;
+          getterReference?.canonicalName?.unbind();
+        }
+        if (setterReference == null) {
+          setterReference = setters[field.name]?.reference;
+          setterReference?.canonicalName?.unbind();
+        }
+        Field clone =
+            cloner.cloneField(field, getterReference, setterReference);
+        Procedure setter = setters[field.name];
+        if (setter != null) {
+          setters.remove(field.name);
+          VariableDeclaration parameter =
+              setter.function.positionalParameters.first;
+          clone.isCovariant = parameter.isCovariant;
+          clone.isGenericCovariantImpl = parameter.isGenericCovariantImpl;
+        }
+        nonSetters.remove(field.name);
+        class_.addField(clone);
+      }
+      class_.procedures.clear();
+      class_.procedures..addAll(nonSetters.values)..addAll(setters.values);
     }
-    class_.procedures.clear();
-    class_.procedures..addAll(nonSetters.values)..addAll(setters.values);
 
     // Existing procedures in the class should only be forwarding stubs.
     // Replace them with methods from the mixin class if they have the same
@@ -149,13 +164,11 @@ class MixinFullResolution {
       // NoSuchMethod forwarders aren't cloned.
       if (procedure.isNoSuchMethodForwarder) continue;
 
-      Procedure referenceFrom;
+      Reference reference;
       if (procedure.isSetter) {
-        referenceFrom =
-            indexedClass?.lookupProcedureSetter(procedure.name.text);
+        reference = indexedClass?.lookupSetterReference(procedure.name.text);
       } else {
-        referenceFrom =
-            indexedClass?.lookupProcedureNotSetter(procedure.name.text);
+        reference = indexedClass?.lookupGetterReference(procedure.name.text);
       }
 
       // Linear search for a forwarding stub with the same name.
@@ -179,9 +192,9 @@ class MixinFullResolution {
         }
       }
       if (originalIndex != null) {
-        referenceFrom ??= class_.procedures[originalIndex];
+        reference ??= class_.procedures[originalIndex]?.reference;
       }
-      Procedure clone = cloner.cloneProcedure(procedure, referenceFrom);
+      Procedure clone = cloner.cloneProcedure(procedure, reference);
       if (originalIndex != null) {
         Procedure originalProcedure = class_.procedures[originalIndex];
         FunctionNode src = originalProcedure.function;
@@ -196,10 +209,14 @@ class MixinFullResolution {
         // TODO(kernel team): The named parameters are not sorted,
         // this might not be correct.
         for (int j = 0; j < src.namedParameters.length; ++j) {
-          dst.namedParameters[j].flags = src.namedParameters[j].flags;
+          dst.namedParameters[j].isCovariant =
+              src.namedParameters[j].isCovariant;
+          dst.namedParameters[j].isGenericCovariantImpl =
+              src.namedParameters[j].isGenericCovariantImpl;
         }
 
         class_.procedures[originalIndex] = clone;
+        clone.parent = class_;
       } else {
         class_.addProcedure(clone);
       }

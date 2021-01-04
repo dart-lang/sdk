@@ -1,0 +1,9 @@
+import 'nullable_extension_on_opt_out_lib.dart';
+
+expect(expected, actual) {}
+
+extension on A? {
+  String get text => "Lily was here";
+}
+
+void main() {}

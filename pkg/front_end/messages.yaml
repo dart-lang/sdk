@@ -1914,7 +1914,7 @@ InternalProblemUnsupportedNullability:
 
 IncrementalCompilerIllegalParameter:
   template: "Illegal parameter name '#string' found during expression compilation."
-  
+
 IncrementalCompilerIllegalTypeParameter:
   template: "Illegal type parameter name '#string' found during expression compilation."
 
@@ -3563,6 +3563,21 @@ DillOutlineSummary:
     #num2%12.3 bytes/ms, and
     #num3%12.3 ms/libraries.
 
+CantInferTypesDueToNoCombinedSignature:
+  template: "Can't infer types for '#name' as the overridden members don't have a combined signature."
+  tip: "Try adding explicit types."
+  analyzerCode: COMPILE_TIME_ERROR.NO_COMBINED_SUPER_SIGNATURE
+  script: |
+    class A {
+      void method(int a, String b) {}
+    }
+    class B {
+      void method(String a, int b) {}
+    }
+    class C implements A, B {
+      void method(a, b) {}
+    }
+
 CantInferTypeDueToNoCombinedSignature:
   template: "Can't infer a type for '#name' as the overridden members don't have a combined signature."
   tip: "Try adding an explicit type."
@@ -3594,18 +3609,6 @@ CantInferReturnTypeDueToNoCombinedSignature:
     abstract class C implements A, B {
       get getter;
     }
-
-CantInferTypeDueToInconsistentOverrides:
-  template: "Can't infer a type for '#name' as some of the overridden members have different types."
-  tip: "Try adding an explicit type."
-  analyzerCode: INVALID_METHOD_OVERRIDE
-  external: testcases/inference/inconsistent_overrides.dart
-
-CantInferReturnTypeDueToInconsistentOverrides:
-  template: "Can't infer a return type for '#name' as some of the overridden members have different types."
-  tip: "Try adding an explicit type."
-  analyzerCode: INVALID_METHOD_OVERRIDE
-  external: testcases/inference/inconsistent_overrides.dart
 
 CantInferTypeDueToCircularity:
   template: "Can't infer the type of '#string': circularity found during type inference."
@@ -4230,6 +4233,11 @@ FfiTypeMismatch:
   template: "Expected type '#type' to be '#type2', which is the Dart type corresponding to '#type3'."
   external: test/ffi_test.dart
 
+FfiEmptyStruct:
+  # Used by dart:ffi
+  template: "Struct '#name' is empty. Empty structs are undefined behavior."
+  external: test/ffi_test.dart
+
 FfiTypeInvalid:
   # Used by dart:ffi
   template: "Expected type '#type' to be a valid and instantiated subtype of 'NativeType'."
@@ -4243,6 +4251,13 @@ FfiFieldAnnotation:
 FfiFieldNoAnnotation:
   # Used by dart:ffi
   template: "Field '#name' requires no annotation to declare its native type, it is a Pointer which is represented by the same type in Dart and native code."
+  external: test/ffi_test.dart
+
+FfiFieldCyclic:
+  # Used by dart:ffi
+  template: |
+    Struct '#name' contains itself. Cycle elements:
+    #names
   external: test/ffi_test.dart
 
 FfiNotStatic:
@@ -4585,7 +4600,9 @@ ValueForRequiredParameterNotProvidedError:
   template: "Required named parameter '#name' must be provided."
 
 OptionalNonNullableWithoutInitializerError:
-  template: "Optional parameter '#name' should have a default value because its type '#type' doesn't allow null."
+  template: "The parameter '#name' can't have a value of 'null' because of its type '#type', but the implicit default value is 'null'."
+  tip: "Try adding either an explicit non-'null' default value or the 'required' modifier."
+  analyzerCode: MISSING_DEFAULT_VALUE_FOR_PARAMETER
   configuration: nnbd-strong
   script:
     - method1({int a}) {}
@@ -4648,6 +4665,9 @@ JsInteropJSClassExtendsDartClass:
 JsInteropNamedParameters:
   template: "Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class."
   tip: "Try replacing them with normal or optional parameters."
+
+JsInteropNativeClassInAnnotation:
+  template: "JS interop class '#name' conflicts with natively supported class '#name2' in '#string3'."
 
 JsInteropNonExternalConstructor:
   template: "JS interop classes do not support non-external constructors."
@@ -4904,3 +4924,10 @@ MainWrongParameterTypeExported:
 ExportedMain:
   template: "This is exported 'main' declaration."
   severity: CONTEXT
+
+UnexpectedModifierInNonNnbd:
+  template: "The modifier '#lexeme' is only available in null safe libraries."
+  exampleAllowMoreCodes: true
+  analyzerCode: UNEXPECTED_TOKEN
+  script:
+    - "late int x;"

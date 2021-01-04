@@ -26,7 +26,7 @@
       "pkg/",
       "runtime/tests/",
       "samples-dev/",
-      "samples/",
+      "samples_2/",
       "sdk/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
@@ -113,7 +113,7 @@
       "pkg/",
       "runtime/tests/",
       "samples-dev/",
-      "samples/",
+      "samples_2/",
       "sdk/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
@@ -200,6 +200,7 @@
       "runtime/tests/",
       "samples-dev/",
       "samples/",
+      "samples_2/",
       "sdk/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
@@ -285,6 +286,11 @@
       "out/ReleaseAndroidARM/",
       "out/ReleaseAndroidARM_X64/",
       "out/ReleaseAndroidARM64/",
+      "out/ReleaseASANX64/",
+      "out/ReleaseLSANX64/",
+      "out/ReleaseMSANX64/",
+      "out/ReleaseTSANX64/",
+      "out/ReleaseUBSANX64/",
       "out/ReleaseXARM64/",
       "out/ProductIA32/",
       "out/ProductX64/",
@@ -303,6 +309,7 @@
       "xcodebuild/ReleaseSIMARM64/",
       "xcodebuild/ReleaseX64/",
       "samples/",
+      "samples_2/",
       "samples-dev/",
       "tools/",
       "third_party/android_tools/sdk/platform-tools/adb",
@@ -510,7 +517,9 @@
     "dart2js-(linux|mac|win)-chrome-unsound": {
       "options": {
         "use-sdk": true,
-        "dart2js-options": ["--no-sound-null-safety"]
+        "dart2js-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dart2js-weak-(linux|mac|win)-x64-d8": {
@@ -527,7 +536,9 @@
     "dart2js-(linux|win)-firefox-unsound": {
       "options": {
         "use-sdk": true,
-        "dart2js-options": ["--no-sound-null-safety"]
+        "dart2js-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dart2js-win-ie11": {
@@ -540,7 +551,9 @@
       "options": {
         "use-sdk": true,
         "babel": "{\"presets\":[\"es2015\"]}",
-        "dart2js-options": ["--no-sound-null-safety"]
+        "dart2js-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dart2js-win-edge": {
@@ -551,7 +564,9 @@
     "dart2js-win-edge-unsound": {
       "options": {
         "use-sdk": true,
-        "dart2js-options": ["--no-sound-null-safety"]
+        "dart2js-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dart2js-mac-safari": {
@@ -562,7 +577,9 @@
     "dart2js-mac-safari-unsound": {
       "options": {
         "use-sdk": true,
-        "dart2js-options": ["--no-sound-null-safety"]
+        "dart2js-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dart2js-minified-csp-(linux|mac|win)-chrome": {
@@ -577,7 +594,9 @@
         "minified": true,
         "csp": true,
         "use-sdk": true,
-        "dart2js-options": ["--no-sound-null-safety"]
+        "dart2js-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dart2js-minified-(linux|mac|win)-d8": {
@@ -590,7 +609,9 @@
       "options": {
         "minified": true,
         "use-sdk": true,
-        "dart2js-options": ["--no-sound-null-safety"]
+        "dart2js-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dart2js-production-(linux|mac|win)-d8": {
@@ -610,7 +631,9 @@
     "dart2js-hostasserts-(linux|mac|win)-(ia32|x64)-d8-unsound": {
       "options": {
         "host-checked": true,
-        "dart2js-options": ["--no-sound-null-safety"]
+        "dart2js-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dart2js-hostasserts-weak-(linux|win)-x64-(d8|chrome)": {
@@ -619,6 +642,18 @@
         "dart2js-options": [
           "--libraries-spec=sdk/lib/libraries.json",
           "--platform-binaries=out/ReleaseX64/"
+        ],
+        "timeout": 240,
+        "host-checked": true
+      }
+    },
+    "dart2js-hostasserts-weak-max-fragments-(linux|win)-x64-(d8|chrome)": {
+      "options": {
+        "builder-tag": "dart2js-weak",
+        "dart2js-options": [
+          "--libraries-spec=sdk/lib/libraries.json",
+          "--platform-binaries=out/ReleaseX64/",
+          "--merge-fragments-threshold=3"
         ],
         "timeout": 240,
         "host-checked": true
@@ -641,6 +676,18 @@
         "dart2js-options": [
           "--libraries-spec=sdk/lib/libraries.json",
           "--platform-binaries=out/ReleaseX64/"
+        ],
+        "timeout": 240,
+        "host-checked": true
+      }
+    },
+    "dart2js-hostasserts-strong-max-fragments-(linux|win)-x64-(d8|chrome)": {
+      "options": {
+        "builder-tag": "dart2js-strong",
+        "dart2js-options": [
+          "--libraries-spec=sdk/lib/libraries.json",
+          "--platform-binaries=out/ReleaseX64/",
+          "--merge-fragments-threshold=3"
         ],
         "timeout": 240,
         "host-checked": true
@@ -748,7 +795,7 @@
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-simarm64": {
+    "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-(simarm|simarm64)": {
       "options": {
         "enable-asserts": true,
         "use-elf": true,
@@ -778,7 +825,7 @@
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartkp-strong-(linux|mac)-(debug|product|release)-simarm64": {
+    "dartkp-strong-(linux|mac)-(debug|product|release)-(simarm|simarm64)": {
       "options": {
         "use-elf": true,
         "builder-tag": "vm_nnbd"
@@ -1418,8 +1465,11 @@
           "name": "vm tests",
           "arguments": [
             "-ndartk-${sanitizer}-${system}-${mode}-${arch}",
-            "vm"
-          ]
+            "vm",
+            "standalone_2"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 8
         }
       ]
     },
@@ -1472,8 +1522,11 @@
           "name": "vm tests",
           "arguments": [
             "-ndartkp-${sanitizer}-${system}-${mode}-${arch}",
-            "vm"
-          ]
+            "vm",
+            "standalone_2"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 8
         }
       ]
     },
@@ -1689,8 +1742,11 @@
           "script": "tools/build.py",
           "arguments": [
             "--os=fuchsia",
+            "--arch=x64,arm64",
             "runtime",
-            "create_sdk"
+            "create_sdk",
+            "fuchsia_test_package",
+            "fuchsia_ffi_test_package"
           ]
         }
       ]
@@ -2451,6 +2507,16 @@
           "fileset": "web_platform_hostasserts_nnbd"
         },
         {
+          "name": "dart2js nnbd weak d8 fragment merging tests",
+          "arguments": [
+            "-ndart2js-hostasserts-weak-max-fragments-linux-x64-d8",
+            "--dart2js-batch",
+            "dart2js/deferred/"
+          ],
+          "shards": 1,
+          "fileset": "web_platform_hostasserts_nnbd"
+        },
+        {
           "name": "dart2js nnbd weak chrome tests",
           "arguments": [
             "-ndart2js-hostasserts-weak-linux-x64-chrome",
@@ -2489,6 +2555,16 @@
             "corelib"
           ],
           "shards": 6,
+          "fileset": "web_platform_hostasserts_nnbd"
+        },
+        {
+          "name": "dart2js nnbd strong d8 fragment merging tests",
+          "arguments": [
+            "-ndart2js-hostasserts-strong-max-fragments-linux-x64-d8",
+            "--dart2js-batch",
+            "dart2js/deferred/"
+          ],
+          "shards": 1,
           "fileset": "web_platform_hostasserts_nnbd"
         },
         {
@@ -2896,17 +2972,17 @@
         },
         {
           "name": "analyze pkg/build_integration",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "pkg/build_integration"
           ]
         },
         {
           "name": "analyze pkg/compiler",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "pkg/compiler"
           ]
         },
@@ -2921,9 +2997,9 @@
         },
         {
           "name": "analyze pkg/dart2js_tools",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "pkg/dart2js_tools"
           ]
         },
@@ -2955,33 +3031,33 @@
         },
         {
           "name": "analyze pkg/front_end",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "pkg/front_end"
           ]
         },
         {
           "name": "analyze pkg/js",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "pkg/js"
           ]
         },
         {
           "name": "analyze pkg/js_ast",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "pkg/js_ast"
           ]
         },
         {
           "name": "analyze pkg/kernel",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "pkg/kernel"
           ]
         },
@@ -3093,8 +3169,9 @@
         },
         {
           "name": "analyze runtime/observatory",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
+            "analyze",
             "runtime/observatory"
           ]
         },

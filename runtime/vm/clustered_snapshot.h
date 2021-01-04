@@ -221,7 +221,7 @@ class Serializer : public ThreadStackResource {
   ZoneGrowableArray<Object*>* Serialize(SerializationRoots* roots);
   void PrintSnapshotSizes();
 
-  FieldTable* field_table() { return field_table_; }
+  FieldTable* initial_field_table() const { return initial_field_table_; }
 
   NonStreamingWriteStream* stream() { return stream_; }
   intptr_t bytes_written() { return stream_->bytes_written(); }
@@ -340,9 +340,7 @@ class Serializer : public ThreadStackResource {
     }
   }
 
-  void WriteTokenPosition(TokenPosition pos) {
-    Write<int32_t>(pos.SnapshotEncode());
-  }
+  void WriteTokenPosition(TokenPosition pos) { Write(pos.Serialize()); }
 
   void WriteCid(intptr_t cid) {
     COMPILE_ASSERT(ObjectLayout::kClassIdTagSize <= 32);
@@ -433,7 +431,7 @@ class Serializer : public ThreadStackResource {
   intptr_t num_written_objects_;
   intptr_t next_ref_index_;
   intptr_t previous_text_offset_;
-  FieldTable* field_table_;
+  FieldTable* initial_field_table_;
 
   intptr_t dispatch_table_size_ = 0;
 
@@ -616,7 +614,7 @@ class Deserializer : public ThreadStackResource {
   }
 
   TokenPosition ReadTokenPosition() {
-    return TokenPosition::SnapshotDecode(Read<int32_t>());
+    return TokenPosition::Deserialize(Read<int32_t>());
   }
 
   intptr_t ReadCid() {
@@ -641,7 +639,7 @@ class Deserializer : public ThreadStackResource {
   Heap* heap() const { return heap_; }
   Zone* zone() const { return zone_; }
   Snapshot::Kind kind() const { return kind_; }
-  FieldTable* field_table() const { return field_table_; }
+  FieldTable* initial_field_table() const { return initial_field_table_; }
 
  private:
   Heap* heap_;
@@ -658,7 +656,7 @@ class Deserializer : public ThreadStackResource {
   intptr_t previous_text_offset_;
   DeserializationCluster** canonical_clusters_;
   DeserializationCluster** clusters_;
-  FieldTable* field_table_;
+  FieldTable* initial_field_table_;
   const bool is_non_root_unit_;
 };
 

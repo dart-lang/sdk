@@ -144,7 +144,7 @@ String relativeUriPath(Uri target, Uri ref) {
     if (targetSegments.last == "") return ".";
     return targetSegments.last;
   }
-  List<String> path = new List<String>();
+  List<String> path = <String>[];
   int oked = same + 1;
   while (oked < refSegments.length - 1) {
     path.add("..");

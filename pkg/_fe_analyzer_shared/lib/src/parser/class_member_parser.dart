@@ -15,7 +15,7 @@ import 'parser_impl.dart' show Parser;
 /// Parser similar to [TopLevelParser] but also parses class members (excluding
 /// their bodies).
 class ClassMemberParser extends Parser {
-  Parser skipParser;
+  Parser? skipParser;
 
   ClassMemberParser(Listener listener) : super(listener);
 
@@ -26,7 +26,7 @@ class ClassMemberParser extends Parser {
 
   @override
   Token parseIdentifierExpression(Token token) {
-    return token.next;
+    return token.next!;
   }
 
   Token skipExpression(Token token) {
@@ -35,7 +35,8 @@ class ClassMemberParser extends Parser {
     // not triggered during the second parse.
     // When the parser supports not doing token stream rewriting, use that
     // feature together with a no-op listener instead.
-    skipParser ??= new Parser(new ErrorDelegationListener(listener));
+    this.skipParser ??= new Parser(new ErrorDelegationListener(listener));
+    Parser skipParser = this.skipParser!;
     skipParser.mayParseFunctionExpressions = mayParseFunctionExpressions;
     skipParser.asyncState = asyncState;
     skipParser.loopState = loopState;

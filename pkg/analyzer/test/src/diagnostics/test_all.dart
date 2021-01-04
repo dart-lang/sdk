@@ -126,6 +126,8 @@ import 'deprecated_member_use_test.dart' as deprecated_member_use;
 import 'deprecated_mixin_function_test.dart' as deprecated_mixin_function;
 import 'division_optimization_test.dart' as division_optimization;
 import 'duplicate_definition_test.dart' as duplicate_definition;
+import 'duplicate_field_formal_parameter_test.dart'
+    as duplicate_field_formal_parameter;
 import 'duplicate_hidden_name_test.dart' as duplicate_hidden_name;
 import 'duplicate_ignore_test.dart' as duplicate_ignore;
 import 'duplicate_import_test.dart' as duplicate_import;
@@ -265,6 +267,8 @@ import 'instance_member_access_from_static_test.dart'
     as instance_member_access_from_static;
 import 'instantiate_abstract_class_test.dart' as instantiate_abstract_class;
 import 'instantiate_enum_test.dart' as instantiate_enum;
+import 'instantiate_type_alias_expands_to_type_parameter_test.dart'
+    as instantiate_type_alias_expands_to_type_parameter;
 import 'integer_literal_imprecise_as_double_test.dart'
     as integer_literal_imprecise_as_double;
 import 'integer_literal_out_of_range_test.dart' as integer_literal_out_of_range;
@@ -525,6 +529,8 @@ import 'redirect_to_missing_constructor_test.dart'
 import 'redirect_to_non_class_test.dart' as redirect_to_non_class;
 import 'redirect_to_non_const_constructor_test.dart'
     as redirect_to_non_const_constructor;
+import 'redirect_to_type_alias_expands_to_type_parameter_test.dart'
+    as redirect_to_type_alias_expands_to_type_parameter;
 import 'referenced_before_declaration_test.dart'
     as referenced_before_declaration;
 import 'rethrow_outside_catch_test.dart' as rethrow_outside_catch;
@@ -742,6 +748,7 @@ main() {
     deprecated_mixin_function.main();
     division_optimization.main();
     duplicate_definition.main();
+    duplicate_field_formal_parameter.main();
     duplicate_hidden_name.main();
     duplicate_ignore.main();
     duplicate_import.main();
@@ -830,6 +837,7 @@ main() {
     instance_member_access_from_static.main();
     instantiate_abstract_class.main();
     instantiate_enum.main();
+    instantiate_type_alias_expands_to_type_parameter.main();
     integer_literal_imprecise_as_double.main();
     integer_literal_out_of_range.main();
     invalid_annotation.main();
@@ -1002,6 +1010,7 @@ main() {
     redirect_to_missing_constructor.main();
     redirect_to_non_class.main();
     redirect_to_non_const_constructor.main();
+    redirect_to_type_alias_expands_to_type_parameter.main();
     referenced_before_declaration.main();
     rethrow_outside_catch.main();
     return_in_generative_constructor.main();

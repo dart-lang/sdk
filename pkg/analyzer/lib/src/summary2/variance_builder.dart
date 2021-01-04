@@ -9,7 +9,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/summary2/function_type_builder.dart';
-import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
 import 'package:meta/meta.dart';
@@ -60,33 +59,34 @@ class VarianceBuilder {
       }
     } else if (type is NamedTypeBuilder) {
       var element = type.element;
+      var arguments = type.arguments;
       if (element is ClassElement) {
         var result = Variance.unrelated;
-        if (type.arguments.isNotEmpty) {
+        if (arguments.isNotEmpty) {
           var parameters = element.typeParameters;
-          for (int i = 0; i < type.arguments.length; ++i) {
+          for (var i = 0; i < arguments.length && i < parameters.length; i++) {
             var parameter = parameters[i] as TypeParameterElementImpl;
             result = result.meet(
               parameter.variance.combine(
-                _compute(variable, type.arguments[i]),
+                _compute(variable, arguments[i]),
               ),
             );
           }
         }
         return result;
-      } else if (element is FunctionTypeAliasElementImpl) {
-        _functionTypeAliasElement(element);
+      } else if (element is TypeAliasElementImpl) {
+        _typeAliasElement(element);
 
         var result = Variance.unrelated;
 
-        if (type.arguments.isNotEmpty) {
+        if (arguments.isNotEmpty) {
           var parameters = element.typeParameters;
-          for (var i = 0; i < type.arguments.length; ++i) {
+          for (var i = 0; i < arguments.length && i < parameters.length; i++) {
             var parameter = parameters[i] as TypeParameterElementImpl;
             var parameterVariance = parameter.variance;
             result = result.meet(
               parameterVariance.combine(
-                _compute(variable, type.arguments[i]),
+                _compute(variable, arguments[i]),
               ),
             );
           }
@@ -149,7 +149,7 @@ class VarianceBuilder {
     // Recursion detected, recover.
     if (_visit.contains(node)) {
       for (var parameter in parameterList.typeParameters) {
-        LazyAst.setVariance(parameter, Variance.covariant);
+        _setVariance(parameter, Variance.covariant);
       }
       return;
     }
@@ -171,21 +171,10 @@ class VarianceBuilder {
             node.parameters,
           ),
         );
-        LazyAst.setVariance(parameter, variance);
+        _setVariance(parameter, variance);
       }
     } finally {
       _visit.remove(node);
-    }
-  }
-
-  void _functionTypeAliasElement(FunctionTypeAliasElementImpl element) {
-    var node = element.linkedNode;
-    if (node is GenericTypeAlias) {
-      _genericTypeAlias(node);
-    } else if (node is FunctionTypeAlias) {
-      _functionTypeAlias(node);
-    } else {
-      throw UnimplementedError('(${node.runtimeType}) $node');
     }
   }
 
@@ -198,7 +187,7 @@ class VarianceBuilder {
     // Recursion detected, recover.
     if (_visit.contains(node)) {
       for (var parameter in parameterList.typeParameters) {
-        LazyAst.setVariance(parameter, Variance.covariant);
+        _setVariance(parameter, Variance.covariant);
       }
       return;
     }
@@ -213,7 +202,7 @@ class VarianceBuilder {
     // Not a function type, recover.
     if (type == null) {
       for (var parameter in parameterList.typeParameters) {
-        LazyAst.setVariance(parameter, Variance.covariant);
+        _setVariance(parameter, Variance.covariant);
       }
     }
 
@@ -221,10 +210,21 @@ class VarianceBuilder {
     try {
       for (var parameter in parameterList.typeParameters) {
         var variance = _compute(parameter.declaredElement, type);
-        LazyAst.setVariance(parameter, variance);
+        _setVariance(parameter, variance);
       }
     } finally {
       _visit.remove(node);
+    }
+  }
+
+  void _typeAliasElement(TypeAliasElementImpl element) {
+    var node = element.linkedNode;
+    if (node is GenericTypeAlias) {
+      _genericTypeAlias(node);
+    } else if (node is FunctionTypeAlias) {
+      _functionTypeAlias(node);
+    } else {
+      throw UnimplementedError('(${node.runtimeType}) $node');
     }
   }
 
@@ -238,8 +238,13 @@ class VarianceBuilder {
       var varianceKeyword = parameterImpl.varianceKeyword;
       if (varianceKeyword != null) {
         var variance = Variance.fromKeywordString(varianceKeyword.lexeme);
-        LazyAst.setVariance(parameter, variance);
+        _setVariance(parameter, variance);
       }
     }
+  }
+
+  static void _setVariance(TypeParameter node, Variance variance) {
+    var element = node.declaredElement as TypeParameterElementImpl;
+    element.variance = variance;
   }
 }

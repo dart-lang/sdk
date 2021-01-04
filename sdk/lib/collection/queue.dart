@@ -518,10 +518,7 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
     return true;
   }
 
-  E get current {
-    final cur = _current;
-    return (cur != null) ? cur : cur as E;
-  }
+  E get current => _current as E;
 }
 
 /// List based [Queue].
@@ -901,10 +898,7 @@ class _ListQueueIterator<E> implements Iterator<E> {
         _modificationCount = queue._modificationCount,
         _position = queue._head;
 
-  E get current {
-    final cur = _current;
-    return (cur != null) ? cur : cur as E;
-  }
+  E get current => _current as E;
 
   bool moveNext() {
     _queue._checkModification(_modificationCount);

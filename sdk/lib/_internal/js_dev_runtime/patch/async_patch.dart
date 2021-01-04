@@ -33,7 +33,7 @@ _async<T>(Function() initGenerator) {
       f = value;
     } else if (value is Future) {
       f = _Future();
-      _Future._chainForeignFuture(value, f);
+      f._chainForeignFuture(value);
     } else {
       f = _Future.value(value);
     }
@@ -100,7 +100,7 @@ _async<T>(Function() initGenerator) {
           if (value is _Future) {
             _Future._chainCoreFuture(value, asyncFuture);
           } else {
-            _Future._chainForeignFuture(value, asyncFuture);
+            asyncFuture._chainForeignFuture(value);
           }
         } else if (isRunningAsEvent) {
           asyncFuture._completeWithValue(JS('', '#', value));
@@ -356,7 +356,7 @@ class _AsyncStarImpl<T> {
       f = value;
     } else if (value is Future) {
       f = _Future();
-      _Future._chainForeignFuture(value, f);
+      f._chainForeignFuture(value);
     } else {
       f = _Future.value(value);
     }

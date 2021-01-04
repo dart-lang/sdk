@@ -1,4 +1,4 @@
-late ;
+late
 final int? lateTopLevelField;
 class Class<T> {
   static late ;
@@ -6,14 +6,19 @@ class Class<T> {
   static late ;
   final int? lateStaticField2;
   static staticMethod() {}
-  late ;
+  late
   final int? lateInstanceField;
-  late ;
+  late
   final T? lateGenericInstanceField;
   instanceMethod(T value) {}
 }
-extension Extension<T> (){}
-on Class<T> (){}
+extension Extension<T> on Class<T> {
+  static late ;
+  final int? lateExtensionField1;
+  static late ;
+  final int? lateExtensionField2;
+  static staticMethod() {}
+}
 main() {}
 expect(expected, actual) {}
 throws(f(), String message) {}

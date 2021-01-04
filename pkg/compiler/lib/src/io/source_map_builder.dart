@@ -22,7 +22,7 @@ class SourceMapBuilder {
   final Uri targetFileUri;
 
   final LocationProvider locationProvider;
-  final List<SourceMapEntry> entries = new List<SourceMapEntry>();
+  final List<SourceMapEntry> entries = <SourceMapEntry>[];
 
   /// Extension used to deobfuscate minified names in error messages.
   final Map<String, String> minifiedGlobalNames;

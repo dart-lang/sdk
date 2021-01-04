@@ -38,3 +38,9 @@ constants  {
   #C6 = <lit::Const<core::int*>*>[#C5]
   #C7 = <lit::Const<core::int*>*>[#C4]
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///literal_from_opt_in_lib.dart:
+- Const. (from org-dartlang-testcase:///literal_from_opt_in_lib.dart:8:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)

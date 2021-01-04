@@ -1,0 +1,39 @@
+class A {
+  ---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+  const A();
+  final int foo = 42;
+}
+class B {
+  ---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+  final int foo = 42;
+  ---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+  const B();
+  final String bar = "foobar";
+}
+class C {
+  ---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+  const C();
+  const C.another();
+  final int foo = 42;
+}
+class D {
+  ---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+  final int foo = 42;
+  ---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+  const D();
+  const D.another();
+  final String bar = "foobar";
+}
+main() {}

@@ -224,15 +224,16 @@ static void TestAliasingViaRedefinition(
   const Error& err = Error::Handle(cls.EnsureIsFinalized(thread));
   EXPECT(err.IsNull());
 
-  const Field& field = Field::Handle(
+  const Field& original_field = Field::Handle(
       cls.LookupField(String::Handle(Symbols::New(thread, "field"))));
-  EXPECT(!field.IsNull());
+  EXPECT(!original_field.IsNull());
+  const Field& field = Field::Handle(original_field.CloneFromOriginal());
 
   const Function& blackhole =
       Function::ZoneHandle(GetFunction(lib, "blackhole"));
 
   using compiler::BlockBuilder;
-  CompilerState S(thread, /*is_aot=*/false);
+  CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
   FlowGraphBuilderHelper H;
 
   // We are going to build the following graph:
@@ -261,9 +262,9 @@ static void TestAliasingViaRedefinition(
     BlockBuilder builder(H.flow_graph(), b1);
     auto& slot = Slot::Get(field, &H.flow_graph()->parsed_function());
     v0 = builder.AddDefinition(
-        new AllocateObjectInstr(TokenPosition::kNoSource, cls));
+        new AllocateObjectInstr(InstructionSource(), cls));
     v1 = builder.AddDefinition(
-        new LoadFieldInstr(new Value(v0), slot, TokenPosition::kNoSource));
+        new LoadFieldInstr(new Value(v0), slot, InstructionSource()));
     auto v2 = builder.AddDefinition(make_redefinition(&S, H.flow_graph(), v0));
     auto args = new InputsArray(2);
     args->Add(new Value(v1));
@@ -271,12 +272,12 @@ static void TestAliasingViaRedefinition(
       args->Add(new Value(v2));
     }
     call = builder.AddInstruction(new StaticCallInstr(
-        TokenPosition::kNoSource, blackhole, 0, Array::empty_array(), args,
+        InstructionSource(), blackhole, 0, Array::empty_array(), args,
         S.GetNextDeoptId(), 0, ICData::RebindRule::kStatic));
     v4 = builder.AddDefinition(
-        new LoadFieldInstr(new Value(v2), slot, TokenPosition::kNoSource));
+        new LoadFieldInstr(new Value(v2), slot, InstructionSource()));
     ret = builder.AddInstruction(new ReturnInstr(
-        TokenPosition::kNoSource, new Value(v4), S.GetNextDeoptId()));
+        InstructionSource(), new Value(v4), S.GetNextDeoptId()));
   }
   H.FinishGraph();
   DominatorBasedCSE::Optimize(H.flow_graph());
@@ -310,7 +311,7 @@ static Definition* MakeCheckNull(CompilerState* S,
                                  FlowGraph* flow_graph,
                                  Definition* defn) {
   return new CheckNullInstr(new Value(defn), String::ZoneHandle(),
-                            S->GetNextDeoptId(), TokenPosition::kNoSource);
+                            S->GetNextDeoptId(), InstructionSource());
 }
 
 static Definition* MakeRedefinition(CompilerState* S,
@@ -323,7 +324,7 @@ static Definition* MakeAssertAssignable(CompilerState* S,
                                         FlowGraph* flow_graph,
                                         Definition* defn) {
   const auto& dst_type = AbstractType::ZoneHandle(Type::ObjectType());
-  return new AssertAssignableInstr(TokenPosition::kNoSource, new Value(defn),
+  return new AssertAssignableInstr(InstructionSource(), new Value(defn),
                                    new Value(flow_graph->GetConstant(dst_type)),
                                    new Value(flow_graph->constant_null()),
                                    new Value(flow_graph->constant_null()),
@@ -387,15 +388,16 @@ static void TestAliasingViaStore(
   const Error& err = Error::Handle(cls.EnsureIsFinalized(thread));
   EXPECT(err.IsNull());
 
-  const Field& field = Field::Handle(
+  const Field& original_field = Field::Handle(
       cls.LookupField(String::Handle(Symbols::New(thread, "field"))));
-  EXPECT(!field.IsNull());
+  EXPECT(!original_field.IsNull());
+  const Field& field = Field::Handle(original_field.CloneFromOriginal());
 
   const Function& blackhole =
       Function::ZoneHandle(GetFunction(lib, "blackhole"));
 
   using compiler::BlockBuilder;
-  CompilerState S(thread, /*is_aot=*/false);
+  CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
   FlowGraphBuilderHelper H;
 
   // We are going to build the following graph:
@@ -433,36 +435,36 @@ static void TestAliasingViaStore(
     BlockBuilder builder(H.flow_graph(), b1);
     auto& slot = Slot::Get(field, &H.flow_graph()->parsed_function());
     v0 = builder.AddDefinition(
-        new AllocateObjectInstr(TokenPosition::kNoSource, cls));
+        new AllocateObjectInstr(InstructionSource(), cls));
     v5 = builder.AddDefinition(
-        new AllocateObjectInstr(TokenPosition::kNoSource, cls));
+        new AllocateObjectInstr(InstructionSource(), cls));
     if (!make_host_escape) {
-      builder.AddInstruction(new StoreInstanceFieldInstr(
-          slot, new Value(v5), new Value(v0), kEmitStoreBarrier,
-          TokenPosition::kNoSource));
+      builder.AddInstruction(
+          new StoreInstanceFieldInstr(slot, new Value(v5), new Value(v0),
+                                      kEmitStoreBarrier, InstructionSource()));
     }
     v1 = builder.AddDefinition(
-        new LoadFieldInstr(new Value(v0), slot, TokenPosition::kNoSource));
+        new LoadFieldInstr(new Value(v0), slot, InstructionSource()));
     auto v2 = builder.AddDefinition(make_redefinition(&S, H.flow_graph(), v5));
     auto args = new InputsArray(2);
     args->Add(new Value(v1));
     if (make_it_escape) {
       auto v6 = builder.AddDefinition(
-          new LoadFieldInstr(new Value(v2), slot, TokenPosition::kNoSource));
+          new LoadFieldInstr(new Value(v2), slot, InstructionSource()));
       args->Add(new Value(v6));
     } else if (make_host_escape) {
-      builder.AddInstruction(new StoreInstanceFieldInstr(
-          slot, new Value(v2), new Value(v0), kEmitStoreBarrier,
-          TokenPosition::kNoSource));
+      builder.AddInstruction(
+          new StoreInstanceFieldInstr(slot, new Value(v2), new Value(v0),
+                                      kEmitStoreBarrier, InstructionSource()));
       args->Add(new Value(v5));
     }
     call = builder.AddInstruction(new StaticCallInstr(
-        TokenPosition::kNoSource, blackhole, 0, Array::empty_array(), args,
+        InstructionSource(), blackhole, 0, Array::empty_array(), args,
         S.GetNextDeoptId(), 0, ICData::RebindRule::kStatic));
     v4 = builder.AddDefinition(
-        new LoadFieldInstr(new Value(v0), slot, TokenPosition::kNoSource));
+        new LoadFieldInstr(new Value(v0), slot, InstructionSource()));
     ret = builder.AddInstruction(new ReturnInstr(
-        TokenPosition::kNoSource, new Value(v4), S.GetNextDeoptId()));
+        InstructionSource(), new Value(v4), S.GetNextDeoptId()));
   }
   H.FinishGraph();
   DominatorBasedCSE::Optimize(H.flow_graph());
@@ -550,7 +552,7 @@ ISOLATE_UNIT_TEST_CASE(
 // https://github.com/flutter/flutter/issues/48114.
 ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaTypedDataAndUntaggedTypedData) {
   using compiler::BlockBuilder;
-  CompilerState S(thread, /*is_aot=*/false);
+  CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
   FlowGraphBuilderHelper H;
 
   const auto& lib = Library::Handle(Library::TypedDataLibrary());
@@ -597,7 +599,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaTypedDataAndUntaggedTypedData) {
 
     //   array <- StaticCall(...) {_Uint32List}
     array = builder.AddDefinition(new StaticCallInstr(
-        TokenPosition::kNoSource, function, 0, Array::empty_array(),
+        InstructionSource(), function, 0, Array::empty_array(),
         new InputsArray(), DeoptId::kNone, 0, ICData::kNoRebind));
     array->UpdateType(CompileType::FromCid(kTypedDataUint32ArrayCid));
     array->SetResultType(zone, CompileType::FromCid(kTypedDataUint32ArrayCid));
@@ -607,7 +609,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaTypedDataAndUntaggedTypedData) {
     v1 = builder.AddDefinition(new LoadIndexedInstr(
         new Value(array), new Value(vc0), /*index_unboxed=*/false, 1,
         kTypedDataUint32ArrayCid, kAlignedAccess, DeoptId::kNone,
-        TokenPosition::kNoSource));
+        InstructionSource()));
 
     //   v2 <- LoadUntagged(array)
     //   StoreIndexed(v2, index=0, value=42)
@@ -615,17 +617,17 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaTypedDataAndUntaggedTypedData) {
     store = builder.AddInstruction(new StoreIndexedInstr(
         new Value(v2), new Value(vc0), new Value(vc42), kNoStoreBarrier,
         /*index_unboxed=*/false, 1, kTypedDataUint32ArrayCid, kAlignedAccess,
-        DeoptId::kNone, TokenPosition::kNoSource));
+        DeoptId::kNone, InstructionSource()));
 
     //   v3 <- LoadIndexed(array)
     v3 = builder.AddDefinition(new LoadIndexedInstr(
         new Value(array), new Value(vc0), /*index_unboxed=*/false, 1,
         kTypedDataUint32ArrayCid, kAlignedAccess, DeoptId::kNone,
-        TokenPosition::kNoSource));
+        InstructionSource()));
 
     //   return v3
     ret = builder.AddInstruction(new ReturnInstr(
-        TokenPosition::kNoSource, new Value(v3), S.GetNextDeoptId()));
+        InstructionSource(), new Value(v3), S.GetNextDeoptId()));
   }
   H.FinishGraph();
 

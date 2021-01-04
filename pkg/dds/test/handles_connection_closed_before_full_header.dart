@@ -30,6 +30,7 @@ void main() async {
       await DartDevelopmentService.startDartDevelopmentService(uri);
       fail('Unexpected successful connection.');
     } on DartDevelopmentServiceException catch (e) {
+      expect(e.errorCode, DartDevelopmentServiceException.connectionError);
       expect(e.toString().contains('WebSocketChannelException'), true);
     }
   });

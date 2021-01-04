@@ -23,6 +23,8 @@ library from "package:flutter/framework.dart" as fra {
     const synthetic constructor •() → fra::_State&Object&Diagnosticable
       : super dart.core::Object::•()
       ;
+    mixin-super-stub method toString() → dart.core::String
+      return super.{fra::Diagnosticable::toString}();
   }
   abstract class State<T extends fra::StatefulWidget = fra::StatefulWidget> extends fra::_State&Object&Diagnosticable {
     generic-covariant-impl field fra::State::T? _widget = null;

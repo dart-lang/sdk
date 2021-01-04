@@ -410,6 +410,33 @@ enum E { e }
     _assertHasTypeParameter(text: 'U');
   }
 
+  Future<void> test_limitedResolution_class_method_body2() async {
+    _configureToCheckNotResolved(
+      identifiers: {'print'},
+    );
+
+    await _compute(r'''
+class A {
+  void foo() {}
+}
+
+abstract class B {
+  A get a;
+
+  void notResolved() {
+    print(0);
+  }
+
+  void completionTarget() {
+    a.^;
+  }
+}
+''');
+
+    _assertHasGetter(text: 'hashCode');
+    _assertHasMethod(text: 'foo');
+  }
+
   Future<void> test_limitedResolution_class_method_parameterType() async {
     _configureToCheckNotResolved(
       identifiers: {'print'},
@@ -474,6 +501,33 @@ part of 'a.dart';
 
     _assertHasClass(text: 'int');
     _assertHasClass(text: 'A');
+  }
+
+  Future<void> test_limitedResolution_mixin_method_body() async {
+    _configureToCheckNotResolved(
+      identifiers: {'print'},
+    );
+
+    await _compute(r'''
+class A {
+  void foo() {}
+}
+
+mixin M {
+  A get a;
+
+  void notResolved() {
+    print(0);
+  }
+
+  void completionTarget() {
+    a.^;
+  }
+}
+''');
+
+    _assertHasGetter(text: 'hashCode');
+    _assertHasMethod(text: 'foo');
   }
 
   Future<void> test_limitedResolution_unit_function_body() async {

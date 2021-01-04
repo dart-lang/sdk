@@ -117,10 +117,13 @@ class BackendImpacts {
   BackendImpact _mainWithArguments;
 
   BackendImpact get mainWithArguments {
-    return _mainWithArguments ??= new BackendImpact(instantiatedClasses: [
-      _commonElements.jsArrayClass,
-      _commonElements.jsStringClass
-    ]);
+    return _mainWithArguments ??= new BackendImpact(
+      globalUses: [_commonElements.convertMainArgumentList],
+      instantiatedClasses: [
+        _commonElements.jsArrayClass,
+        _commonElements.jsStringClass
+      ],
+    );
   }
 
   BackendImpact _asyncBody;

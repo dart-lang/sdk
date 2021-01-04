@@ -21,6 +21,8 @@ var target2 = new _TestClass();
 var target3 = new _TestClass();
 var target4 = new _TestClass();
 var target5 = new _TestClass();
+var target6 = new _TestClass();
+Expando<_TestClass> expando = Expando<_TestClass>();
 @pragma("vm:entry-point") // Prevent obfuscation
 var globalObject = new _TestClass();
 @pragma("vm:entry-point") // Prevent obfuscation
@@ -74,6 +76,15 @@ takeTarget5() {
   var tmp = target5;
   target5 = null;
   return tmp;
+}
+
+@pragma("vm:entry-point")
+takeExpandoTarget() {
+  var tmp = target6;
+  target6 = null;
+  var tmp2 = _TestClass();
+  expando[tmp] = tmp2;
+  return tmp2;
 }
 
 @pragma("vm:entry-point")
@@ -190,6 +201,23 @@ var tests = <IsolateTest>[
     expect(result['elements'][1]['parentMapKey']['class']['name'],
         equals('_TestClass'));
     expect(result['elements'][2]['value']['name'], equals('globalMap2'));
+  },
+
+  (Isolate isolate) async {
+    // Regression test for https://github.com/dart-lang/sdk/issues/44016
+    var target6 = await invoke(isolate, 'takeExpandoTarget');
+    var params = {
+      'targetId': target6['id'],
+      'limit': 100,
+    };
+    var result = await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
+    expect(result['type'], equals('RetainingPath'));
+    expect(result['elements'].length, equals(5));
+    expect(result['elements'][1]['parentMapKey']['class']['name'],
+        equals('_TestClass'));
+    expect(result['elements'][2]['parentListIndex'], isNotNull);
+    expect(result['elements'][3]['value']['class']['name'], 'Expando');
+    expect(result['elements'][4]['value']['name'], 'expando');
   },
 
   // object store

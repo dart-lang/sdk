@@ -26,6 +26,8 @@ abstract class _Class1&Object&TestMixin = core::Object with self::TestMixin<self
   const synthetic constructor •() → self::_Class1&Object&TestMixin
     : super core::Object::•()
     ;
+  mixin-super-stub method test(generic-covariant-impl asy::Future<self::Response<core::String>> fetch) → asy::Future<core::String>
+    return super.{self::TestMixin::test}(fetch);
 }
 class Class1 extends self::_Class1&Object&TestMixin {
   synthetic constructor •() → self::Class1
@@ -37,6 +39,8 @@ abstract class _Class2&Object&TestMixin = core::Object with self::TestMixin<self
   const synthetic constructor •() → self::_Class2&Object&TestMixin
     : super core::Object::•()
     ;
+  mixin-super-stub method test(generic-covariant-impl asy::Future<self::PagingResponse<core::String>> fetch) → asy::Future<core::String>
+    return super.{self::TestMixin::test}(fetch);
 }
 class Class2 extends self::_Class2&Object&TestMixin {
   synthetic constructor •() → self::Class2

@@ -38,7 +38,11 @@ void main() {
           "This will apply the changes you've previewed to your working "
           'directory. It is recommended you commit any changes you made before '
           'doing this.')) {
-        doPost('/apply-migration').then((xhr) {
+        var navigationTreeJson = [
+          for (var entity in navigationTree) entity.toJson()
+        ];
+        doPost('/apply-migration', {'navigationTree': navigationTreeJson})
+            .then((xhr) {
           document.body.classes
             ..remove('proposed')
             ..add('applied');
@@ -72,6 +76,20 @@ void main() {
 
     document.querySelector('.popup-pane .close').onClick.listen(
         (_) => document.querySelector('.popup-pane').style.display = 'none');
+
+    migrateUnitStatusIcon.onClick.listen((MouseEvent event) {
+      var unitPath = unitName.innerText;
+      var unitNavItem = document
+          .querySelector('.nav-panel [data-name*="$unitPath"]')
+          .parentNode as Element;
+      var statusIcon = unitNavItem.querySelector('.status-icon');
+      var entity = navigationTree.find(unitPath);
+      if (entity is NavigationTreeFileNode) {
+        toggleFileMigrationStatus(entity);
+        updateIconsForNode(statusIcon, entity);
+        updateParentIcons(unitNavItem, entity);
+      }
+    });
   });
 
   window.addEventListener('popstate', (event) {
@@ -109,9 +127,17 @@ final Element headerPanel = document.querySelector('header');
 
 final Element unitName = document.querySelector('#unit-name');
 
+final Element migrateUnitStatusIconLabel =
+    document.querySelector('#migrate-unit-status-icon-label');
+
+final Element migrateUnitStatusIcon =
+    document.querySelector('#migrate-unit-status-icon');
+
 String get rootPath => querySelector('.root').text.trim();
 
 String get sdkVersion => document.getElementById('sdk-version').text;
+
+/*late final*/ List<NavigationTreeNode> navigationTree;
 
 void addArrowClickHandler(Element arrow) {
   var childList = (arrow.parentNode as Element).querySelector(':scope > ul');
@@ -161,6 +187,13 @@ void addClickHandlers(String selector, bool clearEditDetails) {
   addHintLinks.forEach((link) {
     link.onClick.listen(handleAddHintLinkClick);
   });
+}
+
+/// Creates an icon using a `<span>` element and the Material Icons font.
+Element createIcon([String name = '']) {
+  return document.createElement('span')
+    ..classes.add('material-icons')
+    ..innerText = name;
 }
 
 /// Perform a GET request on the path, return the json decoded response.
@@ -423,13 +456,15 @@ void loadNavigationTree() async {
     final response = await doGet<List<Object>>(path);
     var navTree = document.querySelector('.nav-tree');
     navTree.innerHtml = '';
-    writeNavigationSubtree(navTree, NavigationTreeNode.listFromJson(response));
+    navigationTree = NavigationTreeNode.listFromJson(response);
+    writeNavigationSubtree(navTree, navigationTree,
+        enablePartialMigration: true);
   } catch (e, st) {
     handleError('Could not load navigation tree', e, st);
   }
 }
 
-void logError(e, st) {
+void logError(Object e, Object st) {
   window.console.error('$e');
   window.console.error('$st');
 }
@@ -659,6 +694,89 @@ void removeHighlight(int offset, int lineNumber) {
   }
 }
 
+void toggleDirectoryMigrationStatus(NavigationTreeDirectoryNode entity) {
+  switch (entity.migrationStatus) {
+    case UnitMigrationStatus.alreadyMigrated:
+      // This tree cannot be toggled.
+      break;
+    case UnitMigrationStatus.migrating:
+      // At least one child file is 'migrating' (some may be 'already
+      // migrated'). Toggle all 'migrating' children to opt out.
+      entity.toggleChildrenToOptOut();
+      break;
+    case UnitMigrationStatus.optingOut:
+      // At least one child file is 'opting out' (some may be 'already
+      // migrated'). Toggle all 'migrating' children to migrate.
+      entity.toggleChildrenToMigrate();
+      break;
+    case UnitMigrationStatus.indeterminate:
+      // At least one child file is 'migrating' and at least one child file is
+      // 'opting out' (some may be 'already migrated'). Toggle all 'migrating'
+      // children to migrate.
+      entity.toggleChildrenToMigrate();
+  }
+}
+
+void toggleFileMigrationStatus(NavigationTreeFileNode entity) {
+  switch (entity.migrationStatus) {
+    case UnitMigrationStatus.alreadyMigrated:
+      // This file cannot be toggled.
+      break;
+    case UnitMigrationStatus.migrating:
+      entity.migrationStatus = UnitMigrationStatus.optingOut;
+      break;
+    case UnitMigrationStatus.optingOut:
+      entity.migrationStatus = UnitMigrationStatus.migrating;
+      break;
+    case UnitMigrationStatus.indeterminate:
+      throw StateError('File ${entity.path} should not have '
+          'indeterminate migration status');
+  }
+}
+
+/// Updates the navigation [icon] and current file icon according to the current
+/// migration status of [entity].
+void updateIconsForNode(Element icon, NavigationTreeNode entity) {
+  updateIconForStatus(icon, entity.migrationStatus);
+  // Update the status at the top of the file view if [entity] represents the
+  // current file.
+  var unitPath = unitName.innerText;
+  if (entity.path == unitPath) {
+    updateIconForStatus(migrateUnitStatusIcon, entity.migrationStatus);
+  }
+}
+
+/// Updates [icon] according to [status].
+void updateIconForStatus(Element icon, UnitMigrationStatus status) {
+  switch (status) {
+    case UnitMigrationStatus.alreadyMigrated:
+      icon.innerText = 'check_box';
+      icon.classes.add('already-migrated');
+      icon.setAttribute('title', 'Already migrated');
+      break;
+    case UnitMigrationStatus.migrating:
+      icon.innerText = 'check_box';
+      icon.classes.remove('opted-out');
+      icon.classes.add('migrating');
+      icon.setAttribute('title', 'Migrating to null safety');
+      break;
+    case UnitMigrationStatus.optingOut:
+      icon.innerText = 'check_box_outline_blank';
+      icon.classes.remove('migrating');
+      icon.classes.add('opted-out');
+      icon.setAttribute('title', 'Opting out of null safety');
+      break;
+    default:
+      icon.innerText = 'indeterminate_check_box';
+      icon.classes.remove('migrating');
+      // 'opted-out' is the same style as 'indeterminate'.
+      icon.classes.add('opted-out');
+      icon.setAttribute(
+          'title', "Mixed statuses of 'migrating' and 'opting out'");
+      break;
+  }
+}
+
 /// Update the heading and navigation links.
 ///
 /// Call this after updating page content on a navigation.
@@ -675,6 +793,35 @@ void updatePage(String path, [int offset]) {
       link.classes.remove('selected-file');
     }
   });
+  migrateUnitStatusIconLabel.classes.add('visible');
+}
+
+/// Updates the parent icons of [entity] with list item [element] in the
+/// navigation tree.
+void updateParentIcons(Element element, NavigationTreeNode entity) {
+  var parent = entity.parent;
+  if (parent != null) {
+    var parentElement = (element.parentNode as Element).parentNode as Element;
+    var statusIcon = parentElement.querySelector(':scope > .status-icon');
+    updateIconsForNode(statusIcon, parent);
+    updateParentIcons(parentElement, parent);
+  }
+}
+
+/// Updates subtree icons for the children [entity] with list item [element].
+void updateSubtreeIcons(Element element, NavigationTreeDirectoryNode entity) {
+  for (var child in entity.subtree) {
+    var childNode = element.querySelector('[data-name*="${child.path}"]');
+    if (child is NavigationTreeDirectoryNode) {
+      updateSubtreeIcons(childNode, child);
+      var childIcon = childNode.querySelector(':scope > .status-icon');
+      updateIconsForNode(childIcon, entity);
+    } else {
+      var childIcon = (childNode.parentNode as Element)
+          .querySelector(':scope > .status-icon');
+      updateIconsForNode(childIcon, child);
+    }
+  }
 }
 
 /// Load data from [data] into the .code and the .regions divs.
@@ -686,32 +833,60 @@ void writeCodeAndRegions(String path, FileDetails data, bool clearEditDetails) {
   _PermissiveNodeValidator.setInnerHtml(codeElement, data.navigationContent);
   populateProposedEdits(path, data.edits, clearEditDetails);
 
-  highlightAllCode();
+  // highlightAllCode is remarkably slow (about 4 seconds to handle a 300k file
+  // on a Pixelbook), so skip it for large files.
+  if (data.sourceCode.length < 200000) {
+    highlightAllCode();
+  }
   addClickHandlers('.code', true);
   addClickHandlers('.regions', true);
 }
 
 void writeNavigationSubtree(
-    Element parentElement, List<NavigationTreeNode> tree) {
+    Element parentElement, List<NavigationTreeNode> tree,
+    {bool enablePartialMigration = false}) {
   Element ul = document.createElement('ul');
   parentElement.append(ul);
   for (var entity in tree) {
     Element li = document.createElement('li');
     ul.append(li);
-    if (entity.type == NavigationTreeNodeType.directory) {
+    if (entity is NavigationTreeDirectoryNode) {
       li.classes.add('dir');
+      li.dataset['name'] = entity.path;
       Element arrow = document.createElement('span');
       li.append(arrow);
       arrow.classes.add('arrow');
       arrow.innerHtml = '&#x25BC;';
-      Element icon = document.createElement('span');
-      li.append(icon);
-      icon.innerHtml = '<span class="material-icons">folder_open</span>';
+      var folderIcon = createIcon('folder_open');
+      li.append(folderIcon);
       li.append(Text(entity.name));
-      writeNavigationSubtree(li, entity.subtree);
+      writeNavigationSubtree(li, entity.subtree,
+          enablePartialMigration: enablePartialMigration);
+      if (enablePartialMigration) {
+        var statusIcon = createIcon('indeterminate_check_box')
+          ..classes.add('status-icon');
+        updateIconsForNode(statusIcon, entity);
+        statusIcon.onClick.listen((MouseEvent event) {
+          toggleDirectoryMigrationStatus(entity);
+          updateSubtreeIcons(li, entity);
+          updateIconsForNode(statusIcon, entity);
+          updateParentIcons(li, entity);
+        });
+        li.insertBefore(statusIcon, folderIcon);
+      }
       addArrowClickHandler(arrow);
-    } else {
-      li.innerHtml = '<span class="material-icons">insert_drive_file</span>';
+    } else if (entity is NavigationTreeFileNode) {
+      if (enablePartialMigration) {
+        var statusIcon = createIcon()..classes.add('status-icon');
+        updateIconsForNode(statusIcon, entity);
+        statusIcon.onClick.listen((MouseEvent event) {
+          toggleFileMigrationStatus(entity);
+          updateIconsForNode(statusIcon, entity);
+          updateParentIcons(li, entity);
+        });
+        li.append(statusIcon);
+      }
+      li.append(createIcon('insert_drive_file'));
       Element a = document.createElement('a');
       li.append(a);
       a.classes.add('nav-link');
@@ -725,7 +900,7 @@ void writeNavigationSubtree(
         li.append(editsBadge);
         editsBadge.classes.add('edit-count');
         editsBadge.setAttribute(
-            'title', '$editCount ${pluralize(editCount, 'edit')}');
+            'title', '$editCount ${pluralize(editCount, 'proposed edit')}');
         editsBadge.append(Text(editCount.toString()));
       }
     }
@@ -855,5 +1030,21 @@ extension on Element {
       appendHtml('&#8203;.');
       append(Text(substring));
     }
+  }
+}
+
+extension on List<NavigationTreeNode> {
+  /// Finds the node with path equal to [path], recursively, or `null`.
+  NavigationTreeNode find(String path) {
+    for (var node in this) {
+      if (node is NavigationTreeDirectoryNode) {
+        var foundInSubtree = node.subtree.find(path);
+        if (foundInSubtree != null) return foundInSubtree;
+      } else {
+        assert(node is NavigationTreeFileNode);
+        if (node.path == path) return node;
+      }
+    }
+    return null;
   }
 }

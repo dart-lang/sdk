@@ -1,6 +1,6 @@
-# Dart Development Service Protocol 1.1
+# Dart Development Service Protocol 1.2
 
-This document describes _version 1.1_ of the Dart Development Service Protocol.
+This document describes _version 1.2_ of the Dart Development Service Protocol.
 This protocol is an extension of the Dart VM Service Protocol and implements it
 in it's entirety. For details on the VM Service Protocol, see the [Dart VM Service Protocol Specification][service-protocol].
 
@@ -103,6 +103,19 @@ disabled.
 
 See [Size](#size).
 
+
+### getStreamHistory
+
+```
+StreamHistory getStreamHistory(string streamId)
+```
+
+The _getStreamHistory_ RPC is used to retrieve historical events for streams
+which support event history (see [Streams](#streams) for a list of supported
+streams).
+
+See [StreamHistory](#streamhistory).
+
 ### requirePermissionToResume
 
 ```
@@ -189,12 +202,24 @@ class Size extends Response {
 
 A simple object representing a size response.
 
+### StreamHistory
+
+```
+class StreamHistory extends Response {
+  // A list of historical Events for a stream.
+  List<Event> history;
+}
+```
+
+See [getStreamHistory](#getStreamHistory).
+
 ## Revision History
 
 version | comments
 ------- | --------
 1.0 | Initial revision
 1.1 | Added `getDartDevelopmentServiceVersion` RPC.
+1.2 | Added `getStreamHistory` RPC.
 
 [resume]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#resume
 [success]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#success

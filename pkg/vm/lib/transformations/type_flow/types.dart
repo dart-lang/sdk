@@ -858,7 +858,7 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
       } else if (other.typeArgs == null) {
         mergedTypeArgs = typeArgs;
       } else {
-        mergedTypeArgs = new List<Type>(typeArgs.length);
+        mergedTypeArgs = new List<Type>.filled(typeArgs.length, null);
         bool hasRuntimeType = false;
         for (int i = 0; i < typeArgs.length; ++i) {
           final merged =

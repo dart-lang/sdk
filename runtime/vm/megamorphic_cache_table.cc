@@ -17,13 +17,13 @@ MegamorphicCachePtr MegamorphicCacheTable::Lookup(Thread* thread,
                                                   const String& name,
                                                   const Array& descriptor) {
   Isolate* isolate = thread->isolate();
-  // Multiple compilation threads could access this lookup.
-  SafepointMutexLocker ml(isolate->megamorphic_mutex());
+  SafepointMutexLocker ml(thread->isolate_group()->megamorphic_table_mutex());
+
   ASSERT(name.IsSymbol());
   // TODO(rmacnak): ASSERT(descriptor.IsCanonical());
 
   // TODO(rmacnak): Make a proper hashtable a la symbol table.
-  GrowableObjectArray& table = GrowableObjectArray::Handle(
+  auto& table = GrowableObjectArray::Handle(
       isolate->object_store()->megamorphic_cache_table());
   MegamorphicCache& cache = MegamorphicCache::Handle();
   if (table.IsNull()) {
@@ -45,7 +45,10 @@ MegamorphicCachePtr MegamorphicCacheTable::Lookup(Thread* thread,
 }
 
 void MegamorphicCacheTable::PrintSizes(Isolate* isolate) {
-  StackZone zone(Thread::Current());
+  auto thread = Thread::Current();
+  SafepointMutexLocker ml(thread->isolate_group()->megamorphic_table_mutex());
+
+  StackZone zone(thread);
   intptr_t size = 0;
   MegamorphicCache& cache = MegamorphicCache::Handle();
   Array& buckets = Array::Handle();

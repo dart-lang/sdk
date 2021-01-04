@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -23,6 +24,7 @@ import 'package:nnbd_migration/src/front_end/driver_provider_impl.dart';
 import 'package:nnbd_migration/src/front_end/instrumentation_information.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
 import 'package:nnbd_migration/src/front_end/offset_mapper.dart';
+import 'package:nnbd_migration/src/front_end/web/navigation_tree.dart';
 import 'package:nnbd_migration/src/utilities/progress_bar.dart';
 
 /// A builder used to build the migration information for a library.
@@ -250,7 +252,8 @@ class InfoBuilder {
     var files = collector.files;
     var regions = collector.regions;
     var rawTargets = collector.targets;
-    var convertedTargets = List<NavigationTarget>(rawTargets.length);
+    var convertedTargets =
+        List<NavigationTarget>.filled(rawTargets.length, null);
     return regions.map((region) {
       var targets = region.targets;
       if (targets.isEmpty) {
@@ -347,6 +350,15 @@ class InfoBuilder {
     unitInfo.sources ??= _computeNavigationSources(result);
     var content = result.content;
     unitInfo.diskContent = content;
+    var alreadyMigrated =
+        result.unit.featureSet.isEnabled(Feature.non_nullable);
+    unitInfo.wasExplicitlyOptedOut = result.unit.languageVersionToken != null;
+    unitInfo.migrationStatus = alreadyMigrated
+        ? UnitMigrationStatus.alreadyMigrated
+        // Whether or not a file is explicitly opted out, its initial status for
+        // this migration is "migrating." It must be again explicitly opted out
+        // in the preview app in order to keep the unit opted out.
+        : UnitMigrationStatus.migrating;
     var regions = unitInfo.regions;
 
     // There are certain rare conditions involving generated code in a bazel

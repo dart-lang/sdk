@@ -104,7 +104,6 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_reorder_basic_blocks = true;
     FLAG_use_field_guards = false;
     FLAG_use_cha_deopt = false;
-    FLAG_causal_async_stacks = false;
     FLAG_lazy_async_stacks = true;
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -212,17 +211,24 @@ CompilationPipeline* CompilationPipeline::New(Zone* zone,
 DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
   ASSERT(thread->IsMutatorThread());
   const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
-  Object& result = Object::Handle(zone);
-  ASSERT(!function.HasCode());
 
-  result = Compiler::CompileFunction(thread, function);
-  if (result.IsError()) {
-    if (result.IsLanguageError()) {
-      Exceptions::ThrowCompileTimeError(LanguageError::Cast(result));
-      UNREACHABLE();
-    }
-    Exceptions::PropagateError(Error::Cast(result));
+  if (FLAG_enable_isolate_groups) {
+    // Another isolate's mutator thread may have created [function] and
+    // published it via an ICData, MegamorphicCache etc. Entering the lock below
+    // is an acquire operation that pairs with the release operation when the
+    // other isolate exited the lock, ensuring the initializing stores for
+    // [function] are visible in the current thread.
+    SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
   }
+
+  // In single-isolate scenarios the lazy compile stub is only invoked if
+  // there's no existing code. In multi-isolate scenarios with shared JITed code
+  // we can end up in the lazy compile runtime entry here with code being
+  // installed.
+  ASSERT(!function.HasCode() || FLAG_enable_isolate_groups);
+
+  // Will throw if compilation failed (e.g. with compile-time error).
+  function.EnsureHasCode();
 }
 
 bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
@@ -373,64 +379,64 @@ CodePtr CompileParsedFunctionHelper::FinalizeCompilation(
     function.AttachCode(code);
     function.SetWasCompiled(true);
   } else if (optimized()) {
-    // Installs code while at safepoint.
-    if (thread()->IsMutatorThread()) {
-      const bool is_osr = osr_id() != Compiler::kNoOSRDeoptId;
-      if (!is_osr) {
+    // We cannot execute generated code while installing code.
+    ASSERT(Thread::Current()->IsAtSafepoint() ||
+           (Thread::Current()->IsMutatorThread() &&
+            IsolateGroup::Current()->ContainsOnlyOneIsolate()));
+    // We are validating our CHA / field guard / ... assumptions. To prevent
+    // another thread from concurrently changing them, we have to guarantee
+    // mutual exclusion.
+    DEBUG_ASSERT(
+        IsolateGroup::Current()->program_lock()->IsCurrentThreadReader());
+
+    const bool trace_compiler =
+        FLAG_trace_compiler || FLAG_trace_optimizing_compiler;
+    bool code_is_valid = true;
+    if (!flow_graph->parsed_function().guarded_fields()->is_empty()) {
+      const ZoneGrowableArray<const Field*>& guarded_fields =
+          *flow_graph->parsed_function().guarded_fields();
+      Field& original = Field::Handle();
+      for (intptr_t i = 0; i < guarded_fields.length(); i++) {
+        const Field& field = *guarded_fields[i];
+        ASSERT(!field.IsOriginal());
+        original = field.Original();
+        if (!field.IsConsistentWith(original)) {
+          code_is_valid = false;
+          if (trace_compiler) {
+            THR_Print("--> FAIL: Field %s guarded state changed.",
+                      field.ToCString());
+          }
+          break;
+        }
+      }
+    }
+
+    if (!thread()->compiler_state().cha().IsConsistentWithCurrentHierarchy()) {
+      code_is_valid = false;
+      if (trace_compiler) {
+        THR_Print("--> FAIL: Class hierarchy has new subclasses.");
+      }
+    }
+
+    // Setting breakpoints at runtime could make a function non-optimizable.
+    if (code_is_valid && Compiler::CanOptimizeFunction(thread(), function)) {
+      if (osr_id() == Compiler::kNoOSRDeoptId) {
         function.InstallOptimizedCode(code);
+      } else {
+        // OSR is not compiled in background.
+        ASSERT(!Compiler::IsBackgroundCompilation());
       }
       ASSERT(code.owner() == function.raw());
     } else {
-      // Background compilation.
-      // Before installing code check generation counts if the code may
-      // have become invalid.
-      const bool trace_compiler =
-          FLAG_trace_compiler || FLAG_trace_optimizing_compiler;
-      bool code_is_valid = true;
-      if (!flow_graph->parsed_function().guarded_fields()->is_empty()) {
-        const ZoneGrowableArray<const Field*>& guarded_fields =
-            *flow_graph->parsed_function().guarded_fields();
-        Field& original = Field::Handle();
-        for (intptr_t i = 0; i < guarded_fields.length(); i++) {
-          const Field& field = *guarded_fields[i];
-          ASSERT(!field.IsOriginal());
-          original = field.Original();
-          if (!field.IsConsistentWith(original)) {
-            code_is_valid = false;
-            if (trace_compiler) {
-              THR_Print("--> FAIL: Field %s guarded state changed.",
-                        field.ToCString());
-            }
-            break;
-          }
-        }
-      }
-      if (!thread()
-               ->compiler_state()
-               .cha()
-               .IsConsistentWithCurrentHierarchy()) {
-        code_is_valid = false;
-        if (trace_compiler) {
-          THR_Print("--> FAIL: Class hierarchy has new subclasses.");
-        }
-      }
-
-      // Setting breakpoints at runtime could make a function non-optimizable.
-      if (code_is_valid && Compiler::CanOptimizeFunction(thread(), function)) {
-        const bool is_osr = osr_id() != Compiler::kNoOSRDeoptId;
-        ASSERT(!is_osr);  // OSR is not compiled in background.
-        function.InstallOptimizedCode(code);
+      code = Code::null();
+    }
+    if (function.usage_counter() < 0) {
+      // Reset to 0 so that it can be recompiled if needed.
+      if (code_is_valid) {
+        function.SetUsageCounter(0);
       } else {
-        code = Code::null();
-      }
-      if (function.usage_counter() < 0) {
-        // Reset to 0 so that it can be recompiled if needed.
-        if (code_is_valid) {
-          function.SetUsageCounter(0);
-        } else {
-          // Trigger another optimization pass soon.
-          function.SetUsageCounter(FLAG_optimization_counter_threshold - 100);
-        }
+        // Trigger another optimization pass soon.
+        function.SetUsageCounter(FLAG_optimization_counter_threshold - 100);
       }
     }
 
@@ -487,6 +493,7 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   }
   Zone* const zone = thread()->zone();
   HANDLESCOPE(thread());
+  EnterCompilerScope cs(thread());
 
   // We may reattempt compilation if the function needs to be assembled using
   // far branches on ARM. In the else branch of the setjmp call, done is set to
@@ -509,7 +516,7 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       FlowGraph* flow_graph = nullptr;
       ZoneGrowableArray<const ICData*>* ic_data_array = nullptr;
 
-      CompilerState compiler_state(thread(), /*is_aot=*/false,
+      CompilerState compiler_state(thread(), /*is_aot=*/false, optimized(),
                                    CompilerState::ShouldTrace(function));
 
       {
@@ -579,15 +586,6 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
                                                              &pass_state);
       } else if (optimized()) {
         TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
-
-        pass_state.inline_id_to_function.Add(&function);
-        // We do not add the token position now because we don't know the
-        // position of the inlined call until later. A side effect of this
-        // is that the length of |inline_id_to_function| is always larger
-        // than the length of |inline_id_to_token_pos| by one.
-        // Top scope function has no caller (-1). We do this because we expect
-        // all token positions to be at an inlined call.
-        pass_state.caller_inline_id.Add(-1);
 
         JitCallSpecializer call_specializer(flow_graph, &speculative_policy);
         pass_state.call_specializer = &call_specializer;
@@ -718,8 +716,7 @@ static ObjectPtr CompileFunctionHelper(CompilationPipeline* pipeline,
     ParsedFunction* parsed_function = new (zone)
         ParsedFunction(thread, Function::ZoneHandle(zone, function.raw()));
     if (trace_compiler) {
-      const intptr_t token_size =
-          function.end_token_pos().Pos() - function.token_pos().Pos();
+      const intptr_t token_size = function.SourceSize();
       THR_Print("Compiling %s%sfunction %s: '%s' @ token %s, size %" Pd "\n",
                 (osr_id == Compiler::kNoOSRDeoptId ? "" : "osr "),
                 (optimized ? "optimized " : ""),
@@ -938,7 +935,7 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   // if state changed while compiling in background.
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  CompilerState state(thread, /*is_aot=*/false);
+  CompilerState state(thread, /*is_aot=*/false, /*is_optimizing=*/false);
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     ParsedFunction* parsed_function =
@@ -1294,9 +1291,9 @@ CompilationPipeline* CompilationPipeline::New(Zone* zone,
 
 DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
   const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
-  FATAL3("Precompilation missed function %s (%" Pd ", %s)\n",
+  FATAL3("Precompilation missed function %s (%s, %s)\n",
          function.ToLibNamePrefixedQualifiedCString(),
-         function.token_pos().value(),
+         function.token_pos().ToCString(),
          Function::KindToCString(function.kind()));
 }
 

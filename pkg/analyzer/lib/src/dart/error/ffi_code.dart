@@ -23,6 +23,15 @@ class FfiCode extends AnalyzerErrorCode {
       correction: "Try removing the annotation.");
 
   /**
+   * Parameters:
+   * 0: the name of the struct class
+   */
+  static const FfiCode EMPTY_STRUCT = FfiCode(
+      name: 'EMPTY_STRUCT',
+      message: "Struct '{0}' is empty. Empty structs are undefined behavior.",
+      correction: "Try adding a field to '{0}' or use a different Struct.");
+
+  /**
    * No parameters.
    */
   static const FfiCode EXTRA_ANNOTATION_ON_STRUCT_FIELD = FfiCode(
@@ -76,8 +85,9 @@ class FfiCode extends AnalyzerErrorCode {
       name: 'INVALID_FIELD_TYPE_IN_STRUCT',
       message:
           "Fields in struct classes can't have the type '{0}'. They can only "
-          "be declared as 'int', 'double' or 'Pointer'.",
-      correction: "Try using 'int', 'double' or 'Pointer'.");
+          "be declared as 'int', 'double', 'Pointer', or subtype of 'Struct'.",
+      correction:
+          "Try using 'int', 'double', 'Pointer', or subtype of 'Struct'.");
 
   /**
    * No parameters.
@@ -170,10 +180,11 @@ class FfiCode extends AnalyzerErrorCode {
    * 1: the name of the class being extended, implemented, or mixed in
    */
   static const FfiCode SUBTYPE_OF_FFI_CLASS_IN_EXTENDS = FfiCode(
-      name: 'SUBTYPE_OF_FFI_CLASS',
-      uniqueName: 'SUBTYPE_OF_FFI_CLASS_IN_EXTENDS',
-      message: "The class '{0}' can't extend '{1}'.",
-      correction: "Try extending 'Struct'.");
+    name: 'SUBTYPE_OF_FFI_CLASS',
+    message: "The class '{0}' can't extend '{1}'.",
+    correction: "Try extending 'Struct'.",
+    uniqueName: 'SUBTYPE_OF_FFI_CLASS_IN_EXTENDS',
+  );
 
   /**
    * Parameters:
@@ -181,10 +192,11 @@ class FfiCode extends AnalyzerErrorCode {
    * 1: the name of the class being extended, implemented, or mixed in
    */
   static const FfiCode SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS = FfiCode(
-      name: 'SUBTYPE_OF_FFI_CLASS',
-      uniqueName: 'SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS',
-      message: "The class '{0}' can't implement '{1}'.",
-      correction: "Try extending 'Struct'.");
+    name: 'SUBTYPE_OF_FFI_CLASS',
+    message: "The class '{0}' can't implement '{1}'.",
+    correction: "Try extending 'Struct'.",
+    uniqueName: 'SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS',
+  );
 
   /**
    * Parameters:
@@ -192,10 +204,11 @@ class FfiCode extends AnalyzerErrorCode {
    * 1: the name of the class being extended, implemented, or mixed in
    */
   static const FfiCode SUBTYPE_OF_FFI_CLASS_IN_WITH = FfiCode(
-      name: 'SUBTYPE_OF_FFI_CLASS',
-      uniqueName: 'SUBTYPE_OF_FFI_CLASS_IN_WITH',
-      message: "The class '{0}' can't mix in '{1}'.",
-      correction: "Try extending 'Struct'.");
+    name: 'SUBTYPE_OF_FFI_CLASS',
+    message: "The class '{0}' can't mix in '{1}'.",
+    correction: "Try extending 'Struct'.",
+    uniqueName: 'SUBTYPE_OF_FFI_CLASS_IN_WITH',
+  );
 
   /**
    * Parameters:
@@ -203,12 +216,12 @@ class FfiCode extends AnalyzerErrorCode {
    * 1: the name of the class being extended, implemented, or mixed in
    */
   static const FfiCode SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS = FfiCode(
-      name: 'SUBTYPE_OF_STRUCT_CLASS',
-      uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS',
-      message:
-          "The class '{0}' can't extend '{1}' because '{1}' is a subtype of "
-          "'Struct'.",
-      correction: "Try extending 'Struct' directly.");
+    name: 'SUBTYPE_OF_STRUCT_CLASS',
+    message: "The class '{0}' can't extend '{1}' because '{1}' is a subtype of "
+        "'Struct'.",
+    correction: "Try extending 'Struct' directly.",
+    uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS',
+  );
 
   /**
    * Parameters:
@@ -216,12 +229,13 @@ class FfiCode extends AnalyzerErrorCode {
    * 1: the name of the class being extended, implemented, or mixed in
    */
   static const FfiCode SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS = FfiCode(
-      name: 'SUBTYPE_OF_STRUCT_CLASS',
-      uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS',
-      message:
-          "The class '{0}' can't implement '{1}' because '{1}' is a subtype of "
-          "'Struct'.",
-      correction: "Try extending 'Struct' directly.");
+    name: 'SUBTYPE_OF_STRUCT_CLASS',
+    message:
+        "The class '{0}' can't implement '{1}' because '{1}' is a subtype of "
+        "'Struct'.",
+    correction: "Try extending 'Struct' directly.",
+    uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS',
+  );
 
   /**
    * Parameters:
@@ -229,15 +243,12 @@ class FfiCode extends AnalyzerErrorCode {
    * 1: the name of the class being extended, implemented, or mixed in
    */
   static const FfiCode SUBTYPE_OF_STRUCT_CLASS_IN_WITH = FfiCode(
-      name: 'SUBTYPE_OF_STRUCT_CLASS',
-      uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_WITH',
-      message:
-          "The class '{0}' can't mix in '{1}' because '{1}' is a subtype of "
-          "'Struct'.",
-      correction: "Try extending 'Struct' directly.");
-
-  @override
-  final String uniqueName;
+    name: 'SUBTYPE_OF_STRUCT_CLASS',
+    message: "The class '{0}' can't mix in '{1}' because '{1}' is a subtype of "
+        "'Struct'.",
+    correction: "Try extending 'Struct' directly.",
+    uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_WITH',
+  );
 
   /// Initialize a newly created error code to have the given [name]. If
   /// [uniqueName] is provided, then it will be used to construct the unique
@@ -249,16 +260,19 @@ class FfiCode extends AnalyzerErrorCode {
   /// created from the given [correction] template.
   ///
   /// If [hasPublishedDocs] is `true` then a URL for the docs will be generated.
-  const FfiCode(
-      {@required String message,
-      @required String name,
-      String correction,
-      bool hasPublishedDocs,
-      String uniqueName})
-      : uniqueName =
-            uniqueName == null ? 'FfiCode.$name' : 'FfiCode.$uniqueName',
-        super.temporary(name, message,
-            correction: correction, hasPublishedDocs: hasPublishedDocs);
+  const FfiCode({
+    String correction,
+    bool hasPublishedDocs = false,
+    @required String message,
+    @required String name,
+    String uniqueName,
+  }) : super(
+          correction: correction,
+          hasPublishedDocs: hasPublishedDocs,
+          message: message,
+          name: name,
+          uniqueName: uniqueName ?? 'FfiCode.$name',
+        );
 
   @override
   ErrorSeverity get errorSeverity => type.severity;

@@ -41,7 +41,7 @@ class NumClass<T extends core::num* = core::num*, S extends self::NumClass::T* =
     return this.{self::NumClass::field1}.{core::num::+}(invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/type_variable_bound_access.dart:24:36: Error: The getter 'length' isn't defined for the class 'num'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'length'.
   num method2() => field1 + field2.length;
-                                   ^^^^^^" as{TypeError,ForDynamic} core::num);
+                                   ^^^^^^" as{TypeError,ForDynamic} core::num*);
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf

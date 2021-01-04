@@ -57,20 +57,6 @@ abstract class Isolate extends IsolateRef {
   /// [optional] The error that is causing this isolate to exit, if applicable.
   Error? get error;
 
-  /// The list of threads associated with this isolate.
-  Iterable<Thread>? get threads;
-
-  /// The maximum amount of zone memory in bytes allocated by the isolate in
-  /// all threads at a given time. Calculated using the high watermarks of each
-  /// thread alive when a thread is unscheduled.
-  int? get zoneHighWatermark;
-
-  /// The number of zone handles currently held by this isolate.
-  int? get numZoneHandles;
-
-  /// The number of scoped handles currently held by this isolate.
-  int? get numScopedHandles;
-
   /// The current pause on exception mode for this isolate.
   //ExceptionPauseMode get exceptionPauseMode;
 

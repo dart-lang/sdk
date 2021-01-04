@@ -11,6 +11,9 @@ import 'package:_fe_analyzer_shared/src/parser/class_member_parser.dart'
 
 import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart';
 
+import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
+    show ScannerConfiguration;
+
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ErrorToken, LanguageVersionToken, Scanner;
 
@@ -270,7 +273,7 @@ class _PartOfChunk extends _TokenChunk {
 }
 
 abstract class _ClassChunk extends _SortableChunk {
-  List<_Chunk> content = new List<_Chunk>();
+  List<_Chunk> content = <_Chunk>[];
   Token headerEnd;
   Token footerStart;
 
@@ -418,18 +421,20 @@ class BoxedInt {
 //              "show A, B, C hide A show A" would be empty.
 
 String textualOutline(List<int> rawBytes,
-    {bool throwOnUnexpected: false,
+    {ScannerConfiguration configuration,
+    bool throwOnUnexpected: false,
     bool performModelling: false,
     bool addMarkerForUnknownForTest: false}) {
   Uint8List bytes = new Uint8List(rawBytes.length + 1);
   bytes.setRange(0, rawBytes.length, rawBytes);
 
-  List<_Chunk> parsedChunks = new List<_Chunk>();
+  List<_Chunk> parsedChunks = <_Chunk>[];
 
   BoxedInt originalPosition = new BoxedInt(0);
 
-  Utf8BytesScanner scanner = new Utf8BytesScanner(bytes, includeComments: false,
-      languageVersionChanged:
+  Utf8BytesScanner scanner = new Utf8BytesScanner(bytes,
+      includeComments: false,
+      configuration: configuration, languageVersionChanged:
           (Scanner scanner, LanguageVersionToken languageVersion) {
     parsedChunks.add(
         new _LanguageVersionChunk(languageVersion.major, languageVersion.minor)
@@ -482,7 +487,7 @@ List<_Chunk> _mergeAndSort(List<_Chunk> chunks) {
   StringBuffer sb = new StringBuffer();
   for (_Chunk chunk in chunks) {
     if (chunk is _MetadataChunk) {
-      metadataChunks ??= new List<_MetadataChunk>();
+      metadataChunks ??= <_MetadataChunk>[];
       metadataChunks.add(chunk);
     } else {
       chunk.metadata = metadataChunks;
@@ -491,7 +496,7 @@ List<_Chunk> _mergeAndSort(List<_Chunk> chunks) {
       sb.clear();
 
       if (chunk is _SingleImportExportChunk) {
-        importExportChunks ??= new List<_SingleImportExportChunk>();
+        importExportChunks ??= <_SingleImportExportChunk>[];
         importExportChunks.add(chunk);
       } else {
         if (importExportChunks != null) {

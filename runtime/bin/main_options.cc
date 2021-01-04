@@ -282,6 +282,26 @@ bool Options::ExtractPortAndAddress(const char* option_value,
   return true;
 }
 
+// Returns true if arg starts with the characters "--" followed by option, but
+// all '_' in the option name are treated as '-'.
+static bool IsOption(const char* arg, const char* option) {
+  if (arg[0] != '-' || arg[1] != '-') {
+    // Special case first two characters to avoid recognizing __flag.
+    return false;
+  }
+  for (int i = 0; option[i] != '\0'; i++) {
+    auto c = arg[i + 2];
+    if (c == '\0') {
+      // Not long enough.
+      return false;
+    }
+    if ((c == '_' ? '-' : c) != option[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 const char* Options::vm_service_server_ip_ = DEFAULT_VM_SERVICE_SERVER_IP;
 int Options::vm_service_server_port_ = INVALID_VM_SERVICE_SERVER_PORT;
 bool Options::ProcessEnableVmServiceOption(const char* arg,
@@ -366,17 +386,14 @@ bool Options::ProcessVMDebuggingOptions(const char* arg,
   return false;
 }
 
-int Options::ParseArguments(int argc,
-                            char** argv,
-                            bool vm_run_app_snapshot,
-                            CommandLineOptions* vm_options,
-                            char** script_name,
-                            CommandLineOptions* dart_options,
-                            bool* print_flags_seen,
-                            bool* verbose_debug_seen) {
-  const char* kPrefix = "--";
-  const intptr_t kPrefixLen = strlen(kPrefix);
-
+bool Options::ParseArguments(int argc,
+                             char** argv,
+                             bool vm_run_app_snapshot,
+                             CommandLineOptions* vm_options,
+                             char** script_name,
+                             CommandLineOptions* dart_options,
+                             bool* print_flags_seen,
+                             bool* verbose_debug_seen) {
   // Store the executable name.
   Platform::SetExecutableName(argv[0]);
 
@@ -395,42 +412,25 @@ int Options::ParseArguments(int argc,
       i++;
     } else {
       // Check if this flag is a potentially valid VM flag.
-      if (!OptionProcessor::IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
+      if (!OptionProcessor::IsValidFlag(argv[i])) {
         break;
       }
-      // The following two flags are processed by both the embedder and
-      // the VM.
-      const char* kPrintFlags1 = "--print-flags";
-      const char* kPrintFlags2 = "--print_flags";
-      const char* kVerboseDebug1 = "--verbose_debug";
-      const char* kVerboseDebug2 = "--verbose-debug";
-
-      // The following two flags are processed as DartDev flags and are not to
+      // The following flags are processed as DartDev flags and are not to
       // be treated as if they are VM flags.
-      const char* kEnableDartDevAnalytics1 = "--enable-analytics";
-      const char* kEnableDartDevAnalytics2 = "--enable_analytics";
-      const char* kDisableDartDevAnalytics1 = "--disable-analytics";
-      const char* kDisableDartDevAnalytics2 = "--disable_analytics";
-
-      if ((strncmp(argv[i], kPrintFlags1, strlen(kPrintFlags1)) == 0) ||
-          (strncmp(argv[i], kPrintFlags2, strlen(kPrintFlags2)) == 0)) {
+      if (IsOption(argv[i], "print-flags")) {
         *print_flags_seen = true;
-      } else if ((strncmp(argv[i], kVerboseDebug1, strlen(kVerboseDebug1)) ==
-                  0) ||
-                 (strncmp(argv[i], kVerboseDebug2, strlen(kVerboseDebug2)) ==
-                  0)) {
+      } else if (IsOption(argv[i], "verbose-debug")) {
         *verbose_debug_seen = true;
-      } else if ((strncmp(argv[i], kEnableDartDevAnalytics1,
-                          strlen(kEnableDartDevAnalytics1)) == 0) ||
-                 (strncmp(argv[i], kEnableDartDevAnalytics2,
-                          strlen(kEnableDartDevAnalytics2)) == 0)) {
+      } else if (IsOption(argv[i], "enable-analytics")) {
         enable_dartdev_analytics = true;
         skipVmOption = true;
-      } else if ((strncmp(argv[i], kDisableDartDevAnalytics1,
-                          strlen(kDisableDartDevAnalytics1)) == 0) ||
-                 (strncmp(argv[i], kDisableDartDevAnalytics2,
-                          strlen(kDisableDartDevAnalytics2)) == 0)) {
+      } else if (IsOption(argv[i], "disable-analytics")) {
         disable_dartdev_analytics = true;
+        skipVmOption = true;
+      } else if (IsOption(argv[i], "no-analytics")) {
+        // Just add this option even if we don't go to dartdev.
+        // It is irelevant for the vm.
+        dart_options->AddArgument("--no-analytics");
         skipVmOption = true;
       }
       if (!skipVmOption) {
@@ -465,7 +465,6 @@ int Options::ParseArguments(int argc,
 
   bool implicitly_use_dart_dev = false;
   bool run_script = false;
-
   // Get the script name.
   if (i < argc) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -478,6 +477,7 @@ int Options::ParseArguments(int argc,
     bool is_potential_file_path = true;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
     if (Options::disable_dart_dev() ||
+        (Options::snapshot_filename() != nullptr) ||
         (is_potential_file_path && !enable_vm_service_)) {
       *script_name = Utils::StrDup(argv[i]);
       run_script = true;
@@ -505,25 +505,19 @@ int Options::ParseArguments(int argc,
     DartDevIsolate::set_should_run_dart_dev(true);
     // Let DartDev handle the default help message.
     dart_options->AddArgument("help");
-    return 0;
+    return true;
   } else if (!Options::disable_dart_dev() &&
              (enable_dartdev_analytics || disable_dartdev_analytics)) {
     // The analytics flags are a special case as we don't have a target script
     // or DartDev command but we still want to launch DartDev.
     DartDevIsolate::set_should_run_dart_dev(true);
 
-    if (enable_dartdev_analytics) {
-      dart_options->AddArgument("--enable-analytics");
-    }
-    if (disable_dartdev_analytics) {
-      dart_options->AddArgument("--disable-analytics");
-    }
-    return 0;
+    return true;
   }
 
 #endif    // !defined(DART_PRECOMPILED_RUNTIME)
   else {  // NOLINT
-    return -1;
+    return false;
   }
   USE(enable_dartdev_analytics);
   USE(disable_dartdev_analytics);
@@ -546,7 +540,7 @@ int Options::ParseArguments(int argc,
     while (tmp_i < argc) {
       // Check if this flag is a potentially valid VM flag. If not, we've likely
       // hit a script name and are done parsing VM flags.
-      if (!OptionProcessor::IsValidFlag(argv[tmp_i], kPrefix, kPrefixLen)) {
+      if (!OptionProcessor::IsValidFlag(argv[tmp_i])) {
         break;
       }
       OptionProcessor::TryProcess(argv[tmp_i], vm_options);
@@ -595,14 +589,12 @@ int Options::ParseArguments(int argc,
       first_option = false;
     }
   }
-
-
   // Verify consistency of arguments.
 
   // snapshot_depfile is an alias for depfile. Passing them both is an error.
   if ((snapshot_deps_filename_ != NULL) && (depfile_ != NULL)) {
     Syslog::PrintErr("Specify only one of --depfile and --snapshot_depfile\n");
-    return -1;
+    return false;
   }
   if (snapshot_deps_filename_ != NULL) {
     depfile_ = snapshot_deps_filename_;
@@ -611,25 +603,25 @@ int Options::ParseArguments(int argc,
 
   if ((packages_file_ != NULL) && (strlen(packages_file_) == 0)) {
     Syslog::PrintErr("Empty package file name specified.\n");
-    return -1;
+    return false;
   }
   if ((gen_snapshot_kind_ != kNone) && (snapshot_filename_ == NULL)) {
     Syslog::PrintErr(
         "Generating a snapshot requires a filename (--snapshot).\n");
-    return -1;
+    return false;
   }
   if ((gen_snapshot_kind_ == kNone) && (depfile_ != NULL) &&
       (snapshot_filename_ == NULL) && (depfile_output_filename_ == NULL)) {
     Syslog::PrintErr(
         "Generating a depfile requires an output filename"
         " (--depfile-output-filename or --snapshot).\n");
-    return -1;
+    return false;
   }
   if ((gen_snapshot_kind_ != kNone) && vm_run_app_snapshot) {
     Syslog::PrintErr(
         "Specifying an option to generate a snapshot and"
         " run using a snapshot is invalid.\n");
-    return -1;
+    return false;
   }
 
   // If --snapshot is given without --snapshot-kind, default to script snapshot.
@@ -637,7 +629,7 @@ int Options::ParseArguments(int argc,
     gen_snapshot_kind_ = kKernel;
   }
 
-  return 0;
+  return true;
 }
 
 }  // namespace bin

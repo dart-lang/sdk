@@ -9,7 +9,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:test/test.dart';
 
-import '../../../generated/parser_fasta_test.dart';
+import '../../../generated/parser_test_base.dart';
 import '../../../generated/test_support.dart';
 
 /// The base class for tests that test how well the parser recovers from various

@@ -283,11 +283,9 @@ part 'd.dart';
 part 'not_dart.txt';
 ''');
     FileState file = fileSystemState.getFileForPath(a);
-    expect(_excludeSdk(file.importedFiles).map((f) => f.path),
-        unorderedEquals([b, not_dart]));
-    expect(
-        file.exportedFiles.map((f) => f.path), unorderedEquals([c, not_dart]));
-    expect(file.partedFiles.map((f) => f.path), unorderedEquals([d, not_dart]));
+    expect(_excludeSdk(file.importedFiles).map((f) => f.path), [b, not_dart]);
+    expect(file.exportedFiles.map((f) => f.path), [c, not_dart]);
+    expect(file.partedFiles.map((f) => f.path), [d, not_dart]);
     expect(_excludeSdk(fileSystemState.knownFilePaths),
         unorderedEquals([a, b, c, d, not_dart]));
   }
@@ -350,10 +348,7 @@ part 'not-a2.dart';
   test_getFileForUri_invalidUri() {
     var uri = Uri.parse('package:x');
     var file = fileSystemState.getFileForUri(uri);
-    expect(file.isUnresolved, isTrue);
-    expect(file.uri, isNull);
-    expect(file.path, isNull);
-    expect(file.isPart, isFalse);
+    expect(file, isNull);
   }
 
   test_getFileForUri_packageVsFileUri() {
@@ -504,6 +499,19 @@ class D implements C {}
     _assertFilesWithoutLibraryCycle([fa, fb]);
     _assertLibraryCycle(fa, [fa], []);
     _assertLibraryCycle(fb, [fb], [fa.libraryCycle]);
+  }
+
+  test_libraryCycle_invalidPart_withPart() {
+    var pa = convertPath('/aaa/lib/a.dart');
+
+    newFile(pa, content: r'''
+part of lib;
+part 'a.dart';
+''');
+
+    var fa = fileSystemState.getFileForPath(pa);
+
+    _assertLibraryCycle(fa, [fa], []);
   }
 
   test_referencedNames() {
@@ -658,9 +666,7 @@ part of 'a.dart';
   }
 
   void _assertIsUnresolvedFile(FileState file) {
-    expect(file.path, isNull);
-    expect(file.uri, isNull);
-    expect(file.source, isNull);
+    expect(file, isNull);
   }
 
   void _assertLibraryCycle(
@@ -681,6 +687,8 @@ part of 'a.dart';
         return !file.libraries.any((file) => file.uri.isScheme('dart'));
       } else if (file is FileState) {
         return file.uri?.scheme != 'dart';
+      } else if (file == null) {
+        return true;
       } else {
         return !(file as String).startsWith(convertPath('/sdk'));
       }

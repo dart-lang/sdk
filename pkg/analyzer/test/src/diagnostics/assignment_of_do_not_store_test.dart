@@ -193,6 +193,21 @@ class A{
     ]);
   }
 
+  test_topLevelVariable_assignment_functionExpression() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+
+@doNotStore
+String _v = '';
+
+var c = ()=> _v;
+
+String v = c();
+''', [
+      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 76, 2),
+    ]);
+  }
+
   test_topLevelVariable_assignment_getter() async {
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';
@@ -238,7 +253,6 @@ class A {
   }
 
   test_topLevelVariable_libraryAnnotation() async {
-    testFilePath;
     newFile('$testPackageLibPath/library.dart', content: '''
 @doNotStore
 library lib;

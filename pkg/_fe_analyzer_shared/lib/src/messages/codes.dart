@@ -26,15 +26,12 @@ class Code<T> {
   /// this error to its corresponding Analyzer error.
   final int index;
 
-  final Template<T> template;
-
-  final List<String> analyzerCodes;
+  final List<String>? analyzerCodes;
 
   final Severity severity;
 
-  const Code(this.name, this.template,
-      {int index, this.analyzerCodes, this.severity: Severity.error})
-      : this.index = index ?? -1;
+  const Code(this.name,
+      {this.index: -1, this.analyzerCodes, this.severity: Severity.error});
 
   String toString() => name;
 }
@@ -44,11 +41,12 @@ class Message {
 
   final String message;
 
-  final String tip;
+  final String? tip;
 
   final Map<String, dynamic> arguments;
 
-  const Message(this.code, {this.message, this.tip, this.arguments});
+  const Message(this.code,
+      {required this.message, this.tip, this.arguments = const {}});
 
   LocatedMessage withLocation(Uri uri, int charOffset, int length) {
     return new LocatedMessage(uri, charOffset, length, this);
@@ -66,15 +64,15 @@ class Message {
 class MessageCode extends Code<Null> implements Message {
   final String message;
 
-  final String tip;
+  final String? tip;
 
   const MessageCode(String name,
-      {int index,
-      List<String> analyzerCodes,
+      {int index: -1,
+      List<String>? analyzerCodes,
       Severity severity: Severity.error,
-      this.message,
+      required this.message,
       this.tip})
-      : super(name, null,
+      : super(name,
             index: index, analyzerCodes: analyzerCodes, severity: severity);
 
   Map<String, dynamic> get arguments => const <String, dynamic>{};
@@ -94,15 +92,18 @@ class MessageCode extends Code<Null> implements Message {
 class Template<T> {
   final String messageTemplate;
 
-  final String tipTemplate;
+  final String? tipTemplate;
 
   final T withArguments;
 
-  const Template({this.messageTemplate, this.tipTemplate, this.withArguments});
+  const Template(
+      {required this.messageTemplate,
+      this.tipTemplate,
+      required this.withArguments});
 }
 
 class LocatedMessage implements Comparable<LocatedMessage> {
-  final Uri uri;
+  final Uri? uri;
 
   final int charOffset;
 
@@ -117,7 +118,7 @@ class LocatedMessage implements Comparable<LocatedMessage> {
 
   String get message => messageObject.message;
 
-  String get tip => messageObject.tip;
+  String? get tip => messageObject.tip;
 
   Map<String, dynamic> get arguments => messageObject.arguments;
 
@@ -132,7 +133,7 @@ class LocatedMessage implements Comparable<LocatedMessage> {
 
   FormattedMessage withFormatting(String formatted, int line, int column,
       Severity severity, List<FormattedMessage> relatedInformation,
-      {List<Uri> involvedFiles}) {
+      {List<Uri>? involvedFiles}) {
     return new FormattedMessage(
         this, formatted, line, column, severity, relatedInformation,
         involvedFiles: involvedFiles);
@@ -173,9 +174,9 @@ class FormattedMessage implements DiagnosticMessage {
   @override
   final Severity severity;
 
-  final List<FormattedMessage> relatedInformation;
+  final List<FormattedMessage>? relatedInformation;
 
-  final List<Uri> involvedFiles;
+  final List<Uri>? involvedFiles;
 
   const FormattedMessage(this.locatedMessage, this.formatted, this.line,
       this.column, this.severity, this.relatedInformation,
@@ -187,11 +188,11 @@ class FormattedMessage implements DiagnosticMessage {
 
   String get message => locatedMessage.message;
 
-  String get tip => locatedMessage.tip;
+  String? get tip => locatedMessage.tip;
 
   Map<String, dynamic> get arguments => locatedMessage.arguments;
 
-  Uri get uri => locatedMessage.uri;
+  Uri? get uri => locatedMessage.uri;
 
   int get charOffset => locatedMessage.charOffset;
 
@@ -201,7 +202,7 @@ class FormattedMessage implements DiagnosticMessage {
   Iterable<String> get ansiFormatted sync* {
     yield formatted;
     if (relatedInformation != null) {
-      for (FormattedMessage m in relatedInformation) {
+      for (FormattedMessage m in relatedInformation!) {
         yield m.formatted;
       }
     }
@@ -213,14 +214,14 @@ class FormattedMessage implements DiagnosticMessage {
     return ansiFormatted;
   }
 
-  Map<String, Object> toJson() {
+  Map<String, Object?> toJson() {
     // This should be kept in sync with package:kernel/problems.md
-    return <String, Object>{
+    return <String, Object?>{
       "ansiFormatted": ansiFormatted.toList(),
       "plainTextFormatted": plainTextFormatted.toList(),
       "severity": severity.index,
       "uri": uri?.toString(),
-      "involvedFiles": involvedFiles?.map((u) => u.toString())?.toList(),
+      "involvedFiles": involvedFiles?.map((u) => u.toString()).toList(),
       "codeName": code.name,
     };
   }
@@ -241,9 +242,9 @@ class DiagnosticMessageFromJson implements DiagnosticMessage {
   @override
   final Severity severity;
 
-  final Uri uri;
+  final Uri? uri;
 
-  final List<Uri> involvedFiles;
+  final List<Uri>? involvedFiles;
 
   final String codeName;
 
@@ -253,30 +254,31 @@ class DiagnosticMessageFromJson implements DiagnosticMessage {
   factory DiagnosticMessageFromJson.fromJson(String jsonString) {
     Map<String, Object> decoded = json.decode(jsonString);
     List<String> ansiFormatted =
-        new List<String>.from(decoded["ansiFormatted"]);
+        new List<String>.from(_asListOfString(decoded["ansiFormatted"]));
     List<String> plainTextFormatted =
-        new List<String>.from(decoded["plainTextFormatted"]);
-    Severity severity = Severity.values[decoded["severity"]];
-    Uri uri = decoded["uri"] == null ? null : Uri.parse(decoded["uri"]);
-    List<Uri> involvedFiles = decoded["involvedFiles"] == null
+        _asListOfString(decoded["plainTextFormatted"]);
+    Severity severity = Severity.values[decoded["severity"] as int];
+    Uri? uri =
+        decoded["uri"] == null ? null : Uri.parse(decoded["uri"] as String);
+    List<Uri>? involvedFiles = decoded["involvedFiles"] == null
         ? null
-        : new List<String>.from(decoded["involvedFiles"])
+        : _asListOfString(decoded["involvedFiles"])
             .map((e) => Uri.parse(e))
             .toList();
-    String codeName = decoded["codeName"];
+    String codeName = decoded["codeName"] as String;
 
     return new DiagnosticMessageFromJson(ansiFormatted, plainTextFormatted,
         severity, uri, involvedFiles, codeName);
   }
 
-  Map<String, Object> toJson() {
+  Map<String, Object?> toJson() {
     // This should be kept in sync with package:kernel/problems.md
-    return <String, Object>{
+    return <String, Object?>{
       "ansiFormatted": ansiFormatted.toList(),
       "plainTextFormatted": plainTextFormatted.toList(),
       "severity": severity.index,
       "uri": uri?.toString(),
-      "involvedFiles": involvedFiles?.map((u) => u.toString())?.toList(),
+      "involvedFiles": involvedFiles?.map((u) => u.toString()).toList(),
       "codeName": codeName,
     };
   }
@@ -285,9 +287,13 @@ class DiagnosticMessageFromJson implements DiagnosticMessage {
     JsonEncoder encoder = new JsonEncoder.withIndent("  ");
     return encoder.convert(this);
   }
+
+  static List<String> _asListOfString(Object? value) {
+    return (value as List<dynamic>).cast<String>();
+  }
 }
 
-String relativizeUri(Uri uri) {
+String? relativizeUri(Uri? uri) {
   // We have this method here for two reasons:
   //
   // 1. It allows us to implement #uri message argument without using it

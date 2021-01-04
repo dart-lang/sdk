@@ -4,11 +4,11 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../../abstract_context.dart';
 import 'fix_processor.dart';
 
 void main() {
@@ -216,10 +216,8 @@ main() async {
 }
 
 @reflectiveTest
-class AddAsyncWithNullSafetyTest extends FixProcessorTest {
-  @override
-  List<String> get experiments => [EnableString.non_nullable];
-
+class AddAsyncWithNullSafetyTest extends FixProcessorTest
+    with WithNullSafetyMixin {
   @override
   FixKind get kind => DartFixKind.ADD_ASYNC;
 
@@ -250,6 +248,21 @@ class C {
     await assertNoFix();
   }
 
+  Future<void> test_missingReturn_method_notVoid_inherited() async {
+    await resolveTestCode('''
+abstract class A {
+  Future<int> foo();
+}
+
+class B implements A {
+  foo() {
+  print('');
+  }
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_missingReturn_method_void() async {
     await resolveTestCode('''
 class C {
@@ -262,6 +275,31 @@ class C {
 class C {
   Future<void> m() async {
     print('');
+  }
+}
+''');
+  }
+
+  Future<void> test_missingReturn_method_void_inherited() async {
+    await resolveTestCode('''
+abstract class A {
+  Future<void> foo();
+}
+
+class B implements A {
+  foo() {
+  print('');
+  }
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  Future<void> foo();
+}
+
+class B implements A {
+  foo() async {
+  print('');
   }
 }
 ''');

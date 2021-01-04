@@ -4955,6 +4955,188 @@ class AvailableSuggestionSet implements HasToJson {
   }
 }
 
+/// BulkFix
+///
+/// {
+///   "path": FilePath
+///   "fixes": List<BulkFixDetail>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class BulkFix implements HasToJson {
+  String _path;
+
+  List<BulkFixDetail> _fixes;
+
+  /// The path of the library.
+  String get path => _path;
+
+  /// The path of the library.
+  set path(String value) {
+    assert(value != null);
+    _path = value;
+  }
+
+  /// A list of bulk fix details.
+  List<BulkFixDetail> get fixes => _fixes;
+
+  /// A list of bulk fix details.
+  set fixes(List<BulkFixDetail> value) {
+    assert(value != null);
+    _fixes = value;
+  }
+
+  BulkFix(String path, List<BulkFixDetail> fixes) {
+    this.path = path;
+    this.fixes = fixes;
+  }
+
+  factory BulkFix.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    json ??= {};
+    if (json is Map) {
+      String path;
+      if (json.containsKey('path')) {
+        path = jsonDecoder.decodeString(jsonPath + '.path', json['path']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'path');
+      }
+      List<BulkFixDetail> fixes;
+      if (json.containsKey('fixes')) {
+        fixes = jsonDecoder.decodeList(
+            jsonPath + '.fixes',
+            json['fixes'],
+            (String jsonPath, Object json) =>
+                BulkFixDetail.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'fixes');
+      }
+      return BulkFix(path, fixes);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, 'BulkFix', json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var result = <String, dynamic>{};
+    result['path'] = path;
+    result['fixes'] =
+        fixes.map((BulkFixDetail value) => value.toJson()).toList();
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is BulkFix) {
+      return path == other.path &&
+          listEqual(
+              fixes, other.fixes, (BulkFixDetail a, BulkFixDetail b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    var hash = 0;
+    hash = JenkinsSmiHash.combine(hash, path.hashCode);
+    hash = JenkinsSmiHash.combine(hash, fixes.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/// BulkFixDetail
+///
+/// {
+///   "code": String
+///   "occurrences": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class BulkFixDetail implements HasToJson {
+  String _code;
+
+  int _occurrences;
+
+  /// The code of the diagnostic associated with the fix.
+  String get code => _code;
+
+  /// The code of the diagnostic associated with the fix.
+  set code(String value) {
+    assert(value != null);
+    _code = value;
+  }
+
+  /// The number times the associated diagnostic was fixed in the associated
+  /// source edit.
+  int get occurrences => _occurrences;
+
+  /// The number times the associated diagnostic was fixed in the associated
+  /// source edit.
+  set occurrences(int value) {
+    assert(value != null);
+    _occurrences = value;
+  }
+
+  BulkFixDetail(String code, int occurrences) {
+    this.code = code;
+    this.occurrences = occurrences;
+  }
+
+  factory BulkFixDetail.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    json ??= {};
+    if (json is Map) {
+      String code;
+      if (json.containsKey('code')) {
+        code = jsonDecoder.decodeString(jsonPath + '.code', json['code']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'code');
+      }
+      int occurrences;
+      if (json.containsKey('occurrences')) {
+        occurrences = jsonDecoder.decodeInt(
+            jsonPath + '.occurrences', json['occurrences']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'occurrences');
+      }
+      return BulkFixDetail(code, occurrences);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, 'BulkFixDetail', json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var result = <String, dynamic>{};
+    result['code'] = code;
+    result['occurrences'] = occurrences;
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is BulkFixDetail) {
+      return code == other.code && occurrences == other.occurrences;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    var hash = 0;
+    hash = JenkinsSmiHash.combine(hash, code.hashCode);
+    hash = JenkinsSmiHash.combine(hash, occurrences.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
 /// ClosingLabel
 ///
 /// {
@@ -7210,11 +7392,14 @@ class EditBulkFixesParams implements RequestParams {
 ///
 /// {
 ///   "edits": List<SourceFileEdit>
+///   "details": List<BulkFix>
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditBulkFixesResult implements ResponseResult {
   List<SourceFileEdit> _edits;
+
+  List<BulkFix> _details;
 
   /// A list of source edits to apply the recommended changes.
   List<SourceFileEdit> get edits => _edits;
@@ -7225,8 +7410,18 @@ class EditBulkFixesResult implements ResponseResult {
     _edits = value;
   }
 
-  EditBulkFixesResult(List<SourceFileEdit> edits) {
+  /// Details that summarize the fixes associated with the recommended changes.
+  List<BulkFix> get details => _details;
+
+  /// Details that summarize the fixes associated with the recommended changes.
+  set details(List<BulkFix> value) {
+    assert(value != null);
+    _details = value;
+  }
+
+  EditBulkFixesResult(List<SourceFileEdit> edits, List<BulkFix> details) {
     this.edits = edits;
+    this.details = details;
   }
 
   factory EditBulkFixesResult.fromJson(
@@ -7243,7 +7438,17 @@ class EditBulkFixesResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'edits');
       }
-      return EditBulkFixesResult(edits);
+      List<BulkFix> details;
+      if (json.containsKey('details')) {
+        details = jsonDecoder.decodeList(
+            jsonPath + '.details',
+            json['details'],
+            (String jsonPath, Object json) =>
+                BulkFix.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'details');
+      }
+      return EditBulkFixesResult(edits, details);
     } else {
       throw jsonDecoder.mismatch(jsonPath, 'edit.bulkFixes result', json);
     }
@@ -7261,6 +7466,7 @@ class EditBulkFixesResult implements ResponseResult {
     var result = <String, dynamic>{};
     result['edits'] =
         edits.map((SourceFileEdit value) => value.toJson()).toList();
+    result['details'] = details.map((BulkFix value) => value.toJson()).toList();
     return result;
   }
 
@@ -7275,8 +7481,9 @@ class EditBulkFixesResult implements ResponseResult {
   @override
   bool operator ==(other) {
     if (other is EditBulkFixesResult) {
-      return listEqual(
-          edits, other.edits, (SourceFileEdit a, SourceFileEdit b) => a == b);
+      return listEqual(edits, other.edits,
+              (SourceFileEdit a, SourceFileEdit b) => a == b) &&
+          listEqual(details, other.details, (BulkFix a, BulkFix b) => a == b);
     }
     return false;
   }
@@ -7285,6 +7492,7 @@ class EditBulkFixesResult implements ResponseResult {
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, edits.hashCode);
+    hash = JenkinsSmiHash.combine(hash, details.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }

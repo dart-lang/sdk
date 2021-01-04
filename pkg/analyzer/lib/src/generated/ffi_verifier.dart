@@ -163,6 +163,24 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       element.name == 'DynamicLibraryExtension' &&
       element.library.name == 'dart.ffi';
 
+  bool _isEmptyStruct(ClassElement classElement) {
+    final fields = classElement.fields;
+    var structFieldCount = 0;
+    for (final field in fields) {
+      final declaredType = field.type;
+      if (declaredType.isDartCoreInt) {
+        structFieldCount++;
+      } else if (declaredType.isDartCoreDouble) {
+        structFieldCount++;
+      } else if (_isPointer(declaredType.element)) {
+        structFieldCount++;
+      } else if (_isStructClass(declaredType)) {
+        structFieldCount++;
+      }
+    }
+    return structFieldCount == 0;
+  }
+
   bool _isHandle(Element element) =>
       element.name == 'Handle' && element.library.name == 'dart.ffi';
 
@@ -212,7 +230,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// Returns `true` iff [nativeType] is a struct type.
   bool _isStructClass(DartType nativeType) {
     if (nativeType is InterfaceType) {
-      final superClassElement = nativeType.element.supertype.element;
+      final superType = nativeType.element.supertype;
+      if (superType == null) {
+        return false;
+      }
+      final superClassElement = superType.element;
       if (superClassElement.library.name == 'dart.ffi') {
         return superClassElement.name == 'Struct' &&
             nativeType.typeArguments?.isEmpty == true;
@@ -246,12 +268,12 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           nativeType.optionalParameterTypes.isNotEmpty) {
         return false;
       }
-      if (!_isValidFfiNativeType(nativeType.returnType, true)) {
+      if (!_isValidFfiNativeType(nativeType.returnType, true, false)) {
         return false;
       }
 
-      for (final DartType typeArg in nativeType.typeArguments) {
-        if (!_isValidFfiNativeType(typeArg, false)) {
+      for (final DartType typeArg in nativeType.normalParameterTypes) {
+        if (!_isValidFfiNativeType(typeArg, false, false)) {
           return false;
         }
       }
@@ -261,7 +283,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   }
 
   /// Validates that the given [nativeType] is a valid dart:ffi native type.
-  bool _isValidFfiNativeType(DartType nativeType, bool allowVoid) {
+  bool _isValidFfiNativeType(
+      DartType nativeType, bool allowVoid, bool allowEmptyStruct) {
     if (nativeType is InterfaceType) {
       // Is it a primitive integer/double type (or ffi.Void if we allow it).
       final primitiveType = _primitiveNativeType(nativeType);
@@ -274,9 +297,19 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
       if (_isPointerInterfaceType(nativeType)) {
         final nativeArgumentType = nativeType.typeArguments.single;
-        return _isValidFfiNativeType(nativeArgumentType, true) ||
+        return _isValidFfiNativeType(nativeArgumentType, true, true) ||
             _isStructClass(nativeArgumentType) ||
             _isNativeTypeInterfaceType(nativeArgumentType);
+      }
+      if (_isStructClass(nativeType)) {
+        if (!allowEmptyStruct) {
+          if (_isEmptyStruct(nativeType.element)) {
+            // TODO(dartbug.com/36780): This results in an error message not
+            // mentioning empty structs at all.
+            return false;
+          }
+        }
+        return true;
       }
     } else if (nativeType is FunctionType) {
       return _isValidFfiNativeFunctionType(nativeType);
@@ -491,6 +524,12 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         _validateAnnotations(fieldType, annotations, _PrimitiveDartType.double);
       } else if (_isPointer(declaredType.element)) {
         _validateNoAnnotations(annotations);
+      } else if (_isStructClass(declaredType)) {
+        final clazz = (declaredType as InterfaceType).element;
+        if (_isEmptyStruct(clazz)) {
+          _errorReporter
+              .reportErrorForNode(FfiCode.EMPTY_STRUCT, node, [clazz.name]);
+        }
       } else {
         _errorReporter.reportErrorForNode(FfiCode.INVALID_FIELD_TYPE_IN_STRUCT,
             fieldType, [fieldType.toSource()]);
@@ -533,7 +572,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     final DartType R = (T as FunctionType).returnType;
     if ((FT as FunctionType).returnType.isVoid ||
         _isPointer(R.element) ||
-        _isHandle(R.element)) {
+        _isHandle(R.element) ||
+        _isStructClass(R)) {
       if (argCount != 1) {
         _errorReporter.reportErrorForNode(
             FfiCode.INVALID_EXCEPTION_VALUE, node.argumentList.arguments[1]);

@@ -6,7 +6,8 @@ environment:
   sdk: '>=2.1.0 <3.0.0'
 
 dependencies:
-  analyzer: any
+  analyzer:
+    path: ../analyzer
   html: any
   path: any
   test: any

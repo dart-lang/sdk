@@ -11,9 +11,7 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/summary/format.dart';
-import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary2/lazy_ast.dart';
+import 'package:analyzer/src/task/inference_error.dart';
 
 /// An object used to infer the type of instance fields and the return types of
 /// instance methods within a single compilation unit.
@@ -287,11 +285,9 @@ class InstanceMemberInferrer {
             type = typeSystem.nonNullifyLegacy(type);
             field.type = type;
           } else {
-            LazyAst.setTypeInferenceError(
-              field.linkedNode,
-              TopLevelInferenceErrorBuilder(
-                kind: TopLevelInferenceErrorKind.overrideConflictFieldType,
-              ),
+            field.typeInferenceError = TopLevelInferenceError(
+              kind: TopLevelInferenceErrorKind.overrideConflictFieldType,
+              arguments: const <String>[],
             );
           }
           return;
@@ -429,12 +425,9 @@ class InstanceMemberInferrer {
           }
         }
 
-        LazyAst.setTypeInferenceError(
-          element.linkedNode,
-          TopLevelInferenceErrorBuilder(
-            kind: TopLevelInferenceErrorKind.overrideNoCombinedSuperSignature,
-            arguments: [conflictExplanation],
-          ),
+        element.typeInferenceError = TopLevelInferenceError(
+          kind: TopLevelInferenceErrorKind.overrideNoCombinedSuperSignature,
+          arguments: [conflictExplanation],
         );
       }
     }

@@ -6,7 +6,6 @@
 /// entities.
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/element/element.dart' as engine;
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:path/path.dart' as pathos;
 
 /// Return a protocol [Element] corresponding to the given [engine.Element].
@@ -132,8 +131,13 @@ String _getParametersString(engine.Element element) {
       return null;
     }
     parameters = element.parameters.toList();
-  } else if (element is engine.FunctionTypeAliasElement) {
-    parameters = element.function.parameters.toList();
+  } else if (element is engine.TypeAliasElement) {
+    var aliasedElement = element.aliasedElement;
+    if (aliasedElement is engine.GenericFunctionTypeElement) {
+      parameters = aliasedElement.parameters.toList();
+    } else {
+      return null;
+    }
   } else {
     return null;
   }

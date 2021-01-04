@@ -2964,8 +2964,8 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
     // loop changes flags list to zero so we can use bitwise or when
     // propagating loop changes upwards.
     final int length = graph.blocks.length;
-    blockChangesFlags = new List<int>(length);
-    loopChangesFlags = new List<int>(length);
+    blockChangesFlags = new List<int>.filled(length, null);
+    loopChangesFlags = new List<int>.filled(length, null);
     for (int i = 0; i < length; i++) loopChangesFlags[i] = 0;
 
     // Run through all the basic blocks in the graph and fill in the
@@ -3046,7 +3046,7 @@ class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
 
   @override
   void visitGraph(HGraph graph) {
-    values = new List<ValueSet>(graph.blocks.length);
+    values = new List<ValueSet>.filled(graph.blocks.length, null);
     for (int i = 0; i < graph.blocks.length; i++) {
       values[graph.blocks[i].id] = new ValueSet();
     }
@@ -3315,7 +3315,7 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   @override
   void visitGraph(HGraph graph) {
     _graph = graph;
-    memories = new List<MemorySet>(graph.blocks.length);
+    memories = new List<MemorySet>.filled(graph.blocks.length, null);
     List<HBasicBlock> blocks = graph.blocks;
     for (int i = 0; i < blocks.length; i++) {
       HBasicBlock block = blocks[i];

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:math';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
@@ -30,9 +31,9 @@ abstract class ProgressReporter {
   ProgressReporter._();
 
   // TODO(dantup): Add support for cancellable progress notifications.
-  void begin(String title, {String message});
+  FutureOr<void> begin(String title, {String message});
 
-  void end([String message]);
+  FutureOr<void> end([String message]);
 }
 
 class _NoopProgressReporter extends ProgressReporter {
@@ -45,7 +46,7 @@ class _NoopProgressReporter extends ProgressReporter {
 
 class _ServerCreatedProgressReporter extends _TokenProgressReporter {
   static final _random = Random();
-  Future<ResponseMessage> _tokenCreateRequest;
+  Future<bool> _tokenBeginRequest;
 
   _ServerCreatedProgressReporter(
     LspAnalysisServer server,
@@ -56,28 +57,39 @@ class _ServerCreatedProgressReporter extends _TokenProgressReporter {
         );
 
   @override
-  void begin(String title, {String message}) {
-    // Create the token lazily so we don't create it if it's not required.
-    _tokenCreateRequest ??= _server.sendRequest(
-        Method.window_workDoneProgress_create,
-        WorkDoneProgressCreateParams(token: _token));
+  Future<void> begin(String title, {String message}) async {
+    assert(_tokenBeginRequest == null,
+        'Begin should not be called more than once');
 
-    // Chain onto the end of tokenCreateRequest so we do not try to use
-    // the token without the client accepting it.
-    _tokenCreateRequest.then((response) {
-      if (response.error != null) return;
+    // Put the create/begin into a future so if end() is called before the
+    // begin is sent (which could happen because create is async), end will
+    // not be sent/return too early.
+    _tokenBeginRequest = _server
+        .sendRequest(Method.window_workDoneProgress_create,
+            WorkDoneProgressCreateParams(token: _token))
+        .then((response) {
+      // If the client did not create a token, do not send begin (and signal
+      // that we should also not send end).
+      if (response.error != null) return false;
       super.begin(title, message: message);
+      return true;
     });
+
+    await _tokenBeginRequest;
   }
 
   @override
-  void end([String message]) {
-    // Chain onto the end of tokenCreateRequest so we do not try to use
-    // the token without the client accepting it.
-    _tokenCreateRequest.then((response) {
-      if (response.error != null) return;
-      super.end(message);
-    });
+  Future<void> end([String message]) async {
+    // Only end the token after both create/begin have completed, and return
+    // a Future to indicate that has happened to callers know when it's safe
+    // to re-use the token identifier.
+    if (_tokenBeginRequest != null) {
+      final didBegin = await _tokenBeginRequest;
+      if (didBegin) {
+        super.end(message);
+      }
+      _tokenBeginRequest = null;
+    }
   }
 
   static String _randomTokenIdentifier() {

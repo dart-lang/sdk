@@ -408,6 +408,10 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
   /// compilation unit.
   List<TopLevelVariableElement> get topLevelVariables;
 
+  /// Return a list containing all of the type aliases contained in this
+  /// compilation unit.
+  List<TypeAliasElement> get typeAliases;
+
   /// Return a list containing all of the classes contained in this compilation
   /// unit.
   List<ClassElement> get types;
@@ -859,7 +863,10 @@ class ElementKind implements Comparable<ElementKind> {
   static const ElementKind TYPE_PARAMETER =
       ElementKind('TYPE_PARAMETER', 24, "type parameter");
 
-  static const ElementKind UNIVERSE = ElementKind('UNIVERSE', 25, "<universe>");
+  static const ElementKind TYPE_ALIAS =
+      ElementKind('TYPE_ALIAS', 25, "type alias");
+
+  static const ElementKind UNIVERSE = ElementKind('UNIVERSE', 26, "<universe>");
 
   static const List<ElementKind> values = [
     CLASS,
@@ -985,6 +992,8 @@ abstract class ElementVisitor<R> {
   R visitPropertyAccessorElement(PropertyAccessorElement element);
 
   R visitTopLevelVariableElement(TopLevelVariableElement element);
+
+  R visitTypeAliasElement(TypeAliasElement element);
 
   R visitTypeParameterElement(TypeParameterElement element);
 }
@@ -1160,6 +1169,7 @@ abstract class FunctionElement implements ExecutableElement, LocalElement {
 abstract class FunctionTypeAliasElement implements TypeAliasElement {
   /// Return the generic function type element representing the generic function
   /// type on the right side of the equals.
+  @Deprecated('Use aliasedElement instead')
   GenericFunctionTypeElement get function;
 
   @override
@@ -1653,6 +1663,19 @@ abstract class TopLevelVariableElement implements PropertyInducingElement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class TypeAliasElement
     implements TypeParameterizedElement, TypeDefiningElement {
+  /// If the aliased type has structure, return the corresponding element.
+  /// For example it could be [GenericFunctionTypeElement].
+  ///
+  /// If there is no structure, return `null`.
+  Element get aliasedElement;
+
+  /// Return the aliased type.
+  ///
+  /// If non-function type aliases feature is enabled for the enclosing library,
+  /// this type might be just anything. If the feature is disabled, return
+  /// a [FunctionType].
+  DartType get aliasedType;
+
   @override
   CompilationUnitElement get enclosingElement;
 

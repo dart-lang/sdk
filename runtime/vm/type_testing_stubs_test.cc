@@ -7,16 +7,139 @@
 #include "platform/assert.h"
 
 #include "vm/class_finalizer.h"
+#include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/il_test_helper.h"
 #include "vm/symbols.h"
 #include "vm/type_testing_stubs.h"
-#include "vm/type_testing_stubs_test.h"
 #include "vm/unit_test.h"
 
 #if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_ARM) ||                  \
     defined(TARGET_ARCH_X64)
 
 namespace dart {
+
+#define __ assembler->
+
+static void GenerateInvokeTTSStub(compiler::Assembler* assembler) {
+  auto calculate_breadcrumb = [](const Register& reg) {
+    return 0x10 + 2 * (static_cast<intptr_t>(reg));
+  };
+
+  __ EnterDartFrame(0);
+
+  for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+    if (((1 << i) & kDartAvailableCpuRegs) == 0) continue;
+    if (((1 << i) & TypeTestABI::kAbiRegisters) != 0) continue;
+    if (((1 << i) & TTSInternalRegs::kInternalRegisters) != 0) continue;
+    const Register reg = static_cast<Register>(i);
+    __ LoadImmediate(reg, calculate_breadcrumb(reg));
+  }
+
+  // Load the arguments into the right TTS calling convention registers.
+  const intptr_t instance_offset =
+      (kCallerSpSlotFromFp + 3) * compiler::target::kWordSize;
+  const intptr_t inst_type_args_offset =
+      (kCallerSpSlotFromFp + 2) * compiler::target::kWordSize;
+  const intptr_t fun_type_args_offset =
+      (kCallerSpSlotFromFp + 1) * compiler::target::kWordSize;
+  const intptr_t dst_type_offset =
+      (kCallerSpSlotFromFp + 0) * compiler::target::kWordSize;
+
+  __ LoadMemoryValue(TypeTestABI::kInstanceReg, FPREG, instance_offset);
+  __ LoadMemoryValue(TypeTestABI::kInstantiatorTypeArgumentsReg, FPREG,
+                     inst_type_args_offset);
+  __ LoadMemoryValue(TypeTestABI::kFunctionTypeArgumentsReg, FPREG,
+                     fun_type_args_offset);
+  __ LoadMemoryValue(TypeTestABI::kDstTypeReg, FPREG, dst_type_offset);
+
+  const intptr_t subtype_test_cache_index = __ object_pool_builder().AddObject(
+      Object::null_object(), compiler::ObjectPoolBuilderEntry::kPatchable);
+  const intptr_t dst_name_index = __ object_pool_builder().AddObject(
+      Symbols::OptimizedOut(), compiler::ObjectPoolBuilderEntry::kPatchable);
+  ASSERT_EQUAL(subtype_test_cache_index + 1, dst_name_index);
+  ASSERT(__ constant_pool_allowed());
+
+  FlowGraphCompiler::GenerateIndirectTTSCall(
+      assembler, TypeTestABI::kDstTypeReg, subtype_test_cache_index);
+
+  // We have the guarantee that TTS preserves all input registers, if the TTS
+  // handles the type test successfully.
+  //
+  // Let the test know which TTS abi registers were not preserved.
+  ASSERT(((1 << static_cast<intptr_t>(TypeTestABI::kInstanceReg)) &
+          TypeTestABI::kPreservedAbiRegisters) != 0);
+  // First we check the instance register, freeing it up in case there are no
+  // other safe registers to use since we need two registers: one to accumulate
+  // the register mask, another to load the array address when saving the mask.
+  __ LoadFromOffset(TypeTestABI::kScratchReg, FPREG, instance_offset);
+  compiler::Label instance_matches, done_with_instance;
+  __ CompareRegisters(TypeTestABI::kScratchReg, TypeTestABI::kInstanceReg);
+  __ BranchIf(EQUAL, &instance_matches, compiler::Assembler::kNearJump);
+  __ LoadImmediate(TypeTestABI::kScratchReg,
+                   1 << static_cast<intptr_t>(TypeTestABI::kInstanceReg));
+  __ Jump(&done_with_instance, compiler::Assembler::kNearJump);
+  __ Bind(&instance_matches);
+  __ LoadImmediate(TypeTestABI::kScratchReg, 0);
+  __ Bind(&done_with_instance);
+  for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+    if (((1 << i) & TypeTestABI::kPreservedAbiRegisters) == 0) continue;
+    const Register reg = static_cast<Register>(i);
+    compiler::Label done;
+    switch (reg) {
+      case TypeTestABI::kInstanceReg:
+        // Skip the already handled instance register.
+        continue;
+      case TypeTestABI::kDstTypeReg:
+        __ LoadFromOffset(TypeTestABI::kInstanceReg, FPREG, dst_type_offset);
+        break;
+      case TypeTestABI::kFunctionTypeArgumentsReg:
+        __ LoadFromOffset(TypeTestABI::kInstanceReg, FPREG,
+                          fun_type_args_offset);
+        break;
+      case TypeTestABI::kInstantiatorTypeArgumentsReg:
+        __ LoadFromOffset(TypeTestABI::kInstanceReg, FPREG,
+                          inst_type_args_offset);
+        break;
+      default:
+        FATAL("Unexpected register %s", RegisterNames::RegisterName(reg));
+        break;
+    }
+    __ CompareRegisters(reg, TypeTestABI::kInstanceReg);
+    __ BranchIf(EQUAL, &done, compiler::Assembler::kNearJump);
+    __ AddImmediate(TypeTestABI::kScratchReg, 1 << i);
+    __ Bind(&done);
+  }
+  __ SmiTag(TypeTestABI::kScratchReg);
+  __ LoadFromOffset(TypeTestABI::kInstanceReg, FPREG,
+                    (kCallerSpSlotFromFp + 5) * compiler::target::kWordSize);
+  __ StoreFieldToOffset(TypeTestABI::kScratchReg, TypeTestABI::kInstanceReg,
+                        compiler::target::Array::element_offset(0));
+
+  // Let the test know which non-TTS abi registers were not preserved.
+  __ LoadImmediate(TypeTestABI::kScratchReg, 0);
+  for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+    if (((1 << i) & kDartAvailableCpuRegs) == 0) continue;
+    if (((1 << i) & TypeTestABI::kAbiRegisters) != 0) continue;
+    const Register reg = static_cast<Register>(i);
+    compiler::Label done;
+    __ CompareImmediate(reg, calculate_breadcrumb(reg));
+    __ BranchIf(EQUAL, &done, compiler::Assembler::kNearJump);
+    __ AddImmediate(TypeTestABI::kScratchReg, 1 << i);
+    __ Bind(&done);
+  }
+  __ SmiTag(TypeTestABI::kScratchReg);
+  __ LoadFromOffset(TypeTestABI::kInstanceReg, FPREG,
+                    (kCallerSpSlotFromFp + 4) * compiler::target::kWordSize);
+  __ StoreFieldToOffset(TypeTestABI::kScratchReg, TypeTestABI::kInstanceReg,
+                        compiler::target::Array::element_offset(0));
+
+  // Set the return from the stub to be null.
+  __ LoadObject(CallingConventions::kReturnReg, Object::null_object());
+  __ LeaveDartFrame();
+  __ Ret();
+}
+
+#undef __
 
 static void FinalizeAndCanonicalize(AbstractType* type) {
   *type = ClassFinalizer::FinalizeType(*type);
@@ -35,8 +158,8 @@ static void RunTTSTest(
     std::function<void(const Object& result, const SubtypeTestCache& stc)> lazy,
     std::function<void(const Object& result,
                        const SubtypeTestCache& stc,
-                       const Bool& abi_regs_modified,
-                       const Bool& rest_regs_modified)> nonlazy) {
+                       const Smi& abi_regs_modified,
+                       const Smi& rest_regs_modified)> nonlazy) {
   ASSERT(instantiator_tav.IsNull() || instantiator_tav.IsCanonical());
   ASSERT(function_tav.IsNull() || function_tav.IsCanonical());
   auto thread = Thread::Current();
@@ -59,7 +182,7 @@ static void RunTTSTest(
   invoke_tts.set_exception_handlers(
       ExceptionHandlers::Handle(ExceptionHandlers::New(0)));
 
-  EXPECT(pool.Length() == 2);
+  EXPECT_EQ(2, pool.Length());
   const intptr_t kSubtypeTestCacheIndex = 0;
 
   const auto& arguments_descriptor =
@@ -87,8 +210,8 @@ static void RunTTSTest(
 
   auto& result = Object::Handle();
   auto& result2 = Object::Handle();
-  auto& abi_regs_modified = Bool::Handle();
-  auto& rest_regs_modified = Bool::Handle();
+  auto& abi_regs_modified = Smi::Handle();
+  auto& rest_regs_modified = Smi::Handle();
   auto& tts = Code::Handle();
   auto& tts2 = Code::Handle();
   auto& stc = SubtypeTestCache::Handle();
@@ -135,68 +258,103 @@ static void RunTTSTest(
   nonlazy(result2, stc2, abi_regs_modified, rest_regs_modified);
 }
 
-static void ExpectLazilyHandledViaTTS(const Object& result,
-                                      const SubtypeTestCache& stc) {
+static void ReportModifiedRegisters(const Smi& modified_registers) {
+  const intptr_t reg_mask = Smi::Cast(modified_registers).Value();
+  for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
+    if (((1 << i) & reg_mask) != 0) {
+      const Register reg = static_cast<Register>(i);
+      dart::Expect(__FILE__, __LINE__)
+          .Fail("%s was modified", RegisterNames::RegisterName(reg));
+    }
+  }
+}
+
+static void CommonTTSHandledChecks(const Object& result,
+                                   const SubtypeTestCache& stc) {
   // Ensure the type test succeeded.
   EXPECT(result.IsNull());
   // Ensure we didn't fall back to the subtype test cache.
   EXPECT(stc.IsNull());
 }
 
-static void ExpectHandledViaTTS(const Object& result,
-                                const SubtypeTestCache& stc,
-                                const Bool& abi_regs_modified,
-                                const Bool& rest_regs_modified) {
-  ExpectLazilyHandledViaTTS(result, stc);
-  // Ensure the TTS abi registers were preserved.
-  EXPECT(!abi_regs_modified.value());
-  // Ensure the non-TTS abi registers were preserved.
-  EXPECT(!rest_regs_modified.value());
+static void ExpectLazilyHandledViaTTS(const Object& result,
+                                      const SubtypeTestCache& stc) {
+  THR_Print("Testing lazy handled via TTS\n");
+  CommonTTSHandledChecks(result, stc);
 }
 
-static void ExpectLazilyHandledViaSTC(const Object& result,
-                                      const SubtypeTestCache& stc) {
+static void ExpectHandledViaTTS(const Object& result,
+                                const SubtypeTestCache& stc,
+                                const Smi& abi_regs_modified,
+                                const Smi& rest_regs_modified) {
+  THR_Print("Testing non-lazy handled via TTS\n");
+  CommonTTSHandledChecks(result, stc);
+  // Ensure the TTS abi registers were preserved.
+  ReportModifiedRegisters(abi_regs_modified);
+  // Ensure the non-TTS abi registers were preserved.
+  ReportModifiedRegisters(rest_regs_modified);
+}
+
+static void CommonSTCHandledChecks(const Object& result,
+                                   const SubtypeTestCache& stc) {
   // Ensure the type test succeeded.
   EXPECT(result.IsNull());
   // Ensure we did fall back to the subtype test cache.
   EXPECT(!stc.IsNull());
   // Ensure the test is marked as succeeding in the STC.
-  EXPECT(stc.NumberOfChecks() == 1);
+  EXPECT_EQ(1, stc.NumberOfChecks());
   SubtypeTestCacheTable entries(Array::Handle(stc.cache()));
   EXPECT(entries[0].Get<SubtypeTestCache::kTestResult>() ==
          Object::bool_true().raw());
 }
 
+static void ExpectLazilyHandledViaSTC(const Object& result,
+                                      const SubtypeTestCache& stc) {
+  THR_Print("Testing lazy handled via STC\n");
+  CommonSTCHandledChecks(result, stc);
+}
+
 static void ExpectHandledViaSTC(const Object& result,
                                 const SubtypeTestCache& stc,
-                                const Bool& abi_regs_modified,
-                                const Bool& rest_regs_modified) {
-  ExpectLazilyHandledViaSTC(result, stc);
+                                const Smi& abi_regs_modified,
+                                const Smi& rest_regs_modified) {
+  THR_Print("Testing non-lazy handled via STC\n");
+  CommonSTCHandledChecks(result, stc);
   // Ensure the TTS/STC abi registers were preserved.
-  EXPECT(!abi_regs_modified.value());
+  ReportModifiedRegisters(abi_regs_modified);
+  // Ensure the non-TTS abi registers were preserved.
+  ReportModifiedRegisters(rest_regs_modified);
+}
+
+static void CommonTTSFailureChecks(const Object& result,
+                                   const SubtypeTestCache& stc) {
+  // Ensure we have not updated STC (which we shouldn't do in case the type test
+  // fails, i.e. an exception is thrown).
+  EXPECT(stc.IsNull());
+  // Ensure we get a proper exception for the type test.
+  EXPECT(result.IsUnhandledException());
+  const auto& error =
+      Instance::Handle(UnhandledException::Cast(result).exception());
+  EXPECT(strstr(error.ToCString(), "_TypeError"));
 }
 
 static void ExpectLazilyFailedViaTTS(const Object& result,
                                      const SubtypeTestCache& stc) {
-  // Ensure we have not updated STC (which we shouldn't do in case the type test
-  // fails, i.e. an exception is thrown).
-  EXPECT(stc.IsNull());
-  // Ensure we get a proper exception for the type test.
-  EXPECT(result.IsUnhandledException());
-  const auto& error =
-      Instance::Handle(UnhandledException::Cast(result).exception());
-  EXPECT(strstr(error.ToCString(), "_TypeError"));
+  THR_Print("Testing lazy failure via TTS\n");
+  CommonTTSFailureChecks(result, stc);
 }
 
 static void ExpectFailedViaTTS(const Object& result,
                                const SubtypeTestCache& stc,
-                               const Bool& abi_regs_modified,
-                               const Bool& rest_regs_modified) {
-  ExpectLazilyFailedViaTTS(result, stc);
+                               const Smi& abi_regs_modified,
+                               const Smi& rest_regs_modified) {
+  THR_Print("Testing nonlazy failure via TTS\n");
+  CommonTTSFailureChecks(result, stc);
+  // Registers only need to be preserved on success.
 }
 
-static void ExpectLazilyFailedViaSTC(const Object& result,
-                                     const SubtypeTestCache& stc) {
+static void CommonSTCFailureChecks(const Object& result,
+                                   const SubtypeTestCache& stc) {
   // Ensure we have not updated STC (which we shouldn't do in case the type test
   // fails, i.e. an exception is thrown).
   EXPECT(stc.IsNull());
@@ -207,11 +365,19 @@ static void ExpectLazilyFailedViaSTC(const Object& result,
   EXPECT(strstr(error.ToCString(), "_TypeError"));
 }
 
+static void ExpectLazilyFailedViaSTC(const Object& result,
+                                     const SubtypeTestCache& stc) {
+  THR_Print("Testing lazy failure via STC\n");
+  CommonSTCFailureChecks(result, stc);
+}
+
 static void ExpectFailedViaSTC(const Object& result,
                                const SubtypeTestCache& stc,
-                               const Bool& abi_regs_modified,
-                               const Bool& rest_regs_modified) {
-  ExpectLazilyFailedViaSTC(result, stc);
+                               const Smi& abi_regs_modified,
+                               const Smi& rest_regs_modified) {
+  THR_Print("Testing non-lazy failure via STC\n");
+  CommonSTCFailureChecks(result, stc);
+  // Registers only need to be preserved on success.
 }
 
 const char* kSubtypeRangeCheckScript =
@@ -697,11 +863,15 @@ ISOLATE_UNIT_TEST_CASE(TTS_TypeParameter) {
   const auto& int_instance = Integer::Handle(Integer::New(1));
   const auto& string_instance = String::Handle(String::New("foo"));
 
+  THR_Print("Testing int instance, class parameter instantiated to int\n");
   RunTTSTest(int_instance, dst_type_t, int_tav, string_tav,
              ExpectLazilyHandledViaTTS, ExpectHandledViaTTS);
+  THR_Print("\nTesting string instance, class parameter instantiated to int\n");
   RunTTSTest(string_instance, dst_type_t, int_tav, string_tav,
              ExpectLazilyFailedViaTTS, ExpectFailedViaTTS);
 
+  THR_Print(
+      "\nTesting string instance, function parameter instantiated to string\n");
   RunTTSTest(string_instance, dst_type_h, int_tav, string_tav,
              ExpectLazilyHandledViaTTS, ExpectHandledViaTTS);
   RunTTSTest(int_instance, dst_type_h, int_tav, string_tav,

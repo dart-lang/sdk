@@ -35,6 +35,8 @@ import '../scope.dart';
 
 import 'source_library_builder.dart';
 
+const String extensionThisName = '#this';
+
 class SourceExtensionBuilder extends ExtensionBuilderImpl {
   final Extension _extension;
 

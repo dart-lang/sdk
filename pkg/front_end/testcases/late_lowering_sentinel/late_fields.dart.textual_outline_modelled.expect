@@ -1,0 +1,37 @@
+---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+int? nullableTopLevelField;
+---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+int nonNullableTopLevelField;
+---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+int? nullableTopLevelFieldWithInitializer = null;
+---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+int nonNullableTopLevelFieldWithInitializer = 0;
+---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+final int? nullableFinalTopLevelField;
+---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+final int nonNullableFinalTopLevelField;
+---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+final int? nullableFinalTopLevelFieldWithInitializer = null;
+---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+final int nonNullableFinalTopLevelFieldWithInitializer = 0;
+---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+Never neverTopLevelField;
+main() {}

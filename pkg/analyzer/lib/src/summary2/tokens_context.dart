@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary2/unlinked_token_type.dart';
 
 /// The context for reading tokens.
 class TokensContext {

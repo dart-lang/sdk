@@ -59,11 +59,12 @@ TEST_CASE(SlotFromGuardedField) {
                  TokenPosition::kMinSource));
 
   // Set non-trivial guarded state on the field.
-  field.set_guarded_cid(kSmiCid);
-  field.set_is_nullable(false);
+  field.set_guarded_cid_unsafe(kSmiCid);
+  field.set_is_nullable_unsafe(false);
 
   // Enter compiler state.
-  CompilerState compiler_state(thread, /*is_aot=*/false);
+  CompilerState compiler_state(thread, /*is_aot=*/false,
+                               /*is_optimizing=*/true);
 
   const Field& field_clone_1 = Field::ZoneHandle(field.CloneFromOriginal());
   const Field& field_clone_2 = Field::ZoneHandle(field.CloneFromOriginal());
@@ -87,8 +88,8 @@ TEST_CASE(SlotFromGuardedField) {
   // Change the guarded state of the field to "unknown" - emulating concurrent
   // modification of the guarded state in mutator) and create a new clone of
   // the field.
-  field.set_guarded_cid(kDynamicCid);
-  field.set_is_nullable(true);
+  field.set_guarded_cid_unsafe(kDynamicCid);
+  field.set_is_nullable_unsafe(true);
   const Field& field_clone_3 = Field::ZoneHandle(field.CloneFromOriginal());
 
   // Slot::Get must return the same slot and add the field from which it

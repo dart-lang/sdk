@@ -10,9 +10,12 @@ import 'package:usage/usage.dart';
 const String _dartdev = 'dartdev';
 
 /// The collection of custom dimensions understood by the analytics backend.
-/// When adding to this list, first ensure that the custom dimension is
-/// defined in the backend, or will be defined shortly after the relevant PR
-/// lands. The pattern here matches the flutter cli.
+/// When adding to this list, first ensure that the custom dimension is defined
+/// in the backend (or will be defined shortly after the relevant PR lands).
+///
+/// The pattern here matches the flutter cli.
+///
+/// Note: do not re-order the elements in this enum!
 enum _CustomDimensions {
   commandExitCode, // cd1
   enabledExperiments, // cd2

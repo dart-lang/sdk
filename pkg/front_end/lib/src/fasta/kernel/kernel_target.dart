@@ -105,7 +105,11 @@ import '../source/source_loader.dart' show SourceLoader;
 import '../target_implementation.dart' show TargetImplementation;
 import '../uri_translator.dart' show UriTranslator;
 import 'constant_evaluator.dart' as constants
-    show EvaluationMode, transformLibraries, transformProcedure;
+    show
+        EvaluationMode,
+        transformLibraries,
+        transformProcedure,
+        ConstantCoverage;
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
 import 'metadata_collector.dart' show MetadataCollector;
 import 'verifier.dart' show verifyComponent, verifyGetStaticType;
@@ -190,7 +194,7 @@ class KernelTarget extends TargetImplementation {
 
   /// Return list of same size as input with possibly translated uris.
   List<Uri> setEntryPoints(List<Uri> entryPoints) {
-    List<Uri> result = new List<Uri>();
+    List<Uri> result = <Uri>[];
     for (Uri entryPoint in entryPoints) {
       Uri translatedEntryPoint =
           getEntryPointUri(entryPoint, issueProblem: true);
@@ -800,8 +804,8 @@ class KernelTarget extends TargetImplementation {
             isSynthetic: true,
             isConst: isConst,
             reference: referenceFrom?.reference)
-          ..isNonNullableByDefault =
-              cls.enclosingLibrary.isNonNullableByDefault,
+          ..isNonNullableByDefault = cls.enclosingLibrary.isNonNullableByDefault
+          ..fileUri = cls.fileUri,
         // If the constructor is constant, the default values must be part of
         // the outline expressions. We pass on the original constructor and
         // cloned function nodes to ensure that the default values are computed
@@ -834,7 +838,7 @@ class KernelTarget extends TargetImplementation {
   }
 
   DartType makeConstructorReturnType(Class enclosingClass) {
-    List<DartType> typeParameterTypes = new List<DartType>();
+    List<DartType> typeParameterTypes = <DartType>[];
     for (int i = 0; i < enclosingClass.typeParameters.length; i++) {
       TypeParameter typeParameter = enclosingClass.typeParameters[i];
       typeParameterTypes.add(
@@ -1231,7 +1235,7 @@ class KernelTarget extends TargetImplementation {
         new TypeEnvironment(loader.coreTypes, loader.hierarchy);
     constants.EvaluationMode evaluationMode = _getConstantEvaluationMode();
 
-    constants.transformLibraries(
+    constants.ConstantCoverage coverage = constants.transformLibraries(
         loader.libraries,
         backendTarget.constantsBackend(loader.coreTypes),
         environmentDefines,
@@ -1239,11 +1243,19 @@ class KernelTarget extends TargetImplementation {
         new KernelConstantErrorReporter(loader),
         evaluationMode,
         evaluateAnnotations: true,
-        desugarSets: !backendTarget.supportsSetLiterals,
         enableTripleShift:
             isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
         errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
     ticker.logMs("Evaluated constants");
+
+    coverage.constructorCoverage.forEach((Uri fileUri, Set<Reference> value) {
+      Source source = uriToSource[fileUri];
+      if (source != null && fileUri != null) {
+        source.constantCoverageConstructors ??= new Set<Reference>();
+        source.constantCoverageConstructors.addAll(value);
+      }
+    });
+    ticker.logMs("Added constant coverage");
 
     if (loader.target.context.options
         .isExperimentEnabledGlobally(ExperimentalFlag.valueClass)) {
@@ -1279,7 +1291,6 @@ class KernelTarget extends TargetImplementation {
         new KernelConstantErrorReporter(loader),
         evaluationMode,
         evaluateAnnotations: true,
-        desugarSets: !backendTarget.supportsSetLiterals,
         enableTripleShift:
             isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
         errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);

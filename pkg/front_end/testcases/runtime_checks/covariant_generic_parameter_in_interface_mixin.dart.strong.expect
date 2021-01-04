@@ -55,7 +55,7 @@ class C = self::B with self::M implements self::I<core::int*> {
     : super self::B::•()
     ;
   forwarding-stub method f(generic-covariant-impl core::int* x) → void
-    return super.{self::B::f}(x);
+    return super.{self::M::f}(x);
 }
 static method g1(self::C* c) → void {
   c.{self::C::f}(1);

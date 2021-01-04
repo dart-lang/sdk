@@ -46,9 +46,9 @@ class TypeVariableGraph extends Graph<int> {
   TypeVariableGraph(this.typeParameters, this.bounds) {
     assert(typeParameters.length == bounds.length);
 
-    vertices = new List<int>(typeParameters.length);
+    vertices = new List<int>.filled(typeParameters.length, null);
     Map<TypeParameter, int> typeParameterIndices = <TypeParameter, int>{};
-    edges = new List<List<int>>(typeParameters.length);
+    edges = new List<List<int>>.filled(typeParameters.length, null);
     for (int i = 0; i < vertices.length; i++) {
       vertices[i] = i;
       typeParameterIndices[typeParameters[i]] = i;
@@ -161,7 +161,8 @@ DartType instantiateToBounds(
 /// of the algorithm for details.
 List<DartType> calculateBounds(List<TypeParameter> typeParameters,
     Class objectClass, Library contextLibrary) {
-  List<DartType> bounds = new List<DartType>(typeParameters.length);
+  List<DartType> bounds =
+      new List<DartType>.filled(typeParameters.length, null);
   for (int i = 0; i < typeParameters.length; i++) {
     DartType bound = typeParameters[i].bound;
     if (bound == null) {
@@ -345,7 +346,7 @@ List<TypeArgumentIssue> findTypeArgumentIssues(
     } else if (variables[i].bound is! InvalidType) {
       DartType bound = substitute(variables[i].bound, substitutionMap);
       if (!library.isNonNullableByDefault) {
-        bound = legacyErasure(typeEnvironment.coreTypes, bound);
+        bound = legacyErasure(bound);
       }
       if (!typeEnvironment.isSubtypeOf(argument, bound, subtypeCheckMode)) {
         // If the bound is InvalidType it's not checked, because an error was
@@ -454,7 +455,7 @@ List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
     } else if (parameters[i].bound is! InvalidType) {
       DartType bound = substitute(parameters[i].bound, substitutionMap);
       if (!library.isNonNullableByDefault) {
-        bound = legacyErasure(typeEnvironment.coreTypes, bound);
+        bound = legacyErasure(bound);
       }
       if (!typeEnvironment.isSubtypeOf(argument, bound, subtypeCheckMode)) {
         result ??= <TypeArgumentIssue>[];
@@ -500,7 +501,7 @@ DartType convertSuperBoundedToRegularBounded(Library clientLibrary,
     return typeEnvironment.coreTypes.objectLegacyRawType;
   } else if (type is InterfaceType && type.classNode.typeParameters != null) {
     List<DartType> replacedTypeArguments =
-        new List<DartType>(type.typeArguments.length);
+        new List<DartType>.filled(type.typeArguments.length, null);
     for (int i = 0; i < replacedTypeArguments.length; i++) {
       replacedTypeArguments[i] = convertSuperBoundedToRegularBounded(
           clientLibrary, typeEnvironment, type.typeArguments[i], bottomType,
@@ -510,7 +511,7 @@ DartType convertSuperBoundedToRegularBounded(Library clientLibrary,
         type.classNode, type.nullability, replacedTypeArguments);
   } else if (type is TypedefType && type.typedefNode.typeParameters != null) {
     List<DartType> replacedTypeArguments =
-        new List<DartType>(type.typeArguments.length);
+        new List<DartType>.filled(type.typeArguments.length, null);
     for (int i = 0; i < replacedTypeArguments.length; i++) {
       replacedTypeArguments[i] = convertSuperBoundedToRegularBounded(
           clientLibrary, typeEnvironment, type.typeArguments[i], bottomType,
@@ -523,7 +524,7 @@ DartType convertSuperBoundedToRegularBounded(Library clientLibrary,
         clientLibrary, typeEnvironment, type.returnType, bottomType,
         isCovariant: isCovariant);
     List<DartType> replacedPositionalParameters =
-        new List<DartType>(type.positionalParameters.length);
+        new List<DartType>.filled(type.positionalParameters.length, null);
     for (int i = 0; i < replacedPositionalParameters.length; i++) {
       replacedPositionalParameters[i] = convertSuperBoundedToRegularBounded(
           clientLibrary,
@@ -533,7 +534,7 @@ DartType convertSuperBoundedToRegularBounded(Library clientLibrary,
           isCovariant: !isCovariant);
     }
     List<NamedType> replacedNamedParameters =
-        new List<NamedType>(type.namedParameters.length);
+        new List<NamedType>.filled(type.namedParameters.length, null);
     for (int i = 0; i < replacedNamedParameters.length; i++) {
       replacedNamedParameters[i] = new NamedType(
           type.namedParameters[i].name,

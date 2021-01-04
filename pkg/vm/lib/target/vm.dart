@@ -22,7 +22,6 @@ import 'package:kernel/vm/constants_native_effects.dart'
 
 import '../transformations/call_site_annotator.dart' as callSiteAnnotator;
 import '../transformations/lowering.dart' as lowering show transformLibraries;
-import '../transformations/ffi.dart' as transformFfi show ReplacedMembers;
 import '../transformations/ffi_definitions.dart' as transformFfiDefinitions
     show transformLibraries;
 import '../transformations/ffi_use_sites.dart' as transformFfiUseSites
@@ -62,6 +61,9 @@ class VmTarget extends Target {
   @override
   bool get supportsExplicitGetterCalls =>
       !flags.forceNoExplicitGetterCallsForTesting;
+
+  @override
+  bool get supportsNewMethodInvocationEncoding => false;
 
   @override
   String get name => 'vm';
@@ -152,17 +154,16 @@ class VmTarget extends Target {
         this, coreTypes, hierarchy, libraries, referenceFromIndex);
     logger?.call("Transformed mixin applications");
 
-    transformFfi.ReplacedMembers replacedFields =
-        transformFfiDefinitions.transformLibraries(
-            component,
-            coreTypes,
-            hierarchy,
-            libraries,
-            diagnosticReporter,
-            referenceFromIndex,
-            changedStructureNotifier);
+    final ffiTransformerData = transformFfiDefinitions.transformLibraries(
+        component,
+        coreTypes,
+        hierarchy,
+        libraries,
+        diagnosticReporter,
+        referenceFromIndex,
+        changedStructureNotifier);
     transformFfiUseSites.transformLibraries(component, coreTypes, hierarchy,
-        libraries, diagnosticReporter, replacedFields, referenceFromIndex);
+        libraries, diagnosticReporter, ffiTransformerData, referenceFromIndex);
     logger?.call("Transformed ffi annotations");
 
     // TODO(kmillikin): Make this run on a per-method basis.
@@ -464,9 +465,6 @@ class VmTarget extends Target {
     // TODO(alexmarkov): Call this from the front-end in order to have
     //  the same defines when compiling platform.
     assert(map != null);
-    if (map['dart.vm.product'] == 'true') {
-      map['dart.developer.causal_async_stacks'] = 'false';
-    }
     map['dart.isVM'] = 'true';
     // TODO(dartbug.com/36460): Derive dart.library.* definitions from platform.
     for (String library in extraRequiredLibraries) {

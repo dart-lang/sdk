@@ -6,6 +6,10 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
+import 'package:analysis_server/src/lsp/semantic_tokens/legend.dart';
+
+/// Semantic tokens temporarily disabled due to a race condition.
+const enableSemanticTokens = false;
 
 /// Helper for reading client dynamic registrations which may be ommitted by the
 /// client.
@@ -13,7 +17,7 @@ class ClientDynamicRegistrations {
   /// All dynamic registrations supported by the Dart LSP server.
   ///
   /// Anything listed here and supported by the client will not send a static
-  /// registration but intead dynamically register (usually only for a subset of
+  /// registration but instead dynamically register (usually only for a subset of
   /// files such as for .dart/pubspec.yaml/etc).
   ///
   /// When adding new capabilities that will be registered dynamically, the
@@ -35,6 +39,12 @@ class ClientDynamicRegistrations {
     Method.textDocument_codeAction,
     Method.textDocument_rename,
     Method.textDocument_foldingRange,
+    // workspace.fileOperations covers all file operation methods but we only
+    // support this one.
+    Method.workspace_willRenameFiles,
+    // Sematic tokens are all registered under a single "method" as the
+    // actual methods are controlled by the server capabilities.
+    if (enableSemanticTokens) CustomMethods.semanticTokenDynamicRegistration,
   ];
   final ClientCapabilities _capabilities;
 
@@ -60,6 +70,9 @@ class ClientDynamicRegistrations {
   bool get documentSymbol =>
       _capabilities.textDocument?.documentSymbol?.dynamicRegistration ?? false;
 
+  bool get fileOperations =>
+      _capabilities.workspace?.fileOperations?.dynamicRegistration ?? false;
+
   bool get folding =>
       _capabilities.textDocument?.foldingRange?.dynamicRegistration ?? false;
 
@@ -81,6 +94,9 @@ class ClientDynamicRegistrations {
   bool get rename =>
       _capabilities.textDocument?.rename?.dynamicRegistration ?? false;
 
+  bool get semanticTokens =>
+      _capabilities.textDocument?.semanticTokens?.dynamicRegistration ?? false;
+
   bool get signatureHelp =>
       _capabilities.textDocument?.signatureHelp?.dynamicRegistration ?? false;
 
@@ -93,6 +109,19 @@ class ClientDynamicRegistrations {
 }
 
 class ServerCapabilitiesComputer {
+  static final fileOperationRegistrationOptions =
+      FileOperationRegistrationOptions(
+    filters: [
+      FileOperationFilter(
+        scheme: 'file',
+        pattern: FileOperationPattern(
+          glob: '**/*.dart',
+          matches: FileOperationPatternKind.file,
+        ),
+      )
+    ],
+  );
+
   final LspAnalysisServer _server;
 
   /// Map from method name to current registration data.
@@ -124,7 +153,8 @@ class ServerCapabilitiesComputer {
     return ServerCapabilities(
       textDocumentSync: dynamicRegistrations.textSync
           ? null
-          : Either2<TextDocumentSyncOptions, num>.t1(TextDocumentSyncOptions(
+          : Either2<TextDocumentSyncOptions, TextDocumentSyncKind>.t1(
+              TextDocumentSyncOptions(
               // The open/close and sync kind flags are registered dynamically if the
               // client supports them, so these static registrations are based on whether
               // the client supports dynamic registration.
@@ -206,16 +236,34 @@ class ServerCapabilitiesComputer {
               FoldingRangeRegistrationOptions>.t1(
               true,
             ),
+      semanticTokensProvider:
+          dynamicRegistrations.semanticTokens || !enableSemanticTokens
+              ? null
+              : Either2<SemanticTokensOptions,
+                  SemanticTokensRegistrationOptions>.t1(
+                  SemanticTokensOptions(
+                    legend: semanticTokenLegend.lspLegend,
+                    full: Either2<bool, SemanticTokensOptionsFull>.t2(
+                      SemanticTokensOptionsFull(delta: false),
+                    ),
+                  ),
+                ),
       executeCommandProvider: ExecuteCommandOptions(
         commands: Commands.serverSupportedCommands,
         workDoneProgress: true,
       ),
-      workspaceSymbolProvider: true,
+      workspaceSymbolProvider: Either2<bool, WorkspaceSymbolOptions>.t1(true),
       workspace: ServerCapabilitiesWorkspace(
-          workspaceFolders: WorkspaceFoldersServerCapabilities(
-        supported: true,
-        changeNotifications: Either2<String, bool>.t2(true),
-      )),
+        workspaceFolders: WorkspaceFoldersServerCapabilities(
+          supported: true,
+          changeNotifications: Either2<String, bool>.t2(true),
+        ),
+        fileOperations: dynamicRegistrations.fileOperations
+            ? null
+            : ServerCapabilitiesFileOperations(
+                willRename: fileOperationRegistrationOptions,
+              ),
+      ),
     );
   }
 
@@ -242,15 +290,25 @@ class ServerCapabilitiesComputer {
         // folders as well.
         .map((glob) => DocumentFilter(scheme: 'file', pattern: '**/$glob'));
 
-    final allTypes = {dartFiles, ...pluginTypes}.toList();
+    final fullySupportedTypes = {dartFiles, ...pluginTypes}.toList();
 
     // Add pubspec + analysis options only for synchronisation. We do not support
     // things like hovers/formatting/etc. for these files so there's no point
     // in having the client send those requests (plus, for things like formatting
     // this could result in the editor reporting "multiple formatters installed"
     // and prevent a built-in YAML formatter from being selected).
-    final allSynchronisedTypes = {
-      ...allTypes,
+    final synchronisedTypes = {
+      ...fullySupportedTypes,
+      pubspecFile,
+      analysisOptionsFile,
+      fixDataFile,
+    }.toList();
+
+    // Completion is supported for some synchronised files that we don't _fully_
+    // support (eg. YAML). If these gain support for things like hover, we may
+    // wish to move them to fullySupprtedTypes but add an exclusion for formatting.
+    final completionSupportedTypes = {
+      ...fullySupportedTypes,
       pubspecFile,
       analysisOptionsFile,
       fixDataFile,
@@ -278,25 +336,25 @@ class ServerCapabilitiesComputer {
     register(
       dynamicRegistrations.textSync,
       Method.textDocument_didOpen,
-      TextDocumentRegistrationOptions(documentSelector: allSynchronisedTypes),
+      TextDocumentRegistrationOptions(documentSelector: synchronisedTypes),
     );
     register(
       dynamicRegistrations.textSync,
       Method.textDocument_didClose,
-      TextDocumentRegistrationOptions(documentSelector: allSynchronisedTypes),
+      TextDocumentRegistrationOptions(documentSelector: synchronisedTypes),
     );
     register(
       dynamicRegistrations.textSync,
       Method.textDocument_didChange,
       TextDocumentChangeRegistrationOptions(
           syncKind: TextDocumentSyncKind.Incremental,
-          documentSelector: allSynchronisedTypes),
+          documentSelector: synchronisedTypes),
     );
     register(
       dynamicRegistrations.completion,
       Method.textDocument_completion,
       CompletionRegistrationOptions(
-        documentSelector: allTypes,
+        documentSelector: completionSupportedTypes,
         triggerCharacters: dartCompletionTriggerCharacters,
         allCommitCharacters:
             previewCommitCharacters ? dartCompletionCommitCharacters : null,
@@ -306,13 +364,13 @@ class ServerCapabilitiesComputer {
     register(
       dynamicRegistrations.hover,
       Method.textDocument_hover,
-      TextDocumentRegistrationOptions(documentSelector: allTypes),
+      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes),
     );
     register(
       dynamicRegistrations.signatureHelp,
       Method.textDocument_signatureHelp,
       SignatureHelpRegistrationOptions(
-        documentSelector: allTypes,
+        documentSelector: fullySupportedTypes,
         triggerCharacters: dartSignatureHelpTriggerCharacters,
         retriggerCharacters: dartSignatureHelpRetriggerCharacters,
       ),
@@ -320,22 +378,22 @@ class ServerCapabilitiesComputer {
     register(
       dynamicRegistrations.references,
       Method.textDocument_references,
-      TextDocumentRegistrationOptions(documentSelector: allTypes),
+      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes),
     );
     register(
       dynamicRegistrations.documentHighlights,
       Method.textDocument_documentHighlight,
-      TextDocumentRegistrationOptions(documentSelector: allTypes),
+      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes),
     );
     register(
       dynamicRegistrations.documentSymbol,
       Method.textDocument_documentSymbol,
-      TextDocumentRegistrationOptions(documentSelector: allTypes),
+      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes),
     );
     register(
       enableFormatter && dynamicRegistrations.formatting,
       Method.textDocument_formatting,
-      TextDocumentRegistrationOptions(documentSelector: allTypes),
+      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes),
     );
     register(
       enableFormatter && dynamicRegistrations.typeFormatting,
@@ -356,18 +414,18 @@ class ServerCapabilitiesComputer {
     register(
       dynamicRegistrations.definition,
       Method.textDocument_definition,
-      TextDocumentRegistrationOptions(documentSelector: allTypes),
+      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes),
     );
     register(
       dynamicRegistrations.implementation,
       Method.textDocument_implementation,
-      TextDocumentRegistrationOptions(documentSelector: allTypes),
+      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes),
     );
     register(
       dynamicRegistrations.codeActions,
       Method.textDocument_codeAction,
       CodeActionRegistrationOptions(
-        documentSelector: allTypes,
+        documentSelector: fullySupportedTypes,
         codeActionKinds: DartCodeActionKind.serverSupportedKinds,
       ),
     );
@@ -375,16 +433,32 @@ class ServerCapabilitiesComputer {
       dynamicRegistrations.rename,
       Method.textDocument_rename,
       RenameRegistrationOptions(
-          documentSelector: allTypes, prepareProvider: true),
+          documentSelector: fullySupportedTypes, prepareProvider: true),
     );
     register(
       dynamicRegistrations.folding,
       Method.textDocument_foldingRange,
-      TextDocumentRegistrationOptions(documentSelector: allTypes),
+      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes),
+    );
+    register(
+      dynamicRegistrations.fileOperations,
+      Method.workspace_willRenameFiles,
+      fileOperationRegistrationOptions,
     );
     register(
       dynamicRegistrations.didChangeConfiguration,
       Method.workspace_didChangeConfiguration,
+    );
+    register(
+      dynamicRegistrations.semanticTokens && enableSemanticTokens,
+      CustomMethods.semanticTokenDynamicRegistration,
+      SemanticTokensRegistrationOptions(
+        documentSelector: fullySupportedTypes,
+        legend: semanticTokenLegend.lspLegend,
+        full: Either2<bool, SemanticTokensOptionsFull>.t2(
+          SemanticTokensOptionsFull(delta: false),
+        ),
+      ),
     );
 
     await _applyRegistrations(registrations);

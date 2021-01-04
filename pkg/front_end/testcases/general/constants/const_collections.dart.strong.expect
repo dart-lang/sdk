@@ -405,9 +405,7 @@ static const field core::List<core::String*>* nullList = #C3;
 static const field core::List<core::String*>* foo = #C8;
 static const field core::List<core::String*>* bar = #C10;
 static field core::List<core::String*>* barAsVar = block {
-  final core::List<core::String*>* #t1 = <core::String*>[];
-  for (final core::String* #t2 in #C8)
-    #t1.{core::List::add}{Invariant}(#t2);
+  final core::List<core::String*>* #t1 = core::List::of<core::String*>(#C8);
   #t1.{core::List::add}{Invariant}("!");
 } =>#t1;
 static const field core::List<core::String*>* barWithNullSpread = invalid-expression "Null value during constant evaluation.";
@@ -481,9 +479,9 @@ static method main() → dynamic {
   core::print(#C17);
   core::print(#C22);
   core::print( block {
-    final core::Set<core::String*>* #t3 = col::LinkedHashSet::•<core::String*>();
-    #t3.{core::Set::add}{Invariant}("hello");
-  } =>#t3);
+    final core::Set<core::String*>* #t2 = col::LinkedHashSet::•<core::String*>();
+    #t2.{core::Set::add}{Invariant}("hello");
+  } =>#t2);
   core::print(#C26);
 }
 
@@ -515,3 +513,12 @@ constants  {
   #C25 = core::_ImmutableMap<core::String*, Null> {_kvPairs:#C24}
   #C26 = col::_UnmodifiableSet<core::String*> {_map:#C25}
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///const_collections.dart:
+- CustomIterable. (from org-dartlang-testcase:///const_collections.dart:79:9)
+- IterableBase. (from org-dartlang-sdk:///sdk/lib/collection/iterable.dart:218:9)
+- WithEquals. (from org-dartlang-testcase:///const_collections.dart:72:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)
+- CustomMap. (from org-dartlang-testcase:///const_collections.dart:84:9)

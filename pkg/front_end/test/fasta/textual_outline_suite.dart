@@ -6,6 +6,9 @@ library fasta.test.textual_outline_test;
 
 import 'dart:io';
 
+import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
+    show ScannerConfiguration;
+
 import 'package:dart_style/dart_style.dart' show DartFormatter;
 
 import 'package:front_end/src/fasta/util/textual_outline.dart';
@@ -78,7 +81,9 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
       String result = textualOutline(bytes,
           throwOnUnexpected: true,
           performModelling: modelled,
-          addMarkerForUnknownForTest: modelled);
+          addMarkerForUnknownForTest: modelled,
+          configuration:
+              const ScannerConfiguration(enableExtensionMethods: true));
       if (result == null) {
         return new Result(
             null, context.expectationSet["EmptyOutput"], description.uri);

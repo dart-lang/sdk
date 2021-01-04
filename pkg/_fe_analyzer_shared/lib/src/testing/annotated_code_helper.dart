@@ -15,7 +15,7 @@ class Annotation {
   /// The index of the (corresponding) annotation in the annotated code test, or
   /// `null` if the annotation doesn't correspond to an annotation in the
   /// annotated code.
-  final int index;
+  final int? index;
 
   /// 1-based line number of the annotation.
   final int lineNo;
@@ -37,6 +37,7 @@ class Annotation {
 
   Annotation(this.index, this.lineNo, this.columnNo, this.offset, this.prefix,
       this.text, this.suffix)
+      // ignore: unnecessary_null_comparison
       : assert(offset != null),
         assert(offset >= 0);
 
@@ -71,7 +72,7 @@ class AnnotatedCode {
   /// The annotations for the source code.
   final List<Annotation> annotations;
 
-  List<int> _lineStarts;
+  List<int>? _lineStarts;
 
   AnnotatedCode(this.annotatedCode, this.sourceCode, this.annotations);
 
@@ -92,7 +93,7 @@ class AnnotatedCode {
     List<int> lineStarts = <int>[];
     lineStarts.add(offset);
     while (index < annotatedCode.length) {
-      Match startMatch = start.matchAsPrefix(annotatedCode, index);
+      Match? startMatch = start.matchAsPrefix(annotatedCode, index);
       if (startMatch != null) {
         int startIndex = startMatch.end;
         Iterable<Match> endMatches =
@@ -145,16 +146,17 @@ class AnnotatedCode {
 
   void _ensureLineStarts() {
     if (_lineStarts == null) {
+      List<int> lineStarts = <int>[];
+      _lineStarts = lineStarts;
       int index = 0;
       int offset = 0;
-      _lineStarts = <int>[];
-      _lineStarts.add(offset);
+      lineStarts.add(offset);
       while (index < sourceCode.length) {
         int charCode = sourceCode.codeUnitAt(index);
         switch (charCode) {
           case _LF:
             offset++;
-            _lineStarts.add(offset);
+            lineStarts.add(offset);
             break;
           case _CR:
             if (index + 1 < sourceCode.length &&
@@ -162,35 +164,35 @@ class AnnotatedCode {
               index++;
             }
             offset++;
-            _lineStarts.add(offset);
+            lineStarts.add(offset);
             break;
           default:
             offset++;
         }
         index++;
       }
-      _lineStarts.add(offset);
+      lineStarts.add(offset);
     }
   }
 
   void addAnnotation(
       int lineNo, int columnNo, String prefix, String text, String suffix) {
     _ensureLineStarts();
-    int offset = _lineStarts[lineNo - 1] + (columnNo - 1);
+    int offset = _lineStarts![lineNo - 1] + (columnNo - 1);
     annotations.add(new Annotation(
         annotations.length, lineNo, columnNo, offset, prefix, text, suffix));
   }
 
   int get lineCount {
     _ensureLineStarts();
-    return _lineStarts.length;
+    return _lineStarts!.length;
   }
 
   int getLineIndex(int offset) {
     _ensureLineStarts();
     int index = 0;
-    while (index + 1 < _lineStarts.length) {
-      if (_lineStarts[index + 1] <= offset) {
+    while (index + 1 < _lineStarts!.length) {
+      if (_lineStarts![index + 1] <= offset) {
         index++;
       } else {
         break;
@@ -203,8 +205,8 @@ class AnnotatedCode {
     _ensureLineStarts();
     if (lineIndex < 0) {
       return 0;
-    } else if (lineIndex < _lineStarts.length) {
-      return _lineStarts[lineIndex];
+    } else if (lineIndex < _lineStarts!.length) {
+      return _lineStarts![lineIndex];
     } else {
       return sourceCode.length;
     }
@@ -223,7 +225,7 @@ class AnnotatedCode {
         int result = a.offset.compareTo(b.offset);
         if (result == 0) {
           if (a.index != null && b.index != null) {
-            result = a.index.compareTo(b.index);
+            result = a.index!.compareTo(b.index!);
           } else if (a.index != null) {
             result = -1;
           } else if (b.index != null) {
@@ -286,13 +288,13 @@ Map<String, AnnotatedCode> splitByPrefixes(
               annotation.prefix,
               annotationText,
               annotation.suffix);
-          map[part].add(subAnnotation);
+          map[part]!.add(subAnnotation);
         }
         continue outer;
       }
     }
     for (String prefix in prefixSet) {
-      map[prefix].add(annotation);
+      map[prefix]!.add(annotation);
     }
   }
   Map<String, AnnotatedCode> split = <String, AnnotatedCode>{};

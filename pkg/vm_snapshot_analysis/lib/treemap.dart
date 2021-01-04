@@ -163,7 +163,8 @@ void _treemapFromSnapshot(Map<String, dynamic> root, v8_profile.Snapshot snap,
     return;
   }
 
-  final ownerPathCache = List<String>(info.snapshotInfo.infoNodes.length);
+  final ownerPathCache =
+      List<String>.filled(info.snapshotInfo.infoNodes.length, null);
   ownerPathCache[info.root.id] = info.root.name;
 
   String ownerPath(ProgramInfoNode n) {

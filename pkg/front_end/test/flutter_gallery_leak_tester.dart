@@ -151,7 +151,7 @@ main(List<String> args) async {
     throw "Didn't find $galleryDotPackages";
   }
 
-  List<helper.Interest> interests = new List<helper.Interest>();
+  List<helper.Interest> interests = <helper.Interest>[];
   interests.add(new helper.Interest(
       Uri.parse("package:kernel/ast.dart"), "Library", ["fileUri"]));
   helper.VMServiceHeapHelperSpecificExactLeakFinder heapHelper =
@@ -179,7 +179,6 @@ main(List<String> args) async {
     "--incremental",
     "--target=flutter",
     "--debugger-module-names",
-    "-Ddart.developer.causal_async_stacks=true",
     "--output-dill",
     "$rootPath/flutter_server_tmp.dill",
     "--packages",

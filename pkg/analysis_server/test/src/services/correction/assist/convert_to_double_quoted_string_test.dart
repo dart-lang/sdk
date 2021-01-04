@@ -54,6 +54,16 @@ main() {
 ''');
   }
 
+  Future<void> test_one_interpolation_unterminated() async {
+    verifyNoTestUnitErrors = false;
+    await resolveTestCode(r'''
+void f(int a) {
+  '$a
+}
+''');
+    await assertNoAssistAt("'");
+  }
+
   Future<void> test_one_raw() async {
     await resolveTestCode('''
 main() {
@@ -78,6 +88,16 @@ main() {
   print("abc");
 }
 ''');
+  }
+
+  Future<void> test_one_simple_unterminated_empty() async {
+    verifyNoTestUnitErrors = false;
+    await resolveTestCode('''
+void f() {
+  '
+}
+''');
+    await assertNoAssistAt("'");
   }
 
   Future<void> test_three_embeddedTarget() async {

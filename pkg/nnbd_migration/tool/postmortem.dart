@@ -11,7 +11,7 @@ import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/postmortem_file.dart';
 import 'package:nnbd_migration/src/variables.dart';
 
-main(List<String> args) {
+void main(List<String> args) {
   ArgParser argParser = ArgParser();
   ArgResults parsedArgs;
 

@@ -46,16 +46,15 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
     }
 
     for (var param in namedParams) {
-      if (param.hasRequired) {
+      if (param.hasRequired || param.isRequiredNamed) {
         if (buffer.isNotEmpty) {
           buffer.write(', ');
         }
         var name = param.name;
         buffer.write('$name: ');
         offset = buffer.length;
-        var defaultValue = 'null'; // originally _getDefaultValue(param)
-        buffer.write(defaultValue);
-        ranges.addAll([offset, defaultValue.length]);
+        buffer.write(name);
+        ranges.addAll([offset, name.length]);
       }
     }
 
@@ -140,9 +139,14 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
       return type != null
           ? type.getDisplayString(withNullability: false)
           : 'dynamic';
-    } else if (element is FunctionTypeAliasElement) {
-      var returnType = element.function.returnType;
-      return returnType.getDisplayString(withNullability: false);
+    } else if (element is TypeAliasElement) {
+      var aliasedElement = element.aliasedElement;
+      if (aliasedElement is GenericFunctionTypeElement) {
+        var returnType = aliasedElement.returnType;
+        return returnType.getDisplayString(withNullability: false);
+      } else {
+        return null;
+      }
     } else {
       return null;
     }

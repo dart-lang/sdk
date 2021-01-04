@@ -15,7 +15,7 @@ import 'package:analyzer/src/string_source.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/parser_test.dart' show ParserTestCase;
+import '../../generated/parser_test_base.dart' show ParserTestCase;
 import '../../generated/test_support.dart';
 
 main() {
@@ -943,7 +943,6 @@ E f() => g;
         source,
         listener,
         featureSet: featureSet,
-        useFasta: true,
       ).parseCompilationUnit(tokens);
     }
     return _unit;
@@ -1693,7 +1692,8 @@ class VariableDeclarationTest extends ParserTestCase {
     VariableDeclaration varDecl = AstTestFactory.variableDeclaration("a");
     TopLevelVariableDeclaration decl =
         AstTestFactory.topLevelVariableDeclaration2(Keyword.VAR, [varDecl]);
-    Comment comment = astFactory.documentationComment(List<Token>(0));
+    Comment comment =
+        astFactory.documentationComment(List<Token>.filled(0, null));
     expect(varDecl.documentationComment, isNull);
     decl.documentationComment = comment;
     expect(varDecl.documentationComment, isNotNull);
@@ -1702,7 +1702,8 @@ class VariableDeclarationTest extends ParserTestCase {
 
   void test_getDocumentationComment_onNode() {
     VariableDeclaration decl = AstTestFactory.variableDeclaration("a");
-    Comment comment = astFactory.documentationComment(List<Token>(0));
+    Comment comment =
+        astFactory.documentationComment(List<Token>.filled(0, null));
     decl.documentationComment = comment;
     expect(decl.documentationComment, isNotNull);
   }

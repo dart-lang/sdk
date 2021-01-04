@@ -66,11 +66,13 @@ ObjectPtr Invoke(const Library& lib, const char* name);
 class TestPipeline : public ValueObject {
  public:
   explicit TestPipeline(const Function& function,
-                        CompilerPass::PipelineMode mode)
+                        CompilerPass::PipelineMode mode,
+                        bool is_optimizing = true)
       : function_(function),
         thread_(Thread::Current()),
         compiler_state_(thread_,
                         mode == CompilerPass::PipelineMode::kAOT,
+                        is_optimizing,
                         CompilerState::ShouldTrace(function)),
         mode_(mode) {}
   ~TestPipeline() { delete pass_state_; }

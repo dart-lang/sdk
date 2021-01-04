@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:matcher/matcher.dart';
@@ -272,6 +273,30 @@ int b = a;
     ]);
   }
 
+  test_analysisOptions_file_inThirdPartyDartLang() async {
+    newFile('/workspace/dart/analysis_options/lib/third_party.yaml',
+        content: r'''
+analyzer:
+  strong-mode:
+    implicit-casts: false
+''');
+
+    newFile('/workspace/thid_party/dart_lang/aaa/analysis_options.yaml',
+        content: r'''
+analyzer:
+  strong-mode:
+    implicit-casts: true
+''');
+
+    var aPath = convertPath('/workspace/third_party/dart_lang/aaa/lib/a.dart');
+    await assertErrorsInFile(aPath, r'''
+num a = 0;
+int b = a;
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 1),
+    ]);
+  }
+
   test_analysisOptions_lints() async {
     newFile('/workspace/dart/analysis_options/lib/default.yaml', content: r'''
 linter:
@@ -307,6 +332,19 @@ var b = 1 + 2;
     assertElement(findNode.simple('int a'), intElement);
 
     assertType(findElement.topVar('b').type, 'int');
+  }
+
+  test_collectSharedDataIdentifiers() async {
+    var aPath = convertPath('/workspace/third_party/dart/aaa/lib/a.dart');
+
+    newFile(aPath, content: r'''
+class A {}
+''');
+
+    await resolveFile(aPath);
+    fileResolver.collectSharedDataIdentifiers();
+    expect(fileResolver.removedCacheIds.length,
+        (fileResolver.byteStore as CiderCachedByteStore).testView.length);
   }
 
   test_getErrors() {
@@ -571,8 +609,8 @@ import 'foo:bar';
   }
 
   test_unusedFiles() async {
-    var bPath = '/workspace/dart/aaa/lib/b.dart';
-    var cPath = '/workspace/dart/aaa/lib/c.dart';
+    var bPath = convertPath('/workspace/dart/aaa/lib/b.dart');
+    var cPath = convertPath('/workspace/dart/aaa/lib/c.dart');
 
     newFile('/workspace/dart/aaa/lib/a.dart', content: r'''
 class A {}
@@ -594,9 +632,9 @@ import 'a.dart';
   }
 
   test_unusedFiles_mutilple() async {
-    var dPath = '/workspace/dart/aaa/lib/d.dart';
-    var ePath = '/workspace/dart/aaa/lib/e.dart';
-    var fPath = '/workspace/dart/aaa/lib/f.dart';
+    var dPath = convertPath('/workspace/dart/aaa/lib/d.dart');
+    var ePath = convertPath('/workspace/dart/aaa/lib/e.dart');
+    var fPath = convertPath('/workspace/dart/aaa/lib/f.dart');
 
     newFile('/workspace/dart/aaa/lib/a.dart', content: r'''
 class A {}

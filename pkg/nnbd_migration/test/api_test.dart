@@ -247,6 +247,28 @@ void main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_ambiguous_closure_parameter_in_local_variable() async {
+    var content = '''
+Object f<T>(Object Function(T) callback, Object obj) => 0;
+g() {
+  var y = f<Map<String, int>>(
+      (x) => x.keys,
+      f<List<bool>>(
+          (x) => x.last, 0));
+}
+''';
+    var expected = '''
+Object f<T>(Object Function(T) callback, Object obj) => 0;
+g() {
+  var y = f<Map<String, int>>(
+      (x) => x.keys,
+      f<List<bool>>(
+          (x) => x.last, 0));
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_argumentError_checkNotNull_implies_non_null_intent() async {
     var content = '''
 void f(int i) {
@@ -4066,6 +4088,24 @@ bool f(a) => a is List<int>;
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_isExpression_with_function_type() async {
+    var content = '''
+void test(Function f) {
+  if (f is void Function()) {
+    f();
+  }
+}
+''';
+    var expected = '''
+void test(Function f) {
+  if (f is void Function()) {
+    f();
+  }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_issue_40181() async {
     // This contrived example created an "exact nullable" type parameter bound
     // which propagated back to *all* instantiations of that parameter.
@@ -4633,6 +4673,54 @@ f() {
 f() {
   String? s;
   for (;; s) {}
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_loop_var_is_field() async {
+    var content = '''
+class C {
+  int x;
+  C(this.x);
+  f(List<int/*?*/> y) {
+    for (x in y) {}
+  }
+}
+''';
+    var expected = '''
+class C {
+  int? x;
+  C(this.x);
+  f(List<int?> y) {
+    for (x in y) {}
+  }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_loop_var_is_inherited_field_with_substitution() async {
+    var content = '''
+class B<T> {
+  T x;
+  B(this.x);
+}
+abstract class C implements B<int> {
+  f(List<int/*?*/> y) {
+    for (x in y) {}
+  }
+}
+''';
+    var expected = '''
+class B<T> {
+  T x;
+  B(this.x);
+}
+abstract class C implements B<int?> {
+  f(List<int?> y) {
+    for (x in y) {}
+  }
 }
 ''';
     await _checkSingleFileChanges(content, expected);

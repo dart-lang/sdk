@@ -292,7 +292,7 @@ TEST_CASE(Class_EndTokenPos) {
   const Script& scr = Script::Handle(cls.script());
   intptr_t line;
   intptr_t col;
-  scr.GetTokenLocation(end_token_pos, &line, &col);
+  EXPECT(scr.GetTokenLocation(end_token_pos, &line, &col));
   EXPECT_EQ(9, line);
   EXPECT_EQ(1, col);
 }
@@ -2354,24 +2354,133 @@ ISOLATE_UNIT_TEST_CASE(ExternalTypedData) {
   }
 }
 
-ISOLATE_UNIT_TEST_CASE(Script) {
-  const char* url_chars = "builtin:test-case";
-  const char* source_chars = "This will not compile.";
-  const String& url = String::Handle(String::New(url_chars));
-  const String& source = String::Handle(String::New(source_chars));
-  const Script& script = Script::Handle(Script::New(url, source));
+static void CheckLinesWithOffset(Zone* zone, const intptr_t offset) {
+  const char* url_chars = "";
+  // Nine lines, mix of \n, \r, \r\n line terminators, lines 3, 4, 7, and 8
+  // are non-empty. Ends with a \r as a double-check that the \r followed by
+  // \n check doesn't go out of bounds.
+  //
+  // Line starts:             1 2 3    4      5 6   7    8    9
+  const char* source_chars = "\n\nxyz\nabc\r\n\n\r\ndef\rghi\r";
+  const String& url = String::Handle(zone, String::New(url_chars));
+  const String& source = String::Handle(zone, String::New(source_chars));
+  const Script& script = Script::Handle(zone, Script::New(url, source));
   EXPECT(!script.IsNull());
   EXPECT(script.IsScript());
-  String& str = String::Handle(script.url());
-  EXPECT_EQ(17, str.Length());
-  EXPECT_EQ('b', str.CharAt(0));
-  EXPECT_EQ(':', str.CharAt(7));
-  EXPECT_EQ('e', str.CharAt(16));
-  str = script.Source();
-  EXPECT_EQ(22, str.Length());
-  EXPECT_EQ('T', str.CharAt(0));
-  EXPECT_EQ('n', str.CharAt(10));
-  EXPECT_EQ('.', str.CharAt(21));
+  script.SetLocationOffset(offset, 10);
+  auto& str = String::Handle(zone);
+  str = script.GetLine(offset + 1);
+  EXPECT_STREQ("", str.ToCString());
+  str = script.GetLine(offset + 2);
+  EXPECT_STREQ("", str.ToCString());
+  str = script.GetLine(offset + 3);
+  EXPECT_STREQ("xyz", str.ToCString());
+  str = script.GetLine(offset + 4);
+  EXPECT_STREQ("abc", str.ToCString());
+  str = script.GetLine(offset + 5);
+  EXPECT_STREQ("", str.ToCString());
+  str = script.GetLine(offset + 6);
+  EXPECT_STREQ("", str.ToCString());
+  str = script.GetLine(offset + 7);
+  EXPECT_STREQ("def", str.ToCString());
+  str = script.GetLine(offset + 8);
+  EXPECT_STREQ("ghi", str.ToCString());
+  str = script.GetLine(offset + 9);
+  EXPECT_STREQ("", str.ToCString());
+  // Using "column" of \r at end of line for to_column.
+  str = script.GetSnippet(offset + 3, 1, offset + 7, 4);
+  EXPECT_STREQ("xyz\nabc\r\n\n\r\ndef", str.ToCString());
+  // Lines not in the range of (1-based) line indices in the source should
+  // return the empty string.
+  str = script.GetLine(-500);
+  EXPECT_STREQ("", str.ToCString());
+  str = script.GetLine(0);
+  EXPECT_STREQ("", str.ToCString());
+  if (offset > 0) {
+    str = script.GetLine(1);  // Absolute, not relative to offset.
+    EXPECT_STREQ("", str.ToCString());
+  }
+  if (offset > 2) {
+    str = script.GetLine(3);  // Absolute, not relative to offset.
+    EXPECT_STREQ("", str.ToCString());
+  }
+  str = script.GetLine(offset - 500);
+  EXPECT_STREQ("", str.ToCString());
+  str = script.GetLine(offset);
+  EXPECT_STREQ("", str.ToCString());
+  str = script.GetLine(offset + 10);
+  EXPECT_STREQ("", str.ToCString());
+  str = script.GetLine(offset + 10000);
+  EXPECT_STREQ("", str.ToCString());
+  // Snippets not contained within the source should be the null string.
+  str = script.GetSnippet(-1, 1, 2, 2);
+  EXPECT(str.IsNull());
+  str = script.GetSnippet(offset - 1, 1, offset + 2, 2);
+  EXPECT(str.IsNull());
+  str = script.GetSnippet(offset + 5, 15, offset + 6, 2);
+  EXPECT(str.IsNull());
+  str = script.GetSnippet(offset + 20, 1, offset + 30, 1);
+  EXPECT(str.IsNull());
+}
+
+ISOLATE_UNIT_TEST_CASE(Script) {
+  {
+    const char* url_chars = "builtin:test-case";
+    const char* source_chars = "This will not compile.";
+    const String& url = String::Handle(String::New(url_chars));
+    const String& source = String::Handle(String::New(source_chars));
+    const Script& script = Script::Handle(Script::New(url, source));
+    EXPECT(!script.IsNull());
+    EXPECT(script.IsScript());
+    String& str = String::Handle(script.url());
+    EXPECT_EQ(17, str.Length());
+    EXPECT_EQ('b', str.CharAt(0));
+    EXPECT_EQ(':', str.CharAt(7));
+    EXPECT_EQ('e', str.CharAt(16));
+    str = script.Source();
+    EXPECT_EQ(22, str.Length());
+    EXPECT_EQ('T', str.CharAt(0));
+    EXPECT_EQ('n', str.CharAt(10));
+    EXPECT_EQ('.', str.CharAt(21));
+  }
+
+  CheckLinesWithOffset(Z, 0);
+  CheckLinesWithOffset(Z, 500);
+  CheckLinesWithOffset(Z, 10000);
+
+  {
+    const char* url_chars = "";
+    // Single line, no terminators.
+    const char* source_chars = "abc";
+    const String& url = String::Handle(String::New(url_chars));
+    const String& source = String::Handle(String::New(source_chars));
+    const Script& script = Script::Handle(Script::New(url, source));
+    EXPECT(!script.IsNull());
+    EXPECT(script.IsScript());
+    auto& str = String::Handle(Z);
+    str = script.GetLine(1);
+    EXPECT_STREQ("abc", str.ToCString());
+    str = script.GetSnippet(1, 1, 1, 2);
+    EXPECT_STREQ("a", str.ToCString());
+    str = script.GetSnippet(1, 2, 1, 4);
+    EXPECT_STREQ("bc", str.ToCString());
+    // Lines not in the source should return the empty string.
+    str = script.GetLine(-500);
+    EXPECT_STREQ("", str.ToCString());
+    str = script.GetLine(0);
+    EXPECT_STREQ("", str.ToCString());
+    str = script.GetLine(2);
+    EXPECT_STREQ("", str.ToCString());
+    str = script.GetLine(10000);
+    EXPECT_STREQ("", str.ToCString());
+    // Snippets not contained within the source should be the null string.
+    str = script.GetSnippet(-1, 1, 1, 2);
+    EXPECT(str.IsNull());
+    str = script.GetSnippet(2, 1, 2, 2);
+    EXPECT(str.IsNull());
+    str = script.GetSnippet(1, 1, 1, 5);
+    EXPECT(str.IsNull());
+  }
 
   TransitionVMToNative transition(thread);
   const char* kScript = "main() {}";
@@ -2406,7 +2515,8 @@ ISOLATE_UNIT_TEST_CASE(Context) {
 ISOLATE_UNIT_TEST_CASE(ContextScope) {
   // We need an active compiler context to manipulate scopes, since local
   // variables and slots can be canonicalized in the compiler state.
-  CompilerState compiler_state(Thread::Current(), /*is_aot=*/false);
+  CompilerState compiler_state(Thread::Current(), /*is_aot=*/false,
+                               /*is_optimizing=*/false);
 
   const intptr_t parent_scope_function_level = 0;
   LocalScope* parent_scope =
@@ -2805,18 +2915,18 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptors) {
   DescriptorList* builder = new DescriptorList(thread->zone());
 
   // kind, pc_offset, deopt_id, token_pos, try_index, yield_index
-  builder->AddDescriptor(PcDescriptorsLayout::kOther, 10, 1, TokenPosition(20),
-                         1, 1);
-  builder->AddDescriptor(PcDescriptorsLayout::kDeopt, 20, 2, TokenPosition(30),
-                         0, -1);
-  builder->AddDescriptor(PcDescriptorsLayout::kOther, 30, 3, TokenPosition(40),
-                         1, 10);
-  builder->AddDescriptor(PcDescriptorsLayout::kOther, 10, 4, TokenPosition(40),
-                         2, 20);
-  builder->AddDescriptor(PcDescriptorsLayout::kOther, 10, 5, TokenPosition(80),
-                         3, 30);
-  builder->AddDescriptor(PcDescriptorsLayout::kOther, 80, 6, TokenPosition(150),
-                         3, 30);
+  builder->AddDescriptor(PcDescriptorsLayout::kOther, 10, 1,
+                         TokenPosition::Deserialize(20), 1, 1);
+  builder->AddDescriptor(PcDescriptorsLayout::kDeopt, 20, 2,
+                         TokenPosition::Deserialize(30), 0, -1);
+  builder->AddDescriptor(PcDescriptorsLayout::kOther, 30, 3,
+                         TokenPosition::Deserialize(40), 1, 10);
+  builder->AddDescriptor(PcDescriptorsLayout::kOther, 10, 4,
+                         TokenPosition::Deserialize(40), 2, 20);
+  builder->AddDescriptor(PcDescriptorsLayout::kOther, 10, 5,
+                         TokenPosition::Deserialize(80), 3, 30);
+  builder->AddDescriptor(PcDescriptorsLayout::kOther, 80, 6,
+                         TokenPosition::Deserialize(150), 3, 30);
 
   PcDescriptors& descriptors = PcDescriptors::Handle();
   descriptors ^= builder->FinalizePcDescriptors(0);
@@ -2836,7 +2946,7 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptors) {
 
   EXPECT_EQ(true, iter.MoveNext());
   EXPECT_EQ(1, iter.YieldIndex());
-  EXPECT_EQ(20, iter.TokenPos().value());
+  EXPECT_EQ(20, iter.TokenPos().Pos());
   EXPECT_EQ(1, iter.TryIndex());
   EXPECT_EQ(static_cast<uword>(10), iter.PcOffset());
   EXPECT_EQ(1, iter.DeoptId());
@@ -2844,28 +2954,28 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptors) {
 
   EXPECT_EQ(true, iter.MoveNext());
   EXPECT_EQ(-1, iter.YieldIndex());
-  EXPECT_EQ(30, iter.TokenPos().value());
+  EXPECT_EQ(30, iter.TokenPos().Pos());
   EXPECT_EQ(PcDescriptorsLayout::kDeopt, iter.Kind());
 
   EXPECT_EQ(true, iter.MoveNext());
   EXPECT_EQ(10, iter.YieldIndex());
-  EXPECT_EQ(40, iter.TokenPos().value());
+  EXPECT_EQ(40, iter.TokenPos().Pos());
 
   EXPECT_EQ(true, iter.MoveNext());
   EXPECT_EQ(20, iter.YieldIndex());
-  EXPECT_EQ(40, iter.TokenPos().value());
+  EXPECT_EQ(40, iter.TokenPos().Pos());
 
   EXPECT_EQ(true, iter.MoveNext());
   EXPECT_EQ(30, iter.YieldIndex());
-  EXPECT_EQ(80, iter.TokenPos().value());
+  EXPECT_EQ(80, iter.TokenPos().Pos());
 
   EXPECT_EQ(true, iter.MoveNext());
   EXPECT_EQ(30, iter.YieldIndex());
-  EXPECT_EQ(150, iter.TokenPos().value());
+  EXPECT_EQ(150, iter.TokenPos().Pos());
 
   EXPECT_EQ(3, iter.TryIndex());
   EXPECT_EQ(static_cast<uword>(80), iter.PcOffset());
-  EXPECT_EQ(150, iter.TokenPos().value());
+  EXPECT_EQ(150, iter.TokenPos().Pos());
   EXPECT_EQ(PcDescriptorsLayout::kOther, iter.Kind());
 
   EXPECT_EQ(false, iter.MoveNext());
@@ -2876,17 +2986,17 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptorsLargeDeltas) {
 
   // kind, pc_offset, deopt_id, token_pos, try_index
   builder->AddDescriptor(PcDescriptorsLayout::kOther, 100, 1,
-                         TokenPosition(200), 1, 10);
+                         TokenPosition::Deserialize(200), 1, 10);
   builder->AddDescriptor(PcDescriptorsLayout::kDeopt, 200, 2,
-                         TokenPosition(300), 0, -1);
+                         TokenPosition::Deserialize(300), 0, -1);
   builder->AddDescriptor(PcDescriptorsLayout::kOther, 300, 3,
-                         TokenPosition(400), 1, 10);
-  builder->AddDescriptor(PcDescriptorsLayout::kOther, 100, 4, TokenPosition(0),
-                         2, 20);
+                         TokenPosition::Deserialize(400), 1, 10);
+  builder->AddDescriptor(PcDescriptorsLayout::kOther, 100, 4,
+                         TokenPosition::Deserialize(0), 2, 20);
   builder->AddDescriptor(PcDescriptorsLayout::kOther, 100, 5,
-                         TokenPosition(800), 3, 30);
+                         TokenPosition::Deserialize(800), 3, 30);
   builder->AddDescriptor(PcDescriptorsLayout::kOther, 800, 6,
-                         TokenPosition(150), 3, 30);
+                         TokenPosition::Deserialize(150), 3, 30);
 
   PcDescriptors& descriptors = PcDescriptors::Handle();
   descriptors ^= builder->FinalizePcDescriptors(0);
@@ -2906,7 +3016,7 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptorsLargeDeltas) {
 
   EXPECT_EQ(true, iter.MoveNext());
   EXPECT_EQ(10, iter.YieldIndex());
-  EXPECT_EQ(200, iter.TokenPos().value());
+  EXPECT_EQ(200, iter.TokenPos().Pos());
   EXPECT_EQ(1, iter.TryIndex());
   EXPECT_EQ(static_cast<uword>(100), iter.PcOffset());
   EXPECT_EQ(1, iter.DeoptId());
@@ -2914,28 +3024,28 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptorsLargeDeltas) {
 
   EXPECT_EQ(true, iter.MoveNext());
   EXPECT_EQ(-1, iter.YieldIndex());
-  EXPECT_EQ(300, iter.TokenPos().value());
+  EXPECT_EQ(300, iter.TokenPos().Pos());
   EXPECT_EQ(PcDescriptorsLayout::kDeopt, iter.Kind());
 
   EXPECT_EQ(true, iter.MoveNext());
   EXPECT_EQ(10, iter.YieldIndex());
-  EXPECT_EQ(400, iter.TokenPos().value());
+  EXPECT_EQ(400, iter.TokenPos().Pos());
 
   EXPECT_EQ(true, iter.MoveNext());
   EXPECT_EQ(20, iter.YieldIndex());
-  EXPECT_EQ(0, iter.TokenPos().value());
+  EXPECT_EQ(0, iter.TokenPos().Pos());
 
   EXPECT_EQ(true, iter.MoveNext());
   EXPECT_EQ(30, iter.YieldIndex());
-  EXPECT_EQ(800, iter.TokenPos().value());
+  EXPECT_EQ(800, iter.TokenPos().Pos());
 
   EXPECT_EQ(true, iter.MoveNext());
   EXPECT_EQ(30, iter.YieldIndex());
-  EXPECT_EQ(150, iter.TokenPos().value());
+  EXPECT_EQ(150, iter.TokenPos().Pos());
 
   EXPECT_EQ(3, iter.TryIndex());
   EXPECT_EQ(static_cast<uword>(800), iter.PcOffset());
-  EXPECT_EQ(150, iter.TokenPos().value());
+  EXPECT_EQ(150, iter.TokenPos().Pos());
   EXPECT_EQ(PcDescriptorsLayout::kOther, iter.Kind());
 
   EXPECT_EQ(false, iter.MoveNext());
@@ -2950,12 +3060,17 @@ static ClassPtr CreateTestClass(const char* name) {
 }
 
 static FieldPtr CreateTestField(const char* name) {
+  auto thread = Thread::Current();
   const Class& cls = Class::Handle(CreateTestClass("global:"));
-  const String& field_name =
-      String::Handle(Symbols::New(Thread::Current(), name));
+  const String& field_name = String::Handle(Symbols::New(thread, name));
   const Field& field = Field::Handle(Field::New(
       field_name, true, false, false, true, false, cls, Object::dynamic_type(),
       TokenPosition::kMinSource, TokenPosition::kMinSource));
+  {
+    SafepointWriteRwLocker locker(thread,
+                                  thread->isolate_group()->program_lock());
+    thread->isolate_group()->RegisterStaticField(field, Instance::sentinel());
+  }
   return field.raw();
 }
 
@@ -3065,46 +3180,106 @@ ISOLATE_UNIT_TEST_CASE(ICData) {
 
   // Check ICData for unoptimized static calls.
   const intptr_t kNumArgsChecked = 0;
-  const ICData& scall_icdata =
-      ICData::Handle(ICData::New(function, target_name, args_descriptor, 57,
-                                 kNumArgsChecked, ICData::kInstance));
-  scall_icdata.AddTarget(target1);
+  const ICData& scall_icdata = ICData::Handle(
+      ICData::NewForStaticCall(function, target1, args_descriptor, 57,
+                               kNumArgsChecked, ICData::kInstance));
   EXPECT_EQ(target1.raw(), scall_icdata.GetTargetAt(0));
 }
 
 ISOLATE_UNIT_TEST_CASE(SubtypeTestCache) {
   SafepointMutexLocker ml(thread->isolate_group()->subtype_test_cache_mutex());
 
-  String& class_name = String::Handle(Symbols::New(thread, "EmptyClass"));
+  String& class1_name = String::Handle(Symbols::New(thread, "EmptyClass1"));
   Script& script = Script::Handle();
-  const Class& empty_class =
-      Class::Handle(CreateDummyClass(class_name, script));
+  const Class& empty_class1 =
+      Class::Handle(CreateDummyClass(class1_name, script));
+  String& class2_name = String::Handle(Symbols::New(thread, "EmptyClass2"));
+  const Class& empty_class2 =
+      Class::Handle(CreateDummyClass(class2_name, script));
   SubtypeTestCache& cache = SubtypeTestCache::Handle(SubtypeTestCache::New());
   EXPECT(!cache.IsNull());
   EXPECT_EQ(0, cache.NumberOfChecks());
-  const Object& class_id_or_fun = Object::Handle(Smi::New(empty_class.id()));
+  const Object& class_id_or_fun = Object::Handle(Smi::New(empty_class1.id()));
+  const AbstractType& dest_type =
+      AbstractType::Handle(Type::NewNonParameterizedType(empty_class2));
   const TypeArguments& targ_0 = TypeArguments::Handle(TypeArguments::New(2));
   const TypeArguments& targ_1 = TypeArguments::Handle(TypeArguments::New(3));
   const TypeArguments& targ_2 = TypeArguments::Handle(TypeArguments::New(4));
   const TypeArguments& targ_3 = TypeArguments::Handle(TypeArguments::New(5));
   const TypeArguments& targ_4 = TypeArguments::Handle(TypeArguments::New(6));
-  cache.AddCheck(class_id_or_fun, targ_0, targ_1, targ_2, targ_3, targ_4,
-                 Bool::True());
+  cache.AddCheck(class_id_or_fun, dest_type, targ_0, targ_1, targ_2, targ_3,
+                 targ_4, Bool::True());
   EXPECT_EQ(1, cache.NumberOfChecks());
   Object& test_class_id_or_fun = Object::Handle();
+  AbstractType& test_dest_type = AbstractType::Handle();
   TypeArguments& test_targ_0 = TypeArguments::Handle();
   TypeArguments& test_targ_1 = TypeArguments::Handle();
   TypeArguments& test_targ_2 = TypeArguments::Handle();
   TypeArguments& test_targ_3 = TypeArguments::Handle();
   TypeArguments& test_targ_4 = TypeArguments::Handle();
   Bool& test_result = Bool::Handle();
-  cache.GetCheck(0, &test_class_id_or_fun, &test_targ_0, &test_targ_1,
-                 &test_targ_2, &test_targ_3, &test_targ_4, &test_result);
+  cache.GetCheck(0, &test_class_id_or_fun, &test_dest_type, &test_targ_0,
+                 &test_targ_1, &test_targ_2, &test_targ_3, &test_targ_4,
+                 &test_result);
   EXPECT_EQ(class_id_or_fun.raw(), test_class_id_or_fun.raw());
+  EXPECT_EQ(dest_type.raw(), test_dest_type.raw());
   EXPECT_EQ(targ_0.raw(), test_targ_0.raw());
   EXPECT_EQ(targ_1.raw(), test_targ_1.raw());
   EXPECT_EQ(targ_2.raw(), test_targ_2.raw());
+  EXPECT_EQ(targ_3.raw(), test_targ_3.raw());
+  EXPECT_EQ(targ_4.raw(), test_targ_4.raw());
   EXPECT_EQ(Bool::True().raw(), test_result.raw());
+}
+
+ISOLATE_UNIT_TEST_CASE(MegamorphicCache) {
+  const auto& name = String::Handle(String::New("name"));
+  const auto& args_descriptor =
+      Array::Handle(ArgumentsDescriptor::NewBoxed(1, 1, Object::null_array()));
+
+  const auto& cidA = Smi::Handle(Smi::New(1));
+  const auto& cidB = Smi::Handle(Smi::New(2));
+
+  const auto& valueA = Smi::Handle(Smi::New(42));
+  const auto& valueB = Smi::Handle(Smi::New(43));
+
+  // Test normal insert/lookup methods.
+  {
+    const auto& cache =
+        MegamorphicCache::Handle(MegamorphicCache::New(name, args_descriptor));
+
+    EXPECT(cache.Lookup(cidA) == Object::null());
+    cache.EnsureContains(cidA, valueA);
+    EXPECT(cache.Lookup(cidA) == valueA.raw());
+
+    EXPECT(cache.Lookup(cidB) == Object::null());
+    cache.EnsureContains(cidB, valueB);
+    EXPECT(cache.Lookup(cidB) == valueB.raw());
+  }
+
+  // Try to insert many keys to hit collisions & growth.
+  {
+    const auto& cache =
+        MegamorphicCache::Handle(MegamorphicCache::New(name, args_descriptor));
+
+    auto& cid = Smi::Handle();
+    auto& value = Object::Handle();
+    for (intptr_t i = 0; i < 100; ++i) {
+      cid = Smi::New(100 * i);
+      if (cid.Value() == kIllegalCid) continue;
+
+      value = Smi::New(i);
+      cache.EnsureContains(cid, value);
+    }
+    auto& expected = Object::Handle();
+    for (intptr_t i = 0; i < 100; ++i) {
+      cid = Smi::New(100 * i);
+      if (cid.Value() == kIllegalCid) continue;
+
+      expected = Smi::New(i);
+      value = cache.Lookup(cid);
+      EXPECT(Smi::Cast(value).Equals(Smi::Cast(expected)));
+    }
+  }
 }
 
 ISOLATE_UNIT_TEST_CASE(FieldTests) {

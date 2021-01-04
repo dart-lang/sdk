@@ -1,4 +1,15 @@
-## 0.41.0 (Not yet released - breaking changes)
+## 0.41.2-dev
+* Deprecated `FunctionTypeAliasElement.function`.
+  Use `TypeAliasElement.aliasedElement` instead.
+
+## 0.41.1
+* Updated `PackageBuildWorkspace` that supports `package:build` to stop
+  at the first directory with `pubspec.yaml`, and don't try to go up
+  and find another one with both `pubspec.yaml` and `.dart_tool/build`.
+* Added a new constructor for non-API `ErrorCode` class. It will be used to
+  migrate existing `ErrorCode` subclasses, and then deprecated and removed.
+
+## 0.41.0
 * Replaced `Scope.lookup({id, setter})` with `lookup(id)`.
 * Deprecated `Scope.lookup2(id)`, use `lookup()` instead.
 * Removed deprecated `Member.baseElement`.

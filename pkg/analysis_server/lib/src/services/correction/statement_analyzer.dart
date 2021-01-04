@@ -32,7 +32,7 @@ List<Token> _getTokens(String text, FeatureSet featureSet) {
     }
     return tokens;
   } catch (e) {
-    return List<Token>(0);
+    return List<Token>.filled(0, null);
   }
 }
 

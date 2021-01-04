@@ -545,9 +545,11 @@ class Library extends NamedNode
     for (int i = 0; i < fields.length; ++i) {
       Field field = fields[i];
       canonicalName.getChildFromField(field).bindTo(field.getterReference);
-      canonicalName
-          .getChildFromFieldSetter(field)
-          .bindTo(field.setterReference);
+      if (field.hasSetter) {
+        canonicalName
+            .getChildFromFieldSetter(field)
+            .bindTo(field.setterReference);
+      }
     }
     for (int i = 0; i < procedures.length; ++i) {
       Procedure member = procedures[i];
@@ -1192,9 +1194,11 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     for (int i = 0; i < fields.length; ++i) {
       Field member = fields[i];
       canonicalName.getChildFromField(member).bindTo(member.getterReference);
-      canonicalName
-          .getChildFromFieldSetter(member)
-          .bindTo(member.setterReference);
+      if (member.hasSetter) {
+        canonicalName
+            .getChildFromFieldSetter(member)
+            .bindTo(member.setterReference);
+      }
     }
     for (int i = 0; i < procedures.length; ++i) {
       Procedure member = procedures[i];
@@ -1683,26 +1687,42 @@ class Field extends Member {
   CanonicalName get getterCanonicalName => getterReference?.canonicalName;
   CanonicalName get setterCanonicalName => setterReference?.canonicalName;
 
-  Field(Name name,
+  Field.mutable(Name name,
+      {this.type: const DynamicType(),
+      this.initializer,
+      bool isCovariant: false,
+      bool isFinal: false,
+      bool isStatic: false,
+      bool isLate: false,
+      int transformerFlags: 0,
+      Uri fileUri,
+      Reference getterReference,
+      Reference setterReference})
+      : this.setterReference = setterReference ?? new Reference(),
+        super(name, fileUri, getterReference) {
+    this.setterReference.node = this;
+    assert(type != null);
+    initializer?.parent = this;
+    this.isCovariant = isCovariant;
+    this.isFinal = isFinal;
+    this.isStatic = isStatic;
+    this.isLate = isLate;
+    this.transformerFlags = transformerFlags;
+  }
+
+  Field.immutable(Name name,
       {this.type: const DynamicType(),
       this.initializer,
       bool isCovariant: false,
       bool isFinal: false,
       bool isConst: false,
       bool isStatic: false,
-      bool hasImplicitGetter,
-      bool hasImplicitSetter,
       bool isLate: false,
       int transformerFlags: 0,
       Uri fileUri,
-      Reference getterReference,
-      Reference setterReference})
-      :
-        // TODO(jensj): Maybe don't create one for final fields?
-        // ('final' is a mutable setting though).
-        this.setterReference = setterReference ?? new Reference(),
+      Reference getterReference})
+      : this.setterReference = null,
         super(name, fileUri, getterReference) {
-    this.setterReference.node = this;
     assert(type != null);
     initializer?.parent = this;
     this.isCovariant = isCovariant;
@@ -1710,31 +1730,26 @@ class Field extends Member {
     this.isConst = isConst;
     this.isStatic = isStatic;
     this.isLate = isLate;
-    this.hasImplicitGetter = hasImplicitGetter ?? !isStatic;
-    this.hasImplicitSetter = hasImplicitSetter ??
-        (!isStatic &&
-            !isConst &&
-            (!isFinal || (isLate && initializer == null)));
     this.transformerFlags = transformerFlags;
   }
 
   @override
   void _relinkNode() {
     super._relinkNode();
-    this.setterReference.node = this;
+    if (hasSetter) {
+      this.setterReference.node = this;
+    }
   }
 
   static const int FlagFinal = 1 << 0; // Must match serialized bit positions.
   static const int FlagConst = 1 << 1;
   static const int FlagStatic = 1 << 2;
-  static const int FlagHasImplicitGetter = 1 << 3;
-  static const int FlagHasImplicitSetter = 1 << 4;
-  static const int FlagCovariant = 1 << 5;
-  static const int FlagGenericCovariantImpl = 1 << 6;
-  static const int FlagLate = 1 << 7;
-  static const int FlagExtensionMember = 1 << 8;
-  static const int FlagNonNullableByDefault = 1 << 9;
-  static const int FlagInternalImplementation = 1 << 10;
+  static const int FlagCovariant = 1 << 3;
+  static const int FlagGenericCovariantImpl = 1 << 4;
+  static const int FlagLate = 1 << 5;
+  static const int FlagExtensionMember = 1 << 6;
+  static const int FlagNonNullableByDefault = 1 << 7;
+  static const int FlagInternalImplementation = 1 << 8;
 
   /// Whether the field is declared with the `covariant` keyword.
   bool get isCovariant => flags & FlagCovariant != 0;
@@ -1745,26 +1760,6 @@ class Field extends Member {
 
   @override
   bool get isExtensionMember => flags & FlagExtensionMember != 0;
-
-  /// If true, a getter should be generated for this field.
-  ///
-  /// If false, there may or may not exist an explicit getter in the same class
-  /// with the same name as the field.
-  ///
-  /// By default, all non-static fields have implicit getters.
-  bool get hasImplicitGetter => flags & FlagHasImplicitGetter != 0;
-
-  /// If true, a setter should be generated for this field.
-  ///
-  /// If false, there may or may not exist an explicit setter in the same class
-  /// with the same name as the field.
-  ///
-  /// Final fields never have implicit setters, but a field without an implicit
-  /// setter is not necessarily final, as it may be mutated by direct field
-  /// access.
-  ///
-  /// By default, all non-static, non-final fields have implicit setters.
-  bool get hasImplicitSetter => flags & FlagHasImplicitSetter != 0;
 
   /// Indicates whether the implicit setter associated with this field needs to
   /// contain a runtime type check to deal with generic covariance.
@@ -1804,18 +1799,6 @@ class Field extends Member {
         value ? (flags | FlagExtensionMember) : (flags & ~FlagExtensionMember);
   }
 
-  void set hasImplicitGetter(bool value) {
-    flags = value
-        ? (flags | FlagHasImplicitGetter)
-        : (flags & ~FlagHasImplicitGetter);
-  }
-
-  void set hasImplicitSetter(bool value) {
-    flags = value
-        ? (flags | FlagHasImplicitSetter)
-        : (flags & ~FlagHasImplicitSetter);
-  }
-
   void set isGenericCovariantImpl(bool value) {
     flags = value
         ? (flags | FlagGenericCovariantImpl)
@@ -1832,11 +1815,9 @@ class Field extends Member {
         : (flags & ~FlagInternalImplementation);
   }
 
-  /// True if the field is neither final nor const.
-  bool get isMutable => flags & (FlagFinal | FlagConst) == 0;
   bool get isInstanceMember => !isStatic;
   bool get hasGetter => true;
-  bool get hasSetter => isMutable || isLate && initializer == null;
+  bool get hasSetter => setterReference != null;
 
   bool get isExternal => false;
   void set isExternal(bool value) {
@@ -2141,6 +2122,190 @@ class RedirectingFactoryConstructor extends Member {
   }
 }
 
+/// Enum for the semantics of the `Procedure.stubTarget` property.
+enum ProcedureStubKind {
+  /// A regular procedure declared in source code.
+  ///
+  /// The stub target is `null`.
+  Regular,
+
+  /// An abstract procedure inserted to add `isCovariant` and
+  /// `isGenericCovariantImpl` to parameters for a set of overridden members.
+  ///
+  /// The stub is inserted when not all of the overridden members agree on
+  /// the covariance flags. For instance:
+  ///
+  ///     class A<T> {
+  ///        void method1(num o) {}
+  ///        void method2(T o) {}
+  ///     }
+  ///     class B {
+  ///        void method1(covariant int o) {}
+  ///        void method2(int o) {}
+  ///     }
+  ///     class C implements A<int>, B {
+  ///        // Abstract forwarding stub needed because the parameter is
+  ///        // covariant in `B.method1` but not in `A.method1`.
+  ///        void method1(covariant num o);
+  ///        // Abstract forwarding stub needed because the parameter is a
+  ///        // generic covariant impl in `A.method2` but not in `B.method2`.
+  ///        void method2(/*generic-covariant-impl*/ int o);
+  ///     }
+  ///
+  /// The stub target is one of the overridden members.
+  AbstractForwardingStub,
+
+  /// A concrete procedure inserted to add `isCovariant` and
+  /// `isGenericCovariantImpl` checks to parameters before calling the
+  /// overridden member in the superclass.
+  ///
+  /// The stub is inserted when not all of the overridden members agree on
+  /// the covariance flags and the overridden super class member does not
+  /// have the same covariance flags. For instance:
+  ///
+  ///     class A<T> {
+  ///        void method1(num o) {}
+  ///        void method2(T o) {}
+  ///     }
+  ///     class B {
+  ///        void method1(covariant int o) {}
+  ///        void method2(int o) {}
+  ///     }
+  ///     class C extends A<int> implements B {
+  ///        // Concrete forwarding stub needed because the parameter is
+  ///        // covariant in `B.method1` but not in `A.method1`.
+  ///        void method1(covariant num o) => super.method1(o);
+  ///        // No need for a concrete forwarding stub for `A.method2` because
+  ///        // it has the right covariance flags already.
+  ///     }
+  ///
+  /// The stub target is the called superclass member.
+  ConcreteForwardingStub,
+
+  /// A concrete procedure inserted to forward calls to `noSuchMethod` for
+  /// an inherited member that it does not implement.
+  ///
+  /// The stub is inserted when a class implements private members of another
+  /// library or declares/inherits a user-defined `noSuchMethod` method. For
+  /// instance:
+  ///
+  ///     // lib1:
+  ///     class A {
+  ///       void _privateMethod() {}
+  ///     }
+  ///     // lib2:
+  ///     class B implements A {
+  ///       // Forwarding stub inserted to forward calls to `A._privateMethod`.
+  ///       void _privateMethod() => noSuchMethod(#_privateMethod, ...);
+  ///     }
+  ///     class C {
+  ///       void method() {}
+  ///     }
+  ///     class D implements C {
+  ///       noSuchMethod(o) { ... }
+  ///       // Forwarding stub inserted to forward calls to `C.method`.
+  ///       void method() => noSuchMethod(#method, ...);
+  ///     }
+  ///
+  ///
+  /// The stub target is `null` if the procedure preexisted as an abstract
+  /// procedure. Otherwise the stub target is one of the inherited members.
+  NoSuchMethodForwarder,
+
+  /// An abstract procedure inserted to show the combined member signature type
+  /// of set of overridden members.
+  ///
+  /// The stub is inserted when an opt-in member is inherited into an opt-out
+  /// library or when NNBD_TOP_MERGE was used to compute the type of a merge
+  /// point in an opt-in library. For instance:
+  ///
+  ///     // lib1: opt-in
+  ///     class A {
+  ///       int? method1() => null;
+  ///       void method2(Object? o) {}
+  ///     }
+  ///     class B {
+  ///       dynamic method2(dynamic o);
+  ///     }
+  ///     class C implements A, B {
+  ///       // Member signature inserted for the NNBD_TOP_MERGE type of
+  ///       // `A.method2` and `B.method2`.
+  ///       Object? method2(Object? o);
+  ///     }
+  ///     // lib2: opt-out
+  ///     class D extends A {
+  ///       // Member signature inserted for the LEGACY_ERASURE type of
+  ///       // `A.method1` and `A.method2` with types `int* Function()`
+  ///       // and `void Function(Object*)`, respectively.
+  ///       int method1();
+  ///       void method2(Object o);
+  ///     }
+  ///
+  /// The stub target is one of the overridden members.
+  MemberSignature,
+
+  /// An abstract procedure inserted for the application of an abstract mixin
+  /// member.
+  ///
+  /// The stub is inserted when an abstract member is mixed into a mixin
+  /// application. For instance:
+  ///
+  ///     class Super {}
+  ///     abstract class Mixin {
+  ///        void method();
+  ///     }
+  ///     class Class = Super with Mixin
+  ///       // An abstract mixin stub for `A.method` is added to `Class`
+  ///       void method();
+  ///     ;
+  ///
+  /// This is added to ensure that interface targets are resolved consistently
+  /// in face of cloning. For instance, without the abstract mixin stub, this
+  /// call:
+  ///
+  ///     method(Class c) => c.method();
+  ///
+  /// would use `Mixin.method` as its target, but after loading from a VM .dill
+  /// (which clones all mixin members) the call would resolve to `Class.method`
+  /// instead. By adding the mixin stub to `Class`, all accesses both before
+  /// and after .dill will point to `Class.method`.
+  ///
+  /// The stub target is the mixin member.
+  AbstractMixinStub,
+
+  /// A concrete procedure inserted for the application of a concrete mixin
+  /// member. The implementation calls the mixin member via a super-call.
+  ///
+  /// The stub is inserted when a concrete member is mixed into a mixin
+  /// application. For instance:
+  ///
+  ///     class Super {}
+  ///     abstract class Mixin {
+  ///        void method() {}
+  ///     }
+  ///     class Class = Super with Mixin
+  ///       // A concrete mixin stub for `A.method` is added to `Class` which
+  ///       // calls `A.method`.
+  ///       void method() => super.method();
+  ///     ;
+  ///
+  /// This is added to ensure that super accesses are resolved correctly, even
+  /// in face of cloning. For instance, without the concrete mixin stub, this
+  /// super call:
+  ///
+  ///     class Subclass extends Class {
+  ///       method(Class c) => super.method();
+  ///     }
+  ///
+  /// would use `Mixin.method` as its target, which would need to be updated to
+  /// match the clone of the mixin member performed for instance by the VM. By
+  /// adding the concrete mixin stub to `Class`, all accesses both before and
+  /// after cloning will point to `Class.method`.
+  ///
+  /// The stub target is the called mixin member.
+  ConcreteMixinStub,
+}
+
 /// A method, getter, setter, index-getter, index-setter, operator overloader,
 /// or factory.
 ///
@@ -2194,66 +2359,47 @@ class Procedure extends Member {
     super.transformerFlags = newValue;
   }
 
-  Reference forwardingStubSuperTargetReference;
-  Reference forwardingStubInterfaceTargetReference;
-  Reference memberSignatureOriginReference;
+  ProcedureStubKind stubKind;
+  Reference stubTargetReference;
 
   Procedure(Name name, ProcedureKind kind, FunctionNode function,
       {bool isAbstract: false,
       bool isStatic: false,
       bool isExternal: false,
       bool isConst: false,
-      bool isForwardingStub: false,
-      bool isForwardingSemiStub: false,
-      bool isMemberSignature: false,
       bool isExtensionMember: false,
+      bool isSynthetic: false,
       int transformerFlags: 0,
       Uri fileUri,
       Reference reference,
-      Member forwardingStubSuperTarget,
-      Member forwardingStubInterfaceTarget,
-      Member memberSignatureOrigin})
-      : this._byReferenceRenamed(
-          name,
-          kind,
-          function,
-          isAbstract: isAbstract,
-          isStatic: isStatic,
-          isExternal: isExternal,
-          isConst: isConst,
-          isForwardingStub: isForwardingStub,
-          isMemberSignature: isMemberSignature,
-          isForwardingSemiStub: isForwardingSemiStub,
-          isExtensionMember: isExtensionMember,
-          transformerFlags: transformerFlags,
-          fileUri: fileUri,
-          reference: reference,
-          forwardingStubSuperTargetReference:
-              getMemberReferenceBasedOnProcedureKind(
-                  forwardingStubSuperTarget, kind),
-          forwardingStubInterfaceTargetReference:
-              getMemberReferenceBasedOnProcedureKind(
-                  forwardingStubInterfaceTarget, kind),
-          memberSignatureOriginReference:
-              getMemberReferenceBasedOnProcedureKind(
-                  memberSignatureOrigin, kind),
-        );
+      ProcedureStubKind stubKind: ProcedureStubKind.Regular,
+      Member stubTarget})
+      : this._byReferenceRenamed(name, kind, function,
+            isAbstract: isAbstract,
+            isStatic: isStatic,
+            isExternal: isExternal,
+            isConst: isConst,
+            isExtensionMember: isExtensionMember,
+            isSynthetic: isSynthetic,
+            transformerFlags: transformerFlags,
+            fileUri: fileUri,
+            reference: reference,
+            stubKind: stubKind,
+            stubTargetReference:
+                getMemberReferenceBasedOnProcedureKind(stubTarget, kind));
 
   Procedure._byReferenceRenamed(Name name, this.kind, this.function,
       {bool isAbstract: false,
       bool isStatic: false,
       bool isExternal: false,
       bool isConst: false,
-      bool isForwardingStub: false,
-      bool isForwardingSemiStub: false,
-      bool isMemberSignature: false,
       bool isExtensionMember: false,
+      bool isSynthetic: false,
       int transformerFlags: 0,
       Uri fileUri,
       Reference reference,
-      this.forwardingStubSuperTargetReference,
-      this.forwardingStubInterfaceTargetReference,
-      this.memberSignatureOriginReference})
+      this.stubKind: ProcedureStubKind.Regular,
+      this.stubTargetReference})
       : assert(kind != null),
         super(name, fileUri, reference) {
     function?.parent = this;
@@ -2261,12 +2407,10 @@ class Procedure extends Member {
     this.isStatic = isStatic;
     this.isExternal = isExternal;
     this.isConst = isConst;
-    this.isForwardingStub = isForwardingStub;
-    this.isForwardingSemiStub = isForwardingSemiStub;
-    this.isMemberSignature = isMemberSignature;
     this.isExtensionMember = isExtensionMember;
+    this.isSynthetic = isSynthetic;
     this.transformerFlags = transformerFlags;
-    assert(!(isMemberSignature && memberSignatureOriginReference == null),
+    assert(!(isMemberSignature && stubTargetReference == null),
         "No member signature origin for member signature $this.");
     assert(
         !(memberSignatureOrigin is Procedure &&
@@ -2279,14 +2423,11 @@ class Procedure extends Member {
   static const int FlagAbstract = 1 << 1;
   static const int FlagExternal = 1 << 2;
   static const int FlagConst = 1 << 3; // Only for external const factories.
-  static const int FlagForwardingStub = 1 << 4;
-  static const int FlagForwardingSemiStub = 1 << 5;
   // TODO(29841): Remove this flag after the issue is resolved.
-  static const int FlagRedirectingFactoryConstructor = 1 << 6;
-  static const int FlagNoSuchMethodForwarder = 1 << 7;
-  static const int FlagExtensionMember = 1 << 8;
-  static const int FlagMemberSignature = 1 << 9;
-  static const int FlagNonNullableByDefault = 1 << 10;
+  static const int FlagRedirectingFactoryConstructor = 1 << 4;
+  static const int FlagExtensionMember = 1 << 5;
+  static const int FlagNonNullableByDefault = 1 << 6;
+  static const int FlagSynthetic = 1 << 7;
 
   bool get isStatic => flags & FlagStatic != 0;
   bool get isAbstract => flags & FlagAbstract != 0;
@@ -2298,17 +2439,19 @@ class Procedure extends Member {
 
   /// If set, this flag indicates that this function's implementation exists
   /// solely for the purpose of type checking arguments and forwarding to
-  /// [forwardingStubSuperTarget].
+  /// [concreteForwardingStubTarget].
   ///
   /// Note that just because this bit is set doesn't mean that the function was
   /// not declared in the source; it's possible that this is a forwarding
   /// semi-stub (see isForwardingSemiStub).  To determine whether this function
   /// was present in the source, consult [isSyntheticForwarder].
-  bool get isForwardingStub => flags & FlagForwardingStub != 0;
+  bool get isForwardingStub =>
+      stubKind == ProcedureStubKind.AbstractForwardingStub ||
+      stubKind == ProcedureStubKind.ConcreteForwardingStub;
 
   /// If set, this flag indicates that although this function is a forwarding
   /// stub, it was present in the original source as an abstract method.
-  bool get isForwardingSemiStub => flags & FlagForwardingSemiStub != 0;
+  bool get isForwardingSemiStub => !isSynthetic && isForwardingStub;
 
   /// If set, this method is a class member added to show the type of an
   /// inherited member.
@@ -2317,7 +2460,7 @@ class Procedure extends Member {
   /// directly from the member(s) in the supertypes. For instance in case of
   /// an nnbd opt-out class inheriting from an nnbd opt-in class; here all nnbd-
   /// aware types are replaced with legacy types in the inherited signature.
-  bool get isMemberSignature => flags & FlagMemberSignature != 0;
+  bool get isMemberSignature => stubKind == ProcedureStubKind.MemberSignature;
 
   // Indicates if this [Procedure] represents a redirecting factory constructor
   // and doesn't have a runnable body.
@@ -2327,10 +2470,12 @@ class Procedure extends Member {
 
   /// If set, this flag indicates that this function was not present in the
   /// source, and it exists solely for the purpose of type checking arguments
-  /// and forwarding to [forwardingStubSuperTarget].
+  /// and forwarding to [concreteForwardingStubTarget].
   bool get isSyntheticForwarder => isForwardingStub && !isForwardingSemiStub;
+  bool get isSynthetic => flags & FlagSynthetic != 0;
 
-  bool get isNoSuchMethodForwarder => flags & FlagNoSuchMethodForwarder != 0;
+  bool get isNoSuchMethodForwarder =>
+      stubKind == ProcedureStubKind.NoSuchMethodForwarder;
 
   @override
   bool get isExtensionMember => flags & FlagExtensionMember != 0;
@@ -2351,37 +2496,19 @@ class Procedure extends Member {
     flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
   }
 
-  void set isForwardingStub(bool value) {
-    flags =
-        value ? (flags | FlagForwardingStub) : (flags & ~FlagForwardingStub);
-  }
-
-  void set isForwardingSemiStub(bool value) {
-    flags = value
-        ? (flags | FlagForwardingSemiStub)
-        : (flags & ~FlagForwardingSemiStub);
-  }
-
-  void set isMemberSignature(bool value) {
-    flags =
-        value ? (flags | FlagMemberSignature) : (flags & ~FlagMemberSignature);
-  }
-
   void set isRedirectingFactoryConstructor(bool value) {
     flags = value
         ? (flags | FlagRedirectingFactoryConstructor)
         : (flags & ~FlagRedirectingFactoryConstructor);
   }
 
-  void set isNoSuchMethodForwarder(bool value) {
-    flags = value
-        ? (flags | FlagNoSuchMethodForwarder)
-        : (flags & ~FlagNoSuchMethodForwarder);
-  }
-
   void set isExtensionMember(bool value) {
     flags =
         value ? (flags | FlagExtensionMember) : (flags & ~FlagExtensionMember);
+  }
+
+  void set isSynthetic(bool value) {
+    flags = value ? (flags | FlagSynthetic) : (flags & ~FlagSynthetic);
   }
 
   bool get isInstanceMember => !isStatic;
@@ -2402,29 +2529,26 @@ class Procedure extends Member {
         : (flags & ~FlagNonNullableByDefault);
   }
 
-  Member get forwardingStubSuperTarget =>
-      forwardingStubSuperTargetReference?.asMember;
+  Member get concreteForwardingStubTarget =>
+      stubKind == ProcedureStubKind.ConcreteForwardingStub
+          ? stubTargetReference?.asMember
+          : null;
 
-  void set forwardingStubSuperTarget(Member target) {
-    forwardingStubSuperTargetReference =
-        getMemberReferenceBasedOnProcedureKind(target, kind);
+  Member get abstractForwardingStubTarget =>
+      stubKind == ProcedureStubKind.AbstractForwardingStub
+          ? stubTargetReference?.asMember
+          : null;
+
+  Member get stubTarget => stubTargetReference?.asMember;
+
+  void set stubTarget(Member target) {
+    stubTargetReference = getMemberReferenceBasedOnProcedureKind(target, kind);
   }
 
-  Member get forwardingStubInterfaceTarget =>
-      forwardingStubInterfaceTargetReference?.asMember;
-
-  void set forwardingStubInterfaceTarget(Member target) {
-    forwardingStubInterfaceTargetReference =
-        getMemberReferenceBasedOnProcedureKind(target, kind);
-  }
-
-  @override
-  Member get memberSignatureOrigin => memberSignatureOriginReference?.asMember;
-
-  void set memberSignatureOrigin(Member target) {
-    memberSignatureOriginReference =
-        getMemberReferenceBasedOnProcedureKind(target, kind);
-  }
+  Member get memberSignatureOrigin =>
+      stubKind == ProcedureStubKind.MemberSignature
+          ? stubTargetReference?.asMember
+          : null;
 
   R accept<R>(MemberVisitor<R> v) => v.visitProcedure(this);
 
@@ -3269,6 +3393,280 @@ class VariableSet extends Expression {
   }
 }
 
+enum DynamicAccessKind {
+  /// An access on a receiver of type dynamic.
+  ///
+  /// An access of this kind always results in a value of static type dynamic.
+  ///
+  /// Valid accesses to Object members on receivers of type dynamic are encoded
+  /// as an [InstanceInvocation] of kind [InstanceAccessKind.Object].
+  Dynamic,
+
+  /// An access on a receiver of type Never.
+  ///
+  /// An access of this kind always results in a value of static type Never.
+  ///
+  /// Valid accesses to Object members on receivers of type Never are also
+  /// encoded as [DynamicInvocation] of kind [DynamicAccessKind.Never] and _not_
+  /// as an [InstanceInvocation] of kind [InstanceAccessKind.Object].
+  Never,
+
+  /// An access on a receiver of an invalid type.
+  ///
+  /// An access of this kind always results in a value of an invalid static
+  /// type.
+  Invalid,
+
+  Unresolved,
+}
+
+class DynamicGet extends Expression {
+  final DynamicAccessKind kind;
+  Expression receiver;
+  Name name;
+
+  DynamicGet(this.kind, this.receiver, this.name) {
+    receiver?.parent = this;
+  }
+
+  R accept<R>(ExpressionVisitor<R> v) => v.visitDynamicGet(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitDynamicGet(this, arg);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
+    switch (kind) {
+      case DynamicAccessKind.Dynamic:
+        return const DynamicType();
+      case DynamicAccessKind.Never:
+        return const NeverType(Nullability.nonNullable);
+      case DynamicAccessKind.Invalid:
+      case DynamicAccessKind.Unresolved:
+        return const InvalidType();
+    }
+    return const DynamicType();
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    receiver?.accept(v);
+    name?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "DynamicGet($kind,${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver,
+        minimumPrecedence: astToText.Precedence.PRIMARY);
+    printer.write('.');
+    printer.writeName(name);
+  }
+}
+
+/// An property read of an instance getter or field with a statically known
+/// interface target.
+class InstanceGet extends Expression {
+  final InstanceAccessKind kind;
+  Expression receiver;
+  Name name;
+
+  /// The static type of result of the property read.
+  ///
+  /// This includes substituted type parameters from the static receiver type.
+  ///
+  /// For instance
+  ///
+  ///    class A<T> {
+  ///      T get t;
+  ///    }
+  ///    m(A<String> a) {
+  ///      a.t; // The result type is `String`.
+  ///    }
+  ///
+  DartType resultType;
+
+  Reference interfaceTargetReference;
+
+  InstanceGet(InstanceAccessKind kind, Expression receiver, Name name,
+      {Member interfaceTarget, DartType resultType})
+      : this.byReference(kind, receiver, name,
+            interfaceTargetReference: getMemberReferenceGetter(interfaceTarget),
+            resultType: resultType);
+
+  InstanceGet.byReference(this.kind, this.receiver, this.name,
+      {this.interfaceTargetReference, this.resultType})
+      : assert(interfaceTargetReference != null),
+        assert(resultType != null) {
+    receiver?.parent = this;
+  }
+
+  Member get interfaceTarget => interfaceTargetReference?.asMember;
+
+  void set interfaceTarget(Member member) {
+    interfaceTargetReference = getMemberReferenceSetter(member);
+  }
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) => resultType;
+
+  R accept<R>(ExpressionVisitor<R> v) => v.visitInstanceGet(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitInstanceGet(this, arg);
+
+  visitChildren(Visitor v) {
+    receiver?.accept(v);
+    interfaceTarget?.acceptReference(v);
+    name?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "InstanceGet($kind,${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver,
+        minimumPrecedence: astToText.Precedence.PRIMARY);
+    printer.write('.');
+    printer.writeInterfaceMemberName(interfaceTargetReference, name);
+  }
+}
+
+/// A tear-off of the 'call' method on an expression whose static type is
+/// a function type or the type 'Function'.
+class FunctionTearOff extends Expression {
+  Expression receiver;
+
+  FunctionTearOff(this.receiver) {
+    receiver?.parent = this;
+  }
+
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
+      receiver.getStaticType(context);
+
+  R accept<R>(ExpressionVisitor<R> v) => v.visitFunctionTearOff(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitFunctionTearOff(this, arg);
+
+  visitChildren(Visitor v) {
+    receiver?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "FunctionTearOff(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver,
+        minimumPrecedence: astToText.Precedence.PRIMARY);
+    printer.write('.');
+    printer.writeName(Name.callName);
+  }
+}
+
+/// A tear-off of an instance method with a statically known interface target.
+class InstanceTearOff extends Expression {
+  final InstanceAccessKind kind;
+  Expression receiver;
+  Name name;
+
+  /// The static type of result of the tear-off.
+  ///
+  /// This includes substituted type parameters from the static receiver type.
+  ///
+  /// For instance
+  ///
+  ///    class A<T, S> {
+  ///      T method<U>(S s, U u) { ... }
+  ///    }
+  ///    m(A<String, int> a) {
+  ///      a.method; // The result type is `String Function<U>(int, U)`.
+  ///    }
+  ///
+  DartType resultType;
+
+  Reference interfaceTargetReference;
+
+  InstanceTearOff(InstanceAccessKind kind, Expression receiver, Name name,
+      {Procedure interfaceTarget, DartType resultType})
+      : this.byReference(kind, receiver, name,
+            interfaceTargetReference: getMemberReferenceGetter(interfaceTarget),
+            resultType: resultType);
+
+  InstanceTearOff.byReference(this.kind, this.receiver, this.name,
+      {this.interfaceTargetReference, this.resultType}) {
+    receiver?.parent = this;
+  }
+
+  Procedure get interfaceTarget => interfaceTargetReference?.asMember;
+
+  void set interfaceTarget(Member member) {
+    interfaceTargetReference = getMemberReferenceSetter(member);
+  }
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) => resultType;
+
+  R accept<R>(ExpressionVisitor<R> v) => v.visitInstanceTearOff(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitInstanceTearOff(this, arg);
+
+  visitChildren(Visitor v) {
+    receiver?.accept(v);
+    interfaceTarget?.acceptReference(v);
+    name?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "InstanceTearOff($kind, ${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver,
+        minimumPrecedence: astToText.Precedence.PRIMARY);
+    printer.write('.');
+    printer.writeInterfaceMemberName(interfaceTargetReference, name);
+  }
+}
+
 /// Expression of form `x.field`.
 ///
 /// This may invoke a getter, read a field, or tear off a method.
@@ -3293,7 +3691,6 @@ class PropertyGet extends Expression {
     interfaceTargetReference = getMemberReferenceGetter(member);
   }
 
-  @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
     Member interfaceTarget = this.interfaceTarget;
     if (interfaceTarget != null) {
@@ -3344,6 +3741,128 @@ class PropertyGet extends Expression {
   }
 }
 
+class DynamicSet extends Expression {
+  final DynamicAccessKind kind;
+  Expression receiver;
+  Name name;
+  Expression value;
+
+  DynamicSet(this.kind, this.receiver, this.name, this.value) {
+    receiver?.parent = this;
+    value?.parent = this;
+  }
+
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
+      value.getStaticType(context);
+
+  R accept<R>(ExpressionVisitor<R> v) => v.visitDynamicSet(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitDynamicSet(this, arg);
+
+  visitChildren(Visitor v) {
+    receiver?.accept(v);
+    name?.accept(v);
+    value?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+    if (value != null) {
+      value = value.accept<TreeNode>(v);
+      value?.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "DynamicSet($kind,${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver,
+        minimumPrecedence: astToText.Precedence.PRIMARY);
+    printer.write('.');
+    printer.writeName(name);
+    printer.write(' = ');
+    printer.writeExpression(value);
+  }
+}
+
+/// An property write of an instance setter or field with a statically known
+/// interface target.
+class InstanceSet extends Expression {
+  final InstanceAccessKind kind;
+  Expression receiver;
+  Name name;
+  Expression value;
+
+  Reference interfaceTargetReference;
+
+  InstanceSet(
+      InstanceAccessKind kind, Expression receiver, Name name, Expression value,
+      {Member interfaceTarget})
+      : this.byReference(kind, receiver, name, value,
+            interfaceTargetReference:
+                getMemberReferenceSetter(interfaceTarget));
+
+  InstanceSet.byReference(this.kind, this.receiver, this.name, this.value,
+      {this.interfaceTargetReference})
+      : assert(interfaceTargetReference != null) {
+    receiver?.parent = this;
+    value?.parent = this;
+  }
+
+  Member get interfaceTarget => interfaceTargetReference?.asMember;
+
+  void set interfaceTarget(Member member) {
+    interfaceTargetReference = getMemberReferenceSetter(member);
+  }
+
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
+      value.getStaticType(context);
+
+  R accept<R>(ExpressionVisitor<R> v) => v.visitInstanceSet(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitInstanceSet(this, arg);
+
+  visitChildren(Visitor v) {
+    receiver?.accept(v);
+    interfaceTarget?.acceptReference(v);
+    name?.accept(v);
+    value?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+    if (value != null) {
+      value = value.accept<TreeNode>(v);
+      value?.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "InstanceSet(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver,
+        minimumPrecedence: astToText.Precedence.PRIMARY);
+    printer.write('.');
+    printer.writeInterfaceMemberName(interfaceTargetReference, name);
+    printer.write(' = ');
+    printer.writeExpression(value);
+  }
+}
+
 /// Expression of form `x.field = value`.
 ///
 /// This may invoke a setter or assign a field.
@@ -3373,10 +3892,6 @@ class PropertySet extends Expression {
     interfaceTargetReference = getMemberReferenceSetter(member);
   }
 
-  DartType getStaticType(StaticTypeContext context) =>
-      getStaticTypeInternal(context);
-
-  @override
   DartType getStaticTypeInternal(StaticTypeContext context) =>
       value.getStaticType(context);
 
@@ -3503,10 +4018,6 @@ class SuperPropertySet extends Expression {
     interfaceTargetReference = getMemberReferenceSetter(member);
   }
 
-  DartType getStaticType(StaticTypeContext context) =>
-      getStaticTypeInternal(context);
-
-  @override
   DartType getStaticTypeInternal(StaticTypeContext context) =>
       value.getStaticType(context);
 
@@ -3556,10 +4067,6 @@ class StaticGet extends Expression {
     targetReference = getMemberReferenceGetter(target);
   }
 
-  DartType getStaticType(StaticTypeContext context) =>
-      getStaticTypeInternal(context);
-
-  @override
   DartType getStaticTypeInternal(StaticTypeContext context) =>
       target.getterType;
 
@@ -3576,6 +4083,45 @@ class StaticGet extends Expression {
   @override
   String toString() {
     return "StaticGet(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeMemberName(targetReference);
+  }
+}
+
+/// Tear-off of a static method.
+class StaticTearOff extends Expression {
+  Reference targetReference;
+
+  StaticTearOff(Procedure target)
+      : this.byReference(getMemberReferenceGetter(target));
+
+  StaticTearOff.byReference(this.targetReference);
+
+  Procedure get target => targetReference?.asProcedure;
+
+  void set target(Procedure target) {
+    targetReference = getMemberReferenceGetter(target);
+  }
+
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
+      target.getterType;
+
+  R accept<R>(ExpressionVisitor<R> v) => v.visitStaticTearOff(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitStaticTearOff(this, arg);
+
+  visitChildren(Visitor v) {
+    target?.acceptReference(v);
+  }
+
+  transformChildren(Transformer v) {}
+
+  @override
+  String toString() {
+    return "StaticTearOff(${toStringInternal()})";
   }
 
   @override
@@ -3605,10 +4151,6 @@ class StaticSet extends Expression {
     targetReference = getMemberReferenceSetter(target);
   }
 
-  DartType getStaticType(StaticTypeContext context) =>
-      getStaticTypeInternal(context);
-
-  @override
   DartType getStaticTypeInternal(StaticTypeContext context) =>
       value.getStaticType(context);
 
@@ -3771,12 +4313,572 @@ class NamedExpression extends TreeNode {
 /// [SuperMethodInvocation], [StaticInvocation], and [ConstructorInvocation].
 abstract class InvocationExpression extends Expression {
   Arguments get arguments;
-  set arguments(Arguments value);
+  void set arguments(Arguments value);
 
   /// Name of the invoked method.
   ///
   /// May be `null` if the target is a synthetic static member without a name.
   Name get name;
+}
+
+class DynamicInvocation extends InvocationExpression {
+  final DynamicAccessKind kind;
+  Expression receiver;
+  Name name;
+  Arguments arguments;
+
+  DynamicInvocation(this.kind, this.receiver, this.name, this.arguments) {
+    receiver?.parent = this;
+    arguments?.parent = this;
+  }
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
+    switch (kind) {
+      case DynamicAccessKind.Dynamic:
+        return const DynamicType();
+      case DynamicAccessKind.Never:
+        return const NeverType(Nullability.nonNullable);
+      case DynamicAccessKind.Invalid:
+      case DynamicAccessKind.Unresolved:
+        return const InvalidType();
+    }
+    return const DynamicType();
+  }
+
+  R accept<R>(ExpressionVisitor<R> v) => v.visitDynamicInvocation(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitDynamicInvocation(this, arg);
+
+  visitChildren(Visitor v) {
+    receiver?.accept(v);
+    name?.accept(v);
+    arguments?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+    if (arguments != null) {
+      arguments = arguments.accept<TreeNode>(v);
+      arguments?.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "DynamicInvocation($kind,${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver,
+        minimumPrecedence: astToText.Precedence.PRIMARY);
+    printer.write('.');
+    printer.writeName(name);
+    printer.writeArguments(arguments);
+  }
+}
+
+/// Access kind used by [InstanceInvocation], [InstanceGet], [InstanceSet],
+/// and [InstanceTearOff].
+enum InstanceAccessKind {
+  /// An access to a member on a static receiver type which is an interface
+  /// type.
+  ///
+  /// In null safe libraries the static receiver type is non-nullable.
+  ///
+  /// For instance:
+  ///
+  ///     class C { void method() {} }
+  ///     main() => new C().method();
+  ///
+  Instance,
+
+  /// An access to a member defined on Object on a static receiver type that
+  /// is either a non-interface type or a nullable type.
+  ///
+  /// For instance:
+  ///
+  ///     test1(String? s) => s.toString();
+  ///     test1(dynamic s) => s.hashCode;
+  ///
+  Object,
+
+  /// An access to a method on a static receiver type which is an interface
+  /// type which is inapplicable, that is, whose arguments don't match the
+  /// required parameter structure.
+  ///
+  /// This is an error case which is only used on expression nested within
+  /// [InvalidExpression]s.
+  ///
+  /// For instance:
+  ///
+  ///     class C { void method() {} }
+  ///     main() => new C().method(0); // Too many arguments.
+  ///
+  Inapplicable,
+
+  /// An access to a non-Object member on a static receiver type which is a
+  /// nullable interface type.
+  ///
+  /// This is an error case which is only used on expression nested within
+  /// [InvalidExpression]s.
+  ///
+  /// For instance:
+  ///
+  ///     class C { void method() {} }
+  ///     test(C? c) => c.method(0); // 'c' is nullable.
+  ///
+  Nullable,
+}
+
+/// An invocation of an instance method with a statically known interface
+/// target.
+class InstanceInvocation extends InvocationExpression {
+  // Must match serialized bit positions.
+  static const int FlagInvariant = 1 << 0;
+  static const int FlagBoundsSafe = 1 << 1;
+
+  final InstanceAccessKind kind;
+  Expression receiver;
+  Name name;
+  Arguments arguments;
+  int flags = 0;
+
+  /// The static type of the invocation.
+  ///
+  /// This includes substituted type parameters from the static receiver type
+  /// and generic type arguments.
+  ///
+  /// For instance
+  ///
+  ///    class A<T> {
+  ///      Map<T, S> map<S>(S s) { ... }
+  ///    }
+  ///    m(A<String> a) {
+  ///      a.map(0); // The function type is `Map<String, int> Function(int)`.
+  ///    }
+  ///
+  FunctionType functionType;
+
+  Reference interfaceTargetReference;
+
+  InstanceInvocation(InstanceAccessKind kind, Expression receiver, Name name,
+      Arguments arguments, {Member interfaceTarget, FunctionType functionType})
+      : this.byReference(kind, receiver, name, arguments,
+            interfaceTargetReference: getMemberReferenceGetter(interfaceTarget),
+            functionType: functionType);
+
+  InstanceInvocation.byReference(
+      this.kind, this.receiver, this.name, this.arguments,
+      {this.interfaceTargetReference, this.functionType})
+      : assert(interfaceTargetReference != null),
+        assert(functionType != null),
+        assert(functionType.typeParameters.isEmpty) {
+    receiver?.parent = this;
+    arguments?.parent = this;
+  }
+
+  Member get interfaceTarget => interfaceTargetReference?.asMember;
+
+  void set interfaceTarget(Member target) {
+    interfaceTargetReference = getMemberReferenceGetter(target);
+  }
+
+  /// If `true`, this call is known to be safe wrt. parameter covariance checks.
+  ///
+  /// This is for instance the case in code patterns like this
+  ///
+  ///     List<int> list = <int>[];
+  ///     list.add(0);
+  ///
+  /// where the `list` variable is known to hold a value of the same type as
+  /// the static type. In contrast the would not be the case in code patterns
+  /// like this
+  ///
+  ///     List<num> list = <double>[];
+  ///     list.add(0); // Runtime error `int` is not a subtype of `double`.
+  ///
+  bool get isInvariant => flags & FlagInvariant != 0;
+
+  void set isInvariant(bool value) {
+    flags = value ? (flags | FlagInvariant) : (flags & ~FlagInvariant);
+  }
+
+  /// If `true`, this call is known to be safe wrt. parameter covariance checks.
+  ///
+  /// This is for instance the case in code patterns like this
+  ///
+  ///     List list = new List.filled(2, 0);
+  ///     list[1] = 42;
+  ///
+  /// where the `list` is known to have a sufficient length for the update
+  /// in `list[1] = 42`.
+  bool get isBoundsSafe => flags & FlagBoundsSafe != 0;
+
+  void set isBoundsSafe(bool value) {
+    flags = value ? (flags | FlagBoundsSafe) : (flags & ~FlagBoundsSafe);
+  }
+
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
+      functionType.returnType;
+
+  R accept<R>(ExpressionVisitor<R> v) => v.visitInstanceInvocation(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitInstanceInvocation(this, arg);
+
+  visitChildren(Visitor v) {
+    receiver?.accept(v);
+    interfaceTarget?.acceptReference(v);
+    name?.accept(v);
+    arguments?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+    if (arguments != null) {
+      arguments = arguments.accept<TreeNode>(v);
+      arguments?.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "InstanceInvocation($kind, ${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver,
+        minimumPrecedence: astToText.Precedence.PRIMARY);
+    printer.write('.');
+    printer.writeInterfaceMemberName(interfaceTargetReference, name);
+    printer.writeArguments(arguments);
+  }
+}
+
+/// Access kind used by [FunctionInvocation] and [FunctionTearOff].
+enum FunctionAccessKind {
+  /// An access to the 'call' method on an expression of static type `Function`.
+  ///
+  /// For instance
+  ///
+  ///     method(Function f) => f();
+  ///
+  Function,
+
+  /// An access to the 'call' method on an expression whose static type is a
+  /// function type.
+  ///
+  /// For instance
+  ///
+  ///     method(void Function() f) => f();
+  ///
+  FunctionType,
+
+  /// An access to the 'call' method on an expression whose static type is a
+  /// function type which is inapplicable, that is, whose arguments don't match
+  /// the required parameter structure.
+  ///
+  /// This is an error case which is only used on expression nested within
+  /// [InvalidExpression]s.
+  ///
+  /// For instance:
+  ///
+  ///     test(void Function() f) => f(0); // Too many arguments.
+  ///
+  Inapplicable,
+
+  /// An access to the 'call' method on an expression whose static type is a
+  /// nullable function type or `Function?`.
+  ///
+  /// This is an error case which is only used on expression nested within
+  /// [InvalidExpression]s.
+  ///
+  /// For instance:
+  ///
+  ///     test(void Function()? f) => f(); // 'f' is nullable.
+  ///
+  Nullable,
+}
+
+/// An invocation of the 'call' method on an expression whose static type is
+/// a function type or the type 'Function'.
+class FunctionInvocation extends InvocationExpression {
+  final FunctionAccessKind kind;
+
+  Expression receiver;
+
+  Arguments arguments;
+
+  /// The static type of the invocation.
+  ///
+  /// This is `null` if the static type of the receiver is not a function type
+  /// or is not bounded by a function type.
+  ///
+  /// For instance
+  ///
+  ///    m<T extends Function, S extends int Function()>(T t, S s, Function f) {
+  ///      X local<X>(X t) => t;
+  ///      t(); // The function type is `null`.
+  ///      s(); // The function type is `int Function()`.
+  ///      f(); // The function type is `null`.
+  ///      local(0); // The function type is `int Function(int)`.
+  ///    }
+  ///
+  FunctionType functionType;
+
+  FunctionInvocation(this.kind, this.receiver, this.arguments,
+      {this.functionType}) {
+    receiver?.parent = this;
+    arguments?.parent = this;
+  }
+
+  Name get name => Name.callName;
+
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
+      functionType?.returnType ?? const DynamicType();
+
+  R accept<R>(ExpressionVisitor<R> v) => v.visitFunctionInvocation(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitFunctionInvocation(this, arg);
+
+  visitChildren(Visitor v) {
+    receiver?.accept(v);
+    name?.accept(v);
+    arguments?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+    if (arguments != null) {
+      arguments = arguments.accept<TreeNode>(v);
+      arguments?.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "FunctionInvocation(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver,
+        minimumPrecedence: astToText.Precedence.PRIMARY);
+    printer.writeArguments(arguments);
+  }
+}
+
+/// An invocation of a local function declaration.
+class LocalFunctionInvocation extends InvocationExpression {
+  /// The variable declaration for the function declaration.
+  VariableDeclaration variable;
+  Arguments arguments;
+
+  /// The static type of the invocation.
+  ///
+  /// This might differ from the static type of [variable] for generic
+  /// functions.
+  ///
+  /// For instance
+  ///
+  ///    m() {
+  ///      T local<T>(T t) => t;
+  ///      local(0); // The static type is `int Function(int)`.
+  ///    }
+  ///
+  FunctionType functionType;
+
+  LocalFunctionInvocation(this.variable, this.arguments, {this.functionType})
+      : assert(functionType != null) {
+    arguments?.parent = this;
+  }
+
+  Name get name => Name.callName;
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
+      functionType.returnType;
+
+  R accept<R>(ExpressionVisitor<R> v) => v.visitLocalFunctionInvocation(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitLocalFunctionInvocation(this, arg);
+
+  visitChildren(Visitor v) {
+    arguments?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (arguments != null) {
+      arguments = arguments.accept<TreeNode>(v);
+      arguments?.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "LocalFunctionInvocation(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write(printer.getVariableName(variable));
+    printer.writeArguments(arguments);
+  }
+}
+
+/// Nullness test of an expression, that is `e == null` or `e != null`.
+///
+/// This is generated for code like `e1 == e2` and `e1 != e2` where `e1` or `e2`
+/// is `null`.
+class EqualsNull extends Expression {
+  /// The expression tested for nullness.
+  Expression expression;
+
+  /// If `true` this is an `e != null` test. Otherwise it is an `e == null`
+  /// test.
+  final bool isNot;
+
+  EqualsNull(this.expression, {this.isNot}) : assert(isNot != null) {
+    expression?.parent = this;
+  }
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
+      context.typeEnvironment.coreTypes.boolRawType(context.nonNullable);
+
+  R accept<R>(ExpressionVisitor<R> v) => v.visitEqualsNull(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitEqualsNull(this, arg);
+
+  visitChildren(Visitor v) {
+    expression?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (expression != null) {
+      expression = expression.accept<TreeNode>(v);
+      expression?.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "EqualsNull(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(expression, minimumPrecedence: precedence);
+    if (isNot) {
+      printer.write(' != null');
+    } else {
+      printer.write(' == null');
+    }
+  }
+}
+
+/// A test of equality, that is `e1 == e2` or `e1 != e2`.
+///
+/// This is generated for code like `e1 == e2` and `e1 != e2` where neither `e1`
+/// nor `e2` is `null`.
+class EqualsCall extends Expression {
+  Expression left;
+  Expression right;
+
+  /// The static type of the invocation.
+  ///
+  /// This might differ from the static type of [Object.==] for covariant
+  /// parameters.
+  ///
+  /// For instance
+  ///
+  ///    class C<T> {
+  ///      bool operator(covariant C<T> other) { ... }
+  ///    }
+  ///    // The function type is `bool Function(C<num>)`.
+  ///    method(C<num> a, C<int> b) => a == b;
+  ///
+  FunctionType functionType;
+
+  /// If `true` this is an `e1 != e2` test. Otherwise it is an `e1 == e2` test.
+  final bool isNot;
+
+  Reference interfaceTargetReference;
+
+  EqualsCall(Expression left, Expression right,
+      {bool isNot, FunctionType functionType, Procedure interfaceTarget})
+      : this.byReference(left, right,
+            isNot: isNot,
+            functionType: functionType,
+            interfaceTargetReference:
+                getMemberReferenceGetter(interfaceTarget));
+
+  EqualsCall.byReference(this.left, this.right,
+      {this.isNot, this.functionType, this.interfaceTargetReference})
+      : assert(isNot != null) {
+    left?.parent = this;
+    right?.parent = this;
+  }
+
+  Procedure get interfaceTarget => interfaceTargetReference?.asProcedure;
+
+  void set interfaceTarget(Procedure target) {
+    interfaceTargetReference = getMemberReferenceGetter(target);
+  }
+
+  DartType getStaticTypeInternal(StaticTypeContext context) {
+    return functionType?.returnType ??
+        context.typeEnvironment.coreTypes.boolRawType(context.nonNullable);
+  }
+
+  R accept<R>(ExpressionVisitor<R> v) => v.visitEqualsCall(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitEqualsCall(this, arg);
+
+  visitChildren(Visitor v) {
+    left?.accept(v);
+    interfaceTarget?.acceptReference(v);
+    right?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (left != null) {
+      left = left.accept<TreeNode>(v);
+      left?.parent = this;
+    }
+    if (right != null) {
+      right = right.accept<TreeNode>(v);
+      right?.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "EqualsCall(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    int minimumPrecedence = precedence;
+    printer.writeExpression(left, minimumPrecedence: minimumPrecedence);
+    if (isNot) {
+      printer.write(' != ');
+    } else {
+      printer.write(' == ');
+    }
+    printer.writeExpression(right, minimumPrecedence: minimumPrecedence + 1);
+  }
 }
 
 /// Expression of form `x.foo(y)`.
@@ -6993,7 +8095,8 @@ class VariableDeclaration extends Statement {
       bool isFieldFormal: false,
       bool isCovariant: false,
       bool isLate: false,
-      bool isRequired: false}) {
+      bool isRequired: false,
+      bool isLowered: false}) {
     assert(type != null);
     initializer?.parent = this;
     if (flags != -1) {
@@ -7005,6 +8108,7 @@ class VariableDeclaration extends Statement {
       this.isCovariant = isCovariant;
       this.isLate = isLate;
       this.isRequired = isRequired;
+      this.isLowered = isLowered;
     }
   }
 
@@ -7015,6 +8119,7 @@ class VariableDeclaration extends Statement {
       bool isFieldFormal: false,
       bool isLate: false,
       bool isRequired: false,
+      bool isLowered: false,
       this.type: const DynamicType()}) {
     assert(type != null);
     initializer?.parent = this;
@@ -7023,16 +8128,17 @@ class VariableDeclaration extends Statement {
     this.isFieldFormal = isFieldFormal;
     this.isLate = isLate;
     this.isRequired = isRequired;
+    this.isLowered = isLowered;
   }
 
   static const int FlagFinal = 1 << 0; // Must match serialized bit positions.
   static const int FlagConst = 1 << 1;
   static const int FlagFieldFormal = 1 << 2;
   static const int FlagCovariant = 1 << 3;
-  static const int FlagInScope = 1 << 4; // Temporary flag used by verifier.
-  static const int FlagGenericCovariantImpl = 1 << 5;
-  static const int FlagLate = 1 << 6;
-  static const int FlagRequired = 1 << 7;
+  static const int FlagGenericCovariantImpl = 1 << 4;
+  static const int FlagLate = 1 << 5;
+  static const int FlagRequired = 1 << 6;
+  static const int FlagLowered = 1 << 7;
 
   bool get isFinal => flags & FlagFinal != 0;
   bool get isConst => flags & FlagConst != 0;
@@ -7064,6 +8170,16 @@ class VariableDeclaration extends Statement {
   /// The `required` modifier is only supported on named parameters and not on
   /// positional parameters and local variables.
   bool get isRequired => flags & FlagRequired != 0;
+
+  /// Whether the variable is part of a lowering.
+  ///
+  /// If a variable is part of a lowering its name may be synthesized so that it
+  /// doesn't reflect the name used in the source code and might not have a
+  /// one-to-one correspondence with the variable in the source.
+  ///
+  /// Lowering is used for instance of encoding of 'this' in extension instance
+  /// members and encoding of late locals.
+  bool get isLowered => flags & FlagLowered != 0;
 
   /// Whether the variable is assignable.
   ///
@@ -7107,6 +8223,10 @@ class VariableDeclaration extends Statement {
 
   void set isRequired(bool value) {
     flags = value ? (flags | FlagRequired) : (flags & ~FlagRequired);
+  }
+
+  void set isLowered(bool value) {
+    flags = value ? (flags | FlagLowered) : (flags & ~FlagLowered);
   }
 
   void clearAnnotations() {
@@ -7266,6 +8386,12 @@ abstract class Name extends Node {
   void toTextInternal(AstPrinter printer) {
     printer.writeName(this);
   }
+
+  /// The name of the `call` method on a function.
+  static final Name callName = new _PublicName('call');
+
+  /// The name of the `==` operator.
+  static final Name equalsName = new _PublicName('==');
 }
 
 class _PrivateName extends Name {
@@ -9829,7 +10955,7 @@ abstract class BinarySource {
 
   int readByte();
   List<int> readBytes(int length);
-  int readUInt();
+  int readUInt30();
   int readUint32();
 
   /// Read List<Byte> from the source.
@@ -9936,6 +11062,8 @@ class Source {
   final Uri importUri;
 
   final Uri fileUri;
+
+  Set<Reference> constantCoverageConstructors;
 
   String cachedText;
 
@@ -10194,7 +11322,7 @@ class _Hash {
 
   static int combineMapHashUnordered(Map map, [int hash = 2]) {
     if (map == null || map.isEmpty) return hash;
-    List<int> entryHashes = List(map.length);
+    List<int> entryHashes = List.filled(map.length, null);
     int i = 0;
     for (core.MapEntry entry in map.entries) {
       entryHashes[i++] = combine(entry.key.hashCode, entry.value.hashCode);

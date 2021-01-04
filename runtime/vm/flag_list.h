@@ -52,10 +52,11 @@ constexpr bool kDartUseBackgroundCompilation = true;
 //
 // The syntax used is the same as that for FLAG_LIST below, as these flags are
 // automatically included in FLAG_LIST.
+// TODO(cskau): Remove causal_async_stacks when deprecated.
 #define VM_GLOBAL_FLAG_LIST(P, R, C, D)                                        \
   P(dwarf_stack_traces_mode, bool, false,                                      \
     "Use --[no-]dwarf-stack-traces instead.")                                  \
-  P(causal_async_stacks, bool, false, "Improved async stacks")                 \
+  P(causal_async_stacks, bool, false, "DEPRECATED: Improved async stacks")     \
   P(lazy_async_stacks, bool, true, "Reconstruct async stacks from listeners")  \
   P(lazy_dispatchers, bool, true, "Generate dispatchers lazily")               \
   P(use_bare_instructions, bool, true, "Enable bare instructions mode.")       \
@@ -89,6 +90,8 @@ constexpr bool kDartUseBackgroundCompilation = true;
     "-1 means never.")                                                         \
   P(background_compilation, bool, kDartUseBackgroundCompilation,               \
     "Run optimizing compilation in background")                                \
+  P(check_token_positions, bool, false,                                        \
+    "Check validity of token positions while compiling flow graphs")           \
   R(code_comments, false, bool, false,                                         \
     "Include comments into code and disassembly.")                             \
   P(collect_code, bool, false, "Attempt to GC infrequently used code.")        \
@@ -109,6 +112,9 @@ constexpr bool kDartUseBackgroundCompilation = true;
   R(enable_asserts, false, bool, false, "Enable assert statements.")           \
   R(null_assertions, false, bool, false,                                       \
     "Enable null assertions for parameters.")                                  \
+  R(strict_null_safety_checks, false, bool, false,                             \
+    "Enable strict type checks for non-nullable types and required "           \
+    "parameters.")                                                             \
   P(enable_kernel_expression_compilation, bool, true,                          \
     "Compile expressions with the Kernel front-end.")                          \
   P(enable_mirrors, bool, true,                                                \
@@ -116,7 +122,7 @@ constexpr bool kDartUseBackgroundCompilation = true;
   P(enable_ffi, bool, true, "Disable to make importing dart:ffi an error.")    \
   P(fields_may_be_reset, bool, false,                                          \
     "Don't optimize away static field initialization")                         \
-  C(force_clone_compiler_objects, false, false, bool, false,                   \
+  P(force_clone_compiler_objects, bool, false,                                 \
     "Force cloning of objects needed in compiler (ICData and Field).")         \
   P(getter_setter_ratio, int, 13,                                              \
     "Ratio of getter/setter usage used for double field unboxing heuristics")  \

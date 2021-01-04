@@ -5,12 +5,12 @@ library;
 // pkg/front_end/testcases/general/issue41210b/issue41210.dart:7:7: Error: Applying the mixin 'B' to 'Object with A' introduces an erroneous override of 'method'.
 // class C with A, B {} // error
 //       ^
-// pkg/front_end/testcases/general/issue41210b/issue41210_lib.dart:18:10: Context: The method 'B.method' has fewer named arguments than those of overridden method 'A.method'.
+// pkg/front_end/testcases/general/issue41210b/issue41210_lib.dart:18:10: Context: The method 'B.method' has fewer named arguments than those of overridden method 'Object with A.method'.
 //   String method(num i);
 //          ^
-// pkg/front_end/testcases/general/issue41210b/issue41210_lib.dart:14:10: Context: This is the overridden method ('method').
-//   String method(num i, {String s = "hello"}) => s;
-//          ^
+// pkg/front_end/testcases/general/issue41210b/issue41210.dart:7:7: Context: This is the overridden method ('method').
+// class C with A, B {} // error
+//       ^
 //
 import self as self;
 import "dart:core" as core;
@@ -22,22 +22,26 @@ abstract class _C&Object&A = core::Object with iss::A /*isAnonymousMixin,hasCons
   const synthetic constructor •() → self::_C&Object&A*
     : super core::Object::•()
     ;
+  mixin-super-stub method method(core::num* i, {core::String* s}) → core::String*
+    return super.{iss::A::method}(i, s: s);
 }
 abstract class _C&Object&A&B = self::_C&Object&A with iss::B /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C&Object&A&B*
     : super self::_C&Object&A::•()
     ;
-  abstract member-signature method method(core::num* i, {core::String* s}) → core::String*; -> iss::A::method
+  abstract member-signature method method(core::num* i, {core::String* s}) → core::String*; -> self::_C&Object&A::method
 }
 class C extends self::_C&Object&A&B {
   synthetic constructor •() → self::C*
     ;
-  abstract member-signature method method(core::num* i, {core::String* s}) → core::String*; -> iss::A::method
+  abstract member-signature method method(core::num* i, {core::String* s}) → core::String*; -> self::_C&Object&A::method
 }
 abstract class _E&Object&A = core::Object with iss::A /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_E&Object&A*
     : super core::Object::•()
     ;
+  mixin-super-stub method method(core::num* i, {core::String* s}) → core::String*
+    return super.{iss::A::method}(i, s: s);
 }
 abstract class _E&Object&A&D = self::_E&Object&A with iss::D /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_E&Object&A&D*

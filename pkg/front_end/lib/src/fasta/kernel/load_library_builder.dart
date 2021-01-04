@@ -15,6 +15,7 @@ import 'package:kernel/ast.dart'
         Name,
         Procedure,
         ProcedureKind,
+        Reference,
         ReturnStatement;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
@@ -50,8 +51,8 @@ class LoadLibraryBuilder extends BuilderImpl {
     LoadLibrary expression = createLoadLibrary(charOffset, forest, null);
     String prefix = expression.import.name;
     Name name = new Name('_#loadLibrary_$prefix', parent.library);
-    Procedure referencesFrom =
-        parent.lookupLibraryReferenceProcedure(name.text, false);
+    Reference reference =
+        parent.referencesFromIndexed?.lookupGetterReference(name.text);
     tearoff = new Procedure(
         name,
         ProcedureKind.Method,
@@ -60,7 +61,7 @@ class LoadLibraryBuilder extends BuilderImpl {
                 parent.nonNullable, <DartType>[const DynamicType()])),
         fileUri: parent.library.fileUri,
         isStatic: true,
-        reference: referencesFrom?.reference)
+        reference: reference)
       ..startFileOffset = charOffset
       ..fileOffset = charOffset
       ..isNonNullableByDefault = parent.isNonNullableByDefault;

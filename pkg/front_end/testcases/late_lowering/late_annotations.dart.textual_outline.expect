@@ -2,23 +2,23 @@ class Annotation {
   const Annotation();
 }
 @Annotation()
-late int ;
-topLevelField;
+late
+int topLevelField;
 @Annotation()
-late ;
+late
 final int finalTopLevelField;
 @Annotation()
-late ;
+late
 final int finalTopLevelFieldWithInitializer = 0;
 class A {
   @Annotation()
-  late int ;
-  instanceField;
+  late
+  int instanceField;
   @Annotation()
-  late ;
+  late
   final int finalInstanceField;
   @Annotation()
-  late ;
+  late
   final int finalInstanceFieldWithInitializer = 0;
   @Annotation()
   covariant late num ;
@@ -35,13 +35,13 @@ class A {
 }
 mixin B {
   @Annotation()
-  late int ;
-  instanceField;
+  late
+  int instanceField;
   @Annotation()
-  late ;
+  late
   final int finalInstanceField;
   @Annotation()
-  late ;
+  late
   final int finalInstanceFieldWithInitializer = 0;
   @Annotation()
   covariant late num ;
@@ -56,6 +56,15 @@ mixin B {
   static late ;
   final int finalStaticFieldWithInitializer = 0;
 }
-extension Extension ;
-on A (){}
+extension Extension on A {
+  @Annotation()
+  static late int ;
+  extensionStaticField;
+  @Annotation()
+  static late ;
+  final int finalExtensionStaticField;
+  @Annotation()
+  static late ;
+  final int finalExtensionStaticFieldWithInitializer = 0;
+}
 main() {}

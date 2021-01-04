@@ -5,7 +5,7 @@ import 'vm_service_helper.dart' as vmService;
 main(List<String> args) async {
   CoverageHelper coverageHelper = new CoverageHelper();
 
-  List<String> allArgs = new List<String>();
+  List<String> allArgs = <String>[];
   allArgs.addAll([
     "--disable-dart-dev",
     "--enable-asserts",

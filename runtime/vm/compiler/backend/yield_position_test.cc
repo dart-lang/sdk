@@ -103,11 +103,11 @@ void RunTestInMode(CompilerPass::PipelineMode mode) {
     EXPECT_EQ(3, yield_points.length());
 
     EXPECT_EQ(1, yield_points[0].first);
-    EXPECT_EQ(88, yield_points[0].second.value());
+    EXPECT_EQ(88, yield_points[0].second.Pos());
     EXPECT_EQ(2, yield_points[1].first);
-    EXPECT_EQ(129, yield_points[1].second.value());
+    EXPECT_EQ(129, yield_points[1].second.Pos());
     EXPECT_EQ(3, yield_points[2].first);
-    EXPECT_EQ(170, yield_points[2].second.value());
+    EXPECT_EQ(170, yield_points[2].second.Pos());
   };
 
   validate_indices(*GetYieldPointsFromGraph(flow_graph));

@@ -22,9 +22,11 @@ class OptionProcessor {
 
   virtual ~OptionProcessor() {}
 
-  static bool IsValidFlag(const char* name,
-                          const char* prefix,
-                          intptr_t prefix_length);
+  // Returns true if name starts with "--".
+  static bool IsValidFlag(const char* name);
+
+  // Returns true if name starts with "-".
+  static bool IsValidShortFlag(const char* name);
 
   virtual bool Process(const char* option, CommandLineOptions* options) = 0;
 

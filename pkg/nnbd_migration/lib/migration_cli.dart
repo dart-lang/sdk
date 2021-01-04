@@ -615,7 +615,18 @@ class MigrationCliRunner implements DartFixListenerClient {
 
   @override
   void onException(String detail) {
-    if (_hasExceptions) return;
+    if (_hasExceptions) {
+      if (!options.ignoreExceptions) {
+        // Our intention is to exit immediately when an exception occurred.  We
+        // tried, but failed (probably due to permissive mode logic in the
+        // migration tool itself catching the MigrationExit exception).  The
+        // stack has now been unwound further, so throw again.
+        throw MigrationExit(1);
+      }
+      // We're not exiting immediately when an exception occurs.  We've already
+      // reported that an exception happened.  So do nothing further.
+      return;
+    }
     _hasExceptions = true;
     if (options.ignoreExceptions) {
       logger.stdout('''

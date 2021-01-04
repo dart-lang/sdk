@@ -19,6 +19,7 @@
 #include "vm/kernel_isolate.h"
 #include "vm/kernel_loader.h"
 #include "vm/log.h"
+#include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -162,7 +163,7 @@ InstanceMorpher* InstanceMorpher::CreateFromClassDescriptors(
     if (new_field) {
       const Field& field = Field::Handle(to_field.raw());
       field.set_needs_load_guard(true);
-      field.set_is_unboxing_candidate(false);
+      field.set_is_unboxing_candidate_unsafe(false);
       new_fields_offsets->Add(field.HostOffset());
     }
   }
@@ -960,7 +961,7 @@ void IsolateGroupReloadContext::BuildModifiedLibrariesClosure(
     for (intptr_t import_idx = 0; import_idx < ports.Length(); import_idx++) {
       ns ^= ports.At(import_idx);
       if (!ns.IsNull()) {
-        target = ns.library();
+        target = ns.target();
         target_url = target.url();
         if (!target_url.StartsWith(Symbols::DartExtensionScheme())) {
           (*imported_by)[target.index()]->Add(lib.index());
@@ -973,7 +974,7 @@ void IsolateGroupReloadContext::BuildModifiedLibrariesClosure(
     for (intptr_t export_idx = 0; export_idx < ports.Length(); export_idx++) {
       ns ^= ports.At(export_idx);
       if (!ns.IsNull()) {
-        target = ns.library();
+        target = ns.target();
         (*imported_by)[target.index()]->Add(lib.index());
       }
     }
@@ -991,7 +992,7 @@ void IsolateGroupReloadContext::BuildModifiedLibrariesClosure(
              import_idx++) {
           ns ^= ports.At(import_idx);
           if (!ns.IsNull()) {
-            target = ns.library();
+            target = ns.target();
             (*imported_by)[target.index()]->Add(lib.index());
           }
         }
@@ -1099,20 +1100,25 @@ ObjectPtr IsolateReloadContext::ReloadPhase2LoadKernel(
     const String& root_lib_url) {
   Thread* thread = Thread::Current();
 
-  const Object& tmp = kernel::KernelLoader::LoadEntireProgram(program);
-  if (tmp.IsError()) {
-    return tmp.raw();
-  }
+  LongJumpScope jump;
+  if (setjmp(*jump.Set()) == 0) {
+    const Object& tmp = kernel::KernelLoader::LoadEntireProgram(program);
+    if (tmp.IsError()) {
+      return tmp.raw();
+    }
 
-  // If main method disappeared or were not there to begin with then
-  // KernelLoader will return null. In this case lookup library by
-  // URL.
-  auto& lib = Library::Handle(Library::RawCast(tmp.raw()));
-  if (lib.IsNull()) {
-    lib = Library::LookupLibrary(thread, root_lib_url);
+    // If main method disappeared or were not there to begin with then
+    // KernelLoader will return null. In this case lookup library by
+    // URL.
+    auto& lib = Library::Handle(Library::RawCast(tmp.raw()));
+    if (lib.IsNull()) {
+      lib = Library::LookupLibrary(thread, root_lib_url);
+    }
+    isolate_->object_store()->set_root_library(lib);
+    return Object::null();
+  } else {
+    return thread->StealStickyError();
   }
-  isolate_->object_store()->set_root_library(lib);
-  return Object::null();
 }
 
 void IsolateReloadContext::ReloadPhase3FinalizeLoading() {
@@ -2270,6 +2276,8 @@ class FieldInvalidator {
          i += SubtypeTestCache::kTestEntryLength) {
       if ((entries_.At(i + SubtypeTestCache::kInstanceClassIdOrFunction) ==
            instance_cid_or_function_.raw()) &&
+          (entries_.At(i + SubtypeTestCache::kDestinationType) ==
+           type_.raw()) &&
           (entries_.At(i + SubtypeTestCache::kInstanceTypeArguments) ==
            instance_type_arguments_.raw()) &&
           (entries_.At(i + SubtypeTestCache::kInstantiatorTypeArguments) ==
@@ -2298,8 +2306,9 @@ class FieldInvalidator {
         ASSERT(!FLAG_identity_reload);
         field.set_needs_load_guard(true);
       } else {
-        cache_.AddCheck(instance_cid_or_function_, instance_type_arguments_,
-                        instantiator_type_arguments_, function_type_arguments_,
+        cache_.AddCheck(instance_cid_or_function_, type_,
+                        instance_type_arguments_, instantiator_type_arguments_,
+                        function_type_arguments_,
                         parent_function_type_arguments_,
                         delayed_function_type_arguments_, Bool::True());
       }

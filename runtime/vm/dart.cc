@@ -215,6 +215,10 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     return Utils::StrDup(
         "To use --lazy-async-stacks, please disable --causal-async-stacks!");
   }
+  // TODO(cskau): Remove once flag deprecation has been completed.
+  if (FLAG_causal_async_stacks) {
+    return Utils::StrDup("--causal-async-stacks is deprecated!");
+  }
 
   FrameLayout::Init();
 
@@ -683,29 +687,17 @@ Isolate* Dart::CreateIsolate(const char* name_prefix,
   return isolate;
 }
 
-#if defined(DART_PRECOMPILED_RUNTIME)
-static bool CloneIntoChildIsolateAOT(Thread* T,
-                                     Isolate* I,
-                                     IsolateGroup* source_isolate_group) {
-  // In AOT we speed up isolate spawning by copying donor's isolate structure.
-  if (source_isolate_group == nullptr) {
-    return false;
-  }
-  I->isolate_object_store()->Init();
-  I->isolate_object_store()->PreallocateObjects();
-  I->set_field_table(
-      T, source_isolate_group->saved_initial_field_table()->Clone());
-
-  return true;
-}
-#endif
-
 ErrorPtr Dart::InitIsolateFromSnapshot(Thread* T,
                                        Isolate* I,
                                        const uint8_t* snapshot_data,
                                        const uint8_t* snapshot_instructions,
                                        const uint8_t* kernel_buffer,
                                        intptr_t kernel_buffer_size) {
+  if (kernel_buffer != nullptr) {
+    SafepointReadRwLocker reader(T, I->group()->program_lock());
+    I->field_table()->MarkReadyToUse();
+  }
+
   Error& error = Error::Handle(T->zone());
   error = Object::Init(I, kernel_buffer, kernel_buffer_size);
   if (!error.IsNull()) {
@@ -739,8 +731,11 @@ ErrorPtr Dart::InitIsolateFromSnapshot(Thread* T,
       return error.raw();
     }
 
-    I->group()->set_saved_initial_field_table(
-        std::shared_ptr<FieldTable>(I->field_table()->Clone()));
+    {
+      SafepointReadRwLocker reader(T, I->group()->program_lock());
+      I->set_field_table(T, I->group()->initial_field_table()->Clone(I));
+      I->field_table()->MarkReadyToUse();
+    }
 
 #if defined(SUPPORT_TIMELINE)
     if (tbes.enabled()) {
@@ -881,37 +876,58 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
   StackZone zone(T);
   HandleScope handle_scope(T);
   bool was_child_cloned_into_existing_isolate = false;
-#if defined(DART_PRECOMPILED_RUNTIME)
-  if (CloneIntoChildIsolateAOT(T, I, source_isolate_group)) {
+  if (source_isolate_group != nullptr) {
+    I->isolate_object_store()->Init();
+    I->isolate_object_store()->PreallocateObjects();
+
+    // If a static field gets registered in [IsolateGroup::RegisterStaticField]:
+    //
+    //   * before this block it will ignore this isolate. The [Clone] of the
+    //     initial field table will pick up the new value.
+    //   * after this block it will add the new static field to this isolate.
+    {
+      SafepointReadRwLocker reader(T, source_isolate_group->program_lock());
+      I->set_field_table(T,
+                         source_isolate_group->initial_field_table()->Clone(I));
+      I->field_table()->MarkReadyToUse();
+    }
+
     was_child_cloned_into_existing_isolate = true;
   } else {
-#endif
     const Error& error = Error::Handle(
         InitIsolateFromSnapshot(T, I, snapshot_data, snapshot_instructions,
                                 kernel_buffer, kernel_buffer_size));
     if (!error.IsNull()) {
       return error.raw();
     }
-#if defined(DART_PRECOMPILED_RUNTIME)
   }
-#endif
 
   Object::VerifyBuiltinVtables();
   DEBUG_ONLY(I->heap()->Verify(kForbidMarked));
 
 #if defined(DART_PRECOMPILED_RUNTIME)
-  ASSERT(I->object_store()->build_method_extractor_code() != Code::null());
-  if (FLAG_print_llvm_constant_pool) {
-    PrintLLVMConstantPool(T, I);
-  }
+  const bool kIsAotRuntime = true;
 #else
-#if !defined(TARGET_ARCH_IA32)
-  if (I != Dart::vm_isolate()) {
-    I->object_store()->set_build_method_extractor_code(
-        Code::Handle(StubCode::GetBuildMethodExtractorStub(nullptr)));
-  }
+  const bool kIsAotRuntime = false;
 #endif
+
+  if (kIsAotRuntime || was_child_cloned_into_existing_isolate) {
+#if !defined(TARGET_ARCH_IA32)
+    ASSERT(I->object_store()->build_method_extractor_code() != Code::null());
+#endif
+#if defined(DART_PRECOMPILED_RUNTIME)
+    if (FLAG_print_llvm_constant_pool) {
+      PrintLLVMConstantPool(T, I);
+    }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
+  } else {
+#if !defined(TARGET_ARCH_IA32)
+    if (I != Dart::vm_isolate()) {
+      I->object_store()->set_build_method_extractor_code(
+          Code::Handle(StubCode::GetBuildMethodExtractorStub(nullptr)));
+    }
+#endif  // !defined(TARGET_ARCH_IA32)
+  }
 
   I->set_ic_miss_code(StubCode::SwitchableCallMiss());
 

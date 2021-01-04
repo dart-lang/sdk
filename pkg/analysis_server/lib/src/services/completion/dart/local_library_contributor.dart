@@ -110,9 +110,8 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
   @override
   void visitPropertyAccessorElement(PropertyAccessorElement element) {
     if (opType.includeReturnValueSuggestions) {
-      if (element.enclosingElement is ClassElement) {
-        // TODO(brianwilkerson) Verify that we cannot reach this point and
-        //  remove the dead code.
+      var parent = element.enclosingElement;
+      if (parent is ClassElement || parent is ExtensionElement) {
         builder.suggestAccessor(element, inheritanceDistance: -1.0);
       } else {
         builder.suggestTopLevelPropertyAccessor(element, prefix: prefix);

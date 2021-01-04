@@ -316,7 +316,7 @@ Future<Map<String, List<int>>> createModules(Map module,
   Map<String, List<int>> moduleResult = new Map<String, List<int>>();
 
   for (String moduleName in module.keys) {
-    List<Uri> moduleSources = new List<Uri>();
+    List<Uri> moduleSources = <Uri>[];
     Uri packagesUri;
     for (String filename in module[moduleName].keys) {
       Uri uri = base.resolve(filename);
@@ -343,7 +343,7 @@ Future<Map<String, List<int>>> createModules(Map module,
         new TestIncrementalCompiler(options, moduleSources.first, null);
     Component c = await compiler.computeDelta(entryPoints: moduleSources);
     c.computeCanonicalNames();
-    List<Library> wantedLibs = new List<Library>();
+    List<Library> wantedLibs = <Library>[];
     for (Library lib in c.libraries) {
       if (moduleSources.contains(lib.importUri) ||
           moduleSources.contains(lib.fileUri)) {
@@ -451,7 +451,7 @@ class NewWorldTest {
           c.adoptChildren();
         }
 
-        modulesToUse = new List<Component>();
+        modulesToUse = <Component>[];
         for (String moduleName in world["modules"]) {
           Component moduleComponent = moduleComponents[moduleName];
           if (moduleComponent != null) {
@@ -594,7 +594,7 @@ class NewWorldTest {
       if (world["entry"] is String) {
         entries = [base.resolve(world["entry"])];
       } else {
-        entries = new List<Uri>();
+        entries = <Uri>[];
         List<dynamic> entryList = world["entry"];
         for (String entry in entryList) {
           entries.add(base.resolve(entry));
@@ -624,7 +624,7 @@ class NewWorldTest {
         }
       }
 
-      List<Uri> invalidated = new List<Uri>();
+      List<Uri> invalidated = <Uri>[];
       if (world["invalidate"] != null) {
         for (String filename in world["invalidate"]) {
           Uri uri = base.resolve(filename);
@@ -1202,7 +1202,6 @@ Result<TestData> checkClassHierarchy(TestIncrementalCompiler compiler,
         Set<Member> members = info.lazyDeclaredGettersAndCalls.toSet();
         for (Field f in c.fields) {
           if (f.isStatic) continue;
-          if (!f.hasImplicitGetter) continue;
           if (!members.remove(f)) {
             return new Result<TestData>(
                 data,
@@ -1240,7 +1239,7 @@ Result<TestData> checkClassHierarchy(TestIncrementalCompiler compiler,
         Set<Member> members = info.lazyDeclaredSetters.toSet();
         for (Field f in c.fields) {
           if (f.isStatic) continue;
-          if (!f.hasImplicitSetter) continue;
+          if (!f.hasSetter) continue;
           if (!members.remove(f)) {
             return new Result<TestData>(data, ClassHierarchyError,
                 "Didn't find $f in lazyDeclaredSetters for $c");
@@ -1535,13 +1534,13 @@ Map<String, Set<String>> buildMapOfContent(Component component) {
 Result<TestData> checkNeededDillLibraries(
     YamlMap world, TestData data, Set<Library> neededDillLibraries, Uri base) {
   if (world["neededDillLibraries"] != null) {
-    List<Uri> actualContent = new List<Uri>();
+    List<Uri> actualContent = <Uri>[];
     for (Library lib in neededDillLibraries) {
       if (lib.importUri.scheme == "dart") continue;
       actualContent.add(lib.importUri);
     }
 
-    List<Uri> expectedContent = new List<Uri>();
+    List<Uri> expectedContent = <Uri>[];
     for (String entry in world["neededDillLibraries"]) {
       expectedContent.add(base.resolve(entry));
     }
@@ -1580,7 +1579,7 @@ String nodeToString(TreeNode node) {
 
 String componentToStringSdkFiltered(Component component) {
   Component c = new Component();
-  List<Uri> dartUris = new List<Uri>();
+  List<Uri> dartUris = <Uri>[];
   for (Library lib in component.libraries) {
     if (lib.importUri.scheme == "dart") {
       dartUris.add(lib.importUri);
@@ -1825,9 +1824,14 @@ class TestIncrementalCompiler extends IncrementalCompiler {
         invalidatedUris.map((uri) => uri.pathSegments.last).toSet();
     Set<Uri> result = new Set<Uri>();
     for (Uri uri in invalidatedImportUrisForTesting) {
-      if (uri.pathSegments.last == "nonexisting.dart") continue;
+      if (uri.pathSegments.isNotEmpty &&
+          uri.pathSegments.last == "nonexisting.dart") {
+        continue;
+      }
       if (invalidatedFilenames.contains(entryPoint.pathSegments.last) ||
-          invalidatedFilenames.contains(uri.pathSegments.last)) result.add(uri);
+          invalidatedFilenames.contains(uri.pathSegments.last)) {
+        result.add(uri);
+      }
     }
 
     return result.isEmpty ? null : result;
@@ -1910,13 +1914,10 @@ void doSimulateTransformer(Component c) {
         .toList()
         .isNotEmpty) continue;
     Name fieldName = new Name("unique_SimulateTransformer");
-    Field field = new Field(fieldName,
+    Field field = new Field.immutable(fieldName,
         isFinal: true,
         getterReference: lib.reference.canonicalName
             ?.getChildFromFieldWithName(fieldName)
-            ?.reference,
-        setterReference: lib.reference.canonicalName
-            ?.getChildFromFieldSetterWithName(fieldName)
             ?.reference);
     lib.addField(field);
     for (Class c in lib.classes) {
@@ -1925,13 +1926,10 @@ void doSimulateTransformer(Component c) {
           .toList()
           .isNotEmpty) continue;
       fieldName = new Name("unique_SimulateTransformer");
-      field = new Field(fieldName,
+      field = new Field.immutable(fieldName,
           isFinal: true,
           getterReference: c.reference.canonicalName
               ?.getChildFromFieldWithName(fieldName)
-              ?.reference,
-          setterReference: c.reference.canonicalName
-              ?.getChildFromFieldSetterWithName(fieldName)
               ?.reference);
       c.addField(field);
     }

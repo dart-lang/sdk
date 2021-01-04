@@ -41,6 +41,8 @@ abstract class _MyTest2&Object&MyTest extends core::Object implements self::MyTe
   const synthetic constructor •() → self::_MyTest2&Object&MyTest*
     : super core::Object::•()
     ;
+  @#C1
+  method foo() → void {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -51,8 +53,6 @@ abstract class _MyTest2&Object&MyTest extends core::Object implements self::MyTe
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  @#C1
-  method foo() → void {}
 }
 class MyTest2 extends self::_MyTest2&Object&MyTest {
   synthetic constructor •() → self::MyTest2*
@@ -88,3 +88,9 @@ constants  {
 Extra constant evaluation status:
 Evaluated: TypeLiteral @ org-dartlang-testcase:///bug33099.dart:21:42 -> TypeLiteralConstant(MyTest2*)
 Extra constant evaluation: evaluated: 33, effectively constant: 1
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///bug33099.dart:
+- _FailingTest. (from org-dartlang-testcase:///bug33099.dart:10:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)

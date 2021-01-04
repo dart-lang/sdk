@@ -6,7 +6,6 @@ import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
-import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
@@ -16,6 +15,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:test/test.dart';
 
 import '../../../../abstract_single_unit.dart';
+import '../../../../utils/test_instrumentation_service.dart';
 
 export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 
@@ -193,7 +193,7 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
 
   Future<List<Assist>> _computeAssists() async {
     var context = DartAssistContextImpl(
-      InstrumentationService.NULL_SERVICE,
+      TestInstrumentationService(),
       workspace,
       testAnalysisResult,
       _offset,

@@ -519,7 +519,7 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
       jsdep.AddProperty("isDeferred", false);
       jsdep.AddProperty("isExport", false);
       jsdep.AddProperty("isImport", true);
-      target = ns.library();
+      target = ns.target();
       jsdep.AddProperty("target", target);
     }
 
@@ -533,7 +533,7 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
       jsdep.AddProperty("isDeferred", false);
       jsdep.AddProperty("isExport", true);
       jsdep.AddProperty("isImport", false);
-      target = ns.library();
+      target = ns.target();
       jsdep.AddProperty("target", target);
     }
 
@@ -559,7 +559,7 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
             prefix_name = prefix.name();
             ASSERT(!prefix_name.IsNull());
             jsdep.AddProperty("prefix", prefix_name.ToCString());
-            target = ns.library();
+            target = ns.target();
             jsdep.AddProperty("target", target);
           }
         }
@@ -808,7 +808,7 @@ void ICData::PrintToJSONArray(const JSONArray& jsarray,
 
   JSONObject jsobj(&jsarray);
   jsobj.AddProperty("name", String::Handle(target_name()).ToCString());
-  jsobj.AddProperty("tokenPos", token_pos.value());
+  jsobj.AddProperty("tokenPos", static_cast<intptr_t>(token_pos.Serialize()));
   // TODO(rmacnak): Figure out how to stringify DeoptReasons().
   // jsobj.AddProperty("deoptReasons", ...);
 
@@ -1453,6 +1453,7 @@ void ReceivePort::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const StackTrace& allocation_location_ =
       StackTrace::Handle(allocation_location());
   const String& debug_name_ = String::Handle(debug_name());
+  obj.AddServiceId(*this);
   obj.AddProperty("kind", "ReceivePort");
   obj.AddProperty64("portId", Id());
   obj.AddProperty("debugName", debug_name_.ToCString());

@@ -17,6 +17,7 @@ import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/transformations/track_widget_constructor_locations.dart';
 import 'package:_js_interop_checks/js_interop_checks.dart';
+import 'package:_js_interop_checks/src/js_interop.dart';
 
 import 'constants.dart' show DevCompilerConstantsBackend;
 import 'kernel_helpers.dart';
@@ -46,6 +47,9 @@ class DevCompilerTarget extends Target {
   //  calls encoded with an explicit property get or disallows getter calls.
   @override
   bool get supportsExplicitGetterCalls => false;
+
+  @override
+  bool get supportsNewMethodInvocationEncoding => true;
 
   @override
   String get name => 'dartdevc';
@@ -149,11 +153,21 @@ class DevCompilerTarget extends Target {
       ReferenceFromIndex referenceFromIndex,
       {void Function(String msg) logger,
       ChangedStructureNotifier changedStructureNotifier}) {
+    var nativeClasses = <String, Class>{};
+    for (var library in component.libraries) {
+      for (var cls in library.classes) {
+        var nativeNames = getNativeNames(cls);
+        for (var nativeName in nativeNames) {
+          nativeClasses[nativeName] = cls;
+        }
+      }
+    }
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();
       JsInteropChecks(
               coreTypes,
-              diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>)
+              diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
+              nativeClasses)
           .visitLibrary(library);
     }
   }
@@ -401,14 +415,44 @@ class _CovarianceTransformer extends RecursiveVisitor<void> {
   }
 
   @override
+  void visitInstanceGet(InstanceGet node) {
+    _checkTearoff(node.interfaceTarget);
+    super.visitInstanceGet(node);
+  }
+
+  @override
   void visitPropertySet(PropertySet node) {
     _checkTarget(node.receiver, node.interfaceTarget);
     super.visitPropertySet(node);
   }
 
   @override
+  void visitInstanceSet(InstanceSet node) {
+    _checkTarget(node.receiver, node.interfaceTarget);
+    super.visitInstanceSet(node);
+  }
+
+  @override
   void visitMethodInvocation(MethodInvocation node) {
     _checkTarget(node.receiver, node.interfaceTarget);
     super.visitMethodInvocation(node);
+  }
+
+  @override
+  void visitInstanceInvocation(InstanceInvocation node) {
+    _checkTarget(node.receiver, node.interfaceTarget);
+    super.visitInstanceInvocation(node);
+  }
+
+  @override
+  void visitInstanceTearOff(InstanceTearOff node) {
+    _checkTearoff(node.interfaceTarget);
+    super.visitInstanceTearOff(node);
+  }
+
+  @override
+  void visitEqualsCall(EqualsCall node) {
+    _checkTarget(node.left, node.interfaceTarget);
+    super.visitEqualsCall(node);
   }
 }

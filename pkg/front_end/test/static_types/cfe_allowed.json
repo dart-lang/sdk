@@ -17,7 +17,6 @@
   "pkg/_fe_analyzer_shared/lib/src/scanner/token_impl.dart": {
     "Dynamic access of 'data'.": 1,
     "Dynamic access of 'start'.": 1,
-    "Dynamic access of 'length'.": 1,
     "Dynamic access of 'boolValue'.": 2
   },
   "pkg/kernel/lib/transformations/value_class.dart": {
@@ -39,14 +38,5 @@
   },
   "pkg/front_end/lib/src/fasta/kernel/body_builder.dart": {
     "Dynamic invocation of 'buildForEffect'.": 1
-  },
-  "pkg/_fe_analyzer_shared/lib/src/util/link.dart": {
-    "Dynamic access of 'isEmpty'.": 1
-  },
-  "pkg/_fe_analyzer_shared/lib/src/util/link_implementation.dart": {
-    "Dynamic access of 'isNotEmpty'.": 1,
-    "Dynamic access of 'head'.": 1,
-    "Dynamic access of 'tail'.": 1,
-    "Dynamic access of 'isEmpty'.": 1
   }
 }

@@ -28,6 +28,8 @@ import 'member_covariance.dart';
 abstract class CombinedMemberSignatureBase<T> {
   ClassHierarchyBase get hierarchy;
 
+  Name get name;
+
   /// The target class for the combined member signature.
   ///
   /// The [_memberTypes] are computed in terms of each member is inherited into
@@ -88,6 +90,8 @@ abstract class CombinedMemberSignatureBase<T> {
   Set<int> _neededLegacyErasureIndices;
 
   bool _neededNnbdTopMerge = false;
+
+  bool _containsNnbdTypes = false;
 
   bool _needsCovarianceMerging = false;
 
@@ -154,11 +158,9 @@ abstract class CombinedMemberSignatureBase<T> {
             candidateIndex++) {
           DartType candidateType = getMemberType(candidateIndex);
           if (!_isMoreSpecific(bestTypeSoFar, candidateType, forSetter)) {
-            if (!shouldOverrideProblemBeOverlooked(classBuilder)) {
-              bestSoFarIndex = null;
-              bestTypeSoFar = null;
-              _mutualSubtypes = null;
-            }
+            int favoredIndex = getOverlookedOverrideProblemChoice(classBuilder);
+            bestSoFarIndex = favoredIndex;
+            _mutualSubtypes = null;
             break;
           }
         }
@@ -222,6 +224,43 @@ abstract class CombinedMemberSignatureBase<T> {
     return _neededNnbdTopMerge;
   }
 
+  /// Returns `true` if the type of combined member signature has nnbd types.
+  ///
+  /// If the combined member signature for an opt-in class is computed from
+  /// identical legacy types, that is, without the need for nnbd top merge, then
+  /// the type will be copied over directly and a member created from the
+  /// combined member signature will therefore be a legacy member, even though
+  /// it is declared in an opt in class.
+  ///
+  /// To avoid reporting errors as if the member was an opt-in member, it is
+  /// marked as nullable-by-default.
+  ///
+  /// For instance
+  ///
+  ///    // opt out:
+  ///    mixin Mixin {
+  ///      void method({int named}) {}
+  ///    }
+  ///    // opt in:
+  ///    class Super {
+  ///      void method({required covariant int named}) {}
+  ///    }
+  ///    class Class extends Super with Mixin {
+  ///      // A forwarding stop for Mixin.method will be inserted here:
+  ///      // void method({covariant int named}) -> Mixin.method
+  ///    }
+  ///    class SubClass extends Class {
+  ///      // This is a valid override since `Class.method` should should
+  ///      // not be considered as _not_ having a required named parameter -
+  ///      // it is legacy and doesn't know about required named parameters.
+  ///      void method({required int named}) {}
+  ///    }
+  ///
+  bool get containsNnbdTypes {
+    _ensureCombinedMemberSignatureType();
+    return _containsNnbdTypes;
+  }
+
   /// Returns `true` if the covariance of the combined member signature is
   /// different from the covariance of the overridden member in the superclass.
   ///
@@ -254,7 +293,7 @@ abstract class CombinedMemberSignatureBase<T> {
   /// Returns type of the [index]th member in [members] as inherited in
   /// [classBuilder].
   DartType getMemberType(int index) {
-    _memberTypes ??= new List<DartType>(members.length);
+    _memberTypes ??= new List<DartType>.filled(members.length, null);
     DartType candidateType = _memberTypes[index];
     if (candidateType == null) {
       Member target = _getMember(index);
@@ -262,7 +301,15 @@ abstract class CombinedMemberSignatureBase<T> {
           "No member computed for index ${index} in ${members}");
       candidateType = _computeMemberType(thisType, target);
       if (!classBuilder.library.isNonNullableByDefault) {
-        DartType legacyErasure = rawLegacyErasure(_coreTypes, candidateType);
+        DartType legacyErasure;
+        if (target == hierarchy.coreTypes.objectEquals) {
+          // In legacy code we special case `Object.==` to infer `dynamic`
+          // instead `Object!`.
+          legacyErasure = new FunctionType([const DynamicType()],
+              hierarchy.coreTypes.boolLegacyRawType, Nullability.legacy);
+        } else {
+          legacyErasure = rawLegacyErasure(candidateType);
+        }
         if (legacyErasure != null) {
           _neededLegacyErasureIndices ??= {};
           _neededLegacyErasureIndices.add(index);
@@ -283,6 +330,8 @@ abstract class CombinedMemberSignatureBase<T> {
       if (classBuilder.library.isNonNullableByDefault) {
         DartType canonicalMemberType =
             _combinedMemberSignatureType = getMemberType(_canonicalMemberIndex);
+        _containsNnbdTypes =
+            _getMember(_canonicalMemberIndex).isNonNullableByDefault;
         if (_mutualSubtypes != null) {
           _combinedMemberSignatureType =
               norm(_coreTypes, _combinedMemberSignatureType);
@@ -296,6 +345,7 @@ abstract class CombinedMemberSignatureBase<T> {
           }
           _neededNnbdTopMerge =
               canonicalMemberType != _combinedMemberSignatureType;
+          _containsNnbdTypes = _neededNnbdTopMerge;
         }
       } else {
         _combinedMemberSignatureType = getMemberType(_canonicalMemberIndex);
@@ -370,7 +420,8 @@ abstract class CombinedMemberSignatureBase<T> {
       if (typeParameterCount == 0) {
         return type;
       }
-      List<DartType> types = new List<DartType>(typeParameterCount);
+      List<DartType> types =
+          new List<DartType>.filled(typeParameterCount, null);
       for (int i = 0; i < typeParameterCount; i++) {
         types[i] = new TypeParameterType.forAlphaRenaming(
             signatureTypeParameters[i], typeParameters[i]);
@@ -457,10 +508,10 @@ abstract class CombinedMemberSignatureBase<T> {
       {bool copyLocation}) {
     assert(copyLocation != null);
     Class enclosingClass = classBuilder.cls;
-    Procedure referenceFrom;
+    Reference reference;
     if (classBuilder.referencesFromIndexed != null) {
-      referenceFrom = classBuilder.referencesFromIndexed
-          .lookupProcedureNotSetter(member.name.text);
+      reference = classBuilder.referencesFromIndexed
+          .lookupGetterReference(member.name.text);
     }
     Uri fileUri;
     int startFileOffset;
@@ -479,15 +530,15 @@ abstract class CombinedMemberSignatureBase<T> {
       ProcedureKind.Getter,
       new FunctionNode(null, returnType: type),
       isAbstract: true,
-      isMemberSignature: true,
       fileUri: fileUri,
-      memberSignatureOrigin: member.memberSignatureOrigin ?? member,
-      reference: referenceFrom?.reference,
+      reference: reference,
+      isSynthetic: true,
+      stubKind: ProcedureStubKind.MemberSignature,
+      stubTarget: member.memberSignatureOrigin ?? member,
     )
       ..startFileOffset = startFileOffset
       ..fileOffset = fileOffset
-      ..isNonNullableByDefault =
-          enclosingClass.enclosingLibrary.isNonNullableByDefault
+      ..isNonNullableByDefault = containsNnbdTypes
       ..parent = enclosingClass;
   }
 
@@ -503,10 +554,10 @@ abstract class CombinedMemberSignatureBase<T> {
     assert(isGenericCovariantImpl != null);
     assert(copyLocation != null);
     Class enclosingClass = classBuilder.cls;
-    Procedure referenceFrom;
+    Reference reference;
     if (classBuilder.referencesFromIndexed != null) {
-      referenceFrom = classBuilder.referencesFromIndexed
-          .lookupProcedureSetter(member.name.text);
+      reference = classBuilder.referencesFromIndexed
+          .lookupSetterReference(member.name.text);
     }
     Uri fileUri;
     int startFileOffset;
@@ -521,24 +572,25 @@ abstract class CombinedMemberSignatureBase<T> {
       fileOffset = startFileOffset = enclosingClass.fileOffset;
     }
     return new Procedure(
-        member.name,
-        ProcedureKind.Setter,
-        new FunctionNode(null,
-            returnType: const VoidType(),
-            positionalParameters: [
-              new VariableDeclaration(parameterName ?? 'value',
-                  type: type, isCovariant: isCovariant)
-                ..isGenericCovariantImpl = isGenericCovariantImpl
-            ]),
-        isAbstract: true,
-        isMemberSignature: true,
-        fileUri: fileUri,
-        memberSignatureOrigin: member.memberSignatureOrigin ?? member,
-        reference: referenceFrom?.reference)
+      member.name,
+      ProcedureKind.Setter,
+      new FunctionNode(null,
+          returnType: const VoidType(),
+          positionalParameters: [
+            new VariableDeclaration(parameterName ?? 'value',
+                type: type, isCovariant: isCovariant)
+              ..isGenericCovariantImpl = isGenericCovariantImpl
+          ]),
+      isAbstract: true,
+      fileUri: fileUri,
+      reference: reference,
+      isSynthetic: true,
+      stubKind: ProcedureStubKind.MemberSignature,
+      stubTarget: member.memberSignatureOrigin ?? member,
+    )
       ..startFileOffset = startFileOffset
       ..fileOffset = fileOffset
-      ..isNonNullableByDefault =
-          enclosingClass.enclosingLibrary.isNonNullableByDefault
+      ..isNonNullableByDefault = containsNnbdTypes
       ..parent = enclosingClass;
   }
 
@@ -546,11 +598,8 @@ abstract class CombinedMemberSignatureBase<T> {
       {bool copyLocation}) {
     assert(copyLocation != null);
     Class enclosingClass = classBuilder.cls;
-    Procedure referenceFrom;
-    if (classBuilder.referencesFromIndexed != null) {
-      referenceFrom = classBuilder.referencesFromIndexed
-          .lookupProcedureNotSetter(procedure.name.text);
-    }
+    Reference reference = classBuilder.referencesFromIndexed
+        ?.lookupGetterReference(procedure.name.text);
     Uri fileUri;
     int startFileOffset;
     int fileOffset;
@@ -567,11 +616,6 @@ abstract class CombinedMemberSignatureBase<T> {
     for (int i = 0; i < function.positionalParameters.length; i++) {
       VariableDeclaration parameter = function.positionalParameters[i];
       DartType parameterType = functionType.positionalParameters[i];
-      if (i == 0 && procedure == hierarchy.coreTypes.objectEquals) {
-        // In legacy code we special case `Object.==` to infer `dynamic`
-        // instead `Object!`.
-        parameterType = const DynamicType();
-      }
       positionalParameters.add(new VariableDeclaration(parameter.name,
           type: parameterType, isCovariant: parameter.isCovariant)
         ..isGenericCovariantImpl = parameter.isGenericCovariantImpl);
@@ -602,23 +646,24 @@ abstract class CombinedMemberSignatureBase<T> {
       }
     }
     return new Procedure(
-        procedure.name,
-        procedure.kind,
-        new FunctionNode(null,
-            typeParameters: functionType.typeParameters,
-            returnType: functionType.returnType,
-            positionalParameters: positionalParameters,
-            namedParameters: namedParameters,
-            requiredParameterCount: function.requiredParameterCount),
-        isAbstract: true,
-        isMemberSignature: true,
-        fileUri: fileUri,
-        memberSignatureOrigin: procedure.memberSignatureOrigin ?? procedure,
-        reference: referenceFrom?.reference)
+      procedure.name,
+      procedure.kind,
+      new FunctionNode(null,
+          typeParameters: functionType.typeParameters,
+          returnType: functionType.returnType,
+          positionalParameters: positionalParameters,
+          namedParameters: namedParameters,
+          requiredParameterCount: function.requiredParameterCount),
+      isAbstract: true,
+      fileUri: fileUri,
+      reference: reference,
+      isSynthetic: true,
+      stubKind: ProcedureStubKind.MemberSignature,
+      stubTarget: procedure.memberSignatureOrigin ?? procedure,
+    )
       ..startFileOffset = startFileOffset
       ..fileOffset = fileOffset
-      ..isNonNullableByDefault =
-          enclosingClass.enclosingLibrary.isNonNullableByDefault
+      ..isNonNullableByDefault = containsNnbdTypes
       ..parent = enclosingClass;
   }
 
@@ -665,9 +710,11 @@ abstract class CombinedMemberSignatureBase<T> {
 class CombinedClassMemberSignature
     extends CombinedMemberSignatureBase<ClassMember> {
   /// The class hierarchy builder used for building this class.
+  @override
   final ClassHierarchyBuilder hierarchy;
 
   /// The list of the members inherited into or overridden in [classBuilder].
+  @override
   final List<ClassMember> members;
 
   /// Creates a [CombinedClassMemberSignature] whose canonical member is already
@@ -688,8 +735,13 @@ class CombinedClassMemberSignature
       {bool forSetter})
       : super(classBuilder, forSetter: forSetter);
 
+  @override
+  Name get name => members.first.name;
+
+  @override
   Types get _types => hierarchy.types;
 
+  @override
   Member _getMember(int index) {
     ClassMember candidate = members[index];
     Member target = candidate.getMember(hierarchy);
@@ -728,11 +780,14 @@ class CombinedMemberSignatureBuilder
         super(classBuilder, forSetter: forSetter);
 
   @override
+  Name get name => members.first.name;
+
+  @override
   Member _getMember(int index) => members[index];
 
   @override
   Covariance _getMemberCovariance(int index) {
-    _memberCovariances ??= new List<Covariance>(members.length);
+    _memberCovariances ??= new List<Covariance>.filled(members.length, null);
     Covariance covariance = _memberCovariances[index];
     if (covariance == null) {
       _memberCovariances[index] = covariance =

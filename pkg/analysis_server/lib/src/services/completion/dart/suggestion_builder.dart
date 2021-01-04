@@ -9,8 +9,6 @@ import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
-import 'package:analysis_server/src/protocol_server.dart'
-    show CompletionSuggestion;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
@@ -809,7 +807,10 @@ class SuggestionBuilder {
   void suggestTopLevelPropertyAccessor(PropertyAccessorElement accessor,
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
       String prefix}) {
-    assert(accessor.enclosingElement is CompilationUnitElement);
+    assert(
+        accessor.enclosingElement is CompilationUnitElement,
+        'Enclosing element of ${accessor.runtimeType} is '
+        '${accessor.enclosingElement.runtimeType}.');
     if (accessor.isSynthetic) {
       // Avoid visiting a field twice. All fields induce a getter, but only
       // non-final fields induce a setter, so we don't add a suggestion for a

@@ -112,9 +112,9 @@ static method isNotNullOptOut2(core::int* i) → dynamic
   return !null.{core::Object::==}(i);
 static method ifNullOptOut(core::int* i) → dynamic
   return let final core::int* #t6 = i in #t6.{core::num::==}(null) ?{core::int*} 42 : #t6;
-static method OptOutExtension|[](final self::OptOutClass1* #this, core::int* index) → core::int*
+static method OptOutExtension|[](lowered final self::OptOutClass1* #this, core::int* index) → core::int*
   return index;
-static method OptOutExtension|[]=(final self::OptOutClass1* #this, core::int* index, core::int* value) → void {}
+static method OptOutExtension|[]=(lowered final self::OptOutClass1* #this, core::int* index, core::int* value) → void {}
 static method extensionIfNullOptOut1(core::int* i) → dynamic
   return let final self::OptOutClass1* #t7 = new self::OptOutClass1::•() in let final core::int* #t8 = i in let final core::int* #t9 = self::OptOutExtension|[](#t7, #t8) in #t9.{core::num::==}(null) ?{core::int*} let final core::int* #t10 = 42 in let final void #t11 = self::OptOutExtension|[]=(#t7, #t8, #t10) in #t10 : #t9;
 static method extensionIfNullOptOut1ForEffect(core::int* i) → dynamic {
@@ -454,9 +454,9 @@ static method isNotNullOptIn2(core::int i) → dynamic
   return !null.{core::Object::==}(i);
 static method ifNullOptIn(core::int i) → dynamic
   return let final core::int #t40 = i in #t40.{core::num::==}(null) ?{core::int} 42 : #t40;
-static method OptInExtension|[](final uns::OptInClass1 #this, core::int index) → core::int
+static method OptInExtension|[](lowered final uns::OptInClass1 #this, core::int index) → core::int
   return index;
-static method OptInExtension|[]=(final uns::OptInClass1 #this, core::int index, core::int value) → void {}
+static method OptInExtension|[]=(lowered final uns::OptInClass1 #this, core::int index, core::int value) → void {}
 static method extensionIfNullOptIn1(core::int i) → dynamic
   return let final uns::OptInClass1 #t41 = new uns::OptInClass1::•() in let final core::int #t42 = i in let final core::int #t43 = uns::OptInExtension|[](#t41, #t42) in #t43.{core::num::==}(null) ?{core::int} let final core::int #t44 = 42 in let final void #t45 = uns::OptInExtension|[]=(#t41, #t42, #t44) in #t44 : #t43;
 static method extensionIfNullOptIn1ForEffect(core::int i) → dynamic {
@@ -640,3 +640,9 @@ Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks_lib.dart:39:56 
 Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks_lib.dart:134:5 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks_lib.dart:134:5 -> IntConstant(0)
 Extra constant evaluation: evaluated: 719, effectively constant: 18
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///unsound_checks_lib.dart:
+- E. (from org-dartlang-testcase:///unsound_checks_lib.dart:145:6)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)

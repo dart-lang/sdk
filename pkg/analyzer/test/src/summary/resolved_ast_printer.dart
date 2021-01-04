@@ -34,6 +34,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   /// The optional provider for code lines, might be `null`.
   final CodeLinesProvider _codeLinesProvider;
 
+  /// If `true`, types should be printed with nullability suffixes.
+  final bool _withNullability;
+
   String _indent = '';
 
   ResolvedAstPrinter({
@@ -41,9 +44,11 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     @required StringSink sink,
     @required String indent,
     CodeLinesProvider codeLinesProvider,
+    bool withNullability = false,
   })  : _selfUriStr = selfUriStr,
         _sink = sink,
         _codeLinesProvider = codeLinesProvider,
+        _withNullability = withNullability,
         _indent = indent;
 
   @override
@@ -126,6 +131,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       properties.addNode('leftHandSide', node.leftHandSide);
       properties.addToken('operator', node.operator);
       properties.addNode('rightHandSide', node.rightHandSide);
+      properties.addElement('readElement', node.readElement);
+      properties.addType('readType', node.readType);
+      properties.addElement('writeElement', node.writeElement);
+      properties.addType('writeType', node.writeType);
       _addExpression(properties, node);
       _addMethodReferenceExpression(properties, node);
       _writeProperties(properties);
@@ -1030,6 +1039,12 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       var properties = _Properties();
       properties.addNode('operand', node.operand);
       properties.addToken('operator', node.operator);
+      if (node.operator.type.isIncrementOperator) {
+        properties.addElement('readElement', node.readElement);
+        properties.addType('readType', node.readType);
+        properties.addElement('writeElement', node.writeElement);
+        properties.addType('writeType', node.writeType);
+      }
       _addExpression(properties, node);
       _addMethodReferenceExpression(properties, node);
       _writeProperties(properties);
@@ -1058,6 +1073,12 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       var properties = _Properties();
       properties.addNode('operand', node.operand);
       properties.addToken('operator', node.operator);
+      if (node.operator.type.isIncrementOperator) {
+        properties.addElement('readElement', node.readElement);
+        properties.addType('readType', node.readType);
+        properties.addElement('writeElement', node.writeElement);
+        properties.addType('writeType', node.writeType);
+      }
       _addExpression(properties, node);
       _addMethodReferenceExpression(properties, node);
       _writeProperties(properties);
@@ -1666,7 +1687,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   String _typeStr(DartType type) {
-    return type?.getDisplayString(withNullability: false);
+    return type?.getDisplayString(withNullability: _withNullability);
   }
 
   void _withIndent(void Function() f) {

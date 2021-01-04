@@ -139,8 +139,11 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   FunctionTypedElement get element {
     var element = super.element;
     // TODO(scheglov) Can we just construct it with the right element?
-    if (element is FunctionTypeAliasElement) {
-      return element.function;
+    if (element is TypeAliasElement) {
+      var aliasedElement = element.aliasedElement;
+      if (aliasedElement is GenericFunctionTypeElement) {
+        return aliasedElement;
+      }
     }
     return element;
   }
@@ -644,7 +647,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (_accessors == null) {
       List<PropertyAccessorElement> accessors = element.accessors;
       List<PropertyAccessorElement> members =
-          List<PropertyAccessorElement>(accessors.length);
+          List<PropertyAccessorElement>.filled(accessors.length, null);
       for (int i = 0; i < accessors.length; i++) {
         members[i] = PropertyAccessorMember.from(accessors[i], this);
       }
@@ -666,7 +669,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (_constructors == null) {
       List<ConstructorElement> constructors = element.constructors;
       List<ConstructorElement> members =
-          List<ConstructorElement>(constructors.length);
+          List<ConstructorElement>.filled(constructors.length, null);
       for (int i = 0; i < constructors.length; i++) {
         members[i] = ConstructorMember.from(constructors[i], this);
       }
@@ -767,7 +770,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   List<MethodElement> get methods {
     if (_methods == null) {
       List<MethodElement> methods = element.methods;
-      List<MethodElement> members = List<MethodElement>(methods.length);
+      List<MethodElement> members =
+          List<MethodElement>.filled(methods.length, null);
       for (int i = 0; i < methods.length; i++) {
         members[i] = MethodMember.from(methods[i], this);
       }
@@ -1322,7 +1326,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (typeParameters.isEmpty) return defined;
 
     var substitution = Substitution.fromInterfaceType(this);
-    var result = List<InterfaceType>(defined.length);
+    var result = List<InterfaceType>.filled(defined.length, null);
     for (int i = 0; i < defined.length; i++) {
       result[i] = substitution.substituteType(defined[i]);
     }
@@ -1425,7 +1429,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (argumentCount == 0) {
       return firstType;
     }
-    List<DartType> lubArguments = List<DartType>(argumentCount);
+    List<DartType> lubArguments = List<DartType>.filled(argumentCount, null);
     for (int i = 0; i < argumentCount; i++) {
       //
       // Ideally we would take the least upper bound of the two argument types,
@@ -1467,12 +1471,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   /// search should include the target type. The [visitedInterfaces] is a set
   /// containing all of the interfaces that have been examined, used to prevent
   /// infinite recursion and to optimize the search.
-  static ExecutableElement _lookUpMemberInInterfaces(
+  static T _lookUpMemberInInterfaces<T extends ExecutableElement>(
       InterfaceType targetType,
       bool includeTargetType,
       LibraryElement library,
       HashSet<ClassElement> visitedInterfaces,
-      ExecutableElement Function(InterfaceType type) getMember) {
+      T Function(InterfaceType type) getMember) {
     // TODO(brianwilkerson) This isn't correct. Section 8.1.1 of the
     // specification (titled "Inheritance and Overriding" under "Interfaces")
     // describes a much more complex scheme for finding the inherited member.

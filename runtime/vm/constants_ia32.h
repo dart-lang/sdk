@@ -118,7 +118,7 @@ struct TypeTestABI {
       EDI;  // On ia32 we don't use CODE_REG.
 
   // For call to InstanceOfStub.
-  static const Register kInstanceOfResultReg = kNoRegister;
+  static const Register kInstanceOfResultReg = kInstanceReg;
   // For call to SubtypeNTestCacheStub.
   static const Register kSubtypeTestCacheResultReg =
       TypeTestABI::kSubtypeTestCacheReg;
@@ -205,7 +205,16 @@ enum ScaleFactor {
   TIMES_4 = 2,
   TIMES_8 = 3,
   TIMES_16 = 4,
-  TIMES_HALF_WORD_SIZE = kWordSizeLog2 - 1
+// We can't include vm/compiler/runtime_api.h, so just be explicit instead
+// of using (dart::)kWordSizeLog2.
+#if defined(TARGET_ARCH_IS_32_BIT)
+  // Used for Smi-boxed indices.
+  TIMES_HALF_WORD_SIZE = kInt32SizeLog2 - 1,
+  // Used for unboxed indices.
+  TIMES_WORD_SIZE = kInt32SizeLog2,
+#else
+#error "Unexpected word size"
+#endif
 };
 
 class Instr {
@@ -242,7 +251,7 @@ class CallingConventions {
   static const intptr_t kArgumentRegisters = 0;
   static const intptr_t kFpuArgumentRegisters = 0;
   static const intptr_t kNumArgRegs = 0;
-  static const Register kPointerToReturnStructRegister = kNoRegister;
+  static const Register kPointerToReturnStructRegisterCall = kNoRegister;
 
   static const XmmRegister FpuArgumentRegisters[];
   static const intptr_t kXmmArgumentRegisters = 0;
@@ -255,6 +264,16 @@ class CallingConventions {
 
   static constexpr Register kReturnReg = EAX;
   static constexpr Register kSecondReturnReg = EDX;
+  static constexpr Register kPointerToReturnStructRegisterReturn = kReturnReg;
+
+  // Whether the callee uses `ret 4` instead of `ret` to return with struct
+  // return values.
+  // See: https://c9x.me/x86/html/file_module_x86_id_280.html
+#if defined(_WIN32)
+  static const bool kUsesRet4 = false;
+#else
+  static const bool kUsesRet4 = true;
+#endif
 
   // Floating point values are returned on the "FPU stack" (in "ST" registers).
   // However, we use XMM0 in our compiler pipeline as the location.
@@ -262,7 +281,7 @@ class CallingConventions {
   // NativeReturnInstr::EmitNativeCode.
   static constexpr XmmRegister kReturnFpuReg = XMM0;
 
-  static constexpr Register kFirstCalleeSavedCpuReg = EBX;
+  static constexpr Register kFfiAnyNonAbiRegister = EBX;
   static constexpr Register kFirstNonArgumentRegister = EAX;
   static constexpr Register kSecondNonArgumentRegister = ECX;
   static constexpr Register kStackPointerRegister = SPREG;
@@ -276,7 +295,7 @@ class CallingConventions {
       kAlignedToWordSize;
 
   // How fields in composites are aligned.
-#if defined(_WIN32)
+#if defined(TARGET_OS_WINDOWS)
   static constexpr AlignmentStrategy kFieldAlignment = kAlignedToValueSize;
 #else
   static constexpr AlignmentStrategy kFieldAlignment =

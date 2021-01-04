@@ -59,7 +59,7 @@ class LiveInterval {
 
   @override
   String toString() {
-    List<String> res = new List<String>();
+    List<String> res = <String>[];
     for (final interval in ranges) res.add(interval.toString());
     return '(${res.join(", ")})';
   }
@@ -376,8 +376,8 @@ class CopyHandler {
   final List<Copy<HInstruction>> assignments;
 
   CopyHandler()
-      : copies = new List<Copy<HInstruction>>(),
-        assignments = new List<Copy<HInstruction>>();
+      : copies = <Copy<HInstruction>>[],
+        assignments = <Copy<HInstruction>>[];
 
   void addCopy(HInstruction source, HInstruction destination) {
     copies.add(new Copy<HInstruction>(source, destination));
@@ -458,7 +458,7 @@ class VariableNamer {
 
   VariableNamer(LiveEnvironment environment, this.names, this._namer)
       : usedNames = new Set<String>(),
-        freeTemporaryNames = new List<String>() {
+        freeTemporaryNames = <String>[] {
     // [VariableNames.swapTemp] is used when there is a cycle in a copy handler.
     // Therefore we make sure no one uses it.
     usedNames.add(names.swapTemp);

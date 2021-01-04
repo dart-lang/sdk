@@ -183,10 +183,18 @@ class CanonicalName {
   }
 
   void removeChild(String name) {
-    _children?.remove(name);
+    if (_children != null) {
+      _children.remove(name);
+      if (_children.isEmpty) {
+        _children = null;
+      }
+    }
   }
 
   void bindTo(Reference target) {
+    if (target == null) {
+      throw '$this cannot be bound to null';
+    }
     if (reference == target) return;
     if (reference != null) {
       throw '$this is already bound';
@@ -200,6 +208,16 @@ class CanonicalName {
   }
 
   void unbind() {
+    _unbindInternal();
+    // TODO(johnniwinther): To support replacement of fields with getters and
+    // setters (and the reverse) we need to remove canonical names from the
+    // canonical name tree. We need to establish better invariants about the
+    // state of the canonical name tree, since for instance [unbindAll] doesn't
+    // remove unneeded leaf nodes.
+    _parent.removeChild(name);
+  }
+
+  void _unbindInternal() {
     if (reference == null) return;
     assert(reference.canonicalName == this);
     if (reference.node is Class) {
@@ -213,7 +231,7 @@ class CanonicalName {
   }
 
   void unbindAll() {
-    unbind();
+    _unbindInternal();
     Iterable<CanonicalName> children_ = childrenOrNull;
     if (children_ != null) {
       for (CanonicalName child in children_) {

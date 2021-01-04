@@ -1,0 +1,66 @@
+Class? get nullableClass => new Class();
+Function? get nullableFunction => () {};
+Map<dynamic, dynamic>? get nullableMap => {};
+
+class Class {
+  Function functionField = () {};
+  Function get functionGetter => () {};
+  int method() => 0;
+  int property = 0;
+  void Function() functionTypeField = () {};
+  void Function() get functionTypeGetter => () {};
+}
+
+extension Extension on Class {
+  Function get extensionFunctionGetter => () {};
+  int call() => 0;
+  int extensionMethod() => 0;
+  int get extensionProperty => 0;
+  int operator +(int value) => 0;
+  int operator -() => 0;
+  int operator [](int index) => 0;
+  void Function() get extensionFunctionTypeGetter => () {};
+  void operator []=(int index, int value) {}
+  void set extensionProperty(int value) {}
+}
+
+int? get nullableInt => 0;
+main() {}
+test() {}
+var topLevelBinary = nullableInt + 0;
+var topLevelExtensionBinary = nullableClass + 0;
+var topLevelExtensionFunctionGetter = nullableClass.extensionFunctionGetter();
+var topLevelExtensionFunctionTypeExplicitCall = nullableClass.call();
+var topLevelExtensionFunctionTypeGetter =
+    nullableClass.extensionFunctionTypeGetter();
+var topLevelExtensionFunctionTypeImplicitCall = nullableClass();
+var topLevelExtensionFunctionTypeTearOff = nullableClass.call;
+var topLevelExtensionIndexGet = nullableClass[0];
+var topLevelExtensionIndexGetSet = nullableClass[0] += 1;
+var topLevelExtensionIndexSet = nullableClass[0] = 1;
+var topLevelExtensionMethodInvocation = nullableClass.extensionMethod();
+var topLevelExtensionMethodTearOff = nullableClass.extensionMethod;
+var topLevelExtensionPropertyGet = nullableClass.extensionProperty;
+var topLevelExtensionPropertyGetSet = nullableClass.extensionProperty += 1;
+var topLevelExtensionPropertySet = nullableClass.extensionProperty = 1;
+var topLevelExtensionUnary = -nullableClass;
+var topLevelFunctionExplicitCall = nullableFunction.call();
+var topLevelFunctionField = nullableClass.functionField();
+var topLevelFunctionGetter = nullableClass.functionGetter();
+var topLevelFunctionImplicitCall = nullableFunction();
+var topLevelFunctionTearOff = nullableFunction.call;
+var topLevelFunctionTypeExplicitCall = nullableFunctionType.call();
+var topLevelFunctionTypeField = nullableClass.functionTypeField();
+var topLevelFunctionTypeGetter = nullableClass.functionTypeGetter();
+var topLevelFunctionTypeImplicitCall = nullableFunctionType();
+var topLevelFunctionTypeTearOff = nullableFunctionType.call;
+var topLevelIndexGet = nullableMap[0];
+var topLevelIndexGetSet = nullableMap[0] += 1;
+var topLevelIndexSet = nullableMap[0] = 1;
+var topLevelMethodInvocation = nullableClass.method();
+var topLevelMethodTearOff = nullableClass.method;
+var topLevelPropertyGet = nullableClass.property;
+var topLevelPropertyGetSet = nullableClass.property += 1;
+var topLevelPropertySet = nullableClass.property = 1;
+var topLevelUnary = -nullableInt;
+void Function()? get nullableFunctionType => () {};

@@ -424,6 +424,17 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     return &type_arguments_canonicalization_mutex_;
   }
   Mutex* subtype_test_cache_mutex() { return &subtype_test_cache_mutex_; }
+  Mutex* megamorphic_table_mutex() { return &megamorphic_table_mutex_; }
+  Mutex* type_feedback_mutex() { return &type_feedback_mutex_; }
+  Mutex* patchable_call_mutex() { return &patchable_call_mutex_; }
+  Mutex* constant_canonicalization_mutex() {
+    return &constant_canonicalization_mutex_;
+  }
+  Mutex* kernel_data_lib_cache_mutex() { return &kernel_data_lib_cache_mutex_; }
+  Mutex* kernel_data_class_cache_mutex() {
+    return &kernel_data_class_cache_mutex_;
+  }
+  Mutex* kernel_constants_mutex() { return &kernel_constants_mutex_; }
 
 #if defined(DART_PRECOMPILED_RUNTIME)
   Mutex* unlinked_call_map_mutex() { return &unlinked_call_map_mutex_; }
@@ -563,9 +574,15 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   }
 
   void DeleteReloadContext();
-
-  bool IsReloading() const { return group_reload_context_ != nullptr; }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
+  bool IsReloading() const {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    return group_reload_context_ != nullptr;
+#else
+    return false;
+#endif
+  }
 
   uint64_t id() { return id_; }
 
@@ -614,17 +631,17 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   ArrayPtr saved_unlinked_calls() const { return saved_unlinked_calls_; }
   void set_saved_unlinked_calls(const Array& saved_unlinked_calls);
 
-  FieldTable* saved_initial_field_table() const {
-    return saved_initial_field_table_.get();
+  FieldTable* initial_field_table() const { return initial_field_table_.get(); }
+  std::shared_ptr<FieldTable> initial_field_table_shareable() {
+    return initial_field_table_;
   }
-  std::shared_ptr<FieldTable> saved_initial_field_table_shareable() {
-    return saved_initial_field_table_;
-  }
-  void set_saved_initial_field_table(std::shared_ptr<FieldTable> field_table) {
-    saved_initial_field_table_ = field_table;
+  void set_initial_field_table(std::shared_ptr<FieldTable> field_table) {
+    initial_field_table_ = field_table;
   }
 
   MutatorThreadPool* thread_pool() { return thread_pool_.get(); }
+
+  void RegisterStaticField(const Field& field, const Instance& initial_value);
 
  private:
   friend class Dart;  // For `object_store_ = ` in Dart::Init
@@ -701,21 +718,28 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   uint64_t id_ = 0;
 
   std::unique_ptr<SharedClassTable> shared_class_table_;
-  std::shared_ptr<ObjectStore> object_store_;  // nullptr in JIT mode
-  std::shared_ptr<ClassTable> class_table_;    // nullptr in JIT mode
+  std::shared_ptr<ObjectStore> object_store_;
+  std::shared_ptr<ClassTable> class_table_;
   std::unique_ptr<StoreBuffer> store_buffer_;
   std::unique_ptr<Heap> heap_;
   std::unique_ptr<DispatchTable> dispatch_table_;
   const uint8_t* dispatch_table_snapshot_ = nullptr;
   intptr_t dispatch_table_snapshot_size_ = 0;
   ArrayPtr saved_unlinked_calls_;
-  std::shared_ptr<FieldTable> saved_initial_field_table_;
+  std::shared_ptr<FieldTable> initial_field_table_;
   uint32_t isolate_group_flags_ = 0;
 
   std::unique_ptr<SafepointRwLock> symbols_lock_;
   Mutex type_canonicalization_mutex_;
   Mutex type_arguments_canonicalization_mutex_;
   Mutex subtype_test_cache_mutex_;
+  Mutex megamorphic_table_mutex_;
+  Mutex type_feedback_mutex_;
+  Mutex patchable_call_mutex_;
+  Mutex constant_canonicalization_mutex_;
+  Mutex kernel_data_lib_cache_mutex_;
+  Mutex kernel_data_class_cache_mutex_;
+  Mutex kernel_constants_mutex_;
 
 #if defined(DART_PRECOMPILED_RUNTIME)
   Mutex unlinked_call_map_mutex_;
@@ -788,15 +812,14 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     return thread == nullptr ? nullptr : thread->isolate();
   }
 
-  bool IsScheduled() { return scheduled_mutator_thread_ != nullptr; }
+  bool IsScheduled() { return scheduled_mutator_thread() != nullptr; }
+  Thread* scheduled_mutator_thread() const { return scheduled_mutator_thread_; }
 
   // Register a newly introduced class.
   void RegisterClass(const Class& cls);
 #if defined(DEBUG)
   void ValidateClassTable();
 #endif
-  // Register a newly introduced static field.
-  void RegisterStaticField(const Field& field);
 
   void RehashConstants();
 #if defined(DEBUG)
@@ -957,19 +980,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   }
 
   Mutex* mutex() { return &mutex_; }
-  Mutex* constant_canonicalization_mutex() {
-    return &constant_canonicalization_mutex_;
-  }
-  Mutex* megamorphic_mutex() { return &megamorphic_mutex_; }
-
-  Mutex* kernel_data_lib_cache_mutex() { return &kernel_data_lib_cache_mutex_; }
-  Mutex* kernel_data_class_cache_mutex() {
-    return &kernel_data_class_cache_mutex_;
-  }
-
-  // Any access to constants arrays must be locked since mutator and
-  // background compiler can access the arrays at the same time.
-  Mutex* kernel_constants_mutex() { return &kernel_constants_mutex_; }
 
 #if !defined(PRODUCT)
   Debugger* debugger() const { return debugger_; }
@@ -1337,6 +1347,10 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     isolate_flags_ = NullSafetyBit::update(null_safety, isolate_flags_);
   }
 
+  bool use_strict_null_safety_checks() const {
+    return null_safety() || FLAG_strict_null_safety_checks;
+  }
+
   bool has_attempted_stepping() const {
     return HasAttemptedSteppingBit::decode(isolate_flags_);
   }
@@ -1591,12 +1605,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   Random random_;
   Simulator* simulator_ = nullptr;
   Mutex mutex_;                            // Protects compiler stats.
-  Mutex constant_canonicalization_mutex_;  // Protects const canonicalization.
-  Mutex megamorphic_mutex_;  // Protects the table of megamorphic caches and
-                             // their entries.
-  Mutex kernel_data_lib_cache_mutex_;
-  Mutex kernel_data_class_cache_mutex_;
-  Mutex kernel_constants_mutex_;
   MessageHandler* message_handler_ = nullptr;
   intptr_t defer_finalization_count_ = 0;
   MallocGrowableArray<PendingLazyDeopt>* pending_deopts_;

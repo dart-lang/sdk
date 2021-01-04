@@ -192,6 +192,46 @@ class C {
 ''');
   }
 
+  test_class_constructor_redirectedConstructor_const() {
+    assertNotSameSignature(r'''
+class A {
+  const factory A() = B.foo;
+}
+class B implements A {
+  const B.foo();
+  const B.bar();
+}
+''', r'''
+class A {
+  const factory A() = B.bar;
+}
+class B implements A {
+  const B.foo();
+  const B.bar();
+}
+''');
+  }
+
+  test_class_constructor_redirectedConstructor_notConst() {
+    assertNotSameSignature(r'''
+class A {
+  factory A() = B.foo;
+}
+class B implements A {
+  B.foo();
+  B.bar();
+}
+''', r'''
+class A {
+  factory A() = B.bar;
+}
+class B implements A {
+  B.foo();
+  B.bar();
+}
+''');
+  }
+
   test_class_extends() {
     assertNotSameSignature(r'''
 class A {}

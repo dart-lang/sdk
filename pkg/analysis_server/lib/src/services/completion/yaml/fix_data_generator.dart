@@ -37,31 +37,39 @@ class FixDataGenerator extends YamlCompletionGenerator {
         'inExtension': EmptyProducer(),
         'inMixin': EmptyProducer(),
       }),
-      'changes': ListProducer(MapProducer({
-        // TODO(brianwilkerson) Create a way to tailor the list of additional
-        //  keys based on the kind when a kind has already been provided.
-        'kind': EnumProducer([
-          'addParameter',
-          'addTypeParameter',
-          'removeParameter',
-          'rename',
-          'renameParameter',
-        ]),
-        'index': EmptyProducer(),
-        'name': EmptyProducer(),
-        'style': EmptyProducer(),
-        'argumentValue': MapProducer({
-          'expression': EmptyProducer(),
-          'statements': EmptyProducer(),
-          // TODO(brianwilkerson) Figure out how to support 'variables'.
-          'variables': EmptyProducer(),
-        }),
-        'extends': EmptyProducer(),
-        'oldName': EmptyProducer(),
-        'newName': EmptyProducer(),
+      'changes': _changesProducer,
+      'oneOf': ListProducer(MapProducer({
+        'if': EmptyProducer(),
+        'changes': _changesProducer,
       })),
+      'variables': EmptyProducer(),
     })),
   });
+
+  /// The producer representing the known valid structure of a list of changes.
+  static const ListProducer _changesProducer = ListProducer(MapProducer({
+    // TODO(brianwilkerson) Create a way to tailor the list of additional
+    //  keys based on the kind when a kind has already been provided.
+    'kind': EnumProducer([
+      'addParameter',
+      'addTypeParameter',
+      'removeParameter',
+      'rename',
+      'renameParameter',
+    ]),
+    'index': EmptyProducer(),
+    'name': EmptyProducer(),
+    'style': EmptyProducer(),
+    'argumentValue': MapProducer({
+      'expression': EmptyProducer(),
+      'requiredIf': EmptyProducer(),
+      // TODO(brianwilkerson) Figure out how to support 'variables'.
+      'variables': EmptyProducer(),
+    }),
+    'extends': EmptyProducer(),
+    'oldName': EmptyProducer(),
+    'newName': EmptyProducer(),
+  }));
 
   /// Initialize a newly created suggestion generator for fix data files.
   FixDataGenerator(ResourceProvider resourceProvider) : super(resourceProvider);

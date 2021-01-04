@@ -42,6 +42,10 @@ class Program {
     assert(outputContainsConstantList != null);
   }
 
+  void mergeOutputUnitMetadata(OutputUnit target, OutputUnit source) {
+    _metadataCollector.mergeOutputUnitMetadata(target, source);
+  }
+
   /// Accessor for the list of metadata entries for a given [OutputUnit].
   ///
   /// There is one list for each output unit. The list belonging to the main
@@ -290,7 +294,7 @@ class Class implements FieldContainer {
   /// A soft-deferred class is only fully initialized at first instantiation.
   final bool isSoftDeferred;
 
-  final bool isSuperMixinApplication;
+  final bool isMixinApplicationWithMembers;
 
   // If the class implements a function type, and the type is encoded in the
   // metatada table, then this field contains the index into that field.
@@ -328,7 +332,7 @@ class Class implements FieldContainer {
       this.isNative,
       this.isClosureBaseClass,
       this.isSoftDeferred = false,
-      this.isSuperMixinApplication}) {
+      this.isMixinApplicationWithMembers}) {
     assert(onlyForRti != null);
     assert(onlyForConstructor != null);
     assert(isDirectlyInstantiated != null);
@@ -394,7 +398,7 @@ class MixinApplication extends Class {
             isDirectlyInstantiated: isDirectlyInstantiated,
             isNative: false,
             isClosureBaseClass: false,
-            isSuperMixinApplication: false);
+            isMixinApplicationWithMembers: false);
 
   @override
   bool get isSimpleMixinApplication => true;

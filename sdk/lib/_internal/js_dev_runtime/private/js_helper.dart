@@ -813,3 +813,15 @@ class PrivateSymbol implements Symbol {
   // TODO(jmesserly): is this equivalent to _nativeSymbol toString?
   toString() => 'Symbol("$_name")';
 }
+
+/// Asserts that if [value] is a function, it is a JavaScript function or has
+/// been wrapped by [allowInterop].
+///
+/// This function does not recurse if [value] is a collection.
+void assertInterop(Object? value) {
+  if (value is Function) dart.assertInterop(value);
+}
+
+/// Like [assertInterop], except iterates over a list of arguments
+/// non-recursively.
+void assertInteropArgs(List<Object?> args) => args.forEach(assertInterop);

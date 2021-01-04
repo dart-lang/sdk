@@ -276,7 +276,6 @@ Try changing the type of the variable.
     final asy::_Future<self::A> :async_future = new asy::_Future::•<self::A>();
     core::bool* :is_sync = false;
     FutureOr<self::A>? :return_value;
-    dynamic :async_stack_trace;
     (dynamic) → dynamic :async_op_then;
     (core::Object, core::StackTrace) → dynamic :async_op_error;
     core::int :await_jump_var = 0;
@@ -309,7 +308,6 @@ Try changing the type of the variable.
       on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
         asy::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
       }
-    :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
     :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
     :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
     :async_op.call();
@@ -412,7 +410,6 @@ static method boz(Null x) → self::A {
     final asy::_Future<self::A> :async_future = new asy::_Future::•<self::A>();
     core::bool* :is_sync = false;
     FutureOr<self::A>? :return_value;
-    dynamic :async_stack_trace;
     (dynamic) → dynamic :async_op_then;
     (core::Object, core::StackTrace) → dynamic :async_op_error;
     core::int :await_jump_var = 0;
@@ -443,7 +440,6 @@ static method boz(Null x) → self::A {
       on dynamic catch(dynamic exception, core::StackTrace stack_trace) {
         asy::_completeOnAsyncError(:async_future, exception, stack_trace, :is_sync);
       }
-    :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
     :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
     :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
     :async_op.call();
@@ -456,3 +452,9 @@ static method main() → dynamic {}
 constants  {
   #C1 = self::A {}
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///assignability_error_messages.dart:
+- A. (from org-dartlang-testcase:///assignability_error_messages.dart:11:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)

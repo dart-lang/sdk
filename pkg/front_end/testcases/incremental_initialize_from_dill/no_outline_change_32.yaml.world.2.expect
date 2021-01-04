@@ -15,11 +15,11 @@ library from "org-dartlang-test:///main.dart" as main {
   late static field dart.core::int? field1 = 42;
   late static field dart.core::int? field2;
   late static final field dart.core::int? field3 = 42;
-  late static final field dart.core::int? field4;
+  late static final [setter] field dart.core::int? field4;
   late static field dart.core::int? _extension#0|field5 = 42;
   late static field dart.core::int? _extension#0|field6;
   late static final field dart.core::int? _extension#0|field7 = 42;
-  late static final field dart.core::int? _extension#0|field8;
+  late static final [setter] field dart.core::int? _extension#0|field8;
   static method main() → dynamic {
     main::field1 = 44;
     main::field2 = 43;

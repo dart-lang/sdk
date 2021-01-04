@@ -516,7 +516,6 @@ class PropertyAccessGenerator extends Generator {
       bool isPostIncDec: false}) {
     return new CompoundPropertySet(receiver, name, binaryOperator, value,
         forEffect: voidContext,
-        readOnlyReceiver: false,
         readOffset: fileOffset,
         binaryOffset: offset,
         writeOffset: fileOffset)
@@ -994,19 +993,16 @@ class IndexedAccessGenerator extends Generator {
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
     VariableDeclaration variable;
     Expression receiverValue;
-    bool readOnlyReceiver;
     if (isNullAware) {
       variable = _forest.createVariableDeclarationForValue(receiver);
       receiverValue = _helper.createVariableGet(variable, fileOffset,
           forNullGuardedAccess: true);
-      readOnlyReceiver = true;
     } else {
       receiverValue = receiver;
-      readOnlyReceiver = false;
     }
     Expression result = _forest.createIndexSet(
         fileOffset, receiverValue, index, value,
-        forEffect: voidContext, readOnlyReceiver: readOnlyReceiver);
+        forEffect: voidContext);
     if (isNullAware) {
       result = new NullAwareMethodInvocation(variable, result)
         ..fileOffset = fileOffset;
@@ -1019,23 +1015,19 @@ class IndexedAccessGenerator extends Generator {
       {bool voidContext: false}) {
     VariableDeclaration variable;
     Expression receiverValue;
-    bool readOnlyReceiver;
     if (isNullAware) {
       variable = _forest.createVariableDeclarationForValue(receiver);
       receiverValue = _helper.createVariableGet(variable, fileOffset,
           forNullGuardedAccess: true);
-      readOnlyReceiver = true;
     } else {
       receiverValue = receiver;
-      readOnlyReceiver = false;
     }
 
     Expression result = new IfNullIndexSet(receiverValue, index, value,
         readOffset: fileOffset,
         testOffset: offset,
         writeOffset: fileOffset,
-        forEffect: voidContext,
-        readOnlyReceiver: readOnlyReceiver)
+        forEffect: voidContext)
       ..fileOffset = offset;
     if (isNullAware) {
       result = new NullAwareMethodInvocation(variable, result)
@@ -1051,15 +1043,12 @@ class IndexedAccessGenerator extends Generator {
       bool isPostIncDec: false}) {
     VariableDeclaration variable;
     Expression receiverValue;
-    bool readOnlyReceiver;
     if (isNullAware) {
       variable = _forest.createVariableDeclarationForValue(receiver);
       receiverValue = _helper.createVariableGet(variable, fileOffset,
           forNullGuardedAccess: true);
-      readOnlyReceiver = true;
     } else {
       receiverValue = receiver;
-      readOnlyReceiver = false;
     }
 
     Expression result = new CompoundIndexSet(
@@ -1068,8 +1057,7 @@ class IndexedAccessGenerator extends Generator {
         binaryOffset: offset,
         writeOffset: fileOffset,
         forEffect: voidContext,
-        forPostIncDec: isPostIncDec,
-        readOnlyReceiver: readOnlyReceiver);
+        forPostIncDec: isPostIncDec);
     if (isNullAware) {
       result = new NullAwareMethodInvocation(variable, result)
         ..fileOffset = fileOffset;
@@ -1166,7 +1154,7 @@ class ThisIndexedAccessGenerator extends Generator {
     _reportNonNullableInNullAwareWarningIfNeeded();
     Expression receiver = _helper.forest.createThisExpression(fileOffset);
     return _forest.createIndexSet(fileOffset, receiver, index, value,
-        forEffect: voidContext, readOnlyReceiver: true);
+        forEffect: voidContext);
   }
 
   @override
@@ -1178,8 +1166,7 @@ class ThisIndexedAccessGenerator extends Generator {
         readOffset: fileOffset,
         testOffset: offset,
         writeOffset: fileOffset,
-        forEffect: voidContext,
-        readOnlyReceiver: true)
+        forEffect: voidContext)
       ..fileOffset = offset;
   }
 
@@ -1195,8 +1182,7 @@ class ThisIndexedAccessGenerator extends Generator {
         binaryOffset: offset,
         writeOffset: fileOffset,
         forEffect: voidContext,
-        forPostIncDec: isPostIncDec,
-        readOnlyReceiver: true);
+        forPostIncDec: isPostIncDec);
   }
 
   @override
@@ -1723,8 +1709,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
           _helper.createVariableGet(extensionThis, fileOffset),
           writeTarget,
           value,
-          forEffect: forEffect,
-          readOnlyReceiver: true);
+          forEffect: forEffect);
     }
     write.fileOffset = offset;
     return write;
@@ -2040,24 +2025,22 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
               _helper.createVariableGet(variable, variable.fileOffset,
                   forNullGuardedAccess: true),
               value,
-              forEffect: voidContext,
-              readOnlyReceiver: true))
+              forEffect: voidContext))
         ..fileOffset = fileOffset;
     } else {
-      return _createWrite(fileOffset, receiver, value,
-          forEffect: voidContext, readOnlyReceiver: false);
+      return _createWrite(fileOffset, receiver, value, forEffect: voidContext);
     }
   }
 
   Expression _createWrite(int offset, Expression receiver, Expression value,
-      {bool readOnlyReceiver, bool forEffect}) {
+      {bool forEffect}) {
     Expression write;
     if (writeTarget == null) {
       write = _makeInvalidWrite(value);
     } else {
       write = new ExtensionSet(
           extension, explicitTypeArguments, receiver, writeTarget, value,
-          readOnlyReceiver: readOnlyReceiver, forEffect: forEffect);
+          forEffect: forEffect);
     }
     write.fileOffset = offset;
     return write;
@@ -2077,8 +2060,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
           _helper.createVariableGet(variable, receiver.fileOffset,
               forNullGuardedAccess: true),
           value,
-          forEffect: voidContext,
-          readOnlyReceiver: true);
+          forEffect: voidContext);
       return new NullAwareExtension(
           variable,
           new IfNullSet(read, write, forEffect: voidContext)
@@ -2113,13 +2095,11 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
           _helper.createVariableGet(variable, receiver.fileOffset,
               forNullGuardedAccess: true),
           binary,
-          forEffect: voidContext,
-          readOnlyReceiver: true);
+          forEffect: voidContext);
       return new NullAwareExtension(variable, write)..fileOffset = offset;
     } else {
       return new CompoundExtensionSet(extension, explicitTypeArguments,
           receiver, targetName, readTarget, binaryOperator, value, writeTarget,
-          readOnlyReceiver: false,
           forEffect: voidContext,
           readOffset: fileOffset,
           binaryOffset: offset,
@@ -2150,8 +2130,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
               _helper.createVariableGet(variable, receiver.fileOffset,
                   forNullGuardedAccess: true),
               binary,
-              forEffect: voidContext,
-              readOnlyReceiver: true)
+              forEffect: voidContext)
             ..fileOffset = fileOffset);
       return new NullAwareExtension(
           variable, new LocalPostIncDec(read, write)..fileOffset = offset)
@@ -2167,7 +2146,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       VariableDeclaration write = _helper.forest
           .createVariableDeclarationForValue(_createWrite(fileOffset,
               _helper.createVariableGet(variable, receiver.fileOffset), binary,
-              forEffect: voidContext, readOnlyReceiver: true)
+              forEffect: voidContext)
             ..fileOffset = fileOffset);
       return new PropertyPostIncDec(variable, read, write)..fileOffset = offset;
     }
@@ -2419,15 +2398,12 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
       {bool voidContext: false}) {
     VariableDeclaration variable;
     Expression receiverValue;
-    bool readOnlyReceiver;
     if (isNullAware) {
       variable = _forest.createVariableDeclarationForValue(receiver);
       receiverValue = _helper.createVariableGet(variable, fileOffset,
           forNullGuardedAccess: true);
-      readOnlyReceiver = true;
     } else {
       receiverValue = receiver;
-      readOnlyReceiver = false;
     }
     Expression result = new IfNullExtensionIndexSet(
         extension,
@@ -2440,8 +2416,7 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
         readOffset: fileOffset,
         testOffset: offset,
         writeOffset: fileOffset,
-        forEffect: voidContext,
-        readOnlyReceiver: readOnlyReceiver)
+        forEffect: voidContext)
       ..fileOffset = offset;
     if (isNullAware) {
       result = new NullAwareMethodInvocation(variable, result)
@@ -2457,15 +2432,12 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
       bool isPostIncDec: false}) {
     VariableDeclaration variable;
     Expression receiverValue;
-    bool readOnlyReceiver;
     if (isNullAware) {
       variable = _forest.createVariableDeclarationForValue(receiver);
       receiverValue = _helper.createVariableGet(variable, fileOffset,
           forNullGuardedAccess: true);
-      readOnlyReceiver = true;
     } else {
       receiverValue = receiver;
-      readOnlyReceiver = false;
     }
     Expression result = new CompoundExtensionIndexSet(
         extension,
@@ -2480,8 +2452,7 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
         binaryOffset: offset,
         writeOffset: fileOffset,
         forEffect: voidContext,
-        forPostIncDec: isPostIncDec,
-        readOnlyReceiver: readOnlyReceiver);
+        forPostIncDec: isPostIncDec);
     if (isNullAware) {
       result = new NullAwareMethodInvocation(variable, result)
         ..fileOffset = fileOffset;
@@ -3036,7 +3007,7 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
 
     List<TypeBuilder> argumentBuilders;
     if (arguments != null) {
-      argumentBuilders = new List<TypeBuilder>(arguments.length);
+      argumentBuilders = new List<TypeBuilder>.filled(arguments.length, null);
       for (int i = 0; i < argumentBuilders.length; i++) {
         argumentBuilders[i] = _helper
             .validateTypeUse(arguments[i],

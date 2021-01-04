@@ -15,17 +15,21 @@ import 'package:usage/usage_io.dart';
 const String analyticsNoticeOnFirstRunMessage = '''
   ╔════════════════════════════════════════════════════════════════════════════╗
   ║ The Dart tool uses Google Analytics to anonymously report feature usage    ║
-  ║ statistics, and crash reporting to send basic crash reports. This data is  ║
-  ║ used to help improve the Dart platform and tools over time.                ║
+  ║ statistics and to send basic crash reports. This data is used to help      ║
+  ║ improve the Dart platform and tools over time.                             ║
   ║                                                                            ║
-  ║ To disable reporting of anonymous tool usage statistics in general, run    ║
-  ║ the command: `dart --disable-analytics`.                                   ║
+  ║ To disable reporting of anonymous analytics, run:                          ║
+  ║                                                                            ║
+  ║   dart --disable-analytics                                                 ║
+  ║                                                                            ║
   ╚════════════════════════════════════════════════════════════════════════════╝
 ''';
 const String analyticsDisabledNoticeMessage = '''
   ╔════════════════════════════════════════════════════════════════════════════╗
-  ║ Anonymous analytics disabled. To enable again, run the command:            ║
-  ║ `dart --enable-analytics`                                                  ║
+  ║ Anonymous analytics reporting disabled. In order to enable it, run:        ║
+  ║                                                                            ║
+  ║   dart --enable-analytics                                                  ║
+  ║                                                                            ║
   ╚════════════════════════════════════════════════════════════════════════════╝
 ''';
 const String _appName = 'dartdev';
@@ -34,8 +38,8 @@ const String _settingsFileName = 'dartdev.json';
 const String _trackingId = 'UA-26406144-37';
 const String _readmeFileName = 'README.txt';
 const String _readmeFileContents = '''
-The present directory contains user-level settings for the
-Dart programming language (https://dart.dev).
+This directory contains user-level settings for the Dart programming language
+(https://dart.dev).
 ''';
 
 const String eventCategory = 'dartdev';
@@ -53,10 +57,12 @@ Analytics createAnalyticsInstance(bool disableAnalytics) {
   }
 
   if (disableAnalytics) {
-    // Dartdev tests pass a hidden 'disable-dartdev-analytics' flag which is
+    // Dartdev tests pass a hidden 'no-analytics' flag which is
     // handled here.
-    // Also, stdout.hasTerminal is checked, if there is no terminal we infer that
-    // a machine is running dartdev so we return analytics shouldn't be set.
+    //
+    // Also, stdout.hasTerminal is checked; if there is no terminal we infer
+    // that a machine is running dartdev so we return that analytics shouldn't
+    // be set enabled.
     return DisabledAnalytics(_trackingId, _appName);
   }
 

@@ -97,6 +97,15 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    for (var argument in node.argumentList.arguments) {
+      var parameter = argument.staticParameterElement;
+      usedElements.elements.add(parameter);
+    }
+    super.visitInstanceCreationExpression(node);
+  }
+
+  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement enclosingExecOld = _enclosingExec;
     try {

@@ -29,7 +29,6 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
-import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
@@ -178,8 +177,6 @@ class FileState {
   }
 
   CompilationUnit parse(AnalysisErrorListener errorListener, String content) {
-    AnalysisOptionsImpl analysisOptions = _fsState._analysisOptions;
-
     CharSequenceReader reader = CharSequenceReader(content);
     Scanner scanner = Scanner(source, reader, errorListener)
       ..configureFeatures(
@@ -191,7 +188,6 @@ class FileState {
     Token token = scanner.tokenize(reportScannerErrors: false);
     LineInfo lineInfo = LineInfo(scanner.lineStarts);
 
-    bool useFasta = analysisOptions.useFastaParser;
     // Pass the feature set from the scanner to the parser
     // because the scanner may have detected a language version comment
     // and downgraded the feature set it holds.
@@ -199,7 +195,6 @@ class FileState {
       source,
       errorListener,
       featureSet: scanner.featureSet,
-      useFasta: useFasta,
     );
     parser.enableOptionalNewAndConst = true;
     CompilationUnit unit = parser.parseCompilationUnit(token);
@@ -425,7 +420,6 @@ class FileState {
         ),
       );
     }
-    var informativeData = createInformativeData(unit);
     var unlinkedBuilder = UnlinkedUnit2Builder(
       apiSignature: computeUnlinkedApiSignature(unit),
       exports: exports,
@@ -435,7 +429,6 @@ class FileState {
       hasPartOfDirective: hasPartOfDirective,
       partOfUri: partOfUriStr,
       lineStarts: unit.lineInfo.lineStarts,
-      informativeData: informativeData,
     );
     return CiderUnlinkedUnitBuilder(
         contentDigest: digest, unlinkedUnit: unlinkedBuilder);
@@ -463,7 +456,6 @@ class FileSystemState {
   final CiderByteStore _byteStore;
   final SourceFactory _sourceFactory;
   final Workspace _workspace;
-  final AnalysisOptions _analysisOptions;
   final Uint32List _linkedSalt;
 
   /// A function that returns the digest for a file as a String. The function
@@ -489,7 +481,8 @@ class FileSystemState {
     this._byteStore,
     this._sourceFactory,
     this._workspace,
-    this._analysisOptions,
+    @Deprecated('No longer used; will be removed')
+        AnalysisOptions analysisOptions,
     this._linkedSalt,
     this.featureSetProvider,
     this.getFileDigest,
@@ -517,6 +510,13 @@ class FileSystemState {
     for (var reference in file.referencingFiles.toList()) {
       changeFile(reference.path, removedFiles);
     }
+  }
+
+  /// Clears all the cached files. Returns the list of ids of all the removed
+  /// files.
+  Set<int> collectSharedDataIdentifiers() {
+    var files = _pathToFile.values.map((file) => file.id).toSet();
+    return files;
   }
 
   FeatureSet contextFeatureSet(
@@ -701,8 +701,11 @@ class LibraryCycle {
   /// The hash of all the paths of the files in this cycle.
   String cyclePathsHash;
 
-  /// id of the cache entry.
-  int id;
+  /// id of the ast cache entry.
+  int astId;
+
+  /// id of the resolution cache entry.
+  int resolutionId;
 
   LibraryCycle();
 

@@ -54,8 +54,8 @@ class _TypePromotionDataExtractor extends AstDataExtractor<DartType> {
     if (node is SimpleIdentifier && node.inGetterContext()) {
       var element = _readElement(node);
       if (element is LocalVariableElement || element is ParameterElement) {
-        TypeImpl promotedType = _readType(node);
-        TypeImpl declaredType = (element as VariableElement).type;
+        var promotedType = _readType(node) as TypeImpl;
+        var declaredType = (element as VariableElement).type as TypeImpl;
         var isPromoted = promotedType != declaredType;
         if (isPromoted) {
           return promotedType;

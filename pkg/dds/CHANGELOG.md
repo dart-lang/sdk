@@ -1,3 +1,16 @@
+# 1.7.0
+- Added `package:dds/vm_service_extensions.dart`, which adds DDS functionality to
+  `package:vm_service` when imported.
+- Added `getStreamHistory` RPC.
+
+# 1.6.1
+- Fixed unhandled `StateError` that could be thrown if the VM service disconnected
+  while a request was outstanding.
+
+# 1.6.0
+- Added `errorCode` to `DartDevelopmentServiceException` to communicate the
+  underlying reason of the failure.
+
 # 1.5.1
 - Improve internal error handling for situations with less than graceful
   shutdowns.

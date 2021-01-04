@@ -3469,12 +3469,14 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     node.value.accept(this);
     HInstruction value = pop();
 
-    MemberEntity member = _elementMap
-        .getSuperMember(_currentFrame.member, node.name, setter: true);
-    if (member == null) {
+    ir.Member target = getEffectiveSuperTarget(node.interfaceTarget);
+    if (target == null) {
+      // TODO(johnniwinther): Remove this when the CFE checks for missing
+      //  concrete super targets.
       _generateSuperNoSuchMethod(node, _elementMap.getSelector(node).name + "=",
           <HInstruction>[value], const <DartType>[], sourceInformation);
     } else {
+      MemberEntity member = _elementMap.getMember(target);
       _buildInvokeSuper(
           _elementMap.getSelector(node),
           _elementMap.getClass(_containingClass(node)),
@@ -5215,7 +5217,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     var argumentsInstruction = _buildLiteralList(arguments);
     add(argumentsInstruction);
 
-    var argumentNames = new List<HInstruction>();
+    var argumentNames = <HInstruction>[];
     for (String argumentName in selector.namedArguments) {
       ConstantValue argumentNameConstant =
           constant_system.createString(argumentName);
@@ -5291,13 +5293,15 @@ class KernelSsaGraphBuilder extends ir.Visitor {
   void visitSuperPropertyGet(ir.SuperPropertyGet node) {
     SourceInformation sourceInformation =
         _sourceInformationBuilder.buildGet(node);
-    MemberEntity member =
-        _elementMap.getSuperMember(_currentFrame.member, node.name);
-    if (member == null) {
+    ir.Member target = getEffectiveSuperTarget(node.interfaceTarget);
+    if (target == null) {
+      // TODO(johnniwinther): Remove this when the CFE checks for missing
+      //  concrete super targets.
       _generateSuperNoSuchMethod(node, _elementMap.getSelector(node).name,
           const <HInstruction>[], const <DartType>[], sourceInformation);
       return;
     }
+    MemberEntity member = _elementMap.getMember(target);
     if (member.isField) {
       FieldAnalysisData fieldData = _fieldAnalysis.getFieldData(member);
       if (fieldData.isEffectivelyConstant) {
@@ -5320,9 +5324,10 @@ class KernelSsaGraphBuilder extends ir.Visitor {
   void visitSuperMethodInvocation(ir.SuperMethodInvocation node) {
     SourceInformation sourceInformation =
         _sourceInformationBuilder.buildCall(node, node);
-    MemberEntity member =
-        _elementMap.getSuperMember(_currentFrame.member, node.name);
-    if (member == null) {
+    ir.Member superTarget = getEffectiveSuperTarget(node.interfaceTarget);
+    if (superTarget == null) {
+      // TODO(johnniwinther): Remove this when the CFE checks for missing
+      //  concrete super targets.
       Selector selector = _elementMap.getSelector(node);
       List<DartType> typeArguments = <DartType>[];
       selector =
@@ -5333,6 +5338,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
           node, selector.name, arguments, typeArguments, sourceInformation);
       return;
     }
+    MemberEntity member = _elementMap.getMember(superTarget);
     List<DartType> typeArguments =
         _getStaticTypeArguments(member, node.arguments);
 
@@ -5865,10 +5871,11 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     ParameterStructure parameterStructure = function.parameterStructure;
     List<String> selectorArgumentNames =
         selector.callStructure.getOrderedNamedArguments();
-    List<HInstruction> compiledArguments = new List<HInstruction>(
+    List<HInstruction> compiledArguments = new List<HInstruction>.filled(
         parameterStructure.totalParameters +
             parameterStructure.typeParameters +
-            1); // Plus one for receiver.
+            1,
+        null); // Plus one for receiver.
 
     int compiledArgumentIndex = 0;
 

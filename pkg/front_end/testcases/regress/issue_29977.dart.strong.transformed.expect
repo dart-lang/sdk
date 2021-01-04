@@ -14,4 +14,11 @@ import "org-dartlang-malformed-uri:?data%3Aasync";
 static method main() → dynamic {}
 
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_29977.dart:5:8: Error: Expected a URI.
+// import 'data:async';
+//        ^
+//
 import self as self2;

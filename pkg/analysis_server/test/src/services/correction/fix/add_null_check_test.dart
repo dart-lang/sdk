@@ -97,6 +97,34 @@ class A {
 ''');
   }
 
+  Future<void> test_functionExpressionInvocation() async {
+    await resolveTestCode('''
+int f(C c) => c.func();
+class C {
+  int Function()? get func => null;
+}
+''');
+    await assertHasFix('''
+int f(C c) => c.func!();
+class C {
+  int Function()? get func => null;
+}
+''');
+  }
+
+  Future<void> test_indexExpression() async {
+    await resolveTestCode('''
+void f (List<String>? args) {
+  print(args[0]);
+}
+''');
+    await assertHasFix('''
+void f (List<String>? args) {
+  print(args![0]);
+}
+''');
+  }
+
   Future<void> test_initializer() async {
     await resolveTestCode('''
 void f(int? x) {
@@ -120,5 +148,32 @@ void f(String x) {
 }
 ''');
     await assertNoFix();
+  }
+
+  Future<void> test_methodInvocation() async {
+    await resolveTestCode('''
+String f(String? s) => s.substring(0);
+''');
+    await assertHasFix('''
+String f(String? s) => s!.substring(0);
+''');
+  }
+
+  Future<void> test_prefixedIdentifier() async {
+    await resolveTestCode('''
+int f(String? s) => s.length;
+''');
+    await assertHasFix('''
+int f(String? s) => s!.length;
+''');
+  }
+
+  Future<void> test_propertyAccess() async {
+    await resolveTestCode('''
+int f(String? s) => (s).length;
+''');
+    await assertHasFix('''
+int f(String? s) => (s)!.length;
+''');
   }
 }

@@ -26,7 +26,7 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-late static final field core::int y;
+late static final [setter] field core::int y;
 static method test() → dynamic {
   late final core::int x;
   function #x#initializer() → core::int?

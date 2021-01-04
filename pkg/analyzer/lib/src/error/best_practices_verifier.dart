@@ -49,7 +49,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   /// A flag indicating whether a surrounding member is annotated as
   /// `@doNotStore`.
-  bool _inDoNotStoreMember;
+  bool _inDoNotStoreMember = false;
 
   /// The error reporter by which errors will be reported.
   final ErrorReporter _errorReporter;
@@ -297,7 +297,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    ClassElementImpl element = node.declaredElement;
+    var element = node.declaredElement as ClassElementImpl;
     _enclosingClass = element;
     _invalidAccessVerifier._enclosingClass = element;
 
@@ -421,8 +421,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _inDoNotStoreMember = true;
     }
     try {
-      _checkForMissingReturn(
-          node.returnType, node.functionExpression.body, element, node);
+      _checkForMissingReturn(node.functionExpression.body, node);
 
       // Return types are inferred only on non-recursive local functions.
       if (node.parent is CompilationUnit && !node.isSetter) {
@@ -447,7 +446,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionExpression(FunctionExpression node) {
     if (node.parent is! FunctionDeclaration) {
-      _checkForMissingReturn(null, node.body, node.declaredElement, node);
+      _checkForMissingReturn(node.body, node);
     }
     DartType functionType = InferenceContext.getContext(node);
     if (functionType is! FunctionType) {
@@ -557,7 +556,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     try {
       // This was determined to not be a good hint, see: dartbug.com/16029
       //checkForOverridingPrivateMember(node);
-      _checkForMissingReturn(node.returnType, node.body, element, node);
+      _checkForMissingReturn(node.body, node);
       _mustCallSuperVerifier.checkMethodDeclaration(node);
       _checkForUnnecessaryNoSuchMethod(node);
 
@@ -692,8 +691,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   bool _checkAllTypeChecks(IsExpression node) {
     Expression expression = node.expression;
     TypeAnnotation typeName = node.type;
-    TypeImpl lhsType = expression.staticType;
-    TypeImpl rhsType = typeName.type;
+    var lhsType = expression.staticType as TypeImpl;
+    var rhsType = typeName.type as TypeImpl;
     if (lhsType == null || rhsType == null) {
       return false;
     }
@@ -911,7 +910,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return nonFinalFields;
     }
 
-    ClassElement element = node.declaredElement;
+    var element = node.declaredElement as ClassElement;
     if (isOrInheritsImmutable(element, HashSet<ClassElement>())) {
       Iterable<String> nonFinalFields =
           definedOrInheritedNonFinalInstanceFields(
@@ -928,7 +927,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
-    var importElement = node.element as ImportElement;
+    var importElement = node.element;
+    if (importElement == null) {
+      return;
+    }
+
     var importedLibrary = importElement.importedLibrary;
     if (importedLibrary == null || importedLibrary.isNonNullableByDefault) {
       return;
@@ -1149,8 +1152,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// function has a return type that Future<Null> is not assignable to.
   ///
   /// See [HintCode.MISSING_RETURN].
-  void _checkForMissingReturn(TypeAnnotation returnNode, FunctionBody body,
-      ExecutableElement element, AstNode functionNode) {
+  void _checkForMissingReturn(FunctionBody body, AstNode functionNode) {
     if (_isNonNullableByDefault) {
       return;
     }
@@ -1291,6 +1293,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     if (expressionMap.isNotEmpty) {
       Declaration parent = expression.thisOrAncestorMatching(
           (e) => e is FunctionDeclaration || e is MethodDeclaration);
+      if (parent == null) {
+        return;
+      }
       for (var entry in expressionMap.entries) {
         _errorReporter.reportErrorForNode(
           HintCode.RETURN_OF_DO_NOT_STORE,
@@ -1429,8 +1434,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// In "strict-inference" mode, check that [returnNode]'s return type is
-  /// specified.
+  /// In "strict-inference" mode, check that [returnType] is specified.
   void _checkStrictInferenceReturnType(
       AstNode returnType, AstNode reportNode, String displayName) {
     if (!_strictInference) {
@@ -1476,6 +1480,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           addTo: expressions);
       _getSubExpressionsMarkedDoNotStore(expression.rightOperand,
           addTo: expressions);
+    } else if (expression is FunctionExpression) {
+      var body = expression.body;
+      if (body is ExpressionFunctionBody) {
+        _getSubExpressionsMarkedDoNotStore(body.expression, addTo: expressions);
+      }
     }
     if (element is PropertyAccessorElement && element.isSynthetic) {
       element = (element as PropertyAccessorElement).variable;

@@ -23,7 +23,7 @@ void main() {
   group('Sending analytics', () {
     test('help', () {
       final p = project(logAnalytics: true);
-      final result = p.runSync('help', []);
+      final result = p.runSync(['help']);
       expect(extractAnalytics(result), [
         {
           'hitType': 'screenView',
@@ -51,7 +51,7 @@ void main() {
     });
     test('create', () {
       final p = project(logAnalytics: true);
-      final result = p.runSync('create', ['-tpackage-simple', 'name']);
+      final result = p.runSync(['create', '-tpackage-simple', 'name']);
       expect(extractAnalytics(result), [
         {
           'hitType': 'screenView',
@@ -82,7 +82,7 @@ void main() {
 
     test('pub get', () {
       final p = project(logAnalytics: true);
-      final result = p.runSync('pub', ['get', '--dry-run']);
+      final result = p.runSync(['pub', 'get', '--dry-run']);
       expect(extractAnalytics(result), [
         {
           'hitType': 'screenView',
@@ -113,7 +113,7 @@ void main() {
 
     test('format', () {
       final p = project(logAnalytics: true);
-      final result = p.runSync('format', ['-l80']);
+      final result = p.runSync(['format', '-l80']);
       expect(extractAnalytics(result), [
         {
           'hitType': 'screenView',
@@ -146,7 +146,8 @@ void main() {
       final p = project(
           mainSrc: 'void main(List<String> args) => print(args)',
           logAnalytics: true);
-      final result = p.runSync('run', [
+      final result = p.runSync([
+        'run',
         '--no-pause-isolates-on-exit',
         '--enable-asserts',
         'lib/main.dart',
@@ -184,7 +185,8 @@ void main() {
       final p = project(
           mainSrc: 'void main(List<String> args) => print(args);',
           logAnalytics: true);
-      final result = p.runSync('run', [
+      final result = p.runSync([
+        'run',
         '--enable-experiment=non-nullable',
         'lib/main.dart',
       ]);
@@ -221,7 +223,7 @@ void main() {
           mainSrc: 'void main(List<String> args) => print(args);',
           logAnalytics: true);
       final result = p
-          .runSync('compile', ['kernel', 'lib/main.dart', '-o', 'main.kernel']);
+          .runSync(['compile', 'kernel', 'lib/main.dart', '-o', 'main.kernel']);
       expect(extractAnalytics(result), [
         {
           'hitType': 'screenView',

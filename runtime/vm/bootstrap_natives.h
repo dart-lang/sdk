@@ -162,9 +162,6 @@ namespace dart {
   V(AssertionError_throwNew, 3)                                                \
   V(AssertionError_throwNewSource, 4)                                          \
   V(Async_rethrow, 2)                                                          \
-  V(StackTrace_asyncStackTraceHelper, 1)                                       \
-  V(StackTrace_clearAsyncThreadStackTrace, 0)                                  \
-  V(StackTrace_setAsyncThreadStackTrace, 1)                                    \
   V(StackTrace_current, 0)                                                     \
   V(TypeError_throwNew, 4)                                                     \
   V(FallThroughError_throwNew, 1)                                              \
@@ -358,8 +355,8 @@ namespace dart {
   V(LinkedHashMap_setUsedData, 2)                                              \
   V(LinkedHashMap_getDeletedKeys, 1)                                           \
   V(LinkedHashMap_setDeletedKeys, 2)                                           \
-  V(WeakProperty_new, 2)                                                       \
   V(WeakProperty_getKey, 1)                                                    \
+  V(WeakProperty_setKey, 2)                                                    \
   V(WeakProperty_getValue, 1)                                                  \
   V(WeakProperty_setValue, 2)                                                  \
   V(Uri_isWindowsPlatform, 0)                                                  \

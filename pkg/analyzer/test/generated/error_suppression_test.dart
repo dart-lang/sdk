@@ -81,7 +81,7 @@ const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 
   test_ignore_for_file_whitespace_variant() async {
     await assertNoErrorsInCode('''
-//ignore_for_file:   $ignoredCode , unnecessary_cast
+//ignore_for_file:   unused_element , unnecessary_cast
 int x = (0 as int);  //UNNECESSARY_CAST
 String _foo; //UNUSED_ELEMENT
 ''');
@@ -97,7 +97,7 @@ int x = (0 as int); // ignore: unnecessary_cast
     await assertErrorsInCode('''
 //UNNECESSARY_CAST
 int x = (0 as int);
-// ignore: $ignoredCode
+// ignore: unused_element
 String _foo; //UNUSED_ELEMENT
 ''', [
       error(HintCode.UNNECESSARY_CAST, 28, 8),

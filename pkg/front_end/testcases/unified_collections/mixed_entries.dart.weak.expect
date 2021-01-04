@@ -1,0 +1,176 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/unified_collections/mixed_entries.dart:35:32: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+// var error4 = {if (b) 0: 1 else for (var a in list) a};
+//                                ^
+//
+// pkg/front_end/testcases/unified_collections/mixed_entries.dart:36:22: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+// var error5 = {if (b) for (var a in list) a else 0: 1};
+//                      ^
+//
+// pkg/front_end/testcases/unified_collections/mixed_entries.dart:43:32: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+// var error8 = {if (b) 0: 1 else for (var i = 0; i < list.length; i++) list[i]};
+//                                ^
+//
+// pkg/front_end/testcases/unified_collections/mixed_entries.dart:44:22: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+// var error9 = {if (b) for (var i = 0; i < list.length; i++) list[i] else 0: 1};
+//                      ^
+//
+// pkg/front_end/testcases/unified_collections/mixed_entries.dart:37:14: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+// var error6 = {
+//              ^
+//
+// pkg/front_end/testcases/unified_collections/mixed_entries.dart:40:14: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+// var error7 = {
+//              ^
+//
+// pkg/front_end/testcases/unified_collections/mixed_entries.dart:45:15: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+// var error10 = {
+//               ^
+//
+// pkg/front_end/testcases/unified_collections/mixed_entries.dart:48:15: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+// var error11 = {
+//               ^
+//
+// pkg/front_end/testcases/unified_collections/mixed_entries.dart:51:15: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+// var error12 = {
+//               ^
+//
+import self as self;
+import "dart:core" as core;
+
+static field core::bool* b = false;
+static field core::List<dynamic>* list = <dynamic>[];
+static field core::Map<dynamic, dynamic>* map0 = <dynamic, dynamic>{};
+static field core::Map<dynamic, dynamic>* map1 = block {
+  final core::Map<dynamic, dynamic>* #t1 = <dynamic, dynamic>{};
+  if(self::b)
+    #t1.{core::Map::[]=}{Invariant}(0, 1);
+  else
+    for (final core::MapEntry<dynamic, dynamic>* #t2 in self::map0.{core::Map::entries})
+      #t1.{core::Map::[]=}{Invariant}(#t2.{core::MapEntry::key}, #t2.{core::MapEntry::value});
+} =>#t1;
+static field core::Map<dynamic, dynamic>* map2 = block {
+  final core::Map<dynamic, dynamic>* #t3 = <dynamic, dynamic>{};
+  if(self::b)
+    for (final core::MapEntry<dynamic, dynamic>* #t4 in self::map0.{core::Map::entries})
+      #t3.{core::Map::[]=}{Invariant}(#t4.{core::MapEntry::key}, #t4.{core::MapEntry::value});
+  else
+    #t3.{core::Map::[]=}{Invariant}(0, 1);
+} =>#t3;
+static field core::Map<dynamic, dynamic>* map3 = block {
+  final core::Map<dynamic, dynamic>* #t5 = <dynamic, dynamic>{};
+  if(self::b)
+    for (final core::MapEntry<dynamic, dynamic>* #t6 in self::map0.{core::Map::entries})
+      #t5.{core::Map::[]=}{Invariant}(#t6.{core::MapEntry::key}, #t6.{core::MapEntry::value});
+  else
+    for (final core::MapEntry<dynamic, dynamic>* #t7 in self::map0.{core::Map::entries})
+      #t5.{core::Map::[]=}{Invariant}(#t7.{core::MapEntry::key}, #t7.{core::MapEntry::value});
+} =>#t5;
+static field core::Map<dynamic, core::int*>* map4 = block {
+  final core::Map<dynamic, core::int*>* #t8 = <dynamic, core::int*>{};
+  if(self::b)
+    #t8.{core::Map::[]=}{Invariant}(0, 1);
+  else
+    for (dynamic a in self::list)
+      #t8.{core::Map::[]=}{Invariant}(a, 1);
+} =>#t8;
+static field core::Map<dynamic, core::int*>* map5 = block {
+  final core::Map<dynamic, core::int*>* #t9 = <dynamic, core::int*>{};
+  if(self::b)
+    for (dynamic a in self::list)
+      #t9.{core::Map::[]=}{Invariant}(a, 1);
+  else
+    #t9.{core::Map::[]=}{Invariant}(0, 1);
+} =>#t9;
+static field core::Map<dynamic, core::int*>* map6 = block {
+  final core::Map<dynamic, core::int*>* #t10 = <dynamic, core::int*>{};
+  if(self::b)
+    #t10.{core::Map::[]=}{Invariant}(0, 1);
+  else
+    for (dynamic a in self::list)
+      for (final core::MapEntry<dynamic, core::int*>* #t11 in <dynamic, core::int*>{a: 1}.{core::Map::entries})
+        #t10.{core::Map::[]=}{Invariant}(#t11.{core::MapEntry::key}, #t11.{core::MapEntry::value});
+} =>#t10;
+static field core::Map<dynamic, core::int*>* map7 = block {
+  final core::Map<dynamic, core::int*>* #t12 = <dynamic, core::int*>{};
+  if(self::b)
+    for (dynamic a in self::list)
+      for (final core::MapEntry<dynamic, core::int*>* #t13 in <dynamic, core::int*>{a: 1}.{core::Map::entries})
+        #t12.{core::Map::[]=}{Invariant}(#t13.{core::MapEntry::key}, #t13.{core::MapEntry::value});
+  else
+    #t12.{core::Map::[]=}{Invariant}(0, 1);
+} =>#t12;
+static field core::Map<dynamic, core::int*>* map8 = block {
+  final core::Map<dynamic, core::int*>* #t14 = <dynamic, core::int*>{};
+  if(self::b)
+    #t14.{core::Map::[]=}{Invariant}(0, 1);
+  else
+    for (core::int* i = 0; i.{core::num::<}(self::list.{core::List::length}); i = i.{core::num::+}(1))
+      #t14.{core::Map::[]=}{Invariant}(self::list.{core::List::[]}(i), 1);
+} =>#t14;
+static field core::Map<dynamic, core::int*>* map9 = block {
+  final core::Map<dynamic, core::int*>* #t15 = <dynamic, core::int*>{};
+  if(self::b)
+    for (core::int* i = 0; i.{core::num::<}(self::list.{core::List::length}); i = i.{core::num::+}(1))
+      #t15.{core::Map::[]=}{Invariant}(self::list.{core::List::[]}(i), 1);
+  else
+    #t15.{core::Map::[]=}{Invariant}(0, 1);
+} =>#t15;
+static field core::Map<dynamic, core::int*>* map10 = block {
+  final core::Map<dynamic, core::int*>* #t16 = <dynamic, core::int*>{};
+  if(self::b)
+    #t16.{core::Map::[]=}{Invariant}(0, 1);
+  else
+    for (core::int* i = 0; i.{core::num::<}(self::list.{core::List::length}); i = i.{core::num::+}(1))
+      for (final core::MapEntry<dynamic, core::int*>* #t17 in <dynamic, core::int*>{self::list.{core::List::[]}(i): 1}.{core::Map::entries})
+        #t16.{core::Map::[]=}{Invariant}(#t17.{core::MapEntry::key}, #t17.{core::MapEntry::value});
+} =>#t16;
+static field core::Map<dynamic, core::int*>* map11 = block {
+  final core::Map<dynamic, core::int*>* #t18 = <dynamic, core::int*>{};
+  if(self::b)
+    for (core::int* i = 0; i.{core::num::<}(self::list.{core::List::length}); i = i.{core::num::+}(1))
+      for (final core::MapEntry<dynamic, core::int*>* #t19 in <dynamic, core::int*>{self::list.{core::List::[]}(i): 1}.{core::Map::entries})
+        #t18.{core::Map::[]=}{Invariant}(#t19.{core::MapEntry::key}, #t19.{core::MapEntry::value});
+  else
+    #t18.{core::Map::[]=}{Invariant}(0, 1);
+} =>#t18;
+static field core::Map<core::int*, core::int*>* map12 = block {
+  final core::Map<core::int*, core::int*>* #t20 = <core::int*, core::int*>{};
+  if(self::b)
+    #t20.{core::Map::[]=}{Invariant}(0, 1);
+  else
+    if(self::b)
+      for (final core::MapEntry<core::int*, core::int*>* #t21 in <core::int*, core::int*>{0: 1}.{core::Map::entries})
+        #t20.{core::Map::[]=}{Invariant}(#t21.{core::MapEntry::key}, #t21.{core::MapEntry::value});
+} =>#t20;
+static field core::Map<dynamic, Null>* error4 = <dynamic, Null>{invalid-expression "pkg/front_end/testcases/unified_collections/mixed_entries.dart:35:32: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+var error4 = {if (b) 0: 1 else for (var a in list) a};
+                               ^": null};
+static field core::Map<dynamic, Null>* error5 = <dynamic, Null>{invalid-expression "pkg/front_end/testcases/unified_collections/mixed_entries.dart:36:22: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+var error5 = {if (b) for (var a in list) a else 0: 1};
+                     ^": null};
+static field dynamic error6 = invalid-expression "pkg/front_end/testcases/unified_collections/mixed_entries.dart:37:14: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+var error6 = {
+             ^";
+static field dynamic error7 = invalid-expression "pkg/front_end/testcases/unified_collections/mixed_entries.dart:40:14: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+var error7 = {
+             ^";
+static field core::Map<dynamic, Null>* error8 = <dynamic, Null>{invalid-expression "pkg/front_end/testcases/unified_collections/mixed_entries.dart:43:32: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+var error8 = {if (b) 0: 1 else for (var i = 0; i < list.length; i++) list[i]};
+                               ^": null};
+static field core::Map<dynamic, Null>* error9 = <dynamic, Null>{invalid-expression "pkg/front_end/testcases/unified_collections/mixed_entries.dart:44:22: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+var error9 = {if (b) for (var i = 0; i < list.length; i++) list[i] else 0: 1};
+                     ^": null};
+static field dynamic error10 = invalid-expression "pkg/front_end/testcases/unified_collections/mixed_entries.dart:45:15: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+var error10 = {
+              ^";
+static field dynamic error11 = invalid-expression "pkg/front_end/testcases/unified_collections/mixed_entries.dart:48:15: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+var error11 = {
+              ^";
+static field dynamic error12 = invalid-expression "pkg/front_end/testcases/unified_collections/mixed_entries.dart:51:15: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+var error12 = {
+              ^";
+static method main() → dynamic {}

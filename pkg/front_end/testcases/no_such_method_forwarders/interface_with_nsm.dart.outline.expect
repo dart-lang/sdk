@@ -38,6 +38,8 @@ abstract class _A&Object&M = core::Object with self::M /*isAnonymousMixin,hasCon
   const synthetic constructor •() → self::_A&Object&M*
     : super core::Object::•()
     ;
+  mixin-super-stub method noSuchMethod(core::Invocation* i) → dynamic
+    return super.{self::M::noSuchMethod}(i);
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -52,12 +54,14 @@ class A extends self::_A&Object&M implements self::I {
   synthetic constructor •() → self::A*
     ;
   no-such-method-forwarder method foo() → void
-    return this.{self::M::noSuchMethod}(new core::_InvocationMirror::_withType(#foo, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
+    return this.{self::_A&Object&M::noSuchMethod}(new core::_InvocationMirror::_withType(#foo, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
 }
 abstract class _B&Object&M = core::Object with self::M /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_B&Object&M*
     : super core::Object::•()
     ;
+  mixin-super-stub method noSuchMethod(core::Invocation* i) → dynamic
+    return super.{self::M::noSuchMethod}(i);
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -72,7 +76,7 @@ class B extends self::_B&Object&M implements self::I {
   synthetic constructor •() → self::B*
     ;
   no-such-method-forwarder method foo() → void
-    return this.{self::M::noSuchMethod}(new core::_InvocationMirror::_withType(#foo, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
+    return this.{self::_B&Object&M::noSuchMethod}(new core::_InvocationMirror::_withType(#foo, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
 }
 static method main() → dynamic
   ;
@@ -91,4 +95,4 @@ Evaluated: SymbolLiteral @ org-dartlang-testcase:///interface_with_nsm.dart:15:8
 Evaluated: ListLiteral @ org-dartlang-testcase:///interface_with_nsm.dart:15:8 -> ListConstant(const <Type*>[])
 Evaluated: ListLiteral @ org-dartlang-testcase:///interface_with_nsm.dart:15:8 -> ListConstant(const <dynamic>[])
 Evaluated: MapLiteral @ org-dartlang-testcase:///interface_with_nsm.dart:15:8 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
-Extra constant evaluation: evaluated: 24, effectively constant: 12
+Extra constant evaluation: evaluated: 28, effectively constant: 12

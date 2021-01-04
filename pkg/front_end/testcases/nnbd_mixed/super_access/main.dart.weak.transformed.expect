@@ -27,13 +27,13 @@ abstract class _Class&Object&Mixin1<T extends core::Object* = dynamic> extends c
   abstract member-signature method /* from org-dartlang-testcase:///main_lib1.dart */ method2((core::Object*) →* core::Type* t) → void; -> mai2::Interface::method2
 }
 abstract class _Class&Object&Mixin1&Mixin2<T extends core::Object* = dynamic> extends self::_Class&Object&Mixin1<self::_Class&Object&Mixin1&Mixin2::T*> implements mai::Mixin2<self::_Class&Object&Mixin1&Mixin2::T*> /*isAnonymousMixin,isEliminatedMixin*/  {
-  field (dynamic) →* core::Type field = null /* from org-dartlang-testcase:///main_lib1.dart */;
+  field (dynamic) →* core::Type* field = null /* from org-dartlang-testcase:///main_lib1.dart */;
   synthetic constructor •() → self::_Class&Object&Mixin1&Mixin2<self::_Class&Object&Mixin1&Mixin2::T*>*
     : super self::_Class&Object&Mixin1::•()
     ;
-  method /* from org-dartlang-testcase:///main_lib1.dart */ method1() → (dynamic) →* core::Type
+  method /* from org-dartlang-testcase:///main_lib1.dart */ method1() → (dynamic) →* core::Type*
     return null;
-  method /* from org-dartlang-testcase:///main_lib1.dart */ method2((dynamic) →* core::Type t) → void {}
+  method /* from org-dartlang-testcase:///main_lib1.dart */ method2((dynamic) →* core::Type* t) → void {}
   abstract member-signature get /* from org-dartlang-testcase:///main_lib1.dart */ _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method /* from org-dartlang-testcase:///main_lib1.dart */ _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method /* from org-dartlang-testcase:///main_lib1.dart */ _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -49,11 +49,11 @@ class Class<T extends core::Object* = dynamic> extends self::_Class&Object&Mixin
   synthetic constructor •() → self::Class<self::Class::T*>*
     : super self::_Class&Object&Mixin1&Mixin2::•()
     ;
-  set field((dynamic) →* core::Type value) → void {
-    super.{mai::Mixin2::field};
+  set field((dynamic) →* core::Type* value) → void {
+    super.{self::_Class&Object&Mixin1&Mixin2::field};
     super.{self::_Class&Object&Mixin1&Mixin2::field} = value;
-    super.{mai::Mixin2::method1}();
-    super.{mai::Mixin2::method2}(null);
+    super.{self::_Class&Object&Mixin1&Mixin2::method1}();
+    super.{self::_Class&Object&Mixin1&Mixin2::method2}(null);
   }
 }
 static method main() → dynamic {}
@@ -85,13 +85,13 @@ abstract class Mixin1<T extends core::Object* = dynamic> extends core::Object im
   abstract member-signature method method2((core::Object*) →* core::Type* t) → void; -> mai2::Interface::method2
 }
 abstract class Mixin2<T extends core::Object* = dynamic> extends core::Object implements mai2::Interface<mai2::Value<dynamic>*, core::Object*> {
-  field (dynamic) →* core::Type field = null;
+  field (dynamic) →* core::Type* field = null;
   synthetic constructor •() → mai::Mixin2<mai::Mixin2::T*>*
     : super core::Object::•()
     ;
-  method method1() → (dynamic) →* core::Type
+  method method1() → (dynamic) →* core::Type*
     return null;
-  method method2((dynamic) →* core::Type t) → void {}
+  method method2((dynamic) →* core::Type* t) → void {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf

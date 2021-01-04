@@ -41,6 +41,8 @@ abstract class _MyTest2&Object&MyTest = core::Object with self::MyTest /*isAnony
   const synthetic constructor •() → self::_MyTest2&Object&MyTest*
     : super core::Object::•()
     ;
+  mixin-super-stub method foo() → void
+    return super.{self::MyTest::foo}();
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -82,3 +84,9 @@ constants  {
   #C1 = self::_FailingTest {}
   #C2 = #foo
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///bug33099.dart:
+- _FailingTest. (from org-dartlang-testcase:///bug33099.dart:12:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)

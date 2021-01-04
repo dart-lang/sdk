@@ -9,6 +9,7 @@ import 'expected_primary_test.dart' as expected_primary;
 import 'invalid_character_test.dart' as invalid_character;
 import 'invalid_key_test.dart' as invalid_key;
 import 'invalid_parameter_style_test.dart' as invalid_parameter_style;
+import 'invalid_required_if_test.dart' as invalid_required_if;
 import 'invalid_value_one_of_test.dart' as invalid_value_one_of;
 import 'invalid_value_test.dart' as invalid_value;
 import 'missing_key_test.dart' as missing_key;
@@ -31,6 +32,7 @@ void main() {
     invalid_character.main();
     invalid_key.main();
     invalid_parameter_style.main();
+    invalid_required_if.main();
     invalid_value_one_of.main();
     invalid_value.main();
     missing_key.main();

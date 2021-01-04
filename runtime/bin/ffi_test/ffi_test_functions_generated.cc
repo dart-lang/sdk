@@ -56,6 +56,10 @@ struct Struct4BytesHomogeneousInt16 {
   int16_t a1;
 };
 
+struct Struct4BytesFloat {
+  float a0;
+};
+
 struct Struct7BytesHomogeneousUint8 {
   uint8_t a0;
   uint8_t a1;
@@ -337,6 +341,75 @@ struct StructAlignmentInt64 {
   int8_t a0;
   int64_t a1;
   int8_t a2;
+};
+
+struct Struct8BytesNestedInt {
+  Struct4BytesHomogeneousInt16 a0;
+  Struct4BytesHomogeneousInt16 a1;
+};
+
+struct Struct8BytesNestedFloat {
+  Struct4BytesFloat a0;
+  Struct4BytesFloat a1;
+};
+
+struct Struct8BytesNestedFloat2 {
+  Struct4BytesFloat a0;
+  float a1;
+};
+
+struct Struct8BytesNestedMixed {
+  Struct4BytesHomogeneousInt16 a0;
+  Struct4BytesFloat a1;
+};
+
+struct Struct16BytesNestedInt {
+  Struct8BytesNestedInt a0;
+  Struct8BytesNestedInt a1;
+};
+
+struct Struct32BytesNestedInt {
+  Struct16BytesNestedInt a0;
+  Struct16BytesNestedInt a1;
+};
+
+struct StructNestedIntStructAlignmentInt16 {
+  StructAlignmentInt16 a0;
+  StructAlignmentInt16 a1;
+};
+
+struct StructNestedIntStructAlignmentInt32 {
+  StructAlignmentInt32 a0;
+  StructAlignmentInt32 a1;
+};
+
+struct StructNestedIntStructAlignmentInt64 {
+  StructAlignmentInt64 a0;
+  StructAlignmentInt64 a1;
+};
+
+struct StructNestedIrregularBig {
+  uint16_t a0;
+  Struct8BytesNestedMixed a1;
+  uint16_t a2;
+  Struct8BytesNestedFloat2 a3;
+  uint16_t a4;
+  Struct8BytesNestedFloat a5;
+  uint16_t a6;
+};
+
+struct StructNestedIrregularBigger {
+  StructNestedIrregularBig a0;
+  Struct8BytesNestedMixed a1;
+  float a2;
+  double a3;
+};
+
+struct StructNestedIrregularEvenBigger {
+  uint64_t a0;
+  StructNestedIrregularBigger a1;
+  StructNestedIrregularBigger a2;
+  double a3;
 };
 
 // Used for testing structs by value.
@@ -2569,6 +2642,639 @@ DART_EXPORT int64_t PassStructAlignmentInt64(StructAlignmentInt64 a0) {
 }
 
 // Used for testing structs by value.
+// Simple nested struct. No alignment gaps on any architectures.
+// 10 arguments exhaust registers on all platforms.
+DART_EXPORT int64_t PassStruct8BytesNestedIntx10(Struct8BytesNestedInt a0,
+                                                 Struct8BytesNestedInt a1,
+                                                 Struct8BytesNestedInt a2,
+                                                 Struct8BytesNestedInt a3,
+                                                 Struct8BytesNestedInt a4,
+                                                 Struct8BytesNestedInt a5,
+                                                 Struct8BytesNestedInt a6,
+                                                 Struct8BytesNestedInt a7,
+                                                 Struct8BytesNestedInt a8,
+                                                 Struct8BytesNestedInt a9) {
+  std::cout << "PassStruct8BytesNestedIntx10"
+            << "(((" << a0.a0.a0 << ", " << a0.a0.a1 << "), (" << a0.a1.a0
+            << ", " << a0.a1.a1 << ")), ((" << a1.a0.a0 << ", " << a1.a0.a1
+            << "), (" << a1.a1.a0 << ", " << a1.a1.a1 << ")), ((" << a2.a0.a0
+            << ", " << a2.a0.a1 << "), (" << a2.a1.a0 << ", " << a2.a1.a1
+            << ")), ((" << a3.a0.a0 << ", " << a3.a0.a1 << "), (" << a3.a1.a0
+            << ", " << a3.a1.a1 << ")), ((" << a4.a0.a0 << ", " << a4.a0.a1
+            << "), (" << a4.a1.a0 << ", " << a4.a1.a1 << ")), ((" << a5.a0.a0
+            << ", " << a5.a0.a1 << "), (" << a5.a1.a0 << ", " << a5.a1.a1
+            << ")), ((" << a6.a0.a0 << ", " << a6.a0.a1 << "), (" << a6.a1.a0
+            << ", " << a6.a1.a1 << ")), ((" << a7.a0.a0 << ", " << a7.a0.a1
+            << "), (" << a7.a1.a0 << ", " << a7.a1.a1 << ")), ((" << a8.a0.a0
+            << ", " << a8.a0.a1 << "), (" << a8.a1.a0 << ", " << a8.a1.a1
+            << ")), ((" << a9.a0.a0 << ", " << a9.a0.a1 << "), (" << a9.a1.a0
+            << ", " << a9.a1.a1 << ")))"
+            << "\n";
+
+  int64_t result = 0;
+
+  result += a0.a0.a0;
+  result += a0.a0.a1;
+  result += a0.a1.a0;
+  result += a0.a1.a1;
+  result += a1.a0.a0;
+  result += a1.a0.a1;
+  result += a1.a1.a0;
+  result += a1.a1.a1;
+  result += a2.a0.a0;
+  result += a2.a0.a1;
+  result += a2.a1.a0;
+  result += a2.a1.a1;
+  result += a3.a0.a0;
+  result += a3.a0.a1;
+  result += a3.a1.a0;
+  result += a3.a1.a1;
+  result += a4.a0.a0;
+  result += a4.a0.a1;
+  result += a4.a1.a0;
+  result += a4.a1.a1;
+  result += a5.a0.a0;
+  result += a5.a0.a1;
+  result += a5.a1.a0;
+  result += a5.a1.a1;
+  result += a6.a0.a0;
+  result += a6.a0.a1;
+  result += a6.a1.a0;
+  result += a6.a1.a1;
+  result += a7.a0.a0;
+  result += a7.a0.a1;
+  result += a7.a1.a0;
+  result += a7.a1.a1;
+  result += a8.a0.a0;
+  result += a8.a0.a1;
+  result += a8.a1.a0;
+  result += a8.a1.a1;
+  result += a9.a0.a0;
+  result += a9.a0.a1;
+  result += a9.a1.a0;
+  result += a9.a1.a1;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Simple nested struct. No alignment gaps on any architectures.
+// 10 arguments exhaust fpu registers on all platforms.
+DART_EXPORT float PassStruct8BytesNestedFloatx10(Struct8BytesNestedFloat a0,
+                                                 Struct8BytesNestedFloat a1,
+                                                 Struct8BytesNestedFloat a2,
+                                                 Struct8BytesNestedFloat a3,
+                                                 Struct8BytesNestedFloat a4,
+                                                 Struct8BytesNestedFloat a5,
+                                                 Struct8BytesNestedFloat a6,
+                                                 Struct8BytesNestedFloat a7,
+                                                 Struct8BytesNestedFloat a8,
+                                                 Struct8BytesNestedFloat a9) {
+  std::cout << "PassStruct8BytesNestedFloatx10"
+            << "(((" << a0.a0.a0 << "), (" << a0.a1.a0 << ")), ((" << a1.a0.a0
+            << "), (" << a1.a1.a0 << ")), ((" << a2.a0.a0 << "), (" << a2.a1.a0
+            << ")), ((" << a3.a0.a0 << "), (" << a3.a1.a0 << ")), (("
+            << a4.a0.a0 << "), (" << a4.a1.a0 << ")), ((" << a5.a0.a0 << "), ("
+            << a5.a1.a0 << ")), ((" << a6.a0.a0 << "), (" << a6.a1.a0
+            << ")), ((" << a7.a0.a0 << "), (" << a7.a1.a0 << ")), (("
+            << a8.a0.a0 << "), (" << a8.a1.a0 << ")), ((" << a9.a0.a0 << "), ("
+            << a9.a1.a0 << ")))"
+            << "\n";
+
+  float result = 0;
+
+  result += a0.a0.a0;
+  result += a0.a1.a0;
+  result += a1.a0.a0;
+  result += a1.a1.a0;
+  result += a2.a0.a0;
+  result += a2.a1.a0;
+  result += a3.a0.a0;
+  result += a3.a1.a0;
+  result += a4.a0.a0;
+  result += a4.a1.a0;
+  result += a5.a0.a0;
+  result += a5.a1.a0;
+  result += a6.a0.a0;
+  result += a6.a1.a0;
+  result += a7.a0.a0;
+  result += a7.a1.a0;
+  result += a8.a0.a0;
+  result += a8.a1.a0;
+  result += a9.a0.a0;
+  result += a9.a1.a0;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Simple nested struct. No alignment gaps on any architectures.
+// 10 arguments exhaust fpu registers on all platforms.
+// The nesting is irregular, testing homogenous float rules on arm and arm64,
+// and the fpu register usage on x64.
+DART_EXPORT float PassStruct8BytesNestedFloat2x10(Struct8BytesNestedFloat2 a0,
+                                                  Struct8BytesNestedFloat2 a1,
+                                                  Struct8BytesNestedFloat2 a2,
+                                                  Struct8BytesNestedFloat2 a3,
+                                                  Struct8BytesNestedFloat2 a4,
+                                                  Struct8BytesNestedFloat2 a5,
+                                                  Struct8BytesNestedFloat2 a6,
+                                                  Struct8BytesNestedFloat2 a7,
+                                                  Struct8BytesNestedFloat2 a8,
+                                                  Struct8BytesNestedFloat2 a9) {
+  std::cout << "PassStruct8BytesNestedFloat2x10"
+            << "(((" << a0.a0.a0 << "), " << a0.a1 << "), ((" << a1.a0.a0
+            << "), " << a1.a1 << "), ((" << a2.a0.a0 << "), " << a2.a1
+            << "), ((" << a3.a0.a0 << "), " << a3.a1 << "), ((" << a4.a0.a0
+            << "), " << a4.a1 << "), ((" << a5.a0.a0 << "), " << a5.a1
+            << "), ((" << a6.a0.a0 << "), " << a6.a1 << "), ((" << a7.a0.a0
+            << "), " << a7.a1 << "), ((" << a8.a0.a0 << "), " << a8.a1
+            << "), ((" << a9.a0.a0 << "), " << a9.a1 << "))"
+            << "\n";
+
+  float result = 0;
+
+  result += a0.a0.a0;
+  result += a0.a1;
+  result += a1.a0.a0;
+  result += a1.a1;
+  result += a2.a0.a0;
+  result += a2.a1;
+  result += a3.a0.a0;
+  result += a3.a1;
+  result += a4.a0.a0;
+  result += a4.a1;
+  result += a5.a0.a0;
+  result += a5.a1;
+  result += a6.a0.a0;
+  result += a6.a1;
+  result += a7.a0.a0;
+  result += a7.a1;
+  result += a8.a0.a0;
+  result += a8.a1;
+  result += a9.a0.a0;
+  result += a9.a1;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Simple nested struct. No alignment gaps on any architectures.
+// 10 arguments exhaust all registers on all platforms.
+DART_EXPORT double PassStruct8BytesNestedMixedx10(Struct8BytesNestedMixed a0,
+                                                  Struct8BytesNestedMixed a1,
+                                                  Struct8BytesNestedMixed a2,
+                                                  Struct8BytesNestedMixed a3,
+                                                  Struct8BytesNestedMixed a4,
+                                                  Struct8BytesNestedMixed a5,
+                                                  Struct8BytesNestedMixed a6,
+                                                  Struct8BytesNestedMixed a7,
+                                                  Struct8BytesNestedMixed a8,
+                                                  Struct8BytesNestedMixed a9) {
+  std::cout << "PassStruct8BytesNestedMixedx10"
+            << "(((" << a0.a0.a0 << ", " << a0.a0.a1 << "), (" << a0.a1.a0
+            << ")), ((" << a1.a0.a0 << ", " << a1.a0.a1 << "), (" << a1.a1.a0
+            << ")), ((" << a2.a0.a0 << ", " << a2.a0.a1 << "), (" << a2.a1.a0
+            << ")), ((" << a3.a0.a0 << ", " << a3.a0.a1 << "), (" << a3.a1.a0
+            << ")), ((" << a4.a0.a0 << ", " << a4.a0.a1 << "), (" << a4.a1.a0
+            << ")), ((" << a5.a0.a0 << ", " << a5.a0.a1 << "), (" << a5.a1.a0
+            << ")), ((" << a6.a0.a0 << ", " << a6.a0.a1 << "), (" << a6.a1.a0
+            << ")), ((" << a7.a0.a0 << ", " << a7.a0.a1 << "), (" << a7.a1.a0
+            << ")), ((" << a8.a0.a0 << ", " << a8.a0.a1 << "), (" << a8.a1.a0
+            << ")), ((" << a9.a0.a0 << ", " << a9.a0.a1 << "), (" << a9.a1.a0
+            << ")))"
+            << "\n";
+
+  double result = 0;
+
+  result += a0.a0.a0;
+  result += a0.a0.a1;
+  result += a0.a1.a0;
+  result += a1.a0.a0;
+  result += a1.a0.a1;
+  result += a1.a1.a0;
+  result += a2.a0.a0;
+  result += a2.a0.a1;
+  result += a2.a1.a0;
+  result += a3.a0.a0;
+  result += a3.a0.a1;
+  result += a3.a1.a0;
+  result += a4.a0.a0;
+  result += a4.a0.a1;
+  result += a4.a1.a0;
+  result += a5.a0.a0;
+  result += a5.a0.a1;
+  result += a5.a1.a0;
+  result += a6.a0.a0;
+  result += a6.a0.a1;
+  result += a6.a1.a0;
+  result += a7.a0.a0;
+  result += a7.a0.a1;
+  result += a7.a1.a0;
+  result += a8.a0.a0;
+  result += a8.a0.a1;
+  result += a8.a1.a0;
+  result += a9.a0.a0;
+  result += a9.a0.a1;
+  result += a9.a1.a0;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Deeper nested struct to test recursive member access.
+DART_EXPORT int64_t PassStruct16BytesNestedIntx2(Struct16BytesNestedInt a0,
+                                                 Struct16BytesNestedInt a1) {
+  std::cout << "PassStruct16BytesNestedIntx2"
+            << "((((" << a0.a0.a0.a0 << ", " << a0.a0.a0.a1 << "), ("
+            << a0.a0.a1.a0 << ", " << a0.a0.a1.a1 << ")), ((" << a0.a1.a0.a0
+            << ", " << a0.a1.a0.a1 << "), (" << a0.a1.a1.a0 << ", "
+            << a0.a1.a1.a1 << "))), (((" << a1.a0.a0.a0 << ", " << a1.a0.a0.a1
+            << "), (" << a1.a0.a1.a0 << ", " << a1.a0.a1.a1 << ")), (("
+            << a1.a1.a0.a0 << ", " << a1.a1.a0.a1 << "), (" << a1.a1.a1.a0
+            << ", " << a1.a1.a1.a1 << "))))"
+            << "\n";
+
+  int64_t result = 0;
+
+  result += a0.a0.a0.a0;
+  result += a0.a0.a0.a1;
+  result += a0.a0.a1.a0;
+  result += a0.a0.a1.a1;
+  result += a0.a1.a0.a0;
+  result += a0.a1.a0.a1;
+  result += a0.a1.a1.a0;
+  result += a0.a1.a1.a1;
+  result += a1.a0.a0.a0;
+  result += a1.a0.a0.a1;
+  result += a1.a0.a1.a0;
+  result += a1.a0.a1.a1;
+  result += a1.a1.a0.a0;
+  result += a1.a1.a0.a1;
+  result += a1.a1.a1.a0;
+  result += a1.a1.a1.a1;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Even deeper nested struct to test recursive member access.
+DART_EXPORT int64_t PassStruct32BytesNestedIntx2(Struct32BytesNestedInt a0,
+                                                 Struct32BytesNestedInt a1) {
+  std::cout << "PassStruct32BytesNestedIntx2"
+            << "(((((" << a0.a0.a0.a0.a0 << ", " << a0.a0.a0.a0.a1 << "), ("
+            << a0.a0.a0.a1.a0 << ", " << a0.a0.a0.a1.a1 << ")), (("
+            << a0.a0.a1.a0.a0 << ", " << a0.a0.a1.a0.a1 << "), ("
+            << a0.a0.a1.a1.a0 << ", " << a0.a0.a1.a1.a1 << "))), ((("
+            << a0.a1.a0.a0.a0 << ", " << a0.a1.a0.a0.a1 << "), ("
+            << a0.a1.a0.a1.a0 << ", " << a0.a1.a0.a1.a1 << ")), (("
+            << a0.a1.a1.a0.a0 << ", " << a0.a1.a1.a0.a1 << "), ("
+            << a0.a1.a1.a1.a0 << ", " << a0.a1.a1.a1.a1 << ")))), (((("
+            << a1.a0.a0.a0.a0 << ", " << a1.a0.a0.a0.a1 << "), ("
+            << a1.a0.a0.a1.a0 << ", " << a1.a0.a0.a1.a1 << ")), (("
+            << a1.a0.a1.a0.a0 << ", " << a1.a0.a1.a0.a1 << "), ("
+            << a1.a0.a1.a1.a0 << ", " << a1.a0.a1.a1.a1 << "))), ((("
+            << a1.a1.a0.a0.a0 << ", " << a1.a1.a0.a0.a1 << "), ("
+            << a1.a1.a0.a1.a0 << ", " << a1.a1.a0.a1.a1 << ")), (("
+            << a1.a1.a1.a0.a0 << ", " << a1.a1.a1.a0.a1 << "), ("
+            << a1.a1.a1.a1.a0 << ", " << a1.a1.a1.a1.a1 << ")))))"
+            << "\n";
+
+  int64_t result = 0;
+
+  result += a0.a0.a0.a0.a0;
+  result += a0.a0.a0.a0.a1;
+  result += a0.a0.a0.a1.a0;
+  result += a0.a0.a0.a1.a1;
+  result += a0.a0.a1.a0.a0;
+  result += a0.a0.a1.a0.a1;
+  result += a0.a0.a1.a1.a0;
+  result += a0.a0.a1.a1.a1;
+  result += a0.a1.a0.a0.a0;
+  result += a0.a1.a0.a0.a1;
+  result += a0.a1.a0.a1.a0;
+  result += a0.a1.a0.a1.a1;
+  result += a0.a1.a1.a0.a0;
+  result += a0.a1.a1.a0.a1;
+  result += a0.a1.a1.a1.a0;
+  result += a0.a1.a1.a1.a1;
+  result += a1.a0.a0.a0.a0;
+  result += a1.a0.a0.a0.a1;
+  result += a1.a0.a0.a1.a0;
+  result += a1.a0.a0.a1.a1;
+  result += a1.a0.a1.a0.a0;
+  result += a1.a0.a1.a0.a1;
+  result += a1.a0.a1.a1.a0;
+  result += a1.a0.a1.a1.a1;
+  result += a1.a1.a0.a0.a0;
+  result += a1.a1.a0.a0.a1;
+  result += a1.a1.a0.a1.a0;
+  result += a1.a1.a0.a1.a1;
+  result += a1.a1.a1.a0.a0;
+  result += a1.a1.a1.a0.a1;
+  result += a1.a1.a1.a1.a0;
+  result += a1.a1.a1.a1.a1;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Test alignment and padding of nested struct with 16 byte int.
+DART_EXPORT int64_t PassStructNestedIntStructAlignmentInt16(
+    StructNestedIntStructAlignmentInt16 a0) {
+  std::cout << "PassStructNestedIntStructAlignmentInt16"
+            << "(((" << static_cast<int>(a0.a0.a0) << ", " << a0.a0.a1 << ", "
+            << static_cast<int>(a0.a0.a2) << "), ("
+            << static_cast<int>(a0.a1.a0) << ", " << a0.a1.a1 << ", "
+            << static_cast<int>(a0.a1.a2) << ")))"
+            << "\n";
+
+  int64_t result = 0;
+
+  result += a0.a0.a0;
+  result += a0.a0.a1;
+  result += a0.a0.a2;
+  result += a0.a1.a0;
+  result += a0.a1.a1;
+  result += a0.a1.a2;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Test alignment and padding of nested struct with 32 byte int.
+DART_EXPORT int64_t PassStructNestedIntStructAlignmentInt32(
+    StructNestedIntStructAlignmentInt32 a0) {
+  std::cout << "PassStructNestedIntStructAlignmentInt32"
+            << "(((" << static_cast<int>(a0.a0.a0) << ", " << a0.a0.a1 << ", "
+            << static_cast<int>(a0.a0.a2) << "), ("
+            << static_cast<int>(a0.a1.a0) << ", " << a0.a1.a1 << ", "
+            << static_cast<int>(a0.a1.a2) << ")))"
+            << "\n";
+
+  int64_t result = 0;
+
+  result += a0.a0.a0;
+  result += a0.a0.a1;
+  result += a0.a0.a2;
+  result += a0.a1.a0;
+  result += a0.a1.a1;
+  result += a0.a1.a2;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Test alignment and padding of nested struct with 64 byte int.
+DART_EXPORT int64_t PassStructNestedIntStructAlignmentInt64(
+    StructNestedIntStructAlignmentInt64 a0) {
+  std::cout << "PassStructNestedIntStructAlignmentInt64"
+            << "(((" << static_cast<int>(a0.a0.a0) << ", " << a0.a0.a1 << ", "
+            << static_cast<int>(a0.a0.a2) << "), ("
+            << static_cast<int>(a0.a1.a0) << ", " << a0.a1.a1 << ", "
+            << static_cast<int>(a0.a1.a2) << ")))"
+            << "\n";
+
+  int64_t result = 0;
+
+  result += a0.a0.a0;
+  result += a0.a0.a1;
+  result += a0.a0.a2;
+  result += a0.a1.a0;
+  result += a0.a1.a1;
+  result += a0.a1.a2;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Return big irregular struct as smoke test.
+DART_EXPORT double PassStructNestedIrregularEvenBiggerx4(
+    StructNestedIrregularEvenBigger a0,
+    StructNestedIrregularEvenBigger a1,
+    StructNestedIrregularEvenBigger a2,
+    StructNestedIrregularEvenBigger a3) {
+  std::cout
+      << "PassStructNestedIrregularEvenBiggerx4"
+      << "((" << a0.a0 << ", ((" << a0.a1.a0.a0 << ", ((" << a0.a1.a0.a1.a0.a0
+      << ", " << a0.a1.a0.a1.a0.a1 << "), (" << a0.a1.a0.a1.a1.a0 << ")), "
+      << a0.a1.a0.a2 << ", ((" << a0.a1.a0.a3.a0.a0 << "), " << a0.a1.a0.a3.a1
+      << "), " << a0.a1.a0.a4 << ", ((" << a0.a1.a0.a5.a0.a0 << "), ("
+      << a0.a1.a0.a5.a1.a0 << ")), " << a0.a1.a0.a6 << "), ((" << a0.a1.a1.a0.a0
+      << ", " << a0.a1.a1.a0.a1 << "), (" << a0.a1.a1.a1.a0 << ")), "
+      << a0.a1.a2 << ", " << a0.a1.a3 << "), ((" << a0.a2.a0.a0 << ", (("
+      << a0.a2.a0.a1.a0.a0 << ", " << a0.a2.a0.a1.a0.a1 << "), ("
+      << a0.a2.a0.a1.a1.a0 << ")), " << a0.a2.a0.a2 << ", (("
+      << a0.a2.a0.a3.a0.a0 << "), " << a0.a2.a0.a3.a1 << "), " << a0.a2.a0.a4
+      << ", ((" << a0.a2.a0.a5.a0.a0 << "), (" << a0.a2.a0.a5.a1.a0 << ")), "
+      << a0.a2.a0.a6 << "), ((" << a0.a2.a1.a0.a0 << ", " << a0.a2.a1.a0.a1
+      << "), (" << a0.a2.a1.a1.a0 << ")), " << a0.a2.a2 << ", " << a0.a2.a3
+      << "), " << a0.a3 << "), (" << a1.a0 << ", ((" << a1.a1.a0.a0 << ", (("
+      << a1.a1.a0.a1.a0.a0 << ", " << a1.a1.a0.a1.a0.a1 << "), ("
+      << a1.a1.a0.a1.a1.a0 << ")), " << a1.a1.a0.a2 << ", (("
+      << a1.a1.a0.a3.a0.a0 << "), " << a1.a1.a0.a3.a1 << "), " << a1.a1.a0.a4
+      << ", ((" << a1.a1.a0.a5.a0.a0 << "), (" << a1.a1.a0.a5.a1.a0 << ")), "
+      << a1.a1.a0.a6 << "), ((" << a1.a1.a1.a0.a0 << ", " << a1.a1.a1.a0.a1
+      << "), (" << a1.a1.a1.a1.a0 << ")), " << a1.a1.a2 << ", " << a1.a1.a3
+      << "), ((" << a1.a2.a0.a0 << ", ((" << a1.a2.a0.a1.a0.a0 << ", "
+      << a1.a2.a0.a1.a0.a1 << "), (" << a1.a2.a0.a1.a1.a0 << ")), "
+      << a1.a2.a0.a2 << ", ((" << a1.a2.a0.a3.a0.a0 << "), " << a1.a2.a0.a3.a1
+      << "), " << a1.a2.a0.a4 << ", ((" << a1.a2.a0.a5.a0.a0 << "), ("
+      << a1.a2.a0.a5.a1.a0 << ")), " << a1.a2.a0.a6 << "), ((" << a1.a2.a1.a0.a0
+      << ", " << a1.a2.a1.a0.a1 << "), (" << a1.a2.a1.a1.a0 << ")), "
+      << a1.a2.a2 << ", " << a1.a2.a3 << "), " << a1.a3 << "), (" << a2.a0
+      << ", ((" << a2.a1.a0.a0 << ", ((" << a2.a1.a0.a1.a0.a0 << ", "
+      << a2.a1.a0.a1.a0.a1 << "), (" << a2.a1.a0.a1.a1.a0 << ")), "
+      << a2.a1.a0.a2 << ", ((" << a2.a1.a0.a3.a0.a0 << "), " << a2.a1.a0.a3.a1
+      << "), " << a2.a1.a0.a4 << ", ((" << a2.a1.a0.a5.a0.a0 << "), ("
+      << a2.a1.a0.a5.a1.a0 << ")), " << a2.a1.a0.a6 << "), ((" << a2.a1.a1.a0.a0
+      << ", " << a2.a1.a1.a0.a1 << "), (" << a2.a1.a1.a1.a0 << ")), "
+      << a2.a1.a2 << ", " << a2.a1.a3 << "), ((" << a2.a2.a0.a0 << ", (("
+      << a2.a2.a0.a1.a0.a0 << ", " << a2.a2.a0.a1.a0.a1 << "), ("
+      << a2.a2.a0.a1.a1.a0 << ")), " << a2.a2.a0.a2 << ", (("
+      << a2.a2.a0.a3.a0.a0 << "), " << a2.a2.a0.a3.a1 << "), " << a2.a2.a0.a4
+      << ", ((" << a2.a2.a0.a5.a0.a0 << "), (" << a2.a2.a0.a5.a1.a0 << ")), "
+      << a2.a2.a0.a6 << "), ((" << a2.a2.a1.a0.a0 << ", " << a2.a2.a1.a0.a1
+      << "), (" << a2.a2.a1.a1.a0 << ")), " << a2.a2.a2 << ", " << a2.a2.a3
+      << "), " << a2.a3 << "), (" << a3.a0 << ", ((" << a3.a1.a0.a0 << ", (("
+      << a3.a1.a0.a1.a0.a0 << ", " << a3.a1.a0.a1.a0.a1 << "), ("
+      << a3.a1.a0.a1.a1.a0 << ")), " << a3.a1.a0.a2 << ", (("
+      << a3.a1.a0.a3.a0.a0 << "), " << a3.a1.a0.a3.a1 << "), " << a3.a1.a0.a4
+      << ", ((" << a3.a1.a0.a5.a0.a0 << "), (" << a3.a1.a0.a5.a1.a0 << ")), "
+      << a3.a1.a0.a6 << "), ((" << a3.a1.a1.a0.a0 << ", " << a3.a1.a1.a0.a1
+      << "), (" << a3.a1.a1.a1.a0 << ")), " << a3.a1.a2 << ", " << a3.a1.a3
+      << "), ((" << a3.a2.a0.a0 << ", ((" << a3.a2.a0.a1.a0.a0 << ", "
+      << a3.a2.a0.a1.a0.a1 << "), (" << a3.a2.a0.a1.a1.a0 << ")), "
+      << a3.a2.a0.a2 << ", ((" << a3.a2.a0.a3.a0.a0 << "), " << a3.a2.a0.a3.a1
+      << "), " << a3.a2.a0.a4 << ", ((" << a3.a2.a0.a5.a0.a0 << "), ("
+      << a3.a2.a0.a5.a1.a0 << ")), " << a3.a2.a0.a6 << "), ((" << a3.a2.a1.a0.a0
+      << ", " << a3.a2.a1.a0.a1 << "), (" << a3.a2.a1.a1.a0 << ")), "
+      << a3.a2.a2 << ", " << a3.a2.a3 << "), " << a3.a3 << "))"
+      << "\n";
+
+  double result = 0;
+
+  result += a0.a0;
+  result += a0.a1.a0.a0;
+  result += a0.a1.a0.a1.a0.a0;
+  result += a0.a1.a0.a1.a0.a1;
+  result += a0.a1.a0.a1.a1.a0;
+  result += a0.a1.a0.a2;
+  result += a0.a1.a0.a3.a0.a0;
+  result += a0.a1.a0.a3.a1;
+  result += a0.a1.a0.a4;
+  result += a0.a1.a0.a5.a0.a0;
+  result += a0.a1.a0.a5.a1.a0;
+  result += a0.a1.a0.a6;
+  result += a0.a1.a1.a0.a0;
+  result += a0.a1.a1.a0.a1;
+  result += a0.a1.a1.a1.a0;
+  result += a0.a1.a2;
+  result += a0.a1.a3;
+  result += a0.a2.a0.a0;
+  result += a0.a2.a0.a1.a0.a0;
+  result += a0.a2.a0.a1.a0.a1;
+  result += a0.a2.a0.a1.a1.a0;
+  result += a0.a2.a0.a2;
+  result += a0.a2.a0.a3.a0.a0;
+  result += a0.a2.a0.a3.a1;
+  result += a0.a2.a0.a4;
+  result += a0.a2.a0.a5.a0.a0;
+  result += a0.a2.a0.a5.a1.a0;
+  result += a0.a2.a0.a6;
+  result += a0.a2.a1.a0.a0;
+  result += a0.a2.a1.a0.a1;
+  result += a0.a2.a1.a1.a0;
+  result += a0.a2.a2;
+  result += a0.a2.a3;
+  result += a0.a3;
+  result += a1.a0;
+  result += a1.a1.a0.a0;
+  result += a1.a1.a0.a1.a0.a0;
+  result += a1.a1.a0.a1.a0.a1;
+  result += a1.a1.a0.a1.a1.a0;
+  result += a1.a1.a0.a2;
+  result += a1.a1.a0.a3.a0.a0;
+  result += a1.a1.a0.a3.a1;
+  result += a1.a1.a0.a4;
+  result += a1.a1.a0.a5.a0.a0;
+  result += a1.a1.a0.a5.a1.a0;
+  result += a1.a1.a0.a6;
+  result += a1.a1.a1.a0.a0;
+  result += a1.a1.a1.a0.a1;
+  result += a1.a1.a1.a1.a0;
+  result += a1.a1.a2;
+  result += a1.a1.a3;
+  result += a1.a2.a0.a0;
+  result += a1.a2.a0.a1.a0.a0;
+  result += a1.a2.a0.a1.a0.a1;
+  result += a1.a2.a0.a1.a1.a0;
+  result += a1.a2.a0.a2;
+  result += a1.a2.a0.a3.a0.a0;
+  result += a1.a2.a0.a3.a1;
+  result += a1.a2.a0.a4;
+  result += a1.a2.a0.a5.a0.a0;
+  result += a1.a2.a0.a5.a1.a0;
+  result += a1.a2.a0.a6;
+  result += a1.a2.a1.a0.a0;
+  result += a1.a2.a1.a0.a1;
+  result += a1.a2.a1.a1.a0;
+  result += a1.a2.a2;
+  result += a1.a2.a3;
+  result += a1.a3;
+  result += a2.a0;
+  result += a2.a1.a0.a0;
+  result += a2.a1.a0.a1.a0.a0;
+  result += a2.a1.a0.a1.a0.a1;
+  result += a2.a1.a0.a1.a1.a0;
+  result += a2.a1.a0.a2;
+  result += a2.a1.a0.a3.a0.a0;
+  result += a2.a1.a0.a3.a1;
+  result += a2.a1.a0.a4;
+  result += a2.a1.a0.a5.a0.a0;
+  result += a2.a1.a0.a5.a1.a0;
+  result += a2.a1.a0.a6;
+  result += a2.a1.a1.a0.a0;
+  result += a2.a1.a1.a0.a1;
+  result += a2.a1.a1.a1.a0;
+  result += a2.a1.a2;
+  result += a2.a1.a3;
+  result += a2.a2.a0.a0;
+  result += a2.a2.a0.a1.a0.a0;
+  result += a2.a2.a0.a1.a0.a1;
+  result += a2.a2.a0.a1.a1.a0;
+  result += a2.a2.a0.a2;
+  result += a2.a2.a0.a3.a0.a0;
+  result += a2.a2.a0.a3.a1;
+  result += a2.a2.a0.a4;
+  result += a2.a2.a0.a5.a0.a0;
+  result += a2.a2.a0.a5.a1.a0;
+  result += a2.a2.a0.a6;
+  result += a2.a2.a1.a0.a0;
+  result += a2.a2.a1.a0.a1;
+  result += a2.a2.a1.a1.a0;
+  result += a2.a2.a2;
+  result += a2.a2.a3;
+  result += a2.a3;
+  result += a3.a0;
+  result += a3.a1.a0.a0;
+  result += a3.a1.a0.a1.a0.a0;
+  result += a3.a1.a0.a1.a0.a1;
+  result += a3.a1.a0.a1.a1.a0;
+  result += a3.a1.a0.a2;
+  result += a3.a1.a0.a3.a0.a0;
+  result += a3.a1.a0.a3.a1;
+  result += a3.a1.a0.a4;
+  result += a3.a1.a0.a5.a0.a0;
+  result += a3.a1.a0.a5.a1.a0;
+  result += a3.a1.a0.a6;
+  result += a3.a1.a1.a0.a0;
+  result += a3.a1.a1.a0.a1;
+  result += a3.a1.a1.a1.a0;
+  result += a3.a1.a2;
+  result += a3.a1.a3;
+  result += a3.a2.a0.a0;
+  result += a3.a2.a0.a1.a0.a0;
+  result += a3.a2.a0.a1.a0.a1;
+  result += a3.a2.a0.a1.a1.a0;
+  result += a3.a2.a0.a2;
+  result += a3.a2.a0.a3.a0.a0;
+  result += a3.a2.a0.a3.a1;
+  result += a3.a2.a0.a4;
+  result += a3.a2.a0.a5.a0.a0;
+  result += a3.a2.a0.a5.a1.a0;
+  result += a3.a2.a0.a6;
+  result += a3.a2.a1.a0.a0;
+  result += a3.a2.a1.a0.a1;
+  result += a3.a2.a1.a1.a0;
+  result += a3.a2.a2;
+  result += a3.a2.a3;
+  result += a3.a3;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
 // Smallest struct with data.
 DART_EXPORT Struct1ByteInt ReturnStruct1ByteInt(int8_t a0) {
   std::cout << "ReturnStruct1ByteInt"
@@ -3689,6 +4395,349 @@ DART_EXPORT StructAlignmentInt64 ReturnStructAlignmentInt64(int8_t a0,
   std::cout << "result = "
             << "(" << static_cast<int>(result.a0) << ", " << result.a1 << ", "
             << static_cast<int>(result.a2) << ")"
+            << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Simple nested struct.
+DART_EXPORT Struct8BytesNestedInt
+ReturnStruct8BytesNestedInt(Struct4BytesHomogeneousInt16 a0,
+                            Struct4BytesHomogeneousInt16 a1) {
+  std::cout << "ReturnStruct8BytesNestedInt"
+            << "((" << a0.a0 << ", " << a0.a1 << "), (" << a1.a0 << ", "
+            << a1.a1 << "))"
+            << "\n";
+
+  Struct8BytesNestedInt result;
+
+  result.a0.a0 = a0.a0;
+  result.a0.a1 = a0.a1;
+  result.a1.a0 = a1.a0;
+  result.a1.a1 = a1.a1;
+
+  std::cout << "result = "
+            << "((" << result.a0.a0 << ", " << result.a0.a1 << "), ("
+            << result.a1.a0 << ", " << result.a1.a1 << "))"
+            << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Simple nested struct with floats.
+DART_EXPORT Struct8BytesNestedFloat
+ReturnStruct8BytesNestedFloat(Struct4BytesFloat a0, Struct4BytesFloat a1) {
+  std::cout << "ReturnStruct8BytesNestedFloat"
+            << "((" << a0.a0 << "), (" << a1.a0 << "))"
+            << "\n";
+
+  Struct8BytesNestedFloat result;
+
+  result.a0.a0 = a0.a0;
+  result.a1.a0 = a1.a0;
+
+  std::cout << "result = "
+            << "((" << result.a0.a0 << "), (" << result.a1.a0 << "))"
+            << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// The nesting is irregular, testing homogenous float rules on arm and arm64,
+// and the fpu register usage on x64.
+DART_EXPORT Struct8BytesNestedFloat2
+ReturnStruct8BytesNestedFloat2(Struct4BytesFloat a0, float a1) {
+  std::cout << "ReturnStruct8BytesNestedFloat2"
+            << "((" << a0.a0 << "), " << a1 << ")"
+            << "\n";
+
+  Struct8BytesNestedFloat2 result;
+
+  result.a0.a0 = a0.a0;
+  result.a1 = a1;
+
+  std::cout << "result = "
+            << "((" << result.a0.a0 << "), " << result.a1 << ")"
+            << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Simple nested struct with mixed members.
+DART_EXPORT Struct8BytesNestedMixed
+ReturnStruct8BytesNestedMixed(Struct4BytesHomogeneousInt16 a0,
+                              Struct4BytesFloat a1) {
+  std::cout << "ReturnStruct8BytesNestedMixed"
+            << "((" << a0.a0 << ", " << a0.a1 << "), (" << a1.a0 << "))"
+            << "\n";
+
+  Struct8BytesNestedMixed result;
+
+  result.a0.a0 = a0.a0;
+  result.a0.a1 = a0.a1;
+  result.a1.a0 = a1.a0;
+
+  std::cout << "result = "
+            << "((" << result.a0.a0 << ", " << result.a0.a1 << "), ("
+            << result.a1.a0 << "))"
+            << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Deeper nested struct to test recursive member access.
+DART_EXPORT Struct16BytesNestedInt
+ReturnStruct16BytesNestedInt(Struct8BytesNestedInt a0,
+                             Struct8BytesNestedInt a1) {
+  std::cout << "ReturnStruct16BytesNestedInt"
+            << "(((" << a0.a0.a0 << ", " << a0.a0.a1 << "), (" << a0.a1.a0
+            << ", " << a0.a1.a1 << ")), ((" << a1.a0.a0 << ", " << a1.a0.a1
+            << "), (" << a1.a1.a0 << ", " << a1.a1.a1 << ")))"
+            << "\n";
+
+  Struct16BytesNestedInt result;
+
+  result.a0.a0.a0 = a0.a0.a0;
+  result.a0.a0.a1 = a0.a0.a1;
+  result.a0.a1.a0 = a0.a1.a0;
+  result.a0.a1.a1 = a0.a1.a1;
+  result.a1.a0.a0 = a1.a0.a0;
+  result.a1.a0.a1 = a1.a0.a1;
+  result.a1.a1.a0 = a1.a1.a0;
+  result.a1.a1.a1 = a1.a1.a1;
+
+  std::cout << "result = "
+            << "(((" << result.a0.a0.a0 << ", " << result.a0.a0.a1 << "), ("
+            << result.a0.a1.a0 << ", " << result.a0.a1.a1 << ")), (("
+            << result.a1.a0.a0 << ", " << result.a1.a0.a1 << "), ("
+            << result.a1.a1.a0 << ", " << result.a1.a1.a1 << ")))"
+            << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Even deeper nested struct to test recursive member access.
+DART_EXPORT Struct32BytesNestedInt
+ReturnStruct32BytesNestedInt(Struct16BytesNestedInt a0,
+                             Struct16BytesNestedInt a1) {
+  std::cout << "ReturnStruct32BytesNestedInt"
+            << "((((" << a0.a0.a0.a0 << ", " << a0.a0.a0.a1 << "), ("
+            << a0.a0.a1.a0 << ", " << a0.a0.a1.a1 << ")), ((" << a0.a1.a0.a0
+            << ", " << a0.a1.a0.a1 << "), (" << a0.a1.a1.a0 << ", "
+            << a0.a1.a1.a1 << "))), (((" << a1.a0.a0.a0 << ", " << a1.a0.a0.a1
+            << "), (" << a1.a0.a1.a0 << ", " << a1.a0.a1.a1 << ")), (("
+            << a1.a1.a0.a0 << ", " << a1.a1.a0.a1 << "), (" << a1.a1.a1.a0
+            << ", " << a1.a1.a1.a1 << "))))"
+            << "\n";
+
+  Struct32BytesNestedInt result;
+
+  result.a0.a0.a0.a0 = a0.a0.a0.a0;
+  result.a0.a0.a0.a1 = a0.a0.a0.a1;
+  result.a0.a0.a1.a0 = a0.a0.a1.a0;
+  result.a0.a0.a1.a1 = a0.a0.a1.a1;
+  result.a0.a1.a0.a0 = a0.a1.a0.a0;
+  result.a0.a1.a0.a1 = a0.a1.a0.a1;
+  result.a0.a1.a1.a0 = a0.a1.a1.a0;
+  result.a0.a1.a1.a1 = a0.a1.a1.a1;
+  result.a1.a0.a0.a0 = a1.a0.a0.a0;
+  result.a1.a0.a0.a1 = a1.a0.a0.a1;
+  result.a1.a0.a1.a0 = a1.a0.a1.a0;
+  result.a1.a0.a1.a1 = a1.a0.a1.a1;
+  result.a1.a1.a0.a0 = a1.a1.a0.a0;
+  result.a1.a1.a0.a1 = a1.a1.a0.a1;
+  result.a1.a1.a1.a0 = a1.a1.a1.a0;
+  result.a1.a1.a1.a1 = a1.a1.a1.a1;
+
+  std::cout << "result = "
+            << "((((" << result.a0.a0.a0.a0 << ", " << result.a0.a0.a0.a1
+            << "), (" << result.a0.a0.a1.a0 << ", " << result.a0.a0.a1.a1
+            << ")), ((" << result.a0.a1.a0.a0 << ", " << result.a0.a1.a0.a1
+            << "), (" << result.a0.a1.a1.a0 << ", " << result.a0.a1.a1.a1
+            << "))), (((" << result.a1.a0.a0.a0 << ", " << result.a1.a0.a0.a1
+            << "), (" << result.a1.a0.a1.a0 << ", " << result.a1.a0.a1.a1
+            << ")), ((" << result.a1.a1.a0.a0 << ", " << result.a1.a1.a0.a1
+            << "), (" << result.a1.a1.a1.a0 << ", " << result.a1.a1.a1.a1
+            << "))))"
+            << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Test alignment and padding of nested struct with 16 byte int.
+DART_EXPORT StructNestedIntStructAlignmentInt16
+ReturnStructNestedIntStructAlignmentInt16(StructAlignmentInt16 a0,
+                                          StructAlignmentInt16 a1) {
+  std::cout << "ReturnStructNestedIntStructAlignmentInt16"
+            << "((" << static_cast<int>(a0.a0) << ", " << a0.a1 << ", "
+            << static_cast<int>(a0.a2) << "), (" << static_cast<int>(a1.a0)
+            << ", " << a1.a1 << ", " << static_cast<int>(a1.a2) << "))"
+            << "\n";
+
+  StructNestedIntStructAlignmentInt16 result;
+
+  result.a0.a0 = a0.a0;
+  result.a0.a1 = a0.a1;
+  result.a0.a2 = a0.a2;
+  result.a1.a0 = a1.a0;
+  result.a1.a1 = a1.a1;
+  result.a1.a2 = a1.a2;
+
+  std::cout << "result = "
+            << "((" << static_cast<int>(result.a0.a0) << ", " << result.a0.a1
+            << ", " << static_cast<int>(result.a0.a2) << "), ("
+            << static_cast<int>(result.a1.a0) << ", " << result.a1.a1 << ", "
+            << static_cast<int>(result.a1.a2) << "))"
+            << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Test alignment and padding of nested struct with 32 byte int.
+DART_EXPORT StructNestedIntStructAlignmentInt32
+ReturnStructNestedIntStructAlignmentInt32(StructAlignmentInt32 a0,
+                                          StructAlignmentInt32 a1) {
+  std::cout << "ReturnStructNestedIntStructAlignmentInt32"
+            << "((" << static_cast<int>(a0.a0) << ", " << a0.a1 << ", "
+            << static_cast<int>(a0.a2) << "), (" << static_cast<int>(a1.a0)
+            << ", " << a1.a1 << ", " << static_cast<int>(a1.a2) << "))"
+            << "\n";
+
+  StructNestedIntStructAlignmentInt32 result;
+
+  result.a0.a0 = a0.a0;
+  result.a0.a1 = a0.a1;
+  result.a0.a2 = a0.a2;
+  result.a1.a0 = a1.a0;
+  result.a1.a1 = a1.a1;
+  result.a1.a2 = a1.a2;
+
+  std::cout << "result = "
+            << "((" << static_cast<int>(result.a0.a0) << ", " << result.a0.a1
+            << ", " << static_cast<int>(result.a0.a2) << "), ("
+            << static_cast<int>(result.a1.a0) << ", " << result.a1.a1 << ", "
+            << static_cast<int>(result.a1.a2) << "))"
+            << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Test alignment and padding of nested struct with 64 byte int.
+DART_EXPORT StructNestedIntStructAlignmentInt64
+ReturnStructNestedIntStructAlignmentInt64(StructAlignmentInt64 a0,
+                                          StructAlignmentInt64 a1) {
+  std::cout << "ReturnStructNestedIntStructAlignmentInt64"
+            << "((" << static_cast<int>(a0.a0) << ", " << a0.a1 << ", "
+            << static_cast<int>(a0.a2) << "), (" << static_cast<int>(a1.a0)
+            << ", " << a1.a1 << ", " << static_cast<int>(a1.a2) << "))"
+            << "\n";
+
+  StructNestedIntStructAlignmentInt64 result;
+
+  result.a0.a0 = a0.a0;
+  result.a0.a1 = a0.a1;
+  result.a0.a2 = a0.a2;
+  result.a1.a0 = a1.a0;
+  result.a1.a1 = a1.a1;
+  result.a1.a2 = a1.a2;
+
+  std::cout << "result = "
+            << "((" << static_cast<int>(result.a0.a0) << ", " << result.a0.a1
+            << ", " << static_cast<int>(result.a0.a2) << "), ("
+            << static_cast<int>(result.a1.a0) << ", " << result.a1.a1 << ", "
+            << static_cast<int>(result.a1.a2) << "))"
+            << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Return big irregular struct as smoke test.
+DART_EXPORT StructNestedIrregularEvenBigger
+ReturnStructNestedIrregularEvenBigger(uint64_t a0,
+                                      StructNestedIrregularBigger a1,
+                                      StructNestedIrregularBigger a2,
+                                      double a3) {
+  std::cout << "ReturnStructNestedIrregularEvenBigger"
+            << "(" << a0 << ", ((" << a1.a0.a0 << ", ((" << a1.a0.a1.a0.a0
+            << ", " << a1.a0.a1.a0.a1 << "), (" << a1.a0.a1.a1.a0 << ")), "
+            << a1.a0.a2 << ", ((" << a1.a0.a3.a0.a0 << "), " << a1.a0.a3.a1
+            << "), " << a1.a0.a4 << ", ((" << a1.a0.a5.a0.a0 << "), ("
+            << a1.a0.a5.a1.a0 << ")), " << a1.a0.a6 << "), ((" << a1.a1.a0.a0
+            << ", " << a1.a1.a0.a1 << "), (" << a1.a1.a1.a0 << ")), " << a1.a2
+            << ", " << a1.a3 << "), ((" << a2.a0.a0 << ", ((" << a2.a0.a1.a0.a0
+            << ", " << a2.a0.a1.a0.a1 << "), (" << a2.a0.a1.a1.a0 << ")), "
+            << a2.a0.a2 << ", ((" << a2.a0.a3.a0.a0 << "), " << a2.a0.a3.a1
+            << "), " << a2.a0.a4 << ", ((" << a2.a0.a5.a0.a0 << "), ("
+            << a2.a0.a5.a1.a0 << ")), " << a2.a0.a6 << "), ((" << a2.a1.a0.a0
+            << ", " << a2.a1.a0.a1 << "), (" << a2.a1.a1.a0 << ")), " << a2.a2
+            << ", " << a2.a3 << "), " << a3 << ")"
+            << "\n";
+
+  StructNestedIrregularEvenBigger result;
+
+  result.a0 = a0;
+  result.a1.a0.a0 = a1.a0.a0;
+  result.a1.a0.a1.a0.a0 = a1.a0.a1.a0.a0;
+  result.a1.a0.a1.a0.a1 = a1.a0.a1.a0.a1;
+  result.a1.a0.a1.a1.a0 = a1.a0.a1.a1.a0;
+  result.a1.a0.a2 = a1.a0.a2;
+  result.a1.a0.a3.a0.a0 = a1.a0.a3.a0.a0;
+  result.a1.a0.a3.a1 = a1.a0.a3.a1;
+  result.a1.a0.a4 = a1.a0.a4;
+  result.a1.a0.a5.a0.a0 = a1.a0.a5.a0.a0;
+  result.a1.a0.a5.a1.a0 = a1.a0.a5.a1.a0;
+  result.a1.a0.a6 = a1.a0.a6;
+  result.a1.a1.a0.a0 = a1.a1.a0.a0;
+  result.a1.a1.a0.a1 = a1.a1.a0.a1;
+  result.a1.a1.a1.a0 = a1.a1.a1.a0;
+  result.a1.a2 = a1.a2;
+  result.a1.a3 = a1.a3;
+  result.a2.a0.a0 = a2.a0.a0;
+  result.a2.a0.a1.a0.a0 = a2.a0.a1.a0.a0;
+  result.a2.a0.a1.a0.a1 = a2.a0.a1.a0.a1;
+  result.a2.a0.a1.a1.a0 = a2.a0.a1.a1.a0;
+  result.a2.a0.a2 = a2.a0.a2;
+  result.a2.a0.a3.a0.a0 = a2.a0.a3.a0.a0;
+  result.a2.a0.a3.a1 = a2.a0.a3.a1;
+  result.a2.a0.a4 = a2.a0.a4;
+  result.a2.a0.a5.a0.a0 = a2.a0.a5.a0.a0;
+  result.a2.a0.a5.a1.a0 = a2.a0.a5.a1.a0;
+  result.a2.a0.a6 = a2.a0.a6;
+  result.a2.a1.a0.a0 = a2.a1.a0.a0;
+  result.a2.a1.a0.a1 = a2.a1.a0.a1;
+  result.a2.a1.a1.a0 = a2.a1.a1.a0;
+  result.a2.a2 = a2.a2;
+  result.a2.a3 = a2.a3;
+  result.a3 = a3;
+
+  std::cout << "result = "
+            << "(" << result.a0 << ", ((" << result.a1.a0.a0 << ", (("
+            << result.a1.a0.a1.a0.a0 << ", " << result.a1.a0.a1.a0.a1 << "), ("
+            << result.a1.a0.a1.a1.a0 << ")), " << result.a1.a0.a2 << ", (("
+            << result.a1.a0.a3.a0.a0 << "), " << result.a1.a0.a3.a1 << "), "
+            << result.a1.a0.a4 << ", ((" << result.a1.a0.a5.a0.a0 << "), ("
+            << result.a1.a0.a5.a1.a0 << ")), " << result.a1.a0.a6 << "), (("
+            << result.a1.a1.a0.a0 << ", " << result.a1.a1.a0.a1 << "), ("
+            << result.a1.a1.a1.a0 << ")), " << result.a1.a2 << ", "
+            << result.a1.a3 << "), ((" << result.a2.a0.a0 << ", (("
+            << result.a2.a0.a1.a0.a0 << ", " << result.a2.a0.a1.a0.a1 << "), ("
+            << result.a2.a0.a1.a1.a0 << ")), " << result.a2.a0.a2 << ", (("
+            << result.a2.a0.a3.a0.a0 << "), " << result.a2.a0.a3.a1 << "), "
+            << result.a2.a0.a4 << ", ((" << result.a2.a0.a5.a0.a0 << "), ("
+            << result.a2.a0.a5.a1.a0 << ")), " << result.a2.a0.a6 << "), (("
+            << result.a2.a1.a0.a0 << ", " << result.a2.a1.a0.a1 << "), ("
+            << result.a2.a1.a1.a0 << ")), " << result.a2.a2 << ", "
+            << result.a2.a3 << "), " << result.a3 << ")"
             << "\n";
 
   return result;
@@ -6790,6 +7839,874 @@ DART_EXPORT intptr_t TestPassStructAlignmentInt64(
 }
 
 // Used for testing structs by value.
+// Simple nested struct. No alignment gaps on any architectures.
+// 10 arguments exhaust registers on all platforms.
+DART_EXPORT intptr_t TestPassStruct8BytesNestedIntx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    int64_t (*f)(Struct8BytesNestedInt a0,
+                 Struct8BytesNestedInt a1,
+                 Struct8BytesNestedInt a2,
+                 Struct8BytesNestedInt a3,
+                 Struct8BytesNestedInt a4,
+                 Struct8BytesNestedInt a5,
+                 Struct8BytesNestedInt a6,
+                 Struct8BytesNestedInt a7,
+                 Struct8BytesNestedInt a8,
+                 Struct8BytesNestedInt a9)) {
+  Struct8BytesNestedInt a0;
+  Struct8BytesNestedInt a1;
+  Struct8BytesNestedInt a2;
+  Struct8BytesNestedInt a3;
+  Struct8BytesNestedInt a4;
+  Struct8BytesNestedInt a5;
+  Struct8BytesNestedInt a6;
+  Struct8BytesNestedInt a7;
+  Struct8BytesNestedInt a8;
+  Struct8BytesNestedInt a9;
+
+  a0.a0.a0 = -1;
+  a0.a0.a1 = 2;
+  a0.a1.a0 = -3;
+  a0.a1.a1 = 4;
+  a1.a0.a0 = -5;
+  a1.a0.a1 = 6;
+  a1.a1.a0 = -7;
+  a1.a1.a1 = 8;
+  a2.a0.a0 = -9;
+  a2.a0.a1 = 10;
+  a2.a1.a0 = -11;
+  a2.a1.a1 = 12;
+  a3.a0.a0 = -13;
+  a3.a0.a1 = 14;
+  a3.a1.a0 = -15;
+  a3.a1.a1 = 16;
+  a4.a0.a0 = -17;
+  a4.a0.a1 = 18;
+  a4.a1.a0 = -19;
+  a4.a1.a1 = 20;
+  a5.a0.a0 = -21;
+  a5.a0.a1 = 22;
+  a5.a1.a0 = -23;
+  a5.a1.a1 = 24;
+  a6.a0.a0 = -25;
+  a6.a0.a1 = 26;
+  a6.a1.a0 = -27;
+  a6.a1.a1 = 28;
+  a7.a0.a0 = -29;
+  a7.a0.a1 = 30;
+  a7.a1.a0 = -31;
+  a7.a1.a1 = 32;
+  a8.a0.a0 = -33;
+  a8.a0.a1 = 34;
+  a8.a1.a0 = -35;
+  a8.a1.a1 = 36;
+  a9.a0.a0 = -37;
+  a9.a0.a1 = 38;
+  a9.a1.a0 = -39;
+  a9.a1.a1 = 40;
+
+  std::cout << "Calling TestPassStruct8BytesNestedIntx10("
+            << "(((" << a0.a0.a0 << ", " << a0.a0.a1 << "), (" << a0.a1.a0
+            << ", " << a0.a1.a1 << ")), ((" << a1.a0.a0 << ", " << a1.a0.a1
+            << "), (" << a1.a1.a0 << ", " << a1.a1.a1 << ")), ((" << a2.a0.a0
+            << ", " << a2.a0.a1 << "), (" << a2.a1.a0 << ", " << a2.a1.a1
+            << ")), ((" << a3.a0.a0 << ", " << a3.a0.a1 << "), (" << a3.a1.a0
+            << ", " << a3.a1.a1 << ")), ((" << a4.a0.a0 << ", " << a4.a0.a1
+            << "), (" << a4.a1.a0 << ", " << a4.a1.a1 << ")), ((" << a5.a0.a0
+            << ", " << a5.a0.a1 << "), (" << a5.a1.a0 << ", " << a5.a1.a1
+            << ")), ((" << a6.a0.a0 << ", " << a6.a0.a1 << "), (" << a6.a1.a0
+            << ", " << a6.a1.a1 << ")), ((" << a7.a0.a0 << ", " << a7.a0.a1
+            << "), (" << a7.a1.a0 << ", " << a7.a1.a1 << ")), ((" << a8.a0.a0
+            << ", " << a8.a0.a1 << "), (" << a8.a1.a0 << ", " << a8.a1.a1
+            << ")), ((" << a9.a0.a0 << ", " << a9.a0.a1 << "), (" << a9.a1.a0
+            << ", " << a9.a1.a1 << ")))"
+            << ")\n";
+
+  int64_t result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_EQ(20, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0.a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_EQ(0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0.a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_EQ(0, result);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Simple nested struct. No alignment gaps on any architectures.
+// 10 arguments exhaust fpu registers on all platforms.
+DART_EXPORT intptr_t TestPassStruct8BytesNestedFloatx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    float (*f)(Struct8BytesNestedFloat a0,
+               Struct8BytesNestedFloat a1,
+               Struct8BytesNestedFloat a2,
+               Struct8BytesNestedFloat a3,
+               Struct8BytesNestedFloat a4,
+               Struct8BytesNestedFloat a5,
+               Struct8BytesNestedFloat a6,
+               Struct8BytesNestedFloat a7,
+               Struct8BytesNestedFloat a8,
+               Struct8BytesNestedFloat a9)) {
+  Struct8BytesNestedFloat a0;
+  Struct8BytesNestedFloat a1;
+  Struct8BytesNestedFloat a2;
+  Struct8BytesNestedFloat a3;
+  Struct8BytesNestedFloat a4;
+  Struct8BytesNestedFloat a5;
+  Struct8BytesNestedFloat a6;
+  Struct8BytesNestedFloat a7;
+  Struct8BytesNestedFloat a8;
+  Struct8BytesNestedFloat a9;
+
+  a0.a0.a0 = -1.0;
+  a0.a1.a0 = 2.0;
+  a1.a0.a0 = -3.0;
+  a1.a1.a0 = 4.0;
+  a2.a0.a0 = -5.0;
+  a2.a1.a0 = 6.0;
+  a3.a0.a0 = -7.0;
+  a3.a1.a0 = 8.0;
+  a4.a0.a0 = -9.0;
+  a4.a1.a0 = 10.0;
+  a5.a0.a0 = -11.0;
+  a5.a1.a0 = 12.0;
+  a6.a0.a0 = -13.0;
+  a6.a1.a0 = 14.0;
+  a7.a0.a0 = -15.0;
+  a7.a1.a0 = 16.0;
+  a8.a0.a0 = -17.0;
+  a8.a1.a0 = 18.0;
+  a9.a0.a0 = -19.0;
+  a9.a1.a0 = 20.0;
+
+  std::cout << "Calling TestPassStruct8BytesNestedFloatx10("
+            << "(((" << a0.a0.a0 << "), (" << a0.a1.a0 << ")), ((" << a1.a0.a0
+            << "), (" << a1.a1.a0 << ")), ((" << a2.a0.a0 << "), (" << a2.a1.a0
+            << ")), ((" << a3.a0.a0 << "), (" << a3.a1.a0 << ")), (("
+            << a4.a0.a0 << "), (" << a4.a1.a0 << ")), ((" << a5.a0.a0 << "), ("
+            << a5.a1.a0 << ")), ((" << a6.a0.a0 << "), (" << a6.a1.a0
+            << ")), ((" << a7.a0.a0 << "), (" << a7.a1.a0 << ")), (("
+            << a8.a0.a0 << "), (" << a8.a1.a0 << ")), ((" << a9.a0.a0 << "), ("
+            << a9.a1.a0 << ")))"
+            << ")\n";
+
+  float result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_APPROX(10.0, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0.a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0.a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Simple nested struct. No alignment gaps on any architectures.
+// 10 arguments exhaust fpu registers on all platforms.
+// The nesting is irregular, testing homogenous float rules on arm and arm64,
+// and the fpu register usage on x64.
+DART_EXPORT intptr_t TestPassStruct8BytesNestedFloat2x10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    float (*f)(Struct8BytesNestedFloat2 a0,
+               Struct8BytesNestedFloat2 a1,
+               Struct8BytesNestedFloat2 a2,
+               Struct8BytesNestedFloat2 a3,
+               Struct8BytesNestedFloat2 a4,
+               Struct8BytesNestedFloat2 a5,
+               Struct8BytesNestedFloat2 a6,
+               Struct8BytesNestedFloat2 a7,
+               Struct8BytesNestedFloat2 a8,
+               Struct8BytesNestedFloat2 a9)) {
+  Struct8BytesNestedFloat2 a0;
+  Struct8BytesNestedFloat2 a1;
+  Struct8BytesNestedFloat2 a2;
+  Struct8BytesNestedFloat2 a3;
+  Struct8BytesNestedFloat2 a4;
+  Struct8BytesNestedFloat2 a5;
+  Struct8BytesNestedFloat2 a6;
+  Struct8BytesNestedFloat2 a7;
+  Struct8BytesNestedFloat2 a8;
+  Struct8BytesNestedFloat2 a9;
+
+  a0.a0.a0 = -1.0;
+  a0.a1 = 2.0;
+  a1.a0.a0 = -3.0;
+  a1.a1 = 4.0;
+  a2.a0.a0 = -5.0;
+  a2.a1 = 6.0;
+  a3.a0.a0 = -7.0;
+  a3.a1 = 8.0;
+  a4.a0.a0 = -9.0;
+  a4.a1 = 10.0;
+  a5.a0.a0 = -11.0;
+  a5.a1 = 12.0;
+  a6.a0.a0 = -13.0;
+  a6.a1 = 14.0;
+  a7.a0.a0 = -15.0;
+  a7.a1 = 16.0;
+  a8.a0.a0 = -17.0;
+  a8.a1 = 18.0;
+  a9.a0.a0 = -19.0;
+  a9.a1 = 20.0;
+
+  std::cout << "Calling TestPassStruct8BytesNestedFloat2x10("
+            << "(((" << a0.a0.a0 << "), " << a0.a1 << "), ((" << a1.a0.a0
+            << "), " << a1.a1 << "), ((" << a2.a0.a0 << "), " << a2.a1
+            << "), ((" << a3.a0.a0 << "), " << a3.a1 << "), ((" << a4.a0.a0
+            << "), " << a4.a1 << "), ((" << a5.a0.a0 << "), " << a5.a1
+            << "), ((" << a6.a0.a0 << "), " << a6.a1 << "), ((" << a7.a0.a0
+            << "), " << a7.a1 << "), ((" << a8.a0.a0 << "), " << a8.a1
+            << "), ((" << a9.a0.a0 << "), " << a9.a1 << "))"
+            << ")\n";
+
+  float result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_APPROX(10.0, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0.a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0.a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Simple nested struct. No alignment gaps on any architectures.
+// 10 arguments exhaust all registers on all platforms.
+DART_EXPORT intptr_t TestPassStruct8BytesNestedMixedx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    double (*f)(Struct8BytesNestedMixed a0,
+                Struct8BytesNestedMixed a1,
+                Struct8BytesNestedMixed a2,
+                Struct8BytesNestedMixed a3,
+                Struct8BytesNestedMixed a4,
+                Struct8BytesNestedMixed a5,
+                Struct8BytesNestedMixed a6,
+                Struct8BytesNestedMixed a7,
+                Struct8BytesNestedMixed a8,
+                Struct8BytesNestedMixed a9)) {
+  Struct8BytesNestedMixed a0;
+  Struct8BytesNestedMixed a1;
+  Struct8BytesNestedMixed a2;
+  Struct8BytesNestedMixed a3;
+  Struct8BytesNestedMixed a4;
+  Struct8BytesNestedMixed a5;
+  Struct8BytesNestedMixed a6;
+  Struct8BytesNestedMixed a7;
+  Struct8BytesNestedMixed a8;
+  Struct8BytesNestedMixed a9;
+
+  a0.a0.a0 = -1;
+  a0.a0.a1 = 2;
+  a0.a1.a0 = -3.0;
+  a1.a0.a0 = 4;
+  a1.a0.a1 = -5;
+  a1.a1.a0 = 6.0;
+  a2.a0.a0 = -7;
+  a2.a0.a1 = 8;
+  a2.a1.a0 = -9.0;
+  a3.a0.a0 = 10;
+  a3.a0.a1 = -11;
+  a3.a1.a0 = 12.0;
+  a4.a0.a0 = -13;
+  a4.a0.a1 = 14;
+  a4.a1.a0 = -15.0;
+  a5.a0.a0 = 16;
+  a5.a0.a1 = -17;
+  a5.a1.a0 = 18.0;
+  a6.a0.a0 = -19;
+  a6.a0.a1 = 20;
+  a6.a1.a0 = -21.0;
+  a7.a0.a0 = 22;
+  a7.a0.a1 = -23;
+  a7.a1.a0 = 24.0;
+  a8.a0.a0 = -25;
+  a8.a0.a1 = 26;
+  a8.a1.a0 = -27.0;
+  a9.a0.a0 = 28;
+  a9.a0.a1 = -29;
+  a9.a1.a0 = 30.0;
+
+  std::cout << "Calling TestPassStruct8BytesNestedMixedx10("
+            << "(((" << a0.a0.a0 << ", " << a0.a0.a1 << "), (" << a0.a1.a0
+            << ")), ((" << a1.a0.a0 << ", " << a1.a0.a1 << "), (" << a1.a1.a0
+            << ")), ((" << a2.a0.a0 << ", " << a2.a0.a1 << "), (" << a2.a1.a0
+            << ")), ((" << a3.a0.a0 << ", " << a3.a0.a1 << "), (" << a3.a1.a0
+            << ")), ((" << a4.a0.a0 << ", " << a4.a0.a1 << "), (" << a4.a1.a0
+            << ")), ((" << a5.a0.a0 << ", " << a5.a0.a1 << "), (" << a5.a1.a0
+            << ")), ((" << a6.a0.a0 << ", " << a6.a0.a1 << "), (" << a6.a1.a0
+            << ")), ((" << a7.a0.a0 << ", " << a7.a0.a1 << "), (" << a7.a1.a0
+            << ")), ((" << a8.a0.a0 << ", " << a8.a0.a1 << "), (" << a8.a1.a0
+            << ")), ((" << a9.a0.a0 << ", " << a9.a0.a1 << "), (" << a9.a1.a0
+            << ")))"
+            << ")\n";
+
+  double result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_APPROX(15.0, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0.a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0.a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_APPROX(0.0, result);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Deeper nested struct to test recursive member access.
+DART_EXPORT intptr_t TestPassStruct16BytesNestedIntx2(
+    // NOLINTNEXTLINE(whitespace/parens)
+    int64_t (*f)(Struct16BytesNestedInt a0, Struct16BytesNestedInt a1)) {
+  Struct16BytesNestedInt a0;
+  Struct16BytesNestedInt a1;
+
+  a0.a0.a0.a0 = -1;
+  a0.a0.a0.a1 = 2;
+  a0.a0.a1.a0 = -3;
+  a0.a0.a1.a1 = 4;
+  a0.a1.a0.a0 = -5;
+  a0.a1.a0.a1 = 6;
+  a0.a1.a1.a0 = -7;
+  a0.a1.a1.a1 = 8;
+  a1.a0.a0.a0 = -9;
+  a1.a0.a0.a1 = 10;
+  a1.a0.a1.a0 = -11;
+  a1.a0.a1.a1 = 12;
+  a1.a1.a0.a0 = -13;
+  a1.a1.a0.a1 = 14;
+  a1.a1.a1.a0 = -15;
+  a1.a1.a1.a1 = 16;
+
+  std::cout << "Calling TestPassStruct16BytesNestedIntx2("
+            << "((((" << a0.a0.a0.a0 << ", " << a0.a0.a0.a1 << "), ("
+            << a0.a0.a1.a0 << ", " << a0.a0.a1.a1 << ")), ((" << a0.a1.a0.a0
+            << ", " << a0.a1.a0.a1 << "), (" << a0.a1.a1.a0 << ", "
+            << a0.a1.a1.a1 << "))), (((" << a1.a0.a0.a0 << ", " << a1.a0.a0.a1
+            << "), (" << a1.a0.a1.a0 << ", " << a1.a0.a1.a1 << ")), (("
+            << a1.a1.a0.a0 << ", " << a1.a1.a0.a1 << "), (" << a1.a1.a1.a0
+            << ", " << a1.a1.a1.a1 << "))))"
+            << ")\n";
+
+  int64_t result = f(a0, a1);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_EQ(8, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0.a0.a0 = 42;
+
+  result = f(a0, a1);
+
+  CHECK_EQ(0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0.a0.a0 = 84;
+
+  result = f(a0, a1);
+
+  CHECK_EQ(0, result);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Even deeper nested struct to test recursive member access.
+DART_EXPORT intptr_t TestPassStruct32BytesNestedIntx2(
+    // NOLINTNEXTLINE(whitespace/parens)
+    int64_t (*f)(Struct32BytesNestedInt a0, Struct32BytesNestedInt a1)) {
+  Struct32BytesNestedInt a0;
+  Struct32BytesNestedInt a1;
+
+  a0.a0.a0.a0.a0 = -1;
+  a0.a0.a0.a0.a1 = 2;
+  a0.a0.a0.a1.a0 = -3;
+  a0.a0.a0.a1.a1 = 4;
+  a0.a0.a1.a0.a0 = -5;
+  a0.a0.a1.a0.a1 = 6;
+  a0.a0.a1.a1.a0 = -7;
+  a0.a0.a1.a1.a1 = 8;
+  a0.a1.a0.a0.a0 = -9;
+  a0.a1.a0.a0.a1 = 10;
+  a0.a1.a0.a1.a0 = -11;
+  a0.a1.a0.a1.a1 = 12;
+  a0.a1.a1.a0.a0 = -13;
+  a0.a1.a1.a0.a1 = 14;
+  a0.a1.a1.a1.a0 = -15;
+  a0.a1.a1.a1.a1 = 16;
+  a1.a0.a0.a0.a0 = -17;
+  a1.a0.a0.a0.a1 = 18;
+  a1.a0.a0.a1.a0 = -19;
+  a1.a0.a0.a1.a1 = 20;
+  a1.a0.a1.a0.a0 = -21;
+  a1.a0.a1.a0.a1 = 22;
+  a1.a0.a1.a1.a0 = -23;
+  a1.a0.a1.a1.a1 = 24;
+  a1.a1.a0.a0.a0 = -25;
+  a1.a1.a0.a0.a1 = 26;
+  a1.a1.a0.a1.a0 = -27;
+  a1.a1.a0.a1.a1 = 28;
+  a1.a1.a1.a0.a0 = -29;
+  a1.a1.a1.a0.a1 = 30;
+  a1.a1.a1.a1.a0 = -31;
+  a1.a1.a1.a1.a1 = 32;
+
+  std::cout << "Calling TestPassStruct32BytesNestedIntx2("
+            << "(((((" << a0.a0.a0.a0.a0 << ", " << a0.a0.a0.a0.a1 << "), ("
+            << a0.a0.a0.a1.a0 << ", " << a0.a0.a0.a1.a1 << ")), (("
+            << a0.a0.a1.a0.a0 << ", " << a0.a0.a1.a0.a1 << "), ("
+            << a0.a0.a1.a1.a0 << ", " << a0.a0.a1.a1.a1 << "))), ((("
+            << a0.a1.a0.a0.a0 << ", " << a0.a1.a0.a0.a1 << "), ("
+            << a0.a1.a0.a1.a0 << ", " << a0.a1.a0.a1.a1 << ")), (("
+            << a0.a1.a1.a0.a0 << ", " << a0.a1.a1.a0.a1 << "), ("
+            << a0.a1.a1.a1.a0 << ", " << a0.a1.a1.a1.a1 << ")))), (((("
+            << a1.a0.a0.a0.a0 << ", " << a1.a0.a0.a0.a1 << "), ("
+            << a1.a0.a0.a1.a0 << ", " << a1.a0.a0.a1.a1 << ")), (("
+            << a1.a0.a1.a0.a0 << ", " << a1.a0.a1.a0.a1 << "), ("
+            << a1.a0.a1.a1.a0 << ", " << a1.a0.a1.a1.a1 << "))), ((("
+            << a1.a1.a0.a0.a0 << ", " << a1.a1.a0.a0.a1 << "), ("
+            << a1.a1.a0.a1.a0 << ", " << a1.a1.a0.a1.a1 << ")), (("
+            << a1.a1.a1.a0.a0 << ", " << a1.a1.a1.a0.a1 << "), ("
+            << a1.a1.a1.a1.a0 << ", " << a1.a1.a1.a1.a1 << ")))))"
+            << ")\n";
+
+  int64_t result = f(a0, a1);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_EQ(16, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0.a0.a0.a0 = 42;
+
+  result = f(a0, a1);
+
+  CHECK_EQ(0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0.a0.a0.a0 = 84;
+
+  result = f(a0, a1);
+
+  CHECK_EQ(0, result);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Test alignment and padding of nested struct with 16 byte int.
+DART_EXPORT intptr_t TestPassStructNestedIntStructAlignmentInt16(
+    // NOLINTNEXTLINE(whitespace/parens)
+    int64_t (*f)(StructNestedIntStructAlignmentInt16 a0)) {
+  StructNestedIntStructAlignmentInt16 a0;
+
+  a0.a0.a0 = -1;
+  a0.a0.a1 = 2;
+  a0.a0.a2 = -3;
+  a0.a1.a0 = 4;
+  a0.a1.a1 = -5;
+  a0.a1.a2 = 6;
+
+  std::cout << "Calling TestPassStructNestedIntStructAlignmentInt16("
+            << "(((" << static_cast<int>(a0.a0.a0) << ", " << a0.a0.a1 << ", "
+            << static_cast<int>(a0.a0.a2) << "), ("
+            << static_cast<int>(a0.a1.a0) << ", " << a0.a1.a1 << ", "
+            << static_cast<int>(a0.a1.a2) << ")))"
+            << ")\n";
+
+  int64_t result = f(a0);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_EQ(3, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0.a0 = 42;
+
+  result = f(a0);
+
+  CHECK_EQ(0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0.a0 = 84;
+
+  result = f(a0);
+
+  CHECK_EQ(0, result);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Test alignment and padding of nested struct with 32 byte int.
+DART_EXPORT intptr_t TestPassStructNestedIntStructAlignmentInt32(
+    // NOLINTNEXTLINE(whitespace/parens)
+    int64_t (*f)(StructNestedIntStructAlignmentInt32 a0)) {
+  StructNestedIntStructAlignmentInt32 a0;
+
+  a0.a0.a0 = -1;
+  a0.a0.a1 = 2;
+  a0.a0.a2 = -3;
+  a0.a1.a0 = 4;
+  a0.a1.a1 = -5;
+  a0.a1.a2 = 6;
+
+  std::cout << "Calling TestPassStructNestedIntStructAlignmentInt32("
+            << "(((" << static_cast<int>(a0.a0.a0) << ", " << a0.a0.a1 << ", "
+            << static_cast<int>(a0.a0.a2) << "), ("
+            << static_cast<int>(a0.a1.a0) << ", " << a0.a1.a1 << ", "
+            << static_cast<int>(a0.a1.a2) << ")))"
+            << ")\n";
+
+  int64_t result = f(a0);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_EQ(3, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0.a0 = 42;
+
+  result = f(a0);
+
+  CHECK_EQ(0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0.a0 = 84;
+
+  result = f(a0);
+
+  CHECK_EQ(0, result);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Test alignment and padding of nested struct with 64 byte int.
+DART_EXPORT intptr_t TestPassStructNestedIntStructAlignmentInt64(
+    // NOLINTNEXTLINE(whitespace/parens)
+    int64_t (*f)(StructNestedIntStructAlignmentInt64 a0)) {
+  StructNestedIntStructAlignmentInt64 a0;
+
+  a0.a0.a0 = -1;
+  a0.a0.a1 = 2;
+  a0.a0.a2 = -3;
+  a0.a1.a0 = 4;
+  a0.a1.a1 = -5;
+  a0.a1.a2 = 6;
+
+  std::cout << "Calling TestPassStructNestedIntStructAlignmentInt64("
+            << "(((" << static_cast<int>(a0.a0.a0) << ", " << a0.a0.a1 << ", "
+            << static_cast<int>(a0.a0.a2) << "), ("
+            << static_cast<int>(a0.a1.a0) << ", " << a0.a1.a1 << ", "
+            << static_cast<int>(a0.a1.a2) << ")))"
+            << ")\n";
+
+  int64_t result = f(a0);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_EQ(3, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0.a0 = 42;
+
+  result = f(a0);
+
+  CHECK_EQ(0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0.a0 = 84;
+
+  result = f(a0);
+
+  CHECK_EQ(0, result);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Return big irregular struct as smoke test.
+DART_EXPORT intptr_t TestPassStructNestedIrregularEvenBiggerx4(
+    // NOLINTNEXTLINE(whitespace/parens)
+    double (*f)(StructNestedIrregularEvenBigger a0,
+                StructNestedIrregularEvenBigger a1,
+                StructNestedIrregularEvenBigger a2,
+                StructNestedIrregularEvenBigger a3)) {
+  StructNestedIrregularEvenBigger a0;
+  StructNestedIrregularEvenBigger a1;
+  StructNestedIrregularEvenBigger a2;
+  StructNestedIrregularEvenBigger a3;
+
+  a0.a0 = 1;
+  a0.a1.a0.a0 = 2;
+  a0.a1.a0.a1.a0.a0 = -3;
+  a0.a1.a0.a1.a0.a1 = 4;
+  a0.a1.a0.a1.a1.a0 = -5.0;
+  a0.a1.a0.a2 = 6;
+  a0.a1.a0.a3.a0.a0 = -7.0;
+  a0.a1.a0.a3.a1 = 8.0;
+  a0.a1.a0.a4 = 9;
+  a0.a1.a0.a5.a0.a0 = 10.0;
+  a0.a1.a0.a5.a1.a0 = -11.0;
+  a0.a1.a0.a6 = 12;
+  a0.a1.a1.a0.a0 = -13;
+  a0.a1.a1.a0.a1 = 14;
+  a0.a1.a1.a1.a0 = -15.0;
+  a0.a1.a2 = 16.0;
+  a0.a1.a3 = -17.0;
+  a0.a2.a0.a0 = 18;
+  a0.a2.a0.a1.a0.a0 = -19;
+  a0.a2.a0.a1.a0.a1 = 20;
+  a0.a2.a0.a1.a1.a0 = -21.0;
+  a0.a2.a0.a2 = 22;
+  a0.a2.a0.a3.a0.a0 = -23.0;
+  a0.a2.a0.a3.a1 = 24.0;
+  a0.a2.a0.a4 = 25;
+  a0.a2.a0.a5.a0.a0 = 26.0;
+  a0.a2.a0.a5.a1.a0 = -27.0;
+  a0.a2.a0.a6 = 28;
+  a0.a2.a1.a0.a0 = -29;
+  a0.a2.a1.a0.a1 = 30;
+  a0.a2.a1.a1.a0 = -31.0;
+  a0.a2.a2 = 32.0;
+  a0.a2.a3 = -33.0;
+  a0.a3 = 34.0;
+  a1.a0 = 35;
+  a1.a1.a0.a0 = 36;
+  a1.a1.a0.a1.a0.a0 = -37;
+  a1.a1.a0.a1.a0.a1 = 38;
+  a1.a1.a0.a1.a1.a0 = -39.0;
+  a1.a1.a0.a2 = 40;
+  a1.a1.a0.a3.a0.a0 = -41.0;
+  a1.a1.a0.a3.a1 = 42.0;
+  a1.a1.a0.a4 = 43;
+  a1.a1.a0.a5.a0.a0 = 44.0;
+  a1.a1.a0.a5.a1.a0 = -45.0;
+  a1.a1.a0.a6 = 46;
+  a1.a1.a1.a0.a0 = -47;
+  a1.a1.a1.a0.a1 = 48;
+  a1.a1.a1.a1.a0 = -49.0;
+  a1.a1.a2 = 50.0;
+  a1.a1.a3 = -51.0;
+  a1.a2.a0.a0 = 52;
+  a1.a2.a0.a1.a0.a0 = -53;
+  a1.a2.a0.a1.a0.a1 = 54;
+  a1.a2.a0.a1.a1.a0 = -55.0;
+  a1.a2.a0.a2 = 56;
+  a1.a2.a0.a3.a0.a0 = -57.0;
+  a1.a2.a0.a3.a1 = 58.0;
+  a1.a2.a0.a4 = 59;
+  a1.a2.a0.a5.a0.a0 = 60.0;
+  a1.a2.a0.a5.a1.a0 = -61.0;
+  a1.a2.a0.a6 = 62;
+  a1.a2.a1.a0.a0 = -63;
+  a1.a2.a1.a0.a1 = 64;
+  a1.a2.a1.a1.a0 = -65.0;
+  a1.a2.a2 = 66.0;
+  a1.a2.a3 = -67.0;
+  a1.a3 = 68.0;
+  a2.a0 = 69;
+  a2.a1.a0.a0 = 70;
+  a2.a1.a0.a1.a0.a0 = -71;
+  a2.a1.a0.a1.a0.a1 = 72;
+  a2.a1.a0.a1.a1.a0 = -73.0;
+  a2.a1.a0.a2 = 74;
+  a2.a1.a0.a3.a0.a0 = -75.0;
+  a2.a1.a0.a3.a1 = 76.0;
+  a2.a1.a0.a4 = 77;
+  a2.a1.a0.a5.a0.a0 = 78.0;
+  a2.a1.a0.a5.a1.a0 = -79.0;
+  a2.a1.a0.a6 = 80;
+  a2.a1.a1.a0.a0 = -81;
+  a2.a1.a1.a0.a1 = 82;
+  a2.a1.a1.a1.a0 = -83.0;
+  a2.a1.a2 = 84.0;
+  a2.a1.a3 = -85.0;
+  a2.a2.a0.a0 = 86;
+  a2.a2.a0.a1.a0.a0 = -87;
+  a2.a2.a0.a1.a0.a1 = 88;
+  a2.a2.a0.a1.a1.a0 = -89.0;
+  a2.a2.a0.a2 = 90;
+  a2.a2.a0.a3.a0.a0 = -91.0;
+  a2.a2.a0.a3.a1 = 92.0;
+  a2.a2.a0.a4 = 93;
+  a2.a2.a0.a5.a0.a0 = 94.0;
+  a2.a2.a0.a5.a1.a0 = -95.0;
+  a2.a2.a0.a6 = 96;
+  a2.a2.a1.a0.a0 = -97;
+  a2.a2.a1.a0.a1 = 98;
+  a2.a2.a1.a1.a0 = -99.0;
+  a2.a2.a2 = 100.0;
+  a2.a2.a3 = -101.0;
+  a2.a3 = 102.0;
+  a3.a0 = 103;
+  a3.a1.a0.a0 = 104;
+  a3.a1.a0.a1.a0.a0 = -105;
+  a3.a1.a0.a1.a0.a1 = 106;
+  a3.a1.a0.a1.a1.a0 = -107.0;
+  a3.a1.a0.a2 = 108;
+  a3.a1.a0.a3.a0.a0 = -109.0;
+  a3.a1.a0.a3.a1 = 110.0;
+  a3.a1.a0.a4 = 111;
+  a3.a1.a0.a5.a0.a0 = 112.0;
+  a3.a1.a0.a5.a1.a0 = -113.0;
+  a3.a1.a0.a6 = 114;
+  a3.a1.a1.a0.a0 = -115;
+  a3.a1.a1.a0.a1 = 116;
+  a3.a1.a1.a1.a0 = -117.0;
+  a3.a1.a2 = 118.0;
+  a3.a1.a3 = -119.0;
+  a3.a2.a0.a0 = 120;
+  a3.a2.a0.a1.a0.a0 = -121;
+  a3.a2.a0.a1.a0.a1 = 122;
+  a3.a2.a0.a1.a1.a0 = -123.0;
+  a3.a2.a0.a2 = 124;
+  a3.a2.a0.a3.a0.a0 = -125.0;
+  a3.a2.a0.a3.a1 = 126.0;
+  a3.a2.a0.a4 = 127;
+  a3.a2.a0.a5.a0.a0 = 128.0;
+  a3.a2.a0.a5.a1.a0 = -129.0;
+  a3.a2.a0.a6 = 130;
+  a3.a2.a1.a0.a0 = -131;
+  a3.a2.a1.a0.a1 = 132;
+  a3.a2.a1.a1.a0 = -133.0;
+  a3.a2.a2 = 134.0;
+  a3.a2.a3 = -135.0;
+  a3.a3 = 136.0;
+
+  std::cout
+      << "Calling TestPassStructNestedIrregularEvenBiggerx4("
+      << "((" << a0.a0 << ", ((" << a0.a1.a0.a0 << ", ((" << a0.a1.a0.a1.a0.a0
+      << ", " << a0.a1.a0.a1.a0.a1 << "), (" << a0.a1.a0.a1.a1.a0 << ")), "
+      << a0.a1.a0.a2 << ", ((" << a0.a1.a0.a3.a0.a0 << "), " << a0.a1.a0.a3.a1
+      << "), " << a0.a1.a0.a4 << ", ((" << a0.a1.a0.a5.a0.a0 << "), ("
+      << a0.a1.a0.a5.a1.a0 << ")), " << a0.a1.a0.a6 << "), ((" << a0.a1.a1.a0.a0
+      << ", " << a0.a1.a1.a0.a1 << "), (" << a0.a1.a1.a1.a0 << ")), "
+      << a0.a1.a2 << ", " << a0.a1.a3 << "), ((" << a0.a2.a0.a0 << ", (("
+      << a0.a2.a0.a1.a0.a0 << ", " << a0.a2.a0.a1.a0.a1 << "), ("
+      << a0.a2.a0.a1.a1.a0 << ")), " << a0.a2.a0.a2 << ", (("
+      << a0.a2.a0.a3.a0.a0 << "), " << a0.a2.a0.a3.a1 << "), " << a0.a2.a0.a4
+      << ", ((" << a0.a2.a0.a5.a0.a0 << "), (" << a0.a2.a0.a5.a1.a0 << ")), "
+      << a0.a2.a0.a6 << "), ((" << a0.a2.a1.a0.a0 << ", " << a0.a2.a1.a0.a1
+      << "), (" << a0.a2.a1.a1.a0 << ")), " << a0.a2.a2 << ", " << a0.a2.a3
+      << "), " << a0.a3 << "), (" << a1.a0 << ", ((" << a1.a1.a0.a0 << ", (("
+      << a1.a1.a0.a1.a0.a0 << ", " << a1.a1.a0.a1.a0.a1 << "), ("
+      << a1.a1.a0.a1.a1.a0 << ")), " << a1.a1.a0.a2 << ", (("
+      << a1.a1.a0.a3.a0.a0 << "), " << a1.a1.a0.a3.a1 << "), " << a1.a1.a0.a4
+      << ", ((" << a1.a1.a0.a5.a0.a0 << "), (" << a1.a1.a0.a5.a1.a0 << ")), "
+      << a1.a1.a0.a6 << "), ((" << a1.a1.a1.a0.a0 << ", " << a1.a1.a1.a0.a1
+      << "), (" << a1.a1.a1.a1.a0 << ")), " << a1.a1.a2 << ", " << a1.a1.a3
+      << "), ((" << a1.a2.a0.a0 << ", ((" << a1.a2.a0.a1.a0.a0 << ", "
+      << a1.a2.a0.a1.a0.a1 << "), (" << a1.a2.a0.a1.a1.a0 << ")), "
+      << a1.a2.a0.a2 << ", ((" << a1.a2.a0.a3.a0.a0 << "), " << a1.a2.a0.a3.a1
+      << "), " << a1.a2.a0.a4 << ", ((" << a1.a2.a0.a5.a0.a0 << "), ("
+      << a1.a2.a0.a5.a1.a0 << ")), " << a1.a2.a0.a6 << "), ((" << a1.a2.a1.a0.a0
+      << ", " << a1.a2.a1.a0.a1 << "), (" << a1.a2.a1.a1.a0 << ")), "
+      << a1.a2.a2 << ", " << a1.a2.a3 << "), " << a1.a3 << "), (" << a2.a0
+      << ", ((" << a2.a1.a0.a0 << ", ((" << a2.a1.a0.a1.a0.a0 << ", "
+      << a2.a1.a0.a1.a0.a1 << "), (" << a2.a1.a0.a1.a1.a0 << ")), "
+      << a2.a1.a0.a2 << ", ((" << a2.a1.a0.a3.a0.a0 << "), " << a2.a1.a0.a3.a1
+      << "), " << a2.a1.a0.a4 << ", ((" << a2.a1.a0.a5.a0.a0 << "), ("
+      << a2.a1.a0.a5.a1.a0 << ")), " << a2.a1.a0.a6 << "), ((" << a2.a1.a1.a0.a0
+      << ", " << a2.a1.a1.a0.a1 << "), (" << a2.a1.a1.a1.a0 << ")), "
+      << a2.a1.a2 << ", " << a2.a1.a3 << "), ((" << a2.a2.a0.a0 << ", (("
+      << a2.a2.a0.a1.a0.a0 << ", " << a2.a2.a0.a1.a0.a1 << "), ("
+      << a2.a2.a0.a1.a1.a0 << ")), " << a2.a2.a0.a2 << ", (("
+      << a2.a2.a0.a3.a0.a0 << "), " << a2.a2.a0.a3.a1 << "), " << a2.a2.a0.a4
+      << ", ((" << a2.a2.a0.a5.a0.a0 << "), (" << a2.a2.a0.a5.a1.a0 << ")), "
+      << a2.a2.a0.a6 << "), ((" << a2.a2.a1.a0.a0 << ", " << a2.a2.a1.a0.a1
+      << "), (" << a2.a2.a1.a1.a0 << ")), " << a2.a2.a2 << ", " << a2.a2.a3
+      << "), " << a2.a3 << "), (" << a3.a0 << ", ((" << a3.a1.a0.a0 << ", (("
+      << a3.a1.a0.a1.a0.a0 << ", " << a3.a1.a0.a1.a0.a1 << "), ("
+      << a3.a1.a0.a1.a1.a0 << ")), " << a3.a1.a0.a2 << ", (("
+      << a3.a1.a0.a3.a0.a0 << "), " << a3.a1.a0.a3.a1 << "), " << a3.a1.a0.a4
+      << ", ((" << a3.a1.a0.a5.a0.a0 << "), (" << a3.a1.a0.a5.a1.a0 << ")), "
+      << a3.a1.a0.a6 << "), ((" << a3.a1.a1.a0.a0 << ", " << a3.a1.a1.a0.a1
+      << "), (" << a3.a1.a1.a1.a0 << ")), " << a3.a1.a2 << ", " << a3.a1.a3
+      << "), ((" << a3.a2.a0.a0 << ", ((" << a3.a2.a0.a1.a0.a0 << ", "
+      << a3.a2.a0.a1.a0.a1 << "), (" << a3.a2.a0.a1.a1.a0 << ")), "
+      << a3.a2.a0.a2 << ", ((" << a3.a2.a0.a3.a0.a0 << "), " << a3.a2.a0.a3.a1
+      << "), " << a3.a2.a0.a4 << ", ((" << a3.a2.a0.a5.a0.a0 << "), ("
+      << a3.a2.a0.a5.a1.a0 << ")), " << a3.a2.a0.a6 << "), ((" << a3.a2.a1.a0.a0
+      << ", " << a3.a2.a1.a0.a1 << "), (" << a3.a2.a1.a1.a0 << ")), "
+      << a3.a2.a2 << ", " << a3.a2.a3 << "), " << a3.a3 << "))"
+      << ")\n";
+
+  double result = f(a0, a1, a2, a3);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_APPROX(1572.0, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0 = 42;
+
+  result = f(a0, a1, a2, a3);
+
+  CHECK_APPROX(0.0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0 = 84;
+
+  result = f(a0, a1, a2, a3);
+
+  CHECK_APPROX(0.0, result);
+
+  return 0;
+}
+
+// Used for testing structs by value.
 // Smallest struct with data.
 DART_EXPORT intptr_t TestReturnStruct1ByteInt(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -9383,6 +11300,782 @@ DART_EXPORT intptr_t TestReturnStructAlignmentInt64(
   CHECK_EQ(0, result.a0);
   CHECK_EQ(0, result.a1);
   CHECK_EQ(0, result.a2);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Simple nested struct.
+DART_EXPORT intptr_t TestReturnStruct8BytesNestedInt(
+    // NOLINTNEXTLINE(whitespace/parens)
+    Struct8BytesNestedInt (*f)(Struct4BytesHomogeneousInt16 a0,
+                               Struct4BytesHomogeneousInt16 a1)) {
+  Struct4BytesHomogeneousInt16 a0;
+  Struct4BytesHomogeneousInt16 a1;
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a1.a0 = -3;
+  a1.a1 = 4;
+
+  std::cout << "Calling TestReturnStruct8BytesNestedInt("
+            << "((" << a0.a0 << ", " << a0.a1 << "), (" << a1.a0 << ", "
+            << a1.a1 << "))"
+            << ")\n";
+
+  Struct8BytesNestedInt result = f(a0, a1);
+
+  std::cout << "result = "
+            << "((" << result.a0.a0 << ", " << result.a0.a1 << "), ("
+            << result.a1.a0 << ", " << result.a1.a1 << "))"
+            << "\n";
+
+  CHECK_EQ(a0.a0, result.a0.a0);
+  CHECK_EQ(a0.a1, result.a0.a1);
+  CHECK_EQ(a1.a0, result.a1.a0);
+  CHECK_EQ(a1.a1, result.a1.a1);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0 = 42;
+
+  result = f(a0, a1);
+
+  CHECK_EQ(0, result.a0.a0);
+  CHECK_EQ(0, result.a0.a1);
+  CHECK_EQ(0, result.a1.a0);
+  CHECK_EQ(0, result.a1.a1);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0 = 84;
+
+  result = f(a0, a1);
+
+  CHECK_EQ(0, result.a0.a0);
+  CHECK_EQ(0, result.a0.a1);
+  CHECK_EQ(0, result.a1.a0);
+  CHECK_EQ(0, result.a1.a1);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Simple nested struct with floats.
+DART_EXPORT intptr_t TestReturnStruct8BytesNestedFloat(
+    // NOLINTNEXTLINE(whitespace/parens)
+    Struct8BytesNestedFloat (*f)(Struct4BytesFloat a0, Struct4BytesFloat a1)) {
+  Struct4BytesFloat a0;
+  Struct4BytesFloat a1;
+
+  a0.a0 = -1.0;
+  a1.a0 = 2.0;
+
+  std::cout << "Calling TestReturnStruct8BytesNestedFloat("
+            << "((" << a0.a0 << "), (" << a1.a0 << "))"
+            << ")\n";
+
+  Struct8BytesNestedFloat result = f(a0, a1);
+
+  std::cout << "result = "
+            << "((" << result.a0.a0 << "), (" << result.a1.a0 << "))"
+            << "\n";
+
+  CHECK_APPROX(a0.a0, result.a0.a0);
+  CHECK_APPROX(a1.a0, result.a1.a0);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0 = 42;
+
+  result = f(a0, a1);
+
+  CHECK_APPROX(0.0, result.a0.a0);
+  CHECK_APPROX(0.0, result.a1.a0);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0 = 84;
+
+  result = f(a0, a1);
+
+  CHECK_APPROX(0.0, result.a0.a0);
+  CHECK_APPROX(0.0, result.a1.a0);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// The nesting is irregular, testing homogenous float rules on arm and arm64,
+// and the fpu register usage on x64.
+DART_EXPORT intptr_t TestReturnStruct8BytesNestedFloat2(
+    // NOLINTNEXTLINE(whitespace/parens)
+    Struct8BytesNestedFloat2 (*f)(Struct4BytesFloat a0, float a1)) {
+  Struct4BytesFloat a0;
+  float a1;
+
+  a0.a0 = -1.0;
+  a1 = 2.0;
+
+  std::cout << "Calling TestReturnStruct8BytesNestedFloat2("
+            << "((" << a0.a0 << "), " << a1 << ")"
+            << ")\n";
+
+  Struct8BytesNestedFloat2 result = f(a0, a1);
+
+  std::cout << "result = "
+            << "((" << result.a0.a0 << "), " << result.a1 << ")"
+            << "\n";
+
+  CHECK_APPROX(a0.a0, result.a0.a0);
+  CHECK_APPROX(a1, result.a1);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0 = 42;
+
+  result = f(a0, a1);
+
+  CHECK_APPROX(0.0, result.a0.a0);
+  CHECK_APPROX(0.0, result.a1);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0 = 84;
+
+  result = f(a0, a1);
+
+  CHECK_APPROX(0.0, result.a0.a0);
+  CHECK_APPROX(0.0, result.a1);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Simple nested struct with mixed members.
+DART_EXPORT intptr_t TestReturnStruct8BytesNestedMixed(
+    // NOLINTNEXTLINE(whitespace/parens)
+    Struct8BytesNestedMixed (*f)(Struct4BytesHomogeneousInt16 a0,
+                                 Struct4BytesFloat a1)) {
+  Struct4BytesHomogeneousInt16 a0;
+  Struct4BytesFloat a1;
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a1.a0 = -3.0;
+
+  std::cout << "Calling TestReturnStruct8BytesNestedMixed("
+            << "((" << a0.a0 << ", " << a0.a1 << "), (" << a1.a0 << "))"
+            << ")\n";
+
+  Struct8BytesNestedMixed result = f(a0, a1);
+
+  std::cout << "result = "
+            << "((" << result.a0.a0 << ", " << result.a0.a1 << "), ("
+            << result.a1.a0 << "))"
+            << "\n";
+
+  CHECK_EQ(a0.a0, result.a0.a0);
+  CHECK_EQ(a0.a1, result.a0.a1);
+  CHECK_APPROX(a1.a0, result.a1.a0);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0 = 42;
+
+  result = f(a0, a1);
+
+  CHECK_EQ(0, result.a0.a0);
+  CHECK_EQ(0, result.a0.a1);
+  CHECK_APPROX(0.0, result.a1.a0);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0 = 84;
+
+  result = f(a0, a1);
+
+  CHECK_EQ(0, result.a0.a0);
+  CHECK_EQ(0, result.a0.a1);
+  CHECK_APPROX(0.0, result.a1.a0);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Deeper nested struct to test recursive member access.
+DART_EXPORT intptr_t TestReturnStruct16BytesNestedInt(
+    // NOLINTNEXTLINE(whitespace/parens)
+    Struct16BytesNestedInt (*f)(Struct8BytesNestedInt a0,
+                                Struct8BytesNestedInt a1)) {
+  Struct8BytesNestedInt a0;
+  Struct8BytesNestedInt a1;
+
+  a0.a0.a0 = -1;
+  a0.a0.a1 = 2;
+  a0.a1.a0 = -3;
+  a0.a1.a1 = 4;
+  a1.a0.a0 = -5;
+  a1.a0.a1 = 6;
+  a1.a1.a0 = -7;
+  a1.a1.a1 = 8;
+
+  std::cout << "Calling TestReturnStruct16BytesNestedInt("
+            << "(((" << a0.a0.a0 << ", " << a0.a0.a1 << "), (" << a0.a1.a0
+            << ", " << a0.a1.a1 << ")), ((" << a1.a0.a0 << ", " << a1.a0.a1
+            << "), (" << a1.a1.a0 << ", " << a1.a1.a1 << ")))"
+            << ")\n";
+
+  Struct16BytesNestedInt result = f(a0, a1);
+
+  std::cout << "result = "
+            << "(((" << result.a0.a0.a0 << ", " << result.a0.a0.a1 << "), ("
+            << result.a0.a1.a0 << ", " << result.a0.a1.a1 << ")), (("
+            << result.a1.a0.a0 << ", " << result.a1.a0.a1 << "), ("
+            << result.a1.a1.a0 << ", " << result.a1.a1.a1 << ")))"
+            << "\n";
+
+  CHECK_EQ(a0.a0.a0, result.a0.a0.a0);
+  CHECK_EQ(a0.a0.a1, result.a0.a0.a1);
+  CHECK_EQ(a0.a1.a0, result.a0.a1.a0);
+  CHECK_EQ(a0.a1.a1, result.a0.a1.a1);
+  CHECK_EQ(a1.a0.a0, result.a1.a0.a0);
+  CHECK_EQ(a1.a0.a1, result.a1.a0.a1);
+  CHECK_EQ(a1.a1.a0, result.a1.a1.a0);
+  CHECK_EQ(a1.a1.a1, result.a1.a1.a1);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0.a0 = 42;
+
+  result = f(a0, a1);
+
+  CHECK_EQ(0, result.a0.a0.a0);
+  CHECK_EQ(0, result.a0.a0.a1);
+  CHECK_EQ(0, result.a0.a1.a0);
+  CHECK_EQ(0, result.a0.a1.a1);
+  CHECK_EQ(0, result.a1.a0.a0);
+  CHECK_EQ(0, result.a1.a0.a1);
+  CHECK_EQ(0, result.a1.a1.a0);
+  CHECK_EQ(0, result.a1.a1.a1);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0.a0 = 84;
+
+  result = f(a0, a1);
+
+  CHECK_EQ(0, result.a0.a0.a0);
+  CHECK_EQ(0, result.a0.a0.a1);
+  CHECK_EQ(0, result.a0.a1.a0);
+  CHECK_EQ(0, result.a0.a1.a1);
+  CHECK_EQ(0, result.a1.a0.a0);
+  CHECK_EQ(0, result.a1.a0.a1);
+  CHECK_EQ(0, result.a1.a1.a0);
+  CHECK_EQ(0, result.a1.a1.a1);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Even deeper nested struct to test recursive member access.
+DART_EXPORT intptr_t TestReturnStruct32BytesNestedInt(
+    // NOLINTNEXTLINE(whitespace/parens)
+    Struct32BytesNestedInt (*f)(Struct16BytesNestedInt a0,
+                                Struct16BytesNestedInt a1)) {
+  Struct16BytesNestedInt a0;
+  Struct16BytesNestedInt a1;
+
+  a0.a0.a0.a0 = -1;
+  a0.a0.a0.a1 = 2;
+  a0.a0.a1.a0 = -3;
+  a0.a0.a1.a1 = 4;
+  a0.a1.a0.a0 = -5;
+  a0.a1.a0.a1 = 6;
+  a0.a1.a1.a0 = -7;
+  a0.a1.a1.a1 = 8;
+  a1.a0.a0.a0 = -9;
+  a1.a0.a0.a1 = 10;
+  a1.a0.a1.a0 = -11;
+  a1.a0.a1.a1 = 12;
+  a1.a1.a0.a0 = -13;
+  a1.a1.a0.a1 = 14;
+  a1.a1.a1.a0 = -15;
+  a1.a1.a1.a1 = 16;
+
+  std::cout << "Calling TestReturnStruct32BytesNestedInt("
+            << "((((" << a0.a0.a0.a0 << ", " << a0.a0.a0.a1 << "), ("
+            << a0.a0.a1.a0 << ", " << a0.a0.a1.a1 << ")), ((" << a0.a1.a0.a0
+            << ", " << a0.a1.a0.a1 << "), (" << a0.a1.a1.a0 << ", "
+            << a0.a1.a1.a1 << "))), (((" << a1.a0.a0.a0 << ", " << a1.a0.a0.a1
+            << "), (" << a1.a0.a1.a0 << ", " << a1.a0.a1.a1 << ")), (("
+            << a1.a1.a0.a0 << ", " << a1.a1.a0.a1 << "), (" << a1.a1.a1.a0
+            << ", " << a1.a1.a1.a1 << "))))"
+            << ")\n";
+
+  Struct32BytesNestedInt result = f(a0, a1);
+
+  std::cout << "result = "
+            << "((((" << result.a0.a0.a0.a0 << ", " << result.a0.a0.a0.a1
+            << "), (" << result.a0.a0.a1.a0 << ", " << result.a0.a0.a1.a1
+            << ")), ((" << result.a0.a1.a0.a0 << ", " << result.a0.a1.a0.a1
+            << "), (" << result.a0.a1.a1.a0 << ", " << result.a0.a1.a1.a1
+            << "))), (((" << result.a1.a0.a0.a0 << ", " << result.a1.a0.a0.a1
+            << "), (" << result.a1.a0.a1.a0 << ", " << result.a1.a0.a1.a1
+            << ")), ((" << result.a1.a1.a0.a0 << ", " << result.a1.a1.a0.a1
+            << "), (" << result.a1.a1.a1.a0 << ", " << result.a1.a1.a1.a1
+            << "))))"
+            << "\n";
+
+  CHECK_EQ(a0.a0.a0.a0, result.a0.a0.a0.a0);
+  CHECK_EQ(a0.a0.a0.a1, result.a0.a0.a0.a1);
+  CHECK_EQ(a0.a0.a1.a0, result.a0.a0.a1.a0);
+  CHECK_EQ(a0.a0.a1.a1, result.a0.a0.a1.a1);
+  CHECK_EQ(a0.a1.a0.a0, result.a0.a1.a0.a0);
+  CHECK_EQ(a0.a1.a0.a1, result.a0.a1.a0.a1);
+  CHECK_EQ(a0.a1.a1.a0, result.a0.a1.a1.a0);
+  CHECK_EQ(a0.a1.a1.a1, result.a0.a1.a1.a1);
+  CHECK_EQ(a1.a0.a0.a0, result.a1.a0.a0.a0);
+  CHECK_EQ(a1.a0.a0.a1, result.a1.a0.a0.a1);
+  CHECK_EQ(a1.a0.a1.a0, result.a1.a0.a1.a0);
+  CHECK_EQ(a1.a0.a1.a1, result.a1.a0.a1.a1);
+  CHECK_EQ(a1.a1.a0.a0, result.a1.a1.a0.a0);
+  CHECK_EQ(a1.a1.a0.a1, result.a1.a1.a0.a1);
+  CHECK_EQ(a1.a1.a1.a0, result.a1.a1.a1.a0);
+  CHECK_EQ(a1.a1.a1.a1, result.a1.a1.a1.a1);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0.a0.a0 = 42;
+
+  result = f(a0, a1);
+
+  CHECK_EQ(0, result.a0.a0.a0.a0);
+  CHECK_EQ(0, result.a0.a0.a0.a1);
+  CHECK_EQ(0, result.a0.a0.a1.a0);
+  CHECK_EQ(0, result.a0.a0.a1.a1);
+  CHECK_EQ(0, result.a0.a1.a0.a0);
+  CHECK_EQ(0, result.a0.a1.a0.a1);
+  CHECK_EQ(0, result.a0.a1.a1.a0);
+  CHECK_EQ(0, result.a0.a1.a1.a1);
+  CHECK_EQ(0, result.a1.a0.a0.a0);
+  CHECK_EQ(0, result.a1.a0.a0.a1);
+  CHECK_EQ(0, result.a1.a0.a1.a0);
+  CHECK_EQ(0, result.a1.a0.a1.a1);
+  CHECK_EQ(0, result.a1.a1.a0.a0);
+  CHECK_EQ(0, result.a1.a1.a0.a1);
+  CHECK_EQ(0, result.a1.a1.a1.a0);
+  CHECK_EQ(0, result.a1.a1.a1.a1);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0.a0.a0 = 84;
+
+  result = f(a0, a1);
+
+  CHECK_EQ(0, result.a0.a0.a0.a0);
+  CHECK_EQ(0, result.a0.a0.a0.a1);
+  CHECK_EQ(0, result.a0.a0.a1.a0);
+  CHECK_EQ(0, result.a0.a0.a1.a1);
+  CHECK_EQ(0, result.a0.a1.a0.a0);
+  CHECK_EQ(0, result.a0.a1.a0.a1);
+  CHECK_EQ(0, result.a0.a1.a1.a0);
+  CHECK_EQ(0, result.a0.a1.a1.a1);
+  CHECK_EQ(0, result.a1.a0.a0.a0);
+  CHECK_EQ(0, result.a1.a0.a0.a1);
+  CHECK_EQ(0, result.a1.a0.a1.a0);
+  CHECK_EQ(0, result.a1.a0.a1.a1);
+  CHECK_EQ(0, result.a1.a1.a0.a0);
+  CHECK_EQ(0, result.a1.a1.a0.a1);
+  CHECK_EQ(0, result.a1.a1.a1.a0);
+  CHECK_EQ(0, result.a1.a1.a1.a1);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Test alignment and padding of nested struct with 16 byte int.
+DART_EXPORT intptr_t TestReturnStructNestedIntStructAlignmentInt16(
+    // NOLINTNEXTLINE(whitespace/parens)
+    StructNestedIntStructAlignmentInt16 (*f)(StructAlignmentInt16 a0,
+                                             StructAlignmentInt16 a1)) {
+  StructAlignmentInt16 a0;
+  StructAlignmentInt16 a1;
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a0.a2 = -3;
+  a1.a0 = 4;
+  a1.a1 = -5;
+  a1.a2 = 6;
+
+  std::cout << "Calling TestReturnStructNestedIntStructAlignmentInt16("
+            << "((" << static_cast<int>(a0.a0) << ", " << a0.a1 << ", "
+            << static_cast<int>(a0.a2) << "), (" << static_cast<int>(a1.a0)
+            << ", " << a1.a1 << ", " << static_cast<int>(a1.a2) << "))"
+            << ")\n";
+
+  StructNestedIntStructAlignmentInt16 result = f(a0, a1);
+
+  std::cout << "result = "
+            << "((" << static_cast<int>(result.a0.a0) << ", " << result.a0.a1
+            << ", " << static_cast<int>(result.a0.a2) << "), ("
+            << static_cast<int>(result.a1.a0) << ", " << result.a1.a1 << ", "
+            << static_cast<int>(result.a1.a2) << "))"
+            << "\n";
+
+  CHECK_EQ(a0.a0, result.a0.a0);
+  CHECK_EQ(a0.a1, result.a0.a1);
+  CHECK_EQ(a0.a2, result.a0.a2);
+  CHECK_EQ(a1.a0, result.a1.a0);
+  CHECK_EQ(a1.a1, result.a1.a1);
+  CHECK_EQ(a1.a2, result.a1.a2);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0 = 42;
+
+  result = f(a0, a1);
+
+  CHECK_EQ(0, result.a0.a0);
+  CHECK_EQ(0, result.a0.a1);
+  CHECK_EQ(0, result.a0.a2);
+  CHECK_EQ(0, result.a1.a0);
+  CHECK_EQ(0, result.a1.a1);
+  CHECK_EQ(0, result.a1.a2);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0 = 84;
+
+  result = f(a0, a1);
+
+  CHECK_EQ(0, result.a0.a0);
+  CHECK_EQ(0, result.a0.a1);
+  CHECK_EQ(0, result.a0.a2);
+  CHECK_EQ(0, result.a1.a0);
+  CHECK_EQ(0, result.a1.a1);
+  CHECK_EQ(0, result.a1.a2);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Test alignment and padding of nested struct with 32 byte int.
+DART_EXPORT intptr_t TestReturnStructNestedIntStructAlignmentInt32(
+    // NOLINTNEXTLINE(whitespace/parens)
+    StructNestedIntStructAlignmentInt32 (*f)(StructAlignmentInt32 a0,
+                                             StructAlignmentInt32 a1)) {
+  StructAlignmentInt32 a0;
+  StructAlignmentInt32 a1;
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a0.a2 = -3;
+  a1.a0 = 4;
+  a1.a1 = -5;
+  a1.a2 = 6;
+
+  std::cout << "Calling TestReturnStructNestedIntStructAlignmentInt32("
+            << "((" << static_cast<int>(a0.a0) << ", " << a0.a1 << ", "
+            << static_cast<int>(a0.a2) << "), (" << static_cast<int>(a1.a0)
+            << ", " << a1.a1 << ", " << static_cast<int>(a1.a2) << "))"
+            << ")\n";
+
+  StructNestedIntStructAlignmentInt32 result = f(a0, a1);
+
+  std::cout << "result = "
+            << "((" << static_cast<int>(result.a0.a0) << ", " << result.a0.a1
+            << ", " << static_cast<int>(result.a0.a2) << "), ("
+            << static_cast<int>(result.a1.a0) << ", " << result.a1.a1 << ", "
+            << static_cast<int>(result.a1.a2) << "))"
+            << "\n";
+
+  CHECK_EQ(a0.a0, result.a0.a0);
+  CHECK_EQ(a0.a1, result.a0.a1);
+  CHECK_EQ(a0.a2, result.a0.a2);
+  CHECK_EQ(a1.a0, result.a1.a0);
+  CHECK_EQ(a1.a1, result.a1.a1);
+  CHECK_EQ(a1.a2, result.a1.a2);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0 = 42;
+
+  result = f(a0, a1);
+
+  CHECK_EQ(0, result.a0.a0);
+  CHECK_EQ(0, result.a0.a1);
+  CHECK_EQ(0, result.a0.a2);
+  CHECK_EQ(0, result.a1.a0);
+  CHECK_EQ(0, result.a1.a1);
+  CHECK_EQ(0, result.a1.a2);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0 = 84;
+
+  result = f(a0, a1);
+
+  CHECK_EQ(0, result.a0.a0);
+  CHECK_EQ(0, result.a0.a1);
+  CHECK_EQ(0, result.a0.a2);
+  CHECK_EQ(0, result.a1.a0);
+  CHECK_EQ(0, result.a1.a1);
+  CHECK_EQ(0, result.a1.a2);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Test alignment and padding of nested struct with 64 byte int.
+DART_EXPORT intptr_t TestReturnStructNestedIntStructAlignmentInt64(
+    // NOLINTNEXTLINE(whitespace/parens)
+    StructNestedIntStructAlignmentInt64 (*f)(StructAlignmentInt64 a0,
+                                             StructAlignmentInt64 a1)) {
+  StructAlignmentInt64 a0;
+  StructAlignmentInt64 a1;
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a0.a2 = -3;
+  a1.a0 = 4;
+  a1.a1 = -5;
+  a1.a2 = 6;
+
+  std::cout << "Calling TestReturnStructNestedIntStructAlignmentInt64("
+            << "((" << static_cast<int>(a0.a0) << ", " << a0.a1 << ", "
+            << static_cast<int>(a0.a2) << "), (" << static_cast<int>(a1.a0)
+            << ", " << a1.a1 << ", " << static_cast<int>(a1.a2) << "))"
+            << ")\n";
+
+  StructNestedIntStructAlignmentInt64 result = f(a0, a1);
+
+  std::cout << "result = "
+            << "((" << static_cast<int>(result.a0.a0) << ", " << result.a0.a1
+            << ", " << static_cast<int>(result.a0.a2) << "), ("
+            << static_cast<int>(result.a1.a0) << ", " << result.a1.a1 << ", "
+            << static_cast<int>(result.a1.a2) << "))"
+            << "\n";
+
+  CHECK_EQ(a0.a0, result.a0.a0);
+  CHECK_EQ(a0.a1, result.a0.a1);
+  CHECK_EQ(a0.a2, result.a0.a2);
+  CHECK_EQ(a1.a0, result.a1.a0);
+  CHECK_EQ(a1.a1, result.a1.a1);
+  CHECK_EQ(a1.a2, result.a1.a2);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0 = 42;
+
+  result = f(a0, a1);
+
+  CHECK_EQ(0, result.a0.a0);
+  CHECK_EQ(0, result.a0.a1);
+  CHECK_EQ(0, result.a0.a2);
+  CHECK_EQ(0, result.a1.a0);
+  CHECK_EQ(0, result.a1.a1);
+  CHECK_EQ(0, result.a1.a2);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0 = 84;
+
+  result = f(a0, a1);
+
+  CHECK_EQ(0, result.a0.a0);
+  CHECK_EQ(0, result.a0.a1);
+  CHECK_EQ(0, result.a0.a2);
+  CHECK_EQ(0, result.a1.a0);
+  CHECK_EQ(0, result.a1.a1);
+  CHECK_EQ(0, result.a1.a2);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Return big irregular struct as smoke test.
+DART_EXPORT intptr_t TestReturnStructNestedIrregularEvenBigger(
+    // NOLINTNEXTLINE(whitespace/parens)
+    StructNestedIrregularEvenBigger (*f)(uint64_t a0,
+                                         StructNestedIrregularBigger a1,
+                                         StructNestedIrregularBigger a2,
+                                         double a3)) {
+  uint64_t a0;
+  StructNestedIrregularBigger a1;
+  StructNestedIrregularBigger a2;
+  double a3;
+
+  a0 = 1;
+  a1.a0.a0 = 2;
+  a1.a0.a1.a0.a0 = -3;
+  a1.a0.a1.a0.a1 = 4;
+  a1.a0.a1.a1.a0 = -5.0;
+  a1.a0.a2 = 6;
+  a1.a0.a3.a0.a0 = -7.0;
+  a1.a0.a3.a1 = 8.0;
+  a1.a0.a4 = 9;
+  a1.a0.a5.a0.a0 = 10.0;
+  a1.a0.a5.a1.a0 = -11.0;
+  a1.a0.a6 = 12;
+  a1.a1.a0.a0 = -13;
+  a1.a1.a0.a1 = 14;
+  a1.a1.a1.a0 = -15.0;
+  a1.a2 = 16.0;
+  a1.a3 = -17.0;
+  a2.a0.a0 = 18;
+  a2.a0.a1.a0.a0 = -19;
+  a2.a0.a1.a0.a1 = 20;
+  a2.a0.a1.a1.a0 = -21.0;
+  a2.a0.a2 = 22;
+  a2.a0.a3.a0.a0 = -23.0;
+  a2.a0.a3.a1 = 24.0;
+  a2.a0.a4 = 25;
+  a2.a0.a5.a0.a0 = 26.0;
+  a2.a0.a5.a1.a0 = -27.0;
+  a2.a0.a6 = 28;
+  a2.a1.a0.a0 = -29;
+  a2.a1.a0.a1 = 30;
+  a2.a1.a1.a0 = -31.0;
+  a2.a2 = 32.0;
+  a2.a3 = -33.0;
+  a3 = 34.0;
+
+  std::cout << "Calling TestReturnStructNestedIrregularEvenBigger("
+            << "(" << a0 << ", ((" << a1.a0.a0 << ", ((" << a1.a0.a1.a0.a0
+            << ", " << a1.a0.a1.a0.a1 << "), (" << a1.a0.a1.a1.a0 << ")), "
+            << a1.a0.a2 << ", ((" << a1.a0.a3.a0.a0 << "), " << a1.a0.a3.a1
+            << "), " << a1.a0.a4 << ", ((" << a1.a0.a5.a0.a0 << "), ("
+            << a1.a0.a5.a1.a0 << ")), " << a1.a0.a6 << "), ((" << a1.a1.a0.a0
+            << ", " << a1.a1.a0.a1 << "), (" << a1.a1.a1.a0 << ")), " << a1.a2
+            << ", " << a1.a3 << "), ((" << a2.a0.a0 << ", ((" << a2.a0.a1.a0.a0
+            << ", " << a2.a0.a1.a0.a1 << "), (" << a2.a0.a1.a1.a0 << ")), "
+            << a2.a0.a2 << ", ((" << a2.a0.a3.a0.a0 << "), " << a2.a0.a3.a1
+            << "), " << a2.a0.a4 << ", ((" << a2.a0.a5.a0.a0 << "), ("
+            << a2.a0.a5.a1.a0 << ")), " << a2.a0.a6 << "), ((" << a2.a1.a0.a0
+            << ", " << a2.a1.a0.a1 << "), (" << a2.a1.a1.a0 << ")), " << a2.a2
+            << ", " << a2.a3 << "), " << a3 << ")"
+            << ")\n";
+
+  StructNestedIrregularEvenBigger result = f(a0, a1, a2, a3);
+
+  std::cout << "result = "
+            << "(" << result.a0 << ", ((" << result.a1.a0.a0 << ", (("
+            << result.a1.a0.a1.a0.a0 << ", " << result.a1.a0.a1.a0.a1 << "), ("
+            << result.a1.a0.a1.a1.a0 << ")), " << result.a1.a0.a2 << ", (("
+            << result.a1.a0.a3.a0.a0 << "), " << result.a1.a0.a3.a1 << "), "
+            << result.a1.a0.a4 << ", ((" << result.a1.a0.a5.a0.a0 << "), ("
+            << result.a1.a0.a5.a1.a0 << ")), " << result.a1.a0.a6 << "), (("
+            << result.a1.a1.a0.a0 << ", " << result.a1.a1.a0.a1 << "), ("
+            << result.a1.a1.a1.a0 << ")), " << result.a1.a2 << ", "
+            << result.a1.a3 << "), ((" << result.a2.a0.a0 << ", (("
+            << result.a2.a0.a1.a0.a0 << ", " << result.a2.a0.a1.a0.a1 << "), ("
+            << result.a2.a0.a1.a1.a0 << ")), " << result.a2.a0.a2 << ", (("
+            << result.a2.a0.a3.a0.a0 << "), " << result.a2.a0.a3.a1 << "), "
+            << result.a2.a0.a4 << ", ((" << result.a2.a0.a5.a0.a0 << "), ("
+            << result.a2.a0.a5.a1.a0 << ")), " << result.a2.a0.a6 << "), (("
+            << result.a2.a1.a0.a0 << ", " << result.a2.a1.a0.a1 << "), ("
+            << result.a2.a1.a1.a0 << ")), " << result.a2.a2 << ", "
+            << result.a2.a3 << "), " << result.a3 << ")"
+            << "\n";
+
+  CHECK_EQ(a0, result.a0);
+  CHECK_EQ(a1.a0.a0, result.a1.a0.a0);
+  CHECK_EQ(a1.a0.a1.a0.a0, result.a1.a0.a1.a0.a0);
+  CHECK_EQ(a1.a0.a1.a0.a1, result.a1.a0.a1.a0.a1);
+  CHECK_APPROX(a1.a0.a1.a1.a0, result.a1.a0.a1.a1.a0);
+  CHECK_EQ(a1.a0.a2, result.a1.a0.a2);
+  CHECK_APPROX(a1.a0.a3.a0.a0, result.a1.a0.a3.a0.a0);
+  CHECK_APPROX(a1.a0.a3.a1, result.a1.a0.a3.a1);
+  CHECK_EQ(a1.a0.a4, result.a1.a0.a4);
+  CHECK_APPROX(a1.a0.a5.a0.a0, result.a1.a0.a5.a0.a0);
+  CHECK_APPROX(a1.a0.a5.a1.a0, result.a1.a0.a5.a1.a0);
+  CHECK_EQ(a1.a0.a6, result.a1.a0.a6);
+  CHECK_EQ(a1.a1.a0.a0, result.a1.a1.a0.a0);
+  CHECK_EQ(a1.a1.a0.a1, result.a1.a1.a0.a1);
+  CHECK_APPROX(a1.a1.a1.a0, result.a1.a1.a1.a0);
+  CHECK_APPROX(a1.a2, result.a1.a2);
+  CHECK_APPROX(a1.a3, result.a1.a3);
+  CHECK_EQ(a2.a0.a0, result.a2.a0.a0);
+  CHECK_EQ(a2.a0.a1.a0.a0, result.a2.a0.a1.a0.a0);
+  CHECK_EQ(a2.a0.a1.a0.a1, result.a2.a0.a1.a0.a1);
+  CHECK_APPROX(a2.a0.a1.a1.a0, result.a2.a0.a1.a1.a0);
+  CHECK_EQ(a2.a0.a2, result.a2.a0.a2);
+  CHECK_APPROX(a2.a0.a3.a0.a0, result.a2.a0.a3.a0.a0);
+  CHECK_APPROX(a2.a0.a3.a1, result.a2.a0.a3.a1);
+  CHECK_EQ(a2.a0.a4, result.a2.a0.a4);
+  CHECK_APPROX(a2.a0.a5.a0.a0, result.a2.a0.a5.a0.a0);
+  CHECK_APPROX(a2.a0.a5.a1.a0, result.a2.a0.a5.a1.a0);
+  CHECK_EQ(a2.a0.a6, result.a2.a0.a6);
+  CHECK_EQ(a2.a1.a0.a0, result.a2.a1.a0.a0);
+  CHECK_EQ(a2.a1.a0.a1, result.a2.a1.a0.a1);
+  CHECK_APPROX(a2.a1.a1.a0, result.a2.a1.a1.a0);
+  CHECK_APPROX(a2.a2, result.a2.a2);
+  CHECK_APPROX(a2.a3, result.a2.a3);
+  CHECK_APPROX(a3, result.a3);
+
+  // Pass argument that will make the Dart callback throw.
+  a0 = 42;
+
+  result = f(a0, a1, a2, a3);
+
+  CHECK_EQ(0, result.a0);
+  CHECK_EQ(0, result.a1.a0.a0);
+  CHECK_EQ(0, result.a1.a0.a1.a0.a0);
+  CHECK_EQ(0, result.a1.a0.a1.a0.a1);
+  CHECK_APPROX(0.0, result.a1.a0.a1.a1.a0);
+  CHECK_EQ(0, result.a1.a0.a2);
+  CHECK_APPROX(0.0, result.a1.a0.a3.a0.a0);
+  CHECK_APPROX(0.0, result.a1.a0.a3.a1);
+  CHECK_EQ(0, result.a1.a0.a4);
+  CHECK_APPROX(0.0, result.a1.a0.a5.a0.a0);
+  CHECK_APPROX(0.0, result.a1.a0.a5.a1.a0);
+  CHECK_EQ(0, result.a1.a0.a6);
+  CHECK_EQ(0, result.a1.a1.a0.a0);
+  CHECK_EQ(0, result.a1.a1.a0.a1);
+  CHECK_APPROX(0.0, result.a1.a1.a1.a0);
+  CHECK_APPROX(0.0, result.a1.a2);
+  CHECK_APPROX(0.0, result.a1.a3);
+  CHECK_EQ(0, result.a2.a0.a0);
+  CHECK_EQ(0, result.a2.a0.a1.a0.a0);
+  CHECK_EQ(0, result.a2.a0.a1.a0.a1);
+  CHECK_APPROX(0.0, result.a2.a0.a1.a1.a0);
+  CHECK_EQ(0, result.a2.a0.a2);
+  CHECK_APPROX(0.0, result.a2.a0.a3.a0.a0);
+  CHECK_APPROX(0.0, result.a2.a0.a3.a1);
+  CHECK_EQ(0, result.a2.a0.a4);
+  CHECK_APPROX(0.0, result.a2.a0.a5.a0.a0);
+  CHECK_APPROX(0.0, result.a2.a0.a5.a1.a0);
+  CHECK_EQ(0, result.a2.a0.a6);
+  CHECK_EQ(0, result.a2.a1.a0.a0);
+  CHECK_EQ(0, result.a2.a1.a0.a1);
+  CHECK_APPROX(0.0, result.a2.a1.a1.a0);
+  CHECK_APPROX(0.0, result.a2.a2);
+  CHECK_APPROX(0.0, result.a2.a3);
+  CHECK_APPROX(0.0, result.a3);
+
+  // Pass argument that will make the Dart callback return null.
+  a0 = 84;
+
+  result = f(a0, a1, a2, a3);
+
+  CHECK_EQ(0, result.a0);
+  CHECK_EQ(0, result.a1.a0.a0);
+  CHECK_EQ(0, result.a1.a0.a1.a0.a0);
+  CHECK_EQ(0, result.a1.a0.a1.a0.a1);
+  CHECK_APPROX(0.0, result.a1.a0.a1.a1.a0);
+  CHECK_EQ(0, result.a1.a0.a2);
+  CHECK_APPROX(0.0, result.a1.a0.a3.a0.a0);
+  CHECK_APPROX(0.0, result.a1.a0.a3.a1);
+  CHECK_EQ(0, result.a1.a0.a4);
+  CHECK_APPROX(0.0, result.a1.a0.a5.a0.a0);
+  CHECK_APPROX(0.0, result.a1.a0.a5.a1.a0);
+  CHECK_EQ(0, result.a1.a0.a6);
+  CHECK_EQ(0, result.a1.a1.a0.a0);
+  CHECK_EQ(0, result.a1.a1.a0.a1);
+  CHECK_APPROX(0.0, result.a1.a1.a1.a0);
+  CHECK_APPROX(0.0, result.a1.a2);
+  CHECK_APPROX(0.0, result.a1.a3);
+  CHECK_EQ(0, result.a2.a0.a0);
+  CHECK_EQ(0, result.a2.a0.a1.a0.a0);
+  CHECK_EQ(0, result.a2.a0.a1.a0.a1);
+  CHECK_APPROX(0.0, result.a2.a0.a1.a1.a0);
+  CHECK_EQ(0, result.a2.a0.a2);
+  CHECK_APPROX(0.0, result.a2.a0.a3.a0.a0);
+  CHECK_APPROX(0.0, result.a2.a0.a3.a1);
+  CHECK_EQ(0, result.a2.a0.a4);
+  CHECK_APPROX(0.0, result.a2.a0.a5.a0.a0);
+  CHECK_APPROX(0.0, result.a2.a0.a5.a1.a0);
+  CHECK_EQ(0, result.a2.a0.a6);
+  CHECK_EQ(0, result.a2.a1.a0.a0);
+  CHECK_EQ(0, result.a2.a1.a0.a1);
+  CHECK_APPROX(0.0, result.a2.a1.a1.a0);
+  CHECK_APPROX(0.0, result.a2.a2);
+  CHECK_APPROX(0.0, result.a2.a3);
+  CHECK_APPROX(0.0, result.a3);
 
   return 0;
 }

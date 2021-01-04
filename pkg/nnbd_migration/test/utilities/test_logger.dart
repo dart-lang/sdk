@@ -18,9 +18,7 @@ class TestLogger implements Logger {
   Ansi get ansi => Ansi(false);
 
   @override
-  void flush() {
-    throw UnimplementedError('TODO(paulberry)');
-  }
+  void flush() {}
 
   @override
   Progress progress(String message) {
@@ -39,7 +37,9 @@ class TestLogger implements Logger {
 
   @override
   void trace(String message) {
-    throw UnimplementedError('TODO(paulberry)');
+    if (isVerbose) {
+      stdoutBuffer.writeln(message);
+    }
   }
 
   @override

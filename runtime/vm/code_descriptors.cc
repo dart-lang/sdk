@@ -4,17 +4,36 @@
 
 #include "vm/code_descriptors.h"
 
+#include "platform/utils.h"
 #include "vm/compiler/api/deopt_id.h"
+#include "vm/flags.h"
 #include "vm/log.h"
+#include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/zone_text_buffer.h"
 
 namespace dart {
 
+DescriptorList::DescriptorList(
+    Zone* zone,
+    const GrowableArray<const Function*>* inline_id_to_function)
+    : function_(Function::Handle(
+          zone,
+          FLAG_check_token_positions && (inline_id_to_function != nullptr)
+              ? inline_id_to_function->At(0)->raw()
+              : Function::null())),
+      script_(Script::Handle(
+          zone,
+          function_.IsNull() ? Script::null() : function_.script())),
+      encoded_data_(zone, kInitialStreamSize),
+      prev_pc_offset(0),
+      prev_deopt_id(0),
+      prev_token_pos(0) {}
+
 void DescriptorList::AddDescriptor(PcDescriptorsLayout::Kind kind,
                                    intptr_t pc_offset,
                                    intptr_t deopt_id,
-                                   TokenPosition token_pos,
+                                   const TokenPosition token_pos,
                                    intptr_t try_index,
                                    intptr_t yield_index) {
   // yield index 0 is reserved for normal entry.
@@ -40,10 +59,31 @@ void DescriptorList::AddDescriptor(PcDescriptorsLayout::Kind kind,
     prev_pc_offset = pc_offset;
 
     if (!FLAG_precompiled_mode) {
+      if (FLAG_check_token_positions && token_pos.IsReal()) {
+        if (!function_.IsNull() &&
+            !token_pos.IsWithin(function_.token_pos(),
+                                function_.end_token_pos())) {
+          FATAL("Token position %s for PC descriptor %s at offset 0x%" Px
+                " invalid for function %s (%s, %s)",
+                token_pos.ToCString(), PcDescriptorsLayout::KindToCString(kind),
+                pc_offset, function_.ToFullyQualifiedCString(),
+                function_.token_pos().ToCString(),
+                function_.end_token_pos().ToCString());
+        }
+        if (!script_.IsNull() && !script_.IsValidTokenPosition(token_pos)) {
+          FATAL("Token position %s for PC descriptor %s at offset 0x%" Px
+                " invalid for script %s of function %s",
+                token_pos.ToCString(), PcDescriptorsLayout::KindToCString(kind),
+                pc_offset, script_.ToCString(),
+                function_.ToFullyQualifiedCString());
+        }
+      }
+      const int32_t encoded_pos = token_pos.Serialize();
       encoded_data_.WriteSLEB128(deopt_id - prev_deopt_id);
-      encoded_data_.WriteSLEB128(token_pos.value() - prev_token_pos);
+      encoded_data_.WriteSLEB128(
+          Utils::SubWithWrapAround(encoded_pos, prev_token_pos));
       prev_deopt_id = deopt_id;
-      prev_token_pos = token_pos.value();
+      prev_token_pos = encoded_pos;
     }
   }
 }
@@ -197,8 +237,53 @@ TypedDataPtr CatchEntryMovesMapBuilder::FinalizeCatchEntryMovesMap() {
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-const TokenPosition CodeSourceMapBuilder::kInitialPosition =
-    TokenPosition(TokenPosition::kDartCodeProloguePos);
+uint8_t CodeSourceMapOps::Read(ReadStream* stream,
+                               int32_t* arg1,
+                               int32_t* arg2) {
+  ASSERT(stream != nullptr && arg1 != nullptr);
+  const int32_t n = stream->Read<int32_t>();
+  const uint8_t op = OpField::decode(n);
+  *arg1 = ArgField::decode(n);
+  if (*arg1 > kMaxArgValue) {
+    *arg1 |= kSignBits;
+  }
+#if defined(DART_PRECOMPILER)
+  // The special handling for non-symbolic stack trace mode only needs to
+  // happen in the precompiler, because those CSMs are not serialized in
+  // precompiled snapshots.
+  if (op == kChangePosition && FLAG_dwarf_stack_traces_mode) {
+    const int32_t m = stream->Read<int32_t>();
+    if (arg2 != nullptr) {
+      *arg2 = m;
+    }
+  }
+#endif
+  return op;
+}
+
+void CodeSourceMapOps::Write(BaseWriteStream* stream,
+                             uint8_t op,
+                             int32_t arg1,
+                             int32_t arg2) {
+  ASSERT(stream != nullptr);
+  ASSERT(arg1 >= kMinArgValue && arg1 <= kMaxArgValue);
+  if (arg1 < 0) {
+    arg1 &= ~kSignBits;
+  }
+  const int32_t n = OpField::encode(op) | ArgField::encode(arg1);
+  stream->Write(n);
+#if defined(DART_PRECOMPILER)
+  if (op == kChangePosition && FLAG_dwarf_stack_traces_mode) {
+    // For non-symbolic stack traces, the CodeSourceMaps are not serialized,
+    // so we need not worry about increasing snapshot size by including more
+    // information here.
+    stream->Write(arg2);
+  }
+#endif
+}
+
+const TokenPosition& CodeSourceMapBuilder::kInitialPosition =
+    TokenPosition::kDartCodePrologue;
 
 CodeSourceMapBuilder::CodeSourceMapBuilder(
     Zone* zone,
@@ -206,7 +291,8 @@ CodeSourceMapBuilder::CodeSourceMapBuilder(
     const GrowableArray<intptr_t>& caller_inline_id,
     const GrowableArray<TokenPosition>& inline_id_to_token_pos,
     const GrowableArray<const Function*>& inline_id_to_function)
-    : buffered_pc_offset_(0),
+    : zone_(zone),
+      buffered_pc_offset_(0),
       buffered_inline_id_stack_(),
       buffered_token_pos_stack_(),
       written_pc_offset_(0),
@@ -217,6 +303,7 @@ CodeSourceMapBuilder::CodeSourceMapBuilder(
       inline_id_to_function_(inline_id_to_function),
       inlined_functions_(
           GrowableObjectArray::Handle(GrowableObjectArray::New(Heap::kOld))),
+      script_(Script::Handle(zone, Script::null())),
       stream_(zone, 64),
       stack_traces_only_(stack_traces_only) {
   buffered_inline_id_stack_.Add(0);
@@ -226,63 +313,70 @@ CodeSourceMapBuilder::CodeSourceMapBuilder(
 }
 
 void CodeSourceMapBuilder::FlushBuffer() {
-  FlushBufferStack();
-  FlushBufferPosition();
-  FlushBufferPC();
-}
-
-void CodeSourceMapBuilder::FlushBufferStack() {
-  for (intptr_t i = buffered_inline_id_stack_.length() - 1; i >= 0; i--) {
-    intptr_t buffered_id = buffered_inline_id_stack_[i];
-    if (i < written_inline_id_stack_.length()) {
-      intptr_t written_id = written_inline_id_stack_[i];
+  // 1. Flush the inlining stack.
+  //
+  // The top-most position where the buffered and written stack match.
+  intptr_t common_index;
+  for (common_index = buffered_inline_id_stack_.length() - 1; common_index >= 0;
+       common_index--) {
+    intptr_t buffered_id = buffered_inline_id_stack_[common_index];
+    if (common_index < written_inline_id_stack_.length()) {
+      intptr_t written_id = written_inline_id_stack_[common_index];
       if (buffered_id == written_id) {
-        // i is the top-most position where the buffered and written stack
-        // match.
-        while (written_inline_id_stack_.length() > i + 1) {
-          WritePop();
-        }
-        for (intptr_t j = i + 1; j < buffered_inline_id_stack_.length(); j++) {
-          TokenPosition buffered_pos = buffered_token_pos_stack_[j - 1];
-          TokenPosition written_pos = written_token_pos_stack_[j - 1];
-          if (buffered_pos != written_pos) {
-            WriteChangePosition(buffered_pos);
-          }
-          WritePush(buffered_inline_id_stack_[j]);
-        }
-        return;
+        break;
       }
     }
   }
-  UNREACHABLE();
-}
+  if (common_index < 0) {
+    // The base, which is the root function, should _always_ match.
+    UNREACHABLE();
+  }
+  while (written_inline_id_stack_.length() > common_index + 1) {
+    WritePop();
+  }
+  for (intptr_t j = common_index + 1; j < buffered_inline_id_stack_.length();
+       j++) {
+    const auto& buffered_pos = buffered_token_pos_stack_[j - 1];
+    const auto& written_pos = written_token_pos_stack_[j - 1];
+    if (buffered_pos != written_pos) {
+      WriteChangePosition(buffered_pos);
+    }
+    WritePush(buffered_inline_id_stack_[j]);
+  }
 
-void CodeSourceMapBuilder::FlushBufferPosition() {
-  ASSERT(buffered_token_pos_stack_.length() ==
-         written_token_pos_stack_.length());
+  ASSERT_EQUAL(buffered_token_pos_stack_.length(),
+               written_token_pos_stack_.length());
 
+  // 2. Flush the current token position.
   intptr_t top = buffered_token_pos_stack_.length() - 1;
-  TokenPosition buffered_pos = buffered_token_pos_stack_[top];
-  TokenPosition written_pos = written_token_pos_stack_[top];
+  const auto& buffered_pos = buffered_token_pos_stack_[top];
+  const auto& written_pos = written_token_pos_stack_[top];
   if (buffered_pos != written_pos) {
     WriteChangePosition(buffered_pos);
   }
-}
 
-void CodeSourceMapBuilder::FlushBufferPC() {
+  // 3. Flush the current PC offset.
   if (buffered_pc_offset_ != written_pc_offset_) {
     WriteAdvancePC(buffered_pc_offset_ - written_pc_offset_);
   }
 }
 
-void CodeSourceMapBuilder::StartInliningInterval(int32_t pc_offset,
-                                                 intptr_t inline_id) {
-  if (buffered_inline_id_stack_.Last() == inline_id) {
+void CodeSourceMapBuilder::StartInliningInterval(
+    int32_t pc_offset,
+    const InstructionSource& source) {
+  if (!source.token_pos.IsReal() && !source.token_pos.IsSynthetic()) {
+    // Only record inlining intervals for token positions that might need
+    // to be checked against the appropriate function and/or script.
+    return;
+  }
+
+  if (buffered_inline_id_stack_.Last() == source.inlining_id) {
     // No change in function stack.
     return;
   }
-  if (inline_id == -1) {
-    // Basic blocking missing an inline_id.
+
+  if (source.inlining_id < 0) {
+    // Inlining ID is unset for this source, so assume the current inlining ID.
     return;
   }
 
@@ -294,7 +388,7 @@ void CodeSourceMapBuilder::StartInliningInterval(int32_t pc_offset,
   // stack.
 
   // Pop to a common ancestor.
-  intptr_t common_parent = inline_id;
+  intptr_t common_parent = source.inlining_id;
   while (!IsOnBufferedStack(common_parent)) {
     common_parent = caller_inline_id_[common_parent];
   }
@@ -304,61 +398,64 @@ void CodeSourceMapBuilder::StartInliningInterval(int32_t pc_offset,
 
   // Push to the new top-of-stack function.
   GrowableArray<intptr_t> to_push;
-  intptr_t id = inline_id;
-  while (id != common_parent) {
+  for (intptr_t id = source.inlining_id; id != common_parent;
+       id = caller_inline_id_[id]) {
     to_push.Add(id);
-    id = caller_inline_id_[id];
   }
   for (intptr_t i = to_push.length() - 1; i >= 0; i--) {
     intptr_t callee_id = to_push[i];
-    TokenPosition call_token;
-    if (callee_id != 0) {
-      // TODO(rmacnak): Should make this array line up with the others.
-      call_token = inline_id_to_token_pos_[callee_id - 1];
-    } else {
-      UNREACHABLE();
-    }
-
-    // Report caller as at the position of the call.
-    BufferChangePosition(call_token);
-
+    // We should never push the root function or its "caller".
+    ASSERT(callee_id > 0);
+    BufferChangePosition(inline_id_to_token_pos_[callee_id - 1]);
     BufferPush(callee_id);
+  }
+  if (FLAG_check_token_positions) {
+    // Only update the cached script_ on inlining interval changes, since it's
+    // a non-trivial computation.
+    script_ = inline_id_to_function_[source.inlining_id]->script();
   }
 }
 
-void CodeSourceMapBuilder::BeginCodeSourceRange(int32_t pc_offset) {}
+void CodeSourceMapBuilder::BeginCodeSourceRange(
+    int32_t pc_offset,
+    const InstructionSource& source) {
+  StartInliningInterval(pc_offset, source);
+}
 
 void CodeSourceMapBuilder::EndCodeSourceRange(int32_t pc_offset,
-                                              TokenPosition pos) {
+                                              const InstructionSource& source) {
   if (pc_offset == buffered_pc_offset_) {
     return;  // Empty intermediate instruction.
   }
-  if (pos != buffered_token_pos_stack_.Last()) {
+  StartInliningInterval(pc_offset, source);
+  if (source.token_pos != buffered_token_pos_stack_.Last()) {
     if (!stack_traces_only_) {
       FlushBuffer();
     }
-    BufferChangePosition(pos);
+    BufferChangePosition(source.token_pos);
   }
   BufferAdvancePC(pc_offset - buffered_pc_offset_);
 }
 
 void CodeSourceMapBuilder::NoteDescriptor(PcDescriptorsLayout::Kind kind,
                                           int32_t pc_offset,
-                                          TokenPosition pos) {
+                                          const InstructionSource& source) {
   const uint8_t kCanThrow =
       PcDescriptorsLayout::kIcCall | PcDescriptorsLayout::kUnoptStaticCall |
       PcDescriptorsLayout::kRuntimeCall | PcDescriptorsLayout::kOther;
   if ((kind & kCanThrow) != 0) {
-    BufferChangePosition(pos);
+    StartInliningInterval(pc_offset, source);
+    BufferChangePosition(source.token_pos);
     BufferAdvancePC(pc_offset - buffered_pc_offset_);
     FlushBuffer();
   }
 }
 
 void CodeSourceMapBuilder::NoteNullCheck(int32_t pc_offset,
-                                         TokenPosition pos,
+                                         const InstructionSource& source,
                                          intptr_t name_index) {
-  BufferChangePosition(pos);
+  StartInliningInterval(pc_offset, source);
+  BufferChangePosition(source.token_pos);
   BufferAdvancePC(pc_offset - buffered_pc_offset_);
   FlushBuffer();
   WriteNullCheck(name_index);
@@ -376,6 +473,17 @@ intptr_t CodeSourceMapBuilder::GetFunctionId(intptr_t inline_id) {
   return inlined_functions_.Length() - 1;
 }
 
+TokenPosition CodeSourceMapBuilder::RootPosition(
+    const InstructionSource& source) {
+  if (source.inlining_id <= 0) return source.token_pos;
+
+  intptr_t id = source.inlining_id;
+  while (caller_inline_id_[id] != 0) {
+    id = caller_inline_id_[id];
+  }
+  return inline_id_to_token_pos_[id - 1];
+}
+
 ArrayPtr CodeSourceMapBuilder::InliningIdToFunction() {
   if (inlined_functions_.Length() == 0) {
     return Object::empty_array().raw();
@@ -388,40 +496,68 @@ CodeSourceMapPtr CodeSourceMapBuilder::Finalize() {
     FlushBuffer();
   }
   intptr_t length = stream_.bytes_written();
-  const CodeSourceMap& map = CodeSourceMap::Handle(CodeSourceMap::New(length));
+  const auto& map = CodeSourceMap::Handle(zone_, CodeSourceMap::New(length));
   NoSafepointScope no_safepoint;
   memmove(map.Data(), stream_.buffer(), length);
   return map.raw();
 }
 
-void CodeSourceMapBuilder::WriteChangePosition(TokenPosition pos) {
-  stream_.Write<uint8_t>(kChangePosition);
-  intptr_t position_or_line = pos.value();
+void CodeSourceMapBuilder::BufferChangePosition(TokenPosition pos) {
+  if (FLAG_check_token_positions && pos.IsReal()) {
+    const intptr_t inline_id = buffered_inline_id_stack_.Last();
+    const auto& function = *inline_id_to_function_[inline_id];
+    if (function.end_token_pos().IsReal() &&
+        !pos.IsWithin(function.token_pos(), function.end_token_pos())) {
+      TextBuffer buffer(256);
+      buffer.Printf("Token position %s is invalid for function %s (%s, %s)",
+                    pos.ToCString(), function.ToFullyQualifiedCString(),
+                    function.token_pos().ToCString(),
+                    function.end_token_pos().ToCString());
+      if (inline_id > 0) {
+        buffer.Printf(" while compiling function %s",
+                      inline_id_to_function_[0]->ToFullyQualifiedCString());
+      }
+      FATAL("%s", buffer.buffer());
+    }
+    script_ = function.script();
+    if (!script_.IsNull() && !script_.IsValidTokenPosition(pos)) {
+      TextBuffer buffer(256);
+      buffer.Printf("Token position %s is invalid for script %s of function %s",
+                    pos.ToCString(), script_.ToCString(),
+                    function.ToFullyQualifiedCString());
+      if (inline_id != 0) {
+        buffer.Printf(" inlined into function %s",
+                      inline_id_to_function_[0]->ToFullyQualifiedCString());
+      }
+      FATAL("%s", buffer.buffer());
+    }
+  }
+  buffered_token_pos_stack_.Last() = pos;
+}
+
+void CodeSourceMapBuilder::WriteChangePosition(const TokenPosition pos) {
+  const TokenPosition& last_written = written_token_pos_stack_.Last();
+  intptr_t position_or_line =
+      Utils::SubWithWrapAround(pos.Serialize(), last_written.Serialize());
+  intptr_t column = TokenPosition::kNoSource.Serialize();
 #if defined(DART_PRECOMPILER)
-  intptr_t column = TokenPosition::kNoSourcePos;
   if (FLAG_precompiled_mode) {
     // Don't use the raw position value directly in precompiled mode. Instead,
     // use the value of kNoSource as a fallback when no line or column
     // information is found.
-    position_or_line = TokenPosition::kNoSourcePos;
-    intptr_t inline_id = buffered_inline_id_stack_.Last();
-    if (inline_id < inline_id_to_function_.length()) {
-      const Function* function = inline_id_to_function_[inline_id];
-      Script& script = Script::Handle(function->script());
-      script.GetTokenLocationUsingLineStarts(pos.SourcePosition(),
-                                             &position_or_line, &column);
-    }
+    position_or_line = TokenPosition::kNoSource.Serialize();
+    const intptr_t inline_id = written_inline_id_stack_.Last();
+    ASSERT(inline_id < inline_id_to_function_.length());
+    script_ = inline_id_to_function_[inline_id]->script();
+    script_.GetTokenLocation(pos, &position_or_line, &column);
+    intptr_t old_line = TokenPosition::kNoSource.Serialize();
+    script_.GetTokenLocation(last_written, &old_line);
+    position_or_line =
+        Utils::SubWithWrapAround<int32_t>(position_or_line, old_line);
   }
 #endif
-  stream_.Write<int32_t>(position_or_line);
-#if defined(DART_PRECOMPILER)
-  // For non-symbolic stack traces, the CodeSourceMaps are not serialized,
-  // so we need not worry about increasing snapshot size by including more
-  // information here.
-  if (FLAG_dwarf_stack_traces_mode) {
-    stream_.Write<int32_t>(column);
-  }
-#endif
+  CodeSourceMapOps::Write(&stream_, CodeSourceMapOps::kChangePosition,
+                          position_or_line, column);
   written_token_pos_stack_.Last() = pos;
 }
 
@@ -437,32 +573,34 @@ void CodeSourceMapReader::GetInlinedFunctionsAt(
 
   int32_t current_pc_offset = 0;
   function_stack->Add(&root_);
-  token_positions->Add(CodeSourceMapBuilder::kInitialPosition);
+  token_positions->Add(InitialPosition());
 
   while (stream.PendingBytes() > 0) {
-    uint8_t opcode = stream.Read<uint8_t>();
+    int32_t arg;
+    const uint8_t opcode = CodeSourceMapOps::Read(&stream, &arg);
     switch (opcode) {
-      case CodeSourceMapBuilder::kChangePosition: {
+      case CodeSourceMapOps::kChangePosition: {
+        const TokenPosition& old_token =
+            (*token_positions)[token_positions->length() - 1];
         (*token_positions)[token_positions->length() - 1] =
-            ReadPosition(&stream);
+            TokenPosition::Deserialize(
+                Utils::AddWithWrapAround(arg, old_token.Serialize()));
         break;
       }
-      case CodeSourceMapBuilder::kAdvancePC: {
-        int32_t delta = stream.Read<int32_t>();
-        current_pc_offset += delta;
+      case CodeSourceMapOps::kAdvancePC: {
+        current_pc_offset += arg;
         if (current_pc_offset > pc_offset) {
           return;
         }
         break;
       }
-      case CodeSourceMapBuilder::kPushFunction: {
-        int32_t func = stream.Read<int32_t>();
+      case CodeSourceMapOps::kPushFunction: {
         function_stack->Add(
-            &Function::Handle(Function::RawCast(functions_.At(func))));
-        token_positions->Add(CodeSourceMapBuilder::kInitialPosition);
+            &Function::Handle(Function::RawCast(functions_.At(arg))));
+        token_positions->Add(InitialPosition());
         break;
       }
-      case CodeSourceMapBuilder::kPopFunction: {
+      case CodeSourceMapOps::kPopFunction: {
         // We never pop the root function.
         ASSERT(function_stack->length() > 1);
         ASSERT(token_positions->length() > 1);
@@ -470,8 +608,7 @@ void CodeSourceMapReader::GetInlinedFunctionsAt(
         token_positions->RemoveLast();
         break;
       }
-      case CodeSourceMapBuilder::kNullCheck: {
-        stream.Read<int32_t>();
+      case CodeSourceMapOps::kNullCheck: {
         break;
       }
       default:
@@ -501,38 +638,35 @@ void CodeSourceMapReader::PrintJSONInlineIntervals(JSONObject* jsobj) {
   function_stack.Add(0);
 
   while (stream.PendingBytes() > 0) {
-    uint8_t opcode = stream.Read<uint8_t>();
+    int32_t arg;
+    const uint8_t opcode = CodeSourceMapOps::Read(&stream, &arg);
     switch (opcode) {
-      case CodeSourceMapBuilder::kChangePosition: {
-        ReadPosition(&stream);
+      case CodeSourceMapOps::kChangePosition: {
         break;
       }
-      case CodeSourceMapBuilder::kAdvancePC: {
-        int32_t delta = stream.Read<int32_t>();
+      case CodeSourceMapOps::kAdvancePC: {
         // Format: [start, end, inline functions...]
         JSONArray inline_interval(&inline_intervals);
         inline_interval.AddValue(static_cast<intptr_t>(current_pc_offset));
         inline_interval.AddValue(
-            static_cast<intptr_t>(current_pc_offset + delta - 1));
+            static_cast<intptr_t>(current_pc_offset + arg - 1));
         for (intptr_t i = 0; i < function_stack.length(); i++) {
           inline_interval.AddValue(function_stack[i]);
         }
-        current_pc_offset += delta;
+        current_pc_offset += arg;
         break;
       }
-      case CodeSourceMapBuilder::kPushFunction: {
-        int32_t func = stream.Read<int32_t>();
-        function_stack.Add(func);
+      case CodeSourceMapOps::kPushFunction: {
+        function_stack.Add(arg);
         break;
       }
-      case CodeSourceMapBuilder::kPopFunction: {
+      case CodeSourceMapOps::kPopFunction: {
         // We never pop the root function.
         ASSERT(function_stack.length() > 1);
         function_stack.RemoveLast();
         break;
       }
-      case CodeSourceMapBuilder::kNullCheck: {
-        stream.Read<int32_t>();
+      case CodeSourceMapOps::kNullCheck: {
         break;
       }
       default:
@@ -554,37 +688,34 @@ void CodeSourceMapReader::DumpInlineIntervals(uword start) {
   THR_Print("Inline intervals for function '%s' {\n",
             root_.ToFullyQualifiedCString());
   while (stream.PendingBytes() > 0) {
-    uint8_t opcode = stream.Read<uint8_t>();
+    int32_t arg;
+    const uint8_t opcode = CodeSourceMapOps::Read(&stream, &arg);
     switch (opcode) {
-      case CodeSourceMapBuilder::kChangePosition: {
-        ReadPosition(&stream);
+      case CodeSourceMapOps::kChangePosition: {
         break;
       }
-      case CodeSourceMapBuilder::kAdvancePC: {
-        int32_t delta = stream.Read<int32_t>();
+      case CodeSourceMapOps::kAdvancePC: {
         THR_Print("%" Px "-%" Px ": ", start + current_pc_offset,
-                  start + current_pc_offset + delta - 1);
+                  start + current_pc_offset + arg - 1);
         for (intptr_t i = 0; i < function_stack.length(); i++) {
           THR_Print("%s ", function_stack[i]->ToCString());
         }
         THR_Print("\n");
-        current_pc_offset += delta;
+        current_pc_offset += arg;
         break;
       }
-      case CodeSourceMapBuilder::kPushFunction: {
-        int32_t func = stream.Read<int32_t>();
+      case CodeSourceMapOps::kPushFunction: {
         function_stack.Add(
-            &Function::Handle(Function::RawCast(functions_.At(func))));
+            &Function::Handle(Function::RawCast(functions_.At(arg))));
         break;
       }
-      case CodeSourceMapBuilder::kPopFunction: {
+      case CodeSourceMapOps::kPopFunction: {
         // We never pop the root function.
         ASSERT(function_stack.length() > 1);
         function_stack.RemoveLast();
         break;
       }
-      case CodeSourceMapBuilder::kNullCheck: {
-        stream.Read<int32_t>();
+      case CodeSourceMapOps::kNullCheck: {
         break;
       }
       default:
@@ -603,37 +734,40 @@ void CodeSourceMapReader::DumpSourcePositions(uword start) {
 
   int32_t current_pc_offset = 0;
   function_stack.Add(&root_);
-  token_positions.Add(CodeSourceMapBuilder::kInitialPosition);
+  token_positions.Add(InitialPosition());
 
   THR_Print("Source positions for function '%s' {\n",
             root_.ToFullyQualifiedCString());
   while (stream.PendingBytes() > 0) {
-    uint8_t opcode = stream.Read<uint8_t>();
+    int32_t arg;
+    const uint8_t opcode = CodeSourceMapOps::Read(&stream, &arg);
     switch (opcode) {
-      case CodeSourceMapBuilder::kChangePosition: {
-        token_positions[token_positions.length() - 1] = ReadPosition(&stream);
+      case CodeSourceMapOps::kChangePosition: {
+        const TokenPosition& old_token =
+            token_positions[token_positions.length() - 1];
+        token_positions[token_positions.length() - 1] =
+            TokenPosition::Deserialize(
+                Utils::AddWithWrapAround(arg, old_token.Serialize()));
         break;
       }
-      case CodeSourceMapBuilder::kAdvancePC: {
-        int32_t delta = stream.Read<int32_t>();
+      case CodeSourceMapOps::kAdvancePC: {
         THR_Print("%" Px "-%" Px ": ", start + current_pc_offset,
-                  start + current_pc_offset + delta - 1);
+                  start + current_pc_offset + arg - 1);
         for (intptr_t i = 0; i < function_stack.length(); i++) {
-          THR_Print("%s@%" Pd " ", function_stack[i]->ToCString(),
-                    token_positions[i].value());
+          THR_Print("%s@%s", function_stack[i]->ToCString(),
+                    token_positions[i].ToCString());
         }
         THR_Print("\n");
-        current_pc_offset += delta;
+        current_pc_offset += arg;
         break;
       }
-      case CodeSourceMapBuilder::kPushFunction: {
-        int32_t func = stream.Read<int32_t>();
+      case CodeSourceMapOps::kPushFunction: {
         function_stack.Add(
-            &Function::Handle(Function::RawCast(functions_.At(func))));
-        token_positions.Add(CodeSourceMapBuilder::kInitialPosition);
+            &Function::Handle(Function::RawCast(functions_.At(arg))));
+        token_positions.Add(InitialPosition());
         break;
       }
-      case CodeSourceMapBuilder::kPopFunction: {
+      case CodeSourceMapOps::kPopFunction: {
         // We never pop the root function.
         ASSERT(function_stack.length() > 1);
         ASSERT(token_positions.length() > 1);
@@ -641,11 +775,9 @@ void CodeSourceMapReader::DumpSourcePositions(uword start) {
         token_positions.RemoveLast();
         break;
       }
-      case CodeSourceMapBuilder::kNullCheck: {
-        const intptr_t name_index = stream.Read<int32_t>();
-        THR_Print("%" Px "-%" Px ": null check PP#%" Pd "\n",
-                  start + current_pc_offset, start + current_pc_offset,
-                  name_index);
+      case CodeSourceMapOps::kNullCheck: {
+        THR_Print("%" Px "-%" Px ": null check PP#%" Pd32 "\n",
+                  start + current_pc_offset, start + current_pc_offset, arg);
         break;
       }
       default:
@@ -662,29 +794,26 @@ intptr_t CodeSourceMapReader::GetNullCheckNameIndexAt(int32_t pc_offset) {
   int32_t current_pc_offset = 0;
 
   while (stream.PendingBytes() > 0) {
-    uint8_t opcode = stream.Read<uint8_t>();
+    int32_t arg;
+    const uint8_t opcode = CodeSourceMapOps::Read(&stream, &arg);
     switch (opcode) {
-      case CodeSourceMapBuilder::kChangePosition: {
-        ReadPosition(&stream);
+      case CodeSourceMapOps::kChangePosition: {
         break;
       }
-      case CodeSourceMapBuilder::kAdvancePC: {
-        int32_t delta = stream.Read<int32_t>();
-        current_pc_offset += delta;
+      case CodeSourceMapOps::kAdvancePC: {
+        current_pc_offset += arg;
         RELEASE_ASSERT(current_pc_offset <= pc_offset);
         break;
       }
-      case CodeSourceMapBuilder::kPushFunction: {
-        stream.Read<int32_t>();
+      case CodeSourceMapOps::kPushFunction: {
         break;
       }
-      case CodeSourceMapBuilder::kPopFunction: {
+      case CodeSourceMapOps::kPopFunction: {
         break;
       }
-      case CodeSourceMapBuilder::kNullCheck: {
-        const int32_t name_index = stream.Read<int32_t>();
+      case CodeSourceMapOps::kNullCheck: {
         if (current_pc_offset == pc_offset) {
-          return name_index;
+          return arg;
         }
         break;
       }
@@ -695,19 +824,6 @@ intptr_t CodeSourceMapReader::GetNullCheckNameIndexAt(int32_t pc_offset) {
 
   UNREACHABLE();
   return -1;
-}
-
-TokenPosition CodeSourceMapReader::ReadPosition(ReadStream* stream) {
-  const intptr_t line = stream->Read<int32_t>();
-#if defined(DART_PRECOMPILER)
-  // The special handling for non-symbolic stack trace mode only needs to
-  // happen in the precompiler, because those CSMs are not serialized in
-  // precompiled snapshots.
-  if (FLAG_dwarf_stack_traces_mode) {
-    stream->Read<int32_t>();  // Discard the column information.
-  }
-#endif
-  return TokenPosition(line);
 }
 
 }  // namespace dart

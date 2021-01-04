@@ -1,0 +1,8 @@
+import "const_constructor_coverage_lib1.dart";
+import "const_constructor_coverage_lib2.dart";
+
+const Foo foo1 = const Foo();
+const Foo foo2 = const Foo.named1();
+const Foo foo3 = const Foo.named2();
+const Foo foo4 = const Foo.named3();
+main() {}

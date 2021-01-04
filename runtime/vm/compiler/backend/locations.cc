@@ -155,7 +155,8 @@ void LocationSummary::set_in(intptr_t index, Location loc) {
   // restrictions.
   if (always_calls()) {
     if (loc.IsUnallocated()) {
-      ASSERT(loc.policy() == Location::kAny);
+      ASSERT(loc.policy() == Location::kAny ||
+             loc.policy() == Location::kRequiresStackSlot);
     } else if (loc.IsPairLocation()) {
       ASSERT(!loc.AsPairLocation()->At(0).IsUnallocated() ||
              loc.AsPairLocation()->At(0).policy() == Location::kAny);
@@ -280,6 +281,8 @@ const char* Location::Name() const {
           return "R";
         case kRequiresFpuRegister:
           return "DR";
+        case kRequiresStackSlot:
+          return "RS";
         case kWritableRegister:
           return "WR";
         case kSameAsFirstInput:

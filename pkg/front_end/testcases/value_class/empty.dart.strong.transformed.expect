@@ -9,13 +9,13 @@ class EmptyClass extends core::Object {
   synthetic constructor •() → self::EmptyClass
     : super core::Object::•()
     ;
-  operator /*isNullableByDefault*/ ==(core::Object other) → core::bool
+  operator /*isLegacy*/ ==(core::Object other) → core::bool
     return other is self::EmptyClass;
-  get /*isNullableByDefault*/ hashCode() → core::int
+  get /*isLegacy*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish("org-dartlang-testcase:///empty.dartEmptyClass".{core::String::hashCode});
-  method /*isNullableByDefault*/ toString() → core::String
+  method /*isLegacy*/ toString() → core::String
     return "EmptyClass()";
-  method /*isNullableByDefault*/ copyWith() → dynamic
+  method /*isLegacy*/ copyWith() → dynamic
     return new self::EmptyClass::•();
 }
 static method main() → dynamic {}

@@ -41,11 +41,20 @@ class AddNullCheck extends CorrectionProducer {
       toType = parent.declaredElement.type;
     } else if (parent is ArgumentList) {
       toType = target.staticParameterElement.type;
+    } else if (parent is IndexExpression) {
+      toType = parent.realTarget.staticType;
+    } else if ((parent is PrefixedIdentifier && target == parent.prefix) ||
+        (parent is PropertyAccess && target == parent.target) ||
+        (parent is MethodInvocation && target == parent.target) ||
+        (parent is FunctionExpressionInvocation && target == parent.function)) {
+      // No need to set the `toType` because there isn't any need for a type
+      // check.
     } else {
       return;
     }
-    if (!typeSystem.isAssignableTo(
-        toType, typeSystem.promoteToNonNull(fromType))) {
+    if (toType != null &&
+        !typeSystem.isAssignableTo(
+            toType, typeSystem.promoteToNonNull(fromType))) {
       // The reason that `fromType` can't be assigned to `toType` is more than
       // just because it's nullable, in which case a null check won't fix the
       // problem.

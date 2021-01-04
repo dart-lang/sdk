@@ -210,12 +210,14 @@ template("build_gen_snapshot") {
     if (is_win) {
       libs = [
         "iphlpapi.lib",
-        "psapi.lib",
         "ws2_32.lib",
         "Rpcrt4.lib",
         "shlwapi.lib",
         "winmm.lib",
       ]
+      if (target_os != "winuwp") {
+        libs += [ "psapi.lib" ]
+      }
     }
   }
 }

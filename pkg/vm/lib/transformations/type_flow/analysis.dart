@@ -696,7 +696,7 @@ class _ReceiverTypeBuilder {
       assert(_type is ConcreteType);
       assert(_type != type);
 
-      _list = new List<ConcreteType>();
+      _list = <ConcreteType>[];
       _list.add(_type);
 
       _type = null;
@@ -828,6 +828,10 @@ class _FieldValue extends _DependencyTracker {
   }
 
   bool _isDefaultValueOfFieldObservable() {
+    if (field.isLate) {
+      return false;
+    }
+
     if (field.isStatic) {
       return true;
     }
@@ -962,7 +966,7 @@ class _TFClassImpl extends TFClass {
     } else if (numSubTypes == 1) {
       return _allocatedSubtypes.single.concreteType;
     } else {
-      List<ConcreteType> types = new List<ConcreteType>();
+      List<ConcreteType> types = <ConcreteType>[];
       for (var sub in _allocatedSubtypes) {
         types.add(sub.concreteType);
       }
@@ -1048,7 +1052,7 @@ class GenericInterfacesInfoImpl implements GenericInterfacesInfo {
 
     List<DartType> flattenedTypeArgs =
         flattenedTypeArgumentsFor(klass, useCache: false);
-    result = new List<Type>(flattenedTypeArgs.length);
+    result = new List<Type>.filled(flattenedTypeArgs.length, null);
     for (int i = 0; i < flattenedTypeArgs.length; ++i) {
       final translated = closedTypeTranslator.translate(flattenedTypeArgs[i]);
       assert(translated is RuntimeType || translated is UnknownType);

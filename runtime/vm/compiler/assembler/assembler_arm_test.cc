@@ -66,7 +66,7 @@ TEST_CASE(ReciprocalOps) {
 
 ASSEMBLER_TEST_GENERATE(Simple, assembler) {
   __ mov(R0, Operand(42));
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Simple, test) {
@@ -76,7 +76,7 @@ ASSEMBLER_TEST_RUN(Simple, test) {
 
 ASSEMBLER_TEST_GENERATE(MoveNegated, assembler) {
   __ mvn(R0, Operand(42));
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(MoveNegated, test) {
@@ -91,7 +91,7 @@ ASSEMBLER_TEST_GENERATE(MoveRotImm, assembler) {
   __ mov(R0, o);
   EXPECT(Operand::CanHold(0x30000003, &o));
   __ add(R0, R0, o);
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(MoveRotImm, test) {
@@ -102,7 +102,7 @@ ASSEMBLER_TEST_RUN(MoveRotImm, test) {
 
 ASSEMBLER_TEST_GENERATE(MovImm16, assembler) {
   __ LoadPatchableImmediate(R0, 0x12345678);
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(MovImm16, test) {
@@ -116,7 +116,7 @@ ASSEMBLER_TEST_GENERATE(LoadImmediate, assembler) {
   __ cmp(R0, Operand(0));
   __ LoadImmediate(R0, 0x12345678, EQ);
   __ LoadImmediate(R0, 0x87654321, NE);
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(LoadImmediate, test) {
@@ -128,7 +128,7 @@ ASSEMBLER_TEST_RUN(LoadImmediate, test) {
 ASSEMBLER_TEST_GENERATE(LoadHalfWordUnaligned, assembler) {
   __ LoadHalfWordUnaligned(R1, R0, TMP);
   __ mov(R0, Operand(R1));
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(LoadHalfWordUnaligned, test) {
@@ -151,7 +151,7 @@ ASSEMBLER_TEST_RUN(LoadHalfWordUnaligned, test) {
 ASSEMBLER_TEST_GENERATE(LoadHalfWordUnsignedUnaligned, assembler) {
   __ LoadHalfWordUnsignedUnaligned(R1, R0, TMP);
   __ mov(R0, Operand(R1));
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(LoadHalfWordUnsignedUnaligned, test) {
@@ -173,7 +173,7 @@ ASSEMBLER_TEST_GENERATE(StoreHalfWordUnaligned, assembler) {
   __ LoadImmediate(R1, 0xABCD);
   __ StoreWordUnaligned(R1, R0, TMP);
   __ mov(R0, Operand(R1));
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(StoreHalfWordUnaligned, test) {
@@ -201,7 +201,7 @@ ASSEMBLER_TEST_RUN(StoreHalfWordUnaligned, test) {
 ASSEMBLER_TEST_GENERATE(LoadWordUnaligned, assembler) {
   __ LoadWordUnaligned(R1, R0, TMP);
   __ mov(R0, Operand(R1));
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(LoadWordUnaligned, test) {
@@ -231,7 +231,7 @@ ASSEMBLER_TEST_GENERATE(StoreWordUnaligned, assembler) {
   __ LoadImmediate(R1, 0x12345678);
   __ StoreWordUnaligned(R1, R0, TMP);
   __ mov(R0, Operand(R1));
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(StoreWordUnaligned, test) {
@@ -286,7 +286,7 @@ ASSEMBLER_TEST_GENERATE(Vmov, assembler) {
     __ vmovrrd(R0, R1, D3);       // R0:R1 = D3, R0:R1 == 41:43
     __ sub(R0, R1, Operand(R0));  // 43-41
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vmov, test) {
@@ -307,7 +307,7 @@ ASSEMBLER_TEST_GENERATE(SingleVLoadStore, assembler) {
     __ vstrs(S0, Address(R2, (-target::kWordSize * 30)));
     __ ldr(R0, Address(SP, (target::kWordSize * 30), Address::PostIndex));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(SingleVLoadStore, test) {
@@ -334,7 +334,7 @@ ASSEMBLER_TEST_GENERATE(SingleVShiftLoadStore, assembler) {
     // as:
     __ ldr(R0, Address(SP, R1, LSL, 5, Address::PostIndex));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(SingleVShiftLoadStore, test) {
@@ -360,7 +360,7 @@ ASSEMBLER_TEST_GENERATE(DoubleVLoadStore, assembler) {
     __ ldr(R1, Address(R2, (-target::kWordSize * 29)));
     __ ldr(R0, Address(SP, (target::kWordSize * 30), Address::PostIndex));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(DoubleVLoadStore, test) {
@@ -384,7 +384,7 @@ ASSEMBLER_TEST_GENERATE(SingleFPOperations, assembler) {
     __ vdivs(S0, S0, S1);  // 14.7f
     __ vsqrts(S0, S0);     // 3.8340579f
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(SingleFPOperations, test) {
@@ -408,7 +408,7 @@ ASSEMBLER_TEST_GENERATE(DoubleFPOperations, assembler) {
     __ vdivd(D0, D0, D1);  // 14.7
     __ vsqrtd(D0, D0);     // 3.8340579
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(DoubleFPOperations, test) {
@@ -447,7 +447,7 @@ ASSEMBLER_TEST_GENERATE(IntToDoubleConversion, assembler) {
     __ vmovsr(S3, R3);
     __ vcvtdi(D0, S3);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(IntToDoubleConversion, test) {
@@ -472,7 +472,7 @@ ASSEMBLER_TEST_GENERATE(LongToDoubleConversion, assembler) {
     __ LoadDImmediate(D2, 1.0 * (1LL << 32), R0);
     __ vmlad(D0, D1, D2);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(LongToDoubleConversion, test) {
@@ -491,7 +491,7 @@ ASSEMBLER_TEST_GENERATE(IntToFloatConversion, assembler) {
     __ vmovsr(S3, R3);
     __ vcvtsi(S0, S3);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(IntToFloatConversion, test) {
@@ -509,7 +509,7 @@ ASSEMBLER_TEST_GENERATE(FloatToIntConversion, assembler) {
     __ vcvtis(S1, S0);
     __ vmovrs(R0, S1);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(FloatToIntConversion, test) {
@@ -530,7 +530,7 @@ ASSEMBLER_TEST_GENERATE(DoubleToIntConversion, assembler) {
     __ vcvtid(S0, D0);
     __ vmovrs(R0, S0);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(DoubleToIntConversion, test) {
@@ -551,7 +551,7 @@ ASSEMBLER_TEST_GENERATE(FloatToDoubleConversion, assembler) {
     __ LoadSImmediate(S2, 12.8f);
     __ vcvtds(D0, S2);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(FloatToDoubleConversion, test) {
@@ -569,7 +569,7 @@ ASSEMBLER_TEST_GENERATE(DoubleToFloatConversion, assembler) {
     __ LoadDImmediate(D1, 12.8, R0);
     __ vcvtsd(S0, D1);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(DoubleToFloatConversion, test) {
@@ -607,7 +607,7 @@ ASSEMBLER_TEST_GENERATE(FloatCompare, assembler) {
     __ add(R0, R0, Operand(16), VC);
   }
   // R0 is 0 if all tests passed.
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(FloatCompare, test) {
@@ -643,7 +643,7 @@ ASSEMBLER_TEST_GENERATE(DoubleCompare, assembler) {
     __ add(R0, R0, Operand(16), VC);
   }
   // R0 is 0 if all tests passed.
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(DoubleCompare, test) {
@@ -662,7 +662,7 @@ ASSEMBLER_TEST_GENERATE(Loop, assembler) {
   __ mov(R0, Operand(R0, LSL, 1));
   __ movs(R1, Operand(R1, LSR, 1));
   __ b(&loop_entry, NE);
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Loop, test) {
@@ -677,7 +677,7 @@ ASSEMBLER_TEST_GENERATE(ForwardBranch, assembler) {
   __ b(&skip);
   __ mov(R0, Operand(11));
   __ Bind(&skip);
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(ForwardBranch, test) {
@@ -695,7 +695,7 @@ ASSEMBLER_TEST_GENERATE(Loop2, assembler) {
   __ mov(R0, Operand(R0, LSL, 1));
   __ movs(R1, Operand(R1, LSR, 1));
   __ b(&loop_entry, NE);
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Loop2, test) {
@@ -716,7 +716,7 @@ ASSEMBLER_TEST_GENERATE(Loop3, assembler) {
   __ mov(R0, Operand(R0, LSL, 1));
   __ movs(R1, Operand(R1, LSR, 1));
   __ b(&loop_entry, NE);
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Loop3, test) {
@@ -729,7 +729,7 @@ ASSEMBLER_TEST_GENERATE(LoadStore, assembler) {
   __ mov(R1, Operand(123));
   __ Push(R1);
   __ Pop(R0);
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(LoadStore, test) {
@@ -744,7 +744,7 @@ ASSEMBLER_TEST_GENERATE(PushRegisterPair, assembler) {
   __ PushRegisterPair(R2, R3);
   __ Pop(R0);
   __ Pop(R1);
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(PushRegisterPair, test) {
@@ -759,7 +759,7 @@ ASSEMBLER_TEST_GENERATE(PushRegisterPairReversed, assembler) {
   __ PushRegisterPair(R3, R2);
   __ Pop(R0);
   __ Pop(R1);
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(PushRegisterPairReversed, test) {
@@ -775,7 +775,7 @@ ASSEMBLER_TEST_GENERATE(PopRegisterPair, assembler) {
   __ Push(R3);
   __ Push(R2);
   __ PopRegisterPair(R0, R1);
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(PopRegisterPair, test) {
@@ -790,7 +790,7 @@ ASSEMBLER_TEST_GENERATE(PopRegisterPairReversed, assembler) {
   __ Push(R3);
   __ Push(R2);
   __ PopRegisterPair(R1, R0);
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(PopRegisterPairReversed, test) {
@@ -811,7 +811,7 @@ ASSEMBLER_TEST_GENERATE(Semaphore, assembler) {
   __ tst(IP, Operand(0));
   __ b(&retry, NE);  // NE if context switch occurred between ldrex and strex.
   __ Pop(R0);        // 42
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Semaphore, test) {
@@ -829,7 +829,7 @@ ASSEMBLER_TEST_GENERATE(FailedSemaphore, assembler) {
   __ strex(IP, R1, SP);  // IP == 1, failure
   __ Pop(R0);            // 40
   __ add(R0, R0, Operand(IP));
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(FailedSemaphore, test) {
@@ -844,7 +844,7 @@ ASSEMBLER_TEST_GENERATE(AddSub, assembler) {
   __ add(R0, R1, Operand(4));
   __ rsbs(R0, R0, Operand(100));
   __ rsc(R0, R0, Operand(100));
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(AddSub, test) {
@@ -859,7 +859,7 @@ ASSEMBLER_TEST_GENERATE(AddCarry, assembler) {
   __ mov(R0, Operand(0));
   __ adds(R2, R2, Operand(R1));
   __ adcs(R0, R0, Operand(R0));
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(AddCarry, test) {
@@ -875,7 +875,7 @@ ASSEMBLER_TEST_GENERATE(AddCarryInOut, assembler) {
   __ adds(IP, R2, Operand(R1));  // c_out = 1.
   __ adcs(IP, R2, Operand(R0));  // c_in = 1, c_out = 1.
   __ adc(R0, R0, Operand(R0));   // c_in = 1.
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(AddCarryInOut, test) {
@@ -890,7 +890,7 @@ ASSEMBLER_TEST_GENERATE(SubCarry, assembler) {
   __ mov(R0, Operand(0));
   __ subs(R2, R2, Operand(R1));
   __ sbcs(R0, R0, Operand(R0));
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(SubCarry, test) {
@@ -905,7 +905,7 @@ ASSEMBLER_TEST_GENERATE(SubCarryInOut, assembler) {
   __ subs(IP, R0, Operand(R1));  // c_out = 1.
   __ sbcs(IP, R0, Operand(R0));  // c_in = 1, c_out = 1.
   __ sbc(R0, R0, Operand(R0));   // c_in = 1.
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(SubCarryInOut, test) {
@@ -920,7 +920,7 @@ ASSEMBLER_TEST_GENERATE(Overflow, assembler) {
   __ adds(IP, R0, Operand(1));  // c_out = 1.
   __ adcs(IP, R1, Operand(0));  // c_in = 1, c_out = 1, v = 1.
   __ mov(R0, Operand(1), VS);
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Overflow, test) {
@@ -935,7 +935,7 @@ ASSEMBLER_TEST_GENERATE(AndOrr, assembler) {
   __ and_(R1, R2, Operand(R1));
   __ mov(R3, Operand(42));
   __ orr(R0, R1, Operand(R3));
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(AndOrr, test) {
@@ -948,11 +948,11 @@ ASSEMBLER_TEST_GENERATE(Orrs, assembler) {
   __ mov(R0, Operand(0));
   __ tst(R0, Operand(R1));      // Set zero-flag.
   __ orrs(R0, R0, Operand(1));  // Clear zero-flag.
-  __ bx(LR, EQ);
+  __ Ret(EQ);
   __ mov(R0, Operand(42));
-  __ bx(LR, NE);  // Only this return should fire.
+  __ Ret(NE);  // Only this return should fire.
   __ mov(R0, Operand(2));
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Orrs, test) {
@@ -966,7 +966,7 @@ ASSEMBLER_TEST_GENERATE(Multiply, assembler) {
   __ mov(R2, Operand(40));
   __ mul(R3, R2, R1);
   __ mov(R0, Operand(R3));
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Multiply, test) {
@@ -986,7 +986,7 @@ ASSEMBLER_TEST_GENERATE(QuotientRemainder, assembler) {
     __ vmovrs(R1, S0);       // r1 = r0/r2
     __ mls(R0, R1, R2, R0);  // r0 = r0 - r1*r2
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(QuotientRemainder, test) {
@@ -1008,7 +1008,7 @@ ASSEMBLER_TEST_GENERATE(Multiply64To64, assembler) {
   __ mla(R2, IP, R3, R4);
   __ add(R1, R2, Operand(R1));
   __ Pop(R4);
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Multiply64To64, test) {
@@ -1021,7 +1021,7 @@ ASSEMBLER_TEST_RUN(Multiply64To64, test) {
 
 ASSEMBLER_TEST_GENERATE(Multiply32To64, assembler) {
   __ smull(R0, R1, R0, R2);
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Multiply32To64, test) {
@@ -1034,7 +1034,7 @@ ASSEMBLER_TEST_RUN(Multiply32To64, test) {
 
 ASSEMBLER_TEST_GENERATE(MultiplyAccumAccum32To64, assembler) {
   __ umaal(R0, R1, R2, R3);
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(MultiplyAccumAccum32To64, test) {
@@ -1066,10 +1066,10 @@ ASSEMBLER_TEST_GENERATE(Clz, assembler) {
   __ cmp(R1, Operand(3));
   __ b(&error, NE);
   __ mov(R0, Operand(0));
-  __ bx(LR);
+  __ Ret();
   __ Bind(&error);
   __ mov(R0, Operand(1));
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Clz, test) {
@@ -1081,7 +1081,7 @@ ASSEMBLER_TEST_RUN(Clz, test) {
 ASSEMBLER_TEST_GENERATE(Rbit, assembler) {
   __ mov(R0, Operand(0x15));
   __ rbit(R0, R0);
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Rbit, test) {
@@ -1100,7 +1100,7 @@ ASSEMBLER_TEST_GENERATE(Tst, assembler) {
   __ b(&skip, NE);
   __ mov(R0, Operand(0));
   __ Bind(&skip);
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Tst, test) {
@@ -1116,7 +1116,7 @@ ASSEMBLER_TEST_GENERATE(Lsl, assembler) {
   __ mov(R0, Operand(R0, LSL, 1));
   __ mov(R1, Operand(1));
   __ mov(R0, Operand(R0, LSL, R1));
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Lsl, test) {
@@ -1132,7 +1132,7 @@ ASSEMBLER_TEST_GENERATE(Lsr, assembler) {
   __ mov(R0, Operand(R0, LSR, 1));
   __ mov(R1, Operand(1));
   __ mov(R0, Operand(R0, LSR, R1));
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Lsr, test) {
@@ -1147,7 +1147,7 @@ ASSEMBLER_TEST_GENERATE(Lsr1, assembler) {
   __ mov(R0, Operand(1));
   __ Lsl(R0, R0, Operand(31));
   __ Lsr(R0, R0, Operand(31));
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Lsr1, test) {
@@ -1162,7 +1162,7 @@ ASSEMBLER_TEST_GENERATE(Asr1, assembler) {
   __ mov(R0, Operand(1));
   __ Lsl(R0, R0, Operand(31));
   __ Asr(R0, R0, Operand(31));
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Asr1, test) {
@@ -1174,7 +1174,7 @@ ASSEMBLER_TEST_RUN(Asr1, test) {
 ASSEMBLER_TEST_GENERATE(Rsb, assembler) {
   __ mov(R3, Operand(10));
   __ rsb(R0, R3, Operand(42));
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Rsb, test) {
@@ -1218,7 +1218,7 @@ ASSEMBLER_TEST_GENERATE(Ldrh, assembler) {
   __ mov(R0, Operand(0));
   __ Bind(&Done);
   __ ldr(R1, Address(SP, (target::kWordSize * 30), Address::PostIndex));
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Ldrh, test) {
@@ -1233,7 +1233,7 @@ ASSEMBLER_TEST_GENERATE(Ldrsb, assembler) {
   __ str(R1, Address(SP, (-target::kWordSize * 30), Address::PreIndex));
   __ ldrsb(R0, Address(R2, (-target::kWordSize * 30)));
   __ ldr(R1, Address(SP, (target::kWordSize * 30), Address::PostIndex));
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Ldrsb, test) {
@@ -1248,7 +1248,7 @@ ASSEMBLER_TEST_GENERATE(Ldrb, assembler) {
   __ str(R1, Address(SP, (-target::kWordSize * 30), Address::PreIndex));
   __ ldrb(R0, Address(R2, (-target::kWordSize * 30)));
   __ ldr(R1, Address(SP, (target::kWordSize * 30), Address::PostIndex));
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Ldrb, test) {
@@ -1263,7 +1263,7 @@ ASSEMBLER_TEST_GENERATE(Ldrsh, assembler) {
   __ str(R1, Address(SP, (-target::kWordSize * 30), Address::PreIndex));
   __ ldrsh(R0, Address(R2, (-target::kWordSize * 30)));
   __ ldr(R1, Address(SP, (target::kWordSize * 30), Address::PostIndex));
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Ldrsh, test) {
@@ -1278,7 +1278,7 @@ ASSEMBLER_TEST_GENERATE(Ldrh1, assembler) {
   __ str(R1, Address(SP, (-target::kWordSize * 30), Address::PreIndex));
   __ ldrh(R0, Address(R2, (-target::kWordSize * 30)));
   __ ldr(R1, Address(SP, (target::kWordSize * 30), Address::PostIndex));
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Ldrh1, test) {
@@ -1297,7 +1297,7 @@ ASSEMBLER_TEST_GENERATE(Ldrd, assembler) {
   __ add(SP, SP, Operand(target::kWordSize * 30));
   __ sub(R0, R0, Operand(R2));
   __ add(R1, R1, Operand(R3));
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Ldrd, test) {
@@ -1340,7 +1340,7 @@ ASSEMBLER_TEST_GENERATE(Ldm_stm_da, assembler) {
   __ Pop(R9);                   // Restore R9.
   __ Pop(R9);                   // Restore R9.
   __ Pop(R9);                   // Restore R9.
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Ldm_stm_da, test) {
@@ -1354,7 +1354,7 @@ ASSEMBLER_TEST_GENERATE(AddressShiftStrLSL1NegOffset, assembler) {
   __ mov(R1, Operand(target::kWordSize));
   __ str(R2, Address(SP, R1, LSL, 1, Address::NegOffset));
   __ ldr(R0, Address(SP, (-target::kWordSize * 2), Address::Offset));
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(AddressShiftStrLSL1NegOffset, test) {
@@ -1368,7 +1368,7 @@ ASSEMBLER_TEST_GENERATE(AddressShiftLdrLSL5NegOffset, assembler) {
   __ mov(R1, Operand(target::kWordSize));
   __ str(R2, Address(SP, (-target::kWordSize * 32), Address::Offset));
   __ ldr(R0, Address(SP, R1, LSL, 5, Address::NegOffset));
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(AddressShiftLdrLSL5NegOffset, test) {
@@ -1382,7 +1382,7 @@ ASSEMBLER_TEST_GENERATE(AddressShiftStrLRS1NegOffset, assembler) {
   __ mov(R1, Operand(target::kWordSize * 2));
   __ str(R2, Address(SP, R1, LSR, 1, Address::NegOffset));
   __ ldr(R0, Address(SP, -target::kWordSize, Address::Offset));
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(AddressShiftStrLRS1NegOffset, test) {
@@ -1396,7 +1396,7 @@ ASSEMBLER_TEST_GENERATE(AddressShiftLdrLRS1NegOffset, assembler) {
   __ mov(R1, Operand(target::kWordSize * 2));
   __ str(R2, Address(SP, -target::kWordSize, Address::Offset));
   __ ldr(R0, Address(SP, R1, LSR, 1, Address::NegOffset));
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(AddressShiftLdrLRS1NegOffset, test) {
@@ -1412,7 +1412,7 @@ ASSEMBLER_TEST_GENERATE(AddressShiftStrLSLNegPreIndex, assembler) {
   __ str(R2, Address(SP, R1, LSL, 5, Address::NegPreIndex));
   __ ldr(R0, Address(R3, (-target::kWordSize * 32), Address::Offset));
   __ mov(SP, Operand(R3));
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(AddressShiftStrLSLNegPreIndex, test) {
@@ -1426,7 +1426,7 @@ ASSEMBLER_TEST_GENERATE(AddressShiftLdrLSLNegPreIndex, assembler) {
   __ mov(R1, Operand(target::kWordSize));
   __ str(R2, Address(SP, (-target::kWordSize * 32), Address::PreIndex));
   __ ldr(R0, Address(SP, R1, LSL, 5, Address::PostIndex));
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(AddressShiftLdrLSLNegPreIndex, test) {
@@ -1478,7 +1478,7 @@ ASSEMBLER_TEST_GENERATE(VstmdVldmd, assembler) {
     __ vmstat();
     __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(VstmdVldmd, test) {
@@ -1532,7 +1532,7 @@ ASSEMBLER_TEST_GENERATE(VstmsVldms, assembler) {
     __ vmstat();
     __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(VstmsVldms, test) {
@@ -1584,7 +1584,7 @@ ASSEMBLER_TEST_GENERATE(VstmdVldmd1, assembler) {
     __ vmstat();
     __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(VstmdVldmd1, test) {
@@ -1636,7 +1636,7 @@ ASSEMBLER_TEST_GENERATE(VstmsVldms1, assembler) {
     __ vmstat();
     __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(VstmsVldms1, test) {
@@ -1698,7 +1698,7 @@ ASSEMBLER_TEST_GENERATE(VstmdVldmd_off, assembler) {
     // Restore used callee-saved FPU registers.
     __ vldmd(IA_W, SP, D8, 3);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(VstmdVldmd_off, test) {
@@ -1754,7 +1754,7 @@ ASSEMBLER_TEST_GENERATE(VstmsVldms_off, assembler) {
     __ vmstat();
     __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(VstmsVldms_off, test) {
@@ -1772,7 +1772,7 @@ ASSEMBLER_TEST_GENERATE(Udiv, assembler) {
     __ udiv(R2, R0, R1);
     __ mov(R0, Operand(R2));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Udiv, test) {
@@ -1790,7 +1790,7 @@ ASSEMBLER_TEST_GENERATE(Sdiv, assembler) {
     __ sdiv(R2, R0, R1);
     __ mov(R0, Operand(R2));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Sdiv, test) {
@@ -1808,7 +1808,7 @@ ASSEMBLER_TEST_GENERATE(Udiv_zero, assembler) {
     __ udiv(R2, R0, R1);
     __ mov(R0, Operand(R2));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Udiv_zero, test) {
@@ -1826,7 +1826,7 @@ ASSEMBLER_TEST_GENERATE(Sdiv_zero, assembler) {
     __ sdiv(R2, R0, R1);
     __ mov(R0, Operand(R2));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Sdiv_zero, test) {
@@ -1844,7 +1844,7 @@ ASSEMBLER_TEST_GENERATE(Udiv_corner, assembler) {
     __ udiv(R2, R0, R1);
     __ mov(R0, Operand(R2));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Udiv_corner, test) {
@@ -1862,7 +1862,7 @@ ASSEMBLER_TEST_GENERATE(Sdiv_corner, assembler) {
     __ sdiv(R2, R0, R1);
     __ mov(R0, Operand(R2));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Sdiv_corner, test) {
@@ -1882,14 +1882,14 @@ ASSEMBLER_TEST_GENERATE(IntDiv_supported, assembler) {
   __ mov(R1, Operand(9));
   __ IntegerDivide(R0, R0, R1, D0, D1);
   HostCPUFeatures::set_integer_division_supported(orig);
-  __ bx(LR);
+  __ Ret();
 #else
   if (TargetCPUFeatures::can_divide()) {
     __ mov(R0, Operand(27));
     __ mov(R1, Operand(9));
     __ IntegerDivide(R0, R0, R1, D0, D1);
   }
-  __ bx(LR);
+  __ Ret();
 #endif
 }
 
@@ -1921,14 +1921,14 @@ ASSEMBLER_TEST_GENERATE(IntDiv_unsupported, assembler) {
     __ IntegerDivide(R0, R0, R1, D0, D1);
     HostCPUFeatures::set_integer_division_supported(orig);
   }
-  __ bx(LR);
+  __ Ret();
 #else
   if (TargetCPUFeatures::can_divide()) {
     __ mov(R0, Operand(27));
     __ mov(R1, Operand(9));
     __ IntegerDivide(R0, R0, R1, D0, D1);
   }
-  __ bx(LR);
+  __ Ret();
 #endif
 }
 
@@ -1955,7 +1955,7 @@ ASSEMBLER_TEST_GENERATE(Muls, assembler) {
   __ LoadImmediate(R1, -9);
   __ muls(R2, R0, R1);
   __ mov(R0, Operand(42), MI);
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Muls, test) {
@@ -1994,7 +1994,7 @@ ASSEMBLER_TEST_GENERATE(Vaddqi8, assembler) {
     __ add(R0, R0, Operand(R2));
     __ add(R0, R0, Operand(R3));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vaddqi8, test) {
@@ -2024,7 +2024,7 @@ ASSEMBLER_TEST_GENERATE(Vaddqi16, assembler) {
     __ mov(R0, Operand(8));
     __ vmovsr(S7, R0);
 
-    __ vaddqi(kHalfword, Q2, Q0, Q1);
+    __ vaddqi(kTwoBytes, Q2, Q0, Q1);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R1, S9);
@@ -2035,7 +2035,7 @@ ASSEMBLER_TEST_GENERATE(Vaddqi16, assembler) {
     __ add(R0, R0, Operand(R2));
     __ add(R0, R0, Operand(R3));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vaddqi16, test) {
@@ -2065,7 +2065,7 @@ ASSEMBLER_TEST_GENERATE(Vaddqi32, assembler) {
     __ mov(R0, Operand(8));
     __ vmovsr(S7, R0);
 
-    __ vaddqi(kWord, Q2, Q0, Q1);
+    __ vaddqi(kFourBytes, Q2, Q0, Q1);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R1, S9);
@@ -2076,7 +2076,7 @@ ASSEMBLER_TEST_GENERATE(Vaddqi32, assembler) {
     __ add(R0, R0, Operand(R2));
     __ add(R0, R0, Operand(R3));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vaddqi32, test) {
@@ -2105,7 +2105,7 @@ ASSEMBLER_TEST_GENERATE(Vaddqi64, assembler) {
 
     __ add(R0, R0, Operand(R2));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vaddqi64, test) {
@@ -2140,7 +2140,7 @@ ASSEMBLER_TEST_GENERATE(Vshlqu64, assembler) {
     __ LoadImmediate(R0, 1);
     __ Bind(&fail);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vshlqu64, test) {
@@ -2175,7 +2175,7 @@ ASSEMBLER_TEST_GENERATE(Vshlqi64, assembler) {
     __ LoadImmediate(R0, 1);
     __ Bind(&fail);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vshlqi64, test) {
@@ -2214,7 +2214,7 @@ ASSEMBLER_TEST_GENERATE(Mint_shl_ok, assembler) {
     __ rsb(shift, shift, Operand(0));
     __ vmovsr(stemp0, shift);
     __ vshlqi(kWordPair, temp, out, temp);
-    __ vceqqi(kWord, out, temp, value);
+    __ vceqqi(kFourBytes, out, temp, value);
     // Low 64 bits of temp should be all 1's, otherwise temp != value and
     // we deopt.
     __ vmovrs(shift, sout0);
@@ -2225,12 +2225,12 @@ ASSEMBLER_TEST_GENERATE(Mint_shl_ok, assembler) {
     __ b(&fail, NE);
 
     __ LoadImmediate(R0, 1);
-    __ bx(LR);
+    __ Ret();
 
     __ Bind(&fail);
     __ LoadImmediate(R0, 0);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Mint_shl_ok, test) {
@@ -2269,7 +2269,7 @@ ASSEMBLER_TEST_GENERATE(Mint_shl_overflow, assembler) {
     __ rsb(shift, shift, Operand(0));
     __ vmovsr(stemp0, shift);
     __ vshlqi(kWordPair, temp, out, temp);
-    __ vceqqi(kWord, out, temp, value);
+    __ vceqqi(kFourBytes, out, temp, value);
     // Low 64 bits of temp should be all 1's, otherwise temp != value and
     // we deopt.
     __ vmovrs(shift, sout0);
@@ -2280,12 +2280,12 @@ ASSEMBLER_TEST_GENERATE(Mint_shl_overflow, assembler) {
     __ b(&fail, NE);
 
     __ LoadImmediate(R0, 0);
-    __ bx(LR);
+    __ Ret();
 
     __ Bind(&fail);
     __ LoadImmediate(R0, 1);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Mint_shl_overflow, test) {
@@ -2326,7 +2326,7 @@ ASSEMBLER_TEST_GENERATE(Vsubqi8, assembler) {
     __ add(R0, R0, Operand(R2));
     __ add(R0, R0, Operand(R3));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vsubqi8, test) {
@@ -2356,7 +2356,7 @@ ASSEMBLER_TEST_GENERATE(Vsubqi16, assembler) {
     __ mov(R0, Operand(8));
     __ vmovsr(S7, R0);
 
-    __ vsubqi(kHalfword, Q2, Q1, Q0);
+    __ vsubqi(kTwoBytes, Q2, Q1, Q0);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R1, S9);
@@ -2367,7 +2367,7 @@ ASSEMBLER_TEST_GENERATE(Vsubqi16, assembler) {
     __ add(R0, R0, Operand(R2));
     __ add(R0, R0, Operand(R3));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vsubqi16, test) {
@@ -2397,7 +2397,7 @@ ASSEMBLER_TEST_GENERATE(Vsubqi32, assembler) {
     __ mov(R0, Operand(8));
     __ vmovsr(S7, R0);
 
-    __ vsubqi(kWord, Q2, Q1, Q0);
+    __ vsubqi(kFourBytes, Q2, Q1, Q0);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R1, S9);
@@ -2408,7 +2408,7 @@ ASSEMBLER_TEST_GENERATE(Vsubqi32, assembler) {
     __ add(R0, R0, Operand(R2));
     __ add(R0, R0, Operand(R3));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vsubqi32, test) {
@@ -2437,7 +2437,7 @@ ASSEMBLER_TEST_GENERATE(Vsubqi64, assembler) {
 
     __ add(R0, R0, Operand(R2));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vsubqi64, test) {
@@ -2478,7 +2478,7 @@ ASSEMBLER_TEST_GENERATE(Vmulqi8, assembler) {
     __ add(R0, R0, Operand(R2));
     __ add(R0, R0, Operand(R3));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vmulqi8, test) {
@@ -2508,7 +2508,7 @@ ASSEMBLER_TEST_GENERATE(Vmulqi16, assembler) {
     __ mov(R0, Operand(8));
     __ vmovsr(S7, R0);
 
-    __ vmulqi(kHalfword, Q2, Q1, Q0);
+    __ vmulqi(kTwoBytes, Q2, Q1, Q0);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R1, S9);
@@ -2519,7 +2519,7 @@ ASSEMBLER_TEST_GENERATE(Vmulqi16, assembler) {
     __ add(R0, R0, Operand(R2));
     __ add(R0, R0, Operand(R3));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vmulqi16, test) {
@@ -2549,7 +2549,7 @@ ASSEMBLER_TEST_GENERATE(Vmulqi32, assembler) {
     __ mov(R0, Operand(8));
     __ vmovsr(S7, R0);
 
-    __ vmulqi(kWord, Q2, Q1, Q0);
+    __ vmulqi(kFourBytes, Q2, Q1, Q0);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R1, S9);
@@ -2560,7 +2560,7 @@ ASSEMBLER_TEST_GENERATE(Vmulqi32, assembler) {
     __ add(R0, R0, Operand(R2));
     __ add(R0, R0, Operand(R3));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vmulqi32, test) {
@@ -2591,7 +2591,7 @@ ASSEMBLER_TEST_GENERATE(Vaddqs, assembler) {
     __ vcvtis(S0, S8);
     __ vmovrs(R0, S0);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vaddqs, test) {
@@ -2622,7 +2622,7 @@ ASSEMBLER_TEST_GENERATE(Vsubqs, assembler) {
     __ vcvtis(S0, S8);
     __ vmovrs(R0, S0);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vsubqs, test) {
@@ -2653,7 +2653,7 @@ ASSEMBLER_TEST_GENERATE(Vmulqs, assembler) {
     __ vcvtis(S0, S8);
     __ vmovrs(R0, S0);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vmulqs, test) {
@@ -2688,12 +2688,12 @@ ASSEMBLER_TEST_GENERATE(VtblX, assembler) {
 
     __ LoadImmediate(R0, 0);
     __ CompareImmediate(R2, 1);
-    __ bx(LR, NE);
+    __ Ret(NE);
     __ CompareImmediate(R3, 1);
-    __ bx(LR, NE);
+    __ Ret(NE);
     __ LoadImmediate(R0, 42);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(VtblX, test) {
@@ -2728,12 +2728,12 @@ ASSEMBLER_TEST_GENERATE(VtblY, assembler) {
 
     __ LoadImmediate(R0, 0);
     __ CompareImmediate(R2, 1);
-    __ bx(LR, NE);
+    __ Ret(NE);
     __ CompareImmediate(R3, 1);
-    __ bx(LR, NE);
+    __ Ret(NE);
     __ LoadImmediate(R0, 42);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(VtblY, test) {
@@ -2768,12 +2768,12 @@ ASSEMBLER_TEST_GENERATE(VtblZ, assembler) {
 
     __ LoadImmediate(R0, 0);
     __ CompareImmediate(R2, 1);
-    __ bx(LR, NE);
+    __ Ret(NE);
     __ CompareImmediate(R3, 1);
-    __ bx(LR, NE);
+    __ Ret(NE);
     __ LoadImmediate(R0, 42);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(VtblZ, test) {
@@ -2808,12 +2808,12 @@ ASSEMBLER_TEST_GENERATE(VtblW, assembler) {
 
     __ LoadImmediate(R0, 0);
     __ CompareImmediate(R2, 1);
-    __ bx(LR, NE);
+    __ Ret(NE);
     __ CompareImmediate(R3, 1);
-    __ bx(LR, NE);
+    __ Ret(NE);
     __ LoadImmediate(R0, 42);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(VtblW, test) {
@@ -2852,7 +2852,7 @@ ASSEMBLER_TEST_GENERATE(Veorq, assembler) {
     __ add(R0, R0, Operand(R2));
     __ add(R0, R0, Operand(R3));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Veorq, test) {
@@ -2891,7 +2891,7 @@ ASSEMBLER_TEST_GENERATE(Vornq, assembler) {
     __ add(R0, R0, Operand(R2));
     __ add(R0, R0, Operand(R3));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vornq, test) {
@@ -2930,7 +2930,7 @@ ASSEMBLER_TEST_GENERATE(Vorrq, assembler) {
     __ add(R0, R0, Operand(R2));
     __ add(R0, R0, Operand(R3));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vorrq, test) {
@@ -2969,7 +2969,7 @@ ASSEMBLER_TEST_GENERATE(Vandq, assembler) {
     __ add(R0, R0, Operand(R2));
     __ add(R0, R0, Operand(R3));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vandq, test) {
@@ -3003,7 +3003,7 @@ ASSEMBLER_TEST_GENERATE(Vmovq, assembler) {
     __ vcvtis(S0, S4);
     __ vmovrs(R0, S0);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vmovq, test) {
@@ -3022,7 +3022,7 @@ ASSEMBLER_TEST_GENERATE(Vmvnq, assembler) {
     __ vmvnq(Q2, Q1);          // Q2 <- ~Q1.
     __ vmovrs(R0, S10);        // Now R0 should be 42 again.
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vmvnq, test) {
@@ -3052,7 +3052,7 @@ ASSEMBLER_TEST_GENERATE(Vdupb, assembler) {
     __ add(R0, R0, Operand(R2));
     __ add(R0, R0, Operand(R3));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vdupb, test) {
@@ -3071,7 +3071,7 @@ ASSEMBLER_TEST_GENERATE(Vduph, assembler) {
     __ vmovsr(S5, R1);
 
     // Should copy 0xff to each byte of Q0.
-    __ vdup(kHalfword, Q0, D2, 1);
+    __ vdup(kTwoBytes, Q0, D2, 1);
 
     __ vmovrs(R0, S0);
     __ vmovrs(R1, S1);
@@ -3082,7 +3082,7 @@ ASSEMBLER_TEST_GENERATE(Vduph, assembler) {
     __ add(R0, R0, Operand(R2));
     __ add(R0, R0, Operand(R3));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vduph, test) {
@@ -3101,7 +3101,7 @@ ASSEMBLER_TEST_GENERATE(Vdupw, assembler) {
     __ vmovsr(S5, R1);
 
     // Should copy 0xff to each byte of Q0.
-    __ vdup(kWord, Q0, D2, 1);
+    __ vdup(kFourBytes, Q0, D2, 1);
 
     __ vmovrs(R0, S0);
     __ vmovrs(R1, S1);
@@ -3112,7 +3112,7 @@ ASSEMBLER_TEST_GENERATE(Vdupw, assembler) {
     __ add(R0, R0, Operand(R2));
     __ add(R0, R0, Operand(R3));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vdupw, test) {
@@ -3142,7 +3142,7 @@ ASSEMBLER_TEST_GENERATE(Vzipqw, assembler) {
     __ vadds(S0, S0, S2);
     __ vadds(S0, S0, S3);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vzipqw, test) {
@@ -3173,7 +3173,7 @@ ASSEMBLER_TEST_GENERATE(Vceqqi32, assembler) {
     __ mov(R0, Operand(40));
     __ vmovsr(S7, R0);
 
-    __ vceqqi(kWord, Q2, Q1, Q0);
+    __ vceqqi(kFourBytes, Q2, Q1, Q0);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R1, S9);
@@ -3184,7 +3184,7 @@ ASSEMBLER_TEST_GENERATE(Vceqqi32, assembler) {
     __ add(R0, R0, Operand(R2));
     __ add(R0, R0, Operand(R3));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vceqqi32, test) {
@@ -3217,7 +3217,7 @@ ASSEMBLER_TEST_GENERATE(Vceqqs, assembler) {
     __ add(R0, R0, Operand(R2));
     __ add(R0, R0, Operand(R3));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vceqqs, test) {
@@ -3247,7 +3247,7 @@ ASSEMBLER_TEST_GENERATE(Vcgeqi32, assembler) {
     __ mov(R0, Operand(1));
     __ vmovsr(S7, R0);
 
-    __ vcgeqi(kWord, Q2, Q1, Q0);
+    __ vcgeqi(kFourBytes, Q2, Q1, Q0);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R1, S9);
@@ -3258,7 +3258,7 @@ ASSEMBLER_TEST_GENERATE(Vcgeqi32, assembler) {
     __ add(R0, R0, Operand(R2));
     __ add(R0, R0, Operand(R3));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vcgeqi32, test) {
@@ -3288,7 +3288,7 @@ ASSEMBLER_TEST_GENERATE(Vcugeqi32, assembler) {
     __ mov(R0, Operand(1));
     __ vmovsr(S7, R0);
 
-    __ vcugeqi(kWord, Q2, Q1, Q0);
+    __ vcugeqi(kFourBytes, Q2, Q1, Q0);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R1, S9);
@@ -3299,7 +3299,7 @@ ASSEMBLER_TEST_GENERATE(Vcugeqi32, assembler) {
     __ add(R0, R0, Operand(R2));
     __ add(R0, R0, Operand(R3));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vcugeqi32, test) {
@@ -3332,7 +3332,7 @@ ASSEMBLER_TEST_GENERATE(Vcgeqs, assembler) {
     __ add(R0, R0, Operand(R2));
     __ add(R0, R0, Operand(R3));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vcgeqs, test) {
@@ -3362,7 +3362,7 @@ ASSEMBLER_TEST_GENERATE(Vcgtqi32, assembler) {
     __ mov(R0, Operand(1));
     __ vmovsr(S7, R0);
 
-    __ vcgtqi(kWord, Q2, Q1, Q0);
+    __ vcgtqi(kFourBytes, Q2, Q1, Q0);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R1, S9);
@@ -3373,7 +3373,7 @@ ASSEMBLER_TEST_GENERATE(Vcgtqi32, assembler) {
     __ add(R0, R0, Operand(R2));
     __ add(R0, R0, Operand(R3));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vcgtqi32, test) {
@@ -3403,7 +3403,7 @@ ASSEMBLER_TEST_GENERATE(Vcugtqi32, assembler) {
     __ mov(R0, Operand(1));
     __ vmovsr(S7, R0);
 
-    __ vcugtqi(kWord, Q2, Q1, Q0);
+    __ vcugtqi(kFourBytes, Q2, Q1, Q0);
 
     __ vmovrs(R0, S8);
     __ vmovrs(R1, S9);
@@ -3414,7 +3414,7 @@ ASSEMBLER_TEST_GENERATE(Vcugtqi32, assembler) {
     __ add(R0, R0, Operand(R2));
     __ add(R0, R0, Operand(R3));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vcugtqi32, test) {
@@ -3447,7 +3447,7 @@ ASSEMBLER_TEST_GENERATE(Vcgtqs, assembler) {
     __ add(R0, R0, Operand(R2));
     __ add(R0, R0, Operand(R3));
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vcgtqs, test) {
@@ -3479,7 +3479,7 @@ ASSEMBLER_TEST_GENERATE(Vminqs, assembler) {
     __ vcvtis(S0, S8);
     __ vmovrs(R0, S0);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vminqs, test) {
@@ -3511,7 +3511,7 @@ ASSEMBLER_TEST_GENERATE(Vmaxqs, assembler) {
     __ vcvtis(S0, S8);
     __ vmovrs(R0, S0);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vmaxqs, test) {
@@ -3530,7 +3530,7 @@ ASSEMBLER_TEST_GENERATE(Vrecpeqs, assembler) {
     __ vmovs(S7, S4);
     __ vrecpeqs(Q0, Q1);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vrecpeqs, test) {
@@ -3556,7 +3556,7 @@ ASSEMBLER_TEST_GENERATE(Vrecpsqs, assembler) {
 
     __ vrecpsqs(Q0, Q1, Q2);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vrecpsqs, test) {
@@ -3583,7 +3583,7 @@ ASSEMBLER_TEST_GENERATE(Reciprocal, assembler) {
     __ vrecpsqs(Q2, Q1, Q0);
     __ vmulqs(Q0, Q0, Q2);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Reciprocal, test) {
@@ -3604,7 +3604,7 @@ ASSEMBLER_TEST_GENERATE(Vrsqrteqs, assembler) {
 
     __ vrsqrteqs(Q0, Q1);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vrsqrteqs, test) {
@@ -3630,7 +3630,7 @@ ASSEMBLER_TEST_GENERATE(Vrsqrtsqs, assembler) {
 
     __ vrsqrtsqs(Q0, Q1, Q2);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vrsqrtsqs, test) {
@@ -3661,7 +3661,7 @@ ASSEMBLER_TEST_GENERATE(ReciprocalSqrt, assembler) {
     __ vrsqrtsqs(Q2, Q1, Q2);
     __ vmulqs(Q0, Q0, Q2);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(ReciprocalSqrt, test) {
@@ -3702,7 +3702,7 @@ ASSEMBLER_TEST_GENERATE(SIMDSqrt, assembler) {
     __ vrecpsqs(Q2, Q1, Q0);
     __ vmulqs(Q0, Q0, Q2);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(SIMDSqrt, test) {
@@ -3747,7 +3747,7 @@ ASSEMBLER_TEST_GENERATE(SIMDSqrt2, assembler) {
     __ vadds(S0, S0, S2);
     __ vadds(S0, S0, S3);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(SIMDSqrt2, test) {
@@ -3784,7 +3784,7 @@ ASSEMBLER_TEST_GENERATE(SIMDDiv, assembler) {
     __ vadds(S0, S0, S2);
     __ vadds(S0, S0, S3);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(SIMDDiv, test) {
@@ -3809,7 +3809,7 @@ ASSEMBLER_TEST_GENERATE(Vabsqs, assembler) {
     __ vadds(S0, S0, S2);
     __ vadds(S0, S0, S3);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vabsqs, test) {
@@ -3834,7 +3834,7 @@ ASSEMBLER_TEST_GENERATE(Vnegqs, assembler) {
     __ vadds(S0, S0, S2);
     __ vadds(S0, S0, S3);
   }
-  __ bx(LR);
+  __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vnegqs, test) {
@@ -3852,11 +3852,11 @@ ASSEMBLER_TEST_RUN(Vnegqs, test) {
 // R1: growable array.
 // R2: current thread.
 ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
-  __ PushList((1 << LR) | (1 << THR));
+  SPILLS_LR_TO_FRAME(__ PushList((1 << LR) | (1 << THR)));
   __ mov(THR, Operand(R2));
   __ StoreIntoObject(R1, FieldAddress(R1, GrowableObjectArray::data_offset()),
                      R0);
-  __ PopList((1 << LR) | (1 << THR));
+  RESTORES_LR_FROM_FRAME(__ PopList((1 << LR) | (1 << THR)));
   __ Ret();
 }
 

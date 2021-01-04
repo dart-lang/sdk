@@ -68,3 +68,9 @@ class Bar extends core::Object /*hasConstConstructor*/  {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method bar() → dynamic {}
+
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///error_location_04_lib2.dart:
+- Foo. (from org-dartlang-testcase:///error_location_04_lib1.dart:6:9)

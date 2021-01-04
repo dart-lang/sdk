@@ -296,8 +296,8 @@ class FunctionNodeHelper {
   void SetNext(Field field) { next_read_ = field; }
   void SetJustRead(Field field) { next_read_ = field + 1; }
 
-  TokenPosition position_;
-  TokenPosition end_position_;
+  TokenPosition position_ = TokenPosition::kNoSource;
+  TokenPosition end_position_ = TokenPosition::kNoSource;
   AsyncMarker async_marker_;
   AsyncMarker dart_async_marker_;
   intptr_t total_parameter_count_ = 0;
@@ -352,7 +352,7 @@ class TypeParameterHelper {
     return (flags_ & kIsGenericCovariantImpl) != 0;
   }
 
-  TokenPosition position_;
+  TokenPosition position_ = TokenPosition::kNoSource;
   uint8_t flags_ = 0;
   StringIndex name_index_;
 
@@ -387,9 +387,10 @@ class VariableDeclarationHelper {
     kFinal = 1 << 0,
     kConst = 1 << 1,
     kCovariant = 1 << 3,
-    kIsGenericCovariantImpl = 1 << 5,
-    kLate = 1 << 6,
-    kRequired = 1 << 7,
+    kIsGenericCovariantImpl = 1 << 4,
+    kLate = 1 << 5,
+    kRequired = 1 << 6,
+    kLowered = 1 << 7,
   };
 
   explicit VariableDeclarationHelper(KernelReaderHelper* helper)
@@ -414,8 +415,8 @@ class VariableDeclarationHelper {
     return (flags_ & kIsGenericCovariantImpl) != 0;
   }
 
-  TokenPosition position_;
-  TokenPosition equals_position_;
+  TokenPosition position_ = TokenPosition::kNoSource;
+  TokenPosition equals_position_ = TokenPosition::kNoSource;
   uint8_t flags_ = 0;
   StringIndex name_index_;
   intptr_t annotation_count_ = 0;
@@ -455,10 +456,10 @@ class FieldHelper {
     kFinal = 1 << 0,
     kConst = 1 << 1,
     kStatic = 1 << 2,
-    kIsCovariant = 1 << 5,
-    kIsGenericCovariantImpl = 1 << 6,
-    kIsLate = 1 << 7,
-    kExtensionMember = 1 << 8,
+    kIsCovariant = 1 << 3,
+    kIsGenericCovariantImpl = 1 << 4,
+    kIsLate = 1 << 5,
+    kExtensionMember = 1 << 6,
   };
 
   explicit FieldHelper(KernelReaderHelper* helper)
@@ -487,8 +488,8 @@ class FieldHelper {
 
   NameIndex canonical_name_getter_;
   NameIndex canonical_name_setter_;
-  TokenPosition position_;
-  TokenPosition end_position_;
+  TokenPosition position_ = TokenPosition::kNoSource;
+  TokenPosition end_position_ = TokenPosition::kNoSource;
   uint32_t flags_ = 0;
   intptr_t source_uri_index_ = 0;
   intptr_t annotation_count_ = 0;
@@ -517,12 +518,11 @@ class ProcedureHelper {
     kPosition,
     kEndPosition,
     kKind,
+    kStubKind,
     kFlags,
     kName,
     kAnnotations,
-    kForwardingStubSuperTarget,
-    kForwardingStubInterfaceTarget,
-    kMemberSignatureTarget,
+    kStubTarget,
     kFunction,
     kEnd,
   };
@@ -535,18 +535,26 @@ class ProcedureHelper {
     kFactory,
   };
 
+  enum StubKind {
+    kRegularStubKind,
+    kAbstractForwardingStubKind,
+    kConcreteForwardingStubKind,
+    kNoSuchMethodForwarderStubKind,
+    kMemberSignatureStubKind,
+    kAbstractMixinStubKind,
+    kConcreteMixinStubKind,
+  };
+
   enum Flag {
     kStatic = 1 << 0,
     kAbstract = 1 << 1,
     kExternal = 1 << 2,
     kConst = 1 << 3,  // Only for external const factories.
-    kForwardingStub = 1 << 4,
 
     // TODO(29841): Remove this line after the issue is resolved.
-    kRedirectingFactoryConstructor = 1 << 6,
-    kNoSuchMethodForwarder = 1 << 7,
-    kExtensionMember = 1 << 8,
-    kMemberSignature = 1 << 9,
+    kRedirectingFactoryConstructor = 1 << 4,
+    kExtensionMember = 1 << 5,
+    kSyntheticProcedure = 1 << 7,
   };
 
   explicit ProcedureHelper(KernelReaderHelper* helper)
@@ -565,27 +573,33 @@ class ProcedureHelper {
   bool IsAbstract() const { return (flags_ & kAbstract) != 0; }
   bool IsExternal() const { return (flags_ & kExternal) != 0; }
   bool IsConst() const { return (flags_ & kConst) != 0; }
-  bool IsForwardingStub() const { return (flags_ & kForwardingStub) != 0; }
+  bool IsForwardingStub() const {
+    return stub_kind_ == kAbstractForwardingStubKind ||
+           stub_kind_ == kConcreteForwardingStubKind;
+  }
   bool IsRedirectingFactoryConstructor() const {
     return (flags_ & kRedirectingFactoryConstructor) != 0;
   }
   bool IsNoSuchMethodForwarder() const {
-    return (flags_ & kNoSuchMethodForwarder) != 0;
+    return stub_kind_ == kNoSuchMethodForwarderStubKind;
   }
   bool IsExtensionMember() const { return (flags_ & kExtensionMember) != 0; }
-  bool IsMemberSignature() const { return (flags_ & kMemberSignature) != 0; }
+  bool IsMemberSignature() const {
+    return stub_kind_ == kMemberSignatureStubKind;
+  }
 
   NameIndex canonical_name_;
-  TokenPosition start_position_;
-  TokenPosition position_;
-  TokenPosition end_position_;
+  TokenPosition start_position_ = TokenPosition::kNoSource;
+  TokenPosition position_ = TokenPosition::kNoSource;
+  TokenPosition end_position_ = TokenPosition::kNoSource;
   Kind kind_;
   uint32_t flags_ = 0;
   intptr_t source_uri_index_ = 0;
   intptr_t annotation_count_ = 0;
+  StubKind stub_kind_;
 
   // Only valid if the 'isForwardingStub' flag is set.
-  NameIndex forwarding_stub_super_target_;
+  NameIndex concrete_forwarding_stub_target_;
 
  private:
   KernelReaderHelper* helper_;
@@ -641,9 +655,9 @@ class ConstructorHelper {
   bool IsSynthetic() { return (flags_ & kSynthetic) != 0; }
 
   NameIndex canonical_name_;
-  TokenPosition start_position_;
-  TokenPosition position_;
-  TokenPosition end_position_;
+  TokenPosition start_position_ = TokenPosition::kNoSource;
+  TokenPosition position_ = TokenPosition::kNoSource;
+  TokenPosition end_position_ = TokenPosition::kNoSource;
   uint8_t flags_ = 0;
   intptr_t source_uri_index_ = 0;
   intptr_t annotation_count_ = 0;
@@ -719,9 +733,9 @@ class ClassHelper {
   }
 
   NameIndex canonical_name_;
-  TokenPosition start_position_;
-  TokenPosition position_;
-  TokenPosition end_position_;
+  TokenPosition start_position_ = TokenPosition::kNoSource;
+  TokenPosition position_ = TokenPosition::kNoSource;
+  TokenPosition end_position_ = TokenPosition::kNoSource;
   StringIndex name_index_;
   intptr_t source_uri_index_ = 0;
   intptr_t annotation_count_ = 0;
@@ -1244,6 +1258,7 @@ class KernelReaderHelper {
   const String& GetSourceFor(intptr_t index);
   TypedDataPtr GetLineStartsFor(intptr_t index);
   String& SourceTableImportUriFor(intptr_t index, uint32_t binaryVersion);
+  ExternalTypedDataPtr GetConstantCoverageFor(intptr_t index);
 
   Zone* zone_;
   TranslationHelper& translation_helper_;
@@ -1282,6 +1297,8 @@ class KernelReaderHelper {
   friend class ObfuscationProhibitionsMetadataHelper;
   friend class LoadingUnitsMetadataHelper;
   friend bool NeedsDynamicInvocationForwarder(const Function& function);
+  friend ArrayPtr CollectConstConstructorCoverageFrom(
+      const Script& interesting_script);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(KernelReaderHelper);

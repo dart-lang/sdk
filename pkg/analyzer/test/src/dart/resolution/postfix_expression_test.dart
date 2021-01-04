@@ -179,14 +179,9 @@ void f<T>() {
       type: 'dynamic',
     );
 
-    if (hasAssignmentLeftResolution) {
-      assertSimpleIdentifier(
-        postfix.operand,
-        readElement: findElement.typeParameter('T'),
-        writeElement: findElement.typeParameter('T'),
-        type: 'dynamic',
-      );
-    }
+    assertSimpleIdentifierAssignmentTarget(
+      postfix.operand,
+    );
   }
 
   test_inc_prefixedIdentifier_instance() async {
@@ -419,14 +414,9 @@ class B extends A {
       type: 'int',
     );
 
-    if (hasAssignmentLeftResolution) {
-      assertSimpleIdentifier(
-        postfix.operand,
-        readElement: findElement.getter('x'),
-        writeElement: findElement.setter('x'),
-        type: 'num',
-      );
-    }
+    assertSimpleIdentifierAssignmentTarget(
+      postfix.operand,
+    );
   }
 
   test_inc_simpleIdentifier_topGetter_topSetter() async {
@@ -454,14 +444,9 @@ void f() {
       type: 'int',
     );
 
-    if (hasAssignmentLeftResolution) {
-      assertSimpleIdentifier(
-        postfix.operand,
-        readElement: findElement.topGet('x'),
-        writeElement: findElement.topSet('x'),
-        type: 'num',
-      );
-    }
+    assertSimpleIdentifierAssignmentTarget(
+      postfix.operand,
+    );
   }
 
   test_inc_simpleIdentifier_topGetter_topSetter_fromClass() async {
@@ -491,14 +476,9 @@ class A {
       type: 'int',
     );
 
-    if (hasAssignmentLeftResolution) {
-      assertSimpleIdentifier(
-        postfix.operand,
-        readElement: findElement.topGet('x'),
-        writeElement: findElement.topSet('x'),
-        type: 'num',
-      );
-    }
+    assertSimpleIdentifierAssignmentTarget(
+      postfix.operand,
+    );
   }
 }
 

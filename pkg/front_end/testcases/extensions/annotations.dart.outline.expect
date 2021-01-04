@@ -28,9 +28,9 @@ extension Extension on self::Class* {
   static method extensionStaticMethod = self::Extension|extensionStaticMethod;
 }
 @core::pragma::_("dart2js:noInline")
-static method Extension|extensionInstanceMethod(final self::Class* #this) → dynamic
+static method Extension|extensionInstanceMethod(lowered final self::Class* #this) → dynamic
   ;
-static method Extension|get#extensionInstanceMethod(final self::Class* #this) → () →* dynamic
+static method Extension|get#extensionInstanceMethod(lowered final self::Class* #this) → () →* dynamic
   return () → dynamic => self::Extension|extensionInstanceMethod(#this);
 @core::pragma::_("dart2js:noInline")
 static method Extension|extensionStaticMethod() → dynamic

@@ -634,11 +634,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
     char* error = nullptr;
 
     auto group = state_->isolate_group();
-#if defined(DART_PRECOMPILED_RUNTIME)
-    Isolate* isolate = CreateWithinExistingIsolateGroupAOT(group, name, &error);
-#else
     Isolate* isolate = CreateWithinExistingIsolateGroup(group, name, &error);
-#endif
     parent_isolate_->DecrementSpawnCount();
     parent_isolate_ = nullptr;
 

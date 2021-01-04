@@ -347,7 +347,8 @@ TextSerializer<MapLiteral> mapLiteralSerializer = new Wrapped(
 
 Tuple3<DartType, DartType, List<Expression>> unwrapMapLiteral(
     MapLiteral expression) {
-  List<Expression> entries = new List(2 * expression.entries.length);
+  List<Expression> entries =
+      new List.filled(2 * expression.entries.length, null);
   for (int from = 0, to = 0; from < expression.entries.length; ++from) {
     MapEntry entry = expression.entries[from];
     entries[to++] = entry.key;
@@ -357,7 +358,7 @@ Tuple3<DartType, DartType, List<Expression>> unwrapMapLiteral(
 }
 
 MapLiteral wrapMapLiteral(Tuple3<DartType, DartType, List<Expression>> tuple) {
-  List<MapEntry> entries = new List(tuple.third.length ~/ 2);
+  List<MapEntry> entries = new List.filled(tuple.third.length ~/ 2, null);
   for (int from = 0, to = 0; to < entries.length; ++to) {
     entries[to] = new MapEntry(tuple.third[from++], tuple.third[from++]);
   }
@@ -373,7 +374,7 @@ TextSerializer<MapLiteral> constMapLiteralSerializer = new Wrapped(
 
 MapLiteral wrapConstMapLiteral(
     Tuple3<DartType, DartType, List<Expression>> tuple) {
-  List<MapEntry> entries = new List(tuple.third.length ~/ 2);
+  List<MapEntry> entries = new List.filled(tuple.third.length ~/ 2, null);
   for (int from = 0, to = 0; to < entries.length; ++to) {
     entries[to] = new MapEntry(tuple.third[from++], tuple.third[from++]);
   }
@@ -750,10 +751,10 @@ const Map<int, String> variableDeclarationFlagToName = const {
   VariableDeclaration.FlagConst: "const",
   VariableDeclaration.FlagFieldFormal: "field-formal",
   VariableDeclaration.FlagCovariant: "covariant",
-  VariableDeclaration.FlagInScope: "in-scope",
   VariableDeclaration.FlagGenericCovariantImpl: "generic-covariant-impl",
   VariableDeclaration.FlagLate: "late",
   VariableDeclaration.FlagRequired: "required",
+  VariableDeclaration.FlagLowered: "lowered",
 };
 
 class VariableDeclarationFlagTagger implements Tagger<int> {
@@ -1433,14 +1434,11 @@ const Map<int, String> procedureFlagToName = const {
   Procedure.FlagAbstract: "abstract",
   Procedure.FlagExternal: "external",
   Procedure.FlagConst: "const",
-  Procedure.FlagForwardingStub: "forwarding-stub",
-  Procedure.FlagForwardingSemiStub: "forwarding-semi-stub",
   Procedure.FlagRedirectingFactoryConstructor:
       "redirecting-factory-constructor",
-  Procedure.FlagNoSuchMethodForwarder: "no-such-method-forwarder",
   Procedure.FlagExtensionMember: "extension-member",
-  Procedure.FlagMemberSignature: "member-signature",
   Procedure.FlagNonNullableByDefault: "non-nullable-by-default",
+  Procedure.FlagSynthetic: "synthetic",
 };
 
 class ProcedureFlagTagger implements Tagger<int> {
@@ -1462,8 +1460,6 @@ const Map<int, String> fieldFlagToName = const {
   Field.FlagFinal: "final",
   Field.FlagConst: "const",
   Field.FlagStatic: "static",
-  Field.FlagHasImplicitGetter: "has-implicit-getter",
-  Field.FlagHasImplicitSetter: "has-implicit-setter",
   Field.FlagCovariant: "covariant",
   Field.FlagGenericCovariantImpl: "generic-covariant-impl",
   Field.FlagLate: "late",
@@ -1539,7 +1535,7 @@ class MemberTagger implements Tagger<Member> {
 
   String tag(Member node) {
     if (node is Field) {
-      return "field";
+      return node.hasSetter ? "mutable-field" : "immutable-field";
     } else if (node is Constructor) {
       return "constructor";
     } else if (node is RedirectingFactoryConstructor) {
@@ -1565,10 +1561,18 @@ class MemberTagger implements Tagger<Member> {
   }
 }
 
-TextSerializer<Field> fieldSerializer =
+TextSerializer<Field> mutableFieldSerializer =
     Wrapped<Tuple4<Name, int, DartType, Expression>, Field>(
         (w) => Tuple4(w.name, w.flags, w.type, w.initializer),
-        (u) => Field(u.first, type: u.third, initializer: u.fourth)
+        (u) => Field.mutable(u.first, type: u.third, initializer: u.fourth)
+          ..flags = u.second,
+        Tuple4Serializer(nameSerializer, fieldFlagsSerializer,
+            dartTypeSerializer, Optional(expressionSerializer)));
+
+TextSerializer<Field> immutableFieldSerializer =
+    Wrapped<Tuple4<Name, int, DartType, Expression>, Field>(
+        (w) => Tuple4(w.name, w.flags, w.type, w.initializer),
+        (u) => Field.immutable(u.first, type: u.third, initializer: u.fourth)
           ..flags = u.second,
         Tuple4Serializer(nameSerializer, fieldFlagsSerializer,
             dartTypeSerializer, Optional(expressionSerializer)));
@@ -2193,7 +2197,8 @@ void initializeSerializers() {
     "local-fun": functionDeclarationSerializer,
   });
   memberSerializer.registerTags({
-    "field": fieldSerializer,
+    "mutable-field": mutableFieldSerializer,
+    "immutable-field": immutableFieldSerializer,
     "method": methodSerializer,
     "getter": getterSerializer,
     "setter": setterSerializer,

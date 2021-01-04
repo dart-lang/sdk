@@ -71,7 +71,6 @@ Thread::Thread(bool is_vm_isolate)
       store_buffer_block_(NULL),
       marking_stack_block_(NULL),
       vm_tag_(0),
-      async_stack_trace_(StackTrace::null()),
       unboxed_int64_runtime_arg_(0),
       active_exception_(Object::null()),
       active_stacktrace_(Object::null()),
@@ -80,6 +79,7 @@ Thread::Thread(bool is_vm_isolate)
       execution_state_(kThreadInNative),
       safepoint_state_(0),
       ffi_callback_code_(GrowableObjectArray::null()),
+      ffi_callback_stack_return_(TypedData::null()),
       api_top_scope_(NULL),
       task_kind_(kUnknownTask),
       dart_stream_(NULL),
@@ -215,19 +215,6 @@ void Thread::InitVMConstants() {
 #undef REUSABLE_HANDLE_ALLOCATION
 }
 
-#ifndef PRODUCT
-// Collect information about each individual zone associated with this thread.
-void Thread::PrintJSON(JSONStream* stream) const {
-  JSONObject jsobj(stream);
-  jsobj.AddProperty("type", "_Thread");
-  jsobj.AddPropertyF("id", "threads/%" Pd "",
-                     OSThread::ThreadIdToIntPtr(os_thread()->trace_id()));
-  jsobj.AddProperty("kind", TaskKindToCString(task_kind()));
-  jsobj.AddPropertyF("_zoneHighWatermark", "%" Pu "", zone_high_watermark());
-  jsobj.AddPropertyF("_zoneCapacity", "%" Pu "", current_zone_capacity());
-}
-#endif
-
 GrowableObjectArrayPtr Thread::pending_functions() {
   if (pending_functions_ == GrowableObjectArray::null()) {
     pending_functions_ = GrowableObjectArray::New(Heap::kOld);
@@ -283,19 +270,6 @@ const char* Thread::TaskKindToCString(TaskKind kind) {
       UNREACHABLE();
       return "";
   }
-}
-
-StackTracePtr Thread::async_stack_trace() const {
-  return async_stack_trace_;
-}
-
-void Thread::set_async_stack_trace(const StackTrace& stack_trace) {
-  ASSERT(!stack_trace.IsNull());
-  async_stack_trace_ = stack_trace.raw();
-}
-
-void Thread::clear_async_stack_trace() {
-  async_stack_trace_ = StackTrace::null();
 }
 
 bool Thread::EnterIsolate(Isolate* isolate) {
@@ -667,8 +641,9 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&active_exception_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&active_stacktrace_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&sticky_error_));
-  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&async_stack_trace_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&ffi_callback_code_));
+  visitor->VisitPointer(
+      reinterpret_cast<ObjectPtr*>(&ffi_callback_stack_return_));
 
   // Visit the api local scope as it has all the api local handles.
   ApiLocalScope* scope = api_top_scope_;
@@ -1104,6 +1079,47 @@ void Thread::SetFfiCallbackCode(int32_t callback_id, const Code& code) {
   }
 
   array.SetAt(callback_id, code);
+}
+
+void Thread::SetFfiCallbackStackReturn(int32_t callback_id,
+                                       intptr_t stack_return_delta) {
+#if defined(TARGET_ARCH_IA32)
+#else
+  UNREACHABLE();
+#endif
+
+  Zone* Z = Thread::Current()->zone();
+
+  /// In AOT the callback ID might have been allocated during compilation but
+  /// 'ffi_callback_code_' is initialized to empty again when the program
+  /// starts. Therefore we may need to initialize or expand it to accomodate
+  /// the callback ID.
+
+  if (ffi_callback_stack_return_ == TypedData::null()) {
+    ffi_callback_stack_return_ = TypedData::New(
+        kTypedDataInt8ArrayCid, kInitialCallbackIdsReserved, Heap::kOld);
+  }
+
+  auto& array = TypedData::Handle(Z, ffi_callback_stack_return_);
+
+  if (callback_id >= array.Length()) {
+    const int32_t capacity = array.Length();
+    if (callback_id >= capacity) {
+      // Ensure both that we grow enough and an exponential growth strategy.
+      const int32_t new_capacity =
+          Utils::Maximum(callback_id + 1, capacity * 2);
+      const auto& new_array = TypedData::Handle(
+          Z, TypedData::New(kTypedDataUint8ArrayCid, new_capacity, Heap::kOld));
+      for (intptr_t i = 0; i < capacity; i++) {
+        new_array.SetUint8(i, array.GetUint8(i));
+      }
+      array ^= new_array.raw();
+      ffi_callback_stack_return_ = new_array.raw();
+    }
+  }
+
+  ASSERT(callback_id < array.Length());
+  array.SetUint8(callback_id, stack_return_delta);
 }
 
 void Thread::VerifyCallbackIsolate(int32_t callback_id, uword entry) {

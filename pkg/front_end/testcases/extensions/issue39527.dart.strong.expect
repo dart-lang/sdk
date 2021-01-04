@@ -23,17 +23,17 @@ extension Extension1 on self::C* {
   operator []= = self::Extension1|[]=;
   operator - = self::Extension1|-;
 }
-static method Extension1|[](final self::C* #this, core::int* index) → self::C*
+static method Extension1|[](lowered final self::C* #this, core::int* index) → self::C*
   return let final self::C* #t1 = #this in block {
-    let final self::C* #t2 = #t1 in #t2.{self::C::value} = #t2.{self::C::value}.{core::num::+}(index.{core::num::+}(1));
+    #t1.{self::C::value} = #t1.{self::C::value}.{core::num::+}(index.{core::num::+}(1));
   } =>#t1;
-static method Extension1|[]=(final self::C* #this, core::int* index, self::C* other) → void
-  return let final self::C* #t3 = #this in #t3.{self::C::value} = #t3.{self::C::value}.{core::num::+}(other.{self::C::value}.{core::num::+}(index).{core::num::+}(1));
-static method Extension1|-(final self::C* #this, core::int* val) → self::C*
+static method Extension1|[]=(lowered final self::C* #this, core::int* index, self::C* other) → void
+  return #this.{self::C::value} = #this.{self::C::value}.{core::num::+}(other.{self::C::value}.{core::num::+}(index).{core::num::+}(1));
+static method Extension1|-(lowered final self::C* #this, core::int* val) → self::C*
   return #this;
 static method main() → dynamic {
   self::C* c = new self::C::•();
-  let final self::C* #t4 = c in let final core::int* #t5 = 42 in let final self::C* #t6 = self::Extension1|-(self::Extension1|[](#t4, #t5), 1) in let final void #t7 = self::Extension1|[]=(#t4, #t5, #t6) in #t6;
-  let final self::C* #t8 = c in let final core::int* #t9 = 42 in self::Extension1|[]=(#t8, #t9, self::Extension1|-(self::Extension1|[](#t8, #t9), 1));
+  let final self::C* #t2 = c in let final core::int* #t3 = 42 in let final self::C* #t4 = self::Extension1|-(self::Extension1|[](#t2, #t3), 1) in let final void #t5 = self::Extension1|[]=(#t2, #t3, #t4) in #t4;
+  let final self::C* #t6 = c in let final core::int* #t7 = 42 in self::Extension1|[]=(#t6, #t7, self::Extension1|-(self::Extension1|[](#t6, #t7), 1));
   self::Extension1|[]=(c, 42, self::Extension1|-(self::Extension1|[](c, 42), 1));
 }

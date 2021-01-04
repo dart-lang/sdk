@@ -7,9 +7,9 @@ import '../scanner/token.dart' show Token;
 import 'forwarding_listener.dart' show ForwardingListener;
 
 class ClassHeaderRecoveryListener extends ForwardingListener {
-  Token extendsKeyword;
-  Token implementsKeyword;
-  Token withKeyword;
+  Token? extendsKeyword;
+  Token? implementsKeyword;
+  Token? withKeyword;
 
   void clear() {
     extendsKeyword = null;
@@ -18,14 +18,14 @@ class ClassHeaderRecoveryListener extends ForwardingListener {
   }
 
   @override
-  void handleClassExtends(Token extendsKeyword, int typeCount) {
+  void handleClassExtends(Token? extendsKeyword, int typeCount) {
     this.extendsKeyword = extendsKeyword;
     super.handleClassExtends(extendsKeyword, typeCount);
   }
 
   @override
   void handleClassOrMixinImplements(
-      Token implementsKeyword, int interfacesCount) {
+      Token? implementsKeyword, int interfacesCount) {
     this.implementsKeyword = implementsKeyword;
     super.handleClassOrMixinImplements(implementsKeyword, interfacesCount);
   }
@@ -38,9 +38,9 @@ class ClassHeaderRecoveryListener extends ForwardingListener {
 }
 
 class ImportRecoveryListener extends ForwardingListener {
-  Token asKeyword;
-  Token deferredKeyword;
-  Token ifKeyword;
+  Token? asKeyword;
+  Token? deferredKeyword;
+  Token? ifKeyword;
   bool hasCombinator = false;
 
   void clear() {
@@ -50,7 +50,7 @@ class ImportRecoveryListener extends ForwardingListener {
     hasCombinator = false;
   }
 
-  void endConditionalUri(Token ifKeyword, Token leftParen, Token equalSign) {
+  void endConditionalUri(Token ifKeyword, Token leftParen, Token? equalSign) {
     this.ifKeyword = ifKeyword;
     super.endConditionalUri(ifKeyword, leftParen, equalSign);
   }
@@ -65,7 +65,7 @@ class ImportRecoveryListener extends ForwardingListener {
     super.endShow(showKeyword);
   }
 
-  void handleImportPrefix(Token deferredKeyword, Token asKeyword) {
+  void handleImportPrefix(Token? deferredKeyword, Token? asKeyword) {
     this.deferredKeyword = deferredKeyword;
     this.asKeyword = asKeyword;
     super.handleImportPrefix(deferredKeyword, asKeyword);
@@ -73,8 +73,8 @@ class ImportRecoveryListener extends ForwardingListener {
 }
 
 class MixinHeaderRecoveryListener extends ForwardingListener {
-  Token onKeyword;
-  Token implementsKeyword;
+  Token? onKeyword;
+  Token? implementsKeyword;
 
   void clear() {
     onKeyword = null;
@@ -83,13 +83,13 @@ class MixinHeaderRecoveryListener extends ForwardingListener {
 
   @override
   void handleClassOrMixinImplements(
-      Token implementsKeyword, int interfacesCount) {
+      Token? implementsKeyword, int interfacesCount) {
     this.implementsKeyword = implementsKeyword;
     super.handleClassOrMixinImplements(implementsKeyword, interfacesCount);
   }
 
   @override
-  void handleMixinOn(Token onKeyword, int typeCount) {
+  void handleMixinOn(Token? onKeyword, int typeCount) {
     this.onKeyword = onKeyword;
     super.handleMixinOn(onKeyword, typeCount);
   }

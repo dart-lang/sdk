@@ -13,18 +13,18 @@ abstract class ValueKind {
   const ValueKind();
 
   /// Checks the [value] an returns `true` if the value is of the expected kind.
-  bool check(Object value);
+  bool check(Object ?value);
 }
 
 /// A [ValueKind] for a particular type [T], optionally with a recognized
 /// [NullValue].
 class SingleValueKind<T> implements ValueKind {
-  final NullValue nullValue;
+  final NullValue? nullValue;
 
   const SingleValueKind([this.nullValue]);
 
   @override
-  bool check(Object value) {
+  bool check(Object? value) {
     if (nullValue != null && value == nullValue) {
       return true;
     }
@@ -46,7 +46,7 @@ class UnionValueKind implements ValueKind {
   const UnionValueKind(this.kinds);
 
   @override
-  bool check(Object value) {
+  bool check(Object? value) {
     for (ValueKind kind in kinds) {
       if (kind.check(value)) {
         return true;

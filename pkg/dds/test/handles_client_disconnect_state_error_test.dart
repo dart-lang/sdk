@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:dds/dds.dart';
+import 'package:dds/src/dds_impl.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:pedantic/pedantic.dart';
 import 'package:test/test.dart';
@@ -23,6 +24,11 @@ class StreamCancelDisconnectPeer extends FakePeer {
         );
         // Notify listeners that this client is closed.
         doneCompleter.complete();
+        break;
+      case 'foo':
+        completer.completeError(
+          StateError('The client closed with pending request "foo".'),
+        );
         break;
       default:
         completer.complete(await super.sendRequest(method, args));
@@ -59,6 +65,30 @@ void main() {
     // test ensures that this exception is handled and doesn't escape outside
     // of DDS.
     await client.close();
+    await dds.done;
+  });
+
+  test('StateError handled by _DartDevelopmentServiceClient request forwarder',
+      () async {
+    final dds = await DartDevelopmentService.startDartDevelopmentService(
+        Uri(scheme: 'http'));
+    final ws = await WebSocketChannel.connect(dds.uri.replace(scheme: 'ws'));
+
+    // Create a VM service client that connects to DDS.
+    final client = json_rpc.Client(ws.cast<String>());
+    unawaited(client.listen());
+
+    // Make a request that causes the VM service peer to close in the middle of
+    // handling a request. This is meant to mimic a device being disconnected
+    // unexpectedly.
+    try {
+      await client.sendRequest('foo');
+    } on StateError {
+      // This state error is expected. This test is ensuring that DDS exits
+      // gracefully even if the VM service disappears.
+    }
+
+    // DDS should shutdown if the VM service peer disconnects.
     await dds.done;
   });
 }

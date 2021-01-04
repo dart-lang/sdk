@@ -59,6 +59,7 @@ class ModifyParameters extends Change<_Data> {
     var argumentList = data.argumentList;
     var arguments = argumentList.arguments;
     var argumentCount = arguments.length;
+    var templateContext = TemplateContext(argumentList.parent, fix.utils);
     var newNamed = <AddParameter>[];
     var indexToNewArgumentMap = <int, AddParameter>{};
     var argumentsToInsert = <int>[];
@@ -72,6 +73,13 @@ class ModifyParameters extends Change<_Data> {
           argumentsToInsert.add(index);
         } else if (modification.isRequired) {
           newNamed.add(modification);
+        } else {
+          var requiredIfCondition =
+              modification.argumentValue?.requiredIfCondition;
+          if (requiredIfCondition != null &&
+              requiredIfCondition.evaluateIn(templateContext)) {
+            newNamed.add(modification);
+          }
         }
       } else if (modification is RemoveParameter) {
         var argument = modification.parameter.argumentFrom(argumentList);
@@ -95,8 +103,7 @@ class ModifyParameters extends Change<_Data> {
         builder.write(parameter.name);
         builder.write(': ');
       }
-      parameter.argumentValue
-          .writeOn(builder, TemplateContext(argumentList.parent, fix.utils));
+      parameter.argumentValue.writeOn(builder, templateContext);
     }
 
     var insertionRanges = argumentsToInsert.contiguousSubRanges.toList();

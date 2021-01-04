@@ -107,6 +107,11 @@ class _GrowableList<T> extends ListBase<T> {
     return new _GrowableList<T>._withData(data);
   }
 
+  // Specialization of List.empty constructor for growable == true.
+  // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
+  @pragma("vm:prefer-inline")
+  factory _GrowableList.empty() => _GrowableList(0);
+
   // Specialization of List.filled constructor for growable == true.
   // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
   factory _GrowableList.filled(int length, T fill) {
@@ -128,6 +133,72 @@ class _GrowableList<T> extends ListBase<T> {
       result[i] = generator(i);
     }
     return result;
+  }
+
+  // Specialization of List.of constructor for growable == true.
+  factory _GrowableList.of(Iterable<T> elements) {
+    if (elements is _GrowableList) {
+      return _GrowableList._ofGrowableList(unsafeCast(elements));
+    }
+    if (elements is _List) {
+      return _GrowableList._ofList(unsafeCast(elements));
+    }
+    if (elements is _ImmutableList) {
+      return _GrowableList._ofImmutableList(unsafeCast(elements));
+    }
+    if (elements is EfficientLengthIterable) {
+      return _GrowableList._ofEfficientLengthIterable(unsafeCast(elements));
+    }
+    return _GrowableList._ofOther(elements);
+  }
+
+  factory _GrowableList._ofList(_List<T> elements) {
+    final int length = elements.length;
+    final list = _GrowableList<T>(length);
+    for (int i = 0; i < length; i++) {
+      list[i] = elements[i];
+    }
+    return list;
+  }
+
+  factory _GrowableList._ofGrowableList(_GrowableList<T> elements) {
+    final int length = elements.length;
+    final list = _GrowableList<T>(length);
+    for (int i = 0; i < length; i++) {
+      list[i] = elements[i];
+    }
+    return list;
+  }
+
+  factory _GrowableList._ofImmutableList(_ImmutableList<T> elements) {
+    final int length = elements.length;
+    final list = _GrowableList<T>(length);
+    for (int i = 0; i < length; i++) {
+      list[i] = elements[i];
+    }
+    return list;
+  }
+
+  factory _GrowableList._ofEfficientLengthIterable(
+      EfficientLengthIterable<T> elements) {
+    final int length = elements.length;
+    final list = _GrowableList<T>(length);
+    if (length > 0) {
+      int i = 0;
+      for (var element in elements) {
+        list[i++] = element;
+      }
+      if (i != length) throw ConcurrentModificationError(elements);
+    }
+    return list;
+  }
+
+  factory _GrowableList._ofOther(Iterable<T> elements) {
+    final list = _GrowableList<T>(0);
+    for (var elements in elements) {
+      list.add(elements);
+    }
+    return list;
   }
 
   @pragma("vm:recognized", "asm-intrinsic")
@@ -195,7 +266,7 @@ class _GrowableList<T> extends ListBase<T> {
   void add(T value) {
     var len = length;
     if (len == _capacity) {
-      _grow(_nextCapacity(len));
+      _growToNextCapacity();
     }
     _setLength(len + 1);
     this[len] = value;
@@ -211,6 +282,9 @@ class _GrowableList<T> extends ListBase<T> {
       var cap = _capacity;
       // Pregrow if we know iterable.length.
       var iterLen = iterable.length;
+      if (iterLen == 0) {
+        return;
+      }
       var newLen = len + iterLen;
       if (newLen > cap) {
         do {
@@ -241,7 +315,7 @@ class _GrowableList<T> extends ListBase<T> {
         if (this.length != newLen) throw new ConcurrentModificationError(this);
         len = newLen;
       }
-      _grow(_nextCapacity(_capacity));
+      _growToNextCapacity();
     } while (true);
   }
 
@@ -299,6 +373,14 @@ class _GrowableList<T> extends ListBase<T> {
       }
     }
     _setData(newData);
+  }
+
+  // This method is marked as never-inline to conserve code size.
+  // It is called in rare cases, but used in the add() which is
+  // used very often and always inlined.
+  @pragma("vm:never-inline")
+  void _growToNextCapacity() {
+    _grow(_nextCapacity(_capacity));
   }
 
   void _shrink(int new_capacity, int new_length) {

@@ -14,6 +14,16 @@ opted out of null safety by adding `// @dart=2.9` to the beginning of the file.
 
 ### Core libraries
 
+#### `dart:collection`
+
+* Added `UnmodifiableSetView` class, which allows users to guarantee that
+  methods that could change underlying `Set` instance can not be invoked.
+
+#### `dart:core`
+
+* Added `unmodifiable` constructor to class `Set`, which allows users to create
+  unmodifiable `Set` instances.
+
 #### `dart:io`
 
 * `HttpRequest` will now correctly follow HTTP 308 redirects
@@ -24,6 +34,19 @@ opted out of null safety by adding `// @dart=2.9` to the beginning of the file.
 * Added `debugName` positional parameter to `ReceivePort` and `RawReceivePort`
   constructors, a name which can be associated with the port and displayed in
   tooling.
+
+#### `dart:collection`
+
+* `LinkedList` made it explicit that elements are compared by identity,
+  and updated `contains` to take advantage of this.
+
+#### `dart:html`
+
+* `EventStreamSubscription.cancel` has been updated to retain its synchronous
+  timing when running in both sound and unsound null safety modes. See issue
+  [#44157][] for more details.
+
+[#44157]: https://github.com/dart-lang/sdk/issues/44157
 
 ### Dart VM
 
@@ -56,8 +79,16 @@ opted out of null safety by adding `// @dart=2.9` to the beginning of the file.
 
 #### Linter
 
-Updated the Linter to `0.1.125`, which includes:
+Updated the Linter to `0.1.127`, which includes:
 
+* fixed crash in `prefer_collection_literals` when there is no static parameter
+  element.
+* fixed false negatives for `prefer_collection_literals` when a LinkedHashSet or
+  LinkedHashMap instantiation is passed as the argument to a function in any
+  position other than the first.
+* fixed false negatives for `prefer_collection_literals` when a LinkedHashSet or
+  LinkedHashMap instantiation is used in a place with a static type other than
+  Set or Map.
 * (Internal): test updates to the new `PhysicalResourceProvider` API.
 * Fixed false positives in `prefer_constructors_over_static_methods`.
 * Updates to `package_names` to allow leading underscores.
@@ -106,9 +137,23 @@ Updated the Linter to `0.1.125`, which includes:
 * New command `dart pub add` that adds  new dependencies to your `pubspec.yaml`.
 
   And a corresponding `dart pub remove` that removes dependencies.
+* New option `dart pub upgrade --major-versions` will update constraints in
+  your `pubspec.yaml` to match the the _resolvable_ column reported in
+  `dart pub outdated`. This allows users to easily upgrade to latest version for
+  all dependencies where this is possible, even if such upgrade requires an
+  update to the version constraint in `pubspec.yaml`.
+
+  It is also possible to only upgrade the major version for a subset of your
+  dependencies using `dart pub upgrade --major-versions <dependencies...>`.
+* New option `dart pub upgrade --null-safety` will attempt to update constraints
+  in your `pubspec.yaml`, such that only null-safety migrated versions of
+  dependencies are allowed.
 * New option `dart pub outdated --mode=null-safety` that will analyze your
   dependencies for null-safety.
 * `dart pub publish` will now check your pubspec keys for likely typos.
+* `dart pub upgrade package_foo` will fetch dependencies, but ignore the
+  `pubspec.lock` for `package_foo`, allowing users to only upgrade a subset of
+  dependencies.
 * New command `dart pub login` that logs in to pub.dev.
 * The `--server` option to `dart pub publish` and `dart pub uploader` have been
   deprecated. Use `publish_to` in your `pubspec.yaml` or set the

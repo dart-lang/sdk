@@ -1,0 +1,6 @@
+extension A<T> on List<T> {
+  List<R> myMap<R>(R Function(T) block) {}
+}
+
+final list = ["a", "b", "c"].myMap((it) => it);
+main() {}

@@ -65,3 +65,9 @@ constants  {
   #C9 = core::_ImmutableMap<(core::Object*) →* Null, Null> {_kvPairs:#C7}
   #C10 = core::_ImmutableMap<Null, (core::Object*) →* Null> {_kvPairs:#C7}
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///const_invocation.dart:
+- Bar. (from org-dartlang-testcase:///const_invocation.dart:24:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)

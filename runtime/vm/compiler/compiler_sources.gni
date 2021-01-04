@@ -179,8 +179,8 @@ compiler_sources_tests = [
   "backend/typed_data_aot_test.cc",
   "backend/yield_position_test.cc",
   "cha_test.cc",
+  "ffi/native_type_vm_test.cc",
   "frontend/kernel_binary_flowgraph_test.cc",
-  "frontend/multiple_entrypoints_test.cc",
   "write_barrier_elimination_test.cc",
 ]
 
@@ -210,4 +210,5 @@ ffi_sources_tests = [
   "ffi/native_location_test.cc",
   "ffi/native_type_test.cc",
   "ffi/unit_test_custom_zone.cc",
+  "ffi/unit_test.cc",
 ]

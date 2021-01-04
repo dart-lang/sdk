@@ -282,21 +282,62 @@ class ParameterStructure {
   /// The number of type parameters.
   final int typeParameters;
 
-  const ParameterStructure(
+  static const ParameterStructure getter =
+      ParameterStructure._(0, 0, [], {}, 0);
+
+  static const ParameterStructure setter =
+      ParameterStructure._(1, 1, [], {}, 0);
+
+  static const ParameterStructure zeroArguments =
+      ParameterStructure._(0, 0, [], {}, 0);
+
+  static const List<ParameterStructure> _simple = [
+    ParameterStructure._(0, 0, [], {}, 0),
+    ParameterStructure._(1, 1, [], {}, 0),
+    ParameterStructure._(2, 2, [], {}, 0),
+    ParameterStructure._(3, 3, [], {}, 0),
+    ParameterStructure._(4, 4, [], {}, 0),
+    ParameterStructure._(5, 5, [], {}, 0),
+  ];
+
+  const ParameterStructure._(
       this.requiredPositionalParameters,
       this.positionalParameters,
       this.namedParameters,
       this.requiredNamedParameters,
       this.typeParameters);
 
-  const ParameterStructure.getter()
-      : this(0, 0, const <String>[], const <String>{}, 0);
+  factory ParameterStructure(
+      int requiredPositionalParameters,
+      int positionalParameters,
+      List<String> namedParameters,
+      Set<String> requiredNamedParameters,
+      int typeParameters) {
+    // This simple canonicalization reduces the number of ParameterStructure
+    // objects by over 90%.
+    if (requiredPositionalParameters == positionalParameters &&
+        namedParameters.isEmpty &&
+        requiredNamedParameters.isEmpty &&
+        typeParameters == 0 &&
+        positionalParameters < _simple.length) {
+      return _simple[positionalParameters];
+    }
 
-  const ParameterStructure.setter()
-      : this(1, 1, const <String>[], const <String>{}, 0);
+    // Force sharing of empty collections.
+    if (namedParameters.isEmpty) namedParameters = const [];
+    if (requiredNamedParameters.isEmpty) requiredNamedParameters = const {};
+
+    return ParameterStructure._(
+      requiredPositionalParameters,
+      positionalParameters,
+      namedParameters,
+      requiredNamedParameters,
+      typeParameters,
+    );
+  }
 
   factory ParameterStructure.fromType(FunctionType type) {
-    return new ParameterStructure(
+    return ParameterStructure(
         type.parameterTypes.length,
         type.parameterTypes.length + type.optionalParameterTypes.length,
         type.namedParameters,
@@ -314,7 +355,7 @@ class ParameterStructure {
         source.readStrings(emptyAsNull: true)?.toSet() ?? const <String>{};
     int typeParameters = source.readInt();
     source.end(tag);
-    return new ParameterStructure(
+    return ParameterStructure(
         requiredPositionalParameters,
         positionalParameters,
         namedParameters,
@@ -344,7 +385,7 @@ class ParameterStructure {
   /// Returns the [CallStructure] corresponding to a call site passing all
   /// parameters both required and optional.
   CallStructure get callStructure {
-    return new CallStructure(totalParameters, namedParameters, typeParameters);
+    return CallStructure(totalParameters, namedParameters, typeParameters);
   }
 
   @override
@@ -382,7 +423,7 @@ class ParameterStructure {
 
   /// Short textual representation use for testing.
   String get shortText {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     if (typeParameters != 0) {
       sb.write('<');
       sb.write(typeParameters);
@@ -401,7 +442,7 @@ class ParameterStructure {
 
   @override
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('ParameterStructure(');
     sb.write('requiredPositionalParameters=$requiredPositionalParameters,');
     sb.write('positionalParameters=$positionalParameters,');

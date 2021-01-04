@@ -281,12 +281,18 @@ super method declares ${superParameter.type}
 
     // Permit any invocation on Function type.
     if (receiver == environment.coreTypes.functionLegacyRawType &&
-        where is MethodInvocation &&
+        where is InvocationExpression &&
         where.name.text == 'call') {
       return;
     }
 
-    fail(where, 'Unresolved method invocation');
+    if (receiver is FunctionType &&
+        where is InvocationExpression &&
+        where.name.text == 'call') {
+      return;
+    }
+
+    fail(where, 'Unresolved method invocation on ${receiver}');
   }
 
   @override

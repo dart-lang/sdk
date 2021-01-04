@@ -56,90 +56,94 @@ static field core::int? _#initializedNonFinalTopLevelField = null;
 static field core::int? _#initializedFinalTopLevelField = null;
 static method main() → dynamic {}
 static method method() → dynamic {
-  core::int? nullableUninitializedNonFinalLocal;
-  core::bool #nullableUninitializedNonFinalLocal#isSet = false;
+  lowered core::int? #nullableUninitializedNonFinalLocal;
+  lowered core::bool #nullableUninitializedNonFinalLocal#isSet = false;
   function #nullableUninitializedNonFinalLocal#get() → core::int?
-    return #nullableUninitializedNonFinalLocal#isSet ?{core::int?} nullableUninitializedNonFinalLocal : throw new _in::LateError::localNI("nullableUninitializedNonFinalLocal");
+    return #nullableUninitializedNonFinalLocal#isSet ?{core::int?} #nullableUninitializedNonFinalLocal : throw new _in::LateError::localNI("nullableUninitializedNonFinalLocal");
   function #nullableUninitializedNonFinalLocal#set(core::int? #t17) → dynamic {
     #nullableUninitializedNonFinalLocal#isSet = true;
-    return nullableUninitializedNonFinalLocal = #t17;
+    return #nullableUninitializedNonFinalLocal = #t17;
   }
-  core::int? nonNullableUninitializedNonFinalLocal;
+  lowered core::int? #nonNullableUninitializedNonFinalLocal;
   function #nonNullableUninitializedNonFinalLocal#get() → core::int
-    return let final core::int? #t18 = nonNullableUninitializedNonFinalLocal in #t18.==(null) ?{core::int} throw new _in::LateError::localNI("nonNullableUninitializedNonFinalLocal") : #t18{core::int};
+    return let final core::int? #t18 = #nonNullableUninitializedNonFinalLocal in #t18.==(null) ?{core::int} throw new _in::LateError::localNI("nonNullableUninitializedNonFinalLocal") : #t18{core::int};
   function #nonNullableUninitializedNonFinalLocal#set(core::int #t19) → dynamic
-    return nonNullableUninitializedNonFinalLocal = #t19;
-  final core::int? nullableUninitializedFinalLocal;
-  core::bool #nullableUninitializedFinalLocal#isSet = false;
+    return #nonNullableUninitializedNonFinalLocal = #t19;
+  lowered final core::int? #nullableUninitializedFinalLocal;
+  lowered core::bool #nullableUninitializedFinalLocal#isSet = false;
   function #nullableUninitializedFinalLocal#get() → core::int?
-    return #nullableUninitializedFinalLocal#isSet ?{core::int?} nullableUninitializedFinalLocal : throw new _in::LateError::localNI("nullableUninitializedFinalLocal");
+    return #nullableUninitializedFinalLocal#isSet ?{core::int?} #nullableUninitializedFinalLocal : throw new _in::LateError::localNI("nullableUninitializedFinalLocal");
   function #nullableUninitializedFinalLocal#set(core::int? #t20) → dynamic
     if(#nullableUninitializedFinalLocal#isSet)
       throw new _in::LateError::localAI("nullableUninitializedFinalLocal");
     else {
       #nullableUninitializedFinalLocal#isSet = true;
-      return nullableUninitializedFinalLocal = #t20;
+      return #nullableUninitializedFinalLocal = #t20;
     }
-  final core::int? nonNullableUninitializedFinalLocal;
+  lowered final core::int? #nonNullableUninitializedFinalLocal;
   function #nonNullableUninitializedFinalLocal#get() → core::int
-    return let final core::int? #t21 = nonNullableUninitializedFinalLocal in #t21.==(null) ?{core::int} throw new _in::LateError::localNI("nonNullableUninitializedFinalLocal") : #t21{core::int};
+    return let final core::int? #t21 = #nonNullableUninitializedFinalLocal in #t21.==(null) ?{core::int} throw new _in::LateError::localNI("nonNullableUninitializedFinalLocal") : #t21{core::int};
   function #nonNullableUninitializedFinalLocal#set(core::int #t22) → dynamic
-    if(nonNullableUninitializedFinalLocal.==(null))
-      return nonNullableUninitializedFinalLocal = #t22;
+    if(#nonNullableUninitializedFinalLocal.==(null))
+      return #nonNullableUninitializedFinalLocal = #t22;
     else
       throw new _in::LateError::localAI("nonNullableUninitializedFinalLocal");
-  core::int? nullableInitializedNonFinalLocal;
-  core::bool #nullableInitializedNonFinalLocal#isSet = false;
+  lowered core::int? #nullableInitializedNonFinalLocal;
+  lowered core::bool #nullableInitializedNonFinalLocal#isSet = false;
   function #nullableInitializedNonFinalLocal#get() → core::int? {
     if(!#nullableInitializedNonFinalLocal#isSet) {
-      nullableInitializedNonFinalLocal = 0;
+      #nullableInitializedNonFinalLocal = 0;
       #nullableInitializedNonFinalLocal#isSet = true;
     }
-    return nullableInitializedNonFinalLocal;
+    return #nullableInitializedNonFinalLocal;
   }
   function #nullableInitializedNonFinalLocal#set(core::int? #t23) → dynamic {
     #nullableInitializedNonFinalLocal#isSet = true;
-    return nullableInitializedNonFinalLocal = #t23;
+    return #nullableInitializedNonFinalLocal = #t23;
   }
-  core::int? nonNullableInitializedNonFinalLocal;
+  lowered core::int? #nonNullableInitializedNonFinalLocal;
   function #nonNullableInitializedNonFinalLocal#get() → core::int
-    return let final core::int? #t24 = nonNullableInitializedNonFinalLocal in #t24.==(null) ?{core::int} nonNullableInitializedNonFinalLocal = 0 : #t24{core::int};
+    return let final core::int? #t24 = #nonNullableInitializedNonFinalLocal in #t24.==(null) ?{core::int} #nonNullableInitializedNonFinalLocal = 0 : #t24{core::int};
   function #nonNullableInitializedNonFinalLocal#set(core::int #t25) → dynamic
-    return nonNullableInitializedNonFinalLocal = #t25;
-  final core::int? nullableInitializedFinalLocal;
-  core::bool #nullableInitializedFinalLocal#isSet = false;
+    return #nonNullableInitializedNonFinalLocal = #t25;
+  lowered final core::int? #nullableInitializedFinalLocal;
+  lowered core::bool #nullableInitializedFinalLocal#isSet = false;
   function #nullableInitializedFinalLocal#get() → core::int? {
     if(!#nullableInitializedFinalLocal#isSet) {
-      nullableInitializedFinalLocal = 0;
+      final core::int? #t26 = 0;
+      if(#nullableInitializedFinalLocal#isSet)
+        throw new _in::LateError::localADI("nullableInitializedFinalLocal");
+      #nullableInitializedFinalLocal = #t26;
       #nullableInitializedFinalLocal#isSet = true;
     }
-    return nullableInitializedFinalLocal;
+    return #nullableInitializedFinalLocal;
   }
-  final core::int? nonNullableInitializedFinalLocal;
+  lowered final core::int? #nonNullableInitializedFinalLocal;
   function #nonNullableInitializedFinalLocal#get() → core::int
-    return let final core::int? #t26 = nonNullableInitializedFinalLocal in #t26.==(null) ?{core::int} nonNullableInitializedFinalLocal = 0 : #t26{core::int};
+    return let final core::int? #t27 = #nonNullableInitializedFinalLocal in #t27.==(null) ?{core::int} let final core::int #t28 = 0 in #nonNullableInitializedFinalLocal.==(null) ?{core::int} #nonNullableInitializedFinalLocal = #t28 : throw new _in::LateError::localADI("nonNullableInitializedFinalLocal") : #t27{core::int};
 }
 static get uninitializedNonFinalTopLevelField() → core::int
-  return let final core::int? #t27 = self::_#uninitializedNonFinalTopLevelField in #t27.==(null) ?{core::int} throw new _in::LateError::fieldNI("uninitializedNonFinalTopLevelField") : #t27{core::int};
-static set uninitializedNonFinalTopLevelField(core::int #t28) → void
-  self::_#uninitializedNonFinalTopLevelField = #t28;
+  return let final core::int? #t29 = self::_#uninitializedNonFinalTopLevelField in #t29.==(null) ?{core::int} throw new _in::LateError::fieldNI("uninitializedNonFinalTopLevelField") : #t29{core::int};
+static set uninitializedNonFinalTopLevelField(core::int #t30) → void
+  self::_#uninitializedNonFinalTopLevelField = #t30;
 static get uninitializedFinalTopLevelField() → core::int
-  return let final core::int? #t29 = self::_#uninitializedFinalTopLevelField in #t29.==(null) ?{core::int} throw new _in::LateError::fieldNI("uninitializedFinalTopLevelField") : #t29{core::int};
-static set uninitializedFinalTopLevelField(core::int #t30) → void
+  return let final core::int? #t31 = self::_#uninitializedFinalTopLevelField in #t31.==(null) ?{core::int} throw new _in::LateError::fieldNI("uninitializedFinalTopLevelField") : #t31{core::int};
+static set uninitializedFinalTopLevelField(core::int #t32) → void
   if(self::_#uninitializedFinalTopLevelField.==(null))
-    self::_#uninitializedFinalTopLevelField = #t30;
+    self::_#uninitializedFinalTopLevelField = #t32;
   else
     throw new _in::LateError::fieldAI("uninitializedFinalTopLevelField");
 static get initializedNonFinalTopLevelField() → core::int
-  return let final core::int? #t31 = self::_#initializedNonFinalTopLevelField in #t31.==(null) ?{core::int} self::_#initializedNonFinalTopLevelField = 0 : #t31{core::int};
-static set initializedNonFinalTopLevelField(core::int #t32) → void
-  self::_#initializedNonFinalTopLevelField = #t32;
+  return let final core::int? #t33 = self::_#initializedNonFinalTopLevelField in #t33.==(null) ?{core::int} self::_#initializedNonFinalTopLevelField = 0 : #t33{core::int};
+static set initializedNonFinalTopLevelField(core::int #t34) → void
+  self::_#initializedNonFinalTopLevelField = #t34;
 static get initializedFinalTopLevelField() → core::int
-  return let final core::int? #t33 = self::_#initializedFinalTopLevelField in #t33.==(null) ?{core::int} let final core::int #t34 = 0 in self::_#initializedFinalTopLevelField.==(null) ?{core::int} self::_#initializedFinalTopLevelField = #t34 : throw new _in::LateError::fieldADI("initializedFinalTopLevelField") : #t33{core::int};
+  return let final core::int? #t35 = self::_#initializedFinalTopLevelField in #t35.==(null) ?{core::int} let final core::int #t36 = 0 in self::_#initializedFinalTopLevelField.==(null) ?{core::int} self::_#initializedFinalTopLevelField = #t36 : throw new _in::LateError::fieldADI("initializedFinalTopLevelField") : #t35{core::int};
 
 
 Extra constant evaluation status:
 Evaluated: VariableGet @ org-dartlang-testcase:///late_lowering_bitmasks.dart:30:25 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///late_lowering_bitmasks.dart:35:18 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///late_lowering_bitmasks.dart:18:18 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///late_lowering_bitmasks.dart:24:16 -> IntConstant(0)
-Extra constant evaluation: evaluated: 224, effectively constant: 3
+Extra constant evaluation: evaluated: 235, effectively constant: 4

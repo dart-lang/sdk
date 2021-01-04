@@ -27,7 +27,7 @@ abstract class DillMemberBuilder extends MemberBuilderImpl {
 
   DillMemberBuilder(Member member, Builder parent)
       : modifiers = computeModifiers(member),
-        super(parent, member.fileOffset);
+        super(parent, member.fileOffset, member.fileUri);
 
   Member get member;
 

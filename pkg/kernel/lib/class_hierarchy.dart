@@ -369,7 +369,8 @@ class _ClosedWorldClassHierarchySubtypes implements ClassHierarchySubtypes {
   bool invalidated = false;
 
   _ClosedWorldClassHierarchySubtypes(this.hierarchy)
-      : _classesByTopDownIndex = new List<Class>(hierarchy._infoMap.length) {
+      : _classesByTopDownIndex =
+            new List<Class>.filled(hierarchy._infoMap.length, null) {
     hierarchy.allBetsOff = true;
     if (hierarchy._infoMap.isNotEmpty) {
       for (Class class_ in hierarchy._infoMap.keys) {
@@ -460,7 +461,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       onAmbiguousSupertypes(class_, a, b);
       List<Supertype> recorded = _recordedAmbiguousSupertypes[class_];
       if (recorded == null) {
-        recorded = new List<Supertype>();
+        recorded = <Supertype>[];
         _recordedAmbiguousSupertypes[class_] = recorded;
       }
       recorded.add(a);
@@ -473,7 +474,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       new LinkedHashMap<Class, _ClassInfo>();
 
   List<ForTestingClassInfo> getTestingClassInfo() {
-    List<ForTestingClassInfo> result = new List<ForTestingClassInfo>();
+    List<ForTestingClassInfo> result = <ForTestingClassInfo>[];
     for (_ClassInfo info in _infoMap.values) {
       result.add(new ForTestingClassInfo._(info));
     }
@@ -487,7 +488,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   }
 
   List<Class> getUsedClasses() {
-    List<Class> result = new List<Class>();
+    List<Class> result = <Class>[];
     for (_ClassInfo classInfo in _infoMap.values) {
       if (classInfo.used) {
         result.add(classInfo.classNode);
@@ -694,8 +695,8 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
             : Substitution.fromInterfaceType(type2).substituteType(
                 info2.genericSuperType[next.classNode].asInterfaceType);
         if (!clientLibrary.isNonNullableByDefault) {
-          superType1 = legacyErasure(coreTypes, superType1);
-          superType2 = legacyErasure(coreTypes, superType2);
+          superType1 = legacyErasure(superType1);
+          superType2 = legacyErasure(superType2);
         }
         if (superType1 == superType2) {
           candidate = superType1.withDeclaredNullability(
@@ -928,7 +929,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     }
 
     // Add the new classes.
-    List<Class> addedClassesSorted = new List<Class>();
+    List<Class> addedClassesSorted = <Class>[];
     int expectedStartIndex = _topSortIndex;
     for (Library lib in ensureKnownLibraries) {
       if (knownLibraries.contains(lib)) continue;
@@ -955,7 +956,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       {bool findDescendants: false}) {
     if (classes.isEmpty) return this;
 
-    List<_ClassInfo> infos = new List<_ClassInfo>();
+    List<_ClassInfo> infos = <_ClassInfo>[];
     if (findDescendants) {
       Set<_ClassInfo> processedClasses = new Set<_ClassInfo>();
       List<_ClassInfo> worklist = <_ClassInfo>[];
@@ -1199,46 +1200,50 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
         setters ? info.lazyDeclaredSetters : info.lazyDeclaredGettersAndCalls;
     if (members != null) return members;
 
+    // To support that mixin application can declare their own members, for
+    // instance cloned mixin members and concrete forwarding stubs, we first
+    // collect the members in a map before creating the list of members, so that
+    // declared members can replace mixed in members.
+    Map<Name, Member> memberMap = {};
     if (classNode.mixedInType != null) {
       Class mixedInClassNode = classNode.mixedInType.classNode;
       _ClassInfo mixedInInfo = _infoMap[mixedInClassNode];
 
-      members = <Member>[];
       for (Member mixinMember in _buildDeclaredMembers(
           mixedInClassNode, mixedInInfo,
           setters: setters)) {
         if (mixinMember is! Procedure ||
             (mixinMember is Procedure &&
                 !mixinMember.isNoSuchMethodForwarder)) {
-          members.add(mixinMember);
+          memberMap[mixinMember.name] = mixinMember;
         }
       }
-    } else {
-      members = new List<Member>();
-      for (Procedure procedure in classNode.procedures) {
-        if (procedure.isStatic) continue;
-        if (procedure.kind == ProcedureKind.Setter) {
-          if (setters) {
-            members.add(procedure);
-          }
-        } else {
-          if (!setters) {
-            members.add(procedure);
-          }
-        }
-      }
-      for (Field field in classNode.fields) {
-        if (field.isStatic) continue;
-        if (!setters && field.hasImplicitGetter) {
-          members.add(field);
-        }
-        if (setters && field.hasImplicitSetter) {
-          members.add(field);
-        }
-      }
-
-      members.sort(ClassHierarchy.compareMembers);
     }
+
+    for (Procedure procedure in classNode.procedures) {
+      if (procedure.isStatic) continue;
+      if (procedure.kind == ProcedureKind.Setter) {
+        if (setters) {
+          memberMap[procedure.name] = procedure;
+        }
+      } else {
+        if (!setters) {
+          memberMap[procedure.name] = procedure;
+        }
+      }
+    }
+    for (Field field in classNode.fields) {
+      if (field.isStatic) continue;
+      if (!setters) {
+        memberMap[field.name] = field;
+      }
+      if (setters && field.hasSetter) {
+        memberMap[field.name] = field;
+      }
+    }
+
+    members = memberMap.values.toList();
+    members.sort(ClassHierarchy.compareMembers);
 
     if (setters) {
       info.lazyDeclaredSetters = members;
@@ -1657,7 +1662,7 @@ class _ClassInfo {
     Supertype canonical = genericSuperType[cls];
     if (canonical == null) {
       if (!classNode.enclosingLibrary.isNonNullableByDefault) {
-        canonical = legacyErasureSupertype(coreTypes, type);
+        canonical = legacyErasureSupertype(type);
       } else {
         canonical = type;
       }
@@ -1679,7 +1684,7 @@ class _ClassInfo {
           genericSuperType[cls] = result;
         }
       } else {
-        type = legacyErasureSupertype(coreTypes, type);
+        type = legacyErasureSupertype(type);
         if (type != canonical) {
           onAmbiguousSupertypes(classNode, canonical, type);
         }

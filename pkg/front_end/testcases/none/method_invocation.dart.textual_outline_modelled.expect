@@ -1,0 +1,43 @@
+class Class1 {
+  double method(int o) => 0.5;
+}
+
+class Class2<T> {
+  Class2(this.field, this.nonNullableFunctionField,
+      this.nonNullableFunctionTypedField);
+  Function? get nullableFunctionGetter => nonNullableFunctionTypedField;
+  Function? nullableFunctionField;
+  Function get nonNullableFunctionGetter => nonNullableFunctionTypedField;
+  Function nonNullableFunctionField;
+  T call() => field;
+  T field;
+  T method(int o) => field;
+  void Function()? get nullableFunctionTypedGetter =>
+      nonNullableFunctionTypedField;
+  void Function()? nullableFunctionTypedField;
+  void Function() get nonNullableFunctionTypedGetter =>
+      nonNullableFunctionTypedField;
+  void Function() nonNullableFunctionTypedField;
+}
+
+const int i = 4;
+const int j = 24;
+const int k = i * j;
+main() {}
+test<T1 extends Function, T2 extends int Function(int), T3>(
+    Class1 nonNullableClass1,
+    Class1? nullableClass1,
+    dynamic dyn,
+    Never never,
+    Class2<String> nonNullableClass2,
+    Class2<String>? nullableClass2,
+    Function nonNullableFunction,
+    Function? nullableFunction,
+    int Function(int) nonNullableFunctionType,
+    int Function(int)? nullableFunctionType,
+    T Function<T>(T) genericFunctionType,
+    T1 nonNullableTypeVariable1,
+    T1? nullableTypeVariable1,
+    T2 nonNullableTypeVariable2,
+    T2? nullableTypeVariable2,
+    T3 undeterminedTypeVariable) {}

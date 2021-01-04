@@ -49,8 +49,7 @@ import 'b.dart';
 void main() {f^}''');
     await computeSuggestions();
 
-    assertSuggestFunction('foo', 'bool',
-        defaultArgListString: 'bar, baz: null');
+    assertSuggestFunction('foo', 'bool', defaultArgListString: 'bar, baz: baz');
   }
 
   Future<void> test_ArgumentList() async {
@@ -2885,7 +2884,6 @@ main() {
     }
     assertSuggestTopLevelVar('T1', null);
     assertSuggestFunction('F1', null);
-    assertNotSuggested('D1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
     assertNotSuggested('D2');
@@ -3422,7 +3420,7 @@ class B {
     assertNotSuggested('_g');
     assertSuggestClass('bool');
     if (suggestConstructorsWithoutNew) {
-      assertSuggestConstructor('List');
+      assertSuggestConstructor('List.filled');
     }
   }
 

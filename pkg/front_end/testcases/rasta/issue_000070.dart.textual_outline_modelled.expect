@@ -5,7 +5,7 @@ abstract class I<H, C, K> extends J<C, K> {}
 abstract class J<Aa, B> {}
 
 class A<N, S, U> {
-  A(N n, S s) : field = new List<U>() {}
+  A(N n, S s) : field = <U>[] {}
   A.empty() : field = null {}
   List<U> get getter {}
   const A.c(U u, S s) : field = const [null];

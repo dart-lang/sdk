@@ -11,6 +11,7 @@ test() {
   late final int nonNullableFinalTopLevelLocal;
   late final int? nullableFinalTopLevelLocalWithInitializer = null;
   late final int nonNullableFinalTopLevelLocalWithInitializer = 0;
+  late Never neverLocal;
 }
 
 main() {}

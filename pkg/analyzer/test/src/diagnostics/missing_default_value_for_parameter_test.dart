@@ -163,6 +163,86 @@ class A {
 ''');
   }
 
+  test_function_external_nonNullable_named_optional_default() async {
+    await assertNoErrorsInCode('''
+external void f({int a = 0});
+''');
+  }
+
+  test_function_external_nonNullable_named_optional_noDefault() async {
+    await assertNoErrorsInCode('''
+external void f({int a});
+''');
+  }
+
+  test_function_external_nonNullable_named_required_noDefault() async {
+    await assertNoErrorsInCode('''
+external void f({required int a});
+''');
+  }
+
+  test_function_external_nonNullable_positional_optional_default() async {
+    await assertNoErrorsInCode('''
+external void f([int a = 0]);
+''');
+  }
+
+  test_function_external_nonNullable_positional_optional_noDefault() async {
+    await assertNoErrorsInCode('''
+external void f([int a]);
+''');
+  }
+
+  test_function_external_nonNullable_positional_required_noDefault() async {
+    await assertNoErrorsInCode('''
+external void f(int a);
+''');
+  }
+
+  test_function_external_nullable_named_optional_noDefault() async {
+    await assertNoErrorsInCode('''
+external void f({int? a});
+''');
+  }
+
+  test_function_external_nullable_positional_optional_noDefault() async {
+    await assertNoErrorsInCode('''
+external void f([int? a]);
+''');
+  }
+
+  test_function_native_nonNullable_named_optional_default() async {
+    await assertErrorsInCode('''
+void f({int a = 0}) native;
+''', [
+      error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 20, 7),
+    ]);
+  }
+
+  test_function_native_nonNullable_named_optional_noDefault() async {
+    await assertErrorsInCode('''
+void f({int a}) native;
+''', [
+      error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 16, 7),
+    ]);
+  }
+
+  test_function_native_nonNullable_positional_optional_default() async {
+    await assertErrorsInCode('''
+void f([int a = 0]) native;
+''', [
+      error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 20, 7),
+    ]);
+  }
+
+  test_function_native_nonNullable_positional_optional_noDefault() async {
+    await assertErrorsInCode('''
+void f([int a]) native;
+''', [
+      error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 16, 7),
+    ]);
+  }
+
   test_function_nonNullable_named_optional_default() async {
     await assertNoErrorsInCode('''
 void f({int a = 0}) {}

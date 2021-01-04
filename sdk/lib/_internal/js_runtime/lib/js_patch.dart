@@ -8,7 +8,8 @@ import 'dart:typed_data' show TypedData;
 
 import 'dart:_foreign_helper' show JS, DART_CLOSURE_TO_JS;
 import 'dart:_interceptors' show DART_CLOSURE_PROPERTY_NAME;
-import 'dart:_js_helper' show patch, Primitives, getIsolateAffinityTag;
+import 'dart:_js_helper'
+    show patch, Primitives, getIsolateAffinityTag, isJSFunction;
 import 'dart:_js' show isBrowserObject, convertFromBrowserObject;
 
 @patch
@@ -547,7 +548,7 @@ _callDartFunctionFastCaptureThis(callback, self, List arguments) {
 
 @patch
 F allowInterop<F extends Function>(F f) {
-  if (JS('bool', 'typeof(#) == "function"', f)) {
+  if (isJSFunction(f)) {
     // Already supports interop, just use the existing function.
     return f;
   } else {
@@ -557,7 +558,7 @@ F allowInterop<F extends Function>(F f) {
 
 @patch
 Function allowInteropCaptureThis(Function f) {
-  if (JS('bool', 'typeof(#) == "function"', f)) {
+  if (isJSFunction(f)) {
     // Behavior when the function is already a JS function is unspecified.
     throw ArgumentError(
         "Function is already a JS function so cannot capture this.");

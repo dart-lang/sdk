@@ -1,0 +1,45 @@
+class Class {
+  ---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+  int field1;
+  ---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+  int field2;
+  ---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+  final int field3;
+  ---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+  final int field4;
+}
+class SubClass extends Class {
+  ---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+  int field1;
+  ---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+  int field2 = 0;
+  ---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+  final int field3;
+  ---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+  final int field4 = 0;
+  int get directField1 => super.field1;
+  int get directField2 => super.field2;
+  int get directField3 => super.field3;
+  int get directField4 => super.field4;
+  void set directField1(int value) {}
+  void set directField2(int value) {}
+}
+expect(expected, actual) {}
+main() {}
+throws(f(), String message) {}

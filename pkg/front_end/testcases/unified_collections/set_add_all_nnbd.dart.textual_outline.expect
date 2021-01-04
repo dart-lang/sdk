@@ -1,0 +1,4 @@
+void useAddAll() {}
+void useAddAllNullable() {}
+main() {}
+void expect(Set set1, Set set2) {}

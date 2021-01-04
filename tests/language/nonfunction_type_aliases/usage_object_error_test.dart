@@ -15,7 +15,12 @@ abstract class C {
   final T v12;
   C(): v12 = T();
   C.name1(this.v10, this.v12);
-  factory C.name2(T arg1, T arg2) = C.name1;
+  factory C.name2(T arg1, T arg2) = C1.name1;
+}
+
+class C1 implements C {
+  C1.name1(T arg1, T arg2);
+  noSuchMethod(Invocation invocation) => throw 0;
 }
 
 abstract class D2 extends C with T {}

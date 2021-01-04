@@ -36,6 +36,8 @@ abstract class _Sub&Base&Mixin = self::Base with self::Mixin /*isAnonymousMixin*
   synthetic constructor •() → self::_Sub&Base&Mixin*
     : super self::Base::•()
     ;
+  mixin-super-stub method foo() → dynamic
+    return super.{self::Mixin::foo}();
 }
 class Sub extends self::_Sub&Base&Mixin {
   synthetic constructor •() → self::Sub*

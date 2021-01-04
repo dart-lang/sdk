@@ -838,13 +838,11 @@ class StressConstantEvaluatorVisitor extends RecursiveVisitor<Node>
       EvaluationMode evaluationMode) {
     constantEvaluator = new ConstantEvaluator(
         backend, environmentDefines, typeEnvironment, this,
-        desugarSets: desugarSets,
         enableTripleShift: enableTripleShift,
         errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
         evaluationMode: evaluationMode);
     constantEvaluatorWithEmptyEnvironment = new ConstantEvaluator(
         backend, {}, typeEnvironment, this,
-        desugarSets: desugarSets,
         enableTripleShift: enableTripleShift,
         errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
         evaluationMode: evaluationMode);
@@ -1065,7 +1063,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
         }
 
         testOptions.component = p;
-        List<Library> keepLibraries = new List<Library>();
+        List<Library> keepLibraries = <Library>[];
         for (Library lib in p.libraries) {
           if (testOptions.linkDependencies.contains(lib.importUri)) {
             keepLibraries.add(lib);

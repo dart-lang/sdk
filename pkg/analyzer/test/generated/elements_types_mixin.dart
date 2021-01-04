@@ -215,27 +215,6 @@ mixin ElementsTypesMixin {
     );
   }
 
-  FunctionTypeAliasElementImpl functionTypeAlias({
-    @required String name,
-    List<TypeParameterElement> typeParameters = const [],
-    @required GenericFunctionTypeElement function,
-  }) {
-    return FunctionTypeAliasElementImpl(name, 0)
-      ..typeParameters = typeParameters
-      ..function = function as GenericFunctionTypeElementImpl;
-  }
-
-  FunctionType functionTypeAliasType(
-    FunctionTypeAliasElement element, {
-    List<DartType> typeArguments = const [],
-    NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star,
-  }) {
-    return element.instantiate(
-      typeArguments: typeArguments,
-      nullabilitySuffix: nullabilitySuffix,
-    );
-  }
-
   FunctionTypeImpl functionTypeNone({
     List<TypeParameterElement> typeFormals = const [],
     List<ParameterElement> parameters = const [],
@@ -317,7 +296,7 @@ mixin ElementsTypesMixin {
     ) as InterfaceTypeImpl;
   }
 
-  DartType futureType(DartType T) {
+  InterfaceType futureType(DartType T) {
     var futureElement = typeProvider.futureElement;
     return interfaceTypeStar(futureElement, typeArguments: [T]);
   }
@@ -399,8 +378,8 @@ mixin ElementsTypesMixin {
   LibraryElementImpl library_({
     @required String uriStr,
     @required TypeSystemImpl typeSystem,
-    AnalysisContext analysisContext,
-    AnalysisSessionImpl analysisSession,
+    @required AnalysisContext analysisContext,
+    @required AnalysisSessionImpl analysisSession,
   }) {
     var library = LibraryElementImpl(
       analysisContext,

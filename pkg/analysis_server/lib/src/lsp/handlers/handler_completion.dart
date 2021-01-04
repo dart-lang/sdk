@@ -16,8 +16,13 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/filtering/fuzzy_matcher.dart';
+import 'package:analysis_server/src/services/completion/yaml/analysis_options_generator.dart';
+import 'package:analysis_server/src/services/completion/yaml/fix_data_generator.dart';
+import 'package:analysis_server/src/services/completion/yaml/pubspec_generator.dart';
+import 'package:analysis_server/src/services/completion/yaml/yaml_completion_generator.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -89,18 +94,47 @@ class CompletionHandler
         await lineInfo.mapResult((lineInfo) => toOffset(lineInfo, pos));
 
     return offset.mapResult((offset) async {
-      // For server results we need a valid unit, but if we don't have one
-      // we shouldn't consider this an error when merging with plugin results.
-      final serverResultsFuture = unit.isError
-          ? Future.value(success(const <CompletionItem>[]))
-          : _getServerItems(
-              completionCapabilities,
-              clientSupportedCompletionKinds,
-              includeSuggestionSets,
-              unit.result,
-              offset,
-              token,
-            );
+      Future<ErrorOr<List<CompletionItem>>> serverResultsFuture;
+      final pathContext = server.resourceProvider.pathContext;
+      final filename = pathContext.basename(path.result);
+      final fileExtension = pathContext.extension(path.result);
+
+      if (fileExtension == '.dart' && !unit.isError) {
+        serverResultsFuture = _getServerDartItems(
+          completionCapabilities,
+          clientSupportedCompletionKinds,
+          includeSuggestionSets,
+          unit.result,
+          offset,
+          token,
+        );
+      } else if (fileExtension == '.yaml') {
+        YamlCompletionGenerator generator;
+        switch (filename) {
+          case AnalysisEngine.PUBSPEC_YAML_FILE:
+            generator = PubspecGenerator(server.resourceProvider);
+            break;
+          case AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE:
+            generator = AnalysisOptionsGenerator(server.resourceProvider);
+            break;
+          case AnalysisEngine.FIX_DATA_FILE:
+            generator = FixDataGenerator(server.resourceProvider);
+            break;
+        }
+        if (generator != null) {
+          serverResultsFuture = _getServerYamlItems(
+            generator,
+            completionCapabilities,
+            clientSupportedCompletionKinds,
+            path.result,
+            lineInfo.result,
+            offset,
+            token,
+          );
+        }
+      }
+
+      serverResultsFuture ??= Future.value(success(const <CompletionItem>[]));
 
       final pluginResultsFuture = _getPluginResults(completionCapabilities,
           clientSupportedCompletionKinds, lineInfo.result, path.result, offset);
@@ -175,7 +209,7 @@ class CompletionHandler
     ).toList());
   }
 
-  Future<ErrorOr<List<CompletionItem>>> _getServerItems(
+  Future<ErrorOr<List<CompletionItem>>> _getServerDartItems(
     CompletionClientCapabilities completionCapabilities,
     HashSet<CompletionItemKind> clientSupportedCompletionKinds,
     bool includeSuggestionSets,
@@ -333,6 +367,8 @@ class CompletionHandler
                     // https://github.com/microsoft/vscode-languageserver-node/issues/673
                     includeCommitCharacters:
                         server.clientConfiguration.previewCommitCharacters,
+                    completeFunctionCalls:
+                        server.clientConfiguration.completeFunctionCalls,
                   ));
           results.addAll(setResults);
         });
@@ -353,6 +389,33 @@ class CompletionHandler
         return success([]);
       }
     });
+  }
+
+  Future<ErrorOr<List<CompletionItem>>> _getServerYamlItems(
+    YamlCompletionGenerator generator,
+    CompletionClientCapabilities completionCapabilities,
+    HashSet<CompletionItemKind> clientSupportedCompletionKinds,
+    String path,
+    LineInfo lineInfo,
+    int offset,
+    CancellationToken token,
+  ) async {
+    final suggestions = generator.getSuggestions(path, offset);
+    final completionItems = suggestions.suggestions
+        .map(
+          (item) => toCompletionItem(
+            completionCapabilities,
+            clientSupportedCompletionKinds,
+            lineInfo,
+            item,
+            suggestions.replacementOffset,
+            suggestions.replacementLength,
+            includeCommitCharacters: false,
+            completeFunctionCalls: false,
+          ),
+        )
+        .toList();
+    return success(completionItems);
   }
 
   Iterable<CompletionItem> _pluginResultsToItems(

@@ -117,43 +117,43 @@ static set finalTopLevelField(dynamic #t13) → void
     non::_#finalTopLevelField = #t13;
   }
 static method method<T extends core::Object = core::Object>(core::bool b, core::int i, non::method::T t) → dynamic {
-  core::int? local;
-  core::bool #local#isSet = false;
+  lowered core::int? #local;
+  lowered core::bool #local#isSet = false;
   function #local#get() → core::int
-    return #local#isSet ?{core::int} local{core::int} : throw new _in::LateError::localNI("local");
+    return #local#isSet ?{core::int} #local{core::int} : throw new _in::LateError::localNI("local");
   function #local#set(core::int #t14) → dynamic {
     #local#isSet = true;
-    return local = #t14;
+    return #local = #t14;
   }
-  final dynamic finalLocal;
-  core::bool #finalLocal#isSet = false;
+  lowered final dynamic #finalLocal;
+  lowered core::bool #finalLocal#isSet = false;
   function #finalLocal#get() → dynamic
-    return #finalLocal#isSet ?{dynamic} finalLocal : throw new _in::LateError::localNI("finalLocal");
+    return #finalLocal#isSet ?{dynamic} #finalLocal : throw new _in::LateError::localNI("finalLocal");
   function #finalLocal#set(dynamic #t15) → dynamic
     if(#finalLocal#isSet)
       throw new _in::LateError::localAI("finalLocal");
     else {
       #finalLocal#isSet = true;
-      return finalLocal = #t15;
+      return #finalLocal = #t15;
     }
-  non::method::T? localTypeVariable;
-  core::bool #localTypeVariable#isSet = false;
+  lowered non::method::T? #localTypeVariable;
+  lowered core::bool #localTypeVariable#isSet = false;
   function #localTypeVariable#get() → non::method::T
-    return #localTypeVariable#isSet ?{non::method::T} localTypeVariable{non::method::T} : throw new _in::LateError::localNI("localTypeVariable");
+    return #localTypeVariable#isSet ?{non::method::T} #localTypeVariable{non::method::T} : throw new _in::LateError::localNI("localTypeVariable");
   function #localTypeVariable#set(non::method::T #t16) → dynamic {
     #localTypeVariable#isSet = true;
-    return localTypeVariable = #t16;
+    return #localTypeVariable = #t16;
   }
-  final non::method::T? finalLocalTypeVariable;
-  core::bool #finalLocalTypeVariable#isSet = false;
+  lowered final non::method::T? #finalLocalTypeVariable;
+  lowered core::bool #finalLocalTypeVariable#isSet = false;
   function #finalLocalTypeVariable#get() → non::method::T
-    return #finalLocalTypeVariable#isSet ?{non::method::T} finalLocalTypeVariable{non::method::T} : throw new _in::LateError::localNI("finalLocalTypeVariable");
+    return #finalLocalTypeVariable#isSet ?{non::method::T} #finalLocalTypeVariable{non::method::T} : throw new _in::LateError::localNI("finalLocalTypeVariable");
   function #finalLocalTypeVariable#set(non::method::T #t17) → dynamic
     if(#finalLocalTypeVariable#isSet)
       throw new _in::LateError::localAI("finalLocalTypeVariable");
     else {
       #finalLocalTypeVariable#isSet = true;
-      return finalLocalTypeVariable = #t17;
+      return #finalLocalTypeVariable = #t17;
     }
   if(b) {
     #local#set.call(i);

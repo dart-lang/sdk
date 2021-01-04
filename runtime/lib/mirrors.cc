@@ -435,11 +435,12 @@ static InstancePtr CreateLibraryDependencyMirror(Thread* thread,
                                                  const LibraryPrefix& prefix,
                                                  const bool is_import,
                                                  const bool is_deferred) {
-  const Library& importee = Library::Handle(ns.library());
+  const Library& importee = Library::Handle(ns.target());
   const Array& show_names = Array::Handle(ns.show_names());
   const Array& hide_names = Array::Handle(ns.hide_names());
 
-  Object& metadata = Object::Handle(ns.GetMetadata());
+  const Library& owner = Library::Handle(ns.owner());
+  Object& metadata = Object::Handle(owner.GetMetadata(ns));
   if (metadata.IsError()) {
     Exceptions::PropagateError(Error::Cast(metadata));
     UNREACHABLE();
@@ -1627,17 +1628,8 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 0, 1) {
   }
 
   const String& uri = String::Handle(zone, script.url());
-  intptr_t from_line = 0;
-  intptr_t from_col = 0;
-  if (script.HasSource()) {
-    script.GetTokenLocation(token_pos, &from_line, &from_col);
-  } else {
-    // Avoid the slow path of printing the token stream when precise source
-    // information is not available.
-    script.GetTokenLocation(token_pos, &from_line, NULL);
-  }
-  // We should always have at least the line number.
-  ASSERT(from_line != 0);
+  intptr_t from_line = 0, from_col = 0;
+  script.GetTokenLocation(token_pos, &from_line, &from_col);
   return CreateSourceLocation(uri, from_line, from_col);
 }
 

@@ -160,7 +160,7 @@ abstract class Substitution {
 
   /// Substitutes the type parameters on the class of [type] with the
   /// type arguments provided in [type].
-  static Substitution fromInterfaceType(InterfaceType type) {
+  static MapSubstitution fromInterfaceType(InterfaceType type) {
     if (type.typeArguments.isEmpty) {
       return _NullSubstitution.instance;
     }
@@ -239,7 +239,8 @@ class _FreshTypeParametersSubstitutor extends _TypeSubstitutor {
       return const <TypeParameterElement>[];
     }
 
-    var freshElements = List<TypeParameterElement>(elements.length);
+    var freshElements =
+        List<TypeParameterElement>.filled(elements.length, null);
     for (var i = 0; i < elements.length; i++) {
       // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
       // variance is added to the interface.

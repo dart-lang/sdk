@@ -15,26 +15,6 @@ void main() {
 
 @reflectiveTest
 class MissingOneOfMultipleKeysTest extends AbstractTransformSetParserTest {
-  void test_codeTemplate() {
-    assertErrors('''
-version: 1
-transforms:
-- title: ''
-  date: 2020-09-14
-  element:
-    uris: ['test.dart']
-    function: 'f'
-  changes:
-    - kind: addTypeParameter
-      index: 0
-      name: 'T'
-      argumentValue:
-        variables: []
-''', [
-      error(TransformSetErrorCode.missingOneOfMultipleKeys, 207, 14),
-    ]);
-  }
-
   void test_element() {
     assertErrors('''
 version: 1

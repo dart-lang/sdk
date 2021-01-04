@@ -1,0 +1,23 @@
+main = main::main;
+library from "org-dartlang-malformed-uri:bad5" as bad5 {
+//
+// Problems in library:
+//
+// org-dartlang-test:///main.dart:1:6: Error: Expected a URI.
+// part '$foo';
+//      ^
+//
+
+}
+library from "org-dartlang-test:///main.dart" as main {
+//
+// Problems in library:
+//
+// org-dartlang-test:///main.dart:1:7: Error: Can't use string interpolation in a URI.
+// part '$foo';
+//       ^
+//
+
+  part org-dartlang-malformed-uri:bad5;
+  static method main() → dynamic {}
+}

@@ -11,7 +11,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart' show ResolverVisitor;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
@@ -23,15 +22,12 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'elements_types_mixin.dart';
-import 'resolver_test_case.dart';
 import 'test_analysis_context.dart';
 import 'test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(SetLiteralsTest);
     defineReflectiveTests(StaticTypeAnalyzerTest);
-    defineReflectiveTests(StaticTypeAnalyzer2Test);
   });
 }
 
@@ -42,188 +38,6 @@ main() {
 /// causing the rest of the method to be flagged as dead code.
 void _fail(String message) {
   fail(message);
-}
-
-@reflectiveTest
-class SetLiteralsTest extends StaticTypeAnalyzer2TestShared {
-  test_emptySetLiteral_parameter_typed() async {
-    await assertNoErrorsInCode(r'''
-main() {
-  useSet({});
-}
-void useSet(Set<int> s) {
-}
-''');
-    expectExpressionType('{}', 'Set<int>');
-  }
-}
-
-/// Like [StaticTypeAnalyzerTest], but as end-to-end tests.
-@reflectiveTest
-class StaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
-  test_emptyListLiteral_inferredFromLinkedList() async {
-    await assertErrorsInCode(r'''
-abstract class ListImpl<T> implements List<T> {}
-ListImpl<int> f() => [];
-''', [
-      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST, 70, 2),
-    ]);
-    expectExpressionType('[]', 'List<dynamic>');
-  }
-
-  test_emptyMapLiteral_inferredFromLinkedHashMap() async {
-    await assertErrorsInCode(r'''
-import 'dart:collection';
-LinkedHashMap<int, int> f() => {};
-''', [
-      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP, 57, 2),
-    ]);
-    expectExpressionType('{}', 'Map<dynamic, dynamic>');
-  }
-
-  test_emptyMapLiteral_initializer_var() async {
-    await assertErrorsInCode(r'''
-main() {
-  var v = {};
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
-    ]);
-    expectExpressionType('{}', 'Map<dynamic, dynamic>');
-  }
-
-  test_emptyMapLiteral_parameter_typed() async {
-    await assertNoErrorsInCode(r'''
-main() {
-  useMap({});
-}
-void useMap(Map<int, int> m) {
-}
-''');
-    expectExpressionType('{}', 'Map<int, int>');
-  }
-
-  test_emptySetLiteral_inferredFromLinkedHashSet() async {
-    await assertErrorsInCode(r'''
-import 'dart:collection';
-LinkedHashSet<int> f() => {};
-''', [
-      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_SET, 52, 2),
-    ]);
-    expectExpressionType('{}', 'Set<dynamic>');
-  }
-
-  test_emptySetLiteral_initializer_typed_nested() async {
-    await assertNoErrorsInCode(r'''
-Set<Set<int>> ints = {{}};
-''');
-    expectExpressionType('{}', 'Set<int>');
-    expectExpressionType('{{}}', 'Set<Set<int>>');
-  }
-
-  test_FunctionExpressionInvocation_block() async {
-    await assertErrorsInCode(r'''
-main() {
-  var foo = (() { return 1; })();
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 3),
-    ]);
-    expectInitializerType('foo', 'int');
-  }
-
-  test_FunctionExpressionInvocation_curried() async {
-    await assertErrorsInCode(r'''
-typedef int F();
-F f() => null;
-main() {
-  var foo = f()();
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 3),
-    ]);
-    expectInitializerType('foo', 'int');
-  }
-
-  test_FunctionExpressionInvocation_expression() async {
-    await assertErrorsInCode(r'''
-main() {
-  var foo = (() => 1)();
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 3),
-    ]);
-    expectInitializerType('foo', 'int');
-  }
-
-  test_MethodInvocation_nameType_localVariable() async {
-    await assertNoErrorsInCode(r"""
-typedef Foo();
-main() {
-  Foo foo;
-  foo();
-}
-""");
-    // "foo" should be resolved to the "Foo" type
-    expectIdentifierType("foo();", TypeMatcher<FunctionType>());
-  }
-
-  test_MethodInvocation_nameType_parameter_FunctionTypeAlias() async {
-    await assertNoErrorsInCode(r"""
-typedef Foo();
-main(Foo foo) {
-  foo();
-}
-""");
-    // "foo" should be resolved to the "Foo" type
-    expectIdentifierType("foo();", TypeMatcher<FunctionType>());
-  }
-
-  test_MethodInvocation_nameType_parameter_propagatedType() async {
-    await assertNoErrorsInCode(r"""
-typedef Foo();
-main(p) {
-  if (p is Foo) {
-    p();
-  }
-}
-""");
-    expectIdentifierType("p()", 'dynamic Function()');
-  }
-
-  test_staticMethods_classTypeParameters() async {
-    await assertNoErrorsInCode(r'''
-class C<T> {
-  static void m() => null;
-}
-main() {
-  print(C.m);
-}
-''');
-    assertType(findNode.simple('m);'), 'void Function()');
-  }
-
-  test_staticMethods_classTypeParameters_genericMethod() async {
-    await assertNoErrorsInCode(r'''
-class C<T> {
-  static void m<S>(S s) {
-    void f<U>(S s, U u) {}
-    print(f);
-  }
-}
-main() {
-  print(C.m);
-}
-''');
-    assertType(
-      findNode.simple('f);'),
-      'void Function<U>(S, U)',
-    );
-    assertType(
-      findNode.simple('m);'),
-      'void Function<S>(S)',
-    );
-  }
 }
 
 @reflectiveTest

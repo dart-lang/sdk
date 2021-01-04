@@ -18,7 +18,7 @@ class VerifyTests {
   final String testDirPath;
 
   /// Paths to exclude from analysis completely.
-  final List<String> excludedPaths;
+  final List<String>? excludedPaths;
 
   VerifyTests(this.testDirPath, {this.excludedPaths});
 
@@ -66,7 +66,7 @@ class VerifyTests {
   void _buildTestsIn(
       AnalysisSession session, String testDirPath, Folder directory) {
     var testFileNames = <String>[];
-    File testAllFile;
+    File? testAllFile;
     var children = directory.getChildren();
     children
         .sort((first, second) => first.shortName.compareTo(second.shortName));

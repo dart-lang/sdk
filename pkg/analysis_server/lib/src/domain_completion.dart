@@ -20,6 +20,7 @@ import 'package:analysis_server/src/services/completion/token_details/token_deta
 import 'package:analysis_server/src/services/completion/yaml/analysis_options_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/fix_data_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/pubspec_generator.dart';
+import 'package:analysis_server/src/services/completion/yaml/yaml_completion_generator.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -150,7 +151,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
   /// Return the suggestions that should be presented in the YAML [file] at the
   /// given [offset].
-  List<CompletionSuggestion> computeYamlSuggestions(String file, int offset) {
+  YamlCompletionResults computeYamlSuggestions(String file, int offset) {
     var provider = server.resourceProvider;
     if (AnalysisEngine.isAnalysisOptionsFileName(file)) {
       var generator = AnalysisOptionsGenerator(provider);
@@ -164,7 +165,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       var generator = FixDataGenerator(provider);
       return generator.getSuggestions(file, offset);
     }
-    return <CompletionSuggestion>[];
+    return const YamlCompletionResults.empty();
   }
 
   /// Process a `completion.getSuggestionDetails` request.
@@ -325,11 +326,12 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         server.sendResponse(CompletionGetSuggestionsResult(completionId)
             .toResponse(request.id));
         // Send a notification with results.
+        final suggestions = computeYamlSuggestions(file, offset);
         sendCompletionNotification(
           completionId,
-          0, // replacementOffset
-          0, // replacementLength,
-          computeYamlSuggestions(file, offset),
+          suggestions.replacementOffset,
+          suggestions.replacementLength,
+          suggestions.suggestions,
           null,
           null,
           null,

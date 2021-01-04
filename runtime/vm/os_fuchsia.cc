@@ -23,6 +23,7 @@
 #include <zircon/syscalls.h>
 #include <zircon/syscalls/object.h>
 #include <zircon/time.h>
+#include <zircon/threads.h>
 #include <zircon/types.h>
 
 #include "platform/assert.h"
@@ -216,9 +217,11 @@ int64_t OS::GetCurrentMonotonicMicros() {
 }
 
 int64_t OS::GetCurrentThreadCPUMicros() {
-  zx_time_t now = 0;
-  zx_clock_get(ZX_CLOCK_THREAD, &now);
-  return now / kNanosecondsPerMicrosecond;
+  zx_info_thread_stats_t info = {};
+  zx_status_t status = zx_object_get_info(thrd_get_zx_handle(thrd_current()),
+                                          ZX_INFO_THREAD_STATS, &info,
+                                          sizeof(info), nullptr, nullptr);
+  return status == ZX_OK ? info.total_runtime / kNanosecondsPerMicrosecond : 0;
 }
 
 // On Fuchsia, thread timestamp values are not used in the tracing/timeline

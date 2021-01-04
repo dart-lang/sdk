@@ -339,7 +339,8 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
   THR_Print("%s}\n", handlers.ToCString());
 
 #if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
-  if (code.catch_entry_moves_maps() != Object::null()) {
+  if (FLAG_precompiled_mode &&
+      code.catch_entry_moves_maps() != Object::null()) {
     THR_Print("Catch entry moves for function '%s' {\n", function_fullname);
     CatchEntryMovesMapReader reader(
         TypedData::Handle(code.catch_entry_moves_maps()));

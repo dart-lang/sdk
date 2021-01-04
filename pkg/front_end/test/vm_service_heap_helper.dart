@@ -28,7 +28,7 @@ class VMServiceHeapHelperSpecificExactLeakFinder
       }
       List<String> fields = classToFields[interest.className];
       if (fields == null) {
-        fields = new List<String>();
+        fields = <String>[];
         classToFields[interest.className] = fields;
       }
       fields.addAll(interest.fieldNames);
@@ -41,7 +41,7 @@ class VMServiceHeapHelperSpecificExactLeakFinder
       }
       List<String> fields = classToFields[interest.className];
       if (fields == null) {
-        fields = new List<String>();
+        fields = <String>[];
         classToFields[interest.className] = fields;
       }
       fields.addAll(interest.fieldNames);
@@ -421,7 +421,7 @@ class Interest {
 HeapGraph convertHeapGraph(vmService.HeapSnapshotGraph graph) {
   HeapGraphClassSentinel classSentinel = new HeapGraphClassSentinel();
   List<HeapGraphClassActual> classes =
-      new List<HeapGraphClassActual>(graph.classes.length);
+      new List<HeapGraphClassActual>.filled(graph.classes.length, null);
   for (int i = 0; i < graph.classes.length; i++) {
     vmService.HeapSnapshotClass c = graph.classes[i];
     classes[i] = new HeapGraphClassActual(c);
@@ -429,7 +429,7 @@ HeapGraph convertHeapGraph(vmService.HeapSnapshotGraph graph) {
 
   HeapGraphElementSentinel elementSentinel = new HeapGraphElementSentinel();
   List<HeapGraphElementActual> elements =
-      new List<HeapGraphElementActual>(graph.objects.length);
+      new List<HeapGraphElementActual>.filled(graph.objects.length, null);
   for (int i = 0; i < graph.objects.length; i++) {
     vmService.HeapSnapshotObject o = graph.objects[i];
     elements[i] = new HeapGraphElementActual(o);
@@ -474,7 +474,7 @@ abstract class HeapGraphElement {
   void Function() referencesFiller;
   List<HeapGraphElement> get references {
     if (_references == null && referencesFiller != null) {
-      _references = new List<HeapGraphElement>();
+      _references = <HeapGraphElement>[];
       referencesFiller();
     }
     return _references;
@@ -552,7 +552,7 @@ abstract class HeapGraphClass {
   List<HeapGraphElement> _instances;
   List<HeapGraphElement> getInstances(HeapGraph graph) {
     if (_instances == null) {
-      _instances = new List<HeapGraphElement>();
+      _instances = <HeapGraphElement>[];
       for (int i = 0; i < graph.elements.length; i++) {
         HeapGraphElementActual converted = graph.elements[i];
         if (converted.class_ == this) {

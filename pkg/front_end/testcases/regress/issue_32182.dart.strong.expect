@@ -40,6 +40,8 @@ abstract class _C&A&M = self::A<self::A<dynamic>*> with self::M /*isAnonymousMix
   synthetic constructor •() → self::_C&A&M*
     : super self::A::•()
     ;
+  mixin-super-stub method m() → dynamic
+    return super.{self::M::m}();
 }
 class C extends self::_C&A&M {
   synthetic constructor •() → self::C*
@@ -47,5 +49,5 @@ class C extends self::_C&A&M {
     ;
 }
 static method main() → dynamic {
-  new self::C::•().{self::M::m}().+(1);
+  new self::C::•().{self::_C&A&M::m}().+(1);
 }

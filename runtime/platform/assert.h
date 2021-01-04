@@ -140,7 +140,12 @@ void Expect::FloatEquals(const E& expected, const A& actual, const T& tol) {
 
 inline void Expect::StringEquals(const char* expected, const char* actual) {
   if (strcmp(expected, actual) == 0) return;
-  Fail("expected:\n<\"%s\">\nbut was:\n<\"%s\">", expected, actual);
+  if (actual == nullptr) {
+    Fail("expected:\n<\"%s\">\nbut was nullptr", expected);
+  } else {
+    if (strcmp(expected, actual) == 0) return;
+    Fail("expected:\n<\"%s\">\nbut was:\n<\"%s\">", expected, actual);
+  }
 }
 
 inline void Expect::IsSubstring(const char* needle, const char* haystack) {

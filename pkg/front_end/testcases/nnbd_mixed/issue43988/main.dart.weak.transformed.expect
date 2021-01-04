@@ -9,6 +9,8 @@ abstract class _E1&Object&A extends core::Object implements mai::A /*isAnonymous
   const synthetic constructor •() → self::_E1&Object&A*
     : super core::Object::•()
     ;
+  method /*isNonNullableByDefault, from org-dartlang-testcase:///main_lib.dart */ method(core::num i, {core::String s = #C1}) → core::String
+    return s;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -19,8 +21,6 @@ abstract class _E1&Object&A extends core::Object implements mai::A /*isAnonymous
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  method /*isNonNullableByDefault, from org-dartlang-testcase:///main_lib.dart */ method(core::num i, {core::String s = #C1}) → core::String
-    return s;
 }
 abstract class _E1&Object&A&D extends self::_E1&Object&A implements mai::D /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_E1&Object&A&D*
@@ -38,6 +38,8 @@ abstract class _E2&Object&A extends core::Object implements mai::A /*isAnonymous
   const synthetic constructor •() → self::_E2&Object&A*
     : super core::Object::•()
     ;
+  method /*isNonNullableByDefault, from org-dartlang-testcase:///main_lib.dart */ method(core::num i, {core::String s = #C1}) → core::String
+    return s;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -48,8 +50,6 @@ abstract class _E2&Object&A extends core::Object implements mai::A /*isAnonymous
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  method /*isNonNullableByDefault, from org-dartlang-testcase:///main_lib.dart */ method(core::num i, {core::String s = #C1}) → core::String
-    return s;
 }
 class E2 extends self::_E2&Object&A implements mai::D /*isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::E2*

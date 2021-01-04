@@ -111,6 +111,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_type_annotat
 import 'package:analysis_server/src/services/correction/dart/remove_type_arguments.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_cast.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_new.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_parentheses.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_catch_clause.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_catch_stack.dart';
@@ -478,6 +479,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.unnecessary_overrides: [
       RemoveMethodDeclaration.newInstance,
     ],
+    LintNames.unnecessary_parenthesis: [
+      RemoveUnnecessaryParentheses.newInstance,
+    ],
     LintNames.unnecessary_this: [
       RemoveThisExpression.newInstance,
     ],
@@ -632,6 +636,7 @@ class FixProcessor extends BaseProcessor {
   static const Map<ErrorCode, List<ProducerGenerator>> nonLintProducerMap = {
     CompileTimeErrorCode.ASSIGNMENT_TO_FINAL: [
       MakeFieldNotFinal.newInstance,
+      AddLate.newInstance,
     ],
     CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL: [
       MakeVariableNotFinal.newInstance,
@@ -813,6 +818,9 @@ class FixProcessor extends BaseProcessor {
       ChangeTo.classOrMixin,
       CreateClass.newInstance,
       CreateMixin.newInstance,
+    ],
+    CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE: [
+      AddNullCheck.newInstance,
     ],
     CompileTimeErrorCode.UNDEFINED_ANNOTATION: [
       ChangeTo.annotation,
@@ -1079,6 +1087,9 @@ class FixProcessor extends BaseProcessor {
       RemoveDeadIfNull.newInstance,
     ],
     StaticWarningCode.INVALID_NULL_AWARE_OPERATOR: [
+      ReplaceWithNotNullAware.newInstance,
+    ],
+    StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT: [
       ReplaceWithNotNullAware.newInstance,
     ],
     StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH: [

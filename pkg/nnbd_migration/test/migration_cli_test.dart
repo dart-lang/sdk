@@ -692,7 +692,12 @@ linter:
   }
 
   test_lifecycle_exception_handling_ignore() async {
-    var projectContents = simpleProject(sourceText: 'main() { print(0); }');
+    var projectContents = simpleProject(sourceText: '''
+main() {
+  print(0);
+  int x = null;
+}
+''');
     var projectDir = createProjectDir(projectContents);
     injectArtificialException = true;
     var cli = _createCli();
@@ -707,6 +712,14 @@ linter:
               ' of --ignore-exceptions.'));
       expect(output, contains('re-run without --ignore-exceptions'));
       await assertPreviewServerResponsive(url);
+      await _tellPreviewToApplyChanges(url);
+      assertProjectContents(
+          projectDir, simpleProject(migrated: true, sourceText: '''
+main() {
+  print(0);
+  int? x = null;
+}
+'''));
     });
     expect(logger.stderrBuffer.toString(), isEmpty);
   }
@@ -982,14 +995,7 @@ void call_g() => g(null);
       expect(
           logger.stdoutBuffer.toString(), contains('No analysis issues found'));
       await assertPreviewServerResponsive(url);
-      var uri = Uri.parse(url);
-      var authToken = uri.queryParameters['authToken'];
-      var response = await httpPost(
-          uri.replace(
-              path: PreviewSite.applyMigrationPath,
-              queryParameters: {'authToken': authToken}),
-          headers: {'Content-Type': 'application/json; charset=UTF-8'});
-      assertHttpSuccess(response);
+      await _tellPreviewToApplyChanges(url);
       expect(applyHookCalled, true);
     });
   }
@@ -1055,9 +1061,10 @@ void call_g() => g(null);
           headers: {'Content-Type': 'application/json; charset=UTF-8'});
       var navRoots = jsonDecode(treeResponse.body);
       for (final root in navRoots) {
-        var navTree = NavigationTreeNode.fromJson(root);
+        var navTree =
+            NavigationTreeNode.fromJson(root) as NavigationTreeDirectoryNode;
         for (final file in navTree.subtree) {
-          if (file.href != null) {
+          if (file is NavigationTreeFileNode) {
             final contentsResponse = await httpGet(
                 uri
                     .resolve(file.href)
@@ -2111,6 +2118,18 @@ environment:
 
   ArgResults _parseArgs(List<String> args) {
     return MigrationCli.createParser().parse(args);
+  }
+
+  Future<void> _tellPreviewToApplyChanges(String url) async {
+    var uri = Uri.parse(url);
+    var authToken = uri.queryParameters['authToken'];
+    var response = await httpPost(
+        uri.replace(
+            path: PreviewSite.applyMigrationPath,
+            queryParameters: {'authToken': authToken}),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+        body: json.encode({'navigationTree': []}));
+    assertHttpSuccess(response);
   }
 }
 

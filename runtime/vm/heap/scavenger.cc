@@ -118,7 +118,8 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
         freelist_(freelist),
         bytes_promoted_(0),
         visiting_old_object_(nullptr),
-        promoted_list_(promotion_stack) {}
+        promoted_list_(promotion_stack),
+        delayed_weak_properties_(WeakProperty::null()) {}
 
   virtual void VisitTypedDataViewPointers(TypedDataViewPtr view,
                                           ObjectPtr* first,
@@ -318,7 +319,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
       new_obj = ObjectLayout::FromAddr(new_addr);
       if (new_obj->IsOldObject()) {
         // Promoted: update age/barrier tags.
-        uint32_t tags = static_cast<uint32_t>(header);
+        uword tags = static_cast<uword>(header);
         tags = ObjectLayout::OldBit::update(true, tags);
         tags = ObjectLayout::OldAndNotRememberedBit::update(true, tags);
         tags = ObjectLayout::NewBit::update(false, tags);
@@ -426,7 +427,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   ObjectPtr visiting_old_object_;
 
   PromotionWorkList promoted_list_;
-  WeakPropertyPtr delayed_weak_properties_ = nullptr;
+  WeakPropertyPtr delayed_weak_properties_;
 
   NewPage* head_ = nullptr;
   NewPage* tail_ = nullptr;  // Allocating from here.
@@ -712,19 +713,6 @@ void SemiSpace::AddList(NewPage* head, NewPage* tail) {
   }
   tail_->set_next(head);
   tail_ = tail;
-}
-
-void SemiSpace::MergeFrom(SemiSpace* donor) {
-  for (NewPage* page = donor->head_; page != nullptr; page = page->next()) {
-    page->Release();
-  }
-
-  AddList(donor->head_, donor->tail_);
-  capacity_in_words_ += donor->capacity_in_words_;
-
-  donor->head_ = nullptr;
-  donor->tail_ = nullptr;
-  donor->capacity_in_words_ = 0;
 }
 
 // The initial estimate of how many words we can scavenge per microsecond (usage
@@ -1181,9 +1169,9 @@ void ScavengerVisitorBase<parallel>::ProcessWeakProperties() {
   // for which the keys have become reachable. Potentially this adds more
   // objects to the to space.
   WeakPropertyPtr cur_weak = delayed_weak_properties_;
-  delayed_weak_properties_ = nullptr;
-  while (cur_weak != nullptr) {
-    uword next_weak = cur_weak->ptr()->next_;
+  delayed_weak_properties_ = WeakProperty::null();
+  while (cur_weak != WeakProperty::null()) {
+    WeakPropertyPtr next_weak = cur_weak->ptr()->next_;
     // Promoted weak properties are not enqueued. So we can guarantee that
     // we do not need to think about store barriers here.
     ASSERT(cur_weak->IsNewObject());
@@ -1197,14 +1185,14 @@ void ScavengerVisitorBase<parallel>::ProcessWeakProperties() {
     ASSERT(from_->Contains(raw_addr));
     uword header = *reinterpret_cast<uword*>(raw_addr);
     // Reset the next pointer in the weak property.
-    cur_weak->ptr()->next_ = 0;
+    cur_weak->ptr()->next_ = WeakProperty::null();
     if (IsForwarding(header)) {
       cur_weak->ptr()->VisitPointersNonvirtual(this);
     } else {
       EnqueueWeakProperty(cur_weak);
     }
     // Advance to next weak property in the queue.
-    cur_weak = static_cast<WeakPropertyPtr>(next_weak);
+    cur_weak = next_weak;
   }
 }
 
@@ -1244,8 +1232,8 @@ void ScavengerVisitorBase<parallel>::EnqueueWeakProperty(
   uword header = *reinterpret_cast<uword*>(raw_addr);
   ASSERT(!IsForwarding(header));
 #endif  // defined(DEBUG)
-  ASSERT(raw_weak->ptr()->next_ == 0);
-  raw_weak->ptr()->next_ = static_cast<uword>(delayed_weak_properties_);
+  ASSERT(raw_weak->ptr()->next_ == WeakProperty::null());
+  raw_weak->ptr()->next_ = delayed_weak_properties_;
   delayed_weak_properties_ = raw_weak;
 }
 
@@ -1330,11 +1318,11 @@ void ScavengerVisitorBase<parallel>::MournWeakProperties() {
   // The queued weak properties at this point do not refer to reachable keys,
   // so we clear their key and value fields.
   WeakPropertyPtr cur_weak = delayed_weak_properties_;
-  delayed_weak_properties_ = nullptr;
-  while (cur_weak != nullptr) {
-    uword next_weak = cur_weak->ptr()->next_;
+  delayed_weak_properties_ = WeakProperty::null();
+  while (cur_weak != WeakProperty::null()) {
+    WeakPropertyPtr next_weak = cur_weak->ptr()->next_;
     // Reset the next pointer in the weak property.
-    cur_weak->ptr()->next_ = 0;
+    cur_weak->ptr()->next_ = WeakProperty::null();
 
 #if defined(DEBUG)
     ObjectPtr raw_key = cur_weak->ptr()->key_;
@@ -1348,7 +1336,7 @@ void ScavengerVisitorBase<parallel>::MournWeakProperties() {
     WeakProperty::Clear(cur_weak);
 
     // Advance to next weak property in the queue.
-    cur_weak = static_cast<WeakPropertyPtr>(next_weak);
+    cur_weak = next_weak;
   }
 }
 
@@ -1618,15 +1606,15 @@ void Scavenger::ReverseScavenge(SemiSpace** from) {
         intptr_t size = to_obj->ptr()->HeapSize();
 
         // Reset the ages bits in case this was a promotion.
-        uint32_t tags = static_cast<uint32_t>(to_header);
-        tags = ObjectLayout::OldBit::update(false, tags);
-        tags = ObjectLayout::OldAndNotRememberedBit::update(false, tags);
-        tags = ObjectLayout::NewBit::update(true, tags);
-        tags = ObjectLayout::OldAndNotMarkedBit::update(false, tags);
-        uword original_header =
-            (to_header & ~static_cast<uword>(0xFFFFFFFF)) | tags;
+        uword from_header = static_cast<uword>(to_header);
+        from_header = ObjectLayout::OldBit::update(false, from_header);
+        from_header =
+            ObjectLayout::OldAndNotRememberedBit::update(false, from_header);
+        from_header = ObjectLayout::NewBit::update(true, from_header);
+        from_header =
+            ObjectLayout::OldAndNotMarkedBit::update(false, from_header);
 
-        WriteHeader(from_obj, original_header);
+        WriteHeader(from_obj, from_header);
 
         ForwardingCorpse::AsForwarder(ObjectLayout::ToAddr(to_obj), size)
             ->set_target(from_obj);
@@ -1718,15 +1706,6 @@ void Scavenger::Evacuate() {
   // It is possible for objects to stay in the new space
   // if the VM cannot create more pages for these objects.
   ASSERT((UsedInWords() == 0) || failed_to_promote_);
-}
-
-void Scavenger::MergeFrom(Scavenger* donor) {
-  MutexLocker ml(&space_lock_);
-  MutexLocker ml2(&donor->space_lock_);
-  to_->MergeFrom(donor->to_);
-
-  external_size_ += donor->external_size_;
-  donor->external_size_ = 0;
 }
 
 }  // namespace dart

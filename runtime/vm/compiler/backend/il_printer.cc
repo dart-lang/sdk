@@ -1067,11 +1067,26 @@ void ReturnInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 void FfiCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   f->AddString(" pointer=");
   InputAt(TargetAddressIndex())->PrintTo(f);
-  for (intptr_t i = 0, n = InputCount(); i < n - 1; ++i) {
+  if (marshaller_.PassTypedData()) {
+    f->AddString(", typed_data=");
+    InputAt(TypedDataIndex())->PrintTo(f);
+  }
+  intptr_t def_index = 0;
+  for (intptr_t arg_index = 0; arg_index < marshaller_.num_args();
+       arg_index++) {
+    const auto& arg_location = marshaller_.Location(arg_index);
+    const bool is_compound = arg_location.container_type().IsCompound();
+    const intptr_t num_defs = marshaller_.NumDefinitions(arg_index);
     f->AddString(", ");
-    InputAt(i)->PrintTo(f);
+    if (is_compound) f->AddString("(");
+    for (intptr_t i = 0; i < num_defs; i++) {
+      InputAt(def_index)->PrintTo(f);
+      if ((i + 1) < num_defs) f->AddString(", ");
+      def_index++;
+    }
+    if (is_compound) f->AddString(")");
     f->AddString(" (@");
-    marshaller_.Location(i).PrintTo(f);
+    arg_location.PrintTo(f);
     f->AddString(")");
   }
 }
@@ -1093,10 +1108,10 @@ void NativeReturnInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 
 void NativeParameterInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   // Where the calling convention puts it.
-  marshaller_.Location(index_).PrintTo(f);
+  marshaller_.Location(marshaller_.ArgumentIndex(def_index_)).PrintTo(f);
   f->AddString(" at ");
   // Where the arguments are when pushed on the stack.
-  marshaller_.NativeLocationOfNativeParameter(index_).PrintTo(f);
+  marshaller_.NativeLocationOfNativeParameter(def_index_).PrintTo(f);
 }
 
 void CatchBlockEntryInstr::PrintTo(BaseTextBuffer* f) const {

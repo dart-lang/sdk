@@ -7,8 +7,7 @@ import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart'
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/class_hierarchy.dart';
-import 'package:kernel/testing/mock_sdk_component.dart';
-import 'package:kernel/type_environment.dart';
+import 'package:kernel/testing/type_parser_environment.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -20,356 +19,273 @@ main() {
 
 @reflectiveTest
 class TypeSchemaEnvironmentTest {
-  static const UnknownType unknownType = const UnknownType();
+  Env typeParserEnvironment;
+  TypeSchemaEnvironment typeSchemaEnvironment;
 
-  static const DynamicType dynamicType = const DynamicType();
+  final Map<String, DartType Function()> additionalTypes = {
+    "UNKNOWN": () => new UnknownType(),
+    "BOTTOM": () => new BottomType(),
+  };
 
-  static const VoidType voidType = const VoidType();
+  Library _coreLibrary;
+  Library _testLibrary;
 
-  final testLib = new Library(Uri.parse('org-dartlang:///test.dart'));
+  Library get coreLibrary => _coreLibrary;
+  Library get testLibrary => _testLibrary;
 
-  Component component;
+  Component get component => typeParserEnvironment.component;
+  CoreTypes get coreTypes => typeParserEnvironment.coreTypes;
 
-  CoreTypes coreTypes;
-
-  TypeSchemaEnvironmentTest() {
-    component = createMockSdkComponent();
-    component.libraries.add(testLib..parent = component);
-    coreTypes = new CoreTypes(component);
+  void parseTestLibrary(String testLibraryText) {
+    typeParserEnvironment =
+        new Env(testLibraryText, isNonNullableByDefault: false);
+    typeSchemaEnvironment = new TypeSchemaEnvironment(
+        coreTypes, new ClassHierarchy(component, coreTypes));
+    assert(
+        typeParserEnvironment.component.libraries.length == 2,
+        "The tests are supposed to have exactly two libraries: "
+        "the core library and the test library.");
+    Library firstLibrary = typeParserEnvironment.component.libraries.first;
+    Library secondLibrary = typeParserEnvironment.component.libraries.last;
+    if (firstLibrary.importUri.scheme == "dart" &&
+        firstLibrary.importUri.path == "core") {
+      _coreLibrary = firstLibrary;
+      _testLibrary = secondLibrary;
+    } else {
+      assert(
+          secondLibrary.importUri.scheme == "dart" &&
+              secondLibrary.importUri.path == "core",
+          "One of the libraries is expected to be 'dart:core'.");
+      _coreLibrary == secondLibrary;
+      _testLibrary = firstLibrary;
+    }
   }
 
-  InterfaceType get doubleType => coreTypes.doubleLegacyRawType;
-
-  InterfaceType get functionType => coreTypes.functionLegacyRawType;
-
-  InterfaceType get intType => coreTypes.intLegacyRawType;
-
-  Class get iterableClass => coreTypes.iterableClass;
-
-  Class get listClass => coreTypes.listClass;
-
-  Class get mapClass => coreTypes.mapClass;
-
-  InterfaceType get numType => coreTypes.numLegacyRawType;
-
-  Class get objectClass => coreTypes.objectClass;
-
-  InterfaceType get objectType => coreTypes.objectLegacyRawType;
-
-  DartType get bottomType => const NullType();
-
-  DartType get topType => const DynamicType();
-
   void test_addLowerBound() {
-    var A = coreTypes.legacyRawType(_addClass(_class('A')));
-    var B = coreTypes.legacyRawType(
-        _addClass(_class('B', supertype: A.classNode.asThisSupertype)));
-    var C = coreTypes.legacyRawType(
-        _addClass(_class('C', supertype: A.classNode.asThisSupertype)));
-    var env = _makeEnv();
-    var typeConstraint = new TypeConstraint();
-    expect(typeConstraint.lower, same(unknownType));
-    env.addLowerBound(typeConstraint, B, testLib);
-    expect(typeConstraint.lower, same(B));
-    env.addLowerBound(typeConstraint, C, testLib);
-    expect(typeConstraint.lower, same(A));
+    parseTestLibrary("class A; class B extends A; class C extends A;");
+    checkConstraintLowerBound(constraint: "", bound: "UNKNOWN");
+    checkConstraintLowerBound(constraint: ":> B*", bound: "B*");
+    checkConstraintLowerBound(constraint: ":> B* :> C*", bound: "A*");
   }
 
   void test_addUpperBound() {
-    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
-    var B = coreTypes.rawType(
-        _addClass(_class('B', supertype: A.classNode.asThisSupertype)),
-        Nullability.legacy);
-    var C = coreTypes.rawType(
-        _addClass(_class('C', supertype: A.classNode.asThisSupertype)),
-        Nullability.legacy);
-    var env = _makeEnv();
-    var typeConstraint = new TypeConstraint();
-    expect(typeConstraint.upper, same(unknownType));
-    env.addUpperBound(typeConstraint, A, testLib);
-    expect(typeConstraint.upper, same(A));
-    env.addUpperBound(typeConstraint, B, testLib);
-    expect(typeConstraint.upper, same(B));
-    env.addUpperBound(typeConstraint, C, testLib);
-    expect(typeConstraint.upper, new BottomType());
+    parseTestLibrary("class A; class B extends A; class C extends A;");
+    checkConstraintUpperBound(constraint: "", bound: "UNKNOWN");
+    checkConstraintUpperBound(constraint: "<: A*", bound: "A*");
+    checkConstraintUpperBound(constraint: "<: A* <: B*", bound: "B*");
+    checkConstraintUpperBound(constraint: "<: A* <: B* <: C*", bound: "BOTTOM");
   }
 
   void test_glb_bottom() {
-    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
-    var env = _makeEnv();
-    expect(env.getStandardLowerBound(new BottomType(), A, testLib),
-        new BottomType());
-    expect(env.getStandardLowerBound(A, new BottomType(), testLib),
-        new BottomType());
+    parseTestLibrary("class A;");
+    checkLowerBound(type1: "Null", type2: "A*", lowerBound: "Null");
+    checkLowerBound(type1: "A*", type2: "Null", lowerBound: "Null");
   }
 
   void test_glb_function() {
-    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
-    var B = coreTypes.rawType(
-        _addClass(_class('B', supertype: A.classNode.asThisSupertype)),
-        Nullability.legacy);
-    var env = _makeEnv();
+    parseTestLibrary("class A; class B extends A;");
+
     // GLB(() -> A, () -> B) = () -> B
-    expect(
-        env.getStandardLowerBound(new FunctionType([], A, Nullability.legacy),
-            new FunctionType([], B, Nullability.legacy), testLib),
-        new FunctionType([], B, Nullability.legacy));
+    checkLowerBound(
+        type1: "() ->* A*", type2: "() ->* B*", lowerBound: "() ->* B*");
+
     // GLB(() -> void, (A, B) -> void) = ([A, B]) -> void
-    expect(
-        env.getStandardLowerBound(
-            new FunctionType([], voidType, Nullability.legacy),
-            new FunctionType([A, B], voidType, Nullability.legacy),
-            testLib),
-        new FunctionType([A, B], voidType, Nullability.legacy,
-            requiredParameterCount: 0));
-    expect(
-        env.getStandardLowerBound(
-            new FunctionType([A, B], voidType, Nullability.legacy),
-            new FunctionType([], voidType, Nullability.legacy),
-            testLib),
-        new FunctionType([A, B], voidType, Nullability.legacy,
-            requiredParameterCount: 0));
+    checkLowerBound(
+        type1: "() ->* void",
+        type2: "(A*, B*) ->* void",
+        lowerBound: "([A*, B*]) ->* void");
+    checkLowerBound(
+        type1: "(A*, B*) ->* void",
+        type2: "() ->* void",
+        lowerBound: "([A*, B*]) ->* void");
+
     // GLB((A) -> void, (B) -> void) = (A) -> void
-    expect(
-        env.getStandardLowerBound(
-            new FunctionType([A], voidType, Nullability.legacy),
-            new FunctionType([B], voidType, Nullability.legacy),
-            testLib),
-        new FunctionType([A], voidType, Nullability.legacy));
-    expect(
-        env.getStandardLowerBound(
-            new FunctionType([B], voidType, Nullability.legacy),
-            new FunctionType([A], voidType, Nullability.legacy),
-            testLib),
-        new FunctionType([A], voidType, Nullability.legacy));
+    checkLowerBound(
+        type1: "(A*) ->* void",
+        type2: "(B*) ->* void",
+        lowerBound: "(A*) ->* void");
+    checkLowerBound(
+        type1: "(B*) ->* void",
+        type2: "(A*) ->* void",
+        lowerBound: "(A*) ->* void");
+
     // GLB(({a: A}) -> void, ({b: B}) -> void) = ({a: A, b: B}) -> void
-    expect(
-        env.getStandardLowerBound(
-            new FunctionType([], voidType, Nullability.legacy,
-                namedParameters: [new NamedType('a', A)]),
-            new FunctionType([], voidType, Nullability.legacy,
-                namedParameters: [new NamedType('b', B)]),
-            testLib),
-        new FunctionType([], voidType, Nullability.legacy,
-            namedParameters: [new NamedType('a', A), new NamedType('b', B)]));
-    expect(
-        env.getStandardLowerBound(
-            new FunctionType([], voidType, Nullability.legacy,
-                namedParameters: [new NamedType('b', B)]),
-            new FunctionType([], voidType, Nullability.legacy,
-                namedParameters: [new NamedType('a', A)]),
-            testLib),
-        new FunctionType([], voidType, Nullability.legacy,
-            namedParameters: [new NamedType('a', A), new NamedType('b', B)]));
+    checkLowerBound(
+        type1: "({A* a}) ->* void",
+        type2: "({B* b}) ->* void",
+        lowerBound: "({A* a, B* b}) ->* void");
+    checkLowerBound(
+        type1: "({B* b}) ->* void",
+        type2: "({A* a}) ->* void",
+        lowerBound: "({A* a, B* b}) ->* void");
+
     // GLB(({a: A, c: A}) -> void, ({b: B, d: B}) -> void)
     //     = ({a: A, b: B, c: A, d: B}) -> void
-    expect(
-        env.getStandardLowerBound(
-            new FunctionType([], voidType, Nullability.legacy,
-                namedParameters: [
-                  new NamedType('a', A),
-                  new NamedType('c', A)
-                ]),
-            new FunctionType([], voidType, Nullability.legacy,
-                namedParameters: [
-                  new NamedType('b', B),
-                  new NamedType('d', B)
-                ]),
-            testLib),
-        new FunctionType([], voidType, Nullability.legacy,
-            namedParameters: [
-              new NamedType('a', A),
-              new NamedType('b', B),
-              new NamedType('c', A),
-              new NamedType('d', B)
-            ]));
+    checkLowerBound(
+        type1: "({A* a, A* c}) ->* void",
+        type2: "({B* b, B* d}) ->* void",
+        lowerBound: "({A* a, B* b, A* c, B* d}) ->* void");
+
     // GLB(({a: A, b: B}) -> void, ({a: B, b: A}) -> void)
     //     = ({a: A, b: A}) -> void
-    expect(
-        env.getStandardLowerBound(
-            new FunctionType([], voidType, Nullability.legacy,
-                namedParameters: [
-                  new NamedType('a', A),
-                  new NamedType('b', B)
-                ]),
-            new FunctionType([], voidType, Nullability.legacy,
-                namedParameters: [
-                  new NamedType('a', B),
-                  new NamedType('b', A)
-                ]),
-            testLib),
-        new FunctionType([], voidType, Nullability.legacy,
-            namedParameters: [new NamedType('a', A), new NamedType('b', A)]));
-    expect(
-        env.getStandardLowerBound(
-            new FunctionType([], voidType, Nullability.legacy,
-                namedParameters: [
-                  new NamedType('a', B),
-                  new NamedType('b', A)
-                ]),
-            new FunctionType([], voidType, Nullability.legacy,
-                namedParameters: [
-                  new NamedType('a', A),
-                  new NamedType('b', B)
-                ]),
-            testLib),
-        new FunctionType([], voidType, Nullability.legacy,
-            namedParameters: [new NamedType('a', A), new NamedType('b', A)]));
+    checkLowerBound(
+        type1: "({A* a, B* b}) ->* void",
+        type2: "({B* a, A* b}) ->* void",
+        lowerBound: "({A* a, A* b}) ->* void");
+    checkLowerBound(
+        type1: "({B* a, A* b}) ->* void",
+        type2: "({A* a, B* b}) ->* void",
+        lowerBound: "({A* a, A* b}) ->* void");
+
     // GLB((B, {a: A}) -> void, (B) -> void) = (B, {a: A}) -> void
-    expect(
-        env.getStandardLowerBound(
-            new FunctionType([B], voidType, Nullability.legacy,
-                namedParameters: [new NamedType('a', A)]),
-            new FunctionType([B], voidType, Nullability.legacy),
-            testLib),
-        new FunctionType([B], voidType, Nullability.legacy,
-            namedParameters: [new NamedType('a', A)]));
+    checkLowerBound(
+        type1: "(B*, {A* a}) ->* void",
+        type2: "(B*) ->* void",
+        lowerBound: "(B*, {A* a}) ->* void");
+
     // GLB(({a: A}) -> void, (B) -> void) = bottom
-    expect(
-        env.getStandardLowerBound(
-            new FunctionType([], voidType, Nullability.legacy,
-                namedParameters: [new NamedType('a', A)]),
-            new FunctionType([B], voidType, Nullability.legacy),
-            testLib),
-        new BottomType());
+    checkLowerBound(
+        type1: "({A* a}) ->* void",
+        type2: "(B*) ->* void",
+        lowerBound: "BOTTOM");
+
     // GLB(({a: A}) -> void, ([B]) -> void) = bottom
-    expect(
-        env.getStandardLowerBound(
-            new FunctionType([], voidType, Nullability.legacy,
-                namedParameters: [new NamedType('a', A)]),
-            new FunctionType([B], voidType, Nullability.legacy,
-                requiredParameterCount: 0),
-            testLib),
-        new BottomType());
+    checkLowerBound(
+        type1: "({A* a}) ->* void",
+        type2: "([B*]) ->* void",
+        lowerBound: "BOTTOM");
   }
 
   void test_glb_identical() {
-    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
-    var env = _makeEnv();
-    expect(env.getStandardLowerBound(A, A, testLib), same(A));
-    expect(
-        env.getStandardLowerBound(
-            new InterfaceType(A.classNode, Nullability.legacy), A, testLib),
-        A);
+    parseTestLibrary("class A;");
+    checkLowerBound(type1: "A*", type2: "A*", lowerBound: "A*");
   }
 
   void test_glb_subtype() {
-    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
-    var B = coreTypes.rawType(
-        _addClass(_class('B', supertype: A.classNode.asThisSupertype)),
-        Nullability.legacy);
-    var env = _makeEnv();
-    expect(env.getStandardLowerBound(A, B, testLib), same(B));
-    expect(env.getStandardLowerBound(B, A, testLib), same(B));
+    parseTestLibrary("class A; class B extends A;");
+
+    checkLowerBound(type1: "A*", type2: "B*", lowerBound: "B*");
+    checkLowerBound(type1: "B*", type2: "A*", lowerBound: "B*");
   }
 
   void test_glb_top() {
-    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
-    var env = _makeEnv();
-    expect(env.getStandardLowerBound(dynamicType, A, testLib), same(A));
-    expect(env.getStandardLowerBound(A, dynamicType, testLib), same(A));
-    expect(env.getStandardLowerBound(objectType, A, testLib), same(A));
-    expect(env.getStandardLowerBound(A, objectType, testLib), same(A));
-    expect(env.getStandardLowerBound(voidType, A, testLib), same(A));
-    expect(env.getStandardLowerBound(A, voidType, testLib), same(A));
+    parseTestLibrary("class A;");
+    checkLowerBound(type1: "dynamic", type2: "A*", lowerBound: "A*");
+    checkLowerBound(type1: "A*", type2: "dynamic", lowerBound: "A*");
+    checkLowerBound(type1: "Object*", type2: "A*", lowerBound: "A*");
+    checkLowerBound(type1: "A*", type2: "Object*", lowerBound: "A*");
+    checkLowerBound(type1: "void", type2: "A*", lowerBound: "A*");
+    checkLowerBound(type1: "A*", type2: "void", lowerBound: "A*");
   }
 
   void test_glb_unknown() {
-    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
-    var env = _makeEnv();
-    expect(env.getStandardLowerBound(A, unknownType, testLib), same(A));
-    expect(env.getStandardLowerBound(unknownType, A, testLib), same(A));
+    parseTestLibrary("class A;");
+    checkLowerBound(type1: "A*", type2: "UNKNOWN", lowerBound: "A*");
+    checkLowerBound(type1: "UNKNOWN", type2: "A*", lowerBound: "A*");
   }
 
   void test_glb_unrelated() {
-    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
-    var B = coreTypes.rawType(_addClass(_class('B')), Nullability.legacy);
-    var env = _makeEnv();
-    expect(env.getStandardLowerBound(A, B, testLib), new BottomType());
+    parseTestLibrary("class A; class B;");
+    checkLowerBound(type1: "A*", type2: "B*", lowerBound: "BOTTOM");
   }
 
   void test_inferGenericFunctionOrType() {
-    var env = _makeEnv();
-    InterfaceType listClassThisType =
-        coreTypes.thisInterfaceType(listClass, testLib.nonNullable);
-    {
-      // Test an instantiation of [1, 2.0] with no context.  This should infer
-      // as List<?> during downwards inference.
-      var inferredTypes = <DartType>[unknownType];
-      TypeParameterType T = listClassThisType.typeArguments[0];
-      env.inferGenericFunctionOrType(listClassThisType, [T.parameter], null,
-          null, null, inferredTypes, testLib);
-      expect(inferredTypes[0], unknownType);
-      // And upwards inference should refine it to List<num>.
-      env.inferGenericFunctionOrType(listClassThisType, [T.parameter], [T, T],
-          [intType, doubleType], null, inferredTypes, testLib);
-      expect(inferredTypes[0], numType);
-    }
-    {
-      // Test an instantiation of [1, 2.0] with a context of List<Object>.  This
-      // should infer as List<Object> during downwards inference.
-      var inferredTypes = <DartType>[unknownType];
-      TypeParameterType T = listClassThisType.typeArguments[0];
-      env.inferGenericFunctionOrType(listClassThisType, [T.parameter], null,
-          null, _list(objectType), inferredTypes, testLib);
-      expect(inferredTypes[0], objectType);
-      // And upwards inference should preserve the type.
-      env.inferGenericFunctionOrType(listClassThisType, [T.parameter], [T, T],
-          [intType, doubleType], _list(objectType), inferredTypes, testLib);
-      expect(inferredTypes[0], objectType);
-    }
+    parseTestLibrary("");
+
+    // Test an instantiation of [1, 2.0] with no context.  This should infer
+    // as List<?> during downwards inference.
+    checkInference(
+        typeParametersToInfer: "T extends Object*",
+        functionType: "() ->* List<T*>*",
+        actualParameterTypes: null,
+        returnContextType: null,
+        expectedTypes: "UNKNOWN");
+    // And upwards inference should refine it to List<num>.
+    checkInference(
+        typeParametersToInfer: "T extends Object*",
+        functionType: "(T*, T*) ->* List<T*>*",
+        actualParameterTypes: "int*, double*",
+        returnContextType: null,
+        inferredTypesFromDownwardPhase: "UNKNOWN",
+        expectedTypes: "num*");
+
+    // Test an instantiation of [1, 2.0] with a context of List<Object>.  This
+    // should infer as List<Object> during downwards inference.
+    checkInference(
+        typeParametersToInfer: "T extends Object*",
+        functionType: "() ->* List<T*>*",
+        actualParameterTypes: null,
+        returnContextType: "List<Object*>*",
+        expectedTypes: "Object*");
+    // And upwards inference should preserve the type.
+    checkInference(
+        typeParametersToInfer: "T extends Object*",
+        functionType: "(T*, T*) ->* List<T>",
+        actualParameterTypes: "int*, double*",
+        returnContextType: "List<Object*>*",
+        inferredTypesFromDownwardPhase: "Object*",
+        expectedTypes: "Object*");
   }
 
   void test_inferTypeFromConstraints_applyBound() {
-    // class A<T extends num> {}
-    var T = new TypeParameter('T', numType);
-    coreTypes.thisInterfaceType(
-        _addClass(_class('A', typeParameters: [T])), testLib.nonNullable);
-    var env = _makeEnv();
-    {
-      // With no constraints:
-      var constraints = {T: new TypeConstraint()};
-      // Downward inference should infer A<?>
-      var inferredTypes = <DartType>[unknownType];
-      env.inferTypeFromConstraints(constraints, [T], inferredTypes, testLib,
-          downwardsInferPhase: true);
-      expect(inferredTypes[0], unknownType);
-      // Upward inference should infer A<num>
-      env.inferTypeFromConstraints(constraints, [T], inferredTypes, testLib);
-      expect(inferredTypes[0], numType);
-    }
-    {
-      // With an upper bound of Object:
-      var constraints = {T: _makeConstraint(upper: objectType)};
-      // Downward inference should infer A<num>
-      var inferredTypes = <DartType>[unknownType];
-      env.inferTypeFromConstraints(constraints, [T], inferredTypes, testLib,
-          downwardsInferPhase: true);
-      expect(inferredTypes[0], numType);
-      // Upward inference should infer A<num>
-      env.inferTypeFromConstraints(constraints, [T], inferredTypes, testLib);
-      expect(inferredTypes[0], numType);
-      // Upward inference should still infer A<num> even if there are more
-      // constraints now, because num was finalized during downward inference.
-      constraints = {T: _makeConstraint(lower: intType, upper: intType)};
-      env.inferTypeFromConstraints(constraints, [T], inferredTypes, testLib);
-      expect(inferredTypes[0], numType);
-    }
+    parseTestLibrary("");
+
+    // With no constraints:
+    // Downward inference should infer '?'
+    checkInferenceFromConstraints(
+        typeParameter: "T extends num*",
+        constraints: "",
+        downwardsInferPhase: true,
+        expected: "UNKNOWN");
+    // Upward inference should infer num
+    checkInferenceFromConstraints(
+        typeParameter: "T extends num*",
+        constraints: "",
+        downwardsInferPhase: false,
+        inferredTypeFromDownwardPhase: "UNKNOWN",
+        expected: "num*");
+
+    // With an upper bound of Object:
+    // Downward inference should infer num.
+    checkInferenceFromConstraints(
+        typeParameter: "T extends num*",
+        constraints: "<: Object*",
+        downwardsInferPhase: true,
+        expected: "num*");
+    // Upward inference should infer num.
+    checkInferenceFromConstraints(
+        typeParameter: "T extends num*",
+        constraints: "<: Object*",
+        downwardsInferPhase: false,
+        inferredTypeFromDownwardPhase: "num*",
+        expected: "num*");
+    // Upward inference should still infer num even if there are more
+    // constraints now, because num was finalized during downward inference.
+    checkInferenceFromConstraints(
+        typeParameter: "T extends num*",
+        constraints: ":> int* <: int*",
+        downwardsInferPhase: false,
+        inferredTypeFromDownwardPhase: "num*",
+        expected: "num*");
   }
 
   void test_inferTypeFromConstraints_simple() {
-    var env = _makeEnv();
-    var T = listClass.typeParameters[0];
+    parseTestLibrary("");
+
     // With an upper bound of List<?>:
-    var constraints = {T: _makeConstraint(upper: _list(unknownType))};
     // Downwards inference should infer List<List<?>>
-    var inferredTypes = <DartType>[unknownType];
-    env.inferTypeFromConstraints(constraints, [T], inferredTypes, testLib,
-        downwardsInferPhase: true);
-    expect(inferredTypes[0], _list(unknownType));
+    checkInferenceFromConstraints(
+        typeParameter: "T extends Object*",
+        constraints: "<: List<UNKNOWN>*",
+        downwardsInferPhase: true,
+        expected: "List<UNKNOWN>*");
     // Upwards inference should refine that to List<List<dynamic>>
-    env.inferTypeFromConstraints(constraints, [T], inferredTypes, testLib);
-    expect(inferredTypes[0], _list(dynamicType));
+    checkInferenceFromConstraints(
+        typeParameter: "T extends Object*",
+        constraints: "<: List<UNKNOWN>*",
+        downwardsInferPhase: false,
+        inferredTypeFromDownwardPhase: "List<UNKNOWN>*",
+        expected: "List<dynamic>*");
   }
 
   void test_lub_classic() {
@@ -382,485 +298,517 @@ class TypeSchemaEnvironmentTest {
     // B C
     // |X|
     // D E
-    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
-    var B = coreTypes.rawType(
-        _addClass(_class('B', supertype: A.classNode.asThisSupertype)),
-        Nullability.legacy);
-    var C = coreTypes.rawType(
-        _addClass(_class('C', supertype: A.classNode.asThisSupertype)),
-        Nullability.legacy);
-    var D = coreTypes.rawType(
-        _addClass(_class('D', implementedTypes: [
-          B.classNode.asThisSupertype,
-          C.classNode.asThisSupertype
-        ])),
-        Nullability.legacy);
-    var E = coreTypes.rawType(
-        _addClass(_class('E', implementedTypes: [
-          B.classNode.asThisSupertype,
-          C.classNode.asThisSupertype
-        ])),
-        Nullability.legacy);
-    var env = _makeEnv();
-    expect(env.getStandardUpperBound(D, E, testLib), A);
+    parseTestLibrary("""
+      class A;
+      class B extends A;
+      class C extends A;
+      class D implements B, C;
+      class E implements B, C;
+    """);
+
+    checkUpperBound(type1: "D*", type2: "E*", upperBound: "A*");
   }
 
   void test_lub_commonClass() {
-    var env = _makeEnv();
-    expect(
-        env.getStandardUpperBound(_list(intType), _list(doubleType), testLib),
-        _list(numType));
+    parseTestLibrary("");
+    checkUpperBound(
+        type1: "List<int*>*",
+        type2: "List<double*>*",
+        upperBound: "List<num*>*");
   }
 
   void test_lub_function() {
-    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
-    var B = coreTypes.rawType(
-        _addClass(_class('B', supertype: A.classNode.asThisSupertype)),
-        Nullability.legacy);
-    var env = _makeEnv();
+    parseTestLibrary("class A; class B extends A;");
+
     // LUB(() -> A, () -> B) = () -> A
-    expect(
-        env.getStandardUpperBound(new FunctionType([], A, Nullability.legacy),
-            new FunctionType([], B, Nullability.legacy), testLib),
-        new FunctionType([], A, Nullability.legacy));
+    checkUpperBound(
+        type1: "() ->* A*", type2: "() ->* B*", upperBound: "() ->* A*");
+
     // LUB(([A]) -> void, (A) -> void) = Function
-    expect(
-        env.getStandardUpperBound(
-            new FunctionType([A], voidType, Nullability.legacy,
-                requiredParameterCount: 0),
-            new FunctionType([A], voidType, Nullability.legacy),
-            testLib),
-        functionType);
+    checkUpperBound(
+        type1: "([A*]) ->* void",
+        type2: "(A*) ->* void",
+        upperBound: "Function*");
+
     // LUB(() -> void, (A, B) -> void) = Function
-    expect(
-        env.getStandardUpperBound(
-            new FunctionType([], voidType, Nullability.legacy),
-            new FunctionType([A, B], voidType, Nullability.legacy),
-            testLib),
-        functionType);
-    expect(
-        env.getStandardUpperBound(
-            new FunctionType([A, B], voidType, Nullability.legacy),
-            new FunctionType([], voidType, Nullability.legacy),
-            testLib),
-        functionType);
+    checkUpperBound(
+        type1: "() ->* void",
+        type2: "(A*, B*) ->* void",
+        upperBound: "Function*");
+    checkUpperBound(
+        type1: "(A*, B*) ->* void",
+        type2: "() ->* void",
+        upperBound: "Function*");
+
     // LUB((A) -> void, (B) -> void) = (B) -> void
-    expect(
-        env.getStandardUpperBound(
-            new FunctionType([A], voidType, Nullability.legacy),
-            new FunctionType([B], voidType, Nullability.legacy),
-            testLib),
-        new FunctionType([B], voidType, Nullability.legacy));
-    expect(
-        env.getStandardUpperBound(
-            new FunctionType([B], voidType, Nullability.legacy),
-            new FunctionType([A], voidType, Nullability.legacy),
-            testLib),
-        new FunctionType([B], voidType, Nullability.legacy));
+    checkUpperBound(
+        type1: "(A*) ->* void",
+        type2: "(B*) ->* void",
+        upperBound: "(B*) ->* void");
+    checkUpperBound(
+        type1: "(B*) ->* void",
+        type2: "(A*) ->* void",
+        upperBound: "(B*) ->* void");
+
     // LUB(({a: A}) -> void, ({b: B}) -> void) = () -> void
-    expect(
-        env.getStandardUpperBound(
-            new FunctionType([], voidType, Nullability.legacy,
-                namedParameters: [new NamedType('a', A)]),
-            new FunctionType([], voidType, Nullability.legacy,
-                namedParameters: [new NamedType('b', B)]),
-            testLib),
-        new FunctionType([], voidType, Nullability.legacy));
-    expect(
-        env.getStandardUpperBound(
-            new FunctionType([], voidType, Nullability.legacy,
-                namedParameters: [new NamedType('b', B)]),
-            new FunctionType([], voidType, Nullability.legacy,
-                namedParameters: [new NamedType('a', A)]),
-            testLib),
-        new FunctionType([], voidType, Nullability.legacy));
+    checkUpperBound(
+        type1: "({A* a}) ->* void",
+        type2: "({B* b}) ->* void",
+        upperBound: "() ->* void");
+    checkUpperBound(
+        type1: "({B* b}) ->* void",
+        type2: "({A* a}) ->* void",
+        upperBound: "() ->* void");
+
     // LUB(({a: A, c: A}) -> void, ({b: B, d: B}) -> void) = () -> void
-    expect(
-        env.getStandardUpperBound(
-            new FunctionType([], voidType, Nullability.legacy,
-                namedParameters: [
-                  new NamedType('a', A),
-                  new NamedType('c', A)
-                ]),
-            new FunctionType([], voidType, Nullability.legacy,
-                namedParameters: [
-                  new NamedType('b', B),
-                  new NamedType('d', B)
-                ]),
-            testLib),
-        new FunctionType([], voidType, Nullability.legacy));
+    checkUpperBound(
+        type1: "({A* a, A* c}) ->* void",
+        type2: "({B* b, B* d}) ->* void",
+        upperBound: "() ->* void");
+
     // LUB(({a: A, b: B}) -> void, ({a: B, b: A}) -> void)
     //     = ({a: B, b: B}) -> void
-    expect(
-        env.getStandardUpperBound(
-            new FunctionType([], voidType, Nullability.legacy,
-                namedParameters: [
-                  new NamedType('a', A),
-                  new NamedType('b', B)
-                ]),
-            new FunctionType([], voidType, Nullability.legacy,
-                namedParameters: [
-                  new NamedType('a', B),
-                  new NamedType('b', A)
-                ]),
-            testLib),
-        new FunctionType([], voidType, Nullability.legacy,
-            namedParameters: [new NamedType('a', B), new NamedType('b', B)]));
-    expect(
-        env.getStandardUpperBound(
-            new FunctionType([], voidType, Nullability.legacy,
-                namedParameters: [
-                  new NamedType('a', B),
-                  new NamedType('b', A)
-                ]),
-            new FunctionType([], voidType, Nullability.legacy,
-                namedParameters: [
-                  new NamedType('a', A),
-                  new NamedType('b', B)
-                ]),
-            testLib),
-        new FunctionType([], voidType, Nullability.legacy,
-            namedParameters: [new NamedType('a', B), new NamedType('b', B)]));
+    checkUpperBound(
+        type1: "({A* a, B* b}) ->* void",
+        type2: "({B* a, A* b}) ->* void",
+        upperBound: "({B* a, B* b}) ->* void");
+    checkUpperBound(
+        type1: "({B* a, A* b}) ->* void",
+        type2: "({A* a, B* b}) ->* void",
+        upperBound: "({B* a, B* b}) ->* void");
+
     // LUB((B, {a: A}) -> void, (B) -> void) = (B) -> void
-    expect(
-        env.getStandardUpperBound(
-            new FunctionType([B], voidType, Nullability.legacy,
-                namedParameters: [new NamedType('a', A)]),
-            new FunctionType([B], voidType, Nullability.legacy),
-            testLib),
-        new FunctionType([B], voidType, Nullability.legacy));
+    checkUpperBound(
+        type1: "(B*, {A* a}) ->* void",
+        type2: "(B*) ->* void",
+        upperBound: "(B*) ->* void");
+
     // LUB(({a: A}) -> void, (B) -> void) = Function
-    expect(
-        env.getStandardUpperBound(
-            new FunctionType([], voidType, Nullability.legacy,
-                namedParameters: [new NamedType('a', A)]),
-            new FunctionType([B], voidType, Nullability.legacy),
-            testLib),
-        functionType);
+    checkUpperBound(
+        type1: "({A* a}) ->* void",
+        type2: "(B*) ->* void",
+        upperBound: "Function*");
+
     // GLB(({a: A}) -> void, ([B]) -> void) = () -> void
-    expect(
-        env.getStandardUpperBound(
-            new FunctionType([], voidType, Nullability.legacy,
-                namedParameters: [new NamedType('a', A)]),
-            new FunctionType([B], voidType, Nullability.legacy,
-                requiredParameterCount: 0),
-            testLib),
-        new FunctionType([], voidType, Nullability.legacy));
+    checkUpperBound(
+        type1: "({A* a}) ->* void",
+        type2: "([B*]) ->* void",
+        upperBound: "() ->* void");
   }
 
   void test_lub_identical() {
-    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
-    var env = _makeEnv();
-    expect(env.getStandardUpperBound(A, A, testLib), same(A));
-    expect(
-        env.getStandardUpperBound(
-            new InterfaceType(A.classNode, Nullability.legacy), A, testLib),
-        A);
+    parseTestLibrary("class A;");
+    checkUpperBound(type1: "A*", type2: "A*", upperBound: "A*");
   }
 
   void test_lub_sameClass() {
-    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
-    var B = coreTypes.rawType(
-        _addClass(_class('B', supertype: A.classNode.asThisSupertype)),
-        Nullability.legacy);
-    var env = _makeEnv();
-    expect(
-        env.getStandardUpperBound(_map(A, B), _map(B, A), testLib), _map(A, A));
+    parseTestLibrary("class A; class B extends A; class Map<X, Y>;");
+    checkUpperBound(
+        type1: "Map<A*, B*>*",
+        type2: "Map<B*, A*>*",
+        upperBound: "Map<A*, A*>*");
   }
 
   void test_lub_subtype() {
-    var env = _makeEnv();
-    expect(
-        env.getStandardUpperBound(_list(intType), _iterable(numType), testLib),
-        _iterable(numType));
-    expect(
-        env.getStandardUpperBound(_iterable(numType), _list(intType), testLib),
-        _iterable(numType));
+    parseTestLibrary("");
+    checkUpperBound(
+        type1: "List<int*>*",
+        type2: "Iterable<num*>*",
+        upperBound: "Iterable<num*>*");
+    checkUpperBound(
+        type1: "Iterable<num*>*",
+        type2: "List<int*>*",
+        upperBound: "Iterable<num*>*");
   }
 
   void test_lub_top() {
-    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
-    var env = _makeEnv();
-    expect(
-        env.getStandardUpperBound(dynamicType, A, testLib), same(dynamicType));
-    expect(
-        env.getStandardUpperBound(A, dynamicType, testLib), same(dynamicType));
-    expect(env.getStandardUpperBound(objectType, A, testLib), same(objectType));
-    expect(env.getStandardUpperBound(A, objectType, testLib), same(objectType));
-    expect(env.getStandardUpperBound(voidType, A, testLib), same(voidType));
-    expect(env.getStandardUpperBound(A, voidType, testLib), same(voidType));
-    expect(env.getStandardUpperBound(dynamicType, objectType, testLib),
-        same(dynamicType));
-    expect(env.getStandardUpperBound(objectType, dynamicType, testLib),
-        same(dynamicType));
-    expect(env.getStandardUpperBound(dynamicType, voidType, testLib),
-        same(voidType));
-    expect(env.getStandardUpperBound(voidType, dynamicType, testLib),
-        same(voidType));
-    expect(env.getStandardUpperBound(objectType, voidType, testLib),
-        same(voidType));
-    expect(env.getStandardUpperBound(voidType, objectType, testLib),
-        same(voidType));
+    parseTestLibrary("class A;");
+
+    checkUpperBound(type1: "dynamic", type2: "A*", upperBound: "dynamic");
+    checkUpperBound(type1: "A*", type2: "dynamic", upperBound: "dynamic");
+    checkUpperBound(type1: "Object*", type2: "A*", upperBound: "Object*");
+    checkUpperBound(type1: "A*", type2: "Object*", upperBound: "Object*");
+    checkUpperBound(type1: "void", type2: "A*", upperBound: "void");
+    checkUpperBound(type1: "A*", type2: "void", upperBound: "void");
+    checkUpperBound(type1: "dynamic", type2: "Object*", upperBound: "dynamic");
+    checkUpperBound(type1: "Object*", type2: "dynamic", upperBound: "dynamic");
+    checkUpperBound(type1: "dynamic", type2: "void", upperBound: "void");
+    checkUpperBound(type1: "void", type2: "dynamic", upperBound: "void");
+    checkUpperBound(type1: "Object*", type2: "void", upperBound: "void");
+    checkUpperBound(type1: "void", type2: "Object*", upperBound: "void");
   }
 
   void test_lub_typeParameter() {
-    var T = new TypeParameterType(new TypeParameter('T'), Nullability.legacy);
-    T.parameter.bound = _list(T);
-    var U = new TypeParameterType(new TypeParameter('U'), Nullability.legacy);
-    U.parameter.bound = _list(new BottomType());
-    var env = _makeEnv();
+    parseTestLibrary("");
+
     // LUB(T, T) = T
-    expect(env.getStandardUpperBound(T, T, testLib), same(T));
+    checkUpperBound(
+        type1: "T*",
+        type2: "T*",
+        upperBound: "T*",
+        typeParameters: "T extends List<T*>*");
+
     // LUB(T, List<Bottom>) = LUB(List<Object>, List<Bottom>) = List<Object>
-    expect(env.getStandardUpperBound(T, _list(new BottomType()), testLib),
-        _list(objectType));
-    expect(env.getStandardUpperBound(_list(new BottomType()), T, testLib),
-        _list(objectType));
+    checkUpperBound(
+        type1: "T*",
+        type2: "List<Null>*",
+        upperBound: "List<Object*>*",
+        typeParameters: "T extends List<T*>*");
+    checkUpperBound(
+        type1: "List<Null>*",
+        type2: "T*",
+        upperBound: "List<Object*>*",
+        typeParameters: "T extends List<T*>*");
+
     // LUB(T, U) = LUB(List<Object>, U) = LUB(List<Object>, List<Bottom>)
     // = List<Object>
-    expect(env.getStandardUpperBound(T, U, testLib), _list(objectType));
-    expect(env.getStandardUpperBound(U, T, testLib), _list(objectType));
+    checkUpperBound(
+        type1: "T*",
+        type2: "U*",
+        upperBound: "List<Object*>*",
+        typeParameters: "T extends List<T*>*, U extends List<Null>*");
+    checkUpperBound(
+        type1: "U*",
+        type2: "T*",
+        upperBound: "List<Object*>*",
+        typeParameters: "T extends List<T*>*, U extends List<Null>*");
   }
 
   void test_lub_unknown() {
-    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
-    var env = _makeEnv();
-    expect(env.getStandardLowerBound(A, unknownType, testLib), same(A));
-    expect(env.getStandardLowerBound(unknownType, A, testLib), same(A));
+    parseTestLibrary("class A;");
+    checkUpperBound(type1: "A*", type2: "UNKNOWN", upperBound: "A*");
+    checkUpperBound(type1: "UNKNOWN", type2: "A*", upperBound: "A*");
   }
 
   void test_solveTypeConstraint() {
-    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
-    var B = coreTypes.rawType(
-        _addClass(_class('B', supertype: A.classNode.asThisSupertype)),
-        Nullability.legacy);
-    var env = _makeEnv();
+    parseTestLibrary("""
+      class A;
+      class B extends A;
+      
+      class C<T extends Object*>;
+      class D<T extends Object*> extends C<T*>;
+    """);
+
     // Solve(? <: T <: ?) => ?
-    expect(env.solveTypeConstraint(_makeConstraint(), topType, bottomType),
-        same(unknownType));
+    checkConstraintSolving("", "UNKNOWN", grounded: false);
+
     // Solve(? <: T <: ?, grounded) => dynamic
-    expect(
-        env.solveTypeConstraint(_makeConstraint(), topType, bottomType,
-            grounded: true),
-        dynamicType);
+    checkConstraintSolving("", "dynamic", grounded: true);
+
     // Solve(A <: T <: ?) => A
-    expect(
-        env.solveTypeConstraint(_makeConstraint(lower: A), topType, bottomType),
-        A);
+    checkConstraintSolving(":> A*", "A*", grounded: false);
+
     // Solve(A <: T <: ?, grounded) => A
-    expect(
-        env.solveTypeConstraint(_makeConstraint(lower: A), topType, bottomType,
-            grounded: true),
-        A);
+    checkConstraintSolving(":> A*", "A*", grounded: true);
+
     // Solve(A<?> <: T <: ?) => A<?>
-    expect(
-        env.solveTypeConstraint(
-            _makeConstraint(
-                lower: new InterfaceType(
-                    A.classNode, Nullability.legacy, [unknownType])),
-            topType,
-            bottomType),
-        new InterfaceType(A.classNode, Nullability.legacy, [unknownType]));
+    checkConstraintSolving(":> C<UNKNOWN>*", "C<UNKNOWN>*", grounded: false);
+
     // Solve(A<?> <: T <: ?, grounded) => A<Null>
-    expect(
-        env.solveTypeConstraint(
-            _makeConstraint(
-                lower: new InterfaceType(
-                    A.classNode, Nullability.legacy, [unknownType])),
-            topType,
-            bottomType,
-            grounded: true),
-        new InterfaceType(A.classNode, Nullability.legacy, [const NullType()]));
+    checkConstraintSolving(":> C<UNKNOWN>*", "C<Null>*", grounded: true);
+
     // Solve(? <: T <: A) => A
-    expect(
-        env.solveTypeConstraint(_makeConstraint(upper: A), topType, bottomType),
-        A);
+    checkConstraintSolving("<: A*", "A*", grounded: false);
+
     // Solve(? <: T <: A, grounded) => A
-    expect(
-        env.solveTypeConstraint(_makeConstraint(upper: A), topType, bottomType,
-            grounded: true),
-        A);
+    checkConstraintSolving("<: A*", "A*", grounded: true);
+
     // Solve(? <: T <: A<?>) => A<?>
-    expect(
-        env.solveTypeConstraint(
-            _makeConstraint(
-                upper: new InterfaceType(
-                    A.classNode, Nullability.legacy, [unknownType])),
-            topType,
-            bottomType),
-        new InterfaceType(A.classNode, Nullability.legacy, [unknownType]));
+    checkConstraintSolving("<: C<UNKNOWN>*", "C<UNKNOWN>*", grounded: false);
+
     // Solve(? <: T <: A<?>, grounded) => A<dynamic>
-    expect(
-        env.solveTypeConstraint(
-            _makeConstraint(
-                upper: new InterfaceType(
-                    A.classNode, Nullability.legacy, [unknownType])),
-            topType,
-            bottomType,
-            grounded: true),
-        new InterfaceType(A.classNode, Nullability.legacy, [dynamicType]));
+    checkConstraintSolving("<: C<UNKNOWN>*", "C<dynamic>*", grounded: true);
+
     // Solve(B <: T <: A) => B
-    expect(
-        env.solveTypeConstraint(
-            _makeConstraint(lower: B, upper: A), topType, bottomType),
-        B);
+    checkConstraintSolving(":> B* <: A*", "B*", grounded: false);
+
     // Solve(B <: T <: A, grounded) => B
-    expect(
-        env.solveTypeConstraint(
-            _makeConstraint(lower: B, upper: A), topType, bottomType,
-            grounded: true),
-        B);
+    checkConstraintSolving(":> B* <: A*", "B*", grounded: true);
+
     // Solve(B<?> <: T <: A) => A
-    expect(
-        env.solveTypeConstraint(
-            _makeConstraint(
-                lower: new InterfaceType(
-                    B.classNode, Nullability.legacy, [unknownType]),
-                upper: A),
-            topType,
-            bottomType),
-        A);
+    checkConstraintSolving(":> D<UNKNOWN>* <: C<dynamic>*", "C<dynamic>*",
+        grounded: false);
+
     // Solve(B<?> <: T <: A, grounded) => A
-    expect(
-        env.solveTypeConstraint(
-            _makeConstraint(
-                lower: new InterfaceType(
-                    B.classNode, Nullability.legacy, [unknownType]),
-                upper: A),
-            topType,
-            bottomType,
-            grounded: true),
-        A);
+    checkConstraintSolving(":> D<UNKNOWN>* <: C<dynamic>*", "C<dynamic>*",
+        grounded: true);
+
     // Solve(B <: T <: A<?>) => B
-    expect(
-        env.solveTypeConstraint(
-            _makeConstraint(
-                lower: B,
-                upper: new InterfaceType(
-                    A.classNode, Nullability.legacy, [unknownType])),
-            topType,
-            bottomType),
-        B);
+    checkConstraintSolving(":> D<Null>* <: C<UNKNOWN>*", "D<Null>*",
+        grounded: false);
+
     // Solve(B <: T <: A<?>, grounded) => B
-    expect(
-        env.solveTypeConstraint(
-            _makeConstraint(
-                lower: B,
-                upper: new InterfaceType(
-                    A.classNode, Nullability.legacy, [unknownType])),
-            topType,
-            bottomType,
-            grounded: true),
-        B);
+    checkConstraintSolving(":> D<Null>* <: C<UNKNOWN>*", "D<Null>*",
+        grounded: true);
+
     // Solve(B<?> <: T <: A<?>) => B<?>
-    expect(
-        env.solveTypeConstraint(
-            _makeConstraint(
-                lower: new InterfaceType(
-                    B.classNode, Nullability.legacy, [unknownType]),
-                upper: new InterfaceType(
-                    A.classNode, Nullability.legacy, [unknownType])),
-            topType,
-            bottomType),
-        new InterfaceType(B.classNode, Nullability.legacy, [unknownType]));
+    checkConstraintSolving(":> D<UNKNOWN>* <: C<UNKNOWN>*", "D<UNKNOWN>*",
+        grounded: false);
+
     // Solve(B<?> <: T <: A<?>) => B<Null>
-    expect(
-        env.solveTypeConstraint(
-            _makeConstraint(
-                lower: new InterfaceType(
-                    B.classNode, Nullability.legacy, [unknownType]),
-                upper: new InterfaceType(
-                    A.classNode, Nullability.legacy, [unknownType])),
-            topType,
-            bottomType,
-            grounded: true),
-        new InterfaceType(B.classNode, Nullability.legacy, [const NullType()]));
+    checkConstraintSolving(":> D<UNKNOWN>* <: C<UNKNOWN>*", "D<Null>*",
+        grounded: true);
   }
 
   void test_typeConstraint_default() {
-    var typeConstraint = new TypeConstraint();
-    expect(typeConstraint.lower, same(unknownType));
-    expect(typeConstraint.upper, same(unknownType));
+    parseTestLibrary("");
+    checkConstraintUpperBound(constraint: "", bound: "UNKNOWN");
+    checkConstraintLowerBound(constraint: "", bound: "UNKNOWN");
   }
 
   void test_typeSatisfiesConstraint() {
-    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
-    var B = coreTypes.rawType(
-        _addClass(_class('B', supertype: A.classNode.asThisSupertype)),
-        Nullability.legacy);
-    var C = coreTypes.rawType(
-        _addClass(_class('C', supertype: B.classNode.asThisSupertype)),
-        Nullability.legacy);
-    var D = coreTypes.rawType(
-        _addClass(_class('D', supertype: C.classNode.asThisSupertype)),
-        Nullability.legacy);
-    var E = coreTypes.rawType(
-        _addClass(_class('E', supertype: D.classNode.asThisSupertype)),
-        Nullability.legacy);
-    var env = _makeEnv();
-    var typeConstraint = _makeConstraint(upper: B, lower: D);
-    expect(env.typeSatisfiesConstraint(A, typeConstraint), isFalse);
-    expect(env.typeSatisfiesConstraint(B, typeConstraint), isTrue);
-    expect(env.typeSatisfiesConstraint(C, typeConstraint), isTrue);
-    expect(env.typeSatisfiesConstraint(D, typeConstraint), isTrue);
-    expect(env.typeSatisfiesConstraint(E, typeConstraint), isFalse);
+    parseTestLibrary("""
+      class A;
+      class B extends A;
+      class C extends B;
+      class D extends C;
+      class E extends D;
+    """);
+
+    checkTypeDoesntSatisfyConstraint("A*", ":> D* <: B*");
+    checkTypeSatisfiesConstraint("B*", ":> D* <: B*");
+    checkTypeSatisfiesConstraint("C*", ":> D* <: B*");
+    checkTypeSatisfiesConstraint("D*", ":> D* <: B*");
+    checkTypeDoesntSatisfyConstraint("E*", ":> D* <: B*");
   }
 
   void test_unknown_at_bottom() {
-    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
-    var env = _makeEnv();
-    expect(
-        env.isSubtypeOf(unknownType, A, SubtypeCheckMode.ignoringNullabilities),
-        isTrue);
+    parseTestLibrary("class A;");
+    checkIsLegacySubtype("UNKNOWN", "A*");
   }
 
   void test_unknown_at_top() {
-    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
-    var env = _makeEnv();
+    parseTestLibrary("class A; class Map<X, Y>;");
+    checkIsLegacySubtype("A*", "UNKNOWN");
+    checkIsLegacySubtype("Map<A*, A*>*", "Map<UNKNOWN, UNKNOWN>*");
+  }
+
+  void checkConstraintSolving(String constraint, String expected,
+      {bool grounded}) {
+    assert(grounded != null);
     expect(
-        env.isSubtypeOf(A, unknownType, SubtypeCheckMode.ignoringNullabilities),
-        isTrue);
+        typeSchemaEnvironment.solveTypeConstraint(
+            parseConstraint(constraint), new DynamicType(), new NullType(),
+            grounded: grounded),
+        parseType(expected));
+  }
+
+  void checkConstraintUpperBound({String constraint, String bound}) {
+    assert(constraint != null);
+    assert(bound != null);
+
+    expect(parseConstraint(constraint).upper, parseType(bound));
+  }
+
+  void checkConstraintLowerBound({String constraint, String bound}) {
+    assert(constraint != null);
+    assert(bound != null);
+
+    expect(parseConstraint(constraint).lower, parseType(bound));
+  }
+
+  void checkTypeSatisfiesConstraint(String type, String constraint) {
     expect(
-        env.isSubtypeOf(_map(A, A), _map(unknownType, unknownType),
-            SubtypeCheckMode.ignoringNullabilities),
+        typeSchemaEnvironment.typeSatisfiesConstraint(
+            parseType(type), parseConstraint(constraint)),
         isTrue);
   }
 
-  Class _addClass(Class c) {
-    testLib.addClass(c);
-    return c;
+  void checkTypeDoesntSatisfyConstraint(String type, String constraint) {
+    expect(
+        typeSchemaEnvironment.typeSatisfiesConstraint(
+            parseType(type), parseConstraint(constraint)),
+        isFalse);
   }
 
-  Class _class(String name,
-      {Supertype supertype,
-      List<TypeParameter> typeParameters,
-      List<Supertype> implementedTypes}) {
-    return new Class(
-        name: name,
-        supertype: supertype ?? objectClass.asThisSupertype,
-        typeParameters: typeParameters,
-        implementedTypes: implementedTypes);
+  void checkIsSubtype(String subtype, String supertype) {
+    expect(
+        typeSchemaEnvironment
+            .performNullabilityAwareSubtypeCheck(
+                parseType(subtype), parseType(supertype))
+            .isSubtypeWhenUsingNullabilities(),
+        isTrue);
   }
 
-  DartType _iterable(DartType elementType) =>
-      new InterfaceType(iterableClass, Nullability.legacy, [elementType]);
-
-  DartType _list(DartType elementType) =>
-      new InterfaceType(listClass, Nullability.legacy, [elementType]);
-
-  TypeConstraint _makeConstraint(
-      {DartType lower: const UnknownType(),
-      DartType upper: const UnknownType()}) {
-    return new TypeConstraint()
-      ..lower = lower
-      ..upper = upper;
+  void checkIsLegacySubtype(String subtype, String supertype) {
+    expect(
+        typeSchemaEnvironment
+            .performNullabilityAwareSubtypeCheck(
+                parseType(subtype), parseType(supertype))
+            .isSubtypeWhenIgnoringNullabilities(),
+        isTrue);
   }
 
-  TypeSchemaEnvironment _makeEnv() {
-    return new TypeSchemaEnvironment(
-        coreTypes, new ClassHierarchy(component, coreTypes));
+  void checkIsNotSubtype(String subtype, String supertype) {
+    expect(
+        typeSchemaEnvironment
+            .performNullabilityAwareSubtypeCheck(
+                parseType(subtype), parseType(supertype))
+            .isSubtypeWhenIgnoringNullabilities(),
+        isFalse);
   }
 
-  DartType _map(DartType key, DartType value) =>
-      new InterfaceType(mapClass, Nullability.legacy, [key, value]);
+  void checkUpperBound(
+      {String type1, String type2, String upperBound, String typeParameters}) {
+    assert(type1 != null);
+    assert(type2 != null);
+    assert(upperBound != null);
+
+    typeParserEnvironment.withTypeParameters(typeParameters,
+        (List<TypeParameter> typeParameterNodes) {
+      expect(
+          typeSchemaEnvironment.getStandardUpperBound(
+              parseType(type1), parseType(type2), testLibrary),
+          parseType(upperBound));
+    });
+  }
+
+  void checkLowerBound(
+      {String type1, String type2, String lowerBound, String typeParameters}) {
+    assert(type1 != null);
+    assert(type2 != null);
+    assert(lowerBound != null);
+
+    typeParserEnvironment.withTypeParameters(typeParameters,
+        (List<TypeParameter> typeParameterNodes) {
+      expect(
+          typeSchemaEnvironment.getStandardLowerBound(
+              parseType(type1), parseType(type2), testLibrary),
+          parseType(lowerBound));
+    });
+  }
+
+  void checkInference(
+      {String typeParametersToInfer,
+      String functionType,
+      String actualParameterTypes,
+      String returnContextType,
+      String inferredTypesFromDownwardPhase,
+      String expectedTypes}) {
+    assert(typeParametersToInfer != null);
+    assert(functionType != null);
+    assert(expectedTypes != null);
+
+    typeParserEnvironment.withTypeParameters(typeParametersToInfer,
+        (List<TypeParameter> typeParameterNodesToInfer) {
+      FunctionType functionTypeNode = parseType(functionType);
+      DartType returnContextTypeNode =
+          returnContextType == null ? null : parseType(returnContextType);
+      List<DartType> actualTypeNodes = actualParameterTypes == null
+          ? null
+          : parseTypes(actualParameterTypes);
+      List<DartType> expectedTypeNodes =
+          expectedTypes == null ? null : parseTypes(expectedTypes);
+      DartType declaredReturnTypeNode = functionTypeNode.returnType;
+      List<DartType> formalTypeNodes = actualParameterTypes == null
+          ? null
+          : functionTypeNode.positionalParameters;
+
+      List<DartType> inferredTypeNodes;
+      if (inferredTypesFromDownwardPhase == null) {
+        inferredTypeNodes = new List<DartType>.generate(
+            typeParameterNodesToInfer.length, (_) => new UnknownType());
+      } else {
+        inferredTypeNodes = parseTypes(inferredTypesFromDownwardPhase);
+      }
+
+      typeSchemaEnvironment.inferGenericFunctionOrType(
+          declaredReturnTypeNode,
+          typeParameterNodesToInfer,
+          formalTypeNodes,
+          actualTypeNodes,
+          returnContextTypeNode,
+          inferredTypeNodes,
+          testLibrary);
+
+      assert(
+          inferredTypeNodes.length == expectedTypeNodes.length,
+          "The numbers of expected types and type parameters to infer "
+          "mismatch.");
+      for (int i = 0; i < inferredTypeNodes.length; ++i) {
+        expect(inferredTypeNodes[i], expectedTypeNodes[i]);
+      }
+    });
+  }
+
+  void checkInferenceFromConstraints(
+      {String typeParameter,
+      String constraints,
+      String inferredTypeFromDownwardPhase,
+      bool downwardsInferPhase,
+      String expected}) {
+    assert(typeParameter != null);
+    assert(expected != null);
+    assert(downwardsInferPhase != null);
+    assert(inferredTypeFromDownwardPhase == null || !downwardsInferPhase);
+
+    typeParserEnvironment.withTypeParameters(typeParameter,
+        (List<TypeParameter> typeParameterNodes) {
+      assert(typeParameterNodes.length == 1);
+
+      TypeConstraint typeConstraint = parseConstraint(constraints);
+      DartType expectedTypeNode = parseType(expected);
+      TypeParameter typeParameterNode = typeParameterNodes.single;
+      List<DartType> inferredTypeNodes = <DartType>[
+        inferredTypeFromDownwardPhase == null
+            ? new UnknownType()
+            : parseType(inferredTypeFromDownwardPhase)
+      ];
+
+      typeSchemaEnvironment.inferTypeFromConstraints(
+          {typeParameterNode: typeConstraint},
+          [typeParameterNode],
+          inferredTypeNodes,
+          testLibrary,
+          downwardsInferPhase: downwardsInferPhase);
+
+      expect(inferredTypeNodes.single, expectedTypeNode);
+    });
+  }
+
+  /// Parses a string like "<: T <: S >: R" into a [TypeConstraint].
+  ///
+  /// The [constraint] string is assumed to be a sequence of bounds added to the
+  /// constraint.  Each element of the sequence is either "<: T" or ":> T",
+  /// where the former adds an upper bound and the latter adds a lower bound.
+  /// The bounds are added to the constraint in the order they are mentioned in
+  /// the [constraint] string, from left to right.
+  TypeConstraint parseConstraint(String constraint) {
+    TypeConstraint result = new TypeConstraint();
+    List<String> upperBoundSegments = constraint.split("<:");
+    bool firstUpperBoundSegment = true;
+    for (String upperBoundSegment in upperBoundSegments) {
+      if (firstUpperBoundSegment) {
+        firstUpperBoundSegment = false;
+        if (upperBoundSegment.isEmpty) {
+          continue;
+        }
+      }
+      List<String> lowerBoundSegments = upperBoundSegment.split(":>");
+      bool firstLowerBoundSegment = true;
+      for (String segment in lowerBoundSegments) {
+        if (firstLowerBoundSegment) {
+          firstLowerBoundSegment = false;
+          if (segment.isNotEmpty) {
+            typeSchemaEnvironment.addUpperBound(
+                result, parseType(segment), testLibrary);
+          }
+        } else {
+          typeSchemaEnvironment.addLowerBound(
+              result, parseType(segment), testLibrary);
+        }
+      }
+    }
+    return result;
+  }
+
+  DartType parseType(String type) {
+    return typeParserEnvironment.parseType(type,
+        additionalTypes: additionalTypes);
+  }
+
+  List<DartType> parseTypes(String types) {
+    return typeParserEnvironment.parseTypes(types,
+        additionalTypes: additionalTypes);
+  }
 }

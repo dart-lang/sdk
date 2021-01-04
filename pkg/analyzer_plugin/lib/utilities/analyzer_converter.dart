@@ -233,8 +233,13 @@ class AnalyzerConverter {
         return null;
       }
       parameters = element.parameters;
-    } else if (element is analyzer.FunctionTypeAliasElement) {
-      parameters = element.function.parameters;
+    } else if (element is analyzer.TypeAliasElement) {
+      var aliasedElement = element.aliasedElement;
+      if (aliasedElement is analyzer.GenericFunctionTypeElement) {
+        parameters = aliasedElement.parameters;
+      } else {
+        return null;
+      }
     } else {
       return null;
     }
@@ -275,9 +280,14 @@ class AnalyzerConverter {
       return type != null
           ? type.getDisplayString(withNullability: false)
           : 'dynamic';
-    } else if (element is analyzer.FunctionTypeAliasElement) {
-      var returnType = element.function.returnType;
-      return returnType.getDisplayString(withNullability: false);
+    } else if (element is analyzer.TypeAliasElement) {
+      var aliasedElement = element.aliasedElement;
+      if (aliasedElement is analyzer.GenericFunctionTypeElement) {
+        var returnType = aliasedElement.returnType;
+        return returnType.getDisplayString(withNullability: false);
+      } else {
+        return null;
+      }
     }
     return null;
   }

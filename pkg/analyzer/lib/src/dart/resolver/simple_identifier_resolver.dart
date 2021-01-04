@@ -245,10 +245,9 @@ class SimpleIdentifierResolver {
         node.staticType = _typeProvider.typeType;
       }
       return;
-    } else if (element is FunctionTypeAliasElement) {
-      if (node.inDeclarationContext() || node.parent is TypeName) {
-        // no type
-      } else {
+    } else if (element is TypeAliasElement) {
+      if (_isExpressionIdentifier(node) ||
+          element.aliasedType is! InterfaceType) {
         node.staticType = _typeProvider.typeType;
       }
       return;

@@ -254,6 +254,15 @@ class CanonicalTypeArgumentsTraits {
 typedef UnorderedHashSet<CanonicalTypeArgumentsTraits>
     CanonicalTypeArgumentsSet;
 
+class MetadataMapTraits {
+ public:
+  static const char* Name() { return "MetadataMapTraits"; }
+  static bool ReportStats() { return false; }
+  static bool IsMatch(const Object& a, const Object& b);
+  static uword Hash(const Object& key);
+};
+typedef UnorderedHashMap<MetadataMapTraits> MetadataMap;
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_CANONICAL_TABLES_H_

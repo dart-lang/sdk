@@ -13,6 +13,9 @@ import 'package:vm/transformations/specializer/factory_specializer.dart';
 ///
 /// new List() => new _GrowableList(0)
 /// new List(n) => new _List(n)
+/// new List.empty() => new _List.empty()
+/// new List.empty(growable: false) => new _List.empty()
+/// new List.empty(growable: true) => new _GrowableList.empty()
 /// new List.filled(n, null, growable: true) => new _GrowableList(n)
 /// new List.filled(n, x, growable: true) => new _GrowableList.filled(n, x)
 /// new List.filled(n, null) => new _List(n)
@@ -22,44 +25,57 @@ import 'package:vm/transformations/specializer/factory_specializer.dart';
 ///
 class ListFactorySpecializer extends BaseSpecializer {
   final Procedure _defaultListFactory;
+  final Procedure _listEmptyFactory;
   final Procedure _listFilledFactory;
   final Procedure _listGenerateFactory;
   final Procedure _growableListFactory;
+  final Procedure _growableListEmptyFactory;
   final Procedure _growableListFilledFactory;
   final Procedure _growableListGenerateFactory;
   final Procedure _fixedListFactory;
+  final Procedure _fixedListEmptyFactory;
   final Procedure _fixedListFilledFactory;
   final Procedure _fixedListGenerateFactory;
 
   ListFactorySpecializer(CoreTypes coreTypes)
       : _defaultListFactory =
             coreTypes.index.getMember('dart:core', 'List', ''),
+        _listEmptyFactory =
+            coreTypes.index.getMember('dart:core', 'List', 'empty'),
         _listFilledFactory =
             coreTypes.index.getMember('dart:core', 'List', 'filled'),
         _listGenerateFactory =
             coreTypes.index.getMember('dart:core', 'List', 'generate'),
         _growableListFactory =
             coreTypes.index.getMember('dart:core', '_GrowableList', ''),
+        _growableListEmptyFactory =
+            coreTypes.index.getMember('dart:core', '_GrowableList', 'empty'),
         _growableListFilledFactory =
             coreTypes.index.getMember('dart:core', '_GrowableList', 'filled'),
         _growableListGenerateFactory =
             coreTypes.index.getMember('dart:core', '_GrowableList', 'generate'),
         _fixedListFactory = coreTypes.index.getMember('dart:core', '_List', ''),
+        _fixedListEmptyFactory =
+            coreTypes.index.getMember('dart:core', '_List', 'empty'),
         _fixedListFilledFactory =
             coreTypes.index.getMember('dart:core', '_List', 'filled'),
         _fixedListGenerateFactory =
             coreTypes.index.getMember('dart:core', '_List', 'generate') {
     assert(_defaultListFactory.isFactory);
+    assert(_listEmptyFactory.isFactory);
     assert(_listFilledFactory.isFactory);
     assert(_listGenerateFactory.isFactory);
     assert(_growableListFactory.isFactory);
+    assert(_growableListEmptyFactory.isFactory);
     assert(_growableListFilledFactory.isFactory);
     assert(_growableListGenerateFactory.isFactory);
     assert(_fixedListFactory.isFactory);
+    assert(_fixedListEmptyFactory.isFactory);
     assert(_fixedListFilledFactory.isFactory);
     assert(_fixedListGenerateFactory.isFactory);
     transformers.addAll({
       _defaultListFactory: transformDefaultFactory,
+      _listEmptyFactory: transformListEmptyFactory,
       _listFilledFactory: transformListFilledFactory,
       _listGenerateFactory: transformListGeneratorFactory,
     });
@@ -73,6 +89,24 @@ class ListFactorySpecializer extends BaseSpecializer {
         ..fileOffset = node.fileOffset;
     } else {
       return StaticInvocation(_fixedListFactory, args)
+        ..fileOffset = node.fileOffset;
+    }
+  }
+
+  TreeNode transformListEmptyFactory(StaticInvocation node) {
+    final args = node.arguments;
+    assert(args.positional.length == 0);
+    final bool growable = _getConstantOptionalArgument(args, 'growable', false);
+    if (growable == null) {
+      return node;
+    }
+    if (growable) {
+      return StaticInvocation(
+          _growableListEmptyFactory, Arguments([], types: args.types))
+        ..fileOffset = node.fileOffset;
+    } else {
+      return StaticInvocation(
+          _fixedListEmptyFactory, Arguments([], types: args.types))
         ..fileOffset = node.fileOffset;
     }
   }

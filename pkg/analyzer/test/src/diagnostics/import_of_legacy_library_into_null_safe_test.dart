@@ -65,4 +65,17 @@ import 'a.dart';
 void f(A a) {}
 ''');
   }
+
+  test_nullSafe_into_nullSafe_part() async {
+    newFile('$testPackageLibPath/a.dart', content: '');
+
+    newFile('$testPackageLibPath/b.dart', content: r'''
+part of 'test.dart';
+import 'a.dart';
+''');
+
+    await assertNoErrorsInCode(r'''
+part 'b.dart';
+''');
+  }
 }

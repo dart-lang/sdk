@@ -610,9 +610,8 @@ DART_EXPORT int64_t* NullableInt64ElemAt1(int64_t* a) {
 }
 
 // A struct designed to exercise all kinds of alignment rules.
-// Note that offset32A (System V ia32) aligns doubles on 4 bytes while offset32B
-// (Arm 32 bit and MSVC ia32) aligns on 8 bytes.
-// TODO(37271): Support nested structs.
+// Note that offset32A (System V ia32, iOS arm) aligns doubles on 4 bytes while
+// offset32B (Arm 32 bit and MSVC ia32) aligns on 8 bytes.
 // TODO(37470): Add uncommon primitive data types when we want to support them.
 struct VeryLargeStruct {
   //                             size32 size64 offset32A offset32B offset64
@@ -782,6 +781,31 @@ DART_EXPORT Struct20BytesHomogeneousInt32Copy PassStructRecursive(
   }
 
   return result;
+}
+
+// Can't easily share this with the generated file.
+struct Struct4BytesHomogeneousInt16Copy {
+  int16_t a0;
+  int16_t a1;
+};
+
+// Can't easily share this with the generated file.
+struct Struct8BytesNestedIntCopy {
+  Struct4BytesHomogeneousInt16Copy a0;
+  Struct4BytesHomogeneousInt16Copy a1;
+};
+
+DART_EXPORT void CallbackWithStruct(void (*f)(Struct8BytesNestedIntCopy)) {
+  std::cout << "CallbackWithStruct"
+            << "(" << reinterpret_cast<void*>(f) << ")\n";
+
+  Struct8BytesNestedIntCopy arg;
+  arg.a0.a0 = 10;
+  arg.a0.a1 = 11;
+  arg.a1.a0 = 12;
+  arg.a1.a1 = 13;
+
+  f(arg);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -23,7 +23,7 @@ class Y extends self::X {
     ;
 }
 class A<T extends core::Object* = dynamic, S extends self::A::T* = dynamic> extends core::Object {
-  static field dynamic _redirecting# = <dynamic>[self::A::redir];
+  static final field dynamic _redirecting# = <dynamic>[self::A::redir];
   constructor •(self::A::T* t, self::A::S* s) → self::A<self::A::T*, self::A::S*>*
     : super core::Object::•()
     ;

@@ -1083,8 +1083,6 @@ class ConstantVisitorWithNullSafetyWithTripleShiftTest
     writeTestPackageAnalysisOptionsFile(
       AnalysisOptionsFileConfig(
         experiments: [
-          // TODO(scheglov) https://github.com/dart-lang/sdk/issues/43837
-          EnableString.non_nullable,
           EnableString.triple_shift,
         ],
       ),

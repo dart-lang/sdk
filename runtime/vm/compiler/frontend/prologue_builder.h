@@ -49,8 +49,7 @@ class PrologueBuilder : public BaseFlowGraphBuilder {
   BlockEntryInstr* BuildPrologue(BlockEntryInstr* entry,
                                  PrologueInfo* prologue_info);
 
-  Fragment BuildOptionalParameterHandling(JoinEntryInstr* nsm,
-                                          LocalVariable* temp_var);
+  Fragment BuildOptionalParameterHandling(LocalVariable* temp_var);
 
   static bool HasEmptyPrologue(const Function& function);
   static bool PrologueSkippableOnUncheckedEntry(const Function& function);
@@ -58,14 +57,9 @@ class PrologueBuilder : public BaseFlowGraphBuilder {
   intptr_t last_used_block_id() const { return last_used_block_id_; }
 
  private:
-  Fragment BuildTypeArgumentsLengthCheck(JoinEntryInstr* nsm,
-                                         bool expect_type_args);
-
-  Fragment BuildFixedParameterLengthChecks(JoinEntryInstr* nsm);
-
   Fragment BuildClosureContextHandling();
 
-  Fragment BuildTypeArgumentsHandling(JoinEntryInstr* nsm);
+  Fragment BuildTypeArgumentsHandling();
 
   LocalVariable* ParameterVariable(intptr_t index) {
     return parsed_function_->RawParameterVariable(index);

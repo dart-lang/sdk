@@ -5,6 +5,8 @@
 import 'dart:typed_data';
 import 'package:expect/expect.dart';
 
+const bool supportsInt64 = bool.fromEnvironment('dart.isVM');
+
 List<int> intList = <int>[1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 checkReadable(List<int> list) {
@@ -157,8 +159,10 @@ main() {
   uint16ListTest();
   int32ListTest();
   uint32ListTest();
-  int64ListTest();
-  uint64ListTest();
+  if (supportsInt64) {
+    int64ListTest();
+    uint64ListTest();
+  }
   float32ListTest();
   float64ListTest();
   byteDataTest();

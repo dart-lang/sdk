@@ -19,7 +19,8 @@ dependencies:
     path: ../front_end
   kernel:
     path: ../kernel
-  meta: any
+  meta:
+    path: ../meta
   path: any
   source_maps: any
   source_span: any
@@ -27,10 +28,12 @@ dependencies:
     path: ../vm
 
 dev_dependencies:
-  analyzer: any
+  analyzer:
+    path: ../analyzer
   expect:
     path: ../expect
-  js: any
+  js:
+    path: ../js
   modular_test:
     path: ../modular_test
   package_config: any

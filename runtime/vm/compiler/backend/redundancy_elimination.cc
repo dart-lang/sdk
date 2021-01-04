@@ -1692,9 +1692,7 @@ class LoadOptimizer : public ValueObject {
 
     // For now, bail out for large functions to avoid OOM situations.
     // TODO(fschneider): Fix the memory consumption issue.
-    intptr_t function_length = graph->function().end_token_pos().Pos() -
-                               graph->function().token_pos().Pos();
-    if (function_length >= FLAG_huge_method_cutoff_in_tokens) {
+    if (graph->function().SourceSize() >= FLAG_huge_method_cutoff_in_tokens) {
       return false;
     }
 
@@ -2850,9 +2848,7 @@ class StoreOptimizer : public LivenessAnalysis {
 
     // For now, bail out for large functions to avoid OOM situations.
     // TODO(fschneider): Fix the memory consumption issue.
-    intptr_t function_length = graph->function().end_token_pos().Pos() -
-                               graph->function().token_pos().Pos();
-    if (function_length >= FLAG_huge_method_cutoff_in_tokens) {
+    if (graph->function().SourceSize() >= FLAG_huge_method_cutoff_in_tokens) {
       return;
     }
 
@@ -3557,10 +3553,10 @@ void AllocationSinking::CreateMaterializationAt(
               flow_graph_->GetConstant(Smi::ZoneHandle(Z, Smi::New(index)))),
           /*index_unboxed=*/false,
           /*index_scale=*/compiler::target::Instance::ElementSizeFor(array_cid),
-          array_cid, kAlignedAccess, DeoptId::kNone, alloc->token_pos());
+          array_cid, kAlignedAccess, DeoptId::kNone, alloc->source());
     } else {
-      load = new (Z)
-          LoadFieldInstr(new (Z) Value(alloc), *slot, alloc->token_pos());
+      load =
+          new (Z) LoadFieldInstr(new (Z) Value(alloc), *slot, alloc->source());
     }
     flow_graph_->InsertBefore(load_point, load, nullptr, FlowGraph::kValue);
     values->Add(new (Z) Value(load));

@@ -72,13 +72,11 @@ general/issue37776: RuntimeError
 general/issue38938: RuntimeError # no main and compile time errors.
 general/issue38944: RuntimeError # no main and compile time errors.
 general/issue38961: RuntimeError # no main and compile time errors.
-general/issue41210a: TypeCheckError
-general/issue41210b/issue41210: TypeCheckError
 general/micro: RuntimeError
 general/mixin_application_override: ExpectationFileMismatch # Too many errors.
 general/mixin_application_override: TypeCheckError
 general/mixin_constructors_with_default_values: RuntimeError # Expected
-general/mixin_covariant2: TypeCheckError
+general/mixin_covariant2: RuntimeError
 general/operator_method_not_found: RuntimeError # Expected
 general/optional: TypeCheckError
 general/override_check_accessor_after_inference: TypeCheckError # Issue #31620
@@ -175,7 +173,11 @@ nnbd/no_support_for_old_null_aware_index_access_syntax: RuntimeError # Expected.
 nnbd/nullable_object_access: TypeCheckError
 nnbd/nullable_receiver: TypeCheckError
 nnbd/potentially_nullable_access: TypeCheckError
-none/mixin_covariant: TypeCheckError
+none/equals: TypeCheckError
+none/method_invocation: TypeCheckError
+none/operator: TypeCheckError
+none/property_get: TypeCheckError
+none/property_set: TypeCheckError
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError
 rasta/bad_continue: RuntimeError
@@ -244,9 +246,7 @@ regress/issue_39091_1: RuntimeError
 regress/issue_39091_2: RuntimeError
 regress/utf_16_le_content.crash: RuntimeError
 runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError
-runtime_checks_new/mixin_forwarding_stub_field: TypeCheckError
 runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError
-runtime_checks_new/mixin_forwarding_stub_setter: TypeCheckError
 set_literals/disambiguation_rule: RuntimeError
 value_class/simple: RuntimeError # Expected
 value_class/value_extends_non_value: RuntimeError # Expected

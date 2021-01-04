@@ -32,8 +32,8 @@ LocalScope::LocalScope(LocalScope* parent, int function_level, int loop_level)
       function_level_(function_level),
       loop_level_(loop_level),
       context_level_(LocalScope::kUninitializedContextLevel),
-      begin_token_pos_(TokenPosition::kNoSourcePos),
-      end_token_pos_(TokenPosition::kNoSourcePos),
+      begin_token_pos_(TokenPosition::kNoSource),
+      end_token_pos_(TokenPosition::kNoSource),
       variables_(),
       labels_(),
       context_variables_(),
@@ -343,10 +343,6 @@ static bool IsFilteredIdentifier(const String& str) {
   }
   if (str.raw() == Symbols::is_sync().raw()) {
     // Keep :is_sync for asynchronous debugging.
-    return false;
-  }
-  if (str.raw() == Symbols::AsyncStackTraceVar().raw()) {
-    // Keep :async_stack_trace for asynchronous debugging.
     return false;
   }
   if (str.raw() == Symbols::FunctionTypeArgumentsVar().raw()) {
@@ -697,7 +693,6 @@ void LocalScope::CaptureLocalVariables(LocalScope* top_scope) {
     for (intptr_t i = 0; i < scope->num_variables(); i++) {
       LocalVariable* variable = scope->VariableAt(i);
       if (variable->is_forced_stack() ||
-          (variable->name().raw() == Symbols::StackTraceVar().raw()) ||
           (variable->name().raw() == Symbols::ExceptionVar().raw()) ||
           (variable->name().raw() == Symbols::SavedTryContextVar().raw()) ||
           (variable->name().raw() == Symbols::ArgDescVar().raw()) ||
@@ -784,8 +779,9 @@ void LocalVarDescriptorsBuilder::AddDeoptIdToContextLevelMappings(
     desc.name = &Symbols::Empty();  // No name.
     desc.info.set_kind(LocalVarDescriptorsLayout::kContextLevel);
     desc.info.scope_id = 0;
-    desc.info.begin_pos = TokenPosition(start_deopt_id);
-    desc.info.end_pos = TokenPosition(end_deopt_id);
+    // We repurpose the token position fields to store deopt IDs in this case.
+    desc.info.begin_pos = TokenPosition::Deserialize(start_deopt_id);
+    desc.info.end_pos = TokenPosition::Deserialize(end_deopt_id);
     desc.info.set_index(start_context_level);
     Add(desc);
 

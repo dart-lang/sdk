@@ -53,7 +53,7 @@ class B extends A {
     await computeSuggestions();
 
     assertSuggestMethod('foo', 'A', 'bool',
-        defaultArgListString: 'bar, baz: null');
+        defaultArgListString: 'bar, baz: baz');
   }
 
   Future<void> test_AwaitExpression_inherited() async {

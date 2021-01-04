@@ -4,66 +4,38 @@
 
 import 'dart:convert';
 
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
-import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/test_utilities/find_node.dart';
+import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'base.dart';
+import '../resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IndexTest);
+    defineReflectiveTests(IndexWithNonFunctionTypeAliasesTest);
   });
 }
 
 class ExpectedLocation {
-  final CompilationUnitElement unitElement;
   final int offset;
   final int length;
   final bool isQualified;
 
-  ExpectedLocation(
-      this.unitElement, this.offset, this.length, this.isQualified);
+  ExpectedLocation(this.offset, this.length, this.isQualified);
 
   @override
   String toString() {
-    return '(unit=$unitElement; offset=$offset; length=$length;'
-        ' isQualified=$isQualified)';
+    return '(offset=$offset; length=$length; isQualified=$isQualified)';
   }
 }
 
 @reflectiveTest
-class IndexTest extends BaseAnalysisDriverTest {
-  CompilationUnit testUnit;
-  CompilationUnitElement testUnitElement;
-  LibraryElement testLibraryElement;
-
-  AnalysisDriverUnitIndex index;
-
-  _ElementIndexAssert assertThat(Element element) {
-    List<_Relation> relations = _getElementRelations(element);
-    return _ElementIndexAssert(this, element, relations);
-  }
-
-  _NameIndexAssert assertThatName(String name) {
-    return _NameIndexAssert(this, name);
-  }
-
-  Element findElement(String name, [ElementKind kind]) {
-    return findChildElement(testUnitElement, name, kind);
-  }
-
-  CompilationUnitElement importedUnit({int index = 0}) {
-    List<ImportElement> imports = testLibraryElement.imports;
-    return imports[index].importedLibrary.definingCompilationUnit;
-  }
-
+class IndexTest extends PubPackageResolutionTest with _IndexMixin {
   test_fieldFormalParameter_noSuchField() async {
     await _indexTestUnit('''
 class B<T> {
@@ -88,7 +60,7 @@ class C3 implements B1 {}
 class C4 implements B2 {}
 class M extends Object with A {}
 ''');
-    ClassElement classElementA = findElement("A");
+    ClassElement classElementA = findElement.class_('A');
     assertThat(classElementA)
       ..isAncestorOf('B1 extends A')
       ..isAncestorOf('B2 implements A')
@@ -106,8 +78,8 @@ class B extends A {}
 class C1 = Object with A;
 class C2 = Object with B;
 ''');
-    ClassElement classElementA = findElement('A');
-    ClassElement classElementB = findElement('B');
+    ClassElement classElementA = findElement.class_('A');
+    ClassElement classElementB = findElement.class_('B');
     assertThat(classElementA)
       ..isAncestorOf('C1 = Object with A')
       ..isAncestorOf('C2 = Object with B');
@@ -125,7 +97,7 @@ mixin M3 implements A {}
 mixin M4 implements B {}
 mixin M5 on M2 {}
 ''');
-    ClassElement classElementA = findElement('A');
+    ClassElement classElementA = findElement.class_('A');
     assertThat(classElementA)
       ..isAncestorOf('B extends A')
       ..isAncestorOf('M1 on A')
@@ -136,14 +108,14 @@ mixin M5 on M2 {}
   }
 
   test_isExtendedBy_ClassDeclaration_isQualified() async {
-    newFile('$testProject2/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 ''');
     await _indexTestUnit('''
 import 'lib.dart' as p;
 class B extends p.A {} // 2
 ''');
-    ClassElement elementA = importedUnit().getType('A');
+    ClassElement elementA = importFindLib().class_('A');
     assertThat(elementA).isExtendedAt('A {} // 2', true);
   }
 
@@ -151,7 +123,7 @@ class B extends p.A {} // 2
     await _indexTestUnit('''
 class A {}
 ''');
-    ClassElement elementA = findElement('A');
+    ClassElement elementA = findElement.class_('A');
     ClassElement elementObject = elementA.supertype.element;
     assertThat(elementObject).isExtendedAt('A {}', true, length: 0);
   }
@@ -162,14 +134,14 @@ class A {}
 class B {}
 class C = A with B;
 ''');
-    ClassElement elementA = findElement('A');
+    ClassElement elementA = findElement.class_('A');
     assertThat(elementA)
       ..isExtendedAt('A with', false)
       ..isReferencedAt('A with', false);
   }
 
   test_isExtendedBy_ClassTypeAlias_isQualified() async {
-    newFile('$testProject2/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 ''');
     await _indexTestUnit('''
@@ -177,7 +149,7 @@ import 'lib.dart' as p;
 class B {}
 class C = p.A with B;
 ''');
-    ClassElement elementA = importedUnit().getType('A');
+    ClassElement elementA = importFindLib().class_('A');
     assertThat(elementA)
       ..isExtendedAt('A with', true)
       ..isReferencedAt('A with', true);
@@ -188,21 +160,21 @@ class C = p.A with B;
 class A {} // 1
 class B implements A {} // 2
 ''');
-    ClassElement elementA = findElement('A');
+    ClassElement elementA = findElement.class_('A');
     assertThat(elementA)
       ..isImplementedAt('A {} // 2', false)
       ..isReferencedAt('A {} // 2', false);
   }
 
   test_isImplementedBy_ClassDeclaration_isQualified() async {
-    newFile('$testProject2/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 ''');
     await _indexTestUnit('''
 import 'lib.dart' as p;
 class B implements p.A {} // 2
 ''');
-    ClassElement elementA = importedUnit().getType('A');
+    ClassElement elementA = importFindLib().class_('A');
     assertThat(elementA)
       ..isImplementedAt('A {} // 2', true)
       ..isReferencedAt('A {} // 2', true);
@@ -214,7 +186,7 @@ class A {} // 1
 class B {} // 2
 class C = Object with A implements B; // 3
 ''');
-    ClassElement elementB = findElement('B');
+    ClassElement elementB = findElement.class_('B');
     assertThat(elementB)
       ..isImplementedAt('B; // 3', false)
       ..isReferencedAt('B; // 3', false);
@@ -225,7 +197,7 @@ class C = Object with A implements B; // 3
 class A {} // 1
 mixin M implements A {} // 2
 ''');
-    ClassElement elementA = findElement('A');
+    ClassElement elementA = findElement.class_('A');
     assertThat(elementA)
       ..isImplementedAt('A {} // 2', false)
       ..isReferencedAt('A {} // 2', false);
@@ -236,14 +208,14 @@ mixin M implements A {} // 2
 class A {} // 1
 mixin M on A {} // 2
 ''');
-    ClassElement elementA = findElement('A');
+    ClassElement elementA = findElement.class_('A');
     assertThat(elementA)
       ..isImplementedAt('A {} // 2', false)
       ..isReferencedAt('A {} // 2', false);
   }
 
   test_isInvokedBy_FunctionElement() async {
-    newFile('$testProject2/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 library lib;
 foo() {}
 ''');
@@ -254,7 +226,7 @@ main() {
   pref.foo(); // q
   foo(); // nq
 }''');
-    FunctionElement element = importedUnit().functions[0];
+    FunctionElement element = importFindLib().topFunction('foo');
     assertThat(element)
       ..isInvokedAt('foo(); // q', true)
       ..isInvokedAt('foo(); // nq', false);
@@ -268,7 +240,7 @@ main() {
   math.loadLibrary(); // 2
 }
 ''');
-    LibraryElement mathLib = testLibraryElement.imports[0].importedLibrary;
+    LibraryElement mathLib = findElement.import('dart:math').importedLibrary;
     FunctionElement element = mathLib.loadLibraryFunction;
     assertThat(element).isInvokedAt('loadLibrary(); // 1', true);
     assertThat(element).isInvokedAt('loadLibrary(); // 2', true);
@@ -283,7 +255,7 @@ class A {
     foo(); // nq
   }
 }''');
-    Element element = findElement('foo');
+    MethodElement element = findElement.method('foo');
     assertThat(element)
       ..isInvokedAt('foo(); // q', true)
       ..isInvokedAt('foo(); // nq', false);
@@ -299,7 +271,7 @@ main() {
   0.foo();
 }
 ''');
-    MethodElement element = findElement('foo');
+    MethodElement element = findElement.method('foo');
     assertThat(element)..isInvokedAt('foo();', true);
   }
 
@@ -313,7 +285,7 @@ main() {
   E.foo();
 }
 ''');
-    MethodElement element = findElement('foo');
+    MethodElement element = findElement.method('foo');
     assertThat(element)..isInvokedAt('foo();', true);
   }
 
@@ -332,7 +304,6 @@ main() {
   (1.2).foo(); // double ref
 }
 ''');
-    var findNode = FindNode(testCode, testUnit);
 
     var intMethod = findNode.methodDeclaration('foo() {} // int');
     assertThat(intMethod.declaredElement)
@@ -353,7 +324,7 @@ main() {
   a.foo();
 }
 ''');
-    Element element = findElement('foo');
+    MethodElement element = findElement.method('foo');
     assertThat(element).isInvokedAt('foo();', true);
   }
 
@@ -369,7 +340,7 @@ main(A a) {
   a++;
 }
 ''');
-    MethodElement element = findElement('+');
+    MethodElement element = findElement.method('+');
     assertThat(element)
       ..isInvokedAt('+ 1', true, length: 1)
       ..isInvokedAt('+= 2', true, length: 2)
@@ -388,8 +359,8 @@ main(A a) {
   a[1] = 42;
 }
 ''');
-    MethodElement readElement = findElement('[]');
-    MethodElement writeElement = findElement('[]=');
+    MethodElement readElement = findElement.method('[]');
+    MethodElement writeElement = findElement.method('[]=');
     assertThat(readElement).isInvokedAt('[0]', true, length: 1);
     assertThat(writeElement).isInvokedAt('[1]', true, length: 1);
   }
@@ -403,7 +374,7 @@ main(A a) {
   print(~a);
 }
 ''');
-    MethodElement element = findElement('~');
+    MethodElement element = findElement.method('~');
     assertThat(element).isInvokedAt('~a', true, length: 1);
   }
 
@@ -412,21 +383,21 @@ main(A a) {
 class A {} // 1
 class B extends Object with A {} // 2
 ''');
-    ClassElement elementA = findElement('A');
+    ClassElement elementA = findElement.class_('A');
     assertThat(elementA)
       ..isMixedInAt('A {} // 2', false)
       ..isReferencedAt('A {} // 2', false);
   }
 
   test_isMixedInBy_ClassDeclaration_isQualified() async {
-    newFile('$testProject2/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 ''');
     await _indexTestUnit('''
 import 'lib.dart' as p;
 class B extends Object with p.A {} // 2
 ''');
-    ClassElement elementA = importedUnit().getType('A');
+    ClassElement elementA = importFindLib().class_('A');
     assertThat(elementA).isMixedInAt('A {} // 2', true);
   }
 
@@ -435,7 +406,7 @@ class B extends Object with p.A {} // 2
 mixin A {} // 1
 class B extends Object with A {} // 2
 ''');
-    ClassElement elementA = findElement('A');
+    ClassElement elementA = findElement.mixin('A');
     assertThat(elementA)
       ..isMixedInAt('A {} // 2', false)
       ..isReferencedAt('A {} // 2', false);
@@ -446,7 +417,7 @@ class B extends Object with A {} // 2
 class A {} // 1
 class B = Object with A; // 2
 ''');
-    ClassElement elementA = findElement('A');
+    ClassElement elementA = findElement.class_('A');
     assertThat(elementA).isMixedInAt('A; // 2', false);
   }
 
@@ -455,7 +426,7 @@ class B = Object with A; // 2
 mixin A {} // 1
 class B = Object with A; // 2
 ''');
-    ClassElement elementA = findElement('A');
+    ClassElement elementA = findElement.mixin('A');
     assertThat(elementA).isMixedInAt('A; // 2', false);
   }
 
@@ -468,7 +439,7 @@ class A {
     field(); // nq
   }
 }''');
-    FieldElement field = findElement('field');
+    FieldElement field = findElement.field('field');
     assertThat(field.getter)
       ..isReferencedAt('field(); // q', true)
       ..isReferencedAt('field(); // nq', false);
@@ -483,7 +454,7 @@ class A {
     ggg(); // nq
   }
 }''');
-    PropertyAccessorElement element = findElement('ggg', ElementKind.GETTER);
+    PropertyAccessorElement element = findElement.getter('ggg');
     assertThat(element)
       ..isReferencedAt('ggg(); // q', true)
       ..isReferencedAt('ggg(); // nq', false);
@@ -501,7 +472,7 @@ main(A p) {
   print(A.field); // 3
 }
 ''');
-    ClassElement element = findElement('A');
+    ClassElement element = findElement.class_('A');
     assertThat(element)
       ..isReferencedAt('A p) {', false)
       ..isReferencedAt('A v;', false)
@@ -519,7 +490,7 @@ main(MyEnum p) {
   MyEnum.a;
 }
 ''');
-    ClassElement element = findElement('MyEnum');
+    ClassElement element = findElement.enum_('MyEnum');
     assertThat(element)
       ..isReferencedAt('MyEnum p) {', false)
       ..isReferencedAt('MyEnum v;', false)
@@ -532,22 +503,22 @@ class A<T> {}
 
 extension E on A<int> {}
 ''');
-    ClassElement element = findElement('A');
+    ClassElement element = findElement.class_('A');
     assertThat(element)..isReferencedAt('A<int>', false);
   }
 
-  test_isReferencedBy_ClassElement_invocation() async {
+  test_isReferencedBy_ClassElement_implicitNew() async {
     await _indexTestUnit('''
 class A {}
 main() {
   A(); // invalid code, but still a reference
 }''');
-    Element element = findElement('A');
+    ClassElement element = findElement.class_('A');
     assertThat(element).isReferencedAt('A();', false);
   }
 
   test_isReferencedBy_ClassElement_invocation_isQualified() async {
-    newFile('$testProject2/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 ''');
     await _indexTestUnit('''
@@ -555,7 +526,7 @@ import 'lib.dart' as p;
 main() {
   p.A(); // invalid code, but still a reference
 }''');
-    Element element = importedUnit().getType('A');
+    Element element = importFindLib().class_('A');
     assertThat(element).isReferencedAt('A();', true);
   }
 
@@ -567,7 +538,7 @@ main() {
   f<A>();
 }
 ''');
-    Element element = findElement('A');
+    ClassElement element = findElement.class_('A');
     assertThat(element)..isReferencedAt('A>();', false);
   }
 
@@ -579,47 +550,47 @@ main(B p) {
   B v;
 }
 ''');
-    ClassElement element = findElement('B');
+    ClassElement element = findElement.class_('B');
     assertThat(element)
       ..isReferencedAt('B p) {', false)
       ..isReferencedAt('B v;', false);
   }
 
   test_isReferencedBy_CompilationUnitElement_export() async {
-    newFile('$testProject2/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 library lib;
 ''');
     await _indexTestUnit('''
 export 'lib.dart';
 ''');
-    LibraryElement element = testLibraryElement.exports[0].exportedLibrary;
+    var element = findElement.export('package:test/lib.dart').exportedLibrary;
     assertThat(element)..isReferencedAt("'lib.dart'", true, length: 10);
   }
 
   test_isReferencedBy_CompilationUnitElement_import() async {
-    newFile('$testProject2/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 library lib;
 ''');
     await _indexTestUnit('''
 import 'lib.dart';
 ''');
-    LibraryElement element = testLibraryElement.imports[0].importedLibrary;
+    var element = findElement.import('package:test/lib.dart').importedLibrary;
     assertThat(element)..isReferencedAt("'lib.dart'", true, length: 10);
   }
 
   test_isReferencedBy_CompilationUnitElement_part() async {
-    newFile('$testProject2/my_unit.dart', content: 'part of my_lib;');
+    newFile('$testPackageLibPath/my_unit.dart', content: 'part of my_lib;');
     await _indexTestUnit('''
 library my_lib;
 part 'my_unit.dart';
 ''');
-    CompilationUnitElement element = testLibraryElement.parts[0];
+    var element = findElement.part('my_unit.dart');
     assertThat(element)..isReferencedAt("'my_unit.dart';", true, length: 14);
   }
 
   test_isReferencedBy_CompilationUnitElement_part_inPart() async {
-    newFile('$testProject2/a.dart', content: 'part of lib;');
-    newFile('$testProject2/b.dart', content: '''
+    newFile('$testPackageLibPath/a.dart', content: 'part of lib;');
+    newFile('$testPackageLibPath/b.dart', content: '''
 library lib;
 part 'a.dart';
 ''');
@@ -645,9 +616,8 @@ main() {
   new A.foo(); // 5
 }
 ''');
-    ClassElement classA = findElement('A');
-    ConstructorElement constA = classA.constructors[0];
-    ConstructorElement constA_foo = classA.constructors[1];
+    var constA = findElement.unnamedConstructor('A');
+    var constA_foo = findElement.constructor('foo', of: 'A');
     // A()
     assertThat(constA)
       ..hasRelationCount(2)
@@ -677,9 +647,8 @@ main() {
   new C.named(); // C2
 }
 ''');
-    ClassElement classA = findElement('A');
-    ConstructorElement constA = classA.constructors[0];
-    ConstructorElement constA_named = classA.constructors[1];
+    var constA = findElement.unnamedConstructor('A');
+    var constA_named = findElement.constructor('named', of: 'A');
     assertThat(constA)
       ..isReferencedAt('(); // B1', true, length: 0)
       ..isReferencedAt('(); // C1', true, length: 0);
@@ -711,8 +680,9 @@ main() {
 }
 ''');
     // has ".named()", but does not have "named()"
-    int offsetWithoutDot = findOffset('named();');
-    int offsetWithDot = findOffset('.named();');
+    var constructorName = findNode.constructorName('.named();');
+    var offsetWithoutDot = constructorName.name.offset;
+    var offsetWithDot = constructorName.period.offset;
     expect(index.usedElementOffsets, isNot(contains(offsetWithoutDot)));
     expect(index.usedElementOffsets, contains(offsetWithDot));
   }
@@ -725,9 +695,8 @@ class A {
   A.bar();
 }
 ''');
-    ClassElement classA = findElement('A');
-    ConstructorElement constA = classA.constructors[0];
-    ConstructorElement constA_bar = classA.constructors[2];
+    var constA = findElement.unnamedConstructor('A');
+    var constA_bar = findElement.constructor('bar');
     assertThat(constA).isReferencedAt('(); // 2', true, length: 0);
     assertThat(constA_bar).isReferencedAt('.bar(); // 1', true, length: 4);
   }
@@ -739,8 +708,7 @@ main() {
   new A(); // 1
 }
 ''');
-    ClassElement classA = findElement('A');
-    ConstructorElement constA = classA.constructors[0];
+    var constA = findElement.unnamedConstructor('A');
     // A()
     assertThat(constA)..isReferencedAt('(); // 1', true, length: 0);
   }
@@ -762,7 +730,7 @@ main() {
   E(0).foo();
 }
 ''');
-    ExtensionElement element = findElement('E');
+    ExtensionElement element = findElement.extension_('E');
     assertThat(element)..isReferencedAt('E(0).foo()', false);
   }
 
@@ -782,7 +750,7 @@ main(A a) {
   new A(field: 4);
 }
 ''');
-    FieldElement field = findElement('field', ElementKind.FIELD);
+    FieldElement field = findElement.field('field');
     PropertyAccessorElement getter = field.getter;
     PropertyAccessorElement setter = field.setter;
     // A()
@@ -812,7 +780,7 @@ class A {
 ''');
     // aaa
     {
-      FieldElement field = findElement('aaa', ElementKind.FIELD);
+      FieldElement field = findElement.field('aaa');
       PropertyAccessorElement getter = field.getter;
       PropertyAccessorElement setter = field.setter;
       assertThat(field)..isWrittenAt('aaa, ', true);
@@ -821,7 +789,7 @@ class A {
     }
     // bbb
     {
-      FieldElement field = findElement('bbb', ElementKind.FIELD);
+      FieldElement field = findElement.field('bbb');
       PropertyAccessorElement getter = field.getter;
       PropertyAccessorElement setter = field.setter;
       assertThat(field)..isWrittenAt('bbb) {}', true);
@@ -842,7 +810,7 @@ main() {
   print(MyEnum.B);
 }
 ''');
-    ClassElement enumElement = findElement('MyEnum');
+    ClassElement enumElement = findElement.enum_('MyEnum');
     assertThat(enumElement.getGetter('values'))
       ..isReferencedAt('values);', true);
     assertThat(enumElement.getGetter('index'))..isReferencedAt('index);', true);
@@ -857,7 +825,7 @@ class A {
   int get f => 0;
 }
 ''');
-    ClassElement element2 = findElement('A');
+    ClassElement element2 = findElement.class_('A');
     assertThat(element2.getField('f')).isWrittenAt('f = 42', true);
   }
 
@@ -869,7 +837,7 @@ class A {
   set f(_) {}
 }
 ''');
-    ClassElement element2 = findElement('A');
+    ClassElement element2 = findElement.class_('A');
     assertThat(element2.getField('f')).isWrittenAt('f = 42', true);
   }
 
@@ -880,7 +848,7 @@ class A {
   set f(_) {}
 }
 ''');
-    ClassElement element2 = findElement('A');
+    ClassElement element2 = findElement.class_('A');
     assertThat(element2.getField('f')).isWrittenAt('f = 42', true);
   }
 
@@ -892,14 +860,14 @@ main() {
   print(foo());
 }
 ''');
-    FunctionElement element = findElement('foo');
+    FunctionElement element = findElement.topFunction('foo');
     assertThat(element)
       ..isReferencedAt('foo);', false)
       ..isInvokedAt('foo());', false);
   }
 
   test_isReferencedBy_FunctionElement_with_LibraryElement() async {
-    newFile('$testProject2/foo.dart', content: r'''
+    newFile('$testPackageLibPath/foo.dart', content: r'''
 bar() {}
 ''');
     await _indexTestUnit('''
@@ -908,12 +876,13 @@ main() {
   bar();
 }
 ''');
-    LibraryElement fooLibrary = testLibraryElement.imports[0].importedLibrary;
-    assertThat(fooLibrary)..isReferencedAt('"foo.dart";', true, length: 10);
-    {
-      FunctionElement bar = fooLibrary.definingCompilationUnit.functions[0];
-      assertThat(bar)..isInvokedAt('bar();', false);
-    }
+
+    var importFind = findElement.importFind('package:test/foo.dart');
+    assertThat(importFind.importedLibrary)
+      ..isReferencedAt('"foo.dart";', true, length: 10);
+
+    FunctionElement bar = importFind.topFunction('bar');
+    assertThat(bar)..isInvokedAt('bar();', false);
   }
 
   test_isReferencedBy_FunctionTypeAliasElement() async {
@@ -922,7 +891,7 @@ typedef A();
 main(A p) {
 }
 ''');
-    Element element = findElement('A');
+    Element element = findElement.typeAlias('A');
     assertThat(element)..isReferencedAt('A p) {', false);
   }
 
@@ -937,7 +906,7 @@ class A {}
 /// [A] text
 var myVariable = null;
 ''');
-    Element element = findElement('A');
+    Element element = findElement.class_('A');
     assertThat(element)..isReferencedAt('A] text', false);
   }
 
@@ -950,15 +919,15 @@ class A {
     print(method); // nq
   }
 }''');
-    MethodElement element = findElement('method');
+    MethodElement element = findElement.method('method');
     assertThat(element)
       ..isReferencedAt('method); // q', true)
       ..isReferencedAt('method); // nq', false);
   }
 
   test_isReferencedBy_MultiplyDefinedElement() async {
-    newFile('$testProject2/a1.dart', content: 'class A {}');
-    newFile('$testProject2/a2.dart', content: 'class A {}');
+    newFile('$testPackageLibPath/a1.dart', content: 'class A {}');
+    newFile('$testPackageLibPath/a2.dart', content: 'class A {}');
     await _indexTestUnit('''
 import 'a1.dart';
 import 'a2.dart';
@@ -980,7 +949,7 @@ main() {
   foo(p: 1);
 }
 ''');
-    Element element = findElement('p');
+    Element element = findElement.parameter('p');
     assertThat(element)..isReferencedAt('p: 1', true);
   }
 
@@ -1035,7 +1004,7 @@ main() {
   A(test: 0);
 }
 ''');
-    Element element = findElement('test');
+    Element element = findElement.parameter('test');
     assertThat(element)..isReferencedAt('test: 0', true);
   }
 
@@ -1049,7 +1018,7 @@ main(A<int> a) {
   a.foo(test: 0);
 }
 ''');
-    Element element = findElement('test');
+    Element element = findElement.parameter('test');
     assertThat(element)..isReferencedAt('test: 0', true);
   }
 
@@ -1062,7 +1031,7 @@ main() {
   foo(1); // 2
 }
 ''');
-    Element element = findElement('p');
+    Element element = findElement.parameter('p');
     assertThat(element)
       ..hasRelationCount(1)
       ..isReferencedAt('1); // 2', true, length: 0);
@@ -1080,8 +1049,8 @@ main() {
   0.foo = 0;
 }
 ''');
-    PropertyAccessorElement getter = findElement('foo', ElementKind.GETTER);
-    PropertyAccessorElement setter = findElement('foo=');
+    PropertyAccessorElement getter = findElement.getter('foo');
+    PropertyAccessorElement setter = findElement.setter('foo');
     assertThat(getter)..isReferencedAt('foo;', true);
     assertThat(setter)..isReferencedAt('foo = 0;', true);
   }
@@ -1098,8 +1067,8 @@ main() {
   0.foo = 0;
 }
 ''');
-    PropertyAccessorElement getter = findElement('foo', ElementKind.GETTER);
-    PropertyAccessorElement setter = findElement('foo=');
+    PropertyAccessorElement getter = findElement.getter('foo');
+    PropertyAccessorElement setter = findElement.setter('foo');
     assertThat(getter)..isReferencedAt('foo;', true);
     assertThat(setter)..isReferencedAt('foo = 0;', true);
   }
@@ -1123,7 +1092,6 @@ main() {
   (1.2).foo = 0; // double setter ref
 }
 ''');
-    var findNode = FindNode(testCode, testUnit);
 
     var intGetter = findNode.methodDeclaration('0; // int getter');
     var intSetter = findNode.methodDeclaration('{} // int setter');
@@ -1153,7 +1121,7 @@ main(bool b) {
   }
 
   test_isReferencedBy_TopLevelVariableElement() async {
-    newFile('$testProject2/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 library lib;
 var V;
 ''');
@@ -1166,7 +1134,7 @@ main() {
   V = 5; // nq
   print(V); // nq
 }''');
-    TopLevelVariableElement variable = importedUnit().topLevelVariables[0];
+    TopLevelVariableElement variable = importFindLib().topVar('V');
     assertThat(variable)..isReferencedAt('V; // imp', true);
     assertThat(variable.getter)
       ..isReferencedAt('V); // q', true)
@@ -1177,25 +1145,25 @@ main() {
   }
 
   test_isReferencedBy_TopLevelVariableElement_synthetic_hasGetterSetter() async {
-    newFile('$testProject2/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 int get V => 0;
 void set V(_) {}
 ''');
     await _indexTestUnit('''
 import 'lib.dart' show V;
 ''');
-    TopLevelVariableElement element = importedUnit().topLevelVariables[0];
+    TopLevelVariableElement element = importFindLib().topVar('V');
     assertThat(element).isReferencedAt('V;', true);
   }
 
   test_isReferencedBy_TopLevelVariableElement_synthetic_hasSetter() async {
-    newFile('$testProject2/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 void set V(_) {}
 ''');
     await _indexTestUnit('''
 import 'lib.dart' show V;
 ''');
-    TopLevelVariableElement element = importedUnit().topLevelVariables[0];
+    TopLevelVariableElement element = importFindLib().topVar('V');
     assertThat(element).isReferencedAt('V;', true);
   }
 
@@ -1204,7 +1172,7 @@ import 'lib.dart' show V;
 class A {}
 A myVariable = null;
 ''');
-    Element element = findElement('A');
+    Element element = findElement.class_('A');
     assertThat(element).isReferencedAt('A myVariable', false);
   }
 
@@ -1216,7 +1184,7 @@ class A {
   A.bar() : field = 5;
 }
 ''');
-    FieldElement element = findElement('field', ElementKind.FIELD);
+    FieldElement element = findElement.field('field');
     assertThat(element)
       ..isWrittenAt('field})', true)
       ..isWrittenAt('field = 5', true);
@@ -1224,7 +1192,7 @@ class A {
 
   test_subtypes_classDeclaration() async {
     String libP = 'package:test/lib.dart;package:test/lib.dart';
-    newFile('$testProject2/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 class B {}
 class C {}
@@ -1274,7 +1242,7 @@ class Z implements E, D {
 
   test_subtypes_classTypeAlias() async {
     String libP = 'package:test/lib.dart;package:test/lib.dart';
-    newFile('$testProject2/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 class B {}
 class C {}
@@ -1312,7 +1280,7 @@ class X extends dynamic {
 
   test_subtypes_mixinDeclaration() async {
     String libP = 'package:test/lib.dart;package:test/lib.dart';
-    newFile('$testProject2/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class A {}
 class B {}
 class C {}
@@ -1358,14 +1326,14 @@ class C {
   var x;
 }
 main(C c) {
-  c.x;
+  c.x; // 1
   c.x = 1;
   c.x += 2;
   c.x();
 }
 ''');
     assertThatName('x')
-      ..isNotUsedQ('x;', IndexRelationKind.IS_READ_BY)
+      ..isNotUsedQ('x; // 1', IndexRelationKind.IS_READ_BY)
       ..isNotUsedQ('x = 1;', IndexRelationKind.IS_WRITTEN_BY)
       ..isNotUsedQ('x += 2;', IndexRelationKind.IS_READ_WRITTEN_BY)
       ..isNotUsedQ('x();', IndexRelationKind.IS_INVOKED_BY);
@@ -1392,7 +1360,7 @@ main(p) {
 class C {
   var x;
   m() {
-    x;
+    x; // 1
     x = 1;
     x += 2;
     x();
@@ -1400,7 +1368,7 @@ class C {
 }
 ''');
     assertThatName('x')
-      ..isNotUsedQ('x;', IndexRelationKind.IS_READ_BY)
+      ..isNotUsedQ('x; // 1', IndexRelationKind.IS_READ_BY)
       ..isNotUsedQ('x = 1;', IndexRelationKind.IS_WRITTEN_BY)
       ..isNotUsedQ('x += 2;', IndexRelationKind.IS_READ_WRITTEN_BY)
       ..isNotUsedQ('x();', IndexRelationKind.IS_INVOKED_BY);
@@ -1420,6 +1388,166 @@ main() {
       ..isUsed('x = 1;', IndexRelationKind.IS_WRITTEN_BY)
       ..isUsed('x += 2;', IndexRelationKind.IS_READ_WRITTEN_BY)
       ..isUsed('x();', IndexRelationKind.IS_INVOKED_BY);
+  }
+}
+
+@reflectiveTest
+class IndexWithNonFunctionTypeAliasesTest extends PubPackageResolutionTest
+    with WithNonFunctionTypeAliasesMixin, _IndexMixin {
+  test_isExtendedBy_ClassDeclaration_TypeAliasElement() async {
+    await _indexTestUnit('''
+class A<T> {}
+typedef B = A<int>;
+class C extends B {}
+''');
+    var B = findElement.typeAlias('B');
+    assertThat(B)
+      ..isExtendedAt('B {}', false)
+      ..isReferencedAt('B {}', false);
+  }
+
+  test_isImplementedBy_ClassDeclaration_TypeAliasElement() async {
+    await _indexTestUnit('''
+class A<T> {}
+typedef B = A<int>;
+class C implements B {}
+''');
+    var B = findElement.typeAlias('B');
+    assertThat(B)
+      ..isImplementedAt('B {}', false)
+      ..isReferencedAt('B {}', false);
+  }
+
+  test_isMixedBy_ClassDeclaration_TypeAliasElement() async {
+    await _indexTestUnit('''
+class A<T> {}
+typedef B = A<int>;
+class C extends Object with B {}
+''');
+    var B = findElement.typeAlias('B');
+    assertThat(B)
+      ..isMixedInAt('B {}', false)
+      ..isReferencedAt('B {}', false);
+  }
+
+  test_isReferencedBy_ClassElement_inTypeAlias() async {
+    await _indexTestUnit('''
+class A<T> {}
+
+typedef B = A<int>;
+''');
+    assertThat(findElement.class_('A')).isReferencedAt('A<int', false);
+    assertThat(intElement).isReferencedAt('int>;', false);
+  }
+
+  test_isReferencedBy_TypeAliasElement() async {
+    await _indexTestUnit('''
+class A<T> {
+  static int field = 0;
+  static void method() {}
+}
+
+typedef B = A<int>;
+
+void f(B p) {
+  B v;
+  B(); // 2
+  B.field = 1;
+  B.field; // 3
+  B.method(); // 4
+}
+''');
+    var element = findElement.typeAlias('B');
+    assertThat(element)
+      ..isReferencedAt('B p) {', false)
+      ..isReferencedAt('B v;', false)
+      ..isReferencedAt('B(); // 2', false)
+      ..isReferencedAt('B.field = 1;', false)
+      ..isReferencedAt('B.field; // 3', false)
+      ..isReferencedAt('B.method(); // 4', false);
+  }
+}
+
+class _ElementIndexAssert {
+  final _IndexMixin test;
+  final Element element;
+  final List<_Relation> relations;
+
+  _ElementIndexAssert(this.test, this.element, this.relations);
+
+  void hasRelationCount(int expectedCount) {
+    expect(relations, hasLength(expectedCount));
+  }
+
+  void isAncestorOf(String search, {int length}) {
+    test._assertHasRelation(
+        element,
+        relations,
+        IndexRelationKind.IS_ANCESTOR_OF,
+        test._expectedLocation(search, false, length: length));
+  }
+
+  void isExtendedAt(String search, bool isQualified, {int length}) {
+    test._assertHasRelation(
+        element,
+        relations,
+        IndexRelationKind.IS_EXTENDED_BY,
+        test._expectedLocation(search, isQualified, length: length));
+  }
+
+  void isImplementedAt(String search, bool isQualified, {int length}) {
+    test._assertHasRelation(
+        element,
+        relations,
+        IndexRelationKind.IS_IMPLEMENTED_BY,
+        test._expectedLocation(search, isQualified, length: length));
+  }
+
+  void isInvokedAt(String search, bool isQualified, {int length}) {
+    test._assertHasRelation(element, relations, IndexRelationKind.IS_INVOKED_BY,
+        test._expectedLocation(search, isQualified, length: length));
+  }
+
+  void isMixedInAt(String search, bool isQualified, {int length}) {
+    test._assertHasRelation(
+        element,
+        relations,
+        IndexRelationKind.IS_MIXED_IN_BY,
+        test._expectedLocation(search, isQualified, length: length));
+  }
+
+  void isReferencedAt(String search, bool isQualified, {int length}) {
+    test._assertHasRelation(
+        element,
+        relations,
+        IndexRelationKind.IS_REFERENCED_BY,
+        test._expectedLocation(search, isQualified, length: length));
+  }
+
+  void isWrittenAt(String search, bool isQualified, {int length}) {
+    test._assertHasRelation(element, relations, IndexRelationKind.IS_WRITTEN_BY,
+        test._expectedLocation(search, isQualified, length: length));
+  }
+}
+
+mixin _IndexMixin on PubPackageResolutionTest {
+  AnalysisDriverUnitIndex index;
+
+  _ElementIndexAssert assertThat(Element element) {
+    List<_Relation> relations = _getElementRelations(element);
+    return _ElementIndexAssert(this, element, relations);
+  }
+
+  _NameIndexAssert assertThatName(String name) {
+    return _NameIndexAssert(this, name);
+  }
+
+  /// Return [ImportFindElement] for 'package:test/lib.dart' import.
+  ImportFindElement importFindLib() {
+    return findElement.importFind(
+      'package:test/lib.dart',
+      mustBeUnique: false,
+    );
   }
 
   /// Asserts that [index] has an item with the expected properties.
@@ -1474,9 +1602,9 @@ main() {
 
   ExpectedLocation _expectedLocation(String search, bool isQualified,
       {int length}) {
-    int offset = findOffset(search);
-    length ??= getLeadingIdentifierLength(search);
-    return ExpectedLocation(testUnitElement, offset, length, isQualified);
+    int offset = findNode.offset(search);
+    length ??= findNode.simple(search).length;
+    return ExpectedLocation(offset, length, isQualified);
   }
 
   void _failWithIndexDump(String msg) {
@@ -1564,78 +1692,11 @@ main() {
   }
 
   Future<void> _indexTestUnit(String code) async {
-    addTestFile(code);
+    await resolveTestCode(code);
 
-    ResolvedUnitResult result = await driver.getResult(testFile);
-    testUnit = result.unit;
-    testUnitElement = testUnit.declaredElement;
-    testLibraryElement = testUnitElement.library;
-
-    AnalysisDriverUnitIndexBuilder indexBuilder = indexUnit(testUnit);
-    List<int> indexBytes = indexBuilder.toBuffer();
+    var indexBuilder = indexUnit(result.unit);
+    var indexBytes = indexBuilder.toBuffer();
     index = AnalysisDriverUnitIndex.fromBuffer(indexBytes);
-  }
-}
-
-class _ElementIndexAssert {
-  final IndexTest test;
-  final Element element;
-  final List<_Relation> relations;
-
-  _ElementIndexAssert(this.test, this.element, this.relations);
-
-  void hasRelationCount(int expectedCount) {
-    expect(relations, hasLength(expectedCount));
-  }
-
-  void isAncestorOf(String search, {int length}) {
-    test._assertHasRelation(
-        element,
-        relations,
-        IndexRelationKind.IS_ANCESTOR_OF,
-        test._expectedLocation(search, false, length: length));
-  }
-
-  void isExtendedAt(String search, bool isQualified, {int length}) {
-    test._assertHasRelation(
-        element,
-        relations,
-        IndexRelationKind.IS_EXTENDED_BY,
-        test._expectedLocation(search, isQualified, length: length));
-  }
-
-  void isImplementedAt(String search, bool isQualified, {int length}) {
-    test._assertHasRelation(
-        element,
-        relations,
-        IndexRelationKind.IS_IMPLEMENTED_BY,
-        test._expectedLocation(search, isQualified, length: length));
-  }
-
-  void isInvokedAt(String search, bool isQualified, {int length}) {
-    test._assertHasRelation(element, relations, IndexRelationKind.IS_INVOKED_BY,
-        test._expectedLocation(search, isQualified, length: length));
-  }
-
-  void isMixedInAt(String search, bool isQualified, {int length}) {
-    test._assertHasRelation(
-        element,
-        relations,
-        IndexRelationKind.IS_MIXED_IN_BY,
-        test._expectedLocation(search, isQualified, length: length));
-  }
-
-  void isReferencedAt(String search, bool isQualified, {int length}) {
-    test._assertHasRelation(
-        element,
-        relations,
-        IndexRelationKind.IS_REFERENCED_BY,
-        test._expectedLocation(search, isQualified, length: length));
-  }
-
-  void isWrittenAt(String search, bool isQualified, {int length}) {
-    test._assertHasRelation(element, relations, IndexRelationKind.IS_WRITTEN_BY,
-        test._expectedLocation(search, isQualified, length: length));
   }
 }
 

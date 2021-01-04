@@ -32,7 +32,7 @@ import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
 import 'package:front_end/src/fasta/messages.dart'
     show DiagnosticMessageFromJson, LocatedMessage;
 
-import 'package:kernel/ast.dart' show Component, Library;
+import 'package:kernel/ast.dart' show Component, Library, Reference, Source;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
@@ -293,6 +293,26 @@ class MatchExpectation
         buffer.writeln(extraConstantString);
       }
     }
+    bool printedConstantCoverageHeader = false;
+    for (Source source in result.component.uriToSource.values) {
+      if (!result.isUserLibraryImportUri(source.importUri)) continue;
+
+      if (source.constantCoverageConstructors != null &&
+          source.constantCoverageConstructors.isNotEmpty) {
+        if (!printedConstantCoverageHeader) {
+          buffer.writeln("");
+          buffer.writeln("");
+          buffer.writeln("Constructor coverage from constants:");
+          printedConstantCoverageHeader = true;
+        }
+        buffer.writeln("${source.fileUri}:");
+        for (Reference reference in source.constantCoverageConstructors) {
+          buffer
+              .writeln("- ${reference.node} (from ${reference.node.location})");
+        }
+        buffer.writeln("");
+      }
+    }
 
     String actual = "$buffer";
     String binariesPath =
@@ -499,6 +519,10 @@ class ComponentResult {
       [this.outputUri]);
 
   bool isUserLibrary(Library library) {
-    return userLibraries.contains(library.importUri);
+    return isUserLibraryImportUri(library.importUri);
+  }
+
+  bool isUserLibraryImportUri(Uri importUri) {
+    return userLibraries.contains(importUri);
   }
 }

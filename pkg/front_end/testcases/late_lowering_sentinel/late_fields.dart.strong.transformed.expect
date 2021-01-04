@@ -11,6 +11,7 @@ static field core::int? _#nullableFinalTopLevelField = _in::createSentinel<core:
 static field core::int? _#nonNullableFinalTopLevelField = null;
 static field core::int? _#nullableFinalTopLevelFieldWithInitializer = _in::createSentinel<core::int?>();
 static field core::int? _#nonNullableFinalTopLevelFieldWithInitializer = null;
+static field Never? _#neverTopLevelField = null;
 static get nullableTopLevelField() → core::int?
   return let final core::int? #t1 = self::_#nullableTopLevelField in _in::isSentinel(#t1) ?{core::int?} throw new _in::LateError::fieldNI("nullableTopLevelField") : #t1{core::int?};
 static set nullableTopLevelField(core::int? #t2) → void
@@ -45,10 +46,14 @@ static get nullableFinalTopLevelFieldWithInitializer() → core::int?
   return let final core::int? #t13 = self::_#nullableFinalTopLevelFieldWithInitializer in _in::isSentinel(#t13) ?{core::int?} let final core::int? #t14 = null in _in::isSentinel(self::_#nullableFinalTopLevelFieldWithInitializer) ?{core::int?} self::_#nullableFinalTopLevelFieldWithInitializer = #t14 : throw new _in::LateError::fieldADI("nullableFinalTopLevelFieldWithInitializer") : #t13;
 static get nonNullableFinalTopLevelFieldWithInitializer() → core::int
   return let final core::int? #t15 = self::_#nonNullableFinalTopLevelFieldWithInitializer in #t15.==(null) ?{core::int} let final core::int #t16 = 0 in self::_#nonNullableFinalTopLevelFieldWithInitializer.==(null) ?{core::int} self::_#nonNullableFinalTopLevelFieldWithInitializer = #t16 : throw new _in::LateError::fieldADI("nonNullableFinalTopLevelFieldWithInitializer") : #t15{core::int};
+static get neverTopLevelField() → Never
+  return let final Never? #t17 = self::_#neverTopLevelField in #t17.==(null) ?{Never} throw new _in::LateError::fieldNI("neverTopLevelField") : #t17{Never};
+static set neverTopLevelField(Never #t18) → void
+  self::_#neverTopLevelField = #t18;
 static method main() → dynamic {}
 
 
 Extra constant evaluation status:
 Evaluated: VariableGet @ org-dartlang-testcase:///late_fields.dart:11:17 -> NullConstant(null)
 Evaluated: VariableGet @ org-dartlang-testcase:///late_fields.dart:12:16 -> IntConstant(0)
-Extra constant evaluation: evaluated: 98, effectively constant: 2
+Extra constant evaluation: evaluated: 108, effectively constant: 2

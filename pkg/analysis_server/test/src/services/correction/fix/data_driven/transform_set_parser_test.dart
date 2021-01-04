@@ -15,7 +15,6 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/rename.d
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/value_generator.dart';
-import 'package:matcher/matcher.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -32,7 +31,7 @@ class TransformSetParserTest extends AbstractTransformSetParserTest {
   List<Uri> get uris => [Uri.parse('package:myPackage/test.dart')];
 
   void test_addParameter_optionalNamed() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Add'
@@ -74,7 +73,7 @@ transforms:
   }
 
   void test_addParameter_optionalPositional() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Add'
@@ -87,6 +86,8 @@ transforms:
       index: 0
       name: 'p'
       style: optional_positional
+      argumentValue:
+        expression: ''
 ''');
     var transforms = _transforms('f');
     expect(transforms, hasLength(1));
@@ -105,7 +106,7 @@ transforms:
   }
 
   void test_addParameter_requiredNamed() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Add'
@@ -147,7 +148,7 @@ transforms:
   }
 
   void test_addParameter_requiredPositional() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Add'
@@ -189,7 +190,7 @@ transforms:
   }
 
   void test_addParameter_requiredPositional_complexTemplate() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Add'
@@ -239,7 +240,7 @@ transforms:
   }
 
   void test_addTypeParameter_fromImportedName() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - date: 2020-09-03
@@ -277,7 +278,7 @@ transforms:
   }
 
   void test_addTypeParameter_fromNamedArgument() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Add'
@@ -316,7 +317,7 @@ transforms:
   }
 
   void test_addTypeParameter_fromPositionalArgument() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Add'
@@ -360,7 +361,7 @@ transforms:
   }
 
   void test_addTypeParameter_fromPositionalArgument_variableInOuterScope() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Add'
@@ -404,7 +405,7 @@ transforms:
   }
 
   void test_bulkApply() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Rename g'
@@ -451,7 +452,7 @@ transforms:
   }
 
   void test_date() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Rename g'
@@ -469,7 +470,7 @@ transforms:
   }
 
   void test_element_getter_inMixin() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Rename g'
@@ -488,7 +489,7 @@ transforms:
   }
 
   void test_element_getter_topLevel() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Rename g'
@@ -506,7 +507,7 @@ transforms:
   }
 
   void test_element_method_inClass() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Rename m'
@@ -525,7 +526,7 @@ transforms:
   }
 
   void test_element_variable() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Rename v'
@@ -543,28 +544,26 @@ transforms:
   }
 
   void test_incomplete() {
-    parse('''
+    assertErrors('''
 version: 1
 transforms:
-''');
-    expect(result, null);
-    errorListener.assertErrors([
+''', [
       error(TransformSetErrorCode.invalidValue, 21, 0),
     ]);
+    expect(result, null);
   }
 
   void test_invalidYaml() {
-    parse('''
+    assertErrors('''
 [
-''');
-    expect(result, null);
-    errorListener.assertErrors([
+''', [
       error(TransformSetErrorCode.yamlSyntaxError, 2, 0),
     ]);
+    expect(result, null);
   }
 
   void test_removeParameter_named() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Remove'
@@ -591,7 +590,7 @@ transforms:
   }
 
   void test_removeParameter_positional() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Remove'
@@ -618,7 +617,7 @@ transforms:
   }
 
   void test_rename() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Rename A'
@@ -642,7 +641,7 @@ transforms:
   }
 
   void test_rename_oneOf() {
-    parse('''
+    assertNoErrors('''
 version: 1
 transforms:
 - title: 'Rename A'
@@ -672,6 +671,51 @@ transforms:
     expect(changes, hasLength(1));
     var rename = changes[0] as Rename;
     expect(rename.newName, 'B');
+  }
+
+  void test_requiredIf() {
+    assertNoErrors('''
+version: 1
+transforms:
+- title: 'Add'
+  date: 2020-09-09
+  element:
+    uris: ['test.dart']
+    function: 'f'
+  changes:
+    - kind: 'addParameter'
+      index: 0
+      name: 'p'
+      style: optional_named
+      argumentValue:
+        expression: '{% p %}'
+        requiredIf: "p != ''"
+        variables:
+          p:
+            kind: 'fragment'
+            value: 'arguments[1]'
+''');
+    var transforms = _transforms('f');
+    expect(transforms, hasLength(1));
+    var transform = transforms[0];
+    expect(transform.title, 'Add');
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var change = changes[0] as ModifyParameters;
+    var modifications = change.modifications;
+    expect(modifications, hasLength(1));
+    var modification = modifications[0] as AddParameter;
+    expect(modification.index, 0);
+    expect(modification.name, 'p');
+    expect(modification.isRequired, false);
+    expect(modification.isPositional, false);
+    var argumentValue = modification.argumentValue;
+    expect(argumentValue.requiredIfCondition, isNotNull);
+    var components = argumentValue.components;
+    expect(components, hasLength(1));
+    var value = _accessor(components[0]) as ArgumentAccessor;
+    var parameter = value.parameter as PositionalParameterReference;
+    expect(parameter.index, 1);
   }
 
   /// Return the first accessor from the given [component].

@@ -12,27 +12,33 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/platform_optional_parameters/patch_lib.dart:11:27: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/platform_optional_parameters/patch_lib.dart:11:27: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   void patchedMethod([int i]) {}
 //                           ^
 //
-// pkg/front_end/testcases/nnbd/platform_optional_parameters/patch_lib.dart:13:29: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/platform_optional_parameters/patch_lib.dart:13:29: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   void _injectedMethod([int i]) {}
 //                             ^
 //
-// pkg/front_end/testcases/nnbd/platform_optional_parameters/patch_lib.dart:17:25: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/platform_optional_parameters/patch_lib.dart:17:25: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 // void patchedMethod([int i]) {}
 //                         ^
 //
-// pkg/front_end/testcases/nnbd/platform_optional_parameters/patch_lib.dart:19:27: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/platform_optional_parameters/patch_lib.dart:19:27: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 // void _injectedMethod([int i]) {}
 //                           ^
 //
-// pkg/front_end/testcases/nnbd/platform_optional_parameters/origin_lib.dart:6:20: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/platform_optional_parameters/origin_lib.dart:6:20: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   void method([int i]) {}
 //                    ^
 //
-// pkg/front_end/testcases/nnbd/platform_optional_parameters/origin_lib.dart:11:18: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/platform_optional_parameters/origin_lib.dart:11:18: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 // void method([int i]) {}
 //                  ^
 //

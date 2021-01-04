@@ -714,21 +714,24 @@ class LibraryAnalyzer {
         _inheritance, _libraryElement, source, _typeProvider, errorListener,
         featureSet: unit.featureSet, flowAnalysisHelper: flowAnalysisHelper);
 
+    var donePartialResolution = false;
     if (completionOffset != null) {
       var node = NodeLocator(completionOffset).searchWithin(unit);
-      var enclosingExecutable = node?.thisOrAncestorMatching((e) {
-        return e.parent is ClassDeclaration || e.parent is CompilationUnit;
+      var nodeToResolve = node?.thisOrAncestorMatching((e) {
+        return e.parent is ClassDeclaration ||
+            e.parent is CompilationUnit ||
+            e.parent is MixinDeclaration;
       });
-
-      if (enclosingExecutable != null) {
-        var enclosingClass = enclosingExecutable.parent;
-        if (enclosingClass is ClassDeclaration) {
-          resolverVisitor.enclosingClass = enclosingClass.declaredElement;
+      if (nodeToResolve != null) {
+        var can = resolverVisitor.prepareForResolving(nodeToResolve);
+        if (can) {
+          nodeToResolve?.accept(resolverVisitor);
+          donePartialResolution = true;
         }
-
-        enclosingExecutable?.accept(resolverVisitor);
       }
-    } else {
+    }
+
+    if (!donePartialResolution) {
       unit.accept(resolverVisitor);
     }
   }

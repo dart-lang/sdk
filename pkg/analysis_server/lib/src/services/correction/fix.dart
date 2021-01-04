@@ -109,6 +109,8 @@ bool hasFix(ErrorCode errorCode) =>
 /// An enumeration of quick fix kinds for the errors found in an analysis
 /// options file.
 class AnalysisOptionsFixKind {
+  static const REMOVE_LINT =
+      FixKind('analysisOptions.fix.removeLint', 50, "Remove '{0}'");
   static const REMOVE_SETTING =
       FixKind('analysisOptions.fix.removeSetting', 50, "Remove '{0}'");
 }
@@ -259,8 +261,8 @@ class DartFixKind {
       'Convert to single quoted string');
   static const CONVERT_TO_SPREAD =
       FixKind('dart.fix.convert.toSpread', 50, 'Convert to a spread');
-  static const CONVERT_TO_WHERE_TYPE = FixKind(
-      'dart.fix.convert.toWhereType', 50, "Convert to a use 'whereType'");
+  static const CONVERT_TO_WHERE_TYPE =
+      FixKind('dart.fix.convert.toWhereType', 50, "Convert to use 'whereType'");
   static const CREATE_CLASS =
       FixKind('dart.fix.create.class', 50, "Create class '{0}'");
   static const CREATE_CONSTRUCTOR =
@@ -398,6 +400,11 @@ class DartFixKind {
       'Remove unnecessary const keyword');
   static const REMOVE_UNNECESSARY_NEW = FixKind(
       'dart.fix.remove.unnecessaryNew', 50, 'Remove unnecessary new keyword');
+  static const REMOVE_UNNECESSARY_PARENTHESES = FixKind(
+      'dart.fix.remove.unnecessaryParentheses',
+      50,
+      'Remove unnecessary parentheses',
+      appliedTogetherMessage: 'Remove all unnecessary parentheses in file');
   static const REMOVE_UNUSED_CATCH_CLAUSE = FixKind(
       'dart.fix.remove.unusedCatchClause', 50, "Remove unused 'catch' clause");
   static const REMOVE_UNUSED_CATCH_STACK = FixKind(

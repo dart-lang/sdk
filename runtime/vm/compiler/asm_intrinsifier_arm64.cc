@@ -28,29 +28,25 @@ intptr_t AsmIntrinsifier::ParameterSlotFromSp() {
   return -1;
 }
 
-static bool IsABIPreservedRegister(Register reg) {
-  return ((1 << reg) & kAbiPreservedCpuRegs) != 0;
-}
-
 void AsmIntrinsifier::IntrinsicCallPrologue(Assembler* assembler) {
-  ASSERT(IsABIPreservedRegister(CODE_REG));
-  ASSERT(!IsABIPreservedRegister(ARGS_DESC_REG));
-  ASSERT(IsABIPreservedRegister(CALLEE_SAVED_TEMP));
-  ASSERT(IsABIPreservedRegister(CALLEE_SAVED_TEMP2));
-  ASSERT(CALLEE_SAVED_TEMP != CODE_REG);
-  ASSERT(CALLEE_SAVED_TEMP != ARGS_DESC_REG);
-  ASSERT(CALLEE_SAVED_TEMP2 != CODE_REG);
-  ASSERT(CALLEE_SAVED_TEMP2 != ARGS_DESC_REG);
+  COMPILE_ASSERT(IsAbiPreservedRegister(CODE_REG));
+  COMPILE_ASSERT(!IsAbiPreservedRegister(ARGS_DESC_REG));
+  COMPILE_ASSERT(IsAbiPreservedRegister(CALLEE_SAVED_TEMP));
+  COMPILE_ASSERT(IsAbiPreservedRegister(CALLEE_SAVED_TEMP2));
+  COMPILE_ASSERT(CALLEE_SAVED_TEMP != CODE_REG);
+  COMPILE_ASSERT(CALLEE_SAVED_TEMP != ARGS_DESC_REG);
+  COMPILE_ASSERT(CALLEE_SAVED_TEMP2 != CODE_REG);
+  COMPILE_ASSERT(CALLEE_SAVED_TEMP2 != ARGS_DESC_REG);
 
-  assembler->Comment("IntrinsicCallPrologue");
-  assembler->mov(CALLEE_SAVED_TEMP, LR);
-  assembler->mov(CALLEE_SAVED_TEMP2, ARGS_DESC_REG);
+  __ Comment("IntrinsicCallPrologue");
+  SPILLS_RETURN_ADDRESS_FROM_LR_TO_REGISTER(__ mov(CALLEE_SAVED_TEMP, LR));
+  __ mov(CALLEE_SAVED_TEMP2, ARGS_DESC_REG);
 }
 
 void AsmIntrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
-  assembler->Comment("IntrinsicCallEpilogue");
-  assembler->mov(LR, CALLEE_SAVED_TEMP);
-  assembler->mov(ARGS_DESC_REG, CALLEE_SAVED_TEMP2);
+  __ Comment("IntrinsicCallEpilogue");
+  RESTORES_RETURN_ADDRESS_FROM_REGISTER_TO_LR(__ mov(LR, CALLEE_SAVED_TEMP));
+  __ mov(ARGS_DESC_REG, CALLEE_SAVED_TEMP2);
 }
 
 // Allocate a GrowableObjectArray:: using the backing array specified.
@@ -1556,8 +1552,8 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ LoadClassById(R2, R1);
   __ ldr(
       R3,
-      FieldAddress(R2, target::Class::num_type_arguments_offset(), kHalfword),
-      kHalfword);
+      FieldAddress(R2, target::Class::num_type_arguments_offset(), kTwoBytes),
+      kTwoBytes);
   __ CompareImmediate(R3, 0);
   __ b(normal_ir_body, NE);
 
@@ -1597,8 +1593,8 @@ static void EquivalentClassIds(Assembler* assembler,
   __ LoadClassById(scratch, cid1);
   __ ldr(scratch,
          FieldAddress(scratch, target::Class::num_type_arguments_offset(),
-                      kHalfword),
-         kHalfword);
+                      kTwoBytes),
+         kTwoBytes);
   __ cbnz(normal_ir_body, scratch);
   __ b(equal);
 
@@ -1654,7 +1650,8 @@ void AsmIntrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler,
 void AsmIntrinsifier::String_getHashCode(Assembler* assembler,
                                          Label* normal_ir_body) {
   __ ldr(R0, Address(SP, 0 * target::kWordSize));
-  __ ldr(R0, FieldAddress(R0, target::String::hash_offset()), kUnsignedWord);
+  __ ldr(R0, FieldAddress(R0, target::String::hash_offset()),
+         kUnsignedFourBytes);
   __ adds(R0, R0, Operand(R0));  // Smi tag the hash code, setting Z flag.
   __ b(normal_ir_body, EQ);
   __ ret();
@@ -1729,8 +1726,8 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
 void AsmIntrinsifier::Object_getHash(Assembler* assembler,
                                      Label* normal_ir_body) {
   __ ldr(R0, Address(SP, 0 * target::kWordSize));
-  __ ldr(R0, FieldAddress(R0, target::String::hash_offset(), kWord),
-         kUnsignedWord);
+  __ ldr(R0, FieldAddress(R0, target::String::hash_offset(), kFourBytes),
+         kUnsignedFourBytes);
   __ SmiTag(R0);
   __ ret();
 }
@@ -1739,9 +1736,16 @@ void AsmIntrinsifier::Object_setHash(Assembler* assembler,
                                      Label* normal_ir_body) {
   __ ldr(R0, Address(SP, 1 * target::kWordSize));  // Object.
   __ ldr(R1, Address(SP, 0 * target::kWordSize));  // Value.
+  // R0: Untagged address of header word (ldxr/stxr do not support offsets).
+  __ sub(R0, R0, Operand(kHeapObjectTag));
   __ SmiUntag(R1);
-  __ str(R1, FieldAddress(R0, target::String::hash_offset(), kWord),
-         kUnsignedWord);
+  __ LslImmediate(R1, R1, target::ObjectLayout::kHashTagPos);
+  Label retry;
+  __ Bind(&retry);
+  __ ldxr(R2, R0, kEightBytes);
+  __ orr(R2, R2, Operand(R1));
+  __ stxr(R4, R2, R0, kEightBytes);
+  __ cbnz(&retry, R4);
   __ ret();
 }
 
@@ -1795,10 +1799,10 @@ void GenerateSubstringMatchesSpecialization(Assembler* assembler,
 
   // this.codeUnitAt(i + start)
   __ ldr(R10, Address(R0, 0),
-         receiver_cid == kOneByteStringCid ? kUnsignedByte : kUnsignedHalfword);
+         receiver_cid == kOneByteStringCid ? kUnsignedByte : kUnsignedTwoBytes);
   // other.codeUnitAt(i)
   __ ldr(R11, Address(R2, 0),
-         other_cid == kOneByteStringCid ? kUnsignedByte : kUnsignedHalfword);
+         other_cid == kOneByteStringCid ? kUnsignedByte : kUnsignedTwoBytes);
   __ cmp(R10, Operand(R11));
   __ b(return_false, NE);
 
@@ -1883,7 +1887,7 @@ void AsmIntrinsifier::StringBaseCharAt(Assembler* assembler,
   __ b(normal_ir_body, NE);
   ASSERT(kSmiTagShift == 1);
   __ AddImmediate(R0, target::TwoByteString::data_offset() - kHeapObjectTag);
-  __ ldr(R1, Address(R0, R1), kUnsignedHalfword);
+  __ ldr(R1, Address(R0, R1), kUnsignedTwoBytes);
   __ CompareImmediate(R1, target::Symbols::kNumberOfOneCharCodeSymbols);
   __ b(normal_ir_body, GE);
   __ ldr(R0, Address(THR, target::Thread::predefined_symbols_address_offset()));
@@ -1910,7 +1914,8 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
                                                 Label* normal_ir_body) {
   Label compute_hash;
   __ ldr(R1, Address(SP, 0 * target::kWordSize));  // OneByteString object.
-  __ ldr(R0, FieldAddress(R1, target::String::hash_offset()), kUnsignedWord);
+  __ ldr(R0, FieldAddress(R1, target::String::hash_offset()),
+         kUnsignedFourBytes);
   __ adds(R0, R0, Operand(R0));  // Smi tag the hash code, setting Z flag.
   __ b(&compute_hash, EQ);
   __ ret();  // Return if already computed.
@@ -1963,7 +1968,18 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   // return hash_ == 0 ? 1 : hash_;
   __ Bind(&done);
   __ csinc(R0, R0, ZR, NE);  // R0 <- (R0 != 0) ? R0 : (ZR + 1).
-  __ str(R0, FieldAddress(R1, target::String::hash_offset()), kUnsignedWord);
+
+  // R1: Untagged address of header word (ldxr/stxr do not support offsets).
+  __ sub(R1, R1, Operand(kHeapObjectTag));
+  __ LslImmediate(R0, R0, target::ObjectLayout::kHashTagPos);
+  Label retry;
+  __ Bind(&retry);
+  __ ldxr(R2, R1, kEightBytes);
+  __ orr(R2, R2, Operand(R0));
+  __ stxr(R4, R2, R1, kEightBytes);
+  __ cbnz(&retry, R4);
+
+  __ LsrImmediate(R0, R0, target::ObjectLayout::kHashTagPos);
   __ SmiTag(R0);
   __ ret();
 }
@@ -2032,7 +2048,7 @@ static void TryAllocateString(Assembler* assembler,
     // Get the class index and insert it into the tags.
     // R2: size and bit tags.
     // This also clears the hash, which is in the high word of the tags.
-    const uint32_t tags =
+    const uword tags =
         target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
     __ LoadImmediate(TMP, tags);
     __ orr(R2, R2, Operand(TMP));
@@ -2127,7 +2143,7 @@ void AsmIntrinsifier::WriteIntoTwoByteString(Assembler* assembler,
   __ SmiUntag(R2);
   __ AddImmediate(R3, R0,
                   target::TwoByteString::data_offset() - kHeapObjectTag);
-  __ str(R2, Address(R3, R1), kUnsignedHalfword);
+  __ str(R2, Address(R3, R1), kUnsignedTwoBytes);
   __ ret();
 }
 
@@ -2200,8 +2216,8 @@ static void StringEquality(Assembler* assembler,
     __ AddImmediate(R0, 1);
     __ AddImmediate(R1, 1);
   } else if (string_cid == kTwoByteStringCid) {
-    __ ldr(R3, Address(R0), kUnsignedHalfword);
-    __ ldr(R4, Address(R1), kUnsignedHalfword);
+    __ ldr(R3, Address(R0), kUnsignedTwoBytes);
+    __ ldr(R4, Address(R1), kUnsignedTwoBytes);
     __ AddImmediate(R0, 2);
     __ AddImmediate(R1, 2);
   } else {
@@ -2314,20 +2330,6 @@ void AsmIntrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler,
   __ csel(R0, TMP, R0, NE);
   __ ret();
 #endif
-}
-
-void AsmIntrinsifier::ClearAsyncThreadStackTrace(Assembler* assembler,
-                                                 Label* normal_ir_body) {
-  __ LoadObject(R0, NullObject());
-  __ str(R0, Address(THR, target::Thread::async_stack_trace_offset()));
-  __ ret();
-}
-
-void AsmIntrinsifier::SetAsyncThreadStackTrace(Assembler* assembler,
-                                               Label* normal_ir_body) {
-  __ ldr(R0, Address(THR, target::Thread::async_stack_trace_offset()));
-  __ LoadObject(R0, NullObject());
-  __ ret();
 }
 
 #undef __

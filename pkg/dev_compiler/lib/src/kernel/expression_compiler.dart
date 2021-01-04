@@ -12,7 +12,6 @@ import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
 import 'package:_fe_analyzer_shared/src/messages/codes.dart' show Message, Code;
 
 import 'package:dev_compiler/dev_compiler.dart';
-import 'package:dev_compiler/src/compiler/js_names.dart' as js_ast;
 import 'package:dev_compiler/src/js_ast/js_ast.dart' as js_ast;
 import 'package:dev_compiler/src/kernel/compiler.dart';
 
@@ -41,7 +40,7 @@ import 'package:kernel/ast.dart'
         Visitor;
 
 DiagnosticMessage _createInternalError(Uri uri, int line, int col, String msg) {
-  return Message(Code<String>('Expression Compiler Internal error', null),
+  return Message(Code<String>('Expression Compiler Internal error'),
           message: msg)
       .withLocation(uri, 0, 0)
       .withFormatting(

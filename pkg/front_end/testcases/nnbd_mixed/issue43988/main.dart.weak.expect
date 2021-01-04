@@ -9,6 +9,8 @@ abstract class _E1&Object&A = core::Object with mai::A /*isAnonymousMixin,hasCon
   const synthetic constructor •() → self::_E1&Object&A*
     : super core::Object::•()
     ;
+  mixin-super-stub method method(core::num* i, {core::String* s = #C1}) → core::String*
+    return super.{mai::A::method}(i, s: s);
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -36,6 +38,8 @@ abstract class _E2&Object&A = core::Object with mai::A /*isAnonymousMixin,hasCon
   const synthetic constructor •() → self::_E2&Object&A*
     : super core::Object::•()
     ;
+  mixin-super-stub method method(core::num* i, {core::String* s = #C1}) → core::String*
+    return super.{mai::A::method}(i, s: s);
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf

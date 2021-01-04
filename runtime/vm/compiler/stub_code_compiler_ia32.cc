@@ -213,7 +213,7 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
 void StubCodeCompiler::GenerateJITCallbackTrampolines(
     Assembler* assembler,
     intptr_t next_callback_id) {
-  Label done;
+  Label done, ret_4;
 
   // EAX is volatile and doesn't hold any arguments.
   COMPILE_ASSERT(!IsArgumentRegister(EAX) && !IsCalleeSavedRegister(EAX));
@@ -232,16 +232,20 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 
   const intptr_t shared_stub_start = __ CodeSize();
 
-  // Save THR which is callee-saved.
+  // Save THR and EBX which are callee-saved.
   __ pushl(THR);
+  __ pushl(EBX);
+
+  // We need the callback ID after the call for return stack.
+  __ pushl(EAX);
 
   // THR & return address
-  COMPILE_ASSERT(StubCodeCompiler::kNativeCallbackTrampolineStackDelta == 2);
+  COMPILE_ASSERT(StubCodeCompiler::kNativeCallbackTrampolineStackDelta == 4);
 
   // Load the thread, verify the callback ID and exit the safepoint.
   //
   // We exit the safepoint inside DLRT_GetThreadForNativeCallbackTrampoline
-  // in order to safe code size on this shared stub.
+  // in order to save code size on this shared stub.
   {
     __ EnterFrame(0);
     __ ReserveAlignedFrameSpace(compiler::target::kWordSize);
@@ -278,13 +282,53 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   // the saved THR and the return address. The target will know to skip them.
   __ call(ECX);
 
+  // Register state:
+  // - callee saved registers (should be restored)
+  //   - EBX available as scratch because we restore it later.
+  //   - ESI(THR) contains thread
+  //   - EDI
+  // - return registers (should not be touched)
+  //   - EAX
+  //   - EDX
+  // - available scratch registers
+  //   - ECX free
+
+  // Load the return stack delta from the thread.
+  __ movl(ECX,
+          compiler::Address(
+              THR, compiler::target::Thread::callback_stack_return_offset()));
+  __ popl(EBX);  // Compiler callback id.
+  __ movzxb(EBX, __ ElementAddressForRegIndex(
+                     /*external=*/false,
+                     /*array_cid=*/kTypedDataUint8ArrayCid,
+                     /*index=*/1,
+                     /*index_unboxed=*/false,
+                     /*array=*/ECX,
+                     /*index=*/EBX));
+#if defined(DEBUG)
+  // Stack delta should be either 0 or 4.
+  Label check_done;
+  __ BranchIfZero(EBX, &check_done);
+  __ CompareImmediate(EBX, compiler::target::kWordSize);
+  __ BranchIf(EQUAL, &check_done);
+  __ Breakpoint();
+  __ Bind(&check_done);
+#endif
+
   // EnterSafepoint takes care to not clobber *any* registers (besides scratch).
   __ EnterSafepoint(/*scratch=*/ECX);
 
-  // Restore THR (callee-saved).
+  // Restore callee-saved registers.
+  __ movl(ECX, EBX);
+  __ popl(EBX);
   __ popl(THR);
 
+  __ cmpl(ECX, compiler::Immediate(Smi::RawValue(0)));
+  __ j(NOT_EQUAL, &ret_4, compiler::Assembler::kNearJump);
   __ ret();
+
+  __ Bind(&ret_4);
+  __ ret(Immediate(4));
 
   // 'kNativeCallbackSharedStubSize' is an upper bound because the exact
   // instruction size can vary slightly based on OS calling conventions.
@@ -833,7 +877,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
       __ Bind(&done);
 
       // Get the class index and insert it into the tags.
-      uint32_t tags = target::MakeTagWordForNewSpaceObject(cid, 0);
+      uword tags = target::MakeTagWordForNewSpaceObject(cid, 0);
       __ orl(EDI, Immediate(tags));
       __ movl(FieldAddress(EAX, target::Object::tags_offset()), EDI);  // Tags.
     }
@@ -1060,9 +1104,9 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
   // EDX: number of context variables.
   __ cmpl(EBX, Address(THR, target::Thread::end_offset()));
 #if defined(DEBUG)
-  static const bool kJumpLength = Assembler::kFarJump;
+  static auto const kJumpLength = Assembler::kFarJump;
 #else
-  static const bool kJumpLength = Assembler::kNearJump;
+  static auto const kJumpLength = Assembler::kNearJump;
 #endif  // DEBUG
   __ j(ABOVE_EQUAL, slow_case, kJumpLength);
 
@@ -1098,7 +1142,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
     // EAX: new object.
     // EDX: number of context variables.
     // EBX: size and bit tags.
-    uint32_t tags = target::MakeTagWordForNewSpaceObject(kContextCid, 0);
+    uword tags = target::MakeTagWordForNewSpaceObject(kContextCid, 0);
     __ orl(EBX, Immediate(tags));
     __ movl(FieldAddress(EAX, target::Object::tags_offset()), EBX);  // Tags.
   }
@@ -1453,8 +1497,8 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
     // EDX: new object type arguments (if is_cls_parameterized).
     // Set the tags.
     ASSERT(target::Class::GetId(cls) != kIllegalCid);
-    uint32_t tags = target::MakeTagWordForNewSpaceObject(
-        target::Class::GetId(cls), instance_size);
+    uword tags = target::MakeTagWordForNewSpaceObject(target::Class::GetId(cls),
+                                                      instance_size);
     __ movl(Address(EAX, target::Object::tags_offset()), Immediate(tags));
     __ addl(EAX, Immediate(kHeapObjectTag));
 
@@ -2184,15 +2228,16 @@ void StubCodeCompiler::GenerateDebugStepCheckStub(Assembler* assembler) {
 // TOS + 0: return address.
 // TOS + 1: function type arguments (only if n == 4, can be raw_null).
 // TOS + 2: instantiator type arguments (only if n == 4, can be raw_null).
-// TOS + 3: instance.
-// TOS + 4: SubtypeTestCache.
+// TOS + 3: destination_type (only used if n >= 3).
+// TOS + 4: instance.
+// TOS + 5: SubtypeTestCache.
 //
 // No registers are preserved by this stub.
 //
 // Result in SubtypeTestCacheReg::kResultReg: null -> not found, otherwise
 // result (true or false).
 static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
-  ASSERT(n == 1 || n == 2 || n == 4 || n == 6);
+  ASSERT(n == 1 || n == 3 || n == 5 || n == 7);
 
   // We represent the depth of as a depth from the top of the stack at the
   // start of the stub. That is, depths for input values are non-negative and
@@ -2206,8 +2251,9 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // Inputs use relative depths.
   static constexpr intptr_t kFunctionTypeArgumentsDepth = 1;
   static constexpr intptr_t kInstantiatorTypeArgumentsDepth = 2;
-  static constexpr intptr_t kInstanceDepth = 3;
-  static constexpr intptr_t kCacheDepth = 4;
+  static constexpr intptr_t kDestinationTypeDepth = 3;
+  static constexpr intptr_t kInstanceDepth = 4;
+  static constexpr intptr_t kCacheDepth = 5;
   // Others use absolute depths. We initialize conditionally pushed values to
   // kNoInput for extra checking.
   intptr_t kInstanceParentFunctionTypeArgumentsDepth = kNoDepth;
@@ -2224,15 +2270,13 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // Loads a value at the given depth from the stack into dst.
   auto load_from_stack = [&](Register dst, intptr_t depth) {
     ASSERT(depth != kNoDepth);
-    __ movl(dst,
-            Address(ESP, (original_tos_offset + depth) * target::kWordSize));
+    __ LoadFromStack(dst, original_tos_offset + depth);
   };
 
   // Compares a value at the given depth from the stack to the value in src.
   auto compare_to_stack = [&](Register src, intptr_t depth) {
     ASSERT(depth != kNoDepth);
-    __ cmpl(src,
-            Address(ESP, (original_tos_offset + depth) * target::kWordSize));
+    __ CompareToStack(src, original_tos_offset + depth);
   };
 
   const auto& raw_null = Immediate(target::ToRawPointer(NullObject()));
@@ -2251,7 +2295,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
           Immediate(target::Array::data_offset() - kHeapObjectTag));
 
   Label loop, not_closure;
-  if (n >= 4) {
+  if (n >= 5) {
     __ LoadClassIdMayBeSmi(kInstanceCidOrFunction, TypeTestABI::kInstanceReg);
   } else {
     __ LoadClassId(kInstanceCidOrFunction, TypeTestABI::kInstanceReg);
@@ -2264,12 +2308,12 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ movl(kInstanceCidOrFunction,
             FieldAddress(TypeTestABI::kInstanceReg,
                          target::Closure::function_offset()));
-    if (n >= 2) {
+    if (n >= 3) {
       __ movl(
           kInstanceInstantiatorTypeArgumentsReg,
           FieldAddress(TypeTestABI::kInstanceReg,
                        target::Closure::instantiator_type_arguments_offset()));
-      if (n >= 6) {
+      if (n >= 7) {
         __ pushl(
             FieldAddress(TypeTestABI::kInstanceReg,
                          target::Closure::delayed_type_arguments_offset()));
@@ -2284,7 +2328,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // Non-Closure handling.
   {
     __ Bind(&not_closure);
-    if (n >= 2) {
+    if (n >= 3) {
       Label has_no_type_arguments;
       __ LoadClassById(kScratchReg, kInstanceCidOrFunction);
       __ movl(kInstanceInstantiatorTypeArgumentsReg, raw_null);
@@ -2299,7 +2343,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
               FieldAddress(TypeTestABI::kInstanceReg, kScratchReg, TIMES_4, 0));
       __ Bind(&has_no_type_arguments);
 
-      if (n >= 6) {
+      if (n >= 7) {
         __ pushl(raw_null);  // delayed.
         __ pushl(raw_null);  // function.
       }
@@ -2307,7 +2351,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ SmiTag(kInstanceCidOrFunction);
   }
 
-  if (n >= 6) {
+  if (n >= 7) {
     // Now that instance handling is done, both the delayed and parent function
     // type arguments stack slots have been set, so any input uses must be
     // offset by the new values and the new values can now be accessed in
@@ -2332,11 +2376,17 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ j(EQUAL, &done, Assembler::kNearJump);
   } else {
     __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
+    __ movl(kScratchReg,
+            Address(kCacheArrayReg,
+                    target::kWordSize *
+                        target::SubtypeTestCache::kDestinationType));
+    compare_to_stack(kScratchReg, kDestinationTypeDepth);
+    __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
     __ cmpl(kInstanceInstantiatorTypeArgumentsReg,
             Address(kCacheArrayReg,
                     target::kWordSize *
                         target::SubtypeTestCache::kInstanceTypeArguments));
-    if (n == 2) {
+    if (n == 3) {
       __ j(EQUAL, &done, Assembler::kNearJump);
     } else {
       __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
@@ -2352,10 +2402,10 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
                       target::kWordSize *
                           target::SubtypeTestCache::kFunctionTypeArguments));
       compare_to_stack(kScratchReg, kFunctionTypeArgumentsDepth);
-      if (n == 4) {
+      if (n == 5) {
         __ j(EQUAL, &done, Assembler::kNearJump);
       } else {
-        ASSERT(n == 6);
+        ASSERT(n == 7);
         __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
 
         __ movl(kScratchReg,
@@ -2389,7 +2439,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ movl(TypeTestABI::kSubtypeTestCacheResultReg,
           Address(kCacheArrayReg,
                   target::kWordSize * target::SubtypeTestCache::kTestResult));
-  if (n >= 6) {
+  if (n >= 7) {
     __ Drop(2);
     original_tos_offset = 0;  // In case we add any input uses after this point.
   }
@@ -2402,67 +2452,18 @@ void StubCodeCompiler::GenerateSubtype1TestCacheStub(Assembler* assembler) {
 }
 
 // See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype2TestCacheStub(Assembler* assembler) {
-  GenerateSubtypeNTestCacheStub(assembler, 2);
+void StubCodeCompiler::GenerateSubtype3TestCacheStub(Assembler* assembler) {
+  GenerateSubtypeNTestCacheStub(assembler, 3);
 }
 
 // See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype4TestCacheStub(Assembler* assembler) {
-  GenerateSubtypeNTestCacheStub(assembler, 4);
+void StubCodeCompiler::GenerateSubtype5TestCacheStub(Assembler* assembler) {
+  GenerateSubtypeNTestCacheStub(assembler, 5);
 }
 
 // See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype6TestCacheStub(Assembler* assembler) {
-  GenerateSubtypeNTestCacheStub(assembler, 6);
-}
-
-void StubCodeCompiler::GenerateDefaultTypeTestStub(Assembler* assembler) {
-  // Not implemented on ia32.
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateDefaultNullableTypeTestStub(
-    Assembler* assembler) {
-  // Not implemented on ia32.
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateTopTypeTypeTestStub(Assembler* assembler) {
-  // Not implemented on ia32.
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateUnreachableTypeTestStub(Assembler* assembler) {
-  // Not implemented on ia32.
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateLazySpecializeTypeTestStub(
-    Assembler* assembler) {
-  // Not implemented on ia32.
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateLazySpecializeNullableTypeTestStub(
-    Assembler* assembler) {
-  // Not implemented on ia32.
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateNullableTypeParameterTypeTestStub(
-    Assembler* assembler) {
-  // Not implemented on ia32.
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateTypeParameterTypeTestStub(Assembler* assembler) {
-  // Not implemented on ia32.
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
-  // Not implemented on ia32.
-  __ Breakpoint();
+void StubCodeCompiler::GenerateSubtype7TestCacheStub(Assembler* assembler) {
+  GenerateSubtypeNTestCacheStub(assembler, 7);
 }
 
 // Return the current stack pointer address, used to do stack alignment checks.
@@ -2939,7 +2940,8 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
   Label call_runtime;
   __ pushl(AllocateTypedDataArrayABI::kLengthReg);
 
-  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, ECX, &call_runtime, false));
+  NOT_IN_PRODUCT(
+      __ MaybeTraceAllocation(cid, ECX, &call_runtime, Assembler::kFarJump));
   __ movl(EDI, AllocateTypedDataArrayABI::kLengthReg);
   /* Check that length is a positive Smi. */
   /* EDI: requested array length argument. */
@@ -2998,8 +3000,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     __ movl(EDI, Immediate(0));
     __ Bind(&done);
     /* Get the class index and insert it into the tags. */
-    uint32_t tags =
-        target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
+    uword tags = target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
     __ orl(EDI, Immediate(tags));
     __ movl(FieldAddress(EAX, target::Object::tags_offset()), EDI); /* Tags. */
   }

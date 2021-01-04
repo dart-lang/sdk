@@ -88,7 +88,7 @@ class Hashing {
   /// [existing].
   static int unorderedMapHash(Map map, [int existing = 0]) {
     if (map.length == 0) return existing;
-    List<int> hashCodes = List(map.length);
+    List<int> hashCodes = List.filled(map.length, null);
     int i = 0;
     for (var entry in map.entries) {
       hashCodes[i++] = objectHash(entry.key, objectHash(entry.value));

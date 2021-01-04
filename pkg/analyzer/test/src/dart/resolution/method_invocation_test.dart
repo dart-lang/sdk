@@ -15,6 +15,9 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MethodInvocationResolutionTest);
     defineReflectiveTests(MethodInvocationResolutionWithNullSafetyTest);
+    defineReflectiveTests(
+      MethodInvocationResolutionWithNonFunctionTypeAliasesTest,
+    );
   });
 }
 
@@ -755,6 +758,7 @@ main() {
   math?.loadLibrary();
 }
 ''', [
+      error(HintCode.UNUSED_IMPORT, 7, 11),
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 49, 4),
     ]);
 
@@ -1309,13 +1313,15 @@ main() {
   }
 
   test_hasReceiver_deferredImportPrefix_loadLibrary() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'dart:math' deferred as math;
 
 main() {
   math.loadLibrary();
 }
-''');
+''', [
+      error(HintCode.UNUSED_IMPORT, 7, 11),
+    ]);
 
     var import = findElement.importFind('dart:math');
 
@@ -1337,6 +1343,7 @@ main() {
   math.loadLibrary(1 + 2);
 }
 ''', [
+      error(HintCode.UNUSED_IMPORT, 7, 11),
       error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 65, 7),
     ]);
 
@@ -1615,7 +1622,7 @@ main() {
     assertElement(foo.propertyName, import.class_('C').getGetter('foo'));
     assertType(foo.propertyName, 'double Function(int)');
 
-    PrefixedIdentifier target = foo.target;
+    var target = foo.target as PrefixedIdentifier;
     assertImportPrefix(target.prefix, import.prefix);
     assertClassRef(target.identifier, import.class_('C'));
   }
@@ -1644,7 +1651,7 @@ main() {
       'void Function(int)',
     );
 
-    PrefixedIdentifier target = invocation.target;
+    var target = invocation.target as PrefixedIdentifier;
     assertImportPrefix(target.prefix, import.prefix);
     assertClassRef(target.identifier, import.class_('C'));
   }
@@ -1695,6 +1702,34 @@ class B extends A {
       'void Function(int)',
     );
     assertSuperExpression(invocation.target);
+  }
+
+  test_invalid_inDefaultValue_nullAware() async {
+    await assertInvalidTestCode('''
+void f({a = b?.foo()}) {}
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('?.foo()'),
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'dynamic',
+      type: 'dynamic',
+    );
+  }
+
+  test_invalid_inDefaultValue_nullAware2() async {
+    await assertInvalidTestCode('''
+typedef void F({a = b?.foo()});
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('?.foo()'),
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'dynamic',
+      type: 'dynamic',
+    );
   }
 
   test_namedArgument() async {
@@ -1905,6 +1940,29 @@ main() {
     } else {
       assertTypeLegacy(invocation.target);
     }
+  }
+
+  test_noReceiver_parameter_functionTyped_typedef() async {
+    await assertNoErrorsInCode(r'''
+typedef F = void Function();
+
+void f(F a) {
+  a();
+}
+''');
+
+    var invocation = findNode.functionExpressionInvocation('a();');
+    assertFunctionExpressionInvocation(
+      invocation,
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'void Function()',
+      type: 'void',
+    );
+
+    var aRef = invocation.function as SimpleIdentifier;
+    assertElement(aRef, findElement.parameter('a'));
+    assertType(aRef, 'void Function()');
   }
 
   test_noReceiver_topFunction() async {
@@ -2301,6 +2359,60 @@ main() {
 }
 
 @reflectiveTest
+class MethodInvocationResolutionWithNonFunctionTypeAliasesTest
+    extends PubPackageResolutionTest with WithNonFunctionTypeAliasesMixin {
+  test_hasReceiver_typeAlias_staticMethod() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  static void foo(int _) {}
+}
+
+typedef B = A;
+
+void f() {
+  B.foo(0);
+}
+''');
+
+    assertMethodInvocation(
+      findNode.methodInvocation('foo(0)'),
+      findElement.method('foo'),
+      'void Function(int)',
+    );
+
+    assertTypeAliasRef(
+      findNode.simple('B.foo'),
+      findElement.typeAlias('B'),
+    );
+  }
+
+  test_hasReceiver_typeAlias_staticMethod_generic() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  static void foo(int _) {}
+}
+
+typedef B<T> = A<T>;
+
+void f() {
+  B.foo(0);
+}
+''');
+
+    assertMethodInvocation(
+      findNode.methodInvocation('foo(0)'),
+      findElement.method('foo'),
+      'void Function(int)',
+    );
+
+    assertTypeAliasRef(
+      findNode.simple('B.foo'),
+      findElement.typeAlias('B'),
+    );
+  }
+}
+
+@reflectiveTest
 class MethodInvocationResolutionWithNullSafetyTest
     extends PubPackageResolutionTest
     with WithNullSafetyMixin, MethodInvocationResolutionTestCases {
@@ -2309,14 +2421,16 @@ class MethodInvocationResolutionWithNullSafetyTest
 class A {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 // @dart = 2.7
 import 'a.dart' deferred as a;
 
 main() {
   a.loadLibrary();
 }
-''');
+''', [
+      error(HintCode.UNUSED_IMPORT, 22, 8),
+    ]);
 
     var import = findElement.importFind('package:test/a.dart');
 

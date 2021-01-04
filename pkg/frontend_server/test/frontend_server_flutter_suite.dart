@@ -70,7 +70,7 @@ class Options {
 class ResultLogger extends Logger {
   final SuiteConfiguration suiteConfiguration;
   final Map<String, Stopwatch> stopwatches = {};
-  List<String> _log = new List<String>();
+  List<String> _log = <String>[];
 
   ResultLogger(this.suiteConfiguration);
 

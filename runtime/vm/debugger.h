@@ -338,8 +338,6 @@ class ActivationFrame : public ZoneAllocated {
   // Get Closure that await'ed this async frame.
   ObjectPtr GetAsyncAwaiter(CallerClosureFinder* caller_closure_finder);
 
-  ObjectPtr GetCausalStack();
-
   bool HandlesException(const Instance& exc_obj);
 
  private:

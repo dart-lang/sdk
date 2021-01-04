@@ -97,14 +97,13 @@ Component transformComponent(
 
   transformLibraries(component.libraries, backend, environmentDefines,
       typeEnvironment, errorReporter, evaluationMode,
-      desugarSets: desugarSets,
       enableTripleShift: enableTripleShift,
       errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
       evaluateAnnotations: evaluateAnnotations);
   return component;
 }
 
-void transformLibraries(
+ConstantCoverage transformLibraries(
     List<Library> libraries,
     ConstantsBackend backend,
     Map<String, String> environmentDefines,
@@ -112,18 +111,15 @@ void transformLibraries(
     ErrorReporter errorReporter,
     EvaluationMode evaluationMode,
     {bool evaluateAnnotations,
-    bool desugarSets,
     bool enableTripleShift,
     bool errorOnUnevaluatedConstant}) {
   assert(evaluateAnnotations != null);
-  assert(desugarSets != null);
   assert(enableTripleShift != null);
   assert(errorOnUnevaluatedConstant != null);
   final ConstantsTransformer constantsTransformer = new ConstantsTransformer(
       backend,
       environmentDefines,
       evaluateAnnotations,
-      desugarSets,
       enableTripleShift,
       errorOnUnevaluatedConstant,
       typeEnvironment,
@@ -132,6 +128,7 @@ void transformLibraries(
   for (final Library library in libraries) {
     constantsTransformer.convertLibrary(library);
   }
+  return constantsTransformer.constantEvaluator.getConstantCoverage();
 }
 
 void transformProcedure(
@@ -142,18 +139,15 @@ void transformProcedure(
     ErrorReporter errorReporter,
     EvaluationMode evaluationMode,
     {bool evaluateAnnotations: true,
-    bool desugarSets: false,
     bool enableTripleShift: false,
     bool errorOnUnevaluatedConstant: false}) {
   assert(evaluateAnnotations != null);
-  assert(desugarSets != null);
   assert(enableTripleShift != null);
   assert(errorOnUnevaluatedConstant != null);
   final ConstantsTransformer constantsTransformer = new ConstantsTransformer(
       backend,
       environmentDefines,
       evaluateAnnotations,
-      desugarSets,
       enableTripleShift,
       errorOnUnevaluatedConstant,
       typeEnvironment,
@@ -172,8 +166,6 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant> {
   ConstantEvaluator _evaluator;
 
   ConstantWeakener(this._evaluator);
-
-  CoreTypes get _coreTypes => _evaluator.coreTypes;
 
   Constant processValue(Constant node, Constant value) {
     if (value != null) {
@@ -206,8 +198,8 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant> {
 
   @override
   Constant visitMapConstant(MapConstant node) {
-    DartType keyType = rawLegacyErasure(_coreTypes, node.keyType);
-    DartType valueType = rawLegacyErasure(_coreTypes, node.valueType);
+    DartType keyType = rawLegacyErasure(node.keyType);
+    DartType valueType = rawLegacyErasure(node.valueType);
     List<ConstantMapEntry> entries;
     for (int index = 0; index < node.entries.length; index++) {
       ConstantMapEntry entry = node.entries[index];
@@ -228,7 +220,7 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant> {
 
   @override
   Constant visitListConstant(ListConstant node) {
-    DartType typeArgument = rawLegacyErasure(_coreTypes, node.typeArgument);
+    DartType typeArgument = rawLegacyErasure(node.typeArgument);
     List<Constant> entries;
     for (int index = 0; index < node.entries.length; index++) {
       Constant entry = visitConstant(node.entries[index]);
@@ -246,7 +238,7 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant> {
 
   @override
   Constant visitSetConstant(SetConstant node) {
-    DartType typeArgument = rawLegacyErasure(_coreTypes, node.typeArgument);
+    DartType typeArgument = rawLegacyErasure(node.typeArgument);
     List<Constant> entries;
     for (int index = 0; index < node.entries.length; index++) {
       Constant entry = visitConstant(node.entries[index]);
@@ -266,8 +258,7 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant> {
   Constant visitInstanceConstant(InstanceConstant node) {
     List<DartType> typeArguments;
     for (int index = 0; index < node.typeArguments.length; index++) {
-      DartType typeArgument =
-          rawLegacyErasure(_coreTypes, node.typeArguments[index]);
+      DartType typeArgument = rawLegacyErasure(node.typeArguments[index]);
       if (typeArgument != null) {
         typeArguments ??= node.typeArguments.toList(growable: false);
         typeArguments[index] = typeArgument;
@@ -293,7 +284,7 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant> {
       PartialInstantiationConstant node) {
     List<DartType> types;
     for (int index = 0; index < node.types.length; index++) {
-      DartType type = rawLegacyErasure(_coreTypes, node.types[index]);
+      DartType type = rawLegacyErasure(node.types[index]);
       if (type != null) {
         types ??= node.types.toList(growable: false);
         types[index] = type;
@@ -310,7 +301,7 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant> {
 
   @override
   Constant visitTypeLiteralConstant(TypeLiteralConstant node) {
-    DartType type = rawLegacyErasure(_coreTypes, node.type);
+    DartType type = rawLegacyErasure(node.type);
     if (type != null) {
       return new TypeLiteralConstant(type);
     }
@@ -328,7 +319,6 @@ class ConstantsTransformer extends Transformer {
   StaticTypeContext _staticTypeContext;
 
   final bool evaluateAnnotations;
-  final bool desugarSets;
   final bool enableTripleShift;
   final bool errorOnUnevaluatedConstant;
 
@@ -336,7 +326,6 @@ class ConstantsTransformer extends Transformer {
       this.backend,
       Map<String, String> environmentDefines,
       this.evaluateAnnotations,
-      this.desugarSets,
       this.enableTripleShift,
       this.errorOnUnevaluatedConstant,
       this.typeEnvironment,
@@ -344,7 +333,6 @@ class ConstantsTransformer extends Transformer {
       EvaluationMode evaluationMode)
       : constantEvaluator = new ConstantEvaluator(
             backend, environmentDefines, typeEnvironment, errorReporter,
-            desugarSets: desugarSets,
             enableTripleShift: enableTripleShift,
             errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
             evaluationMode: evaluationMode);
@@ -582,6 +570,27 @@ class ConstantsTransformer extends Transformer {
         constantEvaluator.evaluate(_staticTypeContext, node), node);
   }
 
+  bool _isNull(Expression node) {
+    return node is NullLiteral ||
+        node is ConstantExpression && node.constant is NullConstant;
+  }
+
+  @override
+  Expression visitEqualsCall(EqualsCall node) {
+    Expression left = node.left.accept<TreeNode>(this);
+    Expression right = node.right.accept<TreeNode>(this);
+    if (_isNull(left)) {
+      return new EqualsNull(right, isNot: node.isNot)
+        ..fileOffset = node.fileOffset;
+    } else if (_isNull(right)) {
+      return new EqualsNull(left, isNot: node.isNot)
+        ..fileOffset = node.fileOffset;
+    }
+    node.left = left..parent = node;
+    node.right = right..parent = node;
+    return node;
+  }
+
   @override
   Expression visitStaticGet(StaticGet node) {
     final Member target = node.target;
@@ -600,6 +609,15 @@ class ConstantsTransformer extends Transformer {
       return evaluateAndTransformWithContext(node, node);
     }
     return super.visitStaticGet(node);
+  }
+
+  @override
+  Expression visitStaticTearOff(StaticTearOff node) {
+    final Member target = node.target;
+    if (target is Procedure && target.kind == ProcedureKind.Method) {
+      return evaluateAndTransformWithContext(node, node);
+    }
+    return super.visitStaticTearOff(node);
   }
 
   @override
@@ -761,9 +779,6 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   final ErrorReporter errorReporter;
   final EvaluationMode evaluationMode;
 
-  final bool desugarSets;
-  final Field unmodifiableSetMap;
-
   final bool enableTripleShift;
 
   final bool Function(DartType) isInstantiated =
@@ -798,19 +813,14 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   ConstantEvaluator(this.backend, this.environmentDefines, this.typeEnvironment,
       this.errorReporter,
-      {this.desugarSets = false,
-      this.enableTripleShift = false,
+      {this.enableTripleShift = false,
       this.errorOnUnevaluatedConstant = false,
       this.evaluationMode: EvaluationMode.weak})
       : numberSemantics = backend.numberSemantics,
         coreTypes = typeEnvironment.coreTypes,
         canonicalizationCache = <Constant, Constant>{},
         nodeCache = <Node, Constant>{},
-        env = new EvaluationEnvironment(),
-        unmodifiableSetMap = desugarSets
-            ? typeEnvironment.coreTypes.index
-                .getMember('dart:collection', '_UnmodifiableSet', '_map')
-            : null {
+        env = new EvaluationEnvironment() {
     if (environmentDefines == null && !backend.supportsUnevaluatedConstants) {
       throw new ArgumentError(
           "No 'environmentDefines' passed to the constant evaluator but the "
@@ -839,7 +849,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       case EvaluationMode.agnostic:
         return type;
       case EvaluationMode.weak:
-        return legacyErasure(coreTypes, type);
+        return legacyErasure(type);
     }
     throw new UnsupportedError(
         "Unexpected evaluation mode: ${evaluationMode}.");
@@ -851,9 +861,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       case EvaluationMode.agnostic:
         return types;
       case EvaluationMode.weak:
-        return types
-            .map((DartType type) => legacyErasure(coreTypes, type))
-            .toList();
+        return types.map((DartType type) => legacyErasure(type)).toList();
     }
     throw new UnsupportedError(
         "Unexpected evaluation mode: ${evaluationMode}.");
@@ -1008,6 +1016,18 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   Constant lowerMapConstant(MapConstant constant) {
     if (shouldBeUnevaluated) return constant;
     return lower(constant, backend.lowerMapConstant(constant));
+  }
+
+  Map<Uri, Set<Reference>> _constructorCoverage = {};
+
+  ConstantCoverage getConstantCoverage() {
+    return new ConstantCoverage(_constructorCoverage);
+  }
+
+  void _recordConstructorCoverage(Constructor constructor, TreeNode caller) {
+    Uri currentUri = getFileUri(caller);
+    Set<Reference> uriCoverage = _constructorCoverage[currentUri] ??= {};
+    uriCoverage.add(constructor.reference);
   }
 
   /// Evaluate [node] and possibly cache the evaluation result.
@@ -1344,13 +1364,13 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       if (shouldBeUnevaluated) {
         enterLazy();
         AbortConstant error = handleConstructorInvocation(
-            constructor, typeArguments, positionals, named);
+            constructor, typeArguments, positionals, named, node);
         if (error != null) return error;
         leaveLazy();
         return unevaluated(node, instanceBuilder.buildUnevaluatedInstance());
       }
       AbortConstant error = handleConstructorInvocation(
-          constructor, typeArguments, positionals, named);
+          constructor, typeArguments, positionals, named, node);
       if (error != null) return error;
       if (shouldBeUnevaluated) {
         return unevaluated(node, instanceBuilder.buildUnevaluatedInstance());
@@ -1547,10 +1567,14 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       Constructor constructor,
       List<DartType> typeArguments,
       List<Constant> positionalArguments,
-      Map<String, Constant> namedArguments) {
+      Map<String, Constant> namedArguments,
+      TreeNode caller) {
     return withNewEnvironment(() {
       final Class klass = constructor.enclosingClass;
       final FunctionNode function = constructor.function;
+
+      // Mark in file of the caller that we evaluate this specific constructor.
+      _recordConstructorCoverage(constructor, caller);
 
       // We simulate now the constructor invocation.
 
@@ -1626,8 +1650,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
           }
           assert(_gotError == null);
           assert(namedArguments != null);
-          error = handleConstructorInvocation(
-              init.target, types, positionalArguments, namedArguments);
+          error = handleConstructorInvocation(init.target, types,
+              positionalArguments, namedArguments, constructor);
           if (error != null) return error;
         } else if (init is RedirectingInitializer) {
           // Since a redirecting constructor targets a constructor of the same
@@ -1654,8 +1678,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
           assert(_gotError == null);
           assert(namedArguments != null);
 
-          error = handleConstructorInvocation(
-              init.target, typeArguments, positionalArguments, namedArguments);
+          error = handleConstructorInvocation(init.target, typeArguments,
+              positionalArguments, namedArguments, constructor);
           if (error != null) return error;
         } else if (init is AssertInitializer) {
           AbortConstant error = checkAssert(init.statement);
@@ -1747,10 +1771,17 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   }
 
   @override
-  Constant visitMethodInvocation(MethodInvocation node) {
-    // We have no support for generic method invocation atm.
-    if (node.arguments.named.isNotEmpty) {
+  Constant visitDynamicInvocation(DynamicInvocation node) {
+    // We have no support for generic method invocation at the moment.
+    if (node.arguments.types.isNotEmpty) {
       return createInvalidExpressionConstant(node, "generic method invocation");
+    }
+
+    // We have no support for method invocation with named arguments at the
+    // moment.
+    if (node.arguments.named.isNotEmpty) {
+      return createInvalidExpressionConstant(
+          node, "method invocation with named arguments");
     }
 
     final Constant receiver = _evaluateSubexpression(node.receiver);
@@ -1769,35 +1800,139 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     if (shouldBeUnevaluated) {
       return unevaluated(
           node,
-          new MethodInvocation(extract(receiver), node.name,
+          new DynamicInvocation(node.kind, extract(receiver), node.name,
               unevaluatedArguments(arguments, {}, node.arguments.types))
+            ..fileOffset = node.fileOffset);
+    }
+
+    return _handleInvocation(node, node.name, receiver, arguments);
+  }
+
+  @override
+  Constant visitInstanceInvocation(InstanceInvocation node) {
+    // We have no support for generic method invocation at the moment.
+    if (node.arguments.types.isNotEmpty) {
+      return createInvalidExpressionConstant(node, "generic method invocation");
+    }
+
+    // We have no support for method invocation with named arguments at the
+    // moment.
+    if (node.arguments.named.isNotEmpty) {
+      return createInvalidExpressionConstant(
+          node, "method invocation with named arguments");
+    }
+
+    final Constant receiver = _evaluateSubexpression(node.receiver);
+    if (receiver is AbortConstant) return receiver;
+    final List<Constant> arguments =
+        _evaluatePositionalArguments(node.arguments);
+
+    if (arguments == null && _gotError != null) {
+      AbortConstant error = _gotError;
+      _gotError = null;
+      return error;
+    }
+    assert(_gotError == null);
+    assert(arguments != null);
+
+    if (shouldBeUnevaluated) {
+      return unevaluated(
+          node,
+          new InstanceInvocation(node.kind, extract(receiver), node.name,
+              unevaluatedArguments(arguments, {}, node.arguments.types),
+              functionType: node.functionType,
+              interfaceTarget: node.interfaceTarget)
             ..fileOffset = node.fileOffset
             ..flags = node.flags);
     }
 
-    final String op = node.name.text;
+    return _handleInvocation(node, node.name, receiver, arguments);
+  }
+
+  @override
+  Constant visitFunctionInvocation(FunctionInvocation node) {
+    return createInvalidExpressionConstant(node, "function invocation");
+  }
+
+  @override
+  Constant visitLocalFunctionInvocation(LocalFunctionInvocation node) {
+    return createInvalidExpressionConstant(node, "local function invocation");
+  }
+
+  @override
+  Constant visitEqualsCall(EqualsCall node) {
+    final Constant left = _evaluateSubexpression(node.left);
+    if (left is AbortConstant) return left;
+    final Constant right = _evaluateSubexpression(node.right);
+    if (right is AbortConstant) return right;
+
+    if (shouldBeUnevaluated) {
+      return unevaluated(
+          node,
+          new EqualsCall(extract(left), extract(right),
+              isNot: node.isNot,
+              functionType: node.functionType,
+              interfaceTarget: node.interfaceTarget)
+            ..fileOffset = node.fileOffset);
+    }
+
+    return _handleEquals(node, left, right, isNot: node.isNot);
+  }
+
+  @override
+  Constant visitEqualsNull(EqualsNull node) {
+    final Constant expression = _evaluateSubexpression(node.expression);
+    if (expression is AbortConstant) return expression;
+
+    if (shouldBeUnevaluated) {
+      return unevaluated(
+          node,
+          new EqualsNull(extract(expression), isNot: node.isNot)
+            ..fileOffset = node.fileOffset);
+    }
+
+    return _handleEquals(node, expression, nullConstant, isNot: node.isNot);
+  }
+
+  Constant _handleEquals(Expression node, Constant left, Constant right,
+      {bool isNot}) {
+    assert(isNot != null);
+    if (left is NullConstant ||
+        left is BoolConstant ||
+        left is IntConstant ||
+        left is DoubleConstant ||
+        left is StringConstant ||
+        right is NullConstant) {
+      // [DoubleConstant] uses [identical] to determine equality, so we need
+      // to take the special cases into account.
+      Constant result =
+          doubleSpecialCases(left, right) ?? makeBoolConstant(left == right);
+      if (isNot) {
+        if (result == trueConstant) {
+          result = falseConstant;
+        } else {
+          assert(result == falseConstant);
+          result = trueConstant;
+        }
+      }
+      return result;
+    } else {
+      return createErrorConstant(
+          node,
+          templateConstEvalInvalidEqualsOperandType.withArguments(
+              left, left.getType(_staticTypeContext), isNonNullableByDefault));
+    }
+  }
+
+  Constant _handleInvocation(
+      Expression node, Name name, Constant receiver, List<Constant> arguments) {
+    final String op = name.text;
 
     // Handle == and != first (it's common between all types). Since `a != b` is
     // parsed as `!(a == b)` it is handled implicitly through ==.
     if (arguments.length == 1 && op == '==') {
       final Constant right = arguments[0];
-
-      if (receiver is NullConstant ||
-          receiver is BoolConstant ||
-          receiver is IntConstant ||
-          receiver is DoubleConstant ||
-          receiver is StringConstant ||
-          right is NullConstant) {
-        // [DoubleConstant] uses [identical] to determine equality, so we need
-        // to take the special cases into account.
-        return doubleSpecialCases(receiver, right) ??
-            makeBoolConstant(receiver == right);
-      } else {
-        return createErrorConstant(
-            node,
-            templateConstEvalInvalidEqualsOperandType.withArguments(receiver,
-                receiver.getType(_staticTypeContext), isNonNullableByDefault));
-      }
+      return _handleEquals(node, receiver, right, isNot: false);
     }
 
     // This is a white-listed set of methods we need to support on constants.
@@ -1915,6 +2050,48 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   }
 
   @override
+  Constant visitMethodInvocation(MethodInvocation node) {
+    // We have no support for generic method invocation at the moment.
+    if (node.arguments.types.isNotEmpty) {
+      return createInvalidExpressionConstant(node, "generic method invocation");
+    }
+
+    // We have no support for method invocation with named arguments at the
+    // moment.
+    if (node.arguments.named.isNotEmpty) {
+      return createInvalidExpressionConstant(
+          node, "method invocation with named arguments");
+    }
+
+    final Constant receiver = _evaluateSubexpression(node.receiver);
+    if (receiver is AbortConstant) return receiver;
+    final List<Constant> arguments =
+        _evaluatePositionalArguments(node.arguments);
+
+    if (arguments == null && _gotError != null) {
+      AbortConstant error = _gotError;
+      _gotError = null;
+      return error;
+    }
+    assert(_gotError == null);
+    assert(arguments != null);
+
+    if (shouldBeUnevaluated) {
+      return unevaluated(
+          node,
+          new MethodInvocation(
+              extract(receiver),
+              node.name,
+              unevaluatedArguments(arguments, {}, node.arguments.types),
+              node.interfaceTarget)
+            ..fileOffset = node.fileOffset
+            ..flags = node.flags);
+    }
+
+    return _handleInvocation(node, node.name, receiver, arguments);
+  }
+
+  @override
   Constant visitLogicalExpression(LogicalExpression node) {
     final Constant left = _evaluateSubexpression(node.left);
     if (left is AbortConstant) return left;
@@ -2018,6 +2195,86 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
               condition.getType(_staticTypeContext),
               isNonNullableByDefault));
     }
+  }
+
+  @override
+  Constant visitInstanceGet(InstanceGet node) {
+    if (node.receiver is ThisExpression) {
+      // Probably unreachable unless trying to evaluate non-const stuff as
+      // const.
+      // Access "this" during instance creation.
+      if (instanceBuilder == null) {
+        return createErrorConstant(node, messageNotAConstantExpression);
+      }
+
+      for (final Field field in instanceBuilder.fields.keys) {
+        if (field.name == node.name) {
+          return instanceBuilder.fields[field];
+        }
+      }
+
+      // Meant as a "stable backstop for situations where Fasta fails to
+      // rewrite various erroneous constructs into invalid expressions".
+      // Probably unreachable.
+      return createInvalidExpressionConstant(node,
+          'Could not evaluate field get ${node.name} on incomplete instance');
+    }
+
+    final Constant receiver = _evaluateSubexpression(node.receiver);
+    if (receiver is AbortConstant) return receiver;
+    if (receiver is StringConstant && node.name.text == 'length') {
+      return canonicalize(intFolder.makeIntConstant(receiver.value.length));
+    } else if (shouldBeUnevaluated) {
+      return unevaluated(
+          node,
+          new InstanceGet(node.kind, extract(receiver), node.name,
+              resultType: node.resultType,
+              interfaceTarget: node.interfaceTarget));
+    } else if (receiver is NullConstant) {
+      return createErrorConstant(node, messageConstEvalNullValue);
+    }
+    return createErrorConstant(
+        node,
+        templateConstEvalInvalidPropertyGet.withArguments(
+            node.name.text, receiver, isNonNullableByDefault));
+  }
+
+  @override
+  Constant visitDynamicGet(DynamicGet node) {
+    final Constant receiver = _evaluateSubexpression(node.receiver);
+    if (receiver is AbortConstant) return receiver;
+    if (receiver is StringConstant && node.name.text == 'length') {
+      return canonicalize(intFolder.makeIntConstant(receiver.value.length));
+    } else if (shouldBeUnevaluated) {
+      return unevaluated(
+          node, new DynamicGet(node.kind, extract(receiver), node.name));
+    } else if (receiver is NullConstant) {
+      return createErrorConstant(node, messageConstEvalNullValue);
+    }
+    return createErrorConstant(
+        node,
+        templateConstEvalInvalidPropertyGet.withArguments(
+            node.name.text, receiver, isNonNullableByDefault));
+  }
+
+  @override
+  Constant visitInstanceTearOff(InstanceTearOff node) {
+    final Constant receiver = _evaluateSubexpression(node.receiver);
+    if (receiver is AbortConstant) return receiver;
+    return createErrorConstant(
+        node,
+        templateConstEvalInvalidPropertyGet.withArguments(
+            node.name.text, receiver, isNonNullableByDefault));
+  }
+
+  @override
+  Constant visitFunctionTearOff(FunctionTearOff node) {
+    final Constant receiver = _evaluateSubexpression(node.receiver);
+    if (receiver is AbortConstant) return receiver;
+    return createErrorConstant(
+        node,
+        templateConstEvalInvalidPropertyGet.withArguments(
+            Name.callName.text, receiver, isNonNullableByDefault));
   }
 
   @override
@@ -2138,6 +2395,25 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   }
 
   @override
+  Constant visitStaticTearOff(StaticTearOff node) {
+    return withNewEnvironment(() {
+      final Member target = node.target;
+      if (target is Procedure) {
+        if (target.kind == ProcedureKind.Method) {
+          return canonicalize(new TearOffConstant(target));
+        }
+        return createErrorConstant(
+            node,
+            templateConstEvalInvalidStaticInvocation
+                .withArguments(target.name.name));
+      } else {
+        return createInvalidExpressionConstant(
+            node, 'No support for ${target.runtimeType} in a static tear-off.');
+      }
+    });
+  }
+
+  @override
   Constant visitStringConcatenation(StringConcatenation node) {
     final List<Object> concatenated = <Object>[new StringBuffer()];
     for (int i = 0; i < node.expressions.length; i++) {
@@ -2170,7 +2446,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     }
     if (concatenated.length > 1) {
       final List<Expression> expressions =
-          new List<Expression>(concatenated.length);
+          new List<Expression>.filled(concatenated.length, null);
       for (int i = 0; i < concatenated.length; i++) {
         Object value = concatenated[i];
         if (value is StringBuffer) {
@@ -2591,7 +2867,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   bool isSubtype(Constant constant, DartType type, SubtypeCheckMode mode) {
     DartType constantType = constant.getType(_staticTypeContext);
     if (mode == SubtypeCheckMode.ignoringNullabilities) {
-      constantType = rawLegacyErasure(coreTypes, constantType) ?? constantType;
+      constantType = rawLegacyErasure(constantType) ?? constantType;
     }
     bool result = typeEnvironment.isSubtypeOf(constantType, type, mode);
     if (targetingJavaScript && !result) {
@@ -2742,9 +3018,9 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   Arguments unevaluatedArguments(List<Constant> positionalArgs,
       Map<String, Constant> namedArgs, List<DartType> types) {
     final List<Expression> positional =
-        new List<Expression>(positionalArgs.length);
+        new List<Expression>.filled(positionalArgs.length, null);
     final List<NamedExpression> named =
-        new List<NamedExpression>(namedArgs.length);
+        new List<NamedExpression>.filled(namedArgs.length, null);
     for (int i = 0; i < positionalArgs.length; ++i) {
       positional[i] = extract(positionalArgs[i]);
     }
@@ -2822,6 +3098,12 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       node = node.parent;
     }
   }
+}
+
+class ConstantCoverage {
+  final Map<Uri, Set<Reference>> constructorCoverage;
+
+  ConstantCoverage(this.constructorCoverage);
 }
 
 /// Holds the necessary information for a constant object, namely

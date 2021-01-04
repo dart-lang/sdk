@@ -26,8 +26,8 @@ SourceReport::SourceReport(intptr_t report_set, CompileMode compile_mode)
       compile_mode_(compile_mode),
       thread_(NULL),
       script_(NULL),
-      start_pos_(TokenPosition::kNoSource),
-      end_pos_(TokenPosition::kNoSource),
+      start_pos_(TokenPosition::kMinSource),
+      end_pos_(TokenPosition::kMaxSource),
       profile_(Isolate::Current()),
       next_script_index_(0) {}
 
@@ -51,8 +51,8 @@ void SourceReport::Init(Thread* thread,
                         TokenPosition end_pos) {
   thread_ = thread;
   script_ = script;
-  start_pos_ = start_pos;
-  end_pos_ = end_pos;
+  start_pos_ = TokenPosition::Max(start_pos, TokenPosition::kMinSource);
+  end_pos_ = TokenPosition::Min(end_pos, TokenPosition::kMaxSource);
   ClearScriptTable();
   if (IsReportRequested(kProfile)) {
     // Build the profile.
@@ -79,10 +79,7 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
       // The function is from the wrong script.
       return true;
     }
-    if (((start_pos_ > TokenPosition::kMinSource) &&
-         (func.end_token_pos() < start_pos_)) ||
-        ((end_pos_ > TokenPosition::kMinSource) &&
-         (func.token_pos() > end_pos_))) {
+    if ((func.end_token_pos() < start_pos_) || (func.token_pos() > end_pos_)) {
       // The function does not intersect with the requested token range.
       return true;
     }
@@ -129,10 +126,8 @@ bool SourceReport::ShouldSkipField(const Field& field) {
       // The field is from the wrong script.
       return true;
     }
-    if (((start_pos_ > TokenPosition::kMinSource) &&
-         (field.end_token_pos() < start_pos_)) ||
-        ((end_pos_ > TokenPosition::kMinSource) &&
-         (field.token_pos() > end_pos_))) {
+    if ((field.end_token_pos() < start_pos_) ||
+        (field.token_pos() > end_pos_)) {
       // The field does not intersect with the requested token range.
       return true;
     }
@@ -195,9 +190,8 @@ void SourceReport::PrintCallSitesData(JSONObject* jsobj,
                                       const Function& function,
                                       const Code& code) {
   ASSERT(!code.IsNull());
-  const TokenPosition begin_pos = function.token_pos();
-  const TokenPosition end_pos = function.end_token_pos();
-
+  const TokenPosition& begin_pos = function.token_pos();
+  const TokenPosition& end_pos = function.end_token_pos();
   ZoneGrowableArray<const ICData*>* ic_data_array =
       new (zone()) ZoneGrowableArray<const ICData*>();
   function.RestoreICDataMap(ic_data_array, false /* clone ic-data */);
@@ -214,8 +208,8 @@ void SourceReport::PrintCallSitesData(JSONObject* jsobj,
     ASSERT(iter.DeoptId() < ic_data_array->length());
     const ICData* ic_data = (*ic_data_array)[iter.DeoptId()];
     if (ic_data != NULL) {
-      const TokenPosition token_pos = iter.TokenPos();
-      if ((token_pos < begin_pos) || (token_pos > end_pos)) {
+      const TokenPosition& token_pos = iter.TokenPos();
+      if (!token_pos.IsWithin(begin_pos, end_pos)) {
         // Does not correspond to a valid source position.
         continue;
       }
@@ -228,8 +222,8 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
                                      const Function& function,
                                      const Code& code) {
   ASSERT(!code.IsNull());
-  const TokenPosition begin_pos = function.token_pos();
-  const TokenPosition end_pos = function.end_token_pos();
+  const TokenPosition& begin_pos = function.token_pos();
+  const TokenPosition& end_pos = function.end_token_pos();
 
   ZoneGrowableArray<const ICData*>* ic_data_array =
       new (zone()) ZoneGrowableArray<const ICData*>();
@@ -241,7 +235,7 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
   const int kCoverageMiss = 1;
   const int kCoverageHit = 2;
 
-  intptr_t func_length = (end_pos.Pos() - begin_pos.Pos()) + 1;
+  intptr_t func_length = function.SourceSize() + 1;
   GrowableArray<char> coverage(func_length);
   coverage.SetLength(func_length);
   for (int i = 0; i < func_length; i++) {
@@ -262,8 +256,8 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
     ASSERT(iter.DeoptId() < ic_data_array->length());
     const ICData* ic_data = (*ic_data_array)[iter.DeoptId()];
     if (ic_data != NULL) {
-      const TokenPosition token_pos = iter.TokenPos();
-      if ((token_pos < begin_pos) || (token_pos > end_pos)) {
+      const TokenPosition& token_pos = iter.TokenPos();
+      if (!token_pos.IsWithin(begin_pos, end_pos)) {
         // Does not correspond to a valid source position.
         continue;
       }
@@ -303,9 +297,9 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
 void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
                                                 const Function& func,
                                                 const Code& code) {
-  const TokenPosition begin_pos = func.token_pos();
-  const TokenPosition end_pos = func.end_token_pos();
-  intptr_t func_length = (end_pos.Pos() - begin_pos.Pos()) + 1;
+  const TokenPosition& begin_pos = func.token_pos();
+  const TokenPosition& end_pos = func.end_token_pos();
+  intptr_t func_length = func.SourceSize() + 1;
 
   BitVector possible(zone(), func_length);
 
@@ -320,8 +314,8 @@ void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
 
   PcDescriptors::Iterator iter(descriptors, kSafepointKind);
   while (iter.MoveNext()) {
-    const TokenPosition token_pos = iter.TokenPos();
-    if ((token_pos < begin_pos) || (token_pos > end_pos)) {
+    const TokenPosition& token_pos = iter.TokenPos();
+    if (!token_pos.IsWithin(begin_pos, end_pos)) {
       // Does not correspond to a valid source position.
       continue;
     }
@@ -357,7 +351,7 @@ void SourceReport::PrintProfileData(JSONObject* jsobj,
       for (intptr_t i = 0; i < profile_function->NumSourcePositions(); i++) {
         const ProfileFunctionSourcePosition& position =
             profile_function->GetSourcePosition(i);
-        if (position.token_pos().IsSourcePosition()) {
+        if (position.token_pos().IsReal()) {
           // Add as an integer.
           positions.AddValue(position.token_pos().Pos());
         } else {
@@ -565,11 +559,114 @@ void SourceReport::PrintJSON(JSONStream* js,
 
     // Visit all closures for this isolate.
     VisitClosures(&ranges);
+
+    // Output constant coverage if coverage is requested.
+    if (IsReportRequested(kCoverage)) {
+      // Find all scripts. We need to go though all scripts because a script
+      // (even one we don't want) can add coverage to another library (i.e.
+      // potentially one we want).
+      DirectChainedHashMap<ScriptTableTrait> local_script_table;
+      GrowableArray<ScriptTableEntry*> local_script_table_entries;
+      CollectAllScripts(&local_script_table, &local_script_table_entries);
+      CollectConstConstructorCoverageFromScripts(&local_script_table_entries,
+                                                 &ranges);
+      CleanupCollectedScripts(&local_script_table, &local_script_table_entries);
+    }
   }
 
   // Print the script table.
   JSONArray scripts(&report, "scripts");
   PrintScriptTable(&scripts);
+}
+
+void SourceReport::CollectAllScripts(
+    DirectChainedHashMap<ScriptTableTrait>* local_script_table,
+    GrowableArray<ScriptTableEntry*>* local_script_table_entries) {
+  ScriptTableEntry wrapper;
+  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
+      zone(), thread()->isolate()->object_store()->libraries());
+  Library& lib = Library::Handle(zone());
+  Script& scriptRef = Script::Handle(zone());
+  for (int i = 0; i < libs.Length(); i++) {
+    lib ^= libs.At(i);
+    const Array& scripts = Array::Handle(zone(), lib.LoadedScripts());
+    for (intptr_t j = 0; j < scripts.Length(); j++) {
+      scriptRef ^= scripts.At(j);
+      const String& url = String::Handle(zone(), scriptRef.url());
+      wrapper.key = &url;
+      wrapper.script = &Script::Handle(zone(), scriptRef.raw());
+      ScriptTableEntry* pair = local_script_table->LookupValue(&wrapper);
+      if (pair != NULL) {
+        // Existing one.
+        continue;
+      }
+      // New one. Insert.
+      ScriptTableEntry* tmp = new ScriptTableEntry();
+      tmp->key = &url;
+      tmp->index = next_script_index_++;
+      tmp->script = wrapper.script;
+      local_script_table_entries->Add(tmp);
+      local_script_table->Insert(tmp);
+    }
+  }
+}
+
+void SourceReport::CleanupCollectedScripts(
+    DirectChainedHashMap<ScriptTableTrait>* local_script_table,
+    GrowableArray<ScriptTableEntry*>* local_script_table_entries) {
+  for (intptr_t i = 0; i < local_script_table_entries->length(); i++) {
+    delete local_script_table_entries->operator[](i);
+    local_script_table_entries->operator[](i) = NULL;
+  }
+  local_script_table_entries->Clear();
+  local_script_table->Clear();
+}
+
+void SourceReport::CollectConstConstructorCoverageFromScripts(
+    GrowableArray<ScriptTableEntry*>* local_script_table_entries,
+    JSONArray* ranges) {
+  // Now output the wanted constant coverage.
+  for (intptr_t i = 0; i < local_script_table_entries->length(); i++) {
+    const Script* script = local_script_table_entries->At(i)->script;
+
+    // Whether we want *this* script or not we need to look at the constant
+    // constructor coverage. Any of those could be in a script we *do* want.
+    {
+      Script& scriptRef = Script::Handle(zone());
+      const Array& constructors =
+          Array::Handle(kernel::CollectConstConstructorCoverageFrom(*script));
+      intptr_t constructors_count = constructors.Length();
+      Function& constructor = Function::Handle(zone());
+      Code& code = Code::Handle(zone());
+      for (intptr_t i = 0; i < constructors_count; i++) {
+        constructor ^= constructors.At(i);
+        // Check if we want coverage for this constructor.
+        if (ShouldSkipFunction(constructor)) {
+          continue;
+        }
+        scriptRef ^= constructor.script();
+        code ^= constructor.unoptimized_code();
+        const TokenPosition begin_pos = constructor.token_pos();
+        const TokenPosition end_pos = constructor.end_token_pos();
+        JSONObject range(ranges);
+        range.AddProperty("scriptIndex", GetScriptIndex(scriptRef));
+        range.AddProperty("compiled",
+                          !code.IsNull());  // Does this make a difference?
+        range.AddProperty("startPos", begin_pos);
+        range.AddProperty("endPos", end_pos);
+
+        JSONObject cov(&range, "coverage");
+        {
+          JSONArray hits(&cov, "hits");
+          hits.AddValue(begin_pos);
+        }
+        {
+          JSONArray misses(&cov, "misses");
+          // No misses
+        }
+      }
+    }
+  }
 }
 
 }  // namespace dart

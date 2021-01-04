@@ -23,7 +23,6 @@ import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
-import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
@@ -51,8 +50,6 @@ abstract class AbstractLspAnalysisServerTest
   MockLspServerChannel channel;
   TestPluginManager pluginManager;
   LspAnalysisServer server;
-
-  final testWorkDoneToken = Either2<num, String>.t2('test');
 
   AnalysisServerOptions get serverOptions => AnalysisServerOptions();
 
@@ -202,11 +199,12 @@ mixin ClientCapabilitiesHelperMixin {
     return ClientCapabilitiesWorkspace.fromJson(json);
   }
 
-  TextDocumentClientCapabilities withAllSupportedDynamicRegistrations(
+  TextDocumentClientCapabilities
+      withAllSupportedTextDocumentDynamicRegistrations(
     TextDocumentClientCapabilities source,
   ) {
-    // This list should match all of the fields listed in
-    // `ClientDynamicRegistrations.supported`.
+    // This list (when combined with the workspace list) should match all of
+    // the fields listed in `ClientDynamicRegistrations.supported`.
     return extendTextDocumentCapabilities(source, {
       'synchronization': {'dynamicRegistration': true},
       'completion': {'dynamicRegistration': true},
@@ -224,6 +222,22 @@ mixin ClientCapabilitiesHelperMixin {
       'codeAction': {'dynamicRegistration': true},
       'rename': {'dynamicRegistration': true},
       'foldingRange': {'dynamicRegistration': true},
+      'semanticTokens': SemanticTokensClientCapabilities(
+          dynamicRegistration: true,
+          requests: SemanticTokensClientCapabilitiesRequests(),
+          formats: [],
+          tokenModifiers: [],
+          tokenTypes: []).toJson(),
+    });
+  }
+
+  ClientCapabilitiesWorkspace withAllSupportedWorkspaceDynamicRegistrations(
+    ClientCapabilitiesWorkspace source,
+  ) {
+    // This list (when combined with the textDocument list) should match all of
+    // the fields listed in `ClientDynamicRegistrations.supported`.
+    return extendWorkspaceCapabilities(source, {
+      'fileOperations': {'dynamicRegistration': true},
     });
   }
 
@@ -343,6 +357,14 @@ mixin ClientCapabilitiesHelperMixin {
       'documentSymbol': {
         'symbolKind': {'valueSet': kinds.map((k) => k.toJson()).toList()}
       }
+    });
+  }
+
+  ClientCapabilitiesWorkspace withFileOperationDynamicRegistration(
+    ClientCapabilitiesWorkspace source,
+  ) {
+    return extendWorkspaceCapabilities(source, {
+      'fileOperations': {'dynamicRegistration': true}
     });
   }
 
@@ -475,6 +497,11 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   static final allMarkersPattern =
       RegExp(allMarkers.map(RegExp.escape).join('|'));
 
+  /// A progress token used in tests where the client-provides the token, which
+  /// should not be validated as being created by the server first.
+  final clientProvidedTestWorkDoneToken =
+      Either2<num, String>.t2('client-test');
+
   int _id = 0;
   String projectFolderPath, mainFilePath, pubspecFilePath, analysisOptionsPath;
   Uri projectFolderUri, mainFileUri, pubspecFileUri, analysisOptionsUri;
@@ -563,13 +590,16 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     });
   }
 
-  String applyTextEdit(String content, TextEdit change) {
-    final startPos = change.range.start;
-    final endPos = change.range.end;
+  String applyTextEdit(
+      String content, Either2<TextEdit, AnnotatedTextEdit> change) {
+    // Both sites of the union can cast to TextEdit.
+    final edit = change.map((e) => e, (e) => e);
+    final startPos = edit.range.start;
+    final endPos = edit.range.end;
     final lineInfo = LineInfo.fromContent(content);
     final start = lineInfo.getOffsetOfLine(startPos.line) + startPos.character;
     final end = lineInfo.getOffsetOfLine(endPos.line) + endPos.character;
-    return content.replaceRange(start, end, change.newText);
+    return content.replaceRange(start, end, edit.newText);
   }
 
   String applyTextEdits(String oldContent, List<TextEdit> changes) {
@@ -590,18 +620,18 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     /// logic.
     void validateChangesCanBeApplied() {
       /// Check if a position is before (but not equal) to another position.
-      bool isBefore(Position p, Position other) =>
+      bool isBeforeOrEqual(Position p, Position other) =>
           p.line < other.line ||
-          (p.line == other.line && p.character < other.character);
+          (p.line == other.line && p.character <= other.character);
 
       /// Check if a position is after (but not equal) to another position.
-      bool isAfter(Position p, Position other) =>
+      bool isAfterOrEqual(Position p, Position other) =>
           p.line > other.line ||
-          (p.line == other.line && p.character > other.character);
-      // Check if two ranges intersect or touch.
+          (p.line == other.line && p.character >= other.character);
+      // Check if two ranges intersect.
       bool rangesIntersect(Range r1, Range r2) {
-        var endsBefore = isBefore(r1.end, r2.start);
-        var startsAfter = isAfter(r1.start, r2.end);
+        var endsBefore = isBeforeOrEqual(r1.end, r2.start);
+        var startsAfter = isAfterOrEqual(r1.start, r2.end);
         return !(endsBefore || startsAfter);
       }
 
@@ -624,7 +654,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       );
 
     for (final change in sortedChanges) {
-      newContent = applyTextEdit(newContent, change);
+      newContent = applyTextEdit(
+          newContent, Either2<TextEdit, AnnotatedTextEdit>.t1(change));
     }
 
     return newContent;
@@ -700,7 +731,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final path = Uri.parse(edit.textDocument.uri).toFilePath();
     final expectedVersion = expectedVersions[path];
 
-    if (edit.textDocument is VersionedTextDocumentIdentifier) {
+    if (edit.textDocument is OptionalVersionedTextDocumentIdentifier) {
       expect(edit.textDocument.version, equals(expectedVersion));
     } else {
       throw 'Document identifier for $path was not versioned (expected version $expectedVersion)';
@@ -899,7 +930,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   Future<DartDiagnosticServer> getDiagnosticServer() {
     final request = makeRequest(
-      CustomMethods.DiagnosticServer,
+      CustomMethods.diagnosticServer,
       null,
     );
     return expectSuccessfulResponseTo(request, DartDiagnosticServer.fromJson);
@@ -989,6 +1020,16 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         request, _fromJsonList(Location.fromJson));
   }
 
+  Future<SemanticTokens> getSemanticTokens(Uri uri) {
+    final request = makeRequest(
+      Method.textDocument_semanticTokens_full,
+      SemanticTokensParams(
+        textDocument: TextDocumentIdentifier(uri: uri.toString()),
+      ),
+    );
+    return expectSuccessfulResponseTo(request, SemanticTokens.fromJson);
+  }
+
   Future<SignatureHelp> getSignatureHelp(Uri uri, Position pos,
       [SignatureHelpContext context]) {
     final request = makeRequest(
@@ -1007,7 +1048,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     Position pos,
   ) {
     final request = makeRequest(
-      CustomMethods.Super,
+      CustomMethods.super_,
       TextDocumentPositionParams(
         textDocument: TextDocumentIdentifier(uri: uri.toString()),
         position: pos,
@@ -1103,6 +1144,12 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     requestsFromServer.listen((request) async {
       if (request.method == Method.window_workDoneProgress_create) {
         respondTo(request, await _handleWorkDoneProgressCreate(request));
+      }
+    });
+
+    notificationsFromServer.listen((notification) async {
+      if (notification.method == Method.progress) {
+        await _handleProgress(notification);
       }
     });
 
@@ -1207,6 +1254,14 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     );
   }
 
+  Future<WorkspaceEdit> onWillRename(List<FileRename> renames) {
+    final request = makeRequest(
+      Method.workspace_willRenameFiles,
+      RenameFilesParams(files: renames),
+    );
+    return expectSuccessfulResponseTo(request, WorkspaceEdit.fromJson);
+  }
+
   Future openFile(Uri uri, String content, {num version = 1}) async {
     var notification = makeNotification(
       Method.textDocument_didOpen,
@@ -1226,7 +1281,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     if (p1.line > p2.line) return 1;
 
     if (p1.character < p2.character) return -1;
-    if (p1.character > p2.character) return -1;
+    if (p1.character > p2.character) return 1;
 
     return 0;
   }
@@ -1420,10 +1475,10 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   Future<void> waitForAnalysisStatus(bool analyzing) async {
     await serverToClient.firstWhere((message) {
       if (message is NotificationMessage) {
-        if (message.method == CustomMethods.AnalyzerStatus) {
+        if (message.method == CustomMethods.analyzerStatus) {
           if (_clientCapabilities.window?.workDoneProgress == true) {
             throw Exception(
-                'Recieved ${CustomMethods.AnalyzerStatus} notification '
+                'Recieved ${CustomMethods.analyzerStatus} notification '
                 'but client supports workDoneProgress');
           }
 
@@ -1432,15 +1487,11 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         } else if (message.method == Method.progress) {
           if (_clientCapabilities.window?.workDoneProgress != true) {
             throw Exception(
-                'Recieved ${CustomMethods.AnalyzerStatus} notification '
+                'Recieved ${CustomMethods.analyzerStatus} notification '
                 'but client supports workDoneProgress');
           }
 
           final params = ProgressParams.fromJson(message.params);
-          if (!validProgressTokens.contains(params.token)) {
-            throw Exception('Server sent a progress notification for a token '
-                'that has not been created: ${params.token}');
-          }
 
           // Skip unrelated progress notifications.
           if (params.token != analyzingProgressToken) {
@@ -1469,7 +1520,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     PublishClosingLabelsParams closingLabelsParams;
     await serverToClient.firstWhere((message) {
       if (message is NotificationMessage &&
-          message.method == CustomMethods.PublishClosingLabels) {
+          message.method == CustomMethods.publishClosingLabels) {
         closingLabelsParams =
             PublishClosingLabelsParams.fromJson(message.params);
 
@@ -1497,7 +1548,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     PublishFlutterOutlineParams outlineParams;
     await serverToClient.firstWhere((message) {
       if (message is NotificationMessage &&
-          message.method == CustomMethods.PublishFlutterOutline) {
+          message.method == CustomMethods.publishFlutterOutline) {
         outlineParams = PublishFlutterOutlineParams.fromJson(message.params);
 
         return outlineParams.uri == uri.toString();
@@ -1511,7 +1562,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     PublishOutlineParams outlineParams;
     await serverToClient.firstWhere((message) {
       if (message is NotificationMessage &&
-          message.method == CustomMethods.PublishOutline) {
+          message.method == CustomMethods.publishOutline) {
         outlineParams = PublishOutlineParams.fromJson(message.params);
 
         return outlineParams.uri == uri.toString();
@@ -1540,6 +1591,19 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
           T Function(Map<String, dynamic>) fromJson) =>
       (input) => input.cast<Map<String, dynamic>>().map(fromJson).toList();
 
+  Future<void> _handleProgress(NotificationMessage request) async {
+    final params = ProgressParams.fromJson(request.params);
+    if (params.token != clientProvidedTestWorkDoneToken &&
+        !validProgressTokens.contains(params.token)) {
+      throw Exception('Server sent a progress notification for a token '
+          'that has not been created: ${params.token}');
+    }
+
+    if (WorkDoneProgressEnd.canParse(params.value, nullLspJsonReporter)) {
+      validProgressTokens.remove(params.token);
+    }
+  }
+
   Future<void> _handleWorkDoneProgressCreate(RequestMessage request) async {
     if (_clientCapabilities.window?.workDoneProgress != true) {
       throw Exception('Server sent ${Method.window_workDoneProgress_create} '
@@ -1547,7 +1611,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     }
     final params = WorkDoneProgressCreateParams.fromJson(request.params);
     if (validProgressTokens.contains(params.token)) {
-      throw Exception('Server tried to create the same progress token twice');
+      throw Exception('Server tried to create already-active progress token');
     }
     validProgressTokens.add(params.token);
   }

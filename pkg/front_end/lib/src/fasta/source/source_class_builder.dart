@@ -811,9 +811,19 @@ class SourceClassBuilder extends ClassBuilderImpl
         new Arguments.forwarded(procedure.function, library.library),
         procedure.fileOffset,
         /*isSuper=*/ false);
-    Expression result = new MethodInvocation(new ThisExpression(),
-        noSuchMethodName, new Arguments([invocation]), noSuchMethodInterface)
-      ..fileOffset = procedure.fileOffset;
+    Expression result;
+    if (library
+        .loader.target.backendTarget.supportsNewMethodInvocationEncoding) {
+      result = new InstanceInvocation(InstanceAccessKind.Instance,
+          new ThisExpression(), noSuchMethodName, new Arguments([invocation]),
+          functionType: noSuchMethodInterface.getterType,
+          interfaceTarget: noSuchMethodInterface)
+        ..fileOffset = procedure.fileOffset;
+    } else {
+      result = new MethodInvocation(new ThisExpression(), noSuchMethodName,
+          new Arguments([invocation]), noSuchMethodInterface)
+        ..fileOffset = procedure.fileOffset;
+    }
     if (procedure.function.returnType is! VoidType) {
       result = new AsExpression(result, procedure.function.returnType)
         ..isTypeError = true
@@ -828,17 +838,12 @@ class SourceClassBuilder extends ClassBuilderImpl
     procedure.function.dartAsyncMarker = AsyncMarker.Sync;
 
     procedure.isAbstract = false;
-    procedure.isNoSuchMethodForwarder = true;
-    procedure.isMemberSignature = false;
-    procedure.isForwardingStub = false;
-    procedure.isForwardingSemiStub = false;
-    procedure.memberSignatureOrigin = null;
-    procedure.forwardingStubInterfaceTarget = null;
-    procedure.forwardingStubSuperTarget = null;
+    procedure.stubKind = ProcedureStubKind.NoSuchMethodForwarder;
+    procedure.stubTarget = null;
   }
 
   void _addRedirectingConstructor(ProcedureBuilder constructorBuilder,
-      SourceLibraryBuilder library, Field referenceFrom) {
+      SourceLibraryBuilder library, Reference getterReference) {
     // Add a new synthetic field to this class for representing factory
     // constructors. This is used to support resolving such constructors in
     // source code.
@@ -856,12 +861,12 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (constructorsField == null) {
       ListLiteral literal = new ListLiteral(<Expression>[]);
       Name name = new Name(redirectingName, library.library);
-      Field field = new Field(name,
+      Field field = new Field.immutable(name,
           isStatic: true,
+          isFinal: true,
           initializer: literal,
           fileUri: cls.fileUri,
-          getterReference: referenceFrom?.getterReference,
-          setterReference: referenceFrom?.setterReference)
+          getterReference: getterReference)
         ..fileOffset = cls.fileOffset;
       cls.addField(field);
       constructorsField = new DillFieldBuilder(field, this);
@@ -903,9 +908,10 @@ class SourceClassBuilder extends ClassBuilderImpl
                 // is actually in the kernel tree. This call creates a StaticGet
                 // to [declaration.target] in a field `_redirecting#` which is
                 // only legal to do to things in the kernel tree.
-                Field referenceFrom =
-                    referencesFromIndexed?.lookupField("_redirecting#");
-                _addRedirectingConstructor(declaration, library, referenceFrom);
+                Reference getterReference = referencesFromIndexed
+                    ?.lookupGetterReference("_redirecting#");
+                _addRedirectingConstructor(
+                    declaration, library, getterReference);
               }
               if (targetBuilder is FunctionBuilder) {
                 List<DartType> typeArguments = declaration.typeArguments ??
@@ -1239,8 +1245,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           }
           DartType computedBound = substitution.substituteType(interfaceBound);
           if (!library.isNonNullableByDefault) {
-            computedBound =
-                legacyErasure(types.hierarchy.coreTypes, computedBound);
+            computedBound = legacyErasure(computedBound);
           }
           if (!types
               .performNullabilityAwareMutualSubtypesCheck(
@@ -1310,7 +1315,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     if (!declaredMember.isNonNullableByDefault &&
         interfaceMember.isNonNullableByDefault) {
-      interfaceType = legacyErasure(types.hierarchy.coreTypes, interfaceType);
+      interfaceType = legacyErasure(interfaceType);
     }
 
     bool inParameter = declaredParameter != null || asIfDeclaredParameter;
@@ -1752,9 +1757,23 @@ class SourceClassBuilder extends ClassBuilderImpl
 /// 'dart:_interceptors' that implements both `int` and `double`, and `JsArray`
 /// in `dart:js` that implement both `ListMixin` and `JsObject`.
 bool shouldOverrideProblemBeOverlooked(ClassBuilder classBuilder) {
+  return getOverlookedOverrideProblemChoice(classBuilder) != null;
+}
+
+/// Returns the index of the member to use if an override problems should be
+/// overlooked.
+///
+/// This is needed for the current encoding of some JavaScript implementation
+/// classes that are not valid Dart. For instance `JSInt` in
+/// 'dart:_interceptors' that implements both `int` and `double`, and `JsArray`
+/// in `dart:js` that implement both `ListMixin` and `JsObject`.
+int getOverlookedOverrideProblemChoice(ClassBuilder classBuilder) {
   String uri = '${classBuilder.library.importUri}';
-  return uri == 'dart:js' &&
-          classBuilder.fileUri.pathSegments.last == 'js.dart' ||
-      uri == 'dart:_interceptors' &&
-          classBuilder.fileUri.pathSegments.last == 'js_number.dart';
+  if (uri == 'dart:js' && classBuilder.fileUri.pathSegments.last == 'js.dart') {
+    return 0;
+  } else if (uri == 'dart:_interceptors' &&
+      classBuilder.fileUri.pathSegments.last == 'js_number.dart') {
+    return 1;
+  }
+  return null;
 }

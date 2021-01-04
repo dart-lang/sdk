@@ -34,9 +34,11 @@ isolate/spawn_uri__package_uri__test: SkipByDesign # This test uses Isolate.spaw
 html/xhr_test/xhr: Skip # Times out.  Issue 21527
 
 [ $csp ]
+html/js_interop_constructor_name/*: SkipByDesign # Issue 42085.
 isolate/deferred_in_isolate2_test: Skip # Issue 16898. Deferred loading does not work from an isolate in CSP-mode
 js/instanceof_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/method_call_on_object_test: SkipByDesign # Issue 42085.
+js/mock_test/*: SkipByDesign # Issue 42085.
 js/parameters_test: SkipByDesign # Issue 42085.
 
 [ $compiler != dart2js && $compiler != dartdevk ]

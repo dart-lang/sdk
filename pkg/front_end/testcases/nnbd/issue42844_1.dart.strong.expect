@@ -11,7 +11,7 @@ import "dart:core" as core;
 
 class C extends core::Object {
   field Never n = null;
-  static field dynamic _redirecting# = <dynamic>[self::C::•]/*isNullableByDefault*/;
+  static final field dynamic _redirecting# = <dynamic>[self::C::•]/*isLegacy*/;
   static factory •(Never n) → self::C
     let dynamic #redirecting_factory = self::D::• in invalid-expression;
 }

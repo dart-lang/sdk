@@ -437,7 +437,7 @@ SExpression* FlowGraphSerializer::AbstractTypeToSExp(const AbstractType& t) {
   AddSymbol(sexp, "Type");
   const auto& type = Type::Cast(t);
   if (!type.token_pos().IsNoSource()) {
-    AddExtraInteger(sexp, "token_pos", type.token_pos().value());
+    AddExtraInteger(sexp, "token_pos", type.token_pos().Serialize());
   }
   // We want to check for the type being recursive before we may serialize
   // any sub-parts that include possible TypeRefs to this type.
@@ -823,7 +823,10 @@ void Instruction::AddExtraInfoToSExpression(SExpList* sexp,
     sexp->AddExtra("env", env()->ToSExpression(s));
   }
   if (!token_pos().IsNoSource()) {
-    s->AddExtraInteger(sexp, "token_pos", token_pos().value());
+    s->AddExtraInteger(sexp, "token_pos", token_pos().Serialize());
+  }
+  if (has_inlining_id()) {
+    s->AddExtraInteger(sexp, "inlining_id", inlining_id());
   }
 }
 

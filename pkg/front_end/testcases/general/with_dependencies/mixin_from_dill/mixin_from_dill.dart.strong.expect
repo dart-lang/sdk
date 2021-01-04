@@ -14,11 +14,11 @@ static method main() → dynamic {
     throw "what?";
   foo1.{mix::_Foo&B&D::x}();
   mix2::Foo* foo2 = new mix2::Foo::•();
-  if(foo2.{mix2::D::==}(null))
+  if(foo2.{mix2::_Foo&B&D::==}(null))
     throw "what?";
-  if(!foo2.{mix2::D::==}(foo2))
+  if(!foo2.{mix2::_Foo&B&D::==}(foo2))
     throw "what?";
-  foo2.{mix2::D::x}();
+  foo2.{mix2::_Foo&B&D::x}();
 }
 
 library;
@@ -29,6 +29,10 @@ abstract class _Foo&B&D = mix2::B with mix2::D /*isAnonymousMixin*/  {
   synthetic constructor •() → mix2::_Foo&B&D*
     : super mix2::B::•()
     ;
+  mixin-super-stub operator ==(dynamic dynamic) → core::bool*
+    return super.{mix2::D::==}(dynamic);
+  mixin-super-stub method x() → void
+    return super.{mix2::D::x}();
 }
 class Foo extends mix2::_Foo&B&D {
   synthetic constructor •() → mix2::Foo*

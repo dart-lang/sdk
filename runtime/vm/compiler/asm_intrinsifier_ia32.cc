@@ -1910,7 +1910,8 @@ static void TryAllocateString(Assembler* assembler,
   __ cmpl(length_reg, Immediate(0));
   __ j(LESS, failure);
 
-  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, EAX, failure, false));
+  NOT_IN_PRODUCT(
+      __ MaybeTraceAllocation(cid, EAX, failure, Assembler::kFarJump));
   if (length_reg != EDI) {
     __ movl(EDI, length_reg);
   }
@@ -1964,7 +1965,7 @@ static void TryAllocateString(Assembler* assembler,
     __ Bind(&done);
 
     // Get the class index and insert it into the tags.
-    const uint32_t tags =
+    const uword tags =
         target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
     __ orl(EDI, Immediate(tags));
     __ movl(FieldAddress(EAX, target::Object::tags_offset()), EDI);  // Tags.
@@ -2237,20 +2238,6 @@ void AsmIntrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler,
   __ LoadObject(EAX, CastHandle<Object>(TrueObject()));
   __ ret();
 #endif
-}
-
-void AsmIntrinsifier::ClearAsyncThreadStackTrace(Assembler* assembler,
-                                                 Label* normal_ir_body) {
-  __ LoadObject(EAX, NullObject());
-  __ movl(Address(THR, target::Thread::async_stack_trace_offset()), EAX);
-  __ ret();
-}
-
-void AsmIntrinsifier::SetAsyncThreadStackTrace(Assembler* assembler,
-                                               Label* normal_ir_body) {
-  __ movl(Address(THR, target::Thread::async_stack_trace_offset()), EAX);
-  __ LoadObject(EAX, NullObject());
-  __ ret();
 }
 
 #undef __

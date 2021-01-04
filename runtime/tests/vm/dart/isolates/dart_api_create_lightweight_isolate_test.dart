@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // SharedObjects=ffi_test_functions
+// VMOptions=
 // VMOptions=--enable-isolate-groups --disable-heap-verification
 
 import 'dart:async';
@@ -16,12 +17,18 @@ import 'package:ffi/ffi.dart';
 import '../../../../../tests/ffi/dylib_utils.dart';
 
 final bool isAOT = Platform.executable.contains('dart_precompiled_runtime');
+final bool isolateGropusEnabled =
+    Platform.executableArguments.contains('--enable-isolate-groups');
 final sdkRoot = Platform.script.resolve('../../../../../');
 
 class Isolate extends Struct {}
 
 abstract class FfiBindings {
   static final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
+
+  static final IGH_MsanUnpoison = ffiTestFunctions.lookupFunction<
+      Pointer<Isolate> Function(Pointer<Void>, IntPtr),
+      Pointer<Isolate> Function(Pointer<Void>, int)>('IGH_MsanUnpoison');
 
   static final IGH_CreateIsolate = ffiTestFunctions.lookupFunction<
       Pointer<Isolate> Function(Pointer<Utf8>, Pointer<Void>),
@@ -49,6 +56,7 @@ abstract class FfiBindings {
   static Pointer<Isolate> createLightweightIsolate(
       String name, Pointer<Void> peer) {
     final cname = Utf8.toUtf8(name);
+    IGH_MsanUnpoison(cname.cast(), name.length + 10);
     try {
       final isolate = IGH_CreateIsolate(cname, peer);
       Expect.isTrue(isolate.address != 0);
@@ -61,10 +69,13 @@ abstract class FfiBindings {
   static void invokeTopLevelAndRunLoopAsync(
       Pointer<Isolate> isolate, SendPort sendPort, String name,
       {bool? errorsAreFatal, SendPort? onError, SendPort? onExit}) {
-    final dartScript = sdkRoot.resolve(
+    final dartScriptUri = sdkRoot.resolve(
         'runtime/tests/vm/dart/isolates/dart_api_create_lightweight_isolate_test.dart');
-    final libraryUri = Utf8.toUtf8(dartScript.toString());
+    final dartScript = dartScriptUri.toString();
+    final libraryUri = Utf8.toUtf8(dartScript);
+    IGH_MsanUnpoison(libraryUri.cast(), dartScript.length + 1);
     final functionName = Utf8.toUtf8(name);
+    IGH_MsanUnpoison(functionName.cast(), name.length + 1);
 
     IGH_StartIsolate(
         isolate,
@@ -94,6 +105,7 @@ void scheduleAsyncInvocation(void fun()) {
 
 Future withPeerPointer(fun(Pointer<Void> peer)) async {
   final Pointer<Void> peer = Utf8.toUtf8('abc').cast();
+  FfiBindings.IGH_MsanUnpoison(peer.cast(), 'abc'.length + 1);
   try {
     await fun(peer);
   } catch (e, s) {
@@ -190,7 +202,7 @@ Future testFatalError() async {
     await exit.first;
     Expect.equals(1, accumulatedErrors.length);
     Expect.equals('error-0', accumulatedErrors[0][0]);
-    Expect.isTrue(accumulatedErrors[0][1].contains('childTestFatalError'));
+    Expect.contains('childTestFatalError', accumulatedErrors[0][1]);
 
     exit.close();
     errors.close();
@@ -204,6 +216,19 @@ Future testAot() async {
   await testFatalError();
 }
 
+Future testNotSupported() async {
+  dynamic exception;
+  try {
+    FfiBindings.createLightweightIsolate('debug-name', Pointer.fromAddress(0));
+  } catch (e) {
+    exception = e;
+  }
+  Expect.contains(
+      'Lightweight isolates are only implemented in AOT mode and need to be '
+      'explicitly enabled by passing --enable-isolate-groups.',
+      exception.toString());
+}
+
 Future testJit() async {
   dynamic exception;
   try {
@@ -211,12 +236,15 @@ Future testJit() async {
   } catch (e) {
     exception = e;
   }
-  Expect.isTrue(exception
-      .toString()
-      .contains('Lightweight isolates are not yet ready in JIT mode'));
+  Expect.contains(
+      'Lightweight isolates are not yet ready in JIT mode', exception);
 }
 
 Future main(args) async {
+  if (!isolateGropusEnabled) {
+    await testNotSupported();
+    return;
+  }
   if (isAOT) {
     await testAot();
   } else {

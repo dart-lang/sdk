@@ -1,0 +1,149 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/none/property_get.dart:55:32: Error: Not a constant expression.
+//   const dynamic instance_get = nullableClass1.field;
+//                                ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/none/property_get.dart:63:36: Error: Not a constant expression.
+//   const dynamic instance_tearOff = nonNullableClass1.method;
+//                                    ^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/none/property_get.dart:82:27: Error: Not a constant expression.
+//   const dynamic dyn_get = dyn.field;
+//                           ^^^
+//
+// pkg/front_end/testcases/none/property_get.dart:106:36: Error: Not a constant expression.
+//   const dynamic function_tearOff = nonNullableFunction.call;
+//                                    ^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/none/property_get.dart:67:18: Error: Can't tear off method 'call' from a potentially null value.
+//   Function? f2 = nullableClass2;
+//                  ^
+//
+// pkg/front_end/testcases/none/property_get.dart:110:27: Error: Too few positional arguments: 1 required, 0 given.
+//   nonNullableClass1.method().field;
+//                           ^
+//
+// pkg/front_end/testcases/none/property_get.dart:113:21: Error: The getter 'unresolved' isn't defined for the class 'Class1'.
+//  - 'Class1' is from 'pkg/front_end/testcases/none/property_get.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
+//   nonNullableClass1.unresolved;
+//                     ^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class1 extends core::Object {
+  field core::int field;
+  static field core::int staticField = 42;
+  constructor •(core::int field) → self::Class1
+    : self::Class1::field = field, super core::Object::•()
+    ;
+  method method(core::double o) → core::int
+    return 0;
+  static method staticMethod(core::double o) → core::int
+    return 0;
+}
+class Class2<T extends core::Object? = dynamic> extends core::Object {
+  generic-covariant-impl field self::Class2::T% field;
+  constructor •(self::Class2::T% field) → self::Class2<self::Class2::T%>
+    : self::Class2::field = field, super core::Object::•()
+    ;
+  method call() → core::int
+    return 42;
+}
+static field core::int topLevelField = 42;
+static const field core::String string = #C1;
+static const field core::int stringLength = #C2;
+static const field dynamic dynamicString = #C1;
+static const field core::int dynamicStringLength = #C2;
+static method topLevelMethod(core::double o) → core::int
+  return 0;
+static method test<T1 extends core::Function = core::Function, T2 extends () → core::int = () → core::int>(self::Class1 nonNullableClass1, self::Class1? nullableClass1, dynamic dyn, Never never, self::Class2<core::String> nonNullableClass2, self::Class2<core::String>? nullableClass2, core::Function nonNullableFunction, core::Function? nullableFunction, () → core::int nonNullableFunctionType, () →? core::int nullableFunctionType, self::test::T1 nonNullableTypeVariable1, self::test::T1? nullableTypeVariable1, self::test::T2 nonNullableTypeVariable2, self::test::T2? nullableTypeVariable2) → dynamic {
+  core::print("InstanceGet");
+  nonNullableClass1.{self::Class1::field}{core::int};
+  let final self::Class1? #t1 = nullableClass1 in #t1 == null ?{core::int?} null : #t1{self::Class1}.{self::Class1::field}{core::int};
+  nonNullableClass2.{self::Class2::field}{core::String};
+  let final self::Class2<core::String>? #t2 = nullableClass2 in #t2 == null ?{core::String?} null : #t2{self::Class2<core::String>}.{self::Class2::field}{core::String};
+  const dynamic instance_get = invalid-expression "pkg/front_end/testcases/none/property_get.dart:55:32: Error: Not a constant expression.
+  const dynamic instance_get = nullableClass1.field;
+                               ^^^^^^^^^^^^^^";
+  core::print(invalid-expression "pkg/front_end/testcases/none/property_get.dart:55:32: Error: Not a constant expression.
+  const dynamic instance_get = nullableClass1.field;
+                               ^^^^^^^^^^^^^^");
+  core::print("InstanceTearOff");
+  nonNullableClass1.{self::Class1::method}{(core::double) → core::int};
+  let final self::Class1? #t3 = nullableClass1 in #t3 == null ?{(core::double) →? core::int} null : #t3{self::Class1}.{self::Class1::method}{(core::double) → core::int};
+  nonNullableClass2.{self::Class2::call}{() → core::int};
+  let final self::Class2<core::String>? #t4 = nullableClass2 in #t4 == null ?{() →? core::int} null : #t4{self::Class2<core::String>}.{self::Class2::call}{() → core::int};
+  const dynamic instance_tearOff = invalid-expression "pkg/front_end/testcases/none/property_get.dart:63:36: Error: Not a constant expression.
+  const dynamic instance_tearOff = nonNullableClass1.method;
+                                   ^^^^^^^^^^^^^^^^^";
+  core::print(invalid-expression "pkg/front_end/testcases/none/property_get.dart:63:36: Error: Not a constant expression.
+  const dynamic instance_tearOff = nonNullableClass1.method;
+                                   ^^^^^^^^^^^^^^^^^");
+  core::Function f1 = let final self::Class2<core::String> #t5 = nonNullableClass2 in #t5 == null ?{() → core::int} null : #t5.{self::Class2::call};
+  core::Function? f2 = let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/none/property_get.dart:67:18: Error: Can't tear off method 'call' from a potentially null value.
+  Function? f2 = nullableClass2;
+                 ^" in nullableClass2 as{TypeError} core::Function?;
+  core::print("StaticGet");
+  self::Class1::staticField;
+  self::topLevelField;
+  core::print("StaticTearOff");
+  #C3;
+  #C4;
+  core::print(#C4);
+  core::print("DynamicGet");
+  dyn{dynamic}.field;
+  let final dynamic #t7 = dyn in #t7 == null ?{dynamic} null : #t7{dynamic}.field;
+  const dynamic dyn_get = invalid-expression "pkg/front_end/testcases/none/property_get.dart:82:27: Error: Not a constant expression.
+  const dynamic dyn_get = dyn.field;
+                          ^^^";
+  core::print(invalid-expression "pkg/front_end/testcases/none/property_get.dart:82:27: Error: Not a constant expression.
+  const dynamic dyn_get = dyn.field;
+                          ^^^");
+  core::print("InstanceGet (Object)");
+  dyn.{core::Object::hashCode}{core::int};
+  nullableClass1.{core::Object::hashCode}{core::int};
+  core::print("InstanceGetTearOff (Object)");
+  dyn.{core::Object::toString}{() → core::String};
+  nullableClass1.{core::Object::toString}{() → core::String};
+  core::print("DynamicGet (Never)");
+  never{Never}.field;
+  never{Never}.hashCode;
+  core::print("FunctionTearOff");
+  nonNullableFunction.call;
+  let final core::Function? #t8 = nullableFunction in #t8 == null ?{core::Function?} null : #t8{core::Function}.call;
+  nonNullableFunctionType.call;
+  let final () →? core::int #t9 = nullableFunctionType in #t9 == null ?{() →? core::int} null : #t9{() → core::int}.call;
+  nonNullableTypeVariable1.call;
+  let final self::test::T1? #t10 = nullableTypeVariable1 in #t10 == null ?{self::test::T1?} null : #t10{self::test::T1}.call;
+  nonNullableTypeVariable2.call;
+  let final self::test::T2? #t11 = nullableTypeVariable2 in #t11 == null ?{self::test::T2?} null : #t11{self::test::T2}.call;
+  const dynamic function_tearOff = invalid-expression "pkg/front_end/testcases/none/property_get.dart:106:36: Error: Not a constant expression.
+  const dynamic function_tearOff = nonNullableFunction.call;
+                                   ^^^^^^^^^^^^^^^^^^^";
+  core::print(invalid-expression "pkg/front_end/testcases/none/property_get.dart:106:36: Error: Not a constant expression.
+  const dynamic function_tearOff = nonNullableFunction.call;
+                                   ^^^^^^^^^^^^^^^^^^^");
+  core::print("DynamicGet (Invalid)");
+  (let final<BottomType> #t12 = invalid-expression "pkg/front_end/testcases/none/property_get.dart:110:27: Error: Too few positional arguments: 1 required, 0 given.
+  nonNullableClass1.method().field;
+                          ^" in nonNullableClass1.{self::Class1::method}{<inapplicable>}.(){() → invalid-type}){<invalid>}.field;
+  core::print("DynamicGet (Unresolved)");
+  invalid-expression "pkg/front_end/testcases/none/property_get.dart:113:21: Error: The getter 'unresolved' isn't defined for the class 'Class1'.
+ - 'Class1' is from 'pkg/front_end/testcases/none/property_get.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
+  nonNullableClass1.unresolved;
+                    ^^^^^^^^^^";
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = "foo"
+  #C2 = 3
+  #C3 = tearoff self::Class1::staticMethod
+  #C4 = tearoff self::topLevelMethod
+}

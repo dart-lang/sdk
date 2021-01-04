@@ -351,6 +351,10 @@ class Thread : public ThreadState {
     return OFFSET_OF(Thread, ffi_callback_code_);
   }
 
+  static intptr_t callback_stack_return_offset() {
+    return OFFSET_OF(Thread, ffi_callback_stack_return_);
+  }
+
   // Tag state is maintained on transitions.
   enum {
     // Always true in generated state.
@@ -424,6 +428,10 @@ class Thread : public ThreadState {
 
   bool IsMutatorThread() const { return is_mutator_thread_; }
 
+#if defined(DEBUG)
+  bool IsInsideCompiler() const { return inside_compiler_; }
+#endif
+
   bool CanCollectGarbage() const;
 
   // Offset of Dart TimelineStream object.
@@ -477,6 +485,18 @@ class Thread : public ThreadState {
     ASSERT(no_callback_scope_depth_ > 0);
     no_callback_scope_depth_ -= 1;
   }
+
+#if defined(DEBUG)
+  void EnterCompiler() {
+    ASSERT(!IsInsideCompiler());
+    inside_compiler_ = true;
+  }
+
+  void LeaveCompiler() {
+    ASSERT(IsInsideCompiler());
+    inside_compiler_ = false;
+  }
+#endif
 
   void StoreBufferAddObject(ObjectPtr obj);
   void StoreBufferAddObjectGC(ObjectPtr obj);
@@ -657,13 +677,6 @@ class Thread : public ThreadState {
   void ClearStickyError();
   DART_WARN_UNUSED_RESULT ErrorPtr StealStickyError();
 
-  StackTracePtr async_stack_trace() const;
-  void set_async_stack_trace(const StackTrace& stack_trace);
-  void clear_async_stack_trace();
-  static intptr_t async_stack_trace_offset() {
-    return OFFSET_OF(Thread, async_stack_trace_);
-  }
-
 #if defined(DEBUG)
 #define REUSABLE_HANDLE_SCOPE_ACCESSORS(object)                                \
   void set_reusable_##object##_handle_scope_active(bool value) {               \
@@ -836,8 +849,16 @@ class Thread : public ThreadState {
 
   // Store 'code' for the native callback identified by 'callback_id'.
   //
-  // Expands the callback code array as necessary to accomodate the callback ID.
+  // Expands the callback code array as necessary to accomodate the callback
+  // ID.
   void SetFfiCallbackCode(int32_t callback_id, const Code& code);
+
+  // Store 'stack_return' for the native callback identified by 'callback_id'.
+  //
+  // Expands the callback stack return array as necessary to accomodate the
+  // callback ID.
+  void SetFfiCallbackStackReturn(int32_t callback_id,
+                                 intptr_t stack_return_delta);
 
   // Ensure that 'callback_id' refers to a valid callback in this isolate.
   //
@@ -922,7 +943,6 @@ class Thread : public ThreadState {
   MarkingStackBlock* marking_stack_block_;
   MarkingStackBlock* deferred_marking_stack_block_;
   uword volatile vm_tag_;
-  StackTracePtr async_stack_trace_;
   // Memory location dedicated for passing unboxed int64 values from
   // generated code to runtime.
   // TODO(dartbug.com/33549): Clean this up when unboxed values
@@ -957,6 +977,7 @@ class Thread : public ThreadState {
   uword execution_state_;
   std::atomic<uword> safepoint_state_;
   GrowableObjectArrayPtr ffi_callback_code_;
+  TypedDataPtr ffi_callback_stack_return_;
   uword exit_through_ffi_ = 0;
   ApiLocalScope* api_top_scope_;
 
@@ -1021,6 +1042,10 @@ class Thread : public ThreadState {
 
   Thread* next_;  // Used to chain the thread structures in an isolate.
   bool is_mutator_thread_ = false;
+
+#if defined(DEBUG)
+  bool inside_compiler_ = false;
+#endif
 
   explicit Thread(bool is_vm_isolate);
 
@@ -1103,6 +1128,68 @@ class NoSafepointScope : public ValueObject {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(NoSafepointScope);
+};
+#endif  // defined(DEBUG)
+
+// Within a EnterCompilerScope, the thread must operate on cloned fields.
+#if defined(DEBUG)
+class EnterCompilerScope : public ThreadStackResource {
+ public:
+  explicit EnterCompilerScope(Thread* thread = nullptr)
+      : ThreadStackResource(thread != nullptr ? thread : Thread::Current()) {
+    previously_is_inside_compiler_ = this->thread()->IsInsideCompiler();
+    if (!previously_is_inside_compiler_) {
+      this->thread()->EnterCompiler();
+    }
+  }
+  ~EnterCompilerScope() {
+    if (!previously_is_inside_compiler_) {
+      thread()->LeaveCompiler();
+    }
+  }
+
+ private:
+  bool previously_is_inside_compiler_;
+  DISALLOW_COPY_AND_ASSIGN(EnterCompilerScope);
+};
+#else   // defined(DEBUG)
+class EnterCompilerScope : public ValueObject {
+ public:
+  explicit EnterCompilerScope(Thread* thread = nullptr) {}
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(EnterCompilerScope);
+};
+#endif  // defined(DEBUG)
+
+// Within a LeaveCompilerScope, the thread must operate on cloned fields.
+#if defined(DEBUG)
+class LeaveCompilerScope : public ThreadStackResource {
+ public:
+  explicit LeaveCompilerScope(Thread* thread = nullptr)
+      : ThreadStackResource(thread != nullptr ? thread : Thread::Current()) {
+    previously_is_inside_compiler_ = this->thread()->IsInsideCompiler();
+    if (previously_is_inside_compiler_) {
+      this->thread()->LeaveCompiler();
+    }
+  }
+  ~LeaveCompilerScope() {
+    if (previously_is_inside_compiler_) {
+      thread()->EnterCompiler();
+    }
+  }
+
+ private:
+  bool previously_is_inside_compiler_;
+  DISALLOW_COPY_AND_ASSIGN(LeaveCompilerScope);
+};
+#else   // defined(DEBUG)
+class LeaveCompilerScope : public ValueObject {
+ public:
+  explicit LeaveCompilerScope(Thread* thread = nullptr) {}
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(LeaveCompilerScope);
 };
 #endif  // defined(DEBUG)
 

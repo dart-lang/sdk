@@ -631,7 +631,7 @@ class ConnectionTask<S> {
 /// The [Stream] interface of this class provides event notification about when
 /// a certain change has happened, for example when data has become available
 /// ([RawSocketEvent.read]) or when the remote end has stopped listening
-/// ([RawSocketEvent.close]).
+/// ([RawSocketEvent.closed]).
 abstract class RawSocket implements Stream<RawSocketEvent> {
   /**
    * Set or get, if the [RawSocket] should listen for [RawSocketEvent.read]

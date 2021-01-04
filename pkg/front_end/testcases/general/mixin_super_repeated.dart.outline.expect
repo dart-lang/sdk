@@ -43,16 +43,28 @@ abstract class _Named&S&M = self::S with self::M /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Named&S&M*
     : super self::S::•()
     ;
+  mixin-super-stub get m() → dynamic
+    return super.{self::M::m};
+  mixin-super-stub set m(dynamic value) → void
+    return super.{self::M::m} = value;
 }
 abstract class _Named&S&M&N = self::_Named&S&M with self::N /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Named&S&M&N*
     : super self::_Named&S&M::•()
     ;
+  mixin-super-stub get superM() → dynamic
+    return super.{self::N::superM};
+  mixin-super-stub set superM(dynamic value) → void
+    return super.{self::N::superM} = value;
 }
 class Named = self::_Named&S&M&N with self::M {
   synthetic constructor •() → self::Named*
     : super self::_Named&S&M&N::•()
     ;
+  mixin-super-stub get m() → dynamic
+    return super.{self::M::m};
+  mixin-super-stub set m(dynamic value) → void
+    return super.{self::M::m} = value;
 }
 static method main() → dynamic
   ;

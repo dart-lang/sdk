@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 // VMOptions=--optimization-counter-threshold=5
 
 import "dart:ffi";
@@ -49,8 +47,7 @@ void main() {
       expect(true, 1 <= id && id <= 3);
       String name = r.readColumnByIndex(1);
       expect(true, name is String);
-      String alternativeName = r.readColumn("alternative_name");
-      expect(true, alternativeName is String || alternativeName == null);
+      final alternativeName = r.readColumn("alternative_name") as String?;
       dynamic multiTypedValue = r.readColumn("multi_typed_column");
       expect(
           true,
@@ -76,8 +73,7 @@ void main() {
       expect(true, 1 <= id && id <= 3);
       String name = r.readColumnByIndex(1);
       expect(true, name is String);
-      String alternativeName = r.readColumn("alternative_name");
-      expect(true, alternativeName is String || alternativeName == null);
+      final alternativeName = r.readColumn("alternative_name") as String?;
       dynamic multiTypedValue = r.readColumn("multi_typed_column");
       expect(
           true,

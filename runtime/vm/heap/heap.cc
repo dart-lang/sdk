@@ -717,30 +717,6 @@ void Heap::CollectOnNthAllocation(intptr_t num_allocations) {
   gc_on_nth_allocation_ = num_allocations;
 }
 
-void Heap::MergeFrom(Heap* donor) {
-  ASSERT(!donor->read_only_);
-  ASSERT(donor->old_space()->tasks() == 0);
-
-  new_space_.MergeFrom(donor->new_space());
-  old_space_.MergeFrom(donor->old_space());
-
-  for (intptr_t i = 0; i < kNumWeakSelectors; ++i) {
-    // The new space rehashing should not be necessary.
-    new_weak_tables_[i]->MergeFrom(donor->new_weak_tables_[i]);
-    old_weak_tables_[i]->MergeFrom(donor->old_weak_tables_[i]);
-  }
-
-  StoreBufferBlock* block =
-      donor->isolate_group()->store_buffer()->TakeBlocks();
-  while (block != nullptr) {
-    StoreBufferBlock* next = block->next();
-    block->set_next(nullptr);
-    isolate_group()->store_buffer()->PushBlock(block,
-                                               StoreBuffer::kIgnoreThreshold);
-    block = next;
-  }
-}
-
 void Heap::CollectForDebugging() {
   if (gc_on_nth_allocation_ == kNoForcedGarbageCollection) return;
   if (Thread::Current()->IsAtSafepoint()) {

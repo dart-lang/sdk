@@ -1,0 +1,47 @@
+class Class {
+  var field;
+}
+
+class GenericClass<T> {
+  T field;
+}
+
+extension Extension on Class {
+  get property => this.field;
+  get tearOffGetterNamed => writeSetterNamed;
+  get tearOffGetterNoArgs => readGetter;
+  get tearOffGetterOptional => writeSetterOptional;
+  get tearOffGetterRequired => writeSetterRequired;
+  getterCalls(value) {}
+  invocations(value) {}
+  readGetter() {}
+  set property(value) {}
+  tearOffs(value) {}
+  writeSetterNamed({value}) {}
+  writeSetterOptional([value]) {}
+  writeSetterRequired(value) {}
+}
+
+extension GenericExtension<T> on GenericClass<T> {
+  T get property => this.field;
+  T readGetter() {}
+  genericWriteSetterNamed<S extends T>({S value}) {}
+  genericWriteSetterOptional<S extends T>([S value]) {}
+  genericWriteSetterRequired<S extends T>(S value) {}
+  get tearOffGetterGenericNamed => genericWriteSetterNamed;
+  get tearOffGetterGenericOptional => genericWriteSetterOptional;
+  get tearOffGetterGenericRequired => genericWriteSetterRequired;
+  get tearOffGetterNamed => writeSetterNamed;
+  get tearOffGetterNoArgs => readGetter;
+  get tearOffGetterOptional => writeSetterOptional;
+  get tearOffGetterRequired => writeSetterRequired;
+  getterCalls<S extends T>(S value) {}
+  invocations<S extends T>(S value) {}
+  tearOffs<S extends T>(S value) {}
+  void set property(T value) {}
+  writeSetterNamed({T value}) {}
+  writeSetterOptional([T value]) {}
+  writeSetterRequired(T value) {}
+}
+
+main() {}

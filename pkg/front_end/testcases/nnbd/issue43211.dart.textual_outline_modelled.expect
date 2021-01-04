@@ -1,0 +1,24 @@
+class A<X extends A<X>?> {}
+
+class B<X extends A<Null>?> implements A<X> {
+  void method1<Y extends A<Null>?>(A<Y> a, A<A<Null>>? b) {}
+  void method2<Y extends String>(D<Y> a, D<String>? b) {}
+}
+
+class C {
+  C.internal(_) {}
+  factory C.fact(A<A<Null>>? a) {}
+  factory C.redirect(A<A<Null>>? a) = C.internal;
+}
+
+class D<X extends num> {}
+
+extension Extension1<X extends A<X>?> on A<X> {
+  void method1<Y extends A<Y>?>(A<Y> a, A<A<Null>>? b) {}
+  void method2<Y extends String>(D<Y> a, D<String>? b) {}
+}
+
+extension ext2<X extends A<Null>?> on A<X> {}
+
+main() {}
+test() {}

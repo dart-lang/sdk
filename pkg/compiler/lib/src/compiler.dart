@@ -230,12 +230,18 @@ abstract class Compiler {
         });
       });
 
+  bool get onlyPerformGlobalTypeInference {
+    return options.readClosedWorldUri != null &&
+        options.readDataUri == null &&
+        options.readCodegenUri == null;
+  }
+
   Future runInternal(Uri uri) async {
     clearState();
     assert(uri != null);
     reporter.log('Compiling $uri (${options.buildId})');
 
-    if (options.readClosedWorldUri != null) {
+    if (onlyPerformGlobalTypeInference) {
       ir.Component component =
           await serializationTask.deserializeComponentAndUpdateOptions();
       JsClosedWorld closedWorld =
@@ -250,9 +256,20 @@ abstract class Compiler {
       }
       await generateJavaScriptCode(globalTypeInferenceResults);
     } else if (options.readDataUri != null) {
-      GlobalTypeInferenceResults globalTypeInferenceResults =
-          await serializationTask.deserializeGlobalTypeInference(
-              environment, abstractValueStrategy);
+      GlobalTypeInferenceResults globalTypeInferenceResults;
+      if (options.readClosedWorldUri != null) {
+        ir.Component component =
+            await serializationTask.deserializeComponentAndUpdateOptions();
+        JsClosedWorld closedWorld =
+            await serializationTask.deserializeClosedWorld(
+                environment, abstractValueStrategy, component);
+        globalTypeInferenceResults =
+            await serializationTask.deserializeGlobalAnalysis(
+                environment, abstractValueStrategy, component, closedWorld);
+      } else {
+        globalTypeInferenceResults = await serializationTask
+            .deserializeGlobalTypeInference(environment, abstractValueStrategy);
+      }
       if (options.debugGlobalInference) {
         performGlobalTypeInference(globalTypeInferenceResults.closedWorld);
         return;

@@ -1,0 +1,3 @@
+M(r1 int32, r2 int32) Compound(size: 8)
+=>
+P(r0 uint32) Compound(size: 8)

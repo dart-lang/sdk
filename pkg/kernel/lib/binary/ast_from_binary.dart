@@ -24,13 +24,19 @@ class ParseError {
 }
 
 class InvalidKernelVersionError {
+  final String filename;
   final int version;
 
-  InvalidKernelVersionError(this.version);
+  InvalidKernelVersionError(this.filename, this.version);
 
   String toString() {
-    return 'Unexpected Kernel Format Version ${version} '
-        '(expected ${Tag.BinaryFormatVersion}).';
+    StringBuffer sb = new StringBuffer();
+    sb.write('Unexpected Kernel Format Version ${version} '
+        '(expected ${Tag.BinaryFormatVersion})');
+    if (filename != null) {
+      sb.write(' when reading $filename.');
+    }
+    return '$sb';
   }
 }
 
@@ -57,10 +63,14 @@ class CanonicalNameError {
   final String message;
 
   CanonicalNameError(this.message);
+
+  String toString() => 'CanonicalNameError: $message';
 }
 
 class CanonicalNameSdkError extends CanonicalNameError {
   CanonicalNameSdkError(String message) : super(message);
+
+  String toString() => 'CanonicalNameSdkError: $message';
 }
 
 class _ComponentIndex {
@@ -144,7 +154,7 @@ class BinaryBuilder {
 
   int readByte() => _bytes[_byteOffset++];
 
-  int readUInt() {
+  int readUInt30() {
     int byte = readByte();
     if (byte & 0x80 == 0) {
       // 0xxxxxxx
@@ -192,11 +202,11 @@ class BinaryBuilder {
   }
 
   Uint8List readByteList() {
-    return readBytes(readUInt());
+    return readBytes(readUInt30());
   }
 
   String readString() {
-    return readStringEntry(readUInt());
+    return readStringEntry(readUInt30());
   }
 
   String readStringEntry(int numBytes) {
@@ -268,10 +278,10 @@ class BinaryBuilder {
 
   void readStringTable(List<String> table) {
     // Read the table of end offsets.
-    int length = readUInt();
-    List<int> endOffsets = new List<int>(length);
+    int length = readUInt30();
+    List<int> endOffsets = new List<int>.filled(length, null);
     for (int i = 0; i < length; ++i) {
-      endOffsets[i] = readUInt();
+      endOffsets[i] = readUInt30();
     }
     // Read the WTF-8 encoded strings.
     table.length = length;
@@ -283,7 +293,7 @@ class BinaryBuilder {
   }
 
   void readConstantTable() {
-    final int length = readUInt();
+    final int length = readUInt30();
     final int startOffset = byteOffset;
     for (int i = 0; i < length; i++) {
       _constantTable[byteOffset - startOffset] = readConstantTableEntry();
@@ -309,7 +319,7 @@ class BinaryBuilder {
       case ConstantTag.MapConstant:
         final DartType keyType = readDartType();
         final DartType valueType = readDartType();
-        final int length = readUInt();
+        final int length = readUInt30();
         final List<ConstantMapEntry> entries =
             new List<ConstantMapEntry>.filled(length, null, growable: true);
         for (int i = 0; i < length; i++) {
@@ -320,7 +330,7 @@ class BinaryBuilder {
         return new MapConstant(keyType, valueType, entries);
       case ConstantTag.ListConstant:
         final DartType typeArgument = readDartType();
-        final int length = readUInt();
+        final int length = readUInt30();
         final List<Constant> entries =
             new List<Constant>.filled(length, null, growable: true);
         for (int i = 0; i < length; i++) {
@@ -329,7 +339,7 @@ class BinaryBuilder {
         return new ListConstant(typeArgument, entries);
       case ConstantTag.SetConstant:
         final DartType typeArgument = readDartType();
-        final int length = readUInt();
+        final int length = readUInt30();
         final List<Constant> entries =
             new List<Constant>.filled(length, null, growable: true);
         for (int i = 0; i < length; i++) {
@@ -338,13 +348,13 @@ class BinaryBuilder {
         return new SetConstant(typeArgument, entries);
       case ConstantTag.InstanceConstant:
         final Reference classReference = readClassReference();
-        final int typeArgumentCount = readUInt();
+        final int typeArgumentCount = readUInt30();
         final List<DartType> typeArguments =
             new List<DartType>.filled(typeArgumentCount, null, growable: true);
         for (int i = 0; i < typeArgumentCount; i++) {
           typeArguments[i] = readDartType();
         }
-        final int fieldValueCount = readUInt();
+        final int fieldValueCount = readUInt30();
         final Map<Reference, Constant> fieldValues = <Reference, Constant>{};
         for (int i = 0; i < fieldValueCount; i++) {
           final Reference fieldRef =
@@ -356,8 +366,8 @@ class BinaryBuilder {
       case ConstantTag.PartialInstantiationConstant:
         final TearOffConstant tearOffConstant =
             readConstantReference() as TearOffConstant;
-        final int length = readUInt();
-        final List<DartType> types = new List<DartType>(length);
+        final int length = readUInt30();
+        final List<DartType> types = new List<DartType>.filled(length, null);
         for (int i = 0; i < length; i++) {
           types[i] = readDartType();
         }
@@ -377,22 +387,22 @@ class BinaryBuilder {
   }
 
   Constant readConstantReference() {
-    final int offset = readUInt();
+    final int offset = readUInt30();
     Constant constant = _constantTable[offset];
     assert(constant != null);
     return constant;
   }
 
   Uri readUriReference() {
-    return _sourceUriTable[readUInt()];
+    return _sourceUriTable[readUInt30()];
   }
 
   String readStringReference() {
-    return _stringTable[readUInt()];
+    return _stringTable[readUInt30()];
   }
 
   List<String> readStringReferenceList() {
-    int length = readUInt();
+    int length = readUInt30();
     List<String> result = new List<String>.filled(length, null, growable: true);
     for (int i = 0; i < length; ++i) {
       result[i] = readStringReference();
@@ -417,7 +427,7 @@ class BinaryBuilder {
   }
 
   List<Expression> readAnnotationList(TreeNode parent) {
-    int length = readUInt();
+    int length = readUInt30();
     if (length == 0) return const <Expression>[];
     List<Expression> list =
         new List<Expression>.filled(length, null, growable: true);
@@ -429,7 +439,7 @@ class BinaryBuilder {
 
   void _fillTreeNodeList(
       List<TreeNode> list, TreeNode buildObject(int index), TreeNode parent) {
-    int length = readUInt();
+    int length = readUInt30();
     list.length = length;
     for (int i = 0; i < length; ++i) {
       TreeNode object = buildObject(i);
@@ -438,7 +448,7 @@ class BinaryBuilder {
   }
 
   void _fillNonTreeNodeList(List<Node> list, Node buildObject()) {
-    int length = readUInt();
+    int length = readUInt30();
     list.length = length;
     for (int i = 0; i < length; ++i) {
       Node object = buildObject();
@@ -461,10 +471,10 @@ class BinaryBuilder {
   }
 
   void readLinkTable(CanonicalName linkRoot) {
-    int length = readUInt();
-    _linkTable = new List<CanonicalName>(length);
+    int length = readUInt30();
+    _linkTable = new List<CanonicalName>.filled(length, null);
     for (int i = 0; i < length; ++i) {
-      int biasedParentIndex = readUInt();
+      int biasedParentIndex = readUInt30();
       String name = readStringReference();
       CanonicalName parent =
           biasedParentIndex == 0 ? linkRoot : _linkTable[biasedParentIndex - 1];
@@ -529,7 +539,7 @@ class BinaryBuilder {
       }
       int version = readUint32();
       if (version != Tag.BinaryFormatVersion) {
-        throw InvalidKernelVersionError(version);
+        throw InvalidKernelVersionError(filename, version);
       }
 
       _readAndVerifySdkHash();
@@ -543,7 +553,7 @@ class BinaryBuilder {
       int componentFileIndex = 0;
       List<SubComponentView> views;
       if (createView) {
-        views = new List<SubComponentView>();
+        views = <SubComponentView>[];
       }
       while (_byteOffset < _bytes.length) {
         SubComponentView view = _readOneComponent(
@@ -563,6 +573,8 @@ class BinaryBuilder {
   }
 
   /// Deserializes the source and stores it in [component].
+  /// Note that the _coverage_ normally included in the source in the
+  /// uri-to-source mapping is _not_ included.
   ///
   /// The input bytes may contain multiple files concatenated.
   void readComponentSource(Component component) {
@@ -623,11 +635,10 @@ class BinaryBuilder {
           bool checkReferenceNode = true;
           if (child.reference == null) {
             // OK for "if private: URI of library" part of "Qualified name"...
-            Iterable<CanonicalName> children = child.childrenOrNull;
-            if (parent.parent != null &&
-                children != null &&
-                children.isNotEmpty &&
-                children.first.name.startsWith("_")) {
+            // TODO(johnniwinther): This wrongfully skips checking of variable
+            // synthesized by the VM transformations. The kind of canonical
+            // name types maybe should be directly available.
+            if (parent.parent != null && child.name.contains(':')) {
               // OK then.
               checkReferenceNode = false;
             } else {
@@ -672,7 +683,7 @@ class BinaryBuilder {
     result.libraryCount = readUint32();
     // Library offsets are used for start and end offsets, so there is one extra
     // element that this the end offset of the last library
-    result.libraryOffsets = new List<int>(result.libraryCount + 1);
+    result.libraryOffsets = new List<int>.filled(result.libraryCount + 1, null);
     result.componentFileSizeInBytes = readUint32();
     if (result.componentFileSizeInBytes != componentFileSize) {
       throw "Malformed binary: This component file's component index indicates "
@@ -715,7 +726,7 @@ class BinaryBuilder {
 
     final int formatVersion = readUint32();
     if (formatVersion != Tag.BinaryFormatVersion) {
-      throw InvalidKernelVersionError(formatVersion);
+      throw InvalidKernelVersionError(filename, formatVersion);
     }
 
     _readAndVerifySdkHash();
@@ -724,7 +735,7 @@ class BinaryBuilder {
     _ComponentIndex index = _readComponentIndex(componentFileSize);
 
     _byteOffset = index.binaryOffsetForSourceTable;
-    Map<Uri, Source> uriToSource = readUriToSource();
+    Map<Uri, Source> uriToSource = readUriToSource(/* readCoverage = */ false);
     _mergeUriToSource(component.uriToSource, uriToSource);
 
     _byteOffset = _componentStartOffset + componentFileSize;
@@ -741,7 +752,7 @@ class BinaryBuilder {
 
     final int formatVersion = readUint32();
     if (formatVersion != Tag.BinaryFormatVersion) {
-      throw InvalidKernelVersionError(formatVersion);
+      throw InvalidKernelVersionError(filename, formatVersion);
     }
 
     _readAndVerifySdkHash();
@@ -773,7 +784,7 @@ class BinaryBuilder {
     _associateMetadata(component, _componentStartOffset);
 
     _byteOffset = index.binaryOffsetForSourceTable;
-    Map<Uri, Source> uriToSource = readUriToSource();
+    Map<Uri, Source> uriToSource = readUriToSource(/* readCoverage = */ true);
     _mergeUriToSource(component.uriToSource, uriToSource);
 
     _byteOffset = index.binaryOffsetForConstantTable;
@@ -783,8 +794,10 @@ class BinaryBuilder {
 
     SubComponentView result;
     if (createView) {
-      result = new SubComponentView(new List<Library>(numberOfLibraries),
-          _componentStartOffset, componentFileSize);
+      result = new SubComponentView(
+          new List<Library>.filled(numberOfLibraries, null),
+          _componentStartOffset,
+          componentFileSize);
     }
 
     for (int i = 0; i < numberOfLibraries; ++i) {
@@ -808,7 +821,7 @@ class BinaryBuilder {
 
   /// Read a list of strings. If the list is empty, [null] is returned.
   List<String> readListOfStrings() {
-    int length = readUInt();
+    int length = readUInt30();
     if (length == 0) return null;
     List<String> strings =
         new List<String>.filled(length, null, growable: true);
@@ -819,7 +832,14 @@ class BinaryBuilder {
     return strings;
   }
 
-  Map<Uri, Source> readUriToSource() {
+  /// Read the uri-to-source part of the binary.
+  /// Note that this can include coverage, but that it is only included if
+  /// [readCoverage] is true, otherwise coverage will be skipped. Note also that
+  /// if [readCoverage] is true, references are read and that the link table
+  /// thus has to be read first.
+  Map<Uri, Source> readUriToSource(bool readCoverage) {
+    assert(!readCoverage || (readCoverage && _linkTable != null));
+
     int length = readUint32();
 
     // Read data.
@@ -830,18 +850,36 @@ class BinaryBuilder {
       Uri uri = uriString.isEmpty ? null : Uri.parse(uriString);
       _sourceUriTable[i] = uri;
       Uint8List sourceCode = readByteList();
-      int lineCount = readUInt();
-      List<int> lineStarts = new List<int>(lineCount);
+      int lineCount = readUInt30();
+      List<int> lineStarts = new List<int>.filled(lineCount, null);
       int previousLineStart = 0;
       for (int j = 0; j < lineCount; ++j) {
-        int lineStart = readUInt() + previousLineStart;
+        int lineStart = readUInt30() + previousLineStart;
         lineStarts[j] = lineStart;
         previousLineStart = lineStart;
       }
       String importUriString = readString();
       Uri importUri =
           importUriString.isEmpty ? null : Uri.parse(importUriString);
-      uriToSource[uri] = new Source(lineStarts, sourceCode, importUri, uri);
+
+      Set<Reference> coverageConstructors;
+      {
+        int constructorCoverageCount = readUInt30();
+        if (readCoverage) {
+          coverageConstructors =
+              constructorCoverageCount == 0 ? null : new Set<Reference>();
+          for (int j = 0; j < constructorCoverageCount; ++j) {
+            coverageConstructors.add(readMemberReference());
+          }
+        } else {
+          for (int j = 0; j < constructorCoverageCount; ++j) {
+            skipMemberReference();
+          }
+        }
+      }
+
+      uriToSource[uri] = new Source(lineStarts, sourceCode, importUri, uri)
+        ..constantCoverageConstructors = coverageConstructors;
     }
 
     // Read index.
@@ -861,15 +899,43 @@ class BinaryBuilder {
       dst.addAll(src);
     } else {
       src.forEach((Uri key, Source value) {
-        if (value.source.isNotEmpty || !dst.containsKey(key)) {
+        Source originalDestinationSource = dst[key];
+        Source mergeFrom;
+        Source mergeTo;
+        if (value.source.isNotEmpty || originalDestinationSource == null) {
           dst[key] = value;
+          mergeFrom = originalDestinationSource;
+          mergeTo = value;
+        } else {
+          mergeFrom = value;
+          mergeTo = originalDestinationSource;
+        }
+
+        // TODO(jensj): Find out what the right thing to do is --- it probably
+        // depends on what we do if read the same library twice - do we merge or
+        // do we overwrite, and should we even support such a thing?
+
+        // Merge coverage. Note that mergeFrom might be null.
+        if (mergeTo.constantCoverageConstructors == null) {
+          mergeTo.constantCoverageConstructors =
+              mergeFrom?.constantCoverageConstructors;
+        } else if (mergeFrom?.constantCoverageConstructors == null) {
+          // Nothing to do.
+        } else {
+          // Bot are non-null: Merge.
+          mergeTo.constantCoverageConstructors
+              .addAll(mergeFrom.constantCoverageConstructors);
         }
       });
     }
   }
 
+  void skipCanonicalNameReference() {
+    readUInt30();
+  }
+
   CanonicalName readCanonicalNameReference() {
-    int index = readUInt();
+    int index = readUInt30();
     if (index == 0) return null;
     return _linkTable[index - 1];
   }
@@ -887,7 +953,7 @@ class BinaryBuilder {
   }
 
   LibraryDependency readLibraryDependencyReference() {
-    int index = readUInt();
+    int index = readUInt30();
     return _currentLibrary.dependencies[index];
   }
 
@@ -897,6 +963,10 @@ class BinaryBuilder {
       throw 'Expected a class reference to be valid but was `null`.';
     }
     return name?.getReference();
+  }
+
+  void skipMemberReference() {
+    skipCanonicalNameReference();
   }
 
   Reference readMemberReference({bool allowNull: false}) {
@@ -941,7 +1011,7 @@ class BinaryBuilder {
     // There is a field for the procedure count.
     _byteOffset = endOffset - (1) * 4;
     int procedureCount = readUint32();
-    List<int> procedureOffsets = new List<int>(procedureCount + 1);
+    List<int> procedureOffsets = new List<int>.filled(procedureCount + 1, null);
 
     // There is a field for the procedure count, that number + 1 (for the end)
     // offsets, and then the class count (i.e. procedure count + 3 fields).
@@ -950,7 +1020,7 @@ class BinaryBuilder {
     for (int i = 0; i < procedureCount + 1; i++) {
       procedureOffsets[i] = _componentStartOffset + readUint32();
     }
-    List<int> classOffsets = new List<int>(classCount + 1);
+    List<int> classOffsets = new List<int>.filled(classCount + 1, null);
 
     // There is a field for the procedure count, that number + 1 (for the end)
     // offsets, then the class count and that number + 1 (for the end) offsets.
@@ -963,8 +1033,8 @@ class BinaryBuilder {
 
     int flags = readByte();
 
-    int languageVersionMajor = readUInt();
-    int languageVersionMinor = readUInt();
+    int languageVersionMajor = readUInt30();
+    int languageVersionMinor = readUInt30();
 
     CanonicalName canonicalName = readCanonicalNameReference();
     Reference reference = canonicalName.getReference();
@@ -1034,7 +1104,7 @@ class BinaryBuilder {
   }
 
   void _readLibraryDependencies(Library library) {
-    int length = readUInt();
+    int length = readUInt30();
     library.dependencies.length = length;
     for (int i = 0; i < length; ++i) {
       library.dependencies[i] = readLibraryDependency(library);
@@ -1055,7 +1125,7 @@ class BinaryBuilder {
   }
 
   void _readAdditionalExports(Library library) {
-    int numExportedReference = readUInt();
+    int numExportedReference = readUInt30();
     if (numExportedReference != 0) {
       library.additionalExports.clear();
       for (int i = 0; i < numExportedReference; i++) {
@@ -1073,7 +1143,7 @@ class BinaryBuilder {
   }
 
   List<Combinator> readCombinatorList() {
-    int length = readUInt();
+    int length = readUInt30();
     List<Combinator> result =
         new List<Combinator>.filled(length, null, growable: true);
     for (int i = 0; i < length; ++i) {
@@ -1083,7 +1153,7 @@ class BinaryBuilder {
   }
 
   void _readLibraryParts(Library library) {
-    int length = readUInt();
+    int length = readUInt30();
     library.parts.length = length;
     for (int i = 0; i < length; ++i) {
       library.parts[i] = readLibraryPart(library);
@@ -1115,8 +1185,10 @@ class BinaryBuilder {
     readAndPushTypeParameterList(node.typeParametersOfFunctionType, node);
     node.positionalParameters.clear();
     node.positionalParameters.addAll(readAndPushVariableDeclarationList());
+    setParents(node.positionalParameters, node);
     node.namedParameters.clear();
     node.namedParameters.addAll(readAndPushVariableDeclarationList());
+    setParents(node.namedParameters, node);
     typeParameterStack.length = 0;
     variableStack.length = 0;
     node.fileOffset = fileOffset;
@@ -1135,7 +1207,7 @@ class BinaryBuilder {
     // There is a field for the procedure count.
     _byteOffset = endOffset - (1) * 4;
     int procedureCount = readUint32();
-    List<int> procedureOffsets = new List<int>(procedureCount + 1);
+    List<int> procedureOffsets = new List<int>.filled(procedureCount + 1, null);
     // There is a field for the procedure count, that number + 1 (for the end)
     // offsets (i.e. procedure count + 2 fields).
     _byteOffset = endOffset - (procedureCount + 2) * 4;
@@ -1223,7 +1295,7 @@ class BinaryBuilder {
     node.fileUri = fileUri;
     node.onType = onType;
 
-    int length = readUInt();
+    int length = readUInt30();
     node.members.length = length;
     for (int i = 0; i < length; i++) {
       Name name = readName();
@@ -1289,19 +1361,23 @@ class BinaryBuilder {
     CanonicalName getterCanonicalName = readCanonicalNameReference();
     Reference getterReference = getterCanonicalName.getReference();
     CanonicalName setterCanonicalName = readCanonicalNameReference();
-    Reference setterReference = setterCanonicalName.getReference();
+    Reference setterReference = setterCanonicalName?.getReference();
     Field node = getterReference.node;
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
     if (node == null) {
-      node = new Field(null,
-          getterReference: getterReference, setterReference: setterReference);
+      if (setterReference != null) {
+        node = new Field.mutable(null,
+            getterReference: getterReference, setterReference: setterReference);
+      } else {
+        node = new Field.immutable(null, getterReference: getterReference);
+      }
     }
     Uri fileUri = readUriReference();
     int fileOffset = readOffset();
     int fileEndOffset = readOffset();
-    int flags = readUInt();
+    int flags = readUInt30();
     Name name = readName();
     List<Expression> annotations = readAnnotationList(node);
     assert(() {
@@ -1382,12 +1458,13 @@ class BinaryBuilder {
     int fileEndOffset = readOffset();
     int kindIndex = readByte();
     ProcedureKind kind = ProcedureKind.values[kindIndex];
+    ProcedureStubKind stubKind = ProcedureStubKind.values[readByte()];
     if (node == null) {
       node = new Procedure(null, kind, null, reference: reference);
     } else {
       assert(node.kind == kind);
     }
-    int flags = readUInt();
+    int flags = readUInt30();
     Name name = readName();
     List<Expression> annotations = readAnnotationList(node);
     assert(() {
@@ -1399,12 +1476,7 @@ class BinaryBuilder {
     bool readFunctionNodeNow =
         (kind == ProcedureKind.Factory && functionNodeSize <= 50) ||
             _disableLazyReading;
-    Reference forwardingStubSuperTargetReference =
-        readMemberReference(allowNull: true);
-    Reference forwardingStubInterfaceTargetReference =
-        readMemberReference(allowNull: true);
-    Reference memberSignatureTargetReference =
-        readMemberReference(allowNull: true);
+    Reference stubTargetReference = readMemberReference(allowNull: true);
     FunctionNode function =
         readFunctionNodeOption(!readFunctionNodeNow, endOffset);
     int transformerFlags = getAndResetTransformerFlags();
@@ -1419,17 +1491,13 @@ class BinaryBuilder {
     node.function = function;
     function?.parent = node;
     node.setTransformerFlagsWithoutLazyLoading(transformerFlags);
-    node.forwardingStubSuperTargetReference =
-        forwardingStubSuperTargetReference;
-    node.forwardingStubInterfaceTargetReference =
-        forwardingStubInterfaceTargetReference;
-    node.memberSignatureOriginReference = memberSignatureTargetReference;
+    node.stubKind = stubKind;
+    node.stubTargetReference = stubTargetReference;
 
-    assert((node.forwardingStubSuperTargetReference != null) ||
+    assert((node.stubKind == ProcedureStubKind.ConcreteForwardingStub &&
+            node.stubTargetReference != null) ||
         !(node.isForwardingStub && node.function.body != null));
-    assert(
-        !(node.isMemberSignature &&
-            node.memberSignatureOriginReference == null),
+    assert(!(node.isMemberSignature && node.stubTargetReference == null),
         "No member signature origin for member signature $node.");
     return node;
   }
@@ -1460,8 +1528,8 @@ class BinaryBuilder {
     List<DartType> typeArguments = readDartTypeList();
     int typeParameterStackHeight = typeParameterStack.length;
     List<TypeParameter> typeParameters = readAndPushTypeParameterList();
-    readUInt(); // Total parameter count.
-    int requiredParameterCount = readUInt();
+    readUInt30(); // Total parameter count.
+    int requiredParameterCount = readUInt30();
     int variableStackHeight = variableStack.length;
     List<VariableDeclaration> positional = readAndPushVariableDeclarationList();
     List<VariableDeclaration> named = readAndPushVariableDeclarationList();
@@ -1532,8 +1600,8 @@ class BinaryBuilder {
     AsyncMarker dartAsyncMarker = AsyncMarker.values[readByte()];
     int typeParameterStackHeight = typeParameterStack.length;
     List<TypeParameter> typeParameters = readAndPushTypeParameterList();
-    readUInt(); // total parameter count.
-    int requiredParameterCount = readUInt();
+    readUInt30(); // total parameter count.
+    int requiredParameterCount = readUInt30();
     int variableStackHeight = variableStack.length;
     List<VariableDeclaration> positional = readAndPushVariableDeclarationList();
     List<VariableDeclaration> named = readAndPushVariableDeclarationList();
@@ -1615,9 +1683,10 @@ class BinaryBuilder {
   }
 
   VariableDeclaration readVariableReference() {
-    int index = readUInt();
+    int index = readUInt30();
     if (index >= variableStack.length) {
-      throw fail('unexpected variable index: $index');
+      throw fail('Unexpected variable index: $index. '
+          'Current variable count: ${variableStack.length}.');
     }
     return variableStack[index];
   }
@@ -1634,7 +1703,7 @@ class BinaryBuilder {
   }
 
   List<Expression> readExpressionList() {
-    int length = readUInt();
+    int length = readUInt30();
     List<Expression> result =
         new List<Expression>.filled(length, null, growable: true);
     for (int i = 0; i < length; ++i) {
@@ -1663,23 +1732,23 @@ class BinaryBuilder {
           ..fileOffset = offset;
       case Tag.VariableGet:
         int offset = readOffset();
-        readUInt(); // offset of the variable declaration in the binary.
+        readUInt30(); // offset of the variable declaration in the binary.
         return new VariableGet(readVariableReference(), readDartTypeOption())
           ..fileOffset = offset;
       case Tag.SpecializedVariableGet:
         int index = tagByte & Tag.SpecializedPayloadMask;
         int offset = readOffset();
-        readUInt(); // offset of the variable declaration in the binary.
+        readUInt30(); // offset of the variable declaration in the binary.
         return new VariableGet(variableStack[index])..fileOffset = offset;
       case Tag.VariableSet:
         int offset = readOffset();
-        readUInt(); // offset of the variable declaration in the binary.
+        readUInt30(); // offset of the variable declaration in the binary.
         return new VariableSet(readVariableReference(), readExpression())
           ..fileOffset = offset;
       case Tag.SpecializedVariableSet:
         int index = tagByte & Tag.SpecializedPayloadMask;
         int offset = readOffset();
-        readUInt(); // offset of the variable declaration in the binary.
+        readUInt30(); // offset of the variable declaration in the binary.
         return new VariableSet(variableStack[index], readExpression())
           ..fileOffset = offset;
       case Tag.PropertyGet:
@@ -1687,10 +1756,43 @@ class BinaryBuilder {
         return new PropertyGet.byReference(readExpression(), readName(),
             readInstanceMemberReference(allowNull: true))
           ..fileOffset = offset;
+      case Tag.InstanceGet:
+        InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
+        int offset = readOffset();
+        return new InstanceGet.byReference(kind, readExpression(), readName(),
+            resultType: readDartType(),
+            interfaceTargetReference: readInstanceMemberReference())
+          ..fileOffset = offset;
+      case Tag.InstanceTearOff:
+        InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
+        int offset = readOffset();
+        return new InstanceTearOff.byReference(
+            kind, readExpression(), readName(),
+            resultType: readDartType(),
+            interfaceTargetReference: readInstanceMemberReference())
+          ..fileOffset = offset;
+      case Tag.DynamicGet:
+        DynamicAccessKind kind = DynamicAccessKind.values[readByte()];
+        int offset = readOffset();
+        return new DynamicGet(kind, readExpression(), readName())
+          ..fileOffset = offset;
       case Tag.PropertySet:
         int offset = readOffset();
         return new PropertySet.byReference(readExpression(), readName(),
             readExpression(), readInstanceMemberReference(allowNull: true))
+          ..fileOffset = offset;
+      case Tag.InstanceSet:
+        InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
+        int offset = readOffset();
+        return new InstanceSet.byReference(
+            kind, readExpression(), readName(), readExpression(),
+            interfaceTargetReference: readInstanceMemberReference())
+          ..fileOffset = offset;
+      case Tag.DynamicSet:
+        DynamicAccessKind kind = DynamicAccessKind.values[readByte()];
+        int offset = readOffset();
+        return new DynamicSet(
+            kind, readExpression(), readName(), readExpression())
           ..fileOffset = offset;
       case Tag.SuperPropertyGet:
         int offset = readOffset();
@@ -1708,6 +1810,10 @@ class BinaryBuilder {
         int offset = readOffset();
         return new StaticGet.byReference(readMemberReference())
           ..fileOffset = offset;
+      case Tag.StaticTearOff:
+        int offset = readOffset();
+        return new StaticTearOff.byReference(readMemberReference())
+          ..fileOffset = offset;
       case Tag.StaticSet:
         int offset = readOffset();
         return new StaticSet.byReference(
@@ -1720,6 +1826,55 @@ class BinaryBuilder {
             readArguments(), readInstanceMemberReference(allowNull: true))
           ..fileOffset = offset
           ..flags = flags;
+      case Tag.InstanceInvocation:
+        InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
+        int flags = readByte();
+        int offset = readOffset();
+        return new InstanceInvocation.byReference(
+            kind, readExpression(), readName(), readArguments(),
+            functionType: readDartType(),
+            interfaceTargetReference: readInstanceMemberReference())
+          ..fileOffset = offset
+          ..flags = flags;
+      case Tag.DynamicInvocation:
+        DynamicAccessKind kind = DynamicAccessKind.values[readByte()];
+        int offset = readOffset();
+        return new DynamicInvocation(
+            kind, readExpression(), readName(), readArguments())
+          ..fileOffset = offset;
+      case Tag.FunctionInvocation:
+        FunctionAccessKind kind = FunctionAccessKind.values[readByte()];
+        int offset = readOffset();
+        Expression receiver = readExpression();
+        Arguments arguments = readArguments();
+        DartType functionType = readDartType();
+        // `const DynamicType()` is used to encode a missing function type.
+        assert(functionType is FunctionType || functionType is DynamicType,
+            "Unexpected function type $functionType for FunctionInvocation");
+        return new FunctionInvocation(kind, receiver, arguments,
+            functionType: functionType is FunctionType ? functionType : null)
+          ..fileOffset = offset;
+      case Tag.FunctionTearOff:
+        int offset = readOffset();
+        return new FunctionTearOff(readExpression())..fileOffset = offset;
+      case Tag.LocalFunctionInvocation:
+        int offset = readOffset();
+        readUInt30(); // offset of the variable declaration in the binary.
+        return new LocalFunctionInvocation(
+            readVariableReference(), readArguments(),
+            functionType: readDartType())
+          ..fileOffset = offset;
+      case Tag.EqualsNull:
+        int offset = readOffset();
+        return new EqualsNull(readExpression(), isNot: readByte() == 1)
+          ..fileOffset = offset;
+      case Tag.EqualsCall:
+        int offset = readOffset();
+        return new EqualsCall.byReference(readExpression(), readExpression(),
+            isNot: readByte() == 1,
+            functionType: readDartType(),
+            interfaceTargetReference: readInstanceMemberReference())
+          ..fileOffset = offset;
       case Tag.SuperMethodInvocation:
         int offset = readOffset();
         addTransformerFlag(TransformerFlag.superCalls);
@@ -1788,7 +1943,7 @@ class BinaryBuilder {
         int offset = readOffset();
         Reference classReference = readClassReference();
         List<DartType> typeArguments = readDartTypeList();
-        int fieldValueCount = readUInt();
+        int fieldValueCount = readUInt30();
         Map<Reference, Expression> fieldValues = <Reference, Expression>{};
         for (int i = 0; i < fieldValueCount; i++) {
           final Reference fieldRef =
@@ -1796,8 +1951,9 @@ class BinaryBuilder {
           final Expression value = readExpression();
           fieldValues[fieldRef] = value;
         }
-        int assertCount = readUInt();
-        List<AssertStatement> asserts = new List<AssertStatement>(assertCount);
+        int assertCount = readUInt30();
+        List<AssertStatement> asserts =
+            new List<AssertStatement>.filled(assertCount, null);
         for (int i = 0; i < assertCount; i++) {
           asserts[i] = readStatement();
         }
@@ -1828,9 +1984,9 @@ class BinaryBuilder {
         int biasedValue = tagByte & Tag.SpecializedPayloadMask;
         return new IntLiteral(biasedValue - Tag.SpecializedIntLiteralBias);
       case Tag.PositiveIntLiteral:
-        return new IntLiteral(readUInt());
+        return new IntLiteral(readUInt30());
       case Tag.NegativeIntLiteral:
-        return new IntLiteral(-readUInt());
+        return new IntLiteral(-readUInt30());
       case Tag.BigIntLiteral:
         return new IntLiteral(int.parse(readStringReference()));
       case Tag.DoubleLiteral:
@@ -1924,7 +2080,7 @@ class BinaryBuilder {
   }
 
   List<MapEntry> readMapEntryList() {
-    int length = readUInt();
+    int length = readUInt30();
     List<MapEntry> result =
         new List<MapEntry>.filled(length, null, growable: true);
     for (int i = 0; i < length; ++i) {
@@ -1938,7 +2094,7 @@ class BinaryBuilder {
   }
 
   List<Statement> readStatementList() {
-    int length = readUInt();
+    int length = readUInt30();
     List<Statement> result =
         new List<Statement>.filled(length, null, growable: true);
     for (int i = 0; i < length; ++i) {
@@ -1984,7 +2140,7 @@ class BinaryBuilder {
         return label;
       case Tag.BreakStatement:
         int offset = readOffset();
-        int index = readUInt();
+        int index = readUInt30();
         return new BreakStatement(labelStack[labelStackBase + index])
           ..fileOffset = offset;
       case Tag.WhileStatement:
@@ -2022,7 +2178,7 @@ class BinaryBuilder {
       case Tag.SwitchStatement:
         int offset = readOffset();
         Expression expression = readExpression();
-        int count = readUInt();
+        int count = readUInt30();
         List<SwitchCase> cases =
             new List<SwitchCase>.filled(count, null, growable: true);
         for (int i = 0; i < count; ++i) {
@@ -2036,7 +2192,7 @@ class BinaryBuilder {
         return new SwitchStatement(expression, cases)..fileOffset = offset;
       case Tag.ContinueSwitchStatement:
         int offset = readOffset();
-        int index = readUInt();
+        int index = readUInt30();
         return new ContinueSwitchStatement(
             switchCaseStack[switchCaseStackBase + index])
           ..fileOffset = offset;
@@ -2077,7 +2233,7 @@ class BinaryBuilder {
   }
 
   void readSwitchCaseInto(SwitchCase caseNode) {
-    int length = readUInt();
+    int length = readUInt30();
     caseNode.expressions.length = length;
     caseNode.expressionOffsets.length = length;
     for (int i = 0; i < length; ++i) {
@@ -2089,7 +2245,7 @@ class BinaryBuilder {
   }
 
   List<Catch> readCatchList() {
-    int length = readUInt();
+    int length = readUInt30();
     List<Catch> result = new List<Catch>.filled(length, null, growable: true);
     for (int i = 0; i < length; ++i) {
       result[i] = readCatch();
@@ -2142,7 +2298,7 @@ class BinaryBuilder {
   }
 
   List<Supertype> readSupertypeList() {
-    int length = readUInt();
+    int length = readUInt30();
     List<Supertype> result =
         new List<Supertype>.filled(length, null, growable: true);
     for (int i = 0; i < length; ++i) {
@@ -2152,7 +2308,7 @@ class BinaryBuilder {
   }
 
   List<DartType> readDartTypeList() {
-    int length = readUInt();
+    int length = readUInt30();
     List<DartType> result =
         new List<DartType>.filled(length, null, growable: true);
     for (int i = 0; i < length; ++i) {
@@ -2162,7 +2318,7 @@ class BinaryBuilder {
   }
 
   List<NamedType> readNamedTypeList() {
-    int length = readUInt();
+    int length = readUInt30();
     List<NamedType> result =
         new List<NamedType>.filled(length, null, growable: true);
     for (int i = 0; i < length; ++i) {
@@ -2237,8 +2393,8 @@ class BinaryBuilder {
         int typeParameterStackHeight = typeParameterStack.length;
         int nullabilityIndex = readByte();
         List<TypeParameter> typeParameters = readAndPushTypeParameterList();
-        int requiredParameterCount = readUInt();
-        int totalParameterCount = readUInt();
+        int requiredParameterCount = readUInt30();
+        int totalParameterCount = readUInt30();
         List<DartType> positional = readDartTypeList();
         List<NamedType> named = readNamedTypeList();
         DartType typedefType = readDartTypeOption();
@@ -2259,7 +2415,7 @@ class BinaryBuilder {
             positional, returnType, Nullability.values[nullabilityIndex]);
       case Tag.TypeParameterType:
         int declaredNullabilityIndex = readByte();
-        int index = readUInt();
+        int index = readUInt30();
         DartType bound = readDartTypeOption();
         return new TypeParameterType(typeParameterStack[index],
             Nullability.values[declaredNullabilityIndex], bound);
@@ -2270,7 +2426,7 @@ class BinaryBuilder {
 
   List<TypeParameter> readAndPushTypeParameterList(
       [List<TypeParameter> list, TreeNode parent]) {
-    int length = readUInt();
+    int length = readUInt30();
     if (length == 0) return list ?? <TypeParameter>[];
     if (list == null) {
       list = new List<TypeParameter>.filled(length, null, growable: true);
@@ -2305,7 +2461,7 @@ class BinaryBuilder {
   }
 
   Arguments readArguments() {
-    int numArguments = readUInt();
+    int numArguments = readUInt30();
     List<DartType> typeArguments = readDartTypeList();
     List<Expression> positional = readExpressionList();
     List<NamedExpression> named = readNamedExpressionList();
@@ -2314,7 +2470,7 @@ class BinaryBuilder {
   }
 
   List<NamedExpression> readNamedExpressionList() {
-    int length = readUInt();
+    int length = readUInt30();
     List<NamedExpression> result =
         new List<NamedExpression>.filled(length, null, growable: true);
     for (int i = 0; i < length; ++i) {
@@ -2328,7 +2484,7 @@ class BinaryBuilder {
   }
 
   List<VariableDeclaration> readAndPushVariableDeclarationList() {
-    int length = readUInt();
+    int length = readUInt30();
     List<VariableDeclaration> result =
         new List<VariableDeclaration>.filled(length, null, growable: true);
     for (int i = 0; i < length; ++i) {
@@ -2374,7 +2530,7 @@ class BinaryBuilder {
   int readOffset() {
     // Offset is saved as unsigned,
     // but actually ranges from -1 and up (thus the -1)
-    return readUInt() - 1;
+    return readUInt30() - 1;
   }
 }
 

@@ -234,8 +234,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->in(0).reg();
   ASSERT(result == EAX);
 
-  if (compiler->intrinsic_mode()) {
-    // Intrinsics don't have a frame.
+  if (!compiler->flow_graph().graph_entry()->NeedsFrame()) {
     __ ret();
     return;
   }
@@ -256,12 +255,13 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(&done);
 #endif
   if (yield_index() != PcDescriptorsLayout::kInvalidYieldIndex) {
-    compiler->EmitYieldPositionMetadata(token_pos(), yield_index());
+    compiler->EmitYieldPositionMetadata(source(), yield_index());
   }
   __ LeaveFrame();
   __ ret();
 }
 
+// Keep in sync with NativeEntryInstr::EmitNativeCode.
 void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   EmitReturnMoves(compiler);
 
@@ -331,15 +331,14 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ popl(ESI);
   __ popl(EBX);
 
-#if defined(TARGET_OS_FUCHSIA)
-  UNREACHABLE();  // Fuchsia does not allow dart:ffi.
-#elif defined(USING_SHADOW_CALL_STACK)
+#if defined(TARGET_OS_FUCHSIA) && defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
 
   // Leave the entry frame.
   __ LeaveFrame();
 
+  // We deal with `ret 4` for structs in the JIT callback trampolines.
   __ ret();
 }
 
@@ -496,13 +495,15 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  summary->set_in(0, Location::RegisterLocation(TypeTestABI::kInstanceReg));
+  summary->set_in(kInstancePos,
+                  Location::RegisterLocation(TypeTestABI::kInstanceReg));
+  summary->set_in(kDstTypePos, LocationFixedRegisterOrConstant(
+                                   dst_type(), TypeTestABI::kDstTypeReg));
   summary->set_in(
-      1, LocationFixedRegisterOrConstant(dst_type(), TypeTestABI::kDstTypeReg));
-  summary->set_in(2, Location::RegisterLocation(
-                         TypeTestABI::kInstantiatorTypeArgumentsReg));
-  summary->set_in(
-      3, Location::RegisterLocation(TypeTestABI::kFunctionTypeArgumentsReg));
+      kInstantiatorTAVPos,
+      Location::RegisterLocation(TypeTestABI::kInstantiatorTypeArgumentsReg));
+  summary->set_in(kFunctionTAVPos, Location::RegisterLocation(
+                                       TypeTestABI::kFunctionTypeArgumentsReg));
   summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
@@ -976,7 +977,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const compiler::ExternalLabel label(
       reinterpret_cast<uword>(native_c_function()));
   __ movl(ECX, compiler::Immediate(label.address()));
-  compiler->GenerateStubCall(token_pos(), *stub, PcDescriptorsLayout::kOther,
+  compiler->GenerateStubCall(source(), *stub, PcDescriptorsLayout::kOther,
                              locs());
 
   __ popl(result);
@@ -998,7 +999,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // We need to create a dummy "exit frame". It will have a null code object.
   __ LoadObject(CODE_REG, Object::null_object());
-  __ EnterDartFrame(marshaller_.StackTopInBytes());
+  __ EnterDartFrame(marshaller_.RequiredStackSpaceInBytes());
 
   // Align frame before entering C++ world.
   if (OS::ActivationFrameAlignment() > 1) {
@@ -1015,7 +1016,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // PC-relative 'leaq' available, so we have do a trick with 'call'.
   compiler::Label get_pc;
   __ call(&get_pc);
-  compiler->EmitCallsiteMetadata(TokenPosition::kNoSource, deopt_id(),
+  compiler->EmitCallsiteMetadata(InstructionSource(), deopt_id(),
                                  PcDescriptorsLayout::Kind::kOther, locs());
   __ Bind(&get_pc);
   __ popl(temp);
@@ -1034,6 +1035,16 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Calls EAX within a safepoint and clobbers EBX.
   ASSERT(temp == EBX && branch == EAX);
   __ call(temp);
+
+  // Restore the stack when a struct by value is returned into memory pointed
+  // to by a pointer that is passed into the function.
+  if (CallingConventions::kUsesRet4 &&
+      marshaller_.Location(compiler::ffi::kResultIndex).IsPointerToMemory()) {
+    // Callee uses `ret 4` instead of `ret` to return.
+    // See: https://c9x.me/x86/html/file_module_x86_id_280.html
+    // Caller does `sub esp, 4` immediately after return to balance stack.
+    __ subl(SPREG, compiler::Immediate(compiler::target::kWordSize));
+  }
 
   // The x86 calling convention requires floating point values to be returned on
   // the "floating-point stack" (aka. register ST0). We don't use the
@@ -1056,6 +1067,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ popl(temp);
 }
 
+// Keep in sync with NativeReturnInstr::EmitNativeCode.
 void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
 
@@ -1066,9 +1078,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ xorl(EAX, EAX);
   __ pushl(EAX);
 
-#if defined(TARGET_OS_FUCHSIA)
-  UNREACHABLE();  // Fuchsia does not allow dart:ffi.
-#elif defined(USING_SHADOW_CALL_STACK)
+#if defined(TARGET_OS_FUCHSIA) && defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
 
@@ -1229,9 +1239,8 @@ void StringInterpolateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Array& kNoArgumentNames = Object::null_array();
   ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kSizeOfArguments,
                           kNoArgumentNames);
-  compiler->GenerateStaticCall(deopt_id(), token_pos(), CallFunction(),
-                               args_info, locs(), ICData::Handle(),
-                               ICData::kStatic);
+  compiler->GenerateStaticCall(deopt_id(), source(), CallFunction(), args_info,
+                               locs(), ICData::Handle(), ICData::kStatic);
   ASSERT(locs()->out(0).reg() == EAX);
 }
 
@@ -2131,7 +2140,7 @@ class BoxAllocationSlowPath : public TemplateSlowPathCode<Instruction> {
     locs->live_registers()->Remove(Location::RegisterLocation(result_));
 
     compiler->SaveLiveRegisters(locs);
-    compiler->GenerateStubCall(TokenPosition::kNoSource, stub,
+    compiler->GenerateStubCall(InstructionSource(), stub,
                                PcDescriptorsLayout::kOther, locs);
     __ MoveRegister(result_, EAX);
     compiler->RestoreLiveRegisters(locs);
@@ -2427,7 +2436,7 @@ void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(1).reg() == TypeTestABI::kInstantiatorTypeArgumentsReg);
   ASSERT(locs()->in(2).reg() == TypeTestABI::kFunctionTypeArgumentsReg);
 
-  compiler->GenerateInstanceOf(token_pos(), deopt_id(), type(), locs());
+  compiler->GenerateInstanceOf(source(), deopt_id(), type(), locs());
   ASSERT(locs()->out(0).reg() == EAX);
 }
 
@@ -2524,7 +2533,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   auto object_store = compiler->isolate()->object_store();
   const auto& allocate_array_stub =
       Code::ZoneHandle(compiler->zone(), object_store->allocate_array_stub());
-  compiler->GenerateStubCall(token_pos(), allocate_array_stub,
+  compiler->GenerateStubCall(source(), allocate_array_stub,
                              PcDescriptorsLayout::kOther, locs(), deopt_id());
   __ Bind(&done);
   ASSERT(locs()->out(0).reg() == kResultReg);
@@ -2772,7 +2781,7 @@ void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PushObject(type());
   __ pushl(instantiator_type_args_reg);  // Push instantiator type arguments.
   __ pushl(function_type_args_reg);      // Push function type arguments.
-  compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
+  compiler->GenerateRuntimeCall(source(), deopt_id(),
                                 kInstantiateTypeRuntimeEntry, 3, locs());
   __ Drop(3);           // Drop 2 type vectors, and uninstantiated type.
   __ popl(result_reg);  // Pop instantiated type.
@@ -2838,8 +2847,8 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
     __ Bind(&non_null_type_args);
   }
   // Lookup cache in stub before calling runtime.
-  compiler->GenerateStubCall(token_pos(), GetStub(),
-                             PcDescriptorsLayout::kOther, locs());
+  compiler->GenerateStubCall(source(), GetStub(), PcDescriptorsLayout::kOther,
+                             locs());
   __ Bind(&type_arguments_instantiated);
 }
 
@@ -2874,7 +2883,7 @@ class AllocateContextSlowPath
     compiler->SaveLiveRegisters(locs);
 
     __ movl(EDX, compiler::Immediate(instruction()->num_context_variables()));
-    compiler->GenerateStubCall(instruction()->token_pos(),
+    compiler->GenerateStubCall(instruction()->source(),
                                StubCode::AllocateContext(),
                                PcDescriptorsLayout::kOther, locs);
     ASSERT(instruction()->locs()->out(0).reg() == EAX);
@@ -2923,7 +2932,7 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->out(0).reg() == EAX);
 
   __ movl(EDX, compiler::Immediate(num_context_variables()));
-  compiler->GenerateStubCall(token_pos(), StubCode::AllocateContext(),
+  compiler->GenerateStubCall(source(), StubCode::AllocateContext(),
                              PcDescriptorsLayout::kOther, locs());
 }
 
@@ -2942,7 +2951,7 @@ void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(0).reg() == ECX);
   ASSERT(locs()->out(0).reg() == EAX);
 
-  compiler->GenerateStubCall(token_pos(), StubCode::CloneContext(),
+  compiler->GenerateStubCall(source(), StubCode::CloneContext(),
                              /*kind=*/PcDescriptorsLayout::kOther, locs());
 }
 
@@ -2965,7 +2974,7 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       compiler->AddDeoptIndexAtCall(deopt_id);
     } else {
       compiler->AddCurrentDescriptor(PcDescriptorsLayout::kDeopt, deopt_id,
-                                     TokenPosition::kNoSource);
+                                     InstructionSource());
     }
   }
   if (HasParallelMove()) {
@@ -3032,7 +3041,7 @@ class CheckStackOverflowSlowPath
         instruction(), /*num_slow_path_args=*/0);
     compiler->pending_deoptimization_env_ = env;
     compiler->GenerateRuntimeCall(
-        instruction()->token_pos(), instruction()->deopt_id(),
+        instruction()->source(), instruction()->deopt_id(),
         kStackOverflowRuntimeEntry, 0, instruction()->locs());
 
     if (compiler->isolate()->use_osr() && !compiler->is_optimizing() &&
@@ -3040,7 +3049,7 @@ class CheckStackOverflowSlowPath
       // In unoptimized code, record loop stack checks as possible OSR entries.
       compiler->AddCurrentDescriptor(PcDescriptorsLayout::kOsrEntry,
                                      instruction()->deopt_id(),
-                                     TokenPosition::kNoSource);
+                                     InstructionSource());
     }
     compiler->pending_deoptimization_env_ = NULL;
     compiler->RestoreLiveRegisters(instruction()->locs());
@@ -5105,7 +5114,7 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Array& kNoArgumentNames = Object::null_array();
   ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kSizeOfArguments,
                           kNoArgumentNames);
-  compiler->GenerateStaticCall(deopt_id(), instance_call()->token_pos(), target,
+  compiler->GenerateStaticCall(deopt_id(), instance_call()->source(), target,
                                args_info, locs(), ICData::Handle(),
                                ICData::kStatic);
   __ Bind(&done);
@@ -6440,7 +6449,7 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Add a deoptimization descriptor for deoptimizing instructions that
     // may be inserted before this instruction.
     compiler->AddCurrentDescriptor(PcDescriptorsLayout::kDeopt, GetDeoptId(),
-                                   TokenPosition::kNoSource);
+                                   InstructionSource());
   }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -6522,7 +6531,7 @@ Condition StrictCompareInstr::EmitComparisonCodeRegConstant(
     Register reg,
     const Object& obj) {
   return compiler->EmitEqualityRegConstCompare(reg, obj, needs_number_check(),
-                                               token_pos(), deopt_id());
+                                               source(), deopt_id());
 }
 
 // Detect pattern when one value is zero and another is a power of 2.
@@ -6626,7 +6635,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // ECX: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
   __ xorl(ECX, ECX);
   __ call(EBX);
-  compiler->EmitCallsiteMetadata(token_pos(), deopt_id(),
+  compiler->EmitCallsiteMetadata(source(), deopt_id(),
                                  PcDescriptorsLayout::kOther, locs());
   __ Drop(argument_count);
 }
@@ -6676,7 +6685,7 @@ LocationSummary* AllocateObjectInstr::MakeLocationSummary(Zone* zone,
 void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Code& stub = Code::ZoneHandle(
       compiler->zone(), StubCode::GetAllocationStubForClass(cls()));
-  compiler->GenerateStubCall(token_pos(), stub, PcDescriptorsLayout::kOther,
+  compiler->GenerateStubCall(source(), stub, PcDescriptorsLayout::kOther,
                              locs());
 }
 
@@ -6686,7 +6695,7 @@ void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #else
   ASSERT(!compiler->is_optimizing());
   __ Call(StubCode::DebugStepCheck());
-  compiler->AddCurrentDescriptor(stub_kind_, deopt_id_, token_pos());
+  compiler->AddCurrentDescriptor(stub_kind_, deopt_id_, source());
   compiler->RecordSafepoint(locs());
 #endif
 }

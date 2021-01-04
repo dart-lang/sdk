@@ -238,6 +238,7 @@ class Location : public ValueObject {
     kPrefersRegister,
     kRequiresRegister,
     kRequiresFpuRegister,
+    kRequiresStackSlot,
     kWritableRegister,
     kSameAsFirstInput,
   };
@@ -263,6 +264,10 @@ class Location : public ValueObject {
 
   static Location RequiresFpuRegister() {
     return UnallocatedLocation(kRequiresFpuRegister);
+  }
+
+  static Location RequiresStackSlot() {
+    return UnallocatedLocation(kRequiresStackSlot);
   }
 
   static Location WritableRegister() {
@@ -538,6 +543,12 @@ class RegisterSet : public ValueObject {
     ASSERT(kNumberOfFpuRegisters <= (kWordSize * kBitsPerByte));
   }
 
+  explicit RegisterSet(intptr_t cpu_register_mask,
+                       intptr_t fpu_register_mask = 0)
+      : RegisterSet() {
+    AddTaggedRegisters(cpu_register_mask, fpu_register_mask);
+  }
+
   void AddAllNonReservedRegisters(bool include_fpu_registers) {
     for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
       if ((kReservedCpuRegisters & (1 << i)) != 0u) continue;
@@ -592,6 +603,22 @@ class RegisterSet : public ValueObject {
       }
     }
 #endif
+  }
+
+  void AddTaggedRegisters(intptr_t cpu_register_mask,
+                          intptr_t fpu_register_mask) {
+    for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+      if (Utils::TestBit(cpu_register_mask, i)) {
+        const Register reg = static_cast<Register>(i);
+        Add(Location::RegisterLocation(reg));
+      }
+    }
+    for (intptr_t i = 0; i < kNumberOfFpuRegisters; ++i) {
+      if (Utils::TestBit(fpu_register_mask, i)) {
+        const FpuRegister reg = static_cast<FpuRegister>(i);
+        Add(Location::FpuRegisterLocation(reg));
+      }
+    }
   }
 
   void Add(Location loc, Representation rep = kTagged) {

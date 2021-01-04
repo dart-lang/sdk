@@ -298,15 +298,24 @@ class PropertyElementResolver {
     if (target is Identifier) {
       var targetElement = target.staticElement;
       if (targetElement is ClassElement) {
-        if (isCascaded) {
-          targetElement = _resolver.typeProvider.typeType.element;
-        }
         return _resolveTargetClassElement(
           typeReference: targetElement,
+          isCascaded: isCascaded,
           propertyName: propertyName,
           hasRead: hasRead,
           hasWrite: hasWrite,
         );
+      } else if (targetElement is TypeAliasElement) {
+        var aliasedType = targetElement.aliasedType;
+        if (aliasedType is InterfaceType) {
+          return _resolveTargetClassElement(
+            typeReference: aliasedType.element,
+            isCascaded: isCascaded,
+            propertyName: propertyName,
+            hasRead: hasRead,
+            hasWrite: hasWrite,
+          );
+        }
       }
     }
 
@@ -382,10 +391,15 @@ class PropertyElementResolver {
 
   PropertyElementResolverResult _resolveTargetClassElement({
     @required ClassElement typeReference,
+    @required bool isCascaded,
     @required SimpleIdentifier propertyName,
     @required bool hasRead,
     @required bool hasWrite,
   }) {
+    if (isCascaded) {
+      typeReference = _resolver.typeProvider.typeType.element;
+    }
+
     ExecutableElement readElement;
     if (hasRead) {
       readElement = typeReference.getGetter(propertyName.name);

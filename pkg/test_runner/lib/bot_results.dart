@@ -26,10 +26,8 @@ class Result {
   final String outcome;
   final bool changed;
   final String commitHash;
-  // TODO(karlklose): this field is unnecessary with extended results and
-  // should be removed.
-  final bool flaked;
-  final bool isFlaky;
+  final bool flaked; // From optional flakiness_data argument to constructor.
+  final bool isFlaky; // From results.json after it is extended.
   final String previousOutcome;
 
   Result(
@@ -55,6 +53,7 @@ class Result {
         isFlaky = map["flaky"] as bool,
         previousOutcome = map["previous_result"] as String,
         flaked = flakinessData != null &&
+            (flakinessData["active"] ?? true) == true &&
             (flakinessData["outcomes"] as List).contains(map["result"]);
 
   String get key => "$configuration:$name";

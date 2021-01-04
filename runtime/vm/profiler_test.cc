@@ -262,39 +262,36 @@ class ProfileStackWalker {
 
   const char* CurrentToken() {
     if (!as_functions_) {
-      return NULL;
+      return nullptr;
     }
     ProfileFunction* func = GetFunction();
     const Function& function = *(func->function());
     if (function.IsNull()) {
       // No function.
-      return NULL;
+      return nullptr;
     }
     Zone* zone = Thread::Current()->zone();
     const Script& script = Script::Handle(zone, function.script());
     if (script.IsNull()) {
       // No script.
-      return NULL;
+      return nullptr;
     }
     ProfileFunctionSourcePosition pfsp(TokenPosition::kNoSource);
     if (!func->GetSinglePosition(&pfsp)) {
       // Not exactly one source position.
-      return NULL;
-    }
-    TokenPosition token_pos = pfsp.token_pos();
-    if (!token_pos.IsSourcePosition()) {
-      // Not a location in a script.
-      return NULL;
-    }
-    if (token_pos.IsSynthetic()) {
-      token_pos = token_pos.FromSynthetic();
+      return nullptr;
     }
 
-    intptr_t line = 0, column = 0, token_len = 0;
-    script.GetTokenLocation(token_pos, &line, &column, &token_len);
-    const auto& str = String::Handle(
-        zone, script.GetSnippet(line, column, line, column + token_len));
-    return str.IsNull() ? NULL : str.ToCString();
+    const TokenPosition& token_pos = pfsp.token_pos();
+    intptr_t line, column;
+    if (script.GetTokenLocation(token_pos, &line, &column)) {
+      const intptr_t token_len = script.GetTokenLength(token_pos);
+      const auto& str = String::Handle(
+          zone, script.GetSnippet(line, column, line, column + token_len));
+      if (!str.IsNull()) return str.ToCString();
+    }
+    // Couldn't get line/number information.
+    return nullptr;
   }
 
   intptr_t CurrentInclusiveTicks() {
@@ -2315,10 +2312,10 @@ ISOLATE_UNIT_TEST_CASE(Profiler_GetSourceReport) {
       "}\n";
 
   // Token position of * in `i * i`.
-  const TokenPosition squarePosition = TokenPosition(19);
+  const TokenPosition squarePosition = TokenPosition::Deserialize(19);
 
   // Token position of the call to `doWork`.
-  const TokenPosition callPosition = TokenPosition(95);
+  const TokenPosition callPosition = TokenPosition::Deserialize(95);
 
   DisableNativeProfileScope dnps;
   // Disable profiling for this thread.

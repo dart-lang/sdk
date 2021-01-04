@@ -537,7 +537,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
       }
     } else {
-      outputLibraries = new List<Library>();
+      outputLibraries = <Library>[];
       allLibraries = computeTransitiveClosure(
               compiledLibraries,
               entryPoints,
@@ -895,7 +895,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       ExperimentalInvalidation experimentalInvalidation,
       ReusageResult reusedResult) {
     if (hierarchy != null) {
-      List<Library> removedLibraries = new List<Library>();
+      List<Library> removedLibraries = <Library>[];
       // TODO(jensj): For now remove all the original from the class hierarchy
       // to avoid the class hierarchy getting confused.
       if (experimentalInvalidation != null) {
@@ -949,8 +949,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       ReusageResult reusedResult, UriTranslator uriTranslator) {
     bool removedDillBuilders = false;
     for (LibraryBuilder builder in reusedResult.notReusedLibraries) {
-      cleanupSourcesForBuilder(
-          builder, uriTranslator, CompilerContext.current.uriToSource);
+      cleanupSourcesForBuilder(reusedResult, builder, uriTranslator,
+          CompilerContext.current.uriToSource);
       incrementalSerializer?.invalidate(builder.fileUri);
 
       LibraryBuilder dillBuilder =
@@ -989,8 +989,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
     // Figure out if the file(s) have changed outline, or we can just
     // rebuild the bodies.
-    for (int i = 0; i < reusedResult.directlyInvalidated.length; i++) {
-      LibraryBuilder builder = reusedResult.directlyInvalidated[i];
+    for (LibraryBuilder builder in reusedResult.directlyInvalidated) {
       if (builder.library.problemsAsJson != null) {
         assert(builder.library.problemsAsJson.isNotEmpty);
         return null;
@@ -1232,7 +1231,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     if (hierarchy is ClosedWorldClassHierarchy && !hierarchy.allBetsOff) {
       neededDillLibraries ??= new Set<Library>();
       Set<Class> classes = new Set<Class>();
-      List<Class> worklist = new List<Class>();
+      List<Class> worklist = <Class>[];
       // Get all classes touched by kernel class hierarchy.
       List<Class> usedClasses = hierarchy.getUsedClasses();
       worklist.addAll(usedClasses);
@@ -1447,7 +1446,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       UriTranslator uriTranslator,
       Map<Uri, Source> uriToSource,
       [List<Library> inputLibrariesFiltered]) {
-    List<Library> result = new List<Library>();
+    List<Library> result = <Library>[];
     Map<Uri, Library> libraryMap = <Uri, Library>{};
     Map<Uri, Library> potentiallyReferencedLibraries = <Uri, Library>{};
     Map<Uri, Library> potentiallyReferencedInputLibraries = <Uri, Library>{};
@@ -1462,7 +1461,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
     }
 
-    List<Uri> worklist = new List<Uri>();
+    List<Uri> worklist = <Uri>[];
     worklist.addAll(entries);
     for (LibraryBuilder libraryBuilder in reusedLibraries) {
       if (libraryBuilder.importUri.scheme == "dart" &&
@@ -1494,12 +1493,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 getPartFileUri(library.fileUri, part, uriTranslator);
             partsUsed.add(partFileUri);
           }
-          partsUsed;
         }
       }
     }
 
-    List<Library> removedLibraries = new List<Library>();
+    List<Library> removedLibraries = <Library>[];
     bool removedDillBuilders = false;
     for (Uri uri in potentiallyReferencedLibraries.keys) {
       if (uri.scheme == "package") continue;
@@ -1510,7 +1508,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         if (dillLoadedData.loader.builders.remove(uri) != null) {
           removedDillBuilders = true;
         }
-        cleanupSourcesForBuilder(builder, uriTranslator,
+        cleanupSourcesForBuilder(null, builder, uriTranslator,
             CompilerContext.current.uriToSource, uriToSource, partsUsed);
         userBuilders?.remove(uri);
         removeLibraryFromRemainingComponentProblems(
@@ -1545,15 +1543,43 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// [partsUsed] indicates part uris that are used by (other/alive) libraries.
   /// Those parts will not be cleaned up. This is useful when a part has been
   /// "moved" to be part of another library.
-  void cleanupSourcesForBuilder(LibraryBuilder builder,
-      UriTranslator uriTranslator, Map<Uri, Source> uriToSource,
-      [Map<Uri, Source> uriToSourceExtra, Set<Uri> partsUsed]) {
+  void cleanupSourcesForBuilder(
+      ReusageResult reusedResult,
+      LibraryBuilder builder,
+      UriTranslator uriTranslator,
+      Map<Uri, Source> uriToSource,
+      [Map<Uri, Source> uriToSourceExtra,
+      Set<Uri> partsUsed]) {
     uriToSource.remove(builder.fileUri);
     uriToSourceExtra?.remove(builder.fileUri);
     Library lib = builder.library;
     for (LibraryPart part in lib.parts) {
       Uri partFileUri = getPartFileUri(lib.fileUri, part, uriTranslator);
       if (partsUsed != null && partsUsed.contains(partFileUri)) continue;
+
+      // If the builders map contain the "parts" import uri, it's a real library
+      // (erroneously) used as a part so we don't want to remove that.
+      if (userCode?.loader != null) {
+        Uri partImportUri = uriToSource[partFileUri]?.importUri;
+        if (partImportUri != null &&
+            userCode.loader.builders.containsKey(partImportUri)) {
+          continue;
+        }
+      } else if (reusedResult != null) {
+        // We've just launched and don't have userCode yet. Search reusedResult
+        // for a kept library with this uri.
+        bool found = false;
+        for (int i = 0; i < reusedResult.reusedLibraries.length; i++) {
+          LibraryBuilder reusedLibrary = reusedResult.reusedLibraries[i];
+          if (reusedLibrary.fileUri == partFileUri) {
+            found = true;
+            break;
+          }
+        }
+        if (found) {
+          continue;
+        }
+      }
       uriToSource.remove(partFileUri);
       uriToSourceExtra?.remove(partFileUri);
     }
@@ -1690,7 +1716,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         if (message.uri != null) {
           List<DiagnosticMessageFromJson> messages =
               remainingComponentProblems[message.uri] ??=
-                  new List<DiagnosticMessageFromJson>();
+                  <DiagnosticMessageFromJson>[];
           messages.add(message);
         }
         if (message.involvedFiles != null) {
@@ -1701,7 +1727,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           for (Uri uri in message.involvedFiles) {
             List<DiagnosticMessageFromJson> messages =
                 remainingComponentProblems[uri] ??=
-                    new List<DiagnosticMessageFromJson>();
+                    <DiagnosticMessageFromJson>[];
             messages.add(message);
           }
         }
@@ -1912,10 +1938,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       reusedLibraries.add(builder);
     }
     if (userCode == null && userBuilders == null) {
-      return new ReusageResult({}, [], false, reusedLibraries);
+      return new ReusageResult(const {}, const {}, false, reusedLibraries);
     }
     bool invalidatedBecauseOfPackageUpdate = false;
-    List<LibraryBuilder> directlyInvalidated = new List<LibraryBuilder>();
+    Set<LibraryBuilder> directlyInvalidated = new Set<LibraryBuilder>();
     Set<LibraryBuilder> notReusedLibraries = new Set<LibraryBuilder>();
 
     // Maps all non-platform LibraryBuilders from their import URI.
@@ -1977,7 +2003,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
           if (isInvalidated(partUri, fileUri)) {
             invalidatedImportUris.add(partUri);
-            builders[partUri] = libraryBuilder;
+            if (builders[partUri] == null) {
+              // Only add if entry doesn't already exist.
+              // For good cases it shouldn't exist, but if one library claims
+              // another library is a part (when it's not) we don't want to
+              // overwrite the real library builder.
+              builders[partUri] = libraryBuilder;
+            }
           }
         }
       }
@@ -2118,7 +2150,7 @@ class IncrementalCompilerData {
 
 class ReusageResult {
   final Set<LibraryBuilder> notReusedLibraries;
-  final List<LibraryBuilder> directlyInvalidated;
+  final Set<LibraryBuilder> directlyInvalidated;
   final bool invalidatedBecauseOfPackageUpdate;
   final List<LibraryBuilder> reusedLibraries;
 

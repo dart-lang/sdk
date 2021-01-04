@@ -120,6 +120,20 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // function is generic.
   Fragment BuildClosureCallTypeArgumentsTypeCheck(const ClosureCallInfo& info);
 
+  // Builds checks for type checking a given argument of the closure call using
+  // parameter information from the closure function retrieved at runtime.
+  //
+  // For named arguments, arg_name is a compile-time constant retrieved from
+  // the saved arguments descriptor. For positional arguments, null is passed.
+  Fragment BuildClosureCallArgumentTypeCheck(const ClosureCallInfo& info,
+                                             LocalVariable* param_index,
+                                             intptr_t arg_index,
+                                             const String& arg_name);
+
+  // Builds checks for type checking the arguments of a call using parameter
+  // information for the function retrieved at runtime from the closure.
+  Fragment BuildClosureCallArgumentTypeChecks(const ClosureCallInfo& info);
+
   // Main entry point for building checks.
   Fragment BuildDynamicClosureCallChecks(LocalVariable* closure);
 
@@ -210,6 +224,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment ThrowTypeError();
   Fragment ThrowNoSuchMethodError(const Function& target);
   Fragment ThrowLateInitializationError(TokenPosition position,
+                                        const char* throw_method_name,
                                         const String& name);
   Fragment BuildImplicitClosureCreation(const Function& target);
 
@@ -237,6 +252,17 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   bool NeedsDebugStepCheck(const Function& function, TokenPosition position);
   bool NeedsDebugStepCheck(Value* value, TokenPosition position);
 
+  // Deals with StoreIndexed not working with kUnboxedFloat.
+  // TODO(dartbug.com/43448): Remove this workaround.
+  Fragment StoreIndexedTypedDataUnboxed(Representation unboxed_representation,
+                                        intptr_t index_scale,
+                                        bool index_unboxed);
+  // Deals with LoadIndexed not working with kUnboxedFloat.
+  // TODO(dartbug.com/43448): Remove this workaround.
+  Fragment LoadIndexedTypedDataUnboxed(Representation unboxed_representation,
+                                       intptr_t index_scale,
+                                       bool index_unboxed);
+
   // Truncates (instead of deoptimizing) if the origin does not fit into the
   // target representation.
   Fragment UnboxTruncate(Representation to);
@@ -251,15 +277,80 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   // Pops a Dart object and push the unboxed native version, according to the
   // semantics of FFI argument translation.
-  Fragment FfiConvertArgumentToNative(
+  //
+  // Works for FFI call arguments, and FFI callback return values.
+  Fragment FfiConvertPrimitiveToNative(
       const compiler::ffi::BaseMarshaller& marshaller,
       intptr_t arg_index,
       LocalVariable* api_local_scope);
 
-  // Reverse of 'FfiConvertArgumentToNative'.
-  Fragment FfiConvertArgumentToDart(
+  // Pops an unboxed native value, and pushes a Dart object, according to the
+  // semantics of FFI argument translation.
+  //
+  // Works for FFI call return values, and FFI callback arguments.
+  Fragment FfiConvertPrimitiveToDart(
       const compiler::ffi::BaseMarshaller& marshaller,
       intptr_t arg_index);
+
+  // We pass in `variable` instead of on top of the stack so that we can have
+  // multiple consecutive calls that keep only struct parts on the stack with
+  // no struct parts in between.
+  Fragment FfiCallConvertStructArgumentToNative(
+      LocalVariable* variable,
+      const compiler::ffi::BaseMarshaller& marshaller,
+      intptr_t arg_index);
+
+  Fragment FfiCallConvertStructReturnToDart(
+      const compiler::ffi::BaseMarshaller& marshaller,
+      intptr_t arg_index);
+
+  // We pass in multiple `definitions`, which are also expected to be the top
+  // of the stack. This eases storing each definition in the resulting struct.
+  Fragment FfiCallbackConvertStructArgumentToDart(
+      const compiler::ffi::BaseMarshaller& marshaller,
+      intptr_t arg_index,
+      ZoneGrowableArray<LocalVariable*>* definitions);
+
+  Fragment FfiCallbackConvertStructReturnToNative(
+      const compiler::ffi::CallbackMarshaller& marshaller,
+      intptr_t arg_index);
+
+  // Wraps a TypedDataBase from the stack and wraps it in a subclass of Struct.
+  Fragment WrapTypedDataBaseInStruct(const AbstractType& struct_type);
+
+  // Loads the addressOf field from a subclass of Struct.
+  Fragment LoadTypedDataBaseFromStruct();
+
+  // Breaks up a subclass of Struct in multiple definitions and puts them on
+  // the stack.
+  //
+  // Takes in the Struct as a local `variable` so that can be anywhere on the
+  // stack and this function can be called multiple times to leave only the
+  // results of this function on the stack without any Structs in between.
+  //
+  // The struct contents are heterogeneous, so pass in `representations` to
+  // know what representation to load.
+  Fragment CopyFromStructToStack(
+      LocalVariable* variable,
+      const GrowableArray<Representation>& representations);
+
+  // Copy `definitions` into TypedData.
+  //
+  // Expects the TypedData on top of the stack and `definitions` right under it.
+  //
+  // Leaves TypedData on stack.
+  //
+  // The struct contents are heterogeneous, so pass in `representations` to
+  // know what representation to load.
+  Fragment PopFromStackToTypedDataBase(
+      ZoneGrowableArray<LocalVariable*>* definitions,
+      const GrowableArray<Representation>& representations);
+
+  // Copies bytes from a TypedDataBase to the address of an kUnboxedFfiIntPtr.
+  Fragment CopyFromTypedDataBaseToUnboxedAddress(intptr_t length_in_bytes);
+
+  // Copies bytes from the address of an kUnboxedFfiIntPtr to a TypedDataBase.
+  Fragment CopyFromUnboxedAddressToTypedDataBase(intptr_t length_in_bytes);
 
   // Generates a call to `Thread::EnterApiScope`.
   Fragment EnterHandleScope();

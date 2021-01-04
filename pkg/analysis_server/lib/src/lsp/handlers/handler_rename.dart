@@ -87,6 +87,7 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit> {
     }
 
     final pos = params.position;
+    final textDocument = params.textDocument;
     final path = pathOfDoc(params.textDocument);
     // If the client provided us a version doc identifier, we'll use it to ensure
     // we're not computing a rename for an old document. If not, we'll just assume
@@ -94,9 +95,13 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit> {
     // and then use it to verify the document hadn't changed again before we
     // send the edits.
     final docIdentifier = await path.mapResult((path) => success(
-        params.textDocument is VersionedTextDocumentIdentifier
-            ? params.textDocument
-            : server.getVersionedDocumentIdentifier(path)));
+        textDocument is OptionalVersionedTextDocumentIdentifier
+            ? textDocument
+            : textDocument is VersionedTextDocumentIdentifier
+                ? OptionalVersionedTextDocumentIdentifier(
+                    uri: textDocument.uri, version: textDocument.version)
+                : server.getVersionedDocumentIdentifier(path)));
+
     final unit = await path.mapResult(requireResolvedUnit);
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
 
@@ -178,10 +183,8 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit> {
 
       // Before we send anything back, ensure the original file didn't change
       // while we were computing changes.
-      if (server.getVersionedDocumentIdentifier(path.result) !=
-          docIdentifier.result) {
-        return error(ErrorCodes.ContentModified,
-            'Document was modified while rename was being computed', null);
+      if (fileHasBeenModified(path.result, docIdentifier.result.version)) {
+        return fileModifiedError;
       }
 
       final workspaceEdit = createWorkspaceEdit(server, change.edits);

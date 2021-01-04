@@ -15,6 +15,9 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/ir/util.dart';
 import 'package:compiler/src/js_model/element_map.dart';
 import 'package:compiler/src/js_model/js_world.dart';
+import 'package:compiler/src/js_emitter/model.dart';
+import 'package:compiler/src/js_emitter/startup_emitter/fragment_merger.dart';
+import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:expect/expect.dart';
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
@@ -37,7 +40,9 @@ main(List<String> args) {
     await checkTests(dataDir, const OutputUnitDataComputer(),
         options: compilerOptions, args: args, setUpFunction: () {
       importPrefixes.clear();
-    }, testedConfigs: allSpecConfigs);
+    },
+        testedConfigs: allSpecConfigs +
+            [twoDeferredFragmentConfig, threeDeferredFragmentConfig]);
   });
 }
 
@@ -47,10 +52,7 @@ main(List<String> args) {
 // prefix name responds to two different libraries.
 Map<String, Uri> importPrefixes = {};
 
-/// Create a consistent string representation of [OutputUnit]s for both
-/// KImportEntities and ImportElements.
-String outputUnitString(OutputUnit unit) {
-  if (unit == null) return 'none';
+String importPrefixString(OutputUnit unit) {
   StringBuffer sb = StringBuffer();
   bool first = true;
   for (ImportEntity import in unit.importsForTesting) {
@@ -73,7 +75,38 @@ String outputUnitString(OutputUnit unit) {
     }
     importPrefixes[import.name] = import.enclosingLibraryUri;
   }
+  return sb.toString();
+}
+
+/// Create a consistent string representation of [OutputUnit]s for both
+/// KImportEntities and ImportElements.
+String outputUnitString(OutputUnit unit) {
+  if (unit == null) return 'none';
+  String sb = importPrefixString(unit);
   return '${unit.name}{$sb}';
+}
+
+Map<String, List<PreFragment>> buildPreFragmentMap(
+    Map<String, List<Fragment>> loadMap,
+    List<PreFragment> preDeferredFragments) {
+  Map<DeferredFragment, PreFragment> fragmentMap = {};
+  for (var preFragment in preDeferredFragments) {
+    for (var fragment in preFragment.fragments) {
+      assert(!fragmentMap.containsKey(fragment));
+      fragmentMap[fragment] = preFragment;
+    }
+  }
+
+  Map<String, List<PreFragment>> preFragmentMap = {};
+  loadMap.forEach((loadId, fragments) {
+    Set<PreFragment> preFragments = {};
+    for (var fragment in fragments) {
+      preFragments.add(fragmentMap[fragment]);
+    }
+    assert(!preFragmentMap.containsKey(loadId));
+    preFragmentMap[loadId] = preFragments.toList();
+  });
+  return preFragmentMap;
 }
 
 class Tags {
@@ -82,6 +115,8 @@ class Tags {
   static const String closure = 'closure_unit';
   static const String constants = 'constants';
   static const String type = 'type_unit';
+  static const String steps = 'steps';
+  static const String outputUnits = 'output_units';
 }
 
 class OutputUnitDataComputer extends DataComputer<Features> {
@@ -118,8 +153,80 @@ class OutputUnitDataComputer extends DataComputer<Features> {
   }
 
   @override
+  void computeLibraryData(Compiler compiler, LibraryEntity library,
+      Map<Id, ActualData<Features>> actualMap,
+      {bool verbose}) {
+    KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
+    ir.Library node = frontendStrategy.elementMap.getLibraryNode(library);
+    List<PreFragment> preDeferredFragments = compiler
+        .backendStrategy.emitterTask.emitter.preDeferredFragmentsForTesting;
+    Program program =
+        compiler.backendStrategy.emitterTask.emitter.programForTesting;
+    Map<String, List<PreFragment>> preFragmentMap =
+        buildPreFragmentMap(program.loadMap, preDeferredFragments);
+    PreFragmentsIrComputer(compiler.reporter, actualMap, preFragmentMap)
+        .computeForLibrary(node);
+  }
+
+  @override
   DataInterpreter<Features> get dataValidator =>
       const FeaturesDataInterpreter();
+}
+
+class PreFragmentsIrComputer extends IrDataExtractor<Features> {
+  final Map<String, List<PreFragment>> _preFragmentMap;
+
+  PreFragmentsIrComputer(DiagnosticReporter reporter,
+      Map<Id, ActualData<Features>> actualMap, this._preFragmentMap)
+      : super(reporter, actualMap);
+
+  @override
+  Features computeLibraryValue(Id id, ir.Library library) {
+    var name = '${library.importUri.pathSegments.last}';
+    Features features = new Features();
+    if (!name.startsWith('main')) return features;
+
+    int index = 1;
+    Map<PreFragment, int> preFragmentIndices = {};
+    Map<int, PreFragment> reversePreFragmentIndices = {};
+    _preFragmentMap.forEach((loadId, preFragments) {
+      List<String> preFragmentNeeds = [];
+      for (var preFragment in preFragments) {
+        if (!preFragmentIndices.containsKey(preFragment)) {
+          preFragmentIndices[preFragment] = index;
+          reversePreFragmentIndices[index++] = preFragment;
+        }
+        preFragmentNeeds.add('f${preFragmentIndices[preFragment]}');
+      }
+      features.addElement(
+          Tags.steps, '$loadId=(${preFragmentNeeds.join(', ')})');
+    });
+
+    for (int i = 1; i < index; i++) {
+      var preFragment = reversePreFragmentIndices[i];
+      List<int> needs = [];
+      List<OutputUnit> supplied = [];
+      List<int> usedBy = [];
+      for (var dependent in preFragment.successors) {
+        assert(preFragmentIndices.containsKey(dependent));
+        usedBy.add(preFragmentIndices[dependent]);
+      }
+
+      for (var dependency in preFragment.predecessors) {
+        assert(preFragmentIndices.containsKey(dependency));
+        needs.add(preFragmentIndices[dependency]);
+      }
+
+      for (var fragment in preFragment.fragments) {
+        supplied.add(fragment.outputUnit);
+      }
+      var suppliedString = '[${supplied.map(outputUnitString).join(', ')}]';
+      features.addElement(Tags.outputUnits,
+          'f$i: {units: $suppliedString, usedBy: $usedBy, needs: $needs}');
+    }
+
+    return features;
+  }
 }
 
 class OutputUnitIrComputer extends IrDataExtractor<Features> {

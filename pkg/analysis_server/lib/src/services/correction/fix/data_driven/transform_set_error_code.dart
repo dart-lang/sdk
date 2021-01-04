@@ -38,6 +38,13 @@ class TransformSetErrorCode extends ErrorCode {
       'invalid_key', "Keys must be of type 'String' but found the type '{0}'.");
 
   /**
+   * No parameters.
+   */
+  static const TransformSetErrorCode invalidRequiredIf = TransformSetErrorCode(
+      'invalid_required_if',
+      "The key 'requiredIf' can only be used with optional named parameters.");
+
+  /**
    * Parameters:
    * 0: the key with which the value is associated
    * 1: the expected type of the value
@@ -148,10 +155,18 @@ class TransformSetErrorCode extends ErrorCode {
       TransformSetErrorCode('yaml_syntax_error', "Parse error: {0}");
 
   /// Initialize a newly created error code.
-  const TransformSetErrorCode(String name, String message,
-      {String correction, bool hasPublishedDocs = false})
-      : super.temporary(name, message,
-            correction: correction, hasPublishedDocs: hasPublishedDocs);
+  const TransformSetErrorCode(
+    String name,
+    String message, {
+    String correction,
+    bool hasPublishedDocs = false,
+  }) : super(
+          correction: correction,
+          hasPublishedDocs: hasPublishedDocs,
+          message: message,
+          name: name,
+          uniqueName: 'TransformSetErrorCode.$name',
+        );
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;

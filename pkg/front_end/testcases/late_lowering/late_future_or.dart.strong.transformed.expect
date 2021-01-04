@@ -50,45 +50,45 @@ class C<T extends core::Object? = dynamic> extends core::Object {
     this.{self::C::_#C#field5} = #t6;
   }
   method method() → dynamic {
-    FutureOr<dynamic>? local1;
-    core::bool #local1#isSet = false;
+    lowered FutureOr<dynamic>? #local1;
+    lowered core::bool #local1#isSet = false;
     function #local1#get() → FutureOr<dynamic>
-      return #local1#isSet ?{FutureOr<dynamic>} local1 : throw new _in::LateError::localNI("local1");
+      return #local1#isSet ?{FutureOr<dynamic>} #local1 : throw new _in::LateError::localNI("local1");
     function #local1#set(FutureOr<dynamic>#t7) → dynamic {
       #local1#isSet = true;
-      return local1 = #t7;
+      return #local1 = #t7;
     }
-    FutureOr<dynamic>? local2;
-    core::bool #local2#isSet = false;
+    lowered FutureOr<dynamic>? #local2;
+    lowered core::bool #local2#isSet = false;
     function #local2#get() → FutureOr<dynamic>?
-      return #local2#isSet ?{FutureOr<dynamic>?} local2 : throw new _in::LateError::localNI("local2");
+      return #local2#isSet ?{FutureOr<dynamic>?} #local2 : throw new _in::LateError::localNI("local2");
     function #local2#set(FutureOr<dynamic>? #t8) → dynamic {
       #local2#isSet = true;
-      return local2 = #t8;
+      return #local2 = #t8;
     }
-    FutureOr<self::C::T%>? local3;
-    core::bool #local3#isSet = false;
+    lowered FutureOr<self::C::T%>? #local3;
+    lowered core::bool #local3#isSet = false;
     function #local3#get() → FutureOr<self::C::T%>
-      return #local3#isSet ?{FutureOr<self::C::T%>} local3{FutureOr<self::C::T%>} : throw new _in::LateError::localNI("local3");
+      return #local3#isSet ?{FutureOr<self::C::T%>} #local3{FutureOr<self::C::T%>} : throw new _in::LateError::localNI("local3");
     function #local3#set(FutureOr<self::C::T%>#t9) → dynamic {
       #local3#isSet = true;
-      return local3 = #t9;
+      return #local3 = #t9;
     }
-    FutureOr<self::C::T?>? local4;
-    core::bool #local4#isSet = false;
+    lowered FutureOr<self::C::T?>? #local4;
+    lowered core::bool #local4#isSet = false;
     function #local4#get() → FutureOr<self::C::T?>
-      return #local4#isSet ?{FutureOr<self::C::T?>} local4 : throw new _in::LateError::localNI("local4");
+      return #local4#isSet ?{FutureOr<self::C::T?>} #local4 : throw new _in::LateError::localNI("local4");
     function #local4#set(FutureOr<self::C::T?>#t10) → dynamic {
       #local4#isSet = true;
-      return local4 = #t10;
+      return #local4 = #t10;
     }
-    FutureOr<self::C::T?>? local5;
-    core::bool #local5#isSet = false;
+    lowered FutureOr<self::C::T?>? #local5;
+    lowered core::bool #local5#isSet = false;
     function #local5#get() → FutureOr<self::C::T?>?
-      return #local5#isSet ?{FutureOr<self::C::T?>?} local5 : throw new _in::LateError::localNI("local5");
+      return #local5#isSet ?{FutureOr<self::C::T?>?} #local5 : throw new _in::LateError::localNI("local5");
     function #local5#set(FutureOr<self::C::T?>? #t11) → dynamic {
       #local5#isSet = true;
-      return local5 = #t11;
+      return #local5 = #t11;
     }
   }
 }

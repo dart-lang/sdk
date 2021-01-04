@@ -32,7 +32,8 @@ class Search {
   Search(this._driver);
 
   /// Returns class or mixin members with the given [name].
-  Future<List<Element>> classMembers(String name) async {
+  Future<List<Element>> classMembers(
+      String name, SearchedFiles searchedFiles) async {
     List<Element> elements = <Element>[];
 
     void addElement(Element element) {
@@ -49,10 +50,12 @@ class Search {
 
     List<String> files = await _driver.getFilesDefiningClassMemberName(name);
     for (String file in files) {
-      UnitElementResult unitResult = await _driver.getUnitElement(file);
-      if (unitResult != null) {
-        unitResult.element.types.forEach(addElements);
-        unitResult.element.mixins.forEach(addElements);
+      if (searchedFiles.add(file, this)) {
+        UnitElementResult unitResult = await _driver.getUnitElement(file);
+        if (unitResult != null) {
+          unitResult.element.types.forEach(addElements);
+          unitResult.element.mixins.forEach(addElements);
+        }
       }
     }
     return elements;
@@ -66,12 +69,11 @@ class Search {
     }
 
     ElementKind kind = element.kind;
-    if (kind == ElementKind.CLASS ||
-        kind == ElementKind.CONSTRUCTOR ||
-        kind == ElementKind.ENUM ||
-        kind == ElementKind.EXTENSION ||
-        kind == ElementKind.FUNCTION_TYPE_ALIAS ||
-        kind == ElementKind.SETTER) {
+    if (element is ClassElement ||
+        element is ConstructorElement ||
+        element is ExtensionElement ||
+        element is PropertyAccessorElement && element.isSetter ||
+        element is TypeAliasElement) {
       return _searchReferences(element, searchedFiles);
     } else if (kind == ElementKind.COMPILATION_UNIT) {
       return _searchReferences_CompilationUnit(element);

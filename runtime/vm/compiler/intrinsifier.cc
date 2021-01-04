@@ -91,7 +91,7 @@ bool Intrinsifier::CanIntrinsifyFieldAccessor(const Function& function) {
   // If we intrinsify, the intrinsified code therefore does not depend on the
   // field guard and we do not add it to the guarded fields via
   // [ParsedFunction::AddToGuardedFields].
-  if (Field::ShouldCloneFields()) {
+  if (CompilerState::Current().should_clone_fields()) {
     field = field.CloneFromOriginal();
   }
 
@@ -130,8 +130,6 @@ bool Intrinsifier::CanIntrinsifyFieldAccessor(const Function& function) {
     //
     // Normally we have to check the parameter type.
     ASSERT(function.NeedsArgumentTypeChecks());
-    // Dynamic call sites will go to dyn:set:* instead.
-    ASSERT(!function.CanReceiveDynamicInvocation());
     // Covariant parameter types have to be checked, which we don't support.
     if (field.is_covariant() || field.is_generic_covariant_impl()) return false;
 
@@ -262,7 +260,6 @@ bool Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
     return false;
   }
 
-  ASSERT(!compiler->flow_graph().IsCompiledForOsr());
   if (GraphIntrinsifier::GraphIntrinsify(parsed_function, compiler)) {
     return compiler->intrinsic_slow_path_label()->IsUnused();
   }

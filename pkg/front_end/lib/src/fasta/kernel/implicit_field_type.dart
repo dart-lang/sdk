@@ -112,8 +112,7 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
       for (ImplicitFieldType overridden in _overriddenFields) {
         DartType overriddenType = overridden.inferType();
         if (!fieldBuilder.library.isNonNullableByDefault) {
-          overriddenType = legacyErasure(
-              fieldBuilder.library.loader.coreTypes, overriddenType);
+          overriddenType = legacyErasure(overriddenType);
         }
         if (inferredType == null) {
           inferredType = overriddenType;
@@ -166,14 +165,12 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
       for (ImplicitFieldType overridden in _overriddenFields) {
         DartType overriddenType = overridden.inferType();
         if (!fieldBuilder.library.isNonNullableByDefault) {
-          overriddenType = legacyErasure(
-              fieldBuilder.library.loader.coreTypes, overriddenType);
+          overriddenType = legacyErasure(overriddenType);
         }
         if (type != overriddenType) {
           String name = fieldBuilder.fullNameForErrors;
           fieldBuilder.classBuilder.addProblem(
-              templateCantInferTypeDueToInconsistentOverrides
-                  .withArguments(name),
+              templateCantInferTypeDueToNoCombinedSignature.withArguments(name),
               fieldBuilder.charOffset,
               name.length,
               wasHandled: true);

@@ -1,0 +1,3 @@
+main(List<String> args) {}
+expect(expected, actual) {}
+throws(f(), String message) {}

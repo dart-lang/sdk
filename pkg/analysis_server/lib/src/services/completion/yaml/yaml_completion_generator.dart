@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/yaml/producer.dart';
+import 'package:analysis_server/src/utilities/extensions/yaml.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:yaml/yaml.dart';
 
@@ -24,7 +25,7 @@ abstract class YamlCompletionGenerator {
 
   /// Return the completion suggestions appropriate for the given [offset] in
   /// the file at the given [filePath].
-  List<CompletionSuggestion> getSuggestions(String filePath, int offset) {
+  YamlCompletionResults getSuggestions(String filePath, int offset) {
     var file = resourceProvider.getFile(filePath);
     String content;
     try {
@@ -32,46 +33,55 @@ abstract class YamlCompletionGenerator {
     } on FileSystemException {
       // If the file doesn't exist or can't be read, then there are no
       // suggestions.
-      return const <CompletionSuggestion>[];
+      return const YamlCompletionResults.empty();
     }
     var root = _parseYaml(content);
     if (root == null) {
       // If the contents can't be parsed, then there are no suggestions.
-      return const <CompletionSuggestion>[];
+      return const YamlCompletionResults.empty();
     }
-    var path = _pathToOffset(root, offset);
-    var completionNode = path.last;
+    var nodePath = _pathToOffset(root, offset);
+    var completionNode = nodePath.last;
+    var precedingText = '';
     if (completionNode is YamlScalar) {
       var value = completionNode.value;
-      if (value == null) {
-        return getSuggestionsForPath(path, offset);
-      } else if (value is String && completionNode.style == ScalarStyle.PLAIN) {
-        return getSuggestionsForPath(path, offset);
+      if (value is String && completionNode.style == ScalarStyle.PLAIN) {
+        precedingText =
+            value.substring(0, offset - completionNode.span.start.offset);
+      } else if (value != null) {
+        // There are no completions at the given location.
+        return const YamlCompletionResults.empty();
       }
-    } else {
-      return getSuggestionsForPath(path, offset);
     }
-    // There are no completions at the given location.
-    return const <CompletionSuggestion>[];
+    var request = YamlCompletionRequest(
+        filePath: filePath,
+        precedingText: precedingText,
+        resourceProvider: resourceProvider);
+    return getSuggestionsForPath(request, nodePath, offset);
   }
 
-  /// Given a [path] to the node in which completions are being requested and
-  /// the offset of the cursor, return the completions appropriate at that
-  /// location.
-  List<CompletionSuggestion> getSuggestionsForPath(
-      List<YamlNode> path, int offset) {
-    var producer = _producerForPath(path);
+  /// Given the [request] to pass to producers, a [nodePath] to the node in
+  /// which completions are being requested and the offset of the cursor, return
+  /// the completions appropriate at that location.
+  YamlCompletionResults getSuggestionsForPath(
+      YamlCompletionRequest request, List<YamlNode> nodePath, int offset) {
+    var producer = _producerForPath(nodePath);
     if (producer == null) {
-      return const <CompletionSuggestion>[];
+      return const YamlCompletionResults.empty();
     }
-    var invalidSuggestions = _siblingsOnPath(path);
+    var invalidSuggestions = _siblingsOnPath(nodePath);
     var suggestions = <CompletionSuggestion>[];
-    for (var suggestion in producer.suggestions()) {
+    for (var suggestion in producer.suggestions(request)) {
       if (!invalidSuggestions.contains(suggestion.completion)) {
         suggestions.add(suggestion);
       }
     }
-    return suggestions;
+    final node = nodePath.isNotEmpty ? nodePath.last : null;
+    final replaceNode = node is YamlScalar && node.containsOffset(offset);
+    final replacementOffset = replaceNode ? node.span.start.offset : offset;
+    final replacementLength = replaceNode ? node.span.length : 0;
+    return YamlCompletionResults(
+        suggestions, replacementOffset, replacementLength);
   }
 
   /// Return the result of parsing the file [content] into a YAML node.
@@ -103,10 +113,10 @@ abstract class YamlCompletionGenerator {
     var producer = topLevelProducer;
     for (var i = 0; i < path.length - 1; i++) {
       var node = path[i];
-      if (node is YamlMap && producer is MapProducer) {
+      if (node is YamlMap && producer is KeyValueProducer) {
         var key = node.keyAtValue(path[i + 1]);
         if (key is YamlScalar) {
-          producer = (producer as MapProducer).children[key.value];
+          producer = (producer as KeyValueProducer).producerForKey(key.value);
         } else {
           return null;
         }
@@ -164,61 +174,16 @@ abstract class YamlCompletionGenerator {
   }
 }
 
-extension on YamlMap {
-  /// Return the node representing the key that corresponds to the value
-  /// represented by the [value] node.
-  YamlNode keyAtValue(YamlNode value) {
-    for (var entry in nodes.entries) {
-      if (entry.value == value) {
-        return entry.key;
-      }
-    }
-    return null;
-  }
-}
+class YamlCompletionResults {
+  final List<CompletionSuggestion> suggestions;
+  final int replacementOffset;
+  final int replacementLength;
 
-extension on YamlNode {
-  /// Return the child of this node that contains the given [offset], or `null`
-  /// if none of the children contains the offset.
-  YamlNode childContainingOffset(int offset) {
-    var node = this;
-    if (node is YamlList) {
-      for (var element in node.nodes) {
-        if (element.containsOffset(offset)) {
-          return element;
-        }
-      }
-      for (var element in node.nodes) {
-        if (element is YamlScalar && element.value == null) {
-          // TODO(brianwilkerson) Testing for a null value probably gets
-          //  confused when there are multiple null values.
-          return element;
-        }
-      }
-    } else if (node is YamlMap) {
-      for (var entry in node.nodes.entries) {
-        if ((entry.key as YamlNode).containsOffset(offset)) {
-          return entry.key;
-        }
-        var value = entry.value;
-        if (value.containsOffset(offset) ||
-            (value is YamlScalar && value.value == null)) {
-          // TODO(brianwilkerson) Testing for a null value probably gets
-          //  confused when there are multiple null values or when there is a
-          //  null value before the node that actually contains the offset.
-          return entry.value;
-        }
-      }
-    }
-    return null;
-  }
+  const YamlCompletionResults(
+      this.suggestions, this.replacementOffset, this.replacementLength);
 
-  /// Return `true` if this node contains the given [offset].
-  bool containsOffset(int offset) {
-    // TODO(brianwilkerson) Nodes at the end of the file contain any trailing
-    //  whitespace. This needs to be accounted for, here or elsewhere.
-    var nodeOffset = span.start.offset;
-    var nodeEnd = nodeOffset + span.length;
-    return nodeOffset <= offset && offset <= nodeEnd;
-  }
+  const YamlCompletionResults.empty()
+      : suggestions = const [],
+        replacementOffset = 0,
+        replacementLength = 0;
 }

@@ -148,6 +148,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT,
   CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME,
   CompileTimeErrorCode.DUPLICATE_DEFINITION,
+  CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER,
   CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT,
   CompileTimeErrorCode.DUPLICATE_PART,
   CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING,
@@ -221,6 +222,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC,
   CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS,
   CompileTimeErrorCode.INSTANTIATE_ENUM,
+  CompileTimeErrorCode.INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
   CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE,
   CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE,
   CompileTimeErrorCode.INVALID_ANNOTATION,
@@ -373,6 +375,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR,
   CompileTimeErrorCode.REDIRECT_TO_NON_CLASS,
   CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR,
+  CompileTimeErrorCode.REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
   CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
   CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH,
   CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR,
@@ -447,6 +450,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.YIELD_IN_NON_GENERATOR,
   CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
   FfiCode.ANNOTATION_ON_POINTER_FIELD,
+  FfiCode.EMPTY_STRUCT,
   FfiCode.EXTRA_ANNOTATION_ON_STRUCT_FIELD,
   FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER,
   FfiCode.FIELD_INITIALIZER_IN_STRUCT,
@@ -827,7 +831,7 @@ const List<ErrorCode> errorCodeValues = [
 
 /// The lazy initialized map from [ErrorCode.uniqueName] to the [ErrorCode]
 /// instance.
-HashMap<String, ErrorCode> _uniqueNameToCodeMap;
+/*late final*/ HashMap<String, ErrorCode> _uniqueNameToCodeMap;
 
 /// Return the [ErrorCode] with the given [uniqueName], or `null` if not
 /// found.

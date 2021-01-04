@@ -35,31 +35,31 @@ extension Extension2 on self::Class* {
   tearoff genericMethod = self::Extension2|get#genericMethod;
   set field = self::Extension2|set#field;
 }
-static method Extension1|get#field(final self::Class* #this) → core::int*
+static method Extension1|get#field(lowered final self::Class* #this) → core::int*
   return #this.{self::Class::field1};
-static method Extension1|set#field(final self::Class* #this, core::int* value) → void {
+static method Extension1|set#field(lowered final self::Class* #this, core::int* value) → void {
   #this.{self::Class::field1} = value;
 }
-static method Extension1|method(final self::Class* #this) → core::int*
+static method Extension1|method(lowered final self::Class* #this) → core::int*
   return #this.{self::Class::field1};
-static method Extension1|get#method(final self::Class* #this) → () →* core::int*
+static method Extension1|get#method(lowered final self::Class* #this) → () →* core::int*
   return () → core::int* => self::Extension1|method(#this);
-static method Extension1|genericMethod<T extends core::num* = core::num*>(final self::Class* #this, self::Extension1|genericMethod::T* t) → core::int*
+static method Extension1|genericMethod<T extends core::num* = core::num*>(lowered final self::Class* #this, self::Extension1|genericMethod::T* t) → core::int*
   return #this.{self::Class::field1}.{core::num::+}(t) as{TypeError} core::int*;
-static method Extension1|get#genericMethod(final self::Class* #this) → <T extends core::num* = core::num*>(T*) →* core::int*
+static method Extension1|get#genericMethod(lowered final self::Class* #this) → <T extends core::num* = core::num*>(T*) →* core::int*
   return <T extends core::num* = core::num*>(T* t) → core::int* => self::Extension1|genericMethod<T*>(#this, t);
-static method Extension2|get#field(final self::Class* #this) → core::int*
+static method Extension2|get#field(lowered final self::Class* #this) → core::int*
   return #this.{self::Class::field2};
-static method Extension2|set#field(final self::Class* #this, core::int* value) → void {
+static method Extension2|set#field(lowered final self::Class* #this, core::int* value) → void {
   #this.{self::Class::field2} = value;
 }
-static method Extension2|method(final self::Class* #this) → core::int*
+static method Extension2|method(lowered final self::Class* #this) → core::int*
   return #this.{self::Class::field2};
-static method Extension2|get#method(final self::Class* #this) → () →* core::int*
+static method Extension2|get#method(lowered final self::Class* #this) → () →* core::int*
   return () → core::int* => self::Extension2|method(#this);
-static method Extension2|genericMethod<T extends core::num* = core::num*>(final self::Class* #this, self::Extension2|genericMethod::T* t) → core::int*
+static method Extension2|genericMethod<T extends core::num* = core::num*>(lowered final self::Class* #this, self::Extension2|genericMethod::T* t) → core::int*
   return #this.{self::Class::field2}.{core::num::+}(t) as{TypeError} core::int*;
-static method Extension2|get#genericMethod(final self::Class* #this) → <T extends core::num* = core::num*>(T*) →* core::int*
+static method Extension2|get#genericMethod(lowered final self::Class* #this) → <T extends core::num* = core::num*>(T*) →* core::int*
   return <T extends core::num* = core::num*>(T* t) → core::int* => self::Extension2|genericMethod<T*>(#this, t);
 static method main() → dynamic {
   self::Class* c = new self::Class::•();

@@ -60,27 +60,36 @@ class RemoveComparison extends CorrectionProducer {
       }
     } else if (parent is IfStatement) {
       if (parent.elseStatement == null && _conditionIsTrue) {
-        var body = _extractBody(parent);
-        body = utils.indentSourceLeftRight(body);
-        await builder.addDartFileEdit(file, (builder) {
-          builder.addSimpleReplacement(
-              range.startOffsetEndOffset(
-                  parent.offset, utils.getLineContentEnd(parent.end)),
-              body);
-        });
+        await _ifStatement(parent, builder);
       }
     }
   }
 
-  String _extractBody(IfStatement statement) {
-    var body = statement.thenStatement;
-    if (body is Block) {
-      var statements = body.statements;
-      return utils.getRangeText(range.startOffsetEndOffset(
-          statements.first.offset,
-          utils.getLineContentEnd(statements.last.end)));
-    }
-    return utils.getNodeText(body);
+  Future<void> _ifStatement(IfStatement node, ChangeBuilder builder) async {
+    await builder.addDartFileEdit(file, (builder) {
+      var nodeRange = utils.getLinesRangeStatements([node]);
+
+      String bodyCode;
+      var body = node.thenStatement;
+      if (body is Block) {
+        var statements = body.statements;
+        if (statements.isEmpty) {
+          builder.addDeletion(nodeRange);
+          return;
+        } else {
+          bodyCode = utils.getRangeText(
+            utils.getLinesRangeStatements(statements),
+          );
+        }
+      } else {
+        bodyCode = utils.getRangeText(
+          utils.getLinesRangeStatements([body]),
+        );
+      }
+
+      bodyCode = utils.indentSourceLeftRight(bodyCode);
+      builder.addSimpleReplacement(nodeRange, bodyCode);
+    });
   }
 
   /// Use the [builder] to add an edit to delete the operator and given

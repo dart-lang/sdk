@@ -1,0 +1,48 @@
+class Class1 {
+  Class1? get property => null;
+  Class1 get property1 => new Class1();
+  Class2 get property2 => new Class2();
+  void set property(Class1? value) {}
+}
+
+class Class2 {
+  Class2 get property => this;
+  void set property(Class2 value) {}
+}
+
+class Class3 {
+  Class2? get property => null;
+}
+
+extension Extension1 on Class1 {
+  Class1? get nullable1 => property1;
+  Class1? operator +(int value) => nullable1;
+  Class1? operator -() => nullable1;
+  Class1? operator [](Class1? key) => nullable1;
+  Class1 get nonNullable1 => property1;
+  Class1 nonNullable1Method() => nonNullable1;
+  Class2 get nonNullable2 => property2;
+  void operator []=(Class1? key, Class1? value) {}
+  void set nullable1(Class1? value) {}
+}
+
+extension Extension2 on Class2 {
+  Class2 get nonNullable2 => property;
+  Class2 nonNullable2Method() => nonNullable2;
+  Class2 operator +(int value) => property;
+  Class2 operator -() => property;
+  Class2 operator [](Class2? key) => property;
+  void operator []=(Class2? key, Class2? value) => property;
+  void set nonNullable2(Class2 value) {}
+}
+
+extension Extension3 on Class3 {
+  Class2? operator [](Class3? key) => property;
+}
+
+main() {}
+void ifNull(Class1? n1) {}
+void indexAccess(Class1? n1, Class2? n2, Class3? n3) {}
+void operatorAccess(Class1? n1, Class2? n2) {}
+void propertyAccess(Class1? n1) {}
+void throws(void Function() f) {}

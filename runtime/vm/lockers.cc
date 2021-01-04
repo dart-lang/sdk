@@ -40,7 +40,8 @@ Monitor::WaitResult MonitorLocker::WaitWithSafepointCheck(Thread* thread,
   return result;
 }
 
-SafepointMutexLocker::SafepointMutexLocker(Mutex* mutex) : mutex_(mutex) {
+SafepointMutexLocker::SafepointMutexLocker(ThreadState* thread, Mutex* mutex)
+    : StackResource(thread), mutex_(mutex) {
   ASSERT(mutex != NULL);
   if (!mutex_->TryLock()) {
     // We did not get the lock and could potentially block, so transition

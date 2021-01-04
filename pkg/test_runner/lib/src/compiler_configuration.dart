@@ -1085,8 +1085,6 @@ class SpecParserCompilerConfiguration extends CompilerConfiguration {
 }
 
 abstract class VMKernelCompilerMixin {
-  static final causalAsyncStacksRegExp = RegExp('--causal[_-]async[_-]stacks');
-
   TestConfiguration get _configuration;
 
   bool get _useSdk;
@@ -1116,8 +1114,6 @@ abstract class VMKernelCompilerMixin {
 
     var isProductMode = _configuration.configuration.mode == Mode.product;
 
-    var causalAsyncStacks = arguments.any(causalAsyncStacksRegExp.hasMatch);
-
     var args = [
       _isAot ? '--aot' : '--no-aot',
       '--platform=$vmPlatform',
@@ -1129,7 +1125,6 @@ abstract class VMKernelCompilerMixin {
           name.startsWith('--packages=') ||
           name.startsWith('--enable-experiment=')),
       '-Ddart.vm.product=$isProductMode',
-      '-Ddart.developer.causal_async_stacks=$causalAsyncStacks',
       if (_enableAsserts ||
           arguments.contains('--enable-asserts') ||
           arguments.contains('--enable_asserts'))

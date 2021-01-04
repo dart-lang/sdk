@@ -70,8 +70,8 @@ void main() {h^}''');
     await computeSuggestions();
 
     assertSuggestFunction('foo', 'bool',
-        defaultArgListString: 'bar, baz: null',
-        defaultArgumentListTextRanges: [0, 3, 10, 4]);
+        defaultArgListString: 'bar, baz: baz',
+        defaultArgumentListTextRanges: [0, 3, 10, 3]);
   }
 
   Future<void> test_ArgDefaults_inherited_method_with_required_named() async {
@@ -92,7 +92,7 @@ class B extends A {
     await computeSuggestions();
 
     assertSuggestMethod('foo', 'A', 'bool',
-        defaultArgListString: 'bar, baz: null');
+        defaultArgListString: 'bar, baz: baz');
   }
 
   Future<void> test_ArgDefaults_method_with_required_named() async {
@@ -109,8 +109,8 @@ class A {
     await computeSuggestions();
 
     assertSuggestMethod('foo', 'A', 'bool',
-        defaultArgListString: 'bar, baz: null',
-        defaultArgumentListTextRanges: [0, 3, 10, 4]);
+        defaultArgListString: 'bar, baz: baz',
+        defaultArgumentListTextRanges: [0, 3, 10, 3]);
   }
 
   Future<void> test_ArgumentList() async {
@@ -2977,6 +2977,55 @@ main() {
     assertNotSuggested('Object');
   }
 
+  Future<void> test_forElement_body() async {
+    addTestSource('var x = [for (int i; i < 10; ++i) ^];');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestLocalVariable('i', 'int');
+    assertNotSuggested('Object');
+  }
+
+  Future<void> test_forElement_condition() async {
+    addTestSource('var x = [for (int index = 0; i^)];');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset - 1);
+    expect(replacementLength, 1);
+    assertSuggestLocalVariable('index', 'int');
+  }
+
+  Future<void> test_forElement_initializer() async {
+    addTestSource('var x = [for (^)];');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertNotSuggested('Object');
+    assertNotSuggested('int');
+  }
+
+  Future<void> test_forElement_updaters() async {
+    addTestSource('var x = [for (int index = 0; index < 10; i^)];');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset - 1);
+    expect(replacementLength, 1);
+    assertSuggestLocalVariable('index', 'int');
+  }
+
+  Future<void> test_forElement_updaters_prefix_expression() async {
+    addTestSource('''
+var x = [for (int index = 0; index < 10; ++i^)];
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset - 1);
+    expect(replacementLength, 1);
+    assertSuggestLocalVariable('index', 'int');
+  }
+
   Future<void> test_FormalParameterList() async {
     // FormalParameterList MethodDeclaration
     addTestSource('''
@@ -3157,6 +3206,17 @@ class B extends A {
     expect(suggestion.hasNamedParameters, false);
   }
 
+  Future<void> test_functionDeclaration_parameter() async {
+    addTestSource('''
+void f<T>(^) {}
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestTypeParameter('T');
+  }
+
   Future<void> test_FunctionDeclaration_returnType_afterComment() async {
     // ClassDeclaration  CompilationUnit
     addSource('/home/test/lib/a.dart', '''
@@ -3262,6 +3322,18 @@ void bar() {
     assertSuggest('bar', elemKind: ElementKind.LOCAL_VARIABLE);
   }
 
+  Future<void> test_functionDeclaration_typeParameterBounds() async {
+    addTestSource('''
+void f<T extends C<^>>() {}
+class C<E> {}
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestTypeParameter('T');
+  }
+
   Future<void> test_FunctionExpression_body_function() async {
     // Block  BlockFunctionBody  FunctionExpression
     addTestSource('''
@@ -3283,6 +3355,36 @@ class R {}
     assertSuggestParameter('args', 'List<dynamic>');
     assertSuggestParameter('b', 'R');
     assertNotSuggested('Object');
+  }
+
+  @failingTest
+  Future<void> test_functionExpression_expressionBody() async {
+    // This test fails because the OpType at the completion location doesn't
+    // allow for functions that return `void`. But because the expected return
+    // type is `dynamic` we probably want to allow it.
+    addTestSource('''
+void f() {
+  g(() => ^);
+}
+void g(dynamic Function() h) {}
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestFunction('f', 'void');
+    assertSuggestFunction('g', 'void');
+  }
+
+  Future<void> test_functionExpression_parameterList() async {
+    addTestSource('''
+var c = <T>(^) {};
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestTypeParameter('T');
   }
 
   Future<void> test_functionTypeAlias_genericTypeAlias() async {
@@ -3316,6 +3418,17 @@ main() {
 ''');
     await computeSuggestions();
     assertSuggestFunctionTypeAlias('F', 'void');
+  }
+
+  Future<void> test_genericFunctionType_parameterList() async {
+    addTestSource('''
+void f(int Function<T>(^) g) {}
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestTypeParameter('T');
   }
 
   Future<void> test_IfStatement() async {
@@ -4026,7 +4139,7 @@ class A {
   }
 }''');
     await computeSuggestions();
-    assertSuggestConstructor('A', defaultArgListString: 'bar, baz: null');
+    assertSuggestConstructor('A', defaultArgListString: 'bar, baz: baz');
   }
 
   Future<void> test_localConstructor2() async {
@@ -4081,7 +4194,7 @@ class A {
   }
 }''');
     await computeSuggestions();
-    assertSuggestConstructor('A', defaultArgListString: 'bar, baz: null');
+    assertSuggestConstructor('A', defaultArgListString: 'bar, baz: baz');
   }
 
   Future<void> test_localConstructor_shadowed() async {
@@ -4598,6 +4711,22 @@ class Z {}
     assertNotSuggested('bool');
   }
 
+  Future<void> test_methodDeclaration_parameter() async {
+    addTestSource('''
+class C<E> {}
+extension E<S> on C<S> {
+  void m<T>(^) {}
+}
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestTypeParameter('S');
+    assertSuggestTypeParameter('T');
+    assertNotSuggested('E');
+  }
+
   Future<void> test_MethodDeclaration_parameters_named() async {
     // Block  BlockFunctionBody  MethodDeclaration
     addTestSource('''
@@ -4802,6 +4931,22 @@ class B extends A{
 
     assertNotSuggested('foo', elemKind: ElementKind.METHOD);
     assertSuggest('foo', elemKind: ElementKind.LOCAL_VARIABLE);
+  }
+
+  Future<void> test_methodDeclaration_typeParameterBounds() async {
+    addTestSource('''
+class C<E> {}
+extension E<S> on C<S> {
+  void m<T extends C<^>>() {}
+}
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestTypeParameter('S');
+    assertSuggestTypeParameter('T');
+    assertNotSuggested('E');
   }
 
   Future<void> test_MethodInvocation_no_semicolon() async {
@@ -5059,6 +5204,20 @@ class B extends A {m() {^}}
 ''');
     await computeSuggestions();
     assertSuggestMethod('m', 'B', null);
+  }
+
+  @failingTest
+  Future<void> test_parameterList_genericFunctionType() async {
+    // This test fails because we don't suggest `void` as the type of a
+    // parameter, but we should for the case of `void Function()`.
+    addTestSource('''
+void f(^) {}
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggest('void');
   }
 
   Future<void> test_parameterName_excludeTypes() async {
@@ -5592,6 +5751,19 @@ class B extends A1 with A2 {
     assertNotSuggested('y1');
     assertNotSuggested('x2');
     assertNotSuggested('y2');
+  }
+
+  Future<void> test_stringInterpolation() async {
+    addTestSource(r'''
+class C<T> {
+  String m() => 'abc $^ xyz';
+}
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestTypeParameter('T');
   }
 
   Future<void> test_SwitchStatement_c() async {

@@ -115,8 +115,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   }
 
   /// A map used to canonicalize the entries of metadata.
-  Map<OutputUnit, Map<String, BoundMetadataEntry>> _metadataMap =
-      <OutputUnit, Map<String, BoundMetadataEntry>>{};
+  Map<OutputUnit, Map<String, List<BoundMetadataEntry>>> _metadataMap = {};
 
   /// A map with a token for a lists of JS expressions, one token for each
   /// output unit. Once finalized, the entries represent types including
@@ -129,8 +128,35 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   }
 
   /// A map used to canonicalize the entries of types.
-  Map<OutputUnit, Map<DartType, BoundMetadataEntry>> _typesMap =
-      <OutputUnit, Map<DartType, BoundMetadataEntry>>{};
+  Map<OutputUnit, Map<DartType, List<BoundMetadataEntry>>> _typesMap = {};
+
+  void mergeOutputUnitMetadata(OutputUnit target, OutputUnit source) {
+    assert(target != source);
+
+    // Merge _metadataMap
+    var sourceMetadataMap = _metadataMap[source];
+    if (sourceMetadataMap != null) {
+      var targetMetadataMap =
+          _metadataMap[target] ??= Map<String, List<BoundMetadataEntry>>();
+      _metadataMap.remove(source);
+      sourceMetadataMap.forEach((str, entries) {
+        var targetMetadataMapList = targetMetadataMap[str] ??= [];
+        targetMetadataMapList.addAll(entries);
+      });
+    }
+
+    // Merge _typesMap
+    var sourceTypesMap = _typesMap[source];
+    if (sourceTypesMap != null) {
+      var targetTypesMap =
+          _typesMap[target] ??= Map<DartType, List<BoundMetadataEntry>>();
+      _typesMap.remove(source);
+      sourceTypesMap.forEach((type, entries) {
+        var targetTypesMapList = targetTypesMap[type] ??= [];
+        targetTypesMapList.addAll(entries);
+      });
+    }
+  }
 
   MetadataCollector(this._options, this.reporter, this._emitter,
       this._rtiRecipeEncoder, this._elementEnvironment);
@@ -166,10 +192,9 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     String printed = jsAst.prettyPrint(node,
         enableMinification: _options.enableMinification,
         renamerForNames: nameToKey);
-    _metadataMap[outputUnit] ??= new Map<String, BoundMetadataEntry>();
-    return _metadataMap[outputUnit].putIfAbsent(printed, () {
-      return new BoundMetadataEntry(node);
-    });
+    final submap = _metadataMap[outputUnit] ??= {};
+    final entries = submap[printed] ??= [BoundMetadataEntry(node)];
+    return entries.single;
   }
 
   jsAst.Expression _computeTypeRepresentationNewRti(DartType type) {
@@ -178,10 +203,20 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   }
 
   jsAst.Expression addTypeInOutputUnit(DartType type, OutputUnit outputUnit) {
-    _typesMap[outputUnit] ??= new Map<DartType, BoundMetadataEntry>();
-    return _typesMap[outputUnit].putIfAbsent(type, () {
-      return new BoundMetadataEntry(_computeTypeRepresentationNewRti(type));
-    });
+    _typesMap[outputUnit] ??= Map<DartType, List<BoundMetadataEntry>>();
+    BoundMetadataEntry metadataEntry;
+
+    // See comment for _addGlobalMetadata.
+    if (_typesMap[outputUnit].containsKey(type)) {
+      metadataEntry = _typesMap[outputUnit][type].single;
+    } else {
+      _typesMap[outputUnit].putIfAbsent(type, () {
+        metadataEntry =
+            BoundMetadataEntry(_computeTypeRepresentationNewRti(type));
+        return [metadataEntry];
+      });
+    }
+    return metadataEntry;
   }
 
   @override
@@ -194,9 +229,13 @@ class MetadataCollector implements jsAst.TokenFinalizer {
           .forEach(counter.countTokens);
     }
 
-    jsAst.ArrayInitializer finalizeMap(Map<dynamic, BoundMetadataEntry> map) {
-      bool isUsed(BoundMetadataEntry entry) => entry.isUsed;
-      List<BoundMetadataEntry> entries = map.values.where(isUsed).toList();
+    jsAst.ArrayInitializer finalizeMap(
+        Map<dynamic, List<BoundMetadataEntry>> map) {
+      List<BoundMetadataEntry> entries = [
+        for (var entriesList in map.values)
+          for (var entry in entriesList)
+            if (entry.isUsed) entry
+      ];
       entries.sort();
 
       // TODO(herhut): Bucket entries by index length and use a stable
@@ -222,9 +261,9 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     });
 
     _typesTokens.forEach((OutputUnit outputUnit, _MetadataList token) {
-      Map typesMap = _typesMap[outputUnit];
+      Map<DartType, List<BoundMetadataEntry>> typesMap = _typesMap[outputUnit];
       if (typesMap != null) {
-        countTokensInTypes(typesMap.values);
+        typesMap.values.forEach(countTokensInTypes);
         token.setExpression(finalizeMap(typesMap));
       } else {
         token.setExpression(new jsAst.ArrayInitializer([]));

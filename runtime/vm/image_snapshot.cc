@@ -514,7 +514,7 @@ void ImageWriter::WriteROData(NonStreamingWriteStream* stream, bool vm) {
     if (obj.IsCompressedStackMaps()) {
       const CompressedStackMaps& map = CompressedStackMaps::Cast(obj);
       const intptr_t payload_size = map.payload_size();
-      stream->WriteFixed<uint32_t>(map.raw()->ptr()->flags_and_size_);
+      stream->WriteTargetWord(map.raw()->ptr()->flags_and_size_);
       ASSERT_EQUAL(stream->Position() - object_start,
                    compiler::target::CompressedStackMaps::HeaderSize());
       stream->WriteBytes(map.raw()->ptr()->data(), payload_size);
@@ -589,12 +589,12 @@ uword ImageWriter::GetMarkedTags(classid_t cid,
 }
 
 uword ImageWriter::GetMarkedTags(const Object& obj) {
-  return
+  uword tags = GetMarkedTags(obj.raw()->GetClassId(), SizeInSnapshot(obj),
+                             obj.IsCanonical());
 #if defined(HASH_IN_OBJECT_HEADER)
-      static_cast<uword>(obj.raw()->ptr()->hash_) << kBitsPerInt32 |
+  tags = ObjectLayout::HashTag::update(obj.raw()->ptr()->GetHeaderHash(), tags);
 #endif
-      GetMarkedTags(obj.raw()->GetClassId(), SizeInSnapshot(obj),
-                    obj.IsCanonical());
+  return tags;
 }
 
 const char* ImageWriter::SectionSymbol(ProgramSection section, bool vm) const {
@@ -1293,8 +1293,8 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
   assembly_stream_->WriteString(".cfi_escape 0x10, 31, 2, 0x23, 16\n");
 
 #elif defined(TARGET_ARCH_ARM64)
-  COMPILE_ASSERT(FP == R29);
-  COMPILE_ASSERT(LR == R30);
+  COMPILE_ASSERT(R29 == FP);
+  COMPILE_ASSERT(R30 == LINK_REGISTER);
   assembly_stream_->WriteString(".cfi_def_cfa x29, 0\n");  // CFA is fp+0
   assembly_stream_->WriteString(
       ".cfi_offset x29, 0\n");  // saved fp is *(CFA+0)

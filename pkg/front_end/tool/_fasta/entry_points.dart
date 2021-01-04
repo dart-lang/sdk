@@ -485,7 +485,7 @@ Future<void> writeDepsFile(
   StringBuffer sb = new StringBuffer();
   sb.write(toRelativeFilePath(output));
   sb.write(":");
-  List<String> paths = new List<String>(allDependencies.length);
+  List<String> paths = new List<String>.filled(allDependencies.length, null);
   for (int i = 0; i < allDependencies.length; i++) {
     paths[i] = toRelativeFilePath(allDependencies[i]);
   }

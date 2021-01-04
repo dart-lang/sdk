@@ -4,6 +4,8 @@
 
 // @dart = 2.7
 
+// dart2jsOptions=--no-minify
+
 import "package:expect/expect.dart";
 
 // Test for correct order of exceptions in code with checks that could be moved

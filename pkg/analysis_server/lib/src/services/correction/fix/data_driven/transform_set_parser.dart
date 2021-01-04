@@ -68,8 +68,8 @@ class TransformSetParser {
   static const String _newNameKey = 'newName';
   static const String _oldNameKey = 'oldName';
   static const String _oneOfKey = 'oneOf';
+  static const String _requiredIfKey = 'requiredIf';
   static const String _setterKey = 'setter';
-  static const String _statementsKey = 'statements';
   static const String _styleKey = 'style';
   static const String _titleKey = 'title';
   static const String _transformsKey = 'transforms';
@@ -192,6 +192,8 @@ class TransformSetParser {
       // TODO(brianwilkerson) Check for an end brace without a start brace.
       components.add(TemplateText(template.substring(textStart)));
     }
+    // TODO(brianwilkerson) If there are no other errors, then report
+    //  unreferenced variables.
     return components;
   }
 
@@ -343,8 +345,10 @@ class TransformSetParser {
     }
     var isRequired = style.startsWith('required_');
     var isPositional = style.endsWith('_positional');
-    var argumentValue = _translateCodeTemplate(node.valueAt(_argumentValueKey),
-        ErrorContext(key: _argumentValueKey, parentNode: node));
+    var argumentValueNode = node.valueAt(_argumentValueKey);
+    var argumentValue = _translateCodeTemplate(argumentValueNode,
+        ErrorContext(key: _argumentValueKey, parentNode: node),
+        canBeConditionallyRequired: true);
     // TODO(brianwilkerson) We really ought to require an argument value for
     //  optional positional parameters too for the case where the added
     //  parameter is being added before the end of the list and call sites might
@@ -355,6 +359,18 @@ class TransformSetParser {
       // TODO(brianwilkerson) Report that required parameters must have an
       //  argument value.
       return;
+    } else if (argumentValue != null &&
+        argumentValue.requiredIfCondition != null) {
+      if (style != 'optional_named') {
+        var valueNode = argumentValueNode as YamlMap;
+        _reportError(TransformSetErrorCode.invalidRequiredIf,
+            valueNode.keyAtValue(valueNode.valueAt(_requiredIfKey)));
+        return;
+      } else if (argumentValue == null) {
+        // TODO(brianwilkerson) Report that conditionally required parameters must
+        //  have an argument value.
+        return;
+      }
     }
     _parameterModifications ??= [];
     _parameterModifications.add(
@@ -392,8 +408,9 @@ class TransformSetParser {
   }
 
   /// Translate the [node] into a bool. Return the resulting bool, or `null`
-  /// if the [node] does not represent a valid bool. If the [node] is not
-  /// valid, use the [context] to report the error.
+  /// if the [node] doesn't represent a valid bool. If the [node] isn't valid,
+  /// use the [context] to report the error. If the [node] doesn't exist and
+  /// [required] is `true`, then report an error.
   bool _translateBool(YamlNode node, ErrorContext context,
       {bool required = true}) {
     if (node is YamlScalar) {
@@ -470,44 +487,49 @@ class TransformSetParser {
   }
 
   /// Translate the [node] into a code template. Return the resulting template,
-  /// or `null` if the [node] does not represent a valid code template. If the
-  /// [node] is not valid, use the [context] to report the error.
+  /// or `null` if the [node] doesn't represent a valid code template. If the
+  /// [node] isn't valid, use the [context] to report the error. If the [node]
+  /// doesn't exist and [required] is `true`, then report an error.
   CodeTemplate _translateCodeTemplate(YamlNode node, ErrorContext context,
-      {bool required = true}) {
+      {bool canBeConditionallyRequired = false, bool required = true}) {
     if (node is YamlMap) {
-      CodeTemplateKind kind;
-      int templateOffset;
-      String template;
-      // TODO(brianwilkerson) Rework to use `_singleKey` to improve reporting
-      //  (see _translateTransform for an example).
-      var expressionNode = node.valueAt(_expressionKey);
-      if (expressionNode != null) {
-        _reportUnsupportedKeys(node, const {_expressionKey, _variablesKey});
-        kind = CodeTemplateKind.expression;
-        templateOffset = _offsetOfString(expressionNode);
-        template = _translateString(expressionNode,
-            ErrorContext(key: _expressionKey, parentNode: node));
+      if (canBeConditionallyRequired) {
+        _reportUnsupportedKeys(
+            node, const {_expressionKey, _requiredIfKey, _variablesKey});
       } else {
-        var statementsNode = node.valueAt(_statementsKey);
-        if (statementsNode != null) {
-          _reportUnsupportedKeys(node, const {_statementsKey, _variablesKey});
-          kind = CodeTemplateKind.statements;
-          templateOffset = _offsetOfString(statementsNode);
-          template = _translateString(statementsNode,
-              ErrorContext(key: _statementsKey, parentNode: node));
-        } else {
-          _reportError(TransformSetErrorCode.missingOneOfMultipleKeys, node,
-              ["'$_expressionKey' or '$_statementsKey'"]);
-          return null;
-        }
+        _reportUnsupportedKeys(node, const {_expressionKey, _variablesKey});
       }
-      // TODO(brianwilkerson) We should report unreferenced variables.
+      var expressionNode = node.valueAt(_expressionKey);
+      var template = _translateString(
+          expressionNode, ErrorContext(key: _expressionKey, parentNode: node));
       var variableScope = _translateTemplateVariables(
           node.valueAt(_variablesKey),
           ErrorContext(key: _variablesKey, parentNode: node));
+      Expression requiredIfCondition;
+      if (canBeConditionallyRequired) {
+        var requiredIfNode = node.valueAt(_requiredIfKey);
+        var requiredIfText = _translateString(
+            requiredIfNode, ErrorContext(key: _requiredIfKey, parentNode: node),
+            required: false);
+        if (requiredIfText != null) {
+          requiredIfCondition = CodeFragmentParser(errorReporter,
+                  scope: variableScope)
+              .parseCondition(requiredIfText, _offsetOfString(requiredIfNode));
+          if (requiredIfCondition == null) {
+            // The error has already been reported.
+            return null;
+          }
+        }
+      }
+      if (template == null) {
+        // The error has already been reported.
+        return null;
+      }
+      var templateOffset = _offsetOfString(expressionNode);
       var components =
           _extractTemplateComponents(template, variableScope, templateOffset);
-      return CodeTemplate(kind, components);
+      return CodeTemplate(
+          CodeTemplateKind.expression, components, requiredIfCondition);
     } else if (node == null) {
       if (required) {
         _reportMissingKey(context);
@@ -800,8 +822,9 @@ class TransformSetParser {
   }
 
   /// Translate the [node] into a string. Return the resulting string, or `null`
-  /// if the [node] does not represent a valid string. If the [node] is not
-  /// valid, use the [context] to report the error.
+  /// if the [node] doesn't represent a valid string. If the [node] isn't valid,
+  /// use the [context] to report the error. If the [node] doesn't exist and
+  /// [required] is `true`, then report an error.
   String _translateString(YamlNode node, ErrorContext context,
       {bool required = true}) {
     if (node is YamlScalar) {
@@ -959,8 +982,9 @@ class TransformSetParser {
   }
 
   /// Translate the [node] into a URI. Return the resulting URI, or `null` if
-  /// the [node] does not represent a valid URI. If the [node] is not valid, use
-  /// the [context] to report the error.
+  /// the [node] doesn't represent a valid URI. If the [node] isn't valid, use
+  /// the [context] to report the error. If the [node] doesn't exist and
+  /// [required] is `true`, then report an error.
   Uri _translateUri(YamlNode node, ErrorContext context,
       {bool required = true}) {
     if (node is YamlScalar) {

@@ -23,6 +23,11 @@
 
 namespace dart {
 
+// constants_arm.h does not define LR constant to prevent accidental direct use
+// of it during code generation. However using LR directly is okay in this
+// file because it is a simulator.
+constexpr Register LR = LR_DO_NOT_USE_DIRECTLY;
+
 DEFINE_FLAG(uint64_t,
             trace_sim_after,
             ULLONG_MAX,
@@ -276,15 +281,18 @@ void SimulatorDebugger::PrintDartFrame(uword vm_instructions,
   const Script& script = Script::Handle(function.script());
   const String& func_name = String::Handle(function.QualifiedScrubbedName());
   const String& url = String::Handle(script.url());
-  intptr_t line = -1;
-  intptr_t column = -1;
-  if (token_pos.IsReal()) {
-    script.GetTokenLocation(token_pos, &line, &column);
+  intptr_t line, column;
+  if (script.GetTokenLocation(token_pos, &line, &column)) {
+    OS::PrintErr(
+        "pc=0x%" Px " fp=0x%" Px " sp=0x%" Px " %s%s (%s:%" Pd ":%" Pd ")", pc,
+        fp, sp, is_optimized ? (is_inlined ? "inlined " : "optimized ") : "",
+        func_name.ToCString(), url.ToCString(), line, column);
+
+  } else {
+    OS::PrintErr("pc=0x%" Px " fp=0x%" Px " sp=0x%" Px " %s%s (%s)", pc, fp, sp,
+                 is_optimized ? (is_inlined ? "inlined " : "optimized ") : "",
+                 func_name.ToCString(), url.ToCString());
   }
-  OS::PrintErr(
-      "pc=0x%" Px " fp=0x%" Px " sp=0x%" Px " %s%s (%s:%" Pd ":%" Pd ")", pc,
-      fp, sp, is_optimized ? (is_inlined ? "inlined " : "optimized ") : "",
-      func_name.ToCString(), url.ToCString(), line, column);
 #if defined(DART_PRECOMPILED_RUNTIME)
   intptr_t offset;
   auto const symbol_name =

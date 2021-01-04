@@ -302,7 +302,7 @@ Token _parse(String s, FeatureSet featureSet) {
 /// Helper class that bundles up all information required when converting server
 /// SourceEdits into LSP-compatible WorkspaceEdits.
 class FileEditInformation {
-  final VersionedTextDocumentIdentifier doc;
+  final OptionalVersionedTextDocumentIdentifier doc;
   final LineInfo lineInfo;
   final List<server.SourceEdit> edits;
 

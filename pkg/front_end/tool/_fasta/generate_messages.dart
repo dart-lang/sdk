@@ -167,6 +167,7 @@ Template compileTemplate(String name, int index, String template, String tip,
   // `|` (verbatim) as they always contain a trailing newline that we don't
   // want.
   template = template.trimRight();
+  const String ignoreNotNull = "// ignore: unnecessary_null_comparison";
   var parameters = new Set<String>();
   var conversions = new Set<String>();
   var conversions2 = new Set<String>();
@@ -252,7 +253,8 @@ Template compileTemplate(String name, int index, String template, String tip,
 
       case "nameOKEmpty":
         parameters.add("String nameOKEmpty");
-        conversions.add("if (nameOKEmpty == null || nameOKEmpty.isEmpty) "
+        conversions.add("$ignoreNotNull\n"
+            "if (nameOKEmpty == null || nameOKEmpty.isEmpty) "
             "nameOKEmpty = '(unnamed)';");
         arguments.add("'nameOKEmpty': nameOKEmpty");
         break;
@@ -296,7 +298,8 @@ Template compileTemplate(String name, int index, String template, String tip,
 
       case "stringOKEmpty":
         parameters.add("String stringOKEmpty");
-        conversions.add("if (stringOKEmpty == null || stringOKEmpty.isEmpty) "
+        conversions.add("$ignoreNotNull\n"
+            "if (stringOKEmpty == null || stringOKEmpty.isEmpty) "
             "stringOKEmpty = '(empty)';");
         arguments.add("'stringOKEmpty': stringOKEmpty");
         break;
@@ -315,31 +318,33 @@ Template compileTemplate(String name, int index, String template, String tip,
 
       case "uri":
         parameters.add("Uri uri_");
-        conversions.add("String uri = relativizeUri(uri_);");
+        conversions.add("String? uri = relativizeUri(uri_);");
         arguments.add("'uri': uri_");
         break;
 
       case "uri2":
         parameters.add("Uri uri2_");
-        conversions.add("String uri2 = relativizeUri(uri2_);");
+        conversions.add("String? uri2 = relativizeUri(uri2_);");
         arguments.add("'uri2': uri2_");
         break;
 
       case "uri3":
         parameters.add("Uri uri3_");
-        conversions.add("String uri3 = relativizeUri(uri3_);");
+        conversions.add("String? uri3 = relativizeUri(uri3_);");
         arguments.add("'uri3': uri3_");
         break;
 
       case "count":
         parameters.add("int count");
-        conversions.add("if (count == null) throw 'No count provided';");
+        conversions.add(
+            "$ignoreNotNull\n" "if (count == null) throw 'No count provided';");
         arguments.add("'count': count");
         break;
 
       case "count2":
         parameters.add("int count2");
-        conversions.add("if (count2 == null) throw 'No count provided';");
+        conversions.add("$ignoreNotNull\n"
+            "if (count2 == null) throw 'No count provided';");
         arguments.add("'count2': count2");
         break;
 
@@ -354,21 +359,24 @@ Template compileTemplate(String name, int index, String template, String tip,
 
       case "num1":
         parameters.add("num _num1");
-        conversions.add("if (_num1 == null) throw 'No number provided';");
+        conversions.add("$ignoreNotNull\n"
+            "if (_num1 == null) throw 'No number provided';");
         conversions.add("String num1 = ${format('_num1')};");
         arguments.add("'num1': _num1");
         break;
 
       case "num2":
         parameters.add("num _num2");
-        conversions.add("if (_num2 == null) throw 'No number provided';");
+        conversions.add("$ignoreNotNull\n"
+            "if (_num2 == null) throw 'No number provided';");
         conversions.add("String num2 = ${format('_num2')};");
         arguments.add("'num2': _num2");
         break;
 
       case "num3":
         parameters.add("num _num3");
-        conversions.add("if (_num3 == null) throw 'No number provided';");
+        conversions.add("$ignoreNotNull\n"
+            "if (_num3 == null) throw 'No number provided';");
         conversions.add("String num3 = ${format('_num3')};");
         arguments.add("'num3': _num3");
         break;
@@ -459,7 +467,7 @@ const Template<Message Function(${parameters.join(', ')})> template$name =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(${parameters.join(', ')})> code$name =
     const Code<Message Function(${parameters.join(', ')})>(
-        \"$name\", template$name, ${codeArguments.join(', ')});
+        \"$name\", ${codeArguments.join(', ')});
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArguments$name(${parameters.join(', ')}) {

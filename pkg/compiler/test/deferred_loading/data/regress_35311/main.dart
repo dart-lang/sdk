@@ -4,6 +4,10 @@
 
 // @dart = 2.7
 
+/*library: 
+ output_units=[f1: {units: [1{lib}], usedBy: [], needs: []}],
+ steps=[lib=(f1)]
+*/
 import 'lib.dart' deferred as lib;
 
 /*member: main:member_unit=main{}*/

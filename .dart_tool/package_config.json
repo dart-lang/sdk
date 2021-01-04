@@ -11,14 +11,14 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2020-11-15T14:18:10.587065",
+  "generated": "2020-12-16T11:30:30.799202",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
       "name": "_fe_analyzer_shared",
       "rootUri": "../pkg/_fe_analyzer_shared",
       "packageUri": "lib/",
-      "languageVersion": "2.2"
+      "languageVersion": "2.12"
     },
     {
       "name": "_fe_analyzer_shared_assigned_variables",
@@ -95,13 +95,13 @@
       "name": "analyzer_utilities",
       "rootUri": "../pkg/analyzer_utilities",
       "packageUri": "lib/",
-      "languageVersion": "2.1"
+      "languageVersion": "2.12"
     },
     {
       "name": "args",
       "rootUri": "../third_party/pkg/args",
       "packageUri": "lib/",
-      "languageVersion": "2.3"
+      "languageVersion": "2.12"
     },
     {
       "name": "async",
@@ -118,7 +118,7 @@
       "name": "bazel_worker",
       "rootUri": "../third_party/pkg/bazel_worker",
       "packageUri": "lib/",
-      "languageVersion": "2.3"
+      "languageVersion": "2.12"
     },
     {
       "name": "benchmark_harness",
@@ -258,6 +258,12 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "file",
+      "rootUri": "../third_party/pkg/file/packages/file",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "fixnum",
       "rootUri": "../third_party/pkg/fixnum",
       "packageUri": "lib/",
@@ -284,7 +290,7 @@
       "name": "glob",
       "rootUri": "../third_party/pkg/glob",
       "packageUri": "lib/",
-      "languageVersion": "2.2"
+      "languageVersion": "2.12"
     },
     {
       "name": "html",
@@ -402,7 +408,7 @@
       "name": "mime",
       "rootUri": "../third_party/pkg/mime",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.12"
     },
     {
       "name": "mockito",
@@ -495,7 +501,7 @@
       "name": "protobuf",
       "rootUri": "../third_party/pkg/protobuf/protobuf",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.12"
     },
     {
       "name": "pub",
@@ -507,7 +513,7 @@
       "name": "pub_semver",
       "rootUri": "../third_party/pkg/pub_semver",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.12"
     },
     {
       "name": "resource",
@@ -530,7 +536,7 @@
       "name": "shelf",
       "rootUri": "../third_party/pkg/shelf",
       "packageUri": "lib/",
-      "languageVersion": "2.1"
+      "languageVersion": "2.12"
     },
     {
       "name": "shelf_packages_handler",
@@ -674,7 +680,7 @@
       "name": "test_reflective_loader",
       "rootUri": "../third_party/pkg/test_reflective_loader",
       "packageUri": "lib/",
-      "languageVersion": "1.8"
+      "languageVersion": "2.12"
     },
     {
       "name": "test_runner",
@@ -734,7 +740,7 @@
       "name": "watcher",
       "rootUri": "../third_party/pkg/watcher",
       "packageUri": "lib/",
-      "languageVersion": "2.2"
+      "languageVersion": "2.12"
     },
     {
       "name": "web_components",

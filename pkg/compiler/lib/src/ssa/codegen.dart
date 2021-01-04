@@ -642,7 +642,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   List<js.Expression> visitArguments(List<HInstruction> inputs,
       {int start: HInvoke.ARGUMENTS_OFFSET}) {
     assert(inputs.length >= start);
-    List<js.Expression> result = new List<js.Expression>(inputs.length - start);
+    List<js.Expression> result = new List<js.Expression>.filled(inputs.length - start, null);
     for (int i = start; i < inputs.length; i++) {
       use(inputs[i]);
       result[i - start] = pop();

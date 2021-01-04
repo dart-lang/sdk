@@ -464,6 +464,15 @@ class MigrationResolutionHooksImpl
           // correct post-migration type.
           return variable.typeInternal;
         }
+        if (variable is ParameterElement) {
+          var enclosingElement = variable.enclosingElement;
+          if (enclosingElement is PropertyAccessorElement &&
+              enclosingElement.isSynthetic) {
+            // This is the parameter of a synthetic getter, so it has the same
+            // type as the corresponding variable.
+            return _fixBuilder._computeMigratedType(enclosingElement.variable);
+          }
+        }
         return _fixBuilder._computeMigratedType(variable);
       });
 

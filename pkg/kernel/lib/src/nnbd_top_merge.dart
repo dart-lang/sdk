@@ -14,7 +14,8 @@ Supertype nnbdTopMergeSupertype(CoreTypes coreTypes, Supertype a, Supertype b) {
   if (a.typeArguments.isEmpty) {
     return a;
   }
-  List<DartType> newTypeArguments = new List<DartType>(a.typeArguments.length);
+  List<DartType> newTypeArguments =
+      new List<DartType>.filled(a.typeArguments.length, null);
   for (int i = 0; i < a.typeArguments.length; i++) {
     DartType newTypeArgument =
         nnbdTopMerge(coreTypes, a.typeArguments[i], b.typeArguments[i]);

@@ -21,7 +21,7 @@ class ConvertToMutilineString extends CorrectionProducer {
     }
     if (node is SingleStringLiteral) {
       var literal = node;
-      if (!literal.isMultiline) {
+      if (!literal.isSynthetic && !literal.isMultiline) {
         await builder.addDartFileEdit(file, (builder) {
           var newQuote = literal.isSingleQuoted ? "'''" : '"""';
           builder.addReplacement(

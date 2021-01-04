@@ -1,4 +1,9 @@
 class Class {}
-extension Extension ;
-on Class (){}
+
+extension Extension on Class {
+  instanceMethod() {}
+  get instanceProperty => 42;
+  set instanceProperty(value) {}
+}
+
 main() {}

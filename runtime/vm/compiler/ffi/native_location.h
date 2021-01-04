@@ -11,6 +11,7 @@
 
 #include "platform/assert.h"
 #include "vm/compiler/ffi/native_type.h"
+#include "vm/compiler/runtime_api.h"
 #include "vm/constants.h"
 #include "vm/growable_array.h"
 
@@ -24,15 +25,13 @@ class BaseTextBuffer;
 
 namespace compiler {
 
-namespace target {
-extern const int kWordSize;
-}
-
 namespace ffi {
 
 class NativeRegistersLocation;
 class NativeFpuRegistersLocation;
 class NativeStackLocation;
+class MultipleNativeLocations;
+class PointerToMemoryLocation;
 
 // NativeLocation objects are used in the FFI to describe argument and return
 // value locations in all native ABIs that the FFI supports.
@@ -98,6 +97,8 @@ class NativeLocation : public ZoneAllocated {
   virtual bool IsRegisters() const { return false; }
   virtual bool IsFpuRegisters() const { return false; }
   virtual bool IsStack() const { return false; }
+  virtual bool IsMultiple() const { return false; }
+  virtual bool IsPointerToMemory() const { return false; }
 
   virtual bool IsExpressibleAsLocation() const { return false; }
 #if !defined(FFI_UNIT_TESTS)
@@ -116,13 +117,18 @@ class NativeLocation : public ZoneAllocated {
   const NativeRegistersLocation& AsRegisters() const;
   const NativeFpuRegistersLocation& AsFpuRegisters() const;
   const NativeStackLocation& AsStack() const;
+  const MultipleNativeLocations& AsMultiple() const;
+  const PointerToMemoryLocation& AsPointerToMemory() const;
 
-  virtual NativeLocation& Split(Zone* zone, intptr_t index) const {
-    ASSERT(index == 0 || index == 1);
+  // Retrieve one part from this location when it is split into multiple parts.
+  virtual NativeLocation& Split(Zone* zone,
+                                intptr_t num_parts,
+                                intptr_t index) const {
     UNREACHABLE();
   }
 
-  // Return the top of the stack in bytes.
+  // Return the top of the stack in bytes. Recurses over its constituents when
+  // MultipleNativeLocations.
   virtual intptr_t StackTopInBytes() const { return 0; }
 
   // Equality of location, ignores the payload and container native types.
@@ -190,7 +196,9 @@ class NativeRegistersLocation : public NativeLocation {
   intptr_t num_regs() const { return regs_->length(); }
   Register reg_at(intptr_t index) const { return regs_->At(index); }
 
-  virtual NativeRegistersLocation& Split(Zone* zone, intptr_t index) const;
+  virtual NativeRegistersLocation& Split(Zone* zone,
+                                         intptr_t num_parts,
+                                         intptr_t index) const;
 
   virtual void PrintTo(BaseTextBuffer* f) const;
 
@@ -329,7 +337,9 @@ class NativeStackLocation : public NativeLocation {
   }
 #endif
 
-  virtual NativeStackLocation& Split(Zone* zone, intptr_t index) const;
+  virtual NativeStackLocation& Split(Zone* zone,
+                                     intptr_t num_parts,
+                                     intptr_t index) const;
 
   virtual intptr_t StackTopInBytes() const {
     return offset_in_bytes() + container_type().SizeInBytes();
@@ -352,6 +362,96 @@ class NativeStackLocation : public NativeLocation {
   intptr_t offset_in_bytes_;
 
   DISALLOW_COPY_AND_ASSIGN(NativeStackLocation);
+};
+
+// The location of a pointer pointing to a compound.
+//
+// For arguments a pointer to a copy of an object. The backing copy of the
+// object typically resides on the stack.
+//
+// For return values a pointer to empty space that should hold the object. This
+// space also typically resides on the stack.
+class PointerToMemoryLocation : public NativeLocation {
+ public:
+  PointerToMemoryLocation(const NativeLocation& pointer_location,
+                          const NativeCompoundType& object_pointed_to)
+      : NativeLocation(object_pointed_to, object_pointed_to),
+        pointer_location_(pointer_location),
+        pointer_return_location_(pointer_location) {
+    ASSERT(pointer_location.IsRegisters() || pointer_location.IsStack());
+  }
+  PointerToMemoryLocation(const NativeLocation& pointer_location,
+                          const NativeLocation& pointer_return_location,
+                          const NativeCompoundType& object_pointed_to)
+      : NativeLocation(object_pointed_to, object_pointed_to),
+        pointer_location_(pointer_location),
+        pointer_return_location_(pointer_return_location) {
+    ASSERT(pointer_location.IsRegisters() || pointer_location.IsStack());
+  }
+
+  virtual ~PointerToMemoryLocation() {}
+
+  virtual bool IsPointerToMemory() const { return true; }
+
+  virtual void PrintTo(BaseTextBuffer* f) const;
+
+  virtual bool Equals(const NativeLocation& other) const;
+
+  virtual NativeLocation& WithOtherNativeType(
+      Zone* zone,
+      const NativeType& new_payload_type,
+      const NativeType& new_container_type) const {
+    UNREACHABLE();
+  }
+
+  virtual intptr_t StackTopInBytes() const {
+    return pointer_location().StackTopInBytes();
+  }
+
+  // The location where the pointer is passed to the function.
+  const NativeLocation& pointer_location() const { return pointer_location_; }
+
+  // The location where the pointer is returned from the function.
+  const NativeLocation& pointer_return_location() const {
+    return pointer_return_location_;
+  }
+
+ private:
+  const NativeLocation& pointer_location_;
+  // The return location is only in use for return values, not for arguments.
+  const NativeLocation& pointer_return_location_;
+
+  DISALLOW_COPY_AND_ASSIGN(PointerToMemoryLocation);
+};
+
+using NativeLocations = ZoneGrowableArray<const NativeLocation*>;
+
+// A struct broken up over multiple native locations.
+class MultipleNativeLocations : public NativeLocation {
+ public:
+  MultipleNativeLocations(const NativeCompoundType& payload_type,
+                          const NativeLocations& locations)
+      : NativeLocation(payload_type, payload_type), locations_(locations) {}
+  virtual ~MultipleNativeLocations() {}
+
+  virtual bool IsMultiple() const { return true; }
+
+  virtual void PrintTo(BaseTextBuffer* f) const;
+
+  virtual NativeLocation& WithOtherNativeType(
+      Zone* zone,
+      const NativeType& new_payload_type,
+      const NativeType& new_container_type) const {
+    UNREACHABLE();
+  }
+
+  virtual intptr_t StackTopInBytes() const;
+
+  const NativeLocations& locations() const { return locations_; }
+
+ private:
+  const NativeLocations& locations_;
+  DISALLOW_COPY_AND_ASSIGN(MultipleNativeLocations);
 };
 
 #if !defined(FFI_UNIT_TESTS)

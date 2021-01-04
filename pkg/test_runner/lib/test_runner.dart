@@ -176,10 +176,10 @@ Future<String> findMergeBase(String remote, String branch) async {
 }
 
 /// Exception thrown when looking up the build for a commit failed.
-class CommitNotBuiltException implements Exception {
+class NoResultsForCommitException implements Exception {
   final String reason;
 
-  CommitNotBuiltException(this.reason);
+  NoResultsForCommitException(this.reason);
 
   String toString() => reason;
 }
@@ -212,7 +212,7 @@ Future<BuildSearchResult> searchForBuild(String builder, String commit) async {
   client.close();
   var builds = object["builds"] as List<dynamic>;
   if (builds == null || builds.isEmpty) {
-    throw CommitNotBuiltException(
+    throw NoResultsForCommitException(
         "Builder $builder hasn't built commit $commit");
   }
   var build = builds.last;
@@ -220,17 +220,26 @@ Future<BuildSearchResult> searchForBuild(String builder, String commit) async {
   var buildAddressTag =
       tags.firstWhere((tag) => tag.startsWith("build_address:"));
   var buildAddress = buildAddressTag.substring("build_address:".length);
+  var buildNumber = int.parse(buildAddress.split("/").last);
   if (build["status"] != "COMPLETED") {
-    throw CommitNotBuiltException("Build $buildAddress isn't completed yet");
+    throw NoResultsForCommitException(
+        "Build $buildAddress isn't completed yet");
   }
-  return BuildSearchResult(int.parse(buildAddress.split("/").last), commit);
+  var resultsPath = buildFileCloudPath(builder, "$buildNumber", "results.json");
+  var flakyPath = buildFileCloudPath(builder, "$buildNumber", "flaky.json");
+  if (await lsGsutil(resultsPath) == null ||
+      await lsGsutil(flakyPath) == null) {
+    throw NoResultsForCommitException(
+        "Build $buildAddress did not upload results");
+  }
+  return BuildSearchResult(buildNumber, commit);
 }
 
 Future<BuildSearchResult> searchForApproximateBuild(
     String builder, String commit) async {
   try {
     return await searchForBuild(builder, commit);
-  } on CommitNotBuiltException catch (e) {
+  } on NoResultsForCommitException catch (e) {
     print("Warning: $e, searching for an inexact previous build...");
     var limit = 25;
     var arguments = [
@@ -255,7 +264,7 @@ Future<BuildSearchResult> searchForApproximateBuild(
             "Warning: Searching for inexact baseline build: $e, continuing...");
       }
     }
-    throw CommitNotBuiltException(
+    throw NoResultsForCommitException(
         "Failed to locate approximate baseline results for "
         "$commit in past $limit commits");
   }

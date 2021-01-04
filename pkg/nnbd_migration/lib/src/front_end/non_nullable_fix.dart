@@ -180,7 +180,7 @@ class NonNullableFix {
     // But the preview server should only be started once.
     if (_server == null) {
       _server = HttpPreviewServer(
-          state, rerun, applyHook, bindAddress, preferredPort);
+          state, rerun, applyHook, bindAddress, preferredPort, _logger);
       _server.serveHttp();
       _allServers.add(_server);
       var serverHostname = await _server.boundHostname;
@@ -510,7 +510,7 @@ class NullabilityMigrationAdapter implements NullabilityMigrationListener {
   void reportException(
       Source source, AstNode node, Object exception, StackTrace stackTrace) {
     listener.client.onException('''
-$exception
+$exception at offset ${node.offset} in $source ($node)
 
 $stackTrace''');
   }

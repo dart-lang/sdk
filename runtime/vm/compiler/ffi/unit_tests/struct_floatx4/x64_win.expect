@@ -1,0 +1,6 @@
+Compound(size: 16, field alignment: 4, stack alignment: 8, members: {
+  0: float,
+  4: float,
+  8: float,
+  12: float
+})

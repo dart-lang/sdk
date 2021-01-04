@@ -95,7 +95,28 @@ class NullableInference extends ExpressionVisitor<bool> {
       _getterIsNullable(node.interfaceTarget, node);
 
   @override
+  bool visitInstanceGet(InstanceGet node) =>
+      _getterIsNullable(node.interfaceTarget, node);
+
+  @override
+  bool visitDynamicGet(DynamicGet node) => _getterIsNullable(null, node);
+
+  @override
+  bool visitInstanceTearOff(InstanceTearOff node) =>
+      _getterIsNullable(node.interfaceTarget, node);
+
+  @override
+  bool visitFunctionTearOff(FunctionTearOff node) =>
+      _getterIsNullable(null, node);
+
+  @override
   bool visitPropertySet(PropertySet node) => isNullable(node.value);
+
+  @override
+  bool visitInstanceSet(InstanceSet node) => isNullable(node.value);
+
+  @override
+  bool visitDynamicSet(DynamicSet node) => isNullable(node.value);
 
   @override
   bool visitSuperPropertyGet(SuperPropertyGet node) =>
@@ -108,11 +129,38 @@ class NullableInference extends ExpressionVisitor<bool> {
   bool visitStaticGet(StaticGet node) => _getterIsNullable(node.target, node);
 
   @override
+  bool visitStaticTearOff(StaticTearOff node) =>
+      _getterIsNullable(node.target, node);
+
+  @override
   bool visitStaticSet(StaticSet node) => isNullable(node.value);
 
   @override
   bool visitMethodInvocation(MethodInvocation node) => _invocationIsNullable(
       node.interfaceTarget, node.name.text, node, node.receiver);
+
+  @override
+  bool visitInstanceInvocation(InstanceInvocation node) =>
+      _invocationIsNullable(
+          node.interfaceTarget, node.name.text, node, node.receiver);
+
+  @override
+  bool visitDynamicInvocation(DynamicInvocation node) =>
+      _invocationIsNullable(null, node.name.text, node, node.receiver);
+
+  @override
+  bool visitFunctionInvocation(FunctionInvocation node) =>
+      _invocationIsNullable(null, 'call', node, node.receiver);
+
+  @override
+  bool visitLocalFunctionInvocation(LocalFunctionInvocation node) =>
+      _invocationIsNullable(null, 'call', node, VariableGet(node.variable));
+
+  @override
+  bool visitEqualsNull(EqualsNull node) => false;
+
+  @override
+  bool visitEqualsCall(EqualsCall node) => false;
 
   @override
   bool visitSuperMethodInvocation(SuperMethodInvocation node) =>

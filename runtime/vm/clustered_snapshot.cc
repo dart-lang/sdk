@@ -99,7 +99,7 @@ void Deserializer::InitializeHeader(ObjectPtr raw,
                                     intptr_t size,
                                     bool is_canonical) {
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
-  uint32_t tags = 0;
+  uword tags = 0;
   tags = ObjectLayout::ClassIdTag::update(class_id, tags);
   tags = ObjectLayout::SizeTag::update(size, tags);
   tags = ObjectLayout::CanonicalBit::update(is_canonical, tags);
@@ -108,9 +108,6 @@ void Deserializer::InitializeHeader(ObjectPtr raw,
   tags = ObjectLayout::OldAndNotRememberedBit::update(true, tags);
   tags = ObjectLayout::NewBit::update(false, tags);
   raw->ptr()->tags_ = tags;
-#if defined(HASH_IN_OBJECT_HEADER)
-  raw->ptr()->hash_ = 0;
-#endif
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -1008,26 +1005,16 @@ class FieldSerializationCluster : public SerializationCluster {
     s->Push(field->ptr()->initializer_function_);
 
     if (kind != Snapshot::kFullAOT) {
-      s->Push(field->ptr()->saved_initial_value_);
       s->Push(field->ptr()->guarded_list_length_);
     }
     if (kind == Snapshot::kFullJIT) {
       s->Push(field->ptr()->dependent_code_);
     }
-    // Write out either static value, initial value or field offset.
+    // Write out either the initial static value or field offset.
     if (Field::StaticBit::decode(field->ptr()->kind_bits_)) {
-      if (
-          // For precompiled static fields, the value was already reset and
-          // initializer_ now contains a Function.
-          kind == Snapshot::kFullAOT ||
-          // Do not reset const fields.
-          Field::ConstBit::decode(field->ptr()->kind_bits_)) {
-        s->Push(s->field_table()->At(
-            Smi::Value(field->ptr()->host_offset_or_field_id_)));
-      } else {
-        // Otherwise, for static fields we write out the initial static value.
-        s->Push(field->ptr()->saved_initial_value_);
-      }
+      const intptr_t field_id =
+          Smi::Value(field->ptr()->host_offset_or_field_id_);
+      s->Push(s->initial_field_table()->At(field_id));
     } else {
       s->Push(Smi::New(Field::TargetOffsetOf(field)));
     }
@@ -1056,7 +1043,6 @@ class FieldSerializationCluster : public SerializationCluster {
       // Write out the initializer function and initial value if not in AOT.
       WriteField(field, initializer_function_);
       if (kind != Snapshot::kFullAOT) {
-        WriteField(field, saved_initial_value_);
         WriteField(field, guarded_list_length_);
       }
       if (kind == Snapshot::kFullJIT) {
@@ -1073,22 +1059,12 @@ class FieldSerializationCluster : public SerializationCluster {
       }
       s->Write<uint16_t>(field->ptr()->kind_bits_);
 
-      // Write out the initial static value or field offset.
+      // Write out either the initial static value or field offset.
       if (Field::StaticBit::decode(field->ptr()->kind_bits_)) {
-        if (
-            // For precompiled static fields, the value was already reset and
-            // initializer_ now contains a Function.
-            kind == Snapshot::kFullAOT ||
-            // Do not reset const fields.
-            Field::ConstBit::decode(field->ptr()->kind_bits_)) {
-          WriteFieldValue("static value",
-                          s->field_table()->At(Smi::Value(
-                              field->ptr()->host_offset_or_field_id_)));
-        } else {
-          // Otherwise, for static fields we write out the initial static value.
-          WriteFieldValue("static value", field->ptr()->saved_initial_value_);
-        }
-        s->WriteUnsigned(Smi::Value(field->ptr()->host_offset_or_field_id_));
+        const intptr_t field_id =
+            Smi::Value(field->ptr()->host_offset_or_field_id_);
+        WriteFieldValue("static value", s->initial_field_table()->At(field_id));
+        s->WriteUnsigned(field_id);
       } else {
         WriteFieldValue("offset", Smi::New(Field::TargetOffsetOf(field)));
       }
@@ -1123,10 +1099,6 @@ class FieldDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(field, kFieldCid, Field::InstanceSize());
       ReadFromTo(field);
       if (kind != Snapshot::kFullAOT) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-        field->ptr()->saved_initial_value_ =
-            static_cast<InstancePtr>(d->ReadRef());
-#endif
         field->ptr()->guarded_list_length_ = static_cast<SmiPtr>(d->ReadRef());
       }
       if (kind == Snapshot::kFullJIT) {
@@ -1146,9 +1118,9 @@ class FieldDeserializationCluster : public DeserializationCluster {
 
       ObjectPtr value_or_offset = d->ReadRef();
       if (Field::StaticBit::decode(field->ptr()->kind_bits_)) {
-        intptr_t field_id = d->ReadUnsigned();
-        d->field_table()->SetAt(field_id,
-                                static_cast<InstancePtr>(value_or_offset));
+        const intptr_t field_id = d->ReadUnsigned();
+        d->initial_field_table()->SetAt(
+            field_id, static_cast<InstancePtr>(value_or_offset));
         field->ptr()->host_offset_or_field_id_ = Smi::New(field_id);
       } else {
         field->ptr()->host_offset_or_field_id_ = Smi::RawCast(value_or_offset);
@@ -1165,10 +1137,10 @@ class FieldDeserializationCluster : public DeserializationCluster {
     if (!Isolate::Current()->use_field_guards()) {
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         field ^= refs.At(i);
-        field.set_guarded_cid(kDynamicCid);
-        field.set_is_nullable(true);
-        field.set_guarded_list_length(Field::kNoFixedLength);
-        field.set_guarded_list_length_in_object_offset(
+        field.set_guarded_cid_unsafe(kDynamicCid);
+        field.set_is_nullable_unsafe(true);
+        field.set_guarded_list_length_unsafe(Field::kNoFixedLength);
+        field.set_guarded_list_length_in_object_offset_unsafe(
             Field::kUnknownLengthOffset);
         field.set_static_type_exactness_state(
             StaticTypeExactnessState::NotTracking());
@@ -1176,7 +1148,7 @@ class FieldDeserializationCluster : public DeserializationCluster {
     } else {
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         field ^= refs.At(i);
-        field.InitializeGuardedListLengthInObjectOffset();
+        field.InitializeGuardedListLengthInObjectOffset(/*unsafe=*/true);
       }
     }
   }
@@ -1212,7 +1184,15 @@ class ScriptSerializationCluster : public SerializationCluster {
       WriteFromTo(script);
       s->Write<int32_t>(script->ptr()->line_offset_);
       s->Write<int32_t>(script->ptr()->col_offset_);
-      s->Write<uint8_t>(script->ptr()->flags_);
+      if (s->kind() != Snapshot::kFullAOT) {
+        // Clear out the max position cache in snapshots to ensure no
+        // differences in the snapshot due to triggering caching vs. not.
+        int32_t written_flags = ScriptLayout::CachedMaxPositionBitField::update(
+            0, script->ptr()->flags_and_max_position_);
+        written_flags =
+            ScriptLayout::HasCachedMaxPositionBit::update(false, written_flags);
+        s->Write<int32_t>(written_flags);
+      }
       s->Write<int32_t>(script->ptr()->kernel_script_index_);
     }
   }
@@ -1245,7 +1225,9 @@ class ScriptDeserializationCluster : public DeserializationCluster {
       ReadFromTo(script);
       script->ptr()->line_offset_ = d->Read<int32_t>();
       script->ptr()->col_offset_ = d->Read<int32_t>();
-      script->ptr()->flags_ = d->Read<uint8_t>();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      script->ptr()->flags_and_max_position_ = d->Read<int32_t>();
+#endif
       script->ptr()->kernel_script_index_ = d->Read<int32_t>();
       script->ptr()->load_timestamp_ = 0;
     }
@@ -4350,6 +4332,7 @@ class WeakPropertyDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(property, kWeakPropertyCid,
                                      WeakProperty::InstanceSize());
       ReadFromTo(property);
+      property->ptr()->next_ = WeakProperty::null();
     }
   }
 };
@@ -5239,7 +5222,7 @@ Serializer::Serializer(Thread* thread,
       num_written_objects_(0),
       next_ref_index_(kFirstReference),
       previous_text_offset_(0),
-      field_table_(thread->isolate()->field_table()),
+      initial_field_table_(thread->isolate_group()->initial_field_table()),
       vm_(vm),
       profile_writer_(profile_writer)
 #if defined(SNAPSHOT_BACKTRACE)
@@ -5864,7 +5847,12 @@ ZoneGrowableArray<Object*>* Serializer::Serialize(SerializationRoots* roots) {
   WriteUnsigned(num_objects);
   WriteUnsigned(canonical_clusters.length());
   WriteUnsigned(clusters.length());
-  WriteUnsigned(field_table_->NumFieldIds());
+  // TODO(dartbug.com/36097): Not every snapshot carries the field table.
+  if (current_loading_unit_id_ <= LoadingUnit::kRootId) {
+    WriteUnsigned(initial_field_table_->NumFieldIds());
+  } else {
+    WriteUnsigned(0);
+  }
 
   for (SerializationCluster* cluster : canonical_clusters) {
     cluster->WriteAndMeasureAlloc(this);
@@ -6145,7 +6133,7 @@ Deserializer::Deserializer(Thread* thread,
       previous_text_offset_(0),
       canonical_clusters_(nullptr),
       clusters_(nullptr),
-      field_table_(thread->isolate()->field_table()),
+      initial_field_table_(thread->isolate_group()->initial_field_table()),
       is_non_root_unit_(is_non_root_unit) {
   if (Snapshot::IncludesCode(kind)) {
     ASSERT(instructions_buffer != nullptr);
@@ -6593,15 +6581,15 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
   num_objects_ = ReadUnsigned();
   num_canonical_clusters_ = ReadUnsigned();
   num_clusters_ = ReadUnsigned();
-  const intptr_t field_table_len = ReadUnsigned();
+  const intptr_t initial_field_table_len = ReadUnsigned();
 
   canonical_clusters_ = new DeserializationCluster*[num_canonical_clusters_];
   clusters_ = new DeserializationCluster*[num_clusters_];
   refs_ = Array::New(num_objects_ + kFirstReference, Heap::kOld);
-  if (field_table_len > 0) {
-    field_table_->AllocateIndex(field_table_len - 1);
+  if (initial_field_table_len > 0) {
+    initial_field_table_->AllocateIndex(initial_field_table_len - 1);
+    ASSERT_EQUAL(initial_field_table_->NumFieldIds(), initial_field_table_len);
   }
-  ASSERT_EQUAL(field_table_->NumFieldIds(), field_table_len);
 
   {
     NoSafepointScope no_safepoint;
@@ -6615,39 +6603,49 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
              num_base_objects_, next_ref_index_ - kFirstReference);
     }
 
-    for (intptr_t i = 0; i < num_canonical_clusters_; i++) {
-      canonical_clusters_[i] = ReadCluster();
-      canonical_clusters_[i]->ReadAlloc(this, /*is_canonical*/ true);
+    {
+      TIMELINE_DURATION(thread(), Isolate, "ReadAlloc");
+      for (intptr_t i = 0; i < num_canonical_clusters_; i++) {
+        canonical_clusters_[i] = ReadCluster();
+        TIMELINE_DURATION(thread(), Isolate, canonical_clusters_[i]->name());
+        canonical_clusters_[i]->ReadAlloc(this, /*is_canonical*/ true);
 #if defined(DEBUG)
-      intptr_t serializers_next_ref_index_ = Read<int32_t>();
-      ASSERT_EQUAL(serializers_next_ref_index_, next_ref_index_);
+        intptr_t serializers_next_ref_index_ = Read<int32_t>();
+        ASSERT_EQUAL(serializers_next_ref_index_, next_ref_index_);
 #endif
-    }
-    for (intptr_t i = 0; i < num_clusters_; i++) {
-      clusters_[i] = ReadCluster();
-      clusters_[i]->ReadAlloc(this, /*is_canonical*/ false);
+      }
+      for (intptr_t i = 0; i < num_clusters_; i++) {
+        clusters_[i] = ReadCluster();
+        TIMELINE_DURATION(thread(), Isolate, clusters_[i]->name());
+        clusters_[i]->ReadAlloc(this, /*is_canonical*/ false);
 #if defined(DEBUG)
-      intptr_t serializers_next_ref_index_ = Read<int32_t>();
-      ASSERT_EQUAL(serializers_next_ref_index_, next_ref_index_);
+        intptr_t serializers_next_ref_index_ = Read<int32_t>();
+        ASSERT_EQUAL(serializers_next_ref_index_, next_ref_index_);
 #endif
+      }
     }
 
     // We should have completely filled the ref array.
     ASSERT_EQUAL(next_ref_index_ - kFirstReference, num_objects_);
 
-    for (intptr_t i = 0; i < num_canonical_clusters_; i++) {
-      canonical_clusters_[i]->ReadFill(this, /*is_canonical*/ true);
+    {
+      TIMELINE_DURATION(thread(), Isolate, "ReadFill");
+      for (intptr_t i = 0; i < num_canonical_clusters_; i++) {
+        TIMELINE_DURATION(thread(), Isolate, canonical_clusters_[i]->name());
+        canonical_clusters_[i]->ReadFill(this, /*is_canonical*/ true);
 #if defined(DEBUG)
-      int32_t section_marker = Read<int32_t>();
-      ASSERT(section_marker == kSectionMarker);
+        int32_t section_marker = Read<int32_t>();
+        ASSERT(section_marker == kSectionMarker);
 #endif
-    }
-    for (intptr_t i = 0; i < num_clusters_; i++) {
-      clusters_[i]->ReadFill(this, /*is_canonical*/ false);
+      }
+      for (intptr_t i = 0; i < num_clusters_; i++) {
+        TIMELINE_DURATION(thread(), Isolate, clusters_[i]->name());
+        clusters_[i]->ReadFill(this, /*is_canonical*/ false);
 #if defined(DEBUG)
-      int32_t section_marker = Read<int32_t>();
-      ASSERT(section_marker == kSectionMarker);
+        int32_t section_marker = Read<int32_t>();
+        ASSERT(section_marker == kSectionMarker);
 #endif
+      }
     }
 
     roots->ReadRoots(this);
@@ -6675,12 +6673,16 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
   // canonicalization first, canonicalize and update the ref array, the load
   // the remaining clusters to avoid a full heap walk to update references to
   // the losers of any canonicalization races.
-  for (intptr_t i = 0; i < num_canonical_clusters_; i++) {
-    canonical_clusters_[i]->PostLoad(this, refs, /*is_canonical*/ true);
-  }
-
-  for (intptr_t i = 0; i < num_clusters_; i++) {
-    clusters_[i]->PostLoad(this, refs, /*is_canonical*/ false);
+  {
+    TIMELINE_DURATION(thread(), Isolate, "PostLoad");
+    for (intptr_t i = 0; i < num_canonical_clusters_; i++) {
+      TIMELINE_DURATION(thread(), Isolate, canonical_clusters_[i]->name());
+      canonical_clusters_[i]->PostLoad(this, refs, /*is_canonical*/ true);
+    }
+    for (intptr_t i = 0; i < num_clusters_; i++) {
+      TIMELINE_DURATION(thread(), Isolate, clusters_[i]->name());
+      clusters_[i]->PostLoad(this, refs, /*is_canonical*/ false);
+    }
   }
 }
 

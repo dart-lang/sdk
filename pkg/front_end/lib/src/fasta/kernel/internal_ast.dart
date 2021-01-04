@@ -1428,6 +1428,7 @@ class VariableDeclarationImpl extends VariableDeclaration {
       bool isLocalFunction: false,
       bool isLate: false,
       bool isRequired: false,
+      bool isLowered: false,
       this.isStaticLate: false})
       : isImplicitlyTyped = type == null,
         isLocalFunction = isLocalFunction,
@@ -1439,7 +1440,8 @@ class VariableDeclarationImpl extends VariableDeclaration {
             isFieldFormal: isFieldFormal,
             isCovariant: isCovariant,
             isLate: isLate,
-            isRequired: isRequired);
+            isRequired: isRequired,
+            isLowered: isLowered);
 
   VariableDeclarationImpl.forEffect(Expression initializer)
       : forSyntheticToken = false,
@@ -1483,6 +1485,12 @@ class VariableDeclarationImpl extends VariableDeclaration {
   // This is set in `InferenceVisitor.visitVariableDeclaration` when late
   // lowering is enabled.
   DartType lateType;
+
+  // The original name of a lowered late variable.
+  //
+  // This is set in `InferenceVisitor.visitVariableDeclaration` when late
+  // lowering is enabled.
+  String lateName;
 
   @override
   bool get isAssignable {
@@ -1777,10 +1785,6 @@ class CompoundExtensionSet extends InternalExpression {
   /// The member used for the write operation.
   final Member setter;
 
-  /// If `true`, the receiver is read-only and therefore doesn't need a
-  /// temporary variable for its value.
-  final bool readOnlyReceiver;
-
   /// If `true`, the expression is only need for effect and not for its value.
   final bool forEffect;
 
@@ -1802,13 +1806,11 @@ class CompoundExtensionSet extends InternalExpression {
       this.binaryName,
       this.rhs,
       this.setter,
-      {this.readOnlyReceiver,
-      this.forEffect,
+      {this.forEffect,
       this.readOffset,
       this.binaryOffset,
       this.writeOffset})
-      : assert(readOnlyReceiver != null),
-        assert(forEffect != null),
+      : assert(forEffect != null),
         assert(readOffset != null),
         assert(binaryOffset != null),
         assert(writeOffset != null) {
@@ -1877,10 +1879,6 @@ class CompoundPropertySet extends InternalExpression {
   /// If `true`, the expression is only need for effect and not for its value.
   final bool forEffect;
 
-  /// If `true`, the receiver is read-only and therefore doesn't need a
-  /// temporary variable for its value.
-  final bool readOnlyReceiver;
-
   /// The file offset for the read operation.
   final int readOffset;
 
@@ -1892,13 +1890,8 @@ class CompoundPropertySet extends InternalExpression {
 
   CompoundPropertySet(
       this.receiver, this.propertyName, this.binaryName, this.rhs,
-      {this.forEffect,
-      this.readOnlyReceiver,
-      this.readOffset,
-      this.binaryOffset,
-      this.writeOffset})
+      {this.forEffect, this.readOffset, this.binaryOffset, this.writeOffset})
       : assert(forEffect != null),
-        assert(readOnlyReceiver != null),
         assert(readOffset != null),
         assert(binaryOffset != null),
         assert(writeOffset != null) {
@@ -1936,6 +1929,17 @@ class CompoundPropertySet extends InternalExpression {
   @override
   String toString() {
     return "CompoundPropertySet(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver);
+    printer.write('.');
+    printer.writeName(propertyName);
+    printer.write(' ');
+    printer.writeName(binaryName);
+    printer.write('= ');
+    printer.writeExpression(rhs);
   }
 }
 
@@ -2234,12 +2238,8 @@ class IndexSet extends InternalExpression {
 
   final bool forEffect;
 
-  final bool readOnlyReceiver;
-
-  IndexSet(this.receiver, this.index, this.value,
-      {this.forEffect, this.readOnlyReceiver})
-      : assert(forEffect != null),
-        assert(readOnlyReceiver != null) {
+  IndexSet(this.receiver, this.index, this.value, {this.forEffect})
+      : assert(forEffect != null) {
     receiver?.parent = this;
     index?.parent = this;
     value?.parent = this;
@@ -2427,6 +2427,20 @@ class ExtensionIndexSet extends InternalExpression {
   String toString() {
     return "ExtensionIndexSet(${toStringInternal()})";
   }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write(extension.name);
+    if (explicitTypeArguments != null) {
+      printer.writeTypeArguments(explicitTypeArguments);
+    }
+    printer.write('(');
+    printer.writeExpression(receiver);
+    printer.write(')[');
+    printer.writeExpression(index);
+    printer.write('] = ');
+    printer.writeExpression(value);
+  }
 }
 
 /// Internal expression representing an if-null index assignment.
@@ -2474,16 +2488,8 @@ class IfNullIndexSet extends InternalExpression {
   /// If `true`, the expression is only need for effect and not for its value.
   final bool forEffect;
 
-  /// If `true`, the receiver is read-only and therefore doesn't need a
-  /// temporary variable for its value.
-  final bool readOnlyReceiver;
-
   IfNullIndexSet(this.receiver, this.index, this.value,
-      {this.readOffset,
-      this.testOffset,
-      this.writeOffset,
-      this.forEffect,
-      this.readOnlyReceiver: false})
+      {this.readOffset, this.testOffset, this.writeOffset, this.forEffect})
       : assert(readOffset != null),
         assert(testOffset != null),
         assert(writeOffset != null),
@@ -2669,24 +2675,15 @@ class IfNullExtensionIndexSet extends InternalExpression {
   /// If `true`, the expression is only need for effect and not for its value.
   final bool forEffect;
 
-  /// If `true`, the receiver is read-only and therefore doesn't need a
-  /// temporary variable for its value.
-  final bool readOnlyReceiver;
-
   IfNullExtensionIndexSet(this.extension, this.explicitTypeArguments,
       this.receiver, this.getter, this.setter, this.index, this.value,
-      {this.readOffset,
-      this.testOffset,
-      this.writeOffset,
-      this.forEffect,
-      this.readOnlyReceiver})
+      {this.readOffset, this.testOffset, this.writeOffset, this.forEffect})
       : assert(explicitTypeArguments == null ||
             explicitTypeArguments.length == extension.typeParameters.length),
         assert(readOffset != null),
         assert(testOffset != null),
         assert(writeOffset != null),
-        assert(forEffect != null),
-        assert(readOnlyReceiver != null) {
+        assert(forEffect != null) {
     receiver?.parent = this;
     index?.parent = this;
     value?.parent = this;
@@ -2773,17 +2770,12 @@ class CompoundIndexSet extends InternalExpression {
   /// If `true`, the expression is a post-fix inc/dec expression.
   final bool forPostIncDec;
 
-  /// If `true`, the receiver is read-only and therefore doesn't need a
-  /// temporary variable for its value.
-  final bool readOnlyReceiver;
-
   CompoundIndexSet(this.receiver, this.index, this.binaryName, this.rhs,
       {this.readOffset,
       this.binaryOffset,
       this.writeOffset,
       this.forEffect,
-      this.forPostIncDec,
-      this.readOnlyReceiver: false})
+      this.forPostIncDec})
       : assert(forEffect != null) {
     receiver?.parent = this;
     index?.parent = this;
@@ -2826,6 +2818,29 @@ class CompoundIndexSet extends InternalExpression {
   @override
   String toString() {
     return "CompoundIndexSet(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver);
+    printer.write('[');
+    printer.writeExpression(index);
+    printer.write(']');
+    if (forPostIncDec &&
+        (binaryName.text == '+' || binaryName.text == '-') &&
+        rhs is IntLiteral &&
+        (rhs as IntLiteral).value == 1) {
+      if (binaryName.text == '+') {
+        printer.write('++');
+      } else {
+        printer.write('--');
+      }
+    } else {
+      printer.write(' ');
+      printer.write(binaryName.text);
+      printer.write('= ');
+      printer.writeExpression(rhs);
+    }
   }
 }
 
@@ -2939,6 +2954,28 @@ class NullAwareCompoundSet extends InternalExpression {
   String toString() {
     return "NullAwareCompoundSet(${toStringInternal()})";
   }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver);
+    printer.write('?.');
+    printer.writeName(propertyName);
+    if (forPostIncDec &&
+        rhs is IntLiteral &&
+        (rhs as IntLiteral).value == 1 &&
+        (binaryName == plusName || binaryName == minusName)) {
+      if (binaryName == plusName) {
+        printer.write('++');
+      } else {
+        printer.write('--');
+      }
+    } else {
+      printer.write(' ');
+      printer.writeName(binaryName);
+      printer.write('= ');
+      printer.writeExpression(rhs);
+    }
+  }
 }
 
 /// Internal expression representing an null-aware if-null property set.
@@ -3025,6 +3062,15 @@ class NullAwareIfNullSet extends InternalExpression {
   @override
   String toString() {
     return "NullAwareIfNullSet(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver);
+    printer.write('?.');
+    printer.writeName(name);
+    printer.write(' ??= ');
+    printer.writeExpression(value);
   }
 }
 
@@ -3175,10 +3221,6 @@ class CompoundExtensionIndexSet extends InternalExpression {
   /// If `true`, the expression is a post-fix inc/dec expression.
   final bool forPostIncDec;
 
-  /// If `true` the receiver can be cloned instead of creating a temporary
-  /// variable.
-  final bool readOnlyReceiver;
-
   CompoundExtensionIndexSet(
       this.extension,
       this.explicitTypeArguments,
@@ -3192,16 +3234,14 @@ class CompoundExtensionIndexSet extends InternalExpression {
       this.binaryOffset,
       this.writeOffset,
       this.forEffect,
-      this.forPostIncDec,
-      this.readOnlyReceiver})
+      this.forPostIncDec})
       : assert(explicitTypeArguments == null ||
             explicitTypeArguments.length == extension.typeParameters.length),
         assert(readOffset != null),
         assert(binaryOffset != null),
         assert(writeOffset != null),
         assert(forEffect != null),
-        assert(forPostIncDec != null),
-        assert(readOnlyReceiver != null) {
+        assert(forPostIncDec != null) {
     receiver?.parent = this;
     index?.parent = this;
     rhs?.parent = this;
@@ -3286,16 +3326,11 @@ class ExtensionSet extends InternalExpression {
   /// value.
   final bool forEffect;
 
-  /// If `true` the receiver can be cloned instead of creating a temporary
-  /// variable.
-  final bool readOnlyReceiver;
-
   ExtensionSet(this.extension, this.explicitTypeArguments, this.receiver,
       this.target, this.value,
-      {this.readOnlyReceiver, this.forEffect})
+      {this.forEffect})
       : assert(explicitTypeArguments == null ||
             explicitTypeArguments.length == extension.typeParameters.length),
-        assert(readOnlyReceiver != null),
         assert(forEffect != null) {
     receiver?.parent = this;
     value?.parent = this;
@@ -3699,21 +3734,37 @@ VariableGet createVariableGet(VariableDeclaration variable) {
   return new VariableGet(variable)..fileOffset = variable.fileOffset;
 }
 
-/// Creates a `e == null` test for the expression [left] using the [fileOffset]
-/// as file offset for the created nodes and [equalsMember] as the interface
-/// target of the created method invocation.
-MethodInvocation createEqualsNull(
-    int fileOffset, Expression left, Member equalsMember) {
-  return new MethodInvocation(
-      left,
-      equalsName,
-      new Arguments(<Expression>[new NullLiteral()..fileOffset = fileOffset])
-        ..fileOffset = fileOffset)
-    ..fileOffset = fileOffset
-    ..interfaceTarget = equalsMember;
-}
-
 ExpressionStatement createExpressionStatement(Expression expression) {
   return new ExpressionStatement(expression)
     ..fileOffset = expression.fileOffset;
+}
+
+/// Returns `true` if [node] is a pure expression.
+///
+/// A pure expression is an expression that is deterministic and side effect
+/// free, such as `this` or a variable get of a final variable.
+bool isPureExpression(Expression node) {
+  if (node is ThisExpression) {
+    return true;
+  } else if (node is VariableGet) {
+    return node.variable.isFinal && !node.variable.isLate;
+  }
+  return false;
+}
+
+/// Returns a clone of [node].
+///
+/// This assumes that `isPureExpression(node)` is `true`.
+Expression clonePureExpression(Expression node) {
+  if (node is ThisExpression) {
+    return new ThisExpression()..fileOffset = node.fileOffset;
+  } else if (node is VariableGet) {
+    assert(
+        node.variable.isFinal && !node.variable.isLate,
+        "Trying to clone VariableGet of non-final variable"
+        " ${node.variable}.");
+    return new VariableGet(node.variable, node.promotedType)
+      ..fileOffset = node.fileOffset;
+  }
+  throw new UnsupportedError("Clone not supported for ${node.runtimeType}.");
 }

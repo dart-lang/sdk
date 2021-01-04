@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
@@ -40,12 +39,12 @@ class AnalysisOptionsFileConfig {
   final bool strictRawTypes;
 
   AnalysisOptionsFileConfig({
-    this.experiments,
-    this.implicitCasts,
-    this.implicitDynamic,
-    this.lints,
-    this.strictInference,
-    this.strictRawTypes,
+    this.experiments = const [],
+    this.implicitCasts = true,
+    this.implicitDynamic = true,
+    this.lints = const [],
+    this.strictInference = false,
+    this.strictRawTypes = false,
   });
 
   String toContent() {
@@ -137,6 +136,10 @@ abstract class ContextResolutionTest
   Map<String, String> _declaredVariables = {};
   AnalysisContextCollection _analysisContextCollection;
 
+  /// If not `null`, [resolveFile] will use the context that corresponds
+  /// to this path, instead of the given path.
+  String pathForContextSelection;
+
   List<MockSdkLibrary> get additionalMockSdkLibraries => [];
 
   List<String> get collectionIncludedPaths;
@@ -205,7 +208,7 @@ abstract class ContextResolutionTest
 
   @override
   Future<ResolvedUnitResult> resolveFile(String path) {
-    var analysisContext = contextFor(path);
+    var analysisContext = contextFor(pathForContextSelection ?? path);
     var session = analysisContext.currentSession;
     return session.getResolvedUnit(path);
   }
@@ -259,6 +262,9 @@ class PubPackageResolutionTest extends ContextResolutionTest {
 
   @override
   List<String> get collectionIncludedPaths => [workspaceRootPath];
+
+  /// The path that is not in [workspaceRootPath], contains external packages.
+  String get packagesRootPath => '/packages';
 
   @override
   String get testFilePath => '$testPackageLibPath/test.dart';
@@ -359,16 +365,13 @@ class PubspecYamlFileConfig {
   }
 }
 
-mixin WithNullSafetyMixin on PubPackageResolutionTest {
+mixin WithNonFunctionTypeAliasesMixin on PubPackageResolutionTest {
   @override
-  String get testPackageLanguageVersion =>
-      Feature.non_nullable.isEnabledByDefault ? '2.12' : '2.11';
+  String get testPackageLanguageVersion => null;
 
   @override
   bool get typeToStringWithNullability => true;
 
-  /// TODO(scheglov) https://github.com/dart-lang/sdk/issues/43837
-  /// Remove when Null Safety is enabled by default.
   @nonVirtual
   @override
   void setUp() {
@@ -376,8 +379,16 @@ mixin WithNullSafetyMixin on PubPackageResolutionTest {
 
     writeTestPackageAnalysisOptionsFile(
       AnalysisOptionsFileConfig(
-        experiments: [EnableString.non_nullable],
+        experiments: [EnableString.nonfunction_type_aliases],
       ),
     );
   }
+}
+
+mixin WithNullSafetyMixin on PubPackageResolutionTest {
+  @override
+  String get testPackageLanguageVersion => null;
+
+  @override
+  bool get typeToStringWithNullability => true;
 }

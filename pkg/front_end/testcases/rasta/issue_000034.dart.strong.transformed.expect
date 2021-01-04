@@ -36,3 +36,9 @@ static method main() → dynamic {
   const C() : this.x;
               ^";
 }
+
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue_000034.dart:
+- C. (from org-dartlang-testcase:///issue_000034.dart:6:9)

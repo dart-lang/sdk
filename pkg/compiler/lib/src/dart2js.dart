@@ -117,7 +117,7 @@ Future<api.CompilationResult> compile(List<String> argv,
   List<Uri> multiRoots;
   String multiRootScheme = 'org-dartlang-app';
   Uri packageConfig = null;
-  List<String> options = new List<String>();
+  List<String> options = <String>[];
   bool wantHelp = false;
   bool wantVersion = false;
   bool trustTypeAnnotations = false;
@@ -285,6 +285,10 @@ Future<api.CompilationResult> compile(List<String> argv,
   }
 
   void setCfeOnly(String argument) {
+    if (writeStrategy == WriteStrategy.toClosedWorld) {
+      fail("Cannot use ${Flags.cfeOnly} "
+          "and write serialized closed world simultaneously.");
+    }
     if (writeStrategy == WriteStrategy.toData) {
       fail("Cannot use ${Flags.cfeOnly} "
           "and write serialized data simultaneously.");
@@ -555,6 +559,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.experimentUnreachableMethodsThrow, passThrough),
     new OptionHandler(Flags.experimentCallInstrumentation, passThrough),
     new OptionHandler(Flags.experimentNewRti, ignoreOption),
+    new OptionHandler('${Flags.mergeFragmentsThreshold}=.+', passThrough),
 
     // The following three options must come last.
     new OptionHandler('-D.+=.*', addInEnvironment),
@@ -644,7 +649,10 @@ Future<api.CompilationResult> compile(List<String> argv,
     case WriteStrategy.toKernel:
       out ??= Uri.base.resolve('out.dill');
       options.add(Flags.cfeOnly);
-      if (readStrategy == ReadStrategy.fromData) {
+      if (readStrategy == ReadStrategy.fromClosedWorld) {
+        fail("Cannot use ${Flags.cfeOnly} "
+            "and read serialized closed world simultaneously.");
+      } else if (readStrategy == ReadStrategy.fromData) {
         fail("Cannot use ${Flags.cfeOnly} "
             "and read serialized data simultaneously.");
       } else if (readStrategy == ReadStrategy.fromCodegen) {
@@ -716,7 +724,28 @@ Future<api.CompilationResult> compile(List<String> argv,
       readDataUri ??= Uri.base.resolve('$scriptName.data');
       options.add('${Flags.readData}=${readDataUri}');
       break;
+    case ReadStrategy.fromDataAndClosedWorld:
+      readClosedWorldUri ??= Uri.base.resolve('$scriptName.world');
+      options.add('${Flags.readClosedWorld}=${readClosedWorldUri}');
+      readDataUri ??= Uri.base.resolve('$scriptName.data');
+      options.add('${Flags.readData}=${readDataUri}');
+      break;
     case ReadStrategy.fromCodegen:
+      readDataUri ??= Uri.base.resolve('$scriptName.data');
+      options.add('${Flags.readData}=${readDataUri}');
+      readCodegenUri ??= Uri.base.resolve('$scriptName.code');
+      options.add('${Flags.readCodegen}=${readCodegenUri}');
+      if (codegenShards == null) {
+        fail("Cannot write serialized codegen without setting "
+            "${Flags.codegenShards}.");
+      } else if (codegenShards <= 0) {
+        fail("${Flags.codegenShards} must be a positive integer.");
+      }
+      options.add('${Flags.codegenShards}=$codegenShards');
+      break;
+    case ReadStrategy.fromCodegenAndClosedWorld:
+      readClosedWorldUri ??= Uri.base.resolve('$scriptName.world');
+      options.add('${Flags.readClosedWorld}=${readClosedWorldUri}');
       readDataUri ??= Uri.base.resolve('$scriptName.data');
       options.add('${Flags.readData}=${readDataUri}');
       readCodegenUri ??= Uri.base.resolve('$scriptName.code');
@@ -777,6 +806,15 @@ Future<api.CompilationResult> compile(List<String> argv,
             fe.relativizeUri(Uri.base, readDataUri, Platform.isWindows);
         summary = 'Data files $input and $dataInput ';
         break;
+      case ReadStrategy.fromDataAndClosedWorld:
+        inputName = 'bytes data';
+        inputSize = inputProvider.dartCharactersRead;
+        String worldInput =
+            fe.relativizeUri(Uri.base, readClosedWorldUri, Platform.isWindows);
+        String dataInput =
+            fe.relativizeUri(Uri.base, readDataUri, Platform.isWindows);
+        summary = 'Data files $input, $worldInput, and $dataInput ';
+        break;
       case ReadStrategy.fromCodegen:
         inputName = 'bytes data';
         inputSize = inputProvider.dartCharactersRead;
@@ -785,6 +823,18 @@ Future<api.CompilationResult> compile(List<String> argv,
         String codeInput =
             fe.relativizeUri(Uri.base, readCodegenUri, Platform.isWindows);
         summary = 'Data files $input, $dataInput and '
+            '${codeInput}[0-${codegenShards - 1}] ';
+        break;
+      case ReadStrategy.fromCodegenAndClosedWorld:
+        inputName = 'bytes data';
+        inputSize = inputProvider.dartCharactersRead;
+        String worldInput =
+            fe.relativizeUri(Uri.base, readClosedWorldUri, Platform.isWindows);
+        String dataInput =
+            fe.relativizeUri(Uri.base, readDataUri, Platform.isWindows);
+        String codeInput =
+            fe.relativizeUri(Uri.base, readCodegenUri, Platform.isWindows);
+        summary = 'Data files $input, $worldInput, $dataInput and '
             '${codeInput}[0-${codegenShards - 1}] ';
         break;
     }
@@ -1307,5 +1357,12 @@ void batchMain(List<String> batchArguments) {
   });
 }
 
-enum ReadStrategy { fromDart, fromClosedWorld, fromData, fromCodegen }
+enum ReadStrategy {
+  fromDart,
+  fromClosedWorld,
+  fromData,
+  fromDataAndClosedWorld,
+  fromCodegen,
+  fromCodegenAndClosedWorld
+}
 enum WriteStrategy { toKernel, toClosedWorld, toData, toCodegen, toJs }

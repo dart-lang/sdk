@@ -293,11 +293,13 @@ TypeBuilder substituteRange(
   } else if (type is FunctionTypeBuilder) {
     List<TypeVariableBuilder> variables;
     if (type.typeVariables != null) {
-      variables = new List<TypeVariableBuilder>(type.typeVariables.length);
+      variables =
+          new List<TypeVariableBuilder>.filled(type.typeVariables.length, null);
     }
     List<FormalParameterBuilder> formals;
     if (type.formals != null) {
-      formals = new List<FormalParameterBuilder>(type.formals.length);
+      formals =
+          new List<FormalParameterBuilder>.filled(type.formals.length, null);
     }
     TypeBuilder returnType;
     bool changed = false;
@@ -349,7 +351,8 @@ TypeBuilder substituteRange(
               formal.name,
               formal.parent,
               formal.charOffset,
-              formal.fileUri);
+              fileUri: formal.fileUri,
+              isExtensionThis: formal.isExtensionThis);
           changed = true;
         } else {
           formals[i] = formal;
@@ -391,7 +394,8 @@ TypeBuilder substitute(
 /// of the algorithm for details.
 List<TypeBuilder> calculateBounds(List<TypeVariableBuilder> variables,
     TypeBuilder dynamicType, TypeBuilder bottomType, ClassBuilder objectClass) {
-  List<TypeBuilder> bounds = new List<TypeBuilder>(variables.length);
+  List<TypeBuilder> bounds =
+      new List<TypeBuilder>.filled(variables.length, null);
 
   for (int i = 0; i < variables.length; i++) {
     bounds[i] = variables[i].bound ?? dynamicType;
@@ -449,10 +453,10 @@ class TypeVariablesGraph implements Graph<int> {
   TypeVariablesGraph(this.variables, this.bounds) {
     assert(variables.length == bounds.length);
 
-    vertices = new List<int>(variables.length);
+    vertices = new List<int>.filled(variables.length, null);
     Map<TypeVariableBuilder, int> variableIndices =
         <TypeVariableBuilder, int>{};
-    edges = new List<List<int>>(variables.length);
+    edges = new List<List<int>>.filled(variables.length, null);
     for (int i = 0; i < vertices.length; i++) {
       vertices[i] = i;
       variableIndices[variables[i]] = i;

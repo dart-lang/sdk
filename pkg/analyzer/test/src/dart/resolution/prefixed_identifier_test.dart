@@ -12,6 +12,9 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PrefixedIdentifierResolutionTest);
     defineReflectiveTests(PrefixedIdentifierResolutionWithNullSafetyTest);
+    defineReflectiveTests(
+      PrefixedIdentifierResolutionWithNonFunctionTypeAliasesTest,
+    );
   });
 }
 
@@ -91,16 +94,76 @@ void f(A a) {
 
     assertSimpleIdentifier(
       prefixed.prefix,
-      readElement: findElement.parameter('a'),
-      writeElement: null,
+      element: findElement.parameter('a'),
       type: 'A',
     );
 
     assertSimpleIdentifier(
       prefixed.identifier,
-      readElement: findElement.getter('foo'),
-      writeElement: null,
+      element: findElement.getter('foo'),
       type: 'int',
+    );
+  }
+
+  test_read_staticMethod_generic() async {
+    await assertNoErrorsInCode('''
+class A<T> {
+  static void foo<U>(int a, U u) {}
+}
+
+void f() {
+  A.foo;
+}
+''');
+
+    var prefixed = findNode.prefixed('A.foo');
+    assertPrefixedIdentifier(
+      prefixed,
+      element: findElement.method('foo'),
+      type: 'void Function<U>(int, U)',
+    );
+
+    assertSimpleIdentifier(
+      prefixed.prefix,
+      element: findElement.class_('A'),
+      type: null,
+    );
+
+    assertSimpleIdentifier(
+      prefixed.identifier,
+      element: findElement.method('foo'),
+      type: 'void Function<U>(int, U)',
+    );
+  }
+
+  test_read_staticMethod_ofGenericClass() async {
+    await assertNoErrorsInCode('''
+class A<T> {
+  static void foo(int a) {}
+}
+
+void f() {
+  A.foo;
+}
+''');
+
+    var prefixed = findNode.prefixed('A.foo');
+    assertPrefixedIdentifier(
+      prefixed,
+      element: findElement.method('foo'),
+      type: 'void Function(int)',
+    );
+
+    assertSimpleIdentifier(
+      prefixed.prefix,
+      element: findElement.class_('A'),
+      type: null,
+    );
+
+    assertSimpleIdentifier(
+      prefixed.identifier,
+      element: findElement.method('foo'),
+      type: 'void Function(int)',
     );
   }
 
@@ -140,19 +203,13 @@ void f(A a) {
 
     assertSimpleIdentifier(
       prefixed.prefix,
-      readElement: findElement.parameter('a'),
-      writeElement: null,
+      element: findElement.parameter('a'),
       type: 'A',
     );
 
-    if (hasAssignmentLeftResolution) {
-      assertSimpleIdentifier(
-        prefixed.identifier,
-        readElement: null,
-        writeElement: findElement.setter('foo'),
-        type: 'int',
-      );
-    }
+    assertSimpleIdentifierAssignmentTarget(
+      prefixed.identifier,
+    );
   }
 
   test_write() async {
@@ -188,19 +245,48 @@ void f(A a) {
 
     assertSimpleIdentifier(
       prefixed.prefix,
-      readElement: findElement.parameter('a'),
-      writeElement: null,
+      element: findElement.parameter('a'),
       type: 'A',
     );
 
-    if (hasAssignmentLeftResolution) {
-      assertSimpleIdentifier(
-        prefixed.identifier,
-        readElement: null,
-        writeElement: findElement.setter('foo'),
-        type: 'int',
-      );
-    }
+    assertSimpleIdentifierAssignmentTarget(
+      prefixed.identifier,
+    );
+  }
+}
+
+@reflectiveTest
+class PrefixedIdentifierResolutionWithNonFunctionTypeAliasesTest
+    extends PubPackageResolutionTest with WithNonFunctionTypeAliasesMixin {
+  test_hasReceiver_typeAlias_staticGetter() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  static int get foo => 0;
+}
+
+typedef B = A;
+
+void f() {
+  B.foo;
+}
+''');
+
+    assertPrefixedIdentifier(
+      findNode.prefixed('B.foo'),
+      element: findElement.getter('foo'),
+      type: 'int',
+    );
+
+    assertTypeAliasRef(
+      findNode.simple('B.foo'),
+      findElement.typeAlias('B'),
+    );
+
+    assertSimpleIdentifier(
+      findNode.simple('foo;'),
+      element: findElement.getter('foo'),
+      type: 'int',
+    );
   }
 }
 
@@ -212,14 +298,16 @@ class PrefixedIdentifierResolutionWithNullSafetyTest
 class A {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 // @dart = 2.7
 import 'a.dart' deferred as a;
 
 main() {
   a.loadLibrary;
 }
-''');
+''', [
+      error(HintCode.UNUSED_IMPORT, 22, 8),
+    ]);
 
     var import = findElement.importFind('package:test/a.dart');
 

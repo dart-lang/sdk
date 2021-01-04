@@ -14,7 +14,7 @@ class SuperHandler
     extends MessageHandler<TextDocumentPositionParams, Location> {
   SuperHandler(LspAnalysisServer server) : super(server);
   @override
-  Method get handlesMessage => CustomMethods.Super;
+  Method get handlesMessage => CustomMethods.super_;
 
   @override
   LspJsonHandler<TextDocumentPositionParams> get jsonHandler =>

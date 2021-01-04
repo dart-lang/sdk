@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
@@ -12,12 +14,11 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary2/informative_data.dart';
+import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/link.dart';
-import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:meta/meta.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'resynthesize_common.dart';
@@ -30,25 +31,17 @@ main() {
 }
 
 @reflectiveTest
-class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
+class ResynthesizeAst2Test extends AbstractResynthesizeTest
     with ResynthesizeTestCases {
   /// The shared SDK bundle, computed once and shared among test invocations.
-  static LinkedNodeBundle _sdkBundleNnbd;
+  static _SdkBundle _sdkBundle;
 
-  /// The shared SDK bundle, computed once and shared among test invocations.
-  static LinkedNodeBundle _sdkBundleLegacy;
-
-  LinkedNodeBundle get sdkBundle {
-    if (featureSet.isEnabled(Feature.non_nullable)) {
-      if (_sdkBundleNnbd != null) {
-        return _sdkBundleNnbd;
-      }
-    } else {
-      if (_sdkBundleLegacy != null) {
-        return _sdkBundleLegacy;
-      }
+  _SdkBundle get sdkBundle {
+    if (_sdkBundle != null) {
+      return _sdkBundle;
     }
 
+    var featureSet = FeatureSet.latestLanguageVersion();
     var inputLibraries = <LinkInputLibrary>[];
     for (var sdkLibrary in sdk.sdkLibraries) {
       var source = sourceFactory.resolveUri(null, sdkLibrary.shortName);
@@ -56,7 +49,7 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
       var unit = parseText(text, featureSet);
 
       var inputUnits = <LinkInputUnit>[];
-      _addLibraryUnits(source, unit, inputUnits);
+      _addLibraryUnits(source, unit, inputUnits, featureSet);
       inputLibraries.add(
         LinkInputLibrary(source, inputUnits),
       );
@@ -74,15 +67,12 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
       Reference.root(),
     );
 
-    var sdkLinkResult = link(elementFactory, inputLibraries);
+    var sdkLinkResult = link(elementFactory, inputLibraries, true);
 
-    var bytes = sdkLinkResult.bundle.toBuffer();
-    var sdkBundle = LinkedNodeBundle.fromBuffer(bytes);
-    if (featureSet.isEnabled(Feature.non_nullable)) {
-      return _sdkBundleNnbd = sdkBundle;
-    } else {
-      return _sdkBundleLegacy = sdkBundle;
-    }
+    return _sdkBundle = _SdkBundle(
+      astBytes: sdkLinkResult.astBytes,
+      resolutionBytes: sdkLinkResult.resolutionBytes,
+    );
   }
 
   @override
@@ -107,46 +97,39 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
       Reference.root(),
     );
     elementFactory.addBundle(
-      LinkedBundleContext(elementFactory, sdkBundle),
+      BundleReader(
+        elementFactory: elementFactory,
+        astBytes: sdkBundle.astBytes,
+        resolutionBytes: sdkBundle.resolutionBytes,
+      ),
     );
 
     var linkResult = NullSafetyUnderstandingFlag.enableNullSafetyTypes(
       () {
-        return link(
-          elementFactory,
-          inputLibraries,
-        );
+        return link(elementFactory, inputLibraries, true);
       },
     );
 
     elementFactory.addBundle(
-      LinkedBundleContext(elementFactory, linkResult.bundle),
+      BundleReader(
+        elementFactory: elementFactory,
+        astBytes: linkResult.astBytes,
+        resolutionBytes: linkResult.resolutionBytes,
+      ),
     );
 
-    // Set informative data.
-    for (var inputLibrary in inputLibraries) {
-      var libraryUriStr = '${inputLibrary.source.uri}';
-      for (var inputUnit in inputLibrary.units) {
-        var unitSource = inputUnit.source;
-        if (unitSource != null) {
-          var unitUriStr = '${unitSource.uri}';
-          var informativeData = createInformativeData(inputUnit.unit);
-          elementFactory.setInformativeData(
-            libraryUriStr,
-            unitUriStr,
-            informativeData,
-          );
-        }
-      }
-    }
-
     return elementFactory.libraryOfUri('${source.uri}');
+  }
+
+  void setUp() {
+    featureSet = FeatureSets.nullSafe;
   }
 
   void _addLibraryUnits(
     Source definingSource,
     CompilationUnit definingUnit,
     List<LinkInputUnit> units,
+    FeatureSet featureSet,
   ) {
     units.add(
       LinkInputUnit(null, definingSource, false, definingUnit),
@@ -191,7 +174,7 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     var unit = parseText(text, featureSet);
 
     var units = <LinkInputUnit>[];
-    _addLibraryUnits(source, unit, units);
+    _addLibraryUnits(source, unit, units, featureSet);
     libraries.add(
       LinkInputLibrary(source, units),
     );
@@ -231,4 +214,14 @@ class _AnalysisSessionForLinking implements AnalysisSessionImpl {
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _SdkBundle {
+  final Uint8List astBytes;
+  final Uint8List resolutionBytes;
+
+  _SdkBundle({
+    @required this.astBytes,
+    @required this.resolutionBytes,
+  });
 }

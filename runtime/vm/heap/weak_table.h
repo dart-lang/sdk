@@ -133,8 +133,6 @@ class WeakTable {
 
   void Reset();
 
-  void MergeFrom(WeakTable* donor);
-
  private:
   enum {
     kObjectOffset = 0,

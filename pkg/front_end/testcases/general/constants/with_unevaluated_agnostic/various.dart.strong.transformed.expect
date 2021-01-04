@@ -22,7 +22,8 @@ library /*isNonNullableByDefault*/;
 //   const Class.method(T t) : this(-t);
 //                                  ^
 //
-// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:123:27: Error: Optional parameter 'named' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:123:27: Error: The parameter 'named' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 // int procedure(int i, {int named}) => i;
 //                           ^^^^^
 //
@@ -103,7 +104,7 @@ class Class<T extends self::A = self::A> extends core::Object /*hasConstConstruc
     : this self::Class::•(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:100:34: Error: The argument type 'A' can't be assigned to the parameter type 'T'.
  - 'A' is from 'pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart'.
   const Class.method(T t) : this(-t);
-                                 ^" in t.{self::A::unary-}() as{TypeError,ForNonNullableByDefault} <BottomType>)
+                                 ^" in t.{self::A::unary-}(){() → self::A} as{TypeError,ForNonNullableByDefault} <BottomType>)
     ;
 }
 class Subclass<T extends self::A = self::A> extends self::Class<self::Subclass::T> /*hasConstConstructor*/  {
@@ -190,8 +191,8 @@ static method main() → dynamic {
   core::print(#C50);
   core::print(#C51);
   core::print(#C52);
-  core::print((#C52).{self::Foo::saved});
-  core::print((#C52).{self::Foo::value});
+  core::print((#C52).{self::Foo::saved}{core::bool});
+  core::print((#C52).{self::Foo::value}{core::int});
 }
 
 library /*isNonNullableByDefault*/;
@@ -215,7 +216,7 @@ constants  {
   #C12 = eval !const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!)
   #C13 = false
   #C14 = eval const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!) ?{core::bool} #C8 : #C13
-  #C15 = eval const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!).==(#C9) ?{core::bool} #C8 : const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!)
+  #C15 = eval const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!) == null ?{core::bool} #C8 : const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!)
   #C16 = eval const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!) && (#C8)
   #C17 = eval const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!) || (#C8)
   #C18 = eval const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!) || (#C13)
@@ -281,3 +282,17 @@ Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:128:33 -> BoolConstant(true)
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:130:33 -> NullConstant(null)
 Extra constant evaluation: evaluated: 66, effectively constant: 24
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///various.dart:
+- C. (from org-dartlang-testcase:///various.dart:92:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)
+- Class.redirect (from org-dartlang-testcase:///various.dart:99:9)
+- Class. (from org-dartlang-testcase:///various.dart:98:9)
+- A. (from org-dartlang-testcase:///various.dart:80:9)
+- Class.method (from org-dartlang-testcase:///various.dart:100:9)
+- Subclass. (from org-dartlang-testcase:///various.dart:104:9)
+- B. (from org-dartlang-testcase:///various.dart:86:9)
+- Foo. (from org-dartlang-testcase:///various.dart:31:9)
+- ConstClassWithF. (from org-dartlang-testcase:///various.dart:120:9)

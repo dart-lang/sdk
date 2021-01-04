@@ -219,6 +219,12 @@ void Class::CopyStaticFieldValues(IsolateReloadContext* reload_context,
           if (update_values && !field.is_const()) {
             // Make new field point to the old field value so that both
             // old and new code see and update same value.
+            //
+            // TODO(https://dartbug.com/36097): Once we look into enabling
+            // hot-reload with --enable-isolate-groups we have to do this
+            // for all isolates.
+            reload_context->isolate()->group()->initial_field_table()->Free(
+                field.field_id());
             reload_context->isolate()->field_table()->Free(field.field_id());
             field.set_field_id(old_field.field_id());
           }
@@ -227,7 +233,7 @@ void Class::CopyStaticFieldValues(IsolateReloadContext* reload_context,
           if (old_field.needs_load_guard()) {
             ASSERT(!old_field.is_unboxing_candidate());
             field.set_needs_load_guard(true);
-            field.set_is_unboxing_candidate(false);
+            field.set_is_unboxing_candidate_unsafe(false);
           }
         }
       }
@@ -671,7 +677,7 @@ void Class::CheckReload(const Class& replacement,
   ASSERT(IsolateReloadContext::IsSameClass(*this, replacement));
 
   if (!is_declaration_loaded()) {
-    // The old class hasn't been used in any meanfully way, so the VM is okay
+    // The old class hasn't been used in any meaningful way, so the VM is okay
     // with any change.
     return;
   }
@@ -904,8 +910,8 @@ void CallSiteResetter::Reset(const ICData& ic) {
           (class_ids[1] == kSmiCid)) {
         // The smi fast path case, preserve the initial entry but reset the
         // count.
-        ic.ClearCountAt(0);
-        ic.WriteSentinelAt(1);
+        ic.ClearCountAt(0, *this);
+        ic.WriteSentinelAt(1, *this);
         entries_ = ic.entries();
         entries_.Truncate(2 * ic.TestEntryLength());
         return;
@@ -955,7 +961,7 @@ void CallSiteResetter::Reset(const ICData& ic) {
                  Object::Handle(zone_, ic.Owner()).ToCString());
       return;
     }
-    ic.ClearAndSetStaticTarget(new_target_);
+    ic.ClearAndSetStaticTarget(new_target_, *this);
   } else {
     FATAL("Unexpected rebind rule.");
   }

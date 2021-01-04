@@ -1077,16 +1077,8 @@ class Printer extends Visitor<Null> {
     writeModifier(node.isConst, 'const');
     // Only show implicit getter/setter modifiers in cases where they are
     // out of the ordinary.
-    if (node.isStatic) {
-      writeModifier(node.hasImplicitGetter, '[getter]');
-      writeModifier(node.hasImplicitSetter, '[setter]');
-    } else {
-      writeModifier(!node.hasImplicitGetter, '[no-getter]');
-      if (node.isFinal) {
-        writeModifier(node.hasImplicitSetter, '[setter]');
-      } else {
-        writeModifier(!node.hasImplicitSetter, '[no-setter]');
-      }
+    if (node.isFinal) {
+      writeModifier(node.hasSetter, '[setter]');
     }
     writeWord('field');
     writeSpace();
@@ -1102,7 +1094,7 @@ class Printer extends Visitor<Null> {
       if (node.isNonNullableByDefault) {
         features.add("isNonNullableByDefault");
       } else {
-        features.add("isNullableByDefault");
+        features.add("isLegacy");
       }
     }
     if ((node.enclosingClass == null &&
@@ -1125,8 +1117,24 @@ class Printer extends Visitor<Null> {
     writeModifier(node.isAbstract, 'abstract');
     writeModifier(node.isForwardingStub, 'forwarding-stub');
     writeModifier(node.isForwardingSemiStub, 'forwarding-semi-stub');
-    writeModifier(node.isMemberSignature, 'member-signature');
-    writeModifier(node.isNoSuchMethodForwarder, 'no-such-method-forwarder');
+    switch (node.stubKind) {
+      case ProcedureStubKind.Regular:
+      case ProcedureStubKind.AbstractForwardingStub:
+      case ProcedureStubKind.ConcreteForwardingStub:
+        break;
+      case ProcedureStubKind.NoSuchMethodForwarder:
+        writeWord('no-such-method-forwarder');
+        break;
+      case ProcedureStubKind.MemberSignature:
+        writeWord('member-signature');
+        break;
+      case ProcedureStubKind.AbstractMixinStub:
+        writeWord('mixin-stub');
+        break;
+      case ProcedureStubKind.ConcreteMixinStub:
+        writeWord('mixin-super-stub');
+        break;
+    }
     writeWord(procedureKindToString(node.kind));
     List<String> features = <String>[];
     if (node.enclosingLibrary.isNonNullableByDefault !=
@@ -1134,7 +1142,7 @@ class Printer extends Visitor<Null> {
       if (node.isNonNullableByDefault) {
         features.add("isNonNullableByDefault");
       } else {
-        features.add("isNullableByDefault");
+        features.add("isLegacy");
       }
     }
     if ((node.enclosingClass == null &&
@@ -1146,14 +1154,14 @@ class Printer extends Visitor<Null> {
     if (features.isNotEmpty) {
       writeWord("/*${features.join(',')}*/");
     }
-    if (node.memberSignatureOriginReference != null) {
+    if (node.isMemberSignature) {
       writeFunction(node.function,
           name: getMemberName(node), terminateLine: false);
       if (node.function.body is ReturnStatement) {
         writeSymbol(';');
       }
       writeSymbol(' -> ');
-      writeMemberReferenceFromReference(node.memberSignatureOriginReference);
+      writeMemberReferenceFromReference(node.stubTargetReference);
       endLine();
     } else {
       writeFunction(node.function, name: getMemberName(node));
@@ -1173,7 +1181,7 @@ class Printer extends Visitor<Null> {
       if (node.isNonNullableByDefault) {
         features.add("isNonNullableByDefault");
       } else {
-        features.add("isNullableByDefault");
+        features.add("isLegacy");
       }
     }
     if (features.isNotEmpty) {
@@ -1209,7 +1217,7 @@ class Printer extends Visitor<Null> {
       if (node.isNonNullableByDefault) {
         features.add("isNonNullableByDefault");
       } else {
-        features.add("isNullableByDefault");
+        features.add("isLegacy");
       }
     }
     if (features.isNotEmpty) {
@@ -1348,6 +1356,120 @@ class Printer extends Visitor<Null> {
     if (node.message != null) {
       writeWord('"${escapeString(node.message)}"');
     }
+  }
+
+  void _writeDynamicAccessKind(DynamicAccessKind kind) {
+    switch (kind) {
+      case DynamicAccessKind.Dynamic:
+        writeSymbol('{dynamic}.');
+        break;
+      case DynamicAccessKind.Never:
+        writeSymbol('{Never}.');
+        break;
+      case DynamicAccessKind.Invalid:
+        writeSymbol('{<invalid>}.');
+        break;
+      case DynamicAccessKind.Unresolved:
+        writeSymbol('{<unresolved>}.');
+        break;
+    }
+  }
+
+  visitDynamicInvocation(DynamicInvocation node) {
+    writeExpression(node.receiver, Precedence.PRIMARY);
+    _writeDynamicAccessKind(node.kind);
+    writeName(
+      node.name,
+    );
+    writeNode(node.arguments);
+  }
+
+  void _writeFunctionAccessKind(FunctionAccessKind kind) {
+    switch (kind) {
+      case FunctionAccessKind.Function:
+      case FunctionAccessKind.FunctionType:
+        break;
+      case FunctionAccessKind.Inapplicable:
+        writeSymbol('{<inapplicable>}.');
+        break;
+      case FunctionAccessKind.Nullable:
+        writeSymbol('{<nullable>}.');
+        break;
+    }
+  }
+
+  visitFunctionInvocation(FunctionInvocation node) {
+    writeExpression(node.receiver, Precedence.PRIMARY);
+    _writeFunctionAccessKind(node.kind);
+    writeNode(node.arguments);
+    if (node.functionType != null) {
+      writeSymbol('{');
+      writeType(node.functionType);
+      writeSymbol('}');
+    }
+  }
+
+  @override
+  visitLocalFunctionInvocation(LocalFunctionInvocation node) {
+    writeVariableReference(node.variable);
+    writeNode(node.arguments);
+    writeSymbol('{');
+    writeType(node.functionType);
+    writeSymbol('}');
+  }
+
+  void _writeInstanceAccessKind(InstanceAccessKind kind) {
+    switch (kind) {
+      case InstanceAccessKind.Instance:
+      case InstanceAccessKind.Object:
+        break;
+      case InstanceAccessKind.Inapplicable:
+        writeSymbol('{<inapplicable>}.');
+        break;
+      case InstanceAccessKind.Nullable:
+        writeSymbol('{<nullable>}.');
+        break;
+    }
+  }
+
+  visitInstanceInvocation(InstanceInvocation node) {
+    writeExpression(node.receiver, Precedence.PRIMARY);
+    writeSymbol('.');
+    writeInterfaceTarget(node.name, node.interfaceTargetReference);
+    _writeInstanceAccessKind(node.kind);
+    writeNode(node.arguments);
+    writeSymbol('{');
+    writeType(node.functionType);
+    writeSymbol('}');
+  }
+
+  visitEqualsCall(EqualsCall node) {
+    int precedence = Precedence.EQUALITY;
+    writeExpression(node.left, precedence);
+    writeSpace();
+    if (node.isNot) {
+      writeSymbol('!=');
+    } else {
+      writeSymbol('==');
+    }
+    writeInterfaceTarget(Name.equalsName, node.interfaceTargetReference);
+    writeSymbol('{');
+    writeType(node.functionType);
+    writeSymbol('}');
+    writeSpace();
+    writeExpression(node.right, precedence + 1);
+  }
+
+  visitEqualsNull(EqualsNull node) {
+    writeExpression(node.expression, Precedence.EQUALITY);
+    writeSpace();
+    if (node.isNot) {
+      writeSymbol('!=');
+    } else {
+      writeSymbol('==');
+    }
+    writeSpace();
+    writeSymbol('null');
   }
 
   visitMethodInvocation(MethodInvocation node) {
@@ -1758,10 +1880,59 @@ class Printer extends Visitor<Null> {
     }
   }
 
+  visitDynamicGet(DynamicGet node) {
+    writeExpression(node.receiver, Precedence.PRIMARY);
+    _writeDynamicAccessKind(node.kind);
+    writeName(node.name);
+  }
+
+  visitFunctionTearOff(FunctionTearOff node) {
+    writeExpression(node.receiver, Precedence.PRIMARY);
+    writeSymbol('.');
+    writeSymbol('call');
+  }
+
+  visitInstanceGet(InstanceGet node) {
+    writeExpression(node.receiver, Precedence.PRIMARY);
+    writeSymbol('.');
+    writeInterfaceTarget(node.name, node.interfaceTargetReference);
+    _writeInstanceAccessKind(node.kind);
+    writeSymbol('{');
+    writeType(node.resultType);
+    writeSymbol('}');
+  }
+
+  visitInstanceTearOff(InstanceTearOff node) {
+    writeExpression(node.receiver, Precedence.PRIMARY);
+    writeSymbol('.');
+    writeInterfaceTarget(node.name, node.interfaceTargetReference);
+    _writeInstanceAccessKind(node.kind);
+    writeSymbol('{');
+    writeType(node.resultType);
+    writeSymbol('}');
+  }
+
   visitPropertyGet(PropertyGet node) {
     writeExpression(node.receiver, Precedence.PRIMARY);
     writeSymbol('.');
     writeInterfaceTarget(node.name, node.interfaceTargetReference);
+  }
+
+  visitDynamicSet(DynamicSet node) {
+    writeExpression(node.receiver, Precedence.PRIMARY);
+    _writeDynamicAccessKind(node.kind);
+    writeName(node.name);
+    writeSpaced('=');
+    writeExpression(node.value);
+  }
+
+  visitInstanceSet(InstanceSet node) {
+    writeExpression(node.receiver, Precedence.PRIMARY);
+    writeSymbol('.');
+    writeInterfaceTarget(node.name, node.interfaceTargetReference);
+    _writeInstanceAccessKind(node.kind);
+    writeSpaced('=');
+    writeExpression(node.value);
   }
 
   visitPropertySet(PropertySet node) {
@@ -1784,6 +1955,10 @@ class Printer extends Visitor<Null> {
     writeInterfaceTarget(node.name, node.interfaceTargetReference);
     writeSpaced('=');
     writeExpression(node.value);
+  }
+
+  visitStaticTearOff(StaticTearOff node) {
+    writeMemberReferenceFromReference(node.targetReference);
   }
 
   visitStaticGet(StaticGet node) {
@@ -2051,6 +2226,7 @@ class Printer extends Visitor<Null> {
     if (showOffsets) writeWord("[${node.fileOffset}]");
     if (showMetadata) writeMetadata(node);
     writeAnnotationList(node.annotations, separateLines: false);
+    writeModifier(node.isLowered, 'lowered');
     writeModifier(node.isLate, 'late');
     writeModifier(node.isRequired, 'required');
     writeModifier(node.isCovariant, 'covariant');
@@ -2425,7 +2601,7 @@ class Printer extends Visitor<Null> {
   }
 }
 
-class Precedence extends ExpressionVisitor<int> {
+class Precedence implements ExpressionVisitor<int> {
   static final Precedence instance = new Precedence();
 
   static int of(Expression node) => node.accept(instance);
@@ -2477,44 +2653,189 @@ class Precedence extends ExpressionVisitor<int> {
     return precedence != EQUALITY && precedence != RELATIONAL;
   }
 
+  @override
   int defaultExpression(Expression node) => EXPRESSION;
+
+  @override
   int visitInvalidExpression(InvalidExpression node) => CALLEE;
+
+  @override
   int visitMethodInvocation(MethodInvocation node) => CALLEE;
+
+  @override
+  int visitInstanceInvocation(InstanceInvocation node) => CALLEE;
+
+  @override
+  int visitDynamicInvocation(DynamicInvocation node) => CALLEE;
+
+  @override
+  int visitFunctionInvocation(FunctionInvocation node) => CALLEE;
+
+  @override
+  int visitLocalFunctionInvocation(LocalFunctionInvocation node) => CALLEE;
+
+  @override
+  int visitEqualsCall(EqualsCall node) => EQUALITY;
+
+  @override
+  int visitEqualsNull(EqualsNull node) => EQUALITY;
+
+  @override
   int visitSuperMethodInvocation(SuperMethodInvocation node) => CALLEE;
+
+  @override
   int visitStaticInvocation(StaticInvocation node) => CALLEE;
+
+  @override
   int visitConstructorInvocation(ConstructorInvocation node) => CALLEE;
+
+  @override
   int visitNot(Not node) => PREFIX;
+
+  @override
   int visitNullCheck(NullCheck node) => PRIMARY;
+
+  @override
   int visitLogicalExpression(LogicalExpression node) =>
       binaryPrecedence[logicalExpressionOperatorToString(node.operatorEnum)];
+
+  @override
   int visitConditionalExpression(ConditionalExpression node) => CONDITIONAL;
+
+  @override
   int visitStringConcatenation(StringConcatenation node) => PRIMARY;
+
+  @override
   int visitIsExpression(IsExpression node) => RELATIONAL;
+
+  @override
   int visitAsExpression(AsExpression node) => RELATIONAL;
+
+  @override
   int visitSymbolLiteral(SymbolLiteral node) => PRIMARY;
+
+  @override
   int visitTypeLiteral(TypeLiteral node) => PRIMARY;
+
+  @override
   int visitThisExpression(ThisExpression node) => CALLEE;
+
+  @override
   int visitRethrow(Rethrow node) => PRIMARY;
+
+  @override
   int visitThrow(Throw node) => EXPRESSION;
+
+  @override
   int visitListLiteral(ListLiteral node) => PRIMARY;
+
+  @override
   int visitSetLiteral(SetLiteral node) => PRIMARY;
+
+  @override
   int visitMapLiteral(MapLiteral node) => PRIMARY;
+
+  @override
   int visitAwaitExpression(AwaitExpression node) => PREFIX;
+
+  @override
   int visitFunctionExpression(FunctionExpression node) => EXPRESSION;
+
+  @override
   int visitStringLiteral(StringLiteral node) => CALLEE;
+
+  @override
   int visitIntLiteral(IntLiteral node) => CALLEE;
+
+  @override
   int visitDoubleLiteral(DoubleLiteral node) => CALLEE;
+
+  @override
   int visitBoolLiteral(BoolLiteral node) => CALLEE;
+
+  @override
   int visitNullLiteral(NullLiteral node) => CALLEE;
+
+  @override
   int visitVariableGet(VariableGet node) => PRIMARY;
+
+  @override
   int visitVariableSet(VariableSet node) => EXPRESSION;
+
+  @override
   int visitPropertyGet(PropertyGet node) => PRIMARY;
+
+  @override
+  int visitInstanceGet(InstanceGet node) => PRIMARY;
+
+  @override
+  int visitDynamicGet(DynamicGet node) => PRIMARY;
+
+  @override
+  int visitInstanceTearOff(InstanceTearOff node) => PRIMARY;
+
+  @override
+  int visitFunctionTearOff(FunctionTearOff node) => PRIMARY;
+
+  @override
   int visitPropertySet(PropertySet node) => EXPRESSION;
+
+  @override
   int visitSuperPropertyGet(SuperPropertyGet node) => PRIMARY;
+
+  @override
   int visitSuperPropertySet(SuperPropertySet node) => EXPRESSION;
+
+  @override
   int visitStaticGet(StaticGet node) => PRIMARY;
+
+  @override
+  int visitStaticTearOff(StaticTearOff node) => PRIMARY;
+
+  @override
   int visitStaticSet(StaticSet node) => EXPRESSION;
+
+  @override
   int visitLet(Let node) => EXPRESSION;
+
+  @override
+  int defaultBasicLiteral(BasicLiteral node) => CALLEE;
+
+  @override
+  int visitBlockExpression(BlockExpression node) => EXPRESSION;
+
+  @override
+  int visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) => EXPRESSION;
+
+  @override
+  int visitConstantExpression(ConstantExpression node) => EXPRESSION;
+
+  @override
+  int visitDynamicSet(DynamicSet node) => EXPRESSION;
+
+  @override
+  int visitFileUriExpression(FileUriExpression node) => EXPRESSION;
+
+  @override
+  int visitInstanceCreation(InstanceCreation node) => EXPRESSION;
+
+  @override
+  int visitInstanceSet(InstanceSet node) => EXPRESSION;
+
+  @override
+  int visitInstantiation(Instantiation node) => EXPRESSION;
+
+  @override
+  int visitListConcatenation(ListConcatenation node) => EXPRESSION;
+
+  @override
+  int visitLoadLibrary(LoadLibrary node) => EXPRESSION;
+
+  @override
+  int visitMapConcatenation(MapConcatenation node) => EXPRESSION;
+
+  @override
+  int visitSetConcatenation(SetConcatenation node) => EXPRESSION;
 }
 
 String procedureKindToString(ProcedureKind kind) {

@@ -25,13 +25,13 @@ extension _extension#1 on self::Class* {
   get property2 = self::_extension#1|get#property2;
   set property2 = self::_extension#1|set#property2;
 }
-static method _extension#0|get#property1(final self::Class* #this) → core::int*
+static method _extension#0|get#property1(lowered final self::Class* #this) → core::int*
   ;
-static method _extension#0|set#property1(final self::Class* #this, core::int* value) → void
+static method _extension#0|set#property1(lowered final self::Class* #this, core::int* value) → void
   ;
-static method _extension#1|get#property2(final self::Class* #this) → core::int*
+static method _extension#1|get#property2(lowered final self::Class* #this) → core::int*
   ;
-static method _extension#1|set#property2(final self::Class* #this, core::int* value) → void
+static method _extension#1|set#property2(lowered final self::Class* #this, core::int* value) → void
   ;
 static method main() → dynamic
   ;

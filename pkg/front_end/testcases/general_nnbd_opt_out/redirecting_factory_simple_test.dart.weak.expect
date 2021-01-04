@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  static field dynamic _redirecting# = <dynamic>[self::A::redir];
+  static final field dynamic _redirecting# = <dynamic>[self::A::redir];
   constructor •() → self::A*
     : super core::Object::•()
     ;

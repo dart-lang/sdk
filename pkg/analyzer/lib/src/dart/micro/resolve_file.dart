@@ -29,8 +29,8 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/link.dart' as link2;
-import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/options.dart';
@@ -145,6 +145,13 @@ class FileResolver {
     if (libraryContext != null) {
       libraryContext.remove(removedFiles, removedCacheIds);
     }
+  }
+
+  /// Collects all the cached artifacts and add all the cache id's for the
+  /// removed artifacts to [removedCacheIds].
+  void collectSharedDataIdentifiers() {
+    removedCacheIds.addAll(fsState.collectSharedDataIdentifiers());
+    removedCacheIds.addAll(libraryContext.collectSharedDataIdentifiers());
   }
 
   @deprecated
@@ -504,8 +511,9 @@ class FileResolver {
     YamlMap optionMap;
 
     var separator = resourceProvider.pathContext.separator;
-    var isThirdParty =
-        path.contains('${separator}third_party${separator}dart$separator');
+    var isThirdParty = path
+            .contains('${separator}third_party${separator}dart$separator') ||
+        path.contains('${separator}third_party${separator}dart_lang$separator');
 
     File optionsFile;
     if (!isThirdParty) {
@@ -631,13 +639,23 @@ class _LibraryContext {
     );
   }
 
+  /// Clears all the loaded libraries. Returns the cache ids for the removed
+  /// artifacts.
+  Set<int> collectSharedDataIdentifiers() {
+    var idSet = <int>{};
+    for (var cycle in loadedBundles) {
+      idSet.add(cycle.astId);
+      idSet.add(cycle.resolutionId);
+    }
+    loadedBundles.clear();
+    return idSet;
+  }
+
   /// Load data required to access elements of the given [targetLibrary].
   void load2({
     @required FileState targetLibrary,
     @required OperationPerformanceImpl performance,
   }) {
-    var inputBundles = <LinkedNodeBundle>[];
-
     var librariesLinked = 0;
     var librariesLinkedTimer = Stopwatch();
     var inputsTimer = Stopwatch();
@@ -650,11 +668,14 @@ class _LibraryContext {
 
       cycle.directDependencies.forEach(loadBundle);
 
-      var key = cycle.cyclePathsHash;
-      var data = byteStore.get(key, cycle.signature);
-      var bytes = data?.bytes;
+      var astKey = '${cycle.cyclePathsHash}.ast';
+      var resolutionKey = '${cycle.cyclePathsHash}.resolution';
+      var astData = byteStore.get(astKey, cycle.signature);
+      var resolutionData = byteStore.get(resolutionKey, cycle.signature);
+      var astBytes = astData?.bytes;
+      var resolutionBytes = resolutionData?.bytes;
 
-      if (bytes == null) {
+      if (astBytes == null || resolutionBytes == null) {
         librariesLinkedTimer.start();
 
         inputsTimer.start();
@@ -699,38 +720,37 @@ class _LibraryContext {
         }
         inputsTimer.stop();
 
-        var linkResult = link2.link(elementFactory, inputLibraries);
+        var linkResult = link2.link(elementFactory, inputLibraries, true);
         librariesLinked += cycle.libraries.length;
 
-        bytes = serializeBundle(cycle.signature, linkResult).toBuffer();
+        astBytes = linkResult.astBytes;
+        resolutionBytes = linkResult.resolutionBytes;
 
-        data = byteStore.putGet(key, cycle.signature, bytes);
-        bytes = data.bytes;
-        performance.getDataInt('bytesPut').add(bytes.length);
+        astData = byteStore.putGet(astKey, cycle.signature, astBytes);
+        astBytes = astData.bytes;
+        performance.getDataInt('bytesPut').add(astBytes.length);
+
+        resolutionData =
+            byteStore.putGet(resolutionKey, cycle.signature, resolutionBytes);
+        resolutionBytes = resolutionData.bytes;
+        performance.getDataInt('bytesPut').add(resolutionBytes.length);
 
         librariesLinkedTimer.stop();
       } else {
-        performance.getDataInt('bytesGet').add(bytes.length);
+        performance.getDataInt('bytesGet').add(astBytes.length);
+        performance.getDataInt('bytesGet').add(resolutionBytes.length);
         performance.getDataInt('libraryLoadCount').add(cycle.libraries.length);
       }
-      cycle.id = data.id;
+      cycle.astId = astData.id;
+      cycle.resolutionId = resolutionData.id;
 
-      var cBundle = CiderLinkedLibraryCycle.fromBuffer(bytes);
-      inputBundles.add(cBundle.bundle);
       elementFactory.addBundle(
-        LinkedBundleContext(elementFactory, cBundle.bundle),
+        BundleReader(
+          elementFactory: elementFactory,
+          astBytes: astBytes,
+          resolutionBytes: resolutionBytes,
+        ),
       );
-
-      // Set informative data.
-      for (var libraryFile in cycle.libraries) {
-        for (var unitFile in libraryFile.libraryFiles) {
-          elementFactory.setInformativeData(
-            libraryFile.uriStr,
-            unitFile.uriStr,
-            unitFile.unlinked2.informativeData,
-          );
-        }
-      }
 
       // We might have just linked dart:core, ensure the type provider.
       _createElementFactoryTypeProvider();
@@ -757,7 +777,8 @@ class _LibraryContext {
     var removedSet = removed.toSet();
     loadedBundles.removeWhere((cycle) {
       if (cycle.libraries.any(removedSet.contains)) {
-        removedIds.add(cycle.id);
+        removedIds.add(cycle.astId);
+        removedIds.add(cycle.resolutionId);
         return true;
       }
       return false;
@@ -772,13 +793,5 @@ class _LibraryContext {
       var dartAsync = elementFactory.libraryOfUri('dart:async');
       elementFactory.createTypeProviders(dartCore, dartAsync);
     }
-  }
-
-  static CiderLinkedLibraryCycleBuilder serializeBundle(
-      List<int> signature, link2.LinkResult linkResult) {
-    return CiderLinkedLibraryCycleBuilder(
-      signature: signature,
-      bundle: linkResult.bundle,
-    );
   }
 }

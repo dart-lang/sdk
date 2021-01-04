@@ -9,6 +9,8 @@ abstract class _Class&Object&Mixin = core::Object with mix::Mixin /*isAnonymousM
   const synthetic constructor •() → self::_Class&Object&Mixin*
     : super core::Object::•()
     ;
+  mixin-super-stub method method(core::int* i) → core::int*
+    return super.{mix::Mixin::method}(i);
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -24,10 +26,9 @@ class Class extends self::_Class&Object&Mixin {
   synthetic constructor •() → self::Class*
     : super self::_Class&Object&Mixin::•()
     ;
-  abstract member-signature method method(core::int* i) → core::int*; -> mix::Mixin::method
 }
 static method main() → dynamic {
-  core::print(new self::Class::•().{self::Class::method}(null));
+  core::print(new self::Class::•().{self::_Class&Object&Mixin::method}(null));
 }
 
 library /*isNonNullableByDefault*/;

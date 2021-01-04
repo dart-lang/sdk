@@ -38,13 +38,16 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     final initResponse = await monitorDynamicRegistrations(
       registrations,
       () => initialize(
-          // Support dynamic registration for both text sync + hovers.
-          textDocumentCapabilities: withTextSyncDynamicRegistration(
-              withHoverDynamicRegistration(
-                  emptyTextDocumentClientCapabilities))),
+        // Support dynamic registration for both text sync + hovers.
+        textDocumentCapabilities: withTextSyncDynamicRegistration(
+            withHoverDynamicRegistration(emptyTextDocumentClientCapabilities)),
+        // And also file operations.
+        workspaceCapabilities: withFileOperationDynamicRegistration(
+            emptyWorkspaceClientCapabilities),
+      ),
     );
 
-    // Because we support dynamic registration for synchronisation, we won't send
+    // Because we support dynamic registration for synchronization, we won't send
     // static registrations for them.
     // https://github.com/dart-lang/sdk/issues/38490
     final initResult = InitializeResult.fromJson(initResponse.result);
@@ -53,12 +56,15 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(initResult.capabilities, isNotNull);
     expect(initResult.capabilities.textDocumentSync, isNull);
 
-    // Should container Hover, DidOpen, DidClose, DidChange.
-    expect(registrations, hasLength(4));
+    // Should contain Hover, DidOpen, DidClose, DidChange, WillRenameFiles.
+    expect(registrations, hasLength(5));
     final hover =
         registrationOptionsFor(registrations, Method.textDocument_hover);
     final change =
         registrationOptionsFor(registrations, Method.textDocument_didChange);
+    final rename = FileOperationRegistrationOptions.fromJson(
+        registrationFor(registrations, Method.workspace_willRenameFiles)
+            ?.registerOptions);
     expect(registrationOptionsFor(registrations, Method.textDocument_didOpen),
         isNotNull);
     expect(registrationOptionsFor(registrations, Method.textDocument_didClose),
@@ -79,6 +85,9 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
         change.documentSelector
             .any((ds) => ds.pattern == '**/analysis_options.yaml'),
         isTrue);
+
+    expect(rename,
+        equals(ServerCapabilitiesComputer.fileOperationRegistrationOptions));
   }
 
   Future<void> test_dynamicRegistration_notSupportedByClient() async {
@@ -120,6 +129,10 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(initResult.capabilities.codeActionProvider, isNotNull);
     expect(initResult.capabilities.renameProvider, isNotNull);
     expect(initResult.capabilities.foldingRangeProvider, isNotNull);
+    expect(initResult.capabilities.workspace.fileOperations.willRename,
+        equals(ServerCapabilitiesComputer.fileOperationRegistrationOptions));
+    expect(initResult.capabilities.semanticTokensProvider,
+        enableSemanticTokens ? isNotNull : isNull);
 
     expect(didGetRegisterCapabilityRequest, isFalse);
   }
@@ -147,9 +160,13 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     final initResponse = await monitorDynamicRegistrations(
       registrations,
       () => initialize(
-          // Support dynamic registration for everything we support.
-          textDocumentCapabilities: withAllSupportedDynamicRegistrations(
-              emptyTextDocumentClientCapabilities)),
+        // Support dynamic registration for everything we support.
+        textDocumentCapabilities:
+            withAllSupportedTextDocumentDynamicRegistrations(
+                emptyTextDocumentClientCapabilities),
+        workspaceCapabilities: withAllSupportedWorkspaceDynamicRegistrations(
+            emptyWorkspaceClientCapabilities),
+      ),
     );
 
     final initResult = InitializeResult.fromJson(initResponse.result);
@@ -170,6 +187,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(initResult.capabilities.codeActionProvider, isNull);
     expect(initResult.capabilities.renameProvider, isNull);
     expect(initResult.capabilities.foldingRangeProvider, isNull);
+    expect(initResult.capabilities.workspace.fileOperations, isNull);
+    expect(initResult.capabilities.semanticTokensProvider, isNull);
 
     // Ensure all expected dynamic registrations.
     for (final expectedRegistration in ClientDynamicRegistrations.supported) {
@@ -186,8 +205,9 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     await monitorDynamicRegistrations(
       registrations,
       () => initialize(
-          textDocumentCapabilities: withAllSupportedDynamicRegistrations(
-              emptyTextDocumentClientCapabilities)),
+          textDocumentCapabilities:
+              withAllSupportedTextDocumentDynamicRegistrations(
+                  emptyTextDocumentClientCapabilities)),
     );
 
     final unregisterRequest =

@@ -1129,27 +1129,22 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var type = node.type;
     _dispatch(type);
     var decoratedType = _variables.decoratedTypeAnnotation(source, type);
-    if (type is NamedType) {
-      // The main type of the is check historically could not be nullable.
-      // Making it nullable could change runtime behavior.
-      _graph.makeNonNullable(
-          decoratedType.node, IsCheckMainTypeOrigin(source, type));
-      _conditionInfo = _ConditionInfo(node,
-          isPure: expression is SimpleIdentifier,
-          postDominatingIntent:
-              _postDominatedLocals.isReferenceInScope(expression),
-          trueDemonstratesNonNullIntent: expressionNode);
-      if (node.notOperator != null) {
-        _conditionInfo = _conditionInfo.not(node);
-      }
-      if (!_assumeNonNullabilityInCasts) {
-        // TODO(mfairhurst): wire this to handleDowncast if we do not assume
-        // nullability.
-        assert(false);
-      }
-    } else if (type is GenericFunctionType) {
-      // TODO(brianwilkerson)
-      _unimplemented(node, 'Is expression with GenericFunctionType');
+    // The main type of the is check historically could not be nullable.
+    // Making it nullable could change runtime behavior.
+    _graph.makeNonNullable(
+        decoratedType.node, IsCheckMainTypeOrigin(source, type));
+    _conditionInfo = _ConditionInfo(node,
+        isPure: expression is SimpleIdentifier,
+        postDominatingIntent:
+            _postDominatedLocals.isReferenceInScope(expression),
+        trueDemonstratesNonNullIntent: expressionNode);
+    if (node.notOperator != null) {
+      _conditionInfo = _conditionInfo.not(node);
+    }
+    if (!_assumeNonNullabilityInCasts) {
+      // TODO(mfairhurst): wire this to handleDowncast if we do not assume
+      // nullability.
+      assert(false);
     }
     _flowAnalysis.isExpression_end(
         node, expression, node.notOperator != null, decoratedType);
@@ -1352,7 +1347,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       if (operand is SimpleIdentifier) {
         var element = getWriteOrReadElement(operand);
         if (element is PromotableElement) {
-          _flowAnalysis.write(element, writeType);
+          _flowAnalysis.write(element, writeType, null);
         }
       }
       return targetType;
@@ -1403,7 +1398,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         if (operand is SimpleIdentifier) {
           var element = getWriteOrReadElement(operand);
           if (element is PromotableElement) {
-            _flowAnalysis.write(element, staticType);
+            _flowAnalysis.write(element, staticType, null);
           }
         }
       }
@@ -1747,8 +1742,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _typeNameNesting++;
       var typeArguments = typeName.typeArguments?.arguments;
       var element = typeName.name.staticElement;
-      if (element is FunctionTypeAliasElement) {
-        final typedefType = _variables.decoratedElementType(element.function);
+      if (element is TypeAliasElement) {
+        var aliasedElement =
+            element.aliasedElement as GenericFunctionTypeElement;
+        final typedefType = _variables.decoratedElementType(aliasedElement);
         final typeNameType =
             _variables.decoratedTypeAnnotation(source, typeName);
 
@@ -2149,15 +2146,20 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   DecoratedType _dispatch(AstNode node, {bool skipNullCheckHint = false}) {
-    var type = node?.accept(this);
-    if (!skipNullCheckHint &&
-        node is Expression &&
-        // A /*!*/ hint following an AsExpression should be interpreted as a
-        // nullability hint for the type, not a null-check hint.
-        node is! AsExpression) {
-      type = _handleNullCheckHint(node, type);
+    try {
+      var type = node?.accept(this);
+      if (!skipNullCheckHint &&
+          node is Expression &&
+          // A /*!*/ hint following an AsExpression should be interpreted as a
+          // nullability hint for the type, not a null-check hint.
+          node is! AsExpression) {
+        type = _handleNullCheckHint(node, type);
+      }
+      return type;
+    } catch (exception, stackTrace) {
+      listener.reportException(source, node, exception, stackTrace);
+      return null;
     }
-    return type;
   }
 
   void _dispatchList(NodeList nodeList) {
@@ -2340,7 +2342,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         }
       }
       if (destinationLocalVariable != null) {
-        _flowAnalysis.write(destinationLocalVariable, sourceType);
+        _flowAnalysis.write(destinationLocalVariable, sourceType,
+            compoundOperatorInfo == null ? expression : null);
       }
       if (questionAssignNode != null) {
         _flowAnalysis.ifNullExpression_end();
@@ -2659,21 +2662,23 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           node is Statement ? node : null, parts.condition);
     } else if (parts is ForEachParts) {
       Element lhsElement;
+      DecoratedType lhsType;
       if (parts is ForEachPartsWithDeclaration) {
         var variableElement = parts.loopVariable.declaredElement;
         _flowAnalysis.declare(variableElement, true);
         lhsElement = variableElement;
         _dispatch(parts.loopVariable?.type);
+        lhsType = _variables.decoratedElementType(lhsElement);
       } else if (parts is ForEachPartsWithIdentifier) {
         lhsElement = parts.identifier.staticElement;
+        lhsType = _dispatch(parts.identifier);
       } else {
         throw StateError(
             'Unexpected ForEachParts subtype: ${parts.runtimeType}');
       }
       var iterableType = _checkExpressionNotNull(parts.iterable);
       DecoratedType elementType;
-      if (lhsElement != null) {
-        DecoratedType lhsType = _variables.decoratedElementType(lhsElement);
+      if (lhsType != null) {
         var iterableTypeType = iterableType.type;
         if (_typeSystem.isSubtypeOf(
             iterableTypeType, typeProvider.iterableDynamicType)) {

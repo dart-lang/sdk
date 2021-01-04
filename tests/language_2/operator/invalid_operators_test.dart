@@ -571,9 +571,9 @@ class Operators7 {
   operator ==<T>(a) => true;
   //       ^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
-  // [cfe] Declared type variables of 'Operators7.==' doesn't match those on overridden method 'Object.=='.
+  // [cfe] Can't infer types for '==' as the overridden members don't have a combined signature.
   //       ^
-  // [cfe] The return type of the method 'Operators7.==' is 'dynamic', which does not match the return type, 'bool', of the overridden method, 'Object.=='.
+  // [cfe] Declared type variables of 'Operators7.==' doesn't match those on overridden method 'Object.=='.
   //         ^^^
   // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETERS_ON_OPERATOR
   //          ^
@@ -674,7 +674,7 @@ class Operators8 {
   /*space*/ int operator []=(a, b) {}
   //        ^^^
   // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_OPERATOR
-  // [cfe] unspecified
+  // [cfe] The return type of the operator []= must be 'void'.
 }
 
 main() {}

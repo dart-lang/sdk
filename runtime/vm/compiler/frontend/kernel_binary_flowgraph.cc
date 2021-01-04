@@ -163,6 +163,8 @@ Fragment StreamingFlowGraphBuilder::BuildFieldInitializer(
   if (PeekTag() == kNullLiteral) {
     SkipExpression();  // read past the null literal.
     if (H.thread()->IsMutatorThread()) {
+      ASSERT(field.IsOriginal());
+      LeaveCompilerScope cs(H.thread());
       field.RecordStore(Object::null_object());
     } else {
       ASSERT(field.is_nullable(/* silence_assert = */ true));
@@ -194,6 +196,7 @@ Fragment StreamingFlowGraphBuilder::BuildLateFieldInitializer(
   if (has_initializer && PeekTag() == kNullLiteral) {
     SkipExpression();  // read past the null literal.
     if (H.thread()->IsMutatorThread()) {
+      LeaveCompilerScope cs(H.thread());
       field.RecordStore(Object::null_object());
     } else {
       ASSERT(field.is_nullable(/* silence_assert = */ true));
@@ -482,40 +485,6 @@ Fragment StreamingFlowGraphBuilder::DebugStepCheckInPrologue(
   return DebugStepCheck(check_pos);
 }
 
-Fragment StreamingFlowGraphBuilder::SetAsyncStackTrace(
-    const Function& dart_function) {
-  if (!FLAG_causal_async_stacks ||
-      !(dart_function.IsAsyncClosure() || dart_function.IsAsyncGenClosure())) {
-    return {};
-  }
-
-  // The code we are building will be executed right after we enter
-  // the function and before any nested contexts are allocated.
-  ASSERT(B->context_depth_ ==
-         scopes()->yield_jump_variable->owner()->context_level());
-
-  Fragment instructions;
-  LocalScope* scope = parsed_function()->scope();
-
-  const Function& target = Function::ZoneHandle(
-      Z, I->object_store()->async_set_thread_stack_trace());
-  ASSERT(!target.IsNull());
-
-  // Fetch and load :async_stack_trace
-  LocalVariable* async_stack_trace_var =
-      scope->LookupVariable(Symbols::AsyncStackTraceVar(), false);
-  ASSERT((async_stack_trace_var != NULL) &&
-         async_stack_trace_var->is_captured());
-
-  Fragment code;
-  code += LoadLocal(async_stack_trace_var);
-  // Call _setAsyncThreadStackTrace
-  code += StaticCall(TokenPosition::kNoSource, target,
-                     /* argument_count = */ 1, ICData::kStatic);
-  code += Drop();
-  return code;
-}
-
 Fragment StreamingFlowGraphBuilder::TypeArgumentsHandling(
     const Function& dart_function) {
   Fragment prologue = B->BuildDefaultTypeHandling(dart_function);
@@ -591,7 +560,7 @@ Fragment StreamingFlowGraphBuilder::CompleteBodyWithYieldContinuations(
     dispatch += Constant(offsets);
     dispatch += LoadLocal(scopes()->switch_variable);
 
-    // Ideally this would just be LoadIndexedTypedData(kTypedDataInt32ArrayCid),
+    // Ideally this would just be LoadIndexed(kTypedDataInt32ArrayCid),
     // but that doesn't work in unoptimised code.
     // The optimiser will turn this into that in any case.
     dispatch += InstanceCall(TokenPosition::kNoSource, Symbols::IndexToken(),
@@ -722,31 +691,6 @@ Fragment StreamingFlowGraphBuilder::SetupCapturedParameters(
   return body;
 }
 
-// If we run in checked mode or strong mode, we have to check the type of the
-// passed arguments.
-//
-// TODO(#34162): If we're building an extra entry-point to skip
-// type checks, we should substitute Redefinition nodes for the AssertAssignable
-// instructions to ensure that the argument types are known.
-void StreamingFlowGraphBuilder::CheckArgumentTypesAsNecessary(
-    const Function& dart_function,
-    intptr_t type_parameters_offset,
-    Fragment* explicit_checks,
-    Fragment* implicit_checks,
-    Fragment* implicit_redefinitions) {
-  if (dart_function.NeedsTypeArgumentTypeChecks()) {
-    B->BuildTypeArgumentTypeChecks(
-        MethodCanSkipTypeChecksForNonCovariantTypeArguments(dart_function)
-            ? TypeChecksToBuild::kCheckCovariantTypeParameterBounds
-            : TypeChecksToBuild::kCheckAllTypeParameterBounds,
-        implicit_checks);
-  }
-  if (dart_function.NeedsArgumentTypeChecks()) {
-    B->BuildArgumentTypeChecks(explicit_checks, implicit_checks,
-                               implicit_redefinitions);
-  }
-}
-
 Fragment StreamingFlowGraphBuilder::ShortcutForUserDefinedEquals(
     const Function& dart_function,
     LocalVariable* first_parameter) {
@@ -826,7 +770,6 @@ Fragment StreamingFlowGraphBuilder::BuildEveryTimePrologue(
   Fragment F;
   F += CheckStackOverflowInPrologue(dart_function);
   F += DebugStepCheckInPrologue(dart_function, token_position);
-  F += SetAsyncStackTrace(dart_function);
   F += B->InitConstantParameters();
   return F;
 }
@@ -948,12 +891,19 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
   // regular methods.
   const Fragment type_args_handling = TypeArgumentsHandling(dart_function);
 
-  Fragment explicit_type_checks;
   Fragment implicit_type_checks;
+  if (dart_function.NeedsTypeArgumentTypeChecks()) {
+    B->BuildTypeArgumentTypeChecks(
+        TypeChecksToBuild::kCheckCovariantTypeParameterBounds,
+        &implicit_type_checks);
+  }
+
+  Fragment explicit_type_checks;
   Fragment implicit_redefinitions;
-  CheckArgumentTypesAsNecessary(dart_function, type_parameters_offset,
-                                &explicit_type_checks, &implicit_type_checks,
-                                &implicit_redefinitions);
+  if (dart_function.NeedsArgumentTypeChecks()) {
+    B->BuildArgumentTypeChecks(&explicit_type_checks, &implicit_type_checks,
+                               &implicit_redefinitions);
+  }
 
   // The RawParameter variables should be set to null to avoid retaining more
   // objects than necessary during GC.
@@ -1164,7 +1114,7 @@ void StreamingFlowGraphBuilder::ReadForwardingStubTarget(
     procedure_helper.ReadUntilExcluding(ProcedureHelper::kFunction);
     if (procedure_helper.IsForwardingStub() && !procedure_helper.IsAbstract()) {
       const NameIndex target_name =
-          procedure_helper.forwarding_stub_super_target_;
+          procedure_helper.concrete_forwarding_stub_target_;
       ASSERT(target_name != NameIndex::kInvalidName);
       const String& name = function.IsSetterFunction()
                                ? H.DartSetterName(target_name)
@@ -1989,9 +1939,9 @@ TestFragment StreamingFlowGraphBuilder::TranslateConditionForControl() {
       Value* right_value = Pop();
       Value* left_value = Pop();
       StrictCompareInstr* compare = new (Z) StrictCompareInstr(
-          TokenPosition::kNoSource,
-          negate ? Token::kNE_STRICT : Token::kEQ_STRICT, left_value,
-          right_value, false, flow_graph_builder_->GetNextDeoptId());
+          InstructionSource(), negate ? Token::kNE_STRICT : Token::kEQ_STRICT,
+          left_value, right_value, false,
+          flow_graph_builder_->GetNextDeoptId());
       branch =
           new (Z) BranchInstr(compare, flow_graph_builder_->GetNextDeoptId());
       negate = false;
@@ -2110,14 +2060,42 @@ Fragment StreamingFlowGraphBuilder::BuildVariableGetImpl(
       // If the variable isn't initialized, call the initializer and set it.
       Fragment initialize(is_uninitialized);
       initialize += BuildExpression();
-      initialize += StoreLocal(position, variable);
-      initialize += Drop();
-      initialize += Goto(join);
+      if (variable->is_final()) {
+        // Late final variable, so check whether it has been assigned
+        // during initialization.
+        initialize += LoadLocal(variable);
+        TargetEntryInstr *is_uninitialized_after_init,
+            *is_initialized_after_init;
+        initialize += Constant(Object::sentinel());
+        initialize += flow_graph_builder_->BranchIfStrictEqual(
+            &is_uninitialized_after_init, &is_initialized_after_init);
+        {
+          // The variable is uninitialized, so store the initializer result.
+          Fragment store_result(is_uninitialized_after_init);
+          store_result += StoreLocal(position, variable);
+          store_result += Drop();
+          store_result += Goto(join);
+        }
+
+        {
+          // Already initialized, so throw a LateInitializationError.
+          Fragment already_assigned(is_initialized_after_init);
+          already_assigned += flow_graph_builder_->ThrowLateInitializationError(
+              position, "_throwLocalAssignedDuringInitialization",
+              variable->name());
+          already_assigned += Goto(join);
+        }
+      } else {
+        // Late non-final variable. Store the initializer result.
+        initialize += StoreLocal(position, variable);
+        initialize += Drop();
+        initialize += Goto(join);
+      }
     } else {
       // The variable has no initializer, so throw a LateInitializationError.
       Fragment initialize(is_uninitialized);
       initialize += flow_graph_builder_->ThrowLateInitializationError(
-          position, variable->name());
+          position, "_throwLocalNotInitialized", variable->name());
       initialize += Goto(join);
     }
   }
@@ -2183,7 +2161,7 @@ Fragment StreamingFlowGraphBuilder::BuildVariableSetImpl(
       // Already initialized, so throw a LateInitializationError.
       Fragment already_initialized(is_initialized);
       already_initialized += flow_graph_builder_->ThrowLateInitializationError(
-          position, variable->name());
+          position, "_throwLocalAlreadyInitialized", variable->name());
       already_initialized += Goto(join);
     }
 
@@ -2687,7 +2665,10 @@ Fragment StreamingFlowGraphBuilder::BuildStaticSet(TokenPosition* p) {
 
 Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   const intptr_t offset = ReaderOffset() - 1;     // Include the tag.
-  ReadFlags();                                    // read flags.
+
+  const uint8_t flags = ReadFlags();  // read flags.
+  const bool is_invariant = (flags & kMethodInvocationFlagInvariant) != 0;
+
   const TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;
 
@@ -2701,7 +2682,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   const Tag receiver_tag = PeekTag();  // peek tag for receiver.
 
   bool is_unchecked_closure_call = false;
-  bool is_unchecked_call = result_type.IsSkipCheck();
+  bool is_unchecked_call = is_invariant || result_type.IsSkipCheck();
   if (call_site_attributes.receiver_type != nullptr) {
     if (call_site_attributes.receiver_type->IsFunctionType()) {
       AlternativeReadingScope alt(&reader_);
@@ -3058,10 +3039,6 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
   Fragment instructions;
   LocalVariable* instance_variable = NULL;
 
-  const bool special_case_nop_async_stack_trace_helper =
-      !FLAG_causal_async_stacks &&
-      recognized_kind == MethodRecognizer::kAsyncStackTraceHelper;
-
   const bool special_case_unchecked_cast =
       klass.IsTopLevel() && (klass.library() == Library::InternalLibrary()) &&
       (target.name() == Symbols::UnsafeCast().raw());
@@ -3070,9 +3047,8 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
       klass.IsTopLevel() && (klass.library() == Library::CoreLibrary()) &&
       (target.name() == Symbols::Identical().raw());
 
-  const bool special_case = special_case_identical ||
-                            special_case_unchecked_cast ||
-                            special_case_nop_async_stack_trace_helper;
+  const bool special_case =
+      special_case_identical || special_case_unchecked_cast;
 
   // If we cross the Kernel -> VM core library boundary, a [StaticInvocation]
   // can appear, but the thing we're calling is not a static method, but a
@@ -3132,10 +3108,6 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
     ASSERT(argument_count == 2);
     instructions +=
         StrictCompare(position, Token::kEQ_STRICT, /*number_check=*/true);
-  } else if (special_case_nop_async_stack_trace_helper) {
-    ASSERT(argument_count == 1);
-    instructions += Drop();
-    instructions += NullConstant();
   } else if (special_case_unchecked_cast) {
     // Simply do nothing: the result value is already pushed on the stack.
   } else {
@@ -4870,8 +4842,9 @@ Fragment StreamingFlowGraphBuilder::BuildVariableDeclaration() {
 
   // Use position of equal sign if it exists. If the equal sign does not exist
   // use the position of the identifier.
-  TokenPosition debug_position =
-      Utils::Maximum(helper.position_, helper.equals_position_);
+  const TokenPosition debug_position = helper.equals_position_.IsReal()
+                                           ? helper.equals_position_
+                                           : helper.position_;
   if (NeedsDebugStepCheck(stack(), debug_position)) {
     instructions = DebugStepCheck(debug_position) + instructions;
   }
@@ -4913,93 +4886,107 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
     // Positions has to be unique in regards to the parent.
     // A non-real at this point is probably -1, we cannot blindly use that
     // as others might use it too. Create a new dummy non-real TokenPosition.
-    position = TokenPosition(offset).ToSynthetic();
+    position = TokenPosition::Synthetic(offset);
   }
 
   // The VM has a per-isolate table of functions indexed by the enclosing
   // function and token position.
   Function& function = Function::ZoneHandle(Z);
 
-  // NOTE: This is not TokenPosition in the general sense!
-  function = I->LookupClosureFunction(parsed_function()->function(), position);
+  {
+    SafepointReadRwLocker ml(thread(),
+                             thread()->isolate_group()->program_lock());
+    // NOTE: This is not TokenPosition in the general sense!
+    function =
+        I->LookupClosureFunction(parsed_function()->function(), position);
+  }
+
   if (function.IsNull()) {
-    for (intptr_t i = 0; i < scopes()->function_scopes.length(); ++i) {
-      if (scopes()->function_scopes[i].kernel_offset != offset) {
-        continue;
-      }
-
-      const String* name;
-      if (declaration) {
-        name = &H.DartSymbolObfuscate(name_index);
-      } else {
-        name = &Symbols::AnonymousClosure();
-      }
-      // NOTE: This is not TokenPosition in the general sense!
-      if (!closure_owner_.IsNull()) {
-        function = Function::NewClosureFunctionWithKind(
-            FunctionLayout::kClosureFunction, *name,
-            parsed_function()->function(), position, closure_owner_);
-      } else {
-        function = Function::NewClosureFunction(
-            *name, parsed_function()->function(), position);
-      }
-
-      function.set_is_debuggable(function_node_helper.dart_async_marker_ ==
-                                 FunctionNodeHelper::kSync);
-      switch (function_node_helper.dart_async_marker_) {
-        case FunctionNodeHelper::kSyncStar:
-          function.set_modifier(FunctionLayout::kSyncGen);
-          break;
-        case FunctionNodeHelper::kAsync:
-          function.set_modifier(FunctionLayout::kAsync);
-          function.set_is_inlinable(!FLAG_causal_async_stacks);
-          break;
-        case FunctionNodeHelper::kAsyncStar:
-          function.set_modifier(FunctionLayout::kAsyncGen);
-          function.set_is_inlinable(!FLAG_causal_async_stacks);
-          break;
-        default:
-          // no special modifier
-          break;
-      }
-      function.set_is_generated_body(function_node_helper.async_marker_ ==
-                                     FunctionNodeHelper::kSyncYielding);
-      // sync* functions contain two nested synthetic functions, the first of
-      // which (sync_op_gen) is a regular sync function so we need to manually
-      // label it generated:
-      if (function.parent_function() != Function::null()) {
-        const auto& parent = Function::Handle(function.parent_function());
-        if (parent.IsSyncGenerator()) {
-          function.set_is_generated_body(true);
+    SafepointWriteRwLocker ml(thread(),
+                              thread()->isolate_group()->program_lock());
+    // NOTE: This is not TokenPosition in the general sense!
+    function =
+        I->LookupClosureFunction(parsed_function()->function(), position);
+    if (function.IsNull()) {
+      for (intptr_t i = 0; i < scopes()->function_scopes.length(); ++i) {
+        if (scopes()->function_scopes[i].kernel_offset != offset) {
+          continue;
         }
+
+        const String* name;
+        if (declaration) {
+          name = &H.DartSymbolObfuscate(name_index);
+        } else {
+          name = &Symbols::AnonymousClosure();
+        }
+        // NOTE: This is not TokenPosition in the general sense!
+        if (!closure_owner_.IsNull()) {
+          function = Function::NewClosureFunctionWithKind(
+              FunctionLayout::kClosureFunction, *name,
+              parsed_function()->function(), position, closure_owner_);
+        } else {
+          function = Function::NewClosureFunction(
+              *name, parsed_function()->function(), position);
+        }
+
+        function.set_is_debuggable(function_node_helper.dart_async_marker_ ==
+                                   FunctionNodeHelper::kSync);
+        switch (function_node_helper.dart_async_marker_) {
+          case FunctionNodeHelper::kSyncStar:
+            function.set_modifier(FunctionLayout::kSyncGen);
+            break;
+          case FunctionNodeHelper::kAsync:
+            function.set_modifier(FunctionLayout::kAsync);
+            function.set_is_inlinable(!FLAG_causal_async_stacks);
+            break;
+          case FunctionNodeHelper::kAsyncStar:
+            function.set_modifier(FunctionLayout::kAsyncGen);
+            function.set_is_inlinable(!FLAG_causal_async_stacks);
+            break;
+          default:
+            // no special modifier
+            break;
+        }
+        function.set_is_generated_body(function_node_helper.async_marker_ ==
+                                       FunctionNodeHelper::kSyncYielding);
+        // sync* functions contain two nested synthetic functions, the first of
+        // which (sync_op_gen) is a regular sync function so we need to manually
+        // label it generated:
+        if (function.parent_function() != Function::null()) {
+          const auto& parent = Function::Handle(function.parent_function());
+          if (parent.IsSyncGenerator()) {
+            function.set_is_generated_body(true);
+          }
+        }
+        // Note: Is..() methods use the modifiers set above, so order matters.
+        if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
+          function.set_is_inlinable(!FLAG_causal_async_stacks &&
+                                    !FLAG_lazy_async_stacks);
+        }
+
+        function.set_end_token_pos(function_node_helper.end_position_);
+        LocalScope* scope = scopes()->function_scopes[i].scope;
+        const ContextScope& context_scope = ContextScope::Handle(
+            Z, scope->PreserveOuterScope(flow_graph_builder_->context_depth_));
+        function.set_context_scope(context_scope);
+        function.set_kernel_offset(offset);
+        type_translator_.SetupFunctionParameters(Class::Handle(Z), function,
+                                                 false,  // is_method
+                                                 true,   // is_closure
+                                                 &function_node_helper);
+        // type_translator_.SetupUnboxingInfoMetadata is not called here at the
+        // moment because closures do not have unboxed parameters and return
+        // value
+        function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kEnd);
+
+        // Finalize function type.
+        Type& signature_type = Type::Handle(Z, function.SignatureType());
+        signature_type ^= ClassFinalizer::FinalizeType(signature_type);
+        function.SetSignatureType(signature_type);
+
+        I->AddClosureFunction(function);
+        break;
       }
-      // Note: Is..() methods use the modifiers set above, so order matters.
-      if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
-        function.set_is_inlinable(!FLAG_causal_async_stacks &&
-                                  !FLAG_lazy_async_stacks);
-      }
-
-      function.set_end_token_pos(function_node_helper.end_position_);
-      LocalScope* scope = scopes()->function_scopes[i].scope;
-      const ContextScope& context_scope = ContextScope::Handle(
-          Z, scope->PreserveOuterScope(flow_graph_builder_->context_depth_));
-      function.set_context_scope(context_scope);
-      function.set_kernel_offset(offset);
-      type_translator_.SetupFunctionParameters(Class::Handle(Z), function,
-                                               false,  // is_method
-                                               true,   // is_closure
-                                               &function_node_helper);
-      // type_translator_.SetupUnboxingInfoMetadata is not called here at the
-      // moment because closures do not have unboxed parameters and return value
-      function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kEnd);
-
-      // Finalize function type.
-      Type& signature_type = Type::Handle(Z, function.SignatureType());
-      signature_type ^= ClassFinalizer::FinalizeType(signature_type);
-      function.SetSignatureType(signature_type);
-
-      I->AddClosureFunction(function);
-      break;
     }
   }
 

@@ -1,6 +1,6 @@
 class A {
-  late num ;
-  invariantField;
+  late
+  num invariantField;
   covariant late num ;
   covariantField;
 }

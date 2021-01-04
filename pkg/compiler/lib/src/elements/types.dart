@@ -28,7 +28,7 @@ extension on DataSource {
   List<DartType> _readDartTypes(
       List<FunctionTypeVariable> functionTypeVariables) {
     int count = readInt();
-    List<DartType> types = List<DartType>(count);
+    List<DartType> types = List<DartType>.filled(count, null);
     for (int index = 0; index < count; index++) {
       types[index] = DartType.readFromDataSource(this, functionTypeVariables);
     }
@@ -313,8 +313,13 @@ class InterfaceType extends DartType {
   final ClassEntity element;
   final List<DartType> typeArguments;
 
-  InterfaceType._(this.element, this.typeArguments)
-      : assert(typeArguments.every((e) => e != null));
+  InterfaceType._allocate(this.element, this.typeArguments);
+
+  factory InterfaceType._(ClassEntity element, List<DartType> typeArguments) {
+    assert(typeArguments.every((e) => e != null));
+    if (typeArguments.isEmpty) typeArguments = const [];
+    return InterfaceType._allocate(element, typeArguments);
+  }
 
   factory InterfaceType._readFromDataSource(
       DataSource source, List<FunctionTypeVariable> functionTypeVariables) {
@@ -717,7 +722,8 @@ class FunctionType extends DartType {
         source._readDartTypes(functionTypeVariables);
     List<DartType> namedParameterTypes =
         source._readDartTypes(functionTypeVariables);
-    List<String> namedParameters = List<String>(namedParameterTypes.length);
+    List<String> namedParameters =
+        List<String>.filled(namedParameterTypes.length, null);
     var requiredNamedParameters = <String>{};
     for (int i = 0; i < namedParameters.length; i++) {
       namedParameters[i] = source.readString();
@@ -1036,7 +1042,7 @@ class _LegacyErasureVisitor extends DartTypeVisitor<DartType, Null> {
     var length = oldTypeVariables.length;
 
     List<FunctionTypeVariable> typeVariables =
-        List<FunctionTypeVariable>(length);
+        List<FunctionTypeVariable>.filled(length, null);
     List<FunctionTypeVariable> erasableTypeVariables = [];
     List<FunctionTypeVariable> erasedTypeVariables = [];
     for (int i = 0; i < length; i++) {

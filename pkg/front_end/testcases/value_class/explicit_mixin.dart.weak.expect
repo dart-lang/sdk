@@ -9,13 +9,13 @@ class A extends core::Object {
   synthetic constructor •() → self::A
     : super core::Object::•()
     ;
-  operator /*isNullableByDefault*/ ==(core::Object other) → core::bool
+  operator /*isLegacy*/ ==(core::Object other) → core::bool
     return other is self::A;
-  get /*isNullableByDefault*/ hashCode() → core::int
+  get /*isLegacy*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish("org-dartlang-testcase:///explicit_mixin.dartA".{core::String::hashCode});
-  method /*isNullableByDefault*/ toString() → core::String
+  method /*isLegacy*/ toString() → core::String
     return "A()";
-  method /*isNullableByDefault*/ copyWith() → dynamic
+  method /*isLegacy*/ copyWith() → dynamic
     return new self::A::•();
 }
 class B extends core::Object {
@@ -42,13 +42,13 @@ class F = self::B with self::C {
   synthetic constructor •() → self::F
     : super self::B::•()
     ;
-  operator /*isNullableByDefault*/ ==(core::Object other) → core::bool
+  operator /*isLegacy*/ ==(core::Object other) → core::bool
     return other is self::F;
-  get /*isNullableByDefault*/ hashCode() → core::int
+  get /*isLegacy*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish("org-dartlang-testcase:///explicit_mixin.dartF".{core::String::hashCode});
-  method /*isNullableByDefault*/ toString() → core::String
+  method /*isLegacy*/ toString() → core::String
     return "F()";
-  method /*isNullableByDefault*/ copyWith() → dynamic
+  method /*isLegacy*/ copyWith() → dynamic
     return new self::F::•();
 }
 static method main() → dynamic {}

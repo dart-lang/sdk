@@ -41,9 +41,9 @@ static method test3() → dynamic
   ;
 static method test4() → dynamic
   ;
-static method E6|[]=(final core::double #this, core::int index, core::String? value) → void
+static method E6|[]=(lowered final core::double #this, core::int index, core::String? value) → void
   ;
-static method E6|[](final core::double #this, core::int index) → core::String?
+static method E6|[](lowered final core::double #this, core::int index) → core::String?
   ;
 static method test6() → dynamic
   ;

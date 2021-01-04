@@ -4,7 +4,6 @@
 
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
-import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/type_algebra.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 import '../common/names.dart';
@@ -645,7 +644,8 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     if (arguments.positional.isEmpty) {
       positional = const <ir.DartType>[];
     } else {
-      positional = new List<ir.DartType>(arguments.positional.length);
+      positional =
+          new List<ir.DartType>.filled(arguments.positional.length, null);
       int index = 0;
       for (ir.Expression argument in arguments.positional) {
         positional[index++] = visitNode(argument);
@@ -654,7 +654,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     if (arguments.named.isEmpty) {
       named = const <ir.DartType>[];
     } else {
-      named = new List<ir.DartType>(arguments.named.length);
+      named = new List<ir.DartType>.filled(arguments.named.length, null);
       int index = 0;
       for (ir.NamedExpression argument in arguments.named) {
         named[index++] = visitNode(argument);

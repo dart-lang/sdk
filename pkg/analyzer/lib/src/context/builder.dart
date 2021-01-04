@@ -114,7 +114,10 @@ class ContextBuilder {
     if (builderOptions.librarySummaryPaths != null) {
       summaryData = SummaryDataStore(builderOptions.librarySummaryPaths);
     }
-    final sf = createSourceFactory(path, summaryData: summaryData);
+    Workspace workspace =
+        ContextBuilder.createWorkspace(resourceProvider, path, this);
+    final sf =
+        createSourceFactoryFromWorkspace(workspace, summaryData: summaryData);
 
     AnalysisDriver driver = AnalysisDriver(
       analysisDriverScheduler,
@@ -143,6 +146,7 @@ class ContextBuilder {
         resourceProvider,
         apiContextRoots.first,
         driver,
+        workspace: workspace,
       ),
     );
 
@@ -202,6 +206,15 @@ class ContextBuilder {
       {SummaryDataStore summaryData}) {
     Workspace workspace =
         ContextBuilder.createWorkspace(resourceProvider, rootPath, this);
+    DartSdk sdk = findSdk(workspace);
+    if (summaryData != null && sdk is SummaryBasedDartSdk) {
+      summaryData.addBundle(null, sdk.bundle);
+    }
+    return workspace.createSourceFactory(sdk, summaryData);
+  }
+
+  SourceFactory createSourceFactoryFromWorkspace(Workspace workspace,
+      {SummaryDataStore summaryData}) {
     DartSdk sdk = findSdk(workspace);
     if (summaryData != null && sdk is SummaryBasedDartSdk) {
       summaryData.addBundle(null, sdk.bundle);

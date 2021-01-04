@@ -29,11 +29,23 @@ export '../helpers/memory_compiler.dart' show CollectedMessage;
 
 const String specMarker = 'spec';
 const String prodMarker = 'prod';
+const String twoDeferredFragmentMarker = 'two-frag';
+const String threeDeferredFragmentMarker = 'three-frag';
 
 const TestConfig specConfig = TestConfig(specMarker, 'compliance mode', []);
 
 const TestConfig prodConfig = TestConfig(prodMarker, 'production mode',
     [Flags.omitImplicitChecks, Flags.laxRuntimeTypeToString]);
+
+const TestConfig twoDeferredFragmentConfig = TestConfig(
+    twoDeferredFragmentMarker,
+    'two deferred fragment mode',
+    ['${Flags.mergeFragmentsThreshold}=2']);
+
+const TestConfig threeDeferredFragmentConfig = TestConfig(
+    threeDeferredFragmentMarker,
+    'three deferred fragment mode',
+    ['${Flags.mergeFragmentsThreshold}=3']);
 
 /// Default internal configurations not including experimental features.
 const List<TestConfig> defaultInternalConfigs = [specConfig, prodConfig];

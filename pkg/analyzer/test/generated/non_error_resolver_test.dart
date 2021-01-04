@@ -2045,7 +2045,7 @@ abstract class A<E> {
   List<E> m();
 }
 class B extends A<dynamic> {
-  List<dynamic> m() { return new List<dynamic>(); }
+  List<dynamic> m() { return <dynamic>[]; }
 }
 ''');
   }

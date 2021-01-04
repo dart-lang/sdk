@@ -1,6 +1,8 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+//
+// VMOptions=--lazy-async-stacks
 
 import 'package:async_helper/async_minitest.dart';
 
@@ -34,8 +36,8 @@ main() async {
     } catch (e, st) {
       expect(
           h.stringContainsInOrder(st.toString(), [
-            'thrower', '.dart:10', // no auto-format.
-            'generator', '.dart:19', // no auto-format.
+            'thrower', '.dart:12', // no auto-format.
+            'generator', '.dart:21', // no auto-format.
             '<asynchronous suspension>', // no auto-format.
             'foo', '.dart', // no auto-format.
             'main',
@@ -72,8 +74,8 @@ main() async {
     } catch (e, st) {
       expect(
           h.stringContainsInOrder(st.toString(), [
-            'thrower', '.dart:10', // no auto-format.
-            'main.<anonymous closure>', '.dart:71', // no auto-format.
+            'thrower', '.dart:12', // no auto-format.
+            'main.<anonymous closure>', '.dart:73', // no auto-format.
           ]),
           isTrue);
     }

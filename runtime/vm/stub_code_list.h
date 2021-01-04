@@ -7,6 +7,17 @@
 
 namespace dart {
 
+#define VM_TYPE_TESTING_STUB_CODE_LIST(V)                                      \
+  V(DefaultTypeTest)                                                           \
+  V(DefaultNullableTypeTest)                                                   \
+  V(TopTypeTypeTest)                                                           \
+  V(UnreachableTypeTest)                                                       \
+  V(TypeParameterTypeTest)                                                     \
+  V(NullableTypeParameterTypeTest)                                             \
+  V(SlowTypeTest)                                                              \
+  V(LazySpecializeTypeTest)                                                    \
+  V(LazySpecializeNullableTypeTest)
+
 // List of stubs created in the VM isolate, these stubs are shared by different
 // isolates running in this dart process.
 #define VM_STUB_CODE_LIST(V)                                                   \
@@ -75,19 +86,15 @@ namespace dart {
   V(OneArgUnoptimizedStaticCall)                                               \
   V(TwoArgsUnoptimizedStaticCall)                                              \
   V(AssertSubtype)                                                             \
+  V(TypeIsTopTypeForSubtyping)                                                 \
+  V(TypeIsTopTypeForSubtypingNullSafe)                                         \
+  V(NullIsAssignableToType)                                                    \
+  V(NullIsAssignableToTypeNullSafe)                                            \
   V(Subtype1TestCache)                                                         \
-  V(Subtype2TestCache)                                                         \
-  V(Subtype4TestCache)                                                         \
-  V(Subtype6TestCache)                                                         \
-  V(DefaultTypeTest)                                                           \
-  V(DefaultNullableTypeTest)                                                   \
-  V(TopTypeTypeTest)                                                           \
-  V(UnreachableTypeTest)                                                       \
-  V(TypeParameterTypeTest)                                                     \
-  V(NullableTypeParameterTypeTest)                                             \
-  V(SlowTypeTest)                                                              \
-  V(LazySpecializeTypeTest)                                                    \
-  V(LazySpecializeNullableTypeTest)                                            \
+  V(Subtype3TestCache)                                                         \
+  V(Subtype5TestCache)                                                         \
+  V(Subtype7TestCache)                                                         \
+  VM_TYPE_TESTING_STUB_CODE_LIST(V)                                            \
   V(CallClosureNoSuchMethod)                                                   \
   V(FrameAwaitingMaterialization)                                              \
   V(AsynchronousGapMarker)                                                     \

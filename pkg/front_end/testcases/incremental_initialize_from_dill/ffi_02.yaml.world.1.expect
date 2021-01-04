@@ -9,7 +9,7 @@ library from "org-dartlang-test:///lib.dart" as lib {
     @#C3
     static final field dart.core::int* #sizeOf = (#C11).{dart.core::List::[]}(dart.ffi::_abi());
     @#C3
-    constructor #fromPointer(dynamic #pointer) → dynamic
+    constructor #fromTypedDataBase(dynamic #pointer) → dynamic
       : super dart.ffi::Struct::_fromPointer(#pointer)
       ;
     static factory allocate(dart.core::double* x, dart.core::double* y, dart.ffi::Pointer<lib::Coordinate*>* next) → lib::Coordinate* {

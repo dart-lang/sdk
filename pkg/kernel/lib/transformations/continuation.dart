@@ -22,7 +22,6 @@ class ContinuationVariables {
   static const asyncOp = ':async_op';
   static const asyncOpThen = ':async_op_then';
   static const asyncOpError = ':async_op_error';
-  static const asyncStackTraceVar = ':async_stack_trace';
   static const controller = ':controller';
   static const controllerStreamVar = ':controller_stream';
   static const forIterator = ':for-iterator';
@@ -524,8 +523,6 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
 }
 
 abstract class AsyncRewriterBase extends ContinuationRewriterBase {
-  final VariableDeclaration stackTraceVariable;
-
   // :async_op has type ([dynamic result, dynamic e, StackTrace? s]) -> dynamic
   final VariableDeclaration nestedClosureVariable;
 
@@ -541,9 +538,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
 
   AsyncRewriterBase(HelperNodes helper, FunctionNode enclosingFunction,
       StaticTypeContext staticTypeContext)
-      : stackTraceVariable =
-            VariableDeclaration(ContinuationVariables.asyncStackTraceVar),
-        nestedClosureVariable = VariableDeclaration(
+      : nestedClosureVariable = VariableDeclaration(
             ContinuationVariables.asyncOp,
             type: FunctionType([
               const DynamicType(),
@@ -566,9 +561,6 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
 
   void setupAsyncContinuations(List<Statement> statements) {
     expressionRewriter = new ExpressionLifter(this);
-
-    // var :async_stack_trace;
-    statements.add(stackTraceVariable);
 
     // var :async_op_then;
     statements.add(thenContinuationVariable);
@@ -608,13 +600,6 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
         new FunctionDeclaration(nestedClosureVariable, function)
           ..fileOffset = enclosingFunction.parent.fileOffset;
     statements.add(closureFunction);
-
-    // :async_stack_trace = _asyncStackTraceHelper(asyncBody);
-    final stackTrace = new StaticInvocation(helper.asyncStackTraceHelper,
-        new Arguments(<Expression>[new VariableGet(nestedClosureVariable)]));
-    final stackTraceAssign = new ExpressionStatement(
-        new VariableSet(stackTraceVariable, stackTrace));
-    statements.add(stackTraceAssign);
 
     // :async_op_then = _asyncThenWrapperHelper(asyncBody);
     final boundThenClosure = new StaticInvocation(helper.asyncThenWrapper,
@@ -833,7 +818,8 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     // with await in the loop's variable initializers or update expressions.
     bool isSimple = true;
     int length = stmt.variables.length;
-    List<List<Statement>> initEffects = new List<List<Statement>>(length);
+    List<List<Statement>> initEffects =
+        new List<List<Statement>>.filled(length, null);
     for (int i = 0; i < length; ++i) {
       VariableDeclaration decl = stmt.variables[i];
       initEffects[i] = <Statement>[];
@@ -846,7 +832,8 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     }
 
     length = stmt.updates.length;
-    List<List<Statement>> updateEffects = new List<List<Statement>>(length);
+    List<List<Statement>> updateEffects =
+        new List<List<Statement>>.filled(length, null);
     for (int i = 0; i < length; ++i) {
       updateEffects[i] = <Statement>[];
       stmt.updates[i] = expressionRewriter.rewrite(
@@ -1404,7 +1391,6 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
 class HelperNodes {
   final Procedure asyncErrorWrapper;
   final Library asyncLibrary;
-  final Procedure asyncStackTraceHelper;
   final Member asyncStarStreamControllerAdd;
   final Member asyncStarStreamControllerAddError;
   final Member asyncStarStreamControllerAddStream;
@@ -1442,7 +1428,6 @@ class HelperNodes {
   HelperNodes._(
       this.asyncErrorWrapper,
       this.asyncLibrary,
-      this.asyncStackTraceHelper,
       this.asyncStarStreamControllerAdd,
       this.asyncStarStreamControllerAddError,
       this.asyncStarStreamControllerAddStream,
@@ -1480,7 +1465,6 @@ class HelperNodes {
     return new HelperNodes._(
         coreTypes.asyncErrorWrapperHelperProcedure,
         coreTypes.asyncLibrary,
-        coreTypes.asyncStackTraceHelperProcedure,
         coreTypes.asyncStarStreamControllerAdd,
         coreTypes.asyncStarStreamControllerAddError,
         coreTypes.asyncStarStreamControllerAddStream,

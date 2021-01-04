@@ -25,13 +25,13 @@ extension Extension on core::int* {
 static field core::int* Extension|staticField;
 static final field core::int* Extension|staticFinalField;
 static const field core::int* Extension|staticConstField = #C1;
-static method Extension|get#instanceProperty(final core::int* #this) → core::int*
+static method Extension|get#instanceProperty(lowered final core::int* #this) → core::int*
   ;
-static method Extension|set#instanceProperty(final core::int* #this, core::int* value) → void
+static method Extension|set#instanceProperty(lowered final core::int* #this, core::int* value) → void
   ;
-static method Extension|instanceMethod(final core::int* #this) → void
+static method Extension|instanceMethod(lowered final core::int* #this) → void
   ;
-static method Extension|get#instanceMethod(final core::int* #this) → () →* void
+static method Extension|get#instanceMethod(lowered final core::int* #this) → () →* void
   return () → void => self2::Extension|instanceMethod(#this);
 static get Extension|staticProperty() → core::int*
   ;

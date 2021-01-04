@@ -38,7 +38,11 @@ class DartUnitHighlightsComputer {
           }
         }
         if (commentToken.type == TokenType.SINGLE_LINE_COMMENT) {
-          highlightType = HighlightRegionType.COMMENT_END_OF_LINE;
+          if (commentToken.lexeme.startsWith('///')) {
+            highlightType = HighlightRegionType.COMMENT_DOCUMENTATION;
+          } else {
+            highlightType = HighlightRegionType.COMMENT_END_OF_LINE;
+          }
         }
         if (highlightType != null) {
           _addRegion_token(commentToken, highlightType);
@@ -697,6 +701,12 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitIntegerLiteral(IntegerLiteral node) {
     computer._addRegion_node(node, HighlightRegionType.LITERAL_INTEGER);
     super.visitIntegerLiteral(node);
+  }
+
+  @override
+  void visitInterpolationString(InterpolationString node) {
+    computer._addRegion_node(node, HighlightRegionType.LITERAL_STRING);
+    super.visitInterpolationString(node);
   }
 
   @override

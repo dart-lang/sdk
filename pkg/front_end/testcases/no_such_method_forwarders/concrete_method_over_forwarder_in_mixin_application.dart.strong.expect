@@ -56,6 +56,8 @@ abstract class _C&A&B = self::A with self::B /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_C&A&B*
     : super self::A::•()
     ;
+  mixin-super-stub method noSuchMethod(core::Invocation* _) → dynamic
+    return super.{self::B::noSuchMethod}(_);
 }
 class C extends self::_C&A&B {
   synthetic constructor •() → self::C*

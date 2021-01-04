@@ -97,13 +97,12 @@ abstract class ProcedureBuilderImpl extends FunctionBuilderImpl
       int charOffset,
       this.charOpenParenOffset,
       int charEndOffset,
-      Procedure referenceFrom,
+      Reference procedureReference,
       this.isExtensionInstanceMember,
       [String nativeMethodName])
       : _procedure = new Procedure(
             null, isExtensionInstanceMember ? ProcedureKind.Method : kind, null,
-            fileUri: compilationUnit.fileUri,
-            reference: referenceFrom?.reference)
+            fileUri: compilationUnit.fileUri, reference: procedureReference)
           ..startFileOffset = startCharOffset
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset
@@ -202,7 +201,7 @@ abstract class ProcedureBuilderImpl extends FunctionBuilderImpl
 }
 
 class SourceProcedureBuilder extends ProcedureBuilderImpl {
-  final Procedure _tearOffReferenceFrom;
+  final Reference _tearOffReference;
 
   /// If this is an extension instance method then [_extensionTearOff] holds
   /// the synthetically created tear off function.
@@ -229,8 +228,8 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
       int charOffset,
       int charOpenParenOffset,
       int charEndOffset,
-      Procedure referenceFrom,
-      this._tearOffReferenceFrom,
+      Reference procedureReference,
+      this._tearOffReference,
       AsyncMarker asyncModifier,
       bool isExtensionInstanceMember,
       [String nativeMethodName])
@@ -247,7 +246,7 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
             charOffset,
             charOpenParenOffset,
             charEndOffset,
-            referenceFrom,
+            procedureReference,
             isExtensionInstanceMember,
             nativeMethodName) {
     this.asyncModifier = asyncModifier;
@@ -482,7 +481,9 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
         VariableDeclaration parameter, DartType type,
         {bool isOptional}) {
       VariableDeclaration newParameter = new VariableDeclaration(parameter.name,
-          type: type, isFinal: parameter.isFinal)
+          type: type,
+          isFinal: parameter.isFinal,
+          isLowered: parameter.isLowered)
         ..fileOffset = parameter.fileOffset;
       _extensionTearOffParameterMap[parameter] = newParameter;
       return newParameter;
@@ -566,9 +567,7 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
   Procedure get extensionTearOff {
     if (isExtensionInstanceMember && kind == ProcedureKind.Method) {
       _extensionTearOff ??= new Procedure(null, ProcedureKind.Method, null,
-          isStatic: true,
-          isExtensionMember: true,
-          reference: _tearOffReferenceFrom?.reference)
+          isStatic: true, isExtensionMember: true, reference: _tearOffReference)
         ..isNonNullableByDefault = library.isNonNullableByDefault;
     }
     return _extensionTearOff;
@@ -663,7 +662,7 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
       int charOffset,
       int charOpenParenOffset,
       int charEndOffset,
-      Procedure referenceFrom,
+      Reference reference,
       [String nativeMethodName,
       this.redirectionTarget])
       : super(
@@ -679,7 +678,7 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
             charOffset,
             charOpenParenOffset,
             charEndOffset,
-            referenceFrom,
+            reference,
             /* isExtensionInstanceMember = */ false,
             nativeMethodName);
 
@@ -722,7 +721,7 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
                   actualOrigin.function.typeParameters[i], library.library);
         }
         List<DartType> newTypeArguments =
-            new List<DartType>(typeArguments.length);
+            new List<DartType>.filled(typeArguments.length, null);
         for (int i = 0; i < newTypeArguments.length; i++) {
           newTypeArguments[i] = substitute(typeArguments[i], substitution);
         }
@@ -755,8 +754,8 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
     }
     _procedure.isRedirectingFactoryConstructor = true;
     if (redirectionTarget.typeArguments != null) {
-      typeArguments =
-          new List<DartType>(redirectionTarget.typeArguments.length);
+      typeArguments = new List<DartType>.filled(
+          redirectionTarget.typeArguments.length, null);
       for (int i = 0; i < typeArguments.length; i++) {
         typeArguments[i] = redirectionTarget.typeArguments[i].build(library);
       }
@@ -822,7 +821,8 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
             function.returnType,
             charOffset,
             target.function.computeFunctionType(Nullability.nonNullable),
-            targetInvocationArguments);
+            targetInvocationArguments,
+            staticTarget: target);
         List<DartType> typeArguments;
         if (result.inferredType is InterfaceType) {
           typeArguments = (result.inferredType as InterfaceType).typeArguments;

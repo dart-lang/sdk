@@ -190,7 +190,7 @@ class BaseFlowGraphBuilder {
   Fragment LoadContextAt(int depth);
   Fragment GuardFieldLength(const Field& field, intptr_t deopt_id);
   Fragment GuardFieldClass(const Field& field, intptr_t deopt_id);
-  const Field& MayCloneField(const Field& field);
+  static const Field& MayCloneField(Zone* zone, const Field& field);
   Fragment StoreInstanceField(
       TokenPosition position,
       const Slot& field,

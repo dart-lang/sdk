@@ -2,11 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# TODO(dartbug.com/36730): Implement structs by value.
-function_callbacks_structs_by_value_generated_test: Skip
-function_callbacks_structs_by_value_test: Skip
-function_structs_by_value_generated_test: Skip
-
 [ $builder_tag == msan ]
 vmspecific_handle_test: Skip # https://dartbug.com/42314
 

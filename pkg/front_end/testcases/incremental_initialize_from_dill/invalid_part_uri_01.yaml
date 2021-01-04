@@ -11,11 +11,12 @@ worlds:
       main.dart: |
         // The space makes the scheme invalid -- this causes Uri.parse to throw.
         part ' package:foo/bar.dart';
-    expectedLibraryCount: 2
+    expectedLibraryCount: 1
     errors: true
   - entry: main.dart
     errors: false
     worldType: updated
+    checkInvalidatedFiles: false
     invalidate:
       - main.dart
     sources:

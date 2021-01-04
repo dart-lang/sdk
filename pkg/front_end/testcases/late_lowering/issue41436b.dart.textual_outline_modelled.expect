@@ -1,0 +1,10 @@
+abstract class A {
+  ---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+  int x;
+}
+class _B implements A {
+  int x = 3;
+}
+main() {}

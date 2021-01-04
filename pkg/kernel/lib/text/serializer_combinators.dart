@@ -733,7 +733,7 @@ class Zip<T, T1, T2> extends TextSerializer<List<T>> {
     Tuple2<List<T1>, List<T2>> toZip = lists.readFrom(stream, state);
     List<T1> firsts = toZip.first;
     List<T2> seconds = toZip.second;
-    List<T> zipped = new List<T>(toZip.first.length);
+    List<T> zipped = new List<T>.filled(toZip.first.length, null);
     for (int i = 0; i < zipped.length; ++i) {
       zipped[i] = zip(firsts[i], seconds[i]);
     }
@@ -741,8 +741,8 @@ class Zip<T, T1, T2> extends TextSerializer<List<T>> {
   }
 
   void writeTo(StringBuffer buffer, List<T> zipped, SerializationState state) {
-    List<T1> firsts = new List<T1>(zipped.length);
-    List<T2> seconds = new List<T2>(zipped.length);
+    List<T1> firsts = new List<T1>.filled(zipped.length, null);
+    List<T2> seconds = new List<T2>.filled(zipped.length, null);
     for (int i = 0; i < zipped.length; ++i) {
       Tuple2<T1, T2> tuple = unzip(zipped[i]);
       firsts[i] = tuple.first;

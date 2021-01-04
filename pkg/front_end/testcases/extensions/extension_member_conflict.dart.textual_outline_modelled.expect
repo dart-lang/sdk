@@ -1,0 +1,46 @@
+extension Extension<T> on int {
+  int get duplicateInstanceGetter => 0;
+  int get duplicateInstanceGetter => 0;
+  int get duplicateInstanceGetterAndSetter => 0;
+  int get duplicateInstanceGetterAndSetter => 0;
+  int get duplicateInstanceGetterPlusSetter => 0;
+  int get duplicateInstanceGetterPlusSetter => 0;
+  int get duplicateInstanceSetterPlusGetter => 0;
+  int get instanceGetterAndStaticField => 0;
+  int get instanceGetterAndStaticSetter => 0;
+  static final int instanceGetterAndStaticField = 0;
+  static int duplicateStaticField = 0;
+  static int duplicateStaticField = 0;
+  static int get duplicateStaticGetter => 0;
+  static int get duplicateStaticGetter => 0;
+  static int get duplicateStaticGetterAndSetter => 0;
+  static int get duplicateStaticGetterAndSetter => 0;
+  static int get duplicateStaticGetterPlusSetter => 0;
+  static int get duplicateStaticGetterPlusSetter => 0;
+  static int get duplicateStaticSetterPlusGetter => 0;
+  static int get instanceSetterAndStaticGetter => 0;
+  static int instanceGetterAndStaticField = 0;
+  static void duplicateStaticMethod() {}
+  static void duplicateStaticMethod() {}
+  static void set duplicateStaticGetterAndSetter(int value) {}
+  static void set duplicateStaticGetterAndSetter(int value) {}
+  static void set duplicateStaticGetterPlusSetter(int value) {}
+  static void set duplicateStaticSetter(int value) {}
+  static void set duplicateStaticSetter(int value) {}
+  static void set duplicateStaticSetterPlusGetter(int value) {}
+  static void set duplicateStaticSetterPlusGetter(int value) {}
+  static void set instanceGetterAndStaticSetter(int value) {}
+  void duplicateInstanceMethod() {}
+  void duplicateInstanceMethod() {}
+  void set duplicateInstanceGetterAndSetter(int value) {}
+  void set duplicateInstanceGetterAndSetter(int value) {}
+  void set duplicateInstanceGetterPlusSetter(int value) {}
+  void set duplicateInstanceSetter(int value) {}
+  void set duplicateInstanceSetter(int value) {}
+  void set duplicateInstanceSetterPlusGetter(int value) {}
+  void set duplicateInstanceSetterPlusGetter(int value) {}
+  void set instanceSetterAndStaticField(int value) {}
+  void set instanceSetterAndStaticGetter(int value) {}
+}
+
+main() {}

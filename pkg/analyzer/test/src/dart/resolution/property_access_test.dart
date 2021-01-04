@@ -39,8 +39,7 @@ void f(A a) {
 
     assertSimpleIdentifier(
       propertyAccess.propertyName,
-      readElement: findElement.getter('foo'),
-      writeElement: null,
+      element: findElement.getter('foo'),
       type: 'int',
     );
   }
@@ -114,14 +113,11 @@ void f(A a) {
         element: findElement.setter('foo'),
         type: 'int',
       );
-
-      assertSimpleIdentifier(
-        propertyAccess.propertyName,
-        readElement: null,
-        writeElement: findElement.setter('foo'),
-        type: 'int',
-      );
     }
+
+    assertSimpleIdentifierAssignmentTarget(
+      propertyAccess.propertyName,
+    );
   }
 
   test_functionType_call_read() async {
@@ -158,8 +154,7 @@ void f() {
 
     assertSimpleIdentifier(
       propertyAccess.propertyName,
-      readElement: findElement.getter('foo'),
-      writeElement: null,
+      element: findElement.getter('foo'),
       type: 'int',
     );
   }
@@ -228,14 +223,47 @@ void f() {
         element: findElement.setter('foo'),
         type: 'int',
       );
-
-      assertSimpleIdentifier(
-        propertyAccess.propertyName,
-        readElement: null,
-        writeElement: findElement.setter('foo'),
-        type: 'int',
-      );
     }
+
+    assertSimpleIdentifierAssignmentTarget(
+      propertyAccess.propertyName,
+    );
+  }
+
+  test_invalid_inDefaultValue_nullAware() async {
+    await assertInvalidTestCode('''
+void f({a = b?.foo}) {}
+''');
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('?.foo'),
+      element: null,
+      type: 'dynamic',
+    );
+  }
+
+  test_invalid_inDefaultValue_nullAware2() async {
+    await assertInvalidTestCode('''
+typedef void F({a = b?.foo});
+''');
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('?.foo'),
+      element: null,
+      type: 'dynamic',
+    );
+  }
+
+  test_invalid_inDefaultValue_nullAware_cascade() async {
+    await assertInvalidTestCode('''
+void f({a = b?..foo}) {}
+''');
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('?..foo'),
+      element: null,
+      type: 'dynamic',
+    );
   }
 
   test_ofExtension_read() async {
@@ -260,8 +288,7 @@ void f(A a) {
 
     assertSimpleIdentifier(
       propertyAccess.propertyName,
-      readElement: findElement.getter('foo'),
-      writeElement: null,
+      element: findElement.getter('foo'),
       type: 'int',
     );
   }
@@ -335,14 +362,11 @@ void f() {
         element: findElement.setter('foo'),
         type: 'int',
       );
-
-      assertSimpleIdentifier(
-        propertyAccess.propertyName,
-        readElement: null,
-        writeElement: findElement.setter('foo'),
-        type: 'int',
-      );
     }
+
+    assertSimpleIdentifierAssignmentTarget(
+      propertyAccess.propertyName,
+    );
   }
 
   test_super_read() async {
@@ -371,8 +395,7 @@ class B extends A {
 
     assertSimpleIdentifier(
       propertyAccess.propertyName,
-      readElement: findElement.getter('foo'),
-      writeElement: null,
+      element: findElement.getter('foo'),
       type: 'int',
     );
   }
@@ -417,14 +440,9 @@ class B extends A {
       propertyAccess.target,
     );
 
-    if (hasAssignmentLeftResolution) {
-      assertSimpleIdentifier(
-        propertyAccess.propertyName,
-        readElement: findElement.getter('foo'),
-        writeElement: findElement.setter('foo'),
-        type: 'int',
-      );
-    }
+    assertSimpleIdentifierAssignmentTarget(
+      propertyAccess.propertyName,
+    );
   }
 
   test_super_write() async {
@@ -464,14 +482,9 @@ class B extends A {
       propertyAccess.target,
     );
 
-    if (hasAssignmentLeftResolution) {
-      assertSimpleIdentifier(
-        propertyAccess.propertyName,
-        readElement: null,
-        writeElement: findElement.setter('foo'),
-        type: 'int',
-      );
-    }
+    assertSimpleIdentifierAssignmentTarget(
+      propertyAccess.propertyName,
+    );
   }
 
   test_targetTypeParameter_dynamicBounded() async {
@@ -492,8 +505,7 @@ class A<T extends dynamic> {
 
     assertSimpleIdentifier(
       propertyAccess.propertyName,
-      readElement: null,
-      writeElement: null,
+      element: null,
       type: 'dynamic',
     );
   }
@@ -524,8 +536,7 @@ class C<T> {
 
     assertSimpleIdentifier(
       propertyAccess.propertyName,
-      readElement: null,
-      writeElement: null,
+      element: null,
       type: 'dynamic',
     );
   }
@@ -678,8 +689,7 @@ main() {
 
     assertSimpleIdentifier(
       findNode.simple('foo?'),
-      readElement: findElement.topGet('foo'),
-      writeElement: null,
+      element: findElement.topGet('foo'),
       type: 'A?',
     );
 

@@ -4,7 +4,7 @@ library from "org-dartlang-test:///lib1.dart" as lib1 {
   import "org-dartlang-test:///lib2.dart";
 
   class Foo extends dart.core::Object {
-    static field dynamic _redirecting# = <dynamic>[lib1::Foo::•];
+    static final field dynamic _redirecting# = <dynamic>[lib1::Foo::•];
     static factory •() → lib1::Foo*
       let dynamic #redirecting_factory = lib2::Bar::• in invalid-expression;
     abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode

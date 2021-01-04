@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  bool b = false;
+  bool b = (() => false)();
   late final int lateLocal;
 
   if (b) {

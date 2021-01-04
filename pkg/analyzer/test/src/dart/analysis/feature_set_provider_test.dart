@@ -38,68 +38,36 @@ class FeatureSetProviderTest with ResourceProviderMixin {
     _createSourceFactory();
   }
 
-  test_packages_allowedExperiments() {
-    var packages = Packages(
-      {
-        'aaa': Package(
-          name: 'aaa',
-          rootFolder: newFolder('/packages/aaa'),
-          libFolder: newFolder('/packages/aaa/lib'),
-          languageVersion: Version(2, 7, 0),
-        ),
-        'bbb': Package(
-          name: 'bbb',
-          rootFolder: newFolder('/packages/bbb'),
-          libFolder: newFolder('/packages/bbb/lib'),
-          languageVersion: Version(2, 7, 0),
-        ),
-      },
-    );
-
-    _createSourceFactory(
-      packageUriResolver: _createPackageMapUriResolver(packages),
+  test_getFeatureSet_allowedExperiments() {
+    var feature_a = ExperimentalFeature(
+      index: 0,
+      enableString: 'a',
+      isEnabledByDefault: false,
+      isExpired: false,
+      documentation: 'a',
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
 
     _newSdkExperimentsFile(r'''
 {
   "version": 1,
   "experimentSets": {
-    "nullSafety": ["non-nullable"]
+    "with_a": ["a"]
   },
   "sdk": {
     "default": {
-      "experimentSet": "nullSafety"
+      "experimentSet": "with_a"
     }
   },
   "packages": {
     "aaa": {
-      "experimentSet": "nullSafety"
+      "experimentSet": "with_a"
     }
   }
 }
 ''');
 
-    provider = FeatureSetProvider.build(
-      sourceFactory: sourceFactory,
-      resourceProvider: resourceProvider,
-      packages: packages,
-      packageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
-      nonPackageDefaultLanguageVersion: ExperimentStatus.currentVersion,
-      nonPackageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
-    );
-
-    _assertNonNullableForPath('/packages/aaa/lib/a.dart', true);
-    _assertNonNullableForPath('/packages/aaa/bin/b.dart', true);
-    _assertNonNullableForPath('/packages/aaa/test/c.dart', true);
-
-    _assertNonNullableForPath('/packages/bbb/lib/a.dart', false);
-    _assertNonNullableForPath('/packages/bbb/bin/b.dart', false);
-    _assertNonNullableForPath('/packages/bbb/test/c.dart', false);
-
-    _assertNonNullableForPath('/other/file.dart', false);
-  }
-
-  test_packages_contextExperiments_empty() {
     var packages = Packages(
       {
         'aaa': Package(
@@ -112,13 +80,7 @@ class FeatureSetProviderTest with ResourceProviderMixin {
           name: 'bbb',
           rootFolder: newFolder('/packages/bbb'),
           libFolder: newFolder('/packages/bbb/lib'),
-          languageVersion: Version(2, 7, 0),
-        ),
-        'ccc': Package(
-          name: 'ccc',
-          rootFolder: newFolder('/packages/ccc'),
-          libFolder: newFolder('/packages/ccc/lib'),
-          languageVersion: Version(2, 8, 0),
+          languageVersion: null,
         ),
       },
     );
@@ -127,28 +89,145 @@ class FeatureSetProviderTest with ResourceProviderMixin {
       packageUriResolver: _createPackageMapUriResolver(packages),
     );
 
-    provider = FeatureSetProvider.build(
-      sourceFactory: sourceFactory,
-      resourceProvider: resourceProvider,
-      packages: packages,
-      packageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
-      nonPackageDefaultLanguageVersion: ExperimentStatus.currentVersion,
-      nonPackageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
+    overrideKnownFeatures({'a': feature_a}, () {
+      provider = FeatureSetProvider.build(
+        sourceFactory: sourceFactory,
+        resourceProvider: resourceProvider,
+        packages: packages,
+        packageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
+        nonPackageDefaultLanguageVersion: ExperimentStatus.currentVersion,
+        nonPackageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
+      );
+
+      void assertHasFeature(String path, bool expected) {
+        _assertHasFeatureForPath(path, feature_a, expected);
+      }
+
+      assertHasFeature('/packages/aaa/lib/a.dart', true);
+      assertHasFeature('/packages/aaa/bin/b.dart', true);
+      assertHasFeature('/packages/aaa/test/c.dart', true);
+
+      assertHasFeature('/packages/bbb/lib/a.dart', false);
+      assertHasFeature('/packages/bbb/bin/b.dart', false);
+      assertHasFeature('/packages/bbb/test/c.dart', false);
+
+      assertHasFeature('/other/file.dart', false);
+    });
+  }
+
+  test_getFeatureSet_defaultForContext_hasExperiment() {
+    var feature_a = ExperimentalFeature(
+      index: 0,
+      enableString: 'a',
+      isEnabledByDefault: false,
+      isExpired: false,
+      documentation: 'a',
+      experimentalReleaseVersion: Version.parse('2.12.0'),
+      releaseVersion: null,
     );
 
-    _assertNonNullableForPath('/packages/aaa/a.dart', false);
-    _assertNonNullableForPath('/packages/aaa/lib/b.dart', false);
-    _assertNonNullableForPath('/packages/aaa/test/c.dart', false);
+    var packages = Packages(
+      {
+        'aaa': Package(
+          name: 'aaa',
+          rootFolder: newFolder('/packages/aaa'),
+          libFolder: newFolder('/packages/aaa/lib'),
+          languageVersion: null,
+        ),
+        'bbb': Package(
+          name: 'bbb',
+          rootFolder: newFolder('/packages/bbb'),
+          libFolder: newFolder('/packages/bbb/lib'),
+          languageVersion: Version(2, 12, 0),
+        ),
+      },
+    );
 
-    _assertNonNullableForPath('/packages/bbb/a.dart', false);
-    _assertNonNullableForPath('/packages/bbb/lib/b.dart', false);
-    _assertNonNullableForPath('/packages/bbb/test/c.dart', false);
+    _createSourceFactory(
+      packageUriResolver: _createPackageMapUriResolver(packages),
+    );
 
-    _assertNonNullableForPath('/packages/ccc/a.dart', false);
-    _assertNonNullableForPath('/packages/ccc/lib/b.dart', false);
-    _assertNonNullableForPath('/packages/ccc/test/c.dart', false);
+    overrideKnownFeatures({'a': feature_a}, () {
+      provider = FeatureSetProvider.build(
+        sourceFactory: sourceFactory,
+        resourceProvider: resourceProvider,
+        packages: packages,
+        packageDefaultFeatureSet: FeatureSet.fromEnableFlags2(
+          sdkLanguageVersion: Version.parse('2.12.0'),
+          flags: [feature_a.enableString],
+        ),
+        nonPackageDefaultLanguageVersion: ExperimentStatus.currentVersion,
+        nonPackageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
+      );
 
-    _assertNonNullableForPath('/other/file.dart', false);
+      void assertHasFeature(String path, bool expected) {
+        _assertHasFeatureForPath(path, feature_a, expected);
+      }
+
+      assertHasFeature('/packages/aaa/a.dart', true);
+      assertHasFeature('/packages/aaa/lib/b.dart', true);
+      assertHasFeature('/packages/aaa/test/c.dart', true);
+
+      assertHasFeature('/packages/bbb/a.dart', true);
+      assertHasFeature('/packages/bbb/lib/b.dart', true);
+      assertHasFeature('/packages/bbb/test/c.dart', true);
+    });
+  }
+
+  test_getFeatureSet_defaultForContext_noExperiments() {
+    var feature_a = ExperimentalFeature(
+      index: 0,
+      enableString: 'a',
+      isEnabledByDefault: false,
+      isExpired: false,
+      documentation: 'a',
+      experimentalReleaseVersion: Version.parse('2.12.0'),
+      releaseVersion: null,
+    );
+
+    var packages = Packages(
+      {
+        'aaa': Package(
+          name: 'aaa',
+          rootFolder: newFolder('/packages/aaa'),
+          libFolder: newFolder('/packages/aaa/lib'),
+          languageVersion: null,
+        ),
+        'bbb': Package(
+          name: 'bbb',
+          rootFolder: newFolder('/packages/bbb'),
+          libFolder: newFolder('/packages/bbb/lib'),
+          languageVersion: Version(2, 12, 0),
+        ),
+      },
+    );
+
+    _createSourceFactory(
+      packageUriResolver: _createPackageMapUriResolver(packages),
+    );
+
+    overrideKnownFeatures({'a': feature_a}, () {
+      provider = FeatureSetProvider.build(
+        sourceFactory: sourceFactory,
+        resourceProvider: resourceProvider,
+        packages: packages,
+        packageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
+        nonPackageDefaultLanguageVersion: ExperimentStatus.currentVersion,
+        nonPackageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
+      );
+
+      void assertHasFeature(String path, bool expected) {
+        _assertHasFeatureForPath(path, feature_a, expected);
+      }
+
+      assertHasFeature('/packages/aaa/a.dart', false);
+      assertHasFeature('/packages/aaa/lib/b.dart', false);
+      assertHasFeature('/packages/aaa/test/c.dart', false);
+
+      assertHasFeature('/packages/bbb/a.dart', false);
+      assertHasFeature('/packages/bbb/lib/b.dart', false);
+      assertHasFeature('/packages/bbb/test/c.dart', false);
+    });
   }
 
   test_packages_contextExperiments_nested() {
@@ -226,38 +305,6 @@ class FeatureSetProviderTest with ResourceProviderMixin {
       posixPath: '/packages/ddd/d.dart',
       expected: ExperimentStatus.currentVersion,
     );
-  }
-
-  test_packages_contextExperiments_nonNullable() {
-    var packages = Packages(
-      {
-        'aaa': Package(
-          name: 'aaa',
-          rootFolder: newFolder('/packages/aaa'),
-          libFolder: newFolder('/packages/aaa/lib'),
-          languageVersion: null,
-        ),
-      },
-    );
-
-    _createSourceFactory(
-      packageUriResolver: _createPackageMapUriResolver(packages),
-    );
-
-    provider = FeatureSetProvider.build(
-      sourceFactory: sourceFactory,
-      resourceProvider: resourceProvider,
-      packages: packages,
-      packageDefaultFeatureSet: ExperimentStatus.latestWithNullSafety,
-      nonPackageDefaultLanguageVersion: ExperimentStatus.currentVersion,
-      nonPackageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
-    );
-
-    _assertNonNullableForPath('/packages/aaa/a.dart', true);
-    _assertNonNullableForPath('/packages/aaa/lib/b.dart', true);
-    _assertNonNullableForPath('/packages/aaa/test/c.dart', true);
-
-    _assertNonNullableForPath('/other/file.dart', false);
   }
 
   test_sdk_allowedExperiments_default() {
@@ -366,9 +413,9 @@ class FeatureSetProviderTest with ResourceProviderMixin {
     expect(featureSet.isEnabled(Feature.non_nullable), isTrue);
   }
 
-  void _assertNonNullableForPath(String path, bool expected) {
+  _assertHasFeatureForPath(String path, Feature feature, bool expected) {
     var featureSet = _getPathFeatureSet(path);
-    expect(featureSet.isEnabled(Feature.non_nullable), expected);
+    expect(featureSet.isEnabled(feature), expected);
   }
 
   PackageMapUriResolver _createPackageMapUriResolver(Packages packages) {

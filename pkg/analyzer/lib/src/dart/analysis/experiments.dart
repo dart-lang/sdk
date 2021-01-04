@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments_impl.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
@@ -42,11 +44,11 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
   static final Version testingSdkLanguageVersion = Version.parse('2.10.0');
 
   /// The latest known language version.
-  static final Version latestSdkLanguageVersion = Version.parse('2.10.0');
+  static final Version latestSdkLanguageVersion = Version.parse('2.12.0');
 
   static final FeatureSet latestWithNullSafety = ExperimentStatus.fromStrings2(
     sdkLanguageVersion: latestSdkLanguageVersion,
-    flags: [EnableString.non_nullable],
+    flags: [],
   );
 
   /// A map containing information about all known experimental flags.
@@ -92,14 +94,36 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
     );
   }
 
-  factory ExperimentStatus.fromStorage(List<int> encoded) {
-    var allFlags = encoded.skip(2).map((e) => e != 0).toList();
-    var featureCount = allFlags.length ~/ 3;
+  factory ExperimentStatus.fromStorage(Uint8List encoded) {
+    var byteIndex = 0;
+
+    int getByte() {
+      return encoded[byteIndex++];
+    }
+
+    List<bool> getBoolList(int length) {
+      var result = List<bool>.filled(length, false);
+      var byteValue = 0;
+      var bitIndex = 0;
+      for (var i = 0; i < length; i++) {
+        if (bitIndex == 0) {
+          byteValue = getByte();
+        }
+        if ((byteValue & (1 << bitIndex)) != 0) {
+          result[i] = true;
+        }
+        bitIndex = (bitIndex + 1) % 8;
+      }
+      return result;
+    }
+
+    var sdkLanguageVersion = Version(getByte(), getByte(), 0);
+    var featureCount = getByte();
     return ExperimentStatus._(
-      Version(encoded[0], encoded[1], 0),
-      allFlags.sublist(0, featureCount),
-      allFlags.sublist(featureCount, featureCount * 2),
-      allFlags.sublist(featureCount * 2, featureCount * 3),
+      sdkLanguageVersion,
+      getBoolList(featureCount),
+      getBoolList(featureCount),
+      getBoolList(featureCount),
     );
   }
 
@@ -210,14 +234,43 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
   }
 
   /// Encode into the format suitable for [ExperimentStatus.fromStorage].
-  List<int> toStorage() {
-    return [
-      _sdkLanguageVersion.major,
-      _sdkLanguageVersion.minor,
-      ..._explicitEnabledFlags.map((e) => e ? 1 : 0),
-      ..._explicitDisabledFlags.map((e) => e ? 1 : 0),
-      ..._flags.map((e) => e ? 1 : 0),
-    ];
+  Uint8List toStorage() {
+    var result = Uint8List(16);
+    var resultIndex = 0;
+
+    void addByte(int value) {
+      assert(value >= 0 && value < 256);
+      result[resultIndex++] = value;
+    }
+
+    addByte(_sdkLanguageVersion.major);
+    addByte(_sdkLanguageVersion.minor);
+
+    void addBoolList(List<bool> values) {
+      var byteValue = 0;
+      var bitIndex = 0;
+      for (var value in values) {
+        if (value) {
+          byteValue |= 1 << bitIndex;
+        }
+        bitIndex++;
+        if (bitIndex == 8) {
+          addByte(byteValue);
+          byteValue = 0;
+          bitIndex = 0;
+        }
+      }
+      if (bitIndex != 0) {
+        addByte(byteValue);
+      }
+    }
+
+    addByte(_flags.length);
+    addBoolList(_explicitEnabledFlags);
+    addBoolList(_explicitDisabledFlags);
+    addBoolList(_flags);
+
+    return result.sublist(0, resultIndex);
   }
 
   @override

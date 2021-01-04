@@ -1906,10 +1906,15 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // are calling does not expose this.
     _state.markThisAsExposed();
 
-    MemberEntity member =
-        _elementMap.getSuperMember(_analyzedMember, node.name);
-    assert(member != null, "No member found for super property get: $node");
+    ir.Member target = getEffectiveSuperTarget(node.interfaceTarget);
     Selector selector = new Selector.getter(_elementMap.getName(node.name));
+    if (target == null) {
+      // TODO(johnniwinther): Remove this when the CFE checks for missing
+      //  concrete super targets.
+      return handleSuperNoSuchMethod(node, selector, null);
+    }
+    MemberEntity member = _elementMap.getMember(target);
+    assert(member != null, "No member found for super property get: $node");
     TypeInformation type = handleStaticInvoke(node, selector, member, null);
     if (member.isGetter) {
       FunctionType functionType =
@@ -1937,11 +1942,16 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     _state.markThisAsExposed();
 
     TypeInformation rhsType = visit(node.value);
-    MemberEntity member =
-        _elementMap.getSuperMember(_analyzedMember, node.name, setter: true);
-    assert(member != null, "No member found for super property set: $node");
+    ir.Member target = getEffectiveSuperTarget(node.interfaceTarget);
     Selector selector = new Selector.setter(_elementMap.getName(node.name));
     ArgumentsTypes arguments = new ArgumentsTypes([rhsType], null);
+    if (target == null) {
+      // TODO(johnniwinther): Remove this when the CFE checks for missing
+      //  concrete super targets.
+      return handleSuperNoSuchMethod(node, selector, arguments);
+    }
+    MemberEntity member = _elementMap.getMember(target);
+    assert(member != null, "No member found for super property set: $node");
     handleStaticInvoke(node, selector, member, arguments);
     return rhsType;
   }
@@ -1952,29 +1962,29 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // are calling does not expose this.
     _state.markThisAsExposed();
 
-    MemberEntity member =
-        _elementMap.getSuperMember(_analyzedMember, node.name);
+    ir.Member target = getEffectiveSuperTarget(node.interfaceTarget);
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = _elementMap.getSelector(node);
-    if (member == null) {
-      // TODO(johnniwinther): This shouldn't be necessary.
+    if (target == null) {
+      // TODO(johnniwinther): Remove this when the CFE checks for missing
+      //  concrete super targets.
+      return handleSuperNoSuchMethod(node, selector, arguments);
+    }
+    MemberEntity member = _elementMap.getMember(target);
+    assert(member.isFunction, "Unexpected super invocation target: $member");
+    if (isIncompatibleInvoke(member, arguments)) {
       return handleSuperNoSuchMethod(node, selector, arguments);
     } else {
-      assert(member.isFunction, "Unexpected super invocation target: $member");
-      if (isIncompatibleInvoke(member, arguments)) {
-        return handleSuperNoSuchMethod(node, selector, arguments);
-      } else {
-        TypeInformation type =
-            handleStaticInvoke(node, selector, member, arguments);
-        FunctionType functionType =
-            _elementMap.elementEnvironment.getFunctionType(member);
-        if (functionType.returnType.containsFreeTypeVariables) {
-          // The return type varies with the call site so we narrow the static
-          // return type.
-          type = _types.narrowType(type, _getStaticType(node));
-        }
-        return type;
+      TypeInformation type =
+          handleStaticInvoke(node, selector, member, arguments);
+      FunctionType functionType =
+          _elementMap.elementEnvironment.getFunctionType(member);
+      if (functionType.returnType.containsFreeTypeVariables) {
+        // The return type varies with the call site so we narrow the static
+        // return type.
+        type = _types.narrowType(type, _getStaticType(node));
       }
+      return type;
     }
   }
 

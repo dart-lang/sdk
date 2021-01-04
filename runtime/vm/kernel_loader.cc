@@ -29,6 +29,7 @@ namespace kernel {
 
 #define Z (zone_)
 #define I (isolate_)
+#define IG (isolate_->group())
 #define T (type_translator_)
 #define H (translation_helper_)
 
@@ -214,6 +215,7 @@ KernelLoader::KernelLoader(Program* program,
       external_name_field_(Field::Handle(Z)),
       potential_natives_(GrowableObjectArray::Handle(Z)),
       potential_pragma_functions_(GrowableObjectArray::Handle(Z)),
+      static_field_value_(Instance::Handle(Z)),
       pragma_class_(Class::Handle(Z)),
       name_index_handle_(Smi::Handle(Z)),
       expression_evaluation_library_(Library::Handle(Z)) {
@@ -479,6 +481,7 @@ KernelLoader::KernelLoader(const Script& script,
       external_name_field_(Field::Handle(Z)),
       potential_natives_(GrowableObjectArray::Handle(Z)),
       potential_pragma_functions_(GrowableObjectArray::Handle(Z)),
+      static_field_value_(Instance::Handle(Z)),
       pragma_class_(Class::Handle(Z)),
       name_index_handle_(Smi::Handle(Z)),
       expression_evaluation_library_(Library::Handle(Z)) {
@@ -691,7 +694,7 @@ void KernelLoader::LoadNativeExtensionLibraries() {
       // Dart_GetImportsOfScheme('dart-ext').
       const auto& native_library = Library::Handle(Library::New(uri_path));
       library.AddImport(Namespace::Handle(Namespace::New(
-          native_library, Array::null_array(), Array::null_array())));
+          native_library, Array::null_array(), Array::null_array(), library)));
     }
   }
 }
@@ -768,6 +771,9 @@ ObjectPtr KernelLoader::LoadProgram(bool process_pending_classes) {
 }
 
 void KernelLoader::LoadLibrary(const Library& library) {
+  // This will be invoked by VM bootstrapping code.
+  SafepointWriteRwLocker ml(thread_, thread_->isolate_group()->program_lock());
+
   ASSERT(!library.Loaded());
 
   const auto& uri = String::Handle(Z, library.url());
@@ -964,8 +970,8 @@ void KernelLoader::CheckForInitializer(const Field& field) {
         converter.IsSimple(helper_.ReaderOffset() + 1);
     if (!has_simple_initializer || !converter.SimpleValue().IsNull()) {
       field.set_has_nontrivial_initializer(true);
-      return;
     }
+    return;
   }
   field.set_has_initializer(false);
   field.set_has_nontrivial_initializer(false);
@@ -1119,8 +1125,7 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
 
   if (FLAG_enable_mirrors && annotation_count > 0) {
     ASSERT(annotations_kernel_offset > 0);
-    library.AddLibraryMetadata(toplevel_class, TokenPosition::kNoSource,
-                               annotations_kernel_offset);
+    library.AddMetadata(library, annotations_kernel_offset);
   }
 
   if (register_class) {
@@ -1234,14 +1239,18 @@ void KernelLoader::FinishTopLevelClassLoading(
     field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
     intptr_t field_initializer_offset = helper_.ReaderOffset();
     field_helper.ReadUntilExcluding(FieldHelper::kEnd);
+
     {
       // GenerateFieldAccessors reads (some of) the initializer.
       AlternativeReadingScope alt(&helper_.reader_, field_initializer_offset);
-      GenerateFieldAccessors(toplevel_class, field, &field_helper);
+      static_field_value_ =
+          GenerateFieldAccessors(toplevel_class, field, &field_helper);
     }
+    IG->RegisterStaticField(field, static_field_value_);
+
     if ((FLAG_enable_mirrors || has_pragma_annotation) &&
         annotation_count > 0) {
-      library.AddFieldMetadata(field, TokenPosition::kNoSource, field_offset);
+      library.AddMetadata(field, field_offset);
     }
     fields_.Add(&field);
   }
@@ -1359,7 +1368,7 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
           "import of dart:ffi is not supported in the current Dart runtime");
     }
     String& prefix = H.DartSymbolPlain(dependency_helper.name_index_);
-    ns = Namespace::New(target_library, show_names, hide_names);
+    ns = Namespace::New(target_library, show_names, hide_names, *library);
     if ((dependency_helper.flags_ & LibraryDependencyHelper::Export) != 0) {
       library->AddExport(ns);
     } else {
@@ -1382,8 +1391,7 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
 
     if (FLAG_enable_mirrors && dependency_helper.annotation_count_ > 0) {
       ASSERT(annotations_kernel_offset > 0);
-      ns.AddMetadata(toplevel_class, TokenPosition::kNoSource,
-                     annotations_kernel_offset);
+      library->AddMetadata(ns, annotations_kernel_offset);
     }
 
     if (prefix.IsNull()) {
@@ -1504,9 +1512,7 @@ void KernelLoader::LoadClass(const Library& library,
   }
 
   if ((FLAG_enable_mirrors || has_pragma_annotation) && annotation_count > 0) {
-    library.AddClassMetadata(*out_class, toplevel_class,
-                             TokenPosition::kNoSource,
-                             class_offset - correction_offset_);
+    library.AddMetadata(*out_class, class_offset - correction_offset_);
   }
 
   // We do not register expression evaluation classes with the VM:
@@ -1606,14 +1612,19 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
       intptr_t field_initializer_offset = helper_.ReaderOffset();
       field_helper.ReadUntilExcluding(FieldHelper::kEnd);
+
       {
         // GenerateFieldAccessors reads (some of) the initializer.
         AlternativeReadingScope alt(&helper_.reader_, field_initializer_offset);
-        GenerateFieldAccessors(klass, field, &field_helper);
+        static_field_value_ =
+            GenerateFieldAccessors(klass, field, &field_helper);
+      }
+      if (field.is_static()) {
+        IG->RegisterStaticField(field, static_field_value_);
       }
       if ((FLAG_enable_mirrors || has_pragma_annotation) &&
           annotation_count > 0) {
-        library.AddFieldMetadata(field, TokenPosition::kNoSource, field_offset);
+        library.AddMetadata(field, field_offset);
       }
       fields_.Add(&field);
     }
@@ -1631,7 +1642,24 @@ void KernelLoader::FinishClassLoading(const Class& klass,
                      /* is_reflectable = */ false,
                      /* is_late = */ false, klass, Object::dynamic_type(),
                      TokenPosition::kNoSource, TokenPosition::kNoSource);
+      IG->RegisterStaticField(deleted_enum_sentinel, Instance::Handle());
       fields_.Add(&deleted_enum_sentinel);
+    }
+
+    // TODO(https://dartbug.com/44454): Make VM recognize the Struct class.
+    //
+    // The FfiTrampolines currently allocate subtypes of structs and store
+    // TypedData in them, without using guards because they are force
+    // optimized. We immediately set the guarded_cid_ to kDynamicCid, which
+    // is effectively the same as calling this method first with Pointer and
+    // subsequently with TypedData with field guards.
+    if (klass.Name() == Symbols::Struct().raw() &&
+        Library::Handle(Z, klass.library()).url() == Symbols::DartFfi().raw()) {
+      ASSERT(fields_.length() == 1);
+      ASSERT(String::Handle(Z, fields_[0]->name())
+                 .StartsWith(Symbols::_addressOf()));
+      fields_[0]->set_guarded_cid(kDynamicCid);
+      fields_[0]->set_is_nullable(true);
     }
 
     // Due to ReadVMAnnotations(), the klass may have been loaded at this point
@@ -1711,8 +1739,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
 
     if ((FLAG_enable_mirrors || has_pragma_annotation) &&
         annotation_count > 0) {
-      library.AddFunctionMetadata(function, TokenPosition::kNoSource,
-                                  constructor_offset);
+      library.AddMetadata(function, constructor_offset);
     }
   }
 
@@ -2036,8 +2063,7 @@ void KernelLoader::LoadProcedure(const Library& library,
   helper_.SetOffset(procedure_end);
 
   if (annotation_count > 0) {
-    library.AddFunctionMetadata(function, TokenPosition::kNoSource,
-                                procedure_offset);
+    library.AddMetadata(function, procedure_offset);
   }
 
   if (has_pragma_annotation) {
@@ -2086,6 +2112,10 @@ ScriptPtr KernelLoader::LoadScriptAt(intptr_t index,
   const String& uri_string = helper_.SourceTableUriFor(index);
   const String& import_uri_string =
       helper_.SourceTableImportUriFor(index, program_->binary_version());
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  ExternalTypedData& constant_coverage =
+      ExternalTypedData::Handle(Z, helper_.GetConstantCoverageFor(index));
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
   String& sources = String::Handle(Z);
   TypedData& line_starts = TypedData::Handle(Z);
@@ -2131,24 +2161,26 @@ ScriptPtr KernelLoader::LoadScriptAt(intptr_t index,
   script.set_kernel_script_index(index);
   script.set_kernel_program_info(kernel_program_info_);
   script.set_line_starts(line_starts);
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  script.set_constant_coverage(constant_coverage);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   script.set_debug_positions(Array::null_array());
   return script.raw();
 }
 
-void KernelLoader::GenerateFieldAccessors(const Class& klass,
-                                          const Field& field,
-                                          FieldHelper* field_helper) {
+InstancePtr KernelLoader::GenerateFieldAccessors(const Class& klass,
+                                                 const Field& field,
+                                                 FieldHelper* field_helper) {
   const Tag tag = helper_.PeekTag();
   const bool has_initializer = (tag == kSomething);
+
   if (has_initializer) {
     SimpleExpressionConverter converter(&H, &helper_);
     const bool has_simple_initializer =
         converter.IsSimple(helper_.ReaderOffset() + 1);  // ignore the tag.
     if (has_simple_initializer) {
       if (field_helper->IsStatic()) {
-        // We do not need a getter.
-        field.SetStaticValue(converter.SimpleValue(), true);
-        return;
+        return converter.SimpleValue().raw();
       } else {
         // Note: optimizer relies on DoubleInitialized bit in its field-unboxing
         // heuristics. See JitCallSpecializer::VisitStoreInstanceField for more
@@ -2166,12 +2198,8 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
     if (!has_initializer && !field_helper->IsLate()) {
       // Static fields without an initializer are implicitly initialized to
       // null. We do not need a getter.
-      field.SetStaticValue(Instance::null_instance(), true);
-      return;
+      return Instance::null();
     }
-
-    // We do need a getter that evaluates the initializer if necessary.
-    field.SetStaticValue(Object::sentinel(), true);
   }
   ASSERT(field.NeedsGetter());
 
@@ -2230,6 +2258,10 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
     T.SetupUnboxingInfoMetadataForFieldAccessors(setter,
                                                  library_kernel_offset_);
   }
+
+  // If static, we do need a getter that evaluates the initializer if necessary.
+  return field_helper->IsStatic() ? Instance::sentinel().raw()
+                                  : Instance::null();
 }
 
 LibraryPtr KernelLoader::LookupLibraryOrNull(NameIndex library) {

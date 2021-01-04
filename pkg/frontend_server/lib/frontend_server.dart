@@ -350,7 +350,7 @@ class FrontendCompiler implements CompilerInterface {
 
   final ProgramTransformer transformer;
 
-  final List<String> errors = List<String>();
+  final List<String> errors = <String>[];
 
   _onDiagnostic(DiagnosticMessage message) {
     bool printMessage;
@@ -888,8 +888,8 @@ class FrontendCompiler implements CompilerInterface {
       Component deltaProgram, Sink<List<int>> ioSink) {
     if (deltaProgram == null) return;
 
-    List<Library> packageLibraries = List<Library>();
-    List<Library> libraries = List<Library>();
+    List<Library> packageLibraries = <Library>[];
+    List<Library> libraries = <Library>[];
     deltaProgram.computeCanonicalNames();
 
     for (var lib in deltaProgram.libraries) {

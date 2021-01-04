@@ -28,7 +28,7 @@ abstract class SimpleEditCommandHandler
   }
 
   Future<ErrorOr<void>> sendSourceEditsToClient(
-      VersionedTextDocumentIdentifier docIdentifier,
+      OptionalVersionedTextDocumentIdentifier docIdentifier,
       CompilationUnit unit,
       List<SourceEdit> edits) async {
     // If there are no edits to apply, just complete the command without going

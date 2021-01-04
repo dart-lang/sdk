@@ -1,0 +1,21 @@
+class Class {
+  ---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+  Class.constructor1();
+  Class.constructor2(this.field);
+  Class.constructor3(int value) : this.field = value + 1;
+  Class.constructor4([this.field = 42]);
+  final int? field;
+}
+class Subclass extends Class {
+  Subclass.constructor1() : super.constructor1();
+  Subclass.constructor2(int value) : super.constructor2(value);
+  Subclass.constructor3(int value) : super.constructor3(value);
+  Subclass.constructor4([int value = 87]) : super.constructor4(value);
+}
+expect(expected, actual) {}
+main() {}
+test1() {}
+test2() {}
+throws(f(), String message) {}
