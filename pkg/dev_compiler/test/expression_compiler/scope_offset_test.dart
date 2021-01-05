@@ -5,7 +5,6 @@
 // @dart = 2.9
 
 import 'package:dev_compiler/src/kernel/expression_compiler.dart';
-import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:kernel/ast.dart';
