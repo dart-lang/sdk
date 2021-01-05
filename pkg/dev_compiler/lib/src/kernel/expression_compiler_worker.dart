@@ -8,12 +8,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart';
-import 'package:_fe_analyzer_shared/src/messages/severity.dart';
 import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
-import 'package:front_end/src/api_prototype/compiler_options.dart';
-import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:kernel/ast.dart' show Component, Library;

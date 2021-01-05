@@ -196,7 +196,8 @@ class GnWorkspaceTest with ResourceProviderMixin {
     expect(workspace, isNotNull);
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.packageMap.length, 1);
-    expect(workspace.packageMap['flutter'][0].path, "$packageLocation/lib");
+    expect(workspace.packageMap['flutter'][0].path,
+        convertPath("$packageLocation/lib"));
   }
 
   void test_packages_absoluteBuildDir() {
@@ -225,7 +226,8 @@ class GnWorkspaceTest with ResourceProviderMixin {
     expect(workspace, isNotNull);
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.packageMap.length, 1);
-    expect(workspace.packageMap['flutter'][0].path, "$packageLocation/lib");
+    expect(workspace.packageMap['flutter'][0].path,
+        convertPath("$packageLocation/lib"));
   }
 
   void test_packages_fallbackBuildDir() {
@@ -252,7 +254,8 @@ class GnWorkspaceTest with ResourceProviderMixin {
     expect(workspace, isNotNull);
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.packageMap.length, 1);
-    expect(workspace.packageMap['flutter'][0].path, "$packageLocation/lib");
+    expect(workspace.packageMap['flutter'][0].path,
+        convertPath("$packageLocation/lib"));
   }
 
   void test_packages_fallbackBuildDirWithUselessConfig() {
@@ -280,7 +283,8 @@ class GnWorkspaceTest with ResourceProviderMixin {
     expect(workspace, isNotNull);
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.packageMap.length, 1);
-    expect(workspace.packageMap['flutter'][0].path, "$packageLocation/lib");
+    expect(workspace.packageMap['flutter'][0].path,
+        convertPath("$packageLocation/lib"));
   }
 
   void test_packages_multipleCandidates() {
@@ -325,8 +329,8 @@ class GnWorkspaceTest with ResourceProviderMixin {
     expect(workspace, isNotNull);
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.packageMap.length, 1);
-    expect(
-        workspace.packageMap['rettulf'][0].path, "$otherPackageLocation/lib2");
+    expect(workspace.packageMap['rettulf'][0].path,
+        convertPath("$otherPackageLocation/lib2"));
   }
 
   void test_packages_multipleFiles() {
@@ -371,9 +375,9 @@ class GnWorkspaceTest with ResourceProviderMixin {
     expect(workspace, isNotNull);
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.packageMap.length, 2);
-    expect(
-        workspace.packageMap['flutter'][0].path, "$packageOneLocation/one/lib");
-    expect(
-        workspace.packageMap['rettulf'][0].path, "$packageTwoLocation/two/lib");
+    expect(workspace.packageMap['flutter'][0].path,
+        convertPath("$packageOneLocation/one/lib"));
+    expect(workspace.packageMap['rettulf'][0].path,
+        convertPath("$packageTwoLocation/two/lib"));
   }
 }

@@ -10,8 +10,6 @@ import 'package:cli_util/cli_util.dart';
 import 'package:dev_compiler/dev_compiler.dart';
 import 'package:dev_compiler/src/compiler/module_builder.dart';
 import 'package:front_end/src/api_unstable/ddc.dart';
-import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions;
 import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:front_end/src/fasta/incremental_serializer.dart';
 import 'package:kernel/ast.dart' show Component, Library;
