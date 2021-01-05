@@ -29,18 +29,6 @@ class TestCommand extends DartdevCommand {
 
   @override
   FutureOr<int> run() async {
-    if (argResults.rest.contains('-h') || argResults.rest.contains('--help')) {
-      printUsage();
-      return 0;
-    }
-    if (!project.hasPubspecFile) {
-      log.stdout('''
-No pubspec.yaml file found; please run this command from the root of your project.
-''');
-
-      printUsage();
-      return 65;
-    }
     try {
       final testExecutable = await getExecutableForCommand('test:test');
       log.trace('dart $testExecutable ${argResults.rest.join(' ')}');
@@ -49,9 +37,19 @@ No pubspec.yaml file found; please run this command from the root of your projec
               join(current, '.dart_tool', 'package_config.json'));
       return 0;
     } on CommandResolutionFailedException catch (e) {
-      print(e.message);
-      print('You need to add a dependency on package:test.');
-      print('Try running `dart pub add test`.');
+      if (project.hasPubspecFile) {
+        print(e.message);
+        print('You need to add a dev_dependency on package:test.');
+        print('Try running `dart pub add --dev test`.');
+      } else {
+        print(
+            'No pubspec.yaml file found - run this command in your project folder.');
+      }
+      if (argResults.rest.contains('-h') ||
+          argResults.rest.contains('--help')) {
+        print('');
+        printUsage();
+      }
       return 65;
     }
   }

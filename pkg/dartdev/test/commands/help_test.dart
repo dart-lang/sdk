@@ -20,6 +20,7 @@ void help() {
   /// Commands not tested by the following loop.
   List<String> _commandsNotTested = <String>[
     'help', // `dart help help` is redundant
+    'test', // `dart help test` does not call `test:test --help`.
   ];
   DartdevRunner(['--no-analytics'])
       .commands
@@ -34,6 +35,16 @@ void help() {
         expect(result.stderr, contains(verbHelpResult.stderr));
       });
     }
+  });
+
+  test('(help test ~= test --help) outside project', () {
+    p = project();
+    p.deleteFile('pubspec.yaml');
+    var result = p.runSync(['help', 'test']);
+    var testHelpResult = p.runSync(['test', '--help']);
+
+    expect(testHelpResult.stdout, contains(result.stdout));
+    expect(testHelpResult.stderr, contains(result.stderr));
   });
 
   test('(help pub == pub --help)', () {
