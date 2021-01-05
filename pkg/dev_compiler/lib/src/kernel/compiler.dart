@@ -4997,9 +4997,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       Expression left, Member target, Expression right,
       {bool negated = false}) {
     var targetClass = target?.enclosingClass;
-    var leftType = targetClass != null
-        ? _coreTypes.legacyRawType(targetClass)
-        : left.getStaticType(_staticTypeContext);
+    var leftType = left.getStaticType(_staticTypeContext);
 
     // Conceptually `x == y` in Dart is defined as:
     //
