@@ -3819,6 +3819,8 @@ const Template<
         Message Function(String name)>(
     messageTemplate:
         r"""Field '#name' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution.""",
+    tipTemplate:
+        r"""Mark the field as external to avoid having to initialize it.""",
     withArguments: _withArgumentsFfiFieldInitializer);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3834,6 +3836,7 @@ Message _withArgumentsFfiFieldInitializer(String name) {
   return new Message(codeFfiFieldInitializer,
       message:
           """Field '${name}' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution.""",
+      tip: """Mark the field as external to avoid having to initialize it.""",
       arguments: {'name': name});
 }
 

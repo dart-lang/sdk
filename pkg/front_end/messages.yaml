@@ -4268,6 +4268,7 @@ FfiNotStatic:
 FfiFieldInitializer:
   # Used by dart:ffi
   template: "Field '#name' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution."
+  tip: "Mark the field as external to avoid having to initialize it."
   external: test/ffi_test.dart
 
 FfiExtendsOrImplementsSealedClass:
