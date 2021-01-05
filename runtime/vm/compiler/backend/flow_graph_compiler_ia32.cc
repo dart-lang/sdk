@@ -475,11 +475,14 @@ void FlowGraphCompiler::EmitFrameEntry() {
   }
 }
 
-static const InstructionSource kPrologueSource(TokenPosition::kDartCodePrologue,
-                                               /*inlining_id=*/0);
+const InstructionSource& PrologueSource() {
+  static InstructionSource prologue_source(TokenPosition::kDartCodePrologue,
+                                           /*inlining_id=*/0);
+  return prologue_source;
+}
 
 void FlowGraphCompiler::EmitPrologue() {
-  BeginCodeSourceRange(kPrologueSource);
+  BeginCodeSourceRange(PrologueSource());
 
   EmitFrameEntry();
 
@@ -507,7 +510,7 @@ void FlowGraphCompiler::EmitPrologue() {
     }
   }
 
-  EndCodeSourceRange(kPrologueSource);
+  EndCodeSourceRange(PrologueSource());
 }
 
 void FlowGraphCompiler::CompileGraph() {

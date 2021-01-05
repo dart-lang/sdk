@@ -68,6 +68,12 @@ dev_dependencies:
     file.writeAsStringSync(contents);
   }
 
+  void deleteFile(String name) {
+    var file = File(path.join(dir.path, name));
+    assert(file.existsSync());
+    file.deleteSync();
+  }
+
   void dispose() {
     if (dir.existsSync()) {
       dir.deleteSync(recursive: true);

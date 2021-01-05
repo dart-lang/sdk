@@ -398,14 +398,23 @@ void f(A a) {}
   }
 
   void _writeWorkspacePackagesFile(Map<String, String> nameToLibPath) {
-    var builder = StringBuffer();
-    for (var entry in nameToLibPath.entries) {
-      builder.writeln('${entry.key}:${toUriStr(entry.value)}');
-    }
+    var packages = nameToLibPath.entries.map((entry) => '''{
+    "languageVersion": "2.2",
+    "name": "${entry.key}",
+    "packageUri": ".",
+    "rootUri": "${toUriStr(entry.value)}"
+  }''');
 
     var buildDir = 'out/debug-x87_128';
     var genPath = '$workspaceRootPath/$buildDir/dartlang/gen';
-    newFile('$genPath/foo.packages', content: builder.toString());
+    newFile('$genPath/foo_package_config.json', content: '''{
+  "configVersion": 2,
+  "packages": [ ${packages.join(', ')} ]
+}''');
+    print('''{
+  "configVersion": 2,
+  "packages": [ ${packages.join(', ')} ]
+}''');
   }
 }
 

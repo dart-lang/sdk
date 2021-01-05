@@ -106,10 +106,25 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
     newFolder('/ws/.jiri_root');
     String buildDir = convertPath('out/debug-x87_128');
     newFile('/ws/.fx-build-dir', content: '$buildDir\n');
-    newFile('/ws/out/debug-x87_128/dartlang/gen/some/code/foo.packages',
-        content: '''
-p1:file:///some/path/lib/
-workspace:lib/''');
+    newFile(
+        '/ws/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json',
+        content: '''{
+  "configVersion": 2,
+  "packages": [
+    {
+      "languageVersion": "2.2",
+      "name": "p1",
+      "packageUri": "lib",
+      "rootUri": "some/path/"
+    },
+    {
+      "languageVersion": "2.2",
+      "name": "workspace",
+      "packageUri": "lib",
+      "rootUri": ""
+    }
+  ]
+}''');
     newFolder('/ws/some/code');
     var gnWorkspace =
         GnWorkspace.find(resourceProvider, convertPath('/ws/some/code'));
@@ -147,7 +162,8 @@ class GnWorkspaceTest with ResourceProviderMixin {
     newFile('/workspace/some/code/pubspec.yaml');
     String buildDir = convertPath('out/debug-x87_128');
     newFile('/workspace/.fx-build-dir', content: '$buildDir\n');
-    newFile('/workspace/out/debug-x87_128/dartlang/gen/some/code/foo.packages');
+    newFile(
+        '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json');
     GnWorkspace workspace =
         GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'));
     expect(workspace, isNotNull);
@@ -162,14 +178,25 @@ class GnWorkspaceTest with ResourceProviderMixin {
     newFile('/workspace/.fx-build-dir', content: '$buildDir\n');
     String packageLocation = convertPath('/workspace/this/is/the/package');
     Uri packageUri = resourceProvider.pathContext.toUri(packageLocation);
-    newFile('/workspace/out/debug-x87_128/dartlang/gen/some/code/foo.packages',
-        content: 'flutter:$packageUri');
+    newFile(
+        '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json',
+        content: '''{
+  "configVersion": 2,
+  "packages": [
+    {
+      "languageVersion": "2.2",
+      "name": "flutter",
+      "packageUri": "lib",
+      "rootUri": "$packageUri"
+    }
+  ]
+}''');
     GnWorkspace workspace =
         GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'));
     expect(workspace, isNotNull);
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.packageMap.length, 1);
-    expect(workspace.packageMap['flutter'][0].path, packageLocation);
+    expect(workspace.packageMap['flutter'][0].path, "$packageLocation/lib");
   }
 
   void test_packages_absoluteBuildDir() {
@@ -180,14 +207,25 @@ class GnWorkspaceTest with ResourceProviderMixin {
     newFile('/workspace/.fx-build-dir', content: '$buildDir\n');
     String packageLocation = convertPath('/workspace/this/is/the/package');
     Uri packageUri = resourceProvider.pathContext.toUri(packageLocation);
-    newFile('/workspace/out/debug-x87_128/dartlang/gen/some/code/foo.packages',
-        content: 'flutter:$packageUri');
+    newFile(
+        '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json',
+        content: '''{
+  "configVersion": 2,
+  "packages": [
+    {
+      "languageVersion": "2.2",
+      "name": "flutter",
+      "packageUri": "lib",
+      "rootUri": "$packageUri"
+    }
+  ]
+}''');
     GnWorkspace workspace =
         GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'));
     expect(workspace, isNotNull);
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.packageMap.length, 1);
-    expect(workspace.packageMap['flutter'][0].path, packageLocation);
+    expect(workspace.packageMap['flutter'][0].path, "$packageLocation/lib");
   }
 
   void test_packages_fallbackBuildDir() {
@@ -196,14 +234,25 @@ class GnWorkspaceTest with ResourceProviderMixin {
     newFile('/workspace/some/code/pubspec.yaml');
     String packageLocation = convertPath('/workspace/this/is/the/package');
     Uri packageUri = resourceProvider.pathContext.toUri(packageLocation);
-    newFile('/workspace/out/debug-x87_128/dartlang/gen/some/code/foo.packages',
-        content: 'flutter:$packageUri');
+    newFile(
+        '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json',
+        content: '''{
+  "configVersion": 2,
+  "packages": [
+    {
+      "languageVersion": "2.2",
+      "name": "flutter",
+      "packageUri": "lib",
+      "rootUri": "$packageUri"
+    }
+  ]
+}''');
     GnWorkspace workspace =
         GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'));
     expect(workspace, isNotNull);
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.packageMap.length, 1);
-    expect(workspace.packageMap['flutter'][0].path, packageLocation);
+    expect(workspace.packageMap['flutter'][0].path, "$packageLocation/lib");
   }
 
   void test_packages_fallbackBuildDirWithUselessConfig() {
@@ -213,14 +262,25 @@ class GnWorkspaceTest with ResourceProviderMixin {
     newFile('/workspace/.fx-build-dir', content: '');
     String packageLocation = convertPath('/workspace/this/is/the/package');
     Uri packageUri = resourceProvider.pathContext.toUri(packageLocation);
-    newFile('/workspace/out/debug-x87_128/dartlang/gen/some/code/foo.packages',
-        content: 'flutter:$packageUri');
+    newFile(
+        '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json',
+        content: '''{
+  "configVersion": 2,
+  "packages": [
+    {
+      "languageVersion": "2.2",
+      "name": "flutter",
+      "packageUri": "lib",
+      "rootUri": "$packageUri"
+    }
+  ]
+}''');
     GnWorkspace workspace =
         GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'));
     expect(workspace, isNotNull);
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.packageMap.length, 1);
-    expect(workspace.packageMap['flutter'][0].path, packageLocation);
+    expect(workspace.packageMap['flutter'][0].path, "$packageLocation/lib");
   }
 
   void test_packages_multipleCandidates() {
@@ -231,20 +291,42 @@ class GnWorkspaceTest with ResourceProviderMixin {
     newFile('/workspace/.fx-build-dir', content: '$buildDir\n');
     String packageLocation = convertPath('/workspace/this/is/the/package');
     Uri packageUri = resourceProvider.pathContext.toUri(packageLocation);
-    newFile('/workspace/out/debug-x87_128/dartlang/gen/some/code/foo.packages',
-        content: 'flutter:$packageUri');
+    newFile(
+        '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json',
+        content: '''{
+  "configVersion": 2,
+  "packages": [
+    {
+      "languageVersion": "2.2",
+      "name": "flutter",
+      "packageUri": "lib1",
+      "rootUri": "$packageUri"
+    }
+  ]
+}''');
     String otherPackageLocation = convertPath('/workspace/here/too');
     Uri otherPackageUri =
         resourceProvider.pathContext.toUri(otherPackageLocation);
     newFile(
-        '/workspace/out/release-y22_256/dartlang/gen/some/code/foo.packages',
-        content: 'rettulf:$otherPackageUri');
+        '/workspace/out/release-y22_256/dartlang/gen/some/code/foo_package_config.json',
+        content: '''{
+  "configVersion": 2,
+  "packages": [
+    {
+      "languageVersion": "2.2",
+      "name": "rettulf",
+      "packageUri": "lib2",
+      "rootUri": "$otherPackageUri"
+    }
+  ]
+}''');
     GnWorkspace workspace =
         GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'));
     expect(workspace, isNotNull);
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.packageMap.length, 1);
-    expect(workspace.packageMap['rettulf'][0].path, otherPackageLocation);
+    expect(
+        workspace.packageMap['rettulf'][0].path, "$otherPackageLocation/lib2");
   }
 
   void test_packages_multipleFiles() {
@@ -255,20 +337,43 @@ class GnWorkspaceTest with ResourceProviderMixin {
     newFile('/workspace/.fx-build-dir', content: '$buildDir\n');
     String packageOneLocation = convertPath('/workspace/this/is/the/package');
     Uri packageOneUri = resourceProvider.pathContext.toUri(packageOneLocation);
-    newFile('/workspace/out/debug-x87_128/dartlang/gen/some/code/foo.packages',
-        content: 'flutter:$packageOneUri');
+    newFile(
+        '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json',
+        content: '''{
+  "configVersion": 2,
+  "packages": [
+    {
+      "languageVersion": "2.2",
+      "name": "flutter",
+      "packageUri": "one/lib",
+      "rootUri": "$packageOneUri"
+    }
+  ]
+}''');
     String packageTwoLocation =
         convertPath('/workspace/this/is/the/other/package');
     Uri packageTwoUri = resourceProvider.pathContext.toUri(packageTwoLocation);
     newFile(
-        '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_test.packages',
-        content: 'rettulf:$packageTwoUri');
+        '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_test_package_config.json',
+        content: '''{
+  "configVersion": 2,
+  "packages": [
+    {
+      "languageVersion": "2.2",
+      "name": "rettulf",
+      "packageUri": "two/lib",
+      "rootUri": "$packageTwoUri"
+    }
+  ]
+}''');
     GnWorkspace workspace =
         GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'));
     expect(workspace, isNotNull);
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.packageMap.length, 2);
-    expect(workspace.packageMap['flutter'][0].path, packageOneLocation);
-    expect(workspace.packageMap['rettulf'][0].path, packageTwoLocation);
+    expect(
+        workspace.packageMap['flutter'][0].path, "$packageOneLocation/one/lib");
+    expect(
+        workspace.packageMap['rettulf'][0].path, "$packageTwoLocation/two/lib");
   }
 }

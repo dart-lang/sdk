@@ -46,7 +46,8 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode FIELD_IN_STRUCT_WITH_INITIALIZER = FfiCode(
       name: 'FIELD_IN_STRUCT_WITH_INITIALIZER',
       message: "Fields in subclasses of 'Struct' can't have initializers.",
-      correction: "Try removing the initializer.");
+      correction:
+          "Try removing the initializer and marking the field as external.");
 
   /**
    * No parameters.
@@ -55,7 +56,8 @@ class FfiCode extends AnalyzerErrorCode {
       name: 'FIELD_INITIALIZER_IN_STRUCT',
       message: "Constructors in subclasses of 'Struct' can't have field "
           "initializers.",
-      correction: "Try removing the field initializer.");
+      correction: "Try removing the field initializer and marking the field as"
+          " external.");
 
   /**
    * Parameters:
