@@ -1546,19 +1546,6 @@ class HintCode extends AnalyzerErrorCode {
       hasPublishedDocs: true);
 
   /**
-   * Hint for classes that override equals, but not hashCode.
-   *
-   * Parameters:
-   * 0: the name of the current class
-   */
-  // TODO(brianwilkerson) Decide whether we want to implement this check
-  //  (possibly as a lint) or remove the hint code.
-  static const HintCode OVERRIDE_EQUALS_BUT_NOT_HASH_CODE = HintCode(
-      'OVERRIDE_EQUALS_BUT_NOT_HASH_CODE',
-      "The class '{0}' overrides 'operator==', but not 'get hashCode'.",
-      correction: "Try implementing 'hashCode'.");
-
-  /**
    * A field with the override annotation does not override a getter or setter.
    *
    * No parameters.
