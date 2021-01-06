@@ -581,6 +581,10 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
     return _symbolContainer[id];
   }
 
+  void setSymbolContainerIncrementalMode(bool setting) {
+    _symbolContainer.incrementalMode = setting;
+  }
+
   /// Finishes the module created by [startModule], by combining the preable
   /// [items] with the [moduleItems] that have been emitted.
   ///

@@ -100,8 +100,8 @@ final String _implCode = r'''
 
   Stream<String> get onReceive => _onReceive.stream;
 
-  void dispose() {
-    _streamSub.cancel();
+  Future<void> dispose() async {
+    await _streamSub.cancel();
     _completers.forEach((id, c) {
       final method = _methodCalls[id];
       return c.completeError(RPCError(
@@ -109,7 +109,7 @@ final String _implCode = r'''
     });
     _completers.clear();
     if (_disposeHandler != null) {
-      _disposeHandler();
+      await _disposeHandler();
     }
     if (!_onDoneCompleter.isCompleted) {
       _onDoneCompleter.complete();

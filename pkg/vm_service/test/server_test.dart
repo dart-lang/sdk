@@ -420,7 +420,7 @@ void main() {
 
       // Kill the client that registered the handler, it should now fall back
       // on `callServiceExtension`.
-      client.dispose();
+      await client.dispose();
       // This should complete as well.
       await clientConnection.done;
 

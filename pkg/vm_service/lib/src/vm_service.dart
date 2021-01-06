@@ -1965,8 +1965,8 @@ class VmService implements VmServiceInterface {
 
   Stream<String> get onReceive => _onReceive.stream;
 
-  void dispose() {
-    _streamSub.cancel();
+  Future<void> dispose() async {
+    await _streamSub.cancel();
     _completers.forEach((id, c) {
       final method = _methodCalls[id];
       return c.completeError(RPCError(
@@ -1974,7 +1974,7 @@ class VmService implements VmServiceInterface {
     });
     _completers.clear();
     if (_disposeHandler != null) {
-      _disposeHandler();
+      await _disposeHandler();
     }
     if (!_onDoneCompleter.isCompleted) {
       _onDoneCompleter.complete();
@@ -6772,7 +6772,7 @@ class Timeline extends Response {
   static Timeline parse(Map<String, dynamic> json) =>
       json == null ? null : Timeline._fromJson(json);
 
-  /// A list of timeline events. No order is guaranteed for these events; in
+  /// A list of timeline events. No order is guarenteed for these events; in
   /// particular, these events may be unordered with respect to their
   /// timestamps.
   List<TimelineEvent> traceEvents;

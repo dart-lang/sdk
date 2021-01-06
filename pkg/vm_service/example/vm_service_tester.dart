@@ -128,7 +128,7 @@ void main() {
     print(await serviceClient.resume(isolateRef.id));
 
     print('waiting for client to shut down...');
-    serviceClient.dispose();
+    await serviceClient.dispose();
 
     await serviceClient.onDone;
     print('service client shut down');
@@ -179,7 +179,7 @@ Future testServiceRegistration() async {
   });
   await otherClient.streamListen('Service');
   await completer.future;
-  otherClient.dispose();
+  await otherClient.dispose();
 }
 
 Future testScriptParse(IsolateRef isolateRef) async {

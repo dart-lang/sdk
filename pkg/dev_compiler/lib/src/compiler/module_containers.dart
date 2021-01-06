@@ -39,15 +39,34 @@ abstract class ModuleItemContainer<K> {
   /// Name of the container in the emitted JS.
   String name;
 
+  /// Indicates if this table is being used in an incremental context (such as
+  /// during expression evaluation).
+  ///
+  /// Set by `emitFunctionIncremental` in kernel/compiler.dart.
+  bool incrementalMode = false;
+
   /// Refers to the latest container if this container is sharded.
   js_ast.Identifier containerId;
+
+  /// Refers to the aggregated entrypoint into this container.
+  ///
+  /// Should only be accessed during expression evaluation since lookups are
+  /// deoptimized in V8..
+  js_ast.Identifier aggregatedContainerId;
 
   final Map<K, ModuleItemData> moduleItems = {};
 
   /// Holds keys that will not be emitted when calling [emit].
   final Set<K> _noEmit = {};
 
-  ModuleItemContainer._(this.name, this.containerId);
+  /// Creates a container with a name, ID, and incremental ID used for
+  /// expression evaluation.
+  ///
+  /// If [aggregatedId] is null, the container is not sharded, so the
+  /// containerId is safe to use during eval.
+  ModuleItemContainer._(
+      this.name, this.containerId, js_ast.Identifier aggregatedId)
+      : this.aggregatedContainerId = aggregatedId ?? containerId;
 
   /// Creates an automatically sharding container backed by JS Objects.
   factory ModuleItemContainer.asObject(String name,
@@ -95,7 +114,7 @@ abstract class ModuleItemContainer<K> {
   /// Emit the container declaration/initializer incrementally.
   ///
   /// Used during expression evaluation. Appends all newly added types to the
-  /// most recent container.
+  /// aggregated container.
   List<js_ast.Statement> emitIncremental();
 }
 
@@ -123,7 +142,8 @@ class ModuleItemObjectContainer<K> extends ModuleItemContainer<K> {
   String Function(K) keyToString;
 
   ModuleItemObjectContainer(String name, this.keyToString)
-      : super._(name, js_ast.TemporaryId(name));
+      : super._(
+            name, js_ast.TemporaryId(name), js_ast.Identifier('${name}\$Eval'));
 
   @override
   void operator []=(K key, js_ast.Expression value) {
@@ -150,7 +170,8 @@ class ModuleItemObjectContainer<K> extends ModuleItemContainer<K> {
 
   @override
   js_ast.Expression access(K key) {
-    return js.call('#.#', [moduleItems[key].id, moduleItems[key].jsKey]);
+    var id = incrementalMode ? aggregatedContainerId : moduleItems[key].id;
+    return js.call('#.#', [id, moduleItems[key].jsKey]);
   }
 
   @override
@@ -173,23 +194,29 @@ class ModuleItemObjectContainer<K> extends ModuleItemContainer<K> {
       ];
     }
     var statements = <js_ast.Statement>[];
+    var aggregatedContainers = <js_ast.Expression>[];
     containersToProperties.forEach((containerId, properties) {
       var containerObject = js_ast.ObjectInitializer(properties,
           multiline: properties.length > 1);
       statements.add(js.statement(
           'var # = Object.create(#)', [containerId, containerObject]));
+      aggregatedContainers.add(js.call('#', [containerId]));
     });
+    // Create an aggregated access point over all containers for eval.
+    statements.add(js.statement('var # = Object.assign({_ : () => #}, #)',
+        [aggregatedContainerId, aggregatedContainerId, aggregatedContainers]));
     return statements;
   }
 
   /// Appends all newly added types to the most recent container.
   @override
   List<js_ast.Statement> emitIncremental() {
+    assert(incrementalMode);
     var statements = <js_ast.Statement>[];
     moduleItems.forEach((k, v) {
       if (_noEmit.contains(k)) return;
-      statements
-          .add(js.statement('#[#] = #', [containerId, v.jsKey, v.jsValue]));
+      statements.add(js
+          .statement('#[#] = #', [aggregatedContainerId, v.jsKey, v.jsValue]));
     });
     return statements;
   }
@@ -206,7 +233,7 @@ class ModuleItemObjectContainer<K> extends ModuleItemContainer<K> {
 /// ```
 class ModuleItemArrayContainer<K> extends ModuleItemContainer<K> {
   ModuleItemArrayContainer(String name)
-      : super._(name, js_ast.TemporaryId(name));
+      : super._(name, js_ast.TemporaryId(name), null);
 
   @override
   void operator []=(K key, js_ast.Expression value) {
@@ -220,7 +247,8 @@ class ModuleItemArrayContainer<K> extends ModuleItemContainer<K> {
 
   @override
   js_ast.Expression access(K key) {
-    return js.call('#[#]', [containerId, moduleItems[key].jsKey]);
+    var id = incrementalMode ? aggregatedContainerId : containerId;
+    return js.call('#[#]', [id, moduleItems[key].jsKey]);
   }
 
   @override
@@ -257,11 +285,12 @@ class ModuleItemArrayContainer<K> extends ModuleItemContainer<K> {
 
   @override
   List<js_ast.Statement> emitIncremental() {
+    assert(incrementalMode);
     var statements = <js_ast.Statement>[];
     moduleItems.forEach((k, v) {
       if (_noEmit.contains(k)) return;
-      statements
-          .add(js.statement('#[#] = #', [containerId, v.jsKey, v.jsValue]));
+      statements.add(js
+          .statement('#[#] = #', [aggregatedContainerId, v.jsKey, v.jsValue]));
     });
     return statements;
   }
