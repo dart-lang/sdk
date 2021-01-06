@@ -172,9 +172,11 @@ typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
 
 // List of Isolate flags with corresponding members of Dart_IsolateFlags and
 // corresponding global command line flags.
-#define BOOL_ISOLATE_FLAG_LIST(V)                                              \
-  BOOL_ISOLATE_FLAG_LIST_DEFAULT_GETTER(V)                                     \
-  BOOL_ISOLATE_FLAG_LIST_CUSTOM_GETTER(V)
+#define BOOL_ISOLATE_FLAG_LIST(V) BOOL_ISOLATE_FLAG_LIST_DEFAULT_GETTER(V)
+
+#define BOOL_ISOLATE_GROUP_FLAG_LIST(V)                                        \
+  BOOL_ISOLATE_GROUP_FLAG_LIST_DEFAULT_GETTER(V)                               \
+  BOOL_ISOLATE_GROUP_FLAG_LIST_CUSTOM_GETTER(V)
 
 // List of Isolate flags with default getters.
 //
@@ -197,7 +199,7 @@ typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
 //
 //     V(when, name, bit-name, Dart_IsolateFlags-name, default_value)
 //
-#define BOOL_ISOLATE_FLAG_LIST_CUSTOM_GETTER(V)                                \
+#define BOOL_ISOLATE_GROUP_FLAG_LIST_CUSTOM_GETTER(V)                          \
   V(PRODUCT, null_safety, NullSafety, null_safety, false)
 
 // Represents the information used for spawning the first isolate within an
@@ -332,8 +334,11 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
  public:
   IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
                void* embedder_data,
-               ObjectStore* object_store);
-  IsolateGroup(std::shared_ptr<IsolateGroupSource> source, void* embedder_data);
+               ObjectStore* object_store,
+               Dart_IsolateFlags api_flags);
+  IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
+               void* embedder_data,
+               Dart_IsolateFlags api_flags);
   ~IsolateGroup();
 
   IsolateGroupSource* source() const { return source_.get(); }
@@ -418,6 +423,11 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   bool is_system_isolate_group() const { return is_system_isolate_group_; }
 
+  // IsolateGroup-specific flag handling.
+  static void FlagsInitialize(Dart_IsolateFlags* api_flags);
+  void FlagsCopyTo(Dart_IsolateFlags* api_flags);
+  void FlagsCopyFrom(const Dart_IsolateFlags& api_flags);
+
 #if defined(DART_PRECOMPILER)
 #define FLAG_FOR_PRECOMPILER(from_field, from_flag) (from_field)
 #else
@@ -442,6 +452,25 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 #undef FLAG_FOR_PRECOMPILER
 #undef FLAG_FOR_PRODUCT
 #undef DECLARE_GETTER
+
+  bool null_safety_not_set() const {
+    return !NullSafetySetBit::decode(isolate_group_flags_);
+  }
+
+  bool null_safety() const {
+    ASSERT(!null_safety_not_set());
+    return NullSafetyBit::decode(isolate_group_flags_);
+  }
+
+  void set_null_safety(bool null_safety) {
+    isolate_group_flags_ = NullSafetySetBit::update(true, isolate_group_flags_);
+    isolate_group_flags_ =
+        NullSafetyBit::update(null_safety, isolate_group_flags_);
+  }
+
+  bool use_strict_null_safety_checks() const {
+    return null_safety() || FLAG_strict_null_safety_checks;
+  }
 
   StoreBuffer* store_buffer() const { return store_buffer_.get(); }
   ClassTable* class_table() const { return class_table_.get(); }
@@ -680,6 +709,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
 #define ISOLATE_GROUP_FLAG_BITS(V)                                             \
   V(CompactionInProgress)                                                      \
+  V(NullSafety)                                                                \
+  V(NullSafetySet)                                                             \
   V(Obfuscate)
 
   // Isolate group specific flags.
@@ -1356,24 +1387,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   }
 #endif  // defined(PRODUCT)
 
-  bool null_safety_not_set() const {
-    return !NullSafetySetBit::decode(isolate_flags_);
-  }
-
-  bool null_safety() const {
-    ASSERT(!null_safety_not_set());
-    return NullSafetyBit::decode(isolate_flags_);
-  }
-
-  void set_null_safety(bool null_safety) {
-    isolate_flags_ = NullSafetySetBit::update(true, isolate_flags_);
-    isolate_flags_ = NullSafetyBit::update(null_safety, isolate_flags_);
-  }
-
-  bool use_strict_null_safety_checks() const {
-    return null_safety() || FLAG_strict_null_safety_checks;
-  }
-
   bool has_attempted_stepping() const {
     return HasAttemptedSteppingBit::decode(isolate_flags_);
   }
@@ -1550,8 +1563,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   V(UseOsr)                                                                    \
   V(CopyParentCode)                                                            \
   V(ShouldLoadVmService)                                                       \
-  V(NullSafety)                                                                \
-  V(NullSafetySet)                                                             \
   V(IsSystemIsolate)
 
   // Isolate specific flags.

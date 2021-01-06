@@ -45,7 +45,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_Inlining) {
   LoadIndexedInstr* load_indexed = nullptr;
 
   ILMatcher cursor(flow_graph, entry);
-  if (Isolate::Current()->null_safety()) {
+  if (IsolateGroup::Current()->null_safety()) {
     RELEASE_ASSERT(cursor.TryMatch({
         kMoveGlob,
         {kMatchAndMoveLoadField, &load_field},
@@ -182,7 +182,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalGetSet) {
 
     // Ensure the IL matches what we expect.
     ILMatcher cursor(flow_graph, entry);
-    if (Isolate::Current()->null_safety()) {
+    if (IsolateGroup::Current()->null_safety()) {
       EXPECT(cursor.TryMatch({
           // Before loop
           kMoveGlob,
@@ -327,7 +327,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalIndexError) {
 
     // Ensure the IL matches what we expect.
     ILMatcher cursor(flow_graph, entry, /*trace=*/true);
-    if (Isolate::Current()->null_safety()) {
+    if (IsolateGroup::Current()->null_safety()) {
       EXPECT(cursor.TryMatch({
           // LoadField length
           kMoveGlob,
@@ -435,7 +435,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalIndexError) {
   // With null safety nulls cannot be passed as non-nullable arguments, so
   // skip all error stages and only run the last stage.
   const intptr_t first_stage =
-      Isolate::Current()->null_safety() ? kLastStage : 0;
+      IsolateGroup::Current()->null_safety() ? kLastStage : 0;
   for (intptr_t stage = first_stage; stage <= kLastStage; ++stage) {
     run_test("Uint8List", "int", int8_list, int_value, stage);
     run_test("Int8List", "int", uint8_list, int_value, stage);

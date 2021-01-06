@@ -329,7 +329,8 @@ void MutatorThreadPool::NotifyIdle() {
 
 IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
                            void* embedder_data,
-                           ObjectStore* object_store)
+                           ObjectStore* object_store,
+                           Dart_IsolateFlags api_flags)
     : embedder_data_(embedder_data),
       thread_pool_(),
       isolates_lock_(new SafepointRwLock()),
@@ -374,6 +375,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       program_lock_(new SafepointRwLock()),
       active_mutators_monitor_(new Monitor()),
       max_active_mutators_(Scavenger::MaxMutatorThreadCount()) {
+  FlagsCopyFrom(api_flags);
   const bool is_vm_isolate = Dart::VmIsolateNameEquals(source_->name);
   if (!is_vm_isolate) {
     thread_pool_.reset(
@@ -388,8 +390,9 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
 }
 
 IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
-                           void* embedder_data)
-    : IsolateGroup(source, embedder_data, new ObjectStore()) {
+                           void* embedder_data,
+                           Dart_IsolateFlags api_flags)
+    : IsolateGroup(source, embedder_data, new ObjectStore(), api_flags) {
   if (object_store() != nullptr) {
     object_store()->InitStubs();
   }
@@ -1529,7 +1532,56 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
   return kOK;
 }
 
+void IsolateGroup::FlagsInitialize(Dart_IsolateFlags* api_flags) {
+  api_flags->version = DART_FLAGS_CURRENT_VERSION;
+#define INIT_FROM_FLAG(when, name, bitname, isolate_flag, flag)                \
+  api_flags->isolate_flag = flag;
+  BOOL_ISOLATE_GROUP_FLAG_LIST(INIT_FROM_FLAG)
+#undef INIT_FROM_FLAG
+  api_flags->copy_parent_code = false;
+}
+
+void IsolateGroup::FlagsCopyTo(Dart_IsolateFlags* api_flags) {
+  api_flags->version = DART_FLAGS_CURRENT_VERSION;
+#define INIT_FROM_FIELD(when, name, bitname, isolate_flag, flag)               \
+  api_flags->isolate_flag = name();
+  BOOL_ISOLATE_GROUP_FLAG_LIST(INIT_FROM_FIELD)
+#undef INIT_FROM_FIELD
+  api_flags->copy_parent_code = false;
+}
+
+void IsolateGroup::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
+#if defined(DART_PRECOMPILER)
+#define FLAG_FOR_PRECOMPILER(action) action
+#else
+#define FLAG_FOR_PRECOMPILER(action)
+#endif
+
+#if !defined(PRODUCT)
+#define FLAG_FOR_NONPRODUCT(action) action
+#else
+#define FLAG_FOR_NONPRODUCT(action)
+#endif
+
+#define FLAG_FOR_PRODUCT(action) action
+
+#define SET_FROM_FLAG(when, name, bitname, isolate_flag, flag)                 \
+  FLAG_FOR_##when(isolate_group_flags_ = bitname##Bit::update(                 \
+                      api_flags.isolate_flag, isolate_group_flags_));
+
+  BOOL_ISOLATE_GROUP_FLAG_LIST(SET_FROM_FLAG)
+  // Needs to be called manually, otherwise we don't set the null_safety_set
+  // bit.
+  set_null_safety(api_flags.null_safety);
+#undef FLAG_FOR_NONPRODUCT
+#undef FLAG_FOR_PRECOMPILER
+#undef FLAG_FOR_PRODUCT
+#undef SET_FROM_FLAG
+}
+
 void Isolate::FlagsInitialize(Dart_IsolateFlags* api_flags) {
+  IsolateGroup::FlagsInitialize(api_flags);
+
   api_flags->version = DART_FLAGS_CURRENT_VERSION;
 #define INIT_FROM_FLAG(when, name, bitname, isolate_flag, flag)                \
   api_flags->isolate_flag = flag;
@@ -1539,6 +1591,8 @@ void Isolate::FlagsInitialize(Dart_IsolateFlags* api_flags) {
 }
 
 void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
+  group()->FlagsCopyTo(api_flags);
+
   api_flags->version = DART_FLAGS_CURRENT_VERSION;
 #define INIT_FROM_FIELD(when, name, bitname, isolate_flag, flag)               \
   api_flags->isolate_flag = name();
@@ -1569,9 +1623,6 @@ void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
 
   BOOL_ISOLATE_FLAG_LIST(SET_FROM_FLAG)
   isolate_flags_ = CopyParentCodeBit::update(copy_parent_code_, isolate_flags_);
-  // Needs to be called manually, otherwise we don't set the null_safety_set
-  // bit.
-  set_null_safety(api_flags.null_safety);
 #undef FLAG_FOR_NONPRODUCT
 #undef FLAG_FOR_PRECOMPILER
 #undef FLAG_FOR_PRODUCT

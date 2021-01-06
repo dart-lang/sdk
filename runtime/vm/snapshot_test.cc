@@ -2065,7 +2065,7 @@ VM_UNIT_TEST_CASE(LegacyErasureDetectionInFullSnapshot) {
     type ^= Api::UnwrapHandle(cls);  // Dart_GetClass actually returns a Type.
     const Class& clazz = Class::Handle(type.type_class());
     const bool required = clazz.RequireLegacyErasureOfConstants(zone.GetZone());
-    EXPECT(required == isolate->null_safety());
+    EXPECT(required == isolate->group()->null_safety());
 
     // Verify that snapshot writing succeeds if erasure is not required.
     if (!required) {

@@ -2161,8 +2161,7 @@ class FieldInvalidator {
 
   void CheckStatics(const GrowableArray<const Field*>& fields) {
     Thread* thread = Thread::Current();
-    Isolate* isolate = thread->isolate();
-    bool null_safety = isolate->null_safety();
+    const bool null_safety = thread->isolate_group()->null_safety();
     HANDLESCOPE(thread);
     instantiator_type_arguments_ = TypeArguments::null();
     for (intptr_t i = 0; i < fields.length(); i++) {
@@ -2182,8 +2181,7 @@ class FieldInvalidator {
 
   void CheckInstances(const GrowableArray<const Instance*>& instances) {
     Thread* thread = Thread::Current();
-    Isolate* isolate = thread->isolate();
-    bool null_safety = isolate->null_safety();
+    const bool null_safety = thread->isolate_group()->null_safety();
     HANDLESCOPE(thread);
     for (intptr_t i = 0; i < instances.length(); i++) {
       CheckInstance(null_safety, *instances[i]);

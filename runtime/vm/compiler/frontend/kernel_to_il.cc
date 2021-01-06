@@ -41,6 +41,7 @@ namespace kernel {
 #define H (translation_helper_)
 #define T (type_translator_)
 #define I Isolate::Current()
+#define IG IsolateGroup::Current()
 
 FlowGraphBuilder::FlowGraphBuilder(
     ParsedFunction* parsed_function,
@@ -2124,7 +2125,7 @@ Fragment FlowGraphBuilder::TestClosureFunctionNamedParameterRequired(
     Fragment set,
     Fragment not_set) {
   // Required named arguments only exist if null_safety is enabled.
-  if (!I->use_strict_null_safety_checks()) return not_set;
+  if (!IG->use_strict_null_safety_checks()) return not_set;
 
   Fragment check_required;
   // First, we convert the index to be in terms of the number of optional
@@ -2299,7 +2300,7 @@ Fragment FlowGraphBuilder::BuildClosureCallNamedArgumentsCheck(
   // required named arguments.
   if (info.descriptor.NamedCount() == 0) {
     // No work to do if there are no possible required named parameters.
-    if (!I->use_strict_null_safety_checks()) {
+    if (!IG->use_strict_null_safety_checks()) {
       return Fragment();
     }
     // If the below changes, we can no longer assume that flag slots existing
@@ -4463,7 +4464,7 @@ Fragment FlowGraphBuilder::NullAssertion(LocalVariable* variable) {
 
 Fragment FlowGraphBuilder::BuildNullAssertions() {
   Fragment code;
-  if (I->null_safety() || !I->asserts() || !FLAG_null_assertions) {
+  if (IG->null_safety() || !I->asserts() || !FLAG_null_assertions) {
     return code;
   }
 

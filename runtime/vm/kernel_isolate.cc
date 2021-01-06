@@ -760,8 +760,10 @@ class KernelCompilationRequest : public ValueObject {
     // TODO(aam): Assert that isolate exists once we move CompileAndReadScript
     // compilation logic out of CreateIsolateAndSetupHelper and into
     // IsolateSetupHelper in main.cc.
-    Isolate* isolate =
-        Thread::Current() != NULL ? Thread::Current()->isolate() : NULL;
+    auto thread = Thread::Current();
+    auto isolate = thread != nullptr ? thread->isolate() : nullptr;
+    auto isolate_group = thread != nullptr ? thread->isolate_group() : nullptr;
+
     if (incremental_compile) {
       ASSERT(isolate != NULL);
     }
@@ -787,9 +789,10 @@ class KernelCompilationRequest : public ValueObject {
     Dart_CObject null_safety;
     null_safety.type = Dart_CObject_kInt32;
     null_safety.value.as_int32 =
-        (isolate != NULL) ? (isolate->null_safety() ? kNullSafetyOptionStrong
-                                                    : kNullSafetyOptionWeak)
-                          : FLAG_sound_null_safety;
+        (isolate_group != nullptr)
+            ? (isolate_group->null_safety() ? kNullSafetyOptionStrong
+                                            : kNullSafetyOptionWeak)
+            : FLAG_sound_null_safety;
 
     intptr_t num_experimental_flags = experimental_flags->length();
     Dart_CObject** experimental_flags_array =
