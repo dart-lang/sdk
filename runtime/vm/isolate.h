@@ -1283,10 +1283,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     isolate_flags_ = ShouldLoadVmServiceBit::update(value, isolate_flags_);
   }
 
-  Dart_QualifiedFunctionName* embedder_entry_points() const {
-    return embedder_entry_points_;
-  }
-
   void set_obfuscation_map(const char** map) { obfuscation_map_ = map; }
   const char** obfuscation_map() const { return obfuscation_map_; }
 
@@ -1632,7 +1628,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   HandlerInfoCache handler_info_cache_;
   CatchEntryMovesCache catch_entry_moves_cache_;
 
-  Dart_QualifiedFunctionName* embedder_entry_points_ = nullptr;
   const char** obfuscation_map_ = nullptr;
 
   DispatchTable* dispatch_table_ = nullptr;

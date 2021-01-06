@@ -1576,27 +1576,6 @@ void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
 #undef FLAG_FOR_PRECOMPILER
 #undef FLAG_FOR_PRODUCT
 #undef SET_FROM_FLAG
-
-  // Copy entry points list.
-  ASSERT(embedder_entry_points_ == NULL);
-  if (api_flags.entry_points != NULL) {
-    intptr_t count = 0;
-    while (api_flags.entry_points[count].function_name != NULL)
-      count++;
-    embedder_entry_points_ = new Dart_QualifiedFunctionName[count + 1];
-    for (intptr_t i = 0; i < count; i++) {
-      embedder_entry_points_[i].library_uri =
-          Utils::StrDup(api_flags.entry_points[i].library_uri);
-      embedder_entry_points_[i].class_name =
-          Utils::StrDup(api_flags.entry_points[i].class_name);
-      embedder_entry_points_[i].function_name =
-          Utils::StrDup(api_flags.entry_points[i].function_name);
-    }
-    memset(&embedder_entry_points_[count], 0,
-           sizeof(Dart_QualifiedFunctionName));
-  }
-
-  // Leave others at defaults.
 }
 
 #if defined(DEBUG)
@@ -1729,16 +1708,6 @@ Isolate::~Isolate() {
       delete[] obfuscation_map_[i];
     }
     delete[] obfuscation_map_;
-  }
-
-  if (embedder_entry_points_ != nullptr) {
-    for (intptr_t i = 0; embedder_entry_points_[i].function_name != nullptr;
-         i++) {
-      free(const_cast<char*>(embedder_entry_points_[i].library_uri));
-      free(const_cast<char*>(embedder_entry_points_[i].class_name));
-      free(const_cast<char*>(embedder_entry_points_[i].function_name));
-    }
-    delete[] embedder_entry_points_;
   }
 }
 
