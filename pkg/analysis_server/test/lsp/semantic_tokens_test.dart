@@ -375,6 +375,48 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     expect(decoded, equals([...expected1, ...expected2]));
   }
 
+  Future<void> test_keywords() async {
+    // "control" keywords should be tagged with a modifier so the client
+    // can colour them differently to other keywords.
+    final content = r'''
+    void main() async {
+      var a = new Object();
+      await null;
+      if (false) {
+        print('test');
+      }
+    }
+    ''';
+
+    final expected = [
+      _Token('void', SemanticTokenTypes.keyword),
+      _Token('main', SemanticTokenTypes.function,
+          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
+      _Token('async', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.control]),
+      _Token('var', SemanticTokenTypes.keyword),
+      _Token('a', SemanticTokenTypes.variable,
+          [SemanticTokenModifiers.declaration]),
+      _Token('new', SemanticTokenTypes.keyword),
+      _Token('Object', SemanticTokenTypes.class_),
+      _Token('await', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.control]),
+      _Token('null', SemanticTokenTypes.keyword),
+      _Token('if', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.control]),
+      _Token('false', CustomSemanticTokenTypes.boolean),
+      _Token('print', SemanticTokenTypes.function),
+      _Token("'test'", SemanticTokenTypes.string),
+    ];
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final tokens = await getSemanticTokens(mainFileUri);
+    final decoded = decodeSemanticTokens(content, tokens);
+    expect(decoded, equals(expected));
+  }
+
   Future<void> test_lastLine_code() async {
     final content = 'String var;';
 

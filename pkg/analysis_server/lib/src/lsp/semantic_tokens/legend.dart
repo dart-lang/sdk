@@ -5,6 +5,7 @@
 import 'dart:math' as math;
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/semantic_tokens/mapping.dart';
 import 'package:meta/meta.dart';
 
@@ -27,11 +28,15 @@ class SemanticTokenLegendLookup {
   List<SemanticTokenTypes> _usedTokenTypes;
 
   SemanticTokenLegendLookup() {
-    // Build lists of all tokens and modifiers that exist in our mappings. These will
-    // be used to determine the indexes used for communication.
-    _usedTokenTypes = Set.of(highlightRegionTokenTypes.values).toList();
-    _usedTokenModifiers =
-        Set.of(highlightRegionTokenModifiers.values.expand((v) => v)).toList();
+    // Build lists of all tokens and modifiers that exist in our mappings or that
+    // we have added as custom types. These will be used to determine the indexes used for communication.
+    _usedTokenTypes = Set.of(highlightRegionTokenTypes.values
+            .followedBy(CustomSemanticTokenTypes.values))
+        .toList();
+    _usedTokenModifiers = Set.of(highlightRegionTokenModifiers.values
+            .expand((v) => v)
+            .followedBy(CustomSemanticTokenModifiers.values))
+        .toList();
 
     // Build the LSP Legend which tells the client all of the tokens and modifiers
     // we will use in the order they should be accessed by index/bit.

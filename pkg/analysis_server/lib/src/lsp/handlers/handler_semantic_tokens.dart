@@ -11,7 +11,6 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/semantic_tokens/encoder.dart';
-import 'package:analysis_server/src/plugin/result_merger.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
@@ -32,11 +31,11 @@ class SemanticTokensHandler
     return notificationManager.highlights.getResults(path);
   }
 
-  Future<List<HighlightRegion>> getServerResult(String path) async {
+  Future<List<SemanticTokenInfo>> getServerResult(String path) async {
     final result = await server.getResolvedUnit(path);
     if (result?.state == ResultState.VALID) {
       final computer = DartUnitHighlightsComputer(result.unit);
-      return computer.compute();
+      return computer.computeSemanticTokens();
     }
     return [];
   }
@@ -54,21 +53,43 @@ class SemanticTokensHandler
         return success(null);
       }
 
-      final allResults = [
-        await getServerResult(path),
-        ...getPluginResults(path),
-      ];
+      final serverTokens = await getServerResult(path);
+      final pluginHighlightRegions =
+          getPluginResults(path).expand((results) => results).toList();
 
       if (token.isCancellationRequested) {
         return cancelled();
       }
 
-      final merger = ResultMerger();
-      final mergedResults = merger.mergeHighlightRegions(allResults);
-
       final encoder = SemanticTokenEncoder();
-      final tokens = encoder.convertHighlights(mergedResults, lineInfo);
-      final semanticTokens = encoder.encodeTokens(tokens);
+      final pluginTokens =
+          encoder.convertHighlightToTokens(pluginHighlightRegions);
+
+      Iterable<SemanticTokenInfo> tokens = [...serverTokens, ...pluginTokens];
+
+      // Capabilities exist for supporting multiline/overlapping tokens. These
+      // could be used if any clients take it up (VS Code does not).
+      // - clientCapabilities?.multilineTokenSupport
+      // - clientCapabilities?.overlappingTokenSupport
+      final allowMultilineTokens = false;
+      final allowOverlappingTokens = false;
+
+      // Some of the translation operations and the final encoding require
+      // the tokens to be sorted. Do it once here to avoid each method needing
+      // to do it itself (resulting in multiple sorts).
+      tokens = tokens.toList()
+        ..sort(SemanticTokenInfo.offsetLengthPrioritySort);
+
+      if (!allowOverlappingTokens) {
+        tokens = encoder.splitOverlappingTokens(tokens);
+      }
+
+      if (!allowMultilineTokens) {
+        tokens = tokens
+            .expand((token) => encoder.splitMultilineTokens(token, lineInfo));
+      }
+
+      final semanticTokens = encoder.encodeTokens(tokens.toList(), lineInfo);
 
       return success(semanticTokens);
     });
