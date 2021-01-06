@@ -13,7 +13,7 @@
 namespace dart {
 
 // Quick access to the current isolate and zone.
-#define I (isolate())
+#define IG (isolate_group())
 #define Z (zone())
 
 static void RefineUseTypes(Definition* instr) {
@@ -150,7 +150,7 @@ bool CallSpecializer::TryCreateICData(InstanceCallInstr* call) {
 
   if (all_cids_known) {
     const Class& receiver_class =
-        Class::Handle(Z, isolate()->class_table()->At(class_ids[0]));
+        Class::Handle(Z, IG->class_table()->At(class_ids[0]));
     if (!receiver_class.is_finalized()) {
       // Do not eagerly finalize classes. ResolveDynamicForReceiverClass can
       // cause class finalization, since callee's receiver class may not be
@@ -839,7 +839,7 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
     }
   }
 
-  if (I->use_field_guards()) {
+  if (IG->use_field_guards()) {
     if (field.guarded_cid() != kDynamicCid) {
       InsertBefore(instr,
                    new (Z)
@@ -1096,7 +1096,7 @@ BoolPtr CallSpecializer::InstanceOfAsBool(
     }
   }
 
-  const ClassTable& class_table = *isolate()->class_table();
+  const ClassTable& class_table = *IG->class_table();
   Bool& prev = Bool::Handle(Z);
   Class& cls = Class::Handle(Z);
 
@@ -1454,7 +1454,7 @@ bool CallSpecializer::SpecializeTestCidsForNumericTypes(
     ZoneGrowableArray<intptr_t>* results,
     const AbstractType& type) {
   ASSERT(results->length() >= 2);  // At least on entry.
-  const ClassTable& class_table = *Isolate::Current()->class_table();
+  const ClassTable& class_table = *IsolateGroup::Current()->class_table();
   if ((*results)[0] != kSmiCid) {
     const Class& smi_class = Class::Handle(class_table.At(kSmiCid));
     const bool smi_is_subtype =

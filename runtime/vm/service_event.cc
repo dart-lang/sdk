@@ -252,8 +252,8 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
   }
   if (gc_stats() != NULL) {
     jsobj.AddProperty("reason", Heap::GCReasonToString(gc_stats()->reason_));
-    isolate()->heap()->PrintToJSONObject(Heap::kNew, &jsobj);
-    isolate()->heap()->PrintToJSONObject(Heap::kOld, &jsobj);
+    isolate_group()->heap()->PrintToJSONObject(Heap::kNew, &jsobj);
+    isolate_group()->heap()->PrintToJSONObject(Heap::kOld, &jsobj);
   }
   if (bytes() != NULL) {
     jsobj.AddPropertyBase64("bytes", bytes(), bytes_length());

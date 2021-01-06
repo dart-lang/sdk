@@ -183,13 +183,13 @@ typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
 //     V(when, name, bit-name, Dart_IsolateFlags-name, command-line-flag-name)
 //
 #define BOOL_ISOLATE_GROUP_FLAG_LIST_DEFAULT_GETTER(V)                         \
-  V(PRECOMPILER, obfuscate, Obfuscate, obfuscate, false)
-
-#define BOOL_ISOLATE_FLAG_LIST_DEFAULT_GETTER(V)                               \
+  V(PRECOMPILER, obfuscate, Obfuscate, obfuscate, false)                       \
   V(NONPRODUCT, asserts, EnableAsserts, enable_asserts, FLAG_enable_asserts)   \
   V(NONPRODUCT, use_field_guards, UseFieldGuards, use_field_guards,            \
     FLAG_use_field_guards)                                                     \
-  V(NONPRODUCT, use_osr, UseOsr, use_osr, FLAG_use_osr)                        \
+  V(NONPRODUCT, use_osr, UseOsr, use_osr, FLAG_use_osr)
+
+#define BOOL_ISOLATE_FLAG_LIST_DEFAULT_GETTER(V)                               \
   V(PRODUCT, should_load_vmservice_library, ShouldLoadVmService,               \
     load_vmservice_library, false)                                             \
   V(PRODUCT, copy_parent_code, CopyParentCode, copy_parent_code, false)        \
@@ -472,6 +472,14 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     return null_safety() || FLAG_strict_null_safety_checks;
   }
 
+#if defined(PRODUCT)
+  void set_use_osr(bool use_osr) { ASSERT(!use_osr); }
+#else   // defined(PRODUCT)
+  void set_use_osr(bool use_osr) {
+    isolate_group_flags_ = UseOsrBit::update(use_osr, isolate_group_flags_);
+  }
+#endif  // defined(PRODUCT)
+
   StoreBuffer* store_buffer() const { return store_buffer_.get(); }
   ClassTable* class_table() const { return class_table_.get(); }
   ObjectStore* object_store() const { return object_store_.get(); }
@@ -709,9 +717,12 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
 #define ISOLATE_GROUP_FLAG_BITS(V)                                             \
   V(CompactionInProgress)                                                      \
+  V(EnableAsserts)                                                             \
   V(NullSafety)                                                                \
   V(NullSafetySet)                                                             \
-  V(Obfuscate)
+  V(Obfuscate)                                                                 \
+  V(UseFieldGuards)                                                            \
+  V(UseOsr)
 
   // Isolate group specific flags.
   enum FlagBits {
@@ -895,8 +906,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     return group()->safepoint_handler();
   }
 
-  ClassTable* class_table() { return class_table_.get(); }
-
   ClassPtr* cached_class_table_table() { return cached_class_table_table_; }
   void set_cached_class_table_table(ClassPtr* cached_class_table_table) {
     cached_class_table_table_ = cached_class_table_table;
@@ -905,7 +914,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     return OFFSET_OF(Isolate, cached_class_table_table_);
   }
 
-  SharedClassTable* shared_class_table() const { return shared_class_table_; }
   // Used during isolate creation to re-register isolate with right group.
   void set_shared_class_table(SharedClassTable* table) {
     shared_class_table_ = table;
@@ -915,7 +923,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     return OFFSET_OF(Isolate, shared_class_table_);
   }
 
-  ObjectStore* object_store() const { return object_store_shared_ptr_.get(); }
   void set_object_store(ObjectStore* object_store);
   static intptr_t cached_object_store_offset() {
     return OFFSET_OF(Isolate, cached_object_store_);
@@ -991,8 +998,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   uint64_t terminate_capability() const { return terminate_capability_; }
 
   void SendInternalLibMessage(LibMsgId msg_id, uint64_t capability);
-
-  Heap* heap() const { return isolate_group_->heap(); }
 
   void set_init_callback_data(void* value) { init_callback_data_ = value; }
   void* init_callback_data() const { return init_callback_data_; }
@@ -1379,14 +1384,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 #undef FLAG_FOR_PRODUCT
 #undef DECLARE_GETTER
 
-#if defined(PRODUCT)
-  void set_use_osr(bool use_osr) { ASSERT(!use_osr); }
-#else   // defined(PRODUCT)
-  void set_use_osr(bool use_osr) {
-    isolate_flags_ = UseOsrBit::update(use_osr, isolate_flags_);
-  }
-#endif  // defined(PRODUCT)
-
   bool has_attempted_stepping() const {
     return HasAttemptedSteppingBit::decode(isolate_flags_);
   }
@@ -1558,9 +1555,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   V(HasAttemptedReload)                                                        \
   V(HasAttemptedStepping)                                                      \
   V(ShouldPausePostServiceRequest)                                             \
-  V(EnableAsserts)                                                             \
-  V(UseFieldGuards)                                                            \
-  V(UseOsr)                                                                    \
   V(CopyParentCode)                                                            \
   V(ShouldLoadVmService)                                                       \
   V(IsSystemIsolate)

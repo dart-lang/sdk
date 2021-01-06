@@ -895,7 +895,7 @@ class HeapMapAsJSONVisitor : public ObjectVisitor {
   JSONArray* array_;
 };
 
-void PageSpace::PrintHeapMapToJSONStream(Isolate* isolate,
+void PageSpace::PrintHeapMapToJSONStream(IsolateGroup* isolate_group,
                                          JSONStream* stream) const {
   JSONObject heap_map(stream);
   heap_map.AddProperty("type", "HeapMap");
@@ -905,7 +905,7 @@ void PageSpace::PrintHeapMapToJSONStream(Isolate* isolate,
   heap_map.AddProperty("pageSizeBytes", kOldPageSizeInWords * kWordSize);
   {
     JSONObject class_list(&heap_map, "classList");
-    isolate->class_table()->PrintToJSONObject(&class_list);
+    isolate_group->class_table()->PrintToJSONObject(&class_list);
   }
   {
     // "pages" is an array [page0, page1, ..., pageN], each page of the form

@@ -501,7 +501,7 @@ class SnapshotTextObjectNamer : ValueObject {
         owner_(Object::Handle(zone)),
         string_(String::Handle(zone)),
         insns_(Instructions::Handle(zone)),
-        store_(Isolate::Current()->object_store()) {}
+        store_(IsolateGroup::Current()->object_store()) {}
 
   const char* StubNameForType(const AbstractType& type) const;
 

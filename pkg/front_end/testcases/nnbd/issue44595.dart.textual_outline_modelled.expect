@@ -1,0 +1,11 @@
+import "dart:async";
+
+T contextType<T>(Object? o) => o as T;
+T id<T>(T value) => value;
+
+extension<T> on T {
+  void checkStaticType<R extends Exactly<T>>() {}
+}
+
+main() async {}
+typedef Exactly<T> = T Function(T);

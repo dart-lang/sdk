@@ -40,7 +40,7 @@ DEFINE_NATIVE_ENTRY(Object_getHash, 0, 1) {
 #if defined(HASH_IN_OBJECT_HEADER)
   return Smi::New(Object::GetCachedHash(arguments->NativeArgAt(0)));
 #else
-  Heap* heap = isolate->heap();
+  Heap* heap = isolate->group()->heap();
   ASSERT(arguments->NativeArgAt(0)->IsDartInstance());
   return Smi::New(heap->GetHash(arguments->NativeArgAt(0)));
 #endif
@@ -53,7 +53,7 @@ DEFINE_NATIVE_ENTRY(Object_setHash, 0, 2) {
 #else
   const Instance& instance =
       Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
-  Heap* heap = isolate->heap();
+  Heap* heap = isolate->group()->heap();
   heap->SetHash(instance.raw(), hash.Value());
 #endif
   return Object::null();
@@ -221,7 +221,8 @@ DEFINE_NATIVE_ENTRY(LibraryPrefix_loadingUnit, 0, 1) {
 
 DEFINE_NATIVE_ENTRY(LibraryPrefix_issueLoad, 0, 1) {
   const Smi& id = Smi::CheckedHandle(zone, arguments->NativeArgAt(0));
-  Array& units = Array::Handle(zone, isolate->object_store()->loading_units());
+  Array& units =
+      Array::Handle(zone, isolate->group()->object_store()->loading_units());
   if (units.IsNull()) {
     // Not actually split.
     const Library& lib = Library::Handle(zone, Library::CoreLibrary());
@@ -259,7 +260,7 @@ DEFINE_NATIVE_ENTRY(Internal_reachabilityFence, 0, 1) {
 }
 
 DEFINE_NATIVE_ENTRY(Internal_collectAllGarbage, 0, 0) {
-  isolate->heap()->CollectAllGarbage();
+  isolate->group()->heap()->CollectAllGarbage();
   return Object::null();
 }
 

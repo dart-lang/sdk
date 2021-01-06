@@ -435,7 +435,7 @@ void ImageWriter::DumpStatistics() {
 void ImageWriter::Write(NonStreamingWriteStream* clustered_stream, bool vm) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Heap* heap = thread->isolate()->heap();
+  Heap* heap = thread->isolate_group()->heap();
   TIMELINE_DURATION(thread, Isolate, "WriteInstructions");
 
   // Handlify collected raw pointers as building the names below

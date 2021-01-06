@@ -106,6 +106,7 @@ DEFINE_FLAG(bool,
 // Quick access to the locally defined thread() and isolate() methods.
 #define T (thread())
 #define I (isolate())
+#define IG (isolate_group())
 
 #if defined(DEBUG)
 // Helper class to ensure that a live origin_id is never reused
@@ -883,15 +884,15 @@ void Isolate::RegisterClass(const Class& cls) {
   }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   if (cls.IsTopLevel()) {
-    class_table()->RegisterTopLevel(cls);
+    group()->class_table()->RegisterTopLevel(cls);
   } else {
-    class_table()->Register(cls);
+    group()->class_table()->Register(cls);
   }
 }
 
 #if defined(DEBUG)
 void Isolate::ValidateClassTable() {
-  class_table()->Validate();
+  group()->class_table()->Validate();
 }
 #endif  // DEBUG
 
@@ -935,10 +936,10 @@ void Isolate::RehashConstants() {
   thread->heap()->ResetCanonicalHashTable();
 
   Class& cls = Class::Handle(zone);
-  intptr_t top = class_table()->NumCids();
+  intptr_t top = group()->class_table()->NumCids();
   for (intptr_t cid = kInstanceCid; cid < top; cid++) {
-    if (!class_table()->IsValidIndex(cid) ||
-        !class_table()->HasValidClassAt(cid)) {
+    if (!group()->class_table()->IsValidIndex(cid) ||
+        !group()->class_table()->HasValidClassAt(cid)) {
       continue;
     }
     if ((cid == kTypeArgumentsCid) || IsStringClassId(cid)) {
@@ -946,7 +947,7 @@ void Isolate::RehashConstants() {
       // that aren't based on address.
       continue;
     }
-    cls = class_table()->At(cid);
+    cls = group()->class_table()->At(cid);
     cls.RehashConstants(zone);
   }
 }
@@ -963,7 +964,7 @@ void Isolate::ValidateConstants() {
   // Verify that all canonical instances are correctly setup in the
   // corresponding canonical tables.
   BackgroundCompiler::Stop(this);
-  heap()->CollectAllGarbage();
+  group()->heap()->CollectAllGarbage();
   Thread* thread = Thread::Current();
   HeapIterationScope iteration(thread);
   VerifyCanonicalVisitor check_canonical(thread);
@@ -1013,6 +1014,7 @@ class IsolateMessageHandler : public MessageHandler {
 #endif
   bool IsCurrentIsolate() const;
   virtual Isolate* isolate() const { return isolate_; }
+  virtual IsolateGroup* isolate_group() const { return isolate_->group(); }
 
  private:
   // A result of false indicates that the isolate should terminate the
@@ -1154,7 +1156,7 @@ ErrorPtr IsolateMessageHandler::HandleLibMessage(const Array& message) {
       break;
     }
     case Isolate::kLowMemoryMsg: {
-      I->heap()->NotifyLowMemory();
+      I->group()->heap()->NotifyLowMemory();
       break;
     }
     case Isolate::kDrainServiceExtensionsMsg: {
@@ -1479,9 +1481,9 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
     Zone* zone = T->zone();
     const UnhandledException& uhe = UnhandledException::Cast(result);
     const Instance& exception = Instance::Handle(zone, uhe.exception());
-    if (exception.raw() == I->object_store()->out_of_memory()) {
+    if (exception.raw() == IG->object_store()->out_of_memory()) {
       exception_cstr = "Out of Memory";  // Cf. OutOfMemoryError.toString().
-    } else if (exception.raw() == I->object_store()->stack_overflow()) {
+    } else if (exception.raw() == IG->object_store()->stack_overflow()) {
       exception_cstr = "Stack Overflow";  // Cf. StackOverflowError.toString().
     } else {
       const Object& exception_str =
@@ -1519,8 +1521,8 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
       if (result.IsUnhandledException()) {
         const UnhandledException& error = UnhandledException::Cast(result);
         InstancePtr exception = error.exception();
-        if ((exception == I->object_store()->out_of_memory()) ||
-            (exception == I->object_store()->stack_overflow())) {
+        if ((exception == IG->object_store()->out_of_memory()) ||
+            (exception == IG->object_store()->stack_overflow())) {
           // We didn't notify the debugger when the stack was full. Do it now.
           I->debugger()->PauseException(Instance::Handle(exception));
         }
@@ -1780,7 +1782,7 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
     // Non-vm isolates need to have isolate object store initialized is that
     // exit_listeners have to be null-initialized as they will be used if
     // we fail to create isolate below, have to do low level shutdown.
-    ASSERT(result->object_store() != nullptr);
+    ASSERT(result->group()->object_store() != nullptr);
     result->isolate_object_store()->Init();
   }
 
@@ -1892,8 +1894,8 @@ ObjectPtr Isolate::CallDeferredLoadHandler(intptr_t id) {
 
 void Isolate::SetupImagePage(const uint8_t* image_buffer, bool is_executable) {
   Image image(image_buffer);
-  heap()->SetupImagePage(image.object_start(), image.object_size(),
-                         is_executable);
+  group()->heap()->SetupImagePage(image.object_start(), image.object_size(),
+                                  is_executable);
 }
 
 void Isolate::ScheduleInterrupts(uword interrupt_bits) {
@@ -2060,7 +2062,7 @@ const char* Isolate::MakeRunnable() {
   if (is_runnable() == true) {
     return "Isolate is already runnable";
   }
-  if (object_store()->root_library() == Library::null()) {
+  if (group()->object_store()->root_library() == Library::null()) {
     return "The embedder has to ensure there is a root library (e.g. by "
            "calling Dart_LoadScriptFromKernel ).";
   }
@@ -2071,7 +2073,7 @@ const char* Isolate::MakeRunnable() {
 void Isolate::MakeRunnableLocked() {
   ASSERT(mutex_.IsOwnedByCurrentThread());
   ASSERT(!is_runnable());
-  ASSERT(object_store()->root_library() != Library::null());
+  ASSERT(group()->object_store()->root_library() != Library::null());
 
   // Set the isolate as runnable and if we are being spawned schedule
   // isolate on thread pool for execution.
@@ -2329,7 +2331,7 @@ void Isolate::Run() {
 void Isolate::AddClosureFunction(const Function& function) const {
   ASSERT(!Compiler::IsBackgroundCompilation());
   GrowableObjectArray& closures =
-      GrowableObjectArray::Handle(object_store()->closure_functions());
+      GrowableObjectArray::Handle(group()->object_store()->closure_functions());
   ASSERT(!closures.IsNull());
   ASSERT(function.IsNonImplicitClosureFunction());
   closures.Add(function, Heap::kOld);
@@ -2344,7 +2346,7 @@ void Isolate::AddClosureFunction(const Function& function) const {
 FunctionPtr Isolate::LookupClosureFunction(const Function& parent,
                                            TokenPosition token_pos) const {
   const GrowableObjectArray& closures =
-      GrowableObjectArray::Handle(object_store()->closure_functions());
+      GrowableObjectArray::Handle(group()->object_store()->closure_functions());
   ASSERT(!closures.IsNull());
   Function& closure = Function::Handle();
   intptr_t num_closures = closures.Length();
@@ -2360,7 +2362,7 @@ FunctionPtr Isolate::LookupClosureFunction(const Function& parent,
 
 intptr_t Isolate::FindClosureIndex(const Function& needle) const {
   const GrowableObjectArray& closures_array =
-      GrowableObjectArray::Handle(object_store()->closure_functions());
+      GrowableObjectArray::Handle(group()->object_store()->closure_functions());
   intptr_t num_closures = closures_array.Length();
   for (intptr_t i = 0; i < num_closures; i++) {
     if (closures_array.At(i) == needle.raw()) {
@@ -2372,7 +2374,7 @@ intptr_t Isolate::FindClosureIndex(const Function& needle) const {
 
 FunctionPtr Isolate::ClosureFunctionFromIndex(intptr_t idx) const {
   const GrowableObjectArray& closures_array =
-      GrowableObjectArray::Handle(object_store()->closure_functions());
+      GrowableObjectArray::Handle(group()->object_store()->closure_functions());
   if ((idx < 0) || (idx >= closures_array.Length())) {
     return Function::null();
   }
@@ -2393,7 +2395,7 @@ void Isolate::LowLevelShutdown() {
   NoSafepointScope no_safepoint_scope;
 
   // Notify exit listeners that this isolate is shutting down.
-  if (object_store() != nullptr) {
+  if (group()->object_store() != nullptr) {
     const Error& error = Error::Handle(thread->sticky_error());
     if (error.IsNull() || !error.IsUnwindError() ||
         UnwindError::Cast(error).is_user_initiated()) {
@@ -2426,10 +2428,10 @@ void Isolate::LowLevelShutdown() {
     MegamorphicCacheTable::PrintSizes(this);
   }
   if (FLAG_dump_symbol_stats) {
-    Symbols::DumpStats(this);
+    Symbols::DumpStats(group());
   }
   if (FLAG_trace_isolates) {
-    heap()->PrintSizes();
+    group()->heap()->PrintSizes();
     OS::PrintErr(
         "[-] Stopping isolate:\n"
         "\tisolate:    %s\n",
@@ -2610,19 +2612,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
                                   ValidationPolicy validate_frames) {
   ASSERT(visitor != nullptr);
 
-  // Visit objects in the object store if there is no isolate group object store
-  if (group()->object_store() == nullptr && object_store() != nullptr) {
-    object_store()->VisitObjectPointers(visitor);
-  }
   // Visit objects in the isolate object store.
   if (isolate_object_store() != nullptr) {
     isolate_object_store()->VisitObjectPointers(visitor);
-  }
-
-  // Visit objects in the class table unless it's shared by the group.
-  // If it is shared, it is visited by IsolateGroup::VisitObjectPointers
-  if (group()->class_table() != class_table()) {
-    class_table()->VisitObjectPointers(visitor);
   }
 
   // Visit objects in the field table.
@@ -2871,10 +2863,10 @@ ClassPtr Isolate::GetClassForHeapWalkAt(intptr_t cid) {
   if (group()->IsReloading()) {
     raw_class = reload_context()->GetClassForHeapWalkAt(cid);
   } else {
-    raw_class = class_table()->At(cid);
+    raw_class = group()->class_table()->At(cid);
   }
 #else
-  raw_class = class_table()->At(cid);
+  raw_class = group()->class_table()->At(cid);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   ASSERT(raw_class != nullptr);
   ASSERT(remapping_cids() || raw_class->ptr()->id_ == cid);
@@ -2972,8 +2964,8 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   jsobj.AddPropertyTimeMillis("startTime", start_time);
   {
     JSONObject jsheap(&jsobj, "_heaps");
-    heap()->PrintToJSONObject(Heap::kNew, &jsheap);
-    heap()->PrintToJSONObject(Heap::kOld, &jsheap);
+    group()->heap()->PrintToJSONObject(Heap::kNew, &jsheap);
+    group()->heap()->PrintToJSONObject(Heap::kOld, &jsheap);
   }
 
   {
@@ -3044,7 +3036,7 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     jsobj.AddProperty("pauseEvent", &pause_event);
   }
 
-  const Library& lib = Library::Handle(object_store()->root_library());
+  const Library& lib = Library::Handle(group()->object_store()->root_library());
   if (!lib.IsNull()) {
     jsobj.AddProperty("rootLib", lib);
   }
@@ -3065,7 +3057,7 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
 
   {
     const GrowableObjectArray& libs =
-        GrowableObjectArray::Handle(object_store()->libraries());
+        GrowableObjectArray::Handle(group()->object_store()->libraries());
     intptr_t num_libs = libs.Length();
     Library& lib = Library::Handle();
 
@@ -3115,7 +3107,7 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
 }
 
 void Isolate::PrintMemoryUsageJSON(JSONStream* stream) {
-  heap()->PrintMemoryUsageJSON(stream);
+  group()->heap()->PrintMemoryUsageJSON(stream);
 }
 
 #endif

@@ -675,7 +675,8 @@ class FullSnapshotWriter {
   Thread* thread() const { return thread_; }
   Zone* zone() const { return thread_->zone(); }
   Isolate* isolate() const { return thread_->isolate(); }
-  Heap* heap() const { return isolate()->heap(); }
+  IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
+  Heap* heap() const { return isolate_group()->heap(); }
 
   // Writes a full snapshot of the program(VM isolate, regular isolate group).
   void WriteFullSnapshot(
@@ -727,6 +728,8 @@ class FullSnapshotReader {
   ApiErrorPtr ReadUnitSnapshot(const LoadingUnit& unit);
 
  private:
+  IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
+
   ApiErrorPtr ConvertToApiError(char* message);
   void PatchGlobalObjectPool();
   void InitializeBSS();

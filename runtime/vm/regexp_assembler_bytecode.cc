@@ -505,9 +505,9 @@ static IrregexpInterpreter::IrregexpResult ExecRaw(const RegExp& regexp,
   }
   if (result == IrregexpInterpreter::RE_EXCEPTION) {
     Thread* thread = Thread::Current();
-    Isolate* isolate = thread->isolate();
+    auto isolate_group = thread->isolate_group();
     const Instance& exception =
-        Instance::Handle(isolate->object_store()->stack_overflow());
+        Instance::Handle(isolate_group->object_store()->stack_overflow());
     Exceptions::Throw(thread, exception);
     UNREACHABLE();
   }

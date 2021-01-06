@@ -800,9 +800,9 @@ ObjectPtr KernelLoader::LoadExpressionEvaluationFunction(
                         : real_library.LookupClassAllowPrivate(klass));
   ASSERT(!real_class.IsNull());
 
-  const intptr_t num_cids = I->class_table()->NumCids();
+  const intptr_t num_cids = IG->class_table()->NumCids();
   const intptr_t num_libs =
-      GrowableObjectArray::Handle(I->object_store()->libraries()).Length();
+      GrowableObjectArray::Handle(IG->object_store()->libraries()).Length();
 
   // Load the "evaluate:source" expression evaluation library.
   ASSERT(expression_evaluation_library_.IsNull());
@@ -814,9 +814,10 @@ ObjectPtr KernelLoader::LoadExpressionEvaluationFunction(
   }
   const Function& function = H.GetExpressionEvaluationFunction();
   ASSERT(!function.IsNull());
-  ASSERT(GrowableObjectArray::Handle(I->object_store()->libraries()).Length() ==
-         num_libs);
-  ASSERT(I->class_table()->NumCids() == num_cids);
+  ASSERT(
+      GrowableObjectArray::Handle(IG->object_store()->libraries()).Length() ==
+      num_libs);
+  ASSERT(IG->class_table()->NumCids() == num_cids);
 
   // Make the expression evaluation function have the right script,
   // kernel data and parent.
@@ -833,7 +834,7 @@ ObjectPtr KernelLoader::LoadExpressionEvaluationFunction(
 }
 
 void KernelLoader::FindModifiedLibraries(Program* program,
-                                         Isolate* isolate,
+                                         IsolateGroup* isolate_group,
                                          BitVector* modified_libs,
                                          bool force_reload,
                                          bool* is_empty_program,
@@ -845,8 +846,8 @@ void KernelLoader::FindModifiedLibraries(Program* program,
     if (force_reload) {
       // If a reload is being forced we mark all libraries as having
       // been modified.
-      const GrowableObjectArray& libs =
-          GrowableObjectArray::Handle(isolate->object_store()->libraries());
+      const auto& libs = GrowableObjectArray::Handle(
+          isolate_group->object_store()->libraries());
       intptr_t num_libs = libs.Length();
       Library& lib = dart::Library::Handle(zone);
       for (intptr_t i = 0; i < num_libs; i++) {
@@ -1105,7 +1106,7 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
   // is no longer used.
 
   const GrowableObjectArray& classes =
-      GrowableObjectArray::Handle(Z, I->object_store()->pending_classes());
+      GrowableObjectArray::Handle(Z, IG->object_store()->pending_classes());
 
   // Load all classes.
   intptr_t next_class_offset = library_index.ClassOffset(0);
@@ -2141,7 +2142,7 @@ ScriptPtr KernelLoader::LoadScriptAt(intptr_t index,
       Library& lib = Library::Handle(Z);
       Script& script = Script::Handle(Z);
       const GrowableObjectArray& libs =
-          GrowableObjectArray::Handle(isolate_->object_store()->libraries());
+          GrowableObjectArray::Handle(IG->object_store()->libraries());
       for (intptr_t i = 0; i < libs.Length(); i++) {
         lib ^= libs.At(i);
         script = lib.LookupScript(uri_string, /* useResolvedUri = */ true);

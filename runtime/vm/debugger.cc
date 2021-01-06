@@ -826,13 +826,14 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
 
 bool ActivationFrame::IsAsyncMachinery() const {
   ASSERT(!function_.IsNull());
-  Isolate* isolate = Isolate::Current();
-  if (function_.raw() == isolate->object_store()->complete_on_async_return()) {
+  auto isolate_group = IsolateGroup::Current();
+  if (function_.raw() ==
+      isolate_group->object_store()->complete_on_async_return()) {
     // We are completing an async function's completer.
     return true;
   }
   if (function_.Owner() ==
-      isolate->object_store()->async_star_stream_controller()) {
+      isolate_group->object_store()->async_star_stream_controller()) {
     // We are inside the async* stream controller code.
     return true;
   }
@@ -1617,9 +1618,10 @@ void Debugger::DeoptimizeWorld() {
 
   // Iterate over all classes, deoptimize functions.
   // TODO(hausner): Could possibly be combined with RemoveOptimizedCode()
-  const ClassTable& class_table = *isolate_->class_table();
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
+  const ClassTable& class_table = *isolate_->group()->class_table();
+  auto thread = Thread::Current();
+  auto isolate_group = thread->isolate_group();
+  auto zone = thread->zone();
   CallSiteResetter resetter(zone);
   Class& cls = Class::Handle(zone);
   Array& functions = Array::Handle(zone);
@@ -1675,7 +1677,7 @@ void Debugger::DeoptimizeWorld() {
   }
 
   // Disable optimized closure functions.
-  closures = isolate_->object_store()->closure_functions();
+  closures = isolate_group->object_store()->closure_functions();
   const intptr_t num_closures = closures.Length();
   for (intptr_t pos = 0; pos < num_closures; pos++) {
     function ^= closures.At(pos);
@@ -2478,14 +2480,15 @@ void Debugger::FindCompiledFunctions(
     TokenPosition start_pos,
     TokenPosition end_pos,
     GrowableObjectArray* code_function_list) {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
+  auto thread = Thread::Current();
+  auto isolate_group = thread->isolate_group();
+  auto zone = thread->zone();
   Class& cls = Class::Handle(zone);
   Array& functions = Array::Handle(zone);
   GrowableObjectArray& closures = GrowableObjectArray::Handle(zone);
   Function& function = Function::Handle(zone);
 
-  closures = isolate_->object_store()->closure_functions();
+  closures = isolate_group->object_store()->closure_functions();
   const intptr_t num_closures = closures.Length();
   for (intptr_t pos = 0; pos < num_closures; pos++) {
     function ^= closures.At(pos);
@@ -2509,7 +2512,7 @@ void Debugger::FindCompiledFunctions(
     }
   }
 
-  const ClassTable& class_table = *isolate_->class_table();
+  const ClassTable& class_table = *isolate_->group()->class_table();
   const intptr_t num_classes = class_table.NumCids();
   const intptr_t num_tlc_classes = class_table.NumTopLevelCids();
   for (intptr_t i = 1; i < num_classes + num_tlc_classes; i++) {
@@ -2572,7 +2575,8 @@ bool Debugger::FindBestFit(const Script& script,
                            TokenPosition token_pos,
                            TokenPosition last_token_pos,
                            Function* best_fit) {
-  Thread* thread = Thread::Current();
+  auto thread = Thread::Current();
+  auto isolate_group = thread->isolate_group();
   Zone* zone = thread->zone();
   Class& cls = Class::Handle(zone);
 
@@ -2582,7 +2586,7 @@ bool Debugger::FindBestFit(const Script& script,
   // Return the first fit found, but if a library doesn't contain a fit,
   // process the next one.
   const GrowableObjectArray& libs = GrowableObjectArray::Handle(
-      zone, thread->isolate()->object_store()->libraries());
+      zone, isolate_group->object_store()->libraries());
   Library& lib = Library::Handle(zone);
   for (int i = 0; i < libs.Length(); i++) {
     lib ^= libs.At(i);
@@ -2607,7 +2611,7 @@ bool Debugger::FindBestFit(const Script& script,
       continue;
     }
     const GrowableObjectArray& closures = GrowableObjectArray::Handle(
-        zone, isolate_->object_store()->closure_functions());
+        zone, isolate_group->object_store()->closure_functions());
     Array& functions = Array::Handle(zone);
     Function& function = Function::Handle(zone);
     Array& fields = Array::Handle(zone);
@@ -2629,7 +2633,7 @@ bool Debugger::FindBestFit(const Script& script,
       return true;
     }
 
-    const ClassTable& class_table = *isolate_->class_table();
+    const ClassTable& class_table = *isolate_->group()->class_table();
     const intptr_t num_classes = class_table.NumCids();
     const intptr_t num_tlc_classes = class_table.NumTopLevelCids();
     for (intptr_t i = 1; i < num_classes + num_tlc_classes; i++) {
@@ -2970,8 +2974,8 @@ BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
   Zone* zone = Thread::Current()->zone();
   Library& lib = Library::Handle(zone);
   Script& script = Script::Handle(zone);
-  const GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(isolate_->object_store()->libraries());
+  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
+      isolate_->group()->object_store()->libraries());
   bool is_package = script_url.StartsWith(Symbols::PackageScheme());
   Script& script_for_lib = Script::Handle(zone);
   for (intptr_t i = 0; i < libs.Length(); i++) {
@@ -3824,10 +3828,12 @@ FunctionPtr Debugger::FindInnermostClosure(const Function& function,
                                            TokenPosition token_pos) {
   ASSERT(function.end_token_pos().IsReal());
   const TokenPosition& func_start = function.token_pos();
-  Zone* zone = Thread::Current()->zone();
+  auto thread = Thread::Current();
+  auto zone = thread->zone();
+  auto isolate_group = thread->isolate_group();
   const Script& outer_origin = Script::Handle(zone, function.script());
   const GrowableObjectArray& closures = GrowableObjectArray::Handle(
-      zone, Isolate::Current()->object_store()->closure_functions());
+      zone, isolate_group->object_store()->closure_functions());
   const intptr_t num_closures = closures.Length();
   Function& closure = Function::Handle(zone);
   Function& best_fit = Function::Handle(zone);
@@ -3960,14 +3966,16 @@ void Debugger::NotifyDoneLoading() {
     // Common, fast path.
     return;
   }
-  Zone* zone = Thread::Current()->zone();
+  auto thread = Thread::Current();
+  auto isolate_group = thread->isolate_group();
+  auto zone = thread->zone();
   Library& lib = Library::Handle(zone);
   Script& script = Script::Handle(zone);
   String& url = String::Handle(zone);
   BreakpointLocation* loc = latent_locations_;
   BreakpointLocation* prev_loc = NULL;
   const GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(isolate_->object_store()->libraries());
+      GrowableObjectArray::Handle(isolate_group->object_store()->libraries());
   while (loc != NULL) {
     url = loc->url();
     bool found_match = false;

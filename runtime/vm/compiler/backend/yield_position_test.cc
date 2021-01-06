@@ -79,7 +79,7 @@ void RunTestInMode(CompilerPass::PipelineMode mode) {
 
   // Grab the inner, lazily created, closure from the object store.
   const auto& closures = GrowableObjectArray::Handle(
-      Isolate::Current()->object_store()->closure_functions());
+      IsolateGroup::Current()->object_store()->closure_functions());
   ASSERT(!closures.IsNull());
   auto& closure = Object::Handle();
   for (intptr_t i = 0; i < closures.Length(); ++i) {

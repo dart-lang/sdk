@@ -149,7 +149,7 @@ void TypeLayout::WriteTo(SnapshotWriter* writer,
   // Lookup the type class.
   SmiPtr raw_type_class_id = Smi::RawCast(type_class_id());
   ClassPtr type_class =
-      writer->isolate()->class_table()->At(Smi::Value(raw_type_class_id));
+      writer->isolate_group()->class_table()->At(Smi::Value(raw_type_class_id));
 
   // Write out typeclass_is_in_fullsnapshot first as this will
   // help the reader decide on how to canonicalize the type object.
@@ -300,7 +300,7 @@ void TypeParameterLayout::WriteTo(SnapshotWriter* writer,
     ASSERT(parameterized_function() == Function::null());
     // Write out the parameterized class.
     ClassPtr param_class =
-        writer->isolate()->class_table()->At(parameterized_class_id_);
+        writer->isolate_group()->class_table()->At(parameterized_class_id_);
     writer->WriteObjectImpl(param_class, kAsReference);
   } else {
     ASSERT(parameterized_function() != Function::null());
@@ -367,8 +367,8 @@ void TypeArgumentsLayout::WriteTo(SnapshotWriter* writer,
       // Lookup the type class.
       TypePtr raw_type = Type::RawCast(types()[i]);
       SmiPtr raw_type_class_id = Smi::RawCast(raw_type->ptr()->type_class_id());
-      ClassPtr type_class =
-          writer->isolate()->class_table()->At(Smi::Value(raw_type_class_id));
+      ClassPtr type_class = writer->isolate_group()->class_table()->At(
+          Smi::Value(raw_type_class_id));
       if (!writer->AllowObjectsInDartLibrary(type_class->ptr()->library())) {
         writer->WriteVMIsolateObject(kDynamicType);
       } else {
@@ -1143,7 +1143,7 @@ LinkedHashMapPtr LinkedHashMap::ReadFrom(SnapshotReader* reader,
   // Thus, the index will probably be allocated in new space (unless it's huge).
   // TODO(koda): Eagerly rehash here when no keys have user-defined '==', and
   // in particular, if/when (const) maps are needed in the VM isolate snapshot.
-  ASSERT(reader->isolate() != Dart::vm_isolate());
+  ASSERT(reader->isolate_group() != Dart::vm_isolate_group());
   map.SetHashMask(0);  // Prefer sentinel 0 over null for better type feedback.
 
   reader->EnqueueRehashingOfMap(map);

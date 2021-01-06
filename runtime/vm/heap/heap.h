@@ -300,8 +300,9 @@ class Heap {
   void PrintMemoryUsageJSON(JSONObject* jsobj) const;
 
   // The heap map contains the sizes and class ids for the objects in each page.
-  void PrintHeapMapToJSONStream(Isolate* isolate, JSONStream* stream) {
-    old_space_.PrintHeapMapToJSONStream(isolate, stream);
+  void PrintHeapMapToJSONStream(IsolateGroup* isolate_group,
+                                JSONStream* stream) {
+    old_space_.PrintHeapMapToJSONStream(isolate_group, stream);
   }
 #endif  // PRODUCT
 

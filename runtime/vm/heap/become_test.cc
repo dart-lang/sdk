@@ -50,8 +50,7 @@ ISOLATE_UNIT_TEST_CASE(BecomeFowardNewToOld) {
 }
 
 ISOLATE_UNIT_TEST_CASE(BecomeForwardPeer) {
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
+  Heap* heap = IsolateGroup::Current()->heap();
 
   const Array& before_obj = Array::Handle(Array::New(0, Heap::kOld));
   const Array& after_obj = Array::Handle(Array::New(0, Heap::kOld));

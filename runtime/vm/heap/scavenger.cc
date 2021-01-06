@@ -1383,7 +1383,7 @@ ObjectPtr Scavenger::FindObject(FindObjectVisitor* visitor) {
 }
 
 void Scavenger::TryAllocateNewTLAB(Thread* thread, intptr_t min_size) {
-  ASSERT(heap_ != Dart::vm_isolate()->heap());
+  ASSERT(heap_ != Dart::vm_isolate_group()->heap());
   ASSERT(!scavenging_);
 
   AbandonRemainingTLAB(thread);

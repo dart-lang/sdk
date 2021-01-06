@@ -2530,7 +2530,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   __ Bind(&slow_path);
-  auto object_store = compiler->isolate()->object_store();
+  auto object_store = compiler->isolate_group()->object_store();
   const auto& allocate_array_stub =
       Code::ZoneHandle(compiler->zone(), object_store->allocate_array_stub());
   compiler->GenerateStubCall(source(), allocate_array_stub,
@@ -3025,7 +3025,7 @@ class CheckStackOverflowSlowPath
       : TemplateSlowPathCode(instruction) {}
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
-    if (compiler->isolate()->use_osr() && osr_entry_label()->IsLinked()) {
+    if (compiler->isolate_group()->use_osr() && osr_entry_label()->IsLinked()) {
       __ Comment("CheckStackOverflowSlowPathOsr");
       __ Bind(osr_entry_label());
       __ movl(compiler::Address(THR, Thread::stack_overflow_flags_offset()),
@@ -3044,7 +3044,7 @@ class CheckStackOverflowSlowPath
         instruction()->source(), instruction()->deopt_id(),
         kStackOverflowRuntimeEntry, 0, instruction()->locs());
 
-    if (compiler->isolate()->use_osr() && !compiler->is_optimizing() &&
+    if (compiler->isolate_group()->use_osr() && !compiler->is_optimizing() &&
         instruction()->in_loop()) {
       // In unoptimized code, record loop stack checks as possible OSR entries.
       compiler->AddCurrentDescriptor(PcDescriptorsLayout::kOsrEntry,
@@ -3057,7 +3057,7 @@ class CheckStackOverflowSlowPath
   }
 
   compiler::Label* osr_entry_label() {
-    ASSERT(Isolate::Current()->use_osr());
+    ASSERT(IsolateGroup::Current()->use_osr());
     return &osr_entry_label_;
   }
 

@@ -373,7 +373,7 @@ class Scavenger {
 
   uword TryAllocateFromTLAB(Thread* thread, intptr_t size) {
     ASSERT(Utils::IsAligned(size, kObjectAlignment));
-    ASSERT(heap_ != Dart::vm_isolate()->heap());
+    ASSERT(heap_ != Dart::vm_isolate_group()->heap());
 
     const uword result = thread->top();
     const intptr_t remaining = thread->end() - result;

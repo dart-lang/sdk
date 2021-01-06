@@ -112,8 +112,8 @@ ObjectPtr CompilationTraceLoader::CompileTrace(uint8_t* buffer, intptr_t size) {
   // Next, compile common dispatchers. These aren't found with the normal
   // lookup above because they have irregular lookup that depends on the
   // arguments descriptor (e.g. call() versus call(x)).
-  const Class& closure_class =
-      Class::Handle(zone_, thread_->isolate()->object_store()->closure_class());
+  const Class& closure_class = Class::Handle(
+      zone_, thread_->isolate_group()->object_store()->closure_class());
   Array& arguments_descriptor = Array::Handle(zone_);
   Function& dispatcher = Function::Handle(zone_);
   for (intptr_t argc = 1; argc <= 4; argc++) {
@@ -134,7 +134,7 @@ ObjectPtr CompilationTraceLoader::CompileTrace(uint8_t* buffer, intptr_t size) {
   // Finally, compile closures in all compiled functions. Don't cache the
   // length since compiling may append to this list.
   const GrowableObjectArray& closure_functions = GrowableObjectArray::Handle(
-      zone_, thread_->isolate()->object_store()->closure_functions());
+      zone_, thread_->isolate_group()->object_store()->closure_functions());
   for (intptr_t i = 0; i < closure_functions.Length(); i++) {
     function_ ^= closure_functions.At(i);
     function2_ = function_.parent_function();
@@ -401,14 +401,15 @@ void CompilationTraceLoader::SpeculateInstanceCallTargets(
     if (static_type_.IsNull()) {
       continue;
     } else if (static_type_.IsDoubleType()) {
-      receiver_cls_ = Isolate::Current()->class_table()->At(kDoubleCid);
+      receiver_cls_ = IsolateGroup::Current()->class_table()->At(kDoubleCid);
     } else if (static_type_.IsIntType()) {
-      receiver_cls_ = Isolate::Current()->class_table()->At(kSmiCid);
+      receiver_cls_ = IsolateGroup::Current()->class_table()->At(kSmiCid);
     } else if (static_type_.IsStringType()) {
-      receiver_cls_ = Isolate::Current()->class_table()->At(kOneByteStringCid);
+      receiver_cls_ =
+          IsolateGroup::Current()->class_table()->At(kOneByteStringCid);
     } else if (static_type_.IsDartFunctionType() ||
                static_type_.IsDartClosureType()) {
-      receiver_cls_ = Isolate::Current()->class_table()->At(kClosureCid);
+      receiver_cls_ = IsolateGroup::Current()->class_table()->At(kClosureCid);
     } else if (static_type_.HasTypeClass()) {
       receiver_cls_ = static_type_.type_class();
       if (receiver_cls_.is_implemented() || receiver_cls_.is_abstract()) {
@@ -470,7 +471,7 @@ void TypeFeedbackSaver::WriteHeader() {
 }
 
 void TypeFeedbackSaver::SaveClasses() {
-  ClassTable* table = Isolate::Current()->class_table();
+  ClassTable* table = IsolateGroup::Current()->class_table();
 
   intptr_t num_cids = table->NumCids();
   WriteInt(num_cids);
@@ -482,7 +483,7 @@ void TypeFeedbackSaver::SaveClasses() {
 }
 
 void TypeFeedbackSaver::SaveFields() {
-  ClassTable* table = Isolate::Current()->class_table();
+  ClassTable* table = IsolateGroup::Current()->class_table();
   intptr_t num_cids = table->NumCids();
   for (intptr_t cid = kNumPredefinedCids; cid < num_cids; cid++) {
     cls_ = table->At(cid);
@@ -890,7 +891,7 @@ ObjectPtr TypeFeedbackLoader::LoadFunction() {
 
       intptr_t reuse_index = call_site_.FindCheck(cids);
       if (reuse_index == -1) {
-        cls_ = thread_->isolate()->class_table()->At(cids[0]);
+        cls_ = thread_->isolate_group()->class_table()->At(cids[0]);
         // Use target name and args descriptor from the current program
         // instead of saved feedback to get the correct private mangling and
         // ensure no arity mismatch crashes.
@@ -965,7 +966,7 @@ FunctionPtr TypeFeedbackLoader::FindFunction(FunctionLayout::Kind kind,
     // been unoptimized compilated and the child function created and added to
     // ObjectStore::closure_functions_.
     const GrowableObjectArray& closure_functions = GrowableObjectArray::Handle(
-        zone_, thread_->isolate()->object_store()->closure_functions());
+        zone_, thread_->isolate_group()->object_store()->closure_functions());
     bool found = false;
     for (intptr_t i = 0; i < closure_functions.Length(); i++) {
       func_ ^= closure_functions.At(i);

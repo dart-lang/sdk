@@ -1684,7 +1684,6 @@ class LoadOptimizer : public ValueObject {
 
   ~LoadOptimizer() { aliased_set_->RollbackAliasedIdentites(); }
 
-  Isolate* isolate() const { return graph_->isolate(); }
   Zone* zone() const { return graph_->zone(); }
 
   static bool OptimizeGraph(FlowGraph* graph) {
@@ -3571,11 +3570,11 @@ void AllocationSinking::CreateMaterializationAt(
     num_elements = instr->num_context_variables();
   } else if (auto instr = alloc->AsCreateArray()) {
     cls = &Class::ZoneHandle(
-        flow_graph_->isolate()->object_store()->array_class());
+        flow_graph_->isolate_group()->object_store()->array_class());
     num_elements = instr->GetConstantNumElements();
   } else if (auto instr = alloc->AsAllocateTypedData()) {
     cls = &Class::ZoneHandle(
-        flow_graph_->isolate()->class_table()->At(instr->class_id()));
+        flow_graph_->isolate_group()->class_table()->At(instr->class_id()));
     num_elements = instr->GetConstantNumElements();
   } else {
     UNREACHABLE();
@@ -3691,11 +3690,13 @@ void AllocationSinking::InsertMaterializations(Definition* alloc) {
     }
   }
   if (alloc->IsCreateArray()) {
-    AddSlot(slots,
-            Slot::GetTypeArgumentsSlotFor(
-                flow_graph_->thread(),
-                Class::Handle(
-                    Z, flow_graph_->isolate()->object_store()->array_class())));
+    AddSlot(
+        slots,
+        Slot::GetTypeArgumentsSlotFor(
+            flow_graph_->thread(),
+            Class::Handle(
+                Z,
+                flow_graph_->isolate_group()->object_store()->array_class())));
   }
 
   // Collect all instructions that mention this object in the environment.

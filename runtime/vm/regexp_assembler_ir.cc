@@ -241,7 +241,7 @@ void IRRegExpMacroAssembler::GenerateSuccessBlock() {
   TAG();
 
   Value* type = Bind(new (Z) ConstantInstr(TypeArguments::ZoneHandle(
-      Z, Isolate::Current()->object_store()->type_argument_int())));
+      Z, IsolateGroup::Current()->object_store()->type_argument_int())));
   Value* length = Bind(Uint64Constant(saved_registers_count_));
   Value* array = Bind(new (Z) CreateArrayInstr(InstructionSource(), type,
                                                length, GetNextDeoptId()));

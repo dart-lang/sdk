@@ -30,7 +30,7 @@ DECLARE_FLAG(bool, enable_simd_inline);
 
 void FlowGraphCompiler::ArchSpecificInitialization() {
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    auto object_store = isolate()->object_store();
+    auto object_store = isolate_group()->object_store();
 
     const auto& stub =
         Code::ZoneHandle(object_store->write_barrier_wrappers_stub());
@@ -258,7 +258,7 @@ void FlowGraphCompiler::GenerateMethodExtractorIntrinsic(
   ASSERT(extracted_method.IsZoneHandle());
 
   const Code& build_method_extractor = Code::ZoneHandle(
-      isolate()->object_store()->build_method_extractor_code());
+      isolate_group()->object_store()->build_method_extractor_code());
   ASSERT(!build_method_extractor.IsNull());
 
   const intptr_t stub_index = __ object_pool_builder().AddObject(

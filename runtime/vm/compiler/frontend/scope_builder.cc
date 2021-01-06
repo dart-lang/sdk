@@ -14,6 +14,7 @@ namespace kernel {
 #define H (translation_helper_)
 #define T (type_translator_)
 #define I Isolate::Current()
+#define IG IsolateGroup::Current()
 
 ScopeBuilder::ScopeBuilder(ParsedFunction* parsed_function)
     : result_(NULL),
@@ -964,7 +965,7 @@ void ScopeBuilder::VisitStatement() {
     case kEmptyStatement:
       return;
     case kAssertBlock:
-      if (I->asserts()) {
+      if (IG->asserts()) {
         PositionScope scope(&helper_.reader_);
         intptr_t offset =
             helper_.ReaderOffset() - 1;  // -1 to include tag byte.
@@ -984,7 +985,7 @@ void ScopeBuilder::VisitStatement() {
       }
       return;
     case kAssertStatement:
-      if (I->asserts()) {
+      if (IG->asserts()) {
         VisitExpression();            // Read condition.
         helper_.ReadPosition();       // read condition start offset.
         helper_.ReadPosition();       // read condition end offset.

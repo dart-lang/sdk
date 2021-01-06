@@ -60,6 +60,7 @@ DEFINE_FLAG(bool, gc_during_reload, false, "Cause explicit GC during reload.");
 DECLARE_FLAG(bool, trace_deoptimization);
 
 #define I (isolate())
+#define IG (isolate_group())
 #define Z zone_
 
 #define TIMELINE_SCOPE(name)                                                   \
@@ -559,21 +560,14 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
 
   Thread* thread = Thread::Current();
 
-  // All isolates have the same sources, so all of them have the same libraries.
-  // We use the [first_isolate_] here to determine which of libraries have
-  // changed.
-  ASSERT(first_isolate_ == nullptr);
-  first_isolate_ = thread->isolate();
-
   // All isolates within an isolate group need to share one heap.
   // TODO(dartbug.com/36097): Remove this assert once the shared heap CL has
   // landed.
   RELEASE_ASSERT(!FLAG_enable_isolate_groups);
-  Heap* heap = first_isolate_->heap();
+  Heap* heap = IG->heap();
 
-  num_old_libs_ = GrowableObjectArray::Handle(
-                      Z, first_isolate_->object_store()->libraries())
-                      .Length();
+  num_old_libs_ =
+      GrowableObjectArray::Handle(Z, IG->object_store()->libraries()).Length();
 
   // Grab root library before calling CheckpointBeforeReload.
   GetRootLibUrl(root_script_url);
@@ -632,7 +626,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
 
     modified_libs_ = new (Z) BitVector(Z, num_old_libs_);
     kernel::KernelLoader::FindModifiedLibraries(
-        kernel_program.get(), first_isolate_, modified_libs_, force_reload,
+        kernel_program.get(), isolate_group_, modified_libs_, force_reload,
         &skip_reload, p_num_received_classes, p_num_received_procedures);
     modified_libs_transitive_ = new (Z) BitVector(Z, num_old_libs_);
     BuildModifiedLibrariesClosure(modified_libs_);
@@ -859,15 +853,13 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     // not remove dead subclasses.  Rebuild the direct subclass
     // information from scratch.
     {
-      SafepointWriteRwLocker ml(thread,
-                                thread->isolate_group()->program_lock());
+      SafepointWriteRwLocker ml(thread, IG->program_lock());
       ForEachIsolate([&](Isolate* isolate) {
         isolate->reload_context()->RebuildDirectSubclasses();
       });
     }
     const intptr_t final_library_count =
-        GrowableObjectArray::Handle(Z,
-                                    first_isolate_->object_store()->libraries())
+        GrowableObjectArray::Handle(Z, IG->object_store()->libraries())
             .Length();
     CommonFinalizeTail(final_library_count);
 
@@ -932,7 +924,7 @@ static void PropagateLibraryModified(
 void IsolateGroupReloadContext::BuildModifiedLibrariesClosure(
     BitVector* modified_libs) {
   const GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(first_isolate_->object_store()->libraries());
+      GrowableObjectArray::Handle(IG->object_store()->libraries());
   Library& lib = Library::Handle();
   intptr_t num_libs = libs.Length();
 
@@ -1017,7 +1009,7 @@ void IsolateGroupReloadContext::BuildModifiedLibrariesClosure(
 
 void IsolateGroupReloadContext::GetRootLibUrl(const char* root_script_url) {
   const auto& old_root_lib =
-      Library::Handle(first_isolate_->object_store()->root_library());
+      Library::Handle(IG->object_store()->root_library());
   ASSERT(!old_root_lib.IsNull());
   const auto& old_root_lib_url = String::Handle(old_root_lib.url());
 
@@ -1114,7 +1106,7 @@ ObjectPtr IsolateReloadContext::ReloadPhase2LoadKernel(
     if (lib.IsNull()) {
       lib = Library::LookupLibrary(thread, root_lib_url);
     }
-    isolate_->object_store()->set_root_library(lib);
+    isolate_->group()->object_store()->set_root_library(lib);
     return Object::null();
   } else {
     return thread->StealStickyError();
@@ -1145,9 +1137,9 @@ void IsolateReloadContext::RegisterClass(const Class& new_cls) {
   const Class& old_cls = Class::Handle(OldClassOrNull(new_cls));
   if (old_cls.IsNull()) {
     if (new_cls.IsTopLevel()) {
-      I->class_table()->RegisterTopLevel(new_cls);
+      IG->class_table()->RegisterTopLevel(new_cls);
     } else {
-      I->class_table()->Register(new_cls);
+      IG->class_table()->Register(new_cls);
     }
 
     if (FLAG_identity_reload) {
@@ -1162,7 +1154,7 @@ void IsolateReloadContext::RegisterClass(const Class& new_cls) {
   }
   VTIR_Print("Registering class: %s\n", new_cls.ToCString());
   new_cls.set_id(old_cls.id());
-  I->class_table()->SetAt(old_cls.id(), new_cls.raw());
+  IG->class_table()->SetAt(old_cls.id(), new_cls.raw());
   if (!old_cls.is_enum_class()) {
     new_cls.CopyCanonicalConstants(old_cls);
   }
@@ -1241,15 +1233,15 @@ void IsolateReloadContext::EnsuredUnoptimizedCodeForStack() {
 
 void IsolateReloadContext::DeoptimizeDependentCode() {
   TIMELINE_SCOPE(DeoptimizeDependentCode);
-  ClassTable* class_table = I->class_table();
+  ClassTable* class_table = IG->class_table();
 
-  const intptr_t bottom = Dart::vm_isolate()->class_table()->NumCids();
-  const intptr_t top = I->class_table()->NumCids();
+  const intptr_t bottom = Dart::vm_isolate_group()->class_table()->NumCids();
+  const intptr_t top = IG->class_table()->NumCids();
   Class& cls = Class::Handle();
   Array& fields = Array::Handle();
   Field& field = Field::Handle();
   Thread* thread = Thread::Current();
-  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+  SafepointWriteRwLocker ml(thread, IG->program_lock());
   for (intptr_t cls_idx = bottom; cls_idx < top; cls_idx++) {
     if (!class_table->HasValidClassAt(cls_idx)) {
       // Skip.
@@ -1308,7 +1300,7 @@ void IsolateReloadContext::CheckpointClasses() {
   // is used to pair new classes with old classes.
 
   // Copy the class table for isolate.
-  ClassTable* class_table = I->class_table();
+  ClassTable* class_table = IG->class_table();
   ClassPtr* saved_class_table = nullptr;
   ClassPtr* saved_tlc_class_table = nullptr;
   class_table->CopyBeforeHotReload(&saved_class_table, &saved_tlc_class_table,
@@ -1392,7 +1384,7 @@ void IsolateGroupReloadContext::FindModifiedSources(
   const int64_t last_reload = isolate_group_->last_reload_timestamp();
   GrowableArray<const char*> modified_sources_uris;
   const auto& libs =
-      GrowableObjectArray::Handle(first_isolate_->object_store()->libraries());
+      GrowableObjectArray::Handle(IG->object_store()->libraries());
   Library& lib = Library::Handle(Z);
   Array& scripts = Array::Handle(Z);
   Script& script = Script::Handle(Z);
@@ -1652,7 +1644,7 @@ void IsolateReloadContext::CommitBeforeInstanceMorphing() {
     // Update the libraries array.
     Library& lib = Library::Handle();
     const GrowableObjectArray& libs =
-        GrowableObjectArray::Handle(I->object_store()->libraries());
+        GrowableObjectArray::Handle(IG->object_store()->libraries());
     for (intptr_t i = 0; i < libs.Length(); i++) {
       lib = Library::RawCast(libs.At(i));
       VTIR_Print("Lib '%s' at index %" Pd "\n", lib.ToCString(), i);
@@ -1719,17 +1711,17 @@ void IsolateReloadContext::CommitAfterInstanceMorphing() {
 #endif
 
   if (FLAG_identity_reload) {
-    if (saved_num_cids_ != I->class_table()->NumCids()) {
+    if (saved_num_cids_ != IG->class_table()->NumCids()) {
       TIR_Print("Identity reload failed! B#C=%" Pd " A#C=%" Pd "\n",
-                saved_num_cids_, I->class_table()->NumCids());
+                saved_num_cids_, IG->class_table()->NumCids());
     }
-    if (saved_num_tlc_cids_ != I->class_table()->NumTopLevelCids()) {
+    if (saved_num_tlc_cids_ != IG->class_table()->NumTopLevelCids()) {
       TIR_Print("Identity reload failed! B#TLC=%" Pd " A#TLC=%" Pd "\n",
-                saved_num_tlc_cids_, I->class_table()->NumTopLevelCids());
+                saved_num_tlc_cids_, IG->class_table()->NumTopLevelCids());
     }
     const auto& saved_libs = GrowableObjectArray::Handle(saved_libraries_);
     const GrowableObjectArray& libs =
-        GrowableObjectArray::Handle(I->object_store()->libraries());
+        GrowableObjectArray::Handle(IG->object_store()->libraries());
     if (saved_libs.Length() != libs.Length()) {
       TIR_Print("Identity reload failed! B#L=%" Pd " A#L=%" Pd "\n",
                 saved_libs.Length(), libs.Length());
@@ -1885,7 +1877,7 @@ ClassPtr IsolateReloadContext::GetClassForHeapWalkAt(intptr_t cid) {
   if (class_table != nullptr) {
     return class_table[index];
   }
-  return isolate_->class_table()->At(cid);
+  return IG->class_table()->At(cid);
 }
 
 intptr_t IsolateGroupReloadContext::GetClassSizeForHeapWalkAt(classid_t cid) {
@@ -1906,7 +1898,7 @@ void IsolateReloadContext::DiscardSavedClassTable(bool is_rollback) {
       saved_class_table_.load(std::memory_order_relaxed);
   ClassPtr* local_saved_tlc_class_table =
       saved_tlc_class_table_.load(std::memory_order_relaxed);
-  I->class_table()->ResetAfterHotReload(
+  IG->class_table()->ResetAfterHotReload(
       local_saved_class_table, local_saved_tlc_class_table, saved_num_cids_,
       saved_num_tlc_cids_, is_rollback);
   saved_class_table_.store(nullptr, std::memory_order_release);
@@ -1944,7 +1936,7 @@ void IsolateReloadContext::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 ObjectStore* IsolateReloadContext::object_store() {
-  return isolate_->object_store();
+  return isolate_->group()->object_store();
 }
 
 void IsolateReloadContext::ResetUnoptimizedICsOnStack() {
@@ -2333,7 +2325,7 @@ void IsolateReloadContext::InvalidateFields(
     const GrowableArray<const Field*>& fields,
     const GrowableArray<const Instance*>& instances) {
   TIMELINE_SCOPE(InvalidateFields);
-  SafepointMutexLocker ml(isolate()->group()->subtype_test_cache_mutex());
+  SafepointMutexLocker ml(IG->subtype_test_cache_mutex());
   FieldInvalidator invalidator(zone);
   invalidator.CheckStatics(fields);
   invalidator.CheckInstances(instances);
@@ -2584,7 +2576,7 @@ void IsolateReloadContext::AddEnumBecomeMapping(const Object& old,
 }
 
 void IsolateReloadContext::RebuildDirectSubclasses() {
-  ClassTable* class_table = I->class_table();
+  ClassTable* class_table = IG->class_table();
   intptr_t num_cids = class_table->NumCids();
 
   // Clear the direct subclasses for all classes.

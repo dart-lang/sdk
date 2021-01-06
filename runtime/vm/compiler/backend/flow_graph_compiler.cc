@@ -160,14 +160,15 @@ FlowGraphCompiler::FlowGraphCompiler(
       intrinsic_mode_(false),
       stats_(stats),
       double_class_(
-          Class::ZoneHandle(isolate()->object_store()->double_class())),
-      mint_class_(Class::ZoneHandle(isolate()->object_store()->mint_class())),
-      float32x4_class_(
-          Class::ZoneHandle(isolate()->object_store()->float32x4_class())),
-      float64x2_class_(
-          Class::ZoneHandle(isolate()->object_store()->float64x2_class())),
+          Class::ZoneHandle(isolate_group()->object_store()->double_class())),
+      mint_class_(
+          Class::ZoneHandle(isolate_group()->object_store()->mint_class())),
+      float32x4_class_(Class::ZoneHandle(
+          isolate_group()->object_store()->float32x4_class())),
+      float64x2_class_(Class::ZoneHandle(
+          isolate_group()->object_store()->float64x2_class())),
       int32x4_class_(
-          Class::ZoneHandle(isolate()->object_store()->int32x4_class())),
+          Class::ZoneHandle(isolate_group()->object_store()->int32x4_class())),
       list_class_(Class::ZoneHandle(Library::Handle(Library::CoreLibrary())
                                         .LookupClass(Symbols::List()))),
       parallel_move_resolver_(this),
@@ -285,7 +286,8 @@ bool FlowGraphCompiler::CanOptimizeFunction() const {
 }
 
 bool FlowGraphCompiler::CanOSRFunction() const {
-  return isolate()->use_osr() && CanOptimizeFunction() && !is_optimizing();
+  return isolate_group()->use_osr() && CanOptimizeFunction() &&
+         !is_optimizing();
 }
 
 void FlowGraphCompiler::InsertBSSRelocation(BSS::Relocation reloc) {
@@ -300,7 +302,7 @@ bool FlowGraphCompiler::ForceSlowPathForStackOverflow() const {
   if ((FLAG_stacktrace_every > 0) || (FLAG_deoptimize_every > 0) ||
       (FLAG_gc_every > 0) ||
       (isolate()->reload_every_n_stack_overflow_checks() > 0)) {
-    if (!Isolate::IsSystemIsolate(isolate())) {
+    if (!IsolateGroup::IsSystemIsolateGroup(isolate_group())) {
       return true;
     }
   }
@@ -2118,13 +2120,13 @@ bool FlowGraphCompiler::LookupMethodFor(int class_id,
                                         const ArgumentsDescriptor& args_desc,
                                         Function* fn_return,
                                         bool* class_is_abstract_return) {
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  Zone* zone = thread->zone();
+  auto thread = Thread::Current();
+  auto zone = thread->zone();
+  auto class_table = thread->isolate_group()->class_table();
   if (class_id < 0) return false;
-  if (class_id >= isolate->class_table()->NumCids()) return false;
+  if (class_id >= class_table->NumCids()) return false;
 
-  ClassPtr raw_class = isolate->class_table()->At(class_id);
+  ClassPtr raw_class = class_table->At(class_id);
   if (raw_class == nullptr) return false;
   Class& cls = Class::Handle(zone, raw_class);
   if (cls.IsNull()) return false;
@@ -2703,8 +2705,8 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     __ BranchIf(EQUAL, is_instance_lbl);
     __ CompareObject(
         kScratchReg,
-        Type::ZoneHandle(zone(),
-                         isolate()->object_store()->nullable_object_type()));
+        Type::ZoneHandle(
+            zone(), isolate_group()->object_store()->nullable_object_type()));
     __ BranchIf(EQUAL, is_instance_lbl);
     __ CompareObject(kScratchReg, Object::void_type());
     __ BranchIf(EQUAL, is_instance_lbl);
@@ -3216,7 +3218,7 @@ const RuntimeEntry& NullErrorSlowPath::GetRuntimeEntry(
 CodePtr NullErrorSlowPath::GetStub(FlowGraphCompiler* compiler,
                                    CheckNullInstr::ExceptionType exception_type,
                                    bool save_fpu_registers) {
-  auto object_store = compiler->isolate()->object_store();
+  auto object_store = compiler->isolate_group()->object_store();
   switch (exception_type) {
     case CheckNullInstr::kNoSuchMethod:
       return save_fpu_registers
@@ -3271,7 +3273,7 @@ void LateInitializationErrorSlowPath::EmitSharedStubCall(
   const Field& original_field = Field::ZoneHandle(
       instruction()->AsLoadField()->slot().field().Original());
   __ LoadObject(LateInitializationErrorABI::kFieldReg, original_field);
-  auto object_store = compiler->isolate()->object_store();
+  auto object_store = compiler->isolate_group()->object_store();
   const auto& stub = Code::ZoneHandle(
       compiler->zone(),
       save_fpu_registers

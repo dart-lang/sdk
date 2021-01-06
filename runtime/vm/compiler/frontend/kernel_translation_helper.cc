@@ -1856,7 +1856,7 @@ void LoadingUnitsMetadataHelper::ReadMetadata(intptr_t node_offset) {
     loading_units.SetAt(id, unit);
   }
 
-  ObjectStore* object_store = Isolate::Current()->object_store();
+  ObjectStore* object_store = IG->object_store();
   ASSERT(object_store->loading_units() == Array::null());
   object_store->set_loading_units(loading_units);
 }
@@ -2965,16 +2965,16 @@ void TypeTranslator::BuildTypeInternal() {
     case kNeverType: {
       const Nullability nullability = helper_->ReadNullability();
       if (apply_legacy_erasure_) {
-        result_ = I->object_store()->null_type();
+        result_ = IG->object_store()->null_type();
       } else {
-        result_ = Type::Handle(Z, I->object_store()->never_type())
+        result_ = Type::Handle(Z, IG->object_store()->never_type())
                       .ToNullability(nullability, Heap::kOld);
       }
       break;
     }
     case kBottomType:
       // Map Bottom type to Null type until not emitted by CFE anymore.
-      result_ = I->object_store()->null_type();
+      result_ = IG->object_store()->null_type();
       ASSERT(result_.IsNullable());
       break;
     case kInterfaceType:

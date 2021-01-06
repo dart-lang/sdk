@@ -319,7 +319,7 @@ const Slot& Slot::Get(const Field& field,
   // itself stays behind in the compilation global cache. Thus we must always
   // try to add it to the list of guarded fields of the current function.
   if (slot.is_guarded_field()) {
-    if (thread->isolate()->use_field_guards()) {
+    if (thread->isolate_group()->use_field_guards()) {
       ASSERT(parsed_function != nullptr);
       parsed_function->AddToGuardedFields(&slot.field());
     } else {

@@ -293,7 +293,7 @@ class ClassDeserializationCluster : public DeserializationCluster {
     predefined_start_index_ = d->next_index();
     PageSpace* old_space = d->heap()->old_space();
     intptr_t count = d->ReadUnsigned();
-    ClassTable* table = d->isolate()->class_table();
+    ClassTable* table = d->isolate_group()->class_table();
     for (intptr_t i = 0; i < count; i++) {
       intptr_t class_id = d->ReadCid();
       ASSERT(table->HasValidClassAt(class_id));
@@ -312,7 +312,7 @@ class ClassDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d, bool is_canonical) {
-    ClassTable* table = d->isolate()->class_table();
+    ClassTable* table = d->isolate_group()->class_table();
 
     for (intptr_t id = predefined_start_index_; id < predefined_stop_index_;
          id++) {
@@ -497,7 +497,8 @@ class TypeArgumentsDeserializationCluster : public DeserializationCluster {
   void PostLoad(Deserializer* d, const Array& refs, bool is_canonical) {
     if (is_canonical && (d->isolate() != Dart::vm_isolate())) {
       CanonicalTypeArgumentsSet table(
-          d->zone(), d->isolate()->object_store()->canonical_type_arguments());
+          d->zone(),
+          d->isolate_group()->object_store()->canonical_type_arguments());
       TypeArguments& type_arg = TypeArguments::Handle(d->zone());
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         type_arg ^= refs.At(i);
@@ -507,7 +508,7 @@ class TypeArgumentsDeserializationCluster : public DeserializationCluster {
         // equal.
         ASSERT(!present || type_arg.IsRecursive());
       }
-      d->isolate()->object_store()->set_canonical_type_arguments(
+      d->isolate_group()->object_store()->set_canonical_type_arguments(
           table.Release());
     }
   }
@@ -1134,7 +1135,7 @@ class FieldDeserializationCluster : public DeserializationCluster {
 
   void PostLoad(Deserializer* d, const Array& refs, bool is_canonical) {
     Field& field = Field::Handle(d->zone());
-    if (!Isolate::Current()->use_field_guards()) {
+    if (!IsolateGroup::Current()->use_field_guards()) {
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         field ^= refs.At(i);
         field.set_guarded_cid_unsafe(kDynamicCid);
@@ -2321,8 +2322,8 @@ class RODataDeserializationCluster : public DeserializationCluster {
   void PostLoad(Deserializer* d, const Array& refs, bool is_canonical) {
     if (is_canonical && IsStringClassId(cid_) &&
         (d->isolate() != Dart::vm_isolate())) {
-      CanonicalStringSet table(d->zone(),
-                               d->isolate()->object_store()->symbol_table());
+      CanonicalStringSet table(
+          d->zone(), d->isolate_group()->object_store()->symbol_table());
       String& str = String::Handle(d->zone());
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         str ^= refs.At(i);
@@ -2330,7 +2331,7 @@ class RODataDeserializationCluster : public DeserializationCluster {
         bool present = table.Insert(str);
         ASSERT(!present);
       }
-      d->isolate()->object_store()->set_symbol_table(table.Release());
+      d->isolate_group()->object_store()->set_symbol_table(table.Release());
     }
   }
 
@@ -3079,7 +3080,7 @@ class InstanceSerializationCluster : public SerializationCluster {
  public:
   explicit InstanceSerializationCluster(intptr_t cid)
       : SerializationCluster("Instance"), cid_(cid) {
-    ClassPtr cls = Isolate::Current()->class_table()->At(cid);
+    ClassPtr cls = IsolateGroup::Current()->class_table()->At(cid);
     host_next_field_offset_in_words_ =
         cls->ptr()->host_next_field_offset_in_words_;
     ASSERT(host_next_field_offset_in_words_ > 0);
@@ -3322,7 +3323,7 @@ class TypeSerializationCluster : public SerializationCluster {
 
     SmiPtr raw_type_class_id = Smi::RawCast(type->ptr()->type_class_id_);
     ClassPtr type_class =
-        s->isolate()->class_table()->At(Smi::Value(raw_type_class_id));
+        s->isolate_group()->class_table()->At(Smi::Value(raw_type_class_id));
     s->Push(type_class);
   }
 
@@ -3394,8 +3395,8 @@ class TypeDeserializationCluster : public DeserializationCluster {
 
   void PostLoad(Deserializer* d, const Array& refs, bool is_canonical) {
     if (is_canonical && (d->isolate() != Dart::vm_isolate())) {
-      CanonicalTypeSet table(d->zone(),
-                             d->isolate()->object_store()->canonical_types());
+      CanonicalTypeSet table(
+          d->zone(), d->isolate_group()->object_store()->canonical_types());
       Type& type = Type::Handle(d->zone());
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         type ^= refs.At(i);
@@ -3405,7 +3406,7 @@ class TypeDeserializationCluster : public DeserializationCluster {
         // equal.
         ASSERT(!present || type.IsRecursive());
       }
-      d->isolate()->object_store()->set_canonical_types(table.Release());
+      d->isolate_group()->object_store()->set_canonical_types(table.Release());
     }
 
     Type& type = Type::Handle(d->zone());
@@ -3596,7 +3597,8 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
   void PostLoad(Deserializer* d, const Array& refs, bool is_canonical) {
     if (is_canonical && (d->isolate() != Dart::vm_isolate())) {
       CanonicalTypeParameterSet table(
-          d->zone(), d->isolate()->object_store()->canonical_type_parameters());
+          d->zone(),
+          d->isolate_group()->object_store()->canonical_type_parameters());
       TypeParameter& type_param = TypeParameter::Handle(d->zone());
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         type_param ^= refs.At(i);
@@ -3606,7 +3608,7 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
           ASSERT(!present);
         }
       }
-      d->isolate()->object_store()->set_canonical_type_parameters(
+      d->isolate_group()->object_store()->set_canonical_type_parameters(
           table.Release());
     }
 
@@ -3764,7 +3766,7 @@ class MintDeserializationCluster : public DeserializationCluster {
   void PostLoad(Deserializer* d, const Array& refs, bool is_canonical) {
     if (is_canonical && (d->isolate() != Dart::vm_isolate())) {
       const Class& mint_cls = Class::Handle(
-          d->zone(), Isolate::Current()->object_store()->mint_class());
+          d->zone(), IsolateGroup::Current()->object_store()->mint_class());
       mint_cls.set_constants(Object::null_array());
       Object& number = Object::Handle(d->zone());
       for (intptr_t i = start_index_; i < stop_index_; i++) {
@@ -4627,8 +4629,8 @@ class OneByteStringDeserializationCluster : public DeserializationCluster {
 
   void PostLoad(Deserializer* d, const Array& refs, bool is_canonical) {
     if (is_canonical && (d->isolate() != Dart::vm_isolate())) {
-      CanonicalStringSet table(d->zone(),
-                               d->isolate()->object_store()->symbol_table());
+      CanonicalStringSet table(
+          d->zone(), d->isolate_group()->object_store()->symbol_table());
       String& str = String::Handle(d->zone());
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         str ^= refs.At(i);
@@ -4636,7 +4638,7 @@ class OneByteStringDeserializationCluster : public DeserializationCluster {
         bool present = table.Insert(str);
         ASSERT(!present);
       }
-      d->isolate()->object_store()->set_symbol_table(table.Release());
+      d->isolate_group()->object_store()->set_symbol_table(table.Release());
     }
   }
 };
@@ -4721,8 +4723,8 @@ class TwoByteStringDeserializationCluster : public DeserializationCluster {
 
   void PostLoad(Deserializer* d, const Array& refs, bool is_canonical) {
     if (is_canonical && (d->isolate() != Dart::vm_isolate())) {
-      CanonicalStringSet table(d->zone(),
-                               d->isolate()->object_store()->symbol_table());
+      CanonicalStringSet table(
+          d->zone(), d->isolate_group()->object_store()->symbol_table());
       String& str = String::Handle(d->zone());
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         str ^= refs.At(i);
@@ -4730,7 +4732,7 @@ class TwoByteStringDeserializationCluster : public DeserializationCluster {
         bool present = table.Insert(str);
         ASSERT(!present);
       }
-      d->isolate()->object_store()->set_symbol_table(table.Release());
+      d->isolate_group()->object_store()->set_symbol_table(table.Release());
     }
   }
 };
@@ -4805,7 +4807,7 @@ class VMSerializationRoots : public SerializationRoots {
     s->AddBaseObject(SubtypeTestCache::cached_array_, "Array",
                      "<empty subtype entries>");
 
-    ClassTable* table = s->isolate()->class_table();
+    ClassTable* table = s->isolate_group()->class_table();
     for (intptr_t cid = kClassCid; cid < kInstanceCid; cid++) {
       // Error, CallSiteData has no class object.
       if (cid != kErrorCid && cid != kCallSiteDataCid) {
@@ -4885,7 +4887,7 @@ class VMDeserializationRoots : public DeserializationRoots {
     }
     d->AddBaseObject(SubtypeTestCache::cached_array_);
 
-    ClassTable* table = d->isolate()->class_table();
+    ClassTable* table = d->isolate_group()->class_table();
     for (intptr_t cid = kClassCid; cid <= kUnwindErrorCid; cid++) {
       // Error, CallSiteData has no class object.
       if (cid != kErrorCid && cid != kCallSiteDataCid) {
@@ -4905,7 +4907,7 @@ class VMDeserializationRoots : public DeserializationRoots {
 
   void ReadRoots(Deserializer* d) {
     symbol_table_ ^= d->ReadRef();
-    d->isolate()->object_store()->set_symbol_table(symbol_table_);
+    d->isolate_group()->object_store()->set_symbol_table(symbol_table_);
     if (Snapshot::IncludesCode(d->kind())) {
       for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
         Code* code = Code::ReadOnlyHandle();
@@ -4920,7 +4922,7 @@ class VMDeserializationRoots : public DeserializationRoots {
     // allocations (e.g., FinalizeVMIsolate) before allocating new pages.
     d->heap()->old_space()->AbandonBumpAllocation();
 
-    Symbols::InitFromSnapshot(d->isolate());
+    Symbols::InitFromSnapshot(d->isolate_group());
 
     Object::set_vm_isolate_snapshot_object_table(refs);
   }
@@ -5063,12 +5065,13 @@ class ProgramDeserializationRoots : public DeserializationRoots {
   }
 
   void PostLoad(Deserializer* d, const Array& refs) {
-    Isolate* isolate = d->thread()->isolate();
-    isolate->class_table()->CopySizesFromClassObjects();
+    auto isolate = d->thread()->isolate();
+    auto isolate_group = d->thread()->isolate_group();
+    isolate_group->class_table()->CopySizesFromClassObjects();
     d->heap()->old_space()->EvaluateAfterLoading();
 
     const Array& units =
-        Array::Handle(isolate->object_store()->loading_units());
+        Array::Handle(isolate_group->object_store()->loading_units());
     if (!units.IsNull()) {
       LoadingUnit& unit = LoadingUnit::Handle();
       unit ^= units.At(LoadingUnit::kRootId);
@@ -5208,7 +5211,7 @@ Serializer::Serializer(Thread* thread,
                        bool vm,
                        V8SnapshotProfileWriter* profile_writer)
     : ThreadStackResource(thread),
-      heap_(thread->isolate()->heap()),
+      heap_(thread->isolate_group()->heap()),
       zone_(thread->zone()),
       kind_(kind),
       stream_(stream),
@@ -5235,8 +5238,8 @@ Serializer::Serializer(Thread* thread,
       deduped_instructions_sources_(zone_)
 #endif
 {
-  num_cids_ = thread->isolate()->class_table()->NumCids();
-  num_tlc_cids_ = thread->isolate()->class_table()->NumTopLevelCids();
+  num_cids_ = thread->isolate_group()->class_table()->NumCids();
+  num_tlc_cids_ = thread->isolate_group()->class_table()->NumTopLevelCids();
   canonical_clusters_by_cid_ = new SerializationCluster*[num_cids_];
   for (intptr_t i = 0; i < num_cids_; i++) {
     canonical_clusters_by_cid_[i] = nullptr;
@@ -5461,7 +5464,7 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
 #else
   Zone* Z = zone_;
   if (cid >= kNumPredefinedCids || cid == kInstanceCid) {
-    Push(isolate()->class_table()->At(cid));
+    Push(isolate_group()->class_table()->At(cid));
     return new (Z) InstanceSerializationCluster(cid);
   }
   if (IsTypedDataViewClassId(cid)) {
@@ -6092,7 +6095,8 @@ void Serializer::PrintSnapshotSizes() {
     // snapshot, we always serialize at least _one_ byte for the DispatchTable.
     if (dispatch_table_size_ > 0) {
       const auto& dispatch_table_entries = Array::Handle(
-          zone_, isolate()->object_store()->dispatch_table_code_entries());
+          zone_,
+          isolate_group()->object_store()->dispatch_table_code_entries());
       auto const entry_count =
           dispatch_table_entries.IsNull() ? 0 : dispatch_table_entries.Length();
       clusters_by_size.Add(new (zone_) FakeSerializationCluster(
@@ -6123,7 +6127,7 @@ Deserializer::Deserializer(Thread* thread,
                            bool is_non_root_unit,
                            intptr_t offset)
     : ThreadStackResource(thread),
-      heap_(thread->isolate()->heap()),
+      heap_(thread->isolate_group()->heap()),
       zone_(thread->zone()),
       kind_(kind),
       stream_(buffer, size),
@@ -6287,7 +6291,8 @@ void Deserializer::ReadDispatchTable(ReadStream* stream) {
   const intptr_t first_code_id = stream->ReadUnsigned();
 
   auto const I = isolate();
-  auto code = I->object_store()->dispatch_table_null_error_stub();
+  auto const IG = isolate_group();
+  auto code = IG->object_store()->dispatch_table_null_error_stub();
   ASSERT(code != Code::null());
   uword null_entry = Code::EntryPointOf(code);
 
@@ -6544,7 +6549,7 @@ void Deserializer::EndInstructions(const Array& refs,
       code = refs.At(start_index + i);
       order_table.SetAt(i, code);
     }
-    ObjectStore* object_store = Isolate::Current()->object_store();
+    ObjectStore* object_store = IsolateGroup::Current()->object_store();
     GrowableObjectArray& order_tables =
         GrowableObjectArray::Handle(zone_, object_store->code_order_tables());
     if (order_tables.IsNull()) {
@@ -6665,7 +6670,7 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
   Isolate* isolate = thread()->isolate();
   isolate->ValidateClassTable();
   if (isolate != Dart::vm_isolate()) {
-    isolate->heap()->Verify();
+    isolate->group()->heap()->Verify();
   }
 #endif
 
@@ -6707,7 +6712,7 @@ FullSnapshotWriter::FullSnapshotWriter(
       mapped_text_size_(0) {
   ASSERT(isolate() != NULL);
   ASSERT(heap() != NULL);
-  ObjectStore* object_store = isolate()->object_store();
+  ObjectStore* object_store = isolate_group()->object_store();
   ASSERT(object_store != NULL);
 
 #if defined(DEBUG)
@@ -6734,7 +6739,7 @@ ZoneGrowableArray<Object*>* FullSnapshotWriter::WriteVMSnapshot() {
   serializer.ReserveHeader();
   serializer.WriteVersionAndFeatures(true);
   VMSerializationRoots roots(
-      Array::Handle(Dart::vm_isolate()->object_store()->symbol_table()));
+      Array::Handle(Dart::vm_isolate_group()->object_store()->symbol_table()));
   ZoneGrowableArray<Object*>* objects = serializer.Serialize(&roots);
   serializer.FillHeader(serializer.kind());
   clustered_vm_size_ = serializer.bytes_written();
@@ -6763,7 +6768,7 @@ void FullSnapshotWriter::WriteProgramSnapshot(
                         isolate_image_writer_, /*vm=*/false, profile_writer_);
   serializer.set_loading_units(units);
   serializer.set_current_loading_unit_id(LoadingUnit::kRootId);
-  ObjectStore* object_store = isolate()->object_store();
+  ObjectStore* object_store = isolate_group()->object_store();
   ASSERT(object_store != NULL);
 
   // These type arguments must always be retained.
@@ -7102,7 +7107,7 @@ ApiErrorPtr FullSnapshotReader::ReadProgramSnapshot() {
                                        /* is_executable */ true);
   }
 
-  ProgramDeserializationRoots roots(thread_->isolate()->object_store());
+  ProgramDeserializationRoots roots(thread_->isolate_group()->object_store());
   deserializer.Deserialize(&roots);
 
   PatchGlobalObjectPool();
@@ -7129,7 +7134,7 @@ ApiErrorPtr FullSnapshotReader::ReadUnitSnapshot(const LoadingUnit& unit) {
   }
   {
     Array& units =
-        Array::Handle(thread_->isolate()->object_store()->loading_units());
+        Array::Handle(isolate_group()->object_store()->loading_units());
     uint32_t main_program_hash = Smi::Value(Smi::RawCast(units.At(0)));
     uint32_t unit_program_hash = deserializer.Read<uint32_t>();
     if (main_program_hash != unit_program_hash) {
@@ -7172,7 +7177,7 @@ void FullSnapshotReader::PatchGlobalObjectPool() {
     auto zone = thread_->zone();
     const auto& pool = ObjectPool::Handle(
         zone, ObjectPool::RawCast(
-                  thread_->isolate()->object_store()->global_object_pool()));
+                  isolate_group()->object_store()->global_object_pool()));
     auto& entry = Object::Handle(zone);
     auto& smi = Smi::Handle(zone);
     for (intptr_t i = 0; i < pool.Length(); i++) {

@@ -1406,8 +1406,8 @@ class ProfileBuilder : public ValueObject {
   }
 
   bool IsPCInDartHeap(uword pc) {
-    return vm_isolate_->heap()->CodeContains(pc) ||
-           thread_->isolate()->heap()->CodeContains(pc);
+    return vm_isolate_->group()->heap()->CodeContains(pc) ||
+           thread_->isolate()->group()->heap()->CodeContains(pc);
   }
 
   ProfileCode* FindOrRegisterNativeProfileCode(uword pc) {

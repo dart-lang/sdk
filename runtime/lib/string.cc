@@ -282,7 +282,7 @@ DEFINE_NATIVE_ENTRY(OneByteString_splitWithCharCode, 0, 2) {
                                           Heap::kNew);
   result.Add(str);
   result.SetTypeArguments(TypeArguments::Handle(
-      zone, isolate->object_store()->type_argument_string()));
+      zone, isolate->group()->object_store()->type_argument_string()));
   return result.raw();
 }
 
@@ -292,8 +292,8 @@ DEFINE_NATIVE_ENTRY(Internal_allocateOneByteString, 0, 1) {
   if ((length < 0) || (length > OneByteString::kMaxElements)) {
     // Assume that negative lengths are the result of wrapping in code in
     // string_patch.dart.
-    const Instance& exception =
-        Instance::Handle(thread->isolate()->object_store()->out_of_memory());
+    const Instance& exception = Instance::Handle(
+        thread->isolate_group()->object_store()->out_of_memory());
     Exceptions::Throw(thread, exception);
     UNREACHABLE();
   }
@@ -306,8 +306,8 @@ DEFINE_NATIVE_ENTRY(Internal_allocateTwoByteString, 0, 1) {
   if ((length < 0) || (length > TwoByteString::kMaxElements)) {
     // Assume that negative lengths are the result of wrapping in code in
     // string_patch.dart.
-    const Instance& exception =
-        Instance::Handle(thread->isolate()->object_store()->out_of_memory());
+    const Instance& exception = Instance::Handle(
+        thread->isolate_group()->object_store()->out_of_memory());
     Exceptions::Throw(thread, exception);
     UNREACHABLE();
   }

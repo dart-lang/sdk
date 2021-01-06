@@ -335,7 +335,7 @@ class BareSwitchableCall : public SwitchableCallBase {
   BareSwitchableCall(uword return_address, const Code& code)
       : SwitchableCallBase(code) {
     object_pool_ = ObjectPool::RawCast(
-        Isolate::Current()->object_store()->global_object_pool());
+        IsolateGroup::Current()->object_store()->global_object_pool());
 
     uword pc = return_address;
 
@@ -401,7 +401,7 @@ class BareSwitchableCall : public SwitchableCallBase {
     if (result != Code::null()) {
       return result;
     }
-    result = ReversePc::Lookup(Dart::vm_isolate()->group(), pc);
+    result = ReversePc::Lookup(Dart::vm_isolate_group(), pc);
     if (result != Code::null()) {
       return result;
     }

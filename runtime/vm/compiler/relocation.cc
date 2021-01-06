@@ -433,7 +433,7 @@ CodePtr CodeRelocator::GetTarget(const StaticCallsTableEntry& call) {
     // into the types directly, but that does not work for types which
     // live in the "vm-isolate" - such as `Type::dynamic_type()`).
     if (destination_.InVMIsolateHeap()) {
-      auto object_store = thread_->isolate()->object_store();
+      auto object_store = thread_->isolate_group()->object_store();
 
       if (destination_.raw() == StubCode::DefaultTypeTest().raw()) {
         destination_ = object_store->default_tts_stub();

@@ -115,7 +115,7 @@ const CidRangeVector& HierarchyInfo::SubtypeRangesForClass(
     const Class& klass,
     bool include_abstract,
     bool exclude_null) {
-  ClassTable* table = thread()->isolate()->class_table();
+  ClassTable* table = thread()->isolate_group()->class_table();
   const intptr_t cid_count = table->NumCids();
   std::unique_ptr<CidRangeVector[]>* cid_ranges = nullptr;
   if (include_abstract) {
@@ -143,7 +143,7 @@ const CidRangeVector& HierarchyInfo::SubtypeRangesForClass(
 
 const CidRangeVector& HierarchyInfo::SubclassRangesForClass(
     const Class& klass) {
-  ClassTable* table = thread()->isolate()->class_table();
+  ClassTable* table = thread()->isolate_group()->class_table();
   const intptr_t cid_count = table->NumCids();
   if (cid_subclass_ranges_ == nullptr) {
     cid_subclass_ranges_.reset(new CidRangeVector[cid_count]);
@@ -176,7 +176,7 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
                                    bool include_abstract,
                                    bool exclude_null) {
   Zone* zone = thread()->zone();
-  ClassTable* class_table = thread()->isolate()->class_table();
+  ClassTable* class_table = thread()->isolate_group()->class_table();
 
   // Only really used if `use_subtype_test == true`.
   const Type& dst_type = Type::Handle(zone, Type::RawCast(klass.RareType()));
@@ -3962,7 +3962,7 @@ const CallTargets* CallTargets::CreateAndExpand(Zone* zone,
 
   // Spread class-ids to following classes where a lookup yields the same
   // method.
-  const intptr_t max_cid = Isolate::Current()->class_table()->NumCids();
+  const intptr_t max_cid = IsolateGroup::Current()->class_table()->NumCids();
   for (int idx = 0; idx < length; idx++) {
     int upper_limit_cid =
         (idx == length - 1) ? max_cid : targets[idx + 1].cid_start;
@@ -4335,7 +4335,7 @@ void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ LoadObject(InitStaticFieldABI::kFieldReg,
                   Field::ZoneHandle(field().Original()));
 
-    auto object_store = compiler->isolate()->object_store();
+    auto object_store = compiler->isolate_group()->object_store();
     const auto& init_static_field_stub = Code::ZoneHandle(
         compiler->zone(), object_store->init_static_field_stub());
     compiler->GenerateStubCall(source(), init_static_field_stub,
@@ -4372,7 +4372,7 @@ void LoadFieldInstr::EmitNativeCodeForInitializerCall(
 
   __ LoadObject(InitInstanceFieldABI::kFieldReg, original_field);
 
-  auto object_store = compiler->isolate()->object_store();
+  auto object_store = compiler->isolate_group()->object_store();
   auto& stub = Code::ZoneHandle(compiler->zone());
   if (field.needs_load_guard()) {
     stub = object_store->init_instance_field_stub();
@@ -4414,7 +4414,7 @@ LocationSummary* ThrowInstr::MakeLocationSummary(Zone* zone, bool opt) const {
 }
 
 void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  auto object_store = compiler->isolate()->object_store();
+  auto object_store = compiler->isolate_group()->object_store();
   const auto& throw_stub =
       Code::ZoneHandle(compiler->zone(), object_store->throw_stub());
 
@@ -4441,7 +4441,7 @@ LocationSummary* ReThrowInstr::MakeLocationSummary(Zone* zone, bool opt) const {
 }
 
 void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  auto object_store = compiler->isolate()->object_store();
+  auto object_store = compiler->isolate_group()->object_store();
   const auto& re_throw_stub =
       Code::ZoneHandle(compiler->zone(), object_store->re_throw_stub());
 
@@ -4473,7 +4473,7 @@ void AssertBooleanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Check that the type of the value is allowed in conditional context.
   ASSERT(locs()->always_calls());
 
-  auto object_store = compiler->isolate()->object_store();
+  auto object_store = compiler->isolate_group()->object_store();
   const auto& assert_boolean_stub =
       Code::ZoneHandle(compiler->zone(), object_store->assert_boolean_stub());
 
@@ -5503,7 +5503,7 @@ void RangeErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
 #if defined(TARGET_ARCH_IA32)
   UNREACHABLE();
 #else
-  auto object_store = compiler->isolate()->object_store();
+  auto object_store = compiler->isolate_group()->object_store();
   const auto& stub = Code::ZoneHandle(
       compiler->zone(),
       save_fpu_registers

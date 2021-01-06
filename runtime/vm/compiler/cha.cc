@@ -51,7 +51,7 @@ bool CHA::HasSubclasses(const Class& cls) {
 }
 
 bool CHA::HasSubclasses(intptr_t cid) const {
-  const ClassTable& class_table = *thread_->isolate()->class_table();
+  const ClassTable& class_table = *thread_->isolate_group()->class_table();
   Class& cls = Class::Handle(thread_->zone(), class_table.At(cid));
   return HasSubclasses(cls);
 }

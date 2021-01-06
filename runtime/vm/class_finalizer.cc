@@ -30,7 +30,7 @@ DEFINE_FLAG(bool, trace_class_finalization, false, "Trace class finalization.");
 DEFINE_FLAG(bool, trace_type_finalization, false, "Trace type finalization.");
 
 bool ClassFinalizer::AllClassesFinalized() {
-  ObjectStore* object_store = Isolate::Current()->object_store();
+  ObjectStore* object_store = IsolateGroup::Current()->object_store();
   const GrowableObjectArray& classes =
       GrowableObjectArray::Handle(object_store->pending_classes());
   return classes.Length() == 0;
@@ -48,7 +48,7 @@ static void RemoveCHAOptimizedCode(
     return;
   }
   // Switch all functions' code to unoptimized.
-  const ClassTable& class_table = *Isolate::Current()->class_table();
+  const ClassTable& class_table = *IsolateGroup::Current()->class_table();
   Class& cls = Class::Handle();
   for (intptr_t i = 0; i < added_subclass_to_cids.length(); i++) {
     intptr_t cid = added_subclass_to_cids[i];
@@ -175,10 +175,10 @@ static void CollectImmediateSuperInterfaces(const Class& cls,
 bool ClassFinalizer::ProcessPendingClasses() {
   Thread* thread = Thread::Current();
   TIMELINE_DURATION(thread, Isolate, "ProcessPendingClasses");
-  Isolate* isolate = thread->isolate();
-  ASSERT(isolate != NULL);
+  auto isolate_group = thread->isolate_group();
+  ASSERT(isolate_group != nullptr);
   HANDLESCOPE(thread);
-  ObjectStore* object_store = isolate->object_store();
+  ObjectStore* object_store = isolate_group->object_store();
   const Error& error = Error::Handle(thread->zone(), thread->sticky_error());
   if (!error.IsNull()) {
     return false;
@@ -225,7 +225,7 @@ void ClassFinalizer::VerifyBootstrapClasses() {
   if (FLAG_trace_class_finalization) {
     OS::PrintErr("VerifyBootstrapClasses START.\n");
   }
-  ObjectStore* object_store = Isolate::Current()->object_store();
+  ObjectStore* object_store = IsolateGroup::Current()->object_store();
 
   Class& cls = Class::Handle();
 #if defined(DEBUG)
@@ -284,7 +284,7 @@ void ClassFinalizer::VerifyBootstrapClasses() {
   if (FLAG_trace_class_finalization) {
     OS::PrintErr("VerifyBootstrapClasses END.\n");
   }
-  Isolate::Current()->heap()->Verify();
+  IsolateGroup::Current()->heap()->Verify();
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -934,13 +934,13 @@ void ClassFinalizer::FinalizeMemberTypes(const Class& cls) {
   //   instance method.
 
   // Finalize type of fields and check for conflicts in super classes.
-  Isolate* isolate = Isolate::Current();
+  auto isolate_group = IsolateGroup::Current();
   Zone* zone = Thread::Current()->zone();
   Array& array = Array::Handle(zone, cls.fields());
   Field& field = Field::Handle(zone);
   AbstractType& type = AbstractType::Handle(zone);
   const intptr_t num_fields = array.Length();
-  const bool track_exactness = isolate->use_field_guards();
+  const bool track_exactness = isolate_group->use_field_guards();
   for (intptr_t i = 0; i < num_fields; i++) {
     field ^= array.At(i);
     type = field.type();
@@ -1178,7 +1178,7 @@ ErrorPtr ClassFinalizer::AllocateFinalizeClass(const Class& cls) {
     }
 
     Zone* zone = thread->zone();
-    ClassTable* class_table = thread->isolate()->class_table();
+    ClassTable* class_table = thread->isolate_group()->class_table();
     auto& interface_class = Class::Handle(zone);
 
     // We scan every interface this [cls] implements and invalidate all CHA
@@ -1380,16 +1380,17 @@ void ClassFinalizer::VerifyImplicitFieldOffsets() {
 }
 
 void ClassFinalizer::SortClasses() {
-  Thread* T = Thread::Current();
-  Zone* Z = T->zone();
-  Isolate* I = T->isolate();
+  auto T = Thread::Current();
+  auto Z = T->zone();
+  auto I = T->isolate();
+  auto IG = T->isolate_group();
 
   // Prevent background compiler from adding deferred classes or canonicalizing
   // new types while classes are being sorted and type hashes are modified.
   BackgroundCompiler::Stop(I);
   SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
 
-  ClassTable* table = I->class_table();
+  ClassTable* table = IG->class_table();
   intptr_t num_cids = table->NumCids();
 
   std::unique_ptr<intptr_t[]> old_to_new_cid(new intptr_t[num_cids]);
@@ -1415,7 +1416,7 @@ void ClassFinalizer::SortClasses() {
     if (!cls.is_declaration_loaded()) {
       continue;
     }
-    if (cls.SuperClass() == I->object_store()->object_class()) {
+    if (cls.SuperClass() == IG->object_store()->object_class()) {
       dfs_stack.Add(cid);
     }
   }
@@ -1527,12 +1528,11 @@ void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
     IG->ForEachIsolate(
         [&](Isolate* I) {
           I->set_remapping_cids(true);
-
-          // Update the class table. Do it before rewriting cids in headers, as
-          // the heap walkers load an object's size *after* calling the visitor.
-          I->class_table()->Remap(old_to_new_cid);
         },
         /*is_at_safepoint=*/true);
+    // Update the class table. Do it before rewriting cids in headers, as
+    // the heap walkers load an object's size *after* calling the visitor.
+    IG->class_table()->Remap(old_to_new_cid);
 
     // Rewrite cids in headers and cids in Classes, Fields, Types and
     // TypeParameters.
@@ -1544,11 +1544,11 @@ void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
     IG->ForEachIsolate(
         [&](Isolate* I) {
           I->set_remapping_cids(false);
-#if defined(DEBUG)
-          I->class_table()->Validate();
-#endif
         },
         /*is_at_safepoint=*/true);
+#if defined(DEBUG)
+    IG->class_table()->Validate();
+#endif
   }
 
 #if defined(DEBUG)
@@ -1621,19 +1621,20 @@ class ClearTypeHashVisitor : public ObjectVisitor {
 };
 
 void ClassFinalizer::RehashTypes() {
-  Thread* T = Thread::Current();
-  Zone* Z = T->zone();
-  Isolate* I = T->isolate();
+  auto T = Thread::Current();
+  auto Z = T->zone();
+  auto I = T->isolate();
+  auto IG = T->isolate_group();
 
   // Clear all cached hash values.
   {
     HeapIterationScope his(T);
     ClearTypeHashVisitor visitor(Z);
-    I->heap()->VisitObjects(&visitor);
+    IG->heap()->VisitObjects(&visitor);
   }
 
   // Rehash the canonical Types table.
-  ObjectStore* object_store = I->object_store();
+  ObjectStore* object_store = IG->object_store();
   Array& types = Array::Handle(Z);
   Type& type = Type::Handle(Z);
   {
@@ -1704,7 +1705,7 @@ void ClassFinalizer::ClearAllCode(bool including_nonchanging_cids) {
   UNREACHABLE();
 #else
   auto const thread = Thread::Current();
-  auto const isolate = thread->isolate();
+  auto const isolate_group = thread->isolate_group();
   StackZone stack_zone(thread);
   HANDLESCOPE(thread);
   auto const zone = thread->zone();
@@ -1734,12 +1735,12 @@ void ClassFinalizer::ClearAllCode(bool including_nonchanging_cids) {
   };
 
   ClearCodeVisitor visitor(zone, including_nonchanging_cids);
-  ProgramVisitor::WalkProgram(zone, isolate, &visitor);
+  ProgramVisitor::WalkProgram(zone, isolate_group, &visitor);
 
   // Apart from normal function code and allocation stubs we have two global
   // code objects to clear.
   if (including_nonchanging_cids) {
-    auto object_store = isolate->object_store();
+    auto object_store = isolate_group->object_store();
     auto& null_code = Code::Handle(zone);
     object_store->set_build_method_extractor_code(null_code);
   }

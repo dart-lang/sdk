@@ -235,7 +235,6 @@ class IsolateGroupReloadContext {
 
   int64_t start_time_micros_ = -1;
   int64_t reload_timestamp_ = -1;
-  Isolate* first_isolate_ = nullptr;
   bool reload_skipped_ = false;
   bool reload_finalized_ = false;
   JSONStream* js_;
@@ -335,6 +334,7 @@ class IsolateReloadContext {
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
   Isolate* isolate() { return isolate_; }
+  IsolateGroup* isolate_group() { return isolate_->group(); }
   ObjectStore* object_store();
 
   void EnsuredUnoptimizedCodeForStack();

@@ -12,7 +12,7 @@
 namespace dart {
 
 // Forward declarations.
-class Isolate;
+class IsolateGroup;
 class ObjectPointerVisitor;
 
 // One-character symbols are added implicitly.
@@ -641,11 +641,11 @@ class Symbols : public AllStatic {
   static const String& Token(Token::Kind token);
 
   // Initialize frequently used symbols in the vm isolate.
-  static void Init(Isolate* isolate);
-  static void InitFromSnapshot(Isolate* isolate);
+  static void Init(IsolateGroup* isolate_group);
+  static void InitFromSnapshot(IsolateGroup* isolate_group);
 
   // Initialize and setup a symbol table for the isolate.
-  static void SetupSymbolTable(Isolate* isolate);
+  static void SetupSymbolTable(IsolateGroup* isolate_group);
 
   // Creates a Symbol given a C string that is assumed to contain
   // UTF-8 encoded characters and '\0' is considered a termination character.
@@ -703,8 +703,8 @@ class Symbols : public AllStatic {
     return reinterpret_cast<StringPtr*>(&predefined_);
   }
 
-  static void DumpStats(Isolate* isolate);
-  static void DumpTable(Isolate* isolate);
+  static void DumpStats(IsolateGroup* isolate_group);
+  static void DumpTable(IsolateGroup* isolate_group);
 
   // Returns Symbol::Null if no symbol is found.
   template <typename StringType>
@@ -719,7 +719,9 @@ class Symbols : public AllStatic {
   static StringPtr LookupFromSet(Thread* thread, const String& str);
   static StringPtr LookupFromDot(Thread* thread, const String& str);
 
-  static void GetStats(Isolate* isolate, intptr_t* size, intptr_t* capacity);
+  static void GetStats(IsolateGroup* isolate_group,
+                       intptr_t* size,
+                       intptr_t* capacity);
 
  private:
   enum { kInitialVMIsolateSymtabSize = 1024, kInitialSymtabSize = 2048 };

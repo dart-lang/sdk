@@ -585,8 +585,8 @@ static InstancePtr CreateIsolateMirror() {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   const String& debug_name = String::Handle(String::New(isolate->name()));
-  const Library& root_library =
-      Library::Handle(thread->zone(), isolate->object_store()->root_library());
+  const Library& root_library = Library::Handle(
+      thread->zone(), isolate->group()->object_store()->root_library());
   const Instance& root_library_mirror =
       Instance::Handle(CreateLibraryMirror(thread, root_library));
 
@@ -649,8 +649,8 @@ static AbstractTypePtr InstantiateType(const AbstractType& type,
 }
 
 DEFINE_NATIVE_ENTRY(MirrorSystem_libraries, 0, 0) {
-  const GrowableObjectArray& libraries =
-      GrowableObjectArray::Handle(zone, isolate->object_store()->libraries());
+  const GrowableObjectArray& libraries = GrowableObjectArray::Handle(
+      zone, isolate->group()->object_store()->libraries());
 
   const intptr_t num_libraries = libraries.Length();
   const GrowableObjectArray& library_mirrors = GrowableObjectArray::Handle(
@@ -696,11 +696,11 @@ DEFINE_NATIVE_ENTRY(IsolateMirror_loadUri, 0, 1) {
   } else {
     isolate->BlockClassFinalization();
     const Object& result = Object::Handle(
-        zone,
-        isolate->CallTagHandler(
-            Dart_kCanonicalizeUrl,
-            Library::Handle(zone, isolate->object_store()->root_library()),
-            uri));
+        zone, isolate->CallTagHandler(
+                  Dart_kCanonicalizeUrl,
+                  Library::Handle(
+                      zone, isolate->group()->object_store()->root_library()),
+                  uri));
     isolate->UnblockClassFinalization();
     if (result.IsError()) {
       if (result.IsLanguageError()) {
@@ -726,7 +726,8 @@ DEFINE_NATIVE_ENTRY(IsolateMirror_loadUri, 0, 1) {
   Object& result = Object::Handle(
       zone, isolate->CallTagHandler(
                 Dart_kImportTag,
-                Library::Handle(zone, isolate->object_store()->root_library()),
+                Library::Handle(
+                    zone, isolate->group()->object_store()->root_library()),
                 canonical_uri));
   isolate->UnblockClassFinalization();
   if (result.IsError()) {
@@ -1289,8 +1290,8 @@ DEFINE_NATIVE_ENTRY(ClosureMirror_function, 0, 1) {
       // The 'instantiator' created below should not be a type, but two type
       // argument vectors: instantiator_type_arguments and
       // function_type_arguments.
-      const Class& cls =
-          Class::Handle(Isolate::Current()->object_store()->object_class());
+      const Class& cls = Class::Handle(
+          IsolateGroup::Current()->object_store()->object_class());
       instantiator = Type::New(cls, arguments, TokenPosition::kNoSource);
       instantiator.SetIsFinalized();
     }

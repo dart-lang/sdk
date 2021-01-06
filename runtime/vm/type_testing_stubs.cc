@@ -37,7 +37,7 @@ const char* TypeTestingStubNamer::StringifyType(
   Zone* Z = Thread::Current()->zone();
   if (type.IsType() && !type.IsFunctionType()) {
     const intptr_t cid = Type::Cast(type).type_class_id();
-    ClassTable* class_table = Isolate::Current()->class_table();
+    ClassTable* class_table = IsolateGroup::Current()->class_table();
     klass_ = class_table->At(cid);
     ASSERT(!klass_.IsNull());
 
@@ -148,7 +148,7 @@ void TypeTestingStubGenerator::SpecializeStubFor(Thread* thread,
 #endif
 
 TypeTestingStubGenerator::TypeTestingStubGenerator()
-    : object_store_(Isolate::Current()->object_store()) {}
+    : object_store_(IsolateGroup::Current()->object_store()) {}
 
 CodePtr TypeTestingStubGenerator::OptimizedCodeForType(
     const AbstractType& type) {
@@ -205,7 +205,7 @@ CodePtr TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
 
   auto& slow_tts_stub = Code::ZoneHandle(zone);
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    slow_tts_stub = thread->isolate()->object_store()->slow_tts_stub();
+    slow_tts_stub = thread->isolate_group()->object_store()->slow_tts_stub();
   }
 
   // To use the already-defined __ Macro !
@@ -572,7 +572,7 @@ void RegisterTypeArgumentsUse(const Function& function,
     }
     if (cid != kDynamicCid) {
       const Class& instance_klass =
-          Class::Handle(Isolate::Current()->class_table()->At(cid));
+          Class::Handle(IsolateGroup::Current()->class_table()->At(cid));
       if (load_field->slot().IsTypeArguments() && instance_klass.IsGeneric() &&
           compiler::target::Class::TypeArgumentsFieldOffset(instance_klass) ==
               load_field->slot().offset_in_bytes()) {
@@ -704,7 +704,8 @@ TypeUsageInfo::TypeUsageInfo(Thread* thread)
       finder_(zone_),
       assert_assignable_types_(),
       instance_creation_arguments_(
-          new TypeArgumentsSet[thread->isolate()->class_table()->NumCids()]),
+          new TypeArgumentsSet
+              [thread->isolate_group()->class_table()->NumCids()]),
       klass_(Class::Handle(zone_)) {
   thread->set_type_usage_info(this);
 }
@@ -759,7 +760,7 @@ void TypeUsageInfo::UseTypeArgumentsInInstanceCreation(
 }
 
 void TypeUsageInfo::BuildTypeUsageInformation() {
-  ClassTable* class_table = thread()->isolate()->class_table();
+  ClassTable* class_table = thread()->isolate_group()->class_table();
   const intptr_t cid_count = class_table->NumCids();
 
   // Step 1) Propagate instantiated type argument vectors.

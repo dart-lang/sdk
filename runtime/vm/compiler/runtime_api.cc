@@ -161,17 +161,17 @@ const Type& IntType() {
 }
 
 const Class& GrowableObjectArrayClass() {
-  auto object_store = Isolate::Current()->object_store();
+  auto object_store = IsolateGroup::Current()->object_store();
   return Class::Handle(object_store->growable_object_array_class());
 }
 
 const Class& MintClass() {
-  auto object_store = Isolate::Current()->object_store();
+  auto object_store = IsolateGroup::Current()->object_store();
   return Class::Handle(object_store->mint_class());
 }
 
 const Class& DoubleClass() {
-  auto object_store = Isolate::Current()->object_store();
+  auto object_store = IsolateGroup::Current()->object_store();
   return Class::Handle(object_store->double_class());
 }
 
@@ -430,7 +430,7 @@ intptr_t Class::TypeArgumentsFieldOffset(const dart::Class& klass) {
 }
 
 bool Class::TraceAllocation(const dart::Class& klass) {
-  return klass.TraceAllocation(dart::Isolate::Current());
+  return klass.TraceAllocation(dart::IsolateGroup::Current());
 }
 
 word Instance::first_field_offset() {

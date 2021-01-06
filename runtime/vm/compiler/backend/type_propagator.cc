@@ -303,7 +303,7 @@ void FlowGraphTypePropagator::CheckNonNullSelector(
   }
   Thread* thread = Thread::Current();
   const Class& null_class =
-      Class::Handle(thread->isolate()->object_store()->null_class());
+      Class::Handle(thread->isolate_group()->object_store()->null_class());
   Function& target = Function::Handle();
   if (Error::Handle(null_class.EnsureIsFinalized(thread)).IsNull()) {
     target = Resolver::ResolveDynamicAnyArgs(thread->zone(), null_class,
@@ -775,8 +775,8 @@ const AbstractType* CompileType::ToAbstractType() {
       return type_;
     }
 
-    Isolate* I = Isolate::Current();
-    const Class& type_class = Class::Handle(I->class_table()->At(cid_));
+    auto IG = IsolateGroup::Current();
+    const Class& type_class = Class::Handle(IG->class_table()->At(cid_));
     type_ = &AbstractType::ZoneHandle(type_class.RareType());
   }
 
@@ -887,7 +887,7 @@ void CompileType::PrintTo(BaseTextBuffer* f) const {
     return;
   } else if ((cid_ != kIllegalCid) && (cid_ != kDynamicCid)) {
     const Class& cls =
-        Class::Handle(Isolate::Current()->class_table()->At(cid_));
+        Class::Handle(IsolateGroup::Current()->class_table()->At(cid_));
     type_name = String::Handle(cls.ScrubbedName()).ToCString();
   } else if (type_ != NULL) {
     type_name = type_->IsDynamicType()
@@ -1356,7 +1356,7 @@ static CompileType ComputeListFactoryType(CompileType* inferred_type,
             ? TypeArguments::null_type_arguments()
             : TypeArguments::Cast(type_args_value->BoundConstant());
     const Class& cls =
-        Class::Handle(Isolate::Current()->class_table()->At(cid));
+        Class::Handle(IsolateGroup::Current()->class_table()->At(cid));
     Type& type = Type::ZoneHandle(Type::New(
         cls, type_args, TokenPosition::kNoSource, Nullability::kNonNullable));
     ASSERT(type.IsInstantiated());
@@ -1753,7 +1753,7 @@ static AbstractTypePtr ExtractElementTypeFromArrayType(
   if (cid == kGrowableObjectArrayCid || cid == kArrayCid ||
       cid == kImmutableArrayCid ||
       array_type.type_class() ==
-          Isolate::Current()->object_store()->list_class()) {
+          IsolateGroup::Current()->object_store()->list_class()) {
     const auto& type_args = TypeArguments::Handle(array_type.arguments());
     return type_args.TypeAtNullSafe(Array::kElementTypeTypeArgPos);
   }

@@ -37,7 +37,7 @@ FlowGraphSerializer::FlowGraphSerializer(Zone* zone,
                                          const FlowGraph* flow_graph)
     : flow_graph_(ASSERT_NOTNULL(flow_graph)),
       zone_(zone),
-      object_store_(flow_graph->thread()->isolate()->object_store()),
+      object_store_(flow_graph->thread()->isolate_group()->object_store()),
       open_recursive_types_(zone_),
       llvm_constants_(
           GrowableObjectArray::Handle(zone_,

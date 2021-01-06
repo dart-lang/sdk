@@ -319,7 +319,7 @@ CodePtr BareSwitchableCallPattern::target() const {
   if (result != Code::null()) {
     return result;
   }
-  result = ReversePc::Lookup(Dart::vm_isolate()->group(), pc);
+  result = ReversePc::Lookup(Dart::vm_isolate_group(), pc);
   if (result != Code::null()) {
     return result;
   }

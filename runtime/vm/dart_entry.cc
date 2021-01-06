@@ -110,7 +110,7 @@ ObjectPtr DartEntry::InvokeFunction(const Function& function,
     if (FLAG_use_bare_instructions) {
       Thread* thread = Thread::Current();
       thread->set_global_object_pool(
-          thread->isolate()->object_store()->global_object_pool());
+          thread->isolate_group()->object_store()->global_object_pool());
       const DispatchTable* dispatch_table = thread->isolate()->dispatch_table();
       if (dispatch_table != nullptr) {
         thread->set_dispatch_table_array(dispatch_table->ArrayOrigin());
@@ -185,7 +185,7 @@ ObjectPtr DartEntry::InvokeCode(const Code& code,
 ObjectPtr DartEntry::ResolveCallable(Thread* thread,
                                      const Array& arguments,
                                      const Array& arguments_descriptor) {
-  auto isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
   auto zone = thread->zone();
 
   const ArgumentsDescriptor args_desc(arguments_descriptor);
@@ -229,8 +229,8 @@ ObjectPtr DartEntry::ResolveCallable(Thread* thread,
       break;
     }
     if (!OSThread::Current()->HasStackHeadroom()) {
-      const Instance& exception =
-          Instance::Handle(zone, isolate->object_store()->stack_overflow());
+      const Instance& exception = Instance::Handle(
+          zone, isolate_group->object_store()->stack_overflow());
       return UnhandledException::New(exception, StackTrace::Handle(zone));
     }
 
@@ -355,7 +355,8 @@ ObjectPtr DartEntry::InvokeNoSuchMethod(Thread* thread,
     ASSERT(!FLAG_lazy_dispatchers);
     // If noSuchMethod(invocation) is not found, call Object::noSuchMethod.
     function = Resolver::ResolveDynamicForReceiverClass(
-        Class::Handle(zone, thread->isolate()->object_store()->object_class()),
+        Class::Handle(zone,
+                      thread->isolate_group()->object_store()->object_class()),
         Symbols::NoSuchMethod(), nsm_args_desc);
   }
   ASSERT(!function.IsNull());
@@ -695,7 +696,7 @@ ObjectPtr DartLibraryCalls::LookupHandler(Dart_Port port_id) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Function& function = Function::Handle(
-      zone, thread->isolate()->object_store()->lookup_port_handler());
+      zone, thread->isolate_group()->object_store()->lookup_port_handler());
   const int kTypeArgsLen = 0;
   const int kNumArguments = 1;
   if (function.IsNull()) {
@@ -709,7 +710,7 @@ ObjectPtr DartLibraryCalls::LookupHandler(Dart_Port port_id) {
                                        kTypeArgsLen, kNumArguments,
                                        Object::empty_array());
     ASSERT(!function.IsNull());
-    thread->isolate()->object_store()->set_lookup_port_handler(function);
+    thread->isolate_group()->object_store()->set_lookup_port_handler(function);
   }
   Array& args = Array::Handle(
       zone, thread->isolate()->isolate_object_store()->dart_args_1());
@@ -727,7 +728,7 @@ ObjectPtr DartLibraryCalls::LookupOpenPorts() {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Function& function = Function::Handle(
-      zone, thread->isolate()->object_store()->lookup_open_ports());
+      zone, thread->isolate_group()->object_store()->lookup_open_ports());
   const int kTypeArgsLen = 0;
   const int kNumArguments = 0;
   if (function.IsNull()) {
@@ -741,7 +742,7 @@ ObjectPtr DartLibraryCalls::LookupOpenPorts() {
                                        kTypeArgsLen, kNumArguments,
                                        Object::empty_array());
     ASSERT(!function.IsNull());
-    thread->isolate()->object_store()->set_lookup_open_ports(function);
+    thread->isolate_group()->object_store()->set_lookup_open_ports(function);
   }
   const Object& result = Object::Handle(
       zone, DartEntry::InvokeFunction(function, Object::empty_array()));
@@ -750,11 +751,12 @@ ObjectPtr DartLibraryCalls::LookupOpenPorts() {
 
 ObjectPtr DartLibraryCalls::HandleMessage(const Object& handler,
                                           const Instance& message) {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
-  Function& function = Function::Handle(
-      zone, isolate->object_store()->handle_message_function());
+  auto thread = Thread::Current();
+  auto zone = thread->zone();
+  auto isolate = thread->isolate();
+  auto object_store = thread->isolate_group()->object_store();
+  Function& function =
+      Function::Handle(zone, object_store->handle_message_function());
   const int kTypeArgsLen = 0;
   const int kNumArguments = 2;
   if (function.IsNull()) {
@@ -768,13 +770,13 @@ ObjectPtr DartLibraryCalls::HandleMessage(const Object& handler,
                                        kTypeArgsLen, kNumArguments,
                                        Object::empty_array());
     ASSERT(!function.IsNull());
-    isolate->object_store()->set_handle_message_function(function);
+    object_store->set_handle_message_function(function);
   }
-  Array& args = Array::Handle(
-      zone, thread->isolate()->isolate_object_store()->dart_args_2());
+  Array& args =
+      Array::Handle(zone, isolate->isolate_object_store()->dart_args_2());
   if (args.IsNull()) {
     args = Array::New(kNumArguments);
-    thread->isolate()->isolate_object_store()->set_dart_args_2(args);
+    isolate->isolate_object_store()->set_dart_args_2(args);
   }
   args.SetAt(0, handler);
   args.SetAt(1, message);

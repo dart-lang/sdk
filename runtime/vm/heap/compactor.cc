@@ -573,7 +573,8 @@ void CompactorTask::PlanMoveToContiguousSize(intptr_t size) {
 void GCCompactor::SetupImagePageBoundaries() {
   MallocGrowableArray<ImagePageRange> ranges(4);
 
-  OldPage* image_page = Dart::vm_isolate()->heap()->old_space()->image_pages_;
+  OldPage* image_page =
+      Dart::vm_isolate_group()->heap()->old_space()->image_pages_;
   while (image_page != NULL) {
     ImagePageRange range = {image_page->object_start(),
                             image_page->object_end()};

@@ -511,18 +511,18 @@ class Object {
   }
 
   // Initialize the VM isolate.
-  static void InitNullAndBool(Isolate* isolate);
-  static void Init(Isolate* isolate);
+  static void InitNullAndBool(IsolateGroup* isolate_group);
+  static void Init(IsolateGroup* isolate_group);
   static void InitVtables();
-  static void FinishInit(Isolate* isolate);
-  static void FinalizeVMIsolate(Isolate* isolate);
+  static void FinishInit(IsolateGroup* isolate_group);
+  static void FinalizeVMIsolate(IsolateGroup* isolate_group);
   static void FinalizeReadOnlyObject(ObjectPtr object);
 
   static void Cleanup();
 
   // Initialize a new isolate either from a Kernel IR, from source, or from a
   // snapshot.
-  static ErrorPtr Init(Isolate* isolate,
+  static ErrorPtr Init(IsolateGroup* isolate_group,
                        const uint8_t* kernel_buffer,
                        intptr_t kernel_buffer_size);
 
@@ -1491,7 +1491,7 @@ class Class : public Object {
 
   // Allocate a class used for VM internal objects.
   template <class FakeObject, class TargetFakeObject>
-  static ClassPtr New(Isolate* isolate, bool register_class = true);
+  static ClassPtr New(IsolateGroup* isolate_group, bool register_class = true);
 
   // Allocate instance classes.
   static ClassPtr New(const Library& lib,
@@ -1504,20 +1504,24 @@ class Class : public Object {
                                    int num_fields);
 
   // Allocate the raw string classes.
-  static ClassPtr NewStringClass(intptr_t class_id, Isolate* isolate);
+  static ClassPtr NewStringClass(intptr_t class_id,
+                                 IsolateGroup* isolate_group);
 
   // Allocate the raw TypedData classes.
-  static ClassPtr NewTypedDataClass(intptr_t class_id, Isolate* isolate);
+  static ClassPtr NewTypedDataClass(intptr_t class_id,
+                                    IsolateGroup* isolate_group);
 
   // Allocate the raw TypedDataView/ByteDataView classes.
-  static ClassPtr NewTypedDataViewClass(intptr_t class_id, Isolate* isolate);
+  static ClassPtr NewTypedDataViewClass(intptr_t class_id,
+                                        IsolateGroup* isolate_group);
 
   // Allocate the raw ExternalTypedData classes.
   static ClassPtr NewExternalTypedDataClass(intptr_t class_id,
-                                            Isolate* isolate);
+                                            IsolateGroup* isolate);
 
   // Allocate the raw Pointer classes.
-  static ClassPtr NewPointerClass(intptr_t class_id, Isolate* isolate);
+  static ClassPtr NewPointerClass(intptr_t class_id,
+                                  IsolateGroup* isolate_group);
 
   // Register code that has used CHA for optimization.
   // TODO(srdjan): Also register kind of CHA optimization (e.g.: leaf class,
@@ -1536,7 +1540,7 @@ class Class : public Object {
   ArrayPtr dependent_code() const;
   void set_dependent_code(const Array& array) const;
 
-  bool TraceAllocation(Isolate* isolate) const;
+  bool TraceAllocation(IsolateGroup* isolate_group) const;
   void SetTraceAllocation(bool trace_allocation) const;
 
   void ReplaceEnum(IsolateReloadContext* reload_context,
@@ -1719,7 +1723,7 @@ class Class : public Object {
   // Allocate an instance class which has a VM implementation.
   template <class FakeInstance, class TargetFakeInstance>
   static ClassPtr New(intptr_t id,
-                      Isolate* isolate,
+                      IsolateGroup* isolate_group,
                       bool register_class = true,
                       bool is_abstract = false);
 
@@ -4899,8 +4903,9 @@ class Library : public Object {
   static LibraryPtr LookupLibrary(Thread* thread, const String& url);
   static LibraryPtr GetLibrary(intptr_t index);
 
-  static void InitCoreLibrary(Isolate* isolate);
-  static void InitNativeWrappersLibrary(Isolate* isolate, bool is_kernel_file);
+  static void InitCoreLibrary(IsolateGroup* isolate_group);
+  static void InitNativeWrappersLibrary(IsolateGroup* isolate_group,
+                                        bool is_kernel_file);
 
   static LibraryPtr AsyncLibrary();
   static LibraryPtr ConvertLibrary();
@@ -6619,7 +6624,8 @@ class Code : public Object {
   }
 
   intptr_t BinarySearchInSCallTable(uword pc) const;
-  static CodePtr LookupCodeInIsolate(Isolate* isolate, uword pc);
+  static CodePtr LookupCodeInIsolateGroup(IsolateGroup* isolate_group,
+                                          uword pc);
 
   // New is a private method as RawInstruction and RawCode objects should
   // only be created using the Code::FinalizeCode method. This method creates
@@ -9324,8 +9330,8 @@ class ExternalOneByteString : public AllStatic {
                               const uint8_t* data,
                               void* peer) {
     ASSERT(str.IsExternalOneByteString());
-    ASSERT(
-        !Isolate::Current()->heap()->Contains(reinterpret_cast<uword>(data)));
+    ASSERT(!IsolateGroup::Current()->heap()->Contains(
+        reinterpret_cast<uword>(data)));
     str.StoreNonPointer(&raw_ptr(str)->external_data_, data);
     str.StoreNonPointer(&raw_ptr(str)->peer_, peer);
   }
@@ -9418,8 +9424,8 @@ class ExternalTwoByteString : public AllStatic {
                               const uint16_t* data,
                               void* peer) {
     ASSERT(str.IsExternalTwoByteString());
-    ASSERT(
-        !Isolate::Current()->heap()->Contains(reinterpret_cast<uword>(data)));
+    ASSERT(!IsolateGroup::Current()->heap()->Contains(
+        reinterpret_cast<uword>(data)));
     str.StoreNonPointer(&raw_ptr(str)->external_data_, data);
     str.StoreNonPointer(&raw_ptr(str)->peer_, peer);
   }
@@ -10205,8 +10211,8 @@ class ExternalTypedData : public TypedDataBase {
   }
 
   void SetData(uint8_t* data) const {
-    ASSERT(
-        !Isolate::Current()->heap()->Contains(reinterpret_cast<uword>(data)));
+    ASSERT(!IsolateGroup::Current()->heap()->Contains(
+        reinterpret_cast<uword>(data)));
     StoreNonPointer(&raw_ptr()->data_, data);
   }
 
@@ -10501,7 +10507,7 @@ class LinkedHashMap : public Instance {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(LinkedHashMap, Instance);
 
   // Keep this in sync with Dart implementation (lib/compact_hash.dart).
-  static const intptr_t kInitialIndexBits = 3;
+  static const intptr_t kInitialIndexBits = 2;
   static const intptr_t kInitialIndexSize = 1 << (kInitialIndexBits + 1);
 
   // Allocate a map, but leave all fields set to null.
@@ -11098,7 +11104,7 @@ ClassPtr Object::clazz() const {
     return Smi::Class();
   }
   ASSERT(!IsolateGroup::Current()->compaction_in_progress());
-  return Isolate::Current()->class_table()->At(raw()->GetClassId());
+  return IsolateGroup::Current()->class_table()->At(raw()->GetClassId());
 }
 
 DART_FORCE_INLINE
@@ -11115,12 +11121,11 @@ void Object::SetRaw(ObjectPtr value) {
   set_vtable(builtin_vtables_[cid]);
 #if defined(DEBUG)
   if (FLAG_verify_handles && raw_->IsHeapObject()) {
-    Isolate* isolate = Isolate::Current();
-    Heap* isolate_heap = isolate->heap();
+    Heap* isolate_heap = IsolateGroup::Current()->heap();
     // TODO(rmacnak): Remove after rewriting StackFrame::VisitObjectPointers
     // to not use handles.
     if (!isolate_heap->new_space()->scavenging()) {
-      Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
+      Heap* vm_isolate_heap = Dart::vm_isolate_group()->heap();
       uword addr = ObjectLayout::ToAddr(raw_);
       if (!isolate_heap->Contains(addr) && !vm_isolate_heap->Contains(addr)) {
         ASSERT(FLAG_write_protect_code);
@@ -11478,7 +11483,7 @@ void DumpTypeTable(Isolate* isolate);
 void DumpTypeParameterTable(Isolate* isolate);
 void DumpTypeArgumentsTable(Isolate* isolate);
 
-EntryPointPragma FindEntryPointPragma(Isolate* I,
+EntryPointPragma FindEntryPointPragma(IsolateGroup* isolate_group,
                                       const Array& metadata,
                                       Field* reusable_field_handle,
                                       Object* reusable_object_handle);

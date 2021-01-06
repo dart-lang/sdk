@@ -3151,8 +3151,8 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
 void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   TypeUsageInfo* type_usage_info = compiler->thread()->type_usage_info();
   if (type_usage_info != nullptr) {
-    const Class& list_class = Class::Handle(
-        compiler->thread()->isolate()->class_table()->At(kArrayCid));
+    const Class& list_class =
+        Class::Handle(compiler->isolate_group()->class_table()->At(kArrayCid));
     RegisterTypeArgumentsUse(compiler->function(), type_usage_info, list_class,
                              element_type()->definition());
   }
@@ -3176,7 +3176,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   __ Bind(&slow_path);
-  auto object_store = compiler->isolate()->object_store();
+  auto object_store = compiler->isolate_group()->object_store();
   const auto& allocate_array_stub =
       Code::ZoneHandle(compiler->zone(), object_store->allocate_array_stub());
   compiler->GenerateStubCall(source(), allocate_array_stub,
@@ -3574,7 +3574,7 @@ class AllocateContextSlowPath
 
     compiler->SaveLiveRegisters(locs);
 
-    auto object_store = compiler->isolate()->object_store();
+    auto object_store = compiler->isolate_group()->object_store();
     const auto& allocate_context_stub = Code::ZoneHandle(
         compiler->zone(), object_store->allocate_context_stub());
     __ LoadImmediate(R1, instruction()->num_context_variables());
@@ -3624,7 +3624,7 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->temp(0).reg() == R1);
   ASSERT(locs()->out(0).reg() == R0);
 
-  auto object_store = compiler->isolate()->object_store();
+  auto object_store = compiler->isolate_group()->object_store();
   const auto& allocate_context_stub =
       Code::ZoneHandle(compiler->zone(), object_store->allocate_context_stub());
   __ LoadImmediate(R1, num_context_variables());
@@ -3647,7 +3647,7 @@ void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(0).reg() == R4);
   ASSERT(locs()->out(0).reg() == R0);
 
-  auto object_store = compiler->isolate()->object_store();
+  auto object_store = compiler->isolate_group()->object_store();
   const auto& clone_context_stub =
       Code::ZoneHandle(compiler->zone(), object_store->clone_context_stub());
   compiler->GenerateStubCall(source(), clone_context_stub,
@@ -3726,7 +3726,7 @@ class CheckStackOverflowSlowPath
       : TemplateSlowPathCode(instruction) {}
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
-    if (compiler->isolate()->use_osr() && osr_entry_label()->IsLinked()) {
+    if (compiler->isolate_group()->use_osr() && osr_entry_label()->IsLinked()) {
       const Register value = instruction()->locs()->temp(0).reg();
       __ Comment("CheckStackOverflowSlowPathOsr");
       __ Bind(osr_entry_label());
@@ -3766,7 +3766,7 @@ class CheckStackOverflowSlowPath
           kStackOverflowRuntimeEntry, kNumSlowPathArgs, instruction()->locs());
     }
 
-    if (compiler->isolate()->use_osr() && !compiler->is_optimizing() &&
+    if (compiler->isolate_group()->use_osr() && !compiler->is_optimizing() &&
         instruction()->in_loop()) {
       // In unoptimized code, record loop stack checks as possible OSR entries.
       compiler->AddCurrentDescriptor(PcDescriptorsLayout::kOsrEntry,
@@ -3781,7 +3781,7 @@ class CheckStackOverflowSlowPath
   }
 
   compiler::Label* osr_entry_label() {
-    ASSERT(Isolate::Current()->use_osr());
+    ASSERT(IsolateGroup::Current()->use_osr());
     return &osr_entry_label_;
   }
 
@@ -3794,7 +3794,7 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                compiler::target::Thread::stack_limit_offset()));
   __ cmp(SP, compiler::Operand(IP));
 
-  auto object_store = compiler->isolate()->object_store();
+  auto object_store = compiler->isolate_group()->object_store();
   const bool live_fpu_regs = locs()->live_registers()->FpuRegisterCount() > 0;
   const auto& stub = Code::ZoneHandle(
       compiler->zone(),
@@ -5007,7 +5007,7 @@ LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
   // Shared slow path is used in BoxInt64Instr::EmitNativeCode in
   // FLAG_use_bare_instructions mode and only after VM isolate stubs where
   // replaced with isolate-specific stubs.
-  auto object_store = Isolate::Current()->object_store();
+  auto object_store = IsolateGroup::Current()->object_store();
   const bool stubs_in_vm_isolate =
       object_store->allocate_mint_with_fpu_regs_stub()
           ->ptr()
@@ -5064,7 +5064,7 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ TryAllocate(compiler->mint_class(),
                    compiler->intrinsic_slow_path_label(), out_reg, tmp);
   } else if (locs()->call_on_shared_slow_path()) {
-    auto object_store = compiler->isolate()->object_store();
+    auto object_store = compiler->isolate_group()->object_store();
     const bool live_fpu_regs = locs()->live_registers()->FpuRegisterCount() > 0;
     const auto& stub = Code::ZoneHandle(
         compiler->zone(),

@@ -74,7 +74,7 @@ const uint8_t* NativeEntry::ResolveSymbol(uword pc) {
   Thread* thread = Thread::Current();
   REUSABLE_GROWABLE_OBJECT_ARRAY_HANDLESCOPE(thread);
   GrowableObjectArray& libs = reused_growable_object_array_handle.Handle();
-  libs = thread->isolate()->object_store()->libraries();
+  libs = thread->isolate_group()->object_store()->libraries();
   ASSERT(!libs.IsNull());
   intptr_t num_libs = libs.Length();
   for (intptr_t i = 0; i < num_libs; i++) {

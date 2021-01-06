@@ -79,19 +79,20 @@ const String& Symbols::Token(Token::Kind token) {
   return *symbol_handles_[token_id];
 }
 
-void Symbols::Init(Isolate* vm_isolate) {
+void Symbols::Init(IsolateGroup* vm_isolate_group) {
   // Should only be run by the vm isolate.
-  ASSERT(Isolate::Current() == Dart::vm_isolate());
-  ASSERT(vm_isolate == Dart::vm_isolate());
+  ASSERT(IsolateGroup::Current() == Dart::vm_isolate_group());
+  ASSERT(vm_isolate_group == Dart::vm_isolate_group());
   Zone* zone = Thread::Current()->zone();
 
   // Create and setup a symbol table in the vm isolate.
-  SetupSymbolTable(vm_isolate);
+  SetupSymbolTable(vm_isolate_group);
 
   // Create all predefined symbols.
   ASSERT((sizeof(names) / sizeof(const char*)) == Symbols::kNullCharId);
 
-  CanonicalStringSet table(zone, vm_isolate->object_store()->symbol_table());
+  CanonicalStringSet table(zone,
+                           vm_isolate_group->object_store()->symbol_table());
 
   // First set up all the predefined string symbols.
   // Create symbols for language keywords. Some keywords are equal to
@@ -122,16 +123,17 @@ void Symbols::Init(Isolate* vm_isolate) {
     symbol_handles_[idx] = str;
   }
 
-  vm_isolate->object_store()->set_symbol_table(table.Release());
+  vm_isolate_group->object_store()->set_symbol_table(table.Release());
 }
 
-void Symbols::InitFromSnapshot(Isolate* vm_isolate) {
+void Symbols::InitFromSnapshot(IsolateGroup* vm_isolate_group) {
   // Should only be run by the vm isolate.
-  ASSERT(Isolate::Current() == Dart::vm_isolate());
-  ASSERT(vm_isolate == Dart::vm_isolate());
+  ASSERT(IsolateGroup::Current() == Dart::vm_isolate_group());
+  ASSERT(vm_isolate_group == Dart::vm_isolate_group());
   Zone* zone = Thread::Current()->zone();
 
-  CanonicalStringSet table(zone, vm_isolate->object_store()->symbol_table());
+  CanonicalStringSet table(zone,
+                           vm_isolate_group->object_store()->symbol_table());
 
   // Lookup all the predefined string symbols and language keyword symbols
   // and cache them in the read only handles for fast access.
@@ -162,24 +164,26 @@ void Symbols::InitFromSnapshot(Isolate* vm_isolate) {
     symbol_handles_[idx] = str;
   }
 
-  vm_isolate->object_store()->set_symbol_table(table.Release());
+  vm_isolate_group->object_store()->set_symbol_table(table.Release());
 }
 
-void Symbols::SetupSymbolTable(Isolate* isolate) {
-  ASSERT(isolate != NULL);
+void Symbols::SetupSymbolTable(IsolateGroup* isolate_group) {
+  ASSERT(isolate_group != nullptr);
 
   // Setup the symbol table used within the String class.
-  const intptr_t initial_size = (isolate == Dart::vm_isolate())
+  const intptr_t initial_size = (isolate_group == Dart::vm_isolate_group())
                                     ? kInitialVMIsolateSymtabSize
                                     : kInitialSymtabSize;
   Array& array = Array::Handle(
       HashTables::New<CanonicalStringSet>(initial_size, Heap::kOld));
-  isolate->object_store()->set_symbol_table(array);
+  isolate_group->object_store()->set_symbol_table(array);
 }
 
-void Symbols::GetStats(Isolate* isolate, intptr_t* size, intptr_t* capacity) {
-  ASSERT(isolate != NULL);
-  CanonicalStringSet table(isolate->object_store()->symbol_table());
+void Symbols::GetStats(IsolateGroup* isolate_group,
+                       intptr_t* size,
+                       intptr_t* capacity) {
+  ASSERT(isolate_group != nullptr);
+  CanonicalStringSet table(isolate_group->object_store()->symbol_table());
   *size = table.NumOccupied();
   *capacity = table.NumEntries();
   table.Release();
@@ -340,19 +344,15 @@ StringPtr Symbols::NewSymbol(Thread* thread, const StringType& str) {
   Smi& value = thread->SmiHandle();
   Array& data = thread->ArrayHandle();
   {
-    Isolate* vm_isolate = Dart::vm_isolate();
-    data = vm_isolate->object_store()->symbol_table();
+    auto vm_isolate_group = Dart::vm_isolate_group();
+    data = vm_isolate_group->object_store()->symbol_table();
     CanonicalStringSet table(&key, &value, &data);
     symbol ^= table.GetOrNull(str);
     table.Release();
   }
   if (symbol.IsNull()) {
     IsolateGroup* group = thread->isolate_group();
-    Isolate* isolate = thread->isolate();
-    // In JIT object_store lives on isolate, not on isolate group.
-    ObjectStore* object_store = group->object_store() == nullptr
-                                    ? isolate->object_store()
-                                    : group->object_store();
+    ObjectStore* object_store = group->object_store();
     if (thread->IsAtSafepoint()) {
       // There are two cases where we can cause symbol allocation while holding
       // a safepoint:
@@ -424,19 +424,15 @@ StringPtr Symbols::Lookup(Thread* thread, const StringType& str) {
   Smi& value = thread->SmiHandle();
   Array& data = thread->ArrayHandle();
   {
-    Isolate* vm_isolate = Dart::vm_isolate();
-    data = vm_isolate->object_store()->symbol_table();
+    auto vm_isolate_group = Dart::vm_isolate_group();
+    data = vm_isolate_group->object_store()->symbol_table();
     CanonicalStringSet table(&key, &value, &data);
     symbol ^= table.GetOrNull(str);
     table.Release();
   }
   if (symbol.IsNull()) {
     IsolateGroup* group = thread->isolate_group();
-    Isolate* isolate = thread->isolate();
-    // In JIT object_store lives on isolate, not on isolate group.
-    ObjectStore* object_store = group->object_store() == nullptr
-                                    ? isolate->object_store()
-                                    : group->object_store();
+    ObjectStore* object_store = group->object_store();
     // See `Symbols::NewSymbol` for more information why we separate the two
     // cases.
     if (thread->IsAtSafepoint()) {
@@ -532,24 +528,24 @@ StringPtr Symbols::FromCharCode(Thread* thread, uint16_t char_code) {
   return predefined_[char_code];
 }
 
-void Symbols::DumpStats(Isolate* isolate) {
+void Symbols::DumpStats(IsolateGroup* isolate_group) {
   intptr_t size = -1;
   intptr_t capacity = -1;
   // First dump VM symbol table stats.
-  GetStats(Dart::vm_isolate(), &size, &capacity);
+  GetStats(Dart::vm_isolate_group(), &size, &capacity);
   OS::PrintErr("VM Isolate: Number of symbols : %" Pd "\n", size);
   OS::PrintErr("VM Isolate: Symbol table capacity : %" Pd "\n", capacity);
   // Now dump regular isolate symbol table stats.
-  GetStats(isolate, &size, &capacity);
+  GetStats(isolate_group, &size, &capacity);
   OS::PrintErr("Isolate: Number of symbols : %" Pd "\n", size);
   OS::PrintErr("Isolate: Symbol table capacity : %" Pd "\n", capacity);
   // TODO(koda): Consider recording growth and collision stats in HashTable,
   // in DEBUG mode.
 }
 
-void Symbols::DumpTable(Isolate* isolate) {
+void Symbols::DumpTable(IsolateGroup* isolate_group) {
   OS::PrintErr("symbols:\n");
-  CanonicalStringSet table(isolate->object_store()->symbol_table());
+  CanonicalStringSet table(isolate_group->object_store()->symbol_table());
   table.Dump();
   table.Release();
 }

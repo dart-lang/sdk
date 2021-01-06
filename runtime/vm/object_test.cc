@@ -161,8 +161,8 @@ ISOLATE_UNIT_TEST_CASE(Class) {
 
 ISOLATE_UNIT_TEST_CASE(SixtyThousandDartClasses) {
   auto zone = thread->zone();
-  auto isolate = thread->isolate();
-  auto class_table = isolate->class_table();
+  auto isolate_group = thread->isolate_group();
+  auto class_table = isolate_group->class_table();
 
   const intptr_t start_cid = class_table->NumCids();
   const intptr_t num_classes = std::numeric_limits<uint16_t>::max() - start_cid;
@@ -223,7 +223,7 @@ ISOLATE_UNIT_TEST_CASE(SixtyThousandDartClasses) {
   EXPECT_EQ((1 << 16) - 1, class_table->NumCids());
 
   // Ensure GC runs and can recognize all those new instances.
-  isolate->heap()->CollectAllGarbage();
+  isolate_group->heap()->CollectAllGarbage();
 
   // Ensure the instances are what we expect.
   for (intptr_t i = 0; i < num_classes; ++i) {
@@ -2225,7 +2225,7 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
     value = Smi::New(i);
     array.Add(value);
   }
-  Heap* heap = Isolate::Current()->heap();
+  Heap* heap = IsolateGroup::Current()->heap();
   GCTestHelper::CollectAllGarbage();
   intptr_t capacity_before = heap->CapacityInWords(Heap::kOld);
   new_array = Array::MakeFixedLength(array);
@@ -2660,7 +2660,7 @@ ISOLATE_UNIT_TEST_CASE(ObjectPrinting) {
   EXPECT_STREQ("-15", Smi::Handle(Smi::New(-15)).ToCString());
 
   // bool class and true/false values.
-  ObjectStore* object_store = Isolate::Current()->object_store();
+  ObjectStore* object_store = IsolateGroup::Current()->object_store();
   const Class& bool_class = Class::Handle(object_store->bool_class());
   EXPECT_STREQ("Library:'dart:core' Class: bool", bool_class.ToCString());
   EXPECT_STREQ("true", Bool::True().ToCString());
@@ -4251,7 +4251,7 @@ TEST_CASE(FunctionWithBreakpointNotInlined) {
 }
 
 ISOLATE_UNIT_TEST_CASE(SpecialClassesHaveEmptyArrays) {
-  ObjectStore* object_store = Isolate::Current()->object_store();
+  ObjectStore* object_store = IsolateGroup::Current()->object_store();
   Class& cls = Class::Handle();
   Object& array = Object::Handle();
 
@@ -4360,7 +4360,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   // Class reference
   {
     JSONStream js;
-    Class& cls = Class::Handle(isolate->object_store()->bool_class());
+    Class& cls = Class::Handle(isolate->group()->object_store()->bool_class());
     cls.PrintJSON(&js, true);
     ElideJSONSubstring("classes", js.ToCString(), buffer);
     EXPECT_STREQ(
@@ -4371,7 +4371,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   {
     Thread* thread = Thread::Current();
     JSONStream js;
-    Class& cls = Class::Handle(isolate->object_store()->bool_class());
+    Class& cls = Class::Handle(isolate->group()->object_store()->bool_class());
     const String& func_name = String::Handle(String::New("toString"));
     Function& func =
         Function::Handle(Resolver::ResolveFunction(Z, cls, func_name));
@@ -4391,7 +4391,8 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   // Library reference
   {
     JSONStream js;
-    Library& lib = Library::Handle(isolate->object_store()->core_library());
+    Library& lib =
+        Library::Handle(isolate->group()->object_store()->core_library());
     lib.PrintJSON(&js, true);
     ElideJSONSubstring("libraries", js.ToCString(), buffer);
     EXPECT_STREQ(
@@ -4559,7 +4560,8 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   // TODO(turnidge): Add in all of the other Type siblings.
   {
     JSONStream js;
-    Instance& type = Instance::Handle(isolate->object_store()->bool_type());
+    Instance& type =
+        Instance::Handle(isolate->group()->object_store()->bool_type());
     type.PrintJSON(&js, true);
     ElideJSONSubstring("classes", js.ToCString(), buffer);
     ElideJSONSubstring("objects", buffer, buffer);
@@ -4663,73 +4665,6 @@ TEST_CASE(HashCode) {
   Integer& expected = Integer::Handle();
   expected ^= foo.HashCode();
   EXPECT(result.IsIdenticalTo(expected));
-}
-
-static void CheckIdenticalHashStructure(Thread* T,
-                                        const Instance& a,
-                                        const Instance& b) {
-  const char* kScript =
-      "(a, b) {\n"
-      "  if (a._usedData != b._usedData ||\n"
-      "      a._deletedKeys != b._deletedKeys ||\n"
-      "      a._hashMask != b._hashMask ||\n"
-      "      a._index.length != b._index.length ||\n"
-      "      a._data.length != b._data.length) {\n"
-      "    return false;\n"
-      "  }\n"
-      "  for (var i = 0; i < a._index.length; ++i) {\n"
-      "    if (a._index[i] != b._index[i]) {\n"
-      "      return false;\n"
-      "    }\n"
-      "  }\n"
-      "  for (var i = 0; i < a._data.length; ++i) {\n"
-      "    var ad = a._data[i];\n"
-      "    var bd = b._data[i];\n"
-      "    if (!identical(ad, bd) && !(ad == a && bd == b)) {\n"
-      "      return false;\n"
-      "    }\n"
-      "  }\n"
-      "  return true;\n"
-      "}(a, b)";
-  String& name = String::Handle();
-  Array& param_names = Array::Handle(Array::New(2));
-  name = String::New("a");
-  param_names.SetAt(0, name);
-  name = String::New("b");
-  param_names.SetAt(1, name);
-  Array& param_values = Array::Handle(Array::New(2));
-  param_values.SetAt(0, a);
-  param_values.SetAt(1, b);
-  name = String::New(kScript);
-  Library& lib = Library::Handle(Library::CollectionLibrary());
-  EXPECT(Api::UnwrapHandle(TestCase::EvaluateExpression(
-             lib, name, param_names, param_values)) == Bool::True().raw());
-}
-
-TEST_CASE(LinkedHashMap) {
-  // Check that initial index size and hash mask match in Dart vs. C++.
-  // 1. Create an empty custom linked hash map in Dart.
-  const char* kScript =
-      "import 'dart:collection';\n"
-      "makeMap() {\n"
-      "  bool Function(dynamic, dynamic) eq = (a, b) => true;\n"
-      "  int Function(dynamic) hc = (a) => 42;\n"
-      "  return new LinkedHashMap(equals: eq, hashCode: hc);\n"
-      "}";
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(h_lib);
-  Dart_Handle h_result = Dart_Invoke(h_lib, NewString("makeMap"), 0, NULL);
-  EXPECT_VALID(h_result);
-
-  TransitionNativeToVM transition(thread);
-
-  // 2. Create an empty internalized LinkedHashMap in C++.
-  Instance& dart_map = Instance::Handle();
-  dart_map ^= Api::UnwrapHandle(h_result);
-  LinkedHashMap& cc_map = LinkedHashMap::Handle(LinkedHashMap::NewDefault());
-
-  // 3. Expect them to have identical structure.
-  CheckIdenticalHashStructure(thread, dart_map, cc_map);
 }
 
 TEST_CASE(LinkedHashMap_iteration) {
