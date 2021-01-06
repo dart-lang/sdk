@@ -135,7 +135,7 @@ class B {}
     "kind": "CLASS",
     "name": "A",
     "location": {
-      "file": "/home/test/lib/a.dart",
+      "file": ${jsonOfPath(a_path)},
       "offset": 21,
       "length": 0,
       "startLine": 2,
@@ -160,7 +160,7 @@ class B {}
     "kind": "CLASS",
     "name": "B",
     "location": {
-      "file": "/home/test/lib/b.dart",
+      "file": ${jsonOfPath(b_path)},
       "offset": 24,
       "length": 0,
       "startLine": 2,
