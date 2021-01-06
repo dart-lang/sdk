@@ -40,6 +40,8 @@ void main() {
   testLookupFunctionGeneric2();
   testLookupFunctionWrongNativeFunctionSignature();
   testLookupFunctionTypeMismatch();
+  testLookupFunctionPointervoid();
+  testLookupFunctionPointerNFdyn();
   testNativeFunctionSignatureInvalidReturn();
   testNativeFunctionSignatureInvalidParam();
   testNativeFunctionSignatureInvalidOptionalNamed();
@@ -289,6 +291,24 @@ void testLookupFunctionWrongNativeFunctionSignature() {
 void testLookupFunctionTypeMismatch() {
   DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
   l.lookupFunction<NativeDoubleUnOp, IntUnOp>("cos"); //# 18: compile-time error
+}
+
+typedef PointervoidN = Void Function(Pointer<void>);
+typedef PointervoidD = void Function(Pointer<void>);
+
+void testLookupFunctionPointervoid() {
+  DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
+  // TODO(https://dartbug.com/44593): This should be a compile-time error in CFE.
+  // l.lookupFunction<PointervoidN, PointervoidD>("cos");
+}
+
+typedef PointerNFdynN = Void Function(Pointer<NativeFunction>);
+typedef PointerNFdynD = void Function(Pointer<NativeFunction>);
+
+void testLookupFunctionPointerNFdyn() {
+  DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
+  // TODO(https://dartbug.com/44594): Should this be an error or not?
+  // l.lookupFunction<PointerNFdynN, PointerNFdynD>("cos");
 }
 
 // TODO(dacoharkes): make the next 4 test compile errors
