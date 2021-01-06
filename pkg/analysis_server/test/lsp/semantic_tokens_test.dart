@@ -413,11 +413,11 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
  */''';
 
     final expected = [
-      _Token('/**', SemanticTokenTypes.comment,
+      _Token('/**\n', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
-      _Token('* Trailing comment', SemanticTokenTypes.comment,
+      _Token(' * Trailing comment\n', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
-      _Token('*/', SemanticTokenTypes.comment,
+      _Token(' */', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
     ];
 
@@ -524,27 +524,27 @@ import 'dart:async';
 
   Future<void> test_multilineRegions() async {
     final content = '''
-    /**
-     * This is my class comment
-     *
-     * There are
-     * multiple lines
-     */
-    class MyClass {}
+/**
+ * This is my class comment
+ *
+ * There are
+ * multiple lines
+ */
+class MyClass {}
     ''';
 
     final expected = [
-      _Token('/**', SemanticTokenTypes.comment,
+      _Token('/**\n', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
-      _Token('* This is my class comment', SemanticTokenTypes.comment,
+      _Token(' * This is my class comment\n', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
-      _Token('*', SemanticTokenTypes.comment,
+      _Token(' *\n', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
-      _Token('* There are', SemanticTokenTypes.comment,
+      _Token(' * There are\n', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
-      _Token('* multiple lines', SemanticTokenTypes.comment,
+      _Token(' * multiple lines\n', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
-      _Token('*/', SemanticTokenTypes.comment,
+      _Token(' */', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
       _Token('class', SemanticTokenTypes.keyword),
       _Token('MyClass', SemanticTokenTypes.class_),
@@ -559,12 +559,17 @@ import 'dart:async';
   }
 
   Future<void> test_strings() async {
-    final content = r'''
-    String foo(String c) => c;
-    const string1 = 'test';
-    const string2 = 'test1 $string1 test2 ${foo('test3')}';
-    const string3 = r'$string1 ${string1.length}';
-    ''';
+    final content = '''
+String foo(String c) => c;
+const string1 = 'test';
+const string2 = 'test1 \$string1 test2 \${foo('test3')}';
+const string3 = r'\$string1 \${string1.length}';
+const string4 = \'\'\'
+multi
+  line
+    string
+\'\'\';
+''';
 
     final expected = [
       _Token('String', SemanticTokenTypes.class_),
@@ -592,6 +597,14 @@ import 'dart:async';
       _Token('string3', SemanticTokenTypes.variable,
           [SemanticTokenModifiers.declaration]),
       _Token(r"r'$string1 ${string1.length}'", SemanticTokenTypes.string),
+      _Token('const', SemanticTokenTypes.keyword),
+      _Token('string4', SemanticTokenTypes.variable,
+          [SemanticTokenModifiers.declaration]),
+      _Token("'''\n", SemanticTokenTypes.string),
+      _Token('multi\n', SemanticTokenTypes.string),
+      _Token('  line\n', SemanticTokenTypes.string),
+      _Token('    string\n', SemanticTokenTypes.string),
+      _Token("'''", SemanticTokenTypes.string),
     ];
 
     await initialize();

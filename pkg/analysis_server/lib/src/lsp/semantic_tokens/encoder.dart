@@ -18,7 +18,7 @@ class SemanticTokenEncoder {
   /// Converts [regions]s into LSP [SemanticTokenInfo], splitting multiline tokens
   /// and nested tokens if required.
   List<SemanticTokenInfo> convertHighlights(
-      List<HighlightRegion> regions, LineInfo lineInfo, String fileContent) {
+      List<HighlightRegion> regions, LineInfo lineInfo) {
     // LSP is zero-based but server is 1-based.
     const lspPositionOffset = -1;
 
@@ -39,8 +39,8 @@ class SemanticTokenEncoder {
         .where((region) => highlightRegionTokenTypes.containsKey(region.type));
 
     if (!allowMultilineTokens) {
-      translatedRegions = translatedRegions.expand(
-          (region) => _splitMultilineRegions(region, lineInfo, fileContent));
+      translatedRegions = translatedRegions
+          .expand((region) => _splitMultilineRegions(region, lineInfo));
     }
 
     if (!allowOverlappingTokens) {
@@ -129,9 +129,10 @@ class SemanticTokenEncoder {
   }
 
   /// Splits multiline regions into multiple regions for clients that do not support
-  /// multiline tokens.
+  /// multiline tokens. Multiline tokens will be split at the end of the line and
+  /// line endings and indenting will be included in the tokens.
   Iterable<HighlightRegion> _splitMultilineRegions(
-      HighlightRegion region, LineInfo lineInfo, String fileContent) sync* {
+      HighlightRegion region, LineInfo lineInfo) sync* {
     final start = lineInfo.getLocation(region.offset);
     final end = lineInfo.getLocation(region.offset + region.length);
 
@@ -141,30 +142,13 @@ class SemanticTokenEncoder {
         lineNumber++) {
       final isFirstLine = lineNumber == start.lineNumber;
       final isLastLine = lineNumber == end.lineNumber;
-      final isSingleLine = start.lineNumber == end.lineNumber;
       final lineOffset = lineInfo.getOffsetOfLine(lineNumber - 1);
 
-      var startOffset = isFirstLine ? start.columnNumber - 1 : 0;
-      var endOffset = isLastLine
+      final startOffset = isFirstLine ? start.columnNumber - 1 : 0;
+      final endOffset = isLastLine
           ? end.columnNumber - 1
           : lineInfo.getOffsetOfLine(lineNumber) - lineOffset;
-      var length = endOffset - startOffset;
-
-      // When we split multiline tokens, we may end up with leading/trailing
-      // whitespace which doesn't make sense to include in the token. Examine
-      // the content to remove this.
-      if (!isSingleLine) {
-        final tokenContent = fileContent.substring(
-            lineOffset + startOffset, lineOffset + endOffset);
-        final leadingWhitespaceCount =
-            tokenContent.length - tokenContent.trimLeft().length;
-        final trailingWhitespaceCount =
-            tokenContent.length - tokenContent.trimRight().length;
-
-        startOffset += leadingWhitespaceCount;
-        endOffset -= trailingWhitespaceCount;
-        length = endOffset - startOffset;
-      }
+      final length = endOffset - startOffset;
 
       yield HighlightRegion(region.type, lineOffset + startOffset, length);
     }

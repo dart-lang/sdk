@@ -8,9 +8,6 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/semantic_tokens/legend.dart';
 
-/// Semantic tokens temporarily disabled due to a race condition.
-const enableSemanticTokens = false;
-
 /// Helper for reading client dynamic registrations which may be ommitted by the
 /// client.
 class ClientDynamicRegistrations {
@@ -44,7 +41,7 @@ class ClientDynamicRegistrations {
     Method.workspace_willRenameFiles,
     // Sematic tokens are all registered under a single "method" as the
     // actual methods are controlled by the server capabilities.
-    if (enableSemanticTokens) CustomMethods.semanticTokenDynamicRegistration,
+    CustomMethods.semanticTokenDynamicRegistration,
   ];
   final ClientCapabilities _capabilities;
 
@@ -236,18 +233,17 @@ class ServerCapabilitiesComputer {
               FoldingRangeRegistrationOptions>.t1(
               true,
             ),
-      semanticTokensProvider:
-          dynamicRegistrations.semanticTokens || !enableSemanticTokens
-              ? null
-              : Either2<SemanticTokensOptions,
-                  SemanticTokensRegistrationOptions>.t1(
-                  SemanticTokensOptions(
-                    legend: semanticTokenLegend.lspLegend,
-                    full: Either2<bool, SemanticTokensOptionsFull>.t2(
-                      SemanticTokensOptionsFull(delta: false),
-                    ),
-                  ),
+      semanticTokensProvider: dynamicRegistrations.semanticTokens
+          ? null
+          : Either2<SemanticTokensOptions,
+              SemanticTokensRegistrationOptions>.t1(
+              SemanticTokensOptions(
+                legend: semanticTokenLegend.lspLegend,
+                full: Either2<bool, SemanticTokensOptionsFull>.t2(
+                  SemanticTokensOptionsFull(delta: false),
                 ),
+              ),
+            ),
       executeCommandProvider: ExecuteCommandOptions(
         commands: Commands.serverSupportedCommands,
         workDoneProgress: true,
@@ -450,7 +446,7 @@ class ServerCapabilitiesComputer {
       Method.workspace_didChangeConfiguration,
     );
     register(
-      dynamicRegistrations.semanticTokens && enableSemanticTokens,
+      dynamicRegistrations.semanticTokens,
       CustomMethods.semanticTokenDynamicRegistration,
       SemanticTokensRegistrationOptions(
         documentSelector: fullySupportedTypes,

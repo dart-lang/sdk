@@ -54,28 +54,20 @@ class SemanticTokensHandler
         return success(null);
       }
 
-      // We need to be able to split multiline tokens up if a client does not
-      // support them. Doing this correctly requires access to the line endings
-      // and indenting so we must get a copy of the file contents. Although this
-      // is on the Dart unit result, we may also need this for files being
-      // handled by plugins.
-      final file = server.resourceProvider.getFile(path);
-      if (!file.exists) {
-        return success(null);
-      }
-      final fileContents = file.readAsStringSync();
-
       final allResults = [
         await getServerResult(path),
         ...getPluginResults(path),
       ];
 
+      if (token.isCancellationRequested) {
+        return cancelled();
+      }
+
       final merger = ResultMerger();
       final mergedResults = merger.mergeHighlightRegions(allResults);
 
       final encoder = SemanticTokenEncoder();
-      final tokens =
-          encoder.convertHighlights(mergedResults, lineInfo, fileContents);
+      final tokens = encoder.convertHighlights(mergedResults, lineInfo);
       final semanticTokens = encoder.encodeTokens(tokens);
 
       return success(semanticTokens);
