@@ -234,8 +234,11 @@ abstract class TestSuite {
     var minified = configuration.isMinified ? '-minified' : '';
     var csp = configuration.isCsp ? '-csp' : '';
     var sdk = configuration.useSdk ? '-sdk' : '';
+    var isLegacyModule = configuration.compiler == Compiler.dartdevk &&
+        configuration.runtime == Runtime.d8;
+    var module = isLegacyModule ? '-legacy' : '';
     var dirName = "${configuration.compiler.name}"
-        "$checked$minified$csp$sdk";
+        "$checked$minified$csp$sdk$module";
     return createGeneratedTestDirectoryHelper(
         "compilations", dirName, testPath);
   }

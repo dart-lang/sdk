@@ -17,8 +17,10 @@ if (!dart_library) {
   function throwLibraryError(message) {
     // Dispatch event to allow others to react to the load error without
     // capturing the exception.
-    window.dispatchEvent(
-      new CustomEvent('dartLoadException', { detail: message }));
+    if (!!self.dispatchEvent) {
+      self.dispatchEvent(
+        new CustomEvent('dartLoadException', { detail: message }));
+    }
     throw Error(message);
   }
 
@@ -231,7 +233,7 @@ if (!dart_library) {
     // patch the code for the application while it is executing
     // (https://flutter.io/hot-reload/), whereas "hot restart" refers to what
     // dartdevc supports: tear down the app, update the code, and rerun the app.
-    if (!window || !window.$dartWarmReload) {
+    if (!self || !self.$dartWarmReload) {
       console.warn('Hot restart not supported in this environment.');
       return;
     }
@@ -246,14 +248,14 @@ if (!dart_library) {
 
     /// Once the `onReloadStart()` completes, this finishes the restart.
     function finishHotRestart() {
-      window.console.clear();
+      self.console.clear();
       if (clearState) {
         // This resets all initialized fields and clears type caches and other
         // temporary data structures used by the compiler/SDK.
         sdk.dart.hotRestart();
       }
       // Call the module loader to reload the necessary modules.
-      window.$dartWarmReload(() => {
+      self.$dartWarmReload(() => {
         // Once the modules are loaded, rerun `main()`.
         start(_lastModuleName, _lastLibraryName, true);
       });
@@ -293,15 +295,21 @@ if (!dart_library) {
       if (library.onReloadEnd) {
         library.onReloadEnd();
         return;
-      } else { 
-        if (dart_sdk.dart.global.document) {
-          dart_sdk.dart.global.document.body = _originalBody;
+      } else {
+        if (!!self.document) {
+          // Note: we expect _originalBody to be undefined in non-browser
+          // environments, but in that case so is the body.
+          if (!_originalBody && !!self.document.body) {
+            self.console.warn('No body saved to update on reload');
+          } else {
+            self.document.body = _originalBody;
+          }
         }
       }
     } else {
       // If not a reload then store the initial html to reset it on reload.
-      if (dart_sdk.dart.global.document) {
-        _originalBody = dart_sdk.dart.global.document.body.cloneNode(true);
+      if (!!self.document && !!self.document.body) {
+        _originalBody = self.document.body.cloneNode(true);
       }
     }
     library.main([]);
