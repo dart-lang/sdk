@@ -313,13 +313,6 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
     if (_typeFlowAnalysis.isMemberUsed(member)) {
       if (member is Field) {
         _setInferredType(member, _typeFlowAnalysis.fieldType(member));
-
-        final unboxingInfoMetadata =
-            _unboxingInfo.getUnboxingInfoOfMember(member);
-        if (unboxingInfoMetadata != null &&
-            !unboxingInfoMetadata.isFullyBoxed) {
-          _unboxingInfoMetadata.mapping[member] = unboxingInfoMetadata;
-        }
       } else {
         Args<Type> argTypes = _typeFlowAnalysis.argumentTypes(member);
         final uncheckedParameters =
@@ -350,36 +343,41 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
               skipCheck: uncheckedParameters.contains(param));
         }
 
-        final unboxingInfoMetadata =
-            _unboxingInfo.getUnboxingInfoOfMember(member);
-        if (unboxingInfoMetadata != null &&
-            !unboxingInfoMetadata.isFullyBoxed) {
-          _unboxingInfoMetadata.mapping[member] = unboxingInfoMetadata;
-        }
-
         // TODO(alexmarkov): figure out how to pass receiver type.
       }
-    } else if (!member.isAbstract &&
-        !fieldMorpher.isExtraMemberWithReachableBody(member)) {
-      _setUnreachable(member);
-    } else if (member is! Field) {
+
       final unboxingInfoMetadata =
           _unboxingInfo.getUnboxingInfoOfMember(member);
-      if (unboxingInfoMetadata != null) {
-        // Check for partitions that only have abstract methods should be marked as boxed.
-        if (unboxingInfoMetadata.returnInfo ==
-            UnboxingInfoMetadata.kUnboxingCandidate) {
-          unboxingInfoMetadata.returnInfo = UnboxingInfoMetadata.kBoxed;
-        }
-        for (int i = 0; i < unboxingInfoMetadata.unboxedArgsInfo.length; i++) {
-          if (unboxingInfoMetadata.unboxedArgsInfo[i] ==
+      if (unboxingInfoMetadata != null && !unboxingInfoMetadata.isFullyBoxed) {
+        _unboxingInfoMetadata.mapping[member] = unboxingInfoMetadata;
+      }
+    } else {
+      if (!member.isAbstract &&
+          !fieldMorpher.isExtraMemberWithReachableBody(member)) {
+        _setUnreachable(member);
+      }
+
+      if (member is! Field) {
+        final unboxingInfoMetadata =
+            _unboxingInfo.getUnboxingInfoOfMember(member);
+        if (unboxingInfoMetadata != null) {
+          // Check for partitions that only have abstract methods should be marked as boxed.
+          if (unboxingInfoMetadata.returnInfo ==
               UnboxingInfoMetadata.kUnboxingCandidate) {
-            unboxingInfoMetadata.unboxedArgsInfo[i] =
-                UnboxingInfoMetadata.kBoxed;
+            unboxingInfoMetadata.returnInfo = UnboxingInfoMetadata.kBoxed;
           }
-        }
-        if (!unboxingInfoMetadata.isFullyBoxed) {
-          _unboxingInfoMetadata.mapping[member] = unboxingInfoMetadata;
+          for (int i = 0;
+              i < unboxingInfoMetadata.unboxedArgsInfo.length;
+              i++) {
+            if (unboxingInfoMetadata.unboxedArgsInfo[i] ==
+                UnboxingInfoMetadata.kUnboxingCandidate) {
+              unboxingInfoMetadata.unboxedArgsInfo[i] =
+                  UnboxingInfoMetadata.kBoxed;
+            }
+          }
+          if (!unboxingInfoMetadata.isFullyBoxed) {
+            _unboxingInfoMetadata.mapping[member] = unboxingInfoMetadata;
+          }
         }
       }
     }
