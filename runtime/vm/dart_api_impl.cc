@@ -1352,7 +1352,7 @@ Dart_CreateIsolateGroup(const char* script_uri,
   std::unique_ptr<IsolateGroupSource> source(
       new IsolateGroupSource(script_uri, non_null_name, snapshot_data,
                              snapshot_instructions, nullptr, -1, *flags));
-  auto group = new IsolateGroup(std::move(source), isolate_group_data);
+  auto group = new IsolateGroup(std::move(source), isolate_group_data, *flags);
   group->CreateHeap(
       /*is_vm_isolate=*/false, IsServiceOrKernelIsolateName(non_null_name));
   IsolateGroup::RegisterIsolateGroup(group);
@@ -1385,7 +1385,7 @@ Dart_CreateIsolateGroupFromKernel(const char* script_uri,
   std::shared_ptr<IsolateGroupSource> source(
       new IsolateGroupSource(script_uri, non_null_name, nullptr, nullptr,
                              kernel_buffer, kernel_buffer_size, *flags));
-  auto group = new IsolateGroup(source, isolate_group_data);
+  auto group = new IsolateGroup(source, isolate_group_data, *flags);
   IsolateGroup::RegisterIsolateGroup(group);
   group->CreateHeap(
       /*is_vm_isolate=*/false, IsServiceOrKernelIsolateName(non_null_name));
@@ -3082,7 +3082,8 @@ static TypeArgumentsPtr TypeArgumentsForElementType(
 DART_EXPORT Dart_Handle Dart_NewListOf(Dart_CoreType_Id element_type_id,
                                        intptr_t length) {
   DARTSCOPE(Thread::Current());
-  if (T->isolate()->null_safety() && element_type_id != Dart_CoreType_Dynamic) {
+  if (T->isolate_group()->null_safety() &&
+      element_type_id != Dart_CoreType_Dynamic) {
     return Api::NewError(
         "Cannot use legacy types with --sound-null-safety enabled. "
         "Use Dart_NewListOfType or Dart_NewListOfTypeFilled instead.");
@@ -5640,7 +5641,7 @@ DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
                                      Dart_Handle class_name,
                                      intptr_t number_of_type_arguments,
                                      Dart_Handle* type_arguments) {
-  if (Thread::Current()->isolate()->null_safety()) {
+  if (IsolateGroup::Current()->null_safety()) {
     return Api::NewError(
         "Cannot use legacy types with --sound-null-safety enabled. "
         "Use Dart_GetNullableType or Dart_GetNonNullableType instead.");
@@ -7043,7 +7044,7 @@ DART_EXPORT Dart_Handle Dart_GetObfuscationMap(uint8_t** buffer,
 #else
   Thread* thread = Thread::Current();
   DARTSCOPE(thread);
-  Isolate* isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
 
   if (buffer == NULL) {
     RETURN_NULL_ERROR(buffer);
@@ -7057,13 +7058,13 @@ DART_EXPORT Dart_Handle Dart_GetObfuscationMap(uint8_t** buffer,
   TextBuffer text_buffer(kInitialBufferSize);
 
   text_buffer.AddChar('[');
-  if (isolate->obfuscation_map() != NULL) {
-    for (intptr_t i = 0; isolate->obfuscation_map()[i] != NULL; i++) {
+  if (isolate_group->obfuscation_map() != nullptr) {
+    for (intptr_t i = 0; isolate_group->obfuscation_map()[i] != nullptr; i++) {
       if (i > 0) {
         text_buffer.AddChar(',');
       }
       text_buffer.AddChar('"');
-      text_buffer.AddEscapedString(isolate->obfuscation_map()[i]);
+      text_buffer.AddEscapedString(isolate_group->obfuscation_map()[i]);
       text_buffer.AddChar('"');
     }
   }

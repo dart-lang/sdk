@@ -5065,11 +5065,11 @@ bool Class::IsSubtypeOf(const Class& cls,
   }
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
   // Nullability of left and right hand sides is verified in strong mode only.
-  const bool verified_nullability = !isolate->use_strict_null_safety_checks() ||
-                                    nullability != Nullability::kNullable ||
-                                    !other.IsNonNullable();
+  const bool verified_nullability =
+      !isolate_group->use_strict_null_safety_checks() ||
+      nullability != Nullability::kNullable || !other.IsNonNullable();
 
   // Right Object.
   if (other_cid == kObjectCid) {
@@ -7812,7 +7812,7 @@ bool Function::AreValidArguments(const ArgumentsDescriptor& args_desc,
   }
   // Verify that all argument names are valid parameter names.
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
   Zone* zone = thread->zone();
   String& argument_name = String::Handle(zone);
   String& parameter_name = String::Handle(zone);
@@ -7842,7 +7842,7 @@ bool Function::AreValidArguments(const ArgumentsDescriptor& args_desc,
       return false;
     }
   }
-  if (isolate->use_strict_null_safety_checks()) {
+  if (isolate_group->use_strict_null_safety_checks()) {
     // Verify that all required named parameters are filled.
     for (intptr_t j = num_parameters - NumOptionalNamedParameters();
          j < num_parameters; j++) {
@@ -8443,7 +8443,7 @@ bool Function::IsSubtypeOf(const Function& other, Heap::Space space) const {
   }
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
   // Check the result type.
   const AbstractType& other_res_type =
       AbstractType::Handle(zone, other.result_type());
@@ -8491,7 +8491,7 @@ bool Function::IsSubtypeOf(const Function& other, Heap::Space space) const {
       return false;
     }
   }
-  if (isolate->use_strict_null_safety_checks()) {
+  if (isolate_group->use_strict_null_safety_checks()) {
     // Check that for each required named parameter in this function, there's a
     // corresponding required named parameter in the other function.
     String& param_name = other_param_name;
@@ -8988,7 +8988,7 @@ void Function::PrintSignature(NameVisibility name_visibility,
                               BaseTextBuffer* printer) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
   String& name = String::Handle(zone);
   const TypeArguments& type_params =
       TypeArguments::Handle(zone, type_parameters());
@@ -9006,7 +9006,7 @@ void Function::PrintSignature(NameVisibility name_visibility,
       // Do not print default bound or non-nullable Object bound in weak mode.
       if (!bound.IsNull() &&
           (!bound.IsObjectType() ||
-           (isolate->null_safety() && bound.IsNonNullable()))) {
+           (isolate_group->null_safety() && bound.IsNonNullable()))) {
         printer->AddString(" extends ");
         bound.PrintName(name_visibility, printer);
       }
@@ -9550,7 +9550,7 @@ bool Function::CheckSourceFingerprint(int32_t fp, const char* kind) const {
   }
 #endif
 
-  if (Isolate::Current()->obfuscate() || FLAG_precompiled_mode ||
+  if (IsolateGroup::Current()->obfuscate() || FLAG_precompiled_mode ||
       (Dart::vm_snapshot_kind() != Snapshot::kNone)) {
     return true;  // The kernel structure has been altered, skip checking.
   }
@@ -18417,7 +18417,7 @@ bool Instance::IsAssignableTo(
   // In weak mode type casts, whether in legacy or opted-in libraries, the null
   // instance is detected and handled in inlined code and therefore cannot be
   // encountered here as a Dart null receiver.
-  ASSERT(Isolate::Current()->use_strict_null_safety_checks() || !IsNull());
+  ASSERT(IsolateGroup::Current()->use_strict_null_safety_checks() || !IsNull());
   // In strong mode, compute NNBD_SUBTYPE(runtimeType, other).
   // In weak mode, compute LEGACY_SUBTYPE(runtimeType, other).
   return RuntimeTypeIsSubtypeOf(other, other_instantiator_type_arguments,
@@ -18464,11 +18464,10 @@ bool Instance::NullIsInstanceOf(
 // stub_code_compiler.cc if any changes are made.
 bool Instance::NullIsAssignableTo(const AbstractType& other) {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  Zone* zone = thread->zone();
+  auto isolate_group = thread->isolate_group();
 
   // In weak mode, Null is a bottom type (according to LEGACY_SUBTYPE).
-  if (!isolate->use_strict_null_safety_checks()) {
+  if (!isolate_group->use_strict_null_safety_checks()) {
     return true;
   }
   // "Left Null" rule: null is assignable when destination type is either
@@ -18479,7 +18478,7 @@ bool Instance::NullIsAssignableTo(const AbstractType& other) {
   }
   if (other.IsFutureOrType()) {
     return NullIsAssignableTo(
-        AbstractType::Handle(zone, other.UnwrapFutureOr()));
+        AbstractType::Handle(thread->zone(), other.UnwrapFutureOr()));
   }
   return false;
 }
@@ -18496,12 +18495,12 @@ bool Instance::RuntimeTypeIsSubtypeOf(
     return true;
   }
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  Zone* zone = thread->zone();
+  auto isolate_group = thread->isolate_group();
   // In weak testing mode, Null type is a subtype of any type.
-  if (IsNull() && !isolate->use_strict_null_safety_checks()) {
+  if (IsNull() && !isolate_group->use_strict_null_safety_checks()) {
     return true;
   }
+  Zone* zone = thread->zone();
   const Class& cls = Class::Handle(zone, clazz());
   if (cls.IsClosureClass()) {
     if (other.IsDartFunctionType() || other.IsDartClosureType() ||
@@ -18564,7 +18563,7 @@ bool Instance::RuntimeTypeIsSubtypeOf(
     return false;
   }
   if (IsNull()) {
-    ASSERT(isolate->use_strict_null_safety_checks());
+    ASSERT(isolate_group->use_strict_null_safety_checks());
     if (instantiated_other.IsNullType()) {
       return true;
     }
@@ -18833,7 +18832,7 @@ bool AbstractType::IsStrictlyNonNullable() const {
   Zone* zone = thread->zone();
 
   // In weak mode null can be assigned to any type.
-  if (!thread->isolate()->null_safety()) {
+  if (!thread->isolate_group()->null_safety()) {
     return false;
   }
 
@@ -19291,7 +19290,7 @@ bool AbstractType::IsTopTypeForSubtyping() const {
     // NNBD weak mode uses LEGACY_SUBTYPE for assignability / 'as' tests,
     // and non-nullable Object is a top type according to LEGACY_SUBTYPE.
     return !IsNonNullable() ||
-           !Isolate::Current()->use_strict_null_safety_checks();
+           !IsolateGroup::Current()->use_strict_null_safety_checks();
   }
   if (cid == kFutureOrCid) {
     // FutureOr<T> where T is a top type behaves as a top type.
@@ -19403,7 +19402,7 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
     return Instance::NullIsAssignableTo(other);
   }
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
   Zone* zone = thread->zone();
   // Type parameters cannot be handled by Class::IsSubtypeOf().
   // When comparing two uninstantiated function types, one returning type
@@ -19450,7 +19449,7 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
   const bool other_is_dart_function_type = other.IsDartFunctionType();
   if (other_is_dart_function_type || other.IsFunctionType()) {
     if (IsFunctionType()) {
-      if (isolate->use_strict_null_safety_checks() && IsNullable() &&
+      if (isolate_group->use_strict_null_safety_checks() && IsNullable() &&
           other.IsNonNullable()) {
         return false;
       }
@@ -19861,10 +19860,10 @@ bool Type::IsEquivalent(const Instance& other,
   Nullability this_type_nullability = nullability();
   Nullability other_type_nullability = other_type.nullability();
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
   Zone* zone = thread->zone();
   if (kind == TypeEquality::kInSubtypeTest) {
-    if (isolate->use_strict_null_safety_checks() &&
+    if (isolate_group->use_strict_null_safety_checks() &&
         this_type_nullability == Nullability::kNullable &&
         other_type_nullability == Nullability::kNonNullable) {
       return false;
@@ -20632,7 +20631,7 @@ bool TypeParameter::IsEquivalent(const Instance& other,
   Nullability this_type_param_nullability = nullability();
   Nullability other_type_param_nullability = other_type_param.nullability();
   if (kind == TypeEquality::kInSubtypeTest) {
-    if (Isolate::Current()->use_strict_null_safety_checks() &&
+    if (IsolateGroup::Current()->use_strict_null_safety_checks() &&
         (this_type_param_nullability == Nullability::kNullable) &&
         (other_type_param_nullability == Nullability::kNonNullable)) {
       return false;

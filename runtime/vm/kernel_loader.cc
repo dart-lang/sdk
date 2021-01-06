@@ -29,7 +29,7 @@ namespace kernel {
 
 #define Z (zone_)
 #define I (isolate_)
-#define IG (isolate_->group())
+#define IG (thread_->isolate_group())
 #define T (type_translator_)
 #define H (translation_helper_)
 
@@ -1025,14 +1025,14 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
         "null safety and not sound null safety.",
         String::Handle(library.url()).ToCString());
   }
-  if (!I->null_safety() && mode == NNBDCompiledMode::kStrong) {
+  if (!IG->null_safety() && mode == NNBDCompiledMode::kStrong) {
     H.ReportError(
         "Library '%s' was compiled with sound null safety (in strong mode) and "
         "it "
         "requires --sound-null-safety option at runtime",
         String::Handle(library.url()).ToCString());
   }
-  if (I->null_safety() && (mode == NNBDCompiledMode::kWeak)) {
+  if (IG->null_safety() && (mode == NNBDCompiledMode::kWeak)) {
     H.ReportError(
         "Library '%s' was compiled without sound null safety (in weak mode) "
         "and it "

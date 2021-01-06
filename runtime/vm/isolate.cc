@@ -329,7 +329,8 @@ void MutatorThreadPool::NotifyIdle() {
 
 IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
                            void* embedder_data,
-                           ObjectStore* object_store)
+                           ObjectStore* object_store,
+                           Dart_IsolateFlags api_flags)
     : embedder_data_(embedder_data),
       thread_pool_(),
       isolates_lock_(new SafepointRwLock()),
@@ -374,6 +375,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       program_lock_(new SafepointRwLock()),
       active_mutators_monitor_(new Monitor()),
       max_active_mutators_(Scavenger::MaxMutatorThreadCount()) {
+  FlagsCopyFrom(api_flags);
   const bool is_vm_isolate = Dart::VmIsolateNameEquals(source_->name);
   if (!is_vm_isolate) {
     thread_pool_.reset(
@@ -388,8 +390,9 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
 }
 
 IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
-                           void* embedder_data)
-    : IsolateGroup(source, embedder_data, new ObjectStore()) {
+                           void* embedder_data,
+                           Dart_IsolateFlags api_flags)
+    : IsolateGroup(source, embedder_data, new ObjectStore(), api_flags) {
   if (object_store() != nullptr) {
     object_store()->InitStubs();
   }
@@ -403,6 +406,13 @@ IsolateGroup::~IsolateGroup() {
   // Ensure we destroy the heap before the other members.
   heap_ = nullptr;
   ASSERT(marking_stack_ == nullptr);
+
+  if (obfuscation_map_ != nullptr) {
+    for (intptr_t i = 0; obfuscation_map_[i] != nullptr; i++) {
+      delete[] obfuscation_map_[i];
+    }
+    delete[] obfuscation_map_;
+  }
 }
 
 void IsolateGroup::RegisterIsolate(Isolate* isolate) {
@@ -1522,28 +1532,72 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
   return kOK;
 }
 
+void IsolateGroup::FlagsInitialize(Dart_IsolateFlags* api_flags) {
+  api_flags->version = DART_FLAGS_CURRENT_VERSION;
+#define INIT_FROM_FLAG(when, name, bitname, isolate_flag, flag)                \
+  api_flags->isolate_flag = flag;
+  BOOL_ISOLATE_GROUP_FLAG_LIST(INIT_FROM_FLAG)
+#undef INIT_FROM_FLAG
+  api_flags->copy_parent_code = false;
+}
+
+void IsolateGroup::FlagsCopyTo(Dart_IsolateFlags* api_flags) {
+  api_flags->version = DART_FLAGS_CURRENT_VERSION;
+#define INIT_FROM_FIELD(when, name, bitname, isolate_flag, flag)               \
+  api_flags->isolate_flag = name();
+  BOOL_ISOLATE_GROUP_FLAG_LIST(INIT_FROM_FIELD)
+#undef INIT_FROM_FIELD
+  api_flags->copy_parent_code = false;
+}
+
+void IsolateGroup::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
+#if defined(DART_PRECOMPILER)
+#define FLAG_FOR_PRECOMPILER(action) action
+#else
+#define FLAG_FOR_PRECOMPILER(action)
+#endif
+
+#if !defined(PRODUCT)
+#define FLAG_FOR_NONPRODUCT(action) action
+#else
+#define FLAG_FOR_NONPRODUCT(action)
+#endif
+
+#define FLAG_FOR_PRODUCT(action) action
+
+#define SET_FROM_FLAG(when, name, bitname, isolate_flag, flag)                 \
+  FLAG_FOR_##when(isolate_group_flags_ = bitname##Bit::update(                 \
+                      api_flags.isolate_flag, isolate_group_flags_));
+
+  BOOL_ISOLATE_GROUP_FLAG_LIST(SET_FROM_FLAG)
+  // Needs to be called manually, otherwise we don't set the null_safety_set
+  // bit.
+  set_null_safety(api_flags.null_safety);
+#undef FLAG_FOR_NONPRODUCT
+#undef FLAG_FOR_PRECOMPILER
+#undef FLAG_FOR_PRODUCT
+#undef SET_FROM_FLAG
+}
+
 void Isolate::FlagsInitialize(Dart_IsolateFlags* api_flags) {
-  const bool false_by_default = false;
-  const bool true_by_default = true;
-  USE(true_by_default);
-  USE(false_by_default);
+  IsolateGroup::FlagsInitialize(api_flags);
 
   api_flags->version = DART_FLAGS_CURRENT_VERSION;
 #define INIT_FROM_FLAG(when, name, bitname, isolate_flag, flag)                \
   api_flags->isolate_flag = flag;
   BOOL_ISOLATE_FLAG_LIST(INIT_FROM_FLAG)
 #undef INIT_FROM_FLAG
-  api_flags->entry_points = NULL;
   api_flags->copy_parent_code = false;
 }
 
 void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
+  group()->FlagsCopyTo(api_flags);
+
   api_flags->version = DART_FLAGS_CURRENT_VERSION;
 #define INIT_FROM_FIELD(when, name, bitname, isolate_flag, flag)               \
   api_flags->isolate_flag = name();
   BOOL_ISOLATE_FLAG_LIST(INIT_FROM_FIELD)
 #undef INIT_FROM_FIELD
-  api_flags->entry_points = NULL;
   api_flags->copy_parent_code = false;
 }
 
@@ -1569,34 +1623,10 @@ void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
 
   BOOL_ISOLATE_FLAG_LIST(SET_FROM_FLAG)
   isolate_flags_ = CopyParentCodeBit::update(copy_parent_code_, isolate_flags_);
-  // Needs to be called manually, otherwise we don't set the null_safety_set
-  // bit.
-  set_null_safety(api_flags.null_safety);
 #undef FLAG_FOR_NONPRODUCT
 #undef FLAG_FOR_PRECOMPILER
 #undef FLAG_FOR_PRODUCT
 #undef SET_FROM_FLAG
-
-  // Copy entry points list.
-  ASSERT(embedder_entry_points_ == NULL);
-  if (api_flags.entry_points != NULL) {
-    intptr_t count = 0;
-    while (api_flags.entry_points[count].function_name != NULL)
-      count++;
-    embedder_entry_points_ = new Dart_QualifiedFunctionName[count + 1];
-    for (intptr_t i = 0; i < count; i++) {
-      embedder_entry_points_[i].library_uri =
-          Utils::StrDup(api_flags.entry_points[i].library_uri);
-      embedder_entry_points_[i].class_name =
-          Utils::StrDup(api_flags.entry_points[i].class_name);
-      embedder_entry_points_[i].function_name =
-          Utils::StrDup(api_flags.entry_points[i].function_name);
-    }
-    memset(&embedder_entry_points_[count], 0,
-           sizeof(Dart_QualifiedFunctionName));
-  }
-
-  // Leave others at defaults.
 }
 
 #if defined(DEBUG)
@@ -1672,7 +1702,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
   // move to the OSThread structure.
   set_user_tag(UserTags::kDefaultUserTag);
 
-  if (obfuscate()) {
+  if (group()->obfuscate()) {
     OS::PrintErr(
         "Warning: This VM has been configured to obfuscate symbol information "
         "which violates the Dart standard.\n"
@@ -1723,23 +1753,6 @@ Isolate::~Isolate() {
   mutator_thread_->isolate_ = nullptr;
   delete mutator_thread_;
   mutator_thread_ = nullptr;
-
-  if (obfuscation_map_ != nullptr) {
-    for (intptr_t i = 0; obfuscation_map_[i] != nullptr; i++) {
-      delete[] obfuscation_map_[i];
-    }
-    delete[] obfuscation_map_;
-  }
-
-  if (embedder_entry_points_ != nullptr) {
-    for (intptr_t i = 0; embedder_entry_points_[i].function_name != nullptr;
-         i++) {
-      free(const_cast<char*>(embedder_entry_points_[i].library_uri));
-      free(const_cast<char*>(embedder_entry_points_[i].class_name));
-      free(const_cast<char*>(embedder_entry_points_[i].function_name));
-    }
-    delete[] embedder_entry_points_;
-  }
 }
 
 void Isolate::InitVM() {

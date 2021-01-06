@@ -205,8 +205,8 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
   } else {
     ASSERT(num_opt_named_params > 0);
 
-    bool check_required_params =
-        Isolate::Current()->use_strict_null_safety_checks();
+    const bool check_required_params =
+        IsolateGroup::Current()->use_strict_null_safety_checks();
     const intptr_t first_name_offset =
         compiler::target::ArgumentsDescriptor::first_named_entry_offset() -
         compiler::target::Array::data_offset();

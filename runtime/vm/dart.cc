@@ -278,7 +278,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
         instructions_snapshot, nullptr, -1, api_flags));
     // ObjectStore should be created later, after null objects are initialized.
     auto group = new IsolateGroup(std::move(source), /*embedder_data=*/nullptr,
-                                  /*object_store=*/nullptr);
+                                  /*object_store=*/nullptr, api_flags);
     group->CreateHeap(/*is_vm_isolate=*/true,
                       /*is_service_or_kernel_isolate=*/false);
     IsolateGroup::RegisterIsolateGroup(group);
@@ -1053,8 +1053,9 @@ const char* Dart::FeaturesString(Isolate* isolate,
   }
 
   if (!Snapshot::IsAgnosticToNullSafety(kind)) {
-    if (isolate != NULL) {
-      if (isolate->null_safety()) {
+    auto isolate_group = isolate != nullptr ? isolate->group() : nullptr;
+    if (isolate_group != nullptr) {
+      if (isolate_group->null_safety()) {
         buffer.AddString(" null-safety");
       } else {
         buffer.AddString(" no-null-safety");

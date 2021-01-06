@@ -780,7 +780,8 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
 
   // These are guaranteed on the calling side.
   ASSERT(!dst_type.IsDynamicType());
-  ASSERT(!src_instance.IsNull() || isolate->use_strict_null_safety_checks());
+  ASSERT(!src_instance.IsNull() ||
+         isolate->group()->use_strict_null_safety_checks());
 
   const bool is_instance_of = src_instance.IsAssignableTo(
       dst_type, instantiator_type_arguments, function_type_arguments);

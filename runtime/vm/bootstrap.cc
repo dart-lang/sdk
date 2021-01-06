@@ -111,9 +111,10 @@ static ErrorPtr BootstrapFromKernel(Thread* thread,
   if (setjmp(*jump.Set()) == 0) {
     kernel::KernelLoader loader(program.get(), /*uri_to_source_table=*/nullptr);
 
-    Isolate* isolate = thread->isolate();
+    auto isolate = thread->isolate();
+    auto isolate_group = thread->isolate_group();
 
-    if (isolate->obfuscate()) {
+    if (isolate_group->obfuscate()) {
       loader.ReadObfuscationProhibitions();
     }
 

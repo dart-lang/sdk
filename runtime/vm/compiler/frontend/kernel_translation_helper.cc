@@ -18,6 +18,7 @@
 #define H (translation_helper_)
 #define T (type_translator_)
 #define I Isolate::Current()
+#define IG IsolateGroup::Current()
 
 namespace dart {
 namespace kernel {
@@ -390,7 +391,7 @@ String& TranslationHelper::DartSymbolPlain(StringIndex string_index) const {
 const String& TranslationHelper::DartSymbolObfuscate(
     const char* content) const {
   String& result = String::ZoneHandle(Z, Symbols::New(thread_, content));
-  if (I->obfuscate()) {
+  if (IG->obfuscate()) {
     Obfuscator obfuscator(thread_, String::Handle(Z));
     result = obfuscator.Rename(result, true);
   }
@@ -406,7 +407,7 @@ String& TranslationHelper::DartSymbolObfuscate(StringIndex string_index) const {
   }
   String& result =
       String::ZoneHandle(Z, Symbols::FromUTF8(thread_, buffer, length));
-  if (I->obfuscate()) {
+  if (IG->obfuscate()) {
     Obfuscator obfuscator(thread_, String::Handle(Z));
     result = obfuscator.Rename(result, true);
   }
@@ -801,14 +802,14 @@ String& TranslationHelper::ManglePrivateName(NameIndex parent,
     const Library& library =
         Library::Handle(Z, LookupLibraryByKernelLibrary(parent));
     *name_to_modify = library.PrivateName(*name_to_modify);
-    if (obfuscate && I->obfuscate()) {
+    if (obfuscate && IG->obfuscate()) {
       const String& library_key = String::Handle(library.private_key());
       Obfuscator obfuscator(thread_, library_key);
       *name_to_modify = obfuscator.Rename(*name_to_modify);
     }
   } else if (symbolize) {
     *name_to_modify = Symbols::New(thread_, *name_to_modify);
-    if (obfuscate && I->obfuscate()) {
+    if (obfuscate && IG->obfuscate()) {
       const String& library_key = String::Handle();
       Obfuscator obfuscator(thread_, library_key);
       *name_to_modify = obfuscator.Rename(*name_to_modify);
@@ -823,14 +824,14 @@ String& TranslationHelper::ManglePrivateName(const Library& library,
                                              bool obfuscate) {
   if (name_to_modify->Length() >= 1 && name_to_modify->CharAt(0) == '_') {
     *name_to_modify = library.PrivateName(*name_to_modify);
-    if (obfuscate && I->obfuscate()) {
+    if (obfuscate && IG->obfuscate()) {
       const String& library_key = String::Handle(library.private_key());
       Obfuscator obfuscator(thread_, library_key);
       *name_to_modify = obfuscator.Rename(*name_to_modify);
     }
   } else if (symbolize) {
     *name_to_modify = Symbols::New(thread_, *name_to_modify);
-    if (obfuscate && I->obfuscate()) {
+    if (obfuscate && IG->obfuscate()) {
       const String& library_key = String::Handle();
       Obfuscator obfuscator(thread_, library_key);
       *name_to_modify = obfuscator.Rename(*name_to_modify);

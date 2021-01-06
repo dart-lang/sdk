@@ -92,10 +92,10 @@ const char* TypeTestingStubNamer::AssemblerSafeName(char* cname) {
 CodePtr TypeTestingStubGenerator::DefaultCodeForType(
     const AbstractType& type,
     bool lazy_specialize /* = true */) {
-  auto isolate = Isolate::Current();
+  auto isolate_group = IsolateGroup::Current();
 
   if (type.IsTypeRef()) {
-    return isolate->use_strict_null_safety_checks()
+    return isolate_group->use_strict_null_safety_checks()
                ? StubCode::DefaultTypeTest().raw()
                : StubCode::DefaultNullableTypeTest().raw();
   }
@@ -283,7 +283,7 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
 
   } else if (type.IsObjectType()) {
     ASSERT(type.IsNonNullable() &&
-           Isolate::Current()->use_strict_null_safety_checks());
+           IsolateGroup::Current()->use_strict_null_safety_checks());
     compiler::Label continue_checking;
     __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
     __ BranchIf(EQUAL, &continue_checking);
@@ -495,7 +495,7 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
     // Weak NNBD mode uses LEGACY_SUBTYPE which ignores nullability.
     // We don't need to check nullability of LHS for nullable and legacy RHS
     // ("Right Legacy", "Right Nullable" rules).
-    if (Isolate::Current()->use_strict_null_safety_checks() &&
+    if (IsolateGroup::Current()->use_strict_null_safety_checks() &&
         !type_arg.IsNullable() && !type_arg.IsLegacy()) {
       // Nullable type is not a subtype of non-nullable type.
       // TODO(dartbug.com/40736): Allocate a register for instance type argument

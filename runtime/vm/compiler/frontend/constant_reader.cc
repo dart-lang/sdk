@@ -118,7 +118,7 @@ bool ConstantReader::IsInstanceConstant(intptr_t constant_offset,
 
 InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
   // Get reader directly into raw bytes of constant table.
-  bool null_safety = H.thread()->isolate()->null_safety();
+  bool null_safety = H.thread()->isolate_group()->null_safety();
   KernelReaderHelper reader(Z, &H, script_, H.constants_table(), 0);
   reader.ReadUInt();  // skip variable-sized int for adjusted constant offset
   reader.SetOffset(reader.ReaderOffset() + constant_offset);
