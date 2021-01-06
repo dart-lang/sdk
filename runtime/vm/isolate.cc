@@ -403,6 +403,13 @@ IsolateGroup::~IsolateGroup() {
   // Ensure we destroy the heap before the other members.
   heap_ = nullptr;
   ASSERT(marking_stack_ == nullptr);
+
+  if (obfuscation_map_ != nullptr) {
+    for (intptr_t i = 0; obfuscation_map_[i] != nullptr; i++) {
+      delete[] obfuscation_map_[i];
+    }
+    delete[] obfuscation_map_;
+  }
 }
 
 void IsolateGroup::RegisterIsolate(Isolate* isolate) {
@@ -1523,11 +1530,6 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
 }
 
 void Isolate::FlagsInitialize(Dart_IsolateFlags* api_flags) {
-  const bool false_by_default = false;
-  const bool true_by_default = true;
-  USE(true_by_default);
-  USE(false_by_default);
-
   api_flags->version = DART_FLAGS_CURRENT_VERSION;
 #define INIT_FROM_FLAG(when, name, bitname, isolate_flag, flag)                \
   api_flags->isolate_flag = flag;
@@ -1649,7 +1651,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
   // move to the OSThread structure.
   set_user_tag(UserTags::kDefaultUserTag);
 
-  if (obfuscate()) {
+  if (group()->obfuscate()) {
     OS::PrintErr(
         "Warning: This VM has been configured to obfuscate symbol information "
         "which violates the Dart standard.\n"
@@ -1700,13 +1702,6 @@ Isolate::~Isolate() {
   mutator_thread_->isolate_ = nullptr;
   delete mutator_thread_;
   mutator_thread_ = nullptr;
-
-  if (obfuscation_map_ != nullptr) {
-    for (intptr_t i = 0; obfuscation_map_[i] != nullptr; i++) {
-      delete[] obfuscation_map_[i];
-    }
-    delete[] obfuscation_map_;
-  }
 }
 
 void Isolate::InitVM() {

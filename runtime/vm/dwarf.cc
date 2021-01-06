@@ -748,8 +748,7 @@ const char* Dwarf::Deobfuscate(const char* cstr) {
 }
 
 Trie<const char>* Dwarf::CreateReverseObfuscationTrie(Zone* zone) {
-  auto const I = Thread::Current()->isolate();
-  auto const map_array = I->obfuscation_map();
+  auto const map_array = IsolateGroup::Current()->obfuscation_map();
   if (map_array == nullptr) return nullptr;
 
   Trie<const char>* trie = nullptr;

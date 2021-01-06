@@ -57,6 +57,7 @@ namespace dart {
 
 #define T (thread())
 #define I (isolate())
+#define IG (isolate_group())
 #define Z (zone())
 
 DEFINE_FLAG(bool, print_unique_targets, false, "Print unique dynamic targets");
@@ -2348,7 +2349,7 @@ FunctionPtr Precompiler::FindUnvisitedRetainedFunction() {
 #endif
 
 void Precompiler::Obfuscate() {
-  if (!I->obfuscate()) {
+  if (!IG->obfuscate()) {
     return;
   }
 
@@ -2412,7 +2413,7 @@ void Precompiler::Obfuscate() {
   }
 
   // Obfuscation is done. Move obfuscation map into malloced memory.
-  I->set_obfuscation_map(Obfuscator::SerializeMap(T));
+  IG->set_obfuscation_map(Obfuscator::SerializeMap(T));
 
   // Discard obfuscation mappings to avoid including them into snapshot.
   I->object_store()->set_obfuscation_map(Array::Handle(Z));
@@ -2808,15 +2809,15 @@ ErrorPtr Precompiler::CompileFunction(Precompiler* precompiler,
 
 Obfuscator::Obfuscator(Thread* thread, const String& private_key)
     : state_(NULL) {
-  Isolate* isolate = thread->isolate();
-  Zone* zone = thread->zone();
-  if (!isolate->obfuscate()) {
+  auto isolate_group = thread->isolate_group();
+  if (!isolate_group->obfuscate()) {
     // Nothing to do.
     return;
   }
+  auto zone = thread->zone();
 
   // Create ObfuscationState from ObjectStore::obfusction_map().
-  ObjectStore* store = thread->isolate()->object_store();
+  ObjectStore* store = isolate_group->object_store();
   Array& obfuscation_state = Array::Handle(zone, store->obfuscation_map());
 
   if (store->obfuscation_map() == Array::null()) {
@@ -2833,7 +2834,7 @@ Obfuscator::Obfuscator(Thread* thread, const String& private_key)
   if (store->obfuscation_map() == Array::null()) {
     // We are just starting the obfuscation. Initialize the renaming map.
     // Note: InitializeRenamingMap uses state_.
-    InitializeRenamingMap(isolate);
+    InitializeRenamingMap();
   }
 }
 
@@ -2843,7 +2844,7 @@ Obfuscator::~Obfuscator() {
   }
 }
 
-void Obfuscator::InitializeRenamingMap(Isolate* isolate) {
+void Obfuscator::InitializeRenamingMap() {
 // Prevent renaming of all pseudo-keywords and operators.
 // Note: not all pseudo-keywords are mentioned in DART_KEYWORD_LIST
 // (for example 'hide', 'show' and async related keywords are omitted).

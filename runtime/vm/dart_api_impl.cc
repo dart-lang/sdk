@@ -7043,7 +7043,7 @@ DART_EXPORT Dart_Handle Dart_GetObfuscationMap(uint8_t** buffer,
 #else
   Thread* thread = Thread::Current();
   DARTSCOPE(thread);
-  Isolate* isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
 
   if (buffer == NULL) {
     RETURN_NULL_ERROR(buffer);
@@ -7057,13 +7057,13 @@ DART_EXPORT Dart_Handle Dart_GetObfuscationMap(uint8_t** buffer,
   TextBuffer text_buffer(kInitialBufferSize);
 
   text_buffer.AddChar('[');
-  if (isolate->obfuscation_map() != NULL) {
-    for (intptr_t i = 0; isolate->obfuscation_map()[i] != NULL; i++) {
+  if (isolate_group->obfuscation_map() != nullptr) {
+    for (intptr_t i = 0; isolate_group->obfuscation_map()[i] != nullptr; i++) {
       if (i > 0) {
         text_buffer.AddChar(',');
       }
       text_buffer.AddChar('"');
-      text_buffer.AddEscapedString(isolate->obfuscation_map()[i]);
+      text_buffer.AddEscapedString(isolate_group->obfuscation_map()[i]);
       text_buffer.AddChar('"');
     }
   }

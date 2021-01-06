@@ -1339,15 +1339,15 @@ void ClassFinalizer::ReportError(const char* format, ...) {
 void ClassFinalizer::VerifyImplicitFieldOffsets() {
 #ifdef DEBUG
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
 
-  if (isolate->obfuscate()) {
+  if (isolate_group->obfuscate()) {
     // Field names are obfuscated.
     return;
   }
 
   Zone* zone = thread->zone();
-  const ClassTable& class_table = *(isolate->class_table());
+  const ClassTable& class_table = *(isolate_group->class_table());
   Class& cls = Class::Handle(zone);
   Array& fields_array = Array::Handle(zone);
   Field& field = Field::Handle(zone);

@@ -331,6 +331,7 @@ class Precompiler : public ValueObject {
   Thread* thread() const { return thread_; }
   Zone* zone() const { return zone_; }
   Isolate* isolate() const { return isolate_; }
+  IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
 
   Thread* thread_;
   Zone* zone_;
@@ -466,7 +467,7 @@ class Obfuscator : public ValueObject {
  private:
   // Populate renaming map with names that should have identity renaming.
   // (or in other words: with those names that should not be renamed).
-  void InitializeRenamingMap(Isolate* isolate);
+  void InitializeRenamingMap();
 
   // ObjectStore::obfuscation_map() is an Array with two elements:
   // first element is the last used rename and the second element is

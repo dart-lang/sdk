@@ -9550,7 +9550,7 @@ bool Function::CheckSourceFingerprint(int32_t fp, const char* kind) const {
   }
 #endif
 
-  if (Isolate::Current()->obfuscate() || FLAG_precompiled_mode ||
+  if (IsolateGroup::Current()->obfuscate() || FLAG_precompiled_mode ||
       (Dart::vm_snapshot_kind() != Snapshot::kNone)) {
     return true;  // The kernel structure has been altered, skip checking.
   }

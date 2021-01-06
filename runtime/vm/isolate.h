@@ -180,25 +180,25 @@ typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
 //
 //     V(when, name, bit-name, Dart_IsolateFlags-name, command-line-flag-name)
 //
+#define BOOL_ISOLATE_GROUP_FLAG_LIST_DEFAULT_GETTER(V)                         \
+  V(PRECOMPILER, obfuscate, Obfuscate, obfuscate, false)
+
 #define BOOL_ISOLATE_FLAG_LIST_DEFAULT_GETTER(V)                               \
   V(NONPRODUCT, asserts, EnableAsserts, enable_asserts, FLAG_enable_asserts)   \
   V(NONPRODUCT, use_field_guards, UseFieldGuards, use_field_guards,            \
     FLAG_use_field_guards)                                                     \
   V(NONPRODUCT, use_osr, UseOsr, use_osr, FLAG_use_osr)                        \
-  V(PRECOMPILER, obfuscate, Obfuscate, obfuscate, false_by_default)            \
   V(PRODUCT, should_load_vmservice_library, ShouldLoadVmService,               \
-    load_vmservice_library, false_by_default)                                  \
-  V(PRODUCT, copy_parent_code, CopyParentCode, copy_parent_code,               \
-    false_by_default)                                                          \
-  V(PRODUCT, is_system_isolate, IsSystemIsolate, is_system_isolate,            \
-    false_by_default)
+    load_vmservice_library, false)                                             \
+  V(PRODUCT, copy_parent_code, CopyParentCode, copy_parent_code, false)        \
+  V(PRODUCT, is_system_isolate, IsSystemIsolate, is_system_isolate, false)
 
 // List of Isolate flags with custom getters named #name().
 //
 //     V(when, name, bit-name, Dart_IsolateFlags-name, default_value)
 //
 #define BOOL_ISOLATE_FLAG_LIST_CUSTOM_GETTER(V)                                \
-  V(PRODUCT, null_safety, NullSafety, null_safety, false_by_default)
+  V(PRODUCT, null_safety, NullSafety, null_safety, false)
 
 // Represents the information used for spawning the first isolate within an
 // isolate group.
@@ -413,7 +413,35 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     return shared_class_table_.get();
   }
 
+  void set_obfuscation_map(const char** map) { obfuscation_map_ = map; }
+  const char** obfuscation_map() const { return obfuscation_map_; }
+
   bool is_system_isolate_group() const { return is_system_isolate_group_; }
+
+#if defined(DART_PRECOMPILER)
+#define FLAG_FOR_PRECOMPILER(from_field, from_flag) (from_field)
+#else
+#define FLAG_FOR_PRECOMPILER(from_field, from_flag) (from_flag)
+#endif
+
+#if !defined(PRODUCT)
+#define FLAG_FOR_NONPRODUCT(from_field, from_flag) (from_field)
+#else
+#define FLAG_FOR_NONPRODUCT(from_field, from_flag) (from_flag)
+#endif
+
+#define FLAG_FOR_PRODUCT(from_field, from_flag) (from_field)
+
+#define DECLARE_GETTER(when, name, bitname, isolate_flag_name, flag_name)      \
+  bool name() const {                                                          \
+    return FLAG_FOR_##when(bitname##Bit::decode(isolate_group_flags_),         \
+                           flag_name);                                         \
+  }
+  BOOL_ISOLATE_GROUP_FLAG_LIST_DEFAULT_GETTER(DECLARE_GETTER)
+#undef FLAG_FOR_NONPRODUCT
+#undef FLAG_FOR_PRECOMPILER
+#undef FLAG_FOR_PRODUCT
+#undef DECLARE_GETTER
 
   StoreBuffer* store_buffer() const { return store_buffer_.get(); }
   ClassTable* class_table() const { return class_table_.get(); }
@@ -650,9 +678,11 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   // For `object_store_shared_ptr()`, `class_table_shared_ptr()`
   friend class Isolate;
 
-#define ISOLATE_GROUP_FLAG_BITS(V) V(CompactionInProgress)
+#define ISOLATE_GROUP_FLAG_BITS(V)                                             \
+  V(CompactionInProgress)                                                      \
+  V(Obfuscate)
 
-  // Isolate specific flags.
+  // Isolate group specific flags.
   enum FlagBits {
 #define DECLARE_BIT(Name) k##Name##Bit,
     ISOLATE_GROUP_FLAG_BITS(DECLARE_BIT)
@@ -672,6 +702,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   const std::shared_ptr<ObjectStore>& object_store_shared_ptr() const {
     return object_store_;
   }
+
+  const char** obfuscation_map_ = nullptr;
 
   bool is_vm_isolate_heap_ = false;
   void* embedder_data_ = nullptr;
@@ -1283,9 +1315,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     isolate_flags_ = ShouldLoadVmServiceBit::update(value, isolate_flags_);
   }
 
-  void set_obfuscation_map(const char** map) { obfuscation_map_ = map; }
-  const char** obfuscation_map() const { return obfuscation_map_; }
-
   const DispatchTable* dispatch_table() const {
     return group()->dispatch_table();
   }
@@ -1311,8 +1340,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
 #define DECLARE_GETTER(when, name, bitname, isolate_flag_name, flag_name)      \
   bool name() const {                                                          \
-    const bool false_by_default = false;                                       \
-    USE(false_by_default);                                                     \
     return FLAG_FOR_##when(bitname##Bit::decode(isolate_flags_), flag_name);   \
   }
   BOOL_ISOLATE_FLAG_LIST_DEFAULT_GETTER(DECLARE_GETTER)
@@ -1521,7 +1548,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   V(EnableAsserts)                                                             \
   V(UseFieldGuards)                                                            \
   V(UseOsr)                                                                    \
-  V(Obfuscate)                                                                 \
   V(CopyParentCode)                                                            \
   V(ShouldLoadVmService)                                                       \
   V(NullSafety)                                                                \
@@ -1627,8 +1653,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   HandlerInfoCache handler_info_cache_;
   CatchEntryMovesCache catch_entry_moves_cache_;
-
-  const char** obfuscation_map_ = nullptr;
 
   DispatchTable* dispatch_table_ = nullptr;
 
