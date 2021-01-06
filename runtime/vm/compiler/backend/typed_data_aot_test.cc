@@ -473,7 +473,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_Regress43534) {
   const auto& test_function =
       Function::Handle(GetFunction(root_library, "test"));
   const auto& closures = GrowableObjectArray::Handle(
-      Isolate::Current()->object_store()->closure_functions());
+      IsolateGroup::Current()->object_store()->closure_functions());
   auto& function = Function::Handle();
   for (intptr_t i = closures.Length() - 1; 0 <= i; ++i) {
     function ^= closures.At(i);

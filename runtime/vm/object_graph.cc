@@ -186,7 +186,7 @@ static void IterateUserFields(ObjectPointerVisitor* visitor) {
   HANDLESCOPE(thread);
   Zone* zone = thread->zone();
   const GrowableObjectArray& libraries = GrowableObjectArray::Handle(
-      zone, thread->isolate()->object_store()->libraries());
+      zone, thread->isolate_group()->object_store()->libraries());
   Library& library = Library::Handle(zone);
   Object& entry = Object::Handle(zone);
   Class& cls = Class::Handle(zone);
@@ -660,7 +660,8 @@ void HeapSnapshotWriter::SetupCountingPages() {
     image_page_ranges_[i].size = 0;
   }
   intptr_t next_offset = 0;
-  OldPage* image_page = Dart::vm_isolate()->heap()->old_space()->image_pages_;
+  OldPage* image_page =
+      Dart::vm_isolate_group()->heap()->old_space()->image_pages_;
   while (image_page != NULL) {
     RELEASE_ASSERT(next_offset <= kMaxImagePages);
     image_page_ranges_[next_offset].base = image_page->object_start();
@@ -669,7 +670,7 @@ void HeapSnapshotWriter::SetupCountingPages() {
     image_page = image_page->next();
     next_offset++;
   }
-  image_page = isolate()->heap()->old_space()->image_pages_;
+  image_page = isolate_group()->heap()->old_space()->image_pages_;
   while (image_page != NULL) {
     RELEASE_ASSERT(next_offset <= kMaxImagePages);
     image_page_ranges_[next_offset].base = image_page->object_start();
@@ -679,7 +680,7 @@ void HeapSnapshotWriter::SetupCountingPages() {
     next_offset++;
   }
 
-  OldPage* page = isolate()->heap()->old_space()->pages_;
+  OldPage* page = isolate_group()->heap()->old_space()->pages_;
   while (page != NULL) {
     page->forwarding_page();
     CountingPage* counting_page =
@@ -1032,7 +1033,7 @@ void HeapSnapshotWriter::Write() {
 
   {
     HANDLESCOPE(thread());
-    ClassTable* class_table = isolate()->class_table();
+    ClassTable* class_table = isolate_group()->class_table();
     class_count_ = class_table->NumCids() - 1;
 
     Class& cls = Class::Handle();

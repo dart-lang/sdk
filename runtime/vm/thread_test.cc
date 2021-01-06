@@ -295,7 +295,7 @@ ISOLATE_UNIT_TEST_CASE(ManySimpleTasksWithZones) {
   intptr_t done_count = 0;
   bool wait = true;
 
-  EXPECT(isolate->heap()->GrowthControlState());
+  EXPECT(isolate->group()->heap()->GrowthControlState());
 
   NoHeapGrowthControlScope no_heap_growth_scope;
 
@@ -843,7 +843,7 @@ class AllocAndGCTask : public ThreadPool::Task {
       Zone* zone = stack_zone.GetZone();
       HANDLESCOPE(thread);
       String& old_str = String::Handle(zone, String::New("old", Heap::kOld));
-      isolate_->heap()->CollectAllGarbage();
+      isolate_->group()->heap()->CollectAllGarbage();
       EXPECT(old_str.Equals("old"));
     }
     Thread::ExitIsolateAsHelper();

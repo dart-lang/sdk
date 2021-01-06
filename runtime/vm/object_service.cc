@@ -98,7 +98,7 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("_finalized", is_finalized());
   jsobj.AddProperty("_implemented", is_implemented());
   jsobj.AddProperty("_patch", false);
-  jsobj.AddProperty("_traceAllocations", TraceAllocation(isolate));
+  jsobj.AddProperty("_traceAllocations", TraceAllocation(isolate->group()));
 
   const Class& superClass = Class::Handle(SuperClass());
   if (!superClass.IsNull()) {
@@ -174,8 +174,7 @@ void TypeArguments::PrintJSONImpl(JSONStream* stream, bool ref) const {
   // preserved when the table grows and the entries get rehashed. Use the ring.
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
-  ObjectStore* object_store = isolate->object_store();
+  auto object_store = thread->isolate_group()->object_store();
   CanonicalTypeArgumentsSet typeargs_table(
       zone, object_store->canonical_type_arguments());
   const Array& table =
@@ -401,7 +400,7 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   } else if (guarded_cid() == kDynamicCid) {
     jsobj.AddProperty("_guardClass", "dynamic");
   } else {
-    ClassTable* table = Isolate::Current()->class_table();
+    ClassTable* table = IsolateGroup::Current()->class_table();
     ASSERT(table->IsValidIndex(guarded_cid()));
     cls = table->At(guarded_cid());
     jsobj.AddProperty("_guardClass", cls);
@@ -802,7 +801,7 @@ void ICData::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 void ICData::PrintToJSONArray(const JSONArray& jsarray,
                               TokenPosition token_pos) const {
-  Isolate* isolate = Isolate::Current();
+  auto class_table = IsolateGroup::Current()->class_table();
   Class& cls = Class::Handle();
   Function& func = Function::Handle();
 
@@ -819,7 +818,7 @@ void ICData::PrintToJSONArray(const JSONArray& jsarray,
     intptr_t count = GetCountAt(i);
     if (!is_static_call()) {
       intptr_t cid = GetReceiverClassIdAt(i);
-      cls = isolate->class_table()->At(cid);
+      cls = class_table->At(cid);
       cache_entry.AddProperty("receiver", cls);
     }
     cache_entry.AddProperty("target", func);

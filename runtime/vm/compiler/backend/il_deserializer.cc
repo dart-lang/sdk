@@ -1572,7 +1572,7 @@ bool FlowGraphDeserializer::ParseClass(SExpList* list, Object* out) {
   auto const ref_sexp = Retrieve(list, 1);
   if (ref_sexp == nullptr) return false;
   if (auto const cid_sexp = ref_sexp->AsInteger()) {
-    ClassTable* table = thread()->isolate()->class_table();
+    ClassTable* table = thread()->isolate_group()->class_table();
     if (!table->HasValidClassAt(cid_sexp->value())) {
       StoreError(cid_sexp, "no valid class found for cid");
       return false;
@@ -1688,7 +1688,7 @@ bool FlowGraphDeserializer::ParseInstance(SExpList* list, Object* out) {
   auto const cid_sexp = CheckInteger(Retrieve(list, 1));
   if (cid_sexp == nullptr) return false;
 
-  auto const table = thread()->isolate()->class_table();
+  auto const table = thread()->isolate_group()->class_table();
   if (!table->HasValidClassAt(cid_sexp->value())) {
     StoreError(cid_sexp, "cid is not valid");
     return false;
@@ -1941,7 +1941,7 @@ bool FlowGraphDeserializer::ParseTypeParameter(SExpList* list, Object* out) {
   } else if (auto const class_sexp =
                  CheckInteger(list->ExtraLookupValue("class"))) {
     const intptr_t cid = class_sexp->value();
-    auto const table = thread()->isolate()->class_table();
+    auto const table = thread()->isolate_group()->class_table();
     if (!table->HasValidClassAt(cid)) {
       StoreError(class_sexp, "not a valid class id");
       return false;
@@ -2333,7 +2333,7 @@ bool FlowGraphDeserializer::CreateICData(SExpList* list, Instruction* inst) {
     ic_data.set_is_megamorphic(is_mega_sexp->value());
   }
 
-  auto const class_table = thread()->isolate()->class_table();
+  auto const class_table = thread()->isolate_group()->class_table();
   GrowableArray<intptr_t> class_ids(zone(), 2);
   for (intptr_t i = 1, n = list->Length(); i < n; i++) {
     auto const entry = CheckList(Retrieve(list, i));

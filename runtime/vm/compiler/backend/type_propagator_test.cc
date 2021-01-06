@@ -167,7 +167,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_Refinement) {
   CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
 
   const Class& object_class =
-      Class::Handle(thread->isolate()->object_store()->object_class());
+      Class::Handle(thread->isolate_group()->object_store()->object_class());
 
   const Function& target_func = Function::ZoneHandle(Function::New(
       String::Handle(Symbols::New(thread, "dummy2")),

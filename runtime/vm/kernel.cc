@@ -244,9 +244,9 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
 
   GrowableArray<intptr_t> token_positions(10);
 
-  Isolate* isolate = thread->isolate();
-  const GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(zone, isolate->object_store()->libraries());
+  auto isolate_group = thread->isolate_group();
+  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
+      zone, isolate_group->object_store()->libraries());
   Library& lib = Library::Handle(zone);
   Object& entry = Object::Handle(zone);
   Script& entry_script = Script::Handle(zone);

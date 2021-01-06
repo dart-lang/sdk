@@ -709,7 +709,7 @@ Fragment StreamingFlowGraphBuilder::ShortcutForUserDefinedEquals(
   Fragment body;
   if ((dart_function.NumParameters() == 2) &&
       (dart_function.name() == Symbols::EqualOperator().raw()) &&
-      (dart_function.Owner() != I->object_store()->object_class())) {
+      (dart_function.Owner() != IG->object_store()->object_class())) {
     TargetEntryInstr* null_entry;
     TargetEntryInstr* non_null_entry;
 
@@ -3580,7 +3580,7 @@ Fragment StreamingFlowGraphBuilder::BuildListLiteral(TokenPosition* p) {
     instructions += IntConstant(0);
     instructions += StaticCall(
         position,
-        Function::ZoneHandle(Z, I->object_store()->growable_list_factory()), 2,
+        Function::ZoneHandle(Z, IG->object_store()->growable_list_factory()), 2,
         ICData::kStatic);
     return instructions;
   }
@@ -3757,7 +3757,7 @@ Fragment StreamingFlowGraphBuilder::BuildNullLiteral(TokenPosition* position) {
 Fragment StreamingFlowGraphBuilder::BuildFutureNullValue(
     TokenPosition* position) {
   if (position != NULL) *position = TokenPosition::kNoSource;
-  const Class& future = Class::Handle(Z, I->object_store()->future_class());
+  const Class& future = Class::Handle(Z, IG->object_store()->future_class());
   ASSERT(!future.IsNull());
   const auto& error = future.EnsureIsFinalized(thread());
   ASSERT(error == Error::null());
@@ -3798,7 +3798,7 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
 
   instructions += AllocateObject(
       TokenPosition::kNoSource,
-      Class::ZoneHandle(Z, I->object_store()->closure_class()), 0);
+      Class::ZoneHandle(Z, IG->object_store()->closure_class()), 0);
   LocalVariable* new_closure = MakeTemporary();
 
   intptr_t num_type_args = ReadListLength();
@@ -5112,10 +5112,10 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
   code += Constant(result);
 
   auto& ffi_callback_functions = GrowableObjectArray::Handle(Z);
-  ffi_callback_functions ^= I->object_store()->ffi_callback_functions();
+  ffi_callback_functions ^= IG->object_store()->ffi_callback_functions();
   if (ffi_callback_functions.IsNull()) {
     ffi_callback_functions ^= GrowableObjectArray::New();
-    I->object_store()->set_ffi_callback_functions(ffi_callback_functions);
+    IG->object_store()->set_ffi_callback_functions(ffi_callback_functions);
   }
   ffi_callback_functions.Add(result);
 

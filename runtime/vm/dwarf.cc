@@ -289,7 +289,7 @@ void Dwarf::WriteDebugInfo(DwarfWriteStream* stream) {
   // them in our abbreviation above in WriteAbbreviations.
   stream->uleb128(kCompilationUnit);
   const Library& root_library = Library::Handle(
-      zone_, Isolate::Current()->object_store()->root_library());
+      zone_, IsolateGroup::Current()->object_store()->root_library());
   const String& root_uri = String::Handle(zone_, root_library.url());
   stream->string(root_uri.ToCString());  // DW_AT_name
   stream->string("Dart VM");             // DW_AT_producer

@@ -1324,7 +1324,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       } else {
         body += Box(native_rep.AsRepresentationOverApprox(zone_));
         if (kind == MethodRecognizer::kFfiLoadPointer) {
-          const auto class_table = thread_->isolate()->class_table();
+          const auto class_table = thread_->isolate_group()->class_table();
           ASSERT(class_table->HasValidClassAt(kFfiPointerCid));
           const auto& pointer_class =
               Class::ZoneHandle(H.zone(), class_table->At(kFfiPointerCid));
@@ -1384,7 +1384,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
 
       if (kind == MethodRecognizer::kFfiStorePointer) {
         // Do type check before anything untagged is on the stack.
-        const auto class_table = thread_->isolate()->class_table();
+        const auto class_table = thread_->isolate_group()->class_table();
         ASSERT(class_table->HasValidClassAt(kFfiPointerCid));
         const auto& pointer_class =
             Class::ZoneHandle(H.zone(), class_table->At(kFfiPointerCid));
@@ -1454,7 +1454,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += NullConstant();
     } break;
     case MethodRecognizer::kFfiFromAddress: {
-      const auto class_table = thread_->isolate()->class_table();
+      const auto class_table = thread_->isolate_group()->class_table();
       ASSERT(class_table->HasValidClassAt(kFfiPointerCid));
       const auto& pointer_class =
           Class::ZoneHandle(H.zone(), class_table->At(kFfiPointerCid));
@@ -1497,7 +1497,7 @@ Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
     const Function& function,
     classid_t cid) {
   auto token_pos = function.token_pos();
-  auto class_table = Thread::Current()->isolate()->class_table();
+  auto class_table = Thread::Current()->isolate_group()->class_table();
 
   ASSERT(class_table->HasValidClassAt(cid));
   const auto& view_class = Class::ZoneHandle(H.zone(), class_table->At(cid));
@@ -1550,7 +1550,8 @@ Fragment FlowGraphBuilder::BuildTypedDataFactoryConstructor(
     const Function& function,
     classid_t cid) {
   const auto token_pos = function.token_pos();
-  ASSERT(Thread::Current()->isolate()->class_table()->HasValidClassAt(cid));
+  ASSERT(
+      Thread::Current()->isolate_group()->class_table()->HasValidClassAt(cid));
 
   ASSERT(function.IsFactory() && (function.NumParameters() == 2));
   LocalVariable* length = parsed_function_->RawParameterVariable(1);
@@ -2056,7 +2057,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
     // If noSuchMethod is not found on the receiver class, call
     // Object.noSuchMethod.
     no_such_method = Resolver::ResolveDynamicForReceiverClass(
-        Class::Handle(Z, I->object_store()->object_class()),
+        Class::Handle(Z, IG->object_store()->object_class()),
         Symbols::NoSuchMethod(), two_arguments);
   }
   body += StaticCall(TokenPosition::kMinSource, no_such_method,
@@ -2811,7 +2812,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
 
   // Determine if this is `class Closure { get call => this; }`
   const Class& closure_class =
-      Class::Handle(Z, I->object_store()->closure_class());
+      Class::Handle(Z, IG->object_store()->closure_class());
   const bool is_closure_call = (owner.raw() == closure_class.raw()) &&
                                field_name.Equals(Symbols::Call());
 
@@ -3695,7 +3696,7 @@ Fragment FlowGraphBuilder::UnwrapHandle() {
 }
 
 Fragment FlowGraphBuilder::UnhandledException() {
-  const auto class_table = thread_->isolate()->class_table();
+  const auto class_table = thread_->isolate_group()->class_table();
   ASSERT(class_table->HasValidClassAt(kUnhandledExceptionCid));
   const auto& klass =
       Class::ZoneHandle(H.zone(), class_table->At(kUnhandledExceptionCid));
@@ -4209,7 +4210,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
   body += LoadNativeField(Slot::Closure_context());
   body += LoadNativeField(Slot::GetContextVariableSlotFor(
       thread_, *MakeImplicitClosureScope(
-                    Z, Class::Handle(I->object_store()->ffi_pointer_class()))
+                    Z, Class::Handle(IG->object_store()->ffi_pointer_class()))
                     ->context_variables()[0]));
 
   // This can only be Pointer, so it is always safe to LoadUntagged.

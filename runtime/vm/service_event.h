@@ -14,6 +14,7 @@ class ActivationFrame;
 class Breakpoint;
 class Instance;
 class Isolate;
+class IsolateGroup;
 class Object;
 class StreamInfo;
 class String;
@@ -80,6 +81,7 @@ class ServiceEvent {
   ServiceEvent(Isolate* isolate, EventKind event_kind);
 
   Isolate* isolate() const { return isolate_; }
+  IsolateGroup* isolate_group() const { return isolate_->group(); }
 
   // Used by the C embedding api.
   Dart_Port isolate_id() const { return isolate_->main_port(); }

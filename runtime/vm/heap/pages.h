@@ -410,7 +410,8 @@ class PageSpace {
 
 #ifndef PRODUCT
   void PrintToJSONObject(JSONObject* object) const;
-  void PrintHeapMapToJSONStream(Isolate* isolate, JSONStream* stream) const;
+  void PrintHeapMapToJSONStream(IsolateGroup* isolate_group,
+                                JSONStream* stream) const;
 #endif  // PRODUCT
 
   void AllocateBlack(intptr_t size) {

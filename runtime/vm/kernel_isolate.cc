@@ -179,7 +179,7 @@ class RunKernelTask : public ThreadPool::Task {
     HANDLESCOPE(T);
     // Invoke main which will return the port to which load requests are sent.
     const Library& root_library =
-        Library::Handle(Z, I->object_store()->root_library());
+        Library::Handle(Z, I->group()->object_store()->root_library());
     if (root_library.IsNull()) {
       OS::PrintErr(DART_KERNEL_ISOLATE_NAME
                    ": Embedder did not install a script.");

@@ -4130,7 +4130,7 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
         type = Type::IntType();
       } else if (receiver_cid != kClosureCid) {
         const Class& cls = Class::Handle(
-            Z, flow_graph->isolate()->class_table()->At(receiver_cid));
+            Z, flow_graph->isolate_group()->class_table()->At(receiver_cid));
         if (!cls.IsGeneric()) {
           type = cls.DeclarationType();
         }

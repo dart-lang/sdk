@@ -436,7 +436,7 @@ class RunServiceTask : public ThreadPool::Task {
     HANDLESCOPE(T);
     // Invoke main which will set up the service port.
     const Library& root_library =
-        Library::Handle(Z, I->object_store()->root_library());
+        Library::Handle(Z, I->group()->object_store()->root_library());
     if (root_library.IsNull()) {
       if (FLAG_trace_service) {
         OS::PrintErr(DART_VM_SERVICE_ISOLATE_NAME

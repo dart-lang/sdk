@@ -163,7 +163,8 @@ Precompiler::Precompiler(Thread* thread)
       dropped_typearg_count_(0),
       dropped_type_count_(0),
       dropped_library_count_(0),
-      libraries_(GrowableObjectArray::Handle(I->object_store()->libraries())),
+      libraries_(GrowableObjectArray::Handle(
+          isolate_->group()->object_store()->libraries())),
       pending_functions_(
           GrowableObjectArray::Handle(GrowableObjectArray::New())),
       sent_selectors_(),
@@ -229,7 +230,7 @@ void Precompiler::DoCompileAll() {
 
       if (FLAG_use_bare_instructions && FLAG_use_table_dispatch) {
         dispatch_table_generator_ = new compiler::DispatchTableGenerator(Z);
-        dispatch_table_generator_->Initialize(I->class_table());
+        dispatch_table_generator_->Initialize(IG->class_table());
       }
 
       // Precompile constructors to compute information such as
@@ -257,7 +258,7 @@ void Precompiler::DoCompileAll() {
           set_il_serialization_stream(file);
         }
         if (FLAG_populate_llvm_constant_pool) {
-          auto const object_store = I->object_store();
+          auto const object_store = IG->object_store();
           auto& llvm_constants = GrowableObjectArray::Handle(
               Z, GrowableObjectArray::New(16, Heap::kOld));
           auto& llvm_functions = GrowableObjectArray::Handle(
@@ -292,12 +293,12 @@ void Precompiler::DoCompileAll() {
 #define DO(member, name)                                                       \
   stub_code = StubCode::BuildIsolateSpecific##name##Stub(                      \
       global_object_pool_builder());                                           \
-  I->object_store()->set_##member(stub_code);
+  IG->object_store()->set_##member(stub_code);
         OBJECT_STORE_STUB_CODE_LIST(DO)
 #undef DO
         stub_code =
             StubCode::GetBuildMethodExtractorStub(global_object_pool_builder());
-        I->object_store()->set_build_method_extractor_code(stub_code);
+        IG->object_store()->set_build_method_extractor_code(stub_code);
       }
 
       CollectDynamicFunctionNames();
@@ -313,15 +314,15 @@ void Precompiler::DoCompileAll() {
       // not be retained, although they will be used and expected to be
       // canonical.
       AddTypeArguments(
-          TypeArguments::Handle(Z, I->object_store()->type_argument_int()));
+          TypeArguments::Handle(Z, IG->object_store()->type_argument_int()));
       AddTypeArguments(
-          TypeArguments::Handle(Z, I->object_store()->type_argument_double()));
+          TypeArguments::Handle(Z, IG->object_store()->type_argument_double()));
       AddTypeArguments(
-          TypeArguments::Handle(Z, I->object_store()->type_argument_string()));
+          TypeArguments::Handle(Z, IG->object_store()->type_argument_string()));
       AddTypeArguments(TypeArguments::Handle(
-          Z, I->object_store()->type_argument_string_dynamic()));
+          Z, IG->object_store()->type_argument_string_dynamic()));
       AddTypeArguments(TypeArguments::Handle(
-          Z, I->object_store()->type_argument_string_string()));
+          Z, IG->object_store()->type_argument_string_string()));
 
       // Compile newly found targets and add their callees until we reach a
       // fixed point.
@@ -337,7 +338,7 @@ void Precompiler::DoCompileAll() {
         // dart code stub.
         const auto& pool = ObjectPool::Handle(
             ObjectPool::NewFromBuilder(*global_object_pool_builder()));
-        I->object_store()->set_global_object_pool(pool);
+        IG->object_store()->set_global_object_pool(pool);
         global_object_pool_builder()->Reset();
 
         if (FLAG_print_gop) {
@@ -355,13 +356,13 @@ void Precompiler::DoCompileAll() {
         if (FLAG_populate_llvm_constant_pool) {
           // We don't want the Array backing for any mappings in the snapshot,
           // only the pools themselves.
-          I->object_store()->set_llvm_constant_hash_table(Array::null_array());
+          IG->object_store()->set_llvm_constant_hash_table(Array::null_array());
 
           // Keep any functions, classes, etc. referenced from the LLVM pools,
           // even if they could have been dropped due to not being otherwise
           // needed at runtime.
           const auto& constant_pool = GrowableObjectArray::Handle(
-              Z, I->object_store()->llvm_constant_pool());
+              Z, IG->object_store()->llvm_constant_pool());
           auto& object = Object::Handle(Z);
           for (intptr_t i = 0; i < constant_pool.Length(); i++) {
             object = constant_pool.At(i);
@@ -376,7 +377,7 @@ void Precompiler::DoCompileAll() {
           }
 
           const auto& function_pool = GrowableObjectArray::Handle(
-              Z, I->object_store()->llvm_function_pool());
+              Z, IG->object_store()->llvm_function_pool());
           auto& function = Function::Handle(Z);
           for (intptr_t i = 0; i < function_pool.Length(); i++) {
             function ^= function_pool.At(i);
@@ -403,23 +404,23 @@ void Precompiler::DoCompileAll() {
 
       // Clear these before dropping classes as they may hold onto otherwise
       // dead instances of classes we will remove or otherwise unused symbols.
-      I->object_store()->set_unique_dynamic_targets(Array::null_array());
+      IG->object_store()->set_unique_dynamic_targets(Array::null_array());
       Class& null_class = Class::Handle(Z);
       Function& null_function = Function::Handle(Z);
       Field& null_field = Field::Handle(Z);
-      I->object_store()->set_pragma_class(null_class);
-      I->object_store()->set_pragma_name(null_field);
-      I->object_store()->set_pragma_options(null_field);
-      I->object_store()->set_completer_class(null_class);
-      I->object_store()->set_symbol_class(null_class);
-      I->object_store()->set_compiletime_error_class(null_class);
-      I->object_store()->set_growable_list_factory(null_function);
-      I->object_store()->set_simple_instance_of_function(null_function);
-      I->object_store()->set_simple_instance_of_true_function(null_function);
-      I->object_store()->set_simple_instance_of_false_function(null_function);
-      I->object_store()->set_async_star_move_next_helper(null_function);
-      I->object_store()->set_complete_on_async_return(null_function);
-      I->object_store()->set_async_star_stream_controller(null_class);
+      IG->object_store()->set_pragma_class(null_class);
+      IG->object_store()->set_pragma_name(null_field);
+      IG->object_store()->set_pragma_options(null_field);
+      IG->object_store()->set_completer_class(null_class);
+      IG->object_store()->set_symbol_class(null_class);
+      IG->object_store()->set_compiletime_error_class(null_class);
+      IG->object_store()->set_growable_list_factory(null_function);
+      IG->object_store()->set_simple_instance_of_function(null_function);
+      IG->object_store()->set_simple_instance_of_true_function(null_function);
+      IG->object_store()->set_simple_instance_of_false_function(null_function);
+      IG->object_store()->set_async_star_move_next_helper(null_function);
+      IG->object_store()->set_complete_on_async_return(null_function);
+      IG->object_store()->set_async_star_stream_controller(null_class);
       DropMetadata();
       DropLibraryEntries();
     }
@@ -445,11 +446,11 @@ void Precompiler::DoCompileAll() {
   intptr_t symbols_after = -1;
   intptr_t capacity = -1;
   if (FLAG_trace_precompiler) {
-    Symbols::GetStats(I, &symbols_before, &capacity);
+    Symbols::GetStats(IG, &symbols_before, &capacity);
   }
 
   if (FLAG_trace_precompiler) {
-    Symbols::GetStats(I, &symbols_after, &capacity);
+    Symbols::GetStats(IG, &symbols_after, &capacity);
     THR_Print("Precompiled %" Pd " functions,", function_count_);
     THR_Print(" %" Pd " dynamic types,", class_count_);
     THR_Print(" %" Pd " dynamic selectors.\n", selector_count_);
@@ -490,7 +491,7 @@ void Precompiler::PrecompileConstructors() {
   phase_ = Phase::kCompilingConstructorsForInstructionCounts;
   HANDLESCOPE(T);
   ConstructorVisitor visitor(this, Z);
-  ProgramVisitor::WalkProgram(Z, I, &visitor);
+  ProgramVisitor::WalkProgram(Z, IG, &visitor);
   phase_ = Phase::kPreparation;
 }
 
@@ -502,7 +503,7 @@ void Precompiler::AddRoots() {
 
   AddSelector(Symbols::Call());  // For speed, not correctness.
 
-  const Library& lib = Library::Handle(I->object_store()->root_library());
+  const Library& lib = Library::Handle(IG->object_store()->root_library());
   if (lib.IsNull()) {
     const String& msg = String::Handle(
         Z, String::New("Cannot find root library in isolate.\n"));
@@ -597,7 +598,7 @@ void Precompiler::CollectCallbackFields() {
         cids.Clear();
         if (CHA::ConcreteSubclasses(cls, &cids)) {
           for (intptr_t j = 0; j < cids.length(); ++j) {
-            subcls = I->class_table()->At(cids[j]);
+            subcls = IG->class_table()->At(cids[j]);
             if (subcls.is_allocated()) {
               // Add dispatcher to cls.
               dispatcher = subcls.GetInvocationDispatcher(
@@ -947,8 +948,8 @@ void Precompiler::AddConstObject(const class Instance& instance) {
 
   class ConstObjectVisitor : public ObjectPointerVisitor {
    public:
-    ConstObjectVisitor(Precompiler* precompiler, Isolate* isolate)
-        : ObjectPointerVisitor(isolate->group()),
+    ConstObjectVisitor(Precompiler* precompiler, IsolateGroup* isolate_group)
+        : ObjectPointerVisitor(isolate_group),
           precompiler_(precompiler),
           subinstance_(Object::Handle()) {}
 
@@ -967,14 +968,14 @@ void Precompiler::AddConstObject(const class Instance& instance) {
     Object& subinstance_;
   };
 
-  ConstObjectVisitor visitor(this, I);
+  ConstObjectVisitor visitor(this, IG);
   instance.raw()->ptr()->VisitPointers(&visitor);
 }
 
 void Precompiler::AddClosureCall(const String& call_selector,
                                  const Array& arguments_descriptor) {
   const Class& cache_class =
-      Class::Handle(Z, I->object_store()->closure_class());
+      Class::Handle(Z, IG->object_store()->closure_class());
   const Function& dispatcher =
       Function::Handle(Z, cache_class.GetInvocationDispatcher(
                               call_selector, arguments_descriptor,
@@ -1167,7 +1168,7 @@ void Precompiler::AddAnnotatedRoots() {
       // Check for @pragma on the class itself.
       if (cls.has_pragma()) {
         metadata ^= lib.GetMetadata(cls);
-        if (FindEntryPointPragma(isolate(), metadata, &reusable_field_handle,
+        if (FindEntryPointPragma(IG, metadata, &reusable_field_handle,
                                  &reusable_object_handle) ==
             EntryPointPragma::kAlways) {
           AddInstantiatedClass(cls);
@@ -1184,9 +1185,8 @@ void Precompiler::AddAnnotatedRoots() {
         if (field.has_pragma()) {
           metadata ^= lib.GetMetadata(field);
           if (metadata.IsNull()) continue;
-          EntryPointPragma pragma =
-              FindEntryPointPragma(isolate(), metadata, &reusable_field_handle,
-                                   &reusable_object_handle);
+          EntryPointPragma pragma = FindEntryPointPragma(
+              IG, metadata, &reusable_field_handle, &reusable_object_handle);
           if (pragma == EntryPointPragma::kNever) continue;
 
           AddField(field);
@@ -1211,9 +1211,8 @@ void Precompiler::AddAnnotatedRoots() {
         if (function.has_pragma()) {
           metadata ^= lib.GetMetadata(function);
           if (metadata.IsNull()) continue;
-          auto type =
-              FindEntryPointPragma(isolate(), metadata, &reusable_field_handle,
-                                   &reusable_object_handle);
+          auto type = FindEntryPointPragma(IG, metadata, &reusable_field_handle,
+                                           &reusable_object_handle);
 
           if (type == EntryPointPragma::kAlways ||
               type == EntryPointPragma::kCallOnly) {
@@ -1538,8 +1537,7 @@ void Precompiler::CollectDynamicFunctionNames() {
               functions_map.NumOccupied(), table.NumOccupied());
   }
 
-  isolate()->object_store()->set_unique_dynamic_targets(
-      functions_map.Release());
+  IG->object_store()->set_unique_dynamic_targets(functions_map.Release());
   table.Release();
 }
 
@@ -1590,7 +1588,7 @@ void Precompiler::TraceForRetainedFunctions() {
     }
   }
 
-  closures = isolate()->object_store()->closure_functions();
+  closures = IG->object_store()->closure_functions();
   for (intptr_t j = 0; j < closures.Length(); j++) {
     function ^= closures.At(j);
     bool retain = possibly_retained_functions_.ContainsKey(function);
@@ -1618,7 +1616,7 @@ void Precompiler::FinalizeDispatchTable() {
   // dropping functions, as we may clear references to Code objects.
   const auto& entries =
       Array::Handle(Z, dispatch_table_generator_->BuildCodeArray());
-  I->object_store()->set_dispatch_table_code_entries(entries);
+  IG->object_store()->set_dispatch_table_code_entries(entries);
   // Delete the dispatch table generator to ensure there's no attempt
   // to add new entries after this point.
   delete dispatch_table_generator_;
@@ -1696,7 +1694,7 @@ void Precompiler::ReplaceFunctionStaticCallEntries() {
 
   HANDLESCOPE(T);
   StaticCallTableEntryFixer visitor(Z);
-  ProgramVisitor::WalkProgram(Z, I, &visitor);
+  ProgramVisitor::WalkProgram(Z, IG, &visitor);
 }
 
 void Precompiler::DropFunctions() {
@@ -1785,7 +1783,7 @@ void Precompiler::DropFunctions() {
     }
   }
 
-  closures = isolate()->object_store()->closure_functions();
+  closures = IG->object_store()->closure_functions();
   retained_functions = GrowableObjectArray::New();
   for (intptr_t j = 0; j < closures.Length(); j++) {
     function ^= closures.At(j);
@@ -1795,7 +1793,7 @@ void Precompiler::DropFunctions() {
       drop_function(function);
     }
   }
-  isolate()->object_store()->set_closure_functions(retained_functions);
+  IG->object_store()->set_closure_functions(retained_functions);
 }
 
 void Precompiler::DropFields() {
@@ -1852,7 +1850,7 @@ void Precompiler::DropFields() {
 }
 
 void Precompiler::AttachOptimizedTypeTestingStub() {
-  Isolate::Current()->heap()->CollectAllGarbage();
+  IsolateGroup::Current()->heap()->CollectAllGarbage();
   GrowableHandlePtrArray<const AbstractType> types(Z, 200);
   {
     class TypesCollector : public ObjectVisitor {
@@ -1877,10 +1875,10 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
     TypesCollector visitor(Z, &types);
 
     // Find all type objects in this isolate.
-    I->heap()->VisitObjects(&visitor);
+    IG->heap()->VisitObjects(&visitor);
 
     // Find all type objects in the vm-isolate.
-    Dart::vm_isolate()->heap()->VisitObjects(&visitor);
+    Dart::vm_isolate_group()->heap()->VisitObjects(&visitor);
   }
 
   TypeUsageInfo* type_usage_info = Thread::Current()->type_usage_info();
@@ -1915,7 +1913,7 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
 }
 
 void Precompiler::DropTypes() {
-  ObjectStore* object_store = I->object_store();
+  ObjectStore* object_store = IG->object_store();
   GrowableObjectArray& retained_types =
       GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
   Array& types_array = Array::Handle(Z);
@@ -1952,7 +1950,7 @@ void Precompiler::DropTypes() {
 }
 
 void Precompiler::DropTypeParameters() {
-  ObjectStore* object_store = I->object_store();
+  ObjectStore* object_store = IG->object_store();
   GrowableObjectArray& retained_typeparams =
       GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
   Array& typeparams_array = Array::Handle(Z);
@@ -1994,7 +1992,7 @@ void Precompiler::DropTypeParameters() {
 }
 
 void Precompiler::DropTypeArguments() {
-  ObjectStore* object_store = I->object_store();
+  ObjectStore* object_store = IG->object_store();
   Array& typeargs_array = Array::Handle(Z);
   GrowableObjectArray& retained_typeargs =
       GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
@@ -2192,7 +2190,7 @@ void Precompiler::DropLibraryEntries() {
 
     lib.RehashDictionary(dict, used * 4 / 3 + 1);
     if (!(retain_root_library_caches_ &&
-          (lib.raw() == I->object_store()->root_library()))) {
+          (lib.raw() == IG->object_store()->root_library()))) {
       lib.DropDependenciesAndCaches();
     }
   }
@@ -2207,10 +2205,10 @@ void Precompiler::DropClasses() {
   // corpses because the class table entry may be used to find the size of
   // corpses. Request a full GC and wait for the sweeper tasks to finish before
   // we continue.
-  I->heap()->CollectAllGarbage();
-  I->heap()->WaitForSweeperTasks(T);
+  IG->heap()->CollectAllGarbage();
+  IG->heap()->WaitForSweeperTasks(T);
 
-  ClassTable* class_table = I->class_table();
+  ClassTable* class_table = IG->class_table();
   intptr_t num_cids = class_table->NumCids();
 
   for (intptr_t cid = kNumPredefinedCids; cid < num_cids; cid++) {
@@ -2250,7 +2248,7 @@ void Precompiler::DropLibraries() {
   const GrowableObjectArray& retained_libraries =
       GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
   const Library& root_lib =
-      Library::Handle(Z, I->object_store()->root_library());
+      Library::Handle(Z, IG->object_store()->root_library());
   Library& lib = Library::Handle(Z);
   Class& toplevel_class = Class::Handle(Z);
 
@@ -2288,7 +2286,7 @@ void Precompiler::DropLibraries() {
     } else {
       toplevel_class = lib.toplevel_class();
 
-      I->class_table()->UnregisterTopLevel(toplevel_class.id());
+      IG->class_table()->UnregisterTopLevel(toplevel_class.id());
       toplevel_class.set_id(kIllegalCid);  // We check this when serializing.
 
       dropped_library_count_++;
@@ -2332,7 +2330,7 @@ FunctionPtr Precompiler::FindUnvisitedRetainedFunction() {
   };
 
   CodeChecker visitor;
-  ProgramVisitor::WalkProgram(Z, I, &visitor);
+  ProgramVisitor::WalkProgram(Z, IG, &visitor);
   const CodeSet& visited = visitor.visited();
 
   FunctionSet::Iterator it(&functions_to_retain_);
@@ -2372,11 +2370,11 @@ void Precompiler::Obfuscate() {
   };
 
   GrowableHandlePtrArray<const Script> scripts(Z, 100);
-  Isolate::Current()->heap()->CollectAllGarbage();
+  IsolateGroup::Current()->heap()->CollectAllGarbage();
   {
     HeapIterationScope his(T);
     ScriptsCollector visitor(Z, &scripts);
-    I->heap()->VisitObjects(&visitor);
+    IG->heap()->VisitObjects(&visitor);
   }
 
   {
@@ -2416,7 +2414,7 @@ void Precompiler::Obfuscate() {
   IG->set_obfuscation_map(Obfuscator::SerializeMap(T));
 
   // Discard obfuscation mappings to avoid including them into snapshot.
-  I->object_store()->set_obfuscation_map(Array::Handle(Z));
+  IG->object_store()->set_obfuscation_map(Array::Handle(Z));
 }
 
 void Precompiler::FinalizeAllClasses() {
@@ -2978,7 +2976,7 @@ void Obfuscator::PreventRenaming(const char* name) {
 void Obfuscator::ObfuscationState::SaveState() {
   saved_state_.SetAt(kSavedStateNameIndex, String::Handle(String::New(name_)));
   saved_state_.SetAt(kSavedStateRenamesIndex, renames_.Release());
-  thread_->isolate()->object_store()->set_obfuscation_map(saved_state_);
+  thread_->isolate_group()->object_store()->set_obfuscation_map(saved_state_);
 }
 
 void Obfuscator::ObfuscationState::PreventRenaming(const char* name) {
@@ -3084,8 +3082,9 @@ StringPtr Obfuscator::ObfuscationState::BuildRename(const String& name,
 
 void Obfuscator::Deobfuscate(Thread* thread,
                              const GrowableObjectArray& pieces) {
-  const Array& obfuscation_state = Array::Handle(
-      thread->zone(), thread->isolate()->object_store()->obfuscation_map());
+  const Array& obfuscation_state =
+      Array::Handle(thread->zone(),
+                    thread->isolate_group()->object_store()->obfuscation_map());
   if (obfuscation_state.IsNull()) {
     return;
   }
@@ -3134,8 +3133,9 @@ static const char* StringToCString(const String& str) {
 }
 
 const char** Obfuscator::SerializeMap(Thread* thread) {
-  const Array& obfuscation_state = Array::Handle(
-      thread->zone(), thread->isolate()->object_store()->obfuscation_map());
+  const Array& obfuscation_state =
+      Array::Handle(thread->zone(),
+                    thread->isolate_group()->object_store()->obfuscation_map());
   if (obfuscation_state.IsNull()) {
     return NULL;
   }

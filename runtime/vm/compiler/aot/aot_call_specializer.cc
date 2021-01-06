@@ -38,7 +38,7 @@ DEFINE_FLAG(int,
             "generate exhaustive class tests instead of a megamorphic call");
 
 // Quick access to the current isolate and zone.
-#define I (isolate())
+#define IG (isolate_group())
 #define Z (zone())
 
 #ifdef DART_PRECOMPILER
@@ -49,15 +49,15 @@ DEFINE_FLAG(int,
 //   the receiver type can be only the function's class.
 // Returns Function::null() if there is no unique dynamic target for
 // given 'fname'. 'fname' must be a symbol.
-static void GetUniqueDynamicTarget(Isolate* isolate,
+static void GetUniqueDynamicTarget(IsolateGroup* isolate_group,
                                    const String& fname,
                                    Object* function) {
   UniqueFunctionsMap functions_map(
-      isolate->object_store()->unique_dynamic_targets());
+      isolate_group->object_store()->unique_dynamic_targets());
   ASSERT(fname.IsSymbol());
   *function = functions_map.GetOrNull(fname);
   ASSERT(functions_map.Release().raw() ==
-         isolate->object_store()->unique_dynamic_targets());
+         isolate_group->object_store()->unique_dynamic_targets());
 }
 
 AotCallSpecializer::AotCallSpecializer(
@@ -70,8 +70,9 @@ AotCallSpecializer::AotCallSpecializer(
       precompiler_(precompiler),
       has_unique_no_such_method_(false) {
   Function& target_function = Function::Handle();
-  if (isolate()->object_store()->unique_dynamic_targets() != Array::null()) {
-    GetUniqueDynamicTarget(isolate(), Symbols::NoSuchMethod(),
+  if (isolate_group()->object_store()->unique_dynamic_targets() !=
+      Array::null()) {
+    GetUniqueDynamicTarget(isolate_group(), Symbols::NoSuchMethod(),
                            &target_function);
     has_unique_no_such_method_ = !target_function.IsNull();
   }
@@ -79,13 +80,15 @@ AotCallSpecializer::AotCallSpecializer(
 
 bool AotCallSpecializer::TryCreateICDataForUniqueTarget(
     InstanceCallInstr* call) {
-  if (isolate()->object_store()->unique_dynamic_targets() == Array::null()) {
+  if (isolate_group()->object_store()->unique_dynamic_targets() ==
+      Array::null()) {
     return false;
   }
 
   // Check if the target is unique.
   Function& target_function = Function::Handle(Z);
-  GetUniqueDynamicTarget(isolate(), call->function_name(), &target_function);
+  GetUniqueDynamicTarget(isolate_group(), call->function_name(),
+                         &target_function);
 
   if (target_function.IsNull()) {
     return false;
@@ -158,7 +161,7 @@ bool AotCallSpecializer::RecognizeRuntimeTypeGetter(InstanceCallInstr* call) {
 
   // There is only a single function Object.get:runtimeType that can be invoked
   // by this call. Convert dynamic invocation to a static one.
-  const Class& cls = Class::Handle(Z, I->object_store()->object_class());
+  const Class& cls = Class::Handle(Z, IG->object_store()->object_class());
   const Function& function =
       Function::Handle(Z, call->ResolveForReceiverClass(cls));
   ASSERT(!function.IsNull());
@@ -192,7 +195,7 @@ bool AotCallSpecializer::TryReplaceWithHaveSameRuntimeType(
 
   if (IsGetRuntimeType(left) && left->input_use_list()->IsSingleUse() &&
       IsGetRuntimeType(right) && right->input_use_list()->IsSingleUse()) {
-    const Class& cls = Class::Handle(Z, I->object_store()->object_class());
+    const Class& cls = Class::Handle(Z, IG->object_store()->object_class());
     const Function& have_same_runtime_type = Function::ZoneHandle(
         Z,
         cls.LookupStaticFunctionAllowPrivate(Symbols::HaveSameRuntimeType()));
@@ -870,7 +873,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
       instr->ArgumentValueAt(receiver_idx)->Type()->ToCid();
   if (receiver_cid != kDynamicCid) {
     const Class& receiver_class =
-        Class::Handle(Z, isolate()->class_table()->At(receiver_cid));
+        Class::Handle(Z, isolate_group()->class_table()->At(receiver_cid));
     const Function& function =
         Function::Handle(Z, instr->ResolveForReceiverClass(receiver_class));
     if (!function.IsNull()) {
@@ -893,7 +896,8 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
         // Skip sentinel cid. It may appear in the unreachable code after
         // inlining a method which doesn't return.
         if (cid == kNeverCid) continue;
-        const Class& cls = Class::Handle(Z, isolate()->class_table()->At(cid));
+        const Class& cls =
+            Class::Handle(Z, isolate_group()->class_table()->At(cid));
         const Function& target =
             Function::Handle(Z, instr->ResolveForReceiverClass(cls));
         if (target.recognized_kind() != MethodRecognizer::kObjectEquals) {
@@ -952,7 +956,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
       Class& cls = Class::Handle(Z);
       for (intptr_t i = 0; i < class_ids.length(); i++) {
         const intptr_t cid = class_ids[i];
-        cls = isolate()->class_table()->At(cid);
+        cls = isolate_group()->class_table()->At(cid);
         target = instr->ResolveForReceiverClass(cls);
         ASSERT(target.IsNull() || !target.IsInvokeFieldDispatcher());
         if (target.IsNull()) {
@@ -1163,7 +1167,7 @@ void AotCallSpecializer::VisitPolymorphicInstanceCall(
       call->ArgumentValueAt(receiver_idx)->Type()->ToCid();
   if (receiver_cid != kDynamicCid) {
     const Class& receiver_class =
-        Class::Handle(Z, isolate()->class_table()->At(receiver_cid));
+        Class::Handle(Z, isolate_group()->class_table()->At(receiver_cid));
     const Function& function =
         Function::ZoneHandle(Z, call->ResolveForReceiverClass(receiver_class));
     if (!function.IsNull()) {

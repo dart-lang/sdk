@@ -48,7 +48,7 @@ static void Finish(Thread* thread) {
   // Eagerly compile the _Closure class as it is the class of all closure
   // instances. This allows us to just finalize function types without going
   // through the hoops of trying to compile their scope class.
-  ObjectStore* object_store = thread->isolate()->object_store();
+  ObjectStore* object_store = thread->isolate_group()->object_store();
   Zone* zone = thread->zone();
   Class& cls = Class::Handle(zone, object_store->closure_class());
   cls.EnsureIsFinalized(thread);
@@ -111,7 +111,6 @@ static ErrorPtr BootstrapFromKernel(Thread* thread,
   if (setjmp(*jump.Set()) == 0) {
     kernel::KernelLoader loader(program.get(), /*uri_to_source_table=*/nullptr);
 
-    auto isolate = thread->isolate();
     auto isolate_group = thread->isolate_group();
 
     if (isolate_group->obfuscate()) {
@@ -122,7 +121,7 @@ static ErrorPtr BootstrapFromKernel(Thread* thread,
     Library& library = Library::Handle(zone);
     for (intptr_t i = 0; i < kBootstrapLibraryCount; ++i) {
       ObjectStore::BootstrapLibraryId id = bootstrap_libraries[i].index;
-      library = isolate->object_store()->bootstrap_library(id);
+      library = isolate_group->object_store()->bootstrap_library(id);
       loader.LoadLibrary(library);
     }
 
@@ -141,7 +140,7 @@ static ErrorPtr BootstrapFromKernel(Thread* thread,
     const auto& dart_builtin =
         String::Handle(zone, String::New("dart:_builtin"));
     library = Library::LookupLibrary(thread, dart_builtin);
-    isolate->object_store()->set_builtin_library(library);
+    isolate_group->object_store()->set_builtin_library(library);
 
     if (FLAG_precompiled_mode) {
       loader.ReadLoadingUnits();
@@ -158,7 +157,7 @@ static ErrorPtr BootstrapFromKernel(Thread* thread,
 ErrorPtr Bootstrap::DoBootstrapping(const uint8_t* kernel_buffer,
                                     intptr_t kernel_buffer_size) {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
   Zone* zone = thread->zone();
   String& uri = String::Handle(zone);
   Library& lib = Library::Handle(zone);
@@ -169,13 +168,13 @@ ErrorPtr Bootstrap::DoBootstrapping(const uint8_t* kernel_buffer,
   for (intptr_t i = 0; i < kBootstrapLibraryCount; ++i) {
     ObjectStore::BootstrapLibraryId id = bootstrap_libraries[i].index;
     uri = Symbols::New(thread, bootstrap_libraries[i].uri);
-    lib = isolate->object_store()->bootstrap_library(id);
+    lib = isolate_group->object_store()->bootstrap_library(id);
     ASSERT(lib.raw() == Library::LookupLibrary(thread, uri));
     if (lib.IsNull()) {
       lib = Library::NewLibraryHelper(uri, false);
       lib.SetLoadRequested();
       lib.Register(thread);
-      isolate->object_store()->set_bootstrap_library(id, lib);
+      isolate_group->object_store()->set_bootstrap_library(id, lib);
     }
   }
 

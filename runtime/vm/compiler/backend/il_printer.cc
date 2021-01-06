@@ -132,8 +132,8 @@ static void PrintTargetsHelper(BaseTextBuffer* f,
       f->AddString(" | ");
     }
     if (range.IsSingleCid()) {
-      const Class& cls =
-          Class::Handle(Isolate::Current()->class_table()->At(range.cid_start));
+      const Class& cls = Class::Handle(
+          IsolateGroup::Current()->class_table()->At(range.cid_start));
       f->Printf("%s", String::Handle(cls.Name()).ToCString());
       f->Printf(" cid %" Pd " cnt:%" Pd " trgt:'%s'", range.cid_start, count,
                 target.ToQualifiedCString());
@@ -168,8 +168,8 @@ static void PrintCidsHelper(BaseTextBuffer* f,
     if (i > 0) {
       f->AddString(" | ");
     }
-    const Class& cls =
-        Class::Handle(Isolate::Current()->class_table()->At(range.cid_start));
+    const Class& cls = Class::Handle(
+        IsolateGroup::Current()->class_table()->At(range.cid_start));
     f->Printf("%s etc. ", String::Handle(cls.Name()).ToCString());
     if (range.IsSingleCid()) {
       f->Printf(" cid %" Pd, range.cid_start);
@@ -209,8 +209,8 @@ static void PrintICDataHelper(BaseTextBuffer* f,
       if (k > 0) {
         f->AddString(", ");
       }
-      const Class& cls =
-          Class::Handle(Isolate::Current()->class_table()->At(class_ids[k]));
+      const Class& cls = Class::Handle(
+          IsolateGroup::Current()->class_table()->At(class_ids[k]));
       f->Printf("%s", String::Handle(cls.Name()).ToCString());
     }
     f->Printf(" cnt:%" Pd " trgt:'%s'", count, target.ToQualifiedCString());
@@ -233,7 +233,7 @@ static void PrintICDataSortedHelper(BaseTextBuffer* f,
     const intptr_t count = ic_data.GetCountAt(i);
     const intptr_t cid = ic_data.GetReceiverClassIdAt(i);
     const Class& cls =
-        Class::Handle(Isolate::Current()->class_table()->At(cid));
+        Class::Handle(IsolateGroup::Current()->class_table()->At(cid));
     f->Printf("%s : %" Pd ", ", String::Handle(cls.Name()).ToCString(), count);
   }
   f->AddString("]");
@@ -814,14 +814,14 @@ void LoadClassIdInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 void CheckClassIdInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   value()->PrintTo(f);
 
-  const Class& cls =
-      Class::Handle(Isolate::Current()->class_table()->At(cids().cid_start));
+  const Class& cls = Class::Handle(
+      IsolateGroup::Current()->class_table()->At(cids().cid_start));
   const String& name = String::Handle(cls.ScrubbedName());
   if (cids().IsSingleCid()) {
     f->Printf(", %s", name.ToCString());
   } else {
-    const Class& cls2 =
-        Class::Handle(Isolate::Current()->class_table()->At(cids().cid_end));
+    const Class& cls2 = Class::Handle(
+        IsolateGroup::Current()->class_table()->At(cids().cid_end));
     const String& name2 = String::Handle(cls2.ScrubbedName());
     f->Printf(", cid %" Pd "-%" Pd " %s-%s", cids().cid_start, cids().cid_end,
               name.ToCString(), name2.ToCString());

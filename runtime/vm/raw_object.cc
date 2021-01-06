@@ -21,7 +21,7 @@ bool ObjectLayout::InVMIsolateHeap() const {
   // (see [Object::FinalizeVMIsolate]).
   if (!IsOldObject() || !IsMarked()) return false;
 
-  auto heap = Dart::vm_isolate()->heap();
+  auto heap = Dart::vm_isolate_group()->heap();
   ASSERT(heap->UsedInWords(Heap::kNew) == 0);
   return heap->old_space()->ContainsUnsafe(ToAddr(this));
 }

@@ -190,7 +190,7 @@ class PersistentHandle {
 // dart API.
 class FinalizablePersistentHandle {
  public:
-  static FinalizablePersistentHandle* New(Isolate* isolate,
+  static FinalizablePersistentHandle* New(IsolateGroup* isolate_group,
                                           const Object& object,
                                           void* peer,
                                           Dart_HandleFinalizer callback,
@@ -864,13 +864,13 @@ class ApiState {
 };
 
 inline FinalizablePersistentHandle* FinalizablePersistentHandle::New(
-    Isolate* isolate,
+    IsolateGroup* isolate_group,
     const Object& object,
     void* peer,
     Dart_HandleFinalizer callback,
     intptr_t external_size,
     bool auto_delete) {
-  ApiState* state = isolate->group()->api_state();
+  ApiState* state = isolate_group->api_state();
   ASSERT(state != NULL);
   FinalizablePersistentHandle* ref = state->AllocateWeakPersistentHandle();
   ref->set_raw(object);
@@ -878,7 +878,7 @@ inline FinalizablePersistentHandle* FinalizablePersistentHandle::New(
   ref->set_callback(callback);
   ref->set_auto_delete(auto_delete);
   // This may trigger GC, so it must be called last.
-  ref->SetExternalSize(external_size, isolate->group());
+  ref->SetExternalSize(external_size, isolate_group);
   return ref;
 }
 

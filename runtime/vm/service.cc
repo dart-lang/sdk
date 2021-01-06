@@ -412,7 +412,7 @@ static bool GetPrefixedIntegerId(const char* s,
 
 static bool IsValidClassId(Isolate* isolate, intptr_t cid) {
   ASSERT(isolate != NULL);
-  ClassTable* class_table = isolate->class_table();
+  ClassTable* class_table = isolate->group()->class_table();
   ASSERT(class_table != NULL);
   return class_table->IsValidIndex(cid) && class_table->HasValidClassAt(cid);
 }
@@ -420,7 +420,7 @@ static bool IsValidClassId(Isolate* isolate, intptr_t cid) {
 static ClassPtr GetClassForId(Isolate* isolate, intptr_t cid) {
   ASSERT(isolate == Isolate::Current());
   ASSERT(isolate != NULL);
-  ClassTable* class_table = isolate->class_table();
+  ClassTable* class_table = isolate->group()->class_table();
   ASSERT(class_table != NULL);
   return class_table->At(cid);
 }
@@ -1495,12 +1495,11 @@ static const MethodParameter* get_scripts_params[] = {
 };
 
 static bool GetScripts(Thread* thread, JSONStream* js) {
-  Isolate* isolate = thread->isolate();
+  auto object_store = thread->isolate_group()->object_store();
   Zone* zone = thread->zone();
-  ASSERT(isolate != NULL);
 
-  const GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(zone, isolate->object_store()->libraries());
+  const auto& libs =
+      GrowableObjectArray::Handle(zone, object_store->libraries());
   intptr_t num_libs = libs.Length();
 
   Library& lib = Library::Handle(zone);
@@ -1800,15 +1799,15 @@ static ObjectPtr LookupClassMembers(Thread* thread,
   return Object::sentinel().raw();
 }
 
-static ObjectPtr LookupHeapObjectLibraries(Isolate* isolate,
+static ObjectPtr LookupHeapObjectLibraries(IsolateGroup* isolate_group,
                                            char** parts,
                                            int num_parts) {
   // Library ids look like "libraries/35"
   if (num_parts < 2) {
     return Object::sentinel().raw();
   }
-  const GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(isolate->object_store()->libraries());
+  const auto& libs =
+      GrowableObjectArray::Handle(isolate_group->object_store()->libraries());
   ASSERT(!libs.IsNull());
   const String& id = String::Handle(String::New(parts[1]));
   // Scan for private key.
@@ -1894,9 +1893,8 @@ static ObjectPtr LookupHeapObjectClasses(Thread* thread,
   if (num_parts < 2) {
     return Object::sentinel().raw();
   }
-  Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
-  ClassTable* table = isolate->class_table();
+  auto table = thread->isolate_group()->class_table();
   intptr_t id;
   if (!GetIntegerId(parts[1], &id) || !table->IsValidIndex(id)) {
     return Object::sentinel().raw();
@@ -1945,7 +1943,6 @@ static ObjectPtr LookupHeapObjectClasses(Thread* thread,
 static ObjectPtr LookupHeapObjectTypeArguments(Thread* thread,
                                                char** parts,
                                                int num_parts) {
-  Isolate* isolate = thread->isolate();
   // TypeArguments ids look like: "typearguments/17"
   if (num_parts < 2) {
     return Object::sentinel().raw();
@@ -1954,7 +1951,7 @@ static ObjectPtr LookupHeapObjectTypeArguments(Thread* thread,
   if (!GetIntegerId(parts[1], &id)) {
     return Object::sentinel().raw();
   }
-  ObjectStore* object_store = isolate->object_store();
+  ObjectStore* object_store = thread->isolate_group()->object_store();
   const Array& table =
       Array::Handle(thread->zone(), object_store->canonical_type_arguments());
   ASSERT(table.Length() > 0);
@@ -1965,9 +1962,7 @@ static ObjectPtr LookupHeapObjectTypeArguments(Thread* thread,
   return table.At(id);
 }
 
-static ObjectPtr LookupHeapObjectCode(Isolate* isolate,
-                                      char** parts,
-                                      int num_parts) {
+static ObjectPtr LookupHeapObjectCode(char** parts, int num_parts) {
   if (num_parts != 2) {
     return Object::sentinel().raw();
   }
@@ -2083,13 +2078,13 @@ static ObjectPtr LookupHeapObject(Thread* thread,
     return obj.raw();
 
   } else if (strcmp(parts[0], "libraries") == 0) {
-    return LookupHeapObjectLibraries(isolate, parts, num_parts);
+    return LookupHeapObjectLibraries(isolate->group(), parts, num_parts);
   } else if (strcmp(parts[0], "classes") == 0) {
     return LookupHeapObjectClasses(thread, parts, num_parts);
   } else if (strcmp(parts[0], "typearguments") == 0) {
     return LookupHeapObjectTypeArguments(thread, parts, num_parts);
   } else if (strcmp(parts[0], "code") == 0) {
-    return LookupHeapObjectCode(isolate, parts, num_parts);
+    return LookupHeapObjectCode(parts, num_parts);
   } else if (strcmp(parts[0], "messages") == 0) {
     return LookupHeapObjectMessage(thread, parts, num_parts);
   }
@@ -4063,7 +4058,7 @@ static bool GetNativeAllocationSamples(Thread* thread, JSONStream* js) {
   bool include_code_samples =
       BoolParameter::Parse(js->LookupParam("_code"), false);
 #if defined(DEBUG)
-  Isolate::Current()->heap()->CollectAllGarbage();
+  IsolateGroup::Current()->heap()->CollectAllGarbage();
 #endif
   if (CheckNativeAllocationProfilerDisabled(thread, js)) {
     return true;
@@ -4105,7 +4100,6 @@ static bool GetAllocationProfileImpl(Thread* thread,
       return true;
     }
   }
-  auto isolate = thread->isolate();
   auto isolate_group = thread->isolate_group();
   if (should_reset_accumulator) {
     isolate_group->UpdateLastAllocationProfileAccumulatorResetTimestamp();
@@ -4114,7 +4108,7 @@ static bool GetAllocationProfileImpl(Thread* thread,
     isolate_group->UpdateLastAllocationProfileGCTimestamp();
     isolate_group->heap()->CollectAllGarbage();
   }
-  isolate->class_table()->AllocationProfilePrintJSON(js, internal);
+  isolate_group->class_table()->AllocationProfilePrintJSON(js, internal);
   return true;
 }
 
@@ -4137,8 +4131,8 @@ static const MethodParameter* collect_all_garbage_params[] = {
 };
 
 static bool CollectAllGarbage(Thread* thread, JSONStream* js) {
-  Isolate* isolate = thread->isolate();
-  isolate->heap()->CollectAllGarbage(Heap::kDebugging);
+  auto heap = thread->isolate_group()->heap();
+  heap->CollectAllGarbage(Heap::kDebugging);
   PrintSuccess(js);
   return true;
 }
@@ -4149,20 +4143,21 @@ static const MethodParameter* get_heap_map_params[] = {
 };
 
 static bool GetHeapMap(Thread* thread, JSONStream* js) {
-  Isolate* isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
   if (js->HasParam("gc")) {
     if (js->ParamIs("gc", "scavenge")) {
-      isolate->heap()->CollectGarbage(Heap::kScavenge, Heap::kDebugging);
+      isolate_group->heap()->CollectGarbage(Heap::kScavenge, Heap::kDebugging);
     } else if (js->ParamIs("gc", "mark-sweep")) {
-      isolate->heap()->CollectGarbage(Heap::kMarkSweep, Heap::kDebugging);
+      isolate_group->heap()->CollectGarbage(Heap::kMarkSweep, Heap::kDebugging);
     } else if (js->ParamIs("gc", "mark-compact")) {
-      isolate->heap()->CollectGarbage(Heap::kMarkCompact, Heap::kDebugging);
+      isolate_group->heap()->CollectGarbage(Heap::kMarkCompact,
+                                            Heap::kDebugging);
     } else {
       PrintInvalidParamError(js, "gc");
       return true;
     }
   }
-  isolate->heap()->PrintHeapMapToJSONStream(isolate, js);
+  isolate_group->heap()->PrintHeapMapToJSONStream(isolate_group, js);
   return true;
 }
 
@@ -4556,7 +4551,7 @@ static const MethodParameter* get_object_store_params[] = {
 
 static bool GetObjectStore(Thread* thread, JSONStream* js) {
   JSONObject jsobj(js);
-  thread->isolate()->object_store()->PrintToJSONObject(&jsobj);
+  thread->isolate_group()->object_store()->PrintToJSONObject(&jsobj);
   return true;
 }
 
@@ -4577,7 +4572,7 @@ static const MethodParameter* get_class_list_params[] = {
 };
 
 static bool GetClassList(Thread* thread, JSONStream* js) {
-  ClassTable* table = thread->isolate()->class_table();
+  ClassTable* table = thread->isolate_group()->class_table();
   JSONObject jsobj(js);
   table->PrintToJSONObject(&jsobj);
   return true;
@@ -4594,7 +4589,7 @@ static bool GetTypeArgumentsList(Thread* thread, JSONStream* js) {
     only_with_instantiations = true;
   }
   Zone* zone = thread->zone();
-  ObjectStore* object_store = thread->isolate()->object_store();
+  ObjectStore* object_store = thread->isolate_group()->object_store();
   CanonicalTypeArgumentsSet typeargs_table(
       zone, object_store->canonical_type_arguments());
   const intptr_t table_size = typeargs_table.NumEntries();

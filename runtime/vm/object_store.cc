@@ -144,12 +144,9 @@ static InstancePtr AllocateObjectByClassName(const Library& library,
 ErrorPtr ObjectStore::PreallocateObjects() {
   Thread* thread = Thread::Current();
   IsolateGroup* isolate_group = thread->isolate_group();
-  Isolate* isolate = thread->isolate();
   // Either we are the object store on isolate group, or isolate group has no
   // object store and we are the object store on the isolate.
-  ASSERT(isolate_group != NULL && (isolate_group->object_store() == this ||
-                                   (isolate_group->object_store() == nullptr &&
-                                    isolate->object_store() == this)));
+  ASSERT(isolate_group != nullptr && isolate_group->object_store() == this);
 
   if (this->stack_overflow() != Instance::null()) {
     ASSERT(this->out_of_memory() != Instance::null());
@@ -204,8 +201,8 @@ void ObjectStore::InitKnownObjects() {
   // The rest of these objects are only needed for code generation.
   return;
 #else
-  Isolate* isolate = thread->isolate();
-  ASSERT(isolate != NULL && isolate->object_store() == this);
+  auto isolate_group = thread->isolate_group();
+  ASSERT(isolate_group != nullptr && isolate_group->object_store() == this);
 
   const Library& async_lib = Library::Handle(zone, async_library());
   ASSERT(!async_lib.IsNull());

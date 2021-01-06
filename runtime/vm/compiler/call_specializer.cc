@@ -150,7 +150,7 @@ bool CallSpecializer::TryCreateICData(InstanceCallInstr* call) {
 
   if (all_cids_known) {
     const Class& receiver_class =
-        Class::Handle(Z, isolate()->class_table()->At(class_ids[0]));
+        Class::Handle(Z, IG->class_table()->At(class_ids[0]));
     if (!receiver_class.is_finalized()) {
       // Do not eagerly finalize classes. ResolveDynamicForReceiverClass can
       // cause class finalization, since callee's receiver class may not be
@@ -1096,7 +1096,7 @@ BoolPtr CallSpecializer::InstanceOfAsBool(
     }
   }
 
-  const ClassTable& class_table = *isolate()->class_table();
+  const ClassTable& class_table = *IG->class_table();
   Bool& prev = Bool::Handle(Z);
   Class& cls = Class::Handle(Z);
 
@@ -1454,7 +1454,7 @@ bool CallSpecializer::SpecializeTestCidsForNumericTypes(
     ZoneGrowableArray<intptr_t>* results,
     const AbstractType& type) {
   ASSERT(results->length() >= 2);  // At least on entry.
-  const ClassTable& class_table = *Isolate::Current()->class_table();
+  const ClassTable& class_table = *IsolateGroup::Current()->class_table();
   if ((*results)[0] != kSmiCid) {
     const Class& smi_class = Class::Handle(class_table.At(kSmiCid));
     const bool smi_is_subtype =

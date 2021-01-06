@@ -513,14 +513,13 @@ static type SpecialCharacter(type value) {
   return '\0';
 }
 
-void Object::InitNullAndBool(Isolate* isolate) {
+void Object::InitNullAndBool(IsolateGroup* isolate_group) {
   // Should only be run by the vm isolate.
-  ASSERT(isolate == Dart::vm_isolate());
+  ASSERT(isolate_group == Dart::vm_isolate_group());
+  auto heap = isolate_group->heap();
 
   // TODO(iposva): NoSafepointScope needs to be added here.
   ASSERT(class_class() == null_);
-
-  Heap* heap = isolate->heap();
 
   // Allocate and initialize the null instance.
   // 'null_' must be the first object allocated as it is used in allocation to
@@ -657,13 +656,12 @@ void Object::InitVtables() {
   }
 }
 
-void Object::Init(Isolate* isolate) {
+void Object::Init(IsolateGroup* isolate_group) {
   // Should only be run by the vm isolate.
-  ASSERT(isolate == Dart::vm_isolate());
+  ASSERT(isolate_group == Dart::vm_isolate_group());
+  Heap* heap = isolate_group->heap();
 
   InitVtables();
-
-  Heap* heap = isolate->heap();
 
 // Allocate the read only object handles here.
 #define INITIALIZE_SHARED_READONLY_HANDLE(Type, name)                          \
@@ -720,26 +718,26 @@ void Object::Init(Isolate* isolate) {
     cls.set_num_type_arguments(0);
     cls.set_num_native_fields(0);
     cls.InitEmptyFields();
-    isolate->class_table()->Register(cls);
+    isolate_group->class_table()->Register(cls);
   }
 
   // Allocate and initialize the null class.
-  cls = Class::New<Instance, RTN::Instance>(kNullCid, isolate);
+  cls = Class::New<Instance, RTN::Instance>(kNullCid, isolate_group);
   cls.set_num_type_arguments(0);
-  isolate->object_store()->set_null_class(cls);
+  isolate_group->object_store()->set_null_class(cls);
 
   // Allocate and initialize Never class.
-  cls = Class::New<Instance, RTN::Instance>(kNeverCid, isolate);
+  cls = Class::New<Instance, RTN::Instance>(kNeverCid, isolate_group);
   cls.set_num_type_arguments(0);
   cls.set_is_allocate_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
-  isolate->object_store()->set_never_class(cls);
+  isolate_group->object_store()->set_never_class(cls);
 
   // Allocate and initialize the free list element class.
-  cls =
-      Class::New<FreeListElement::FakeInstance,
-                 RTN::FreeListElement::FakeInstance>(kFreeListElement, isolate);
+  cls = Class::New<FreeListElement::FakeInstance,
+                   RTN::FreeListElement::FakeInstance>(kFreeListElement,
+                                                       isolate_group);
   cls.set_num_type_arguments(0);
   cls.set_is_allocate_finalized();
   cls.set_is_declaration_loaded();
@@ -748,7 +746,7 @@ void Object::Init(Isolate* isolate) {
   // Allocate and initialize the forwarding corpse class.
   cls = Class::New<ForwardingCorpse::FakeInstance,
                    RTN::ForwardingCorpse::FakeInstance>(kForwardingCorpse,
-                                                        isolate);
+                                                        isolate_group);
   cls.set_num_type_arguments(0);
   cls.set_is_allocate_finalized();
   cls.set_is_declaration_loaded();
@@ -772,146 +770,151 @@ void Object::Init(Isolate* isolate) {
   }
 
   // Allocate the remaining VM internal classes.
-  cls = Class::New<TypeArguments, RTN::TypeArguments>(isolate);
+  cls = Class::New<TypeArguments, RTN::TypeArguments>(isolate_group);
   type_arguments_class_ = cls.raw();
 
-  cls = Class::New<PatchClass, RTN::PatchClass>(isolate);
+  cls = Class::New<PatchClass, RTN::PatchClass>(isolate_group);
   patch_class_class_ = cls.raw();
 
-  cls = Class::New<Function, RTN::Function>(isolate);
+  cls = Class::New<Function, RTN::Function>(isolate_group);
   function_class_ = cls.raw();
 
-  cls = Class::New<ClosureData, RTN::ClosureData>(isolate);
+  cls = Class::New<ClosureData, RTN::ClosureData>(isolate_group);
   closure_data_class_ = cls.raw();
 
-  cls = Class::New<SignatureData, RTN::SignatureData>(isolate);
+  cls = Class::New<SignatureData, RTN::SignatureData>(isolate_group);
   signature_data_class_ = cls.raw();
 
-  cls = Class::New<FfiTrampolineData, RTN::FfiTrampolineData>(isolate);
+  cls = Class::New<FfiTrampolineData, RTN::FfiTrampolineData>(isolate_group);
   ffi_trampoline_data_class_ = cls.raw();
 
-  cls = Class::New<Field, RTN::Field>(isolate);
+  cls = Class::New<Field, RTN::Field>(isolate_group);
   field_class_ = cls.raw();
 
-  cls = Class::New<Script, RTN::Script>(isolate);
+  cls = Class::New<Script, RTN::Script>(isolate_group);
   script_class_ = cls.raw();
 
-  cls = Class::New<Library, RTN::Library>(isolate);
+  cls = Class::New<Library, RTN::Library>(isolate_group);
   library_class_ = cls.raw();
 
-  cls = Class::New<Namespace, RTN::Namespace>(isolate);
+  cls = Class::New<Namespace, RTN::Namespace>(isolate_group);
   namespace_class_ = cls.raw();
 
-  cls = Class::New<KernelProgramInfo, RTN::KernelProgramInfo>(isolate);
+  cls = Class::New<KernelProgramInfo, RTN::KernelProgramInfo>(isolate_group);
   kernel_program_info_class_ = cls.raw();
 
-  cls = Class::New<Code, RTN::Code>(isolate);
+  cls = Class::New<Code, RTN::Code>(isolate_group);
   code_class_ = cls.raw();
 
-  cls = Class::New<Instructions, RTN::Instructions>(isolate);
+  cls = Class::New<Instructions, RTN::Instructions>(isolate_group);
   instructions_class_ = cls.raw();
 
-  cls = Class::New<InstructionsSection, RTN::InstructionsSection>(isolate);
+  cls =
+      Class::New<InstructionsSection, RTN::InstructionsSection>(isolate_group);
   instructions_section_class_ = cls.raw();
 
-  cls = Class::New<ObjectPool, RTN::ObjectPool>(isolate);
+  cls = Class::New<ObjectPool, RTN::ObjectPool>(isolate_group);
   object_pool_class_ = cls.raw();
 
-  cls = Class::New<PcDescriptors, RTN::PcDescriptors>(isolate);
+  cls = Class::New<PcDescriptors, RTN::PcDescriptors>(isolate_group);
   pc_descriptors_class_ = cls.raw();
 
-  cls = Class::New<CodeSourceMap, RTN::CodeSourceMap>(isolate);
+  cls = Class::New<CodeSourceMap, RTN::CodeSourceMap>(isolate_group);
   code_source_map_class_ = cls.raw();
 
-  cls = Class::New<CompressedStackMaps, RTN::CompressedStackMaps>(isolate);
+  cls =
+      Class::New<CompressedStackMaps, RTN::CompressedStackMaps>(isolate_group);
   compressed_stackmaps_class_ = cls.raw();
 
-  cls = Class::New<LocalVarDescriptors, RTN::LocalVarDescriptors>(isolate);
+  cls =
+      Class::New<LocalVarDescriptors, RTN::LocalVarDescriptors>(isolate_group);
   var_descriptors_class_ = cls.raw();
 
-  cls = Class::New<ExceptionHandlers, RTN::ExceptionHandlers>(isolate);
+  cls = Class::New<ExceptionHandlers, RTN::ExceptionHandlers>(isolate_group);
   exception_handlers_class_ = cls.raw();
 
-  cls = Class::New<Context, RTN::Context>(isolate);
+  cls = Class::New<Context, RTN::Context>(isolate_group);
   context_class_ = cls.raw();
 
-  cls = Class::New<ContextScope, RTN::ContextScope>(isolate);
+  cls = Class::New<ContextScope, RTN::ContextScope>(isolate_group);
   context_scope_class_ = cls.raw();
 
-  cls = Class::New<SingleTargetCache, RTN::SingleTargetCache>(isolate);
+  cls = Class::New<SingleTargetCache, RTN::SingleTargetCache>(isolate_group);
   singletargetcache_class_ = cls.raw();
 
-  cls = Class::New<UnlinkedCall, RTN::UnlinkedCall>(isolate);
+  cls = Class::New<UnlinkedCall, RTN::UnlinkedCall>(isolate_group);
   unlinkedcall_class_ = cls.raw();
 
-  cls =
-      Class::New<MonomorphicSmiableCall, RTN::MonomorphicSmiableCall>(isolate);
+  cls = Class::New<MonomorphicSmiableCall, RTN::MonomorphicSmiableCall>(
+      isolate_group);
   monomorphicsmiablecall_class_ = cls.raw();
 
-  cls = Class::New<ICData, RTN::ICData>(isolate);
+  cls = Class::New<ICData, RTN::ICData>(isolate_group);
   icdata_class_ = cls.raw();
 
-  cls = Class::New<MegamorphicCache, RTN::MegamorphicCache>(isolate);
+  cls = Class::New<MegamorphicCache, RTN::MegamorphicCache>(isolate_group);
   megamorphic_cache_class_ = cls.raw();
 
-  cls = Class::New<SubtypeTestCache, RTN::SubtypeTestCache>(isolate);
+  cls = Class::New<SubtypeTestCache, RTN::SubtypeTestCache>(isolate_group);
   subtypetestcache_class_ = cls.raw();
 
-  cls = Class::New<LoadingUnit, RTN::LoadingUnit>(isolate);
+  cls = Class::New<LoadingUnit, RTN::LoadingUnit>(isolate_group);
   loadingunit_class_ = cls.raw();
 
-  cls = Class::New<ApiError, RTN::ApiError>(isolate);
+  cls = Class::New<ApiError, RTN::ApiError>(isolate_group);
   api_error_class_ = cls.raw();
 
-  cls = Class::New<LanguageError, RTN::LanguageError>(isolate);
+  cls = Class::New<LanguageError, RTN::LanguageError>(isolate_group);
   language_error_class_ = cls.raw();
 
-  cls = Class::New<UnhandledException, RTN::UnhandledException>(isolate);
+  cls = Class::New<UnhandledException, RTN::UnhandledException>(isolate_group);
   unhandled_exception_class_ = cls.raw();
 
-  cls = Class::New<UnwindError, RTN::UnwindError>(isolate);
+  cls = Class::New<UnwindError, RTN::UnwindError>(isolate_group);
   unwind_error_class_ = cls.raw();
 
   cls = Class::New<WeakSerializationReference, RTN::WeakSerializationReference>(
-      isolate);
+      isolate_group);
   weak_serialization_reference_class_ = cls.raw();
 
   ASSERT(class_class() != null_);
 
   // Pre-allocate classes in the vm isolate so that we can for example create a
   // symbol table and populate it with some frequently used strings as symbols.
-  cls = Class::New<Array, RTN::Array>(isolate);
-  isolate->object_store()->set_array_class(cls);
+  cls = Class::New<Array, RTN::Array>(isolate_group);
+  isolate_group->object_store()->set_array_class(cls);
   cls.set_type_arguments_field_offset(Array::type_arguments_offset(),
                                       RTN::Array::type_arguments_offset());
   cls.set_num_type_arguments(1);
-  cls = Class::New<Array, RTN::Array>(kImmutableArrayCid, isolate);
-  isolate->object_store()->set_immutable_array_class(cls);
+  cls = Class::New<Array, RTN::Array>(kImmutableArrayCid, isolate_group);
+  isolate_group->object_store()->set_immutable_array_class(cls);
   cls.set_type_arguments_field_offset(Array::type_arguments_offset(),
                                       RTN::Array::type_arguments_offset());
   cls.set_num_type_arguments(1);
-  cls = Class::New<GrowableObjectArray, RTN::GrowableObjectArray>(isolate);
-  isolate->object_store()->set_growable_object_array_class(cls);
+  cls =
+      Class::New<GrowableObjectArray, RTN::GrowableObjectArray>(isolate_group);
+  isolate_group->object_store()->set_growable_object_array_class(cls);
   cls.set_type_arguments_field_offset(
       GrowableObjectArray::type_arguments_offset(),
       RTN::GrowableObjectArray::type_arguments_offset());
   cls.set_num_type_arguments(1);
-  cls = Class::NewStringClass(kOneByteStringCid, isolate);
-  isolate->object_store()->set_one_byte_string_class(cls);
-  cls = Class::NewStringClass(kTwoByteStringCid, isolate);
-  isolate->object_store()->set_two_byte_string_class(cls);
-  cls = Class::New<Mint, RTN::Mint>(isolate);
-  isolate->object_store()->set_mint_class(cls);
-  cls = Class::New<Double, RTN::Double>(isolate);
-  isolate->object_store()->set_double_class(cls);
+  cls = Class::NewStringClass(kOneByteStringCid, isolate_group);
+  isolate_group->object_store()->set_one_byte_string_class(cls);
+  cls = Class::NewStringClass(kTwoByteStringCid, isolate_group);
+  isolate_group->object_store()->set_two_byte_string_class(cls);
+  cls = Class::New<Mint, RTN::Mint>(isolate_group);
+  isolate_group->object_store()->set_mint_class(cls);
+  cls = Class::New<Double, RTN::Double>(isolate_group);
+  isolate_group->object_store()->set_double_class(cls);
 
   // Ensure that class kExternalTypedDataUint8ArrayCid is registered as we
   // need it when reading in the token stream of bootstrap classes in the VM
   // isolate.
-  Class::NewExternalTypedDataClass(kExternalTypedDataUint8ArrayCid, isolate);
+  Class::NewExternalTypedDataClass(kExternalTypedDataUint8ArrayCid,
+                                   isolate_group);
 
   // Needed for object pools of VM isolate stubs.
-  Class::NewTypedDataClass(kTypedDataInt8ArrayCid, isolate);
+  Class::NewTypedDataClass(kTypedDataInt8ArrayCid, isolate_group);
 
   // Allocate and initialize the empty_array instance.
   {
@@ -1036,7 +1039,7 @@ void Object::Init(Isolate* isolate) {
   // as we do not have any VM isolate snapshot at this time.
   *vm_isolate_snapshot_object_table_ = Object::empty_array().raw();
 
-  cls = Class::New<Instance, RTN::Instance>(kDynamicCid, isolate);
+  cls = Class::New<Instance, RTN::Instance>(kDynamicCid, isolate_group);
   cls.set_is_abstract();
   cls.set_num_type_arguments(0);
   cls.set_is_allocate_finalized();
@@ -1044,14 +1047,14 @@ void Object::Init(Isolate* isolate) {
   cls.set_is_type_finalized();
   dynamic_class_ = cls.raw();
 
-  cls = Class::New<Instance, RTN::Instance>(kVoidCid, isolate);
+  cls = Class::New<Instance, RTN::Instance>(kVoidCid, isolate_group);
   cls.set_num_type_arguments(0);
   cls.set_is_allocate_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
   void_class_ = cls.raw();
 
-  cls = Class::New<Type, RTN::Type>(isolate);
+  cls = Class::New<Type, RTN::Type>(isolate_group);
   cls.set_is_allocate_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
@@ -1083,8 +1086,8 @@ void Object::Init(Isolate* isolate) {
     cls.SetFunctions(Object::empty_array());
   }
 
-  cls = Class::New<Bool, RTN::Bool>(isolate);
-  isolate->object_store()->set_bool_class(cls);
+  cls = Class::New<Bool, RTN::Bool>(isolate_group);
+  isolate_group->object_store()->set_bool_class(cls);
 
   *smi_illegal_cid_ = Smi::New(kIllegalCid);
   *smi_zero_ = Smi::New(0);
@@ -1190,7 +1193,7 @@ void Object::Init(Isolate* isolate) {
   ASSERT(extractor_parameter_names_->IsArray());
 }
 
-void Object::FinishInit(Isolate* isolate) {
+void Object::FinishInit(IsolateGroup* isolate_group) {
   // The type testing stubs we initialize in AbstractType objects for the
   // canonical type of kDynamicCid/kVoidCid need to be set in this
   // method, which is called after StubCode::InitOnce().
@@ -1296,9 +1299,9 @@ class FinalizeVMIsolateVisitor : public ObjectVisitor {
   cls = class_name##_class();                                                  \
   cls.set_name(Symbols::name());
 
-void Object::FinalizeVMIsolate(Isolate* isolate) {
+void Object::FinalizeVMIsolate(IsolateGroup* isolate_group) {
   // Should only be run by the vm isolate.
-  ASSERT(isolate == Dart::vm_isolate());
+  ASSERT(isolate_group == Dart::vm_isolate_group());
 
   // Finish initialization of extractor_parameter_names_ which was
   // Started in Object::InitOnce()
@@ -1345,27 +1348,27 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   SET_CLASS_NAME(unwind_error, UnwindError);
 
   // Set up names for classes which are also pre-allocated in the vm isolate.
-  cls = isolate->object_store()->array_class();
+  cls = isolate_group->object_store()->array_class();
   cls.set_name(Symbols::_List());
-  cls = isolate->object_store()->one_byte_string_class();
+  cls = isolate_group->object_store()->one_byte_string_class();
   cls.set_name(Symbols::OneByteString());
-  cls = isolate->object_store()->never_class();
+  cls = isolate_group->object_store()->never_class();
   cls.set_name(Symbols::Never());
 
   // Set up names for the pseudo-classes for free list elements and forwarding
   // corpses. Mainly this makes VM debugging easier.
-  cls = isolate->class_table()->At(kFreeListElement);
+  cls = isolate_group->class_table()->At(kFreeListElement);
   cls.set_name(Symbols::FreeListElement());
-  cls = isolate->class_table()->At(kForwardingCorpse);
+  cls = isolate_group->class_table()->At(kForwardingCorpse);
   cls.set_name(Symbols::ForwardingCorpse());
 
   {
-    ASSERT(isolate == Dart::vm_isolate());
+    ASSERT(isolate_group == Dart::vm_isolate_group());
     Thread* thread = Thread::Current();
     WritableVMIsolateScope scope(thread);
     HeapIterationScope iteration(thread);
     FinalizeVMIsolateVisitor premarker;
-    ASSERT(isolate->heap()->UsedInWords(Heap::kNew) == 0);
+    ASSERT(isolate_group->heap()->UsedInWords(Heap::kNew) == 0);
     iteration.IterateOldObjectsNoImagePages(&premarker);
     // Make the VM isolate read-only again after setting all objects as marked.
     // Note objects in image pages are already pre-marked.
@@ -1499,7 +1502,7 @@ void Object::VerifyBuiltinVtables() {
   ASSERT(builtin_vtables_[kIllegalCid] == 0);
   ASSERT(builtin_vtables_[kFreeListElement] == 0);
   ASSERT(builtin_vtables_[kForwardingCorpse] == 0);
-  ClassTable* table = Isolate::Current()->class_table();
+  ClassTable* table = IsolateGroup::Current()->class_table();
   for (intptr_t cid = kObjectCid; cid < kNumPredefinedCids; cid++) {
     if (table->HasValidClassAt(cid)) {
       ASSERT(builtin_vtables_[cid] != 0);
@@ -1538,12 +1541,12 @@ void Object::RegisterPrivateClass(const Class& cls,
 //
 // A non-NULL kernel argument indicates (1).
 // A NULL kernel indicates (2) or (3).
-ErrorPtr Object::Init(Isolate* isolate,
+ErrorPtr Object::Init(IsolateGroup* isolate_group,
                       const uint8_t* kernel_buffer,
                       intptr_t kernel_buffer_size) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  ASSERT(isolate == thread->isolate());
+  ASSERT(isolate_group == thread->isolate_group());
   TIMELINE_DURATION(thread, Isolate, "Object::Init");
 
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -1560,8 +1563,8 @@ ErrorPtr Object::Init(Isolate* isolate,
     // Kernel binary.
     // This will initialize isolate group object_store, shared by all isolates
     // running in the isolate group.
-    ObjectStore* object_store = isolate->object_store();
-    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    ObjectStore* object_store = isolate_group->object_store();
+    SafepointWriteRwLocker ml(thread, isolate_group->program_lock());
 
     Class& cls = Class::Handle(zone);
     Type& type = Type::Handle(zone);
@@ -1571,7 +1574,7 @@ ErrorPtr Object::Init(Isolate* isolate,
 
     // All RawArray fields will be initialized to an empty array, therefore
     // initialize array class first.
-    cls = Class::New<Array, RTN::Array>(isolate);
+    cls = Class::New<Array, RTN::Array>(isolate_group);
     ASSERT(object_store->array_class() == Class::null());
     object_store->set_array_class(cls);
 
@@ -1586,7 +1589,8 @@ ErrorPtr Object::Init(Isolate* isolate,
 
     // Set up the growable object array class (Has to be done after the array
     // class is setup as one of its field is an array object).
-    cls = Class::New<GrowableObjectArray, RTN::GrowableObjectArray>(isolate);
+    cls = Class::New<GrowableObjectArray, RTN::GrowableObjectArray>(
+        isolate_group);
     object_store->set_growable_object_array_class(cls);
     cls.set_type_arguments_field_offset(
         GrowableObjectArray::type_arguments_offset(),
@@ -1613,24 +1617,24 @@ ErrorPtr Object::Init(Isolate* isolate,
 
     // Setup type class early in the process.
     const Class& type_cls =
-        Class::Handle(zone, Class::New<Type, RTN::Type>(isolate));
+        Class::Handle(zone, Class::New<Type, RTN::Type>(isolate_group));
     const Class& type_ref_cls =
-        Class::Handle(zone, Class::New<TypeRef, RTN::TypeRef>(isolate));
+        Class::Handle(zone, Class::New<TypeRef, RTN::TypeRef>(isolate_group));
     const Class& type_parameter_cls = Class::Handle(
-        zone, Class::New<TypeParameter, RTN::TypeParameter>(isolate));
+        zone, Class::New<TypeParameter, RTN::TypeParameter>(isolate_group));
     const Class& library_prefix_cls = Class::Handle(
-        zone, Class::New<LibraryPrefix, RTN::LibraryPrefix>(isolate));
+        zone, Class::New<LibraryPrefix, RTN::LibraryPrefix>(isolate_group));
 
     // Pre-allocate the OneByteString class needed by the symbol table.
-    cls = Class::NewStringClass(kOneByteStringCid, isolate);
+    cls = Class::NewStringClass(kOneByteStringCid, isolate_group);
     object_store->set_one_byte_string_class(cls);
 
     // Pre-allocate the TwoByteString class needed by the symbol table.
-    cls = Class::NewStringClass(kTwoByteStringCid, isolate);
+    cls = Class::NewStringClass(kTwoByteStringCid, isolate_group);
     object_store->set_two_byte_string_class(cls);
 
     // Setup the symbol table for the symbols created in the isolate.
-    Symbols::SetupSymbolTable(isolate);
+    Symbols::SetupSymbolTable(isolate_group);
 
     // Set up the libraries array before initializing the core library.
     const GrowableObjectArray& libraries =
@@ -1638,7 +1642,7 @@ ErrorPtr Object::Init(Isolate* isolate,
     object_store->set_libraries(libraries);
 
     // Pre-register the core library.
-    Library::InitCoreLibrary(isolate);
+    Library::InitCoreLibrary(isolate_group);
 
     // Basic infrastructure has been setup, initialize the class dictionary.
     const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
@@ -1675,7 +1679,7 @@ ErrorPtr Object::Init(Isolate* isolate,
     RegisterPrivateClass(cls, Symbols::_GrowableList(), core_lib);
     pending_classes.Add(cls);
 
-    cls = Class::New<Array, RTN::Array>(kImmutableArrayCid, isolate);
+    cls = Class::New<Array, RTN::Array>(kImmutableArrayCid, isolate_group);
     object_store->set_immutable_array_class(cls);
     cls.set_type_arguments_field_offset(Array::type_arguments_offset(),
                                         RTN::Array::type_arguments_offset());
@@ -1694,12 +1698,12 @@ ErrorPtr Object::Init(Isolate* isolate,
     RegisterPrivateClass(cls, Symbols::TwoByteString(), core_lib);
     pending_classes.Add(cls);
 
-    cls = Class::NewStringClass(kExternalOneByteStringCid, isolate);
+    cls = Class::NewStringClass(kExternalOneByteStringCid, isolate_group);
     object_store->set_external_one_byte_string_class(cls);
     RegisterPrivateClass(cls, Symbols::ExternalOneByteString(), core_lib);
     pending_classes.Add(cls);
 
-    cls = Class::NewStringClass(kExternalTwoByteStringCid, isolate);
+    cls = Class::NewStringClass(kExternalTwoByteStringCid, isolate_group);
     object_store->set_external_two_byte_string_class(cls);
     RegisterPrivateClass(cls, Symbols::ExternalTwoByteString(), core_lib);
     pending_classes.Add(cls);
@@ -1717,31 +1721,31 @@ ErrorPtr Object::Init(Isolate* isolate,
     ASSERT(!isolate_lib.IsNull());
     ASSERT(isolate_lib.raw() == Library::IsolateLibrary());
 
-    cls = Class::New<Capability, RTN::Capability>(isolate);
+    cls = Class::New<Capability, RTN::Capability>(isolate_group);
     RegisterPrivateClass(cls, Symbols::_CapabilityImpl(), isolate_lib);
     pending_classes.Add(cls);
 
-    cls = Class::New<ReceivePort, RTN::ReceivePort>(isolate);
+    cls = Class::New<ReceivePort, RTN::ReceivePort>(isolate_group);
     RegisterPrivateClass(cls, Symbols::_RawReceivePortImpl(), isolate_lib);
     pending_classes.Add(cls);
 
-    cls = Class::New<SendPort, RTN::SendPort>(isolate);
+    cls = Class::New<SendPort, RTN::SendPort>(isolate_group);
     RegisterPrivateClass(cls, Symbols::_SendPortImpl(), isolate_lib);
     pending_classes.Add(cls);
 
-    cls =
-        Class::New<TransferableTypedData, RTN::TransferableTypedData>(isolate);
+    cls = Class::New<TransferableTypedData, RTN::TransferableTypedData>(
+        isolate_group);
     RegisterPrivateClass(cls, Symbols::_TransferableTypedDataImpl(),
                          isolate_lib);
     pending_classes.Add(cls);
 
-    const Class& stacktrace_cls =
-        Class::Handle(zone, Class::New<StackTrace, RTN::StackTrace>(isolate));
+    const Class& stacktrace_cls = Class::Handle(
+        zone, Class::New<StackTrace, RTN::StackTrace>(isolate_group));
     RegisterPrivateClass(stacktrace_cls, Symbols::_StackTrace(), core_lib);
     pending_classes.Add(stacktrace_cls);
     // Super type set below, after Object is allocated.
 
-    cls = Class::New<RegExp, RTN::RegExp>(isolate);
+    cls = Class::New<RegExp, RTN::RegExp>(isolate_group);
     RegisterPrivateClass(cls, Symbols::_RegExp(), core_lib);
     pending_classes.Add(cls);
 
@@ -1751,7 +1755,7 @@ ErrorPtr Object::Init(Isolate* isolate,
     // The script and token index of these pre-allocated classes is set up in
     // the parser when the corelib script is compiled (see
     // Parser::ParseClassDefinition).
-    cls = Class::New<Instance, RTN::Instance>(kInstanceCid, isolate);
+    cls = Class::New<Instance, RTN::Instance>(kInstanceCid, isolate_group);
     object_store->set_object_class(cls);
     cls.set_name(Symbols::Object());
     cls.set_num_type_arguments(0);
@@ -1768,19 +1772,19 @@ ErrorPtr Object::Init(Isolate* isolate,
     type = type.ToNullability(Nullability::kNullable, Heap::kOld);
     object_store->set_nullable_object_type(type);
 
-    cls = Class::New<Bool, RTN::Bool>(isolate);
+    cls = Class::New<Bool, RTN::Bool>(isolate_group);
     object_store->set_bool_class(cls);
     RegisterClass(cls, Symbols::Bool(), core_lib);
     pending_classes.Add(cls);
 
-    cls = Class::New<Instance, RTN::Instance>(kNullCid, isolate);
+    cls = Class::New<Instance, RTN::Instance>(kNullCid, isolate_group);
     object_store->set_null_class(cls);
     cls.set_num_type_arguments(0);
     cls.set_is_prefinalized();
     RegisterClass(cls, Symbols::Null(), core_lib);
     pending_classes.Add(cls);
 
-    cls = Class::New<Instance, RTN::Instance>(kNeverCid, isolate);
+    cls = Class::New<Instance, RTN::Instance>(kNeverCid, isolate_group);
     cls.set_num_type_arguments(0);
     cls.set_is_allocate_finalized();
     cls.set_is_declaration_loaded();
@@ -1803,33 +1807,33 @@ ErrorPtr Object::Init(Isolate* isolate,
                          core_lib);
     pending_classes.Add(type_parameter_cls);
 
-    cls = Class::New<Integer, RTN::Integer>(isolate);
+    cls = Class::New<Integer, RTN::Integer>(isolate_group);
     object_store->set_integer_implementation_class(cls);
     RegisterPrivateClass(cls, Symbols::_IntegerImplementation(), core_lib);
     pending_classes.Add(cls);
 
-    cls = Class::New<Smi, RTN::Smi>(isolate);
+    cls = Class::New<Smi, RTN::Smi>(isolate_group);
     object_store->set_smi_class(cls);
     RegisterPrivateClass(cls, Symbols::_Smi(), core_lib);
     pending_classes.Add(cls);
 
-    cls = Class::New<Mint, RTN::Mint>(isolate);
+    cls = Class::New<Mint, RTN::Mint>(isolate_group);
     object_store->set_mint_class(cls);
     RegisterPrivateClass(cls, Symbols::_Mint(), core_lib);
     pending_classes.Add(cls);
 
-    cls = Class::New<Double, RTN::Double>(isolate);
+    cls = Class::New<Double, RTN::Double>(isolate_group);
     object_store->set_double_class(cls);
     RegisterPrivateClass(cls, Symbols::_Double(), core_lib);
     pending_classes.Add(cls);
 
     // Class that represents the Dart class _Closure and C++ class Closure.
-    cls = Class::New<Closure, RTN::Closure>(isolate);
+    cls = Class::New<Closure, RTN::Closure>(isolate_group);
     object_store->set_closure_class(cls);
     RegisterPrivateClass(cls, Symbols::_Closure(), core_lib);
     pending_classes.Add(cls);
 
-    cls = Class::New<WeakProperty, RTN::WeakProperty>(isolate);
+    cls = Class::New<WeakProperty, RTN::WeakProperty>(isolate_group);
     object_store->set_weak_property_class(cls);
     RegisterPrivateClass(cls, Symbols::_WeakProperty(), core_lib);
 
@@ -1846,7 +1850,7 @@ ErrorPtr Object::Init(Isolate* isolate,
     ASSERT(!lib.IsNull());
     ASSERT(lib.raw() == Library::MirrorsLibrary());
 
-    cls = Class::New<MirrorReference, RTN::MirrorReference>(isolate);
+    cls = Class::New<MirrorReference, RTN::MirrorReference>(isolate_group);
     RegisterPrivateClass(cls, Symbols::_MirrorReference(), lib);
 #endif
 
@@ -1862,7 +1866,7 @@ ErrorPtr Object::Init(Isolate* isolate,
     object_store->set_bootstrap_library(ObjectStore::kCollection, lib);
     ASSERT(!lib.IsNull());
     ASSERT(lib.raw() == Library::CollectionLibrary());
-    cls = Class::New<LinkedHashMap, RTN::LinkedHashMap>(isolate);
+    cls = Class::New<LinkedHashMap, RTN::LinkedHashMap>(isolate_group);
     object_store->set_linked_hash_map_class(cls);
     cls.set_type_arguments_field_offset(
         LinkedHashMap::type_arguments_offset(),
@@ -1882,7 +1886,7 @@ ErrorPtr Object::Init(Isolate* isolate,
     object_store->set_bootstrap_library(ObjectStore::kAsync, lib);
     ASSERT(!lib.IsNull());
     ASSERT(lib.raw() == Library::AsyncLibrary());
-    cls = Class::New<FutureOr, RTN::FutureOr>(isolate);
+    cls = Class::New<FutureOr, RTN::FutureOr>(isolate_group);
     cls.set_type_arguments_field_offset(FutureOr::type_arguments_offset(),
                                         RTN::FutureOr::type_arguments_offset());
     cls.set_num_type_arguments(1);
@@ -1900,13 +1904,13 @@ ErrorPtr Object::Init(Isolate* isolate,
     object_store->set_bootstrap_library(ObjectStore::kDeveloper, lib);
     ASSERT(!lib.IsNull());
     ASSERT(lib.raw() == Library::DeveloperLibrary());
-    cls = Class::New<UserTag, RTN::UserTag>(isolate);
+    cls = Class::New<UserTag, RTN::UserTag>(isolate_group);
     RegisterPrivateClass(cls, Symbols::_UserTag(), lib);
     pending_classes.Add(cls);
 
     // Setup some default native field classes which can be extended for
     // specifying native fields in dart classes.
-    Library::InitNativeWrappersLibrary(isolate, is_kernel);
+    Library::InitNativeWrappersLibrary(isolate_group, is_kernel);
     ASSERT(object_store->native_wrappers_library() != Library::null());
 
     // Pre-register the typed_data library so the native class implementations
@@ -1921,45 +1925,46 @@ ErrorPtr Object::Init(Isolate* isolate,
     ASSERT(!lib.IsNull());
     ASSERT(lib.raw() == Library::TypedDataLibrary());
 #define REGISTER_TYPED_DATA_CLASS(clazz)                                       \
-  cls = Class::NewTypedDataClass(kTypedData##clazz##ArrayCid, isolate);        \
+  cls = Class::NewTypedDataClass(kTypedData##clazz##ArrayCid, isolate_group);  \
   RegisterPrivateClass(cls, Symbols::_##clazz##List(), lib);
 
     DART_CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_CLASS);
 #undef REGISTER_TYPED_DATA_CLASS
 #define REGISTER_TYPED_DATA_VIEW_CLASS(clazz)                                  \
-  cls = Class::NewTypedDataViewClass(kTypedData##clazz##ViewCid, isolate);     \
+  cls =                                                                        \
+      Class::NewTypedDataViewClass(kTypedData##clazz##ViewCid, isolate_group); \
   RegisterPrivateClass(cls, Symbols::_##clazz##View(), lib);                   \
   pending_classes.Add(cls);
 
     CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_VIEW_CLASS);
 
-    cls = Class::NewTypedDataViewClass(kByteDataViewCid, isolate);
+    cls = Class::NewTypedDataViewClass(kByteDataViewCid, isolate_group);
     RegisterPrivateClass(cls, Symbols::_ByteDataView(), lib);
     pending_classes.Add(cls);
 
 #undef REGISTER_TYPED_DATA_VIEW_CLASS
 #define REGISTER_EXT_TYPED_DATA_CLASS(clazz)                                   \
   cls = Class::NewExternalTypedDataClass(kExternalTypedData##clazz##Cid,       \
-                                         isolate);                             \
+                                         isolate_group);                       \
   RegisterPrivateClass(cls, Symbols::_External##clazz(), lib);
 
-    cls = Class::New<Instance, RTN::Instance>(kByteBufferCid, isolate,
+    cls = Class::New<Instance, RTN::Instance>(kByteBufferCid, isolate_group,
                                               /*register_class=*/false);
     cls.set_instance_size(0, 0);
     cls.set_next_field_offset(-kWordSize, -compiler::target::kWordSize);
-    isolate->class_table()->Register(cls);
+    isolate_group->class_table()->Register(cls);
     RegisterPrivateClass(cls, Symbols::_ByteBuffer(), lib);
     pending_classes.Add(cls);
 
     CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
 #undef REGISTER_EXT_TYPED_DATA_CLASS
     // Register Float32x4, Int32x4, and Float64x2 in the object store.
-    cls = Class::New<Float32x4, RTN::Float32x4>(isolate);
+    cls = Class::New<Float32x4, RTN::Float32x4>(isolate_group);
     RegisterPrivateClass(cls, Symbols::_Float32x4(), lib);
     pending_classes.Add(cls);
     object_store->set_float32x4_class(cls);
 
-    cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate,
+    cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate_group,
                                               /*register_class=*/true,
                                               /*is_abstract=*/true);
     RegisterClass(cls, Symbols::Float32x4(), lib);
@@ -1968,12 +1973,12 @@ ErrorPtr Object::Init(Isolate* isolate,
     type = Type::NewNonParameterizedType(cls);
     object_store->set_float32x4_type(type);
 
-    cls = Class::New<Int32x4, RTN::Int32x4>(isolate);
+    cls = Class::New<Int32x4, RTN::Int32x4>(isolate_group);
     RegisterPrivateClass(cls, Symbols::_Int32x4(), lib);
     pending_classes.Add(cls);
     object_store->set_int32x4_class(cls);
 
-    cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate,
+    cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate_group,
                                               /*register_class=*/true,
                                               /*is_abstract=*/true);
     RegisterClass(cls, Symbols::Int32x4(), lib);
@@ -1982,12 +1987,12 @@ ErrorPtr Object::Init(Isolate* isolate,
     type = Type::NewNonParameterizedType(cls);
     object_store->set_int32x4_type(type);
 
-    cls = Class::New<Float64x2, RTN::Float64x2>(isolate);
+    cls = Class::New<Float64x2, RTN::Float64x2>(isolate_group);
     RegisterPrivateClass(cls, Symbols::_Float64x2(), lib);
     pending_classes.Add(cls);
     object_store->set_float64x2_class(cls);
 
-    cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate,
+    cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate_group,
                                               /*register_class=*/true,
                                               /*is_abstract=*/true);
     RegisterClass(cls, Symbols::Float64x2(), lib);
@@ -2003,7 +2008,7 @@ ErrorPtr Object::Init(Isolate* isolate,
 
     // Abstract class that represents the Dart class Type.
     // Note that this class is implemented by Dart class _AbstractType.
-    cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate,
+    cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate_group,
                                               /*register_class=*/true,
                                               /*is_abstract=*/true);
     cls.set_num_type_arguments(0);
@@ -2014,7 +2019,7 @@ ErrorPtr Object::Init(Isolate* isolate,
     object_store->set_type_type(type);
 
     // Abstract class that represents the Dart class Function.
-    cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate,
+    cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate_group,
                                               /*register_class=*/true,
                                               /*is_abstract=*/true);
     cls.set_num_type_arguments(0);
@@ -2028,7 +2033,7 @@ ErrorPtr Object::Init(Isolate* isolate,
     type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
     object_store->set_non_nullable_function_type(type);
 
-    cls = Class::New<Number, RTN::Number>(isolate);
+    cls = Class::New<Number, RTN::Number>(isolate_group);
     RegisterClass(cls, Symbols::Number(), core_lib);
     pending_classes.Add(cls);
     type = Type::NewNonParameterizedType(cls);
@@ -2038,7 +2043,7 @@ ErrorPtr Object::Init(Isolate* isolate,
     type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
     object_store->set_non_nullable_number_type(type);
 
-    cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate,
+    cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate_group,
                                               /*register_class=*/true,
                                               /*is_abstract=*/true);
     RegisterClass(cls, Symbols::Int(), core_lib);
@@ -2054,7 +2059,7 @@ ErrorPtr Object::Init(Isolate* isolate,
     type = type.ToNullability(Nullability::kNullable, Heap::kOld);
     object_store->set_nullable_int_type(type);
 
-    cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate,
+    cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate_group,
                                               /*register_class=*/true,
                                               /*is_abstract=*/true);
     RegisterClass(cls, Symbols::Double(), core_lib);
@@ -2071,7 +2076,7 @@ ErrorPtr Object::Init(Isolate* isolate,
     object_store->set_nullable_double_type(type);
 
     name = Symbols::_String().raw();
-    cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate,
+    cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate_group,
                                               /*register_class=*/true,
                                               /*is_abstract=*/true);
     RegisterClass(cls, name, core_lib);
@@ -2231,7 +2236,7 @@ ErrorPtr Object::Init(Isolate* isolate,
     }
     object_store->set_bootstrap_library(ObjectStore::kFfi, lib);
 
-    cls = Class::New<Instance, RTN::Instance>(kFfiNativeTypeCid, isolate);
+    cls = Class::New<Instance, RTN::Instance>(kFfiNativeTypeCid, isolate_group);
     cls.set_num_type_arguments(0);
     cls.set_is_prefinalized();
     pending_classes.Add(cls);
@@ -2239,7 +2244,7 @@ ErrorPtr Object::Init(Isolate* isolate,
     RegisterClass(cls, Symbols::FfiNativeType(), lib);
 
 #define REGISTER_FFI_TYPE_MARKER(clazz)                                        \
-  cls = Class::New<Instance, RTN::Instance>(kFfi##clazz##Cid, isolate);        \
+  cls = Class::New<Instance, RTN::Instance>(kFfi##clazz##Cid, isolate_group);  \
   cls.set_num_type_arguments(0);                                               \
   cls.set_is_prefinalized();                                                   \
   pending_classes.Add(cls);                                                    \
@@ -2247,7 +2252,8 @@ ErrorPtr Object::Init(Isolate* isolate,
     CLASS_LIST_FFI_TYPE_MARKER(REGISTER_FFI_TYPE_MARKER);
 #undef REGISTER_FFI_TYPE_MARKER
 
-    cls = Class::New<Instance, RTN::Instance>(kFfiNativeFunctionCid, isolate);
+    cls = Class::New<Instance, RTN::Instance>(kFfiNativeFunctionCid,
+                                              isolate_group);
     cls.set_type_arguments_field_offset(Pointer::type_arguments_offset(),
                                         RTN::Pointer::type_arguments_offset());
     cls.set_num_type_arguments(1);
@@ -2255,13 +2261,13 @@ ErrorPtr Object::Init(Isolate* isolate,
     pending_classes.Add(cls);
     RegisterClass(cls, Symbols::FfiNativeFunction(), lib);
 
-    cls = Class::NewPointerClass(kFfiPointerCid, isolate);
+    cls = Class::NewPointerClass(kFfiPointerCid, isolate_group);
     object_store->set_ffi_pointer_class(cls);
     pending_classes.Add(cls);
     RegisterClass(cls, Symbols::FfiPointer(), lib);
 
     cls = Class::New<DynamicLibrary, RTN::DynamicLibrary>(kFfiDynamicLibraryCid,
-                                                          isolate);
+                                                          isolate_group);
     cls.set_instance_size(DynamicLibrary::InstanceSize(),
                           compiler::target::RoundedAllocationSize(
                               RTN::DynamicLibrary::InstanceSize()));
@@ -2277,7 +2283,7 @@ ErrorPtr Object::Init(Isolate* isolate,
       return error.raw();
     }
 
-    isolate->class_table()->CopySizesFromClassObjects();
+    isolate_group->class_table()->CopySizesFromClassObjects();
 
     ClassFinalizer::VerifyBootstrapClasses();
 
@@ -2292,7 +2298,7 @@ ErrorPtr Object::Init(Isolate* isolate,
     const bool injected = cls.InjectCIDFields();
     ASSERT(injected);
 
-    isolate->object_store()->InitKnownObjects();
+    isolate_group->object_store()->InitKnownObjects();
 
     // Set up recognized state of all functions (core, math and typed data).
     MethodRecognizer::InitializeState();
@@ -2301,7 +2307,7 @@ ErrorPtr Object::Init(Isolate* isolate,
     // Object::Init version when we are running in a version of dart that has a
     // full snapshot linked in and an isolate is initialized using the full
     // snapshot.
-    ObjectStore* object_store = isolate->object_store();
+    ObjectStore* object_store = isolate_group->object_store();
 
     Class& cls = Class::Handle(zone);
 
@@ -2311,122 +2317,124 @@ ErrorPtr Object::Init(Isolate* isolate,
     // stored in the object store. Yet we still need to create their Class
     // object so that they get put into the class_table (as a side effect of
     // Class::New()).
-    cls = Class::New<Instance, RTN::Instance>(kInstanceCid, isolate);
+    cls = Class::New<Instance, RTN::Instance>(kInstanceCid, isolate_group);
     object_store->set_object_class(cls);
 
-    cls = Class::New<LibraryPrefix, RTN::LibraryPrefix>(isolate);
-    cls = Class::New<Type, RTN::Type>(isolate);
-    cls = Class::New<TypeRef, RTN::TypeRef>(isolate);
-    cls = Class::New<TypeParameter, RTN::TypeParameter>(isolate);
+    cls = Class::New<LibraryPrefix, RTN::LibraryPrefix>(isolate_group);
+    cls = Class::New<Type, RTN::Type>(isolate_group);
+    cls = Class::New<TypeRef, RTN::TypeRef>(isolate_group);
+    cls = Class::New<TypeParameter, RTN::TypeParameter>(isolate_group);
 
-    cls = Class::New<Array, RTN::Array>(isolate);
+    cls = Class::New<Array, RTN::Array>(isolate_group);
     object_store->set_array_class(cls);
 
-    cls = Class::New<Array, RTN::Array>(kImmutableArrayCid, isolate);
+    cls = Class::New<Array, RTN::Array>(kImmutableArrayCid, isolate_group);
     object_store->set_immutable_array_class(cls);
 
-    cls = Class::New<GrowableObjectArray, RTN::GrowableObjectArray>(isolate);
+    cls = Class::New<GrowableObjectArray, RTN::GrowableObjectArray>(
+        isolate_group);
     object_store->set_growable_object_array_class(cls);
 
-    cls = Class::New<LinkedHashMap, RTN::LinkedHashMap>(isolate);
+    cls = Class::New<LinkedHashMap, RTN::LinkedHashMap>(isolate_group);
     object_store->set_linked_hash_map_class(cls);
 
-    cls = Class::New<Float32x4, RTN::Float32x4>(isolate);
+    cls = Class::New<Float32x4, RTN::Float32x4>(isolate_group);
     object_store->set_float32x4_class(cls);
 
-    cls = Class::New<Int32x4, RTN::Int32x4>(isolate);
+    cls = Class::New<Int32x4, RTN::Int32x4>(isolate_group);
     object_store->set_int32x4_class(cls);
 
-    cls = Class::New<Float64x2, RTN::Float64x2>(isolate);
+    cls = Class::New<Float64x2, RTN::Float64x2>(isolate_group);
     object_store->set_float64x2_class(cls);
 
 #define REGISTER_TYPED_DATA_CLASS(clazz)                                       \
-  cls = Class::NewTypedDataClass(kTypedData##clazz##Cid, isolate);
+  cls = Class::NewTypedDataClass(kTypedData##clazz##Cid, isolate_group);
     CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_CLASS);
 #undef REGISTER_TYPED_DATA_CLASS
 #define REGISTER_TYPED_DATA_VIEW_CLASS(clazz)                                  \
-  cls = Class::NewTypedDataViewClass(kTypedData##clazz##ViewCid, isolate);
+  cls = Class::NewTypedDataViewClass(kTypedData##clazz##ViewCid, isolate_group);
     CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_VIEW_CLASS);
 #undef REGISTER_TYPED_DATA_VIEW_CLASS
-    cls = Class::NewTypedDataViewClass(kByteDataViewCid, isolate);
+    cls = Class::NewTypedDataViewClass(kByteDataViewCid, isolate_group);
 #define REGISTER_EXT_TYPED_DATA_CLASS(clazz)                                   \
   cls = Class::NewExternalTypedDataClass(kExternalTypedData##clazz##Cid,       \
-                                         isolate);
+                                         isolate_group);
     CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
 #undef REGISTER_EXT_TYPED_DATA_CLASS
 
-    cls = Class::New<Instance, RTN::Instance>(kFfiNativeTypeCid, isolate);
+    cls = Class::New<Instance, RTN::Instance>(kFfiNativeTypeCid, isolate_group);
     object_store->set_ffi_native_type_class(cls);
 
 #define REGISTER_FFI_CLASS(clazz)                                              \
-  cls = Class::New<Instance, RTN::Instance>(kFfi##clazz##Cid, isolate);
+  cls = Class::New<Instance, RTN::Instance>(kFfi##clazz##Cid, isolate_group);
     CLASS_LIST_FFI_TYPE_MARKER(REGISTER_FFI_CLASS);
 #undef REGISTER_FFI_CLASS
 
-    cls = Class::New<Instance, RTN::Instance>(kFfiNativeFunctionCid, isolate);
+    cls = Class::New<Instance, RTN::Instance>(kFfiNativeFunctionCid,
+                                              isolate_group);
 
-    cls = Class::NewPointerClass(kFfiPointerCid, isolate);
+    cls = Class::NewPointerClass(kFfiPointerCid, isolate_group);
     object_store->set_ffi_pointer_class(cls);
 
     cls = Class::New<DynamicLibrary, RTN::DynamicLibrary>(kFfiDynamicLibraryCid,
-                                                          isolate);
+                                                          isolate_group);
 
-    cls = Class::New<Instance, RTN::Instance>(kByteBufferCid, isolate,
-                                              /*register_isolate=*/false);
+    cls = Class::New<Instance, RTN::Instance>(kByteBufferCid, isolate_group,
+                                              /*register_isolate_group=*/false);
     cls.set_instance_size_in_words(0, 0);
-    isolate->class_table()->Register(cls);
+    isolate_group->class_table()->Register(cls);
 
-    cls = Class::New<Integer, RTN::Integer>(isolate);
+    cls = Class::New<Integer, RTN::Integer>(isolate_group);
     object_store->set_integer_implementation_class(cls);
 
-    cls = Class::New<Smi, RTN::Smi>(isolate);
+    cls = Class::New<Smi, RTN::Smi>(isolate_group);
     object_store->set_smi_class(cls);
 
-    cls = Class::New<Mint, RTN::Mint>(isolate);
+    cls = Class::New<Mint, RTN::Mint>(isolate_group);
     object_store->set_mint_class(cls);
 
-    cls = Class::New<Double, RTN::Double>(isolate);
+    cls = Class::New<Double, RTN::Double>(isolate_group);
     object_store->set_double_class(cls);
 
-    cls = Class::New<Closure, RTN::Closure>(isolate);
+    cls = Class::New<Closure, RTN::Closure>(isolate_group);
     object_store->set_closure_class(cls);
 
-    cls = Class::NewStringClass(kOneByteStringCid, isolate);
+    cls = Class::NewStringClass(kOneByteStringCid, isolate_group);
     object_store->set_one_byte_string_class(cls);
 
-    cls = Class::NewStringClass(kTwoByteStringCid, isolate);
+    cls = Class::NewStringClass(kTwoByteStringCid, isolate_group);
     object_store->set_two_byte_string_class(cls);
 
-    cls = Class::NewStringClass(kExternalOneByteStringCid, isolate);
+    cls = Class::NewStringClass(kExternalOneByteStringCid, isolate_group);
     object_store->set_external_one_byte_string_class(cls);
 
-    cls = Class::NewStringClass(kExternalTwoByteStringCid, isolate);
+    cls = Class::NewStringClass(kExternalTwoByteStringCid, isolate_group);
     object_store->set_external_two_byte_string_class(cls);
 
-    cls = Class::New<Bool, RTN::Bool>(isolate);
+    cls = Class::New<Bool, RTN::Bool>(isolate_group);
     object_store->set_bool_class(cls);
 
-    cls = Class::New<Instance, RTN::Instance>(kNullCid, isolate);
+    cls = Class::New<Instance, RTN::Instance>(kNullCid, isolate_group);
     object_store->set_null_class(cls);
 
-    cls = Class::New<Instance, RTN::Instance>(kNeverCid, isolate);
+    cls = Class::New<Instance, RTN::Instance>(kNeverCid, isolate_group);
     object_store->set_never_class(cls);
 
-    cls = Class::New<Capability, RTN::Capability>(isolate);
-    cls = Class::New<ReceivePort, RTN::ReceivePort>(isolate);
-    cls = Class::New<SendPort, RTN::SendPort>(isolate);
-    cls = Class::New<StackTrace, RTN::StackTrace>(isolate);
-    cls = Class::New<RegExp, RTN::RegExp>(isolate);
-    cls = Class::New<Number, RTN::Number>(isolate);
+    cls = Class::New<Capability, RTN::Capability>(isolate_group);
+    cls = Class::New<ReceivePort, RTN::ReceivePort>(isolate_group);
+    cls = Class::New<SendPort, RTN::SendPort>(isolate_group);
+    cls = Class::New<StackTrace, RTN::StackTrace>(isolate_group);
+    cls = Class::New<RegExp, RTN::RegExp>(isolate_group);
+    cls = Class::New<Number, RTN::Number>(isolate_group);
 
-    cls = Class::New<WeakProperty, RTN::WeakProperty>(isolate);
+    cls = Class::New<WeakProperty, RTN::WeakProperty>(isolate_group);
     object_store->set_weak_property_class(cls);
 
-    cls = Class::New<MirrorReference, RTN::MirrorReference>(isolate);
-    cls = Class::New<UserTag, RTN::UserTag>(isolate);
-    cls = Class::New<FutureOr, RTN::FutureOr>(isolate);
-    cls =
-        Class::New<TransferableTypedData, RTN::TransferableTypedData>(isolate);
+    cls = Class::New<MirrorReference, RTN::MirrorReference>(isolate_group);
+    cls = Class::New<UserTag, RTN::UserTag>(isolate_group);
+    cls = Class::New<FutureOr, RTN::FutureOr>(isolate_group);
+    cls = Class::New<TransferableTypedData, RTN::TransferableTypedData>(
+        isolate_group);
   }
   return Error::null();
 }
@@ -2434,7 +2442,7 @@ ErrorPtr Object::Init(Isolate* isolate,
 #if defined(DEBUG)
 bool Object::InVMIsolateHeap() const {
   if (FLAG_verify_handles && raw()->ptr()->InVMIsolateHeap()) {
-    Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
+    Heap* vm_isolate_heap = Dart::vm_isolate_group()->heap();
     uword addr = ObjectLayout::ToAddr(raw());
     if (!vm_isolate_heap->Contains(addr)) {
       ASSERT(FLAG_write_protect_code);
@@ -2520,7 +2528,7 @@ void Object::CheckHandle() const {
     if (FLAG_verify_handles && raw_->IsHeapObject()) {
       Heap* isolate_heap = IsolateGroup::Current()->heap();
       if (!isolate_heap->new_space()->scavenging()) {
-        Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
+        Heap* vm_isolate_heap = Dart::vm_isolate_group()->heap();
         uword addr = ObjectLayout::ToAddr(raw_);
         if (!isolate_heap->Contains(addr) && !vm_isolate_heap->Contains(addr)) {
           ASSERT(FLAG_write_protect_code);
@@ -2553,8 +2561,8 @@ ObjectPtr Object::Allocate(intptr_t cls_id, intptr_t size, Heap::Space space) {
     } else if (thread->top_exit_frame_info() != 0) {
       // Use the preallocated out of memory exception to avoid calling
       // into dart code or allocating any code.
-      const Instance& exception =
-          Instance::Handle(thread->isolate()->object_store()->out_of_memory());
+      const Instance& exception = Instance::Handle(
+          thread->isolate_group()->object_store()->out_of_memory());
       Exceptions::Throw(thread, exception);
       UNREACHABLE();
     } else {
@@ -2727,7 +2735,7 @@ AbstractTypePtr Class::RareType() const {
 }
 
 template <class FakeObject, class TargetFakeObject>
-ClassPtr Class::New(Isolate* isolate, bool register_class) {
+ClassPtr Class::New(IsolateGroup* isolate_group, bool register_class) {
   ASSERT(Object::class_class() != Class::null());
   Class& result = Class::Handle();
   {
@@ -2768,7 +2776,7 @@ ClassPtr Class::New(Isolate* isolate, bool register_class) {
   NOT_IN_PRECOMPILED(result.set_kernel_offset(0));
   result.InitEmptyFields();
   if (register_class) {
-    isolate->class_table()->Register(result);
+    isolate_group->class_table()->Register(result);
   }
   return result.raw();
 }
@@ -3088,11 +3096,11 @@ intptr_t Class::ComputeNumTypeArguments() const {
   ASSERT(is_declaration_loaded());
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
   const intptr_t num_type_params = NumTypeParameters();
 
   if ((super_type() == AbstractType::null()) ||
-      (super_type() == isolate->object_store()->object_type())) {
+      (super_type() == isolate_group->object_store()->object_type())) {
     return num_type_params;
   }
 
@@ -3197,11 +3205,12 @@ TypeArgumentsPtr Class::InstantiateToBounds(Thread* thread) const {
 ClassPtr Class::SuperClass(bool original_classes) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
+  auto isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
   if (super_type() == AbstractType::null()) {
     if (id() == kTypeArgumentsCid) {
       // Pretend TypeArguments objects are Dart instances.
-      return isolate->class_table()->At(kInstanceCid);
+      return isolate_group->class_table()->At(kInstanceCid);
     }
     return Class::null();
   }
@@ -3210,7 +3219,7 @@ ClassPtr Class::SuperClass(bool original_classes) const {
   if (original_classes) {
     return isolate->GetClassForHeapWalkAt(type_class_id);
   } else {
-    return isolate->class_table()->At(type_class_id);
+    return isolate_group->class_table()->At(type_class_id);
   }
 }
 
@@ -3271,10 +3280,9 @@ UnboxedFieldBitmap Class::CalculateFieldOffsets() const {
     set_num_native_fields(super.num_native_fields());
 
     if (FLAG_precompiled_mode) {
-      host_bitmap = Isolate::Current()
-                        ->group()
-                        ->shared_class_table()
-                        ->GetUnboxedFieldsMapAt(super.id());
+      host_bitmap =
+          IsolateGroup::Current()->shared_class_table()->GetUnboxedFieldsMapAt(
+              super.id());
     }
   }
   // If the super class is parameterized, use the same type_arguments field,
@@ -3587,7 +3595,7 @@ bool Library::FindPragma(Thread* T,
                          const Object& obj,
                          const String& pragma_name,
                          Object* options) {
-  auto I = T->isolate();
+  auto IG = T->isolate_group();
   auto Z = T->zone();
   auto& lib = Library::Handle(Z);
 
@@ -3624,7 +3632,7 @@ bool Library::FindPragma(Thread* T,
   ASSERT(metadata_obj.IsArray());
 
   auto& metadata = Array::Cast(metadata_obj);
-  auto& pragma_class = Class::Handle(Z, I->object_store()->pragma_class());
+  auto& pragma_class = Class::Handle(Z, IG->object_store()->pragma_class());
   auto& pragma_name_field =
       Field::Handle(Z, pragma_class.LookupField(Symbols::name()));
   auto& pragma_options_field =
@@ -3769,9 +3777,9 @@ ArrayPtr Class::invocation_dispatcher_cache() const {
 
 void Class::Finalize() const {
   auto thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
   ASSERT(thread->IsMutatorThread());
-  ASSERT(!isolate->all_classes_finalized());
+  ASSERT(!thread->isolate()->all_classes_finalized());
   ASSERT(!is_finalized());
   // Prefinalized classes have a VM internal representation and no Dart fields.
   // Their instance size  is precomputed and field offsets are known.
@@ -3779,12 +3787,12 @@ void Class::Finalize() const {
     // Compute offsets of instance fields, instance size and bitmap for unboxed
     // fields.
     const auto host_bitmap = CalculateFieldOffsets();
-    if (raw() == isolate->class_table()->At(id())) {
+    if (raw() == isolate_group->class_table()->At(id())) {
       // Sets the new size in the class table.
-      isolate->class_table()->SetAt(id(), raw());
+      isolate_group->class_table()->SetAt(id(), raw());
       if (FLAG_precompiled_mode && !ClassTable::IsTopLevelCid(id())) {
-        isolate->group()->shared_class_table()->SetUnboxedFieldsMapAt(
-            id(), host_bitmap);
+        isolate_group->shared_class_table()->SetUnboxedFieldsMapAt(id(),
+                                                                   host_bitmap);
       }
     }
   }
@@ -3885,9 +3893,9 @@ void Class::DisableAllCHAOptimizedCode() {
   DisableCHAOptimizedCode(Class::Handle());
 }
 
-bool Class::TraceAllocation(Isolate* isolate) const {
+bool Class::TraceAllocation(IsolateGroup* isolate_group) const {
 #ifndef PRODUCT
-  auto class_table = isolate->group()->shared_class_table();
+  auto class_table = isolate_group->shared_class_table();
   return class_table->TraceAllocationFor(id());
 #else
   return false;
@@ -3896,10 +3904,10 @@ bool Class::TraceAllocation(Isolate* isolate) const {
 
 void Class::SetTraceAllocation(bool trace_allocation) const {
 #ifndef PRODUCT
-  Isolate* isolate = Isolate::Current();
-  const bool changed = trace_allocation != this->TraceAllocation(isolate);
+  auto isolate_group = IsolateGroup::Current();
+  const bool changed = trace_allocation != this->TraceAllocation(isolate_group);
   if (changed) {
-    auto class_table = isolate->group()->shared_class_table();
+    auto class_table = isolate_group->shared_class_table();
     class_table->SetTraceAllocationFor(id(), trace_allocation);
     DisableAllocationStub();
   }
@@ -4444,7 +4452,7 @@ ClassPtr Class::NewCommon(intptr_t index) {
 
 template <class FakeInstance, class TargetFakeInstance>
 ClassPtr Class::New(intptr_t index,
-                    Isolate* isolate,
+                    IsolateGroup* isolate_group,
                     bool register_class,
                     bool is_abstract) {
   Class& result =
@@ -4453,7 +4461,7 @@ ClassPtr Class::New(intptr_t index,
     result.set_is_abstract();
   }
   if (register_class) {
-    isolate->class_table()->Register(result);
+    isolate_group->class_table()->Register(result);
   }
   return result.raw();
 }
@@ -4482,7 +4490,8 @@ ClassPtr Class::New(const Library& lib,
 }
 
 ClassPtr Class::NewInstanceClass() {
-  return Class::New<Instance, RTN::Instance>(kIllegalCid, Isolate::Current());
+  return Class::New<Instance, RTN::Instance>(kIllegalCid,
+                                             IsolateGroup::Current());
 }
 
 ClassPtr Class::NewNativeWrapper(const Library& library,
@@ -4522,7 +4531,7 @@ ClassPtr Class::NewNativeWrapper(const Library& library,
   }
 }
 
-ClassPtr Class::NewStringClass(intptr_t class_id, Isolate* isolate) {
+ClassPtr Class::NewStringClass(intptr_t class_id, IsolateGroup* isolate_group) {
   intptr_t host_instance_size, target_instance_size;
   if (class_id == kOneByteStringCid) {
     host_instance_size = OneByteString::InstanceSize();
@@ -4542,8 +4551,8 @@ ClassPtr Class::NewStringClass(intptr_t class_id, Isolate* isolate) {
     target_instance_size = compiler::target::RoundedAllocationSize(
         RTN::ExternalTwoByteString::InstanceSize());
   }
-  Class& result = Class::Handle(
-      New<String, RTN::String>(class_id, isolate, /*register_class=*/false));
+  Class& result = Class::Handle(New<String, RTN::String>(
+      class_id, isolate_group, /*register_class=*/false));
   result.set_instance_size(host_instance_size, target_instance_size);
 
   const intptr_t host_next_field_offset = String::NextFieldOffset();
@@ -4551,17 +4560,18 @@ ClassPtr Class::NewStringClass(intptr_t class_id, Isolate* isolate) {
   result.set_next_field_offset(host_next_field_offset,
                                target_next_field_offset);
   result.set_is_prefinalized();
-  isolate->class_table()->Register(result);
+  isolate_group->class_table()->Register(result);
   return result.raw();
 }
 
-ClassPtr Class::NewTypedDataClass(intptr_t class_id, Isolate* isolate) {
+ClassPtr Class::NewTypedDataClass(intptr_t class_id,
+                                  IsolateGroup* isolate_group) {
   ASSERT(IsTypedDataClassId(class_id));
   const intptr_t host_instance_size = TypedData::InstanceSize();
   const intptr_t target_instance_size =
       compiler::target::RoundedAllocationSize(RTN::TypedData::InstanceSize());
   Class& result = Class::Handle(New<TypedData, RTN::TypedData>(
-      class_id, isolate, /*register_class=*/false));
+      class_id, isolate_group, /*register_class=*/false));
   result.set_instance_size(host_instance_size, target_instance_size);
 
   const intptr_t host_next_field_offset = TypedData::NextFieldOffset();
@@ -4569,17 +4579,18 @@ ClassPtr Class::NewTypedDataClass(intptr_t class_id, Isolate* isolate) {
   result.set_next_field_offset(host_next_field_offset,
                                target_next_field_offset);
   result.set_is_prefinalized();
-  isolate->class_table()->Register(result);
+  isolate_group->class_table()->Register(result);
   return result.raw();
 }
 
-ClassPtr Class::NewTypedDataViewClass(intptr_t class_id, Isolate* isolate) {
+ClassPtr Class::NewTypedDataViewClass(intptr_t class_id,
+                                      IsolateGroup* isolate_group) {
   ASSERT(IsTypedDataViewClassId(class_id));
   const intptr_t host_instance_size = TypedDataView::InstanceSize();
   const intptr_t target_instance_size = compiler::target::RoundedAllocationSize(
       RTN::TypedDataView::InstanceSize());
   Class& result = Class::Handle(New<TypedDataView, RTN::TypedDataView>(
-      class_id, isolate, /*register_class=*/false));
+      class_id, isolate_group, /*register_class=*/false));
   result.set_instance_size(host_instance_size, target_instance_size);
 
   const intptr_t host_next_field_offset = TypedDataView::NextFieldOffset();
@@ -4588,17 +4599,18 @@ ClassPtr Class::NewTypedDataViewClass(intptr_t class_id, Isolate* isolate) {
   result.set_next_field_offset(host_next_field_offset,
                                target_next_field_offset);
   result.set_is_prefinalized();
-  isolate->class_table()->Register(result);
+  isolate_group->class_table()->Register(result);
   return result.raw();
 }
 
-ClassPtr Class::NewExternalTypedDataClass(intptr_t class_id, Isolate* isolate) {
+ClassPtr Class::NewExternalTypedDataClass(intptr_t class_id,
+                                          IsolateGroup* isolate_group) {
   ASSERT(IsExternalTypedDataClassId(class_id));
   const intptr_t host_instance_size = ExternalTypedData::InstanceSize();
   const intptr_t target_instance_size = compiler::target::RoundedAllocationSize(
       RTN::ExternalTypedData::InstanceSize());
   Class& result = Class::Handle(New<ExternalTypedData, RTN::ExternalTypedData>(
-      class_id, isolate, /*register_class=*/false));
+      class_id, isolate_group, /*register_class=*/false));
 
   const intptr_t host_next_field_offset = ExternalTypedData::NextFieldOffset();
   const intptr_t target_next_field_offset =
@@ -4607,17 +4619,18 @@ ClassPtr Class::NewExternalTypedDataClass(intptr_t class_id, Isolate* isolate) {
   result.set_next_field_offset(host_next_field_offset,
                                target_next_field_offset);
   result.set_is_prefinalized();
-  isolate->class_table()->Register(result);
+  isolate_group->class_table()->Register(result);
   return result.raw();
 }
 
-ClassPtr Class::NewPointerClass(intptr_t class_id, Isolate* isolate) {
+ClassPtr Class::NewPointerClass(intptr_t class_id,
+                                IsolateGroup* isolate_group) {
   ASSERT(IsFfiPointerClassId(class_id));
   intptr_t host_instance_size = Pointer::InstanceSize();
   intptr_t target_instance_size =
       compiler::target::RoundedAllocationSize(RTN::Pointer::InstanceSize());
-  Class& result = Class::Handle(
-      New<Pointer, RTN::Pointer>(class_id, isolate, /*register_class=*/false));
+  Class& result = Class::Handle(New<Pointer, RTN::Pointer>(
+      class_id, isolate_group, /*register_class=*/false));
   result.set_instance_size(host_instance_size, target_instance_size);
   result.set_type_arguments_field_offset(Pointer::type_arguments_offset(),
                                          RTN::Pointer::type_arguments_offset());
@@ -4628,7 +4641,7 @@ ClassPtr Class::NewPointerClass(intptr_t class_id, Isolate* isolate) {
   result.set_next_field_offset(host_next_field_offset,
                                target_next_field_offset);
   result.set_is_prefinalized();
-  isolate->class_table()->Register(result);
+  isolate_group->class_table()->Register(result);
   return result.raw();
 }
 
@@ -5089,7 +5102,7 @@ bool Class::IsSubtypeOf(const Class& cls,
     //     T0 <: T1 iff Future<S0> <: T1 and S0 <: T1
     if (this_cid == kFutureOrCid) {
       // Check Future<S0> <: T1.
-      ObjectStore* object_store = Isolate::Current()->object_store();
+      ObjectStore* object_store = IsolateGroup::Current()->object_store();
       const Class& future_class =
           Class::Handle(zone, object_store->future_class());
       ASSERT(!future_class.IsNull() && future_class.NumTypeParameters() == 1 &&
@@ -5639,7 +5652,8 @@ typedef UnorderedHashSet<CanonicalNumberTraits<Mint, CanonicalMintKey> >
 
 // Returns an instance of Double or Double::null().
 DoublePtr Class::LookupCanonicalDouble(Zone* zone, double value) const {
-  ASSERT(this->raw() == Isolate::Current()->object_store()->double_class());
+  ASSERT(this->raw() ==
+         IsolateGroup::Current()->object_store()->double_class());
   if (this->constants() == Array::null()) return Double::null();
 
   Double& canonical_value = Double::Handle(zone);
@@ -5651,7 +5665,7 @@ DoublePtr Class::LookupCanonicalDouble(Zone* zone, double value) const {
 
 // Returns an instance of Mint or Mint::null().
 MintPtr Class::LookupCanonicalMint(Zone* zone, int64_t value) const {
-  ASSERT(this->raw() == Isolate::Current()->object_store()->mint_class());
+  ASSERT(this->raw() == IsolateGroup::Current()->object_store()->mint_class());
   if (this->constants() == Array::null()) return Mint::null();
 
   Mint& canonical_value = Mint::Handle(zone);
@@ -6497,11 +6511,11 @@ TypeArgumentsPtr TypeArguments::Canonicalize(Thread* thread,
     return TypeArguments::null();
   }
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
-  ObjectStore* object_store = isolate->object_store();
+  auto isolate_group = thread->isolate_group();
+  ObjectStore* object_store = isolate_group->object_store();
   TypeArguments& result = TypeArguments::Handle(zone);
   {
-    SafepointMutexLocker ml(isolate->group()->type_canonicalization_mutex());
+    SafepointMutexLocker ml(isolate_group->type_canonicalization_mutex());
     CanonicalTypeArgumentsSet table(zone,
                                     object_store->canonical_type_arguments());
     result ^= table.GetOrNull(CanonicalTypeArgumentsKey(*this));
@@ -6525,7 +6539,7 @@ TypeArgumentsPtr TypeArguments::Canonicalize(Thread* thread,
     if (IsRecursive()) {
       SetHash(0);
     }
-    SafepointMutexLocker ml(isolate->group()->type_canonicalization_mutex());
+    SafepointMutexLocker ml(isolate_group->type_canonicalization_mutex());
     CanonicalTypeArgumentsSet table(zone,
                                     object_store->canonical_type_arguments());
     // Since we canonicalized some type arguments above we need to lookup
@@ -7017,7 +7031,7 @@ Function::DefaultTypeArgumentsKind Function::DefaultTypeArgumentsKindFor(
 
 FunctionPtr Function::GetGeneratedClosure() const {
   const auto& closure_functions = GrowableObjectArray::Handle(
-      Isolate::Current()->object_store()->closure_functions());
+      IsolateGroup::Current()->object_store()->closure_functions());
   auto& entry = Object::Handle();
 
   for (auto i = (closure_functions.Length() - 1); i >= 0; i--) {
@@ -7225,7 +7239,7 @@ TypePtr Function::SignatureType(Nullability nullability) const {
     Class& scope_class = Class::Handle(Owner());
     if (!scope_class.IsTypedefClass() ||
         (scope_class.signature_function() != raw())) {
-      scope_class = Isolate::Current()->object_store()->closure_class();
+      scope_class = IsolateGroup::Current()->object_store()->closure_class();
     }
     const TypeArguments& signature_type_arguments =
         TypeArguments::Handle(scope_class.type_parameters());
@@ -8711,7 +8725,7 @@ bool Function::SafeToClosurize() const {
 
 bool Function::IsDynamicClosureCallDispatcher(Thread* thread) const {
   if (!IsInvokeFieldDispatcher()) return false;
-  if (thread->isolate()->object_store()->closure_class() != Owner()) {
+  if (thread->isolate_group()->object_store()->closure_class() != Owner()) {
     return false;
   }
   const auto& handle = String::Handle(thread->zone(), name());
@@ -8813,7 +8827,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
                                     &is_generic_covariant_impl);
 
     Type& object_type = Type::Handle(zone, Type::ObjectType());
-    ObjectStore* object_store = Isolate::Current()->object_store();
+    ObjectStore* object_store = IsolateGroup::Current()->object_store();
     object_type = nnbd_mode() == NNBDMode::kOptedInLib
                       ? object_store->nullable_object_type()
                       : object_store->legacy_object_type();
@@ -10651,7 +10665,7 @@ const char* Field::GuardedPropertiesAsCString() const {
   }
 
   const Class& cls =
-      Class::Handle(Isolate::Current()->class_table()->At(guarded_cid()));
+      Class::Handle(IsolateGroup::Current()->class_table()->At(guarded_cid()));
   const char* class_name = String::Handle(cls.Name()).ToCString();
 
   if (IsBuiltinListClassId(guarded_cid()) && !is_nullable() && is_final()) {
@@ -11143,7 +11157,7 @@ void Script::LookupSourceAndLineStarts(Zone* zone) const {
     Library& lib = Library::Handle(zone);
     Script& script = Script::Handle(zone);
     const GrowableObjectArray& libs = GrowableObjectArray::Handle(
-        zone, Isolate::Current()->object_store()->libraries());
+        zone, IsolateGroup::Current()->object_store()->libraries());
     for (intptr_t i = 0; i < libs.Length(); i++) {
       lib ^= libs.At(i);
       script = lib.LookupScript(uri, /* useResolvedUri = */ true);
@@ -11560,9 +11574,9 @@ const char* Script::ToCString() const {
 LibraryPtr Script::FindLibrary() const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
-  const GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(zone, isolate->object_store()->libraries());
+  auto isolate_group = thread->isolate_group();
+  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
+      zone, isolate_group->object_store()->libraries());
   Library& lib = Library::Handle(zone);
   Array& scripts = Array::Handle(zone);
   for (intptr_t i = 0; i < libs.Length(); i++) {
@@ -11911,7 +11925,7 @@ void Library::InvalidateResolvedName(const String& name) const {
   // caches that contain an entry for this name. If the name was previously
   // looked up but could not be resolved, the cache contains a null entry.
   GrowableObjectArray& libs = GrowableObjectArray::Handle(
-      zone, thread->isolate()->object_store()->libraries());
+      zone, thread->isolate_group()->object_store()->libraries());
   Library& lib = Library::Handle(zone);
   intptr_t num_libs = libs.Length();
   for (intptr_t i = 0; i < num_libs; i++) {
@@ -11925,7 +11939,7 @@ void Library::InvalidateResolvedName(const String& name) const {
 // Invalidate all exported names caches in the isolate.
 void Library::InvalidateExportedNamesCaches() {
   GrowableObjectArray& libs = GrowableObjectArray::Handle(
-      Isolate::Current()->object_store()->libraries());
+      IsolateGroup::Current()->object_store()->libraries());
   Library& lib = Library::Handle();
   intptr_t num_libs = libs.Length();
   for (intptr_t i = 0; i < num_libs; i++) {
@@ -12652,7 +12666,7 @@ void Library::set_flags(uint8_t flags) const {
   StoreNonPointer(&raw_ptr()->flags_, flags);
 }
 
-void Library::InitCoreLibrary(Isolate* isolate) {
+void Library::InitCoreLibrary(IsolateGroup* isolate_group) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const String& core_lib_url = Symbols::DartCore();
@@ -12660,8 +12674,9 @@ void Library::InitCoreLibrary(Isolate* isolate) {
       Library::Handle(zone, Library::NewLibraryHelper(core_lib_url, false));
   core_lib.SetLoadRequested();
   core_lib.Register(thread);
-  isolate->object_store()->set_bootstrap_library(ObjectStore::kCore, core_lib);
-  isolate->object_store()->set_root_library(Library::Handle());
+  isolate_group->object_store()->set_bootstrap_library(ObjectStore::kCore,
+                                                       core_lib);
+  isolate_group->object_store()->set_root_library(Library::Handle());
 }
 
 // Invoke the function, or noSuchMethod if it is null.
@@ -12728,7 +12743,7 @@ ObjectPtr Library::InvokeGetter(const String& getter_name,
       // exception of "main".
       if (obj.IsFunction() && check_is_entrypoint) {
         if (!getter_name.Equals(String::Handle(String::New("main"))) ||
-            raw() != Isolate::Current()->object_store()->root_library()) {
+            raw() != IsolateGroup::Current()->object_store()->root_library()) {
           CHECK_ERROR(Function::Cast(obj).VerifyClosurizedEntryPoint());
         }
       }
@@ -12901,7 +12916,8 @@ ObjectPtr Library::EvaluateCompiledExpression(
       arguments, type_arguments);
 }
 
-void Library::InitNativeWrappersLibrary(Isolate* isolate, bool is_kernel) {
+void Library::InitNativeWrappersLibrary(IsolateGroup* isolate_group,
+                                        bool is_kernel) {
   static const int kNumNativeWrappersClasses = 4;
   COMPILE_ASSERT((kNumNativeWrappersClasses > 0) &&
                  (kNumNativeWrappersClasses < 10));
@@ -12915,7 +12931,7 @@ void Library::InitNativeWrappersLibrary(Isolate* isolate, bool is_kernel) {
   native_flds_lib.SetLoadRequested();
   native_flds_lib.Register(thread);
   native_flds_lib.SetLoadInProgress();
-  isolate->object_store()->set_native_wrappers_library(native_flds_lib);
+  isolate_group->object_store()->set_native_wrappers_library(native_flds_lib);
   static const char* const kNativeWrappersClass = "NativeFieldWrapperClass";
   static const int kNameLength = 25;
   ASSERT(kNameLength == (strlen(kNativeWrappersClass) + 1 + 1));
@@ -13015,8 +13031,7 @@ static ObjectPtr EvaluateCompiledExpressionHelper(
 // Returns library with given url in current isolate, or NULL.
 LibraryPtr Library::LookupLibrary(Thread* thread, const String& url) {
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
-  ObjectStore* object_store = isolate->object_store();
+  ObjectStore* object_store = thread->isolate_group()->object_store();
 
   // Make sure the URL string has an associated hash code
   // to speed up the repeated equality checks.
@@ -13053,13 +13068,13 @@ bool Library::IsPrivate(const String& name) {
 void Library::AllocatePrivateKey() const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  if (isolate->group()->IsReloading()) {
+  if (isolate_group->IsReloading()) {
     // When reloading, we need to make sure we use the original private key
     // if this library previously existed.
-    IsolateReloadContext* reload_context = isolate->reload_context();
+    IsolateReloadContext* reload_context = thread->isolate()->reload_context();
     const String& original_key =
         String::Handle(reload_context->FindLibraryPrivateKey(*this));
     if (!original_key.IsNull()) {
@@ -13075,8 +13090,8 @@ void Library::AllocatePrivateKey() const {
   const String& url = String::Handle(zone, this->url());
   intptr_t hash_value = url.Hash() & hash_mask;
 
-  const GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(zone, isolate->object_store()->libraries());
+  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
+      zone, isolate_group->object_store()->libraries());
   intptr_t sequence_value = libs.Length();
 
   char private_key[32];
@@ -13133,9 +13148,9 @@ StringPtr Library::PrivateName(const String& name) const {
 LibraryPtr Library::GetLibrary(intptr_t index) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
-  const GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(zone, isolate->object_store()->libraries());
+  auto isolate_group = thread->isolate_group();
+  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
+      zone, isolate_group->object_store()->libraries());
   ASSERT(!libs.IsNull());
   if ((0 <= index) && (index < libs.Length())) {
     Library& lib = Library::Handle(zone);
@@ -13147,8 +13162,8 @@ LibraryPtr Library::GetLibrary(intptr_t index) {
 
 void Library::Register(Thread* thread) const {
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
-  ObjectStore* object_store = isolate->object_store();
+  auto isolate_group = thread->isolate_group();
+  ObjectStore* object_store = isolate_group->object_store();
 
   // A library is "registered" in two places:
   // - A growable array mapping from index to library.
@@ -13176,7 +13191,7 @@ void Library::Register(Thread* thread) const {
 void Library::RegisterLibraries(Thread* thread,
                                 const GrowableObjectArray& libs) {
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
   Library& lib = Library::Handle(zone);
   String& lib_url = String::Handle(zone);
 
@@ -13189,66 +13204,66 @@ void Library::RegisterLibraries(Thread* thread,
     map.InsertNewOrGetValue(lib_url, lib);
   }
   // Now remember these in the isolate's object store.
-  isolate->object_store()->set_libraries(libs);
-  isolate->object_store()->set_libraries_map(map.Release());
+  isolate_group->object_store()->set_libraries(libs);
+  isolate_group->object_store()->set_libraries_map(map.Release());
 }
 
 LibraryPtr Library::AsyncLibrary() {
-  return Isolate::Current()->object_store()->async_library();
+  return IsolateGroup::Current()->object_store()->async_library();
 }
 
 LibraryPtr Library::ConvertLibrary() {
-  return Isolate::Current()->object_store()->convert_library();
+  return IsolateGroup::Current()->object_store()->convert_library();
 }
 
 LibraryPtr Library::CoreLibrary() {
-  return Isolate::Current()->object_store()->core_library();
+  return IsolateGroup::Current()->object_store()->core_library();
 }
 
 LibraryPtr Library::CollectionLibrary() {
-  return Isolate::Current()->object_store()->collection_library();
+  return IsolateGroup::Current()->object_store()->collection_library();
 }
 
 LibraryPtr Library::DeveloperLibrary() {
-  return Isolate::Current()->object_store()->developer_library();
+  return IsolateGroup::Current()->object_store()->developer_library();
 }
 
 LibraryPtr Library::FfiLibrary() {
-  return Isolate::Current()->object_store()->ffi_library();
+  return IsolateGroup::Current()->object_store()->ffi_library();
 }
 
 LibraryPtr Library::InternalLibrary() {
-  return Isolate::Current()->object_store()->_internal_library();
+  return IsolateGroup::Current()->object_store()->_internal_library();
 }
 
 LibraryPtr Library::IsolateLibrary() {
-  return Isolate::Current()->object_store()->isolate_library();
+  return IsolateGroup::Current()->object_store()->isolate_library();
 }
 
 LibraryPtr Library::MathLibrary() {
-  return Isolate::Current()->object_store()->math_library();
+  return IsolateGroup::Current()->object_store()->math_library();
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 LibraryPtr Library::MirrorsLibrary() {
-  return Isolate::Current()->object_store()->mirrors_library();
+  return IsolateGroup::Current()->object_store()->mirrors_library();
 }
 #endif
 
 LibraryPtr Library::NativeWrappersLibrary() {
-  return Isolate::Current()->object_store()->native_wrappers_library();
+  return IsolateGroup::Current()->object_store()->native_wrappers_library();
 }
 
 LibraryPtr Library::ProfilerLibrary() {
-  return Isolate::Current()->object_store()->profiler_library();
+  return IsolateGroup::Current()->object_store()->profiler_library();
 }
 
 LibraryPtr Library::TypedDataLibrary() {
-  return Isolate::Current()->object_store()->typed_data_library();
+  return IsolateGroup::Current()->object_store()->typed_data_library();
 }
 
 LibraryPtr Library::VMServiceLibrary() {
-  return Isolate::Current()->object_store()->_vmservice_library();
+  return IsolateGroup::Current()->object_store()->_vmservice_library();
 }
 
 const char* Library::ToCString() const {
@@ -13640,7 +13655,7 @@ ErrorPtr Library::CompileAll(bool ignore_error /* = false */) {
   Zone* zone = thread->zone();
   Error& error = Error::Handle(zone);
   const GrowableObjectArray& libs = GrowableObjectArray::Handle(
-      Isolate::Current()->object_store()->libraries());
+      IsolateGroup::Current()->object_store()->libraries());
   Library& lib = Library::Handle(zone);
   Class& cls = Class::Handle(zone);
   for (int i = 0; i < libs.Length(); i++) {
@@ -13666,7 +13681,7 @@ ErrorPtr Library::CompileAll(bool ignore_error /* = false */) {
   // closures until we have reached the end of the "worklist".
   Object& result = Object::Handle(zone);
   const GrowableObjectArray& closures = GrowableObjectArray::Handle(
-      zone, Isolate::Current()->object_store()->closure_functions());
+      zone, IsolateGroup::Current()->object_store()->closure_functions());
   Function& func = Function::Handle(zone);
   for (int i = 0; i < closures.Length(); i++) {
     func ^= closures.At(i);
@@ -13689,7 +13704,7 @@ ErrorPtr Library::FinalizeAllClasses() {
   Zone* zone = thread->zone();
   Error& error = Error::Handle(zone);
   const GrowableObjectArray& libs = GrowableObjectArray::Handle(
-      Isolate::Current()->object_store()->libraries());
+      IsolateGroup::Current()->object_store()->libraries());
   Library& lib = Library::Handle(zone);
   Class& cls = Class::Handle(zone);
   for (int i = 0; i < libs.Length(); i++) {
@@ -14219,7 +14234,7 @@ CompressedStackMaps::Iterator::Iterator(Thread* thread,
           // Only look up the global table if the map will end up using it.
           maps.UsesGlobalTable() ? CompressedStackMaps::Handle(
                                        thread->zone(),
-                                       thread->isolate()
+                                       thread->isolate_group()
                                            ->object_store()
                                            ->canonicalized_stack_map_entries())
                                  : Object::null_compressed_stackmaps()) {}
@@ -15152,7 +15167,7 @@ bool ICData::ValidateInterceptor(const Function& target) const {
            target.name();
   }
 #endif
-  ObjectStore* store = Isolate::Current()->object_store();
+  ObjectStore* store = IsolateGroup::Current()->object_store();
   ASSERT((target.raw() == store->simple_instance_of_true_function()) ||
          (target.raw() == store->simple_instance_of_false_function()));
   const String& instance_of_name = String::Handle(
@@ -16095,7 +16110,7 @@ void Code::set_static_calls_target_table(const Array& value) const {
 ObjectPoolPtr Code::GetObjectPool() const {
 #if defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    return Isolate::Current()->object_store()->global_object_pool();
+    return IsolateGroup::Current()->object_store()->global_object_pool();
   }
 #endif
   return object_pool();
@@ -16531,14 +16546,15 @@ bool Code::SlowFindRawCodeVisitor::FindObject(ObjectPtr raw_obj) const {
   return CodeLayout::ContainsPC(raw_obj, pc_);
 }
 
-CodePtr Code::LookupCodeInIsolate(Isolate* isolate, uword pc) {
-  ASSERT((isolate == Isolate::Current()) || (isolate == Dart::vm_isolate()));
-  if (isolate->heap() == NULL) {
+CodePtr Code::LookupCodeInIsolateGroup(IsolateGroup* isolate_group, uword pc) {
+  ASSERT((isolate_group == IsolateGroup::Current()) ||
+         (isolate_group == Dart::vm_isolate_group()));
+  if (isolate_group->heap() == NULL) {
     return Code::null();
   }
   HeapIterationScope heap_iteration_scope(Thread::Current());
   SlowFindRawCodeVisitor visitor(pc);
-  ObjectPtr needle = isolate->heap()->FindOldObject(&visitor);
+  ObjectPtr needle = isolate_group->heap()->FindOldObject(&visitor);
   if (needle != Code::null()) {
     return static_cast<CodePtr>(needle);
   }
@@ -16546,11 +16562,11 @@ CodePtr Code::LookupCodeInIsolate(Isolate* isolate, uword pc) {
 }
 
 CodePtr Code::LookupCode(uword pc) {
-  return LookupCodeInIsolate(Isolate::Current(), pc);
+  return LookupCodeInIsolateGroup(IsolateGroup::Current(), pc);
 }
 
 CodePtr Code::LookupCodeInVmIsolate(uword pc) {
-  return LookupCodeInIsolate(Dart::vm_isolate(), pc);
+  return LookupCodeInIsolateGroup(Dart::vm_isolate_group(), pc);
 }
 
 // Given a pc and a timestamp, lookup the code.
@@ -17815,14 +17831,15 @@ void UnhandledException::set_stacktrace(const Instance& stacktrace) const {
 
 const char* UnhandledException::ToErrorCString() const {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
+  auto isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
   NoReloadScope no_reload_scope(isolate, thread);
   HANDLESCOPE(thread);
   Object& strtmp = Object::Handle();
   const char* exc_str;
-  if (exception() == isolate->object_store()->out_of_memory()) {
+  if (exception() == isolate_group->object_store()->out_of_memory()) {
     exc_str = "Out of Memory";
-  } else if (exception() == isolate->object_store()->stack_overflow()) {
+  } else if (exception() == isolate_group->object_store()->stack_overflow()) {
     exc_str = "Stack Overflow";
   } else {
     const Instance& exc = Instance::Handle(exception());
@@ -18133,7 +18150,7 @@ uint32_t Instance::CanonicalizeHash() const {
   Instance& member = Instance::Handle();
 
   const auto unboxed_fields_bitmap =
-      thread->isolate()->group()->shared_class_table()->GetUnboxedFieldsMapAt(
+      thread->isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(
           GetClassId());
 
   for (intptr_t offset = Instance::NextFieldOffset();
@@ -18203,7 +18220,7 @@ void Instance::CanonicalizeFieldsLocked(Thread* thread) const {
   } else {
 #if defined(DEBUG)
     // Make sure that we are not missing any fields.
-    CheckForPointers has_pointers(Isolate::Current()->group());
+    CheckForPointers has_pointers(IsolateGroup::Current());
     this->raw()->ptr()->VisitPointers(&has_pointers);
     ASSERT(!has_pointers.has_pointers());
 #endif  // DEBUG
@@ -18907,14 +18924,14 @@ AbstractTypePtr AbstractType::NormalizeFutureOrType(Heap::Space space) const {
           .ToNullability(Nullability::kLegacy, space);
     }
     if (cid == kNeverCid && unwrapped_type.IsNonNullable()) {
-      ObjectStore* object_store = Isolate::Current()->object_store();
+      ObjectStore* object_store = IsolateGroup::Current()->object_store();
       const Type& future_never_type =
           Type::Handle(zone, object_store->non_nullable_future_never_type());
       ASSERT(!future_never_type.IsNull());
       return future_never_type.ToNullability(nullability(), space);
     }
     if (cid == kNullCid) {
-      ObjectStore* object_store = Isolate::Current()->object_store();
+      ObjectStore* object_store = IsolateGroup::Current()->object_store();
       ASSERT(object_store->nullable_future_null_type() != Type::null());
       return object_store->nullable_future_null_type();
     }
@@ -19544,7 +19561,7 @@ void AbstractType::SetTypeTestingStub(const Code& stub) const {
 }
 
 TypePtr Type::NullType() {
-  return Isolate::Current()->object_store()->null_type();
+  return IsolateGroup::Current()->object_store()->null_type();
 }
 
 TypePtr Type::DynamicType() {
@@ -19556,71 +19573,71 @@ TypePtr Type::VoidType() {
 }
 
 TypePtr Type::NeverType() {
-  return Isolate::Current()->object_store()->never_type();
+  return IsolateGroup::Current()->object_store()->never_type();
 }
 
 TypePtr Type::ObjectType() {
-  return Isolate::Current()->object_store()->object_type();
+  return IsolateGroup::Current()->object_store()->object_type();
 }
 
 TypePtr Type::BoolType() {
-  return Isolate::Current()->object_store()->bool_type();
+  return IsolateGroup::Current()->object_store()->bool_type();
 }
 
 TypePtr Type::IntType() {
-  return Isolate::Current()->object_store()->int_type();
+  return IsolateGroup::Current()->object_store()->int_type();
 }
 
 TypePtr Type::NullableIntType() {
-  return Isolate::Current()->object_store()->nullable_int_type();
+  return IsolateGroup::Current()->object_store()->nullable_int_type();
 }
 
 TypePtr Type::SmiType() {
-  return Isolate::Current()->object_store()->smi_type();
+  return IsolateGroup::Current()->object_store()->smi_type();
 }
 
 TypePtr Type::MintType() {
-  return Isolate::Current()->object_store()->mint_type();
+  return IsolateGroup::Current()->object_store()->mint_type();
 }
 
 TypePtr Type::Double() {
-  return Isolate::Current()->object_store()->double_type();
+  return IsolateGroup::Current()->object_store()->double_type();
 }
 
 TypePtr Type::NullableDouble() {
-  return Isolate::Current()->object_store()->nullable_double_type();
+  return IsolateGroup::Current()->object_store()->nullable_double_type();
 }
 
 TypePtr Type::Float32x4() {
-  return Isolate::Current()->object_store()->float32x4_type();
+  return IsolateGroup::Current()->object_store()->float32x4_type();
 }
 
 TypePtr Type::Float64x2() {
-  return Isolate::Current()->object_store()->float64x2_type();
+  return IsolateGroup::Current()->object_store()->float64x2_type();
 }
 
 TypePtr Type::Int32x4() {
-  return Isolate::Current()->object_store()->int32x4_type();
+  return IsolateGroup::Current()->object_store()->int32x4_type();
 }
 
 TypePtr Type::Number() {
-  return Isolate::Current()->object_store()->number_type();
+  return IsolateGroup::Current()->object_store()->number_type();
 }
 
 TypePtr Type::StringType() {
-  return Isolate::Current()->object_store()->string_type();
+  return IsolateGroup::Current()->object_store()->string_type();
 }
 
 TypePtr Type::ArrayType() {
-  return Isolate::Current()->object_store()->array_type();
+  return IsolateGroup::Current()->object_store()->array_type();
 }
 
 TypePtr Type::DartFunctionType() {
-  return Isolate::Current()->object_store()->function_type();
+  return IsolateGroup::Current()->object_store()->function_type();
 }
 
 TypePtr Type::DartTypeType() {
-  return Isolate::Current()->object_store()->type_type();
+  return IsolateGroup::Current()->object_store()->type_type();
 }
 
 TypePtr Type::NewNonParameterizedType(const Class& type_class) {
@@ -19719,7 +19736,7 @@ classid_t Type::type_class_id() const {
 }
 
 ClassPtr Type::type_class() const {
-  return Isolate::Current()->class_table()->At(type_class_id());
+  return IsolateGroup::Current()->class_table()->At(type_class_id());
 }
 
 bool Type::IsInstantiated(Genericity genericity,
@@ -20034,7 +20051,7 @@ AbstractTypePtr Type::Canonicalize(Thread* thread, TrailPtr trail) const {
     return this->raw();
   }
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
 
   const classid_t cid = type_class_id();
   if (cid == kDynamicCid) {
@@ -20056,7 +20073,7 @@ AbstractTypePtr Type::Canonicalize(Thread* thread, TrailPtr trail) const {
     Type& type = Type::Handle(zone, cls.declaration_type());
     if (type.IsNull()) {
       ASSERT(!cls.raw()->ptr()->InVMIsolateHeap() ||
-             (isolate == Dart::vm_isolate()));
+             (isolate_group == Dart::vm_isolate_group()));
       // Canonicalize the type arguments of the supertype, if any.
       TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
       type_args = type_args.Canonicalize(thread, trail);
@@ -20069,8 +20086,7 @@ AbstractTypePtr Type::Canonicalize(Thread* thread, TrailPtr trail) const {
       type = cls.declaration_type();
       // May be set while canonicalizing type args.
       if (type.IsNull()) {
-        SafepointMutexLocker ml(
-            isolate->group()->type_canonicalization_mutex());
+        SafepointMutexLocker ml(isolate_group->type_canonicalization_mutex());
         // Recheck if type exists.
         type = cls.declaration_type();
         if (type.IsNull()) {
@@ -20094,9 +20110,9 @@ AbstractTypePtr Type::Canonicalize(Thread* thread, TrailPtr trail) const {
   }
 
   AbstractType& type = Type::Handle(zone);
-  ObjectStore* object_store = isolate->object_store();
+  ObjectStore* object_store = isolate_group->object_store();
   {
-    SafepointMutexLocker ml(isolate->group()->type_canonicalization_mutex());
+    SafepointMutexLocker ml(isolate_group->type_canonicalization_mutex());
     CanonicalTypeSet table(zone, object_store->canonical_types());
     type ^= table.GetOrNull(CanonicalTypeKey(*this));
     ASSERT(object_store->canonical_types() == table.Release().raw());
@@ -20144,7 +20160,7 @@ AbstractTypePtr Type::Canonicalize(Thread* thread, TrailPtr trail) const {
 
     // Check to see if the type got added to canonical list as part of the
     // type arguments canonicalization.
-    SafepointMutexLocker ml(isolate->group()->type_canonicalization_mutex());
+    SafepointMutexLocker ml(isolate_group->type_canonicalization_mutex());
     CanonicalTypeSet table(zone, object_store->canonical_types());
     type ^= table.GetOrNull(CanonicalTypeKey(*this));
     if (type.IsNull()) {
@@ -20177,7 +20193,7 @@ bool Type::CheckIsCanonical(Thread* thread) const {
     return (raw() == Object::void_type().raw());
   }
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
   AbstractType& type = Type::Handle(zone);
   const Class& cls = Class::Handle(zone, type_class());
 
@@ -20189,9 +20205,9 @@ bool Type::CheckIsCanonical(Thread* thread) const {
     return (raw() == type.raw());
   }
 
-  ObjectStore* object_store = isolate->object_store();
+  ObjectStore* object_store = isolate_group->object_store();
   {
-    SafepointMutexLocker ml(isolate->group()->type_canonicalization_mutex());
+    SafepointMutexLocker ml(isolate_group->type_canonicalization_mutex());
     CanonicalTypeSet table(zone, object_store->canonical_types());
     type ^= table.GetOrNull(CanonicalTypeKey(*this));
     object_store->set_canonical_types(table.Release());
@@ -20696,7 +20712,7 @@ ClassPtr TypeParameter::parameterized_class() const {
   if (cid == kFunctionCid) {
     return Class::null();
   }
-  return Isolate::Current()->class_table()->At(cid);
+  return IsolateGroup::Current()->class_table()->At(cid);
 }
 
 void TypeParameter::set_parameterized_function(const Function& value) const {
@@ -20799,7 +20815,7 @@ AbstractTypePtr TypeParameter::Canonicalize(Thread* thread,
     return this->raw();
   }
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
 
   const Class& cls = Class::Handle(zone, parameterized_class());
   const Function& function = Function::Handle(
@@ -20820,9 +20836,9 @@ AbstractTypePtr TypeParameter::Canonicalize(Thread* thread,
     return type_parameter.raw();
   }
 
-  ObjectStore* object_store = isolate->object_store();
+  ObjectStore* object_store = isolate_group->object_store();
   {
-    SafepointMutexLocker ml(isolate->group()->type_canonicalization_mutex());
+    SafepointMutexLocker ml(isolate_group->type_canonicalization_mutex());
     CanonicalTypeParameterSet table(zone,
                                     object_store->canonical_type_parameters());
     type_parameter ^= table.GetOrNull(CanonicalTypeParameterKey(*this));
@@ -20848,7 +20864,7 @@ AbstractTypePtr TypeParameter::Canonicalize(Thread* thread,
 #if defined(DEBUG)
 bool TypeParameter::CheckIsCanonical(Thread* thread) const {
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
 
   const Class& cls = Class::Handle(zone, parameterized_class());
   const Function& function = Function::Handle(
@@ -20868,9 +20884,9 @@ bool TypeParameter::CheckIsCanonical(Thread* thread) const {
     return (raw() == type_parameter.raw());
   }
 
-  ObjectStore* object_store = isolate->object_store();
+  ObjectStore* object_store = isolate_group->object_store();
   {
-    SafepointMutexLocker ml(isolate->group()->type_canonicalization_mutex());
+    SafepointMutexLocker ml(isolate_group->type_canonicalization_mutex());
     CanonicalTypeParameterSet table(zone,
                                     object_store->canonical_type_parameters());
     type_parameter ^= table.GetOrNull(CanonicalTypeParameterKey(*this));
@@ -21357,7 +21373,7 @@ const char* Smi::ToCString() const {
 }
 
 ClassPtr Smi::Class() {
-  return Isolate::Current()->object_store()->smi_class();
+  return IsolateGroup::Current()->object_store()->smi_class();
 }
 
 void Mint::set_value(int64_t value) const {
@@ -21367,7 +21383,8 @@ void Mint::set_value(int64_t value) const {
 MintPtr Mint::New(int64_t val, Heap::Space space) {
   // Do not allocate a Mint if Smi would do.
   ASSERT(!Smi::IsValid(val));
-  ASSERT(Isolate::Current()->object_store()->mint_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->object_store()->mint_class() !=
+         Class::null());
   Mint& result = Mint::Handle();
   {
     ObjectPtr raw =
@@ -21390,8 +21407,9 @@ MintPtr Mint::NewCanonicalLocked(Thread* thread, int64_t value) {
   // Do not allocate a Mint if Smi would do.
   ASSERT(!Smi::IsValid(value));
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
-  const Class& cls = Class::Handle(zone, isolate->object_store()->mint_class());
+  auto isolate_group = thread->isolate_group();
+  const Class& cls =
+      Class::Handle(zone, isolate_group->object_store()->mint_class());
   Mint& canonical_value =
       Mint::Handle(zone, cls.LookupCanonicalMint(zone, value));
   if (!canonical_value.IsNull()) {
@@ -21487,7 +21505,8 @@ uint32_t Double::CanonicalizeHash() const {
 }
 
 DoublePtr Double::New(double d, Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->double_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->object_store()->double_class() !=
+         Class::null());
   Double& result = Double::Handle();
   {
     ObjectPtr raw =
@@ -21516,9 +21535,9 @@ DoublePtr Double::NewCanonical(double value) {
 
 DoublePtr Double::NewCanonicalLocked(Thread* thread, double value) {
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
   const Class& cls =
-      Class::Handle(zone, isolate->object_store()->double_class());
+      Class::Handle(zone, isolate_group->object_store()->double_class());
   // Linear search to see whether this value is already present in the
   // list of canonicalized constants.
   Double& canonical_value =
@@ -22341,8 +22360,8 @@ static FinalizablePersistentHandle* AddFinalizer(const Object& referent,
                                                  Dart_HandleFinalizer callback,
                                                  intptr_t external_size) {
   ASSERT(callback != NULL);
-  return FinalizablePersistentHandle::New(Isolate::Current(), referent, peer,
-                                          callback, external_size,
+  return FinalizablePersistentHandle::New(IsolateGroup::Current(), referent,
+                                          peer, callback, external_size,
                                           /*auto_delete=*/true);
 }
 
@@ -22592,9 +22611,9 @@ OneByteStringPtr ExternalOneByteString::EscapeSpecialCharacters(
 }
 
 OneByteStringPtr OneByteString::New(intptr_t len, Heap::Space space) {
-  ASSERT((Isolate::Current() == Dart::vm_isolate()) ||
-         ((Isolate::Current()->object_store() != NULL) &&
-          (Isolate::Current()->object_store()->one_byte_string_class() !=
+  ASSERT((IsolateGroup::Current() == Dart::vm_isolate_group()) ||
+         ((IsolateGroup::Current()->object_store() != NULL) &&
+          (IsolateGroup::Current()->object_store()->one_byte_string_class() !=
            Class::null())));
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
@@ -22800,7 +22819,7 @@ TwoByteStringPtr TwoByteString::EscapeSpecialCharacters(const String& str) {
 }
 
 TwoByteStringPtr TwoByteString::New(intptr_t len, Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->two_byte_string_class() !=
+  ASSERT(IsolateGroup::Current()->object_store()->two_byte_string_class() !=
          nullptr);
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
@@ -22954,8 +22973,9 @@ ExternalOneByteStringPtr ExternalOneByteString::New(
     intptr_t external_allocation_size,
     Dart_HandleFinalizer callback,
     Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->external_one_byte_string_class() !=
-         Class::null());
+  ASSERT(IsolateGroup::Current()
+             ->object_store()
+             ->external_one_byte_string_class() != Class::null());
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
     FATAL1("Fatal error in ExternalOneByteString::New: invalid len %" Pd "\n",
@@ -22983,8 +23003,9 @@ ExternalTwoByteStringPtr ExternalTwoByteString::New(
     intptr_t external_allocation_size,
     Dart_HandleFinalizer callback,
     Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->external_two_byte_string_class() !=
-         Class::null());
+  ASSERT(IsolateGroup::Current()
+             ->object_store()
+             ->external_two_byte_string_class() != Class::null());
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
     FATAL1("Fatal error in ExternalTwoByteString::New: invalid len %" Pd "\n",
@@ -23006,7 +23027,8 @@ ExternalTwoByteStringPtr ExternalTwoByteString::New(
 }
 
 BoolPtr Bool::New(bool value) {
-  ASSERT(Isolate::Current()->object_store()->bool_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->object_store()->bool_class() !=
+         Class::null());
   Bool& result = Bool::Handle();
   {
     // Since the two boolean instances are singletons we allocate them straight
@@ -23086,7 +23108,8 @@ uint32_t Array::CanonicalizeHash() const {
 }
 
 ArrayPtr Array::New(intptr_t len, Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->array_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->object_store()->array_class() !=
+         Class::null());
   ArrayPtr result = New(kClassId, len, space);
   if (UseCardMarkingForAllocation(len)) {
     ASSERT(result->IsOldObject());
@@ -23266,7 +23289,7 @@ void Array::CanonicalizeFieldsLocked(Thread* thread) const {
 }
 
 ImmutableArrayPtr ImmutableArray::New(intptr_t len, Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->immutable_array_class() !=
+  ASSERT(IsolateGroup::Current()->object_store()->immutable_array_class() !=
          Class::null());
   return static_cast<ImmutableArrayPtr>(Array::New(kClassId, len, space));
 }
@@ -23317,8 +23340,9 @@ GrowableObjectArrayPtr GrowableObjectArray::New(intptr_t capacity,
 
 GrowableObjectArrayPtr GrowableObjectArray::New(const Array& array,
                                                 Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->growable_object_array_class() !=
-         Class::null());
+  ASSERT(
+      IsolateGroup::Current()->object_store()->growable_object_array_class() !=
+      Class::null());
   GrowableObjectArray& result = GrowableObjectArray::Handle();
   {
     ObjectPtr raw =
@@ -23392,7 +23416,7 @@ LinkedHashMapPtr LinkedHashMap::New(const Array& data,
                                     intptr_t used_data,
                                     intptr_t deleted_keys,
                                     Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->linked_hash_map_class() !=
+  ASSERT(IsolateGroup::Current()->object_store()->linked_hash_map_class() !=
          Class::null());
   LinkedHashMap& result =
       LinkedHashMap::Handle(LinkedHashMap::NewUninitialized(space));
@@ -23405,7 +23429,7 @@ LinkedHashMapPtr LinkedHashMap::New(const Array& data,
 }
 
 LinkedHashMapPtr LinkedHashMap::NewUninitialized(Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->linked_hash_map_class() !=
+  ASSERT(IsolateGroup::Current()->object_store()->linked_hash_map_class() !=
          Class::null());
   LinkedHashMap& result = LinkedHashMap::Handle();
   {
@@ -23432,7 +23456,7 @@ Float32x4Ptr Float32x4::New(float v0,
                             float v2,
                             float v3,
                             Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->float32x4_class() !=
+  ASSERT(IsolateGroup::Current()->object_store()->float32x4_class() !=
          Class::null());
   Float32x4& result = Float32x4::Handle();
   {
@@ -23449,7 +23473,7 @@ Float32x4Ptr Float32x4::New(float v0,
 }
 
 Float32x4Ptr Float32x4::New(simd128_value_t value, Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->float32x4_class() !=
+  ASSERT(IsolateGroup::Current()->object_store()->float32x4_class() !=
          Class::null());
   Float32x4& result = Float32x4::Handle();
   {
@@ -23518,7 +23542,8 @@ Int32x4Ptr Int32x4::New(int32_t v0,
                         int32_t v2,
                         int32_t v3,
                         Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->int32x4_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->object_store()->int32x4_class() !=
+         Class::null());
   Int32x4& result = Int32x4::Handle();
   {
     ObjectPtr raw =
@@ -23534,7 +23559,8 @@ Int32x4Ptr Int32x4::New(int32_t v0,
 }
 
 Int32x4Ptr Int32x4::New(simd128_value_t value, Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->int32x4_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->object_store()->int32x4_class() !=
+         Class::null());
   Int32x4& result = Int32x4::Handle();
   {
     ObjectPtr raw =
@@ -23598,7 +23624,7 @@ const char* Int32x4::ToCString() const {
 }
 
 Float64x2Ptr Float64x2::New(double value0, double value1, Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->float64x2_class() !=
+  ASSERT(IsolateGroup::Current()->object_store()->float64x2_class() !=
          Class::null());
   Float64x2& result = Float64x2::Handle();
   {
@@ -23613,7 +23639,7 @@ Float64x2Ptr Float64x2::New(double value0, double value1, Heap::Space space) {
 }
 
 Float64x2Ptr Float64x2::New(simd128_value_t value, Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->float64x2_class() !=
+  ASSERT(IsolateGroup::Current()->object_store()->float64x2_class() !=
          Class::null());
   Float64x2& result = Float64x2::Handle();
   {
@@ -23834,7 +23860,7 @@ PointerPtr Pointer::New(const AbstractType& type_arg,
   type_args = type_args.Canonicalize(thread, nullptr);
 
   const Class& cls =
-      Class::Handle(Isolate::Current()->class_table()->At(kFfiPointerCid));
+      Class::Handle(IsolateGroup::Current()->class_table()->At(kFfiPointerCid));
   cls.EnsureIsAllocateFinalized(Thread::Current());
 
   Pointer& result = Pointer::Handle(zone);
@@ -23974,9 +24000,10 @@ TransferableTypedDataPtr TransferableTypedData::New(uint8_t* data,
   }
   // Set up finalizer so it frees allocated memory if handle is
   // garbage-collected.
-  peer->set_handle(FinalizablePersistentHandle::New(
-      thread->isolate(), result, peer, &TransferableTypedDataFinalizer, length,
-      /*auto_delete=*/true));
+  peer->set_handle(
+      FinalizablePersistentHandle::New(thread->isolate_group(), result, peer,
+                                       &TransferableTypedDataFinalizer, length,
+                                       /*auto_delete=*/true));
 
   return result.raw();
 }
@@ -24348,7 +24375,7 @@ const char* StackTrace::ToCString() const {
   auto const isolate_instructions = reinterpret_cast<uword>(
       T->isolate_group()->source()->snapshot_instructions);
   auto const vm_instructions = reinterpret_cast<uword>(
-      Dart::vm_isolate()->group()->source()->snapshot_instructions);
+      Dart::vm_isolate_group()->source()->snapshot_instructions);
   if (FLAG_dwarf_stack_traces_mode) {
     const Image isolate_instructions_image(
         reinterpret_cast<const void*>(isolate_instructions));
@@ -24636,7 +24663,7 @@ const char* RegExp::ToCString() const {
 }
 
 WeakPropertyPtr WeakProperty::New(Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->weak_property_class() !=
+  ASSERT(IsolateGroup::Current()->object_store()->weak_property_class() !=
          Class::null());
   ObjectPtr raw = Object::Allocate(WeakProperty::kClassId,
                                    WeakProperty::InstanceSize(), space);
@@ -24824,7 +24851,7 @@ const char* UserTag::ToCString() const {
 
 void DumpTypeTable(Isolate* isolate) {
   OS::PrintErr("canonical types:\n");
-  CanonicalTypeSet table(isolate->object_store()->canonical_types());
+  CanonicalTypeSet table(isolate->group()->object_store()->canonical_types());
   table.Dump();
   table.Release();
 }
@@ -24832,7 +24859,7 @@ void DumpTypeTable(Isolate* isolate) {
 void DumpTypeParameterTable(Isolate* isolate) {
   OS::PrintErr("canonical type parameters (cloned from declarations):\n");
   CanonicalTypeParameterSet table(
-      isolate->object_store()->canonical_type_parameters());
+      isolate->group()->object_store()->canonical_type_parameters());
   table.Dump();
   table.Release();
 }
@@ -24840,26 +24867,26 @@ void DumpTypeParameterTable(Isolate* isolate) {
 void DumpTypeArgumentsTable(Isolate* isolate) {
   OS::PrintErr("canonical type arguments:\n");
   CanonicalTypeArgumentsSet table(
-      isolate->object_store()->canonical_type_arguments());
+      isolate->group()->object_store()->canonical_type_arguments());
   table.Dump();
   table.Release();
 }
 
-EntryPointPragma FindEntryPointPragma(Isolate* I,
+EntryPointPragma FindEntryPointPragma(IsolateGroup* IG,
                                       const Array& metadata,
                                       Field* reusable_field_handle,
                                       Object* pragma) {
   for (intptr_t i = 0; i < metadata.Length(); i++) {
     *pragma = metadata.At(i);
-    if (pragma->clazz() != I->object_store()->pragma_class()) {
+    if (pragma->clazz() != IG->object_store()->pragma_class()) {
       continue;
     }
-    *reusable_field_handle = I->object_store()->pragma_name();
+    *reusable_field_handle = IG->object_store()->pragma_name();
     if (Instance::Cast(*pragma).GetField(*reusable_field_handle) !=
         Symbols::vm_entry_point().raw()) {
       continue;
     }
-    *reusable_field_handle = I->object_store()->pragma_options();
+    *reusable_field_handle = IG->object_store()->pragma_options();
     *pragma = Instance::Cast(*pragma).GetField(*reusable_field_handle);
     if (pragma->raw() == Bool::null() || pragma->raw() == Bool::True().raw()) {
       return EntryPointPragma::kAlways;
@@ -24905,7 +24932,7 @@ ErrorPtr VerifyEntryPoint(
   if (metadata.IsError()) return Error::RawCast(metadata.raw());
   ASSERT(!metadata.IsNull() && metadata.IsArray());
   EntryPointPragma pragma =
-      FindEntryPointPragma(Isolate::Current(), Array::Cast(metadata),
+      FindEntryPointPragma(IsolateGroup::Current(), Array::Cast(metadata),
                            &Field::Handle(), &Object::Handle());
   bool is_marked_entrypoint = pragma == EntryPointPragma::kAlways;
   if (!is_marked_entrypoint) {

@@ -906,8 +906,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     return group()->safepoint_handler();
   }
 
-  ClassTable* class_table() { return class_table_.get(); }
-
   ClassPtr* cached_class_table_table() { return cached_class_table_table_; }
   void set_cached_class_table_table(ClassPtr* cached_class_table_table) {
     cached_class_table_table_ = cached_class_table_table;
@@ -916,7 +914,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     return OFFSET_OF(Isolate, cached_class_table_table_);
   }
 
-  SharedClassTable* shared_class_table() const { return shared_class_table_; }
   // Used during isolate creation to re-register isolate with right group.
   void set_shared_class_table(SharedClassTable* table) {
     shared_class_table_ = table;
@@ -926,7 +923,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     return OFFSET_OF(Isolate, shared_class_table_);
   }
 
-  ObjectStore* object_store() const { return object_store_shared_ptr_.get(); }
   void set_object_store(ObjectStore* object_store);
   static intptr_t cached_object_store_offset() {
     return OFFSET_OF(Isolate, cached_object_store_);
@@ -1002,8 +998,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   uint64_t terminate_capability() const { return terminate_capability_; }
 
   void SendInternalLibMessage(LibMsgId msg_id, uint64_t capability);
-
-  Heap* heap() const { return isolate_group_->heap(); }
 
   void set_init_callback_data(void* value) { init_callback_data_ = value; }
   void* init_callback_data() const { return init_callback_data_; }

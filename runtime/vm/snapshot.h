@@ -260,8 +260,8 @@ class SnapshotReader : public BaseReader {
   Isolate* isolate() const { return thread_->isolate(); }
   IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
   Heap* heap() const { return heap_; }
-  ObjectStore* object_store() const { return isolate()->object_store(); }
-  ClassTable* class_table() const { return isolate()->class_table(); }
+  ObjectStore* object_store() const { return isolate_group()->object_store(); }
+  ClassTable* class_table() const { return isolate_group()->class_table(); }
   PassiveObject* PassiveObjectHandle() { return &pobj_; }
   Array* ArrayHandle() { return &array_; }
   Class* ClassHandle() { return &cls_; }
@@ -591,7 +591,8 @@ class SnapshotWriter : public BaseWriter {
   Thread* thread() const { return thread_; }
   Zone* zone() const { return thread_->zone(); }
   Isolate* isolate() const { return thread_->isolate(); }
-  Heap* heap() const { return isolate()->heap(); }
+  IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
+  Heap* heap() const { return isolate_group()->heap(); }
 
   // Serialize an object into the buffer.
   void WriteObject(ObjectPtr raw);

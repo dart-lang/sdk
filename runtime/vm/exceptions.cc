@@ -719,14 +719,14 @@ static FieldPtr LookupStackTraceField(const Instance& instance) {
   }
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
   Class& error_class =
-      Class::Handle(zone, isolate->object_store()->error_class());
+      Class::Handle(zone, isolate_group->object_store()->error_class());
   if (error_class.IsNull()) {
     const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
     error_class = core_lib.LookupClass(Symbols::Error());
     ASSERT(!error_class.IsNull());
-    isolate->object_store()->set_error_class(error_class);
+    isolate_group->object_store()->set_error_class(error_class);
   }
   // If instance class extends 'class Error' return '_stackTrace' field.
   Class& test_class = Class::Handle(zone, instance.clazz());
@@ -758,13 +758,14 @@ static void ThrowExceptionHelper(Thread* thread,
   // should jump there instead.
   RELEASE_ASSERT(thread->long_jump_base() == nullptr);
   Zone* zone = thread->zone();
+  auto object_store = thread->isolate_group()->object_store();
   Isolate* isolate = thread->isolate();
 #if !defined(PRODUCT)
   // Do not notify debugger on stack overflow and out of memory exceptions.
   // The VM would crash when the debugger calls back into the VM to
   // get values of variables.
-  if (incoming_exception.raw() != isolate->object_store()->out_of_memory() &&
-      incoming_exception.raw() != isolate->object_store()->stack_overflow()) {
+  if (incoming_exception.raw() != object_store->out_of_memory() &&
+      incoming_exception.raw() != object_store->stack_overflow()) {
     isolate->debugger()->PauseException(incoming_exception);
   }
 #endif
@@ -773,8 +774,8 @@ static void ThrowExceptionHelper(Thread* thread,
   if (exception.IsNull()) {
     exception ^=
         Exceptions::Create(Exceptions::kNullThrown, Object::empty_array());
-  } else if (exception.raw() == isolate->object_store()->out_of_memory() ||
-             exception.raw() == isolate->object_store()->stack_overflow()) {
+  } else if (exception.raw() == object_store->out_of_memory() ||
+             exception.raw() == object_store->stack_overflow()) {
     use_preallocated_stacktrace = true;
   }
   // Find the exception handler and determine if the handler needs a
@@ -789,8 +790,7 @@ static void ThrowExceptionHelper(Thread* thread,
   if (use_preallocated_stacktrace) {
     if (handler_pc == 0) {
       // No Dart frame.
-      ASSERT(incoming_exception.raw() ==
-             isolate->object_store()->out_of_memory());
+      ASSERT(incoming_exception.raw() == object_store->out_of_memory());
       const UnhandledException& error = UnhandledException::Handle(
           zone,
           isolate->isolate_object_store()->preallocated_unhandled_exception());
@@ -855,7 +855,7 @@ static void ThrowExceptionHelper(Thread* thread,
     // the isolate etc.). This can happen in the compiler, which is not
     // allowed to allocate in new space, so we pass the kOld argument.
     const UnhandledException& unhandled_exception = UnhandledException::Handle(
-        zone, exception.raw() == isolate->object_store()->out_of_memory()
+        zone, exception.raw() == object_store->out_of_memory()
                   ? isolate->isolate_object_store()
                         ->preallocated_unhandled_exception()
                   : UnhandledException::New(exception, stacktrace, Heap::kOld));
@@ -1059,18 +1059,18 @@ void Exceptions::ThrowByType(ExceptionType type, const Array& arguments) {
 }
 
 void Exceptions::ThrowOOM() {
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
+  auto thread = Thread::Current();
+  auto isolate_group = thread->isolate_group();
   const Instance& oom = Instance::Handle(
-      thread->zone(), isolate->object_store()->out_of_memory());
+      thread->zone(), isolate_group->object_store()->out_of_memory());
   Throw(thread, oom);
 }
 
 void Exceptions::ThrowStackOverflow() {
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
+  auto thread = Thread::Current();
+  auto isolate_group = thread->isolate_group();
   const Instance& stack_overflow = Instance::Handle(
-      thread->zone(), isolate->object_store()->stack_overflow());
+      thread->zone(), isolate_group->object_store()->stack_overflow());
   Throw(thread, stack_overflow);
 }
 

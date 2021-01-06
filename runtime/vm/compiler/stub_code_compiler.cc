@@ -675,7 +675,7 @@ VM_TYPE_TESTING_STUB_CODE_LIST(GENERATE_BREAKPOINT_STUB)
 void StubCodeCompiler::GenerateAllocateUnhandledExceptionStub(
     Assembler* assembler) {
   Thread* thread = Thread::Current();
-  auto class_table = thread->isolate()->class_table();
+  auto class_table = thread->isolate_group()->class_table();
   ASSERT(class_table->HasValidClassAt(kUnhandledExceptionCid));
   const auto& cls = Class::ZoneHandle(thread->zone(),
                                       class_table->At(kUnhandledExceptionCid));

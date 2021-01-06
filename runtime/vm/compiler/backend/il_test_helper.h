@@ -321,7 +321,7 @@ class FlowGraphBuilderHelper {
         /*is_abstract=*/false,
         /*is_external=*/false,
         /*is_native=*/true,
-        Class::Handle(thread->isolate()->object_store()->object_class()),
+        Class::Handle(thread->isolate_group()->object_store()->object_class()),
         TokenPosition::kNoSource));
 
     Zone* zone = thread->zone();

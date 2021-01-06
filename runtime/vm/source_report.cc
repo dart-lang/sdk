@@ -523,7 +523,7 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
 
 void SourceReport::VisitClosures(JSONArray* jsarr) {
   const GrowableObjectArray& closures = GrowableObjectArray::Handle(
-      thread()->isolate()->object_store()->closure_functions());
+      thread()->isolate_group()->object_store()->closure_functions());
 
   // We need to keep rechecking the length of the closures array, as handling
   // a closure potentially adds new entries to the end.
@@ -546,7 +546,7 @@ void SourceReport::PrintJSON(JSONStream* js,
     JSONArray ranges(&report, "ranges");
 
     const GrowableObjectArray& libs = GrowableObjectArray::Handle(
-        zone(), thread()->isolate()->object_store()->libraries());
+        zone(), thread()->isolate_group()->object_store()->libraries());
 
     // We only visit the libraries which actually load the specified script.
     Library& lib = Library::Handle(zone());
@@ -584,7 +584,7 @@ void SourceReport::CollectAllScripts(
     GrowableArray<ScriptTableEntry*>* local_script_table_entries) {
   ScriptTableEntry wrapper;
   const GrowableObjectArray& libs = GrowableObjectArray::Handle(
-      zone(), thread()->isolate()->object_store()->libraries());
+      zone(), thread()->isolate_group()->object_store()->libraries());
   Library& lib = Library::Handle(zone());
   Script& scriptRef = Script::Handle(zone());
   for (int i = 0; i < libs.Length(); i++) {

@@ -87,13 +87,15 @@ class CodeVisitor : public FunctionVisitor {
 };
 
 class Thread;
-class Isolate;
+class IsolateGroup;
 
 class ProgramVisitor : public AllStatic {
  public:
   // Walks all non-null class, function, and code objects in the program as
   // necessary for the given visitor.
-  static void WalkProgram(Zone* zone, Isolate* isolate, ClassVisitor* visitor);
+  static void WalkProgram(Zone* zone,
+                          IsolateGroup* isolate_group,
+                          ClassVisitor* visitor);
 
   static void Dedup(Thread* thread);
 #if defined(DART_PRECOMPILER)
@@ -103,19 +105,19 @@ class ProgramVisitor : public AllStatic {
 
  private:
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  static void BindStaticCalls(Zone* zone, Isolate* isolate);
-  static void ShareMegamorphicBuckets(Zone* zone, Isolate* isolate);
+  static void BindStaticCalls(Zone* zone, IsolateGroup* isolate_group);
+  static void ShareMegamorphicBuckets(Zone* zone, IsolateGroup* isolate_group);
   static void NormalizeAndDedupCompressedStackMaps(Zone* zone,
-                                                   Isolate* isolate);
-  static void DedupPcDescriptors(Zone* zone, Isolate* isolate);
-  static void DedupDeoptEntries(Zone* zone, Isolate* isolate);
+                                                   IsolateGroup* isolate_group);
+  static void DedupPcDescriptors(Zone* zone, IsolateGroup* isolate_group);
+  static void DedupDeoptEntries(Zone* zone, IsolateGroup* isolate_group);
 #if defined(DART_PRECOMPILER)
-  static void DedupCatchEntryMovesMaps(Zone* zone, Isolate* isolate);
-  static void DedupUnlinkedCalls(Zone* zone, Isolate* isolate);
+  static void DedupCatchEntryMovesMaps(Zone* zone, IsolateGroup* isolate_group);
+  static void DedupUnlinkedCalls(Zone* zone, IsolateGroup* isolate_group);
 #endif
-  static void DedupCodeSourceMaps(Zone* zone, Isolate* isolate);
-  static void DedupLists(Zone* zone, Isolate* isolate);
-  static void DedupInstructions(Zone* zone, Isolate* isolate);
+  static void DedupCodeSourceMaps(Zone* zone, IsolateGroup* isolate_group);
+  static void DedupLists(Zone* zone, IsolateGroup* isolate_group);
+  static void DedupInstructions(Zone* zone, IsolateGroup* isolate_group);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 };
 

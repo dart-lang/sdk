@@ -163,7 +163,7 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
   if (!obj.raw()->IsHeapObject() || obj.raw()->ptr()->IsCanonical()) {
     return obj.raw();
   }
-  ClassTable* class_table = isolate->class_table();
+  ClassTable* class_table = isolate->group()->class_table();
 
   Class& klass = Class::Handle(zone);
   Closure& closure = Closure::Handle(zone);
@@ -457,7 +457,7 @@ IsolateSpawnState::~IsolateSpawnState() {
 
 ObjectPtr IsolateSpawnState::ResolveFunction() {
   Thread* thread = Thread::Current();
-  Isolate* I = thread->isolate();
+  auto IG = thread->isolate_group();
   Zone* zone = thread->zone();
 
   const String& func_name = String::Handle(zone, String::New(function_name()));
@@ -466,7 +466,7 @@ ObjectPtr IsolateSpawnState::ResolveFunction() {
     // Handle spawnUri lookup rules.
     // Check whether the root library defines a main function.
     const Library& lib =
-        Library::Handle(zone, I->object_store()->root_library());
+        Library::Handle(zone, IG->object_store()->root_library());
     Function& func = Function::Handle(zone, lib.LookupLocalFunction(func_name));
     if (func.IsNull()) {
       // Check whether main is reexported from the root library.
@@ -934,7 +934,7 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 12) {
 
   // Canonicalize the uri with respect to the current isolate.
   const Library& root_lib =
-      Library::Handle(isolate->object_store()->root_library());
+      Library::Handle(isolate->group()->object_store()->root_library());
   char* error = NULL;
   const char* canonical_uri = CanonicalizeUri(thread, root_lib, uri, &error);
   if (canonical_uri == NULL) {
@@ -988,7 +988,7 @@ DEFINE_NATIVE_ENTRY(Isolate_getPortAndCapabilitiesOfCurrentIsolate, 0, 0) {
 
 DEFINE_NATIVE_ENTRY(Isolate_getCurrentRootUriStr, 0, 0) {
   const Library& root_lib =
-      Library::Handle(zone, isolate->object_store()->root_library());
+      Library::Handle(zone, isolate->group()->object_store()->root_library());
   return root_lib.url();
 }
 
@@ -1071,8 +1071,8 @@ DEFINE_NATIVE_ENTRY(TransferableTypedData_factory, 0, 2) {
 
   uint8_t* data = reinterpret_cast<uint8_t*>(::malloc(total_bytes));
   if (data == nullptr) {
-    const Instance& exception =
-        Instance::Handle(thread->isolate()->object_store()->out_of_memory());
+    const Instance& exception = Instance::Handle(
+        thread->isolate_group()->object_store()->out_of_memory());
     Exceptions::Throw(thread, exception);
     UNREACHABLE();
   }
@@ -1122,7 +1122,7 @@ DEFINE_NATIVE_ENTRY(TransferableTypedData_materialize, 0, 1) {
   const ExternalTypedData& typed_data = ExternalTypedData::Handle(
       ExternalTypedData::New(kExternalTypedDataUint8ArrayCid, data, length,
                              thread->heap()->SpaceForExternal(length)));
-  FinalizablePersistentHandle::New(thread->isolate(), typed_data,
+  FinalizablePersistentHandle::New(thread->isolate_group(), typed_data,
                                    /* peer= */ data,
                                    &ExternalTypedDataFinalizer, length,
                                    /*auto_delete=*/true);

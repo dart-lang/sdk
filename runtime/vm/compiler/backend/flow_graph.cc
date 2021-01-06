@@ -551,7 +551,7 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
   // that is actually valid on a null receiver.
   if (receiver_maybe_null) {
     const Class& null_class =
-        Class::Handle(zone(), isolate()->object_store()->null_class());
+        Class::Handle(zone(), isolate_group()->object_store()->null_class());
     Function& target = Function::Handle(zone());
     if (null_class.EnsureIsFinalized(thread()) == Error::null()) {
       target = Resolver::ResolveDynamicAnyArgs(zone(), null_class, method_name);
@@ -607,8 +607,8 @@ Definition* FlowGraph::CreateCheckBound(Definition* length,
 
 void FlowGraph::AddExactnessGuard(InstanceCallInstr* call,
                                   intptr_t receiver_cid) {
-  const Class& cls = Class::Handle(
-      zone(), Isolate::Current()->class_table()->At(receiver_cid));
+  const Class& cls =
+      Class::Handle(zone(), isolate_group()->class_table()->At(receiver_cid));
 
   Definition* load_type_args = new (zone()) LoadFieldInstr(
       call->Receiver()->CopyWithType(),

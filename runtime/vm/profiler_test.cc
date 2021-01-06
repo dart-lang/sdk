@@ -833,7 +833,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_IntrinsicAllocation) {
   Isolate* isolate = thread->isolate();
 
   const Class& double_class =
-      Class::Handle(isolate->object_store()->double_class());
+      Class::Handle(isolate->group()->object_store()->double_class());
   EXPECT(!double_class.IsNull());
 
   Dart_Handle args[2];
@@ -902,7 +902,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ArrayAllocation) {
   Isolate* isolate = thread->isolate();
 
   const Class& array_class =
-      Class::Handle(isolate->object_store()->array_class());
+      Class::Handle(isolate->group()->object_store()->array_class());
   EXPECT(!array_class.IsNull());
 
   Invoke(root_library, "foo");
@@ -1060,7 +1060,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ClosureAllocation) {
   Isolate* isolate = thread->isolate();
 
   const Class& closure_class =
-      Class::Handle(Isolate::Current()->object_store()->closure_class());
+      Class::Handle(IsolateGroup::Current()->object_store()->closure_class());
   EXPECT(!closure_class.IsNull());
   closure_class.SetTraceAllocation(true);
 
@@ -1118,7 +1118,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TypedArrayAllocation) {
   Isolate* isolate = thread->isolate();
 
   const Library& typed_data_library =
-      Library::Handle(isolate->object_store()->typed_data_library());
+      Library::Handle(isolate->group()->object_store()->typed_data_library());
 
   const Class& float32_list_class =
       Class::Handle(GetClass(typed_data_library, "_Float32List"));
@@ -1194,7 +1194,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringAllocation) {
   Isolate* isolate = thread->isolate();
 
   const Class& one_byte_string_class =
-      Class::Handle(isolate->object_store()->one_byte_string_class());
+      Class::Handle(isolate->group()->object_store()->one_byte_string_class());
   EXPECT(!one_byte_string_class.IsNull());
 
   Dart_Handle args[2];
@@ -1272,7 +1272,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringInterpolation) {
   Isolate* isolate = thread->isolate();
 
   const Class& one_byte_string_class =
-      Class::Handle(isolate->object_store()->one_byte_string_class());
+      Class::Handle(isolate->group()->object_store()->one_byte_string_class());
   EXPECT(!one_byte_string_class.IsNull());
 
   Dart_Handle args[2];

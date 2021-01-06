@@ -16,19 +16,19 @@ namespace dart {
 MegamorphicCachePtr MegamorphicCacheTable::Lookup(Thread* thread,
                                                   const String& name,
                                                   const Array& descriptor) {
-  Isolate* isolate = thread->isolate();
+  auto object_store = thread->isolate_group()->object_store();
   SafepointMutexLocker ml(thread->isolate_group()->megamorphic_table_mutex());
 
   ASSERT(name.IsSymbol());
   // TODO(rmacnak): ASSERT(descriptor.IsCanonical());
 
   // TODO(rmacnak): Make a proper hashtable a la symbol table.
-  auto& table = GrowableObjectArray::Handle(
-      isolate->object_store()->megamorphic_cache_table());
+  auto& table =
+      GrowableObjectArray::Handle(object_store->megamorphic_cache_table());
   MegamorphicCache& cache = MegamorphicCache::Handle();
   if (table.IsNull()) {
     table = GrowableObjectArray::New(Heap::kOld);
-    isolate->object_store()->set_megamorphic_cache_table(table);
+    object_store->set_megamorphic_cache_table(table);
   } else {
     for (intptr_t i = 0; i < table.Length(); i++) {
       cache ^= table.At(i);
@@ -46,14 +46,15 @@ MegamorphicCachePtr MegamorphicCacheTable::Lookup(Thread* thread,
 
 void MegamorphicCacheTable::PrintSizes(Isolate* isolate) {
   auto thread = Thread::Current();
-  SafepointMutexLocker ml(thread->isolate_group()->megamorphic_table_mutex());
+  auto isolate_group = thread->isolate_group();
+  SafepointMutexLocker ml(isolate_group->megamorphic_table_mutex());
 
   StackZone zone(thread);
   intptr_t size = 0;
   MegamorphicCache& cache = MegamorphicCache::Handle();
   Array& buckets = Array::Handle();
   const GrowableObjectArray& table = GrowableObjectArray::Handle(
-      isolate->object_store()->megamorphic_cache_table());
+      isolate_group->object_store()->megamorphic_cache_table());
   if (table.IsNull()) return;
   intptr_t max_size = 0;
   for (intptr_t i = 0; i < table.Length(); i++) {

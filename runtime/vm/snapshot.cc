@@ -279,8 +279,8 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
       kind_(kind),
       thread_(thread),
       zone_(thread->zone()),
-      heap_(isolate()->heap()),
-      old_space_(thread_->isolate()->heap()->old_space()),
+      heap_(isolate_group()->heap()),
+      old_space_(isolate_group()->heap()->old_space()),
       cls_(Class::Handle(zone_)),
       code_(Code::Handle(zone_)),
       instance_(Instance::Handle(zone_)),
@@ -302,7 +302,7 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
       error_(UnhandledException::Handle(zone_)),
       set_class_(Class::ZoneHandle(
           zone_,
-          thread_->isolate()->object_store()->linked_hash_set_class())),
+          thread_->isolate_group()->object_store()->linked_hash_set_class())),
       max_vm_isolate_object_id_(
           (Snapshot::IsFull(kind))
               ? Object::vm_isolate_snapshot_object_table().Length()
@@ -506,7 +506,7 @@ ObjectPtr SnapshotReader::VmIsolateSnapshotObject(intptr_t index) const {
 }
 
 bool SnapshotReader::is_vm_isolate() const {
-  return isolate() == Dart::vm_isolate();
+  return isolate_group() == Dart::vm_isolate_group();
 }
 
 ObjectPtr SnapshotReader::ReadObjectImpl(bool as_reference) {
@@ -646,7 +646,7 @@ ObjectPtr SnapshotReader::ReadInstance(intptr_t object_id,
     intptr_t result_cid = result->GetClassId();
 
     const auto unboxed_fields =
-        isolate()->group()->shared_class_table()->GetUnboxedFieldsMapAt(
+        isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(
             result_cid);
 
     while (offset < next_field_offset) {
@@ -665,7 +665,7 @@ ObjectPtr SnapshotReader::ReadInstance(intptr_t object_id,
           // TODO(fschneider): Consider hoisting these lookups out of the loop.
           // This would involve creating a handle, since cls_ can't be reused
           // across the call to ReadObjectImpl.
-          cls_ = isolate()->class_table()->At(result_cid);
+          cls_ = isolate_group()->class_table()->At(result_cid);
           array_ = cls_.OffsetToFieldMap();
           field_ ^= array_.At(offset >> kWordSizeLog2);
           ASSERT(!field_.IsNull());
@@ -840,7 +840,8 @@ ObjectPtr SnapshotReader::ReadVMIsolateObject(intptr_t header_value) {
   // Check it is a singleton class object.
   intptr_t class_id = ClassIdFromObjectId(object_id);
   if (IsSingletonClassId(class_id)) {
-    return isolate()->class_table()->At(class_id);  // get singleton class.
+    return isolate_group()->class_table()->At(
+        class_id);  // get singleton class.
   }
 
   // Check if it is a singleton Argument descriptor object.
@@ -864,7 +865,8 @@ ObjectPtr SnapshotReader::ReadVMIsolateObject(intptr_t header_value) {
 ObjectPtr SnapshotReader::ReadIndexedObject(intptr_t object_id) {
   intptr_t class_id = ClassIdFromObjectId(object_id);
   if (IsBootstrapedClassId(class_id)) {
-    return isolate()->class_table()->At(class_id);  // get singleton class.
+    return isolate_group()->class_table()->At(
+        class_id);  // get singleton class.
   }
   if (IsObjectStoreTypeId(object_id)) {
     return GetType(object_store(), object_id);  // return type obj.
@@ -912,8 +914,8 @@ SnapshotWriter::SnapshotWriter(Thread* thread,
     : BaseWriter(initial_size),
       thread_(thread),
       kind_(kind),
-      object_store_(isolate()->object_store()),
-      class_table_(isolate()->class_table()),
+      object_store_(isolate_group()->object_store()),
+      class_table_(isolate_group()->class_table()),
       forward_list_(forward_list),
       exception_type_(Exceptions::kNone),
       exception_msg_(NULL),
@@ -1494,7 +1496,7 @@ void SnapshotWriter::WriteInstance(ObjectPtr raw,
     WriteObjectImpl(cls, kAsInlinedObject);
 
     const auto unboxed_fields =
-        isolate()->group()->shared_class_table()->GetUnboxedFieldsMapAt(
+        isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(
             cls->ptr()->id_);
 
     // Write out all the fields for the object.

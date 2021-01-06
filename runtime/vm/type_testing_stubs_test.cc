@@ -166,7 +166,7 @@ static void RunTTSTest(
 
   // Build a stub which will do calling conversion to call TTS stubs.
   const auto& klass =
-      Class::Handle(thread->isolate()->class_table()->At(kInstanceCid));
+      Class::Handle(thread->isolate_group()->class_table()->At(kInstanceCid));
   const auto& symbol = String::Handle(
       Symbols::New(thread, OS::SCreate(thread->zone(), "TTSTest")));
   const auto& function = Function::Handle(

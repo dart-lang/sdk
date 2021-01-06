@@ -27,7 +27,7 @@ static void NativeFunc(Dart_NativeArguments args) {
   EXPECT_EQ(20, value);
   {
     TransitionNativeToVM transition(Thread::Current());
-    Isolate::Current()->heap()->CollectAllGarbage();
+    IsolateGroup::Current()->heap()->CollectAllGarbage();
   }
 }
 

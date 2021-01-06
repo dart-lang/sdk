@@ -139,7 +139,7 @@ ArrayPtr compiler::StubCodeCompiler::BuildStaticCallsTable(
 
 CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
   Thread* thread = Thread::Current();
-  auto object_store = thread->isolate()->object_store();
+  auto object_store = thread->isolate_group()->object_store();
   Zone* zone = thread->zone();
   const Error& error =
       Error::Handle(zone, cls.EnsureIsAllocateFinalized(thread));
@@ -168,7 +168,7 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
             : Code::PoolAttachment::kAttachPool;
 
     auto zone = thread->zone();
-    auto object_store = thread->isolate()->object_store();
+    auto object_store = thread->isolate_group()->object_store();
     auto& allocate_object_stub = Code::ZoneHandle(zone);
     auto& allocate_object_parametrized_stub = Code::ZoneHandle(zone);
     if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
@@ -242,7 +242,7 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
 }
 
 CodePtr StubCode::GetAllocationStubForTypedData(classid_t class_id) {
-  auto object_store = Thread::Current()->isolate()->object_store();
+  auto object_store = Thread::Current()->isolate_group()->object_store();
   switch (class_id) {
     case kTypedDataInt8ArrayCid:
       return object_store->allocate_int8_array_stub();
@@ -283,7 +283,7 @@ CodePtr StubCode::GetBuildMethodExtractorStub(
 #if !defined(DART_PRECOMPILED_RUNTIME)
   auto thread = Thread::Current();
   auto Z = thread->zone();
-  auto object_store = thread->isolate()->object_store();
+  auto object_store = thread->isolate_group()->object_store();
 
   const auto& closure_class =
       Class::ZoneHandle(Z, object_store->closure_class());
@@ -340,7 +340,7 @@ const char* StubCode::NameOfStub(uword entry_point) {
     }
   }
 
-  auto object_store = Isolate::Current()->object_store();
+  auto object_store = IsolateGroup::Current()->object_store();
 
 #define MATCH(member, name)                                                    \
   if (object_store->member() != Code::null() &&                                \

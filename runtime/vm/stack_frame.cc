@@ -115,7 +115,7 @@ bool StackFrame::IsBareInstructionsDartFrame() const {
     ASSERT(cid == kNullCid || cid == kClassCid || cid == kFunctionCid);
     return cid == kFunctionCid;
   }
-  code = ReversePc::Lookup(Dart::vm_isolate()->group(), pc(),
+  code = ReversePc::Lookup(Dart::vm_isolate_group(), pc(),
                            /*is_return_address=*/true);
   if (!code.IsNull()) {
     auto const cid = code.OwnerClassId();
@@ -137,7 +137,7 @@ bool StackFrame::IsBareInstructionsStubFrame() const {
     ASSERT(cid == kNullCid || cid == kClassCid || cid == kFunctionCid);
     return cid == kNullCid || cid == kClassCid;
   }
-  code = ReversePc::Lookup(Dart::vm_isolate()->group(), pc(),
+  code = ReversePc::Lookup(Dart::vm_isolate_group(), pc(),
                            /*is_return_address=*/true);
   if (!code.IsNull()) {
     auto const cid = code.OwnerClassId();
@@ -248,15 +248,8 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
     maps = code.compressed_stackmaps();
     CompressedStackMaps global_table;
 
-    // The GC does not have an active isolate, only an active isolate group,
-    // yet the global compressed stack map table is only stored in the object
-    // store. It has the same contents for all isolates, so we just pick the
-    // one from the first isolate here.
-    // TODO(dartbug.com/36097): Avoid having this per-isolate and instead store
-    // it per isolate group.
-    auto isolate = isolate_group()->isolates_.First();
-
-    global_table = isolate->object_store()->canonicalized_stack_map_entries();
+    global_table =
+        isolate_group()->object_store()->canonicalized_stack_map_entries();
     CompressedStackMaps::Iterator it(maps, global_table);
     const uword start = code.PayloadStart();
     const uint32_t pc_offset = pc() - start;
@@ -357,7 +350,7 @@ CodePtr StackFrame::GetCodeObject() const {
     if (code != Code::null()) {
       return code;
     }
-    code = ReversePc::Lookup(Dart::vm_isolate()->group(), pc(),
+    code = ReversePc::Lookup(Dart::vm_isolate_group(), pc(),
                              /*is_return_address=*/true);
     if (code != Code::null()) {
       return code;

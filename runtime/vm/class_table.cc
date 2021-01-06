@@ -32,8 +32,7 @@ SharedClassTable::SharedClassTable()
         calloc(capacity_, sizeof(RelaxedAtomic<intptr_t>))));
   } else {
     // Duplicate the class table from the VM isolate.
-    auto vm_shared_class_table =
-        Dart::vm_isolate()->group()->shared_class_table();
+    auto vm_shared_class_table = Dart::vm_isolate_group()->shared_class_table();
     capacity_ = vm_shared_class_table->capacity_;
     // Note that [calloc] will zero-initialize the memory.
     RelaxedAtomic<intptr_t>* table = reinterpret_cast<RelaxedAtomic<intptr_t>*>(
@@ -98,7 +97,7 @@ ClassTable::ClassTable(SharedClassTable* shared_class_table)
     table_.store(static_cast<ClassPtr*>(calloc(capacity_, sizeof(ClassPtr))));
   } else {
     // Duplicate the class table from the VM isolate.
-    ClassTable* vm_class_table = Dart::vm_isolate()->class_table();
+    ClassTable* vm_class_table = Dart::vm_isolate_group()->class_table();
     capacity_ = vm_class_table->capacity_;
     // Note that [calloc] will zero-initialize the memory.
     ClassPtr* table =

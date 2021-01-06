@@ -209,10 +209,10 @@ class ProgramWalker : public ValueObject {
 };
 
 void ProgramVisitor::WalkProgram(Zone* zone,
-                                 Isolate* isolate,
+                                 IsolateGroup* isolate_group,
                                  ClassVisitor* visitor) {
-  auto const object_store = isolate->object_store();
-  auto const heap = isolate->heap();
+  auto const object_store = isolate_group->object_store();
+  auto const heap = isolate_group->heap();
   ProgramWalker walker(zone, heap, visitor);
 
   // Walk through the libraries and patches, looking for visitable objects.
@@ -346,7 +346,7 @@ class Dedupper : public ValueObject {
   DirectChainedHashMap<S> canonical_objects_;
 };
 
-void ProgramVisitor::BindStaticCalls(Zone* zone, Isolate* isolate) {
+void ProgramVisitor::BindStaticCalls(Zone* zone, IsolateGroup* isolate_group) {
   class BindStaticCallsVisitor : public CodeVisitor {
    public:
     explicit BindStaticCallsVisitor(Zone* zone)
@@ -423,15 +423,16 @@ void ProgramVisitor::BindStaticCalls(Zone* zone, Isolate* isolate) {
   };
 
   BindStaticCallsVisitor visitor(zone);
-  WalkProgram(zone, isolate, &visitor);
+  WalkProgram(zone, isolate_group, &visitor);
 }
 
 DECLARE_FLAG(charp, trace_precompiler_to);
 DECLARE_FLAG(charp, write_v8_snapshot_profile_to);
 
-void ProgramVisitor::ShareMegamorphicBuckets(Zone* zone, Isolate* isolate) {
+void ProgramVisitor::ShareMegamorphicBuckets(Zone* zone,
+                                             IsolateGroup* isolate_group) {
   const GrowableObjectArray& table = GrowableObjectArray::Handle(
-      zone, isolate->object_store()->megamorphic_cache_table());
+      zone, isolate_group->object_store()->megamorphic_cache_table());
   if (table.IsNull()) return;
   MegamorphicCache& cache = MegamorphicCache::Handle(zone);
 
@@ -561,8 +562,9 @@ class StackMapEntryKeyIntValueTrait {
 
 typedef DirectChainedHashMap<StackMapEntryKeyIntValueTrait> StackMapEntryIntMap;
 
-void ProgramVisitor::NormalizeAndDedupCompressedStackMaps(Zone* zone,
-                                                          Isolate* isolate) {
+void ProgramVisitor::NormalizeAndDedupCompressedStackMaps(
+    Zone* zone,
+    IsolateGroup* isolate_group) {
   // Walks all the CSMs in Code objects and collects their entry information
   // for consolidation.
   class CollectStackMapEntriesVisitor : public CodeVisitor {
@@ -646,11 +648,13 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps(Zone* zone,
         public Dedupper<CompressedStackMaps,
                         PointerKeyValueTrait<const CompressedStackMaps>> {
    public:
-    NormalizeAndDedupCompressedStackMapsVisitor(Zone* zone, Isolate* isolate)
+    NormalizeAndDedupCompressedStackMapsVisitor(Zone* zone,
+                                                IsolateGroup* isolate_group)
         : Dedupper(zone),
           old_global_table_(CompressedStackMaps::Handle(
               zone,
-              isolate->object_store()->canonicalized_stack_map_entries())),
+              isolate_group->object_store()
+                  ->canonicalized_stack_map_entries())),
           entry_offsets_(zone),
           maps_(CompressedStackMaps::Handle(zone)) {
       ASSERT(old_global_table_.IsNull() || old_global_table_.IsGlobalTable());
@@ -661,7 +665,7 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps(Zone* zone,
       // frequency the same entry info was seen across all CSMs in each SME.
 
       CollectStackMapEntriesVisitor collect_visitor(zone, old_global_table_);
-      WalkProgram(zone, isolate, &collect_visitor);
+      WalkProgram(zone, isolate_group, &collect_visitor);
 
       // The results of phase 1 are used to create a new global table with
       // entries sorted by decreasing frequency, so that entries that appear
@@ -671,7 +675,7 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps(Zone* zone,
 
       const auto& new_global_table = CompressedStackMaps::Handle(
           zone, collect_visitor.CreateGlobalTable(&entry_offsets_));
-      isolate->object_store()->set_canonicalized_stack_map_entries(
+      isolate_group->object_store()->set_canonicalized_stack_map_entries(
           new_global_table);
 
       // 2) Visit all CSMs and replace each with a canonicalized normalized
@@ -720,8 +724,9 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps(Zone* zone,
     CompressedStackMaps& maps_;
   };
 
-  NormalizeAndDedupCompressedStackMapsVisitor dedup_visitor(zone, isolate);
-  WalkProgram(zone, isolate, &dedup_visitor);
+  NormalizeAndDedupCompressedStackMapsVisitor dedup_visitor(zone,
+                                                            isolate_group);
+  WalkProgram(zone, isolate_group, &dedup_visitor);
 }
 
 class PcDescriptorsKeyValueTrait {
@@ -742,7 +747,8 @@ class PcDescriptorsKeyValueTrait {
   }
 };
 
-void ProgramVisitor::DedupPcDescriptors(Zone* zone, Isolate* isolate) {
+void ProgramVisitor::DedupPcDescriptors(Zone* zone,
+                                        IsolateGroup* isolate_group) {
   class DedupPcDescriptorsVisitor
       : public CodeVisitor,
         public Dedupper<PcDescriptors, PcDescriptorsKeyValueTrait> {
@@ -767,7 +773,7 @@ void ProgramVisitor::DedupPcDescriptors(Zone* zone, Isolate* isolate) {
   };
 
   DedupPcDescriptorsVisitor visitor(zone);
-  WalkProgram(zone, isolate, &visitor);
+  WalkProgram(zone, isolate_group, &visitor);
 }
 
 class TypedDataKeyValueTrait {
@@ -796,7 +802,8 @@ class TypedDataDedupper : public Dedupper<TypedData, TypedDataKeyValueTrait> {
   bool IsCorrectType(const Object& obj) const { return obj.IsTypedData(); }
 };
 
-void ProgramVisitor::DedupDeoptEntries(Zone* zone, Isolate* isolate) {
+void ProgramVisitor::DedupDeoptEntries(Zone* zone,
+                                       IsolateGroup* isolate_group) {
   class DedupDeoptEntriesVisitor : public CodeVisitor,
                                    public TypedDataDedupper {
    public:
@@ -831,11 +838,12 @@ void ProgramVisitor::DedupDeoptEntries(Zone* zone, Isolate* isolate) {
 
   if (FLAG_precompiled_mode) return;
   DedupDeoptEntriesVisitor visitor(zone);
-  WalkProgram(zone, isolate, &visitor);
+  WalkProgram(zone, isolate_group, &visitor);
 }
 
 #if defined(DART_PRECOMPILER)
-void ProgramVisitor::DedupCatchEntryMovesMaps(Zone* zone, Isolate* isolate) {
+void ProgramVisitor::DedupCatchEntryMovesMaps(Zone* zone,
+                                              IsolateGroup* isolate_group) {
   class DedupCatchEntryMovesMapsVisitor : public CodeVisitor,
                                           public TypedDataDedupper {
    public:
@@ -855,7 +863,7 @@ void ProgramVisitor::DedupCatchEntryMovesMaps(Zone* zone, Isolate* isolate) {
 
   if (!FLAG_precompiled_mode) return;
   DedupCatchEntryMovesMapsVisitor visitor(zone);
-  WalkProgram(zone, isolate, &visitor);
+  WalkProgram(zone, isolate_group, &visitor);
 }
 
 class UnlinkedCallKeyValueTrait {
@@ -876,17 +884,18 @@ class UnlinkedCallKeyValueTrait {
   }
 };
 
-void ProgramVisitor::DedupUnlinkedCalls(Zone* zone, Isolate* isolate) {
+void ProgramVisitor::DedupUnlinkedCalls(Zone* zone,
+                                        IsolateGroup* isolate_group) {
   class DedupUnlinkedCallsVisitor
       : public CodeVisitor,
         public Dedupper<UnlinkedCall, UnlinkedCallKeyValueTrait> {
    public:
-    explicit DedupUnlinkedCallsVisitor(Zone* zone, Isolate* isolate)
+    explicit DedupUnlinkedCallsVisitor(Zone* zone, IsolateGroup* isolate_group)
         : Dedupper(zone),
           entry_(Object::Handle(zone)),
           pool_(ObjectPool::Handle(zone)) {
       auto& gop = ObjectPool::Handle(
-          zone, isolate->object_store()->global_object_pool());
+          zone, isolate_group->object_store()->global_object_pool());
       ASSERT_EQUAL(!gop.IsNull(), FLAG_use_bare_instructions);
       DedupPool(gop);
     }
@@ -916,7 +925,7 @@ void ProgramVisitor::DedupUnlinkedCalls(Zone* zone, Isolate* isolate) {
 
   if (!FLAG_precompiled_mode) return;
 
-  DedupUnlinkedCallsVisitor deduper(zone, isolate);
+  DedupUnlinkedCallsVisitor deduper(zone, isolate_group);
 
   // Note: in bare instructions mode we can still have object pools attached
   // to code objects and these pools need to be deduplicated.
@@ -927,7 +936,7 @@ void ProgramVisitor::DedupUnlinkedCalls(Zone* zone, Isolate* isolate) {
   if (!FLAG_use_bare_instructions ||
       FLAG_write_v8_snapshot_profile_to != nullptr ||
       FLAG_trace_precompiler_to != nullptr) {
-    WalkProgram(zone, isolate, &deduper);
+    WalkProgram(zone, isolate_group, &deduper);
   }
 }
 #endif  // defined(DART_PRECOMPILER)
@@ -954,7 +963,8 @@ class CodeSourceMapKeyValueTrait {
   }
 };
 
-void ProgramVisitor::DedupCodeSourceMaps(Zone* zone, Isolate* isolate) {
+void ProgramVisitor::DedupCodeSourceMaps(Zone* zone,
+                                         IsolateGroup* isolate_group) {
   class DedupCodeSourceMapsVisitor
       : public CodeVisitor,
         public Dedupper<CodeSourceMap, CodeSourceMapKeyValueTrait> {
@@ -978,7 +988,7 @@ void ProgramVisitor::DedupCodeSourceMaps(Zone* zone, Isolate* isolate) {
   };
 
   DedupCodeSourceMapsVisitor visitor(zone);
-  WalkProgram(zone, isolate, &visitor);
+  WalkProgram(zone, isolate_group, &visitor);
 }
 
 class ArrayKeyValueTrait {
@@ -1007,7 +1017,7 @@ class ArrayKeyValueTrait {
   }
 };
 
-void ProgramVisitor::DedupLists(Zone* zone, Isolate* isolate) {
+void ProgramVisitor::DedupLists(Zone* zone, IsolateGroup* isolate_group) {
   class DedupListsVisitor : public CodeVisitor,
                             public Dedupper<Array, ArrayKeyValueTrait> {
    public:
@@ -1083,7 +1093,7 @@ void ProgramVisitor::DedupLists(Zone* zone, Isolate* isolate) {
   };
 
   DedupListsVisitor visitor(zone);
-  WalkProgram(zone, isolate, &visitor);
+  WalkProgram(zone, isolate_group, &visitor);
 }
 
 // Traits for comparing two [Instructions] objects for equality, which is
@@ -1168,7 +1178,8 @@ class CodeKeyValueTrait {
 };
 #endif
 
-void ProgramVisitor::DedupInstructions(Zone* zone, Isolate* isolate) {
+void ProgramVisitor::DedupInstructions(Zone* zone,
+                                       IsolateGroup* isolate_group) {
   class DedupInstructionsVisitor
       : public CodeVisitor,
         public Dedupper<Instructions, InstructionsKeyValueTrait>,
@@ -1180,7 +1191,7 @@ void ProgramVisitor::DedupInstructions(Zone* zone, Isolate* isolate) {
           instructions_(Instructions::Handle(zone)) {
       if (Snapshot::IncludesCode(Dart::vm_snapshot_kind())) {
         // Prefer existing objects in the VM isolate.
-        Dart::vm_isolate()->heap()->VisitObjectsImagePages(this);
+        Dart::vm_isolate_group()->heap()->VisitObjectsImagePages(this);
       }
     }
 
@@ -1257,33 +1268,33 @@ void ProgramVisitor::DedupInstructions(Zone* zone, Isolate* isolate) {
 
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     DedupInstructionsWithSameMetadataVisitor visitor(zone);
-    return WalkProgram(zone, isolate, &visitor);
+    return WalkProgram(zone, isolate_group, &visitor);
   }
 #endif  // defined(DART_PRECOMPILER)
 
   DedupInstructionsVisitor visitor(zone);
-  WalkProgram(zone, isolate, &visitor);
+  WalkProgram(zone, isolate_group, &visitor);
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 void ProgramVisitor::Dedup(Thread* thread) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  auto const isolate = thread->isolate();
+  auto const isolate_group = thread->isolate_group();
   StackZone stack_zone(thread);
   HANDLESCOPE(thread);
   auto const zone = thread->zone();
 
-  BindStaticCalls(zone, isolate);
-  ShareMegamorphicBuckets(zone, isolate);
-  NormalizeAndDedupCompressedStackMaps(zone, isolate);
-  DedupPcDescriptors(zone, isolate);
-  DedupDeoptEntries(zone, isolate);
+  BindStaticCalls(zone, isolate_group);
+  ShareMegamorphicBuckets(zone, isolate_group);
+  NormalizeAndDedupCompressedStackMaps(zone, isolate_group);
+  DedupPcDescriptors(zone, isolate_group);
+  DedupDeoptEntries(zone, isolate_group);
 #if defined(DART_PRECOMPILER)
-  DedupCatchEntryMovesMaps(zone, isolate);
-  DedupUnlinkedCalls(zone, isolate);
+  DedupCatchEntryMovesMaps(zone, isolate_group);
+  DedupUnlinkedCalls(zone, isolate_group);
 #endif
-  DedupCodeSourceMaps(zone, isolate);
-  DedupLists(zone, isolate);
+  DedupCodeSourceMaps(zone, isolate_group);
+  DedupLists(zone, isolate_group);
 
   // Reduces binary size but obfuscates profiler results.
   if (FLAG_dedup_instructions) {
@@ -1306,7 +1317,7 @@ void ProgramVisitor::Dedup(Thread* thread) {
     if (FLAG_precompiled_mode && !FLAG_use_bare_instructions) return;
 #endif
 
-    DedupInstructions(zone, isolate);
+    DedupInstructions(zone, isolate_group);
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
@@ -1386,7 +1397,7 @@ void ProgramVisitor::AssignUnits(Thread* thread) {
   }
 
   // Isolate stubs.
-  ObjectStore* object_store = thread->isolate()->object_store();
+  ObjectStore* object_store = thread->isolate_group()->object_store();
   ObjectPtr* from = object_store->from();
   ObjectPtr* to = object_store->to_snapshot(Snapshot::kFullAOT);
   for (ObjectPtr* p = from; p <= to; p++) {
@@ -1399,7 +1410,7 @@ void ProgramVisitor::AssignUnits(Thread* thread) {
 
   // Function code / allocation stubs.
   AssignLoadingUnitsCodeVisitor visitor(zone);
-  WalkProgram(zone, thread->isolate(), &visitor);
+  WalkProgram(zone, thread->isolate_group(), &visitor);
 }
 
 class ProgramHashVisitor : public CodeVisitor {
@@ -1462,9 +1473,9 @@ uint32_t ProgramVisitor::Hash(Thread* thread) {
   Zone* zone = thread->zone();
 
   ProgramHashVisitor visitor(zone);
-  WalkProgram(zone, thread->isolate(), &visitor);
+  WalkProgram(zone, thread->isolate_group(), &visitor);
   visitor.VisitPool(ObjectPool::Handle(
-      zone, thread->isolate()->object_store()->global_object_pool()));
+      zone, thread->isolate_group()->object_store()->global_object_pool()));
   return visitor.hash();
 }
 

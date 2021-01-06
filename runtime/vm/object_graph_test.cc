@@ -40,7 +40,8 @@ class CounterVisitor : public ObjectGraph::Visitor {
 };
 
 ISOLATE_UNIT_TEST_CASE(ObjectGraph) {
-  Isolate* isolate = thread->isolate();
+  auto heap = thread->isolate_group()->heap();
+
   // Create a simple object graph with objects a, b, c, d:
   //  a+->b+->c
   //  +   +
@@ -117,7 +118,7 @@ ISOLATE_UNIT_TEST_CASE(ObjectGraph) {
       HANDLESCOPE(thread);
       Array& path = Array::Handle(Array::New(6, Heap::kNew));
       // Trigger a full GC to increase probability of concurrent tasks.
-      isolate->heap()->CollectAllGarbage();
+      heap->CollectAllGarbage();
       intptr_t length = graph.RetainingPath(&c, path).length;
       EXPECT_LE(3, length);
       Array& expected_c = Array::Handle();

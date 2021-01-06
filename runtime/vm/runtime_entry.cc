@@ -103,7 +103,7 @@ void VerifyOnTransition() {
   Thread* thread = Thread::Current();
   TransitionGeneratedToVM transition(thread);
   VerifyPointersVisitor::VerifyPointers();
-  thread->isolate()->heap()->Verify();
+  thread->isolate_group()->heap()->Verify();
 }
 #endif
 
@@ -181,7 +181,7 @@ DEFINE_RUNTIME_ENTRY(NullError, 0) {
   const uword pc_offset = caller_frame->pc() - code.PayloadStart();
 
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->heap()->CollectAllGarbage();
+    isolate->group()->heap()->CollectAllGarbage();
   }
 
   const CodeSourceMap& map =
@@ -261,7 +261,7 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
   }
   if (len > Array::kMaxElements) {
     const Instance& exception = Instance::Handle(
-        zone, thread->isolate()->object_store()->out_of_memory());
+        zone, thread->isolate_group()->object_store()->out_of_memory());
     Exceptions::Throw(thread, exception);
   }
 
@@ -297,7 +297,7 @@ DEFINE_RUNTIME_ENTRY(AllocateTypedData, 2) {
     Exceptions::ThrowRangeError("length", Integer::Cast(length), 0, max);
   } else if (len > max) {
     const Instance& exception = Instance::Handle(
-        zone, thread->isolate()->object_store()->out_of_memory());
+        zone, thread->isolate_group()->object_store()->out_of_memory());
     Exceptions::Throw(thread, exception);
   }
   const auto& typed_data =
@@ -1243,7 +1243,7 @@ static FunctionPtr ComputeTypeCheckTarget(const Instance& receiver,
                                           const ArgumentsDescriptor& desc) {
   const bool result = receiver.IsInstanceOf(type, Object::null_type_arguments(),
                                             Object::null_type_arguments());
-  const ObjectStore* store = Isolate::Current()->object_store();
+  const ObjectStore* store = IsolateGroup::Current()->object_store();
   const Function& target =
       Function::Handle(result ? store->simple_instance_of_true_function()
                               : store->simple_instance_of_false_function());
@@ -1267,8 +1267,9 @@ static FunctionPtr Resolve(
                                                                name, args_desc);
   }
   if (caller_arguments.length() == 2 &&
-      target_function.raw() ==
-          thread->isolate()->object_store()->simple_instance_of_function()) {
+      target_function.raw() == thread->isolate_group()
+                                   ->object_store()
+                                   ->simple_instance_of_function()) {
     // Replace the target function with constant function.
     const AbstractType& type = AbstractType::Cast(*caller_arguments[1]);
     target_function =
@@ -1340,14 +1341,14 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerTwoArgs, 3) {
 
 #if defined(DART_PRECOMPILED_RUNTIME)
 
-static bool IsSingleTarget(Isolate* isolate,
+static bool IsSingleTarget(IsolateGroup* isolate_group,
                            Zone* zone,
                            intptr_t lower_cid,
                            intptr_t upper_cid,
                            const Function& target,
                            const String& name) {
   Class& cls = Class::Handle(zone);
-  ClassTable* table = isolate->class_table();
+  ClassTable* table = isolate_group->class_table();
   Function& other_target = Function::Handle(zone);
   for (intptr_t cid = lower_cid; cid <= upper_cid; cid++) {
     if (!table->HasValidClassAt(cid)) continue;
@@ -1362,7 +1363,6 @@ static bool IsSingleTarget(Isolate* isolate,
   }
   return true;
 }
-
 
 class SavedUnlinkedCallMapKeyEqualsTraits : public AllStatic {
  public:
@@ -1631,8 +1631,8 @@ bool PatchableCallHandler::CanExtendSingleTargetRange(
     *upper = receiver().GetClassId();
   }
 
-  return IsSingleTarget(isolate_, zone_, unchecked_lower, unchecked_upper,
-                        target_function, name);
+  return IsSingleTarget(isolate_->group(), zone_, unchecked_lower,
+                        unchecked_upper, target_function, name);
 }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
@@ -1668,8 +1668,8 @@ void PatchableCallHandler::DoMonomorphicMissAOT(
     old_expected_cid = MonomorphicSmiableCall::Cast(data).expected_cid();
   }
   const bool is_monomorphic_hit = old_expected_cid == receiver().GetClassId();
-  const auto& old_receiver_class =
-      Class::Handle(zone_, isolate_->class_table()->At(old_expected_cid));
+  const auto& old_receiver_class = Class::Handle(
+      zone_, isolate_->group()->class_table()->At(old_expected_cid));
   const auto& old_target = Function::Handle(
       zone_, Resolve(thread_, zone_, caller_arguments_, old_receiver_class,
                      name_, args_descriptor_));
@@ -2417,10 +2417,11 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromPrologue, 4) {
 //  - garbage collection
 //  - hot reload
 static void HandleStackOverflowTestCases(Thread* thread) {
-  Isolate* isolate = thread->isolate();
+  auto isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
 
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->heap()->CollectAllGarbage();
+    isolate->group()->heap()->CollectAllGarbage();
   }
 
   bool do_deopt = false;
@@ -2501,7 +2502,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
     {
       NoReloadScope no_reload(isolate, thread);
       const Library& lib =
-          Library::Handle(isolate->object_store()->_internal_library());
+          Library::Handle(isolate_group->object_store()->_internal_library());
       const Class& cls = Class::Handle(
           lib.LookupClass(String::Handle(String::New("VMLibraryHooks"))));
       const Function& func = Function::Handle(Resolver::ResolveFunction(
@@ -2558,7 +2559,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
     }
   }
   if (do_gc) {
-    isolate->heap()->CollectAllGarbage(Heap::kDebugging);
+    isolate->group()->heap()->CollectAllGarbage(Heap::kDebugging);
   }
 }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -2622,7 +2623,7 @@ static void HandleOSRRequest(Thread* thread) {
 
 DEFINE_RUNTIME_ENTRY(AllocateMint, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->heap()->CollectAllGarbage();
+    isolate->group()->heap()->CollectAllGarbage();
   }
   constexpr uint64_t val = 0x7fffffff7fffffff;
   ASSERT(!Smi::IsValid(static_cast<int64_t>(val)));
@@ -2673,7 +2674,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     // Use the preallocated stack overflow exception to avoid calling
     // into dart code.
     const Instance& exception =
-        Instance::Handle(isolate->object_store()->stack_overflow());
+        Instance::Handle(isolate->group()->object_store()->stack_overflow());
     Exceptions::Throw(thread, exception);
     UNREACHABLE();
   }
