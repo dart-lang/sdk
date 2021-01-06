@@ -563,15 +563,14 @@ class KernelCompilationRequest : public ValueObject {
     is_static_object.type = Dart_CObject_kBool;
     is_static_object.value.as_bool = is_static;
 
-    Isolate* isolate =
-        Thread::Current() != NULL ? Thread::Current()->isolate() : NULL;
-    ASSERT(isolate != NULL);
+    auto isolate = thread->isolate();
+    auto isolate_group = thread->isolate_group();
+    auto source = isolate_group->source();
+
     Dart_CObject isolate_id;
     isolate_id.type = Dart_CObject_kInt64;
-    isolate_id.value.as_int64 =
-        isolate != NULL ? static_cast<int64_t>(isolate->main_port()) : 0;
+    isolate_id.value.as_int64 = static_cast<int64_t>(isolate->main_port());
 
-    IsolateGroupSource* source = Isolate::Current()->source();
     intptr_t num_dills = 0;
     if (source->kernel_buffer != nullptr) {
       num_dills++;
@@ -628,8 +627,7 @@ class KernelCompilationRequest : public ValueObject {
 
     Dart_CObject enable_asserts;
     enable_asserts.type = Dart_CObject_kBool;
-    enable_asserts.value.as_bool =
-        isolate != NULL ? isolate->asserts() : FLAG_enable_asserts;
+    enable_asserts.value.as_bool = isolate_group->asserts();
 
     intptr_t num_experimental_flags = experimental_flags->length();
     Dart_CObject** experimental_flags_array =
@@ -770,7 +768,7 @@ class KernelCompilationRequest : public ValueObject {
     Dart_CObject isolate_id;
     isolate_id.type = Dart_CObject_kInt64;
     isolate_id.value.as_int64 =
-        isolate != NULL ? static_cast<int64_t>(isolate->main_port()) : 0;
+        isolate != nullptr ? static_cast<int64_t>(isolate->main_port()) : 0;
 
     Dart_CObject message;
     message.type = Dart_CObject_kArray;
@@ -783,8 +781,9 @@ class KernelCompilationRequest : public ValueObject {
 
     Dart_CObject enable_asserts;
     enable_asserts.type = Dart_CObject_kBool;
-    enable_asserts.value.as_bool =
-        isolate != NULL ? isolate->asserts() : FLAG_enable_asserts;
+    enable_asserts.value.as_bool = isolate_group != nullptr
+                                       ? isolate_group->asserts()
+                                       : FLAG_enable_asserts;
 
     Dart_CObject null_safety;
     null_safety.type = Dart_CObject_kInt32;

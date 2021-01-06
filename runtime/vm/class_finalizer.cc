@@ -934,13 +934,13 @@ void ClassFinalizer::FinalizeMemberTypes(const Class& cls) {
   //   instance method.
 
   // Finalize type of fields and check for conflicts in super classes.
-  Isolate* isolate = Isolate::Current();
+  auto isolate_group = IsolateGroup::Current();
   Zone* zone = Thread::Current()->zone();
   Array& array = Array::Handle(zone, cls.fields());
   Field& field = Field::Handle(zone);
   AbstractType& type = AbstractType::Handle(zone);
   const intptr_t num_fields = array.Length();
-  const bool track_exactness = isolate->use_field_guards();
+  const bool track_exactness = isolate_group->use_field_guards();
   for (intptr_t i = 0; i < num_fields; i++) {
     field ^= array.At(i);
     type = field.type();

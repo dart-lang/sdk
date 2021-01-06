@@ -1134,7 +1134,7 @@ class FieldDeserializationCluster : public DeserializationCluster {
 
   void PostLoad(Deserializer* d, const Array& refs, bool is_canonical) {
     Field& field = Field::Handle(d->zone());
-    if (!Isolate::Current()->use_field_guards()) {
+    if (!IsolateGroup::Current()->use_field_guards()) {
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         field ^= refs.At(i);
         field.set_guarded_cid_unsafe(kDynamicCid);

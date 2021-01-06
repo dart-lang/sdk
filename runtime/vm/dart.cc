@@ -981,6 +981,8 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
 const char* Dart::FeaturesString(Isolate* isolate,
                                  bool is_vm_isolate,
                                  Snapshot::Kind kind) {
+  auto isolate_group = isolate != nullptr ? isolate->group() : nullptr;
+
   TextBuffer buffer(64);
 
 // Different fields are included for DEBUG/RELEASE/PRODUCT.
@@ -1001,21 +1003,22 @@ const char* Dart::FeaturesString(Isolate* isolate,
 #define ADD_C(name, PCV, PV, T, DV, C) ADD_FLAG(name, FLAG_##name)
 #define ADD_D(name, T, DV, C) ADD_FLAG(name, FLAG_##name)
 
-#define ADD_ISOLATE_FLAG(name, isolate_flag, flag)                             \
+#define ADD_ISOLATE_GROUP_FLAG(name, isolate_flag, flag)                       \
   do {                                                                         \
-    const bool value = (isolate != NULL) ? isolate->name() : flag;             \
+    const bool value =                                                         \
+        isolate_group != nullptr ? isolate_group->name() : flag;               \
     ADD_FLAG(#name, value);                                                    \
   } while (0);
 
   if (Snapshot::IncludesCode(kind)) {
     VM_GLOBAL_FLAG_LIST(ADD_P, ADD_R, ADD_C, ADD_D);
 
-    // enabling assertions affects deopt ids.
-    ADD_ISOLATE_FLAG(asserts, enable_asserts, FLAG_enable_asserts);
+    // Enabling assertions affects deopt ids.
+    ADD_ISOLATE_GROUP_FLAG(asserts, enable_asserts, FLAG_enable_asserts);
     if (kind == Snapshot::kFullJIT) {
-      ADD_ISOLATE_FLAG(use_field_guards, use_field_guards,
-                       FLAG_use_field_guards);
-      ADD_ISOLATE_FLAG(use_osr, use_osr, FLAG_use_osr);
+      ADD_ISOLATE_GROUP_FLAG(use_field_guards, use_field_guards,
+                             FLAG_use_field_guards);
+      ADD_ISOLATE_GROUP_FLAG(use_osr, use_osr, FLAG_use_osr);
     }
 #if !defined(PRODUCT)
     buffer.AddString(FLAG_code_comments ? " code-comments"
@@ -1053,7 +1056,6 @@ const char* Dart::FeaturesString(Isolate* isolate,
   }
 
   if (!Snapshot::IsAgnosticToNullSafety(kind)) {
-    auto isolate_group = isolate != nullptr ? isolate->group() : nullptr;
     if (isolate_group != nullptr) {
       if (isolate_group->null_safety()) {
         buffer.AddString(" null-safety");

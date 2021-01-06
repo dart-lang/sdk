@@ -4464,7 +4464,7 @@ Fragment FlowGraphBuilder::NullAssertion(LocalVariable* variable) {
 
 Fragment FlowGraphBuilder::BuildNullAssertions() {
   Fragment code;
-  if (IG->null_safety() || !I->asserts() || !FLAG_null_assertions) {
+  if (IG->null_safety() || !IG->asserts() || !FLAG_null_assertions) {
     return code;
   }
 

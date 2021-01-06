@@ -258,6 +258,7 @@ class SnapshotReader : public BaseReader {
   Thread* thread() const { return thread_; }
   Zone* zone() const { return zone_; }
   Isolate* isolate() const { return thread_->isolate(); }
+  IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
   Heap* heap() const { return heap_; }
   ObjectStore* object_store() const { return isolate()->object_store(); }
   ClassTable* class_table() const { return isolate()->class_table(); }

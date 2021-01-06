@@ -10171,18 +10171,19 @@ void Field::InitializeNew(const Field& result,
   result.set_has_pragma(false);
   result.set_static_type_exactness_state(
       StaticTypeExactnessState::NotTracking());
-  Isolate* isolate = Isolate::Current();
+  auto isolate = Isolate::Current();
+  auto isolate_group = isolate->group();
 
 // Use field guards if they are enabled and the isolate has never reloaded.
 // TODO(johnmccutchan): The reload case assumes the worst case (everything is
 // dynamic and possibly null). Attempt to relax this later.
 #if defined(PRODUCT)
   const bool use_guarded_cid =
-      FLAG_precompiled_mode || isolate->use_field_guards();
+      FLAG_precompiled_mode || isolate_group->use_field_guards();
 #else
   const bool use_guarded_cid =
       FLAG_precompiled_mode ||
-      (isolate->use_field_guards() && !isolate->HasAttemptedReload());
+      (isolate_group->use_field_guards() && !isolate->HasAttemptedReload());
 #endif  // !defined(PRODUCT)
   result.set_guarded_cid_unsafe(use_guarded_cid ? kIllegalCid : kDynamicCid);
   result.set_is_nullable_unsafe(use_guarded_cid ? false : true);
@@ -11028,7 +11029,7 @@ bool Field::UpdateGuardedExactnessState(const Object& value) const {
 
 void Field::RecordStore(const Object& value) const {
   ASSERT(IsOriginal());
-  if (!Isolate::Current()->use_field_guards()) {
+  if (!IsolateGroup::Current()->use_field_guards()) {
     return;
   }
 

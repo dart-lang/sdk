@@ -13,7 +13,7 @@
 namespace dart {
 
 // Quick access to the current isolate and zone.
-#define I (isolate())
+#define IG (isolate_group())
 #define Z (zone())
 
 static void RefineUseTypes(Definition* instr) {
@@ -839,7 +839,7 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
     }
   }
 
-  if (I->use_field_guards()) {
+  if (IG->use_field_guards()) {
     if (field.guarded_cid() != kDynamicCid) {
       InsertBefore(instr,
                    new (Z)

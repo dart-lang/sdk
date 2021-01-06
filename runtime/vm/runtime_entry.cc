@@ -2565,8 +2565,8 @@ static void HandleStackOverflowTestCases(Thread* thread) {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 static void HandleOSRRequest(Thread* thread) {
-  Isolate* isolate = thread->isolate();
-  ASSERT(isolate->use_osr());
+  auto isolate_group = thread->isolate_group();
+  ASSERT(isolate_group->use_osr());
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();

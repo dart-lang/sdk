@@ -19,6 +19,7 @@ namespace kernel {
 #define H (translation_helper_)
 #define T (type_translator_)
 #define I Isolate::Current()
+#define IG IsolateGroup::Current()
 #define B (flow_graph_builder_)
 
 Class& StreamingFlowGraphBuilder::GetSuperOrDie() {
@@ -3920,7 +3921,7 @@ Fragment StreamingFlowGraphBuilder::BuildEmptyStatement() {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildAssertBlock() {
-  if (!I->asserts()) {
+  if (!IG->asserts()) {
     SkipStatementList();
     return Fragment();
   }
@@ -3944,7 +3945,7 @@ Fragment StreamingFlowGraphBuilder::BuildAssertBlock() {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildAssertStatement() {
-  if (!I->asserts()) {
+  if (!IG->asserts()) {
     SetOffset(ReaderOffset() - 1);  // Include the tag.
     SkipStatement();                // read this statement.
     return Fragment();
