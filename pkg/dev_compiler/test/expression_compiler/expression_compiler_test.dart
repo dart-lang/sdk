@@ -450,10 +450,10 @@ void main() {
             expression: 'main',
             expectedResult: '''
             (function(x, y, z) {
-              T.VoidTodynamic = () => (T.VoidTodynamic = dart.constFn(dart.fnType(dart.dynamic, [])))();
+              T\$Eval.VoidTodynamic = () => (T\$Eval.VoidTodynamic = dart.constFn(dart.fnType(dart.dynamic, [])))();
               dart.defineLazy(CT, {
                 get C0() {
-                  return C[0] = dart.fn(foo.main, T.VoidTodynamic());
+                  return C[0] = dart.fn(foo.main, T\$Eval.VoidTodynamic());
                 }
               }, false);
               return C[0] || CT.C0;
@@ -1339,8 +1339,8 @@ void main() {
             expression: 'baz(p as String)',
             expectedResult: '''
             (function(p) {
-              T.StringL = () => (T.StringL = dart.constFn(dart.legacy(core.String)))();
-              return foo.baz(T.StringL().as(p));
+              T\$Eval.StringL = () => (T\$Eval.StringL = dart.constFn(dart.legacy(core.String)))();
+              return foo.baz(T\$Eval.StringL().as(p));
             }(
             0
             ))
@@ -1959,8 +1959,8 @@ void main() {
             expression: 'a is String',
             expectedResult: '''
             (function(a, check) {
-              T.StringL = () => (T.StringL = dart.constFn(dart.legacy(core.String)))();
-              return T.StringL().is(a);
+              T\$Eval.StringL = () => (T\$Eval.StringL = dart.constFn(dart.legacy(core.String)))();
+              return T\$Eval.StringL().is(a);
             }(
               null,
               null
@@ -1974,7 +1974,7 @@ void main() {
             expression: 'a is int',
             expectedResult: '''
             (function(a, check) {
-              return T.intL().is(a);
+              return T\$Eval.intL().is(a);
             }(
               null,
               null
@@ -2182,10 +2182,10 @@ void main() {
             expression: 'main',
             expectedResult: '''
             (function(x, y, z) {
-              T.VoidTodynamic = () => (T.VoidTodynamic = dart.constFn(dart.fnType(dart.dynamic, [])))();
+              T\$Eval.VoidTodynamic = () => (T\$Eval.VoidTodynamic = dart.constFn(dart.fnType(dart.dynamic, [])))();
               dart.defineLazy(CT, {
                 get C0() {
-                  return C[0] = dart.fn(foo.main, T.VoidTodynamic());
+                  return C[0] = dart.fn(foo.main, T\$Eval.VoidTodynamic());
                 }
               }, false);
               return C[0] || CT.C0;

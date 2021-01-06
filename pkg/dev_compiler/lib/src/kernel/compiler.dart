@@ -70,7 +70,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Let variables collected for the given function.
   List<js_ast.TemporaryId> _letVariables;
 
-  final _constTable = js_ast.TemporaryId('CT');
+  final _constTable = js_ast.Identifier('CT');
 
   /// Constant getters used to populate the constant table.
   final _constLazyAccessors = <js_ast.Method>[];
@@ -3088,6 +3088,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // original code.
     _checkParameters = false;
 
+    // Set module item containers to incremental mode.
+    setSymbolContainerIncrementalMode(true);
+    _typeTable.typeContainer.incrementalMode = true;
+
     // Emit function with additional information, such as types that are used
     // in the expression. Note that typeTable can be null if this function is
     // called from the expression compilation service, since we currently do
@@ -3097,7 +3101,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Issue: https://github.com/dart-lang/sdk/issues/43288
     var fun = _emitFunction(functionNode, name);
 
-    var types = _typeTable?.dischargeBoundTypes(incremental: true);
+    var types = _typeTable?.dischargeBoundTypes();
     var constants = _dischargeConstTable();
 
     var body = js_ast.Block([...?types, ...?constants, ...fun.body.statements]);
