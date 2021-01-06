@@ -1030,6 +1030,17 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return expectSuccessfulResponseTo(request, SemanticTokens.fromJson);
   }
 
+  Future<SemanticTokens> getSemanticTokensRange(Uri uri, Range range) {
+    final request = makeRequest(
+      Method.textDocument_semanticTokens_range,
+      SemanticTokensRangeParams(
+        textDocument: TextDocumentIdentifier(uri: uri.toString()),
+        range: range,
+      ),
+    );
+    return expectSuccessfulResponseTo(request, SemanticTokens.fromJson);
+  }
+
   Future<SignatureHelp> getSignatureHelp(Uri uri, Position pos,
       [SignatureHelpContext context]) {
     final request = makeRequest(

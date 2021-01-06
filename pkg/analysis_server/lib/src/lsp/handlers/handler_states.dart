@@ -103,7 +103,8 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
     registerHandler(WorkspaceDidChangeConfigurationMessageHandler(server));
     registerHandler(ReanalyzeHandler(server));
     registerHandler(WillRenameFilesHandler(server));
-    registerHandler(SemanticTokensHandler(server));
+    registerHandler(SemanticTokensFullHandler(server));
+    registerHandler(SemanticTokensRangeHandler(server));
   }
 }
 

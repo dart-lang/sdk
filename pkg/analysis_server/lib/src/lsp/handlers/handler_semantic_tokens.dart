@@ -12,38 +12,44 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/semantic_tokens/encoder.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
-class SemanticTokensHandler
-    extends MessageHandler<SemanticTokensParams, SemanticTokens>
+abstract class AbstractSemanticTokensHandler<T>
+    extends MessageHandler<T, SemanticTokens>
     with LspPluginRequestHandlerMixin {
-  SemanticTokensHandler(LspAnalysisServer server) : super(server);
-
-  @override
-  Method get handlesMessage => Method.textDocument_semanticTokens_full;
-
-  @override
-  LspJsonHandler<SemanticTokensParams> get jsonHandler =>
-      SemanticTokensParams.jsonHandler;
+  AbstractSemanticTokensHandler(LspAnalysisServer server) : super(server);
 
   List<List<HighlightRegion>> getPluginResults(String path) {
     final notificationManager = server.notificationManager;
     return notificationManager.highlights.getResults(path);
   }
 
-  Future<List<SemanticTokenInfo>> getServerResult(String path) async {
+  Future<List<SemanticTokenInfo>> getServerResult(
+      String path, SourceRange range) async {
     final result = await server.getResolvedUnit(path);
     if (result?.state == ResultState.VALID) {
-      final computer = DartUnitHighlightsComputer(result.unit);
+      final computer = DartUnitHighlightsComputer(result.unit, range: range);
       return computer.computeSemanticTokens();
     }
     return [];
   }
 
-  @override
-  Future<ErrorOr<SemanticTokens>> handle(
-      SemanticTokensParams params, CancellationToken token) async {
-    final path = pathOfDoc(params.textDocument);
+  Iterable<SemanticTokenInfo> _filter(
+      Iterable<SemanticTokenInfo> tokens, SourceRange range) {
+    if (range == null) {
+      return tokens;
+    }
+
+    return tokens.where((token) =>
+        !(token.offset + token.length < range.offset ||
+            token.offset > range.end));
+  }
+
+  Future<ErrorOr<SemanticTokens>> _handleImpl(
+      TextDocumentIdentifier textDocument, CancellationToken token,
+      {Range range}) async {
+    final path = pathOfDoc(textDocument);
 
     return path.mapResult((path) async {
       final lineInfo = server.getLineInfo(path);
@@ -53,45 +59,88 @@ class SemanticTokensHandler
         return success(null);
       }
 
-      final serverTokens = await getServerResult(path);
-      final pluginHighlightRegions =
-          getPluginResults(path).expand((results) => results).toList();
+      return toSourceRange(lineInfo, range).mapResult((range) async {
+        final serverTokens = await getServerResult(path, range);
+        final pluginHighlightRegions =
+            getPluginResults(path).expand((results) => results).toList();
 
-      if (token.isCancellationRequested) {
-        return cancelled();
-      }
+        if (token.isCancellationRequested) {
+          return cancelled();
+        }
 
-      final encoder = SemanticTokenEncoder();
-      final pluginTokens =
-          encoder.convertHighlightToTokens(pluginHighlightRegions);
+        final encoder = SemanticTokenEncoder();
+        Iterable<SemanticTokenInfo> pluginTokens =
+            encoder.convertHighlightToTokens(pluginHighlightRegions);
 
-      Iterable<SemanticTokenInfo> tokens = [...serverTokens, ...pluginTokens];
+        // Plugin tokens are not filtered at source, so need to be filtered here.
+        pluginTokens = _filter(pluginTokens, range);
 
-      // Capabilities exist for supporting multiline/overlapping tokens. These
-      // could be used if any clients take it up (VS Code does not).
-      // - clientCapabilities?.multilineTokenSupport
-      // - clientCapabilities?.overlappingTokenSupport
-      final allowMultilineTokens = false;
-      final allowOverlappingTokens = false;
+        Iterable<SemanticTokenInfo> tokens = [...serverTokens, ...pluginTokens];
 
-      // Some of the translation operations and the final encoding require
-      // the tokens to be sorted. Do it once here to avoid each method needing
-      // to do it itself (resulting in multiple sorts).
-      tokens = tokens.toList()
-        ..sort(SemanticTokenInfo.offsetLengthPrioritySort);
+        // Capabilities exist for supporting multiline/overlapping tokens. These
+        // could be used if any clients take it up (VS Code does not).
+        // - clientCapabilities?.multilineTokenSupport
+        // - clientCapabilities?.overlappingTokenSupport
+        final allowMultilineTokens = false;
+        final allowOverlappingTokens = false;
 
-      if (!allowOverlappingTokens) {
-        tokens = encoder.splitOverlappingTokens(tokens);
-      }
+        // Some of the translation operations and the final encoding require
+        // the tokens to be sorted. Do it once here to avoid each method needing
+        // to do it itself (resulting in multiple sorts).
+        tokens = tokens.toList()
+          ..sort(SemanticTokenInfo.offsetLengthPrioritySort);
 
-      if (!allowMultilineTokens) {
-        tokens = tokens
-            .expand((token) => encoder.splitMultilineTokens(token, lineInfo));
-      }
+        if (!allowOverlappingTokens) {
+          tokens = encoder.splitOverlappingTokens(tokens);
+        }
 
-      final semanticTokens = encoder.encodeTokens(tokens.toList(), lineInfo);
+        if (!allowMultilineTokens) {
+          tokens = tokens
+              .expand((token) => encoder.splitMultilineTokens(token, lineInfo));
 
-      return success(semanticTokens);
+          // Tokens may need re-filtering after being split up as there may
+          // now be tokens outside of the range.
+          tokens = _filter(tokens, range);
+        }
+
+        final semanticTokens = encoder.encodeTokens(tokens.toList(), lineInfo);
+
+        return success(semanticTokens);
+      });
     });
   }
+}
+
+class SemanticTokensFullHandler
+    extends AbstractSemanticTokensHandler<SemanticTokensParams> {
+  SemanticTokensFullHandler(LspAnalysisServer server) : super(server);
+
+  @override
+  Method get handlesMessage => Method.textDocument_semanticTokens_full;
+
+  @override
+  LspJsonHandler<SemanticTokensParams> get jsonHandler =>
+      SemanticTokensParams.jsonHandler;
+
+  @override
+  Future<ErrorOr<SemanticTokens>> handle(
+          SemanticTokensParams params, CancellationToken token) =>
+      _handleImpl(params.textDocument, token);
+}
+
+class SemanticTokensRangeHandler
+    extends AbstractSemanticTokensHandler<SemanticTokensRangeParams> {
+  SemanticTokensRangeHandler(LspAnalysisServer server) : super(server);
+
+  @override
+  Method get handlesMessage => Method.textDocument_semanticTokens_range;
+
+  @override
+  LspJsonHandler<SemanticTokensRangeParams> get jsonHandler =>
+      SemanticTokensRangeParams.jsonHandler;
+
+  @override
+  Future<ErrorOr<SemanticTokens>> handle(
+          SemanticTokensRangeParams params, CancellationToken token) =>
+      _handleImpl(params.textDocument, token, range: params.range);
 }

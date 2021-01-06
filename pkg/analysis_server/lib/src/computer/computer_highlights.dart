@@ -14,19 +14,26 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 
 /// A computer for [HighlightRegion]s and LSP [SemanticTokenInfo] in a Dart [CompilationUnit].
 class DartUnitHighlightsComputer {
   final CompilationUnit _unit;
+  final SourceRange range;
 
   final _regions = <HighlightRegion>[];
   final _semanticTokens = <SemanticTokenInfo>[];
   bool _computeRegions = false;
   bool _computeSemanticTokens = false;
 
-  DartUnitHighlightsComputer(this._unit);
+  /// Creates a computer for [HighlightRegion]s and LSP [SemanticTokenInfo] in a
+  /// Dart [CompilationUnit].
+  ///
+  /// If [range] is supplied, tokens outside of this range will not be included
+  /// in results.
+  DartUnitHighlightsComputer(this._unit, {this.range});
 
   /// Returns the computed highlight regions, not `null`.
   List<HighlightRegion> compute() {
@@ -421,6 +428,9 @@ class DartUnitHighlightsComputer {
   /// If [semanticTokenType] or [semanticTokenModifiers] are not provided, the
   /// values from the default LSP mapping for [type] (also used for plugins)
   /// will be used instead.
+  ///
+  /// If the computer has a [range] set, tokens that fall outside of that range
+  /// will not be recorded.
   void _addRegion(
     int offset,
     int length,
@@ -428,6 +438,13 @@ class DartUnitHighlightsComputer {
     SemanticTokenTypes semanticTokenType,
     Set<SemanticTokenModifiers> semanticTokenModifiers,
   }) {
+    if (range != null) {
+      final end = offset + length;
+      // Skip token if it ends before the range of starts after the range.
+      if (end < range.offset || offset > range.end) {
+        return;
+      }
+    }
     if (_computeRegions) {
       _regions.add(HighlightRegion(type, offset, length));
     }

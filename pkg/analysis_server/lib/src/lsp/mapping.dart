@@ -27,6 +27,7 @@ import 'package:analyzer/dart/analysis/results.dart' as server;
 import 'package:analyzer/diagnostic/diagnostic.dart' as analyzer;
 import 'package:analyzer/error/error.dart' as server;
 import 'package:analyzer/source/line_info.dart' as server;
+import 'package:analyzer/source/source_range.dart' as server;
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/services/available_declarations.dart' as dec;
@@ -1203,6 +1204,29 @@ lsp.SignatureHelp toSignatureHelp(List<lsp.MarkupKind> preferredFormats,
     // https://github.com/Microsoft/language-server-protocol/issues/456#issuecomment-452318297
     activeParameter: -1, // activeParameter
   );
+}
+
+ErrorOr<server.SourceRange> toSourceRange(
+    server.LineInfo lineInfo, Range range) {
+  if (range == null) {
+    return success(null);
+  }
+
+  // If there is a range, convert to offsets because that's what
+  // the tokens are computed using initially.
+  final start = toOffset(lineInfo, range.start);
+  final end = toOffset(lineInfo, range.end);
+  if (start?.isError ?? false) {
+    return failure(start);
+  }
+  if (end?.isError ?? false) {
+    return failure(end);
+  }
+
+  final startOffset = start?.result;
+  final endOffset = end?.result;
+
+  return success(server.SourceRange(startOffset, endOffset - startOffset));
 }
 
 lsp.TextDocumentEdit toTextDocumentEdit(FileEditInformation edit) {

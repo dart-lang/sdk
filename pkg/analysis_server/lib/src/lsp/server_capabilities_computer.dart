@@ -242,6 +242,7 @@ class ServerCapabilitiesComputer {
                 full: Either2<bool, SemanticTokensOptionsFull>.t2(
                   SemanticTokensOptionsFull(delta: false),
                 ),
+                range: Either2<bool, SemanticTokensOptionsRange>.t1(true),
               ),
             ),
       executeCommandProvider: ExecuteCommandOptions(
@@ -454,6 +455,7 @@ class ServerCapabilitiesComputer {
         full: Either2<bool, SemanticTokensOptionsFull>.t2(
           SemanticTokensOptionsFull(delta: false),
         ),
+        range: Either2<bool, SemanticTokensOptionsRange>.t1(true),
       ),
     );
 

@@ -103,6 +103,7 @@ Below is a list of LSP methods and their implementation status.
 | textDocument/prepareRename | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/foldingRange | ✅ | ✅ | ✅ | ✅ | ✅ |
 | textDocument/semanticTokens/full | ✅ | ✅ | ✅ | ✅ | ✅ |
+| textDocument/semanticTokens/range | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ## Custom Methods and Notifications
 
