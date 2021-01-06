@@ -31,5 +31,6 @@ abstract class ServerStarter {
   set instrumentationService(InstrumentationService service);
 
   /// Use the given command-line [arguments] to start this server.
-  void start(List<String> arguments, [SendPort sendPort]);
+  void start(List<String> arguments,
+      {SendPort sendPort, bool defaultToLsp = false});
 }
