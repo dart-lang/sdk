@@ -10627,7 +10627,6 @@ ObjectPtr Field::EvaluateInitializer() const {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (is_static() && is_const()) {
-    ASSERT(!FLAG_precompiled_mode);
     return kernel::EvaluateStaticConstFieldInitializer(*this);
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
