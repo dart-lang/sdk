@@ -419,12 +419,15 @@ class KClassEnvImpl implements KClassEnv {
           ir.Procedure existingSetter = existingSetters[field.name];
           cls.addField(cloneVisitor.cloneField(
               field, existingGetter?.reference, existingSetter?.reference));
+          // TODO(johnniwinther): We need to unbind the canonical names before
+          // serializing these references since the canonical names refer to
+          // @getters and @setters instead of @fields and @fields=. This will
+          // not be needed if stop using @fields/@fields= in favor of
+          // @getters/@setters in general.
           if (existingGetter != null) {
-            existingGetter.reference.canonicalName?.unbind();
             cls.procedures.remove(existingGetter);
           }
           if (existingSetter != null) {
-            existingSetter.reference.canonicalName?.unbind();
             cls.procedures.remove(existingSetter);
           }
           continue;
@@ -444,7 +447,6 @@ class KClassEnvImpl implements KClassEnv {
                   ? existingSetters[procedure.name]
                   : existingNonSetters[procedure.name];
           if (existingProcedure != null) {
-            existingProcedure.reference.canonicalName?.unbind();
             cls.procedures.remove(existingProcedure);
           }
           cls.addProcedure(cloneVisitor.cloneProcedure(

@@ -181,6 +181,7 @@ none/mixin_covariant: TextSerializationFailure
 none/operator: TypeCheckError
 none/property_get: TypeCheckError
 none/property_set: TypeCheckError
+none/mixin_super: TextSerializationFailure
 none/tearoff_opt_out: TextSerializationFailure
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError

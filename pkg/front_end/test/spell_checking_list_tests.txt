@@ -606,6 +606,7 @@ scans
 scheduler
 screen
 scripts
+scroll
 sdkroot
 sdks
 secondary
