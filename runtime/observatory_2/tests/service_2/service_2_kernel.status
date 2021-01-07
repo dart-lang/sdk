@@ -153,6 +153,7 @@ next_through_simple_async_test: SkipByDesign # Debugger is disabled in AOT mode.
 next_through_simple_async_with_returns_test: SkipByDesign # Debugger is disabled in AOT mode.
 next_through_simple_linear_2_test: SkipByDesign # Debugger is disabled in AOT mode.
 next_through_simple_linear_test: SkipByDesign # Debugger is disabled in AOT mode.
+notify_debugger_on_exception_test: SkipByDesign # Debugger is disabled in AOT mode.
 parameters_in_scope_at_entry_test: SkipByDesign # Debugger is disabled in AOT mode.
 pause_idle_isolate_test: SkipByDesign # Debugger is disabled in AOT mode.
 pause_on_exceptions_test: SkipByDesign # Debugger is disabled in AOT mode.

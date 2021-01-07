@@ -4775,7 +4775,7 @@ class Library : public Object {
                          bool only_core,
                          const Object& object,
                          const String& pragma_name,
-                         Object* options);
+                         Object* options = nullptr);
 
   ClassPtr toplevel_class() const { return raw_ptr()->toplevel_class(); }
   void set_toplevel_class(const Class& value) const;
