@@ -4,6 +4,7 @@
 
 #include "vm/compilation_trace.h"
 
+#include "vm/closure_functions_cache.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/globals.h"
 #include "vm/log.h"
@@ -131,20 +132,21 @@ ObjectPtr CompilationTraceLoader::CompileTrace(uint8_t* buffer, intptr_t size) {
     }
   }
 
-  // Finally, compile closures in all compiled functions. Don't cache the
-  // length since compiling may append to this list.
-  const GrowableObjectArray& closure_functions = GrowableObjectArray::Handle(
-      zone_, thread_->isolate_group()->object_store()->closure_functions());
-  for (intptr_t i = 0; i < closure_functions.Length(); i++) {
-    function_ ^= closure_functions.At(i);
-    function2_ = function_.parent_function();
+  // Finally, compile closures in all compiled functions. Note: We rely on the
+  // fact that parent functions are visited before children.
+  error_ = Object::null();
+  auto& result = Object::Handle(zone_);
+  ClosureFunctionsCache::ForAllClosureFunctions([&](const Function& func) {
+    function2_ = func.parent_function();
     if (function2_.HasCode()) {
-      error_ = CompileFunction(function_);
-      if (error_.IsError()) {
-        return error_.raw();
+      result = CompileFunction(function_);
+      if (result.IsError()) {
+        error_ = result.raw();
+        return false;  // Stop iteration.
       }
     }
-  }
+    return true;
+  });
 
   return Object::null();
 }
@@ -965,19 +967,7 @@ FunctionPtr TypeFeedbackLoader::FindFunction(FunctionLayout::Kind kind,
     // functions in the serialized feedback, so the parent will have already
     // been unoptimized compilated and the child function created and added to
     // ObjectStore::closure_functions_.
-    const GrowableObjectArray& closure_functions = GrowableObjectArray::Handle(
-        zone_, thread_->isolate_group()->object_store()->closure_functions());
-    bool found = false;
-    for (intptr_t i = 0; i < closure_functions.Length(); i++) {
-      func_ ^= closure_functions.At(i);
-      if (func_.Owner() == cls_.raw() && func_.token_pos() == token_pos) {
-        found = true;
-        break;
-      }
-    }
-    if (!found) {
-      func_ = Function::null();
-    }
+    func_ = ClosureFunctionsCache::LookupClosureFunction(cls_, token_pos);
   } else {
     // This leaves unhandled:
     // - kInvokeFieldDispatcher (how to get a valid args descriptor?)

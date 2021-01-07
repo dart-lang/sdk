@@ -12,6 +12,7 @@
 #include "platform/globals.h"
 
 #include "vm/class_finalizer.h"
+#include "vm/closure_functions_cache.h"
 #include "vm/code_descriptors.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/compiler_state.h"
@@ -3944,7 +3945,6 @@ ISOLATE_UNIT_TEST_CASE(FindClosureIndex) {
   const Script& script = Script::Handle();
   const Class& cls = Class::Handle(CreateDummyClass(class_name, script));
   const Array& functions = Array::Handle(Array::New(1));
-  const Isolate* iso = Isolate::Current();
 
   Function& parent = Function::Handle();
   const String& parent_name = String::Handle(Symbols::New(thread, "foo_papa"));
@@ -3962,18 +3962,23 @@ ISOLATE_UNIT_TEST_CASE(FindClosureIndex) {
   function = Function::NewClosureFunction(function_name, parent,
                                           TokenPosition::kMinSource);
   // Add closure function to class.
-  iso->AddClosureFunction(function);
+  {
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    ClosureFunctionsCache::AddClosureFunctionLocked(function);
+  }
 
   // The closure should return a valid index.
-  intptr_t good_closure_index = iso->FindClosureIndex(function);
+  intptr_t good_closure_index =
+      ClosureFunctionsCache::FindClosureIndex(function);
   EXPECT_GE(good_closure_index, 0);
   // The parent function should return an invalid index.
-  intptr_t bad_closure_index = iso->FindClosureIndex(parent);
+  intptr_t bad_closure_index = ClosureFunctionsCache::FindClosureIndex(parent);
   EXPECT_EQ(bad_closure_index, -1);
 
   // Retrieve closure function via index.
   Function& func_from_index = Function::Handle();
-  func_from_index ^= iso->ClosureFunctionFromIndex(good_closure_index);
+  func_from_index ^=
+      ClosureFunctionsCache::ClosureFunctionFromIndex(good_closure_index);
   // Same closure function.
   EXPECT_EQ(func_from_index.raw(), function.raw());
 }

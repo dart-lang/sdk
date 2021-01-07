@@ -28,6 +28,8 @@ vm_sources = [
   "class_id.h",
   "class_table.cc",
   "class_table.h",
+  "closure_functions_cache.cc",
+  "closure_functions_cache.h",
   "clustered_snapshot.cc",
   "clustered_snapshot.h",
   "code_comments.cc",

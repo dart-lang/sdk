@@ -2774,11 +2774,6 @@ class Function : public Object {
       DefaultTypeArgumentsKind* kind_out = nullptr) const;
   void set_default_type_arguments(const TypeArguments& value) const;
 
-  // Enclosed generated closure function of this local function.
-  // This will only work after the closure function has been allocated in the
-  // isolate's object_store.
-  FunctionPtr GetGeneratedClosure() const;
-
   // Enclosing outermost function of this local function.
   FunctionPtr GetOutermostFunction() const;
 
