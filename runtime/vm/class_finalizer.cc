@@ -1252,10 +1252,14 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
   const Field& sentinel = Field::Handle(
       zone, enum_cls.LookupStaticField(Symbols::_DeletedEnumSentinel()));
   ASSERT(!sentinel.IsNull());
-  sentinel.SetStaticValue(enum_value, true);
+
+  // The static const field contains `Object::null()` instead of
+  // `Object::sentinel()` - so it's not considered an initializing store.
+  sentinel.SetStaticConstFieldValue(enum_value,
+                                    /*assert_initializing_store*/ false);
 
   ASSERT(enum_cls.kernel_offset() > 0);
-  Error& error = Error::Handle(zone);
+  Object& error = Error::Handle(zone);
   for (intptr_t i = 0; i < fields.Length(); i++) {
     field = Field::RawCast(fields.At(i));
     if (!field.is_static() || !field.is_const() ||
@@ -1265,11 +1269,9 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
     // Hot-reload expects the static const fields to be evaluated when
     // performing a reload.
     if (!FLAG_precompiled_mode) {
-      if (field.IsUninitialized()) {
-        error = field.InitializeStatic();
-        if (!error.IsNull()) {
-          ReportError(error);
-        }
+      error = field.StaticConstFieldValue();
+      if (error.IsError()) {
+        ReportError(Error::Cast(error));
       }
     }
   }

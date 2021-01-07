@@ -344,17 +344,20 @@ void Class::ReplaceEnum(IsolateReloadContext* reload_context,
         // Enum instances are only held in static fields.
         continue;
       }
+      ASSERT(field.is_const());
       if (enum_ident.Equals(Symbols::Values())) {
-        old_enum_values = field.StaticValue();
+        old_enum_values = Instance::RawCast(field.StaticConstFieldValue());
         // Non-enum instance.
         continue;
       }
       if (enum_ident.Equals(Symbols::_DeletedEnumSentinel())) {
-        old_deleted_enum_sentinel = field.StaticValue();
+        old_deleted_enum_sentinel =
+            Instance::RawCast(field.StaticConstFieldValue());
         // Non-enum instance.
         continue;
       }
-      old_enum_value = field.StaticValue();
+      old_enum_value = Instance::RawCast(field.StaticConstFieldValue());
+
       ASSERT(!old_enum_value.IsNull());
       VTIR_Print("Element %s being added to mapping\n", enum_ident.ToCString());
       bool update = enum_map.UpdateOrInsert(enum_ident, old_enum_value);
@@ -378,17 +381,20 @@ void Class::ReplaceEnum(IsolateReloadContext* reload_context,
         // Enum instances are only held in static fields.
         continue;
       }
+      ASSERT(field.is_const());
       if (enum_ident.Equals(Symbols::Values())) {
-        enum_values = field.StaticValue();
+        enum_values = Instance::RawCast(field.StaticConstFieldValue());
         // Non-enum instance.
         continue;
       }
       if (enum_ident.Equals(Symbols::_DeletedEnumSentinel())) {
-        deleted_enum_sentinel = field.StaticValue();
+        deleted_enum_sentinel =
+            Instance::RawCast(field.StaticConstFieldValue());
         // Non-enum instance.
         continue;
       }
-      enum_value = field.StaticValue();
+      enum_value = Instance::RawCast(field.StaticConstFieldValue());
+
       ASSERT(!enum_value.IsNull());
       old_enum_value ^= enum_map.GetOrNull(enum_ident);
       if (old_enum_value.IsNull()) {

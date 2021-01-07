@@ -3433,8 +3433,11 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
 #endif
     }
   } else if (field.is_const()) {
-    ASSERT(!field.IsUninitialized());
-    body += Constant(Instance::ZoneHandle(Z, field.StaticValue()));
+    const auto& value = Object::Handle(Z, field.StaticConstFieldValue());
+    if (value.IsError()) {
+      Report::LongJump(Error::Cast(value));
+    }
+    body += Constant(Instance::ZoneHandle(Z, Instance::RawCast(value.raw())));
   } else {
     // Static fields
     //  - with trivial initializer
