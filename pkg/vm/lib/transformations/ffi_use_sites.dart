@@ -337,7 +337,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     final nativeFunctionType = InterfaceType(
         nativeFunctionClass, Nullability.legacy, node.arguments.types);
     var name = Name("_#ffiCallback${callbackCount++}", currentLibrary);
-    var getterReference = currentLibraryIndex?.lookupGetterReference(name.text);
+    var getterReference = currentLibraryIndex?.lookupGetterReference(name);
     final Field field = Field.immutable(name,
         type: InterfaceType(
             pointerClass, Nullability.legacy, [nativeFunctionType]),

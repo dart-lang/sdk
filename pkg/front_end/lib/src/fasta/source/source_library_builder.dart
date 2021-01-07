@@ -979,9 +979,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     library.procedures.sort(compareProcedures);
 
     if (unserializableExports != null) {
+      Name fieldName = new Name("_exports#", library);
       Reference getterReference =
-          referencesFromIndexed?.lookupGetterReference("_exports#");
-      library.addField(new Field.immutable(new Name("_exports#", library),
+          referencesFromIndexed?.lookupGetterReference(fieldName);
+      library.addField(new Field.immutable(fieldName,
           initializer: new StringLiteral(jsonEncode(unserializableExports)),
           isStatic: true,
           isConst: true,
@@ -2170,10 +2171,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           isSynthesized: fieldIsLateWithLowering);
       IndexedContainer indexedContainer =
           _currentClassReferencesFromIndexed ?? referencesFromIndexed;
+      Name nameToLookupName = new Name(nameToLookup, indexedContainer.library);
       fieldGetterReference =
-          indexedContainer.lookupGetterReference(nameToLookup);
+          indexedContainer.lookupGetterReference(nameToLookupName);
       fieldSetterReference =
-          indexedContainer.lookupSetterReference(nameToLookup);
+          indexedContainer.lookupSetterReference(nameToLookupName);
       if (fieldIsLateWithLowering) {
         String lateIsSetName = SourceFieldBuilder.createFieldName(
             FieldNameType.IsSetField, name,
@@ -2182,24 +2184,28 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             isExtensionMethod: isExtension,
             extensionName: extensionName,
             isSynthesized: fieldIsLateWithLowering);
+        Name lateIsSetNameName =
+            new Name(lateIsSetName, indexedContainer.library);
         lateIsSetGetterReference =
-            indexedContainer.lookupGetterReference(lateIsSetName);
+            indexedContainer.lookupGetterReference(lateIsSetNameName);
         lateIsSetSetterReference =
-            indexedContainer.lookupSetterReference(lateIsSetName);
-        getterReference = indexedContainer.lookupGetterReference(
+            indexedContainer.lookupSetterReference(lateIsSetNameName);
+        getterReference = indexedContainer.lookupGetterReference(new Name(
             SourceFieldBuilder.createFieldName(FieldNameType.Getter, name,
                 isInstanceMember: isInstanceMember,
                 className: className,
                 isExtensionMethod: isExtension,
                 extensionName: extensionName,
-                isSynthesized: fieldIsLateWithLowering));
-        setterReference = indexedContainer.lookupSetterReference(
+                isSynthesized: fieldIsLateWithLowering),
+            indexedContainer.library));
+        setterReference = indexedContainer.lookupSetterReference(new Name(
             SourceFieldBuilder.createFieldName(FieldNameType.Setter, name,
                 isInstanceMember: isInstanceMember,
                 className: className,
                 isExtensionMethod: isExtension,
                 extensionName: extensionName,
-                isSynthesized: fieldIsLateWithLowering));
+                isSynthesized: fieldIsLateWithLowering),
+            indexedContainer.library));
       }
     }
 
@@ -2252,8 +2258,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     MetadataCollector metadataCollector = loader.target.metadataCollector;
     Constructor referenceFrom;
     if (_currentClassReferencesFromIndexed != null) {
-      referenceFrom =
-          _currentClassReferencesFromIndexed.lookupConstructor(constructorName);
+      referenceFrom = _currentClassReferencesFromIndexed.lookupConstructor(
+          new Name(
+              constructorName, _currentClassReferencesFromIndexed.library));
     }
     ConstructorBuilder constructorBuilder = new ConstructorBuilderImpl(
         metadata,
@@ -2323,10 +2330,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (_currentClassReferencesFromIndexed != null) {
         if (kind == ProcedureKind.Setter) {
           procedureReference =
-              _currentClassReferencesFromIndexed.lookupSetterReference(name);
+              _currentClassReferencesFromIndexed.lookupSetterReference(
+                  new Name(name, _currentClassReferencesFromIndexed.library));
         } else {
           procedureReference =
-              _currentClassReferencesFromIndexed.lookupGetterReference(name);
+              _currentClassReferencesFromIndexed.lookupGetterReference(
+                  new Name(name, _currentClassReferencesFromIndexed.library));
         }
       } else {
         if (currentTypeParameterScopeBuilder.kind ==
@@ -2339,11 +2348,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               currentTypeParameterScopeBuilder.name,
               name);
           if (extensionIsStatic && kind == ProcedureKind.Setter) {
-            procedureReference =
-                referencesFromIndexed.lookupSetterReference(nameToLookup);
+            procedureReference = referencesFromIndexed.lookupSetterReference(
+                new Name(nameToLookup, referencesFromIndexed.library));
           } else {
-            procedureReference =
-                referencesFromIndexed.lookupGetterReference(nameToLookup);
+            procedureReference = referencesFromIndexed.lookupGetterReference(
+                new Name(nameToLookup, referencesFromIndexed.library));
           }
           if (kind == ProcedureKind.Method) {
             String tearOffNameToLookup =
@@ -2353,16 +2362,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                     ProcedureKind.Getter,
                     currentTypeParameterScopeBuilder.name,
                     name);
-            tearOffReference = referencesFromIndexed
-                .lookupGetterReference(tearOffNameToLookup);
+            tearOffReference = referencesFromIndexed.lookupGetterReference(
+                new Name(tearOffNameToLookup, referencesFromIndexed.library));
           }
         } else {
           if (kind == ProcedureKind.Setter) {
-            procedureReference =
-                referencesFromIndexed.lookupSetterReference(name);
+            procedureReference = referencesFromIndexed.lookupSetterReference(
+                new Name(name, referencesFromIndexed.library));
           } else {
-            procedureReference =
-                referencesFromIndexed.lookupGetterReference(name);
+            procedureReference = referencesFromIndexed.lookupGetterReference(
+                new Name(name, referencesFromIndexed.library));
           }
         }
       }
@@ -2427,8 +2436,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       procedureName = name;
     }
 
-    Reference reference = _currentClassReferencesFromIndexed
-        ?.lookupGetterReference(procedureName);
+    Reference reference =
+        _currentClassReferencesFromIndexed?.lookupGetterReference(new Name(
+            procedureName, _currentClassReferencesFromIndexed.library));
 
     ProcedureBuilder procedureBuilder;
     if (redirectionTarget != null) {

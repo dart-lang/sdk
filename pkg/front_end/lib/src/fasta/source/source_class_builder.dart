@@ -908,8 +908,9 @@ class SourceClassBuilder extends ClassBuilderImpl
                 // is actually in the kernel tree. This call creates a StaticGet
                 // to [declaration.target] in a field `_redirecting#` which is
                 // only legal to do to things in the kernel tree.
-                Reference getterReference = referencesFromIndexed
-                    ?.lookupGetterReference("_redirecting#");
+                Reference getterReference =
+                    referencesFromIndexed?.lookupGetterReference(new Name(
+                        "_redirecting#", referencesFromIndexed.library));
                 _addRedirectingConstructor(
                     declaration, library, getterReference);
               }

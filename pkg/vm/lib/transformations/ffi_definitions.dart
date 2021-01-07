@@ -343,7 +343,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     // C.#fromTypedDataBase(Object address) : super.fromPointer(address);
     final VariableDeclaration pointer = new VariableDeclaration("#pointer");
     final name = Name("#fromTypedDataBase");
-    final referenceFrom = indexedClass?.lookupConstructor(name.text);
+    final referenceFrom = indexedClass?.lookupConstructor(name);
     final Constructor ctor = Constructor(
         FunctionNode(EmptyStatement(), positionalParameters: [pointer]),
         name: name,
@@ -676,7 +676,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     final Procedure getter = Procedure(field.name, ProcedureKind.Getter,
         FunctionNode(getterStatement, returnType: field.type),
         fileUri: field.fileUri,
-        reference: indexedClass?.lookupGetterReference(field.name.text))
+        reference: indexedClass?.lookupGetterReference(field.name))
       ..fileOffset = field.fileOffset
       ..isNonNullableByDefault = field.isNonNullableByDefault;
 
@@ -693,7 +693,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           FunctionNode(setterStatement,
               returnType: VoidType(), positionalParameters: [argument]),
           fileUri: field.fileUri,
-          reference: indexedClass?.lookupSetterReference(field.name.text))
+          reference: indexedClass?.lookupSetterReference(field.name))
         ..fileOffset = field.fileOffset
         ..isNonNullableByDefault = field.isNonNullableByDefault;
     }
@@ -709,7 +709,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   void _replaceSizeOfMethod(
       Class struct, Map<Abi, int> sizes, IndexedClass indexedClass) {
     var name = Name("#sizeOf");
-    var getterReference = indexedClass?.lookupGetterReference(name.text);
+    var getterReference = indexedClass?.lookupGetterReference(name);
     final Field sizeOf = Field.immutable(name,
         isStatic: true,
         isFinal: true,
