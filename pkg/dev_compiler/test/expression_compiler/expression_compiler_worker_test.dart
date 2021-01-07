@@ -119,7 +119,7 @@ void main() {
 extension NumberParsing on String {
   int parseInt() {
     var ret = int.parse(this);
-    // line 17
+    // line 18
     return ret;
   }
 }
@@ -336,7 +336,7 @@ void main() async {
       requestController.add({
         'command': 'CompileExpression',
         'expression': 'ret',
-        'line': 17,
+        'line': 18,
         'column': 1,
         'jsModules': {},
         'jsScope': {'ret': 'ret'},
