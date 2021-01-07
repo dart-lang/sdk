@@ -396,7 +396,7 @@
       "name": "matcher",
       "rootUri": "../third_party/pkg/matcher",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     },
     {
       "name": "meta",
