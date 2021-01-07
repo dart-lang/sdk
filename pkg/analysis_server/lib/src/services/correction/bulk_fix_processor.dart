@@ -39,6 +39,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_empty_catch.
 import 'package:analysis_server/src/services/correction/dart/remove_empty_constructor_body.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_else.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_statement.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_if_null_operator.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_initializer.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_interpolation_braces.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_method_declaration.dart';
@@ -242,6 +243,9 @@ class BulkFixProcessor {
     ],
     LintNames.unnecessary_new: [
       RemoveUnnecessaryNew.newInstance,
+    ],
+    LintNames.unnecessary_null_in_if_null_operators: [
+      RemoveIfNullOperator.newInstance,
     ],
     LintNames.unnecessary_overrides: [
       RemoveMethodDeclaration.newInstance,
