@@ -94,6 +94,20 @@ dev_dependencies:
         environment: {if (logAnalytics) '_DARTDEV_LOG_ANALYTICS': 'true'});
   }
 
+  Future<Process> start(
+    List<String> arguments, {
+    String workingDir,
+  }) {
+    return Process.start(
+        Platform.resolvedExecutable,
+        [
+          '--no-analytics',
+          ...arguments,
+        ],
+        workingDirectory: workingDir ?? dir.path,
+        environment: {if (logAnalytics) '_DARTDEV_LOG_ANALYTICS': 'true'});
+  }
+
   String _sdkRootPath;
 
   /// Return the root of the SDK.

@@ -484,8 +484,6 @@ import 'object_cannot_extend_another_class_test.dart'
     as object_cannot_extend_another_class;
 import 'optional_parameter_in_operator_test.dart'
     as optional_parameter_in_operator;
-import 'override_equals_but_not_hashcode_test.dart'
-    as override_equals_but_not_hashcode;
 import 'override_on_non_overriding_field_test.dart'
     as override_on_non_overriding_field;
 import 'override_on_non_overriding_getter_test.dart'
@@ -984,7 +982,6 @@ main() {
     nullable_type_in_with_clause.main();
     object_cannot_extend_another_class.main();
     optional_parameter_in_operator.main();
-    override_equals_but_not_hashcode.main();
     override_on_non_overriding_field.main();
     override_on_non_overriding_getter.main();
     override_on_non_overriding_method.main();

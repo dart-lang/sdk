@@ -688,6 +688,7 @@ class FunctionType extends DartType {
     // Canonicalize empty collections to constants to save storage.
     if (parameterTypes.isEmpty) parameterTypes = const [];
     if (optionalParameterTypes.isEmpty) optionalParameterTypes = const [];
+    if (namedParameters.isEmpty) namedParameters = const [];
     if (namedParameterTypes.isEmpty) namedParameterTypes = const [];
     if (requiredNamedParameters.isEmpty) requiredNamedParameters = const {};
     if (typeVariables.isEmpty) typeVariables = const [];

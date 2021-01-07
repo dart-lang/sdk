@@ -98,6 +98,11 @@ class Driver implements ServerStarter {
   /// The path to the data cache.
   static const String CACHE_FOLDER = 'cache';
 
+  /// The name of the flag specifying the server protocol to use.
+  static const String SERVER_PROTOCOL = 'protocol';
+  static const String PROTOCOL_ANALYZER = 'analyzer';
+  static const String PROTOCOL_LSP = 'lsp';
+
   /// The name of the flag to use the Language Server Protocol (LSP).
   static const String USE_LSP = 'lsp';
 
@@ -124,17 +129,26 @@ class Driver implements ServerStarter {
   /// If [sendPort] is not null, assumes this is launched in an isolate and will
   /// connect to the original isolate via an [IsolateChannel].
   @override
-  void start(List<String> arguments, [SendPort sendPort]) {
-    var parser = _createArgParser();
+  void start(
+    List<String> arguments, {
+    SendPort sendPort,
+    bool defaultToLsp = false,
+  }) {
+    var parser = createArgParser(defaultToLsp: defaultToLsp);
     var results = parser.parse(arguments);
 
     var analysisServerOptions = AnalysisServerOptions();
     analysisServerOptions.newAnalysisDriverLog =
         results[ANALYSIS_DRIVER_LOG] ?? results[ANALYSIS_DRIVER_LOG_ALIAS];
     analysisServerOptions.clientId = results[CLIENT_ID];
-    analysisServerOptions.useLanguageServerProtocol = results[USE_LSP];
-    // For clients that don't supply their own identifier, use a default based on
-    // whether the server will run in LSP mode or not.
+    if (results.wasParsed(USE_LSP)) {
+      analysisServerOptions.useLanguageServerProtocol = results[USE_LSP];
+    } else {
+      analysisServerOptions.useLanguageServerProtocol =
+          results[SERVER_PROTOCOL] == PROTOCOL_LSP;
+    }
+    // For clients that don't supply their own identifier, use a default based
+    // on whether the server will run in LSP mode or not.
     analysisServerOptions.clientId ??=
         analysisServerOptions.useLanguageServerProtocol
             ? 'unknown.client.lsp'
@@ -478,11 +492,95 @@ class Driver implements ServerStarter {
     return runZoned(callback, zoneSpecification: zoneSpecification);
   }
 
+  DartSdk _createDefaultSdk(String defaultSdkPath) {
+    var resourceProvider = PhysicalResourceProvider.INSTANCE;
+    return FolderBasedDartSdk(
+      resourceProvider,
+      resourceProvider.getFolder(defaultSdkPath),
+    );
+  }
+
+  /// Constructs a uuid combining the current date and a random integer.
+  String _generateUuidString() {
+    var millisecondsSinceEpoch = DateTime.now().millisecondsSinceEpoch;
+    var random = Random().nextInt(0x3fffffff);
+    return '$millisecondsSinceEpoch$random';
+  }
+
+  String _getSdkPath(ArgResults args) {
+    if (args[DART_SDK] != null) {
+      return args[DART_SDK];
+    } else if (args[DART_SDK_ALIAS] != null) {
+      return args[DART_SDK_ALIAS];
+    } else {
+      return getSdkPath();
+    }
+  }
+
+  /// Print information about how to use the server.
+  void _printUsage(
+    ArgParser parser,
+    telemetry.Analytics analytics, {
+    bool fromHelp = false,
+  }) {
+    print('Usage: $BINARY_NAME [flags]');
+    print('');
+    print('Supported flags are:');
+    print(parser.usage);
+
+    if (telemetry.SHOW_ANALYTICS_UI) {
+      // Print analytics status and information.
+      if (fromHelp) {
+        print('');
+        print(telemetry.analyticsNotice);
+      }
+      print('');
+      print(telemetry.createAnalyticsStatusMessage(analytics.enabled,
+          command: ANALYTICS_FLAG));
+    }
+  }
+
+  /// Read the UUID from disk, generating and storing a new one if necessary.
+  String _readUuid(InstrumentationService service) {
+    final instrumentationLocation =
+        PhysicalResourceProvider.INSTANCE.getStateLocation('.instrumentation');
+    if (instrumentationLocation == null) {
+      return _generateUuidString();
+    }
+    var uuidFile = File(instrumentationLocation.getChild('uuid.txt').path);
+    try {
+      if (uuidFile.existsSync()) {
+        var uuid = uuidFile.readAsStringSync();
+        if (uuid != null && uuid.length > 5) {
+          return uuid;
+        }
+      }
+    } catch (exception, stackTrace) {
+      service.logException(exception, stackTrace);
+    }
+    var uuid = _generateUuidString();
+    try {
+      uuidFile.parent.createSync(recursive: true);
+      uuidFile.writeAsStringSync(uuid);
+    } catch (exception, stackTrace) {
+      service.logException(exception, stackTrace);
+      // Slightly alter the uuid to indicate it was not persisted
+      uuid = 'temp-$uuid';
+    }
+    return uuid;
+  }
+
   /// Create and return the parser used to parse the command-line arguments.
-  ArgParser _createArgParser() {
-    var parser = ArgParser();
-    parser.addFlag(HELP_OPTION,
-        abbr: 'h', negatable: false, help: 'Print this usage information.');
+  static ArgParser createArgParser({
+    int usageLineLength,
+    bool includeHelpFlag = true,
+    bool defaultToLsp = false,
+  }) {
+    var parser = ArgParser(usageLineLength: usageLineLength);
+    if (includeHelpFlag) {
+      parser.addFlag(HELP_OPTION,
+          abbr: 'h', negatable: false, help: 'Print this usage information.');
+    }
     parser.addOption(CLIENT_ID,
         valueHelp: 'name',
         help: 'An identifier for the analysis server client.');
@@ -495,10 +593,28 @@ class Driver implements ServerStarter {
     parser.addOption(CACHE_FOLDER,
         valueHelp: 'path',
         help: 'Override the location of the analysis server\'s cache.');
+
+    parser.addOption(
+      SERVER_PROTOCOL,
+      defaultsTo: defaultToLsp ? PROTOCOL_LSP : PROTOCOL_ANALYZER,
+      valueHelp: 'protocol',
+      allowed: [PROTOCOL_LSP, PROTOCOL_ANALYZER],
+      allowedHelp: {
+        PROTOCOL_LSP: 'The Language Server Protocol '
+            '(https://microsoft.github.io/language-server-protocol)',
+        PROTOCOL_ANALYZER: 'Dart\'s analysis server protocol '
+            '(https://dart.dev/go/analysis-server-protocol)',
+      },
+      help:
+          'Specify the protocol to use to communicate with the analysis server.',
+    );
+    // This option is hidden but still accepted; it's effectively translated to
+    // the 'protocol' option above.
     parser.addFlag(USE_LSP,
         defaultsTo: false,
         negatable: false,
-        help: 'Whether to use the Language Server Protocol (LSP).');
+        help: 'Whether to use the Language Server Protocol (LSP).',
+        hide: true);
 
     parser.addSeparator('Server diagnostics:');
 
@@ -582,84 +698,6 @@ class Driver implements ServerStarter {
     parser.addFlag('use-fasta-parser', hide: true);
 
     return parser;
-  }
-
-  DartSdk _createDefaultSdk(String defaultSdkPath) {
-    var resourceProvider = PhysicalResourceProvider.INSTANCE;
-    return FolderBasedDartSdk(
-      resourceProvider,
-      resourceProvider.getFolder(defaultSdkPath),
-    );
-  }
-
-  /// Constructs a uuid combining the current date and a random integer.
-  String _generateUuidString() {
-    var millisecondsSinceEpoch = DateTime.now().millisecondsSinceEpoch;
-    var random = Random().nextInt(0x3fffffff);
-    return '$millisecondsSinceEpoch$random';
-  }
-
-  String _getSdkPath(ArgResults args) {
-    if (args[DART_SDK] != null) {
-      return args[DART_SDK];
-    } else if (args[DART_SDK_ALIAS] != null) {
-      return args[DART_SDK_ALIAS];
-    } else {
-      return getSdkPath();
-    }
-  }
-
-  /// Print information about how to use the server.
-  void _printUsage(
-    ArgParser parser,
-    telemetry.Analytics analytics, {
-    bool fromHelp = false,
-  }) {
-    print('Usage: $BINARY_NAME [flags]');
-    print('');
-    print('Supported flags are:');
-    print(parser.usage);
-
-    if (telemetry.SHOW_ANALYTICS_UI) {
-      // Print analytics status and information.
-      if (fromHelp) {
-        print('');
-        print(telemetry.analyticsNotice);
-      }
-      print('');
-      print(telemetry.createAnalyticsStatusMessage(analytics.enabled,
-          command: ANALYTICS_FLAG));
-    }
-  }
-
-  /// Read the UUID from disk, generating and storing a new one if necessary.
-  String _readUuid(InstrumentationService service) {
-    final instrumentationLocation =
-        PhysicalResourceProvider.INSTANCE.getStateLocation('.instrumentation');
-    if (instrumentationLocation == null) {
-      return _generateUuidString();
-    }
-    var uuidFile = File(instrumentationLocation.getChild('uuid.txt').path);
-    try {
-      if (uuidFile.existsSync()) {
-        var uuid = uuidFile.readAsStringSync();
-        if (uuid != null && uuid.length > 5) {
-          return uuid;
-        }
-      }
-    } catch (exception, stackTrace) {
-      service.logException(exception, stackTrace);
-    }
-    var uuid = _generateUuidString();
-    try {
-      uuidFile.parent.createSync(recursive: true);
-      uuidFile.writeAsStringSync(uuid);
-    } catch (exception, stackTrace) {
-      service.logException(exception, stackTrace);
-      // Slightly alter the uuid to indicate it was not persisted
-      uuid = 'temp-$uuid';
-    }
-    return uuid;
   }
 
   /// Perform log files rolling.

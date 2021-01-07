@@ -1,6 +1,7 @@
 ## 0.41.2-dev
 * Deprecated `FunctionTypeAliasElement.function`.
   Use `TypeAliasElement.aliasedElement` instead.
+* Widened the dependency on package:crypto to include version 3.0.0.
 
 ## 0.41.1
 * Updated `PackageBuildWorkspace` that supports `package:build` to stop
