@@ -52,14 +52,15 @@ class ParsedFunction;
 //   (i.e. initialized once at construction time and does not change after
 //   that) or like a non-final field.
 #define NULLABLE_BOXED_NATIVE_SLOTS_LIST(V)                                    \
+  V(Function, FunctionLayout, signature, FunctionType, FINAL)                  \
   V(Context, ContextLayout, parent, Context, FINAL)                            \
   V(Closure, ClosureLayout, instantiator_type_arguments, TypeArguments, FINAL) \
   V(Closure, ClosureLayout, delayed_type_arguments, TypeArguments, FINAL)      \
   V(Closure, ClosureLayout, function_type_arguments, TypeArguments, FINAL)     \
   V(ClosureData, ClosureDataLayout, default_type_arguments, TypeArguments,     \
     FINAL)                                                                     \
-  V(Function, FunctionLayout, type_parameters, TypeArguments, FINAL)           \
   V(Type, TypeLayout, arguments, TypeArguments, FINAL)                         \
+  V(FunctionType, FunctionTypeLayout, type_parameters, TypeArguments, FINAL)   \
   V(WeakProperty, WeakPropertyLayout, key, Dynamic, VAR)                       \
   V(WeakProperty, WeakPropertyLayout, value, Dynamic, VAR)
 
@@ -84,7 +85,7 @@ class ParsedFunction;
   V(ClosureData, ClosureDataLayout, default_type_arguments_info, Smi, FINAL)   \
   V(Function, FunctionLayout, data, Dynamic, FINAL)                            \
   V(Function, FunctionLayout, parameter_names, Array, FINAL)                   \
-  V(Function, FunctionLayout, parameter_types, Array, FINAL)                   \
+  V(FunctionType, FunctionTypeLayout, parameter_types, Array, FINAL)           \
   V(GrowableObjectArray, GrowableObjectArrayLayout, length, Smi, VAR)          \
   V(GrowableObjectArray, GrowableObjectArrayLayout, data, Array, VAR)          \
   V(TypedDataBase, TypedDataBaseLayout, length, Smi, FINAL)                    \
@@ -125,6 +126,7 @@ class ParsedFunction;
 #define UNBOXED_NATIVE_SLOTS_LIST(V)                                           \
   V(Function, FunctionLayout, kind_tag, Uint32, FINAL)                         \
   V(Function, FunctionLayout, packed_fields, Uint32, FINAL)                    \
+  V(FunctionType, FunctionTypeLayout, packed_fields, Uint32, FINAL)            \
   V(TypeParameter, TypeParameterLayout, flags, Uint8, FINAL)
 
 // For uses that do not need the exact_type (boxed) or representation (unboxed)

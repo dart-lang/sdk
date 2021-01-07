@@ -313,8 +313,10 @@ class FlowGraphBuilderHelper {
 
  private:
   static FlowGraph& MakeDummyGraph(Thread* thread) {
+    const FunctionType& signature =
+        FunctionType::ZoneHandle(FunctionType::New());
     const Function& func = Function::ZoneHandle(Function::New(
-        String::Handle(Symbols::New(thread, "dummy")),
+        signature, String::Handle(Symbols::New(thread, "dummy")),
         FunctionLayout::kRegularFunction,
         /*is_static=*/true,
         /*is_const=*/false,

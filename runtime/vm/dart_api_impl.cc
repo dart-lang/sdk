@@ -119,11 +119,6 @@ class CheckFunctionTypesVisitor : public ObjectVisitor {
     if (obj->IsFunction()) {
       funcHandle_ ^= obj;
       classHandle_ ^= funcHandle_.Owner();
-      // Signature functions get created, but not canonicalized, when function
-      // types get instantiated during run time type tests.
-      if (funcHandle_.IsSignatureFunction()) {
-        return;
-      }
       // Verify that the result type of a function is canonical or a
       // TypeParameter.
       typeHandle_ ^= funcHandle_.result_type();
@@ -2384,7 +2379,7 @@ DART_EXPORT bool Dart_IsType(Dart_Handle handle) {
   Thread* thread = Thread::Current();
   CHECK_ISOLATE(thread->isolate());
   TransitionNativeToVM transition(thread);
-  return Api::ClassId(handle) == kTypeCid;
+  return IsTypeClassId(Api::ClassId(handle));
 }
 
 DART_EXPORT bool Dart_IsFunction(Dart_Handle handle) {
@@ -5632,8 +5627,7 @@ static Dart_Handle GetTypeCommon(Dart_Handle library,
     }
 
     // Construct the type object, canonicalize it and return.
-    type ^=
-        Type::New(cls, type_args_obj, TokenPosition::kNoSource, nullability);
+    type ^= Type::New(cls, type_args_obj, nullability);
   }
   type ^= ClassFinalizer::FinalizeType(type);
   return Api::NewHandle(T, type.raw());

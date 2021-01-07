@@ -1023,7 +1023,7 @@ void ProgramVisitor::DedupLists(Zone* zone, IsolateGroup* isolate_group) {
     explicit DedupListsVisitor(Zone* zone)
         : Dedupper(zone),
           list_(Array::Handle(zone)),
-          function_(Function::Handle(zone)) {}
+          field_(Field::Handle(zone)) {}
 
     void VisitCode(const Code& code) {
       if (!code.IsFunctionCode()) return;
@@ -1042,35 +1042,33 @@ void ProgramVisitor::DedupLists(Zone* zone, IsolateGroup* isolate_group) {
     }
 
     void VisitFunction(const Function& function) {
-      list_ = PrepareParameterTypes(function);
-      list_ = Dedup(list_);
-      function.set_parameter_types(list_);
-
       list_ = PrepareParameterNames(function);
       list_ = Dedup(list_);
       function.set_parameter_names(list_);
+
+      // No need to dedup parameter types, as they are stored in the
+      // canonicalized function type of the function.
+      // However, the function type of the function is only needed in case of
+      // recompilation or if available to mirrors, or for copied types
+      // to lazily generated tear offs. Also avoid attempting to change
+      // read-only VM objects for de-duplication.
+      // We cannot check precisely if a function is an entry point here,
+      // because the metadata has been dropped already. However, we use the
+      // has_pragma flag on the function as a conservative approximation.
+      // Resolution requires the number of parameters (no signature needed) and
+      // their names if any named parameter is required (signature needed).
+      if (FLAG_precompiled_mode && !function.InVMIsolateHeap() &&
+          !function.IsClosureFunction() && !function.IsFfiTrampoline() &&
+          function.name() != Symbols::Call().raw() && !function.is_native() &&
+          !function.HasRequiredNamedParameters() &&
+          !MayBeEntryPoint(function)) {
+        // Function type not needed for function type tests or resolution.
+        function.set_signature(Object::null_function_type());
+      }
     }
 
    private:
     bool IsCorrectType(const Object& obj) const { return obj.IsArray(); }
-
-    ArrayPtr PrepareParameterTypes(const Function& function) {
-      list_ = function.parameter_types();
-      // Preserve parameter types in the JIT. Needed in case of recompilation
-      // in checked mode, or if available to mirrors, or for copied types to
-      // lazily generated tear offs. Also avoid attempting to change read-only
-      // VM objects for de-duplication.
-      if (FLAG_precompiled_mode && !list_.IsNull() &&
-          !list_.InVMIsolateHeap() && !function.IsSignatureFunction() &&
-          !function.IsClosureFunction() && !function.IsFfiTrampoline() &&
-          function.name() != Symbols::Call().raw()) {
-        // Parameter types not needed for function type tests.
-        for (intptr_t i = 0; i < list_.Length(); i++) {
-          list_.SetAt(i, Object::dynamic_type());
-        }
-      }
-      return list_.raw();
-    }
 
     ArrayPtr PrepareParameterNames(const Function& function) {
       list_ = function.parameter_names();
@@ -1087,8 +1085,23 @@ void ProgramVisitor::DedupLists(Zone* zone, IsolateGroup* isolate_group) {
       return list_.raw();
     }
 
+    bool MayBeEntryPoint(const Function& function) {
+      // Metadata has been dropped already.
+      // Use presence of pragma as conservative approximation.
+      if (function.has_pragma()) return true;
+      auto kind = function.kind();
+      if ((kind == FunctionLayout::kImplicitGetter) ||
+          (kind == FunctionLayout::kImplicitSetter) ||
+          (kind == FunctionLayout::kImplicitStaticGetter) ||
+          (kind == FunctionLayout::kFieldInitializer)) {
+        field_ = function.accessor_field();
+        if (!field_.IsNull() && field_.has_pragma()) return true;
+      }
+      return false;
+    }
+
     Array& list_;
-    Function& function_;
+    Field& field_;
   };
 
   DedupListsVisitor visitor(zone);

@@ -1007,8 +1007,7 @@ Fragment BaseFlowGraphBuilder::BuildFfiAsFunctionInternalCall(
   ASSERT(dart_type.IsFunctionType() && native_type.IsFunctionType());
   const Function& target =
       Function::ZoneHandle(compiler::ffi::TrampolineFunction(
-          Function::Handle(Z, Type::Cast(dart_type).signature()),
-          Function::Handle(Z, Type::Cast(native_type).signature())));
+          FunctionType::Cast(dart_type), FunctionType::Cast(native_type)));
 
   Fragment code;
   // Store the pointer in the context, we cannot load the untagged address

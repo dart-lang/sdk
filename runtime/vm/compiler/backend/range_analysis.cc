@@ -2725,9 +2725,10 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
     case Slot::Kind::kClosure_instantiator_type_arguments:
     case Slot::Kind::kClosureData_default_type_arguments:
     case Slot::Kind::kFunction_data:
+    case Slot::Kind::kFunction_signature:
     case Slot::Kind::kFunction_parameter_names:
-    case Slot::Kind::kFunction_parameter_types:
-    case Slot::Kind::kFunction_type_parameters:
+    case Slot::Kind::kFunctionType_parameter_types:
+    case Slot::Kind::kFunctionType_type_parameters:
     case Slot::Kind::kPointerBase_data_field:
     case Slot::Kind::kTypedDataView_data:
     case Slot::Kind::kType_arguments:
@@ -2753,6 +2754,7 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
       *range = Range::Full(RepresentationToRangeSize(slot().representation()));
       break;
 
+    case Slot::Kind::kFunctionType_packed_fields:
     case Slot::Kind::kClosure_hash:
     case Slot::Kind::kLinkedHashMap_hash_mask:
     case Slot::Kind::kLinkedHashMap_used_data:

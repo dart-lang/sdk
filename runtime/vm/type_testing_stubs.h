@@ -193,17 +193,7 @@ class TypeArgumentClassFinder {
  private:
   bool FindClassFromType(const AbstractType& type) {
     if (type.IsTypeParameter()) {
-      const TypeParameter& parameter = TypeParameter::Cast(type);
-      if (!parameter.IsClassTypeParameter()) {
-        return false;
-      }
-      if (klass_.IsNull()) {
-        klass_ = parameter.parameterized_class();
-      } else {
-        // Dart has no support for nested classes.
-        ASSERT(klass_.raw() == parameter.parameterized_class());
-      }
-      return true;
+      return false;
     } else if (type.IsFunctionType()) {
       // No support for function types yet.
       return false;

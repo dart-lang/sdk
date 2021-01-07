@@ -1259,8 +1259,7 @@ TypeArgumentsPtr ActivationFrame::BuildParameters(
 
   if ((function().IsGeneric() || function().HasGenericParent()) &&
       type_arguments_available) {
-    intptr_t num_vars =
-        function().NumTypeParameters() + function().NumParentTypeParameters();
+    intptr_t num_vars = function().NumTypeArguments();
     type_params_names.Grow(num_vars);
     type_params_names.SetLength(num_vars);
     TypeArguments& type_params = TypeArguments::Handle();
@@ -1271,6 +1270,7 @@ TypeArgumentsPtr ActivationFrame::BuildParameters(
                   current = current.parent_function()) {
       type_params = current.type_parameters();
       intptr_t size = current.NumTypeParameters();
+      ASSERT(size == 0 || type_params.Length() == size);
       ASSERT(mapping_offset >= size);
       mapping_offset -= size;
       for (intptr_t j = 0; j < size; ++j) {

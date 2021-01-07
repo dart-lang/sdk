@@ -46,8 +46,9 @@ TEST_CASE(SlotFromGuardedField) {
       Script::Handle(), TokenPosition::kNoSource));
   dummy_class.set_is_synthesized_class();
 
+  const FunctionType& signature = FunctionType::ZoneHandle(FunctionType::New());
   const Function& dummy_function = Function::ZoneHandle(
-      Function::New(String::Handle(Symbols::New(thread, "foo")),
+      Function::New(signature, String::Handle(Symbols::New(thread, "foo")),
                     FunctionLayout::kRegularFunction, false, false, false,
                     false, false, dummy_class, TokenPosition::kMinSource));
 

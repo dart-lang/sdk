@@ -2688,11 +2688,13 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
   info.parameter_names = MakeTemporary("parameter_names");
 
   body += LoadLocal(info.function);
-  body += LoadNativeField(Slot::Function_parameter_types());
+  body += LoadNativeField(Slot::Function_signature());
+  body += LoadNativeField(Slot::FunctionType_parameter_types());
   info.parameter_types = MakeTemporary("parameter_types");
 
   body += LoadLocal(info.function);
-  body += LoadNativeField(Slot::Function_type_parameters());
+  body += LoadNativeField(Slot::Function_signature());
+  body += LoadNativeField(Slot::FunctionType_type_parameters());
   info.type_parameters = MakeTemporary("type_parameters");
 
   body += LoadLocal(info.closure);
@@ -3068,7 +3070,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
           Function::ZoneHandle(Z, function.parent_function());
       const Class& owner = Class::ZoneHandle(Z, parent.Owner());
       AbstractType& type = AbstractType::ZoneHandle(Z);
-      type = Type::New(owner, TypeArguments::Handle(Z), owner.token_pos());
+      type = Type::New(owner, TypeArguments::Handle(Z));
       type = ClassFinalizer::FinalizeType(type);
       body += Constant(type);
     } else {

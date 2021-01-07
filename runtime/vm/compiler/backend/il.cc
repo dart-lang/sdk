@@ -354,8 +354,7 @@ void HierarchyInfo::BuildRangesForJIT(ClassTable* table,
 bool HierarchyInfo::CanUseSubtypeRangeCheckFor(const AbstractType& type) {
   ASSERT(type.IsFinalized());
 
-  if (!type.IsInstantiated() || !type.IsType() || type.IsFunctionType() ||
-      type.IsDartFunctionType()) {
+  if (!type.IsInstantiated() || !type.IsType() || type.IsDartFunctionType()) {
     return false;
   }
 
@@ -398,7 +397,7 @@ bool HierarchyInfo::CanUseGenericSubtypeRangeCheckFor(
     const AbstractType& type) {
   ASSERT(type.IsFinalized());
 
-  if (!type.IsType() || type.IsFunctionType() || type.IsDartFunctionType()) {
+  if (!type.IsType() || type.IsDartFunctionType()) {
     return false;
   }
 
@@ -2744,8 +2743,10 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kFunction_kind_tag:
     case Slot::Kind::kFunction_packed_fields:
     case Slot::Kind::kFunction_parameter_names:
-    case Slot::Kind::kFunction_parameter_types:
-    case Slot::Kind::kFunction_type_parameters:
+    case Slot::Kind::kFunction_signature:
+    case Slot::Kind::kFunctionType_packed_fields:
+    case Slot::Kind::kFunctionType_parameter_types:
+    case Slot::Kind::kFunctionType_type_parameters:
     case Slot::Kind::kPointerBase_data_field:
     case Slot::Kind::kType_arguments:
     case Slot::Kind::kTypeArgumentsIndex:
@@ -5171,6 +5172,7 @@ TypePtr PolymorphicInstanceCallInstr::ComputeRuntimeType(
   bool is_string = true;
   bool is_integer = true;
   bool is_double = true;
+  bool is_type = true;
 
   const intptr_t num_checks = targets.length();
   for (intptr_t i = 0; i < num_checks; i++) {
@@ -5182,18 +5184,24 @@ TypePtr PolymorphicInstanceCallInstr::ComputeRuntimeType(
       is_string = is_string && IsStringClassId(cid);
       is_integer = is_integer && IsIntegerClassId(cid);
       is_double = is_double && (cid == kDoubleCid);
+      is_type = is_type && IsTypeClassId(cid);
     }
   }
 
   if (is_string) {
     ASSERT(!is_integer);
     ASSERT(!is_double);
+    ASSERT(!is_type);
     return Type::StringType();
   } else if (is_integer) {
     ASSERT(!is_double);
+    ASSERT(!is_type);
     return Type::IntType();
   } else if (is_double) {
+    ASSERT(!is_type);
     return Type::Double();
+  } else if (is_type) {
+    return Type::DartTypeType();
   }
 
   return Type::null();

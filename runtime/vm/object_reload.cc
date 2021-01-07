@@ -538,20 +538,6 @@ class EnumClassConflict : public ClassReasonForCancelling {
   }
 };
 
-class TypedefClassConflict : public ClassReasonForCancelling {
- public:
-  TypedefClassConflict(Zone* zone, const Class& from, const Class& to)
-      : ClassReasonForCancelling(zone, from, to) {}
-
-  StringPtr ToString() {
-    return String::NewFormatted(
-        from_.IsTypedefClass()
-            ? "Typedef class cannot be redefined to be a non-typedef class: %s"
-            : "Class cannot be redefined to be a typedef class: %s",
-        from_.ToCString());
-  }
-};
-
 class EnsureFinalizedError : public ClassReasonForCancelling {
  public:
   EnsureFinalizedError(Zone* zone,
@@ -696,14 +682,6 @@ void Class::CheckReload(const Class& replacement,
     context->group_reload_context()->AddReasonForCancelling(
         new (context->zone())
             EnumClassConflict(context->zone(), *this, replacement));
-    return;
-  }
-
-  // Class cannot change typedef property.
-  if (IsTypedefClass() != replacement.IsTypedefClass()) {
-    context->group_reload_context()->AddReasonForCancelling(
-        new (context->zone())
-            TypedefClassConflict(context->zone(), *this, replacement));
     return;
   }
 

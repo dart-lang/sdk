@@ -115,6 +115,9 @@ enum InstanceKind {
   /// An instance of the Dart class Type.
   type,
 
+  /// An instance of the Dart class FunctionType.
+  functionType,
+
   /// An instance of the Dart class TypeParameter.
   typeParameter,
 
@@ -170,6 +173,7 @@ bool isAbstractType(InstanceKind? kind) {
   }
   switch (kind) {
     case InstanceKind.type:
+    case InstanceKind.functionType:
     case InstanceKind.typeRef:
     case InstanceKind.typeParameter:
       return true;
@@ -387,7 +391,7 @@ abstract class Instance extends Object implements InstanceRef {
   /// [optional] The referent of a TypeRef instance.
   ///
   /// The value will always be of one of the kinds:
-  /// Type, TypeRef, TypeParameter.
+  /// Type, FunctionType, TypeRef, TypeParameter.
   ///
   /// Provided for instance kinds:
   ///   TypeRef
@@ -396,7 +400,7 @@ abstract class Instance extends Object implements InstanceRef {
   /// [optional] The bound of a TypeParameter.
   ///
   /// The value will always be of one of the kinds:
-  /// Type, TypeRef, TypeParameter.
+  /// Type, FunctionType, TypeRef, TypeParameter.
   ///
   /// Provided for instance kinds:
   ///   TypeParameter

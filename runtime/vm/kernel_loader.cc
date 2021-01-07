@@ -1418,8 +1418,9 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
   // kImplementedClasses, [...].
 
   // Set type parameters.
-  T.LoadAndSetupTypeParameters(&active_class_, *klass, type_parameter_count,
-                               Function::Handle(Z));
+  T.LoadAndSetupTypeParameters(&active_class_, Object::null_function(), *klass,
+                               Object::null_function_type(),
+                               type_parameter_count, klass->nnbd_mode());
 
   // Set super type.  Some classes (e.g., Object) do not have one.
   Tag type_tag = helper_.ReadTag();  // read super class type (part 1).
@@ -1702,8 +1703,9 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       owner = &ClassForScriptAt(klass, source_uri_index);
     }
 
-    Function& function = Function::ZoneHandle(
-        Z, Function::New(name, FunctionLayout::kConstructor,
+    FunctionType& signature = FunctionType::Handle(Z, FunctionType::New());
+    const Function& function = Function::ZoneHandle(
+        Z, Function::New(signature, name, FunctionLayout::kConstructor,
                          false,  // is_static
                          constructor_helper.IsConst(),
                          false,  // is_abstract
@@ -1711,9 +1713,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
                          false,  // is_native
                          *owner, constructor_helper.start_position_));
     function.set_end_token_pos(constructor_helper.end_position_);
-    functions_.Add(&function);
     function.set_kernel_offset(constructor_offset);
-    function.set_result_type(T.ReceiverType(klass));
+    signature.set_result_type(T.ReceiverType(klass));
     function.set_has_pragma(has_pragma_annotation);
 
     FunctionNodeHelper function_node_helper(&helper_);
@@ -1737,6 +1738,16 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kEnd);
     constructor_helper.SetJustRead(ConstructorHelper::kFunction);
     constructor_helper.ReadUntilExcluding(ConstructorHelper::kEnd);
+
+    if (klass.is_finalized()) {
+      // The owner class has already been marked as finalized (e.g. class
+      // 'NativeFieldWrapperClass1'), so the signature of this added constructor
+      // must be finalized here, since finalization of member types will not be
+      // called anymore.
+      signature ^= ClassFinalizer::FinalizeType(signature);
+      function.set_signature(signature);
+    }
+    functions_.Add(&function);
 
     if ((FLAG_enable_mirrors || has_pragma_annotation) &&
         annotation_count > 0) {
@@ -1981,8 +1992,9 @@ void KernelLoader::LoadProcedure(const Library& library,
   // they are not reachable anymore and we never look them up by name.
   const bool register_function = !name.Equals(Symbols::DebugProcedureName());
 
-  Function& function = Function::ZoneHandle(
-      Z, Function::New(name, kind,
+  const FunctionType& signature = FunctionType::Handle(Z, FunctionType::New());
+  const Function& function = Function::ZoneHandle(
+      Z, Function::New(signature, name, kind,
                        !is_method,  // is_static
                        false,       // is_const
                        is_abstract, is_external,
@@ -2208,10 +2220,11 @@ InstancePtr KernelLoader::GenerateFieldAccessors(const Class& klass,
       H.DartGetterName(field_helper->canonical_name_getter_);
   const Object& script_class =
       ClassForScriptAt(klass, field_helper->source_uri_index_);
+  const FunctionType& signature = FunctionType::Handle(Z, FunctionType::New());
   Function& getter = Function::ZoneHandle(
       Z,
       Function::New(
-          getter_name,
+          signature, getter_name,
           field_helper->IsStatic() ? FunctionLayout::kImplicitStaticGetter
                                    : FunctionLayout::kImplicitGetter,
           field_helper->IsStatic(),
@@ -2228,7 +2241,7 @@ InstancePtr KernelLoader::GenerateFieldAccessors(const Class& klass,
   getter.set_end_token_pos(field_helper->end_position_);
   getter.set_kernel_offset(field.kernel_offset());
   const AbstractType& field_type = AbstractType::Handle(Z, field.type());
-  getter.set_result_type(field_type);
+  signature.set_result_type(field_type);
   getter.set_is_debuggable(false);
   getter.set_accessor_field(field);
   getter.set_is_extension_member(field.is_extension_member());
@@ -2240,18 +2253,21 @@ InstancePtr KernelLoader::GenerateFieldAccessors(const Class& klass,
     ASSERT(!field_helper->IsConst());
     const String& setter_name =
         H.DartSetterName(field_helper->canonical_name_setter_);
+    const FunctionType& signature =
+        FunctionType::Handle(Z, FunctionType::New());
     Function& setter = Function::ZoneHandle(
-        Z, Function::New(setter_name, FunctionLayout::kImplicitSetter,
-                         field_helper->IsStatic(),
-                         false,  // is_const
-                         false,  // is_abstract
-                         false,  // is_external
-                         false,  // is_native
-                         script_class, field_helper->position_));
+        Z,
+        Function::New(signature, setter_name, FunctionLayout::kImplicitSetter,
+                      field_helper->IsStatic(),
+                      false,  // is_const
+                      false,  // is_abstract
+                      false,  // is_external
+                      false,  // is_native
+                      script_class, field_helper->position_));
     functions_.Add(&setter);
     setter.set_end_token_pos(field_helper->end_position_);
     setter.set_kernel_offset(field.kernel_offset());
-    setter.set_result_type(Object::void_type());
+    signature.set_result_type(Object::void_type());
     setter.set_is_debuggable(false);
     setter.set_accessor_field(field);
     setter.set_is_extension_member(field.is_extension_member());
@@ -2400,25 +2416,27 @@ FunctionPtr CreateFieldInitializerFunction(Thread* thread,
   initializer_owner.set_library_kernel_offset(lib.kernel_offset());
 
   // Create a static initializer.
+  FunctionType& signature = FunctionType::Handle(zone, FunctionType::New());
   const Function& initializer_fun = Function::Handle(
-      zone, Function::New(init_name, FunctionLayout::kFieldInitializer,
-                          field.is_static(),  // is_static
-                          false,              // is_const
-                          false,              // is_abstract
-                          false,              // is_external
-                          false,              // is_native
-                          initializer_owner, TokenPosition::kNoSource));
+      zone,
+      Function::New(signature, init_name, FunctionLayout::kFieldInitializer,
+                    field.is_static(),  // is_static
+                    false,              // is_const
+                    false,              // is_abstract
+                    false,              // is_external
+                    false,              // is_native
+                    initializer_owner, TokenPosition::kNoSource));
   if (!field.is_static()) {
     initializer_fun.set_num_fixed_parameters(1);
-    initializer_fun.set_parameter_types(
+    signature.set_parameter_types(
         Array::Handle(zone, Array::New(1, Heap::kOld)));
-    initializer_fun.CreateNameArrayIncludingFlags(Heap::kOld);
-    initializer_fun.SetParameterTypeAt(
+    signature.CreateNameArrayIncludingFlags(Heap::kOld);
+    signature.SetParameterTypeAt(
         0, AbstractType::Handle(zone, field_owner.DeclarationType()));
-    initializer_fun.SetParameterNameAt(0, Symbols::This());
-    initializer_fun.TruncateUnusedParameterFlags();
+    signature.SetParameterNameAt(0, Symbols::This());
+    signature.FinalizeNameArrays(initializer_fun);
   }
-  initializer_fun.set_result_type(AbstractType::Handle(zone, field.type()));
+  signature.set_result_type(AbstractType::Handle(zone, field.type()));
   initializer_fun.set_is_reflectable(false);
   initializer_fun.set_is_inlinable(false);
   initializer_fun.set_token_pos(field.token_pos());
@@ -2426,6 +2444,10 @@ FunctionPtr CreateFieldInitializerFunction(Thread* thread,
   initializer_fun.set_accessor_field(field);
   initializer_fun.InheritKernelOffsetFrom(field);
   initializer_fun.set_is_extension_member(field.is_extension_member());
+
+  signature ^= ClassFinalizer::FinalizeType(signature);
+  initializer_fun.set_signature(signature);
+
   field.SetInitializerFunction(initializer_fun);
   return initializer_fun.raw();
 }

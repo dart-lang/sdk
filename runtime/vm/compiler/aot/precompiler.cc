@@ -163,6 +163,8 @@ Precompiler::Precompiler(Thread* thread)
       dropped_class_count_(0),
       dropped_typearg_count_(0),
       dropped_type_count_(0),
+      dropped_functiontype_count_(0),
+      dropped_typeparam_count_(0),
       dropped_library_count_(0),
       libraries_(GrowableObjectArray::Handle(
           isolate_->group()->object_store()->libraries())),
@@ -178,6 +180,7 @@ Precompiler::Precompiler(Thread* thread)
       classes_to_retain_(),
       typeargs_to_retain_(),
       types_to_retain_(),
+      functiontypes_to_retain_(),
       typeparams_to_retain_(),
       consts_to_retain_(),
       seen_table_selectors_(),
@@ -400,6 +403,7 @@ void Precompiler::DoCompileAll() {
       DropFields();
       TraceTypesFromRetainedClasses();
       DropTypes();
+      DropFunctionTypes();
       DropTypeParameters();
       DropTypeArguments();
 
@@ -460,6 +464,8 @@ void Precompiler::DoCompileAll() {
     THR_Print(" %" Pd " fields,", dropped_field_count_);
     THR_Print(" %" Pd " symbols,", symbols_before - symbols_after);
     THR_Print(" %" Pd " types,", dropped_type_count_);
+    THR_Print(" %" Pd " function types,", dropped_functiontype_count_);
+    THR_Print(" %" Pd " type parameters,", dropped_typeparam_count_);
     THR_Print(" %" Pd " type arguments,", dropped_typearg_count_);
     THR_Print(" %" Pd " classes,", dropped_class_count_);
     THR_Print(" %" Pd " libraries.\n", dropped_library_count_);
@@ -481,6 +487,7 @@ void Precompiler::PrecompileConstructors() {
       if (FLAG_trace_precompiler) {
         THR_Print("Precompiling constructor %s\n", function.ToCString());
       }
+      ASSERT(Class::Handle(zone_, function.Owner()).is_finalized());
       CompileFunction(precompiler_, Thread::Current(), zone_, function);
     }
 
@@ -558,7 +565,7 @@ void Precompiler::CollectCallbackFields() {
   Class& subcls = Class::Handle(Z);
   Array& fields = Array::Handle(Z);
   Field& field = Field::Handle(Z);
-  Function& function = Function::Handle(Z);
+  FunctionType& signature = FunctionType::Handle(Z);
   Function& dispatcher = Function::Handle(Z);
   Array& args_desc = Array::Handle(Z);
   AbstractType& field_type = AbstractType::Handle(Z);
@@ -583,9 +590,9 @@ void Precompiler::CollectCallbackFields() {
         if (!IsSent(field_name)) continue;
         // Create arguments descriptor with fixed parameters from
         // signature of field_type.
-        function = Type::Cast(field_type).signature();
-        if (function.IsGeneric()) continue;
-        if (function.HasOptionalParameters()) continue;
+        signature ^= field_type.raw();
+        if (signature.IsGeneric()) continue;
+        if (signature.HasOptionalParameters()) continue;
         if (FLAG_trace_precompiler) {
           THR_Print("Found callback field %s\n", field_name.ToCString());
         }
@@ -595,7 +602,7 @@ void Precompiler::CollectCallbackFields() {
         // unboxed parameters.
         args_desc =
             ArgumentsDescriptor::NewBoxed(0,  // No type argument vector.
-                                          function.num_fixed_parameters());
+                                          signature.num_fixed_parameters());
         cids.Clear();
         if (CHA::ConcreteSubclasses(cls, &cids)) {
           for (intptr_t j = 0; j < cids.length(); ++j) {
@@ -623,6 +630,9 @@ void Precompiler::ProcessFunction(const Function& function) {
       FLAG_use_bare_instructions ? global_object_pool_builder()->CurrentLength()
                                  : 0;
   RELEASE_ASSERT(!function.HasCode());
+  // Ffi trampoline functions have no signature.
+  ASSERT(function.kind() == FunctionLayout::kFfiTrampoline ||
+         FunctionType::Handle(Z, function.signature()).IsFinalized());
 
   TracingScope tracing_scope(this);
   function_count_++;
@@ -773,10 +783,6 @@ void Precompiler::AddTypesOf(const Class& cls) {
 
   type = cls.super_type();
   AddType(type);
-
-  if (cls.IsTypedefClass()) {
-    AddTypesOf(Function::Handle(Z, cls.signature_function()));
-  }
 }
 
 void Precompiler::AddTypesOf(const Function& function) {
@@ -784,15 +790,10 @@ void Precompiler::AddTypesOf(const Function& function) {
   if (functions_to_retain_.ContainsKey(function)) return;
   functions_to_retain_.Insert(function);
 
-  AddTypeArguments(TypeArguments::Handle(Z, function.type_parameters()));
+  const FunctionType& signature = FunctionType::Handle(Z, function.signature());
+  AddType(signature);
 
   AbstractType& type = AbstractType::Handle(Z);
-  type = function.result_type();
-  AddType(type);
-  for (intptr_t i = 0; i < function.NumParameters(); i++) {
-    type = function.ParameterTypeAt(i);
-    AddType(type);
-  }
   // At this point, ensure any cached default type arguments are canonicalized.
   function.UpdateCachedDefaultTypeArguments(thread());
   if (function.CachesDefaultTypeArguments()) {
@@ -802,19 +803,16 @@ void Precompiler::AddTypesOf(const Function& function) {
     AddTypeArguments(defaults);
   }
   Code& code = Code::Handle(Z, function.CurrentCode());
-  if (code.IsNull()) {
-    ASSERT(function.kind() == FunctionLayout::kSignatureFunction);
-  } else {
-    const ExceptionHandlers& handlers =
-        ExceptionHandlers::Handle(Z, code.exception_handlers());
-    if (!handlers.IsNull()) {
-      Array& types = Array::Handle(Z);
-      for (intptr_t i = 0; i < handlers.num_entries(); i++) {
-        types = handlers.GetHandledTypes(i);
-        for (intptr_t j = 0; j < types.Length(); j++) {
-          type ^= types.At(j);
-          AddType(type);
-        }
+  ASSERT(!code.IsNull());
+  const ExceptionHandlers& handlers =
+      ExceptionHandlers::Handle(Z, code.exception_handlers());
+  if (!handlers.IsNull()) {
+    Array& types = Array::Handle(Z);
+    for (intptr_t i = 0; i < handlers.num_entries(); i++) {
+      types = handlers.GetHandledTypes(i);
+      for (intptr_t j = 0; j < types.Length(); j++) {
+        type ^= types.At(j);
+        AddType(type);
       }
     }
   }
@@ -823,12 +821,6 @@ void Precompiler::AddTypesOf(const Function& function) {
   const Function& parent = Function::Handle(Z, function.parent_function());
   if (!parent.IsNull()) {
     AddTypesOf(parent);
-  }
-  if (function.IsSignatureFunction() || function.IsClosureFunction()) {
-    type = function.ExistingSignatureType();
-    if (!type.IsNull()) {
-      AddType(type);
-    }
   }
   // A class may have all functions inlined except a local function.
   const Class& owner = Class::Handle(Z, function.Owner());
@@ -847,10 +839,24 @@ void Precompiler::AddType(const AbstractType& abstype) {
     AddType(type);
     type = param.default_argument();
     AddType(type);
-    const auto& function = Function::Handle(Z, param.parameterized_function());
-    AddTypesOf(function);
-    const Class& cls = Class::Handle(Z, param.parameterized_class());
-    AddTypesOf(cls);
+    return;
+  }
+
+  if (abstype.IsFunctionType()) {
+    if (functiontypes_to_retain_.HasKey(&FunctionType::Cast(abstype))) return;
+    const FunctionType& signature =
+        FunctionType::ZoneHandle(Z, FunctionType::Cast(abstype).raw());
+    functiontypes_to_retain_.Insert(&signature);
+
+    AddTypeArguments(TypeArguments::Handle(Z, signature.type_parameters()));
+
+    AbstractType& type = AbstractType::Handle(Z);
+    type = signature.result_type();
+    AddType(type);
+    for (intptr_t i = 0; i < signature.NumParameters(); i++) {
+      type = signature.ParameterTypeAt(i);
+      AddType(type);
+    }
     return;
   }
 
@@ -863,10 +869,6 @@ void Precompiler::AddType(const AbstractType& abstype) {
     AddTypesOf(cls);
     const TypeArguments& vector = TypeArguments::Handle(Z, abstype.arguments());
     AddTypeArguments(vector);
-    if (type.IsFunctionType()) {
-      const Function& func = Function::Handle(Z, type.signature());
-      AddTypesOf(func);
-    }
   } else if (abstype.IsTypeRef()) {
     AbstractType& type = AbstractType::Handle(Z);
     type = TypeRef::Cast(abstype).type();
@@ -1859,7 +1861,9 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
           : type_(AbstractType::Handle(zone)), types_(types) {}
 
       void VisitObject(ObjectPtr obj) {
-        if (obj->GetClassId() == kTypeCid || obj->GetClassId() == kTypeRefCid) {
+        if (obj->GetClassId() == kTypeCid ||
+            obj->GetClassId() == kFunctionTypeCid ||
+            obj->GetClassId() == kTypeRefCid) {
           type_ ^= obj;
           types_->Add(type_);
         }
@@ -1946,6 +1950,45 @@ void Precompiler::DropTypes() {
     ASSERT(!present);
   }
   object_store->set_canonical_types(types_table.Release());
+}
+
+void Precompiler::DropFunctionTypes() {
+  ObjectStore* object_store = IG->object_store();
+  GrowableObjectArray& retained_types =
+      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+  Array& types_array = Array::Handle(Z);
+  FunctionType& type = FunctionType::Handle(Z);
+  // First drop all the function types that are not referenced.
+  {
+    CanonicalFunctionTypeSet types_table(
+        Z, object_store->canonical_function_types());
+    types_array = HashTables::ToArray(types_table, false);
+    for (intptr_t i = 0; i < types_array.Length(); i++) {
+      type ^= types_array.At(i);
+      bool retain = functiontypes_to_retain_.HasKey(&type);
+      if (retain) {
+        retained_types.Add(type);
+      } else {
+        type.ClearCanonical();
+        dropped_functiontype_count_++;
+      }
+    }
+    types_table.Release();
+  }
+
+  // Now construct a new function type table and save in the object store.
+  const intptr_t dict_size =
+      Utils::RoundUpToPowerOfTwo(retained_types.Length() * 4 / 3);
+  types_array =
+      HashTables::New<CanonicalFunctionTypeSet>(dict_size, Heap::kOld);
+  CanonicalFunctionTypeSet types_table(Z, types_array.raw());
+  bool present;
+  for (intptr_t i = 0; i < retained_types.Length(); i++) {
+    type ^= retained_types.At(i);
+    present = types_table.Insert(type);
+    ASSERT(!present);
+  }
+  object_store->set_canonical_function_types(types_table.Release());
 }
 
 void Precompiler::DropTypeParameters() {

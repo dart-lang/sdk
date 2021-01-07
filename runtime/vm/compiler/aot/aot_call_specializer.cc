@@ -168,7 +168,7 @@ bool AotCallSpecializer::RecognizeRuntimeTypeGetter(InstanceCallInstr* call) {
   const Function& target = Function::ZoneHandle(Z, function.raw());
   StaticCallInstr* static_call =
       StaticCallInstr::FromCall(Z, call, target, call->CallCount());
-  static_call->SetResultType(Z, CompileType::FromCid(kTypeCid));
+  // Since the result is either a Type or a FunctionType, we cannot pin it.
   call->ReplaceWith(static_call, current_iterator());
   return true;
 }

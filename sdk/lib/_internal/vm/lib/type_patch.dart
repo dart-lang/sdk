@@ -6,12 +6,12 @@
 
 // These Dart classes correspond to the VM internal implementation classes.
 
-// Equivalent of RawAbstractType.
+// Equivalent of AbstractTypeLayout.
 abstract class _AbstractType implements Type {
   String toString() native "AbstractType_toString";
 }
 
-// Equivalent of RawType.
+// Equivalent of TypeLayout.
 @pragma("vm:entry-point")
 class _Type extends _AbstractType {
   factory _Type._uninstantiable() {
@@ -27,7 +27,23 @@ class _Type extends _AbstractType {
   bool operator ==(other) native "Type_equality";
 }
 
-// Equivalent of RawTypeRef.
+// Equivalent of FunctionTypeLayout.
+@pragma("vm:entry-point")
+class _FunctionType extends _AbstractType {
+  factory _FunctionType._uninstantiable() {
+    throw "Unreachable";
+  }
+
+  @pragma("vm:recognized", "asm-intrinsic")
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
+  int get hashCode native "FunctionType_getHashCode";
+
+  @pragma("vm:recognized", "asm-intrinsic")
+  @pragma("vm:exact-result-type", bool)
+  bool operator ==(other) native "FunctionType_equality";
+}
+
+// Equivalent of TypeRefLayout.
 @pragma("vm:entry-point")
 class _TypeRef extends _AbstractType {
   factory _TypeRef._uninstantiable() {
@@ -35,7 +51,7 @@ class _TypeRef extends _AbstractType {
   }
 }
 
-// Equivalent of RawTypeParameter.
+// Equivalent of TypeParameterLayout.
 @pragma("vm:entry-point")
 class _TypeParameter extends _AbstractType {
   factory _TypeParameter._uninstantiable() {

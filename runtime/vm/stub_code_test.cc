@@ -18,9 +18,10 @@ const Function& RegisterFakeFunction(const char* name, const Code& code) {
   const Class& owner_class = Class::Handle(
       Class::New(lib, class_name, script, TokenPosition::kNoSource));
   const String& function_name = String::ZoneHandle(Symbols::New(thread, name));
-  const Function& function = Function::ZoneHandle(Function::New(
-      function_name, FunctionLayout::kRegularFunction, true, false, false,
-      false, false, owner_class, TokenPosition::kMinSource));
+  const FunctionType& signature = FunctionType::ZoneHandle(FunctionType::New());
+  Function& function = Function::ZoneHandle(Function::New(
+      signature, function_name, FunctionLayout::kRegularFunction, true, false,
+      false, false, false, owner_class, TokenPosition::kNoSource));
   const Array& functions = Array::Handle(Array::New(1));
   functions.SetAt(0, function);
   {

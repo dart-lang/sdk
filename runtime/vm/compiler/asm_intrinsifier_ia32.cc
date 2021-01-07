@@ -1538,10 +1538,14 @@ static void JumpIfNotString(Assembler* assembler, Register cid, Label* target) {
              kIfNotInRange, target);
 }
 
+static void JumpIfNotType(Assembler* assembler, Register cid, Label* target) {
+  RangeCheck(assembler, cid, kTypeCid, kFunctionTypeCid, kIfNotInRange, target);
+}
+
 // Return type quickly for simple types (not parameterized and not signature).
 void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
                                         Label* normal_ir_body) {
-  Label use_declaration_type, not_double, not_integer;
+  Label use_declaration_type, not_double, not_integer, not_string;
   __ movl(EAX, Address(ESP, +1 * target::kWordSize));
   __ LoadClassIdMayBeSmi(EDI, EAX);
 
@@ -1574,14 +1578,24 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   // If object is a string (one byte, two byte or external variants) return
   // string type.
   __ movl(EAX, EDI);
-  JumpIfNotString(assembler, EAX, &use_declaration_type);
+  JumpIfNotString(assembler, EAX, &not_string);
 
   __ LoadIsolate(EAX);
   __ movl(EAX, Address(EAX, target::Isolate::cached_object_store_offset()));
   __ movl(EAX, Address(EAX, target::ObjectStore::string_type_offset()));
   __ ret();
 
-  // Object is neither double, nor integer, nor string.
+  __ Bind(&not_string);
+  // If object is a type or function type, return Dart type.
+  __ movl(EAX, EDI);
+  JumpIfNotType(assembler, EAX, &use_declaration_type);
+
+  __ LoadIsolate(EAX);
+  __ movl(EAX, Address(EAX, target::Isolate::cached_object_store_offset()));
+  __ movl(EAX, Address(EAX, target::ObjectStore::type_type_offset()));
+  __ ret();
+
+  // Object is neither double, nor integer, nor string, nor type.
   __ Bind(&use_declaration_type);
   __ LoadClassById(EBX, EDI);
   __ movzxw(EDI, FieldAddress(EBX, target::Class::num_type_arguments_offset()));
@@ -1747,6 +1761,30 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
 
   __ Bind(&not_equal);
   __ LoadObject(EAX, CastHandle<Object>(FalseObject()));
+  __ ret();
+
+  __ Bind(normal_ir_body);
+}
+
+void AsmIntrinsifier::FunctionType_getHashCode(Assembler* assembler,
+                                               Label* normal_ir_body) {
+  __ movl(EAX, Address(ESP, +1 * target::kWordSize));  // FunctionType object.
+  __ movl(EAX, FieldAddress(EAX, target::FunctionType::hash_offset()));
+  __ testl(EAX, EAX);
+  __ j(EQUAL, normal_ir_body, Assembler::kNearJump);
+  __ ret();
+  __ Bind(normal_ir_body);
+  // Hash not yet computed.
+}
+
+void AsmIntrinsifier::FunctionType_equality(Assembler* assembler,
+                                            Label* normal_ir_body) {
+  __ movl(EDI, Address(ESP, +1 * target::kWordSize));
+  __ movl(EBX, Address(ESP, +2 * target::kWordSize));
+  __ cmpl(EDI, EBX);
+  __ j(NOT_EQUAL, normal_ir_body);
+
+  __ LoadObject(EAX, CastHandle<Object>(TrueObject()));
   __ ret();
 
   __ Bind(normal_ir_body);

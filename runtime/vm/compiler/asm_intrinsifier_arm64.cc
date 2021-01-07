@@ -1513,10 +1513,18 @@ static void JumpIfNotString(Assembler* assembler,
              kIfNotInRange, target);
 }
 
+static void JumpIfNotType(Assembler* assembler,
+                          Register cid,
+                          Register tmp,
+                          Label* target) {
+  RangeCheck(assembler, cid, tmp, kTypeCid, kFunctionTypeCid, kIfNotInRange,
+             target);
+}
+
 // Return type quickly for simple types (not parameterized and not signature).
 void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
                                         Label* normal_ir_body) {
-  Label use_declaration_type, not_double, not_integer;
+  Label use_declaration_type, not_double, not_integer, not_string;
   __ ldr(R0, Address(SP, 0 * target::kWordSize));
   __ LoadClassIdMayBeSmi(R1, R0);
 
@@ -1542,10 +1550,17 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ ret();
 
   __ Bind(&not_integer);
-  JumpIfNotString(assembler, R1, R0, &use_declaration_type);
+  JumpIfNotString(assembler, R1, R0, &not_string);
   __ LoadIsolate(R0);
   __ LoadFromOffset(R0, R0, target::Isolate::cached_object_store_offset());
   __ LoadFromOffset(R0, R0, target::ObjectStore::string_type_offset());
+  __ ret();
+
+  __ Bind(&not_string);
+  JumpIfNotType(assembler, R1, R0, &use_declaration_type);
+  __ LoadIsolate(R0);
+  __ LoadFromOffset(R0, R0, target::Isolate::cached_object_store_offset());
+  __ LoadFromOffset(R0, R0, target::ObjectStore::type_type_offset());
   __ ret();
 
   __ Bind(&use_declaration_type);
@@ -1718,6 +1733,28 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
 
   __ Bind(&not_equal);
   __ LoadObject(R0, CastHandle<Object>(FalseObject()));
+  __ ret();
+
+  __ Bind(normal_ir_body);
+}
+
+void AsmIntrinsifier::FunctionType_getHashCode(Assembler* assembler,
+                                               Label* normal_ir_body) {
+  __ ldr(R0, Address(SP, 0 * target::kWordSize));
+  __ ldr(R0, FieldAddress(R0, target::FunctionType::hash_offset()));
+  __ cbz(normal_ir_body, R0);
+  __ ret();
+  // Hash not yet computed.
+  __ Bind(normal_ir_body);
+}
+
+void AsmIntrinsifier::FunctionType_equality(Assembler* assembler,
+                                            Label* normal_ir_body) {
+  __ ldp(R1, R2, Address(SP, 0 * target::kWordSize, Address::PairOffset));
+  __ cmp(R1, Operand(R2));
+  __ b(normal_ir_body, NE);
+
+  __ LoadObject(R0, CastHandle<Object>(TrueObject()));
   __ ret();
 
   __ Bind(normal_ir_body);

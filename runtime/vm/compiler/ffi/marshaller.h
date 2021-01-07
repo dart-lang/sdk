@@ -135,7 +135,7 @@ class BaseMarshaller : public ZoneAllocated {
   // Contains the function pointer as argument #0.
   // The Dart signature is used for the function and argument names.
   const Function& dart_signature_;
-  const Function& c_signature_;
+  const FunctionType& c_signature_;
   const NativeCallingConvention& native_calling_convention_;
 };
 

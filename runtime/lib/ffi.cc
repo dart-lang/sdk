@@ -248,8 +248,7 @@ DEFINE_NATIVE_ENTRY(Ffi_nativeCallbackFunction, 1, 2) {
                                arguments->NativeArgAt(1));
 
   ASSERT(type_arg.IsInstantiated() && type_arg.IsFunctionType());
-  const Function& native_signature =
-      Function::Handle(zone, Type::Cast(type_arg).signature());
+  const FunctionType& native_signature = FunctionType::Cast(type_arg);
   Function& func = Function::Handle(zone, closure.function());
 
   // The FE verifies that the target of a 'fromFunction' is a static method, so

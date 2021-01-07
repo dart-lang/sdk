@@ -564,7 +564,8 @@ void CompileType::Union(CompileType* other) {
 
   // Climb up the hierarchy to find a suitable supertype. Note that interface
   // types are not considered, making the union potentially non-commutative
-  if (abstract_type->IsInstantiated() && !abstract_type->IsDynamicType()) {
+  if (abstract_type->IsInstantiated() && !abstract_type->IsDynamicType() &&
+      !abstract_type->IsFunctionType()) {
     Class& cls = Class::Handle(abstract_type->type_class());
     for (; !cls.IsNull() && !cls.IsGeneric(); cls = cls.SuperClass()) {
       type_ = &AbstractType::ZoneHandle(cls.RareType());
@@ -1357,8 +1358,8 @@ static CompileType ComputeListFactoryType(CompileType* inferred_type,
             : TypeArguments::Cast(type_args_value->BoundConstant());
     const Class& cls =
         Class::Handle(IsolateGroup::Current()->class_table()->At(cid));
-    Type& type = Type::ZoneHandle(Type::New(
-        cls, type_args, TokenPosition::kNoSource, Nullability::kNonNullable));
+    Type& type =
+        Type::ZoneHandle(Type::New(cls, type_args, Nullability::kNonNullable));
     ASSERT(type.IsInstantiated());
     type.SetIsFinalized();
     return CompileType(CompileType::kNonNullable, cid, &type);
@@ -1480,8 +1481,9 @@ CompileType AllocateTypedDataInstr::ComputeType() const {
 CompileType AllocateObjectInstr::ComputeType() const {
   if (!closure_function().IsNull()) {
     ASSERT(cls().id() == kClosureCid);
-    return CompileType(CompileType::kNonNullable, kClosureCid,
-                       &Type::ZoneHandle(closure_function().SignatureType()));
+    const FunctionType& sig =
+        FunctionType::ZoneHandle(closure_function().signature());
+    return CompileType(CompileType::kNonNullable, kClosureCid, &sig);
   }
   // TODO(vegorov): Incorporate type arguments into the returned type.
   return CompileType::FromCid(cls().id());

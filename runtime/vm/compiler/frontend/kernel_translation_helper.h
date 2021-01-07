@@ -1365,9 +1365,9 @@ class ActiveClass {
 
   const Function* member;
 
-  // The innermost enclosing function. This is used for building types, as a
+  // The innermost enclosing signature. This is used for building types, as a
   // parent for function types.
-  const Function* enclosing;
+  const FunctionType* enclosing;
 
   const TypeArguments* local_type_parameters;
 
@@ -1410,9 +1410,9 @@ class ActiveMemberScope {
 class ActiveEnclosingFunctionScope {
  public:
   ActiveEnclosingFunctionScope(ActiveClass* active_class,
-                               const Function* enclosing)
+                               const FunctionType* enclosing_signature)
       : active_class_(active_class), saved_(*active_class) {
-    active_class_->enclosing = enclosing;
+    active_class_->enclosing = enclosing_signature;
   }
 
   ~ActiveEnclosingFunctionScope() { *active_class_ = saved_; }
@@ -1430,16 +1430,17 @@ class ActiveTypeParametersScope {
   // parameters defined by 'innermost' and any enclosing *closures* (but not
   // enclosing methods/top-level functions/classes).
   //
-  // Also, the enclosing function is set to 'innermost'.
+  // Also, the enclosing signature is set to innermost's signature.
   ActiveTypeParametersScope(ActiveClass* active_class,
                             const Function& innermost,
+                            const FunctionType* innermost_signature,
                             Zone* Z);
 
   // Append the list of the local type parameters to the list in ActiveClass.
   //
-  // Also, the enclosing function is set to 'function'.
+  // Also, the enclosing signature is set to 'signature'.
   ActiveTypeParametersScope(ActiveClass* active_class,
-                            const Function* function,
+                            const FunctionType* innermost_signature,
                             const TypeArguments& new_params,
                             Zone* Z);
 
@@ -1470,9 +1471,11 @@ class TypeTranslator {
       intptr_t length);
 
   void LoadAndSetupTypeParameters(ActiveClass* active_class,
-                                  const Object& set_on,
+                                  const Function& function,
+                                  const Class& parameterized_class,
+                                  const FunctionType& parameterized_signature,
                                   intptr_t type_parameter_count,
-                                  const Function& parameterized_function);
+                                  const NNBDMode nnbd_mode);
 
   const Type& ReceiverType(const Class& klass);
 
