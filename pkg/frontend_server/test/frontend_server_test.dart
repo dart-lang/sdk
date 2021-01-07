@@ -1938,7 +1938,8 @@ class BarState extends State<FizzWidget> {
         CompilationResult result =
             CompilationResult.parse(compiledResult.status);
         count++;
-        // Request to 'compile', which results in full JavaScript and no metadata
+        // Request to 'compile', which results in full JavaScript and no
+        // metadata.
         expect(result.errorsCount, equals(0));
         expect(sourceFile.existsSync(), equals(true));
         expect(manifestFile.existsSync(), equals(true));
@@ -2018,7 +2019,7 @@ class BarState extends State<FizzWidget> {
         CompilationResult result =
             CompilationResult.parse(compiledResult.status);
         count++;
-        // Request to 'compile', which results in full JavaScript and no metadata
+        // Request to 'compile', which results in full JavaScript and metadata.
         expect(result.errorsCount, equals(0));
         expect(sourceFile.existsSync(), equals(true));
         expect(manifestFile.existsSync(), equals(true));
@@ -2030,6 +2031,178 @@ class BarState extends State<FizzWidget> {
         streamController.add('quit\n'.codeUnits);
       });
 
+      expect(await result, 0);
+      expect(count, 1);
+    });
+
+    test('compile to JavaScript all modules with unsound null safety',
+        () async {
+      var file = File('${tempDir.path}/foo.dart')..createSync();
+      file.writeAsStringSync("import 'bar.dart'; "
+          "typedef myType = void Function(int); main() { fn is myType; }\n");
+      file = File('${tempDir.path}/bar.dart')..createSync();
+      file.writeAsStringSync("void Function(int) fn = (int i) => null;\n");
+      var library = 'package:hello/foo.dart';
+
+      var dillFile = File('${tempDir.path}/app.dill');
+      var sourceFile = File('${dillFile.path}.sources');
+
+      var package_config =
+          File('${tempDir.path}/.dart_tool/package_config.json')
+            ..createSync(recursive: true)
+            ..writeAsStringSync('''
+    {
+      "configVersion": 2,
+      "packages": [
+        {
+          "name": "hello",
+          "rootUri": "../",
+          "packageUri": "./",
+          "languageVersion": "2.9"
+        }
+      ]
+    }
+    ''');
+
+      final List<String> args = <String>[
+        '--verbose',
+        '--no-sound-null-safety',
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${ddcPlatformKernelWeak.path}',
+        '--output-dill=${dillFile.path}',
+        '--target=dartdevc',
+        '--packages=${package_config.path}'
+      ];
+
+      final StreamController<List<int>> streamController =
+          StreamController<List<int>>();
+      final StreamController<List<int>> stdoutStreamController =
+          StreamController<List<int>>();
+      final IOSink ioSink = IOSink(stdoutStreamController.sink);
+      StreamController<Result> receivedResults = StreamController<Result>();
+      final outputParser = OutputParser(receivedResults);
+      stdoutStreamController.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen(outputParser.listener);
+
+      Future<int> result =
+          starter(args, input: streamController.stream, output: ioSink);
+      streamController.add('compile $library\n'.codeUnits);
+      var count = 0;
+      var expectationCompleter = Completer<bool>();
+      receivedResults.stream.listen((Result compiledResult) {
+        CompilationResult result =
+            CompilationResult.parse(compiledResult.status);
+        count++;
+        // Request to 'compile', which results in full JavaScript and no
+        // metadata.
+        expect(result.errorsCount, equals(0));
+        expect(sourceFile.existsSync(), equals(true));
+        expect(result.filename, dillFile.path);
+
+        var source = sourceFile.readAsStringSync();
+        // Split on the comment at the end of each module.
+        var jsModules = source.split(RegExp("\/\/# sourceMappingURL=.*\.map"));
+
+        // Both modules should include the unsound null safety check.
+        expect(
+            jsModules[0], contains('dart._checkModuleNullSafetyMode(false);'));
+        expect(
+            jsModules[1], contains('dart._checkModuleNullSafetyMode(false);'));
+        streamController.add('accept\n'.codeUnits);
+        outputParser.expectSources = false;
+        streamController.add('quit\n'.codeUnits);
+        expectationCompleter.complete(true);
+      });
+
+      await expectationCompleter.future;
+      expect(await result, 0);
+      expect(count, 1);
+    }, timeout: Timeout.none);
+
+    test('compile to JavaScript, all modules with sound null safety', () async {
+      var file = File('${tempDir.path}/foo.dart')..createSync();
+      file.writeAsStringSync(
+          "import 'bar.dart'; typedef myType = void Function(int); "
+          "main() { fn is myType; }\n");
+      file = File('${tempDir.path}/bar.dart')..createSync();
+      file.writeAsStringSync("void Function(int) fn = (int i) => null;\n");
+
+      var package_config =
+          File('${tempDir.path}/.dart_tool/package_config.json')
+            ..createSync(recursive: true)
+            ..writeAsStringSync('''
+    {
+      "configVersion": 2,
+      "packages": [
+        {
+          "name": "hello",
+          "rootUri": "../",
+          "packageUri": "./"
+        }
+      ]
+    }
+    ''');
+
+      var library = 'package:hello/foo.dart';
+
+      var dillFile = File('${tempDir.path}/app.dill');
+      var sourceFile = File('${dillFile.path}.sources');
+
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${ddcPlatformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--target=dartdevc',
+        '--packages=${package_config.path}',
+      ];
+
+      final StreamController<List<int>> streamController =
+          StreamController<List<int>>();
+      final StreamController<List<int>> stdoutStreamController =
+          StreamController<List<int>>();
+      final IOSink ioSink = IOSink(stdoutStreamController.sink);
+      StreamController<Result> receivedResults = StreamController<Result>();
+      final outputParser = OutputParser(receivedResults);
+      stdoutStreamController.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen(outputParser.listener);
+
+      Future<int> result =
+          starter(args, input: streamController.stream, output: ioSink);
+      streamController.add('compile $library\n'.codeUnits);
+      var count = 0;
+      var expectationCompleter = Completer<bool>();
+      receivedResults.stream.listen((Result compiledResult) {
+        CompilationResult result =
+            CompilationResult.parse(compiledResult.status);
+        count++;
+        // Request to 'compile', which results in full JavaScript and no
+        // metadata.
+        expect(result.errorsCount, equals(0));
+        expect(sourceFile.existsSync(), equals(true));
+        expect(result.filename, dillFile.path);
+
+        var source = sourceFile.readAsStringSync();
+        // Split on the comment at the end of each module.
+        var jsModules = source.split(RegExp("\/\/# sourceMappingURL=.*\.map"));
+
+        // Both modules should include the sound null safety validation.
+        expect(
+            jsModules[0], contains('dart._checkModuleNullSafetyMode(true);'));
+        expect(
+            jsModules[1], contains('dart._checkModuleNullSafetyMode(true);'));
+        streamController.add('accept\n'.codeUnits);
+        outputParser.expectSources = false;
+        streamController.add('quit\n'.codeUnits);
+        expectationCompleter.complete(true);
+      });
+
+      await expectationCompleter.future;
       expect(await result, 0);
       expect(count, 1);
     });

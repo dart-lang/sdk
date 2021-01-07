@@ -955,6 +955,60 @@ class A2 {}
     ]);
   }
 
+  /// https://github.com/dart-lang/sdk/issues/44353
+  test_updated_library_hasPart() async {
+    var a = convertPath('/home/test/lib/a.dart');
+    var b = convertPath('/home/test/lib/b.dart');
+
+    newFile(a, content: r'''
+part 'b.dart';
+class A {}
+''');
+    newFile(b, content: r'''
+part of 'a.dart';
+class B {}
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+
+    var library = _getLibrary('package:test/a.dart');
+    _assertDeclaration(
+      _getDeclaration(library.declarations, 'A'),
+      'A',
+      DeclarationKind.CLASS,
+      relevanceTags: ['ElementKind.CLASS', 'package:test/a.dart::A'],
+    );
+    _assertDeclaration(
+      _getDeclaration(library.declarations, 'B'),
+      'B',
+      DeclarationKind.CLASS,
+      relevanceTags: ['ElementKind.CLASS', 'package:test/a.dart::B'],
+    );
+
+    newFile(a, content: r'''
+part 'b.dart';
+class A2 {}
+''');
+    tracker.changeFile(a);
+    await _doAllTrackerWork();
+
+    // We should not get duplicate relevance tags, specifically in the part.
+    library = _getLibrary('package:test/a.dart');
+    _assertDeclaration(
+      _getDeclaration(library.declarations, 'A2'),
+      'A2',
+      DeclarationKind.CLASS,
+      relevanceTags: ['ElementKind.CLASS', 'package:test/a.dart::A2'],
+    );
+    _assertDeclaration(
+      _getDeclaration(library.declarations, 'B'),
+      'B',
+      DeclarationKind.CLASS,
+      relevanceTags: ['ElementKind.CLASS', 'package:test/a.dart::B'],
+    );
+  }
+
   test_updated_library_to_part() async {
     var a = convertPath('/home/test/lib/a.dart');
 

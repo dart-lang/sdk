@@ -30,6 +30,14 @@ opted out of null safety by adding `// @dart=2.9` to the beginning of the file.
 * `LinkedList` made it explicit that elements are compared by identity,
   and updated `contains` to take advantage of this.
 
+#### `dart:html`
+
+* `EventStreamSubscription.cancel` has been updated to retain its synchronous
+  timing when running in both sound and unsound null safety modes. See issue
+  [#44157][] for more details.
+
+[#44157]: https://github.com/dart-lang/sdk/issues/44157
+
 ### Dart VM
 
 *   **Breaking Change** [#42312][]: `Dart_WeakPersistentHandle`s will no longer

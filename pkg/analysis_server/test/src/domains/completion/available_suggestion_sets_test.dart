@@ -111,6 +111,72 @@ class A {
 ''');
   }
 
+  Future<void> test_suggestion_class_part() async {
+    var a_path = convertPath('/home/test/lib/a.dart');
+    var b_path = convertPath('/home/test/lib/b.dart');
+    var a_uriStr = 'package:test/a.dart';
+
+    newFile(a_path, content: r'''
+part 'b.dart';
+class A {}
+''');
+
+    newFile(b_path, content: r'''
+part of 'a.dart';
+class B {}
+''');
+
+    var set = await waitForSetWithUri(a_uriStr);
+    assertJsonText(_getSuggestion(set, 'A', kind: ElementKind.CLASS), '''
+{
+  "label": "A",
+  "declaringLibraryUri": "package:test/a.dart",
+  "element": {
+    "kind": "CLASS",
+    "name": "A",
+    "location": {
+      "file": ${jsonOfPath(a_path)},
+      "offset": 21,
+      "length": 0,
+      "startLine": 2,
+      "startColumn": 7
+    },
+    "flags": 0
+  },
+  "relevanceTags": [
+    "ElementKind.CLASS",
+    "package:test/a.dart::A",
+    "A"
+  ]
+}
+''');
+
+    // We should not get duplicate relevance tags.
+    assertJsonText(_getSuggestion(set, 'B', kind: ElementKind.CLASS), '''
+{
+  "label": "B",
+  "declaringLibraryUri": "package:test/a.dart",
+  "element": {
+    "kind": "CLASS",
+    "name": "B",
+    "location": {
+      "file": ${jsonOfPath(b_path)},
+      "offset": 24,
+      "length": 0,
+      "startLine": 2,
+      "startColumn": 7
+    },
+    "flags": 0
+  },
+  "relevanceTags": [
+    "ElementKind.CLASS",
+    "package:test/a.dart::B",
+    "B"
+  ]
+}
+''');
+  }
+
   Future<void> test_suggestion_enum() async {
     var path = convertPath('/home/test/lib/a.dart');
     var uriStr = 'package:test/a.dart';
@@ -307,7 +373,9 @@ var stringV = 'hi';
   }
 
   static AvailableSuggestion _getSuggestion(
-      AvailableSuggestionSet set, String label) {
-    return set.items.singleWhere((s) => s.label == label);
+      AvailableSuggestionSet set, String label,
+      {ElementKind kind}) {
+    return set.items.singleWhere(
+        (s) => s.label == label && (kind == null || s.element.kind == kind));
   }
 }

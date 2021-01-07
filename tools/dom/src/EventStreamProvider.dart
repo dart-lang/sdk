@@ -248,18 +248,13 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   }
 
   Future cancel() {
-    // Check for strong mode. This function can no longer return null in strong
-    // mode, so only return null in weak mode to preserve synchronous timing.
-    // See issue 41653 for more details.
-    dynamic emptyFuture =
-        typeAcceptsNull<Event>() ? null : Future<void>.value();
-    if (_canceled) return emptyFuture as Future;
+    if (_canceled) return nullFuture;
 
     _unlisten();
     // Clear out the target to indicate this is complete.
     _target = null;
     _onData = null;
-    return emptyFuture as Future;
+    return nullFuture;
   }
 
   bool get _canceled => _target == null;
