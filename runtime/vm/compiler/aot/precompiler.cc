@@ -1831,8 +1831,9 @@ void Precompiler::DropFields() {
 
           // This cleans up references to field current and initial values.
           if (field.is_static()) {
-            field.SetStaticValue(Object::null_instance(),
-                                 /*save_initial_value=*/true);
+            field.SetStaticValue(Object::null_instance());
+            field.SetStaticConstFieldValue(Object::null_instance(),
+                                           /*assert_initializing_store=*/false);
           }
         }
       }

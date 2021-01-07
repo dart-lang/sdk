@@ -52,7 +52,7 @@ class LoadLibraryBuilder extends BuilderImpl {
     String prefix = expression.import.name;
     Name name = new Name('_#loadLibrary_$prefix', parent.library);
     Reference reference =
-        parent.referencesFromIndexed?.lookupGetterReference(name.text);
+        parent.referencesFromIndexed?.lookupGetterReference(name);
     tearoff = new Procedure(
         name,
         ProcedureKind.Method,

@@ -4072,9 +4072,12 @@ class Field : public Object {
   inline intptr_t TargetOffset() const;
   static inline intptr_t TargetOffsetOf(FieldPtr field);
 
+  ObjectPtr StaticConstFieldValue() const;
+  void SetStaticConstFieldValue(const Instance& value,
+                                bool assert_initializing_store = true) const;
+
   inline InstancePtr StaticValue() const;
-  void SetStaticValue(const Instance& value,
-                      bool save_initial_value = false) const;
+  void SetStaticValue(const Instance& value) const;
 
   inline intptr_t field_id() const;
   inline void set_field_id(intptr_t field_id) const;
@@ -11171,8 +11174,7 @@ void Field::SetOffset(intptr_t host_offset_in_bytes,
 
 InstancePtr Field::StaticValue() const {
   ASSERT(is_static());  // Valid only for static dart fields.
-  return Isolate::Current()->field_table()->At(
-      Smi::Value(raw_ptr()->host_offset_or_field_id()));
+  return Isolate::Current()->field_table()->At(field_id());
 }
 
 inline intptr_t Field::field_id() const {

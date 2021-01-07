@@ -376,18 +376,14 @@ ConstantInstr* IRRegExpMacroAssembler::WordCharacterMapConstant() const {
   ASSERT(!word_character_field.IsNull());
 
   DEBUG_ASSERT(Thread::Current()->TopErrorHandlerIsSetJump());
-  if (word_character_field.IsUninitialized()) {
-    ASSERT(!Compiler::IsBackgroundCompilation());
-    const Error& error =
-        Error::Handle(Z, word_character_field.InitializeStatic());
-    if (!error.IsNull()) {
-      Report::LongJump(error);
-    }
-  }
-  ASSERT(!word_character_field.IsUninitialized());
 
-  return new (Z) ConstantInstr(
-      Instance::ZoneHandle(Z, word_character_field.StaticValue()));
+  const auto& value =
+      Object::Handle(Z, word_character_field.StaticConstFieldValue());
+  if (value.IsError()) {
+    Report::LongJump(Error::Cast(value));
+  }
+  return new (Z)
+      ConstantInstr(Instance::ZoneHandle(Z, Instance::RawCast(value.raw())));
 }
 
 ComparisonInstr* IRRegExpMacroAssembler::Comparison(ComparisonKind kind,

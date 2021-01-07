@@ -17,6 +17,7 @@ import 'package:kernel/ast.dart'
         IntLiteral,
         InterfaceType,
         ListLiteral,
+        Name,
         ProcedureKind,
         PropertyGet,
         Reference,
@@ -181,21 +182,24 @@ class EnumBuilder extends SourceClassBuilder {
     Reference valuesGetterReference;
     Reference valuesSetterReference;
     if (referencesFrom != null) {
-      constructorReference = referencesFromIndexed.lookupConstructor("");
+      constructorReference =
+          referencesFromIndexed.lookupConstructor(new Name(""));
       toStringReference =
-          referencesFromIndexed.lookupGetterReference("toString");
+          referencesFromIndexed.lookupGetterReference(new Name("toString"));
+      Name indexName = new Name("index");
       indexGetterReference =
-          referencesFromIndexed.lookupGetterReference("index");
+          referencesFromIndexed.lookupGetterReference(indexName);
       indexSetterReference =
-          referencesFromIndexed.lookupSetterReference("index");
-      _nameGetterReference =
-          referencesFromIndexed.lookupGetterReference("_name");
-      _nameSetterReference =
-          referencesFromIndexed.lookupSetterReference("_name");
+          referencesFromIndexed.lookupSetterReference(indexName);
+      _nameGetterReference = referencesFromIndexed.lookupGetterReference(
+          new Name("_name", referencesFromIndexed.library));
+      _nameSetterReference = referencesFromIndexed.lookupSetterReference(
+          new Name("_name", referencesFromIndexed.library));
+      Name valuesName = new Name("values");
       valuesGetterReference =
-          referencesFromIndexed.lookupGetterReference("values");
+          referencesFromIndexed.lookupGetterReference(valuesName);
       valuesSetterReference =
-          referencesFromIndexed.lookupSetterReference("values");
+          referencesFromIndexed.lookupSetterReference(valuesName);
     }
 
     members["index"] = new SourceFieldBuilder(
@@ -309,10 +313,15 @@ class EnumBuilder extends SourceClassBuilder {
               name.length,
               parent.fileUri);
         }
-        Reference getterReference =
-            referencesFromIndexed?.lookupGetterReference(name);
-        Reference setterReference =
-            referencesFromIndexed?.lookupSetterReference(name);
+        Reference getterReference;
+        Reference setterReference;
+        if (referencesFromIndexed != null) {
+          Name nameName = new Name(name, referencesFromIndexed.library);
+          getterReference =
+              referencesFromIndexed.lookupGetterReference(nameName);
+          setterReference =
+              referencesFromIndexed.lookupSetterReference(nameName);
+        }
         FieldBuilder fieldBuilder = new SourceFieldBuilder(
             metadata,
             selfType,

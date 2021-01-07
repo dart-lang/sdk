@@ -10571,9 +10571,8 @@ ErrorPtr Field::InitializeStatic() const {
       }
     }
     ASSERT(value.IsNull() || value.IsInstance());
-    SetStaticValue(
-        value.IsNull() ? Instance::null_instance() : Instance::Cast(value),
-        is_const());
+    SetStaticValue(value.IsNull() ? Instance::null_instance()
+                                  : Instance::Cast(value));
     return Error::null();
   } else if (StaticValue() == Object::transition_sentinel().raw()) {
     ASSERT(!is_late());
@@ -10584,6 +10583,42 @@ ErrorPtr Field::InitializeStatic() const {
     UNREACHABLE();
   }
   return Error::null();
+}
+
+ObjectPtr Field::StaticConstFieldValue() const {
+  ASSERT(is_static() && is_const());
+
+  auto thread = Thread::Current();
+  auto zone = thread->zone();
+  auto initial_field_table = thread->isolate_group()->initial_field_table();
+
+  // We can safely cache the value of the static const field in the initial
+  // field table.
+  auto& value = Object::Handle(zone, initial_field_table->At(field_id()));
+  if (value.raw() == Object::sentinel().raw()) {
+    ASSERT(has_initializer());
+    value = EvaluateInitializer();
+    if (!value.IsError()) {
+      ASSERT(value.IsNull() || value.IsInstance());
+      SetStaticConstFieldValue(value.IsNull() ? Instance::null_instance()
+                                              : Instance::Cast(value));
+    }
+  }
+  return value.raw();
+}
+
+void Field::SetStaticConstFieldValue(const Instance& value,
+                                     bool assert_initializing_store) const {
+  auto thread = Thread::Current();
+  auto initial_field_table = thread->isolate_group()->initial_field_table();
+
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+  ASSERT(initial_field_table->At(field_id()) == Object::sentinel().raw() ||
+         initial_field_table->At(field_id()) == value.raw() ||
+         !assert_initializing_store);
+  initial_field_table->SetAt(field_id(), value.IsNull()
+                                             ? Instance::null_instance().raw()
+                                             : Instance::Cast(value).raw());
 }
 
 ObjectPtr Field::EvaluateInitializer() const {
@@ -10788,8 +10823,7 @@ static bool FindInstantiationOf(const Type& type,
   return false;  // Not found.
 }
 
-void Field::SetStaticValue(const Instance& value,
-                           bool save_initial_value) const {
+void Field::SetStaticValue(const Instance& value) const {
   auto thread = Thread::Current();
   ASSERT(thread->IsMutatorThread());
 
@@ -10799,16 +10833,6 @@ void Field::SetStaticValue(const Instance& value,
 
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   thread->isolate()->field_table()->SetAt(id, value.raw());
-  if (save_initial_value) {
-    // TODO(https://dartbug.com/36097): We should re-visit call-sites where
-    // `save_initial_value == true` and try to have a different path. This
-    // method should only modify the isolate-local field state and not modify
-    // the initial field table.
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    thread->isolate_group()->initial_field_table()->SetAt(field_id(),
-                                                          value.raw());
-#endif
-  }
 }
 
 static StaticTypeExactnessState TrivialTypeExactnessFor(const Class& cls) {
