@@ -12,7 +12,7 @@ dependencies:
   cli_util: '>=0.1.4 <0.3.0'
   collection: ^1.15.0-nullsafety.5
   convert: ^2.0.0
-  crypto: ^2.0.0
+  crypto: '>=2.0.0 <4.0.0'
   glob: '>=1.0.3 <3.0.0'
   meta: ^1.2.3
   package_config: ^1.0.0
