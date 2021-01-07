@@ -16,6 +16,7 @@
 #include "vm/bootstrap.h"
 #include "vm/canonical_tables.h"
 #include "vm/class_finalizer.h"
+#include "vm/closure_functions_cache.h"
 #include "vm/code_comments.h"
 #include "vm/code_descriptors.h"
 #include "vm/code_observers.h"
@@ -7029,26 +7030,6 @@ Function::DefaultTypeArgumentsKind Function::DefaultTypeArgumentsKindFor(
   return DefaultTypeArgumentsKind::kNeedsInstantiation;
 }
 
-FunctionPtr Function::GetGeneratedClosure() const {
-  const auto& closure_functions = GrowableObjectArray::Handle(
-      IsolateGroup::Current()->object_store()->closure_functions());
-  auto& entry = Object::Handle();
-
-  for (auto i = (closure_functions.Length() - 1); i >= 0; i--) {
-    entry = closure_functions.At(i);
-
-    ASSERT(entry.IsFunction());
-
-    const auto& closure_function = Function::Cast(entry);
-    if (closure_function.parent_function() == raw() &&
-        closure_function.is_generated_body()) {
-      return closure_function.raw();
-    }
-  }
-
-  return Function::null();
-}
-
 // Enclosing outermost function of this local function.
 FunctionPtr Function::GetOutermostFunction() const {
   FunctionPtr parent = parent_function();
@@ -13676,24 +13657,18 @@ ErrorPtr Library::CompileAll(bool ignore_error /* = false */) {
     }
   }
 
-  // Inner functions get added to the closures array. As part of compilation
-  // more closures can be added to the end of the array. Compile all the
-  // closures until we have reached the end of the "worklist".
   Object& result = Object::Handle(zone);
-  const GrowableObjectArray& closures = GrowableObjectArray::Handle(
-      zone, IsolateGroup::Current()->object_store()->closure_functions());
-  Function& func = Function::Handle(zone);
-  for (int i = 0; i < closures.Length(); i++) {
-    func ^= closures.At(i);
+  ClosureFunctionsCache::ForAllClosureFunctions([&](const Function& func) {
     if (!func.HasCode()) {
       result = Compiler::CompileFunction(thread, func);
       if (result.IsError()) {
-        if (ignore_error) continue;
-        return Error::Cast(result).raw();
+        error = Error::Cast(result).raw();
+        return false;  // Stop iteration.
       }
     }
-  }
-  return Error::null();
+    return true;  // Continue iteration.
+  });
+  return error.raw();
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)

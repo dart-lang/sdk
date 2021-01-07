@@ -4,6 +4,7 @@
 
 #include "vm/program_visitor.h"
 
+#include "vm/closure_functions_cache.h"
 #include "vm/code_patcher.h"
 #include "vm/deopt_instructions.h"
 #include "vm/hash_map.h"
@@ -252,17 +253,15 @@ void ProgramVisitor::WalkProgram(Zone* zone,
 
   if (visitor->IsFunctionVisitor()) {
     // Function objects not necessarily reachable from classes.
-    auto& function = Function::Handle(zone);
-    const auto& closures =
-        GrowableObjectArray::Handle(zone, object_store->closure_functions());
-    ASSERT(!closures.IsNull());
-    for (intptr_t i = 0; i < closures.Length(); i++) {
-      function ^= closures.At(i);
-      walker.AddToWorklist(function);
-      ASSERT(!function.HasImplicitClosureFunction());
-    }
+    ClosureFunctionsCache::ForAllClosureFunctions([&](const Function& fun) {
+      walker.AddToWorklist(fun);
+      ASSERT(!fun.HasImplicitClosureFunction());
+      return true;  // Continue iteration.
+    });
+
     // TODO(dartbug.com/43049): Use a more general solution and remove manual
     // tracking through object_store->ffi_callback_functions.
+    auto& function = Function::Handle(zone);
     const auto& ffi_callback_entries = GrowableObjectArray::Handle(
         zone, object_store->ffi_callback_functions());
     if (!ffi_callback_entries.IsNull()) {

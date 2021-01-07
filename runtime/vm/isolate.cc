@@ -2328,59 +2328,6 @@ void Isolate::Run() {
                          reinterpret_cast<uword>(this));
 }
 
-void Isolate::AddClosureFunction(const Function& function) const {
-  ASSERT(!Compiler::IsBackgroundCompilation());
-  GrowableObjectArray& closures =
-      GrowableObjectArray::Handle(group()->object_store()->closure_functions());
-  ASSERT(!closures.IsNull());
-  ASSERT(function.IsNonImplicitClosureFunction());
-  closures.Add(function, Heap::kOld);
-}
-
-// If the linear lookup turns out to be too expensive, the list
-// of closures could be maintained in a hash map, with the key
-// being the token position of the closure. There are almost no
-// collisions with this simple hash value. However, iterating over
-// all closure functions becomes more difficult, especially when
-// the list/map changes while iterating over it.
-FunctionPtr Isolate::LookupClosureFunction(const Function& parent,
-                                           TokenPosition token_pos) const {
-  const GrowableObjectArray& closures =
-      GrowableObjectArray::Handle(group()->object_store()->closure_functions());
-  ASSERT(!closures.IsNull());
-  Function& closure = Function::Handle();
-  intptr_t num_closures = closures.Length();
-  for (intptr_t i = 0; i < num_closures; i++) {
-    closure ^= closures.At(i);
-    if ((closure.token_pos() == token_pos) &&
-        (closure.parent_function() == parent.raw())) {
-      return closure.raw();
-    }
-  }
-  return Function::null();
-}
-
-intptr_t Isolate::FindClosureIndex(const Function& needle) const {
-  const GrowableObjectArray& closures_array =
-      GrowableObjectArray::Handle(group()->object_store()->closure_functions());
-  intptr_t num_closures = closures_array.Length();
-  for (intptr_t i = 0; i < num_closures; i++) {
-    if (closures_array.At(i) == needle.raw()) {
-      return i;
-    }
-  }
-  return -1;
-}
-
-FunctionPtr Isolate::ClosureFunctionFromIndex(intptr_t idx) const {
-  const GrowableObjectArray& closures_array =
-      GrowableObjectArray::Handle(group()->object_store()->closure_functions());
-  if ((idx < 0) || (idx >= closures_array.Length())) {
-    return Function::null();
-  }
-  return Function::RawCast(closures_array.At(idx));
-}
-
 // static
 void Isolate::NotifyLowMemory() {
   Isolate::KillAllIsolates(Isolate::kLowMemoryMsg);

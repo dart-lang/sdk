@@ -6,6 +6,7 @@
 
 #include "include/dart_api.h"
 
+#include "vm/closure_functions_cache.h"
 #include "vm/code_descriptors.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler/api/deopt_id.h"
@@ -1625,7 +1626,6 @@ void Debugger::DeoptimizeWorld() {
   CallSiteResetter resetter(zone);
   Class& cls = Class::Handle(zone);
   Array& functions = Array::Handle(zone);
-  GrowableObjectArray& closures = GrowableObjectArray::Handle(zone);
   Function& function = Function::Handle(zone);
   Code& code = Code::Handle(zone);
 
@@ -1633,7 +1633,7 @@ void Debugger::DeoptimizeWorld() {
   const intptr_t num_tlc_classes = class_table.NumTopLevelCids();
   // TODO(dartbug.com/36097): Need to stop other mutators running in same IG
   // before deoptimizing the world.
-  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+  SafepointWriteRwLocker ml(thread, isolate_group->program_lock());
   for (intptr_t i = 1; i < num_classes + num_tlc_classes; i++) {
     const classid_t cid =
         i < num_classes ? i : ClassTable::CidFromTopLevelIndex(i - num_classes);
@@ -1677,11 +1677,7 @@ void Debugger::DeoptimizeWorld() {
   }
 
   // Disable optimized closure functions.
-  closures = isolate_group->object_store()->closure_functions();
-  const intptr_t num_closures = closures.Length();
-  for (intptr_t pos = 0; pos < num_closures; pos++) {
-    function ^= closures.At(pos);
-    ASSERT(!function.IsNull());
+  ClosureFunctionsCache::ForAllClosureFunctions([&](const Function& function) {
     if (function.HasOptimizedCode()) {
       function.SwitchToUnoptimizedCode();
     }
@@ -1689,7 +1685,8 @@ void Debugger::DeoptimizeWorld() {
     if (!code.IsNull()) {
       resetter.ResetSwitchableCalls(code);
     }
-  }
+    return true;  // Continue iteration.
+  });
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
@@ -2481,36 +2478,24 @@ void Debugger::FindCompiledFunctions(
     TokenPosition end_pos,
     GrowableObjectArray* code_function_list) {
   auto thread = Thread::Current();
-  auto isolate_group = thread->isolate_group();
   auto zone = thread->zone();
-  Class& cls = Class::Handle(zone);
-  Array& functions = Array::Handle(zone);
-  GrowableObjectArray& closures = GrowableObjectArray::Handle(zone);
-  Function& function = Function::Handle(zone);
 
-  closures = isolate_group->object_store()->closure_functions();
-  const intptr_t num_closures = closures.Length();
-  for (intptr_t pos = 0; pos < num_closures; pos++) {
-    function ^= closures.At(pos);
+  ClosureFunctionsCache::ForAllClosureFunctions([&](const Function& function) {
     ASSERT(!function.IsNull());
     if ((function.token_pos() == start_pos) &&
         (function.end_token_pos() == end_pos) &&
         (function.script() == script.raw())) {
-      if (function.is_debuggable()) {
-        if (function.HasCode()) {
-          code_function_list->Add(function);
-        }
+      if (function.is_debuggable() && function.HasCode()) {
+        code_function_list->Add(function);
       }
-      if (function.HasImplicitClosureFunction()) {
-        function = function.ImplicitClosureFunction();
-        if (function.is_debuggable()) {
-          if (function.HasCode()) {
-            code_function_list->Add(function);
-          }
-        }
-      }
+      ASSERT(!function.HasImplicitClosureFunction());
     }
-  }
+    return true;  // Continue iteration.
+  });
+
+  Class& cls = Class::Handle(zone);
+  Function& function = Function::Handle(zone);
+  Array& functions = Array::Handle(zone);
 
   const ClassTable& class_table = *isolate_->group()->class_table();
   const intptr_t num_classes = class_table.NumCids();
@@ -2610,28 +2595,27 @@ bool Debugger::FindBestFit(const Script& script,
       }
       continue;
     }
-    const GrowableObjectArray& closures = GrowableObjectArray::Handle(
-        zone, isolate_group->object_store()->closure_functions());
-    Array& functions = Array::Handle(zone);
-    Function& function = Function::Handle(zone);
-    Array& fields = Array::Handle(zone);
-    Field& field = Field::Handle(zone);
-    Error& error = Error::Handle(zone);
 
-    const intptr_t num_closures = closures.Length();
-    for (intptr_t i = 0; i < num_closures; i++) {
-      function ^= closures.At(i);
-      if (FunctionOverlaps(function, script, token_pos, last_token_pos)) {
+    ClosureFunctionsCache::ForAllClosureFunctions([&](const Function& fun) {
+      if (FunctionOverlaps(fun, script, token_pos, last_token_pos)) {
         // Select the inner most closure.
-        UpdateBestFit(best_fit, function);
+        UpdateBestFit(best_fit, fun);
       }
-    }
+      return true;  // Continue iteration
+    });
+
     if (!best_fit->IsNull()) {
       // The inner most closure found will be the best fit. Going
       // over class functions below will not help in any further
       // narrowing.
       return true;
     }
+
+    Array& functions = Array::Handle(zone);
+    Function& function = Function::Handle(zone);
+    Array& fields = Array::Handle(zone);
+    Field& field = Field::Handle(zone);
+    Error& error = Error::Handle(zone);
 
     const ClassTable& class_table = *isolate_->group()->class_table();
     const intptr_t num_classes = class_table.NumCids();
@@ -3613,8 +3597,8 @@ ErrorPtr Debugger::PauseStepping() {
       // Only set breakpoint when entering async_op the first time.
       // :async_future should be uninitialised at this point:
       if (async_future.IsNull()) {
-        const Function& async_op =
-            Function::Handle(frame->function().GetGeneratedClosure());
+        const Function& async_op = Function::Handle(
+            ClosureFunctionsCache::GetUniqueInnerClosure(frame->function()));
         if (!async_op.IsNull()) {
           SetBreakpointAtAsyncOp(async_op);
           // After setting the breakpoint we stop stepping and continue the
@@ -3830,15 +3814,10 @@ FunctionPtr Debugger::FindInnermostClosure(const Function& function,
   const TokenPosition& func_start = function.token_pos();
   auto thread = Thread::Current();
   auto zone = thread->zone();
-  auto isolate_group = thread->isolate_group();
   const Script& outer_origin = Script::Handle(zone, function.script());
-  const GrowableObjectArray& closures = GrowableObjectArray::Handle(
-      zone, isolate_group->object_store()->closure_functions());
-  const intptr_t num_closures = closures.Length();
-  Function& closure = Function::Handle(zone);
+
   Function& best_fit = Function::Handle(zone);
-  for (intptr_t i = 0; i < num_closures; i++) {
-    closure ^= closures.At(i);
+  ClosureFunctionsCache::ForAllClosureFunctions([&](const Function& closure) {
     const TokenPosition& closure_start = closure.token_pos();
     const TokenPosition& closure_end = closure.end_token_pos();
     // We're only interested in closures that have real ending token positions.
@@ -3850,7 +3829,8 @@ FunctionPtr Debugger::FindInnermostClosure(const Function& function,
         (closure.script() == outer_origin.raw())) {
       UpdateBestFit(&best_fit, closure);
     }
-  }
+    return true;  // Continue iteration.
+  });
   return best_fit.raw();
 }
 

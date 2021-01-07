@@ -4,6 +4,7 @@
 
 #include <vector>
 
+#include "vm/closure_functions_cache.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/il_test_helper.h"
 #include "vm/compiler/call_specializer.h"
@@ -472,17 +473,11 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_Regress43534) {
   Invoke(root_library, "test");
   const auto& test_function =
       Function::Handle(GetFunction(root_library, "test"));
-  const auto& closures = GrowableObjectArray::Handle(
-      IsolateGroup::Current()->object_store()->closure_functions());
-  auto& function = Function::Handle();
-  for (intptr_t i = closures.Length() - 1; 0 <= i; ++i) {
-    function ^= closures.At(i);
-    if (function.parent_function() == test_function.raw()) {
-      break;
-    }
-    function = Function::null();
-  }
-  RELEASE_ASSERT(!function.IsNull());
+
+  const auto& function = Function::Handle(
+      ClosureFunctionsCache::GetUniqueInnerClosure(test_function));
+  RELEASE_ASSERT(function.IsFunction());
+
   TestPipeline pipeline(function, CompilerPass::kAOT);
   FlowGraph* flow_graph = pipeline.RunPasses({});
 

@@ -6,6 +6,7 @@
 #include "vm/source_report.h"
 
 #include "vm/bit_vector.h"
+#include "vm/closure_functions_cache.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/isolate.h"
 #include "vm/kernel_loader.h"
@@ -522,16 +523,10 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
 }
 
 void SourceReport::VisitClosures(JSONArray* jsarr) {
-  const GrowableObjectArray& closures = GrowableObjectArray::Handle(
-      thread()->isolate_group()->object_store()->closure_functions());
-
-  // We need to keep rechecking the length of the closures array, as handling
-  // a closure potentially adds new entries to the end.
-  Function& func = Function::Handle(zone());
-  for (int i = 0; i < closures.Length(); i++) {
-    func ^= closures.At(i);
+  ClosureFunctionsCache::ForAllClosureFunctions([&](const Function& func) {
     VisitFunction(jsarr, func);
-  }
+    return true;  // Continue iteration.
+  });
 }
 
 void SourceReport::PrintJSON(JSONStream* js,

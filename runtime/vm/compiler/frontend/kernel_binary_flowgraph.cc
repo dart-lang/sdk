@@ -4,6 +4,7 @@
 
 #include "vm/compiler/frontend/kernel_binary_flowgraph.h"
 
+#include "vm/closure_functions_cache.h"
 #include "vm/compiler/ffi/callback.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For dart::FlowGraphBuilder::SimpleInstanceOfType.
 #include "vm/compiler/frontend/prologue_builder.h"
@@ -4898,16 +4899,16 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
     SafepointReadRwLocker ml(thread(),
                              thread()->isolate_group()->program_lock());
     // NOTE: This is not TokenPosition in the general sense!
-    function =
-        I->LookupClosureFunction(parsed_function()->function(), position);
+    function = ClosureFunctionsCache::LookupClosureFunctionLocked(
+        parsed_function()->function(), position);
   }
 
   if (function.IsNull()) {
     SafepointWriteRwLocker ml(thread(),
                               thread()->isolate_group()->program_lock());
     // NOTE: This is not TokenPosition in the general sense!
-    function =
-        I->LookupClosureFunction(parsed_function()->function(), position);
+    function = ClosureFunctionsCache::LookupClosureFunctionLocked(
+        parsed_function()->function(), position);
     if (function.IsNull()) {
       for (intptr_t i = 0; i < scopes()->function_scopes.length(); ++i) {
         if (scopes()->function_scopes[i].kernel_offset != offset) {
@@ -4985,7 +4986,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
         signature_type ^= ClassFinalizer::FinalizeType(signature_type);
         function.SetSignatureType(signature_type);
 
-        I->AddClosureFunction(function);
+        ClosureFunctionsCache::AddClosureFunctionLocked(function);
         break;
       }
     }

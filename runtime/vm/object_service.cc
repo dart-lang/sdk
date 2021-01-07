@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/canonical_tables.h"
+#include "vm/closure_functions_cache.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/debugger.h"
 #include "vm/object.h"
@@ -236,7 +237,7 @@ static void AddFunctionServiceId(const JSONObject& jsobj,
   intptr_t id = -1;
   const char* selector = NULL;
   if (f.IsNonImplicitClosureFunction()) {
-    id = Isolate::Current()->FindClosureIndex(f);
+    id = ClosureFunctionsCache::FindClosureIndex(f);
     selector = "closures";
   } else if (f.IsImplicitClosureFunction()) {
     id = cls.FindImplicitClosureFunctionIndex(f);

@@ -4,6 +4,7 @@
 
 #include <utility>
 
+#include "vm/closure_functions_cache.h"
 #include "vm/compiler/backend/il_test_helper.h"
 #include "vm/compiler/compiler_pass.h"
 #include "vm/object.h"
@@ -78,19 +79,9 @@ void RunTestInMode(CompilerPass::PipelineMode mode) {
       Function::Handle(GetFunction(root_library, "foo"));
 
   // Grab the inner, lazily created, closure from the object store.
-  const auto& closures = GrowableObjectArray::Handle(
-      IsolateGroup::Current()->object_store()->closure_functions());
-  ASSERT(!closures.IsNull());
-  auto& closure = Object::Handle();
-  for (intptr_t i = 0; i < closures.Length(); ++i) {
-    closure = closures.At(i);
-    if (Function::Cast(closure).parent_function() == outer_function.raw()) {
-      break;
-    }
-    closure = Object::null();
-  }
-  RELEASE_ASSERT(closure.IsFunction());
-  const auto& function = Function::Cast(closure);
+  const auto& function = Function::Handle(
+      ClosureFunctionsCache::GetUniqueInnerClosure(outer_function));
+  RELEASE_ASSERT(function.IsFunction());
 
   // Ensure we have 3 different return instructions with yield indices attached
   // to them.

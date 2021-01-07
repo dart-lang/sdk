@@ -7,6 +7,7 @@
 #include "platform/unicode.h"
 #include "vm/canonical_tables.h"
 #include "vm/class_finalizer.h"
+#include "vm/closure_functions_cache.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler/aot/aot_call_specializer.h"
 #include "vm/compiler/aot/precompiler_tracer.h"
@@ -1548,7 +1549,6 @@ void Precompiler::TraceForRetainedFunctions() {
   String& name = String::Handle(Z);
   Function& function = Function::Handle(Z);
   Function& function2 = Function::Handle(Z);
-  GrowableObjectArray& closures = GrowableObjectArray::Handle(Z);
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
@@ -1588,9 +1588,8 @@ void Precompiler::TraceForRetainedFunctions() {
     }
   }
 
-  closures = IG->object_store()->closure_functions();
-  for (intptr_t j = 0; j < closures.Length(); j++) {
-    function ^= closures.At(j);
+  auto& parent_function = Function::Handle(Z);
+  ClosureFunctionsCache::ForAllClosureFunctions([&](const Function& function) {
     bool retain = possibly_retained_functions_.ContainsKey(function);
     if (retain) {
       AddTypesOf(function);
@@ -1601,13 +1600,14 @@ void Precompiler::TraceForRetainedFunctions() {
       // It can happen that all uses of a function are inlined, leaving
       // a compiled local function with an uncompiled parent. Retain such
       // parents and their enclosing classes and libraries.
-      function = function.parent_function();
-      while (!function.IsNull()) {
-        AddTypesOf(function);
-        function = function.parent_function();
+      parent_function = function.parent_function();
+      while (!parent_function.IsNull()) {
+        AddTypesOf(parent_function);
+        parent_function = parent_function.parent_function();
       }
     }
-  }
+    return true;  // Continue iteration.
+  });
 }
 
 void Precompiler::FinalizeDispatchTable() {
@@ -1705,7 +1705,6 @@ void Precompiler::DropFunctions() {
   Code& code = Code::Handle(Z);
   Object& owner = Object::Handle(Z);
   GrowableObjectArray& retained_functions = GrowableObjectArray::Handle(Z);
-  GrowableObjectArray& closures = GrowableObjectArray::Handle(Z);
 
   auto drop_function = [&](const Function& function) {
     if (function.HasCode()) {
@@ -1783,16 +1782,15 @@ void Precompiler::DropFunctions() {
     }
   }
 
-  closures = IG->object_store()->closure_functions();
   retained_functions = GrowableObjectArray::New();
-  for (intptr_t j = 0; j < closures.Length(); j++) {
-    function ^= closures.At(j);
+  ClosureFunctionsCache::ForAllClosureFunctions([&](const Function& function) {
     if (functions_to_retain_.ContainsKey(function)) {
       retained_functions.Add(function);
     } else {
       drop_function(function);
     }
-  }
+    return true;  // Continue iteration.
+  });
   IG->object_store()->set_closure_functions(retained_functions);
 }
 

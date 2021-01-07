@@ -15,6 +15,7 @@
 #include "platform/utils.h"
 #include "vm/base64.h"
 #include "vm/canonical_tables.h"
+#include "vm/closure_functions_cache.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/cpu.h"
 #include "vm/dart_api_impl.h"
@@ -1723,7 +1724,6 @@ static ObjectPtr LookupClassMembers(Thread* thread,
                                     const Class& klass,
                                     char** parts,
                                     int num_parts) {
-  auto isolate = thread->isolate();
   auto zone = thread->zone();
 
   if (num_parts != 4) {
@@ -1788,7 +1788,7 @@ static ObjectPtr LookupClassMembers(Thread* thread,
       return Object::sentinel().raw();
     }
     Function& func = Function::Handle(zone);
-    func = isolate->ClosureFunctionFromIndex(id);
+    func = ClosureFunctionsCache::ClosureFunctionFromIndex(id);
     if (func.IsNull()) {
       return Object::sentinel().raw();
     }

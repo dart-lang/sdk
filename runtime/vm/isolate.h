@@ -1317,12 +1317,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   void PauseEventHandler();
 #endif
 
-  void AddClosureFunction(const Function& function) const;
-  FunctionPtr LookupClosureFunction(const Function& parent,
-                                    TokenPosition token_pos) const;
-  intptr_t FindClosureIndex(const Function& needle) const;
-  FunctionPtr ClosureFunctionFromIndex(intptr_t idx) const;
-
   bool is_service_isolate() const {
     return IsServiceIsolateBit::decode(isolate_flags_);
   }
