@@ -5934,7 +5934,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitLoadLibrary(LoadLibrary node) =>
-      runtimeCall('loadLibrary()');
+      runtimeCall('loadLibrary(#, #)', [
+        js.string(jsLibraryName(node.import.enclosingLibrary)),
+        js.string(node.import.name)
+      ]);
 
   // TODO(jmesserly): DDC loads all libraries eagerly.
   // See
@@ -5942,7 +5945,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   // https://github.com/dart-lang/sdk/issues/27777
   @override
   js_ast.Expression visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) =>
-      js.boolean(true);
+      runtimeCall('checkDeferredIsLoaded(#, #)', [
+        js.string(jsLibraryName(node.import.enclosingLibrary)),
+        js.string(node.import.name)
+      ]);
 
   bool _reifyFunctionType(FunctionNode f) {
     if (_currentLibrary.importUri.scheme != 'dart') return true;

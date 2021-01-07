@@ -2510,14 +2510,14 @@ static void HandleStackOverflowTestCases(Thread* thread) {
           String::Handle(String::New("get:platformScript"))));
       Object& result = Object::Handle(
           DartEntry::InvokeFunction(func, Object::empty_array()));
-      if (result.IsUnwindError()) {
+      if (result.IsError()) {
         Exceptions::PropagateError(Error::Cast(result));
       }
       if (!result.IsInstance()) {
         FATAL1("Bad script uri hook: %s", result.ToCString());
       }
       result = DartLibraryCalls::ToString(Instance::Cast(result));
-      if (result.IsUnwindError()) {
+      if (result.IsError()) {
         Exceptions::PropagateError(Error::Cast(result));
       }
       if (!result.IsString()) {
