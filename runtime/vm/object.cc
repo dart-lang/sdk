@@ -3647,7 +3647,9 @@ bool Library::FindPragma(Thread* T,
             pragma_name.raw()) {
       continue;
     }
-    *options = Instance::Cast(pragma).GetField(pragma_options_field);
+    if (options != nullptr) {
+      *options = Instance::Cast(pragma).GetField(pragma_options_field);
+    }
     return true;
   }
 
@@ -10627,7 +10629,6 @@ ObjectPtr Field::EvaluateInitializer() const {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (is_static() && is_const()) {
-    ASSERT(!FLAG_precompiled_mode);
     return kernel::EvaluateStaticConstFieldInitializer(*this);
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

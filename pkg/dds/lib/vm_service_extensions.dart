@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:collection';
 
+import 'package:async/async.dart';
 import 'package:meta/meta.dart';
+import 'package:pedantic/pedantic.dart';
 import 'package:vm_service/src/vm_service.dart';
 
 extension DdsExtension on VmService {
@@ -35,6 +38,70 @@ extension DdsExtension on VmService {
       'stream': stream,
     });
   }
+
+  /// Returns the stream for a given stream id which includes historical
+  /// events.
+  ///
+  /// If `stream` does not have event history collected, a parameter error is
+  /// sent over the returned [Stream].
+  Stream<Event> onEventWithHistory(String stream) {
+    StreamController<Event> controller;
+    StreamQueue<Event> streamEvents;
+
+    controller = StreamController<Event>(onListen: () async {
+      streamEvents = StreamQueue<Event>(onEvent(stream));
+      final history = (await getStreamHistory(stream)).history;
+      Event firstStreamEvent;
+      unawaited(streamEvents.peek.then((e) {
+        firstStreamEvent = e;
+      }));
+      for (final event in history) {
+        if (firstStreamEvent != null &&
+            event.timestamp > firstStreamEvent.timestamp) {
+          break;
+        }
+        controller.sink.add(event);
+      }
+      unawaited(controller.sink.addStream(streamEvents.rest));
+    }, onCancel: () {
+      streamEvents.cancel();
+    });
+
+    return controller.stream;
+  }
+
+  /// Returns a new [Stream<Event>] of `Logging` events which outputs
+  /// historical events before streaming real-time events.
+  ///
+  /// Note: unlike [onLoggingEvent], the returned stream is a single
+  /// subscription stream and a new stream is created for each invocation of
+  /// this getter.
+  Stream<Event> get onLoggingEventWithHistory => onEventWithHistory('Logging');
+
+  /// Returns a new [Stream<Event>] of `Stdout` events which outputs
+  /// historical events before streaming real-time events.
+  ///
+  /// Note: unlike [onStdoutEvent], the returned stream is a single
+  /// subscription stream and a new stream is created for each invocation of
+  /// this getter.
+  Stream<Event> get onStdoutEventWithHistory => onEventWithHistory('Stdout');
+
+  /// Returns a new [Stream<Event>] of `Stderr` events which outputs
+  /// historical events before streaming real-time events.
+  ///
+  /// Note: unlike [onStderrEvent], the returned stream is a single
+  /// subscription stream and a new stream is created for each invocation of
+  /// this getter.
+  Stream<Event> get onStderrEventWithHistory => onEventWithHistory('Stderr');
+
+  /// Returns a new [Stream<Event>] of `Extension` events which outputs
+  /// historical events before streaming real-time events.
+  ///
+  /// Note: unlike [onExtensionEvent], the returned stream is a single
+  /// subscription stream and a new stream is created for each invocation of
+  /// this getter.
+  Stream<Event> get onExtensionEventWithHistory =>
+      onEventWithHistory('Extension');
 
   Future<bool> _versionCheck(int major, int minor) async {
     if (_ddsVersion == null) {
@@ -72,10 +139,14 @@ class StreamHistory extends Response {
   StreamHistory({@required List<Event> history}) : _history = history;
 
   StreamHistory._fromJson(Map<String, dynamic> json)
-      : _history = List<Event>.from(
-            createServiceObject(json['history'], const ['Event']) as List ??
-                []) {
+      : _history = json['history']
+            .map(
+              (e) => Event.parse(e),
+            )
+            .toList()
+            .cast<Event>() {
     type = json['type'];
+    this.json = json;
   }
 
   /// Historical [Event]s for a stream.

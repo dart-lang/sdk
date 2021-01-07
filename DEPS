@@ -122,7 +122,7 @@ vars = {
   "logging_rev": "e2f633b543ef89c54688554b15ca3d7e425b86a2",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "markdown_rev": "6f89681d59541ddb1cf3a58efbdaa2304ffc3f51",
-  "matcher_rev": "9cae8faa7868bf3a88a7ba45eb0bd128e66ac515",
+  "matcher_rev": "63f1110a657fb5e2dc378db8895fef7b0a13ab30",
   "mime_rev": "c931f4bed87221beaece356494b43731445ce7b8",
   "mockito_rev": "d39ac507483b9891165e422ec98d9fb480037c8b",
   "mustache_rev": "664737ecad027e6b96d0d1e627257efa0e46fcb1",

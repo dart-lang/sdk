@@ -1,6 +1,9 @@
 # 1.7.0
 - Added `package:dds/vm_service_extensions.dart`, which adds DDS functionality to
   `package:vm_service` when imported.
+  - Added `onEventWithHistory` method and `onLoggingEventWithHistory`, 
+    `onStdoutEventWithHistory`, `onStderrEventWithHistory`, and 
+    `onExtensionEventWithHistory` getters.
 - Added `getStreamHistory` RPC.
 
 # 1.6.1
