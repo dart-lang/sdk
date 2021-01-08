@@ -31,19 +31,21 @@ var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   (VmService service, IsolateRef isolateRef) async {
     final isolate = await service.getIsolate(isolateRef.id);
-    final Library lib = await service.getObject(isolate.id, isolate.rootLib.id);
+    final Library lib =
+        await service.getObject(isolate.id, isolate.rootLib!.id) as Library;
     final cls = lib.classes.singleWhere((cls) => cls.name == "Klass");
     FieldRef fieldRef =
         lib.variables.singleWhere((field) => field.name == "instance");
-    Field field = await service.getObject(isolate.id, fieldRef.id);
-    final instance = await service.getObject(isolate.id, field.staticValue.id);
+    Field field = await service.getObject(isolate.id, fieldRef.id) as Field;
+    final instance = await service.getObject(isolate.id, field.staticValue!.id);
 
     fieldRef = lib.variables.singleWhere((field) => field.name == "apple");
-    field = await service.getObject(isolate.id, fieldRef.id);
-    final apple = await service.getObject(isolate.id, field.staticValue.id);
+    field = await service.getObject(isolate.id, fieldRef.id) as Field;
+    final apple = await service.getObject(isolate.id, field.staticValue!.id);
     fieldRef = lib.variables.singleWhere((field) => field.name == "banana");
-    field = await service.getObject(isolate.id, fieldRef.id);
-    Instance banana = await service.getObject(isolate.id, field.staticValue.id);
+    field = await service.getObject(isolate.id, fieldRef.id) as Field;
+    Instance banana =
+        await service.getObject(isolate.id, field.staticValue!.id) as Instance;
 
     dynamic result =
         await service.invoke(isolate.id, lib.id, 'libraryFunction', []);
@@ -69,7 +71,7 @@ var tests = <IsolateTest>[
 
 expectError(func) async {
   dynamic result = await func();
-  expect(result.type == 'Error' || result.type == '@Error', isTrue);
+  expect(result.type == 'Error' || result.type == 'ErrorRef', isTrue);
 }
 
 main([args = const <String>[]]) =>

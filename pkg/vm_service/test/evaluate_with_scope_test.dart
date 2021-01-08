@@ -6,8 +6,8 @@ import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
 import 'common/test_helper.dart';
 
-int thing1;
-int thing2;
+int? thing1;
+int? thing2;
 
 testeeMain() {
   thing1 = 3;
@@ -20,15 +20,18 @@ Future evaluate(VmService service, isolate, target, x, y) async => await service
 final tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
     final isolate = await service.getIsolate(isolateRef.id);
-    final Library lib = await service.getObject(isolate.id, isolate.rootLib.id);
+    final Library lib =
+        (await service.getObject(isolate.id, isolate.rootLib!.id)) as Library;
 
-    final Field field1 = await service.getObject(
-        isolate.id, lib.variables.singleWhere((v) => v.name == 'thing1').id);
-    final thing1 = (await service.getObject(isolate.id, field1.staticValue.id));
+    final Field field1 = (await service.getObject(isolate.id,
+        lib.variables.singleWhere((v) => v.name == 'thing1').id)) as Field;
+    final thing1 =
+        (await service.getObject(isolate.id, field1.staticValue!.id));
 
-    final Field field2 = await service.getObject(
-        isolate.id, lib.variables.singleWhere((v) => v.name == 'thing2').id);
-    final thing2 = (await service.getObject(isolate.id, field2.staticValue.id));
+    final Field field2 = (await service.getObject(isolate.id,
+        lib.variables.singleWhere((v) => v.name == 'thing2').id)) as Field;
+    final thing2 =
+        (await service.getObject(isolate.id, field2.staticValue!.id));
 
     var result = await evaluate(service, isolate, lib, thing1, thing2);
     expect(result.valueAsString, equals('7'));

@@ -4,6 +4,9 @@
 
 import 'dart:io';
 
+// TODO(bkonyi): remove once markdown and pub_semver deps are updated to null
+// safety for the SDK.
+// ignore_for_file: import_of_legacy_library_into_null_safe
 import 'package:markdown/markdown.dart';
 import 'package:path/path.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -132,8 +135,8 @@ void _stampPubspec(Version version) {
     if (line.startsWith(pattern)) {
       found = true;
       Version v = Version.parse(line.substring(pattern.length));
-      String pre = v.preRelease.isEmpty ? null : v.preRelease.join('-');
-      String build = v.build.isEmpty ? null : v.build.join('+');
+      String? pre = v.preRelease.isEmpty ? null : v.preRelease.join('-');
+      String? build = v.build.isEmpty ? null : v.build.join('+');
       v = Version(version.major, version.minor, v.patch,
           pre: pre, build: build);
       return '${pattern}${v.toString()}';

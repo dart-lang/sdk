@@ -47,7 +47,8 @@ testeeDo() {
 
 Future testAsync(VmService service, IsolateRef isolateRef) async {
   final isolate = await service.getIsolate(isolateRef.id);
-  final Library lib = await service.getObject(isolate.id, isolate.rootLib.id);
+  final Library lib =
+      (await service.getObject(isolate.id, isolate.rootLib!.id)) as Library;
   final script = lib.scripts[0];
 
   final bp1 = await service.addBreakpoint(isolate.id, script.id, 11);
@@ -85,8 +86,8 @@ Future testAsync(VmService service, IsolateRef isolateRef) async {
   final stream = service.onDebugEvent;
   await for (Event event in stream) {
     if (event.kind == EventKind.kPauseBreakpoint) {
-      assert(event.pauseBreakpoints.isNotEmpty);
-      final bp = event.pauseBreakpoints.first;
+      assert(event.pauseBreakpoints!.isNotEmpty);
+      final bp = event.pauseBreakpoints!.first;
       hits.add(bp);
       await service.resume(isolate.id);
 

@@ -4,6 +4,9 @@
 
 library generate_vm_service_common;
 
+// TODO(bkonyi): remove once markdown and pub_semver deps are updated to null
+// safety for the SDK.
+// ignore_for_file: import_of_legacy_library_into_null_safe
 import 'package:markdown/markdown.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -19,9 +22,9 @@ class ApiParseUtil {
     final RegExp regex = RegExp(r'[\d.]+');
 
     // Extract version from header: `# Dart VM Service Protocol 2.0`.
-    Element node = nodes.firstWhere((n) => isH1(n));
-    Text text = node.children[0];
-    Match match = regex.firstMatch(text.text);
+    Element node = nodes.firstWhere((n) => isH1(n)) as Element;
+    Text text = node.children[0] as Text;
+    Match? match = regex.firstMatch(text.text);
     if (match == null) throw 'Unable to locate service protocol version';
 
     // Append a `.0`.

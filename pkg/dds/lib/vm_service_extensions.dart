@@ -145,9 +145,11 @@ class StreamHistory extends Response {
             )
             .toList()
             .cast<Event>() {
-    type = json['type'];
     this.json = json;
   }
+
+  @override
+  String get type => 'StreamHistory';
 
   /// Historical [Event]s for a stream.
   List<Event> get history => UnmodifiableListView(_history);

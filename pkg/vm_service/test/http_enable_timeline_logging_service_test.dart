@@ -25,11 +25,11 @@ Future<void> waitForStreamEvent(
     {bool useSetter = true}) async {
   final completer = Completer<void>();
   final isolateId = isolateRef.id;
-  StreamSubscription sub;
+  late StreamSubscription sub;
   sub = service.onExtensionEvent.listen((event) {
     expect(event.extensionKind, 'HttpTimelineLoggingStateChange');
-    expect(event.extensionData.data['isolateId'], isolateRef.id);
-    expect(event.extensionData.data['enabled'], state);
+    expect(event.extensionData!.data['isolateId'], isolateRef.id);
+    expect(event.extensionData!.data['enabled'], state);
     sub.cancel();
     completer.complete();
   });
@@ -49,12 +49,12 @@ var tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
     final isolate = await service.getIsolate(isolateRef.id);
     // Ensure all HTTP service extensions are registered.
-    expect(isolate.extensionRPCs.length, greaterThanOrEqualTo(2));
+    expect(isolate.extensionRPCs!.length, greaterThanOrEqualTo(2));
     expect(
-        isolate.extensionRPCs.contains(kGetHttpEnableTimelineLogging), isTrue);
+        isolate.extensionRPCs!.contains(kGetHttpEnableTimelineLogging), isTrue);
     expect(
-        isolate.extensionRPCs.contains(kSetHttpEnableTimelineLogging), isTrue);
-    expect(isolate.extensionRPCs.contains(kHttpEnableTimelineLogging), isTrue);
+        isolate.extensionRPCs!.contains(kSetHttpEnableTimelineLogging), isTrue);
+    expect(isolate.extensionRPCs!.contains(kHttpEnableTimelineLogging), isTrue);
   },
   (VmService service, IsolateRef isolateRef) async {
     final isolateId = isolateRef.id;

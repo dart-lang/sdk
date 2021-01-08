@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 @TestOn('vm')
 import 'dart:async';
 import 'dart:convert';
@@ -110,7 +112,7 @@ void main() {
       test('with no params or isolateId', () {
         var extension = 'ext.cool';
         var request = rpcRequest(extension, params: null);
-        var response = Response(type: '')..json = {"hello": "world"};
+        var response = Response()..json = {"hello": "world"};
         when(serviceMock.callServiceExtension(
           extension,
           isolateId: argThat(isNull, named: 'isolateId'),
@@ -127,7 +129,7 @@ void main() {
       test('with isolateId and no other params', () {
         var extension = 'ext.cool';
         var request = rpcRequest(extension, params: {'isolateId': '1'});
-        var response = Response(type: '')..json = {"hello": "world"};
+        var response = Response()..json = {"hello": "world"};
         when(serviceMock.callServiceExtension(
           extension,
           isolateId: argThat(equals('1'), named: 'isolateId'),
@@ -145,7 +147,7 @@ void main() {
         var extension = 'ext.cool';
         var params = {'cool': 'option'};
         var request = rpcRequest(extension, params: params);
-        var response = Response(type: '')..json = {"hello": "world"};
+        var response = Response()..json = {"hello": "world"};
         when(serviceMock.callServiceExtension(
           extension,
           isolateId: argThat(isNull, named: 'isolateId'),
@@ -164,7 +166,7 @@ void main() {
         var params = {'cool': 'option'};
         var request =
             rpcRequest(extension, params: Map.of(params)..['isolateId'] = '1');
-        var response = Response(type: '')..json = {"hello": "world"};
+        var response = Response()..json = {"hello": "world"};
         when(serviceMock.callServiceExtension(
           extension,
           isolateId: argThat(equals("1"), named: 'isolateId'),
@@ -214,7 +216,7 @@ void main() {
         when(serviceMock.streamListen(streamId))
             .thenAnswer((_) => Future.value(response));
         requestsController.add(request);
-        await expect(responseQueue, emitsThrough(rpcResponse(response)));
+        await expectLater(responseQueue, emitsThrough(rpcResponse(response)));
 
         eventController = serviceMock.streamControllers[streamId];
 
@@ -229,7 +231,7 @@ void main() {
           )
         ];
         events.forEach(eventController.add);
-        await expect(
+        await expectLater(
             responseQueue,
             emitsInOrder(
                 events.map((event) => streamNotifyResponse(streamId, event))));
@@ -241,7 +243,7 @@ void main() {
         when(serviceMock.streamListen(streamId))
             .thenAnswer((_) => Future.value(response));
         requestsController.add(request);
-        await expect(responseQueue, emitsThrough(rpcResponse(response)));
+        await expectLater(responseQueue, emitsThrough(rpcResponse(response)));
 
         var nextEvent = Event(
           kind: EventKind.kIsolateReload,
@@ -329,7 +331,7 @@ void main() {
             rpcRequest('streamListen', params: {'streamId': serviceStream}));
         requestsController
             .add(rpcRequest('registerService', params: {'service': serviceId}));
-        await expect(
+        await expectLater(
             responsesController.stream
                 .map((Map response) => stripEventTimestamp(response)),
             emitsThrough(serviceRegisteredEvent));
@@ -343,8 +345,12 @@ void main() {
           responsesController2.close();
         });
 
-        VmServerConnection(requestsController2.stream,
-            responsesController2.sink, serviceRegistry, null);
+        VmServerConnection(
+          requestsController2.stream,
+          responsesController2.sink,
+          serviceRegistry,
+          VmService(Stream.empty(), (String _) => null),
+        );
 
         expect(
             responsesController2.stream
@@ -367,8 +373,12 @@ void main() {
         var requestsController3 = StreamController<Map<String, Object>>();
         var responsesController3 = StreamController<Map<String, Object>>();
 
-        VmServerConnection(requestsController3.stream,
-            responsesController3.sink, serviceRegistry, null);
+        VmServerConnection(
+          requestsController3.stream,
+          responsesController3.sink,
+          serviceRegistry,
+          VmService(Stream.empty(), (String _) => null),
+        );
         expect(
             responsesController3.stream,
             neverEmits(
@@ -402,13 +412,13 @@ void main() {
           clientInputController.sink, serviceRegistry, serviceMock);
 
       var requestParams = {'foo': 'bar'};
-      var expectedResponse = Response(type: '')..json = {'zap': 'zip'};
-      await client.registerService(serviceId, null);
+      var expectedResponse = Response()..json = {'zap': 'zip'};
+      await client.registerService(serviceId, 'service');
       // Duplicate registrations should fail.
-      expect(client.registerService(serviceId, null),
+      expect(client.registerService(serviceId, 'service'),
           throwsA(const TypeMatcher<RPCError>()));
 
-      await client.registerServiceCallback(serviceId, (request) async {
+      client.registerServiceCallback(serviceId, (request) async {
         expect(request, equals(requestParams));
         return {'result': expectedResponse.toJson()};
       });
@@ -424,7 +434,7 @@ void main() {
       // This should complete as well.
       await clientConnection.done;
 
-      var mockResponse = Response(type: '')..json = {'mock': 'response'};
+      var mockResponse = Response()..json = {'mock': 'response'};
       when(serviceMock.callServiceExtension(serviceId,
               args: argThat(equals(requestParams), named: 'args'),
               isolateId: argThat(isNull, named: 'isolateId')))
@@ -490,7 +500,7 @@ Map<String, Object> stripEventTimestamp(Map response) {
       response['params'].containsKey('event')) {
     response['params']['event']['timestamp'] = 0;
   }
-  return response;
+  return response as Map<String, Object>;
 }
 
 class MockVmService extends Mock implements VmServiceInterface {
