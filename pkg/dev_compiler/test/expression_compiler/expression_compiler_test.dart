@@ -292,6 +292,129 @@ void main() {
   group('Unsound null safety:', () {
     var options = SetupCompilerOptions(false);
 
+    group('Expression compiler scope collection tests', () {
+      var source = '''
+        ${options.dartLangComment}
+
+        class C {
+          C(int this.field);
+
+          int methodFieldAccess(int x) {
+            var inScope = 1;
+            {
+              var innerInScope = global + staticField + field;
+              /* evaluation placeholder */
+              print(innerInScope);
+              var innerNotInScope = 2;
+            }
+            var notInScope = 3;
+          }
+
+          static int staticField = 0;
+          int field;
+        }
+
+        int global = 42;
+        main() => 0;
+        ''';
+
+      TestDriver driver;
+
+      setUp(() {
+        driver = TestDriver(options, source);
+      });
+
+      tearDown(() {
+        driver.delete();
+      });
+
+      test('local in scope', () async {
+        await driver.check(
+            scope: <String, String>{'inScope': '1', 'innerInScope': '0'},
+            expression: 'inScope',
+            expectedResult: '''
+            (function(inScope, innerInScope) {
+              return inScope;
+            }.bind(this)(
+              1,
+              0
+            ))
+            ''');
+      });
+
+      test('local in inner scope', () async {
+        await driver.check(
+            scope: <String, String>{'inScope': '1', 'innerInScope': '0'},
+            expression: 'innerInScope',
+            expectedResult: '''
+            (function(inScope, innerInScope) {
+              return innerInScope;
+            }.bind(this)(
+              1,
+              0
+            ))
+            ''');
+      });
+
+      test('global in scope', () async {
+        await driver.check(
+            scope: <String, String>{'inScope': '1', 'innerInScope': '0'},
+            expression: 'global',
+            expectedResult: '''
+            (function(inScope, innerInScope) {
+              return foo.global;
+            }.bind(this)(
+              1,
+              0
+            ))
+            ''');
+      });
+
+      test('static field in scope', () async {
+        await driver.check(
+            scope: <String, String>{'inScope': '1', 'innerInScope': '0'},
+            expression: 'staticField',
+            expectedResult: '''
+            (function(inScope, innerInScope) {
+              return foo.C.staticField;
+            }.bind(this)(
+              1,
+              0
+            ))
+            ''');
+      });
+
+      test('field in scope', () async {
+        await driver.check(
+            scope: <String, String>{'inScope': '1', 'innerInScope': '0'},
+            expression: 'field',
+            expectedResult: '''
+            (function(inScope, innerInScope) {
+              return this.field;
+            }.bind(this)(
+              1,
+              0
+            ))
+            ''');
+      });
+
+      test('local not in scope', () async {
+        await driver.check(
+            scope: <String, String>{'inScope': '1', 'innerInScope': '0'},
+            expression: 'notInScope',
+            expectedError:
+                "Error: The getter 'notInScope' isn't defined for the class 'C'.");
+      });
+
+      test('local not in inner scope', () async {
+        await driver.check(
+            scope: <String, String>{'inScope': '1', 'innerInScope': '0'},
+            expression: 'innerNotInScope',
+            expectedError:
+                "Error: The getter 'innerNotInScope' isn't defined for the class 'C'.");
+      });
+    });
+
     group('Expression compiler tests in extension method:', () {
       var source = '''
         ${options.dartLangComment}
@@ -2023,6 +2146,129 @@ void main() {
 
   group('Sound null safety:', () {
     var options = SetupCompilerOptions(true);
+
+    group('Expression compiler scope collection tests', () {
+      var source = '''
+        ${options.dartLangComment}
+
+        class C {
+          C(int this.field);
+
+          int methodFieldAccess(int x) {
+            var inScope = 1;
+            {
+              var innerInScope = global + staticField + field;
+              /* evaluation placeholder */
+              print(innerInScope);
+              var innerNotInScope = 2;
+            }
+            var notInScope = 3;
+          }
+
+          static int staticField = 0;
+          int field;
+        }
+
+        int global = 42;
+        main() => 0;
+        ''';
+
+      TestDriver driver;
+
+      setUp(() {
+        driver = TestDriver(options, source);
+      });
+
+      tearDown(() {
+        driver.delete();
+      });
+
+      test('local in scope', () async {
+        await driver.check(
+            scope: <String, String>{'inScope': '1', 'innerInScope': '0'},
+            expression: 'inScope',
+            expectedResult: '''
+            (function(inScope, innerInScope) {
+              return inScope;
+            }.bind(this)(
+              1,
+              0
+            ))
+            ''');
+      });
+
+      test('local in inner scope', () async {
+        await driver.check(
+            scope: <String, String>{'inScope': '1', 'innerInScope': '0'},
+            expression: 'innerInScope',
+            expectedResult: '''
+            (function(inScope, innerInScope) {
+              return innerInScope;
+            }.bind(this)(
+              1,
+              0
+            ))
+            ''');
+      });
+
+      test('global in scope', () async {
+        await driver.check(
+            scope: <String, String>{'inScope': '1', 'innerInScope': '0'},
+            expression: 'global',
+            expectedResult: '''
+            (function(inScope, innerInScope) {
+              return foo.global;
+            }.bind(this)(
+              1,
+              0
+            ))
+            ''');
+      });
+
+      test('static field in scope', () async {
+        await driver.check(
+            scope: <String, String>{'inScope': '1', 'innerInScope': '0'},
+            expression: 'staticField',
+            expectedResult: '''
+            (function(inScope, innerInScope) {
+              return foo.C.staticField;
+            }.bind(this)(
+              1,
+              0
+            ))
+            ''');
+      });
+
+      test('field in scope', () async {
+        await driver.check(
+            scope: <String, String>{'inScope': '1', 'innerInScope': '0'},
+            expression: 'field',
+            expectedResult: '''
+            (function(inScope, innerInScope) {
+              return this.field;
+            }.bind(this)(
+              1,
+              0
+            ))
+            ''');
+      });
+
+      test('local not in scope', () async {
+        await driver.check(
+            scope: <String, String>{'inScope': '1', 'innerInScope': '0'},
+            expression: 'notInScope',
+            expectedError:
+                "Error: The getter 'notInScope' isn't defined for the class 'C'.");
+      });
+
+      test('local not in inner scope', () async {
+        await driver.check(
+            scope: <String, String>{'inScope': '1', 'innerInScope': '0'},
+            expression: 'innerNotInScope',
+            expectedError:
+                "Error: The getter 'innerNotInScope' isn't defined for the class 'C'.");
+      });
+    });
 
     group('Expression compiler tests in extension method:', () {
       var source = '''
