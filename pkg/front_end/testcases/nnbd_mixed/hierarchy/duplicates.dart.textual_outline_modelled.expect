@@ -1,0 +1,43 @@
+abstract class Class extends Super with Mixin implements Interface {
+  int get extendedDuplicate1 => 42;
+  int get extendedDuplicate2 => 42;
+  int get implementedDuplicate1 => 42;
+  int get implementedDuplicate2 => 42;
+  int get mixedInDuplicate1 => 42;
+  int get mixedInDuplicate2 => 42;
+  void extendedDuplicate1() {}
+  void extendedDuplicate2() {}
+  void implementedDuplicate1() {}
+  void implementedDuplicate2() {}
+  void interfaceDuplicate1() {}
+  void interfaceDuplicate2() {}
+  void mixedInDuplicate1() {}
+  void mixedInDuplicate2() {}
+  void superDuplicate1() {}
+  void superDuplicate2() {}
+}
+
+class Interface {
+  int get interfaceDuplicate1 => 42;
+  int get interfaceDuplicate2 => 42;
+  void implementedDuplicate1() {}
+  void implementedDuplicate2() {}
+  void interfaceDuplicate1() {}
+  void interfaceDuplicate2() {}
+}
+
+class Mixin {
+  void mixedInDuplicate1() {}
+  void mixedInDuplicate2() {}
+}
+
+class Super {
+  int get superDuplicate1 => 42;
+  int get superDuplicate2 => 42;
+  void extendedDuplicate1() {}
+  void extendedDuplicate2() {}
+  void superDuplicate1() {}
+  void superDuplicate2() {}
+}
+
+main() {}

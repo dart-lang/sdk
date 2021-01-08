@@ -66,6 +66,17 @@ nnbd/nullable_receiver: TypeCheckError
 nnbd/potentially_nullable_access: TypeCheckError
 nnbd_mixed/bad_mixins: TypeCheckError
 nnbd_mixed/covariant_from_opt_in: TypeCheckError
+nnbd_mixed/hierarchy/conflict: TypeCheckError
+nnbd_mixed/hierarchy/duplicates: TypeCheckError
+nnbd_mixed/hierarchy/forwarding_semi_stub_field: TypeCheckError
+nnbd_mixed/hierarchy/forwarding_semi_stub_method: TypeCheckError
+nnbd_mixed/hierarchy/forwarding_semi_stub_setter: TypeCheckError
+nnbd_mixed/hierarchy/getter_setter: TypeCheckError
+nnbd_mixed/hierarchy/in_dill_out_in/in_out_in: TypeCheckError
+nnbd_mixed/hierarchy/in_out_dill_in/in_out_in: TypeCheckError
+nnbd_mixed/hierarchy/in_out_in: TypeCheckError
+nnbd_mixed/hierarchy/mix_in_override: TypeCheckError
+nnbd_mixed/hierarchy/override: TypeCheckError
 nnbd_mixed/inheritance_from_opt_in: TypeCheckError
 nnbd_mixed/issue41567: TypeCheckError
 nnbd_mixed/messages_with_types_opt_in: TypeCheckError

@@ -1,0 +1,28 @@
+abstract class AbstractClass extends Super implements Interface1, Interface2 {}
+
+abstract class Super {
+  int get extendedAbstractGetter;
+  int get extendedAbstractImplementedGetter;
+  int get extendedAbstractImplementedMultipleGetter;
+  int get extendedConcreteGetter => 0;
+  int get extendedConcreteImplementedGetter => 0;
+  int get extendedConcreteImplementedMultipleGetter => 0;
+}
+
+class ConcreteClass extends Super implements Interface1, Interface2 {}
+
+class ConcreteSub extends AbstractClass {}
+
+class Interface1 {
+  int get extendedAbstractImplementedGetter => 0;
+  int get extendedAbstractImplementedMultipleGetter => 0;
+  int get extendedConcreteImplementedGetter => 0;
+  int get extendedConcreteImplementedMultipleGetter => 0;
+}
+
+class Interface2 {
+  int get extendedAbstractImplementedMultipleGetter => 0;
+  int get extendedConcreteImplementedMultipleGetter => 0;
+}
+
+main() {}

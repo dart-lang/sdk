@@ -1,0 +1,19 @@
+abstract class AbstractSuper {
+  final int extendedConcreteField = 0;
+  abstract final int extendedAbstractField;
+  final int declaredConcreteExtendsConcreteField = 0;
+  final int declaredAbstractExtendsConcreteField = 0;
+  abstract final int declaredConcreteExtendsAbstractField;
+  abstract final int declaredAbstractExtendsAbstractField;
+}
+
+abstract class AbstractClass extends AbstractSuper {
+  final int declaredConcreteField = 0;
+  abstract final int declaredAbstractField;
+  final int declaredConcreteExtendsConcreteField = 0;
+  abstract final int declaredAbstractExtendsConcreteField;
+  final int declaredConcreteExtendsAbstractField = 0;
+  abstract final int declaredAbstractExtendsAbstractField;
+}
+
+main() {}

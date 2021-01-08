@@ -1,0 +1,6 @@
+class Class {
+  Class();
+  factory Class.redirect() = Class;
+}
+
+main() {}
