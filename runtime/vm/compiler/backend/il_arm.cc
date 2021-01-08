@@ -5530,9 +5530,9 @@ DEFINE_EMIT(Float64x2ToFloat32x4, (FixedQRegisterView<Q6> r, QRegisterView q)) {
   __ vcvtsd(r.s(1), q.d(1));
 }
 
-// Low (< 7) Q registers are needed for the vcvtsd instruction.
+// Low (< 7) Q registers are needed for the vcvtds instruction.
 // TODO(dartbug.com/30953) support register range constraints in the regalloc.
-DEFINE_EMIT(Float32x4ToFloat64x2, (FixedQRegisterView<Q6> r, QRegisterView q)) {
+DEFINE_EMIT(Float32x4ToFloat64x2, (QRegisterView r, FixedQRegisterView<Q6> q)) {
   // Set X.
   __ vcvtds(r.d(0), q.s(0));
   // Set Y.
