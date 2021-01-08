@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:meta/meta.dart';
 
@@ -91,10 +92,34 @@ class TypePropertyResolver {
         return _toResult();
       }
 
+      var parentExpression = (receiver ?? receiverErrorNode).parent;
+      CompileTimeErrorCode errorCode;
+      if (parentExpression == null) {
+        errorCode = CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE;
+      } else {
+        if (parentExpression is CascadeExpression) {
+          parentExpression =
+              (parentExpression as CascadeExpression).cascadeSections.first;
+        }
+        if (parentExpression is BinaryExpression) {
+          errorCode = CompileTimeErrorCode
+              .UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE;
+        } else if (parentExpression is MethodInvocation ||
+            parentExpression is MethodReferenceExpression) {
+          errorCode = CompileTimeErrorCode
+              .UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE;
+        } else if (parentExpression is FunctionExpressionInvocation) {
+          errorCode =
+              CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE;
+        } else {
+          errorCode =
+              CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE;
+        }
+      }
+
       _resolver.nullableDereferenceVerifier.report(
-        receiverErrorNode,
-        receiverType,
-      );
+          receiverErrorNode, receiverType,
+          errorCode: errorCode, arguments: [name]);
       _reportedGetterError = true;
       _reportedSetterError = true;
 

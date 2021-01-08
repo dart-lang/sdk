@@ -1099,7 +1099,8 @@ void f(C<void> c) {
 }
 ''', [
       if (typeToStringWithNullability)
-        error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 61, 5),
+        error(
+            CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 61, 5),
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 61, 5),
     ]);
 
@@ -1122,7 +1123,8 @@ main() {
 }
 ''', [
       if (typeToStringWithNullability)
-        error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 23, 3),
+        error(
+            CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 23, 3),
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3),
     ]);
 
@@ -1145,7 +1147,8 @@ main() {
 }
 ''', [
       if (typeToStringWithNullability)
-        error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 26, 5),
+        error(
+            CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 26, 5),
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 26, 3),
     ]);
     assertMethodInvocation(
@@ -1164,7 +1167,8 @@ main() {
 }
 ''', [
       if (typeToStringWithNullability)
-        error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 22, 3),
+        error(
+            CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 22, 3),
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 22, 3),
     ]);
 
@@ -2466,7 +2470,8 @@ void f(Function? foo) {
   foo.call();
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 26, 3),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          26, 3),
     ]);
 
     assertMethodInvocation2(
@@ -2517,7 +2522,8 @@ void f(A? a) {
   a.foo();
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 46, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          46, 1),
     ]);
 
     assertMethodInvocation2(
@@ -2543,7 +2549,8 @@ void f(A? a) {
   a.foo();
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 84, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          84, 1),
     ]);
 
     assertMethodInvocation2(
@@ -2610,7 +2617,8 @@ void f(A? a) {
   a.foo();
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 29, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          29, 1),
     ]);
 
     assertMethodInvocation2(
@@ -2634,7 +2642,8 @@ void f(A? a) {
   a.foo();
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 67, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          67, 1),
     ]);
 
     assertMethodInvocation2(

@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:meta/meta.dart';
 
@@ -118,7 +119,9 @@ class ForResolver {
     iterable?.accept(_resolver);
     iterable = forEachParts.iterable;
 
-    _resolver.nullableDereferenceVerifier.expression(iterable);
+    _resolver.nullableDereferenceVerifier.expression(iterable,
+        errorCode:
+            CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR);
 
     loopVariable?.accept(_resolver);
     var elementType = _computeForEachElementType(iterable, isAsync);

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -97,6 +99,55 @@ class A {
 ''');
   }
 
+  Future<void> test_forEachWithDeclarationCondition() async {
+    await resolveTestCode('''
+void f (List<String>? args) {
+  for (var e in args) print(e);
+}
+''');
+    await assertHasFix('''
+void f (List<String>? args) {
+  for (var e in args!) print(e);
+}
+''');
+  }
+
+  Future<void>
+      test_forEachWithDeclarationCondition_differByMoreThanNullability() async {
+    await resolveTestCode('''
+void f (List<int>? args) {
+  for (String e in args) print(e);
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_forEachWithIdentifierCondition() async {
+    await resolveTestCode('''
+void f (List<String>? args) {
+  String s = "";
+  for (s in args) print(s);
+}
+''');
+    await assertHasFix('''
+void f (List<String>? args) {
+  String s = "";
+  for (s in args!) print(s);
+}
+''');
+  }
+
+  Future<void>
+      test_forEachWithIdentifierCondition_differByMoreThanNullability() async {
+    await resolveTestCode('''
+void f (List<int>? args) {
+  String s = "";
+  for (s in args) print(s);
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_functionExpressionInvocation() async {
     await resolveTestCode('''
 int f(C c) => c.func();
@@ -140,6 +191,21 @@ void f(int? x) {
 ''');
   }
 
+  Future<void> test_initializer_assignable() async {
+    await resolveTestCode('''
+void f(int? x) {
+  num y = x;
+  print(y);
+}
+''');
+    await assertHasFix('''
+void f(int? x) {
+  num y = x!;
+  print(y);
+}
+''');
+  }
+
   Future<void> test_initializer_differByMoreThanNullability() async {
     await resolveTestCode('''
 void f(String x) {
@@ -175,5 +241,131 @@ int f(String? s) => (s).length;
     await assertHasFix('''
 int f(String? s) => (s)!.length;
 ''');
+  }
+
+  Future<void> test_spreadList() async {
+    await resolveTestCode('''
+void f (List<String>? args) {
+  [...args];
+}
+''');
+    await assertHasFix('''
+void f (List<String>? args) {
+  [...args!];
+}
+''');
+  }
+
+  Future<void> test_spreadList_differByMoreThanNullability() async {
+    await resolveTestCode('''
+void f (List<int>? args) {
+  <String>[...args];
+}
+''');
+    await assertNoFix(
+        errorFilter: (AnalysisError error) =>
+            error.errorCode !=
+            CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE);
+  }
+
+  Future<void> test_spreadMap() async {
+    await resolveTestCode('''
+void f (Map<int, String>? args) {
+  print({...args});
+}
+''');
+    await assertHasFix('''
+void f (Map<int, String>? args) {
+  print({...args!});
+}
+''');
+  }
+
+  Future<void> test_spreadSet() async {
+    await resolveTestCode('''
+void f (List<String>? args) {
+  print({...args});
+}
+''');
+    await assertHasFix('''
+void f (List<String>? args) {
+  print({...args!});
+}
+''');
+  }
+
+  Future<void> test_yieldEach_closure() async {
+    await resolveTestCode('''
+g(Iterable<String> Function() cb) {}
+f(List<String>? args) {
+  g(() sync* {
+    yield* args;
+  });
+}
+''');
+    await assertHasFix('''
+g(Iterable<String> Function() cb) {}
+f(List<String>? args) {
+  g(() sync* {
+    yield* args!;
+  });
+}
+''',
+        errorFilter: (AnalysisError error) =>
+            error.errorCode != CompileTimeErrorCode.YIELD_OF_INVALID_TYPE);
+  }
+
+  Future<void> test_yieldEach_localFunction() async {
+    await resolveTestCode('''
+g() {
+  Iterable<String> f(List<String>? args) sync* {
+    yield* args;
+  }
+}
+''');
+    await assertHasFix('''
+g() {
+  Iterable<String> f(List<String>? args) sync* {
+    yield* args!;
+  }
+}
+''',
+        errorFilter: (AnalysisError error) =>
+            error.errorCode ==
+            CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH);
+  }
+
+  Future<void> test_yieldEach_method() async {
+    await resolveTestCode('''
+class C {
+  Iterable<String> f(List<String>? args) sync* {
+    yield* args;
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  Iterable<String> f(List<String>? args) sync* {
+    yield* args!;
+  }
+}
+''',
+        errorFilter: (AnalysisError error) =>
+            error.errorCode != CompileTimeErrorCode.YIELD_OF_INVALID_TYPE);
+  }
+
+  Future<void> test_yieldEach_topLevel() async {
+    await resolveTestCode('''
+Iterable<String> f(List<String>? args) sync* {
+  yield* args;
+}
+''');
+    await assertHasFix('''
+Iterable<String> f(List<String>? args) sync* {
+  yield* args!;
+}
+''',
+        errorFilter: (AnalysisError error) =>
+            error.errorCode != CompileTimeErrorCode.YIELD_OF_INVALID_TYPE);
   }
 }
