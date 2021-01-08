@@ -29,7 +29,6 @@ import 'package:kernel/ast.dart'
         Extension,
         Field,
         FunctionNode,
-        FunctionType,
         InterfaceType,
         InvalidType,
         Library,
@@ -69,7 +68,8 @@ import 'package:kernel/src/bounds_checks.dart'
         TypeArgumentIssue,
         findTypeArgumentIssues,
         findTypeArgumentIssuesForInvocation,
-        getGenericTypeName;
+        getGenericTypeName,
+        isGenericFunctionTypeOrAlias;
 
 import 'package:kernel/type_algebra.dart' show Substitution, substitute;
 
@@ -3236,7 +3236,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           inferredTypes.contains(argument);
       offset =
           typeArgumentsInfo?.getOffsetForIndex(issue.index, offset) ?? offset;
-      if (argument is FunctionType && argument.typeParameters.length > 0) {
+      if (isGenericFunctionTypeOrAlias(argument)) {
         if (issueInferred) {
           message = templateGenericFunctionTypeInferredAsActualTypeArgument
               .withArguments(argument, isNonNullableByDefault);
@@ -3359,24 +3359,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   void checkBoundsInTypeParameters(TypeEnvironment typeEnvironment,
       List<TypeParameter> typeParameters, Uri fileUri) {
-    final DartType bottomType = library.isNonNullableByDefault
-        ? const NeverType(Nullability.nonNullable)
-        : const NullType();
-
     // Check in bounds of own type variables.
     for (TypeParameter parameter in typeParameters) {
       Set<TypeArgumentIssue> issues = {};
-      issues.addAll(findTypeArgumentIssues(
-              library,
-              parameter.bound,
-              typeEnvironment,
-              SubtypeCheckMode.ignoringNullabilities,
-              bottomType,
+      issues.addAll(findTypeArgumentIssues(library, parameter.bound,
+              typeEnvironment, SubtypeCheckMode.ignoringNullabilities,
               allowSuperBounded: true) ??
           const []);
       if (library.isNonNullableByDefault) {
         issues.addAll(findTypeArgumentIssues(library, parameter.bound,
-                typeEnvironment, SubtypeCheckMode.withNullabilities, bottomType,
+                typeEnvironment, SubtypeCheckMode.withNullabilities,
                 allowSuperBounded: true) ??
             const []);
       }
@@ -3392,7 +3384,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           continue;
         }
 
-        if (argument is FunctionType && argument.typeParameters.length > 0) {
+        if (isGenericFunctionTypeOrAlias(argument)) {
           reportTypeArgumentIssue(
               messageGenericFunctionTypeUsedAsActualTypeArgument,
               fileUri,
@@ -3446,17 +3438,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
     if (!skipReturnType && returnType != null) {
-      final DartType bottomType = isNonNullableByDefault
-          ? const NeverType(Nullability.nonNullable)
-          : const NullType();
       Set<TypeArgumentIssue> issues = {};
       issues.addAll(findTypeArgumentIssues(library, returnType, typeEnvironment,
-              SubtypeCheckMode.ignoringNullabilities, bottomType,
+              SubtypeCheckMode.ignoringNullabilities,
               allowSuperBounded: true) ??
           const []);
       if (isNonNullableByDefault) {
         issues.addAll(findTypeArgumentIssues(library, returnType,
-                typeEnvironment, SubtypeCheckMode.withNullabilities, bottomType,
+                typeEnvironment, SubtypeCheckMode.withNullabilities,
                 allowSuperBounded: true) ??
             const []);
       }
@@ -3467,7 +3456,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         // We don't need to check if [argument] was inferred or specified
         // here, because inference in return types boils down to instantiate-
         // -to-bound, and it can't provide a type that violates the bound.
-        if (argument is FunctionType && argument.typeParameters.length > 0) {
+        if (isGenericFunctionTypeOrAlias(argument)) {
           reportTypeArgumentIssue(
               messageGenericFunctionTypeUsedAsActualTypeArgument,
               fileUri,
@@ -3558,17 +3547,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void checkBoundsInType(
       DartType type, TypeEnvironment typeEnvironment, Uri fileUri, int offset,
       {bool inferred, bool allowSuperBounded = true}) {
-    final DartType bottomType = isNonNullableByDefault
-        ? const NeverType(Nullability.nonNullable)
-        : const NullType();
     Set<TypeArgumentIssue> issues = {};
     issues.addAll(findTypeArgumentIssues(library, type, typeEnvironment,
-            SubtypeCheckMode.ignoringNullabilities, bottomType,
+            SubtypeCheckMode.ignoringNullabilities,
             allowSuperBounded: allowSuperBounded) ??
         const []);
     if (isNonNullableByDefault) {
       issues.addAll(findTypeArgumentIssues(library, type, typeEnvironment,
-              SubtypeCheckMode.withNullabilities, bottomType,
+              SubtypeCheckMode.withNullabilities,
               allowSuperBounded: allowSuperBounded) ??
           const []);
     }

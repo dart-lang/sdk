@@ -261,15 +261,9 @@ class TypeArgumentIssue {
 // Bound Algorithm.
 // TODO(dmitryas):  Remove [typedefInstantiations] when type arguments passed to
 // typedefs are preserved in the Kernel output.
-List<TypeArgumentIssue> findTypeArgumentIssues(
-    Library library,
-    DartType type,
-    TypeEnvironment typeEnvironment,
-    SubtypeCheckMode subtypeCheckMode,
-    DartType bottomType,
+List<TypeArgumentIssue> findTypeArgumentIssues(Library library, DartType type,
+    TypeEnvironment typeEnvironment, SubtypeCheckMode subtypeCheckMode,
     {bool allowSuperBounded = false}) {
-  assert(bottomType == const NeverType(Nullability.nonNullable) ||
-      bottomType is NullType);
   List<TypeParameter> variables;
   List<DartType> arguments;
   List<TypeArgumentIssue> typedefRhsResult;
@@ -287,7 +281,7 @@ List<TypeArgumentIssue> findTypeArgumentIssues(
         requiredParameterCount: functionType.requiredParameterCount,
         typedefType: null);
     typedefRhsResult = findTypeArgumentIssues(
-        library, cloned, typeEnvironment, subtypeCheckMode, bottomType,
+        library, cloned, typeEnvironment, subtypeCheckMode,
         allowSuperBounded: true);
     type = functionType.typedefType;
   }
@@ -301,25 +295,25 @@ List<TypeArgumentIssue> findTypeArgumentIssues(
   } else if (type is FunctionType) {
     List<TypeArgumentIssue> result = <TypeArgumentIssue>[];
     for (TypeParameter parameter in type.typeParameters) {
-      result.addAll(findTypeArgumentIssues(library, parameter.bound,
-              typeEnvironment, subtypeCheckMode, bottomType,
+      result.addAll(findTypeArgumentIssues(
+              library, parameter.bound, typeEnvironment, subtypeCheckMode,
               allowSuperBounded: true) ??
           const <TypeArgumentIssue>[]);
     }
     for (DartType formal in type.positionalParameters) {
       result.addAll(findTypeArgumentIssues(
-              library, formal, typeEnvironment, subtypeCheckMode, bottomType,
+              library, formal, typeEnvironment, subtypeCheckMode,
               allowSuperBounded: true) ??
           const <TypeArgumentIssue>[]);
     }
     for (NamedType named in type.namedParameters) {
-      result.addAll(findTypeArgumentIssues(library, named.type, typeEnvironment,
-              subtypeCheckMode, bottomType,
+      result.addAll(findTypeArgumentIssues(
+              library, named.type, typeEnvironment, subtypeCheckMode,
               allowSuperBounded: true) ??
           const <TypeArgumentIssue>[]);
     }
-    result.addAll(findTypeArgumentIssues(library, type.returnType,
-            typeEnvironment, subtypeCheckMode, bottomType,
+    result.addAll(findTypeArgumentIssues(
+            library, type.returnType, typeEnvironment, subtypeCheckMode,
             allowSuperBounded: true) ??
         const <TypeArgumentIssue>[]);
     return result.isEmpty ? null : result;
@@ -339,7 +333,7 @@ List<TypeArgumentIssue> findTypeArgumentIssues(
       new Map<TypeParameter, DartType>.fromIterables(variables, arguments);
   for (int i = 0; i < arguments.length; ++i) {
     DartType argument = arguments[i];
-    if (argument is FunctionType && argument.typeParameters.length > 0) {
+    if (isGenericFunctionTypeOrAlias(argument)) {
       // Generic function types aren't allowed as type arguments either.
       result ??= <TypeArgumentIssue>[];
       result.add(new TypeArgumentIssue(i, argument, variables[i], type));
@@ -357,7 +351,7 @@ List<TypeArgumentIssue> findTypeArgumentIssues(
     }
 
     List<TypeArgumentIssue> issues = findTypeArgumentIssues(
-        library, argument, typeEnvironment, subtypeCheckMode, bottomType,
+        library, argument, typeEnvironment, subtypeCheckMode,
         allowSuperBounded: true);
     if (issues != null) {
       argumentsResult ??= <TypeArgumentIssue>[];
@@ -377,9 +371,8 @@ List<TypeArgumentIssue> findTypeArgumentIssues(
   if (result == null) return null;
   if (!allowSuperBounded) return result;
 
-  result = null;
-  type = convertSuperBoundedToRegularBounded(
-      library, typeEnvironment, type, bottomType);
+  List<TypeArgumentIssue> convertedResult = null;
+  type = convertSuperBoundedToRegularBounded(library, typeEnvironment, type);
   List<DartType> argumentsToReport = arguments.toList();
   if (type is InterfaceType) {
     variables = type.classNode.typeParameters;
@@ -395,27 +388,27 @@ List<TypeArgumentIssue> findTypeArgumentIssues(
       new Map<TypeParameter, DartType>.fromIterables(variables, arguments);
   for (int i = 0; i < arguments.length; ++i) {
     DartType argument = arguments[i];
-    if (argument is FunctionType && argument.typeParameters.length > 0) {
+    if (isGenericFunctionTypeOrAlias(argument)) {
       // Generic function types aren't allowed as type arguments either.
-      result ??= <TypeArgumentIssue>[];
-      result.add(
+      convertedResult ??= <TypeArgumentIssue>[];
+      convertedResult.add(
           new TypeArgumentIssue(i, argumentsToReport[i], variables[i], type));
     } else if (!typeEnvironment.isSubtypeOf(argument,
         substitute(variables[i].bound, substitutionMap), subtypeCheckMode)) {
-      result ??= <TypeArgumentIssue>[];
-      result.add(
+      convertedResult ??= <TypeArgumentIssue>[];
+      convertedResult.add(
           new TypeArgumentIssue(i, argumentsToReport[i], variables[i], type));
     }
   }
   if (argumentsResult != null) {
-    result ??= <TypeArgumentIssue>[];
-    result.addAll(argumentsResult);
+    convertedResult ??= <TypeArgumentIssue>[];
+    convertedResult.addAll(argumentsResult);
   }
   if (typedefRhsResult != null) {
-    result ??= <TypeArgumentIssue>[];
-    result.addAll(typedefRhsResult);
+    convertedResult ??= <TypeArgumentIssue>[];
+    convertedResult.addAll(typedefRhsResult);
   }
-  return result;
+  return convertedResult == null || convertedResult.isEmpty ? null : result;
 }
 
 // Finds type arguments that don't follow the rules of well-boundness.
@@ -448,7 +441,7 @@ List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
     if (argument is TypeParameterType && argument.promotedBound != null) {
       result ??= <TypeArgumentIssue>[];
       result.add(new TypeArgumentIssue(i, argument, parameters[i], null));
-    } else if (argument is FunctionType && argument.typeParameters.length > 0) {
+    } else if (isGenericFunctionTypeOrAlias(argument)) {
       // Generic function types aren't allowed as type arguments either.
       result ??= <TypeArgumentIssue>[];
       result.add(new TypeArgumentIssue(i, argument, parameters[i], null));
@@ -464,7 +457,7 @@ List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
     }
 
     List<TypeArgumentIssue> issues = findTypeArgumentIssues(
-        library, argument, typeEnvironment, subtypeCheckMode, bottomType,
+        library, argument, typeEnvironment, subtypeCheckMode,
         allowSuperBounded: true);
     if (issues != null) {
       result ??= <TypeArgumentIssue>[];
@@ -486,61 +479,91 @@ String getGenericTypeName(DartType type) {
 /// Replaces all covariant occurrences of `dynamic`, `Object`, and `void` with
 /// [BottomType] and all contravariant occurrences of `Null` and [BottomType]
 /// with `Object`.
-DartType convertSuperBoundedToRegularBounded(Library clientLibrary,
-    TypeEnvironment typeEnvironment, DartType type, DartType bottomType,
-    {bool isCovariant = true}) {
-  bool isTop = clientLibrary.isNonNullableByDefault
-      ? typeEnvironment.coreTypes.isTop(type)
-      : type is DynamicType ||
-          type is VoidType ||
-          type is InterfaceType &&
-              type.classNode == typeEnvironment.coreTypes.objectClass;
-  if (isTop && isCovariant) {
+DartType convertSuperBoundedToRegularBounded(
+    Library clientLibrary, TypeEnvironment typeEnvironment, DartType type,
+    {int variance = Variance.covariant}) {
+  bool flipTop;
+  bool flipBottom;
+  DartType topType;
+  DartType bottomType;
+  bool isTop;
+  bool isBottom;
+  if (clientLibrary.isNonNullableByDefault) {
+    flipTop = variance != Variance.contravariant;
+    flipBottom = variance == Variance.contravariant;
+    topType = typeEnvironment.coreTypes.objectNullableRawType;
+    bottomType = const NeverType(Nullability.nonNullable);
+    isTop = typeEnvironment.coreTypes.isTop(type);
+    isBottom = typeEnvironment.coreTypes.isBottom(type);
+  } else {
+    flipTop = variance == Variance.covariant;
+    flipBottom = variance != Variance.covariant;
+    topType = const DynamicType();
+    bottomType = const NullType();
+    isTop = type is DynamicType ||
+        type is VoidType ||
+        type is InterfaceType &&
+            type.classNode == typeEnvironment.coreTypes.objectClass;
+    isBottom = type is NullType || type is BottomType;
+  }
+
+  if (isTop && flipTop) {
     return bottomType;
-  } else if ((type == bottomType || type is BottomType) && !isCovariant) {
-    return typeEnvironment.coreTypes.objectLegacyRawType;
-  } else if (type is InterfaceType && type.classNode.typeParameters != null) {
-    List<DartType> replacedTypeArguments =
-        new List<DartType>.filled(type.typeArguments.length, null);
-    for (int i = 0; i < replacedTypeArguments.length; i++) {
-      replacedTypeArguments[i] = convertSuperBoundedToRegularBounded(
-          clientLibrary, typeEnvironment, type.typeArguments[i], bottomType,
-          isCovariant: isCovariant);
+  } else if (isBottom && flipBottom) {
+    return topType;
+  } else if (type is InterfaceType &&
+      type.classNode.typeParameters.isNotEmpty) {
+    assert(type.classNode.typeParameters.length == type.typeArguments.length);
+
+    List<DartType> replacedTypeArguments = <DartType>[];
+    for (int i = 0; i < type.typeArguments.length; ++i) {
+      replacedTypeArguments.add(convertSuperBoundedToRegularBounded(
+          clientLibrary, typeEnvironment, type.typeArguments[i],
+          variance: variance));
     }
     return new InterfaceType(
         type.classNode, type.nullability, replacedTypeArguments);
-  } else if (type is TypedefType && type.typedefNode.typeParameters != null) {
-    List<DartType> replacedTypeArguments =
-        new List<DartType>.filled(type.typeArguments.length, null);
-    for (int i = 0; i < replacedTypeArguments.length; i++) {
-      replacedTypeArguments[i] = convertSuperBoundedToRegularBounded(
-          clientLibrary, typeEnvironment, type.typeArguments[i], bottomType,
-          isCovariant: isCovariant);
+  } else if (type is TypedefType &&
+      type.typedefNode.typeParameters.isNotEmpty) {
+    assert(type.typedefNode.typeParameters.length == type.typeArguments.length);
+
+    List<DartType> replacedTypeArguments = <DartType>[];
+    for (int i = 0; i < type.typeArguments.length; i++) {
+      // The implementation of instantiate-to-bound in legacy mode ignored the
+      // variance of type parameters of the typedef.  This behavior is preserved
+      // here in passing the 'variance' parameter unchanged in for legacy
+      // libraries.
+      replacedTypeArguments.add(convertSuperBoundedToRegularBounded(
+          clientLibrary, typeEnvironment, type.typeArguments[i],
+          variance: clientLibrary.isNonNullableByDefault
+              ? Variance.combine(
+                  variance, type.typedefNode.typeParameters[i].variance)
+              : variance));
     }
     return new TypedefType(
         type.typedefNode, type.nullability, replacedTypeArguments);
   } else if (type is FunctionType) {
-    DartType replacedReturnType = convertSuperBoundedToRegularBounded(
-        clientLibrary, typeEnvironment, type.returnType, bottomType,
-        isCovariant: isCovariant);
-    List<DartType> replacedPositionalParameters =
-        new List<DartType>.filled(type.positionalParameters.length, null);
-    for (int i = 0; i < replacedPositionalParameters.length; i++) {
-      replacedPositionalParameters[i] = convertSuperBoundedToRegularBounded(
-          clientLibrary,
-          typeEnvironment,
-          type.positionalParameters[i],
-          bottomType,
-          isCovariant: !isCovariant);
+    if (clientLibrary.isNonNullableByDefault && type.typedefType != null) {
+      return convertSuperBoundedToRegularBounded(
+          clientLibrary, typeEnvironment, type.typedefType,
+          variance: variance);
     }
-    List<NamedType> replacedNamedParameters =
-        new List<NamedType>.filled(type.namedParameters.length, null);
-    for (int i = 0; i < replacedNamedParameters.length; i++) {
-      replacedNamedParameters[i] = new NamedType(
+    DartType replacedReturnType = convertSuperBoundedToRegularBounded(
+        clientLibrary, typeEnvironment, type.returnType,
+        variance: variance);
+    List<DartType> replacedPositionalParameters = <DartType>[];
+    for (int i = 0; i < type.positionalParameters.length; i++) {
+      replacedPositionalParameters.add(convertSuperBoundedToRegularBounded(
+          clientLibrary, typeEnvironment, type.positionalParameters[i],
+          variance: Variance.combine(variance, Variance.contravariant)));
+    }
+    List<NamedType> replacedNamedParameters = <NamedType>[];
+    for (int i = 0; i < type.namedParameters.length; i++) {
+      replacedNamedParameters.add(new NamedType(
           type.namedParameters[i].name,
-          convertSuperBoundedToRegularBounded(clientLibrary, typeEnvironment,
-              type.namedParameters[i].type, bottomType,
-              isCovariant: !isCovariant));
+          convertSuperBoundedToRegularBounded(
+              clientLibrary, typeEnvironment, type.namedParameters[i].type,
+              variance: Variance.combine(variance, Variance.contravariant))));
     }
     return new FunctionType(
         replacedPositionalParameters, replacedReturnType, type.nullability,
@@ -551,7 +574,8 @@ DartType convertSuperBoundedToRegularBounded(Library clientLibrary,
   } else if (type is FutureOrType) {
     return new FutureOrType(
         convertSuperBoundedToRegularBounded(
-            clientLibrary, typeEnvironment, type.typeArgument, bottomType),
+            clientLibrary, typeEnvironment, type.typeArgument,
+            variance: variance),
         type.declaredNullability);
   }
   return type;
@@ -712,4 +736,9 @@ class VarianceCalculator
       Map<TypeParameter, Map<DartType, int>> computedVariances) {
     return Variance.unrelated;
   }
+}
+
+bool isGenericFunctionTypeOrAlias(DartType type) {
+  if (type is TypedefType) type = type.unalias;
+  return type is FunctionType && type.typeParameters.isNotEmpty;
 }
