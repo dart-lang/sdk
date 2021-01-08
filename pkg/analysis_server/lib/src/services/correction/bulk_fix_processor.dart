@@ -12,6 +12,7 @@ import 'package:analysis_server/src/services/correction/dart/add_await.dart';
 import 'package:analysis_server/src/services/correction/dart/add_const.dart';
 import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/add_override.dart';
+import 'package:analysis_server/src/services/correction/dart/add_required.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_add_all_to_spread.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_conditional_expression_to_if_element.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_documentation_into_line.dart';
@@ -89,6 +90,9 @@ class BulkFixProcessor {
   /// one will produce a change for a given fix. If more than one change is
   /// produced the result will almost certainly be invalid code.
   static const Map<String, List<ProducerGenerator>> lintProducerMap = {
+    LintNames.always_require_non_null_named_parameters: [
+      AddRequired.newInstance,
+    ],
     LintNames.annotate_overrides: [
       AddOverride.newInstance,
     ],
