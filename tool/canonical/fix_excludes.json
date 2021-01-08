@@ -1,0 +1,90 @@
+[
+  {
+    "lint" : "avoid_renaming_method_parameters",
+    "notes" : "naming"
+  },
+  {
+    "lint" : "avoid_shadowing_type_parameters",
+    "notes" : "naming"
+  },
+  {
+    "lint" : "camel_case_extensions",
+    "notes" : "naming"
+  },
+  {
+    "lint" : "camel_case_types",
+    "notes" : "naming"
+  },
+  {
+    "lint" : "constant_identifier_names",
+    "notes" : "naming"
+  },
+  {
+    "lint" : "control_flow_in_finally",
+    "notes" : "infeasible"
+  },
+  {
+    "lint" : "file_names",
+    "notes" : "naming"
+  },
+  {
+    "lint" : "implementation_imports",
+    "notes" : "potentially; but performance would be a concern"
+  },
+  {
+    "lint" : "iterable_contains_unrelated_type",
+    "notes" : "logic"
+  },
+  {
+    "lint" : "library_names",
+    "notes" : "naming"
+  },
+  {
+    "lint" : "library_prefixes",
+    "notes" : "naming"
+  },
+  {
+    "lint" : "list_remove_unrelated_type",
+    "notes" : "logic"
+  },
+  {
+    "lint" : "overridden_fields",
+    "notes" : "infeasible"
+  },
+  {
+    "lint" : "package_names",
+    "notes" : "naming"
+  },
+  {
+    "lint" : "package_prefixed_library_names",
+    "notes" : "naming; possible but low value"
+  },
+  {
+    "lint" : "prefer_function_declarations_over_variables",
+    "notes" : "potentially fixable but likely difficult to get right"
+  },
+  {
+    "lint" : "prefer_mixin",
+    "notes" : "potentially fixable, but there are lots of opportunities for getting this wrong"
+  },
+  {
+    "lint" : "provide_deprecation_message",
+    "notes" : "infeasible"
+  },
+  {
+    "lint" : "recursive_getters",
+    "notes" : "not fixable (impossible to know user's intent)"
+  },
+  {
+    "lint" : "unrelated_type_equality_checks",
+    "notes" : "infeasible"
+  },
+  {
+    "lint" : "valid_regexps",
+    "notes" : "infeasible"
+  },
+  {
+    "lint" : "void_checks",
+    "notes" : "invalid in NNBD?"
+  }
+]

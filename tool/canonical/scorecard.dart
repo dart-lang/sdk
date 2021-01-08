@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart';
@@ -16,10 +17,6 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 import '../parse.dart';
-
-/// Issue triage: go through all issues and tag bugs
-/// Consider new tags for canonical-blocking work
-/// False positive vs. false negative?
 
 void main() async {
   var scorecard = await ScoreCard.calculate();
@@ -45,8 +42,12 @@ void main() async {
 
 const bulb = '💡';
 const checkMark = '✅';
+const consider = '🤔';
+const skip = '➖';
 
 Iterable<LintRule> _registeredLints;
+
+List<String> _unfixableLints;
 
 Iterable<String> get registeredLintNames => registeredLints.map((r) => r.name);
 
@@ -59,6 +60,8 @@ Iterable<LintRule> get registeredLints {
   return _registeredLints;
 }
 
+List<String> get unfixableLints => _unfixableLints ?? _getUnfixableLints();
+
 StringBuffer buildFooter(ScoreCard scorecard, List<Detail> details) {
   var scoreLintCount = 0;
   var scoreFixCount = 0;
@@ -67,6 +70,7 @@ StringBuffer buildFooter(ScoreCard scorecard, List<Detail> details) {
   var recommendFixCount = 0;
 
   var needsBulkFix = <String>[];
+  var fixable = <String>[];
 
   for (var score in scorecard.scores) {
     for (var ruleSet in score.ruleSets) {
@@ -82,8 +86,12 @@ StringBuffer buildFooter(ScoreCard scorecard, List<Detail> details) {
           ++recommendFixCount;
         }
       }
+      var lint = score.name;
       if (score.hasFix && !score.hasBulkFix) {
-        needsBulkFix.add(score.name);
+        needsBulkFix.add(lint);
+      }
+      if (!score.hasFix && !unfixableLints.contains(lint)) {
+        fixable.add(lint);
       }
     }
   }
@@ -91,9 +99,17 @@ StringBuffer buildFooter(ScoreCard scorecard, List<Detail> details) {
   var footer = StringBuffer('\n${scorecard.lintCount} lints: ');
   footer.write('$scoreLintCount score [$scoreFixCount fixes], ');
   footer.write('rec $recommendLintCount [$recommendFixCount fixes]');
+
   if (needsBulkFix.isNotEmpty) {
     footer.writeln('\n\nTODO: add bulk fixes for');
     for (var lint in needsBulkFix) {
+      footer.writeln('  - [ ] `$lint`');
+    }
+  }
+
+  if (fixable.isNotEmpty) {
+    footer.writeln('\n\nTODO: add fixes for');
+    for (var lint in fixable) {
       footer.writeln('  - [ ] `$lint`');
     }
   }
@@ -109,6 +125,21 @@ int _compareRuleSets(List<String> s1, List<String> s2) {
     return 1;
   }
   return 0;
+}
+
+List<String> _getUnfixableLints() {
+  var excludes = File('tool/canonical/fix_excludes.json');
+  var contents = excludes.readAsStringSync();
+  var json = jsonDecode(contents);
+  var skipped = <String>[];
+  for (var entry in json) {
+    var name = entry['lint'];
+    var notes = entry['notes'];
+    if (notes != 'TODO') {
+      skipped.add(name as String);
+    }
+  }
+  return skipped;
 }
 
 //bool _isBug(Issue issue) => issue.labels.map((l) => l.name).contains('bug');
@@ -163,7 +194,9 @@ class LintScore {
               ' [`$name`](https://dart-lang.github.io/linter/lints/$name.html) |');
           break;
         case Detail.fix:
-          sb.write('${hasFix ? " $bulb" : ""} |');
+          var status =
+              unfixableLints.contains(name) ? skip : (hasFix ? bulb : consider);
+          sb.write(' $status |');
           break;
         case Detail.status:
           sb.write('${maturity != 'stable' ? ' **$maturity** ' : ""} |');
