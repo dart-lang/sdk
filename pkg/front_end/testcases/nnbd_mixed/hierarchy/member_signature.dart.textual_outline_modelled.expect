@@ -1,0 +1,14 @@
+// @dart = 2.9
+import 'member_signature_lib.dart';
+
+abstract class AbstractClass extends Super implements Interface1, Interface2 {}
+
+abstract class ClassImplementsOptOut implements OptOutInterface {}
+
+abstract class OptOutInterface {}
+
+class ConcreteClass extends Super implements Interface1, Interface2 {}
+
+class ConcreteSub extends AbstractClass {}
+
+main() {}

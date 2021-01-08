@@ -427,9 +427,6 @@ class SourceClassBuilder extends ClassBuilderImpl
       Supertype supertype, TypeEnvironment typeEnvironment) {
     SourceLibraryBuilder libraryBuilder = this.library;
     Library library = libraryBuilder.library;
-    final DartType bottomType = library.isNonNullableByDefault
-        ? const NeverType(Nullability.nonNullable)
-        : const NullType();
 
     Set<TypeArgumentIssue> issues = {};
     issues.addAll(findTypeArgumentIssues(
@@ -438,7 +435,6 @@ class SourceClassBuilder extends ClassBuilderImpl
                 supertype.typeArguments),
             typeEnvironment,
             SubtypeCheckMode.ignoringNullabilities,
-            bottomType,
             allowSuperBounded: false) ??
         const []);
     if (library.isNonNullableByDefault) {
@@ -448,7 +444,6 @@ class SourceClassBuilder extends ClassBuilderImpl
                   supertype.typeArguments),
               typeEnvironment,
               SubtypeCheckMode.withNullabilities,
-              bottomType,
               allowSuperBounded: false) ??
           const []);
     }
@@ -456,7 +451,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       DartType argument = issue.argument;
       TypeParameter typeParameter = issue.typeParameter;
       bool inferred = libraryBuilder.inferredTypes.contains(argument);
-      if (argument is FunctionType && argument.typeParameters.length > 0) {
+      if (isGenericFunctionTypeOrAlias(argument)) {
         if (inferred) {
           libraryBuilder.reportTypeArgumentIssue(
               templateGenericFunctionTypeInferredAsActualTypeArgument
