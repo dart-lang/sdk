@@ -53,8 +53,8 @@ NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
       native_function_pool_index_(-1),
       target_code_pool_index_(-1) {
   ASSERT(code.ContainsInstructionAt(pc));
-  // Last instruction: blr ip0.
-  ASSERT(*(reinterpret_cast<uint32_t*>(end_) - 1) == 0xd63f0200);
+  // Last instruction: blr lr.
+  ASSERT(*(reinterpret_cast<uint32_t*>(end_) - 1) == 0xd63f03c0);
 
   Register reg;
   uword native_function_load_end = InstructionPattern::DecodeLoadWordFromPool(
