@@ -2480,8 +2480,7 @@ FlowGraphCompiler::GetTypeTestStubKindForTypeParameter(
   AbstractType& bound = AbstractType::Handle(zone(), type_param.bound());
   bound = bound.UnwrapFutureOr();
   return !bound.IsTopTypeForSubtyping() && !bound.IsObjectType() &&
-                 !bound.IsFunctionType() && !bound.IsDartFunctionType() &&
-                 bound.IsType()
+                 !bound.IsDartFunctionType() && bound.IsType()
              ? kTestTypeFiveArgs
              : kTestTypeSevenArgs;
 }
@@ -3034,6 +3033,10 @@ void FlowGraphCompiler::GenerateCallerChecksForAssertAssignable(
         compiler::FieldAddress(kTypeArgumentsReg,
                                compiler::target::TypeArguments::type_at_offset(
                                    type_param.index())));
+    return output_dst_type();
+  }
+
+  if (dst_type.IsFunctionType()) {
     return output_dst_type();
   }
 

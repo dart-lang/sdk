@@ -169,9 +169,10 @@ static void RunTTSTest(
       Class::Handle(thread->isolate_group()->class_table()->At(kInstanceCid));
   const auto& symbol = String::Handle(
       Symbols::New(thread, OS::SCreate(thread->zone(), "TTSTest")));
-  const auto& function = Function::Handle(
-      Function::New(symbol, FunctionLayout::kRegularFunction, false, false,
-                    false, false, false, klass, TokenPosition::kNoSource));
+  const auto& signature = FunctionType::ZoneHandle(FunctionType::New());
+  const auto& function = Function::Handle(Function::New(
+      signature, symbol, FunctionLayout::kRegularFunction, false, false, false,
+      false, false, klass, TokenPosition::kNoSource));
   compiler::ObjectPoolBuilder pool_builder;
   const auto& invoke_tts = Code::Handle(
       StubCode::Generate("InvokeTTS", &pool_builder, &GenerateInvokeTTSStub));
@@ -484,8 +485,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_SubtypeRangeCheck) {
              ExpectFailedViaTTS);
 
   // <...> as Base<Object>
-  auto& type_base = AbstractType::Handle(
-      Type::New(class_base, tav_object, TokenPosition::kNoSource));
+  auto& type_base = AbstractType::Handle(Type::New(class_base, tav_object));
   FinalizeAndCanonicalize(&type_base);
   RunTTSTest(obj_i, type_base, tav_null, tav_null, ExpectLazilyFailedViaTTS,
              ExpectFailedViaTTS);
@@ -528,8 +528,8 @@ ISOLATE_UNIT_TEST_CASE(TTS_SubtypeRangeCheck) {
              ExpectFailedViaTTS);
 
   // <...> as I<Object, dynamic>
-  auto& type_i_object_dynamic = AbstractType::Handle(
-      Type::New(class_i, tav_object_dynamic, TokenPosition::kNoSource));
+  auto& type_i_object_dynamic =
+      AbstractType::Handle(Type::New(class_i, tav_object_dynamic));
   FinalizeAndCanonicalize(&type_i_object_dynamic);
   RunTTSTest(obj_i, type_i_object_dynamic, tav_null, tav_null,
              ExpectLazilyHandledViaTTS, ExpectHandledViaTTS);
@@ -555,8 +555,8 @@ ISOLATE_UNIT_TEST_CASE(TTS_SubtypeRangeCheck) {
   //
   //   obj as I<dynamic, T>
   //
-  auto& type_dynamic_t = AbstractType::Handle(
-      Type::New(class_i, tav_dynamic_t, TokenPosition::kNoSource));
+  auto& type_dynamic_t =
+      AbstractType::Handle(Type::New(class_i, tav_dynamic_t));
   FinalizeAndCanonicalize(&type_dynamic_t);
   RunTTSTest(obj_i, type_dynamic_t, tav_object, tav_null,
              ExpectLazilyHandledViaSTC, ExpectHandledViaSTC);
@@ -658,8 +658,8 @@ ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {
   tav_int.SetTypeAt(0, type_int);
   CanonicalizeTAV(&tav_int);
 
-  auto& type_i_object_dynamic = AbstractType::Handle(
-      Type::New(class_i, tav_object_dynamic, TokenPosition::kNoSource));
+  auto& type_i_object_dynamic =
+      AbstractType::Handle(Type::New(class_i, tav_object_dynamic));
   FinalizeAndCanonicalize(&type_i_object_dynamic);
   const auto& tav_iod = TypeArguments::Handle(TypeArguments::New(1));
   tav_iod.SetTypeAt(0, type_i_object_dynamic);
@@ -677,8 +677,8 @@ ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {
   //
 
   // <...> as Base<I<Object, dynamic>>
-  auto& type_base_i_object_dynamic = AbstractType::Handle(
-      Type::New(class_base, tav_iod, TokenPosition::kNoSource));
+  auto& type_base_i_object_dynamic =
+      AbstractType::Handle(Type::New(class_base, tav_iod));
   FinalizeAndCanonicalize(&type_base_i_object_dynamic);
   RunTTSTest(obj_baseb2int, type_base_i_object_dynamic, tav_null, tav_null,
              ExpectLazilyHandledViaTTS, ExpectHandledViaTTS);
@@ -701,8 +701,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {
   const auto& tav_baset = TypeArguments::Handle(TypeArguments::New(1));
   tav_baset.SetTypeAt(
       0, TypeParameter::Handle(GetClassTypeParameter(class_base, "T")));
-  auto& type_base_t = AbstractType::Handle(
-      Type::New(class_base, tav_baset, TokenPosition::kNoSource));
+  auto& type_base_t = AbstractType::Handle(Type::New(class_base, tav_baset));
   FinalizeAndCanonicalize(&type_base_t);
   RunTTSTest(obj_baseint, type_base_t, tav_int, tav_null,
              ExpectLazilyHandledViaTTS, ExpectHandledViaTTS);
@@ -713,8 +712,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {
   const auto& tav_baseb = TypeArguments::Handle(TypeArguments::New(1));
   tav_baseb.SetTypeAt(
       0, TypeParameter::Handle(GetFunctionTypeParameter(fun_generic, "B")));
-  auto& type_base_b = AbstractType::Handle(
-      Type::New(class_base, tav_baseb, TokenPosition::kNoSource));
+  auto& type_base_b = AbstractType::Handle(Type::New(class_base, tav_baseb));
   FinalizeAndCanonicalize(&type_base_b);
   // With B == int
   RunTTSTest(obj_baseint, type_base_b, tav_null, tav_dynamic_int,
@@ -737,8 +735,8 @@ ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {
 
   //   <...> as I<dynamic, String>
   RELEASE_ASSERT(class_i.is_implemented());
-  auto& type_i_dynamic_string = Type::Handle(
-      Type::New(class_i, tav_dynamic_string, TokenPosition::kNoSource));
+  auto& type_i_dynamic_string =
+      Type::Handle(Type::New(class_i, tav_dynamic_string));
   type_i_dynamic_string = type_i_dynamic_string.ToNullability(
       Nullability::kNonNullable, Heap::kNew);
   FinalizeAndCanonicalize(&type_i_dynamic_string);
@@ -751,14 +749,12 @@ ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {
   const auto& tav_t = TypeArguments::Handle(TypeArguments::New(1));
   tav_t.SetTypeAt(
       0, TypeParameter::Handle(GetClassTypeParameter(class_base, "T")));
-  auto& type_a2_t =
-      Type::Handle(Type::New(class_a2, tav_t, TokenPosition::kNoSource));
+  auto& type_a2_t = Type::Handle(Type::New(class_a2, tav_t));
   type_a2_t = type_a2_t.ToNullability(Nullability::kLegacy, Heap::kNew);
   FinalizeAndCanonicalize(&type_a2_t);
   const auto& tav_a2_t = TypeArguments::Handle(TypeArguments::New(1));
   tav_a2_t.SetTypeAt(0, type_a2_t);
-  auto& type_base_a2_t =
-      Type::Handle(Type::New(class_base, tav_a2_t, TokenPosition::kNoSource));
+  auto& type_base_a2_t = Type::Handle(Type::New(class_base, tav_a2_t));
   type_base_a2_t =
       type_base_a2_t.ToNullability(Nullability::kNonNullable, Heap::kNew);
   FinalizeAndCanonicalize(&type_base_a2_t);
@@ -770,14 +766,12 @@ ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {
   //   <...> as Base<A2<A1>>
   const auto& tav_a1 = TypeArguments::Handle(TypeArguments::New(1));
   tav_a1.SetTypeAt(0, type_a1);
-  auto& type_a2_a1 =
-      Type::Handle(Type::New(class_a2, tav_a1, TokenPosition::kNoSource));
+  auto& type_a2_a1 = Type::Handle(Type::New(class_a2, tav_a1));
   type_a2_a1 = type_a2_a1.ToNullability(Nullability::kLegacy, Heap::kNew);
   FinalizeAndCanonicalize(&type_a2_a1);
   const auto& tav_a2_a1 = TypeArguments::Handle(TypeArguments::New(1));
   tav_a2_a1.SetTypeAt(0, type_a2_a1);
-  auto& type_base_a2_a1 =
-      Type::Handle(Type::New(class_base, tav_a2_a1, TokenPosition::kNoSource));
+  auto& type_base_a2_a1 = Type::Handle(Type::New(class_base, tav_a2_a1));
   type_base_a2_a1 =
       type_base_a2_a1.ToNullability(Nullability::kNonNullable, Heap::kNew);
   FinalizeAndCanonicalize(&type_base_a2_a1);
@@ -812,8 +806,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_Regress40964) {
   const auto& dst_tav = TypeArguments::Handle(TypeArguments::New(1));
   dst_tav.SetTypeAt(0,
                     TypeParameter::Handle(GetClassTypeParameter(class_b, "T")));
-  auto& dst_type =
-      Type::Handle(Type::New(class_b, dst_tav, TokenPosition::kNoSource));
+  auto& dst_type = Type::Handle(Type::New(class_b, dst_tav));
   FinalizeAndCanonicalize(&dst_type);
   const auto& cint_tav =
       TypeArguments::Handle(Instance::Cast(acint).GetTypeArguments());
@@ -849,6 +842,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_TypeParameter) {
 
   const auto& dst_type_t =
       TypeParameter::Handle(GetClassTypeParameter(class_a, "T"));
+
   const auto& dst_type_h =
       TypeParameter::Handle(GetFunctionTypeParameter(fun_generic, "H"));
 

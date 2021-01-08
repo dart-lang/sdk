@@ -2086,9 +2086,6 @@ void IsolateReloadContext::InvalidateFunctions(
   Code& code = Code::Handle(zone);
   for (intptr_t i = 0; i < functions.length(); i++) {
     const Function& func = *functions[i];
-    if (func.IsSignatureFunction()) {
-      continue;
-    }
 
     // Switch to unoptimized code or the lazy compilation stub.
     func.SwitchToLazyCompiledUnoptimizedCode();

@@ -124,6 +124,7 @@ class InstanceRefElement extends CustomElement implements Renderable {
                 _instance.valueAsString, _instance.valueAsStringIsTruncated)
         ];
       case M.InstanceKind.type:
+      case M.InstanceKind.functionType:
       case M.InstanceKind.typeRef:
       case M.InstanceKind.typeParameter:
         return [

@@ -819,8 +819,6 @@ class ClassLayout : public ObjectLayout {
   POINTER_FIELD(LibraryPtr, library)
   POINTER_FIELD(TypeArgumentsPtr, type_parameters)  // Array of TypeParameter.
   POINTER_FIELD(AbstractTypePtr, super_type)
-  POINTER_FIELD(FunctionPtr,
-                signature_function)  // Associated function for typedef class.
   POINTER_FIELD(ArrayPtr,
                 constants)  // Canonicalized const instances of this class.
   POINTER_FIELD(TypePtr, declaration_type)  // Declaration type for this class.
@@ -944,8 +942,6 @@ class FunctionLayout : public ObjectLayout {
   /* an implicit closure (i.e., tear-off) */                                   \
   V(ImplicitClosureFunction)                                                   \
   /* a signature only without actual code */                                   \
-  V(SignatureFunction)                                                         \
-  /* getter functions e.g: get foo() { .. } */                                 \
   V(GetterFunction)                                                            \
   /* setter functions e.g: set foo(..) { .. } */                               \
   V(SetterFunction)                                                            \
@@ -1076,9 +1072,6 @@ class FunctionLayout : public ObjectLayout {
     uint64_t bitmap_;
   };
 
-  static constexpr intptr_t kMaxFixedParametersBits = 14;
-  static constexpr intptr_t kMaxOptionalParametersBits = 13;
-
  private:
   friend class Class;
   friend class UnitDeserializationRoots;
@@ -1092,10 +1085,8 @@ class FunctionLayout : public ObjectLayout {
   POINTER_FIELD(StringPtr, name)
   POINTER_FIELD(ObjectPtr, owner)  // Class or patch class or mixin class
                                    // where this function is defined.
-  POINTER_FIELD(AbstractTypePtr, result_type)
-  POINTER_FIELD(ArrayPtr, parameter_types)
   POINTER_FIELD(ArrayPtr, parameter_names)
-  POINTER_FIELD(TypeArgumentsPtr, type_parameters)  // Array of TypeParameter.
+  POINTER_FIELD(FunctionTypePtr, signature)
   POINTER_FIELD(ObjectPtr,
                 data)  // Additional data specific to the function kind. See
                        // Function::set_data() for details.
@@ -1135,17 +1126,35 @@ class FunctionLayout : public ObjectLayout {
   uint32_t kind_tag_;  // See Function::KindTagBits.
   uint32_t packed_fields_;
 
-  typedef BitField<uint32_t, bool, 0, 1> PackedHasNamedOptionalParameters;
+  // TODO(regis): Split packed_fields_ in 2 uint32_t if max values are too low.
+
+  // Keep in sync with corresponding constants in FunctionTypeLayout.
+  static constexpr intptr_t kMaxOptimizableBits = 1;
+  static constexpr intptr_t kMaxBackgroundOptimizableBits = 1;
+  static constexpr intptr_t kMaxTypeParametersBits = 7;
+  static constexpr intptr_t kMaxHasNamedOptionalParametersBits = 1;
+  static constexpr intptr_t kMaxFixedParametersBits = 10;
+  static constexpr intptr_t kMaxOptionalParametersBits = 10;
+
+  typedef BitField<uint32_t, bool, 0, kMaxOptimizableBits> PackedOptimizable;
   typedef BitField<uint32_t,
                    bool,
-                   PackedHasNamedOptionalParameters::kNextBit,
-                   1>
-      OptimizableBit;
-  typedef BitField<uint32_t, bool, OptimizableBit::kNextBit, 1>
-      BackgroundOptimizableBit;
+                   PackedOptimizable::kNextBit,
+                   kMaxBackgroundOptimizableBits>
+      PackedBackgroundOptimizable;
+  typedef BitField<uint32_t,
+                   uint8_t,
+                   PackedBackgroundOptimizable::kNextBit,
+                   kMaxTypeParametersBits>
+      PackedNumTypeParameters;
+  typedef BitField<uint32_t,
+                   bool,
+                   PackedNumTypeParameters::kNextBit,
+                   kMaxHasNamedOptionalParametersBits>
+      PackedHasNamedOptionalParameters;
   typedef BitField<uint32_t,
                    uint16_t,
-                   BackgroundOptimizableBit::kNextBit,
+                   PackedHasNamedOptionalParameters::kNextBit,
                    kMaxFixedParametersBits>
       PackedNumFixedParameters;
   typedef BitField<uint32_t,
@@ -1154,8 +1163,8 @@ class FunctionLayout : public ObjectLayout {
                    kMaxOptionalParametersBits>
       PackedNumOptionalParameters;
   static_assert(PackedNumOptionalParameters::kNextBit <=
-                    kBitsPerWord * sizeof(decltype(packed_fields_)),
-                "FunctionLayout::packed_fields_ bitfields don't align.");
+                    kBitsPerByte * sizeof(decltype(packed_fields_)),
+                "FunctionLayout::packed_fields_ bitfields don't fit.");
   static_assert(PackedNumOptionalParameters::kNextBit <=
                     compiler::target::kSmiBits,
                 "In-place mask for number of optional parameters cannot fit in "
@@ -1187,7 +1196,6 @@ class ClosureDataLayout : public ObjectLayout {
   POINTER_FIELD(ContextScopePtr, context_scope)
   POINTER_FIELD(FunctionPtr,
                 parent_function)  // Enclosing function of this local function.
-  POINTER_FIELD(TypePtr, signature_type)
   POINTER_FIELD(InstancePtr,
                 closure)  // Closure object for static implicit closures.
   // Instantiate-to-bounds TAV for use when no TAV is provided.
@@ -1199,27 +1207,13 @@ class ClosureDataLayout : public ObjectLayout {
   friend class Function;
 };
 
-class SignatureDataLayout : public ObjectLayout {
- private:
-  RAW_HEAP_OBJECT_IMPLEMENTATION(SignatureData);
-
-  VISIT_FROM(ObjectPtr, parent_function)
-  POINTER_FIELD(FunctionPtr,
-                parent_function);  // Enclosing function of this sig. function.
-  POINTER_FIELD(TypePtr, signature_type)
-  VISIT_TO(ObjectPtr, signature_type)
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
-
-  friend class Function;
-};
-
 class FfiTrampolineDataLayout : public ObjectLayout {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(FfiTrampolineData);
 
   VISIT_FROM(ObjectPtr, signature_type)
   POINTER_FIELD(TypePtr, signature_type)
-  POINTER_FIELD(FunctionPtr, c_signature)
+  POINTER_FIELD(FunctionTypePtr, c_signature)
 
   // Target Dart method for callbacks, otherwise null.
   POINTER_FIELD(FunctionPtr, callback_target)
@@ -2292,19 +2286,67 @@ class TypeLayout : public AbstractTypeLayout {
   POINTER_FIELD(SmiPtr, type_class_id)
   POINTER_FIELD(TypeArgumentsPtr, arguments)
   POINTER_FIELD(SmiPtr, hash)
-  // This type object represents a function type if its signature field is a
-  // non-null function object.
-  POINTER_FIELD(FunctionPtr,
-                signature)  // If not null, this type is a function type.
-  VISIT_TO(ObjectPtr, signature)
-  TokenPosition token_pos_;
-  int8_t type_state_;
-  int8_t nullability_;
+  VISIT_TO(ObjectPtr, hash)
+  uint8_t type_state_;
+  uint8_t nullability_;
 
   ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class CidRewriteVisitor;
   friend class TypeArgumentsLayout;
+};
+
+class FunctionTypeLayout : public AbstractTypeLayout {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(FunctionType);
+
+  VISIT_FROM(ObjectPtr, type_test_stub)
+  POINTER_FIELD(TypeArgumentsPtr, type_parameters)  // Array of TypeParameter.
+  POINTER_FIELD(AbstractTypePtr, result_type)
+  POINTER_FIELD(ArrayPtr, parameter_types)
+  POINTER_FIELD(ArrayPtr, parameter_names);
+  POINTER_FIELD(SmiPtr, hash)
+  VISIT_TO(ObjectPtr, hash)
+  uint32_t packed_fields_;  // Number of parent type args and own parameters.
+  uint8_t type_state_;
+  uint8_t nullability_;
+
+  // Keep in sync with corresponding constants in FunctionLayout.
+  static constexpr intptr_t kMaxParentTypeArgumentsBits = 8;
+  static constexpr intptr_t kMaxHasNamedOptionalParametersBits = 1;
+  static constexpr intptr_t kMaxImplicitParametersBits = 1;
+  static constexpr intptr_t kMaxFixedParametersBits = 10;
+  static constexpr intptr_t kMaxOptionalParametersBits = 10;
+
+  typedef BitField<uint32_t, uint8_t, 0, kMaxParentTypeArgumentsBits>
+      PackedNumParentTypeArguments;
+  typedef BitField<uint32_t,
+                   bool,
+                   PackedNumParentTypeArguments::kNextBit,
+                   kMaxHasNamedOptionalParametersBits>
+      PackedHasNamedOptionalParameters;
+  typedef BitField<uint32_t,
+                   uint8_t,
+                   PackedHasNamedOptionalParameters::kNextBit,
+                   kMaxImplicitParametersBits>
+      PackedNumImplicitParameters;
+  typedef BitField<uint32_t,
+                   uint16_t,
+                   PackedNumImplicitParameters::kNextBit,
+                   kMaxFixedParametersBits>
+      PackedNumFixedParameters;
+  typedef BitField<uint32_t,
+                   uint16_t,
+                   PackedNumFixedParameters::kNextBit,
+                   kMaxOptionalParametersBits>
+      PackedNumOptionalParameters;
+  static_assert(PackedNumOptionalParameters::kNextBit <=
+                    kBitsPerByte * sizeof(decltype(packed_fields_)),
+                "FunctionTypeLayout::packed_fields_ bitfields don't fit.");
+
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+
+  friend class Function;
 };
 
 class TypeRefLayout : public AbstractTypeLayout {
@@ -2331,21 +2373,22 @@ class TypeParameterLayout : public AbstractTypeLayout {
   // TODO(dartbug.com/43901): Once a separate TypeParameters class has been
   // added, move these there and remove them from TypeParameter objects.
   POINTER_FIELD(AbstractTypePtr, default_argument)
-  POINTER_FIELD(FunctionPtr, parameterized_function)
-  VISIT_TO(ObjectPtr, parameterized_function)
-  ClassIdTagType parameterized_class_id_;
-  TokenPosition token_pos_;
-  int16_t index_;
+  VISIT_TO(ObjectPtr, default_argument)
+  ClassIdTagType parameterized_class_id_;  // Or kFunctionCid for function tp.
+  // TODO(regis): Can we use uint8_t twice below? Or keep uint16_t?
+  // Warning: BuildTypeParameterTypeTestStub assumes uint16_t.
+  uint16_t base_;  // Number of enclosing function type parameters.
+  uint16_t index_;
   uint8_t flags_;
-  int8_t nullability_;
+  uint8_t nullability_;
 
  public:
-  using FinalizedBit = BitField<decltype(flags_), bool, 0, 1>;
+  using BeingFinalizedBit = BitField<decltype(flags_), bool, 0, 1>;
+  using FinalizedBit =
+      BitField<decltype(flags_), bool, BeingFinalizedBit::kNextBit, 1>;
   using GenericCovariantImplBit =
       BitField<decltype(flags_), bool, FinalizedBit::kNextBit, 1>;
-  using DeclarationBit =
-      BitField<decltype(flags_), bool, GenericCovariantImplBit::kNextBit, 1>;
-  static constexpr intptr_t kFlagsBitSize = DeclarationBit::kNextBit;
+  static constexpr intptr_t kFlagsBitSize = GenericCovariantImplBit::kNextBit;
 
  private:
   ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }

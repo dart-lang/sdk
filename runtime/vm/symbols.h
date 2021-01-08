@@ -247,7 +247,6 @@ class ObjectPointerVisitor;
   V(SecondArg, "y")                                                            \
   V(Set, "set")                                                                \
   V(SetterPrefix, "set:")                                                      \
-  V(SignatureData, "SignatureData")                                            \
   V(SingleTargetCache, "SingleTargetCache")                                    \
   V(SizeOfStructField, "#sizeOf")                                              \
   V(SpaceExtendsSpace, " extends ")                                            \
@@ -401,11 +400,12 @@ class ObjectPointerVisitor;
   V(_SyncIterableConstructor, "_SyncIterable.")                                \
   V(_SyncIterator, "_SyncIterator")                                            \
   V(_TransferableTypedDataImpl, "_TransferableTypedDataImpl")                  \
+  V(_AbstractType, "_AbstractType")                                            \
   V(_Type, "_Type")                                                            \
+  V(_FunctionType, "_FunctionType")                                            \
   V(_TypeParameter, "_TypeParameter")                                          \
   V(_TypeRef, "_TypeRef")                                                      \
   V(_TypeVariableMirror, "_TypeVariableMirror")                                \
-  V(_TypedefMirror, "_TypedefMirror")                                          \
   V(_Uint16ArrayFactory, "Uint16List.")                                        \
   V(_Uint16ArrayView, "_Uint16ArrayView")                                      \
   V(_Uint16List, "_Uint16List")                                                \

@@ -401,10 +401,10 @@ class SnapshotReader : public BaseReader {
   friend class PatchClass;
   friend class RegExp;
   friend class Script;
-  friend class SignatureData;
   friend class SubtypeTestCache;
   friend class TransferableTypedData;
   friend class Type;
+  friend class FunctionType;
   friend class TypedDataView;
   friend class TypeArguments;
   friend class TypeParameter;
@@ -685,6 +685,7 @@ class SnapshotWriter : public BaseWriter {
   friend class SubtypeTestCacheLayout;
   friend class TransferableTypedDataLayout;
   friend class TypeLayout;
+  friend class FunctionTypeLayout;
   friend class TypeArgumentsLayout;
   friend class TypeParameterLayout;
   friend class TypeRefLayout;

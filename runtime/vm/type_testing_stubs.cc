@@ -35,7 +35,7 @@ const char* TypeTestingStubNamer::StringifyType(
     const AbstractType& type) const {
   NoSafepointScope no_safepoint;
   Zone* Z = Thread::Current()->zone();
-  if (type.IsType() && !type.IsFunctionType()) {
+  if (type.IsType()) {
     const intptr_t cid = Type::Cast(type).type_class_id();
     ClassTable* class_table = IsolateGroup::Current()->class_table();
     klass_ = class_table->At(cid);
@@ -119,6 +119,12 @@ CodePtr TypeTestingStubGenerator::DefaultCodeForType(
     } else {
       return StubCode::TypeParameterTypeTest().raw();
     }
+  }
+
+  if (type.IsFunctionType()) {
+    const bool nullable = Instance::NullIsAssignableTo(type);
+    return nullable ? StubCode::DefaultNullableTypeTest().raw()
+                    : StubCode::DefaultTypeTest().raw();
   }
 
   if (type.IsType()) {
@@ -685,7 +691,7 @@ AbstractTypePtr TypeArgumentInstantiator::InstantiateType(
     ScopedHandle<TypeArguments> to_type_arguments(&type_arguments_handles_);
 
     *to_type_arguments = TypeArguments::null();
-    *to = Type::New(klass_, *to_type_arguments, type.token_pos());
+    *to = Type::New(klass_, *to_type_arguments);
 
     *to_type_arguments = from.arguments();
     to->set_arguments(InstantiateTypeArguments(klass_, *to_type_arguments));

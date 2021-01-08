@@ -481,6 +481,9 @@ DEFINE_RUNTIME_ENTRY(SubtypeCheck, 5) {
   // we can't guarantee the supertype isn't the top type.
   if (supertype.IsTopTypeForSubtyping()) return;
 
+  // TODO(regis): Support for FLAG_trace_type_checks is missing here. Is it
+  // still useful or should we remove it everywhere?
+
   // The supertype or subtype may not be instantiated.
   if (AbstractType::InstantiateAndTestSubtype(
           &subtype, &supertype, instantiator_type_args, function_type_args)) {
@@ -537,12 +540,12 @@ static void PrintTypeCheck(const char* message,
   ASSERT(instance_type.IsInstantiated() ||
          (instance.IsClosure() && instance_type.IsInstantiated(kCurrentClass)));
   if (type.IsInstantiated()) {
-    OS::PrintErr("%s: '%s' %" Pd " %s '%s' %" Pd " (pc: %#" Px ").\n", message,
+    OS::PrintErr("%s: '%s' %d %s '%s' %d (pc: %#" Px ").\n", message,
                  String::Handle(instance_type.Name()).ToCString(),
-                 Class::Handle(instance_type.type_class()).id(),
+                 instance_type.type_class_id(),
                  (result.raw() == Bool::True().raw()) ? "is" : "is !",
-                 String::Handle(type.Name()).ToCString(),
-                 Class::Handle(type.type_class()).id(), caller_frame->pc());
+                 String::Handle(type.Name()).ToCString(), type.type_class_id(),
+                 caller_frame->pc());
   } else {
     // Instantiate type before printing.
     const AbstractType& instantiated_type = AbstractType::Handle(

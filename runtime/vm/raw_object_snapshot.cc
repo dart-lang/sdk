@@ -87,7 +87,6 @@ TypePtr Type::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &type, kIsDeserialized);
 
   // Set all non object fields.
-  type.set_token_pos(TokenPosition::Deserialize(reader->Read<int32_t>()));
   const uint8_t combined = reader->Read<uint8_t>();
   type.set_type_state(combined >> 4);
   type.set_nullability(static_cast<Nullability>(combined & 0xf));
@@ -122,13 +121,6 @@ void TypeLayout::WriteTo(SnapshotWriter* writer,
                          bool as_reference) {
   ASSERT(writer != NULL);
 
-  if (signature() != Function::null()) {
-    writer->SetWriteException(Exceptions::kArgument,
-                              "Illegal argument in isolate message"
-                              " : (function types are not supported yet)");
-    UNREACHABLE();
-  }
-
   // Only resolved and finalized types should be written to a snapshot.
   ASSERT((type_state_ == TypeLayout::kFinalizedInstantiated) ||
          (type_state_ == TypeLayout::kFinalizedUninstantiated));
@@ -160,7 +152,6 @@ void TypeLayout::WriteTo(SnapshotWriter* writer,
   writer->Write<bool>(typeclass_is_in_fullsnapshot);
 
   // Write out all the non object pointer fields.
-  writer->Write<int32_t>(token_pos_.Serialize());
   const uint8_t combined = (type_state_ << 4) | nullability_;
   ASSERT(type_state_ == (combined >> 4));
   ASSERT(nullability_ == (combined & 0xf));
@@ -233,9 +224,6 @@ TypeParameterPtr TypeParameter::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &type_parameter, kIsDeserialized);
 
   // Set all non object fields.
-  type_parameter.set_token_pos(
-      TokenPosition::Deserialize(reader->Read<int32_t>()));
-  type_parameter.set_index(reader->Read<int16_t>());
   const uint8_t combined = reader->Read<uint8_t>();
   type_parameter.set_flags(combined >> 4);
   type_parameter.set_nullability(static_cast<Nullability>(combined & 0xf));
@@ -247,11 +235,10 @@ TypeParameterPtr TypeParameter::ReadFrom(SnapshotReader* reader,
   READ_OBJECT_FIELDS(type_parameter, type_parameter.raw()->ptr()->from(),
                      type_parameter.raw()->ptr()->to(), kAsReference);
 
-  if (type_parameter.parameterized_function() == Function::null()) {
-    // Read in the parameterized class.
-    (*reader->ClassHandle()) =
-        Class::RawCast(reader->ReadObjectImpl(kAsReference));
-  } else {
+  // Read in the parameterized class.
+  (*reader->ClassHandle()) =
+      Class::RawCast(reader->ReadObjectImpl(kAsReference));
+  if (reader->ClassHandle()->id() == kFunctionCid) {
     (*reader->ClassHandle()) = Class::null();
   }
   type_parameter.set_parameterized_class(*reader->ClassHandle());
@@ -285,8 +272,8 @@ void TypeParameterLayout::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the non object pointer fields.
-  writer->Write<int32_t>(token_pos_.Serialize());
-  writer->Write<int16_t>(index_);
+  writer->Write<uint16_t>(base_);
+  writer->Write<uint16_t>(index_);
   const uint8_t combined = (flags_ << 4) | nullability_;
   ASSERT(flags_ == (combined >> 4));
   ASSERT(nullability_ == (combined & 0xf));
@@ -296,15 +283,10 @@ void TypeParameterLayout::WriteTo(SnapshotWriter* writer,
   SnapshotWriterVisitor visitor(writer, kAsReference);
   visitor.VisitPointers(from(), to());
 
-  if (parameterized_class_id_ != kFunctionCid) {
-    ASSERT(parameterized_function() == Function::null());
-    // Write out the parameterized class.
-    ClassPtr param_class =
-        writer->isolate_group()->class_table()->At(parameterized_class_id_);
-    writer->WriteObjectImpl(param_class, kAsReference);
-  } else {
-    ASSERT(parameterized_function() != Function::null());
-  }
+  // Write out the parameterized class (or Function if cid == kFunctionCid).
+  ClassPtr param_class =
+      writer->isolate_group()->class_table()->At(parameterized_class_id_);
+  writer->WriteObjectImpl(param_class, kAsReference);
 }
 
 TypeArgumentsPtr TypeArguments::ReadFrom(SnapshotReader* reader,
@@ -568,7 +550,6 @@ MESSAGE_SNAPSHOT_UNREACHABLE(ObjectPool);
 MESSAGE_SNAPSHOT_UNREACHABLE(PatchClass);
 MESSAGE_SNAPSHOT_UNREACHABLE(PcDescriptors);
 MESSAGE_SNAPSHOT_UNREACHABLE(Script);
-MESSAGE_SNAPSHOT_UNREACHABLE(SignatureData);
 MESSAGE_SNAPSHOT_UNREACHABLE(SingleTargetCache);
 MESSAGE_SNAPSHOT_UNREACHABLE(String);
 MESSAGE_SNAPSHOT_UNREACHABLE(SubtypeTestCache);
@@ -580,6 +561,7 @@ MESSAGE_SNAPSHOT_UNREACHABLE(UnwindError);
 MESSAGE_SNAPSHOT_UNREACHABLE(FutureOr);
 MESSAGE_SNAPSHOT_UNREACHABLE(WeakSerializationReference);
 
+MESSAGE_SNAPSHOT_ILLEGAL(FunctionType)
 MESSAGE_SNAPSHOT_ILLEGAL(DynamicLibrary);
 MESSAGE_SNAPSHOT_ILLEGAL(MirrorReference);
 MESSAGE_SNAPSHOT_ILLEGAL(Pointer);

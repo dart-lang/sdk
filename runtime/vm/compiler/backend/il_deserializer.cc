@@ -1506,8 +1506,12 @@ bool FlowGraphDeserializer::ParseDartValue(SExpression* sexp, Object* out) {
       return ParseField(list, out);
     } else if (tag->Equals("Function")) {
       return ParseFunction(list, out);
+    } else if (tag->Equals("FunctionType")) {
+      return ParseFunctionType(list, out);
     } else if (tag->Equals("TypeParameter")) {
       return ParseTypeParameter(list, out);
+    } else if (tag->Equals("Array")) {
+      return ParseArray(list, out);
     } else if (tag->Equals("ImmutableList")) {
       return ParseImmutableList(list, out);
     } else if (tag->Equals("Instance")) {
@@ -1661,7 +1665,43 @@ bool FlowGraphDeserializer::ParseFunction(SExpList* list, Object* out) {
   return true;
 }
 
-bool FlowGraphDeserializer::ParseImmutableList(SExpList* list, Object* out) {
+bool FlowGraphDeserializer::ParseFunctionType(SExpList* list, Object* out) {
+  ASSERT(out != nullptr);
+  if (list == nullptr) return false;
+  auto& type_params = TypeArguments::ZoneHandle(zone());
+  if (auto const type_params_sexp = Retrieve(list, "type_params")) {
+    if (!ParseTypeArguments(type_params_sexp, &type_params)) return false;
+  }
+  auto& result_type = AbstractType::ZoneHandle(zone());
+  if (auto const result_type_sexp = Retrieve(list, "result_type")) {
+    if (!ParseAbstractType(result_type_sexp, &result_type)) return false;
+  }
+  auto& parameter_types = Array::ZoneHandle(zone());
+  if (auto const parameter_types_sexp = Retrieve(list, "parameter_types")) {
+    if (!ParseDartValue(parameter_types_sexp, &parameter_types)) return false;
+  }
+  auto& parameter_names = Array::ZoneHandle(zone());
+  if (auto const parameter_names_sexp = Retrieve(list, "parameter_names")) {
+    if (!ParseDartValue(parameter_names_sexp, &parameter_names)) return false;
+  }
+  intptr_t packed_fields;
+  if (auto const packed_fields_sexp =
+          CheckInteger(list->ExtraLookupValue("packed_fields"))) {
+    packed_fields = packed_fields_sexp->value();
+  } else {
+    return false;
+  }
+  auto& sig = FunctionType::ZoneHandle(zone(), FunctionType::New());
+  sig.set_type_parameters(type_params);
+  sig.set_result_type(result_type);
+  sig.set_parameter_types(parameter_types);
+  sig.set_parameter_names(parameter_names);
+  sig.set_packed_fields(packed_fields);
+  *out = sig.raw();
+  return true;
+}
+
+bool FlowGraphDeserializer::ParseArray(SExpList* list, Object* out) {
   ASSERT(out != nullptr);
   if (list == nullptr) return false;
 
@@ -1678,7 +1718,13 @@ bool FlowGraphDeserializer::ParseImmutableList(SExpList* list, Object* out) {
     if (!ParseTypeArguments(type_args_sexp, &array_type_args_)) return false;
     arr.SetTypeArguments(array_type_args_);
   }
-  arr.MakeImmutable();
+  return true;
+}
+
+bool FlowGraphDeserializer::ParseImmutableList(SExpList* list, Object* out) {
+  if (!ParseArray(list, out)) return false;
+
+  Array::Cast(*out).MakeImmutable();
   return CanonicalizeInstance(list, out);
 }
 
@@ -1852,13 +1898,8 @@ bool FlowGraphDeserializer::ParseType(SExpression* sexp, Object* out) {
   if (!ParseClass(cls_sexp, &type_class_)) return false;
   const Nullability nullability =
       type_class_.IsNullClass() ? Nullability::kNullable : Nullability::kLegacy;
-  *out = Type::New(type_class_, *type_args_ptr, token_pos, nullability);
+  *out = Type::New(type_class_, *type_args_ptr, nullability);
   auto& type = Type::Cast(*out);
-  if (auto const sig_sexp = list->ExtraLookupValue("signature")) {
-    auto& function = Function::Handle(zone());
-    if (!ParseDartValue(sig_sexp, &function)) return false;
-    type.set_signature(function);
-  }
   if (is_recursive) {
     while (!pending_typerefs->is_empty()) {
       auto const ref = pending_typerefs->RemoveLast();
@@ -1929,46 +1970,32 @@ bool FlowGraphDeserializer::ParseTypeParameter(SExpList* list, Object* out) {
   ASSERT(out != nullptr);
   if (list == nullptr) return false;
 
-  const Function* function = nullptr;
-  const Class* cls = nullptr;
-  if (auto const func_sexp = CheckSymbol(list->ExtraLookupValue("function"))) {
-    if (!ParseCanonicalName(func_sexp, &type_param_function_)) return false;
-    if (!type_param_function_.IsFunction() || type_param_function_.IsNull()) {
-      StoreError(func_sexp, "not a function name");
-      return false;
-    }
-    function = &type_param_function_;
-  } else if (auto const class_sexp =
-                 CheckInteger(list->ExtraLookupValue("class"))) {
-    const intptr_t cid = class_sexp->value();
-    auto const table = thread()->isolate_group()->class_table();
+  Class& cls = Class::Handle();
+  if (auto const cid_sexp = CheckInteger(list->ExtraLookupValue("cid"))) {
+    const intptr_t cid = cid_sexp->value();
+    ClassTable* table = thread()->isolate_group()->class_table();
     if (!table->HasValidClassAt(cid)) {
-      StoreError(class_sexp, "not a valid class id");
+      StoreError(cid_sexp, "no valid class found for cid");
       return false;
     }
-    type_param_class_ = table->At(cid);
-    cls = &type_param_class_;
+    cls = table->At(cid);
   } else {
-    // If we weren't given an explicit source, check in the function for this
-    // flow graph.
-    ASSERT(parsed_function_ != nullptr);
-    function = &parsed_function_->function();
+    return false;
   }
-
+  auto const base_sexp = CheckInteger(list->ExtraLookupValue("base"));
+  if (base_sexp == nullptr) return false;
+  intptr_t base = base_sexp->value();
+  auto const index_sexp = CheckInteger(list->ExtraLookupValue("index"));
+  if (index_sexp == nullptr) return false;
+  intptr_t index = index_sexp->value();
   auto const name_sexp = CheckSymbol(Retrieve(list, 1));
   if (name_sexp == nullptr) return false;
   tmp_string_ = String::New(name_sexp->value());
 
-  *out = TypeParameter::null();
-  if (function != nullptr) {
-    *out = function->LookupTypeParameter(tmp_string_, nullptr);
-  } else if (cls != nullptr) {
-    *out = cls->LookupTypeParameter(tmp_string_);
-  }
-  if (out->IsNull()) {
-    StoreError(name_sexp, "no type parameter found for name");
-    return false;
-  }
+  *out =
+      TypeParameter::New(cls, base, index, tmp_string_, Object::dynamic_type(),
+                         false, Nullability::kLegacy);
+  TypeParameter::Cast(*out).SetIsFinalized();
   return CanonicalizeInstance(list, out);
 }
 

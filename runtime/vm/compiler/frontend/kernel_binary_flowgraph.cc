@@ -492,7 +492,7 @@ Fragment StreamingFlowGraphBuilder::TypeArgumentsHandling(
   Fragment prologue = B->BuildDefaultTypeHandling(dart_function);
 
   if (dart_function.IsClosureFunction() &&
-      dart_function.NumParentTypeParameters() > 0) {
+      dart_function.NumParentTypeArguments() > 0) {
     LocalVariable* closure = parsed_function()->ParameterVariable(0);
 
     // Function with yield points can not be generic itself but the outer
@@ -508,10 +508,9 @@ Fragment StreamingFlowGraphBuilder::TypeArgumentsHandling(
       prologue += LoadLocal(closure);
       prologue += LoadNativeField(Slot::Closure_function_type_arguments());
 
-      prologue += IntConstant(dart_function.NumParentTypeParameters());
+      prologue += IntConstant(dart_function.NumParentTypeArguments());
 
-      prologue += IntConstant(dart_function.NumTypeParameters() +
-                              dart_function.NumParentTypeParameters());
+      prologue += IntConstant(dart_function.NumTypeArguments());
 
       const auto& prepend_function =
           flow_graph_builder_->PrependTypeArgumentsFunction();
@@ -1005,7 +1004,9 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
 
   ActiveClassScope active_class_scope(active_class(), &klass);
   ActiveMemberScope active_member(active_class(), &outermost_function);
-  ActiveTypeParametersScope active_type_params(active_class(), function, Z);
+  FunctionType& signature = FunctionType::Handle(Z, function.signature());
+  ActiveTypeParametersScope active_type_params(active_class(), function,
+                                               &signature, Z);
 
   ParseKernelASTFunction();
 
@@ -1043,7 +1044,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
       return flow_graph_builder_->BuildGraphOfImplicitClosureFunction(function);
     case FunctionLayout::kFfiTrampoline:
       return flow_graph_builder_->BuildGraphOfFfiTrampoline(function);
-    case FunctionLayout::kSignatureFunction:
     case FunctionLayout::kIrregexpFunction:
       break;
   }
@@ -1101,7 +1101,6 @@ void StreamingFlowGraphBuilder::ParseKernelASTFunction() {
         SetupDefaultParameterValues();
       }
       break;
-    case FunctionLayout::kSignatureFunction:
     case FunctionLayout::kIrregexpFunction:
       UNREACHABLE();
       break;
@@ -4983,9 +4982,9 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
         function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kEnd);
 
         // Finalize function type.
-        Type& signature_type = Type::Handle(Z, function.SignatureType());
-        signature_type ^= ClassFinalizer::FinalizeType(signature_type);
-        function.SetSignatureType(signature_type);
+        FunctionType& signature = FunctionType::Handle(Z, function.signature());
+        signature ^= ClassFinalizer::FinalizeType(signature);
+        function.set_signature(signature);
 
         ClosureFunctionsCache::AddClosureFunctionLocked(function);
         break;
@@ -5076,8 +5075,8 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
   const TypeArguments& type_arguments =
       T.BuildTypeArguments(list_length);  // read types.
   ASSERT(type_arguments.Length() == 1 && type_arguments.IsInstantiated());
-  const Function& native_sig = Function::Handle(
-      Z, Type::CheckedHandle(Z, type_arguments.TypeAt(0)).signature());
+  const FunctionType& native_sig =
+      FunctionType::CheckedHandle(Z, type_arguments.TypeAt(0));
 
   Fragment code;
   const intptr_t positional_count =

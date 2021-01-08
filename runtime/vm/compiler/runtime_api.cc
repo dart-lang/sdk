@@ -823,12 +823,12 @@ const word Symbols::kNullCharCodeSymbolOffset =
 
 const word String::kHashBits = dart::String::kHashBits;
 
-const int8_t Nullability::kNullable =
-    static_cast<int8_t>(dart::Nullability::kNullable);
-const int8_t Nullability::kNonNullable =
-    static_cast<int8_t>(dart::Nullability::kNonNullable);
-const int8_t Nullability::kLegacy =
-    static_cast<int8_t>(dart::Nullability::kLegacy);
+const uint8_t Nullability::kNullable =
+    static_cast<uint8_t>(dart::Nullability::kNullable);
+const uint8_t Nullability::kNonNullable =
+    static_cast<uint8_t>(dart::Nullability::kNonNullable);
+const uint8_t Nullability::kLegacy =
+    static_cast<uint8_t>(dart::Nullability::kLegacy);
 
 bool Heap::IsAllocatableInNewSpace(intptr_t instance_size) {
   return dart::Heap::IsAllocatableInNewSpace(instance_size);
@@ -920,7 +920,15 @@ word LinkedHashMap::NextFieldOffset() {
   return -kWordSize;
 }
 
+word AbstractType::NextFieldOffset() {
+  return -kWordSize;
+}
+
 word Type::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word FunctionType::NextFieldOffset() {
   return -kWordSize;
 }
 
@@ -977,10 +985,6 @@ word DynamicLibrary::NextFieldOffset() {
 }
 
 word PatchClass::NextFieldOffset() {
-  return -kWordSize;
-}
-
-word SignatureData::NextFieldOffset() {
   return -kWordSize;
 }
 

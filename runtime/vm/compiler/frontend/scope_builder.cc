@@ -54,14 +54,16 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
 
   // Setup a [ActiveClassScope] and a [ActiveMemberScope] which will be used
   // e.g. for type translation.
-  const Class& klass = Class::Handle(zone_, function.Owner());
+  const Class& klass = Class::Handle(Z, function.Owner());
 
   Function& outermost_function =
       Function::Handle(Z, function.GetOutermostFunction());
 
   ActiveClassScope active_class_scope(&active_class_, &klass);
   ActiveMemberScope active_member(&active_class_, &outermost_function);
-  ActiveTypeParametersScope active_type_params(&active_class_, function, Z);
+  FunctionType& signature = FunctionType::Handle(Z, function.signature());
+  ActiveTypeParametersScope active_type_params(&active_class_, function,
+                                               &signature, Z);
 
   LocalScope* enclosing_scope = NULL;
   if (function.IsImplicitClosureFunction() && !function.is_static()) {
@@ -88,7 +90,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
   scope_->set_end_token_pos(function.end_token_pos());
 
   // Add function type arguments variable before current context variable.
-  if ((function.IsGeneric() || function.HasGenericParent())) {
+  if (function.IsGeneric() || function.HasGenericParent()) {
     LocalVariable* type_args_var = MakeVariable(
         TokenPosition::kNoSource, TokenPosition::kNoSource,
         Symbols::FunctionTypeArgumentsVar(), AbstractType::dynamic_type());
@@ -419,7 +421,6 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       }
       break;
     }
-    case FunctionLayout::kSignatureFunction:
     case FunctionLayout::kIrregexpFunction:
       UNREACHABLE();
   }

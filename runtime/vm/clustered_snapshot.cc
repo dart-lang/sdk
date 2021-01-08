@@ -776,7 +776,6 @@ class ClosureDataSerializationCluster : public SerializationCluster {
       s->Push(data->ptr()->context_scope_);
     }
     s->Push(data->ptr()->parent_function_);
-    s->Push(data->ptr()->signature_type_);
     s->Push(data->ptr()->closure_);
     s->Push(data->ptr()->default_type_arguments_);
     s->Push(data->ptr()->default_type_arguments_info_);
@@ -801,7 +800,6 @@ class ClosureDataSerializationCluster : public SerializationCluster {
         WriteField(data, context_scope_);
       }
       WriteField(data, parent_function_);
-      WriteField(data, signature_type_);
       WriteField(data, closure_);
       WriteField(data, default_type_arguments_);
       WriteField(data, default_type_arguments_info_);
@@ -841,75 +839,11 @@ class ClosureDataDeserializationCluster : public DeserializationCluster {
             static_cast<ContextScopePtr>(d->ReadRef());
       }
       data->ptr()->parent_function_ = static_cast<FunctionPtr>(d->ReadRef());
-      data->ptr()->signature_type_ = static_cast<TypePtr>(d->ReadRef());
       data->ptr()->closure_ = static_cast<InstancePtr>(d->ReadRef());
       data->ptr()->default_type_arguments_ =
           static_cast<TypeArgumentsPtr>(d->ReadRef());
       data->ptr()->default_type_arguments_info_ =
           static_cast<SmiPtr>(d->ReadRef());
-    }
-  }
-};
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-class SignatureDataSerializationCluster : public SerializationCluster {
- public:
-  SignatureDataSerializationCluster() : SerializationCluster("SignatureData") {}
-  ~SignatureDataSerializationCluster() {}
-
-  void Trace(Serializer* s, ObjectPtr object) {
-    SignatureDataPtr data = SignatureData::RawCast(object);
-    objects_.Add(data);
-    PushFromTo(data);
-  }
-
-  void WriteAlloc(Serializer* s) {
-    s->WriteCid(kSignatureDataCid);
-    const intptr_t count = objects_.length();
-    s->WriteUnsigned(count);
-    for (intptr_t i = 0; i < count; i++) {
-      SignatureDataPtr data = objects_[i];
-      s->AssignRef(data);
-    }
-  }
-
-  void WriteFill(Serializer* s) {
-    const intptr_t count = objects_.length();
-    for (intptr_t i = 0; i < count; i++) {
-      SignatureDataPtr data = objects_[i];
-      AutoTraceObject(data);
-      WriteFromTo(data);
-    }
-  }
-
- private:
-  GrowableArray<SignatureDataPtr> objects_;
-};
-#endif  // !DART_PRECOMPILED_RUNTIME
-
-class SignatureDataDeserializationCluster : public DeserializationCluster {
- public:
-  SignatureDataDeserializationCluster()
-      : DeserializationCluster("SignatureData") {}
-  ~SignatureDataDeserializationCluster() {}
-
-  void ReadAlloc(Deserializer* d, bool is_canonical) {
-    start_index_ = d->next_index();
-    PageSpace* old_space = d->heap()->old_space();
-    const intptr_t count = d->ReadUnsigned();
-    for (intptr_t i = 0; i < count; i++) {
-      d->AssignRef(
-          AllocateUninitialized(old_space, SignatureData::InstanceSize()));
-    }
-    stop_index_ = d->next_index();
-  }
-
-  void ReadFill(Deserializer* d, bool is_canonical) {
-    for (intptr_t id = start_index_; id < stop_index_; id++) {
-      SignatureDataPtr data = static_cast<SignatureDataPtr>(d->Ref(id));
-      Deserializer::InitializeHeader(data, kSignatureDataCid,
-                                     SignatureData::InstanceSize());
-      ReadFromTo(data);
     }
   }
 };
@@ -3348,7 +3282,6 @@ class TypeSerializationCluster : public SerializationCluster {
   void WriteType(Serializer* s, TypePtr type) {
     AutoTraceObject(type);
     WriteFromTo(type);
-    s->WriteTokenPosition(type->ptr()->token_pos_);
     ASSERT(type->ptr()->type_state_ < (1 << TypeLayout::kTypeStateBitSize));
     ASSERT(type->ptr()->nullability_ < (1 << kNullabilityBitSize));
     static_assert(TypeLayout::kTypeStateBitSize + kNullabilityBitSize <=
@@ -3386,7 +3319,6 @@ class TypeDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(type, kTypeCid, Type::InstanceSize(),
                                      is_canonical);
       ReadFromTo(type);
-      type->ptr()->token_pos_ = d->ReadTokenPosition();
       const uint8_t combined = d->Read<uint8_t>();
       type->ptr()->type_state_ = combined >> kNullabilityBitSize;
       type->ptr()->nullability_ = combined & kNullabilityBitMask;
@@ -3410,6 +3342,124 @@ class TypeDeserializationCluster : public DeserializationCluster {
     }
 
     Type& type = Type::Handle(d->zone());
+    Code& stub = Code::Handle(d->zone());
+
+    if (Snapshot::IncludesCode(d->kind())) {
+      for (intptr_t id = start_index_; id < stop_index_; id++) {
+        type ^= refs.At(id);
+        stub = type.type_test_stub();
+        type.SetTypeTestingStub(stub);  // Update type_test_stub_entry_point_
+      }
+    } else {
+      for (intptr_t id = start_index_; id < stop_index_; id++) {
+        type ^= refs.At(id);
+        stub = TypeTestingStubGenerator::DefaultCodeForType(type);
+        type.SetTypeTestingStub(stub);
+      }
+    }
+  }
+};
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+class FunctionTypeSerializationCluster : public SerializationCluster {
+ public:
+  FunctionTypeSerializationCluster() : SerializationCluster("FunctionType") {}
+  ~FunctionTypeSerializationCluster() {}
+
+  void Trace(Serializer* s, ObjectPtr object) {
+    FunctionTypePtr type = FunctionType::RawCast(object);
+    objects_.Add(type);
+    PushFromTo(type);
+  }
+
+  void WriteAlloc(Serializer* s) {
+    s->WriteCid(kFunctionTypeCid);
+    intptr_t count = objects_.length();
+    s->WriteUnsigned(count);
+    for (intptr_t i = 0; i < count; i++) {
+      FunctionTypePtr type = objects_[i];
+      s->AssignRef(type);
+    }
+  }
+
+  void WriteFill(Serializer* s) {
+    intptr_t count = objects_.length();
+    for (intptr_t i = 0; i < count; i++) {
+      WriteFunctionType(s, objects_[i]);
+    }
+  }
+
+ private:
+  void WriteFunctionType(Serializer* s, FunctionTypePtr type) {
+    AutoTraceObject(type);
+    WriteFromTo(type);
+    ASSERT(type->ptr()->type_state_ <
+           (1 << FunctionTypeLayout::kTypeStateBitSize));
+    ASSERT(type->ptr()->nullability_ < (1 << kNullabilityBitSize));
+    static_assert(FunctionTypeLayout::kTypeStateBitSize + kNullabilityBitSize <=
+                      kBitsPerByte * sizeof(uint8_t),
+                  "Cannot pack type_state_ and nullability_ into a uint8_t");
+    const uint8_t combined = (type->ptr()->type_state_ << kNullabilityBitSize) |
+                             type->ptr()->nullability_;
+    ASSERT_EQUAL(type->ptr()->type_state_, combined >> kNullabilityBitSize);
+    ASSERT_EQUAL(type->ptr()->nullability_, combined & kNullabilityBitMask);
+    s->Write<uint8_t>(combined);
+    s->Write<uint32_t>(type->ptr()->packed_fields_);
+  }
+
+  GrowableArray<FunctionTypePtr> objects_;
+};
+#endif  // !DART_PRECOMPILED_RUNTIME
+
+class FunctionTypeDeserializationCluster : public DeserializationCluster {
+ public:
+  FunctionTypeDeserializationCluster()
+      : DeserializationCluster("FunctionType") {}
+  ~FunctionTypeDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d, bool is_canonical) {
+    start_index_ = d->next_index();
+    PageSpace* old_space = d->heap()->old_space();
+    const intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      d->AssignRef(
+          AllocateUninitialized(old_space, FunctionType::InstanceSize()));
+    }
+    stop_index_ = d->next_index();
+  }
+
+  void ReadFill(Deserializer* d, bool is_canonical) {
+    for (intptr_t id = start_index_; id < stop_index_; id++) {
+      FunctionTypePtr type = static_cast<FunctionTypePtr>(d->Ref(id));
+      Deserializer::InitializeHeader(
+          type, kFunctionTypeCid, FunctionType::InstanceSize(), is_canonical);
+      ReadFromTo(type);
+      const uint8_t combined = d->Read<uint8_t>();
+      type->ptr()->type_state_ = combined >> kNullabilityBitSize;
+      type->ptr()->nullability_ = combined & kNullabilityBitMask;
+      type->ptr()->packed_fields_ = d->Read<uint32_t>();
+    }
+  }
+
+  void PostLoad(Deserializer* d, const Array& refs, bool is_canonical) {
+    if (is_canonical && (d->isolate() != Dart::vm_isolate())) {
+      CanonicalFunctionTypeSet table(
+          d->zone(),
+          d->isolate_group()->object_store()->canonical_function_types());
+      FunctionType& type = FunctionType::Handle(d->zone());
+      for (intptr_t i = start_index_; i < stop_index_; i++) {
+        type ^= refs.At(i);
+        ASSERT(type.IsCanonical());
+        bool present = table.Insert(type);
+        // Two recursive types with different topology (and hashes) may be
+        // equal.
+        ASSERT(!present || type.IsRecursive());
+      }
+      d->isolate_group()->object_store()->set_canonical_function_types(
+          table.Release());
+    }
+
+    FunctionType& type = FunctionType::Handle(d->zone());
     Code& stub = Code::Handle(d->zone());
 
     if (Snapshot::IncludesCode(d->kind())) {
@@ -3544,8 +3594,8 @@ class TypeParameterSerializationCluster : public SerializationCluster {
     AutoTraceObject(type);
     WriteFromTo(type);
     s->Write<int32_t>(type->ptr()->parameterized_class_id_);
-    s->WriteTokenPosition(type->ptr()->token_pos_);
-    s->Write<int16_t>(type->ptr()->index_);
+    s->Write<uint16_t>(type->ptr()->base_);
+    s->Write<uint16_t>(type->ptr()->index_);
     ASSERT(type->ptr()->flags_ < (1 << TypeParameterLayout::kFlagsBitSize));
     ASSERT(type->ptr()->nullability_ < (1 << kNullabilityBitSize));
     static_assert(TypeParameterLayout::kFlagsBitSize + kNullabilityBitSize <=
@@ -3586,8 +3636,8 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
           type, kTypeParameterCid, TypeParameter::InstanceSize(), is_canonical);
       ReadFromTo(type);
       type->ptr()->parameterized_class_id_ = d->Read<int32_t>();
-      type->ptr()->token_pos_ = d->ReadTokenPosition();
-      type->ptr()->index_ = d->Read<int16_t>();
+      type->ptr()->base_ = d->Read<uint16_t>();
+      type->ptr()->index_ = d->Read<uint16_t>();
       const uint8_t combined = d->Read<uint8_t>();
       type->ptr()->flags_ = combined >> kNullabilityBitSize;
       type->ptr()->nullability_ = combined & kNullabilityBitMask;
@@ -3603,10 +3653,8 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         type_param ^= refs.At(i);
         ASSERT(type_param.IsCanonical());
-        if (!type_param.IsDeclaration()) {
-          bool present = table.Insert(type_param);
-          ASSERT(!present);
-        }
+        bool present = table.Insert(type_param);
+        ASSERT(!present);
       }
       d->isolate_group()->object_store()->set_canonical_type_parameters(
           table.Release());
@@ -4949,6 +4997,7 @@ class ProgramSerializationRoots : public SerializationRoots {
         object_store_(object_store),
         saved_symbol_table_(Array::Handle()),
         saved_canonical_types_(Array::Handle()),
+        saved_canonical_function_types_(Array::Handle()),
         saved_canonical_type_parameters_(Array::Handle()),
         saved_canonical_type_arguments_(Array::Handle()),
         dispatch_table_entries_(Array::Handle()) {
@@ -4959,6 +5008,10 @@ class ProgramSerializationRoots : public SerializationRoots {
     saved_canonical_types_ = object_store->canonical_types();
     object_store->set_canonical_types(
         Array::Handle(HashTables::New<CanonicalTypeSet>(4)));
+
+    saved_canonical_function_types_ = object_store->canonical_function_types();
+    object_store->set_canonical_function_types(
+        Array::Handle(HashTables::New<CanonicalFunctionTypeSet>(4)));
 
     saved_canonical_type_parameters_ =
         object_store->canonical_type_parameters();
@@ -4972,6 +5025,8 @@ class ProgramSerializationRoots : public SerializationRoots {
   ~ProgramSerializationRoots() {
     object_store_->set_symbol_table(saved_symbol_table_);
     object_store_->set_canonical_types(saved_canonical_types_);
+    object_store_->set_canonical_function_types(
+        saved_canonical_function_types_);
     object_store_->set_canonical_type_parameters(
         saved_canonical_type_parameters_);
     object_store_->set_canonical_type_arguments(
@@ -5033,6 +5088,7 @@ class ProgramSerializationRoots : public SerializationRoots {
   ObjectStore* object_store_;
   Array& saved_symbol_table_;
   Array& saved_canonical_types_;
+  Array& saved_canonical_function_types_;
   Array& saved_canonical_type_parameters_;
   Array& saved_canonical_type_arguments_;
   Array& dispatch_table_entries_;
@@ -5494,8 +5550,6 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
       return new (Z) FunctionSerializationCluster();
     case kClosureDataCid:
       return new (Z) ClosureDataSerializationCluster();
-    case kSignatureDataCid:
-      return new (Z) SignatureDataSerializationCluster();
     case kFfiTrampolineDataCid:
       return new (Z) FfiTrampolineDataSerializationCluster();
     case kFieldCid:
@@ -5538,6 +5592,8 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
       return new (Z) LibraryPrefixSerializationCluster();
     case kTypeCid:
       return new (Z) TypeSerializationCluster();
+    case kFunctionTypeCid:
+      return new (Z) FunctionTypeSerializationCluster();
     case kTypeRefCid:
       return new (Z) TypeRefSerializationCluster();
     case kTypeParameterCid:
@@ -6194,8 +6250,6 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) FunctionDeserializationCluster();
     case kClosureDataCid:
       return new (Z) ClosureDataDeserializationCluster();
-    case kSignatureDataCid:
-      return new (Z) SignatureDataDeserializationCluster();
     case kFfiTrampolineDataCid:
       return new (Z) FfiTrampolineDataDeserializationCluster();
     case kFieldCid:
@@ -6240,6 +6294,8 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) LibraryPrefixDeserializationCluster();
     case kTypeCid:
       return new (Z) TypeDeserializationCluster();
+    case kFunctionTypeCid:
+      return new (Z) FunctionTypeDeserializationCluster();
     case kTypeRefCid:
       return new (Z) TypeRefDeserializationCluster();
     case kTypeParameterCid:

@@ -81,6 +81,8 @@ DEFINE_NATIVE_ENTRY(Object_runtimeType, 0, 1) {
     return Type::IntType();
   } else if (instance.IsDouble()) {
     return Type::Double();
+  } else if (instance.IsType() || instance.IsFunctionType()) {
+    return Type::DartTypeType();
   }
   return instance.GetType(Heap::kNew);
 }
@@ -97,8 +99,10 @@ DEFINE_NATIVE_ENTRY(Object_haveSameRuntimeType, 0, 2) {
   if (left_cid != right_cid) {
     if (IsIntegerClassId(left_cid)) {
       return Bool::Get(IsIntegerClassId(right_cid)).raw();
-    } else if (IsStringClassId(right_cid)) {
+    } else if (IsStringClassId(left_cid)) {
       return Bool::Get(IsStringClassId(right_cid)).raw();
+    } else if (IsTypeClassId(left_cid)) {
+      return Bool::Get(IsTypeClassId(right_cid)).raw();
     } else {
       return Bool::False().raw();
     }
@@ -190,6 +194,26 @@ DEFINE_NATIVE_ENTRY(Type_getHashCode, 0, 1) {
 
 DEFINE_NATIVE_ENTRY(Type_equality, 0, 2) {
   const Type& type = Type::CheckedHandle(zone, arguments->NativeArgAt(0));
+  const Instance& other =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(1));
+  if (type.raw() == other.raw()) {
+    return Bool::True().raw();
+  }
+  return Bool::Get(type.IsEquivalent(other, TypeEquality::kSyntactical)).raw();
+}
+
+DEFINE_NATIVE_ENTRY(FunctionType_getHashCode, 0, 1) {
+  const FunctionType& type =
+      FunctionType::CheckedHandle(zone, arguments->NativeArgAt(0));
+  intptr_t hash_val = type.Hash();
+  ASSERT(hash_val > 0);
+  ASSERT(Smi::IsValid(hash_val));
+  return Smi::New(hash_val);
+}
+
+DEFINE_NATIVE_ENTRY(FunctionType_equality, 0, 2) {
+  const FunctionType& type =
+      FunctionType::CheckedHandle(zone, arguments->NativeArgAt(0));
   const Instance& other =
       Instance::CheckedHandle(zone, arguments->NativeArgAt(1));
   if (type.raw() == other.raw()) {

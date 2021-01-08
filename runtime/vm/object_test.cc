@@ -78,17 +78,20 @@ ISOLATE_UNIT_TEST_CASE(Class) {
 
   // Create and populate the function arrays.
   const Array& functions = Array::Handle(Array::New(6));
+  FunctionType& signature = FunctionType::Handle();
   Function& function = Function::Handle();
   String& function_name = String::Handle();
   function_name = Symbols::New(thread, "foo");
-  function =
-      Function::New(function_name, FunctionLayout::kRegularFunction, false,
-                    false, false, false, false, cls, TokenPosition::kMinSource);
+  signature = FunctionType::New();
+  function = Function::New(signature, function_name,
+                           FunctionLayout::kRegularFunction, false, false,
+                           false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(0, function);
   function_name = Symbols::New(thread, "bar");
-  function =
-      Function::New(function_name, FunctionLayout::kRegularFunction, false,
-                    false, false, false, false, cls, TokenPosition::kMinSource);
+  signature = FunctionType::New();
+  function = Function::New(signature, function_name,
+                           FunctionLayout::kRegularFunction, false, false,
+                           false, false, false, cls, TokenPosition::kMinSource);
 
   const int kNumFixedParameters = 2;
   const int kNumOptionalParameters = 3;
@@ -99,26 +102,30 @@ ISOLATE_UNIT_TEST_CASE(Class) {
   functions.SetAt(1, function);
 
   function_name = Symbols::New(thread, "baz");
-  function =
-      Function::New(function_name, FunctionLayout::kRegularFunction, false,
-                    false, false, false, false, cls, TokenPosition::kMinSource);
+  signature = FunctionType::New();
+  function = Function::New(signature, function_name,
+                           FunctionLayout::kRegularFunction, false, false,
+                           false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(2, function);
 
   function_name = Symbols::New(thread, "Foo");
-  function =
-      Function::New(function_name, FunctionLayout::kRegularFunction, true,
-                    false, false, false, false, cls, TokenPosition::kMinSource);
+  signature = FunctionType::New();
+  function = Function::New(signature, function_name,
+                           FunctionLayout::kRegularFunction, true, false, false,
+                           false, false, cls, TokenPosition::kMinSource);
 
   functions.SetAt(3, function);
   function_name = Symbols::New(thread, "Bar");
-  function =
-      Function::New(function_name, FunctionLayout::kRegularFunction, true,
-                    false, false, false, false, cls, TokenPosition::kMinSource);
+  signature = FunctionType::New();
+  function = Function::New(signature, function_name,
+                           FunctionLayout::kRegularFunction, true, false, false,
+                           false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(4, function);
   function_name = Symbols::New(thread, "BaZ");
-  function =
-      Function::New(function_name, FunctionLayout::kRegularFunction, true,
-                    false, false, false, false, cls, TokenPosition::kMinSource);
+  signature = FunctionType::New();
+  function = Function::New(signature, function_name,
+                           FunctionLayout::kRegularFunction, true, false, false,
+                           false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(5, function);
 
   // Setup the functions in the class.
@@ -2631,9 +2638,10 @@ ISOLATE_UNIT_TEST_CASE(Closure) {
   const Context& context = Context::Handle(Context::New(0));
   Function& parent = Function::Handle();
   const String& parent_name = String::Handle(Symbols::New(thread, "foo_papa"));
-  parent =
-      Function::New(parent_name, FunctionLayout::kRegularFunction, false, false,
-                    false, false, false, cls, TokenPosition::kMinSource);
+  const FunctionType& signature = FunctionType::ZoneHandle(FunctionType::New());
+  parent = Function::New(signature, parent_name,
+                         FunctionLayout::kRegularFunction, false, false, false,
+                         false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(0, parent);
   {
     SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
@@ -2708,9 +2716,10 @@ static FunctionPtr CreateFunction(const char* name) {
   const Library& owner_library = Library::Handle(CreateDummyLibrary(lib_name));
   owner_class.set_library(owner_library);
   const String& function_name = String::ZoneHandle(Symbols::New(thread, name));
-  return Function::New(function_name, FunctionLayout::kRegularFunction, true,
-                       false, false, false, false, owner_class,
-                       TokenPosition::kMinSource);
+  const FunctionType& signature = FunctionType::ZoneHandle(FunctionType::New());
+  return Function::New(signature, function_name,
+                       FunctionLayout::kRegularFunction, true, false, false,
+                       false, false, owner_class, TokenPosition::kMinSource);
 }
 
 // Test for Code and Instruction object creation.
@@ -3107,9 +3116,11 @@ static FunctionPtr GetDummyTarget(const char* name) {
   const bool is_abstract = false;
   const bool is_external = false;
   const bool is_native = false;
-  return Function::New(function_name, FunctionLayout::kRegularFunction,
-                       is_static, is_const, is_abstract, is_external, is_native,
-                       cls, TokenPosition::kMinSource);
+  const FunctionType& signature = FunctionType::ZoneHandle(FunctionType::New());
+  return Function::New(signature, function_name,
+                       FunctionLayout::kRegularFunction, is_static, is_const,
+                       is_abstract, is_external, is_native, cls,
+                       TokenPosition::kMinSource);
 }
 
 ISOLATE_UNIT_TEST_CASE(ICData) {
@@ -3948,9 +3959,10 @@ ISOLATE_UNIT_TEST_CASE(FindClosureIndex) {
 
   Function& parent = Function::Handle();
   const String& parent_name = String::Handle(Symbols::New(thread, "foo_papa"));
-  parent =
-      Function::New(parent_name, FunctionLayout::kRegularFunction, false, false,
-                    false, false, false, cls, TokenPosition::kMinSource);
+  const FunctionType& signature = FunctionType::ZoneHandle(FunctionType::New());
+  parent = Function::New(signature, parent_name,
+                         FunctionLayout::kRegularFunction, false, false, false,
+                         false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(0, parent);
   {
     SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
@@ -3992,9 +4004,10 @@ ISOLATE_UNIT_TEST_CASE(FindInvocationDispatcherFunctionIndex) {
   const Array& functions = Array::Handle(Array::New(1));
   Function& parent = Function::Handle();
   const String& parent_name = String::Handle(Symbols::New(thread, "foo_papa"));
-  parent =
-      Function::New(parent_name, FunctionLayout::kRegularFunction, false, false,
-                    false, false, false, cls, TokenPosition::kMinSource);
+  const FunctionType& signature = FunctionType::ZoneHandle(FunctionType::New());
+  parent = Function::New(signature, parent_name,
+                         FunctionLayout::kRegularFunction, false, false, false,
+                         false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(0, parent);
   {
     SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());

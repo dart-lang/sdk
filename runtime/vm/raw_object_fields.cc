@@ -20,7 +20,6 @@ namespace dart {
   F(Class, library_)                                                           \
   F(Class, type_parameters_)                                                   \
   F(Class, super_type_)                                                        \
-  F(Class, signature_function_)                                                \
   F(Class, constants_)                                                         \
   F(Class, declaration_type_)                                                  \
   F(Class, invocation_dispatcher_cache_)                                       \
@@ -34,19 +33,12 @@ namespace dart {
   F(PatchClass, library_kernel_data_)                                          \
   F(Function, name_)                                                           \
   F(Function, owner_)                                                          \
-  F(Function, result_type_)                                                    \
-  F(Function, parameter_types_)                                                \
-  F(Function, parameter_names_)                                                \
-  F(Function, type_parameters_)                                                \
   F(Function, data_)                                                           \
   F(Function, ic_data_array_)                                                  \
   F(Function, code_)                                                           \
   F(ClosureData, context_scope_)                                               \
   F(ClosureData, parent_function_)                                             \
-  F(ClosureData, signature_type_)                                              \
   F(ClosureData, closure_)                                                     \
-  F(SignatureData, parent_function_)                                           \
-  F(SignatureData, signature_type_)                                            \
   F(Field, name_)                                                              \
   F(Field, owner_)                                                             \
   F(Field, type_)                                                              \
@@ -137,14 +129,18 @@ namespace dart {
   F(Type, type_class_id_)                                                      \
   F(Type, arguments_)                                                          \
   F(Type, hash_)                                                               \
-  F(Type, signature_)                                                          \
+  F(FunctionType, type_test_stub_)                                             \
+  F(FunctionType, hash_)                                                       \
+  F(FunctionType, result_type_)                                                \
+  F(FunctionType, parameter_types_)                                            \
+  F(FunctionType, parameter_names_)                                            \
+  F(FunctionType, type_parameters_)                                            \
   F(TypeRef, type_test_stub_)                                                  \
   F(TypeRef, type_)                                                            \
   F(TypeParameter, type_test_stub_)                                            \
   F(TypeParameter, name_)                                                      \
   F(TypeParameter, hash_)                                                      \
   F(TypeParameter, bound_)                                                     \
-  F(TypeParameter, parameterized_function_)                                    \
   F(Closure, instantiator_type_arguments_)                                     \
   F(Closure, function_type_arguments_)                                         \
   F(Closure, delayed_type_arguments_)                                          \
@@ -188,7 +184,6 @@ namespace dart {
   F(PointerBase, data_)                                                        \
   F(Pointer, type_arguments_)                                                  \
   F(DynamicLibrary, handle_)                                                   \
-  F(FfiTrampolineData, signature_type_)                                        \
   F(FfiTrampolineData, c_signature_)                                           \
   F(FfiTrampolineData, callback_target_)                                       \
   F(FfiTrampolineData, callback_exceptional_return_)                           \

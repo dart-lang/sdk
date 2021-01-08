@@ -146,6 +146,26 @@ class AbstractTypeKeyValueTrait {
 
 typedef DirectChainedHashMap<AbstractTypeKeyValueTrait> AbstractTypeSet;
 
+class FunctionTypeKeyValueTrait {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const FunctionType* Key;
+  typedef const FunctionType* Value;
+  typedef const FunctionType* Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline intptr_t Hashcode(Key key) { return key->Hash(); }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) {
+    return pair->raw() == key->raw();
+  }
+};
+
+typedef DirectChainedHashMap<FunctionTypeKeyValueTrait> FunctionTypeSet;
+
 class TypeParameterKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
@@ -306,6 +326,7 @@ class Precompiler : public ValueObject {
   void DropFields();
   void TraceTypesFromRetainedClasses();
   void DropTypes();
+  void DropFunctionTypes();
   void DropTypeParameters();
   void DropTypeArguments();
   void DropMetadata();
@@ -347,6 +368,7 @@ class Precompiler : public ValueObject {
   intptr_t dropped_class_count_;
   intptr_t dropped_typearg_count_;
   intptr_t dropped_type_count_;
+  intptr_t dropped_functiontype_count_;
   intptr_t dropped_typeparam_count_;
   intptr_t dropped_library_count_;
 
@@ -361,6 +383,7 @@ class Precompiler : public ValueObject {
   ClassSet classes_to_retain_;
   TypeArgumentsSet typeargs_to_retain_;
   AbstractTypeSet types_to_retain_;
+  FunctionTypeSet functiontypes_to_retain_;
   TypeParameterSet typeparams_to_retain_;
   InstanceSet consts_to_retain_;
   TableSelectorSet seen_table_selectors_;

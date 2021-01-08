@@ -112,8 +112,7 @@
   FIELD(Function, kind_tag_offset)                                             \
   FIELD(Function, packed_fields_offset)                                        \
   FIELD(Function, parameter_names_offset)                                      \
-  FIELD(Function, parameter_types_offset)                                      \
-  FIELD(Function, type_parameters_offset)                                      \
+  FIELD(Function, signature_offset)                                            \
   FIELD(FutureOr, type_arguments_offset)                                       \
   FIELD(GrowableObjectArray, data_offset)                                      \
   FIELD(GrowableObjectArray, length_offset)                                    \
@@ -153,6 +152,7 @@
   FIELD(ObjectStore, double_type_offset)                                       \
   FIELD(ObjectStore, int_type_offset)                                          \
   FIELD(ObjectStore, string_type_offset)                                       \
+  FIELD(ObjectStore, type_type_offset)                                         \
   FIELD(OneByteString, data_offset)                                            \
   FIELD(PointerBase, data_field_offset)                                        \
   FIELD(Pointer, type_arguments_offset)                                        \
@@ -261,10 +261,13 @@
   FIELD(TwoByteString, data_offset)                                            \
   FIELD(Type, arguments_offset)                                                \
   FIELD(Type, hash_offset)                                                     \
-  FIELD(Type, signature_offset)                                                \
   FIELD(Type, type_class_id_offset)                                            \
   FIELD(Type, type_state_offset)                                               \
   FIELD(Type, nullability_offset)                                              \
+  FIELD(FunctionType, hash_offset)                                             \
+  FIELD(FunctionType, packed_fields_offset)                                    \
+  FIELD(FunctionType, parameter_types_offset)                                  \
+  FIELD(FunctionType, type_parameters_offset)                                  \
   FIELD(TypeParameter, parameterized_class_id_offset)                          \
   FIELD(TypeParameter, index_offset)                                           \
   FIELD(TypeParameter, nullability_offset)                                     \
@@ -299,6 +302,7 @@
       kNumberOfCpuRegisters - 1,                                               \
       [](Register reg) { return (kDartAvailableCpuRegs & (1 << reg)) != 0; })) \
                                                                                \
+  SIZEOF(AbstractType, InstanceSize, AbstractTypeLayout)                       \
   SIZEOF(ApiError, InstanceSize, ApiErrorLayout)                               \
   SIZEOF(Array, InstanceSize, ArrayLayout)                                     \
   SIZEOF(Array, header_size, ArrayLayout)                                      \
@@ -324,6 +328,7 @@
   SIZEOF(Float32x4, InstanceSize, Float32x4Layout)                             \
   SIZEOF(Float64x2, InstanceSize, Float64x2Layout)                             \
   SIZEOF(Function, InstanceSize, FunctionLayout)                               \
+  SIZEOF(FunctionType, InstanceSize, FunctionTypeLayout)                       \
   SIZEOF(FutureOr, InstanceSize, FutureOrLayout)                               \
   SIZEOF(GrowableObjectArray, InstanceSize, GrowableObjectArrayLayout)         \
   SIZEOF(ICData, InstanceSize, ICDataLayout)                                   \
@@ -355,7 +360,6 @@
   SIZEOF(RegExp, InstanceSize, RegExpLayout)                                   \
   SIZEOF(Script, InstanceSize, ScriptLayout)                                   \
   SIZEOF(SendPort, InstanceSize, SendPortLayout)                               \
-  SIZEOF(SignatureData, InstanceSize, SignatureDataLayout)                     \
   SIZEOF(SingleTargetCache, InstanceSize, SingleTargetCacheLayout)             \
   SIZEOF(Smi, InstanceSize, SmiLayout)                                         \
   SIZEOF(StackTrace, InstanceSize, StackTraceLayout)                           \

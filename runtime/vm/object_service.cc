@@ -228,11 +228,7 @@ void PatchClass::PrintJSONImpl(JSONStream* stream, bool ref) const {
 static void AddFunctionServiceId(const JSONObject& jsobj,
                                  const Function& f,
                                  const Class& cls) {
-  if (cls.IsNull()) {
-    ASSERT(f.IsSignatureFunction());
-    jsobj.AddServiceId(f);
-    return;
-  }
+  ASSERT(!cls.IsNull());
   // Special kinds of functions use indices in their respective lists.
   intptr_t id = -1;
   const char* selector = NULL;
@@ -283,13 +279,10 @@ static void AddFunctionServiceId(const JSONObject& jsobj,
 
 void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Class& cls = Class::Handle(Owner());
-  if (!cls.IsNull()) {
-    Error& err = Error::Handle();
-    err = cls.EnsureIsFinalized(Thread::Current());
-    ASSERT(err.IsNull());
-  } else {
-    ASSERT(IsSignatureFunction());
-  }
+  ASSERT(!cls.IsNull());
+  Error& err = Error::Handle();
+  err = cls.EnsureIsFinalized(Thread::Current());
+  ASSERT(err.IsNull());
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Function", ref);
   AddFunctionServiceId(jsobj, *this, cls);
@@ -1103,7 +1096,6 @@ void AbstractType::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 void Type::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  // TODO(regis): Function types are not handled properly.
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "Type");
@@ -1125,6 +1117,13 @@ void Type::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (!typeArgs.IsNull()) {
     jsobj.AddProperty("typeArguments", typeArgs);
   }
+}
+
+void FunctionType::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "FunctionType");
+  // TODO(regis): Function types were not handled before, necessary now?
 }
 
 void TypeRef::PrintJSONImpl(JSONStream* stream, bool ref) const {
@@ -1149,6 +1148,7 @@ void TypeParameter::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const String& user_name = String::Handle(UserVisibleName());
   const String& vm_name = String::Handle(Name());
   AddNameProperties(&jsobj, user_name.ToCString(), vm_name.ToCString());
+  // TODO(regis): parameterizedClass is meaningless and always null.
   const Class& param_cls = Class::Handle(parameterized_class());
   jsobj.AddProperty("parameterizedClass", param_cls);
   if (ref) {
@@ -1469,10 +1469,6 @@ void TransferableTypedData::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 void ClosureData::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Object::PrintJSONImpl(stream, ref);
-}
-
-void SignatureData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
 

@@ -2370,6 +2370,7 @@ intptr_t FlowGraphInliner::NextInlineId(const Function& function,
   ASSERT(source.token_pos.IsReal() || source.token_pos.IsSynthetic() ||
          source.token_pos.IsNoSource());
   RELEASE_ASSERT(!function.IsNull());
+  ASSERT(FunctionType::Handle(function.signature()).IsFinalized());
   inline_id_to_function_->Add(&function);
   inline_id_to_token_pos_->Add(source.token_pos);
   caller_inline_id_->Add(source.inlining_id);
@@ -4128,6 +4129,8 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
         type = Type::Double();
       } else if (IsIntegerClassId(receiver_cid)) {
         type = Type::IntType();
+      } else if (IsTypeClassId(receiver_cid)) {
+        type = Type::DartTypeType();
       } else if (receiver_cid != kClosureCid) {
         const Class& cls = Class::Handle(
             Z, flow_graph->isolate_group()->class_table()->At(receiver_cid));

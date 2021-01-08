@@ -155,6 +155,8 @@ static intptr_t GetTypeIndex(ObjectStore* object_store,
                              const ObjectPtr raw_type) {
   if (raw_type == object_store->legacy_object_type()) {
     return kLegacyObjectType;
+  } else if (raw_type == object_store->nullable_object_type()) {
+    return kNullableObjectType;
   } else if (raw_type == object_store->null_type()) {
     return kNullType;
   } else if (raw_type == object_store->never_type()) {

@@ -501,8 +501,7 @@ class Function : public AllStatic {
   static word kind_tag_offset();
   static word packed_fields_offset();
   static word parameter_names_offset();
-  static word parameter_types_offset();
-  static word type_parameters_offset();
+  static word signature_offset();
   static word usage_counter_offset();
   static word InstanceSize();
   static word NextFieldOffset();
@@ -656,6 +655,8 @@ class Pointer : public PointerBase {
 class AbstractType : public AllStatic {
  public:
   static word type_test_stub_entry_point_offset();
+  static word InstanceSize();
+  static word NextFieldOffset();
 };
 
 class Type : public AllStatic {
@@ -663,8 +664,19 @@ class Type : public AllStatic {
   static word hash_offset();
   static word type_state_offset();
   static word arguments_offset();
-  static word signature_offset();
   static word type_class_id_offset();
+  static word nullability_offset();
+  static word InstanceSize();
+  static word NextFieldOffset();
+};
+
+class FunctionType : public AllStatic {
+ public:
+  static word hash_offset();
+  static word type_state_offset();
+  static word packed_fields_offset();
+  static word parameter_types_offset();
+  static word type_parameters_offset();
   static word nullability_offset();
   static word InstanceSize();
   static word NextFieldOffset();
@@ -679,9 +691,9 @@ class TypeRef : public AllStatic {
 
 class Nullability : public AllStatic {
  public:
-  static const int8_t kNullable;
-  static const int8_t kNonNullable;
-  static const int8_t kLegacy;
+  static const uint8_t kNullable;
+  static const uint8_t kNonNullable;
+  static const uint8_t kLegacy;
 };
 
 class Double : public AllStatic {
@@ -765,12 +777,6 @@ class DynamicLibrary : public AllStatic {
 };
 
 class PatchClass : public AllStatic {
- public:
-  static word InstanceSize();
-  static word NextFieldOffset();
-};
-
-class SignatureData : public AllStatic {
  public:
   static word InstanceSize();
   static word NextFieldOffset();
@@ -1125,6 +1131,7 @@ class ObjectStore : public AllStatic {
   static word double_type_offset();
   static word int_type_offset();
   static word string_type_offset();
+  static word type_type_offset();
 };
 
 class Isolate : public AllStatic {
