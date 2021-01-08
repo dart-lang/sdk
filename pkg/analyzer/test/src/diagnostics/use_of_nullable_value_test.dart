@@ -1059,12 +1059,14 @@ m() {
   }
 
   test_not_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   bool x = true;
   if(!x) {}
 }
-''');
+''', [
+      error(HintCode.DEAD_CODE, 32, 2),
+    ]);
   }
 
   test_not_nullable() async {
@@ -1293,12 +1295,14 @@ m(A? x) {
   }
 
   test_or_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   bool x = true;
   if(x || false) {}
 }
-''');
+''', [
+      error(HintCode.DEAD_CODE, 33, 5),
+    ]);
   }
 
   test_or_nullable() async {
