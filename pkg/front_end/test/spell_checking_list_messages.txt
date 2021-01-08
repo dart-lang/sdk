@@ -40,7 +40,6 @@ name.#name
 name.stack
 nameokempty
 native('native
-natively
 nativetype
 nnbd
 nosuchmethod

@@ -5937,39 +5937,6 @@ const MessageCode messageJsInteropNamedParameters = const MessageCode(
     tip: r"""Try replacing them with normal or optional parameters.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        String name,
-        String name2,
-        String
-            string3)> templateJsInteropNativeClassInAnnotation = const Template<
-        Message Function(String name, String name2, String string3)>(
-    messageTemplate:
-        r"""JS interop class '#name' conflicts with natively supported class '#name2' in '#string3'.""",
-    withArguments: _withArgumentsJsInteropNativeClassInAnnotation);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, String name2, String string3)>
-    codeJsInteropNativeClassInAnnotation =
-    const Code<Message Function(String name, String name2, String string3)>(
-  "JsInteropNativeClassInAnnotation",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropNativeClassInAnnotation(
-    String name, String name2, String string3) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
-  if (string3.isEmpty) throw 'No string provided';
-  return new Message(codeJsInteropNativeClassInAnnotation,
-      message:
-          """JS interop class '${name}' conflicts with natively supported class '${name2}' in '${string3}'.""",
-      arguments: {'name': name, 'name2': name2, 'string3': string3});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropNonExternalConstructor =
     messageJsInteropNonExternalConstructor;
 

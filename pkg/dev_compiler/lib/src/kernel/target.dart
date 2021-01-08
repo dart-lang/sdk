@@ -17,7 +17,6 @@ import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/transformations/track_widget_constructor_locations.dart';
 import 'package:_js_interop_checks/js_interop_checks.dart';
-import 'package:_js_interop_checks/src/js_interop.dart';
 
 import 'constants.dart' show DevCompilerConstantsBackend;
 import 'kernel_helpers.dart';
@@ -153,21 +152,10 @@ class DevCompilerTarget extends Target {
       ReferenceFromIndex referenceFromIndex,
       {void Function(String msg) logger,
       ChangedStructureNotifier changedStructureNotifier}) {
-    var nativeClasses = <String, Class>{};
-    for (var library in component.libraries) {
-      for (var cls in library.classes) {
-        var nativeNames = getNativeNames(cls);
-        for (var nativeName in nativeNames) {
-          nativeClasses[nativeName] = cls;
-        }
-      }
-    }
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();
-      JsInteropChecks(
-              coreTypes,
-              diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
-              nativeClasses)
+      JsInteropChecks(coreTypes,
+              diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>)
           .visitLibrary(library);
     }
   }
