@@ -1457,7 +1457,7 @@ class Type extends Member {
         field.generateNamedParameter(gen, fromParent: fromParent);
       });
       if (hasRequiredParentFields) {
-        superType!.fields.where((field) => !field.optional).forEach(
+        superType.fields.where((field) => !field.optional).forEach(
             (field) => field.generateNamedParameter(gen, fromParent: true));
       }
       fields
@@ -1468,7 +1468,7 @@ class Type extends Member {
     gen.write(')');
     if (hasRequiredParentFields) {
       gen.write(' : super(');
-      superType!.fields.where((field) => !field.optional).forEach((field) {
+      superType.fields.where((field) => !field.optional).forEach((field) {
         String? name = field.generatableName;
         gen.writeln('$name: $name,');
       });
