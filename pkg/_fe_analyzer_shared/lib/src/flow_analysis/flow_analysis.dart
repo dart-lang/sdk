@@ -12,7 +12,7 @@ import 'package:meta/meta.dart';
 ///
 /// Changing this value to `true` will cause some dead code warnings to appear
 /// for code that only exists to support the old behavior.
-const bool allowLocalBooleanVarsToPromoteByDefault = false;
+const bool allowLocalBooleanVarsToPromoteByDefault = true;
 
 /// [AssignedVariables] is a helper class capable of computing the set of
 /// variables that are potentially written to, and potentially captured by

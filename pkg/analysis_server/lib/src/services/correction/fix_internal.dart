@@ -819,7 +819,31 @@ class FixProcessor extends BaseProcessor {
       CreateClass.newInstance,
       CreateMixin.newInstance,
     ],
+    CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE: [
+      AddNullCheck.newInstance,
+    ],
+    CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE: [
+      AddNullCheck.newInstance,
+    ],
+    CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE: [
+      AddNullCheck.newInstance,
+    ],
+    CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE: [
+      AddNullCheck.newInstance,
+    ],
     CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE: [
+      AddNullCheck.newInstance,
+    ],
+    CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION: [
+      AddNullCheck.newInstance,
+    ],
+    CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR: [
+      AddNullCheck.newInstance,
+    ],
+    CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD: [
+      AddNullCheck.newInstance,
+    ],
+    CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH: [
       AddNullCheck.newInstance,
     ],
     CompileTimeErrorCode.UNDEFINED_ANNOTATION: [

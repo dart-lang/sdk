@@ -819,8 +819,6 @@ class ClassLayout : public ObjectLayout {
   POINTER_FIELD(LibraryPtr, library)
   POINTER_FIELD(TypeArgumentsPtr, type_parameters)  // Array of TypeParameter.
   POINTER_FIELD(AbstractTypePtr, super_type)
-  POINTER_FIELD(ArrayPtr,
-                constants)  // Canonicalized const instances of this class.
   POINTER_FIELD(TypePtr, declaration_type)  // Declaration type for this class.
   POINTER_FIELD(ArrayPtr,
                 invocation_dispatcher_cache)  // Cache for dispatcher functions.
@@ -830,7 +828,9 @@ class ClassLayout : public ObjectLayout {
                 direct_implementors)                        // Array of Class.
   POINTER_FIELD(GrowableObjectArrayPtr, direct_subclasses)  // Array of Class.
   POINTER_FIELD(ArrayPtr, dependent_code)  // CHA optimized codes.
-  VISIT_TO(ObjectPtr, dependent_code)
+  POINTER_FIELD(ArrayPtr,
+                constants)  // Canonicalized const instances of this class.
+  VISIT_TO(ObjectPtr, constants)
   ObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:

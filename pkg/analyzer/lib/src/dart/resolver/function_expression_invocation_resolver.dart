@@ -43,7 +43,8 @@ class FunctionExpressionInvocationResolver {
       return;
     }
 
-    _nullableDereferenceVerifier.expression(function);
+    _nullableDereferenceVerifier.expression(function,
+        errorCode: CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE);
 
     var receiverType = function.staticType;
     if (receiverType is FunctionType) {

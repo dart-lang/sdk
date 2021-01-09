@@ -16,7 +16,7 @@ var tests = <VMTest>[
     expect(result.isolateFlags, isNotNull);
     expect(result.isolateFlags.length, isPositive);
     expect(result.isSystemIsolate, isFalse);
-    expect(result.json['_originNumber'], result.number);
+    expect(result.json!['_originNumber'], result.number);
     expect(result.startTime, isPositive);
     expect(result.livePorts, isPositive);
     expect(result.pauseOnExit, isFalse);
@@ -26,12 +26,12 @@ var tests = <VMTest>[
     expect(result.libraries.length, isPositive);
     expect(result.libraries[0], isNotNull);
     expect(result.breakpoints.length, isZero);
-    expect(result.json['_heaps']['new']['type'], 'HeapSpace');
-    expect(result.json['_heaps']['old']['type'], 'HeapSpace');
+    expect(result.json!['_heaps']['new']['type'], 'HeapSpace');
+    expect(result.json!['_heaps']['old']['type'], 'HeapSpace');
   },
 
   (VmService service) async {
-    bool caughtException;
+    bool caughtException = false;
     try {
       await service.getIsolate('badid');
       expect(false, isTrue, reason: 'Unreachable');

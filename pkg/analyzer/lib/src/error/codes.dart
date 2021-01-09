@@ -9738,6 +9738,44 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "creating a type with the name '{0}'.",
           hasPublishedDocs: true);
 
+  static const CompileTimeErrorCode UNCHECKED_INVOCATION_OF_NULLABLE_VALUE =
+      CompileTimeErrorCode('UNCHECKED_USE_OF_NULLABLE_VALUE',
+          "The function can't be unconditionally invoked because it can be 'null'.",
+          correction: "Try adding a null check ('!').",
+          hasPublishedDocs: true,
+          uniqueName: 'UNCHECKED_INVOCATION_OF_NULLABLE_VALUE');
+
+  static const CompileTimeErrorCode
+      UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE = CompileTimeErrorCode(
+          'UNCHECKED_USE_OF_NULLABLE_VALUE',
+          "The method '{0}' can't be unconditionally invoked because the "
+              "receiver can be 'null'.",
+          correction:
+              "Try making the call conditional (using '?.') or adding a null "
+              "check to the target ('!').",
+          hasPublishedDocs: true,
+          uniqueName: 'UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE');
+
+  static const CompileTimeErrorCode
+      UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE = CompileTimeErrorCode(
+          'UNCHECKED_USE_OF_NULLABLE_VALUE',
+          "The operator '{0}' can't be unconditionally invoked because the "
+              "receiver can be 'null'.",
+          correction: "Try adding a null check to the target ('!').",
+          hasPublishedDocs: true,
+          uniqueName: 'UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE');
+
+  static const CompileTimeErrorCode
+      UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE = CompileTimeErrorCode(
+          'UNCHECKED_USE_OF_NULLABLE_VALUE',
+          "The property '{0}' can't be unconditionally accessed because the "
+              "receiver can be 'null'.",
+          correction:
+              "Try making the access conditional (using '?.') or adding a null "
+              "check to the target ('!').",
+          hasPublishedDocs: true,
+          uniqueName: 'UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE');
+
   /**
    * No parameters.
    */
@@ -9805,6 +9843,46 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "Try checking that the value isn't 'null' before dereferencing "
               "it.",
           hasPublishedDocs: true);
+
+  static const CompileTimeErrorCode
+      UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION = CompileTimeErrorCode(
+          'UNCHECKED_USE_OF_NULLABLE_VALUE',
+          "A nullable expression can't be used as a condition.",
+          correction:
+              "Try checking that the value isn't 'null' before using it as a "
+              'condition.',
+          hasPublishedDocs: true,
+          uniqueName: 'UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION');
+
+  static const CompileTimeErrorCode
+      UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR = CompileTimeErrorCode(
+          'UNCHECKED_USE_OF_NULLABLE_VALUE',
+          "A nullable expression can't be used as an iterator in a for-in "
+              'loop.',
+          correction:
+              "Try checking that the value isn't 'null' before using it as an "
+              'iterator.',
+          hasPublishedDocs: true,
+          uniqueName: 'UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR');
+
+  static const CompileTimeErrorCode UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD =
+      CompileTimeErrorCode('UNCHECKED_USE_OF_NULLABLE_VALUE',
+          "A nullable expression can't be used in a spread.",
+          correction:
+              "Try checking that the value isn't 'null' before using it in a "
+              'spread, or use a null-aware spread.',
+          hasPublishedDocs: true,
+          uniqueName: 'UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD');
+
+  static const CompileTimeErrorCode
+      UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH = CompileTimeErrorCode(
+          'UNCHECKED_USE_OF_NULLABLE_VALUE',
+          "A nullable expression can't be used in a yield-each statement.",
+          correction:
+              "Try checking that the value isn't 'null' before using it in a "
+              'yield-each statement.',
+          hasPublishedDocs: true,
+          uniqueName: 'UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH');
 
   /**
    * No parameters.

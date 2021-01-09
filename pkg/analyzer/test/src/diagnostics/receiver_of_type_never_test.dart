@@ -77,7 +77,10 @@ void f(Never? x) {
   x + (1 + 2);
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 21, 1),
+      error(
+          CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE,
+          21,
+          1),
     ]);
 
     assertBinaryExpression(
@@ -121,7 +124,7 @@ void f(Never? x) {
   x();
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 21, 1),
+      error(CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 21, 1),
     ]);
   }
 
@@ -201,7 +204,8 @@ void f(Never? x) {
   x[0];
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 21, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          21, 1),
     ]);
 
     assertIndexExpression(
@@ -218,7 +222,8 @@ void f(Never? x) {
   x[0] += 1 + 2;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 21, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          21, 1),
     ]);
 
     assertAssignment(
@@ -249,7 +254,8 @@ void f(Never? x) {
   x[0] = 1 + 2;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 21, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          21, 1),
     ]);
 
     assertIndexExpression(
@@ -358,7 +364,8 @@ void f(Never? x) {
   x++;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 21, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          21, 1),
     ]);
 
     assertPostfixExpression(
@@ -399,7 +406,8 @@ void f(Never? x) {
   ++x;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 23, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          23, 1),
     ]);
 
     assertPrefixExpression(
@@ -509,7 +517,8 @@ void f(Never? x) {
   x.foo;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 21, 1),
+      error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          21, 1),
     ]);
 
     assertSimpleIdentifier(

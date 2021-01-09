@@ -164,7 +164,7 @@ void f(Never? x) {
   x<int>(1 + 2);
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 21, 1),
+      error(CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 21, 1),
     ]);
 
     assertFunctionExpressionInvocation(

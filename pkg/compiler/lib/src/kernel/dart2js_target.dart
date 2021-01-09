@@ -9,7 +9,6 @@ library compiler.src.kernel.dart2js_target;
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show Message, LocatedMessage;
 import 'package:_js_interop_checks/js_interop_checks.dart';
-import 'package:_js_interop_checks/src/js_interop.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -125,20 +124,9 @@ class Dart2jsTarget extends Target {
       ReferenceFromIndex referenceFromIndex,
       {void logger(String msg),
       ChangedStructureNotifier changedStructureNotifier}) {
-    var nativeClasses = <String, ir.Class>{};
-    for (var library in component.libraries) {
-      for (var cls in library.classes) {
-        var nativeNames = getNativeNames(cls);
-        for (var nativeName in nativeNames) {
-          nativeClasses[nativeName] = cls;
-        }
-      }
-    }
     for (var library in libraries) {
-      JsInteropChecks(
-              coreTypes,
-              diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
-              nativeClasses)
+      JsInteropChecks(coreTypes,
+              diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>)
           .visitLibrary(library);
     }
     lowering.transformLibraries(

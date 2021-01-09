@@ -47,7 +47,7 @@ Future checkSamples(VmService service, IsolateRef isolate) async {
 }
 
 var tests = <IsolateTest>[
-  (VmService service, IsolateRef i) => checkSamples(service, i),
+  ((VmService service, IsolateRef i) => checkSamples(service, i)),
 ];
 
 var vmArgs = [

@@ -6,7 +6,7 @@ import '../vm_service.dart';
 
 class IsolateHelper {
   static List<TagCounter> getTagCounters(Isolate isolate) {
-    Map m = isolate.json['_tagCounters'];
+    Map m = isolate.json!['_tagCounters']!;
     List<String> names = m['names'];
     List<int> counters = m['counters'];
 

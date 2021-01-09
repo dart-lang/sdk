@@ -1,4 +1,6 @@
 # Changelog
+## 6.0.0-nullsafety-dev
+- Migrate to use null safety.
 
 ## 5.5.1
 - Fix issue where `VmService.onDone` could complete before the provided `DisposeHandler` had finished executing.

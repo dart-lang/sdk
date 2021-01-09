@@ -35,12 +35,12 @@ class _FollowedBy<T> extends StreamTransformerBase<T, T> {
         ? _next.asBroadcastStream()
         : _next;
 
-    StreamSubscription<T> subscription;
+    StreamSubscription<T>? subscription;
     var currentStream = first;
     var firstDone = false;
     var secondDone = false;
 
-    Function currentDoneHandler;
+    late Function currentDoneHandler;
 
     listen() {
       subscription = currentStream.listen(controller.add,
@@ -64,21 +64,22 @@ class _FollowedBy<T> extends StreamTransformerBase<T, T> {
     controller.onListen = () {
       assert(subscription == null);
       listen();
+      final sub = subscription!;
       if (!first.isBroadcast) {
         controller
           ..onPause = () {
-            if (!firstDone || !next.isBroadcast) return subscription.pause();
-            subscription.cancel();
+            if (!firstDone || !next.isBroadcast) return sub.pause();
+            sub.cancel();
             subscription = null;
           }
           ..onResume = () {
-            if (!firstDone || !next.isBroadcast) return subscription.resume();
+            if (!firstDone || !next.isBroadcast) return sub.resume();
             listen();
           };
       }
       controller.onCancel = () {
         if (secondDone) return null;
-        var toCancel = subscription;
+        var toCancel = subscription!;
         subscription = null;
         return toCancel.cancel();
       };

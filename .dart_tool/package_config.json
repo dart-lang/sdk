@@ -722,7 +722,7 @@
       "name": "vm_service",
       "rootUri": "../pkg/vm_service",
       "packageUri": "lib/",
-      "languageVersion": "2.6"
+      "languageVersion": "2.12"
     },
     {
       "name": "vm_snapshot_analysis",

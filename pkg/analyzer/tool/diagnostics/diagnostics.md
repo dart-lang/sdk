@@ -8408,8 +8408,27 @@ void f(Object o) {
 
 ### unchecked_use_of_nullable_value
 
+_A nullable expression can't be used as a condition._
+
+_A nullable expression can't be used as an iterator in a for-in loop._
+
+_A nullable expression can't be used in a spread._
+
+_A nullable expression can't be used in a yield-each statement._
+
 _An expression whose value can be 'null' must be null-checked before it can be
 dereferenced._
+
+_The function can't be unconditionally invoked because it can be 'null'._
+
+_The method '{0}' can't be unconditionally invoked because the receiver can be
+'null'._
+
+_The operator '{0}' can't be unconditionally invoked because the receiver can be
+'null'._
+
+_The property '{0}' can't be unconditionally accessed because the receiver can
+be 'null'._
 
 #### Description
 

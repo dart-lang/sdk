@@ -25,14 +25,14 @@ void startTimer() {
 }
 
 int getLineNumberFromTokenPos(Script s, int token) =>
-    s.tokenPosTable[token].first;
+    s.tokenPosTable![token].first;
 
 var tests = <IsolateTest>[
 // Pause
-  (VmService service, IsolateRef isolateRef) async {
+  (VmService? service, IsolateRef? isolateRef) async {
     Completer completer = Completer();
-    var stream = service.onDebugEvent;
-    var subscription;
+    var stream = service!.onDebugEvent;
+    late var subscription;
     subscription = stream.listen((Event event) {
       if (event.kind == EventKind.kPauseInterrupted) {
         subscription.cancel();
@@ -40,7 +40,7 @@ var tests = <IsolateTest>[
       }
     });
     await service.streamListen(EventStreams.kDebug);
-    await service.pause(isolateRef.id);
+    await service.pause(isolateRef!.id);
     await completer.future;
     await service.streamCancel(EventStreams.kDebug);
   },
@@ -49,7 +49,7 @@ var tests = <IsolateTest>[
   (VmService service, IsolateRef isolate) async {
     Completer completer = Completer();
     var stream = service.onDebugEvent;
-    var subscription;
+    late var subscription;
     subscription = stream.listen((Event event) {
       if (event.kind == EventKind.kResume) {
         subscription.cancel();
@@ -66,12 +66,12 @@ var tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
     Isolate isolate = await service.getIsolate(isolateRef.id);
     final Library rootLib =
-        await service.getObject(isolate.id, isolate.rootLib.id);
+        (await service.getObject(isolate.id, isolate.rootLib!.id)) as Library;
 
     // Set up a listener to wait for breakpoint events.
     Completer completer = Completer();
     var stream = service.onDebugEvent;
-    var subscription;
+    late var subscription;
     subscription = stream.listen((Event event) {
       if (event.kind == EventKind.kPauseBreakpoint) {
         print('Breakpoint reached');
@@ -80,8 +80,8 @@ var tests = <IsolateTest>[
       }
     });
     await service.streamListen(EventStreams.kDebug);
-    final Script script =
-        await service.getObject(isolate.id, rootLib.scripts.first.id);
+    final Script script = (await service.getObject(
+        isolate.id, rootLib.scripts.first.id)) as Script;
     // Add the breakpoint.
     final Breakpoint bpt =
         await service.addBreakpoint(isolate.id, script.id, 16);
@@ -100,10 +100,10 @@ var tests = <IsolateTest>[
     final stack = await service.getStack(isolateRef.id);
     expect(stack.frames.length, greaterThanOrEqualTo(1));
 
-    Script script = await service.getObject(
-        isolateRef.id, stack.frames[0].location.script.id);
+    Script script = (await service.getObject(
+        isolateRef.id, stack.frames[0].location!.script.id)) as Script;
     expect(script.uri, endsWith('debugging_test.dart'));
-    expect(script.getLineNumberFromTokenPos(stack.frames[0].location.tokenPos),
+    expect(script.getLineNumberFromTokenPos(stack.frames[0].location!.tokenPos),
         16);
   },
 
@@ -112,7 +112,7 @@ var tests = <IsolateTest>[
     // Set up a listener to wait for breakpoint events.
     final completer = Completer();
     var stream = service.onDebugEvent;
-    var subscription;
+    late var subscription;
     subscription = stream.listen((Event event) {
       if (event.kind == EventKind.kPauseBreakpoint) {
         print('Breakpoint reached');
@@ -131,10 +131,10 @@ var tests = <IsolateTest>[
     final stack = await service.getStack(isolateRef.id);
     expect(stack.frames.length, greaterThanOrEqualTo(1));
 
-    final Script script = await service.getObject(
-        isolateRef.id, stack.frames[0].location.script.id);
+    final Script script = (await service.getObject(
+        isolateRef.id, stack.frames[0].location!.script.id)) as Script;
     expect(script.uri, endsWith('debugging_test.dart'));
-    expect(script.getLineNumberFromTokenPos(stack.frames[0].location.tokenPos),
+    expect(script.getLineNumberFromTokenPos(stack.frames[0].location!.tokenPos),
         17);
   },
 // Remove breakpoint
@@ -142,7 +142,7 @@ var tests = <IsolateTest>[
     // Set up a listener to wait for breakpoint events.
     final completer = Completer();
     var stream = service.onDebugEvent;
-    var subscription;
+    late var subscription;
     subscription = stream.listen((Event event) async {
       if (event.kind == EventKind.kBreakpointRemoved) {
         print('Breakpoint removed');
@@ -165,7 +165,7 @@ var tests = <IsolateTest>[
   (VmService service, IsolateRef isolate) async {
     final completer = Completer();
     var stream = service.onDebugEvent;
-    var subscription;
+    late var subscription;
     subscription = stream.listen((Event event) {
       if (event.kind == EventKind.kResume) {
         subscription.cancel();
@@ -181,7 +181,7 @@ var tests = <IsolateTest>[
     // Set up a listener to wait for breakpoint events.
     final completer = Completer();
     var stream = service.onDebugEvent;
-    var subscription;
+    late var subscription;
     subscription = stream.listen((Event event) {
       if (event.kind == EventKind.kPauseBreakpoint) {
         print('Breakpoint reached');
@@ -192,7 +192,7 @@ var tests = <IsolateTest>[
 
     await service.streamListen(EventStreams.kDebug);
     final Library rootLib =
-        await service.getObject(isolate.id, isolate.rootLib.id);
+        (await service.getObject(isolate.id, isolate.rootLib!.id)) as Library;
 
     // Find a specific function.
     final FuncRef function =
@@ -202,7 +202,7 @@ var tests = <IsolateTest>[
     // Add the breakpoint at function entry
     final bpt = await service.addBreakpointAtEntry(isolate.id, function.id);
     final Script script =
-        await service.getObject(isolate.id, bpt.location.script.id);
+        (await service.getObject(isolate.id, bpt.location.script.id)) as Script;
     expect(script.uri, endsWith('debugging_test.dart'));
     expect(script.getLineNumberFromTokenPos(bpt.location.tokenPos), 14);
 
@@ -217,10 +217,10 @@ var tests = <IsolateTest>[
     final stack = await service.getStack(isolateRef.id);
     expect(stack.frames.length, greaterThanOrEqualTo(1));
 
-    final Script script = await service.getObject(
-        isolateRef.id, stack.frames[0].location.script.id);
+    final Script script = (await service.getObject(
+        isolateRef.id, stack.frames[0].location!.script.id)) as Script;
     expect(script.uri, endsWith('debugging_test.dart'));
-    expect(script.getLineNumberFromTokenPos(stack.frames[0].location.tokenPos),
+    expect(script.getLineNumberFromTokenPos(stack.frames[0].location!.tokenPos),
         14);
   },
 ];

@@ -35,10 +35,10 @@ var tests = <IsolateTest>[
 
     // Make sure we are in the right place.
     expect(stack.frames.length, greaterThanOrEqualTo(1));
-    expect(stack.frames[0].function.name, 'testFunction');
+    expect(stack.frames[0].function!.name, 'testFunction');
 
     final Library root =
-        await service.getObject(isolate.id, isolate.rootLib.id);
+        await service.getObject(isolate.id, isolate.rootLib!.id) as Library;
     FuncRef funcRef =
         root.functions.singleWhere((f) => f.name == 'leafFunction');
     Func func = await service.getObject(isolate.id, funcRef.id) as Func;
@@ -53,12 +53,13 @@ var tests = <IsolateTest>[
         'misses': [397]
       }
     };
+    final location = func.location!;
 
     final report = await service.getSourceReport(
         isolate.id, [SourceReportKind.kCoverage],
-        scriptId: func.location.script.id,
-        tokenPos: func.location.tokenPos,
-        endTokenPos: func.location.endTokenPos,
+        scriptId: location.script.id,
+        tokenPos: location.tokenPos,
+        endTokenPos: location.endTokenPos,
         forceCompile: true);
     expect(report.ranges.length, 1);
     expect(report.ranges[0].toJson(), expectedRange);
@@ -73,10 +74,10 @@ var tests = <IsolateTest>[
 
     // Make sure we are in the right place.
     expect(stack.frames.length, greaterThanOrEqualTo(1));
-    expect(stack.frames[0].function.name, 'testFunction');
+    expect(stack.frames[0].function!.name, 'testFunction');
 
     final Library root =
-        await service.getObject(isolate.id, isolate.rootLib.id);
+        await service.getObject(isolate.id, isolate.rootLib!.id) as Library;
     FuncRef funcRef =
         root.functions.singleWhere((f) => f.name == 'leafFunction');
     Func func = await service.getObject(isolate.id, funcRef.id) as Func;
@@ -92,11 +93,12 @@ var tests = <IsolateTest>[
       }
     };
 
+    final location = func.location!;
     final report = await service.getSourceReport(
         isolate.id, [SourceReportKind.kCoverage],
-        scriptId: func.location.script.id,
-        tokenPos: func.location.tokenPos,
-        endTokenPos: func.location.endTokenPos,
+        scriptId: location.script.id,
+        tokenPos: location.tokenPos,
+        endTokenPos: location.endTokenPos,
         forceCompile: true);
     expect(report.ranges.length, 1);
     expect(report.ranges[0].toJson(), expectedRange);
