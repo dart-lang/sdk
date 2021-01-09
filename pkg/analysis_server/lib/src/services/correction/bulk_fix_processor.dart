@@ -257,6 +257,9 @@ class BulkFixProcessor {
     LintNames.unnecessary_this: [
       RemoveThisExpression.newInstance,
     ],
+    LintNames.use_function_type_syntax_for_parameters: [
+      ConvertToGenericFunctionSyntax.newInstance,
+    ],
     LintNames.use_rethrow_when_possible: [
       UseRethrow.newInstance,
     ],
