@@ -9971,12 +9971,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Same as [CompileTimeErrorCode.UNDEFINED_CLASS], but to catch using
-   * "boolean" instead of "bool".
+   * "boolean" instead of "bool" in order to improve the correction message.
+   *
+   * Parameters:
+   * 0: the name of the undefined class
    */
   static const CompileTimeErrorCode UNDEFINED_CLASS_BOOLEAN =
-      CompileTimeErrorCode(
-          'UNDEFINED_CLASS_BOOLEAN', "Undefined class 'boolean'.",
-          correction: "Try using the type 'bool'.");
+      CompileTimeErrorCode('UNDEFINED_CLASS', "Undefined class '{0}'.",
+          correction: "Try using the type 'bool'.",
+          hasPublishedDocs: true,
+          isUnresolvedIdentifier: true,
+          uniqueName: 'UNDEFINED_CLASS_BOOLEAN');
 
   /**
    * Parameters:
