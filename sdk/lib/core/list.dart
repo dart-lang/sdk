@@ -493,6 +493,13 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   void insert(int index, E element);
 
   /**
+   * Inserts [element] in between the elements of the collection.
+   * 
+   * For example, `[1, 1, 1].insertInBetween(2)` will result in 
+   * `[1, 2, 1, 2, 1]`
+   */
+  void insertInBetween(E element);
+  /**
    * Inserts all objects of [iterable] at position [index] in this list.
    *
    * This increases the length of the list by the length of [iterable] and

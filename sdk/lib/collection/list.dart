@@ -533,6 +533,12 @@ abstract class ListMixin<E> implements List<E> {
     }
   }
 
+  void insertInBetween(E element) {
+    for (int i = 1; i < length; i += 2) {
+      insert(i, element);
+    }
+  }
+
   E removeAt(int index) {
     E result = this[index];
     _closeGap(index, index + 1);

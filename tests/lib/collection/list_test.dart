@@ -150,6 +150,15 @@ void testRetainWhere() {
   }
 }
 
+void testInsertInBetween() {
+  List<int> list = [1, 1, 1];
+
+  list.insertInBetween(2);
+
+  Expect.equals(list, [1, 2, 1, 2, 1]);
+}
+
 void main() {
   testRetainWhere();
+  testInsertInBetween();
 }
