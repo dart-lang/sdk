@@ -49,6 +49,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_operator.dar
 import 'package:analysis_server/src/services/correction/dart/remove_this_expression.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_new.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_string_interpolation.dart';
 import 'package:analysis_server/src/services/correction/dart/rename_to_camel_case.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_cascade_with_dot.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_colon_with_equals.dart';
@@ -253,6 +254,9 @@ class BulkFixProcessor {
     ],
     LintNames.unnecessary_overrides: [
       RemoveMethodDeclaration.newInstance,
+    ],
+    LintNames.unnecessary_string_interpolations: [
+      RemoveUnnecessaryStringInterpolation.newInstance,
     ],
     LintNames.unnecessary_this: [
       RemoveThisExpression.newInstance,
