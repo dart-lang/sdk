@@ -96,6 +96,8 @@ class LintNames {
       'unnecessary_null_in_if_null_operators';
   static const String unnecessary_overrides = 'unnecessary_overrides';
   static const String unnecessary_parenthesis = 'unnecessary_parenthesis';
+  static const String unnecessary_string_interpolations =
+      'unnecessary_string_interpolations';
   static const String unnecessary_this = 'unnecessary_this';
   static const String use_full_hex_values_for_flutter_colors =
       'use_full_hex_values_for_flutter_colors';

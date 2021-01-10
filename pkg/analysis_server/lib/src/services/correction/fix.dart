@@ -405,6 +405,12 @@ class DartFixKind {
       50,
       'Remove unnecessary parentheses',
       appliedTogetherMessage: 'Remove all unnecessary parentheses in file');
+  static const REMOVE_UNNECESSARY_STRING_INTERPOLATION = FixKind(
+      'dart.fix.remove.unnecessaryStringInterpolation',
+      50,
+      'Remove unnecessary string interpolation',
+      appliedTogetherMessage:
+          'Remove all unnecessary string interpolations in file');
   static const REMOVE_UNUSED_CATCH_CLAUSE = FixKind(
       'dart.fix.remove.unusedCatchClause', 50, "Remove unused 'catch' clause");
   static const REMOVE_UNUSED_CATCH_STACK = FixKind(

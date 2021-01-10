@@ -52,6 +52,8 @@ import 'remove_this_expression_test.dart' as remove_this_expression;
 import 'remove_type_annotation_test.dart' as remove_type_annotation;
 import 'remove_unnecessary_const_test.dart' as remove_unnecessary_const;
 import 'remove_unnecessary_new_test.dart' as remove_unnecessary_new;
+import 'remove_unnecessary_string_interpolation_test.dart'
+    as remove_unnecessary_string_interpolation;
 import 'rename_to_camel_case_test.dart' as rename_to_camel_case;
 import 'replace_colon_with_equals_test.dart' as replace_colon_with_equals;
 import 'replace_final_with_const_test.dart' as replace_final_with_const;
@@ -111,6 +113,7 @@ void main() {
     remove_type_annotation.main();
     remove_unnecessary_const.main();
     remove_unnecessary_new.main();
+    remove_unnecessary_string_interpolation.main();
     rename_to_camel_case.main();
     replace_with_conditional_assignment.main();
     replace_colon_with_equals.main();

@@ -130,6 +130,8 @@ import 'remove_unnecessary_const_test.dart' as remove_unnecessary_const;
 import 'remove_unnecessary_new_test.dart' as remove_unnecessary_new;
 import 'remove_unnecessary_parentheses_test.dart'
     as remove_unnecessary_parentheses;
+import 'remove_unnecessary_string_interpolation_test.dart'
+    as remove_unnecessary_string_interpolation;
 import 'remove_unused_catch_clause_test.dart' as remove_unused_catch_clause;
 import 'remove_unused_catch_stack_test.dart' as remove_unused_catch_stack;
 import 'remove_unused_element_test.dart' as remove_unused_element;
@@ -286,6 +288,7 @@ void main() {
     remove_unnecessary_const.main();
     remove_unnecessary_new.main();
     remove_unnecessary_parentheses.main();
+    remove_unnecessary_string_interpolation.main();
     remove_unused_catch_clause.main();
     remove_unused_catch_stack.main();
     remove_unused_element.main();
