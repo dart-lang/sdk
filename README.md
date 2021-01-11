@@ -64,7 +64,7 @@ You can also contribute patches, as described in [Contributing][contrib].
 [repo]: https://github.com/dart-lang/sdk
 [lang]: https://dart.dev/guides/language/language-tour
 [tools]: https://dart.dev/tools
-[codelab]: https://dart.dev/codelabs
+[codelabs]: https://dart.dev/codelabs
 [dartbug]: http://dartbug.com
 [contrib]: https://github.com/dart-lang/sdk/blob/master/CONTRIBUTING.md
 [pubsite]: https://pub.dev
