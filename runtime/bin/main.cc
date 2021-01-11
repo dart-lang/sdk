@@ -592,7 +592,10 @@ static Dart_Isolate CreateAndSetupDartDevIsolate(const char* script_uri,
   IsolateGroupData* isolate_group_data = nullptr;
   IsolateData* isolate_data = nullptr;
 
-  AppSnapshot* app_snapshot;
+  if (error != nullptr) {
+    *error = nullptr;
+  }
+  AppSnapshot* app_snapshot = nullptr;
   bool isolate_run_app_snapshot = true;
   if (dartdev_path.get() != nullptr &&
       (app_snapshot = Snapshot::TryReadAppSnapshot(dartdev_path.get())) !=
@@ -618,8 +621,10 @@ static Dart_Isolate CreateAndSetupDartDevIsolate(const char* script_uri,
     isolate_run_app_snapshot = false;
     dartdev_path = DartDevIsolate::TryResolveDartDevKernelPath();
     // Clear error from app snapshot and retry from kernel.
-    free(*error);
-    *error = nullptr;
+    if (*error != nullptr) {
+      free(*error);
+      *error = nullptr;
+    }
 
     if (app_snapshot != nullptr) {
       delete app_snapshot;
