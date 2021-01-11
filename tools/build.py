@@ -29,7 +29,7 @@ This script invokes ninja to build Dart.
 
 def BuildOptions():
     parser = argparse.ArgumentParser(
-        description='Runs GN (if ncecessary) followed by ninja',
+        description='Runs GN (if necessary) followed by ninja',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     config_group = parser.add_argument_group('Configuration Related Arguments')
