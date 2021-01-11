@@ -11264,8 +11264,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   static const CompileTimeErrorCode
       WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS = CompileTimeErrorCode(
-          'WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS',
-          "Operator '-' should declare 0 or 1 parameter, but {0} found.");
+          'WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR',
+          "Operator '-' should declare 0 or 1 parameter, but {0} found.",
+          hasPublishedDocs: true,
+          uniqueName: 'WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS');
 
   /**
    * No parameters.
