@@ -2215,7 +2215,8 @@ class ResolverVisitor extends ScopedVisitor {
   /// correspond to the list of arguments.
   ///
   /// An error will be reported to [onError] if any of the arguments cannot be
-  /// matched to a parameter. onError can be null to ignore the error.
+  /// matched to a parameter. onError will be provided the node of the first
+  /// argument that is not matched. onError can be null to ignore the error.
   ///
   /// Returns the parameters that correspond to the arguments. If no parameter
   /// matched an argument, that position will be `null` in the list.
@@ -2254,6 +2255,7 @@ class ResolverVisitor extends ScopedVisitor {
     int positionalArgumentCount = 0;
     HashSet<String> usedNames;
     bool noBlankArguments = true;
+    Expression firstUnresolvedArgument;
     for (int i = 0; i < argumentCount; i++) {
       Expression argument = arguments[i];
       if (argument is NamedExpression) {
@@ -2284,6 +2286,8 @@ class ResolverVisitor extends ScopedVisitor {
         positionalArgumentCount++;
         if (unnamedIndex < unnamedParameterCount) {
           resolvedParameters[i] = unnamedParameters[unnamedIndex++];
+        } else {
+          firstUnresolvedArgument ??= argument;
         }
       }
     }
@@ -2304,7 +2308,7 @@ class ResolverVisitor extends ScopedVisitor {
         errorCode = CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS;
       }
       if (onError != null) {
-        onError(errorCode, argumentList,
+        onError(errorCode, firstUnresolvedArgument,
             [unnamedParameterCount, positionalArgumentCount]);
       }
     }

@@ -324,7 +324,7 @@ void f(Never? x) {
   x.toString(1 + 2);
 }
 ''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 31, 7),
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 32, 5),
     ]);
 
     assertMethodInvocation(

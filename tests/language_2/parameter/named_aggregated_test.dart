@@ -37,8 +37,9 @@ class NamedParametersAggregatedTests {
 main() {
   // Expect compile-time error due to missing comma in function definition.
   NamedParametersAggregatedTests.f_missing_comma(10, 25);
-  //                                            ^^^^^^^^
+  //                                                 ^^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
+  //                                            ^^^^^^^^
   // [cfe] Too many positional arguments: 1 allowed, but 2 found.
 
   // Expect compile-time error due to duplicate named argument.

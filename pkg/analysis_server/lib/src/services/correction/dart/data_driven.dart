@@ -82,6 +82,8 @@ class DataDriven extends MultiCorrectionProducer {
       return nameFromParent(node);
     } else if (node is ArgumentList) {
       return nameFromParent(node);
+    } else if (node?.parent is ArgumentList) {
+      return nameFromParent(node.parent);
     }
     return null;
   }
