@@ -21,7 +21,8 @@ import 'package:kernel/vm/constants_native_effects.dart'
     show VmConstantsBackend;
 
 import '../transformations/call_site_annotator.dart' as callSiteAnnotator;
-import '../transformations/lowering.dart' as lowering show transformLibraries;
+import '../transformations/lowering.dart' as lowering
+    show transformLibraries, transformProcedure;
 import '../transformations/ffi_definitions.dart' as transformFfiDefinitions
     show transformLibraries;
 import '../transformations/ffi_use_sites.dart' as transformFfiUseSites
@@ -189,6 +190,10 @@ class VmTarget extends Target {
     transformAsync.transformProcedure(
         new TypeEnvironment(coreTypes, hierarchy), procedure);
     logger?.call("Transformed async functions");
+
+    lowering.transformProcedure(
+        procedure, coreTypes, hierarchy, flags.enableNullSafety);
+    logger?.call("Lowering transformations performed");
   }
 
   Expression _instantiateInvocationMirrorWithType(

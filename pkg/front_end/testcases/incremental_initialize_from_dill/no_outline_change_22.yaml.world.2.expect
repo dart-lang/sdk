@@ -253,7 +253,7 @@ library from "org-dartlang-test:///main.dart" as main {
       this.{dart.collection::ListMixin::_filter}(test, true);
     }
     method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ _filter((dart.core::int*) → dart.core::bool test, dart.core::bool retainMatching) → void {
-      dart.core::List<dart.core::int*> retained = <dart.core::int*>[];
+      dart.core::List<dart.core::int*> retained = dart.core::_GrowableList::•<dart.core::int*>(0);
       dart.core::int length = this.{dart.core::List::length};
       for (dart.core::int i = 0; i.{dart.core::num::<}(length); i = i.{dart.core::num::+}(1)) {
         dart.core::int* element = this.{dart.core::List::[]}(i);

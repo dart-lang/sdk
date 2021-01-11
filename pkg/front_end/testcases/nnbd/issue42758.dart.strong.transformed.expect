@@ -83,25 +83,25 @@ static method test1(Never n1, Never? n2, Null n3) → dynamic {
     final core::List<Never> #t1 = core::List::of<Never>(n1);
   } =>#t1;
   core::List<Never> l2 = block {
-    final core::List<Never> #t2 = <Never>[];
+    final core::List<Never> #t2 = core::_GrowableList::•<Never>(0);
     final core::Iterable<Never>? #t3 = n1;
     if(!#t3.{core::Object::==}(null))
       #t2.{core::List::addAll}{Invariant}(#t3{core::Iterable<Never>});
   } =>#t2;
-  core::List<dynamic> l3 = <dynamic>[invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:8:16: Error: Can't spread a value with static type 'Never?'.
+  core::List<dynamic> l3 = core::_GrowableList::_literal1<dynamic>(invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:8:16: Error: Can't spread a value with static type 'Never?'.
   var l3 = [...n2];
-               ^"];
+               ^");
   core::List<Never> l4 = block {
-    final core::List<Never> #t4 = <Never>[];
+    final core::List<Never> #t4 = core::_GrowableList::•<Never>(0);
     final core::Iterable<Never>? #t5 = n2;
     if(!#t5.{core::Object::==}(null))
       #t4.{core::List::addAll}{Invariant}(#t5{core::Iterable<Never>});
   } =>#t4;
-  core::List<dynamic> l5 = <dynamic>[invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:10:16: Error: Can't spread a value with static type 'Null'.
+  core::List<dynamic> l5 = core::_GrowableList::_literal1<dynamic>(invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:10:16: Error: Can't spread a value with static type 'Null'.
   var l5 = [...n3];
-               ^"];
+               ^");
   core::List<Never> l6 = block {
-    final core::List<Never> #t6 = <Never>[];
+    final core::List<Never> #t6 = core::_GrowableList::•<Never>(0);
     final core::Iterable<Never>? #t7 = n3;
     if(!#t7.{core::Object::==}(null))
       #t6.{core::List::addAll}{Invariant}(#t7{core::Iterable<Never>});
@@ -204,25 +204,25 @@ static method test2<N1 extends Never = Never, N2 extends Never? = Never?, N3 ext
     final core::List<Never> #t28 = core::List::of<Never>(n1);
   } =>#t28;
   core::List<Never> l2 = block {
-    final core::List<Never> #t29 = <Never>[];
+    final core::List<Never> #t29 = core::_GrowableList::•<Never>(0);
     final core::Iterable<Never>? #t30 = n1;
     if(!#t30.{core::Object::==}(null))
       #t29.{core::List::addAll}{Invariant}(#t30{core::Iterable<Never>});
   } =>#t29;
-  core::List<dynamic> l3 = <dynamic>[invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:30:16: Error: Can't spread a value with static type 'N2'.
+  core::List<dynamic> l3 = core::_GrowableList::_literal1<dynamic>(invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:30:16: Error: Can't spread a value with static type 'N2'.
   var l3 = [...n2];
-               ^"];
+               ^");
   core::List<Never> l4 = block {
-    final core::List<Never> #t31 = <Never>[];
+    final core::List<Never> #t31 = core::_GrowableList::•<Never>(0);
     final core::Iterable<Never>? #t32 = n2;
     if(!#t32.{core::Object::==}(null))
       #t31.{core::List::addAll}{Invariant}(#t32{core::Iterable<Never>});
   } =>#t31;
-  core::List<dynamic> l5 = <dynamic>[invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:32:16: Error: Can't spread a value with static type 'N3'.
+  core::List<dynamic> l5 = core::_GrowableList::_literal1<dynamic>(invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:32:16: Error: Can't spread a value with static type 'N3'.
   var l5 = [...n3];
-               ^"];
+               ^");
   core::List<Never> l6 = block {
-    final core::List<Never> #t33 = <Never>[];
+    final core::List<Never> #t33 = core::_GrowableList::•<Never>(0);
     final core::Iterable<Never>? #t34 = n3;
     if(!#t34.{core::Object::==}(null))
       #t33.{core::List::addAll}{Invariant}(#t34{core::Iterable<Never>});

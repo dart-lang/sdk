@@ -183,7 +183,7 @@ class Class2 extends self::_Class2&Object&TestMixin {
     : super self::_Class2&Object&TestMixin::•()
     ;
   method _test() → dynamic {
-    final self::PagingResponse<core::String> response = new self::PagingResponse::•<core::String>(new self::PagingResponseData::•<core::String>(<core::String>["test"]));
+    final self::PagingResponse<core::String> response = new self::PagingResponse::•<core::String>(new self::PagingResponseData::•<core::String>(core::_GrowableList::_literal1<core::String>("test")));
     this.{self::_Class2&Object&TestMixin::test}(asy::Future::value<self::PagingResponse<core::String>>(response));
   }
 }

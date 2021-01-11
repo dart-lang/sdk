@@ -50,6 +50,6 @@ abstract class D<T extends core::Object* = dynamic> extends core::Object {
 static method test() → void {
   dynamic x = throw new core::AbstractClassInstantiationError::•("C");
   dynamic y = let final core::Object* #t1 = 1 in throw new core::AbstractClassInstantiationError::•("D");
-  self::D<core::List<core::int*>*>* z = let final core::Object* #t2 = <dynamic>[] in throw new core::AbstractClassInstantiationError::•("D");
+  self::D<core::List<core::int*>*>* z = let final core::Object* #t2 = core::_GrowableList::•<dynamic>(0) in throw new core::AbstractClassInstantiationError::•("D");
 }
 static method main() → dynamic {}

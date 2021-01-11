@@ -23,7 +23,7 @@ class B extends self::A<core::String?> {
     : super self::A::•()
     ;
 }
-static field core::List<core::String?> l = <core::String?>[];
+static field core::List<core::String?> l = core::_GrowableList::•<core::String?>(0);
 static field core::String? s = null;
 static field core::String t = self::s!;
 late static field core::int field = 42;
@@ -158,7 +158,7 @@ class B extends self2::A<core::String?> {
     : super self2::A::•()
     ;
 }
-static field core::List<core::String?>* l = <core::String*>[];
+static field core::List<core::String?>* l = core::_GrowableList::•<core::String*>(0);
 static field core::String? s = null;
 static field core::String* t = self2::s!;
 static field core::int* field = 42;

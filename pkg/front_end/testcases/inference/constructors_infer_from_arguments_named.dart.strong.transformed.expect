@@ -19,5 +19,5 @@ class C<T extends core::Object* = dynamic> extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method main() → dynamic {
-  self::C<core::int*>* x = new self::C::named<core::int*>(<core::int*>[]);
+  self::C<core::int*>* x = new self::C::named<core::int*>(core::_GrowableList::•<core::int*>(0));
 }

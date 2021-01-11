@@ -77,12 +77,12 @@ class F<X extends core::num* = core::num*, Y extends () →* self::F::X* = () �
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-static field core::List<self::C<dynamic, self::A<dynamic>*>*>* lc = <self::C<dynamic, self::A<dynamic>*>*>[];
+static field core::List<self::C<dynamic, self::A<dynamic>*>*>* lc = core::_GrowableList::•<self::C<dynamic, self::A<dynamic>*>*>(0);
 static field core::Map<self::C<dynamic, self::A<dynamic>*>*, self::C<dynamic, self::A<dynamic>*>*>* mc = <self::C<dynamic, self::A<dynamic>*>*, self::C<dynamic, self::A<dynamic>*>*>{};
-static field core::List<self::D<core::num*, self::A<core::num*>*>*>* ld = <self::D<core::num*, self::A<core::num*>*>*>[];
+static field core::List<self::D<core::num*, self::A<core::num*>*>*>* ld = core::_GrowableList::•<self::D<core::num*, self::A<core::num*>*>*>(0);
 static field core::Map<self::D<core::num*, self::A<core::num*>*>*, self::D<core::num*, self::A<core::num*>*>*>* md = <self::D<core::num*, self::A<core::num*>*>*, self::D<core::num*, self::A<core::num*>*>*>{};
-static field core::List<self::E<dynamic, () →* dynamic>*>* le = <self::E<dynamic, () →* dynamic>*>[];
+static field core::List<self::E<dynamic, () →* dynamic>*>* le = core::_GrowableList::•<self::E<dynamic, () →* dynamic>*>(0);
 static field core::Map<self::E<dynamic, () →* dynamic>*, self::E<dynamic, () →* dynamic>*>* me = <self::E<dynamic, () →* dynamic>*, self::E<dynamic, () →* dynamic>*>{};
-static field core::List<self::F<core::num*, () →* core::num*>*>* lf = <self::F<core::num*, () →* core::num*>*>[];
+static field core::List<self::F<core::num*, () →* core::num*>*>* lf = core::_GrowableList::•<self::F<core::num*, () →* core::num*>*>(0);
 static field core::Map<self::F<core::num*, () →* core::num*>*, self::F<core::num*, () →* core::num*>*>* mf = <self::F<core::num*, () →* core::num*>*, self::F<core::num*, () →* core::num*>*>{};
 static method main() → dynamic {}

@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 static method test1() → dynamic {
-  core::List<Null>* x = <Null>[null];
+  core::List<Null>* x = core::_GrowableList::_literal1<Null>(null);
   x.{core::List::add}(42 as{TypeError} Null);
 }
 static method main() → dynamic {}

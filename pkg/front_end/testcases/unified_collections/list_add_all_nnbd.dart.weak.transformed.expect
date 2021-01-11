@@ -3,13 +3,13 @@ import self as self;
 import "dart:core" as core;
 
 static method useAddAll() → void {
-  dynamic dynamicList1 = <core::int>[0, 1, 2];
-  dynamic dynamicList2 = <core::num>[3, 4, 5];
-  dynamic dynamicList3 = <core::int?>[6, 7, 8];
-  core::Iterable<core::int> iterableIntList = <core::int>[9, 10, 11];
-  core::List<core::int> intList = <core::int>[12, 13, 14];
+  dynamic dynamicList1 = core::_GrowableList::_literal3<core::int>(0, 1, 2);
+  dynamic dynamicList2 = core::_GrowableList::_literal3<core::num>(3, 4, 5);
+  dynamic dynamicList3 = core::_GrowableList::_literal3<core::int?>(6, 7, 8);
+  core::Iterable<core::int> iterableIntList = core::_GrowableList::_literal3<core::int>(9, 10, 11);
+  core::List<core::int> intList = core::_GrowableList::_literal3<core::int>(12, 13, 14);
   core::List<core::int> list1 = block {
-    final core::List<core::int> #t1 = <core::int>[];
+    final core::List<core::int> #t1 = core::_GrowableList::•<core::int>(0);
     {
       core::Iterator<dynamic> :sync-for-iterator = (dynamicList1 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
@@ -45,7 +45,7 @@ static method useAddAll() → void {
   } =>#t1;
   self::expect(core::_GrowableList::generate<core::int>(15, (core::int i) → core::int => i), list1);
   core::List<core::num> list2 = block {
-    final core::List<core::num> #t8 = <core::num>[];
+    final core::List<core::num> #t8 = core::_GrowableList::•<core::num>(0);
     {
       core::Iterator<dynamic> :sync-for-iterator = (dynamicList1 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
@@ -82,13 +82,13 @@ static method useAddAll() → void {
   self::expect(core::_GrowableList::generate<core::num>(15, (core::int i) → core::int => i), list2);
 }
 static method useAddAllNullable() → void {
-  dynamic dynamicList1 = <core::int>[0, 1, 2];
-  dynamic dynamicList2 = <core::num>[3, 4, 5];
-  dynamic dynamicList3 = <core::int?>[6, 7, 8];
-  core::Iterable<core::int>? iterableIntList = true ?{core::List<core::int>?} <core::int>[9, 10, 11] : null;
-  core::List<core::int>? intList = true ?{core::List<core::int>?} <core::int>[12, 13, 14] : null;
+  dynamic dynamicList1 = core::_GrowableList::_literal3<core::int>(0, 1, 2);
+  dynamic dynamicList2 = core::_GrowableList::_literal3<core::num>(3, 4, 5);
+  dynamic dynamicList3 = core::_GrowableList::_literal3<core::int?>(6, 7, 8);
+  core::Iterable<core::int>? iterableIntList = true ?{core::List<core::int>?} core::_GrowableList::_literal3<core::int>(9, 10, 11) : null;
+  core::List<core::int>? intList = true ?{core::List<core::int>?} core::_GrowableList::_literal3<core::int>(12, 13, 14) : null;
   core::List<core::int> list1 = block {
-    final core::List<core::int> #t15 = <core::int>[];
+    final core::List<core::int> #t15 = core::_GrowableList::•<core::int>(0);
     final core::Iterable<dynamic>? #t16 = dynamicList1 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>?;
     if(!#t16.{core::Object::==}(null)) {
       core::Iterator<dynamic> :sync-for-iterator = #t16{core::Iterable<dynamic>}.{core::Iterable::iterator};
@@ -131,7 +131,7 @@ static method useAddAllNullable() → void {
   } =>#t15;
   self::expect(core::_GrowableList::generate<core::int>(15, (core::int i) → core::int => i), list1);
   core::List<core::num> list2 = block {
-    final core::List<core::num> #t27 = <core::num>[];
+    final core::List<core::num> #t27 = core::_GrowableList::•<core::num>(0);
     final core::Iterable<dynamic>? #t28 = dynamicList1 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>?;
     if(!#t28.{core::Object::==}(null)) {
       core::Iterator<dynamic> :sync-for-iterator = #t28{core::Iterable<dynamic>}.{core::Iterable::iterator};

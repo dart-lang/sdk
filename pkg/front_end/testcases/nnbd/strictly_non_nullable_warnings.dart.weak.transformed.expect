@@ -138,7 +138,7 @@ static method warning(core::String s, core::List<core::String> l, core::Map<core
   let final core::String #t4 = s in #t4.{core::String::==}(null) ?{core::String} "foo" : #t4;
   s.{core::String::==}(null) ?{core::String} s = "foo" : null;
   block {
-    final core::List<core::String> #t5 = <core::String>[];
+    final core::List<core::String> #t5 = core::_GrowableList::•<core::String>(0);
     final core::Iterable<core::String>? #t6 = l;
     if(!#t6.{core::Object::==}(null))
       #t5.{core::List::addAll}{Invariant}(#t6{core::Iterable<core::String>});

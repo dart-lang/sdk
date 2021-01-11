@@ -74,7 +74,7 @@ class D extends core::Object implements self::C, self::A, self::B {
   no-such-method-forwarder get bar() → Null
     return this.{self::D::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} Null;
   no-such-method-forwarder set foo(core::num* value) → void
-    return this.{self::D::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+    return this.{self::D::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(value)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
 }
 static method main() → dynamic {}
 

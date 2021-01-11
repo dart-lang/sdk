@@ -35,7 +35,7 @@ static method main() → dynamic {
   }
   for (; false; ) {
   }
-  core::List<core::String*>* list = <core::String*>["Hello, World!"];
+  core::List<core::String*>* list = core::_GrowableList::_literal1<core::String*>("Hello, World!");
   core::print(list.{core::List::[]}(i));
   list.{core::List::[]=}(i, "Hello, Brave New World!");
   core::print(list.{core::List::[]}(i));

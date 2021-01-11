@@ -7,7 +7,7 @@ import "package:test/test.dart";
 import "file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/name_mangling.pb.dart";
 
 static method main() → dynamic {
-  pb::NameManglingKeep* n = [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/name_mangling.pb.dart::NameManglingKeep] pb::NameManglingKeep::fromBuffer(<core::int*>[]);
+  pb::NameManglingKeep* n = [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/name_mangling.pb.dart::NameManglingKeep] pb::NameManglingKeep::fromBuffer([@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int*>] core::_GrowableList::•<core::int*>(0));
   if([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/name_mangling.pb.dart::NameManglingKeep.hasClone_10] [@vm.inferred-type.metadata=dart.core::bool (skip check)] n.{pb::NameManglingKeep::hasClone_10}()) {
     core::print("Has clone field");
   }

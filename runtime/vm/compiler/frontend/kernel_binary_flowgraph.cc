@@ -3577,14 +3577,10 @@ Fragment StreamingFlowGraphBuilder::BuildListLiteral(TokenPosition* p) {
   // The type argument for the factory call.
   Fragment instructions = TranslateInstantiatedTypeArguments(type_arguments);
 
-  if (length == 0) {
-    instructions += IntConstant(0);
-    instructions += StaticCall(
-        position,
-        Function::ZoneHandle(Z, IG->object_store()->growable_list_factory()), 2,
-        ICData::kStatic);
-    return instructions;
-  }
+  // List literals up to 8 elements are lowered in the front-end
+  // (pkg/vm/lib/transformations/list_literals_lowering.dart)
+  const intptr_t kNumSpecializedListLiteralConstructors = 8;
+  ASSERT(length > kNumSpecializedListLiteralConstructors);
 
   LocalVariable* type = MakeTemporary();
   instructions += LoadLocal(type);
@@ -3602,11 +3598,14 @@ Fragment StreamingFlowGraphBuilder::BuildListLiteral(TokenPosition* p) {
     instructions += StoreIndexed(kArrayCid);
   }
 
-  const Class& factory_class =
-      Class::Handle(Z, Library::LookupCoreClass(Symbols::List()));
-  const Function& factory_method = Function::ZoneHandle(
-      Z, factory_class.LookupFactory(
-             Library::PrivateCoreLibName(Symbols::ListLiteralFactory())));
+  const Class& growable_list_class =
+      Class::Handle(Z, Library::LookupCoreClass(Symbols::_GrowableList()));
+  ASSERT(!growable_list_class.IsNull());
+
+  const Function& factory_method =
+      Function::ZoneHandle(Z, growable_list_class.LookupFunctionAllowPrivate(
+                                  Symbols::_GrowableListLiteralFactory()));
+  ASSERT(!factory_method.IsNull());
 
   instructions += StaticCall(position, factory_method, 2, ICData::kStatic);
   instructions += DropTempsPreserveTop(1);  // Instantiated type_arguments.

@@ -53,7 +53,7 @@ static method test3() → dynamic {
   core::String s2 = let final core::String? #t9 = s in #t9.{core::String::==}(null) ?{core::String} s = "bar" : #t9{core::String};
 }
 static method test4() → dynamic {
-  core::List<core::String?> list = <core::String?>[null];
+  core::List<core::String?> list = core::_GrowableList::_literal1<core::String?>(null);
   core::String s = let final core::List<core::String?> #t10 = list in let final core::int #t11 = 0 in let final core::String? #t12 = #t10.{core::List::[]}(#t11) in #t12.{core::String::==}(null) ?{core::String} let final core::String #t13 = "bar" in let final void #t14 = #t10.{core::List::[]=}(#t11, #t13) in #t13 : #t12{core::String};
 }
 static method E6|[]=(lowered final core::double #this, core::int index, core::String? value) → void {}

@@ -22,8 +22,8 @@ class B<U extends core::Object* = dynamic> extends core::Object {
     : super core::Object::•()
     ;
   method fun() → dynamic {
-    core::List<self::A<self::B::U*>*>* foo = <self::A<self::B::U*>*>[];
-    core::List<self::A<core::num*>*>* bar = <self::A<core::num*>*>[];
+    core::List<self::A<self::B::U*>*>* foo = core::_GrowableList::•<self::A<self::B::U*>*>(0);
+    core::List<self::A<core::num*>*>* bar = core::_GrowableList::•<self::A<core::num*>*>(0);
   }
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

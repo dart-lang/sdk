@@ -77,7 +77,7 @@ class C extends core::Object {
   static set staticMember2(core::int? value) → void {}
   static method staticMethod() → void {}
   static get property() → core::List<core::int>
-    return <core::int>[0];
+    return core::_GrowableList::_literal1<core::int>(0);
   static get property2() → core::Map<core::int, core::int?>
     return <core::int, core::int?>{};
 }

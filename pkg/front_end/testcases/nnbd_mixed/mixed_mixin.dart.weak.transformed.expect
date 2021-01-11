@@ -10,7 +10,7 @@ abstract class _C1&Object&B extends core::Object implements mix::B /*isAnonymous
     : super core::Object::•()
     ;
   get /*isNonNullableByDefault, from org-dartlang-testcase:///mixed_mixin_lib.dart */ a() → core::List<(core::int) → core::int>
-    return <(core::int) → core::int>[];
+    return core::_GrowableList::•<(core::int) → core::int>(0);
   set /*isNonNullableByDefault, from org-dartlang-testcase:///mixed_mixin_lib.dart */ a(core::List<(core::int) → core::int> _) → void {}
   method /*isNonNullableByDefault, from org-dartlang-testcase:///mixed_mixin_lib.dart */ m((core::int) → core::int x) → (core::int) → core::int
     return x;
@@ -44,7 +44,7 @@ class B extends core::Object {
     : super core::Object::•()
     ;
   get a() → core::List<(core::int) → core::int>
-    return <(core::int) → core::int>[];
+    return core::_GrowableList::•<(core::int) → core::int>(0);
   set a(core::List<(core::int) → core::int> _) → void {}
   method m((core::int) → core::int x) → (core::int) → core::int
     return x;
@@ -54,7 +54,7 @@ class Bq extends core::Object {
     : super core::Object::•()
     ;
   get a() → core::List<(core::int?) → core::int?>
-    return <(core::int?) → core::int?>[];
+    return core::_GrowableList::•<(core::int?) → core::int?>(0);
   set a(core::List<(core::int?) → core::int?> _) → void {}
   method m((core::int?) → core::int? x) → (core::int?) → core::int?
     return x;

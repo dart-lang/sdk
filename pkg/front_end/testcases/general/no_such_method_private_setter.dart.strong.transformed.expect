@@ -22,7 +22,7 @@ class Foo extends core::Object implements no_::Bar {
   no-such-method-forwarder get /* from org-dartlang-testcase:///no_such_method_private_setter_lib.dart */ _x() → core::int*
     return this.{self::Foo::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::int*;
   no-such-method-forwarder set /* from org-dartlang-testcase:///no_such_method_private_setter_lib.dart */ _x(core::int* value) → void
-    return this.{self::Foo::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+    return this.{self::Foo::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(value)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
 }
 static method main() → dynamic {
   no_::baz(new self::Foo::•());

@@ -36,5 +36,5 @@ class B<T extends core::Object* = dynamic> extends core::Object {
 static field self::A* t1 = let final self::A* #t1 = new self::A::•() in block {
   #t1.{self::A::b} = new self::B::•<core::int*>(1);
 } =>#t1;
-static field core::List<self::B<core::int*>*>* t2 = <self::B<core::int*>*>[new self::B::•<core::int*>(2)];
+static field core::List<self::B<core::int*>*>* t2 = core::_GrowableList::_literal1<self::B<core::int*>*>(new self::B::•<core::int*>(2));
 static method main() → dynamic {}

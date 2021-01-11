@@ -10,7 +10,7 @@ class C<T extends core::Object* = dynamic> extends core::Object {
   get f1() → (self::C::T*) →* void
     return null;
   get f2() → core::List<(self::C::T*) →* void>* {
-    return <(self::C::T*) →* void>[this.{self::C::f1}];
+    return core::_GrowableList::_literal1<(self::C::T*) →* void>(this.{self::C::f1});
   }
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

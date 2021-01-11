@@ -14,5 +14,5 @@ static method loop(core::List<dynamic>* xs) → void {
 static method main() → dynamic {
   self::foo(4, 5);
   self::foo(6, 7);
-  self::loop(<dynamic>["dfg"]);
+  self::loop(core::_GrowableList::_literal1<dynamic>("dfg"));
 }

@@ -52,7 +52,7 @@ static method f1() → asy::Future<core::List<core::Object*>*>* /* originally as
     try {
       #L1:
       {
-        :return_value = <core::Object*>[1];
+        :return_value = core::_GrowableList::_literal1<core::Object*>(1);
         break #L1;
       }
       asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
@@ -68,7 +68,7 @@ static method f1() → asy::Future<core::List<core::Object*>*>* /* originally as
   return :async_future;
 }
 static method f2() → core::List<core::Object*>*
-  return <core::Object*>[2];
+  return core::_GrowableList::_literal1<core::Object*>(2);
 static method f3() → asy::Future<core::Object*>* /* originally async */ {
   final asy::_Future<core::Object*>* :async_future = new asy::_Future::•<core::Object*>();
   core::bool* :is_sync = false;
