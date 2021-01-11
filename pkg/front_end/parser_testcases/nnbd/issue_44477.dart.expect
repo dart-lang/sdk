@@ -1,35 +1,35 @@
 Problems reported:
 
-parser/error_recovery/issue_42229.crash:1:34: Expected an identifier, but got ''.
-Stream<List<>> /* nothing here */
-                                 ^...
+parser/nnbd/issue_44477:1:15: Expected an identifier, but got ''.
+Future<List<>>
+              ^...
 
 WARNING: Reporting at eof --- see below for details.
 
-parser/error_recovery/issue_42229.crash:1:13: Expected a type, but got '>>'.
-Stream<List<>> /* nothing here */
+parser/nnbd/issue_44477:1:13: Expected a type, but got '>>'.
+Future<List<>>
             ^^
 
-parser/error_recovery/issue_42229.crash:1:34: Expected an identifier, but got ''.
-Stream<List<>> /* nothing here */
-                                 ^...
+parser/nnbd/issue_44477:1:15: Expected an identifier, but got ''.
+Future<List<>>
+              ^...
 
 WARNING: Reporting at eof --- see below for details.
 
-parser/error_recovery/issue_42229.crash:1:34: Expected ';' after this.
-Stream<List<>> /* nothing here */
-                                 ^...
+parser/nnbd/issue_44477:1:15: Expected ';' after this.
+Future<List<>>
+              ^...
 
 WARNING: Reporting at eof --- see below for details.
 
-beginCompilationUnit(Stream)
-  beginMetadataStar(Stream)
+beginCompilationUnit(Future)
+  beginMetadataStar(Future)
   endMetadataStar(0)
-  beginTopLevelMember(Stream)
+  beginTopLevelMember(Future)
     handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got ''., Try inserting an identifier before ''., {token: }], , )
     // WARNING: Reporting at eof for .
     beginFields()
-      handleIdentifier(Stream, typeReference)
+      handleIdentifier(Future, typeReference)
       beginTypeArguments(<)
         handleIdentifier(List, typeReference)
         beginTypeArguments(<)
@@ -40,13 +40,13 @@ beginCompilationUnit(Stream)
         endTypeArguments(1, <, >)
         handleType(List, null)
       endTypeArguments(1, <, >)
-      handleType(Stream, null)
+      handleType(Future, null)
       handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got ''., Try inserting an identifier before ''., {token: }], , )
       // WARNING: Reporting at eof for .
       handleIdentifier(, topLevelVariableDeclaration)
       handleNoFieldInitializer()
       handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], , )
       // WARNING: Reporting at eof for .
-    endTopLevelFields(null, null, null, null, null, 1, Stream, ;)
+    endTopLevelFields(null, null, null, null, null, 1, Future, ;)
   endTopLevelDeclaration()
 endCompilationUnit(1, )

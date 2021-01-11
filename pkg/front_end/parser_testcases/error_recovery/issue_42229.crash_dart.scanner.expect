@@ -1,3 +1,3 @@
-Stream<List<>>
+Stream<List<>> 
 
-Stream[StringToken]<[BeginToken]List[StringToken]<[BeginToken]>>[SimpleToken][SimpleToken]
+Stream[StringToken]<[BeginToken]List[StringToken]<[BeginToken]>>[SimpleToken] [SimpleToken]

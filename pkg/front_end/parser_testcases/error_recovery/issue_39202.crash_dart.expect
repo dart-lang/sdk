@@ -24,9 +24,13 @@ parser/error_recovery/issue_39202.crash:1:25: Expected an identifier, but got ''
 () async => a b < c $? >
                         ^...
 
+WARNING: Reporting at eof --- see below for details.
+
 parser/error_recovery/issue_39202.crash:1:25: Expected ';' after this.
 () async => a b < c $? >
                         ^...
+
+WARNING: Reporting at eof --- see below for details.
 
 beginCompilationUnit(()
   beginMetadataStar(()
@@ -73,9 +77,11 @@ beginCompilationUnit(()
       endTypeArguments(1, <, >)
       handleType(b, null)
       handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got ''., Try inserting an identifier before ''., {token: }], , )
+      // WARNING: Reporting at eof for .
       handleIdentifier(, topLevelVariableDeclaration)
       handleNoFieldInitializer()
       handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], , )
+      // WARNING: Reporting at eof for .
     endTopLevelFields(null, null, null, null, null, 1, b, ;)
   endTopLevelDeclaration()
 endCompilationUnit(4, )

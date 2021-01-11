@@ -412,14 +412,23 @@ class VoidType implements TypeInfo {
   }
 }
 
-bool looksLikeName(Token token) =>
-    token.kind == IDENTIFIER_TOKEN ||
-    optional('this', token) ||
-    (token.isIdentifier &&
-        // Although `typedef` is a legal identifier,
-        // type `typedef` identifier is not legal and in this situation
-        // `typedef` is probably a separate declaration.
-        (!optional('typedef', token) || !token.next!.isIdentifier));
+bool looksLikeName(Token token) {
+  // End-of-file isn't a name, but this is called in a situation where
+  // if there had been a name it would have used the type-info it had
+  // collected --- this being eof probably mean the user is currently
+  // typing and will probably write a name in a moment.
+  return looksLikeNameSimpleType(token) || token.isEof;
+}
+
+bool looksLikeNameSimpleType(Token token) {
+  return token.kind == IDENTIFIER_TOKEN ||
+      optional('this', token) ||
+      (token.isIdentifier &&
+          // Although `typedef` is a legal identifier,
+          // type `typedef` identifier is not legal and in this situation
+          // `typedef` is probably a separate declaration.
+          (!optional('typedef', token) || !token.next!.isIdentifier));
+}
 
 /// When missing a comma, determine if the given token looks like it should
 /// be part of a collection of type parameters or arguments.

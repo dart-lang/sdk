@@ -1735,8 +1735,9 @@ main() {
     var unit = parseCompilationUnit('<bar<', errors: [
       expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 0, 1),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 5, 0),
-      expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 1, 3),
-      expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 5, 0),
+      expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 5, 0),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 5, 0),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 5, 0),
     ]);
     // Validate that recovery has properly updated the token stream.
     analyzer.Token token = unit.beginToken;
@@ -1750,9 +1751,10 @@ main() {
 
   void test_partial_typeArg2_34850() {
     var unit = parseCompilationUnit('foo <bar<', errors: [
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 5, 3),
-      expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 0, 3),
-      expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 9, 0),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 9, 0),
+      expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 9, 0),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 9, 0),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 0),
     ]);
     // Validate that recovery has properly updated the token stream.
     analyzer.Token token = unit.beginToken;

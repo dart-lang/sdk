@@ -8,13 +8,19 @@ parser/error_recovery/issue_39024.crash:1:7: Expected an identifier, but got ''.
 n<S e(
       ^...
 
+WARNING: Reporting at eof --- see below for details.
+
 parser/error_recovery/issue_39024.crash:1:7: A function declaration needs an explicit list of parameters.
 n<S e(
       ^...
 
+WARNING: Reporting at eof --- see below for details.
+
 parser/error_recovery/issue_39024.crash:1:7: Expected a function body, but got ''.
 n<S e(
       ^...
+
+WARNING: Reporting at eof --- see below for details.
 
 parser/error_recovery/issue_39024.crash:1:6: Can't find ')' to match '('.
 n<S e(
@@ -38,13 +44,16 @@ beginCompilationUnit(n)
       endTypeArguments(1, <, >)
       handleType(n, null)
       handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got ''., Try inserting an identifier before ''., {token: }], , )
+      // WARNING: Reporting at eof for .
       handleIdentifier(, topLevelFunctionDeclaration)
       handleNoTypeVariables()
       handleRecoverableError(MissingFunctionParameters, , )
+      // WARNING: Reporting at eof for .
       beginFormalParameters((, MemberKind.TopLevelMethod)
       endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
       handleAsyncModifier(null, null)
       handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got ''., null, {token: }], , )
+      // WARNING: Reporting at eof for .
       handleInvalidFunctionBody({)
     endTopLevelMethod(n, null, })
   endTopLevelDeclaration()

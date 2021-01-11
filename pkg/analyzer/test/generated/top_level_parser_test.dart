@@ -72,6 +72,40 @@ class TopLevelParserTest extends FastaParserTestCase {
     expectCommentText(importDirective.documentationComment, '/// Doc');
   }
 
+  void test_parse_missing_type_in_list_at_eof() {
+    createParser('Future<List<>>');
+
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 12, 2),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 14, 0),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 14, 0),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 14, 0),
+    ]);
+
+    expect(member, isTopLevelVariableDeclaration);
+    TopLevelVariableDeclaration declaration = member;
+    expect(declaration.semicolon, isNotNull);
+    expect(declaration.variables, isNotNull);
+
+    // Ensure type parsed as "Future<List<[empty name]>>".
+    expect(declaration.variables.type, isNotNull);
+    expect(declaration.variables.type.question, isNull);
+    expect(declaration.variables.type, TypeMatcher<TypeName>());
+    TypeName type = declaration.variables.type;
+    expect(type.name.name, "Future");
+    expect(type.typeArguments.arguments.length, 1);
+    expect(type.typeArguments.arguments.single, TypeMatcher<TypeName>());
+    TypeName subType = type.typeArguments.arguments.single;
+    expect(subType.name.name, "List");
+    expect(subType.typeArguments.arguments.length, 1);
+    expect(subType.typeArguments.arguments.single, TypeMatcher<TypeName>());
+    TypeName subSubType = subType.typeArguments.arguments.single;
+    expect(subSubType.name.name, "");
+    expect(subSubType.typeArguments, isNull);
+  }
+
   void test_parseClassDeclaration_abstract() {
     createParser('abstract class A {}');
     CompilationUnitMember member = parseFullCompilationUnitMember();
