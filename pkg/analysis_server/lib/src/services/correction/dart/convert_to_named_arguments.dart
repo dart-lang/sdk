@@ -16,7 +16,8 @@ class ConvertToNamedArguments extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var argumentList = node;
+    // node is the unmatched argument.
+    var argumentList = node.parent;
     if (argumentList is ArgumentList) {
       // Prepare parameters.
       List<ParameterElement> parameters;

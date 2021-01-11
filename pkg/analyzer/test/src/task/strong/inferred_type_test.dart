@@ -689,7 +689,7 @@ main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 38, 4),
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 39, 2),
     ]);
 
     var a = findLocalVariable(_resultUnit, 'a');

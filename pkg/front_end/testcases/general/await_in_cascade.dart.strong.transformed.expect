@@ -23,7 +23,7 @@ class C extends core::Object {
       try {
         #L1:
         {
-          final core::List<core::int*>* #t1 = <core::int*>[];
+          final core::List<core::int*>* #t1 = core::_GrowableList::•<core::int*>(0);
           [yield] let dynamic #t2 = asy::_awaitHelper(this.{self::C::_m}(), :async_op_then, :async_op_error, :async_op) in null;
           #t1.{core::List::add}(_in::unsafeCast<core::int*>(:result));
           :return_value = block {} =>#t1;

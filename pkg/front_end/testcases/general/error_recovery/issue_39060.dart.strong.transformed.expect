@@ -27,10 +27,11 @@ library;
 // ^
 //
 import self as self;
+import "dart:core" as core;
 
 static method main() → dynamic {
   {
     invalid-type A;
-    <invalid-type>[];
+    core::_GrowableList::•<invalid-type>(0);
   }
 }

@@ -37,7 +37,7 @@ static method foo3NewT1() → dynamic {
   new self::T1::•();
 }
 static method main(core::List<core::String*>* args) → dynamic {
-  self::foo1(<self::T1*>[]);
+  self::foo1([@vm.inferred-type.metadata=dart.core::_GrowableList<#lib::T1*>] core::_GrowableList::•<self::T1*>(0));
   self::foo2NewValue();
   self::foo3NewT1();
 }

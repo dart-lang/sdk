@@ -33,13 +33,13 @@ const requiredDigits = 11106;
 
 class Benchmark extends BenchmarkBase {
   final List<String> strings;
-  Benchmark(String name, int bits, {bool forInt: false})
+  Benchmark(String name, int bits, {bool forInt = false})
       : strings = generateStrings(bits, forInt),
         super(name);
 
   static List<String> generateStrings(int bits, bool forInt) {
-    List<String> strings = [];
-    BigInt seed = (BigInt.one << bits) - BigInt.one;
+    final List<String> strings = [];
+    final BigInt seed = (BigInt.one << bits) - BigInt.one;
     var b = seed;
     var restartDelta = BigInt.zero;
     var totalLength = 0;
@@ -130,7 +130,7 @@ class FormatBigIntBenchmark extends Benchmark {
   @override
   void setup() {
     for (String s in strings) {
-      BigInt b = BigInt.parse(s);
+      final BigInt b = BigInt.parse(s);
       values.add(b - BigInt.one); // We add 'one' back later.
     }
   }
@@ -158,7 +158,7 @@ class FormatIntBenchmark extends Benchmark {
   @override
   void setup() {
     for (String s in strings) {
-      int b = int.parse(s);
+      final int b = int.parse(s);
       values.add(b - 4096); // We add this back later.
     }
   }

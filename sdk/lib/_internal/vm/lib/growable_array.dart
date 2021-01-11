@@ -521,4 +521,108 @@ class _GrowableList<T> extends ListBase<T> {
   Set<T> toSet() {
     return new Set<T>.of(this);
   }
+
+  // Factory constructing a mutable List from a parser generated List literal.
+  // [elements] contains elements that are already type checked.
+  @pragma("vm:entry-point", "call")
+  factory _GrowableList._literal(_List elements) {
+    final result = new _GrowableList<T>._withData(elements);
+    result._setLength(elements.length);
+    return result;
+  }
+
+  // Specialized list literal constructors.
+  // Used by pkg/vm/lib/transformations/list_literals_lowering.dart.
+  factory _GrowableList._literal1(T e0) {
+    _List elements = _List(1);
+    elements[0] = e0;
+    final result = new _GrowableList<T>._withData(elements);
+    result._setLength(1);
+    return result;
+  }
+
+  factory _GrowableList._literal2(T e0, T e1) {
+    _List elements = _List(2);
+    elements[0] = e0;
+    elements[1] = e1;
+    final result = new _GrowableList<T>._withData(elements);
+    result._setLength(2);
+    return result;
+  }
+
+  factory _GrowableList._literal3(T e0, T e1, T e2) {
+    _List elements = _List(3);
+    elements[0] = e0;
+    elements[1] = e1;
+    elements[2] = e2;
+    final result = new _GrowableList<T>._withData(elements);
+    result._setLength(3);
+    return result;
+  }
+
+  factory _GrowableList._literal4(T e0, T e1, T e2, T e3) {
+    _List elements = _List(4);
+    elements[0] = e0;
+    elements[1] = e1;
+    elements[2] = e2;
+    elements[3] = e3;
+    final result = new _GrowableList<T>._withData(elements);
+    result._setLength(4);
+    return result;
+  }
+
+  factory _GrowableList._literal5(T e0, T e1, T e2, T e3, T e4) {
+    _List elements = _List(5);
+    elements[0] = e0;
+    elements[1] = e1;
+    elements[2] = e2;
+    elements[3] = e3;
+    elements[4] = e4;
+    final result = new _GrowableList<T>._withData(elements);
+    result._setLength(5);
+    return result;
+  }
+
+  factory _GrowableList._literal6(T e0, T e1, T e2, T e3, T e4, T e5) {
+    _List elements = _List(6);
+    elements[0] = e0;
+    elements[1] = e1;
+    elements[2] = e2;
+    elements[3] = e3;
+    elements[4] = e4;
+    elements[5] = e5;
+    final result = new _GrowableList<T>._withData(elements);
+    result._setLength(6);
+    return result;
+  }
+
+  factory _GrowableList._literal7(T e0, T e1, T e2, T e3, T e4, T e5, T e6) {
+    _List elements = _List(7);
+    elements[0] = e0;
+    elements[1] = e1;
+    elements[2] = e2;
+    elements[3] = e3;
+    elements[4] = e4;
+    elements[5] = e5;
+    elements[6] = e6;
+    final result = new _GrowableList<T>._withData(elements);
+    result._setLength(7);
+    return result;
+  }
+
+  factory _GrowableList._literal8(
+      T e0, T e1, T e2, T e3, T e4, T e5, T e6, T e7) {
+    _List elements = _List(8);
+    elements[0] = e0;
+    elements[1] = e1;
+    elements[2] = e2;
+    elements[3] = e3;
+    elements[4] = e4;
+    elements[5] = e5;
+    elements[6] = e6;
+    elements[7] = e7;
+    final result = new _GrowableList<T>._withData(elements);
+    result._setLength(8);
+    return result;
+  }
 }

@@ -46,7 +46,7 @@ abstract class _DwB0&C0&B extends mix::C0 implements mix2::B /*isAnonymousMixin,
     : super mix::C0::•()
     ;
   get /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ a() → core::List<(core::int) → core::int>
-    return <(core::int) → core::int>[];
+    return core::_GrowableList::•<(core::int) → core::int>(0);
   set /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ a(core::List<(core::int) → core::int> _) → void {}
   method /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ m((core::int) → core::int x) → (core::int) → core::int
     return x;
@@ -70,7 +70,7 @@ abstract class _DwBq0&C0&Bq extends mix::C0 implements mix2::Bq /*isAnonymousMix
     : super mix::C0::•()
     ;
   get /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ a() → core::List<(core::int?) → core::int?>
-    return <(core::int?) → core::int?>[];
+    return core::_GrowableList::•<(core::int?) → core::int?>(0);
   set /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ a(core::List<(core::int?) → core::int?> _) → void {}
   method /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ m((core::int?) → core::int? x) → (core::int?) → core::int?
     return x;
@@ -128,7 +128,7 @@ abstract class _DwB3&C3&B extends mix::C3 implements mix2::B /*isAnonymousMixin,
     : super mix::C3::•()
     ;
   get /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ a() → core::List<(core::int) → core::int>
-    return <(core::int) → core::int>[];
+    return core::_GrowableList::•<(core::int) → core::int>(0);
   set /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ a(core::List<(core::int) → core::int> _) → void {}
   method /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ m((core::int) → core::int x) → (core::int) → core::int
     return x;
@@ -152,7 +152,7 @@ abstract class _DwBq3&C3&Bq extends mix::C3 implements mix2::Bq /*isAnonymousMix
     : super mix::C3::•()
     ;
   get /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ a() → core::List<(core::int?) → core::int?>
-    return <(core::int?) → core::int?>[];
+    return core::_GrowableList::•<(core::int?) → core::int?>(0);
   set /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ a(core::List<(core::int?) → core::int?> _) → void {}
   method /* from org-dartlang-testcase:///mixin_from_opt_in_out_in_lib2.dart */ m((core::int?) → core::int? x) → (core::int?) → core::int?
     return x;
@@ -226,7 +226,7 @@ class B extends core::Object {
     : super core::Object::•()
     ;
   get a() → core::List<(core::int) → core::int>
-    return <(core::int) → core::int>[];
+    return core::_GrowableList::•<(core::int) → core::int>(0);
   set a(core::List<(core::int) → core::int> _) → void {}
   method m((core::int) → core::int x) → (core::int) → core::int
     return x;
@@ -236,7 +236,7 @@ class Bq extends core::Object {
     : super core::Object::•()
     ;
   get a() → core::List<(core::int?) → core::int?>
-    return <(core::int?) → core::int?>[];
+    return core::_GrowableList::•<(core::int?) → core::int?>(0);
   set a(core::List<(core::int?) → core::int?> _) → void {}
   method m((core::int?) → core::int? x) → (core::int?) → core::int?
     return x;

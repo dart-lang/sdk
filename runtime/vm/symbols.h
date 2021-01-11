@@ -206,7 +206,6 @@ class ObjectPointerVisitor;
   V(List, "List")                                                              \
   V(ListFactory, "List.")                                                      \
   V(ListFilledFactory, "List.filled")                                          \
-  V(ListLiteralFactory, "List._fromLiteral")                                   \
   V(LoadLibrary, "_loadLibrary")                                               \
   V(LocalVarDescriptors, "LocalVarDescriptors")                                \
   V(Map, "Map")                                                                \
@@ -350,6 +349,7 @@ class ObjectPointerVisitor;
   V(_GrowableListFactory, "_GrowableList.")                                    \
   V(_GrowableListFilledFactory, "_GrowableList.filled")                        \
   V(_GrowableListGenerateFactory, "_GrowableList.generate")                    \
+  V(_GrowableListLiteralFactory, "_GrowableList._literal")                     \
   V(_GrowableListWithData, "_GrowableList._withData")                          \
   V(_ImmutableList, "_ImmutableList")                                          \
   V(_Int16ArrayFactory, "Int16List.")                                          \

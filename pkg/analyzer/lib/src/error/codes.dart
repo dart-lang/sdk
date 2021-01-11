@@ -3445,7 +3445,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```dart
   // void f(int a, int b) {}
   // void g() {
-  //   f[!(1, 2, 3)!];
+  //   f(1, 2, [!3!]);
   // }
   // ```
   //
@@ -3486,7 +3486,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // %language=2.9
   // void f(int a, int b, {int c}) {}
   // void g() {
-  //   f[!(1, 2, 3)!];
+  //   f(1, 2, [!3!]);
   // }
   // ```
   //

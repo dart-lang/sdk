@@ -6,7 +6,7 @@ main() {
   new C(42);
   //  ^
   // [cfe] Can't use 'C' because it is declared more than once.
-  //   ^^^^
+  //    ^^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
 }
 

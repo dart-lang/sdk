@@ -1464,10 +1464,18 @@ class List<E> extends Iterable<E> {
 }
 
 class _GrowableList<E> {
-  factory _GrowableList() => null;
+  factory _GrowableList(int length) => null;
   factory _GrowableList.empty() => null;
   factory _GrowableList.filled() => null;
   factory _GrowableList.generate(int length, E generator(int index)) => null;
+  factory _GrowableList._literal1(E e0) => null;
+  factory _GrowableList._literal2(E e0, E e1) => null;
+  factory _GrowableList._literal3(E e0, E e1, E e2) => null;
+  factory _GrowableList._literal4(E e0, E e1, E e2, E e3) => null;
+  factory _GrowableList._literal5(E e0, E e1, E e2, E e3, E e4) => null;
+  factory _GrowableList._literal6(E e0, E e1, E e2, E e3, E e4, E e5) => null;
+  factory _GrowableList._literal7(E e0, E e1, E e2, E e3, E e4, E e5, E e6) => null;
+  factory _GrowableList._literal8(E e0, E e1, E e2, E e3, E e4, E e5, E e6, E e7) => null;
 }
 
 class _List<E> {

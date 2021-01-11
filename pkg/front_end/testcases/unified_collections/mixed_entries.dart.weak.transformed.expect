@@ -42,7 +42,7 @@ import self as self;
 import "dart:core" as core;
 
 static field core::bool* b = false;
-static field core::List<dynamic>* list = <dynamic>[];
+static field core::List<dynamic>* list = core::_GrowableList::•<dynamic>(0);
 static field core::Map<dynamic, dynamic>* map0 = <dynamic, dynamic>{};
 static field core::Map<dynamic, dynamic>* map1 = block {
   final core::Map<dynamic, dynamic>* #t1 = <dynamic, dynamic>{};

@@ -46,10 +46,10 @@ static method main() → dynamic /* originally async */ {
       {
         asy::Future<self::B*>* b = asy::Future::value<self::B*>(new self::B::•());
         asy::Future<self::C*>* c = asy::Future::value<self::C*>(new self::C::•());
-        core::List<asy::Future<self::A*>*>* lll = <asy::Future<self::A*>*>[b, c];
+        core::List<asy::Future<self::A*>*>* lll = core::_GrowableList::_literal2<asy::Future<self::A*>*>(b, c);
         [yield] let dynamic #t1 = asy::_awaitHelper(asy::Future::wait<self::A*>(lll), :async_op_then, :async_op_error, :async_op) in null;
         core::List<self::A*>* result = _in::unsafeCast<core::List<self::A*>>(:result);
-        [yield] let dynamic #t2 = asy::_awaitHelper(asy::Future::wait<self::A*>(<asy::Future<self::A*>*>[b, c]), :async_op_then, :async_op_error, :async_op) in null;
+        [yield] let dynamic #t2 = asy::_awaitHelper(asy::Future::wait<self::A*>(core::_GrowableList::_literal2<asy::Future<self::A*>*>(b, c)), :async_op_then, :async_op_error, :async_op) in null;
         core::List<self::A*>* result2 = _in::unsafeCast<core::List<self::A*>>(:result);
         core::List<self::A*>* list = result;
         list = result2;

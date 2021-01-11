@@ -3149,7 +3149,7 @@ parameters but is invoked with 3 arguments:
 {% prettify dart tag=pre+code %}
 void f(int a, int b) {}
 void g() {
-  f[!(1, 2, 3)!];
+  f(1, 2, [!3!]);
 }
 {% endprettify %}
 
@@ -3183,7 +3183,7 @@ third argument:
 {% prettify dart tag=pre+code %}
 void f(int a, int b, {int c}) {}
 void g() {
-  f[!(1, 2, 3)!];
+  f(1, 2, [!3!]);
 }
 {% endprettify %}
 

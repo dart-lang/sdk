@@ -195,7 +195,7 @@ namespace dart {
   V(::, reachabilityFence, ReachabilityFence, 0xde1dc5bd)                      \
   V(_Utf8Decoder, _scan, Utf8DecoderScan, 0xb35ced99)                          \
   V(_Future, timeout, FutureTimeout, 0x6ad7d1ef)                               \
-  V(Future, wait, FutureWait, 0xb4396ca1)                                      \
+  V(Future, wait, FutureWait, 0x264aacc2)                                      \
 
 // List of intrinsics:
 // (class-name, function-name, intrinsification method, fingerprint).

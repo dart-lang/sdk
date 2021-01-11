@@ -152,22 +152,22 @@ class E<X extends (self::E::X*) →* self::E::X* = (Null) →* dynamic> extends 
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-static field core::List<self::C1<(Null) →* dynamic, (Null) →* dynamic>*>* lc1 = <self::C1<(Null) →* dynamic, (Null) →* dynamic>*>[];
+static field core::List<self::C1<(Null) →* dynamic, (Null) →* dynamic>*>* lc1 = core::_GrowableList::•<self::C1<(Null) →* dynamic, (Null) →* dynamic>*>(0);
 static field core::Map<self::C1<(Null) →* dynamic, (Null) →* dynamic>*, self::C1<(Null) →* dynamic, (Null) →* dynamic>*>* mc1 = <self::C1<(Null) →* dynamic, (Null) →* dynamic>*, self::C1<(Null) →* dynamic, (Null) →* dynamic>*>{};
-static field core::List<self::C2<(Null) →* dynamic, (Null) →* dynamic>*>* lc2 = <self::C2<(Null) →* dynamic, (Null) →* dynamic>*>[];
+static field core::List<self::C2<(Null) →* dynamic, (Null) →* dynamic>*>* lc2 = core::_GrowableList::•<self::C2<(Null) →* dynamic, (Null) →* dynamic>*>(0);
 static field core::Map<self::C2<(Null) →* dynamic, (Null) →* dynamic>*, self::C2<(Null) →* dynamic, (Null) →* dynamic>*>* mc2 = <self::C2<(Null) →* dynamic, (Null) →* dynamic>*, self::C2<(Null) →* dynamic, (Null) →* dynamic>*>{};
-static field core::List<self::C3<(Null, Null) →* dynamic, (Null, Null) →* dynamic>*>* lc3 = <self::C3<(Null, Null) →* dynamic, (Null, Null) →* dynamic>*>[];
+static field core::List<self::C3<(Null, Null) →* dynamic, (Null, Null) →* dynamic>*>* lc3 = core::_GrowableList::•<self::C3<(Null, Null) →* dynamic, (Null, Null) →* dynamic>*>(0);
 static field core::Map<self::C3<(Null, Null) →* dynamic, (Null, Null) →* dynamic>*, self::C3<(Null, Null) →* dynamic, (Null, Null) →* dynamic>*>* mc3 = <self::C3<(Null, Null) →* dynamic, (Null, Null) →* dynamic>*, self::C3<(Null, Null) →* dynamic, (Null, Null) →* dynamic>*>{};
-static field core::List<self::C4<(Null, Null) →* dynamic, (Null, Null) →* dynamic>*>* lc4 = <self::C4<(Null, Null) →* dynamic, (Null, Null) →* dynamic>*>[];
+static field core::List<self::C4<(Null, Null) →* dynamic, (Null, Null) →* dynamic>*>* lc4 = core::_GrowableList::•<self::C4<(Null, Null) →* dynamic, (Null, Null) →* dynamic>*>(0);
 static field core::Map<self::C4<(Null, Null) →* dynamic, (Null, Null) →* dynamic>*, self::C4<(Null, Null) →* dynamic, (Null, Null) →* dynamic>*>* mc4 = <self::C4<(Null, Null) →* dynamic, (Null, Null) →* dynamic>*, self::C4<(Null, Null) →* dynamic, (Null, Null) →* dynamic>*>{};
-static field core::List<self::D1<self::B<dynamic, dynamic>*, (Null) →* dynamic>*>* ld1 = <self::D1<self::B<dynamic, dynamic>*, (Null) →* dynamic>*>[];
+static field core::List<self::D1<self::B<dynamic, dynamic>*, (Null) →* dynamic>*>* ld1 = core::_GrowableList::•<self::D1<self::B<dynamic, dynamic>*, (Null) →* dynamic>*>(0);
 static field core::Map<self::D1<self::B<dynamic, dynamic>*, (Null) →* dynamic>*, self::D1<self::B<dynamic, dynamic>*, (Null) →* dynamic>*>* md1 = <self::D1<self::B<dynamic, dynamic>*, (Null) →* dynamic>*, self::D1<self::B<dynamic, dynamic>*, (Null) →* dynamic>*>{};
-static field core::List<self::D2<self::B<dynamic, dynamic>*, (Null) →* dynamic>*>* ld2 = <self::D2<self::B<dynamic, dynamic>*, (Null) →* dynamic>*>[];
+static field core::List<self::D2<self::B<dynamic, dynamic>*, (Null) →* dynamic>*>* ld2 = core::_GrowableList::•<self::D2<self::B<dynamic, dynamic>*, (Null) →* dynamic>*>(0);
 static field core::Map<self::D2<self::B<dynamic, dynamic>*, (Null) →* dynamic>*, self::D2<self::B<dynamic, dynamic>*, (Null) →* dynamic>*>* md2 = <self::D2<self::B<dynamic, dynamic>*, (Null) →* dynamic>*, self::D2<self::B<dynamic, dynamic>*, (Null) →* dynamic>*>{};
-static field core::List<self::D3<self::B<dynamic, dynamic>*, (Null, Null) →* dynamic>*>* ld3 = <self::D3<self::B<dynamic, dynamic>*, (Null, Null) →* dynamic>*>[];
+static field core::List<self::D3<self::B<dynamic, dynamic>*, (Null, Null) →* dynamic>*>* ld3 = core::_GrowableList::•<self::D3<self::B<dynamic, dynamic>*, (Null, Null) →* dynamic>*>(0);
 static field core::Map<self::D3<self::B<dynamic, dynamic>*, (Null, Null) →* dynamic>*, self::D3<self::B<dynamic, dynamic>*, (Null, Null) →* dynamic>*>* md3 = <self::D3<self::B<dynamic, dynamic>*, (Null, Null) →* dynamic>*, self::D3<self::B<dynamic, dynamic>*, (Null, Null) →* dynamic>*>{};
-static field core::List<self::D4<self::B<dynamic, dynamic>*, (Null, Null) →* dynamic>*>* ld4 = <self::D4<self::B<dynamic, dynamic>*, (Null, Null) →* dynamic>*>[];
+static field core::List<self::D4<self::B<dynamic, dynamic>*, (Null, Null) →* dynamic>*>* ld4 = core::_GrowableList::•<self::D4<self::B<dynamic, dynamic>*, (Null, Null) →* dynamic>*>(0);
 static field core::Map<self::D4<self::B<dynamic, dynamic>*, (Null, Null) →* dynamic>*, self::D4<self::B<dynamic, dynamic>*, (Null, Null) →* dynamic>*>* md4 = <self::D4<self::B<dynamic, dynamic>*, (Null, Null) →* dynamic>*, self::D4<self::B<dynamic, dynamic>*, (Null, Null) →* dynamic>*>{};
-static field core::List<self::E<(Null) →* dynamic>*>* le = <self::E<(Null) →* dynamic>*>[];
+static field core::List<self::E<(Null) →* dynamic>*>* le = core::_GrowableList::•<self::E<(Null) →* dynamic>*>(0);
 static field core::Map<self::E<(Null) →* dynamic>*, self::E<(Null) →* dynamic>*>* me = <self::E<(Null) →* dynamic>*, self::E<(Null) →* dynamic>*>{};
 static method main() → dynamic {}

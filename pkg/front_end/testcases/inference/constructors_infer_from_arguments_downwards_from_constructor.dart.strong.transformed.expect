@@ -18,8 +18,8 @@ class C<T extends core::Object* = dynamic> extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method main() → dynamic {
-  self::C<core::int*>* x = new self::C::•<core::int*>(<core::int*>[123]);
+  self::C<core::int*>* x = new self::C::•<core::int*>(core::_GrowableList::_literal1<core::int*>(123));
   self::C<core::int*>* y = x;
-  self::C<dynamic>* a = new self::C::•<dynamic>(<dynamic>[123]);
-  self::C<core::Object*>* b = new self::C::•<core::Object*>(<core::Object*>[123]);
+  self::C<dynamic>* a = new self::C::•<dynamic>(core::_GrowableList::_literal1<dynamic>(123));
+  self::C<core::Object*>* b = new self::C::•<core::Object*>(core::_GrowableList::_literal1<core::Object*>(123));
 }

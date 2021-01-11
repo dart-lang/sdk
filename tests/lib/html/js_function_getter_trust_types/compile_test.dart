@@ -47,6 +47,6 @@ main() {
   foo.bar.add(4, 5, 10);
   //         ^
   // [cfe] Error: Too many positional arguments: 2 allowed, but 3 found.
-  //         ^^^^^^^^^^
+  //                ^^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
 }

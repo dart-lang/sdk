@@ -103,17 +103,17 @@ import "dart:collection" as col;
 static method bar<K extends core::Object* = dynamic, V extends core::Object* = dynamic>() → core::Map<self::bar::K*, self::bar::V*>*
   return null;
 static method foo(dynamic dynVar) → dynamic {
-  core::List<core::int*>* spread = <core::int*>[1, 2, 3];
+  core::List<core::int*>* spread = core::_GrowableList::_literal3<core::int*>(1, 2, 3);
   core::Map<core::String*, core::int*>* mapSpread = <core::String*, core::int*>{"foo": 4, "bar": 2};
   core::int* notSpreadInt = 42;
   () →* core::int* notSpreadFunction = null;
   core::Map<core::int*, core::num*>* mapIntNum = <core::int*, core::num*>{42: 42};
-  core::List<core::num*>* listNum = <core::num*>[42];
+  core::List<core::num*>* listNum = core::_GrowableList::_literal1<core::num*>(42);
   core::List<dynamic>* lhs10 = block {
-    final core::List<dynamic>* #t1 = core::List::of<dynamic>(<dynamic>[]);
+    final core::List<dynamic>* #t1 = core::List::of<dynamic>(core::_GrowableList::•<dynamic>(0));
   } =>#t1;
   core::Set<dynamic>* set10 = block {
-    final core::Set<dynamic>* #t2 = col::LinkedHashSet::of<dynamic>(<dynamic>[]);
+    final core::Set<dynamic>* #t2 = col::LinkedHashSet::of<dynamic>(core::_GrowableList::•<dynamic>(0));
   } =>#t2;
   core::Map<dynamic, dynamic>* map10 = block {
     final core::Map<dynamic, dynamic>* #t3 = <dynamic, dynamic>{};
@@ -199,16 +199,16 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   dynamic map21ambiguous = {...(mapSpread as dynamic)};
                            ^";
   core::List<core::int*>* lhs22 = block {
-    final core::List<core::int*>* #t20 = core::List::of<core::int*>(<core::int*>[]);
+    final core::List<core::int*>* #t20 = core::List::of<core::int*>(core::_GrowableList::•<core::int*>(0));
   } =>#t20;
   core::Set<core::int*>* set22 = block {
-    final core::Set<core::int*>* #t21 = col::LinkedHashSet::of<core::int*>(<core::int*>[]);
+    final core::Set<core::int*>* #t21 = col::LinkedHashSet::of<core::int*>(core::_GrowableList::•<core::int*>(0));
     #t21.{core::Set::add}{Invariant}(42);
   } =>#t21;
   core::Set<core::int*>* set22ambiguous = block {
     final core::Set<core::int*>* #t22 = new col::_CompactLinkedHashSet::•<core::int*>();
     {
-      core::Iterator<core::int*>* :sync-for-iterator = <core::int*>[].{core::Iterable::iterator};
+      core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::•<core::int*>(0).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t23 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -229,16 +229,16 @@ Try providing type arguments for the literal explicitly to disambiguate it.
     }
   } =>#t25;
   core::List<core::List<core::int*>*>* lhs23 = block {
-    final core::List<core::List<core::int*>*>* #t27 = core::List::of<core::List<core::int*>*>(<core::List<core::int*>*>[<core::int*>[]]);
+    final core::List<core::List<core::int*>*>* #t27 = core::List::of<core::List<core::int*>*>(core::_GrowableList::_literal1<core::List<core::int*>*>(core::_GrowableList::•<core::int*>(0)));
   } =>#t27;
   core::Set<core::List<core::int*>*>* set23 = block {
-    final core::Set<core::List<core::int*>*>* #t28 = col::LinkedHashSet::of<core::List<core::int*>*>(<core::List<core::int*>*>[<core::int*>[]]);
-    #t28.{core::Set::add}{Invariant}(<core::int*>[42]);
+    final core::Set<core::List<core::int*>*>* #t28 = col::LinkedHashSet::of<core::List<core::int*>*>(core::_GrowableList::_literal1<core::List<core::int*>*>(core::_GrowableList::•<core::int*>(0)));
+    #t28.{core::Set::add}{Invariant}(core::_GrowableList::_literal1<core::int*>(42));
   } =>#t28;
   core::Set<core::List<core::int*>*>* set23ambiguous = block {
     final core::Set<core::List<core::int*>*>* #t29 = new col::_CompactLinkedHashSet::•<core::List<core::int*>*>();
     {
-      core::Iterator<core::List<core::int*>*>* :sync-for-iterator = <core::List<core::int*>*>[<core::int*>[]].{core::Iterable::iterator};
+      core::Iterator<core::List<core::int*>*>* :sync-for-iterator = core::_GrowableList::_literal1<core::List<core::int*>*>(core::_GrowableList::•<core::int*>(0)).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t30 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -251,7 +251,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::Map<core::String*, core::List<core::int*>*>* map23 = block {
     final core::Map<core::String*, core::List<core::int*>*>* #t32 = <core::String*, core::List<core::int*>*>{};
     {
-      core::Iterator<core::MapEntry<core::String*, core::List<core::int*>*>>* :sync-for-iterator = <core::String*, core::List<core::int*>*>{"baz": <core::int*>[]}.{core::Map::entries}.{core::Iterable::iterator};
+      core::Iterator<core::MapEntry<core::String*, core::List<core::int*>*>>* :sync-for-iterator = <core::String*, core::List<core::int*>*>{"baz": core::_GrowableList::•<core::int*>(0)}.{core::Map::entries}.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::MapEntry<core::String*, core::List<core::int*>*>* #t33 = :sync-for-iterator.{core::Iterator::current};
         #t32.{core::Map::[]=}{Invariant}(#t33.{core::MapEntry::key}, #t33.{core::MapEntry::value});
@@ -317,9 +317,9 @@ Try providing type arguments for the literal explicitly to disambiguate it.
       }
     }
   } =>#t46) as{TypeError} core::int*;
-  core::List<dynamic>* lhs40 = <dynamic>[invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:111:38: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
+  core::List<dynamic>* lhs40 = core::_GrowableList::_literal1<dynamic>(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:111:38: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
   List<dynamic> lhs40 = <dynamic>[...notSpreadInt];
-                                     ^"];
+                                     ^");
   core::Set<dynamic>* set40 = block {
     final core::Set<dynamic>* #t48 = new col::_CompactLinkedHashSet::•<dynamic>();
     #t48.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:113:37: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
@@ -329,9 +329,9 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::Map<dynamic, dynamic>* map40 = <dynamic, dynamic>{invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:115:55: Error: Unexpected type 'int' of a map spread entry.  Expected 'dynamic' or a Map.
   Map<dynamic, dynamic> map40 = <dynamic, dynamic>{...notSpreadInt};
                                                       ^": null};
-  core::List<dynamic>* lhs50 = <dynamic>[invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:117:38: Error: Unexpected type 'int Function()' of a spread.  Expected 'dynamic' or an Iterable.
+  core::List<dynamic>* lhs50 = core::_GrowableList::_literal1<dynamic>(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:117:38: Error: Unexpected type 'int Function()' of a spread.  Expected 'dynamic' or an Iterable.
   List<dynamic> lhs50 = <dynamic>[...notSpreadFunction];
-                                     ^"];
+                                     ^");
   core::Set<dynamic>* set50 = block {
     final core::Set<dynamic>* #t49 = new col::_CompactLinkedHashSet::•<dynamic>();
     #t49.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:119:37: Error: Unexpected type 'int Function()' of a spread.  Expected 'dynamic' or an Iterable.
@@ -341,9 +341,9 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::Map<dynamic, dynamic>* map50 = <dynamic, dynamic>{invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:121:55: Error: Unexpected type 'int Function()' of a map spread entry.  Expected 'dynamic' or a Map.
   Map<dynamic, dynamic> map50 = <dynamic, dynamic>{...notSpreadFunction};
                                                       ^": null};
-  core::List<core::String*>* lhs60 = <core::String*>[invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:123:36: Error: Can't assign spread elements of type 'int' to collection elements of type 'String'.
+  core::List<core::String*>* lhs60 = core::_GrowableList::_literal1<core::String*>(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:123:36: Error: Can't assign spread elements of type 'int' to collection elements of type 'String'.
   List<String> lhs60 = <String>[...spread];
-                                   ^"];
+                                   ^");
   core::Set<core::String*>* set60 = block {
     final core::Set<core::String*>* #t50 = new col::_CompactLinkedHashSet::•<core::String*>();
     #t50.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:125:35: Error: Can't assign spread elements of type 'int' to collection elements of type 'String'.
@@ -356,9 +356,9 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::Map<core::String*, core::String*>* map61 = <core::String*, core::String*>{null: invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:129:51: Error: Can't assign spread entry values of type 'int' to map entry values of type 'String'.
   Map<String, String> map61 = <String, String>{...mapSpread};
                                                   ^"};
-  core::List<core::int*>* lhs70 = <core::int*>[invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:131:30: Error: Can't spread a value with static type 'Null'.
+  core::List<core::int*>* lhs70 = core::_GrowableList::_literal1<core::int*>(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:131:30: Error: Can't spread a value with static type 'Null'.
   List<int> lhs70 = <int>[...null];
-                             ^"];
+                             ^");
   core::Set<core::int*>* set70 = block {
     final core::Set<core::int*>* #t51 = new col::_CompactLinkedHashSet::•<core::int*>();
     #t51.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:133:29: Error: Can't spread a value with static type 'Null'.
@@ -371,7 +371,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
     ...null,
        ^");
     {
-      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t53 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -385,7 +385,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   Map<String, int> map70 = <String, int>{...null};
                                             ^": null};
   core::List<core::int*>* lhs80 = block {
-    final core::List<core::int*>* #t55 = <core::int*>[];
+    final core::List<core::int*>* #t55 = core::_GrowableList::•<core::int*>(0);
     final core::Iterable<core::int*>* #t56 = null;
     if(!#t56.{core::Object::==}(null))
       #t55.{core::List::addAll}{Invariant}(#t56);
@@ -410,7 +410,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t63 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -442,7 +442,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
     }
   } =>#t68;
   core::List<core::int*>* list100 = block {
-    final core::List<core::int*>* #t70 = <core::int*>[];
+    final core::List<core::int*>* #t70 = core::_GrowableList::•<core::int*>(0);
     {
       core::Iterator<core::num*>* :sync-for-iterator = listNum.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
@@ -469,7 +469,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
     }
   } =>#t73;
   core::List<core::int*>* list110 = block {
-    final core::List<core::int*>* #t77 = <core::int*>[];
+    final core::List<core::int*>* #t77 = core::_GrowableList::•<core::int*>(0);
     {
       core::Iterator<dynamic>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {

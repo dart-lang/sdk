@@ -244,7 +244,7 @@ static method others() → dynamic /* originally async */ {
         [yield] let dynamic #t19 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error, :async_op) in null;
         core::num* d = _in::unsafeCast<core::int*>(:async_temporary_1).{core::num::+}(:result as{TypeError,ForDynamic} core::num*);
         core::int* cnt = 2;
-        core::List<core::int*>* b = <core::int*>[1, 2, 3];
+        core::List<core::int*>* b = core::_GrowableList::_literal3<core::int*>(1, 2, 3);
         :async_temporary_3 = b;
         :async_temporary_2 = cnt;
         [yield] let dynamic #t20 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error, :async_op) in null;
@@ -354,7 +354,7 @@ static method asserts() → dynamic /* originally async */ {
       #L6:
       {
         {
-          core::Iterator<core::Function*>* :sync-for-iterator = <core::Function*>[#C1, #C2].{core::Iterable::iterator};
+          core::Iterator<core::Function*>* :sync-for-iterator = core::_GrowableList::_literal2<core::Function*>(#C1, #C2).{core::Iterable::iterator};
           for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
             final core::Function* #t26 = :sync-for-iterator.{core::Iterator::current};
             {
@@ -433,7 +433,7 @@ static method controlFlow() → dynamic /* originally async */ {
       #L7:
       {
         {
-          core::Iterator<core::Function*>* :sync-for-iterator = <core::Function*>[#C1, #C2].{core::Iterable::iterator};
+          core::Iterator<core::Function*>* :sync-for-iterator = core::_GrowableList::_literal2<core::Function*>(#C1, #C2).{core::Iterable::iterator};
           for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
             final core::Function* #t33 = :sync-for-iterator.{core::Iterator::current};
             {
@@ -637,7 +637,7 @@ static method controlFlow() → dynamic /* originally async */ {
                 :controller_stream = :controller.{asy::_AsyncStarStreamController::stream};
                 return :controller_stream;
               }
-              :async_temporary_0 = <dynamic>[42];
+              :async_temporary_0 = core::_GrowableList::_literal1<dynamic>(42);
               [yield] let dynamic #t55 = asy::_awaitHelper(testStream1.call().{asy::Stream::toList}(), :async_op_then, :async_op_error, :async_op) in null;
               self::expectList(_in::unsafeCast<core::List<dynamic>*>(:async_temporary_0), _in::unsafeCast<core::List<core::int*>>(:result));
               function testStream2() → asy::Stream<core::int*>* /* originally async* */ {
@@ -674,7 +674,7 @@ static method controlFlow() → dynamic /* originally async */ {
                 :controller_stream = :controller.{asy::_AsyncStarStreamController::stream};
                 return :controller_stream;
               }
-              :async_temporary_1 = <dynamic>[42];
+              :async_temporary_1 = core::_GrowableList::_literal1<dynamic>(42);
               [yield] let dynamic #t57 = asy::_awaitHelper(testStream2.call().{asy::Stream::toList}(), :async_op_then, :async_op_error, :async_op) in null;
               self::expectList(_in::unsafeCast<core::List<dynamic>*>(:async_temporary_1), _in::unsafeCast<core::List<core::int*>>(:result));
             }

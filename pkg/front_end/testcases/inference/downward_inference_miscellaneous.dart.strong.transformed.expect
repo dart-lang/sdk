@@ -25,7 +25,7 @@ static method main() → void {
     core::int* y = 3;
     function f(core::List<core::Map<core::int*, core::String*>*>* l) → void {}
     ;
-    f.call(<core::Map<core::int*, core::String*>*>[<core::int*, core::String*>{y: x}]);
+    f.call(core::_GrowableList::_literal1<core::Map<core::int*, core::String*>*>(<core::int*, core::String*>{y: x}));
   }
   {
     function f(core::int* x) → core::int*

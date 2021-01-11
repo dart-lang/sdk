@@ -23,7 +23,7 @@ class FastaErrorReporter {
       String analyzerCode, int offset, int length, Message message) {
     Map<String, dynamic> arguments = message.arguments;
 
-    String lexeme() => (arguments['token'] as Token).lexeme;
+    String lexeme() => (arguments['lexeme'] as Token).lexeme;
 
     switch (analyzerCode) {
       case "ASYNC_FOR_IN_WRONG_CONTEXT":
@@ -350,8 +350,12 @@ class FastaErrorReporter {
     if (index != null && index > 0 && index < fastaAnalyzerErrorCodes.length) {
       ErrorCode errorCode = fastaAnalyzerErrorCodes[index];
       if (errorCode != null) {
-        errorReporter.reportError(AnalysisError.forValues(errorReporter.source,
-            offset, length, errorCode, message.message, message.tip));
+        errorReporter.reportError(AnalysisError.withNamedArguments(
+            errorReporter.source,
+            offset,
+            length,
+            errorCode,
+            message.arguments));
         return;
       }
     }
@@ -368,8 +372,8 @@ class FastaErrorReporter {
   void _reportByCode(
       ErrorCode errorCode, Message message, int offset, int length) {
     if (errorReporter != null) {
-      errorReporter.reportError(AnalysisError.forValues(errorReporter.source,
-          offset, length, errorCode, message.message, null));
+      errorReporter.reportError(AnalysisError.withNamedArguments(
+          errorReporter.source, offset, length, errorCode, message.arguments));
     }
   }
 }

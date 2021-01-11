@@ -158,11 +158,11 @@ class NoSuchMethod<invariant T extends core::Object* = dynamic> extends core::Ob
   no-such-method-forwarder get x() → self::NoSuchMethod::T*
     return this.{self::NoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))) as{TypeError,ForDynamic} self::NoSuchMethod::T*;
   no-such-method-forwarder method method(self::NoSuchMethod::T* x) → self::NoSuchMethod::T*
-    return this.{self::NoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))) as{TypeError,ForDynamic} self::NoSuchMethod::T*;
+    return this.{self::NoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 0, #C3, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(x)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))) as{TypeError,ForDynamic} self::NoSuchMethod::T*;
   no-such-method-forwarder set y(self::NoSuchMethod::T* x) → void
-    return this.{self::NoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#C7, 2, #C3, core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5)));
+    return this.{self::NoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#C7, 2, #C3, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(x)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5)));
   no-such-method-forwarder set x(self::NoSuchMethod::T* value) → void
-    return this.{self::NoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#C8, 2, #C3, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5)));
+    return this.{self::NoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#C8, 2, #C3, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(value)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5)));
 }
 static method main() → dynamic {
   self::A<core::int*, core::num*, core::String*>* a = new self::A::•<core::int*, core::num*, core::String*>();

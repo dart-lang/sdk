@@ -97,7 +97,7 @@ static method foo() → asy::Stream<core::List<core::int*>*>* /* originally asyn
       try {
         #L1:
         {
-          if(:controller.{asy::_AsyncStarStreamController::add}(<core::int*>[]))
+          if(:controller.{asy::_AsyncStarStreamController::add}(core::_GrowableList::•<core::int*>(0)))
             return null;
           else
             [yield] null;
@@ -113,7 +113,7 @@ static method foo() → asy::Stream<core::List<core::int*>*>* /* originally asyn
  - 'List' is from 'dart:core'.
  - 'Stream' is from 'dart:async'.
   yield* /*error:YIELD_OF_INVALID_TYPE*/ /*@typeArgs=dynamic*/ [];
-                                                               ^" in <dynamic>[] as{TypeError} asy::Stream<core::List<core::int*>*>*))
+                                                               ^" in core::_GrowableList::•<dynamic>(0) as{TypeError} asy::Stream<core::List<core::int*>*>*))
             return null;
           else
             [yield] null;
@@ -151,7 +151,7 @@ static method bar() → core::Iterable<core::Map<core::int*, core::int*>*>* /* o
  - 'List' is from 'dart:core'.
  - 'Map' is from 'dart:core'.
   yield /*error:YIELD_OF_INVALID_TYPE*/ /*@typeArgs=dynamic*/ [];
-                                                              ^" in <dynamic>[] as{TypeError} core::Map<core::int*, core::int*>*;
+                                                              ^" in core::_GrowableList::•<dynamic>(0) as{TypeError} core::Map<core::int*, core::int*>*;
           [yield] true;
         }
         {
@@ -163,7 +163,7 @@ static method bar() → core::Iterable<core::Map<core::int*, core::int*>*>* /* o
           [yield] true;
         }
         {
-          :iterator.{core::_SyncIterator::_yieldEachIterable} = <core::Map<core::int*, core::int*>*>[];
+          :iterator.{core::_SyncIterator::_yieldEachIterable} = core::_GrowableList::•<core::Map<core::int*, core::int*>*>(0);
           [yield] true;
         }
       }

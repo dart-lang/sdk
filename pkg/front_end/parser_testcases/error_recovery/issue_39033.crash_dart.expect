@@ -32,7 +32,7 @@ beginCompilationUnit(typedef)
         endTypeVariable(., 0, null, null)
         handleRecoverableError(Message[ExpectedAfterButGot, Expected '>' after this., null, {string: >}], Glib, Glib)
       endTypeVariables(<, >)
-      handleRecoverableError(Message[ExpectedType, Expected a type, but got ''., null, {token: }], , )
+      handleRecoverableError(Message[ExpectedType, Expected a type, but got ''., null, {lexeme: }], , )
       // WARNING: Reporting at eof for .
       handleIdentifier(, typeReference)
       handleNoTypeArguments()

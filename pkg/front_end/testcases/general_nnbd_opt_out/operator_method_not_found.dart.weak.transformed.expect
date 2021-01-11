@@ -318,7 +318,7 @@ Try correcting the operator to an existing operator, or defining a '~' operator.
 Try correcting the operator to an existing operator, or defining a 'unary-' operator.
   print(-foo);
         ^");
-  core::print(<invalid-type>[]);
+  core::print(core::_GrowableList::•<invalid-type>(0));
   core::print(invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/operator_method_not_found.dart:39:9: Error: This couldn't be parsed.
   print(>foo);
         ^".>(foo));

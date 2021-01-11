@@ -1039,7 +1039,7 @@ class B extends A {
           CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
           71,
           3),
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 74, 3),
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 75, 1),
     ]);
 
     assertMethodInvocation2(
@@ -1348,7 +1348,7 @@ main() {
 }
 ''', [
       error(HintCode.UNUSED_IMPORT, 7, 11),
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 65, 7),
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 66, 5),
     ]);
 
     var import = findElement.importFind('dart:math');

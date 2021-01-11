@@ -122,7 +122,7 @@ No types are needed, the first is given by 'on', the second is always 'StackTrac
     core::print("baz");
   }
   {
-    core::Iterator<core::String> :sync-for-iterator = <core::String>["baz"].{core::Iterable::iterator};
+    core::Iterator<core::String> :sync-for-iterator = core::_GrowableList::_literal1<core::String>("baz").{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       core::String s = :sync-for-iterator.{core::Iterator::current};
       {
@@ -131,7 +131,7 @@ No types are needed, the first is given by 'on', the second is always 'StackTrac
     }
   }
   block {
-    final core::List<core::int> #t7 = <core::int>[];
+    final core::List<core::int> #t7 = core::_GrowableList::•<core::int>(0);
     for (core::int i = 0; i.{core::num::<}(10); i = i.{core::num::+}(1))
       #t7.{core::List::add}{Invariant}(i);
   } =>#t7;
@@ -153,7 +153,7 @@ static method hest() → dynamic /* originally async */ {
       #L1:
       {
         {
-          asy::Stream<core::String> :stream = asy::Stream::fromIterable<core::String>(<core::String>["hest"]);
+          asy::Stream<core::String> :stream = asy::Stream::fromIterable<core::String>(core::_GrowableList::_literal1<core::String>("hest"));
           asy::_StreamIterator<core::String>? :for-iterator = new asy::_StreamIterator::•<core::String>(:stream);
           try
             #L2:

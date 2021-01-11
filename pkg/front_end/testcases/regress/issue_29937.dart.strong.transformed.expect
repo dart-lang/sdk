@@ -7,7 +7,8 @@ library;
 //    ^
 //
 import self as self;
+import "dart:core" as core;
 
 static method main() → dynamic {
-  <() →* Null>[let final () →* Null f = () → Null {} in f];
+  core::_GrowableList::_literal1<() →* Null>(let final () →* Null f = () → Null {} in f);
 }

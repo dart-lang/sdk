@@ -8,7 +8,7 @@ static method foldInitialElements() → void {
   core::num* element1 = 1;
   core::int* element2 = 2;
   core::List<core::int*>* list = block {
-    final core::List<core::int*>* #t1 = <core::int*>[element0 as{TypeError,ForDynamic} core::int*, element1 as{TypeError} core::int*, element2];
+    final core::List<core::int*>* #t1 = core::_GrowableList::_literal3<core::int*>(element0 as{TypeError,ForDynamic} core::int*, element1 as{TypeError} core::int*, element2);
     if(true)
       #t1.{core::List::add}{Invariant}(3);
     #t1.{core::List::add}{Invariant}(4);
@@ -30,9 +30,9 @@ static method foldInitialElements() → void {
   self::expect(core::_GrowableList::generate<core::int*>(7, (core::int* i) → core::int* => i), set.{core::Iterable::toList}());
 }
 static method foldInitialSpread1() → void {
-  dynamic initial = <core::int*>[0, 1, 2];
+  dynamic initial = core::_GrowableList::_literal3<core::int*>(0, 1, 2);
   core::List<core::int*>* list = block {
-    final core::List<core::int*>* #t3 = <core::int*>[];
+    final core::List<core::int*>* #t3 = core::_GrowableList::•<core::int*>(0);
     {
       core::Iterator<dynamic>* :sync-for-iterator = (initial as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
@@ -71,9 +71,9 @@ static method foldInitialSpread1() → void {
   self::expect(core::_GrowableList::generate<core::int*>(7, (core::int* i) → core::int* => i), set.{core::Iterable::toList}());
 }
 static method foldInitialSpread2() → void {
-  core::Iterable<core::num*>* initial = <core::num*>[0, 1, 2];
+  core::Iterable<core::num*>* initial = core::_GrowableList::_literal3<core::num*>(0, 1, 2);
   core::List<core::int*>* list = block {
-    final core::List<core::int*>* #t9 = <core::int*>[];
+    final core::List<core::int*>* #t9 = core::_GrowableList::•<core::int*>(0);
     {
       core::Iterator<core::num*>* :sync-for-iterator = initial.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
@@ -112,9 +112,9 @@ static method foldInitialSpread2() → void {
   self::expect(core::_GrowableList::generate<core::int*>(7, (core::int* i) → core::int* => i), set.{core::Iterable::toList}());
 }
 static method foldInitialSpread3() → void {
-  core::List<core::num*>* initial = <core::num*>[0, 1, 2];
+  core::List<core::num*>* initial = core::_GrowableList::_literal3<core::num*>(0, 1, 2);
   core::List<core::int*>* list = block {
-    final core::List<core::int*>* #t15 = <core::int*>[];
+    final core::List<core::int*>* #t15 = core::_GrowableList::•<core::int*>(0);
     {
       core::Iterator<core::num*>* :sync-for-iterator = initial.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
@@ -153,7 +153,7 @@ static method foldInitialSpread3() → void {
   self::expect(core::_GrowableList::generate<core::int*>(7, (core::int* i) → core::int* => i), set.{core::Iterable::toList}());
 }
 static method foldInitialSpread4() → void {
-  core::Iterable<core::int*>* initial = <core::int*>[0, 1, 2];
+  core::Iterable<core::int*>* initial = core::_GrowableList::_literal3<core::int*>(0, 1, 2);
   core::List<core::int*>* list = block {
     final core::List<core::int*>* #t21 = core::List::of<core::int*>(initial);
     if(true)
@@ -174,7 +174,7 @@ static method foldInitialSpread4() → void {
   self::expect(core::_GrowableList::generate<core::int*>(7, (core::int* i) → core::int* => i), set.{core::Iterable::toList}());
 }
 static method foldInitialSpread5() → void {
-  core::List<core::int*>* initial = <core::int*>[0, 1, 2];
+  core::List<core::int*>* initial = core::_GrowableList::_literal3<core::int*>(0, 1, 2);
   core::List<core::int*>* list = block {
     final core::List<core::int*>* #t23 = core::List::of<core::int*>(initial);
     if(true)
@@ -195,9 +195,9 @@ static method foldInitialSpread5() → void {
   self::expect(core::_GrowableList::generate<core::int*>(7, (core::int* i) → core::int* => i), set.{core::Iterable::toList}());
 }
 static method foldInitialSpread6() → void {
-  core::List<core::int*>* initial = <core::int*>[0, 1, 2];
+  core::List<core::int*>* initial = core::_GrowableList::_literal3<core::int*>(0, 1, 2);
   core::List<core::int*>* list = block {
-    final core::List<core::int*>* #t25 = <core::int*>[];
+    final core::List<core::int*>* #t25 = core::_GrowableList::•<core::int*>(0);
     final core::Iterable<core::int*>* #t26 = initial;
     if(!#t26.{core::Object::==}(null))
       #t25.{core::List::addAll}{Invariant}(#t26);
