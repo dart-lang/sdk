@@ -452,6 +452,14 @@ class ParserTestListenerWithMessageFormatting extends ParserTestListener {
     }
   }
 
+  bool checkEof(Token token) {
+    bool result = super.checkEof(token);
+    if (result) {
+      errors.add("WARNING: Reporting at eof --- see below for details.");
+    }
+    return result;
+  }
+
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {
     if (source != null) {

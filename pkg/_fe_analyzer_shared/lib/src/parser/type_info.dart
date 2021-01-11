@@ -293,11 +293,11 @@ TypeInfo computeType(final Token token, bool required,
       // identifier `?` Function `(`
       return new ComplexTypeInfo(token, noTypeParamOrArg)
           .computeIdentifierQuestionGFT(required);
-    } else if (required || looksLikeName(next)) {
+    } else if (required || looksLikeNameSimpleType(next)) {
       // identifier `?`
       return simpleNullableType;
     }
-  } else if (required || looksLikeName(next)) {
+  } else if (required || looksLikeNameSimpleType(next)) {
     // identifier identifier
     return simpleType;
   }

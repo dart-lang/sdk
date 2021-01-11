@@ -427,6 +427,7 @@ class _ErrorHelper {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN,
         errorNode,
+        [identifier.name],
       );
       return;
     }

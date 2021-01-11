@@ -1,0 +1,23 @@
+Problems reported:
+
+parser/error_recovery/issue_42229_prime_6:1:7: The const variable 'foo' must be initialized.
+const foo
+      ^^^
+
+parser/error_recovery/issue_42229_prime_6:1:7: Expected ';' after this.
+const foo
+      ^^^
+
+beginCompilationUnit(const)
+  beginMetadataStar(const)
+  endMetadataStar(0)
+  beginTopLevelMember(const)
+    beginFields()
+      handleNoType(const)
+      handleIdentifier(foo, topLevelVariableDeclaration)
+      handleRecoverableError(Message[ConstFieldWithoutInitializer, The const variable 'foo' must be initialized., Try adding an initializer ('= expression') to the declaration., {name: foo}], foo, foo)
+      handleNoFieldInitializer()
+      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], foo, foo)
+    endTopLevelFields(null, null, null, null, const, 1, const, ;)
+  endTopLevelDeclaration()
+endCompilationUnit(1, )

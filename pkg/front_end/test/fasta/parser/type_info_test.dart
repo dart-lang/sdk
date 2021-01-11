@@ -65,7 +65,6 @@ class NoTypeInfoTest {
     expectInfo(noType, 'C*', required: false);
     expectInfo(noType, 'C do', required: false);
 
-    expectInfo(noType, 'C.a', required: false);
     expectInfo(noType, 'C.a;', required: false);
     expectInfo(noType, 'C.a(', required: false);
     expectInfo(noType, 'C.a<', required: false);
@@ -73,11 +72,9 @@ class NoTypeInfoTest {
     expectInfo(noType, 'C.a*', required: false);
     expectInfo(noType, 'C.a do', required: false);
 
-    expectInfo(noType, 'C<T>', required: false);
     expectInfo(noType, 'C<T>;', required: false);
     expectInfo(noType, 'C<T>(', required: false);
     expectInfo(noType, 'C<T> do', required: false);
-    expectInfo(noType, 'C<void>', required: false);
 
     expectInfo(noType, 'C<T>= foo', required: false);
     expectInfo(noType, 'C<T>= get', required: false);
@@ -97,9 +94,6 @@ class NoTypeInfoTest {
     expectInfo(noType, 'C<T>>= operator', required: false);
     expectInfo(noType, 'C<T>>= Function', required: false);
 
-    expectInfo(noType, 'C<S,T>', required: false);
-    expectInfo(noType, 'C<S<T>>', required: false);
-    expectInfo(noType, 'C.a<T>', required: false);
     expectInfo(noType, 'C<S,T>=', required: false);
     expectInfo(noType, 'C<S<T>>=', required: false);
     expectInfo(noType, 'C.a<T>=', required: false);
@@ -235,7 +229,7 @@ class VoidTypeInfoTest {
 @reflectiveTest
 class PrefixedTypeInfoTest {
   void test_compute() {
-    expectInfo(prefixedType, 'C.a', required: true);
+    expectInfo(prefixedType, 'C.a', required: null /* i.e. both */);
     expectInfo(prefixedType, 'C.a;', required: true);
     expectInfo(prefixedType, 'C.a(', required: true);
     expectInfo(prefixedType, 'C.a<', required: true);
@@ -466,7 +460,7 @@ class SimpleTypeTest {
 @reflectiveTest
 class SimpleTypeWith1ArgumentTest {
   void test_compute_gt() {
-    expectInfo(simpleTypeWith1Argument, 'C<T>', required: true);
+    expectInfo(simpleTypeWith1Argument, 'C<T>', required: null /* i.e. both */);
     expectInfo(simpleTypeWith1Argument, 'C<T>;', required: true);
     expectInfo(simpleTypeWith1Argument, 'C<T>(', required: true);
     expectInfo(simpleTypeWith1Argument, 'C<T> do', required: true);
@@ -949,13 +943,15 @@ class TypeInfoTest {
   }
 
   void test_computeType_identifierTypeArg() {
-    expectComplexInfo('C<void>', required: true, expectedCalls: [
-      'handleIdentifier C typeReference',
-      'beginTypeArguments <',
-      'handleVoidKeyword void',
-      'endTypeArguments 1 < >',
-      'handleType C null',
-    ]);
+    expectComplexInfo('C<void>',
+        required: null /* i.e. both */,
+        expectedCalls: [
+          'handleIdentifier C typeReference',
+          'beginTypeArguments <',
+          'handleVoidKeyword void',
+          'endTypeArguments 1 < >',
+          'handleType C null',
+        ]);
   }
 
   void test_computeType_identifierTypeArg_questionMark() {
@@ -969,7 +965,7 @@ class TypeInfoTest {
   }
 
   void test_computeType_identifierTypeArgComplex() {
-    expectComplexInfo('C<S,T>', required: true, expectedCalls: [
+    expectComplexInfo('C<S,T>', required: null /* i.e. both */, expectedCalls: [
       'handleIdentifier C typeReference',
       'beginTypeArguments <',
       'handleIdentifier S typeReference',
@@ -981,19 +977,21 @@ class TypeInfoTest {
       'endTypeArguments 2 < >',
       'handleType C null',
     ]);
-    expectComplexInfo('C<S<T>>', required: true, expectedCalls: [
-      'handleIdentifier C typeReference',
-      'beginTypeArguments <',
-      'handleIdentifier S typeReference',
-      'beginTypeArguments <',
-      'handleIdentifier T typeReference',
-      'handleNoTypeArguments >',
-      'handleType T null',
-      'endTypeArguments 1 < >',
-      'handleType S null',
-      'endTypeArguments 1 < >',
-      'handleType C null',
-    ]);
+    expectComplexInfo('C<S<T>>',
+        required: null /* i.e. both */,
+        expectedCalls: [
+          'handleIdentifier C typeReference',
+          'beginTypeArguments <',
+          'handleIdentifier S typeReference',
+          'beginTypeArguments <',
+          'handleIdentifier T typeReference',
+          'handleNoTypeArguments >',
+          'handleType T null',
+          'endTypeArguments 1 < >',
+          'handleType S null',
+          'endTypeArguments 1 < >',
+          'handleType C null',
+        ]);
     expectComplexInfo('C<S,T> f', expectedAfter: 'f', expectedCalls: [
       'handleIdentifier C typeReference',
       'beginTypeArguments <',
@@ -1219,8 +1217,7 @@ class TypeInfoTest {
           error(codeExpectedButGot, 6, 6)
         ]);
 
-    expectInfo(noType, 'C<>', required: false);
-    expectComplexInfo('C<>', required: true, expectedCalls: [
+    expectComplexInfo('C<>', required: null /* i.e. both */, expectedCalls: [
       'handleIdentifier C typeReference',
       'beginTypeArguments <',
       'handleIdentifier  typeReference',
@@ -1341,7 +1338,7 @@ class TypeInfoTest {
   }
 
   void test_computeType_prefixedTypeArg() {
-    expectComplexInfo('C.a<T>', required: true, expectedCalls: [
+    expectComplexInfo('C.a<T>', required: null /* i.e. both */, expectedCalls: [
       'handleIdentifier C prefixedTypeReference',
       'handleIdentifier a typeReferenceContinuation',
       'handleQualified .',
@@ -2514,6 +2511,8 @@ void expectInfo(expectedInfo, String source, {bool required}) {
   }
 }
 
+/// Note that if [required] is null it is run both with required [true] and
+/// [false] and expect the same in both situations.
 void expectComplexInfo(String source,
     {bool required,
     bool inDeclaration = false,
@@ -2687,7 +2686,7 @@ Token scan(String source) {
   while (start is ErrorToken) {
     start = start.next;
   }
-  return new SyntheticToken(TokenType.EOF, 0)..setNext(start);
+  return new SyntheticToken(TokenType.EOF, -1)..setNext(start);
 }
 
 int countGtGtAndNullEnd(Token token) {
