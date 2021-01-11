@@ -27,7 +27,7 @@ parseUnit(typedef)
           listener: handleRecoverableError(Message[ExpectedAfterButGot, Expected '>' after this., null, {string: >}], Glib, Glib)
         listener: endTypeVariables(<, >)
         reportRecoverableErrorWithToken(, Instance of 'Template<(Token) => Message>')
-          listener: handleRecoverableError(Message[ExpectedType, Expected a type, but got ''., null, {token: }], , )
+          listener: handleRecoverableError(Message[ExpectedType, Expected a type, but got ''., null, {lexeme: }], , )
           listener: // WARNING: Reporting at eof for .
         rewriter()
         listener: handleIdentifier(, typeReference)

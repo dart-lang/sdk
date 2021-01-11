@@ -5,6 +5,7 @@
 import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
+import 'package:_fe_analyzer_shared/src/messages/codes.dart';
 import 'package:_fe_analyzer_shared/src/scanner/errors.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
@@ -935,6 +936,27 @@ class AnalysisError implements Diagnostic {
         filePath: source?.fullName,
         length: length,
         message: message,
+        offset: offset);
+    _contextMessages = contextMessages;
+  }
+
+  /// Initialize a newly created analysis error. The error is associated with
+  /// the given [source] and is located at the given [offset] with the given
+  /// [length]. The error will have the given [errorCode] and the map  of
+  /// [arguments] will be used to complete the message and correction. If any
+  /// [contextMessages] are provided, they will be recorded with the error.
+  AnalysisError.withNamedArguments(this.source, int offset, int length,
+      this.errorCode, Map<String, dynamic> arguments,
+      {List<DiagnosticMessage> contextMessages = const []}) {
+    String messageText = applyArgumentsToTemplate(errorCode.message, arguments);
+    String correctionTemplate = errorCode.correction;
+    if (correctionTemplate != null) {
+      _correction = applyArgumentsToTemplate(correctionTemplate, arguments);
+    }
+    _problemMessage = DiagnosticMessageImpl(
+        filePath: source?.fullName,
+        length: length,
+        message: messageText,
         offset: offset);
     _contextMessages = contextMessages;
   }

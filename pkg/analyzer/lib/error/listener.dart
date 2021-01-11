@@ -143,8 +143,8 @@ class ErrorReporter {
   /// the error is specified by the given [offset] and [length].
   void reportErrorMessage(
       ErrorCode errorCode, int offset, int length, Message message) {
-    _errorListener.onError(AnalysisError.forValues(
-        _source, offset, length, errorCode, message.message, message.tip));
+    _errorListener.onError(AnalysisError.withNamedArguments(
+        _source, offset, length, errorCode, message.arguments));
   }
 
   /// Report an error with the given [errorCode] and [arguments]. The [node] is
