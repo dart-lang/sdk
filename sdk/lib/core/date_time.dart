@@ -275,8 +275,12 @@ class DateTime implements Comparable<DateTime> {
    * * `"2002-02-27T14:00:00-0500"`: Same as `"2002-02-27T19:00:00Z"`
    *
    * This method accepts out-of-range component values and interprets
-   * them as having overflows. For example, "2020-01-42" will be parsed
-   * as 11 February 2020. To detect and reject invalid component values, use
+   * them as overflows into the next larger component.
+   * For example, "2020-01-42" will be parsed as 2020-02-11, because
+   * the last valid date in that month is 2020-01-31, so 42 days is
+   * interprted as 31 days of that month plus 11 days into the next month.
+   *
+   * To detect and reject invalid component values, use
    * [DateFormat.parseStrict](https://pub.dev/documentation/intl/latest/intl/DateFormat/parseStrict.html)
    * from the [intl](https://pub.dev/packages/intl) package.
    */
