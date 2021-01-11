@@ -584,40 +584,76 @@ static Dart_Isolate CreateAndSetupDartDevIsolate(const char* script_uri,
   int64_t start = Dart_TimelineGetMicros();
 
   auto dartdev_path = DartDevIsolate::TryResolveDartDevSnapshotPath();
-  if (dartdev_path == nullptr) {
-    *error = Utils::StrDup("Unable to find DartDev snapshot");
-    return nullptr;
-  }
 
+  Dart_Isolate isolate = nullptr;
   const uint8_t* isolate_snapshot_data = core_isolate_snapshot_data;
   const uint8_t* isolate_snapshot_instructions =
       core_isolate_snapshot_instructions;
+  IsolateGroupData* isolate_group_data = nullptr;
+  IsolateData* isolate_data = nullptr;
 
-  auto isolate_group_data =
-      new IsolateGroupData(DART_DEV_ISOLATE_NAME, packages_config, nullptr,
-                           /*isolate_run_app_snapshot*/ false);
-  uint8_t* application_kernel_buffer = NULL;
-  intptr_t application_kernel_buffer_size = 0;
-  dfe.ReadScript(dartdev_path.get(), &application_kernel_buffer,
-                 &application_kernel_buffer_size);
-  isolate_group_data->SetKernelBufferNewlyOwned(application_kernel_buffer,
-                                                application_kernel_buffer_size);
+  AppSnapshot* app_snapshot;
+  bool isolate_run_app_snapshot = true;
+  if (dartdev_path.get() != nullptr &&
+      (app_snapshot = Snapshot::TryReadAppSnapshot(dartdev_path.get())) !=
+          nullptr) {
+    const uint8_t* isolate_snapshot_data = NULL;
+    const uint8_t* isolate_snapshot_instructions = NULL;
+    const uint8_t* ignore_vm_snapshot_data;
+    const uint8_t* ignore_vm_snapshot_instructions;
+    app_snapshot->SetBuffers(
+        &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
+        &isolate_snapshot_data, &isolate_snapshot_instructions);
+    isolate_group_data =
+        new IsolateGroupData(dartdev_path.get(), packages_config, app_snapshot,
+                             isolate_run_app_snapshot);
+    isolate_data = new IsolateData(isolate_group_data);
+    isolate = Dart_CreateIsolateGroup(
+        DART_DEV_ISOLATE_NAME, DART_DEV_ISOLATE_NAME, isolate_snapshot_data,
+        isolate_snapshot_instructions, flags, isolate_group_data, isolate_data,
+        error);
+  }
 
-  auto isolate_data = new IsolateData(isolate_group_data);
-  Dart_Isolate isolate = nullptr;
-  isolate = Dart_CreateIsolateGroup(
-      DART_DEV_ISOLATE_NAME, DART_DEV_ISOLATE_NAME, isolate_snapshot_data,
-      isolate_snapshot_instructions, flags, isolate_group_data, isolate_data,
-      error);
+  if (isolate == nullptr) {
+    isolate_run_app_snapshot = false;
+    dartdev_path = DartDevIsolate::TryResolveDartDevKernelPath();
+    // Clear error from app snapshot and retry from kernel.
+    free(*error);
+    *error = nullptr;
+
+    if (app_snapshot != nullptr) {
+      delete app_snapshot;
+    }
+
+    if (dartdev_path.get() != nullptr) {
+      isolate_group_data =
+          new IsolateGroupData(DART_DEV_ISOLATE_NAME, packages_config, nullptr,
+                               isolate_run_app_snapshot);
+      uint8_t* application_kernel_buffer = NULL;
+      intptr_t application_kernel_buffer_size = 0;
+      dfe.ReadScript(dartdev_path.get(), &application_kernel_buffer,
+                     &application_kernel_buffer_size);
+      isolate_group_data->SetKernelBufferNewlyOwned(
+          application_kernel_buffer, application_kernel_buffer_size);
+
+      isolate_data = new IsolateData(isolate_group_data);
+      isolate = Dart_CreateIsolateGroup(
+          DART_DEV_ISOLATE_NAME, DART_DEV_ISOLATE_NAME, isolate_snapshot_data,
+          isolate_snapshot_instructions, flags, isolate_group_data,
+          isolate_data, error);
+    }
+  }
 
   Dart_Isolate created_isolate = nullptr;
   if (isolate == nullptr) {
+    Syslog::PrintErr("Failed to start the Dart CLI isolate\n");
     delete isolate_data;
     delete isolate_group_data;
+    return nullptr;
   } else {
     created_isolate = IsolateSetupHelper(
         isolate, false, DART_DEV_ISOLATE_NAME, packages_config,
-        /*isolate_run_app_snapshot*/ false, flags, error, exit_code);
+        isolate_run_app_snapshot, flags, error, exit_code);
   }
   int64_t end = Dart_TimelineGetMicros();
   Dart_TimelineEvent("CreateAndSetupDartDevIsolate", start, end,
