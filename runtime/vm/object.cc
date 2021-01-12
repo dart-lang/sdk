@@ -25216,6 +25216,19 @@ ErrorPtr EntryPointMemberInvocationError(const Object& member) {
                 Function::Cast(member).ToLibNamePrefixedQualifiedCString(),
                 Function::KindToCString(Function::Cast(member).kind()))
           : member.ToCString();
+  if (!FLAG_verify_entry_points) {
+    // Print a warning, but do not return an error.
+    char const* warning = OS::SCreate(
+        Thread::Current()->zone(),
+        "WARNING: '%s' is accessed through Dart C API without being marked as "
+        "an entry point; its tree-shaken signature cannot be verified.\n"
+        "WARNING: See "
+        "https://github.com/dart-lang/sdk/blob/master/runtime/docs/compiler/"
+        "aot/entry_point_pragma.md\n",
+        member_cstring);
+    OS::PrintErr("%s", warning);
+    return Error::null();
+  }
   char const* error = OS::SCreate(
       Thread::Current()->zone(),
       "ERROR: It is illegal to access '%s' through Dart C API.\n"
