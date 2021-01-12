@@ -74,23 +74,24 @@ StringBuffer buildFooter(ScoreCard scorecard, List<Detail> details) {
 
   for (var score in scorecard.scores) {
     for (var ruleSet in score.ruleSets) {
+      var hasFixOrAssist = score.hasFix || score.hasAssist;
       if (ruleSet == 'score') {
         ++scoreLintCount;
-        if (score.hasFix) {
+        if (hasFixOrAssist) {
           ++scoreFixCount;
         }
       }
       if (ruleSet == 'recommend') {
         ++recommendLintCount;
-        if (score.hasFix) {
+        if (hasFixOrAssist) {
           ++recommendFixCount;
         }
       }
       var lint = score.name;
-      if (score.hasFix && !score.hasBulkFix) {
+      if (hasFixOrAssist && !score.hasBulkFix) {
         needsBulkFix.add(lint);
       }
-      if (!score.hasFix && !unfixableLints.contains(lint)) {
+      if (!hasFixOrAssist && !unfixableLints.contains(lint)) {
         fixable.add(lint);
       }
     }
@@ -167,6 +168,7 @@ class Header {
 
 class LintScore {
   String name;
+  bool hasAssist;
   bool hasBulkFix;
   bool hasFix;
   String maturity;
@@ -176,6 +178,7 @@ class LintScore {
 
   LintScore({
     @required this.name,
+    @required this.hasAssist,
     @required this.hasFix,
     @required this.hasBulkFix,
     @required this.maturity,
@@ -255,6 +258,7 @@ class ScoreCard {
   }
 
   static Future<ScoreCard> calculate() async {
+    var lintsWithAssists = _getLintsWithAssists();
     var lintsWithFixes = await _getLintsWithFixes();
     var lintsWithBulkFixes = await _getLintsWithBulkFixes();
     // var issues = await _getIssues();
@@ -288,6 +292,7 @@ class ScoreCard {
       var lintName = lint.name;
       scorecard.add(LintScore(
         name: lintName,
+        hasAssist: lintsWithAssists.contains(lintName),
         hasFix: lintsWithFixes.contains(lintName),
         hasBulkFix: lintsWithBulkFixes.contains(lintName),
         maturity: lint.maturity.name,
@@ -311,6 +316,17 @@ class ScoreCard {
   //     return Future.value(<Issue>[]);
   //   }
   // }
+
+  static List<String> _getLintsWithAssists() {
+    var assists = File('tool/canonical/assists.json');
+    var contents = assists.readAsStringSync();
+    var json = jsonDecode(contents);
+    var lints = <String>[];
+    for (var entry in json) {
+      lints.add(entry['lint'] as String);
+    }
+    return lints;
+  }
 
   static Future<List<String>> _getLintsWithBulkFixes() async {
     var client = http.Client();

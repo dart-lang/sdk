@@ -1,0 +1,6 @@
+[
+  {
+    "lint" : "prefer_is_not_operator",
+    "notes" : "ConvertIntoIsNot"
+  }
+]
