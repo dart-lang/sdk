@@ -74,8 +74,12 @@ class NonNullableFix {
   /// A list of the URLs corresponding to the included roots.
   List<String> previewUrls;
 
+  /// A function which returns whether a file at a given path should be
+  /// migrated.
+  final bool Function(String) shouldBeMigratedFunction;
+
   NonNullableFix(this.listener, this.resourceProvider, this._getLineInfo,
-      this.bindAddress, this._logger,
+      this.bindAddress, this._logger, this.shouldBeMigratedFunction,
       {List<String> included = const [],
       this.preferredPort,
       this.summaryPath,
@@ -107,7 +111,7 @@ class NonNullableFix {
   Future<MigrationState> finish() async {
     var neededPackages = migration.finish();
     final state = MigrationState(migration, includedRoot, listener,
-        instrumentationListener, neededPackages);
+        instrumentationListener, neededPackages, shouldBeMigratedFunction);
     await state.refresh(_logger);
     return state;
   }

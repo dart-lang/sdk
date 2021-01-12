@@ -68,6 +68,7 @@ class NavigationTreeRenderer {
           editCount: link.editCount,
           wasExplicitlyOptedOut: link.wasExplicitlyOptedOut,
           migrationStatus: link.migrationStatus,
+          migrationStatusCanBeChanged: link.migrationStatusCanBeChanged,
         ),
     ];
   }

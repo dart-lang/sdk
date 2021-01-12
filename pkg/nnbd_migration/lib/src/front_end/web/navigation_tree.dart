@@ -76,6 +76,7 @@ class NavigationTreeDirectoryNode extends NavigationTreeNode {
       if (child is NavigationTreeDirectoryNode) {
         child.toggleChildrenToMigrate();
       } else if (child is NavigationTreeFileNode &&
+          child.migrationStatusCanBeChanged &&
           child.migrationStatus == UnitMigrationStatus.optingOut) {
         child.migrationStatus = UnitMigrationStatus.migrating;
       }
@@ -90,6 +91,7 @@ class NavigationTreeDirectoryNode extends NavigationTreeNode {
       if (child is NavigationTreeDirectoryNode) {
         child.toggleChildrenToOptOut();
       } else if (child is NavigationTreeFileNode &&
+          child.migrationStatusCanBeChanged &&
           child.migrationStatus == UnitMigrationStatus.migrating) {
         child.migrationStatus = UnitMigrationStatus.optingOut;
       }
@@ -117,6 +119,8 @@ class NavigationTreeFileNode extends NavigationTreeNode {
 
   UnitMigrationStatus migrationStatus;
 
+  final bool migrationStatusCanBeChanged;
+
   /// Creates a navigation tree node representing a file.
   NavigationTreeFileNode(
       {@required String name,
@@ -124,7 +128,8 @@ class NavigationTreeFileNode extends NavigationTreeNode {
       @required this.href,
       @required this.editCount,
       @required this.wasExplicitlyOptedOut,
-      @required this.migrationStatus})
+      @required this.migrationStatus,
+      @required this.migrationStatusCanBeChanged})
       : super._(name: name, path: path);
 
   NavigationTreeNodeType get type => NavigationTreeNodeType.file;
@@ -138,6 +143,8 @@ class NavigationTreeFileNode extends NavigationTreeNode {
         if (wasExplicitlyOptedOut != null)
           'wasExplicitlyOptedOut': wasExplicitlyOptedOut,
         if (migrationStatus != null) 'migrationStatus': migrationStatus.index,
+        if (migrationStatusCanBeChanged != null)
+          'migrationStatusCanBeChanged': migrationStatusCanBeChanged,
       };
 }
 
@@ -162,13 +169,15 @@ abstract class NavigationTreeNode {
         ..setSubtreeParents();
     } else {
       return NavigationTreeFileNode(
-          name: json['name'] as String,
-          path: json['path'] as String,
-          href: json['href'] as String,
-          editCount: json['editCount'] as int,
-          wasExplicitlyOptedOut: json['wasExplicitlyOptedOut'] as bool,
-          migrationStatus:
-              _decodeMigrationStatus(json['migrationStatus'] as int));
+        name: json['name'] as String,
+        path: json['path'] as String,
+        href: json['href'] as String,
+        editCount: json['editCount'] as int,
+        wasExplicitlyOptedOut: json['wasExplicitlyOptedOut'] as bool,
+        migrationStatus: _decodeMigrationStatus(json['migrationStatus'] as int),
+        migrationStatusCanBeChanged:
+            json['migrationStatusCanBeChanged'] as bool,
+      );
     }
   }
 

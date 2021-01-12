@@ -112,8 +112,13 @@ class MigrationInfo {
     var links = <UnitLink>[];
     for (var unit in units) {
       var count = unit.fixRegions.length;
-      links.add(UnitLink(unit.path, pathContext.split(computeName(unit)), count,
-          unit.wasExplicitlyOptedOut, unit.migrationStatus));
+      links.add(UnitLink(
+          unit.path,
+          pathContext.split(computeName(unit)),
+          count,
+          unit.wasExplicitlyOptedOut,
+          unit.migrationStatus,
+          unit.migrationStatusCanBeChanged));
     }
     return links;
   }
@@ -290,7 +295,9 @@ class UnitInfo {
 
   /// Whether this compilation unit was explicitly opted out of null safety at
   /// the start of this migration.
-  bool wasExplicitlyOptedOut;
+  /*late*/ bool wasExplicitlyOptedOut;
+
+  /*late*/ bool migrationStatusCanBeChanged;
 
   /// Indicates the migration status of this unit.
   ///
