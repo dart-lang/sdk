@@ -796,7 +796,26 @@ sources' action.
   /// return additional paths that aren't inside the user's project, but doesn't
   /// override this method, then those additional paths will be analyzed but not
   /// migrated.
-  bool shouldBeMigrated(DriverBasedAnalysisContext context, String path) {
+  ///
+  /// Note: in a future version of the code, the [context] argument will be
+  /// removed; to ease the transition, clients should stop overriding this
+  /// method and should override [shouldBeMigrated2] instead.
+  bool shouldBeMigrated(DriverBasedAnalysisContext context, String path) =>
+      shouldBeMigrated2(path);
+
+  /// Determines whether a migrated version of the file at [path] should be
+  /// output by the migration too.  May be overridden by a derived class.
+  ///
+  /// This method should return `false` for files that are being considered by
+  /// the migration tool for information only (for example generated files, or
+  /// usages of the code-to-be-migrated by one one of its clients).
+  ///
+  /// By default returns `true` if the file is contained within the context
+  /// root.  This means that if a client overrides [computePathsToProcess] to
+  /// return additional paths that aren't inside the user's project, but doesn't
+  /// override this method, then those additional paths will be analyzed but not
+  /// migrated.
+  bool shouldBeMigrated2(String path) {
     return analysisContext.contextRoot.isAnalyzed(path);
   }
 

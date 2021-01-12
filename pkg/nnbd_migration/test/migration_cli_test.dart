@@ -184,9 +184,9 @@ class _MigrationCliRunner extends MigrationCliRunner {
   }
 
   @override
-  bool shouldBeMigrated(DriverBasedAnalysisContext context, String path) =>
+  bool shouldBeMigrated2(String path) =>
       cli._test.overrideShouldBeMigrated?.call(path) ??
-      super.shouldBeMigrated(context, path);
+      super.shouldBeMigrated2(path);
 
   /// Sorts the paths in [paths] for repeatability of migration tests.
   Set<String> _sortPaths(Set<String> paths) {
