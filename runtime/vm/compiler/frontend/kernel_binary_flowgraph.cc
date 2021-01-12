@@ -2093,7 +2093,7 @@ Fragment StreamingFlowGraphBuilder::BuildVariableGetImpl(
         initialize += Goto(join);
       }
     } else {
-      // The variable has no initializer, so throw a LateInitializationError.
+      // The variable has no initializer, so throw a late initialization error.
       Fragment initialize(is_uninitialized);
       initialize += flow_graph_builder_->ThrowLateInitializationError(
           position, "_throwLocalNotInitialized", variable->name());
@@ -2173,7 +2173,6 @@ Fragment StreamingFlowGraphBuilder::BuildVariableSetImpl(
 
   return instructions;
 }
-
 Fragment StreamingFlowGraphBuilder::BuildPropertyGet(TokenPosition* p) {
   const intptr_t offset = ReaderOffset() - 1;     // Include the tag.
   const TokenPosition position = ReadPosition();  // read position.

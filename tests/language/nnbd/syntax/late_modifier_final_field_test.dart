@@ -39,8 +39,7 @@ main() {
     Expect.equals(123, a.fieldWithInit);
     Expect.equals(1, initCalls);
     // Setting Base.fieldWithInit twice throws an error.
-    Expect.throws(() => {a.fieldWithInit = 789},
-        (error) => error is LateInitializationError);
+    Expect.throws<Error>(() => {a.fieldWithInit = 789});
     Expect.equals(1, initCalls);
     Expect.equals(123, a.fieldWithInit);
     Expect.equals(1, initCalls);
@@ -53,20 +52,17 @@ main() {
     Expect.equals(456, (a as A).superFieldWithInit);
     Expect.equals(0, initCalls);
     // Setting Base.fieldWithInit twice throws an error.
-    Expect.throws(() => {a2.fieldWithInit = 789},
-        (error) => error is LateInitializationError);
+    Expect.throws<Error>(() => {a2.fieldWithInit = 789});
     Expect.equals(0, initCalls);
     Expect.equals(123, a2.fieldWithInit);
     Expect.equals(456, (a as A).superFieldWithInit);
     Expect.equals(1, initCalls);
 
     B b = B();
-    Expect.throws(
-        () => b.fieldWithNoInit, (error) => error is LateInitializationError);
+    Expect.throws<Error>(() => b.fieldWithNoInit);
     b.fieldWithNoInit = 123;
     Expect.equals(123, b.fieldWithNoInit);
-    Expect.throws(() => {b.fieldWithNoInit = 456},
-        (error) => error is LateInitializationError);
+    Expect.throws<Error>(() => {b.fieldWithNoInit = 456});
     Expect.equals(123, b.fieldWithNoInit);
     initCalls = 0;
   }

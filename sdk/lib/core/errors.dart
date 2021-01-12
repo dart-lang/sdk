@@ -586,18 +586,3 @@ class CyclicInitializationError extends Error {
         : "Reading static variable '$variableName' during its initialization";
   }
 }
-
-/// Error thrown when a late variable is accessed in an invalid manner.
-///
-/// A late variable must be initialized before it's read.
-/// If a late variable has no initializer expression and has not
-/// been written to, then reading it will throw a
-/// late initialization error.
-///
-/// A late final variable with no initializer expression may only
-/// be written to once.
-/// If it is written to again, the writing will throw a
-/// late initialization error.
-abstract class LateInitializationError extends Error {
-  factory LateInitializationError._() => throw UnsupportedError("");
-}
