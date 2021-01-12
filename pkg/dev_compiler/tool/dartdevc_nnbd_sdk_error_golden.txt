@@ -1,8 +1,8 @@
-ERROR|COMPILE_TIME_ERROR|CONST_CONSTRUCTOR_THROWS_EXCEPTION|lib/core/core.dart|3679|5|94|Const constructors can't throw exceptions.
-ERROR|COMPILE_TIME_ERROR|CONST_CONSTRUCTOR_THROWS_EXCEPTION|lib/core/core.dart|7888|5|97|Const constructors can't throw exceptions.
-ERROR|COMPILE_TIME_ERROR|CONST_CONSTRUCTOR_THROWS_EXCEPTION|lib/core/core.dart|893|5|95|Const constructors can't throw exceptions.
-ERROR|COMPILE_TIME_ERROR|CONST_CONSTRUCTOR_THROWS_EXCEPTION|lib/core/core.dart|926|5|94|Const constructors can't throw exceptions.
-ERROR|SYNTACTIC_ERROR|CONST_FACTORY|lib/core/core.dart|3677|3|5|Only redirecting factory constructors can be declared to be 'const'.
-ERROR|SYNTACTIC_ERROR|CONST_FACTORY|lib/core/core.dart|7886|3|5|Only redirecting factory constructors can be declared to be 'const'.
-ERROR|SYNTACTIC_ERROR|CONST_FACTORY|lib/core/core.dart|891|3|5|Only redirecting factory constructors can be declared to be 'const'.
-ERROR|SYNTACTIC_ERROR|CONST_FACTORY|lib/core/core.dart|924|3|5|Only redirecting factory constructors can be declared to be 'const'.
+ERROR|COMPILE_TIME_ERROR|CONST_CONSTRUCTOR_THROWS_EXCEPTION|lib/core/core.dart|Const constructors can't throw exceptions.
+ERROR|COMPILE_TIME_ERROR|CONST_CONSTRUCTOR_THROWS_EXCEPTION|lib/core/core.dart|Const constructors can't throw exceptions.
+ERROR|COMPILE_TIME_ERROR|CONST_CONSTRUCTOR_THROWS_EXCEPTION|lib/core/core.dart|Const constructors can't throw exceptions.
+ERROR|COMPILE_TIME_ERROR|CONST_CONSTRUCTOR_THROWS_EXCEPTION|lib/core/core.dart|Const constructors can't throw exceptions.
+ERROR|SYNTACTIC_ERROR|CONST_FACTORY|lib/core/core.dart|Only redirecting factory constructors can be declared to be 'const'.
+ERROR|SYNTACTIC_ERROR|CONST_FACTORY|lib/core/core.dart|Only redirecting factory constructors can be declared to be 'const'.
+ERROR|SYNTACTIC_ERROR|CONST_FACTORY|lib/core/core.dart|Only redirecting factory constructors can be declared to be 'const'.
+ERROR|SYNTACTIC_ERROR|CONST_FACTORY|lib/core/core.dart|Only redirecting factory constructors can be declared to be 'const'.

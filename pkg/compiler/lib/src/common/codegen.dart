@@ -1492,7 +1492,6 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
     sink.writeEnum(JsNodeKind.literalExpression);
     sink.begin(JsNodeTags.literalExpression);
     sink.writeString(node.template);
-    visitList(node.inputs);
     sink.end(JsNodeTags.literalExpression);
     _writeInfo(node);
   }
@@ -1961,9 +1960,7 @@ class JsNodeDeserializer {
         break;
       case JsNodeKind.literalExpression:
         source.begin(JsNodeTags.literalExpression);
-        String template = source.readString();
-        List<js.Expression> inputs = readList();
-        node = new js.LiteralExpression.withData(template, inputs);
+        node = new js.LiteralExpression(source.readString());
         source.end(JsNodeTags.literalExpression);
         break;
       case JsNodeKind.dartYield:

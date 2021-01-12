@@ -1023,34 +1023,21 @@ class LiteralStringFromName extends LiteralString {
 
 class LiteralExpression extends Expression {
   final String template;
-  final List<Expression> inputs;
-
-  LiteralExpression(this.template) : inputs = const [];
-
-  LiteralExpression.withData(this.template, this.inputs);
+  LiteralExpression(this.template);
 
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitLiteralExpression(this);
 
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitLiteralExpression(this, arg);
 
-  void visitChildren<T>(NodeVisitor<T> visitor) {
-    if (inputs != null) {
-      for (Expression expr in inputs) expr.accept(visitor);
-    }
-  }
+  void visitChildren<T>(NodeVisitor<T> visitor) {}
 
-  void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
-    if (inputs != null) {
-      for (Expression expr in inputs) expr.accept1(visitor, arg);
-    }
-  }
+  void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 
-  LiteralExpression _clone() =>
-      new LiteralExpression.withData(template, inputs);
+  LiteralExpression _clone() => LiteralExpression(template);
 
-  // Code that uses JS must take care of operator precedences, and
-  // put parenthesis if needed.
+  // Code that uses LiteralExpression must take care of operator precedences,
+  // and put parenthesis if needed.
   int get precedenceLevel => PRIMARY;
 }
 

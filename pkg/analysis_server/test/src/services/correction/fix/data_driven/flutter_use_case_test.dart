@@ -1045,7 +1045,6 @@ void f(BuildContext context) {
     await assertNoFix();
   }
 
-  @failingTest
   Future<void> test_material_Scaffold_of_wrongType() async {
     setPackageContent('''
 class Theme {
