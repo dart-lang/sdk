@@ -972,13 +972,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           ...element.typeParameters.map((tp) => tp.bound),
         ];
         for (var type in signatureTypes) {
-          var typeElement = type?.element?.enclosingElement;
-          if (typeElement is FunctionTypeAliasElement &&
-              typeElement.hasInternal) {
+          var aliasElement = type?.aliasElement;
+          if (aliasElement != null && aliasElement.hasInternal) {
             _errorReporter.reportErrorForNode(
                 HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY,
                 node,
-                [typeElement.name, element.displayName]);
+                [aliasElement.name, element.displayName]);
           }
         }
       }

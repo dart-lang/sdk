@@ -155,9 +155,12 @@ typedef G<T> = T Function(double);
     var typedefG = findElement.typeAlias('G');
     var functionG = typedefG.aliasedElement as GenericFunctionTypeElement;
 
+    expect(type.aliasElement, typedefG);
+    assertElementTypeStrings(type.aliasArguments, ['int']);
+
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
     expect(type.element, functionG);
     expect(type.element?.enclosingElement, typedefG);
-
     assertElementTypeStrings(type.typeArguments, ['int']);
   }
 

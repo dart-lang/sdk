@@ -343,6 +343,10 @@ mixin ResolutionTest implements ResourceProviderMixin {
     @required FunctionTypeAliasElement element,
     @required List<String> typeArguments,
   }) {
+    assertElement2(type.aliasElement, declaration: element);
+    assertElementTypeStrings(type.aliasArguments, typeArguments);
+
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
     assertElement2(
       type.element,
       declaration: element.aliasedElement as GenericFunctionTypeElement,
