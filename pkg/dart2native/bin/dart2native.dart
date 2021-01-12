@@ -31,6 +31,12 @@ E.g.: dart2native -Da=1,b=2 main.dart''')
     ..addFlag('enable-asserts',
         negatable: false, help: 'Enable assert statements.')
     ..addMultiOption(
+      'extra-gen-kernel-options',
+      help: 'Pass additional options to gen_kernel.',
+      hide: true,
+      valueHelp: 'opt1,opt2,...',
+    )
+    ..addMultiOption(
       'extra-gen-snapshot-options',
       help: 'Pass additional options to gen_snapshot.',
       hide: true,
@@ -64,8 +70,11 @@ Remove debugging information from the output and save it separately to the speci
         defaultsTo: '', valueHelp: 'feature', hide: true, help: '''
 Comma separated list of experimental features.
 ''')
-    ..addFlag('verbose',
-        abbr: 'v', negatable: false, help: 'Show verbose output.');
+    ..addFlag('sound-null-safety',
+      help: 'Compile for sound null safety at runtime.',
+      defaultsTo: false,
+    )
+    ..addFlag('verbose', abbr: 'v', negatable: false, help: 'Show verbose output.');
 
   ArgResults parsedArgs;
   try {
@@ -96,6 +105,7 @@ Comma separated list of experimental features.
   }
 
   try {
+    final soundNullSafety = parsedArgs['sound-null-safety'] as bool;
     await generateNative(
         kind: parsedArgs['output-kind'],
         sourceFile: sourceFile,
@@ -106,7 +116,11 @@ Comma separated list of experimental features.
         enableExperiment: parsedArgs['enable-experiment'],
         enableAsserts: parsedArgs['enable-asserts'],
         verbose: parsedArgs['verbose'],
-        extraOptions: parsedArgs['extra-gen-snapshot-options']);
+        extraGenKernelOptions: [
+          ...(parsedArgs['extra-gen-kernel-options'] as List),
+          soundNullSafety ? '--sound-null-safety' : '--no-sound-null-safety',
+        ],
+        extraGenSnapshotOptions: parsedArgs['extra-gen-snapshot-options']);
   } catch (e) {
     stderr.writeln('Failed to generate native files:');
     stderr.writeln(e);

@@ -27,7 +27,8 @@ Future<void> generateNative({
   String enableExperiment = '',
   bool enableAsserts = false,
   bool verbose = false,
-  List<String> extraOptions = const [],
+  List<String> extraGenKernelOptions = const [],
+  List<String> extraGenSnapshotOptions = const [],
 }) async {
   final Directory tempDir = Directory.systemTemp.createTempSync();
   try {
@@ -57,7 +58,7 @@ Future<void> generateNative({
     final String kernelFile = path.join(tempDir.path, 'kernel.dill');
     final kernelResult = await generateAotKernel(Platform.executable, genKernel,
         productPlatformDill, sourcePath, kernelFile, packages, defines,
-        enableExperiment: enableExperiment);
+        enableExperiment: enableExperiment, extraGenKernelOptions: extraGenKernelOptions);
     if (kernelResult.exitCode != 0) {
       stderr.writeln(kernelResult.stdout);
       stderr.writeln(kernelResult.stderr);
@@ -73,7 +74,7 @@ Future<void> generateNative({
         ? outputPath
         : path.join(tempDir.path, 'snapshot.aot'));
     final snapshotResult = await generateAotSnapshot(genSnapshot, kernelFile,
-        snapshotFile, debugPath, enableAsserts, extraOptions);
+        snapshotFile, debugPath, enableAsserts, extraGenSnapshotOptions);
     if (snapshotResult.exitCode != 0) {
       stderr.writeln(snapshotResult.stdout);
       stderr.writeln(snapshotResult.stderr);
