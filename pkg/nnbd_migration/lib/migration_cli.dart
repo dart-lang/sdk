@@ -549,7 +549,7 @@ class MigrationCliRunner implements DartFixListenerClient {
 
   @visibleForTesting
   bool get isPreviewServerRunning =>
-      _fixCodeProcessor?.isPreviewServerRunnning ?? false;
+      _fixCodeProcessor?.isPreviewServerRunning ?? false;
 
   Context get pathContext => resourceProvider.pathContext;
 
@@ -605,8 +605,8 @@ class MigrationCliRunner implements DartFixListenerClient {
       int preferredPort,
       String summaryPath,
       @required String sdkPath}) {
-    return NonNullableFix(
-        listener, resourceProvider, getLineInfo, bindAddress, logger,
+    return NonNullableFix(listener, resourceProvider, getLineInfo, bindAddress,
+        logger, (String path) => shouldBeMigrated(null, path),
         included: included,
         preferredPort: preferredPort,
         summaryPath: summaryPath,
@@ -693,14 +693,12 @@ Exception details:
       logger.stdout('');
     }
 
-    DriverBasedAnalysisContext context = analysisContext;
-
     NonNullableFix nonNullableFix;
 
     logger.stdout(ansi.emphasized('Analyzing project...'));
-    _fixCodeProcessor = _FixCodeProcessor(context, this);
-    _dartFixListener =
-        DartFixListener(DriverProviderImpl(resourceProvider, context), this);
+    _fixCodeProcessor = _FixCodeProcessor(analysisContext, this);
+    _dartFixListener = DartFixListener(
+        DriverProviderImpl(resourceProvider, analysisContext), this);
     nonNullableFix = createNonNullableFix(_dartFixListener, resourceProvider,
         _fixCodeProcessor.getLineInfo, computeBindAddress(),
         included: [options.directory],
@@ -799,7 +797,7 @@ sources' action.
   /// override this method, then those additional paths will be analyzed but not
   /// migrated.
   bool shouldBeMigrated(DriverBasedAnalysisContext context, String path) {
-    return context.contextRoot.isAnalyzed(path);
+    return analysisContext.contextRoot.isAnalyzed(path);
   }
 
   /// Perform the indicated source edits to the given source, returning the
@@ -942,6 +940,7 @@ get erroneous migration suggestions.
           _dartFixListener,
           _fixCodeProcessor._task.instrumentationListener,
           {},
+          _fixCodeProcessor._task.shouldBeMigratedFunction,
           analysisResult);
     } else if (analysisResult.allSourcesAlreadyMigrated) {
       _logAlreadyMigrated();
@@ -951,6 +950,7 @@ get erroneous migration suggestions.
           _dartFixListener,
           _fixCodeProcessor._task.instrumentationListener,
           {},
+          _fixCodeProcessor._task.shouldBeMigratedFunction,
           analysisResult);
     } else {
       logger.stdout(ansi.emphasized('Re-generating migration suggestions...'));
@@ -1029,7 +1029,7 @@ class _FixCodeProcessor extends Object {
   _FixCodeProcessor(this.context, this._migrationCli)
       : pathsToProcess = _migrationCli.computePathsToProcess(context);
 
-  bool get isPreviewServerRunnning => _task?.isPreviewServerRunning ?? false;
+  bool get isPreviewServerRunning => _task?.isPreviewServerRunning ?? false;
 
   LineInfo getLineInfo(String path) =>
       context.currentSession.getFile(path).lineInfo;

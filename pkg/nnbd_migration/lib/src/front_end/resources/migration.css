@@ -218,6 +218,10 @@ footer .sdk-version {
   color: #007a27; /* $light-green */
 }
 
+.status-icon.disabled {
+  cursor: not-allowed;
+}
+
 .status-icon.opted-out {
   color: #676767; /* $secondary-color */
 }
