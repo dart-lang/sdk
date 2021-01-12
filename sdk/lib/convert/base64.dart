@@ -11,11 +11,11 @@ part of dart.convert;
 /// does not allow invalid characters and requires padding.
 ///
 /// Examples:
-///
-///     var encoded = base64.encode([0x62, 0x6c, 0xc3, 0xa5, 0x62, 0xc3, 0xa6,
-///                                  0x72, 0x67, 0x72, 0xc3, 0xb8, 0x64]);
-///     var decoded = base64.decode("YmzDpWLDpnJncsO4ZAo=");
-///
+/// ```dart
+/// var encoded = base64.encode([0x62, 0x6c, 0xc3, 0xa5, 0x62, 0xc3, 0xa6,
+///                              0x72, 0x67, 0x72, 0xc3, 0xb8, 0x64]);
+/// var decoded = base64.decode("YmzDpWLDpnJncsO4ZAo=");
+/// ```
 /// The top-level [base64Encode] and [base64Decode] functions may be used
 /// instead if a local variable shadows the [base64] constant.
 const Base64Codec base64 = Base64Codec();
@@ -27,10 +27,11 @@ const Base64Codec base64 = Base64Codec();
 /// does not allow invalid characters and requires padding.
 ///
 /// Examples:
-///
-///     var encoded = base64Url.encode([0x62, 0x6c, 0xc3, 0xa5, 0x62, 0xc3, 0xa6,
-///                                     0x72, 0x67, 0x72, 0xc3, 0xb8, 0x64]);
-///     var decoded = base64Url.decode("YmzDpWLDpnJncsO4ZAo=");
+/// ```dart
+/// var encoded = base64Url.encode([0x62, 0x6c, 0xc3, 0xa5, 0x62, 0xc3, 0xa6,
+///                                 0x72, 0x67, 0x72, 0xc3, 0xb8, 0x64]);
+/// var decoded = base64Url.decode("YmzDpWLDpnJncsO4ZAo=");
+/// ```
 const Base64Codec base64Url = Base64Codec.urlSafe();
 
 /// Encodes [bytes] using [base64](https://tools.ietf.org/html/rfc4648) encoding.

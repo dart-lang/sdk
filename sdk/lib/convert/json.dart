@@ -56,10 +56,10 @@ class JsonCyclicError extends JsonUnsupportedObjectError {
 /// use cases.
 ///
 /// Examples:
-///
-///     var encoded = json.encode([1, 2, { "a": null }]);
-///     var decoded = json.decode('["foo", { "bar": 499 }]');
-///
+/// ```dart
+/// var encoded = json.encode([1, 2, { "a": null }]);
+/// var decoded = json.decode('["foo", { "bar": 499 }]');
+/// ```
 /// The top-level [jsonEncode] and [jsonDecode] functions may be used instead if
 /// a local variable shadows the [json] constant.
 const JsonCodec json = JsonCodec();
@@ -99,9 +99,10 @@ dynamic jsonDecode(String source,
 /// JSON objects.
 ///
 /// Examples:
-///
-///     var encoded = json.encode([1, 2, { "a": null }]);
-///     var decoded = json.decode('["foo", { "bar": 499 }]');
+/// ```dart
+/// var encoded = json.encode([1, 2, { "a": null }]);
+/// var decoded = json.decode('["foo", { "bar": 499 }]');
+/// ```
 class JsonCodec extends Codec<Object?, String> {
   final Object? Function(Object? key, Object? value)? _reviver;
   final Object? Function(dynamic)? _toEncodable;
@@ -246,7 +247,7 @@ class JsonEncoder extends Converter<Object?, String> {
   /// If the conversion throws, or returns a value that is not directly
   /// serializable, a [JsonUnsupportedObjectError] exception is thrown.
   /// If the call throws, the error is caught and stored in the
-  /// [JsonUnsupportedObjectError]'s [:cause:] field.
+  /// [JsonUnsupportedObjectError]'s `cause` field.
   ///
   /// If a [List] or [Map] contains a reference to itself, directly or through
   /// other lists or maps, it cannot be serialized and a [JsonCyclicError] is
