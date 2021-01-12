@@ -274,4 +274,4 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///late_annotations.dart:
 - Annotation. (from org-dartlang-testcase:///late_annotations.dart:6:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

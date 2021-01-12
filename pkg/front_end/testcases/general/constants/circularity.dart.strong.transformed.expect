@@ -137,7 +137,7 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///circularity.dart:
 - Class1. (from org-dartlang-testcase:///circularity.dart:12:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
 - Class2. (from org-dartlang-testcase:///circularity.dart:21:9)
 - Class3. (from org-dartlang-testcase:///circularity.dart:29:9)
 - Class4. (from org-dartlang-testcase:///circularity.dart:37:9)

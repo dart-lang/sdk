@@ -45,4 +45,4 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-testcase:///annotations.dart:
-- pragma._ (from org-dartlang-sdk:///sdk/lib/core/annotations.dart:193:9)
+- pragma._ (from org-dartlang-sdk:///sdk/lib/core/annotations.dart:188:9)

@@ -192,8 +192,8 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///issue_34403.dart:
 - D.foo (from org-dartlang-testcase:///issue_34403.dart:12:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
 - F.foo (from org-dartlang-testcase:///issue_34403_lib.dart:10:9)
 
 org-dartlang-testcase:///issue_34403_lib.dart:
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

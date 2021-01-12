@@ -4,71 +4,76 @@
 
 part of dart.core;
 
-/**
- * The annotation `@Deprecated('migration')` marks a feature as deprecated.
- *
- * The annotation [deprecated] is a shorthand for deprecating until
- * an unspecified "next release" without migration instructions.
- *
- * The intent of the `@Deprecated` annotation is to inform users of a feature
- * that they should change their code, even if it is currently still working
- * correctly.
- *
- * A deprecated feature is scheduled to be removed at a later time, possibly
- * specified in [message]. A deprecated feature should not be used, code using
- * it will break at some point in the future. If existing code is using the
- * feature it should be rewritten to not use the deprecated feature.
- *
- * A deprecated feature should document how the same effect can be achieved in
- * [message], so the programmer knows how to rewrite the code.
- *
- * The `@Deprecated` annotation applies to libraries, top-level declarations
- * (variables, getters, setters, functions, classes and typedefs),
- * class-level declarations (variables, getters, setters, methods, operators or
- * constructors, whether static or not), named optional arguments and
- * trailing optional positional parameters.
- *
- * Deprecation is transitive:
- *
- *  - If a library is deprecated, so is every member of it.
- *  - If a class is deprecated, so is every member of it.
- *  - If a variable is deprecated, so are its implicit getter and setter.
- *
- *
- * A tool that processes Dart source code may report when:
- *
- * - the code imports a deprecated library.
- * - the code exports a deprecated library, or any deprecated member of
- *   a non-deprecated library.
- * - the code refers statically to a deprecated declaration.
- * - the code dynamically uses a member of an object with a statically known
- *   type, where the member is deprecated on the static type of the object.
- * - the code dynamically calls a method with an argument where the
- *   corresponding optional parameter is deprecated on the object's static type.
- *
- *
- * If the deprecated use is inside a library, class or method which is itself
- * deprecated, the tool should not bother the user about it.
- * A deprecated feature is expected to use other deprecated features.
- */
+/// The annotation `@Deprecated('migration')` marks a feature as deprecated.
+///
+/// The annotation [deprecated] is a shorthand for deprecating until
+/// an unspecified "next release" without migration instructions.
+///
+/// A feature can be any part of an API, from a full library to a single
+/// parameter.
+///
+/// The intent of the `@Deprecated` annotation is to inform authors
+/// who are currently using the feature,
+/// that they will soon need to stop using that feature in their code,
+/// even if the feature is currently still working correctly.
+///
+/// Deprecation is an early warning that the deprecated feature
+/// is scheduled to be removed at a later time,
+/// a time possibly specified in [message].
+/// A deprecated feature should no longer be used,
+/// code using it will break at some point in the future.
+/// If existing code is using the feature,
+/// that code should be rewritten to no longer use the deprecated feature.
+///
+/// A deprecated feature should document how the same effect can be achieved in
+/// [message], so the programmer knows how to rewrite the code.
+///
+/// The `@Deprecated` annotation applies to libraries, top-level declarations
+/// (variables, getters, setters, functions, classes, mixins,
+/// extension and typedefs),
+/// class-level declarations (variables, getters, setters, methods, operators or
+/// constructors, whether static or not), named optional parameters and
+/// trailing optional positional parameters.
+///
+/// Deprecation applies transitively to parts of a deprecated feature:
+///
+///  - If a library is deprecated, so is every member of it.
+///  - If a class is deprecated, so is every member of it.
+///  - If a variable is deprecated, so are its implicit getter and setter.
+///
+/// If a feature is deprecated in a superclass, it is *not* automatically
+/// deprecated in a subclass as well. It is reasonable to remove a member
+/// from a superclass and retain it in a subclass, so it needs to be possible
+/// to deprecate the member only in the superclass.
+///
+/// A tool that processes Dart source code may report when:
+///
+/// - the code imports a deprecated library.
+/// - the code exports a deprecated library, or any deprecated member of
+///   a non-deprecated library.
+/// - the code refers statically to a deprecated declaration.
+/// - the code uses a member of an object with a statically known
+///   type, where the member is deprecated on the interface of the static type.
+/// - the code calls a method with an argument where the
+///   corresponding optional parameter is deprecated on the object's static type.
+///
+/// If the deprecated use is inside a library, class or method which is itself
+/// deprecated, the tool should not bother the user about it.
+/// A deprecated feature is expected to use other deprecated features.
 class Deprecated {
-  /**
-   * Message provided to the user when they use the deprecated feature.
-   *
-   * The message should explain how to migrate away from the feature if an
-   * alternative is available, and when the deprecated feature is expected to be
-   * removed.
-   */
+  /// Message provided to the user when they use the deprecated feature.
+  ///
+  /// The message should explain how to migrate away from the feature if an
+  /// alternative is available, and when the deprecated feature is expected to be
+  /// removed.
   final String message;
 
-  /**
-   * Create a deprecation annotation which specifies the migration path and
-   * expiration of the annotated feature.
-   *
-   * The [message] argument should be readable by programmers, and should state
-   * an alternative feature (if available) as well as when an annotated feature
-   * is expected to be removed.
-   */
+  /// Create a deprecation annotation which specifies the migration path and
+  /// expiration of the annotated feature.
+  ///
+  /// The [message] argument should be readable by programmers, and should state
+  /// an alternative feature (if available) as well as when an annotated feature
+  /// is expected to be removed.
   const Deprecated(this.message);
 
   @Deprecated('Use `message` instead. Will be removed in Dart 3.0.0')
@@ -77,9 +82,7 @@ class Deprecated {
   String toString() => "Deprecated feature: $message";
 }
 
-/**
- * Marks a feature as [Deprecated] until the next release.
- */
+/// Marks a feature as [Deprecated] until the next release.
 const Deprecated deprecated = Deprecated("next release");
 
 class _Override {
@@ -114,22 +117,18 @@ class _Override {
 /// can be used to enable more warnings based on `@override` annotations.
 const Object override = _Override();
 
-/**
- * An annotation class that was used during development of Dart 2.
- *
- * Should not be used any more.
- */
+/// An annotation class that was used during development of Dart 2.
+///
+/// Should not be used any more.
 @deprecated
 class Provisional {
   String? get message => null;
   const Provisional({String? message});
 }
 
-/**
- * An annotation that was used during development of Dart 2.
- *
- * The annotation has no effect, and will be removed.
- */
+/// An annotation that was used during development of Dart 2.
+///
+/// The annotation has no effect, and will be removed.
 @deprecated
 const Null provisional = null;
 
@@ -139,55 +138,51 @@ const Null provisional = null;
 @deprecated
 const Null proxy = null;
 
-/**
- * A hint to tools.
- *
- * Tools that work with Dart programs may accept hints to guide their behavior
- * as `pragma` annotations on declarations.
- * Each tool decides which hints it accepts, what they mean, and whether and
- * how they apply to sub-parts of the annotated entity.
- *
- * Tools that recognize pragma hints should pick a pragma prefix to identify
- * the tool. They should recognize any hint with a [name] starting with their
- * prefix followed by `:` as if it was intended for that tool. A hint with a
- * prefix for another tool should be ignored (unless compatibility with that
- * other tool is a goal).
- *
- * A tool may recognize unprefixed names as well, if they would recognize that
- * name with their own prefix in front.
- *
- * If the hint can be parameterized,
- * an extra [options] object can be added as well.
- *
- * For example:
- *
- * ```dart
- * @pragma('Tool:pragma-name', [param1, param2, ...])
- * class Foo { }
- *
- * @pragma('OtherTool:other-pragma')
- * void foo() { }
- * ```
- *
- * Here class `Foo` is annotated with a Tool specific pragma 'pragma-name' and
- * function `foo` is annotated with a pragma 'other-pragma'
- * specific to OtherTool.
- */
+/// A hint to tools.
+///
+/// Tools that work with Dart programs may accept hints to guide their behavior
+/// as `pragma` annotations on declarations.
+/// Each tool decides which hints it accepts, what they mean, and whether and
+/// how they apply to sub-parts of the annotated entity.
+///
+/// Tools that recognize pragma hints should pick a pragma prefix to identify
+/// the tool. They should recognize any hint with a [name] starting with their
+/// prefix followed by `:` as if it was intended for that tool. A hint with a
+/// prefix for another tool should be ignored (unless compatibility with that
+/// other tool is a goal).
+///
+/// A tool may recognize unprefixed names as well, if they would recognize that
+/// name with their own prefix in front.
+///
+/// If the hint can be parameterized,
+/// an extra [options] object can be added as well.
+///
+/// For example:
+///
+/// ```dart
+/// @pragma('Tool:pragma-name', [param1, param2, ...])
+/// class Foo { }
+///
+/// @pragma('OtherTool:other-pragma')
+/// void foo() { }
+/// ```
+///
+/// Here class `Foo` is annotated with a Tool specific pragma 'pragma-name' and
+/// function `foo` is annotated with a pragma 'other-pragma'
+/// specific to OtherTool.
 @pragma('vm:entry-point')
 class pragma {
-  /**
-   * The name of the hint.
-   *
-   * A string that is recognized by one or more tools, or such a string prefixed
-   * by a tool identifier and a colon, which is only recognized by that
-   * particular tool.
-   */
+  /// The name of the hint.
+  ///
+  /// A string that is recognized by one or more tools, or such a string prefixed
+  /// by a tool identifier and a colon, which is only recognized by that
+  /// particular tool.
   final String name;
 
-  /** Optional extra data parameterizing the hint. */
+  /// Optional extra data parameterizing the hint.
   final Object? options;
 
-  /** Creates a hint named [name] with optional [options]. */
+  /// Creates a hint named [name] with optional [options].
   const factory pragma(String name, [Object? options]) = pragma._;
 
   const pragma._(this.name, [this.options]);
