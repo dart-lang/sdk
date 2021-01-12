@@ -408,14 +408,14 @@ class Harness extends TypeOperations<Var, Type> {
 
   /// Updates the harness so that when a [factor] query is invoked on types
   /// [from] and [what], [result] will be returned.
-  void addFactor(Type from, Type what, Type result) {
+  void addFactor(String from, String what, String result) {
     var query = '$from - $what';
-    _factorResults[query] = result;
+    _factorResults[query] = Type(result);
   }
 
   /// Updates the harness so that when an [isSubtypeOf] query is invoked on
   /// types [leftType] and [rightType], [isSubtype] will be returned.
-  void addSubtype(Type leftType, Type rightType, bool isSubtype) {
+  void addSubtype(String leftType, String rightType, bool isSubtype) {
     var query = '$leftType <: $rightType';
     _subtypes[query] = isSubtype;
   }
