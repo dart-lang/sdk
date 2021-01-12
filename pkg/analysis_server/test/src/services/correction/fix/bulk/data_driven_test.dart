@@ -939,6 +939,44 @@ void f(C a, C b) {
 }
 ''');
   }
+
+  Future<void> test_rename_removed_onlyFixOne() async {
+    setPackageContent('''
+class A {
+  void n(int x) {}
+}
+class B {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename to new'
+  date: 2020-09-01
+  element:
+    uris: ['$importUri']
+    method: 'o'
+    inClass: 'A'
+  changes:
+    - kind: 'rename'
+      newName: 'n'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f(A a, B b) {
+  a.o(0);
+  b.o(1);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(A a, B b) {
+  a.n(0);
+  b.o(1);
+}
+''');
+  }
 }
 
 @reflectiveTest
