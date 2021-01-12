@@ -21,6 +21,7 @@ import 'convert_to_generic_function_syntax_test.dart'
 import 'convert_to_if_element_test.dart' as convert_to_if_element;
 import 'convert_to_if_null_test.dart' as convert_to_if_null;
 import 'convert_to_int_literal_test.dart' as convert_to_int_literal;
+import 'convert_to_is_not_test.dart' as convert_to_is_not;
 import 'convert_to_list_literal_test.dart' as convert_to_list_literal;
 import 'convert_to_map_literal_test.dart' as convert_to_map_literal;
 import 'convert_to_null_aware_test.dart' as convert_to_null_aware;
@@ -84,6 +85,7 @@ void main() {
     convert_to_if_element.main();
     convert_to_if_null.main();
     convert_to_int_literal.main();
+    convert_to_is_not.main();
     convert_to_list_literal.main();
     convert_to_map_literal.main();
     convert_to_null_aware.main();
