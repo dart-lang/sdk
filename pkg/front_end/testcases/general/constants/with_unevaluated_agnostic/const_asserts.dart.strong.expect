@@ -129,7 +129,7 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///const_asserts.dart:
 - Foo. (from org-dartlang-testcase:///const_asserts.dart:7:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
 - Foo.withMessage (from org-dartlang-testcase:///const_asserts.dart:13:9)
 - Foo.withInvalidMessage (from org-dartlang-testcase:///const_asserts.dart:15:9)
 - Foo.withInvalidCondition (from org-dartlang-testcase:///const_asserts.dart:16:9)

@@ -68,4 +68,4 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///redirecting_factory_const_inference.dart:
 - _Y. (from org-dartlang-testcase:///redirecting_factory_const_inference.dart:16:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

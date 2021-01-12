@@ -472,4 +472,4 @@ Extra constant evaluation: evaluated: 210, effectively constant: 12
 Constructor coverage from constants:
 org-dartlang-testcase:///assignability_error_messages.dart:
 - A. (from org-dartlang-testcase:///assignability_error_messages.dart:11:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

@@ -681,6 +681,6 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///duplicated_declarations.dart:
 - Enum#1. (from org-dartlang-testcase:///duplicated_declarations.dart:83:6)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
 - Enum. (from org-dartlang-testcase:///duplicated_declarations.dart:76:6)
 - AnotherEnum. (from org-dartlang-testcase:///duplicated_declarations.dart:89:6)
