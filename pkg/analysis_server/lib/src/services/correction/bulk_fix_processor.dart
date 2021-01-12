@@ -208,7 +208,7 @@ class BulkFixProcessor {
       ReplaceWithIsEmpty.newInstance,
     ],
     LintNames.prefer_is_not_empty: [
-      UesIsNotEmpty.newInstance,
+      UseIsNotEmpty.newInstance,
     ],
     LintNames.prefer_iterable_whereType: [
       ConvertToWhereType.newInstance,

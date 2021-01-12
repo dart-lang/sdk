@@ -10,7 +10,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class UesIsNotEmpty extends CorrectionProducer {
+class UseIsNotEmpty extends CorrectionProducer {
   @override
   FixKind get fixKind => DartFixKind.USE_IS_NOT_EMPTY;
 
@@ -40,5 +40,5 @@ class UesIsNotEmpty extends CorrectionProducer {
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static UesIsNotEmpty newInstance() => UesIsNotEmpty();
+  static UseIsNotEmpty newInstance() => UseIsNotEmpty();
 }
