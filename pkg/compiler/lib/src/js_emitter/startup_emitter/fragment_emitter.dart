@@ -82,7 +82,7 @@ function setFunctionNamesIfNecessary(holders) {
     for (var j = 0; j < keys.length; j++) {
       var key = keys[j];
       var f = holder[key];
-      if (typeof f == 'function') f.name = key;
+      if (typeof f == "function") f.name = key;
     }
   }
 }
@@ -260,7 +260,7 @@ function installTearOff(
   var funs = [];
   for (var i = 0; i < funsOrNames.length; i++) {
     var fun = funsOrNames[i];
-    if ((typeof fun) == 'string') fun = container[fun];
+    if ((typeof fun) == "string") fun = container[fun];
     fun.#callName = callNames[i];
     funs.push(fun);
   }

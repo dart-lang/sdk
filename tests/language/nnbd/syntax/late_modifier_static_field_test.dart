@@ -31,14 +31,12 @@ main() {
   Expect.equals(123, A.fieldWithInit);
   Expect.equals(123, A.fieldWithTrivialInit);
   Expect.equals(null, A.fieldWithNullInit);
-  Expect.throws(
-      () => A.fieldWithNoInit, (error) => error is LateInitializationError);
+  Expect.throws<Error>(() => A.fieldWithNoInit);
   Expect.equals(1, initCalls);
   Expect.equals(123, A.fieldWithInit);
   Expect.equals(123, A.fieldWithTrivialInit);
   Expect.equals(null, A.fieldWithNullInit);
-  Expect.throws(
-      () => A.fieldWithNoInit, (error) => error is LateInitializationError);
+  Expect.throws<Error>(() => A.fieldWithNoInit);
   Expect.equals(1, initCalls);
   A.fieldWithInit = 456;
   A.fieldWithTrivialInit = 456;

@@ -76,6 +76,7 @@ class LintNames {
       'prefer_interpolation_to_compose_strings';
   static const String prefer_is_empty = 'prefer_is_empty';
   static const String prefer_is_not_empty = 'prefer_is_not_empty';
+  static const String prefer_is_not_operator = 'prefer_is_not_operator';
   static const String prefer_iterable_whereType = 'prefer_iterable_whereType';
   static const String prefer_null_aware_operators =
       'prefer_null_aware_operators';

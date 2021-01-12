@@ -417,7 +417,7 @@ class FixProcessor extends BaseProcessor {
       ReplaceWithIsEmpty.newInstance,
     ],
     LintNames.prefer_is_not_empty: [
-      UesIsNotEmpty.newInstance,
+      UseIsNotEmpty.newInstance,
     ],
     LintNames.prefer_if_null_operators: [
       ConvertToIfNull.newInstance,

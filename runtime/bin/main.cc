@@ -621,7 +621,7 @@ static Dart_Isolate CreateAndSetupDartDevIsolate(const char* script_uri,
     isolate_run_app_snapshot = false;
     dartdev_path = DartDevIsolate::TryResolveDartDevKernelPath();
     // Clear error from app snapshot and retry from kernel.
-    if (*error != nullptr) {
+    if (error != nullptr && *error != nullptr) {
       free(*error);
       *error = nullptr;
     }
