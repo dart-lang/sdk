@@ -1347,7 +1347,7 @@ class TypeErrorDecoder {
     // get the text "[object Object]". The shortest way to get that
     // string is using "String({})".
     // See: http://code.google.com/p/v8/issues/detail?id=2519.
-    message = JS('String', r"#.replace(String({}), '$receiver$')", message);
+    message = JS('String', r'#.replace(String({}), "$receiver$")', message);
 
     // Since we want to create a new regular expression from an unknown string,
     // we must escape all regular expression syntax.
@@ -1374,14 +1374,14 @@ class TypeErrorDecoder {
     // JavaScript, "." does not match newlines.
     String pattern = JS(
         'String',
-        r"#.replace(new RegExp('\\\\\\$arguments\\\\\\$', 'g'), "
-            r"'((?:x|[^x])*)')"
-            r".replace(new RegExp('\\\\\\$argumentsExpr\\\\\\$', 'g'),  "
-            r"'((?:x|[^x])*)')"
-            r".replace(new RegExp('\\\\\\$expr\\\\\\$', 'g'),  '((?:x|[^x])*)')"
-            r".replace(new RegExp('\\\\\\$method\\\\\\$', 'g'),  '((?:x|[^x])*)')"
-            r".replace(new RegExp('\\\\\\$receiver\\\\\\$', 'g'),  "
-            r"'((?:x|[^x])*)')",
+        r'#.replace(new RegExp("\\\\\\$arguments\\\\\\$", "g"), '
+            r'"((?:x|[^x])*)")'
+            r'.replace(new RegExp("\\\\\\$argumentsExpr\\\\\\$", "g"),  '
+            r'"((?:x|[^x])*)")'
+            r'.replace(new RegExp("\\\\\\$expr\\\\\\$", "g"),  "((?:x|[^x])*)")'
+            r'.replace(new RegExp("\\\\\\$method\\\\\\$", "g"),  "((?:x|[^x])*)")'
+            r'.replace(new RegExp("\\\\\\$receiver\\\\\\$", "g"),  '
+            r'"((?:x|[^x])*)")',
         message);
 
     return new TypeErrorDecoder(
@@ -1436,7 +1436,7 @@ class TypeErrorDecoder {
     // "(.*)\\.(.*) is not a function"
 
     var function = JS('', r"""function($expr$) {
-  var $argumentsExpr$ = '$arguments$';
+  var $argumentsExpr$ = "$arguments$";
   try {
     $expr$.$method$($argumentsExpr$);
   } catch (e) {
@@ -1451,7 +1451,7 @@ class TypeErrorDecoder {
   static String provokeCallErrorOnNull() {
     // See [provokeCallErrorOn] for a detailed explanation.
     var function = JS('', r"""function() {
-  var $argumentsExpr$ = '$arguments$';
+  var $argumentsExpr$ = "$arguments$";
   try {
     null.$method$($argumentsExpr$);
   } catch (e) {
@@ -1466,7 +1466,7 @@ class TypeErrorDecoder {
   static String provokeCallErrorOnUndefined() {
     // See [provokeCallErrorOn] for a detailed explanation.
     var function = JS('', r"""function() {
-  var $argumentsExpr$ = '$arguments$';
+  var $argumentsExpr$ = "$arguments$";
   try {
     (void 0).$method$($argumentsExpr$);
   } catch (e) {
@@ -1774,7 +1774,7 @@ class _StackTrace implements StackTrace {
 }
 
 int objectHashCode(var object) {
-  if (object == null || JS('bool', "typeof # != 'object'", object)) {
+  if (object == null || JS('bool', 'typeof # != "object"', object)) {
     return object.hashCode;
   } else {
     return Primitives.objectHashCode(object);
