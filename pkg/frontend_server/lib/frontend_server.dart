@@ -114,7 +114,8 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
       hide: true)
   ..addMultiOption('define',
       abbr: 'D',
-      help: 'The values for the environment constants (e.g. -Dkey=value).')
+      help: 'The values for the environment constants (e.g. -Dkey=value).',
+      splitCommas: false)
   ..addFlag('embed-source-text',
       help: 'Includes sources into generated dill file. Having sources'
           ' allows to effectively use observatory to debug produced'
