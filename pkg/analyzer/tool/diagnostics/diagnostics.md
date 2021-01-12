@@ -9985,6 +9985,8 @@ const int y = x;
 
 ### wrong_number_of_parameters_for_operator
 
+_Operator '-' should declare 0 or 1 parameter, but {0} found._
+
 _Operator '{0}' should declare exactly {1} parameters, but {2} found._
 
 #### Description

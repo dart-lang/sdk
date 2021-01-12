@@ -5,13 +5,13 @@
 Dart is:
 
   * **Optimized for UI**:
-  Develop with a programming language specialized around the needs of user interface creation
+  Develop with a programming language specialized around the needs of user interface creation.
   
   * **Productive**:
-  Make changes iteratively: use hot reload to see the result instantly in your running app
+  Make changes iteratively: use hot reload to see the result instantly in your running app.
   
   * **Fast on all platforms**:
-  Compile to ARM & x64 machine code for mobile,  desktop, and backend. Or compile to JavaScript for the web
+  Compile to ARM & x64 machine code for mobile, desktop, and backend. Or compile to JavaScript for the web.
 
 Dart's flexible compiler technology lets you run Dart code in different ways,
 depending on your target platform and goals:
@@ -34,11 +34,16 @@ See [LICENSE][license] and [PATENT_GRANT][patent_grant].
 ## Using Dart
 
 Visit [dart.dev][website] to learn more about the
-[language][lang], [tools][tools],
-[getting started][codelab], and more.
+[language][lang], [tools][tools], and to find
+[codelabs][codelabs].
 
 Browse [pub.dev][pubsite] for more packages and libraries contributed
 by the community and the Dart team.
+
+Our API reference documentation is published at [api.dart.dev](https://api.dart.dev),
+based on the stable release. (We also publish docs from our 
+[beta](https://api.dart.dev/beta) and [dev](https://api.dart.dev/dev) channels,
+as well as from the [primary development branch](https://api.dart.dev/be)).
 
 ## Building Dart
 
@@ -59,7 +64,7 @@ You can also contribute patches, as described in [Contributing][contrib].
 [repo]: https://github.com/dart-lang/sdk
 [lang]: https://dart.dev/guides/language/language-tour
 [tools]: https://dart.dev/tools
-[codelab]: https://dart.dev/codelabs
+[codelabs]: https://dart.dev/codelabs
 [dartbug]: http://dartbug.com
 [contrib]: https://github.com/dart-lang/sdk/blob/master/CONTRIBUTING.md
 [pubsite]: https://pub.dev

@@ -106,7 +106,7 @@ class Operators2 {
   // [cfe] Operator '>=' should have exactly one parameter.
   operator -(a, b) => true;
   //       ^
-  // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '-' should have zero or one parameter.
   operator +(a, b) => true;
   //       ^
@@ -366,7 +366,7 @@ class Operators5 {
   // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator -(a, [b]) => true;
   //       ^
-  // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '-' should have zero or one parameter.
   //             ^
   // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
@@ -483,7 +483,7 @@ class Operators6 {
   // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
   operator -(a, {b}) => true;
   //       ^
-  // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
   // [cfe] Operator '-' should have zero or one parameter.
   //             ^
   // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR

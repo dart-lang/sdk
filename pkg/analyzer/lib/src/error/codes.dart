@@ -8676,8 +8676,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * https://code.google.com/p/dart/issues/detail?id=954
    */
   static const CompileTimeErrorCode RECURSIVE_CONSTRUCTOR_REDIRECT =
-      CompileTimeErrorCode('RECURSIVE_CONSTRUCTOR_REDIRECT',
-          "Cycle in redirecting generative constructors.");
+      CompileTimeErrorCode(
+          'RECURSIVE_CONSTRUCTOR_REDIRECT',
+          "Constructors can't redirect to themselves either directly or "
+              "indirectly.",
+          correction: 'Try changing one of the constructors in the loop to not '
+              'redirect.');
 
   /**
    * 7.6.2 Factories: It is a compile-time error if a redirecting factory
@@ -8685,8 +8689,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * sequence of redirections.
    */
   static const CompileTimeErrorCode RECURSIVE_FACTORY_REDIRECT =
-      CompileTimeErrorCode('RECURSIVE_FACTORY_REDIRECT',
-          "Cycle in redirecting factory constructors.");
+      CompileTimeErrorCode(
+          'RECURSIVE_CONSTRUCTOR_REDIRECT',
+          "Constructors can't redirect to themselves either directly or "
+              "indirectly.",
+          uniqueName: 'RECURSIVE_FACTORY_REDIRECT',
+          correction: 'Try changing one of the constructors in the loop to '
+              'redirect to a non-factory constructor.');
 
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the interface of a
@@ -11255,8 +11264,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   static const CompileTimeErrorCode
       WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS = CompileTimeErrorCode(
-          'WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS',
-          "Operator '-' should declare 0 or 1 parameter, but {0} found.");
+          'WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR',
+          "Operator '-' should declare 0 or 1 parameter, but {0} found.",
+          hasPublishedDocs: true,
+          uniqueName: 'WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS');
 
   /**
    * No parameters.
