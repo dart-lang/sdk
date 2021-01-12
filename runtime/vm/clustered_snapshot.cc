@@ -5349,12 +5349,6 @@ class UnitDeserializationRoots : public DeserializationRoots {
           static_cast<CompressedStackMapsPtr>(d->ReadRef());
       code->ptr()->code_source_map_ =
           static_cast<CodeSourceMapPtr>(d->ReadRef());
-
-      // TODO(rmacnak): Should we finalize any pending GC before deserializing
-      // instead?
-      if (d->thread()->is_marking()) {
-        d->thread()->DeferredMarkingStackAddObject(code);
-      }
     }
 
     // Reinitialize the dispatch table by rereading the table's serialization
@@ -6787,15 +6781,28 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
 
   canonical_clusters_ = new DeserializationCluster*[num_canonical_clusters_];
   clusters_ = new DeserializationCluster*[num_clusters_];
-  refs_ = Array::New(num_objects_ + kFirstReference, Heap::kOld);
+  refs = Array::New(num_objects_ + kFirstReference, Heap::kOld);
   if (initial_field_table_len > 0) {
     initial_field_table_->AllocateIndex(initial_field_table_len - 1);
     ASSERT_EQUAL(initial_field_table_->NumFieldIds(), initial_field_table_len);
   }
 
   {
-    NoSafepointScope no_safepoint;
+    // The deserializer initializes objects without using the write barrier,
+    // partly for speed since we know all the deserialized objects will be
+    // long-lived and partly because the target objects can be not yet
+    // initialized at the time of the write. To make this safe, we must ensure
+    // there are no other threads mutating this heap, and that incremental
+    // marking is not in progress. This is normally the case anyway for the
+    // main snapshot being deserialized at isolate load, but needs checks for
+    // loading secondary snapshots are part of deferred loading.
+    HeapIterationScope iter(thread());
+    // For bump-pointer allocation in old-space.
     HeapLocker hl(thread(), heap_->old_space());
+    // Must not perform any other type of allocation, which might trigger GC
+    // while there are still uninitialized objects.
+    NoSafepointScope no_safepoint;
+    refs_ = refs.raw();
 
     roots->AddBaseObjects(this);
 
@@ -6856,7 +6863,6 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
     ASSERT(section_marker == kSectionMarker);
 #endif
 
-    refs = refs_;
     refs_ = NULL;
   }
 
