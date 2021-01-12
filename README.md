@@ -23,7 +23,7 @@ easier.
 
 ## Status
 
-[![Build Status](https://travis-ci.org/dart-lang/dart2js_info.svg)](https://travis-ci.org/dart-lang/dart2js_info)
+[![Build Status](https://github.com/dart-lang/dart2js_info/workflows/Dart%20CI/badge.svg)](https://github.com/dart-lang/dart2js_info/actions?query=workflow%3A"Dart+CI"+branch%3Amaster)
 
 Currently, most tools available here can be used to analyze code-size and
 attribution of code-size to different parts of your app. With time, we hope to
