@@ -1328,7 +1328,7 @@ class Class : public Object {
 
   void RehashConstants(Zone* zone) const;
 
-  bool RequireLegacyErasureOfConstants(Zone* zone) const;
+  bool RequireCanonicalTypeErasureOfConstants(Zone* zone) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(ClassLayout));
@@ -7404,6 +7404,15 @@ class TypeArguments : public Instance {
     return IsDynamicTypes(true, 0, len);
   }
 
+  // Return true if this vector contains a TypeRef.
+  bool IsRecursive(TrailPtr trail = nullptr) const;
+
+  // Return true if this vector contains a non-nullable type.
+  bool RequireConstCanonicalTypeErasure(Zone* zone,
+                                        intptr_t from_index,
+                                        intptr_t len,
+                                        TrailPtr trail = nullptr) const;
+
   TypeArgumentsPtr Prepend(Zone* zone,
                            const TypeArguments& other,
                            intptr_t other_length,
@@ -7460,9 +7469,6 @@ class TypeArguments : public Instance {
 
   // Return true if all types of this vector are finalized.
   bool IsFinalized() const;
-
-  // Return true if this vector contains a recursive type argument.
-  bool IsRecursive(TrailPtr trail = nullptr) const;
 
   // Caller must hold Isolate::constant_canonicalization_mutex_.
   virtual InstancePtr CanonicalizeLocked(Thread* thread) const {
@@ -7633,6 +7639,8 @@ class AbstractType : public Instance {
                             TypeEquality kind,
                             TrailPtr trail = nullptr) const;
   virtual bool IsRecursive(TrailPtr trail = nullptr) const;
+  virtual bool RequireConstCanonicalTypeErasure(Zone* zone,
+                                                TrailPtr trail = nullptr) const;
 
   // Instantiate this type using the given type argument vectors.
   //
@@ -7890,6 +7898,8 @@ class Type : public AbstractType {
                             TypeEquality kind,
                             TrailPtr trail = nullptr) const;
   virtual bool IsRecursive(TrailPtr trail = nullptr) const;
+  virtual bool RequireConstCanonicalTypeErasure(Zone* zone,
+                                                TrailPtr trail = nullptr) const;
 
   // Return true if this type can be used as the declaration type of cls after
   // canonicalization (passed-in cls must match type_class()).
@@ -8034,6 +8044,8 @@ class FunctionType : public AbstractType {
                             TypeEquality kind,
                             TrailPtr trail = nullptr) const;
   virtual bool IsRecursive(TrailPtr trail = nullptr) const;
+  virtual bool RequireConstCanonicalTypeErasure(Zone* zone,
+                                                TrailPtr trail = nullptr) const;
 
   virtual AbstractTypePtr InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
@@ -8277,6 +8289,8 @@ class TypeRef : public AbstractType {
                             TypeEquality kind,
                             TrailPtr trail = nullptr) const;
   virtual bool IsRecursive(TrailPtr trail = nullptr) const { return true; }
+  virtual bool RequireConstCanonicalTypeErasure(Zone* zone,
+                                                TrailPtr trail = nullptr) const;
   virtual AbstractTypePtr InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
@@ -8386,6 +8400,11 @@ class TypeParameter : public AbstractType {
                             TypeEquality kind,
                             TrailPtr trail = nullptr) const;
   virtual bool IsRecursive(TrailPtr trail = nullptr) const;
+  virtual bool RequireConstCanonicalTypeErasure(
+      Zone* zone,
+      TrailPtr trail = nullptr) const {
+    return IsNonNullable();
+  }
   virtual AbstractTypePtr InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,

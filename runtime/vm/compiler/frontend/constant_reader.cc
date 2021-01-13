@@ -199,7 +199,7 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
       // Build type from the raw bytes (needs temporary translator).
       TypeTranslator type_translator(
           &reader, this, active_class_, true,
-          active_class_->RequireLegacyErasure(null_safety));
+          active_class_->RequireConstCanonicalTypeErasure(null_safety));
       auto& type_arguments =
           TypeArguments::Handle(Z, TypeArguments::New(1, Heap::kOld));
       AbstractType& type = type_translator.BuildType();
@@ -242,7 +242,7 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
       // Build type from the raw bytes (needs temporary translator).
       TypeTranslator type_translator(
           &reader, this, active_class_, true,
-          active_class_->RequireLegacyErasure(null_safety));
+          active_class_->RequireConstCanonicalTypeErasure(null_safety));
       const intptr_t number_of_type_arguments = reader.ReadUInt();
       if (klass.NumTypeArguments() > 0) {
         auto& type_arguments = TypeArguments::Handle(
@@ -285,7 +285,7 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
       // Build type from the raw bytes (needs temporary translator).
       TypeTranslator type_translator(
           &reader, this, active_class_, true,
-          active_class_->RequireLegacyErasure(null_safety));
+          active_class_->RequireConstCanonicalTypeErasure(null_safety));
       const intptr_t number_of_type_arguments = reader.ReadUInt();
       ASSERT(number_of_type_arguments > 0);
       auto& type_arguments = TypeArguments::Handle(
@@ -318,7 +318,11 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
     }
     case kTypeLiteralConstant: {
       // Build type from the raw bytes (needs temporary translator).
-      // Legacy erasure is not applied to type literals. See issue #42262.
+      // Const canonical type erasure is not applied to constant type literals.
+      // However, CFE must ensure that constant type literals can be
+      // canonicalized to an identical representant independently of the null
+      // safety mode currently in use (sound or unsound) or migration state of
+      // the declaring library (legacy or opted-in).
       TypeTranslator type_translator(&reader, this, active_class_, true);
       instance = type_translator.BuildType().raw();
       break;
