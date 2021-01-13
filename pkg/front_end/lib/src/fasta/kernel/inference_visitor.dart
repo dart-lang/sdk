@@ -5,6 +5,7 @@
 import 'dart:core' hide MapEntry;
 
 import 'package:_fe_analyzer_shared/src/util/link.dart';
+import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/type_algebra.dart' show Substitution;
@@ -6567,8 +6568,12 @@ class InferenceVisitor
         if (nonNullableType != variable.type) {
           promotedType = nonNullableType;
         }
-      } else if (!variable.isLocalFunction) {
+      } else if (variable.isLocalFunction) {
         // Don't promote local functions.
+      } else if (isExtensionThis(variable)) {
+        // Don't promote the synthetic variable `#this` that we use to represent
+        // `this` inside extension methods.
+      } else {
         promotedType = inferrer.flowAnalysis.variableRead(node, variable);
       }
     } else {
