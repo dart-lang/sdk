@@ -6,7 +6,7 @@ library kernel.round_trip;
 import 'dart:io';
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
-import 'package:kernel/kernel.dart';
+import 'binary/utils.dart';
 
 const String usage = '''
 Usage: round_trip.dart FILE.dill [sdk.dill]
@@ -51,15 +51,4 @@ void testRoundTrip(List<int> bytes, List<int> sdkBytes) async {
 
 String show(int byte) {
   return '$byte (0x${byte.toRadixString(16).padLeft(2, "0")})';
-}
-
-/// A [Sink] that directly writes data into a byte builder.
-class ByteSink implements Sink<List<int>> {
-  final BytesBuilder builder = new BytesBuilder();
-
-  void add(List<int> data) {
-    builder.add(data);
-  }
-
-  void close() {}
 }
