@@ -305,6 +305,10 @@ abstract class ContextManagerCallbacks {
   /// Create and return a new analysis driver rooted at the given [folder].
   AnalysisDriver addAnalysisDriver(Folder folder, ContextRoot contextRoot);
 
+  /// Called after contexts are rebuilt, such as after recovering from a watcher
+  /// failure.
+  void afterContextRefresh();
+
   /// An [event] was processed, so analysis state might be different now.
   void afterWatchEvent(WatchEvent event);
 
@@ -563,6 +567,8 @@ class ContextManagerImpl implements ContextManager {
 
     // Rebuild contexts based on the data last sent to setRoots().
     setRoots(includedPaths, excludedPaths);
+
+    callbacks.afterContextRefresh();
   }
 
   /// Sets the [ignorePatterns] for the context having info [info].
