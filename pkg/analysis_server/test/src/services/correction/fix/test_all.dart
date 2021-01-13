@@ -54,6 +54,7 @@ import 'convert_to_int_literal_test.dart' as convert_to_int_literal;
 import 'convert_to_list_literal_test.dart' as convert_to_list_literal;
 import 'convert_to_map_literal_test.dart' as convert_to_map_literal;
 import 'convert_to_named_arguments_test.dart' as convert_to_named_arguments;
+import 'convert_to_null_aware_spread_test.dart' as convert_to_null_aware_spread;
 import 'convert_to_null_aware_test.dart' as convert_to_null_aware;
 import 'convert_to_on_type_test.dart' as convert_to_on_type;
 import 'convert_to_package_import_test.dart' as convert_to_package_import;
@@ -219,6 +220,7 @@ void main() {
     convert_to_map_literal.main();
     convert_to_named_arguments.main();
     convert_to_null_aware.main();
+    convert_to_null_aware_spread.main();
     convert_to_on_type.main();
     convert_to_package_import.main();
     convert_to_relative_import.main();
