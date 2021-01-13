@@ -467,6 +467,21 @@ class BazelWorkspace extends Workspace
       }
     }
 
+    // Return a Package rooted at [folder].
+    BazelWorkspacePackage packageRootedHere() {
+      List<String> uriParts = (packageUriResolver as BazelPackageUriResolver)
+          ._restoreUriParts(root, '${folder.path}/lib/__fake__.dart');
+      String packageName;
+      if (uriParts != null && uriParts.isNotEmpty) {
+        packageName = uriParts[0];
+      }
+      // TODO(srawlins): If [packageName] could not be derived from [uriParts],
+      //  I imagine this should throw.
+      var package = BazelWorkspacePackage(packageName, folder.path, this);
+      _directoryToPackage[directoryPath] = package;
+      return package;
+    }
+
     while (true) {
       Folder parent = folder.parent;
       if (parent == null) {
@@ -478,17 +493,9 @@ class BazelWorkspace extends Workspace
         return null;
       }
 
-      // Return a Package rooted at [folder].
-      BazelWorkspacePackage packageRootedHere() {
-        List<String> uriParts = (packageUriResolver as BazelPackageUriResolver)
-            ._restoreUriParts(root, '${folder.path}/lib/__fake__.dart');
-        String packageName;
-        if (uriParts != null && uriParts.isNotEmpty) {
-          packageName = uriParts[0];
-        }
-        var package = BazelWorkspacePackage(packageName, folder.path, this);
-        _directoryToPackage[directoryPath] = package;
-        return package;
+      if (folder.getChildAssumingFile(_buildFileName).exists) {
+        // Found the BUILD file, denoting a Dart package.
+        return packageRootedHere();
       }
 
       // In some distributed build environments, BUILD files are not preserved.
@@ -515,11 +522,6 @@ class BazelWorkspace extends Workspace
           // [folder]'s sister folder within [bin] contains a ".packages" file.
           return packageRootedHere();
         }
-      }
-
-      if (folder.getChildAssumingFile(_buildFileName).exists) {
-        // Found the BUILD file, denoting a Dart package.
-        return packageRootedHere();
       }
 
       // Go up a folder.

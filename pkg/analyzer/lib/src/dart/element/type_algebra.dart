@@ -424,7 +424,7 @@ abstract class _TypeSubstitutor
     inner.invertVariance();
 
     var returnType = type.returnType.accept(inner);
-    var typeArguments = _mapList(type.typeArguments);
+    var aliasArguments = _mapList(type.aliasArguments);
 
     if (useCounter == before) return type;
 
@@ -433,8 +433,8 @@ abstract class _TypeSubstitutor
       parameters: parameters,
       returnType: returnType,
       nullabilitySuffix: type.nullabilitySuffix,
-      element: type.element,
-      typeArguments: typeArguments,
+      aliasElement: type.aliasElement,
+      aliasArguments: aliasArguments,
     );
   }
 
@@ -544,6 +544,7 @@ abstract class _TypeSubstitutor
   DartType visitVoidType(VoidType type) => type;
 
   List<DartType> _mapList(List<DartType> types) {
+    if (types == null) return null;
     return types.map((e) => e.accept(this)).toList();
   }
 

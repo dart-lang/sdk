@@ -7336,6 +7336,11 @@ F<int> a;
 ''');
     var unit = library.definingCompilationUnit;
     var type = unit.topLevelVariables[0].type as FunctionType;
+
+    expect(type.aliasElement, same(unit.functionTypeAliases[0]));
+    _assertTypeStrings(type.aliasArguments, ['int']);
+
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
     expect(type.element.enclosingElement, same(unit.functionTypeAliases[0]));
     _assertTypeStrings(type.typeArguments, ['int']);
   }
