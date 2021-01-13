@@ -16,6 +16,7 @@ import 'package:kernel/binary/ast_to_binary.dart' as kernel show BinaryPrinter;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart' hide MapEntry;
+import 'package:kernel/ast.dart' show NonNullableByDefaultCompiledMode;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/text/ast_to_text.dart' as kernel show Printer;
 import 'package:path/path.dart' as p;
@@ -707,7 +708,11 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
 ModuleMetadata _emitMetadata(js_ast.Program program, Component component,
     String sourceMapUri, String moduleUri) {
   var metadata = ModuleMetadata(
-      program.name, loadFunctionName(program.name), sourceMapUri, moduleUri);
+      program.name,
+      loadFunctionName(program.name),
+      sourceMapUri,
+      moduleUri,
+      component.mode == NonNullableByDefaultCompiledMode.Strong);
 
   for (var lib in component.libraries) {
     metadata.addLibrary(LibraryMetadata(
