@@ -112,4 +112,4 @@ main() {
 }
 
 /// Represents some opaque resource being managed by a library.
-class SomeResource extends Struct {}
+class SomeResource extends Opaque {}

@@ -488,10 +488,15 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   Class _extendsOrImplementsSealedClass(Class klass) {
     final Class superClass = klass.supertype?.classNode;
 
-    // The Struct class can be extended, but subclasses of Struct cannot be (nor
-    // implemented).
-    if (klass != structClass && hierarchy.isSubtypeOf(klass, structClass)) {
-      return superClass != structClass ? superClass : null;
+    // The Opaque and Struct classes can be extended, but subclasses
+    // cannot be (nor implemented).
+    if (klass != opaqueClass &&
+        klass != structClass &&
+        (hierarchy.isSubtypeOf(klass, opaqueClass) ||
+            hierarchy.isSubtypeOf(klass, structClass))) {
+      return superClass != opaqueClass && superClass != structClass
+          ? superClass
+          : null;
     }
 
     if (!nativeTypesClasses.contains(klass)) {

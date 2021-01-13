@@ -477,6 +477,8 @@ class IPointer implements Pointer {} //# 814: compile-time error
 
 class IStruct implements Struct {} //# 815: compile-time error
 
+class IOpaque implements Opaque {} //# 816: compile-time error
+
 class MyClass {
   int x;
   MyClass(this.x);

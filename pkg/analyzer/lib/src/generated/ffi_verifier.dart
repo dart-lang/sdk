@@ -18,6 +18,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   static const _allocateExtensionMethodName = 'call';
   static const _allocatorExtensionName = 'AllocatorAlloc';
   static const _dartFfiLibraryName = 'dart.ffi';
+  static const _opaqueClassName = 'Opaque';
 
   static const List<String> _primitiveIntegerNativeTypes = [
     'Int8',
@@ -54,7 +55,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     inStruct = false;
-    // Only the Struct class may be extended.
+    // Only the Allocator, Opaque and Struct class may be extended.
     ExtendsClause extendsClause = node.extendsClause;
     if (extendsClause != null) {
       final TypeName superclass = extendsClause.superclass;
@@ -62,7 +63,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         final className = superclass.name.staticElement.name;
         if (className == _structClassName) {
           inStruct = true;
-        } else if (className != _allocatorClassName) {
+        } else if (className != _allocatorClassName &&
+            className != _opaqueClassName) {
           _errorReporter.reportErrorForNode(
               FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS,
               superclass.name,
@@ -245,6 +247,21 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     return false;
   }
 
+  /// Returns `true` iff [nativeType] is a opaque type, i.e. a subtype of `Opaque`.
+  bool _isOpaqueClass(DartType nativeType) {
+    if (nativeType is InterfaceType) {
+      final superType = nativeType.element.supertype;
+      if (superType == null) {
+        return false;
+      }
+      final superClassElement = superType.element;
+      if (superClassElement.library.name == _dartFfiLibraryName) {
+        return superClassElement.name == _opaqueClassName;
+      }
+    }
+    return false;
+  }
+
   /// Return `true` if the given [element] represents the class `Pointer`.
   bool _isPointer(Element element) =>
       element.name == 'Pointer' && element.library.name == _dartFfiLibraryName;
@@ -343,6 +360,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
             return false;
           }
         }
+        return true;
+      }
+      if (_isOpaqueClass(nativeType)) {
         return true;
       }
     } else if (nativeType is FunctionType) {

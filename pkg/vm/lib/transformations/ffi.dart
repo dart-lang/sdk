@@ -34,6 +34,7 @@ enum NativeType {
   kFloat,
   kDouble,
   kVoid,
+  kOpaque,
   kStruct,
   kHandle,
 }
@@ -60,6 +61,7 @@ const List<String> nativeTypeClassNames = [
   'Float',
   'Double',
   'Void',
+  'Opaque',
   'Struct',
   'Handle'
 ];
@@ -86,6 +88,7 @@ const List<int> nativeTypeSizes = [
   4, // Float
   8, // Double
   UNKNOWN, // Void
+  UNKNOWN, // Opaque
   UNKNOWN, // Struct
   WORD_SIZE, // Handle
 ];
@@ -207,6 +210,7 @@ class FfiTransformer extends Transformer {
   final Library ffiLibrary;
   final Class allocatorClass;
   final Class nativeFunctionClass;
+  final Class opaqueClass;
   final Class pointerClass;
   final Class structClass;
   final Procedure allocateMethod;
@@ -263,6 +267,7 @@ class FfiTransformer extends Transformer {
         ffiLibrary = index.getLibrary('dart:ffi'),
         allocatorClass = index.getClass('dart:ffi', 'Allocator'),
         nativeFunctionClass = index.getClass('dart:ffi', 'NativeFunction'),
+        opaqueClass = index.getClass('dart:ffi', 'Opaque'),
         pointerClass = index.getClass('dart:ffi', 'Pointer'),
         structClass = index.getClass('dart:ffi', 'Struct'),
         allocateMethod = index.getMember('dart:ffi', 'AllocatorAlloc', 'call'),

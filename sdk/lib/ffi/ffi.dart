@@ -559,7 +559,7 @@ extension NativePort on SendPort {
 }
 
 /// Opaque, not exposing it's members.
-class Dart_CObject extends Struct {}
+class Dart_CObject extends Opaque {}
 
 typedef Dart_NativeMessageHandler = Void Function(Int64, Pointer<Dart_CObject>);
 

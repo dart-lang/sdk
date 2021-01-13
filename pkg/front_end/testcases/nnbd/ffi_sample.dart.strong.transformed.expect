@@ -66,4 +66,4 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-testcase:///ffi_sample.dart:
-- Double. (from org-dartlang-sdk:///sdk/lib/ffi/native_type.dart:116:9)
+- Double. (from org-dartlang-sdk:///sdk/lib/ffi/native_type.dart:122:9)
