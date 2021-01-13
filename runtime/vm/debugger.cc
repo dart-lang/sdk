@@ -1848,7 +1848,7 @@ DebuggerStackTrace* Debugger::CollectAsyncLazyStackTrace() {
                                      /*skip_frames=*/0, &on_sync_frame,
                                      &has_async);
 
-  // If the entire stack is sync, return no trace.
+  // If the entire stack is sync, return no (async) trace.
   if (!has_async) {
     return nullptr;
   }

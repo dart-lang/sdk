@@ -10,11 +10,18 @@
 
 namespace dart {
 
-// Keep in sync with
-// sdk/lib/async/stream_controller.dart:_StreamController._STATE_SUBSCRIBED.
+// Keep in sync with:
+// - sdk/lib/async/stream_controller.dart:_StreamController._STATE_SUBSCRIBED.
 const intptr_t k_StreamController__STATE_SUBSCRIBED = 1;
-// sdk/lib/async/future_impl.dart:_FutureListener.stateWhencomplete.
-const intptr_t k_FutureListener_stateWhencomplete = 8;
+// - sdk/lib/async/future_impl.dart:_FutureListener.stateThen.
+const intptr_t k_FutureListener_stateThen = 1;
+// - sdk/lib/async/future_impl.dart:_FutureListener.stateCatchError.
+const intptr_t k_FutureListener_stateCatchError = 2;
+// - sdk/lib/async/future_impl.dart:_FutureListener.stateWhenComplete.
+const intptr_t k_FutureListener_stateWhenComplete = 8;
+
+// Keep in sync with sdk/lib/async/future_impl.dart:_FutureListener.handleValue.
+const intptr_t kNumArgsFutureListenerHandleValue = 1;
 
 // Find current yield index from async closure.
 // Async closures contains a variable, :await_jump_var that holds the index into
@@ -140,21 +147,19 @@ ClosurePtr CallerClosureFinder::GetCallerInFutureImpl(const Object& future) {
   ASSERT(!future.IsNull());
   ASSERT(future.GetClassId() == future_impl_class.id());
 
-  listener_ = Instance::Cast(future).GetField(future_result_or_listeners_field);
-  if (listener_.GetClassId() != future_listener_class.id()) {
+  // Since this function is recursive, we have to keep a local ref.
+  auto& listener = Object::Handle(
+      Instance::Cast(future).GetField(future_result_or_listeners_field));
+  if (listener.GetClassId() != future_listener_class.id()) {
     return Closure::null();
   }
 
-  // If the _FutureListener is a whenComplete listener, follow the Future being
-  // completed, `result`, instead of the dangling whenComplete `callback`.
-  state_ = Instance::Cast(listener_).GetField(future_listener_state_field);
-  ASSERT(state_.IsSmi());
-  if (Smi::Cast(state_).Value() == k_FutureListener_stateWhencomplete) {
-    future_ = Instance::Cast(listener_).GetField(future_listener_result_field);
-    return GetCallerInFutureImpl(future_);
+  callback_ = GetCallerInFutureListener(listener);
+  if (callback_.IsInstance() && !callback_.IsNull()) {
+    return Closure::Cast(callback_).raw();
   }
 
-  callback_ = Instance::Cast(listener_).GetField(callback_field);
+  callback_ = Instance::Cast(listener).GetField(callback_field);
   // This happens for e.g.: await f().catchError(..);
   if (callback_.IsNull()) {
     return Closure::null();
@@ -221,22 +226,46 @@ ClosurePtr CallerClosureFinder::FindCallerInAsyncGenClosure(
   UNREACHABLE();  // If no onData is found we have a bug.
 }
 
+ClosurePtr CallerClosureFinder::GetCallerInFutureListener(
+    const Object& future_listener) {
+  ASSERT(future_listener.GetClassId() == future_listener_class.id());
+
+  state_ =
+      Instance::Cast(future_listener).GetField(future_listener_state_field);
+
+  auto value = Smi::Cast(state_).Value();
+  // If the _FutureListener is a `then`, `catchError`, or `whenComplete`
+  // listener, follow the Future being completed, `result`, instead of the
+  // dangling whenComplete `callback`.
+  if (value == k_FutureListener_stateThen ||
+      value == k_FutureListener_stateCatchError ||
+      value == k_FutureListener_stateWhenComplete) {
+    future_ =
+        Instance::Cast(future_listener).GetField(future_listener_result_field);
+    return GetCallerInFutureImpl(future_);
+  }
+
+  return Closure::null();
+}
+
 ClosurePtr CallerClosureFinder::FindCaller(const Closure& receiver_closure) {
   receiver_function_ = receiver_closure.function();
   receiver_context_ = receiver_closure.context();
 
   if (receiver_function_.IsAsyncClosure()) {
     return FindCallerInAsyncClosure(receiver_context_);
-  } else if (receiver_function_.IsAsyncGenClosure()) {
+  }
+  if (receiver_function_.IsAsyncGenClosure()) {
     return FindCallerInAsyncGenClosure(receiver_context_);
-  } else if (receiver_function_.IsLocalFunction()) {
+  }
+  if (receiver_function_.IsLocalFunction()) {
     parent_function_ = receiver_function_.parent_function();
     if (parent_function_.recognized_kind() ==
         MethodRecognizer::kFutureTimeout) {
       context_entry_ = receiver_context_.At(Context::kFutureTimeoutFutureIndex);
       return GetCallerInFutureImpl(context_entry_);
-    } else if (parent_function_.recognized_kind() ==
-               MethodRecognizer::kFutureWait) {
+    }
+    if (parent_function_.recognized_kind() == MethodRecognizer::kFutureWait) {
       receiver_context_ = receiver_context_.parent();
       ASSERT(!receiver_context_.IsNull());
       context_entry_ = receiver_context_.At(Context::kFutureWaitFutureIndex);
@@ -300,6 +329,114 @@ ClosurePtr StackTraceUtils::FindClosureInFrame(ObjectPtr* last_object_in_caller,
   UNREACHABLE();
 }
 
+ClosurePtr StackTraceUtils::ClosureFromFrameFunction(
+    Zone* zone,
+    CallerClosureFinder* caller_closure_finder,
+    const DartFrameIterator& frames,
+    StackFrame* frame,
+    bool* skip_frame,
+    bool* is_async) {
+  auto& closure = Closure::Handle(zone);
+  auto& function = Function::Handle(zone);
+
+  function = frame->LookupDartFunction();
+  if (function.IsNull()) {
+    return Closure::null();
+  }
+
+  if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
+    {
+      NoSafepointScope nsp;
+
+      // Next, look up caller's closure on the stack and walk backwards
+      // through the yields.
+      ObjectPtr* last_caller_obj =
+          reinterpret_cast<ObjectPtr*>(frame->GetCallerSp());
+      closure = FindClosureInFrame(last_caller_obj, function);
+
+      // If this async function hasn't yielded yet, we're still dealing with a
+      // normal stack. Continue to next frame as usual.
+      if (!caller_closure_finder->IsRunningAsync(closure)) {
+        return Closure::null();
+      }
+    }
+
+    *is_async = true;
+
+    // Skip: Already handled this as a sync. frame.
+    return caller_closure_finder->FindCaller(closure);
+  }
+
+  // May have been called from `_FutureListener.handleValue`, which means its
+  // receiver holds the Future chain.
+  if (function.recognized_kind() == MethodRecognizer::kRootZoneRunUnary) {
+    DartFrameIterator future_frames(frames);
+    frame = future_frames.NextFrame();
+    function = frame->LookupDartFunction();
+    if (function.recognized_kind() !=
+        MethodRecognizer::kFutureListenerHandleValue) {
+      return Closure::null();
+    }
+  }
+  if (function.recognized_kind() ==
+      MethodRecognizer::kFutureListenerHandleValue) {
+    *is_async = true;
+    *skip_frame = true;
+
+    // The _FutureListener receiver is at the top of the previous frame, right
+    // before the arguments to the call.
+    Object& receiver =
+        Object::Handle(*(reinterpret_cast<ObjectPtr*>(frame->GetCallerSp()) +
+                         kNumArgsFutureListenerHandleValue));
+
+    return caller_closure_finder->GetCallerInFutureListener(receiver);
+  }
+
+  return Closure::null();
+}
+
+void StackTraceUtils::UnwindAwaiterChain(
+    Zone* zone,
+    const GrowableObjectArray& code_array,
+    const GrowableObjectArray& pc_offset_array,
+    CallerClosureFinder* caller_closure_finder,
+    ClosurePtr leaf_closure) {
+  auto& code = Code::Handle(zone);
+  auto& function = Function::Handle(zone);
+  auto& closure = Closure::Handle(zone, leaf_closure);
+  auto& pc_descs = PcDescriptors::Handle(zone);
+  auto& offset = Smi::Handle(zone);
+
+  // Inject async suspension marker.
+  code_array.Add(StubCode::AsynchronousGapMarker());
+  offset = Smi::New(0);
+  pc_offset_array.Add(offset);
+
+  // Traverse the trail of async futures all the way up.
+  for (; !closure.IsNull();
+       closure = caller_closure_finder->FindCaller(closure)) {
+    function = closure.function();
+    if (function.IsNull()) {
+      continue;
+    }
+    // In hot-reload-test-mode we sometimes have to do this:
+    code = function.EnsureHasCode();
+    RELEASE_ASSERT(!code.IsNull());
+    code_array.Add(code);
+    pc_descs = code.pc_descriptors();
+    offset = Smi::New(FindPcOffset(pc_descs, GetYieldIndex(closure)));
+    // Unlike other sources of PC offsets, the offset may be 0 here if we
+    // reach a non-async closure receiving the yielded value.
+    ASSERT(offset.Value() >= 0);
+    pc_offset_array.Add(offset);
+
+    // Inject async suspension marker.
+    code_array.Add(StubCode::AsynchronousGapMarker());
+    offset = Smi::New(0);
+    pc_offset_array.Add(offset);
+  }
+}
+
 void StackTraceUtils::CollectFramesLazy(
     Thread* thread,
     const GrowableObjectArray& code_array,
@@ -320,13 +457,10 @@ void StackTraceUtils::CollectFramesLazy(
     return;
   }
 
-  auto& function = Function::Handle(zone);
   auto& code = Code::Handle(zone);
   auto& offset = Smi::Handle(zone);
 
-  auto& closure = Closure::Handle(zone);
   CallerClosureFinder caller_closure_finder(zone);
-  auto& pc_descs = PcDescriptors::Handle();
 
   // Start by traversing the sync. part of the stack.
   for (; frame != nullptr; frame = frames.NextFrame()) {
@@ -335,79 +469,36 @@ void StackTraceUtils::CollectFramesLazy(
       continue;
     }
 
-    function = frame->LookupDartFunction();
+    // If we encounter a known part of the async/Future mechanism, unwind the
+    // awaiter chain from the closures.
+    bool skip_frame = false;
+    bool is_async = false;
+    auto closure_ptr = ClosureFromFrameFunction(
+        zone, &caller_closure_finder, frames, frame, &skip_frame, &is_async);
 
-    // Add the current synchronous frame.
-    code = frame->LookupDartCode();
-    ASSERT(function.raw() == code.function());
-    code_array.Add(code);
-    const intptr_t pc_offset = frame->pc() - code.PayloadStart();
-    ASSERT(pc_offset > 0 && pc_offset <= code.Size());
-    offset = Smi::New(pc_offset);
-    pc_offset_array.Add(offset);
-    if (on_sync_frames != nullptr) {
-      (*on_sync_frames)(frame);
+    // This isn't a special (async) frame we should skip.
+    if (!skip_frame) {
+      // Add the current synchronous frame.
+      code = frame->LookupDartCode();
+      code_array.Add(code);
+      const intptr_t pc_offset = frame->pc() - code.PayloadStart();
+      ASSERT(pc_offset > 0 && pc_offset <= code.Size());
+      offset = Smi::New(pc_offset);
+      pc_offset_array.Add(offset);
+      // Callback for sync frame.
+      if (on_sync_frames != nullptr) {
+        (*on_sync_frames)(frame);
+      }
     }
 
-    // Either continue the loop (sync-async case) or find all await'ers and
-    // return.
-    if (!function.IsNull() &&
-        (function.IsAsyncClosure() || function.IsAsyncGenClosure())) {
+    // This frame is running async.
+    // Note: The closure might still be null in case it's an unawaited future.
+    if (is_async) {
+      UnwindAwaiterChain(zone, code_array, pc_offset_array,
+                         &caller_closure_finder, closure_ptr);
       if (has_async != nullptr) {
         *has_async = true;
       }
-
-      {
-        NoSafepointScope nsp;
-
-        // Next, look up caller's closure on the stack and walk backwards
-        // through the yields.
-        ObjectPtr* last_caller_obj =
-            reinterpret_cast<ObjectPtr*>(frame->GetCallerSp());
-        closure = FindClosureInFrame(last_caller_obj, function);
-
-        // If this async function hasn't yielded yet, we're still dealing with a
-        // normal stack. Continue to next frame as usual.
-        if (!caller_closure_finder.IsRunningAsync(closure)) {
-          continue;
-        }
-      }
-
-      // Inject async suspension marker.
-      code_array.Add(StubCode::AsynchronousGapMarker());
-      offset = Smi::New(0);
-      pc_offset_array.Add(offset);
-
-      // Skip: Already handled this frame's function above.
-      closure = caller_closure_finder.FindCaller(closure);
-
-      // Traverse the trail of async futures all the way up.
-      for (; !closure.IsNull();
-           closure = caller_closure_finder.FindCaller(closure)) {
-        function = closure.function();
-        // In hot-reload-test-mode we sometimes have to do this:
-        if (!function.HasCode()) {
-          function.EnsureHasCode();
-        }
-        if (function.HasCode()) {
-          code = function.CurrentCode();
-          code_array.Add(code);
-          pc_descs = code.pc_descriptors();
-          offset = Smi::New(FindPcOffset(pc_descs, GetYieldIndex(closure)));
-        } else {
-          UNREACHABLE();
-        }
-        // Unlike other sources of PC offsets, the offset may be 0 here if we
-        // reach a non-async closure receiving the yielded value.
-        ASSERT(offset.Value() >= 0);
-        pc_offset_array.Add(offset);
-
-        // Inject async suspension marker.
-        code_array.Add(StubCode::AsynchronousGapMarker());
-        offset = Smi::New(0);
-        pc_offset_array.Add(offset);
-      }
-
       // Ignore the rest of the stack; already unwound all async calls.
       return;
     }
