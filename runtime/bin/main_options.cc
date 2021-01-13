@@ -141,6 +141,9 @@ void Options::PrintUsage() {
 "  all VM options).\n"
 "--packages=<path>\n"
 "  Where to find a package spec file.\n"
+"--define=<key>=<value> or -D<key>=<value>\n"
+"  Define an environment declaration. To specify multiple declarations,\n"
+"  use multiple instances of this option.\n"
 "--observe[=<port>[/<bind-address>]]\n"
 "  The observe flag is a convenience flag used to run a program with a\n"
 "  set of options which are often useful for debugging under Observatory.\n"
@@ -174,6 +177,9 @@ void Options::PrintUsage() {
 "  all VM options).\n"
 "--packages=<path>\n"
 "  Where to find a package spec file.\n"
+"--define=<key>=<value> or -D<key>=<value>\n"
+"  Define an environment declaration. To specify multiple declarations,\n"
+"  use multiple instances of this option.\n"
 "--observe[=<port>[/<bind-address>]]\n"
 "  The observe flag is a convenience flag used to run a program with a\n"
 "  set of options which are often useful for debugging under Observatory.\n"
@@ -540,7 +546,8 @@ bool Options::ParseArguments(int argc,
     while (tmp_i < argc) {
       // Check if this flag is a potentially valid VM flag. If not, we've likely
       // hit a script name and are done parsing VM flags.
-      if (!OptionProcessor::IsValidFlag(argv[tmp_i])) {
+      if (!OptionProcessor::IsValidFlag(argv[tmp_i]) &&
+          !OptionProcessor::IsValidShortFlag(argv[tmp_i])) {
         break;
       }
       OptionProcessor::TryProcess(argv[tmp_i], vm_options);

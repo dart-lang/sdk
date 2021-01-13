@@ -59,7 +59,11 @@ class CompileJSCommand extends CompileSubcommandCommand {
         help: 'Generate minified output.',
         abbr: 'm',
         negatable: false,
-      );
+      )
+      ..addMultiOption('define', abbr: 'D', valueHelp: 'key=value', help: '''
+Define an environment declaration. To specify multiple declarations, use multiple options or use commas to separate key-value pairs.
+For example: dart compile $cmdName -Da=1,b=2 main.dart''');
+
     addExperimentalFlags(argParser, verbose);
   }
 
@@ -91,15 +95,26 @@ class CompileJSCommand extends CompileSubcommandCommand {
     if (!checkFile(sourcePath)) {
       return 1;
     }
+    final args = <String>[
+      '--libraries-spec=$librariesPath',
+      if (argResults.enabledExperiments.isNotEmpty)
+        "--enable-experiment=${argResults.enabledExperiments.join(',')}",
+      if (argResults.wasParsed(commonOptions['outputFile'].flag))
+        "-o${argResults[commonOptions['outputFile'].flag]}",
+      if (argResults.wasParsed('minified')) '-m',
+    ];
 
-    VmInteropHandler.run(
-        sdk.dart2jsSnapshot,
-        [
-          '--libraries-spec=$librariesPath',
-          if (argResults.enabledExperiments.isNotEmpty)
-            "--enable-experiment=${argResults.enabledExperiments.join(',')}",
-          ...argResults.arguments,
-        ],
+    if (argResults.wasParsed('define')) {
+      for (final define in argResults['define']) {
+        args.add('-D$define');
+      }
+    }
+
+    // Add any args that weren't parsed to the end. This will likely only ever
+    // be the script name.
+    args.addAll(argResults.rest);
+
+    VmInteropHandler.run(sdk.dart2jsSnapshot, args,
         packageConfigOverride: null);
 
     return 0;

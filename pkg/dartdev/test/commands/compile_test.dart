@@ -183,7 +183,13 @@ void defineCompileTests() {
   });
 
   test('Compile JS', () {
-    final p = project(mainSrc: "void main() { print('Hello from JS'); }");
+    final p = project(mainSrc: '''
+        void main() {
+          print('1: ' + const String.fromEnvironment('foo'));
+          print('2: ' + const String.fromEnvironment('baz'));
+          print('3: ' + const String.fromEnvironment('bar'));
+          print('4: ' + const String.fromEnvironment('fad'));
+        }''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'main.js'));
 
@@ -191,6 +197,8 @@ void defineCompileTests() {
       'compile',
       'js',
       '-m',
+      '-Dfoo=bar,baz=bad',
+      '--define=bar=foo,fad=lad',
       '-o',
       outFile,
       '-v',
@@ -198,7 +206,14 @@ void defineCompileTests() {
     ]);
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
-    expect(File(outFile).existsSync(), true,
-        reason: 'File not found: $outFile');
+    final file = File(outFile);
+    expect(file.existsSync(), true, reason: 'File not found: $outFile');
+
+    // Ensure the -D and --define arguments were processed correctly.
+    final contents = file.readAsStringSync();
+    expect(contents.contains('1: bar'), true);
+    expect(contents.contains('2: bad'), true);
+    expect(contents.contains('3: foo'), true);
+    expect(contents.contains('4: lad'), true);
   });
 }
