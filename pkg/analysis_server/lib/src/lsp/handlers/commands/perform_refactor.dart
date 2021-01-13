@@ -110,22 +110,8 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
       case RefactoringKind.EXTRACT_METHOD:
         final refactor = ExtractMethodRefactoring(
             server.searchEngine, result, offset, length);
-        // TODO(dantup): For now we don't have a good way to prompt the user
-        // for a method name so we just use a placeholder and expect them to
-        // rename (this is what C#/Omnisharp does), but there's an open request
-        // to handle this better.
-        // https://github.com/microsoft/language-server-protocol/issues/764
-        refactor.name =
-            (options != null ? options['name'] : null) ?? 'newMethod';
-        // Defaults to true, but may be surprising if users didn't have an option
-        // to opt in.
-        refactor.extractAll = false;
-        return success(refactor);
 
-      case RefactoringKind.EXTRACT_LOCAL_VARIABLE:
-        final refactor = ExtractLocalRefactoring(result, offset, length);
         var preferredName = options != null ? options['name'] : null;
-
         // checkInitialConditions will populate names with suggestions.
         if (preferredName == null) {
           await refactor.checkInitialConditions();
@@ -133,8 +119,26 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
             preferredName = refactor.names.first;
           }
         }
+        refactor.name = preferredName ?? 'newMethod';
 
+        // Defaults to true, but may be surprising if users didn't have an option
+        // to opt in.
+        refactor.extractAll = false;
+        return success(refactor);
+
+      case RefactoringKind.EXTRACT_LOCAL_VARIABLE:
+        final refactor = ExtractLocalRefactoring(result, offset, length);
+
+        var preferredName = options != null ? options['name'] : null;
+        // checkInitialConditions will populate names with suggestions.
+        if (preferredName == null) {
+          await refactor.checkInitialConditions();
+          if (refactor.names.isNotEmpty) {
+            preferredName = refactor.names.first;
+          }
+        }
         refactor.name = preferredName ?? 'newVariable';
+
         // Defaults to true, but may be surprising if users didn't have an option
         // to opt in.
         refactor.extractAll = false;

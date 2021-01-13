@@ -159,6 +159,38 @@ main() {
         req1, throwsA(isResponseError(ErrorCodes.ContentModified)));
   }
 
+  Future<void> test_generatesNames() async {
+    const content = '''
+Object main() {
+  return Container([[Text('Test!')]]);
+}
+
+Object Container(Object text) => null;
+Object Text(Object text) => null;
+    ''';
+    const expectedContent = '''
+Object main() {
+  return Container(text());
+}
+
+Object text() => Text('Test!');
+
+Object Container(Object text) => null;
+Object Text(Object text) => null;
+    ''';
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize();
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final codeAction =
+        findCommand(codeActions, Commands.performRefactor, extractMethodTitle);
+    expect(codeAction, isNotNull);
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
+  }
+
   Future<void> test_invalidLocation() async {
     const content = '''
 import 'dart:convert';
