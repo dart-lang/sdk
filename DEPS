@@ -73,7 +73,7 @@ vars = {
   "bazel_worker_rev": "060c55a933d39798681a4f533b161b81dc48d77e",
   "benchmark_harness_rev": "ec6b646f5443faa871e126ac1ba248c94ca06257",
   "boolean_selector_rev": "665e6921ab246569420376f827bff4585dff0b14",
-  "boringssl_gen_rev": "429ccb1877f7987a6f3988228bc2440e61293499",
+  "boringssl_gen_rev": "aaac86738c4f2d1bdf00f54d197f50f247ffee04",
   "boringssl_rev" : "4dfd5af70191b068aebe567b8e29ce108cee85ce",
   "browser-compat-data_tag": "v1.0.22",
   "charcode_rev": "bcd8a12c315b7a83390e4865ad847ecd9344cba2",
