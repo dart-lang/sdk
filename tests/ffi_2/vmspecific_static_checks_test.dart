@@ -53,6 +53,8 @@ void main() {
   testEmptyStructAsFunctionReturn();
   testEmptyStructFromFunctionArgument();
   testEmptyStructFromFunctionReturn();
+  testAllocateGeneric();
+  testAllocateNativeType();
 }
 
 typedef Int8UnOp = Int8 Function(Int8);
@@ -549,4 +551,18 @@ void testEmptyStructFromFunctionReturn() {
 
 class HasNestedEmptyStruct extends Struct {
   EmptyStruct nestedEmptyStruct; //# 1106: compile-time error
+}
+
+void testAllocateGeneric() {
+  Pointer<T> generic<T extends NativeType>() {
+    Pointer<T> pointer = nullptr;
+    pointer = malloc(); //# 1320: compile-time error
+    return pointer;
+  }
+
+  Pointer p = generic<Int64>();
+}
+
+void testAllocateNativeType() {
+  malloc(); //# 1321: compile-time error
 }

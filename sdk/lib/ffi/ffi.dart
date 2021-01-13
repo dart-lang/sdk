@@ -17,6 +17,7 @@ import 'dart:isolate';
 import 'dart:typed_data';
 
 part "native_type.dart";
+part "allocation.dart";
 part "annotations.dart";
 part "dynamic_library.dart";
 part "struct.dart";

@@ -14,6 +14,11 @@ import 'package:analyzer/src/dart/error/ffi_code.dart';
 /// used. See 'pkg/vm/lib/transformations/ffi_checks.md' for the specification
 /// of the desired hints.
 class FfiVerifier extends RecursiveAstVisitor<void> {
+  static const _allocatorClassName = 'Allocator';
+  static const _allocateExtensionMethodName = 'call';
+  static const _allocatorExtensionName = 'AllocatorAlloc';
+  static const _dartFfiLibraryName = 'dart.ffi';
+
   static const List<String> _primitiveIntegerNativeTypes = [
     'Int8',
     'Int16',
@@ -30,6 +35,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     'Float',
     'Double',
   ];
+
+  static const _structClassName = 'Struct';
 
   /// The type system used to check types.
   final TypeSystemImpl typeSystem;
@@ -52,9 +59,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (extendsClause != null) {
       final TypeName superclass = extendsClause.superclass;
       if (_isDartFfiClass(superclass)) {
-        if (superclass.name.staticElement.name == 'Struct') {
+        final className = superclass.name.staticElement.name;
+        if (className == _structClassName) {
           inStruct = true;
-        } else {
+        } else if (className != _allocatorClassName) {
           _errorReporter.reportErrorForNode(
               FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS,
               superclass.name,
@@ -71,6 +79,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     // No classes from the FFI may be explicitly implemented.
     void checkSupertype(TypeName typename, FfiCode subtypeOfFfiCode,
         FfiCode subtypeOfStructCode) {
+      final superName = typename.name.staticElement?.name;
+      if (superName == _allocatorClassName) {
+        return;
+      }
       if (_isDartFfiClass(typename)) {
         _errorReporter.reportErrorForNode(
             subtypeOfFfiCode, typename, [node.name, typename.name]);
@@ -120,6 +132,21 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    Element element = node.staticElement;
+    if (element is MethodElement) {
+      Element enclosingElement = element.enclosingElement;
+      if (enclosingElement is ExtensionElement) {
+        if (_isAllocatorExtension(enclosingElement) &&
+            element.name == _allocateExtensionMethodName) {
+          _validateAllocate(node);
+        }
+      }
+    }
+    super.visitFunctionExpressionInvocation(node);
+  }
+
+  @override
   void visitMethodInvocation(MethodInvocation node) {
     Element element = node.methodName.staticElement;
     if (element is MethodElement) {
@@ -145,6 +172,12 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     super.visitMethodInvocation(node);
   }
 
+  /// Return `true` if the given [element] represents the extension
+  /// `AllocatorAlloc`.
+  bool _isAllocatorExtension(Element element) =>
+      element.name == _allocatorExtensionName &&
+      element.library.name == _dartFfiLibraryName;
+
   /// Return `true` if the [typeName] is the name of a type from `dart:ffi`.
   bool _isDartFfiClass(TypeName typeName) =>
       _isDartFfiElement(typeName.name.staticElement);
@@ -154,14 +187,15 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (element is ConstructorElement) {
       element = element.enclosingElement;
     }
-    return element is ClassElement && element.library.name == 'dart.ffi';
+    return element is ClassElement &&
+        element.library.name == _dartFfiLibraryName;
   }
 
   /// Return `true` if the given [element] represents the extension
   /// `DynamicLibraryExtension`.
   bool _isDynamicLibraryExtension(Element element) =>
       element.name == 'DynamicLibraryExtension' &&
-      element.library.name == 'dart.ffi';
+      element.library.name == _dartFfiLibraryName;
 
   bool _isEmptyStruct(ClassElement classElement) {
     final fields = classElement.fields;
@@ -182,13 +216,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   }
 
   bool _isHandle(Element element) =>
-      element.name == 'Handle' && element.library.name == 'dart.ffi';
+      element.name == 'Handle' && element.library.name == _dartFfiLibraryName;
 
   /// Returns `true` iff [nativeType] is a `ffi.NativeFunction<???>` type.
   bool _isNativeFunctionInterfaceType(DartType nativeType) {
     if (nativeType is InterfaceType) {
       final element = nativeType.element;
-      if (element.library.name == 'dart.ffi') {
+      if (element.library.name == _dartFfiLibraryName) {
         return element.name == 'NativeFunction' &&
             nativeType.typeArguments?.length == 1;
       }
@@ -198,13 +232,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   bool _isNativeFunctionPointerExtension(Element element) =>
       element.name == 'NativeFunctionPointer' &&
-      element.library.name == 'dart.ffi';
+      element.library.name == _dartFfiLibraryName;
 
   /// Returns `true` iff [nativeType] is a `ffi.NativeType` type.
   bool _isNativeTypeInterfaceType(DartType nativeType) {
     if (nativeType is InterfaceType) {
       final element = nativeType.element;
-      if (element.library.name == 'dart.ffi') {
+      if (element.library.name == _dartFfiLibraryName) {
         return element.name == 'NativeType';
       }
     }
@@ -213,13 +247,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   /// Return `true` if the given [element] represents the class `Pointer`.
   bool _isPointer(Element element) =>
-      element.name == 'Pointer' && element.library.name == 'dart.ffi';
+      element.name == 'Pointer' && element.library.name == _dartFfiLibraryName;
 
   /// Returns `true` iff [nativeType] is a `ffi.Pointer<???>` type.
   bool _isPointerInterfaceType(DartType nativeType) {
     if (nativeType is InterfaceType) {
       final element = nativeType.element;
-      if (element.library.name == 'dart.ffi') {
+      if (element.library.name == _dartFfiLibraryName) {
         return element.name == 'Pointer' &&
             nativeType.typeArguments?.length == 1;
       }
@@ -235,8 +269,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         return false;
       }
       final superClassElement = superType.element;
-      if (superClassElement.library.name == 'dart.ffi') {
-        return superClassElement.name == 'Struct' &&
+      if (superClassElement.library.name == _dartFfiLibraryName) {
+        return superClassElement.name == _structClassName &&
             nativeType.typeArguments?.isEmpty == true;
       }
     }
@@ -249,8 +283,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (superType is ClassElement) {
       bool isStruct(InterfaceType type) {
         return type != null &&
-            type.element.name == 'Struct' &&
-            type.element.library.name == 'dart.ffi';
+            type.element.name == _structClassName &&
+            type.element.library.name == _dartFfiLibraryName;
       }
 
       return isStruct(superType.supertype) ||
@@ -320,7 +354,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   _PrimitiveDartType _primitiveNativeType(DartType nativeType) {
     if (nativeType is InterfaceType) {
       final element = nativeType.element;
-      if (element.library.name == 'dart.ffi') {
+      if (element.library.name == _dartFfiLibraryName) {
         final String name = element.name;
         if (_primitiveIntegerNativeTypes.contains(name)) {
           return _PrimitiveDartType.int;
@@ -351,6 +385,17 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
     }
     return _PrimitiveDartType.none;
+  }
+
+  void _validateAllocate(FunctionExpressionInvocation node) {
+    final DartType dartType = node.typeArgumentTypes[0];
+    if (!_isValidFfiNativeType(dartType, true, true)) {
+      final AstNode errorNode = node;
+      _errorReporter.reportErrorForNode(
+          FfiCode.NON_CONSTANT_TYPE_ARGUMENT,
+          errorNode,
+          ['$_allocatorExtensionName.$_allocateExtensionMethodName']);
+    }
   }
 
   /// Validate that the [annotations] include exactly one annotation that

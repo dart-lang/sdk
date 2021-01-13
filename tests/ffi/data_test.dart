@@ -44,10 +44,8 @@ void main() {
   testTypeTest();
   testToString();
   testEquality();
-  testAllocateGeneric();
   testAllocateVoid();
   testAllocateNativeFunction();
-  testAllocateNativeType();
   testSizeOfGeneric();
   testSizeOfVoid();
   testSizeOfNativeFunction();
@@ -423,17 +421,6 @@ void testEquality() {
 
 typedef Int8UnOp = Int8 Function(Int8);
 
-void testAllocateGeneric() {
-  Pointer<T> generic<T extends NativeType>() {
-    Pointer<T> pointer;
-    pointer = allocate();
-    return pointer;
-  }
-
-  Pointer p = generic<Int64>();
-  free(p);
-}
-
 void testAllocateVoid() {
   Expect.throws(() {
     Pointer<Void> p = allocate();
@@ -443,12 +430,6 @@ void testAllocateVoid() {
 void testAllocateNativeFunction() {
   Expect.throws(() {
     Pointer<NativeFunction<Int8UnOp>> p = allocate();
-  });
-}
-
-void testAllocateNativeType() {
-  Expect.throws(() {
-    allocate();
   });
 }
 
