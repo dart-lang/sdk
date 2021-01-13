@@ -72,8 +72,7 @@ class B extends A {
   fooIntercept27() => confuse(super.lastWhere)(0);
   fooIntercept28() => confuse(super.lastWhere)(3, orElse: 77);
 
-  // Warning: overrides should not change default parameter values.
-  bar([var optional]) => -1; //       //# 01: static type warning
+  bar([var optional]) => -1; //       //# 01: ok
   bar2({namedOptional}) => -1; //   //# 01: continued
   bar3(x, [var optional]) => -1; //   //# 01: continued
   bar4(x, {namedOptional}) => -1; //# 01: continued
