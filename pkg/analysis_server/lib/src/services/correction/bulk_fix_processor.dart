@@ -32,6 +32,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_where_ty
 import 'package:analysis_server/src/services/correction/dart/create_method.dart';
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_invocation.dart';
+import 'package:analysis_server/src/services/correction/dart/inline_typedef.dart';
 import 'package:analysis_server/src/services/correction/dart/make_final.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_argument.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_await.dart';
@@ -106,6 +107,9 @@ class BulkFixProcessor {
     ],
     LintNames.avoid_init_to_null: [
       RemoveInitializer.newInstance,
+    ],
+    LintNames.avoid_private_typedef_functions: [
+      InlineTypedef.newInstance,
     ],
     LintNames.avoid_redundant_argument_values: [
       RemoveArgument.newInstance,
