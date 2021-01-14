@@ -7,6 +7,8 @@ import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 import 'package:expect/expect.dart';
 
+import 'calloc.dart';
+
 /// typedef struct {
 ///     unsigned int bold      : 1;
 ///     unsigned int underline : 2;
@@ -93,7 +95,7 @@ extension IntBitField on int {
 }
 
 main() {
-  final p = allocate<ScreenCellAttrs>(count: 3);
+  final p = calloc<ScreenCellAttrs>(3);
 
   // Zeroes out all fields.
   p.ref.bits = 0;
@@ -119,5 +121,5 @@ main() {
   // A check for automated testing.
   Expect.equals(1933, p.ref.bits);
 
-  free(p);
+  calloc.free(p);
 }

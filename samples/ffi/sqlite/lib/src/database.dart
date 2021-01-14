@@ -15,6 +15,8 @@ import "bindings/types.dart" hide Database;
 import "bindings/constants.dart";
 import "collections/closable_iterator.dart";
 
+import 'ffi/calloc.dart';
+
 /// [Database] represents an open connection to a SQLite database.
 ///
 /// All functions against a database may throw [SQLiteError].
@@ -27,13 +29,13 @@ class Database {
   /// Open a database located at the file [path].
   Database(String path,
       [int flags = Flags.SQLITE_OPEN_READWRITE | Flags.SQLITE_OPEN_CREATE]) {
-    Pointer<Pointer<types.Database>> dbOut = allocate();
+    Pointer<Pointer<types.Database>> dbOut = calloc();
     final pathC = Utf8.toUtf8(path);
     final int resultCode =
         bindings.sqlite3_open_v2(pathC, dbOut, flags, nullptr);
     _database = dbOut.value;
-    free(dbOut);
-    free(pathC);
+    calloc.free(dbOut);
+    calloc.free(pathC);
 
     if (resultCode == Errors.SQLITE_OK) {
       _open = true;
@@ -63,13 +65,13 @@ class Database {
 
   /// Execute a query, discarding any returned rows.
   void execute(String query) {
-    Pointer<Pointer<Statement>> statementOut = allocate();
+    Pointer<Pointer<Statement>> statementOut = calloc();
     Pointer<Utf8> queryC = Utf8.toUtf8(query);
     int resultCode = bindings.sqlite3_prepare_v2(
         _database, queryC, -1, statementOut, nullptr);
     Pointer<Statement> statement = statementOut.value;
-    free(statementOut);
-    free(queryC);
+    calloc.free(statementOut);
+    calloc.free(queryC);
 
     while (resultCode == Errors.SQLITE_ROW || resultCode == Errors.SQLITE_OK) {
       resultCode = bindings.sqlite3_step(statement);
@@ -82,13 +84,13 @@ class Database {
 
   /// Evaluate a query and return the resulting rows as an iterable.
   Result query(String query) {
-    Pointer<Pointer<Statement>> statementOut = allocate();
+    Pointer<Pointer<Statement>> statementOut = calloc();
     Pointer<Utf8> queryC = Utf8.toUtf8(query);
     int resultCode = bindings.sqlite3_prepare_v2(
         _database, queryC, -1, statementOut, nullptr);
     Pointer<Statement> statement = statementOut.value;
-    free(statementOut);
-    free(queryC);
+    calloc.free(statementOut);
+    calloc.free(queryC);
 
     if (resultCode != Errors.SQLITE_OK) {
       bindings.sqlite3_finalize(statement);

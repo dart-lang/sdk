@@ -8,6 +8,7 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 
+import 'calloc.dart';
 import 'dylib_utils.dart';
 
 typedef NativeUnaryOp = Int32 Function(Int32);
@@ -186,7 +187,7 @@ main() {
     // pass an array / pointer as argument
     Int64PointerUnOp assign1337Index1 = ffiTestFunctions
         .lookupFunction<Int64PointerUnOp, Int64PointerUnOp>("Assign1337Index1");
-    Pointer<Int64> p2 = allocate(count: 2);
+    Pointer<Int64> p2 = calloc(2);
     p2.value = 42;
     p2[1] = 1000;
     print(p2.elementAt(1).address.toRadixString(16));
@@ -251,11 +252,11 @@ main() {
     print(result);
     print(result.runtimeType);
 
-    Pointer<Int64> p2 = allocate(count: 2);
+    Pointer<Int64> p2 = calloc(2);
     result = nullableInt64ElemAt1(p2);
     print(result);
     print(result.runtimeType);
-    free(p2);
+    calloc.free(p2);
   }
 
   print("end main");

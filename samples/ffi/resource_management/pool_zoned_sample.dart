@@ -9,6 +9,7 @@ import 'dart:ffi';
 import 'package:expect/expect.dart';
 
 import 'pool.dart';
+import 'utf8_helpers.dart';
 import '../dylib_utils.dart';
 
 main() {
@@ -21,7 +22,7 @@ main() {
 
   // To ensure resources are freed, wrap them in a [using] call.
   usePool(() {
-    final p = currentPool.allocate<Int64>(count: 2);
+    final p = currentPool<Int64>(2);
     p[0] = 24;
     MemMove(p.elementAt(1).cast<Void>(), p.cast<Void>(), sizeOf<Int64>());
     print(p[1]);
@@ -31,7 +32,7 @@ main() {
   // Resources are freed also when abnormal control flow occurs.
   try {
     usePool(() {
-      final p = currentPool.allocate<Int64>(count: 2);
+      final p = currentPool<Int64>(2);
       p[0] = 25;
       MemMove(p.elementAt(1).cast<Void>(), p.cast<Void>(), 8);
       print(p[1]);
@@ -46,8 +47,8 @@ main() {
   // In a pool multiple resources can be allocated, which will all be freed
   // at the end of the scope.
   usePool(() {
-    final p = currentPool.allocate<Int64>(count: 2);
-    final p2 = currentPool.allocate<Int64>(count: 2);
+    final p = currentPool<Int64>(2);
+    final p2 = currentPool<Int64>(2);
     p[0] = 1;
     p[1] = 2;
     MemMove(p2.cast<Void>(), p.cast<Void>(), 2 * sizeOf<Int64>());
@@ -58,7 +59,7 @@ main() {
   // If the resource allocation happens in a different scope, it is in the
   // same zone, so it's lifetime is automatically managed by the pool.
   f1() {
-    return currentPool.allocate<Int64>(count: 2);
+    return currentPool<Int64>(2);
   }
 
   usePool(() {
