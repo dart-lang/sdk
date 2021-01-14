@@ -179,9 +179,9 @@ class Search {
         unitElement.enums.forEach(addElement);
         unitElement.extensions.forEach(addElement);
         unitElement.functions.forEach(addElement);
-        unitElement.functionTypeAliases.forEach(addElement);
         unitElement.mixins.forEach(addElement);
         unitElement.topLevelVariables.forEach(addElement);
+        unitElement.typeAliases.forEach(addElement);
         unitElement.types.forEach(addElement);
       }
     }

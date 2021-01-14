@@ -7314,7 +7314,7 @@ typedef void F<T>(int a);
 ''');
     var unit = library.definingCompilationUnit;
 
-    var F = unit.functionTypeAliases[0];
+    var F = unit.typeAliases[0];
     expect(F.name, 'F');
 
     var T = F.typeParameters[0];
@@ -7337,11 +7337,11 @@ F<int> a;
     var unit = library.definingCompilationUnit;
     var type = unit.topLevelVariables[0].type as FunctionType;
 
-    expect(type.aliasElement, same(unit.functionTypeAliases[0]));
+    expect(type.aliasElement, same(unit.typeAliases[0]));
     _assertTypeStrings(type.aliasArguments, ['int']);
 
     // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
-    expect(type.element.enclosingElement, same(unit.functionTypeAliases[0]));
+    expect(type.element.enclosingElement, same(unit.typeAliases[0]));
     _assertTypeStrings(type.typeArguments, ['int']);
   }
 
@@ -7643,7 +7643,7 @@ typedef F<T> = void Function<U>(int a);
 ''');
     var unit = library.definingCompilationUnit;
 
-    var F = unit.functionTypeAliases[0];
+    var F = unit.typeAliases[0];
     expect(F.name, 'F');
 
     var T = F.typeParameters[0];
@@ -10954,7 +10954,7 @@ void f<T, U>() {}
 ''');
   }
 
-  test_new_typedef_notSimplyBounded_functionType_returnType() async {
+  test_new_typedef_function_notSimplyBounded_functionType_returnType() async {
     var library = await checkLibrary('''
 typedef F = G Function();
 typedef G = F Function();
@@ -10965,7 +10965,7 @@ notSimplyBounded typedef G = dynamic Function() Function();
 ''');
   }
 
-  test_new_typedef_notSimplyBounded_functionType_returnType_viaInterfaceType() async {
+  test_new_typedef_function_notSimplyBounded_functionType_returnType_viaInterfaceType() async {
     var library = await checkLibrary('''
 typedef F = List<F> Function();
 ''');
@@ -10974,7 +10974,7 @@ notSimplyBounded typedef F = List<dynamic Function()> Function();
 ''');
   }
 
-  test_new_typedef_notSimplyBounded_self() async {
+  test_new_typedef_function_notSimplyBounded_self() async {
     var library = await checkLibrary('''
 typedef F<T extends F> = void Function();
 ''');
@@ -10983,7 +10983,7 @@ notSimplyBounded typedef F<T extends dynamic Function()> = void Function();
 ''');
   }
 
-  test_new_typedef_notSimplyBounded_simple_no_bounds() async {
+  test_new_typedef_function_notSimplyBounded_simple_no_bounds() async {
     var library = await checkLibrary('''
 typedef F<T> = void Function();
 ''');
@@ -10992,12 +10992,32 @@ typedef F<T> = void Function();
 ''');
   }
 
-  test_new_typedef_notSimplyBounded_simple_non_generic() async {
+  test_new_typedef_function_notSimplyBounded_simple_non_generic() async {
     var library = await checkLibrary('''
 typedef F = void Function();
 ''');
     checkElementText(library, r'''
 typedef F = void Function();
+''');
+  }
+
+  test_new_typedef_nonFunction_notSimplyBounded_self() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary('''
+typedef F<T extends F> = List<int>;
+''');
+    checkElementText(library, r'''
+notSimplyBounded typedef F<T extends dynamic> = List<int>;
+''');
+  }
+
+  test_new_typedef_nonFunction_notSimplyBounded_viaInterfaceType() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary('''
+typedef F = List<F>;
+''');
+    checkElementText(library, r'''
+notSimplyBounded typedef F = List<dynamic>;
 ''');
   }
 
