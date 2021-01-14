@@ -39,7 +39,7 @@ var tests = <IsolateTest>[
   (Isolate isolate) async {
     ServiceMap stack = await isolate.getStack();
     // No causal frames because we are in a completely synchronous stack.
-    expect(stack['asyncCausalFrames'], isNull);
+    expect(stack['asyncCausalFrames'], isNotNull);
   },
   resumeIsolate,
   hasStoppedAtBreakpoint,
