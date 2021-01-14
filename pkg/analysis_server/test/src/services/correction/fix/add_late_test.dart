@@ -37,6 +37,52 @@ class AddLateTest extends FixProcessorTest with WithNullSafetyMixin {
   @override
   FixKind get kind => DartFixKind.ADD_LATE;
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44534')
+  Future<void> test_changeInImportedLib() async {
+    addSource('/home/test/lib/a.dart', '''
+class C {
+  final String s;
+}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+
+void f(C c) {
+  c.s = '';
+}
+''');
+    await assertHasFix('''
+class C {
+  late final String s;
+}
+''', target: '/home/test/lib/a.dart');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44534')
+  Future<void> test_changeInPart() async {
+    addSource('/home/test/lib/a.dart', '''
+part 'test.dart';
+
+class C {
+  final String s;
+}
+''');
+    await resolveTestCode('''
+part of 'a.dart';
+
+void f(C c) {
+  c.s = '';
+}
+''');
+    await assertHasFix('''
+part 'test.dart';
+
+class C {
+  late final String s;
+}
+''', target: '/home/test/lib/a.dart');
+  }
+
   Future<void> test_withFinal() async {
     await resolveTestCode('''
 class C {
