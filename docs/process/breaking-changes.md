@@ -35,7 +35,8 @@ abide by the following basic conditions:
 * Must access libraries via the public API (for example, must not reach into
   the internals of a package located in the `/src/` directory).
 
-* Must not rely on an [experiment flag](experimental-flags.md).
+* Must not rely on an [experiment flag](experimental-flags.md), or depend on
+  libraries or APIs that are documented as being experimental.
 
 * Must not circumvent clear restrictions documented in the public API
   documentation (for example, must not mixin a class clearly documented as
