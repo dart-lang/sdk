@@ -55,12 +55,22 @@ class Duration implements Comparable<Duration> {
   static const int millisecondsPerSecond = 1000;
 
   /// The number of seconds per minute.
+  ///
+  /// Notice that some minutes of official clock time might
+  /// differ in length because of leap seconds.
+  /// The [Duration] and [DateTime] classes ignore leap seconds
+  /// and consider all minutes to have 60 seconds.
   static const int secondsPerMinute = 60;
 
   /// The number of minutes per hour.
   static const int minutesPerHour = 60;
 
   /// The number of hours per day.
+  ///
+  /// Notice that some days may differ in length because
+  /// of time zone changes due to daylight saving.
+  /// The [Duration] class is time zone agnostic and
+  /// considers all days to have 24 hours.
   static const int hoursPerDay = 24;
 
   /// The number of microseconds per second.

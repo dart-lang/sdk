@@ -30,7 +30,8 @@ main() {
   var b = test();
 }
 ''');
-    _createRefactoring('test');
+    var element = findElement.topFunction('test');
+    _createRefactoringForElement(element);
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 int get test => 42;
@@ -124,7 +125,7 @@ main() {
   var b = test;
 }
 ''');
-    ExecutableElement element = findElement('test', ElementKind.GETTER);
+    var element = findElement.topGet('test');
     _createRefactoringForElement(element);
     // check conditions
     await _assertInitialConditions_fatal(
@@ -138,7 +139,8 @@ main() {
   var v = test(1);
 }
 ''');
-    _createRefactoring('test');
+    var element = findElement.topFunction('test');
+    _createRefactoringForElement(element);
     // check conditions
     await _assertInitialConditions_fatal(
         'Only methods without parameters can be converted to getters.');
@@ -164,7 +166,8 @@ class A {
   A.test();
 }
 ''');
-    _createRefactoring('test');
+    var element = findElement.constructor('test');
+    _createRefactoringForElement(element);
     // check conditions
     await _assertInitialConditions_fatal(
         'Only class methods or top-level functions can be converted to getters.');
@@ -174,7 +177,8 @@ class A {
     await indexTestUnit('''
 void test() {}
 ''');
-    _createRefactoring('test');
+    var element = findElement.topFunction('test');
+    _createRefactoringForElement(element);
     // check conditions
     await _assertInitialConditions_fatal(
         'Cannot convert function returning void.');
@@ -193,11 +197,6 @@ void test() {}
     var refactoringChange = await refactoring.createChange();
     this.refactoringChange = refactoringChange;
     assertTestChangeResult(expectedCode);
-  }
-
-  void _createRefactoring(String elementName) {
-    ExecutableElement element = findElement(elementName);
-    _createRefactoringForElement(element);
   }
 
   void _createRefactoringForElement(ExecutableElement element) {

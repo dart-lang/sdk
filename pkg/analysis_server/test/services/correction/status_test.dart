@@ -24,7 +24,7 @@ void main() {
 class RefactoringLocationTest extends AbstractSingleUnitTest {
   Future<void> test_createLocation_forElement() async {
     await resolveTestCode('class MyClass {}');
-    var element = findElement('MyClass');
+    var element = findElement.class_('MyClass');
     // check
     var location = newLocation_fromElement(element);
     expect(location.file, testFile);
@@ -36,7 +36,7 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
 
   Future<void> test_createLocation_forMatch() async {
     await resolveTestCode('class MyClass {}');
-    var element = findElement('MyClass');
+    var element = findElement.class_('MyClass');
     var sourceRange = range.elementName(element);
     SearchMatch match = SearchMatchImpl(
         element.source.fullName,

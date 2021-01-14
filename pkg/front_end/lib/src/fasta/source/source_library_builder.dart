@@ -3287,20 +3287,30 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
       }
 
-      reportTypeArgumentIssue(message, fileUri, offset, typeParameter);
+      reportTypeArgumentIssue(message, fileUri, offset,
+          typeParameter: typeParameter,
+          superBoundedAttempt: issue.enclosingType,
+          superBoundedAttemptInverted: issue.invertedType);
     }
   }
 
   void reportTypeArgumentIssue(Message message, Uri fileUri, int fileOffset,
-      TypeParameter typeParameter) {
+      {TypeParameter typeParameter,
+      DartType superBoundedAttempt,
+      DartType superBoundedAttemptInverted}) {
     List<LocatedMessage> context;
     if (typeParameter != null && typeParameter.fileOffset != -1) {
       // It looks like when parameters come from patch files, they don't
       // have a reportable location.
-      context = <LocatedMessage>[
-        messageIncorrectTypeArgumentVariable.withLocation(
-            typeParameter.location.file, typeParameter.fileOffset, noLength)
-      ];
+      (context ??= <LocatedMessage>[]).add(
+          messageIncorrectTypeArgumentVariable.withLocation(
+              typeParameter.location.file, typeParameter.fileOffset, noLength));
+    }
+    if (superBoundedAttemptInverted != null && superBoundedAttempt != null) {
+      (context ??= <LocatedMessage>[]).add(templateSuperBoundedHint
+          .withArguments(superBoundedAttempt, superBoundedAttemptInverted,
+              isNonNullableByDefault)
+          .withLocation(fileUri, fileOffset, noLength));
     }
     addProblem(message, fileOffset, noLength, fileUri, context: context);
   }
@@ -3389,7 +3399,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               messageGenericFunctionTypeUsedAsActualTypeArgument,
               fileUri,
               parameter.fileOffset,
-              null);
+              typeParameter: null);
         } else {
           reportTypeArgumentIssue(
               templateIncorrectTypeArgument.withArguments(
@@ -3400,7 +3410,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                   library.isNonNullableByDefault),
               fileUri,
               parameter.fileOffset,
-              typeParameter);
+              typeParameter: typeParameter,
+              superBoundedAttempt: issue.enclosingType,
+              superBoundedAttemptInverted: issue.invertedType);
         }
       }
     }
@@ -3461,7 +3473,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               messageGenericFunctionTypeUsedAsActualTypeArgument,
               fileUri,
               fileOffset,
-              null);
+              typeParameter: null);
         } else {
           reportTypeArgumentIssue(
               templateIncorrectTypeArgumentInReturnType.withArguments(
@@ -3472,7 +3484,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                   isNonNullableByDefault),
               fileUri,
               fileOffset,
-              typeParameter);
+              typeParameter: typeParameter,
+              superBoundedAttempt: issue.enclosingType,
+              superBoundedAttemptInverted: issue.invertedType);
         }
       }
     }

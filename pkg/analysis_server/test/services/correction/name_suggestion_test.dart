@@ -38,7 +38,7 @@ main() {
 }
 ''');
     var excluded = <String>{};
-    var expectedType = findLocalVariable('node').type;
+    var expectedType = findElement.localVar('node').type;
     Expression assignedExpression =
         findNodeAtString('null;', (node) => node is NullLiteral);
     var suggestions = getVariableNameSuggestionsForExpression(
@@ -52,7 +52,7 @@ main() {
   double res = 0.0;
 }
 ''');
-    var expectedType = findLocalVariable('res').type;
+    var expectedType = findElement.localVar('res').type;
     Expression assignedExpression = findNodeAtString('0.0;');
     // first choice for "double" is "d"
     expect(
@@ -72,7 +72,7 @@ main() {
   int res = 0;
 }
 ''');
-    var expectedType = findLocalVariable('res').type;
+    var expectedType = findElement.localVar('res').type;
     Expression assignedExpression = findNodeAtString('0;');
     // first choice for "int" is "i"
     expect(
@@ -92,7 +92,7 @@ main() {
   String res = 'abc';
 }
 ''');
-    var expectedType = findLocalVariable('res').type;
+    var expectedType = findElement.localVar('res').type;
     Expression assignedExpression = findNodeAtString("'abc';");
     // first choice for "String" is "s"
     expect(
