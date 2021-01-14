@@ -16,6 +16,8 @@ import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 import 'package:benchmark_harness/benchmark_harness.dart';
 
+import 'calloc.dart';
+
 //
 // Pointer store.
 //
@@ -212,9 +214,9 @@ class PointerInt8 extends BenchmarkBase {
   PointerInt8() : super('FfiMemory.PointerInt8');
 
   @override
-  void setup() => pointer = allocate(count: N);
+  void setup() => pointer = calloc(N);
   @override
-  void teardown() => free(pointer);
+  void teardown() => calloc.free(pointer);
 
   @override
   void run() {
@@ -231,9 +233,9 @@ class PointerUint8 extends BenchmarkBase {
   PointerUint8() : super('FfiMemory.PointerUint8');
 
   @override
-  void setup() => pointer = allocate(count: N);
+  void setup() => pointer = calloc(N);
   @override
-  void teardown() => free(pointer);
+  void teardown() => calloc.free(pointer);
 
   @override
   void run() {
@@ -250,9 +252,9 @@ class PointerInt16 extends BenchmarkBase {
   PointerInt16() : super('FfiMemory.PointerInt16');
 
   @override
-  void setup() => pointer = allocate(count: N);
+  void setup() => pointer = calloc(N);
   @override
-  void teardown() => free(pointer);
+  void teardown() => calloc.free(pointer);
 
   @override
   void run() {
@@ -269,9 +271,9 @@ class PointerUint16 extends BenchmarkBase {
   PointerUint16() : super('FfiMemory.PointerUint16');
 
   @override
-  void setup() => pointer = allocate(count: N);
+  void setup() => pointer = calloc(N);
   @override
-  void teardown() => free(pointer);
+  void teardown() => calloc.free(pointer);
 
   @override
   void run() {
@@ -288,9 +290,9 @@ class PointerInt32 extends BenchmarkBase {
   PointerInt32() : super('FfiMemory.PointerInt32');
 
   @override
-  void setup() => pointer = allocate(count: N);
+  void setup() => pointer = calloc(N);
   @override
-  void teardown() => free(pointer);
+  void teardown() => calloc.free(pointer);
 
   @override
   void run() {
@@ -307,9 +309,9 @@ class PointerUint32 extends BenchmarkBase {
   PointerUint32() : super('FfiMemory.PointerUint32');
 
   @override
-  void setup() => pointer = allocate(count: N);
+  void setup() => pointer = calloc(N);
   @override
-  void teardown() => free(pointer);
+  void teardown() => calloc.free(pointer);
 
   @override
   void run() {
@@ -326,9 +328,9 @@ class PointerInt64 extends BenchmarkBase {
   PointerInt64() : super('FfiMemory.PointerInt64');
 
   @override
-  void setup() => pointer = allocate(count: N);
+  void setup() => pointer = calloc(N);
   @override
-  void teardown() => free(pointer);
+  void teardown() => calloc.free(pointer);
 
   @override
   void run() {
@@ -345,9 +347,9 @@ class PointerUint64 extends BenchmarkBase {
   PointerUint64() : super('FfiMemory.PointerUint64');
 
   @override
-  void setup() => pointer = allocate(count: N);
+  void setup() => pointer = calloc(N);
   @override
-  void teardown() => free(pointer);
+  void teardown() => calloc.free(pointer);
 
   @override
   void run() {
@@ -364,9 +366,9 @@ class PointerFloat extends BenchmarkBase {
   PointerFloat() : super('FfiMemory.PointerFloat');
 
   @override
-  void setup() => pointer = allocate(count: N);
+  void setup() => pointer = calloc(N);
   @override
-  void teardown() => free(pointer);
+  void teardown() => calloc.free(pointer);
 
   @override
   void run() {
@@ -383,9 +385,9 @@ class PointerDouble extends BenchmarkBase {
   PointerDouble() : super('FfiMemory.PointerDouble');
 
   @override
-  void setup() => pointer = allocate(count: N);
+  void setup() => pointer = calloc(N);
   @override
-  void teardown() => free(pointer);
+  void teardown() => calloc.free(pointer);
 
   @override
   void run() {
@@ -404,14 +406,14 @@ class PointerPointer extends BenchmarkBase {
 
   @override
   void setup() {
-    pointer = allocate(count: N);
-    data = allocate();
+    pointer = calloc(N);
+    data = calloc();
   }
 
   @override
   void teardown() {
-    free(pointer);
-    free(data);
+    calloc.free(pointer);
+    calloc.free(data);
   }
 
   @override
@@ -429,9 +431,9 @@ class PointerInt64Mint extends BenchmarkBase {
   PointerInt64Mint() : super('FfiMemory.PointerInt64Mint');
 
   @override
-  void setup() => pointer = allocate(count: N);
+  void setup() => pointer = calloc(N);
   @override
-  void teardown() => free(pointer);
+  void teardown() => calloc.free(pointer);
 
   @override
   void run() {
