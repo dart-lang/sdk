@@ -66,6 +66,8 @@ abstract class MatchContext implements ChainContext {
 
   String get updateExpectationsOption;
 
+  bool get canBeFixWithUpdateExpectations;
+
   ExpectationSet get expectationSet;
 
   Expectation get expectationFileMismatch =>
@@ -96,7 +98,10 @@ abstract class MatchContext implements ChainContext {
             output, onMismatch, "$uri doesn't match ${expectedFile.uri}\n$diff",
             autoFixCommand: onMismatch == expectationFileMismatch
                 ? updateExpectationsOption
-                : null);
+                : null,
+            canBeFixWithUpdateExpectations:
+                onMismatch == expectationFileMismatch &&
+                    canBeFixWithUpdateExpectations);
       } else {
         return new Result<O>.pass(output);
       }
