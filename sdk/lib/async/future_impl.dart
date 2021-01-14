@@ -4,11 +4,13 @@
 
 part of dart.async;
 
-/** The onValue and onError handlers return either a value or a future */
+/// The onValue and onError handlers return either a value or a future
 typedef FutureOr<T> _FutureOnValue<S, T>(S value);
-/** Test used by [Future.catchError] to handle skip some errors. */
+
+/// Test used by [Future.catchError] to handle skip some errors.
 typedef bool _FutureErrorTest(Object error);
-/** Used by [WhenFuture]. */
+
+/// Used by [WhenFuture].
 typedef dynamic _FutureAction();
 
 abstract class _Completer<T> implements Completer<T> {
@@ -202,33 +204,29 @@ class _Future<T> implements Future<T> {
   /// The future has been completed with an error result.
   static const int _stateError = 8;
 
-  /** Whether the future is complete, and as what. */
+  /// Whether the future is complete, and as what.
   int _state = _stateIncomplete;
 
-  /**
-   * Zone that the future was completed from.
-   * This is the zone that an error result belongs to.
-   *
-   * Until the future is completed, the field may hold the zone that
-   * listener callbacks used to create this future should be run in.
-   */
+  /// Zone that the future was completed from.
+  /// This is the zone that an error result belongs to.
+  ///
+  /// Until the future is completed, the field may hold the zone that
+  /// listener callbacks used to create this future should be run in.
   final _Zone _zone;
 
-  /**
-   * Either the result, a list of listeners or another future.
-   *
-   * The result of the future is either a value or an error.
-   * A result is only stored when the future has completed.
-   *
-   * The listeners is an internally linked list of [_FutureListener]s.
-   * Listeners are only remembered while the future is not yet complete,
-   * and it is not chained to another future.
-   *
-   * The future is another future that his future is chained to. This future
-   * is waiting for the other future to complete, and when it does, this future
-   * will complete with the same result.
-   * All listeners are forwarded to the other future.
-   */
+  /// Either the result, a list of listeners or another future.
+  ///
+  /// The result of the future is either a value or an error.
+  /// A result is only stored when the future has completed.
+  ///
+  /// The listeners is an internally linked list of [_FutureListener]s.
+  /// Listeners are only remembered while the future is not yet complete,
+  /// and it is not chained to another future.
+  ///
+  /// The future is another future that his future is chained to. This future
+  /// is waiting for the other future to complete, and when it does, this future
+  /// will complete with the same result.
+  /// All listeners are forwarded to the other future.
   @pragma("vm:entry-point")
   var _resultOrListeners;
 
@@ -239,7 +237,7 @@ class _Future<T> implements Future<T> {
     _asyncComplete(result);
   }
 
-  /** Creates a future with the value and the specified zone. */
+  /// Creates a future with the value and the specified zone.
   _Future.zoneValue(T value, this._zone) {
     _setValue(value);
   }
@@ -249,7 +247,7 @@ class _Future<T> implements Future<T> {
     _asyncCompleteError(error, stackTrace);
   }
 
-  /** Creates a future that is already completed with the value. */
+  /// Creates a future that is already completed with the value.
   _Future.value(T value) : this.zoneValue(value, Zone._current);
 
   bool get _mayComplete => _state == _stateIncomplete;
@@ -606,10 +604,8 @@ class _Future<T> implements Future<T> {
     });
   }
 
-  /**
-   * Propagates the value/error of [source] to its [listeners], executing the
-   * listeners' callbacks.
-   */
+  /// Propagates the value/error of [source] to its [listeners], executing the
+  /// listeners' callbacks.
   static void _propagateToListeners(
       _Future source, _FutureListener? listeners) {
     while (true) {
