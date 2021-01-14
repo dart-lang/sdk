@@ -3,10 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/plugin/protocol/protocol_dart.dart';
-import 'package:analyzer/dart/ast/ast.dart' as engine;
 import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/src/dart/element/element.dart' as engine;
-import 'package:analyzer/src/generated/testing/element_search.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -91,20 +89,13 @@ class ElementKindTest {
 
 @reflectiveTest
 class ElementTest extends AbstractSingleUnitTest {
-  engine.Element findElementInUnit(engine.CompilationUnit unit, String name,
-      [engine.ElementKind kind]) {
-    return findElementsByName(unit, name)
-        .where((e) => kind == null || e.kind == kind)
-        .single;
-  }
-
   Future<void> test_fromElement_CLASS() async {
     await resolveTestCode('''
 @deprecated
 abstract class _A {}
 class B<K, V> {}''');
     {
-      engine.ClassElement engineElement = findElementInUnit(testUnit, '_A');
+      var engineElement = findElement.class_('_A');
       // create notification Element
       var element = convertElement(engineElement);
       expect(element.kind, ElementKind.CLASS);
@@ -126,7 +117,7 @@ class B<K, V> {}''');
               Element.FLAG_PRIVATE);
     }
     {
-      engine.ClassElement engineElement = findElementInUnit(testUnit, 'B');
+      var engineElement = findElement.class_('B');
       // create notification Element
       var element = convertElement(engineElement);
       expect(element.kind, ElementKind.CLASS);
@@ -141,8 +132,7 @@ class B<K, V> {}''');
 class A {
   const A.myConstructor(int a, [String b]);
 }''');
-    engine.ConstructorElement engineElement =
-        findElementInUnit(testUnit, 'myConstructor');
+    var engineElement = findElement.constructor('myConstructor');
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.kind, ElementKind.CONSTRUCTOR);
@@ -169,8 +159,7 @@ class A {
   const A.myConstructor(int a, {int b, @required int c});
 }''');
 
-    engine.ConstructorElement engineElement =
-        findElementInUnit(testUnit, 'myConstructor');
+    var engineElement = findElement.constructor('myConstructor');
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.parameters, '(int a, {@required int c, int b})');
@@ -185,8 +174,7 @@ class A {
   const A.myConstructor(int a, {int b, @required int d, @required int c});
 }''');
 
-    engine.ConstructorElement engineElement =
-        findElementInUnit(testUnit, 'myConstructor');
+    var engineElement = findElement.constructor('myConstructor');
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.parameters,
@@ -203,8 +191,7 @@ class A {
   const A.myConstructor(int a, {int b, @required int d, @required int c, int a});
 }''');
 
-    engine.ConstructorElement engineElement =
-        findElementInUnit(testUnit, 'myConstructor');
+    var engineElement = findElement.constructor('myConstructor');
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.parameters,
@@ -229,7 +216,7 @@ class A {
 enum _E1 { one, two }
 enum E2 { three, four }''');
     {
-      engine.ClassElement engineElement = findElementInUnit(testUnit, '_E1');
+      var engineElement = findElement.enum_('_E1');
       expect(engineElement.hasDeprecated, isTrue);
       // create notification Element
       var element = convertElement(engineElement);
@@ -251,7 +238,7 @@ enum E2 { three, four }''');
               Element.FLAG_PRIVATE);
     }
     {
-      engine.ClassElement engineElement = findElementInUnit(testUnit, 'E2');
+      var engineElement = findElement.enum_('E2');
       // create notification Element
       var element = convertElement(engineElement);
       expect(element.kind, ElementKind.ENUM);
@@ -267,7 +254,7 @@ enum E2 { three, four }''');
 enum _E1 { one, two }
 enum E2 { three, four }''');
     {
-      engine.FieldElement engineElement = findElementInUnit(testUnit, 'one');
+      var engineElement = findElement.field('one');
       // create notification Element
       var element = convertElement(engineElement);
       expect(element.kind, ElementKind.ENUM_CONSTANT);
@@ -291,7 +278,7 @@ enum E2 { three, four }''');
           Element.FLAG_CONST | Element.FLAG_STATIC);
     }
     {
-      engine.FieldElement engineElement = findElementInUnit(testUnit, 'three');
+      var engineElement = findElement.field('three');
       // create notification Element
       var element = convertElement(engineElement);
       expect(element.kind, ElementKind.ENUM_CONSTANT);
@@ -309,7 +296,7 @@ enum E2 { three, four }''');
       expect(element.flags, Element.FLAG_CONST | Element.FLAG_STATIC);
     }
     {
-      var engineElement = testUnit.declaredElement.enums[1].getField('index');
+      var engineElement = findElement.field('index', of: 'E2');
       // create notification Element
       var element = convertElement(engineElement);
       expect(element.kind, ElementKind.FIELD);
@@ -327,7 +314,7 @@ enum E2 { three, four }''');
       expect(element.flags, Element.FLAG_FINAL);
     }
     {
-      var engineElement = testUnit.declaredElement.enums[1].getField('values');
+      var engineElement = findElement.field('values', of: 'E2');
       // create notification Element
       var element = convertElement(engineElement);
       expect(element.kind, ElementKind.FIELD);
@@ -351,7 +338,7 @@ enum E2 { three, four }''');
 class A {
   static const myField = 42;
 }''');
-    engine.FieldElement engineElement = findElementInUnit(testUnit, 'myField');
+    var engineElement = findElement.field('myField');
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.kind, ElementKind.FIELD);
@@ -373,8 +360,7 @@ class A {
     await resolveTestCode('''
 typedef int F<T>(String x);
 ''');
-    engine.FunctionTypeAliasElement engineElement =
-        findElementInUnit(testUnit, 'F');
+    var engineElement = findElement.typeAlias('F');
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.kind, ElementKind.FUNCTION_TYPE_ALIAS);
@@ -397,8 +383,7 @@ typedef int F<T>(String x);
     await resolveTestCode('''
 typedef F<T> = int Function(String x);
 ''');
-    engine.FunctionTypeAliasElement engineElement =
-        findElementInUnit(testUnit, 'F');
+    var engineElement = findElement.typeAlias('F');
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.kind, ElementKind.FUNCTION_TYPE_ALIAS);
@@ -423,8 +408,7 @@ typedef F<T> = int Function(String x);
 class A {
   String get myGetter => 42;
 }''');
-    engine.PropertyAccessorElement engineElement =
-        findElementInUnit(testUnit, 'myGetter', engine.ElementKind.GETTER);
+    var engineElement = findElement.getter('myGetter');
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.kind, ElementKind.GETTER);
@@ -450,7 +434,7 @@ myLabel:
     break myLabel;
   }
 }''');
-    engine.LabelElement engineElement = findElementInUnit(testUnit, 'myLabel');
+    var engineElement = findElement.label('myLabel');
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.kind, ElementKind.LABEL);
@@ -475,8 +459,7 @@ class A {
     return null;
   }
 }''');
-    engine.MethodElement engineElement =
-        findElementInUnit(testUnit, 'myMethod');
+    var engineElement = findElement.method('myMethod');
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.kind, ElementKind.METHOD);
@@ -499,7 +482,7 @@ class A {
 mixin A {}
 ''');
     {
-      engine.ClassElement engineElement = findElementInUnit(testUnit, 'A');
+      var engineElement = findElement.mixin('A');
       // create notification Element
       var element = convertElement(engineElement);
       expect(element.kind, ElementKind.MIXIN);
@@ -523,8 +506,7 @@ mixin A {}
 class A {
   set mySetter(String x) {}
 }''');
-    engine.PropertyAccessorElement engineElement =
-        findElementInUnit(testUnit, 'mySetter', engine.ElementKind.SETTER);
+    var engineElement = findElement.setter('mySetter');
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.kind, ElementKind.SETTER);
