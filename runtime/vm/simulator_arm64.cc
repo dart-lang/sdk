@@ -598,7 +598,8 @@ void SimulatorDebugger::Debug() {
             if (IsolateGroup::Current()->heap()->Contains(value)) {
               OS::PrintErr("%s: \n", arg1);
 #if defined(DEBUG)
-              const Object& obj = Object::Handle(static_cast<ObjectPtr>(value));
+              const Object& obj = Object::Handle(
+                  static_cast<ObjectPtr>(static_cast<uword>(value)));
               obj.Print();
 #endif  // defined(DEBUG)
             } else {
