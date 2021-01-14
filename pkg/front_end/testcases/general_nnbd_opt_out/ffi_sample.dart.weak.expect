@@ -2,7 +2,6 @@ library;
 import self as self;
 import "dart:ffi" as ffi;
 import "dart:core" as core;
-import "package:ffi/src/allocation.dart" as all;
 
 import "dart:ffi";
 import "package:ffi/ffi.dart";
@@ -13,8 +12,8 @@ class Coordinate extends ffi::Struct {
   @#C1
   field core::double* y = null;
   field ffi::Pointer<self::Coordinate*>* next = null;
-  static factory allocate(core::double* x, core::double* y, ffi::Pointer<self::Coordinate*>* next) → self::Coordinate* {
-    return let final self::Coordinate* #t1 = ffi::StructPointer|get#ref<self::Coordinate*>(all::allocate<self::Coordinate*>()) in block {
+  static factory allocate(ffi::Allocator* allocator, core::double* x, core::double* y, ffi::Pointer<self::Coordinate*>* next) → self::Coordinate* {
+    return let final self::Coordinate* #t1 = ffi::StructPointer|get#ref<self::Coordinate*>(ffi::AllocatorAlloc|call<self::Coordinate*>(allocator)) in block {
       #t1.{self::Coordinate::x} = x;
       #t1.{self::Coordinate::y} = y;
       #t1.{self::Coordinate::next} = next;

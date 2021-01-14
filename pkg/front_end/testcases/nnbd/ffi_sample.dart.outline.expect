@@ -17,7 +17,7 @@ class Coordinate extends ffi::Struct {
   external set y(core::double #externalFieldValue) → void;
   external get next() → ffi::Pointer<self::Coordinate>;
   external set next(ffi::Pointer<self::Coordinate> #externalFieldValue) → void;
-  static factory allocate(core::double x, core::double y, ffi::Pointer<self::Coordinate> next) → self::Coordinate
+  static factory allocate(ffi::Allocator allocator, core::double x, core::double y, ffi::Pointer<self::Coordinate> next) → self::Coordinate
     ;
 }
 static method main() → dynamic
