@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -12,6 +11,7 @@ import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:test/test.dart';
@@ -31,6 +31,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   CompilationUnitElement testUnitElement;
   LibraryElement testLibraryElement;
   FindNode findNode;
+  FindElement findElement;
 
   @override
   void addSource(String path, String content) {
@@ -48,10 +49,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     addSource(testFile, code);
   }
 
-  Element findElement(String name, [ElementKind kind]) {
-    return findChildElement(testUnitElement, name, kind);
-  }
-
   int findEnd(String search) {
     return findOffset(search) + search.length;
   }
@@ -59,16 +56,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   /// Returns the [SimpleIdentifier] at the given search pattern.
   SimpleIdentifier findIdentifier(String search) {
     return findNodeAtString(search, (node) => node is SimpleIdentifier);
-  }
-
-  /// Search the [testUnit] for the [LocalVariableElement] with the given
-  /// [name]. Fail if there is not exactly one such variable.
-  LocalVariableElement findLocalVariable(String name) {
-    var finder = _ElementsByNameFinder(name);
-    testUnit.accept(finder);
-    var localVariables = finder.elements.whereType<LocalVariableElement>();
-    expect(localVariables, hasLength(1));
-    return localVariables.single;
   }
 
   AstNode findNodeAtOffset(int offset, [Predicate<AstNode> predicate]) {
@@ -150,25 +137,12 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     testUnitElement = testUnit.declaredElement;
     testLibraryElement = testUnitElement.library;
     findNode = FindNode(testCode, testUnit);
+    findElement = FindElement(testUnit);
   }
 
   @override
   void setUp() {
     super.setUp();
     testFile = convertPath('/home/test/lib/test.dart');
-  }
-}
-
-class _ElementsByNameFinder extends RecursiveAstVisitor<void> {
-  final String name;
-  final List<Element> elements = [];
-
-  _ElementsByNameFinder(this.name);
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.name == name && node.inDeclarationContext()) {
-      elements.add(node.staticElement);
-    }
   }
 }

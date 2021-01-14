@@ -28,7 +28,10 @@ main() {
   var b = test;
 }
 ''');
-    _createRefactoring('test');
+    var element = findElement.topGet('test');
+    _createRefactoringForElement(
+      element,
+    );
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 int test() => 42;
@@ -120,7 +123,8 @@ int test = 42;
 main() {
 }
 ''');
-    _createRefactoring('test');
+    var element = findElement.topGet('test');
+    _createRefactoringForElement(element);
     // check conditions
     await _assertInitialConditions_fatal(
         'Only explicit getters can be converted to methods.');
@@ -139,12 +143,6 @@ main() {
     var refactoringChange = await refactoring.createChange();
     this.refactoringChange = refactoringChange;
     assertTestChangeResult(expectedCode);
-  }
-
-  void _createRefactoring(String elementName) {
-    PropertyAccessorElement element =
-        findElement(elementName, ElementKind.GETTER);
-    _createRefactoringForElement(element);
   }
 
   void _createRefactoringForElement(ExecutableElement element) {
