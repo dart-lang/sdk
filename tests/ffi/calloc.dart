@@ -54,7 +54,7 @@ class _CallocAllocator implements Allocator {
   /// Allocates [byteCount] bytes of zero-initialized of memory on the native
   /// heap.
   ///
-  /// For POSIX-based systems, this uses `malloc`. On Windows, it uses
+  /// For POSIX-based systems, this uses `calloc`. On Windows, it uses
   /// `HeapAlloc` against the default public heap.
   ///
   /// Throws an [ArgumentError] if the number of bytes or alignment cannot be

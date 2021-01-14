@@ -10,6 +10,7 @@ import 'dart:ffi';
 
 import "package:ffi/ffi.dart";
 
+import 'calloc.dart';
 import 'dylib_utils.dart';
 
 void main() {
@@ -67,20 +68,20 @@ void testGetGeneric() {
     return result;
   }
 
-  Pointer<Int8> p = allocate();
+  Pointer<Int8> p = calloc();
   p.value = 123;
   Pointer loseType = p;
   generic(loseType);
-  free(p);
+  calloc.free(p);
 }
 
 void testGetGeneric2() {
   T generic<T extends Object>() {
-    Pointer<Int8> p = allocate();
+    Pointer<Int8> p = calloc();
     p.value = 123;
     T result;
     result = p.value; //# 21: compile-time error
-    free(p);
+    calloc.free(p);
     return result;
   }
 
@@ -88,12 +89,12 @@ void testGetGeneric2() {
 }
 
 void testGetVoid() {
-  Pointer<IntPtr> p1 = allocate();
+  Pointer<IntPtr> p1 = calloc();
   Pointer<Void> p2 = p1.cast();
 
   p2.value; //# 22: compile-time error
 
-  free(p1);
+  calloc.free(p1);
 }
 
 void testGetNativeFunction() {
@@ -106,14 +107,14 @@ void testGetNativeType() {
 }
 
 void testGetTypeMismatch() {
-  Pointer<Pointer<Int16>> p = allocate();
+  Pointer<Pointer<Int16>> p = calloc();
   Pointer<Int16> typedNull = nullptr;
   p.value = typedNull;
 
   // this fails to compile due to type mismatch
   Pointer<Int8> p2 = p.value; //# 25: compile-time error
 
-  free(p);
+  calloc.free(p);
 }
 
 void testSetGeneric() {
@@ -121,30 +122,30 @@ void testSetGeneric() {
     p.value = 123; //# 26: compile-time error
   }
 
-  Pointer<Int8> p = allocate();
+  Pointer<Int8> p = calloc();
   p.value = 123;
   Pointer loseType = p;
   generic(loseType);
-  free(p);
+  calloc.free(p);
 }
 
 void testSetGeneric2() {
   void generic<T extends Object>(T arg) {
-    Pointer<Int8> p = allocate();
+    Pointer<Int8> p = calloc();
     p.value = arg; //# 27: compile-time error
-    free(p);
+    calloc.free(p);
   }
 
   generic<int>(123);
 }
 
 void testSetVoid() {
-  Pointer<IntPtr> p1 = allocate();
+  Pointer<IntPtr> p1 = calloc();
   Pointer<Void> p2 = p1.cast();
 
   p2.value = 1234; //# 28: compile-time error
 
-  free(p1);
+  calloc.free(p1);
 }
 
 void testSetNativeFunction() {
@@ -159,16 +160,16 @@ void testSetNativeType() {
 
 void testSetTypeMismatch() {
   // the pointer to pointer types must match up
-  Pointer<Int8> pHelper = allocate();
+  Pointer<Int8> pHelper = calloc();
   pHelper.value = 123;
 
-  Pointer<Pointer<Int16>> p = allocate();
+  Pointer<Pointer<Int16>> p = calloc();
 
   // this fails to compile due to type mismatch
   p.value = pHelper; //# 40: compile-time error
 
-  free(pHelper);
-  free(p);
+  calloc.free(pHelper);
+  calloc.free(p);
 }
 
 void testAsFunctionGeneric() {
@@ -558,7 +559,7 @@ class HasNestedEmptyStruct extends Struct {
 void testAllocateGeneric() {
   Pointer<T> generic<T extends NativeType>() {
     Pointer<T> pointer = nullptr;
-    pointer = malloc(); //# 1320: compile-time error
+    pointer = calloc(); //# 1320: compile-time error
     return pointer;
   }
 
@@ -566,5 +567,5 @@ void testAllocateGeneric() {
 }
 
 void testAllocateNativeType() {
-  malloc(); //# 1321: compile-time error
+  calloc(); //# 1321: compile-time error
 }

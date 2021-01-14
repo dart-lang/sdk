@@ -197,7 +197,7 @@ extension on CType {
         return "${dartType} ${variableName};\n";
 
       case StructType:
-        return "${dartType} ${variableName} = allocate<$dartType>().ref;\n";
+        return "${dartType} ${variableName} = calloc<$dartType>().ref;\n";
     }
 
     throw Exception("Not implemented for ${this.runtimeType}");
@@ -243,7 +243,7 @@ extension on CType {
         return "";
 
       case StructType:
-        return "free($variableName.addressOf);\n";
+        return "calloc.free($variableName.addressOf);\n";
     }
 
     throw Exception("Not implemented for ${this.runtimeType}");
@@ -485,7 +485,7 @@ extension on FunctionType {
       case TestType.structReturn:
         // Allocate a struct.
         buildReturnValue = """
-        ${returnValue.dartType} result = allocate<${returnValue.dartType}>().ref;
+        ${returnValue.dartType} result = calloc<${returnValue.dartType}>().ref;
 
         ${arguments.copyValueStatements("${dartName}_", "result.")}
         """;
@@ -749,6 +749,7 @@ import 'dart:ffi';
 import "package:expect/expect.dart";
 import "package:ffi/ffi.dart";
 
+import 'calloc.dart';
 import 'dylib_utils.dart';
 
 final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
@@ -801,6 +802,7 @@ import "package:expect/expect.dart";
 import "package:ffi/ffi.dart";
 
 import 'callback_tests_utils.dart';
+import 'calloc.dart';
 
 // Reuse the struct classes.
 import 'function_structs_by_value_generated_test.dart';

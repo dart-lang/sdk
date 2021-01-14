@@ -16,6 +16,7 @@ import "package:expect/expect.dart";
 import "package:ffi/ffi.dart";
 
 import 'callback_tests_utils.dart';
+import 'calloc.dart';
 
 // Reuse the struct classes.
 import 'function_structs_by_value_generated_test.dart';
@@ -5244,7 +5245,7 @@ int returnStruct1ByteInt_a0 = 0;
 Struct1ByteInt returnStruct1ByteIntResult = Struct1ByteInt();
 
 Struct1ByteInt returnStruct1ByteIntCalculateResult() {
-  Struct1ByteInt result = allocate<Struct1ByteInt>().ref;
+  Struct1ByteInt result = calloc<Struct1ByteInt>().ref;
 
   result.a0 = returnStruct1ByteInt_a0;
 
@@ -5275,13 +5276,13 @@ Struct1ByteInt returnStruct1ByteInt(int a0) {
 }
 
 void returnStruct1ByteIntAfterCallback() {
-  free(returnStruct1ByteIntResult.addressOf);
+  calloc.free(returnStruct1ByteIntResult.addressOf);
 
   final result = returnStruct1ByteIntCalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStruct1ByteIntResult.addressOf);
+  calloc.free(returnStruct1ByteIntResult.addressOf);
 }
 
 typedef ReturnStruct3BytesHomogeneousUint8Type = Struct3BytesHomogeneousUint8
@@ -5299,7 +5300,7 @@ Struct3BytesHomogeneousUint8 returnStruct3BytesHomogeneousUint8Result =
 Struct3BytesHomogeneousUint8
     returnStruct3BytesHomogeneousUint8CalculateResult() {
   Struct3BytesHomogeneousUint8 result =
-      allocate<Struct3BytesHomogeneousUint8>().ref;
+      calloc<Struct3BytesHomogeneousUint8>().ref;
 
   result.a0 = returnStruct3BytesHomogeneousUint8_a0;
   result.a1 = returnStruct3BytesHomogeneousUint8_a1;
@@ -5335,13 +5336,13 @@ Struct3BytesHomogeneousUint8 returnStruct3BytesHomogeneousUint8(
 }
 
 void returnStruct3BytesHomogeneousUint8AfterCallback() {
-  free(returnStruct3BytesHomogeneousUint8Result.addressOf);
+  calloc.free(returnStruct3BytesHomogeneousUint8Result.addressOf);
 
   final result = returnStruct3BytesHomogeneousUint8CalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStruct3BytesHomogeneousUint8Result.addressOf);
+  calloc.free(returnStruct3BytesHomogeneousUint8Result.addressOf);
 }
 
 typedef ReturnStruct3BytesInt2ByteAlignedType = Struct3BytesInt2ByteAligned
@@ -5357,7 +5358,7 @@ Struct3BytesInt2ByteAligned returnStruct3BytesInt2ByteAlignedResult =
 
 Struct3BytesInt2ByteAligned returnStruct3BytesInt2ByteAlignedCalculateResult() {
   Struct3BytesInt2ByteAligned result =
-      allocate<Struct3BytesInt2ByteAligned>().ref;
+      calloc<Struct3BytesInt2ByteAligned>().ref;
 
   result.a0 = returnStruct3BytesInt2ByteAligned_a0;
   result.a1 = returnStruct3BytesInt2ByteAligned_a1;
@@ -5391,13 +5392,13 @@ Struct3BytesInt2ByteAligned returnStruct3BytesInt2ByteAligned(int a0, int a1) {
 }
 
 void returnStruct3BytesInt2ByteAlignedAfterCallback() {
-  free(returnStruct3BytesInt2ByteAlignedResult.addressOf);
+  calloc.free(returnStruct3BytesInt2ByteAlignedResult.addressOf);
 
   final result = returnStruct3BytesInt2ByteAlignedCalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStruct3BytesInt2ByteAlignedResult.addressOf);
+  calloc.free(returnStruct3BytesInt2ByteAlignedResult.addressOf);
 }
 
 typedef ReturnStruct4BytesHomogeneousInt16Type = Struct4BytesHomogeneousInt16
@@ -5414,7 +5415,7 @@ Struct4BytesHomogeneousInt16 returnStruct4BytesHomogeneousInt16Result =
 Struct4BytesHomogeneousInt16
     returnStruct4BytesHomogeneousInt16CalculateResult() {
   Struct4BytesHomogeneousInt16 result =
-      allocate<Struct4BytesHomogeneousInt16>().ref;
+      calloc<Struct4BytesHomogeneousInt16>().ref;
 
   result.a0 = returnStruct4BytesHomogeneousInt16_a0;
   result.a1 = returnStruct4BytesHomogeneousInt16_a1;
@@ -5448,13 +5449,13 @@ Struct4BytesHomogeneousInt16 returnStruct4BytesHomogeneousInt16(
 }
 
 void returnStruct4BytesHomogeneousInt16AfterCallback() {
-  free(returnStruct4BytesHomogeneousInt16Result.addressOf);
+  calloc.free(returnStruct4BytesHomogeneousInt16Result.addressOf);
 
   final result = returnStruct4BytesHomogeneousInt16CalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStruct4BytesHomogeneousInt16Result.addressOf);
+  calloc.free(returnStruct4BytesHomogeneousInt16Result.addressOf);
 }
 
 typedef ReturnStruct7BytesHomogeneousUint8Type = Struct7BytesHomogeneousUint8
@@ -5476,7 +5477,7 @@ Struct7BytesHomogeneousUint8 returnStruct7BytesHomogeneousUint8Result =
 Struct7BytesHomogeneousUint8
     returnStruct7BytesHomogeneousUint8CalculateResult() {
   Struct7BytesHomogeneousUint8 result =
-      allocate<Struct7BytesHomogeneousUint8>().ref;
+      calloc<Struct7BytesHomogeneousUint8>().ref;
 
   result.a0 = returnStruct7BytesHomogeneousUint8_a0;
   result.a1 = returnStruct7BytesHomogeneousUint8_a1;
@@ -5521,13 +5522,13 @@ Struct7BytesHomogeneousUint8 returnStruct7BytesHomogeneousUint8(
 }
 
 void returnStruct7BytesHomogeneousUint8AfterCallback() {
-  free(returnStruct7BytesHomogeneousUint8Result.addressOf);
+  calloc.free(returnStruct7BytesHomogeneousUint8Result.addressOf);
 
   final result = returnStruct7BytesHomogeneousUint8CalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStruct7BytesHomogeneousUint8Result.addressOf);
+  calloc.free(returnStruct7BytesHomogeneousUint8Result.addressOf);
 }
 
 typedef ReturnStruct7BytesInt4ByteAlignedType = Struct7BytesInt4ByteAligned
@@ -5544,7 +5545,7 @@ Struct7BytesInt4ByteAligned returnStruct7BytesInt4ByteAlignedResult =
 
 Struct7BytesInt4ByteAligned returnStruct7BytesInt4ByteAlignedCalculateResult() {
   Struct7BytesInt4ByteAligned result =
-      allocate<Struct7BytesInt4ByteAligned>().ref;
+      calloc<Struct7BytesInt4ByteAligned>().ref;
 
   result.a0 = returnStruct7BytesInt4ByteAligned_a0;
   result.a1 = returnStruct7BytesInt4ByteAligned_a1;
@@ -5581,13 +5582,13 @@ Struct7BytesInt4ByteAligned returnStruct7BytesInt4ByteAligned(
 }
 
 void returnStruct7BytesInt4ByteAlignedAfterCallback() {
-  free(returnStruct7BytesInt4ByteAlignedResult.addressOf);
+  calloc.free(returnStruct7BytesInt4ByteAlignedResult.addressOf);
 
   final result = returnStruct7BytesInt4ByteAlignedCalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStruct7BytesInt4ByteAlignedResult.addressOf);
+  calloc.free(returnStruct7BytesInt4ByteAlignedResult.addressOf);
 }
 
 typedef ReturnStruct8BytesIntType = Struct8BytesInt Function(
@@ -5602,7 +5603,7 @@ int returnStruct8BytesInt_a2 = 0;
 Struct8BytesInt returnStruct8BytesIntResult = Struct8BytesInt();
 
 Struct8BytesInt returnStruct8BytesIntCalculateResult() {
-  Struct8BytesInt result = allocate<Struct8BytesInt>().ref;
+  Struct8BytesInt result = calloc<Struct8BytesInt>().ref;
 
   result.a0 = returnStruct8BytesInt_a0;
   result.a1 = returnStruct8BytesInt_a1;
@@ -5637,13 +5638,13 @@ Struct8BytesInt returnStruct8BytesInt(int a0, int a1, int a2) {
 }
 
 void returnStruct8BytesIntAfterCallback() {
-  free(returnStruct8BytesIntResult.addressOf);
+  calloc.free(returnStruct8BytesIntResult.addressOf);
 
   final result = returnStruct8BytesIntCalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStruct8BytesIntResult.addressOf);
+  calloc.free(returnStruct8BytesIntResult.addressOf);
 }
 
 typedef ReturnStruct8BytesHomogeneousFloatType = Struct8BytesHomogeneousFloat
@@ -5660,7 +5661,7 @@ Struct8BytesHomogeneousFloat returnStruct8BytesHomogeneousFloatResult =
 Struct8BytesHomogeneousFloat
     returnStruct8BytesHomogeneousFloatCalculateResult() {
   Struct8BytesHomogeneousFloat result =
-      allocate<Struct8BytesHomogeneousFloat>().ref;
+      calloc<Struct8BytesHomogeneousFloat>().ref;
 
   result.a0 = returnStruct8BytesHomogeneousFloat_a0;
   result.a1 = returnStruct8BytesHomogeneousFloat_a1;
@@ -5694,13 +5695,13 @@ Struct8BytesHomogeneousFloat returnStruct8BytesHomogeneousFloat(
 }
 
 void returnStruct8BytesHomogeneousFloatAfterCallback() {
-  free(returnStruct8BytesHomogeneousFloatResult.addressOf);
+  calloc.free(returnStruct8BytesHomogeneousFloatResult.addressOf);
 
   final result = returnStruct8BytesHomogeneousFloatCalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStruct8BytesHomogeneousFloatResult.addressOf);
+  calloc.free(returnStruct8BytesHomogeneousFloatResult.addressOf);
 }
 
 typedef ReturnStruct8BytesMixedType = Struct8BytesMixed Function(
@@ -5715,7 +5716,7 @@ int returnStruct8BytesMixed_a2 = 0;
 Struct8BytesMixed returnStruct8BytesMixedResult = Struct8BytesMixed();
 
 Struct8BytesMixed returnStruct8BytesMixedCalculateResult() {
-  Struct8BytesMixed result = allocate<Struct8BytesMixed>().ref;
+  Struct8BytesMixed result = calloc<Struct8BytesMixed>().ref;
 
   result.a0 = returnStruct8BytesMixed_a0;
   result.a1 = returnStruct8BytesMixed_a1;
@@ -5750,13 +5751,13 @@ Struct8BytesMixed returnStruct8BytesMixed(double a0, int a1, int a2) {
 }
 
 void returnStruct8BytesMixedAfterCallback() {
-  free(returnStruct8BytesMixedResult.addressOf);
+  calloc.free(returnStruct8BytesMixedResult.addressOf);
 
   final result = returnStruct8BytesMixedCalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStruct8BytesMixedResult.addressOf);
+  calloc.free(returnStruct8BytesMixedResult.addressOf);
 }
 
 typedef ReturnStruct9BytesHomogeneousUint8Type = Struct9BytesHomogeneousUint8
@@ -5780,7 +5781,7 @@ Struct9BytesHomogeneousUint8 returnStruct9BytesHomogeneousUint8Result =
 Struct9BytesHomogeneousUint8
     returnStruct9BytesHomogeneousUint8CalculateResult() {
   Struct9BytesHomogeneousUint8 result =
-      allocate<Struct9BytesHomogeneousUint8>().ref;
+      calloc<Struct9BytesHomogeneousUint8>().ref;
 
   result.a0 = returnStruct9BytesHomogeneousUint8_a0;
   result.a1 = returnStruct9BytesHomogeneousUint8_a1;
@@ -5831,13 +5832,13 @@ Struct9BytesHomogeneousUint8 returnStruct9BytesHomogeneousUint8(
 }
 
 void returnStruct9BytesHomogeneousUint8AfterCallback() {
-  free(returnStruct9BytesHomogeneousUint8Result.addressOf);
+  calloc.free(returnStruct9BytesHomogeneousUint8Result.addressOf);
 
   final result = returnStruct9BytesHomogeneousUint8CalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStruct9BytesHomogeneousUint8Result.addressOf);
+  calloc.free(returnStruct9BytesHomogeneousUint8Result.addressOf);
 }
 
 typedef ReturnStruct9BytesInt4Or8ByteAlignedType
@@ -5854,7 +5855,7 @@ Struct9BytesInt4Or8ByteAligned returnStruct9BytesInt4Or8ByteAlignedResult =
 Struct9BytesInt4Or8ByteAligned
     returnStruct9BytesInt4Or8ByteAlignedCalculateResult() {
   Struct9BytesInt4Or8ByteAligned result =
-      allocate<Struct9BytesInt4Or8ByteAligned>().ref;
+      calloc<Struct9BytesInt4Or8ByteAligned>().ref;
 
   result.a0 = returnStruct9BytesInt4Or8ByteAligned_a0;
   result.a1 = returnStruct9BytesInt4Or8ByteAligned_a1;
@@ -5890,13 +5891,13 @@ Struct9BytesInt4Or8ByteAligned returnStruct9BytesInt4Or8ByteAligned(
 }
 
 void returnStruct9BytesInt4Or8ByteAlignedAfterCallback() {
-  free(returnStruct9BytesInt4Or8ByteAlignedResult.addressOf);
+  calloc.free(returnStruct9BytesInt4Or8ByteAlignedResult.addressOf);
 
   final result = returnStruct9BytesInt4Or8ByteAlignedCalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStruct9BytesInt4Or8ByteAlignedResult.addressOf);
+  calloc.free(returnStruct9BytesInt4Or8ByteAlignedResult.addressOf);
 }
 
 typedef ReturnStruct12BytesHomogeneousFloatType = Struct12BytesHomogeneousFloat
@@ -5914,7 +5915,7 @@ Struct12BytesHomogeneousFloat returnStruct12BytesHomogeneousFloatResult =
 Struct12BytesHomogeneousFloat
     returnStruct12BytesHomogeneousFloatCalculateResult() {
   Struct12BytesHomogeneousFloat result =
-      allocate<Struct12BytesHomogeneousFloat>().ref;
+      calloc<Struct12BytesHomogeneousFloat>().ref;
 
   result.a0 = returnStruct12BytesHomogeneousFloat_a0;
   result.a1 = returnStruct12BytesHomogeneousFloat_a1;
@@ -5951,13 +5952,13 @@ Struct12BytesHomogeneousFloat returnStruct12BytesHomogeneousFloat(
 }
 
 void returnStruct12BytesHomogeneousFloatAfterCallback() {
-  free(returnStruct12BytesHomogeneousFloatResult.addressOf);
+  calloc.free(returnStruct12BytesHomogeneousFloatResult.addressOf);
 
   final result = returnStruct12BytesHomogeneousFloatCalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStruct12BytesHomogeneousFloatResult.addressOf);
+  calloc.free(returnStruct12BytesHomogeneousFloatResult.addressOf);
 }
 
 typedef ReturnStruct16BytesHomogeneousFloatType = Struct16BytesHomogeneousFloat
@@ -5976,7 +5977,7 @@ Struct16BytesHomogeneousFloat returnStruct16BytesHomogeneousFloatResult =
 Struct16BytesHomogeneousFloat
     returnStruct16BytesHomogeneousFloatCalculateResult() {
   Struct16BytesHomogeneousFloat result =
-      allocate<Struct16BytesHomogeneousFloat>().ref;
+      calloc<Struct16BytesHomogeneousFloat>().ref;
 
   result.a0 = returnStruct16BytesHomogeneousFloat_a0;
   result.a1 = returnStruct16BytesHomogeneousFloat_a1;
@@ -6014,13 +6015,13 @@ Struct16BytesHomogeneousFloat returnStruct16BytesHomogeneousFloat(
 }
 
 void returnStruct16BytesHomogeneousFloatAfterCallback() {
-  free(returnStruct16BytesHomogeneousFloatResult.addressOf);
+  calloc.free(returnStruct16BytesHomogeneousFloatResult.addressOf);
 
   final result = returnStruct16BytesHomogeneousFloatCalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStruct16BytesHomogeneousFloatResult.addressOf);
+  calloc.free(returnStruct16BytesHomogeneousFloatResult.addressOf);
 }
 
 typedef ReturnStruct16BytesMixedType = Struct16BytesMixed Function(
@@ -6034,7 +6035,7 @@ int returnStruct16BytesMixed_a1 = 0;
 Struct16BytesMixed returnStruct16BytesMixedResult = Struct16BytesMixed();
 
 Struct16BytesMixed returnStruct16BytesMixedCalculateResult() {
-  Struct16BytesMixed result = allocate<Struct16BytesMixed>().ref;
+  Struct16BytesMixed result = calloc<Struct16BytesMixed>().ref;
 
   result.a0 = returnStruct16BytesMixed_a0;
   result.a1 = returnStruct16BytesMixed_a1;
@@ -6067,13 +6068,13 @@ Struct16BytesMixed returnStruct16BytesMixed(double a0, int a1) {
 }
 
 void returnStruct16BytesMixedAfterCallback() {
-  free(returnStruct16BytesMixedResult.addressOf);
+  calloc.free(returnStruct16BytesMixedResult.addressOf);
 
   final result = returnStruct16BytesMixedCalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStruct16BytesMixedResult.addressOf);
+  calloc.free(returnStruct16BytesMixedResult.addressOf);
 }
 
 typedef ReturnStruct16BytesMixed2Type = Struct16BytesMixed2 Function(
@@ -6089,7 +6090,7 @@ int returnStruct16BytesMixed2_a3 = 0;
 Struct16BytesMixed2 returnStruct16BytesMixed2Result = Struct16BytesMixed2();
 
 Struct16BytesMixed2 returnStruct16BytesMixed2CalculateResult() {
-  Struct16BytesMixed2 result = allocate<Struct16BytesMixed2>().ref;
+  Struct16BytesMixed2 result = calloc<Struct16BytesMixed2>().ref;
 
   result.a0 = returnStruct16BytesMixed2_a0;
   result.a1 = returnStruct16BytesMixed2_a1;
@@ -6128,13 +6129,13 @@ Struct16BytesMixed2 returnStruct16BytesMixed2(
 }
 
 void returnStruct16BytesMixed2AfterCallback() {
-  free(returnStruct16BytesMixed2Result.addressOf);
+  calloc.free(returnStruct16BytesMixed2Result.addressOf);
 
   final result = returnStruct16BytesMixed2CalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStruct16BytesMixed2Result.addressOf);
+  calloc.free(returnStruct16BytesMixed2Result.addressOf);
 }
 
 typedef ReturnStruct17BytesIntType = Struct17BytesInt Function(
@@ -6149,7 +6150,7 @@ int returnStruct17BytesInt_a2 = 0;
 Struct17BytesInt returnStruct17BytesIntResult = Struct17BytesInt();
 
 Struct17BytesInt returnStruct17BytesIntCalculateResult() {
-  Struct17BytesInt result = allocate<Struct17BytesInt>().ref;
+  Struct17BytesInt result = calloc<Struct17BytesInt>().ref;
 
   result.a0 = returnStruct17BytesInt_a0;
   result.a1 = returnStruct17BytesInt_a1;
@@ -6186,13 +6187,13 @@ Struct17BytesInt returnStruct17BytesInt(int a0, int a1, int a2) {
 }
 
 void returnStruct17BytesIntAfterCallback() {
-  free(returnStruct17BytesIntResult.addressOf);
+  calloc.free(returnStruct17BytesIntResult.addressOf);
 
   final result = returnStruct17BytesIntCalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStruct17BytesIntResult.addressOf);
+  calloc.free(returnStruct17BytesIntResult.addressOf);
 }
 
 typedef ReturnStruct19BytesHomogeneousUint8Type
@@ -6245,7 +6246,7 @@ Struct19BytesHomogeneousUint8 returnStruct19BytesHomogeneousUint8Result =
 Struct19BytesHomogeneousUint8
     returnStruct19BytesHomogeneousUint8CalculateResult() {
   Struct19BytesHomogeneousUint8 result =
-      allocate<Struct19BytesHomogeneousUint8>().ref;
+      calloc<Struct19BytesHomogeneousUint8>().ref;
 
   result.a0 = returnStruct19BytesHomogeneousUint8_a0;
   result.a1 = returnStruct19BytesHomogeneousUint8_a1;
@@ -6334,13 +6335,13 @@ Struct19BytesHomogeneousUint8 returnStruct19BytesHomogeneousUint8(
 }
 
 void returnStruct19BytesHomogeneousUint8AfterCallback() {
-  free(returnStruct19BytesHomogeneousUint8Result.addressOf);
+  calloc.free(returnStruct19BytesHomogeneousUint8Result.addressOf);
 
   final result = returnStruct19BytesHomogeneousUint8CalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStruct19BytesHomogeneousUint8Result.addressOf);
+  calloc.free(returnStruct19BytesHomogeneousUint8Result.addressOf);
 }
 
 typedef ReturnStruct20BytesHomogeneousInt32Type = Struct20BytesHomogeneousInt32
@@ -6360,7 +6361,7 @@ Struct20BytesHomogeneousInt32 returnStruct20BytesHomogeneousInt32Result =
 Struct20BytesHomogeneousInt32
     returnStruct20BytesHomogeneousInt32CalculateResult() {
   Struct20BytesHomogeneousInt32 result =
-      allocate<Struct20BytesHomogeneousInt32>().ref;
+      calloc<Struct20BytesHomogeneousInt32>().ref;
 
   result.a0 = returnStruct20BytesHomogeneousInt32_a0;
   result.a1 = returnStruct20BytesHomogeneousInt32_a1;
@@ -6401,13 +6402,13 @@ Struct20BytesHomogeneousInt32 returnStruct20BytesHomogeneousInt32(
 }
 
 void returnStruct20BytesHomogeneousInt32AfterCallback() {
-  free(returnStruct20BytesHomogeneousInt32Result.addressOf);
+  calloc.free(returnStruct20BytesHomogeneousInt32Result.addressOf);
 
   final result = returnStruct20BytesHomogeneousInt32CalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStruct20BytesHomogeneousInt32Result.addressOf);
+  calloc.free(returnStruct20BytesHomogeneousInt32Result.addressOf);
 }
 
 typedef ReturnStruct20BytesHomogeneousFloatType = Struct20BytesHomogeneousFloat
@@ -6427,7 +6428,7 @@ Struct20BytesHomogeneousFloat returnStruct20BytesHomogeneousFloatResult =
 Struct20BytesHomogeneousFloat
     returnStruct20BytesHomogeneousFloatCalculateResult() {
   Struct20BytesHomogeneousFloat result =
-      allocate<Struct20BytesHomogeneousFloat>().ref;
+      calloc<Struct20BytesHomogeneousFloat>().ref;
 
   result.a0 = returnStruct20BytesHomogeneousFloat_a0;
   result.a1 = returnStruct20BytesHomogeneousFloat_a1;
@@ -6468,13 +6469,13 @@ Struct20BytesHomogeneousFloat returnStruct20BytesHomogeneousFloat(
 }
 
 void returnStruct20BytesHomogeneousFloatAfterCallback() {
-  free(returnStruct20BytesHomogeneousFloatResult.addressOf);
+  calloc.free(returnStruct20BytesHomogeneousFloatResult.addressOf);
 
   final result = returnStruct20BytesHomogeneousFloatCalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStruct20BytesHomogeneousFloatResult.addressOf);
+  calloc.free(returnStruct20BytesHomogeneousFloatResult.addressOf);
 }
 
 typedef ReturnStruct32BytesHomogeneousDoubleType
@@ -6493,7 +6494,7 @@ Struct32BytesHomogeneousDouble returnStruct32BytesHomogeneousDoubleResult =
 Struct32BytesHomogeneousDouble
     returnStruct32BytesHomogeneousDoubleCalculateResult() {
   Struct32BytesHomogeneousDouble result =
-      allocate<Struct32BytesHomogeneousDouble>().ref;
+      calloc<Struct32BytesHomogeneousDouble>().ref;
 
   result.a0 = returnStruct32BytesHomogeneousDouble_a0;
   result.a1 = returnStruct32BytesHomogeneousDouble_a1;
@@ -6532,13 +6533,13 @@ Struct32BytesHomogeneousDouble returnStruct32BytesHomogeneousDouble(
 }
 
 void returnStruct32BytesHomogeneousDoubleAfterCallback() {
-  free(returnStruct32BytesHomogeneousDoubleResult.addressOf);
+  calloc.free(returnStruct32BytesHomogeneousDoubleResult.addressOf);
 
   final result = returnStruct32BytesHomogeneousDoubleCalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStruct32BytesHomogeneousDoubleResult.addressOf);
+  calloc.free(returnStruct32BytesHomogeneousDoubleResult.addressOf);
 }
 
 typedef ReturnStruct40BytesHomogeneousDoubleType
@@ -6559,7 +6560,7 @@ Struct40BytesHomogeneousDouble returnStruct40BytesHomogeneousDoubleResult =
 Struct40BytesHomogeneousDouble
     returnStruct40BytesHomogeneousDoubleCalculateResult() {
   Struct40BytesHomogeneousDouble result =
-      allocate<Struct40BytesHomogeneousDouble>().ref;
+      calloc<Struct40BytesHomogeneousDouble>().ref;
 
   result.a0 = returnStruct40BytesHomogeneousDouble_a0;
   result.a1 = returnStruct40BytesHomogeneousDouble_a1;
@@ -6601,13 +6602,13 @@ Struct40BytesHomogeneousDouble returnStruct40BytesHomogeneousDouble(
 }
 
 void returnStruct40BytesHomogeneousDoubleAfterCallback() {
-  free(returnStruct40BytesHomogeneousDoubleResult.addressOf);
+  calloc.free(returnStruct40BytesHomogeneousDoubleResult.addressOf);
 
   final result = returnStruct40BytesHomogeneousDoubleCalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStruct40BytesHomogeneousDoubleResult.addressOf);
+  calloc.free(returnStruct40BytesHomogeneousDoubleResult.addressOf);
 }
 
 typedef ReturnStruct1024BytesHomogeneousUint64Type
@@ -6878,7 +6879,7 @@ Struct1024BytesHomogeneousUint64 returnStruct1024BytesHomogeneousUint64Result =
 Struct1024BytesHomogeneousUint64
     returnStruct1024BytesHomogeneousUint64CalculateResult() {
   Struct1024BytesHomogeneousUint64 result =
-      allocate<Struct1024BytesHomogeneousUint64>().ref;
+      calloc<Struct1024BytesHomogeneousUint64>().ref;
 
   result.a0 = returnStruct1024BytesHomogeneousUint64_a0;
   result.a1 = returnStruct1024BytesHomogeneousUint64_a1;
@@ -7293,13 +7294,13 @@ Struct1024BytesHomogeneousUint64 returnStruct1024BytesHomogeneousUint64(
 }
 
 void returnStruct1024BytesHomogeneousUint64AfterCallback() {
-  free(returnStruct1024BytesHomogeneousUint64Result.addressOf);
+  calloc.free(returnStruct1024BytesHomogeneousUint64Result.addressOf);
 
   final result = returnStruct1024BytesHomogeneousUint64CalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStruct1024BytesHomogeneousUint64Result.addressOf);
+  calloc.free(returnStruct1024BytesHomogeneousUint64Result.addressOf);
 }
 
 typedef ReturnStructArgumentStruct1ByteIntType = Struct1ByteInt Function(
@@ -7618,7 +7619,7 @@ int returnStructAlignmentInt16_a2 = 0;
 StructAlignmentInt16 returnStructAlignmentInt16Result = StructAlignmentInt16();
 
 StructAlignmentInt16 returnStructAlignmentInt16CalculateResult() {
-  StructAlignmentInt16 result = allocate<StructAlignmentInt16>().ref;
+  StructAlignmentInt16 result = calloc<StructAlignmentInt16>().ref;
 
   result.a0 = returnStructAlignmentInt16_a0;
   result.a1 = returnStructAlignmentInt16_a1;
@@ -7653,13 +7654,13 @@ StructAlignmentInt16 returnStructAlignmentInt16(int a0, int a1, int a2) {
 }
 
 void returnStructAlignmentInt16AfterCallback() {
-  free(returnStructAlignmentInt16Result.addressOf);
+  calloc.free(returnStructAlignmentInt16Result.addressOf);
 
   final result = returnStructAlignmentInt16CalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStructAlignmentInt16Result.addressOf);
+  calloc.free(returnStructAlignmentInt16Result.addressOf);
 }
 
 typedef ReturnStructAlignmentInt32Type = StructAlignmentInt32 Function(
@@ -7674,7 +7675,7 @@ int returnStructAlignmentInt32_a2 = 0;
 StructAlignmentInt32 returnStructAlignmentInt32Result = StructAlignmentInt32();
 
 StructAlignmentInt32 returnStructAlignmentInt32CalculateResult() {
-  StructAlignmentInt32 result = allocate<StructAlignmentInt32>().ref;
+  StructAlignmentInt32 result = calloc<StructAlignmentInt32>().ref;
 
   result.a0 = returnStructAlignmentInt32_a0;
   result.a1 = returnStructAlignmentInt32_a1;
@@ -7709,13 +7710,13 @@ StructAlignmentInt32 returnStructAlignmentInt32(int a0, int a1, int a2) {
 }
 
 void returnStructAlignmentInt32AfterCallback() {
-  free(returnStructAlignmentInt32Result.addressOf);
+  calloc.free(returnStructAlignmentInt32Result.addressOf);
 
   final result = returnStructAlignmentInt32CalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStructAlignmentInt32Result.addressOf);
+  calloc.free(returnStructAlignmentInt32Result.addressOf);
 }
 
 typedef ReturnStructAlignmentInt64Type = StructAlignmentInt64 Function(
@@ -7730,7 +7731,7 @@ int returnStructAlignmentInt64_a2 = 0;
 StructAlignmentInt64 returnStructAlignmentInt64Result = StructAlignmentInt64();
 
 StructAlignmentInt64 returnStructAlignmentInt64CalculateResult() {
-  StructAlignmentInt64 result = allocate<StructAlignmentInt64>().ref;
+  StructAlignmentInt64 result = calloc<StructAlignmentInt64>().ref;
 
   result.a0 = returnStructAlignmentInt64_a0;
   result.a1 = returnStructAlignmentInt64_a1;
@@ -7765,13 +7766,13 @@ StructAlignmentInt64 returnStructAlignmentInt64(int a0, int a1, int a2) {
 }
 
 void returnStructAlignmentInt64AfterCallback() {
-  free(returnStructAlignmentInt64Result.addressOf);
+  calloc.free(returnStructAlignmentInt64Result.addressOf);
 
   final result = returnStructAlignmentInt64CalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStructAlignmentInt64Result.addressOf);
+  calloc.free(returnStructAlignmentInt64Result.addressOf);
 }
 
 typedef ReturnStruct8BytesNestedIntType = Struct8BytesNestedInt Function(
@@ -7788,7 +7789,7 @@ Struct8BytesNestedInt returnStruct8BytesNestedIntResult =
     Struct8BytesNestedInt();
 
 Struct8BytesNestedInt returnStruct8BytesNestedIntCalculateResult() {
-  Struct8BytesNestedInt result = allocate<Struct8BytesNestedInt>().ref;
+  Struct8BytesNestedInt result = calloc<Struct8BytesNestedInt>().ref;
 
   result.a0.a0 = returnStruct8BytesNestedInt_a0.a0;
   result.a0.a1 = returnStruct8BytesNestedInt_a0.a1;
@@ -7824,13 +7825,13 @@ Struct8BytesNestedInt returnStruct8BytesNestedInt(
 }
 
 void returnStruct8BytesNestedIntAfterCallback() {
-  free(returnStruct8BytesNestedIntResult.addressOf);
+  calloc.free(returnStruct8BytesNestedIntResult.addressOf);
 
   final result = returnStruct8BytesNestedIntCalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStruct8BytesNestedIntResult.addressOf);
+  calloc.free(returnStruct8BytesNestedIntResult.addressOf);
 }
 
 typedef ReturnStruct8BytesNestedFloatType = Struct8BytesNestedFloat Function(
@@ -7845,7 +7846,7 @@ Struct8BytesNestedFloat returnStruct8BytesNestedFloatResult =
     Struct8BytesNestedFloat();
 
 Struct8BytesNestedFloat returnStruct8BytesNestedFloatCalculateResult() {
-  Struct8BytesNestedFloat result = allocate<Struct8BytesNestedFloat>().ref;
+  Struct8BytesNestedFloat result = calloc<Struct8BytesNestedFloat>().ref;
 
   result.a0.a0 = returnStruct8BytesNestedFloat_a0.a0;
   result.a1.a0 = returnStruct8BytesNestedFloat_a1.a0;
@@ -7879,13 +7880,13 @@ Struct8BytesNestedFloat returnStruct8BytesNestedFloat(
 }
 
 void returnStruct8BytesNestedFloatAfterCallback() {
-  free(returnStruct8BytesNestedFloatResult.addressOf);
+  calloc.free(returnStruct8BytesNestedFloatResult.addressOf);
 
   final result = returnStruct8BytesNestedFloatCalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStruct8BytesNestedFloatResult.addressOf);
+  calloc.free(returnStruct8BytesNestedFloatResult.addressOf);
 }
 
 typedef ReturnStruct8BytesNestedFloat2Type = Struct8BytesNestedFloat2 Function(
@@ -7900,7 +7901,7 @@ Struct8BytesNestedFloat2 returnStruct8BytesNestedFloat2Result =
     Struct8BytesNestedFloat2();
 
 Struct8BytesNestedFloat2 returnStruct8BytesNestedFloat2CalculateResult() {
-  Struct8BytesNestedFloat2 result = allocate<Struct8BytesNestedFloat2>().ref;
+  Struct8BytesNestedFloat2 result = calloc<Struct8BytesNestedFloat2>().ref;
 
   result.a0.a0 = returnStruct8BytesNestedFloat2_a0.a0;
   result.a1 = returnStruct8BytesNestedFloat2_a1;
@@ -7935,13 +7936,13 @@ Struct8BytesNestedFloat2 returnStruct8BytesNestedFloat2(
 }
 
 void returnStruct8BytesNestedFloat2AfterCallback() {
-  free(returnStruct8BytesNestedFloat2Result.addressOf);
+  calloc.free(returnStruct8BytesNestedFloat2Result.addressOf);
 
   final result = returnStruct8BytesNestedFloat2CalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStruct8BytesNestedFloat2Result.addressOf);
+  calloc.free(returnStruct8BytesNestedFloat2Result.addressOf);
 }
 
 typedef ReturnStruct8BytesNestedMixedType = Struct8BytesNestedMixed Function(
@@ -7957,7 +7958,7 @@ Struct8BytesNestedMixed returnStruct8BytesNestedMixedResult =
     Struct8BytesNestedMixed();
 
 Struct8BytesNestedMixed returnStruct8BytesNestedMixedCalculateResult() {
-  Struct8BytesNestedMixed result = allocate<Struct8BytesNestedMixed>().ref;
+  Struct8BytesNestedMixed result = calloc<Struct8BytesNestedMixed>().ref;
 
   result.a0.a0 = returnStruct8BytesNestedMixed_a0.a0;
   result.a0.a1 = returnStruct8BytesNestedMixed_a0.a1;
@@ -7992,13 +7993,13 @@ Struct8BytesNestedMixed returnStruct8BytesNestedMixed(
 }
 
 void returnStruct8BytesNestedMixedAfterCallback() {
-  free(returnStruct8BytesNestedMixedResult.addressOf);
+  calloc.free(returnStruct8BytesNestedMixedResult.addressOf);
 
   final result = returnStruct8BytesNestedMixedCalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStruct8BytesNestedMixedResult.addressOf);
+  calloc.free(returnStruct8BytesNestedMixedResult.addressOf);
 }
 
 typedef ReturnStruct16BytesNestedIntType = Struct16BytesNestedInt Function(
@@ -8013,7 +8014,7 @@ Struct16BytesNestedInt returnStruct16BytesNestedIntResult =
     Struct16BytesNestedInt();
 
 Struct16BytesNestedInt returnStruct16BytesNestedIntCalculateResult() {
-  Struct16BytesNestedInt result = allocate<Struct16BytesNestedInt>().ref;
+  Struct16BytesNestedInt result = calloc<Struct16BytesNestedInt>().ref;
 
   result.a0.a0.a0 = returnStruct16BytesNestedInt_a0.a0.a0;
   result.a0.a0.a1 = returnStruct16BytesNestedInt_a0.a0.a1;
@@ -8053,13 +8054,13 @@ Struct16BytesNestedInt returnStruct16BytesNestedInt(
 }
 
 void returnStruct16BytesNestedIntAfterCallback() {
-  free(returnStruct16BytesNestedIntResult.addressOf);
+  calloc.free(returnStruct16BytesNestedIntResult.addressOf);
 
   final result = returnStruct16BytesNestedIntCalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStruct16BytesNestedIntResult.addressOf);
+  calloc.free(returnStruct16BytesNestedIntResult.addressOf);
 }
 
 typedef ReturnStruct32BytesNestedIntType = Struct32BytesNestedInt Function(
@@ -8076,7 +8077,7 @@ Struct32BytesNestedInt returnStruct32BytesNestedIntResult =
     Struct32BytesNestedInt();
 
 Struct32BytesNestedInt returnStruct32BytesNestedIntCalculateResult() {
-  Struct32BytesNestedInt result = allocate<Struct32BytesNestedInt>().ref;
+  Struct32BytesNestedInt result = calloc<Struct32BytesNestedInt>().ref;
 
   result.a0.a0.a0.a0 = returnStruct32BytesNestedInt_a0.a0.a0.a0;
   result.a0.a0.a0.a1 = returnStruct32BytesNestedInt_a0.a0.a0.a1;
@@ -8124,13 +8125,13 @@ Struct32BytesNestedInt returnStruct32BytesNestedInt(
 }
 
 void returnStruct32BytesNestedIntAfterCallback() {
-  free(returnStruct32BytesNestedIntResult.addressOf);
+  calloc.free(returnStruct32BytesNestedIntResult.addressOf);
 
   final result = returnStruct32BytesNestedIntCalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStruct32BytesNestedIntResult.addressOf);
+  calloc.free(returnStruct32BytesNestedIntResult.addressOf);
 }
 
 typedef ReturnStructNestedIntStructAlignmentInt16Type
@@ -8151,7 +8152,7 @@ StructNestedIntStructAlignmentInt16
 StructNestedIntStructAlignmentInt16
     returnStructNestedIntStructAlignmentInt16CalculateResult() {
   StructNestedIntStructAlignmentInt16 result =
-      allocate<StructNestedIntStructAlignmentInt16>().ref;
+      calloc<StructNestedIntStructAlignmentInt16>().ref;
 
   result.a0.a0 = returnStructNestedIntStructAlignmentInt16_a0.a0;
   result.a0.a1 = returnStructNestedIntStructAlignmentInt16_a0.a1;
@@ -8190,13 +8191,13 @@ StructNestedIntStructAlignmentInt16 returnStructNestedIntStructAlignmentInt16(
 }
 
 void returnStructNestedIntStructAlignmentInt16AfterCallback() {
-  free(returnStructNestedIntStructAlignmentInt16Result.addressOf);
+  calloc.free(returnStructNestedIntStructAlignmentInt16Result.addressOf);
 
   final result = returnStructNestedIntStructAlignmentInt16CalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStructNestedIntStructAlignmentInt16Result.addressOf);
+  calloc.free(returnStructNestedIntStructAlignmentInt16Result.addressOf);
 }
 
 typedef ReturnStructNestedIntStructAlignmentInt32Type
@@ -8217,7 +8218,7 @@ StructNestedIntStructAlignmentInt32
 StructNestedIntStructAlignmentInt32
     returnStructNestedIntStructAlignmentInt32CalculateResult() {
   StructNestedIntStructAlignmentInt32 result =
-      allocate<StructNestedIntStructAlignmentInt32>().ref;
+      calloc<StructNestedIntStructAlignmentInt32>().ref;
 
   result.a0.a0 = returnStructNestedIntStructAlignmentInt32_a0.a0;
   result.a0.a1 = returnStructNestedIntStructAlignmentInt32_a0.a1;
@@ -8256,13 +8257,13 @@ StructNestedIntStructAlignmentInt32 returnStructNestedIntStructAlignmentInt32(
 }
 
 void returnStructNestedIntStructAlignmentInt32AfterCallback() {
-  free(returnStructNestedIntStructAlignmentInt32Result.addressOf);
+  calloc.free(returnStructNestedIntStructAlignmentInt32Result.addressOf);
 
   final result = returnStructNestedIntStructAlignmentInt32CalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStructNestedIntStructAlignmentInt32Result.addressOf);
+  calloc.free(returnStructNestedIntStructAlignmentInt32Result.addressOf);
 }
 
 typedef ReturnStructNestedIntStructAlignmentInt64Type
@@ -8283,7 +8284,7 @@ StructNestedIntStructAlignmentInt64
 StructNestedIntStructAlignmentInt64
     returnStructNestedIntStructAlignmentInt64CalculateResult() {
   StructNestedIntStructAlignmentInt64 result =
-      allocate<StructNestedIntStructAlignmentInt64>().ref;
+      calloc<StructNestedIntStructAlignmentInt64>().ref;
 
   result.a0.a0 = returnStructNestedIntStructAlignmentInt64_a0.a0;
   result.a0.a1 = returnStructNestedIntStructAlignmentInt64_a0.a1;
@@ -8322,13 +8323,13 @@ StructNestedIntStructAlignmentInt64 returnStructNestedIntStructAlignmentInt64(
 }
 
 void returnStructNestedIntStructAlignmentInt64AfterCallback() {
-  free(returnStructNestedIntStructAlignmentInt64Result.addressOf);
+  calloc.free(returnStructNestedIntStructAlignmentInt64Result.addressOf);
 
   final result = returnStructNestedIntStructAlignmentInt64CalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStructNestedIntStructAlignmentInt64Result.addressOf);
+  calloc.free(returnStructNestedIntStructAlignmentInt64Result.addressOf);
 }
 
 typedef ReturnStructNestedIrregularEvenBiggerType
@@ -8350,7 +8351,7 @@ StructNestedIrregularEvenBigger returnStructNestedIrregularEvenBiggerResult =
 StructNestedIrregularEvenBigger
     returnStructNestedIrregularEvenBiggerCalculateResult() {
   StructNestedIrregularEvenBigger result =
-      allocate<StructNestedIrregularEvenBigger>().ref;
+      calloc<StructNestedIrregularEvenBigger>().ref;
 
   result.a0 = returnStructNestedIrregularEvenBigger_a0;
   result.a1.a0.a0 = returnStructNestedIrregularEvenBigger_a1.a0.a0;
@@ -8419,11 +8420,11 @@ StructNestedIrregularEvenBigger returnStructNestedIrregularEvenBigger(int a0,
 }
 
 void returnStructNestedIrregularEvenBiggerAfterCallback() {
-  free(returnStructNestedIrregularEvenBiggerResult.addressOf);
+  calloc.free(returnStructNestedIrregularEvenBiggerResult.addressOf);
 
   final result = returnStructNestedIrregularEvenBiggerCalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStructNestedIrregularEvenBiggerResult.addressOf);
+  calloc.free(returnStructNestedIrregularEvenBiggerResult.addressOf);
 }
