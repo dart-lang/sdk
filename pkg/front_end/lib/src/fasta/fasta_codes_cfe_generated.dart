@@ -4590,6 +4590,44 @@ Message _withArgumentsSpreadTypeMismatch(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
+    Message Function(
+        DartType _type,
+        DartType _type2,
+        bool
+            isNonNullableByDefault)> templateSuperBoundedHint = const Template<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+    messageTemplate:
+        r"""If you want '#type' to be a super-bounded type, note that the inverted type '#type2' must then satisfy its bounds, which it does not.""",
+    withArguments: _withArgumentsSuperBoundedHint);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    codeSuperBoundedHint = const Code<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "SuperBoundedHint",
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSuperBoundedHint(
+    DartType _type, DartType _type2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeSuperBoundedHint,
+      message:
+          """If you want '${type}' to be a super-bounded type, note that the inverted type '${type2}' must then satisfy its bounds, which it does not.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
         Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>
     templateSwitchExpressionNotAssignable = const Template<

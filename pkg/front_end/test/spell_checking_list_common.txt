@@ -649,6 +649,7 @@ convenience
 convenient
 conventional
 conventions
+conversion
 convert
 converted
 convertible
@@ -994,6 +995,7 @@ endured
 enforcement
 engine
 engineers
+enhance
 enhancing
 enough
 ensure
@@ -1595,6 +1597,7 @@ invalidating
 invalidation
 invariant
 invariantly
+inversion
 invert
 inverted
 investigate

@@ -418,8 +418,8 @@ class SourceClassBuilder extends ClassBuilderImpl
             typeParameter.name,
             Variance.keywordString(variance));
       }
-      library.reportTypeArgumentIssue(
-          message, fileUri, fileOffset, typeParameter);
+      library.reportTypeArgumentIssue(message, fileUri, fileOffset,
+          typeParameter: typeParameter);
     }
   }
 
@@ -453,18 +453,26 @@ class SourceClassBuilder extends ClassBuilderImpl
       bool inferred = libraryBuilder.inferredTypes.contains(argument);
       if (isGenericFunctionTypeOrAlias(argument)) {
         if (inferred) {
+          // Supertype can't be or contain super-bounded types, so null is
+          // passed for super-bounded hint here.
           libraryBuilder.reportTypeArgumentIssue(
               templateGenericFunctionTypeInferredAsActualTypeArgument
                   .withArguments(argument, library.isNonNullableByDefault),
               fileUri,
               charOffset,
-              null);
+              typeParameter: null,
+              superBoundedAttempt: null,
+              superBoundedAttemptInverted: null);
         } else {
+          // Supertype can't be or contain super-bounded types, so null is
+          // passed for super-bounded hint here.
           libraryBuilder.reportTypeArgumentIssue(
               messageGenericFunctionTypeUsedAsActualTypeArgument,
               fileUri,
               charOffset,
-              null);
+              typeParameter: null,
+              superBoundedAttempt: null,
+              superBoundedAttemptInverted: null);
         }
       } else {
         void reportProblem(
@@ -472,6 +480,8 @@ class SourceClassBuilder extends ClassBuilderImpl
                     Message Function(DartType, DartType, String, String, String,
                         String, bool)>
                 template) {
+          // Supertype can't be or contain super-bounded types, so null is
+          // passed for super-bounded hint here.
           libraryBuilder.reportTypeArgumentIssue(
               template.withArguments(
                   argument,
@@ -483,7 +493,9 @@ class SourceClassBuilder extends ClassBuilderImpl
                   library.isNonNullableByDefault),
               fileUri,
               charOffset,
-              typeParameter);
+              typeParameter: typeParameter,
+              superBoundedAttempt: null,
+              superBoundedAttemptInverted: null);
         }
 
         if (inferred) {
