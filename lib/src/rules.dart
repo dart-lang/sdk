@@ -17,6 +17,7 @@ import 'rules/avoid_catches_without_on_clauses.dart';
 import 'rules/avoid_catching_errors.dart';
 import 'rules/avoid_classes_with_only_static_members.dart';
 import 'rules/avoid_double_and_int_checks.dart';
+import 'rules/avoid_dynamic_calls.dart';
 import 'rules/avoid_empty_else.dart';
 import 'rules/avoid_equals_and_hash_code_on_mutable_classes.dart';
 import 'rules/avoid_escaping_inner_quotes.dart';
@@ -201,6 +202,7 @@ void registerLintRules() {
     ..register(AvoidCatchingErrors())
     ..register(AvoidClassesWithOnlyStaticMembers())
     ..register(AvoidDoubleAndIntChecks())
+    ..register(AvoidDynamicCalls())
     ..register(AvoidEmptyElse())
     ..register(AvoidEscapingInnerQuotes())
     ..register(AvoidFieldInitializersInConstClasses())
