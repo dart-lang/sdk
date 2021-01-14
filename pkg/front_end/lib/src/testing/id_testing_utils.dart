@@ -24,6 +24,14 @@ String getMemberName(Member member) {
   return member.name.text;
 }
 
+/// Returns a canonical qualified name for [member].
+String getQualifiedMemberName(Member member) {
+  if (member.enclosingClass != null) {
+    return '${member.enclosingClass.name}.${getMemberName(member)}';
+  }
+  return getMemberName(member);
+}
+
 /// Returns the enclosing [Member] for [node].
 Member getEnclosingMember(TreeNode node) {
   while (node is! Member) {

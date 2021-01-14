@@ -6,10 +6,11 @@
 
 import 'dart:ffi';
 
+import 'package:ffi/ffi.dart';
+
+import 'calloc.dart';
 import 'coordinate.dart';
 import 'dylib_utils.dart';
-
-import 'package:ffi/ffi.dart';
 
 typedef NativeCoordinateOp = Pointer<Coordinate> Function(Pointer<Coordinate>);
 
@@ -25,8 +26,8 @@ main() {
         ffiTestFunctions.lookup("TransposeCoordinate");
     NativeCoordinateOp f1 = p1.asFunction();
 
-    Coordinate c1 = Coordinate.allocate(10.0, 20.0, nullptr);
-    Coordinate c2 = Coordinate.allocate(42.0, 84.0, c1.addressOf);
+    Coordinate c1 = Coordinate.allocate(calloc, 10.0, 20.0, nullptr);
+    Coordinate c2 = Coordinate.allocate(calloc, 42.0, 84.0, c1.addressOf);
     c1.next = c2.addressOf;
 
     Coordinate result = f1(c1.addressOf).ref;
@@ -46,7 +47,7 @@ main() {
         ffiTestFunctions.lookup("CoordinateElemAt1");
     NativeCoordinateOp f1 = p1.asFunction();
 
-    Pointer<Coordinate> c1 = allocate<Coordinate>(count: 3);
+    Pointer<Coordinate> c1 = calloc<Coordinate>(3);
     Pointer<Coordinate> c2 = c1.elementAt(1);
     Pointer<Coordinate> c3 = c1.elementAt(2);
     c1.ref.x = 10.0;

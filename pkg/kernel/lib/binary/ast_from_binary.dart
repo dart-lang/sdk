@@ -141,8 +141,15 @@ class BinaryBuilder {
       bool disableLazyClassReading = false,
       bool alwaysCreateNewNamedNodes})
       : _disableLazyReading = disableLazyReading,
-        _disableLazyClassReading =
-            disableLazyReading || disableLazyClassReading,
+        _disableLazyClassReading = disableLazyReading ||
+            disableLazyClassReading ||
+            // Disable lazy class reading when forcing the creation of new named
+            // nodes as it is a logical "relink" to the new version (overwriting
+            // the old one) - which doesn't play well with lazy loading class
+            // content as old loaded references will then potentially still
+            // point to the old content until the new class has been lazy
+            // loaded.
+            (alwaysCreateNewNamedNodes == true),
         this.alwaysCreateNewNamedNodes = alwaysCreateNewNamedNodes ?? false;
 
   fail(String message) {

@@ -439,6 +439,12 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
             'Extract Method', RefactoringKind.EXTRACT_METHOD));
       }
 
+      // Extract Local Variable
+      if (ExtractLocalRefactoring(unit, offset, length).isAvailable()) {
+        refactorActions.add(createRefactor(CodeActionKind.RefactorExtract,
+            'Extract Local Variable', RefactoringKind.EXTRACT_LOCAL_VARIABLE));
+      }
+
       // Extract Widget
       if (ExtractWidgetRefactoring(server.searchEngine, unit, offset, length)
           .isAvailable()) {

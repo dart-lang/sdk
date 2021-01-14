@@ -17,8 +17,9 @@ class Coordinate extends Struct {
 
   Pointer<Coordinate> next;
 
-  factory Coordinate.allocate(double x, double y, Pointer<Coordinate> next) {
-    return allocate<Coordinate>().ref
+  factory Coordinate.allocate(
+      Allocator allocator, double x, double y, Pointer<Coordinate> next) {
+    return allocator<Coordinate>().ref
       ..x = x
       ..y = y
       ..next = next;

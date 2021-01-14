@@ -2925,7 +2925,7 @@ TypeTranslator::TypeTranslator(KernelReaderHelper* helper,
                                ConstantReader* constant_reader,
                                ActiveClass* active_class,
                                bool finalize,
-                               bool apply_legacy_erasure)
+                               bool apply_canonical_type_erasure)
     : helper_(helper),
       constant_reader_(constant_reader),
       translation_helper_(helper->translation_helper_),
@@ -2936,7 +2936,7 @@ TypeTranslator::TypeTranslator(KernelReaderHelper* helper,
       zone_(translation_helper_.zone()),
       result_(AbstractType::Handle(translation_helper_.zone())),
       finalize_(finalize),
-      apply_legacy_erasure_(apply_legacy_erasure) {}
+      apply_canonical_type_erasure_(apply_canonical_type_erasure) {}
 
 AbstractType& TypeTranslator::BuildType() {
   BuildTypeInternal();
@@ -2968,13 +2968,13 @@ void TypeTranslator::BuildTypeInternal() {
       result_ = Object::void_type().raw();
       break;
     case kNeverType: {
-      const Nullability nullability = helper_->ReadNullability();
-      if (apply_legacy_erasure_) {
-        result_ = IG->object_store()->null_type();
-      } else {
-        result_ = Type::Handle(Z, IG->object_store()->never_type())
-                      .ToNullability(nullability, Heap::kOld);
+      Nullability nullability = helper_->ReadNullability();
+      if (apply_canonical_type_erasure_ &&
+          nullability != Nullability::kNullable) {
+        nullability = Nullability::kLegacy;
       }
+      result_ = Type::Handle(Z, IG->object_store()->never_type())
+                    .ToNullability(nullability, Heap::kOld);
       break;
     }
     case kBottomType:
@@ -3009,7 +3009,7 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
   //   => We therefore ignore errors in `A` or `B`.
 
   Nullability nullability = helper_->ReadNullability();
-  if (apply_legacy_erasure_) {
+  if (apply_canonical_type_erasure_ && nullability != Nullability::kNullable) {
     nullability = Nullability::kLegacy;
   }
 
@@ -3050,7 +3050,7 @@ void TypeTranslator::BuildFunctionType(bool simple) {
           ? active_class_->enclosing->NumTypeArguments()
           : 0;
   Nullability nullability = helper_->ReadNullability();
-  if (apply_legacy_erasure_) {
+  if (apply_canonical_type_erasure_ && nullability != Nullability::kNullable) {
     nullability = Nullability::kLegacy;
   }
   FunctionType& signature = FunctionType::ZoneHandle(
@@ -3120,8 +3120,7 @@ void TypeTranslator::BuildFunctionType(bool simple) {
       const uint8_t flags = helper_->ReadFlags();  // read flags
       signature.SetParameterTypeAt(pos, result_);
       signature.SetParameterNameAt(pos, name);
-      if (!apply_legacy_erasure_ &&
-          (flags & static_cast<uint8_t>(NamedTypeFlags::kIsRequired)) != 0) {
+      if ((flags & static_cast<uint8_t>(NamedTypeFlags::kIsRequired)) != 0) {
         signature.SetIsRequiredAt(pos);
       }
     }
@@ -3146,7 +3145,7 @@ void TypeTranslator::BuildFunctionType(bool simple) {
 
 void TypeTranslator::BuildTypeParameterType() {
   Nullability nullability = helper_->ReadNullability();
-  if (apply_legacy_erasure_) {
+  if (apply_canonical_type_erasure_ && nullability != Nullability::kNullable) {
     nullability = Nullability::kLegacy;
   }
 

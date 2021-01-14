@@ -834,6 +834,34 @@ class DartObjectImplTest {
     _assertIdentical(_boolValue(null), _stringValue(null), _stringValue("def"));
   }
 
+  void test_identical_Type_interfaceType() {
+    _assertIdentical(
+      _boolValue(true),
+      _typeValue(_typeProvider.intType),
+      _typeValue(_typeProvider.intType),
+    );
+
+    _assertIdentical(
+      _boolValue(false),
+      _typeValue(_typeProvider.intType),
+      _typeValue(_typeProvider.numType),
+    );
+
+    _assertIdentical(
+      _boolValue(true),
+      _typeValue(_typeProvider.futureOrType2(_typeProvider.objectType)),
+      _typeValue(_typeProvider.objectType),
+    );
+  }
+
+  void test_identical_Type_notType() {
+    _assertIdentical(
+      _boolValue(false),
+      _typeValue(_typeProvider.intType),
+      _intValue(0),
+    );
+  }
+
   void test_integerDivide_infinity_knownDouble() {
     _assertIntegerDivide(
       null,
@@ -2140,6 +2168,14 @@ class DartObjectImplTest {
       _typeSystem,
       _typeProvider.symbolType,
       SymbolState(value),
+    );
+  }
+
+  DartObjectImpl _typeValue(DartType value) {
+    return DartObjectImpl(
+      _typeSystem,
+      _typeProvider.typeType,
+      TypeState(value),
     );
   }
 }

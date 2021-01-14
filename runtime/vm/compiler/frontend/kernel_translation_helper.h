@@ -1330,7 +1330,7 @@ class ActiveClass {
     return member->IsFactory();
   }
 
-  bool RequireLegacyErasure(bool null_safety) const {
+  bool RequireConstCanonicalTypeErasure(bool null_safety) const {
     return klass != nullptr && !null_safety &&
            Library::Handle(klass->library()).nnbd_compiled_mode() ==
                NNBDCompiledMode::kAgnostic;
@@ -1459,7 +1459,7 @@ class TypeTranslator {
                  ConstantReader* constant_reader,
                  ActiveClass* active_class,
                  bool finalize = false,
-                 bool apply_legacy_erasure = false);
+                 bool apply_canonical_type_erasure = false);
 
   AbstractType& BuildType();
   AbstractType& BuildTypeWithoutFinalization();
@@ -1533,7 +1533,7 @@ class TypeTranslator {
   Zone* zone_;
   AbstractType& result_;
   bool finalize_;
-  const bool apply_legacy_erasure_;
+  const bool apply_canonical_type_erasure_;
 
   friend class ScopeBuilder;
   friend class KernelLoader;

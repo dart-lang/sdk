@@ -20,7 +20,8 @@ main() {
 class InvalidOverrideDifferentDefaultValuesNamedTest
     extends PubPackageResolutionTest {
   test_abstract_different_base_value() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 abstract class A {
   void foo({x = 0}) {}
 }
@@ -28,10 +29,12 @@ abstract class A {
 abstract class B extends A {
   void foo({x = 1});
 }
-''', [
-      error(StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED,
-          86, 5),
-    ]);
+''',
+      expectedErrorsByNullability(nullable: [], legacy: [
+        error(StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED,
+            86, 5),
+      ]),
+    );
   }
 
   test_abstract_noDefault_base_noDefault() async {
@@ -132,16 +135,19 @@ abstract class B extends A {
   }
 
   test_concrete_different() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void foo({x = 0}) {}
 }
 class B extends A {
   void foo({x = 1}) {}
-}''', [
-      error(StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED,
-          67, 5),
-    ]);
+}''',
+      expectedErrorsByNullability(nullable: [], legacy: [
+        error(StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED,
+            67, 5),
+      ]),
+    );
   }
 
   test_concrete_equal() async {
@@ -282,17 +288,20 @@ class B extends A {
     // If the base class provided an explicit value for a default parameter,
     // then it is a static warning for the derived class to provide a different
     // value, even if implicitly.
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 class A {
   void foo({x: 1}) {}
 }
 class B extends A {
   void foo({x}) {}
 }
-''', [
-      error(StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED,
-          66, 1),
-    ]);
+''',
+      expectedErrorsByNullability(nullable: [], legacy: [
+        error(StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED,
+            66, 1),
+      ]),
+    );
   }
 }
 

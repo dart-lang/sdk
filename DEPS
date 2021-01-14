@@ -73,7 +73,7 @@ vars = {
   "bazel_worker_rev": "060c55a933d39798681a4f533b161b81dc48d77e",
   "benchmark_harness_rev": "ec6b646f5443faa871e126ac1ba248c94ca06257",
   "boolean_selector_rev": "665e6921ab246569420376f827bff4585dff0b14",
-  "boringssl_gen_rev": "429ccb1877f7987a6f3988228bc2440e61293499",
+  "boringssl_gen_rev": "aaac86738c4f2d1bdf00f54d197f50f247ffee04",
   "boringssl_rev" : "4dfd5af70191b068aebe567b8e29ce108cee85ce",
   "browser-compat-data_tag": "v1.0.22",
   "charcode_rev": "bcd8a12c315b7a83390e4865ad847ecd9344cba2",
@@ -98,7 +98,7 @@ vars = {
   #     and land the review.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
-"dart_style_tag": "1.3.10",  # Please see the note above before updating.
+  "dart_style_tag": "1.3.11",  # Please see the note above before updating.
 
   "chromedriver_tag": "83.0.4103.39",
   "dartdoc_rev" : "a1d86f2c992f4660ddcc09b27733396e92765d2a",
@@ -106,7 +106,7 @@ vars = {
   "fixnum_rev": "16d3890c6dc82ca629659da1934e412292508bba",
   "file_rev": "0e09370f581ab6388d46fda4cdab66638c0171a1",
   "glob_rev": "7c0ef8d4fa086f6b185c4dd724b700e7d7ad8f79",
-  "html_rev": "22f17e97fedeacaa1e945cf84d8016284eed33a6",
+  "html_rev": "137be8db5d5b7f00530fca1591292849ce6779c9",
   "http_io_rev": "2fa188caf7937e313026557713f7feffedd4978b",
   "http_multi_server_rev" : "e8c8be7f15b4fb50757ff5bf29766721fbe24fe4",
   "http_parser_rev": "5dd4d16693242049dfb43b5efa429fedbf932e98",

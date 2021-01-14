@@ -67,6 +67,25 @@ class GetSuggestionAvailableTest extends GetSuggestionsBase {
     expect(includedIdSet, contains(asyncSet.id));
   }
 
+  Future<void> test_dart_afterRecovery() async {
+    addTestFile('');
+    // Wait for a known set to be available.
+    await waitForSetWithUri('dart:math');
+
+    // Ensure the set is returned in the results.
+    var results = await _getSuggestions(testFile, 0);
+    expect(results.includedSuggestionSets, isNotEmpty);
+
+    // Force the server to rebuild all contexts, as happens when the file watcher
+    // fails on Windows.
+    // https://github.com/dart-lang/sdk/issues/44650
+    server.contextManager.refresh(null);
+
+    // Ensure the set is still returned after the rebuild.
+    results = await _getSuggestions(testFile, 0);
+    expect(results.includedSuggestionSets, isNotEmpty);
+  }
+
   Future<void> test_dart_instanceCreationExpression() async {
     addTestFile(r'''
 main() {

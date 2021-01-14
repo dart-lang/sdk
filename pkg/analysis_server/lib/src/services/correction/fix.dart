@@ -247,6 +247,8 @@ class DartFixKind {
       'dart.fix.convert.toNamedArguments', 50, 'Convert to named arguments');
   static const CONVERT_TO_NULL_AWARE =
       FixKind('dart.fix.convert.toNullAware', 50, "Convert to use '?.'");
+  static const CONVERT_TO_NULL_AWARE_SPREAD = FixKind(
+      'dart.fix.convert.toNullAwareSpread', 50, "Convert to use '...?'");
   static const CONVERT_TO_ON_TYPE =
       FixKind('dart.fix.convert.toOnType', 50, "Convert to 'on {0}'");
   static const CONVERT_TO_PACKAGE_IMPORT = FixKind(

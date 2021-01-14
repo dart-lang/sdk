@@ -101,6 +101,9 @@ class Context extends ChainContext with MatchContext {
   @override
   String get updateExpectationsOption => '${UPDATE_EXPECTATIONS}=true';
 
+  @override
+  bool get canBeFixWithUpdateExpectations => true;
+
   final bool addTrace;
   final bool annotateLines;
   final String suiteName;

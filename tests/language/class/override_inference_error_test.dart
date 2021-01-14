@@ -200,8 +200,6 @@ class CInvalid11 implements IDefault {
   //   ^
   // [analyzer] COMPILE_TIME_ERROR.MISSING_DEFAULT_VALUE_FOR_PARAMETER
   // [cfe] unspecified
-  //   ^
-  // [analyzer] STATIC_WARNING.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED
 }
 
 // Inherits type variables, even with different names.

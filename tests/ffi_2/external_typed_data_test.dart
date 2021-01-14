@@ -9,6 +9,8 @@ import 'dart:typed_data';
 import 'package:expect/expect.dart';
 import "package:ffi/ffi.dart";
 
+import 'calloc.dart';
+
 main() {
   testInt8Load();
   testInt8Store();
@@ -41,162 +43,162 @@ main() {
 
 void testInt8Load() {
   // Load
-  Pointer<Int8> ptr = allocate();
+  Pointer<Int8> ptr = calloc();
   ptr.value = 0xff;
   Int8List list = ptr.asTypedList(1);
   Expect.equals(list[0], -1);
   Expect.equals(list.length, 1);
-  free(ptr);
+  calloc.free(ptr);
 }
 
 void testInt8Store() {
   // Store
-  Pointer<Int8> ptr = allocate();
+  Pointer<Int8> ptr = calloc();
   Int8List list = ptr.asTypedList(1);
   list[0] = 0xff;
   Expect.equals(list.length, 1);
   Expect.equals(ptr.value, -1);
-  free(ptr);
+  calloc.free(ptr);
 }
 
 void testUint8Load() {
   // Load
-  Pointer<Uint8> ptr = allocate();
+  Pointer<Uint8> ptr = calloc();
   ptr.value = 0xff;
   Uint8List list = ptr.asTypedList(1);
   Expect.equals(list[0], 0xff);
   Expect.equals(list.length, 1);
-  free(ptr);
+  calloc.free(ptr);
 }
 
 void testUint8Store() {
   // Store
-  Pointer<Uint8> ptr = allocate();
+  Pointer<Uint8> ptr = calloc();
   Uint8List list = ptr.asTypedList(1);
   list[0] = 0xff;
   Expect.equals(list.length, 1);
   Expect.equals(ptr.value, 0xff);
-  free(ptr);
+  calloc.free(ptr);
 }
 
 void testInt16Load() {
   // Load
-  Pointer<Int16> ptr = allocate();
+  Pointer<Int16> ptr = calloc();
   ptr.value = 0xffff;
   Int16List list = ptr.asTypedList(1);
   Expect.equals(list[0], -1);
   Expect.equals(list.length, 1);
-  free(ptr);
+  calloc.free(ptr);
 }
 
 void testInt16Store() {
   // Store
-  Pointer<Int16> ptr = allocate();
+  Pointer<Int16> ptr = calloc();
   Int16List list = ptr.asTypedList(1);
   list[0] = 0xffff;
   Expect.equals(list.length, 1);
   Expect.equals(ptr.value, -1);
-  free(ptr);
+  calloc.free(ptr);
 }
 
 void testUint16Load() {
   // Load
-  Pointer<Uint16> ptr = allocate();
+  Pointer<Uint16> ptr = calloc();
   ptr.value = 0xffff;
   Uint16List list = ptr.asTypedList(1);
   Expect.equals(list[0], 0xffff);
   Expect.equals(list.length, 1);
-  free(ptr);
+  calloc.free(ptr);
 }
 
 void testUint16Store() {
   // Store
-  Pointer<Uint16> ptr = allocate();
+  Pointer<Uint16> ptr = calloc();
   Uint16List list = ptr.asTypedList(1);
   list[0] = 0xffff;
   Expect.equals(list.length, 1);
   Expect.equals(ptr.value, 0xffff);
-  free(ptr);
+  calloc.free(ptr);
 }
 
 void testInt32Load() {
   // Load
-  Pointer<Int32> ptr = allocate();
+  Pointer<Int32> ptr = calloc();
   ptr.value = 0xffffffff;
   Int32List list = ptr.asTypedList(1);
   Expect.equals(list[0], -1);
   Expect.equals(list.length, 1);
-  free(ptr);
+  calloc.free(ptr);
 }
 
 void testInt32Store() {
   // Store
-  Pointer<Int32> ptr = allocate();
+  Pointer<Int32> ptr = calloc();
   Int32List list = ptr.asTypedList(1);
   list[0] = 0xffffffff;
   Expect.equals(list.length, 1);
   Expect.equals(ptr.value, -1);
-  free(ptr);
+  calloc.free(ptr);
 }
 
 void testUint32Load() {
   // Load
-  Pointer<Uint32> ptr = allocate();
+  Pointer<Uint32> ptr = calloc();
   ptr.value = 0xffffffff;
   Uint32List list = ptr.asTypedList(1);
   Expect.equals(list[0], 0xffffffff);
   Expect.equals(list.length, 1);
-  free(ptr);
+  calloc.free(ptr);
 }
 
 void testUint32Store() {
   // Store
-  Pointer<Uint32> ptr = allocate();
+  Pointer<Uint32> ptr = calloc();
   Uint32List list = ptr.asTypedList(1);
   list[0] = 0xffffffff;
   Expect.equals(list.length, 1);
   Expect.equals(ptr.value, 0xffffffff);
-  free(ptr);
+  calloc.free(ptr);
 }
 
 void testInt64Load() {
   // Load
-  Pointer<Int64> ptr = allocate();
+  Pointer<Int64> ptr = calloc();
   ptr.value = 0xffffffffffffffff;
   Int64List list = ptr.asTypedList(1);
   Expect.equals(list[0], -1);
   Expect.equals(list.length, 1);
-  free(ptr);
+  calloc.free(ptr);
 }
 
 void testInt64Store() {
   // Store
-  Pointer<Int64> ptr = allocate();
+  Pointer<Int64> ptr = calloc();
   Int64List list = ptr.asTypedList(1);
   list[0] = 0xffffffffffffffff;
   Expect.equals(list.length, 1);
   Expect.equals(ptr.value, -1);
-  free(ptr);
+  calloc.free(ptr);
 }
 
 void testUint64Load() {
   // Load
-  Pointer<Uint64> ptr = allocate();
+  Pointer<Uint64> ptr = calloc();
   ptr.value = 0xffffffffffffffff;
   Uint64List list = ptr.asTypedList(1);
   Expect.equals(list[0], 0xffffffffffffffff);
   Expect.equals(list.length, 1);
-  free(ptr);
+  calloc.free(ptr);
 }
 
 void testUint64Store() {
   // Store
-  Pointer<Uint64> ptr = allocate();
+  Pointer<Uint64> ptr = calloc();
   Uint64List list = ptr.asTypedList(1);
   list[0] = 0xffffffffffffffff;
   Expect.equals(list.length, 1);
   Expect.equals(ptr.value, 0xffffffffffffffff);
-  free(ptr);
+  calloc.free(ptr);
 }
 
 double maxFloat = (2 - pow(2, -23)) * pow(2, 127);
@@ -204,47 +206,47 @@ double maxDouble = (2 - pow(2, -52)) * pow(2, pow(2, 10) - 1);
 
 void testFloatLoad() {
   // Load
-  Pointer<Float> ptr = allocate();
+  Pointer<Float> ptr = calloc();
   ptr.value = maxFloat;
   Float32List list = ptr.asTypedList(1);
   Expect.equals(list[0], maxFloat);
   Expect.equals(list.length, 1);
-  free(ptr);
+  calloc.free(ptr);
 }
 
 void testFloatStore() {
   // Store
-  Pointer<Float> ptr = allocate();
+  Pointer<Float> ptr = calloc();
   Float32List list = ptr.asTypedList(1);
   list[0] = maxFloat;
   Expect.equals(list.length, 1);
   Expect.equals(ptr.value, maxFloat);
-  free(ptr);
+  calloc.free(ptr);
 }
 
 void testDoubleLoad() {
   // Load
-  Pointer<Double> ptr = allocate();
+  Pointer<Double> ptr = calloc();
   ptr.value = maxDouble;
   Float64List list = ptr.asTypedList(1);
   Expect.equals(list[0], maxDouble);
   Expect.equals(list.length, 1);
-  free(ptr);
+  calloc.free(ptr);
 }
 
 void testDoubleStore() {
   // Store
-  Pointer<Double> ptr = allocate();
+  Pointer<Double> ptr = calloc();
   Float64List list = ptr.asTypedList(1);
   list[0] = maxDouble;
   Expect.equals(list.length, 1);
   Expect.equals(ptr.value, maxDouble);
-  free(ptr);
+  calloc.free(ptr);
 }
 
 void testArrayLoad() {
   const int count = 0x100;
-  Pointer<Int32> ptr = allocate(count: count);
+  Pointer<Int32> ptr = calloc(count);
   for (int i = 0; i < count; ++i) {
     ptr[i] = i;
   }
@@ -252,12 +254,12 @@ void testArrayLoad() {
   for (int i = 0; i < count; ++i) {
     Expect.equals(array[i], i);
   }
-  free(ptr);
+  calloc.free(ptr);
 }
 
 void testArrayStore() {
   const int count = 0x100;
-  Pointer<Int32> ptr = allocate(count: count);
+  Pointer<Int32> ptr = calloc(count);
   Int32List array = ptr.asTypedList(count);
   for (int i = 0; i < count; ++i) {
     array[i] = i;
@@ -265,7 +267,7 @@ void testArrayStore() {
   for (int i = 0; i < count; ++i) {
     Expect.equals(ptr[i], i);
   }
-  free(ptr);
+  calloc.free(ptr);
 }
 
 void testNegativeArray() {

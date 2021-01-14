@@ -14,6 +14,8 @@ import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 import 'package:benchmark_harness/benchmark_harness.dart';
 
+import 'calloc.dart';
+
 //
 // Struct field store (plus Pointer elementAt and load).
 //
@@ -52,9 +54,9 @@ class FieldLoadStore extends BenchmarkBase {
   FieldLoadStore() : super('FfiStruct.FieldLoadStore');
 
   @override
-  void setup() => pointer = allocate(count: N);
+  void setup() => pointer = calloc(N);
   @override
-  void teardown() => free(pointer);
+  void teardown() => calloc.free(pointer);
 
   @override
   void run() {

@@ -4,6 +4,9 @@
 
 import 'dart:ffi';
 
+import 'package:ffi/ffi.dart';
+
+import 'calloc.dart';
 import 'coordinate.dart';
 import 'dylib_utils.dart';
 
@@ -43,7 +46,7 @@ main() {
     Pointer<NativeFunction<CoordinateTrice>> p2 =
         ffiTestFunctions.lookup("CoordinateUnOpTrice");
     CoordinateTrice coordinateUnOpTrice = p2.asFunction();
-    Coordinate c1 = Coordinate.allocate(10.0, 20.0, nullptr);
+    Coordinate c1 = Coordinate.allocate(calloc, 10.0, 20.0, nullptr);
     c1.next = c1.addressOf;
     Coordinate result =
         coordinateUnOpTrice(transposeCoordinatePointer, c1.addressOf).ref;

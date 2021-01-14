@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -306,6 +307,75 @@ class A {
   int myField;
   main() {
     print(myField);
+  }
+}
+''');
+  }
+
+  Future<void> test_getterSetter_qualified() async {
+    await resolveTestCode('''
+class A {
+  int get foo => 0;
+  set foo(int _) {}
+}
+
+void f(A a) {
+  a.foo2 += 2;
+}
+''');
+    await assertHasFix('''
+class A {
+  int get foo => 0;
+  set foo(int _) {}
+}
+
+void f(A a) {
+  a.foo += 2;
+}
+''', errorFilter: (e) => e.errorCode == CompileTimeErrorCode.UNDEFINED_GETTER);
+  }
+
+  Future<void> test_getterSetter_qualified_static() async {
+    await resolveTestCode('''
+class A {
+  static int get foo => 0;
+  static set foo(int _) {}
+}
+
+void f() {
+  A.foo2 += 2;
+}
+''');
+    await assertHasFix('''
+class A {
+  static int get foo => 0;
+  static set foo(int _) {}
+}
+
+void f() {
+  A.foo += 2;
+}
+''', errorFilter: (e) => e.errorCode == CompileTimeErrorCode.UNDEFINED_GETTER);
+  }
+
+  Future<void> test_getterSetter_unqualified() async {
+    await resolveTestCode('''
+class A {
+  int get foo => 0;
+  set foo(int _) {}
+
+  void f() {
+    foo2 += 2;
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  int get foo => 0;
+  set foo(int _) {}
+
+  void f() {
+    foo += 2;
   }
 }
 ''');

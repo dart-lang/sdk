@@ -11,6 +11,7 @@ import 'dart:typed_data';
 import 'package:benchmark_harness/benchmark_harness.dart';
 import 'package:ffi/ffi.dart';
 
+import 'calloc.dart';
 import 'digest.dart';
 import 'types.dart';
 
@@ -48,11 +49,11 @@ String hash(Pointer<Data> data, int length, Pointer<EVP_MD> hashAlgorithm) {
   EVP_DigestInit(context, hashAlgorithm);
   EVP_DigestUpdate(context, data, length);
   final int resultSize = EVP_MD_CTX_size(context);
-  final Pointer<Bytes> result = allocate<Uint8>(count: resultSize).cast();
+  final Pointer<Bytes> result = calloc<Uint8>(resultSize).cast();
   EVP_DigestFinal(context, result, nullptr);
   EVP_MD_CTX_free(context);
   final String hash = base64Encode(toUint8List(result.ref, resultSize));
-  free(result);
+  calloc.free(result);
   return hash;
 }
 
@@ -83,14 +84,14 @@ class DigestCMemory extends BenchmarkBase {
 
   @override
   void setup() {
-    data = allocate<Uint8>(count: L).cast();
+    data = calloc<Uint8>(L).cast();
     copyFromUint8ListToTarget(inventData(L), data.ref);
     hash(data, L, hashAlgorithm);
   }
 
   @override
   void teardown() {
-    free(data);
+    calloc.free(data);
   }
 
   @override
@@ -113,10 +114,10 @@ class DigestDartMemory extends BenchmarkBase {
   @override
   void setup() {
     data = inventData(L);
-    final Pointer<Data> dataInC = allocate<Uint8>(count: L).cast();
+    final Pointer<Data> dataInC = calloc<Uint8>(L).cast();
     copyFromUint8ListToTarget(data, dataInC.ref);
     hash(dataInC, L, hashAlgorithm);
-    free(dataInC);
+    calloc.free(dataInC);
   }
 
   @override
@@ -124,10 +125,10 @@ class DigestDartMemory extends BenchmarkBase {
 
   @override
   void run() {
-    final Pointer<Data> dataInC = allocate<Uint8>(count: L).cast();
+    final Pointer<Data> dataInC = calloc<Uint8>(L).cast();
     copyFromUint8ListToTarget(data, dataInC.ref);
     final String result = hash(dataInC, L, hashAlgorithm);
-    free(dataInC);
+    calloc.free(dataInC);
     if (result != expectedHash) {
       throw Exception('$name: Unexpected result: $result');
     }

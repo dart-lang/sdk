@@ -1120,7 +1120,8 @@ Result<TestData> checkExpectFile(TestData data, int worldNum,
           "${extra}Unexpected serialized representation. "
           "Fix or update $uri to contain the below:\n\n"
           "$actualSerialized",
-          autoFixCommand: "updateExpectations=true");
+          autoFixCommand: "updateExpectations=true",
+          canBeFixWithUpdateExpectations: true);
     }
   }
   return null;

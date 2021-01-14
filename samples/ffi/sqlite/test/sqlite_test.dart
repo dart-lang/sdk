@@ -168,6 +168,6 @@ void main() {
     final String test = 'Hasta Mañana';
     final medium = Utf8.toUtf8(test);
     expect(test, medium.ref.toString());
-    free(medium);
+    calloc.free(medium);
   });
 }

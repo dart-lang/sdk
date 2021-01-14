@@ -34,6 +34,7 @@ import 'convert_to_where_type_test.dart' as convert_to_where_type;
 import 'create_method_test.dart' as create_method;
 import 'data_driven_test.dart' as data_driven;
 import 'inline_invocation_test.dart' as inline_invocation;
+import 'inline_typedef_test.dart' as inline_typedef;
 import 'make_final_test.dart' as make_final;
 import 'remove_argument_test.dart' as remove_argument;
 import 'remove_await_test.dart' as remove_await;
@@ -97,6 +98,7 @@ void main() {
     create_method.main();
     data_driven.main();
     inline_invocation.main();
+    inline_typedef.main();
     make_final.main();
     remove_argument.main();
     remove_await.main();

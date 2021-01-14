@@ -6,6 +6,7 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 
+import 'calloc.dart';
 import 'coordinate.dart';
 
 main() {
@@ -13,9 +14,9 @@ main() {
 
   {
     // Allocates each coordinate separately in c memory.
-    Coordinate c1 = Coordinate.allocate(10.0, 10.0, nullptr);
-    Coordinate c2 = Coordinate.allocate(20.0, 20.0, c1.addressOf);
-    Coordinate c3 = Coordinate.allocate(30.0, 30.0, c2.addressOf);
+    Coordinate c1 = Coordinate.allocate(calloc, 10.0, 10.0, nullptr);
+    Coordinate c2 = Coordinate.allocate(calloc, 20.0, 20.0, c1.addressOf);
+    Coordinate c3 = Coordinate.allocate(calloc, 30.0, 30.0, c2.addressOf);
     c1.next = c3.addressOf;
 
     Coordinate currentCoordinate = c1;
@@ -24,14 +25,14 @@ main() {
       print("${currentCoordinate.x}; ${currentCoordinate.y}");
     }
 
-    free(c1.addressOf);
-    free(c2.addressOf);
-    free(c3.addressOf);
+    calloc.free(c1.addressOf);
+    calloc.free(c2.addressOf);
+    calloc.free(c3.addressOf);
   }
 
   {
     // Allocates coordinates consecutively in c memory.
-    Pointer<Coordinate> c1 = allocate<Coordinate>(count: 3);
+    Pointer<Coordinate> c1 = calloc<Coordinate>(3);
     Pointer<Coordinate> c2 = c1.elementAt(1);
     Pointer<Coordinate> c3 = c1.elementAt(2);
     c1.ref.x = 10.0;
@@ -50,15 +51,15 @@ main() {
       print("${currentCoordinate.x}; ${currentCoordinate.y}");
     }
 
-    free(c1);
+    calloc.free(c1);
   }
 
   {
-    Coordinate c = Coordinate.allocate(10, 10, nullptr);
+    Coordinate c = Coordinate.allocate(calloc, 10, 10, nullptr);
     print(c is Coordinate);
     print(c is Pointer<Void>);
     print(c is Pointer);
-    free(c.addressOf);
+    calloc.free(c.addressOf);
   }
 
   print("end main");

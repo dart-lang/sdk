@@ -34,6 +34,7 @@ alexmarkov
 aligned
 alive
 allocate
+allocator
 altered
 analogous
 analogy
@@ -441,6 +442,7 @@ fo
 foo
 foobar
 footer
+forcing
 foreign
 formed
 former
@@ -836,6 +838,7 @@ permit
 pi
 picking
 pkg
+play
 player
 plugin
 pm
@@ -1264,6 +1267,7 @@ unparsed
 unpleasant
 unreachable
 unseen
+unset
 unshadowed
 unsortable
 unsound

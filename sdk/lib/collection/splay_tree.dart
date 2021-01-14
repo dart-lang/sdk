@@ -474,20 +474,25 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
 
   Iterable<V> get values => _SplayTreeValueIterable<K, V>(this);
 
-  /// Get the first key in the map. Returns `null` if the map is empty.
+  /// The first key in the map.
+  ///
+  /// Returns `null` if the map is empty.
   K? firstKey() {
     if (_root == null) return null;
     return _first!.key;
   }
 
-  /// Get the last key in the map. Returns `null` if the map is empty.
+  /// The last key in the map.
+  ///
+  /// Returns `null` if the map is empty.
   K? lastKey() {
     if (_root == null) return null;
     return _last!.key;
   }
 
-  /// Get the last key in the map that is strictly smaller than [key]. Returns
-  /// `null` if no key was not found.
+  /// The last key in the map that is strictly smaller than [key].
+  ///
+  /// Returns `null` if no key was not found.
   K? lastKeyBefore(K key) {
     if (key == null) throw ArgumentError(key);
     if (_root == null) return null;
@@ -729,7 +734,7 @@ class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeSetNode<E>>
   /// ```dart
   /// Set<SuperType> superSet = ...;
   /// Set<SubType> subSet =
-  ///     new SplayTreeSet<SubType>.from(superSet.whereType<SubType>());
+  ///     SplayTreeSet<SubType>.from(superSet.whereType<SubType>());
   /// ```
   factory SplayTreeSet.from(Iterable elements,
       [int Function(E key1, E key2)? compare,

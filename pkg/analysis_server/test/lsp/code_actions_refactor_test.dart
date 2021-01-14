@@ -17,6 +17,7 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtractMethodRefactorCodeActionsTest);
     defineReflectiveTests(ExtractWidgetRefactorCodeActionsTest);
+    defineReflectiveTests(ExtractVariableRefactorCodeActionsTest);
   });
 }
 
@@ -158,6 +159,38 @@ main() {
         req1, throwsA(isResponseError(ErrorCodes.ContentModified)));
   }
 
+  Future<void> test_generatesNames() async {
+    const content = '''
+Object main() {
+  return Container([[Text('Test!')]]);
+}
+
+Object Container(Object text) => null;
+Object Text(Object text) => null;
+    ''';
+    const expectedContent = '''
+Object main() {
+  return Container(text());
+}
+
+Object text() => Text('Test!');
+
+Object Container(Object text) => null;
+Object Text(Object text) => null;
+    ''';
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize();
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final codeAction =
+        findCommand(codeActions, Commands.performRefactor, extractMethodTitle);
+    expect(codeAction, isNotNull);
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
+  }
+
   Future<void> test_invalidLocation() async {
     const content = '''
 import 'dart:convert';
@@ -293,6 +326,71 @@ void newMethod() {
 
     // Ensure the progress messages came through and in the correct order.
     expect(progressRequests, equals(['CREATE', 'BEGIN', 'END']));
+  }
+}
+
+@reflectiveTest
+class ExtractVariableRefactorCodeActionsTest extends AbstractCodeActionsTest {
+  final extractVariableTitle = 'Extract Local Variable';
+
+  Future<void> test_appliesCorrectEdits() async {
+    const content = '''
+main() {
+  foo([[1 + 2]]);
+}
+
+void foo(int arg) {}
+    ''';
+    const expectedContent = '''
+main() {
+  var arg = 1 + 2;
+  foo(arg);
+}
+
+void foo(int arg) {}
+    ''';
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize();
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final codeAction = findCommand(
+        codeActions, Commands.performRefactor, extractVariableTitle);
+    expect(codeAction, isNotNull);
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
+  }
+
+  Future<void> test_doesNotCreateNameConflicts() async {
+    const content = '''
+main() {
+  var arg = "test";
+  foo([[1 + 2]]);
+}
+
+void foo(int arg) {}
+    ''';
+    const expectedContent = '''
+main() {
+  var arg = "test";
+  var arg2 = 1 + 2;
+  foo(arg2);
+}
+
+void foo(int arg) {}
+    ''';
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize();
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final codeAction = findCommand(
+        codeActions, Commands.performRefactor, extractVariableTitle);
+    expect(codeAction, isNotNull);
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
   }
 }
 

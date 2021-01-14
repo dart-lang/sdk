@@ -285,7 +285,8 @@ class _ClassVerifier {
         errorNode: node,
       );
 
-      if (superMember is MethodElement &&
+      if (!_isNonNullableByDefault &&
+          superMember is MethodElement &&
           member is MethodElement &&
           methodParameterNodes != null) {
         _checkForOptionalParametersDifferentDefaultValues(

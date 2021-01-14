@@ -5828,38 +5828,29 @@ void Class::RehashConstants(Zone* zone) const {
   set.Release();
 }
 
-bool Class::RequireLegacyErasureOfConstants(Zone* zone) const {
+bool Class::RequireCanonicalTypeErasureOfConstants(Zone* zone) const {
   const intptr_t num_type_params = NumTypeParameters();
   const intptr_t num_type_args = NumTypeArguments();
   const intptr_t from_index = num_type_args - num_type_params;
   Instance& constant = Instance::Handle(zone);
   TypeArguments& type_arguments = TypeArguments::Handle(zone);
-  AbstractType& type = AbstractType::Handle(zone);
   CanonicalInstancesSet set(zone, constants());
   CanonicalInstancesSet::Iterator it(&set);
+  bool result = false;
   while (it.MoveNext()) {
     constant ^= set.GetKey(it.Current());
     ASSERT(!constant.IsNull());
     ASSERT(!constant.IsTypeArguments());
     ASSERT(!constant.IsType());
     type_arguments = constant.GetTypeArguments();
-    if (type_arguments.IsNull()) {
-      continue;
-    }
-    for (intptr_t i = 0; i < num_type_params; i++) {
-      type = type_arguments.TypeAt(from_index + i);
-      if (!type.IsLegacy() && !type.IsVoidType() && !type.IsDynamicType() &&
-          !type.IsNullType()) {
-        set.Release();
-        return true;
-      }
-      // It is not possible for a legacy type to have non-legacy type
-      // arguments or for a legacy function type to have non-legacy parameter
-      // types, non-legacy type parameters, or required named parameters.
+    if (type_arguments.RequireConstCanonicalTypeErasure(zone, from_index,
+                                                        num_type_params)) {
+      result = true;
+      break;
     }
   }
   set.Release();
-  return false;
+  return result;
 }
 
 intptr_t TypeArguments::ComputeNullability() const {
@@ -6061,6 +6052,27 @@ bool TypeArguments::IsRecursive(TrailPtr trail) const {
     // type argument will be replaced by a non-null type before the type is
     // marked as finalized.
     if (type.IsNull() || type.IsRecursive(trail)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool TypeArguments::RequireConstCanonicalTypeErasure(Zone* zone,
+                                                     intptr_t from_index,
+                                                     intptr_t len,
+                                                     TrailPtr trail) const {
+  if (IsNull()) return false;
+  ASSERT(Length() >= (from_index + len));
+  AbstractType& type = AbstractType::Handle(zone);
+  for (intptr_t i = 0; i < len; i++) {
+    type = TypeAt(from_index + i);
+    if (type.IsNonNullable() ||
+        (type.IsNullable() &&
+         type.RequireConstCanonicalTypeErasure(zone, trail))) {
+      // It is not possible for a legacy type to have non-nullable type
+      // arguments or for a legacy function type to have non-nullable type in
+      // its signature.
       return true;
     }
   }
@@ -19060,6 +19072,13 @@ bool AbstractType::IsRecursive(TrailPtr trail) const {
   return false;
 }
 
+bool AbstractType::RequireConstCanonicalTypeErasure(Zone* zone,
+                                                    TrailPtr trail) const {
+  // AbstractType is an abstract class.
+  UNREACHABLE();
+  return false;
+}
+
 AbstractTypePtr AbstractType::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
@@ -20059,6 +20078,24 @@ bool Type::IsRecursive(TrailPtr trail) const {
   return TypeArguments::Handle(arguments()).IsRecursive(trail);
 }
 
+bool Type::RequireConstCanonicalTypeErasure(Zone* zone, TrailPtr trail) const {
+  if (IsNonNullable()) {
+    return true;
+  }
+  if (IsLegacy()) {
+    // It is not possible for a legacy type parameter to have a non-nullable
+    // bound or non-nullable default argument.
+    return false;
+  }
+  const Class& cls = Class::Handle(zone, type_class());
+  const intptr_t num_type_params = cls.NumTypeParameters();
+  const intptr_t num_type_args = cls.NumTypeArguments();
+  const intptr_t from_index = num_type_args - num_type_params;
+  return TypeArguments::Handle(zone, arguments())
+      .RequireConstCanonicalTypeErasure(zone, from_index, num_type_params,
+                                        trail);
+}
+
 bool Type::IsDeclarationTypeOf(const Class& cls) const {
   ASSERT(type_class() == cls.raw());
   if (cls.IsNullClass()) {
@@ -20413,6 +20450,47 @@ bool FunctionType::IsRecursive(TrailPtr trail) const {
   return false;
 }
 
+bool FunctionType::RequireConstCanonicalTypeErasure(Zone* zone,
+                                                    TrailPtr trail) const {
+  if (IsNonNullable()) {
+    return true;
+  }
+  if (IsLegacy()) {
+    // It is not possible for a function type to have a non-nullable type in
+    // its signature.
+    return false;
+  }
+  AbstractType& type = AbstractType::Handle(zone);
+  const intptr_t num_type_params = NumTypeParameters();
+  if (num_type_params > 0) {
+    const TypeArguments& type_params = TypeArguments::Handle(type_parameters());
+    TypeParameter& type_param = TypeParameter::Handle(zone);
+    for (intptr_t i = 0; i < num_type_params; i++) {
+      type_param ^= type_params.TypeAt(i);
+      type = type_param.bound();
+      if (type.RequireConstCanonicalTypeErasure(zone, trail)) {
+        return true;
+      }
+      type = type_param.default_argument();
+      if (type.RequireConstCanonicalTypeErasure(zone, trail)) {
+        return true;
+      }
+    }
+  }
+  type = result_type();
+  if (type.RequireConstCanonicalTypeErasure(zone, trail)) {
+    return true;
+  }
+  const intptr_t num_params = NumParameters();
+  for (intptr_t i = 0; i < num_params; i++) {
+    type = ParameterTypeAt(i);
+    if (type.RequireConstCanonicalTypeErasure(zone, trail)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 AbstractTypePtr FunctionType::Canonicalize(Thread* thread,
                                            TrailPtr trail) const {
   ASSERT(IsFinalized());
@@ -20550,6 +20628,16 @@ void FunctionType::EnumerateURIs(URIs* uris) const {
   // Handle result type last, since it appears last in the user visible name.
   type = result_type();
   type.EnumerateURIs(uris);
+}
+
+bool TypeRef::RequireConstCanonicalTypeErasure(Zone* zone,
+                                               TrailPtr trail) const {
+  if (TestAndAddToTrail(&trail)) {
+    return false;
+  }
+  const AbstractType& ref_type = AbstractType::Handle(zone, type());
+  return !ref_type.IsNull() &&
+         ref_type.RequireConstCanonicalTypeErasure(zone, trail);
 }
 
 bool TypeRef::IsInstantiated(Genericity genericity,
