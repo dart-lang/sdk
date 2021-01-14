@@ -16466,9 +16466,7 @@ CodePtr Code::FinalizeCode(FlowGraphCompiler* compiler,
     }
   } else {
 #if defined(DART_PRECOMPILER)
-    const bool needs_pool = (FLAG_write_v8_snapshot_profile_to != nullptr) ||
-                            (FLAG_trace_precompiler_to != nullptr);
-    if (needs_pool && assembler->HasObjectPoolBuilder() &&
+    if (assembler->HasObjectPoolBuilder() &&
         assembler->object_pool_builder().HasParent()) {
       // We are not going to write this pool into snapshot, but we will use
       // it to emit references from this code object to other objects in the

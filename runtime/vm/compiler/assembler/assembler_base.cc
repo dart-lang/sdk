@@ -327,6 +327,7 @@ intptr_t ObjectPoolBuilder::FindObject(ObjectPoolBuilderEntry entry) {
     if (parent_ != nullptr) {
       const intptr_t idx = parent_->object_pool_index_table_.LookupValue(entry);
       if (idx != ObjIndexPair::kNoIndex) {
+        used_from_parent_.Add(idx);
         return idx;
       }
     }

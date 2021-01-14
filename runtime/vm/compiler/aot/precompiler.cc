@@ -1651,12 +1651,31 @@ void Precompiler::ReplaceFunctionStaticCallEntries() {
         : table_(Array::Handle(zone)),
           kind_and_offset_(Smi::Handle(zone)),
           target_function_(Function::Handle(zone)),
-          target_code_(Code::Handle(zone)) {}
+          target_code_(Code::Handle(zone)),
+          pool_(ObjectPool::Handle(zone)) {}
 
     void VisitCode(const Code& code) {
       if (!code.IsFunctionCode()) return;
       table_ = code.static_calls_target_table();
       StaticCallsTable static_calls(table_);
+
+      // With bare instructions, there is a global pool and per-Code local
+      // pools. Instructions are generated to use offsets into the global pool,
+      // but we still use the local pool to track which Code are using which
+      // pool values for the purposes of analyzing snapshot size
+      // (--write_v8_snapshot_profile_to and --print_instructions_sizes_to) and
+      // deferred loading deciding which snapshots to place pool values in.
+      // We don't keep track of which offsets in the local pools correspond to
+      // which entries in the static call table, so we don't properly replace
+      // the old references to the CallStaticFunction stub, but it is sufficient
+      // for the local pool to include the actual call target.
+      compiler::ObjectPoolBuilder builder;
+      bool append_to_pool = FLAG_use_bare_instructions;
+      if (append_to_pool) {
+        pool_ = code.object_pool();
+        pool_.CopyInto(&builder);
+      }
+
       for (auto& view : static_calls) {
         kind_and_offset_ = view.Get<Code::kSCallTableKindAndOffset>();
         auto const kind = Code::KindField::decode(kind_and_offset_.Value());
@@ -1678,12 +1697,19 @@ void Precompiler::ReplaceFunctionStaticCallEntries() {
               Code::OffsetField::decode(kind_and_offset_.Value());
           const uword pc = pc_offset + code.PayloadStart();
           CodePatcher::PatchStaticCallAt(pc, code, target_code_);
+          if (append_to_pool) {
+            builder.AddObject(Object::ZoneHandle(target_code_.raw()));
+          }
         }
         if (FLAG_trace_precompiler) {
           THR_Print("Updated static call entry to %s in \"%s\"\n",
                     target_function_.ToFullyQualifiedCString(),
                     code.ToCString());
         }
+      }
+
+      if (append_to_pool) {
+        code.set_object_pool(ObjectPool::NewFromBuilder(builder));
       }
     }
 
@@ -1692,6 +1718,7 @@ void Precompiler::ReplaceFunctionStaticCallEntries() {
     Smi& kind_and_offset_;
     Function& target_function_;
     Code& target_code_;
+    ObjectPool& pool_;
   };
 
   HANDLESCOPE(T);

@@ -11,6 +11,7 @@
 #include "vm/constants.h"
 #include "vm/cpu.h"
 #include "vm/object.h"
+#include "vm/object_store.h"
 #include "vm/reverse_pc_lookup_cache.h"
 
 namespace dart {
@@ -220,12 +221,14 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
   Register dst;
   if (IsLoadWithOffset(instr, PP, &offset, &dst)) {
     intptr_t index = ObjectPool::IndexFromOffset(offset);
-    const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
-    if (!pool.IsNull()) {
-      if (pool.TypeAt(index) == ObjectPool::EntryType::kTaggedObject) {
-        *obj = pool.ObjectAt(index);
-        return true;
-      }
+    const ObjectPool& pool = ObjectPool::Handle(
+        FLAG_use_bare_instructions
+            ? IsolateGroup::Current()->object_store()->global_object_pool()
+            : code.object_pool());
+    if (!pool.IsNull() && (index < pool.Length()) &&
+        (pool.TypeAt(index) == ObjectPool::EntryType::kTaggedObject)) {
+      *obj = pool.ObjectAt(index);
+      return true;
     }
   } else if (IsLoadWithOffset(instr, THR, &offset, &dst)) {
     return Thread::ObjectAtOffset(offset, obj);
