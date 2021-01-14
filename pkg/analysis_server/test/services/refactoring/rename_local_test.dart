@@ -465,10 +465,8 @@ main() {
 ''');
     await analyzeTestPackageFiles();
 
-    testAnalysisResult = await resolveFile(a);
-    testFile = testAnalysisResult.path;
-    testCode = testAnalysisResult.content;
-    testUnit = testAnalysisResult.unit;
+    testFile = a;
+    await resolveTestFile();
 
     createRenameRefactoringAtString('test});');
     expect(refactoring.refactoringName, 'Rename Parameter');
