@@ -11,6 +11,8 @@ import 'dart:ffi';
 import 'package:expect/expect.dart';
 import 'package:ffi/ffi.dart';
 
+import '../../../../tests/ffi/calloc.dart';
+
 class X {
   int field;
   X(this.field);
@@ -35,8 +37,8 @@ int loadFrom(Pointer<Int32> p) {
 }
 
 void main() {
-  final p = allocate<Int32>(count: 128);
+  final p = calloc<Int32>(128);
   p[0] = 42;
   Expect.equals(42, loadFrom(p));
-  free(p);
+  calloc.free(p);
 }
