@@ -168,8 +168,12 @@ class CfeCompiledData<T> extends CompiledData<T> {
           offset = cls.fileOffset;
         }
       } else {
-        member = lookupLibraryMember(library, id.memberName);
-        offset = member.fileOffset;
+        member = lookupLibraryMember(library, id.memberName, required: false);
+        if (member != null) {
+          offset = member.fileOffset;
+        } else {
+          offset = 0;
+        }
       }
       if (offset == -1) {
         offset = 0;

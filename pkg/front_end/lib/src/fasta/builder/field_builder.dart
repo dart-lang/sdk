@@ -902,6 +902,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
     if (isSetEncoding == late_lowering.IsSetEncoding.useSentinel) {
       _field.initializer = new StaticInvocation(coreTypes.createSentinelMethod,
           new Arguments([], types: [_type])..fileOffset = fileOffset)
+        ..fileOffset = fileOffset
         ..parent = _field;
     } else {
       _field.initializer = new NullLiteral()

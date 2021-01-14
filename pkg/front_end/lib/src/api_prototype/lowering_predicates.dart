@@ -31,6 +31,34 @@ bool isLateLoweredField(Field node) {
       !node.name.text.endsWith(lateIsSetSuffix);
 }
 
+/// Returns the name of the original field for a lowered late field where
+/// [node] is the field holding the value of a lowered late field.
+///
+/// For instance
+///
+///    late int field;
+///
+/// is lowered to (simplified):
+///
+///    int? _#field = null;
+///    int get field => _#field != null ? _#field : throw 'Uninitialized';
+///    void set field(int value) {
+///      _#field = value;
+///    }
+///
+/// where '_#field' is the field holding that value and 'field' is the name of
+/// the original field.
+///
+/// This assumes that `isLateLoweredField(node)` is true.
+Name extractFieldNameFromLateLoweredField(Field node) {
+  assert(isLateLoweredField(node));
+  String prefix = lateFieldPrefix;
+  if (node.isInstanceMember) {
+    prefix = '$prefix${node.enclosingClass.name}#';
+  }
+  return new Name(node.name.text.substring(prefix.length), node.name.library);
+}
+
 /// Returns `true` if [node] is the field holding the marker for whether a
 /// lowered late field has been set or not.
 ///
@@ -56,6 +84,40 @@ bool isLateLoweredIsSetField(Field node) {
       node.name != null &&
       node.name.text.startsWith(lateFieldPrefix) &&
       node.name.text.endsWith(lateIsSetSuffix);
+}
+
+/// Returns the name of the original field for a lowered late field where [node]
+/// is the field holding the marker for whether the lowered late field has been
+/// set or not.
+///
+/// For instance
+///
+///    late int? field;
+///
+/// is lowered to (simplified):
+///
+///    bool _#field#isSet = false;
+///    int? _#field = null;
+///    int get field => _#field#isSet ? _#field : throw 'Uninitialized';
+///    void set field(int value) {
+///      _#field = value;
+///      _#field#isSet = true;
+///    }
+///
+/// where '_#field#isSet' is the field holding the marker and 'field' is the
+/// name of the original field.
+///
+/// This assumes that `isLateLoweredIsSetField(node)` is true.
+Name extractFieldNameFromLateLoweredIsSetField(Field node) {
+  assert(isLateLoweredIsSetField(node));
+  String prefix = lateFieldPrefix;
+  if (node.isInstanceMember) {
+    prefix = '$prefix${node.enclosingClass.name}#';
+  }
+  return new Name(
+      node.name.text.substring(
+          prefix.length, node.name.text.length - lateIsSetSuffix.length),
+      node.name.library);
 }
 
 /// Returns `true` if [node] is the getter for reading the value of a lowered
@@ -93,6 +155,30 @@ bool isLateLoweredFieldGetter(Procedure node) {
   return false;
 }
 
+/// Returns the name of the original field for a lowered late field where [node]
+/// is the getter for reading the value of a lowered late field.
+///
+/// For instance
+///
+///    late int field;
+///
+/// is lowered to (simplified):
+///
+///    int? _#field = null;
+///    int get field => _#field != null ? _#field : throw 'Uninitialized';
+///    void set field(int value) {
+///      _#field = value;
+///    }
+///
+/// where 'int get field' is the getter for reading the field and 'field' is the
+/// name of the original field.
+///
+/// This assumes that `isLateLoweredFieldGetter(node)` is true.
+Name extractFieldNameFromLateLoweredFieldGetter(Procedure node) {
+  assert(isLateLoweredFieldGetter(node));
+  return node.name;
+}
+
 /// Returns `true` if [node] is the setter for setting the value of a lowered
 /// late field.
 ///
@@ -126,6 +212,265 @@ bool isLateLoweredFieldSetter(Procedure node) {
     }
   }
   return false;
+}
+
+/// Returns the name of the original field for a lowered late field where [node]
+/// is the setter for setting the value of a lowered late field.
+///
+/// For instance
+///
+///    late int field;
+///
+/// is lowered to (simplified):
+///
+///    int? _#field = null;
+///    int get field => _#field != null ? _#field : throw 'Uninitialized';
+///    void set field(int value) {
+///      _#field = value;
+///    }
+///
+/// where 'void set field' is the setter for setting the value of the field and
+/// 'field' is the name of the original field.
+///
+/// This assumes that `isLateLoweredFieldSetter(node)` is true.
+Name extractFieldNameFromLateLoweredFieldSetter(Procedure node) {
+  assert(isLateLoweredFieldSetter(node));
+  return node.name;
+}
+
+/// Returns the original initializer of a lowered late field where [node] is
+/// either the field holding the value, the field holding the marker for whether
+/// it has been set or not, getter for reading the value, or the setter for
+/// setting the value of the field.
+///
+/// For instance
+///
+///    late int field = 42;
+///
+/// is lowered to (simplified):
+///
+///    int? _#field = null;
+///    int get field => _#field == null ? throw 'Uninitialized' : _#field = 42;
+///    void set field(int value) {
+///      _#field = value;
+///    }
+///
+/// where this original initializer is `42`, '_#field' is the field holding that
+/// value,  '_#field#isSet' is the field holding the marker, 'int get field' is
+/// the getter for reading the field, and 'void set field' is the setter for
+/// setting the value of the field.
+///
+/// If the original late field had no initializer, `null` is returned.
+///
+/// If [node] is not part of a late field lowering, `null` is returned.
+Expression getLateFieldInitializer(Member node) {
+  Procedure lateFieldGetter = _getLateFieldTarget(node);
+  if (lateFieldGetter != null) {
+    Statement body = lateFieldGetter.function.body;
+    if (body is Block &&
+        body.statements.length == 2 &&
+        body.statements.first is IfStatement) {
+      IfStatement ifStatement = body.statements.first;
+      if (ifStatement.then is Block) {
+        Block block = ifStatement.then;
+        if (block.statements.isNotEmpty &&
+            block.statements.first is ExpressionStatement) {
+          ExpressionStatement firstStatement = block.statements.first;
+          if (firstStatement.expression is PropertySet) {
+            // We have
+            //
+            //    get field {
+            //      if (!_#isSet#field) {
+            //        this._#field = <init>;
+            //        ...
+            //      }
+            //      return _#field;
+            //    }
+            //
+            // in case `<init>` is the initializer.
+            PropertySet propertySet = firstStatement.expression;
+            assert(propertySet.interfaceTarget == getLateFieldTarget(node));
+            return propertySet.value;
+          } else if (firstStatement.expression is StaticSet) {
+            // We have
+            //
+            //    get field {
+            //      if (!_#isSet#field) {
+            //        _#field = <init>;
+            //        ...
+            //      }
+            //      return _#field;
+            //    }
+            //
+            // in case `<init>` is the initializer.
+            StaticSet staticSet = firstStatement.expression;
+            assert(staticSet.target == getLateFieldTarget(node));
+            return staticSet.value;
+          }
+        } else if (block.statements.isNotEmpty &&
+            block.statements.first is VariableDeclaration) {
+          // We have
+          //
+          //    get field {
+          //      if (!_#isSet#field) {
+          //        var temp = <init>;
+          //        if (_#isSet#field) throw '...'
+          //        _#field = temp;
+          //        _#isSet#field = true
+          //      }
+          //      return _#field;
+          //    }
+          //
+          // in case `<init>` is the initializer.
+          VariableDeclaration variableDeclaration = block.statements.first;
+          return variableDeclaration.initializer;
+        }
+      }
+      return null;
+    } else if (body is ReturnStatement) {
+      Expression expression = body.expression;
+      if (expression is ConditionalExpression &&
+          expression.otherwise is Throw) {
+        // We have
+        //
+        //    get field => _#field#isSet ? #field : throw ...;
+        //
+        // in which case there is no initializer.
+        return null;
+      } else if (expression is Let) {
+        Expression letBody = expression.body;
+        if (letBody is ConditionalExpression) {
+          Expression then = letBody.then;
+          if (then is Throw) {
+            // We have
+            //
+            //    get field => let # = _#field in <is-unset> ? throw ... : #;
+            //
+            // in which case there is no initializer.
+            return null;
+          } else if (then is PropertySet) {
+            // We have
+            //
+            //    get field => let # = this._#field in <is-unset>
+            //        ? this._#field = <init> : #;
+            //
+            // in which case `<init>` is the initializer.
+            assert(then.interfaceTarget == getLateFieldTarget(node));
+            return then.value;
+          } else if (then is StaticSet) {
+            // We have
+            //
+            //    get field => let # = this._#field in <is-unset>
+            //        ? this._#field = <init> : #;
+            //
+            // in which case `<init>` is the initializer.
+            assert(then.target == getLateFieldTarget(node));
+            return then.value;
+          } else if (then is Let && then.body is ConditionalExpression) {
+            // We have
+            //
+            //    get field => let #1 = _#field in <is-unset>
+            //        ? let #2 = <init> in ...
+            //        : #1;
+            //
+            // in which case `<init>` is the initializer.
+            return then.variable.initializer;
+          }
+        }
+      }
+    }
+    throw new UnsupportedError(
+        'Unrecognized late getter encoding for $lateFieldGetter: ${body}');
+  }
+
+  return null;
+}
+
+/// Returns getter for reading the value of a lowered late field where [node] is
+/// either the field holding the value, the field holding the marker for whether
+/// it has been set or not, getter for reading the value, or the setter for
+/// setting the value of the field.
+Procedure _getLateFieldTarget(Member node) {
+  Name lateFieldName;
+  if (node is Procedure) {
+    if (isLateLoweredFieldGetter(node)) {
+      return node;
+    } else if (isLateLoweredFieldSetter(node)) {
+      lateFieldName = extractFieldNameFromLateLoweredFieldSetter(node);
+    }
+  } else if (node is Field) {
+    if (isLateLoweredField(node)) {
+      lateFieldName = extractFieldNameFromLateLoweredField(node);
+    } else if (isLateLoweredIsSetField(node)) {
+      lateFieldName = extractFieldNameFromLateLoweredIsSetField(node);
+    }
+  }
+  if (lateFieldName != null) {
+    TreeNode parent = node.parent;
+    List<Procedure> procedures;
+    if (parent is Class) {
+      procedures = parent.procedures;
+    } else if (parent is Library) {
+      procedures = parent.procedures;
+    }
+    return procedures.singleWhere((Procedure procedure) =>
+        isLateLoweredFieldGetter(procedure) &&
+        extractFieldNameFromLateLoweredFieldGetter(procedure) == lateFieldName);
+  }
+  return null;
+}
+
+/// Returns the field holding the value for a lowered late field where [node] is
+/// either the field holding the value, the field holding the marker for whether
+/// it has been set or not, getter for reading the value, or the setter for
+/// setting the value of the field.
+///
+/// For instance
+///
+///    late int field = 42;
+///
+/// is lowered to (simplified):
+///
+///    int? _#field = null;
+///    int get field => _#field == null ? throw 'Uninitialized' : _#field = 42;
+///    void set field(int value) {
+///      _#field = value;
+///    }
+///
+/// where '_#field' is the field holding that value,  '_#field#isSet' is the
+/// field holding the marker, 'int get field' is the getter for reading the
+/// field, and 'void set field' is the setter for setting the value of the
+/// field.
+///
+/// If [node] is not part of a late field lowering, `null` is returned.
+Field getLateFieldTarget(Member node) {
+  Name lateFieldName;
+  if (node is Procedure) {
+    if (isLateLoweredFieldGetter(node)) {
+      lateFieldName = extractFieldNameFromLateLoweredFieldGetter(node);
+    } else if (isLateLoweredFieldSetter(node)) {
+      lateFieldName = extractFieldNameFromLateLoweredFieldSetter(node);
+    }
+  } else if (node is Field) {
+    if (isLateLoweredField(node)) {
+      return node;
+    } else if (isLateLoweredIsSetField(node)) {
+      lateFieldName = extractFieldNameFromLateLoweredIsSetField(node);
+    }
+  }
+  if (lateFieldName != null) {
+    TreeNode parent = node.parent;
+    List<Field> fields;
+    if (parent is Class) {
+      fields = parent.fields;
+    } else if (parent is Library) {
+      fields = parent.fields;
+    }
+    return fields.singleWhere((Field field) =>
+        isLateLoweredField(field) &&
+        extractFieldNameFromLateLoweredField(field) == lateFieldName);
+  }
+  return null;
 }
 
 /// Returns `true` if [node] is the local variable holding the value of a

@@ -6542,6 +6542,7 @@ class InferenceVisitor
         node.initializer = new StaticInvocation(
             inferrer.coreTypes.createSentinelMethod,
             new Arguments([], types: [node.type])..fileOffset = fileOffset)
+          ..fileOffset = fileOffset
           ..parent = node;
       } else {
         node.initializer = null;
