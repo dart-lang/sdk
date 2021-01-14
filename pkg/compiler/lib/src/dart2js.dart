@@ -234,22 +234,9 @@ Future<api.CompilationResult> compile(List<String> argv,
     passThrough(argument);
   }
 
-  void addInEnvironment(Iterator<String> arguments) {
-    final isDefine = arguments.current.startsWith('--define');
-    String argument;
-    if (arguments.current == '--define') {
-      arguments.moveNext();
-      argument = arguments.current;
-    } else {
-      argument = arguments.current.substring(isDefine ? '--define='.length : 2);
-    }
-    // Allow for ' ' or '=' after --define
+  void addInEnvironment(String argument) {
     int eqIndex = argument.indexOf('=');
-    if (eqIndex <= 0) {
-      helpAndFail('Invalid value for --define: $argument');
-      return;
-    }
-    String name = argument.substring(0, eqIndex);
+    String name = argument.substring(2, eqIndex);
     String value = argument.substring(eqIndex + 1);
     environment[name] = value;
   }
@@ -575,8 +562,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler('${Flags.mergeFragmentsThreshold}=.+', passThrough),
 
     // The following three options must come last.
-    new OptionHandler('-D.+=.*|--define=.+=.*|--define', addInEnvironment,
-        multipleArguments: true),
+    new OptionHandler('-D.+=.*', addInEnvironment),
     new OptionHandler('-.*', (String argument) {
       helpAndFail("Unknown option '$argument'.");
     }),
@@ -1042,7 +1028,7 @@ Supported options:
   -v, --verbose
     Display verbose information.
 
-  -D<name>=<value>, --define=<name>=<value>
+  -D<name>=<value>
     Define an environment declaration.
 
   --version

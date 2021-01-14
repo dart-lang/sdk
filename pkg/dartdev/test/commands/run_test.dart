@@ -179,7 +179,6 @@ void main(List<String> args) => print("$b $args");
       '--no-pause-isolates-on-exit',
       '--no-pause-isolates-on-unhandled-exceptions',
       '-Dfoo=bar',
-      '--define=bar=foo',
       p.relativeFilePath,
     ]);
     expect(
@@ -201,7 +200,6 @@ void main(List<String> args) => print("$b $args");
       '--no-pause-isolates-on-unhandled-exceptions',
       '--disable-service-auth-codes',
       '-Dfoo=bar',
-      '--define=bar=foo',
       p.relativeFilePath,
     ]);
 

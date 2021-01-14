@@ -100,12 +100,8 @@ class RunCommand extends DartdevCommand {
         );
     }
     argParser
-      ..addMultiOption(
-        'define',
-        abbr: 'D',
-        valueHelp: 'key=value',
-        help: 'Define an environment declaration.',
-      )
+      ..addMultiOption('define',
+          abbr: 'D', help: 'Defines an environment variable', hide: true)
       ..addFlag(
         'disable-service-auth-codes',
         hide: !verbose,

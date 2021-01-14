@@ -730,19 +730,8 @@ Map<String, String> parseAndRemoveDeclaredVariables(List<String> args) {
   var declaredVariables = <String, String>{};
   for (var i = 0; i < args.length;) {
     var arg = args[i];
-    String rest;
-    const defineFlag = '--define';
     if (arg.startsWith('-D') && arg.length > 2) {
-      rest = arg.substring(2);
-    } else if (arg.startsWith('$defineFlag=') &&
-        arg.length > defineFlag.length + 1) {
-      rest = arg.substring(defineFlag.length + 1);
-    } else if (arg == defineFlag) {
-      i++;
-      rest = args[i];
-    }
-
-    if (rest != null) {
+      var rest = arg.substring(2);
       var eq = rest.indexOf('=');
       if (eq <= 0) {
         var kind = eq == 0 ? 'name' : 'value';
