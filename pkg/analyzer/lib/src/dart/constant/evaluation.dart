@@ -5,7 +5,6 @@
 import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -979,10 +978,6 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   /// Convenience getter to gain access to the [evaluationEngine]'s type system.
   TypeSystemImpl get typeSystem => _library.typeSystem;
 
-  bool get _isEnabledConstantUpdate2018 {
-    return _library.featureSet.isEnabled(Feature.constant_update_2018);
-  }
-
   bool get _isNonNullableByDefault => typeSystem.isNonNullableByDefault;
 
   /// Convenience getter to gain access to the [evaluationEngine]'s type
@@ -1005,14 +1000,9 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl visitAsExpression(AsExpression node) {
-    if (_isEnabledConstantUpdate2018) {
-      DartObjectImpl expressionResult = node.expression.accept(this);
-      DartObjectImpl typeResult = node.type.accept(this);
-      return _dartObjectComputer.castToType(node, expressionResult, typeResult);
-    }
-    // TODO(brianwilkerson) Figure out which error to report.
-    _error(node, null);
-    return null;
+    DartObjectImpl expressionResult = node.expression.accept(this);
+    DartObjectImpl typeResult = node.type.accept(this);
+    return _dartObjectComputer.castToType(node, expressionResult, typeResult);
   }
 
   @override
@@ -1027,33 +1017,21 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       return _dartObjectComputer.lazyOr(
           node, leftResult, () => node.rightOperand.accept(this));
     } else if (operatorType == TokenType.QUESTION_QUESTION) {
-      if (_isEnabledConstantUpdate2018) {
-        return _dartObjectComputer.lazyQuestionQuestion(
-            node, leftResult, () => node.rightOperand.accept(this));
-      } else {
-        return _dartObjectComputer.eagerQuestionQuestion(
-            node, leftResult, node.rightOperand.accept(this));
-      }
+      return _dartObjectComputer.lazyQuestionQuestion(
+          node, leftResult, () => node.rightOperand.accept(this));
     }
     // evaluate eager operators
     DartObjectImpl rightResult = node.rightOperand.accept(this);
     if (operatorType == TokenType.AMPERSAND) {
-      return _dartObjectComputer.eagerAnd(
-          node, leftResult, rightResult, _isEnabledConstantUpdate2018);
+      return _dartObjectComputer.eagerAnd(node, leftResult, rightResult);
     } else if (operatorType == TokenType.BANG_EQ) {
       return _dartObjectComputer.notEqual(node, leftResult, rightResult);
     } else if (operatorType == TokenType.BAR) {
-      return _dartObjectComputer.eagerOr(
-          node, leftResult, rightResult, _isEnabledConstantUpdate2018);
+      return _dartObjectComputer.eagerOr(node, leftResult, rightResult);
     } else if (operatorType == TokenType.CARET) {
-      return _dartObjectComputer.eagerXor(
-          node, leftResult, rightResult, _isEnabledConstantUpdate2018);
+      return _dartObjectComputer.eagerXor(node, leftResult, rightResult);
     } else if (operatorType == TokenType.EQ_EQ) {
-      if (_isEnabledConstantUpdate2018) {
-        return _dartObjectComputer.lazyEqualEqual(
-            node, leftResult, rightResult);
-      }
-      return _dartObjectComputer.equalEqual(node, leftResult, rightResult);
+      return _dartObjectComputer.lazyEqualEqual(node, leftResult, rightResult);
     } else if (operatorType == TokenType.GT) {
       return _dartObjectComputer.greaterThan(node, leftResult, rightResult);
     } else if (operatorType == TokenType.GT_EQ) {
@@ -1102,44 +1080,13 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   DartObjectImpl visitConditionalExpression(ConditionalExpression node) {
     Expression condition = node.condition;
     DartObjectImpl conditionResult = condition.accept(this);
-    if (_isEnabledConstantUpdate2018) {
-      if (conditionResult == null) {
-        return conditionResult;
-      } else if (!conditionResult.isBool) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL, condition);
-        return null;
-      }
-      conditionResult = _dartObjectComputer.applyBooleanConversion(
-          condition, conditionResult);
-      if (conditionResult == null) {
-        return conditionResult;
-      }
-      if (conditionResult.toBoolValue() == true) {
-        _reportNotPotentialConstants(node.elseExpression);
-        return node.thenExpression.accept(this);
-      } else if (conditionResult.toBoolValue() == false) {
-        _reportNotPotentialConstants(node.thenExpression);
-        return node.elseExpression.accept(this);
-      }
-      // We used to return an object with a known type and an unknown value, but
-      // we can't do that without evaluating both the 'then' and 'else'
-      // expressions, and we're not suppose to do that under lazy semantics. I'm
-      // not sure which failure mode is worse.
-      return null;
-    }
-    DartObjectImpl thenResult = node.thenExpression.accept(this);
-    DartObjectImpl elseResult = node.elseExpression.accept(this);
+
     if (conditionResult == null) {
       return conditionResult;
     } else if (!conditionResult.isBool) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL, condition);
       return null;
-    } else if (thenResult == null) {
-      return thenResult;
-    } else if (elseResult == null) {
-      return elseResult;
     }
     conditionResult =
         _dartObjectComputer.applyBooleanConversion(condition, conditionResult);
@@ -1147,16 +1094,18 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       return conditionResult;
     }
     if (conditionResult.toBoolValue() == true) {
-      return thenResult;
+      _reportNotPotentialConstants(node.elseExpression);
+      return node.thenExpression.accept(this);
     } else if (conditionResult.toBoolValue() == false) {
-      return elseResult;
+      _reportNotPotentialConstants(node.thenExpression);
+      return node.elseExpression.accept(this);
     }
-    ParameterizedType thenType = thenResult.type;
-    ParameterizedType elseType = elseResult.type;
-    return DartObjectImpl.validWithUnknownValue(
-      typeSystem,
-      typeSystem.getLeastUpperBound(thenType, elseType) as ParameterizedType,
-    );
+
+    // We used to return an object with a known type and an unknown value, but
+    // we can't do that without evaluating both the 'then' and 'else'
+    // expressions, and we're not suppose to do that under lazy semantics. I'm
+    // not sure which failure mode is worse.
+    return null;
   }
 
   @override
@@ -1224,14 +1173,9 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl visitIsExpression(IsExpression node) {
-    if (_isEnabledConstantUpdate2018) {
-      DartObjectImpl expressionResult = node.expression.accept(this);
-      DartObjectImpl typeResult = node.type.accept(this);
-      return _dartObjectComputer.typeTest(node, expressionResult, typeResult);
-    }
-    // TODO(brianwilkerson) Figure out which error to report.
-    _error(node, null);
-    return null;
+    DartObjectImpl expressionResult = node.expression.accept(this);
+    DartObjectImpl typeResult = node.type.accept(this);
+    return _dartObjectComputer.typeTest(node, expressionResult, typeResult);
   }
 
   @override
@@ -1839,10 +1783,10 @@ class DartObjectComputer {
   }
 
   DartObjectImpl eagerAnd(BinaryExpression node, DartObjectImpl leftOperand,
-      DartObjectImpl rightOperand, bool allowBool) {
+      DartObjectImpl rightOperand) {
     if (leftOperand != null && rightOperand != null) {
       try {
-        return leftOperand.eagerAnd(_typeSystem, rightOperand, allowBool);
+        return leftOperand.eagerAnd(_typeSystem, rightOperand);
       } on EvaluationException catch (exception) {
         _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
@@ -1851,10 +1795,10 @@ class DartObjectComputer {
   }
 
   DartObjectImpl eagerOr(BinaryExpression node, DartObjectImpl leftOperand,
-      DartObjectImpl rightOperand, bool allowBool) {
+      DartObjectImpl rightOperand) {
     if (leftOperand != null && rightOperand != null) {
       try {
-        return leftOperand.eagerOr(_typeSystem, rightOperand, allowBool);
+        return leftOperand.eagerOr(_typeSystem, rightOperand);
       } on EvaluationException catch (exception) {
         _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
@@ -1874,10 +1818,10 @@ class DartObjectComputer {
   }
 
   DartObjectImpl eagerXor(BinaryExpression node, DartObjectImpl leftOperand,
-      DartObjectImpl rightOperand, bool allowBool) {
+      DartObjectImpl rightOperand) {
     if (leftOperand != null && rightOperand != null) {
       try {
-        return leftOperand.eagerXor(_typeSystem, rightOperand, allowBool);
+        return leftOperand.eagerXor(_typeSystem, rightOperand);
       } on EvaluationException catch (exception) {
         _errorReporter.reportErrorForNode(exception.errorCode, node);
       }
