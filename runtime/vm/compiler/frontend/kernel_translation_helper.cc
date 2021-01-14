@@ -3348,12 +3348,18 @@ void TypeTranslator::LoadAndSetupTypeParameters(
   const Library& lib = Library::Handle(Z, active_class->klass->library());
   {
     AlternativeReadingScope alt(&helper_->reader_);
+    String& name = String::Handle(Z);
     for (intptr_t i = 0; i < type_parameter_count; i++) {
       TypeParameterHelper helper(helper_);
       helper.Finish();
+      if (parameterized_class.IsNull() && function.IsNull()) {
+        // Erase provided name and use a canonical one instead.
+        name = Symbols::NewFormatted(H.thread(), "X%" Pd, offset + i);
+      } else {
+        name = H.DartIdentifier(lib, helper.name_index_).raw();
+      }
       parameter = TypeParameter::New(
-          parameterized_class, offset, offset + i,
-          H.DartIdentifier(lib, helper.name_index_), null_bound,
+          parameterized_class, offset, offset + i, name, null_bound,
           helper.IsGenericCovariantImpl(), nullability);
       type_parameters.SetTypeAt(i, parameter);
     }
