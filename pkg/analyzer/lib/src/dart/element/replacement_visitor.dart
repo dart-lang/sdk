@@ -376,7 +376,7 @@ class ReplacementVisitor
     var element = type.element;
     if (element is ClassElement) {
       parameters = element.typeParameters;
-    } else if (element is FunctionTypeAliasElement) {
+    } else if (element is TypeAliasElement) {
       parameters = element.typeParameters;
     }
 
