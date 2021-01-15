@@ -41,4 +41,6 @@ class Flags {
   static const String verify = "--verify";
   static const String verifySkipPlatform = "--verify-skip-platform";
   static const String warnOnReachabilityCheck = "--warn-on-reachability-check";
+
+  static const String invocationModes = "--invocation-modes";
 }

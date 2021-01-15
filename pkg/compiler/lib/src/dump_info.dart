@@ -581,7 +581,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         OutputType.dumpInfo)
       ..add(jsonBuffer.toString())
       ..close();
-    compiler.reporter.reportInfo(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
+    compiler.reporter
+        .reportInfoMessage(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
       'text': "View the dumped .info.json file at "
           "https://dart-lang.github.io/dump-info-visualizer"
     });
@@ -592,7 +593,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     Sink<List<int>> sink = new BinaryOutputSinkAdapter(compiler.outputProvider
         .createBinarySink(compiler.options.outputUri.resolve(name)));
     dump_info.encode(data, sink);
-    compiler.reporter.reportInfo(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
+    compiler.reporter
+        .reportInfoMessage(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
       'text': "Use `package:dart2js_info` to parse and process the dumped "
           ".info.data file."
     });

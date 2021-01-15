@@ -126,6 +126,7 @@ CompilerOptions setupCompilerOptions(
           errors.addAll(message.plainTextFormatted);
           break;
         case Severity.warning:
+        case Severity.info:
           printMessage = !suppressWarnings;
           break;
         case Severity.context:

@@ -424,6 +424,17 @@ class CompilerOptions implements DiagnosticOptions {
   /// deserialize when using [readCodegenUri].
   int codegenShards;
 
+  /// Arguments passed to the front end about how it is invoked.
+  ///
+  /// This is used to selectively emit certain messages depending on how the
+  /// CFE is invoked. For instance to emit a message about the null safety
+  /// compilation mode when compiling an executable.
+  ///
+  /// See `InvocationMode` in
+  /// `pkg/front_end/lib/src/api_prototype/compiler_options.dart` for all
+  /// possible options.
+  String cfeInvocationModes = '';
+
   // -------------------------------------------------
   // Options for deprecated features
   // -------------------------------------------------
@@ -535,7 +546,9 @@ class CompilerOptions implements DiagnosticOptions {
       .._soundNullSafety = _hasOption(options, Flags.soundNullSafety)
       .._noSoundNullSafety = _hasOption(options, Flags.noSoundNullSafety)
       .._mergeFragmentsThreshold =
-          _extractIntOption(options, '${Flags.mergeFragmentsThreshold}=');
+          _extractIntOption(options, '${Flags.mergeFragmentsThreshold}=')
+      ..cfeInvocationModes =
+          _extractStringOption(options, '${Flags.cfeInvocationModes}=', '');
   }
 
   void validate() {

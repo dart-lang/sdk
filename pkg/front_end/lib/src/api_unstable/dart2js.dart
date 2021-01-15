@@ -18,7 +18,8 @@ import 'package:kernel/ast.dart' as ir;
 
 import 'package:kernel/target/targets.dart' show Target;
 
-import '../api_prototype/compiler_options.dart' show CompilerOptions;
+import '../api_prototype/compiler_options.dart'
+    show CompilerOptions, InvocationMode;
 
 import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 
@@ -40,7 +41,7 @@ import '../fasta/kernel/redirecting_factory_body.dart' as redirecting;
 
 import 'compiler_state.dart' show InitializedCompilerState;
 
-import 'util.dart' show equalLists, equalMaps;
+import 'util.dart' show equalLists, equalMaps, equalSets;
 
 export 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show LocatedMessage;
@@ -97,7 +98,11 @@ export 'package:_fe_analyzer_shared/src/util/relativize.dart'
     show relativizeUri;
 
 export '../api_prototype/compiler_options.dart'
-    show CompilerOptions, parseExperimentalFlags, parseExperimentalArguments;
+    show
+        CompilerOptions,
+        InvocationMode,
+        parseExperimentalFlags,
+        parseExperimentalArguments;
 
 export '../api_prototype/experimental_flags.dart'
     show defaultExperimentalFlags, ExperimentalFlag, isExperimentEnabled;
@@ -138,7 +143,8 @@ InitializedCompilerState initializeCompiler(
     Uri packagesFileUri,
     {Map<ExperimentalFlag, bool> explicitExperimentalFlags,
     bool verify: false,
-    NnbdMode nnbdMode}) {
+    NnbdMode nnbdMode,
+    Set<InvocationMode> invocationModes: const <InvocationMode>{}}) {
   additionalDills.sort((a, b) => a.toString().compareTo(b.toString()));
 
   // We don't check `target` because it doesn't support '==' and each
@@ -151,7 +157,8 @@ InitializedCompilerState initializeCompiler(
       equalMaps(oldState.options.explicitExperimentalFlags,
           explicitExperimentalFlags) &&
       oldState.options.verify == verify &&
-      oldState.options.nnbdMode == nnbdMode) {
+      oldState.options.nnbdMode == nnbdMode &&
+      equalSets(oldState.options.invocationModes, invocationModes)) {
     return oldState;
   }
 
@@ -161,7 +168,8 @@ InitializedCompilerState initializeCompiler(
     ..librariesSpecificationUri = librariesSpecificationUri
     ..packagesFileUri = packagesFileUri
     ..explicitExperimentalFlags = explicitExperimentalFlags
-    ..verify = verify;
+    ..verify = verify
+    ..invocationModes = invocationModes;
   if (nnbdMode != null) options.nnbdMode = nnbdMode;
 
   ProcessedOptions processedOpts = new ProcessedOptions(options: options);

@@ -255,6 +255,7 @@ void main() async {
               'succeeded': true,
               'errors': isEmpty,
               'warnings': isEmpty,
+              'infos': isEmpty,
               'compiledProcedure': contains('return other;'),
             })
           ]));
@@ -288,6 +289,7 @@ void main() async {
               'succeeded': true,
               'errors': isEmpty,
               'warnings': isEmpty,
+              'infos': isEmpty,
               'compiledProcedure': contains('return formal;'),
             })
           ]));
@@ -320,6 +322,7 @@ void main() async {
               'succeeded': true,
               'errors': isEmpty,
               'warnings': isEmpty,
+              'infos': isEmpty,
               'compiledProcedure': contains('return count;'),
             })
           ]));
@@ -354,6 +357,7 @@ void main() async {
               'succeeded': true,
               'errors': isEmpty,
               'warnings': isEmpty,
+              'infos': isEmpty,
               'compiledProcedure': contains('return ret;'),
             })
           ]));
@@ -387,6 +391,7 @@ void main() async {
               'succeeded': true,
               'errors': isEmpty,
               'warnings': isEmpty,
+              'infos': isEmpty,
               'compiledProcedure':
                   contains('return new test_library.B.new().c().getNumber()'),
             })

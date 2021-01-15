@@ -359,6 +359,7 @@ class FrontendCompiler implements CompilerInterface {
         errors.addAll(message.plainTextFormatted);
         break;
       case Severity.warning:
+      case Severity.info:
         printMessage = true;
         break;
       case Severity.context:

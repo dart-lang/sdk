@@ -15,6 +15,10 @@ void main() {
   group('compile', defineCompileTests, timeout: longTimeout);
 }
 
+const String soundNullSafetyMessage = 'Info: Compiling with sound null safety';
+const String unsoundNullSafetyMessage =
+    'Info: Compiling with unsound null safety';
+
 void defineCompileTests() {
   // *** NOTE ***: These tests *must* be run with the `--use-sdk` option
   // as they depend on a fully built SDK to resolve various snapshot files
@@ -196,6 +200,157 @@ void defineCompileTests() {
       '-v',
       inFile,
     ]);
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
+  });
+
+  test('Compile exe with error', () {
+    final p = project(mainSrc: '''
+void main() {
+  int? i;
+  i.isEven;
+}
+''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
+
+    var result = p.runSync(
+      [
+        'compile',
+        'exe',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stdout, isEmpty);
+    expect(result.stderr, contains('Error: '));
+    // The CFE doesn't print to stderr, so all output is piped to stderr, even
+    // including info-only output:
+    expect(result.stderr, contains(soundNullSafetyMessage));
+    expect(result.exitCode, compileErrorExitCode);
+    expect(File(outFile).existsSync(), false,
+        reason: 'File not found: $outFile');
+  });
+
+  test('Compile exe with warning', () {
+    final p = project(mainSrc: '''
+void main() {
+  int i = 0;
+  i?.isEven;
+}
+''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
+
+    var result = p.runSync(
+      [
+        'compile',
+        'exe',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stdout, contains('Warning: '));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
+  });
+
+  test('Compile exe with sound null safety', () {
+    final p = project(mainSrc: '''void main() {}''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
+
+    var result = p.runSync(
+      [
+        'compile',
+        'exe',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stdout, contains(soundNullSafetyMessage));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
+  });
+
+  test('Compile exe with unsound null safety', () {
+    final p = project(mainSrc: '''
+// @dart=2.9
+void main() {}
+''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
+
+    var result = p.runSync(
+      [
+        'compile',
+        'exe',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stdout, contains(unsoundNullSafetyMessage));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
+  });
+
+  test('Compile JS with sound null safety', () {
+    final p = project(mainSrc: '''void main() {}''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myjs'));
+
+    var result = p.runSync(
+      [
+        'compile',
+        'js',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stdout, contains(soundNullSafetyMessage));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
+  });
+
+  test('Compile JS with unsound null safety', () {
+    final p = project(mainSrc: '''
+// @dart=2.9
+void main() {}
+''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myjs'));
+
+    var result = p.runSync(
+      [
+        'compile',
+        'js',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stdout, contains(unsoundNullSafetyMessage));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,

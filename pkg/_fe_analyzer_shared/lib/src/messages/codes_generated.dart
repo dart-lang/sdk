@@ -988,6 +988,26 @@ Message _withArgumentsCombinedMemberSignatureFailed(String name, String name2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeCompilingWithSoundNullSafety =
+    messageCompilingWithSoundNullSafety;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageCompilingWithSoundNullSafety = const MessageCode(
+    "CompilingWithSoundNullSafety",
+    severity: Severity.info,
+    message: r"""Compiling with sound null safety""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeCompilingWithUnsoundNullSafety =
+    messageCompilingWithUnsoundNullSafety;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageCompilingWithUnsoundNullSafety = const MessageCode(
+    "CompilingWithUnsoundNullSafety",
+    severity: Severity.info,
+    message: r"""Compiling with unsound null safety""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String string,

@@ -19,7 +19,7 @@ import 'package:_fe_analyzer_shared/src/scanner/characters.dart'
     show $CARET, $SPACE, $TAB;
 
 import 'package:_fe_analyzer_shared/src/util/colors.dart'
-    show enableColors, green, magenta, red;
+    show enableColors, green, magenta, red, yellow;
 
 import 'package:_fe_analyzer_shared/src/util/relativize.dart'
     show isWindows, relativizeUri;
@@ -73,6 +73,11 @@ String format(LocatedMessage message, Severity severity,
           messageText = green(messageText);
           break;
 
+        case Severity.info:
+          messageText = yellow(messageText);
+          break;
+
+        case Severity.ignored:
         default:
           return unhandled("$severity", "format", -1, null);
       }
@@ -145,14 +150,15 @@ bool isHidden(Severity severity) {
     case Severity.error:
     case Severity.internalProblem:
     case Severity.context:
+    case Severity.info:
       return false;
 
     case Severity.warning:
       return hideWarnings;
-
-    default:
-      return unhandled("$severity", "isHidden", -1, null);
+    case Severity.ignored:
+      return true;
   }
+  return unhandled("$severity", "isHidden", -1, null);
 }
 
 /// Are problems of [severity] fatal? That is, should the compiler terminate
@@ -168,12 +174,12 @@ bool shouldThrowOn(Severity severity) {
     case Severity.warning:
       return CompilerContext.current.options.throwOnWarningsForDebugging;
 
+    case Severity.info:
+    case Severity.ignored:
     case Severity.context:
       return false;
-
-    default:
-      return unhandled("$severity", "shouldThrowOn", -1, null);
   }
+  return unhandled("$severity", "shouldThrowOn", -1, null);
 }
 
 bool isCompileTimeError(Severity severity) {
@@ -184,6 +190,7 @@ bool isCompileTimeError(Severity severity) {
 
     case Severity.warning:
     case Severity.context:
+    case Severity.info:
       return false;
 
     case Severity.ignored:

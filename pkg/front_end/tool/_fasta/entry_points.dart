@@ -357,6 +357,7 @@ class CompileTask {
 
   Future<Uri> compile(
       {bool omitPlatform: false, bool supportAdditionalDills: true}) async {
+    c.options.reportNullSafetyCompilationModeInfo();
     KernelTarget kernelTarget =
         await buildOutline(supportAdditionalDills: supportAdditionalDills);
     Uri uri = c.options.output;
