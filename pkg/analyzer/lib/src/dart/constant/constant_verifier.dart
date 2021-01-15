@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -46,38 +45,30 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// The current library that is being analyzed.
   final LibraryElement _currentLibrary;
 
-  final bool _constantUpdate2018Enabled;
-
   final ConstantEvaluationEngine _evaluationEngine;
 
   final DiagnosticFactory _diagnosticFactory = DiagnosticFactory();
 
   /// Initialize a newly created constant verifier.
-  ConstantVerifier(ErrorReporter errorReporter, LibraryElement currentLibrary,
-      DeclaredVariables declaredVariables,
-      {
-      // TODO(paulberry): make [featureSet] a required parameter.
-      FeatureSet featureSet})
-      : this._(
-            errorReporter,
-            currentLibrary,
-            currentLibrary.typeSystem,
-            currentLibrary.typeProvider,
-            declaredVariables,
-            featureSet ??
-                (currentLibrary.context.analysisOptions as AnalysisOptionsImpl)
-                    .contextFeatures);
+  ConstantVerifier(
+    ErrorReporter errorReporter,
+    LibraryElement currentLibrary,
+    DeclaredVariables declaredVariables,
+  ) : this._(
+          errorReporter,
+          currentLibrary,
+          currentLibrary.typeSystem,
+          currentLibrary.typeProvider,
+          declaredVariables,
+        );
 
   ConstantVerifier._(
-      this._errorReporter,
-      this._currentLibrary,
-      this._typeSystem,
-      this._typeProvider,
-      this.declaredVariables,
-      FeatureSet featureSet)
-      : _constantUpdate2018Enabled =
-            featureSet.isEnabled(Feature.constant_update_2018),
-        _intType = _typeProvider.intType,
+    this._errorReporter,
+    this._currentLibrary,
+    this._typeSystem,
+    this._typeProvider,
+    this.declaredVariables,
+  )   : _intType = _typeProvider.intType,
         _evaluationEngine = ConstantEvaluationEngine(declaredVariables);
 
   bool get _isNonNullableByDefault => _currentLibrary.isNonNullableByDefault;
@@ -704,10 +695,6 @@ class _ConstLiteralVerifier {
       verifier._errorReporter.reportErrorForNode(errorCode, element);
       return false;
     } else if (element is IfElement) {
-      if (!verifier._constantUpdate2018Enabled) {
-        verifier._errorReporter.reportErrorForNode(errorCode, element);
-        return false;
-      }
       var conditionValue = verifier._validate(element.condition, errorCode);
       var conditionBool = conditionValue?.toBoolValue();
 
@@ -735,10 +722,6 @@ class _ConstLiteralVerifier {
     } else if (element is MapLiteralEntry) {
       return _validateMapLiteralEntry(element);
     } else if (element is SpreadElement) {
-      if (!verifier._constantUpdate2018Enabled) {
-        verifier._errorReporter.reportErrorForNode(errorCode, element);
-        return false;
-      }
       var value = verifier._validate(element.expression, errorCode);
       if (value == null) return false;
 

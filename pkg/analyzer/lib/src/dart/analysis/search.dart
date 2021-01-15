@@ -249,7 +249,7 @@ class Search {
       }
     } else {
       files = await _driver.getFilesReferencingName(name);
-      if (!files.contains(path)) {
+      if (searchedFiles.add(path, this) && !files.contains(path)) {
         files.add(path);
       }
     }
@@ -500,9 +500,12 @@ class SearchedFiles {
     return identical(pathOwner, search) && identical(uriOwner, search);
   }
 
-  void ownAdded(Search search) {
-    for (var path in search._driver.addedFiles) {
-      add(path, search);
+  void ownAnalyzed(Search search) {
+    var contextRoot = search._driver.analysisContext.contextRoot;
+    for (var path in contextRoot.analyzedFiles()) {
+      if (path.endsWith('.dart')) {
+        add(path, search);
+      }
     }
   }
 }

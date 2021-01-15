@@ -3134,6 +3134,8 @@ Fragment StreamingFlowGraphBuilder::BuildConstructorInvocation(
 
   Class& klass = Class::ZoneHandle(
       Z, H.LookupClassByKernelClass(H.EnclosingName(kernel_name)));
+  const auto& error = klass.EnsureIsFinalized(H.thread());
+  ASSERT(error == Error::null());
 
   Fragment instructions;
 

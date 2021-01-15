@@ -63,7 +63,8 @@ main(A a, B b, C c, D d) {
   var vd = d.test();
 }
 ''');
-    _createRefactoringForString('test() => 2');
+    var element = findElement.method('test', of: 'B');
+    _createRefactoringForElement(element);
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 class A {
@@ -103,7 +104,8 @@ main(A a, B b) {
   b.test();
 }
 ''');
-    _createRefactoringForString('test() => 2');
+    var element = findElement.method('test', of: 'B');
+    _createRefactoringForElement(element);
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 import 'other.dart';
@@ -202,10 +204,5 @@ void test() {}
   void _createRefactoringForElement(ExecutableElement element) {
     refactoring = ConvertMethodToGetterRefactoring(
         searchEngine, testAnalysisResult.session, element);
-  }
-
-  void _createRefactoringForString(String search) {
-    ExecutableElement element = findNodeElementAtString(search);
-    _createRefactoringForElement(element);
   }
 }

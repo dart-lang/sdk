@@ -127,7 +127,7 @@ class SearchEngineImpl implements SearchEngine {
   SearchedFiles _createSearchedFiles(List<AnalysisDriver> drivers) {
     var searchedFiles = SearchedFiles();
     for (var driver in drivers) {
-      searchedFiles.ownAdded(driver.search);
+      searchedFiles.ownAnalyzed(driver.search);
     }
     return searchedFiles;
   }

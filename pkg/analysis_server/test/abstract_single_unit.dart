@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -53,11 +52,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     return findOffset(search) + search.length;
   }
 
-  /// Returns the [SimpleIdentifier] at the given search pattern.
-  SimpleIdentifier findIdentifier(String search) {
-    return findNodeAtString(search, (node) => node is SimpleIdentifier);
-  }
-
   AstNode findNodeAtOffset(int offset, [Predicate<AstNode> predicate]) {
     var result = NodeLocator(offset).searchWithin(testUnit);
     if (result != null && predicate != null) {
@@ -71,40 +65,10 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     return findNodeAtOffset(offset, predicate);
   }
 
-  Element findNodeElementAtString(String search,
-      [Predicate<AstNode> predicate]) {
-    var node = findNodeAtString(search, predicate);
-    if (node == null) {
-      return null;
-    }
-    return ElementLocator.locate(node);
-  }
-
   int findOffset(String search) {
     var offset = testCode.indexOf(search);
     expect(offset, isNonNegative, reason: "Not found '$search' in\n$testCode");
     return offset;
-  }
-
-  int getLeadingIdentifierLength(String search) {
-    var length = 0;
-    while (length < search.length) {
-      var c = search.codeUnitAt(length);
-      if (c >= 'a'.codeUnitAt(0) && c <= 'z'.codeUnitAt(0)) {
-        length++;
-        continue;
-      }
-      if (c >= 'A'.codeUnitAt(0) && c <= 'Z'.codeUnitAt(0)) {
-        length++;
-        continue;
-      }
-      if (c >= '0'.codeUnitAt(0) && c <= '9'.codeUnitAt(0)) {
-        length++;
-        continue;
-      }
-      break;
-    }
-    return length;
   }
 
   @override
@@ -122,6 +86,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
 
   Future<void> resolveTestFile() async {
     testAnalysisResult = await session.getResolvedUnit(testFile);
+    testCode = testAnalysisResult.content;
     testUnit = testAnalysisResult.unit;
     if (verifyNoTestUnitErrors) {
       expect(testAnalysisResult.errors.where((AnalysisError error) {

@@ -469,7 +469,6 @@ class LinterContextImpl implements LinterContext {
         errorReporter,
         libraryElement,
         declaredVariables,
-        featureSet: currentUnit.unit.featureSet,
       ),
     );
     return listener.hasConstError;

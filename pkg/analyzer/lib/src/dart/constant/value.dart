@@ -327,8 +327,8 @@ class DartObjectImpl implements DartObject {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl eagerAnd(
-      TypeSystemImpl typeSystem, DartObjectImpl rightOperand, bool allowBool) {
-    if (allowBool && isBool && rightOperand.isBool) {
+      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    if (isBool && rightOperand.isBool) {
       return DartObjectImpl(
         typeSystem,
         typeSystem.typeProvider.boolType,
@@ -350,8 +350,8 @@ class DartObjectImpl implements DartObject {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl eagerOr(
-      TypeSystemImpl typeSystem, DartObjectImpl rightOperand, bool allowBool) {
-    if (allowBool && isBool && rightOperand.isBool) {
+      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    if (isBool && rightOperand.isBool) {
       return DartObjectImpl(
         typeSystem,
         typeSystem.typeProvider.boolType,
@@ -373,8 +373,8 @@ class DartObjectImpl implements DartObject {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl eagerXor(
-      TypeSystemImpl typeSystem, DartObjectImpl rightOperand, bool allowBool) {
-    if (allowBool && isBool && rightOperand.isBool) {
+      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    if (isBool && rightOperand.isBool) {
       return DartObjectImpl(
         typeSystem,
         typeSystem.typeProvider.boolType,

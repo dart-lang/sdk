@@ -5423,6 +5423,7 @@ FunctionPtr Class::LookupFunctionAllowPrivate(const String& name,
   ASSERT(!IsNull());
   Thread* thread = Thread::Current();
   RELEASE_ASSERT(is_finalized());
+  SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
   REUSABLE_ARRAY_HANDLESCOPE(thread);
   REUSABLE_FUNCTION_HANDLESCOPE(thread);
   REUSABLE_STRING_HANDLESCOPE(thread);
