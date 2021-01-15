@@ -167,7 +167,7 @@ void main() {
   test("Utf8 unit test", () {
     final String test = 'Hasta Mañana';
     final medium = Utf8.toUtf8(test);
-    expect(test, medium.ref.toString());
+    expect(test, Utf8.fromUtf8(medium));
     calloc.free(medium);
   });
 }
