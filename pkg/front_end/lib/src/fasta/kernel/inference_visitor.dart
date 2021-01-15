@@ -6563,18 +6563,17 @@ class InferenceVisitor
     VariableDeclarationImpl variable = node.variable;
     DartType promotedType;
     DartType declaredOrInferredType = variable.lateType ?? variable.type;
-    if (inferrer.isNonNullableByDefault) {
+    if (isExtensionThis(variable)) {
+      // Don't promote the synthetic variable `#this` that we use to represent
+      // `this` inside extension methods.
+    } else if (inferrer.isNonNullableByDefault) {
       if (node.forNullGuardedAccess) {
         DartType nonNullableType = inferrer.computeNonNullable(variable.type);
         if (nonNullableType != variable.type) {
           promotedType = nonNullableType;
         }
-      } else if (variable.isLocalFunction) {
+      } else if (!variable.isLocalFunction) {
         // Don't promote local functions.
-      } else if (isExtensionThis(variable)) {
-        // Don't promote the synthetic variable `#this` that we use to represent
-        // `this` inside extension methods.
-      } else {
         promotedType = inferrer.flowAnalysis.variableRead(node, variable);
       }
     } else {
