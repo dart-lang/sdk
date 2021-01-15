@@ -831,6 +831,10 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// necessary; in this case, [viaInitializer] should be `true`.
   void write(
       Variable variable, Type writtenType, Expression? writtenExpression);
+
+  /// Prints out a summary of the current state of flow analysis, intended for
+  /// debugging use only.
+  void _dumpState();
 }
 
 /// Alternate implementation of [FlowAnalysis] that prints out inputs and output
@@ -838,7 +842,7 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
 class FlowAnalysisDebug<Node extends Object, Statement extends Node,
         Expression extends Object, Variable extends Object, Type extends Object>
     implements FlowAnalysis<Node, Statement, Expression, Variable, Type> {
-  _FlowAnalysisImpl<Node, Statement, Expression, Variable, Type> _wrapped;
+  FlowAnalysis<Node, Statement, Expression, Variable, Type> _wrapped;
 
   bool _exceptionOccurred = false;
 
@@ -1304,6 +1308,9 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
     _wrap('write($variable, $writtenType, $writtenExpression)',
         () => _wrapped.write(variable, writtenType, writtenExpression));
   }
+
+  @override
+  void _dumpState() => _wrapped._dumpState();
 
   T _wrap<T>(String description, T callback(),
       {bool isQuery: false, bool? isPure}) {
@@ -3806,6 +3813,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         _current.write(variable, writtenType, newSsaNode, typeOperations);
   }
 
+  @override
   void _dumpState() {
     print('  current: $_current');
     print('  expressionWithInfo: $_expressionWithInfo');
