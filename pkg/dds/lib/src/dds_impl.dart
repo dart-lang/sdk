@@ -136,10 +136,12 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
       });
     } on json_rpc.RpcException catch (e) {
       await _server.close(force: true);
+      String message = e.toString();
+      if (e.data != null) {
+        message += ' data: ${e.data}';
+      }
       // _yieldControlToDDS fails if DDS is not the only VM service client.
-      throw DartDevelopmentServiceException.existingDdsInstance(
-        e.data != null ? e.data['details'] : e.toString(),
-      );
+      throw DartDevelopmentServiceException.existingDdsInstance(message);
     }
 
     _uri = tmpUri;
