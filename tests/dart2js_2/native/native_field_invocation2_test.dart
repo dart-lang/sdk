@@ -38,7 +38,7 @@ nativeId(x) native;
 void setup() {
   JS('', r"""
 (function(){
-nativeId = function(x) { return x; }
+self.nativeId = function(x) { return x; }
 })()""");
 }
 

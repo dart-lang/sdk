@@ -59,8 +59,8 @@ void setup() {
   A1.prototype.foo = function(){return 100;};
   B1.prototype.foo = function(){return 200;};
 
-  makeA1 = function(){return new A1()};
-  makeB1 = function(){return new B1()};
+  self.makeA1 = function(){return new A1()};
+  self.makeB1 = function(){return new B1()};
 
   function A2(){}
   function B2(){}
@@ -68,14 +68,15 @@ void setup() {
   A2.prototype.foo = function(a){return a + 10000;};
   B2.prototype.foo = function(z){return z + 20000;};
 
-  makeA2 = function(){return new A2()};
-  makeB2 = function(){return new B2()};
+  self.makeA2 = function(){return new A2()};
+  self.makeB2 = function(){return new B2()};
 
   self.nativeConstructor(A1);
   self.nativeConstructor(A2);
   self.nativeConstructor(B1);
   self.nativeConstructor(B2);
 })()""");
+  applyTestExtensions(['A1', 'A2', 'B1', 'B2']);
 }
 
 main() {

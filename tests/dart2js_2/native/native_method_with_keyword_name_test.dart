@@ -24,6 +24,7 @@ A.prototype.delete = function() { return 87; };
 makeA = function(){return new A()};
 self.nativeConstructor(A);
 })()""");
+  applyTestExtensions(['A']);
 }
 
 main() {

@@ -36,12 +36,13 @@ void setup() {
 (function(){
   function A() {this.foo='A-foo';}
   function B() {A.call(this);this.bar='B-bar';this.baz='M1-baz';}
-  makeA = function(){return new A()};
-  makeB = function(){return new B()};
+  self.makeA = function(){return new A()};
+  self.makeB = function(){return new B()};
 
   self.nativeConstructor(A);
   self.nativeConstructor(B);
 })()""");
+  applyTestExtensions(['A', 'B']);
 }
 
 main() {

@@ -47,6 +47,7 @@ void setup1() {
   A = null;
   E = null;
 })()""");
+  applyTestExtensions(['E', 'A']);
 }
 
 void setup2() {
@@ -60,7 +61,7 @@ A.prototype.op = function (x) {
   if (x & 1) throw new E(100);
   return  x / 2;
 };
-makeA = function(){return new A()};
+self.makeA = function(){return new A()};
 
 self.nativeConstructor(E);
 self.nativeConstructor(A);

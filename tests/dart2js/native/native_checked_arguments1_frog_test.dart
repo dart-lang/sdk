@@ -33,8 +33,6 @@ void setup() {
   B.prototype.foo = function (x) { return x + 'ha!'; };
   B.prototype.cmp = function (x) { return 1; };
 
-  self.A = A;
-  self.B = B;
   self.makeA = function(){return new A()};
   self.makeB = function(){return new B()};
 

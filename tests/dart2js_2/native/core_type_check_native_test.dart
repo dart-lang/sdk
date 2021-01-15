@@ -33,20 +33,20 @@ void setup() {
   JS('', r"""
 (function(){
   function A() {};
-  makeA = function() { return new A(); };
+  self.makeA = function() { return new A(); };
   function B() {};
-  makeB = function() { return new B(); };
+  self.makeB = function() { return new B(); };
   function C() {};
-  makeC = function() { return new C(); };
+  self.makeC = function() { return new C(); };
   function D() {};
-  makeD = function() { return new D(); };
+  self.makeD = function() { return new D(); };
 
   self.nativeConstructor(A);
   self.nativeConstructor(B);
   self.nativeConstructor(C);
   self.nativeConstructor(D);
-})()
-""");
+})()""");
+  applyTestExtensions(['A', 'B', 'C', 'D']);
 }
 
 checkTest(value, expectComparable, expectPattern) {

@@ -239,3 +239,8 @@ findInterceptorConstructorForType(Type? type) {}
 findConstructorForNativeSubclassType(Type? type, String name) {}
 getNativeInterceptor(object) {}
 setDispatchProperty(object, value) {}
+
+// Added to allow dart2js and dartdevc to share tests
+// TODO(sigmund): revisit whether this method is still needed after reoganizing
+// all web tests.
+findInterceptorForType(Type? type) {}

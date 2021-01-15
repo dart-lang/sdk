@@ -36,9 +36,14 @@ void nativeTesting() {
   //     self.nativeConstructor(Foo);
   //
   // to the JavaScript code.
+  //
+  // Internally this exports the name on the top scope (needed for dartdevc) and
+  // overrides the toString show the name of the constructor like browsers do
+  // for native types (needed for dart2js).
   self.nativeConstructor = function(constructor, opt_name) {
     var toStringResult = "[object " + (opt_name || constructor.name) + "]";
     constructor[toStringResultProperty] = toStringResult;
+    self[constructor.name] = constructor;
   };
 })())
 ''');

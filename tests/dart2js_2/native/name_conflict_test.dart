@@ -37,9 +37,10 @@ void setup() {
   function I(){}
   I.prototype.read = function() { return this._x; };
   I.prototype.write = function(x) { this._x = x; };
-  makeI = function(){return new I()};
+  self.makeI = function(){return new I()};
   self.nativeConstructor(I);
 })()""");
+  applyTestExtensions(['I']);
 }
 
 // A pure Dart implementation of I.

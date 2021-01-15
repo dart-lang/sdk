@@ -35,13 +35,13 @@ void setup() {
   function A() {}
   function B() {}
   function C() {}
-  makeA = function(){return new A()};
-  makeB1 = function(){return new B()};
-  makeB2 = function(){return new B()};
-  makeC = function(){return new C()};
+  self.makeA = function(){return new A()};
+  self.makeB1 = function(){return new B()};
+  self.makeB2 = function(){return new B()};
+  self.makeC = function(){return new C()};
 
-  getBPrototype = function(){return B.prototype;};
-  getCPrototype = function(){return C.prototype;};
+  self.getBPrototype = function(){return B.prototype;};
+  self.getCPrototype = function(){return C.prototype;};
 })()""");
 }
 

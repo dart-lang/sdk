@@ -50,24 +50,25 @@ void setup() {
   function B1(){}
   inherits(B1, A1);
 
-  makeA1 = function(){return new A1()};
-  makeB1 = function(){return new B1()};
+  self.makeA1 = function(){return new A1()};
+  self.makeB1 = function(){return new B1()};
 
   function A2(){}
   function B2(){}
   inherits(B2, A2);
   A2.prototype.foo = function(a){return 'A2.foo(' + a  + ')';};
 
-  makeA2 = function(){return new A2()};
-  makeB2 = function(){return new B2()};
+  self.makeA2 = function(){return new A2()};
+  self.makeB2 = function(){return new B2()};
 
-  makeObject = function(){return new Object()};
+  self.makeObject = function(){return new Object()};
 
   self.nativeConstructor(A1);
   self.nativeConstructor(A2);
   self.nativeConstructor(B1);
   self.nativeConstructor(B2);
 })()""");
+  applyTestExtensions(['A1', 'A2', 'B1', 'B2']);
 }
 
 main() {

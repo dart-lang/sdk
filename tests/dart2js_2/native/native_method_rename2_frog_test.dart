@@ -43,12 +43,13 @@ void setup() {
   inherits(B, A);
   B.prototype.fooB = function(){return 200;};
 
-  makeA = function(){return new A()};
-  makeB = function(){return new B()};
+  self.makeA = function(){return new A()};
+  self.makeB = function(){return new B()};
 
   self.nativeConstructor(A);
   self.nativeConstructor(B);
 })()""");
+  applyTestExtensions(['A', 'B']);
 }
 
 testDynamic() {

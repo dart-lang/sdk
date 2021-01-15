@@ -11,10 +11,11 @@ void setup() {
   JS('', r"""
 (function(){
   function CC() {}
-  makeCC = function() { return new CC() };
-  nativeFirst = function(x, y) { return x; };
+  self.makeCC = function() { return new CC() };
+  self.nativeFirst = function(x, y) { return x; };
   self.nativeConstructor(CC);
 })()""");
+  applyTestExtensions(['CC']);
 }
 
 class C {

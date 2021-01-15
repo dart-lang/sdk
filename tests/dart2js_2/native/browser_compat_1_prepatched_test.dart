@@ -39,9 +39,9 @@ void setup() {
   window.T1A = T1A;
   window.T1CrazyB = T1CrazyB;
 
-  makeT1A = function(){return new T1A()};
-  makeT1B = function(){return new T1CrazyB()};
-  makeT1C = function(){return new T1fakeA()};
+  self.makeT1A = function(){return new T1A()};
+  self.makeT1B = function(){return new T1CrazyB()};
+  self.makeT1C = function(){return new T1fakeA()};
 
   self.nativeConstructor(T1A);
   self.nativeConstructor(T1CrazyB);
@@ -73,6 +73,7 @@ void setup() {
 
   dartNativeDispatchHooksTransformer = [transformer1];
 })()''');
+  applyTestExtensions(['T1A', 'T1CrazyB', 'T1fakeA']);
 }
 
 main() {
