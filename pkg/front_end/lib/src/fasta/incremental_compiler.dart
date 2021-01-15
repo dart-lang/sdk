@@ -230,7 +230,19 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       Set<Uri> invalidatedUris = this.invalidatedUris.toSet();
       invalidateNotKeptUserBuilders(invalidatedUris);
       ReusageResult reusedResult =
-          computeReusedLibraries(invalidatedUris, uriTranslator);
+          computeReusedLibraries(invalidatedUris, uriTranslator, entryPoints);
+
+      // Use the reused libraries to re-write entry-points.
+      if (reusedResult.arePartsUsedAsEntryPoints()) {
+        for (int i = 0; i < entryPoints.length; i++) {
+          Uri entryPoint = entryPoints[i];
+          Uri redirect =
+              reusedResult.getLibraryUriForPartUsedAsEntryPoint(entryPoint);
+          if (redirect != null) {
+            entryPoints[i] = redirect;
+          }
+        }
+      }
 
       // Experimental invalidation initialization (e.g. figure out if we can).
       ExperimentalInvalidation experimentalInvalidation =
@@ -1440,18 +1452,26 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// any saved component problems for such builders.
   List<Library> computeTransitiveClosure(
       List<Library> inputLibraries,
-      List<Uri> entries,
+      List<Uri> entryPoints,
       List<LibraryBuilder> reusedLibraries,
       ClassHierarchy hierarchy,
       UriTranslator uriTranslator,
       Map<Uri, Source> uriToSource,
       [List<Library> inputLibrariesFiltered]) {
     List<Library> result = <Library>[];
+    Map<Uri, Uri> partUriToLibraryImportUri = <Uri, Uri>{};
     Map<Uri, Library> libraryMap = <Uri, Library>{};
     Map<Uri, Library> potentiallyReferencedLibraries = <Uri, Library>{};
     Map<Uri, Library> potentiallyReferencedInputLibraries = <Uri, Library>{};
     for (Library library in inputLibraries) {
       libraryMap[library.importUri] = library;
+      if (library.parts.isNotEmpty) {
+        for (int partIndex = 0; partIndex < library.parts.length; partIndex++) {
+          LibraryPart part = library.parts[partIndex];
+          Uri partUri = getPartUri(library.importUri, part);
+          partUriToLibraryImportUri[partUri] = library.importUri;
+        }
+      }
       if (library.importUri.scheme == "dart") {
         result.add(library);
         inputLibrariesFiltered?.add(library);
@@ -1460,9 +1480,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         potentiallyReferencedInputLibraries[library.importUri] = library;
       }
     }
-
-    List<Uri> worklist = <Uri>[];
-    worklist.addAll(entries);
     for (LibraryBuilder libraryBuilder in reusedLibraries) {
       if (libraryBuilder.importUri.scheme == "dart" &&
           !libraryBuilder.isSynthetic) {
@@ -1471,6 +1488,19 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       Library lib = libraryBuilder.library;
       potentiallyReferencedLibraries[libraryBuilder.importUri] = lib;
       libraryMap[libraryBuilder.importUri] = lib;
+    }
+
+    List<Uri> worklist = <Uri>[];
+    for (Uri entry in entryPoints) {
+      if (libraryMap.containsKey(entry)) {
+        worklist.add(entry);
+      } else {
+        // If the entry is a part redirect to the "main" entry.
+        Uri partTranslation = partUriToLibraryImportUri[entry];
+        if (partTranslation != null) {
+          worklist.add(partTranslation);
+        }
+      }
     }
 
     LibraryGraph graph = new LibraryGraph(libraryMap);
@@ -1928,8 +1958,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   /// Internal method.
-  ReusageResult computeReusedLibraries(
-      Set<Uri> invalidatedUris, UriTranslator uriTranslator) {
+  ReusageResult computeReusedLibraries(Set<Uri> invalidatedUris,
+      UriTranslator uriTranslator, List<Uri> entryPoints) {
     Set<Uri> seenUris = new Set<Uri>();
     List<LibraryBuilder> reusedLibraries = <LibraryBuilder>[];
     for (int i = 0; i < platformBuilders.length; i++) {
@@ -1938,7 +1968,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       reusedLibraries.add(builder);
     }
     if (userCode == null && userBuilders == null) {
-      return new ReusageResult(const {}, const {}, false, reusedLibraries);
+      return new ReusageResult.reusedLibrariesOnly(reusedLibraries);
     }
     bool invalidatedBecauseOfPackageUpdate = false;
     Set<LibraryBuilder> directlyInvalidated = new Set<LibraryBuilder>();
@@ -1946,6 +1976,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
     // Maps all non-platform LibraryBuilders from their import URI.
     Map<Uri, LibraryBuilder> builders = <Uri, LibraryBuilder>{};
+    Map<Uri, LibraryBuilder> partUriToParent = <Uri, LibraryBuilder>{};
 
     // Invalidated URIs translated back to their import URI (package:, dart:,
     // etc.).
@@ -1989,7 +2020,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         invalidatedImportUris.add(uri);
       }
       if (libraryBuilder is SourceLibraryBuilder) {
+        // TODO(jensj): This shouldn't be possible anymore.
         for (LibraryBuilder part in libraryBuilder.parts) {
+          partUriToParent[part.importUri] = libraryBuilder;
+          partUriToParent[part.fileUri] = libraryBuilder;
           if (isInvalidated(part.importUri, part.fileUri)) {
             invalidatedImportUris.add(part.importUri);
             builders[part.importUri] = part;
@@ -2000,6 +2034,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           Uri partUri = getPartUri(libraryBuilder.importUri, part);
           Uri fileUri = getPartFileUri(
               libraryBuilder.library.fileUri, part, uriTranslator);
+          partUriToParent[partUri] = libraryBuilder;
+          partUriToParent[fileUri] = libraryBuilder;
 
           if (isInvalidated(partUri, fileUri)) {
             invalidatedImportUris.add(partUri);
@@ -2078,8 +2114,21 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       reusedLibraries.add(builder);
     }
 
-    return new ReusageResult(notReusedLibraries, directlyInvalidated,
-        invalidatedBecauseOfPackageUpdate, reusedLibraries);
+    ReusageResult result = new ReusageResult(
+        notReusedLibraries,
+        directlyInvalidated,
+        invalidatedBecauseOfPackageUpdate,
+        reusedLibraries);
+
+    for (Uri entryPoint in entryPoints) {
+      LibraryBuilder parent = partUriToParent[entryPoint];
+      if (reusedLibraries.contains(parent)) {
+        result.registerLibraryUriForPartUsedAsEntryPoint(
+            entryPoint, parent.importUri);
+      }
+    }
+
+    return result;
   }
 
   @override
@@ -2153,13 +2202,32 @@ class ReusageResult {
   final Set<LibraryBuilder> directlyInvalidated;
   final bool invalidatedBecauseOfPackageUpdate;
   final List<LibraryBuilder> reusedLibraries;
+  final Map<Uri, Uri> _reusedLibrariesPartsToParentForEntryPoints;
+
+  ReusageResult.reusedLibrariesOnly(this.reusedLibraries)
+      : notReusedLibraries = const {},
+        directlyInvalidated = const {},
+        invalidatedBecauseOfPackageUpdate = false,
+        _reusedLibrariesPartsToParentForEntryPoints = const {};
 
   ReusageResult(this.notReusedLibraries, this.directlyInvalidated,
       this.invalidatedBecauseOfPackageUpdate, this.reusedLibraries)
-      : assert(notReusedLibraries != null),
+      : _reusedLibrariesPartsToParentForEntryPoints = {},
+        assert(notReusedLibraries != null),
         assert(directlyInvalidated != null),
         assert(invalidatedBecauseOfPackageUpdate != null),
         assert(reusedLibraries != null);
+
+  void registerLibraryUriForPartUsedAsEntryPoint(
+      Uri entryPoint, Uri importUri) {
+    _reusedLibrariesPartsToParentForEntryPoints[entryPoint] = importUri;
+  }
+
+  bool arePartsUsedAsEntryPoints() =>
+      _reusedLibrariesPartsToParentForEntryPoints.isNotEmpty;
+
+  Uri getLibraryUriForPartUsedAsEntryPoint(Uri entryPoint) =>
+      _reusedLibrariesPartsToParentForEntryPoints[entryPoint];
 }
 
 class ExperimentalInvalidation {
