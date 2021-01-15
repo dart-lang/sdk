@@ -24,9 +24,10 @@ void setup() {
   A.prototype.foo2 = function(closure, arg1, arg2) {
     return closure(arg1, arg2);
   };
-  makeA = function(){return new A()};
+  self.makeA = function(){return new A()};
   self.nativeConstructor(A);
 })()""");
+  applyTestExtensions(['A']);
 }
 
 main() {

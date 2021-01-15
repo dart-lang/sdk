@@ -481,7 +481,8 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
 
   /// Emits imports and extension methods into [items].
   @protected
-  void emitImportsAndExtensionSymbols(List<js_ast.ModuleItem> items) {
+  void emitImportsAndExtensionSymbols(List<js_ast.ModuleItem> items,
+      {bool forceExtensionSymbols = false}) {
     var modules = <String, List<Library>>{};
 
     for (var import in _imports.keys) {
@@ -525,6 +526,9 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
           js_ast.PropertyAccess(extensionSymbolsModule, propertyName(name));
       if (isBuildingSdk) {
         value = js.call('# = Symbol(#)', [value, js.string('dartx.$name')]);
+      } else if (forceExtensionSymbols) {
+        value = js.call(
+            '# || (# = Symbol(#))', [value, value, js.string('dartx.$name')]);
       }
       if (!_symbolContainer.canEmit(id)) {
         // Extension symbols marked with noEmit are managed manually.

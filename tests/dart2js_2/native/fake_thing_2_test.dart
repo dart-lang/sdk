@@ -25,14 +25,15 @@ void setup() {
 (function(){
   function A() {}
   A.prototype.$isThing = true;
-  make1 = function(){return new A()};
-  make2 = function(){return {$isThing: true}};
+  self.make1 = function(){return new A()};
+  self.make2 = function(){return {$isThing: true}};
   function NT() {}
   NT.prototype.$isThing = true;
-  make3 = function(){return new NT()};
+  self.make3 = function(){return new NT()};
 
   self.nativeConstructor(NT);
 })()""");
+  applyTestExtensions(['NT']);
 }
 
 main() {

@@ -2999,9 +2999,13 @@ Never assertUnreachable() {
 // This is currently a no-op in dart2js.
 void registerGlobalObject(object) {}
 
-// Hook to register new browser classes.
+// Hook to register new browser classes in dartdevc.
 // This is currently a no-op in dart2js.
 void applyExtension(name, nativeObject) {}
+
+// Hook to upgrade user native-type classes in dartdevc.
+// This is currently a no-op in dart2js, but used for native tests.
+void applyTestExtensions(List<String> names) {}
 
 // See tests/dart2js_2/platform_environment_variable1_test.dart
 const String testPlatformEnvironmentVariableValue = String.fromEnvironment(

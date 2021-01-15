@@ -64,7 +64,7 @@ void setup() {
   A.prototype.foo = function () { return arguments.length; };
   A.prototype.callFun = function (fn) { return fn ? fn(123) : 1; };
 
-  makeA = function(){return new A()};
+  self.makeA = function(){return new A()};
 
   findMethodTextContaining = function (instance, string) {
     var proto = Object.getPrototypeOf(instance);
@@ -79,6 +79,7 @@ void setup() {
 
   self.nativeConstructor(A);
 })()""");
+  applyTestExtensions(['A']);
 }
 
 void match(String s, String pattern1) {

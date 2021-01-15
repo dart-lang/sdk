@@ -391,6 +391,7 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
 
   /// Return a list containing all of the function type aliases contained in
   /// this compilation unit.
+  @Deprecated('Use typeAliases instead')
   List<FunctionTypeAliasElement> get functionTypeAliases;
 
   /// Return `true` if this compilation unit defines a top-level function named

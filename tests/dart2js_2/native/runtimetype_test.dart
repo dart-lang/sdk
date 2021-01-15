@@ -33,12 +33,13 @@ void setup() {
   function TAGY(){}
   inherits(TAGY, TAGX);
 
-  makeA = function(){return new TAGX()};
-  makeB = function(){return new TAGY()};
+  self.makeA = function(){return new TAGX()};
+  self.makeB = function(){return new TAGY()};
 
   self.nativeConstructor(TAGX);
   self.nativeConstructor(TAGY);
 })()""");
+  applyTestExtensions(['TAGX', 'TAGY']);
 }
 
 testDynamicContext() {

@@ -30,10 +30,11 @@ void setup() {
   JS('', r"""
 (function(){
   function B() {}
-  makeB = function(){return new B()};
+  self.makeB = function(){return new B()};
 
   self.nativeConstructor(B);
 })()""");
+  applyTestExtensions(['B']);
 }
 
 main() {

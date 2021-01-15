@@ -63,6 +63,8 @@ class Dart2jsTarget extends Target {
   @override
   final String name;
 
+  Map<String, ir.Class> _nativeClasses;
+
   Dart2jsTarget(this.name, this.flags);
 
   @override
@@ -124,9 +126,12 @@ class Dart2jsTarget extends Target {
       ReferenceFromIndex referenceFromIndex,
       {void logger(String msg),
       ChangedStructureNotifier changedStructureNotifier}) {
+    _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
     for (var library in libraries) {
-      JsInteropChecks(coreTypes,
-              diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>)
+      JsInteropChecks(
+              coreTypes,
+              diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
+              _nativeClasses)
           .visitLibrary(library);
     }
     lowering.transformLibraries(

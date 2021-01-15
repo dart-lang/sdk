@@ -37,6 +37,7 @@ void setup1() {
   BB = null;
   CC = null;
 })()""");
+  applyTestExtensions(['BB', 'CC']);
 }
 
 void setup2() {
@@ -45,8 +46,8 @@ void setup2() {
   // This code is inside 'setup' and so not accessible from the global scope.
   function BB(){}
   function CC(){}
-  makeA = function(){return new BB()};  // AA is native "BB"
-  makeB = function(){return new CC()};  // BB is native "CC"
+  self.makeA = function(){return new BB()};  // AA is native "BB"
+  self.makeB = function(){return new CC()};  // BB is native "CC"
   self.nativeConstructor(BB);
   self.nativeConstructor(CC);
 })()""");

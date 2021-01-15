@@ -59,10 +59,10 @@ T1B.prototype.name = function() { return "B"; };
 T1C.prototype.name = function() { return "C"; };
 T1D.prototype.name = function() { return "D"; };
 
-makeT1A = function(){return new T1A()};
-makeT1B = function(){return new T1B()};
-makeT1C = function(){return new T1C()};
-makeT1D = function(){return new T1D()};
+self.makeT1A = function(){return new T1A()};
+self.makeT1B = function(){return new T1B()};
+self.makeT1C = function(){return new T1C()};
+self.makeT1D = function(){return new T1D()};
 
 self.nativeConstructor(T1A);
 self.nativeConstructor(T1B);
@@ -70,8 +70,8 @@ self.nativeConstructor(T1C);
 self.nativeConstructor(T1D);
 
 var getTagCount = 0;
-getTagCallCount = function() { return getTagCount; };
-clearTagCallCount = function() { getTagCount = 0; };
+self.getTagCallCount = function() { return getTagCount; };
+self.clearTagCallCount = function() { getTagCount = 0; };
 
 function transformer1(hooks) {
   var getTag = hooks.getTag;
@@ -102,8 +102,9 @@ function transformer2(hooks) {
   hooks.getTag = getTagNew;
 }
 
-dartNativeDispatchHooksTransformer = [transformer1, transformer2];
+self.dartNativeDispatchHooksTransformer = [transformer1, transformer2];
 })()''');
+  applyTestExtensions(['T1A', 'T1B', 'T1C', 'T1D']);
 }
 
 main() {

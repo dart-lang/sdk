@@ -46,14 +46,15 @@ void setup() {
   function A() {}
   function B() {}
   function C() {}
-  makeA = function(){return new A()};
-  makeB = function(){return new B()};
-  makeC = function(){return new C()};
+  self.makeA = function(){return new A()};
+  self.makeB = function(){return new B()};
+  self.makeC = function(){return new C()};
 
   self.nativeConstructor(A);
   self.nativeConstructor(B);
   self.nativeConstructor(C);
 })()""");
+  applyTestExtensions(['A', 'B', 'C']);
 }
 
 var g;

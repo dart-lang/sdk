@@ -1730,50 +1730,6 @@ notSimplyBounded class C<T extends U, U> {
 ''');
   }
 
-  test_class_type_parameters_variance_contravariant() async {
-    var library = await checkLibrary('class C<in T> {}');
-    checkElementText(
-        library,
-        r'''
-class C<contravariant T> {
-}
-''',
-        withTypeParameterVariance: true);
-  }
-
-  test_class_type_parameters_variance_covariant() async {
-    var library = await checkLibrary('class C<out T> {}');
-    checkElementText(
-        library,
-        r'''
-class C<covariant T> {
-}
-''',
-        withTypeParameterVariance: true);
-  }
-
-  test_class_type_parameters_variance_invariant() async {
-    var library = await checkLibrary('class C<inout T> {}');
-    checkElementText(
-        library,
-        r'''
-class C<invariant T> {
-}
-''',
-        withTypeParameterVariance: true);
-  }
-
-  test_class_type_parameters_variance_multiple() async {
-    var library = await checkLibrary('class C<inout T, in U, out V> {}');
-    checkElementText(
-        library,
-        r'''
-class C<invariant T, contravariant U, covariant V> {
-}
-''',
-        withTypeParameterVariance: true);
-  }
-
   test_class_typeParameters_defaultType_functionTypeAlias_contravariant_legacy() async {
     featureSet = FeatureSets.beforeNullSafe;
     var library = await checkLibrary(r'''
@@ -1802,6 +1758,22 @@ class A<X extends F<X>> {}
         r'''
 typedef F<contravariant X> = void Function(X );
 notSimplyBounded class A<covariant X extends void Function(X) = void Function(Never)> {
+}
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_class_typeParameters_defaultType_functionTypeAlias_covariant_nullSafe() async {
+    var library = await checkLibrary(r'''
+typedef F<X> = X Function();
+
+class A<X extends F<X>> {}
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F<covariant X> = X Function();
+notSimplyBounded class A<covariant X extends X Function() = dynamic Function()> {
 }
 ''',
         withTypeParameterVariance: true);
@@ -1899,6 +1871,84 @@ class A<X extends X Function()> {}
 notSimplyBounded class A<X extends X Function() = dynamic Function()> {
 }
 ''');
+  }
+
+  test_class_typeParameters_defaultType_typeAlias_interface_contravariant() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef A<X> = List<void Function(X)>;
+
+class B<X extends A<X>> {}
+''');
+    checkElementText(
+        library,
+        r'''
+typedef A<contravariant X> = List<void Function(X)>;
+notSimplyBounded class B<covariant X extends List<void Function(X)> = List<void Function(Never)>> {
+}
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_class_typeParameters_defaultType_typeAlias_interface_covariant() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef A<X> = Map<X, int>;
+
+class B<X extends A<X>> {}
+''');
+    checkElementText(
+        library,
+        r'''
+typedef A<covariant X> = Map<X, int>;
+notSimplyBounded class B<covariant X extends Map<X, int> = Map<dynamic, int>> {
+}
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_class_typeParameters_variance_contravariant() async {
+    var library = await checkLibrary('class C<in T> {}');
+    checkElementText(
+        library,
+        r'''
+class C<contravariant T> {
+}
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_class_typeParameters_variance_covariant() async {
+    var library = await checkLibrary('class C<out T> {}');
+    checkElementText(
+        library,
+        r'''
+class C<covariant T> {
+}
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_class_typeParameters_variance_invariant() async {
+    var library = await checkLibrary('class C<inout T> {}');
+    checkElementText(
+        library,
+        r'''
+class C<invariant T> {
+}
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_class_typeParameters_variance_multiple() async {
+    var library = await checkLibrary('class C<inout T, in U, out V> {}');
+    checkElementText(
+        library,
+        r'''
+class C<invariant T, contravariant U, covariant V> {
+}
+''',
+        withTypeParameterVariance: true);
   }
 
   test_classes() async {
@@ -7314,7 +7364,7 @@ typedef void F<T>(int a);
 ''');
     var unit = library.definingCompilationUnit;
 
-    var F = unit.functionTypeAliases[0];
+    var F = unit.typeAliases[0];
     expect(F.name, 'F');
 
     var T = F.typeParameters[0];
@@ -7337,11 +7387,11 @@ F<int> a;
     var unit = library.definingCompilationUnit;
     var type = unit.topLevelVariables[0].type as FunctionType;
 
-    expect(type.aliasElement, same(unit.functionTypeAliases[0]));
+    expect(type.aliasElement, same(unit.typeAliases[0]));
     _assertTypeStrings(type.aliasArguments, ['int']);
 
     // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
-    expect(type.element.enclosingElement, same(unit.functionTypeAliases[0]));
+    expect(type.element.enclosingElement, same(unit.typeAliases[0]));
     _assertTypeStrings(type.typeArguments, ['int']);
   }
 
@@ -7643,7 +7693,7 @@ typedef F<T> = void Function<U>(int a);
 ''');
     var unit = library.definingCompilationUnit;
 
-    var F = unit.functionTypeAliases[0];
+    var F = unit.typeAliases[0];
     expect(F.name, 'F');
 
     var T = F.typeParameters[0];
@@ -7669,151 +7719,6 @@ typedef F<X extends F> = Function(F);
     checkElementText(library, r'''
 notSimplyBounded typedef F<X extends dynamic Function()> = dynamic Function(dynamic Function() );
 ''');
-  }
-
-  test_genericTypeAlias_typeParameters_variance_contravariant() async {
-    var library = await checkLibrary(r'''
-typedef F<T> = void Function(T);
-''');
-    checkElementText(
-        library,
-        r'''
-typedef F<contravariant T> = void Function(T );
-''',
-        withTypeParameterVariance: true);
-  }
-
-  test_genericTypeAlias_typeParameters_variance_contravariant2() async {
-    var library = await checkLibrary(r'''
-typedef F1<T> = void Function(T);
-typedef F2<T> = F1<T> Function();
-''');
-    checkElementText(
-        library,
-        r'''
-typedef F1<contravariant T> = void Function(T );
-typedef F2<contravariant T> = void Function(T) Function();
-''',
-        withTypeParameterVariance: true);
-  }
-
-  test_genericTypeAlias_typeParameters_variance_covariant() async {
-    var library = await checkLibrary(r'''
-typedef F<T> = T Function();
-''');
-    checkElementText(
-        library,
-        r'''
-typedef F<covariant T> = T Function();
-''',
-        withTypeParameterVariance: true);
-  }
-
-  test_genericTypeAlias_typeParameters_variance_covariant2() async {
-    var library = await checkLibrary(r'''
-typedef F<T> = List<T> Function();
-''');
-    checkElementText(
-        library,
-        r'''
-typedef F<covariant T> = List<T> Function();
-''',
-        withTypeParameterVariance: true);
-  }
-
-  test_genericTypeAlias_typeParameters_variance_covariant3() async {
-    var library = await checkLibrary(r'''
-typedef F1<T> = T Function();
-typedef F2<T> = F1<T> Function();
-''');
-    checkElementText(
-        library,
-        r'''
-typedef F1<covariant T> = T Function();
-typedef F2<covariant T> = T Function() Function();
-''',
-        withTypeParameterVariance: true);
-  }
-
-  test_genericTypeAlias_typeParameters_variance_covariant4() async {
-    var library = await checkLibrary(r'''
-typedef F1<T> = void Function(T);
-typedef F2<T> = void Function(F1<T>);
-''');
-    checkElementText(
-        library,
-        r'''
-typedef F1<contravariant T> = void Function(T );
-typedef F2<covariant T> = void Function(void Function(T) );
-''',
-        withTypeParameterVariance: true);
-  }
-
-  test_genericTypeAlias_typeParameters_variance_invalid() async {
-    var library = await checkLibrary(r'''
-class A {}
-typedef F<T> = void Function(A<int>);
-''');
-    checkElementText(
-        library,
-        r'''
-typedef F<unrelated T> = void Function(A );
-class A {
-}
-''',
-        withTypeParameterVariance: true);
-  }
-
-  test_genericTypeAlias_typeParameters_variance_invalid2() async {
-    var library = await checkLibrary(r'''
-typedef F = void Function();
-typedef G<T> = void Function(F<int>);
-''');
-    checkElementText(
-        library,
-        r'''
-typedef F = void Function();
-typedef G<unrelated T> = void Function(void Function() );
-''',
-        withTypeParameterVariance: true);
-  }
-
-  test_genericTypeAlias_typeParameters_variance_invariant() async {
-    var library = await checkLibrary(r'''
-typedef F<T> = T Function(T);
-''');
-    checkElementText(
-        library,
-        r'''
-typedef F<invariant T> = T Function(T );
-''',
-        withTypeParameterVariance: true);
-  }
-
-  test_genericTypeAlias_typeParameters_variance_invariant2() async {
-    var library = await checkLibrary(r'''
-typedef F1<T> = T Function();
-typedef F2<T> = F1<T> Function(T);
-''');
-    checkElementText(
-        library,
-        r'''
-typedef F1<covariant T> = T Function();
-typedef F2<invariant T> = T Function() Function(T );
-''',
-        withTypeParameterVariance: true);
-  }
-
-  test_genericTypeAlias_typeParameters_variance_unrelated() async {
-    var library = await checkLibrary(r'''
-typedef F<T> = void Function(int);
-''');
-    checkElementText(
-        library,
-        r'''
-typedef F<unrelated T> = void Function(int );
-''',
-        withTypeParameterVariance: true);
   }
 
   test_getter_documented() async {
@@ -10765,7 +10670,7 @@ mixin B on A {
 ''');
   }
 
-  test_mixin_type_parameters_variance_contravariant() async {
+  test_mixin_typeParameters_variance_contravariant() async {
     var library = await checkLibrary('mixin M<in T> {}');
     checkElementText(
         library,
@@ -10776,7 +10681,7 @@ mixin M<contravariant T> on Object {
         withTypeParameterVariance: true);
   }
 
-  test_mixin_type_parameters_variance_covariant() async {
+  test_mixin_typeParameters_variance_covariant() async {
     var library = await checkLibrary('mixin M<out T> {}');
     checkElementText(
         library,
@@ -10787,7 +10692,7 @@ mixin M<covariant T> on Object {
         withTypeParameterVariance: true);
   }
 
-  test_mixin_type_parameters_variance_invariant() async {
+  test_mixin_typeParameters_variance_invariant() async {
     var library = await checkLibrary('mixin M<inout T> {}');
     checkElementText(
         library,
@@ -10798,7 +10703,7 @@ mixin M<invariant T> on Object {
         withTypeParameterVariance: true);
   }
 
-  test_mixin_type_parameters_variance_multiple() async {
+  test_mixin_typeParameters_variance_multiple() async {
     var library = await checkLibrary('mixin M<inout T, in U, out V> {}');
     checkElementText(
         library,
@@ -10954,7 +10859,7 @@ void f<T, U>() {}
 ''');
   }
 
-  test_new_typedef_notSimplyBounded_functionType_returnType() async {
+  test_new_typedef_function_notSimplyBounded_functionType_returnType() async {
     var library = await checkLibrary('''
 typedef F = G Function();
 typedef G = F Function();
@@ -10965,7 +10870,7 @@ notSimplyBounded typedef G = dynamic Function() Function();
 ''');
   }
 
-  test_new_typedef_notSimplyBounded_functionType_returnType_viaInterfaceType() async {
+  test_new_typedef_function_notSimplyBounded_functionType_returnType_viaInterfaceType() async {
     var library = await checkLibrary('''
 typedef F = List<F> Function();
 ''');
@@ -10974,7 +10879,7 @@ notSimplyBounded typedef F = List<dynamic Function()> Function();
 ''');
   }
 
-  test_new_typedef_notSimplyBounded_self() async {
+  test_new_typedef_function_notSimplyBounded_self() async {
     var library = await checkLibrary('''
 typedef F<T extends F> = void Function();
 ''');
@@ -10983,7 +10888,7 @@ notSimplyBounded typedef F<T extends dynamic Function()> = void Function();
 ''');
   }
 
-  test_new_typedef_notSimplyBounded_simple_no_bounds() async {
+  test_new_typedef_function_notSimplyBounded_simple_no_bounds() async {
     var library = await checkLibrary('''
 typedef F<T> = void Function();
 ''');
@@ -10992,12 +10897,32 @@ typedef F<T> = void Function();
 ''');
   }
 
-  test_new_typedef_notSimplyBounded_simple_non_generic() async {
+  test_new_typedef_function_notSimplyBounded_simple_non_generic() async {
     var library = await checkLibrary('''
 typedef F = void Function();
 ''');
     checkElementText(library, r'''
 typedef F = void Function();
+''');
+  }
+
+  test_new_typedef_nonFunction_notSimplyBounded_self() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary('''
+typedef F<T extends F> = List<int>;
+''');
+    checkElementText(library, r'''
+notSimplyBounded typedef F<T extends dynamic> = List<int>;
+''');
+  }
+
+  test_new_typedef_nonFunction_notSimplyBounded_viaInterfaceType() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary('''
+typedef F = List<F>;
+''');
+    checkElementText(library, r'''
+notSimplyBounded typedef F = List<dynamic>;
 ''');
   }
 
@@ -12207,6 +12132,207 @@ dynamic c;
 import 'dart:core' as core;
 dynamic c;
 ''');
+  }
+
+  test_typeAlias_typeParameters_variance_function_contravariant() async {
+    var library = await checkLibrary(r'''
+typedef F<T> = void Function(T);
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F<contravariant T> = void Function(T );
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_typeAlias_typeParameters_variance_function_contravariant2() async {
+    var library = await checkLibrary(r'''
+typedef F1<T> = void Function(T);
+typedef F2<T> = F1<T> Function();
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F1<contravariant T> = void Function(T );
+typedef F2<contravariant T> = void Function(T) Function();
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_typeAlias_typeParameters_variance_function_covariant() async {
+    var library = await checkLibrary(r'''
+typedef F<T> = T Function();
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F<covariant T> = T Function();
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_typeAlias_typeParameters_variance_function_covariant2() async {
+    var library = await checkLibrary(r'''
+typedef F<T> = List<T> Function();
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F<covariant T> = List<T> Function();
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_typeAlias_typeParameters_variance_function_covariant3() async {
+    var library = await checkLibrary(r'''
+typedef F1<T> = T Function();
+typedef F2<T> = F1<T> Function();
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F1<covariant T> = T Function();
+typedef F2<covariant T> = T Function() Function();
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_typeAlias_typeParameters_variance_function_covariant4() async {
+    var library = await checkLibrary(r'''
+typedef F1<T> = void Function(T);
+typedef F2<T> = void Function(F1<T>);
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F1<contravariant T> = void Function(T );
+typedef F2<covariant T> = void Function(void Function(T) );
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_typeAlias_typeParameters_variance_function_invalid() async {
+    var library = await checkLibrary(r'''
+class A {}
+typedef F<T> = void Function(A<int>);
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F<unrelated T> = void Function(A );
+class A {
+}
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_typeAlias_typeParameters_variance_function_invalid2() async {
+    var library = await checkLibrary(r'''
+typedef F = void Function();
+typedef G<T> = void Function(F<int>);
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F = void Function();
+typedef G<unrelated T> = void Function(void Function() );
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_typeAlias_typeParameters_variance_function_invariant() async {
+    var library = await checkLibrary(r'''
+typedef F<T> = T Function(T);
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F<invariant T> = T Function(T );
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_typeAlias_typeParameters_variance_function_invariant2() async {
+    var library = await checkLibrary(r'''
+typedef F1<T> = T Function();
+typedef F2<T> = F1<T> Function(T);
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F1<covariant T> = T Function();
+typedef F2<invariant T> = T Function() Function(T );
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_typeAlias_typeParameters_variance_function_unrelated() async {
+    var library = await checkLibrary(r'''
+typedef F<T> = void Function(int);
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F<unrelated T> = void Function(int );
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_typeAlias_typeParameters_variance_interface_contravariant() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef A<T> = List<void Function(T)>;
+''');
+    checkElementText(
+        library,
+        r'''
+typedef A<contravariant T> = List<void Function(T)>;
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_typeAlias_typeParameters_variance_interface_contravariant2() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef A<T> = void Function(T);
+typedef B<T> = List<A<T>>;
+''');
+    checkElementText(
+        library,
+        r'''
+typedef A<contravariant T> = void Function(T );
+typedef B<contravariant T> = List<void Function(T)>;
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_typeAlias_typeParameters_variance_interface_covariant() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef A<T> = List<T>;
+''');
+    checkElementText(
+        library,
+        r'''
+typedef A<covariant T> = List<T>;
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_typeAlias_typeParameters_variance_interface_covariant2() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef A<T> = Map<int, T>;
+typedef B<T> = List<A<T>>;
+''');
+    checkElementText(
+        library,
+        r'''
+typedef A<covariant T> = Map<int, T>;
+typedef B<covariant T> = List<Map<int, T>>;
+''',
+        withTypeParameterVariance: true);
   }
 
   test_typedef_documented() async {

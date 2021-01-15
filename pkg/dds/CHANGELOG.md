@@ -1,3 +1,6 @@
+# 1.7.1
+- Fixed issue where DartDevelopmentServiceException could have a null message.
+
 # 1.7.0
 - Added `package:dds/vm_service_extensions.dart`, which adds DDS functionality to
   `package:vm_service` when imported.

@@ -10,9 +10,10 @@ void setup() {
   JS('', r"""
 (function(){
   function CC() {}
-  makeCC = function() { return new CC() };
+  self.makeCC = function() { return new CC() };
   self.nativeConstructor(CC);
 })()""");
+  applyTestExtensions(['CC']);
 }
 
 @Native("CC")

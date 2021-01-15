@@ -27,11 +27,12 @@ void setup() {
 (function(){
   function A() {}
   function B() {}
-  makeA = function(){return new A()};
-  makeB = function(){return new B()};
+  self.makeA = function(){return new A()};
+  self.makeB = function(){return new B()};
 
   self.nativeConstructor(B);
 })()""");
+  applyTestExtensions(['B']);
 }
 
 main() {

@@ -1141,7 +1141,7 @@ void test() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 225, 1),
     ]);
 
-    DartType cType = findLocalVariable(unit, 'c').type;
+    DartType cType = findElement.localVar('c').type;
     Element elementC = AstFinder.getClass(unit, "C").declaredElement;
 
     _isInstantiationOf(_hasElement(elementC))([_isDynamic])(cType);

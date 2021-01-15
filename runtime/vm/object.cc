@@ -3798,7 +3798,7 @@ bool AbstractType::InstantiateAndTestSubtype(
 }
 
 ArrayPtr Class::invocation_dispatcher_cache() const {
-  return raw_ptr()->invocation_dispatcher_cache();
+  return raw_ptr()->invocation_dispatcher_cache<std::memory_order_acquire>();
 }
 
 void Class::Finalize() const {
@@ -5022,7 +5022,7 @@ void Class::set_declaration_type(const Type& value) const {
   // The exception is DeclarationType of Null which is kNullable.
   ASSERT(value.type_class_id() != kNullCid || value.IsNullable());
   ASSERT(value.type_class_id() == kNullCid || value.IsNonNullable());
-  raw_ptr()->set_declaration_type(value.raw());
+  raw_ptr()->set_declaration_type<std::memory_order_release>(value.raw());
 }
 
 TypePtr Class::DeclarationType() const {
@@ -9957,7 +9957,7 @@ void ClosureData::set_context_scope(const ContextScope& value) const {
 void ClosureData::set_implicit_static_closure(const Instance& closure) const {
   ASSERT(!closure.IsNull());
   ASSERT(raw_ptr()->closure() == Instance::null());
-  raw_ptr()->set_closure(closure.raw());
+  raw_ptr()->set_closure<std::memory_order_release>(closure.raw());
 }
 
 void ClosureData::set_parent_function(const Function& value) const {
@@ -16466,9 +16466,7 @@ CodePtr Code::FinalizeCode(FlowGraphCompiler* compiler,
     }
   } else {
 #if defined(DART_PRECOMPILER)
-    const bool needs_pool = (FLAG_write_v8_snapshot_profile_to != nullptr) ||
-                            (FLAG_trace_precompiler_to != nullptr);
-    if (needs_pool && assembler->HasObjectPoolBuilder() &&
+    if (assembler->HasObjectPoolBuilder() &&
         assembler->object_pool_builder().HasParent()) {
       // We are not going to write this pool into snapshot, but we will use
       // it to emit references from this code object to other objects in the

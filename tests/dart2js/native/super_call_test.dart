@@ -59,16 +59,17 @@ void setup() {
   function D(){}
   inherits(D, C);
 
-  makeA = function(){return new A()};
-  makeB = function(){return new B()};
-  makeC = function(){return new C()};
-  makeD = function(){return new D()};
+  self.makeA = function(){return new A()};
+  self.makeB = function(){return new B()};
+  self.makeC = function(){return new C()};
+  self.makeD = function(){return new D()};
 
   self.nativeConstructor(A);
   self.nativeConstructor(B);
   self.nativeConstructor(C);
   self.nativeConstructor(D);
 })()""");
+  applyTestExtensions(['A', 'B', 'C', 'D']);
 }
 
 main() {

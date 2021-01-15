@@ -197,7 +197,7 @@ class VarianceBuilder {
       return;
     }
 
-    var type = node.functionType?.type;
+    var type = node.type?.type;
 
     // Not a function type, recover.
     if (type == null) {

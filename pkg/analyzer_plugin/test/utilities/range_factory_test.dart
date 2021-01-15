@@ -173,7 +173,7 @@ void g(int a) {}
 
   Future<void> test_elementName() async {
     await resolveTestUnit('class ABC {}');
-    var element = findElement('ABC');
+    var element = findElement.class_('ABC');
     expect(range.elementName(element), SourceRange(6, 3));
   }
 

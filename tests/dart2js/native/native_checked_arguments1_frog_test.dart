@@ -24,6 +24,7 @@ B makeB() native;
 void setup() {
   JS('', r"""
 (function(){
+  "use strict";
   function A() {}
   A.prototype.foo = function (x) { return x + 1; };
   A.prototype.cmp = function (x) { return 0; };
@@ -32,12 +33,13 @@ void setup() {
   B.prototype.foo = function (x) { return x + 'ha!'; };
   B.prototype.cmp = function (x) { return 1; };
 
-  makeA = function(){return new A()};
-  makeB = function(){return new B()};
+  self.makeA = function(){return new A()};
+  self.makeB = function(){return new B()};
 
   self.nativeConstructor(A);
   self.nativeConstructor(B);
 })()""");
+  applyTestExtensions(['A', 'B']);
 }
 
 expectThrows(action()) {

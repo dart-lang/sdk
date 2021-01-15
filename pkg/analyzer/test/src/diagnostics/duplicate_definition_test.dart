@@ -936,7 +936,8 @@ mixin M {
 }
 
 @reflectiveTest
-class DuplicateDefinitionTest extends PubPackageResolutionTest {
+class DuplicateDefinitionTest extends PubPackageResolutionTest
+    with WithNonFunctionTypeAliasesMixin {
   test_catch() async {
     await assertErrorsInCode(r'''
 main() {
@@ -979,16 +980,16 @@ bool get a => true;
 
   test_locals_block_if() async {
     await assertErrorsInCode(r'''
-main(int p) {
+void f(int p) {
   if (p != 0) {
     var a;
     var a;
   }
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 38, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 49, 1),
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 49, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 51, 1),
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 51, 1),
     ]);
   }
 
@@ -1213,5 +1214,14 @@ class A {}
       ..assertErrors([
         error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 27, 1),
       ]);
+  }
+
+  test_unitMembers_typedef_interfaceType() async {
+    await assertErrorsInCode('''
+typedef A = List<int>;
+typedef A = List<int>;
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 31, 1),
+    ]);
   }
 }

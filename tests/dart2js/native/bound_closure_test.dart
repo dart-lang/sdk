@@ -40,13 +40,14 @@ void setup() {
     return 'CC.foo(' + u + ', ' + v + ')';
   };
 
-  makeBB = function(){return new BB()};
-  makeCC = function(){return new CC()};
-  inscrutable = function(a){return a;};
+  self.makeBB = function(){return new BB()};
+  self.makeCC = function(){return new CC()};
+  self.inscrutable = function(a){return a;};
 
   self.nativeConstructor(BB);
   self.nativeConstructor(CC);
 })()""");
+  applyTestExtensions(['BB', 'CC']);
 }
 
 main() {

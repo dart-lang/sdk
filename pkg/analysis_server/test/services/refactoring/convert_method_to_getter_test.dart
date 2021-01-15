@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/testing/element_search.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show RefactoringProblemSeverity;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -155,7 +154,7 @@ main() {
   var v = test();
 }
 ''');
-    ExecutableElement element = findElementsByName(testUnit, 'test').single;
+    var element = findElement.localFunction('test');
     _createRefactoringForElement(element);
     // check conditions
     await _assertInitialConditions_fatal(

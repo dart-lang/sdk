@@ -40,10 +40,11 @@ void setup() {
     set: function (v) { this._x = v; }
   });
 
-  makeA = function(){return new A()};
+  self.makeA = function(){return new A()};
 
   self.nativeConstructor(A);
 })()""");
+  applyTestExtensions(['A']);
 }
 
 main() {

@@ -45,12 +45,13 @@ void setup() {
   function X(){}
   X.prototype.key = function(){return 666;};
 
-  makeA = function(){return new A()};
-  makeX = function(){return new X()};
+  self.makeA = function(){return new A()};
+  self.makeX = function(){return new X()};
 
   self.nativeConstructor(A);
   self.nativeConstructor(X);
 })()""");
+  applyTestExtensions(['A', 'X']);
 }
 
 testDynamic() {
