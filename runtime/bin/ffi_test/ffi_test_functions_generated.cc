@@ -34,8 +34,6 @@ namespace dart {
   CHECK(((EXPECTED * 0.99) <= (ACTUAL) && (EXPECTED * 1.01) >= (ACTUAL)) ||    \
         ((EXPECTED * 0.99) >= (ACTUAL) && (EXPECTED * 1.01) <= (ACTUAL)))
 
-struct Struct0Bytes {};
-
 struct Struct1ByteInt {
   int8_t a0;
 };

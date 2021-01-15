@@ -421,7 +421,6 @@ Return big irregular struct as smoke test."""),
 ];
 
 final structs = [
-  struct0bytes,
   struct1byteInt,
   struct3bytesInt,
   struct3bytesInt2,
@@ -461,9 +460,6 @@ final structs = [
   structNestedBigger,
   structNestedEvenBigger,
 ];
-
-/// Using empty structs is undefined behavior in C.
-final struct0bytes = StructType([]);
 
 final struct1byteInt = StructType([int8]);
 final struct3bytesInt = StructType(List.filled(3, uint8));

@@ -358,24 +358,32 @@ class TestStruct4 extends Struct {
 class TestStruct5 extends Struct {
   @Int64() //# 54: compile-time error
   double z; //# 54: compile-time error
+
+  Pointer notEmpty;
 }
 
 // error on annotation not matching up
 class TestStruct6 extends Struct {
   @Void() //# 55: compile-time error
   double z; //# 55: compile-time error
+
+  Pointer notEmpty;
 }
 
 // error on annotation not matching up
 class TestStruct7 extends Struct {
   @NativeType() //# 56: compile-time error
   double z; //# 56: compile-time error
+
+  Pointer notEmpty;
 }
 
 // error on field initializer on field
 class TestStruct8 extends Struct {
   @Double() //# 57: compile-time error
   double z = 10.0; //# 57: compile-time error
+
+  Pointer notEmpty;
 }
 
 // error on field initializer in constructor
@@ -395,6 +403,8 @@ class TestStruct11<T> extends //# 60: compile-time error
 class TestStruct12 extends Struct {
   @Pointer //# 61: compile-time error
   TestStruct9 struct; //# 61: compile-time error
+
+  Pointer notEmpty;
 }
 
 class DummyAnnotation {
@@ -501,11 +511,15 @@ void testHandleVariance() {
 
 class TestStruct1001 extends Struct {
   Handle handle; //# 1001: compile-time error
+
+  Pointer notEmpty;
 }
 
 class TestStruct1002 extends Struct {
   @Handle() //# 1002: compile-time error
   Object handle; //# 1002: compile-time error
+
+  Pointer notEmpty;
 }
 
 class EmptyStruct extends Struct {}
@@ -554,6 +568,8 @@ void testEmptyStructFromFunctionReturn() {
 
 class HasNestedEmptyStruct extends Struct {
   EmptyStruct nestedEmptyStruct; //# 1106: compile-time error
+
+  Pointer notEmpty;
 }
 
 void testAllocateGeneric() {
