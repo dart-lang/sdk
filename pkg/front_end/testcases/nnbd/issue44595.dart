@@ -7,9 +7,8 @@ import "dart:async";
 T id<T>(T value) => value;
 
 main() async {
-  FutureOr<int> x = 1 + id(1); // Should work, gives error.
+  FutureOr<int> x = 1 + id(1);
 
-  // Checking it!
   FutureOr<int> y = 1 + id(1)
     ..checkStaticType<Exactly<int>>();
   FutureOr<int> z = 1 + contextType(1)
