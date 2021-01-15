@@ -482,7 +482,7 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   /// Emits imports and extension methods into [items].
   @protected
   void emitImportsAndExtensionSymbols(List<js_ast.ModuleItem> items,
-      {bool forceExtensionSymbols: false}) {
+      {bool forceExtensionSymbols = false}) {
     var modules = <String, List<Library>>{};
 
     for (var import in _imports.keys) {

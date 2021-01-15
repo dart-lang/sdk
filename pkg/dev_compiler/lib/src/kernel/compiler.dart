@@ -2460,7 +2460,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.PropertyAccess _emitTopLevelNameNoInterop(NamedNode n,
       {String suffix = ''}) {
     // Some native tests use top-level native methods.
-    var isTopLevelNative = n is Member && _isNative(n);
+    var isTopLevelNative = n is Member && isNative(n);
     return js_ast.PropertyAccess(
         isTopLevelNative
             ? runtimeCall('global.self')
@@ -6229,31 +6229,3 @@ class _SwitchLabelState {
 
   _SwitchLabelState(this.label, this.variable);
 }
-
-/// Whether [member] is declared native, as in:
-///
-///    void foo() native;
-///
-/// This syntax is only allowed in sdk libraries like `dart:html` and native
-/// tests.
-bool _isNative(Member member) {
-  // The CFE represents `native` members with the `external` bit and with an
-  // internal @ExternalName annotation.
-  if (member.isExternal &&
-      allowedNativeTest(member.enclosingLibrary.importUri)) {
-    for (var annotation in member.annotations) {
-      if (annotation is ConstantExpression) {
-        var constant = annotation.constant;
-        if (constant is InstanceConstant &&
-            constant.classNode.name == 'ExternalName' &&
-            _isDartInternal(constant.classNode.enclosingLibrary.importUri)) {
-          return true;
-        }
-      }
-    }
-  }
-  return false;
-}
-
-bool _isDartInternal(Uri uri) =>
-    uri.scheme == 'dart' && uri.path == '_internal';
