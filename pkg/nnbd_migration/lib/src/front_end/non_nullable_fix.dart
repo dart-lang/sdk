@@ -396,16 +396,34 @@ ${depLines.join('\n')}
       VersionConstraint currentConstraint;
       if (node.value is String) {
         currentConstraint = VersionConstraint.parse(node.value as String);
-        if (currentConstraint is VersionRange &&
-            currentConstraint.min >= minimumVersion) {
-          // The current version constraint is already up to date.  Do not edit.
+        var invalidVersionMessage =
+            'The current SDK constraint in pubspec.yaml is invalid. A '
+            'minimum version, such as ">=2.7.0", is required when launching '
+            "'dart migrate'.";
+        if (currentConstraint is Version) {
+          // In this case, the constraint is an exact version, like 2.0.0.
+          _logger.stderr(invalidVersionMessage);
           return false;
+        } else if (currentConstraint is VersionRange) {
+          if (currentConstraint.min == null) {
+            _logger.stderr(invalidVersionMessage);
+            return false;
+          } else if (currentConstraint.min >= minimumVersion) {
+            // The current version constraint is already up to date.  Do not
+            // edit.
+            return false;
+          } else {
+            // TODO(srawlins): This overwrites the current maximum version. In
+            // the uncommon situation that there is a special maximum, it should
+            // not.
+            pubspec._replaceSpan(node.span, fullVersionConstraint, listener);
+            return true;
+          }
         } else {
-          // TODO(srawlins): This overwrites the current maximum version. In
-          // the uncommon situation that there is a special maximum, it should
-          // not.
-          pubspec._replaceSpan(node.span, fullVersionConstraint, listener);
-          return true;
+          // The constraint is something different, like a union, like
+          // '>=1.0.0 <2.0.0 >=3.0.0 <4.0.0', which is not valid.
+          _logger.stderr(invalidVersionMessage);
+          return false;
         }
       } else {
         // Something is odd with the constraint we've found in pubspec.yaml;
