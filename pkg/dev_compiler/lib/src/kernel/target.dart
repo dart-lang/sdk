@@ -30,6 +30,8 @@ class DevCompilerTarget extends Target {
 
   WidgetCreatorTracker _widgetTracker;
 
+  Map<String, Class> _nativeClasses;
+
   @override
   bool get enableSuperMixins => true;
 
@@ -152,10 +154,13 @@ class DevCompilerTarget extends Target {
       ReferenceFromIndex referenceFromIndex,
       {void Function(String msg) logger,
       ChangedStructureNotifier changedStructureNotifier}) {
+    _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();
-      JsInteropChecks(coreTypes,
-              diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>)
+      JsInteropChecks(
+              coreTypes,
+              diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
+              _nativeClasses)
           .visitLibrary(library);
     }
   }
