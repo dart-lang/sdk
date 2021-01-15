@@ -8,6 +8,7 @@ import 'add_type_parameter_test.dart' as add_type_parameter;
 import 'code_fragment_parser_test.dart' as code_fragment_parser;
 import 'code_template_test.dart' as code_template;
 import 'diagnostics/test_all.dart' as diagnostics;
+import 'element_matcher_test.dart' as element_matcher;
 import 'end_to_end_test.dart' as end_to_end;
 import 'flutter_use_case_test.dart' as flutter_use_case;
 import 'modify_parameters_test.dart' as modify_parameters;
@@ -22,6 +23,7 @@ void main() {
     code_fragment_parser.main();
     code_template.main();
     diagnostics.main();
+    element_matcher.main();
     end_to_end.main();
     flutter_use_case.main();
     modify_parameters.main();
