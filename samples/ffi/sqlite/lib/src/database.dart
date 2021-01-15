@@ -101,7 +101,7 @@ class Database {
     int columnCount = bindings.sqlite3_column_count(statement);
     for (int i = 0; i < columnCount; i++) {
       String columnName =
-          bindings.sqlite3_column_name(statement, i).ref.toString();
+          Utf8.fromUtf8(bindings.sqlite3_column_name(statement, i));
       columnIndices[columnName] = i;
     }
 
@@ -109,9 +109,9 @@ class Database {
   }
 
   SQLiteException _loadError(int errorCode) {
-    String errorMessage = bindings.sqlite3_errmsg(_database).ref.toString();
+    String errorMessage = Utf8.fromUtf8(bindings.sqlite3_errmsg(_database));
     String errorCodeExplanation =
-        bindings.sqlite3_errstr(errorCode).ref.toString();
+        Utf8.fromUtf8(bindings.sqlite3_errstr(errorCode));
     return SQLiteException(
         "$errorMessage (Code $errorCode: $errorCodeExplanation)");
   }
@@ -206,10 +206,8 @@ class Row {
       dynamicType =
           _typeFromCode(bindings.sqlite3_column_type(_statement, columnIndex));
     } else {
-      dynamicType = _typeFromText(bindings
-          .sqlite3_column_decltype(_statement, columnIndex)
-          .ref
-          .toString());
+      dynamicType = _typeFromText(Utf8.fromUtf8(
+          bindings.sqlite3_column_decltype(_statement, columnIndex)));
     }
 
     switch (dynamicType) {
@@ -244,7 +242,7 @@ class Row {
   /// Reads column [columnIndex] and converts to [Type.Text] if not text.
   String readColumnByIndexAsText(int columnIndex) {
     _checkIsCurrentRow();
-    return bindings.sqlite3_column_text(_statement, columnIndex).ref.toString();
+    return Utf8.fromUtf8(bindings.sqlite3_column_text(_statement, columnIndex));
   }
 
   void _checkIsCurrentRow() {

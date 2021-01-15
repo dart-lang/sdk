@@ -544,6 +544,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.useOldRti, passThrough),
     new OptionHandler(Flags.testMode, passThrough),
     new OptionHandler('${Flags.dumpSsa}=.+', passThrough),
+    new OptionHandler('${Flags.cfeInvocationModes}=.+', passThrough),
 
     // Experimental features.
     // We don't provide documentation for these yet.

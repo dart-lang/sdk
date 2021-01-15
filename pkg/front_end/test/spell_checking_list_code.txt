@@ -1014,6 +1014,7 @@ scoping
 sdk's
 seconds
 sections
+selectively
 selectors
 semantically
 semver

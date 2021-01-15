@@ -22,7 +22,7 @@ final bool isolateGropusEnabled =
     Platform.executableArguments.contains('--enable-isolate-groups');
 final sdkRoot = Platform.script.resolve('../../../../../');
 
-class Isolate extends Struct {}
+class Isolate extends Opaque {}
 
 abstract class FfiBindings {
   static final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");

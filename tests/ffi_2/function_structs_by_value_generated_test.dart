@@ -106,10 +106,6 @@ void main() {
   }
 }
 
-class Struct0Bytes extends Struct {
-  String toString() => "()";
-}
-
 class Struct1ByteInt extends Struct {
   @Int8()
   int a0;

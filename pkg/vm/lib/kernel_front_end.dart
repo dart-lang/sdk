@@ -23,6 +23,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         CompilerContext,
         CompilerOptions,
         CompilerResult,
+        InvocationMode,
         DiagnosticMessage,
         DiagnosticMessageHandler,
         ExperimentalFlag,
@@ -127,6 +128,9 @@ void declareCompilerOptions(ArgParser args) {
   args.addFlag('track-widget-creation',
       help: 'Run a kernel transformer to track creation locations for widgets.',
       defaultsTo: false);
+  args.addOption('invocation-modes',
+      help: 'Provides information to the front end about how it is invoked.',
+      defaultsTo: '');
 }
 
 /// Create ArgParser and populate it with options consumed by [runCompiler].
@@ -226,7 +230,9 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     ..onDiagnostic = (DiagnosticMessage m) {
       errorDetector(m);
     }
-    ..embedSourceText = embedSources;
+    ..embedSourceText = embedSources
+    ..invocationModes =
+        InvocationMode.parseArguments(options['invocation-modes']);
 
   if (nullSafety == null &&
       compilerOptions.isExperimentEnabled(ExperimentalFlag.nonNullable)) {
@@ -496,7 +502,18 @@ class ErrorPrinter {
 
   void printCompilationMessages() {
     final sortedUris = compilationMessages.keys.toList()
-      ..sort((a, b) => '$a'.compareTo('$b'));
+      ..sort((a, b) {
+        // Sort messages without a corresponding uri before the location based
+        // messages, since these related to the whole compilation.
+        if (a != null && b != null) {
+          return '$a'.compareTo('$b');
+        } else if (a != null) {
+          return 1;
+        } else if (b != null) {
+          return -1;
+        }
+        return 0;
+      });
     for (final Uri sourceUri in sortedUris) {
       for (final DiagnosticMessage message in compilationMessages[sourceUri]) {
         printDiagnosticMessage(message, print);

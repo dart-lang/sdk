@@ -29,7 +29,7 @@ Uint8List inventData(int length) {
   return result;
 }
 
-Uint8List toUint8List(Bytes bytes, int length) {
+Uint8List toUint8List(Pointer<Bytes> bytes, int length) {
   final result = Uint8List(length);
   final uint8bytes = bytes.asUint8Pointer();
   for (int i = 0; i < length; i++) {
@@ -38,7 +38,7 @@ Uint8List toUint8List(Bytes bytes, int length) {
   return result;
 }
 
-void copyFromUint8ListToTarget(Uint8List source, Data target) {
+void copyFromUint8ListToTarget(Uint8List source, Pointer<Data> target) {
   final int length = source.length;
   final uint8target = target.asUint8Pointer();
   for (int i = 0; i < length; i++) {
@@ -54,7 +54,7 @@ String hash(Pointer<Data> data, int length, Pointer<EVP_MD> hashAlgorithm) {
   final Pointer<Bytes> result = calloc<Uint8>(resultSize).cast();
   EVP_DigestFinal(context, result, nullptr);
   EVP_MD_CTX_free(context);
-  final String hash = base64Encode(toUint8List(result.ref, resultSize));
+  final String hash = base64Encode(toUint8List(result, resultSize));
   calloc.free(result);
   return hash;
 }
@@ -87,7 +87,7 @@ class DigestCMemory extends BenchmarkBase {
   @override
   void setup() {
     data = calloc<Uint8>(L).cast();
-    copyFromUint8ListToTarget(inventData(L), data.ref);
+    copyFromUint8ListToTarget(inventData(L), data);
     hash(data, L, hashAlgorithm);
   }
 
@@ -117,7 +117,7 @@ class DigestDartMemory extends BenchmarkBase {
   void setup() {
     data = inventData(L);
     final Pointer<Data> dataInC = calloc<Uint8>(L).cast();
-    copyFromUint8ListToTarget(data, dataInC.ref);
+    copyFromUint8ListToTarget(data, dataInC);
     hash(dataInC, L, hashAlgorithm);
     calloc.free(dataInC);
   }
@@ -128,7 +128,7 @@ class DigestDartMemory extends BenchmarkBase {
   @override
   void run() {
     final Pointer<Data> dataInC = calloc<Uint8>(L).cast();
-    copyFromUint8ListToTarget(data, dataInC.ref);
+    copyFromUint8ListToTarget(data, dataInC);
     final String result = hash(dataInC, L, hashAlgorithm);
     calloc.free(dataInC);
     if (result != expectedHash) {

@@ -8,7 +8,11 @@ export 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
 export 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
 export '../api_prototype/compiler_options.dart'
-    show CompilerOptions, parseExperimentalArguments, parseExperimentalFlags;
+    show
+        CompilerOptions,
+        InvocationMode,
+        parseExperimentalArguments,
+        parseExperimentalFlags;
 
 export '../api_prototype/experimental_flags.dart'
     show defaultExperimentalFlags, ExperimentalFlag;

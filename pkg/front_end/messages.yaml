@@ -4936,3 +4936,18 @@ UnexpectedModifierInNonNnbd:
   analyzerCode: UNEXPECTED_TOKEN
   script:
     - "late int x;"
+
+CompilingWithSoundNullSafety:
+  template: "Compiling with sound null safety"
+  configuration: nnbd-strong,compile
+  severity: INFO
+  script: |
+    main() {}
+
+CompilingWithUnsoundNullSafety:
+  template: "Compiling with unsound null safety"
+  configuration: nnbd-weak,compile
+  severity: INFO
+  script: |
+    // @dart=2.9
+    main() {}

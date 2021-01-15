@@ -170,7 +170,9 @@ class KernelLoaderTask extends CompilerTask {
             explicitExperimentalFlags: _options.explicitExperimentalFlags,
             nnbdMode: _options.useLegacySubtyping
                 ? fe.NnbdMode.Weak
-                : fe.NnbdMode.Strong);
+                : fe.NnbdMode.Strong,
+            invocationModes:
+                fe.InvocationMode.parseArguments(_options.cfeInvocationModes));
         component = await fe.compile(initializedCompilerState, verbose,
             fileSystem, onDiagnostic, resolvedUri);
         if (component == null) return null;

@@ -358,30 +358,40 @@ class TestStruct4 extends Struct {
 class TestStruct5 extends Struct {
   @Int64() //# 54: compile-time error
   external double z; //# 54: compile-time error
+
+  external Pointer notEmpty;
 }
 
 // error on annotation not matching up
 class TestStruct6 extends Struct {
   @Void() //# 55: compile-time error
   external double z; //# 55: compile-time error
+
+  external Pointer notEmpty;
 }
 
 // error on annotation not matching up
 class TestStruct7 extends Struct {
   @NativeType() //# 56: compile-time error
   external double z; //# 56: compile-time error
+
+  external Pointer notEmpty;
 }
 
 // error on field initializer on field
 class TestStruct8 extends Struct {
   @Double() //# 57: compile-time error
   double z = 10.0; //# 57: compile-time error
+
+  external Pointer notEmpty;
 }
 
 // error on field initializer in constructor
 class TestStruct9 extends Struct {
   @Double() //# 58: compile-time error
   double z; //# 58: compile-time error
+
+  external Pointer notEmpty;
 
   TestStruct9() : z = 0.0 {} //# 58: compile-time error
 }
@@ -395,6 +405,8 @@ class TestStruct11<T> extends //# 60: compile-time error
 class TestStruct12 extends Struct {
   @Pointer //# 61: compile-time error
   external TestStruct9 struct; //# 61: compile-time error
+
+  external Pointer notEmpty;
 }
 
 class DummyAnnotation {
@@ -500,12 +512,16 @@ void testHandleVariance() {
 }
 
 class TestStruct1001 extends Struct {
-  Handle handle; //# 1001: compile-time error
+  external Handle handle; //# 1001: compile-time error
+
+  external Pointer notEmpty;
 }
 
 class TestStruct1002 extends Struct {
   @Handle() //# 1002: compile-time error
-  Object handle; //# 1002: compile-time error
+  external Object handle; //# 1002: compile-time error
+
+  external Pointer notEmpty;
 }
 
 class EmptyStruct extends Struct {}
@@ -554,6 +570,8 @@ void testEmptyStructFromFunctionReturn() {
 
 class HasNestedEmptyStruct extends Struct {
   external EmptyStruct nestedEmptyStruct; //# 1106: compile-time error
+
+  external Pointer notEmpty;
 }
 
 void testAllocateGeneric() {

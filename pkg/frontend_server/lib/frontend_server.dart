@@ -36,6 +36,8 @@ import 'package:vm/kernel_front_end.dart';
 import 'src/javascript_bundle.dart';
 import 'src/strong_components.dart';
 
+export 'src/to_string_transformer.dart';
+
 ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('train',
       help: 'Run through sample command line to produce snapshot',
@@ -359,6 +361,7 @@ class FrontendCompiler implements CompilerInterface {
         errors.addAll(message.plainTextFormatted);
         break;
       case Severity.warning:
+      case Severity.info:
         printMessage = true;
         break;
       case Severity.context:

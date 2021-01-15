@@ -198,6 +198,7 @@ const Map<String, ValueSpecification> optionSpecification =
   Flags.warnOnReachabilityCheck: const BoolValue(false),
   Flags.linkDependencies: const UriListValue(),
   Flags.noDeps: const BoolValue(false),
+  Flags.invocationModes: const StringValue(),
   "-D": const DefineValue(),
   "-h": const AliasValue(Flags.help),
   "--out": const AliasValue(Flags.output),
@@ -303,6 +304,8 @@ ProcessedOptions analyzeCommandLine(String programName,
 
   final List<Uri> linkDependencies = options[Flags.linkDependencies] ?? [];
 
+  final String invocationModes = options[Flags.invocationModes] ?? '';
+
   if (nnbdStrongMode && nnbdWeakMode) {
     return throw new CommandLineProblem.deprecated(
         "Can't specify both '${Flags.nnbdStrongMode}' and "
@@ -353,7 +356,8 @@ ProcessedOptions analyzeCommandLine(String programName,
     ..nnbdMode = nnbdMode
     ..additionalDills = linkDependencies
     ..emitDeps = !noDeps
-    ..warnOnReachabilityCheck = warnOnReachabilityCheck;
+    ..warnOnReachabilityCheck = warnOnReachabilityCheck
+    ..invocationModes = InvocationMode.parseArguments(invocationModes);
 
   if (programName == "compile_platform") {
     if (arguments.length != 5) {

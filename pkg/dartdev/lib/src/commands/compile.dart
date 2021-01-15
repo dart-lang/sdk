@@ -98,6 +98,7 @@ class CompileJSCommand extends CompileSubcommandCommand {
           '--libraries-spec=$librariesPath',
           if (argResults.enabledExperiments.isNotEmpty)
             "--enable-experiment=${argResults.enabledExperiments.join(',')}",
+          '--cfe-invocation-modes=compile',
           ...argResults.arguments,
         ],
         packageConfigOverride: null);
