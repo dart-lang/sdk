@@ -35,6 +35,7 @@ import 'kernel_helpers.dart';
 import 'native_types.dart';
 import 'nullable_inference.dart';
 import 'property_model.dart';
+import 'target.dart' show allowedNativeTest;
 import 'type_table.dart';
 
 class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
@@ -251,7 +252,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     coreTypes ??= CoreTypes(component);
     var types = TypeEnvironment(coreTypes, hierarchy);
     var constants = DevCompilerConstants();
-    var nativeTypes = NativeTypeSet(coreTypes, constants);
+    var nativeTypes = NativeTypeSet(coreTypes, constants, component);
     var jsTypeRep = JSTypeRep(types, hierarchy);
     var staticTypeContext = StatefulStaticTypeContext.stacked(types);
     return ProgramCompiler._(
@@ -411,7 +412,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     libraries.forEach(_emitExports);
 
     // Declare imports and extension symbols
-    emitImportsAndExtensionSymbols(items);
+    emitImportsAndExtensionSymbols(items,
+        forceExtensionSymbols:
+            libraries.any((l) => allowedNativeTest(l.importUri)));
 
     // Insert a check that runs when loading this module to verify that the null
     // safety mode it was compiled in matches the mode used when compiling the
@@ -2456,7 +2459,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   js_ast.PropertyAccess _emitTopLevelNameNoInterop(NamedNode n,
       {String suffix = ''}) {
-    return js_ast.PropertyAccess(emitLibraryName(getLibrary(n)),
+    // Some native tests use top-level native methods.
+    var isTopLevelNative = n is Member && _isNative(n);
+    return js_ast.PropertyAccess(
+        isTopLevelNative
+            ? runtimeCall('global.self')
+            : emitLibraryName(getLibrary(n)),
         _emitTopLevelMemberName(n, suffix: suffix));
   }
 
@@ -6221,3 +6229,31 @@ class _SwitchLabelState {
 
   _SwitchLabelState(this.label, this.variable);
 }
+
+/// Whether [member] is declared native, as in:
+///
+///    void foo() native;
+///
+/// This syntax is only allowed in sdk libraries like `dart:html` and native
+/// tests.
+bool _isNative(Member member) {
+  // The CFE represents `native` members with the `external` bit and with an
+  // internal @ExternalName annotation.
+  if (member.isExternal &&
+      allowedNativeTest(member.enclosingLibrary.importUri)) {
+    for (var annotation in member.annotations) {
+      if (annotation is ConstantExpression) {
+        var constant = annotation.constant;
+        if (constant is InstanceConstant &&
+            constant.classNode.name == 'ExternalName' &&
+            _isDartInternal(constant.classNode.enclosingLibrary.importUri)) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+bool _isDartInternal(Uri uri) =>
+    uri.scheme == 'dart' && uri.path == '_internal';

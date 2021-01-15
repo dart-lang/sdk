@@ -118,9 +118,7 @@ class DevCompilerTarget extends Target {
   bool _allowedTestLibrary(Uri uri) {
     // Multi-root scheme used by modular test framework.
     if (uri.scheme == 'dev-dart-app') return true;
-
-    var scriptName = uri.path;
-    return scriptName.contains('tests/dartdevc');
+    return allowedNativeTest(uri);
   }
 
   bool _allowedDartLibrary(Uri uri) => uri.scheme == 'dart';
@@ -448,4 +446,17 @@ class _CovarianceTransformer extends RecursiveVisitor<void> {
     _checkTarget(node.left, node.interfaceTarget);
     super.visitEqualsCall(node);
   }
+}
+
+List<Pattern> _allowedNativeTestPatterns = [
+  'tests/dartdevc',
+  'tests/dart2js/native',
+  'tests/dart2js_2/native',
+  'tests/dart2js/internal',
+  'tests/dart2js_2/internal',
+];
+
+bool allowedNativeTest(Uri uri) {
+  var path = uri.path;
+  return _allowedNativeTestPatterns.any((pattern) => path.contains(pattern));
 }

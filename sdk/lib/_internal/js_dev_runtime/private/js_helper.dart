@@ -798,6 +798,11 @@ void applyExtension(name, nativeObject) {
   dart.applyExtension(name, nativeObject);
 }
 
+/// Hook to apply extensions on native JS classes defined in a native unit test.
+void applyTestExtensions(List<String> names) {
+  names.forEach(dart.applyExtensionForTesting);
+}
+
 /// Used internally by DDC to map ES6 symbols to Dart.
 class PrivateSymbol implements Symbol {
   // TODO(jmesserly): could also get this off the native symbol instead of
