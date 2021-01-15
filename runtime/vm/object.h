@@ -1588,7 +1588,9 @@ class Class : public Object {
   }
 
  private:
-  TypePtr declaration_type() const { return raw_ptr()->declaration_type(); }
+  TypePtr declaration_type() const {
+    return raw_ptr()->declaration_type<std::memory_order_acquire>();
+  }
 
   // Caches the declaration type of this class.
   void set_declaration_type(const Type& type) const;
@@ -3767,7 +3769,9 @@ class ClosureData : public Object {
   FunctionPtr parent_function() const { return raw_ptr()->parent_function_; }
   void set_parent_function(const Function& value) const;
 
-  InstancePtr implicit_static_closure() const { return raw_ptr()->closure_; }
+  InstancePtr implicit_static_closure() const {
+    return raw_ptr()->closure<std::memory_order_acquire>();
+  }
   void set_implicit_static_closure(const Instance& closure) const;
 
   TypeArgumentsPtr default_type_arguments() const {
