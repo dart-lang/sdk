@@ -297,7 +297,7 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
   }
 
   Future assertPreviewServerResponsive(String url) async {
-    var response = await httpGet(url);
+    var response = await httpGet(Uri.parse(url));
     assertHttpSuccess(response);
   }
 
@@ -372,13 +372,13 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
 
   /// Performs an HTTP get, verifying that the response received (if any) is
   /// reasonable.
-  Future<http.Response> httpGet(dynamic url, {Map<String, String> headers}) {
+  Future<http.Response> httpGet(Uri url, {Map<String, String> headers}) {
     return checkHttpResponse(http.get(url, headers: headers));
   }
 
   /// Performs an HTTP post, verifying that the response received (if any) is
   /// reasonable.
-  Future<http.Response> httpPost(dynamic url,
+  Future<http.Response> httpPost(Uri url,
       {Map<String, String> headers, dynamic body, Encoding encoding}) {
     return checkHttpResponse(
         http.post(url, headers: headers, body: body, encoding: encoding));
@@ -399,7 +399,7 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
         await callback(url);
       });
       // Server should be stopped now
-      expect(httpGet(url), throwsA(anything));
+      expect(httpGet(Uri.parse(url)), throwsA(anything));
       assertNormalExit(cliRunner);
     }
   }
