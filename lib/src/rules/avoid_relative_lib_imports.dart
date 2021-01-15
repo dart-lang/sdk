@@ -60,6 +60,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   bool isRelativeLibImport(ImportDirective node) {
+    // This check is too narrow.  Really we should be checking against the
+    // resolved URI and not it's literal string content.
+    // See: https://github.com/dart-lang/linter/issues/2419
     try {
       final uri = Uri.parse(node.uriContent);
       if (uri.scheme.isEmpty) {
