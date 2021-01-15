@@ -125,11 +125,12 @@ class _MigrationCliRunner extends MigrationCliRunner {
   }
 
   @override
-  Future<void> blockUntilSignalInterrupt() async {
+  void listenForSignalInterrupt() {
     if (_runWhilePreviewServerActive == null) {
       fail('Preview server not expected to have been started');
     }
-    await _runWhilePreviewServerActive.call();
+    sigIntSignalled = Completer();
+    _runWhilePreviewServerActive.call().then((_) => sigIntSignalled.complete());
     _runWhilePreviewServerActive = null;
   }
 

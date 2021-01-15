@@ -411,10 +411,6 @@ void f(A a) {}
   "configVersion": 2,
   "packages": [ ${packages.join(', ')} ]
 }''');
-    print('''{
-  "configVersion": 2,
-  "packages": [ ${packages.join(', ')} ]
-}''');
   }
 }
 

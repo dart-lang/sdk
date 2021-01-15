@@ -1642,6 +1642,8 @@ class ObjectPoolLayout : public ObjectLayout {
 
   friend class Object;
   friend class CodeSerializationCluster;
+  friend class UnitSerializationRoots;
+  friend class UnitDeserializationRoots;
 };
 
 class InstructionsLayout : public ObjectLayout {

@@ -1731,6 +1731,10 @@ class _InvalidAccessVerifier {
       return;
     }
 
+    if (parent is HideCombinator) {
+      return;
+    }
+
     _checkForInvalidInternalAccess(identifier, element);
     _checkForOtherInvalidAccess(identifier, element);
   }

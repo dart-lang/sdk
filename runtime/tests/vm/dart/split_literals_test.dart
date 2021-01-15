@@ -65,7 +65,8 @@ main(List<String> args) async {
 
     // Compile kernel to ELF.
     await run(genSnapshot, <String>[
-      "--use_bare_instructions=false",
+      "--use_bare_instructions=false", //# object: ok
+      "--use_bare_instructions=true", //# bare: ok
       "--snapshot-kind=app-aot-elf",
       "--elf=$snapshot",
       "--loading-unit-manifest=$manifest",

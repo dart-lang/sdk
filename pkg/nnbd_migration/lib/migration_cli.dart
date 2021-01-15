@@ -517,6 +517,12 @@ class MigrationCliRunner implements DartFixListenerClient {
 
   bool _hasAnalysisErrors = false;
 
+  /// Subscription of interrupt signals (control-C).
+  StreamSubscription<ProcessSignal> _sigIntSubscription;
+
+  /// Completes when an interrupt signal (control-C) is received.
+  Completer<void> sigIntSignalled;
+
   MigrationCliRunner(this.cli, this.options, {Logger logger})
       : logger = logger ?? cli.logger;
 
@@ -558,14 +564,6 @@ class MigrationCliRunner implements DartFixListenerClient {
   /// Called after changes have been applied on disk.  Maybe overridden by a
   /// derived class.
   void applyHook() {}
-
-  /// Blocks until an interrupt signal (control-C) is received.  Tests may
-  /// override this method to simulate control-C.
-  @visibleForTesting
-  Future<void> blockUntilSignalInterrupt() {
-    Stream<ProcessSignal> stream = ProcessSignal.sigint.watch();
-    return stream.first;
-  }
 
   /// Computes the internet address that should be passed to `HttpServer.bind`
   /// when starting the preview server.  May be overridden in derived classes.
@@ -611,6 +609,18 @@ class MigrationCliRunner implements DartFixListenerClient {
         preferredPort: preferredPort,
         summaryPath: summaryPath,
         sdkPath: sdkPath);
+  }
+
+  /// Subscribes to the interrupt signal (control-C).
+  @visibleForTesting
+  void listenForSignalInterrupt() {
+    var stream = ProcessSignal.sigint.watch();
+    sigIntSignalled = Completer();
+    _sigIntSubscription = stream.listen((_) {
+      if (!sigIntSignalled.isCompleted) {
+        sigIntSignalled.complete();
+      }
+    });
   }
 
   @override
@@ -770,8 +780,15 @@ sources' action.
 
 ''');
 
-      // Block until sigint (ctrl-c).
-      await blockUntilSignalInterrupt();
+      listenForSignalInterrupt();
+      await Future.any([
+        sigIntSignalled.future,
+        nonNullableFix.serverIsShutdown.future,
+      ]);
+      // Either the interrupt signal was caught, or the server was shutdown.
+      // Either way, cancel the interrupt signal subscription, and shutdown the
+      // server.
+      _sigIntSubscription?.cancel();
       nonNullableFix.shutdownServer();
     } else {
       logger.stdout(ansi.emphasized('Diff of changes:'));

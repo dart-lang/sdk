@@ -351,7 +351,7 @@ class Serializer : public ThreadStackResource {
     Write<int32_t>(cid);
   }
 
-  void PrepareInstructions(GrowableArray<CodePtr>* codes);
+  void PrepareInstructions();
   void WriteInstructions(InstructionsPtr instr,
                          uint32_t unchecked_offset,
                          CodePtr code,
@@ -417,6 +417,13 @@ class Serializer : public ThreadStackResource {
       return RefId(Object::null());
     }
     FATAL("Missing ref");
+  }
+
+  bool HasRef(ObjectPtr object) const {
+    return heap_->GetObjectId(object) != kUnreachableReference;
+  }
+  bool IsWritten(ObjectPtr object) const {
+    return heap_->GetObjectId(object) > num_base_objects_;
   }
 
  private:
