@@ -76,7 +76,7 @@ struct ConstantPoolTrait {
   }
 
   static inline bool IsKeyEqual(Pair kv, Key key) {
-    return kv->value().raw() == key.raw();
+    return kv->value().ptr() == key.ptr();
   }
 };
 
@@ -234,7 +234,7 @@ class FlowGraph : public ZoneAllocated {
   // Return value indicates that the call needs no check at all,
   // just a null check, or a full class check.
   ToCheck CheckForInstanceCall(InstanceCallInstr* call,
-                               FunctionLayout::Kind kind) const;
+                               UntaggedFunction::Kind kind) const;
 
   Thread* thread() const { return thread_; }
   Zone* zone() const { return thread()->zone(); }

@@ -13,11 +13,11 @@ namespace dart {
 
 void CHA::AddToGuardedClasses(const Class& cls, intptr_t subclass_count) {
   for (intptr_t i = 0; i < guarded_classes_.length(); i++) {
-    if (guarded_classes_[i].cls->raw() == cls.raw()) {
+    if (guarded_classes_[i].cls->ptr() == cls.ptr()) {
       return;
     }
   }
-  GuardedClassInfo info = {&Class::ZoneHandle(thread_->zone(), cls.raw()),
+  GuardedClassInfo info = {&Class::ZoneHandle(thread_->zone(), cls.ptr()),
                            subclass_count};
   guarded_classes_.Add(info);
   return;

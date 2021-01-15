@@ -744,8 +744,8 @@ bool CallSpecializer::TryInlineImplicitInstanceGetter(InstanceCallInstr* call) {
     field = field.CloneFromOriginal();
   }
 
-  switch (flow_graph()->CheckForInstanceCall(call,
-                                             FunctionLayout::kImplicitGetter)) {
+  switch (flow_graph()->CheckForInstanceCall(
+      call, UntaggedFunction::kImplicitGetter)) {
     case FlowGraph::ToCheck::kCheckNull:
       AddCheckNull(call->Receiver(), call->function_name(), call->deopt_id(),
                    call->env(), call);
@@ -801,7 +801,7 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
     return false;
   }
   const Function& target = targets.FirstTarget();
-  if (target.kind() != FunctionLayout::kImplicitSetter) {
+  if (target.kind() != UntaggedFunction::kImplicitSetter) {
     // Non-implicit setter are inlined like normal method calls.
     return false;
   }
@@ -811,8 +811,8 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
     field = field.CloneFromOriginal();
   }
 
-  switch (flow_graph()->CheckForInstanceCall(instr,
-                                             FunctionLayout::kImplicitSetter)) {
+  switch (flow_graph()->CheckForInstanceCall(
+      instr, UntaggedFunction::kImplicitSetter)) {
     case FlowGraph::ToCheck::kCheckNull:
       AddCheckNull(instr->Receiver(), instr->function_name(), instr->deopt_id(),
                    instr->env(), instr);
@@ -962,7 +962,7 @@ bool CallSpecializer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     return false;
   }
   const Function& target = targets.FirstTarget();
-  if (target.kind() != FunctionLayout::kImplicitGetter) {
+  if (target.kind() != UntaggedFunction::kImplicitGetter) {
     // Non-implicit getters are inlined like normal methods by conventional
     // inlining in FlowGraphInliner.
     return false;
@@ -1126,14 +1126,14 @@ BoolPtr CallSpecializer::InstanceOfAsBool(
     results->Add(cls.id());
     results->Add(static_cast<intptr_t>(is_subtype));
     if (prev.IsNull()) {
-      prev = Bool::Get(is_subtype).raw();
+      prev = Bool::Get(is_subtype).ptr();
     } else {
       if (is_subtype != prev.value()) {
         results_differ = true;
       }
     }
   }
-  return results_differ ? Bool::null() : prev.raw();
+  return results_differ ? Bool::null() : prev.ptr();
 }
 
 // Returns true if checking against this type is a direct class id comparison.
@@ -1265,12 +1265,12 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
     instantiator_type_args = flow_graph()->constant_null();
     function_type_args = flow_graph()->constant_null();
     ASSERT(call->MatchesCoreName(Symbols::_simpleInstanceOf()));
-    type = AbstractType::Cast(call->ArgumentAt(1)->AsConstant()->value()).raw();
+    type = AbstractType::Cast(call->ArgumentAt(1)->AsConstant()->value()).ptr();
   } else {
     ASSERT(call->ArgumentCount() == 4);
     instantiator_type_args = call->ArgumentAt(1);
     function_type_args = call->ArgumentAt(2);
-    type = AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value()).raw();
+    type = AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value()).ptr();
   }
 
   if (TryOptimizeInstanceOfUsingStaticTypes(call, type)) {
@@ -1561,10 +1561,10 @@ void TypedDataSpecializer::VisitStaticCall(StaticCallInstr* call) {
 }
 
 void TypedDataSpecializer::TryInlineCall(TemplateDartCall<0>* call) {
-  const bool is_length_getter = call->Selector() == Symbols::GetLength().raw();
-  const bool is_index_get = call->Selector() == Symbols::IndexToken().raw();
+  const bool is_length_getter = call->Selector() == Symbols::GetLength().ptr();
+  const bool is_index_get = call->Selector() == Symbols::IndexToken().ptr();
   const bool is_index_set =
-      call->Selector() == Symbols::AssignIndexToken().raw();
+      call->Selector() == Symbols::AssignIndexToken().ptr();
 
   if (is_length_getter || is_index_get || is_index_set) {
     EnsureIsInitialized();

@@ -30,7 +30,7 @@ FunctionPtr NativeCallbackFunction(const FunctionType& c_signature,
   const Class& owner_class = Class::Handle(zone, lib.toplevel_class());
   const Function& function =
       Function::Handle(zone, Function::New(Object::null_function_type(), name,
-                                           FunctionLayout::kFfiTrampoline,
+                                           UntaggedFunction::kFfiTrampoline,
                                            /*is_static=*/true,
                                            /*is_const=*/false,
                                            /*is_abstract=*/false,
@@ -60,7 +60,7 @@ FunctionPtr NativeCallbackFunction(const FunctionType& c_signature,
     function.SetFfiCallbackExceptionalReturn(exceptional_return);
   }
 
-  return function.raw();
+  return function.ptr();
 }
 
 }  // namespace ffi

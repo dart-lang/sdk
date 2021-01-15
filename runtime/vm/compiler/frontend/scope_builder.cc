@@ -116,7 +116,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
           function.kernel_offset());
 
   switch (function.kind()) {
-    case FunctionLayout::kImplicitClosureFunction: {
+    case UntaggedFunction::kImplicitClosureFunction: {
       const auto& parent = Function::Handle(Z, function.parent_function());
       const auto& target =
           Function::Handle(Z, function.ImplicitClosureTarget(Z));
@@ -129,11 +129,11 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       }
     }
       FALL_THROUGH;
-    case FunctionLayout::kClosureFunction:
-    case FunctionLayout::kRegularFunction:
-    case FunctionLayout::kGetterFunction:
-    case FunctionLayout::kSetterFunction:
-    case FunctionLayout::kConstructor: {
+    case UntaggedFunction::kClosureFunction:
+    case UntaggedFunction::kRegularFunction:
+    case UntaggedFunction::kGetterFunction:
+    case UntaggedFunction::kSetterFunction:
+    case UntaggedFunction::kConstructor: {
       const Tag tag = helper_.PeekTag();
       helper_.ReadUntilFunctionNode();
       function_node_helper.ReadUntilExcluding(
@@ -204,7 +204,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         ASSERT(
             Class::Handle(
                 AbstractType::Handle(function.ParameterTypeAt(1)).type_class())
-                .ScrubbedName() == Symbols::_SyncIterator().raw());
+                .ScrubbedName() == Symbols::_SyncIterator().ptr());
         type_check_mode = kTypeCheckForStaticFunction;
       } else if (function.is_static()) {
         // In static functions we don't check anything.
@@ -247,8 +247,8 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       }
       break;
     }
-    case FunctionLayout::kImplicitGetter:
-    case FunctionLayout::kImplicitSetter: {
+    case UntaggedFunction::kImplicitGetter:
+    case UntaggedFunction::kImplicitSetter: {
       ASSERT(helper_.PeekTag() == kField);
       const bool is_setter = function.IsImplicitSetterFunction();
       const bool is_method = !function.IsStaticFunction();
@@ -293,7 +293,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       }
       break;
     }
-    case FunctionLayout::kImplicitStaticGetter: {
+    case UntaggedFunction::kImplicitStaticGetter: {
       ASSERT(helper_.PeekTag() == kField);
       ASSERT(function.IsStaticFunction());
       // In addition to static field initializers, scopes/local variables
@@ -304,7 +304,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       }
       break;
     }
-    case FunctionLayout::kFieldInitializer: {
+    case UntaggedFunction::kFieldInitializer: {
       ASSERT(helper_.PeekTag() == kField);
       if (!function.is_static()) {
         Class& klass = Class::Handle(Z, function.Owner());
@@ -318,7 +318,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       VisitNode();
       break;
     }
-    case FunctionLayout::kDynamicInvocationForwarder: {
+    case UntaggedFunction::kDynamicInvocationForwarder: {
       const String& name = String::Handle(Z, function.name());
       ASSERT(Function::IsDynamicInvocationForwarderName(name));
 
@@ -366,7 +366,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
           attrs);
       break;
     }
-    case FunctionLayout::kMethodExtractor: {
+    case UntaggedFunction::kMethodExtractor: {
       // Add a receiver parameter.  Though it is captured, we emit code to
       // explicitly copy it to a fixed offset in a freshly-allocated context
       // instead of using the generic code for regular functions.
@@ -380,7 +380,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       parsed_function_->set_receiver_var(variable);
       break;
     }
-    case FunctionLayout::kFfiTrampoline: {
+    case UntaggedFunction::kFfiTrampoline: {
       needs_expr_temp_ = true;
       // Callbacks and calls with handles need try/catch variables.
       if ((function.FfiCallbackTarget() != Function::null() ||
@@ -396,7 +396,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       }
       FALL_THROUGH;
     }
-    case FunctionLayout::kInvokeFieldDispatcher: {
+    case UntaggedFunction::kInvokeFieldDispatcher: {
       if (function.IsDynamicClosureCallDispatcher()) {
         auto const vars = parsed_function_->EnsureDynamicClosureCallVars();
         ASSERT(vars != nullptr);
@@ -409,19 +409,19 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       }
     }
       FALL_THROUGH;
-    case FunctionLayout::kNoSuchMethodDispatcher: {
+    case UntaggedFunction::kNoSuchMethodDispatcher: {
       for (intptr_t i = 0; i < function.NumParameters(); ++i) {
         LocalVariable* variable = MakeVariable(
             TokenPosition::kNoSource, TokenPosition::kNoSource,
             String::ZoneHandle(Z, function.ParameterNameAt(i)),
             AbstractType::ZoneHandle(Z, function.IsFfiTrampoline()
                                             ? function.ParameterTypeAt(i)
-                                            : Object::dynamic_type().raw()));
+                                            : Object::dynamic_type().ptr()));
         scope_->InsertParameterAt(i, variable);
       }
       break;
     }
-    case FunctionLayout::kIrregexpFunction:
+    case UntaggedFunction::kIrregexpFunction:
       UNREACHABLE();
   }
   if (needs_expr_temp_) {
@@ -1401,7 +1401,7 @@ void ScopeBuilder::VisitFunctionType(bool simple) {
 }
 
 void ScopeBuilder::VisitTypeParameterType() {
-  Function& function = Function::Handle(Z, parsed_function_->function().raw());
+  Function& function = Function::Handle(Z, parsed_function_->function().ptr());
   while (function.IsClosureFunction()) {
     function = function.parent_function();
   }
@@ -1537,7 +1537,7 @@ void ScopeBuilder::AddVariableDeclarationParameter(
   if (helper.IsCovariant()) {
     variable->set_is_explicit_covariant_parameter();
   }
-  if (variable->name().raw() == Symbols::IteratorParameter().raw()) {
+  if (variable->name().ptr() == Symbols::IteratorParameter().ptr()) {
     variable->set_is_forced_stack();
   }
 

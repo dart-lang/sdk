@@ -195,7 +195,7 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectVmIsolateObj(intptr_t id) {
   switch (cid) {
     case kOneByteStringCid: {
       OneByteStringPtr raw_str = static_cast<OneByteStringPtr>(raw);
-      const char* str = reinterpret_cast<const char*>(raw_str->ptr()->data());
+      const char* str = reinterpret_cast<const char*>(raw_str->untag()->data());
       ASSERT(str != NULL);
       Dart_CObject* object = NULL;
       for (intptr_t i = 0; i < vm_isolate_references_.length(); i++) {
@@ -331,10 +331,10 @@ intptr_t ApiMessageReader::NextAvailableObjectId() const {
 Dart_CObject* ApiMessageReader::CreateDartCObjectString(ObjectPtr raw) {
   ASSERT(IsOneByteStringClassId(raw->GetClassId()));
   OneByteStringPtr raw_str = static_cast<OneByteStringPtr>(raw);
-  intptr_t len = Smi::Value(raw_str->ptr()->length());
+  intptr_t len = Smi::Value(raw_str->untag()->length());
   Dart_CObject* object = AllocateDartCObjectString(len);
   char* p = object->value.as_string;
-  memmove(p, raw_str->ptr()->data(), len);
+  memmove(p, raw_str->untag()->data(), len);
   p[len] = '\0';
   return object;
 }

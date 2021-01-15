@@ -111,7 +111,7 @@ static bool IsSmiValue(Value* val, intptr_t* int_val) {
 static bool IsCallRecursive(const Function& function, Definition* call) {
   Environment* env = call->env();
   while (env != NULL) {
-    if (function.raw() == env->function().raw()) {
+    if (function.ptr() == env->function().ptr()) {
       return true;
     }
     env = env->outer();
@@ -421,11 +421,11 @@ class CallSites : public ValueObject {
         if (current->IsPolymorphicInstanceCall()) {
           PolymorphicInstanceCallInstr* instance_call =
               current->AsPolymorphicInstanceCall();
-          target = instance_call->targets().FirstTarget().raw();
+          target = instance_call->targets().FirstTarget().ptr();
           call = instance_call;
         } else if (current->IsStaticCall()) {
           StaticCallInstr* static_call = current->AsStaticCall();
-          target = static_call->function().raw();
+          target = static_call->function().ptr();
           call = static_call;
         } else if (current->IsClosureCall()) {
           // TODO(srdjan): Add data for closure calls.
@@ -1281,7 +1281,7 @@ class CallSiteInliner : public ValueObject {
 
         if (error.IsLanguageError() &&
             (LanguageError::Cast(error).kind() == Report::kBailout)) {
-          if (error.raw() == Object::background_compilation_error().raw()) {
+          if (error.ptr() == Object::background_compilation_error().ptr()) {
             // Fall through to exit the compilation, and retry it later.
           } else {
             TRACE_INLINING(
@@ -1338,7 +1338,7 @@ class CallSiteInliner : public ValueObject {
         continue;
       }
       if ((info.inlined_depth == depth) &&
-          (info.caller->raw() == caller.raw()) &&
+          (info.caller->ptr() == caller.ptr()) &&
           !Contains(call_instructions_printed, info.call_instr->GetDeoptId())) {
         for (int t = 0; t < depth; t++) {
           THR_Print("  ");
@@ -1357,7 +1357,7 @@ class CallSiteInliner : public ValueObject {
         continue;
       }
       if ((info.inlined_depth == depth) &&
-          (info.caller->raw() == caller.raw()) &&
+          (info.caller->ptr() == caller.ptr()) &&
           !Contains(call_instructions_printed, info.call_instr->GetDeoptId())) {
         for (int t = 0; t < depth; t++) {
           THR_Print("  ");
@@ -1396,7 +1396,7 @@ class CallSiteInliner : public ValueObject {
     // TODO(zerny): Use a hash map for the cache.
     for (intptr_t i = 0; i < function_cache_.length(); ++i) {
       ParsedFunction* parsed_function = function_cache_[i];
-      if (parsed_function->function().raw() == function.raw()) {
+      if (parsed_function->function().ptr() == function.ptr()) {
         *in_cache = true;
         return parsed_function;
       }
@@ -1480,7 +1480,7 @@ class CallSiteInliner : public ValueObject {
           call->Receiver()->definition()->OriginalDefinition();
       if (AllocateObjectInstr* alloc = receiver->AsAllocateObject()) {
         if (!alloc->closure_function().IsNull()) {
-          target = alloc->closure_function().raw();
+          target = alloc->closure_function().ptr();
           ASSERT(alloc->cls().IsClosureClass());
         }
       } else if (ConstantInstr* constant = receiver->AsConstant()) {
@@ -1686,7 +1686,7 @@ intptr_t PolymorphicInliner::AllocateBlockId() const {
 //   * JoinEntry: the inlined body is shared and this is a subsequent variant.
 bool PolymorphicInliner::CheckInlinedDuplicate(const Function& target) {
   for (intptr_t i = 0; i < inlined_variants_.length(); ++i) {
-    if ((target.raw() == inlined_variants_.TargetAt(i)->target->raw()) &&
+    if ((target.ptr() == inlined_variants_.TargetAt(i)->target->ptr()) &&
         !target.is_polymorphic_target()) {
       // The call target is shared with a previous inlined variant.  Share
       // the graph.  This requires a join block at the entry, and edge-split
@@ -1743,7 +1743,7 @@ bool PolymorphicInliner::CheckInlinedDuplicate(const Function& target) {
 
 bool PolymorphicInliner::CheckNonInlinedDuplicate(const Function& target) {
   for (intptr_t i = 0; i < non_inlined_variants_->length(); ++i) {
-    if (target.raw() == non_inlined_variants_->TargetAt(i)->target->raw()) {
+    if (target.ptr() == non_inlined_variants_->TargetAt(i)->target->ptr()) {
       return true;
     }
   }
@@ -1768,7 +1768,7 @@ bool PolymorphicInliner::TryInliningPoly(const TargetInfo& target_info) {
       Array::ZoneHandle(Z, call_->GetArgumentsDescriptor());
   InlinedCallData call_data(call_, arguments_descriptor, call_->FirstArgIndex(),
                             &arguments, caller_function_);
-  Function& target = Function::ZoneHandle(zone(), target_info.target->raw());
+  Function& target = Function::ZoneHandle(zone(), target_info.target->ptr());
   if (!owner_->TryInlining(target, call_->argument_names(), &call_data,
                            false)) {
     return false;
@@ -2257,10 +2257,10 @@ void FlowGraphInliner::SetInliningId(FlowGraph* flow_graph,
 // Use function name to determine if inlineable operator.
 // Add names as necessary.
 static bool IsInlineableOperator(const Function& function) {
-  return (function.name() == Symbols::IndexToken().raw()) ||
-         (function.name() == Symbols::AssignIndexToken().raw()) ||
-         (function.name() == Symbols::Plus().raw()) ||
-         (function.name() == Symbols::Minus().raw());
+  return (function.name() == Symbols::IndexToken().ptr()) ||
+         (function.name() == Symbols::AssignIndexToken().ptr()) ||
+         (function.name() == Symbols::Plus().ptr()) ||
+         (function.name() == Symbols::Minus().ptr());
 }
 
 bool FlowGraphInliner::FunctionHasPreferInlinePragma(const Function& function) {
@@ -2286,7 +2286,7 @@ bool FlowGraphInliner::AlwaysInline(const Function& function) {
   // replace them with inline FG before inlining introduces any superfluous
   // AssertAssignable instructions.
   if (function.IsDispatcherOrImplicitAccessor() &&
-      !(function.kind() == FunctionLayout::kDynamicInvocationForwarder &&
+      !(function.kind() == UntaggedFunction::kDynamicInvocationForwarder &&
         function.IsRecognized())) {
     // Smaller or same size as the call.
     return true;
@@ -2299,7 +2299,7 @@ bool FlowGraphInliner::AlwaysInline(const Function& function) {
 
   if (function.IsGetterFunction() || function.IsSetterFunction() ||
       IsInlineableOperator(function) ||
-      (function.kind() == FunctionLayout::kConstructor)) {
+      (function.kind() == UntaggedFunction::kConstructor)) {
     const intptr_t count = function.optimized_instruction_count();
     if ((count != 0) && (count < FLAG_inline_getters_setters_smaller_than)) {
       return true;

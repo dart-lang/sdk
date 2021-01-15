@@ -149,7 +149,7 @@ Fragment FlowGraphBuilder::LoadInstantiatorTypeArguments() {
   if (scopes_ != nullptr && scopes_->type_arguments_variable != nullptr) {
 #ifdef DEBUG
     Function& function =
-        Function::Handle(Z, parsed_function_->function().raw());
+        Function::Handle(Z, parsed_function_->function().ptr());
     while (function.IsClosureFunction()) {
       function = function.parent_function();
     }
@@ -695,7 +695,7 @@ Fragment FlowGraphBuilder::ThrowNoSuchMethodError(const Function& target) {
     level = InvocationMirror::Level::kTopLevel;
   } else {
     receiver = owner.RareType();
-    if (target.kind() == FunctionLayout::kConstructor) {
+    if (target.kind() == UntaggedFunction::kConstructor) {
       level = InvocationMirror::Level::kConstructor;
     } else {
       level = InvocationMirror::Level::kStatic;
@@ -1715,7 +1715,7 @@ Fragment FlowGraphBuilder::AssertAssignableLoadTypeArguments(
     AssertAssignableInstr::Kind kind) {
   Fragment instructions;
 
-  instructions += Constant(AbstractType::ZoneHandle(dst_type.raw()));
+  instructions += Constant(AbstractType::ZoneHandle(dst_type.ptr()));
 
   if (!dst_type.IsInstantiated(kCurrentClass)) {
     instructions += LoadInstantiatorTypeArguments();
@@ -1741,9 +1741,9 @@ Fragment FlowGraphBuilder::AssertSubtype(TokenPosition position,
   Fragment instructions;
   instructions += LoadInstantiatorTypeArguments();
   instructions += LoadFunctionTypeArguments();
-  instructions += Constant(AbstractType::ZoneHandle(Z, sub_type_value.raw()));
-  instructions += Constant(AbstractType::ZoneHandle(Z, super_type_value.raw()));
-  instructions += Constant(String::ZoneHandle(Z, dst_name_value.raw()));
+  instructions += Constant(AbstractType::ZoneHandle(Z, sub_type_value.ptr()));
+  instructions += Constant(AbstractType::ZoneHandle(Z, super_type_value.ptr()));
+  instructions += Constant(String::ZoneHandle(Z, dst_name_value.ptr()));
   instructions += AssertSubtype(position);
   return instructions;
 }
@@ -1917,7 +1917,7 @@ ArrayPtr FlowGraphBuilder::GetOptionalParameterNames(const Function& function) {
     name = function.ParameterNameAt(num_fixed_params + i);
     names.SetAt(i, name);
   }
-  return names.raw();
+  return names.ptr();
 }
 
 Fragment FlowGraphBuilder::PushExplicitParameters(
@@ -2558,7 +2558,7 @@ Fragment FlowGraphBuilder::BuildClosureCallTypeArgumentsTypeCheck(
   loop_body += LoadNativeField(Slot::TypeParameter_flags());
   loop_body += Box(kUnboxedUint8);
   loop_body += IntConstant(
-      TypeParameterLayout::GenericCovariantImplBit::mask_in_place());
+      UntaggedTypeParameter::GenericCovariantImplBit::mask_in_place());
   loop_body += SmiBinaryOp(Token::kBIT_AND);
   loop_body += IntConstant(0);
   TargetEntryInstr *is_noncovariant, *is_covariant;
@@ -2815,7 +2815,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
   // Determine if this is `class Closure { get call => this; }`
   const Class& closure_class =
       Class::Handle(Z, IG->object_store()->closure_class());
-  const bool is_closure_call = (owner.raw() == closure_class.raw()) &&
+  const bool is_closure_call = (owner.ptr() == closure_class.ptr()) &&
                                field_name.Equals(Symbols::Call());
 
   graph_entry_ =
@@ -3366,7 +3366,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
   // type check mode in this case.
   const auto& target = Function::Handle(
       Z, function.IsDynamicInvocationForwarder() ? function.ForwardingTarget()
-                                                 : function.raw());
+                                                 : function.ptr());
   ASSERT(target.IsImplicitGetterOrSetter());
 
   const bool is_method = !function.IsStaticFunction();
@@ -3439,7 +3439,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
     if (value.IsError()) {
       Report::LongJump(Error::Cast(value));
     }
-    body += Constant(Instance::ZoneHandle(Z, Instance::RawCast(value.raw())));
+    body += Constant(Instance::ZoneHandle(Z, Instance::RawCast(value.ptr())));
   } else {
     // Static fields
     //  - with trivial initializer
@@ -3499,7 +3499,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder(
 
   // Should never build a dynamic invocation forwarder for equality
   // operator.
-  ASSERT(function.name() != Symbols::EqualOperator().raw());
+  ASSERT(function.name() != Symbols::EqualOperator().ptr());
 
   // Even if the caller did not pass argument vector we would still
   // call the target with instantiate-to-bounds type arguments.
@@ -3542,7 +3542,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder(
   // used. We must guarantee this invariant because violation will lead to an
   // illegal IL once we replace x.[]=(...) with a sequence that does not
   // actually produce any value. See http://dartbug.com/29135 for more details.
-  if (name.raw() == Symbols::AssignIndexToken().raw()) {
+  if (name.ptr() == Symbols::AssignIndexToken().ptr()) {
     body += Drop();
     body += NullConstant();
   }
@@ -3685,7 +3685,7 @@ Fragment FlowGraphBuilder::WrapHandle(LocalVariable* api_local_scope) {
   code += LoadLocal(MakeTemporary());  // Duplicate handle pointer.
   code += ConvertUnboxedToUntagged(kUnboxedIntPtr);
   code += LoadLocal(object);
-  code += RawStoreField(compiler::target::LocalHandle::raw_offset());
+  code += RawStoreField(compiler::target::LocalHandle::ptr_offset());
 
   code += DropTempsPreserveTop(1);  // Drop object below handle.
   return code;
@@ -3694,7 +3694,7 @@ Fragment FlowGraphBuilder::WrapHandle(LocalVariable* api_local_scope) {
 Fragment FlowGraphBuilder::UnwrapHandle() {
   Fragment code;
   code += ConvertUnboxedToUntagged(kUnboxedIntPtr);
-  code += IntConstant(compiler::target::LocalHandle::raw_offset());
+  code += IntConstant(compiler::target::LocalHandle::ptr_offset());
   code += UnboxTruncate(kUnboxedIntPtr);
   code += LoadIndexed(kArrayCid, /*index_scale=*/1, /*index_unboxed=*/true);
   return code;

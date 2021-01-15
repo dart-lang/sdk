@@ -127,9 +127,9 @@ class ApiZone {
 class LocalHandle {
  public:
   // Accessors.
-  ObjectPtr raw() const { return raw_; }
-  void set_raw(ObjectPtr raw) { raw_ = raw; }
-  static intptr_t raw_offset() { return OFFSET_OF(LocalHandle, raw_); }
+  ObjectPtr ptr() const { return ptr_; }
+  void set_ptr(ObjectPtr ptr) { ptr_ = ptr; }
+  static intptr_t ptr_offset() { return OFFSET_OF(LocalHandle, ptr_); }
 
   Dart_Handle apiHandle() { return reinterpret_cast<Dart_Handle>(this); }
 
@@ -137,7 +137,7 @@ class LocalHandle {
   LocalHandle() {}
   ~LocalHandle() {}
 
-  ObjectPtr raw_;
+  ObjectPtr ptr_;
   DISALLOW_ALLOCATION();  // Allocated through AllocateHandle methods.
   DISALLOW_COPY_AND_ASSIGN(LocalHandle);
 };
@@ -151,16 +151,17 @@ void ProtectedHandleCallback(void* peer);
 class PersistentHandle {
  public:
   // Accessors.
-  ObjectPtr raw() const { return raw_; }
-  void set_raw(ObjectPtr ref) { raw_ = ref; }
-  void set_raw(const LocalHandle& ref) { raw_ = ref.raw(); }
-  void set_raw(const Object& object) { raw_ = object.raw(); }
-  ObjectPtr* raw_addr() { return &raw_; }
+  ObjectPtr ptr() const { return ptr_; }
+  void set_ptr(ObjectPtr ref) { ptr_ = ref; }
+  void set_ptr(const LocalHandle& ref) { ptr_ = ref.ptr(); }
+  void set_ptr(const Object& object) { ptr_ = object.ptr(); }
+  ObjectPtr* raw_addr() { return &ptr_; }
+
   Dart_PersistentHandle apiHandle() {
     return reinterpret_cast<Dart_PersistentHandle>(this);
   }
 
-  static intptr_t raw_offset() { return OFFSET_OF(PersistentHandle, raw_); }
+  static intptr_t ptr_offset() { return OFFSET_OF(PersistentHandle, ptr_); }
 
   static PersistentHandle* Cast(Dart_PersistentHandle handle);
 
@@ -170,18 +171,18 @@ class PersistentHandle {
   PersistentHandle() {}
   ~PersistentHandle() {}
 
-  // Overload the raw_ field as a next pointer when adding freed
+  // Overload the ptr_ field as a next pointer when adding freed
   // handles to the free list.
   PersistentHandle* Next() {
-    return reinterpret_cast<PersistentHandle*>(static_cast<uword>(raw_));
+    return reinterpret_cast<PersistentHandle*>(static_cast<uword>(ptr_));
   }
   void SetNext(PersistentHandle* free_list) {
-    raw_ = static_cast<ObjectPtr>(reinterpret_cast<uword>(free_list));
-    ASSERT(!raw_->IsHeapObject());
+    ptr_ = static_cast<ObjectPtr>(reinterpret_cast<uword>(free_list));
+    ASSERT(!ptr_->IsHeapObject());
   }
   void FreeHandle(PersistentHandle* free_list) { SetNext(free_list); }
 
-  ObjectPtr raw_;
+  ObjectPtr ptr_;
   DISALLOW_ALLOCATION();  // Allocated through AllocateHandle methods.
   DISALLOW_COPY_AND_ASSIGN(PersistentHandle);
 };
@@ -198,10 +199,10 @@ class FinalizablePersistentHandle {
                                           bool auto_delete);
 
   // Accessors.
-  ObjectPtr raw() const { return raw_; }
-  ObjectPtr* raw_addr() { return &raw_; }
-  static intptr_t raw_offset() {
-    return OFFSET_OF(FinalizablePersistentHandle, raw_);
+  ObjectPtr ptr() const { return ptr_; }
+  ObjectPtr* ptr_addr() { return &ptr_; }
+  static intptr_t ptr_offset() {
+    return OFFSET_OF(FinalizablePersistentHandle, ptr_);
   }
   void* peer() const { return peer_; }
   Dart_HandleFinalizer callback() const { return callback_; }
@@ -215,7 +216,7 @@ class FinalizablePersistentHandle {
   bool auto_delete() const { return auto_delete_; }
 
   bool IsFinalizedNotFreed() const {
-    return raw_ == static_cast<ObjectPtr>(reinterpret_cast<uword>(this));
+    return ptr_ == static_cast<ObjectPtr>(reinterpret_cast<uword>(this));
   }
 
   intptr_t external_size() const {
@@ -287,21 +288,21 @@ class FinalizablePersistentHandle {
   friend class FinalizablePersistentHandles;
 
   FinalizablePersistentHandle()
-      : raw_(nullptr), peer_(NULL), external_data_(0), callback_(NULL) {}
+      : ptr_(nullptr), peer_(NULL), external_data_(0), callback_(NULL) {}
   ~FinalizablePersistentHandle() {}
 
   static void Finalize(IsolateGroup* isolate_group,
                        FinalizablePersistentHandle* handle);
 
-  // Overload the raw_ field as a next pointer when adding freed
+  // Overload the ptr_ field as a next pointer when adding freed
   // handles to the free list.
   FinalizablePersistentHandle* Next() {
     return reinterpret_cast<FinalizablePersistentHandle*>(
-        static_cast<uword>(raw_));
+        static_cast<uword>(ptr_));
   }
   void SetNext(FinalizablePersistentHandle* free_list) {
-    raw_ = static_cast<ObjectPtr>(reinterpret_cast<uword>(free_list));
-    ASSERT(!raw_->IsHeapObject());
+    ptr_ = static_cast<ObjectPtr>(reinterpret_cast<uword>(free_list));
+    ASSERT(!ptr_->IsHeapObject());
   }
 
   void SetFinalizedNotFreed() {
@@ -315,16 +316,16 @@ class FinalizablePersistentHandle {
   }
 
   void Clear() {
-    raw_ = Object::null();
+    ptr_ = Object::null();
     peer_ = nullptr;
     external_data_ = 0;
     callback_ = nullptr;
     auto_delete_ = false;
   }
 
-  void set_raw(ObjectPtr raw) { raw_ = raw; }
-  void set_raw(const LocalHandle& ref) { raw_ = ref.raw(); }
-  void set_raw(const Object& object) { raw_ = object.raw(); }
+  void set_ptr(ObjectPtr raw) { ptr_ = raw; }
+  void set_ptr(const LocalHandle& ref) { ptr_ = ref.ptr(); }
+  void set_ptr(const Object& object) { ptr_ = object.ptr(); }
 
   void set_peer(void* peer) { peer_ = peer; }
 
@@ -354,10 +355,10 @@ class FinalizablePersistentHandle {
   // Returns the space to charge for the external size.
   Heap::Space SpaceForExternal() const {
     // Non-heap and VM-heap objects count as old space here.
-    return raw_->IsSmiOrOldObject() ? Heap::kOld : Heap::kNew;
+    return ptr_->IsSmiOrOldObject() ? Heap::kOld : Heap::kNew;
   }
 
-  ObjectPtr raw_;
+  ObjectPtr ptr_;
   void* peer_;
   uword external_data_;
   Dart_HandleFinalizer callback_;
@@ -483,7 +484,7 @@ class PersistentHandles : Handles<kPersistentHandleSizeInWords,
     } else {
       handle = reinterpret_cast<PersistentHandle*>(AllocateScopedHandle());
     }
-    handle->set_raw(Object::null());
+    handle->set_ptr(Object::null());
     return handle;
   }
 
@@ -561,7 +562,7 @@ class FinalizablePersistentHandles
     if (free_list_ != NULL) {
       handle = free_list_;
       free_list_ = handle->Next();
-      handle->set_raw(Object::null());
+      handle->set_ptr(Object::null());
       return handle;
     }
 
@@ -828,7 +829,7 @@ class ApiState {
     MutexLocker ml(&mutex_);
     if (acquired_error_ == nullptr) {
       acquired_error_ = persistent_handles_.AllocateHandle();
-      acquired_error_->set_raw(ApiError::typed_data_acquire_error());
+      acquired_error_->set_ptr(ApiError::typed_data_acquire_error());
     }
     return acquired_error_;
   }
@@ -873,7 +874,7 @@ inline FinalizablePersistentHandle* FinalizablePersistentHandle::New(
   ApiState* state = isolate_group->api_state();
   ASSERT(state != NULL);
   FinalizablePersistentHandle* ref = state->AllocateWeakPersistentHandle();
-  ref->set_raw(object);
+  ref->set_ptr(object);
   ref->set_peer(peer);
   ref->set_callback(callback);
   ref->set_auto_delete(auto_delete);

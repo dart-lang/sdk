@@ -35,7 +35,7 @@ LibraryPtr LoadTestScript(const char* script,
   auto& lib = Library::Handle();
   lib ^= Api::UnwrapHandle(api_lib);
   EXPECT(!lib.IsNull());
-  return lib.raw();
+  return lib.ptr();
 }
 
 FunctionPtr GetFunction(const Library& lib, const char* name) {
@@ -43,7 +43,7 @@ FunctionPtr GetFunction(const Library& lib, const char* name) {
   const auto& func = Function::Handle(lib.LookupFunctionAllowPrivate(
       String::Handle(Symbols::New(thread, name))));
   EXPECT(!func.IsNull());
-  return func.raw();
+  return func.ptr();
 }
 
 ClassPtr GetClass(const Library& lib, const char* name) {
@@ -51,14 +51,14 @@ ClassPtr GetClass(const Library& lib, const char* name) {
   const auto& cls = Class::Handle(
       lib.LookupClassAllowPrivate(String::Handle(Symbols::New(thread, name))));
   EXPECT(!cls.IsNull());
-  return cls.raw();
+  return cls.ptr();
 }
 
 TypeParameterPtr GetClassTypeParameter(const Class& klass, const char* name) {
   const auto& param = TypeParameter::Handle(
       klass.LookupTypeParameter(String::Handle(String::New(name))));
   EXPECT(!param.IsNull());
-  return param.raw();
+  return param.ptr();
 }
 
 TypeParameterPtr GetFunctionTypeParameter(const Function& fun,
@@ -67,12 +67,12 @@ TypeParameterPtr GetFunctionTypeParameter(const Function& fun,
   const auto& param = TypeParameter::Handle(
       fun.LookupTypeParameter(String::Handle(String::New(name)), &fun_level));
   EXPECT(!param.IsNull());
-  return param.raw();
+  return param.ptr();
 }
 
 ObjectPtr Invoke(const Library& lib, const char* name) {
   Thread* thread = Thread::Current();
-  Dart_Handle api_lib = Api::NewHandle(thread, lib.raw());
+  Dart_Handle api_lib = Api::NewHandle(thread, lib.ptr());
   Dart_Handle result;
   {
     TransitionVMToNative transition(thread);
@@ -97,7 +97,7 @@ FlowGraph* TestPipeline::RunPasses(
   auto pipeline = CompilationPipeline::New(zone, function_);
 
   parsed_function_ = new (zone)
-      ParsedFunction(thread, Function::ZoneHandle(zone, function_.raw()));
+      ParsedFunction(thread, Function::ZoneHandle(zone, function_.ptr()));
   pipeline->ParseFunction(parsed_function_);
 
   // Extract type feedback before the graph is built, as the graph

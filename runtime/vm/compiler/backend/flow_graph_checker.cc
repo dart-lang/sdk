@@ -24,8 +24,8 @@ DEFINE_FLAG(int,
 // succ/pred/block links are not maintained.
 static bool IsSpecialConstant(Definition* def) {
   if (auto c = def->AsConstant()) {
-    return c->value().raw() == Symbols::OptimizedOut().raw() ||
-           c->value().raw() == Object::ZoneHandle().raw();
+    return c->value().ptr() == Symbols::OptimizedOut().ptr() ||
+           c->value().ptr() == Object::ZoneHandle().ptr();
   }
   return false;
 }
@@ -141,8 +141,8 @@ static void AssertArgumentsInEnv(FlowGraph* flow_graph, Definition* call) {
                 ->OriginalDefinitionIgnoreBoxingAndConstraints();
         ASSERT((arg_def == env_def) ||
                (arg_def->IsConstant() && env_def->IsConstant() &&
-                arg_def->AsConstant()->value().raw() ==
-                    env_def->AsConstant()->value().raw()));
+                arg_def->AsConstant()->value().ptr() ==
+                    env_def->AsConstant()->value().ptr()));
       }
     }
   }

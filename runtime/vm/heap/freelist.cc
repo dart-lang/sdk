@@ -22,16 +22,16 @@ FreeListElement* FreeListElement::AsElement(uword addr, intptr_t size) {
   FreeListElement* result = reinterpret_cast<FreeListElement*>(addr);
 
   uword tags = 0;
-  tags = ObjectLayout::SizeTag::update(size, tags);
-  tags = ObjectLayout::ClassIdTag::update(kFreeListElement, tags);
+  tags = UntaggedObject::SizeTag::update(size, tags);
+  tags = UntaggedObject::ClassIdTag::update(kFreeListElement, tags);
   ASSERT((addr & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset);
-  tags = ObjectLayout::OldBit::update(true, tags);
-  tags = ObjectLayout::OldAndNotMarkedBit::update(true, tags);
-  tags = ObjectLayout::OldAndNotRememberedBit::update(true, tags);
-  tags = ObjectLayout::NewBit::update(false, tags);
+  tags = UntaggedObject::OldBit::update(true, tags);
+  tags = UntaggedObject::OldAndNotMarkedBit::update(true, tags);
+  tags = UntaggedObject::OldAndNotRememberedBit::update(true, tags);
+  tags = UntaggedObject::NewBit::update(false, tags);
   result->tags_ = tags;
 
-  if (size > ObjectLayout::SizeTag::kMaxSizeTag) {
+  if (size > UntaggedObject::SizeTag::kMaxSizeTag) {
     *result->SizeAddress() = size;
   }
   result->set_next(NULL);
@@ -47,7 +47,7 @@ void FreeListElement::Init() {
 
 intptr_t FreeListElement::HeaderSizeFor(intptr_t size) {
   if (size == 0) return 0;
-  return ((size > ObjectLayout::SizeTag::kMaxSizeTag) ? 3 : 2) * kWordSize;
+  return ((size > UntaggedObject::SizeTag::kMaxSizeTag) ? 3 : 2) * kWordSize;
 }
 
 FreeList::FreeList() : mutex_() {

@@ -26,7 +26,7 @@
 
 namespace dart {
 
-const FrameLayout invalid_frame_layout = {
+const UntaggedFrame invalid_frame_layout = {
     /*.first_object_from_fp = */ -1,
     /*.last_fixed_object_from_fp = */ -1,
     /*.param_end_from_fp = */ -1,
@@ -38,7 +38,7 @@ const FrameLayout invalid_frame_layout = {
     /*.exit_link_slot_from_entry_fp = */ -1,
 };
 
-const FrameLayout default_frame_layout = {
+const UntaggedFrame default_frame_layout = {
     /*.first_object_from_fp = */ kFirstObjectSlotFromFp,
     /*.last_fixed_object_from_fp = */ kLastFixedObjectSlotFromFp,
     /*.param_end_from_fp = */ kParamEndSlotFromFp,
@@ -49,7 +49,7 @@ const FrameLayout default_frame_layout = {
     /*.code_from_fp = */ kPcMarkerSlotFromFp,
     /*.exit_link_slot_from_entry_fp = */ kExitLinkSlotFromEntryFp,
 };
-const FrameLayout bare_instructions_frame_layout = {
+const UntaggedFrame bare_instructions_frame_layout = {
     /*.first_object_from_pc =*/kFirstObjectSlotFromFp,  // No saved PP slot.
     /*.last_fixed_object_from_fp = */ kLastFixedObjectSlotFromFp +
         2,  // No saved CODE, PP slots
@@ -67,19 +67,19 @@ const FrameLayout bare_instructions_frame_layout = {
 namespace compiler {
 
 namespace target {
-FrameLayout frame_layout = invalid_frame_layout;
+UntaggedFrame frame_layout = invalid_frame_layout;
 }
 
 }  // namespace compiler
 
-FrameLayout runtime_frame_layout = invalid_frame_layout;
+UntaggedFrame runtime_frame_layout = invalid_frame_layout;
 
-int FrameLayout::FrameSlotForVariable(const LocalVariable* variable) const {
+int UntaggedFrame::FrameSlotForVariable(const LocalVariable* variable) const {
   ASSERT(!variable->is_captured());
   return this->FrameSlotForVariableIndex(variable->index().value());
 }
 
-int FrameLayout::FrameSlotForVariableIndex(int variable_index) const {
+int UntaggedFrame::FrameSlotForVariableIndex(int variable_index) const {
   // Variable indices are:
   //    [1, 2, ..., M] for the M parameters.
   //    [0, -1, -2, ... -(N-1)] for the N [LocalVariable]s
@@ -88,7 +88,7 @@ int FrameLayout::FrameSlotForVariableIndex(int variable_index) const {
                              : (variable_index + param_end_from_fp);
 }
 
-void FrameLayout::Init() {
+void UntaggedFrame::Init() {
   // By default we use frames with CODE_REG/PP in the frame.
   compiler::target::frame_layout = default_frame_layout;
   runtime_frame_layout = default_frame_layout;
@@ -401,7 +401,7 @@ bool StackFrame::FindExceptionHandler(Thread* thread,
 
   intptr_t try_index = -1;
   uword pc_offset = pc() - code.PayloadStart();
-  PcDescriptors::Iterator iter(descriptors, PcDescriptorsLayout::kAnyKind);
+  PcDescriptors::Iterator iter(descriptors, UntaggedPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
     const intptr_t current_try_index = iter.TryIndex();
     if ((iter.PcOffset() == pc_offset) && (current_try_index != -1)) {
@@ -430,7 +430,7 @@ TokenPosition StackFrame::GetTokenPos() const {
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
   ASSERT(!descriptors.IsNull());
-  PcDescriptors::Iterator iter(descriptors, PcDescriptorsLayout::kAnyKind);
+  PcDescriptors::Iterator iter(descriptors, UntaggedPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
     if (iter.PcOffset() == pc_offset) {
       return TokenPosition(iter.TokenPos());
@@ -646,7 +646,7 @@ InlinedFunctionsIterator::InlinedFunctionsIterator(const Code& code, uword pc)
     : index_(0),
       num_materializations_(0),
       dest_frame_size_(0),
-      code_(Code::Handle(code.raw())),
+      code_(Code::Handle(code.ptr())),
       deopt_info_(TypedData::Handle()),
       function_(Function::Handle()),
       pc_(pc),

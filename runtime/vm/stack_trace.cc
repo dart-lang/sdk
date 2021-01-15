@@ -22,7 +22,7 @@ const intptr_t k_FutureListener_stateWhencomplete = 8;
 intptr_t GetYieldIndex(const Closure& receiver_closure) {
   const auto& function = Function::Handle(receiver_closure.function());
   if (!function.IsAsyncClosure() && !function.IsAsyncGenClosure()) {
-    return PcDescriptorsLayout::kInvalidYieldIndex;
+    return UntaggedPcDescriptors::kInvalidYieldIndex;
   }
   const auto& await_jump_var =
       Object::Handle(Context::Handle(receiver_closure.context())
@@ -32,10 +32,10 @@ intptr_t GetYieldIndex(const Closure& receiver_closure) {
 }
 
 intptr_t FindPcOffset(const PcDescriptors& pc_descs, intptr_t yield_index) {
-  if (yield_index == PcDescriptorsLayout::kInvalidYieldIndex) {
+  if (yield_index == UntaggedPcDescriptors::kInvalidYieldIndex) {
     return 0;
   }
-  PcDescriptors::Iterator iter(pc_descs, PcDescriptorsLayout::kAnyKind);
+  PcDescriptors::Iterator iter(pc_descs, UntaggedPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
     if (iter.YieldIndex() == yield_index) {
       return iter.PcOffset();
@@ -161,7 +161,7 @@ ClosurePtr CallerClosureFinder::GetCallerInFutureImpl(const Object& future) {
   }
   ASSERT(callback_.IsClosure());
 
-  return Closure::Cast(callback_).raw();
+  return Closure::Cast(callback_).ptr();
 }
 
 ClosurePtr CallerClosureFinder::FindCallerInAsyncClosure(
@@ -200,8 +200,8 @@ ClosurePtr CallerClosureFinder::FindCallerInAsyncGenClosure(
   // callback we found.
   receiver_function_ = Closure::Cast(callback_).function();
   if (!receiver_function_.IsImplicitInstanceClosureFunction() ||
-      receiver_function_.Owner() != stream_iterator_class.raw()) {
-    return Closure::Cast(callback_).raw();
+      receiver_function_.Owner() != stream_iterator_class.ptr()) {
+    return Closure::Cast(callback_).ptr();
   }
 
   // All implicit closure functions (tear-offs) have the "this" receiver
@@ -292,8 +292,8 @@ ClosurePtr StackTraceUtils::FindClosureInFrame(ObjectPtr* last_object_in_caller,
     ObjectPtr arg = last_object_in_caller[i];
     if (arg->IsHeapObject() && arg->GetClassId() == kClosureCid) {
       closure = Closure::RawCast(arg);
-      if (closure.function() == function.raw()) {
-        return closure.raw();
+      if (closure.function() == function.ptr()) {
+        return closure.ptr();
       }
     }
   }
@@ -339,7 +339,7 @@ void StackTraceUtils::CollectFramesLazy(
 
     // Add the current synchronous frame.
     code = frame->LookupDartCode();
-    ASSERT(function.raw() == code.function());
+    ASSERT(function.ptr() == code.function());
     code_array.Add(code);
     const intptr_t pc_offset = frame->pc() - code.PayloadStart();
     ASSERT(pc_offset > 0 && pc_offset <= code.Size());
@@ -446,7 +446,7 @@ intptr_t StackTraceUtils::CountFrames(Thread* thread,
 
     if (!async_function_is_null && !function_is_null &&
         function.parent_function() != Function::null()) {
-      if (async_function.raw() == function.parent_function()) {
+      if (async_function.ptr() == function.parent_function()) {
         if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
           ObjectPtr* last_caller_obj =
               reinterpret_cast<ObjectPtr*>(frame->GetCallerSp());

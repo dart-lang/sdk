@@ -94,14 +94,14 @@ class InstanceCall : public UnoptimizedCall {
     return LoadUnaligned(reinterpret_cast<ObjectPtr*>(start_ + 1));
   }
   void set_data(const Object& data) const {
-    StoreUnaligned(reinterpret_cast<ObjectPtr*>(start_ + 1), data.raw());
+    StoreUnaligned(reinterpret_cast<ObjectPtr*>(start_ + 1), data.ptr());
   }
 
   CodePtr target() const {
     return LoadUnaligned(reinterpret_cast<CodePtr*>(start_ + 6));
   }
   void set_target(const Code& target) const {
-    StoreUnaligned(reinterpret_cast<CodePtr*>(start_ + 6), target.raw());
+    StoreUnaligned(reinterpret_cast<CodePtr*>(start_ + 6), target.ptr());
   }
 
  private:
@@ -147,7 +147,7 @@ class StaticCall : public ValueObject {
 
   void set_target(const Code& target) const {
     uword* target_addr = reinterpret_cast<uword*>(start_ + 1);
-    uword imm = static_cast<uword>(target.raw());
+    uword imm = static_cast<uword>(target.ptr());
     *target_addr = imm;
     CPU::FlushICache(start_ + 1, sizeof(imm));
   }
@@ -238,7 +238,7 @@ FunctionPtr CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
   ICData& ic_data = ICData::Handle();
   ic_data ^= static_call.ic_data();
   if (ic_data_result != NULL) {
-    *ic_data_result = ic_data.raw();
+    *ic_data_result = ic_data.ptr();
   }
   return ic_data.GetTargetAt(0);
 }

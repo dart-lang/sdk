@@ -47,13 +47,13 @@ StringPtr StringFrom(const uint16_t* data, intptr_t len, Heap::Space space) {
 StringPtr StringSlice::ToSymbol() const {
   if (is_all() && str_.IsOld()) {
     str_.SetCanonical();
-    return str_.raw();
+    return str_.ptr();
   } else {
     String& result =
         String::Handle(String::SubString(str_, begin_index_, len_, Heap::kOld));
     result.SetCanonical();
     result.SetHash(hash_);
-    return result.raw();
+    return result.ptr();
   }
 }
 
@@ -61,7 +61,7 @@ StringPtr ConcatString::ToSymbol() const {
   String& result = String::Handle(String::Concat(str1_, str2_, Heap::kOld));
   result.SetCanonical();
   result.SetHash(hash_);
-  return result.raw();
+  return result.ptr();
 }
 
 
@@ -119,7 +119,7 @@ void Symbols::Init(IsolateGroup* vm_isolate_group) {
     *str ^= table.InsertOrGet(*str);
     ASSERT(predefined_[c] == nullptr);
     str->SetCanonical();  // Make canonical once entered.
-    predefined_[c] = str->raw();
+    predefined_[c] = str->ptr();
     symbol_handles_[idx] = str;
   }
 
@@ -160,7 +160,7 @@ void Symbols::InitFromSnapshot(IsolateGroup* vm_isolate_group) {
     ASSERT(!str->IsNull());
     ASSERT(str->HasHash());
     ASSERT(str->IsCanonical());
-    predefined_[c] = str->raw();
+    predefined_[c] = str->ptr();
     symbol_handles_[idx] = str;
   }
 
@@ -411,7 +411,7 @@ StringPtr Symbols::NewSymbol(Thread* thread, const StringType& str) {
   }
   ASSERT(symbol.IsSymbol());
   ASSERT(symbol.HasHash());
-  return symbol.raw();
+  return symbol.ptr();
 }
 
 template <typename StringType>
@@ -456,7 +456,7 @@ StringPtr Symbols::Lookup(Thread* thread, const StringType& str) {
   }
   ASSERT(symbol.IsNull() || symbol.IsSymbol());
   ASSERT(symbol.IsNull() || symbol.HasHash());
-  return symbol.raw();
+  return symbol.ptr();
 }
 
 StringPtr Symbols::LookupFromConcat(Thread* thread,
@@ -485,7 +485,7 @@ StringPtr Symbols::LookupFromDot(Thread* thread, const String& str) {
 
 StringPtr Symbols::New(Thread* thread, const String& str) {
   if (str.IsSymbol()) {
-    return str.raw();
+    return str.ptr();
   }
   return New(thread, str, 0, str.Length());
 }
@@ -552,7 +552,7 @@ void Symbols::DumpTable(IsolateGroup* isolate_group) {
 
 intptr_t Symbols::LookupPredefinedSymbol(ObjectPtr obj) {
   for (intptr_t i = 1; i < Symbols::kMaxPredefinedId; i++) {
-    if (symbol_handles_[i]->raw() == obj) {
+    if (symbol_handles_[i]->ptr() == obj) {
       return (i + kMaxPredefinedObjectIds);
     }
   }
@@ -563,7 +563,7 @@ ObjectPtr Symbols::GetPredefinedSymbol(intptr_t object_id) {
   ASSERT(IsPredefinedSymbolId(object_id));
   intptr_t i = (object_id - kMaxPredefinedObjectIds);
   if ((i > kIllegal) && (i < Symbols::kMaxPredefinedId)) {
-    return symbol_handles_[i]->raw();
+    return symbol_handles_[i]->ptr();
   }
   return Object::null();
 }

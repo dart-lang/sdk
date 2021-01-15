@@ -401,7 +401,7 @@ TypedDataPtr BytecodeRegExpMacroAssembler::GetBytecode() {
   NoSafepointScope no_safepoint;
   memmove(bytecode.DataAddr(0), buffer_->data(), len);
 
-  return bytecode.raw();
+  return bytecode.ptr();
 }
 
 intptr_t BytecodeRegExpMacroAssembler::length() {
@@ -554,7 +554,7 @@ InstancePtr BytecodeRegExpMacroAssembler::Interpret(const RegExp& regexp,
               capture_register_count * sizeof(int32_t));
     }
 
-    return result.raw();
+    return result.ptr();
   }
   if (result == IrregexpInterpreter::RE_EXCEPTION) {
     UNREACHABLE();

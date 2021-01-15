@@ -23,7 +23,7 @@ FunctionPtr TrampolineFunction(const FunctionType& dart_signature,
   const Class& owner_class = Class::Handle(zone, lib.toplevel_class());
   FunctionType& signature = FunctionType::Handle(zone, FunctionType::New());
   Function& function = Function::Handle(
-      zone, Function::New(signature, name, FunctionLayout::kFfiTrampoline,
+      zone, Function::New(signature, name, UntaggedFunction::kFfiTrampoline,
                           /*is_static=*/true,
                           /*is_const=*/false,
                           /*is_abstract=*/false,
@@ -43,7 +43,7 @@ FunctionPtr TrampolineFunction(const FunctionType& dart_signature,
   const intptr_t num_params = dart_signature.num_fixed_parameters();
   for (intptr_t i = 0; i < num_params; ++i) {
     if (i == 0) {
-      name = Symbols::ClosureParameter().raw();
+      name = Symbols::ClosureParameter().ptr();
     } else {
       name = Symbols::NewFormatted(thread, ":ffi_param%" Pd, i);
     }
@@ -54,7 +54,7 @@ FunctionPtr TrampolineFunction(const FunctionType& dart_signature,
   signature ^= ClassFinalizer::FinalizeType(signature);
   function.set_signature(signature);
 
-  return function.raw();
+  return function.ptr();
 }
 
 }  // namespace ffi

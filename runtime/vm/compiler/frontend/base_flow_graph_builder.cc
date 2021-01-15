@@ -1046,9 +1046,9 @@ Fragment BaseFlowGraphBuilder::DebugStepCheck(TokenPosition position) {
 #ifdef PRODUCT
   return Fragment();
 #else
-  return Fragment(new (Z) DebugStepCheckInstr(InstructionSource(position),
-                                              PcDescriptorsLayout::kRuntimeCall,
-                                              GetNextDeoptId()));
+  return Fragment(new (Z) DebugStepCheckInstr(
+      InstructionSource(position), UntaggedPcDescriptors::kRuntimeCall,
+      GetNextDeoptId()));
 #endif
 }
 
@@ -1108,7 +1108,7 @@ void BaseFlowGraphBuilder::RecordUncheckedEntryPoint(
 Fragment BaseFlowGraphBuilder::BuildEntryPointsIntrospection() {
   if (!FLAG_enable_testing_pragmas) return Drop();
 
-  auto& function = Function::Handle(Z, parsed_function_->function().raw());
+  auto& function = Function::Handle(Z, parsed_function_->function().ptr());
 
   if (function.IsImplicitClosureFunction()) {
     const auto& parent = Function::Handle(Z, function.parent_function());
@@ -1125,7 +1125,7 @@ Fragment BaseFlowGraphBuilder::BuildEntryPointsIntrospection() {
       options.IsNull() || !options.IsClosure()) {
     return Drop();
   }
-  auto& closure = Closure::ZoneHandle(Z, Closure::Cast(options).raw());
+  auto& closure = Closure::ZoneHandle(Z, Closure::Cast(options).ptr());
   LocalVariable* entry_point_num = MakeTemporary();
 
   auto& function_name = String::ZoneHandle(

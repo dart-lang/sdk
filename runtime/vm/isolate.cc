@@ -125,8 +125,8 @@ class VerifyOriginId : public IsolateVisitor {
 
 static std::unique_ptr<Message> SerializeMessage(Dart_Port dest_port,
                                                  const Instance& obj) {
-  if (ApiObjectConverter::CanConvert(obj.raw())) {
-    return Message::New(dest_port, obj.raw(), Message::kNormalPriority);
+  if (ApiObjectConverter::CanConvert(obj.ptr())) {
+    return Message::New(dest_port, obj.ptr(), Message::kNormalPriority);
   } else {
     MessageWriter writer(false);
     return writer.WriteMessage(obj, dest_port, Message::kNormalPriority);
@@ -191,7 +191,7 @@ void IsolateGroupSource::add_loaded_blob(
     Array& new_array =
         Array::Handle(Array::Grow(loaded_blobs, length + 1, Heap::kOld));
     new_array.SetAt(length, weak_property);
-    loaded_blobs_ = new_array.raw();
+    loaded_blobs_ = new_array.ptr();
   }
   num_blob_loads_++;
 }
@@ -522,7 +522,7 @@ void IsolateGroup::set_heap(std::unique_ptr<Heap> heap) {
 }
 
 void IsolateGroup::set_saved_unlinked_calls(const Array& saved_unlinked_calls) {
-  saved_unlinked_calls_ = saved_unlinked_calls.raw();
+  saved_unlinked_calls_ = saved_unlinked_calls.ptr();
 }
 
 Thread* IsolateGroup::ScheduleThreadLocked(MonitorLocker* ml,
@@ -904,7 +904,7 @@ void IsolateGroup::RegisterStaticField(const Field& field,
   const bool need_to_grow_backing_store =
       initial_field_table()->Register(field);
   const intptr_t field_id = field.field_id();
-  initial_field_table()->SetAt(field_id, initial_value.raw());
+  initial_field_table()->SetAt(field_id, initial_value.ptr());
 
   if (need_to_grow_backing_store) {
     // We have to stop other isolates from accessing their field state, since
@@ -914,7 +914,7 @@ void IsolateGroup::RegisterStaticField(const Field& field,
       auto field_table = isolate->field_table();
       if (field_table->IsReadyToUse()) {
         field_table->Register(field, field_id);
-        field_table->SetAt(field_id, initial_value.raw());
+        field_table->SetAt(field_id, initial_value.ptr());
       }
     }
   } else {
@@ -922,7 +922,7 @@ void IsolateGroup::RegisterStaticField(const Field& field,
       auto field_table = isolate->field_table();
       if (field_table->IsReadyToUse()) {
         field_table->Register(field, field_id);
-        field_table->SetAt(field_id, initial_value.raw());
+        field_table->SetAt(field_id, initial_value.ptr());
       }
     }
   }
@@ -1115,7 +1115,7 @@ ErrorPtr IsolateMessageHandler::HandleLibMessage(const Array& message) {
             const UnwindError& error =
                 UnwindError::Handle(UnwindError::New(msg));
             error.set_is_user_initiated(true);
-            return error.raw();
+            return error.ptr();
           } else if (msg_type == Isolate::kInternalKillMsg) {
             const String& msg =
                 String::Handle(String::New("isolate terminated by vm"));
@@ -1302,12 +1302,12 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
   if (message->IsRaw()) {
     msg_obj = message->raw_obj();
     // We should only be sending RawObjects that can be converted to CObjects.
-    ASSERT(ApiObjectConverter::CanConvert(msg_obj.raw()));
+    ASSERT(ApiObjectConverter::CanConvert(msg_obj.ptr()));
   } else if (message->IsBequest()) {
     Bequest* bequest = message->bequest();
     PersistentHandle* handle = bequest->handle();
-    const Object& obj = Object::Handle(zone, handle->raw());
-    msg_obj = obj.raw();
+    const Object& obj = Object::Handle(zone, handle->ptr());
+    msg_obj = obj.ptr();
   } else {
     MessageSnapshotReader reader(message.get(), thread);
     msg_obj = reader.ReadObject();
@@ -1325,7 +1325,7 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
     UNREACHABLE();
   }
   Instance& msg = Instance::Handle(zone);
-  msg ^= msg_obj.raw();  // Can't use Instance::Cast because may be null.
+  msg ^= msg_obj.ptr();  // Can't use Instance::Cast because may be null.
 
   MessageStatus status = kOK;
   if (message->IsOOB()) {
@@ -1481,9 +1481,9 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
     Zone* zone = T->zone();
     const UnhandledException& uhe = UnhandledException::Cast(result);
     const Instance& exception = Instance::Handle(zone, uhe.exception());
-    if (exception.raw() == IG->object_store()->out_of_memory()) {
+    if (exception.ptr() == IG->object_store()->out_of_memory()) {
       exception_cstr = "Out of Memory";  // Cf. OutOfMemoryError.toString().
-    } else if (exception.raw() == IG->object_store()->stack_overflow()) {
+    } else if (exception.ptr() == IG->object_store()->stack_overflow()) {
       exception_cstr = "Stack Overflow";  // Cf. StackOverflowError.toString().
     } else {
       const Object& exception_str =
@@ -1869,8 +1869,8 @@ ObjectPtr Isolate::CallTagHandler(Dart_LibraryTag tag,
                                   const Object& arg2) {
   Thread* thread = Thread::Current();
   Api::Scope api_scope(thread);
-  Dart_Handle api_arg1 = Api::NewHandle(thread, arg1.raw());
-  Dart_Handle api_arg2 = Api::NewHandle(thread, arg2.raw());
+  Dart_Handle api_arg1 = Api::NewHandle(thread, arg1.ptr());
+  Dart_Handle api_arg2 = Api::NewHandle(thread, arg2.ptr());
   Dart_Handle api_result;
   {
     TransitionVMToNative transition(thread);
@@ -1949,7 +1949,7 @@ ErrorPtr Isolate::PausePostRequest() {
   const Error& error = Error::Handle(debugger_->PausePostRequest());
   if (!error.IsNull()) {
     if (Thread::Current()->top_exit_frame_info() == 0) {
-      return error.raw();
+      return error.ptr();
     } else {
       Exceptions::PropagateError(error);
       UNREACHABLE();
@@ -2816,7 +2816,7 @@ ClassPtr Isolate::GetClassForHeapWalkAt(intptr_t cid) {
   raw_class = group()->class_table()->At(cid);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   ASSERT(raw_class != nullptr);
-  ASSERT(remapping_cids() || raw_class->ptr()->id_ == cid);
+  ASSERT(remapping_cids() || raw_class->untag()->id_ == cid);
   return raw_class;
 }
 
@@ -3060,27 +3060,27 @@ void Isolate::PrintMemoryUsageJSON(JSONStream* stream) {
 #endif
 
 void Isolate::set_tag_table(const GrowableObjectArray& value) {
-  tag_table_ = value.raw();
+  tag_table_ = value.ptr();
 }
 
 void Isolate::set_current_tag(const UserTag& tag) {
   uword user_tag = tag.tag();
   ASSERT(user_tag < kUwordMax);
   set_user_tag(user_tag);
-  current_tag_ = tag.raw();
+  current_tag_ = tag.ptr();
 }
 
 void Isolate::set_default_tag(const UserTag& tag) {
-  default_tag_ = tag.raw();
+  default_tag_ = tag.ptr();
 }
 
 void Isolate::set_ic_miss_code(const Code& code) {
-  ic_miss_code_ = code.raw();
+  ic_miss_code_ = code.ptr();
 }
 
 void Isolate::set_deoptimized_code_array(const GrowableObjectArray& value) {
   ASSERT(Thread::Current()->IsMutatorThread());
-  deoptimized_code_array_ = value.raw();
+  deoptimized_code_array_ = value.ptr();
 }
 
 void Isolate::TrackDeoptimizedCode(const Code& code) {
@@ -3106,12 +3106,12 @@ ErrorPtr Isolate::StealStickyError() {
 #if !defined(PRODUCT)
 void Isolate::set_pending_service_extension_calls(
     const GrowableObjectArray& value) {
-  pending_service_extension_calls_ = value.raw();
+  pending_service_extension_calls_ = value.ptr();
 }
 
 void Isolate::set_registered_service_extension_handlers(
     const GrowableObjectArray& value) {
-  registered_service_extension_handlers_ = value.raw();
+  registered_service_extension_handlers_ = value.ptr();
 }
 #endif  // !defined(PRODUCT)
 
@@ -3204,14 +3204,14 @@ ErrorPtr Isolate::InvokePendingServiceExtensionCalls() {
         Service::PostError(method_name, parameter_keys, parameter_values,
                            reply_port, id, Error::Cast(result));
       }
-      return Error::Cast(result).raw();
+      return Error::Cast(result).ptr();
     }
     // Drain the microtask queue.
     result = DartLibraryCalls::DrainMicrotaskQueue();
     // Propagate the error.
     if (result.IsError()) {
       // Remaining service extension calls are dropped.
-      return Error::Cast(result).raw();
+      return Error::Cast(result).ptr();
     }
   }
   return Error::null();

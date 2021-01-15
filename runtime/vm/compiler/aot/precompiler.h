@@ -62,7 +62,7 @@ class SymbolKeyValueTrait {
   static inline intptr_t Hashcode(Key key) { return key->Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair->raw() == key->raw();
+    return pair->ptr() == key->ptr();
   }
 };
 
@@ -73,7 +73,7 @@ struct FunctionKeyTraits {
   static uint32_t Hash(const Object& key) { return Function::Cast(key).Hash(); }
   static const char* Name() { return "FunctionKeyTraits"; }
   static bool IsMatch(const Object& x, const Object& y) {
-    return x.raw() == y.raw();
+    return x.ptr() == y.ptr();
   }
   static bool ReportStats() { return false; }
 };
@@ -100,7 +100,7 @@ class FieldKeyValueTrait {
   }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair->raw() == key->raw();
+    return pair->ptr() == key->ptr();
   }
 };
 
@@ -120,7 +120,7 @@ class ClassKeyValueTrait {
   static inline intptr_t Hashcode(Key key) { return key->token_pos().Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair->raw() == key->raw();
+    return pair->ptr() == key->ptr();
   }
 };
 
@@ -140,7 +140,7 @@ class AbstractTypeKeyValueTrait {
   static inline intptr_t Hashcode(Key key) { return key->Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair->raw() == key->raw();
+    return pair->ptr() == key->ptr();
   }
 };
 
@@ -160,7 +160,7 @@ class FunctionTypeKeyValueTrait {
   static inline intptr_t Hashcode(Key key) { return key->Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair->raw() == key->raw();
+    return pair->ptr() == key->ptr();
   }
 };
 
@@ -180,7 +180,7 @@ class TypeParameterKeyValueTrait {
   static inline intptr_t Hashcode(Key key) { return key->Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair->raw() == key->raw();
+    return pair->ptr() == key->ptr();
   }
 };
 
@@ -200,7 +200,7 @@ class TypeArgumentsKeyValueTrait {
   static inline intptr_t Hashcode(Key key) { return key->Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair->raw() == key->raw();
+    return pair->ptr() == key->ptr();
   }
 };
 
@@ -220,7 +220,7 @@ class InstanceKeyValueTrait {
   static inline intptr_t Hashcode(Key key) { return key->GetClassId(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair->raw() == key->raw();
+    return pair->ptr() == key->ptr();
   }
 };
 
@@ -405,7 +405,7 @@ class FunctionsTraits {
   static bool ReportStats() { return false; }
 
   static bool IsMatch(const Object& a, const Object& b) {
-    return String::Cast(a).raw() == String::Cast(b).raw();
+    return String::Cast(a).ptr() == String::Cast(b).ptr();
   }
   static uword Hash(const Object& obj) { return String::Cast(obj).Hash(); }
 };
@@ -421,7 +421,7 @@ class ObfuscationMapTraits {
 
   // Only for non-descriptor lookup and table expansion.
   static bool IsMatch(const Object& a, const Object& b) {
-    return a.raw() == b.raw();
+    return a.ptr() == b.ptr();
   }
 
   static uword Hash(const Object& key) { return String::Cast(key).Hash(); }
@@ -467,7 +467,7 @@ class Obfuscator : public ValueObject {
   // input and it always preserves leading '_' even for atomic renames.
   StringPtr Rename(const String& name, bool atomic = false) {
     if (state_ == NULL) {
-      return name.raw();
+      return name.ptr();
     }
 
     return state_->RenameImpl(name, atomic);
@@ -502,13 +502,13 @@ class Obfuscator : public ValueObject {
   static ArrayPtr GetRenamesFromSavedState(const Array& saved_state) {
     Array& renames = Array::Handle();
     renames ^= saved_state.At(kSavedStateRenamesIndex);
-    return renames.raw();
+    return renames.ptr();
   }
 
   static StringPtr GetNameFromSavedState(const Array& saved_state) {
     String& name = String::Handle();
     name ^= saved_state.At(kSavedStateNameIndex);
-    return name.raw();
+    return name.ptr();
   }
 
   class ObfuscationState : public ZoneAllocated {
@@ -605,7 +605,7 @@ class Obfuscator {
   ~Obfuscator() {}
 
   StringPtr Rename(const String& name, bool atomic = false) {
-    return name.raw();
+    return name.ptr();
   }
 
   void PreventRenaming(const String& name) {}

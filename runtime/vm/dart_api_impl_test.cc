@@ -930,7 +930,7 @@ TEST_CASE(DartAPI_InstanceGetType) {
   {
     TransitionNativeToVM transition(thread);
     const Type& null_type_obj = Api::UnwrapTypeHandle(zone, type);
-    EXPECT(null_type_obj.raw() == Type::NullType());
+    EXPECT(null_type_obj.ptr() == Type::NullType());
   }
 
   Dart_Handle instance = Dart_True();
@@ -940,7 +940,7 @@ TEST_CASE(DartAPI_InstanceGetType) {
   {
     TransitionNativeToVM transition(thread);
     const Type& bool_type_obj = Api::UnwrapTypeHandle(zone, type);
-    EXPECT(bool_type_obj.raw() == Type::BoolType());
+    EXPECT(bool_type_obj.ptr() == Type::BoolType());
   }
 
   // Errors propagate.
@@ -2942,7 +2942,7 @@ VM_UNIT_TEST_CASE(DartAPI_EnterExitScope) {
     HANDLESCOPE(thread);
     String& str1 = String::Handle();
     str1 = String::New("Test String");
-    Dart_Handle ref = Api::NewHandle(thread, str1.raw());
+    Dart_Handle ref = Api::NewHandle(thread, str1.ptr());
     String& str2 = String::Handle();
     str2 ^= Api::UnwrapHandle(ref);
     EXPECT(str1.Equals(str2));
@@ -2996,22 +2996,22 @@ VM_UNIT_TEST_CASE(DartAPI_PersistentHandles) {
     HANDLESCOPE(thread);
     for (int i = 0; i < 500; i++) {
       String& str = String::Handle();
-      str ^= PersistentHandle::Cast(handles[i])->raw();
+      str ^= PersistentHandle::Cast(handles[i])->ptr();
       EXPECT(str.Equals(kTestString1));
     }
     for (int i = 500; i < 1000; i++) {
       String& str = String::Handle();
-      str ^= PersistentHandle::Cast(handles[i])->raw();
+      str ^= PersistentHandle::Cast(handles[i])->ptr();
       EXPECT(str.Equals(kTestString2));
     }
     for (int i = 1000; i < 1500; i++) {
       String& str = String::Handle();
-      str ^= PersistentHandle::Cast(handles[i])->raw();
+      str ^= PersistentHandle::Cast(handles[i])->ptr();
       EXPECT(str.Equals(kTestString1));
     }
     for (int i = 1500; i < 2000; i++) {
       String& str = String::Handle();
-      str ^= PersistentHandle::Cast(handles[i])->raw();
+      str ^= PersistentHandle::Cast(handles[i])->ptr();
       EXPECT(str.Equals(kTestString2));
     }
   }
@@ -3071,7 +3071,7 @@ VM_UNIT_TEST_CASE(DartAPI_AssignToPersistentHandle) {
     TransitionNativeToVM transition(T);
     HANDLESCOPE(T);
     String& str = String::Handle();
-    str ^= PersistentHandle::Cast(obj)->raw();
+    str ^= PersistentHandle::Cast(obj)->ptr();
     EXPECT(str.Equals(kTestString1));
   }
 
@@ -3082,7 +3082,7 @@ VM_UNIT_TEST_CASE(DartAPI_AssignToPersistentHandle) {
     TransitionNativeToVM transition(T);
     HANDLESCOPE(T);
     String& str = String::Handle();
-    str ^= PersistentHandle::Cast(obj)->raw();
+    str ^= PersistentHandle::Cast(obj)->ptr();
     EXPECT(str.Equals(kTestString2));
   }
 
@@ -5094,7 +5094,7 @@ TEST_CASE(DartAPI_InjectNativeFields3) {
   // (1 + 2) * kWordSize + size of object header.
   // We check to make sure the instance size computed by the VM matches
   // our expectations.
-  intptr_t header_size = sizeof(ObjectLayout);
+  intptr_t header_size = sizeof(UntaggedObject);
   EXPECT_EQ(
       Utils::RoundUp(((1 + 2) * kWordSize) + header_size, kObjectAlignment),
       cls.host_instance_size());

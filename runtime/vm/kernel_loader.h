@@ -345,7 +345,7 @@ class KernelLoader : public ValueObject {
   LibraryPtr LookupLibraryFromClass(NameIndex klass);
   ClassPtr LookupClass(const Library& library, NameIndex klass);
 
-  FunctionLayout::Kind GetFunctionType(ProcedureHelper::Kind procedure_kind);
+  UntaggedFunction::Kind GetFunctionType(ProcedureHelper::Kind procedure_kind);
 
   void EnsureExternalClassIsLookedUp() {
     if (external_name_class_.IsNull()) {

@@ -196,7 +196,7 @@ class TranslationHelper {
 
   void SetExpressionEvaluationFunction(const Function& function) {
     ASSERT(expression_evaluation_function_ == nullptr);
-    expression_evaluation_function_ = &Function::Handle(zone_, function.raw());
+    expression_evaluation_function_ = &Function::Handle(zone_, function.ptr());
   }
   const Function& GetExpressionEvaluationFunction() {
     if (expression_evaluation_function_ == nullptr) {
@@ -207,11 +207,11 @@ class TranslationHelper {
   void SetExpressionEvaluationRealClass(const Class& real_class) {
     ASSERT(expression_evaluation_real_class_ == nullptr);
     ASSERT(!real_class.IsNull());
-    expression_evaluation_real_class_ = &Class::Handle(zone_, real_class.raw());
+    expression_evaluation_real_class_ = &Class::Handle(zone_, real_class.ptr());
   }
   ClassPtr GetExpressionEvaluationRealClass() {
     ASSERT(expression_evaluation_real_class_ != nullptr);
-    return expression_evaluation_real_class_->raw();
+    return expression_evaluation_real_class_->ptr();
   }
 
  private:
@@ -1316,12 +1316,12 @@ class ActiveClass {
 
   bool MemberIsProcedure() {
     ASSERT(member != NULL);
-    FunctionLayout::Kind function_kind = member->kind();
-    return function_kind == FunctionLayout::kRegularFunction ||
-           function_kind == FunctionLayout::kGetterFunction ||
-           function_kind == FunctionLayout::kSetterFunction ||
-           function_kind == FunctionLayout::kMethodExtractor ||
-           function_kind == FunctionLayout::kDynamicInvocationForwarder ||
+    UntaggedFunction::Kind function_kind = member->kind();
+    return function_kind == UntaggedFunction::kRegularFunction ||
+           function_kind == UntaggedFunction::kGetterFunction ||
+           function_kind == UntaggedFunction::kSetterFunction ||
+           function_kind == UntaggedFunction::kMethodExtractor ||
+           function_kind == UntaggedFunction::kDynamicInvocationForwarder ||
            member->IsFactory();
   }
 
@@ -1346,7 +1346,7 @@ class ActiveClass {
   void RecordDerivedTypeParameter(Zone* zone,
                                   const TypeParameter& original,
                                   const TypeParameter& derived) {
-    if (original.raw() != derived.raw() &&
+    if (original.ptr() != derived.ptr() &&
         original.bound() == AbstractType::null()) {
       if (derived_type_parameters == nullptr) {
         derived_type_parameters = &GrowableObjectArray::Handle(

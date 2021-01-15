@@ -58,7 +58,7 @@ void StubCode::Init() {
       ObjectPool::Handle(ObjectPool::NewFromBuilder(object_pool_builder));
 
   for (size_t i = 0; i < ARRAY_SIZE(entries_); i++) {
-    entries_[i].code->set_object_pool(object_pool.raw());
+    entries_[i].code->set_object_pool(object_pool.ptr());
   }
 }
 
@@ -79,7 +79,7 @@ CodePtr StubCode::Generate(
     Disassembler::DisassembleStub(name, code);
   }
 #endif  // !PRODUCT
-  return code.raw();
+  return code.ptr();
 }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
@@ -133,7 +133,7 @@ ArrayPtr compiler::StubCodeCompiler::BuildStaticCallsTable(
     view.Set<Code::kSCallTableKindAndOffset>(kind_type_and_offset);
     view.Set<Code::kSCallTableCodeOrTypeTarget>(unresolved_call->target());
   }
-  return static_calls_table.raw();
+  return static_calls_table.ptr();
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -238,7 +238,7 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
 #endif  // !PRODUCT
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  return stub.raw();
+  return stub.ptr();
 }
 
 CodePtr StubCode::GetAllocationStubForTypedData(classid_t class_id) {
@@ -310,7 +310,7 @@ CodePtr StubCode::GetBuildMethodExtractorStub(
     Disassembler::DisassembleStub(name, stub);
   }
 #endif  // !PRODUCT
-  return stub.raw();
+  return stub.ptr();
 #else   // !defined(DART_PRECOMPILED_RUNTIME)
   UNIMPLEMENTED();
   return nullptr;

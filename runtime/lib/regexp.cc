@@ -29,10 +29,10 @@ DEFINE_NATIVE_ENTRY(RegExp_factory, 0, 6) {
                                arguments->NativeArgAt(4));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, handle_dot_all,
                                arguments->NativeArgAt(5));
-  bool ignore_case = handle_case_sensitive.raw() != Bool::True().raw();
-  bool multi_line = handle_multi_line.raw() == Bool::True().raw();
-  bool unicode = handle_unicode.raw() == Bool::True().raw();
-  bool dot_all = handle_dot_all.raw() == Bool::True().raw();
+  bool ignore_case = handle_case_sensitive.ptr() != Bool::True().ptr();
+  bool multi_line = handle_multi_line.ptr() == Bool::True().ptr();
+  bool unicode = handle_unicode.ptr() == Bool::True().ptr();
+  bool dot_all = handle_dot_all.ptr() == Bool::True().ptr();
 
   RegExpFlags flags;
 
@@ -60,25 +60,25 @@ DEFINE_NATIVE_ENTRY(RegExp_getPattern, 0, 1) {
 DEFINE_NATIVE_ENTRY(RegExp_getIsMultiLine, 0, 1) {
   const RegExp& regexp = RegExp::CheckedHandle(zone, arguments->NativeArgAt(0));
   ASSERT(!regexp.IsNull());
-  return Bool::Get(regexp.flags().IsMultiLine()).raw();
+  return Bool::Get(regexp.flags().IsMultiLine()).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(RegExp_getIsUnicode, 0, 1) {
   const RegExp& regexp = RegExp::CheckedHandle(zone, arguments->NativeArgAt(0));
   ASSERT(!regexp.IsNull());
-  return Bool::Get(regexp.flags().IsUnicode()).raw();
+  return Bool::Get(regexp.flags().IsUnicode()).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(RegExp_getIsDotAll, 0, 1) {
   const RegExp& regexp = RegExp::CheckedHandle(zone, arguments->NativeArgAt(0));
   ASSERT(!regexp.IsNull());
-  return Bool::Get(regexp.flags().IsDotAll()).raw();
+  return Bool::Get(regexp.flags().IsDotAll()).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(RegExp_getIsCaseSensitive, 0, 1) {
   const RegExp& regexp = RegExp::CheckedHandle(zone, arguments->NativeArgAt(0));
   ASSERT(!regexp.IsNull());
-  return Bool::Get(!regexp.flags().IgnoreCase()).raw();
+  return Bool::Get(!regexp.flags().IgnoreCase()).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(RegExp_getGroupCount, 0, 1) {

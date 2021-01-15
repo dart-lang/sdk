@@ -126,13 +126,13 @@ class Image : ValueObject {
 
   // We don't use a handle or the tagged pointer because this object cannot be
   // moved in memory by the GC.
-  static const InstructionsSectionLayout* ExtraInfo(const uword raw_memory,
-                                                    const uword size);
+  static const UntaggedInstructionsSection* ExtraInfo(const uword raw_memory,
+                                                      const uword size);
 
   // Most internal uses would cast this to uword, so just store it as such.
   const uword raw_memory_;
   const intptr_t snapshot_size_;
-  const InstructionsSectionLayout* const extra_info_;
+  const UntaggedInstructionsSection* const extra_info_;
 
   // For access to private constants.
   friend class AssemblyImageWriter;
@@ -295,7 +295,7 @@ class ImageWriter : public ValueObject {
 
   static intptr_t SizeInSnapshot(ObjectPtr object);
   static intptr_t SizeInSnapshot(const Object& object) {
-    return SizeInSnapshot(object.raw());
+    return SizeInSnapshot(object.ptr());
   }
 
   // Returns nullptr if there is no profile writer.
@@ -430,7 +430,7 @@ class ImageWriter : public ValueObject {
   // instruction for the target architecture is used.
   intptr_t AlignWithBreakInstructions(intptr_t alignment, intptr_t offset);
 
-  Heap* heap_;  // Used for mapping RawInstructiosn to object ids.
+  Heap* heap_;  // Used for mapping InstructionsPtr to object ids.
   intptr_t next_data_offset_;
   intptr_t next_text_offset_;
   GrowableArray<ObjectData> objects_;

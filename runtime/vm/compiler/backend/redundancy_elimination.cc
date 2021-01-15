@@ -1756,7 +1756,7 @@ class LoadOptimizer : public ValueObject {
       value = store_static->value();
     }
     return value != nullptr && value->BindsToConstant() &&
-           (value->BoundConstant().raw() == Object::sentinel().raw());
+           (value->BoundConstant().ptr() == Object::sentinel().ptr());
   }
 
   // This optimization pass tries to get rid of lazy initializer calls in

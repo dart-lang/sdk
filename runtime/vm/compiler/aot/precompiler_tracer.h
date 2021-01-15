@@ -92,7 +92,7 @@ class PrecompilerTracer : public ZoneAllocated {
     static const char* Name() { return "EntityTableTraits"; }
 
     static bool IsMatch(const Object& a, const Object& b) {
-      return a.raw() == b.raw();
+      return a.ptr() == b.ptr();
     }
 
     static uword Hash(const Object& obj) {

@@ -216,7 +216,7 @@ void Intrinsifier::InitializeState() {
   };
 
   for (intptr_t i = 0; i < kNumLibs; i++) {
-    lib = intrinsics[i].library.raw();
+    lib = intrinsics[i].library.ptr();
     for (IntrinsicDesc* intrinsic = intrinsics[i].intrinsics;
          intrinsic->class_name != nullptr; intrinsic++) {
       func = Function::null();

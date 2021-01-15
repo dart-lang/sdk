@@ -133,7 +133,7 @@ static ErrorPtr BootstrapFromKernel(Thread* thread,
     const Object& result = Object::Handle(zone, loader.LoadProgram());
     program.reset();
     if (result.IsError()) {
-      return Error::Cast(result).raw();
+      return Error::Cast(result).ptr();
     }
 
     // The builtin library should be registered with the VM.
@@ -169,7 +169,7 @@ ErrorPtr Bootstrap::DoBootstrapping(const uint8_t* kernel_buffer,
     ObjectStore::BootstrapLibraryId id = bootstrap_libraries[i].index;
     uri = Symbols::New(thread, bootstrap_libraries[i].uri);
     lib = isolate_group->object_store()->bootstrap_library(id);
-    ASSERT(lib.raw() == Library::LookupLibrary(thread, uri));
+    ASSERT(lib.ptr() == Library::LookupLibrary(thread, uri));
     if (lib.IsNull()) {
       lib = Library::NewLibraryHelper(uri, false);
       lib.SetLoadRequested();

@@ -317,7 +317,7 @@ class FlowGraphBuilderHelper {
         FunctionType::ZoneHandle(FunctionType::New());
     const Function& func = Function::ZoneHandle(Function::New(
         signature, String::Handle(Symbols::New(thread, "dummy")),
-        FunctionLayout::kRegularFunction,
+        UntaggedFunction::kRegularFunction,
         /*is_static=*/true,
         /*is_const=*/false,
         /*is_abstract=*/false,

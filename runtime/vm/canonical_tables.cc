@@ -52,7 +52,7 @@ bool MetadataMapTraits::IsMatch(const Object& a, const Object& b) {
     return TypeParameter::Cast(a).parameterized_class_id() ==
            TypeParameter::Cast(b).parameterized_class_id();
   }
-  return a.raw() == b.raw();
+  return a.ptr() == b.ptr();
 }
 
 uword MetadataMapTraits::Hash(const Object& key) {

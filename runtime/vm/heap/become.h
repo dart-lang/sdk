@@ -27,7 +27,7 @@ class ForwardingCorpse {
   void set_target(ObjectPtr target) { target_ = target; }
 
   intptr_t HeapSize() {
-    intptr_t size = ObjectLayout::SizeTag::decode(tags_);
+    intptr_t size = UntaggedObject::SizeTag::decode(tags_);
     if (size != 0) return size;
     return *SizeAddress();
   }

@@ -162,7 +162,7 @@ InstanceMorpher* InstanceMorpher::CreateFromClassDescriptors(
     }
 
     if (new_field) {
-      const Field& field = Field::Handle(to_field.raw());
+      const Field& field = Field::Handle(to_field.ptr());
       field.set_needs_load_guard(true);
       field.set_is_unboxing_candidate_unsafe(false);
       new_fields_offsets->Add(field.HostOffset());
@@ -224,8 +224,8 @@ InstancePtr InstanceMorpher::Morph(const Instance& instance) const {
     result.SetCanonical();
   }
 #if defined(HASH_IN_OBJECT_HEADER)
-  const uint32_t hash = Object::GetCachedHash(instance.raw());
-  Object::SetCachedHash(result.raw(), hash);
+  const uint32_t hash = Object::GetCachedHash(instance.ptr());
+  Object::SetCachedHash(result.ptr(), hash);
 #endif
 
   // Morph the context from instance to result using mapping_.
@@ -246,7 +246,7 @@ InstancePtr InstanceMorpher::Morph(const Instance& instance) const {
 
   // Convert the instance into a filler object.
   Become::MakeDummyObject(instance);
-  return result.raw();
+  return result.ptr();
 }
 
 void InstanceMorpher::CreateMorphedCopies() {
@@ -305,8 +305,8 @@ ClassReasonForCancelling::ClassReasonForCancelling(Zone* zone,
                                                    const Class& from,
                                                    const Class& to)
     : ReasonForCancelling(zone),
-      from_(Class::ZoneHandle(zone, from.raw())),
-      to_(Class::ZoneHandle(zone, to.raw())) {}
+      from_(Class::ZoneHandle(zone, from.ptr())),
+      to_(Class::ZoneHandle(zone, to.ptr())) {}
 
 void ClassReasonForCancelling::AppendTo(JSONArray* array) {
   JSONObject jsobj(array);
@@ -385,7 +385,7 @@ class BecomeMapTraits {
   static const char* Name() { return "BecomeMapTraits"; }
 
   static bool IsMatch(const Object& a, const Object& b) {
-    return a.raw() == b.raw();
+    return a.ptr() == b.ptr();
   }
 
   static uword Hash(const Object& obj) {
@@ -420,7 +420,7 @@ bool IsolateReloadContext::IsSameClass(const Class& a, const Class& b) {
   const Library& b_lib = Library::Handle(b.library());
 
   if (a_lib.IsNull() || b_lib.IsNull()) {
-    return a_lib.raw() == b_lib.raw();
+    return a_lib.ptr() == b_lib.ptr();
   }
   return (a_lib.private_key() == b_lib.private_key());
 }
@@ -510,12 +510,12 @@ class Aborted : public ReasonForCancelling {
  public:
   Aborted(Zone* zone, const Error& error)
       : ReasonForCancelling(zone),
-        error_(Error::ZoneHandle(zone, error.raw())) {}
+        error_(Error::ZoneHandle(zone, error.ptr())) {}
 
  private:
   const Error& error_;
 
-  ErrorPtr ToError() { return error_.raw(); }
+  ErrorPtr ToError() { return error_.ptr(); }
   StringPtr ToString() {
     return String::NewFormatted("%s", error_.ToErrorCString());
   }
@@ -620,7 +620,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     }
 
     ExternalTypedData& external_typed_data =
-        ExternalTypedData::Handle(Z, kernel_program.get()->typed_data()->raw());
+        ExternalTypedData::Handle(Z, kernel_program.get()->typed_data()->ptr());
     IsolateGroupSource* source = Isolate::Current()->source();
     source->add_loaded_blob(Z, external_typed_data);
 
@@ -978,7 +978,7 @@ void IsolateGroupReloadContext::BuildModifiedLibrariesClosure(
     while (entries.HasNext()) {
       entry = entries.GetNext();
       if (entry.IsLibraryPrefix()) {
-        prefix ^= entry.raw();
+        prefix ^= entry.ptr();
         ports = prefix.imports();
         for (intptr_t import_idx = 0; import_idx < ports.Length();
              import_idx++) {
@@ -1017,7 +1017,7 @@ void IsolateGroupReloadContext::GetRootLibUrl(const char* root_script_url) {
   if (root_script_url != nullptr) {
     root_lib_url_ = String::New(root_script_url);
   } else {
-    root_lib_url_ = old_root_lib_url.raw();
+    root_lib_url_ = old_root_lib_url.ptr();
   }
 
   // Check to see if the base url of the loaded libraries has moved.
@@ -1096,13 +1096,13 @@ ObjectPtr IsolateReloadContext::ReloadPhase2LoadKernel(
   if (setjmp(*jump.Set()) == 0) {
     const Object& tmp = kernel::KernelLoader::LoadEntireProgram(program);
     if (tmp.IsError()) {
-      return tmp.raw();
+      return tmp.ptr();
     }
 
     // If main method disappeared or were not there to begin with then
     // KernelLoader will return null. In this case lookup library by
     // URL.
-    auto& lib = Library::Handle(Library::RawCast(tmp.raw()));
+    auto& lib = Library::Handle(Library::RawCast(tmp.ptr()));
     if (lib.IsNull()) {
       lib = Library::LookupLibrary(thread, root_lib_url);
     }
@@ -1154,7 +1154,7 @@ void IsolateReloadContext::RegisterClass(const Class& new_cls) {
   }
   VTIR_Print("Registering class: %s\n", new_cls.ToCString());
   new_cls.set_id(old_cls.id());
-  IG->class_table()->SetAt(old_cls.id(), new_cls.raw());
+  IG->class_table()->SetAt(old_cls.id(), new_cls.ptr());
   if (!old_cls.is_enum_class()) {
     new_cls.CopyCanonicalConstants(old_cls);
   }
@@ -1343,7 +1343,7 @@ void IsolateReloadContext::CheckpointClasses() {
       ASSERT(!already_present);
     }
   }
-  old_classes_set_storage_ = old_classes_set.Release().raw();
+  old_classes_set_storage_ = old_classes_set.Release().ptr();
   TIR_Print("---- System had %" Pd " classes\n", saved_num_cids_);
 }
 
@@ -1445,12 +1445,12 @@ void IsolateReloadContext::CheckpointLibraries() {
   TIR_Print("---- CHECKPOINTING LIBRARIES\n");
   // Save the root library in case we abort the reload.
   const Library& root_lib = Library::Handle(object_store()->root_library());
-  saved_root_library_ = root_lib.raw();
+  saved_root_library_ = root_lib.ptr();
 
   // Save the old libraries array in case we abort the reload.
   const GrowableObjectArray& libs =
       GrowableObjectArray::Handle(object_store()->libraries());
-  saved_libraries_ = libs.raw();
+  saved_libraries_ = libs.ptr();
 
   // Make a filtered copy of the old libraries array. Keep "clean" libraries
   // that we will use instead of reloading.
@@ -1481,7 +1481,7 @@ void IsolateReloadContext::CheckpointLibraries() {
     bool already_present = old_libraries_set.Insert(lib);
     ASSERT(!already_present);
   }
-  old_libraries_set_storage_ = old_libraries_set.Release().raw();
+  old_libraries_set_storage_ = old_libraries_set.Release().ptr();
 
   // Reset the registered libraries to the filtered array.
   Library::RegisterLibraries(Thread::Current(), new_libs);
@@ -1611,7 +1611,7 @@ void IsolateReloadContext::CommitBeforeInstanceMorphing() {
         const intptr_t entry = it.Current();
         new_cls = Class::RawCast(class_map.GetKey(entry));
         old_cls = Class::RawCast(class_map.GetPayload(entry, 0));
-        if (new_cls.raw() != old_cls.raw()) {
+        if (new_cls.ptr() != old_cls.ptr()) {
           ASSERT(new_cls.is_enum_class() == old_cls.is_enum_class());
           if (new_cls.is_enum_class() && new_cls.is_finalized()) {
             new_cls.ReplaceEnum(this, old_cls);
@@ -1836,7 +1836,7 @@ void IsolateReloadContext::ValidateReload() {
       const intptr_t entry = it.Current();
       new_lib = Library::RawCast(map.GetKey(entry));
       lib = Library::RawCast(map.GetPayload(entry, 0));
-      if (new_lib.raw() != lib.raw()) {
+      if (new_lib.ptr() != lib.ptr()) {
         lib.CheckReload(new_lib, this);
       }
     }
@@ -1854,7 +1854,7 @@ void IsolateReloadContext::ValidateReload() {
       const intptr_t entry = it.Current();
       new_cls = Class::RawCast(map.GetKey(entry));
       cls = Class::RawCast(map.GetPayload(entry, 0));
-      if (new_cls.raw() != cls.raw()) {
+      if (new_cls.ptr() != cls.ptr()) {
         cls.CheckReload(new_cls, this);
       }
     }
@@ -2162,7 +2162,7 @@ class FieldInvalidator {
         continue;  // Already guarding.
       }
       value_ = field.StaticValue();
-      if (value_.raw() != Object::sentinel().raw()) {
+      if (value_.ptr() != Object::sentinel().ptr()) {
         CheckValueType(null_safety, value_, field);
       }
     }
@@ -2205,7 +2205,7 @@ class FieldInvalidator {
       return;  // Already guarding.
     }
     value_ ^= instance.GetField(field);
-    if (value_.raw() == Object::sentinel().raw()) {
+    if (value_.ptr() == Object::sentinel().ptr()) {
       if (field.is_late()) {
         // Late fields already have lazy initialization logic.
         return;
@@ -2262,24 +2262,24 @@ class FieldInvalidator {
     for (intptr_t i = 0; entries_.At(i) != Object::null();
          i += SubtypeTestCache::kTestEntryLength) {
       if ((entries_.At(i + SubtypeTestCache::kInstanceClassIdOrFunction) ==
-           instance_cid_or_function_.raw()) &&
+           instance_cid_or_function_.ptr()) &&
           (entries_.At(i + SubtypeTestCache::kDestinationType) ==
-           type_.raw()) &&
+           type_.ptr()) &&
           (entries_.At(i + SubtypeTestCache::kInstanceTypeArguments) ==
-           instance_type_arguments_.raw()) &&
+           instance_type_arguments_.ptr()) &&
           (entries_.At(i + SubtypeTestCache::kInstantiatorTypeArguments) ==
-           instantiator_type_arguments_.raw()) &&
+           instantiator_type_arguments_.ptr()) &&
           (entries_.At(i + SubtypeTestCache::kFunctionTypeArguments) ==
-           function_type_arguments_.raw()) &&
+           function_type_arguments_.ptr()) &&
           (entries_.At(
                i + SubtypeTestCache::kInstanceParentFunctionTypeArguments) ==
-           parent_function_type_arguments_.raw()) &&
+           parent_function_type_arguments_.ptr()) &&
           (entries_.At(
                i + SubtypeTestCache::kInstanceDelayedFunctionTypeArguments) ==
-           delayed_function_type_arguments_.raw())) {
+           delayed_function_type_arguments_.ptr())) {
         cache_hit = true;
         if (entries_.At(i + SubtypeTestCache::kTestResult) !=
-            Bool::True().raw()) {
+            Bool::True().ptr()) {
           ASSERT(!FLAG_identity_reload);
           field.set_needs_load_guard(true);
         }
@@ -2344,8 +2344,8 @@ ClassPtr IsolateReloadContext::OldClassOrNull(const Class& replacement_or_new) {
   UnorderedHashSet<ClassMapTraits> old_classes_set(old_classes_set_storage_);
   Class& cls = Class::Handle();
   cls ^= old_classes_set.GetOrNull(replacement_or_new);
-  old_classes_set_storage_ = old_classes_set.Release().raw();
-  return cls.raw();
+  old_classes_set_storage_ = old_classes_set.Release().ptr();
+  return cls.ptr();
 }
 
 StringPtr IsolateReloadContext::FindLibraryPrivateKey(
@@ -2375,7 +2375,7 @@ LibraryPtr IsolateReloadContext::OldLibraryOrNull(
       (group_reload_context_->old_root_url_prefix_ != String::null())) {
     return OldLibraryOrNullBaseMoved(replacement_or_new);
   }
-  return lib.raw();
+  return lib.ptr();
 }
 
 // Attempt to find the pair to |replacement_or_new| with the knowledge that
@@ -2412,7 +2412,7 @@ LibraryPtr IsolateReloadContext::OldLibraryOrNullBaseMoved(
     if (old_suffix.Equals(suffix)) {
       TIR_Print("`%s` is moving to `%s`\n", old_url.ToCString(),
                 new_url.ToCString());
-      return old.raw();
+      return old.ptr();
     }
   }
   return Library::null();
@@ -2486,7 +2486,7 @@ void IsolateReloadContext::BuildRemovedClassesSet() {
       const intptr_t entry = it_library.Current();
       new_library ^= library_map.GetKey(entry);
       old_library ^= library_map.GetPayload(entry, 0);
-      if (new_library.raw() != old_library.raw()) {
+      if (new_library.ptr() != old_library.ptr()) {
         mapped_old_library_set.InsertOrGet(old_library);
       }
     }
@@ -2518,7 +2518,7 @@ void IsolateReloadContext::BuildRemovedClassesSet() {
       }
     }
   }
-  removed_class_set_storage_ = removed_class_set.Release().raw();
+  removed_class_set_storage_ = removed_class_set.Release().ptr();
 
   old_classes_set.Release();
   mapped_old_classes_set.Release();
@@ -2533,7 +2533,7 @@ void IsolateReloadContext::AddClassMapping(const Class& replacement_or_new,
   ASSERT(!update);
   // The storage given to the map may have been reallocated, remember the new
   // address.
-  class_map_storage_ = map.Release().raw();
+  class_map_storage_ = map.Release().ptr();
 }
 
 void IsolateReloadContext::AddLibraryMapping(const Library& replacement_or_new,
@@ -2543,7 +2543,7 @@ void IsolateReloadContext::AddLibraryMapping(const Library& replacement_or_new,
   ASSERT(!update);
   // The storage given to the map may have been reallocated, remember the new
   // address.
-  library_map_storage_ = map.Release().raw();
+  library_map_storage_ = map.Release().ptr();
 }
 
 void IsolateReloadContext::AddStaticFieldMapping(const Field& old_field,
@@ -2560,7 +2560,7 @@ void IsolateReloadContext::AddBecomeMapping(const Object& old,
   UnorderedHashMap<BecomeMapTraits> become_map(become_map_storage_);
   bool update = become_map.UpdateOrInsert(old, neu);
   ASSERT(!update);
-  become_map_storage_ = become_map.Release().raw();
+  become_map_storage_ = become_map.Release().ptr();
 }
 
 void IsolateReloadContext::AddEnumBecomeMapping(const Object& old,

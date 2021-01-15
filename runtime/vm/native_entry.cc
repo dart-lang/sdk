@@ -48,7 +48,7 @@ NativeFunction NativeEntry::ResolveNative(const Library& library,
   {
     Thread* T = Thread::Current();
     Api::Scope api_scope(T);
-    Dart_Handle api_function_name = Api::NewHandle(T, function_name.raw());
+    Dart_Handle api_function_name = Api::NewHandle(T, function_name.ptr());
     {
       Dart_NativeEntryResolver resolver = library.native_entry_resolver();
       TransitionVMToNative transition(T);
@@ -139,7 +139,7 @@ void NativeEntry::BootstrapNativeCallWrapper(Dart_NativeArguments args,
     // been set.
     ObjectPtr return_value_unsafe = reinterpret_cast<BootstrapNativeFunction>(
         func)(thread, zone.GetZone(), arguments);
-    if (return_value_unsafe != Object::sentinel().raw()) {
+    if (return_value_unsafe != Object::sentinel().ptr()) {
       ASSERT(return_value_unsafe->IsDartInstance());
       arguments->SetReturnUnsafe(return_value_unsafe);
     }
@@ -295,18 +295,18 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
     ASSERT(current_function ==
                reinterpret_cast<NativeFunction>(LinkNativeCall) ||
            current_function == target_function);
-    ASSERT(current_trampoline.raw() == StubCode::CallBootstrapNative().raw() ||
+    ASSERT(current_trampoline.ptr() == StubCode::CallBootstrapNative().ptr() ||
            current_function == target_function);
 #endif
 
     NativeFunction patch_target_function = target_function;
     Code& trampoline = Code::Handle(zone);
     if (is_bootstrap_native) {
-      trampoline = StubCode::CallBootstrapNative().raw();
+      trampoline = StubCode::CallBootstrapNative().ptr();
     } else if (is_auto_scope) {
-      trampoline = StubCode::CallAutoScopeNative().raw();
+      trampoline = StubCode::CallAutoScopeNative().ptr();
     } else {
-      trampoline = StubCode::CallNoScopeNative().raw();
+      trampoline = StubCode::CallNoScopeNative().ptr();
     }
     CodePatcher::PatchNativeCallAt(caller_frame->pc(), code,
                                    patch_target_function, trampoline);
@@ -338,15 +338,15 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
 
 // Note: not GC safe. Use with care.
 NativeEntryData::Payload* NativeEntryData::FromTypedArray(TypedDataPtr data) {
-  return reinterpret_cast<Payload*>(data->ptr()->data());
+  return reinterpret_cast<Payload*>(data->untag()->data());
 }
 
 MethodRecognizer::Kind NativeEntryData::kind() const {
-  return FromTypedArray(data_.raw())->kind;
+  return FromTypedArray(data_.ptr())->kind;
 }
 
 void NativeEntryData::set_kind(MethodRecognizer::Kind value) const {
-  FromTypedArray(data_.raw())->kind = value;
+  FromTypedArray(data_.ptr())->kind = value;
 }
 
 MethodRecognizer::Kind NativeEntryData::GetKind(TypedDataPtr data) {
@@ -354,11 +354,11 @@ MethodRecognizer::Kind NativeEntryData::GetKind(TypedDataPtr data) {
 }
 
 NativeFunctionWrapper NativeEntryData::trampoline() const {
-  return FromTypedArray(data_.raw())->trampoline;
+  return FromTypedArray(data_.ptr())->trampoline;
 }
 
 void NativeEntryData::set_trampoline(NativeFunctionWrapper value) const {
-  FromTypedArray(data_.raw())->trampoline = value;
+  FromTypedArray(data_.ptr())->trampoline = value;
 }
 
 NativeFunctionWrapper NativeEntryData::GetTrampoline(TypedDataPtr data) {
@@ -366,11 +366,11 @@ NativeFunctionWrapper NativeEntryData::GetTrampoline(TypedDataPtr data) {
 }
 
 NativeFunction NativeEntryData::native_function() const {
-  return FromTypedArray(data_.raw())->native_function;
+  return FromTypedArray(data_.ptr())->native_function;
 }
 
 void NativeEntryData::set_native_function(NativeFunction value) const {
-  FromTypedArray(data_.raw())->native_function = value;
+  FromTypedArray(data_.ptr())->native_function = value;
 }
 
 NativeFunction NativeEntryData::GetNativeFunction(TypedDataPtr data) {
@@ -378,11 +378,11 @@ NativeFunction NativeEntryData::GetNativeFunction(TypedDataPtr data) {
 }
 
 intptr_t NativeEntryData::argc_tag() const {
-  return FromTypedArray(data_.raw())->argc_tag;
+  return FromTypedArray(data_.ptr())->argc_tag;
 }
 
 void NativeEntryData::set_argc_tag(intptr_t value) const {
-  FromTypedArray(data_.raw())->argc_tag = value;
+  FromTypedArray(data_.ptr())->argc_tag = value;
 }
 
 intptr_t NativeEntryData::GetArgcTag(TypedDataPtr data) {
@@ -400,7 +400,7 @@ TypedDataPtr NativeEntryData::New(MethodRecognizer::Kind kind,
   native_entry.set_trampoline(trampoline);
   native_entry.set_native_function(native_function);
   native_entry.set_argc_tag(argc_tag);
-  return data.raw();
+  return data.ptr();
 }
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

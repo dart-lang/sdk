@@ -135,10 +135,10 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_NotInlining) {
       kMatchReturn,
   }));
 
-  EXPECT(length_call->Selector() == Symbols::GetLength().raw());
+  EXPECT(length_call->Selector() == Symbols::GetLength().ptr());
   EXPECT(pusharg1->InputAt(0)->definition()->IsParameter());
   EXPECT(pusharg2->InputAt(0)->definition()->IsParameter());
-  EXPECT(index_get_call->Selector() == Symbols::IndexToken().raw());
+  EXPECT(index_get_call->Selector() == Symbols::IndexToken().ptr());
 }
 
 // This test asserts that we are inlining get:length, [] and []= for all typed

@@ -69,7 +69,7 @@ class PreallocatedStackTraceBuilder : public StackTraceBuilder {
         cur_index_(0),
         dropped_frames_(0) {
     ASSERT(
-        stacktrace_.raw() ==
+        stacktrace_.ptr() ==
         Isolate::Current()->isolate_object_store()->preallocated_stack_trace());
   }
   ~PreallocatedStackTraceBuilder() {}
@@ -297,7 +297,7 @@ class ExceptionHandlerFinder : public StackResource {
           UNREACHABLE();
       }
 
-      dst_values.Add(&Object::Handle(zone, value.raw()));
+      dst_values.Add(&Object::Handle(zone, value.ptr()));
     }
 
     {
@@ -305,7 +305,7 @@ class ExceptionHandlerFinder : public StackResource {
 
       for (int j = 0; j < moves.count(); j++) {
         const CatchEntryMove& move = moves.At(j);
-        *TaggedSlotAt(fp, move.dest_slot()) = dst_values[j]->raw();
+        *TaggedSlotAt(fp, move.dest_slot()) = dst_values[j]->ptr();
       }
     }
   }
@@ -732,7 +732,7 @@ static FieldPtr LookupStackTraceField(const Instance& instance) {
   Class& test_class = Class::Handle(zone, instance.clazz());
   AbstractType& type = AbstractType::Handle(zone, AbstractType::null());
   while (true) {
-    if (test_class.raw() == error_class.raw()) {
+    if (test_class.ptr() == error_class.ptr()) {
       return error_class.LookupInstanceFieldAllowPrivate(
           Symbols::_stackTrace());
     }
@@ -764,18 +764,18 @@ static void ThrowExceptionHelper(Thread* thread,
   // Do not notify debugger on stack overflow and out of memory exceptions.
   // The VM would crash when the debugger calls back into the VM to
   // get values of variables.
-  if (incoming_exception.raw() != object_store->out_of_memory() &&
-      incoming_exception.raw() != object_store->stack_overflow()) {
+  if (incoming_exception.ptr() != object_store->out_of_memory() &&
+      incoming_exception.ptr() != object_store->stack_overflow()) {
     isolate->debugger()->PauseException(incoming_exception);
   }
 #endif
   bool use_preallocated_stacktrace = false;
-  Instance& exception = Instance::Handle(zone, incoming_exception.raw());
+  Instance& exception = Instance::Handle(zone, incoming_exception.ptr());
   if (exception.IsNull()) {
     exception ^=
         Exceptions::Create(Exceptions::kNullThrown, Object::empty_array());
-  } else if (exception.raw() == object_store->out_of_memory() ||
-             exception.raw() == object_store->stack_overflow()) {
+  } else if (exception.ptr() == object_store->out_of_memory() ||
+             exception.ptr() == object_store->stack_overflow()) {
     use_preallocated_stacktrace = true;
   }
   // Find the exception handler and determine if the handler needs a
@@ -790,7 +790,7 @@ static void ThrowExceptionHelper(Thread* thread,
   if (use_preallocated_stacktrace) {
     if (handler_pc == 0) {
       // No Dart frame.
-      ASSERT(incoming_exception.raw() == object_store->out_of_memory());
+      ASSERT(incoming_exception.ptr() == object_store->out_of_memory());
       const UnhandledException& error = UnhandledException::Handle(
           zone,
           isolate->isolate_object_store()->preallocated_unhandled_exception());
@@ -800,7 +800,7 @@ static void ThrowExceptionHelper(Thread* thread,
     stacktrace = isolate->isolate_object_store()->preallocated_stack_trace();
     PreallocatedStackTraceBuilder frame_builder(stacktrace);
     ASSERT(existing_stacktrace.IsNull() ||
-           (existing_stacktrace.raw() == stacktrace.raw()));
+           (existing_stacktrace.ptr() == stacktrace.ptr()));
     ASSERT(existing_stacktrace.IsNull() || is_rethrow);
     if (handler_needs_stacktrace && existing_stacktrace.IsNull()) {
       BuildStackTrace(&frame_builder);
@@ -811,7 +811,7 @@ static void ThrowExceptionHelper(Thread* thread,
       // reverse is not necessarily true (e.g. Dart_PropagateError can cause
       // a rethrow being called without an existing stacktrace.)
       ASSERT(is_rethrow);
-      stacktrace = existing_stacktrace.raw();
+      stacktrace = existing_stacktrace.ptr();
     } else {
       // Get stacktrace field of class Error to determine whether we have a
       // subclass of Error which carries around its stack trace.
@@ -855,7 +855,7 @@ static void ThrowExceptionHelper(Thread* thread,
     // the isolate etc.). This can happen in the compiler, which is not
     // allowed to allocate in new space, so we pass the kOld argument.
     const UnhandledException& unhandled_exception = UnhandledException::Handle(
-        zone, exception.raw() == object_store->out_of_memory()
+        zone, exception.ptr() == object_store->out_of_memory()
                   ? isolate->isolate_object_store()
                         ->preallocated_unhandled_exception()
                   : UnhandledException::New(exception, stacktrace, Heap::kOld));
@@ -910,13 +910,13 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
   const Array& args = Array::Handle(zone, Array::New(4));
 
   ExceptionType exception_type =
-      (dst_name.raw() == Symbols::InTypeCast().raw()) ? kCast : kType;
+      (dst_name.ptr() == Symbols::InTypeCast().ptr()) ? kCast : kType;
 
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
   const Script& script = Script::Handle(zone, GetCallerScript(&iterator));
   const String& url = String::Handle(
-      zone, script.IsNull() ? Symbols::OptimizedOut().raw() : script.url());
+      zone, script.IsNull() ? Symbols::OptimizedOut().ptr() : script.url());
   intptr_t line = -1;
   intptr_t column = -1;
   if (!script.IsNull()) {

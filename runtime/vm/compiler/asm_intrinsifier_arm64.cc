@@ -1776,7 +1776,7 @@ void AsmIntrinsifier::Object_setHash(Assembler* assembler,
   // R0: Untagged address of header word (ldxr/stxr do not support offsets).
   __ sub(R0, R0, Operand(kHeapObjectTag));
   __ SmiUntag(R1);
-  __ LslImmediate(R1, R1, target::ObjectLayout::kHashTagPos);
+  __ LslImmediate(R1, R1, target::UntaggedObject::kHashTagPos);
   Label retry;
   __ Bind(&retry);
   __ ldxr(R2, R0, kEightBytes);
@@ -2008,7 +2008,7 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
 
   // R1: Untagged address of header word (ldxr/stxr do not support offsets).
   __ sub(R1, R1, Operand(kHeapObjectTag));
-  __ LslImmediate(R0, R0, target::ObjectLayout::kHashTagPos);
+  __ LslImmediate(R0, R0, target::UntaggedObject::kHashTagPos);
   Label retry;
   __ Bind(&retry);
   __ ldxr(R2, R1, kEightBytes);
@@ -2016,7 +2016,7 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   __ stxr(R4, R2, R1, kEightBytes);
   __ cbnz(&retry, R4);
 
-  __ LsrImmediate(R0, R0, target::ObjectLayout::kHashTagPos);
+  __ LsrImmediate(R0, R0, target::UntaggedObject::kHashTagPos);
   __ SmiTag(R0);
   __ ret();
 }
@@ -2075,10 +2075,10 @@ static void TryAllocateString(Assembler* assembler,
   // R1: new object end address.
   // R2: allocation size.
   {
-    const intptr_t shift = target::ObjectLayout::kTagBitsSizeTagPos -
+    const intptr_t shift = target::UntaggedObject::kTagBitsSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2;
 
-    __ CompareImmediate(R2, target::ObjectLayout::kSizeTagMaxSizeTag);
+    __ CompareImmediate(R2, target::UntaggedObject::kSizeTagMaxSizeTag);
     __ LslImmediate(R2, R2, shift);
     __ csel(R2, R2, ZR, LS);
 

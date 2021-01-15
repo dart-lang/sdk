@@ -171,14 +171,14 @@ static void RunTTSTest(
       Symbols::New(thread, OS::SCreate(thread->zone(), "TTSTest")));
   const auto& signature = FunctionType::ZoneHandle(FunctionType::New());
   const auto& function = Function::Handle(Function::New(
-      signature, symbol, FunctionLayout::kRegularFunction, false, false, false,
-      false, false, klass, TokenPosition::kNoSource));
+      signature, symbol, UntaggedFunction::kRegularFunction, false, false,
+      false, false, false, klass, TokenPosition::kNoSource));
   compiler::ObjectPoolBuilder pool_builder;
   const auto& invoke_tts = Code::Handle(
       StubCode::Generate("InvokeTTS", &pool_builder, &GenerateInvokeTTSStub));
   const auto& pool =
       ObjectPool::Handle(ObjectPool::NewFromBuilder(pool_builder));
-  invoke_tts.set_object_pool(pool.raw());
+  invoke_tts.set_object_pool(pool.ptr());
   invoke_tts.set_owner(function);
   invoke_tts.set_exception_handlers(
       ExceptionHandlers::Handle(ExceptionHandlers::New(0)));
@@ -199,14 +199,14 @@ static void RunTTSTest(
   arguments.SetAt(5, dst_type);
 
   // Ensure we have a) uninitialized TTS b) no/empty SubtypeTestCache.
-  auto& instantiated_dst_type = AbstractType::Handle(dst_type.raw());
+  auto& instantiated_dst_type = AbstractType::Handle(dst_type.ptr());
   if (dst_type.IsTypeParameter()) {
     instantiated_dst_type = TypeParameter::Cast(dst_type).GetFromTypeArguments(
         instantiator_tav, function_tav);
   }
   instantiated_dst_type.SetTypeTestingStub(StubCode::LazySpecializeTypeTest());
   EXPECT(instantiated_dst_type.type_test_stub() ==
-         StubCode::LazySpecializeTypeTest().raw());
+         StubCode::LazySpecializeTypeTest().ptr());
   EXPECT(pool.ObjectAt(kSubtypeTestCacheIndex) == Object::null());
 
   auto& result = Object::Handle();
@@ -224,7 +224,7 @@ static void RunTTSTest(
   stc ^= pool.ObjectAt(kSubtypeTestCacheIndex);
   tts = instantiated_dst_type.type_test_stub();
   if (!result.IsError()) {
-    EXPECT(tts.raw() != StubCode::LazySpecializeTypeTest().raw());
+    EXPECT(tts.ptr() != StubCode::LazySpecializeTypeTest().ptr());
   }
   lazy(result, stc);
 
@@ -236,8 +236,8 @@ static void RunTTSTest(
   abi_regs_modified ^= abi_regs_modified_box.At(0);
   rest_regs_modified ^= rest_regs_modified_box.At(0);
   EXPECT(result2.IsError() || !abi_regs_modified.IsNull());
-  EXPECT(tts2.raw() == tts.raw());
-  EXPECT(stc2.raw() == stc.raw());
+  EXPECT(tts2.ptr() == tts.ptr());
+  EXPECT(stc2.ptr() == stc.ptr());
   nonlazy(result2, stc2, abi_regs_modified, rest_regs_modified);
 
   // Third invocation will a) explicitly install TTS beforehand b) keep optional
@@ -254,8 +254,8 @@ static void RunTTSTest(
   abi_regs_modified ^= abi_regs_modified_box.At(0);
   rest_regs_modified ^= rest_regs_modified_box.At(0);
   EXPECT(result2.IsError() || !abi_regs_modified.IsNull());
-  EXPECT(tts2.raw() == tts.raw());
-  EXPECT(stc2.raw() == stc.raw());
+  EXPECT(tts2.ptr() == tts.ptr());
+  EXPECT(stc2.ptr() == stc.ptr());
   nonlazy(result2, stc2, abi_regs_modified, rest_regs_modified);
 }
 
@@ -306,7 +306,7 @@ static void CommonSTCHandledChecks(const Object& result,
   EXPECT_EQ(1, stc.NumberOfChecks());
   SubtypeTestCacheTable entries(Array::Handle(stc.cache()));
   EXPECT(entries[0].Get<SubtypeTestCache::kTestResult>() ==
-         Object::bool_true().raw());
+         Object::bool_true().ptr());
 }
 
 static void ExpectLazilyHandledViaSTC(const Object& result,

@@ -866,9 +866,9 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     {
       Label size_tag_overflow, done;
       __ movl(EDI, EBX);
-      __ cmpl(EDI, Immediate(target::ObjectLayout::kSizeTagMaxSizeTag));
+      __ cmpl(EDI, Immediate(target::UntaggedObject::kSizeTagMaxSizeTag));
       __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-      __ shll(EDI, Immediate(target::ObjectLayout::kTagBitsSizeTagPos -
+      __ shll(EDI, Immediate(target::UntaggedObject::kTagBitsSizeTagPos -
                              target::ObjectAlignment::kObjectAlignmentLog2));
       __ jmp(&done, Assembler::kNearJump);
 
@@ -1078,7 +1078,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 // Input:
 // EDX: number of context variables.
 // Output:
-// EAX: new allocated RawContext object.
+// EAX: new allocated Context object.
 // Clobbered:
 // EBX
 static void GenerateAllocateContextSpaceStub(Assembler* assembler,
@@ -1128,9 +1128,9 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
     Label size_tag_overflow, done;
     __ leal(EBX, Address(EDX, TIMES_4, fixed_size_plus_alignment_padding));
     __ andl(EBX, Immediate(-target::ObjectAlignment::kObjectAlignment));
-    __ cmpl(EBX, Immediate(target::ObjectLayout::kSizeTagMaxSizeTag));
+    __ cmpl(EBX, Immediate(target::UntaggedObject::kSizeTagMaxSizeTag));
     __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-    __ shll(EBX, Immediate(target::ObjectLayout::kTagBitsSizeTagPos -
+    __ shll(EBX, Immediate(target::UntaggedObject::kTagBitsSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2));
     __ jmp(&done);
 
@@ -1157,7 +1157,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
 // Input:
 // EDX: number of context variables.
 // Output:
-// EAX: new allocated RawContext object.
+// EAX: new allocated Context object.
 // Clobbered:
 // EBX, EDX
 void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
@@ -1223,7 +1223,7 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
 // Input:
 //   ECX: context variable.
 // Output:
-//   EAX: new allocated RawContext object.
+//   EAX: new allocated Context object.
 // Clobbered:
 //   EBX, ECX, EDX
 void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
@@ -1320,7 +1320,8 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   // Spilled: EAX, ECX
   // EDX: Address being stored
   __ movl(EAX, FieldAddress(EDX, target::Object::tags_offset()));
-  __ testl(EAX, Immediate(1 << target::ObjectLayout::kOldAndNotRememberedBit));
+  __ testl(EAX,
+           Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
   __ j(NOT_EQUAL, &add_to_buffer, Assembler::kNearJump);
   __ popl(ECX);
   __ popl(EAX);
@@ -1333,12 +1334,12 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 
   if (cards) {
     // Check if this object is using remembered cards.
-    __ testl(EAX, Immediate(1 << target::ObjectLayout::kCardRememberedBit));
+    __ testl(EAX, Immediate(1 << target::UntaggedObject::kCardRememberedBit));
     __ j(NOT_EQUAL, &remember_card, Assembler::kFarJump);  // Unlikely.
   } else {
 #if defined(DEBUG)
     Label ok;
-    __ testl(EAX, Immediate(1 << target::ObjectLayout::kCardRememberedBit));
+    __ testl(EAX, Immediate(1 << target::UntaggedObject::kCardRememberedBit));
     __ j(ZERO, &ok, Assembler::kFarJump);  // Unlikely.
     __ Stop("Wrong barrier");
     __ Bind(&ok);
@@ -1348,7 +1349,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   // lock+andl is an atomic read-modify-write.
   __ lock();
   __ andl(FieldAddress(EDX, target::Object::tags_offset()),
-          Immediate(~(1 << target::ObjectLayout::kOldAndNotRememberedBit)));
+          Immediate(~(1 << target::UntaggedObject::kOldAndNotRememberedBit)));
 
   // Load the StoreBuffer block out of the thread. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
@@ -2991,9 +2992,9 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
   /* EDI: allocation size. */
   {
     Label size_tag_overflow, done;
-    __ cmpl(EDI, Immediate(target::ObjectLayout::kSizeTagMaxSizeTag));
+    __ cmpl(EDI, Immediate(target::UntaggedObject::kSizeTagMaxSizeTag));
     __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-    __ shll(EDI, Immediate(target::ObjectLayout::kTagBitsSizeTagPos -
+    __ shll(EDI, Immediate(target::UntaggedObject::kTagBitsSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2));
     __ jmp(&done, Assembler::kNearJump);
     __ Bind(&size_tag_overflow);

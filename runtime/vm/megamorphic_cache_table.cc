@@ -32,16 +32,16 @@ MegamorphicCachePtr MegamorphicCacheTable::Lookup(Thread* thread,
   } else {
     for (intptr_t i = 0; i < table.Length(); i++) {
       cache ^= table.At(i);
-      if ((cache.target_name() == name.raw()) &&
-          (cache.arguments_descriptor() == descriptor.raw())) {
-        return cache.raw();
+      if ((cache.target_name() == name.ptr()) &&
+          (cache.arguments_descriptor() == descriptor.ptr())) {
+        return cache.ptr();
       }
     }
   }
 
   cache = MegamorphicCache::New(name, descriptor);
   table.Add(cache, Heap::kOld);
-  return cache.raw();
+  return cache.ptr();
 }
 
 void MegamorphicCacheTable::PrintSizes(Isolate* isolate) {

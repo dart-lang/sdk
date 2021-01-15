@@ -435,7 +435,7 @@ SExpression* FlowGraphSerializer::AbstractTypeToSExp(const AbstractType& t) {
     open_recursive_types_.Insert(hash, &t);
   }
   if (t.IsFunctionType()) {
-    const auto& sig = FunctionType::Handle(zone(), FunctionType::Cast(t).raw());
+    const auto& sig = FunctionType::Handle(zone(), FunctionType::Cast(t).ptr());
     AddSymbol(sexp, "FunctionType");
     function_type_args_ = sig.type_parameters();
     if (auto const ta_sexp = NonEmptyTypeArgumentsToSExp(function_type_args_)) {
@@ -584,9 +584,9 @@ SExpression* FlowGraphSerializer::FunctionToSExp(const Function& func) {
       AddExtraSymbol(sexp, "native_name", tmp_string_.ToCString());
     }
   }
-  if (func.kind() != FunctionLayout::Kind::kRegularFunction ||
+  if (func.kind() != UntaggedFunction::Kind::kRegularFunction ||
       FLAG_verbose_flow_graph_serialization) {
-    AddExtraSymbol(sexp, "kind", FunctionLayout::KindToCString(func.kind()));
+    AddExtraSymbol(sexp, "kind", UntaggedFunction::KindToCString(func.kind()));
   }
   function_type_args_ = func.type_parameters();
   if (auto const ta_sexp = NonEmptyTypeArgumentsToSExp(function_type_args_)) {
@@ -676,7 +676,7 @@ SExpression* FlowGraphSerializer::ObjectToSExp(const Object& dartval) {
   if (dartval.IsNull()) {
     return new (zone()) SExpSymbol("null");
   }
-  if (dartval.raw() == Object::sentinel().raw()) {
+  if (dartval.ptr() == Object::sentinel().ptr()) {
     return new (zone()) SExpSymbol("sentinel");
   }
   if (dartval.IsString()) {
@@ -1079,9 +1079,10 @@ void DebugStepCheckInstr::AddExtraInfoToSExpression(
     SExpList* sexp,
     FlowGraphSerializer* s) const {
   Instruction::AddExtraInfoToSExpression(sexp, s);
-  if (stub_kind_ != PcDescriptorsLayout::kAnyKind ||
+  if (stub_kind_ != UntaggedPcDescriptors::kAnyKind ||
       FLAG_verbose_flow_graph_serialization) {
-    auto const stub_kind_name = PcDescriptorsLayout::KindToCString(stub_kind_);
+    auto const stub_kind_name =
+        UntaggedPcDescriptors::KindToCString(stub_kind_);
     ASSERT(stub_kind_name != nullptr);
     s->AddExtraSymbol(sexp, "stub_kind", stub_kind_name);
   }
@@ -1259,8 +1260,8 @@ void InstanceCallBaseInstr::AddExtraInfoToSExpression(
     }
   } else {
     if (interface_target().IsNull() ||
-        (function_name().raw() != interface_target().name() &&
-         function_name().raw() != tearoff_interface_target().name())) {
+        (function_name().ptr() != interface_target().name() &&
+         function_name().ptr() != tearoff_interface_target().name())) {
       s->AddExtraString(sexp, "function_name", function_name().ToCString());
     }
   }

@@ -85,7 +85,7 @@ class ObjectCounter : public ObjectPointerVisitor {
 
   virtual void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
     for (ObjectPtr* current = first; current <= last; ++current) {
-      if (*current == obj_->raw()) {
+      if (*current == obj_->ptr()) {
         ++count_;
       }
     }
@@ -433,7 +433,7 @@ static Function* CreateFunction(const char* name) {
       String::ZoneHandle(Symbols::New(Thread::Current(), name));
   const FunctionType& signature = FunctionType::ZoneHandle(FunctionType::New());
   Function& function = Function::ZoneHandle(Function::New(
-      signature, function_name, FunctionLayout::kRegularFunction, true, false,
+      signature, function_name, UntaggedFunction::kRegularFunction, true, false,
       false, false, false, owner_class, TokenPosition::kNoSource));
   return &function;
 }
@@ -544,7 +544,7 @@ class SafepointTestTask : public ThreadPool::Task {
           EXPECT_EQ(*expected_count_, counter.count());
         }
         UserTag& tag = UserTag::Handle(zone, isolate_->current_tag());
-        if (tag.raw() != isolate_->default_tag()) {
+        if (tag.ptr() != isolate_->default_tag()) {
           String& label = String::Handle(zone, tag.label());
           EXPECT(label.Equals("foo"));
           MonitorLocker ml(monitor_);

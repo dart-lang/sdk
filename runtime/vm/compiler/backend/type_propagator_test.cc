@@ -172,7 +172,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_Refinement) {
   const FunctionType& signature = FunctionType::Handle(FunctionType::New());
   const Function& target_func = Function::ZoneHandle(Function::New(
       signature, String::Handle(Symbols::New(thread, "dummy2")),
-      FunctionLayout::kRegularFunction,
+      UntaggedFunction::kRegularFunction,
       /*is_static=*/true,
       /*is_const=*/false,
       /*is_abstract=*/false,

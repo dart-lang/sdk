@@ -118,7 +118,7 @@ IntegerPtr Evaluator::BinaryIntegerEvaluate(const Object& left,
     result ^= result.Canonicalize(thread);
   }
 
-  return result.raw();
+  return result.ptr();
 }
 
 IntegerPtr Evaluator::UnaryIntegerEvaluate(const Object& value,
@@ -147,7 +147,7 @@ IntegerPtr Evaluator::UnaryIntegerEvaluate(const Object& value,
     result ^= result.Canonicalize(thread);
   }
 
-  return result.raw();
+  return result.ptr();
 }
 
 double Evaluator::EvaluateDoubleOp(const double left,

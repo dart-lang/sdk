@@ -1189,9 +1189,9 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     // R2: array length as Smi.
     // R3: array size.
     // R7: new object end address.
-    const intptr_t shift = target::ObjectLayout::kTagBitsSizeTagPos -
+    const intptr_t shift = target::UntaggedObject::kTagBitsSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2;
-    __ CompareImmediate(R3, target::ObjectLayout::kSizeTagMaxSizeTag);
+    __ CompareImmediate(R3, target::UntaggedObject::kSizeTagMaxSizeTag);
     // If no size tag overflow, shift R1 left, else set R1 to zero.
     __ LslImmediate(TMP, R3, shift);
     __ csel(R1, TMP, R1, LS);
@@ -1442,7 +1442,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 // Input:
 //   R1: number of context variables.
 // Output:
-//   R0: new allocated RawContext object.
+//   R0: new allocated Context object.
 // Clobbered:
 //   R2, R3, R4, TMP
 static void GenerateAllocateContextSpaceStub(Assembler* assembler,
@@ -1485,9 +1485,9 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
   // R0: new object.
   // R1: number of context variables.
   // R2: object size.
-  const intptr_t shift = target::ObjectLayout::kTagBitsSizeTagPos -
+  const intptr_t shift = target::UntaggedObject::kTagBitsSizeTagPos -
                          target::ObjectAlignment::kObjectAlignmentLog2;
-  __ CompareImmediate(R2, target::ObjectLayout::kSizeTagMaxSizeTag);
+  __ CompareImmediate(R2, target::UntaggedObject::kSizeTagMaxSizeTag);
   // If no size tag overflow, shift R2 left, else set R2 to zero.
   __ LslImmediate(TMP, R2, shift);
   __ csel(R2, TMP, R2, LS);
@@ -1512,7 +1512,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
 // Input:
 //   R1: number of context variables.
 // Output:
-//   R0: new allocated RawContext object.
+//   R0: new allocated Context object.
 // Clobbered:
 //   R2, R3, R4, TMP
 void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
@@ -1576,7 +1576,7 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
 // Input:
 //   R5: context variable to clone.
 // Output:
-//   R0: new allocated RawContext object.
+//   R0: new allocated Context object.
 // Clobbered:
 //   R1, (R2), R3, R4, (TMP)
 void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
@@ -1687,12 +1687,12 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 
   if (cards) {
     __ LoadFieldFromOffset(TMP, R1, target::Object::tags_offset(), kFourBytes);
-    __ tbnz(&remember_card, TMP, target::ObjectLayout::kCardRememberedBit);
+    __ tbnz(&remember_card, TMP, target::UntaggedObject::kCardRememberedBit);
   } else {
 #if defined(DEBUG)
     Label ok;
     __ LoadFieldFromOffset(TMP, R1, target::Object::tags_offset(), kFourBytes);
-    __ tbz(&ok, TMP, target::ObjectLayout::kCardRememberedBit);
+    __ tbz(&ok, TMP, target::UntaggedObject::kCardRememberedBit);
     __ Stop("Wrong barrier");
     __ Bind(&ok);
 #endif
@@ -1711,7 +1711,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ Bind(&retry);
   __ ldxr(R2, R3, kEightBytes);
   __ AndImmediate(R2, R2,
-                  ~(1 << target::ObjectLayout::kOldAndNotRememberedBit));
+                  ~(1 << target::UntaggedObject::kOldAndNotRememberedBit));
   __ stxr(R4, R2, R3, kEightBytes);
   __ cbnz(&retry, R4);
 
@@ -1761,8 +1761,8 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   // R3: Untagged address of header word (ldxr/stxr do not support offsets).
   __ Bind(&marking_retry);
   __ ldxr(R2, R3, kEightBytes);
-  __ tbz(&lost_race, R2, target::ObjectLayout::kOldAndNotMarkedBit);
-  __ AndImmediate(R2, R2, ~(1 << target::ObjectLayout::kOldAndNotMarkedBit));
+  __ tbz(&lost_race, R2, target::UntaggedObject::kOldAndNotMarkedBit);
+  __ AndImmediate(R2, R2, ~(1 << target::UntaggedObject::kOldAndNotMarkedBit));
   __ stxr(R4, R2, R3, kEightBytes);
   __ cbnz(&marking_retry, R4);
 
@@ -2777,7 +2777,7 @@ void StubCodeCompiler::GenerateDebugStepCheckStub(Assembler* assembler) {
 // Used to check class and type arguments. Arguments passed in registers:
 //
 // Inputs (mostly from TypeTestABI struct):
-//   - kSubtypeTestCacheReg: SubtypeTestCacheLayout
+//   - kSubtypeTestCacheReg: UntaggedSubtypeTestCache
 //   - kInstanceReg: instance to test against.
 //   - kDstTypeReg: destination type (for n>=3).
 //   - kInstantiatorTypeArgumentsReg: instantiator type arguments (for n=5).
@@ -3615,9 +3615,9 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
   /* R1: new object end address. */
   /* R2: allocation size. */
   {
-    __ CompareImmediate(R2, target::ObjectLayout::kSizeTagMaxSizeTag);
+    __ CompareImmediate(R2, target::UntaggedObject::kSizeTagMaxSizeTag);
     __ LslImmediate(R2, R2,
-                    target::ObjectLayout::kTagBitsSizeTagPos -
+                    target::UntaggedObject::kTagBitsSizeTagPos -
                         target::ObjectAlignment::kObjectAlignmentLog2);
     __ csel(R2, ZR, R2, HI);
 

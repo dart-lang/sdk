@@ -71,7 +71,7 @@ void CallSiteResetter::ResetCaches(const Code& code) {
   ASSERT(!instrs_.IsNull());
   uword base_address = instrs_.PayloadStart();
   intptr_t offsets_length = code.pointer_offsets_length();
-  const int32_t* offsets = code.raw_ptr()->data();
+  const int32_t* offsets = code.untag()->data();
   for (intptr_t i = 0; i < offsets_length; i++) {
     int32_t offset = offsets[i];
     ObjectPtr* object_ptr = reinterpret_cast<ObjectPtr*>(base_address + offset);
@@ -127,7 +127,7 @@ void CallSiteResetter::ResetSwitchableCalls(const Code& code) {
   }
   const Function& function = Function::Cast(object_);
 
-  if (function.kind() == FunctionLayout::kIrregexpFunction) {
+  if (function.kind() == UntaggedFunction::kIrregexpFunction) {
     // Regex matchers do not support breakpoints or stepping, and they only call
     // core library functions that cannot change due to reload. As a performance
     // optimization, avoid this matching of ICData to PCs for these functions'
@@ -143,7 +143,7 @@ void CallSiteResetter::ResetSwitchableCalls(const Code& code) {
     // calls.
 #if defined(DEBUG)
     descriptors_ = code.pc_descriptors();
-    PcDescriptors::Iterator iter(descriptors_, PcDescriptorsLayout::kIcCall);
+    PcDescriptors::Iterator iter(descriptors_, UntaggedPcDescriptors::kIcCall);
     while (iter.MoveNext()) {
       FATAL1("%s has IC calls but no ic_data_array\n", object_.ToCString());
     }
@@ -152,7 +152,7 @@ void CallSiteResetter::ResetSwitchableCalls(const Code& code) {
   }
 
   descriptors_ = code.pc_descriptors();
-  PcDescriptors::Iterator iter(descriptors_, PcDescriptorsLayout::kIcCall);
+  PcDescriptors::Iterator iter(descriptors_, UntaggedPcDescriptors::kIcCall);
   while (iter.MoveNext()) {
     uword pc = code.PayloadStart() + iter.PcOffset();
     CodePatcher::GetInstanceCallAt(pc, code, &object_);
@@ -278,7 +278,7 @@ class EnumMapTraits {
   static const char* Name() { return "EnumMapTraits"; }
 
   static bool IsMatch(const Object& a, const Object& b) {
-    return a.raw() == b.raw();
+    return a.ptr() == b.ptr();
   }
 
   static uword Hash(const Object& obj) {
@@ -334,7 +334,7 @@ void Class::ReplaceEnum(IsolateReloadContext* reload_context,
   TIR_Print("Replacing enum `%s`\n", String::Handle(Name()).ToCString());
 
   {
-    UnorderedHashMap<EnumMapTraits> enum_map(enum_map_storage.raw());
+    UnorderedHashMap<EnumMapTraits> enum_map(enum_map_storage.ptr());
     // Build a map of all enum name -> old enum instance.
     enum_fields = old_enum.fields();
     for (intptr_t i = 0; i < enum_fields.Length(); i++) {
@@ -366,12 +366,12 @@ void Class::ReplaceEnum(IsolateReloadContext* reload_context,
     }
     // The storage given to the map may have been reallocated, remember the new
     // address.
-    enum_map_storage = enum_map.Release().raw();
+    enum_map_storage = enum_map.Release().ptr();
   }
 
   bool enums_deleted = false;
   {
-    UnorderedHashMap<EnumMapTraits> enum_map(enum_map_storage.raw());
+    UnorderedHashMap<EnumMapTraits> enum_map(enum_map_storage.ptr());
     // Add a become mapping from the old instances to the new instances.
     enum_fields = fields();
     for (intptr_t i = 0; i < enum_fields.Length(); i++) {
@@ -411,7 +411,7 @@ void Class::ReplaceEnum(IsolateReloadContext* reload_context,
     enums_deleted = enum_map.NumOccupied() > 0;
     // The storage given to the map may have been reallocated, remember the new
     // address.
-    enum_map_storage = enum_map.Release().raw();
+    enum_map_storage = enum_map.Release().ptr();
   }
 
   // Map the old E.values array to the new E.values array.
@@ -432,7 +432,7 @@ void Class::ReplaceEnum(IsolateReloadContext* reload_context,
         "The following enum values were deleted from %s and will become the "
         "deleted enum sentinel:\n",
         old_enum.ToCString());
-    UnorderedHashMap<EnumMapTraits> enum_map(enum_map_storage.raw());
+    UnorderedHashMap<EnumMapTraits> enum_map(enum_map_storage.ptr());
     UnorderedHashMap<EnumMapTraits>::Iterator it(&enum_map);
     while (it.MoveNext()) {
       const intptr_t entry = it.Current();
@@ -475,7 +475,7 @@ void Class::PatchFieldsAndFunctions() const {
     owner = func.RawOwner();
     ASSERT(!owner.IsNull());
     if (!owner.IsPatchClass()) {
-      ASSERT(owner.raw() == this->raw());
+      ASSERT(owner.ptr() == this->ptr());
       func.set_owner(patch);
     }
   }
@@ -489,7 +489,7 @@ void Class::PatchFieldsAndFunctions() const {
     owner = field.RawOwner();
     ASSERT(!owner.IsNull());
     if (!owner.IsPatchClass()) {
-      ASSERT(owner.raw() == this->raw());
+      ASSERT(owner.ptr() == this->ptr());
       field.set_owner(patch);
     }
     field.ForceDynamicGuardedCidAndLength();
@@ -549,7 +549,7 @@ class EnsureFinalizedError : public ClassReasonForCancelling {
  private:
   const Error& error_;
 
-  ErrorPtr ToError() { return error_.raw(); }
+  ErrorPtr ToError() { return error_.ptr(); }
 
   StringPtr ToString() { return String::New(error_.ToErrorCString()); }
 };
@@ -860,7 +860,7 @@ void Library::CheckReload(const Library& replacement,
   while (it.HasNext()) {
     object = it.GetNext();
     if (!object.IsLibraryPrefix()) continue;
-    prefix ^= object.raw();
+    prefix ^= object.ptr();
     if (prefix.is_deferred_load()) {
       const String& prefix_name = String::Handle(prefix.name());
       context->group_reload_context()->AddReasonForCancelling(
@@ -890,7 +890,7 @@ void CallSiteResetter::Reset(const ICData& ic) {
       GrowableArray<intptr_t> class_ids(2);
       Function& target = Function::Handle(zone_);
       ic.GetCheckAt(0, &class_ids, &target);
-      if ((target.raw() == smi_op_target.raw()) && (class_ids[0] == kSmiCid) &&
+      if ((target.ptr() == smi_op_target.ptr()) && (class_ids[0] == kSmiCid) &&
           (class_ids[1] == kSmiCid)) {
         // The smi fast path case, preserve the initial entry but reset the
         // count.
@@ -919,7 +919,7 @@ void CallSiteResetter::Reset(const ICData& ic) {
 
     if (rule == ICData::kStatic) {
       ASSERT(old_target_.is_static() ||
-             old_target_.kind() == FunctionLayout::kConstructor);
+             old_target_.kind() == UntaggedFunction::kConstructor);
       // This can be incorrect if the call site was an unqualified invocation.
       new_cls_ = old_target_.Owner();
       new_target_ = Resolver::ResolveFunction(zone_, new_cls_, name_);

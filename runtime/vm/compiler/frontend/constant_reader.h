@@ -59,7 +59,7 @@ class KernelConstMapKeyEqualsTraits : public AllStatic {
     return (key1.Value() == key2.Value());
   }
   static bool IsMatch(const intptr_t key1, const Object& b) {
-    return KeyAsSmi(key1) == Smi::Cast(b).raw();
+    return KeyAsSmi(key1) == Smi::Cast(b).ptr();
   }
   static uword Hash(const Object& obj) {
     const Smi& key = Smi::Cast(obj);

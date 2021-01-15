@@ -323,7 +323,7 @@ ArrayPtr IRRegExpMacroAssembler::Execute(const RegExp& regexp,
   }
 
   ASSERT(retval.IsArray());
-  return Array::Cast(retval).raw();
+  return Array::Cast(retval).ptr();
 }
 
 LocalVariable* IRRegExpMacroAssembler::Parameter(const String& name,
@@ -383,7 +383,7 @@ ConstantInstr* IRRegExpMacroAssembler::WordCharacterMapConstant() const {
     Report::LongJump(Error::Cast(value));
   }
   return new (Z)
-      ConstantInstr(Instance::ZoneHandle(Z, Instance::RawCast(value.raw())));
+      ConstantInstr(Instance::ZoneHandle(Z, Instance::RawCast(value.ptr())));
 }
 
 ComparisonInstr* IRRegExpMacroAssembler::Comparison(ComparisonKind kind,

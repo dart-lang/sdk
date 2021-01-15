@@ -68,7 +68,7 @@ bool FieldTable::Register(const Field& field, intptr_t expected_field_id) {
     ASSERT(top_ < capacity_);
     ASSERT(expected_field_id == -1 || expected_field_id == top_);
     field.set_field_id(top_);
-    table_[top_] = Object::sentinel().raw();
+    table_[top_] = Object::sentinel().ptr();
 
     ++top_;
     return grown_backing_store;
@@ -79,7 +79,7 @@ bool FieldTable::Register(const Field& field, intptr_t expected_field_id) {
   intptr_t reused_free = free_head_;
   free_head_ = Smi::Value(Smi::RawCast(table_[free_head_]));
   field.set_field_id(reused_free);
-  table_[reused_free] = Object::sentinel().raw();
+  table_[reused_free] = Object::sentinel().ptr();
   return false;
 }
 

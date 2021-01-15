@@ -54,7 +54,7 @@ DEFINE_NATIVE_ENTRY(Object_setHash, 0, 2) {
   const Instance& instance =
       Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   Heap* heap = isolate->group()->heap();
-  heap->SetHash(instance.raw(), hash.Value());
+  heap->SetHash(instance.ptr(), hash.Value());
 #endif
   return Object::null();
 }
@@ -63,7 +63,7 @@ DEFINE_NATIVE_ENTRY(Object_toString, 0, 1) {
   const Instance& instance =
       Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   if (instance.IsString()) {
-    return instance.raw();
+    return instance.ptr();
   }
   if (instance.IsAbstractType()) {
     return AbstractType::Cast(instance).UserVisibleName();
@@ -98,13 +98,13 @@ DEFINE_NATIVE_ENTRY(Object_haveSameRuntimeType, 0, 2) {
 
   if (left_cid != right_cid) {
     if (IsIntegerClassId(left_cid)) {
-      return Bool::Get(IsIntegerClassId(right_cid)).raw();
+      return Bool::Get(IsIntegerClassId(right_cid)).ptr();
     } else if (IsStringClassId(left_cid)) {
-      return Bool::Get(IsStringClassId(right_cid)).raw();
+      return Bool::Get(IsStringClassId(right_cid)).ptr();
     } else if (IsTypeClassId(left_cid)) {
-      return Bool::Get(IsTypeClassId(right_cid)).raw();
+      return Bool::Get(IsTypeClassId(right_cid)).ptr();
     } else {
-      return Bool::False().raw();
+      return Bool::False().ptr();
     }
   }
 
@@ -117,15 +117,15 @@ DEFINE_NATIVE_ENTRY(Object_haveSameRuntimeType, 0, 2) {
         AbstractType::Handle(right.GetType(Heap::kNew));
     return Bool::Get(
                left_type.IsEquivalent(right_type, TypeEquality::kSyntactical))
-        .raw();
+        .ptr();
   }
 
   if (!cls.IsGeneric()) {
-    return Bool::True().raw();
+    return Bool::True().ptr();
   }
 
   if (left.GetTypeArguments() == right.GetTypeArguments()) {
-    return Bool::True().raw();
+    return Bool::True().ptr();
   }
   const TypeArguments& left_type_arguments =
       TypeArguments::Handle(left.GetTypeArguments());
@@ -136,7 +136,7 @@ DEFINE_NATIVE_ENTRY(Object_haveSameRuntimeType, 0, 2) {
   return Bool::Get(left_type_arguments.IsSubvectorEquivalent(
                        right_type_arguments, num_type_args - num_type_params,
                        num_type_params, TypeEquality::kSyntactical))
-      .raw();
+      .ptr();
 }
 
 DEFINE_NATIVE_ENTRY(Object_instanceOf, 0, 4) {
@@ -161,7 +161,7 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 0, 4) {
     OS::PrintErr("  test type: %s\n",
                  String::Handle(zone, type.Name()).ToCString());
   }
-  return Bool::Get(is_instance_of).raw();
+  return Bool::Get(is_instance_of).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(Object_simpleInstanceOf, 0, 2) {
@@ -175,7 +175,7 @@ DEFINE_NATIVE_ENTRY(Object_simpleInstanceOf, 0, 2) {
   ASSERT(type.IsInstantiated());
   const bool is_instance_of = instance.IsInstanceOf(
       type, Object::null_type_arguments(), Object::null_type_arguments());
-  return Bool::Get(is_instance_of).raw();
+  return Bool::Get(is_instance_of).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(AbstractType_toString, 0, 1) {
@@ -196,10 +196,10 @@ DEFINE_NATIVE_ENTRY(Type_equality, 0, 2) {
   const Type& type = Type::CheckedHandle(zone, arguments->NativeArgAt(0));
   const Instance& other =
       Instance::CheckedHandle(zone, arguments->NativeArgAt(1));
-  if (type.raw() == other.raw()) {
-    return Bool::True().raw();
+  if (type.ptr() == other.ptr()) {
+    return Bool::True().ptr();
   }
-  return Bool::Get(type.IsEquivalent(other, TypeEquality::kSyntactical)).raw();
+  return Bool::Get(type.IsEquivalent(other, TypeEquality::kSyntactical)).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(FunctionType_getHashCode, 0, 1) {
@@ -216,16 +216,16 @@ DEFINE_NATIVE_ENTRY(FunctionType_equality, 0, 2) {
       FunctionType::CheckedHandle(zone, arguments->NativeArgAt(0));
   const Instance& other =
       Instance::CheckedHandle(zone, arguments->NativeArgAt(1));
-  if (type.raw() == other.raw()) {
-    return Bool::True().raw();
+  if (type.ptr() == other.ptr()) {
+    return Bool::True().ptr();
   }
-  return Bool::Get(type.IsEquivalent(other, TypeEquality::kSyntactical)).raw();
+  return Bool::Get(type.IsEquivalent(other, TypeEquality::kSyntactical)).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(LibraryPrefix_isLoaded, 0, 1) {
   const LibraryPrefix& prefix =
       LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
-  return Bool::Get(prefix.is_loaded()).raw();
+  return Bool::Get(prefix.is_loaded()).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(LibraryPrefix_setLoaded, 0, 1) {
@@ -268,9 +268,9 @@ DEFINE_NATIVE_ENTRY(LibraryPrefix_issueLoad, 0, 1) {
 
 DEFINE_NATIVE_ENTRY(Internal_inquireIs64Bit, 0, 0) {
 #if defined(ARCH_IS_64_BIT)
-  return Bool::True().raw();
+  return Bool::True().ptr();
 #else
-  return Bool::False().raw();
+  return Bool::False().ptr();
 #endif  // defined(ARCH_IS_64_BIT)
 }
 
@@ -293,7 +293,7 @@ static bool ExtractInterfaceTypeArgs(Zone* zone,
                                      const TypeArguments& instance_type_args,
                                      const Class& interface_cls,
                                      TypeArguments* interface_type_args) {
-  Class& cur_cls = Class::Handle(zone, instance_cls.raw());
+  Class& cur_cls = Class::Handle(zone, instance_cls.ptr());
   // The following code is a specialization of Class::IsSubtypeOf().
   Array& interfaces = Array::Handle(zone);
   AbstractType& interface = AbstractType::Handle(zone);
@@ -301,8 +301,8 @@ static bool ExtractInterfaceTypeArgs(Zone* zone,
   TypeArguments& cur_interface_type_args = TypeArguments::Handle(zone);
   while (true) {
     // Additional subtyping rules related to 'FutureOr' are not applied.
-    if (cur_cls.raw() == interface_cls.raw()) {
-      *interface_type_args = instance_type_args.raw();
+    if (cur_cls.ptr() == interface_cls.ptr()) {
+      *interface_type_args = instance_type_args.ptr();
       return true;
     }
     interfaces = cur_cls.interfaces();
@@ -415,7 +415,7 @@ DEFINE_NATIVE_ENTRY(Internal_extractTypeArguments, 0, 2) {
     Exceptions::PropagateError(Error::Cast(result));
     UNREACHABLE();
   }
-  return result.raw();
+  return result.ptr();
 }
 
 DEFINE_NATIVE_ENTRY(Internal_prependTypeArguments, 0, 4) {
@@ -462,7 +462,7 @@ DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 0, 2) {
   for (intptr_t i = 0; i < bounds.Length(); ++i) {
     parameter ^= bounds.TypeAt(i);
     supertype = parameter.bound();
-    subtype = type_args_to_check.IsNull() ? Object::dynamic_type().raw()
+    subtype = type_args_to_check.IsNull() ? Object::dynamic_type().ptr()
                                           : type_args_to_check.TypeAt(i);
 
     ASSERT(!subtype.IsNull());
@@ -510,7 +510,7 @@ DEFINE_NATIVE_ENTRY(InvocationMirror_unpackTypeArguments, 0, 2) {
     }
   }
   type_list.MakeImmutable();
-  return type_list.raw();
+  return type_list.ptr();
 }
 
 DEFINE_NATIVE_ENTRY(NoSuchMethodError_existingMethodSignature, 0, 3) {

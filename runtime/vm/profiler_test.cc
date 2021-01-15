@@ -164,7 +164,7 @@ static LibraryPtr LoadTestScript(const char* script) {
   }
   Library& lib = Library::Handle();
   lib ^= Api::UnwrapHandle(api_lib);
-  return lib.raw();
+  return lib.ptr();
 }
 
 static ClassPtr GetClass(const Library& lib, const char* name) {
@@ -172,7 +172,7 @@ static ClassPtr GetClass(const Library& lib, const char* name) {
   const Class& cls = Class::Handle(
       lib.LookupClassAllowPrivate(String::Handle(Symbols::New(thread, name))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
-  return cls.raw();
+  return cls.ptr();
 }
 
 static FunctionPtr GetFunction(const Library& lib, const char* name) {
@@ -180,7 +180,7 @@ static FunctionPtr GetFunction(const Library& lib, const char* name) {
   const Function& func = Function::Handle(lib.LookupFunctionAllowPrivate(
       String::Handle(Symbols::New(thread, name))));
   EXPECT(!func.IsNull());  // No ambiguity error expected.
-  return func.raw();
+  return func.ptr();
 }
 
 static void Invoke(const Library& lib,
@@ -188,7 +188,7 @@ static void Invoke(const Library& lib,
                    intptr_t argc = 0,
                    Dart_Handle* argv = NULL) {
   Thread* thread = Thread::Current();
-  Dart_Handle api_lib = Api::NewHandle(thread, lib.raw());
+  Dart_Handle api_lib = Api::NewHandle(thread, lib.ptr());
   TransitionVMToNative transition(thread);
   Dart_Handle result = Dart_Invoke(api_lib, NewString(name), argc, argv);
   EXPECT_VALID(result);
@@ -365,7 +365,7 @@ class ProfileStackWalker {
     TokenPosition token_position = TokenPosition::kNoSource;
     Code& code = Code::ZoneHandle();
     if (profile_code->code().IsCode()) {
-      code ^= profile_code->code().raw();
+      code ^= profile_code->code().ptr();
       inlined_functions_cache_.Get(pc, code, sample_, index_,
                                    &inlined_functions_,
                                    &inlined_token_positions_, &token_position);

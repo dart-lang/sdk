@@ -78,7 +78,7 @@ class UnoptimizedCall : public ValueObject {
   CodePtr target() const {
     Code& code = Code::Handle();
     code ^= object_pool_.ObjectAt(code_index_);
-    return code.raw();
+    return code.ptr();
   }
 
   void set_target(const Code& target) const {
@@ -197,7 +197,7 @@ class PoolPointerCall : public ValueObject {
   CodePtr Target() const {
     Code& code = Code::Handle();
     code ^= object_pool_.ObjectAt(code_index_);
-    return code.raw();
+    return code.ptr();
   }
 
   void SetTarget(const Code& target) const {
@@ -476,7 +476,7 @@ FunctionPtr CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
   ICData& ic_data = ICData::Handle();
   ic_data ^= static_call.ic_data();
   if (ic_data_result != NULL) {
-    *ic_data_result = ic_data.raw();
+    *ic_data_result = ic_data.ptr();
   }
   return ic_data.GetTargetAt(0);
 }

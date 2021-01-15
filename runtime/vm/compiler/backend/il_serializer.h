@@ -143,10 +143,10 @@ class FlowGraphSerializer : ValueObject {
     static bool ReportStats() { return false; }
 
     static bool IsMatch(const Object& a, const Object& b) {
-      return a.raw() == b.raw();
+      return a.ptr() == b.ptr();
     }
     static uword Hash(const Object& obj) {
-      if (obj.IsSmi()) return static_cast<uword>(obj.raw());
+      if (obj.IsSmi()) return static_cast<uword>(obj.ptr());
       if (obj.IsInstance()) return Instance::Cast(obj).CanonicalizeHash();
       return obj.GetClassId();
     }

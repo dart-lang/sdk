@@ -598,7 +598,7 @@ class SnapshotWriter : public BaseWriter {
   void WriteObject(ObjectPtr raw);
 
   static uint32_t GetObjectTags(ObjectPtr raw);
-  static uint32_t GetObjectTags(ObjectLayout* raw);
+  static uint32_t GetObjectTags(UntaggedObject* raw);
   static uword GetObjectTagsAndHash(ObjectPtr raw);
 
   Exceptions::ExceptionType exception_type() const { return exception_type_; }
@@ -624,7 +624,7 @@ class SnapshotWriter : public BaseWriter {
   bool CheckAndWritePredefinedObject(ObjectPtr raw);
   bool HandleVMIsolateObject(ObjectPtr raw);
 
-  void WriteClassId(ClassLayout* cls);
+  void WriteClassId(UntaggedClass* cls);
   void WriteObjectImpl(ObjectPtr raw, bool as_reference);
   void WriteMarkedObjectImpl(ObjectPtr raw,
                              intptr_t tags,
@@ -661,37 +661,37 @@ class SnapshotWriter : public BaseWriter {
   const char* exception_msg_;  // Message associated with exception.
   bool can_send_any_object_;   // True if any Dart instance can be sent.
 
-  friend class ArrayLayout;
-  friend class ClassLayout;
-  friend class CodeLayout;
-  friend class ContextScopeLayout;
-  friend class DynamicLibraryLayout;
-  friend class ExceptionHandlersLayout;
-  friend class FieldLayout;
-  friend class FunctionLayout;
-  friend class GrowableObjectArrayLayout;
-  friend class ImmutableArrayLayout;
-  friend class InstructionsLayout;
-  friend class LibraryLayout;
-  friend class LinkedHashMapLayout;
-  friend class LocalVarDescriptorsLayout;
-  friend class MirrorReferenceLayout;
-  friend class ObjectPoolLayout;
-  friend class PointerLayout;
-  friend class ReceivePortLayout;
-  friend class RegExpLayout;
-  friend class ScriptLayout;
-  friend class StackTraceLayout;
-  friend class SubtypeTestCacheLayout;
-  friend class TransferableTypedDataLayout;
-  friend class TypeLayout;
-  friend class FunctionTypeLayout;
-  friend class TypeArgumentsLayout;
-  friend class TypeParameterLayout;
-  friend class TypeRefLayout;
-  friend class TypedDataViewLayout;
-  friend class UserTagLayout;
-  friend class WeakSerializationReferenceLayout;
+  friend class UntaggedArray;
+  friend class UntaggedClass;
+  friend class UntaggedCode;
+  friend class UntaggedContextScope;
+  friend class UntaggedDynamicLibrary;
+  friend class UntaggedExceptionHandlers;
+  friend class UntaggedField;
+  friend class UntaggedFunction;
+  friend class UntaggedFunctionType;
+  friend class UntaggedGrowableObjectArray;
+  friend class UntaggedImmutableArray;
+  friend class UntaggedInstructions;
+  friend class UntaggedLibrary;
+  friend class UntaggedLinkedHashMap;
+  friend class UntaggedLocalVarDescriptors;
+  friend class UntaggedMirrorReference;
+  friend class UntaggedObjectPool;
+  friend class UntaggedPointer;
+  friend class UntaggedReceivePort;
+  friend class UntaggedRegExp;
+  friend class UntaggedScript;
+  friend class UntaggedStackTrace;
+  friend class UntaggedSubtypeTestCache;
+  friend class UntaggedTransferableTypedData;
+  friend class UntaggedType;
+  friend class UntaggedTypeArguments;
+  friend class UntaggedTypeParameter;
+  friend class UntaggedTypeRef;
+  friend class UntaggedTypedDataView;
+  friend class UntaggedUserTag;
+  friend class UntaggedWeakSerializationReference;
   friend class SnapshotWriterVisitor;
   friend class WriteInlinedObjectVisitor;
   DISALLOW_COPY_AND_ASSIGN(SnapshotWriter);

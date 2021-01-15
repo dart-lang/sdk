@@ -13,14 +13,14 @@
 namespace dart {
 
 class IsolateGroup;
-class ObjectLayout;
+class UntaggedObject;
 
 class ObjectPtr {
  public:
   ObjectPtr* operator->() { return this; }
   const ObjectPtr* operator->() const { return this; }
-  ObjectLayout* ptr() const {
-    return reinterpret_cast<ObjectLayout*>(UntaggedPointer());
+  UntaggedObject* untag() const {
+    return reinterpret_cast<UntaggedObject*>(untagged_pointer());
   }
 
   bool IsWellFormed() const {
@@ -184,12 +184,12 @@ class ObjectPtr {
   explicit constexpr ObjectPtr(uword tagged) : tagged_pointer_(tagged) {}
   explicit constexpr ObjectPtr(intptr_t tagged) : tagged_pointer_(tagged) {}
   constexpr ObjectPtr(std::nullptr_t) : tagged_pointer_(0) {}  // NOLINT
-  explicit ObjectPtr(ObjectLayout* heap_object)
+  explicit ObjectPtr(UntaggedObject* heap_object)
       : tagged_pointer_(reinterpret_cast<uword>(heap_object) + kHeapObjectTag) {
   }
 
  protected:
-  uword UntaggedPointer() const {
+  uword untagged_pointer() const {
     ASSERT(IsHeapObject());
     return tagged_pointer_ - kHeapObjectTag;
   }
@@ -206,17 +206,17 @@ inline std::ostream& operator<<(std::ostream& os, const ObjectPtr& obj) {
 #endif
 
 #define DEFINE_TAGGED_POINTER(klass, base)                                     \
-  class klass##Layout;                                                         \
+  class Untagged##klass;                                                       \
   class klass##Ptr : public base##Ptr {                                        \
    public:                                                                     \
     klass##Ptr* operator->() { return this; }                                  \
     const klass##Ptr* operator->() const { return this; }                      \
-    klass##Layout* ptr() {                                                     \
-      return reinterpret_cast<klass##Layout*>(UntaggedPointer());              \
+    Untagged##klass* untag() {                                                 \
+      return reinterpret_cast<Untagged##klass*>(untagged_pointer());           \
     }                                                                          \
     /* TODO: Return const pointer */                                           \
-    klass##Layout* ptr() const {                                               \
-      return reinterpret_cast<klass##Layout*>(UntaggedPointer());              \
+    Untagged##klass* untag() const {                                           \
+      return reinterpret_cast<Untagged##klass*>(untagged_pointer());           \
     }                                                                          \
     klass##Ptr& operator=(const klass##Ptr& other) = default;                  \
     constexpr klass##Ptr(const klass##Ptr& other) = default;                   \
@@ -224,8 +224,9 @@ inline std::ostream& operator<<(std::ostream& os, const ObjectPtr& obj) {
         : base##Ptr(other) {}                                                  \
     klass##Ptr() : base##Ptr() {}                                              \
     explicit constexpr klass##Ptr(uword tagged) : base##Ptr(tagged) {}         \
+    explicit constexpr klass##Ptr(intptr_t tagged) : base##Ptr(tagged) {}      \
     constexpr klass##Ptr(std::nullptr_t) : base##Ptr(nullptr) {} /* NOLINT */  \
-    explicit klass##Ptr(const ObjectLayout* untagged)                          \
+    explicit klass##Ptr(const UntaggedObject* untagged)                        \
         : base##Ptr(reinterpret_cast<uword>(untagged) + kHeapObjectTag) {}     \
   };
 

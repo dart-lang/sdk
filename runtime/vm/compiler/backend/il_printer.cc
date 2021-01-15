@@ -127,7 +127,7 @@ static void PrintTargetsHelper(BaseTextBuffer* f,
     const CidRange& range = targets[i];
     const auto target_info = targets.TargetAt(i);
     const intptr_t count = target_info->count;
-    target = target_info->target->raw();
+    target = target_info->target->ptr();
     if (i > 0) {
       f->AddString(" | ");
     }
@@ -1059,7 +1059,7 @@ void NativeEntryInstr::PrintTo(BaseTextBuffer* f) const {
 
 void ReturnInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   Instruction::PrintOperandsTo(f);
-  if (yield_index() != PcDescriptorsLayout::kInvalidYieldIndex) {
+  if (yield_index() != UntaggedPcDescriptors::kInvalidYieldIndex) {
     f->Printf(", yield_index = %" Pd "", yield_index());
   }
 }
@@ -1152,7 +1152,7 @@ void TailCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   } else {
     const Object& owner = Object::Handle(code_.owner());
     if (owner.IsFunction()) {
-      name = Function::Handle(Function::RawCast(owner.raw()))
+      name = Function::Handle(Function::RawCast(owner.ptr()))
                  .ToFullyQualifiedCString();
     }
   }
