@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -25,7 +24,7 @@ main() {
 }
 ''');
     var excluded = <String>{};
-    var expr = findNodeAtString('as String', (node) => node is AsExpression);
+    var expr = findNode.as_('as String');
     expect(getVariableNameSuggestionsForExpression(null, expr, excluded),
         unorderedEquals(['sortedNodes', 'nodes']));
   }
@@ -39,8 +38,7 @@ main() {
 ''');
     var excluded = <String>{};
     var expectedType = findElement.localVar('node').type;
-    Expression assignedExpression =
-        findNodeAtString('null;', (node) => node is NullLiteral);
+    var assignedExpression = findNode.nullLiteral('null;');
     var suggestions = getVariableNameSuggestionsForExpression(
         expectedType, assignedExpression, excluded);
     expect(suggestions, unorderedEquals(['treeNode', 'node']));
@@ -53,7 +51,7 @@ main() {
 }
 ''');
     var expectedType = findElement.localVar('res').type;
-    Expression assignedExpression = findNodeAtString('0.0;');
+    var assignedExpression = findNode.doubleLiteral('0.0;');
     // first choice for "double" is "d"
     expect(
         getVariableNameSuggestionsForExpression(
@@ -73,7 +71,7 @@ main() {
 }
 ''');
     var expectedType = findElement.localVar('res').type;
-    Expression assignedExpression = findNodeAtString('0;');
+    var assignedExpression = findNode.integerLiteral('0;');
     // first choice for "int" is "i"
     expect(
         getVariableNameSuggestionsForExpression(
@@ -93,7 +91,7 @@ main() {
 }
 ''');
     var expectedType = findElement.localVar('res').type;
-    Expression assignedExpression = findNodeAtString("'abc';");
+    var assignedExpression = findNode.stringLiteral("'abc';");
     // first choice for "String" is "s"
     expect(
         getVariableNameSuggestionsForExpression(
@@ -110,7 +108,7 @@ class A {
 }
 ''');
     var excluded = <String>{};
-    var expr = findNodeAtString('new List');
+    var expr = findNode.instanceCreation('new List');
     expect(
         getVariableNameSuggestionsForExpression(null, expr, excluded,
             isMethod: false),
@@ -129,7 +127,7 @@ main() {
 }
 ''');
     var excluded = <String>{};
-    var expr = findNodeAtString('topNodes[0]').parent;
+    var expr = findNode.index('topNodes[0]');
     var names = getVariableNameSuggestionsForExpression(null, expr, excluded);
     expect(names, unorderedEquals(['topNode', 'node', 'object']));
   }
@@ -147,11 +145,11 @@ main(p) {
     var excluded = <String>{};
     expect(
         getVariableNameSuggestionsForExpression(
-            null, findNodeAtString('new NoSuchClass()'), excluded),
+            null, findNode.instanceCreation('new NoSuchClass()'), excluded),
         unorderedEquals(['noSuchClass', 'suchClass', 'class']));
     expect(
-        getVariableNameSuggestionsForExpression(
-            null, findNodeAtString('new NoSuchClass.named()'), excluded),
+        getVariableNameSuggestionsForExpression(null,
+            findNode.instanceCreation('new NoSuchClass.named()'), excluded),
         unorderedEquals(['noSuchClass', 'suchClass', 'class']));
     // TODO(scheglov) This test does not work.
     // In "p.NoSuchClass" the identifier "p" is not resolved to a PrefixElement.
@@ -172,17 +170,17 @@ main() {
 ''');
     var excluded = <String>{};
     {
-      var expr = findNodeAtString('111');
+      var expr = findNode.integerLiteral('111');
       expect(getVariableNameSuggestionsForExpression(null, expr, excluded),
           unorderedEquals(['a']));
     }
     {
-      var expr = findNodeAtString('222');
+      var expr = findNode.integerLiteral('222');
       expect(getVariableNameSuggestionsForExpression(null, expr, excluded),
           unorderedEquals(['b']));
     }
     {
-      var expr = findNodeAtString('333');
+      var expr = findNode.integerLiteral('333');
       expect(getVariableNameSuggestionsForExpression(null, expr, excluded),
           unorderedEquals(['c']));
     }
@@ -197,17 +195,17 @@ main() {
 ''');
     var excluded = <String>{};
     {
-      var expr = findNodeAtString('111');
+      var expr = findNode.integerLiteral('111');
       expect(getVariableNameSuggestionsForExpression(null, expr, excluded),
           unorderedEquals(['a']));
     }
     {
-      var expr = findNodeAtString('222');
+      var expr = findNode.integerLiteral('222');
       expect(getVariableNameSuggestionsForExpression(null, expr, excluded),
           unorderedEquals(['b']));
     }
     {
-      var expr = findNodeAtString('333');
+      var expr = findNode.integerLiteral('333');
       expect(getVariableNameSuggestionsForExpression(null, expr, excluded),
           unorderedEquals(['c']));
     }
@@ -222,12 +220,12 @@ main() {
 ''');
     var excluded = <String>{};
     {
-      var expr = findNodeAtString('111');
+      var expr = findNode.integerLiteral('111');
       expect(getVariableNameSuggestionsForExpression(null, expr, excluded),
           unorderedEquals(['a']));
     }
     {
-      var expr = findNodeAtString('222');
+      var expr = findNode.integerLiteral('222');
       expect(getVariableNameSuggestionsForExpression(null, expr, excluded),
           unorderedEquals(['b']));
     }
@@ -240,7 +238,7 @@ main(p) {
 }
 ''');
     var excluded = <String>{};
-    var expr = findNodeAtString('p.get', (node) => node is MethodInvocation);
+    var expr = findNode.methodInvocation('p.get');
     expect(getVariableNameSuggestionsForExpression(null, expr, excluded),
         unorderedEquals(['sortedNodes', 'nodes']));
   }
@@ -252,7 +250,7 @@ main(p) {
 }
 ''');
     var excluded = <String>{};
-    var expr = findNodeAtString('p.sorted', (node) => node is MethodInvocation);
+    var expr = findNode.methodInvocation('p.sorted');
     expect(getVariableNameSuggestionsForExpression(null, expr, excluded),
         unorderedEquals(['sortedNodes', 'nodes']));
   }
@@ -264,7 +262,7 @@ main(p) {
 }
 ''');
     var excluded = <String>{};
-    var expr = findNodeAtString('p.get', (node) => node is MethodInvocation);
+    var expr = findNode.methodInvocation('p.get');
     expect(getVariableNameSuggestionsForExpression(null, expr, excluded),
         unorderedEquals([]));
   }
@@ -278,9 +276,7 @@ main(p) {
     var excluded = <String>{};
     expect(
         getVariableNameSuggestionsForExpression(
-            null,
-            findNodeAtString('p.sorted', (node) => node is PrefixedIdentifier),
-            excluded),
+            null, findNode.prefixed('p.sorted'), excluded),
         unorderedEquals(['sortedNodes', 'nodes']));
   }
 
@@ -294,15 +290,11 @@ main(p) {
     var excluded = <String>{};
     expect(
         getVariableNameSuggestionsForExpression(
-            null,
-            findNodeAtString('p._name', (node) => node is PrefixedIdentifier),
-            excluded),
+            null, findNode.prefixed('p._name'), excluded),
         unorderedEquals(['name']));
     expect(
         getVariableNameSuggestionsForExpression(
-            null,
-            findNodeAtString('p._compute', (node) => node is MethodInvocation),
-            excluded),
+            null, findNode.methodInvocation('p._compute'), excluded),
         unorderedEquals(['computeSuffix', 'suffix']));
   }
 
@@ -313,8 +305,7 @@ main(p) {
 }
 ''');
     var excluded = <String>{};
-    PropertyAccess expression =
-        findNodeAtString('p.q.sorted', (node) => node is PropertyAccess);
+    var expression = findNode.propertyAccess('.sorted');
     expect(getVariableNameSuggestionsForExpression(null, expression, excluded),
         unorderedEquals(['sortedNodes', 'nodes']));
   }
@@ -327,7 +318,7 @@ main(p) {
 }
 ''');
     var excluded = <String>{};
-    var expr = findNodeAtString('sortedNodes;');
+    var expr = findNode.simple('sortedNodes;');
     expect(getVariableNameSuggestionsForExpression(null, expr, excluded),
         unorderedEquals(['sortedNodes', 'nodes']));
   }
@@ -342,10 +333,7 @@ main(p) {
     var excluded = <String>{};
     expect(
         getVariableNameSuggestionsForExpression(
-            null,
-            findNodeAtString(
-                'getSortedNodes();', (node) => node is MethodInvocation),
-            excluded),
+            null, findNode.methodInvocation('getSortedNodes();'), excluded),
         unorderedEquals(['sortedNodes', 'nodes']));
   }
 

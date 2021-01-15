@@ -7,9 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/platform.dart';
@@ -50,19 +48,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
 
   int findEnd(String search) {
     return findOffset(search) + search.length;
-  }
-
-  AstNode findNodeAtOffset(int offset, [Predicate<AstNode> predicate]) {
-    var result = NodeLocator(offset).searchWithin(testUnit);
-    if (result != null && predicate != null) {
-      result = result.thisOrAncestorMatching(predicate);
-    }
-    return result;
-  }
-
-  AstNode findNodeAtString(String search, [Predicate<AstNode> predicate]) {
-    var offset = findOffset(search);
-    return findNodeAtOffset(offset, predicate);
   }
 
   int findOffset(String search) {

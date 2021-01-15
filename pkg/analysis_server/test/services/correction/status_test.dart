@@ -60,7 +60,7 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
 main() {
 }
 ''');
-    var node = findNodeAtString('main');
+    var node = findNode.simple('main');
     // check
     var location = newLocation_fromNode(node);
     expect(location.file, testFile);

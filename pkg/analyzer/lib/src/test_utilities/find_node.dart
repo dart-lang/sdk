@@ -167,6 +167,10 @@ class FindNode {
     return _node(search, (n) => n is IfElement);
   }
 
+  IfStatement ifStatement(String search) {
+    return _node(search, (n) => n is IfStatement);
+  }
+
   ImportDirective import(String search) {
     return _node(search, (n) => n is ImportDirective);
   }
