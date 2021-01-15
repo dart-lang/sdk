@@ -1100,6 +1100,7 @@ stdout
 sticky
 stmt
 stopped
+storage
 str
 strategies
 streak
@@ -1239,6 +1240,7 @@ uncommon
 unconditionally
 unconstrained
 undeclare
+undergo
 undo
 undoable
 unequal
