@@ -428,7 +428,7 @@ class Heap {
   friend class ServiceEvent;
   friend class Scavenger;             // VerifyGC
   friend class PageSpace;             // VerifyGC
-  friend class IsolateReloadContext;  // VisitObjects
+  friend class ProgramReloadContext;  // VisitObjects
   friend class ClassFinalizer;        // VisitObjects
   friend class HeapIterationScope;    // VisitObjects
   friend class ProgramVisitor;        // VisitObjectsImagePages

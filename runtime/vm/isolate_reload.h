@@ -294,19 +294,19 @@ class IsolateGroupReloadContext {
   friend class ObjectLocator;
   friend class MarkFunctionsForRecompilation;  // IsDirty.
   friend class ReasonForCancelling;
-  friend class IsolateReloadContext;
+  friend class ProgramReloadContext;
   friend class IsolateGroup;  // GetClassSizeForHeapWalkAt
   friend class UntaggedObject;  // GetClassSizeForHeapWalkAt
 
   static Dart_FileModifiedCallback file_modified_callback_;
 };
 
-class IsolateReloadContext {
+class ProgramReloadContext {
  public:
-  IsolateReloadContext(
+  ProgramReloadContext(
       std::shared_ptr<IsolateGroupReloadContext> group_reload_context,
       Isolate* isolate);
-  ~IsolateReloadContext();
+  ~ProgramReloadContext();
 
   // All zone allocated objects must be allocated from this zone.
   Zone* zone() const { return zone_; }

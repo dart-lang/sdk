@@ -1533,17 +1533,17 @@ class Class : public Object {
   bool TraceAllocation(IsolateGroup* isolate_group) const;
   void SetTraceAllocation(bool trace_allocation) const;
 
-  void ReplaceEnum(IsolateReloadContext* reload_context,
+  void ReplaceEnum(ProgramReloadContext* reload_context,
                    const Class& old_enum) const;
-  void CopyStaticFieldValues(IsolateReloadContext* reload_context,
+  void CopyStaticFieldValues(ProgramReloadContext* reload_context,
                              const Class& old_cls) const;
   void PatchFieldsAndFunctions() const;
-  void MigrateImplicitStaticClosures(IsolateReloadContext* context,
+  void MigrateImplicitStaticClosures(ProgramReloadContext* context,
                                      const Class& new_cls) const;
   void CopyCanonicalConstants(const Class& old_cls) const;
   void CopyDeclarationType(const Class& old_cls) const;
   void CheckReload(const Class& replacement,
-                   IsolateReloadContext* context) const;
+                   ProgramReloadContext* context) const;
 
   void AddInvocationDispatcher(const String& target_name,
                                const Array& args_desc,
@@ -1595,9 +1595,9 @@ class Class : public Object {
   void set_declaration_type(const Type& type) const;
 
   bool CanReloadFinalized(const Class& replacement,
-                          IsolateReloadContext* context) const;
+                          ProgramReloadContext* context) const;
   bool CanReloadPreFinalized(const Class& replacement,
-                             IsolateReloadContext* context) const;
+                             ProgramReloadContext* context) const;
 
   // Tells whether instances need morphing for reload.
   bool RequiresInstanceMorphing(const Class& replacement) const;
@@ -4843,7 +4843,7 @@ class Library : public Object {
   static const char kPrivateKeySeparator = '@';
 
   void CheckReload(const Library& replacement,
-                   IsolateReloadContext* context) const;
+                   ProgramReloadContext* context) const;
 
   // Returns a closure of top level function 'name' in the exported namespace
   // of this library. If a top level function 'name' does not exist we look

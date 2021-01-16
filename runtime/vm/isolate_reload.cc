@@ -347,7 +347,7 @@ class ClassMapTraits {
     if (!a.IsClass() || !b.IsClass()) {
       return false;
     }
-    return IsolateReloadContext::IsSameClass(Class::Cast(a), Class::Cast(b));
+    return ProgramReloadContext::IsSameClass(Class::Cast(a), Class::Cast(b));
   }
 
   static uword Hash(const Object& obj) {
@@ -372,7 +372,7 @@ class LibraryMapTraits {
     if (!a.IsLibrary() || !b.IsLibrary()) {
       return false;
     }
-    return IsolateReloadContext::IsSameLibrary(Library::Cast(a),
+    return ProgramReloadContext::IsSameLibrary(Library::Cast(a),
                                                Library::Cast(b));
   }
 
@@ -405,7 +405,7 @@ class BecomeMapTraits {
   }
 };
 
-bool IsolateReloadContext::IsSameClass(const Class& a, const Class& b) {
+bool ProgramReloadContext::IsSameClass(const Class& a, const Class& b) {
   // TODO(turnidge): We need to look at generic type arguments for
   // synthetic mixin classes.  Their names are not necessarily unique
   // currently.
@@ -425,7 +425,7 @@ bool IsolateReloadContext::IsSameClass(const Class& a, const Class& b) {
   return (a_lib.private_key() == b_lib.private_key());
 }
 
-bool IsolateReloadContext::IsSameLibrary(const Library& a_lib,
+bool ProgramReloadContext::IsSameLibrary(const Library& a_lib,
                                          const Library& b_lib) {
   const String& a_lib_url =
       String::Handle(a_lib.IsNull() ? String::null() : a_lib.url());
@@ -453,7 +453,7 @@ IsolateGroupReloadContext::IsolateGroupReloadContext(
       old_root_url_prefix_(String::null()) {}
 IsolateGroupReloadContext::~IsolateGroupReloadContext() {}
 
-IsolateReloadContext::IsolateReloadContext(
+ProgramReloadContext::ProgramReloadContext(
     std::shared_ptr<IsolateGroupReloadContext> group_reload_context,
     Isolate* isolate)
     : zone_(Thread::Current()->zone()),
@@ -470,13 +470,13 @@ IsolateReloadContext::IsolateReloadContext(
       become_enum_mappings_(GrowableObjectArray::null()),
       saved_root_library_(Library::null()),
       saved_libraries_(GrowableObjectArray::null()) {
-  // NOTE: DO NOT ALLOCATE ANY RAW OBJECTS HERE. The IsolateReloadContext is not
+  // NOTE: DO NOT ALLOCATE ANY RAW OBJECTS HERE. The ProgramReloadContext is not
   // associated with the isolate yet and if a GC is triggered here the raw
   // objects will not be properly accounted for.
   ASSERT(zone_ != NULL);
 }
 
-IsolateReloadContext::~IsolateReloadContext() {
+ProgramReloadContext::~ProgramReloadContext() {
   ASSERT(zone_ == Thread::Current()->zone());
   ASSERT(saved_class_table_.load(std::memory_order_relaxed) == nullptr);
   ASSERT(saved_tlc_class_table_.load(std::memory_order_relaxed) == nullptr);
@@ -682,9 +682,10 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
   // TODO(johnmccutchan): Deoptimizing dependent code here (before the reload)
   // is paranoid. This likely can be moved to the commit phase.
   ForEachIsolate([&](Isolate* isolate) {
-    isolate->reload_context()->EnsuredUnoptimizedCodeForStack();
-    isolate->reload_context()->DeoptimizeDependentCode();
-    isolate->reload_context()->ReloadPhase1AllocateStorageMapsAndCheckpoint();
+    isolate->program_reload_context()->EnsuredUnoptimizedCodeForStack();
+    isolate->program_reload_context()->DeoptimizeDependentCode();
+    isolate->program_reload_context()
+        ->ReloadPhase1AllocateStorageMapsAndCheckpoint();
   });
   // Renumbering the libraries has invalidated this.
   modified_libs_ = nullptr;
@@ -702,7 +703,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     TIMELINE_SCOPE(CheckpointClasses);
     CheckpointSharedClassTable();
     ForEachIsolate([&](Isolate* isolate) {
-      isolate->reload_context()->CheckpointClasses();
+      isolate->program_reload_context()->CheckpointClasses();
     });
   }
 
@@ -724,7 +725,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
 
   auto& tmp = Object::Handle(Z);
   ForEachIsolate([&](Isolate* isolate) {
-    tmp = isolate->reload_context()->ReloadPhase2LoadKernel(
+    tmp = isolate->program_reload_context()->ReloadPhase2LoadKernel(
         kernel_program.get(), root_lib_url_);
     if (tmp.IsError()) {
       results.SetAt(isolateIndex, tmp);
@@ -743,7 +744,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
 
     DiscardSavedClassTable(/*is_rollback=*/true);
     ForEachIsolate([&](Isolate* isolate) {
-      isolate->reload_context()->ReloadPhase4Rollback();
+      isolate->program_reload_context()->ReloadPhase4Rollback();
     });
     CommonFinalizeTail(num_old_libs_);
   } else {
@@ -751,7 +752,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     TIR_Print("---- LOAD SUCCEEDED\n");
 
     ForEachIsolate([&](Isolate* isolate) {
-      isolate->reload_context()->ReloadPhase3FinalizeLoading();
+      isolate->program_reload_context()->ReloadPhase3FinalizeLoading();
     });
 
     if (FLAG_gc_during_reload) {
@@ -764,7 +765,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     if (!FLAG_reload_force_rollback && !HasReasonsForCancelling()) {
       TIR_Print("---- COMMITTING RELOAD\n");
       ForEachIsolate([&](Isolate* isolate) {
-        isolate->reload_context()->ReloadPhase4CommitPrepare();
+        isolate->program_reload_context()->ReloadPhase4CommitPrepare();
       });
       bool discard_class_tables = true;
       if (HasInstanceMorphers()) {
@@ -813,7 +814,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
             // commit to the changed class table and deleted the saved one.
             DiscardSavedClassTable(/*is_rollback=*/false);
             ForEachIsolate([&](Isolate* isolate) {
-              isolate->reload_context()->DiscardSavedClassTable(
+              isolate->program_reload_context()->DiscardSavedClassTable(
                   /*is_rollback=*/false);
             });
           }
@@ -832,12 +833,12 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
       if (discard_class_tables) {
         DiscardSavedClassTable(/*is_rollback=*/false);
         ForEachIsolate([&](Isolate* isolate) {
-          isolate->reload_context()->DiscardSavedClassTable(
+          isolate->program_reload_context()->DiscardSavedClassTable(
               /*is_rollback=*/false);
         });
       }
       ForEachIsolate([&](Isolate* isolate) {
-        isolate->reload_context()->ReloadPhase4CommitFinish();
+        isolate->program_reload_context()->ReloadPhase4CommitFinish();
       });
       TIR_Print("---- DONE COMMIT\n");
       isolate_group_->set_last_reload_timestamp(reload_timestamp_);
@@ -845,7 +846,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
       TIR_Print("---- ROLLING BACK");
       DiscardSavedClassTable(/*is_rollback=*/true);
       ForEachIsolate([&](Isolate* isolate) {
-        isolate->reload_context()->ReloadPhase4Rollback();
+        isolate->program_reload_context()->ReloadPhase4Rollback();
       });
     }
 
@@ -855,7 +856,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     {
       SafepointWriteRwLocker ml(thread, IG->program_lock());
       ForEachIsolate([&](Isolate* isolate) {
-        isolate->reload_context()->RebuildDirectSubclasses();
+        isolate->program_reload_context()->RebuildDirectSubclasses();
       });
     }
     const intptr_t final_library_count =
@@ -1062,7 +1063,7 @@ char* IsolateGroupReloadContext::CompileToKernel(bool force_reload,
   return nullptr;
 }
 
-void IsolateReloadContext::ReloadPhase1AllocateStorageMapsAndCheckpoint() {
+void ProgramReloadContext::ReloadPhase1AllocateStorageMapsAndCheckpoint() {
   // Preallocate storage for maps.
   old_classes_set_storage_ =
       HashTables::New<UnorderedHashSet<ClassMapTraits> >(4);
@@ -1087,7 +1088,7 @@ void IsolateReloadContext::ReloadPhase1AllocateStorageMapsAndCheckpoint() {
   }
 }
 
-ObjectPtr IsolateReloadContext::ReloadPhase2LoadKernel(
+ObjectPtr ProgramReloadContext::ReloadPhase2LoadKernel(
     kernel::Program* program,
     const String& root_lib_url) {
   Thread* thread = Thread::Current();
@@ -1113,27 +1114,27 @@ ObjectPtr IsolateReloadContext::ReloadPhase2LoadKernel(
   }
 }
 
-void IsolateReloadContext::ReloadPhase3FinalizeLoading() {
+void ProgramReloadContext::ReloadPhase3FinalizeLoading() {
   BuildLibraryMapping();
   BuildRemovedClassesSet();
   ValidateReload();
 }
 
-void IsolateReloadContext::ReloadPhase4CommitPrepare() {
+void ProgramReloadContext::ReloadPhase4CommitPrepare() {
   CommitBeforeInstanceMorphing();
 }
 
-void IsolateReloadContext::ReloadPhase4CommitFinish() {
+void ProgramReloadContext::ReloadPhase4CommitFinish() {
   CommitAfterInstanceMorphing();
   PostCommit();
 }
 
-void IsolateReloadContext::ReloadPhase4Rollback() {
+void ProgramReloadContext::ReloadPhase4Rollback() {
   RollbackClasses();
   RollbackLibraries();
 }
 
-void IsolateReloadContext::RegisterClass(const Class& new_cls) {
+void ProgramReloadContext::RegisterClass(const Class& new_cls) {
   const Class& old_cls = Class::Handle(OldClassOrNull(new_cls));
   if (old_cls.IsNull()) {
     if (new_cls.IsTopLevel()) {
@@ -1210,7 +1211,7 @@ void IsolateGroupReloadContext::ReportOnJSON(JSONStream* stream,
   }
 }
 
-void IsolateReloadContext::EnsuredUnoptimizedCodeForStack() {
+void ProgramReloadContext::EnsuredUnoptimizedCodeForStack() {
   TIMELINE_SCOPE(EnsuredUnoptimizedCodeForStack);
   StackFrameIterator it(ValidationPolicy::kDontValidateFrames,
                         Thread::Current(),
@@ -1231,7 +1232,7 @@ void IsolateReloadContext::EnsuredUnoptimizedCodeForStack() {
   }
 }
 
-void IsolateReloadContext::DeoptimizeDependentCode() {
+void ProgramReloadContext::DeoptimizeDependentCode() {
   TIMELINE_SCOPE(DeoptimizeDependentCode);
   ClassTable* class_table = IG->class_table();
 
@@ -1291,7 +1292,7 @@ void IsolateGroupReloadContext::CheckpointSharedClassTable() {
   shared_class_table_->ResetBeforeHotReload();
 }
 
-void IsolateReloadContext::CheckpointClasses() {
+void ProgramReloadContext::CheckpointClasses() {
   TIR_Print("---- CHECKPOINTING CLASSES\n");
   // Checkpoint classes before a reload. We need to copy the following:
   // 1) The size of the class table.
@@ -1440,7 +1441,7 @@ void IsolateGroupReloadContext::FindModifiedSources(
   }
 }
 
-void IsolateReloadContext::CheckpointLibraries() {
+void ProgramReloadContext::CheckpointLibraries() {
   TIMELINE_SCOPE(CheckpointLibraries);
   TIR_Print("---- CHECKPOINTING LIBRARIES\n");
   // Save the root library in case we abort the reload.
@@ -1489,7 +1490,7 @@ void IsolateReloadContext::CheckpointLibraries() {
   object_store()->set_root_library(Library::Handle());
 }
 
-void IsolateReloadContext::RollbackClasses() {
+void ProgramReloadContext::RollbackClasses() {
   TIR_Print("---- ROLLING BACK CLASS TABLE\n");
   ASSERT((saved_num_cids_ + saved_num_tlc_cids_) > 0);
   ASSERT(saved_class_table_.load(std::memory_order_relaxed) != nullptr);
@@ -1498,7 +1499,7 @@ void IsolateReloadContext::RollbackClasses() {
   DiscardSavedClassTable(/*is_rollback=*/true);
 }
 
-void IsolateReloadContext::RollbackLibraries() {
+void ProgramReloadContext::RollbackLibraries() {
   TIR_Print("---- ROLLING BACK LIBRARY CHANGES\n");
   Thread* thread = Thread::Current();
   Library& lib = Library::Handle();
@@ -1524,7 +1525,7 @@ void IsolateReloadContext::RollbackLibraries() {
 }
 
 #ifdef DEBUG
-void IsolateReloadContext::VerifyMaps() {
+void ProgramReloadContext::VerifyMaps() {
   TIMELINE_SCOPE(VerifyMaps);
   Class& cls = Class::Handle();
   Class& new_cls = Class::Handle();
@@ -1559,7 +1560,7 @@ void IsolateReloadContext::VerifyMaps() {
 }
 #endif
 
-void IsolateReloadContext::CommitBeforeInstanceMorphing() {
+void ProgramReloadContext::CommitBeforeInstanceMorphing() {
   TIMELINE_SCOPE(Commit);
 
 #ifdef DEBUG
@@ -1664,7 +1665,7 @@ void IsolateReloadContext::CommitBeforeInstanceMorphing() {
   }
 }
 
-void IsolateReloadContext::CommitAfterInstanceMorphing() {
+void ProgramReloadContext::CommitAfterInstanceMorphing() {
   {
     const GrowableObjectArray& become_enum_mappings =
         GrowableObjectArray::Handle(become_enum_mappings_);
@@ -1729,7 +1730,7 @@ void IsolateReloadContext::CommitAfterInstanceMorphing() {
   }
 }
 
-bool IsolateReloadContext::IsDirty(const Library& lib) {
+bool ProgramReloadContext::IsDirty(const Library& lib) {
   const intptr_t index = lib.index();
   if (index == static_cast<classid_t>(-1)) {
     // Treat deleted libraries as dirty.
@@ -1739,7 +1740,7 @@ bool IsolateReloadContext::IsDirty(const Library& lib) {
   return library_infos_[index].dirty;
 }
 
-void IsolateReloadContext::PostCommit() {
+void ProgramReloadContext::PostCommit() {
   TIMELINE_SCOPE(PostCommit);
   saved_root_library_ = Library::null();
   saved_libraries_ = GrowableObjectArray::null();
@@ -1820,7 +1821,7 @@ void IsolateGroupReloadContext::ForEachIsolate(
   isolate_group_->ForEachIsolate(callback);
 }
 
-void IsolateReloadContext::ValidateReload() {
+void ProgramReloadContext::ValidateReload() {
   TIMELINE_SCOPE(ValidateReload);
 
   TIR_Print("---- VALIDATING RELOAD\n");
@@ -1862,7 +1863,7 @@ void IsolateReloadContext::ValidateReload() {
   }
 }
 
-ClassPtr IsolateReloadContext::GetClassForHeapWalkAt(intptr_t cid) {
+ClassPtr ProgramReloadContext::GetClassForHeapWalkAt(intptr_t cid) {
   ClassPtr* class_table = nullptr;
   intptr_t index = -1;
   if (ClassTable::IsTopLevelCid(cid)) {
@@ -1893,7 +1894,7 @@ intptr_t IsolateGroupReloadContext::GetClassSizeForHeapWalkAt(classid_t cid) {
   }
 }
 
-void IsolateReloadContext::DiscardSavedClassTable(bool is_rollback) {
+void ProgramReloadContext::DiscardSavedClassTable(bool is_rollback) {
   ClassPtr* local_saved_class_table =
       saved_class_table_.load(std::memory_order_relaxed);
   ClassPtr* local_saved_tlc_class_table =
@@ -1917,7 +1918,7 @@ void IsolateGroupReloadContext::VisitObjectPointers(
   visitor->VisitPointers(from(), to());
 }
 
-void IsolateReloadContext::VisitObjectPointers(ObjectPointerVisitor* visitor) {
+void ProgramReloadContext::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(from(), to());
 
   ClassPtr* saved_class_table =
@@ -1935,11 +1936,11 @@ void IsolateReloadContext::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   }
 }
 
-ObjectStore* IsolateReloadContext::object_store() {
+ObjectStore* ProgramReloadContext::object_store() {
   return isolate_->group()->object_store();
 }
 
-void IsolateReloadContext::ResetUnoptimizedICsOnStack() {
+void ProgramReloadContext::ResetUnoptimizedICsOnStack() {
   Thread* thread = Thread::Current();
   StackZone stack_zone(thread);
   Zone* zone = stack_zone.GetZone();
@@ -1969,7 +1970,7 @@ void IsolateReloadContext::ResetUnoptimizedICsOnStack() {
   }
 }
 
-void IsolateReloadContext::ResetMegamorphicCaches() {
+void ProgramReloadContext::ResetMegamorphicCaches() {
   object_store()->set_megamorphic_cache_table(GrowableObjectArray::Handle());
   // Since any current optimized code will not make any more calls, it may be
   // better to clear the table instead of clearing each of the caches, allow
@@ -2020,7 +2021,7 @@ class InvalidationCollector : public ObjectVisitor {
 
 typedef UnorderedHashMap<SmiTraits> IntHashMap;
 
-void IsolateReloadContext::RunInvalidationVisitors() {
+void ProgramReloadContext::RunInvalidationVisitors() {
   TIR_Print("---- RUNNING INVALIDATION HEAP VISITORS\n");
   Thread* thread = Thread::Current();
   StackZone stack_zone(thread);
@@ -2043,7 +2044,7 @@ void IsolateReloadContext::RunInvalidationVisitors() {
   InvalidateFields(zone, fields, instances);
 }
 
-void IsolateReloadContext::InvalidateKernelInfos(
+void ProgramReloadContext::InvalidateKernelInfos(
     Zone* zone,
     const GrowableArray<const KernelProgramInfo*>& kernel_infos) {
   TIMELINE_SCOPE(InvalidateKernelInfos);
@@ -2073,7 +2074,7 @@ void IsolateReloadContext::InvalidateKernelInfos(
   }
 }
 
-void IsolateReloadContext::InvalidateFunctions(
+void ProgramReloadContext::InvalidateFunctions(
     Zone* zone,
     const GrowableArray<const Function*>& functions) {
   TIMELINE_SCOPE(InvalidateFunctions);
@@ -2317,7 +2318,7 @@ class FieldInvalidator {
   TypeArguments& delayed_function_type_arguments_;
 };
 
-void IsolateReloadContext::InvalidateFields(
+void ProgramReloadContext::InvalidateFields(
     Zone* zone,
     const GrowableArray<const Field*>& fields,
     const GrowableArray<const Instance*>& instances) {
@@ -2328,7 +2329,7 @@ void IsolateReloadContext::InvalidateFields(
   invalidator.CheckInstances(instances);
 }
 
-void IsolateReloadContext::InvalidateWorld() {
+void ProgramReloadContext::InvalidateWorld() {
   TIMELINE_SCOPE(InvalidateWorld);
   TIR_Print("---- INVALIDATING WORLD\n");
   ResetMegamorphicCaches();
@@ -2340,7 +2341,7 @@ void IsolateReloadContext::InvalidateWorld() {
   RunInvalidationVisitors();
 }
 
-ClassPtr IsolateReloadContext::OldClassOrNull(const Class& replacement_or_new) {
+ClassPtr ProgramReloadContext::OldClassOrNull(const Class& replacement_or_new) {
   UnorderedHashSet<ClassMapTraits> old_classes_set(old_classes_set_storage_);
   Class& cls = Class::Handle();
   cls ^= old_classes_set.GetOrNull(replacement_or_new);
@@ -2348,7 +2349,7 @@ ClassPtr IsolateReloadContext::OldClassOrNull(const Class& replacement_or_new) {
   return cls.ptr();
 }
 
-StringPtr IsolateReloadContext::FindLibraryPrivateKey(
+StringPtr ProgramReloadContext::FindLibraryPrivateKey(
     const Library& replacement_or_new) {
   const Library& old = Library::Handle(OldLibraryOrNull(replacement_or_new));
   if (old.IsNull()) {
@@ -2362,7 +2363,7 @@ StringPtr IsolateReloadContext::FindLibraryPrivateKey(
   return old.private_key();
 }
 
-LibraryPtr IsolateReloadContext::OldLibraryOrNull(
+LibraryPtr ProgramReloadContext::OldLibraryOrNull(
     const Library& replacement_or_new) {
   UnorderedHashSet<LibraryMapTraits> old_libraries_set(
       old_libraries_set_storage_);
@@ -2380,7 +2381,7 @@ LibraryPtr IsolateReloadContext::OldLibraryOrNull(
 
 // Attempt to find the pair to |replacement_or_new| with the knowledge that
 // the base url prefix has moved.
-LibraryPtr IsolateReloadContext::OldLibraryOrNullBaseMoved(
+LibraryPtr ProgramReloadContext::OldLibraryOrNullBaseMoved(
     const Library& replacement_or_new) {
   const String& url_prefix =
       String::Handle(group_reload_context_->root_url_prefix_);
@@ -2418,7 +2419,7 @@ LibraryPtr IsolateReloadContext::OldLibraryOrNullBaseMoved(
   return Library::null();
 }
 
-void IsolateReloadContext::BuildLibraryMapping() {
+void ProgramReloadContext::BuildLibraryMapping() {
   const GrowableObjectArray& libs =
       GrowableObjectArray::Handle(object_store()->libraries());
 
@@ -2454,7 +2455,7 @@ void IsolateReloadContext::BuildLibraryMapping() {
 //
 // Note that all such classes must belong to a library that has either been
 // changed or removed.
-void IsolateReloadContext::BuildRemovedClassesSet() {
+void ProgramReloadContext::BuildRemovedClassesSet() {
   // Find all old classes [mapped_old_classes_set].
   UnorderedHashMap<ClassMapTraits> class_map(class_map_storage_);
   UnorderedHashSet<ClassMapTraits> mapped_old_classes_set(
@@ -2526,7 +2527,7 @@ void IsolateReloadContext::BuildRemovedClassesSet() {
   library_map.Release();
 }
 
-void IsolateReloadContext::AddClassMapping(const Class& replacement_or_new,
+void ProgramReloadContext::AddClassMapping(const Class& replacement_or_new,
                                            const Class& original) {
   UnorderedHashMap<ClassMapTraits> map(class_map_storage_);
   bool update = map.UpdateOrInsert(replacement_or_new, original);
@@ -2536,7 +2537,7 @@ void IsolateReloadContext::AddClassMapping(const Class& replacement_or_new,
   class_map_storage_ = map.Release().ptr();
 }
 
-void IsolateReloadContext::AddLibraryMapping(const Library& replacement_or_new,
+void ProgramReloadContext::AddLibraryMapping(const Library& replacement_or_new,
                                              const Library& original) {
   UnorderedHashMap<LibraryMapTraits> map(library_map_storage_);
   bool update = map.UpdateOrInsert(replacement_or_new, original);
@@ -2546,7 +2547,7 @@ void IsolateReloadContext::AddLibraryMapping(const Library& replacement_or_new,
   library_map_storage_ = map.Release().ptr();
 }
 
-void IsolateReloadContext::AddStaticFieldMapping(const Field& old_field,
+void ProgramReloadContext::AddStaticFieldMapping(const Field& old_field,
                                                  const Field& new_field) {
   ASSERT(old_field.is_static());
   ASSERT(new_field.is_static());
@@ -2554,7 +2555,7 @@ void IsolateReloadContext::AddStaticFieldMapping(const Field& old_field,
   AddBecomeMapping(old_field, new_field);
 }
 
-void IsolateReloadContext::AddBecomeMapping(const Object& old,
+void ProgramReloadContext::AddBecomeMapping(const Object& old,
                                             const Object& neu) {
   ASSERT(become_map_storage_ != Array::null());
   UnorderedHashMap<BecomeMapTraits> become_map(become_map_storage_);
@@ -2563,7 +2564,7 @@ void IsolateReloadContext::AddBecomeMapping(const Object& old,
   become_map_storage_ = become_map.Release().ptr();
 }
 
-void IsolateReloadContext::AddEnumBecomeMapping(const Object& old,
+void ProgramReloadContext::AddEnumBecomeMapping(const Object& old,
                                                 const Object& neu) {
   const GrowableObjectArray& become_enum_mappings =
       GrowableObjectArray::Handle(become_enum_mappings_);
@@ -2572,7 +2573,7 @@ void IsolateReloadContext::AddEnumBecomeMapping(const Object& old,
   ASSERT((become_enum_mappings.Length() % 2) == 0);
 }
 
-void IsolateReloadContext::RebuildDirectSubclasses() {
+void ProgramReloadContext::RebuildDirectSubclasses() {
   ClassTable* class_table = IG->class_table();
   intptr_t num_cids = class_table->NumCids();
 

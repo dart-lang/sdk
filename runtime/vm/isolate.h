@@ -57,7 +57,7 @@ class Heap;
 class ICData;
 class IsolateObjectStore;
 class IsolateProfilerData;
-class IsolateReloadContext;
+class ProgramReloadContext;
 class Log;
 class Message;
 class MessageHandler;
@@ -1202,7 +1202,9 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   VMTagCounters* vm_tag_counters() { return &vm_tag_counters_; }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  IsolateReloadContext* reload_context() { return reload_context_; }
+  ProgramReloadContext* program_reload_context() {
+    return program_reload_context_;
+  }
 
   void DeleteReloadContext();
 
@@ -1604,7 +1606,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
       0;  // we can only reload when this is 0.
   // Per-isolate copy of FLAG_reload_every.
   intptr_t reload_every_n_stack_overflow_checks_;
-  IsolateReloadContext* reload_context_ = nullptr;
+  ProgramReloadContext* program_reload_context_ = nullptr;
   // Ring buffer of objects assigned an id.
   ObjectIdRing* object_id_ring_ = nullptr;
 #endif  // !defined(PRODUCT)

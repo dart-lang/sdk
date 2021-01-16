@@ -879,7 +879,7 @@ Bequest::~Bequest() {
 void Isolate::RegisterClass(const Class& cls) {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   if (group()->IsReloading()) {
-    reload_context()->RegisterClass(cls);
+    program_reload_context()->RegisterClass(cls);
     return;
   }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -1721,7 +1721,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
 Isolate::~Isolate() {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   // TODO(32796): Re-enable assertion.
-  // RELEASE_ASSERT(reload_context_ == NULL);
+  // RELEASE_ASSERT(program_reload_context_ == NULL);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
   delete optimizing_background_compiler_;
@@ -1995,8 +1995,8 @@ bool IsolateGroup::ReloadSources(JSONStream* js,
 
   ForEachIsolate([&](Isolate* isolate) {
     isolate->SetHasAttemptedReload(true);
-    isolate->reload_context_ =
-        new IsolateReloadContext(group_reload_context_, isolate);
+    isolate->program_reload_context_ =
+        new ProgramReloadContext(group_reload_context_, isolate);
   });
   const bool success =
       group_reload_context_->Reload(force_reload, root_script_url, packages_url,
@@ -2028,8 +2028,8 @@ bool IsolateGroup::ReloadKernel(JSONStream* js,
 
   ForEachIsolate([&](Isolate* isolate) {
     isolate->SetHasAttemptedReload(true);
-    isolate->reload_context_ =
-        new IsolateReloadContext(group_reload_context_, isolate);
+    isolate->program_reload_context_ =
+        new ProgramReloadContext(group_reload_context_, isolate);
   });
   const bool success = group_reload_context_->Reload(
       force_reload,
@@ -2051,8 +2051,8 @@ void Isolate::DeleteReloadContext() {
   // Another thread may be in the middle of GetClassForHeapWalkAt.
   SafepointOperationScope safepoint_scope(Thread::Current());
 
-  delete reload_context_;
-  reload_context_ = nullptr;
+  delete program_reload_context_;
+  program_reload_context_ = nullptr;
 }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -2609,9 +2609,10 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   }
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // Visit objects that are being used for isolate reload.
-  if (reload_context() != nullptr) {
-    reload_context()->VisitObjectPointers(visitor);
-    reload_context()->group_reload_context()->VisitObjectPointers(visitor);
+  if (program_reload_context() != nullptr) {
+    program_reload_context()->VisitObjectPointers(visitor);
+    program_reload_context()->group_reload_context()->VisitObjectPointers(
+        visitor);
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   if (ServiceIsolate::IsServiceIsolate(this)) {
@@ -2808,7 +2809,7 @@ ClassPtr Isolate::GetClassForHeapWalkAt(intptr_t cid) {
   ClassPtr raw_class = nullptr;
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   if (group()->IsReloading()) {
-    raw_class = reload_context()->GetClassForHeapWalkAt(cid);
+    raw_class = program_reload_context()->GetClassForHeapWalkAt(cid);
   } else {
     raw_class = group()->class_table()->At(cid);
   }
@@ -3351,11 +3352,12 @@ void Isolate::PauseEventHandler() {
   set_message_notify_callback(Isolate::WakePauseEventHandler);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  const bool had_isolate_reload_context = reload_context() != nullptr;
-  const int64_t start_time_micros =
-      !had_isolate_reload_context
-          ? 0
-          : reload_context()->group_reload_context()->start_time_micros();
+  const bool had_program_reload_context = program_reload_context() != nullptr;
+  const int64_t start_time_micros = !had_program_reload_context
+                                        ? 0
+                                        : program_reload_context()
+                                              ->group_reload_context()
+                                              ->start_time_micros();
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   bool resume = false;
   bool handle_non_service_messages = false;
@@ -3374,7 +3376,7 @@ void Isolate::PauseEventHandler() {
     }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-    if (had_isolate_reload_context && (reload_context() == nullptr)) {
+    if (had_program_reload_context && (program_reload_context() == nullptr)) {
       if (FLAG_trace_reload) {
         const int64_t reload_time_micros =
             OS::GetCurrentMonotonicMicros() - start_time_micros;
