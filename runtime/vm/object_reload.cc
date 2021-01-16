@@ -191,7 +191,7 @@ void CallSiteResetter::ResetCaches(const ObjectPool& pool) {
   }
 }
 
-void Class::CopyStaticFieldValues(IsolateReloadContext* reload_context,
+void Class::CopyStaticFieldValues(ProgramReloadContext* reload_context,
                                   const Class& old_cls) const {
   // We only update values for non-enum classes.
   const bool update_values = !is_enum_class();
@@ -304,7 +304,7 @@ class EnumMapTraits {
 //   When an enum value is deleted, we 'become' all references to the 'deleted'
 //   sentinel value. The index value is -1.
 //
-void Class::ReplaceEnum(IsolateReloadContext* reload_context,
+void Class::ReplaceEnum(ProgramReloadContext* reload_context,
                         const Class& old_enum) const {
   // We only do this for finalized enum classes.
   ASSERT(is_enum_class());
@@ -496,7 +496,7 @@ void Class::PatchFieldsAndFunctions() const {
   }
 }
 
-void Class::MigrateImplicitStaticClosures(IsolateReloadContext* irc,
+void Class::MigrateImplicitStaticClosures(ProgramReloadContext* irc,
                                           const Class& new_cls) const {
   const Array& funcs = Array::Handle(current_functions());
   Thread* thread = Thread::Current();
@@ -665,8 +665,8 @@ class UnimplementedDeferredLibrary : public ReasonForCancelling {
 
 // This is executed before iterating over the instances.
 void Class::CheckReload(const Class& replacement,
-                        IsolateReloadContext* context) const {
-  ASSERT(IsolateReloadContext::IsSameClass(*this, replacement));
+                        ProgramReloadContext* context) const {
+  ASSERT(ProgramReloadContext::IsSameClass(*this, replacement));
 
   if (!is_declaration_loaded()) {
     // The old class hasn't been used in any meaningful way, so the VM is okay
@@ -807,7 +807,7 @@ bool Class::RequiresInstanceMorphing(const Class& replacement) const {
 }
 
 bool Class::CanReloadFinalized(const Class& replacement,
-                               IsolateReloadContext* context) const {
+                               ProgramReloadContext* context) const {
   // Make sure the declaration types argument count matches for the two classes.
   // ex. class A<int,B> {} cannot be replace with class A<B> {}.
   auto group_context = context->group_reload_context();
@@ -832,7 +832,7 @@ bool Class::CanReloadFinalized(const Class& replacement,
 }
 
 bool Class::CanReloadPreFinalized(const Class& replacement,
-                                  IsolateReloadContext* context) const {
+                                  ProgramReloadContext* context) const {
   // The replacement class must also prefinalized.
   if (!replacement.is_prefinalized()) {
     context->group_reload_context()->AddReasonForCancelling(
@@ -851,7 +851,7 @@ bool Class::CanReloadPreFinalized(const Class& replacement,
 }
 
 void Library::CheckReload(const Library& replacement,
-                          IsolateReloadContext* context) const {
+                          ProgramReloadContext* context) const {
   // TODO(26878): If the replacement library uses deferred loading,
   // reject it.  We do not yet support reloading deferred libraries.
   Object& object = Object::Handle();

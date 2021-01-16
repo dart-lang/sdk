@@ -553,13 +553,14 @@ Dart_Handle TestCase::TriggerReload(const uint8_t* kernel_buffer,
   } else if (isolate->group()->reload_context()->reload_aborted()) {
     TransitionNativeToVM transition(thread);
     result = Api::NewHandle(
-        thread, isolate->reload_context()->group_reload_context()->error());
+        thread,
+        isolate->program_reload_context()->group_reload_context()->error());
   } else {
     result = Dart_RootLibrary();
   }
 
   TransitionNativeToVM transition(thread);
-  if (isolate->reload_context() != NULL) {
+  if (isolate->program_reload_context() != NULL) {
     isolate->DeleteReloadContext();
     isolate->group()->DeleteReloadContext();
   }
