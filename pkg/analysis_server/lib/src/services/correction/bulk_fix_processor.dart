@@ -83,7 +83,15 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-/// A fix producer that produces changes to fix multiple diagnostics.
+/// A fix producer that produces changes that will fix multiple diagnostics in
+/// one or more files.
+///
+/// Each diagnostic should have a single fix (correction producer) associated
+/// with it except in cases where at most one of the given producers will ever
+/// produce a fix.
+///
+/// The correction producers that are associated with the diagnostics should not
+/// produce changes that alter the semantics of the code.
 class BulkFixProcessor {
   /// A map from the name of a lint rule to a list of generators used to create
   /// the correction producer used to build a fix for that diagnostic. The
