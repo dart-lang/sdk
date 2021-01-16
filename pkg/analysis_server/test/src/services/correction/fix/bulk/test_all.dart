@@ -25,6 +25,7 @@ import 'convert_to_is_not_test.dart' as convert_to_is_not;
 import 'convert_to_list_literal_test.dart' as convert_to_list_literal;
 import 'convert_to_map_literal_test.dart' as convert_to_map_literal;
 import 'convert_to_null_aware_test.dart' as convert_to_null_aware;
+import 'convert_to_package_import_test.dart' as convert_to_package_import;
 import 'convert_to_relative_import_test.dart' as convert_to_relative_import;
 import 'convert_to_set_literal_test.dart' as convert_to_set_literal;
 import 'convert_to_single_quoted_strings_test.dart'
@@ -90,6 +91,7 @@ void main() {
     convert_to_list_literal.main();
     convert_to_map_literal.main();
     convert_to_null_aware.main();
+    convert_to_package_import.main();
     convert_to_relative_import.main();
     convert_to_set_literal.main();
     convert_to_single_quoted_strings.main();
