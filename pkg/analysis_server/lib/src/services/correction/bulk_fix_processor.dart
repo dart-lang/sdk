@@ -26,6 +26,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_int_lite
 import 'package:analysis_server/src/services/correction/dart/convert_to_list_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_package_import.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_relative_import.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_where_type.dart';
@@ -113,6 +114,9 @@ class BulkFixProcessor {
     ],
     LintNames.avoid_redundant_argument_values: [
       RemoveArgument.newInstance,
+    ],
+    LintNames.avoid_relative_lib_imports: [
+      ConvertToPackageImport.newInstance,
     ],
     LintNames.avoid_return_types_on_setters: [
       RemoveTypeAnnotation.newInstance,
