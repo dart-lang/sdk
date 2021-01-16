@@ -21,8 +21,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   String testCode;
   String testFile;
   CompilationUnit testUnit;
-  CompilationUnitElement testUnitElement;
-  LibraryElement testLibraryElement;
   FindNode findNode;
   FindElement findElement;
 
@@ -90,8 +88,12 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     return length;
   }
 
-  Future<void> resolveTestUnit(String code) async {
+  Future<void> resolveTestCode(String code) async {
     addTestSource(code);
+    await resolveTestFile();
+  }
+
+  Future resolveTestFile() async {
     var result = await resolveFile(testFile);
     testCode = result.content;
     testUnit = result.unit;
@@ -106,8 +108,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
             error.errorCode != HintCode.UNUSED_LOCAL_VARIABLE;
       }), isEmpty);
     }
-    testUnitElement = testUnit.declaredElement;
-    testLibraryElement = testUnitElement.library;
     findNode = FindNode(testCode, testUnit);
     findElement = FindElement(testUnit);
   }

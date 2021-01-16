@@ -199,7 +199,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
   }
 
   Future<void> test_convertElement_class() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 @deprecated
 abstract class _A {}
 class B<K, V> {}''');
@@ -237,7 +237,7 @@ class B<K, V> {}''');
   }
 
   Future<void> test_convertElement_constructor() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   const A.myConstructor(int a, [String b]);
 }''');
@@ -273,7 +273,7 @@ class A {
   }
 
   Future<void> test_convertElement_enum() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 @deprecated
 enum _E1 { one, two }
 enum E2 { three, four }''');
@@ -311,7 +311,7 @@ enum E2 { three, four }''');
   }
 
   Future<void> test_convertElement_enumConstant() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 @deprecated
 enum _E1 { one, two }
 enum E2 { three, four }''');
@@ -399,7 +399,7 @@ enum E2 { three, four }''');
   }
 
   Future<void> test_convertElement_field() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   static const myField = 42;
 }''');
@@ -423,7 +423,7 @@ class A {
   }
 
   Future<void> test_convertElement_functionTypeAlias() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 typedef int F<T>(String x);
 ''');
     var engineElement = findElement.typeAlias('F');
@@ -446,7 +446,7 @@ typedef int F<T>(String x);
   }
 
   Future<void> test_convertElement_genericTypeAlias_function() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 typedef F<T> = int Function(String x);
 ''');
     var engineElement = findElement.typeAlias('F');
@@ -469,7 +469,7 @@ typedef F<T> = int Function(String x);
   }
 
   Future<void> test_convertElement_getter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int get myGetter => 42;
 }''');
@@ -492,7 +492,7 @@ class A {
   }
 
   Future<void> test_convertElement_method() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   static List<String> myMethod(int a, {String b, int c}) {
     return null;
@@ -517,7 +517,7 @@ class A {
   }
 
   Future<void> test_convertElement_setter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   set mySetter(String x) {}
 }''');
@@ -590,7 +590,7 @@ class A {
   }
 
   Future<void> test_fromElement_LABEL() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
 myLabel:
   while (true) {

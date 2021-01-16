@@ -3171,28 +3171,34 @@ main() {
       test('unpromoted -> unchanged (same)', () {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial);
-        var s2 = s1.tryPromoteForTypeCheck(h, intVar, Type('int')).ifTrue;
+        var s2 =
+            s1.tryPromoteForTypeCheck(h, _varRef(intVar), Type('int')).ifTrue;
         expect(s2, same(s1));
       });
 
       test('unpromoted -> unchanged (supertype)', () {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial);
-        var s2 = s1.tryPromoteForTypeCheck(h, intVar, Type('Object')).ifTrue;
+        var s2 = s1
+            .tryPromoteForTypeCheck(h, _varRef(intVar), Type('Object'))
+            .ifTrue;
         expect(s2, same(s1));
       });
 
       test('unpromoted -> unchanged (unrelated)', () {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial);
-        var s2 = s1.tryPromoteForTypeCheck(h, intVar, Type('String')).ifTrue;
+        var s2 = s1
+            .tryPromoteForTypeCheck(h, _varRef(intVar), Type('String'))
+            .ifTrue;
         expect(s2, same(s1));
       });
 
       test('unpromoted -> subtype', () {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial);
-        var s2 = s1.tryPromoteForTypeCheck(h, intQVar, Type('int')).ifTrue;
+        var s2 =
+            s1.tryPromoteForTypeCheck(h, _varRef(intQVar), Type('int')).ifTrue;
         expect(s2.reachable.overallReachable, true);
         expect(s2.variableInfo, {
           intQVar: _matchVariableModel(chain: ['int'], ofInterest: ['int'])
@@ -3202,38 +3208,44 @@ main() {
       test('promoted -> unchanged (same)', () {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
-            .tryPromoteForTypeCheck(h, objectQVar, Type('int'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int'))
             .ifTrue;
-        var s2 = s1.tryPromoteForTypeCheck(h, objectQVar, Type('int')).ifTrue;
+        var s2 = s1
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int'))
+            .ifTrue;
         expect(s2, same(s1));
       });
 
       test('promoted -> unchanged (supertype)', () {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
-            .tryPromoteForTypeCheck(h, objectQVar, Type('int'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int'))
             .ifTrue;
-        var s2 =
-            s1.tryPromoteForTypeCheck(h, objectQVar, Type('Object')).ifTrue;
+        var s2 = s1
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('Object'))
+            .ifTrue;
         expect(s2, same(s1));
       });
 
       test('promoted -> unchanged (unrelated)', () {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
-            .tryPromoteForTypeCheck(h, objectQVar, Type('int'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int'))
             .ifTrue;
-        var s2 =
-            s1.tryPromoteForTypeCheck(h, objectQVar, Type('String')).ifTrue;
+        var s2 = s1
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('String'))
+            .ifTrue;
         expect(s2, same(s1));
       });
 
       test('promoted -> subtype', () {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
-            .tryPromoteForTypeCheck(h, objectQVar, Type('int?'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int?'))
             .ifTrue;
-        var s2 = s1.tryPromoteForTypeCheck(h, objectQVar, Type('int')).ifTrue;
+        var s2 = s1
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int'))
+            .ifTrue;
         expect(s2.reachable.overallReachable, true);
         expect(s2.variableInfo, {
           objectQVar: _matchVariableModel(
@@ -3290,7 +3302,7 @@ main() {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
             .declare(objectQVar, true)
-            .tryPromoteForTypeCheck(h, objectQVar, Type('int'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int'))
             .ifTrue;
         expect(s1.variableInfo, contains(objectQVar));
         var s2 =
@@ -3309,9 +3321,9 @@ main() {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
             .declare(objectQVar, true)
-            .tryPromoteForTypeCheck(h, objectQVar, Type('num?'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('num?'))
             .ifTrue
-            .tryPromoteForTypeCheck(h, objectQVar, Type('int'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int'))
             .ifTrue;
         expect(s1.variableInfo, {
           objectQVar: _matchVariableModel(
@@ -3336,11 +3348,11 @@ main() {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
             .declare(objectQVar, true)
-            .tryPromoteForTypeCheck(h, objectQVar, Type('num?'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('num?'))
             .ifTrue
-            .tryPromoteForTypeCheck(h, objectQVar, Type('num'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('num'))
             .ifTrue
-            .tryPromoteForTypeCheck(h, objectQVar, Type('int'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int'))
             .ifTrue;
         expect(s1.variableInfo, {
           objectQVar: _matchVariableModel(
@@ -3365,9 +3377,9 @@ main() {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
             .declare(objectQVar, true)
-            .tryPromoteForTypeCheck(h, objectQVar, Type('num?'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('num?'))
             .ifTrue
-            .tryPromoteForTypeCheck(h, objectQVar, Type('num'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('num'))
             .ifTrue;
         expect(s1.variableInfo, {
           objectQVar: _matchVariableModel(
@@ -3393,9 +3405,9 @@ main() {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
             .declare(objectQVar, true)
-            .tryPromoteForTypeCheck(h, objectQVar, Type('num?'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('num?'))
             .ifTrue
-            .tryPromoteForTypeCheck(h, objectQVar, Type('num'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('num'))
             .ifTrue;
         expect(s1.variableInfo, {
           objectQVar: _matchVariableModel(
@@ -3458,7 +3470,7 @@ main() {
           var h = Harness();
           var s1 = FlowModel<Var, Type>(Reachability.initial)
               .declare(objectQVar, true)
-              .tryPromoteForTypeCheck(h, objectQVar, Type('int?'))
+              .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int?'))
               .ifTrue;
           expect(s1.variableInfo, {
             objectQVar: _matchVariableModel(
@@ -3480,7 +3492,7 @@ main() {
           var h = Harness();
           var s1 = FlowModel<Var, Type>(Reachability.initial)
               .declare(objectQVar, true)
-              .tryPromoteForTypeCheck(h, objectQVar, Type('int?'))
+              .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int?'))
               .ifFalse;
           expect(s1.variableInfo, {
             objectQVar: _matchVariableModel(
@@ -3503,7 +3515,7 @@ main() {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
             .declare(objectQVar, true)
-            .tryPromoteForTypeCheck(h, objectQVar, Type('num?'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('num?'))
             .ifFalse;
         expect(s1.variableInfo, {
           objectQVar: _matchVariableModel(
@@ -3525,9 +3537,9 @@ main() {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
             .declare(objectQVar, true)
-            .tryPromoteForTypeCheck(h, objectQVar, Type('num?'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('num?'))
             .ifTrue
-            .tryPromoteForTypeCheck(h, objectQVar, Type('int?'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int?'))
             .ifFalse;
         expect(s1.variableInfo, {
           objectQVar: _matchVariableModel(
@@ -3594,9 +3606,9 @@ main() {
 
             var s1 = FlowModel<Var, Type>(Reachability.initial)
                 .declare(x, true)
-                .tryPromoteForTypeCheck(h, x, Type('B?'))
+                .tryPromoteForTypeCheck(h, _varRef(x), Type('B?'))
                 .ifFalse
-                .tryPromoteForTypeCheck(h, x, Type('A?'))
+                .tryPromoteForTypeCheck(h, _varRef(x), Type('A?'))
                 .ifFalse;
             expect(s1.variableInfo, {
               x: _matchVariableModel(
@@ -3619,9 +3631,9 @@ main() {
 
             var s1 = FlowModel<Var, Type>(Reachability.initial)
                 .declare(x, true)
-                .tryPromoteForTypeCheck(h, x, Type('A?'))
+                .tryPromoteForTypeCheck(h, _varRef(x), Type('A?'))
                 .ifFalse
-                .tryPromoteForTypeCheck(h, x, Type('B?'))
+                .tryPromoteForTypeCheck(h, _varRef(x), Type('B?'))
                 .ifFalse;
             expect(s1.variableInfo, {
               x: _matchVariableModel(
@@ -3644,9 +3656,9 @@ main() {
 
             var s1 = FlowModel<Var, Type>(Reachability.initial)
                 .declare(x, true)
-                .tryPromoteForTypeCheck(h, x, Type('A'))
+                .tryPromoteForTypeCheck(h, _varRef(x), Type('A'))
                 .ifFalse
-                .tryPromoteForTypeCheck(h, x, Type('A?'))
+                .tryPromoteForTypeCheck(h, _varRef(x), Type('A?'))
                 .ifFalse;
             expect(s1.variableInfo, {
               x: _matchVariableModel(
@@ -3670,9 +3682,9 @@ main() {
             var h = Harness();
             var s1 = FlowModel<Var, Type>(Reachability.initial)
                 .declare(objectQVar, true)
-                .tryPromoteForTypeCheck(h, objectQVar, Type('num?'))
+                .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('num?'))
                 .ifFalse
-                .tryPromoteForTypeCheck(h, objectQVar, Type('num*'))
+                .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('num*'))
                 .ifFalse;
             expect(s1.variableInfo, {
               objectQVar: _matchVariableModel(
@@ -3698,9 +3710,9 @@ main() {
           var h = Harness();
           var s1 = FlowModel<Var, Type>(Reachability.initial)
               .declare(objectQVar, true)
-              .tryPromoteForTypeCheck(h, objectQVar, Type('num?'))
+              .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('num?'))
               .ifFalse
-              .tryPromoteForTypeCheck(h, objectQVar, Type('num*'))
+              .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('num*'))
               .ifFalse;
           expect(s1.variableInfo, {
             objectQVar: _matchVariableModel(
@@ -3730,9 +3742,9 @@ main() {
 
         var s1 = FlowModel<Var, Type>(Reachability.initial)
             .declare(x, true)
-            .tryPromoteForTypeCheck(h, x, Type('num?'))
+            .tryPromoteForTypeCheck(h, _varRef(x), Type('num?'))
             .ifTrue
-            .tryPromoteForTypeCheck(h, x, Type('int?'))
+            .tryPromoteForTypeCheck(h, _varRef(x), Type('int?'))
             .ifTrue;
         expect(s1.variableInfo, {
           x: _matchVariableModel(
@@ -3775,14 +3787,14 @@ main() {
       test('unpromoted -> unchanged', () {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial);
-        var s2 = s1.tryMarkNonNullable(h, intVar).ifTrue;
+        var s2 = s1.tryMarkNonNullable(h, _varRef(intVar)).ifTrue;
         expect(s2, same(s1));
       });
 
       test('unpromoted -> promoted', () {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial);
-        var s2 = s1.tryMarkNonNullable(h, intQVar).ifTrue;
+        var s2 = s1.tryMarkNonNullable(h, _varRef(intQVar)).ifTrue;
         expect(s2.reachable.overallReachable, true);
         expect(s2.infoFor(intQVar),
             _matchVariableModel(chain: ['int'], ofInterest: []));
@@ -3791,18 +3803,18 @@ main() {
       test('promoted -> unchanged', () {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
-            .tryPromoteForTypeCheck(h, objectQVar, Type('int'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int'))
             .ifTrue;
-        var s2 = s1.tryMarkNonNullable(h, objectQVar).ifTrue;
+        var s2 = s1.tryMarkNonNullable(h, _varRef(objectQVar)).ifTrue;
         expect(s2, same(s1));
       });
 
       test('promoted -> re-promoted', () {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
-            .tryPromoteForTypeCheck(h, objectQVar, Type('int?'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int?'))
             .ifTrue;
-        var s2 = s1.tryMarkNonNullable(h, objectQVar).ifTrue;
+        var s2 = s1.tryMarkNonNullable(h, _varRef(objectQVar)).ifTrue;
         expect(s2.reachable.overallReachable, true);
         expect(s2.variableInfo, {
           objectQVar:
@@ -3813,7 +3825,7 @@ main() {
       test('promote to Never', () {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial);
-        var s2 = s1.tryMarkNonNullable(h, nullVar).ifTrue;
+        var s2 = s1.tryMarkNonNullable(h, _varRef(nullVar)).ifTrue;
         expect(s2.reachable.overallReachable, false);
         expect(s2.infoFor(nullVar),
             _matchVariableModel(chain: ['Never'], ofInterest: []));
@@ -3825,7 +3837,7 @@ main() {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
             .declare(intQVar, true)
-            .tryPromoteForTypeCheck(h, objectQVar, Type('int'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int'))
             .ifTrue;
         var s2 = s1.conservativeJoin([intQVar], []);
         expect(s2, isNot(same(s1)));
@@ -3839,9 +3851,9 @@ main() {
       test('written', () {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
-            .tryPromoteForTypeCheck(h, objectQVar, Type('int'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int'))
             .ifTrue
-            .tryPromoteForTypeCheck(h, intQVar, Type('int'))
+            .tryPromoteForTypeCheck(h, _varRef(intQVar), Type('int'))
             .ifTrue;
         var s2 = s1.conservativeJoin([intQVar], []);
         expect(s2.reachable.overallReachable, true);
@@ -3854,9 +3866,9 @@ main() {
       test('write captured', () {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
-            .tryPromoteForTypeCheck(h, objectQVar, Type('int'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int'))
             .ifTrue
-            .tryPromoteForTypeCheck(h, intQVar, Type('int'))
+            .tryPromoteForTypeCheck(h, _varRef(intQVar), Type('int'))
             .ifTrue;
         var s2 = s1.conservativeJoin([], [intQVar]);
         expect(s2.reachable.overallReachable, true);
@@ -3946,7 +3958,7 @@ main() {
         var s0 = FlowModel<Var, Type>(Reachability.initial).declare(a, false);
         // In s1, a is write captured.  In s2 it's promoted.
         var s1 = s0.conservativeJoin([a], [a]);
-        var s2 = s0.tryPromoteForTypeCheck(h, a, Type('int')).ifTrue;
+        var s2 = s0.tryPromoteForTypeCheck(h, _varRef(a), Type('int')).ifTrue;
         expect(
           s1.rebaseForward(h, s2).infoFor(a),
           _matchVariableModel(writeCaptured: true, chain: isNull),
@@ -3968,11 +3980,14 @@ main() {
             s1 = s1.write(x, Type('Object?'), new SsaNode<Var, Type>(null), h);
           }
           if (thisType != null) {
-            s1 = s1.tryPromoteForTypeCheck(h, x, Type(thisType)).ifTrue;
+            s1 =
+                s1.tryPromoteForTypeCheck(h, _varRef(x), Type(thisType)).ifTrue;
           }
           var s2 = otherType == null
               ? s0
-              : s0.tryPromoteForTypeCheck(h, x, Type(otherType)).ifTrue;
+              : s0
+                  .tryPromoteForTypeCheck(h, _varRef(x), Type(otherType))
+                  .ifTrue;
           var result = s2.rebaseForward(h, s1);
           if (expectedChain == null) {
             expect(result.variableInfo, contains(x));
@@ -4021,20 +4036,23 @@ main() {
           var initialModel =
               FlowModel<Var, Type>(Reachability.initial).declare(x, true);
           for (var t in before) {
-            initialModel =
-                initialModel.tryPromoteForTypeCheck(h, x, Type(t)).ifTrue;
+            initialModel = initialModel
+                .tryPromoteForTypeCheck(h, _varRef(x), Type(t))
+                .ifTrue;
           }
           _checkChain(initialModel.infoFor(x).promotedTypes, before);
           var tryModel = initialModel;
           for (var t in inTry) {
-            tryModel = tryModel.tryPromoteForTypeCheck(h, x, Type(t)).ifTrue;
+            tryModel =
+                tryModel.tryPromoteForTypeCheck(h, _varRef(x), Type(t)).ifTrue;
           }
           var expectedTryChain = before.toList()..addAll(inTry);
           _checkChain(tryModel.infoFor(x).promotedTypes, expectedTryChain);
           var finallyModel = initialModel;
           for (var t in inFinally) {
-            finallyModel =
-                finallyModel.tryPromoteForTypeCheck(h, x, Type(t)).ifTrue;
+            finallyModel = finallyModel
+                .tryPromoteForTypeCheck(h, _varRef(x), Type(t))
+                .ifTrue;
           }
           var expectedFinallyChain = before.toList()..addAll(inFinally);
           _checkChain(
@@ -4073,8 +4091,9 @@ main() {
         var h = Harness();
         var a = Var('a', 'Object');
         var s0 = FlowModel<Var, Type>(Reachability.initial).declare(a, false);
-        var s1 = s0.tryPromoteForTypeCheck(h, a, Type('int')).ifFalse;
-        var s2 = s0.tryPromoteForTypeCheck(h, a, Type('String')).ifFalse;
+        var s1 = s0.tryPromoteForTypeCheck(h, _varRef(a), Type('int')).ifFalse;
+        var s2 =
+            s0.tryPromoteForTypeCheck(h, _varRef(a), Type('String')).ifFalse;
         expect(
           s1.rebaseForward(h, s2).infoFor(a),
           _matchVariableModel(ofInterest: ['int', 'String']),
@@ -4651,3 +4670,6 @@ Matcher _matchVariableModel(
       'unassigned: ${_describeMatcher(unassignedMatcher)}, '
       'writeCaptured: ${_describeMatcher(writeCapturedMatcher)})');
 }
+
+Reference<Var, Type> _varRef(Var variable) =>
+    new VariableReference<Var, Type>(variable);

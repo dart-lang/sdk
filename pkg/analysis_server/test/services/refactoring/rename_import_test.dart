@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -225,8 +224,7 @@ main() {
   }
 
   void _createRefactoring(String search) {
-    ImportDirective directive =
-        findNodeAtString(search, (node) => node is ImportDirective);
+    var directive = findNode.import(search);
     createRenameRefactoringForElement(directive.element);
   }
 }

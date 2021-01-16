@@ -14,7 +14,7 @@ import 'pool.dart';
 import 'utf8_helpers.dart';
 import '../dylib_utils.dart';
 
-main() {
+main() async {
   final ffiTestDynamicLibrary =
       dlopenPlatformSpecific("ffi_test_dynamic_library");
 
@@ -110,6 +110,24 @@ main() {
   } on Exception catch (e) {
     print("Caught exception: $e");
   }
+
+  /// [using] waits with releasing its resources until after [Future]s
+  /// complete.
+  List<int> freed = [];
+  freeInt(int i) {
+    freed.add(i);
+  }
+
+  Future<int> myFutureInt = using((Pool pool) {
+    return Future.microtask(() {
+      pool.using(1, freeInt);
+      return 1;
+    });
+  });
+
+  Expect.isTrue(freed.isEmpty);
+  await myFutureInt;
+  Expect.equals(1, freed.single);
 }
 
 /// Represents some opaque resource being managed by a library.

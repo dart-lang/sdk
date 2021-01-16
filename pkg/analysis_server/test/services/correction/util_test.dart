@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/util.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
@@ -33,7 +32,7 @@ main() {
   }
 }
 ''');
-    IfStatement ifStatement = findNodeAtString('if (');
+    var ifStatement = findNode.ifStatement('if (');
     var condition = ifStatement.condition;
     var result = CorrectionUtils(testAnalysisResult).invertCondition(condition);
     expect(result, expected);

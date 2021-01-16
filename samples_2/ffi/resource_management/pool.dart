@@ -13,15 +13,21 @@ import 'package:ffi/ffi.dart';
 
 import '../calloc.dart';
 
-/// Keeps track of all allocated memory and frees all allocated memory on
-/// [releaseAll].
+/// An [Allocator] which frees all allocations at the same time.
 ///
-/// Wraps an [Allocator] to do the actual allocation and freeing.
+/// The pool allows you to allocate heap memory, but ignores calls to [free].
+/// Instead you call [releaseAll] to release all the allocations at the same
+/// time.
+///
+/// Also allows other resources to be associated with the pool, through the
+/// [using] method, to have a release function called for them when the pool is
+/// released.
+///
+/// An [Allocator] can be provided to do the actual allocation and freeing.
+/// Defaults to using [calloc].
 class Pool implements Allocator {
   /// The [Allocator] used for allocation and freeing.
   final Allocator _wrappedAllocator;
-
-  Pool(this._wrappedAllocator);
 
   /// Native memory under management by this [Pool].
   final List<Pointer<NativeType>> _managedMemoryPointers = [];
@@ -29,14 +35,25 @@ class Pool implements Allocator {
   /// Callbacks for releasing native resources under management by this [Pool].
   final List<Function()> _managedResourceReleaseCallbacks = [];
 
-  /// Allocates memory on the native heap by using the allocator supplied to
-  /// the constructor.
+  bool _inUse = true;
+
+  /// Creates a pool of allocations.
+  ///
+  /// The [allocator] is used to do the actual allocation and freeing of
+  /// memory. It defaults to using [calloc].
+  Pool([Allocator allocator = calloc]) : _wrappedAllocator = allocator;
+
+  /// Allocates memory and includes it in the pool.
+  ///
+  /// Uses the allocator provided to the [Pool] constructor to do the
+  /// allocation.
   ///
   /// Throws an [ArgumentError] if the number of bytes or alignment cannot be
   /// satisfied.
   @override
-  Pointer<T> allocate<T extends NativeType>(int numBytes, {int alignment}) {
-    final p = _wrappedAllocator.allocate<T>(numBytes, alignment: alignment);
+  Pointer<T> allocate<T extends NativeType>(int byteCount, {int alignment}) {
+    _ensureInUse();
+    final p = _wrappedAllocator.allocate<T>(byteCount, alignment: alignment);
     _managedMemoryPointers.add(p);
     return p;
   }
@@ -45,6 +62,8 @@ class Pool implements Allocator {
   ///
   /// Executes [releaseCallback] on [releaseAll].
   T using<T>(T resource, Function(T) releaseCallback) {
+    _ensureInUse();
+    releaseCallback = Zone.current.bindUnaryCallback(releaseCallback);
     _managedResourceReleaseCallbacks.add(() => releaseCallback(resource));
     return resource;
   }
@@ -55,59 +74,102 @@ class Pool implements Allocator {
   }
 
   /// Releases all resources that this [Pool] manages.
-  void releaseAll() {
-    for (final c in _managedResourceReleaseCallbacks) {
-      c();
+  ///
+  /// If [reuse] is `true`, the pool can be used again after resources
+  /// have been released. If not, the default, then the [allocate]
+  /// and [using] methods must not be called after a call to `releaseAll`.
+  void releaseAll({bool reuse = false}) {
+    if (!reuse) {
+      _inUse = false;
     }
-    _managedResourceReleaseCallbacks.clear();
+    while (_managedResourceReleaseCallbacks.isNotEmpty) {
+      _managedResourceReleaseCallbacks.removeLast()();
+    }
     for (final p in _managedMemoryPointers) {
       _wrappedAllocator.free(p);
     }
     _managedMemoryPointers.clear();
   }
 
+  /// Does nothing, invoke [releaseAll] instead.
   @override
-  void free(Pointer<NativeType> pointer) => throw UnsupportedError(
-      "Individually freeing Pool allocated memory is not allowed");
+  void free(Pointer<NativeType> pointer) {}
+
+  void _ensureInUse() {
+    if (!_inUse) {
+      throw StateError(
+          "Pool no longer in use, `releaseAll(reuse: false)` was called.");
+    }
+  }
 }
 
-/// Creates a [Pool] to manage native resources.
+/// Runs [computation] with a new [Pool], and releases all allocations at the end.
 ///
-/// If the isolate is shut down, through `Isolate.kill()`, resources are _not_ cleaned up.
-R using<R>(R Function(Pool) f, [Allocator wrappedAllocator = calloc]) {
-  final p = Pool(wrappedAllocator);
+/// If [R] is a [Future], all allocations are released when the future completes.
+///
+/// If the isolate is shut down, through `Isolate.kill()`, resources are _not_
+/// cleaned up.
+R using<R>(R Function(Pool) computation,
+    [Allocator wrappedAllocator = calloc]) {
+  final pool = Pool(wrappedAllocator);
+  bool isAsync = false;
   try {
-    return f(p);
+    final result = computation(pool);
+    if (result is Future) {
+      isAsync = true;
+      return (result.whenComplete(pool.releaseAll) as R);
+    }
+    return result;
   } finally {
-    p.releaseAll();
+    if (!isAsync) {
+      pool.releaseAll();
+    }
   }
 }
 
 /// Creates a zoned [Pool] to manage native resources.
 ///
-/// Pool is availabe through [currentPool].
-///
-/// Please note that all throws are caught and packaged in [RethrownError].
+/// The pool is availabe through [zonePool].
 ///
 /// If the isolate is shut down, through `Isolate.kill()`, resources are _not_ cleaned up.
-R usePool<R>(R Function() f, [Allocator wrappedAllocator = calloc]) {
-  final p = Pool(wrappedAllocator);
+R withZonePool<R>(R Function() computation,
+    [Allocator wrappedAllocator = calloc]) {
+  final pool = Pool(wrappedAllocator);
+  var poolHolder = [pool];
+  bool isAsync = false;
   try {
-    return runZoned(() => f(),
-        zoneValues: {#_pool: p},
-        onError: (error, st) => throw RethrownError(error, st));
+    return runZoned(() {
+      final result = computation();
+      if (result is Future) {
+        isAsync = true;
+        result.whenComplete(pool.releaseAll);
+      }
+      return result;
+    }, zoneValues: {#_pool: poolHolder});
   } finally {
-    p.releaseAll();
+    if (!isAsync) {
+      pool.releaseAll();
+      poolHolder.remove(pool);
+    }
   }
 }
 
-/// The [Pool] in the current zone.
-Pool get currentPool => Zone.current[#_pool];
-
-class RethrownError {
-  dynamic original;
-  StackTrace originalStackTrace;
-  RethrownError(this.original, this.originalStackTrace);
-  toString() => """RethrownError(${original})
-${originalStackTrace}""";
+/// A zone-specific [Pool].
+///
+/// Asynchronous computations can share a [Pool]. Use [withZonePool] to create
+/// a new zone with a fresh [Pool], and that pool will then be released
+/// automatically when the function passed to [withZonePool] completes.
+/// All code inside that zone can use `zonePool` to access the pool.
+///
+/// The current pool must not be accessed by code which is not running inside
+/// a zone created by [withZonePool].
+Pool get zonePool {
+  final List<Pool> poolHolder = Zone.current[#_pool];
+  if (poolHolder == null) {
+    throw StateError("Not inside a zone created by `usePool`");
+  }
+  if (!poolHolder.isEmpty) {
+    return poolHolder.single;
+  }
+  throw StateError("Pool as already been cleared with releaseAll.");
 }
