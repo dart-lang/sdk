@@ -470,7 +470,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       bool isAnd = operatorType == TokenType.AMPERSAND_AMPERSAND;
       _flowAnalysis.logicalBinaryOp_begin();
       _checkExpressionNotNull(leftOperand);
-      _flowAnalysis.logicalBinaryOp_rightBegin(node.leftOperand, isAnd: isAnd);
+      _flowAnalysis.logicalBinaryOp_rightBegin(node.leftOperand, node,
+          isAnd: isAnd);
       _postDominatedLocals.doScoped(
           action: () => _checkExpressionNotNull(rightOperand));
       _flowAnalysis.logicalBinaryOp_end(node, rightOperand, isAnd: isAnd);
@@ -659,7 +660,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     // Note: we don't have to create a scope for each branch because they can't
     // define variables.
     _postDominatedLocals.doScoped(action: () {
-      _flowAnalysis.conditional_thenBegin(node.condition);
+      _flowAnalysis.conditional_thenBegin(node.condition, node);
       if (trueGuard != null) {
         _guards.add(trueGuard);
       }
@@ -992,7 +993,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _guards.add(trueGuard);
     }
     try {
-      _flowAnalysis.ifStatement_thenBegin(node.condition);
+      _flowAnalysis.ifStatement_thenBegin(node.condition, node);
       // We branched, so create a new scope for post-dominators.
       _postDominatedLocals.doScoped(
           action: () => _dispatch(node.thenStatement));

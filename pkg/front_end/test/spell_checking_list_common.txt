@@ -119,6 +119,7 @@ alternatives
 although
 altogether
 always
+ambiguity
 ambiguous
 among
 amongst
@@ -1140,6 +1141,7 @@ face
 facilitate
 fact
 fact's
+facto
 factories
 factory
 facts
@@ -3338,6 +3340,7 @@ working
 worklist
 works
 world
+worry
 worth
 would
 wouldn't

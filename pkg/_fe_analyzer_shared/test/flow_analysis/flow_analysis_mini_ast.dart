@@ -209,8 +209,8 @@ class CatchClause implements _Visitable<void> {
 /// Representation of an expression in the pseudo-Dart language used for flow
 /// analysis testing.  Methods in this class may be used to create more complex
 /// expressions based on this one.
-abstract class Expression implements _Visitable<Type> {
-  const Expression();
+abstract class Expression extends Node implements _Visitable<Type> {
+  const Expression() : super._();
 
   /// If `this` is an expression `x`, creates the expression `x!`.
   Expression get nonNullAssert => new _NonNullAssert(this);
@@ -398,19 +398,27 @@ class Harness extends TypeOperations<Var, Type> {
 
   final bool allowLocalBooleanVarsToPromote;
 
+  final bool legacy;
+
   final Map<String, bool> _subtypes = Map.of(_coreSubtypes);
 
   final Map<String, Type> _factorResults = Map.of(_coreFactors);
 
   Node? _currentSwitch;
 
-  Harness({this.allowLocalBooleanVarsToPromote = false});
+  Map<String, Map<String, String>> _promotionExceptions = {};
+
+  Harness({this.allowLocalBooleanVarsToPromote = false, this.legacy = false});
 
   /// Updates the harness so that when a [factor] query is invoked on types
   /// [from] and [what], [result] will be returned.
   void addFactor(String from, String what, String result) {
     var query = '$from - $what';
     _factorResults[query] = Type(result);
+  }
+
+  void addPromotionException(String from, String to, String result) {
+    (_promotionExceptions[from] ??= {})[to] = result;
   }
 
   /// Updates the harness so that when an [isSubtypeOf] query is invoked on
@@ -470,15 +478,22 @@ class Harness extends TypeOperations<Var, Type> {
   void run(List<Statement> statements) {
     var assignedVariables = AssignedVariables<Node, Var>();
     statements._preVisit(assignedVariables);
-    var flow = FlowAnalysis<Node, Statement, Expression, Var, Type>(
-        this, assignedVariables,
-        allowLocalBooleanVarsToPromote: allowLocalBooleanVarsToPromote);
+    var flow = legacy
+        ? FlowAnalysis<Node, Statement, Expression, Var, Type>.legacy(
+            this, assignedVariables)
+        : FlowAnalysis<Node, Statement, Expression, Var, Type>(
+            this, assignedVariables,
+            allowLocalBooleanVarsToPromote: allowLocalBooleanVarsToPromote);
     statements._visit(this, flow);
     flow.finish();
   }
 
   @override
   Type? tryPromoteToType(Type to, Type from) {
+    var exception = (_promotionExceptions[from.type] ?? {})[to.type];
+    if (exception != null) {
+      return Type(exception);
+    }
     if (isSubtypeOf(to, from)) {
       return to;
     } else {
@@ -529,7 +544,7 @@ class Harness extends TypeOperations<Var, Type> {
 /// Representation of an expression or statement in the pseudo-Dart language
 /// used for flow analysis testing.
 class Node {
-  Node._();
+  const Node._();
 }
 
 /// Helper class allowing tests to examine the values of variables' SSA nodes.
@@ -606,7 +621,12 @@ class Var {
   Var(this.name, String typeStr) : type = Type(typeStr);
 
   /// Creates an expression representing a read of this variable.
-  Expression get read => new _VariableRead(this);
+  Expression get read => new _VariableRead(this, null);
+
+  /// Creates an expression representing a read of this variable, which as a
+  /// side effect will call the given callback with the returned promoted type.
+  Expression readAndCheckPromotedType(void Function(Type?) callback) =>
+      new _VariableRead(this, callback);
 
   @override
   String toString() => '$type $name';
@@ -828,7 +848,9 @@ class _Conditional extends Expression {
   @override
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
     condition._preVisit(assignedVariables);
+    assignedVariables.beginNode();
     ifTrue._preVisit(assignedVariables);
+    assignedVariables.endNode(this);
     ifFalse._preVisit(assignedVariables);
   }
 
@@ -836,7 +858,7 @@ class _Conditional extends Expression {
   Type _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
     flow.conditional_conditionBegin();
-    flow.conditional_thenBegin(condition.._visit(h, flow));
+    flow.conditional_thenBegin(condition.._visit(h, flow), this);
     var ifTrueType = ifTrue._visit(h, flow);
     flow.conditional_elseBegin(ifTrue);
     var ifFalseType = ifFalse._visit(h, flow);
@@ -1131,7 +1153,9 @@ class _If extends Statement {
   @override
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
     condition._preVisit(assignedVariables);
+    assignedVariables.beginNode();
     ifTrue._preVisit(assignedVariables);
+    assignedVariables.endNode(this);
     ifFalse?._preVisit(assignedVariables);
   }
 
@@ -1139,7 +1163,7 @@ class _If extends Statement {
   void _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
     flow.ifStatement_conditionBegin();
-    flow.ifStatement_thenBegin(condition.._visit(h, flow));
+    flow.ifStatement_thenBegin(condition.._visit(h, flow), this);
     ifTrue._visit(h, flow);
     if (ifFalse == null) {
       flow.ifStatement_end(false);
@@ -1259,14 +1283,16 @@ class _Logical extends Expression {
   @override
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
     lhs._preVisit(assignedVariables);
+    assignedVariables.beginNode();
     rhs._preVisit(assignedVariables);
+    assignedVariables.endNode(this);
   }
 
   @override
   Type _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
     flow.logicalBinaryOp_begin();
-    flow.logicalBinaryOp_rightBegin(lhs.._visit(h, flow), isAnd: isAnd);
+    flow.logicalBinaryOp_rightBegin(lhs.._visit(h, flow), this, isAnd: isAnd);
     flow.logicalBinaryOp_end(this, rhs.._visit(h, flow), isAnd: isAnd);
     return Type('bool');
   }
@@ -1540,18 +1566,24 @@ class _TryFinally extends Statement {
 class _VariableRead extends Expression {
   final Var variable;
 
-  _VariableRead(this.variable);
+  final void Function(Type?)? callback;
+
+  _VariableRead(this.variable, this.callback);
 
   @override
   String toString() => variable.name;
 
   @override
-  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {}
+  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
+    assignedVariables.read(variable);
+  }
 
   @override
   Type _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
-    return flow.variableRead(this, variable) ?? variable.type;
+    var readResult = flow.variableRead(this, variable);
+    callback?.call(readResult);
+    return readResult ?? variable.type;
   }
 }
 

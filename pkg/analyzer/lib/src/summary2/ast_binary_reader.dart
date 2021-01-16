@@ -94,6 +94,8 @@ class AstBinaryReader {
         return _readForElement();
       case Tag.ForPartsWithDeclarations:
         return _readForPartsWithDeclarations();
+      case Tag.ForPartsWithExpression:
+        return _readForPartsWithExpression();
       case Tag.FieldFormalParameter:
         return _readFieldFormalParameter();
       case Tag.FormalParameterList:
@@ -854,6 +856,19 @@ class AstBinaryReader {
       rightSeparator: Tokens.SEMICOLON,
       updaters: updaters,
       variables: variables,
+    );
+  }
+
+  ForPartsWithExpression _readForPartsWithExpression() {
+    var initialization = _readOptionalNode() as Expression;
+    var condition = _readOptionalNode() as Expression;
+    var updaters = _readNodeList<Expression>();
+    return astFactory.forPartsWithExpression(
+      condition: condition,
+      initialization: initialization,
+      leftSeparator: Tokens.SEMICOLON,
+      rightSeparator: Tokens.SEMICOLON,
+      updaters: updaters,
     );
   }
 

@@ -1110,7 +1110,7 @@ class ResolverVisitor extends ScopedVisitor {
 
     if (_flowAnalysis != null) {
       if (flow != null) {
-        flow.conditional_thenBegin(condition);
+        flow.conditional_thenBegin(condition, node);
         checkUnreachableNode(thenExpression);
       }
       thenExpression.accept(this);
@@ -1517,7 +1517,7 @@ class ResolverVisitor extends ScopedVisitor {
 
     CollectionElement thenElement = node.thenElement;
     if (_flowAnalysis != null) {
-      _flowAnalysis.flow?.ifStatement_thenBegin(condition);
+      _flowAnalysis.flow?.ifStatement_thenBegin(condition, node);
       thenElement.accept(this);
     } else {
       _promoteManager.visitIfElement_thenElement(
@@ -1557,7 +1557,7 @@ class ResolverVisitor extends ScopedVisitor {
 
     Statement thenStatement = node.thenStatement;
     if (_flowAnalysis != null) {
-      _flowAnalysis.flow?.ifStatement_thenBegin(condition);
+      _flowAnalysis.flow?.ifStatement_thenBegin(condition, node);
       visitStatementInScope(thenStatement);
       nullSafetyDeadCodeVerifier?.flowEnd(thenStatement);
     } else {

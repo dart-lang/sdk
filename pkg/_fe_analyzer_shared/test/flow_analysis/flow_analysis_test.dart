@@ -502,10 +502,11 @@ main() {
     test('finish checks proper nesting', () {
       var h = Harness();
       var e = expr('Null');
+      var s = if_(e, []);
       var flow = FlowAnalysis<Node, Statement, Expression, Var, Type>(
           h, AssignedVariables<Node, Var>());
       flow.ifStatement_conditionBegin();
-      flow.ifStatement_thenBegin(e);
+      flow.ifStatement_thenBegin(e, s);
       expect(() => flow.finish(), _asserts);
     });
 
@@ -4600,6 +4601,766 @@ main() {
         x: model([intType])
       });
       expect(m1.inheritTested(h, m2), same(m1));
+    });
+  });
+
+  group('Legacy promotion', () {
+    group('if statement', () {
+      group('promotes a variable whose type is shown by its condition', () {
+        test('within then-block', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            if_(x.read.is_('int'), [
+              checkPromoted(x, 'int'),
+            ]),
+          ]);
+        });
+
+        test('but not within else-block', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            if_(x.read.is_('int'), [], [
+              checkNotPromoted(x),
+            ]),
+          ]);
+        });
+
+        test('unless the then-block mutates it', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            if_(x.read.is_('int'), [
+              checkNotPromoted(x),
+              x.write(expr('int')).stmt,
+            ]),
+          ]);
+        });
+
+        test('even if the condition mutates it', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            if_(
+                x
+                    .write(expr('int'))
+                    .parenthesized
+                    .eq(expr('int'))
+                    .and(x.read.is_('int')),
+                [
+                  checkPromoted(x, 'int'),
+                ]),
+          ]);
+        });
+
+        test('even if the else-block mutates it', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            if_(x.read.is_('int'), [
+              checkPromoted(x, 'int'),
+            ], [
+              x.write(expr('int')).stmt,
+            ]),
+          ]);
+        });
+
+        test('unless a closure mutates it', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            if_(x.read.is_('int'), [
+              checkNotPromoted(x),
+            ]),
+            localFunction([
+              x.write(expr('int')).stmt,
+            ]),
+          ]);
+        });
+
+        test(
+            'unless a closure in the then-block accesses it and it is mutated '
+            'anywhere', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            if_(x.read.is_('int'), [
+              checkNotPromoted(x),
+              localFunction([
+                x.read.stmt,
+              ]),
+            ]),
+            x.write(expr('int')).stmt,
+          ]);
+        });
+
+        test(
+            'unless a closure in the then-block accesses it and it is mutated '
+            'anywhere, even if the access is deeply nested', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            if_(x.read.is_('int'), [
+              checkNotPromoted(x),
+              localFunction([
+                localFunction([
+                  x.read.stmt,
+                ]),
+              ]),
+            ]),
+            x.write(expr('int')).stmt,
+          ]);
+        });
+
+        test(
+            'even if a closure in the condition accesses it and it is mutated '
+            'somewhere', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            if_(
+                localFunction([
+                  x.read.stmt,
+                ]).thenExpr(expr('bool')).and(x.read.is_('int')),
+                [
+                  checkPromoted(x, 'int'),
+                ]),
+            x.write(expr('int')).stmt,
+          ]);
+        });
+
+        test(
+            'even if a closure in the else-block accesses it and it is mutated '
+            'somewhere', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            if_(x.read.is_('int'), [
+              checkPromoted(x, 'int'),
+            ], [
+              localFunction([
+                x.read.stmt,
+              ]),
+            ]),
+            x.write(expr('int')).stmt,
+          ]);
+        });
+
+        test(
+            'even if a closure in the then-block accesses it, provided it is '
+            'not mutated anywhere', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            if_(x.read.is_('int'), [
+              checkPromoted(x, 'int'),
+              localFunction([
+                x.read.stmt,
+              ]),
+            ]),
+          ]);
+        });
+      });
+
+      test('handles arbitrary conditions', () {
+        var h = Harness(legacy: true);
+        h.run([
+          if_(expr('bool'), []),
+        ]);
+      });
+
+      test('handles a condition that is a variable', () {
+        var h = Harness(legacy: true);
+        var x = Var('x', 'bool');
+        h.run([
+          if_(x.read, []),
+        ]);
+      });
+
+      test('handles multiple promotions', () {
+        var h = Harness(legacy: true);
+        var x = Var('x', 'Object');
+        var y = Var('y', 'Object');
+        h.run([
+          if_(x.read.is_('int').and(y.read.is_('String')), [
+            checkPromoted(x, 'int'),
+            checkPromoted(y, 'String'),
+          ]),
+        ]);
+      });
+    });
+
+    group('conditional expression', () {
+      group('promotes a variable whose type is shown by its condition', () {
+        test('within then-expression', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            x.read
+                .is_('int')
+                .conditional(checkPromoted(x, 'int').thenExpr(expr('Object')),
+                    expr('Object'))
+                .stmt,
+          ]);
+        });
+
+        test('but not within else-expression', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            x.read
+                .is_('int')
+                .conditional(expr('Object'),
+                    checkNotPromoted(x).thenExpr(expr('Object')))
+                .stmt,
+          ]);
+        });
+
+        test('unless the then-expression mutates it', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            x.read
+                .is_('int')
+                .conditional(
+                    block([
+                      checkNotPromoted(x),
+                      x.write(expr('int')).stmt,
+                    ]).thenExpr(expr('Object')),
+                    expr('Object'))
+                .stmt,
+          ]);
+        });
+
+        test('even if the condition mutates it', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            x
+                .write(expr('int'))
+                .parenthesized
+                .eq(expr('int'))
+                .and(x.read.is_('int'))
+                .conditional(checkPromoted(x, 'int').thenExpr(expr('Object')),
+                    expr('Object'))
+                .stmt,
+          ]);
+        });
+
+        test('even if the else-expression mutates it', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            x.read
+                .is_('int')
+                .conditional(checkPromoted(x, 'int').thenExpr(expr('int')),
+                    x.write(expr('int')))
+                .stmt,
+          ]);
+        });
+
+        test('unless a closure mutates it', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            x.read
+                .is_('int')
+                .conditional(checkNotPromoted(x).thenExpr(expr('Object')),
+                    expr('Object'))
+                .stmt,
+            localFunction([
+              x.write(expr('int')).stmt,
+            ]),
+          ]);
+        });
+
+        test(
+            'unless a closure in the then-expression accesses it and it is '
+            'mutated anywhere', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            x.read
+                .is_('int')
+                .conditional(
+                    block([
+                      checkNotPromoted(x),
+                      localFunction([
+                        x.read.stmt,
+                      ]),
+                    ]).thenExpr(expr('Object')),
+                    expr('Object'))
+                .stmt,
+            x.write(expr('int')).stmt,
+          ]);
+        });
+
+        test(
+            'even if a closure in the condition accesses it and it is mutated '
+            'somewhere', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            localFunction([
+              x.read.stmt,
+            ])
+                .thenExpr(expr('Object'))
+                .and(x.read.is_('int'))
+                .conditional(checkPromoted(x, 'int').thenExpr(expr('Object')),
+                    expr('Object'))
+                .stmt,
+            x.write(expr('int')).stmt,
+          ]);
+        });
+
+        test(
+            'even if a closure in the else-expression accesses it and it is '
+            'mutated somewhere', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            x.read
+                .is_('int')
+                .conditional(
+                    checkPromoted(x, 'int').thenExpr(expr('Object')),
+                    localFunction([
+                      x.read.stmt,
+                    ]).thenExpr(expr('Object')))
+                .stmt,
+            x.write(expr('int')).stmt,
+          ]);
+        });
+
+        test(
+            'even if a closure in the then-expression accesses it, provided it '
+            'is not mutated anywhere', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            x.read
+                .is_('int')
+                .conditional(
+                    block([
+                      checkPromoted(x, 'int'),
+                      localFunction([
+                        x.read.stmt,
+                      ]),
+                    ]).thenExpr(expr('Object')),
+                    expr('Object'))
+                .stmt,
+          ]);
+        });
+      });
+
+      test('handles arbitrary conditions', () {
+        var h = Harness(legacy: true);
+        h.run([
+          expr('bool').conditional(expr('Object'), expr('Object')).stmt,
+        ]);
+      });
+
+      test('handles a condition that is a variable', () {
+        var h = Harness(legacy: true);
+        var x = Var('x', 'bool');
+        h.run([
+          x.read.conditional(expr('Object'), expr('Object')).stmt,
+        ]);
+      });
+
+      test('handles multiple promotions', () {
+        var h = Harness(legacy: true);
+        var x = Var('x', 'Object');
+        var y = Var('y', 'Object');
+        h.run([
+          x.read
+              .is_('int')
+              .and(y.read.is_('String'))
+              .conditional(
+                  block([
+                    checkPromoted(x, 'int'),
+                    checkPromoted(y, 'String'),
+                  ]).thenExpr(expr('Object')),
+                  expr('Object'))
+              .stmt
+        ]);
+      });
+    });
+
+    group('logical', () {
+      group('and', () {
+        group("shows a variable's type", () {
+          test('if the lhs shows the type', () {
+            var h = Harness(legacy: true);
+            var x = Var('x', 'Object');
+            h.run([
+              if_(x.read.is_('int').and(expr('bool')), [
+                checkPromoted(x, 'int'),
+              ]),
+            ]);
+          });
+
+          test('if the rhs shows the type', () {
+            var h = Harness(legacy: true);
+            var x = Var('x', 'Object');
+            h.run([
+              if_(expr('bool').and(x.read.is_('int')), [
+                checkPromoted(x, 'int'),
+              ]),
+            ]);
+          });
+
+          test('unless the rhs mutates it', () {
+            var h = Harness(legacy: true);
+            var x = Var('x', 'Object');
+            h.run([
+              if_(x.read.is_('int').and(x.write(expr('bool'))), [
+                checkNotPromoted(x),
+              ]),
+            ]);
+          });
+
+          test('unless the rhs mutates it, even if the rhs also shows the type',
+              () {
+            var h = Harness(legacy: true);
+            var x = Var('x', 'Object');
+            h.run([
+              if_(
+                  expr('bool').and(x
+                      .write(expr('Object'))
+                      .and(x.read.is_('int'))
+                      .parenthesized),
+                  [
+                    checkNotPromoted(x),
+                  ]),
+            ]);
+          });
+
+          test('unless a closure mutates it', () {
+            var h = Harness(legacy: true);
+            var x = Var('x', 'Object');
+            h.run([
+              if_(x.read.is_('int').and(expr('bool')), [
+                checkNotPromoted(x),
+              ]),
+              localFunction([
+                x.write(expr('int')).stmt,
+              ]),
+            ]);
+          });
+        });
+
+        group('promotes a variable whose type is shown by its lhs', () {
+          test('within its rhs', () {
+            var h = Harness(legacy: true);
+            var x = Var('x', 'Object');
+            h.run([
+              x.read
+                  .is_('int')
+                  .and(checkPromoted(x, 'int').thenExpr(expr('bool')))
+                  .stmt,
+            ]);
+          });
+
+          test('unless the lhs mutates it', () {
+            var h = Harness(legacy: true);
+            var x = Var('x', 'Object');
+            h.run([
+              x
+                  .write(expr('int'))
+                  .parenthesized
+                  .eq(expr('int'))
+                  .and(x.read.is_('int'))
+                  .parenthesized
+                  .and(checkNotPromoted(x).thenExpr(expr('bool')))
+                  .stmt,
+            ]);
+          });
+
+          test('unless the rhs mutates it', () {
+            var h = Harness(legacy: true);
+            var x = Var('x', 'Object');
+            h.run([
+              x.read
+                  .is_('int')
+                  .and(checkNotPromoted(x).thenExpr(x.write(expr('bool'))))
+                  .stmt,
+            ]);
+          });
+
+          test('unless a closure mutates it', () {
+            var h = Harness(legacy: true);
+            var x = Var('x', 'Object');
+            h.run([
+              x.read
+                  .is_('int')
+                  .and(checkNotPromoted(x).thenExpr(expr('bool')))
+                  .stmt,
+              localFunction([
+                x.write(expr('int')).stmt,
+              ]),
+            ]);
+          });
+
+          test(
+              'unless a closure in the rhs accesses it and it is mutated '
+              'anywhere', () {
+            var h = Harness(legacy: true);
+            var x = Var('x', 'Object');
+            h.run([
+              x.read
+                  .is_('int')
+                  .and(block([
+                    checkNotPromoted(x),
+                    localFunction([
+                      x.read.stmt,
+                    ]),
+                  ]).thenExpr(expr('bool')))
+                  .stmt,
+              x.write(expr('int')).stmt,
+            ]);
+          });
+
+          test(
+              'even if a closure in the lhs accesses it and it is mutated '
+              'somewhere', () {
+            var h = Harness(legacy: true);
+            var x = Var('x', 'Object');
+            h.run([
+              localFunction([
+                x.read.stmt,
+              ])
+                  .thenExpr(expr('Object'))
+                  .and(x.read.is_('int'))
+                  .parenthesized
+                  .and(checkPromoted(x, 'int').thenExpr(expr('bool')))
+                  .stmt,
+              x.write(expr('int')).stmt,
+            ]);
+          });
+
+          test(
+              'even if a closure in the rhs accesses it, provided it is not '
+              'mutated anywhere', () {
+            var h = Harness(legacy: true);
+            var x = Var('x', 'Object');
+            h.run([
+              x.read
+                  .is_('int')
+                  .and(block([
+                    checkPromoted(x, 'int'),
+                    localFunction([
+                      x.read.stmt,
+                    ]),
+                  ]).thenExpr(expr('bool')))
+                  .stmt,
+            ]);
+          });
+        });
+
+        test('uses lhs promotion if rhs is not to a subtype', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          // Note: for this to be an effective test, we need to mutate `x` on
+          // the LHS of the outer `&&` so that `x` is not promoted on the RHS
+          // (and thus the lesser promotion on the RHS can take effect).
+          h.run([
+            if_(
+                x
+                    .write(expr('Object'))
+                    .parenthesized
+                    .and(x.read.is_('int'))
+                    .parenthesized
+                    .and(x.read.is_('num')),
+                [
+                  checkPromoted(x, 'int'),
+                ]),
+          ]);
+        });
+
+        test('uses rhs promotion if rhs is to a subtype', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            if_(x.read.is_('num').and(x.read.is_('int')), [
+              checkPromoted(x, 'int'),
+            ]),
+          ]);
+        });
+
+        test('can handle multiple promotions on lhs', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          var y = Var('y', 'Object');
+          h.run([
+            x.read
+                .is_('int')
+                .and(y.read.is_('String'))
+                .parenthesized
+                .and(block([
+                  checkPromoted(x, 'int'),
+                  checkPromoted(y, 'String'),
+                ]).thenExpr(expr('bool')))
+                .stmt,
+          ]);
+        });
+
+        test('handles variables', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'bool');
+          var y = Var('y', 'bool');
+          h.run([
+            if_(x.read.and(y.read), []),
+          ]);
+        });
+
+        test('handles arbitrary expressions', () {
+          var h = Harness(legacy: true);
+          h.run([
+            if_(expr('bool').and(expr('bool')), []),
+          ]);
+        });
+      });
+
+      test('or is ignored', () {
+        var h = Harness(legacy: true);
+        var x = Var('x', 'Object');
+        h.run([
+          if_(x.read.is_('int').or(x.read.is_('int')), [
+            checkNotPromoted(x),
+          ], [
+            checkNotPromoted(x),
+          ])
+        ]);
+      });
+    });
+
+    group('is test', () {
+      group("shows a variable's type", () {
+        test('normally', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            if_(x.read.is_('int'), [
+              checkPromoted(x, 'int'),
+            ], [
+              checkNotPromoted(x),
+            ])
+          ]);
+        });
+
+        test('unless the test is inverted', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            if_(x.read.is_('int', isInverted: true), [
+              checkNotPromoted(x),
+            ], [
+              checkNotPromoted(x),
+            ])
+          ]);
+        });
+
+        test('unless the tested type is not a subtype of the declared type',
+            () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'String');
+          h.run([
+            if_(x.read.is_('int'), [
+              checkNotPromoted(x),
+            ], [
+              checkNotPromoted(x),
+            ])
+          ]);
+        });
+
+        test("even when the variable's type has been previously promoted", () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            if_(x.read.is_('num'), [
+              if_(x.read.is_('int'), [
+                checkPromoted(x, 'int'),
+              ], [
+                checkPromoted(x, 'num'),
+              ])
+            ]),
+          ]);
+        });
+
+        test(
+            'unless the tested type is not a subtype of the previously '
+            'promoted type', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            if_(x.read.is_('String'), [
+              if_(x.read.is_('int'), [
+                checkPromoted(x, 'String'),
+              ], [
+                checkPromoted(x, 'String'),
+              ])
+            ]),
+          ]);
+        });
+
+        test('even when the declared type is a type variable', () {
+          var h = Harness(legacy: true);
+          h.addPromotionException('T', 'int', 'T&int');
+          var x = Var('x', 'T');
+          h.run([
+            if_(x.read.is_('int'), [
+              checkPromoted(x, 'T&int'),
+            ]),
+          ]);
+        });
+      });
+
+      test('handles arbitrary expressions', () {
+        var h = Harness(legacy: true);
+        h.run([
+          if_(expr('Object').is_('int'), []),
+        ]);
+      });
+    });
+
+    test('forwardExpression does not re-activate a deeply nested expression',
+        () {
+      var h = Harness(legacy: true);
+      var x = Var('x', 'Object');
+      h.run([
+        if_(x.read.is_('int').eq(expr('Object')).thenStmt(block([])), [
+          checkNotPromoted(x),
+        ]),
+      ]);
+    });
+
+    test(
+        'parenthesizedExpression does not re-activate a deeply nested '
+        'expression', () {
+      var h = Harness(legacy: true);
+      var x = Var('x', 'Object');
+      h.run([
+        if_(x.read.is_('int').eq(expr('Object')).parenthesized, [
+          checkNotPromoted(x),
+        ]),
+      ]);
+    });
+
+    test('variableRead returns the promoted type if promoted', () {
+      var h = Harness(legacy: true);
+      var x = Var('x', 'Object');
+      h.run([
+        if_(
+            x
+                .readAndCheckPromotedType((type) => expect(type, isNull))
+                .is_('int'),
+            [
+              x
+                  .readAndCheckPromotedType((type) => expect(type!.type, 'int'))
+                  .stmt,
+            ]),
+      ]);
     });
   });
 }

@@ -604,7 +604,7 @@ class MigrationCliRunner implements DartFixListenerClient {
       String summaryPath,
       @required String sdkPath}) {
     return NonNullableFix(listener, resourceProvider, getLineInfo, bindAddress,
-        logger, (String path) => shouldBeMigrated(null, path),
+        logger, (String path) => shouldBeMigrated(path),
         included: included,
         preferredPort: preferredPort,
         summaryPath: summaryPath,
@@ -813,12 +813,7 @@ sources' action.
   /// return additional paths that aren't inside the user's project, but doesn't
   /// override this method, then those additional paths will be analyzed but not
   /// migrated.
-  ///
-  /// Note: in a future version of the code, the [context] argument will be
-  /// removed; to ease the transition, clients should stop overriding this
-  /// method and should override [shouldBeMigrated2] instead.
-  bool shouldBeMigrated(DriverBasedAnalysisContext context, String path) =>
-      shouldBeMigrated2(path);
+  bool shouldBeMigrated(String path) => shouldBeMigrated2(path);
 
   /// Determines whether a migrated version of the file at [path] should be
   /// output by the migration too.  May be overridden by a derived class.
@@ -832,6 +827,10 @@ sources' action.
   /// return additional paths that aren't inside the user's project, but doesn't
   /// override this method, then those additional paths will be analyzed but not
   /// migrated.
+  ///
+  /// Note: in a future version of the code, this method will be removed;
+  /// clients that are overriding this method should switch to overriding
+  /// [shouldBeMigrated] instead.
   bool shouldBeMigrated2(String path) {
     return analysisContext.contextRoot.isAnalyzed(path);
   }
@@ -1171,7 +1170,7 @@ class _FixCodeProcessor extends Object {
     });
     await processResources((ResolvedUnitResult result) async {
       _progressBar.tick();
-      if (_migrationCli.shouldBeMigrated(context, result.path)) {
+      if (_migrationCli.shouldBeMigrated(result.path)) {
         await _task.finalizeUnit(result);
       }
     });

@@ -752,6 +752,16 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitForPartsWithExpression(ForPartsWithExpression node) {
+    _writeByte(Tag.ForPartsWithExpression);
+    _writeMarker(MarkerTag.ForPartsWithExpression_initialization);
+    _writeOptionalNode(node.initialization);
+    _writeMarker(MarkerTag.ForPartsWithExpression_forParts);
+    _storeForParts(node);
+    _writeMarker(MarkerTag.ForPartsWithExpression_end);
+  }
+
+  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     var indexTag = Tag.FunctionDeclaration;
     if (node.isGetter) {
