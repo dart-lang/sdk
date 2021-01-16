@@ -102,7 +102,7 @@ class TypeFeedbackLoader : public ValueObject {
   ObjectPtr LoadClasses();
   ObjectPtr LoadFields();
   ObjectPtr LoadFunction();
-  FunctionPtr FindFunction(FunctionLayout::Kind kind,
+  FunctionPtr FindFunction(UntaggedFunction::Kind kind,
                            const TokenPosition& token_pos);
 
   ClassPtr ReadClassByName();

@@ -25,7 +25,7 @@ class ICData;
 class Code;
 class Object;
 class ObjectPool;
-class CodeLayout;
+class UntaggedCode;
 
 class InstructionPattern : public AllStatic {
  public:

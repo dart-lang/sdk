@@ -21,7 +21,7 @@ class CharArray {
     String& result = String::Handle(StringFrom(data_, len_, Heap::kOld));
     result.SetCanonical();
     result.SetHash(hash_);
-    return result.raw();
+    return result.ptr();
   }
   bool Equals(const String& other) const {
     ASSERT(other.HasHash());
@@ -167,7 +167,7 @@ class CanonicalTypeTraits {
   }
   static uword Hash(const CanonicalTypeKey& key) { return key.Hash(); }
   static ObjectPtr NewKey(const CanonicalTypeKey& obj) {
-    return obj.key_.raw();
+    return obj.key_.ptr();
   }
 };
 typedef UnorderedHashSet<CanonicalTypeTraits> CanonicalTypeSet;
@@ -206,7 +206,7 @@ class CanonicalFunctionTypeTraits {
   }
   static uword Hash(const CanonicalFunctionTypeKey& key) { return key.Hash(); }
   static ObjectPtr NewKey(const CanonicalFunctionTypeKey& obj) {
-    return obj.key_.raw();
+    return obj.key_.ptr();
   }
 };
 typedef UnorderedHashSet<CanonicalFunctionTypeTraits> CanonicalFunctionTypeSet;
@@ -245,7 +245,7 @@ class CanonicalTypeParameterTraits {
   }
   static uword Hash(const CanonicalTypeParameterKey& key) { return key.Hash(); }
   static ObjectPtr NewKey(const CanonicalTypeParameterKey& obj) {
-    return obj.key_.raw();
+    return obj.key_.ptr();
   }
 };
 typedef UnorderedHashSet<CanonicalTypeParameterTraits>
@@ -287,7 +287,7 @@ class CanonicalTypeArgumentsTraits {
   }
   static uword Hash(const CanonicalTypeArgumentsKey& key) { return key.Hash(); }
   static ObjectPtr NewKey(const CanonicalTypeArgumentsKey& obj) {
-    return obj.key_.raw();
+    return obj.key_.ptr();
   }
 };
 typedef UnorderedHashSet<CanonicalTypeArgumentsTraits>

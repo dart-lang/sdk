@@ -20,7 +20,7 @@ static ClassPtr CreateTestClass(const char* name) {
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   cls.SetFunctions(Object::empty_array());
   cls.SetFields(Object::empty_array());
-  return cls.raw();
+  return cls.ptr();
 }
 
 ISOLATE_UNIT_TEST_CASE(ClassFinalizer) {

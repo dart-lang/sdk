@@ -110,7 +110,7 @@ static ObjectPtr LoadValueStruct(Zone* zone,
   const Object& constructorResult =
       Object::Handle(DartEntry::InvokeFunction(constructor, args));
   ASSERT(!constructorResult.IsError());
-  return new_object.raw();
+  return new_object.ptr();
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_loadStruct, 0, 2) {
@@ -269,7 +269,7 @@ DEFINE_NATIVE_ENTRY(Ffi_nativeCallbackFunction, 1, 2) {
                                  native_signature, func, exceptional_return)));
 
   // Because we have already set the return value.
-  return Object::sentinel().raw();
+  return Object::sentinel().ptr();
 #endif
 }
 
@@ -292,7 +292,7 @@ DEFINE_NATIVE_ENTRY(Ffi_pointerFromFunction, 1, 1) {
     Exceptions::PropagateError(Error::Cast(result));
   }
   ASSERT(result.IsCode());
-  code ^= result.raw();
+  code ^= result.ptr();
 #endif
 
   ASSERT(!code.IsNull());

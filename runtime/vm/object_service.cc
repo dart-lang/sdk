@@ -44,8 +44,8 @@ void Object::AddCommonObjectProperties(JSONObject* jsobj,
     jsobj->AddProperty("class", cls);
   }
   if (!ref) {
-    if (raw()->IsHeapObject()) {
-      jsobj->AddProperty("size", raw()->ptr()->HeapSize());
+    if (ptr()->IsHeapObject()) {
+      jsobj->AddProperty("size", ptr()->untag()->HeapSize());
     } else {
       jsobj->AddProperty("size", (intptr_t)0);
     }
@@ -76,7 +76,7 @@ void Object::PrintJSON(JSONStream* stream, bool ref) const {
 void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Isolate* isolate = Isolate::Current();
   JSONObject jsobj(stream);
-  if ((raw() == Class::null()) || (id() == kFreeListElement)) {
+  if ((ptr() == Class::null()) || (id() == kFreeListElement)) {
     // TODO(turnidge): This is weird and needs to be changed.
     jsobj.AddProperty("type", "null");
     return;
@@ -258,7 +258,7 @@ static void AddFunctionServiceId(const JSONObject& jsobj,
   // Regular functions known to their owner use their name (percent-encoded).
   String& name = String::Handle(f.name());
   Thread* thread = Thread::Current();
-  if (Resolver::ResolveFunction(thread->zone(), cls, name) == f.raw()) {
+  if (Resolver::ResolveFunction(thread->zone(), cls, name) == f.ptr()) {
     const char* encoded_name = String::EncodeIRI(name);
     if (cls.IsTopLevel()) {
       const auto& library = Library::Handle(cls.library());
@@ -329,10 +329,10 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("_optimizedCallSiteCount", optimized_call_site_count());
   jsobj.AddProperty("_deoptimizations",
                     static_cast<intptr_t>(deoptimization_counter()));
-  if ((kind() == FunctionLayout::kImplicitGetter) ||
-      (kind() == FunctionLayout::kImplicitSetter) ||
-      (kind() == FunctionLayout::kImplicitStaticGetter) ||
-      (kind() == FunctionLayout::kFieldInitializer)) {
+  if ((kind() == UntaggedFunction::kImplicitGetter) ||
+      (kind() == UntaggedFunction::kImplicitSetter) ||
+      (kind() == UntaggedFunction::kImplicitStaticGetter) ||
+      (kind() == UntaggedFunction::kFieldInitializer)) {
     const Field& field = Field::Handle(accessor_field());
     if (!field.IsNull()) {
       jsobj.AddProperty("_field", field);
@@ -538,7 +538,7 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
     while (entries.HasNext()) {
       entry = entries.GetNext();
       if (entry.IsLibraryPrefix()) {
-        prefix ^= entry.raw();
+        prefix ^= entry.ptr();
         imports = prefix.imports();
         if (!imports.IsNull()) {
           for (intptr_t i = 0; i < imports.Length(); i++) {
@@ -578,9 +578,9 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
       entry = entries.GetNext();
       if (entry.IsFunction()) {
         const Function& func = Function::Cast(entry);
-        if (func.kind() == FunctionLayout::kRegularFunction ||
-            func.kind() == FunctionLayout::kGetterFunction ||
-            func.kind() == FunctionLayout::kSetterFunction) {
+        if (func.kind() == UntaggedFunction::kRegularFunction ||
+            func.kind() == UntaggedFunction::kGetterFunction ||
+            func.kind() == UntaggedFunction::kSetterFunction) {
           jsarr.AddValue(func);
         }
       }
@@ -685,7 +685,7 @@ void PcDescriptors::PrintToJSONObject(JSONObject* jsobj, bool ref) const {
     return;
   }
   JSONArray members(jsobj, "members");
-  Iterator iter(*this, PcDescriptorsLayout::kAnyKind);
+  Iterator iter(*this, UntaggedPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
     JSONObject descriptor(&members);
     descriptor.AddPropertyF("pcOffset", "%" Px "", iter.PcOffset());
@@ -722,7 +722,7 @@ void LocalVarDescriptors::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONArray members(&jsobj, "members");
   String& var_name = String::Handle();
   for (intptr_t i = 0; i < Length(); i++) {
-    LocalVarDescriptorsLayout::VarInfo info;
+    UntaggedLocalVarDescriptors::VarInfo info;
     var_name = GetName(i);
     GetInfo(i, &info);
     JSONObject var(&members);
@@ -1010,7 +1010,7 @@ void Instance::PrintSharedInstanceJSON(JSONObject* jsobj, bool ref) const {
     cls = cls.SuperClass();
   }
   do {
-    classes.Add(&Class::Handle(cls.raw()));
+    classes.Add(&Class::Handle(cls.ptr()));
     cls = cls.SuperClass();
   } while (!cls.IsNull());
 
@@ -1051,12 +1051,12 @@ void Instance::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
 
   // Handle certain special instance values.
-  if (raw() == Object::sentinel().raw()) {
+  if (ptr() == Object::sentinel().ptr()) {
     jsobj.AddProperty("type", "Sentinel");
     jsobj.AddProperty("kind", "NotInitialized");
     jsobj.AddProperty("valueAsString", "<not initialized>");
     return;
-  } else if (raw() == Object::transition_sentinel().raw()) {
+  } else if (ptr() == Object::transition_sentinel().ptr()) {
     jsobj.AddProperty("type", "Sentinel");
     jsobj.AddProperty("kind", "BeingInitialized");
     jsobj.AddProperty("valueAsString", "<being initialized>");
@@ -1100,7 +1100,7 @@ void Type::PrintJSONImpl(JSONStream* stream, bool ref) const {
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "Type");
   const Class& type_cls = Class::Handle(type_class());
-  if (type_cls.DeclarationType() == raw()) {
+  if (type_cls.DeclarationType() == ptr()) {
     intptr_t cid = type_cls.id();
     jsobj.AddFixedServiceId("classes/%" Pd "/types/%d", cid, 0);
   } else {
@@ -1193,7 +1193,7 @@ void Double::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 void String::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  if (raw() == Symbols::OptimizedOut().raw()) {
+  if (ptr() == Symbols::OptimizedOut().ptr()) {
     // TODO(turnidge): This is a hack.  The user could have this
     // special string in their program.  Fixing this involves updating
     // the debugging api a bit.

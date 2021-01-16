@@ -179,7 +179,7 @@ static constexpr dart::compiler::target::word
     LinkedHashMap_type_arguments_offset = 4;
 static constexpr dart::compiler::target::word LinkedHashMap_used_data_offset =
     20;
-static constexpr dart::compiler::target::word LocalHandle_raw_offset = 0;
+static constexpr dart::compiler::target::word LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     MarkingStackBlock_pointers_offset = 8;
 static constexpr dart::compiler::target::word MarkingStackBlock_top_offset = 4;
@@ -704,7 +704,7 @@ static constexpr dart::compiler::target::word
     LinkedHashMap_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word LinkedHashMap_used_data_offset =
     40;
-static constexpr dart::compiler::target::word LocalHandle_raw_offset = 0;
+static constexpr dart::compiler::target::word LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     MarkingStackBlock_pointers_offset = 16;
 static constexpr dart::compiler::target::word MarkingStackBlock_top_offset = 8;
@@ -1233,7 +1233,7 @@ static constexpr dart::compiler::target::word
     LinkedHashMap_type_arguments_offset = 4;
 static constexpr dart::compiler::target::word LinkedHashMap_used_data_offset =
     20;
-static constexpr dart::compiler::target::word LocalHandle_raw_offset = 0;
+static constexpr dart::compiler::target::word LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     MarkingStackBlock_pointers_offset = 8;
 static constexpr dart::compiler::target::word MarkingStackBlock_top_offset = 4;
@@ -1755,7 +1755,7 @@ static constexpr dart::compiler::target::word
     LinkedHashMap_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word LinkedHashMap_used_data_offset =
     40;
-static constexpr dart::compiler::target::word LocalHandle_raw_offset = 0;
+static constexpr dart::compiler::target::word LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     MarkingStackBlock_pointers_offset = 16;
 static constexpr dart::compiler::target::word MarkingStackBlock_top_offset = 8;
@@ -2284,7 +2284,7 @@ static constexpr dart::compiler::target::word
     LinkedHashMap_type_arguments_offset = 4;
 static constexpr dart::compiler::target::word LinkedHashMap_used_data_offset =
     20;
-static constexpr dart::compiler::target::word LocalHandle_raw_offset = 0;
+static constexpr dart::compiler::target::word LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     MarkingStackBlock_pointers_offset = 8;
 static constexpr dart::compiler::target::word MarkingStackBlock_top_offset = 4;
@@ -2803,7 +2803,7 @@ static constexpr dart::compiler::target::word
     LinkedHashMap_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word LinkedHashMap_used_data_offset =
     40;
-static constexpr dart::compiler::target::word LocalHandle_raw_offset = 0;
+static constexpr dart::compiler::target::word LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     MarkingStackBlock_pointers_offset = 16;
 static constexpr dart::compiler::target::word MarkingStackBlock_top_offset = 8;
@@ -3326,7 +3326,7 @@ static constexpr dart::compiler::target::word
     LinkedHashMap_type_arguments_offset = 4;
 static constexpr dart::compiler::target::word LinkedHashMap_used_data_offset =
     20;
-static constexpr dart::compiler::target::word LocalHandle_raw_offset = 0;
+static constexpr dart::compiler::target::word LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     MarkingStackBlock_pointers_offset = 8;
 static constexpr dart::compiler::target::word MarkingStackBlock_top_offset = 4;
@@ -3842,7 +3842,7 @@ static constexpr dart::compiler::target::word
     LinkedHashMap_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word LinkedHashMap_used_data_offset =
     40;
-static constexpr dart::compiler::target::word LocalHandle_raw_offset = 0;
+static constexpr dart::compiler::target::word LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     MarkingStackBlock_pointers_offset = 16;
 static constexpr dart::compiler::target::word MarkingStackBlock_top_offset = 8;
@@ -4382,7 +4382,7 @@ static constexpr dart::compiler::target::word
     AOT_LinkedHashMap_type_arguments_offset = 4;
 static constexpr dart::compiler::target::word
     AOT_LinkedHashMap_used_data_offset = 20;
-static constexpr dart::compiler::target::word AOT_LocalHandle_raw_offset = 0;
+static constexpr dart::compiler::target::word AOT_LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     AOT_MarkingStackBlock_pointers_offset = 8;
 static constexpr dart::compiler::target::word AOT_MarkingStackBlock_top_offset =
@@ -4966,7 +4966,7 @@ static constexpr dart::compiler::target::word
     AOT_LinkedHashMap_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_LinkedHashMap_used_data_offset = 40;
-static constexpr dart::compiler::target::word AOT_LocalHandle_raw_offset = 0;
+static constexpr dart::compiler::target::word AOT_LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     AOT_MarkingStackBlock_pointers_offset = 16;
 static constexpr dart::compiler::target::word AOT_MarkingStackBlock_top_offset =
@@ -5556,7 +5556,7 @@ static constexpr dart::compiler::target::word
     AOT_LinkedHashMap_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_LinkedHashMap_used_data_offset = 40;
-static constexpr dart::compiler::target::word AOT_LocalHandle_raw_offset = 0;
+static constexpr dart::compiler::target::word AOT_LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     AOT_MarkingStackBlock_pointers_offset = 16;
 static constexpr dart::compiler::target::word AOT_MarkingStackBlock_top_offset =
@@ -6141,7 +6141,7 @@ static constexpr dart::compiler::target::word
     AOT_LinkedHashMap_type_arguments_offset = 4;
 static constexpr dart::compiler::target::word
     AOT_LinkedHashMap_used_data_offset = 20;
-static constexpr dart::compiler::target::word AOT_LocalHandle_raw_offset = 0;
+static constexpr dart::compiler::target::word AOT_LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     AOT_MarkingStackBlock_pointers_offset = 8;
 static constexpr dart::compiler::target::word AOT_MarkingStackBlock_top_offset =
@@ -6718,7 +6718,7 @@ static constexpr dart::compiler::target::word
     AOT_LinkedHashMap_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_LinkedHashMap_used_data_offset = 40;
-static constexpr dart::compiler::target::word AOT_LocalHandle_raw_offset = 0;
+static constexpr dart::compiler::target::word AOT_LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     AOT_MarkingStackBlock_pointers_offset = 16;
 static constexpr dart::compiler::target::word AOT_MarkingStackBlock_top_offset =
@@ -7301,7 +7301,7 @@ static constexpr dart::compiler::target::word
     AOT_LinkedHashMap_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_LinkedHashMap_used_data_offset = 40;
-static constexpr dart::compiler::target::word AOT_LocalHandle_raw_offset = 0;
+static constexpr dart::compiler::target::word AOT_LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     AOT_MarkingStackBlock_pointers_offset = 16;
 static constexpr dart::compiler::target::word AOT_MarkingStackBlock_top_offset =

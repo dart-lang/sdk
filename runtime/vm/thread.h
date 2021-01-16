@@ -86,72 +86,72 @@ class Thread;
   V(TypeParameter)
 
 #define CACHED_VM_STUBS_LIST(V)                                                \
-  V(CodePtr, write_barrier_code_, StubCode::WriteBarrier().raw(), nullptr)     \
-  V(CodePtr, array_write_barrier_code_, StubCode::ArrayWriteBarrier().raw(),   \
+  V(CodePtr, write_barrier_code_, StubCode::WriteBarrier().ptr(), nullptr)     \
+  V(CodePtr, array_write_barrier_code_, StubCode::ArrayWriteBarrier().ptr(),   \
     nullptr)                                                                   \
-  V(CodePtr, fix_callers_target_code_, StubCode::FixCallersTarget().raw(),     \
+  V(CodePtr, fix_callers_target_code_, StubCode::FixCallersTarget().ptr(),     \
     nullptr)                                                                   \
   V(CodePtr, fix_allocation_stub_code_,                                        \
-    StubCode::FixAllocationStubTarget().raw(), nullptr)                        \
-  V(CodePtr, invoke_dart_code_stub_, StubCode::InvokeDartCode().raw(),         \
+    StubCode::FixAllocationStubTarget().ptr(), nullptr)                        \
+  V(CodePtr, invoke_dart_code_stub_, StubCode::InvokeDartCode().ptr(),         \
     nullptr)                                                                   \
-  V(CodePtr, call_to_runtime_stub_, StubCode::CallToRuntime().raw(), nullptr)  \
+  V(CodePtr, call_to_runtime_stub_, StubCode::CallToRuntime().ptr(), nullptr)  \
   V(CodePtr, late_initialization_error_shared_without_fpu_regs_stub_,          \
-    StubCode::LateInitializationErrorSharedWithoutFPURegs().raw(), nullptr)    \
+    StubCode::LateInitializationErrorSharedWithoutFPURegs().ptr(), nullptr)    \
   V(CodePtr, late_initialization_error_shared_with_fpu_regs_stub_,             \
-    StubCode::LateInitializationErrorSharedWithFPURegs().raw(), nullptr)       \
+    StubCode::LateInitializationErrorSharedWithFPURegs().ptr(), nullptr)       \
   V(CodePtr, null_error_shared_without_fpu_regs_stub_,                         \
-    StubCode::NullErrorSharedWithoutFPURegs().raw(), nullptr)                  \
+    StubCode::NullErrorSharedWithoutFPURegs().ptr(), nullptr)                  \
   V(CodePtr, null_error_shared_with_fpu_regs_stub_,                            \
-    StubCode::NullErrorSharedWithFPURegs().raw(), nullptr)                     \
+    StubCode::NullErrorSharedWithFPURegs().ptr(), nullptr)                     \
   V(CodePtr, null_arg_error_shared_without_fpu_regs_stub_,                     \
-    StubCode::NullArgErrorSharedWithoutFPURegs().raw(), nullptr)               \
+    StubCode::NullArgErrorSharedWithoutFPURegs().ptr(), nullptr)               \
   V(CodePtr, null_arg_error_shared_with_fpu_regs_stub_,                        \
-    StubCode::NullArgErrorSharedWithFPURegs().raw(), nullptr)                  \
+    StubCode::NullArgErrorSharedWithFPURegs().ptr(), nullptr)                  \
   V(CodePtr, null_cast_error_shared_without_fpu_regs_stub_,                    \
-    StubCode::NullCastErrorSharedWithoutFPURegs().raw(), nullptr)              \
+    StubCode::NullCastErrorSharedWithoutFPURegs().ptr(), nullptr)              \
   V(CodePtr, null_cast_error_shared_with_fpu_regs_stub_,                       \
-    StubCode::NullCastErrorSharedWithFPURegs().raw(), nullptr)                 \
+    StubCode::NullCastErrorSharedWithFPURegs().ptr(), nullptr)                 \
   V(CodePtr, range_error_shared_without_fpu_regs_stub_,                        \
-    StubCode::RangeErrorSharedWithoutFPURegs().raw(), nullptr)                 \
+    StubCode::RangeErrorSharedWithoutFPURegs().ptr(), nullptr)                 \
   V(CodePtr, range_error_shared_with_fpu_regs_stub_,                           \
-    StubCode::RangeErrorSharedWithFPURegs().raw(), nullptr)                    \
+    StubCode::RangeErrorSharedWithFPURegs().ptr(), nullptr)                    \
   V(CodePtr, allocate_mint_with_fpu_regs_stub_,                                \
-    StubCode::AllocateMintSharedWithFPURegs().raw(), nullptr)                  \
+    StubCode::AllocateMintSharedWithFPURegs().ptr(), nullptr)                  \
   V(CodePtr, allocate_mint_without_fpu_regs_stub_,                             \
-    StubCode::AllocateMintSharedWithoutFPURegs().raw(), nullptr)               \
-  V(CodePtr, allocate_object_stub_, StubCode::AllocateObject().raw(), nullptr) \
+    StubCode::AllocateMintSharedWithoutFPURegs().ptr(), nullptr)               \
+  V(CodePtr, allocate_object_stub_, StubCode::AllocateObject().ptr(), nullptr) \
   V(CodePtr, allocate_object_parameterized_stub_,                              \
-    StubCode::AllocateObjectParameterized().raw(), nullptr)                    \
-  V(CodePtr, allocate_object_slow_stub_, StubCode::AllocateObjectSlow().raw(), \
+    StubCode::AllocateObjectParameterized().ptr(), nullptr)                    \
+  V(CodePtr, allocate_object_slow_stub_, StubCode::AllocateObjectSlow().ptr(), \
     nullptr)                                                                   \
   V(CodePtr, stack_overflow_shared_without_fpu_regs_stub_,                     \
-    StubCode::StackOverflowSharedWithoutFPURegs().raw(), nullptr)              \
+    StubCode::StackOverflowSharedWithoutFPURegs().ptr(), nullptr)              \
   V(CodePtr, stack_overflow_shared_with_fpu_regs_stub_,                        \
-    StubCode::StackOverflowSharedWithFPURegs().raw(), nullptr)                 \
-  V(CodePtr, switchable_call_miss_stub_, StubCode::SwitchableCallMiss().raw(), \
+    StubCode::StackOverflowSharedWithFPURegs().ptr(), nullptr)                 \
+  V(CodePtr, switchable_call_miss_stub_, StubCode::SwitchableCallMiss().ptr(), \
     nullptr)                                                                   \
-  V(CodePtr, throw_stub_, StubCode::Throw().raw(), nullptr)                    \
-  V(CodePtr, re_throw_stub_, StubCode::Throw().raw(), nullptr)                 \
-  V(CodePtr, assert_boolean_stub_, StubCode::AssertBoolean().raw(), nullptr)   \
-  V(CodePtr, optimize_stub_, StubCode::OptimizeFunction().raw(), nullptr)      \
-  V(CodePtr, deoptimize_stub_, StubCode::Deoptimize().raw(), nullptr)          \
+  V(CodePtr, throw_stub_, StubCode::Throw().ptr(), nullptr)                    \
+  V(CodePtr, re_throw_stub_, StubCode::Throw().ptr(), nullptr)                 \
+  V(CodePtr, assert_boolean_stub_, StubCode::AssertBoolean().ptr(), nullptr)   \
+  V(CodePtr, optimize_stub_, StubCode::OptimizeFunction().ptr(), nullptr)      \
+  V(CodePtr, deoptimize_stub_, StubCode::Deoptimize().ptr(), nullptr)          \
   V(CodePtr, lazy_deopt_from_return_stub_,                                     \
-    StubCode::DeoptimizeLazyFromReturn().raw(), nullptr)                       \
+    StubCode::DeoptimizeLazyFromReturn().ptr(), nullptr)                       \
   V(CodePtr, lazy_deopt_from_throw_stub_,                                      \
-    StubCode::DeoptimizeLazyFromThrow().raw(), nullptr)                        \
-  V(CodePtr, slow_type_test_stub_, StubCode::SlowTypeTest().raw(), nullptr)    \
+    StubCode::DeoptimizeLazyFromThrow().ptr(), nullptr)                        \
+  V(CodePtr, slow_type_test_stub_, StubCode::SlowTypeTest().ptr(), nullptr)    \
   V(CodePtr, lazy_specialize_type_test_stub_,                                  \
-    StubCode::LazySpecializeTypeTest().raw(), nullptr)                         \
-  V(CodePtr, enter_safepoint_stub_, StubCode::EnterSafepoint().raw(), nullptr) \
-  V(CodePtr, exit_safepoint_stub_, StubCode::ExitSafepoint().raw(), nullptr)   \
+    StubCode::LazySpecializeTypeTest().ptr(), nullptr)                         \
+  V(CodePtr, enter_safepoint_stub_, StubCode::EnterSafepoint().ptr(), nullptr) \
+  V(CodePtr, exit_safepoint_stub_, StubCode::ExitSafepoint().ptr(), nullptr)   \
   V(CodePtr, call_native_through_safepoint_stub_,                              \
-    StubCode::CallNativeThroughSafepoint().raw(), nullptr)
+    StubCode::CallNativeThroughSafepoint().ptr(), nullptr)
 
 #define CACHED_NON_VM_STUB_LIST(V)                                             \
   V(ObjectPtr, object_null_, Object::null(), nullptr)                          \
-  V(BoolPtr, bool_true_, Object::bool_true().raw(), nullptr)                   \
-  V(BoolPtr, bool_false_, Object::bool_false().raw(), nullptr)
+  V(BoolPtr, bool_true_, Object::bool_true().ptr(), nullptr)                   \
+  V(BoolPtr, bool_false_, Object::bool_false().ptr(), nullptr)
 
 // List of VM-global objects/addresses cached in each Thread object.
 // Important: constant false must immediately follow constant true.

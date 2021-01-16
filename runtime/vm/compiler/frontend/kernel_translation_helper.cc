@@ -94,7 +94,7 @@ GrowableObjectArrayPtr TranslationHelper::EnsurePotentialPragmaFunctions() {
     funcs = GrowableObjectArray::New(16, Heap::kNew);
     info_.set_potential_pragma_functions(funcs);
   }
-  return funcs.raw();
+  return funcs.ptr();
 }
 
 void TranslationHelper::AddPotentialExtensionLibrary(const Library& library) {
@@ -109,53 +109,53 @@ GrowableObjectArrayPtr TranslationHelper::GetPotentialExtensionLibraries() {
   if (potential_extension_libraries_ != nullptr) {
     GrowableObjectArray* result = potential_extension_libraries_;
     potential_extension_libraries_ = nullptr;
-    return result->raw();
+    return result->ptr();
   }
   return GrowableObjectArray::null();
 }
 
 void TranslationHelper::SetStringOffsets(const TypedData& string_offsets) {
   ASSERT(string_offsets_.IsNull());
-  string_offsets_ = string_offsets.raw();
+  string_offsets_ = string_offsets.ptr();
 }
 
 void TranslationHelper::SetStringData(const ExternalTypedData& string_data) {
   ASSERT(string_data_.IsNull());
-  string_data_ = string_data.raw();
+  string_data_ = string_data.ptr();
 }
 
 void TranslationHelper::SetCanonicalNames(const TypedData& canonical_names) {
   ASSERT(canonical_names_.IsNull());
-  canonical_names_ = canonical_names.raw();
+  canonical_names_ = canonical_names.ptr();
 }
 
 void TranslationHelper::SetMetadataPayloads(
     const ExternalTypedData& metadata_payloads) {
   ASSERT(metadata_payloads_.IsNull());
   ASSERT(Utils::IsAligned(metadata_payloads.DataAddr(0), kWordSize));
-  metadata_payloads_ = metadata_payloads.raw();
+  metadata_payloads_ = metadata_payloads.ptr();
 }
 
 void TranslationHelper::SetMetadataMappings(
     const ExternalTypedData& metadata_mappings) {
   ASSERT(metadata_mappings_.IsNull());
-  metadata_mappings_ = metadata_mappings.raw();
+  metadata_mappings_ = metadata_mappings.ptr();
 }
 
 void TranslationHelper::SetConstants(const Array& constants) {
   ASSERT(constants_.IsNull() ||
          (constants.IsNull() || constants.Length() == 0));
-  constants_ = constants.raw();
+  constants_ = constants.ptr();
 }
 
 void TranslationHelper::SetConstantsTable(
     const ExternalTypedData& constants_table) {
   ASSERT(constants_table_.IsNull());
-  constants_table_ = constants_table.raw();
+  constants_table_ = constants_table.ptr();
 }
 
 void TranslationHelper::SetKernelProgramInfo(const KernelProgramInfo& info) {
-  info_ = info.raw();
+  info_ = info.ptr();
 }
 
 intptr_t TranslationHelper::StringOffset(StringIndex index) const {
@@ -340,7 +340,7 @@ NameIndex TranslationHelper::EnclosingName(NameIndex name) {
 }
 
 InstancePtr TranslationHelper::Canonicalize(const Instance& instance) {
-  if (instance.IsNull()) return instance.raw();
+  if (instance.IsNull()) return instance.ptr();
 
   return instance.Canonicalize(thread());
 }
@@ -602,7 +602,7 @@ FieldPtr TranslationHelper::LookupFieldByKernelField(NameIndex kernel_field) {
       Z, klass.LookupFieldAllowPrivate(
              DartSymbolObfuscate(CanonicalNameString(kernel_field))));
   CheckStaticLookup(field);
-  return field.raw();
+  return field.ptr();
 }
 
 FunctionPtr TranslationHelper::LookupStaticMethodByKernelProcedure(
@@ -618,7 +618,7 @@ FunctionPtr TranslationHelper::LookupStaticMethodByKernelProcedure(
     Function& function =
         Function::Handle(Z, library.LookupFunctionAllowPrivate(procedure_name));
     CheckStaticLookup(function);
-    return function.raw();
+    return function.ptr();
   } else {
     ASSERT(IsClass(enclosing));
     Class& klass = Class::Handle(Z, LookupClassByKernelClass(enclosing));
@@ -627,7 +627,7 @@ FunctionPtr TranslationHelper::LookupStaticMethodByKernelProcedure(
     Function& function = Function::ZoneHandle(
         Z, klass.LookupFunctionAllowPrivate(procedure_name));
     CheckStaticLookup(function);
-    return function.raw();
+    return function.ptr();
   }
 }
 
@@ -649,7 +649,7 @@ FunctionPtr TranslationHelper::LookupConstructorByKernelConstructor(
   Function& function = Function::Handle(
       Z, owner.LookupConstructorAllowPrivate(DartConstructorName(constructor)));
   CheckStaticLookup(function);
-  return function.raw();
+  return function.ptr();
 }
 
 FunctionPtr TranslationHelper::LookupConstructorByKernelConstructor(
@@ -686,13 +686,13 @@ FunctionPtr TranslationHelper::LookupMethodByMember(NameIndex target,
 #endif
   CheckStaticLookup(function);
   ASSERT(!function.IsNull());
-  return function.raw();
+  return function.ptr();
 }
 
 FunctionPtr TranslationHelper::LookupDynamicFunction(const Class& klass,
                                                      const String& name) {
   // Search the superclass chain for the selector.
-  Class& iterate_klass = Class::Handle(Z, klass.raw());
+  Class& iterate_klass = Class::Handle(Z, klass.ptr());
   while (!iterate_klass.IsNull()) {
     FunctionPtr function =
         iterate_klass.LookupDynamicFunctionAllowPrivate(name);
@@ -2870,7 +2870,7 @@ ActiveTypeParametersScope::ActiveTypeParametersScope(
 
   Function& f = Function::Handle(Z);
   TypeArguments& f_params = TypeArguments::Handle(Z);
-  for (f = innermost.raw(); f.parent_function() != Object::null();
+  for (f = innermost.ptr(); f.parent_function() != Object::null();
        f = f.parent_function()) {
     f_params = f.type_parameters();
     num_params += f_params.Length();
@@ -2881,7 +2881,7 @@ ActiveTypeParametersScope::ActiveTypeParametersScope(
       TypeArguments::Handle(Z, TypeArguments::New(num_params));
 
   intptr_t index = num_params;
-  for (f = innermost.raw(); f.parent_function() != Object::null();
+  for (f = innermost.ptr(); f.parent_function() != Object::null();
        f = f.parent_function()) {
     f_params = f.type_parameters();
     for (intptr_t j = f_params.Length() - 1; j >= 0; --j) {
@@ -2943,7 +2943,7 @@ AbstractType& TypeTranslator::BuildType() {
 
   // We return a new `ZoneHandle` here on purpose: The intermediate language
   // instructions do not make a copy of the handle, so we do it.
-  return AbstractType::ZoneHandle(Z, result_.raw());
+  return AbstractType::ZoneHandle(Z, result_.ptr());
 }
 
 AbstractType& TypeTranslator::BuildTypeWithoutFinalization() {
@@ -2954,7 +2954,7 @@ AbstractType& TypeTranslator::BuildTypeWithoutFinalization() {
 
   // We return a new `ZoneHandle` here on purpose: The intermediate language
   // instructions do not make a copy of the handle, so we do it.
-  return AbstractType::ZoneHandle(Z, result_.raw());
+  return AbstractType::ZoneHandle(Z, result_.ptr());
 }
 
 void TypeTranslator::BuildTypeInternal() {
@@ -2962,10 +2962,10 @@ void TypeTranslator::BuildTypeInternal() {
   switch (tag) {
     case kInvalidType:
     case kDynamicType:
-      result_ = Object::dynamic_type().raw();
+      result_ = Object::dynamic_type().ptr();
       break;
     case kVoidType:
-      result_ = Object::void_type().raw();
+      result_ = Object::void_type().ptr();
       break;
     case kNeverType: {
       Nullability nullability = helper_->ReadNullability();
@@ -3140,7 +3140,7 @@ void TypeTranslator::BuildFunctionType(bool simple) {
     signature ^= ClassFinalizer::FinalizeType(signature);
   }
 
-  result_ = signature.raw();
+  result_ = signature.ptr();
 }
 
 void TypeTranslator::BuildTypeParameterType() {
@@ -3356,7 +3356,7 @@ void TypeTranslator::LoadAndSetupTypeParameters(
         // Erase provided name and use a canonical one instead.
         name = Symbols::NewFormatted(H.thread(), "X%" Pd, offset + i);
       } else {
-        name = H.DartIdentifier(lib, helper.name_index_).raw();
+        name = H.DartIdentifier(lib, helper.name_index_).ptr();
       }
       parameter = TypeParameter::New(
           parameterized_class, offset, offset + i, name, null_bound,
@@ -3401,7 +3401,7 @@ void TypeTranslator::LoadAndSetupTypeParameters(
       derived ^= active_class->derived_type_parameters->At(i);
       if (derived.bound() == AbstractType::null() &&
           ((!parameterized_class.IsNull() &&
-            derived.parameterized_class() == parameterized_class.raw()) ||
+            derived.parameterized_class() == parameterized_class.ptr()) ||
            (!parameterized_signature.IsNull() &&
             derived.parameterized_class() == Class::null() &&
             derived.index() >= offset &&

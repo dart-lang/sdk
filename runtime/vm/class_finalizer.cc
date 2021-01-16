@@ -84,7 +84,7 @@ static void AddSuperType(const AbstractType& type,
 static void CollectFinalizedSuperClasses(
     const Class& cls_,
     GrowableArray<intptr_t>* finalized_super_classes) {
-  Class& cls = Class::Handle(cls_.raw());
+  Class& cls = Class::Handle(cls_.ptr());
   AbstractType& super_type = Type::Handle();
   super_type = cls.super_type();
   if (!super_type.IsNull()) {
@@ -117,7 +117,7 @@ class InterfaceFinder {
     ScopedHandle<Class> current_class(&class_handles_);
     ScopedHandle<AbstractType> type(&type_handles_);
 
-    *current_class = klass.raw();
+    *current_class = klass.ptr();
     while (true) {
       // We don't care about top types.
       const intptr_t cid = current_class->id();
@@ -361,8 +361,8 @@ void ClassFinalizer::CheckRecursiveType(const AbstractType& type,
                 String::Handle(pending_type.Name()).ToCString(),
                 pending_type.ToCString());
     }
-    if ((pending_type.raw() != type.raw()) && pending_type.IsType() &&
-        (pending_type.type_class() == type_cls.raw())) {
+    if ((pending_type.ptr() != type.ptr()) && pending_type.IsType() &&
+        (pending_type.type_class() == type_cls.ptr())) {
       pending_arguments = pending_type.arguments();
       // By using TypeEquality::kInSubtypeTest, we throw a wider net than
       // using canonical or syntactical equality and may reject more
@@ -589,7 +589,7 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
           // While finalizing D<T>, the super type arg D<T> (a typeref) gets
           // instantiated from vector [T], yielding itself.
           if (super_type_arg.IsTypeRef() &&
-              (super_type_arg.arguments() == arguments.raw())) {
+              (super_type_arg.arguments() == arguments.ptr())) {
             ASSERT(super_type_arg.IsBeingFinalized());
             arguments.SetTypeAt(i, super_type_arg);
             continue;
@@ -607,7 +607,7 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
               unfinalized_type = TypeRef::Cast(super_type_arg).type();
             } else {
               ASSERT(super_type_arg.IsType());
-              unfinalized_type = super_type_arg.raw();
+              unfinalized_type = super_type_arg.ptr();
             }
             if (FLAG_trace_type_finalization) {
               THR_Print("Instantiated unfinalized '%s': '%s'\n",
@@ -660,19 +660,19 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
         !type.IsBeingFinalized()) {
       return type.Canonicalize(Thread::Current(), nullptr);
     }
-    return type.raw();
+    return type.ptr();
   }
 
   if (type.IsTypeRef()) {
     // The referenced type will be finalized later by the code that set the
     // is_being_finalized mark bit.
-    return type.raw();
+    return type.ptr();
   }
 
   if (type.IsTypeParameter() && type.IsBeingFinalized()) {
     // The base and index have already been adjusted, but the bound referring
     // back to the type parameter is still being finalized.
-    return type.raw();
+    return type.ptr();
   }
 
   // Recursive types must be processed in FinalizeTypeArguments() and cannot be
@@ -732,7 +732,7 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
     if (finalization >= kCanonicalize) {
       return type_parameter.Canonicalize(thread, nullptr);
     }
-    return type_parameter.raw();
+    return type_parameter.ptr();
   }
 
   // If the type is a function type, we also need to finalize the types in its
@@ -781,11 +781,11 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
           AbstractType::Handle(zone, type.Canonicalize(thread, nullptr));
       THR_Print("Done canonicalizing type '%s'\n",
                 String::Handle(zone, canonical_type.Name()).ToCString());
-      return canonical_type.raw();
+      return canonical_type.ptr();
     }
     return type.Canonicalize(thread, nullptr);
   } else {
-    return type.raw();
+    return type.ptr();
   }
 }
 
@@ -804,7 +804,7 @@ AbstractTypePtr ClassFinalizer::FinalizeSignature(Zone* zone,
     for (intptr_t i = 0; i < num_type_params; i++) {
       type_param ^= type_params.TypeAt(i);
       finalized_type ^= FinalizeType(type_param, kFinalize, pending_types);
-      if (type_param.raw() != finalized_type.raw()) {
+      if (type_param.ptr() != finalized_type.ptr()) {
         type_params.SetTypeAt(i, TypeParameter::Cast(finalized_type));
       }
     }
@@ -813,7 +813,7 @@ AbstractTypePtr ClassFinalizer::FinalizeSignature(Zone* zone,
   // Finalize result type.
   type = signature.result_type();
   finalized_type = FinalizeType(type, kFinalize, pending_types);
-  if (finalized_type.raw() != type.raw()) {
+  if (finalized_type.ptr() != type.ptr()) {
     signature.set_result_type(finalized_type);
   }
   // Finalize formal parameter types.
@@ -821,7 +821,7 @@ AbstractTypePtr ClassFinalizer::FinalizeSignature(Zone* zone,
   for (intptr_t i = 0; i < num_parameters; i++) {
     type = signature.ParameterTypeAt(i);
     finalized_type = FinalizeType(type, kFinalize, pending_types);
-    if (type.raw() != finalized_type.raw()) {
+    if (type.ptr() != finalized_type.ptr()) {
       signature.SetParameterTypeAt(i, finalized_type);
     }
   }
@@ -835,7 +835,7 @@ AbstractTypePtr ClassFinalizer::FinalizeSignature(Zone* zone,
   if (finalization >= kCanonicalize) {
     return signature.Canonicalize(Thread::Current(), nullptr);
   }
-  return signature.raw();
+  return signature.ptr();
 }
 
 #if defined(TARGET_ARCH_X64)
@@ -930,7 +930,7 @@ static void MarkImplemented(Zone* zone, const Class& iface) {
     return;
   }
 
-  Class& cls = Class::Handle(zone, iface.raw());
+  Class& cls = Class::Handle(zone, iface.ptr());
   AbstractType& type = AbstractType::Handle(zone);
 
   while (!cls.is_implemented()) {
@@ -967,7 +967,7 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   }
   // Finalize type parameters before finalizing the super type.
   FinalizeTypeParameters(cls, kFinalize);
-  ASSERT(super_class.raw() == cls.SuperClass());  // Not modified.
+  ASSERT(super_class.ptr() == cls.SuperClass());  // Not modified.
   ASSERT(super_class.IsNull() || super_class.is_type_finalized());
   FinalizeTypeParameters(cls, kCanonicalize);
   // Finalize super type.
@@ -1189,7 +1189,7 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
   for (intptr_t i = 0; i < fields.Length(); i++) {
     field = Field::RawCast(fields.At(i));
     if (!field.is_static() || !field.is_const() ||
-        (sentinel.raw() == field.raw())) {
+        (sentinel.ptr() == field.ptr())) {
       continue;
     }
     // Hot-reload expects the static const fields to be evaluated when
@@ -1405,25 +1405,25 @@ class CidRewriteVisitor : public ObjectVisitor {
   void VisitObject(ObjectPtr obj) {
     if (obj->IsClass()) {
       ClassPtr cls = Class::RawCast(obj);
-      const classid_t old_cid = cls->ptr()->id_;
+      const classid_t old_cid = cls->untag()->id_;
       if (ClassTable::IsTopLevelCid(old_cid)) {
         // We don't remap cids of top level classes.
         return;
       }
-      cls->ptr()->id_ = Map(old_cid);
+      cls->untag()->id_ = Map(old_cid);
     } else if (obj->IsField()) {
       FieldPtr field = Field::RawCast(obj);
-      field->ptr()->guarded_cid_ = Map(field->ptr()->guarded_cid_);
-      field->ptr()->is_nullable_ = Map(field->ptr()->is_nullable_);
+      field->untag()->guarded_cid_ = Map(field->untag()->guarded_cid_);
+      field->untag()->is_nullable_ = Map(field->untag()->is_nullable_);
     } else if (obj->IsTypeParameter()) {
       TypeParameterPtr param = TypeParameter::RawCast(obj);
-      param->ptr()->parameterized_class_id_ =
-          Map(param->ptr()->parameterized_class_id_);
+      param->untag()->parameterized_class_id_ =
+          Map(param->untag()->parameterized_class_id_);
     } else if (obj->IsType()) {
       TypePtr type = Type::RawCast(obj);
-      ObjectPtr id = type->ptr()->type_class_id_;
+      ObjectPtr id = type->untag()->type_class_id_;
       if (!id->IsHeapObject()) {
-        type->ptr()->type_class_id_ =
+        type->untag()->type_class_id_ =
             Smi::New(Map(Smi::Value(Smi::RawCast(id))));
       }
     } else {
@@ -1432,7 +1432,7 @@ class CidRewriteVisitor : public ObjectVisitor {
       if (old_cid != new_cid) {
         // Don't touch objects that are unchanged. In particular, Instructions,
         // which are write-protected.
-        obj->ptr()->SetClassIdUnsynchronized(new_cid);
+        obj->untag()->SetClassIdUnsynchronized(new_cid);
       }
     }
   }
@@ -1490,13 +1490,13 @@ void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
 // In the Dart VM heap the following instances directly use cids for the
 // computation of canonical hash codes:
 //
-//    * TypePtr (due to TypeLayout::type_class_id_)
-//    * TypeParameterPtr (due to TypeParameterLayout::parameterized_class_id_)
+//    * TypePtr (due to UntaggedType::type_class_id_)
+//    * TypeParameterPtr (due to UntaggedTypeParameter::parameterized_class_id_)
 //
 // The following instances use cids for the computation of canonical hash codes
 // indirectly:
 //
-//    * TypeRefPtr (due to TypeRefLayout::type_->type_class_id)
+//    * TypeRefPtr (due to UntaggedTypeRef::type_->type_class_id)
 //    * TypePtr (due to type arguments)
 //    * FunctionTypePtr (due to the result and parameter types)
 //    * TypeArgumentsPtr (due to type references)
@@ -1505,17 +1505,17 @@ void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
 //
 // Caching of the canonical hash codes happens for:
 //
-//    * TypeLayout::hash_
-//    * FunctionTypeLayout::hash_
-//    * TypeParameterLayout::hash_
-//    * TypeArgumentsLayout::hash_
-//    * RawInstance (weak table)
-//    * RawArray (weak table)
+//    * UntaggedType::hash_
+//    * UntaggedFunctionType::hash_
+//    * UntaggedTypeParameter::hash_
+//    * UntaggedTypeArguments::hash_
+//    * InstancePtr (weak table)
+//    * ArrayPtr (weak table)
 //
 // No caching of canonical hash codes (i.e. it gets re-computed every time)
 // happens for:
 //
-//    * TypeRefPtr (computed via TypeRefLayout::type_->type_class_id)
+//    * TypeRefPtr (computed via UntaggedTypeRef::type_->type_class_id)
 //
 // Usages of canonical hash codes are:
 //

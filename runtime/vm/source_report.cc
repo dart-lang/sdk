@@ -76,7 +76,7 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
   }
 
   if (script_ != NULL && !script_->IsNull()) {
-    if (func.script() != script_->raw()) {
+    if (func.script() != script_->ptr()) {
       // The function is from the wrong script.
       return true;
     }
@@ -90,14 +90,14 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
   if (func.ForceOptimize()) return true;
 
   switch (func.kind()) {
-    case FunctionLayout::kRegularFunction:
-    case FunctionLayout::kClosureFunction:
-    case FunctionLayout::kImplicitClosureFunction:
-    case FunctionLayout::kImplicitStaticGetter:
-    case FunctionLayout::kFieldInitializer:
-    case FunctionLayout::kGetterFunction:
-    case FunctionLayout::kSetterFunction:
-    case FunctionLayout::kConstructor:
+    case UntaggedFunction::kRegularFunction:
+    case UntaggedFunction::kClosureFunction:
+    case UntaggedFunction::kImplicitClosureFunction:
+    case UntaggedFunction::kImplicitStaticGetter:
+    case UntaggedFunction::kFieldInitializer:
+    case UntaggedFunction::kGetterFunction:
+    case UntaggedFunction::kSetterFunction:
+    case UntaggedFunction::kConstructor:
       break;
     default:
       return true;
@@ -123,7 +123,7 @@ bool SourceReport::ShouldSkipField(const Field& field) {
   }
 
   if (script_ != NULL && !script_->IsNull()) {
-    if (field.Script() != script_->raw()) {
+    if (field.Script() != script_->ptr()) {
       // The field is from the wrong script.
       return true;
     }
@@ -140,7 +140,7 @@ intptr_t SourceReport::GetScriptIndex(const Script& script) {
   ScriptTableEntry wrapper;
   const String& url = String::Handle(zone(), script.url());
   wrapper.key = &url;
-  wrapper.script = &Script::Handle(zone(), script.raw());
+  wrapper.script = &Script::Handle(zone(), script.ptr());
   ScriptTableEntry* pair = script_table_.LookupValue(&wrapper);
   if (pair != NULL) {
     return pair->index;
@@ -169,7 +169,7 @@ void SourceReport::VerifyScriptTable() {
     ASSERT(url2.Equals(*url));
     ScriptTableEntry wrapper;
     wrapper.key = &url2;
-    wrapper.script = &Script::Handle(zone(), script->raw());
+    wrapper.script = &Script::Handle(zone(), script->ptr());
     ScriptTableEntry* pair = script_table_.LookupValue(&wrapper);
     ASSERT(i == pair->index);
   }
@@ -180,7 +180,7 @@ bool SourceReport::ScriptIsLoadedByLibrary(const Script& script,
                                            const Library& lib) {
   const Array& scripts = Array::Handle(zone(), lib.LoadedScripts());
   for (intptr_t j = 0; j < scripts.Length(); j++) {
-    if (scripts.At(j) == script.raw()) {
+    if (scripts.At(j) == script.ptr()) {
       return true;
     }
   }
@@ -203,7 +203,7 @@ void SourceReport::PrintCallSitesData(JSONObject* jsobj,
 
   PcDescriptors::Iterator iter(
       descriptors,
-      PcDescriptorsLayout::kIcCall | PcDescriptorsLayout::kUnoptStaticCall);
+      UntaggedPcDescriptors::kIcCall | UntaggedPcDescriptors::kUnoptStaticCall);
   while (iter.MoveNext()) {
     HANDLESCOPE(thread());
     ASSERT(iter.DeoptId() < ic_data_array->length());
@@ -251,7 +251,7 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
 
   PcDescriptors::Iterator iter(
       descriptors,
-      PcDescriptorsLayout::kIcCall | PcDescriptorsLayout::kUnoptStaticCall);
+      UntaggedPcDescriptors::kIcCall | UntaggedPcDescriptors::kUnoptStaticCall);
   while (iter.MoveNext()) {
     HANDLESCOPE(thread());
     ASSERT(iter.DeoptId() < ic_data_array->length());
@@ -306,9 +306,9 @@ void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
 
   ASSERT(!code.IsNull());
 
-  const uint8_t kSafepointKind =
-      (PcDescriptorsLayout::kIcCall | PcDescriptorsLayout::kUnoptStaticCall |
-       PcDescriptorsLayout::kRuntimeCall);
+  const uint8_t kSafepointKind = (UntaggedPcDescriptors::kIcCall |
+                                  UntaggedPcDescriptors::kUnoptStaticCall |
+                                  UntaggedPcDescriptors::kRuntimeCall);
 
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(zone(), code.pc_descriptors());
@@ -505,7 +505,7 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
     for (int i = 0; i < functions.Length(); i++) {
       func ^= functions.At(i);
       // Skip getter functions of static const field.
-      if (func.kind() == FunctionLayout::kImplicitStaticGetter) {
+      if (func.kind() == UntaggedFunction::kImplicitStaticGetter) {
         field ^= func.accessor_field();
         if (field.is_const() && field.is_static()) {
           continue;
@@ -589,7 +589,7 @@ void SourceReport::CollectAllScripts(
       scriptRef ^= scripts.At(j);
       const String& url = String::Handle(zone(), scriptRef.url());
       wrapper.key = &url;
-      wrapper.script = &Script::Handle(zone(), scriptRef.raw());
+      wrapper.script = &Script::Handle(zone(), scriptRef.ptr());
       ScriptTableEntry* pair = local_script_table->LookupValue(&wrapper);
       if (pair != NULL) {
         // Existing one.

@@ -96,8 +96,8 @@ CodePtr TypeTestingStubGenerator::DefaultCodeForType(
 
   if (type.IsTypeRef()) {
     return isolate_group->use_strict_null_safety_checks()
-               ? StubCode::DefaultTypeTest().raw()
-               : StubCode::DefaultNullableTypeTest().raw();
+               ? StubCode::DefaultTypeTest().ptr()
+               : StubCode::DefaultNullableTypeTest().ptr();
   }
 
   // During bootstrapping we have no access to stubs yet, so we'll just return
@@ -110,36 +110,36 @@ CodePtr TypeTestingStubGenerator::DefaultCodeForType(
   }
 
   if (type.IsTopTypeForSubtyping()) {
-    return StubCode::TopTypeTypeTest().raw();
+    return StubCode::TopTypeTypeTest().ptr();
   }
   if (type.IsTypeParameter()) {
     const bool nullable = Instance::NullIsAssignableTo(type);
     if (nullable) {
-      return StubCode::NullableTypeParameterTypeTest().raw();
+      return StubCode::NullableTypeParameterTypeTest().ptr();
     } else {
-      return StubCode::TypeParameterTypeTest().raw();
+      return StubCode::TypeParameterTypeTest().ptr();
     }
   }
 
   if (type.IsFunctionType()) {
     const bool nullable = Instance::NullIsAssignableTo(type);
-    return nullable ? StubCode::DefaultNullableTypeTest().raw()
-                    : StubCode::DefaultTypeTest().raw();
+    return nullable ? StubCode::DefaultNullableTypeTest().ptr()
+                    : StubCode::DefaultTypeTest().ptr();
   }
 
   if (type.IsType()) {
     const bool should_specialize = !FLAG_precompiled_mode && lazy_specialize;
     const bool nullable = Instance::NullIsAssignableTo(type);
     if (should_specialize) {
-      return nullable ? StubCode::LazySpecializeNullableTypeTest().raw()
-                      : StubCode::LazySpecializeTypeTest().raw();
+      return nullable ? StubCode::LazySpecializeNullableTypeTest().ptr()
+                      : StubCode::LazySpecializeTypeTest().ptr();
     } else {
-      return nullable ? StubCode::DefaultNullableTypeTest().raw()
-                      : StubCode::DefaultTypeTest().raw();
+      return nullable ? StubCode::DefaultNullableTypeTest().ptr()
+                      : StubCode::DefaultTypeTest().ptr();
     }
   }
 
-  return StubCode::UnreachableTypeTest().raw();
+  return StubCode::UnreachableTypeTest().ptr();
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -167,7 +167,7 @@ CodePtr TypeTestingStubGenerator::OptimizedCodeForType(
   }
 
   if (type.IsTopTypeForSubtyping()) {
-    return StubCode::TopTypeTypeTest().raw();
+    return StubCode::TopTypeTypeTest().ptr();
   }
 
   if (type.IsCanonical()) {
@@ -176,7 +176,7 @@ CodePtr TypeTestingStubGenerator::OptimizedCodeForType(
       const Code& code = Code::Handle(
           TypeTestingStubGenerator::BuildCodeForType(Type::Cast(type)));
       if (!code.IsNull()) {
-        return code.raw();
+        return code.ptr();
       }
 
       // Fall back to default.
@@ -263,7 +263,7 @@ CodePtr TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
   }
 #endif  // !PRODUCT
 
-  return code.raw();
+  return code.ptr();
 }
 
 void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
@@ -548,7 +548,7 @@ void RegisterTypeArgumentsUse(const Function& function,
     const Object& object = constant->value();
     ASSERT(object.IsNull() || object.IsTypeArguments());
     const TypeArguments& type_arguments =
-        TypeArguments::Handle(TypeArguments::RawCast(object.raw()));
+        TypeArguments::Handle(TypeArguments::RawCast(object.ptr()));
     type_usage_info->UseTypeArgumentsInInstanceCreation(klass, type_arguments);
   } else if (InstantiateTypeArgumentsInstr* instantiate =
                  type_arguments->AsInstantiateTypeArguments()) {
@@ -681,7 +681,7 @@ AbstractTypePtr TypeArgumentInstantiator::InstantiateType(
     return nullptr;
   } else if (type.IsType()) {
     if (type.IsInstantiated() || type.arguments() == TypeArguments::null()) {
-      return type.raw();
+      return type.ptr();
     }
 
     const Type& from = Type::Cast(type);
@@ -698,7 +698,7 @@ AbstractTypePtr TypeArgumentInstantiator::InstantiateType(
     to->SetIsFinalized();
     *to ^= to->Canonicalize(Thread::Current(), nullptr);
 
-    return to->raw();
+    return to->ptr();
   }
   UNREACHABLE();
   return NULL;
@@ -753,12 +753,12 @@ void TypeUsageInfo::UseTypeArgumentsInInstanceCreation(
       return;
     }
 
-    klass_ = klass.raw();
+    klass_ = klass.ptr();
     while (klass_.NumTypeArguments() > 0) {
       const intptr_t cid = klass_.id();
       TypeArgumentsSet& set = instance_creation_arguments_[cid];
       if (!set.HasKey(&ta)) {
-        set.Insert(&TypeArguments::ZoneHandle(zone_, ta.raw()));
+        set.Insert(&TypeArguments::ZoneHandle(zone_, ta.ptr()));
       }
       klass_ = klass_.SuperClass();
     }
@@ -819,7 +819,7 @@ void TypeUsageInfo::PropagateTypeArguments(ClassTable* class_table,
           if (!klass.IsNull()) {
             // We know that "klass<type_arguments[0:N]>" happens inside
             // [enclosing_class].
-            if (enclosing_class.raw() != klass.raw()) {
+            if (enclosing_class.ptr() != klass.ptr()) {
               // Now we try to instantiate [type_arguments] with all the known
               // instantiator type argument vectors of the [enclosing_class].
               const intptr_t enclosing_class_cid = enclosing_class.id();
@@ -862,7 +862,7 @@ void TypeUsageInfo::PropagateTypeArguments(ClassTable* class_table,
                 TypeArguments::RawCast(delayed_type_argument_set.At(i));
             if (!type_argument_set.HasKey(&temp_type_arguments)) {
               type_argument_set.Insert(
-                  &TypeArguments::ZoneHandle(zone_, temp_type_arguments.raw()));
+                  &TypeArguments::ZoneHandle(zone_, temp_type_arguments.ptr()));
             }
           }
           klass = klass.SuperClass();
@@ -934,16 +934,16 @@ void TypeUsageInfo::AddToSetIfParameter(TypeParameterSet* set,
                                         const AbstractType* type,
                                         TypeParameter* param) {
   if (type->IsTypeParameter()) {
-    *param ^= type->raw();
+    *param ^= type->ptr();
     if (!param->IsNull() && !set->HasKey(param)) {
-      set->Insert(&TypeParameter::Handle(zone_, param->raw()));
+      set->Insert(&TypeParameter::Handle(zone_, param->ptr()));
     }
   }
 }
 
 void TypeUsageInfo::AddTypeToSet(TypeSet* set, const AbstractType* type) {
   if (!set->HasKey(type)) {
-    set->Insert(&AbstractType::ZoneHandle(zone_, type->raw()));
+    set->Insert(&AbstractType::ZoneHandle(zone_, type->ptr()));
   }
 }
 

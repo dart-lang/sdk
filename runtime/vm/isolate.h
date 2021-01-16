@@ -712,7 +712,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   friend class Dart;  // For `object_store_ = ` in Dart::Init
   friend class Heap;
   friend class StackFrame;  // For `[isolates_].First()`.
-  // For `object_store_shared_ptr()`, `class_table_shared_ptr()`
+  // For `object_store_shared_untag()`, `class_table_shared_untag()`
   friend class Isolate;
 
 #define ISOLATE_GROUP_FLAG_BITS(V)                                             \

@@ -34,8 +34,8 @@ FunctionPtr ClosureFunctionsCache::LookupClosureFunctionLocked(
   intptr_t num_closures = closures.Length();
   for (intptr_t i = 0; i < num_closures; i++) {
     closure ^= closures.At(i);
-    if (closure.token_pos() == token_pos && closure.Owner() == owner.raw()) {
-      return closure.raw();
+    if (closure.token_pos() == token_pos && closure.Owner() == owner.ptr()) {
+      return closure.ptr();
     }
   }
   return Function::null();
@@ -66,8 +66,8 @@ FunctionPtr ClosureFunctionsCache::LookupClosureFunctionLocked(
   for (intptr_t i = 0; i < num_closures; i++) {
     closure ^= closures.At(i);
     if (closure.token_pos() == token_pos &&
-        closure.parent_function() == parent.raw()) {
-      return closure.raw();
+        closure.parent_function() == parent.ptr()) {
+      return closure.ptr();
     }
   }
   return Function::null();
@@ -101,7 +101,7 @@ intptr_t ClosureFunctionsCache::FindClosureIndex(const Function& needle) {
       GrowableObjectArray::Handle(zone, object_store->closure_functions());
   intptr_t num_closures = closures_array.Length();
   for (intptr_t i = 0; i < num_closures; i++) {
-    if (closures_array.At(i) == needle.raw()) {
+    if (closures_array.At(i) == needle.ptr()) {
       return i;
     }
   }
@@ -136,15 +136,15 @@ FunctionPtr ClosureFunctionsCache::GetUniqueInnerClosure(
   auto& entry = Function::Handle(zone);
   for (intptr_t i = (closures.Length() - 1); i >= 0; i--) {
     entry ^= closures.At(i);
-    if (entry.parent_function() == outer.raw()) {
+    if (entry.parent_function() == outer.ptr()) {
 #if defined(DEBUG)
       auto& other = Function::Handle(zone);
       for (intptr_t j = i - 1; j >= 0; j--) {
         other ^= closures.At(j);
-        ASSERT(other.parent_function() != outer.raw());
+        ASSERT(other.parent_function() != outer.ptr());
       }
 #endif
-      return entry.raw();
+      return entry.ptr();
     }
   }
   return Function::null();

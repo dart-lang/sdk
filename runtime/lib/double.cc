@@ -134,13 +134,13 @@ DEFINE_NATIVE_ENTRY(Double_greaterThan, 0, 2) {
     OS::PrintErr("Double_greaterThan %s > %s\n", left.ToCString(),
                  right.ToCString());
   }
-  return Bool::Get(result).raw();
+  return Bool::Get(result).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(Double_greaterThanFromInteger, 0, 2) {
   const Double& right = Double::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, left, arguments->NativeArgAt(1));
-  return Bool::Get(left.AsDoubleValue() > right.value()).raw();
+  return Bool::Get(left.AsDoubleValue() > right.value()).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(Double_equal, 0, 2) {
@@ -151,13 +151,13 @@ DEFINE_NATIVE_ENTRY(Double_equal, 0, 2) {
     OS::PrintErr("Double_equal %s == %s\n", left.ToCString(),
                  right.ToCString());
   }
-  return Bool::Get(result).raw();
+  return Bool::Get(result).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(Double_equalToInteger, 0, 2) {
   const Double& left = Double::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, right, arguments->NativeArgAt(1));
-  return Bool::Get(left.value() == right.AsDoubleValue()).raw();
+  return Bool::Get(left.value() == right.AsDoubleValue()).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(Double_round, 0, 1) {
@@ -264,19 +264,19 @@ DEFINE_NATIVE_ENTRY(Double_toStringAsPrecision, 0, 2) {
 
 DEFINE_NATIVE_ENTRY(Double_getIsInfinite, 0, 1) {
   const Double& arg = Double::CheckedHandle(zone, arguments->NativeArgAt(0));
-  return Bool::Get(isinf(arg.value())).raw();
+  return Bool::Get(isinf(arg.value())).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(Double_getIsNaN, 0, 1) {
   const Double& arg = Double::CheckedHandle(zone, arguments->NativeArgAt(0));
-  return Bool::Get(isnan(arg.value())).raw();
+  return Bool::Get(isnan(arg.value())).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(Double_getIsNegative, 0, 1) {
   const Double& arg = Double::CheckedHandle(zone, arguments->NativeArgAt(0));
   // Include negative zero, infinity.
   double dval = arg.value();
-  return Bool::Get(signbit(dval) && !isnan(dval)).raw();
+  return Bool::Get(signbit(dval) && !isnan(dval)).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(Double_flipSignBit, 0, 1) {

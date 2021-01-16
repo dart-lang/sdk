@@ -20,7 +20,7 @@ const Function& RegisterFakeFunction(const char* name, const Code& code) {
   const String& function_name = String::ZoneHandle(Symbols::New(thread, name));
   const FunctionType& signature = FunctionType::ZoneHandle(FunctionType::New());
   Function& function = Function::ZoneHandle(Function::New(
-      signature, function_name, FunctionLayout::kRegularFunction, true, false,
+      signature, function_name, UntaggedFunction::kRegularFunction, true, false,
       false, false, false, owner_class, TokenPosition::kNoSource));
   const Array& functions = Array::Handle(Array::New(1));
   functions.SetAt(0, function);

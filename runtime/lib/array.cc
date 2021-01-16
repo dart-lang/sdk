@@ -85,7 +85,7 @@ DEFINE_NATIVE_ENTRY(ImmutableList_from, 0, 4) {
     result.SetAt(i, temp);
   }
   result.MakeImmutable();
-  return result.raw();
+  return result.ptr();
 }
 
 }  // namespace dart

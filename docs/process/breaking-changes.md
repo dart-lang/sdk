@@ -96,8 +96,8 @@ After the breaking change had been made, the person who made the change must:
 
 * Resolve the breaking change issue and make a note that the change has landed
 
-* Make a note in the [Dart SDK changelog](`changelog.md`) detailing the change.
-  This must be prefixed `** Breaking change:`.
+* Make a note in the [Dart SDK changelog](../../CHANGELOG.md) detailing the change.
+  This must be prefixed `**Breaking Change**`.
 
 * Reply to the original announcement email, and make a note that the change is
   being implemented.

@@ -393,7 +393,7 @@ void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
   } else if ((is_simple_instance_of || (instance_of != NULL)) &&
              comparison->InputAt(1)->BindsToConstant() &&
              comparison->InputAt(1)->BoundConstant().IsBool()) {
-    if (comparison->InputAt(1)->BoundConstant().raw() == Bool::False().raw()) {
+    if (comparison->InputAt(1)->BoundConstant().ptr() == Bool::False().ptr()) {
       negated = !negated;
     }
     BlockEntryInstr* true_successor =
@@ -863,7 +863,7 @@ static bool CanPotentiallyBeSmi(const AbstractType& type, bool recurse) {
     // *not* assignable to it (because int implements Comparable<num> and not
     // Comparable<int>).
     if (type.IsFutureOrType() ||
-        type.type_class() == CompilerState::Current().ComparableClass().raw()) {
+        type.type_class() == CompilerState::Current().ComparableClass().ptr()) {
       const auto& args = TypeArguments::Handle(Type::Cast(type).arguments());
       const auto& arg0 = AbstractType::Handle(args.TypeAt(0));
       return !recurse || CanPotentiallyBeSmi(arg0, /*recurse=*/true);
@@ -1146,7 +1146,7 @@ CompileType ParameterInstr::ComputeType() const {
     // Do not trust static parameter type of 'operator ==' as it is a
     // non-nullable Object but VM handles comparison with null in
     // the callee, so 'operator ==' can take null as an argument.
-    if ((function.name() != Symbols::EqualOperator().raw()) &&
+    if ((function.name() != Symbols::EqualOperator().ptr()) &&
         (param->was_type_checked_by_caller() ||
          (is_unchecked_entry_param &&
           !param->is_explicit_covariant_parameter()))) {
@@ -1500,7 +1500,7 @@ CompileType LoadClassIdInstr::ComputeType() const {
 CompileType LoadFieldInstr::ComputeType() const {
   const AbstractType& field_type = slot().static_type();
   CompileType compile_type_cid = slot().ComputeCompileType();
-  if (field_type.raw() == AbstractType::null()) {
+  if (field_type.ptr() == AbstractType::null()) {
     return compile_type_cid;
   }
 
@@ -1749,7 +1749,7 @@ static AbstractTypePtr ExtractElementTypeFromArrayType(
         AbstractType::Handle(TypeParameter::Cast(array_type).bound()));
   }
   if (!array_type.IsType()) {
-    return Object::dynamic_type().raw();
+    return Object::dynamic_type().ptr();
   }
   const intptr_t cid = array_type.type_class_id();
   if (cid == kGrowableObjectArrayCid || cid == kArrayCid ||
@@ -1759,7 +1759,7 @@ static AbstractTypePtr ExtractElementTypeFromArrayType(
     const auto& type_args = TypeArguments::Handle(array_type.arguments());
     return type_args.TypeAtNullSafe(Array::kElementTypeTypeArgPos);
   }
-  return Object::dynamic_type().raw();
+  return Object::dynamic_type().ptr();
 }
 
 static AbstractTypePtr GetElementTypeFromArray(Value* array) {
@@ -1770,7 +1770,7 @@ static AbstractTypePtr GetElementTypeFromArray(Value* array) {
     auto& elem_type = AbstractType::Handle(ExtractElementTypeFromArrayType(
         *(array->definition()->Type()->ToAbstractType())));
     if (!elem_type.IsDynamicType()) {
-      return elem_type.raw();
+      return elem_type.ptr();
     }
   }
   return ExtractElementTypeFromArrayType(*(array->Type()->ToAbstractType()));

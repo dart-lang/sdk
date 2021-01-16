@@ -25,7 +25,7 @@ class CounterVisitor : public ObjectGraph::Visitor {
       return kBacktrack;
     }
     ++count_;
-    size_ += obj->ptr()->HeapSize();
+    size_ += obj->untag()->HeapSize();
     return kProceed;
   }
 
@@ -55,14 +55,14 @@ ISOLATE_UNIT_TEST_CASE(ObjectGraph) {
   b.SetAt(0, c);
   b.SetAt(1, d);
   a.SetAt(11, d);
-  intptr_t a_size = a.raw()->ptr()->HeapSize();
-  intptr_t b_size = b.raw()->ptr()->HeapSize();
-  intptr_t c_size = c.raw()->ptr()->HeapSize();
-  intptr_t d_size = d.raw()->ptr()->HeapSize();
+  intptr_t a_size = a.ptr()->untag()->HeapSize();
+  intptr_t b_size = b.ptr()->untag()->HeapSize();
+  intptr_t c_size = c.ptr()->untag()->HeapSize();
+  intptr_t d_size = d.ptr()->untag()->HeapSize();
   {
     // No more allocation; raw pointers ahead.
     SafepointOperationScope safepoint(thread);
-    ObjectPtr b_raw = b.raw();
+    ObjectPtr b_raw = b.ptr();
     // Clear handles to cut unintended retained paths.
     b = Array::null();
     c = Array::null();
@@ -74,7 +74,7 @@ ISOLATE_UNIT_TEST_CASE(ObjectGraph) {
         // Compare count and size when 'b' is/isn't skipped.
         CounterVisitor with(Object::null(), Object::null());
         graph.IterateObjectsFrom(a, &with);
-        CounterVisitor without(b_raw, a.raw());
+        CounterVisitor without(b_raw, a.ptr());
         graph.IterateObjectsFrom(a, &without);
         // Only 'b' and 'c' were cut off.
         EXPECT_EQ(2, with.count() - without.count());
@@ -85,7 +85,7 @@ ISOLATE_UNIT_TEST_CASE(ObjectGraph) {
         // are thus larger, but the difference should still be just 'b' and 'c'.
         CounterVisitor with(Object::null(), Object::null());
         graph.IterateObjects(&with);
-        CounterVisitor without(b_raw, a.raw());
+        CounterVisitor without(b_raw, a.ptr());
         graph.IterateObjects(&without);
         EXPECT_EQ(2, with.count() - without.count());
         EXPECT_EQ(b_size + c_size, with.size() - without.size());
@@ -136,9 +136,9 @@ ISOLATE_UNIT_TEST_CASE(ObjectGraph) {
                 offset_from_parent.Value() * kWordSize);
       Array& expected_a = Array::Handle();
       expected_a ^= path.At(4);
-      EXPECT(expected_c.raw() == c.raw());
-      EXPECT(expected_b.raw() == a.At(10));
-      EXPECT(expected_a.raw() == a.raw());
+      EXPECT(expected_c.ptr() == c.ptr());
+      EXPECT(expected_b.ptr() == a.At(10));
+      EXPECT(expected_a.ptr() == a.ptr());
     }
   }
 }
@@ -150,7 +150,7 @@ ISOLATE_UNIT_TEST_CASE(RetainingPathGCRoot) {
   Dart_WeakPersistentHandle weak_persistent_handle;
   Array& path = Array::Handle(Array::New(1, Heap::kNew));
   ObjectGraph graph(thread);
-  Dart_Handle handle = Api::NewHandle(thread, path.raw());
+  Dart_Handle handle = Api::NewHandle(thread, path.ptr());
 
   // GC root should be a local handle
   auto result = graph.RetainingPath(&path, path);

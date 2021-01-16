@@ -39,7 +39,7 @@ DEFINE_NATIVE_ENTRY(CapabilityImpl_factory, 0, 1) {
 DEFINE_NATIVE_ENTRY(CapabilityImpl_equals, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Capability, recv, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Capability, other, arguments->NativeArgAt(1));
-  return (recv.Id() == other.Id()) ? Bool::True().raw() : Bool::False().raw();
+  return (recv.Id() == other.Id()) ? Bool::True().ptr() : Bool::False().ptr();
 }
 
 DEFINE_NATIVE_ENTRY(CapabilityImpl_get_hashcode, 0, 1) {
@@ -107,9 +107,9 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 0, 2) {
   const Dart_Port destination_port_id = port.Id();
   const bool can_send_any_object = isolate->origin_id() == port.origin_id();
 
-  if (ApiObjectConverter::CanConvert(obj.raw())) {
+  if (ApiObjectConverter::CanConvert(obj.ptr())) {
     PortMap::PostMessage(
-        Message::New(destination_port_id, obj.raw(), Message::kNormalPriority));
+        Message::New(destination_port_id, obj.ptr(), Message::kNormalPriority));
   } else {
     MessageWriter writer(can_send_any_object);
     // TODO(turnidge): Throw an exception when the return value is false?
@@ -119,7 +119,7 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 0, 2) {
   return Object::null();
 }
 
-class ObjectPtrSetTraitsLayout {
+class UntaggedObjectPtrSetTraits {
  public:
   static bool ReportStats() { return false; }
   static const char* Name() { return "RawObjectPtrSetTraits"; }
@@ -146,7 +146,7 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
    private:
     void VisitPointers(ObjectPtr* from, ObjectPtr* to) {
       for (ObjectPtr* raw = from; raw <= to; raw++) {
-        if (!(*raw)->IsHeapObject() || (*raw)->ptr()->IsCanonical()) {
+        if (!(*raw)->IsHeapObject() || (*raw)->untag()->IsCanonical()) {
           continue;
         }
         if (visited_->GetValueExclusive(*raw) == 1) {
@@ -160,8 +160,8 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
     WeakTable* visited_;
     MallocGrowableArray<ObjectPtr>* const working_set_;
   };
-  if (!obj.raw()->IsHeapObject() || obj.raw()->ptr()->IsCanonical()) {
-    return obj.raw();
+  if (!obj.ptr()->IsHeapObject() || obj.ptr()->untag()->IsCanonical()) {
+    return obj.ptr();
   }
   ClassTable* class_table = isolate->group()->class_table();
 
@@ -184,8 +184,8 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
 
     SendMessageValidator visitor(isolate->group(), visited.get(), &working_set);
 
-    visited->SetValueExclusive(obj.raw(), 1);
-    working_set.Add(obj.raw());
+    visited->SetValueExclusive(obj.ptr(), 1);
+    working_set.Add(obj.ptr());
 
     while (!working_set.is_empty() && !error_found) {
       ObjectPtr raw = working_set.RemoveLast();
@@ -225,13 +225,13 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
           if (cid >= kNumPredefinedCids) {
             klass = class_table->At(cid);
             if (klass.num_native_fields() != 0) {
-              erroneous_nativewrapper_class = klass.raw();
+              erroneous_nativewrapper_class = klass.ptr();
               error_found = true;
               break;
             }
           }
       }
-      raw->ptr()->VisitPointers(&visitor);
+      raw->untag()->VisitPointers(&visitor);
     }
   }
   if (error_found) {
@@ -255,7 +255,7 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
         zone, Exceptions::kArgumentValue, exception_message);
   }
   isolate->set_forward_table_new(nullptr);
-  return obj.raw();
+  return obj.ptr();
 }
 
 DEFINE_NATIVE_ENTRY(SendPortImpl_sendAndExitInternal_, 0, 2) {
@@ -271,7 +271,7 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendAndExitInternal_, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, obj, arguments->NativeArgAt(1));
 
   Object& validated_result = Object::Handle(zone);
-  Object& msg_obj = Object::Handle(zone, obj.raw());
+  Object& msg_obj = Object::Handle(zone, obj.ptr());
   validated_result = ValidateMessageObject(zone, isolate, msg_obj);
   if (validated_result.IsUnhandledException()) {
     Exceptions::PropagateError(Error::Cast(validated_result));
@@ -279,7 +279,7 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendAndExitInternal_, 0, 2) {
   }
   PersistentHandle* handle =
       isolate->group()->api_state()->AllocatePersistentHandle();
-  handle->set_raw(msg_obj);
+  handle->set_ptr(msg_obj);
   isolate->bequeath(std::unique_ptr<Bequest>(new Bequest(handle, port.Id())));
   // TODO(aam): Ensure there are no dart api calls after this point as we want
   // to ensure that validated message won't get tampered with.
@@ -472,7 +472,7 @@ ObjectPtr IsolateSpawnState::ResolveFunction() {
       // Check whether main is reexported from the root library.
       const Object& obj = Object::Handle(zone, lib.LookupReExport(func_name));
       if (obj.IsFunction()) {
-        func ^= obj.raw();
+        func ^= obj.ptr();
       }
     }
     if (func.IsNull()) {
@@ -482,7 +482,7 @@ ObjectPtr IsolateSpawnState::ResolveFunction() {
                     function_name(), script_url()));
       return LanguageError::New(msg);
     }
-    return func.raw();
+    return func.ptr();
   }
 
   // Lookup the to be spawned function for the Isolate.spawn implementation.
@@ -508,7 +508,7 @@ ObjectPtr IsolateSpawnState::ResolveFunction() {
                     function_name(), library_url()));
       return LanguageError::New(msg);
     }
-    return func.raw();
+    return func.ptr();
   }
 
   const String& cls_name = String::Handle(zone, String::New(class_name()));
@@ -533,7 +533,7 @@ ObjectPtr IsolateSpawnState::ResolveFunction() {
                   (library_url() != nullptr ? library_url() : script_url())));
     return LanguageError::New(msg);
   }
-  return func.raw();
+  return func.ptr();
 }
 
 static InstancePtr DeserializeMessage(Thread* thread, Message* message) {
@@ -547,7 +547,7 @@ static InstancePtr DeserializeMessage(Thread* thread, Message* message) {
     MessageSnapshotReader reader(message, thread);
     const Object& obj = Object::Handle(zone, reader.ReadObject());
     ASSERT(!obj.IsError());
-    return Instance::RawCast(obj.raw());
+    return Instance::RawCast(obj.ptr());
   }
 }
 
@@ -720,7 +720,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
       return false;
     }
     ASSERT(result.IsFunction());
-    auto& func = Function::Handle(zone, Function::Cast(result).raw());
+    auto& func = Function::Handle(zone, Function::Cast(result).ptr());
     func = func.ImplicitClosureFunction();
     const auto& entrypoint_closure =
         Object::Handle(zone, func.ImplicitStaticClosure());
@@ -882,7 +882,7 @@ static const char* CanonicalizeUri(Thread* thread,
       result = String2UTF8(String::Cast(obj));
     } else if (obj.IsError()) {
       Error& error_obj = Error::Handle();
-      error_obj ^= obj.raw();
+      error_obj ^= obj.ptr();
       *error = zone->PrintToString("Unable to canonicalize uri '%s': %s",
                                    uri.ToCString(), error_obj.ToErrorCString());
     } else {
@@ -983,7 +983,7 @@ DEFINE_NATIVE_ENTRY(Isolate_getPortAndCapabilitiesOfCurrentIsolate, 0, 0) {
       1, Capability::Handle(Capability::New(isolate->pause_capability())));
   result.SetAt(
       2, Capability::Handle(Capability::New(isolate->terminate_capability())));
-  return result.raw();
+  return result.ptr();
 }
 
 DEFINE_NATIVE_ENTRY(Isolate_getCurrentRootUriStr, 0, 0) {
@@ -1045,7 +1045,7 @@ DEFINE_NATIVE_ENTRY(TransferableTypedData_factory, 0, 2) {
     array ^= growable_array.data();
     array_length = growable_array.Length();
   } else if (array_instance.IsArray()) {
-    array ^= Array::Cast(array_instance).raw();
+    array ^= Array::Cast(array_instance).ptr();
     array_length = array.Length();
   } else {
     Exceptions::ThrowArgumentError(array_instance);
@@ -1102,7 +1102,7 @@ DEFINE_NATIVE_ENTRY(TransferableTypedData_materialize, 0, 1) {
   void* peer;
   {
     NoSafepointScope no_safepoint;
-    peer = thread->heap()->GetPeer(t.raw());
+    peer = thread->heap()->GetPeer(t.ptr());
     // Assume that object's Peer is only used to track transferrability state.
     ASSERT(peer != nullptr);
   }
@@ -1126,7 +1126,7 @@ DEFINE_NATIVE_ENTRY(TransferableTypedData_materialize, 0, 1) {
                                    /* peer= */ data,
                                    &ExternalTypedDataFinalizer, length,
                                    /*auto_delete=*/true);
-  return typed_data.raw();
+  return typed_data.ptr();
 }
 
 }  // namespace dart

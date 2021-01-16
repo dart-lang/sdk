@@ -56,7 +56,7 @@ static void GetUniqueDynamicTarget(IsolateGroup* isolate_group,
       isolate_group->object_store()->unique_dynamic_targets());
   ASSERT(fname.IsSymbol());
   *function = functions_map.GetOrNull(fname);
-  ASSERT(functions_map.Release().raw() ==
+  ASSERT(functions_map.Release().ptr() ==
          isolate_group->object_store()->unique_dynamic_targets());
 }
 
@@ -155,7 +155,7 @@ bool AotCallSpecializer::RecognizeRuntimeTypeGetter(InstanceCallInstr* call) {
     return false;
   }
 
-  if (call->function_name().raw() != Symbols::GetRuntimeType().raw()) {
+  if (call->function_name().ptr() != Symbols::GetRuntimeType().ptr()) {
     return false;
   }
 
@@ -165,7 +165,7 @@ bool AotCallSpecializer::RecognizeRuntimeTypeGetter(InstanceCallInstr* call) {
   const Function& function =
       Function::Handle(Z, call->ResolveForReceiverClass(cls));
   ASSERT(!function.IsNull());
-  const Function& target = Function::ZoneHandle(Z, function.raw());
+  const Function& target = Function::ZoneHandle(Z, function.ptr());
   StaticCallInstr* static_call =
       StaticCallInstr::FromCall(Z, call, target, call->CallCount());
   // Since the result is either a Type or a FunctionType, we cannot pin it.
@@ -812,7 +812,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
 
   if (has_one_target) {
     const Function& target = targets.FirstTarget();
-    FunctionLayout::Kind function_kind = target.kind();
+    UntaggedFunction::Kind function_kind = target.kind();
     if (flow_graph()->CheckForInstanceCall(instr, function_kind) ==
         FlowGraph::ToCheck::kNoCheck) {
       StaticCallInstr* call = StaticCallInstr::FromCall(
@@ -877,7 +877,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     const Function& function =
         Function::Handle(Z, instr->ResolveForReceiverClass(receiver_class));
     if (!function.IsNull()) {
-      const Function& target = Function::ZoneHandle(Z, function.raw());
+      const Function& target = Function::ZoneHandle(Z, function.ptr());
       StaticCallInstr* call =
           StaticCallInstr::FromCall(Z, instr, target, instr->CallCount());
       instr->ReplaceWith(call, current_iterator());
@@ -967,9 +967,9 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
           // First we are trying to compute a single target for all subclasses.
           if (single_target.IsNull()) {
             ASSERT(i == 0);
-            single_target = target.raw();
+            single_target = target.ptr();
             continue;
-          } else if (single_target.raw() == target.raw()) {
+          } else if (single_target.ptr() == target.ptr()) {
             continue;
           }
 
@@ -992,12 +992,12 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
           single_target = Function::null();
         }
 
-        ASSERT(ic_data.raw() != ICData::null());
-        ASSERT(single_target.raw() == Function::null());
+        ASSERT(ic_data.ptr() != ICData::null());
+        ASSERT(single_target.ptr() == Function::null());
         ic_data.AddReceiverCheck(cid, target);
       }
 
-      if (single_target.raw() != Function::null()) {
+      if (single_target.ptr() != Function::null()) {
         // If this is a getter or setter invocation try inlining it right away
         // instead of replacing it with a static call.
         if ((op_kind == Token::kGET) || (op_kind == Token::kSET)) {
@@ -1017,12 +1017,12 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
 
         // We have computed that there is only a single target for this call
         // within the whole hierarchy. Replace InstanceCall with StaticCall.
-        const Function& target = Function::ZoneHandle(Z, single_target.raw());
+        const Function& target = Function::ZoneHandle(Z, single_target.ptr());
         StaticCallInstr* call =
             StaticCallInstr::FromCall(Z, instr, target, instr->CallCount());
         instr->ReplaceWith(call, current_iterator());
         return;
-      } else if ((ic_data.raw() != ICData::null()) &&
+      } else if ((ic_data.ptr() != ICData::null()) &&
                  !ic_data.NumberOfChecksIs(0)) {
         const CallTargets* targets = CallTargets::Create(Z, ic_data);
         ASSERT(!targets->is_empty());
@@ -1071,7 +1071,7 @@ bool AotCallSpecializer::TryExpandCallThroughGetter(const Class& receiver_class,
 
   // Ignore callsites like f.call() for now. Those need to be handled
   // specially if f is a closure.
-  if (call->function_name().raw() == Symbols::Call().raw()) {
+  if (call->function_name().ptr() == Symbols::Call().ptr()) {
     return false;
   }
 
@@ -1089,7 +1089,7 @@ bool AotCallSpecializer::TryExpandCallThroughGetter(const Class& receiver_class,
   ArgumentsDescriptor args_desc(args_desc_array);
   target = Resolver::ResolveDynamicForReceiverClass(
       receiver_class, getter_name, args_desc, /*allow_add=*/false);
-  if (target.raw() == Function::null() || target.IsMethodExtractor()) {
+  if (target.ptr() == Function::null() || target.IsMethodExtractor()) {
     return false;
   }
 

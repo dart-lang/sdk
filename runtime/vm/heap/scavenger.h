@@ -57,17 +57,17 @@ class NewPage {
     uword addr = object_start();
     uword end = object_end();
     while (addr < end) {
-      ObjectPtr obj = ObjectLayout::FromAddr(addr);
+      ObjectPtr obj = UntaggedObject::FromAddr(addr);
       visitor->VisitObject(obj);
-      addr += obj->ptr()->HeapSize();
+      addr += obj->untag()->HeapSize();
     }
   }
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const {
     uword addr = object_start();
     uword end = object_end();
     while (addr < end) {
-      ObjectPtr obj = ObjectLayout::FromAddr(addr);
-      intptr_t size = obj->ptr()->VisitPointers(visitor);
+      ObjectPtr obj = UntaggedObject::FromAddr(addr);
+      intptr_t size = obj->untag()->VisitPointers(visitor);
       addr += size;
     }
   }

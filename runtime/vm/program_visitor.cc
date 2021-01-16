@@ -17,9 +17,9 @@ namespace dart {
 class WorklistElement : public ZoneAllocated {
  public:
   WorklistElement(Zone* zone, const Object& object)
-      : object_(Object::Handle(zone, object.raw())), next_(nullptr) {}
+      : object_(Object::Handle(zone, object.ptr())), next_(nullptr) {}
 
-  ObjectPtr value() const { return object_.raw(); }
+  ObjectPtr value() const { return object_.ptr(); }
 
   void set_next(WorklistElement* elem) { next_ = elem; }
   WorklistElement* next() const { return next_; }
@@ -99,8 +99,8 @@ class ProgramWalker : public ValueObject {
     // We don't visit null, non-heap objects, or objects in the VM heap.
     if (object.IsNull() || object.IsSmi() || object.InVMIsolateHeap()) return;
     // Check and set visited, even if we don't end up adding this to the list.
-    if (heap_->GetObjectId(object.raw()) != 0) return;
-    heap_->SetObjectId(object.raw(), 1);
+    if (heap_->GetObjectId(object.ptr()) != 0) return;
+    heap_->SetObjectId(object.ptr(), 1);
     if (object.IsClass() ||
         (object.IsFunction() && visitor_->IsFunctionVisitor()) ||
         (object.IsCode() && visitor_->IsCodeVisitor())) {
@@ -318,7 +318,7 @@ class Dedupper : public ValueObject {
   void AddCanonical(const T& obj) {
     if (!ShouldAdd(obj)) return;
     ASSERT(!canonical_objects_.HasKey(&obj));
-    canonical_objects_.Insert(&T::ZoneHandle(zone_, obj.raw()));
+    canonical_objects_.Insert(&T::ZoneHandle(zone_, obj.ptr()));
   }
 
   void AddVMBaseObjects() {
@@ -334,11 +334,11 @@ class Dedupper : public ValueObject {
   typename T::ObjectPtrType Dedup(const T& obj) {
     if (ShouldAdd(obj)) {
       if (auto const canonical = canonical_objects_.LookupValue(&obj)) {
-        return canonical->raw();
+        return canonical->ptr();
       }
       AddCanonical(obj);
     }
-    return obj.raw();
+    return obj.ptr();
   }
 
   Zone* const zone_;
@@ -399,7 +399,7 @@ void ProgramVisitor::BindStaticCalls(Zone* zone, IsolateGroup* isolate_group) {
         const auto& fun = Function::Cast(target_);
         ASSERT(!FLAG_precompiled_mode || fun.HasCode());
         target_code_ = fun.HasCode() ? fun.CurrentCode()
-                                     : StubCode::CallStaticFunction().raw();
+                                     : StubCode::CallStaticFunction().ptr();
         CodePatcher::PatchStaticCallAt(pc, code, target_code_);
       }
 
@@ -452,9 +452,9 @@ void ProgramVisitor::ShareMegamorphicBuckets(Zone* zone,
 class StackMapEntry : public ZoneAllocated {
  public:
   StackMapEntry(Zone* zone, const CompressedStackMaps::Iterator& it)
-      : maps_(CompressedStackMaps::Handle(zone, it.maps_.raw())),
+      : maps_(CompressedStackMaps::Handle(zone, it.maps_.ptr())),
         bits_container_(
-            CompressedStackMaps::Handle(zone, it.bits_container_.raw())),
+            CompressedStackMaps::Handle(zone, it.bits_container_.ptr())),
         // If the map uses the global table, this accessor call ensures the
         // entry is fully loaded before we retrieve [it.current_bits_offset_].
         spill_slot_bit_count_(it.SpillSlotBitCount()),
@@ -522,7 +522,7 @@ class StackMapEntry : public ZoneAllocated {
   }
   const uint8_t* PayloadData() const {
     ASSERT(!Thread::Current()->IsAtSafepoint());
-    return bits_container_.raw()->ptr()->data() + bits_offset_;
+    return bits_container_.ptr()->untag()->data() + bits_offset_;
   }
 
   const CompressedStackMaps& maps_;
@@ -623,7 +623,7 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps(
       const auto& data = CompressedStackMaps::Handle(
           zone_, CompressedStackMaps::NewGlobalTable(stream.buffer(),
                                                      stream.bytes_written()));
-      return data.raw();
+      return data.ptr();
     }
 
    private:
@@ -688,7 +688,7 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps(
       // First check is to make sure [maps] hasn't already been normalized,
       // since any normalized map already has a canonical entry in the set.
       if (auto const canonical = canonical_objects_.LookupValue(&maps_)) {
-        maps_ = canonical->raw();
+        maps_ = canonical->ptr();
       } else {
         maps_ = NormalizeEntries(maps_);
         maps_ = Dedup(maps_);
@@ -701,7 +701,7 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps(
     CompressedStackMapsPtr NormalizeEntries(const CompressedStackMaps& maps) {
       if (maps.payload_size() == 0) {
         // No entries, so use the canonical empty map.
-        return Object::empty_compressed_stackmaps().raw();
+        return Object::empty_compressed_stackmaps().ptr();
       }
       MallocWriteStream new_payload(maps.payload_size());
       CompressedStackMaps::Iterator it(maps, old_global_table_);
@@ -1059,7 +1059,7 @@ void ProgramVisitor::DedupLists(Zone* zone, IsolateGroup* isolate_group) {
       // their names if any named parameter is required (signature needed).
       if (FLAG_precompiled_mode && !function.InVMIsolateHeap() &&
           !function.IsClosureFunction() && !function.IsFfiTrampoline() &&
-          function.name() != Symbols::Call().raw() && !function.is_native() &&
+          function.name() != Symbols::Call().ptr() && !function.is_native() &&
           !function.HasRequiredNamedParameters() &&
           !MayBeEntryPoint(function)) {
         // Function type not needed for function type tests or resolution.
@@ -1082,7 +1082,7 @@ void ProgramVisitor::DedupLists(Zone* zone, IsolateGroup* isolate_group) {
           list_.SetAt(i, Symbols::OptimizedOut());
         }
       }
-      return list_.raw();
+      return list_.ptr();
     }
 
     bool MayBeEntryPoint(const Function& function) {
@@ -1090,10 +1090,10 @@ void ProgramVisitor::DedupLists(Zone* zone, IsolateGroup* isolate_group) {
       // Use presence of pragma as conservative approximation.
       if (function.has_pragma()) return true;
       auto kind = function.kind();
-      if ((kind == FunctionLayout::kImplicitGetter) ||
-          (kind == FunctionLayout::kImplicitSetter) ||
-          (kind == FunctionLayout::kImplicitStaticGetter) ||
-          (kind == FunctionLayout::kFieldInitializer)) {
+      if ((kind == UntaggedFunction::kImplicitGetter) ||
+          (kind == UntaggedFunction::kImplicitSetter) ||
+          (kind == UntaggedFunction::kImplicitStaticGetter) ||
+          (kind == UntaggedFunction::kFieldInitializer)) {
         field_ = function.accessor_field();
         if (!field_.IsNull() && field_.has_pragma()) return true;
       }
@@ -1163,7 +1163,7 @@ class CodeKeyValueTrait {
     // In AOT, disabled code objects should not be considered for deduplication.
     ASSERT(!pair->IsDisabled() && !key->IsDisabled());
 
-    if (pair->raw() == key->raw()) return true;
+    if (pair->ptr() == key->ptr()) return true;
 
     // Notice we assume that these entries have already been de-duped, so we
     // can use pointer equality.
@@ -1364,8 +1364,8 @@ class AssignLoadingUnitsCodeVisitor : public CodeVisitor {
       UNREACHABLE();
     }
 
-    ASSERT(heap_->GetLoadingUnit(code.raw()) == WeakTable::kNoValue);
-    heap_->SetLoadingUnit(code.raw(), id);
+    ASSERT(heap_->GetLoadingUnit(code.ptr()) == WeakTable::kNoValue);
+    heap_->SetLoadingUnit(code.ptr(), id);
 
     obj_ = code.code_source_map();
     MergeAssignment(obj_, id);
@@ -1380,15 +1380,15 @@ class AssignLoadingUnitsCodeVisitor : public CodeVisitor {
   void MergeAssignment(const Object& obj, intptr_t id) {
     if (obj.IsNull()) return;
 
-    intptr_t old_id = heap_->GetLoadingUnit(obj_.raw());
+    intptr_t old_id = heap_->GetLoadingUnit(obj_.ptr());
     if (old_id == WeakTable::kNoValue) {
-      heap_->SetLoadingUnit(obj_.raw(), id);
+      heap_->SetLoadingUnit(obj_.ptr(), id);
     } else if (old_id == id) {
       // Shared with another code in the same loading unit.
     } else {
       // Shared with another code in a different loading unit.
       // Could assign to dominating loading unit.
-      heap_->SetLoadingUnit(obj_.raw(), LoadingUnit::kRootId);
+      heap_->SetLoadingUnit(obj_.ptr(), LoadingUnit::kRootId);
     }
   }
 
@@ -1411,7 +1411,7 @@ void ProgramVisitor::AssignUnits(Thread* thread) {
   Code& code = Code::Handle(zone);
   for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
     inst = StubCode::EntryAt(i).instructions();
-    thread->heap()->SetLoadingUnit(inst.raw(), LoadingUnit::kRootId);
+    thread->heap()->SetLoadingUnit(inst.ptr(), LoadingUnit::kRootId);
   }
 
   // Isolate stubs.
@@ -1422,7 +1422,7 @@ void ProgramVisitor::AssignUnits(Thread* thread) {
     if ((*p)->IsCode()) {
       code ^= *p;
       inst = code.instructions();
-      thread->heap()->SetLoadingUnit(inst.raw(), LoadingUnit::kRootId);
+      thread->heap()->SetLoadingUnit(inst.ptr(), LoadingUnit::kRootId);
     }
   }
 

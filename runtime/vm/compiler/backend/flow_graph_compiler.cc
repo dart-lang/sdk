@@ -175,8 +175,8 @@ FlowGraphCompiler::FlowGraphCompiler(
       pending_deoptimization_env_(NULL),
       deopt_id_to_ic_data_(deopt_id_to_ic_data),
       edge_counters_array_(Array::ZoneHandle()) {
-  ASSERT(flow_graph->parsed_function().function().raw() ==
-         parsed_function.function().raw());
+  ASSERT(flow_graph->parsed_function().function().ptr() ==
+         parsed_function.function().ptr());
   if (is_optimizing) {
     // No need to collect extra ICData objects created during compilation.
     deopt_id_to_ic_data_ = nullptr;
@@ -194,8 +194,8 @@ FlowGraphCompiler::FlowGraphCompiler(
 #endif
   // Make sure that the function is at the position for inline_id 0.
   ASSERT(inline_id_to_function.length() >= 1);
-  ASSERT(inline_id_to_function[0]->raw() ==
-         flow_graph->parsed_function().function().raw());
+  ASSERT(inline_id_to_function[0]->ptr() ==
+         flow_graph->parsed_function().function().ptr());
   code_source_map_builder_ = new (zone_)
       CodeSourceMapBuilder(zone_, stack_traces_only, caller_inline_id,
                            inline_id_to_token_pos, inline_id_to_function);
@@ -273,7 +273,7 @@ void FlowGraphCompiler::InitCompiler() {
     for (intptr_t i = 0; i < num_counters; ++i) {
       edge_counters.SetAt(i, Object::smi_zero());
     }
-    edge_counters_array_ = edge_counters.raw();
+    edge_counters_array_ = edge_counters.ptr();
   }
 }
 
@@ -292,7 +292,7 @@ bool FlowGraphCompiler::CanOSRFunction() const {
 
 void FlowGraphCompiler::InsertBSSRelocation(BSS::Relocation reloc) {
   const intptr_t offset = assembler()->InsertAlignedRelocation(reloc);
-  AddDescriptor(PcDescriptorsLayout::kBSSRelocation, /*pc_offset=*/offset,
+  AddDescriptor(UntaggedPcDescriptors::kBSSRelocation, /*pc_offset=*/offset,
                 /*deopt_id=*/DeoptId::kNone, InstructionSource(),
                 /*try_index=*/-1);
 }
@@ -389,7 +389,7 @@ static CatchEntryMove CatchEntryMoveFor(compiler::Assembler* assembler,
                                         intptr_t dst_index) {
   if (src.IsConstant()) {
     // Skip dead locations.
-    if (src.constant().raw() == Symbols::OptimizedOut().raw()) {
+    if (src.constant().ptr() == Symbols::OptimizedOut().ptr()) {
       return CatchEntryMove();
     }
     const intptr_t pool_index =
@@ -496,7 +496,7 @@ void FlowGraphCompiler::RecordCatchEntryMoves(Environment* env,
 
 void FlowGraphCompiler::EmitCallsiteMetadata(const InstructionSource& source,
                                              intptr_t deopt_id,
-                                             PcDescriptorsLayout::Kind kind,
+                                             UntaggedPcDescriptors::Kind kind,
                                              LocationSummary* locs,
                                              Environment* env) {
   AddCurrentDescriptor(kind, deopt_id, source);
@@ -511,7 +511,8 @@ void FlowGraphCompiler::EmitCallsiteMetadata(const InstructionSource& source,
     } else {
       // Add deoptimization continuation point after the call and before the
       // arguments are removed.
-      AddCurrentDescriptor(PcDescriptorsLayout::kDeopt, deopt_id_after, source);
+      AddCurrentDescriptor(UntaggedPcDescriptors::kDeopt, deopt_id_after,
+                           source);
     }
   }
 }
@@ -519,7 +520,7 @@ void FlowGraphCompiler::EmitCallsiteMetadata(const InstructionSource& source,
 void FlowGraphCompiler::EmitYieldPositionMetadata(
     const InstructionSource& source,
     intptr_t yield_index) {
-  AddDescriptor(PcDescriptorsLayout::kOther, assembler()->CodeSize(),
+  AddDescriptor(UntaggedPcDescriptors::kOther, assembler()->CodeSize(),
                 DeoptId::kNone, source, CurrentTryIndex(), yield_index);
 }
 
@@ -529,7 +530,7 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
       // Instructions that can be deoptimization targets need to record kDeopt
       // PcDescriptor corresponding to their deopt id. GotoInstr records its
       // own so that it can control the placement.
-      AddCurrentDescriptor(PcDescriptorsLayout::kDeopt, instr->deopt_id(),
+      AddCurrentDescriptor(UntaggedPcDescriptors::kDeopt, instr->deopt_id(),
                            instr->source());
     }
     AllocateRegistersLocally(instr);
@@ -545,7 +546,7 @@ void FlowGraphCompiler::EmitSourceLine(Instruction* instr) {
   const Function& function =
       *code_source_map_builder_->inline_id_to_function()[inlining_id];
   ASSERT(instr->env() == nullptr ||
-         instr->env()->function().raw() == function.raw());
+         instr->env()->function().ptr() == function.ptr());
   const auto& script = Script::Handle(zone(), function.script());
   intptr_t line_nr;
   if (script.GetTokenLocation(source.token_pos, &line_nr)) {
@@ -802,7 +803,7 @@ void FlowGraphCompiler::SetNeedsStackTrace(intptr_t try_index) {
   exception_handlers_list_->SetNeedsStackTrace(try_index);
 }
 
-void FlowGraphCompiler::AddDescriptor(PcDescriptorsLayout::Kind kind,
+void FlowGraphCompiler::AddDescriptor(UntaggedPcDescriptors::Kind kind,
                                       intptr_t pc_offset,
                                       intptr_t deopt_id,
                                       const InstructionSource& source,
@@ -810,7 +811,7 @@ void FlowGraphCompiler::AddDescriptor(PcDescriptorsLayout::Kind kind,
                                       intptr_t yield_index) {
   code_source_map_builder_->NoteDescriptor(kind, pc_offset, source);
   // Don't emit deopt-descriptors in AOT mode.
-  if (FLAG_precompiled_mode && (kind == PcDescriptorsLayout::kDeopt)) return;
+  if (FLAG_precompiled_mode && (kind == UntaggedPcDescriptors::kDeopt)) return;
   // Use the token position of the original call in the root function if source
   // has an inlining id.
   const auto& root_pos = code_source_map_builder_->RootPosition(source);
@@ -819,7 +820,7 @@ void FlowGraphCompiler::AddDescriptor(PcDescriptorsLayout::Kind kind,
 }
 
 // Uses current pc position and try-index.
-void FlowGraphCompiler::AddCurrentDescriptor(PcDescriptorsLayout::Kind kind,
+void FlowGraphCompiler::AddCurrentDescriptor(UntaggedPcDescriptors::Kind kind,
                                              intptr_t deopt_id,
                                              const InstructionSource& source) {
   AddDescriptor(kind, assembler()->CodeSize(), deopt_id, source,
@@ -1200,7 +1201,7 @@ void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
 ArrayPtr FlowGraphCompiler::CreateDeoptInfo(compiler::Assembler* assembler) {
   // No deopt information if we precompile (no deoptimization allowed).
   if (FLAG_precompiled_mode) {
-    return Array::empty_array().raw();
+    return Array::empty_array().ptr();
   }
   // For functions with optional arguments, all incoming arguments are copied
   // to spill slots. The deoptimization environment does not track them.
@@ -1211,7 +1212,7 @@ ArrayPtr FlowGraphCompiler::CreateDeoptInfo(compiler::Assembler* assembler) {
 
   intptr_t deopt_info_table_size = DeoptTable::SizeFor(deopt_infos_.length());
   if (deopt_info_table_size == 0) {
-    return Object::empty_array().raw();
+    return Object::empty_array().ptr();
   } else {
     const Array& array =
         Array::Handle(Array::New(deopt_info_table_size, Heap::kOld));
@@ -1225,7 +1226,7 @@ ArrayPtr FlowGraphCompiler::CreateDeoptInfo(compiler::Assembler* assembler) {
           deopt_infos_[i]->reason(), deopt_infos_[i]->flags());
       DeoptTable::SetEntry(array, i, offset, info, reason_and_flags);
     }
-    return array.raw();
+    return array.ptr();
   }
 }
 
@@ -1255,8 +1256,8 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
     // descriptor for IrregexpFunction.
     ASSERT(parsed_function().scope() == nullptr);
     var_descs = LocalVarDescriptors::New(1);
-    LocalVarDescriptorsLayout::VarInfo info;
-    info.set_kind(LocalVarDescriptorsLayout::kSavedCurrentContext);
+    UntaggedLocalVarDescriptors::VarInfo info;
+    info.set_kind(UntaggedLocalVarDescriptors::kSavedCurrentContext);
     info.scope_id = 0;
     info.begin_pos = TokenPosition::kMinSource;
     info.end_pos = TokenPosition::kMinSource;
@@ -1391,7 +1392,7 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
 
 void FlowGraphCompiler::GenerateStubCall(const InstructionSource& source,
                                          const Code& stub,
-                                         PcDescriptorsLayout::Kind kind,
+                                         UntaggedPcDescriptors::Kind kind,
                                          LocationSummary* locs,
                                          intptr_t deopt_id,
                                          Environment* env) {
@@ -1485,16 +1486,16 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
                             args_info.size_with_type_args, deopt_id, source,
                             locs, entry_kind);
   } else {
-    ICData& call_ic_data = ICData::ZoneHandle(zone(), ic_data.raw());
+    ICData& call_ic_data = ICData::ZoneHandle(zone(), ic_data.ptr());
     if (call_ic_data.IsNull()) {
       const intptr_t kNumArgsChecked = 0;
       call_ic_data =
           GetOrAddStaticCallICData(deopt_id, function, arguments_descriptor,
                                    kNumArgsChecked, rebind_rule)
-              ->raw();
+              ->ptr();
       call_ic_data = call_ic_data.Original();
     }
-    AddCurrentDescriptor(PcDescriptorsLayout::kRewind, deopt_id, source);
+    AddCurrentDescriptor(UntaggedPcDescriptors::kRewind, deopt_id, source);
     EmitUnoptimizedStaticCall(args_info.size_with_type_args, deopt_id, source,
                               locs, call_ic_data, entry_kind);
   }
@@ -1972,12 +1973,12 @@ const ICData* FlowGraphCompiler::GetOrAddInstanceCallICData(
       ((*deopt_id_to_ic_data_)[deopt_id] != NULL)) {
     const ICData* res = (*deopt_id_to_ic_data_)[deopt_id];
     ASSERT(res->deopt_id() == deopt_id);
-    ASSERT(res->target_name() == target_name.raw());
+    ASSERT(res->target_name() == target_name.ptr());
     ASSERT(res->NumArgsTested() == num_args_tested);
     ASSERT(res->TypeArgsLen() ==
            ArgumentsDescriptor(arguments_descriptor).TypeArgsLen());
     ASSERT(!res->is_static_call());
-    ASSERT(res->receivers_static_type() == receiver_type.raw());
+    ASSERT(res->receivers_static_type() == receiver_type.ptr());
     return res;
   }
 
@@ -2141,7 +2142,7 @@ bool FlowGraphCompiler::LookupMethodFor(int class_id,
       Function::Handle(zone, Resolver::ResolveDynamicForReceiverClass(
                                  cls, name, args_desc, allow_add));
   if (target_function.IsNull()) return false;
-  *fn_return = target_function.raw();
+  *fn_return = target_function.ptr();
   return true;
 }
 
@@ -2255,8 +2256,9 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
     // Do not use the code from the function, but let the code be patched so
     // that we can record the outgoing edges to other code.
     const Function& function = *targets.TargetAt(smi_case)->target;
-    GenerateStaticDartCall(deopt_id, source_index, PcDescriptorsLayout::kOther,
-                           locs, function, entry_kind);
+    GenerateStaticDartCall(deopt_id, source_index,
+                           UntaggedPcDescriptors::kOther, locs, function,
+                           entry_kind);
     __ Drop(args_info.size_with_type_args);
     if (match_found != NULL) {
       __ Jump(match_found);
@@ -2305,8 +2307,9 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
     // Do not use the code from the function, but let the code be patched so
     // that we can record the outgoing edges to other code.
     const Function& function = *targets.TargetAt(i)->target;
-    GenerateStaticDartCall(deopt_id, source_index, PcDescriptorsLayout::kOther,
-                           locs, function, entry_kind);
+    GenerateStaticDartCall(deopt_id, source_index,
+                           UntaggedPcDescriptors::kOther, locs, function,
+                           entry_kind);
     __ Drop(args_info.size_with_type_args);
     if (!is_last_check || add_megamorphic_call) {
       __ Jump(match_found);
@@ -2793,7 +2796,7 @@ void FlowGraphCompiler::GenerateInstanceOf(const InstructionSource& source,
     __ LoadUniqueObject(TypeTestABI::kDstTypeReg, type);
     __ LoadUniqueObject(TypeTestABI::kSubtypeTestCacheReg, test_cache);
     GenerateStubCall(source, StubCode::InstanceOf(),
-                     /*kind=*/PcDescriptorsLayout::kOther, locs, deopt_id);
+                     /*kind=*/UntaggedPcDescriptors::kOther, locs, deopt_id);
     __ Jump(&done, compiler::Assembler::kNearJump);
   }
   __ Bind(&is_not_instance);
@@ -2835,7 +2838,7 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateCallSubtypeTestStub(
   }
   GenerateBoolToJump(TypeTestABI::kSubtypeTestCacheResultReg, is_instance_lbl,
                      is_not_instance_lbl);
-  return type_test_cache.raw();
+  return type_test_cache.ptr();
 }
 
 // Generates an assignable check for a given object. Emits no code if the
@@ -2928,7 +2931,7 @@ void FlowGraphCompiler::GenerateTTSCall(const InstructionSource& source,
   } else {
     GenerateIndirectTTSCall(assembler(), reg_with_type, sub_type_cache_index);
   }
-  EmitCallsiteMetadata(source, deopt_id, PcDescriptorsLayout::kOther, locs);
+  EmitCallsiteMetadata(source, deopt_id, UntaggedPcDescriptors::kOther, locs);
 }
 
 // Optimize assignable type check by adding inlined tests for:
@@ -3173,7 +3176,7 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ CallRuntime(runtime_entry_, num_args);
   }
   const intptr_t deopt_id = instruction()->deopt_id();
-  compiler->AddDescriptor(PcDescriptorsLayout::kOther,
+  compiler->AddDescriptor(UntaggedPcDescriptors::kOther,
                           compiler->assembler()->CodeSize(), deopt_id,
                           instruction()->source(), try_index_);
   AddMetadataForRuntimeCall(compiler);

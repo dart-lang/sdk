@@ -25,7 +25,7 @@ DEFINE_NATIVE_ENTRY(String_fromEnvironment, 0, 3) {
   if (!env_value.IsNull()) {
     return Symbols::New(thread, env_value);
   }
-  return default_value.raw();
+  return default_value.ptr();
 }
 
 DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 0, 3) {
@@ -40,7 +40,7 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 0, 3) {
     a = growableArray.data();
     length = growableArray.Length();
   } else if (list.IsArray()) {
-    a = Array::Cast(list).raw();
+    a = Array::Cast(list).ptr();
     length = a.Length();
   } else {
     Exceptions::ThrowArgumentError(list);
@@ -242,7 +242,7 @@ DEFINE_NATIVE_ENTRY(StringBase_joinReplaceAllResult, 0, 4) {
   if (write_index < length) {
     Exceptions::ThrowArgumentError(matches_growable);
   }
-  return result.raw();
+  return result.ptr();
 }
 
 DEFINE_NATIVE_ENTRY(OneByteString_substringUnchecked, 0, 3) {
@@ -283,7 +283,7 @@ DEFINE_NATIVE_ENTRY(OneByteString_splitWithCharCode, 0, 2) {
   result.Add(str);
   result.SetTypeArguments(TypeArguments::Handle(
       zone, isolate->group()->object_store()->type_argument_string()));
-  return result.raw();
+  return result.ptr();
 }
 
 DEFINE_NATIVE_ENTRY(Internal_allocateOneByteString, 0, 1) {
@@ -379,7 +379,7 @@ DEFINE_NATIVE_ENTRY(OneByteString_allocateFromOneByteList, 0, 3) {
       intptr_t value = Smi::Value(static_cast<SmiPtr>(array.At(start + i)));
       OneByteString::SetCharAt(string, i, value);
     }
-    return string.raw();
+    return string.ptr();
   } else if (list.IsGrowableObjectArray()) {
     const GrowableObjectArray& array = GrowableObjectArray::Cast(list);
     if (end > array.Length()) {
@@ -392,7 +392,7 @@ DEFINE_NATIVE_ENTRY(OneByteString_allocateFromOneByteList, 0, 3) {
       intptr_t value = Smi::Value(static_cast<SmiPtr>(array.At(start + i)));
       OneByteString::SetCharAt(string, i, value);
     }
-    return string.raw();
+    return string.ptr();
   }
   UNREACHABLE();
   return Object::null();
@@ -483,7 +483,7 @@ DEFINE_NATIVE_ENTRY(TwoByteString_allocateFromTwoByteList, 0, 3) {
       intptr_t value = Smi::Value(static_cast<SmiPtr>(array.At(start + i)));
       TwoByteString::SetCharAt(string, i, value);
     }
-    return string.raw();
+    return string.ptr();
   } else if (list.IsGrowableObjectArray()) {
     const GrowableObjectArray& array = GrowableObjectArray::Cast(list);
     if (end > array.Length()) {
@@ -495,7 +495,7 @@ DEFINE_NATIVE_ENTRY(TwoByteString_allocateFromTwoByteList, 0, 3) {
       intptr_t value = Smi::Value(static_cast<SmiPtr>(array.At(start + i)));
       TwoByteString::SetCharAt(string, i, value);
     }
-    return string.raw();
+    return string.ptr();
   }
   UNREACHABLE();
   return Object::null();
@@ -579,7 +579,7 @@ DEFINE_NATIVE_ENTRY(String_concatRange, 0, 3) {
   Array& strings = Array::Handle();
   intptr_t length = -1;
   if (argument.IsArray()) {
-    strings ^= argument.raw();
+    strings ^= argument.ptr();
     length = strings.Length();
   } else if (argument.IsGrowableObjectArray()) {
     const GrowableObjectArray& g_array = GrowableObjectArray::Cast(argument);
@@ -619,7 +619,7 @@ DEFINE_NATIVE_ENTRY(StringBuffer_createStringFromUint16Array, 0, 3) {
 
   uint16_t* data_position = reinterpret_cast<uint16_t*>(codeUnits.DataAddr(0));
   String::Copy(result, 0, data_position, length_value);
-  return result.raw();
+  return result.ptr();
 }
 
 }  // namespace dart

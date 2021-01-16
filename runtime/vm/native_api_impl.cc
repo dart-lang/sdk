@@ -201,7 +201,7 @@ DART_EXPORT Dart_Handle Dart_CompileAll() {
   CHECK_CALLBACK_STATE(T);
   const Error& error = Error::Handle(T->zone(), Library::CompileAll());
   if (!error.IsNull()) {
-    return Api::NewHandle(T, error.raw());
+    return Api::NewHandle(T, error.ptr());
   }
   return Api::Success();
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
@@ -221,7 +221,7 @@ DART_EXPORT Dart_Handle Dart_FinalizeAllClasses() {
   CHECK_CALLBACK_STATE(T);
   const Error& error = Error::Handle(T->zone(), Library::FinalizeAllClasses());
   if (!error.IsNull()) {
-    return Api::NewHandle(T, error.raw());
+    return Api::NewHandle(T, error.ptr());
   }
   return Api::Success();
 #endif  // defined(DART_PRECOMPILED_RUNTIME)

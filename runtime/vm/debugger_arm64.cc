@@ -23,20 +23,20 @@ void CodeBreakpoint::PatchCode() {
   ASSERT(!is_enabled_);
   const Code& code = Code::Handle(code_);
   switch (breakpoint_kind_) {
-    case PcDescriptorsLayout::kIcCall: {
+    case UntaggedPcDescriptors::kIcCall: {
       Object& data = Object::Handle();
       saved_value_ = CodePatcher::GetInstanceCallAt(pc_, code, &data);
       CodePatcher::PatchInstanceCallAt(pc_, code, data,
                                        StubCode::ICCallBreakpoint());
       break;
     }
-    case PcDescriptorsLayout::kUnoptStaticCall: {
+    case UntaggedPcDescriptors::kUnoptStaticCall: {
       saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
       CodePatcher::PatchPoolPointerCallAt(
           pc_, code, StubCode::UnoptStaticCallBreakpoint());
       break;
     }
-    case PcDescriptorsLayout::kRuntimeCall: {
+    case UntaggedPcDescriptors::kRuntimeCall: {
       saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
       CodePatcher::PatchPoolPointerCallAt(pc_, code,
                                           StubCode::RuntimeCallBreakpoint());
@@ -52,15 +52,15 @@ void CodeBreakpoint::RestoreCode() {
   ASSERT(is_enabled_);
   const Code& code = Code::Handle(code_);
   switch (breakpoint_kind_) {
-    case PcDescriptorsLayout::kIcCall: {
+    case UntaggedPcDescriptors::kIcCall: {
       Object& data = Object::Handle();
       CodePatcher::GetInstanceCallAt(pc_, code, &data);
       CodePatcher::PatchInstanceCallAt(pc_, code, data,
                                        Code::Handle(saved_value_));
       break;
     }
-    case PcDescriptorsLayout::kUnoptStaticCall:
-    case PcDescriptorsLayout::kRuntimeCall: {
+    case UntaggedPcDescriptors::kUnoptStaticCall:
+    case UntaggedPcDescriptors::kRuntimeCall: {
       CodePatcher::PatchPoolPointerCallAt(pc_, code,
                                           Code::Handle(saved_value_));
       break;

@@ -44,7 +44,7 @@ Message::Message(Dart_Port dest_port,
       snapshot_length_(0),
       finalizable_data_(NULL),
       priority_(priority) {
-  ASSERT(!raw_obj->IsHeapObject() || raw_obj->ptr()->InVMIsolateHeap());
+  ASSERT(!raw_obj->IsHeapObject() || raw_obj->untag()->InVMIsolateHeap());
   ASSERT((priority == kNormalPriority) ||
          (delivery_failure_port == kIllegalPort));
   ASSERT(IsRaw());

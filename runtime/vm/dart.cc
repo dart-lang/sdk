@@ -220,7 +220,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     return Utils::StrDup("--causal-async-stacks is deprecated!");
   }
 
-  FrameLayout::Init();
+  UntaggedFrame::Init();
 
   set_thread_exit_callback(thread_exit);
   SetFileCallbacks(file_open, file_read, file_write, file_close);
@@ -702,7 +702,7 @@ ErrorPtr Dart::InitIsolateFromSnapshot(Thread* T,
   Error& error = Error::Handle(T->zone());
   error = Object::Init(IG, kernel_buffer, kernel_buffer_size);
   if (!error.IsNull()) {
-    return error.raw();
+    return error.ptr();
   }
   if ((snapshot_data != NULL) && kernel_buffer == NULL) {
     // Read the snapshot and setup the initial state.
@@ -729,7 +729,7 @@ ErrorPtr Dart::InitIsolateFromSnapshot(Thread* T,
     FullSnapshotReader reader(snapshot, snapshot_instructions, T);
     const Error& error = Error::Handle(reader.ReadProgramSnapshot());
     if (!error.IsNull()) {
-      return error.raw();
+      return error.ptr();
     }
 
     {
@@ -900,7 +900,7 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
         InitIsolateFromSnapshot(T, I, snapshot_data, snapshot_instructions,
                                 kernel_buffer, kernel_buffer_size));
     if (!error.IsNull()) {
-      return error.raw();
+      return error.ptr();
     }
   }
 
@@ -937,11 +937,11 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
     Error& error = Error::Handle();
     error ^= IG->object_store()->PreallocateObjects();
     if (!error.IsNull()) {
-      return error.raw();
+      return error.ptr();
     }
     error ^= I->isolate_object_store()->PreallocateObjects();
     if (!error.IsNull()) {
-      return error.raw();
+      return error.ptr();
     }
   }
 

@@ -1018,10 +1018,10 @@ ConstantInstr* FlowGraphDeserializer::DeserializeConstant(
 DebugStepCheckInstr* FlowGraphDeserializer::DeserializeDebugStepCheck(
     SExpList* sexp,
     const InstrInfo& info) {
-  auto kind = PcDescriptorsLayout::kAnyKind;
+  auto kind = UntaggedPcDescriptors::kAnyKind;
   if (auto const kind_sexp = CheckSymbol(Retrieve(sexp, "stub_kind"))) {
-    if (!PcDescriptorsLayout::ParseKind(kind_sexp->value(), &kind)) {
-      StoreError(kind_sexp, "not a valid PcDescriptorsLayout::Kind name");
+    if (!UntaggedPcDescriptors::ParseKind(kind_sexp->value(), &kind)) {
+      StoreError(kind_sexp, "not a valid UntaggedPcDescriptors::Kind name");
       return nullptr;
     }
   }
@@ -1466,7 +1466,7 @@ bool FlowGraphDeserializer::ParseDartValue(SExpression* sexp, Object* out) {
     // early if we parse one.
     if (sym->Equals("null")) return true;
     if (sym->Equals("sentinel")) {
-      *out = Object::sentinel().raw();
+      *out = Object::sentinel().ptr();
       return true;
     }
 
@@ -1478,7 +1478,7 @@ bool FlowGraphDeserializer::ParseDartValue(SExpression* sexp, Object* out) {
       StoreError(sym, "not a reference to a constant definition");
       return false;
     }
-    *out = val->BoundConstant().raw();
+    *out = val->BoundConstant().ptr();
     // Values used in constant definitions have already been canonicalized,
     // so just exit.
     return true;
@@ -1487,7 +1487,7 @@ bool FlowGraphDeserializer::ParseDartValue(SExpression* sexp, Object* out) {
   // Other instance values may need to be canonicalized, so do that before
   // returning.
   if (auto const b = sexp->AsBool()) {
-    *out = Bool::Get(b->value()).raw();
+    *out = Bool::Get(b->value()).ptr();
   } else if (auto const str = sexp->AsString()) {
     *out = String::New(str->value(), Heap::kOld);
   } else if (auto const i = sexp->AsInteger()) {
@@ -1651,13 +1651,13 @@ bool FlowGraphDeserializer::ParseFunction(SExpList* list, Object* out) {
   auto& function = Function::Cast(*out);
   // Check the kind expected by the S-expression if one was specified.
   if (auto const kind_sexp = CheckSymbol(list->ExtraLookupValue("kind"))) {
-    FunctionLayout::Kind kind;
-    if (!FunctionLayout::ParseKind(kind_sexp->value(), &kind)) {
+    UntaggedFunction::Kind kind;
+    if (!UntaggedFunction::ParseKind(kind_sexp->value(), &kind)) {
       StoreError(kind_sexp, "unexpected function kind");
       return false;
     }
     if (function.kind() != kind) {
-      auto const kind_str = FunctionLayout::KindToCString(function.kind());
+      auto const kind_str = UntaggedFunction::KindToCString(function.kind());
       StoreError(list, "retrieved function has kind %s", kind_str);
       return false;
     }
@@ -1697,7 +1697,7 @@ bool FlowGraphDeserializer::ParseFunctionType(SExpList* list, Object* out) {
   sig.set_parameter_types(parameter_types);
   sig.set_parameter_names(parameter_names);
   sig.set_packed_fields(packed_fields);
-  *out = sig.raw();
+  *out = sig.ptr();
   return true;
 }
 
@@ -1770,7 +1770,7 @@ bool FlowGraphDeserializer::ParseInstance(SExpList* list, Object* out) {
       StoreError(list, "class for instance has non-final instance fields");
       return false;
     }
-    auto& fresh_handle = Field::Handle(zone(), instance_field_.raw());
+    auto& fresh_handle = Field::Handle(zone(), instance_field_.ptr());
     final_fields.Add(&fresh_handle);
   }
 
@@ -1850,7 +1850,7 @@ bool FlowGraphDeserializer::ParseType(SExpression* sexp, Object* out) {
       StoreError(sexp, "reference to non-constant definition");
       return false;
     }
-    *out = val->BoundConstant().raw();
+    *out = val->BoundConstant().ptr();
     if (!out->IsType()) {
       StoreError(sexp, "expected Type constant");
       return false;
@@ -1940,7 +1940,7 @@ bool FlowGraphDeserializer::ParseTypeArguments(SExpression* sexp, Object* out) {
       StoreError(sexp, "reference to non-constant definition");
       return false;
     }
-    *out = val->BoundConstant().raw();
+    *out = val->BoundConstant().ptr();
     if (!out->IsTypeArguments()) {
       StoreError(sexp, "expected TypeArguments constant");
       return false;
@@ -2052,7 +2052,7 @@ bool FlowGraphDeserializer::ParseCanonicalName(SExpSymbol* sym, Object* obj) {
       String::FromUTF8(reinterpret_cast<const uint8_t*>(name), lib_end - name);
   name_library_ = Library::LookupLibrary(thread(), tmp_string_);
   if (*lib_end == '\0') {
-    *obj = name_library_.raw();
+    *obj = name_library_.ptr();
     return true;
   }
   const char* const class_start = lib_end + 1;
@@ -2081,7 +2081,7 @@ bool FlowGraphDeserializer::ParseCanonicalName(SExpSymbol* sym, Object* obj) {
     return false;
   }
   if (*class_end == '\0') {
-    *obj = name_class_.raw();
+    *obj = name_class_.ptr();
     return true;
   }
   if (*class_end == '.') {
@@ -2100,7 +2100,7 @@ bool FlowGraphDeserializer::ParseCanonicalName(SExpSymbol* sym, Object* obj) {
                  empty_name ? "at top level" : name_class_.ToCString());
       return false;
     }
-    *obj = name_field_.raw();
+    *obj = name_field_.ptr();
     return true;
   }
   if (class_end[1] == '\0') {
@@ -2177,7 +2177,7 @@ bool FlowGraphDeserializer::ParseCanonicalName(SExpSymbol* sym, Object* obj) {
     }
     func_start = func_end + 1;
   }
-  *obj = name_function_.raw();
+  *obj = name_function_.ptr();
   return true;
 }
 

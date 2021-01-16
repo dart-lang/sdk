@@ -99,7 +99,7 @@ TEST_CASE(StackMapGC) {
       PcDescriptors::Handle(code.pc_descriptors());
   int call_count = 0;
   PcDescriptors::Iterator iter(descriptors,
-                               PcDescriptorsLayout::kUnoptStaticCall);
+                               UntaggedPcDescriptors::kUnoptStaticCall);
   CompressedStackMapsBuilder compressed_maps_builder(thread->zone());
   while (iter.MoveNext()) {
     compressed_maps_builder.AddEntry(iter.PcOffset(), stack_bitmap, 0);
@@ -145,7 +145,7 @@ ISOLATE_UNIT_TEST_CASE(DescriptorList_TokenPositions) {
 
   for (intptr_t i = 0; i < num_token_positions; i++) {
     const TokenPosition& tp = TokenPosition::Deserialize(token_positions[i]);
-    descriptors->AddDescriptor(PcDescriptorsLayout::kRuntimeCall, 0, 0, tp, 0,
+    descriptors->AddDescriptor(UntaggedPcDescriptors::kRuntimeCall, 0, 0, tp, 0,
                                1);
   }
 
@@ -154,7 +154,7 @@ ISOLATE_UNIT_TEST_CASE(DescriptorList_TokenPositions) {
 
   ASSERT(!finalized_descriptors.IsNull());
   PcDescriptors::Iterator it(finalized_descriptors,
-                             PcDescriptorsLayout::kRuntimeCall);
+                             UntaggedPcDescriptors::kRuntimeCall);
 
   intptr_t i = 0;
   while (it.MoveNext()) {

@@ -74,7 +74,7 @@ class Breakpoint {
   void SetIsPerClosure(const Instance& closure) {
     ASSERT(kind_ == kNone);
     kind_ = kPerClosure;
-    closure_ = closure.raw();
+    closure_ = closure.ptr();
   }
 
   // Mark that this breakpoint is a result of a step OverAwait request.
@@ -192,7 +192,7 @@ class CodeBreakpoint {
   CodeBreakpoint(const Code& code,
                  TokenPosition token_pos,
                  uword pc,
-                 PcDescriptorsLayout::Kind kind);
+                 UntaggedPcDescriptors::Kind kind);
   ~CodeBreakpoint();
 
   FunctionPtr function() const;
@@ -230,7 +230,7 @@ class CodeBreakpoint {
   BreakpointLocation* bpt_location_;
   CodeBreakpoint* next_;
 
-  PcDescriptorsLayout::Kind breakpoint_kind_;
+  UntaggedPcDescriptors::Kind breakpoint_kind_;
   CodePtr saved_value_;
 
   friend class Debugger;

@@ -1100,9 +1100,9 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     // RDI: allocation size.
     {
       Label size_tag_overflow, done;
-      __ cmpq(RDI, Immediate(target::ObjectLayout::kSizeTagMaxSizeTag));
+      __ cmpq(RDI, Immediate(target::UntaggedObject::kSizeTagMaxSizeTag));
       __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-      __ shlq(RDI, Immediate(target::ObjectLayout::kTagBitsSizeTagPos -
+      __ shlq(RDI, Immediate(target::UntaggedObject::kTagBitsSizeTagPos -
                              target::ObjectAlignment::kObjectAlignmentLog2));
       __ jmp(&done, Assembler::kNearJump);
 
@@ -1374,7 +1374,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 // Input:
 //   R10: number of context variables.
 // Output:
-//   RAX: new, uinitialised allocated RawContext object.
+//   RAX: new, uinitialised allocated Context object.
 // Clobbered:
 //   R13
 static void GenerateAllocateContextSpaceStub(Assembler* assembler,
@@ -1420,9 +1420,9 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
     Label size_tag_overflow, done;
     __ leaq(R13, Address(R10, TIMES_8, fixed_size_plus_alignment_padding));
     __ andq(R13, Immediate(-target::ObjectAlignment::kObjectAlignment));
-    __ cmpq(R13, Immediate(target::ObjectLayout::kSizeTagMaxSizeTag));
+    __ cmpq(R13, Immediate(target::UntaggedObject::kSizeTagMaxSizeTag));
     __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-    __ shlq(R13, Immediate(target::ObjectLayout::kTagBitsSizeTagPos -
+    __ shlq(R13, Immediate(target::UntaggedObject::kTagBitsSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2));
     __ jmp(&done);
 
@@ -1449,7 +1449,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
 // Input:
 //   R10: number of context variables.
 // Output:
-//   RAX: new allocated RawContext object.
+//   RAX: new allocated Context object.
 // Clobbered:
 //   R9, R13
 void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
@@ -1517,7 +1517,7 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
 // Input:
 //   R9: context to clone.
 // Output:
-//   RAX: new allocated RawContext object.
+//   RAX: new allocated Context object.
 // Clobbered:
 //   R10, R13
 void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
@@ -1621,13 +1621,13 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 
   if (cards) {
     __ movl(TMP, FieldAddress(RDX, target::Object::tags_offset()));
-    __ testl(TMP, Immediate(1 << target::ObjectLayout::kCardRememberedBit));
+    __ testl(TMP, Immediate(1 << target::UntaggedObject::kCardRememberedBit));
     __ j(NOT_ZERO, &remember_card, Assembler::kFarJump);
   } else {
 #if defined(DEBUG)
     Label ok;
     __ movl(TMP, FieldAddress(RDX, target::Object::tags_offset()));
-    __ testl(TMP, Immediate(1 << target::ObjectLayout::kCardRememberedBit));
+    __ testl(TMP, Immediate(1 << target::UntaggedObject::kCardRememberedBit));
     __ j(ZERO, &ok, Assembler::kFarJump);
     __ Stop("Wrong barrier");
     __ Bind(&ok);
@@ -1640,7 +1640,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   // lock+andq is an atomic read-modify-write.
   __ lock();
   __ andq(FieldAddress(RDX, target::Object::tags_offset()),
-          Immediate(~(1 << target::ObjectLayout::kOldAndNotRememberedBit)));
+          Immediate(~(1 << target::UntaggedObject::kOldAndNotRememberedBit)));
 
   // Save registers being destroyed.
   __ pushq(RAX);
@@ -1690,9 +1690,9 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ movq(RAX, FieldAddress(TMP, target::Object::tags_offset()));
   __ Bind(&retry);
   __ movq(RCX, RAX);
-  __ testq(RCX, Immediate(1 << target::ObjectLayout::kOldAndNotMarkedBit));
+  __ testq(RCX, Immediate(1 << target::UntaggedObject::kOldAndNotMarkedBit));
   __ j(ZERO, &lost_race);  // Marked by another thread.
-  __ andq(RCX, Immediate(~(1 << target::ObjectLayout::kOldAndNotMarkedBit)));
+  __ andq(RCX, Immediate(~(1 << target::UntaggedObject::kOldAndNotMarkedBit)));
   __ LockCmpxchgq(FieldAddress(TMP, target::Object::tags_offset()), RCX);
   __ j(NOT_EQUAL, &retry, Assembler::kNearJump);
 
@@ -2367,7 +2367,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     __ j(EQUAL, &call_target_function_through_unchecked_entry);
 
     // Check trivial exactness.
-    // Note: ICDataLayout::receivers_static_type_ is guaranteed to be not null
+    // Note: UntaggedICData::receivers_static_type_ is guaranteed to be not null
     // because we only emit calls to this stub when it is not null.
     __ movq(RCX,
             FieldAddress(RBX, target::ICData::receivers_static_type_offset()));
@@ -2731,7 +2731,7 @@ void StubCodeCompiler::GenerateDebugStepCheckStub(Assembler* assembler) {
 // Used to check class and type arguments. Arguments passed in registers:
 //
 // Input registers (from TypeTestABI struct):
-//   - kSubtypeTestCacheReg: SubtypeTestCacheLayout
+//   - kSubtypeTestCacheReg: UntaggedSubtypeTestCache
 //   - kInstanceReg: instance to test against (must be preserved).
 //   - kDstTypeReg: destination type (for n>=3).
 //   - kInstantiatorTypeArgumentsReg : instantiator type arguments (for n>=5).
@@ -3567,9 +3567,9 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
   /* R13: scratch register. */
   {
     Label size_tag_overflow, done;
-    __ cmpq(RDI, Immediate(target::ObjectLayout::kSizeTagMaxSizeTag));
+    __ cmpq(RDI, Immediate(target::UntaggedObject::kSizeTagMaxSizeTag));
     __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-    __ shlq(RDI, Immediate(target::ObjectLayout::kTagBitsSizeTagPos -
+    __ shlq(RDI, Immediate(target::UntaggedObject::kTagBitsSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2));
     __ jmp(&done, Assembler::kNearJump);
 

@@ -327,18 +327,18 @@ class Serializer : public ThreadStackResource {
 
   template <typename T, typename... P>
   void WriteFromTo(T obj, P&&... args) {
-    ObjectPtr* from = obj->ptr()->from();
-    ObjectPtr* to = obj->ptr()->to_snapshot(kind(), args...);
+    ObjectPtr* from = obj->untag()->from();
+    ObjectPtr* to = obj->untag()->to_snapshot(kind(), args...);
     for (ObjectPtr* p = from; p <= to; p++) {
-      WriteOffsetRef(*p, (p - reinterpret_cast<ObjectPtr*>(obj->ptr())) *
+      WriteOffsetRef(*p, (p - reinterpret_cast<ObjectPtr*>(obj->untag())) *
                              sizeof(ObjectPtr));
     }
   }
 
   template <typename T, typename... P>
   void PushFromTo(T obj, P&&... args) {
-    ObjectPtr* from = obj->ptr()->from();
-    ObjectPtr* to = obj->ptr()->to_snapshot(kind(), args...);
+    ObjectPtr* from = obj->untag()->from();
+    ObjectPtr* to = obj->untag()->to_snapshot(kind(), args...);
     for (ObjectPtr* p = from; p <= to; p++) {
       Push(*p);
     }
@@ -347,7 +347,7 @@ class Serializer : public ThreadStackResource {
   void WriteTokenPosition(TokenPosition pos) { Write(pos.Serialize()); }
 
   void WriteCid(intptr_t cid) {
-    COMPILE_ASSERT(ObjectLayout::kClassIdTagSize <= 32);
+    COMPILE_ASSERT(UntaggedObject::kClassIdTagSize <= 32);
     Write<int32_t>(cid);
   }
 
@@ -487,7 +487,7 @@ class Serializer : public ThreadStackResource {
 
 #define PushFromTo(obj, ...) s->PushFromTo(obj, ##__VA_ARGS__);
 
-#define WriteField(obj, field) s->WritePropertyRef(obj->ptr()->field, #field)
+#define WriteField(obj, field) s->WritePropertyRef(obj->untag()->field, #field)
 
 class SerializerWritingObjectScope {
  public:
@@ -598,23 +598,23 @@ class Deserializer : public ThreadStackResource {
 
   void AssignRef(ObjectPtr object) {
     ASSERT(next_ref_index_ <= num_objects_);
-    refs_->ptr()->data()[next_ref_index_] = object;
+    refs_->untag()->data()[next_ref_index_] = object;
     next_ref_index_++;
   }
 
   ObjectPtr Ref(intptr_t index) const {
     ASSERT(index > 0);
     ASSERT(index <= num_objects_);
-    return refs_->ptr()->data()[index];
+    return refs_->untag()->data()[index];
   }
 
   ObjectPtr ReadRef() { return Ref(ReadUnsigned()); }
 
   template <typename T, typename... P>
   void ReadFromTo(T obj, P&&... params) {
-    ObjectPtr* from = obj->ptr()->from();
-    ObjectPtr* to_snapshot = obj->ptr()->to_snapshot(kind(), params...);
-    ObjectPtr* to = obj->ptr()->to(params...);
+    ObjectPtr* from = obj->untag()->from();
+    ObjectPtr* to_snapshot = obj->untag()->to_snapshot(kind(), params...);
+    ObjectPtr* to = obj->untag()->to(params...);
     for (ObjectPtr* p = from; p <= to_snapshot; p++) {
       *p = ReadRef();
     }
@@ -632,7 +632,7 @@ class Deserializer : public ThreadStackResource {
   }
 
   intptr_t ReadCid() {
-    COMPILE_ASSERT(ObjectLayout::kClassIdTagSize <= 32);
+    COMPILE_ASSERT(UntaggedObject::kClassIdTagSize <= 32);
     return Read<int32_t>();
   }
 

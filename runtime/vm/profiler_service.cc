@@ -65,7 +65,7 @@ class DeoptimizedCodeSet : public ZoneAllocated {
     }
     NoSafepointScope no_safepoint_scope;
     for (intptr_t i = 0; i < array.Length(); i++) {
-      if (code.raw() == array.At(i)) {
+      if (code.ptr() == array.At(i)) {
         return true;
       }
     }
@@ -110,7 +110,7 @@ ProfileFunction::ProfileFunction(Kind kind,
                                  const intptr_t table_index)
     : kind_(kind),
       name_(name),
-      function_(Function::ZoneHandle(function.raw())),
+      function_(Function::ZoneHandle(function.ptr())),
       table_index_(table_index),
       profile_codes_(0),
       source_position_ticks_(0),
@@ -607,7 +607,7 @@ class ProfileFunctionTable : public ZoneAllocated {
     static inline intptr_t Hashcode(Key key) { return key->Hash(); }
 
     static inline bool IsKeyEqual(Pair kv, Key key) {
-      return kv->function()->raw() == key->raw();
+      return kv->function()->ptr() == key->ptr();
     }
   };
 
@@ -1207,7 +1207,7 @@ class ProfileBuilder : public ValueObject {
     TokenPosition token_position = TokenPosition::kNoSource;
     Code& code = Code::ZoneHandle();
     if (profile_code->code().IsCode()) {
-      code ^= profile_code->code().raw();
+      code ^= profile_code->code().ptr();
       inlined_functions_cache_->Get(pc, code, sample, frame_index,
                                     &inlined_functions,
                                     &inlined_token_positions, &token_position);
@@ -1662,7 +1662,7 @@ void Profile::ProcessSampleFrameJSON(JSONArray* stack,
   Code& code = Code::ZoneHandle();
 
   if (profile_code->code().IsCode()) {
-    code ^= profile_code->code().raw();
+    code ^= profile_code->code().ptr();
     cache_->Get(pc, code, sample, frame_index, &inlined_functions,
                 &inlined_token_positions, &token_position);
     if (FLAG_trace_profiler_verbose && (inlined_functions != NULL)) {
@@ -1869,7 +1869,7 @@ class ClassAllocationSampleFilter : public SampleFilter {
                      thread_task_mask,
                      time_origin_micros,
                      time_extent_micros),
-        cls_(Class::Handle(cls.raw())) {
+        cls_(Class::Handle(cls.ptr())) {
     ASSERT(!cls_.IsNull());
   }
 

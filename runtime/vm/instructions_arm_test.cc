@@ -30,7 +30,7 @@ ASSEMBLER_TEST_RUN(Call, test) {
   // before the end of the code buffer.
   uword end = test->payload_start() + test->code().Size();
   CallPattern call(end - Instr::kInstrSize, test->code());
-  EXPECT_EQ(StubCode::InvokeDartCode().raw(), call.TargetCode());
+  EXPECT_EQ(StubCode::InvokeDartCode().ptr(), call.TargetCode());
 }
 
 }  // namespace dart

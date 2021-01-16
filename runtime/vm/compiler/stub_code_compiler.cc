@@ -619,7 +619,7 @@ void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
                          target::Type::type_state_offset(), kByte);
   __ CompareImmediate(
       TypeTestABI::kScratchReg,
-      target::AbstractTypeLayout::kTypeStateFinalizedInstantiated);
+      target::UntaggedAbstractType::kTypeStateFinalizedInstantiated);
   __ BranchIf(NOT_EQUAL, &is_complex_case, Assembler::kNearJump);
 
   // This [Type] could be a FutureOr. Subtype2TestCache does not support Smi.

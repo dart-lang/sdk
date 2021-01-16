@@ -40,7 +40,7 @@ class RuntimeEntry;
 class Zone;
 
 #define DO(clazz)                                                              \
-  class clazz##Layout;                                                         \
+  class Untagged##clazz;                                                       \
   class clazz;
 CLASS_LIST_FOR_HANDLES(DO)
 #undef DO
@@ -336,7 +336,7 @@ inline intptr_t RoundedAllocationSize(intptr_t size) {
   return Utils::RoundUp(size, kObjectAlignment);
 }
 // Information about frame_layout that compiler should be targeting.
-extern FrameLayout frame_layout;
+extern UntaggedFrame frame_layout;
 
 constexpr intptr_t kIntSpillFactor = sizeof(int64_t) / kWordSize;
 constexpr intptr_t kDoubleSpillFactor = sizeof(double) / kWordSize;
@@ -406,7 +406,7 @@ bool WillAllocateNewOrRememberedArray(intptr_t length);
 // Currently we use the same names for classes, constants and getters to make
 // migration easier.
 
-class ObjectLayout : public AllStatic {
+class UntaggedObject : public AllStatic {
  public:
   static const word kCardRememberedBit;
   static const word kOldAndNotRememberedBit;
@@ -424,7 +424,7 @@ class ObjectLayout : public AllStatic {
   static bool IsTypedDataClassId(intptr_t cid);
 };
 
-class AbstractTypeLayout : public AllStatic {
+class UntaggedAbstractType : public AllStatic {
  public:
   static const word kTypeStateFinalizedInstantiated;
 };
@@ -454,7 +454,7 @@ class Class : public AllStatic {
 
   static word super_type_offset();
 
-  // The offset of the ObjectLayout::num_type_arguments_ field in bytes.
+  // The offset of the UntaggedObject::num_type_arguments_ field in bytes.
   static word num_type_arguments_offset();
 
   // The value used if no type arguments vector is present.
@@ -485,7 +485,8 @@ class Class : public AllStatic {
 
 class Instance : public AllStatic {
  public:
-  // Returns the offset to the first field of [RawInstance].
+  // Returns the offset to the first field of [UntaggedInstance].
+  // Returns the offset to the first field of [UntaggedInstance].
   static word first_field_offset();
   static word DataOffsetFor(intptr_t cid);
   static word ElementSizeFor(intptr_t cid);
@@ -642,7 +643,7 @@ class ArgumentsDescriptor : public AllStatic {
 
 class LocalHandle : public AllStatic {
  public:
-  static word raw_offset();
+  static word ptr_offset();
 };
 
 class Pointer : public PointerBase {

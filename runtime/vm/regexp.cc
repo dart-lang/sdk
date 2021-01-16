@@ -5517,7 +5517,7 @@ static void CreateSpecializedFunction(Thread* thread,
       FunctionType::Handle(zone, FunctionType::New());
   Function& fn =
       Function::Handle(zone, Function::New(signature, Symbols::ColonMatcher(),
-                                           FunctionLayout::kIrregexpFunction,
+                                           UntaggedFunction::kIrregexpFunction,
                                            true,   // Static.
                                            false,  // Not const.
                                            false,  // Not abstract.
@@ -5583,7 +5583,7 @@ RegExpPtr RegExpEngine::CreateRegExp(Thread* thread,
     }
   }
 
-  return regexp.raw();
+  return regexp.ptr();
 }
 
 }  // namespace dart

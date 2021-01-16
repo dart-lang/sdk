@@ -296,7 +296,7 @@ class IsolateGroupReloadContext {
   friend class ReasonForCancelling;
   friend class IsolateReloadContext;
   friend class IsolateGroup;  // GetClassSizeForHeapWalkAt
-  friend class ObjectLayout;  // GetClassSizeForHeapWalkAt
+  friend class UntaggedObject;  // GetClassSizeForHeapWalkAt
 
   static Dart_FileModifiedCallback file_modified_callback_;
 };

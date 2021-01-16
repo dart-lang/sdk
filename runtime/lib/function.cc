@@ -27,7 +27,7 @@ DEFINE_NATIVE_ENTRY(Function_apply, 0, 2) {
   if (result.IsError()) {
     Exceptions::PropagateError(Error::Cast(result));
   }
-  return result.raw();
+  return result.ptr();
 }
 
 DEFINE_NATIVE_ENTRY(Closure_equals, 0, 2) {
@@ -39,8 +39,8 @@ DEFINE_NATIVE_ENTRY(Closure_equals, 0, 2) {
   // name and owner (multiple function objects could exist for the same
   // function due to hot reload).
   // Objects of other closure kinds are unique, so use identity comparison.
-  if (receiver.raw() == other.raw()) {
-    return Bool::True().raw();
+  if (receiver.ptr() == other.ptr()) {
+    return Bool::True().ptr();
   }
   if (other.IsClosure()) {
     const Function& func_a = Function::Handle(zone, receiver.function());
@@ -54,15 +54,15 @@ DEFINE_NATIVE_ENTRY(Closure_equals, 0, 2) {
         ObjectPtr receiver_a = context_a.At(0);
         ObjectPtr receiver_b = context_b.At(0);
         if ((receiver_a == receiver_b) &&
-            ((func_a.raw() == func_b.raw()) ||
+            ((func_a.ptr() == func_b.ptr()) ||
              ((func_a.name() == func_b.name()) &&
               (func_a.Owner() == func_b.Owner())))) {
-          return Bool::True().raw();
+          return Bool::True().ptr();
         }
       }
     }
   }
-  return Bool::False().raw();
+  return Bool::False().ptr();
 }
 
 DEFINE_NATIVE_ENTRY(Closure_computeHash, 0, 1) {

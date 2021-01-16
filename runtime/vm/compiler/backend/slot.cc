@@ -364,8 +364,8 @@ bool Slot::Equals(const Slot* other) const {
     case Kind::kCapturedVariable:
       return (offset_in_bytes_ == other->offset_in_bytes_) &&
              (flags_ == other->flags_) &&
-             (DataAs<const String>()->raw() ==
-              other->DataAs<const String>()->raw());
+             (DataAs<const String>()->ptr() ==
+              other->DataAs<const String>()->ptr());
 
     case Kind::kDartField:
       return (offset_in_bytes_ == other->offset_in_bytes_) &&

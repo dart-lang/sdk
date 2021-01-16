@@ -153,7 +153,7 @@ intptr_t PrecompilerTracer::InternEntity(const Object& obj) {
     } else if (obj.IsField()) {
       cls_ = Field::Cast(obj).Owner();
     }
-    if (cls_.raw() != Class::null()) {
+    if (cls_.ptr() != Class::null()) {
       InternEntity(cls_);
     }
   }

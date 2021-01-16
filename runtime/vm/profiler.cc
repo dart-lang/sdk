@@ -317,7 +317,7 @@ class ReturnAddressLocator : public ValueObject {
   ReturnAddressLocator(Sample* sample, const Code& code)
       : stack_buffer_(sample->GetStackBuffer()),
         pc_(sample->pc()),
-        code_(Code::ZoneHandle(code.raw())) {
+        code_(Code::ZoneHandle(code.ptr())) {
     ASSERT(!code_.IsNull());
     ASSERT(code_.ContainsInstructionAt(pc()));
   }
@@ -325,7 +325,7 @@ class ReturnAddressLocator : public ValueObject {
   ReturnAddressLocator(uword pc, uword* stack_buffer, const Code& code)
       : stack_buffer_(stack_buffer),
         pc_(pc),
-        code_(Code::ZoneHandle(code.raw())) {
+        code_(Code::ZoneHandle(code.ptr())) {
     ASSERT(!code_.IsNull());
     ASSERT(code_.ContainsInstructionAt(pc_));
   }
@@ -1460,7 +1460,7 @@ void CodeLookupTable::Build(Thread* thread) {
 void CodeLookupTable::Add(const Object& code) {
   ASSERT(!code.IsNull());
   ASSERT(code.IsCode());
-  CodeDescriptor* cd = new CodeDescriptor(AbstractCode(code.raw()));
+  CodeDescriptor* cd = new CodeDescriptor(AbstractCode(code.ptr()));
   code_objects_.Add(cd);
 }
 
@@ -1636,7 +1636,7 @@ void ProcessedSample::CheckForMissingDartFrame(const CodeLookupTable& clt,
                                                uword pc_marker,
                                                uword* stack_buffer) {
   ASSERT(cd != NULL);
-  const Code& code = Code::Handle(Code::RawCast(cd->code().raw()));
+  const Code& code = Code::Handle(Code::RawCast(cd->code().ptr()));
   ASSERT(!code.IsNull());
   // Some stubs (and intrinsics) do not push a frame onto the stack leaving
   // the frame pointer in the caller.

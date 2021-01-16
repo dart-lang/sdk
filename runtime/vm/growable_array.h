@@ -54,14 +54,14 @@ class BaseGrowableHandlePtrArray : public B {
       : zone_(zone), array_(zone, initial_capacity) {}
 
   // Use unique zone handles to store objects.
-  void Add(const T& t) { array_.Add(&T::ZoneHandle(zone_, t.raw())); }
+  void Add(const T& t) { array_.Add(&T::ZoneHandle(zone_, t.ptr())); }
 
   T& operator[](intptr_t index) const { return *array_[index]; }
 
   const T& At(intptr_t index) const { return operator[](index); }
 
   void SetAt(intptr_t index, const T& t) {
-    array_[index] = &T::ZoneHandle(zone_, t.raw());
+    array_[index] = &T::ZoneHandle(zone_, t.ptr());
   }
 
   intptr_t length() const { return array_.length(); }

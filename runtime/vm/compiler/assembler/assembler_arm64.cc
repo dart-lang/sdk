@@ -996,7 +996,7 @@ void Assembler::StoreIntoObject(Register object,
   //    in progress
   // If so, call the WriteBarrier stub, which will either add object to the
   // store buffer (case 1) or add value to the marking stack (case 2).
-  // Compare ObjectLayout::StorePointer.
+  // Compare UntaggedObject::StorePointer.
   Label done;
   if (can_be_smi == kValueCanBeSmi) {
     BranchIfSmi(value, &done);
@@ -1006,7 +1006,7 @@ void Assembler::StoreIntoObject(Register object,
   ldr(TMP2, FieldAddress(value, target::Object::tags_offset(), kByte),
       kUnsignedByte);
   and_(TMP, TMP2,
-       Operand(TMP, LSR, target::ObjectLayout::kBarrierOverlapShift));
+       Operand(TMP, LSR, target::UntaggedObject::kBarrierOverlapShift));
   tst(TMP, Operand(BARRIER_MASK));
   b(&done, ZERO);
 
@@ -1064,7 +1064,7 @@ void Assembler::StoreIntoArray(Register object,
   //    in progress
   // If so, call the WriteBarrier stub, which will either add object to the
   // store buffer (case 1) or add value to the marking stack (case 2).
-  // Compare ObjectLayout::StorePointer.
+  // Compare UntaggedObject::StorePointer.
   Label done;
   if (can_be_smi == kValueCanBeSmi) {
     BranchIfSmi(value, &done);
@@ -1074,7 +1074,7 @@ void Assembler::StoreIntoArray(Register object,
   ldr(TMP2, FieldAddress(value, target::Object::tags_offset(), kByte),
       kUnsignedByte);
   and_(TMP, TMP2,
-       Operand(TMP, LSR, target::ObjectLayout::kBarrierOverlapShift));
+       Operand(TMP, LSR, target::UntaggedObject::kBarrierOverlapShift));
   tst(TMP, Operand(BARRIER_MASK));
   b(&done, ZERO);
   if (spill_lr) {
@@ -1104,7 +1104,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 
   ldr(TMP, FieldAddress(object, target::Object::tags_offset(), kByte),
       kUnsignedByte);
-  tsti(TMP, Immediate(1 << target::ObjectLayout::kOldAndNotRememberedBit));
+  tsti(TMP, Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
   b(&done, ZERO);
 
   Stop("Store buffer update is required");
@@ -1156,25 +1156,26 @@ void Assembler::StoreInternalPointer(Register object,
 }
 
 void Assembler::ExtractClassIdFromTags(Register result, Register tags) {
-  ASSERT(target::ObjectLayout::kClassIdTagPos == 16);
-  ASSERT(target::ObjectLayout::kClassIdTagSize == 16);
-  LsrImmediate(result, tags, target::ObjectLayout::kClassIdTagPos, kFourBytes);
+  ASSERT(target::UntaggedObject::kClassIdTagPos == 16);
+  ASSERT(target::UntaggedObject::kClassIdTagSize == 16);
+  LsrImmediate(result, tags, target::UntaggedObject::kClassIdTagPos,
+               kFourBytes);
 }
 
 void Assembler::ExtractInstanceSizeFromTags(Register result, Register tags) {
-  ASSERT(target::ObjectLayout::kSizeTagPos == 8);
-  ASSERT(target::ObjectLayout::kSizeTagSize == 8);
-  ubfx(result, tags, target::ObjectLayout::kSizeTagPos,
-       target::ObjectLayout::kSizeTagSize);
+  ASSERT(target::UntaggedObject::kSizeTagPos == 8);
+  ASSERT(target::UntaggedObject::kSizeTagSize == 8);
+  ubfx(result, tags, target::UntaggedObject::kSizeTagPos,
+       target::UntaggedObject::kSizeTagSize);
   LslImmediate(result, result, target::ObjectAlignment::kObjectAlignmentLog2);
 }
 
 void Assembler::LoadClassId(Register result, Register object) {
-  ASSERT(target::ObjectLayout::kClassIdTagPos == 16);
-  ASSERT(target::ObjectLayout::kClassIdTagSize == 16);
+  ASSERT(target::UntaggedObject::kClassIdTagPos == 16);
+  ASSERT(target::UntaggedObject::kClassIdTagSize == 16);
   const intptr_t class_id_offset =
       target::Object::tags_offset() +
-      target::ObjectLayout::kClassIdTagPos / kBitsPerByte;
+      target::UntaggedObject::kClassIdTagPos / kBitsPerByte;
   LoadFromOffset(result, object, class_id_offset - kHeapObjectTag,
                  kUnsignedTwoBytes);
 }

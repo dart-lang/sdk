@@ -192,7 +192,7 @@ ConstantInstr* FlowGraph::GetConstant(const Object& object) {
   if (constant == nullptr) {
     // Otherwise, allocate and add it to the pool.
     constant =
-        new (zone()) ConstantInstr(Object::ZoneHandle(zone(), object.raw()));
+        new (zone()) ConstantInstr(Object::ZoneHandle(zone(), object.ptr()));
     constant->set_ssa_temp_index(alloc_ssa_temp_index());
     if (NeedsPairLocation(constant->representation())) {
       alloc_ssa_temp_index();
@@ -481,7 +481,7 @@ bool FlowGraph::IsReceiver(Definition* def) const {
 
 FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
     InstanceCallInstr* call,
-    FunctionLayout::Kind kind) const {
+    UntaggedFunction::Kind kind) const {
   if (!FLAG_use_cha_deopt && !isolate()->all_classes_finalized()) {
     // Even if class or function are private, lazy class finalization
     // may later add overriding methods.
@@ -543,7 +543,7 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
   }
 
   const String& method_name =
-      (kind == FunctionLayout::kMethodExtractor)
+      (kind == UntaggedFunction::kMethodExtractor)
           ? String::Handle(zone(), Field::NameFromGetter(call->function_name()))
           : call->function_name();
 

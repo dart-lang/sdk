@@ -30,7 +30,7 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
       String::Handle(Symbols::New(thread, "callerFunction"));
   const FunctionType& signature = FunctionType::ZoneHandle(FunctionType::New());
   const Function& function = Function::Handle(Function::New(
-      signature, function_name, FunctionLayout::kRegularFunction, true, false,
+      signature, function_name, UntaggedFunction::kRegularFunction, true, false,
       false, false, false, owner_class, TokenPosition::kNoSource));
 
   const String& target_name = String::Handle(String::New("targetFunction"));

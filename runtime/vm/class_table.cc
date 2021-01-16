@@ -160,7 +160,7 @@ void ClassTable::Register(const Class& cls) {
   // parallel to [ClassTable].
 
   const intptr_t instance_size =
-      cls.is_abstract() ? 0 : Class::host_instance_size(cls.raw());
+      cls.is_abstract() ? 0 : Class::host_instance_size(cls.ptr());
 
   const intptr_t expected_cid =
       shared_class_table_->Register(cid, instance_size);
@@ -168,7 +168,7 @@ void ClassTable::Register(const Class& cls) {
   if (cid != kIllegalCid) {
     ASSERT(cid > 0 && cid < kNumPredefinedCids && cid < top_);
     ASSERT(table_.load()[cid] == nullptr);
-    table_.load()[cid] = cls.raw();
+    table_.load()[cid] = cls.ptr();
   } else {
     if (top_ == capacity_) {
       const intptr_t new_capacity = capacity_ + kCapacityIncrement;
@@ -176,7 +176,7 @@ void ClassTable::Register(const Class& cls) {
     }
     ASSERT(top_ < capacity_);
     cls.set_id(top_);
-    table_.load()[top_] = cls.raw();
+    table_.load()[top_] = cls.ptr();
     top_++;  // Increment next index.
   }
   ASSERT(expected_cid == cls.id());
@@ -200,7 +200,7 @@ void ClassTable::RegisterTopLevel(const Class& cls) {
   }
   ASSERT(tlc_top_ < tlc_capacity_);
   cls.set_id(ClassTable::CidFromTopLevelIndex(tlc_top_));
-  tlc_table_.load()[tlc_top_] = cls.raw();
+  tlc_table_.load()[tlc_top_] = cls.ptr();
   tlc_top_++;  // Increment next index.
 }
 
@@ -496,7 +496,7 @@ void ClassTable::Print() {
       continue;
     }
     cls = At(i);
-    if (cls.raw() != nullptr) {
+    if (cls.ptr() != nullptr) {
       name = cls.Name();
       OS::PrintErr("%" Pd ": %s\n", i, name.ToCString());
     }

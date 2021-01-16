@@ -1715,7 +1715,7 @@ void AsmIntrinsifier::Object_setHash(Assembler* assembler,
   __ movq(RAX, Address(RSP, +2 * target::kWordSize));  // Object.
   __ movq(RDX, Address(RSP, +1 * target::kWordSize));  // Value.
   __ SmiUntag(RDX);
-  __ shlq(RDX, Immediate(target::ObjectLayout::kHashTagPos));
+  __ shlq(RDX, Immediate(target::UntaggedObject::kHashTagPos));
   // lock+orq is an atomic read-modify-write.
   __ lock();
   __ orq(FieldAddress(RAX, target::Object::tags_offset()), RDX);
@@ -1953,11 +1953,11 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   __ j(NOT_EQUAL, &set_hash_code, Assembler::kNearJump);
   __ incq(RAX);
   __ Bind(&set_hash_code);
-  __ shlq(RAX, Immediate(target::ObjectLayout::kHashTagPos));
+  __ shlq(RAX, Immediate(target::UntaggedObject::kHashTagPos));
   // lock+orq is an atomic read-modify-write.
   __ lock();
   __ orq(FieldAddress(RBX, target::Object::tags_offset()), RAX);
-  __ sarq(RAX, Immediate(target::ObjectLayout::kHashTagPos));
+  __ sarq(RAX, Immediate(target::UntaggedObject::kHashTagPos));
   __ SmiTag(RAX);
   __ ret();
 }
@@ -2020,9 +2020,9 @@ static void TryAllocateString(Assembler* assembler,
   // RDI: allocation size.
   {
     Label size_tag_overflow, done;
-    __ cmpq(RDI, Immediate(target::ObjectLayout::kSizeTagMaxSizeTag));
+    __ cmpq(RDI, Immediate(target::UntaggedObject::kSizeTagMaxSizeTag));
     __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-    __ shlq(RDI, Immediate(target::ObjectLayout::kTagBitsSizeTagPos -
+    __ shlq(RDI, Immediate(target::UntaggedObject::kTagBitsSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2));
     __ jmp(&done, Assembler::kNearJump);
 

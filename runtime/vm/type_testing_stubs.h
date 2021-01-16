@@ -240,8 +240,8 @@ class TypeArgumentInstantiator {
       const Class& klass,
       const TypeArguments& type_arguments,
       const TypeArguments& instantiator_type_arguments) {
-    instantiator_type_arguments_ = instantiator_type_arguments.raw();
-    return InstantiateTypeArguments(klass, type_arguments).raw();
+    instantiator_type_arguments_ = instantiator_type_arguments.ptr();
+    return InstantiateTypeArguments(klass, type_arguments).ptr();
   }
 
  private:
@@ -302,7 +302,7 @@ class TypeUsageInfo : public ThreadStackResource {
    public:
     static inline bool IsKeyEqual(const TypeArguments* pair,
                                   const TypeArguments* key) {
-      return pair->raw() == key->raw();
+      return pair->ptr() == key->ptr();
     }
   };
 
@@ -310,7 +310,7 @@ class TypeUsageInfo : public ThreadStackResource {
    public:
     static inline bool IsKeyEqual(const TypeParameter* pair,
                                   const TypeParameter* key) {
-      return pair->raw() == key->raw();
+      return pair->ptr() == key->ptr();
     }
   };
 

@@ -643,7 +643,7 @@ Dart_Handle TestCase::EvaluateExpression(const Library& lib,
                                          param_values,
                                          TypeArguments::null_type_arguments());
   }
-  return Api::NewHandle(thread, val.raw());
+  return Api::NewHandle(thread, val.ptr());
 }
 
 #if !defined(PRODUCT)
@@ -666,7 +666,7 @@ void AssemblerTest::Assemble() {
       Class::New(lib, function_name, script, TokenPosition::kMinSource));
   const FunctionType& signature = FunctionType::ZoneHandle(FunctionType::New());
   Function& function = Function::ZoneHandle(Function::New(
-      signature, function_name, FunctionLayout::kRegularFunction, true, false,
+      signature, function_name, UntaggedFunction::kRegularFunction, true, false,
       false, false, false, cls, TokenPosition::kMinSource));
   code_ = Code::FinalizeCodeAndNotify(function, nullptr, assembler_,
                                       Code::PoolAttachment::kAttachPool);

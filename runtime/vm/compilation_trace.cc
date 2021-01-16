@@ -105,7 +105,7 @@ ObjectPtr CompilationTraceLoader::CompileTrace(uint8_t* buffer, intptr_t size) {
     *newline = 0;
     error_ = CompileTriple(uri, cls_name, func_name);
     if (error_.IsError()) {
-      return error_.raw();
+      return error_.ptr();
     }
     cursor = newline + 1;
   }
@@ -125,10 +125,10 @@ ObjectPtr CompilationTraceLoader::CompileTrace(uint8_t* buffer, intptr_t size) {
     arguments_descriptor = ArgumentsDescriptor::NewBoxed(kTypeArgsLen, argc);
     dispatcher = closure_class.GetInvocationDispatcher(
         Symbols::Call(), arguments_descriptor,
-        FunctionLayout::kInvokeFieldDispatcher, true /* create_if_absent */);
+        UntaggedFunction::kInvokeFieldDispatcher, true /* create_if_absent */);
     error_ = CompileFunction(dispatcher);
     if (error_.IsError()) {
-      return error_.raw();
+      return error_.ptr();
     }
   }
 
@@ -141,7 +141,7 @@ ObjectPtr CompilationTraceLoader::CompileTrace(uint8_t* buffer, intptr_t size) {
     if (function2_.HasCode()) {
       result = CompileFunction(function_);
       if (result.IsError()) {
-        error_ = result.raw();
+        error_ = result.ptr();
         return false;  // Stop iteration.
       }
     }
@@ -239,7 +239,7 @@ ObjectPtr CompilationTraceLoader::CompileTriple(const char* uri_cstr,
                   function_name_.ToCString(),
                   Error::Cast(error_).ToErrorCString());
       }
-      return error_.raw();
+      return error_.ptr();
     }
 
     function_ = cls_.LookupFunctionAllowPrivate(function_name_);
@@ -265,7 +265,7 @@ ObjectPtr CompilationTraceLoader::CompileTriple(const char* uri_cstr,
                   class_name_.ToCString(), function_name_.ToCString(),
                   Error::Cast(error_).ToErrorCString());
             }
-            return error_.raw();
+            return error_.ptr();
           }
         }
       }
@@ -281,7 +281,7 @@ ObjectPtr CompilationTraceLoader::CompileTriple(const char* uri_cstr,
   }
 
   if (!field_.IsNull() && field_.is_const() && field_.is_static() &&
-      (field_.StaticValue() == Object::sentinel().raw())) {
+      (field_.StaticValue() == Object::sentinel().ptr())) {
     processed = true;
     error_ = field_.InitializeStatic();
     if (error_.IsError()) {
@@ -292,7 +292,7 @@ ObjectPtr CompilationTraceLoader::CompileTriple(const char* uri_cstr,
             field_.ToCString(), uri_.ToCString(), class_name_.ToCString(),
             function_name_.ToCString(), Error::Cast(error_).ToErrorCString());
       }
-      return error_.raw();
+      return error_.ptr();
     }
   }
 
@@ -306,7 +306,7 @@ ObjectPtr CompilationTraceLoader::CompileTriple(const char* uri_cstr,
                   function_name_.ToCString(),
                   Error::Cast(error_).ToErrorCString());
       }
-      return error_.raw();
+      return error_.ptr();
     }
     if (add_closure) {
       function_ = function_.ImplicitClosureFunction();
@@ -318,7 +318,7 @@ ObjectPtr CompilationTraceLoader::CompileTriple(const char* uri_cstr,
               uri_.ToCString(), class_name_.ToCString(),
               function_name_.ToCString(), Error::Cast(error_).ToErrorCString());
         }
-        return error_.raw();
+        return error_.ptr();
       }
     } else if (is_dyn) {
       function_name_ = function_.name();  // With private mangling.
@@ -334,7 +334,7 @@ ObjectPtr CompilationTraceLoader::CompileTriple(const char* uri_cstr,
               uri_.ToCString(), class_name_.ToCString(),
               function_name_.ToCString(), Error::Cast(error_).ToErrorCString());
         }
-        return error_.raw();
+        return error_.ptr();
       }
     }
   }
@@ -351,7 +351,7 @@ ObjectPtr CompilationTraceLoader::CompileTriple(const char* uri_cstr,
             uri_.ToCString(), class_name_.ToCString(),
             function_name_.ToCString(), Error::Cast(error_).ToErrorCString());
       }
-      return error_.raw();
+      return error_.ptr();
     }
   }
 
@@ -371,12 +371,12 @@ ObjectPtr CompilationTraceLoader::CompileFunction(const Function& function) {
 
   error_ = Compiler::CompileFunction(thread_, function);
   if (error_.IsError()) {
-    return error_.raw();
+    return error_.ptr();
   }
 
   SpeculateInstanceCallTargets(function);
 
-  return error_.raw();
+  return error_.ptr();
 }
 
 // For instance calls, if the receiver's static type has one concrete
@@ -536,7 +536,7 @@ void TypeFeedbackSaver::VisitFunction(const Function& function) {
 
   call_sites_ = function.ic_data_array();
   if (call_sites_.IsNull()) {
-    call_sites_ = Object::empty_array().raw();  // Remove edge case.
+    call_sites_ = Object::empty_array().ptr();  // Remove edge case.
   }
 
   // First element is edge counters.
@@ -618,23 +618,23 @@ ObjectPtr TypeFeedbackLoader::LoadFeedback(ReadStream* stream) {
 
   error_ = CheckHeader();
   if (error_.IsError()) {
-    return error_.raw();
+    return error_.ptr();
   }
 
   error_ = LoadClasses();
   if (error_.IsError()) {
-    return error_.raw();
+    return error_.ptr();
   }
 
   error_ = LoadFields();
   if (error_.IsError()) {
-    return error_.raw();
+    return error_.ptr();
   }
 
   while (stream_->PendingBytes() > 0) {
     error_ = LoadFunction();
     if (error_.IsError()) {
-      return error_.raw();
+      return error_.ptr();
     }
   }
 
@@ -645,7 +645,7 @@ ObjectPtr TypeFeedbackLoader::LoadFeedback(ReadStream* stream) {
         (func_.usage_counter() >= FLAG_optimization_counter_threshold)) {
       error_ = Compiler::CompileOptimizedFunction(thread_, func_);
       if (error_.IsError()) {
-        return error_.raw();
+        return error_.ptr();
       }
     }
   }
@@ -741,7 +741,7 @@ ObjectPtr TypeFeedbackLoader::LoadFields() {
     if (!skip && (num_fields > 0)) {
       error_ = cls_.EnsureIsFinalized(thread_);
       if (error_.IsError()) {
-        return error_.raw();
+        return error_.ptr();
       }
       fields_ = cls_.fields();
     }
@@ -809,14 +809,14 @@ ObjectPtr TypeFeedbackLoader::LoadFunction() {
   if (!cls_.IsNull()) {
     error_ = cls_.EnsureIsFinalized(thread_);
     if (error_.IsError()) {
-      return error_.raw();
+      return error_.ptr();
     }
   } else {
     skip = true;
   }
 
   func_name_ = ReadString();  // Without private mangling.
-  FunctionLayout::Kind kind = static_cast<FunctionLayout::Kind>(ReadInt());
+  UntaggedFunction::Kind kind = static_cast<UntaggedFunction::Kind>(ReadInt());
   const TokenPosition& token_pos = TokenPosition::Deserialize(ReadInt());
   intptr_t usage = ReadInt();
   intptr_t inlining_depth = ReadInt();
@@ -836,11 +836,11 @@ ObjectPtr TypeFeedbackLoader::LoadFunction() {
   if (!skip) {
     error_ = Compiler::CompileFunction(thread_, func_);
     if (error_.IsError()) {
-      return error_.raw();
+      return error_.ptr();
     }
     call_sites_ = func_.ic_data_array();
     if (call_sites_.IsNull()) {
-      call_sites_ = Object::empty_array().raw();  // Remove edge case.
+      call_sites_ = Object::empty_array().ptr();  // Remove edge case.
     }
     if (call_sites_.Length() != num_call_sites + 1) {
       skip = true;
@@ -928,7 +928,7 @@ ObjectPtr TypeFeedbackLoader::LoadFunction() {
   return Error::null();
 }
 
-FunctionPtr TypeFeedbackLoader::FindFunction(FunctionLayout::Kind kind,
+FunctionPtr TypeFeedbackLoader::FindFunction(UntaggedFunction::Kind kind,
                                              const TokenPosition& token_pos) {
   if (cls_name_.Equals(Symbols::TopLevel())) {
     func_ = lib_.LookupFunctionAllowPrivate(func_name_);
@@ -938,7 +938,7 @@ FunctionPtr TypeFeedbackLoader::FindFunction(FunctionLayout::Kind kind,
 
   if (!func_.IsNull()) {
     // Found regular method.
-  } else if (kind == FunctionLayout::kMethodExtractor) {
+  } else if (kind == UntaggedFunction::kMethodExtractor) {
     ASSERT(Field::IsGetterName(func_name_));
     // Without private mangling:
     String& name = String::Handle(zone_, Field::NameFromGetter(func_name_));
@@ -950,7 +950,7 @@ FunctionPtr TypeFeedbackLoader::FindFunction(FunctionLayout::Kind kind,
     } else {
       func_ = Function::null();
     }
-  } else if (kind == FunctionLayout::kDynamicInvocationForwarder) {
+  } else if (kind == UntaggedFunction::kDynamicInvocationForwarder) {
     // Without private mangling:
     String& name = String::Handle(
         zone_, Function::DemangleDynamicInvocationForwarderName(func_name_));
@@ -962,7 +962,7 @@ FunctionPtr TypeFeedbackLoader::FindFunction(FunctionLayout::Kind kind,
     } else {
       func_ = Function::null();
     }
-  } else if (kind == FunctionLayout::kClosureFunction) {
+  } else if (kind == UntaggedFunction::kClosureFunction) {
     // Note this lookup relies on parent functions appearing before child
     // functions in the serialized feedback, so the parent will have already
     // been unoptimized compilated and the child function created and added to
@@ -976,7 +976,7 @@ FunctionPtr TypeFeedbackLoader::FindFunction(FunctionLayout::Kind kind,
   }
 
   if (!func_.IsNull()) {
-    if (kind == FunctionLayout::kImplicitClosureFunction) {
+    if (kind == UntaggedFunction::kImplicitClosureFunction) {
       func_ = func_.ImplicitClosureFunction();
     }
     if (func_.is_abstract() || (func_.kind() != kind)) {
@@ -984,7 +984,7 @@ FunctionPtr TypeFeedbackLoader::FindFunction(FunctionLayout::Kind kind,
     }
   }
 
-  return func_.raw();
+  return func_.ptr();
 }
 
 ClassPtr TypeFeedbackLoader::ReadClassByName() {
@@ -1010,7 +1010,7 @@ ClassPtr TypeFeedbackLoader::ReadClassByName() {
       }
     }
   }
-  return cls_.raw();
+  return cls_.ptr();
 }
 
 StringPtr TypeFeedbackLoader::ReadString() {

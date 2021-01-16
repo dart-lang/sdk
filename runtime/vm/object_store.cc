@@ -65,7 +65,7 @@ static StackTracePtr CreatePreallocatedStackTrace(Zone* zone) {
   // Expansion of inlined functions requires additional memory at run time,
   // avoid it.
   stack_trace.set_expand_inlined(false);
-  return stack_trace.raw();
+  return stack_trace.ptr();
 }
 
 ErrorPtr IsolateObjectStore::PreallocateObjects() {
@@ -162,13 +162,13 @@ ErrorPtr ObjectStore::PreallocateObjects() {
 
   result = AllocateObjectByClassName(library, Symbols::StackOverflowError());
   if (result.IsError()) {
-    return Error::Cast(result).raw();
+    return Error::Cast(result).ptr();
   }
   set_stack_overflow(Instance::Cast(result));
 
   result = AllocateObjectByClassName(library, Symbols::OutOfMemoryError());
   if (result.IsError()) {
-    return Error::Cast(result).raw();
+    return Error::Cast(result).ptr();
   }
   set_out_of_memory(Instance::Cast(result));
 
@@ -185,7 +185,7 @@ FunctionPtr ObjectStore::PrivateObjectLookup(const String& name) {
   const Function& result = Function::Handle(
       Resolver::ResolveDynamicFunction(thread->zone(), cls, mangled));
   ASSERT(!result.IsNull());
-  return result.raw();
+  return result.ptr();
 }
 
 void ObjectStore::InitKnownObjects() {

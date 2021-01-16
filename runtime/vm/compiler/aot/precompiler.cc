@@ -590,7 +590,7 @@ void Precompiler::CollectCallbackFields() {
         if (!IsSent(field_name)) continue;
         // Create arguments descriptor with fixed parameters from
         // signature of field_type.
-        signature ^= field_type.raw();
+        signature ^= field_type.ptr();
         if (signature.IsGeneric()) continue;
         if (signature.HasOptionalParameters()) continue;
         if (FLAG_trace_precompiler) {
@@ -610,7 +610,8 @@ void Precompiler::CollectCallbackFields() {
             if (subcls.is_allocated()) {
               // Add dispatcher to cls.
               dispatcher = subcls.GetInvocationDispatcher(
-                  field_name, args_desc, FunctionLayout::kInvokeFieldDispatcher,
+                  field_name, args_desc,
+                  UntaggedFunction::kInvokeFieldDispatcher,
                   /* create_if_absent = */ true);
               if (FLAG_trace_precompiler) {
                 THR_Print("Added invoke-field-dispatcher for %s to %s\n",
@@ -631,7 +632,7 @@ void Precompiler::ProcessFunction(const Function& function) {
                                  : 0;
   RELEASE_ASSERT(!function.HasCode());
   // Ffi trampoline functions have no signature.
-  ASSERT(function.kind() == FunctionLayout::kFfiTrampoline ||
+  ASSERT(function.kind() == UntaggedFunction::kFfiTrampoline ||
          FunctionType::Handle(Z, function.signature()).IsFinalized());
 
   TracingScope tracing_scope(this);
@@ -719,8 +720,8 @@ void Precompiler::AddCalleesOf(const Function& function, intptr_t gop_offset) {
 }
 
 static bool IsPotentialClosureCall(const String& selector) {
-  return selector.raw() == Symbols::Call().raw() ||
-         selector.raw() == Symbols::DynamicCall().raw();
+  return selector.ptr() == Symbols::Call().ptr() ||
+         selector.ptr() == Symbols::DynamicCall().ptr();
 }
 
 void Precompiler::AddCalleesOfHelper(const Object& entry,
@@ -770,7 +771,7 @@ void Precompiler::AddCalleesOfHelper(const Object& entry,
 void Precompiler::AddTypesOf(const Class& cls) {
   if (cls.IsNull()) return;
   if (classes_to_retain_.HasKey(&cls)) return;
-  classes_to_retain_.Insert(&Class::ZoneHandle(Z, cls.raw()));
+  classes_to_retain_.Insert(&Class::ZoneHandle(Z, cls.ptr()));
 
   Array& interfaces = Array::Handle(Z, cls.interfaces());
   AbstractType& type = AbstractType::Handle(Z);
@@ -833,7 +834,7 @@ void Precompiler::AddType(const AbstractType& abstype) {
   if (abstype.IsTypeParameter()) {
     const auto& param = TypeParameter::Cast(abstype);
     if (typeparams_to_retain_.HasKey(&param)) return;
-    typeparams_to_retain_.Insert(&TypeParameter::ZoneHandle(Z, param.raw()));
+    typeparams_to_retain_.Insert(&TypeParameter::ZoneHandle(Z, param.ptr()));
 
     auto& type = AbstractType::Handle(Z, param.bound());
     AddType(type);
@@ -845,7 +846,7 @@ void Precompiler::AddType(const AbstractType& abstype) {
   if (abstype.IsFunctionType()) {
     if (functiontypes_to_retain_.HasKey(&FunctionType::Cast(abstype))) return;
     const FunctionType& signature =
-        FunctionType::ZoneHandle(Z, FunctionType::Cast(abstype).raw());
+        FunctionType::ZoneHandle(Z, FunctionType::Cast(abstype).ptr());
     functiontypes_to_retain_.Insert(&signature);
 
     AddTypeArguments(TypeArguments::Handle(Z, signature.type_parameters()));
@@ -861,7 +862,7 @@ void Precompiler::AddType(const AbstractType& abstype) {
   }
 
   if (types_to_retain_.HasKey(&abstype)) return;
-  types_to_retain_.Insert(&AbstractType::ZoneHandle(Z, abstype.raw()));
+  types_to_retain_.Insert(&AbstractType::ZoneHandle(Z, abstype.ptr()));
 
   if (abstype.IsType()) {
     const Type& type = Type::Cast(abstype);
@@ -880,7 +881,7 @@ void Precompiler::AddTypeArguments(const TypeArguments& args) {
   if (args.IsNull()) return;
 
   if (typeargs_to_retain_.HasKey(&args)) return;
-  typeargs_to_retain_.Insert(&TypeArguments::ZoneHandle(Z, args.raw()));
+  typeargs_to_retain_.Insert(&TypeArguments::ZoneHandle(Z, args.ptr()));
 
   AbstractType& arg = AbstractType::Handle(Z);
   for (intptr_t i = 0; i < args.Length(); i++) {
@@ -899,8 +900,8 @@ void Precompiler::AddConstObject(const class Instance& instance) {
     return;
   }
 
-  if (instance.raw() == Object::sentinel().raw() ||
-      instance.raw() == Object::transition_sentinel().raw()) {
+  if (instance.ptr() == Object::sentinel().ptr() ||
+      instance.ptr() == Object::transition_sentinel().ptr()) {
     return;
   }
 
@@ -928,7 +929,7 @@ void Precompiler::AddConstObject(const class Instance& instance) {
     const Library& target = Library::Handle(Z, prefix.GetLibrary(0));
     cls = target.toplevel_class();
     if (!classes_to_retain_.HasKey(&cls)) {
-      classes_to_retain_.Insert(&Class::ZoneHandle(Z, cls.raw()));
+      classes_to_retain_.Insert(&Class::ZoneHandle(Z, cls.ptr()));
     }
     return;
   }
@@ -943,7 +944,7 @@ void Precompiler::AddConstObject(const class Instance& instance) {
   // Constants are canonicalized and we avoid repeated processing of them.
   if (consts_to_retain_.HasKey(&instance)) return;
 
-  consts_to_retain_.Insert(&Instance::ZoneHandle(Z, instance.raw()));
+  consts_to_retain_.Insert(&Instance::ZoneHandle(Z, instance.ptr()));
 
   if (cls.NumTypeArguments() > 0) {
     AddTypeArguments(TypeArguments::Handle(Z, instance.GetTypeArguments()));
@@ -972,7 +973,7 @@ void Precompiler::AddConstObject(const class Instance& instance) {
   };
 
   ConstObjectVisitor visitor(this, IG);
-  instance.raw()->ptr()->VisitPointers(&visitor);
+  instance.ptr()->untag()->VisitPointers(&visitor);
 }
 
 void Precompiler::AddClosureCall(const String& call_selector,
@@ -982,7 +983,7 @@ void Precompiler::AddClosureCall(const String& call_selector,
   const Function& dispatcher =
       Function::Handle(Z, cache_class.GetInvocationDispatcher(
                               call_selector, arguments_descriptor,
-                              FunctionLayout::kInvokeFieldDispatcher,
+                              UntaggedFunction::kInvokeFieldDispatcher,
                               true /* create_if_absent */));
   AddFunction(dispatcher);
 }
@@ -994,15 +995,15 @@ void Precompiler::AddField(const Field& field) {
 
   if (fields_to_retain_.HasKey(&field)) return;
 
-  fields_to_retain_.Insert(&Field::ZoneHandle(Z, field.raw()));
+  fields_to_retain_.Insert(&Field::ZoneHandle(Z, field.ptr()));
 
   if (field.is_static()) {
     const Object& value = Object::Handle(Z, field.StaticValue());
     // Should not be in the middle of initialization while precompiling.
-    ASSERT(value.raw() != Object::transition_sentinel().raw());
+    ASSERT(value.ptr() != Object::transition_sentinel().ptr());
 
-    if (value.raw() != Object::sentinel().raw() &&
-        value.raw() != Object::null()) {
+    if (value.ptr() != Object::sentinel().ptr() &&
+        value.ptr() != Object::null()) {
       ASSERT(value.IsInstance());
       AddConstObject(Instance::Cast(value));
     }
@@ -1030,15 +1031,15 @@ bool Precompiler::MustRetainFunction(const Function& function) {
 
   // Resolver::ResolveDynamic uses.
   const auto& selector = String::Handle(Z, function.name());
-  if (selector.raw() == Symbols::toString().raw()) return true;
-  if (selector.raw() == Symbols::AssignIndexToken().raw()) return true;
-  if (selector.raw() == Symbols::IndexToken().raw()) return true;
-  if (selector.raw() == Symbols::hashCode().raw()) return true;
-  if (selector.raw() == Symbols::NoSuchMethod().raw()) return true;
-  if (selector.raw() == Symbols::EqualOperator().raw()) return true;
+  if (selector.ptr() == Symbols::toString().ptr()) return true;
+  if (selector.ptr() == Symbols::AssignIndexToken().ptr()) return true;
+  if (selector.ptr() == Symbols::IndexToken().ptr()) return true;
+  if (selector.ptr() == Symbols::hashCode().ptr()) return true;
+  if (selector.ptr() == Symbols::NoSuchMethod().ptr()) return true;
+  if (selector.ptr() == Symbols::EqualOperator().ptr()) return true;
 
   // Use the same check for _Closure.call as in stack_trace.{h|cc}.
-  if (selector.raw() == Symbols::Call().raw()) {
+  if (selector.ptr() == Symbols::Call().ptr()) {
     const auto& name = String::Handle(Z, function.QualifiedScrubbedName());
     if (name.Equals(Symbols::_ClosureCall())) return true;
   }
@@ -1084,7 +1085,7 @@ void Precompiler::AddSelector(const String& selector) {
 
   ASSERT(!selector.IsNull());
   if (!IsSent(selector)) {
-    sent_selectors_.Insert(&String::ZoneHandle(Z, selector.raw()));
+    sent_selectors_.Insert(&String::ZoneHandle(Z, selector.ptr()));
     selector_count_++;
     changed_ = true;
 
@@ -1224,7 +1225,7 @@ void Precompiler::AddAnnotatedRoots() {
 
           if ((type == EntryPointPragma::kAlways ||
                type == EntryPointPragma::kGetterOnly) &&
-              function.kind() != FunctionLayout::kConstructor &&
+              function.kind() != UntaggedFunction::kConstructor &&
               !function.IsSetterFunction()) {
             function2 = function.ImplicitClosureFunction();
             AddFunction(function2);
@@ -1234,29 +1235,29 @@ void Precompiler::AddAnnotatedRoots() {
             AddInstantiatedClass(cls);
           }
         }
-        if (function.kind() == FunctionLayout::kImplicitGetter &&
+        if (function.kind() == UntaggedFunction::kImplicitGetter &&
             !implicit_getters.IsNull()) {
           for (intptr_t i = 0; i < implicit_getters.Length(); ++i) {
             field ^= implicit_getters.At(i);
-            if (function.accessor_field() == field.raw()) {
+            if (function.accessor_field() == field.ptr()) {
               AddFunction(function);
             }
           }
         }
-        if (function.kind() == FunctionLayout::kImplicitSetter &&
+        if (function.kind() == UntaggedFunction::kImplicitSetter &&
             !implicit_setters.IsNull()) {
           for (intptr_t i = 0; i < implicit_setters.Length(); ++i) {
             field ^= implicit_setters.At(i);
-            if (function.accessor_field() == field.raw()) {
+            if (function.accessor_field() == field.ptr()) {
               AddFunction(function);
             }
           }
         }
-        if (function.kind() == FunctionLayout::kImplicitStaticGetter &&
+        if (function.kind() == UntaggedFunction::kImplicitStaticGetter &&
             !implicit_static_getters.IsNull()) {
           for (intptr_t i = 0; i < implicit_static_getters.Length(); ++i) {
             field ^= implicit_static_getters.At(i);
-            if (function.accessor_field() == field.raw()) {
+            if (function.accessor_field() == field.ptr()) {
               AddFunction(function);
             }
           }
@@ -1312,7 +1313,7 @@ void Precompiler::CheckForNewDynamicFunctions() {
 
         // Handle the implicit call type conversions.
         if (Field::IsGetterName(selector) &&
-            (function.kind() != FunctionLayout::kMethodExtractor)) {
+            (function.kind() != UntaggedFunction::kMethodExtractor)) {
           // Call-through-getter.
           // Function is get:foo and somewhere foo (or dyn:foo) is called.
           // Note that we need to skip method extractors (which were potentially
@@ -1330,7 +1331,7 @@ void Precompiler::CheckForNewDynamicFunctions() {
             function2 = function.GetDynamicInvocationForwarder(selector2);
             AddFunction(function2);
           }
-        } else if (function.kind() == FunctionLayout::kRegularFunction) {
+        } else if (function.kind() == UntaggedFunction::kRegularFunction) {
           selector2 = Field::LookupGetterSymbol(selector);
           selector3 = String::null();
           if (!selector2.IsNull()) {
@@ -1355,18 +1356,18 @@ void Precompiler::CheckForNewDynamicFunctions() {
         }
 
         const bool is_getter =
-            function.kind() == FunctionLayout::kImplicitGetter ||
-            function.kind() == FunctionLayout::kGetterFunction;
+            function.kind() == UntaggedFunction::kImplicitGetter ||
+            function.kind() == UntaggedFunction::kGetterFunction;
         const bool is_setter =
-            function.kind() == FunctionLayout::kImplicitSetter ||
-            function.kind() == FunctionLayout::kSetterFunction;
+            function.kind() == UntaggedFunction::kImplicitSetter ||
+            function.kind() == UntaggedFunction::kSetterFunction;
         const bool is_regular =
-            function.kind() == FunctionLayout::kRegularFunction;
+            function.kind() == UntaggedFunction::kRegularFunction;
         if (is_getter || is_setter || is_regular) {
           selector2 = Function::CreateDynamicInvocationForwarderName(selector);
           if (IsSent(selector2)) {
-            if (function.kind() == FunctionLayout::kImplicitGetter ||
-                function.kind() == FunctionLayout::kImplicitSetter) {
+            if (function.kind() == UntaggedFunction::kImplicitGetter ||
+                function.kind() == UntaggedFunction::kImplicitSetter) {
               field = function.accessor_field();
               metadata = kernel::ProcedureAttributesOf(field, Z);
             } else if (!found_metadata) {
@@ -1401,7 +1402,7 @@ class NameFunctionsTraits {
            String::Cast(a).Equals(String::Cast(b));
   }
   static uword Hash(const Object& obj) { return String::Cast(obj).Hash(); }
-  static ObjectPtr NewKey(const String& str) { return str.raw(); }
+  static ObjectPtr NewKey(const String& str) { return str.ptr(); }
 };
 
 typedef UnorderedHashMap<NameFunctionsTraits> Table;
@@ -1425,7 +1426,7 @@ static void AddNamesToFunctionsTable(Zone* zone,
                                      Function* dyn_function) {
   AddNameToFunctionsTable(zone, table, fname, function);
 
-  *dyn_function = function.raw();
+  *dyn_function = function.ptr();
   if (kernel::NeedsDynamicInvocationForwarder(function)) {
     *mangled_name = function.name();
     *mangled_name =
@@ -1513,12 +1514,12 @@ void Precompiler::CollectDynamicFunctionNames() {
       // create lazily.
       // => We disable unique target optimization if the target belongs to the
       //    lazily created functions.
-      key_demangled = key.raw();
+      key_demangled = key.ptr();
       if (Function::IsDynamicInvocationForwarderName(key)) {
         key_demangled = Function::DemangleDynamicInvocationForwarderName(key);
       }
-      if (function.name() != key.raw() &&
-          function.name() != key_demangled.raw()) {
+      if (function.name() != key.ptr() &&
+          function.name() != key_demangled.ptr()) {
         continue;
       }
       functions_map.UpdateOrInsert(key, function);
@@ -1698,7 +1699,7 @@ void Precompiler::ReplaceFunctionStaticCallEntries() {
           const uword pc = pc_offset + code.PayloadStart();
           CodePatcher::PatchStaticCallAt(pc, code, target_code_);
           if (append_to_pool) {
-            builder.AddObject(Object::ZoneHandle(target_code_.raw()));
+            builder.AddObject(Object::ZoneHandle(target_code_.ptr()));
           }
         }
         if (FLAG_trace_precompiler) {
@@ -1805,7 +1806,7 @@ void Precompiler::DropFunctions() {
         retained_functions.Add(Object::null_object());
         functions = Array::MakeFixedLength(retained_functions);
       } else {
-        functions = Object::empty_array().raw();
+        functions = Object::empty_array().ptr();
       }
       cls.set_invocation_dispatcher_cache(functions);
     }
@@ -1969,7 +1970,7 @@ void Precompiler::DropTypes() {
   const intptr_t dict_size =
       Utils::RoundUpToPowerOfTwo(retained_types.Length() * 4 / 3);
   types_array = HashTables::New<CanonicalTypeSet>(dict_size, Heap::kOld);
-  CanonicalTypeSet types_table(Z, types_array.raw());
+  CanonicalTypeSet types_table(Z, types_array.ptr());
   bool present;
   for (intptr_t i = 0; i < retained_types.Length(); i++) {
     type ^= retained_types.At(i);
@@ -2008,7 +2009,7 @@ void Precompiler::DropFunctionTypes() {
       Utils::RoundUpToPowerOfTwo(retained_types.Length() * 4 / 3);
   types_array =
       HashTables::New<CanonicalFunctionTypeSet>(dict_size, Heap::kOld);
-  CanonicalFunctionTypeSet types_table(Z, types_array.raw());
+  CanonicalFunctionTypeSet types_table(Z, types_array.ptr());
   bool present;
   for (intptr_t i = 0; i < retained_types.Length(); i++) {
     type ^= retained_types.At(i);
@@ -2050,7 +2051,7 @@ void Precompiler::DropTypeParameters() {
       Utils::RoundUpToPowerOfTwo(retained_typeparams.Length() * 4 / 3);
   typeparams_array =
       HashTables::New<CanonicalTypeParameterSet>(dict_size, Heap::kOld);
-  CanonicalTypeParameterSet typeparams_table(Z, typeparams_array.raw());
+  CanonicalTypeParameterSet typeparams_table(Z, typeparams_array.ptr());
   bool present;
   for (intptr_t i = 0; i < retained_typeparams.Length(); i++) {
     typeparam ^= retained_typeparams.At(i);
@@ -2089,7 +2090,7 @@ void Precompiler::DropTypeArguments() {
       Utils::RoundUpToPowerOfTwo(retained_typeargs.Length() * 4 / 3);
   typeargs_array =
       HashTables::New<CanonicalTypeArgumentsSet>(dict_size, Heap::kOld);
-  CanonicalTypeArgumentsSet typeargs_table(Z, typeargs_array.raw());
+  CanonicalTypeArgumentsSet typeargs_table(Z, typeargs_array.ptr());
   bool present;
   for (intptr_t i = 0; i < retained_typeargs.Length(); i++) {
     typeargs ^= retained_typeargs.At(i);
@@ -2259,7 +2260,7 @@ void Precompiler::DropLibraryEntries() {
 
     lib.RehashDictionary(dict, used * 4 / 3 + 1);
     if (!(retain_root_library_caches_ &&
-          (lib.raw() == IG->object_store()->root_library()))) {
+          (lib.ptr() == IG->object_store()->root_library()))) {
       lib.DropDependenciesAndCaches();
     }
   }
@@ -2335,7 +2336,7 @@ void Precompiler::DropLibraries() {
     } else if (lib.is_dart_scheme()) {
       // The core libraries are referenced from the object store.
       retain = true;
-    } else if (lib.raw() == root_lib.raw()) {
+    } else if (lib.ptr() == root_lib.ptr()) {
       // The root library might have no surviving members if it only exports
       // main from another library. It will still be referenced from the object
       // store, so retain it.
@@ -2367,7 +2368,7 @@ void Precompiler::DropLibraries() {
   }
 
   Library::RegisterLibraries(T, retained_libraries);
-  libraries_ = retained_libraries.raw();
+  libraries_ = retained_libraries.ptr();
 }
 
 // Traits for the HashTable template.
@@ -2375,7 +2376,7 @@ struct CodeKeyTraits {
   static uint32_t Hash(const Object& key) { return Code::Cast(key).Size(); }
   static const char* Name() { return "CodeKeyTraits"; }
   static bool IsMatch(const Object& x, const Object& y) {
-    return x.raw() == y.raw();
+    return x.ptr() == y.ptr();
   }
   static bool ReportStats() { return false; }
 };
@@ -2409,7 +2410,7 @@ FunctionPtr Precompiler::FindUnvisitedRetainedFunction() {
     function ^= functions_to_retain_.GetKey(it.Current());
     if (!function.HasCode()) continue;
     code = function.CurrentCode();
-    if (!visited.ContainsKey(code)) return function.raw();
+    if (!visited.ContainsKey(code)) return function.ptr();
   }
   return Function::null();
 }
@@ -2739,13 +2740,13 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       // We bailed out or we encountered an error.
       const Error& error = Error::Handle(thread()->StealStickyError());
 
-      if (error.raw() == Object::branch_offset_error().raw()) {
+      if (error.ptr() == Object::branch_offset_error().ptr()) {
         // Compilation failed due to an out of range branch offset in the
         // assembler. We try again (done = false) with far branches enabled.
         done = false;
         ASSERT(!use_far_branches);
         use_far_branches = true;
-      } else if (error.raw() == Object::speculative_inlining_error().raw()) {
+      } else if (error.ptr() == Object::speculative_inlining_error().ptr()) {
         // The return value of setjmp is the deopt id of the check instruction
         // that caused the bailout.
         done = false;
@@ -2801,7 +2802,7 @@ static ErrorPtr PrecompileFunctionHelper(Precompiler* precompiler,
     per_compile_timer.Start();
 
     ParsedFunction* parsed_function = new (zone)
-        ParsedFunction(thread, Function::ZoneHandle(zone, function.raw()));
+        ParsedFunction(thread, Function::ZoneHandle(zone, function.ptr()));
     if (trace_compiler) {
       THR_Print("Precompiling %sfunction: '%s' @ token %" Pd ", size %" Pd "\n",
                 (optimized ? "optimized " : ""),
@@ -2821,7 +2822,7 @@ static ErrorPtr PrecompileFunctionHelper(Precompiler* precompiler,
       const Error& error = Error::Handle(thread->StealStickyError());
       ASSERT(error.IsLanguageError() &&
              LanguageError::Cast(error).kind() != Report::kBailout);
-      return error.raw();
+      return error.ptr();
     }
 
     per_compile_timer.Stop();
@@ -2851,7 +2852,7 @@ static ErrorPtr PrecompileFunctionHelper(Precompiler* precompiler,
     // Precompilation may encounter compile-time errors.
     // Do not attempt to optimize functions that can cause errors.
     function.set_is_optimizable(false);
-    return error.raw();
+    return error.ptr();
   }
   UNREACHABLE();
   return Error::null();
@@ -3012,7 +3013,7 @@ StringPtr Obfuscator::ObfuscationState::RenameImpl(const String& name,
     renamed_ = BuildRename(name, atomic);
     renames_.UpdateOrInsert(name, renamed_);
   }
-  return renamed_.raw();
+  return renamed_.ptr();
 }
 
 static const char* const kGetterPrefix = "get:";
@@ -3088,8 +3089,8 @@ StringPtr Obfuscator::ObfuscationState::NewAtomicRename(
                                      should_be_private ? "_" : "", name_);
     // Must check if our generated name clashes with something that will
     // have an identity renaming.
-  } while (renames_.GetOrNull(renamed_) == renamed_.raw());
-  return renamed_.raw();
+  } while (renames_.GetOrNull(renamed_) == renamed_.ptr());
+  return renamed_.ptr();
 }
 
 StringPtr Obfuscator::ObfuscationState::BuildRename(const String& name,
@@ -3143,7 +3144,7 @@ StringPtr Obfuscator::ObfuscationState::BuildRename(const String& name,
     } else if (is_setter) {
       return Symbols::FromSet(thread_, string_);
     }
-    return string_.raw();
+    return string_.ptr();
   } else {
     return NewAtomicRename(is_private);
   }
@@ -3161,19 +3162,19 @@ void Obfuscator::Deobfuscate(Thread* thread,
   const Array& renames = Array::Handle(
       thread->zone(), GetRenamesFromSavedState(obfuscation_state));
 
-  ObfuscationMap renames_map(renames.raw());
+  ObfuscationMap renames_map(renames.ptr());
   String& piece = String::Handle();
   for (intptr_t i = 0; i < pieces.Length(); i++) {
     piece ^= pieces.At(i);
     ASSERT(piece.IsSymbol());
 
     // Fast path: skip '.'
-    if (piece.raw() == Symbols::Dot().raw()) {
+    if (piece.ptr() == Symbols::Dot().ptr()) {
       continue;
     }
 
     // Fast path: check if piece has an identity obfuscation.
-    if (renames_map.GetOrNull(piece) == piece.raw()) {
+    if (renames_map.GetOrNull(piece) == piece.ptr()) {
       continue;
     }
 
@@ -3183,7 +3184,7 @@ void Obfuscator::Deobfuscate(Thread* thread,
     ObfuscationMap::Iterator it(&renames_map);
     while (it.MoveNext()) {
       const intptr_t entry = it.Current();
-      if (renames_map.GetPayload(entry, 0) == piece.raw()) {
+      if (renames_map.GetPayload(entry, 0) == piece.ptr()) {
         piece ^= renames_map.GetKey(entry);
         pieces.SetAt(i, piece);
         break;
@@ -3211,7 +3212,7 @@ const char** Obfuscator::SerializeMap(Thread* thread) {
 
   const Array& renames = Array::Handle(
       thread->zone(), GetRenamesFromSavedState(obfuscation_state));
-  ObfuscationMap renames_map(renames.raw());
+  ObfuscationMap renames_map(renames.ptr());
 
   const char** result = new const char*[renames_map.NumOccupied() * 2 + 1];
   intptr_t idx = 0;
