@@ -181,7 +181,7 @@ class BinaryExpressionResolver {
     left = node.leftOperand;
 
     if (_flowAnalysis != null) {
-      flow?.logicalBinaryOp_rightBegin(left, isAnd: true);
+      flow?.logicalBinaryOp_rightBegin(left, node, isAnd: true);
       _resolver.checkUnreachableNode(right);
 
       right.accept(_resolver);
@@ -218,7 +218,7 @@ class BinaryExpressionResolver {
     left.accept(_resolver);
     left = node.leftOperand;
 
-    flow?.logicalBinaryOp_rightBegin(left, isAnd: false);
+    flow?.logicalBinaryOp_rightBegin(left, node, isAnd: false);
     _resolver.checkUnreachableNode(right);
 
     right.accept(_resolver);
