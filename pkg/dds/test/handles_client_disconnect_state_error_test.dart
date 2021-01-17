@@ -29,6 +29,9 @@ class StreamCancelDisconnectPeer extends FakePeer {
         completer.completeError(
           StateError('The client closed with pending request "foo".'),
         );
+        doneCompleter.completeError(
+          StateError('The client closed with pending request "foo".'),
+        );
         break;
       default:
         completer.complete(await super.sendRequest(method, args));
@@ -83,8 +86,8 @@ void main() {
     // unexpectedly.
     try {
       await client.sendRequest('foo');
-    } on StateError {
-      // This state error is expected. This test is ensuring that DDS exits
+    } on json_rpc.RpcException {
+      // This RPC exception is expected. This test is ensuring that DDS exits
       // gracefully even if the VM service disappears.
     }
 
