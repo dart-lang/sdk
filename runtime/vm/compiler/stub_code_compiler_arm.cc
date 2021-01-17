@@ -1058,10 +1058,10 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     // R3: new object end address.
     // R9: allocation size.
     {
-      const intptr_t shift = target::ObjectLayout::kTagBitsSizeTagPos -
+      const intptr_t shift = target::UntaggedObject::kTagBitsSizeTagPos -
                              target::ObjectAlignment::kObjectAlignmentLog2;
 
-      __ CompareImmediate(R9, target::ObjectLayout::kSizeTagMaxSizeTag);
+      __ CompareImmediate(R9, target::UntaggedObject::kSizeTagMaxSizeTag);
       __ mov(R8, Operand(R9, LSL, shift), LS);
       __ mov(R8, Operand(0), HI);
 
@@ -1305,7 +1305,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 // Input:
 //   R1: number of context variables.
 // Output:
-//   R0: new allocated RawContext object.
+//   R0: new allocated Context object.
 // Clobbered:
 //   R2, R3, R8, R9
 static void GenerateAllocateContext(Assembler* assembler, Label* slow_case) {
@@ -1349,9 +1349,9 @@ static void GenerateAllocateContext(Assembler* assembler, Label* slow_case) {
   // R1: number of context variables.
   // R2: object size.
   // R3: next object start.
-  const intptr_t shift = target::ObjectLayout::kTagBitsSizeTagPos -
+  const intptr_t shift = target::UntaggedObject::kTagBitsSizeTagPos -
                          target::ObjectAlignment::kObjectAlignmentLog2;
-  __ CompareImmediate(R2, target::ObjectLayout::kSizeTagMaxSizeTag);
+  __ CompareImmediate(R2, target::UntaggedObject::kSizeTagMaxSizeTag);
   // If no size tag overflow, shift R2 left, else set R2 to zero.
   __ mov(R9, Operand(R2, LSL, shift), LS);
   __ mov(R9, Operand(0), HI);
@@ -1377,7 +1377,7 @@ static void GenerateAllocateContext(Assembler* assembler, Label* slow_case) {
 // Input:
 //   R1: number of context variables.
 // Output:
-//   R0: new allocated RawContext object.
+//   R0: new allocated Context object.
 // Clobbered:
 //   Potentially any since is can go to runtime.
 void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
@@ -1438,7 +1438,7 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
 // Input:
 //   R4: context variable to clone.
 // Output:
-//   R0: new allocated RawContext object.
+//   R0: new allocated Context object.
 // Clobbered:
 //   Potentially any since it can go to runtime.
 void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
@@ -1545,13 +1545,13 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 
   if (cards) {
     __ ldr(TMP, FieldAddress(R1, target::Object::tags_offset()));
-    __ tst(TMP, Operand(1 << target::ObjectLayout::kCardRememberedBit));
+    __ tst(TMP, Operand(1 << target::UntaggedObject::kCardRememberedBit));
     __ b(&remember_card, NOT_ZERO);
   } else {
 #if defined(DEBUG)
     Label ok;
     __ ldr(TMP, FieldAddress(R1, target::Object::tags_offset()));
-    __ tst(TMP, Operand(1 << target::ObjectLayout::kCardRememberedBit));
+    __ tst(TMP, Operand(1 << target::UntaggedObject::kCardRememberedBit));
     __ b(&ok, ZERO);
     __ Stop("Wrong barrier");
     __ Bind(&ok);
@@ -1568,7 +1568,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   Label retry;
   __ Bind(&retry);
   __ ldrex(R2, R3);
-  __ bic(R2, R2, Operand(1 << target::ObjectLayout::kOldAndNotRememberedBit));
+  __ bic(R2, R2, Operand(1 << target::UntaggedObject::kOldAndNotRememberedBit));
   __ strex(R4, R2, R3);
   __ cmp(R4, Operand(1));
   __ b(&retry, EQ);
@@ -1616,9 +1616,9 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   // R3: Untagged address of header word (ldrex/strex do not support offsets).
   __ Bind(&marking_retry);
   __ ldrex(R2, R3);
-  __ tst(R2, Operand(1 << target::ObjectLayout::kOldAndNotMarkedBit));
+  __ tst(R2, Operand(1 << target::UntaggedObject::kOldAndNotMarkedBit));
   __ b(&lost_race, ZERO);
-  __ bic(R2, R2, Operand(1 << target::ObjectLayout::kOldAndNotMarkedBit));
+  __ bic(R2, R2, Operand(1 << target::UntaggedObject::kOldAndNotMarkedBit));
   __ strex(R4, R2, R3);
   __ cmp(R4, Operand(1));
   __ b(&marking_retry, EQ);
@@ -3484,10 +3484,10 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
   /* R1: new object end address. */
   /* R2: allocation size. */
   {
-    __ CompareImmediate(R2, target::ObjectLayout::kSizeTagMaxSizeTag);
+    __ CompareImmediate(R2, target::UntaggedObject::kSizeTagMaxSizeTag);
     __ mov(R3,
            Operand(R2, LSL,
-                   target::ObjectLayout::kTagBitsSizeTagPos -
+                   target::UntaggedObject::kTagBitsSizeTagPos -
                        target::ObjectAlignment::kObjectAlignmentLog2),
            LS);
     __ mov(R3, Operand(0), HI);

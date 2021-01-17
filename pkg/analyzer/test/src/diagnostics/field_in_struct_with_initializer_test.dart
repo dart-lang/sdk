@@ -39,6 +39,7 @@ class C extends Struct {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
 class C extends Struct {
+  Pointer p;
   static String str = '';
 }
 ''');

@@ -49,6 +49,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_list_lit
 import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_named_arguments.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware_spread.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_on_type.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_package_import.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_relative_import.dart';
@@ -112,6 +113,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_type_argumen
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_cast.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_new.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_parentheses.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_string_interpolation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_catch_clause.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_catch_stack.dart';
@@ -416,7 +418,7 @@ class FixProcessor extends BaseProcessor {
       ReplaceWithIsEmpty.newInstance,
     ],
     LintNames.prefer_is_not_empty: [
-      UesIsNotEmpty.newInstance,
+      UseIsNotEmpty.newInstance,
     ],
     LintNames.prefer_if_null_operators: [
       ConvertToIfNull.newInstance,
@@ -481,6 +483,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.unnecessary_parenthesis: [
       RemoveUnnecessaryParentheses.newInstance,
+    ],
+    LintNames.unnecessary_string_interpolations: [
+      RemoveUnnecessaryStringInterpolation.newInstance,
     ],
     LintNames.unnecessary_this: [
       RemoveThisExpression.newInstance,
@@ -819,7 +824,32 @@ class FixProcessor extends BaseProcessor {
       CreateClass.newInstance,
       CreateMixin.newInstance,
     ],
+    CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE: [
+      AddNullCheck.newInstance,
+    ],
+    CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE: [
+      AddNullCheck.newInstance,
+    ],
+    CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE: [
+      AddNullCheck.newInstance,
+    ],
+    CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE: [
+      AddNullCheck.newInstance,
+    ],
     CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE: [
+      AddNullCheck.newInstance,
+    ],
+    CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION: [
+      AddNullCheck.newInstance,
+    ],
+    CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR: [
+      AddNullCheck.newInstance,
+    ],
+    CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD: [
+      AddNullCheck.newInstance,
+      ConvertToNullAwareSpread.newInstance,
+    ],
+    CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH: [
       AddNullCheck.newInstance,
     ],
     CompileTimeErrorCode.UNDEFINED_ANNOTATION: [

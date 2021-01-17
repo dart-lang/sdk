@@ -103,7 +103,7 @@ void VerifyOnTransition() {
   Thread* thread = Thread::Current();
   TransitionGeneratedToVM transition(thread);
   VerifyPointersVisitor::VerifyPointers();
-  thread->isolate()->heap()->Verify();
+  thread->isolate_group()->heap()->Verify();
 }
 #endif
 
@@ -181,7 +181,7 @@ DEFINE_RUNTIME_ENTRY(NullError, 0) {
   const uword pc_offset = caller_frame->pc() - code.PayloadStart();
 
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->heap()->CollectAllGarbage();
+    isolate->group()->heap()->CollectAllGarbage();
   }
 
   const CodeSourceMap& map =
@@ -196,7 +196,7 @@ DEFINE_RUNTIME_ENTRY(NullError, 0) {
     const ObjectPool& pool = ObjectPool::Handle(zone, code.GetObjectPool());
     member_name ^= pool.ObjectAt(name_index);
   } else {
-    member_name = Symbols::OptimizedOut().raw();
+    member_name = Symbols::OptimizedOut().ptr();
   }
 
   NullErrorHelper(zone, member_name);
@@ -261,7 +261,7 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
   }
   if (len > Array::kMaxElements) {
     const Instance& exception = Instance::Handle(
-        zone, thread->isolate()->object_store()->out_of_memory());
+        zone, thread->isolate_group()->object_store()->out_of_memory());
     Exceptions::Throw(thread, exception);
   }
 
@@ -297,7 +297,7 @@ DEFINE_RUNTIME_ENTRY(AllocateTypedData, 2) {
     Exceptions::ThrowRangeError("length", Integer::Cast(length), 0, max);
   } else if (len > max) {
     const Instance& exception = Instance::Handle(
-        zone, thread->isolate()->object_store()->out_of_memory());
+        zone, thread->isolate_group()->object_store()->out_of_memory());
     Exceptions::Throw(thread, exception);
   }
   const auto& typed_data =
@@ -371,7 +371,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(uword /*ObjectPtr*/,
   // outermost runtime code (to which the genenerated Dart code might not return
   // in a long time).
   bool add_to_remembered_set = true;
-  if (object->ptr()->IsRemembered()) {
+  if (object->untag()->IsRemembered()) {
     // Objects must not be added to the remembered set twice because the
     // scavenger's visitor is not idempotent.
     // Might already be remembered because of type argument store in
@@ -390,7 +390,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(uword /*ObjectPtr*/,
   }
 
   if (add_to_remembered_set) {
-    object->ptr()->AddToRememberedSet(thread);
+    object->untag()->AddToRememberedSet(thread);
   }
 
   // For incremental write barrier elimination, we need to ensure that the
@@ -481,6 +481,9 @@ DEFINE_RUNTIME_ENTRY(SubtypeCheck, 5) {
   // we can't guarantee the supertype isn't the top type.
   if (supertype.IsTopTypeForSubtyping()) return;
 
+  // TODO(regis): Support for FLAG_trace_type_checks is missing here. Is it
+  // still useful or should we remove it everywhere?
+
   // The supertype or subtype may not be instantiated.
   if (AbstractType::InstantiateAndTestSubtype(
           &subtype, &supertype, instantiator_type_args, function_type_args)) {
@@ -537,12 +540,12 @@ static void PrintTypeCheck(const char* message,
   ASSERT(instance_type.IsInstantiated() ||
          (instance.IsClosure() && instance_type.IsInstantiated(kCurrentClass)));
   if (type.IsInstantiated()) {
-    OS::PrintErr("%s: '%s' %" Pd " %s '%s' %" Pd " (pc: %#" Px ").\n", message,
+    OS::PrintErr("%s: '%s' %d %s '%s' %d (pc: %#" Px ").\n", message,
                  String::Handle(instance_type.Name()).ToCString(),
-                 Class::Handle(instance_type.type_class()).id(),
-                 (result.raw() == Bool::True().raw()) ? "is" : "is !",
-                 String::Handle(type.Name()).ToCString(),
-                 Class::Handle(type.type_class()).id(), caller_frame->pc());
+                 instance_type.type_class_id(),
+                 (result.ptr() == Bool::True().ptr()) ? "is" : "is !",
+                 String::Handle(type.Name()).ToCString(), type.type_class_id(),
+                 caller_frame->pc());
   } else {
     // Instantiate type before printing.
     const AbstractType& instantiated_type = AbstractType::Handle(
@@ -550,7 +553,7 @@ static void PrintTypeCheck(const char* message,
                              function_type_arguments, kAllFree, Heap::kOld));
     OS::PrintErr("%s: '%s' %s '%s' instantiated from '%s' (pc: %#" Px ").\n",
                  message, String::Handle(instance_type.Name()).ToCString(),
-                 (result.raw() == Bool::True().raw()) ? "is" : "is !",
+                 (result.ptr() == Bool::True().ptr()) ? "is" : "is !",
                  String::Handle(instantiated_type.Name()).ToCString(),
                  String::Handle(type.Name()).ToCString(), caller_frame->pc());
   }
@@ -608,7 +611,7 @@ static void UpdateTypeTestCache(
   if (instance_class.IsClosureClass()) {
     const auto& closure = Closure::Cast(instance);
     const auto& closure_function = Function::Handle(zone, closure.function());
-    instance_class_id_or_function = closure_function.raw();
+    instance_class_id_or_function = closure_function.ptr();
     instance_type_arguments = closure.instantiator_type_arguments();
     instance_parent_function_type_arguments = closure.function_type_arguments();
     instance_delayed_type_arguments = closure.delayed_type_arguments();
@@ -623,7 +626,7 @@ static void UpdateTypeTestCache(
         String::Handle(zone, instance_class.Name());
     TextBuffer buffer(256);
     buffer.Printf("  Updating test cache %#" Px " with result %s for:\n",
-                  static_cast<uword>(new_cache.raw()), result.ToCString());
+                  static_cast<uword>(new_cache.ptr()), result.ToCString());
     if (instance.IsString()) {
       buffer.Printf("    instance: '%s'\n", instance.ToCString());
     } else {
@@ -634,14 +637,14 @@ static void UpdateTypeTestCache(
     buffer.Printf(
         "    raw entry: [ %#" Px ", %#" Px ", %#" Px ", %#" Px ", %#" Px
         ", %#" Px ", %#" Px ", %#" Px " ]\n",
-        static_cast<uword>(instance_class_id_or_function.raw()),
-        static_cast<uword>(destination_type.raw()),
-        static_cast<uword>(instance_type_arguments.raw()),
-        static_cast<uword>(instantiator_type_arguments.raw()),
-        static_cast<uword>(function_type_arguments.raw()),
-        static_cast<uword>(instance_parent_function_type_arguments.raw()),
-        static_cast<uword>(instance_delayed_type_arguments.raw()),
-        static_cast<uword>(result.raw()));
+        static_cast<uword>(instance_class_id_or_function.ptr()),
+        static_cast<uword>(destination_type.ptr()),
+        static_cast<uword>(instance_type_arguments.ptr()),
+        static_cast<uword>(instantiator_type_arguments.ptr()),
+        static_cast<uword>(function_type_arguments.ptr()),
+        static_cast<uword>(instance_parent_function_type_arguments.ptr()),
+        static_cast<uword>(instance_delayed_type_arguments.ptr()),
+        static_cast<uword>(result.ptr()));
     OS::PrintErr("%s", buffer.buffer());
   }
   {
@@ -677,7 +680,7 @@ static void UpdateTypeTestCache(
       if (FLAG_trace_type_checks) {
         TextBuffer buffer(256);
         buffer.Printf("  Collision for test cache %#" Px " at index %" Pd ":\n",
-                      static_cast<uword>(new_cache.raw()), colliding_index);
+                      static_cast<uword>(new_cache.ptr()), colliding_index);
         buffer.Printf("    entry: ");
         new_cache.WriteEntryToBuffer(zone, &buffer, colliding_index, "      ");
         OS::PrintErr("%s\n", buffer.buffer());
@@ -685,7 +688,7 @@ static void UpdateTypeTestCache(
       if (!FLAG_enable_isolate_groups) {
         FATAL("Duplicate subtype test cache entry");
       }
-      if (old_result.raw() != result.raw()) {
+      if (old_result.ptr() != result.ptr()) {
         FATAL("Existing subtype test cache entry has result %s, not %s",
               old_result.ToCString(), result.ToCString());
       }
@@ -702,7 +705,7 @@ static void UpdateTypeTestCache(
       TextBuffer buffer(256);
       buffer.Printf("  Added new entry to test cache %#" Px " at index %" Pd
                     ":\n",
-                    static_cast<uword>(new_cache.raw()), len);
+                    static_cast<uword>(new_cache.ptr()), len);
       buffer.Printf("    new entry: ");
       new_cache.WriteEntryToBuffer(zone, &buffer, len, "      ");
       OS::PrintErr("%s\n", buffer.buffer());
@@ -780,7 +783,8 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
 
   // These are guaranteed on the calling side.
   ASSERT(!dst_type.IsDynamicType());
-  ASSERT(!src_instance.IsNull() || isolate->use_strict_null_safety_checks());
+  ASSERT(!src_instance.IsNull() ||
+         isolate->group()->use_strict_null_safety_checks());
 
   const bool is_instance_of = src_instance.IsAssignableTo(
       dst_type, instantiator_type_arguments, function_type_arguments);
@@ -814,8 +818,8 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
 #endif
     }
 
-    if (dst_name.raw() ==
-        Symbols::dynamic_assert_assignable_stc_check().raw()) {
+    if (dst_name.ptr() ==
+        Symbols::dynamic_assert_assignable_stc_check().ptr()) {
 #if !defined(TARGET_ARCH_IA32)
       // Can only come here from type testing stub via dynamic AssertAssignable.
       ASSERT(mode != kTypeCheckFromInline);
@@ -893,8 +897,8 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
     would_update_cache_if_not_lazy =
         (!src_instance.IsNull() &&
          dst_type.type_test_stub() ==
-             StubCode::DefaultNullableTypeTest().raw()) ||
-        dst_type.type_test_stub() == StubCode::DefaultTypeTest().raw();
+             StubCode::DefaultNullableTypeTest().ptr()) ||
+        dst_type.type_test_stub() == StubCode::DefaultTypeTest().ptr();
     should_update_cache = would_update_cache_if_not_lazy && cache.IsNull();
   }
 
@@ -915,7 +919,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
 #endif
     TypeTestingStubGenerator::SpecializeStubFor(thread, dst_type);
 #if defined(DEBUG)
-    ASSERT(old_code.raw() != dst_type.type_test_stub());
+    ASSERT(old_code.ptr() != dst_type.type_test_stub());
 #endif
     // Only create the cache when we come from a normal stub.
     should_update_cache = false;
@@ -1029,7 +1033,7 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
   const Code& target_code = Code::Handle(zone, target_function.EnsureHasCode());
   // Before patching verify that we are not repeatedly patching to the same
   // target.
-  ASSERT(target_code.raw() !=
+  ASSERT(target_code.ptr() !=
          CodePatcher::GetStaticCallTargetAt(caller_frame->pc(), caller_code));
   CodePatcher::PatchStaticCallAt(caller_frame->pc(), caller_code, target_code);
   caller_code.SetStaticCallTargetCodeAt(caller_frame->pc(), target_code);
@@ -1105,7 +1109,7 @@ static bool ResolveCallThroughGetter(const Class& receiver_class,
   const Function& target_function =
       Function::Handle(receiver_class.GetInvocationDispatcher(
           target_name, arguments_descriptor,
-          FunctionLayout::kInvokeFieldDispatcher, FLAG_lazy_dispatchers));
+          UntaggedFunction::kInvokeFieldDispatcher, FLAG_lazy_dispatchers));
   ASSERT(!target_function.IsNull() || !FLAG_lazy_dispatchers);
   if (FLAG_trace_ic) {
     OS::PrintErr(
@@ -1113,7 +1117,7 @@ static bool ResolveCallThroughGetter(const Class& receiver_class,
         receiver_class.ToCString(), receiver_class.id(),
         target_function.IsNull() ? "null" : target_function.ToCString());
   }
-  *result = target_function.raw();
+  *result = target_function.ptr();
   return true;
 }
 
@@ -1138,19 +1142,19 @@ FunctionPtr InlineCacheMissHelper(const Class& receiver_class,
     const Function& target_function =
         Function::Handle(receiver_class.GetInvocationDispatcher(
             *demangled, args_descriptor,
-            FunctionLayout::kNoSuchMethodDispatcher, FLAG_lazy_dispatchers));
+            UntaggedFunction::kNoSuchMethodDispatcher, FLAG_lazy_dispatchers));
     if (FLAG_trace_ic) {
       OS::PrintErr(
           "NoSuchMethod IC miss: adding <%s> id:%" Pd " -> <%s>\n",
           receiver_class.ToCString(), receiver_class.id(),
           target_function.IsNull() ? "null" : target_function.ToCString());
     }
-    result = target_function.raw();
+    result = target_function.ptr();
   }
   // May be null if --no-lazy-dispatchers, in which case dispatch will be
   // handled by NoSuchMethodFromCallStub.
   ASSERT(!result.IsNull() || !FLAG_lazy_dispatchers);
-  return result.raw();
+  return result.ptr();
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -1183,7 +1187,7 @@ static void TrySwitchInstanceCall(Thread* thread,
   // the ic_data_array belongs to the function instead of the code. This should
   // only happen because of reload, but it sometimes happens with KBC mixed mode
   // probably through a race between foreground and background compilation.
-  if (caller_function.unoptimized_code() != caller_code.raw()) {
+  if (caller_function.unoptimized_code() != caller_code.ptr()) {
     return;
   }
 #if !defined(PRODUCT)
@@ -1242,12 +1246,12 @@ static FunctionPtr ComputeTypeCheckTarget(const Instance& receiver,
                                           const ArgumentsDescriptor& desc) {
   const bool result = receiver.IsInstanceOf(type, Object::null_type_arguments(),
                                             Object::null_type_arguments());
-  const ObjectStore* store = Isolate::Current()->object_store();
+  const ObjectStore* store = IsolateGroup::Current()->object_store();
   const Function& target =
       Function::Handle(result ? store->simple_instance_of_true_function()
                               : store->simple_instance_of_false_function());
   ASSERT(!target.IsNull());
-  return target.raw();
+  return target.ptr();
 }
 
 static FunctionPtr Resolve(
@@ -1266,8 +1270,9 @@ static FunctionPtr Resolve(
                                                                name, args_desc);
   }
   if (caller_arguments.length() == 2 &&
-      target_function.raw() ==
-          thread->isolate()->object_store()->simple_instance_of_function()) {
+      target_function.ptr() == thread->isolate_group()
+                                   ->object_store()
+                                   ->simple_instance_of_function()) {
     // Replace the target function with constant function.
     const AbstractType& type = AbstractType::Cast(*caller_arguments[1]);
     target_function =
@@ -1281,7 +1286,7 @@ static FunctionPtr Resolve(
     ASSERT(!FLAG_lazy_dispatchers);
   }
 
-  return target_function.raw();
+  return target_function.ptr();
 }
 
 // Handles a static call in unoptimized code that has one argument type not
@@ -1339,14 +1344,14 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerTwoArgs, 3) {
 
 #if defined(DART_PRECOMPILED_RUNTIME)
 
-static bool IsSingleTarget(Isolate* isolate,
+static bool IsSingleTarget(IsolateGroup* isolate_group,
                            Zone* zone,
                            intptr_t lower_cid,
                            intptr_t upper_cid,
                            const Function& target,
                            const String& name) {
   Class& cls = Class::Handle(zone);
-  ClassTable* table = isolate->class_table();
+  ClassTable* table = isolate_group->class_table();
   Function& other_target = Function::Handle(zone);
   for (intptr_t cid = lower_cid; cid <= upper_cid; cid++) {
     if (!table->HasValidClassAt(cid)) continue;
@@ -1355,13 +1360,12 @@ static bool IsSingleTarget(Isolate* isolate,
     if (!cls.is_allocated()) continue;
     other_target = Resolver::ResolveDynamicAnyArgs(zone, cls, name,
                                                    /*allow_add=*/false);
-    if (other_target.raw() != target.raw()) {
+    if (other_target.ptr() != target.ptr()) {
       return false;
     }
   }
   return true;
 }
-
 
 class SavedUnlinkedCallMapKeyEqualsTraits : public AllStatic {
  public:
@@ -1400,7 +1404,7 @@ static void SaveUnlinkedCall(Zone* zone,
   const auto& new_or_old_value = UnlinkedCall::Handle(
       zone, UnlinkedCall::RawCast(
                 unlinked_call_map.InsertOrGetValue(pc, unlinked_call)));
-  RELEASE_ASSERT(new_or_old_value.raw() == unlinked_call.raw());
+  RELEASE_ASSERT(new_or_old_value.ptr() == unlinked_call.ptr());
   isolate_group->set_saved_unlinked_calls(unlinked_call_map.Release());
 }
 
@@ -1418,7 +1422,7 @@ static UnlinkedCallPtr LoadUnlinkedCall(Zone* zone,
   const auto& unlinked_call = UnlinkedCall::Cast(
       Object::Handle(zone, unlinked_call_map.GetOrDie(pc_integer)));
   isolate_group->set_saved_unlinked_calls(unlinked_call_map.Release());
-  return unlinked_call.raw();
+  return unlinked_call.ptr();
 }
 
 // NOTE: Right now we never delete [UnlinkedCall] objects. They are needed while
@@ -1574,8 +1578,8 @@ void PatchableCallHandler::DoUnlinkedCallAOT(const UnlinkedCall& unlinked,
           ? NewICData()
           : NewICDataWithTarget(receiver().GetClassId(), target_function));
 
-  Object& object = Object::Handle(zone_, ic_data.raw());
-  Code& code = Code::Handle(zone_, StubCode::ICCallThroughCode().raw());
+  Object& object = Object::Handle(zone_, ic_data.ptr());
+  Code& code = Code::Handle(zone_, StubCode::ICCallThroughCode().ptr());
   // If the target function has optional parameters or is generic, it's
   // prologue requires ARGS_DESC_REG to be populated. Yet the switchable calls
   // do not populate that on the call site, which is why we don't transition
@@ -1594,12 +1598,12 @@ void PatchableCallHandler::DoUnlinkedCallAOT(const UnlinkedCall& unlinked,
         Smi::Handle(zone_, Smi::New(receiver().GetClassId()));
 
     if (unlinked.can_patch_to_monomorphic()) {
-      object = expected_cid.raw();
-      code = target_code.raw();
+      object = expected_cid.ptr();
+      code = target_code.ptr();
       ASSERT(code.HasMonomorphicEntry());
     } else {
       object = MonomorphicSmiableCall::New(expected_cid.Value(), target_code);
-      code = StubCode::MonomorphicSmiableCheck().raw();
+      code = StubCode::MonomorphicSmiableCheck().ptr();
     }
   }
   CodePatcher::PatchSwitchableCallAt(caller_frame_->pc(), caller_code_, object,
@@ -1616,7 +1620,7 @@ bool PatchableCallHandler::CanExtendSingleTargetRange(
     const Function& target_function,
     intptr_t* lower,
     intptr_t* upper) {
-  if (old_target.raw() != target_function.raw()) {
+  if (old_target.ptr() != target_function.ptr()) {
     return false;
   }
   intptr_t unchecked_lower, unchecked_upper;
@@ -1630,8 +1634,8 @@ bool PatchableCallHandler::CanExtendSingleTargetRange(
     *upper = receiver().GetClassId();
   }
 
-  return IsSingleTarget(isolate_, zone_, unchecked_lower, unchecked_upper,
-                        target_function, name);
+  return IsSingleTarget(isolate_->group(), zone_, unchecked_lower,
+                        unchecked_upper, target_function, name);
 }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
@@ -1642,7 +1646,7 @@ static ICDataPtr FindICDataForInstanceCall(Zone* zone,
   uword pc_offset = pc - code.PayloadStart();
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(zone, code.pc_descriptors());
-  PcDescriptors::Iterator iter(descriptors, PcDescriptorsLayout::kIcCall);
+  PcDescriptors::Iterator iter(descriptors, UntaggedPcDescriptors::kIcCall);
   intptr_t deopt_id = -1;
   while (iter.MoveNext()) {
     if (iter.PcOffset() == pc_offset) {
@@ -1667,8 +1671,8 @@ void PatchableCallHandler::DoMonomorphicMissAOT(
     old_expected_cid = MonomorphicSmiableCall::Cast(data).expected_cid();
   }
   const bool is_monomorphic_hit = old_expected_cid == receiver().GetClassId();
-  const auto& old_receiver_class =
-      Class::Handle(zone_, isolate_->class_table()->At(old_expected_cid));
+  const auto& old_receiver_class = Class::Handle(
+      zone_, isolate_->group()->class_table()->At(old_expected_cid));
   const auto& old_target = Function::Handle(
       zone_, Resolve(thread_, zone_, caller_arguments_, old_receiver_class,
                      name_, args_descriptor_));
@@ -1847,15 +1851,15 @@ void PatchableCallHandler::DoICDataMissJIT(const ICData& ic_data,
   ASSERT(ic_data.NumArgsTested() == caller_arguments_.length());
 
   if (ic_data.NumArgsTested() == 1) {
-    ASSERT(old_code.raw() == StubCode::OneArgCheckInlineCache().raw() ||
-           old_code.raw() ==
-               StubCode::OneArgCheckInlineCacheWithExactnessCheck().raw() ||
-           old_code.raw() ==
-               StubCode::OneArgOptimizedCheckInlineCache().raw() ||
-           old_code.raw() ==
+    ASSERT(old_code.ptr() == StubCode::OneArgCheckInlineCache().ptr() ||
+           old_code.ptr() ==
+               StubCode::OneArgCheckInlineCacheWithExactnessCheck().ptr() ||
+           old_code.ptr() ==
+               StubCode::OneArgOptimizedCheckInlineCache().ptr() ||
+           old_code.ptr() ==
                StubCode::OneArgOptimizedCheckInlineCacheWithExactnessCheck()
-                   .raw() ||
-           old_code.raw() == StubCode::ICCallBreakpoint().raw() ||
+                   .ptr() ||
+           old_code.ptr() == StubCode::ICCallBreakpoint().ptr() ||
            (old_code.IsNull() && !should_consider_patching()));
     UpdateICDataWithTarget(ic_data, target_function);
     if (should_consider_patching()) {
@@ -1864,17 +1868,17 @@ void PatchableCallHandler::DoICDataMissJIT(const ICData& ic_data,
     }
     const Code& stub = Code::Handle(
         zone_, ic_data.is_tracking_exactness()
-                   ? StubCode::OneArgCheckInlineCacheWithExactnessCheck().raw()
-                   : StubCode::OneArgCheckInlineCache().raw());
+                   ? StubCode::OneArgCheckInlineCacheWithExactnessCheck().ptr()
+                   : StubCode::OneArgCheckInlineCache().ptr());
     ReturnJIT(stub, ic_data, target_function);
   } else {
-    ASSERT(old_code.raw() == StubCode::TwoArgsCheckInlineCache().raw() ||
-           old_code.raw() == StubCode::SmiAddInlineCache().raw() ||
-           old_code.raw() == StubCode::SmiLessInlineCache().raw() ||
-           old_code.raw() == StubCode::SmiEqualInlineCache().raw() ||
-           old_code.raw() ==
-               StubCode::TwoArgsOptimizedCheckInlineCache().raw() ||
-           old_code.raw() == StubCode::ICCallBreakpoint().raw() ||
+    ASSERT(old_code.ptr() == StubCode::TwoArgsCheckInlineCache().ptr() ||
+           old_code.ptr() == StubCode::SmiAddInlineCache().ptr() ||
+           old_code.ptr() == StubCode::SmiLessInlineCache().ptr() ||
+           old_code.ptr() == StubCode::SmiEqualInlineCache().ptr() ||
+           old_code.ptr() ==
+               StubCode::TwoArgsOptimizedCheckInlineCache().ptr() ||
+           old_code.ptr() == StubCode::ICCallBreakpoint().ptr() ||
            (old_code.IsNull() && !should_consider_patching()));
     UpdateICDataWithTarget(ic_data, target_function);
     ReturnJIT(StubCode::TwoArgsCheckInlineCache(), ic_data, target_function);
@@ -2080,7 +2084,7 @@ void PatchableCallHandler::ResolveSwitchAndReturn(const Object& old_data) {
                                            &data);
   } else {
     ASSERT(old_data.IsICData() || old_data.IsMegamorphicCache());
-    data = old_data.raw();
+    data = old_data.ptr();
   }
 #endif
   HandleMiss(data, code, target_function);
@@ -2092,21 +2096,21 @@ void PatchableCallHandler::HandleMiss(const Object& old_data,
   switch (old_data.GetClassId()) {
 #if defined(DART_PRECOMPILED_RUNTIME)
     case kUnlinkedCallCid:
-      ASSERT(old_code.raw() == StubCode::SwitchableCallMiss().raw());
+      ASSERT(old_code.ptr() == StubCode::SwitchableCallMiss().ptr());
       DoUnlinkedCallAOT(UnlinkedCall::Cast(old_data), target_function);
       break;
     case kMonomorphicSmiableCallCid:
-      ASSERT(old_code.raw() == StubCode::MonomorphicSmiableCheck().raw());
+      ASSERT(old_code.ptr() == StubCode::MonomorphicSmiableCheck().ptr());
       FALL_THROUGH;
     case kSmiCid:
       DoMonomorphicMissAOT(old_data, target_function);
       break;
     case kSingleTargetCacheCid:
-      ASSERT(old_code.raw() == StubCode::SingleTargetCall().raw());
+      ASSERT(old_code.ptr() == StubCode::SingleTargetCall().ptr());
       DoSingleTargetMissAOT(SingleTargetCache::Cast(old_data), target_function);
       break;
     case kICDataCid:
-      ASSERT(old_code.raw() == StubCode::ICCallThroughCode().raw());
+      ASSERT(old_code.ptr() == StubCode::ICCallThroughCode().ptr());
       DoICDataMissAOT(ICData::Cast(old_data), target_function);
       break;
 #else
@@ -2120,7 +2124,7 @@ void PatchableCallHandler::HandleMiss(const Object& old_data,
       break;
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
     case kMegamorphicCacheCid:
-      ASSERT(old_code.raw() == StubCode::MegamorphicCall().raw() ||
+      ASSERT(old_code.ptr() == StubCode::MegamorphicCall().ptr() ||
              (old_code.IsNull() && !should_consider_patching()));
       DoMegamorphicMiss(MegamorphicCache::Cast(old_data), target_function);
       break;
@@ -2235,7 +2239,7 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
   ASSERT(!FLAG_lazy_dispatchers);
   const bool is_dynamic_call =
       Function::IsDynamicInvocationForwarderName(target_name);
-  String& demangled_target_name = String::Handle(zone, target_name.raw());
+  String& demangled_target_name = String::Handle(zone, target_name.ptr());
   if (is_dynamic_call) {
     demangled_target_name =
         Function::DemangleDynamicInvocationForwarderName(target_name);
@@ -2272,7 +2276,7 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
             Function::Handle(zone, function.ImplicitClosureFunction());
         const Object& result = Object::Handle(
             zone, closure_function.ImplicitInstanceClosure(receiver));
-        return result.raw();
+        return result.ptr();
       }
       cls = cls.SuperClass();
     }
@@ -2283,7 +2287,7 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
     // o.foo(...) failed, invoke noSuchMethod is foo exists but has the wrong
     // number of arguments, or try (o.foo).call(...)
 
-    if ((target_name.raw() == Symbols::Call().raw()) && receiver.IsClosure()) {
+    if ((target_name.ptr() == Symbols::Call().ptr()) && receiver.IsClosure()) {
       // Special case: closures are implemented with a call getter instead of a
       // call method and with lazy dispatchers the field-invocation-dispatcher
       // would perform the closure call.
@@ -2298,7 +2302,7 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
     const auto& dyn_getter_name = String::Handle(
         zone, is_dynamic_call
                   ? Function::CreateDynamicInvocationForwarderName(getter_name)
-                  : getter_name.raw());
+                  : getter_name.ptr());
     ArgumentsDescriptor args_desc(orig_arguments_desc);
     while (!cls.IsNull()) {
       // If there is a function with the target name but mismatched arguments
@@ -2332,7 +2336,7 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
         const Object& getter_result = Object::Handle(
             zone, DartEntry::InvokeFunction(function, getter_arguments));
         if (getter_result.IsError()) {
-          return getter_result.raw();
+          return getter_result.ptr();
         }
         ASSERT(getter_result.IsNull() || getter_result.IsInstance());
 
@@ -2348,7 +2352,7 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
       zone,
       DartEntry::InvokeNoSuchMethod(thread, receiver, demangled_target_name,
                                     orig_arguments, orig_arguments_desc));
-  return result.raw();
+  return result.ptr();
 }
 
 // Invoke appropriate noSuchMethod or closure from getter.
@@ -2392,8 +2396,8 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromPrologue, 4) {
   const Array& orig_arguments = Array::CheckedHandle(zone, arguments.ArgAt(3));
 
   String& orig_function_name = String::Handle(zone);
-  if ((function.kind() == FunctionLayout::kClosureFunction) ||
-      (function.kind() == FunctionLayout::kImplicitClosureFunction)) {
+  if ((function.kind() == UntaggedFunction::kClosureFunction) ||
+      (function.kind() == UntaggedFunction::kImplicitClosureFunction)) {
     // For closure the function name is always 'call'. Replace it with the
     // name of the closurized function so that exception contains more
     // relevant information.
@@ -2416,10 +2420,11 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromPrologue, 4) {
 //  - garbage collection
 //  - hot reload
 static void HandleStackOverflowTestCases(Thread* thread) {
-  Isolate* isolate = thread->isolate();
+  auto isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
 
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->heap()->CollectAllGarbage();
+    isolate->group()->heap()->CollectAllGarbage();
   }
 
   bool do_deopt = false;
@@ -2500,7 +2505,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
     {
       NoReloadScope no_reload(isolate, thread);
       const Library& lib =
-          Library::Handle(isolate->object_store()->_internal_library());
+          Library::Handle(isolate_group->object_store()->_internal_library());
       const Class& cls = Class::Handle(
           lib.LookupClass(String::Handle(String::New("VMLibraryHooks"))));
       const Function& func = Function::Handle(Resolver::ResolveFunction(
@@ -2508,14 +2513,14 @@ static void HandleStackOverflowTestCases(Thread* thread) {
           String::Handle(String::New("get:platformScript"))));
       Object& result = Object::Handle(
           DartEntry::InvokeFunction(func, Object::empty_array()));
-      if (result.IsUnwindError()) {
+      if (result.IsError()) {
         Exceptions::PropagateError(Error::Cast(result));
       }
       if (!result.IsInstance()) {
         FATAL1("Bad script uri hook: %s", result.ToCString());
       }
       result = DartLibraryCalls::ToString(Instance::Cast(result));
-      if (result.IsUnwindError()) {
+      if (result.IsError()) {
         Exceptions::PropagateError(Error::Cast(result));
       }
       if (!result.IsString()) {
@@ -2557,15 +2562,15 @@ static void HandleStackOverflowTestCases(Thread* thread) {
     }
   }
   if (do_gc) {
-    isolate->heap()->CollectAllGarbage(Heap::kDebugging);
+    isolate->group()->heap()->CollectAllGarbage(Heap::kDebugging);
   }
 }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 static void HandleOSRRequest(Thread* thread) {
-  Isolate* isolate = thread->isolate();
-  ASSERT(isolate->use_osr());
+  auto isolate_group = thread->isolate_group();
+  ASSERT(isolate_group->use_osr());
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();
@@ -2578,7 +2583,7 @@ static void HandleOSRRequest(Thread* thread) {
 
   // If the code of the frame does not match the function's unoptimized code,
   // we bail out since the code was reset by an isolate reload.
-  if (code.raw() != function.unoptimized_code()) {
+  if (code.ptr() != function.unoptimized_code()) {
     return;
   }
 
@@ -2614,14 +2619,14 @@ static void HandleOSRRequest(Thread* thread) {
     const Code& code = Code::Cast(result);
     uword optimized_entry = code.EntryPoint();
     frame->set_pc(optimized_entry);
-    frame->set_pc_marker(code.raw());
+    frame->set_pc_marker(code.ptr());
   }
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 DEFINE_RUNTIME_ENTRY(AllocateMint, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
-    isolate->heap()->CollectAllGarbage();
+    isolate->group()->heap()->CollectAllGarbage();
   }
   constexpr uint64_t val = 0x7fffffff7fffffff;
   ASSERT(!Smi::IsValid(static_cast<int64_t>(val)));
@@ -2672,7 +2677,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     // Use the preallocated stack overflow exception to avoid calling
     // into dart code.
     const Instance& exception =
-        Instance::Handle(isolate->object_store()->stack_overflow());
+        Instance::Handle(isolate->group()->object_store()->stack_overflow());
     Exceptions::Throw(thread, exception);
     UNREACHABLE();
   }
@@ -2705,7 +2710,7 @@ DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
   ASSERT(frame != NULL);
   OS::PrintErr(
       "IC call @%#" Px ": ICData: %#" Px " cnt:%" Pd " nchecks: %" Pd " %s\n",
-      frame->pc(), static_cast<uword>(ic_data.raw()), function.usage_counter(),
+      frame->pc(), static_cast<uword>(ic_data.ptr()), function.usage_counter(),
       ic_data.NumberOfChecks(), function.ToFullyQualifiedCString());
 }
 
@@ -3127,7 +3132,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, 1, uword last_fp) {
     ASSERT(!function.IsNull());
 
     // The code will be the same as before.
-    ASSERT(code.raw() == optimized_code.raw());
+    ASSERT(code.ptr() == optimized_code.ptr());
 
     // Some sanity checking of the optimized code.
     ASSERT(!optimized_code.IsNull() && optimized_code.is_optimized());
@@ -3214,8 +3219,8 @@ DEFINE_RUNTIME_ENTRY(InitInstanceField, 2) {
   Object& result = Object::Handle(zone, field.InitializeInstance(instance));
   ThrowIfError(result);
   result = instance.GetField(field);
-  ASSERT((result.raw() != Object::sentinel().raw()) &&
-         (result.raw() != Object::transition_sentinel().raw()));
+  ASSERT((result.ptr() != Object::sentinel().ptr()) &&
+         (result.ptr() != Object::transition_sentinel().ptr()));
   arguments.SetReturn(result);
 }
 
@@ -3224,8 +3229,8 @@ DEFINE_RUNTIME_ENTRY(InitStaticField, 1) {
   Object& result = Object::Handle(zone, field.InitializeStatic());
   ThrowIfError(result);
   result = field.StaticValue();
-  ASSERT((result.raw() != Object::sentinel().raw()) &&
-         (result.raw() != Object::transition_sentinel().raw()));
+  ASSERT((result.ptr() != Object::sentinel().ptr()) &&
+         (result.ptr() != Object::transition_sentinel().ptr()));
   arguments.SetReturn(result);
 }
 

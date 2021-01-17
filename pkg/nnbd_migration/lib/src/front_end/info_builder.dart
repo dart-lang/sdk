@@ -54,9 +54,20 @@ class InfoBuilder {
   /// unit.
   final Map<String, UnitInfo> unitMap = {};
 
+  /// A function which returns whether a file at a given path should be
+  /// migrated.
+  final bool Function(String) shouldBeMigratedFunction;
+
   /// Initialize a newly created builder.
-  InfoBuilder(this.provider, this.includedPath, this.info, this.listener,
-      this.migration, this.nodeMapper, this._logger);
+  InfoBuilder(
+      this.provider,
+      this.includedPath,
+      this.info,
+      this.listener,
+      this.migration,
+      this.nodeMapper,
+      this._logger,
+      this.shouldBeMigratedFunction);
 
   /// The provider used to get information about libraries.
   DriverProviderImpl get driverProvider => listener.server;
@@ -353,12 +364,16 @@ class InfoBuilder {
     var alreadyMigrated =
         result.unit.featureSet.isEnabled(Feature.non_nullable);
     unitInfo.wasExplicitlyOptedOut = result.unit.languageVersionToken != null;
-    unitInfo.migrationStatus = alreadyMigrated
-        ? UnitMigrationStatus.alreadyMigrated
-        // Whether or not a file is explicitly opted out, its initial status for
-        // this migration is "migrating." It must be again explicitly opted out
-        // in the preview app in order to keep the unit opted out.
-        : UnitMigrationStatus.migrating;
+    if (alreadyMigrated) {
+      unitInfo.migrationStatus = UnitMigrationStatus.alreadyMigrated;
+      unitInfo.migrationStatusCanBeChanged = false;
+    } else if (shouldBeMigratedFunction(result.path)) {
+      unitInfo.migrationStatus = UnitMigrationStatus.migrating;
+      unitInfo.migrationStatusCanBeChanged = true;
+    } else {
+      unitInfo.migrationStatus = UnitMigrationStatus.optingOut;
+      unitInfo.migrationStatusCanBeChanged = false;
+    }
     var regions = unitInfo.regions;
 
     // There are certain rare conditions involving generated code in a bazel

@@ -20,43 +20,43 @@ ISOLATE_UNIT_TEST_CASE(WeakTables) {
   // Initially absent.
   Heap* heap = thread->heap();
   const intptr_t kNoValue = WeakTable::kNoValue;
-  EXPECT_EQ(kNoValue, heap->GetObjectId(old_obj.raw()));
-  EXPECT_EQ(kNoValue, heap->GetObjectId(new_obj.raw()));
-  EXPECT_EQ(kNoValue, heap->GetObjectId(imm_obj.raw()));
+  EXPECT_EQ(kNoValue, heap->GetObjectId(old_obj.ptr()));
+  EXPECT_EQ(kNoValue, heap->GetObjectId(new_obj.ptr()));
+  EXPECT_EQ(kNoValue, heap->GetObjectId(imm_obj.ptr()));
 
   // Found after insert.
-  heap->SetObjectId(old_obj.raw(), 100);
-  heap->SetObjectId(new_obj.raw(), 200);
-  heap->SetObjectId(imm_obj.raw(), 300);
-  EXPECT_EQ(100, heap->GetObjectId(old_obj.raw()));
-  EXPECT_EQ(200, heap->GetObjectId(new_obj.raw()));
-  EXPECT_EQ(300, heap->GetObjectId(imm_obj.raw()));
+  heap->SetObjectId(old_obj.ptr(), 100);
+  heap->SetObjectId(new_obj.ptr(), 200);
+  heap->SetObjectId(imm_obj.ptr(), 300);
+  EXPECT_EQ(100, heap->GetObjectId(old_obj.ptr()));
+  EXPECT_EQ(200, heap->GetObjectId(new_obj.ptr()));
+  EXPECT_EQ(300, heap->GetObjectId(imm_obj.ptr()));
 
   // Found after update.
-  heap->SetObjectId(old_obj.raw(), 400);
-  heap->SetObjectId(new_obj.raw(), 500);
-  heap->SetObjectId(imm_obj.raw(), 600);
-  EXPECT_EQ(400, heap->GetObjectId(old_obj.raw()));
-  EXPECT_EQ(500, heap->GetObjectId(new_obj.raw()));
-  EXPECT_EQ(600, heap->GetObjectId(imm_obj.raw()));
+  heap->SetObjectId(old_obj.ptr(), 400);
+  heap->SetObjectId(new_obj.ptr(), 500);
+  heap->SetObjectId(imm_obj.ptr(), 600);
+  EXPECT_EQ(400, heap->GetObjectId(old_obj.ptr()));
+  EXPECT_EQ(500, heap->GetObjectId(new_obj.ptr()));
+  EXPECT_EQ(600, heap->GetObjectId(imm_obj.ptr()));
 
   // Found after GC.
   GCTestHelper::CollectNewSpace();
-  EXPECT_EQ(400, heap->GetObjectId(old_obj.raw()));
-  EXPECT_EQ(500, heap->GetObjectId(new_obj.raw()));
-  EXPECT_EQ(600, heap->GetObjectId(imm_obj.raw()));
+  EXPECT_EQ(400, heap->GetObjectId(old_obj.ptr()));
+  EXPECT_EQ(500, heap->GetObjectId(new_obj.ptr()));
+  EXPECT_EQ(600, heap->GetObjectId(imm_obj.ptr()));
 
   // Found after GC.
   GCTestHelper::CollectOldSpace();
-  EXPECT_EQ(400, heap->GetObjectId(old_obj.raw()));
-  EXPECT_EQ(500, heap->GetObjectId(new_obj.raw()));
-  EXPECT_EQ(600, heap->GetObjectId(imm_obj.raw()));
+  EXPECT_EQ(400, heap->GetObjectId(old_obj.ptr()));
+  EXPECT_EQ(500, heap->GetObjectId(new_obj.ptr()));
+  EXPECT_EQ(600, heap->GetObjectId(imm_obj.ptr()));
 
   // Absent after reset.
   heap->ResetObjectIdTable();
-  EXPECT_EQ(kNoValue, heap->GetObjectId(old_obj.raw()));
-  EXPECT_EQ(kNoValue, heap->GetObjectId(new_obj.raw()));
-  EXPECT_EQ(kNoValue, heap->GetObjectId(imm_obj.raw()));
+  EXPECT_EQ(kNoValue, heap->GetObjectId(old_obj.ptr()));
+  EXPECT_EQ(kNoValue, heap->GetObjectId(new_obj.ptr()));
+  EXPECT_EQ(kNoValue, heap->GetObjectId(imm_obj.ptr()));
 }
 
 }  // namespace dart

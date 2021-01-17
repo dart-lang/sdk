@@ -6,6 +6,8 @@ publish_to: none
 environment:
   sdk: '>=2.6.0 <3.0.0'
 dependencies:
+  analysis_server:
+    path: ../analysis_server
   analysis_server_client:
     path: ../analysis_server_client
   analyzer:
@@ -22,8 +24,7 @@ dependencies:
     path: ../nnbd_migration
   path: ^1.0.0
   pedantic: ^1.9.0
-  pub:
-    path: ../../third_party/pkg/pub
+  pub: any
   stagehand: any
   telemetry:
     path: ../telemetry

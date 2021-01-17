@@ -1,0 +1,19 @@
+class Interface {
+  void implementedConcreteMethod() {}
+  void implementedAbstractMethod();
+  void declaredConcreteImplementsConcreteMethod() {}
+  void declaredAbstractImplementsConcreteMethod() {}
+  void declaredConcreteImplementsAbstractMethod();
+  void declaredAbstractImplementsAbstractMethod();
+}
+
+class ConcreteClass implements Interface {
+  void declaredConcreteMethod() {}
+  void declaredAbstractMethod();
+  void declaredConcreteImplementsConcreteMethod() {}
+  void declaredAbstractImplementsConcreteMethod();
+  void declaredConcreteImplementsAbstractMethod() {}
+  void declaredAbstractImplementsAbstractMethod();
+}
+
+main() {}

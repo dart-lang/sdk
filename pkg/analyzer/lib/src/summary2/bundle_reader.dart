@@ -734,8 +734,8 @@ class LinkedResolutionReader {
       element.bound = bound;
     }
 
-    var typedefElement = nextElement();
-    var typeArguments = _readTypeList();
+    var aliasElement = nextElement();
+    var aliasArguments = aliasElement != null ? _readTypeList() : null;
 
     var returnType = nextType();
 
@@ -763,8 +763,8 @@ class LinkedResolutionReader {
       parameters: formalParameters,
       returnType: returnType,
       nullabilitySuffix: nullability,
-      element: typedefElement,
-      typeArguments: typeArguments,
+      aliasElement: aliasElement,
+      aliasArguments: aliasArguments,
     );
   }
 

@@ -460,7 +460,7 @@ class AbstractCode {
     ASSERT(code_.IsNull() || code_.IsCode());
   }
 
-  ObjectPtr raw() const { return code_.raw(); }
+  ObjectPtr ptr() const { return code_.ptr(); }
   const Object* handle() const { return &code_; }
 
   uword PayloadStart() const {

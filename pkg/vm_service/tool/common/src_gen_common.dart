@@ -4,6 +4,9 @@
 
 library src_gen_common;
 
+// TODO(bkonyi): remove once markdown and pub_semver deps are updated to null
+// safety for the SDK.
+// ignore_for_file: import_of_legacy_library_into_null_safe
 import 'package:markdown/markdown.dart';
 
 const int RUNE_SPACE = 32;
@@ -36,7 +39,7 @@ String titleCase(String str) =>
 String lowerTitleCase(String str) =>
     str.substring(0, 1).toLowerCase() + str.substring(1);
 
-String joinLast(Iterable<String> strs, String join, [String last]) {
+String joinLast(Iterable<String> strs, String join, [String? last]) {
   if (strs.isEmpty) return '';
   List list = strs.toList();
   if (list.length == 1) return list.first;

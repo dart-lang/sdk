@@ -29,7 +29,7 @@ namespace kernel {
 
 #define Z (zone_)
 #define I (isolate_)
-#define IG (isolate_->group())
+#define IG (thread_->isolate_group())
 #define T (type_translator_)
 #define H (translation_helper_)
 
@@ -91,10 +91,10 @@ class SimpleExpressionConverter {
         *simple_value_ = H.Canonicalize(*simple_value_);
         return true;
       case kTrueLiteral:
-        simple_value_ = &Bool::Handle(Z, Bool::Get(true).raw());
+        simple_value_ = &Bool::Handle(Z, Bool::Get(true).ptr());
         return true;
       case kFalseLiteral:
-        simple_value_ = &Bool::Handle(Z, Bool::Get(false).raw());
+        simple_value_ = &Bool::Handle(Z, Bool::Get(false).ptr());
         return true;
       case kNullLiteral:
         simple_value_ = &Instance::ZoneHandle(Z, Instance::null());
@@ -122,7 +122,7 @@ ArrayPtr KernelLoader::MakeFieldsArray() {
   for (intptr_t i = 0; i < len; i++) {
     res.SetAt(i, *fields_[i]);
   }
-  return res.raw();
+  return res.ptr();
 }
 
 ArrayPtr KernelLoader::MakeFunctionsArray() {
@@ -131,7 +131,7 @@ ArrayPtr KernelLoader::MakeFunctionsArray() {
   for (intptr_t i = 0; i < len; i++) {
     res.SetAt(i, *functions_[i]);
   }
-  return res.raw();
+  return res.ptr();
 }
 
 LibraryPtr BuildingTranslationHelper::LookupLibraryByKernelLibrary(
@@ -322,7 +322,7 @@ Object& KernelLoader::LoadEntireProgram(Program* program,
     if (load_result.IsError()) return load_result;
 
     if (load_result.IsLibrary()) {
-      library ^= load_result.raw();
+      library ^= load_result.ptr();
     }
   }
 
@@ -367,7 +367,7 @@ StringPtr KernelLoader::FindSourceForScript(const uint8_t* kernel_buffer,
   for (intptr_t i = 0; i < source_table_size; ++i) {
     const String& source_uri = reader.SourceTableUriFor(i);
     if (source_uri.EndsWith(uri)) {
-      return reader.GetSourceFor(i).raw();
+      return reader.GetSourceFor(i).ptr();
     }
   }
   return String::null();
@@ -487,7 +487,7 @@ KernelLoader::KernelLoader(const Script& script,
       expression_evaluation_library_(Library::Handle(Z)) {
   ASSERT(T.active_class_ == &active_class_);
   T.finalize_ = false;
-  library_kernel_data_ = kernel_data.raw();
+  library_kernel_data_ = kernel_data.ptr();
   H.InitFromKernelProgramInfo(kernel_program_info_);
 }
 
@@ -556,7 +556,7 @@ void KernelLoader::AnnotateNativeProcedures() {
         if (constant_reader.IsInstanceConstant(constant_table_offset,
                                                external_name_class_)) {
           constant = constant_reader.ReadConstant(constant_table_offset);
-          ASSERT(constant.clazz() == external_name_class_.raw());
+          ASSERT(constant.clazz() == external_name_class_.ptr());
           // We found the annotation, let's flag the function as native and
           // set the native name!
           native_name ^= constant.GetField(external_name_field_);
@@ -604,7 +604,7 @@ StringPtr KernelLoader::DetectExternalNameCtor() {
   intptr_t list_length = helper_.ReadListLength();  // read list length.
   ASSERT(list_length == 0);
 
-  return result.raw();
+  return result.ptr();
 }
 
 bool KernelLoader::IsClassName(NameIndex name,
@@ -673,7 +673,7 @@ void KernelLoader::LoadNativeExtensionLibraries() {
         if (constant_reader.IsInstanceConstant(constant_table_offset,
                                                external_name_class_)) {
           constant = constant_reader.ReadConstant(constant_table_offset);
-          ASSERT(constant.clazz() == external_name_class_.raw());
+          ASSERT(constant.clazz() == external_name_class_.ptr());
           uri_path ^= constant.GetField(external_name_field_);
         }
       } else if (tag == kConstructorInvocation ||
@@ -800,9 +800,9 @@ ObjectPtr KernelLoader::LoadExpressionEvaluationFunction(
                         : real_library.LookupClassAllowPrivate(klass));
   ASSERT(!real_class.IsNull());
 
-  const intptr_t num_cids = I->class_table()->NumCids();
+  const intptr_t num_cids = IG->class_table()->NumCids();
   const intptr_t num_libs =
-      GrowableObjectArray::Handle(I->object_store()->libraries()).Length();
+      GrowableObjectArray::Handle(IG->object_store()->libraries()).Length();
 
   // Load the "evaluate:source" expression evaluation library.
   ASSERT(expression_evaluation_library_.IsNull());
@@ -810,13 +810,14 @@ ObjectPtr KernelLoader::LoadExpressionEvaluationFunction(
   H.SetExpressionEvaluationRealClass(real_class);
   const Object& result = Object::Handle(Z, LoadProgram(true));
   if (result.IsError()) {
-    return result.raw();
+    return result.ptr();
   }
   const Function& function = H.GetExpressionEvaluationFunction();
   ASSERT(!function.IsNull());
-  ASSERT(GrowableObjectArray::Handle(I->object_store()->libraries()).Length() ==
-         num_libs);
-  ASSERT(I->class_table()->NumCids() == num_cids);
+  ASSERT(
+      GrowableObjectArray::Handle(IG->object_store()->libraries()).Length() ==
+      num_libs);
+  ASSERT(IG->class_table()->NumCids() == num_cids);
 
   // Make the expression evaluation function have the right script,
   // kernel data and parent.
@@ -829,11 +830,11 @@ ObjectPtr KernelLoader::LoadExpressionEvaluationFunction(
 
   function.set_owner(real_class);
 
-  return function.raw();
+  return function.ptr();
 }
 
 void KernelLoader::FindModifiedLibraries(Program* program,
-                                         Isolate* isolate,
+                                         IsolateGroup* isolate_group,
                                          BitVector* modified_libs,
                                          bool force_reload,
                                          bool* is_empty_program,
@@ -845,8 +846,8 @@ void KernelLoader::FindModifiedLibraries(Program* program,
     if (force_reload) {
       // If a reload is being forced we mark all libraries as having
       // been modified.
-      const GrowableObjectArray& libs =
-          GrowableObjectArray::Handle(isolate->object_store()->libraries());
+      const auto& libs = GrowableObjectArray::Handle(
+          isolate_group->object_store()->libraries());
       intptr_t num_libs = libs.Length();
       Library& lib = dart::Library::Handle(zone);
       for (intptr_t i = 0; i < num_libs; i++) {
@@ -1014,7 +1015,7 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
   Library& library =
       Library::Handle(Z, LookupLibrary(library_helper.canonical_name_));
 
-  if (library.Loaded()) return library.raw();
+  if (library.Loaded()) return library.ptr();
 
   library.set_is_nnbd(library_helper.IsNonNullableByDefault());
   const NNBDCompiledMode mode =
@@ -1025,14 +1026,14 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
         "null safety and not sound null safety.",
         String::Handle(library.url()).ToCString());
   }
-  if (!I->null_safety() && mode == NNBDCompiledMode::kStrong) {
+  if (!IG->null_safety() && mode == NNBDCompiledMode::kStrong) {
     H.ReportError(
         "Library '%s' was compiled with sound null safety (in strong mode) and "
         "it "
         "requires --sound-null-safety option at runtime",
         String::Handle(library.url()).ToCString());
   }
-  if (I->null_safety() && (mode == NNBDCompiledMode::kWeak)) {
+  if (IG->null_safety() && (mode == NNBDCompiledMode::kWeak)) {
     H.ReportError(
         "Library '%s' was compiled without sound null safety (in weak mode) "
         "and it "
@@ -1055,7 +1056,7 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
   // The bootstrapper will take care of creating the native wrapper classes, but
   // we will add the synthetic constructors to them here.
   if (library.name() ==
-      Symbols::Symbol(Symbols::kDartNativeWrappersLibNameId).raw()) {
+      Symbols::Symbol(Symbols::kDartNativeWrappersLibNameId).ptr()) {
     ASSERT(library.LoadInProgress());
     loading_native_wrappers_library_ = true;
   } else {
@@ -1087,7 +1088,7 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
   // The expression evaluation functions should be GC-able as soon as
   // they are not reachable anymore and we never look them up by name.
   const bool register_class =
-      library.raw() != expression_evaluation_library_.raw();
+      library.ptr() != expression_evaluation_library_.ptr();
 
   Class& toplevel_class =
       Class::Handle(Z, Class::New(library, Symbols::TopLevel(), script,
@@ -1105,7 +1106,7 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
   // is no longer used.
 
   const GrowableObjectArray& classes =
-      GrowableObjectArray::Handle(Z, I->object_store()->pending_classes());
+      GrowableObjectArray::Handle(Z, IG->object_store()->pending_classes());
 
   // Load all classes.
   intptr_t next_class_offset = library_index.ClassOffset(0);
@@ -1142,7 +1143,7 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
   }
   if (!library.Loaded()) library.SetLoaded();
 
-  return library.raw();
+  return library.ptr();
 }
 
 void KernelLoader::FinishTopLevelClassLoading(
@@ -1357,13 +1358,13 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
     Library& target_library = Library::Handle(
         Z, LookupLibrary(dependency_helper.target_library_canonical_name_));
     if (!FLAG_enable_mirrors &&
-        target_library.url() == Symbols::DartMirrors().raw()) {
+        target_library.url() == Symbols::DartMirrors().ptr()) {
       H.ReportError(
           "import of dart:mirrors is not supported in the current Dart "
           "runtime");
     }
     if (!Api::IsFfiEnabled() &&
-        target_library.url() == Symbols::DartFfi().raw()) {
+        target_library.url() == Symbols::DartFfi().ptr()) {
       H.ReportError(
           "import of dart:ffi is not supported in the current Dart runtime");
     }
@@ -1417,8 +1418,9 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
   // kImplementedClasses, [...].
 
   // Set type parameters.
-  T.LoadAndSetupTypeParameters(&active_class_, *klass, type_parameter_count,
-                               Function::Handle(Z));
+  T.LoadAndSetupTypeParameters(&active_class_, Object::null_function(), *klass,
+                               Object::null_function_type(),
+                               type_parameter_count, klass->nnbd_mode());
 
   // Set super type.  Some classes (e.g., Object) do not have one.
   Tag type_tag = helper_.ReadTag();  // read super class type (part 1).
@@ -1519,7 +1521,7 @@ void KernelLoader::LoadClass(const Library& library,
   // The expression evaluation functions should be GC-able as soon as
   // they are not reachable anymore and we never look them up by name.
   const bool register_class =
-      library.raw() != expression_evaluation_library_.raw();
+      library.ptr() != expression_evaluation_library_.ptr();
 
   if (loading_native_wrappers_library_ || !register_class) {
     FinishClassLoading(*out_class, library, toplevel_class, class_offset,
@@ -1653,8 +1655,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     // optimized. We immediately set the guarded_cid_ to kDynamicCid, which
     // is effectively the same as calling this method first with Pointer and
     // subsequently with TypedData with field guards.
-    if (klass.Name() == Symbols::Struct().raw() &&
-        Library::Handle(Z, klass.library()).url() == Symbols::DartFfi().raw()) {
+    if (klass.Name() == Symbols::Struct().ptr() &&
+        Library::Handle(Z, klass.library()).url() == Symbols::DartFfi().ptr()) {
       ASSERT(fields_.length() == 1);
       ASSERT(String::Handle(Z, fields_[0]->name())
                  .StartsWith(Symbols::_addressOf()));
@@ -1701,8 +1703,9 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       owner = &ClassForScriptAt(klass, source_uri_index);
     }
 
-    Function& function = Function::ZoneHandle(
-        Z, Function::New(name, FunctionLayout::kConstructor,
+    FunctionType& signature = FunctionType::Handle(Z, FunctionType::New());
+    const Function& function = Function::ZoneHandle(
+        Z, Function::New(signature, name, UntaggedFunction::kConstructor,
                          false,  // is_static
                          constructor_helper.IsConst(),
                          false,  // is_abstract
@@ -1710,9 +1713,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
                          false,  // is_native
                          *owner, constructor_helper.start_position_));
     function.set_end_token_pos(constructor_helper.end_position_);
-    functions_.Add(&function);
     function.set_kernel_offset(constructor_offset);
-    function.set_result_type(T.ReceiverType(klass));
+    signature.set_result_type(T.ReceiverType(klass));
     function.set_has_pragma(has_pragma_annotation);
 
     FunctionNodeHelper function_node_helper(&helper_);
@@ -1736,6 +1738,16 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kEnd);
     constructor_helper.SetJustRead(ConstructorHelper::kFunction);
     constructor_helper.ReadUntilExcluding(ConstructorHelper::kEnd);
+
+    if (klass.is_finalized()) {
+      // The owner class has already been marked as finalized (e.g. class
+      // 'NativeFieldWrapperClass1'), so the signature of this added constructor
+      // must be finalized here, since finalization of member types will not be
+      // called anymore.
+      signature ^= ClassFinalizer::FinalizeType(signature);
+      function.set_signature(signature);
+    }
+    functions_.Add(&function);
 
     if ((FLAG_enable_mirrors || has_pragma_annotation) &&
         annotation_count > 0) {
@@ -1798,7 +1810,7 @@ void KernelLoader::FinishLoading(const Class& klass) {
   LibraryIndex library_index(library_kernel_data, info.kernel_binary_version());
 
   if (klass.IsTopLevel()) {
-    ASSERT(klass.raw() == toplevel_class.raw());
+    ASSERT(klass.ptr() == toplevel_class.ptr());
     kernel_loader.FinishTopLevelClassLoading(klass, library, library_index);
     return;
   }
@@ -1846,7 +1858,7 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
       const intptr_t start = helper_.ReaderOffset();
       detected_name = DetectExternalNameCtor();
       if (!detected_name.IsNull()) {
-        *native_name = detected_name.raw();
+        *native_name = detected_name.ptr();
         continue;
       }
 
@@ -1921,7 +1933,7 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
         if (constant_reader.IsInstanceConstant(constant_table_offset,
                                                external_name_class_)) {
           constant = constant_reader.ReadConstant(constant_table_offset);
-          ASSERT(constant.clazz() == external_name_class_.raw());
+          ASSERT(constant.clazz() == external_name_class_.ptr());
           *native_name ^= constant.GetField(external_name_field_);
         } else if (constant_reader.IsInstanceConstant(constant_table_offset,
                                                       pragma_class_)) {
@@ -1973,15 +1985,16 @@ void KernelLoader::LoadProcedure(const Library& library,
   procedure_helper.SetJustRead(ProcedureHelper::kAnnotations);
   const Object& script_class =
       ClassForScriptAt(owner, procedure_helper.source_uri_index_);
-  FunctionLayout::Kind kind = GetFunctionType(procedure_helper.kind_);
+  UntaggedFunction::Kind kind = GetFunctionType(procedure_helper.kind_);
 
   // We do not register expression evaluation libraries with the VM:
   // The expression evaluation functions should be GC-able as soon as
   // they are not reachable anymore and we never look them up by name.
   const bool register_function = !name.Equals(Symbols::DebugProcedureName());
 
-  Function& function = Function::ZoneHandle(
-      Z, Function::New(name, kind,
+  const FunctionType& signature = FunctionType::Handle(Z, FunctionType::New());
+  const Function& function = Function::ZoneHandle(
+      Z, Function::New(signature, name, kind,
                        !is_method,  // is_static
                        false,       // is_const
                        is_abstract, is_external,
@@ -2000,7 +2013,7 @@ void KernelLoader::LoadProcedure(const Library& library,
   function.set_is_extension_member(is_extension_member);
   if ((library.is_dart_scheme() &&
        H.IsPrivate(procedure_helper.canonical_name_)) ||
-      (function.is_static() && (library.raw() == Library::InternalLibrary()))) {
+      (function.is_static() && (library.ptr() == Library::InternalLibrary()))) {
     function.set_is_reflectable(false);
   }
   if (procedure_helper.IsMemberSignature()) {
@@ -2019,19 +2032,19 @@ void KernelLoader::LoadProcedure(const Library& library,
                              FunctionNodeHelper::kSync);
   switch (function_node_helper.dart_async_marker_) {
     case FunctionNodeHelper::kSyncStar:
-      function.set_modifier(FunctionLayout::kSyncGen);
+      function.set_modifier(UntaggedFunction::kSyncGen);
       function.set_is_visible(!FLAG_causal_async_stacks &&
                               !FLAG_lazy_async_stacks);
       break;
     case FunctionNodeHelper::kAsync:
-      function.set_modifier(FunctionLayout::kAsync);
+      function.set_modifier(UntaggedFunction::kAsync);
       function.set_is_inlinable(!FLAG_causal_async_stacks &&
                                 !FLAG_lazy_async_stacks);
       function.set_is_visible(!FLAG_causal_async_stacks &&
                               !FLAG_lazy_async_stacks);
       break;
     case FunctionNodeHelper::kAsyncStar:
-      function.set_modifier(FunctionLayout::kAsyncGen);
+      function.set_modifier(UntaggedFunction::kAsyncGen);
       function.set_is_inlinable(!FLAG_causal_async_stacks &&
                                 !FLAG_lazy_async_stacks);
       function.set_is_visible(!FLAG_causal_async_stacks &&
@@ -2084,7 +2097,7 @@ void KernelLoader::LoadProcedure(const Library& library,
 const Object& KernelLoader::ClassForScriptAt(const Class& klass,
                                              intptr_t source_uri_index) {
   const Script& correct_script = Script::Handle(Z, ScriptAt(source_uri_index));
-  if (klass.script() != correct_script.raw()) {
+  if (klass.script() != correct_script.ptr()) {
     // Lazily create the [patch_classes_] array in case we need it.
     if (patch_classes_.IsNull()) {
       const Array& scripts = Array::Handle(Z, kernel_program_info_.scripts());
@@ -2095,7 +2108,7 @@ const Object& KernelLoader::ClassForScriptAt(const Class& klass,
     // Use cache for patch classes. This works best for in-order usages.
     PatchClass& patch_class = PatchClass::ZoneHandle(Z);
     patch_class ^= patch_classes_.At(source_uri_index);
-    if (patch_class.IsNull() || patch_class.origin_class() != klass.raw()) {
+    if (patch_class.IsNull() || patch_class.origin_class() != klass.ptr()) {
       ASSERT(!library_kernel_data_.IsNull());
       patch_class = PatchClass::New(klass, correct_script);
       patch_class.set_library_kernel_data(library_kernel_data_);
@@ -2125,8 +2138,8 @@ ScriptPtr KernelLoader::LoadScriptAt(intptr_t index,
     wrapper.uri = &uri_string;
     UriToSourceTableEntry* pair = uri_to_source_table->LookupValue(&wrapper);
     if (pair != nullptr) {
-      sources = pair->sources->raw();
-      line_starts = pair->line_starts->raw();
+      sources = pair->sources->ptr();
+      line_starts = pair->line_starts->ptr();
     }
   }
 
@@ -2134,14 +2147,14 @@ ScriptPtr KernelLoader::LoadScriptAt(intptr_t index,
     const String& script_source = helper_.GetSourceFor(index);
     line_starts = helper_.GetLineStartsFor(index);
 
-    if (script_source.raw() == Symbols::Empty().raw() &&
+    if (script_source.ptr() == Symbols::Empty().ptr() &&
         line_starts.Length() == 0 && uri_string.Length() > 0) {
       // Entry included only to provide URI - actual source should already exist
       // in the VM, so try to find it.
       Library& lib = Library::Handle(Z);
       Script& script = Script::Handle(Z);
       const GrowableObjectArray& libs =
-          GrowableObjectArray::Handle(isolate_->object_store()->libraries());
+          GrowableObjectArray::Handle(IG->object_store()->libraries());
       for (intptr_t i = 0; i < libs.Length(); i++) {
         lib ^= libs.At(i);
         script = lib.LookupScript(uri_string, /* useResolvedUri = */ true);
@@ -2152,7 +2165,7 @@ ScriptPtr KernelLoader::LoadScriptAt(intptr_t index,
         }
       }
     } else {
-      sources = script_source.raw();
+      sources = script_source.ptr();
     }
   }
 
@@ -2165,7 +2178,7 @@ ScriptPtr KernelLoader::LoadScriptAt(intptr_t index,
   script.set_constant_coverage(constant_coverage);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   script.set_debug_positions(Array::null_array());
-  return script.raw();
+  return script.ptr();
 }
 
 InstancePtr KernelLoader::GenerateFieldAccessors(const Class& klass,
@@ -2180,7 +2193,7 @@ InstancePtr KernelLoader::GenerateFieldAccessors(const Class& klass,
         converter.IsSimple(helper_.ReaderOffset() + 1);  // ignore the tag.
     if (has_simple_initializer) {
       if (field_helper->IsStatic()) {
-        return converter.SimpleValue().raw();
+        return converter.SimpleValue().ptr();
       } else {
         // Note: optimizer relies on DoubleInitialized bit in its field-unboxing
         // heuristics. See JitCallSpecializer::VisitStoreInstanceField for more
@@ -2207,12 +2220,13 @@ InstancePtr KernelLoader::GenerateFieldAccessors(const Class& klass,
       H.DartGetterName(field_helper->canonical_name_getter_);
   const Object& script_class =
       ClassForScriptAt(klass, field_helper->source_uri_index_);
+  const FunctionType& signature = FunctionType::Handle(Z, FunctionType::New());
   Function& getter = Function::ZoneHandle(
       Z,
       Function::New(
-          getter_name,
-          field_helper->IsStatic() ? FunctionLayout::kImplicitStaticGetter
-                                   : FunctionLayout::kImplicitGetter,
+          signature, getter_name,
+          field_helper->IsStatic() ? UntaggedFunction::kImplicitStaticGetter
+                                   : UntaggedFunction::kImplicitGetter,
           field_helper->IsStatic(),
           // The functions created by the parser have is_const for static fields
           // that are const (not just final) and they have is_const for
@@ -2227,7 +2241,7 @@ InstancePtr KernelLoader::GenerateFieldAccessors(const Class& klass,
   getter.set_end_token_pos(field_helper->end_position_);
   getter.set_kernel_offset(field.kernel_offset());
   const AbstractType& field_type = AbstractType::Handle(Z, field.type());
-  getter.set_result_type(field_type);
+  signature.set_result_type(field_type);
   getter.set_is_debuggable(false);
   getter.set_accessor_field(field);
   getter.set_is_extension_member(field.is_extension_member());
@@ -2239,18 +2253,21 @@ InstancePtr KernelLoader::GenerateFieldAccessors(const Class& klass,
     ASSERT(!field_helper->IsConst());
     const String& setter_name =
         H.DartSetterName(field_helper->canonical_name_setter_);
+    const FunctionType& signature =
+        FunctionType::Handle(Z, FunctionType::New());
     Function& setter = Function::ZoneHandle(
-        Z, Function::New(setter_name, FunctionLayout::kImplicitSetter,
-                         field_helper->IsStatic(),
-                         false,  // is_const
-                         false,  // is_abstract
-                         false,  // is_external
-                         false,  // is_native
-                         script_class, field_helper->position_));
+        Z,
+        Function::New(signature, setter_name, UntaggedFunction::kImplicitSetter,
+                      field_helper->IsStatic(),
+                      false,  // is_const
+                      false,  // is_abstract
+                      false,  // is_external
+                      false,  // is_native
+                      script_class, field_helper->position_));
     functions_.Add(&setter);
     setter.set_end_token_pos(field_helper->end_position_);
     setter.set_kernel_offset(field.kernel_offset());
-    setter.set_result_type(Object::void_type());
+    signature.set_result_type(Object::void_type());
     setter.set_is_debuggable(false);
     setter.set_accessor_field(field);
     setter.set_is_extension_member(field.is_extension_member());
@@ -2260,7 +2277,7 @@ InstancePtr KernelLoader::GenerateFieldAccessors(const Class& klass,
   }
 
   // If static, we do need a getter that evaluates the initializer if necessary.
-  return field_helper->IsStatic() ? Instance::sentinel().raw()
+  return field_helper->IsStatic() ? Instance::sentinel().ptr()
                                   : Instance::null();
 }
 
@@ -2307,9 +2324,9 @@ LibraryPtr KernelLoader::LookupLibrary(NameIndex library) {
   if (url.Equals(Symbols::EvalSourceUri())) {
     if (expression_evaluation_library_.IsNull()) {
       handle = Library::New(url);
-      expression_evaluation_library_ = handle.raw();
+      expression_evaluation_library_ = handle.ptr();
     }
-    return expression_evaluation_library_.raw();
+    return expression_evaluation_library_.ptr();
   }
   handle = Library::LookupLibrary(thread_, url);
   if (handle.IsNull()) {
@@ -2345,7 +2362,7 @@ ClassPtr KernelLoader::LookupClass(const Library& library, NameIndex klass) {
     // We do not register expression evaluation classes with the VM:
     // The expression evaluation functions should be GC-able as soon as
     // they are not reachable anymore and we never look them up by name.
-    register_class = library.raw() != expression_evaluation_library_.raw();
+    register_class = library.ptr() != expression_evaluation_library_.ptr();
 
     handle = Class::New(library, name, Script::Handle(Z),
                         TokenPosition::kNoSource, register_class);
@@ -2358,21 +2375,21 @@ ClassPtr KernelLoader::LookupClass(const Library& library, NameIndex klass) {
     name_index_handle_ = Smi::New(klass);
     kernel_program_info_.InsertClass(thread_, name_index_handle_, handle);
   }
-  return handle.raw();
+  return handle.ptr();
 }
 
-FunctionLayout::Kind KernelLoader::GetFunctionType(
+UntaggedFunction::Kind KernelLoader::GetFunctionType(
     ProcedureHelper::Kind procedure_kind) {
   intptr_t lookuptable[] = {
-      FunctionLayout::kRegularFunction,  // Procedure::kMethod
-      FunctionLayout::kGetterFunction,   // Procedure::kGetter
-      FunctionLayout::kSetterFunction,   // Procedure::kSetter
-      FunctionLayout::kRegularFunction,  // Procedure::kOperator
-      FunctionLayout::kConstructor,      // Procedure::kFactory
+      UntaggedFunction::kRegularFunction,  // Procedure::kMethod
+      UntaggedFunction::kGetterFunction,   // Procedure::kGetter
+      UntaggedFunction::kSetterFunction,   // Procedure::kSetter
+      UntaggedFunction::kRegularFunction,  // Procedure::kOperator
+      UntaggedFunction::kConstructor,      // Procedure::kFactory
   };
   intptr_t kind = static_cast<int>(procedure_kind);
   ASSERT(0 <= kind && kind <= ProcedureHelper::kFactory);
-  return static_cast<FunctionLayout::Kind>(lookuptable[kind]);
+  return static_cast<UntaggedFunction::Kind>(lookuptable[kind]);
 }
 
 FunctionPtr CreateFieldInitializerFunction(Thread* thread,
@@ -2399,25 +2416,27 @@ FunctionPtr CreateFieldInitializerFunction(Thread* thread,
   initializer_owner.set_library_kernel_offset(lib.kernel_offset());
 
   // Create a static initializer.
+  FunctionType& signature = FunctionType::Handle(zone, FunctionType::New());
   const Function& initializer_fun = Function::Handle(
-      zone, Function::New(init_name, FunctionLayout::kFieldInitializer,
-                          field.is_static(),  // is_static
-                          false,              // is_const
-                          false,              // is_abstract
-                          false,              // is_external
-                          false,              // is_native
-                          initializer_owner, TokenPosition::kNoSource));
+      zone,
+      Function::New(signature, init_name, UntaggedFunction::kFieldInitializer,
+                    field.is_static(),  // is_static
+                    false,              // is_const
+                    false,              // is_abstract
+                    false,              // is_external
+                    false,              // is_native
+                    initializer_owner, TokenPosition::kNoSource));
   if (!field.is_static()) {
     initializer_fun.set_num_fixed_parameters(1);
-    initializer_fun.set_parameter_types(
+    signature.set_parameter_types(
         Array::Handle(zone, Array::New(1, Heap::kOld)));
-    initializer_fun.CreateNameArrayIncludingFlags(Heap::kOld);
-    initializer_fun.SetParameterTypeAt(
+    signature.CreateNameArrayIncludingFlags(Heap::kOld);
+    signature.SetParameterTypeAt(
         0, AbstractType::Handle(zone, field_owner.DeclarationType()));
-    initializer_fun.SetParameterNameAt(0, Symbols::This());
-    initializer_fun.TruncateUnusedParameterFlags();
+    signature.SetParameterNameAt(0, Symbols::This());
+    signature.FinalizeNameArrays(initializer_fun);
   }
-  initializer_fun.set_result_type(AbstractType::Handle(zone, field.type()));
+  signature.set_result_type(AbstractType::Handle(zone, field.type()));
   initializer_fun.set_is_reflectable(false);
   initializer_fun.set_is_inlinable(false);
   initializer_fun.set_token_pos(field.token_pos());
@@ -2425,8 +2444,12 @@ FunctionPtr CreateFieldInitializerFunction(Thread* thread,
   initializer_fun.set_accessor_field(field);
   initializer_fun.InheritKernelOffsetFrom(field);
   initializer_fun.set_is_extension_member(field.is_extension_member());
+
+  signature ^= ClassFinalizer::FinalizeType(signature);
+  initializer_fun.set_signature(signature);
+
   field.SetInitializerFunction(initializer_fun);
-  return initializer_fun.raw();
+  return initializer_fun.ptr();
 }
 
 }  // namespace kernel

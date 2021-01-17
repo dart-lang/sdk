@@ -28,7 +28,10 @@ main() {
   var b = test;
 }
 ''');
-    _createRefactoring('test');
+    var element = findElement.topGet('test');
+    _createRefactoringForElement(
+      element,
+    );
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 int test() => 42;
@@ -60,7 +63,8 @@ main(A a, B b, C c, D d) {
   var vd = d.test;
 }
 ''');
-    _createRefactoringForString('test => 2');
+    var element = findElement.getter('test', of: 'B');
+    _createRefactoringForElement(element);
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 class A {
@@ -100,7 +104,8 @@ main(A a, B b) {
   b.test;
 }
 ''');
-    _createRefactoringForString('test => 2');
+    var element = findElement.getter('test', of: 'B');
+    _createRefactoringForElement(element);
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 import 'other.dart';
@@ -120,7 +125,8 @@ int test = 42;
 main() {
 }
 ''');
-    _createRefactoring('test');
+    var element = findElement.topGet('test');
+    _createRefactoringForElement(element);
     // check conditions
     await _assertInitialConditions_fatal(
         'Only explicit getters can be converted to methods.');
@@ -141,19 +147,8 @@ main() {
     assertTestChangeResult(expectedCode);
   }
 
-  void _createRefactoring(String elementName) {
-    PropertyAccessorElement element =
-        findElement(elementName, ElementKind.GETTER);
-    _createRefactoringForElement(element);
-  }
-
   void _createRefactoringForElement(ExecutableElement element) {
     refactoring = ConvertGetterToMethodRefactoring(
         searchEngine, testAnalysisResult.session, element);
-  }
-
-  void _createRefactoringForString(String search) {
-    ExecutableElement element = findNodeElementAtString(search);
-    _createRefactoringForElement(element);
   }
 }

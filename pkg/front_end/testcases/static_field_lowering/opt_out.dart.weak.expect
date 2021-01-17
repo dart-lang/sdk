@@ -74,9 +74,6 @@ static method throws(() →* dynamic f, core::String* message) → dynamic {
   try {
     value = f.call();
   }
-  on core::LateInitializationError* catch(final core::LateInitializationError* e) {
-    throw "${message}: Unexpected LateInitializationError: ${e}";
-  }
   on dynamic catch(final dynamic e) {
     core::print(e);
     return;

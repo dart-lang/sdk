@@ -21,9 +21,10 @@ setup() {
   JS('', r"""
 (function(){
   function NativeClass() {}
-  makeNativeClass = function() { return new NativeClass(); };
+  self.makeNativeClass = function() { return new NativeClass(); };
   self.nativeConstructor(NativeClass);
 })()""");
+  applyTestExtensions(['NativeClass']);
 }
 
 main() {

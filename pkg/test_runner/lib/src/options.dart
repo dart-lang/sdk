@@ -828,6 +828,7 @@ compiler.''',
     }
 
     // Expand runtimes.
+    var configurationNumber = 1;
     for (var runtime in runtimes) {
       // Expand architectures.
       var architectures = data["arch"] as String;
@@ -852,8 +853,13 @@ compiler.''',
             }
             for (var sanitizerName in sanitizers.split(",")) {
               var sanitizer = Sanitizer.find(sanitizerName);
-              var configuration = Configuration("custom configuration",
-                  architecture, compiler, mode, runtime, system,
+              var configuration = Configuration(
+                  "custom configuration_${configurationNumber++}",
+                  architecture,
+                  compiler,
+                  mode,
+                  runtime,
+                  system,
                   nnbdMode: nnbdMode,
                   sanitizer: sanitizer,
                   timeout: data["timeout"] as int,

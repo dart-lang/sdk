@@ -16,7 +16,7 @@ var tests = <VMTest>[
     expect(result.externalUsage, isPositive);
   },
   (VmService service) async {
-    bool caughtException;
+    bool? caughtException;
     try {
       await service.getMemoryUsage('badid');
       fail('Unreachable');

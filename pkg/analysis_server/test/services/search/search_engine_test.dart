@@ -17,6 +17,7 @@ import '../../abstract_context.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SearchEngineImplTest);
+    defineReflectiveTests(SearchEngineImplWithNonFunctionTypeAliasesTest);
   });
 }
 
@@ -59,22 +60,6 @@ class PubPackageResolutionTest extends AbstractContextTest {
 class SearchEngineImplTest extends PubPackageResolutionTest {
   SearchEngineImpl get searchEngine {
     return SearchEngineImpl(allDrivers);
-  }
-
-  @override
-  void setUp() {
-    super.setUp();
-
-    // TODO(scheglov) This is not ideal.
-    // We write into the root because we choose the workspace root to
-    // index `aaa/lib/a.dart`. But ideally we should use the context root
-    // that contains it (i.e. `root/aaa`), or a context root where it is a
-    // package (e.g. `root/test`).
-    writePackageConfig(
-      '$workspaceRootPath/.dart_tool/package_config.json',
-      PackageConfigFileBuilder()
-        ..add(name: 'test', rootPath: testPackageRootPath),
-    );
   }
 
   Future<void> test_membersOfSubtypes_hasMembers() async {
@@ -424,22 +409,16 @@ class B extends A {}
   String _configureForPackage_aaa() {
     var aaaRootPath = '$workspaceRootPath/aaa';
 
+    writePackageConfig(
+      '$aaaRootPath/.dart_tool/package_config.json',
+      PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRootPath),
+    );
+
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
         ..add(name: 'aaa', rootPath: aaaRootPath),
     );
 
-    // TODO(scheglov) This is not ideal.
-    // We write into the root because we choose the workspace root to
-    // index `aaa/lib/a.dart`. But ideally we should use the context root
-    // that contains it (i.e. `root/aaa`), or a context root where it is a
-    // package (e.g. `root/test`).
-    writePackageConfig(
-      '$workspaceRootPath/.dart_tool/package_config.json',
-      PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRootPath)
-        ..add(name: 'test', rootPath: testPackageRootPath),
-    );
     return aaaRootPath;
   }
 
@@ -447,12 +426,44 @@ class B extends A {}
     for (var driver in allDrivers) {
       var contextRoot = driver.analysisContext.contextRoot;
       for (var file in contextRoot.analyzedFiles()) {
-        await driver.getUnitElement(file);
+        if (file.endsWith('.dart')) {
+          await driver.getUnitElement(file);
+        }
       }
     }
   }
 
   static void _assertContainsClass(Set<ClassElement> subtypes, String name) {
     expect(subtypes, contains(predicate((ClassElement e) => e.name == name)));
+  }
+}
+
+@reflectiveTest
+class SearchEngineImplWithNonFunctionTypeAliasesTest
+    extends SearchEngineImplTest with WithNonFunctionTypeAliasesMixin {
+  Future<void> test_searchReferences_typeAlias_interfaceType() async {
+    await resolveTestCode('''
+typedef A<T> = Map<T, String>;
+
+void f(A<int> a, A<double> b) {}
+''');
+
+    var element = findElement.typeAlias('A');
+    var matches = await searchEngine.searchReferences(element);
+
+    Matcher hasOne(Element element, String search) {
+      return predicate((SearchMatch match) {
+        return match.element == element &&
+            match.sourceRange.offset == findNode.offset(search);
+      });
+    }
+
+    expect(
+      matches,
+      unorderedMatches([
+        hasOne(findElement.parameter('a'), 'A<int>'),
+        hasOne(findElement.parameter('b'), 'A<double>'),
+      ]),
+    );
   }
 }

@@ -22,10 +22,10 @@ const failuresPerConfiguration = 20;
 
 /*late*/ bool useStagingDatabase;
 
-String get queryUrl {
-  var project = useStagingDatabase ? "dart-ci-staging" : "dart-ci";
-  return 'https://firestore.googleapis.com/v1/'
-      'projects/$project/databases/(default)/documents:runQuery';
+Uri get _queryUrl {
+  var project = useStagingDatabase ? 'dart-ci-staging' : 'dart-ci';
+  return Uri.https('firestore.googleapis.com',
+      '/v1/projects/$project/databases/(default)/documents:runQuery');
 }
 
 /*late*/ String builder;
@@ -226,7 +226,7 @@ Future<http.Response> runFirestoreQuery(String query) {
     'Accept': 'application/json',
     'Content-Type': 'application/json'
   };
-  return client.post(queryUrl, headers: headers, body: query);
+  return client.post(_queryUrl, headers: headers, body: query);
 }
 
 String buildQuery() => jsonEncode({

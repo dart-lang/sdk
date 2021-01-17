@@ -3,8 +3,8 @@ import self as self;
 import "dart:core" as core;
 
 static method strings() → core::List<core::String*>* {
-  core::Iterable<core::String*>* stuff = <dynamic>[].{core::Iterable::expand}<core::String*>((dynamic i) → core::List<core::String*>* {
-    return <core::String*>[];
+  core::Iterable<core::String*>* stuff = core::_GrowableList::•<dynamic>(0).{core::Iterable::expand}<core::String*>((dynamic i) → core::List<core::String*>* {
+    return core::_GrowableList::•<core::String*>(0);
   });
   return stuff.{core::Iterable::toList}();
 }

@@ -29,9 +29,10 @@ void setup() {
   function A(){}
   A.prototype.read = function() { return this._x; };
   A.prototype.write = function(x) { this._x = x; };
-  makeA = function(){return new A()};
+  self.makeA = function(){return new A()};
   self.nativeConstructor(A);
 })()""");
+  applyTestExtensions(['A']);
 }
 
 class B {}

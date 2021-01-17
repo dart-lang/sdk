@@ -73,7 +73,7 @@ vars = {
   "bazel_worker_rev": "060c55a933d39798681a4f533b161b81dc48d77e",
   "benchmark_harness_rev": "ec6b646f5443faa871e126ac1ba248c94ca06257",
   "boolean_selector_rev": "665e6921ab246569420376f827bff4585dff0b14",
-  "boringssl_gen_rev": "429ccb1877f7987a6f3988228bc2440e61293499",
+  "boringssl_gen_rev": "aaac86738c4f2d1bdf00f54d197f50f247ffee04",
   "boringssl_rev" : "4dfd5af70191b068aebe567b8e29ce108cee85ce",
   "browser-compat-data_tag": "v1.0.22",
   "charcode_rev": "bcd8a12c315b7a83390e4865ad847ecd9344cba2",
@@ -83,7 +83,7 @@ vars = {
   "collection_rev": "e4bb038ce2d8e66fb15818aa40685c68d53692ab",
   "convert_rev": "6513985a1b1ea8a0b987fbef699250ce2cdc3cca",
   "crypto_rev": "c89a5be0375875fe7ff71625fa2b79f5a421f06d",
-  "csslib_rev": "6f77b3dcee957d3e2d5083f666221a220e9ed1f1",
+  "csslib_rev": "e411d862fd8cc50415c1badf2632e017373b3f47",
   "dart2js_info_rev" : "e0acfeb5affdf94c53067e68bd836adf589628fd",
 
   # Note: Updates to dart_style have to be coordinated with the infrastructure
@@ -98,20 +98,20 @@ vars = {
   #     and land the review.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
-"dart_style_tag": "1.3.10",  # Please see the note above before updating.
+  "dart_style_tag": "1.3.11",  # Please see the note above before updating.
 
   "chromedriver_tag": "83.0.4103.39",
-  "dartdoc_rev" : "a1d86f2c992f4660ddcc09b27733396e92765d2a",
-  "ffi_rev": "a5d4232cd38562c75a3ed847baa340e399538028",
+  "dartdoc_rev" : "9e61a4f11091aaa8998525a2692b14148dc24ab5",
+  "ffi_rev": "31352979f261f7c6ea88fa0a2cfb0fdd004c38fb",
   "fixnum_rev": "16d3890c6dc82ca629659da1934e412292508bba",
   "file_rev": "0e09370f581ab6388d46fda4cdab66638c0171a1",
   "glob_rev": "7c0ef8d4fa086f6b185c4dd724b700e7d7ad8f79",
-  "html_rev": "22f17e97fedeacaa1e945cf84d8016284eed33a6",
+  "html_rev": "137be8db5d5b7f00530fca1591292849ce6779c9",
   "http_io_rev": "2fa188caf7937e313026557713f7feffedd4978b",
   "http_multi_server_rev" : "e8c8be7f15b4fb50757ff5bf29766721fbe24fe4",
   "http_parser_rev": "5dd4d16693242049dfb43b5efa429fedbf932e98",
   "http_retry_tag": "0.1.1",
-  "http_rev": "1617b728fc48f64fb0ed7dc16078c03adcc64179",
+  "http_rev": "3845753a54624b070828cb3eff7a6c2a4e046cfb",
   "http_throttle_tag" : "1.0.2",
   "icu_rev" : "79326efe26e5440f530963704c3c0ff965b3a4ac",
   "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
@@ -122,7 +122,7 @@ vars = {
   "logging_rev": "e2f633b543ef89c54688554b15ca3d7e425b86a2",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "markdown_rev": "6f89681d59541ddb1cf3a58efbdaa2304ffc3f51",
-  "matcher_rev": "9cae8faa7868bf3a88a7ba45eb0bd128e66ac515",
+  "matcher_rev": "63f1110a657fb5e2dc378db8895fef7b0a13ab30",
   "mime_rev": "c931f4bed87221beaece356494b43731445ce7b8",
   "mockito_rev": "d39ac507483b9891165e422ec98d9fb480037c8b",
   "mustache_rev": "664737ecad027e6b96d0d1e627257efa0e46fcb1",
@@ -133,7 +133,7 @@ vars = {
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "7abe634002a1ba8a0928eded086062f1307ccfae",
   "protobuf_rev": "0d03fd588df69e9863e2a2efc0059dee8f18d5b2",
-  "pub_rev": "8ea96121dbb3f762f63e641d49141927dc30aac1",
+  "pub_rev": "392a3cb455af48f7ce8807a96174691945f97f0a",
   "pub_semver_rev": "10569a1e867e909cf5db201f73118020453e5db8",
   "resource_rev": "6b79867d0becf5395e5819a75720963b8298e9a7",
   "root_certificates_rev": "7e5ec82c99677a2e5b95ce296c4d68b0d3378ed8",
@@ -161,7 +161,7 @@ vars = {
   "typed_data_tag": "f94fc57b8e8c0e4fe4ff6cfd8290b94af52d3719",
   "usage_rev": "6c64d9e7b6b3758d06d030efcb5afe20bfc04dde",
   "vector_math_rev": "0c9f5d68c047813a6dcdeb88ba7a42daddf25025",
-  "watcher_rev": "1fb0a84acd8d195103f10aba03ba6bd6fdb424e5",
+  "watcher_rev": "14706140b3670ca1dfeca73480bdd3091b728ce9",
   "webdriver_rev": "5a8d6805d9cf8a3cbb4fcd64849b538b7491e50e",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_rev": "680358915e331fda823908234f80beba1ed4ec83",

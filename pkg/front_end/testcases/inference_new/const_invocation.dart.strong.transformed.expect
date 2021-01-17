@@ -70,4 +70,4 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///const_invocation.dart:
 - Bar. (from org-dartlang-testcase:///const_invocation.dart:24:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

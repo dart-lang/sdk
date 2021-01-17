@@ -46,12 +46,13 @@ function B(){}
 inherits(B, A);
 A.prototype.read = function() { return this._x; };
 A.prototype.write = function(x) { this._x = x; };
-makeA = function(){return new A()};
-makeB = function(){return new B()};
+self.makeA = function(){return new A()};
+self.makeB = function(){return new B()};
 
 self.nativeConstructor(A);
 self.nativeConstructor(B);
 })()""");
+  applyTestExtensions(['A', 'B']);
 }
 
 class C {}

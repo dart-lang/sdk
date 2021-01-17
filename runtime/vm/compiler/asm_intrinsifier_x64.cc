@@ -1444,10 +1444,13 @@ static void JumpIfNotString(Assembler* assembler, Register cid, Label* target) {
              kIfNotInRange, target);
 }
 
+static void JumpIfNotType(Assembler* assembler, Register cid, Label* target) {
+  RangeCheck(assembler, cid, kTypeCid, kFunctionTypeCid, kIfNotInRange, target);
+}
 // Return type quickly for simple types (not parameterized and not signature).
 void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
                                         Label* normal_ir_body) {
-  Label use_declaration_type, not_integer, not_double;
+  Label use_declaration_type, not_integer, not_double, not_string;
   __ movq(RAX, Address(RSP, +1 * target::kWordSize));
   __ LoadClassIdMayBeSmi(RCX, RAX);
 
@@ -1481,14 +1484,24 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   // If object is a string (one byte, two byte or external variants) return
   // string type.
   __ movq(RAX, RCX);
-  JumpIfNotString(assembler, RAX, &use_declaration_type);
+  JumpIfNotString(assembler, RAX, &not_string);
 
   __ LoadIsolate(RAX);
   __ movq(RAX, Address(RAX, target::Isolate::cached_object_store_offset()));
   __ movq(RAX, Address(RAX, target::ObjectStore::string_type_offset()));
   __ ret();
 
-  // Object is neither double, nor integer, nor string.
+  __ Bind(&not_string);
+  // If object is a type or function type, return Dart type.
+  __ movq(RAX, RCX);
+  JumpIfNotType(assembler, RAX, &use_declaration_type);
+
+  __ LoadIsolate(RAX);
+  __ movq(RAX, Address(RAX, target::Isolate::cached_object_store_offset()));
+  __ movq(RAX, Address(RAX, target::ObjectStore::type_type_offset()));
+  __ ret();
+
+  // Object is neither double, nor integer, nor string, nor type.
   __ Bind(&use_declaration_type);
   __ LoadClassById(RDI, RCX);
   __ movzxw(RCX, FieldAddress(RDI, target::Class::num_type_arguments_offset()));
@@ -1663,6 +1676,32 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
+void AsmIntrinsifier::FunctionType_getHashCode(Assembler* assembler,
+                                               Label* normal_ir_body) {
+  __ movq(RAX, Address(RSP, +1 * target::kWordSize));  // FunctionType object.
+  __ movq(RAX, FieldAddress(RAX, target::FunctionType::hash_offset()));
+  ASSERT(kSmiTag == 0);
+  ASSERT(kSmiTagShift == 1);
+  __ testq(RAX, RAX);
+  __ j(ZERO, normal_ir_body, Assembler::kNearJump);
+  __ ret();
+  __ Bind(normal_ir_body);
+  // Hash not yet computed.
+}
+
+void AsmIntrinsifier::FunctionType_equality(Assembler* assembler,
+                                            Label* normal_ir_body) {
+  __ movq(RCX, Address(RSP, +1 * target::kWordSize));
+  __ movq(RDX, Address(RSP, +2 * target::kWordSize));
+  __ cmpq(RCX, RDX);
+  __ j(NOT_EQUAL, normal_ir_body);
+
+  __ LoadObject(RAX, CastHandle<Object>(TrueObject()));
+  __ ret();
+
+  __ Bind(normal_ir_body);
+}
+
 void AsmIntrinsifier::Object_getHash(Assembler* assembler,
                                      Label* normal_ir_body) {
   __ movq(RAX, Address(RSP, +1 * target::kWordSize));  // Object.
@@ -1676,7 +1715,7 @@ void AsmIntrinsifier::Object_setHash(Assembler* assembler,
   __ movq(RAX, Address(RSP, +2 * target::kWordSize));  // Object.
   __ movq(RDX, Address(RSP, +1 * target::kWordSize));  // Value.
   __ SmiUntag(RDX);
-  __ shlq(RDX, Immediate(target::ObjectLayout::kHashTagPos));
+  __ shlq(RDX, Immediate(target::UntaggedObject::kHashTagPos));
   // lock+orq is an atomic read-modify-write.
   __ lock();
   __ orq(FieldAddress(RAX, target::Object::tags_offset()), RDX);
@@ -1914,11 +1953,11 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   __ j(NOT_EQUAL, &set_hash_code, Assembler::kNearJump);
   __ incq(RAX);
   __ Bind(&set_hash_code);
-  __ shlq(RAX, Immediate(target::ObjectLayout::kHashTagPos));
+  __ shlq(RAX, Immediate(target::UntaggedObject::kHashTagPos));
   // lock+orq is an atomic read-modify-write.
   __ lock();
   __ orq(FieldAddress(RBX, target::Object::tags_offset()), RAX);
-  __ sarq(RAX, Immediate(target::ObjectLayout::kHashTagPos));
+  __ sarq(RAX, Immediate(target::UntaggedObject::kHashTagPos));
   __ SmiTag(RAX);
   __ ret();
 }
@@ -1981,9 +2020,9 @@ static void TryAllocateString(Assembler* assembler,
   // RDI: allocation size.
   {
     Label size_tag_overflow, done;
-    __ cmpq(RDI, Immediate(target::ObjectLayout::kSizeTagMaxSizeTag));
+    __ cmpq(RDI, Immediate(target::UntaggedObject::kSizeTagMaxSizeTag));
     __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-    __ shlq(RDI, Immediate(target::ObjectLayout::kTagBitsSizeTagPos -
+    __ shlq(RDI, Immediate(target::UntaggedObject::kTagBitsSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2));
     __ jmp(&done, Assembler::kNearJump);
 

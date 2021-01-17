@@ -20,6 +20,13 @@ main() {
 /// and analysis finishes without exceptions.
 @reflectiveTest
 class InvalidCodeTest extends PubPackageResolutionTest {
+  test_const_ForPartsWithExpression() async {
+    await _assertCanBeAnalyzed(r'''
+@A([for (;;) 0])
+void f() {}
+''');
+  }
+
   /// This code results in a method with the empty name, and the default
   /// constructor, which also has the empty name. The `Map` in `f` initializer
   /// references the empty name.

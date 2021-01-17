@@ -17,7 +17,7 @@ namespace dart {
 namespace kernel {
 
 #define Z (zone_)
-#define I (thread_->isolate())
+#define IG (thread_->isolate_group())
 
 Fragment& Fragment::operator+=(const Fragment& other) {
   if (entry == NULL) {
@@ -546,7 +546,7 @@ Fragment BaseFlowGraphBuilder::StoreInstanceFieldGuarded(
         kind /* = StoreInstanceFieldInstr::Kind::kOther */) {
   Fragment instructions;
   const Field& field_clone = MayCloneField(Z, field);
-  if (I->use_field_guards()) {
+  if (IG->use_field_guards()) {
     LocalVariable* store_expression = MakeTemporary();
     instructions += LoadLocal(store_expression);
     instructions += GuardFieldClass(field_clone, GetNextDeoptId());
@@ -874,7 +874,7 @@ JoinEntryInstr* BaseFlowGraphBuilder::BuildThrowNoSuchMethod() {
 
   Fragment failing(nsm);
   const Code& nsm_handler = Code::ZoneHandle(
-      Z, I->object_store()->call_closure_no_such_method_stub());
+      Z, IG->object_store()->call_closure_no_such_method_stub());
   failing += LoadArgDescriptor();
   failing += TailCall(nsm_handler);
 
@@ -906,7 +906,7 @@ Fragment BaseFlowGraphBuilder::AllocateContext(
 Fragment BaseFlowGraphBuilder::AllocateClosure(
     TokenPosition position,
     const Function& closure_function) {
-  const Class& cls = Class::ZoneHandle(Z, I->object_store()->closure_class());
+  const Class& cls = Class::ZoneHandle(Z, IG->object_store()->closure_class());
   AllocateObjectInstr* allocate =
       new (Z) AllocateObjectInstr(InstructionSource(position), cls);
   allocate->set_closure_function(closure_function);
@@ -1007,8 +1007,7 @@ Fragment BaseFlowGraphBuilder::BuildFfiAsFunctionInternalCall(
   ASSERT(dart_type.IsFunctionType() && native_type.IsFunctionType());
   const Function& target =
       Function::ZoneHandle(compiler::ffi::TrampolineFunction(
-          Function::Handle(Z, Type::Cast(dart_type).signature()),
-          Function::Handle(Z, Type::Cast(native_type).signature())));
+          FunctionType::Cast(dart_type), FunctionType::Cast(native_type)));
 
   Fragment code;
   // Store the pointer in the context, we cannot load the untagged address
@@ -1047,9 +1046,9 @@ Fragment BaseFlowGraphBuilder::DebugStepCheck(TokenPosition position) {
 #ifdef PRODUCT
   return Fragment();
 #else
-  return Fragment(new (Z) DebugStepCheckInstr(InstructionSource(position),
-                                              PcDescriptorsLayout::kRuntimeCall,
-                                              GetNextDeoptId()));
+  return Fragment(new (Z) DebugStepCheckInstr(
+      InstructionSource(position), UntaggedPcDescriptors::kRuntimeCall,
+      GetNextDeoptId()));
 #endif
 }
 
@@ -1109,7 +1108,7 @@ void BaseFlowGraphBuilder::RecordUncheckedEntryPoint(
 Fragment BaseFlowGraphBuilder::BuildEntryPointsIntrospection() {
   if (!FLAG_enable_testing_pragmas) return Drop();
 
-  auto& function = Function::Handle(Z, parsed_function_->function().raw());
+  auto& function = Function::Handle(Z, parsed_function_->function().ptr());
 
   if (function.IsImplicitClosureFunction()) {
     const auto& parent = Function::Handle(Z, function.parent_function());
@@ -1126,7 +1125,7 @@ Fragment BaseFlowGraphBuilder::BuildEntryPointsIntrospection() {
       options.IsNull() || !options.IsClosure()) {
     return Drop();
   }
-  auto& closure = Closure::ZoneHandle(Z, Closure::Cast(options).raw());
+  auto& closure = Closure::ZoneHandle(Z, Closure::Cast(options).ptr());
   LocalVariable* entry_point_num = MakeTemporary();
 
   auto& function_name = String::ZoneHandle(

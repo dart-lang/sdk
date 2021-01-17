@@ -619,27 +619,27 @@ class FlowGraphCompiler : public ValueObject {
 
   void GenerateStubCall(const InstructionSource& source,
                         const Code& stub,
-                        PcDescriptorsLayout::Kind kind,
+                        UntaggedPcDescriptors::Kind kind,
                         LocationSummary* locs,
                         intptr_t deopt_id = DeoptId::kNone,
                         Environment* env = nullptr);
 
   void GeneratePatchableCall(const InstructionSource& source,
                              const Code& stub,
-                             PcDescriptorsLayout::Kind kind,
+                             UntaggedPcDescriptors::Kind kind,
                              LocationSummary* locs);
 
   void GenerateDartCall(intptr_t deopt_id,
                         const InstructionSource& source,
                         const Code& stub,
-                        PcDescriptorsLayout::Kind kind,
+                        UntaggedPcDescriptors::Kind kind,
                         LocationSummary* locs,
                         Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   void GenerateStaticDartCall(
       intptr_t deopt_id,
       const InstructionSource& source,
-      PcDescriptorsLayout::Kind kind,
+      UntaggedPcDescriptors::Kind kind,
       LocationSummary* locs,
       const Function& target,
       Code::EntryKind entry_kind = Code::EntryKind::kNormal);
@@ -802,7 +802,7 @@ class FlowGraphCompiler : public ValueObject {
   // `pending_deoptimization_env`.
   void EmitCallsiteMetadata(const InstructionSource& source,
                             intptr_t deopt_id,
-                            PcDescriptorsLayout::Kind kind,
+                            UntaggedPcDescriptors::Kind kind,
                             LocationSummary* locs,
                             Environment* env = nullptr);
 
@@ -841,16 +841,16 @@ class FlowGraphCompiler : public ValueObject {
                            const Array& handler_types,
                            bool needs_stacktrace);
   void SetNeedsStackTrace(intptr_t try_index);
-  void AddCurrentDescriptor(PcDescriptorsLayout::Kind kind,
+  void AddCurrentDescriptor(UntaggedPcDescriptors::Kind kind,
                             intptr_t deopt_id,
                             const InstructionSource& source);
   void AddDescriptor(
-      PcDescriptorsLayout::Kind kind,
+      UntaggedPcDescriptors::Kind kind,
       intptr_t pc_offset,
       intptr_t deopt_id,
       const InstructionSource& source,
       intptr_t try_index,
-      intptr_t yield_index = PcDescriptorsLayout::kInvalidYieldIndex);
+      intptr_t yield_index = UntaggedPcDescriptors::kInvalidYieldIndex);
 
   // Add NullCheck information for the current PC.
   void AddNullCheck(const InstructionSource& source, const String& name);
@@ -946,12 +946,13 @@ class FlowGraphCompiler : public ValueObject {
 
   Thread* thread() const { return thread_; }
   Isolate* isolate() const { return thread_->isolate(); }
+  IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
   Zone* zone() const { return zone_; }
 
   void AddStubCallTarget(const Code& code);
   void AddDispatchTableCallTarget(const compiler::TableSelector* selector);
 
-  ArrayPtr edge_counters_array() const { return edge_counters_array_.raw(); }
+  ArrayPtr edge_counters_array() const { return edge_counters_array_.ptr(); }
 
   ArrayPtr InliningIdToFunction() const;
 
@@ -1133,7 +1134,7 @@ class FlowGraphCompiler : public ValueObject {
   void CompactBlocks();
 
   bool IsListClass(const Class& cls) const {
-    return cls.raw() == list_class_.raw();
+    return cls.ptr() == list_class_.ptr();
   }
 
   void EmitSourceLine(Instruction* instr);

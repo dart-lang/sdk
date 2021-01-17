@@ -1,0 +1,95 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/declares.dart:5:7: Error: The non-abstract class 'Super' is missing implementations for these members:
+//  - Super.extendedAbstractDeclaredAbstractMethod
+//  - Super.extendedAbstractDeclaredConcreteMethod
+//  - Super.extendedAbstractImplementedDeclaredAbstractMethod
+//  - Super.extendedAbstractImplementedDeclaredConcreteMethod
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class Super {
+//       ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/declares.dart:12:8: Context: 'Super.extendedAbstractDeclaredAbstractMethod' is defined here.
+//   void extendedAbstractDeclaredAbstractMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/declares.dart:8:8: Context: 'Super.extendedAbstractDeclaredConcreteMethod' is defined here.
+//   void extendedAbstractDeclaredConcreteMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/declares.dart:20:8: Context: 'Super.extendedAbstractImplementedDeclaredAbstractMethod' is defined here.
+//   void extendedAbstractImplementedDeclaredAbstractMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/declares.dart:16:8: Context: 'Super.extendedAbstractImplementedDeclaredConcreteMethod' is defined here.
+//   void extendedAbstractImplementedDeclaredConcreteMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/declares.dart:37:7: Error: The non-abstract class 'Class' is missing implementations for these members:
+//  - Class.extendedAbstractDeclaredAbstractMethod
+//  - Class.extendedAbstractImplementedDeclaredAbstractMethod
+//  - Class.implementedDeclaredAbstractMethod
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class Class extends Super implements Interface {
+//       ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/declares.dart:44:8: Context: 'Class.extendedAbstractDeclaredAbstractMethod' is defined here.
+//   void extendedAbstractDeclaredAbstractMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/declares.dart:56:8: Context: 'Class.extendedAbstractImplementedDeclaredAbstractMethod' is defined here.
+//   void extendedAbstractImplementedDeclaredAbstractMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/declares.dart:48:8: Context: 'Class.implementedDeclaredAbstractMethod' is defined here.
+//   void implementedDeclaredAbstractMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    : super core::Object::•()
+    ;
+  method extendedConcreteDeclaredConcreteMethod() → void {}
+  abstract method extendedAbstractDeclaredConcreteMethod() → void;
+  method extendedConcreteDeclaredAbstractMethod() → void {}
+  abstract method extendedAbstractDeclaredAbstractMethod() → void;
+  method extendedConcreteImplementedDeclaredConcreteMethod() → void {}
+  abstract method extendedAbstractImplementedDeclaredConcreteMethod() → void;
+  method extendedConcreteImplementedDeclaredAbstractMethod() → void {}
+  abstract method extendedAbstractImplementedDeclaredAbstractMethod() → void;
+}
+class Interface extends core::Object {
+  synthetic constructor •() → self::Interface
+    : super core::Object::•()
+    ;
+  method implementedDeclaredConcreteMethod() → void {}
+  method implementedDeclaredAbstractMethod() → void {}
+  method extendedConcreteImplementedDeclaredConcreteMethod() → void {}
+  method extendedAbstractImplementedDeclaredConcreteMethod() → void {}
+  method extendedConcreteImplementedDeclaredAbstractMethod() → void {}
+  method extendedAbstractImplementedDeclaredAbstractMethod() → void {}
+}
+class Class extends self::Super implements self::Interface {
+  synthetic constructor •() → self::Class
+    : super self::Super::•()
+    ;
+  method extendedConcreteDeclaredConcreteMethod() → void {}
+  method extendedAbstractDeclaredConcreteMethod() → void {}
+  abstract method extendedConcreteDeclaredAbstractMethod() → void;
+  abstract method extendedAbstractDeclaredAbstractMethod() → void;
+  method implementedDeclaredConcreteMethod() → void {}
+  abstract method implementedDeclaredAbstractMethod() → void;
+  method extendedConcreteImplementedDeclaredConcreteMethod() → void {}
+  method extendedAbstractImplementedDeclaredConcreteMethod() → void {}
+  abstract method extendedConcreteImplementedDeclaredAbstractMethod() → void;
+  abstract method extendedAbstractImplementedDeclaredAbstractMethod() → void;
+}
+static method main() → dynamic {}

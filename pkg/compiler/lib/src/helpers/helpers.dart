@@ -90,8 +90,8 @@ ReportHere get reportHere {
 
 /// Implementation of [reportHere]
 _reportHere(DiagnosticReporter reporter, Spannable node, String debugMessage) {
-  reporter
-      .reportInfo(node, MessageKind.GENERIC, {'text': 'HERE: $debugMessage'});
+  reporter.reportInfoMessage(
+      node, MessageKind.GENERIC, {'text': 'HERE: $debugMessage'});
 }
 
 /// Set of tracked objects used by [track] and [ifTracked].

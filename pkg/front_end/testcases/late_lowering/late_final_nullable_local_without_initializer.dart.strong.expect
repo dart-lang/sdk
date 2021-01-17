@@ -54,7 +54,7 @@ static method throws(() → dynamic f, core::String message) → dynamic {
   try {
     value = f.call();
   }
-  on core::LateInitializationError catch(final core::LateInitializationError e) {
+  on core::Error catch(final core::Error e) {
     core::print(e);
     return;
   }

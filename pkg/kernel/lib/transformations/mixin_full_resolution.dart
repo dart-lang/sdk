@@ -119,9 +119,9 @@ class MixinFullResolution {
 
       for (var field in class_.mixin.fields) {
         Reference getterReference =
-            indexedClass?.lookupGetterReference(field.name.text);
+            indexedClass?.lookupGetterReference(field.name);
         Reference setterReference =
-            indexedClass?.lookupSetterReference(field.name.text);
+            indexedClass?.lookupSetterReference(field.name);
         if (getterReference == null) {
           getterReference = nonSetters[field.name]?.reference;
           getterReference?.canonicalName?.unbind();
@@ -166,9 +166,9 @@ class MixinFullResolution {
 
       Reference reference;
       if (procedure.isSetter) {
-        reference = indexedClass?.lookupSetterReference(procedure.name.text);
+        reference = indexedClass?.lookupSetterReference(procedure.name);
       } else {
-        reference = indexedClass?.lookupGetterReference(procedure.name.text);
+        reference = indexedClass?.lookupGetterReference(procedure.name);
       }
 
       // Linear search for a forwarding stub with the same name.

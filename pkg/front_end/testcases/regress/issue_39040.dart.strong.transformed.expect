@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 static method main() → void {
-  core::List<core::String*>* whereWasI = <core::String*>[];
+  core::List<core::String*>* whereWasI = core::_GrowableList::•<core::String*>(0);
   core::int* outer = 1;
   core::int* inner = 0;
   #L1:

@@ -366,7 +366,7 @@ class C {
   C.b();
 }
 ''');
-    setPackageData(_rename(['C', 'a'], 'b'));
+    setPackageData(_rename(['a', 'C'], 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -389,7 +389,7 @@ class C {
   C.b();
 }
 ''');
-    setPackageData(_rename(['C', 'a'], 'b'));
+    setPackageData(_rename(['a', 'C'], 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -414,7 +414,7 @@ class C {
   C();
 }
 ''');
-    setPackageData(_rename(['C', 'old'], ''));
+    setPackageData(_rename(['old', 'C'], ''));
     await resolveTestCode('''
 import '$importUri';
 
@@ -437,7 +437,7 @@ class C {
   C();
 }
 ''');
-    setPackageData(_rename(['C', 'old'], ''));
+    setPackageData(_rename(['old', 'C'], ''));
     await resolveTestCode('''
 import '$importUri';
 
@@ -462,7 +462,7 @@ class C {
   C.a();
 }
 ''');
-    setPackageData(_rename(['C', ''], 'a'));
+    setPackageData(_rename(['', 'C'], 'a'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -485,7 +485,7 @@ class C {
   C.a();
 }
 ''');
-    setPackageData(_rename(['C', ''], 'a'));
+    setPackageData(_rename(['', 'C'], 'a'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -606,7 +606,7 @@ class C {
   int b;
 }
 ''');
-    setPackageData(_rename(['C', 'a'], 'b'));
+    setPackageData(_rename(['a', 'C'], 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -629,7 +629,7 @@ class C {
   int b;
 }
 ''');
-    setPackageData(_rename(['C', 'a'], 'b'));
+    setPackageData(_rename(['a', 'C'], 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -654,7 +654,7 @@ class C {
   static int b;
 }
 ''');
-    setPackageData(_rename(['C', 'a'], 'b'));
+    setPackageData(_rename(['a', 'C'], 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -677,7 +677,7 @@ class C {
   static int b;
 }
 ''');
-    setPackageData(_rename(['C', 'a'], 'b'));
+    setPackageData(_rename(['a', 'C'], 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -702,7 +702,7 @@ class C {
   static int b;
 }
 ''');
-    setPackageData(_rename(['C', 'a'], 'b'));
+    setPackageData(_rename(['a', 'C'], 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -725,7 +725,7 @@ class C {
   static int b;
 }
 ''');
-    setPackageData(_rename(['C', 'a'], 'b'));
+    setPackageData(_rename(['a', 'C'], 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -760,7 +760,7 @@ class D {
   void a(int b) {}
 }
 ''');
-    setPackageData(_rename(['C', 'a'], 'b'));
+    setPackageData(_rename(['a', 'C'], 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -782,7 +782,7 @@ class D {
   D({@deprecated int a; int c});
 }
 ''');
-    setPackageData(_rename(['C', 'a'], 'b'));
+    setPackageData(_rename(['a', 'C'], 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -799,7 +799,7 @@ class C {
   int get b => 1;
 }
 ''');
-    setPackageData(_rename(['C', 'a'], 'b'));
+    setPackageData(_rename(['a', 'C'], 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -822,7 +822,7 @@ class C {
   int get b => 1;
 }
 ''');
-    setPackageData(_rename(['C', 'a'], 'b'));
+    setPackageData(_rename(['a', 'C'], 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -850,7 +850,7 @@ class D {
   C c() => C();
 }
 ''');
-    setPackageData(_rename(['C', 'a'], 'b'));
+    setPackageData(_rename(['a', 'C'], 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -876,7 +876,7 @@ class D {
   C c() => C();
 }
 ''');
-    setPackageData(_rename(['C', 'a'], 'b'));
+    setPackageData(_rename(['a', 'C'], 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -952,7 +952,7 @@ class C {
   int b() => 0;
 }
 ''');
-    setPackageData(_rename(['C', 'a'], 'b'));
+    setPackageData(_rename(['a', 'C'], 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -977,7 +977,7 @@ class C {
   int b() => 0;
 }
 ''');
-    setPackageData(_rename(['C', 'a'], 'b'));
+    setPackageData(_rename(['a', 'C'], 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -1004,7 +1004,7 @@ class C {
   int b() {}
 }
 ''');
-    setPackageData(_rename(['C', 'a'], 'b'));
+    setPackageData(_rename(['a', 'C'], 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -1027,7 +1027,7 @@ class C {
   int b() {}
 }
 ''');
-    setPackageData(_rename(['C', 'a'], 'b'));
+    setPackageData(_rename(['a', 'C'], 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -1052,7 +1052,7 @@ class C {
   static int b() {}
 }
 ''');
-    setPackageData(_rename(['C', 'a'], 'b'));
+    setPackageData(_rename(['a', 'C'], 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -1075,7 +1075,7 @@ class C {
   static int b() {}
 }
 ''');
-    setPackageData(_rename(['C', 'a'], 'b'));
+    setPackageData(_rename(['a', 'C'], 'b'));
     await resolveTestCode('''
 import '$importUri';
 

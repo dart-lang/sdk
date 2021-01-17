@@ -6,40 +6,40 @@ import "dart:collection" as col;
 static method main() → dynamic {
   core::List<core::int>? list = null;
   core::print( block {
-    final core::List<core::int> #t1 = <core::int>[1, 2];
+    final core::List<core::int> #t1 = core::_GrowableList::_literal2<core::int>(1, 2);
     final core::Iterable<core::int>? #t2 = list;
     if(!#t2.{core::Object::==}(null))
       #t1.{core::List::addAll}{Invariant}(#t2{core::Iterable<core::int>});
     #t1.{core::List::add}{Invariant}(3);
   } =>#t1);
   core::print( block {
-    final core::List<core::int> #t3 = <core::int>[1, 2];
+    final core::List<core::int> #t3 = core::_GrowableList::_literal2<core::int>(1, 2);
     final core::Iterable<core::int>? #t4 = null;
     if(!#t4.{core::Object::==}(null))
       #t3.{core::List::addAll}{Invariant}(#t4{core::Iterable<core::int>});
     #t3.{core::List::add}{Invariant}(3);
   } =>#t3);
   core::List<core::int> list1 = block {
-    final core::List<core::int> #t5 = <core::int>[];
+    final core::List<core::int> #t5 = core::_GrowableList::•<core::int>(0);
     final core::Iterable<core::int>? #t6 = list;
     if(!#t6.{core::Object::==}(null))
       #t5.{core::List::addAll}{Invariant}(#t6{core::Iterable<core::int>});
   } =>#t5;
   core::List<Never> list2 = block {
-    final core::List<Never> #t7 = <Never>[];
+    final core::List<Never> #t7 = core::_GrowableList::•<Never>(0);
     final core::Iterable<Never>? #t8 = null;
     if(!#t8.{core::Object::==}(null))
       #t7.{core::List::addAll}{Invariant}(#t8{core::Iterable<Never>});
   } =>#t7;
   core::List<core::int> list3 = block {
-    final core::List<core::int> #t9 = <core::int>[1, 2];
+    final core::List<core::int> #t9 = core::_GrowableList::_literal2<core::int>(1, 2);
     final core::Iterable<core::int>? #t10 = list;
     if(!#t10.{core::Object::==}(null))
       #t9.{core::List::addAll}{Invariant}(#t10{core::Iterable<core::int>});
     #t9.{core::List::add}{Invariant}(3);
   } =>#t9;
   core::List<core::int> list4 = block {
-    final core::List<core::int> #t11 = <core::int>[1, 2];
+    final core::List<core::int> #t11 = core::_GrowableList::_literal2<core::int>(1, 2);
     final core::Iterable<core::int>? #t12 = null;
     if(!#t12.{core::Object::==}(null))
       #t11.{core::List::addAll}{Invariant}(#t12{core::Iterable<core::int>});

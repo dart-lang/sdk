@@ -792,13 +792,6 @@ uint32_t KernelFingerprintHelper::CalculateFunctionFingerprint() {
 uint32_t KernelSourceFingerprintHelper::CalculateClassFingerprint(
     const Class& klass) {
   Zone* zone = Thread::Current()->zone();
-
-  // Handle typedefs.
-  if (klass.IsTypedefClass()) {
-    const Function& func = Function::Handle(zone, klass.signature_function());
-    return CalculateFunctionFingerprint(func);
-  }
-
   String& name = String::Handle(zone, klass.Name());
   const Array& fields = Array::Handle(zone, klass.fields());
   const Array& functions = Array::Handle(zone, klass.current_functions());

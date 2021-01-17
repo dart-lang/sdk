@@ -22,14 +22,12 @@ main() {
     Expect.equals(123, varWithInit);
     Expect.equals(123, varWithTrivialInit);
     Expect.equals(null, varWithNullInit);
-    Expect.throws(
-        () => varWithNoInit, (error) => error is LateInitializationError);
+    Expect.throws<Error>(() => varWithNoInit);
     Expect.equals(1, initCalls);
     Expect.equals(123, varWithInit);
     Expect.equals(123, varWithTrivialInit);
     Expect.equals(null, varWithNullInit);
-    Expect.throws(
-        () => varWithNoInit, (error) => error is LateInitializationError);
+    Expect.throws<Error>(() => varWithNoInit);
     Expect.equals(1, initCalls);
     varWithInit = 456;
     varWithTrivialInit = 456;

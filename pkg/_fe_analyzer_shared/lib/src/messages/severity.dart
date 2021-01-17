@@ -10,6 +10,7 @@ enum Severity {
   ignored,
   internalProblem,
   warning,
+  info,
 }
 
 const Map<String, String> severityEnumNames = const <String, String>{
@@ -18,6 +19,7 @@ const Map<String, String> severityEnumNames = const <String, String>{
   'IGNORED': 'ignored',
   'INTERNAL_PROBLEM': 'internalProblem',
   'WARNING': 'warning',
+  'INFO': 'info',
 };
 
 const Map<String, Severity> severityEnumValues = const <String, Severity>{
@@ -26,6 +28,7 @@ const Map<String, Severity> severityEnumValues = const <String, Severity>{
   'IGNORED': Severity.ignored,
   'INTERNAL_PROBLEM': Severity.internalProblem,
   'WARNING': Severity.warning,
+  'INFO': Severity.info,
 };
 
 const Map<Severity, String> severityPrefixes = const <Severity, String>{
@@ -33,6 +36,7 @@ const Map<Severity, String> severityPrefixes = const <Severity, String>{
   Severity.internalProblem: "Internal problem",
   Severity.warning: "Warning",
   Severity.context: "Context",
+  Severity.info: "Info",
 };
 
 const Map<Severity, String> severityTexts = const <Severity, String>{
@@ -40,4 +44,5 @@ const Map<Severity, String> severityTexts = const <Severity, String>{
   Severity.internalProblem: "internal problem",
   Severity.warning: "warning",
   Severity.context: "context",
+  Severity.info: "info",
 };

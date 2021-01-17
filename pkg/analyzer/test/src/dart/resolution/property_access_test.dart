@@ -520,7 +520,8 @@ class C<T> {
 ''');
     assertErrorsInResult(expectedErrorsByNullability(
       nullable: [
-        error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 33, 3),
+        error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+            33, 3),
       ],
       legacy: [
         error(CompileTimeErrorCode.UNDEFINED_GETTER, 37, 3),

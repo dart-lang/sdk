@@ -11,6 +11,7 @@ import 'dart:ffi';
 import "package:expect/expect.dart";
 import "package:ffi/ffi.dart";
 
+import 'calloc.dart';
 // Reuse the struct classes.
 import 'function_structs_by_value_generated_test.dart';
 
@@ -23,7 +24,7 @@ void main() {
 }
 
 void recursiveTest(int recursionCounter) {
-  final struct = allocate<Struct20BytesHomogeneousInt32>().ref;
+  final struct = calloc<Struct20BytesHomogeneousInt32>().ref;
   struct.a0 = 1;
   struct.a1 = 2;
   struct.a2 = 3;
@@ -35,7 +36,7 @@ void recursiveTest(int recursionCounter) {
   Expect.equals(struct.a2, result.a2);
   Expect.equals(struct.a3, result.a3);
   Expect.equals(struct.a4, result.a4);
-  free(struct.addressOf);
+  calloc.free(struct.addressOf);
 }
 
 Struct20BytesHomogeneousInt32 dartPassStructRecursive(
@@ -93,7 +94,7 @@ void testCopyLogic() {
   _invokeReceiveStructByValue(_receiveStructByValuePointer);
   Expect.isTrue(typedDataBackedStructSet);
 
-  final pointerBackedStruct = allocate<Struct8BytesNestedInt>().ref;
+  final pointerBackedStruct = calloc<Struct8BytesNestedInt>().ref;
 
   void reset() {
     pointerBackedStruct.a0.a0 = 1;
@@ -130,5 +131,5 @@ void testCopyLogic() {
   Expect.equals(5, typedDataBackedStruct.a1.a0);
   Expect.equals(6, typedDataBackedStruct.a1.a1);
 
-  free(pointerBackedStruct.addressOf);
+  calloc.free(pointerBackedStruct.addressOf);
 }

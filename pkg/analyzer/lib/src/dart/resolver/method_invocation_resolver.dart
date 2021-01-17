@@ -466,7 +466,9 @@ class MethodInvocationResolver {
         );
       } else {
         _setDynamicResolution(node);
-        _resolver.nullableDereferenceVerifier.report(receiver, receiverType);
+        _resolver.nullableDereferenceVerifier.report(receiver, receiverType,
+            errorCode: CompileTimeErrorCode
+                .UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE);
       }
       return;
     }

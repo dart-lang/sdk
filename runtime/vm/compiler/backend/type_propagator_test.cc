@@ -167,17 +167,18 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_Refinement) {
   CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
 
   const Class& object_class =
-      Class::Handle(thread->isolate()->object_store()->object_class());
+      Class::Handle(thread->isolate_group()->object_store()->object_class());
 
+  const FunctionType& signature = FunctionType::Handle(FunctionType::New());
   const Function& target_func = Function::ZoneHandle(Function::New(
-      String::Handle(Symbols::New(thread, "dummy2")),
-      FunctionLayout::kRegularFunction,
+      signature, String::Handle(Symbols::New(thread, "dummy2")),
+      UntaggedFunction::kRegularFunction,
       /*is_static=*/true,
       /*is_const=*/false,
       /*is_abstract=*/false,
       /*is_external=*/false,
       /*is_native=*/true, object_class, TokenPosition::kNoSource));
-  target_func.set_result_type(AbstractType::Handle(Type::IntType()));
+  signature.set_result_type(AbstractType::Handle(Type::IntType()));
 
   const Field& field = Field::ZoneHandle(
       Field::New(String::Handle(Symbols::New(thread, "dummy")),

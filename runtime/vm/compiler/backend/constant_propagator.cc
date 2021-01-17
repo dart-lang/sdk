@@ -68,12 +68,12 @@ bool ConstantPropagator::SetValue(Definition* definition, const Object& value) {
   //
   // ASSERT(IsUnknown(definition->constant_value()) ||
   //        IsNonConstant(value) ||
-  //        (definition->constant_value().raw() == value.raw()));
+  //        (definition->constant_value().ptr() == value.ptr()));
   //
   // But the final disjunct is not true (e.g., mint or double constants are
   // heap-allocated and so not necessarily pointer-equal on each iteration).
-  if (definition->constant_value().raw() != value.raw()) {
-    definition->constant_value() = value.raw();
+  if (definition->constant_value().ptr() != value.ptr()) {
+    definition->constant_value() = value.ptr();
     if (definition->input_use_list() != NULL) {
       definition_worklist_.Add(definition);
     }
@@ -86,7 +86,7 @@ static bool IsIdenticalConstants(const Object& left, const Object& right) {
   // This should be kept in line with Identical_comparison (identical.cc)
   // (=> Instance::IsIdenticalTo in object.cc).
 
-  if (left.raw() == right.raw()) return true;
+  if (left.ptr() == right.ptr()) return true;
   if (left.GetClassId() != right.GetClassId()) return false;
   if (left.IsInteger()) {
     return Integer::Cast(left).Equals(Integer::Cast(right));
@@ -107,7 +107,7 @@ void ConstantPropagator::Join(Object* left, const Object& right) {
   // Join(unknown, X)      = X
   // Join(X, non-constant) = non-constant
   if (IsUnknown(*left) || IsNonConstant(right)) {
-    *left = right.raw();
+    *left = right.ptr();
     return;
   }
 
@@ -115,7 +115,7 @@ void ConstantPropagator::Join(Object* left, const Object& right) {
   if (IsIdenticalConstants(*left, right)) return;
 
   // Join(X, Y) = non-constant
-  *left = non_constant_.raw();
+  *left = non_constant_.ptr();
 }
 
 // --------------------------------------------------------------------------
@@ -254,7 +254,7 @@ void ConstantPropagator::VisitBranch(BranchInstr* instr) {
       if (IsNonConstant(value)) {
         SetReachable(instr->true_successor());
         SetReachable(instr->false_successor());
-      } else if (value.raw() == Bool::True().raw()) {
+      } else if (value.ptr() == Bool::True().ptr()) {
         SetReachable(instr->true_successor());
       } else if (!IsUnknown(value)) {  // Any other constant.
         SetReachable(instr->false_successor());
@@ -875,7 +875,7 @@ void ConstantPropagator::VisitBooleanNegate(BooleanNegateInstr* instr) {
     return;
   }
   if (value.IsBool()) {
-    bool val = value.raw() != Bool::True().raw();
+    bool val = value.ptr() != Bool::True().ptr();
     SetValue(instr, Bool::Get(val));
   } else {
     SetValue(instr, non_constant_);
@@ -908,7 +908,7 @@ void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
       SetValue(instr, non_constant_);
     }
   } else if (IsConstant(value)) {
-    if (value.IsInstance() && (value.raw() != Object::sentinel().raw())) {
+    if (value.IsInstance() && (value.ptr() != Object::sentinel().ptr())) {
       const Instance& instance = Instance::Cast(value);
       if (instr->instantiator_type_arguments()->BindsToConstantNull() &&
           instr->function_type_arguments()->BindsToConstantNull()) {
@@ -1001,7 +1001,7 @@ void ConstantPropagator::VisitLoadField(LoadFieldInstr* instr) {
     } else {
       Object& value = Object::Handle();
       if (instr->Evaluate(constant, &value)) {
-        SetValue(instr, Object::ZoneHandle(Z, value.raw()));
+        SetValue(instr, Object::ZoneHandle(Z, value.ptr()));
         return;
       }
     }
@@ -1021,7 +1021,7 @@ void ConstantPropagator::VisitInstantiateType(InstantiateTypeInstr* instr) {
       return;
     }
     if (instantiator_type_args_obj.IsTypeArguments()) {
-      instantiator_type_args ^= instantiator_type_args_obj.raw();
+      instantiator_type_args ^= instantiator_type_args_obj.ptr();
     } else {
       SetValue(instr, non_constant_);
       return;
@@ -1035,7 +1035,7 @@ void ConstantPropagator::VisitInstantiateType(InstantiateTypeInstr* instr) {
       return;
     }
     if (function_type_args_obj.IsTypeArguments()) {
-      function_type_args ^= function_type_args_obj.raw();
+      function_type_args ^= function_type_args_obj.ptr();
     } else {
       SetValue(instr, non_constant_);
       return;
@@ -1086,7 +1086,7 @@ void ConstantPropagator::VisitInstantiateTypeArguments(
       SetValue(instr, non_constant_);
       return;
     }
-    instantiator_type_args ^= instantiator_type_args_obj.raw();
+    instantiator_type_args ^= instantiator_type_args_obj.ptr();
     if (instr->CanShareInstantiatorTypeArguments()) {
       SetValue(instr, instantiator_type_args);
       return;
@@ -1105,7 +1105,7 @@ void ConstantPropagator::VisitInstantiateTypeArguments(
       SetValue(instr, non_constant_);
       return;
     }
-    function_type_args ^= function_type_args_obj.raw();
+    function_type_args ^= function_type_args_obj.ptr();
     if (instr->CanShareFunctionTypeArguments()) {
       SetValue(instr, function_type_args);
       return;
@@ -1148,7 +1148,7 @@ void ConstantPropagator::VisitBinaryIntegerOp(BinaryIntegerOpInstr* binary_op) {
                                             binary_op->is_truncating(),
                                             binary_op->representation(), T));
     if (!result.IsNull()) {
-      SetValue(binary_op, Integer::ZoneHandle(Z, result.raw()));
+      SetValue(binary_op, Integer::ZoneHandle(Z, result.ptr()));
       return;
     }
   }
@@ -1218,7 +1218,7 @@ void ConstantPropagator::VisitUnaryIntegerOp(UnaryIntegerOpInstr* unary_op) {
         Z, Evaluator::UnaryIntegerEvaluate(value, unary_op->op_kind(),
                                            unary_op->representation(), T));
     if (!result.IsNull()) {
-      SetValue(unary_op, Integer::ZoneHandle(Z, result.raw()));
+      SetValue(unary_op, Integer::ZoneHandle(Z, result.ptr()));
       return;
     }
   }
@@ -1712,7 +1712,7 @@ bool ConstantPropagator::TransformDefinition(Definition* defn) {
       THR_Print("Constant v%" Pd " = %s\n", defn->ssa_temp_index(),
                 defn->constant_value().ToCString());
     }
-    constant_value_ = defn->constant_value().raw();
+    constant_value_ = defn->constant_value().ptr();
     if ((constant_value_.IsString() || constant_value_.IsMint() ||
          constant_value_.IsDouble()) &&
         !constant_value_.IsCanonical()) {

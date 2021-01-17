@@ -4,11 +4,11 @@ import "dart:core" as core;
 import "dart:collection" as col;
 
 static method main() → dynamic {
-  core::List<core::int*>* list1 = <core::int*>[0];
-  core::List<core::num*>* list2 = <core::num*>[0];
-  dynamic list3 = <core::int*>[0];
+  core::List<core::int*>* list1 = core::_GrowableList::_literal1<core::int*>(0);
+  core::List<core::num*>* list2 = core::_GrowableList::_literal1<core::num*>(0);
+  dynamic list3 = core::_GrowableList::_literal1<core::int*>(0);
   core::List<core::int*>* list = block {
-    final core::List<core::int*>* #t1 = <core::int*>[0];
+    final core::List<core::int*>* #t1 = core::_GrowableList::_literal1<core::int*>(0);
     #t1.{core::List::addAll}{Invariant}(list1);
     {
       core::Iterator<core::num*>* :sync-for-iterator = list2.{core::Iterable::iterator};

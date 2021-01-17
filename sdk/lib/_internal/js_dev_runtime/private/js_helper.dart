@@ -725,6 +725,17 @@ class RuntimeError extends Error {
   String toString() => "RuntimeError: $message";
 }
 
+class DeferredNotLoadedError extends Error implements NoSuchMethodError {
+  String enclosingLibrary;
+  String importPrefix;
+
+  DeferredNotLoadedError(this.enclosingLibrary, this.importPrefix);
+
+  String toString() {
+    return 'Deferred import $importPrefix (from $enclosingLibrary) was not loaded.';
+  }
+}
+
 /// Error thrown by DDC when an `assert()` fails (with or without a message).
 class AssertionErrorImpl extends AssertionError {
   final String? _fileUri;
@@ -785,6 +796,11 @@ void registerGlobalObject(object) {
 /// Expose browser JS classes.
 void applyExtension(name, nativeObject) {
   dart.applyExtension(name, nativeObject);
+}
+
+/// Hook to apply extensions on native JS classes defined in a native unit test.
+void applyTestExtensions(List<String> names) {
+  names.forEach(dart.applyExtensionForTesting);
 }
 
 /// Used internally by DDC to map ES6 symbols to Dart.

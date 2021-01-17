@@ -29,7 +29,6 @@ import 'package:kernel/ast.dart'
         Extension,
         Field,
         FunctionNode,
-        FunctionType,
         InterfaceType,
         InvalidType,
         Library,
@@ -69,7 +68,8 @@ import 'package:kernel/src/bounds_checks.dart'
         TypeArgumentIssue,
         findTypeArgumentIssues,
         findTypeArgumentIssuesForInvocation,
-        getGenericTypeName;
+        getGenericTypeName,
+        isGenericFunctionTypeOrAlias;
 
 import 'package:kernel/type_algebra.dart' show Substitution, substitute;
 
@@ -979,9 +979,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     library.procedures.sort(compareProcedures);
 
     if (unserializableExports != null) {
+      Name fieldName = new Name("_exports#", library);
       Reference getterReference =
-          referencesFromIndexed?.lookupGetterReference("_exports#");
-      library.addField(new Field.immutable(new Name("_exports#", library),
+          referencesFromIndexed?.lookupGetterReference(fieldName);
+      library.addField(new Field.immutable(fieldName,
           initializer: new StringLiteral(jsonEncode(unserializableExports)),
           isStatic: true,
           isConst: true,
@@ -2170,10 +2171,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           isSynthesized: fieldIsLateWithLowering);
       IndexedContainer indexedContainer =
           _currentClassReferencesFromIndexed ?? referencesFromIndexed;
+      Name nameToLookupName = new Name(nameToLookup, indexedContainer.library);
       fieldGetterReference =
-          indexedContainer.lookupGetterReference(nameToLookup);
+          indexedContainer.lookupGetterReference(nameToLookupName);
       fieldSetterReference =
-          indexedContainer.lookupSetterReference(nameToLookup);
+          indexedContainer.lookupSetterReference(nameToLookupName);
       if (fieldIsLateWithLowering) {
         String lateIsSetName = SourceFieldBuilder.createFieldName(
             FieldNameType.IsSetField, name,
@@ -2182,24 +2184,28 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             isExtensionMethod: isExtension,
             extensionName: extensionName,
             isSynthesized: fieldIsLateWithLowering);
+        Name lateIsSetNameName =
+            new Name(lateIsSetName, indexedContainer.library);
         lateIsSetGetterReference =
-            indexedContainer.lookupGetterReference(lateIsSetName);
+            indexedContainer.lookupGetterReference(lateIsSetNameName);
         lateIsSetSetterReference =
-            indexedContainer.lookupSetterReference(lateIsSetName);
-        getterReference = indexedContainer.lookupGetterReference(
+            indexedContainer.lookupSetterReference(lateIsSetNameName);
+        getterReference = indexedContainer.lookupGetterReference(new Name(
             SourceFieldBuilder.createFieldName(FieldNameType.Getter, name,
                 isInstanceMember: isInstanceMember,
                 className: className,
                 isExtensionMethod: isExtension,
                 extensionName: extensionName,
-                isSynthesized: fieldIsLateWithLowering));
-        setterReference = indexedContainer.lookupSetterReference(
+                isSynthesized: fieldIsLateWithLowering),
+            indexedContainer.library));
+        setterReference = indexedContainer.lookupSetterReference(new Name(
             SourceFieldBuilder.createFieldName(FieldNameType.Setter, name,
                 isInstanceMember: isInstanceMember,
                 className: className,
                 isExtensionMethod: isExtension,
                 extensionName: extensionName,
-                isSynthesized: fieldIsLateWithLowering));
+                isSynthesized: fieldIsLateWithLowering),
+            indexedContainer.library));
       }
     }
 
@@ -2252,8 +2258,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     MetadataCollector metadataCollector = loader.target.metadataCollector;
     Constructor referenceFrom;
     if (_currentClassReferencesFromIndexed != null) {
-      referenceFrom =
-          _currentClassReferencesFromIndexed.lookupConstructor(constructorName);
+      referenceFrom = _currentClassReferencesFromIndexed.lookupConstructor(
+          new Name(
+              constructorName, _currentClassReferencesFromIndexed.library));
     }
     ConstructorBuilder constructorBuilder = new ConstructorBuilderImpl(
         metadata,
@@ -2323,10 +2330,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (_currentClassReferencesFromIndexed != null) {
         if (kind == ProcedureKind.Setter) {
           procedureReference =
-              _currentClassReferencesFromIndexed.lookupSetterReference(name);
+              _currentClassReferencesFromIndexed.lookupSetterReference(
+                  new Name(name, _currentClassReferencesFromIndexed.library));
         } else {
           procedureReference =
-              _currentClassReferencesFromIndexed.lookupGetterReference(name);
+              _currentClassReferencesFromIndexed.lookupGetterReference(
+                  new Name(name, _currentClassReferencesFromIndexed.library));
         }
       } else {
         if (currentTypeParameterScopeBuilder.kind ==
@@ -2339,11 +2348,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               currentTypeParameterScopeBuilder.name,
               name);
           if (extensionIsStatic && kind == ProcedureKind.Setter) {
-            procedureReference =
-                referencesFromIndexed.lookupSetterReference(nameToLookup);
+            procedureReference = referencesFromIndexed.lookupSetterReference(
+                new Name(nameToLookup, referencesFromIndexed.library));
           } else {
-            procedureReference =
-                referencesFromIndexed.lookupGetterReference(nameToLookup);
+            procedureReference = referencesFromIndexed.lookupGetterReference(
+                new Name(nameToLookup, referencesFromIndexed.library));
           }
           if (kind == ProcedureKind.Method) {
             String tearOffNameToLookup =
@@ -2353,16 +2362,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                     ProcedureKind.Getter,
                     currentTypeParameterScopeBuilder.name,
                     name);
-            tearOffReference = referencesFromIndexed
-                .lookupGetterReference(tearOffNameToLookup);
+            tearOffReference = referencesFromIndexed.lookupGetterReference(
+                new Name(tearOffNameToLookup, referencesFromIndexed.library));
           }
         } else {
           if (kind == ProcedureKind.Setter) {
-            procedureReference =
-                referencesFromIndexed.lookupSetterReference(name);
+            procedureReference = referencesFromIndexed.lookupSetterReference(
+                new Name(name, referencesFromIndexed.library));
           } else {
-            procedureReference =
-                referencesFromIndexed.lookupGetterReference(name);
+            procedureReference = referencesFromIndexed.lookupGetterReference(
+                new Name(name, referencesFromIndexed.library));
           }
         }
       }
@@ -2427,8 +2436,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       procedureName = name;
     }
 
-    Reference reference = _currentClassReferencesFromIndexed
-        ?.lookupGetterReference(procedureName);
+    Reference reference =
+        _currentClassReferencesFromIndexed?.lookupGetterReference(new Name(
+            procedureName, _currentClassReferencesFromIndexed.library));
 
     ProcedureBuilder procedureBuilder;
     if (redirectionTarget != null) {
@@ -3226,7 +3236,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           inferredTypes.contains(argument);
       offset =
           typeArgumentsInfo?.getOffsetForIndex(issue.index, offset) ?? offset;
-      if (argument is FunctionType && argument.typeParameters.length > 0) {
+      if (isGenericFunctionTypeOrAlias(argument)) {
         if (issueInferred) {
           message = templateGenericFunctionTypeInferredAsActualTypeArgument
               .withArguments(argument, isNonNullableByDefault);
@@ -3277,20 +3287,30 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
       }
 
-      reportTypeArgumentIssue(message, fileUri, offset, typeParameter);
+      reportTypeArgumentIssue(message, fileUri, offset,
+          typeParameter: typeParameter,
+          superBoundedAttempt: issue.enclosingType,
+          superBoundedAttemptInverted: issue.invertedType);
     }
   }
 
   void reportTypeArgumentIssue(Message message, Uri fileUri, int fileOffset,
-      TypeParameter typeParameter) {
+      {TypeParameter typeParameter,
+      DartType superBoundedAttempt,
+      DartType superBoundedAttemptInverted}) {
     List<LocatedMessage> context;
     if (typeParameter != null && typeParameter.fileOffset != -1) {
       // It looks like when parameters come from patch files, they don't
       // have a reportable location.
-      context = <LocatedMessage>[
-        messageIncorrectTypeArgumentVariable.withLocation(
-            typeParameter.location.file, typeParameter.fileOffset, noLength)
-      ];
+      (context ??= <LocatedMessage>[]).add(
+          messageIncorrectTypeArgumentVariable.withLocation(
+              typeParameter.location.file, typeParameter.fileOffset, noLength));
+    }
+    if (superBoundedAttemptInverted != null && superBoundedAttempt != null) {
+      (context ??= <LocatedMessage>[]).add(templateSuperBoundedHint
+          .withArguments(superBoundedAttempt, superBoundedAttemptInverted,
+              isNonNullableByDefault)
+          .withLocation(fileUri, fileOffset, noLength));
     }
     addProblem(message, fileOffset, noLength, fileUri, context: context);
   }
@@ -3349,24 +3369,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   void checkBoundsInTypeParameters(TypeEnvironment typeEnvironment,
       List<TypeParameter> typeParameters, Uri fileUri) {
-    final DartType bottomType = library.isNonNullableByDefault
-        ? const NeverType(Nullability.nonNullable)
-        : const NullType();
-
     // Check in bounds of own type variables.
     for (TypeParameter parameter in typeParameters) {
       Set<TypeArgumentIssue> issues = {};
-      issues.addAll(findTypeArgumentIssues(
-              library,
-              parameter.bound,
-              typeEnvironment,
-              SubtypeCheckMode.ignoringNullabilities,
-              bottomType,
+      issues.addAll(findTypeArgumentIssues(library, parameter.bound,
+              typeEnvironment, SubtypeCheckMode.ignoringNullabilities,
               allowSuperBounded: true) ??
           const []);
       if (library.isNonNullableByDefault) {
         issues.addAll(findTypeArgumentIssues(library, parameter.bound,
-                typeEnvironment, SubtypeCheckMode.withNullabilities, bottomType,
+                typeEnvironment, SubtypeCheckMode.withNullabilities,
                 allowSuperBounded: true) ??
             const []);
       }
@@ -3382,12 +3394,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           continue;
         }
 
-        if (argument is FunctionType && argument.typeParameters.length > 0) {
+        if (isGenericFunctionTypeOrAlias(argument)) {
           reportTypeArgumentIssue(
               messageGenericFunctionTypeUsedAsActualTypeArgument,
               fileUri,
               parameter.fileOffset,
-              null);
+              typeParameter: null);
         } else {
           reportTypeArgumentIssue(
               templateIncorrectTypeArgument.withArguments(
@@ -3398,7 +3410,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                   library.isNonNullableByDefault),
               fileUri,
               parameter.fileOffset,
-              typeParameter);
+              typeParameter: typeParameter,
+              superBoundedAttempt: issue.enclosingType,
+              superBoundedAttemptInverted: issue.invertedType);
         }
       }
     }
@@ -3436,17 +3450,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
     if (!skipReturnType && returnType != null) {
-      final DartType bottomType = isNonNullableByDefault
-          ? const NeverType(Nullability.nonNullable)
-          : const NullType();
       Set<TypeArgumentIssue> issues = {};
       issues.addAll(findTypeArgumentIssues(library, returnType, typeEnvironment,
-              SubtypeCheckMode.ignoringNullabilities, bottomType,
+              SubtypeCheckMode.ignoringNullabilities,
               allowSuperBounded: true) ??
           const []);
       if (isNonNullableByDefault) {
         issues.addAll(findTypeArgumentIssues(library, returnType,
-                typeEnvironment, SubtypeCheckMode.withNullabilities, bottomType,
+                typeEnvironment, SubtypeCheckMode.withNullabilities,
                 allowSuperBounded: true) ??
             const []);
       }
@@ -3457,12 +3468,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         // We don't need to check if [argument] was inferred or specified
         // here, because inference in return types boils down to instantiate-
         // -to-bound, and it can't provide a type that violates the bound.
-        if (argument is FunctionType && argument.typeParameters.length > 0) {
+        if (isGenericFunctionTypeOrAlias(argument)) {
           reportTypeArgumentIssue(
               messageGenericFunctionTypeUsedAsActualTypeArgument,
               fileUri,
               fileOffset,
-              null);
+              typeParameter: null);
         } else {
           reportTypeArgumentIssue(
               templateIncorrectTypeArgumentInReturnType.withArguments(
@@ -3473,7 +3484,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                   isNonNullableByDefault),
               fileUri,
               fileOffset,
-              typeParameter);
+              typeParameter: typeParameter,
+              superBoundedAttempt: issue.enclosingType,
+              superBoundedAttemptInverted: issue.invertedType);
         }
       }
     }
@@ -3548,17 +3561,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void checkBoundsInType(
       DartType type, TypeEnvironment typeEnvironment, Uri fileUri, int offset,
       {bool inferred, bool allowSuperBounded = true}) {
-    final DartType bottomType = isNonNullableByDefault
-        ? const NeverType(Nullability.nonNullable)
-        : const NullType();
     Set<TypeArgumentIssue> issues = {};
     issues.addAll(findTypeArgumentIssues(library, type, typeEnvironment,
-            SubtypeCheckMode.ignoringNullabilities, bottomType,
+            SubtypeCheckMode.ignoringNullabilities,
             allowSuperBounded: allowSuperBounded) ??
         const []);
     if (isNonNullableByDefault) {
       issues.addAll(findTypeArgumentIssues(library, type, typeEnvironment,
-              SubtypeCheckMode.withNullabilities, bottomType,
+              SubtypeCheckMode.withNullabilities,
               allowSuperBounded: allowSuperBounded) ??
           const []);
     }

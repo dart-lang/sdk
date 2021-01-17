@@ -5,48 +5,53 @@
 // Explicit pool used for managing resources.
 
 import "dart:async";
-import 'dart:convert';
 import 'dart:ffi';
-import 'dart:typed_data';
 
-import 'package:ffi/ffi.dart' as packageFfi;
-import 'package:ffi/ffi.dart' show Utf8;
+import 'package:ffi/ffi.dart';
 
-/// Manages native resources.
+import '../calloc.dart';
+
+/// An [Allocator] which frees all allocations at the same time.
 ///
-/// Primary implementations are [Pool] and [Unmanaged].
-abstract class ResourceManager {
-  /// Allocates memory on the native heap.
-  ///
-  /// The native memory is under management by this [ResourceManager].
-  ///
-  /// For POSIX-based systems, this uses malloc. On Windows, it uses HeapAlloc
-  /// against the default public heap. Allocation of either element size or count
-  /// of 0 is undefined.
-  ///
-  /// Throws an ArgumentError on failure to allocate.
-  Pointer<T> allocate<T extends NativeType>({int count: 1});
-}
+/// The pool allows you to allocate heap memory, but ignores calls to [free].
+/// Instead you call [releaseAll] to release all the allocations at the same
+/// time.
+///
+/// Also allows other resources to be associated with the pool, through the
+/// [using] method, to have a release function called for them when the pool is
+/// released.
+///
+/// An [Allocator] can be provided to do the actual allocation and freeing.
+/// Defaults to using [calloc].
+class Pool implements Allocator {
+  /// The [Allocator] used for allocation and freeing.
+  final Allocator _wrappedAllocator;
 
-/// Manages native resources.
-class Pool implements ResourceManager {
   /// Native memory under management by this [Pool].
   final List<Pointer<NativeType>> _managedMemoryPointers = [];
 
   /// Callbacks for releasing native resources under management by this [Pool].
   final List<Function()> _managedResourceReleaseCallbacks = [];
 
-  /// Allocates memory on the native heap.
+  bool _inUse = true;
+
+  /// Creates a pool of allocations.
   ///
-  /// The native memory is under management by this [Pool].
+  /// The [allocator] is used to do the actual allocation and freeing of
+  /// memory. It defaults to using [calloc].
+  Pool([Allocator allocator = calloc]) : _wrappedAllocator = allocator;
+
+  /// Allocates memory and includes it in the pool.
   ///
-  /// For POSIX-based systems, this uses malloc. On Windows, it uses HeapAlloc
-  /// against the default public heap. Allocation of either element size or count
-  /// of 0 is undefined.
+  /// Uses the allocator provided to the [Pool] constructor to do the
+  /// allocation.
   ///
-  /// Throws an ArgumentError on failure to allocate.
-  Pointer<T> allocate<T extends NativeType>({int count: 1}) {
-    final p = Unmanaged().allocate<T>(count: count);
+  /// Throws an [ArgumentError] if the number of bytes or alignment cannot be
+  /// satisfied.
+  @override
+  Pointer<T> allocate<T extends NativeType>(int byteCount, {int? alignment}) {
+    _ensureInUse();
+    final p = _wrappedAllocator.allocate<T>(byteCount, alignment: alignment);
     _managedMemoryPointers.add(p);
     return p;
   }
@@ -55,6 +60,8 @@ class Pool implements ResourceManager {
   ///
   /// Executes [releaseCallback] on [releaseAll].
   T using<T>(T resource, Function(T) releaseCallback) {
+    _ensureInUse();
+    releaseCallback = Zone.current.bindUnaryCallback(releaseCallback);
     _managedResourceReleaseCallbacks.add(() => releaseCallback(resource));
     return resource;
   }
@@ -65,130 +72,102 @@ class Pool implements ResourceManager {
   }
 
   /// Releases all resources that this [Pool] manages.
-  void releaseAll() {
-    for (final c in _managedResourceReleaseCallbacks) {
-      c();
+  ///
+  /// If [reuse] is `true`, the pool can be used again after resources
+  /// have been released. If not, the default, then the [allocate]
+  /// and [using] methods must not be called after a call to `releaseAll`.
+  void releaseAll({bool reuse = false}) {
+    if (!reuse) {
+      _inUse = false;
     }
-    _managedResourceReleaseCallbacks.clear();
+    while (_managedResourceReleaseCallbacks.isNotEmpty) {
+      _managedResourceReleaseCallbacks.removeLast()();
+    }
     for (final p in _managedMemoryPointers) {
-      Unmanaged().free(p);
+      _wrappedAllocator.free(p);
     }
     _managedMemoryPointers.clear();
   }
+
+  /// Does nothing, invoke [releaseAll] instead.
+  @override
+  void free(Pointer<NativeType> pointer) {}
+
+  void _ensureInUse() {
+    if (!_inUse) {
+      throw StateError(
+          "Pool no longer in use, `releaseAll(reuse: false)` was called.");
+    }
+  }
 }
 
-/// Creates a [Pool] to manage native resources.
+/// Runs [computation] with a new [Pool], and releases all allocations at the end.
 ///
-/// If the isolate is shut down, through `Isolate.kill()`, resources are _not_ cleaned up.
-R using<R>(R Function(Pool) f) {
-  final p = Pool();
+/// If [R] is a [Future], all allocations are released when the future completes.
+///
+/// If the isolate is shut down, through `Isolate.kill()`, resources are _not_
+/// cleaned up.
+R using<R>(R Function(Pool) computation,
+    [Allocator wrappedAllocator = calloc]) {
+  final pool = Pool(wrappedAllocator);
+  bool isAsync = false;
   try {
-    return f(p);
+    final result = computation(pool);
+    if (result is Future) {
+      isAsync = true;
+      return (result.whenComplete(pool.releaseAll) as R);
+    }
+    return result;
   } finally {
-    p.releaseAll();
+    if (!isAsync) {
+      pool.releaseAll();
+    }
   }
 }
 
 /// Creates a zoned [Pool] to manage native resources.
 ///
-/// Pool is availabe through [currentPool].
-///
-/// Please note that all throws are caught and packaged in [RethrownError].
+/// The pool is availabe through [zonePool].
 ///
 /// If the isolate is shut down, through `Isolate.kill()`, resources are _not_ cleaned up.
-R usePool<R>(R Function() f) {
-  final p = Pool();
+R withZonePool<R>(R Function() computation,
+    [Allocator wrappedAllocator = calloc]) {
+  final pool = Pool(wrappedAllocator);
+  var poolHolder = [pool];
+  bool isAsync = false;
   try {
-    return runZoned(() => f(),
-        zoneValues: {#_pool: p},
-        onError: (error, st) => throw RethrownError(error, st));
+    return runZoned(() {
+      final result = computation();
+      if (result is Future) {
+        isAsync = true;
+        result.whenComplete(pool.releaseAll);
+      }
+      return result;
+    }, zoneValues: {#_pool: poolHolder});
   } finally {
-    p.releaseAll();
+    if (!isAsync) {
+      pool.releaseAll();
+      poolHolder.remove(pool);
+    }
   }
 }
 
-/// The [Pool] in the current zone.
-Pool get currentPool => Zone.current[#_pool];
-
-class RethrownError {
-  dynamic original;
-  StackTrace originalStackTrace;
-  RethrownError(this.original, this.originalStackTrace);
-  toString() => """RethrownError(${original})
-${originalStackTrace}""";
-}
-
-/// Does not manage it's resources.
-class Unmanaged implements ResourceManager {
-  /// Allocates memory on the native heap.
-  ///
-  /// For POSIX-based systems, this uses malloc. On Windows, it uses HeapAlloc
-  /// against the default public heap. Allocation of either element size or count
-  /// of 0 is undefined.
-  ///
-  /// Throws an ArgumentError on failure to allocate.
-  Pointer<T> allocate<T extends NativeType>({int count = 1}) =>
-      packageFfi.allocate(count: count);
-
-  /// Releases memory on the native heap.
-  ///
-  /// For POSIX-based systems, this uses free. On Windows, it uses HeapFree
-  /// against the default public heap. It may only be used against pointers
-  /// allocated in a manner equivalent to [allocate].
-  ///
-  /// Throws an ArgumentError on failure to free.
-  ///
-  void free(Pointer pointer) => packageFfi.free(pointer);
-}
-
-/// Does not manage it's resources.
-final Unmanaged unmanaged = Unmanaged();
-
-extension Utf8InPool on String {
-  /// Convert a [String] to a Utf8-encoded null-terminated C string.
-  ///
-  /// If 'string' contains NULL bytes, the converted string will be truncated
-  /// prematurely. Unpaired surrogate code points in [string] will be preserved
-  /// in the UTF-8 encoded result. See [Utf8Encoder] for details on encoding.
-  ///
-  /// Returns a malloc-allocated pointer to the result.
-  ///
-  /// The memory is managed by the [Pool] passed in as [pool].
-  Pointer<Utf8> toUtf8(ResourceManager pool) {
-    final units = utf8.encode(this);
-    final Pointer<Uint8> result = pool.allocate<Uint8>(count: units.length + 1);
-    final Uint8List nativeString = result.asTypedList(units.length + 1);
-    nativeString.setAll(0, units);
-    nativeString[units.length] = 0;
-    return result.cast();
+/// A zone-specific [Pool].
+///
+/// Asynchronous computations can share a [Pool]. Use [withZonePool] to create
+/// a new zone with a fresh [Pool], and that pool will then be released
+/// automatically when the function passed to [withZonePool] completes.
+/// All code inside that zone can use `zonePool` to access the pool.
+///
+/// The current pool must not be accessed by code which is not running inside
+/// a zone created by [withZonePool].
+Pool get zonePool {
+  final List<Pool>? poolHolder = Zone.current[#_pool];
+  if (poolHolder == null) {
+    throw StateError("Not inside a zone created by `usePool`");
   }
-}
-
-extension Utf8Helpers on Pointer<Utf8> {
-  /// Returns the length of a null-terminated string -- the number of (one-byte)
-  /// characters before the first null byte.
-  int strlen() {
-    final Pointer<Uint8> array = this.cast<Uint8>();
-    final Uint8List nativeString = array.asTypedList(_maxSize);
-    return nativeString.indexWhere((char) => char == 0);
+  if (!poolHolder.isEmpty) {
+    return poolHolder.single;
   }
-
-  /// Creates a [String] containing the characters UTF-8 encoded in [this].
-  ///
-  /// [this] must be a zero-terminated byte sequence of valid UTF-8
-  /// encodings of Unicode code points. It may also contain UTF-8 encodings of
-  /// unpaired surrogate code points, which is not otherwise valid UTF-8, but
-  /// which may be created when encoding a Dart string containing an unpaired
-  /// surrogate. See [Utf8Decoder] for details on decoding.
-  ///
-  /// Returns a Dart string containing the decoded code points.
-  String contents() {
-    final int length = strlen();
-    return utf8.decode(Uint8List.view(
-        this.cast<Uint8>().asTypedList(length).buffer, 0, length));
-  }
+  throw StateError("Pool as already been cleared with releaseAll.");
 }
-
-const int _kMaxSmi64 = (1 << 62) - 1;
-const int _kMaxSmi32 = (1 << 30) - 1;
-final int _maxSize = sizeOf<IntPtr>() == 8 ? _kMaxSmi64 : _kMaxSmi32;

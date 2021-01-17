@@ -5,6 +5,7 @@
 import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
+import 'package:_fe_analyzer_shared/src/messages/codes.dart';
 import 'package:_fe_analyzer_shared/src/scanner/errors.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
@@ -405,7 +406,15 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
   CompileTimeErrorCode.TYPE_TEST_WITH_NON_TYPE,
   CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME,
+  CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE,
+  CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+  CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE,
+  CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
   CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE,
+  CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+  CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR,
+  CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD,
+  CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH,
   CompileTimeErrorCode.UNDEFINED_ANNOTATION,
   CompileTimeErrorCode.UNDEFINED_CLASS,
   CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN,
@@ -542,7 +551,6 @@ const List<ErrorCode> errorCodeValues = [
   HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR,
   HintCode.NULL_CHECK_ALWAYS_FAILS,
   HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE,
-  HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE,
   HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD,
   HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER,
   HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD,
@@ -928,6 +936,27 @@ class AnalysisError implements Diagnostic {
         filePath: source?.fullName,
         length: length,
         message: message,
+        offset: offset);
+    _contextMessages = contextMessages;
+  }
+
+  /// Initialize a newly created analysis error. The error is associated with
+  /// the given [source] and is located at the given [offset] with the given
+  /// [length]. The error will have the given [errorCode] and the map  of
+  /// [arguments] will be used to complete the message and correction. If any
+  /// [contextMessages] are provided, they will be recorded with the error.
+  AnalysisError.withNamedArguments(this.source, int offset, int length,
+      this.errorCode, Map<String, dynamic> arguments,
+      {List<DiagnosticMessage> contextMessages = const []}) {
+    String messageText = applyArgumentsToTemplate(errorCode.message, arguments);
+    String correctionTemplate = errorCode.correction;
+    if (correctionTemplate != null) {
+      _correction = applyArgumentsToTemplate(correctionTemplate, arguments);
+    }
+    _problemMessage = DiagnosticMessageImpl(
+        filePath: source?.fullName,
+        length: length,
+        message: messageText,
         offset: offset);
     _contextMessages = contextMessages;
   }

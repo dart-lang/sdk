@@ -17,6 +17,11 @@ throwUnimplementedError(String message) {
   throw UnimplementedError(message);
 }
 
+throwDeferredIsLoadedError(
+    @notNull String enclosingLibrary, @notNull String importPrefix) {
+  throw DeferredNotLoadedError(enclosingLibrary, importPrefix);
+}
+
 // TODO(nshahan) Cleanup embeded strings and extract file location at runtime
 // from the stacktrace.
 assertFailed(String? message,

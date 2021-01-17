@@ -726,9 +726,15 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     reportDiagnosticInternal(message, infos, api.Diagnostic.HINT);
   }
 
+  @override
+  void reportInfo(DiagnosticMessage message,
+      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
+    reportDiagnosticInternal(message, infos, api.Diagnostic.INFO);
+  }
+
   @deprecated
   @override
-  void reportInfo(Spannable node, MessageKind messageKind,
+  void reportInfoMessage(Spannable node, MessageKind messageKind,
       [Map<String, String> arguments = const {}]) {
     reportDiagnosticInternal(createMessage(node, messageKind, arguments),
         const <DiagnosticMessage>[], api.Diagnostic.INFO);

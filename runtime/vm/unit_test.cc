@@ -553,13 +553,14 @@ Dart_Handle TestCase::TriggerReload(const uint8_t* kernel_buffer,
   } else if (isolate->group()->reload_context()->reload_aborted()) {
     TransitionNativeToVM transition(thread);
     result = Api::NewHandle(
-        thread, isolate->reload_context()->group_reload_context()->error());
+        thread,
+        isolate->program_reload_context()->group_reload_context()->error());
   } else {
     result = Dart_RootLibrary();
   }
 
   TransitionNativeToVM transition(thread);
-  if (isolate->reload_context() != NULL) {
+  if (isolate->program_reload_context() != NULL) {
     isolate->DeleteReloadContext();
     isolate->group()->DeleteReloadContext();
   }
@@ -643,7 +644,7 @@ Dart_Handle TestCase::EvaluateExpression(const Library& lib,
                                          param_values,
                                          TypeArguments::null_type_arguments());
   }
-  return Api::NewHandle(thread, val.raw());
+  return Api::NewHandle(thread, val.ptr());
 }
 
 #if !defined(PRODUCT)
@@ -664,9 +665,10 @@ void AssemblerTest::Assemble() {
   const Library& lib = Library::Handle(Library::CoreLibrary());
   const Class& cls = Class::ZoneHandle(
       Class::New(lib, function_name, script, TokenPosition::kMinSource));
+  const FunctionType& signature = FunctionType::ZoneHandle(FunctionType::New());
   Function& function = Function::ZoneHandle(Function::New(
-      function_name, FunctionLayout::kRegularFunction, true, false, false,
-      false, false, cls, TokenPosition::kMinSource));
+      signature, function_name, UntaggedFunction::kRegularFunction, true, false,
+      false, false, false, cls, TokenPosition::kMinSource));
   code_ = Code::FinalizeCodeAndNotify(function, nullptr, assembler_,
                                       Code::PoolAttachment::kAttachPool);
   code_.set_owner(function);

@@ -249,7 +249,7 @@ Message _withArgumentsAsciiControlCharacter(int codePoint) {
   return new Message(codeAsciiControlCharacter,
       message:
           """The control character ${unicode} can only be used in strings and comments.""",
-      arguments: {'codePoint': codePoint});
+      arguments: {'unicode': codePoint});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -477,7 +477,7 @@ Message _withArgumentsBuiltInIdentifierAsType(Token token) {
   return new Message(codeBuiltInIdentifierAsType,
       message:
           """The built-in identifier '${lexeme}' can't be used as a type.""",
-      arguments: {'token': token});
+      arguments: {'lexeme': token});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -497,7 +497,7 @@ Message _withArgumentsBuiltInIdentifierInDeclaration(Token token) {
   String lexeme = token.lexeme;
   return new Message(codeBuiltInIdentifierInDeclaration,
       message: """Can't use '${lexeme}' as a name here.""",
-      arguments: {'token': token});
+      arguments: {'lexeme': token});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -837,7 +837,7 @@ Message _withArgumentsCantUseControlFlowOrSpreadAsConstant(Token token) {
   String lexeme = token.lexeme;
   return new Message(codeCantUseControlFlowOrSpreadAsConstant,
       message: """'${lexeme}' is not supported in constant expressions.""",
-      arguments: {'token': token});
+      arguments: {'lexeme': token});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -866,7 +866,7 @@ Message _withArgumentsCantUseDeferredPrefixAsConstant(Token token) {
           """'${lexeme}' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
       tip: """Try moving the constant from the deferred library, or removing 'deferred' from the import.
 """,
-      arguments: {'token': token});
+      arguments: {'lexeme': token});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -986,6 +986,26 @@ Message _withArgumentsCombinedMemberSignatureFailed(String name, String name2) {
       tip: """Try adding a declaration of '${name2}' to '${name}'.""",
       arguments: {'name': name, 'name2': name2});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeCompilingWithSoundNullSafety =
+    messageCompilingWithSoundNullSafety;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageCompilingWithSoundNullSafety = const MessageCode(
+    "CompilingWithSoundNullSafety",
+    severity: Severity.info,
+    message: r"""Compiling with sound null safety""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeCompilingWithUnsoundNullSafety =
+    messageCompilingWithUnsoundNullSafety;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageCompilingWithUnsoundNullSafety = const MessageCode(
+    "CompilingWithUnsoundNullSafety",
+    severity: Severity.info,
+    message: r"""Compiling with unsound null safety""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -2419,7 +2439,7 @@ Message _withArgumentsDuplicatedModifier(Token token) {
   return new Message(codeDuplicatedModifier,
       message: """The modifier '${lexeme}' was already specified.""",
       tip: """Try removing all but one occurrence of the modifier.""",
-      arguments: {'token': token});
+      arguments: {'lexeme': token});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2735,7 +2755,7 @@ Message _withArgumentsExpectedClassMember(Token token) {
   String lexeme = token.lexeme;
   return new Message(codeExpectedClassMember,
       message: """Expected a class member, but got '${lexeme}'.""",
-      arguments: {'token': token});
+      arguments: {'lexeme': token});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2777,7 +2797,7 @@ Message _withArgumentsExpectedDeclaration(Token token) {
   String lexeme = token.lexeme;
   return new Message(codeExpectedDeclaration,
       message: """Expected a declaration, but got '${lexeme}'.""",
-      arguments: {'token': token});
+      arguments: {'lexeme': token});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2810,7 +2830,7 @@ Message _withArgumentsExpectedEnumBody(Token token) {
       message: """Expected a enum body, but got '${lexeme}'.""",
       tip:
           """An enum definition must have a body with at least one constant name.""",
-      arguments: {'token': token});
+      arguments: {'lexeme': token});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2829,7 +2849,7 @@ Message _withArgumentsExpectedFunctionBody(Token token) {
   String lexeme = token.lexeme;
   return new Message(codeExpectedFunctionBody,
       message: """Expected a function body, but got '${lexeme}'.""",
-      arguments: {'token': token});
+      arguments: {'lexeme': token});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2859,7 +2879,7 @@ Message _withArgumentsExpectedIdentifier(Token token) {
   return new Message(codeExpectedIdentifier,
       message: """Expected an identifier, but got '${lexeme}'.""",
       tip: """Try inserting an identifier before '${lexeme}'.""",
-      arguments: {'token': token});
+      arguments: {'lexeme': token});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2887,7 +2907,7 @@ Message _withArgumentsExpectedIdentifierButGotKeyword(Token token) {
       message:
           """'${lexeme}' can't be used as an identifier because it's a keyword.""",
       tip: """Try renaming this to be an identifier that isn't a keyword.""",
-      arguments: {'token': token});
+      arguments: {'lexeme': token});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2957,7 +2977,7 @@ Message _withArgumentsExpectedString(Token token) {
   String lexeme = token.lexeme;
   return new Message(codeExpectedString,
       message: """Expected a String, but got '${lexeme}'.""",
-      arguments: {'token': token});
+      arguments: {'lexeme': token});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2995,7 +3015,7 @@ Message _withArgumentsExpectedType(Token token) {
   String lexeme = token.lexeme;
   return new Message(codeExpectedType,
       message: """Expected a type, but got '${lexeme}'.""",
-      arguments: {'token': token});
+      arguments: {'lexeme': token});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3534,7 +3554,7 @@ Message _withArgumentsExtraneousModifier(Token token) {
   return new Message(codeExtraneousModifier,
       message: """Can't have modifier '${lexeme}' here.""",
       tip: """Try removing '${lexeme}'.""",
-      arguments: {'token': token});
+      arguments: {'lexeme': token});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3556,7 +3576,7 @@ Message _withArgumentsExtraneousModifierInExtension(Token token) {
   return new Message(codeExtraneousModifierInExtension,
       message: """Can't have modifier '${lexeme}' in an extension.""",
       tip: """Try removing '${lexeme}'.""",
-      arguments: {'token': token});
+      arguments: {'lexeme': token});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3819,6 +3839,8 @@ const Template<
         Message Function(String name)>(
     messageTemplate:
         r"""Field '#name' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution.""",
+    tipTemplate:
+        r"""Mark the field as external to avoid having to initialize it.""",
     withArguments: _withArgumentsFfiFieldInitializer);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3834,6 +3856,7 @@ Message _withArgumentsFfiFieldInitializer(String name) {
   return new Message(codeFfiFieldInitializer,
       message:
           """Field '${name}' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution.""",
+      tip: """Mark the field as external to avoid having to initialize it.""",
       arguments: {'name': name});
 }
 
@@ -5566,7 +5589,7 @@ Message _withArgumentsInvalidOperator(Token token) {
   String lexeme = token.lexeme;
   return new Message(codeInvalidOperator,
       message: """The string '${lexeme}' isn't a user-definable operator.""",
-      arguments: {'token': token});
+      arguments: {'lexeme': token});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6846,7 +6869,7 @@ Message _withArgumentsNoFormals(Token token) {
       message: """A function should have formal parameters.""",
       tip:
           """Try adding '()' after '${lexeme}', or add 'get' before '${lexeme}' to declare a getter.""",
-      arguments: {'token': token});
+      arguments: {'lexeme': token});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6915,7 +6938,7 @@ Message _withArgumentsNonAsciiIdentifier(String character, int codePoint) {
       message:
           """The non-ASCII character '${character}' (${unicode}) can't be used in identifiers, only in strings and comments.""",
       tip: """Try using an US-ASCII letter, a digit, '_' (an underscore), or '\$' (a dollar sign).""",
-      arguments: {'character': character, 'codePoint': codePoint});
+      arguments: {'character': character, 'unicode': codePoint});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6940,7 +6963,7 @@ Message _withArgumentsNonAsciiWhitespace(int codePoint) {
   return new Message(codeNonAsciiWhitespace,
       message:
           """The non-ASCII space character ${unicode} can only be used in strings and comments.""",
-      arguments: {'codePoint': codePoint});
+      arguments: {'unicode': codePoint});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7233,7 +7256,7 @@ Message _withArgumentsNotBinaryOperator(Token token) {
   String lexeme = token.lexeme;
   return new Message(codeNotBinaryOperator,
       message: """'${lexeme}' isn't a binary operator.""",
-      arguments: {'token': token});
+      arguments: {'lexeme': token});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9350,7 +9373,7 @@ Message _withArgumentsUnexpectedModifierInNonNnbd(Token token) {
   return new Message(codeUnexpectedModifierInNonNnbd,
       message:
           """The modifier '${lexeme}' is only available in null safe libraries.""",
-      arguments: {'token': token});
+      arguments: {'lexeme': token});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9369,7 +9392,7 @@ Message _withArgumentsUnexpectedToken(Token token) {
   String lexeme = token.lexeme;
   return new Message(codeUnexpectedToken,
       message: """Unexpected token '${lexeme}'.""",
-      arguments: {'token': token});
+      arguments: {'lexeme': token});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9390,7 +9413,7 @@ Message _withArgumentsUnmatchedToken(String string, Token token) {
   String lexeme = token.lexeme;
   return new Message(codeUnmatchedToken,
       message: """Can't find '${string}' to match '${lexeme}'.""",
-      arguments: {'string': string, 'token': token});
+      arguments: {'string': string, 'lexeme': token});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9459,7 +9482,7 @@ Message _withArgumentsUnsupportedOperator(Token token) {
   String lexeme = token.lexeme;
   return new Message(codeUnsupportedOperator,
       message: """The '${lexeme}' operator is not supported.""",
-      arguments: {'token': token});
+      arguments: {'lexeme': token});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

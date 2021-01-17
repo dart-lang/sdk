@@ -550,25 +550,25 @@ DEFINE_NATIVE_ENTRY(Int32x4_setW, 0, 2) {
 DEFINE_NATIVE_ENTRY(Int32x4_getFlagX, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
   int32_t value = self.x();
-  return Bool::Get(value != 0).raw();
+  return Bool::Get(value != 0).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(Int32x4_getFlagY, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
   int32_t value = self.y();
-  return Bool::Get(value != 0).raw();
+  return Bool::Get(value != 0).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(Int32x4_getFlagZ, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
   int32_t value = self.z();
-  return Bool::Get(value != 0).raw();
+  return Bool::Get(value != 0).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(Int32x4_getFlagW, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
   int32_t value = self.w();
-  return Bool::Get(value != 0).raw();
+  return Bool::Get(value != 0).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(Int32x4_setFlagX, 0, 2) {
@@ -578,7 +578,7 @@ DEFINE_NATIVE_ENTRY(Int32x4_setFlagX, 0, 2) {
   int32_t _y = self.y();
   int32_t _z = self.z();
   int32_t _w = self.w();
-  _x = flagX.raw() == Bool::True().raw() ? 0xFFFFFFFF : 0x0;
+  _x = flagX.ptr() == Bool::True().ptr() ? 0xFFFFFFFF : 0x0;
   return Int32x4::New(_x, _y, _z, _w);
 }
 
@@ -589,7 +589,7 @@ DEFINE_NATIVE_ENTRY(Int32x4_setFlagY, 0, 2) {
   int32_t _y = self.y();
   int32_t _z = self.z();
   int32_t _w = self.w();
-  _y = flagY.raw() == Bool::True().raw() ? 0xFFFFFFFF : 0x0;
+  _y = flagY.ptr() == Bool::True().ptr() ? 0xFFFFFFFF : 0x0;
   return Int32x4::New(_x, _y, _z, _w);
 }
 
@@ -600,7 +600,7 @@ DEFINE_NATIVE_ENTRY(Int32x4_setFlagZ, 0, 2) {
   int32_t _y = self.y();
   int32_t _z = self.z();
   int32_t _w = self.w();
-  _z = flagZ.raw() == Bool::True().raw() ? 0xFFFFFFFF : 0x0;
+  _z = flagZ.ptr() == Bool::True().ptr() ? 0xFFFFFFFF : 0x0;
   return Int32x4::New(_x, _y, _z, _w);
 }
 
@@ -611,7 +611,7 @@ DEFINE_NATIVE_ENTRY(Int32x4_setFlagW, 0, 2) {
   int32_t _y = self.y();
   int32_t _z = self.z();
   int32_t _w = self.w();
-  _w = flagW.raw() == Bool::True().raw() ? 0xFFFFFFFF : 0x0;
+  _w = flagW.ptr() == Bool::True().ptr() ? 0xFFFFFFFF : 0x0;
   return Int32x4::New(_x, _y, _z, _w);
 }
 

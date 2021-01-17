@@ -1318,6 +1318,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     _functions = functions;
   }
 
+  @Deprecated('Use typeAliases instead')
   @override
   List<FunctionTypeAliasElement> get functionTypeAliases {
     return _functionTypeAliases ??=
@@ -1430,10 +1431,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     return _typeAliases ?? const <TypeAliasElement>[];
   }
 
-  /// Set the function type aliases contained in this compilation unit to the
-  /// given [typeAliases].
-  set typeAliases(List<FunctionTypeAliasElement> typeAliases) {
-    for (FunctionTypeAliasElement typeAlias in typeAliases) {
+  /// Set the type aliases contained in this compilation unit to [typeAliases].
+  set typeAliases(List<TypeAliasElement> typeAliases) {
+    for (TypeAliasElement typeAlias in typeAliases) {
       (typeAlias as ElementImpl).enclosingElement = this;
     }
     _typeAliases = typeAliases;
@@ -1524,8 +1524,8 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     safelyVisitChildren(enums, visitor);
     safelyVisitChildren(extensions, visitor);
     safelyVisitChildren(functions, visitor);
-    safelyVisitChildren(functionTypeAliases, visitor);
     safelyVisitChildren(mixins, visitor);
+    safelyVisitChildren(typeAliases, visitor);
     safelyVisitChildren(types, visitor);
     safelyVisitChildren(topLevelVariables, visitor);
   }
@@ -5244,10 +5244,10 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       yield* unit.accessors;
       yield* unit.enums;
       yield* unit.extensions;
-      yield* unit.functionTypeAliases;
       yield* unit.functions;
       yield* unit.mixins;
       yield* unit.topLevelVariables;
+      yield* unit.typeAliases;
       yield* unit.types;
     }
   }
@@ -7111,8 +7111,16 @@ class TypeAliasElementImpl extends ElementImpl
         parameters: type.parameters,
         returnType: type.returnType,
         nullabilitySuffix: resultNullability,
-        element: this,
-        typeArguments: typeArguments,
+        aliasElement: this,
+        aliasArguments: typeArguments,
+      );
+    } else if (type is InterfaceType) {
+      return InterfaceTypeImpl(
+        element: type.element,
+        typeArguments: type.typeArguments,
+        nullabilitySuffix: resultNullability,
+        aliasElement: this,
+        aliasArguments: typeArguments,
       );
     } else {
       return (type as TypeImpl).withNullability(resultNullability);

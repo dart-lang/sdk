@@ -4,14 +4,16 @@
 
 import 'dart:core' hide MapEntry;
 
-import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart'
+    hide Reference; // Work around https://github.com/dart-lang/sdk/issues/44667
 
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 
 import 'package:front_end/src/fasta/kernel/internal_ast.dart';
 import 'package:front_end/src/fasta/type_inference/type_demotion.dart';
 
-import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart'
+    hide Reference; // Work around https://github.com/dart-lang/sdk/issues/44667
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/type_algebra.dart';

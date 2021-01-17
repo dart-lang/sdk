@@ -37,7 +37,7 @@ class D extends core::Object implements self::C {
     : super core::Object::•()
     ;
 }
-static field core::bool inStrongMode = !(<core::int?>[] is{ForNonNullableByDefault} core::List<core::int>);
+static field core::bool inStrongMode = !(core::_GrowableList::•<core::int?>(0) is{ForNonNullableByDefault} core::List<core::int>);
 static const field core::bool f_is_fType = #C1;
 static const field core::bool f_is_gType = #C1;
 static const field core::bool g_is_fType = #C1;

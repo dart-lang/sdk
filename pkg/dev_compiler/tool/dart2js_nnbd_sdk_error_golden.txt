@@ -1,10 +1,10 @@
-ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1718|7|5|Superinterfaces don't have a valid override for '&': JSNumber.& (num Function(num)), int.& (int Function(int)).
-ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1718|7|5|Superinterfaces don't have a valid override for '<<': JSNumber.<< (num Function(num)), int.<< (int Function(int)).
-ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1718|7|5|Superinterfaces don't have a valid override for '>>': JSNumber.>> (num Function(num)), int.>> (int Function(int)).
-ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1718|7|5|Superinterfaces don't have a valid override for '\|': JSNumber.\| (num Function(num)), int.\| (int Function(int)).
-ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1718|7|5|Superinterfaces don't have a valid override for '^': JSNumber.^ (num Function(num)), int.^ (int Function(int)).
-ERROR|COMPILE_TIME_ERROR|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1735|28|1|The operator '&' isn't defined for the type 'JSInt'.
-ERROR|COMPILE_TIME_ERROR|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1737|27|1|The operator '&' isn't defined for the type 'JSInt'.
-ERROR|COMPILE_TIME_ERROR|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1740|17|1|The operator '&' isn't defined for the type 'JSInt'.
-ERROR|COMPILE_TIME_ERROR|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1745|18|1|The operator '&' isn't defined for the type 'JSInt'.
-ERROR|COMPILE_TIME_ERROR|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1745|44|1|The operator '&' isn't defined for the type 'JSInt'.
+ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|Superinterfaces don't have a valid override for '&': JSNumber.& (num Function(num)), int.& (int Function(int)).
+ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|Superinterfaces don't have a valid override for '<<': JSNumber.<< (num Function(num)), int.<< (int Function(int)).
+ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|Superinterfaces don't have a valid override for '>>': JSNumber.>> (num Function(num)), int.>> (int Function(int)).
+ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|Superinterfaces don't have a valid override for '\|': JSNumber.\| (num Function(num)), int.\| (int Function(int)).
+ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|Superinterfaces don't have a valid override for '^': JSNumber.^ (num Function(num)), int.^ (int Function(int)).
+ERROR|COMPILE_TIME_ERROR|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|The operator '&' isn't defined for the type 'JSInt'.
+ERROR|COMPILE_TIME_ERROR|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|The operator '&' isn't defined for the type 'JSInt'.
+ERROR|COMPILE_TIME_ERROR|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|The operator '&' isn't defined for the type 'JSInt'.
+ERROR|COMPILE_TIME_ERROR|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|The operator '&' isn't defined for the type 'JSInt'.
+ERROR|COMPILE_TIME_ERROR|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|The operator '&' isn't defined for the type 'JSInt'.

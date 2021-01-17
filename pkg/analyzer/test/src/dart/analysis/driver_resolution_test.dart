@@ -6253,7 +6253,7 @@ main() {
     var myLibrary = myImport.importedLibrary;
     var myUnit = myLibrary.definingCompilationUnit;
     var myClass = myUnit.types.single;
-    var myFunctionTypeAlias = myUnit.functionTypeAliases.single;
+    var myTypeAlias = myUnit.typeAliases.single;
     var myTopVariable = myUnit.topLevelVariables[0];
     var myTopFunction = myUnit.functions.single;
     var myGetter = myUnit.topLevelVariables[1].getter;
@@ -6280,7 +6280,7 @@ main() {
     }
 
     assertPrefixedIdentifier(0, myClass, typeProvider.typeType);
-    assertPrefixedIdentifier(1, myFunctionTypeAlias, typeProvider.typeType);
+    assertPrefixedIdentifier(1, myTypeAlias, typeProvider.typeType);
     assertPrefixedIdentifier(2, myTopVariable.getter, typeProvider.intType);
 
     {
@@ -7597,12 +7597,11 @@ typedef int F<T>(bool a, T b);
 
     await resolveTestFile();
     CompilationUnit unit = result.unit;
-    CompilationUnitElement unitElement = unit.declaredElement;
 
     FunctionTypeAlias alias = unit.declarations[0];
     TypeAliasElement aliasElement = alias.declaredElement;
     var function = aliasElement.aliasedElement as GenericFunctionTypeElement;
-    expect(aliasElement, same(unitElement.functionTypeAliases[0]));
+    expect(aliasElement, same(findElement.typeAlias('F')));
     expect(function.returnType, typeProvider.intType);
 
     _assertTypeNameSimple(alias.returnType, typeProvider.intType);

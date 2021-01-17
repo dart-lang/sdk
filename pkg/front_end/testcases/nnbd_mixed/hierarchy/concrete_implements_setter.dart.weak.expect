@@ -1,0 +1,82 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_setter.dart:5:7: Error: The non-abstract class 'Interface' is missing implementations for these members:
+//  - Interface.declaredAbstractImplementsAbstractSetter=
+//  - Interface.declaredConcreteImplementsAbstractSetter=
+//  - Interface.implementedAbstractSetter=
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class Interface {
+//       ^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_setter.dart:16:12: Context: 'Interface.declaredAbstractImplementsAbstractSetter=' is defined here.
+//   void set declaredAbstractImplementsAbstractSetter(int value);
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_setter.dart:14:12: Context: 'Interface.declaredConcreteImplementsAbstractSetter=' is defined here.
+//   void set declaredConcreteImplementsAbstractSetter(int value);
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_setter.dart:8:12: Context: 'Interface.implementedAbstractSetter=' is defined here.
+//   void set implementedAbstractSetter(int value);
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_setter.dart:19:7: Error: The non-abstract class 'ConcreteClass' is missing implementations for these members:
+//  - ConcreteClass.declaredAbstractImplementsAbstractSetter=
+//  - ConcreteClass.declaredAbstractImplementsConcreteSetter=
+//  - ConcreteClass.declaredAbstractSetter=
+//  - Interface.implementedAbstractSetter=
+//  - Interface.implementedConcreteSetter=
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ConcreteClass implements Interface {
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_setter.dart:30:12: Context: 'ConcreteClass.declaredAbstractImplementsAbstractSetter=' is defined here.
+//   void set declaredAbstractImplementsAbstractSetter(int value);
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_setter.dart:26:12: Context: 'ConcreteClass.declaredAbstractImplementsConcreteSetter=' is defined here.
+//   void set declaredAbstractImplementsConcreteSetter(int value);
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_setter.dart:22:12: Context: 'ConcreteClass.declaredAbstractSetter=' is defined here.
+//   void set declaredAbstractSetter(int value);
+//            ^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_setter.dart:8:12: Context: 'Interface.implementedAbstractSetter=' is defined here.
+//   void set implementedAbstractSetter(int value);
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_setter.dart:6:12: Context: 'Interface.implementedConcreteSetter=' is defined here.
+//   void set implementedConcreteSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Interface extends core::Object {
+  synthetic constructor •() → self::Interface
+    : super core::Object::•()
+    ;
+  set implementedConcreteSetter(core::int value) → void {}
+  abstract set implementedAbstractSetter(core::int value) → void;
+  set declaredConcreteImplementsConcreteSetter(core::int value) → void {}
+  set declaredAbstractImplementsConcreteSetter(core::int value) → void {}
+  abstract set declaredConcreteImplementsAbstractSetter(core::int value) → void;
+  abstract set declaredAbstractImplementsAbstractSetter(core::int value) → void;
+}
+class ConcreteClass extends core::Object implements self::Interface {
+  synthetic constructor •() → self::ConcreteClass
+    : super core::Object::•()
+    ;
+  set declaredConcreteSetter(core::int value) → void {}
+  abstract set declaredAbstractSetter(core::int value) → void;
+  set declaredConcreteImplementsConcreteSetter(core::int value) → void {}
+  abstract set declaredAbstractImplementsConcreteSetter(core::int value) → void;
+  set declaredConcreteImplementsAbstractSetter(core::int value) → void {}
+  abstract set declaredAbstractImplementsAbstractSetter(core::int value) → void;
+}
+static method main() → dynamic {}

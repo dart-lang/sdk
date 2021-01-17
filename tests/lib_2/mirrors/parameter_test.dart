@@ -184,7 +184,7 @@ main() {
       '[Parameter(s(a) in s(foo),'
       ' type = Class(s(int) in s(dart.core), top-level)), '
       'Parameter(s(b) in s(foo),'
-      ' type = TypeVariable(s(S) in s(C),'
+      ' type = TypeVariable(s(S) in s(Null),'
       ' upperBound = Class(s(int) in s(dart.core), top-level)))]',
       fooInC.parameters);
 
@@ -192,10 +192,10 @@ main() {
   expect('Method(s(bar) in s(C))', barInC);
   expect(
       '[Parameter(s(a) in s(bar),'
-      ' type = TypeVariable(s(S) in s(C),'
+      ' type = TypeVariable(s(S) in s(Null),'
       ' upperBound = Class(s(int) in s(dart.core), top-level))), '
       'Parameter(s(b) in s(bar),'
-      ' type = TypeVariable(s(T) in s(C),'
+      ' type = TypeVariable(s(T) in s(Null),'
       ' upperBound = Class(s(Object) in s(dart.core), top-level))), '
       'Parameter(s(c) in s(bar),'
       ' type = Class(s(num) in s(dart.core), top-level))]',

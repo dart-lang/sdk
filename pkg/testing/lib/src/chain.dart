@@ -358,8 +358,16 @@ class Result<O> {
   /// update the test to match new expectations.
   final String autoFixCommand;
 
+  /// If set, the test can be fixed by running
+  ///
+  ///     dart pkg/front_end/tool/update_expectations.dart
+  ///
+  final bool canBeFixWithUpdateExpectations;
+
   Result(this.output, this.outcome, this.error,
-      {this.trace, this.autoFixCommand});
+      {this.trace,
+      this.autoFixCommand,
+      this.canBeFixWithUpdateExpectations: false});
 
   Result.pass(O output) : this(output, Expectation.Pass, null);
 
@@ -384,7 +392,9 @@ class Result<O> {
 
   Result<O2> copyWithOutput<O2>(O2 output) {
     return new Result<O2>(output, outcome, error,
-        trace: trace, autoFixCommand: autoFixCommand)
+        trace: trace,
+        autoFixCommand: autoFixCommand,
+        canBeFixWithUpdateExpectations: canBeFixWithUpdateExpectations)
       ..logs.addAll(logs);
   }
 }

@@ -81,6 +81,7 @@ class Dart : public AllStatic {
   static void ShutdownIsolate();
 
   static Isolate* vm_isolate() { return vm_isolate_; }
+  static IsolateGroup* vm_isolate_group() { return vm_isolate_->group(); }
   static ThreadPool* thread_pool() { return thread_pool_; }
   static bool VmIsolateNameEquals(const char* name);
 

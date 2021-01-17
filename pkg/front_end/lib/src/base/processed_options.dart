@@ -24,7 +24,7 @@ import 'package:kernel/target/targets.dart'
 import 'package:package_config/package_config.dart';
 
 import '../api_prototype/compiler_options.dart'
-    show CompilerOptions, DiagnosticMessage;
+    show CompilerOptions, InvocationMode, DiagnosticMessage;
 
 import '../api_prototype/experimental_flags.dart' as flags;
 
@@ -45,6 +45,8 @@ import '../fasta/fasta_codes.dart'
         Message,
         messageCantInferPackagesFromManyInputs,
         messageCantInferPackagesFromPackageUri,
+        messageCompilingWithSoundNullSafety,
+        messageCompilingWithUnsoundNullSafety,
         messageInternalProblemProvidedBothCompileSdkAndSdkSummary,
         messageMissingInput,
         noLength,
@@ -265,6 +267,25 @@ class ProcessedOptions {
   // TODO(askesc): Remove this and direct callers directly to report.
   void reportWithoutLocation(Message message, Severity severity) {
     report(message.withoutLocation(), severity);
+  }
+
+  /// If `CompilerOptions.invocationModes` contains `InvocationMode.compile`, an
+  /// info message about the null safety compilation mode is emitted.
+  void reportNullSafetyCompilationModeInfo() {
+    if (_raw.invocationModes.contains(InvocationMode.compile)) {
+      switch (nnbdMode) {
+        case NnbdMode.Weak:
+          reportWithoutLocation(messageCompilingWithUnsoundNullSafety,
+              messageCompilingWithUnsoundNullSafety.severity);
+          break;
+        case NnbdMode.Strong:
+          reportWithoutLocation(messageCompilingWithSoundNullSafety,
+              messageCompilingWithSoundNullSafety.severity);
+          break;
+        case NnbdMode.Agnostic:
+          break;
+      }
+    }
   }
 
   /// Runs various validations checks on the input options. For instance,

@@ -57,13 +57,24 @@ Future<void> generateNative({
     final String kernelFile = path.join(tempDir.path, 'kernel.dill');
     final kernelResult = await generateAotKernel(Platform.executable, genKernel,
         productPlatformDill, sourcePath, kernelFile, packages, defines,
-        enableExperiment: enableExperiment);
+        enableExperiment: enableExperiment,
+        extraGenKernelOptions: ['--invocation-modes=compile']);
     if (kernelResult.exitCode != 0) {
-      stderr.writeln(kernelResult.stdout);
-      stderr.writeln(kernelResult.stderr);
+      // We pipe both stdout and stderr to stderr because the CFE doesn't print
+      // errors to stderr. This unfortunately does emit info-only output in
+      // stderr, though.
+      stderr.write(kernelResult.stdout);
+      stderr.write(kernelResult.stderr);
       await stderr.flush();
       throw 'Generating AOT kernel dill failed!';
     }
+    // Pipe info and warnings from the CFE to stdout since the compilation
+    // succeeded. Stderr should be empty but we pipe it to stderr for
+    // completeness.
+    stdout.write(kernelResult.stdout);
+    await stdout.flush();
+    stderr.write(kernelResult.stderr);
+    await stderr.flush();
 
     if (verbose) {
       print('Generating AOT snapshot.');

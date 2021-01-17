@@ -41,6 +41,7 @@ namespace kernel {
 #define H (translation_helper_)
 #define T (type_translator_)
 #define I Isolate::Current()
+#define IG IsolateGroup::Current()
 
 FlowGraphBuilder::FlowGraphBuilder(
     ParsedFunction* parsed_function,
@@ -148,7 +149,7 @@ Fragment FlowGraphBuilder::LoadInstantiatorTypeArguments() {
   if (scopes_ != nullptr && scopes_->type_arguments_variable != nullptr) {
 #ifdef DEBUG
     Function& function =
-        Function::Handle(Z, parsed_function_->function().raw());
+        Function::Handle(Z, parsed_function_->function().ptr());
     while (function.IsClosureFunction()) {
       function = function.parent_function();
     }
@@ -694,7 +695,7 @@ Fragment FlowGraphBuilder::ThrowNoSuchMethodError(const Function& target) {
     level = InvocationMirror::Level::kTopLevel;
   } else {
     receiver = owner.RareType();
-    if (target.kind() == FunctionLayout::kConstructor) {
+    if (target.kind() == UntaggedFunction::kConstructor) {
       level = InvocationMirror::Level::kConstructor;
     } else {
       level = InvocationMirror::Level::kStatic;
@@ -1323,7 +1324,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       } else {
         body += Box(native_rep.AsRepresentationOverApprox(zone_));
         if (kind == MethodRecognizer::kFfiLoadPointer) {
-          const auto class_table = thread_->isolate()->class_table();
+          const auto class_table = thread_->isolate_group()->class_table();
           ASSERT(class_table->HasValidClassAt(kFfiPointerCid));
           const auto& pointer_class =
               Class::ZoneHandle(H.zone(), class_table->At(kFfiPointerCid));
@@ -1383,7 +1384,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
 
       if (kind == MethodRecognizer::kFfiStorePointer) {
         // Do type check before anything untagged is on the stack.
-        const auto class_table = thread_->isolate()->class_table();
+        const auto class_table = thread_->isolate_group()->class_table();
         ASSERT(class_table->HasValidClassAt(kFfiPointerCid));
         const auto& pointer_class =
             Class::ZoneHandle(H.zone(), class_table->At(kFfiPointerCid));
@@ -1453,7 +1454,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += NullConstant();
     } break;
     case MethodRecognizer::kFfiFromAddress: {
-      const auto class_table = thread_->isolate()->class_table();
+      const auto class_table = thread_->isolate_group()->class_table();
       ASSERT(class_table->HasValidClassAt(kFfiPointerCid));
       const auto& pointer_class =
           Class::ZoneHandle(H.zone(), class_table->At(kFfiPointerCid));
@@ -1496,7 +1497,7 @@ Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
     const Function& function,
     classid_t cid) {
   auto token_pos = function.token_pos();
-  auto class_table = Thread::Current()->isolate()->class_table();
+  auto class_table = Thread::Current()->isolate_group()->class_table();
 
   ASSERT(class_table->HasValidClassAt(cid));
   const auto& view_class = Class::ZoneHandle(H.zone(), class_table->At(cid));
@@ -1549,7 +1550,8 @@ Fragment FlowGraphBuilder::BuildTypedDataFactoryConstructor(
     const Function& function,
     classid_t cid) {
   const auto token_pos = function.token_pos();
-  ASSERT(Thread::Current()->isolate()->class_table()->HasValidClassAt(cid));
+  ASSERT(
+      Thread::Current()->isolate_group()->class_table()->HasValidClassAt(cid));
 
   ASSERT(function.IsFactory() && (function.NumParameters() == 2));
   LocalVariable* length = parsed_function_->RawParameterVariable(1);
@@ -1713,7 +1715,7 @@ Fragment FlowGraphBuilder::AssertAssignableLoadTypeArguments(
     AssertAssignableInstr::Kind kind) {
   Fragment instructions;
 
-  instructions += Constant(AbstractType::ZoneHandle(dst_type.raw()));
+  instructions += Constant(AbstractType::ZoneHandle(dst_type.ptr()));
 
   if (!dst_type.IsInstantiated(kCurrentClass)) {
     instructions += LoadInstantiatorTypeArguments();
@@ -1739,9 +1741,9 @@ Fragment FlowGraphBuilder::AssertSubtype(TokenPosition position,
   Fragment instructions;
   instructions += LoadInstantiatorTypeArguments();
   instructions += LoadFunctionTypeArguments();
-  instructions += Constant(AbstractType::ZoneHandle(Z, sub_type_value.raw()));
-  instructions += Constant(AbstractType::ZoneHandle(Z, super_type_value.raw()));
-  instructions += Constant(String::ZoneHandle(Z, dst_name_value.raw()));
+  instructions += Constant(AbstractType::ZoneHandle(Z, sub_type_value.ptr()));
+  instructions += Constant(AbstractType::ZoneHandle(Z, super_type_value.ptr()));
+  instructions += Constant(String::ZoneHandle(Z, dst_name_value.ptr()));
   instructions += AssertSubtype(position);
   return instructions;
 }
@@ -1915,7 +1917,7 @@ ArrayPtr FlowGraphBuilder::GetOptionalParameterNames(const Function& function) {
     name = function.ParameterNameAt(num_fixed_params + i);
     names.SetAt(i, name);
   }
-  return names.raw();
+  return names.ptr();
 }
 
 Fragment FlowGraphBuilder::PushExplicitParameters(
@@ -2055,7 +2057,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
     // If noSuchMethod is not found on the receiver class, call
     // Object.noSuchMethod.
     no_such_method = Resolver::ResolveDynamicForReceiverClass(
-        Class::Handle(Z, I->object_store()->object_class()),
+        Class::Handle(Z, IG->object_store()->object_class()),
         Symbols::NoSuchMethod(), two_arguments);
   }
   body += StaticCall(TokenPosition::kMinSource, no_such_method,
@@ -2124,7 +2126,7 @@ Fragment FlowGraphBuilder::TestClosureFunctionNamedParameterRequired(
     Fragment set,
     Fragment not_set) {
   // Required named arguments only exist if null_safety is enabled.
-  if (!I->use_strict_null_safety_checks()) return not_set;
+  if (!IG->use_strict_null_safety_checks()) return not_set;
 
   Fragment check_required;
   // First, we convert the index to be in terms of the number of optional
@@ -2299,7 +2301,7 @@ Fragment FlowGraphBuilder::BuildClosureCallNamedArgumentsCheck(
   // required named arguments.
   if (info.descriptor.NamedCount() == 0) {
     // No work to do if there are no possible required named parameters.
-    if (!I->use_strict_null_safety_checks()) {
+    if (!IG->use_strict_null_safety_checks()) {
       return Fragment();
     }
     // If the below changes, we can no longer assume that flag slots existing
@@ -2556,7 +2558,7 @@ Fragment FlowGraphBuilder::BuildClosureCallTypeArgumentsTypeCheck(
   loop_body += LoadNativeField(Slot::TypeParameter_flags());
   loop_body += Box(kUnboxedUint8);
   loop_body += IntConstant(
-      TypeParameterLayout::GenericCovariantImplBit::mask_in_place());
+      UntaggedTypeParameter::GenericCovariantImplBit::mask_in_place());
   loop_body += SmiBinaryOp(Token::kBIT_AND);
   loop_body += IntConstant(0);
   TargetEntryInstr *is_noncovariant, *is_covariant;
@@ -2686,11 +2688,13 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
   info.parameter_names = MakeTemporary("parameter_names");
 
   body += LoadLocal(info.function);
-  body += LoadNativeField(Slot::Function_parameter_types());
+  body += LoadNativeField(Slot::Function_signature());
+  body += LoadNativeField(Slot::FunctionType_parameter_types());
   info.parameter_types = MakeTemporary("parameter_types");
 
   body += LoadLocal(info.function);
-  body += LoadNativeField(Slot::Function_type_parameters());
+  body += LoadNativeField(Slot::Function_signature());
+  body += LoadNativeField(Slot::FunctionType_type_parameters());
   info.type_parameters = MakeTemporary("type_parameters");
 
   body += LoadLocal(info.closure);
@@ -2810,8 +2814,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
 
   // Determine if this is `class Closure { get call => this; }`
   const Class& closure_class =
-      Class::Handle(Z, I->object_store()->closure_class());
-  const bool is_closure_call = (owner.raw() == closure_class.raw()) &&
+      Class::Handle(Z, IG->object_store()->closure_class());
+  const bool is_closure_call = (owner.ptr() == closure_class.ptr()) &&
                                field_name.Equals(Symbols::Call());
 
   graph_entry_ =
@@ -3066,7 +3070,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
           Function::ZoneHandle(Z, function.parent_function());
       const Class& owner = Class::ZoneHandle(Z, parent.Owner());
       AbstractType& type = AbstractType::ZoneHandle(Z);
-      type = Type::New(owner, TypeArguments::Handle(Z), owner.token_pos());
+      type = Type::New(owner, TypeArguments::Handle(Z));
       type = ClassFinalizer::FinalizeType(type);
       body += Constant(type);
     } else {
@@ -3362,7 +3366,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
   // type check mode in this case.
   const auto& target = Function::Handle(
       Z, function.IsDynamicInvocationForwarder() ? function.ForwardingTarget()
-                                                 : function.raw());
+                                                 : function.ptr());
   ASSERT(target.IsImplicitGetterOrSetter());
 
   const bool is_method = !function.IsStaticFunction();
@@ -3431,8 +3435,11 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
 #endif
     }
   } else if (field.is_const()) {
-    ASSERT(!field.IsUninitialized());
-    body += Constant(Instance::ZoneHandle(Z, field.StaticValue()));
+    const auto& value = Object::Handle(Z, field.StaticConstFieldValue());
+    if (value.IsError()) {
+      Report::LongJump(Error::Cast(value));
+    }
+    body += Constant(Instance::ZoneHandle(Z, Instance::RawCast(value.ptr())));
   } else {
     // Static fields
     //  - with trivial initializer
@@ -3492,7 +3499,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder(
 
   // Should never build a dynamic invocation forwarder for equality
   // operator.
-  ASSERT(function.name() != Symbols::EqualOperator().raw());
+  ASSERT(function.name() != Symbols::EqualOperator().ptr());
 
   // Even if the caller did not pass argument vector we would still
   // call the target with instantiate-to-bounds type arguments.
@@ -3535,7 +3542,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder(
   // used. We must guarantee this invariant because violation will lead to an
   // illegal IL once we replace x.[]=(...) with a sequence that does not
   // actually produce any value. See http://dartbug.com/29135 for more details.
-  if (name.raw() == Symbols::AssignIndexToken().raw()) {
+  if (name.ptr() == Symbols::AssignIndexToken().ptr()) {
     body += Drop();
     body += NullConstant();
   }
@@ -3678,7 +3685,7 @@ Fragment FlowGraphBuilder::WrapHandle(LocalVariable* api_local_scope) {
   code += LoadLocal(MakeTemporary());  // Duplicate handle pointer.
   code += ConvertUnboxedToUntagged(kUnboxedIntPtr);
   code += LoadLocal(object);
-  code += RawStoreField(compiler::target::LocalHandle::raw_offset());
+  code += RawStoreField(compiler::target::LocalHandle::ptr_offset());
 
   code += DropTempsPreserveTop(1);  // Drop object below handle.
   return code;
@@ -3687,14 +3694,14 @@ Fragment FlowGraphBuilder::WrapHandle(LocalVariable* api_local_scope) {
 Fragment FlowGraphBuilder::UnwrapHandle() {
   Fragment code;
   code += ConvertUnboxedToUntagged(kUnboxedIntPtr);
-  code += IntConstant(compiler::target::LocalHandle::raw_offset());
+  code += IntConstant(compiler::target::LocalHandle::ptr_offset());
   code += UnboxTruncate(kUnboxedIntPtr);
   code += LoadIndexed(kArrayCid, /*index_scale=*/1, /*index_unboxed=*/true);
   return code;
 }
 
 Fragment FlowGraphBuilder::UnhandledException() {
-  const auto class_table = thread_->isolate()->class_table();
+  const auto class_table = thread_->isolate_group()->class_table();
   ASSERT(class_table->HasValidClassAt(kUnhandledExceptionCid));
   const auto& klass =
       Class::ZoneHandle(H.zone(), class_table->At(kUnhandledExceptionCid));
@@ -4208,7 +4215,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
   body += LoadNativeField(Slot::Closure_context());
   body += LoadNativeField(Slot::GetContextVariableSlotFor(
       thread_, *MakeImplicitClosureScope(
-                    Z, Class::Handle(I->object_store()->ffi_pointer_class()))
+                    Z, Class::Handle(IG->object_store()->ffi_pointer_class()))
                     ->context_variables()[0]));
 
   // This can only be Pointer, so it is always safe to LoadUntagged.
@@ -4463,7 +4470,7 @@ Fragment FlowGraphBuilder::NullAssertion(LocalVariable* variable) {
 
 Fragment FlowGraphBuilder::BuildNullAssertions() {
   Fragment code;
-  if (I->null_safety() || !I->asserts() || !FLAG_null_assertions) {
+  if (IG->null_safety() || !IG->asserts() || !FLAG_null_assertions) {
     return code;
   }
 

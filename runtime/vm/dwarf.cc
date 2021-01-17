@@ -134,7 +134,7 @@ void Dwarf::AddCode(const Code& orig_code, const char* name) {
   }
 
   // Generate an appropriately zoned ZoneHandle for storing.
-  const auto& code = Code::ZoneHandle(zone_, orig_code.raw());
+  const auto& code = Code::ZoneHandle(zone_, orig_code.ptr());
   codes_.Add(&code);
   // Currently assumes the name has the same lifetime as the Zone of the
   // Dwarf object (which is currently true).  Otherwise, need to copy.
@@ -162,7 +162,7 @@ intptr_t Dwarf::AddFunction(const Function& function) {
     return pair->index_;
   }
   intptr_t index = functions_.length();
-  const Function& zone_func = Function::ZoneHandle(zone_, function.raw());
+  const Function& zone_func = Function::ZoneHandle(zone_, function.ptr());
   function_to_index_.Insert(FunctionIndexPair(&zone_func, index));
   functions_.Add(&zone_func);
   const Script& script = Script::Handle(zone_, function.script());
@@ -178,7 +178,7 @@ intptr_t Dwarf::AddScript(const Script& script) {
   }
   // DWARF file numbers start from 1.
   intptr_t index = scripts_.length() + 1;
-  const Script& zone_script = Script::ZoneHandle(zone_, script.raw());
+  const Script& zone_script = Script::ZoneHandle(zone_, script.ptr());
   script_to_index_.Insert(ScriptIndexPair(&zone_script, index));
   scripts_.Add(&zone_script);
   return index;
@@ -289,7 +289,7 @@ void Dwarf::WriteDebugInfo(DwarfWriteStream* stream) {
   // them in our abbreviation above in WriteAbbreviations.
   stream->uleb128(kCompilationUnit);
   const Library& root_library = Library::Handle(
-      zone_, Isolate::Current()->object_store()->root_library());
+      zone_, IsolateGroup::Current()->object_store()->root_library());
   const String& root_uri = String::Handle(zone_, root_library.url());
   stream->string(root_uri.ToCString());  // DW_AT_name
   stream->string("Dart VM");             // DW_AT_producer
@@ -748,8 +748,7 @@ const char* Dwarf::Deobfuscate(const char* cstr) {
 }
 
 Trie<const char>* Dwarf::CreateReverseObfuscationTrie(Zone* zone) {
-  auto const I = Thread::Current()->isolate();
-  auto const map_array = I->obfuscation_map();
+  auto const map_array = IsolateGroup::Current()->obfuscation_map();
   if (map_array == nullptr) return nullptr;
 
   Trie<const char>* trie = nullptr;

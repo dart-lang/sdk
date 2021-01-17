@@ -14,7 +14,7 @@
 
 namespace dart {
 
-// Size of the class-id part of the object header. See ObjectLayout.
+// Size of the class-id part of the object header. See UntaggedObject.
 typedef uint16_t ClassIdTagType;
 
 #define CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY(V)                           \
@@ -22,7 +22,6 @@ typedef uint16_t ClassIdTagType;
   V(PatchClass)                                                                \
   V(Function)                                                                  \
   V(ClosureData)                                                               \
-  V(SignatureData)                                                             \
   V(FfiTrampolineData)                                                         \
   V(Field)                                                                     \
   V(Script)                                                                    \
@@ -58,6 +57,7 @@ typedef uint16_t ClassIdTagType;
   V(TypeArguments)                                                             \
   V(AbstractType)                                                              \
   V(Type)                                                                      \
+  V(FunctionType)                                                              \
   V(TypeRef)                                                                   \
   V(TypeParameter)                                                             \
   V(Closure)                                                                   \
@@ -230,6 +230,7 @@ bool IsOneByteStringClassId(intptr_t index);
 bool IsTwoByteStringClassId(intptr_t index);
 bool IsExternalStringClassId(intptr_t index);
 bool IsBuiltinListClassId(intptr_t index);
+bool IsTypeClassId(intptr_t index);
 bool IsTypedDataBaseClassId(intptr_t index);
 bool IsTypedDataClassId(intptr_t index);
 bool IsTypedDataViewClassId(intptr_t index);
@@ -313,6 +314,11 @@ inline bool IsBuiltinListClassId(intptr_t index) {
   return ((index >= kArrayCid && index <= kImmutableArrayCid) ||
           (index == kGrowableObjectArrayCid) || IsTypedDataBaseClassId(index) ||
           (index == kByteBufferCid));
+}
+
+inline bool IsTypeClassId(intptr_t index) {
+  // Only Type and FunctionType can be encountered as instance types at runtime.
+  return index == kTypeCid || index == kFunctionTypeCid;
 }
 
 inline bool IsTypedDataBaseClassId(intptr_t index) {

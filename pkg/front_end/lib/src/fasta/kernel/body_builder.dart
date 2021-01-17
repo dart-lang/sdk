@@ -6,7 +6,8 @@ library fasta.body_builder;
 
 import 'dart:core' hide MapEntry;
 
-import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart'
+    hide Reference; // Work around https://github.com/dart-lang/sdk/issues/44667
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
@@ -40,7 +41,8 @@ import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
 
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 
-import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart'
+    hide Reference; // Work around https://github.com/dart-lang/sdk/issues/44667
 import 'package:kernel/type_environment.dart';
 
 import '../builder/builder.dart';

@@ -10,6 +10,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -78,9 +79,9 @@ class _NullabilityDataExtractor extends AstDataExtractor<String> {
         !node.inDeclarationContext()) {
       var element = node.staticElement;
       if (element is LocalVariableElement || element is ParameterElement) {
-        TypeImpl promotedType = node.staticType;
+        TypeImpl promotedType = _readType(node);
         TypeImpl declaredType = (element as VariableElement).type;
-        var isPromoted = promotedType != declaredType;
+        var isPromoted = promotedType != null && promotedType != declaredType;
         if (isPromoted &&
             _typeSystem.isPotentiallyNullable(declaredType) &&
             !_typeSystem.isPotentiallyNullable(promotedType)) {
@@ -89,6 +90,19 @@ class _NullabilityDataExtractor extends AstDataExtractor<String> {
       }
     }
     return null;
+  }
+
+  static DartType _readType(SimpleIdentifier node) {
+    var parent = node.parent;
+    if (parent is AssignmentExpression && parent.leftHandSide == node) {
+      return parent.readType;
+    } else if (parent is PostfixExpression) {
+      return parent.readType;
+    } else if (parent is PrefixExpression) {
+      return parent.readType;
+    } else {
+      return node.staticType;
+    }
   }
 }
 

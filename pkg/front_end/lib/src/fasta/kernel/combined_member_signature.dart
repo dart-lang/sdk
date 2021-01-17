@@ -510,8 +510,8 @@ abstract class CombinedMemberSignatureBase<T> {
     Class enclosingClass = classBuilder.cls;
     Reference reference;
     if (classBuilder.referencesFromIndexed != null) {
-      reference = classBuilder.referencesFromIndexed
-          .lookupGetterReference(member.name.text);
+      reference =
+          classBuilder.referencesFromIndexed.lookupGetterReference(member.name);
     }
     Uri fileUri;
     int startFileOffset;
@@ -556,8 +556,8 @@ abstract class CombinedMemberSignatureBase<T> {
     Class enclosingClass = classBuilder.cls;
     Reference reference;
     if (classBuilder.referencesFromIndexed != null) {
-      reference = classBuilder.referencesFromIndexed
-          .lookupSetterReference(member.name.text);
+      reference =
+          classBuilder.referencesFromIndexed.lookupSetterReference(member.name);
     }
     Uri fileUri;
     int startFileOffset;
@@ -599,7 +599,7 @@ abstract class CombinedMemberSignatureBase<T> {
     assert(copyLocation != null);
     Class enclosingClass = classBuilder.cls;
     Reference reference = classBuilder.referencesFromIndexed
-        ?.lookupGetterReference(procedure.name.text);
+        ?.lookupGetterReference(procedure.name);
     Uri fileUri;
     int startFileOffset;
     int fileOffset;

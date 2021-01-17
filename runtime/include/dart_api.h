@@ -588,12 +588,6 @@ DART_EXPORT void Dart_UpdateFinalizableExternalSize(
  */
 DART_EXPORT const char* Dart_VersionString();
 
-typedef struct {
-  const char* library_uri;
-  const char* class_name;
-  const char* function_name;
-} Dart_QualifiedFunctionName;
-
 /**
  * Isolate specific flags are set when creating a new isolate using the
  * Dart_IsolateFlags structure.
@@ -610,7 +604,6 @@ typedef struct {
   bool use_field_guards;
   bool use_osr;
   bool obfuscate;
-  Dart_QualifiedFunctionName* entry_points;
   bool load_vmservice_library;
   bool copy_parent_code;
   bool null_safety;

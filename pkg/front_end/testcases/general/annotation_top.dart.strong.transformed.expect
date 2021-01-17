@@ -61,5 +61,5 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-testcase:///annotation_top.dart:
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
 - A. (from org-dartlang-testcase:///annotation_top.dart:12:9)

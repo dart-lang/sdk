@@ -131,6 +131,9 @@ enum MarkerTag {
   ForPartsWithDeclarations_variables,
   ForPartsWithDeclarations_forParts,
   ForPartsWithDeclarations_end,
+  ForPartsWithExpression_initialization,
+  ForPartsWithExpression_forParts,
+  ForPartsWithExpression_end,
   FunctionDeclaration_functionExpression,
   FunctionDeclaration_returnType,
   FunctionDeclaration_namedCompilationUnitMember,
@@ -365,6 +368,7 @@ class Tag {
   static const int ForEachPartsWithDeclaration = 89;
   static const int ForElement = 88;
   static const int ForPartsWithDeclarations = 91;
+  static const int ForPartsWithExpression = 99;
   static const int FormalParameterList = 17;
   static const int FunctionDeclaration = 18;
   static const int FunctionDeclaration_getter = 57;

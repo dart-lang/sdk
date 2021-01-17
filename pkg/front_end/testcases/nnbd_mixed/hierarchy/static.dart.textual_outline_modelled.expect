@@ -1,0 +1,61 @@
+abstract class Class extends Super with Mixin implements Interface {
+  int get extendedStaticSetterDeclaredInstanceGetter => 0;
+  int get implementedStaticSetterDeclaredInstanceGetter => 0;
+  static int get extendedInstanceSetterDeclaredStaticGetter => 0;
+  static int get implementedInstanceSetterDeclaredStaticGetter => 0;
+  static void extendedInstanceDeclaredStaticMethod() {}
+  static void implementedInstanceDeclaredStaticMethod() {}
+  static void mixedInInstanceDeclaredStaticMethod() {}
+  static void set extendedInstanceDeclaredStaticSetter(int value) {}
+  static void set extendedInstanceGetterDeclaredStaticSetter(int value) {}
+  static void set implementedInstanceDeclaredStaticSetter(int value) {}
+  static void set implementedInstanceGetterDeclaredStaticSetter(int value) {}
+  void extendedStaticDeclaredInstanceMethod() {}
+  void implementedStaticDeclaredInstanceMethod() {}
+  void mixedInStaticDeclaredInstanceMethod() {}
+  void set extendedStaticDeclaredInstanceSetter(int value) {}
+  void set extendedStaticGetterDeclaredInstanceSetter(int value) {}
+  void set implementedStaticDeclaredInstanceSetter(int value) {}
+  void set implementedStaticGetterDeclaredInstanceSetter(int value) {}
+}
+
+class Interface {
+  int get implementedInstanceGetterDeclaredStaticSetter => 0;
+  static int get implementedStaticGetterDeclaredInstanceSetter => 0;
+  static void extendedInstanceImplementedStaticMethod() {}
+  static void implementedStaticDeclaredInstanceMethod() {}
+  static void mixedInInstanceImplementedStaticMethod() {}
+  static void set implementedStaticDeclaredInstanceSetter(int value) {}
+  static void set implementedStaticSetterDeclaredInstanceGetter(int value) {}
+  void extendedStaticImplementedInstanceMethod() {}
+  void implementedInstanceDeclaredStaticMethod() {}
+  void mixedInStaticImplementedInstanceMethod() {}
+  void set implementedInstanceDeclaredStaticSetter(int value) {}
+  void set implementedInstanceSetterDeclaredStaticGetter(int value) {}
+}
+
+class Mixin {
+  static void extendedInstanceMixedInStaticMethod() {}
+  static void mixedInStaticDeclaredInstanceMethod() {}
+  static void mixedInStaticImplementedInstanceMethod() {}
+  void extendedStaticMixedInInstanceMethod() {}
+  void mixedInInstanceDeclaredStaticMethod() {}
+  void mixedInInstanceImplementedStaticMethod() {}
+}
+
+class Super {
+  int get extendedInstanceGetterDeclaredStaticSetter => 0;
+  static int get extendedStaticGetterDeclaredInstanceSetter => 0;
+  static void extendedStaticDeclaredInstanceMethod() {}
+  static void extendedStaticImplementedInstanceMethod() {}
+  static void extendedStaticMixedInInstanceMethod() {}
+  static void set extendedStaticDeclaredInstanceSetter(int value) {}
+  static void set extendedStaticSetterDeclaredInstanceGetter(int value) {}
+  void extendedInstanceDeclaredStaticMethod() {}
+  void extendedInstanceImplementedStaticMethod() {}
+  void extendedInstanceMixedInStaticMethod() {}
+  void set extendedInstanceDeclaredStaticSetter(int value) {}
+  void set extendedInstanceSetterDeclaredStaticGetter(int value) {}
+}
+
+main() {}

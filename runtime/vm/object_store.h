@@ -132,6 +132,7 @@ class ObjectPointerVisitor;
   RW(Class, weak_property_class)                                               \
   RW(Array, symbol_table)                                                      \
   RW(Array, canonical_types)                                                   \
+  RW(Array, canonical_function_types)                                          \
   RW(Array, canonical_type_parameters)                                         \
   RW(Array, canonical_type_arguments)                                          \
   RW(Library, async_library)                                                   \
@@ -322,7 +323,7 @@ class IsolateObjectStore {
 
 #define DECLARE_GETTER_AND_SETTER(Type, name)                                  \
   DECLARE_GETTER(Type, name)                                                   \
-  void set_##name(const Type& value) { name##_ = value.raw(); }
+  void set_##name(const Type& value) { name##_ = value.ptr(); }
   ISOLATE_OBJECT_STORE_FIELD_LIST(DECLARE_GETTER, DECLARE_GETTER_AND_SETTER)
 #undef DECLARE_GETTER
 #undef DECLARE_GETTER_AND_SETTER
@@ -392,7 +393,7 @@ class ObjectStore {
   static intptr_t name##_offset() { return OFFSET_OF(ObjectStore, name##_); }
 #define DECLARE_GETTER_AND_SETTER(Type, name)                                  \
   DECLARE_GETTER(Type, name)                                                   \
-  void set_##name(const Type& value) { name##_ = value.raw(); }
+  void set_##name(const Type& value) { name##_ = value.ptr(); }
 #define DECLARE_LAZY_INIT_GETTER(Type, name, init)                             \
   Type##Ptr name() {                                                           \
     if (name##_ == Type::null()) {                                             \
@@ -403,10 +404,10 @@ class ObjectStore {
   static intptr_t name##_offset() { return OFFSET_OF(ObjectStore, name##_); }
 #define DECLARE_LAZY_INIT_CORE_GETTER_AND_SETTER(Type, name)                   \
   DECLARE_LAZY_INIT_GETTER(Type, name, LazyInitCoreTypes)                      \
-  void set_##name(const Type& value) { name##_ = value.raw(); }
+  void set_##name(const Type& value) { name##_ = value.ptr(); }
 #define DECLARE_LAZY_INIT_FUTURE_GETTER_AND_SETTER(Type, name)                 \
   DECLARE_LAZY_INIT_GETTER(Type, name, LazyInitFutureTypes)                    \
-  void set_##name(const Type& value) { name##_ = value.raw(); }
+  void set_##name(const Type& value) { name##_ = value.ptr(); }
   OBJECT_STORE_FIELD_LIST(DECLARE_GETTER,
                           DECLARE_GETTER_AND_SETTER,
                           DECLARE_LAZY_INIT_CORE_GETTER_AND_SETTER,
@@ -436,7 +437,7 @@ class ObjectStore {
     switch (index) {
 #define MAKE_CASE(CamelName, name)                                             \
   case k##CamelName:                                                           \
-    name##_library_ = value.raw();                                             \
+    name##_library_ = value.ptr();                                             \
     break;
 
       FOR_EACH_BOOTSTRAP_LIBRARY(MAKE_CASE)

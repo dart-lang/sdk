@@ -2643,7 +2643,7 @@ ASSEMBLER_TEST_GENERATE(CompareObjectNull, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(CompareObjectNull, test) {
-  EXPECT_EQ(static_cast<uword>(Bool::True().raw()),
+  EXPECT_EQ(static_cast<uword>(Bool::True().ptr()),
             test->InvokeWithCodeAndThread<uword>());
 }
 
@@ -2657,7 +2657,7 @@ ASSEMBLER_TEST_GENERATE(LoadObjectTrue, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(LoadObjectTrue, test) {
-  EXPECT_EQ(static_cast<uword>(Bool::True().raw()),
+  EXPECT_EQ(static_cast<uword>(Bool::True().ptr()),
             test->InvokeWithCodeAndThread<uword>());
 }
 
@@ -2671,7 +2671,7 @@ ASSEMBLER_TEST_GENERATE(LoadObjectFalse, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(LoadObjectFalse, test) {
-  EXPECT_EQ(static_cast<uword>(Bool::False().raw()),
+  EXPECT_EQ(static_cast<uword>(Bool::False().ptr()),
             test->InvokeWithCodeAndThread<uword>());
 }
 

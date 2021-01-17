@@ -5,6 +5,7 @@
 import 'dart:core' hide MapEntry;
 
 import 'package:_fe_analyzer_shared/src/util/link.dart';
+import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/type_algebra.dart' show Substitution;
@@ -373,7 +374,7 @@ class InferenceVisitor
     Expression condition =
         inferrer.ensureAssignableResult(expectedType, conditionResult);
     node.condition = condition..parent = node;
-    inferrer.flowAnalysis.conditional_thenBegin(node.condition);
+    inferrer.flowAnalysis.conditional_thenBegin(node.condition, node);
     bool isThenReachable = inferrer.flowAnalysis.isReachable;
     ExpressionInferenceResult thenResult = inferrer
         .inferExpression(node.then, typeContext, true, isVoidAllowed: true);
@@ -1204,7 +1205,7 @@ class InferenceVisitor
     Expression condition =
         inferrer.ensureAssignableResult(expectedType, conditionResult);
     node.condition = condition..parent = node;
-    inferrer.flowAnalysis.ifStatement_thenBegin(condition);
+    inferrer.flowAnalysis.ifStatement_thenBegin(condition, node);
     StatementInferenceResult thenResult = inferrer.inferStatement(node.then);
     if (thenResult.hasChanged) {
       node.then = thenResult.statement..parent = node;
@@ -1470,7 +1471,7 @@ class InferenceVisitor
       Expression condition =
           inferrer.ensureAssignableResult(boolType, conditionResult);
       element.condition = condition..parent = element;
-      inferrer.flowAnalysis.ifStatement_thenBegin(condition);
+      inferrer.flowAnalysis.ifStatement_thenBegin(condition, element);
       ExpressionInferenceResult thenResult = inferElement(
           element.then,
           inferredTypeArgument,
@@ -1773,7 +1774,7 @@ class InferenceVisitor
         isVoidAllowed: false);
     Expression left = inferrer.ensureAssignableResult(boolType, leftResult);
     node.left = left..parent = node;
-    inferrer.flowAnalysis.logicalBinaryOp_rightBegin(node.left,
+    inferrer.flowAnalysis.logicalBinaryOp_rightBegin(node.left, node,
         isAnd: node.operatorEnum == LogicalExpressionOperator.AND);
     ExpressionInferenceResult rightResult = inferrer.inferExpression(
         node.right, boolType, !inferrer.isTopLevel,
@@ -2048,7 +2049,7 @@ class InferenceVisitor
       Expression condition =
           inferrer.ensureAssignableResult(boolType, conditionResult);
       entry.condition = condition..parent = entry;
-      inferrer.flowAnalysis.ifStatement_thenBegin(condition);
+      inferrer.flowAnalysis.ifStatement_thenBegin(condition, entry);
       // Note that this recursive invocation of inferMapEntry will add two types
       // to actualTypes; they are the actual types of the current invocation if
       // the 'else' branch is empty.
@@ -6541,6 +6542,7 @@ class InferenceVisitor
         node.initializer = new StaticInvocation(
             inferrer.coreTypes.createSentinelMethod,
             new Arguments([], types: [node.type])..fileOffset = fileOffset)
+          ..fileOffset = fileOffset
           ..parent = node;
       } else {
         node.initializer = null;
@@ -6561,7 +6563,10 @@ class InferenceVisitor
     VariableDeclarationImpl variable = node.variable;
     DartType promotedType;
     DartType declaredOrInferredType = variable.lateType ?? variable.type;
-    if (inferrer.isNonNullableByDefault) {
+    if (isExtensionThis(variable)) {
+      // Don't promote the synthetic variable `#this` that we use to represent
+      // `this` inside extension methods.
+    } else if (inferrer.isNonNullableByDefault) {
       if (node.forNullGuardedAccess) {
         DartType nonNullableType = inferrer.computeNonNullable(variable.type);
         if (nonNullableType != variable.type) {

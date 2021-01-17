@@ -13,7 +13,7 @@ class C extends core::Object {
   method test() → void {
     dynamic localVar;
     {
-      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t1 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -22,7 +22,7 @@ class C extends core::Object {
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t2 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -31,7 +31,7 @@ class C extends core::Object {
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t3 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -40,7 +40,7 @@ class C extends core::Object {
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t4 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -49,7 +49,7 @@ class C extends core::Object {
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t5 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -58,7 +58,7 @@ class C extends core::Object {
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t6 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -67,7 +67,7 @@ class C extends core::Object {
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t7 = :sync-for-iterator.{core::Iterator::current};
         {

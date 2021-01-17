@@ -106,7 +106,7 @@ void main() {
 
     createTest(true);
     createTest(false);
-  });
+  }, timeout: Timeout.none);
 }
 
 FutureOr<shelf.Response> _faviconHandler(shelf.Request request) {

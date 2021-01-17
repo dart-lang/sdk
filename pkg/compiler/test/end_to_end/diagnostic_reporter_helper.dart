@@ -48,9 +48,15 @@ abstract class DiagnosticReporterWrapper extends DiagnosticReporter {
   }
 
   @override
-  void reportInfo(Spannable node, MessageKind errorCode,
+  void reportInfo(DiagnosticMessage message,
+      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
+    reporter.reportInfo(message, infos);
+  }
+
+  @override
+  void reportInfoMessage(Spannable node, MessageKind errorCode,
       [Map<String, String> arguments = const {}]) {
-    reporter.reportInfo(node, errorCode, arguments);
+    reporter.reportInfoMessage(node, errorCode, arguments);
   }
 
   @override

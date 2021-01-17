@@ -19,8 +19,8 @@ static method testNull() → dynamic {
   core::print(null);
 }
 static method testList() → dynamic {
-  core::print(<dynamic>[]);
-  core::print(<core::String*>["a", "b"]);
+  core::print(core::_GrowableList::•<dynamic>(0));
+  core::print(core::_GrowableList::_literal2<core::String*>("a", "b"));
 }
 static method testMap() → dynamic {
   core::print(<dynamic, dynamic>{});

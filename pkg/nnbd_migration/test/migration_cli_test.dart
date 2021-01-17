@@ -73,6 +73,7 @@ class _ExceptionGeneratingNonNullableFix extends NonNullableFix {
       String summaryPath,
       @required String sdkPath})
       : super(listener, resourceProvider, getLineInfo, bindAddress, logger,
+            (String path) => true,
             included: included,
             preferredPort: preferredPort,
             summaryPath: summaryPath,
@@ -124,11 +125,12 @@ class _MigrationCliRunner extends MigrationCliRunner {
   }
 
   @override
-  Future<void> blockUntilSignalInterrupt() async {
+  void listenForSignalInterrupt() {
     if (_runWhilePreviewServerActive == null) {
       fail('Preview server not expected to have been started');
     }
-    await _runWhilePreviewServerActive.call();
+    sigIntSignalled = Completer();
+    _runWhilePreviewServerActive.call().then((_) => sigIntSignalled.complete());
     _runWhilePreviewServerActive = null;
   }
 
@@ -183,9 +185,9 @@ class _MigrationCliRunner extends MigrationCliRunner {
   }
 
   @override
-  bool shouldBeMigrated(DriverBasedAnalysisContext context, String path) =>
+  bool shouldBeMigrated2(String path) =>
       cli._test.overrideShouldBeMigrated?.call(path) ??
-      super.shouldBeMigrated(context, path);
+      super.shouldBeMigrated2(path);
 
   /// Sorts the paths in [paths] for repeatability of migration tests.
   Set<String> _sortPaths(Set<String> paths) {
@@ -295,7 +297,7 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
   }
 
   Future assertPreviewServerResponsive(String url) async {
-    var response = await httpGet(url);
+    var response = await httpGet(Uri.parse(url));
     assertHttpSuccess(response);
   }
 
@@ -370,13 +372,13 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
 
   /// Performs an HTTP get, verifying that the response received (if any) is
   /// reasonable.
-  Future<http.Response> httpGet(dynamic url, {Map<String, String> headers}) {
+  Future<http.Response> httpGet(Uri url, {Map<String, String> headers}) {
     return checkHttpResponse(http.get(url, headers: headers));
   }
 
   /// Performs an HTTP post, verifying that the response received (if any) is
   /// reasonable.
-  Future<http.Response> httpPost(dynamic url,
+  Future<http.Response> httpPost(Uri url,
       {Map<String, String> headers, dynamic body, Encoding encoding}) {
     return checkHttpResponse(
         http.post(url, headers: headers, body: body, encoding: encoding));
@@ -397,7 +399,7 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
         await callback(url);
       });
       // Server should be stopped now
-      expect(httpGet(url), throwsA(anything));
+      expect(httpGet(Uri.parse(url)), throwsA(anything));
       assertNormalExit(cliRunner);
     }
   }
@@ -1861,11 +1863,74 @@ environment: 1
         projectDir, simpleProject(migrated: true, pubspecText: pubspecText));
   }
 
+  test_pubspec_environment_sdk_is_exact_version() async {
+    var pubspecText = '''
+name: test
+environment:
+  sdk: '2.0.0'
+''';
+    var projectContents = simpleProject(pubspecText: pubspecText);
+    var projectDir = createProjectDir(projectContents);
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+    await cliRunner.run();
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir,
+        simpleProject(
+            migrated: true,
+            pubspecText: pubspecText,
+            // The package config file should not have been touched.
+            packageConfigText: _getPackageConfigText(migrated: false)));
+  }
+
+  test_pubspec_environment_sdk_is_missing_min() async {
+    var pubspecText = '''
+name: test
+environment:
+  sdk: '<3.0.0'
+''';
+    var projectContents = simpleProject(pubspecText: pubspecText);
+    var projectDir = createProjectDir(projectContents);
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+    await cliRunner.run();
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir,
+        simpleProject(
+            migrated: true,
+            pubspecText: pubspecText,
+            // The package config file should not have been touched.
+            packageConfigText: _getPackageConfigText(migrated: false)));
+  }
+
   test_pubspec_environment_sdk_is_not_string() async {
     var pubspecText = '''
 name: test
 environment:
   sdk: 1
+''';
+    var projectContents = simpleProject(pubspecText: pubspecText);
+    var projectDir = createProjectDir(projectContents);
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+    await cliRunner.run();
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir,
+        simpleProject(
+            migrated: true,
+            pubspecText: pubspecText,
+            // The package config file should not have been touched.
+            packageConfigText: _getPackageConfigText(migrated: false)));
+  }
+
+  test_pubspec_environment_sdk_is_union() async {
+    var pubspecText = '''
+name: test
+environment:
+  sdk: '>=2.0.0 <2.1.0 >=2.2.0 <3.0.0'
 ''';
     var projectContents = simpleProject(pubspecText: pubspecText);
     var projectDir = createProjectDir(projectContents);
@@ -2078,8 +2143,8 @@ environment:
     expect(errorOutput, contains('1 analysis issue found:'));
     expect(
         errorOutput,
-        contains("A value of type 'Null' can't be returned from function 'f' "
-            "because it has a return type of 'int'"));
+        contains("A value of type 'Null' can't be returned from the function "
+            "'f' because it has a return type of 'int'"));
     expect(errorOutput, contains('Set the lower SDK constraint'));
   }
 

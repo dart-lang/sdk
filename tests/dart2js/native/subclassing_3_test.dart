@@ -38,9 +38,9 @@ void setup() {
   JS('', r"""
 (function(){
   function B() {}
-  makeB = function(){return new B();};
+  self.makeB = function(){return new B();};
 
-  getBPrototype = function(){return B.prototype;};
+  self.getBPrototype = function(){return B.prototype;};
 })()""");
 }
 

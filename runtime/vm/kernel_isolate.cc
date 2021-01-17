@@ -179,7 +179,7 @@ class RunKernelTask : public ThreadPool::Task {
     HANDLESCOPE(T);
     // Invoke main which will return the port to which load requests are sent.
     const Library& root_library =
-        Library::Handle(Z, I->object_store()->root_library());
+        Library::Handle(Z, I->group()->object_store()->root_library());
     if (root_library.IsNull()) {
       OS::PrintErr(DART_KERNEL_ISOLATE_NAME
                    ": Embedder did not install a script.");
@@ -563,15 +563,14 @@ class KernelCompilationRequest : public ValueObject {
     is_static_object.type = Dart_CObject_kBool;
     is_static_object.value.as_bool = is_static;
 
-    Isolate* isolate =
-        Thread::Current() != NULL ? Thread::Current()->isolate() : NULL;
-    ASSERT(isolate != NULL);
+    auto isolate = thread->isolate();
+    auto isolate_group = thread->isolate_group();
+    auto source = isolate_group->source();
+
     Dart_CObject isolate_id;
     isolate_id.type = Dart_CObject_kInt64;
-    isolate_id.value.as_int64 =
-        isolate != NULL ? static_cast<int64_t>(isolate->main_port()) : 0;
+    isolate_id.value.as_int64 = static_cast<int64_t>(isolate->main_port());
 
-    IsolateGroupSource* source = Isolate::Current()->source();
     intptr_t num_dills = 0;
     if (source->kernel_buffer != nullptr) {
       num_dills++;
@@ -628,8 +627,7 @@ class KernelCompilationRequest : public ValueObject {
 
     Dart_CObject enable_asserts;
     enable_asserts.type = Dart_CObject_kBool;
-    enable_asserts.value.as_bool =
-        isolate != NULL ? isolate->asserts() : FLAG_enable_asserts;
+    enable_asserts.value.as_bool = isolate_group->asserts();
 
     intptr_t num_experimental_flags = experimental_flags->length();
     Dart_CObject** experimental_flags_array =
@@ -760,15 +758,17 @@ class KernelCompilationRequest : public ValueObject {
     // TODO(aam): Assert that isolate exists once we move CompileAndReadScript
     // compilation logic out of CreateIsolateAndSetupHelper and into
     // IsolateSetupHelper in main.cc.
-    Isolate* isolate =
-        Thread::Current() != NULL ? Thread::Current()->isolate() : NULL;
+    auto thread = Thread::Current();
+    auto isolate = thread != nullptr ? thread->isolate() : nullptr;
+    auto isolate_group = thread != nullptr ? thread->isolate_group() : nullptr;
+
     if (incremental_compile) {
       ASSERT(isolate != NULL);
     }
     Dart_CObject isolate_id;
     isolate_id.type = Dart_CObject_kInt64;
     isolate_id.value.as_int64 =
-        isolate != NULL ? static_cast<int64_t>(isolate->main_port()) : 0;
+        isolate != nullptr ? static_cast<int64_t>(isolate->main_port()) : 0;
 
     Dart_CObject message;
     message.type = Dart_CObject_kArray;
@@ -781,15 +781,17 @@ class KernelCompilationRequest : public ValueObject {
 
     Dart_CObject enable_asserts;
     enable_asserts.type = Dart_CObject_kBool;
-    enable_asserts.value.as_bool =
-        isolate != NULL ? isolate->asserts() : FLAG_enable_asserts;
+    enable_asserts.value.as_bool = isolate_group != nullptr
+                                       ? isolate_group->asserts()
+                                       : FLAG_enable_asserts;
 
     Dart_CObject null_safety;
     null_safety.type = Dart_CObject_kInt32;
     null_safety.value.as_int32 =
-        (isolate != NULL) ? (isolate->null_safety() ? kNullSafetyOptionStrong
-                                                    : kNullSafetyOptionWeak)
-                          : FLAG_sound_null_safety;
+        (isolate_group != nullptr)
+            ? (isolate_group->null_safety() ? kNullSafetyOptionStrong
+                                            : kNullSafetyOptionWeak)
+            : FLAG_sound_null_safety;
 
     intptr_t num_experimental_flags = experimental_flags->length();
     Dart_CObject** experimental_flags_array =

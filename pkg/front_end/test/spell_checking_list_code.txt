@@ -34,6 +34,7 @@ alexmarkov
 aligned
 alive
 allocate
+allocator
 altered
 analogous
 analogy
@@ -441,6 +442,7 @@ fo
 foo
 foobar
 footer
+forcing
 foreign
 formed
 former
@@ -836,6 +838,7 @@ permit
 pi
 picking
 pkg
+play
 player
 plugin
 pm
@@ -1011,6 +1014,7 @@ scoping
 sdk's
 seconds
 sections
+selectively
 selectors
 semantically
 semver
@@ -1096,6 +1100,7 @@ stdout
 sticky
 stmt
 stopped
+storage
 str
 strategies
 streak
@@ -1235,6 +1240,7 @@ uncommon
 unconditionally
 unconstrained
 undeclare
+undergo
 undo
 undoable
 unequal
@@ -1264,6 +1270,7 @@ unparsed
 unpleasant
 unreachable
 unseen
+unset
 unshadowed
 unsortable
 unsound

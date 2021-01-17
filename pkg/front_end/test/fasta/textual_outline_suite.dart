@@ -59,6 +59,9 @@ class Context extends ChainContext with MatchContext {
   @override
   String get updateExpectationsOption => '${UPDATE_EXPECTATIONS}=true';
 
+  @override
+  bool get canBeFixWithUpdateExpectations => true;
+
   Context(this.updateExpectations);
 
   final List<Step> steps = const <Step>[

@@ -97,13 +97,13 @@ ISOLATE_UNIT_TEST_CASE(GrowableHandlePtr) {
   GrowableHandlePtrArray<const String> test1(zone, 1);
   EXPECT_EQ(0, test1.length());
   test1.Add(Symbols::Int());
-  EXPECT(test1[0].raw() == Symbols::Int().raw());
+  EXPECT(test1[0].ptr() == Symbols::Int().ptr());
   EXPECT_EQ(1, test1.length());
 
   ZoneGrowableHandlePtrArray<const String>* test2 =
       new ZoneGrowableHandlePtrArray<const String>(zone, 1);
   test2->Add(Symbols::GetterPrefix());
-  EXPECT((*test2)[0].raw() == Symbols::GetterPrefix().raw());
+  EXPECT((*test2)[0].ptr() == Symbols::GetterPrefix().ptr());
   EXPECT_EQ(1, test2->length());
 }
 

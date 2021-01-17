@@ -313,15 +313,17 @@ class FlowGraphBuilderHelper {
 
  private:
   static FlowGraph& MakeDummyGraph(Thread* thread) {
+    const FunctionType& signature =
+        FunctionType::ZoneHandle(FunctionType::New());
     const Function& func = Function::ZoneHandle(Function::New(
-        String::Handle(Symbols::New(thread, "dummy")),
-        FunctionLayout::kRegularFunction,
+        signature, String::Handle(Symbols::New(thread, "dummy")),
+        UntaggedFunction::kRegularFunction,
         /*is_static=*/true,
         /*is_const=*/false,
         /*is_abstract=*/false,
         /*is_external=*/false,
         /*is_native=*/true,
-        Class::Handle(thread->isolate()->object_store()->object_class()),
+        Class::Handle(thread->isolate_group()->object_store()->object_class()),
         TokenPosition::kNoSource));
 
     Zone* zone = thread->zone();

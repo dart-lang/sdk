@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  field core::List<dynamic>* list = <dynamic>[1, 2, 3];
+  field core::List<dynamic>* list = core::_GrowableList::_literal3<dynamic>(1, 2, 3);
   synthetic constructor •() → self::Foo*
     : super core::Object::•()
     ;

@@ -44,12 +44,12 @@ uword /*BoolPtr*/ CaseInsensitiveCompareUCS2(uword /*StringPtr*/ str_raw,
         int32_t s2[1] = {c2};
         canonicalize.get(c2, '\0', s2);
         if (s1[0] != s2[0]) {
-          return static_cast<uword>(Bool::False().raw());
+          return static_cast<uword>(Bool::False().ptr());
         }
       }
     }
   }
-  return static_cast<uword>(Bool::True().raw());
+  return static_cast<uword>(Bool::True().ptr());
 }
 
 uword /*BoolPtr*/ CaseInsensitiveCompareUTF16(uword /*StringPtr*/ str_raw,
@@ -68,7 +68,7 @@ uword /*BoolPtr*/ CaseInsensitiveCompareUTF16(uword /*StringPtr*/ str_raw,
       // Non-BMP characters do not have case-equivalents in the BMP.
       // Both have to be non-BMP for them to be able to match.
       if (!Utf16::IsLeadSurrogate(c2))
-        return static_cast<uword>(Bool::False().raw());
+        return static_cast<uword>(Bool::False().ptr());
       if (i + 1 < length.Value()) {
         uint16_t c1t = str.CharAt(lhs_index.Value() + i + 1);
         uint16_t c2t = str.CharAt(rhs_index.Value() + i + 1);
@@ -81,9 +81,9 @@ uword /*BoolPtr*/ CaseInsensitiveCompareUTF16(uword /*StringPtr*/ str_raw,
     }
     c1 = u_foldCase(c1, U_FOLD_CASE_DEFAULT);
     c2 = u_foldCase(c2, U_FOLD_CASE_DEFAULT);
-    if (c1 != c2) return static_cast<uword>(Bool::False().raw());
+    if (c1 != c2) return static_cast<uword>(Bool::False().ptr());
   }
-  return static_cast<uword>(Bool::True().raw());
+  return static_cast<uword>(Bool::True().ptr());
 }
 
 DEFINE_RAW_LEAF_RUNTIME_ENTRY(

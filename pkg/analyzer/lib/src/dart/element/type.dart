@@ -105,9 +105,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   final List<ParameterElement> parameters;
 
   @override
-  final List<DartType> typeArguments;
-
-  @override
   final NullabilitySuffix nullabilitySuffix;
 
   FunctionTypeImpl({
@@ -116,36 +113,30 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     @required DartType returnType,
     @required NullabilitySuffix nullabilitySuffix,
     Element element,
-    List<DartType> typeArguments,
+    TypeAliasElement aliasElement,
+    List<DartType> aliasArguments,
   })  : typeFormals = typeFormals,
         parameters = _sortNamedParameters(parameters),
         returnType = returnType,
         nullabilitySuffix = nullabilitySuffix,
-        typeArguments = typeArguments ?? const <DartType>[],
-        super(element);
-
-  @deprecated
-  FunctionTypeImpl.synthetic(
-      this.returnType, this.typeFormals, List<ParameterElement> parameters,
-      {Element element,
-      List<DartType> typeArguments,
-      @required NullabilitySuffix nullabilitySuffix})
-      : parameters = _sortNamedParameters(parameters),
-        typeArguments = typeArguments ?? const <DartType>[],
-        nullabilitySuffix = nullabilitySuffix,
-        super(element);
+        super(element,
+            aliasElement: aliasElement, aliasArguments: aliasArguments);
 
   @override
   FunctionTypedElement get element {
-    var element = super.element;
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
     // TODO(scheglov) Can we just construct it with the right element?
-    if (element is TypeAliasElement) {
-      var aliasedElement = element.aliasedElement;
-      if (aliasedElement is GenericFunctionTypeElement) {
-        return aliasedElement;
-      }
+    var aliasedElement = aliasElement?.aliasedElement;
+    if (aliasedElement is GenericFunctionTypeElement) {
+      return aliasedElement;
     }
-    return element;
+
+    var element = super.element;
+    if (element is FunctionTypedElement) {
+      return element;
+    }
+
+    return null;
   }
 
   @override
@@ -218,6 +209,12 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       types.add(type);
     });
     return types;
+  }
+
+  @override
+  List<DartType> get typeArguments {
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
+    return aliasArguments ?? const <DartType>[];
   }
 
   @override
@@ -306,8 +303,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       parameters: parameters,
       returnType: returnType,
       nullabilitySuffix: nullabilitySuffix,
-      element: element,
-      typeArguments: typeArguments,
+      aliasElement: aliasElement,
+      aliasArguments: aliasArguments,
     );
   }
 
@@ -640,7 +637,13 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     @required ClassElement element,
     @required this.typeArguments,
     @required this.nullabilitySuffix,
-  }) : super(element);
+    TypeAliasElement aliasElement,
+    List<DartType> aliasArguments,
+  }) : super(
+          element,
+          aliasElement: aliasElement,
+          aliasArguments: aliasArguments,
+        );
 
   @override
   List<PropertyAccessorElement> get accessors {
@@ -1617,7 +1620,9 @@ abstract class TypeImpl implements DartType {
   final Element _element;
 
   /// Initialize a newly created type to be declared by the given [element].
-  TypeImpl(this._element, {this.aliasElement, this.aliasArguments});
+  TypeImpl(this._element, {this.aliasElement, this.aliasArguments})
+      : assert(aliasElement == null && aliasArguments == null ||
+            aliasElement != null && aliasArguments != null);
 
   @deprecated
   @override

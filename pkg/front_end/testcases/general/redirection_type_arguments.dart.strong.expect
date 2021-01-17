@@ -43,4 +43,4 @@ Constructor coverage from constants:
 org-dartlang-testcase:///redirection_type_arguments.dart:
 - B. (from org-dartlang-testcase:///redirection_type_arguments.dart:16:9)
 - A.empty (from org-dartlang-testcase:///redirection_type_arguments.dart:12:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

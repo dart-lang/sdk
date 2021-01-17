@@ -334,3 +334,24 @@ String demangleMixinApplicationName(String name) {
   }
   return demangledName;
 }
+
+final RegExp templateKey = new RegExp(r'#(\w+)');
+
+/// Replaces occurrences of '#key' in [template], where 'key' is a key in
+/// [arguments], with the corresponding values.
+String applyArgumentsToTemplate(
+    String template, Map<String, dynamic> arguments) {
+  // TODO(johnniwinther): Remove `as dynamic` when unsound null safety is
+  // no longer supported.
+  if (arguments as dynamic == null || arguments.isEmpty) {
+    assert(!template.contains(templateKey),
+        'Message requires arguments, but none were provided.');
+    return template;
+  }
+  return template.replaceAllMapped(templateKey, (Match match) {
+    String? key = match.group(1);
+    Object? value = arguments[key];
+    assert(value != null, "No value for '$key' found in $arguments");
+    return value.toString();
+  });
+}

@@ -255,21 +255,21 @@ static method main() → asy::Future<dynamic>* /* originally async */ {
       #L7:
       {
         {
-          core::Iterator<core::int*>* :sync-for-iterator = <core::int*>[1, 2, 3].{core::Iterable::iterator};
+          core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal3<core::int*>(1, 2, 3).{core::Iterable::iterator};
           for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
             core::int* x = :sync-for-iterator.{core::Iterator::current};
             {}
           }
         }
         {
-          core::Iterator<core::num*>* :sync-for-iterator = <core::num*>[1, 2, 3].{core::Iterable::iterator};
+          core::Iterator<core::num*>* :sync-for-iterator = core::_GrowableList::_literal3<core::num*>(1, 2, 3).{core::Iterable::iterator};
           for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
             core::num* x = :sync-for-iterator.{core::Iterator::current};
             {}
           }
         }
         {
-          core::Iterator<core::int*>* :sync-for-iterator = <core::int*>[1, 2, 3].{core::Iterable::iterator};
+          core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal3<core::int*>(1, 2, 3).{core::Iterable::iterator};
           for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
             core::int* x = :sync-for-iterator.{core::Iterator::current};
             {}

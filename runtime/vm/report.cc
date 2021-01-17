@@ -80,7 +80,7 @@ StringPtr Report::PrependSnippet(Kind kind,
     result = String::NewFormatted(Heap::kOld, "%s: ", message_header);
     result = String::Concat(result, message, Heap::kOld);
   }
-  return result.raw();
+  return result.ptr();
 }
 
 void Report::LongJump(const Error& error) {

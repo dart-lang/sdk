@@ -18,7 +18,9 @@ class GenericStructSubclassTest extends PubPackageResolutionTest {
   test_genericStruct() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-class S<T> extends Struct {}
+class S<T> extends Struct {
+  Pointer notEmpty;
+}
 ''', [
       error(FfiCode.GENERIC_STRUCT_SUBCLASS, 25, 1),
     ]);
@@ -27,7 +29,9 @@ class S<T> extends Struct {}
   test_validStruct() async {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
-class S extends Struct {}
+class S extends Struct {
+  Pointer notEmpty;
+}
 ''');
   }
 }

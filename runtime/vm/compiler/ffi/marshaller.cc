@@ -27,7 +27,7 @@ const intptr_t kNativeParamsStartAt = 1;
 // Representations of the arguments and return value of a C signature function.
 static const NativeFunctionType& NativeFunctionSignature(
     Zone* zone,
-    const Function& c_signature) {
+    const FunctionType& c_signature) {
   ASSERT(c_signature.NumOptionalParameters() == 0);
   ASSERT(c_signature.NumOptionalPositionalParameters() == 0);
 
@@ -55,7 +55,8 @@ static const NativeFunctionType& NativeFunctionSignature(
 BaseMarshaller::BaseMarshaller(Zone* zone, const Function& dart_signature)
     : zone_(zone),
       dart_signature_(dart_signature),
-      c_signature_(Function::ZoneHandle(zone, dart_signature.FfiCSignature())),
+      c_signature_(
+          FunctionType::ZoneHandle(zone, dart_signature.FfiCSignature())),
       native_calling_convention_(NativeCallingConvention::FromSignature(
           zone,
           NativeFunctionSignature(zone_, c_signature_))) {

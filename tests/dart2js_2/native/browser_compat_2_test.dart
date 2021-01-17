@@ -106,6 +106,7 @@ function transformer2(hooks) {
 
 dartNativeDispatchHooksTransformer = [transformer1, transformer2];
 })()''');
+  applyTestExtensions(['T1A', 'T1B', 'T1C', 'T1D']);
 }
 
 main() {

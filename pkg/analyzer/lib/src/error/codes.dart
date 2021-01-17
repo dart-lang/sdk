@@ -3445,7 +3445,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```dart
   // void f(int a, int b) {}
   // void g() {
-  //   f[!(1, 2, 3)!];
+  //   f(1, 2, [!3!]);
   // }
   // ```
   //
@@ -3486,7 +3486,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // %language=2.9
   // void f(int a, int b, {int c}) {}
   // void g() {
-  //   f[!(1, 2, 3)!];
+  //   f(1, 2, [!3!]);
   // }
   // ```
   //
@@ -8676,8 +8676,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * https://code.google.com/p/dart/issues/detail?id=954
    */
   static const CompileTimeErrorCode RECURSIVE_CONSTRUCTOR_REDIRECT =
-      CompileTimeErrorCode('RECURSIVE_CONSTRUCTOR_REDIRECT',
-          "Cycle in redirecting generative constructors.");
+      CompileTimeErrorCode(
+          'RECURSIVE_CONSTRUCTOR_REDIRECT',
+          "Constructors can't redirect to themselves either directly or "
+              "indirectly.",
+          correction: 'Try changing one of the constructors in the loop to not '
+              'redirect.');
 
   /**
    * 7.6.2 Factories: It is a compile-time error if a redirecting factory
@@ -8685,8 +8689,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * sequence of redirections.
    */
   static const CompileTimeErrorCode RECURSIVE_FACTORY_REDIRECT =
-      CompileTimeErrorCode('RECURSIVE_FACTORY_REDIRECT',
-          "Cycle in redirecting factory constructors.");
+      CompileTimeErrorCode(
+          'RECURSIVE_CONSTRUCTOR_REDIRECT',
+          "Constructors can't redirect to themselves either directly or "
+              "indirectly.",
+          uniqueName: 'RECURSIVE_FACTORY_REDIRECT',
+          correction: 'Try changing one of the constructors in the loop to '
+              'redirect to a non-factory constructor.');
 
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the interface of a
@@ -9204,7 +9213,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR =
       CompileTimeErrorCode(
     'RETURN_OF_INVALID_TYPE',
-    "A value of type '{0}' can't be returned from constructor '{2}' "
+    "A value of type '{0}' can't be returned from the constructor '{2}' "
         "because it has a return type of '{1}'.",
     hasPublishedDocs: true,
     uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR',
@@ -9247,7 +9256,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode RETURN_OF_INVALID_TYPE_FROM_FUNCTION =
       CompileTimeErrorCode(
     'RETURN_OF_INVALID_TYPE',
-    "A value of type '{0}' can't be returned from function '{2}' because "
+    "A value of type '{0}' can't be returned from the function '{2}' because "
         "it has a return type of '{1}'.",
     hasPublishedDocs: true,
     uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_FUNCTION',
@@ -9262,7 +9271,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode RETURN_OF_INVALID_TYPE_FROM_METHOD =
       CompileTimeErrorCode(
     'RETURN_OF_INVALID_TYPE',
-    "A value of type '{0}' can't be returned from method '{2}' because "
+    "A value of type '{0}' can't be returned from the method '{2}' because "
         "it has a return type of '{1}'.",
     hasPublishedDocs: true,
     uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_METHOD',
@@ -9738,6 +9747,44 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "creating a type with the name '{0}'.",
           hasPublishedDocs: true);
 
+  static const CompileTimeErrorCode UNCHECKED_INVOCATION_OF_NULLABLE_VALUE =
+      CompileTimeErrorCode('UNCHECKED_USE_OF_NULLABLE_VALUE',
+          "The function can't be unconditionally invoked because it can be 'null'.",
+          correction: "Try adding a null check ('!').",
+          hasPublishedDocs: true,
+          uniqueName: 'UNCHECKED_INVOCATION_OF_NULLABLE_VALUE');
+
+  static const CompileTimeErrorCode
+      UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE = CompileTimeErrorCode(
+          'UNCHECKED_USE_OF_NULLABLE_VALUE',
+          "The method '{0}' can't be unconditionally invoked because the "
+              "receiver can be 'null'.",
+          correction:
+              "Try making the call conditional (using '?.') or adding a null "
+              "check to the target ('!').",
+          hasPublishedDocs: true,
+          uniqueName: 'UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE');
+
+  static const CompileTimeErrorCode
+      UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE = CompileTimeErrorCode(
+          'UNCHECKED_USE_OF_NULLABLE_VALUE',
+          "The operator '{0}' can't be unconditionally invoked because the "
+              "receiver can be 'null'.",
+          correction: "Try adding a null check to the target ('!').",
+          hasPublishedDocs: true,
+          uniqueName: 'UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE');
+
+  static const CompileTimeErrorCode
+      UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE = CompileTimeErrorCode(
+          'UNCHECKED_USE_OF_NULLABLE_VALUE',
+          "The property '{0}' can't be unconditionally accessed because the "
+              "receiver can be 'null'.",
+          correction:
+              "Try making the access conditional (using '?.') or adding a null "
+              "check to the target ('!').",
+          hasPublishedDocs: true,
+          uniqueName: 'UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE');
+
   /**
    * No parameters.
    */
@@ -9805,6 +9852,46 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "Try checking that the value isn't 'null' before dereferencing "
               "it.",
           hasPublishedDocs: true);
+
+  static const CompileTimeErrorCode
+      UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION = CompileTimeErrorCode(
+          'UNCHECKED_USE_OF_NULLABLE_VALUE',
+          "A nullable expression can't be used as a condition.",
+          correction:
+              "Try checking that the value isn't 'null' before using it as a "
+              'condition.',
+          hasPublishedDocs: true,
+          uniqueName: 'UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION');
+
+  static const CompileTimeErrorCode
+      UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR = CompileTimeErrorCode(
+          'UNCHECKED_USE_OF_NULLABLE_VALUE',
+          "A nullable expression can't be used as an iterator in a for-in "
+              'loop.',
+          correction:
+              "Try checking that the value isn't 'null' before using it as an "
+              'iterator.',
+          hasPublishedDocs: true,
+          uniqueName: 'UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR');
+
+  static const CompileTimeErrorCode UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD =
+      CompileTimeErrorCode('UNCHECKED_USE_OF_NULLABLE_VALUE',
+          "A nullable expression can't be used in a spread.",
+          correction:
+              "Try checking that the value isn't 'null' before using it in a "
+              'spread, or use a null-aware spread.',
+          hasPublishedDocs: true,
+          uniqueName: 'UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD');
+
+  static const CompileTimeErrorCode
+      UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH = CompileTimeErrorCode(
+          'UNCHECKED_USE_OF_NULLABLE_VALUE',
+          "A nullable expression can't be used in a yield-each statement.",
+          correction:
+              "Try checking that the value isn't 'null' before using it in a "
+              'yield-each statement.',
+          hasPublishedDocs: true,
+          uniqueName: 'UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH');
 
   /**
    * No parameters.
@@ -9893,12 +9980,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Same as [CompileTimeErrorCode.UNDEFINED_CLASS], but to catch using
-   * "boolean" instead of "bool".
+   * "boolean" instead of "bool" in order to improve the correction message.
+   *
+   * Parameters:
+   * 0: the name of the undefined class
    */
   static const CompileTimeErrorCode UNDEFINED_CLASS_BOOLEAN =
-      CompileTimeErrorCode(
-          'UNDEFINED_CLASS_BOOLEAN', "Undefined class 'boolean'.",
-          correction: "Try using the type 'bool'.");
+      CompileTimeErrorCode('UNDEFINED_CLASS', "Undefined class '{0}'.",
+          correction: "Try using the type 'bool'.",
+          hasPublishedDocs: true,
+          isUnresolvedIdentifier: true,
+          uniqueName: 'UNDEFINED_CLASS_BOOLEAN');
 
   /**
    * Parameters:
@@ -11172,8 +11264,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   static const CompileTimeErrorCode
       WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS = CompileTimeErrorCode(
-          'WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS',
-          "Operator '-' should declare 0 or 1 parameter, but {0} found.");
+          'WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR',
+          "Operator '-' should declare 0 or 1 parameter, but {0} found.",
+          hasPublishedDocs: true,
+          uniqueName: 'WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS');
 
   /**
    * No parameters.

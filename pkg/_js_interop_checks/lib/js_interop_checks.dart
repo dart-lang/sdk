@@ -34,6 +34,24 @@ class JsInteropChecks extends RecursiveVisitor<void> {
   JsInteropChecks(
       this._coreTypes, this._diagnosticsReporter, this._nativeClasses);
 
+  /// Extract all native class names from the [component].
+  ///
+  /// Returns a map from the name to the underlying Class node. This is a
+  /// static method so that the result can be cached in the corresponding
+  /// compiler target.
+  static Map<String, Class> getNativeClasses(Component component) {
+    Map<String, Class> nativeClasses = {};
+    for (var library in component.libraries) {
+      for (var cls in library.classes) {
+        var nativeNames = getNativeNames(cls);
+        for (var nativeName in nativeNames) {
+          nativeClasses[nativeName] = cls;
+        }
+      }
+    }
+    return nativeClasses;
+  }
+
   @override
   void defaultMember(Member member) {
     _checkJSInteropAnnotation(member);

@@ -4,6 +4,7 @@
 
 #include "vm/compiler/ffi/callback.h"
 
+#include "vm/class_finalizer.h"
 #include "vm/symbols.h"
 
 namespace dart {
@@ -12,7 +13,7 @@ namespace compiler {
 
 namespace ffi {
 
-FunctionPtr NativeCallbackFunction(const Function& c_signature,
+FunctionPtr NativeCallbackFunction(const FunctionType& c_signature,
                                    const Function& dart_target,
                                    const Instance& exceptional_return) {
   Thread* const thread = Thread::Current();
@@ -20,7 +21,7 @@ FunctionPtr NativeCallbackFunction(const Function& c_signature,
 
   // Create a new Function named '<target>_FfiCallback' and stick it in the
   // 'dart:ffi' library. Note that these functions will never be invoked by
-  // Dart, so they have may have duplicate names.
+  // Dart, so they may have duplicate names.
   Zone* const zone = thread->zone();
   const auto& name = String::Handle(
       zone, Symbols::FromConcat(thread, Symbols::FfiCallback(),
@@ -28,7 +29,8 @@ FunctionPtr NativeCallbackFunction(const Function& c_signature,
   const Library& lib = Library::Handle(zone, Library::FfiLibrary());
   const Class& owner_class = Class::Handle(zone, lib.toplevel_class());
   const Function& function =
-      Function::Handle(zone, Function::New(name, FunctionLayout::kFfiTrampoline,
+      Function::Handle(zone, Function::New(Object::null_function_type(), name,
+                                           UntaggedFunction::kFfiTrampoline,
                                            /*is_static=*/true,
                                            /*is_const=*/false,
                                            /*is_abstract=*/false,
@@ -58,7 +60,7 @@ FunctionPtr NativeCallbackFunction(const Function& c_signature,
     function.SetFfiCallbackExceptionalReturn(exceptional_return);
   }
 
-  return function.raw();
+  return function.ptr();
 }
 
 }  // namespace ffi

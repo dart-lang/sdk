@@ -6,7 +6,6 @@ import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -15,7 +14,6 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
-import 'package:analyzer/src/generated/testing/element_search.dart';
 import 'package:analyzer/src/test_utilities/mock_packages.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
@@ -93,13 +91,6 @@ class AbstractContextTest with ResourceProviderMixin {
   AnalysisDriver driverFor(String path) {
     var context = contextFor(path) as DriverBasedAnalysisContext;
     return context.driver;
-  }
-
-  Element findElementInUnit(CompilationUnit unit, String name,
-      [ElementKind kind]) {
-    return findElementsByName(unit, name)
-        .where((e) => kind == null || e.kind == kind)
-        .single;
   }
 
   @override

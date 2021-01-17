@@ -193,7 +193,7 @@ static int LowestFirst(const intptr_t* a, const intptr_t* b) {
 static ArrayPtr AsSortedDuplicateFreeArray(GrowableArray<intptr_t>* source) {
   intptr_t size = source->length();
   if (size == 0) {
-    return Object::empty_array().raw();
+    return Object::empty_array().ptr();
   }
 
   source->Sort(LowestFirst);
@@ -211,7 +211,7 @@ static ArrayPtr AsSortedDuplicateFreeArray(GrowableArray<intptr_t>* source) {
     smi_value = Smi::New(source->At(i));
     array_object.SetAt(i, smi_value);
   }
-  return array_object.raw();
+  return array_object.ptr();
 }
 
 static void CollectKernelDataTokenPositions(
@@ -244,9 +244,9 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
 
   GrowableArray<intptr_t> token_positions(10);
 
-  Isolate* isolate = thread->isolate();
-  const GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(zone, isolate->object_store()->libraries());
+  auto isolate_group = thread->isolate_group();
+  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
+      zone, isolate_group->object_store()->libraries());
   Library& lib = Library::Handle(zone);
   Object& entry = Object::Handle(zone);
   Script& entry_script = Script::Handle(zone);
@@ -264,7 +264,7 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
       data = ExternalTypedData::null();
       if (entry.IsClass()) {
         const Class& klass = Class::Cast(entry);
-        if (klass.script() == interesting_script.raw()) {
+        if (klass.script() == interesting_script.ptr()) {
           token_positions.Add(klass.token_pos().Serialize());
           token_positions.Add(klass.end_token_pos().Serialize());
         }
@@ -277,7 +277,7 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
               continue;
             }
             entry_script = temp_field.Script();
-            if (entry_script.raw() != interesting_script.raw()) {
+            if (entry_script.ptr() != interesting_script.ptr()) {
               continue;
             }
             data = temp_field.KernelData();
@@ -291,7 +291,7 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
           for (intptr_t i = 0; i < temp_array.Length(); ++i) {
             temp_function ^= temp_array.At(i);
             entry_script = temp_function.script();
-            if (entry_script.raw() != interesting_script.raw()) {
+            if (entry_script.ptr() != interesting_script.ptr()) {
               continue;
             }
             data = temp_function.KernelData();
@@ -311,7 +311,7 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
           const intptr_t class_offset = klass.kernel_offset();
 
           entry_script = klass.script();
-          if (entry_script.raw() != interesting_script.raw()) {
+          if (entry_script.ptr() != interesting_script.ptr()) {
             continue;
           }
           CollectKernelDataTokenPositions(
@@ -319,9 +319,9 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
               library_kernel_offset, zone, &helper, &token_positions);
         }
       } else if (entry.IsFunction()) {
-        temp_function ^= entry.raw();
+        temp_function ^= entry.ptr();
         entry_script = temp_function.script();
-        if (entry_script.raw() != interesting_script.raw()) {
+        if (entry_script.ptr() != interesting_script.ptr()) {
           continue;
         }
         data = temp_function.KernelData();
@@ -336,7 +336,7 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
           continue;
         }
         entry_script = field.Script();
-        if (entry_script.raw() != interesting_script.raw()) {
+        if (entry_script.ptr() != interesting_script.ptr()) {
           continue;
         }
         data = field.KernelData();
@@ -347,7 +347,7 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
     }
   }
 
-  Script& script = Script::Handle(zone, interesting_script.raw());
+  Script& script = Script::Handle(zone, interesting_script.ptr());
   Array& array_object = Array::Handle(zone);
   array_object = AsSortedDuplicateFreeArray(&token_positions);
   script.set_debug_positions(array_object);
@@ -379,7 +379,7 @@ ArrayPtr CollectConstConstructorCoverageFrom(const Script& interesting_script) {
         zone, helper.LookupConstructorByKernelConstructor(klass, kernel_name));
     constructors.SetAt(i, target);
   }
-  return constructors.raw();
+  return constructors.ptr();
 }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -575,7 +575,7 @@ ObjectPtr ParameterDescriptorBuilder::BuildParameterDescriptor(
                              Object::null_instance());
     }
   }
-  return param_descriptor.raw();
+  return param_descriptor.ptr();
 }
 
 ObjectPtr BuildParameterDescriptor(const Function& function) {

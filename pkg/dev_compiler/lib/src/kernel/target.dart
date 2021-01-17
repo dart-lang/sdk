@@ -17,7 +17,6 @@ import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/transformations/track_widget_constructor_locations.dart';
 import 'package:_js_interop_checks/js_interop_checks.dart';
-import 'package:_js_interop_checks/src/js_interop.dart';
 
 import 'constants.dart' show DevCompilerConstantsBackend;
 import 'kernel_helpers.dart';
@@ -30,6 +29,8 @@ class DevCompilerTarget extends Target {
   final TargetFlags flags;
 
   WidgetCreatorTracker _widgetTracker;
+
+  Map<String, Class> _nativeClasses;
 
   @override
   bool get enableSuperMixins => true;
@@ -117,9 +118,7 @@ class DevCompilerTarget extends Target {
   bool _allowedTestLibrary(Uri uri) {
     // Multi-root scheme used by modular test framework.
     if (uri.scheme == 'dev-dart-app') return true;
-
-    var scriptName = uri.path;
-    return scriptName.contains('tests/dartdevc');
+    return allowedNativeTest(uri);
   }
 
   bool _allowedDartLibrary(Uri uri) => uri.scheme == 'dart';
@@ -153,21 +152,13 @@ class DevCompilerTarget extends Target {
       ReferenceFromIndex referenceFromIndex,
       {void Function(String msg) logger,
       ChangedStructureNotifier changedStructureNotifier}) {
-    var nativeClasses = <String, Class>{};
-    for (var library in component.libraries) {
-      for (var cls in library.classes) {
-        var nativeNames = getNativeNames(cls);
-        for (var nativeName in nativeNames) {
-          nativeClasses[nativeName] = cls;
-        }
-      }
-    }
+    _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();
       JsInteropChecks(
               coreTypes,
               diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
-              nativeClasses)
+              _nativeClasses)
           .visitLibrary(library);
     }
   }
@@ -455,4 +446,17 @@ class _CovarianceTransformer extends RecursiveVisitor<void> {
     _checkTarget(node.left, node.interfaceTarget);
     super.visitEqualsCall(node);
   }
+}
+
+List<Pattern> _allowedNativeTestPatterns = [
+  'tests/dartdevc',
+  'tests/dart2js/native',
+  'tests/dart2js_2/native',
+  'tests/dart2js/internal',
+  'tests/dart2js_2/internal',
+];
+
+bool allowedNativeTest(Uri uri) {
+  var path = uri.path;
+  return _allowedNativeTestPatterns.any((pattern) => path.contains(pattern));
 }

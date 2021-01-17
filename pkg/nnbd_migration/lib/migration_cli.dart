@@ -517,6 +517,12 @@ class MigrationCliRunner implements DartFixListenerClient {
 
   bool _hasAnalysisErrors = false;
 
+  /// Subscription of interrupt signals (control-C).
+  StreamSubscription<ProcessSignal> _sigIntSubscription;
+
+  /// Completes when an interrupt signal (control-C) is received.
+  Completer<void> sigIntSignalled;
+
   MigrationCliRunner(this.cli, this.options, {Logger logger})
       : logger = logger ?? cli.logger;
 
@@ -549,7 +555,7 @@ class MigrationCliRunner implements DartFixListenerClient {
 
   @visibleForTesting
   bool get isPreviewServerRunning =>
-      _fixCodeProcessor?.isPreviewServerRunnning ?? false;
+      _fixCodeProcessor?.isPreviewServerRunning ?? false;
 
   Context get pathContext => resourceProvider.pathContext;
 
@@ -558,14 +564,6 @@ class MigrationCliRunner implements DartFixListenerClient {
   /// Called after changes have been applied on disk.  Maybe overridden by a
   /// derived class.
   void applyHook() {}
-
-  /// Blocks until an interrupt signal (control-C) is received.  Tests may
-  /// override this method to simulate control-C.
-  @visibleForTesting
-  Future<void> blockUntilSignalInterrupt() {
-    Stream<ProcessSignal> stream = ProcessSignal.sigint.watch();
-    return stream.first;
-  }
 
   /// Computes the internet address that should be passed to `HttpServer.bind`
   /// when starting the preview server.  May be overridden in derived classes.
@@ -605,12 +603,24 @@ class MigrationCliRunner implements DartFixListenerClient {
       int preferredPort,
       String summaryPath,
       @required String sdkPath}) {
-    return NonNullableFix(
-        listener, resourceProvider, getLineInfo, bindAddress, logger,
+    return NonNullableFix(listener, resourceProvider, getLineInfo, bindAddress,
+        logger, (String path) => shouldBeMigrated(path),
         included: included,
         preferredPort: preferredPort,
         summaryPath: summaryPath,
         sdkPath: sdkPath);
+  }
+
+  /// Subscribes to the interrupt signal (control-C).
+  @visibleForTesting
+  void listenForSignalInterrupt() {
+    var stream = ProcessSignal.sigint.watch();
+    sigIntSignalled = Completer();
+    _sigIntSubscription = stream.listen((_) {
+      if (!sigIntSignalled.isCompleted) {
+        sigIntSignalled.complete();
+      }
+    });
   }
 
   @override
@@ -693,14 +703,12 @@ Exception details:
       logger.stdout('');
     }
 
-    DriverBasedAnalysisContext context = analysisContext;
-
     NonNullableFix nonNullableFix;
 
     logger.stdout(ansi.emphasized('Analyzing project...'));
-    _fixCodeProcessor = _FixCodeProcessor(context, this);
-    _dartFixListener =
-        DartFixListener(DriverProviderImpl(resourceProvider, context), this);
+    _fixCodeProcessor = _FixCodeProcessor(analysisContext, this);
+    _dartFixListener = DartFixListener(
+        DriverProviderImpl(resourceProvider, analysisContext), this);
     nonNullableFix = createNonNullableFix(_dartFixListener, resourceProvider,
         _fixCodeProcessor.getLineInfo, computeBindAddress(),
         included: [options.directory],
@@ -772,8 +780,15 @@ sources' action.
 
 ''');
 
-      // Block until sigint (ctrl-c).
-      await blockUntilSignalInterrupt();
+      listenForSignalInterrupt();
+      await Future.any([
+        sigIntSignalled.future,
+        nonNullableFix.serverIsShutdown.future,
+      ]);
+      // Either the interrupt signal was caught, or the server was shutdown.
+      // Either way, cancel the interrupt signal subscription, and shutdown the
+      // server.
+      _sigIntSubscription?.cancel();
       nonNullableFix.shutdownServer();
     } else {
       logger.stdout(ansi.emphasized('Diff of changes:'));
@@ -798,8 +813,26 @@ sources' action.
   /// return additional paths that aren't inside the user's project, but doesn't
   /// override this method, then those additional paths will be analyzed but not
   /// migrated.
-  bool shouldBeMigrated(DriverBasedAnalysisContext context, String path) {
-    return context.contextRoot.isAnalyzed(path);
+  bool shouldBeMigrated(String path) => shouldBeMigrated2(path);
+
+  /// Determines whether a migrated version of the file at [path] should be
+  /// output by the migration too.  May be overridden by a derived class.
+  ///
+  /// This method should return `false` for files that are being considered by
+  /// the migration tool for information only (for example generated files, or
+  /// usages of the code-to-be-migrated by one one of its clients).
+  ///
+  /// By default returns `true` if the file is contained within the context
+  /// root.  This means that if a client overrides [computePathsToProcess] to
+  /// return additional paths that aren't inside the user's project, but doesn't
+  /// override this method, then those additional paths will be analyzed but not
+  /// migrated.
+  ///
+  /// Note: in a future version of the code, this method will be removed;
+  /// clients that are overriding this method should switch to overriding
+  /// [shouldBeMigrated] instead.
+  bool shouldBeMigrated2(String path) {
+    return analysisContext.contextRoot.isAnalyzed(path);
   }
 
   /// Perform the indicated source edits to the given source, returning the
@@ -942,6 +975,7 @@ get erroneous migration suggestions.
           _dartFixListener,
           _fixCodeProcessor._task.instrumentationListener,
           {},
+          _fixCodeProcessor._task.shouldBeMigratedFunction,
           analysisResult);
     } else if (analysisResult.allSourcesAlreadyMigrated) {
       _logAlreadyMigrated();
@@ -951,6 +985,7 @@ get erroneous migration suggestions.
           _dartFixListener,
           _fixCodeProcessor._task.instrumentationListener,
           {},
+          _fixCodeProcessor._task.shouldBeMigratedFunction,
           analysisResult);
     } else {
       logger.stdout(ansi.emphasized('Re-generating migration suggestions...'));
@@ -1029,7 +1064,7 @@ class _FixCodeProcessor extends Object {
   _FixCodeProcessor(this.context, this._migrationCli)
       : pathsToProcess = _migrationCli.computePathsToProcess(context);
 
-  bool get isPreviewServerRunnning => _task?.isPreviewServerRunning ?? false;
+  bool get isPreviewServerRunning => _task?.isPreviewServerRunning ?? false;
 
   LineInfo getLineInfo(String path) =>
       context.currentSession.getFile(path).lineInfo;
@@ -1135,7 +1170,7 @@ class _FixCodeProcessor extends Object {
     });
     await processResources((ResolvedUnitResult result) async {
       _progressBar.tick();
-      if (_migrationCli.shouldBeMigrated(context, result.path)) {
+      if (_migrationCli.shouldBeMigrated(result.path)) {
         await _task.finalizeUnit(result);
       }
     });

@@ -18,8 +18,8 @@ const List<String> extraDebuggingArgs = ['--lazy-async-stacks'];
 
 /// Will be set to the http address of the VM's service protocol before
 /// any tests are invoked.
-String serviceHttpAddress;
-String serviceWebsocketAddress;
+late String serviceHttpAddress;
+late String serviceWebsocketAddress;
 
 const String _TESTEE_ENV_KEY = 'SERVICE_TEST_TESTEE';
 const Map<String, String> _TESTEE_SPAWN_ENV = {_TESTEE_ENV_KEY: 'true'};
@@ -33,7 +33,7 @@ Uri _getTestUri() {
     // We'll need to parse the actual URI out...
     final fileRegExp = RegExp(r'file:\/\/\/.*\.dart');
     final path =
-        fileRegExp.stringMatch(io.Platform.script.data.contentAsString());
+        fileRegExp.stringMatch(io.Platform.script.data!.contentAsString());
     if (path == null) {
       throw 'Unable to determine file path for script!';
     }
@@ -45,8 +45,8 @@ Uri _getTestUri() {
 
 class _ServiceTesteeRunner {
   Future run(
-      {Function() testeeBefore,
-      Function() testeeConcurrent,
+      {Function()? testeeBefore,
+      Function()? testeeConcurrent,
       bool pause_on_start = false,
       bool pause_on_exit = false}) async {
     if (!pause_on_start) {
@@ -72,8 +72,8 @@ class _ServiceTesteeRunner {
   }
 
   void runSync(
-      {void Function() testeeBeforeSync,
-      void Function() testeeConcurrentSync,
+      {void Function()? testeeBeforeSync,
+      void Function()? testeeConcurrentSync,
       bool pause_on_start = false,
       bool pause_on_exit = false}) {
     if (!pause_on_start) {
@@ -93,7 +93,7 @@ class _ServiceTesteeRunner {
 }
 
 class _ServiceTesteeLauncher {
-  io.Process process;
+  io.Process? process;
   List<String> args;
   bool killedByTester = false;
 
@@ -106,13 +106,8 @@ class _ServiceTesteeLauncher {
     bool pause_on_unhandled_exceptions,
     bool testeeControlsServer,
     bool useAuthToken,
-    List<String> extraArgs,
+    List<String>? extraArgs,
   ) {
-    assert(pause_on_start != null);
-    assert(pause_on_exit != null);
-    assert(pause_on_unhandled_exceptions != null);
-    assert(testeeControlsServer != null);
-    assert(useAuthToken != null);
     return _spawnDartProcess(
         pause_on_start,
         pause_on_exit,
@@ -128,7 +123,7 @@ class _ServiceTesteeLauncher {
       bool pause_on_unhandled_exceptions,
       bool testeeControlsServer,
       bool useAuthToken,
-      List<String> extraArgs) {
+      List<String>? extraArgs) {
     String dartExecutable = io.Platform.executable;
 
     var fullArgs = <String>[
@@ -160,16 +155,14 @@ class _ServiceTesteeLauncher {
     return _spawnCommon(dartExecutable, fullArgs, <String, String>{});
   }
 
-  Future<io.Process> _spawnCommon(String executable, List<String> arguments,
-      Map<String, String> dartEnvironment) {
+  Future<io.Process> _spawnCommon(String executable,
+      List<String> /*!*/ arguments, Map<String, String> dartEnvironment) {
     var environment = _TESTEE_SPAWN_ENV;
     var bashEnvironment = StringBuffer();
     environment.forEach((k, v) => bashEnvironment.write("$k=$v "));
-    if (dartEnvironment != null) {
-      dartEnvironment.forEach((k, v) {
-        arguments.insert(0, '-D$k=$v');
-      });
-    }
+    dartEnvironment.forEach((k, v) {
+      arguments.insert(0, '-D$k=$v');
+    });
     print('** Launching $bashEnvironment$executable ${arguments.join(' ')}');
     return io.Process.start(executable, arguments, environment: environment);
   }
@@ -180,7 +173,7 @@ class _ServiceTesteeLauncher {
       bool pause_on_unhandled_exceptions,
       bool testeeControlsServer,
       bool useAuthToken,
-      List<String> extraArgs) {
+      List<String>? extraArgs) {
     return _spawnProcess(
             pause_on_start,
             pause_on_exit,
@@ -191,10 +184,10 @@ class _ServiceTesteeLauncher {
         .then((p) {
       Completer<Uri> completer = Completer<Uri>();
       process = p;
-      Uri uri;
+      Uri? uri;
       var blank;
       var first = true;
-      process.stdout
+      process!.stdout
           .transform(utf8.decoder)
           .transform(LineSplitter())
           .listen((line) {
@@ -214,15 +207,15 @@ class _ServiceTesteeLauncher {
         }
         io.stdout.write('>testee>out> ${line}\n');
       });
-      process.stderr
+      process!.stderr
           .transform(utf8.decoder)
           .transform(LineSplitter())
           .listen((line) {
         io.stdout.write('>testee>err> ${line}\n');
       });
-      process.exitCode.then((exitCode) {
+      process!.exitCode.then((exitCode) {
         if ((io.exitCode != 0) && !killedByTester) {
-          throw "Testee io.exited with $exitCode";
+          throw "Testee exited with $exitCode";
         }
         print("** Process exited");
       });
@@ -233,14 +226,14 @@ class _ServiceTesteeLauncher {
   void requestExit() {
     if (process != null) {
       print('** Killing script');
-      if (process.kill()) {
+      if (process!.kill()) {
         killedByTester = true;
       }
     }
   }
 }
 
-void setupAddresses(Uri serverAddress) {
+void setupAddresses(Uri /*!*/ serverAddress) {
   serviceWebsocketAddress =
       'ws://${serverAddress.authority}${serverAddress.path}ws';
   serviceHttpAddress = 'http://${serverAddress.authority}${serverAddress.path}';
@@ -248,10 +241,10 @@ void setupAddresses(Uri serverAddress) {
 
 class _ServiceTesterRunner {
   Future run(
-      {List<String> mainArgs,
-      List<String> extraArgs,
-      List<VMTest> vmTests,
-      List<IsolateTest> isolateTests,
+      {List<String>? mainArgs,
+      List<String>? extraArgs,
+      List<VMTest>? vmTests,
+      List<IsolateTest>? isolateTests,
       bool pause_on_start = false,
       bool pause_on_exit = false,
       bool verbose_vm = false,
@@ -259,15 +252,15 @@ class _ServiceTesterRunner {
       bool testeeControlsServer = false,
       bool useAuthToken = false}) async {
     var process = _ServiceTesteeLauncher();
-    VmService vm;
-    IsolateRef isolate;
+    late VmService vm;
+    late IsolateRef isolate;
     setUp(() async {
       await process
           .launch(pause_on_start, pause_on_exit, pause_on_unhandled_exceptions,
               testeeControlsServer, useAuthToken, extraArgs)
           .then((Uri serverAddress) async {
-        if (mainArgs.contains("--gdb")) {
-          var pid = process.process.pid;
+        if (mainArgs!.contains("--gdb")) {
+          var pid = process.process!.pid;
           var wait = Duration(seconds: 10);
           print("Testee has pid $pid, waiting $wait before continuing");
           io.sleep(wait);
@@ -322,8 +315,8 @@ class _ServiceTesterRunner {
     if (vm.isolates.isNotEmpty) {
       return vm.isolates.first;
     }
-    var completer = Completer();
-    StreamSubscription subscription;
+    Completer<dynamic>? completer = Completer();
+    late StreamSubscription subscription;
     subscription = service.onIsolateEvent.listen((Event event) async {
       if (completer == null) {
         await subscription.cancel();
@@ -333,7 +326,7 @@ class _ServiceTesterRunner {
         vm = await service.getVM();
         assert(vm.isolates.isNotEmpty);
         await subscription.cancel();
-        completer.complete(vm.isolates.first);
+        completer!.complete(vm.isolates.first);
         completer = null;
       }
     });
@@ -342,10 +335,10 @@ class _ServiceTesterRunner {
     vm = await service.getVM();
     if (vm.isolates.isNotEmpty) {
       await subscription.cancel();
-      completer.complete(vm.isolates.first);
+      completer!.complete(vm.isolates.first);
       completer = null;
     }
-    return await completer.future;
+    return await (completer!.future as FutureOr<IsolateRef>);
   }
 }
 
@@ -356,15 +349,15 @@ class _ServiceTesterRunner {
 Future<void> runIsolateTests(
   List<String> mainArgs,
   List<IsolateTest> tests, {
-  testeeBefore(),
-  testeeConcurrent(),
+  testeeBefore()?,
+  testeeConcurrent()?,
   bool pause_on_start = false,
   bool pause_on_exit = false,
   bool verbose_vm = false,
   bool pause_on_unhandled_exceptions = false,
   bool testeeControlsServer = false,
   bool useAuthToken = false,
-  List<String> extraArgs,
+  List<String>? extraArgs,
 }) async {
   assert(!pause_on_start || testeeBefore == null);
   if (_isTestee()) {
@@ -399,13 +392,13 @@ Future<void> runIsolateTests(
 void runIsolateTestsSynchronous(
   List<String> mainArgs,
   List<IsolateTest> tests, {
-  void testeeBefore(),
-  void testeeConcurrent(),
+  void testeeBefore()?,
+  void testeeConcurrent()?,
   bool pause_on_start = false,
   bool pause_on_exit = false,
   bool verbose_vm = false,
   bool pause_on_unhandled_exceptions = false,
-  List<String> extraArgs,
+  List<String>? extraArgs,
 }) {
   assert(!pause_on_start || testeeBefore == null);
   if (_isTestee()) {
@@ -433,13 +426,13 @@ void runIsolateTestsSynchronous(
 Future<void> runVMTests(
   List<String> mainArgs,
   List<VMTest> tests, {
-  testeeBefore(),
-  testeeConcurrent(),
+  testeeBefore()?,
+  testeeConcurrent()?,
   bool pause_on_start = false,
   bool pause_on_exit = false,
   bool verbose_vm = false,
   bool pause_on_unhandled_exceptions = false,
-  List<String> extraArgs,
+  List<String>? extraArgs,
 }) async {
   if (_isTestee()) {
     await _ServiceTesteeRunner().run(

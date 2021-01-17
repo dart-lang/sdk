@@ -125,7 +125,7 @@ static method use(dynamic object) → void {
   [@vm.inferred-type.metadata=!? (receiver not int)] self::usedObject.{core::Object::==}(null) ?{dynamic} self::usedObject = object : null;
 }
 static method main() → dynamic {
-  final core::List<core::Object*>* values = <core::Object*>[new self::Impl1::•(), new self::BaseImpl2::•(), new self::SubImpl3::•()];
+  final core::List<core::Object*>* values = [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::Object*>] core::_GrowableList::_literal3<core::Object*>(new self::Impl1::•(), new self::BaseImpl2::•(), new self::SubImpl3::•());
   final self::Impl1* a = [@vm.direct-call.metadata=dart.core::_GrowableList.[]] [@vm.inferred-type.metadata=!? (skip check)] values.{core::List::[]}([@vm.inferred-type.metadata=int] core::int::parse("0")) as self::Impl1*;
   final self::BaseImpl2* b = [@vm.direct-call.metadata=dart.core::_GrowableList.[]] [@vm.inferred-type.metadata=!? (skip check)] values.{core::List::[]}([@vm.inferred-type.metadata=int] core::int::parse("1")) as self::BaseImpl2*;
   final self::SubImpl3* c = [@vm.direct-call.metadata=dart.core::_GrowableList.[]] [@vm.inferred-type.metadata=!? (skip check)] values.{core::List::[]}([@vm.inferred-type.metadata=int] core::int::parse("2")) as self::SubImpl3*;

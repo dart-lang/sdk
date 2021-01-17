@@ -663,10 +663,9 @@ class Compiler extends NamedEnum {
 
       case Compiler.dartdevc:
       case Compiler.dartdevk:
-        // TODO(rnystrom): Expand to support other JS execution environments
-        // (other browsers, d8) when tested and working.
         return const [
           Runtime.none,
+          Runtime.d8,
           Runtime.chrome,
           Runtime.edge,
           Runtime.firefox,

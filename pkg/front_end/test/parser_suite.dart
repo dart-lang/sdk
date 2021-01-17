@@ -101,6 +101,9 @@ class Context extends ChainContext with MatchContext {
   @override
   String get updateExpectationsOption => '${UPDATE_EXPECTATIONS}=true';
 
+  @override
+  bool get canBeFixWithUpdateExpectations => true;
+
   final bool addTrace;
   final bool annotateLines;
   final String suiteName;
@@ -450,6 +453,14 @@ class ParserTestListenerWithMessageFormatting extends ParserTestListener {
       doPrint("");
       doPrint("// Line ${location.line}: $sourceLine");
     }
+  }
+
+  bool checkEof(Token token) {
+    bool result = super.checkEof(token);
+    if (result) {
+      errors.add("WARNING: Reporting at eof --- see below for details.");
+    }
+    return result;
   }
 
   void handleRecoverableError(

@@ -303,7 +303,7 @@ void FlowGraphTypePropagator::CheckNonNullSelector(
   }
   Thread* thread = Thread::Current();
   const Class& null_class =
-      Class::Handle(thread->isolate()->object_store()->null_class());
+      Class::Handle(thread->isolate_group()->object_store()->null_class());
   Function& target = Function::Handle();
   if (Error::Handle(null_class.EnsureIsFinalized(thread)).IsNull()) {
     target = Resolver::ResolveDynamicAnyArgs(thread->zone(), null_class,
@@ -393,7 +393,7 @@ void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
   } else if ((is_simple_instance_of || (instance_of != NULL)) &&
              comparison->InputAt(1)->BindsToConstant() &&
              comparison->InputAt(1)->BoundConstant().IsBool()) {
-    if (comparison->InputAt(1)->BoundConstant().raw() == Bool::False().raw()) {
+    if (comparison->InputAt(1)->BoundConstant().ptr() == Bool::False().ptr()) {
       negated = !negated;
     }
     BlockEntryInstr* true_successor =
@@ -564,7 +564,8 @@ void CompileType::Union(CompileType* other) {
 
   // Climb up the hierarchy to find a suitable supertype. Note that interface
   // types are not considered, making the union potentially non-commutative
-  if (abstract_type->IsInstantiated() && !abstract_type->IsDynamicType()) {
+  if (abstract_type->IsInstantiated() && !abstract_type->IsDynamicType() &&
+      !abstract_type->IsFunctionType()) {
     Class& cls = Class::Handle(abstract_type->type_class());
     for (; !cls.IsNull() && !cls.IsGeneric(); cls = cls.SuperClass()) {
       type_ = &AbstractType::ZoneHandle(cls.RareType());
@@ -775,8 +776,8 @@ const AbstractType* CompileType::ToAbstractType() {
       return type_;
     }
 
-    Isolate* I = Isolate::Current();
-    const Class& type_class = Class::Handle(I->class_table()->At(cid_));
+    auto IG = IsolateGroup::Current();
+    const Class& type_class = Class::Handle(IG->class_table()->At(cid_));
     type_ = &AbstractType::ZoneHandle(type_class.RareType());
   }
 
@@ -862,7 +863,7 @@ static bool CanPotentiallyBeSmi(const AbstractType& type, bool recurse) {
     // *not* assignable to it (because int implements Comparable<num> and not
     // Comparable<int>).
     if (type.IsFutureOrType() ||
-        type.type_class() == CompilerState::Current().ComparableClass().raw()) {
+        type.type_class() == CompilerState::Current().ComparableClass().ptr()) {
       const auto& args = TypeArguments::Handle(Type::Cast(type).arguments());
       const auto& arg0 = AbstractType::Handle(args.TypeAt(0));
       return !recurse || CanPotentiallyBeSmi(arg0, /*recurse=*/true);
@@ -887,7 +888,7 @@ void CompileType::PrintTo(BaseTextBuffer* f) const {
     return;
   } else if ((cid_ != kIllegalCid) && (cid_ != kDynamicCid)) {
     const Class& cls =
-        Class::Handle(Isolate::Current()->class_table()->At(cid_));
+        Class::Handle(IsolateGroup::Current()->class_table()->At(cid_));
     type_name = String::Handle(cls.ScrubbedName()).ToCString();
   } else if (type_ != NULL) {
     type_name = type_->IsDynamicType()
@@ -1145,7 +1146,7 @@ CompileType ParameterInstr::ComputeType() const {
     // Do not trust static parameter type of 'operator ==' as it is a
     // non-nullable Object but VM handles comparison with null in
     // the callee, so 'operator ==' can take null as an argument.
-    if ((function.name() != Symbols::EqualOperator().raw()) &&
+    if ((function.name() != Symbols::EqualOperator().ptr()) &&
         (param->was_type_checked_by_caller() ||
          (is_unchecked_entry_param &&
           !param->is_explicit_covariant_parameter()))) {
@@ -1356,9 +1357,9 @@ static CompileType ComputeListFactoryType(CompileType* inferred_type,
             ? TypeArguments::null_type_arguments()
             : TypeArguments::Cast(type_args_value->BoundConstant());
     const Class& cls =
-        Class::Handle(Isolate::Current()->class_table()->At(cid));
-    Type& type = Type::ZoneHandle(Type::New(
-        cls, type_args, TokenPosition::kNoSource, Nullability::kNonNullable));
+        Class::Handle(IsolateGroup::Current()->class_table()->At(cid));
+    Type& type =
+        Type::ZoneHandle(Type::New(cls, type_args, Nullability::kNonNullable));
     ASSERT(type.IsInstantiated());
     type.SetIsFinalized();
     return CompileType(CompileType::kNonNullable, cid, &type);
@@ -1480,8 +1481,9 @@ CompileType AllocateTypedDataInstr::ComputeType() const {
 CompileType AllocateObjectInstr::ComputeType() const {
   if (!closure_function().IsNull()) {
     ASSERT(cls().id() == kClosureCid);
-    return CompileType(CompileType::kNonNullable, kClosureCid,
-                       &Type::ZoneHandle(closure_function().SignatureType()));
+    const FunctionType& sig =
+        FunctionType::ZoneHandle(closure_function().signature());
+    return CompileType(CompileType::kNonNullable, kClosureCid, &sig);
   }
   // TODO(vegorov): Incorporate type arguments into the returned type.
   return CompileType::FromCid(cls().id());
@@ -1498,7 +1500,7 @@ CompileType LoadClassIdInstr::ComputeType() const {
 CompileType LoadFieldInstr::ComputeType() const {
   const AbstractType& field_type = slot().static_type();
   CompileType compile_type_cid = slot().ComputeCompileType();
-  if (field_type.raw() == AbstractType::null()) {
+  if (field_type.ptr() == AbstractType::null()) {
     return compile_type_cid;
   }
 
@@ -1747,17 +1749,17 @@ static AbstractTypePtr ExtractElementTypeFromArrayType(
         AbstractType::Handle(TypeParameter::Cast(array_type).bound()));
   }
   if (!array_type.IsType()) {
-    return Object::dynamic_type().raw();
+    return Object::dynamic_type().ptr();
   }
   const intptr_t cid = array_type.type_class_id();
   if (cid == kGrowableObjectArrayCid || cid == kArrayCid ||
       cid == kImmutableArrayCid ||
       array_type.type_class() ==
-          Isolate::Current()->object_store()->list_class()) {
+          IsolateGroup::Current()->object_store()->list_class()) {
     const auto& type_args = TypeArguments::Handle(array_type.arguments());
     return type_args.TypeAtNullSafe(Array::kElementTypeTypeArgPos);
   }
-  return Object::dynamic_type().raw();
+  return Object::dynamic_type().ptr();
 }
 
 static AbstractTypePtr GetElementTypeFromArray(Value* array) {
@@ -1768,7 +1770,7 @@ static AbstractTypePtr GetElementTypeFromArray(Value* array) {
     auto& elem_type = AbstractType::Handle(ExtractElementTypeFromArrayType(
         *(array->definition()->Type()->ToAbstractType())));
     if (!elem_type.IsDynamicType()) {
-      return elem_type.raw();
+      return elem_type.ptr();
     }
   }
   return ExtractElementTypeFromArrayType(*(array->Type()->ToAbstractType()));

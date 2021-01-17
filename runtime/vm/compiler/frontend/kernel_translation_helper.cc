@@ -18,6 +18,7 @@
 #define H (translation_helper_)
 #define T (type_translator_)
 #define I Isolate::Current()
+#define IG IsolateGroup::Current()
 
 namespace dart {
 namespace kernel {
@@ -93,7 +94,7 @@ GrowableObjectArrayPtr TranslationHelper::EnsurePotentialPragmaFunctions() {
     funcs = GrowableObjectArray::New(16, Heap::kNew);
     info_.set_potential_pragma_functions(funcs);
   }
-  return funcs.raw();
+  return funcs.ptr();
 }
 
 void TranslationHelper::AddPotentialExtensionLibrary(const Library& library) {
@@ -108,53 +109,53 @@ GrowableObjectArrayPtr TranslationHelper::GetPotentialExtensionLibraries() {
   if (potential_extension_libraries_ != nullptr) {
     GrowableObjectArray* result = potential_extension_libraries_;
     potential_extension_libraries_ = nullptr;
-    return result->raw();
+    return result->ptr();
   }
   return GrowableObjectArray::null();
 }
 
 void TranslationHelper::SetStringOffsets(const TypedData& string_offsets) {
   ASSERT(string_offsets_.IsNull());
-  string_offsets_ = string_offsets.raw();
+  string_offsets_ = string_offsets.ptr();
 }
 
 void TranslationHelper::SetStringData(const ExternalTypedData& string_data) {
   ASSERT(string_data_.IsNull());
-  string_data_ = string_data.raw();
+  string_data_ = string_data.ptr();
 }
 
 void TranslationHelper::SetCanonicalNames(const TypedData& canonical_names) {
   ASSERT(canonical_names_.IsNull());
-  canonical_names_ = canonical_names.raw();
+  canonical_names_ = canonical_names.ptr();
 }
 
 void TranslationHelper::SetMetadataPayloads(
     const ExternalTypedData& metadata_payloads) {
   ASSERT(metadata_payloads_.IsNull());
   ASSERT(Utils::IsAligned(metadata_payloads.DataAddr(0), kWordSize));
-  metadata_payloads_ = metadata_payloads.raw();
+  metadata_payloads_ = metadata_payloads.ptr();
 }
 
 void TranslationHelper::SetMetadataMappings(
     const ExternalTypedData& metadata_mappings) {
   ASSERT(metadata_mappings_.IsNull());
-  metadata_mappings_ = metadata_mappings.raw();
+  metadata_mappings_ = metadata_mappings.ptr();
 }
 
 void TranslationHelper::SetConstants(const Array& constants) {
   ASSERT(constants_.IsNull() ||
          (constants.IsNull() || constants.Length() == 0));
-  constants_ = constants.raw();
+  constants_ = constants.ptr();
 }
 
 void TranslationHelper::SetConstantsTable(
     const ExternalTypedData& constants_table) {
   ASSERT(constants_table_.IsNull());
-  constants_table_ = constants_table.raw();
+  constants_table_ = constants_table.ptr();
 }
 
 void TranslationHelper::SetKernelProgramInfo(const KernelProgramInfo& info) {
-  info_ = info.raw();
+  info_ = info.ptr();
 }
 
 intptr_t TranslationHelper::StringOffset(StringIndex index) const {
@@ -339,7 +340,7 @@ NameIndex TranslationHelper::EnclosingName(NameIndex name) {
 }
 
 InstancePtr TranslationHelper::Canonicalize(const Instance& instance) {
-  if (instance.IsNull()) return instance.raw();
+  if (instance.IsNull()) return instance.ptr();
 
   return instance.Canonicalize(thread());
 }
@@ -390,7 +391,7 @@ String& TranslationHelper::DartSymbolPlain(StringIndex string_index) const {
 const String& TranslationHelper::DartSymbolObfuscate(
     const char* content) const {
   String& result = String::ZoneHandle(Z, Symbols::New(thread_, content));
-  if (I->obfuscate()) {
+  if (IG->obfuscate()) {
     Obfuscator obfuscator(thread_, String::Handle(Z));
     result = obfuscator.Rename(result, true);
   }
@@ -406,7 +407,7 @@ String& TranslationHelper::DartSymbolObfuscate(StringIndex string_index) const {
   }
   String& result =
       String::ZoneHandle(Z, Symbols::FromUTF8(thread_, buffer, length));
-  if (I->obfuscate()) {
+  if (IG->obfuscate()) {
     Obfuscator obfuscator(thread_, String::Handle(Z));
     result = obfuscator.Rename(result, true);
   }
@@ -601,7 +602,7 @@ FieldPtr TranslationHelper::LookupFieldByKernelField(NameIndex kernel_field) {
       Z, klass.LookupFieldAllowPrivate(
              DartSymbolObfuscate(CanonicalNameString(kernel_field))));
   CheckStaticLookup(field);
-  return field.raw();
+  return field.ptr();
 }
 
 FunctionPtr TranslationHelper::LookupStaticMethodByKernelProcedure(
@@ -617,7 +618,7 @@ FunctionPtr TranslationHelper::LookupStaticMethodByKernelProcedure(
     Function& function =
         Function::Handle(Z, library.LookupFunctionAllowPrivate(procedure_name));
     CheckStaticLookup(function);
-    return function.raw();
+    return function.ptr();
   } else {
     ASSERT(IsClass(enclosing));
     Class& klass = Class::Handle(Z, LookupClassByKernelClass(enclosing));
@@ -626,7 +627,7 @@ FunctionPtr TranslationHelper::LookupStaticMethodByKernelProcedure(
     Function& function = Function::ZoneHandle(
         Z, klass.LookupFunctionAllowPrivate(procedure_name));
     CheckStaticLookup(function);
-    return function.raw();
+    return function.ptr();
   }
 }
 
@@ -648,7 +649,7 @@ FunctionPtr TranslationHelper::LookupConstructorByKernelConstructor(
   Function& function = Function::Handle(
       Z, owner.LookupConstructorAllowPrivate(DartConstructorName(constructor)));
   CheckStaticLookup(function);
-  return function.raw();
+  return function.ptr();
 }
 
 FunctionPtr TranslationHelper::LookupConstructorByKernelConstructor(
@@ -685,13 +686,13 @@ FunctionPtr TranslationHelper::LookupMethodByMember(NameIndex target,
 #endif
   CheckStaticLookup(function);
   ASSERT(!function.IsNull());
-  return function.raw();
+  return function.ptr();
 }
 
 FunctionPtr TranslationHelper::LookupDynamicFunction(const Class& klass,
                                                      const String& name) {
   // Search the superclass chain for the selector.
-  Class& iterate_klass = Class::Handle(Z, klass.raw());
+  Class& iterate_klass = Class::Handle(Z, klass.ptr());
   while (!iterate_klass.IsNull()) {
     FunctionPtr function =
         iterate_klass.LookupDynamicFunctionAllowPrivate(name);
@@ -712,8 +713,7 @@ Type& TranslationHelper::GetDeclarationType(const Class& klass) {
     type = klass.DeclarationType();
   } else {
     // Note that the type argument vector is not yet extended.
-    type = Type::New(klass, TypeArguments::Handle(Z, klass.type_parameters()),
-                     klass.token_pos());
+    type = Type::New(klass, TypeArguments::Handle(Z, klass.type_parameters()));
   }
   return type;
 }
@@ -726,23 +726,27 @@ void TranslationHelper::SetupFieldAccessorFunction(
   bool is_method = !function.IsStaticFunction();
   intptr_t parameter_count = (is_method ? 1 : 0) + (is_setter ? 1 : 0);
 
+  const FunctionType& signature = FunctionType::Handle(Z, function.signature());
   function.SetNumOptionalParameters(0, false);
   function.set_num_fixed_parameters(parameter_count);
-  function.set_parameter_types(
-      Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
-  function.CreateNameArrayIncludingFlags(Heap::kNew);
+  if (parameter_count > 0) {
+    signature.set_parameter_types(
+        Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
+  }
+  signature.CreateNameArrayIncludingFlags(Heap::kOld);
 
   intptr_t pos = 0;
   if (is_method) {
-    function.SetParameterTypeAt(pos, GetDeclarationType(klass));
-    function.SetParameterNameAt(pos, Symbols::This());
+    signature.SetParameterTypeAt(pos, GetDeclarationType(klass));
+    signature.SetParameterNameAt(pos, Symbols::This());
     pos++;
   }
   if (is_setter) {
-    function.SetParameterTypeAt(pos, field_type);
-    function.SetParameterNameAt(pos, Symbols::Value());
+    signature.SetParameterTypeAt(pos, field_type);
+    signature.SetParameterNameAt(pos, Symbols::Value());
     pos++;
   }
+  signature.FinalizeNameArrays(function);
 }
 
 void TranslationHelper::ReportError(const char* format, ...) {
@@ -801,14 +805,14 @@ String& TranslationHelper::ManglePrivateName(NameIndex parent,
     const Library& library =
         Library::Handle(Z, LookupLibraryByKernelLibrary(parent));
     *name_to_modify = library.PrivateName(*name_to_modify);
-    if (obfuscate && I->obfuscate()) {
+    if (obfuscate && IG->obfuscate()) {
       const String& library_key = String::Handle(library.private_key());
       Obfuscator obfuscator(thread_, library_key);
       *name_to_modify = obfuscator.Rename(*name_to_modify);
     }
   } else if (symbolize) {
     *name_to_modify = Symbols::New(thread_, *name_to_modify);
-    if (obfuscate && I->obfuscate()) {
+    if (obfuscate && IG->obfuscate()) {
       const String& library_key = String::Handle();
       Obfuscator obfuscator(thread_, library_key);
       *name_to_modify = obfuscator.Rename(*name_to_modify);
@@ -823,14 +827,14 @@ String& TranslationHelper::ManglePrivateName(const Library& library,
                                              bool obfuscate) {
   if (name_to_modify->Length() >= 1 && name_to_modify->CharAt(0) == '_') {
     *name_to_modify = library.PrivateName(*name_to_modify);
-    if (obfuscate && I->obfuscate()) {
+    if (obfuscate && IG->obfuscate()) {
       const String& library_key = String::Handle(library.private_key());
       Obfuscator obfuscator(thread_, library_key);
       *name_to_modify = obfuscator.Rename(*name_to_modify);
     }
   } else if (symbolize) {
     *name_to_modify = Symbols::New(thread_, *name_to_modify);
-    if (obfuscate && I->obfuscate()) {
+    if (obfuscate && IG->obfuscate()) {
       const String& library_key = String::Handle();
       Obfuscator obfuscator(thread_, library_key);
       *name_to_modify = obfuscator.Rename(*name_to_modify);
@@ -1855,7 +1859,7 @@ void LoadingUnitsMetadataHelper::ReadMetadata(intptr_t node_offset) {
     loading_units.SetAt(id, unit);
   }
 
-  ObjectStore* object_store = Isolate::Current()->object_store();
+  ObjectStore* object_store = IG->object_store();
   ASSERT(object_store->loading_units() == Array::null());
   object_store->set_loading_units(loading_units);
 }
@@ -2854,17 +2858,19 @@ intptr_t ActiveClass::MemberTypeParameterCount(Zone* zone) {
   }
 }
 
-ActiveTypeParametersScope::ActiveTypeParametersScope(ActiveClass* active_class,
-                                                     const Function& innermost,
-                                                     Zone* Z)
+ActiveTypeParametersScope::ActiveTypeParametersScope(
+    ActiveClass* active_class,
+    const Function& innermost,
+    const FunctionType* innermost_signature,
+    Zone* Z)
     : active_class_(active_class), saved_(*active_class) {
-  active_class_->enclosing = &innermost;
+  active_class_->enclosing = innermost_signature;
 
   intptr_t num_params = 0;
 
   Function& f = Function::Handle(Z);
   TypeArguments& f_params = TypeArguments::Handle(Z);
-  for (f = innermost.raw(); f.parent_function() != Object::null();
+  for (f = innermost.ptr(); f.parent_function() != Object::null();
        f = f.parent_function()) {
     f_params = f.type_parameters();
     num_params += f_params.Length();
@@ -2875,7 +2881,7 @@ ActiveTypeParametersScope::ActiveTypeParametersScope(ActiveClass* active_class,
       TypeArguments::Handle(Z, TypeArguments::New(num_params));
 
   intptr_t index = num_params;
-  for (f = innermost.raw(); f.parent_function() != Object::null();
+  for (f = innermost.ptr(); f.parent_function() != Object::null();
        f = f.parent_function()) {
     f_params = f.type_parameters();
     for (intptr_t j = f_params.Length() - 1; j >= 0; --j) {
@@ -2888,11 +2894,11 @@ ActiveTypeParametersScope::ActiveTypeParametersScope(ActiveClass* active_class,
 
 ActiveTypeParametersScope::ActiveTypeParametersScope(
     ActiveClass* active_class,
-    const Function* function,
+    const FunctionType* innermost_signature,
     const TypeArguments& new_params,
     Zone* Z)
     : active_class_(active_class), saved_(*active_class) {
-  active_class_->enclosing = function;
+  active_class_->enclosing = innermost_signature;
 
   if (new_params.IsNull()) return;
 
@@ -2919,7 +2925,7 @@ TypeTranslator::TypeTranslator(KernelReaderHelper* helper,
                                ConstantReader* constant_reader,
                                ActiveClass* active_class,
                                bool finalize,
-                               bool apply_legacy_erasure)
+                               bool apply_canonical_type_erasure)
     : helper_(helper),
       constant_reader_(constant_reader),
       translation_helper_(helper->translation_helper_),
@@ -2930,14 +2936,14 @@ TypeTranslator::TypeTranslator(KernelReaderHelper* helper,
       zone_(translation_helper_.zone()),
       result_(AbstractType::Handle(translation_helper_.zone())),
       finalize_(finalize),
-      apply_legacy_erasure_(apply_legacy_erasure) {}
+      apply_canonical_type_erasure_(apply_canonical_type_erasure) {}
 
 AbstractType& TypeTranslator::BuildType() {
   BuildTypeInternal();
 
   // We return a new `ZoneHandle` here on purpose: The intermediate language
   // instructions do not make a copy of the handle, so we do it.
-  return AbstractType::ZoneHandle(Z, result_.raw());
+  return AbstractType::ZoneHandle(Z, result_.ptr());
 }
 
 AbstractType& TypeTranslator::BuildTypeWithoutFinalization() {
@@ -2948,7 +2954,7 @@ AbstractType& TypeTranslator::BuildTypeWithoutFinalization() {
 
   // We return a new `ZoneHandle` here on purpose: The intermediate language
   // instructions do not make a copy of the handle, so we do it.
-  return AbstractType::ZoneHandle(Z, result_.raw());
+  return AbstractType::ZoneHandle(Z, result_.ptr());
 }
 
 void TypeTranslator::BuildTypeInternal() {
@@ -2956,24 +2962,24 @@ void TypeTranslator::BuildTypeInternal() {
   switch (tag) {
     case kInvalidType:
     case kDynamicType:
-      result_ = Object::dynamic_type().raw();
+      result_ = Object::dynamic_type().ptr();
       break;
     case kVoidType:
-      result_ = Object::void_type().raw();
+      result_ = Object::void_type().ptr();
       break;
     case kNeverType: {
-      const Nullability nullability = helper_->ReadNullability();
-      if (apply_legacy_erasure_) {
-        result_ = I->object_store()->null_type();
-      } else {
-        result_ = Type::Handle(Z, I->object_store()->never_type())
-                      .ToNullability(nullability, Heap::kOld);
+      Nullability nullability = helper_->ReadNullability();
+      if (apply_canonical_type_erasure_ &&
+          nullability != Nullability::kNullable) {
+        nullability = Nullability::kLegacy;
       }
+      result_ = Type::Handle(Z, IG->object_store()->never_type())
+                    .ToNullability(nullability, Heap::kOld);
       break;
     }
     case kBottomType:
       // Map Bottom type to Null type until not emitted by CFE anymore.
-      result_ = I->object_store()->null_type();
+      result_ = IG->object_store()->null_type();
       ASSERT(result_.IsNullable());
       break;
     case kInterfaceType:
@@ -3003,7 +3009,7 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
   //   => We therefore ignore errors in `A` or `B`.
 
   Nullability nullability = helper_->ReadNullability();
-  if (apply_legacy_erasure_) {
+  if (apply_canonical_type_erasure_ && nullability != Nullability::kNullable) {
     nullability = Nullability::kLegacy;
   }
 
@@ -3021,8 +3027,7 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
       result_ = Type::Cast(result_).ToNullability(nullability, Heap::kOld);
     } else {
       // Note that the type argument vector is not yet extended.
-      result_ = Type::New(klass, Object::null_type_arguments(),
-                          klass.token_pos(), nullability);
+      result_ = Type::New(klass, Object::null_type_arguments(), nullability);
     }
     return;
   }
@@ -3031,8 +3036,7 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
       helper_->ReadListLength();  // read type_arguments list length.
   const TypeArguments& type_arguments =
       BuildTypeArguments(length);  // read type arguments.
-  result_ =
-      Type::New(klass, type_arguments, TokenPosition::kNoSource, nullability);
+  result_ = Type::New(klass, type_arguments, nullability);
   result_ = result_.NormalizeFutureOrType(Heap::kOld);
   if (finalize_) {
     ASSERT(active_class_->klass != NULL);
@@ -3041,17 +3045,16 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
 }
 
 void TypeTranslator::BuildFunctionType(bool simple) {
-  Function& signature_function = Function::ZoneHandle(
-      Z, Function::NewSignatureFunction(*active_class_->klass,
-                                        active_class_->enclosing != NULL
-                                            ? *active_class_->enclosing
-                                            : Function::Handle(Z),
-                                        TokenPosition::kNoSource));
-
+  const intptr_t num_enclosing_type_arguments =
+      active_class_->enclosing != NULL
+          ? active_class_->enclosing->NumTypeArguments()
+          : 0;
   Nullability nullability = helper_->ReadNullability();
-  if (apply_legacy_erasure_) {
+  if (apply_canonical_type_erasure_ && nullability != Nullability::kNullable) {
     nullability = Nullability::kLegacy;
   }
+  FunctionType& signature = FunctionType::ZoneHandle(
+      Z, FunctionType::New(num_enclosing_type_arguments, nullability));
 
   // Suspend finalization of types inside this one. They will be finalized after
   // the whole function type is constructed.
@@ -3062,13 +3065,14 @@ void TypeTranslator::BuildFunctionType(bool simple) {
   finalize_ = false;
 
   if (!simple) {
-    LoadAndSetupTypeParameters(active_class_, signature_function,
-                               helper_->ReadListLength(), signature_function);
+    LoadAndSetupTypeParameters(
+        active_class_, Object::null_function(), Object::null_class(), signature,
+        helper_->ReadListLength(), active_class_->klass->nnbd_mode());
   }
 
   ActiveTypeParametersScope scope(
-      active_class_, &signature_function,
-      TypeArguments::Handle(Z, signature_function.type_parameters()), Z);
+      active_class_, &signature,
+      TypeArguments::Handle(Z, signature.type_parameters()), Z);
 
   intptr_t required_count;
   intptr_t all_count;
@@ -3085,23 +3089,25 @@ void TypeTranslator::BuildFunctionType(bool simple) {
     all_count = positional_count;
   }
 
-  // The additional first parameter is the receiver type (set to dynamic).
-  signature_function.set_num_fixed_parameters(1 + required_count);
-  signature_function.SetNumOptionalParameters(
-      all_count - required_count, positional_count > required_count);
+  // The additional first parameter is the receiver (type set to dynamic).
+  const intptr_t kImplicitClosureParam = 1;
+  signature.set_num_implicit_parameters(kImplicitClosureParam);
+  signature.set_num_fixed_parameters(kImplicitClosureParam + required_count);
+  signature.SetNumOptionalParameters(all_count - required_count,
+                                     positional_count > required_count);
 
-  signature_function.set_parameter_types(
-      Array::Handle(Z, Array::New(1 + all_count, Heap::kOld)));
-  signature_function.CreateNameArrayIncludingFlags(Heap::kOld);
+  signature.set_parameter_types(Array::Handle(
+      Z, Array::New(kImplicitClosureParam + all_count, Heap::kOld)));
+  signature.CreateNameArrayIncludingFlags(Heap::kOld);
 
   intptr_t pos = 0;
-  signature_function.SetParameterTypeAt(pos, AbstractType::dynamic_type());
-  signature_function.SetParameterNameAt(pos, H.DartSymbolPlain("_receiver_"));
+  signature.SetParameterTypeAt(pos, AbstractType::dynamic_type());
+  signature.SetParameterNameAt(pos, H.DartSymbolPlain("_receiver_"));
   ++pos;
   for (intptr_t i = 0; i < positional_count; ++i, ++pos) {
     BuildTypeInternal();  // read ith positional parameter.
-    signature_function.SetParameterTypeAt(pos, result_);
-    signature_function.SetParameterNameAt(pos, H.DartSymbolPlain("noname"));
+    signature.SetParameterTypeAt(pos, result_);
+    signature.SetParameterNameAt(pos, H.DartSymbolPlain("noname"));
   }
 
   if (!simple) {
@@ -3112,41 +3118,34 @@ void TypeTranslator::BuildFunctionType(bool simple) {
       String& name = H.DartSymbolObfuscate(helper_->ReadStringReference());
       BuildTypeInternal();  // read named_parameters[i].type.
       const uint8_t flags = helper_->ReadFlags();  // read flags
-      signature_function.SetParameterTypeAt(pos, result_);
-      signature_function.SetParameterNameAt(pos, name);
-      if (!apply_legacy_erasure_ &&
-          (flags & static_cast<uint8_t>(NamedTypeFlags::kIsRequired)) != 0) {
-        signature_function.SetIsRequiredAt(pos);
+      signature.SetParameterTypeAt(pos, result_);
+      signature.SetParameterNameAt(pos, name);
+      if ((flags & static_cast<uint8_t>(NamedTypeFlags::kIsRequired)) != 0) {
+        signature.SetIsRequiredAt(pos);
       }
     }
   }
-  signature_function.TruncateUnusedParameterFlags();
+  signature.TruncateUnusedParameterFlags();
 
   if (!simple) {
     helper_->SkipOptionalDartType();  // read typedef type.
   }
 
   BuildTypeInternal();  // read return type.
-  signature_function.set_result_type(result_);
+  signature.set_result_type(result_);
 
   finalize_ = finalize;
 
-  Type& signature_type =
-      Type::ZoneHandle(Z, signature_function.SignatureType(nullability));
-
   if (finalize_) {
-    signature_type ^= ClassFinalizer::FinalizeType(signature_type);
-    // Do not refer to signature_function anymore, since it may have been
-    // replaced during canonicalization.
-    signature_function = Function::null();
+    signature ^= ClassFinalizer::FinalizeType(signature);
   }
 
-  result_ = signature_type.raw();
+  result_ = signature.ptr();
 }
 
 void TypeTranslator::BuildTypeParameterType() {
   Nullability nullability = helper_->ReadNullability();
-  if (apply_legacy_erasure_) {
+  if (apply_canonical_type_erasure_ && nullability != Nullability::kNullable) {
     nullability = Nullability::kLegacy;
   }
 
@@ -3289,8 +3288,7 @@ const TypeArguments& TypeTranslator::BuildInstantiatedTypeArguments(
   // We make a temporary [Type] object and use `ClassFinalizer::FinalizeType` to
   // finalize the argument types.
   // (This can for example make the [type_arguments] vector larger)
-  Type& type = Type::Handle(
-      Z, Type::New(receiver_class, type_arguments, TokenPosition::kNoSource));
+  Type& type = Type::Handle(Z, Type::New(receiver_class, type_arguments));
   if (finalize_) {
     type ^= ClassFinalizer::FinalizeType(type);
   }
@@ -3302,16 +3300,23 @@ const TypeArguments& TypeTranslator::BuildInstantiatedTypeArguments(
 
 void TypeTranslator::LoadAndSetupTypeParameters(
     ActiveClass* active_class,
-    const Object& set_on,
+    const Function& function,
+    const Class& parameterized_class,
+    const FunctionType& parameterized_signature,
     intptr_t type_parameter_count,
-    const Function& parameterized_function) {
+    const NNBDMode nnbd_mode) {
+  ASSERT(parameterized_class.IsNull() != parameterized_signature.IsNull());
   ASSERT(type_parameter_count >= 0);
   if (type_parameter_count == 0) {
     return;
   }
-  ASSERT(set_on.IsClass() || set_on.IsFunction());
-  bool set_on_class = set_on.IsClass();
-  ASSERT(set_on_class == parameterized_function.IsNull());
+
+  // The finalized index of a type parameter can only be determined if the
+  // length of the flattened type argument vector is known, which in turn can
+  // only be determined after the super type and its class have been loaded.
+  // Due to the added complexity of loading classes out of order from the kernel
+  // file, class type parameter indices are not finalized during class loading.
+  // However, function type parameter indices can be immediately finalized.
 
   // First setup the type parameters, so if any of the following code uses it
   // (in a recursive way) we're fine.
@@ -3319,42 +3324,50 @@ void TypeTranslator::LoadAndSetupTypeParameters(
   TypeParameter& parameter = TypeParameter::Handle(Z);
   const Type& null_bound = Type::Handle(Z);
 
-  const NNBDMode nnbd_mode = set_on.IsClass()
-                                 ? Class::Cast(set_on).nnbd_mode()
-                                 : Function::Cast(set_on).nnbd_mode();
   const Nullability nullability = (nnbd_mode == NNBDMode::kOptedInLib)
                                       ? Nullability::kNonNullable
                                       : Nullability::kLegacy;
 
-  // Step a) Create array of [TypeParameter] objects (without bound).
+  // Step a)
+  // - Create array of [TypeParameter] objects (without bound).
+  // - Create array of [String] objects.
   type_parameters = TypeArguments::New(type_parameter_count);
+  intptr_t offset = 0;
+  if (!parameterized_class.IsNull()) {
+    ASSERT(parameterized_class.type_parameters() == TypeArguments::null());
+    parameterized_class.set_type_parameters(type_parameters);
+  } else {
+    ASSERT(parameterized_signature.type_parameters() == TypeArguments::null());
+    parameterized_signature.set_type_parameters(type_parameters);
+    offset = parameterized_signature.NumParentTypeArguments();
+    if (!function.IsNull()) {
+      function.SetNumTypeParameters(type_parameter_count);
+    }
+  }
+
   const Library& lib = Library::Handle(Z, active_class->klass->library());
   {
     AlternativeReadingScope alt(&helper_->reader_);
+    String& name = String::Handle(Z);
     for (intptr_t i = 0; i < type_parameter_count; i++) {
       TypeParameterHelper helper(helper_);
       helper.Finish();
+      if (parameterized_class.IsNull() && function.IsNull()) {
+        // Erase provided name and use a canonical one instead.
+        name = Symbols::NewFormatted(H.thread(), "X%" Pd, offset + i);
+      } else {
+        name = H.DartIdentifier(lib, helper.name_index_).ptr();
+      }
       parameter = TypeParameter::New(
-          set_on_class ? *active_class->klass : Class::Handle(Z),
-          parameterized_function, i,
-          H.DartIdentifier(lib, helper.name_index_),  // read ith name index.
-          null_bound, helper.IsGenericCovariantImpl(), nullability,
-          TokenPosition::kNoSource);
-      parameter.SetCanonical();
-      parameter.SetDeclaration(true);
+          parameterized_class, offset, offset + i, name, null_bound,
+          helper.IsGenericCovariantImpl(), nullability);
       type_parameters.SetTypeAt(i, parameter);
     }
   }
 
-  if (set_on.IsClass()) {
-    Class::Cast(set_on).set_type_parameters(type_parameters);
-  } else {
-    Function::Cast(set_on).set_type_parameters(type_parameters);
-  }
-
-  const Function* enclosing = NULL;
-  if (!parameterized_function.IsNull()) {
-    enclosing = &parameterized_function;
+  const FunctionType* enclosing = NULL;
+  if (!parameterized_signature.IsNull()) {
+    enclosing = &parameterized_signature;
   }
   ActiveTypeParametersScope scope(active_class, enclosing, type_parameters, Z);
 
@@ -3375,9 +3388,8 @@ void TypeTranslator::LoadAndSetupTypeParameters(
     helper.Finish();
   }
 
-  if (set_on.IsFunction()) {
-    Function::Cast(set_on).UpdateCachedDefaultTypeArguments(Thread::Current());
-  }
+  // Note that function.UpdateCachedDefaultTypeArguments() is called in
+  // function.set_signature() and is not required here.
 
   // Fix bounds and default arguments in all derived type parameters (with
   // different nullabilities).
@@ -3388,10 +3400,13 @@ void TypeTranslator::LoadAndSetupTypeParameters(
          i < n; ++i) {
       derived ^= active_class->derived_type_parameters->At(i);
       if (derived.bound() == AbstractType::null() &&
-          (derived.parameterized_class() == set_on.raw() ||
-           derived.parameterized_function() == set_on.raw())) {
-        ASSERT(!derived.IsFinalized());
-        parameter ^= type_parameters.TypeAt(derived.index());
+          ((!parameterized_class.IsNull() &&
+            derived.parameterized_class() == parameterized_class.ptr()) ||
+           (!parameterized_signature.IsNull() &&
+            derived.parameterized_class() == Class::null() &&
+            derived.index() >= offset &&
+            derived.index() < offset + type_parameter_count))) {
+        parameter ^= type_parameters.TypeAt(derived.index() - offset);
         type = parameter.bound();
         derived.set_bound(type);
         type = parameter.default_argument();
@@ -3403,7 +3418,6 @@ void TypeTranslator::LoadAndSetupTypeParameters(
 
 const Type& TypeTranslator::ReceiverType(const Class& klass) {
   ASSERT(!klass.IsNull());
-  ASSERT(!klass.IsTypedefClass());
   // Note that if klass is _Closure, the returned type will be _Closure,
   // and not the signature type.
   Type& type = Type::ZoneHandle(Z);
@@ -3411,7 +3425,7 @@ const Type& TypeTranslator::ReceiverType(const Class& klass) {
     type = klass.DeclarationType();
   } else {
     type = Type::New(klass, TypeArguments::Handle(Z, klass.type_parameters()),
-                     klass.token_pos(), Nullability::kNonNullable);
+                     Nullability::kNonNullable);
   }
   return type;
 }
@@ -3523,13 +3537,16 @@ void TypeTranslator::SetupFunctionParameters(
   bool is_factory = function.IsFactory();
   intptr_t extra_parameters = (is_method || is_closure || is_factory) ? 1 : 0;
 
+  const FunctionType& signature = FunctionType::Handle(Z, function.signature());
+  ASSERT(!signature.IsNull());
   if (!is_factory) {
-    LoadAndSetupTypeParameters(active_class_, function,
-                               helper_->ReadListLength(), function);
+    LoadAndSetupTypeParameters(active_class_, function, Class::Handle(Z),
+                               signature, helper_->ReadListLength(),
+                               function.nnbd_mode());
     function_node_helper->SetJustRead(FunctionNodeHelper::kTypeParameters);
   }
 
-  ActiveTypeParametersScope scope(active_class_, function, Z);
+  ActiveTypeParametersScope scope(active_class_, function, &signature, Z);
 
   function_node_helper->ReadUntilExcluding(
       FunctionNodeHelper::kPositionalParameters);
@@ -3554,23 +3571,27 @@ void TypeTranslator::SetupFunctionParameters(
   }
   intptr_t parameter_count = extra_parameters + total_parameter_count;
 
-  function.set_parameter_types(
-      Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
-  function.CreateNameArrayIncludingFlags(Heap::kOld);
   intptr_t pos = 0;
-  if (is_method) {
-    ASSERT(!klass.IsNull());
-    function.SetParameterTypeAt(pos, H.GetDeclarationType(klass));
-    function.SetParameterNameAt(pos, Symbols::This());
-    pos++;
-  } else if (is_closure) {
-    function.SetParameterTypeAt(pos, AbstractType::dynamic_type());
-    function.SetParameterNameAt(pos, Symbols::ClosureParameter());
-    pos++;
-  } else if (is_factory) {
-    function.SetParameterTypeAt(pos, AbstractType::dynamic_type());
-    function.SetParameterNameAt(pos, Symbols::TypeArgumentsParameter());
-    pos++;
+  if (parameter_count > 0) {
+    signature.set_parameter_types(
+        Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
+    signature.CreateNameArrayIncludingFlags(Heap::kOld);
+    if (is_method) {
+      ASSERT(!klass.IsNull());
+      signature.SetParameterTypeAt(pos, H.GetDeclarationType(klass));
+      signature.SetParameterNameAt(pos, Symbols::This());
+      pos++;
+    } else if (is_closure) {
+      signature.SetParameterTypeAt(pos, AbstractType::dynamic_type());
+      signature.SetParameterNameAt(pos, Symbols::ClosureParameter());
+      pos++;
+    } else if (is_factory) {
+      signature.SetParameterTypeAt(pos, AbstractType::dynamic_type());
+      signature.SetParameterNameAt(pos, Symbols::TypeArgumentsParameter());
+      pos++;
+    }
+  } else {
+    ASSERT(!is_method && !is_closure && !is_factory);
   }
 
   const Library& lib = Library::Handle(Z, active_class_->klass->library());
@@ -3586,8 +3607,9 @@ void TypeTranslator::SetupFunctionParameters(
       helper_->SkipExpression();  // read (actual) initializer.
     }
 
-    function.SetParameterTypeAt(pos, type);
-    function.SetParameterNameAt(pos, H.DartIdentifier(lib, helper.name_index_));
+    signature.SetParameterTypeAt(pos, type);
+    signature.SetParameterNameAt(pos,
+                                 H.DartIdentifier(lib, helper.name_index_));
   }
 
   intptr_t named_parameter_count_check =
@@ -3603,13 +3625,14 @@ void TypeTranslator::SetupFunctionParameters(
       helper_->SkipExpression();  // read (actual) initializer.
     }
 
-    function.SetParameterTypeAt(pos, type);
-    function.SetParameterNameAt(pos, H.DartIdentifier(lib, helper.name_index_));
+    signature.SetParameterTypeAt(pos, type);
+    signature.SetParameterNameAt(pos,
+                                 H.DartIdentifier(lib, helper.name_index_));
     if (helper.IsRequired()) {
-      function.SetIsRequiredAt(pos);
+      signature.SetIsRequiredAt(pos);
     }
   }
-  function.TruncateUnusedParameterFlags();
+  signature.FinalizeNameArrays(function);
 
   function_node_helper->SetJustRead(FunctionNodeHelper::kNamedParameters);
 
@@ -3617,7 +3640,7 @@ void TypeTranslator::SetupFunctionParameters(
   if (!function.IsGenerativeConstructor()) {
     const AbstractType& return_type =
         BuildTypeWithoutFinalization();  // read return type.
-    function.set_result_type(return_type);
+    signature.set_result_type(return_type);
     function_node_helper->SetJustRead(FunctionNodeHelper::kReturnType);
   }
 }

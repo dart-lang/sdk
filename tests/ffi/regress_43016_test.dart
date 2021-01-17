@@ -10,7 +10,10 @@ import 'dart:ffi';
 
 import 'dylib_utils.dart';
 
-class MyStruct extends Struct {}
+class MyStruct extends Struct {
+  @Int8()
+  external int a;
+}
 
 typedef _c_pass_struct = Int32 Function(Pointer<MyStruct>);
 

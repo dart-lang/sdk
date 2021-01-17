@@ -221,23 +221,13 @@ abstract class TestSuite {
   /// Create a directories for generated assets (tests, html files,
   /// pubspec checkouts ...).
   String createOutputDirectory(Path testPath) {
-    var checked = configuration.isChecked ? '-checked' : '';
-    var minified = configuration.isMinified ? '-minified' : '';
-    var sdk = configuration.useSdk ? '-sdk' : '';
-    var dirName = "${configuration.compiler.name}-${configuration.runtime.name}"
-        "$checked$minified$sdk";
-    return createGeneratedTestDirectoryHelper("tests", dirName, testPath);
+    return createGeneratedTestDirectoryHelper(
+        "tests", configuration.configuration.name, testPath);
   }
 
   String createCompilationOutputDirectory(Path testPath) {
-    var checked = configuration.isChecked ? '-checked' : '';
-    var minified = configuration.isMinified ? '-minified' : '';
-    var csp = configuration.isCsp ? '-csp' : '';
-    var sdk = configuration.useSdk ? '-sdk' : '';
-    var dirName = "${configuration.compiler.name}"
-        "$checked$minified$csp$sdk";
     return createGeneratedTestDirectoryHelper(
-        "compilations", dirName, testPath);
+        "compilations", configuration.configuration.name, testPath);
   }
 
   String createPubspecCheckoutDirectory(Path directoryOfPubspecYaml) {

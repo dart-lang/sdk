@@ -65,7 +65,7 @@ static StackTracePtr CreatePreallocatedStackTrace(Zone* zone) {
   // Expansion of inlined functions requires additional memory at run time,
   // avoid it.
   stack_trace.set_expand_inlined(false);
-  return stack_trace.raw();
+  return stack_trace.ptr();
 }
 
 ErrorPtr IsolateObjectStore::PreallocateObjects() {
@@ -144,12 +144,9 @@ static InstancePtr AllocateObjectByClassName(const Library& library,
 ErrorPtr ObjectStore::PreallocateObjects() {
   Thread* thread = Thread::Current();
   IsolateGroup* isolate_group = thread->isolate_group();
-  Isolate* isolate = thread->isolate();
   // Either we are the object store on isolate group, or isolate group has no
   // object store and we are the object store on the isolate.
-  ASSERT(isolate_group != NULL && (isolate_group->object_store() == this ||
-                                   (isolate_group->object_store() == nullptr &&
-                                    isolate->object_store() == this)));
+  ASSERT(isolate_group != nullptr && isolate_group->object_store() == this);
 
   if (this->stack_overflow() != Instance::null()) {
     ASSERT(this->out_of_memory() != Instance::null());
@@ -165,13 +162,13 @@ ErrorPtr ObjectStore::PreallocateObjects() {
 
   result = AllocateObjectByClassName(library, Symbols::StackOverflowError());
   if (result.IsError()) {
-    return Error::Cast(result).raw();
+    return Error::Cast(result).ptr();
   }
   set_stack_overflow(Instance::Cast(result));
 
   result = AllocateObjectByClassName(library, Symbols::OutOfMemoryError());
   if (result.IsError()) {
-    return Error::Cast(result).raw();
+    return Error::Cast(result).ptr();
   }
   set_out_of_memory(Instance::Cast(result));
 
@@ -188,7 +185,7 @@ FunctionPtr ObjectStore::PrivateObjectLookup(const String& name) {
   const Function& result = Function::Handle(
       Resolver::ResolveDynamicFunction(thread->zone(), cls, mangled));
   ASSERT(!result.IsNull());
-  return result.raw();
+  return result.ptr();
 }
 
 void ObjectStore::InitKnownObjects() {
@@ -204,8 +201,8 @@ void ObjectStore::InitKnownObjects() {
   // The rest of these objects are only needed for code generation.
   return;
 #else
-  Isolate* isolate = thread->isolate();
-  ASSERT(isolate != NULL && isolate->object_store() == this);
+  auto isolate_group = thread->isolate_group();
+  ASSERT(isolate_group != nullptr && isolate_group->object_store() == this);
 
   const Library& async_lib = Library::Handle(zone, async_library());
   ASSERT(!async_lib.IsNull());
@@ -367,8 +364,7 @@ void ObjectStore::LazyInitFutureTypes() {
     ASSERT(!type.IsNull());
     type_args = TypeArguments::New(1);
     type_args.SetTypeAt(0, type);
-    type = Type::New(cls, type_args, TokenPosition::kNoSource,
-                     Nullability::kNonNullable);
+    type = Type::New(cls, type_args, Nullability::kNonNullable);
     type.SetIsFinalized();
     type ^= type.Canonicalize(thread, nullptr);
     set_non_nullable_future_never_type(type);
@@ -376,8 +372,7 @@ void ObjectStore::LazyInitFutureTypes() {
     ASSERT(!type.IsNull());
     type_args = TypeArguments::New(1);
     type_args.SetTypeAt(0, type);
-    type = Type::New(cls, type_args, TokenPosition::kNoSource,
-                     Nullability::kNullable);
+    type = Type::New(cls, type_args, Nullability::kNullable);
     type.SetIsFinalized();
     type ^= type.Canonicalize(thread, nullptr);
     set_nullable_future_null_type(type);

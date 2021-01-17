@@ -109,7 +109,7 @@ FunctionPtr CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
   ICData& ic_data = ICData::Handle();
   ic_data ^= static_call.Data();
   if (ic_data_result != NULL) {
-    *ic_data_result = ic_data.raw();
+    *ic_data_result = ic_data.ptr();
   }
   return ic_data.GetTargetAt(0);
 }

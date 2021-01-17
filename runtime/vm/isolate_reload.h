@@ -235,7 +235,6 @@ class IsolateGroupReloadContext {
 
   int64_t start_time_micros_ = -1;
   int64_t reload_timestamp_ = -1;
-  Isolate* first_isolate_ = nullptr;
   bool reload_skipped_ = false;
   bool reload_finalized_ = false;
   JSONStream* js_;
@@ -295,19 +294,19 @@ class IsolateGroupReloadContext {
   friend class ObjectLocator;
   friend class MarkFunctionsForRecompilation;  // IsDirty.
   friend class ReasonForCancelling;
-  friend class IsolateReloadContext;
+  friend class ProgramReloadContext;
   friend class IsolateGroup;  // GetClassSizeForHeapWalkAt
-  friend class ObjectLayout;  // GetClassSizeForHeapWalkAt
+  friend class UntaggedObject;  // GetClassSizeForHeapWalkAt
 
   static Dart_FileModifiedCallback file_modified_callback_;
 };
 
-class IsolateReloadContext {
+class ProgramReloadContext {
  public:
-  IsolateReloadContext(
+  ProgramReloadContext(
       std::shared_ptr<IsolateGroupReloadContext> group_reload_context,
       Isolate* isolate);
-  ~IsolateReloadContext();
+  ~ProgramReloadContext();
 
   // All zone allocated objects must be allocated from this zone.
   Zone* zone() const { return zone_; }
@@ -335,6 +334,7 @@ class IsolateReloadContext {
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
   Isolate* isolate() { return isolate_; }
+  IsolateGroup* isolate_group() { return isolate_->group(); }
   ObjectStore* object_store();
 
   void EnsuredUnoptimizedCodeForStack();

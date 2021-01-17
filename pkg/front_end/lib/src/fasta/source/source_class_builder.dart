@@ -418,8 +418,8 @@ class SourceClassBuilder extends ClassBuilderImpl
             typeParameter.name,
             Variance.keywordString(variance));
       }
-      library.reportTypeArgumentIssue(
-          message, fileUri, fileOffset, typeParameter);
+      library.reportTypeArgumentIssue(message, fileUri, fileOffset,
+          typeParameter: typeParameter);
     }
   }
 
@@ -427,9 +427,6 @@ class SourceClassBuilder extends ClassBuilderImpl
       Supertype supertype, TypeEnvironment typeEnvironment) {
     SourceLibraryBuilder libraryBuilder = this.library;
     Library library = libraryBuilder.library;
-    final DartType bottomType = library.isNonNullableByDefault
-        ? const NeverType(Nullability.nonNullable)
-        : const NullType();
 
     Set<TypeArgumentIssue> issues = {};
     issues.addAll(findTypeArgumentIssues(
@@ -438,7 +435,6 @@ class SourceClassBuilder extends ClassBuilderImpl
                 supertype.typeArguments),
             typeEnvironment,
             SubtypeCheckMode.ignoringNullabilities,
-            bottomType,
             allowSuperBounded: false) ??
         const []);
     if (library.isNonNullableByDefault) {
@@ -448,7 +444,6 @@ class SourceClassBuilder extends ClassBuilderImpl
                   supertype.typeArguments),
               typeEnvironment,
               SubtypeCheckMode.withNullabilities,
-              bottomType,
               allowSuperBounded: false) ??
           const []);
     }
@@ -456,20 +451,28 @@ class SourceClassBuilder extends ClassBuilderImpl
       DartType argument = issue.argument;
       TypeParameter typeParameter = issue.typeParameter;
       bool inferred = libraryBuilder.inferredTypes.contains(argument);
-      if (argument is FunctionType && argument.typeParameters.length > 0) {
+      if (isGenericFunctionTypeOrAlias(argument)) {
         if (inferred) {
+          // Supertype can't be or contain super-bounded types, so null is
+          // passed for super-bounded hint here.
           libraryBuilder.reportTypeArgumentIssue(
               templateGenericFunctionTypeInferredAsActualTypeArgument
                   .withArguments(argument, library.isNonNullableByDefault),
               fileUri,
               charOffset,
-              null);
+              typeParameter: null,
+              superBoundedAttempt: null,
+              superBoundedAttemptInverted: null);
         } else {
+          // Supertype can't be or contain super-bounded types, so null is
+          // passed for super-bounded hint here.
           libraryBuilder.reportTypeArgumentIssue(
               messageGenericFunctionTypeUsedAsActualTypeArgument,
               fileUri,
               charOffset,
-              null);
+              typeParameter: null,
+              superBoundedAttempt: null,
+              superBoundedAttemptInverted: null);
         }
       } else {
         void reportProblem(
@@ -477,6 +480,8 @@ class SourceClassBuilder extends ClassBuilderImpl
                     Message Function(DartType, DartType, String, String, String,
                         String, bool)>
                 template) {
+          // Supertype can't be or contain super-bounded types, so null is
+          // passed for super-bounded hint here.
           libraryBuilder.reportTypeArgumentIssue(
               template.withArguments(
                   argument,
@@ -488,7 +493,9 @@ class SourceClassBuilder extends ClassBuilderImpl
                   library.isNonNullableByDefault),
               fileUri,
               charOffset,
-              typeParameter);
+              typeParameter: typeParameter,
+              superBoundedAttempt: null,
+              superBoundedAttemptInverted: null);
         }
 
         if (inferred) {
@@ -908,8 +915,9 @@ class SourceClassBuilder extends ClassBuilderImpl
                 // is actually in the kernel tree. This call creates a StaticGet
                 // to [declaration.target] in a field `_redirecting#` which is
                 // only legal to do to things in the kernel tree.
-                Reference getterReference = referencesFromIndexed
-                    ?.lookupGetterReference("_redirecting#");
+                Reference getterReference =
+                    referencesFromIndexed?.lookupGetterReference(new Name(
+                        "_redirecting#", referencesFromIndexed.library));
                 _addRedirectingConstructor(
                     declaration, library, getterReference);
               }

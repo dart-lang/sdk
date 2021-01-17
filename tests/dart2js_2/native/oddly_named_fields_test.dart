@@ -1387,9 +1387,10 @@ setup() {
   JS('', r"""
 (function(){
   function NativeClassWithOddNames() {}
-  makeNativeClassWithOddNames = function() {return new NativeClassWithOddNames()};
+  self.makeNativeClassWithOddNames = function() {return new NativeClassWithOddNames()};
   self.nativeConstructor(NativeClassWithOddNames);
 })()""");
+  applyTestExtensions(['NativeClassWithOddNames']);
 }
 
 main() {

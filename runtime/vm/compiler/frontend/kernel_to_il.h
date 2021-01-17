@@ -203,7 +203,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment Return(
       TokenPosition position,
       bool omit_result_type_check = false,
-      intptr_t yield_index = PcDescriptorsLayout::kInvalidYieldIndex);
+      intptr_t yield_index = UntaggedPcDescriptors::kInvalidYieldIndex);
   void SetResultTypeForStaticCall(StaticCallInstr* call,
                                   const Function& target,
                                   intptr_t argument_count,

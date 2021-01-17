@@ -242,4 +242,4 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///return_null.dart:
 - Enum. (from org-dartlang-testcase:///return_null.dart:43:6)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

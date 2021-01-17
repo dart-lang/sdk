@@ -21,10 +21,12 @@ class SubtypeOfStructClassInExtendsTest extends PubPackageResolutionTest {
   test_extends() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-class S extends Struct {}
+class S extends Struct {
+  Pointer notEmpty;
+}
 class C extends S {}
 ''', [
-      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS, 61, 1),
+      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS, 82, 1),
     ]);
   }
 }

@@ -7,7 +7,7 @@ import "package:test/test.dart";
 import "file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/name_mangling.pb.dart";
 
 static method main() → dynamic {
-  pb::NameManglingKeep* n = [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/name_mangling.pb.dart::NameManglingKeep] pb::NameManglingKeep::fromBuffer(<core::int*>[]);
+  pb::NameManglingKeep* n = [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/name_mangling.pb.dart::NameManglingKeep] pb::NameManglingKeep::fromBuffer([@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int*>] core::_GrowableList::•<core::int*>(0));
   if([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/name_mangling.pb.dart::NameManglingKeep.hasClone_10] [@vm.inferred-type.metadata=dart.core::bool (skip check)] n.{pb::NameManglingKeep::hasClone_10}()) {
     core::print("Has clone field");
   }
@@ -35,7 +35,7 @@ class AKeep extends pro::GeneratedMessage {
 }
 class NameManglingKeep extends pro::GeneratedMessage {
 [@vm.inferred-type.metadata=protobuf::BuilderInfo?]  static final field pro::BuilderInfo _i = let final pro::BuilderInfo #t2 = new pro::BuilderInfo::•((#C1) ?{core::String} "" : "NameManglingKeep", #C6) in block {
-    [@vm.direct-call.metadata=protobuf::BuilderInfo.aOM] [@vm.inferred-type.metadata=!? (skip check)] #t2.{pro::BuilderInfo::aOM}<self::AKeep>(10, (#C1) ?{core::String} "" : "clone", #C2);
+    [@vm.direct-call.metadata=protobuf::BuilderInfo.aOM] [@vm.inferred-type.metadata=!? (skip check)] #t2.{pro::BuilderInfo::aOM}<self::AKeep>((#C1) ?{core::String} "" : "clone", #C2);
     [@vm.direct-call.metadata=protobuf::BuilderInfo.hasRequiredFields] [@vm.inferred-type.metadata=!? (skip check)] #t2.{pro::BuilderInfo::hasRequiredFields} = false;
   } =>#t2;
   constructor _() → self::NameManglingKeep

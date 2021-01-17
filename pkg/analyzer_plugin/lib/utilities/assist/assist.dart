@@ -78,14 +78,9 @@ class AssistKind {
   /// message `"Create a component named '{0}' in '{1}'"` contains two parameters.
   final String message;
 
-  /// A list of any associated error codes. Assists with associated error codes
-  /// can be presented as "fixes" for the associated errors by clients.
-  final List<String> associatedErrorCodes;
-
   /// Initialize a newly created kind of assist to have the given [id],
-  /// [priority], [message] and optionally any [associatedErrorCodes].
-  const AssistKind(this.id, this.priority, this.message,
-      {this.associatedErrorCodes});
+  /// [priority] and [message].
+  const AssistKind(this.id, this.priority, this.message);
 
   @override
   String toString() => id;

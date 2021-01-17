@@ -16,7 +16,7 @@ void TestBecomeForward(Heap::Space before_space, Heap::Space after_space) {
   const String& before_obj = String::Handle(String::New("old", before_space));
   const String& after_obj = String::Handle(String::New("new", after_space));
 
-  EXPECT(before_obj.raw() != after_obj.raw());
+  EXPECT(before_obj.ptr() != after_obj.ptr());
 
   // Allocate the arrays in old space to test the remembered set.
   const Array& before = Array::Handle(Array::New(1, Heap::kOld));
@@ -26,11 +26,11 @@ void TestBecomeForward(Heap::Space before_space, Heap::Space after_space) {
 
   Become::ElementsForwardIdentity(before, after);
 
-  EXPECT(before_obj.raw() == after_obj.raw());
+  EXPECT(before_obj.ptr() == after_obj.ptr());
 
   GCTestHelper::CollectAllGarbage();
 
-  EXPECT(before_obj.raw() == after_obj.raw());
+  EXPECT(before_obj.ptr() == after_obj.ptr());
 }
 
 ISOLATE_UNIT_TEST_CASE(BecomeFowardOldToOld) {
@@ -50,18 +50,17 @@ ISOLATE_UNIT_TEST_CASE(BecomeFowardNewToOld) {
 }
 
 ISOLATE_UNIT_TEST_CASE(BecomeForwardPeer) {
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
+  Heap* heap = IsolateGroup::Current()->heap();
 
   const Array& before_obj = Array::Handle(Array::New(0, Heap::kOld));
   const Array& after_obj = Array::Handle(Array::New(0, Heap::kOld));
-  EXPECT(before_obj.raw() != after_obj.raw());
+  EXPECT(before_obj.ptr() != after_obj.ptr());
 
   void* peer = reinterpret_cast<void*>(42);
   void* no_peer = reinterpret_cast<void*>(0);
-  heap->SetPeer(before_obj.raw(), peer);
-  EXPECT_EQ(peer, heap->GetPeer(before_obj.raw()));
-  EXPECT_EQ(no_peer, heap->GetPeer(after_obj.raw()));
+  heap->SetPeer(before_obj.ptr(), peer);
+  EXPECT_EQ(peer, heap->GetPeer(before_obj.ptr()));
+  EXPECT_EQ(no_peer, heap->GetPeer(after_obj.ptr()));
 
   const Array& before = Array::Handle(Array::New(1, Heap::kOld));
   before.SetAt(0, before_obj);
@@ -69,9 +68,9 @@ ISOLATE_UNIT_TEST_CASE(BecomeForwardPeer) {
   after.SetAt(0, after_obj);
   Become::ElementsForwardIdentity(before, after);
 
-  EXPECT(before_obj.raw() == after_obj.raw());
-  EXPECT_EQ(peer, heap->GetPeer(before_obj.raw()));
-  EXPECT_EQ(peer, heap->GetPeer(after_obj.raw()));
+  EXPECT(before_obj.ptr() == after_obj.ptr());
+  EXPECT_EQ(peer, heap->GetPeer(before_obj.ptr()));
+  EXPECT_EQ(peer, heap->GetPeer(after_obj.ptr()));
 }
 
 ISOLATE_UNIT_TEST_CASE(BecomeForwardRememberedObject) {
@@ -81,10 +80,10 @@ ISOLATE_UNIT_TEST_CASE(BecomeForwardRememberedObject) {
   const Array& after_obj = Array::Handle(Array::New(1, Heap::kOld));
   before_obj.SetAt(0, new_element);
   after_obj.SetAt(0, old_element);
-  EXPECT(before_obj.raw()->ptr()->IsRemembered());
-  EXPECT(!after_obj.raw()->ptr()->IsRemembered());
+  EXPECT(before_obj.ptr()->untag()->IsRemembered());
+  EXPECT(!after_obj.ptr()->untag()->IsRemembered());
 
-  EXPECT(before_obj.raw() != after_obj.raw());
+  EXPECT(before_obj.ptr() != after_obj.ptr());
 
   const Array& before = Array::Handle(Array::New(1, Heap::kOld));
   before.SetAt(0, before_obj);
@@ -93,20 +92,20 @@ ISOLATE_UNIT_TEST_CASE(BecomeForwardRememberedObject) {
 
   Become::ElementsForwardIdentity(before, after);
 
-  EXPECT(before_obj.raw() == after_obj.raw());
-  EXPECT(!after_obj.raw()->ptr()->IsRemembered());
+  EXPECT(before_obj.ptr() == after_obj.ptr());
+  EXPECT(!after_obj.ptr()->untag()->IsRemembered());
 
   GCTestHelper::CollectAllGarbage();
 
-  EXPECT(before_obj.raw() == after_obj.raw());
+  EXPECT(before_obj.ptr() == after_obj.ptr());
 }
 
 ISOLATE_UNIT_TEST_CASE(BecomeForwardRememberedCards) {
   const intptr_t length = Heap::kNewAllocatableSize / kWordSize;
   ASSERT(Array::UseCardMarkingForAllocation(length));
   const Array& card_remembered_array = Array::Handle(Array::New(length));
-  EXPECT(card_remembered_array.raw()->ptr()->IsCardRemembered());
-  EXPECT(!card_remembered_array.raw()->ptr()->IsRemembered());
+  EXPECT(card_remembered_array.ptr()->untag()->IsCardRemembered());
+  EXPECT(!card_remembered_array.ptr()->untag()->IsRemembered());
 
   const String& old_element = String::Handle(String::New("old", Heap::kOld));
   const String& new_element = String::Handle(String::New("new", Heap::kNew));
@@ -124,10 +123,10 @@ ISOLATE_UNIT_TEST_CASE(BecomeForwardRememberedCards) {
   after.SetAt(0, new_element);
   Become::ElementsForwardIdentity(before, after);
 
-  EXPECT(old_element.raw() == new_element.raw());
-  EXPECT(old_element.raw()->IsNewObject());
-  EXPECT(card_remembered_array.raw()->ptr()->IsCardRemembered());
-  EXPECT(!card_remembered_array.raw()->ptr()->IsRemembered());
+  EXPECT(old_element.ptr() == new_element.ptr());
+  EXPECT(old_element.ptr()->IsNewObject());
+  EXPECT(card_remembered_array.ptr()->untag()->IsCardRemembered());
+  EXPECT(!card_remembered_array.ptr()->untag()->IsRemembered());
 
   {
     HANDLESCOPE(thread);
@@ -137,9 +136,9 @@ ISOLATE_UNIT_TEST_CASE(BecomeForwardRememberedCards) {
 
   GCTestHelper::CollectAllGarbage();
 
-  EXPECT(old_element.raw() == new_element.raw());
-  EXPECT(card_remembered_array.raw()->ptr()->IsCardRemembered());
-  EXPECT(!card_remembered_array.raw()->ptr()->IsRemembered());
+  EXPECT(old_element.ptr() == new_element.ptr());
+  EXPECT(card_remembered_array.ptr()->untag()->IsCardRemembered());
+  EXPECT(!card_remembered_array.ptr()->untag()->IsRemembered());
 
   {
     HANDLESCOPE(thread);

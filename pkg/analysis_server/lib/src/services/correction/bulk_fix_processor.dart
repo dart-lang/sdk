@@ -12,9 +12,11 @@ import 'package:analysis_server/src/services/correction/dart/add_await.dart';
 import 'package:analysis_server/src/services/correction/dart/add_const.dart';
 import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/add_override.dart';
+import 'package:analysis_server/src/services/correction/dart/add_required.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_add_all_to_spread.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_conditional_expression_to_if_element.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_documentation_into_line.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_into_is_not.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_map_from_iterable_to_for_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_quotes.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
@@ -24,12 +26,14 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_int_lite
 import 'package:analysis_server/src/services/correction/dart/convert_to_list_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_package_import.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_relative_import.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_where_type.dart';
 import 'package:analysis_server/src/services/correction/dart/create_method.dart';
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_invocation.dart';
+import 'package:analysis_server/src/services/correction/dart/inline_typedef.dart';
 import 'package:analysis_server/src/services/correction/dart/make_final.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_argument.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_await.dart';
@@ -39,6 +43,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_empty_catch.
 import 'package:analysis_server/src/services/correction/dart/remove_empty_constructor_body.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_else.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_statement.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_if_null_operator.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_initializer.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_interpolation_braces.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_method_declaration.dart';
@@ -47,6 +52,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_operator.dar
 import 'package:analysis_server/src/services/correction/dart/remove_this_expression.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_new.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_string_interpolation.dart';
 import 'package:analysis_server/src/services/correction/dart/rename_to_camel_case.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_cascade_with_dot.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_colon_with_equals.dart';
@@ -77,7 +83,15 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-/// A fix producer that produces changes to fix multiple diagnostics.
+/// A fix producer that produces changes that will fix multiple diagnostics in
+/// one or more files.
+///
+/// Each diagnostic should have a single fix (correction producer) associated
+/// with it except in cases where at most one of the given producers will ever
+/// produce a fix.
+///
+/// The correction producers that are associated with the diagnostics should not
+/// produce changes that alter the semantics of the code.
 class BulkFixProcessor {
   /// A map from the name of a lint rule to a list of generators used to create
   /// the correction producer used to build a fix for that diagnostic. The
@@ -88,6 +102,9 @@ class BulkFixProcessor {
   /// one will produce a change for a given fix. If more than one change is
   /// produced the result will almost certainly be invalid code.
   static const Map<String, List<ProducerGenerator>> lintProducerMap = {
+    LintNames.always_require_non_null_named_parameters: [
+      AddRequired.newInstance,
+    ],
     LintNames.annotate_overrides: [
       AddOverride.newInstance,
     ],
@@ -100,8 +117,14 @@ class BulkFixProcessor {
     LintNames.avoid_init_to_null: [
       RemoveInitializer.newInstance,
     ],
+    LintNames.avoid_private_typedef_functions: [
+      InlineTypedef.newInstance,
+    ],
     LintNames.avoid_redundant_argument_values: [
       RemoveArgument.newInstance,
+    ],
+    LintNames.avoid_relative_lib_imports: [
+      ConvertToPackageImport.newInstance,
     ],
     LintNames.avoid_return_types_on_setters: [
       RemoveTypeAnnotation.newInstance,
@@ -202,7 +225,10 @@ class BulkFixProcessor {
       ReplaceWithIsEmpty.newInstance,
     ],
     LintNames.prefer_is_not_empty: [
-      UesIsNotEmpty.newInstance,
+      UseIsNotEmpty.newInstance,
+    ],
+    LintNames.prefer_is_not_operator: [
+      ConvertIntoIsNot.newInstance,
     ],
     LintNames.prefer_iterable_whereType: [
       ConvertToWhereType.newInstance,
@@ -243,11 +269,20 @@ class BulkFixProcessor {
     LintNames.unnecessary_new: [
       RemoveUnnecessaryNew.newInstance,
     ],
+    LintNames.unnecessary_null_in_if_null_operators: [
+      RemoveIfNullOperator.newInstance,
+    ],
     LintNames.unnecessary_overrides: [
       RemoveMethodDeclaration.newInstance,
     ],
+    LintNames.unnecessary_string_interpolations: [
+      RemoveUnnecessaryStringInterpolation.newInstance,
+    ],
     LintNames.unnecessary_this: [
       RemoveThisExpression.newInstance,
+    ],
+    LintNames.use_function_type_syntax_for_parameters: [
+      ConvertToGenericFunctionSyntax.newInstance,
     ],
     LintNames.use_rethrow_when_possible: [
       UseRethrow.newInstance,

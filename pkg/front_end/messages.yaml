@@ -4139,6 +4139,10 @@ IncorrectTypeArgumentVariable:
   template: "This is the type variable whose bound isn't conformed to."
   severity: CONTEXT
 
+SuperBoundedHint:
+  template: "If you want '#type' to be a super-bounded type, note that the inverted type '#type2' must then satisfy its bounds, which it does not."
+  severity: CONTEXT
+
 InferredPackageUri:
   template: "Interpreting this as package URI, '#uri'."
   severity: WARNING
@@ -4268,6 +4272,7 @@ FfiNotStatic:
 FfiFieldInitializer:
   # Used by dart:ffi
   template: "Field '#name' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution."
+  tip: "Mark the field as external to avoid having to initialize it."
   external: test/ffi_test.dart
 
 FfiExtendsOrImplementsSealedClass:
@@ -4931,3 +4936,18 @@ UnexpectedModifierInNonNnbd:
   analyzerCode: UNEXPECTED_TOKEN
   script:
     - "late int x;"
+
+CompilingWithSoundNullSafety:
+  template: "Compiling with sound null safety"
+  configuration: nnbd-strong,compile
+  severity: INFO
+  script: |
+    main() {}
+
+CompilingWithUnsoundNullSafety:
+  template: "Compiling with unsound null safety"
+  configuration: nnbd-weak,compile
+  severity: INFO
+  script: |
+    // @dart=2.9
+    main() {}

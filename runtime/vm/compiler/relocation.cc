@@ -53,7 +53,7 @@ void CodeRelocator::Relocate(bool is_vm_isolate) {
     current_caller = (*code_objects_)[i];
 
     const intptr_t code_text_offset = next_text_offset_;
-    if (!AddInstructionsToText(current_caller.raw())) {
+    if (!AddInstructionsToText(current_caller.ptr())) {
       continue;
     }
 
@@ -71,8 +71,15 @@ void CodeRelocator::Relocate(bool is_vm_isolate) {
   // We're guaranteed to have all calls resolved, since
   //   * backwards calls are resolved eagerly
   //   * forward calls are resolved once the target is written
-  ASSERT(all_unresolved_calls_.IsEmpty());
-  ASSERT(unresolved_calls_by_destination_.IsEmpty());
+  if (!all_unresolved_calls_.IsEmpty()) {
+    for (auto call : all_unresolved_calls_) {
+      OS::PrintErr("Unresolved call to %s from %s\n",
+                   Object::Handle(call->callee).ToCString(),
+                   Object::Handle(call->caller).ToCString());
+    }
+  }
+  RELEASE_ASSERT(all_unresolved_calls_.IsEmpty());
+  RELEASE_ASSERT(unresolved_calls_by_destination_.IsEmpty());
 
   // Any trampolines we created must be patched with the right offsets.
   auto it = trampolines_by_destination_.GetIterator();
@@ -273,8 +280,8 @@ void CodeRelocator::ScanCallTargets(const Code& code,
     const intptr_t text_offset =
         code_text_offset + AdjustPayloadOffset(call_instruction_offset);
 
-    UnresolvedCall unresolved_call(code.raw(), call_instruction_offset,
-                                   text_offset, destination_.raw(),
+    UnresolvedCall unresolved_call(code.ptr(), call_instruction_offset,
+                                   text_offset, destination_.ptr(),
                                    offset_into_target, is_tail_call);
     if (!TryResolveBackwardsCall(&unresolved_call)) {
       EnqueueUnresolvedCall(new UnresolvedCall(unresolved_call));
@@ -420,7 +427,7 @@ CodePtr CodeRelocator::GetTarget(const StaticCallsTableEntry& call) {
   target_ = call.Get<Code::kSCallTableCodeOrTypeTarget>();
   if (target_.IsAbstractType()) {
     target_ = AbstractType::Cast(target_).type_test_stub();
-    destination_ = Code::Cast(target_).raw();
+    destination_ = Code::Cast(target_).ptr();
 
     // The AssertAssignableInstr will emit pc-relative calls to the TTS iff
     // dst_type is instantiated. If we happened to not install an optimized
@@ -433,24 +440,24 @@ CodePtr CodeRelocator::GetTarget(const StaticCallsTableEntry& call) {
     // into the types directly, but that does not work for types which
     // live in the "vm-isolate" - such as `Type::dynamic_type()`).
     if (destination_.InVMIsolateHeap()) {
-      auto object_store = thread_->isolate()->object_store();
+      auto object_store = thread_->isolate_group()->object_store();
 
-      if (destination_.raw() == StubCode::DefaultTypeTest().raw()) {
+      if (destination_.ptr() == StubCode::DefaultTypeTest().ptr()) {
         destination_ = object_store->default_tts_stub();
-      } else if (destination_.raw() ==
-                 StubCode::DefaultNullableTypeTest().raw()) {
+      } else if (destination_.ptr() ==
+                 StubCode::DefaultNullableTypeTest().ptr()) {
         destination_ = object_store->default_nullable_tts_stub();
-      } else if (destination_.raw() == StubCode::TopTypeTypeTest().raw()) {
+      } else if (destination_.ptr() == StubCode::TopTypeTypeTest().ptr()) {
         destination_ = object_store->top_type_tts_stub();
-      } else if (destination_.raw() == StubCode::UnreachableTypeTest().raw()) {
+      } else if (destination_.ptr() == StubCode::UnreachableTypeTest().ptr()) {
         destination_ = object_store->unreachable_tts_stub();
-      } else if (destination_.raw() == StubCode::SlowTypeTest().raw()) {
+      } else if (destination_.ptr() == StubCode::SlowTypeTest().ptr()) {
         destination_ = object_store->slow_tts_stub();
-      } else if (destination_.raw() ==
-                 StubCode::NullableTypeParameterTypeTest().raw()) {
+      } else if (destination_.ptr() ==
+                 StubCode::NullableTypeParameterTypeTest().ptr()) {
         destination_ = object_store->nullable_type_parameter_tts_stub();
-      } else if (destination_.raw() ==
-                 StubCode::TypeParameterTypeTest().raw()) {
+      } else if (destination_.ptr() ==
+                 StubCode::TypeParameterTypeTest().ptr()) {
         destination_ = object_store->type_parameter_tts_stub();
       } else {
         UNREACHABLE();
@@ -458,10 +465,10 @@ CodePtr CodeRelocator::GetTarget(const StaticCallsTableEntry& call) {
     }
   } else {
     ASSERT(target_.IsCode());
-    destination_ = Code::Cast(target_).raw();
+    destination_ = Code::Cast(target_).ptr();
   }
   ASSERT(!destination_.InVMIsolateHeap());
-  return destination_.raw();
+  return destination_.ptr();
 }
 
 void CodeRelocator::BuildTrampolinesForAlmostOutOfRangeCalls() {

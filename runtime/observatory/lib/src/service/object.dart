@@ -2747,6 +2747,8 @@ M.InstanceKind stringToInstanceKind(String s) {
       return M.InstanceKind.weakProperty;
     case 'Type':
       return M.InstanceKind.type;
+    case 'FunctionType':
+      return M.InstanceKind.functionType;
     case 'TypeParameter':
       return M.InstanceKind.typeParameter;
     case 'TypeRef':
@@ -3118,8 +3120,6 @@ M.FunctionKind stringToFunctionKind(String value) {
       return M.FunctionKind.stub;
     case 'Tag':
       return M.FunctionKind.tag;
-    case 'SignatureFunction':
-      return M.FunctionKind.signatureFunction;
     case 'DynamicInvocationForwarder':
       return M.FunctionKind.dynamicInvocationForwarder;
   }

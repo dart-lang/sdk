@@ -265,7 +265,7 @@ class EqualityConstraint extends self::BinaryConstraint {
   }
 }
 class Variable extends core::Object {
-  field core::List<self::Constraint*>* constraints = <self::Constraint*>[];
+  field core::List<self::Constraint*>* constraints = core::_GrowableList::•<self::Constraint*>(0);
   field self::Constraint* determinedBy = null;
   field core::int* mark = 0;
   field self::Strength* walkStrength = #C18;
@@ -337,7 +337,7 @@ class Planner extends core::Object {
     return plan;
   }
   method extractPlanFromConstraints(core::List<self::Constraint*>* constraints) → self::Plan* {
-    core::List<self::Constraint*>* sources = <self::Constraint*>[];
+    core::List<self::Constraint*>* sources = core::_GrowableList::•<self::Constraint*>(0);
     for (core::int* i = 0; i.{core::num::<}(constraints.{core::List::length}); i = i.{core::num::+}(1)) {
       self::Constraint* c = constraints.{core::List::[]}(i);
       if(c.{self::Constraint::isInput}() && c.{self::Constraint::isSatisfied}())
@@ -346,7 +346,7 @@ class Planner extends core::Object {
     return this.{self::Planner::makePlan}(sources);
   }
   method addPropagate(self::Constraint* c, core::int* mark) → core::bool* {
-    core::List<self::Constraint*>* todo = <self::Constraint*>[c];
+    core::List<self::Constraint*>* todo = core::_GrowableList::_literal1<self::Constraint*>(c);
     while (todo.{core::List::length}.{core::num::>}(0)) {
       self::Constraint* d = todo.{core::List::removeLast}();
       if(d.{self::Constraint::output}().{self::Variable::mark}.{core::num::==}(mark)) {
@@ -362,8 +362,8 @@ class Planner extends core::Object {
     out.{self::Variable::determinedBy} = null;
     out.{self::Variable::walkStrength} = #C18;
     out.{self::Variable::stay} = true;
-    core::List<self::Constraint*>* unsatisfied = <self::Constraint*>[];
-    core::List<self::Variable*>* todo = <self::Variable*>[out];
+    core::List<self::Constraint*>* unsatisfied = core::_GrowableList::•<self::Constraint*>(0);
+    core::List<self::Variable*>* todo = core::_GrowableList::_literal1<self::Variable*>(out);
     while (todo.{core::List::length}.{core::num::>}(0)) {
       self::Variable* v = todo.{core::List::removeLast}();
       for (core::int* i = 0; i.{core::num::<}(v.{self::Variable::constraints}.{core::List::length}); i = i.{core::num::+}(1)) {
@@ -402,7 +402,7 @@ class Planner extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Plan extends core::Object {
-  field core::List<self::Constraint*>* list = <self::Constraint*>[];
+  field core::List<self::Constraint*>* list = core::_GrowableList::•<self::Constraint*>(0);
   synthetic constructor •() → self::Plan*
     : super core::Object::•()
     ;
@@ -458,7 +458,7 @@ static method chainTest(core::int* n) → void {
   }
   new self::StayConstraint::•(last, #C9);
   self::EditConstraint* edit = new self::EditConstraint::•(first, #C6);
-  self::Plan* plan = self::planner.{self::Planner::extractPlanFromConstraints}(<self::Constraint*>[edit]);
+  self::Plan* plan = self::planner.{self::Planner::extractPlanFromConstraints}(core::_GrowableList::_literal1<self::Constraint*>(edit));
   for (core::int* i = 0; i.{core::num::<}(100); i = i.{core::num::+}(1)) {
     first.{self::Variable::value} = i;
     plan.{self::Plan::execute}();
@@ -474,7 +474,7 @@ static method projectionTest(core::int* n) → void {
   self::Variable* offset = new self::Variable::•("offset", 1000);
   self::Variable* src = null;
   self::Variable* dst = null;
-  core::List<self::Variable*>* dests = <self::Variable*>[];
+  core::List<self::Variable*>* dests = core::_GrowableList::•<self::Variable*>(0);
   for (core::int* i = 0; i.{core::num::<}(n); i = i.{core::num::+}(1)) {
     src = new self::Variable::•("src", i);
     dst = new self::Variable::•("dst", i);
@@ -501,7 +501,7 @@ static method projectionTest(core::int* n) → void {
 }
 static method change(self::Variable* v, core::int* newValue) → void {
   self::EditConstraint* edit = new self::EditConstraint::•(v, #C6);
-  self::Plan* plan = self::planner.{self::Planner::extractPlanFromConstraints}(<self::EditConstraint*>[edit]);
+  self::Plan* plan = self::planner.{self::Planner::extractPlanFromConstraints}(core::_GrowableList::_literal1<self::EditConstraint*>(edit));
   for (core::int* i = 0; i.{core::num::<}(10); i = i.{core::num::+}(1)) {
     v.{self::Variable::value} = newValue;
     plan.{self::Plan::execute}();
@@ -538,4 +538,4 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///DeltaBlue.dart:
 - Strength. (from org-dartlang-testcase:///DeltaBlue.dart:61:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

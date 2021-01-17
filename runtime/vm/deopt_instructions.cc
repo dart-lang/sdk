@@ -33,7 +33,7 @@ DeoptContext::DeoptContext(const StackFrame* frame,
                            intptr_t* cpu_registers,
                            bool is_lazy_deopt,
                            bool deoptimizing_code)
-    : code_(code.raw()),
+    : code_(code.ptr()),
       object_pool_(code.GetObjectPool()),
       deopt_info_(TypedData::null()),
       dest_frame_is_allocated_(false),
@@ -64,7 +64,7 @@ DeoptContext::DeoptContext(const StackFrame* frame,
   }
 #endif
   ASSERT(!deopt_info.IsNull());
-  deopt_info_ = deopt_info.raw();
+  deopt_info_ = deopt_info.ptr();
 
   const Function& function = Function::Handle(code.function());
 
@@ -405,7 +405,7 @@ ArrayPtr DeoptContext::DestFrameAsArray() {
     obj = static_cast<ObjectPtr>(dest_frame_[i]);
     dest_array.SetAt(i, obj);
   }
-  return dest_array.raw();
+  return dest_array.ptr();
 }
 
 // Deoptimization instruction creating return address using function and
@@ -475,7 +475,7 @@ class DeoptConstantInstr : public DeoptInstr {
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
     const PassiveObject& obj = PassiveObject::Handle(
         deopt_context->zone(), deopt_context->ObjectAt(object_table_index_));
-    *reinterpret_cast<ObjectPtr*>(dest_addr) = obj.raw();
+    *reinterpret_cast<ObjectPtr*>(dest_addr) = obj.ptr();
   }
 
   CatchEntryMove ToCatchEntryMove(DeoptContext* deopt_context,
@@ -714,8 +714,8 @@ class DeoptPcMarkerInstr : public DeoptInstr {
     if (function.IsNull()) {
       *reinterpret_cast<ObjectPtr*>(dest_addr) =
           deopt_context->is_lazy_deopt()
-              ? StubCode::DeoptimizeLazyFromReturn().raw()
-              : StubCode::Deoptimize().raw();
+              ? StubCode::DeoptimizeLazyFromReturn().ptr()
+              : StubCode::Deoptimize().ptr();
       return;
     }
 
@@ -725,7 +725,7 @@ class DeoptPcMarkerInstr : public DeoptInstr {
     // materialization to maintain the invariant that Dart frames always have
     // a pc marker.
     *reinterpret_cast<ObjectPtr*>(dest_addr) =
-        StubCode::FrameAwaitingMaterialization().raw();
+        StubCode::FrameAwaitingMaterialization().ptr();
     deopt_context->DeferPcMarkerMaterialization(object_table_index_, dest_addr);
   }
 
@@ -892,7 +892,7 @@ uword DeoptInstr::GetRetAddress(DeoptInstr* instr,
   *code = function.unoptimized_code();
   ASSERT(!code->IsNull());
   uword res = code->GetPcForDeoptId(ret_address_instr->deopt_id(),
-                                    PcDescriptorsLayout::kDeopt);
+                                    UntaggedPcDescriptors::kDeopt);
   ASSERT(res != 0);
   return res;
 }
@@ -1294,7 +1294,7 @@ TypedDataPtr DeoptInfoBuilder::CreateDeoptInfo(const Array& deopt_table) {
   frame_start_ = -1;
 
   ++current_info_number_;
-  return deopt_info.raw();
+  return deopt_info.ptr();
 }
 
 intptr_t DeoptTable::SizeFor(intptr_t length) {

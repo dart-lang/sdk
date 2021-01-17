@@ -1,0 +1,19 @@
+abstract class Interface {
+  void set implementedConcreteSetter(int value) {}
+  void set implementedAbstractSetter(int value);
+  void set declaredConcreteImplementsConcreteSetter(int value) {}
+  void set declaredAbstractImplementsConcreteSetter(int value) {}
+  void set declaredConcreteImplementsAbstractSetter(int value);
+  void set declaredAbstractImplementsAbstractSetter(int value);
+}
+
+abstract class AbstractClass implements Interface {
+  void set declaredConcreteSetter(int value) {}
+  void set declaredAbstractSetter(int value);
+  void set declaredConcreteImplementsConcreteSetter(int value) {}
+  void set declaredAbstractImplementsConcreteSetter(int value);
+  void set declaredConcreteImplementsAbstractSetter(int value) {}
+  void set declaredAbstractImplementsAbstractSetter(int value);
+}
+
+main() {}

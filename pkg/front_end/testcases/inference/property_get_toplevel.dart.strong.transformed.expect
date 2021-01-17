@@ -24,5 +24,5 @@ class C extends core::Object {
 }
 static field self::C* c = new self::C::•();
 static field () →* core::int* function_ref = self::c.{self::C::function};
-static field core::List<() →* core::int*>* function_ref_list = <() →* core::int*>[self::c.{self::C::function}];
+static field core::List<() →* core::int*>* function_ref_list = core::_GrowableList::_literal1<() →* core::int*>(self::c.{self::C::function});
 static method main() → dynamic {}

@@ -33,5 +33,5 @@ class B<T extends core::Object* = dynamic> extends core::Object {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-static field core::List<self::B<core::int*>*>* t3 = <self::B<core::int*>*>[new self::B::•<core::int*>(3)];
+static field core::List<self::B<core::int*>*>* t3 = core::_GrowableList::_literal1<self::B<core::int*>*>(new self::B::•<core::int*>(3));
 static method main() → dynamic {}

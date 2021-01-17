@@ -60,7 +60,7 @@ static ArrayPtr MakeServiceControlMessage(Dart_Port port_id,
   list.SetAt(1, port_int);
   list.SetAt(2, send_port);
   list.SetAt(3, name);
-  return list.raw();
+  return list.ptr();
 }
 
 static ArrayPtr MakeServerControlMessage(const SendPort& sp,
@@ -73,7 +73,7 @@ static ArrayPtr MakeServerControlMessage(const SendPort& sp,
   list.SetAt(1, sp);
   list.SetAt(2, Bool::Get(enable));
   list.SetAt(3, silenceOutput);
-  return list.raw();
+  return list.ptr();
 }
 
 const char* ServiceIsolate::kName = DART_VM_SERVICE_ISOLATE_NAME;
@@ -436,7 +436,7 @@ class RunServiceTask : public ThreadPool::Task {
     HANDLESCOPE(T);
     // Invoke main which will set up the service port.
     const Library& root_library =
-        Library::Handle(Z, I->object_store()->root_library());
+        Library::Handle(Z, I->group()->object_store()->root_library());
     if (root_library.IsNull()) {
       if (FLAG_trace_service) {
         OS::PrintErr(DART_VM_SERVICE_ISOLATE_NAME

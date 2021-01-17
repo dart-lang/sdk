@@ -247,6 +247,8 @@ class DartFixKind {
       'dart.fix.convert.toNamedArguments', 50, 'Convert to named arguments');
   static const CONVERT_TO_NULL_AWARE =
       FixKind('dart.fix.convert.toNullAware', 50, "Convert to use '?.'");
+  static const CONVERT_TO_NULL_AWARE_SPREAD = FixKind(
+      'dart.fix.convert.toNullAwareSpread', 50, "Convert to use '...?'");
   static const CONVERT_TO_ON_TYPE =
       FixKind('dart.fix.convert.toOnType', 50, "Convert to 'on {0}'");
   static const CONVERT_TO_PACKAGE_IMPORT = FixKind(
@@ -405,6 +407,12 @@ class DartFixKind {
       50,
       'Remove unnecessary parentheses',
       appliedTogetherMessage: 'Remove all unnecessary parentheses in file');
+  static const REMOVE_UNNECESSARY_STRING_INTERPOLATION = FixKind(
+      'dart.fix.remove.unnecessaryStringInterpolation',
+      50,
+      'Remove unnecessary string interpolation',
+      appliedTogetherMessage:
+          'Remove all unnecessary string interpolations in file');
   static const REMOVE_UNUSED_CATCH_CLAUSE = FixKind(
       'dart.fix.remove.unusedCatchClause', 50, "Remove unused 'catch' clause");
   static const REMOVE_UNUSED_CATCH_STACK = FixKind(

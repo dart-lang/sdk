@@ -35,6 +35,7 @@ import 'kernel_helpers.dart';
 import 'native_types.dart';
 import 'nullable_inference.dart';
 import 'property_model.dart';
+import 'target.dart' show allowedNativeTest;
 import 'type_table.dart';
 
 class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
@@ -70,7 +71,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Let variables collected for the given function.
   List<js_ast.TemporaryId> _letVariables;
 
-  final _constTable = js_ast.TemporaryId('CT');
+  final _constTable = js_ast.Identifier('CT');
 
   /// Constant getters used to populate the constant table.
   final _constLazyAccessors = <js_ast.Method>[];
@@ -251,7 +252,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     coreTypes ??= CoreTypes(component);
     var types = TypeEnvironment(coreTypes, hierarchy);
     var constants = DevCompilerConstants();
-    var nativeTypes = NativeTypeSet(coreTypes, constants);
+    var nativeTypes = NativeTypeSet(coreTypes, constants, component);
     var jsTypeRep = JSTypeRep(types, hierarchy);
     var staticTypeContext = StatefulStaticTypeContext.stacked(types);
     return ProgramCompiler._(
@@ -411,7 +412,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     libraries.forEach(_emitExports);
 
     // Declare imports and extension symbols
-    emitImportsAndExtensionSymbols(items);
+    emitImportsAndExtensionSymbols(items,
+        forceExtensionSymbols:
+            libraries.any((l) => allowedNativeTest(l.importUri)));
 
     // Insert a check that runs when loading this module to verify that the null
     // safety mode it was compiled in matches the mode used when compiling the
@@ -2456,7 +2459,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   js_ast.PropertyAccess _emitTopLevelNameNoInterop(NamedNode n,
       {String suffix = ''}) {
-    return js_ast.PropertyAccess(emitLibraryName(getLibrary(n)),
+    // Some native tests use top-level native methods.
+    var isTopLevelNative = n is Member && isNative(n);
+    return js_ast.PropertyAccess(
+        isTopLevelNative
+            ? runtimeCall('global.self')
+            : emitLibraryName(getLibrary(n)),
         _emitTopLevelMemberName(n, suffix: suffix));
   }
 
@@ -3088,6 +3096,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // original code.
     _checkParameters = false;
 
+    // Set module item containers to incremental mode.
+    setSymbolContainerIncrementalMode(true);
+    _typeTable.typeContainer.incrementalMode = true;
+
     // Emit function with additional information, such as types that are used
     // in the expression. Note that typeTable can be null if this function is
     // called from the expression compilation service, since we currently do
@@ -3097,7 +3109,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Issue: https://github.com/dart-lang/sdk/issues/43288
     var fun = _emitFunction(functionNode, name);
 
-    var types = _typeTable?.dischargeBoundTypes(incremental: true);
+    var types = _typeTable?.dischargeBoundTypes();
     var constants = _dischargeConstTable();
 
     var body = js_ast.Block([...?types, ...?constants, ...fun.body.statements]);
@@ -4997,9 +5009,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       Expression left, Member target, Expression right,
       {bool negated = false}) {
     var targetClass = target?.enclosingClass;
-    var leftType = targetClass != null
-        ? _coreTypes.legacyRawType(targetClass)
-        : left.getStaticType(_staticTypeContext);
+    var leftType = left.getStaticType(_staticTypeContext);
 
     // Conceptually `x == y` in Dart is defined as:
     //
@@ -5932,7 +5942,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitLoadLibrary(LoadLibrary node) =>
-      runtimeCall('loadLibrary()');
+      runtimeCall('loadLibrary(#, #)', [
+        js.string(jsLibraryName(node.import.enclosingLibrary)),
+        js.string(node.import.name)
+      ]);
 
   // TODO(jmesserly): DDC loads all libraries eagerly.
   // See
@@ -5940,7 +5953,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   // https://github.com/dart-lang/sdk/issues/27777
   @override
   js_ast.Expression visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) =>
-      js.boolean(true);
+      runtimeCall('checkDeferredIsLoaded(#, #)', [
+        js.string(jsLibraryName(node.import.enclosingLibrary)),
+        js.string(node.import.name)
+      ]);
 
   bool _reifyFunctionType(FunctionNode f) {
     if (_currentLibrary.importUri.scheme != 'dart') return true;

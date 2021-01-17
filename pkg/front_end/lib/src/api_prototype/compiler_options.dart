@@ -256,6 +256,13 @@ class CompilerOptions {
   /// compiling the platform dill.
   bool emitDeps = true;
 
+  /// Set of invocation modes the describe how the compilation is performed.
+  ///
+  /// This used to selectively emit certain messages depending on how the
+  /// CFE is invoked. For instance to emit a message about the null safety
+  /// compilation mode when the modes includes [InvocationMode.compile].
+  Set<InvocationMode> invocationModes = {};
+
   bool isExperimentEnabledByDefault(ExperimentalFlag flag) {
     return flags.isExperimentEnabled(flag,
         defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting);
@@ -344,6 +351,7 @@ class CompilerOptions {
     if (nnbdMode != other.nnbdMode) return false;
     if (currentSdkVersion != other.currentSdkVersion) return false;
     if (emitDeps != other.emitDeps) return false;
+    if (!equalSets(invocationModes, other.invocationModes)) return false;
 
     return true;
   }
@@ -430,4 +438,45 @@ Map<ExperimentalFlag, bool> parseExperimentalFlags(
     }
   }
   return flags;
+}
+
+class InvocationMode {
+  /// This mode is used for when the CFE is invoked in order to compile an
+  /// executable.
+  ///
+  /// If used, a message about the null safety compilation mode will be emitted.
+  static const InvocationMode compile = const InvocationMode('compile');
+
+  final String name;
+
+  const InvocationMode(this.name);
+
+  /// Returns the set of information modes from a comma-separated list of
+  /// invocation mode names.
+  static Set<InvocationMode> parseArguments(String arg) {
+    Set<InvocationMode> result = {};
+    for (String name in arg.split(',')) {
+      if (name.isNotEmpty) {
+        InvocationMode mode = fromName(name);
+        if (mode == null) {
+          throw new UnsupportedError("Unknown invocation mode '$name'.");
+        } else {
+          result.add(mode);
+        }
+      }
+    }
+    return result;
+  }
+
+  /// Returns the [InvocationMode] with the given [name].
+  static InvocationMode fromName(String name) {
+    for (InvocationMode invocationMode in values) {
+      if (name == invocationMode.name) {
+        return invocationMode;
+      }
+    }
+    return null;
+  }
+
+  static const List<InvocationMode> values = const [compile];
 }

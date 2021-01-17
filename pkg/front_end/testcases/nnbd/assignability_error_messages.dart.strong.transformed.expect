@@ -213,14 +213,14 @@ static method foo(self::B? x, core::List<self::B?> l, core::Map<self::B?, self::
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   A a = x; // Error.
         ^" in let self::B? #t4 = x in #t4.==(null) ?{self::A} #t4 as{TypeError,ForNonNullableByDefault} self::A : #t4{self::A};
-  <self::A>[invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:29:10: Error: Can't assign spread elements of type 'B?' to collection elements of type 'A' because 'B?' is nullable and 'A' isn't.
+  core::_GrowableList::_literal1<self::A>(invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:29:10: Error: Can't assign spread elements of type 'B?' to collection elements of type 'A' because 'B?' is nullable and 'A' isn't.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   <A>[...l]; // Error.
-         ^"];
-  <self::A>[invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:30:10: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+         ^");
+  core::_GrowableList::_literal1<self::A>(invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:30:10: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
   <A>[...l2]; // Error.
-         ^"];
+         ^");
   <self::A, self::A>{invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:31:13: Error: Can't assign spread entry keys of type 'B?' to map entry keys of type 'A' because 'B?' is nullable and 'A' isn't.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
@@ -333,12 +333,12 @@ static method bar(core::List<self::B?> x, core::List<core::List<self::B?>> l, co
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   List<A> y = x; // Error.
               ^" in x as{TypeError,ForNonNullableByDefault} core::List<self::A>;
-  <core::List<self::A>>[invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:55:16: Error: Can't assign spread elements of type 'List<B?>' to collection elements of type 'List<A>' because 'B?' is nullable and 'A' isn't.
+  core::_GrowableList::_literal1<core::List<self::A>>(invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:55:16: Error: Can't assign spread elements of type 'List<B?>' to collection elements of type 'List<A>' because 'B?' is nullable and 'A' isn't.
  - 'List' is from 'dart:core'.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   <List<A>>[...l]; // Error.
-               ^"];
+               ^");
   <core::List<self::A>, core::List<self::A>>{invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:56:25: Error: Can't assign spread entry keys of type 'List<B?>' to map entry keys of type 'List<A>' because 'B?' is nullable and 'A' isn't.
  - 'List' is from 'dart:core'.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
@@ -472,4 +472,4 @@ Extra constant evaluation: evaluated: 210, effectively constant: 12
 Constructor coverage from constants:
 org-dartlang-testcase:///assignability_error_messages.dart:
 - A. (from org-dartlang-testcase:///assignability_error_messages.dart:11:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

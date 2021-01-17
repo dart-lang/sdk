@@ -42,15 +42,15 @@ DEFINE_FLAG(charp,
             "Print sizes of all instruction objects to the given file");
 #endif
 
-const InstructionsSectionLayout* Image::ExtraInfo(const uword raw_memory,
-                                                  const uword size) {
+const UntaggedInstructionsSection* Image::ExtraInfo(const uword raw_memory,
+                                                    const uword size) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   auto const raw_value =
       FieldValue(raw_memory, HeaderField::InstructionsSectionOffset);
   if (raw_value != kNoInstructionsSection) {
     ASSERT(raw_value >= kHeaderSize);
     ASSERT(raw_value <= size - InstructionsSection::HeaderSize());
-    auto const layout = reinterpret_cast<const InstructionsSectionLayout*>(
+    auto const layout = reinterpret_cast<const UntaggedInstructionsSection*>(
         raw_memory + raw_value);
     // The instructions section is likely non-empty in bare instructions mode
     // (unless splitting into multiple outputs and there are no Code objects
@@ -146,8 +146,8 @@ intptr_t ObjectOffsetTrait::Hashcode(Key key) {
   ObjectPtr obj = key;
   ASSERT(!obj->IsSmi());
 
-  uword body = ObjectLayout::ToAddr(obj) + sizeof(ObjectLayout);
-  uword end = ObjectLayout::ToAddr(obj) + obj->ptr()->HeapSize();
+  uword body = UntaggedObject::ToAddr(obj) + sizeof(UntaggedObject);
+  uword end = UntaggedObject::ToAddr(obj) + obj->untag()->HeapSize();
 
   uint32_t hash = obj->GetClassId();
   // Don't include the header. Objects in the image are pre-marked, but objects
@@ -169,16 +169,16 @@ bool ObjectOffsetTrait::IsKeyEqual(Pair pair, Key key) {
     return false;
   }
 
-  intptr_t heap_size = a->ptr()->HeapSize();
-  if (b->ptr()->HeapSize() != heap_size) {
+  intptr_t heap_size = a->untag()->HeapSize();
+  if (b->untag()->HeapSize() != heap_size) {
     return false;
   }
 
   // Don't include the header. Objects in the image are pre-marked, but objects
   // in the current isolate are not.
-  uword body_a = ObjectLayout::ToAddr(a) + sizeof(ObjectLayout);
-  uword body_b = ObjectLayout::ToAddr(b) + sizeof(ObjectLayout);
-  uword body_size = heap_size - sizeof(ObjectLayout);
+  uword body_a = UntaggedObject::ToAddr(a) + sizeof(UntaggedObject);
+  uword body_b = UntaggedObject::ToAddr(b) + sizeof(UntaggedObject);
+  uword body_size = heap_size - sizeof(UntaggedObject);
   return 0 == memcmp(reinterpret_cast<const void*>(body_a),
                      reinterpret_cast<const void*>(body_b), body_size);
 }
@@ -259,12 +259,12 @@ intptr_t ImageWriter::SizeInSnapshot(ObjectPtr raw_object) {
     case kCodeSourceMapCid: {
       auto raw_map = CodeSourceMap::RawCast(raw_object);
       return compiler::target::CodeSourceMap::InstanceSize(
-          raw_map->ptr()->length_);
+          raw_map->untag()->length_);
     }
     case kPcDescriptorsCid: {
       auto raw_desc = PcDescriptors::RawCast(raw_object);
       return compiler::target::PcDescriptors::InstanceSize(
-          raw_desc->ptr()->length_);
+          raw_desc->untag()->length_);
     }
     case kInstructionsCid: {
       auto raw_insns = Instructions::RawCast(raw_object);
@@ -377,7 +377,7 @@ void ImageWriter::DumpInstructionsSizes() {
       js.PrintPropertyStr("l", url);
       js.PrintPropertyStr("c", name);
     } else if (owner.IsClass()) {
-      cls ^= owner.raw();
+      cls ^= owner.ptr();
       name = cls.ScrubbedName();
       lib = cls.library();
       url = lib.url();
@@ -388,7 +388,7 @@ void ImageWriter::DumpInstructionsSizes() {
                      data.code_->QualifiedName(
                          NameFormattingParams::DisambiguatedWithoutClassName(
                              Object::kInternalName)));
-    js.PrintProperty("s", SizeInSnapshot(data.insns_->raw()));
+    js.PrintProperty("s", SizeInSnapshot(data.insns_->ptr()));
     js.CloseObject();
   }
   if (trampolines_total_size != 0) {
@@ -435,7 +435,7 @@ void ImageWriter::DumpStatistics() {
 void ImageWriter::Write(NonStreamingWriteStream* clustered_stream, bool vm) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Heap* heap = thread->isolate()->heap();
+  Heap* heap = thread->isolate_group()->heap();
   TIMELINE_DURATION(thread, Isolate, "WriteInstructions");
 
   // Handlify collected raw pointers as building the names below
@@ -451,7 +451,7 @@ void ImageWriter::Write(NonStreamingWriteStream* clustered_stream, bool vm) {
 
     // Reset object id as an isolate snapshot after a VM snapshot will not use
     // the VM snapshot's text image.
-    heap->SetObjectId(data.insns_->raw(), 0);
+    heap->SetObjectId(data.insns_->ptr(), 0);
   }
   for (intptr_t i = 0; i < objects_.length(); i++) {
     ObjectData& data = objects_[i];
@@ -514,10 +514,10 @@ void ImageWriter::WriteROData(NonStreamingWriteStream* stream, bool vm) {
     if (obj.IsCompressedStackMaps()) {
       const CompressedStackMaps& map = CompressedStackMaps::Cast(obj);
       const intptr_t payload_size = map.payload_size();
-      stream->WriteTargetWord(map.raw()->ptr()->flags_and_size_);
+      stream->WriteTargetWord(map.ptr()->untag()->flags_and_size_);
       ASSERT_EQUAL(stream->Position() - object_start,
                    compiler::target::CompressedStackMaps::HeaderSize());
-      stream->WriteBytes(map.raw()->ptr()->data(), payload_size);
+      stream->WriteBytes(map.ptr()->untag()->data(), payload_size);
     } else if (obj.IsCodeSourceMap()) {
       const CodeSourceMap& map = CodeSourceMap::Cast(obj);
       stream->WriteTargetWord(map.Length());
@@ -529,15 +529,15 @@ void ImageWriter::WriteROData(NonStreamingWriteStream* stream, bool vm) {
       stream->WriteTargetWord(desc.Length());
       ASSERT_EQUAL(stream->Position() - object_start,
                    compiler::target::PcDescriptors::HeaderSize());
-      stream->WriteBytes(desc.raw()->ptr()->data(), desc.Length());
+      stream->WriteBytes(desc.ptr()->untag()->data(), desc.Length());
     } else if (obj.IsString()) {
       const String& str = String::Cast(obj);
-      RELEASE_ASSERT(String::GetCachedHash(str.raw()) != 0);
+      RELEASE_ASSERT(String::GetCachedHash(str.ptr()) != 0);
       RELEASE_ASSERT(str.IsOneByteString() || str.IsTwoByteString());
 
-      stream->WriteTargetWord(static_cast<uword>(str.raw()->ptr()->length_));
+      stream->WriteTargetWord(static_cast<uword>(str.ptr()->untag()->length_));
 #if !defined(HASH_IN_OBJECT_HEADER)
-      stream->WriteTargetWord(static_cast<uword>(str.raw()->ptr()->hash_));
+      stream->WriteTargetWord(static_cast<uword>(str.ptr()->untag()->hash_));
 #endif
       ASSERT_EQUAL(stream->Position() - object_start,
                    compiler::target::String::InstanceSize());
@@ -558,15 +558,15 @@ void ImageWriter::WriteROData(NonStreamingWriteStream* stream, bool vm) {
 }
 
 static UNLESS_DEBUG(constexpr) const uword kReadOnlyGCBits =
-    ObjectLayout::OldBit::encode(true) |
-    ObjectLayout::OldAndNotMarkedBit::encode(false) |
-    ObjectLayout::OldAndNotRememberedBit::encode(true) |
-    ObjectLayout::NewBit::encode(false);
+    UntaggedObject::OldBit::encode(true) |
+    UntaggedObject::OldAndNotMarkedBit::encode(false) |
+    UntaggedObject::OldAndNotRememberedBit::encode(true) |
+    UntaggedObject::NewBit::encode(false);
 
 uword ImageWriter::GetMarkedTags(classid_t cid,
                                  intptr_t size,
                                  bool is_canonical /* = false */) {
-  // ObjectLayout::SizeTag expects a size divisible by kObjectAlignment and
+  // UntaggedObject::SizeTag expects a size divisible by kObjectAlignment and
   // checks this in debug mode, but the size on the target machine may not be
   // divisible by the host machine's object alignment if they differ.
   //
@@ -583,16 +583,17 @@ uword ImageWriter::GetMarkedTags(classid_t cid,
       size << (kObjectAlignmentLog2 -
                compiler::target::ObjectAlignment::kObjectAlignmentLog2);
 
-  return kReadOnlyGCBits | ObjectLayout::ClassIdTag::encode(cid) |
-         ObjectLayout::SizeTag::encode(adjusted_size) |
-         ObjectLayout::CanonicalBit::encode(is_canonical);
+  return kReadOnlyGCBits | UntaggedObject::ClassIdTag::encode(cid) |
+         UntaggedObject::SizeTag::encode(adjusted_size) |
+         UntaggedObject::CanonicalBit::encode(is_canonical);
 }
 
 uword ImageWriter::GetMarkedTags(const Object& obj) {
-  uword tags = GetMarkedTags(obj.raw()->GetClassId(), SizeInSnapshot(obj),
-                             obj.IsCanonical());
+  uword tags = GetMarkedTags(obj.ptr()->untag()->GetClassId(),
+                             SizeInSnapshot(obj), obj.IsCanonical());
 #if defined(HASH_IN_OBJECT_HEADER)
-  tags = ObjectLayout::HashTag::update(obj.raw()->ptr()->GetHeaderHash(), tags);
+  tags = UntaggedObject::HashTag::update(obj.ptr()->untag()->GetHeaderHash(),
+                                         tags);
 #endif
   return tags;
 }
@@ -740,7 +741,7 @@ void ImageWriter::WriteText(bool vm) {
       const V8SnapshotProfileWriter::ObjectId id(offset_space_, text_offset);
       auto const type = is_trampoline ? trampoline_type_ : instructions_type_;
       const intptr_t size = is_trampoline ? data.trampoline_length
-                                          : SizeInSnapshot(data.insns_->raw());
+                                          : SizeInSnapshot(data.insns_->ptr());
       profile_writer_->SetObjectTypeAndName(id, type, object_name);
       profile_writer_->AttributeBytesTo(id, size);
       const intptr_t element_offset = id.second - parent_id.second;
@@ -769,7 +770,7 @@ void ImageWriter::WriteText(bool vm) {
 
       // Write Instructions with the mark and read-only bits set.
       text_offset += WriteTargetWord(GetMarkedTags(insns));
-      text_offset += WriteFixed(insns.raw_ptr()->size_and_flags_);
+      text_offset += WriteFixed(insns.untag()->size_and_flags_);
       text_offset +=
           Align(compiler::target::Instructions::kNonBarePayloadAlignment,
                 text_offset);
@@ -798,7 +799,7 @@ void ImageWriter::WriteText(bool vm) {
       const uword payload_size = insns.Size();
       descriptors = code.pc_descriptors();
       PcDescriptors::Iterator iterator(
-          descriptors, /*kind_mask=*/PcDescriptorsLayout::kBSSRelocation);
+          descriptors, /*kind_mask=*/UntaggedPcDescriptors::kBSSRelocation);
 
       auto const payload_end = payload_start + payload_size;
       auto cursor = payload_start;
@@ -835,7 +836,7 @@ void ImageWriter::WriteText(bool vm) {
             : compiler::target::ObjectAlignment::kObjectAlignment;
     text_offset += AlignWithBreakInstructions(alignment, text_offset);
 
-    ASSERT_EQUAL(text_offset - instr_start, SizeInSnapshot(insns.raw()));
+    ASSERT_EQUAL(text_offset - instr_start, SizeInSnapshot(insns.ptr()));
   }
 
   // Should be a no-op unless writing bare instruction payloads, in which case
@@ -1556,10 +1557,10 @@ InstructionsPtr ImageReader::GetInstructionsAt(uint32_t offset) const {
   ASSERT(!FLAG_precompiled_mode || !FLAG_use_bare_instructions);
   ASSERT(Utils::IsAligned(offset, kObjectAlignment));
 
-  ObjectPtr result = ObjectLayout::FromAddr(
+  ObjectPtr result = UntaggedObject::FromAddr(
       reinterpret_cast<uword>(instructions_image_) + offset);
   ASSERT(result->IsInstructions());
-  ASSERT(result->ptr()->IsMarked());
+  ASSERT(result->untag()->IsMarked());
 
   return Instructions::RawCast(result);
 }
@@ -1568,8 +1569,8 @@ ObjectPtr ImageReader::GetObjectAt(uint32_t offset) const {
   ASSERT(Utils::IsAligned(offset, kObjectAlignment));
 
   ObjectPtr result =
-      ObjectLayout::FromAddr(reinterpret_cast<uword>(data_image_) + offset);
-  ASSERT(result->ptr()->IsMarked());
+      UntaggedObject::FromAddr(reinterpret_cast<uword>(data_image_) + offset);
+  ASSERT(result->untag()->IsMarked());
 
   return result;
 }

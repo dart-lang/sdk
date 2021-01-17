@@ -158,7 +158,14 @@ Updated the Linter to `0.1.127`, which includes:
 * The `--server` option to `dart pub publish` and `dart pub uploader` have been
   deprecated. Use `publish_to` in your `pubspec.yaml` or set the
   `$PUB_HOSTED_URL` environment variable.
+* `pub global activate no longer re-precompiles if current global installed was
+   same version.
+* The Flutter SDK constraint upper bound is now ignored in pubspecs and
+  deprecated when publishing.
 
+  See: [flutter-upper-bound-deprecation][].
+
+[flutter-upper-bound-deprecation]: https://dart.dev/go/flutter-upper-bound-deprecation
 [#44072]: https://github.com/dart-lang/sdk/issues/44072
 [dart tool]: https://dart.dev/tools/dart-tool
 
@@ -229,6 +236,11 @@ This is a patch release that fixes the following issues:
 
 *   Class `BytesBuilder` is moved from `dart:io` to `dart:typed_data`.
     It's temporarily being exported from `dart:io` as well.
+
+### `dart:uri`
+
+*   [#42564]: Solved inconsistency in `Uri.https` and `Uri.http` constructors'
+    `queryParams` type.
 
 ### Dart VM
 

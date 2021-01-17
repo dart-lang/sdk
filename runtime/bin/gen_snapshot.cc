@@ -759,10 +759,6 @@ static void CreateAndWritePrecompiledSnapshot() {
   }
 }
 
-static Dart_QualifiedFunctionName no_entry_points[] = {
-    {NULL, NULL, NULL}  // Must be terminated with NULL entries.
-};
-
 static int CreateIsolateAndSnapshot(const CommandLineOptions& inputs) {
   uint8_t* kernel_buffer = NULL;
   intptr_t kernel_buffer_size = 0;
@@ -775,7 +771,6 @@ static int CreateIsolateAndSnapshot(const CommandLineOptions& inputs) {
                             kernel_buffer, kernel_buffer_size);
   if (IsSnapshottingForPrecompilation()) {
     isolate_flags.obfuscate = obfuscate;
-    isolate_flags.entry_points = no_entry_points;
   }
 
   auto isolate_group_data = std::unique_ptr<IsolateGroupData>(

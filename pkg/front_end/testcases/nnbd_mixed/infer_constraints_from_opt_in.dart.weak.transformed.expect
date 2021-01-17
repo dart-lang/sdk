@@ -25,16 +25,16 @@ abstract class A extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method main() → dynamic {
-  core::List<dynamic>* local0 = <dynamic>[];
-  core::List<inf::C<dynamic>*>* local1a = <inf::C<dynamic>*>[inf::field1];
-  core::List<inf::C<dynamic>*>* local1b = <inf::C<dynamic>*>[inf::field2];
-  core::List<inf::C<core::int*>*>* local1c = <inf::C<core::int*>*>[inf::field3];
-  core::List<inf::C<core::int*>*>* local1d = <inf::C<core::int*>*>[inf::field4];
-  core::List<inf::C<core::int*>*>* local1e = <inf::C<core::int*>*>[inf::field5];
-  core::List<inf::C<core::int*>*>* local1f = <inf::C<core::int*>*>[inf::field6];
-  core::List<core::int*>* local1g = <core::int*>[inf::field7];
-  core::List<core::int*>* local1h = <core::int*>[inf::field8];
-  core::List<Null>* local1i = <Null>[null];
+  core::List<dynamic>* local0 = core::_GrowableList::•<dynamic>(0);
+  core::List<inf::C<dynamic>*>* local1a = core::_GrowableList::_literal1<inf::C<dynamic>*>(inf::field1);
+  core::List<inf::C<dynamic>*>* local1b = core::_GrowableList::_literal1<inf::C<dynamic>*>(inf::field2);
+  core::List<inf::C<core::int*>*>* local1c = core::_GrowableList::_literal1<inf::C<core::int*>*>(inf::field3);
+  core::List<inf::C<core::int*>*>* local1d = core::_GrowableList::_literal1<inf::C<core::int*>*>(inf::field4);
+  core::List<inf::C<core::int*>*>* local1e = core::_GrowableList::_literal1<inf::C<core::int*>*>(inf::field5);
+  core::List<inf::C<core::int*>*>* local1f = core::_GrowableList::_literal1<inf::C<core::int*>*>(inf::field6);
+  core::List<core::int*>* local1g = core::_GrowableList::_literal1<core::int*>(inf::field7);
+  core::List<core::int*>* local1h = core::_GrowableList::_literal1<core::int*>(inf::field8);
+  core::List<Null>* local1i = core::_GrowableList::_literal1<Null>(null);
   core::Set<inf::C<dynamic>*>* local2a = block {
     final core::Set<inf::C<dynamic>*>* #t1 = new col::_CompactLinkedHashSet::•<inf::C<dynamic>*>();
     #t1.{core::Set::add}{Invariant}(inf::field1);
@@ -155,16 +155,16 @@ static field inf::C<core::int?>? field6;
 static field core::int field7;
 static field core::int? field8;
 static method method() → dynamic {
-  core::List<dynamic> local0 = <dynamic>[];
-  core::List<inf::C<dynamic>> local1a = <inf::C<dynamic>>[inf::field1];
-  core::List<inf::C<dynamic>?> local1b = <inf::C<dynamic>?>[inf::field2];
-  core::List<inf::C<core::int>> local1c = <inf::C<core::int>>[inf::field3];
-  core::List<inf::C<core::int>?> local1d = <inf::C<core::int>?>[inf::field4];
-  core::List<inf::C<core::int?>> local1e = <inf::C<core::int?>>[inf::field5];
-  core::List<inf::C<core::int?>?> local1f = <inf::C<core::int?>?>[inf::field6];
-  core::List<core::int> local1g = <core::int>[inf::field7];
-  core::List<core::int?> local1h = <core::int?>[inf::field8];
-  core::List<Null> local1i = <Null>[null];
+  core::List<dynamic> local0 = core::_GrowableList::•<dynamic>(0);
+  core::List<inf::C<dynamic>> local1a = core::_GrowableList::_literal1<inf::C<dynamic>>(inf::field1);
+  core::List<inf::C<dynamic>?> local1b = core::_GrowableList::_literal1<inf::C<dynamic>?>(inf::field2);
+  core::List<inf::C<core::int>> local1c = core::_GrowableList::_literal1<inf::C<core::int>>(inf::field3);
+  core::List<inf::C<core::int>?> local1d = core::_GrowableList::_literal1<inf::C<core::int>?>(inf::field4);
+  core::List<inf::C<core::int?>> local1e = core::_GrowableList::_literal1<inf::C<core::int?>>(inf::field5);
+  core::List<inf::C<core::int?>?> local1f = core::_GrowableList::_literal1<inf::C<core::int?>?>(inf::field6);
+  core::List<core::int> local1g = core::_GrowableList::_literal1<core::int>(inf::field7);
+  core::List<core::int?> local1h = core::_GrowableList::_literal1<core::int?>(inf::field8);
+  core::List<Null> local1i = core::_GrowableList::_literal1<Null>(null);
   core::Set<inf::C<dynamic>?> local2a = block {
     final core::Set<inf::C<dynamic>?> #t17 = new col::_CompactLinkedHashSet::•<inf::C<dynamic>?>();
     #t17.{core::Set::add}{Invariant}(inf::field1);

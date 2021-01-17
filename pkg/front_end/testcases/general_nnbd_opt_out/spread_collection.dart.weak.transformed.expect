@@ -13,9 +13,9 @@ import "dart:collection" as col;
 
 static method main() → dynamic {
   final core::List<core::int*>* aList = block {
-    final core::List<core::int*>* #t1 = <core::int*>[1];
-    #t1.{core::List::addAll}{Invariant}(<core::int*>[2]);
-    final core::Iterable<core::int*>* #t2 = <core::int*>[3];
+    final core::List<core::int*>* #t1 = core::_GrowableList::_literal1<core::int*>(1);
+    #t1.{core::List::addAll}{Invariant}(core::_GrowableList::_literal1<core::int*>(2));
+    final core::Iterable<core::int*>* #t2 = core::_GrowableList::_literal1<core::int*>(3);
     if(!#t2.{core::Object::==}(null))
       #t1.{core::List::addAll}{Invariant}(#t2);
   } =>#t1;
@@ -41,8 +41,8 @@ static method main() → dynamic {
   final core::Set<core::int*>* aSet = block {
     final core::Set<core::int*>* #t7 = new col::_CompactLinkedHashSet::•<core::int*>();
     #t7.{core::Set::add}{Invariant}(1);
-    #t7.{core::Set::addAll}{Invariant}(<core::int*>[2]);
-    final core::Iterable<core::int*>* #t8 = <core::int*>[3];
+    #t7.{core::Set::addAll}{Invariant}(core::_GrowableList::_literal1<core::int*>(2));
+    final core::Iterable<core::int*>* #t8 = core::_GrowableList::_literal1<core::int*>(3);
     if(!#t8.{core::Object::==}(null))
       #t7.{core::Set::addAll}{Invariant}(#t8);
   } =>#t7;

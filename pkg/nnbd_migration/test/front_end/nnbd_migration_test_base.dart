@@ -243,7 +243,7 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     var info = instrumentationListener.data;
     var logger = TestLogger(false);
     var builder = InfoBuilder(resourceProvider, includedRoot, info, listener,
-        migration, nodeMapper, logger);
+        migration, nodeMapper, logger, (String path) => true);
     infos = await builder.explainMigration();
   }
 }

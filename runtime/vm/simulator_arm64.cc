@@ -266,7 +266,7 @@ TokenPosition SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
   uword pc_offset = pc - code.PayloadStart();
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
-  PcDescriptors::Iterator iter(descriptors, PcDescriptorsLayout::kAnyKind);
+  PcDescriptors::Iterator iter(descriptors, UntaggedPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
     if (iter.PcOffset() == pc_offset) {
       return iter.TokenPos();
@@ -334,7 +334,7 @@ void SimulatorDebugger::PrintBacktrace() {
   auto const Z = T->zone();
 #if defined(DART_PRECOMPILED_RUNTIME)
   auto const vm_instructions = reinterpret_cast<uword>(
-      Dart::vm_isolate()->group()->source()->snapshot_instructions);
+      Dart::vm_isolate_group()->source()->snapshot_instructions);
   auto const isolate_instructions = reinterpret_cast<uword>(
       T->isolate_group()->source()->snapshot_instructions);
   OS::PrintErr("vm_instructions=0x%" Px ", isolate_instructions=0x%" Px "\n",
@@ -595,10 +595,11 @@ void SimulatorDebugger::Debug() {
           // Make the dereferencing '*' optional.
           if (((arg1[0] == '*') && GetValue(arg1 + 1, &value)) ||
               GetValue(arg1, &value)) {
-            if (Isolate::Current()->heap()->Contains(value)) {
+            if (IsolateGroup::Current()->heap()->Contains(value)) {
               OS::PrintErr("%s: \n", arg1);
 #if defined(DEBUG)
-              const Object& obj = Object::Handle(static_cast<ObjectPtr>(value));
+              const Object& obj = Object::Handle(
+                  static_cast<ObjectPtr>(static_cast<uword>(value)));
               obj.Print();
 #endif  // defined(DEBUG)
             } else {

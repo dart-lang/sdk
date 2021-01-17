@@ -132,8 +132,11 @@ const v = a;
     // The element and type arguments are available for the function type.
     var importFind = findElement.importFind('package:test/a.dart');
     var alias = importFind.typeAlias('F');
-    var aliasedElement = alias.aliasedElement as GenericFunctionTypeElement;
-    expect(typeArgument.element, aliasedElement);
+    expect(typeArgument.aliasElement, alias);
+    assertElementTypeStrings(typeArgument.aliasArguments, ['double']);
+
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
+    expect(typeArgument.element, alias.aliasedElement);
     expect(typeArgument.element.enclosingElement, alias);
     assertElementTypeStrings(typeArgument.typeArguments, ['double']);
   }

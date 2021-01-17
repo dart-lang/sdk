@@ -831,18 +831,20 @@ class NewWorldTest {
       }
 
       if (!noFullComponent) {
-        List<Library> entryLib = component.libraries
-            .where((Library lib) =>
-                entries.contains(lib.importUri) ||
-                entries.contains(lib.fileUri))
-            .toList();
-        if (entryLib.length != entries.length) {
-          return new Result<TestData>(
-              data,
-              UnexpectedEntryToLibraryCount,
-              "Expected the entries to become libraries. "
-              "Got ${entryLib.length} libraries for the expected "
-              "${entries.length} entries.");
+        if (world["checkEntries"] != false) {
+          List<Library> entryLib = component.libraries
+              .where((Library lib) =>
+                  entries.contains(lib.importUri) ||
+                  entries.contains(lib.fileUri))
+              .toList();
+          if (entryLib.length != entries.length) {
+            return new Result<TestData>(
+                data,
+                UnexpectedEntryToLibraryCount,
+                "Expected the entries to become libraries. "
+                "Got ${entryLib.length} libraries for the expected "
+                "${entries.length} entries.");
+          }
         }
       }
       if (compiler.initializedFromDill != expectInitializeFromDill) {
@@ -1120,7 +1122,8 @@ Result<TestData> checkExpectFile(TestData data, int worldNum,
           "${extra}Unexpected serialized representation. "
           "Fix or update $uri to contain the below:\n\n"
           "$actualSerialized",
-          autoFixCommand: "updateExpectations=true");
+          autoFixCommand: "updateExpectations=true",
+          canBeFixWithUpdateExpectations: true);
     }
   }
   return null;

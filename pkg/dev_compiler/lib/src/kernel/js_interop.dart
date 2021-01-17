@@ -45,7 +45,9 @@ bool isAllowInterop(Expression node) {
 bool isJsMember(Member member) {
   // TODO(vsm): If we ever use external outside the SDK for non-JS interop,
   // we're need to fix this.
-  return !_isLibrary(member.enclosingLibrary, ['dart:*']) && member.isExternal;
+  return !_isLibrary(member.enclosingLibrary, ['dart:*']) &&
+      member.isExternal &&
+      !isNative(member);
 }
 
 bool _annotationIsFromJSLibrary(String expectedName, Expression value) {

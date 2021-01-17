@@ -1,0 +1,23 @@
+Problems reported:
+
+parser/error_recovery/issue_42229_prime_5:1:1: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+hello
+^^^^^
+
+parser/error_recovery/issue_42229_prime_5:1:1: Expected ';' after this.
+hello
+^^^^^
+
+beginCompilationUnit(hello)
+  beginMetadataStar(hello)
+  endMetadataStar(0)
+  beginTopLevelMember(hello)
+    beginFields()
+      handleRecoverableError(MissingConstFinalVarOrType, hello, hello)
+      handleNoType()
+      handleIdentifier(hello, topLevelVariableDeclaration)
+      handleNoFieldInitializer()
+      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], hello, hello)
+    endTopLevelFields(null, null, null, null, null, 1, hello, ;)
+  endTopLevelDeclaration()
+endCompilationUnit(1, )

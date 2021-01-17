@@ -309,20 +309,20 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
     String& var_name = String::Handle(zone);
     for (intptr_t i = 0; i < var_desc_length; i++) {
       var_name = var_descriptors.GetName(i);
-      LocalVarDescriptorsLayout::VarInfo var_info;
+      UntaggedLocalVarDescriptors::VarInfo var_info;
       var_descriptors.GetInfo(i, &var_info);
       const int8_t kind = var_info.kind();
-      if (kind == LocalVarDescriptorsLayout::kSavedCurrentContext) {
+      if (kind == UntaggedLocalVarDescriptors::kSavedCurrentContext) {
         THR_Print("  saved current CTX reg offset %d\n", var_info.index());
       } else {
-        if (kind == LocalVarDescriptorsLayout::kContextLevel) {
+        if (kind == UntaggedLocalVarDescriptors::kContextLevel) {
           THR_Print("  context level %d scope %d", var_info.index(),
                     var_info.scope_id);
-        } else if (kind == LocalVarDescriptorsLayout::kStackVar) {
+        } else if (kind == UntaggedLocalVarDescriptors::kStackVar) {
           THR_Print("  stack var '%s' offset %d", var_name.ToCString(),
                     var_info.index());
         } else {
-          ASSERT(kind == LocalVarDescriptorsLayout::kContextVar);
+          ASSERT(kind == UntaggedLocalVarDescriptors::kContextVar);
           THR_Print("  context var '%s' level %d offset %d",
                     var_name.ToCString(), var_info.scope_id, var_info.index());
         }
@@ -390,9 +390,9 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
 
         dst_type = AbstractType::null();
         if (object.IsAbstractType()) {
-          dst_type = AbstractType::Cast(object).raw();
+          dst_type = AbstractType::Cast(object).ptr();
         } else if (object.IsCode()) {
-          code = Code::Cast(object).raw();
+          code = Code::Cast(object).ptr();
         }
 
         auto kind = Code::KindField::decode(kind_type_and_offset.Value());

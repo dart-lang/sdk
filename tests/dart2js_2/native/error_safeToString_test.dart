@@ -38,45 +38,46 @@ makeR() native;
 void setup() {
   JS('', r"""
 (function(){
-  makeA = function(){return {hello: 123};};
+  self.makeA = function(){return {hello: 123};};
 
   function BB(){}
-  makeB = function(){return new BB();};
+  self.makeB = function(){return new BB();};
 
   function CC(){}
-  makeC = function(){
+  self.makeC = function(){
     var x = new CC();
     x.constructor = null;  // Foils constructor lookup.
     return x;
   };
 
   function DD(){}
-  makeD = function(){
+  self.makeD = function(){
     var x = new DD();
     x.constructor = {name: 'DDxxx'};  // Foils constructor lookup.
     return x;
   };
 
   function EE(){}
-  makeE = function(){
+  self.makeE = function(){
     var x = new EE();
     x.constructor = function Liar(){};  // Looks like a legitimate constructor.
     return x;
   };
 
   function PPPP(){}
-  makeP = function(){return new PPPP();};
+  self.makeP = function(){return new PPPP();};
 
   function QQQQ(){}
-  makeQ = function(){return new QQQQ();};
+  self.makeQ = function(){return new QQQQ();};
 
   function RRRR(){}
-  makeR = function(){return new RRRR();};
+  self.makeR = function(){return new RRRR();};
 
   self.nativeConstructor(PPPP);
   self.nativeConstructor(QQQQ);
   self.nativeConstructor(RRRR);
 })()""");
+  applyTestExtensions(['PPPP', 'QQQQ', 'RRRR']);
 }
 
 expectTypeName(expectedName, s) {

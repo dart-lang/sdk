@@ -504,6 +504,26 @@ registerExtension(name, dartExtType) {
   _applyExtension(jsType, dartExtType);
 }
 
+/// Apply a previously registered extension for testing purposes.
+///
+/// This method's only purpose is to aid in testing native classes. Most native
+/// tests define JavaScript classes in user code (e.g. in an eval string). The
+/// dartdevc compiler properly calls `registerExtension` when processing the
+/// native class declarations in Dart, but at that point in time the JavaScript
+/// counterpart is not defined.
+///
+/// This method is used to lookup those registrations and reapply the extension
+/// after the JavaScript declarations are added.
+///
+/// An alternative to this would be to invest in a better test infrastructure
+/// that would let us define the JavaScript code prior to loading the compiled
+/// module.
+applyExtensionForTesting(name) {
+  var dartExtType = JS('', '#.get(#)', _extensionMap, name);
+  var jsType = JS('', '#[#]', global_, name);
+  _applyExtension(jsType, dartExtType);
+}
+
 ///
 /// Mark a concrete type as implementing extension methods.
 /// For example: `class MyIter implements Iterable`.

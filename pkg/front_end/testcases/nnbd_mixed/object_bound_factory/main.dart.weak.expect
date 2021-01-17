@@ -134,7 +134,7 @@ org-dartlang-testcase:///main.dart:
 - Class5._ (from org-dartlang-testcase:///opt_in_lib.dart:42:9)
 
 org-dartlang-testcase:///opt_in_lib.dart:
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
 - Class1._ (from org-dartlang-testcase:///opt_in_lib.dart:10:9)
 - Class2._ (from org-dartlang-testcase:///opt_in_lib.dart:18:9)
 - Class3._ (from org-dartlang-testcase:///opt_in_lib.dart:26:9)

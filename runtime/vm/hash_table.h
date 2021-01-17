@@ -49,7 +49,7 @@ namespace dart {
 // If you *know* that no mutating operations were called, you can optimize:
 //  ...
 //  obj ^= cache.GetOrNull(name);
-//  ASSERT(cache.Release().raw() == get_foo_cache());
+//  ASSERT(cache.Release().ptr() == get_foo_cache());
 //
 // TODO(koda): When exposing these to Dart code, document and assert that
 // KeyTraits methods must not run Dart code (since the C++ code doesn't check
@@ -225,8 +225,8 @@ class HashTable : public ValueObject {
   // Sets the key of a previously unoccupied entry. This must not be the last
   // unoccupied entry.
   void InsertKey(intptr_t entry, const Object& key) const {
-    ASSERT(key.raw() != UnusedMarker().raw());
-    ASSERT(key.raw() != DeletedMarker().raw());
+    ASSERT(key.ptr() != UnusedMarker().ptr());
+    ASSERT(key.ptr() != DeletedMarker().ptr());
     ASSERT(!IsOccupied(entry));
     AdjustSmiValueAt(kOccupiedEntriesIndex, 1);
     if (IsDeleted(entry)) {
@@ -243,13 +243,13 @@ class HashTable : public ValueObject {
   const Object& DeletedMarker() const { return *data_; }
 
   bool IsUnused(intptr_t entry) const {
-    return InternalGetKey(entry) == UnusedMarker().raw();
+    return InternalGetKey(entry) == UnusedMarker().ptr();
   }
   bool IsOccupied(intptr_t entry) const {
     return !IsUnused(entry) && !IsDeleted(entry);
   }
   bool IsDeleted(intptr_t entry) const {
-    return InternalGetKey(entry) == DeletedMarker().raw();
+    return InternalGetKey(entry) == DeletedMarker().ptr();
   }
 
   ObjectPtr GetKey(intptr_t entry) const {
@@ -307,7 +307,7 @@ class HashTable : public ValueObject {
   }
   void UpdateCollisions(intptr_t collisions) const {
     if (KeyTraits::ReportStats()) {
-      if (data_->raw()->ptr()->InVMIsolateHeap()) {
+      if (data_->ptr()->untag()->InVMIsolateHeap()) {
         return;
       }
       AdjustSmiValueAt(kNumProbesIndex, collisions + 1);
@@ -447,14 +447,14 @@ class HashTables : public AllStatic {
         Thread::Current()->zone(),
         Array::New(Table::ArrayLengthForNumOccupied(initial_capacity), space));
     table.Initialize();
-    return table.Release().raw();
+    return table.Release().ptr();
   }
 
   template <typename Table>
   static ArrayPtr New(const Array& array) {
-    Table table(Thread::Current()->zone(), array.raw());
+    Table table(Thread::Current()->zone(), array.ptr());
     table.Initialize();
-    return table.Release().raw();
+    return table.Release().ptr();
   }
 
   // Clears 'to' and inserts all elements from 'from', in iteration order.
@@ -506,7 +506,7 @@ class HashTables : public AllStatic {
     Table new_table(New<Table>(new_capacity,  // Is rounded up to power of 2.
                                table.data_->IsOld() ? Heap::kOld : Heap::kNew));
     Copy(table, new_table);
-    *table.data_ = new_table.Release().raw();
+    *table.data_ = new_table.Release().ptr();
     NOT_IN_PRODUCT(table.UpdateGrowth(); table.PrintStats();)
   }
 
@@ -529,7 +529,7 @@ class HashTables : public AllStatic {
         }
       }
     }
-    return result.raw();
+    return result.ptr();
   }
 };
 
@@ -581,7 +581,7 @@ class HashMap : public BaseIterTable {
     if (!BaseIterTable::FindKeyOrDeletedOrUnused(key, &entry)) {
       BaseIterTable::InsertKey(entry, key);
       BaseIterTable::UpdatePayload(entry, 0, value_if_absent);
-      return value_if_absent.raw();
+      return value_if_absent.ptr();
     } else {
       return BaseIterTable::GetPayload(entry, 0);
     }
@@ -597,7 +597,7 @@ class HashMap : public BaseIterTable {
           BaseIterTable::BaseTable::Traits::NewKey(key);
       BaseIterTable::InsertKey(entry, BaseIterTable::KeyHandle());
       BaseIterTable::UpdatePayload(entry, 0, value_if_absent);
-      return value_if_absent.raw();
+      return value_if_absent.ptr();
     } else {
       return BaseIterTable::GetPayload(entry, 0);
     }
@@ -659,7 +659,7 @@ class HashSet : public BaseIterTable {
     intptr_t entry = -1;
     if (!BaseIterTable::FindKeyOrDeletedOrUnused(key, &entry)) {
       BaseIterTable::InsertKey(entry, key);
-      return key.raw();
+      return key.ptr();
     } else {
       return BaseIterTable::GetKey(entry);
     }
@@ -674,7 +674,7 @@ class HashSet : public BaseIterTable {
       BaseIterTable::KeyHandle() =
           BaseIterTable::BaseTable::Traits::NewKey(key);
       BaseIterTable::InsertKey(entry, BaseIterTable::KeyHandle());
-      return BaseIterTable::KeyHandle().raw();
+      return BaseIterTable::KeyHandle().ptr();
     } else {
       return BaseIterTable::GetKey(entry);
     }
@@ -725,8 +725,8 @@ class UnorderedHashSet : public HashSet<UnorderedHashTable<KeyTraits, 0> > {
     Object& entry = Object::Handle();
     for (intptr_t i = 0; i < this->data_->Length(); i++) {
       entry = this->data_->At(i);
-      if (entry.raw() == BaseSet::UnusedMarker().raw() ||
-          entry.raw() == BaseSet::DeletedMarker().raw() || entry.IsSmi()) {
+      if (entry.ptr() == BaseSet::UnusedMarker().ptr() ||
+          entry.ptr() == BaseSet::DeletedMarker().ptr() || entry.IsSmi()) {
         // empty, deleted, num_used/num_deleted
         OS::PrintErr("%" Pd ": %s\n", i, entry.ToCString());
       } else {

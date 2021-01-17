@@ -2325,6 +2325,9 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
+  void afterContextRefresh() {}
+
+  @override
   void afterWatchEvent(WatchEvent event) {}
 
   @override

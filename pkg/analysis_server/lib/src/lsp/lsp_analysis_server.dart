@@ -814,6 +814,11 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
+  void afterContextRefresh() {
+    analysisServer.addContextsToDeclarationsTracker();
+  }
+
+  @override
   void afterWatchEvent(WatchEvent event) {
     // TODO: implement afterWatchEvent
   }

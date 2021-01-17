@@ -21,7 +21,7 @@ static method test() → void {
   for (@#C1 core::int* i = 0; i.{core::num::<}(1); i = i.{core::num::+}(1)) {
   }
   {
-    core::Iterator<core::int*>* :sync-for-iterator = <core::int*>[0].{core::Iterable::iterator};
+    core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal1<core::int*>(0).{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       @#C1 core::int* i = :sync-for-iterator.{core::Iterator::current};
       {}
@@ -38,4 +38,4 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///downwards_inference_annotations_for_loop_variable.dart:
 - Foo. (from org-dartlang-testcase:///downwards_inference_annotations_for_loop_variable.dart:9:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

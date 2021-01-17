@@ -4,6 +4,37 @@
 
 // CHANGES:
 //
+// v0.12 (82403371ac00ddf004be60fa7b705474d2864509) Cf. language issue #1341:
+// correct `metadata`. Change `qualifiedName` such that it only includes the
+// cases with a '.'; the remaining case is added where `qualifiedName` is used.
+//
+// v0.11 (67c703063d5b68c9e132edbaf34dfe375851f5a6) Corrections, mainly:
+// `fieldFormalParameter` now allows `?` on the parameter type; cascade was
+// reorganized in the spec, it is now reorganized similarly here; `?` was
+// removed from argumentPart (null-aware invocation was never added).
+//
+// v0.10 (8ccdb9ae796d543e4ad8f339c847c02b09018d2d) Simplify grammar by making
+// `constructorInvocation` an alternative in `primary`.
+//
+// v0.9 (f4d7951a88e1b738e22b768c3bc72bf1a1062365) Introduce abstract and
+// external variables.
+//
+// v0.8 (a9ea9365ad8a3e3b59115bd889a55b6aa2c5a5fa) Change null-aware
+// invocations of `operator []` and `operator []=` to not have a period.
+//
+// v0.7 (6826faf583f6a543b1a0e2e85bd6a8042607ce00) Introduce extension and
+// mixin declarations. Revise rules about string literals and string
+// interpolation. Reorganize "keywords" (built-in identifiers, reserved words,
+// other words that are specified in the grammar and not parsed as IDENTIFIER)
+// into explicitly marked groups. Change the cascade syntax to be
+// compositional.
+//
+// v0.6 (a58052974ec2b4b334922c5227b043ed2b9c2cc5) Introduce syntax associated
+// with null safety.
+//
+// v0.5 (56793b3d4714d4818d855a72074d5295489aef3f) Stop treating `ASYNC` as a
+// conditional reserved word (only `AWAIT` and `YIELD` get this treatment).
+//
 // v0.4 Added support for 'unified collections' (spreads and control flow
 // in collection literals).
 //

@@ -757,6 +757,11 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
+  void afterContextRefresh() {
+    analysisServer.addContextsToDeclarationsTracker();
+  }
+
+  @override
   void afterWatchEvent(WatchEvent event) {
     analysisServer._onAnalysisSetChangedController.add(null);
   }

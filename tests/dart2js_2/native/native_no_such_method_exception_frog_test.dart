@@ -22,9 +22,10 @@ setup() {
   JS('', r"""
 (function(){
   function A() {}
-  makeA = function() { return new A(); };
+  self.makeA = function() { return new A(); };
   self.nativeConstructor(A);
 })()""");
+  applyTestExtensions(['A']);
 }
 
 main() {

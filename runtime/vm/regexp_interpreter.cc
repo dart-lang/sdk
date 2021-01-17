@@ -40,12 +40,12 @@ bool BackRefMatchesNoCase<uint16_t>(Canonicalize* interp_canonicalize,
   Bool& ret = Bool::Handle();
   if (unicode) {
     ret = static_cast<BoolPtr>(CaseInsensitiveCompareUTF16(
-        static_cast<uword>(subject.raw()), static_cast<uword>(Smi::New(from)),
+        static_cast<uword>(subject.ptr()), static_cast<uword>(Smi::New(from)),
         static_cast<uword>(Smi::New(current)),
         static_cast<uword>(Smi::New(len))));
   } else {
     ret = static_cast<BoolPtr>(CaseInsensitiveCompareUCS2(
-        static_cast<uword>(subject.raw()), static_cast<uword>(Smi::New(from)),
+        static_cast<uword>(subject.ptr()), static_cast<uword>(Smi::New(from)),
         static_cast<uword>(Smi::New(current)),
         static_cast<uword>(Smi::New(len))));
   }

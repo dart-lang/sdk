@@ -20,14 +20,14 @@ static ClassPtr CreateTestClass(const char* name) {
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   cls.SetFunctions(Object::empty_array());
   cls.SetFields(Object::empty_array());
-  return cls.raw();
+  return cls.ptr();
 }
 
 ISOLATE_UNIT_TEST_CASE(ClassFinalizer) {
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
-  ObjectStore* object_store = isolate->object_store();
-  const GrowableObjectArray& pending_classes =
+  auto isolate_group = thread->isolate_group();
+  ObjectStore* object_store = isolate_group->object_store();
+  const auto& pending_classes =
       GrowableObjectArray::Handle(zone, object_store->pending_classes());
   GrowableArray<const Class*> classes_1;
   classes_1.Add(&Class::Handle(CreateTestClass("BMW")));

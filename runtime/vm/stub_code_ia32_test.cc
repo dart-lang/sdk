@@ -28,9 +28,10 @@ static Function* CreateFunction(const char* name) {
       Class::New(lib, class_name, script, TokenPosition::kNoSource));
   const String& function_name =
       String::ZoneHandle(Symbols::New(Thread::Current(), name));
+  const FunctionType& signature = FunctionType::ZoneHandle(FunctionType::New());
   Function& function = Function::ZoneHandle(Function::New(
-      function_name, FunctionLayout::kRegularFunction, true, false, false,
-      false, false, owner_class, TokenPosition::kMinSource));
+      signature, function_name, UntaggedFunction::kRegularFunction, true, false,
+      false, false, false, owner_class, TokenPosition::kMinSource));
   return &function;
 }
 
@@ -109,7 +110,7 @@ ISOLATE_UNIT_TEST_CASE(CallLeafRuntimeStubCode) {
   const Function& function = RegisterFakeFunction(kName, code);
   Instance& result = Instance::Handle();
   result ^= DartEntry::InvokeFunction(function, Object::empty_array());
-  EXPECT_EQ(Bool::True().raw(), result.raw());
+  EXPECT_EQ(Bool::True().ptr(), result.ptr());
 }
 
 }  // namespace dart

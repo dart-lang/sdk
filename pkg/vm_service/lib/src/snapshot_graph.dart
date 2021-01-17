@@ -100,8 +100,8 @@ class HeapSnapshotField {
   /// The name of the field.
   String get name => _name;
 
-  int _index;
-  String _name;
+  int _index = -1;
+  String _name = '';
 
   HeapSnapshotField._read(_ReadStream reader) {
     // flags (reserved)
@@ -129,10 +129,10 @@ class HeapSnapshotClass {
   /// The list of fields in the class.
   List<HeapSnapshotField> get fields => _fields;
 
-  String _name;
-  String _libraryName;
-  Uri _libraryUri;
-  List<HeapSnapshotField> _fields = <HeapSnapshotField>[];
+  String _name = '';
+  String _libraryName = '';
+  late final Uri _libraryUri;
+  final List<HeapSnapshotField> _fields = <HeapSnapshotField>[];
 
   HeapSnapshotClass._read(_ReadStream reader) {
     // flags (reserved).
@@ -170,10 +170,10 @@ class HeapSnapshotObject {
   /// A list of 1-origin indicies into [HeapSnapshotGraph.objects].
   List<int> get references => _references;
 
-  int _classId;
-  int _shallowSize;
-  dynamic _data;
-  List<int> _references = <int>[];
+  int _classId = -1;
+  int _shallowSize = -1;
+  late final dynamic _data;
+  final List<int> _references = <int>[];
 
   HeapSnapshotObject._read(_ReadStream reader) {
     _classId = reader.readUnsigned();
@@ -238,15 +238,15 @@ class HeapSnapshotGraph {
   List<HeapSnapshotExternalProperty> get externalProperties =>
       _externalProperties;
 
-  String _name;
-  int _flags;
-  int _shallowSize;
-  int _capacity;
-  int _externalSize;
-  List<HeapSnapshotClass> _classes = <HeapSnapshotClass>[];
-  int _referenceCount;
-  List<HeapSnapshotObject> _objects = <HeapSnapshotObject>[];
-  List<HeapSnapshotExternalProperty> _externalProperties =
+  String _name = '';
+  int _flags = -1;
+  int _shallowSize = -1;
+  int _capacity = -1;
+  int _externalSize = -1;
+  final List<HeapSnapshotClass> _classes = <HeapSnapshotClass>[];
+  int _referenceCount = -1;
+  final List<HeapSnapshotObject> _objects = <HeapSnapshotObject>[];
+  final List<HeapSnapshotExternalProperty> _externalProperties =
       <HeapSnapshotExternalProperty>[];
 
   /// Requests a heap snapshot for a given isolate and builds a
@@ -260,10 +260,10 @@ class HeapSnapshotGraph {
 
     final completer = Completer<HeapSnapshotGraph>();
     final chunks = <ByteData>[];
-    StreamSubscription streamSubscription;
+    late StreamSubscription streamSubscription;
     streamSubscription = service.onHeapSnapshotEvent.listen((e) async {
-      chunks.add(e.data);
-      if (e.last) {
+      chunks.add(e.data!);
+      if (e.last!) {
         await service.streamCancel(EventStreams.kHeapSnapshot);
         await streamSubscription.cancel();
         completer.complete(HeapSnapshotGraph.fromChunks(chunks));

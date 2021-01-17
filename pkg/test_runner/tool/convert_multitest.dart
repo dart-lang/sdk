@@ -22,10 +22,15 @@ import 'update_static_error_tests.dart' show runAnalyzer, runCfe;
 
 Future<List<StaticError>> getErrors(
     List<String> options, String filePath) async {
-  return [
-    ...await runAnalyzer(filePath, options),
-    ...await runCfe(filePath, options)
-  ];
+  var analyzerErrors = await runAnalyzer(filePath, options);
+  if (analyzerErrors == null) {
+    exit(1);
+  }
+  var cfeErrors = await runCfe(filePath, options);
+  if (cfeErrors == null) {
+    exit(1);
+  }
+  return [...analyzerErrors, ...cfeErrors];
 }
 
 bool areSameErrors(List<StaticError> first, List<StaticError> second) {
@@ -142,18 +147,8 @@ ${cleanedMultiTest.text}""";
   }
 }
 
-Future<void> main(List<String> arguments) async {
-  var parser = ArgParser();
-  parser.addFlag("verbose", abbr: "v", help: "print additional information");
-  parser.addFlag("write", abbr: "w", help: "write output to input file");
-  var results = parser.parse(arguments);
-  if (results.rest.length != 1) {
-    print("Usage: convert_multi_test.dart [-v] [-w] <input file>");
-    exitCode = 1;
-    return;
-  }
-  var verbose = results["verbose"] as bool;
-  var testFilePath = Uri.base.resolve(results.rest.single).toFilePath();
+Future<void> convertFile(String testFilePath, bool writeToFile, bool verbose,
+    List<String> experiments) async {
   var testFile = File(testFilePath);
   if (!await testFile.exists()) {
     print("File '${testFile.uri.toFilePath()}' not found");
@@ -190,6 +185,9 @@ Future<void> main(List<String> arguments) async {
     // Get the reported errors for the multi-test and all generated sub-tests
     // from the analyser and the common front-end.
     var options = test.sharedOptions;
+    if (experiments.isNotEmpty) {
+      options.add("--enable-experiment=${experiments.join(',')}");
+    }
     var errors = <List<StaticError>>[];
     for (var test in tests) {
       if (verbose) {
@@ -198,7 +196,7 @@ Future<void> main(List<String> arguments) async {
       errors.add(await getErrors(options, test.path.toNativePath()));
     }
     if (errors[1].isNotEmpty) {
-      throw "internal error: errors in '/none' test";
+      throw UnableToConvertException("internal error: errors in '/none' test");
     }
     // Check that the multi-test generates the same errors as all sub-tests
     // together - otherwise converting the test would be unsound.
@@ -217,7 +215,6 @@ Future<void> main(List<String> arguments) async {
     // and output the result.
     var annotatedContent =
         updateErrorExpectations(contentWithoutMarkers, errors[0]);
-    var writeToFile = results["write"] as bool;
     if (writeToFile) {
       await testFile.writeAsString(annotatedContent);
       print("Converted test '${test.path.toNativePath()}'.");
@@ -243,5 +240,29 @@ Future<void> main(List<String> arguments) async {
     return;
   } finally {
     outputDirectory.delete(recursive: true);
+  }
+}
+
+Future<void> main(List<String> arguments) async {
+  var parser = ArgParser();
+  parser.addFlag("verbose", abbr: "v", help: "print additional information");
+  parser.addFlag("write", abbr: "w", help: "write output to input file");
+  parser.addOption("enable-experiment",
+      help: "Enable one or more experimental features", allowMultiple: true);
+
+  var results = parser.parse(arguments);
+  if (results.rest.isEmpty) {
+    print("Usage: convert_multi_test.dart [-v] [-w] <input files>");
+    print(parser.getUsage());
+    exitCode = 1;
+    return;
+  }
+  var verbose = results["verbose"] as bool;
+  var filePaths =
+      results.rest.map((path) => Uri.base.resolve(path).toFilePath());
+  var writeToFile = results["write"] as bool;
+  for (var testFilePath in filePaths) {
+    await convertFile(testFilePath, writeToFile, verbose,
+        (results["enable-experiment"] as List).cast<String>());
   }
 }

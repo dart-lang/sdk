@@ -79,8 +79,8 @@ class Compiler : public AllStatic {
   // Generates code for given function without optimization and sets its code
   // field.
   //
-  // Returns the raw code object if compilation succeeds.  Otherwise returns a
-  // RawError.  Also installs the generated code on the function.
+  // Returns the raw code object if compilation succeeds.  Otherwise returns an
+  // ErrorPtr.  Also installs the generated code on the function.
   static ObjectPtr CompileFunction(Thread* thread, const Function& function);
 
   // Generates unoptimized code if not present, current code is unchanged.

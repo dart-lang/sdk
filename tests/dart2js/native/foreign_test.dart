@@ -33,7 +33,7 @@ void main() {
   // Ensure there will be isNaN and NaN variable names.
   var isNaN = called ? 42 : 44;
   var NaN = called ? 52 : 54;
-  Expect.isFalse(JS('bool', 'isNaN(#)', isNaN));
-  Expect.isFalse(JS('bool', 'isNaN(#)', NaN));
-  Expect.isTrue(JS('bool', 'isNaN(#)', double.nan));
+  Expect.isFalse(JS('bool', 'self.isNaN(#)', isNaN));
+  Expect.isFalse(JS('bool', 'self.isNaN(#)', NaN));
+  Expect.isTrue(JS('bool', 'self.isNaN(#)', double.nan));
 }

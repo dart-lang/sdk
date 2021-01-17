@@ -24,13 +24,13 @@ DEFINE_NATIVE_ENTRY(Bool_fromEnvironment, 0, 3) {
       String::Handle(Api::GetEnvironmentValue(thread, name));
   if (!env_value.IsNull()) {
     if (Symbols::True().Equals(env_value)) {
-      return Bool::True().raw();
+      return Bool::True().ptr();
     }
     if (Symbols::False().Equals(env_value)) {
-      return Bool::False().raw();
+      return Bool::False().ptr();
     }
   }
-  return default_value.raw();
+  return default_value.ptr();
 }
 
 DEFINE_NATIVE_ENTRY(Bool_hasEnvironment, 0, 2) {
@@ -39,9 +39,9 @@ DEFINE_NATIVE_ENTRY(Bool_hasEnvironment, 0, 2) {
   const String& env_value =
       String::Handle(Api::GetEnvironmentValue(thread, name));
   if (!env_value.IsNull()) {
-    return Bool::True().raw();
+    return Bool::True().ptr();
   }
-  return Bool::False().raw();
+  return Bool::False().ptr();
 }
 
 }  // namespace dart

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert' show jsonDecode, JsonEncoder;
 
 import 'package:analyzer/dart/analysis/features.dart';
@@ -74,8 +75,15 @@ class NonNullableFix {
   /// A list of the URLs corresponding to the included roots.
   List<String> previewUrls;
 
+  /// A function which returns whether a file at a given path should be
+  /// migrated.
+  final bool Function(String) shouldBeMigratedFunction;
+
+  /// Completes when the server has been shutdown.
+  Completer<void> serverIsShutdown;
+
   NonNullableFix(this.listener, this.resourceProvider, this._getLineInfo,
-      this.bindAddress, this._logger,
+      this.bindAddress, this._logger, this.shouldBeMigratedFunction,
       {List<String> included = const [],
       this.preferredPort,
       this.summaryPath,
@@ -107,7 +115,7 @@ class NonNullableFix {
   Future<MigrationState> finish() async {
     var neededPackages = migration.finish();
     final state = MigrationState(migration, includedRoot, listener,
-        instrumentationListener, neededPackages);
+        instrumentationListener, neededPackages, shouldBeMigratedFunction);
     await state.refresh(_logger);
     return state;
   }
@@ -170,8 +178,11 @@ class NonNullableFix {
   }
 
   void shutdownServer() {
-    _server?.close();
-    _server = null;
+    if (_server != null) {
+      _server.close();
+      _server = null;
+      serverIsShutdown.complete();
+    }
   }
 
   Future<void> startPreviewServer(
@@ -179,13 +190,18 @@ class NonNullableFix {
     // This method may be called multiple times, for example during a re-run.
     // But the preview server should only be started once.
     if (_server == null) {
-      _server = HttpPreviewServer(
-          state, rerun, applyHook, bindAddress, preferredPort, _logger);
+      var wrappedApplyHookWithShutdown = () {
+        shutdownServer();
+        applyHook();
+      };
+      _server = HttpPreviewServer(state, rerun, wrappedApplyHookWithShutdown,
+          bindAddress, preferredPort, _logger);
       _server.serveHttp();
       _allServers.add(_server);
       var serverHostname = await _server.boundHostname;
       var serverPort = await _server.boundPort;
       authToken = await _server.authToken;
+      serverIsShutdown = Completer();
 
       previewUrls = [
         // TODO(jcollins-g): Change protocol to only return a single string.
@@ -380,16 +396,34 @@ ${depLines.join('\n')}
       VersionConstraint currentConstraint;
       if (node.value is String) {
         currentConstraint = VersionConstraint.parse(node.value as String);
-        if (currentConstraint is VersionRange &&
-            currentConstraint.min >= minimumVersion) {
-          // The current version constraint is already up to date.  Do not edit.
+        var invalidVersionMessage =
+            'The current SDK constraint in pubspec.yaml is invalid. A '
+            'minimum version, such as ">=2.7.0", is required when launching '
+            "'dart migrate'.";
+        if (currentConstraint is Version) {
+          // In this case, the constraint is an exact version, like 2.0.0.
+          _logger.stderr(invalidVersionMessage);
           return false;
+        } else if (currentConstraint is VersionRange) {
+          if (currentConstraint.min == null) {
+            _logger.stderr(invalidVersionMessage);
+            return false;
+          } else if (currentConstraint.min >= minimumVersion) {
+            // The current version constraint is already up to date.  Do not
+            // edit.
+            return false;
+          } else {
+            // TODO(srawlins): This overwrites the current maximum version. In
+            // the uncommon situation that there is a special maximum, it should
+            // not.
+            pubspec._replaceSpan(node.span, fullVersionConstraint, listener);
+            return true;
+          }
         } else {
-          // TODO(srawlins): This overwrites the current maximum version. In
-          // the uncommon situation that there is a special maximum, it should
-          // not.
-          pubspec._replaceSpan(node.span, fullVersionConstraint, listener);
-          return true;
+          // The constraint is something different, like a union, like
+          // '>=1.0.0 <2.0.0 >=3.0.0 <4.0.0', which is not valid.
+          _logger.stderr(invalidVersionMessage);
+          return false;
         }
       } else {
         // Something is odd with the constraint we've found in pubspec.yaml;

@@ -181,7 +181,7 @@ class StreamManager {
       return null;
     }
     return [
-      for (final event in loggingRepositories[stream]()) event,
+      for (final event in loggingRepositories[stream]()) event['event'],
     ];
   }
 

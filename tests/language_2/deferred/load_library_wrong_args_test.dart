@@ -5,6 +5,6 @@ void main() {
   lib.loadLibrary(10);
 //^
 // [cfe] 'loadLibrary' takes no arguments.
-//               ^^^^
+//                ^^
 // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
 }

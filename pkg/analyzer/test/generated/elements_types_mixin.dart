@@ -574,6 +574,17 @@ mixin ElementsTypesMixin {
     return parameter;
   }
 
+  TypeAliasElementImpl typeAlias({
+    @required String name,
+    @required List<TypeParameterElement> typeParameters,
+    @required DartType aliasedType,
+  }) {
+    var element = TypeAliasElementImpl(name, 0);
+    element.typeParameters = typeParameters;
+    element.aliasedType = aliasedType;
+    return element;
+  }
+
   TypeParameterElementImpl typeParameter(String name,
       {DartType bound, Variance variance}) {
     var element = TypeParameterElementImpl.synthetic(name);

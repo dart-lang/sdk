@@ -528,6 +528,15 @@ resolution.byteOffset: ${_resolution.byteOffset}
   }
 
   @override
+  void visitForPartsWithExpression(ForPartsWithExpression node) {
+    _expectMarker(MarkerTag.ForPartsWithExpression_initialization);
+    node.initialization?.accept(this);
+    _expectMarker(MarkerTag.ForPartsWithExpression_forParts);
+    _forParts(node);
+    _expectMarker(MarkerTag.ForPartsWithExpression_end);
+  }
+
+  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     _assertNoLocalElements();
 

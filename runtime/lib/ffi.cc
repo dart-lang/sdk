@@ -110,7 +110,7 @@ static ObjectPtr LoadValueStruct(Zone* zone,
   const Object& constructorResult =
       Object::Handle(DartEntry::InvokeFunction(constructor, args));
   ASSERT(!constructorResult.IsError());
-  return new_object.raw();
+  return new_object.ptr();
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_loadStruct, 0, 2) {
@@ -222,7 +222,7 @@ DEFINE_NATIVE_ENTRY(Ffi_asExternalTypedData, 0, 2) {
   }
 
   const auto& typed_data_class =
-      Class::Handle(zone, isolate->class_table()->At(cid));
+      Class::Handle(zone, isolate->group()->class_table()->At(cid));
   const auto& error =
       Error::Handle(zone, typed_data_class.EnsureIsAllocateFinalized(thread));
   if (!error.IsNull()) {
@@ -248,8 +248,7 @@ DEFINE_NATIVE_ENTRY(Ffi_nativeCallbackFunction, 1, 2) {
                                arguments->NativeArgAt(1));
 
   ASSERT(type_arg.IsInstantiated() && type_arg.IsFunctionType());
-  const Function& native_signature =
-      Function::Handle(zone, Type::Cast(type_arg).signature());
+  const FunctionType& native_signature = FunctionType::Cast(type_arg);
   Function& func = Function::Handle(zone, closure.function());
 
   // The FE verifies that the target of a 'fromFunction' is a static method, so
@@ -270,7 +269,7 @@ DEFINE_NATIVE_ENTRY(Ffi_nativeCallbackFunction, 1, 2) {
                                  native_signature, func, exceptional_return)));
 
   // Because we have already set the return value.
-  return Object::sentinel().raw();
+  return Object::sentinel().ptr();
 #endif
 }
 
@@ -293,7 +292,7 @@ DEFINE_NATIVE_ENTRY(Ffi_pointerFromFunction, 1, 1) {
     Exceptions::PropagateError(Error::Cast(result));
   }
   ASSERT(result.IsCode());
-  code ^= result.raw();
+  code ^= result.ptr();
 #endif
 
   ASSERT(!code.IsNull());

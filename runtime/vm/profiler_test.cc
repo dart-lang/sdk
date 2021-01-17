@@ -164,7 +164,7 @@ static LibraryPtr LoadTestScript(const char* script) {
   }
   Library& lib = Library::Handle();
   lib ^= Api::UnwrapHandle(api_lib);
-  return lib.raw();
+  return lib.ptr();
 }
 
 static ClassPtr GetClass(const Library& lib, const char* name) {
@@ -172,7 +172,7 @@ static ClassPtr GetClass(const Library& lib, const char* name) {
   const Class& cls = Class::Handle(
       lib.LookupClassAllowPrivate(String::Handle(Symbols::New(thread, name))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
-  return cls.raw();
+  return cls.ptr();
 }
 
 static FunctionPtr GetFunction(const Library& lib, const char* name) {
@@ -180,7 +180,7 @@ static FunctionPtr GetFunction(const Library& lib, const char* name) {
   const Function& func = Function::Handle(lib.LookupFunctionAllowPrivate(
       String::Handle(Symbols::New(thread, name))));
   EXPECT(!func.IsNull());  // No ambiguity error expected.
-  return func.raw();
+  return func.ptr();
 }
 
 static void Invoke(const Library& lib,
@@ -188,7 +188,7 @@ static void Invoke(const Library& lib,
                    intptr_t argc = 0,
                    Dart_Handle* argv = NULL) {
   Thread* thread = Thread::Current();
-  Dart_Handle api_lib = Api::NewHandle(thread, lib.raw());
+  Dart_Handle api_lib = Api::NewHandle(thread, lib.ptr());
   TransitionVMToNative transition(thread);
   Dart_Handle result = Dart_Invoke(api_lib, NewString(name), argc, argv);
   EXPECT_VALID(result);
@@ -365,7 +365,7 @@ class ProfileStackWalker {
     TokenPosition token_position = TokenPosition::kNoSource;
     Code& code = Code::ZoneHandle();
     if (profile_code->code().IsCode()) {
-      code ^= profile_code->code().raw();
+      code ^= profile_code->code().ptr();
       inlined_functions_cache_.Get(pc, code, sample_, index_,
                                    &inlined_functions_,
                                    &inlined_token_positions_, &token_position);
@@ -833,7 +833,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_IntrinsicAllocation) {
   Isolate* isolate = thread->isolate();
 
   const Class& double_class =
-      Class::Handle(isolate->object_store()->double_class());
+      Class::Handle(isolate->group()->object_store()->double_class());
   EXPECT(!double_class.IsNull());
 
   Dart_Handle args[2];
@@ -902,7 +902,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ArrayAllocation) {
   Isolate* isolate = thread->isolate();
 
   const Class& array_class =
-      Class::Handle(isolate->object_store()->array_class());
+      Class::Handle(isolate->group()->object_store()->array_class());
   EXPECT(!array_class.IsNull());
 
   Invoke(root_library, "foo");
@@ -1060,7 +1060,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ClosureAllocation) {
   Isolate* isolate = thread->isolate();
 
   const Class& closure_class =
-      Class::Handle(Isolate::Current()->object_store()->closure_class());
+      Class::Handle(IsolateGroup::Current()->object_store()->closure_class());
   EXPECT(!closure_class.IsNull());
   closure_class.SetTraceAllocation(true);
 
@@ -1118,7 +1118,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TypedArrayAllocation) {
   Isolate* isolate = thread->isolate();
 
   const Library& typed_data_library =
-      Library::Handle(isolate->object_store()->typed_data_library());
+      Library::Handle(isolate->group()->object_store()->typed_data_library());
 
   const Class& float32_list_class =
       Class::Handle(GetClass(typed_data_library, "_Float32List"));
@@ -1194,7 +1194,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringAllocation) {
   Isolate* isolate = thread->isolate();
 
   const Class& one_byte_string_class =
-      Class::Handle(isolate->object_store()->one_byte_string_class());
+      Class::Handle(isolate->group()->object_store()->one_byte_string_class());
   EXPECT(!one_byte_string_class.IsNull());
 
   Dart_Handle args[2];
@@ -1272,7 +1272,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringInterpolation) {
   Isolate* isolate = thread->isolate();
 
   const Class& one_byte_string_class =
-      Class::Handle(isolate->object_store()->one_byte_string_class());
+      Class::Handle(isolate->group()->object_store()->one_byte_string_class());
   EXPECT(!one_byte_string_class.IsNull());
 
   Dart_Handle args[2];

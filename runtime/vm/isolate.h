@@ -57,7 +57,7 @@ class Heap;
 class ICData;
 class IsolateObjectStore;
 class IsolateProfilerData;
-class IsolateReloadContext;
+class ProgramReloadContext;
 class Log;
 class Message;
 class MessageHandler;
@@ -172,33 +172,35 @@ typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
 
 // List of Isolate flags with corresponding members of Dart_IsolateFlags and
 // corresponding global command line flags.
-#define BOOL_ISOLATE_FLAG_LIST(V)                                              \
-  BOOL_ISOLATE_FLAG_LIST_DEFAULT_GETTER(V)                                     \
-  BOOL_ISOLATE_FLAG_LIST_CUSTOM_GETTER(V)
+#define BOOL_ISOLATE_FLAG_LIST(V) BOOL_ISOLATE_FLAG_LIST_DEFAULT_GETTER(V)
+
+#define BOOL_ISOLATE_GROUP_FLAG_LIST(V)                                        \
+  BOOL_ISOLATE_GROUP_FLAG_LIST_DEFAULT_GETTER(V)                               \
+  BOOL_ISOLATE_GROUP_FLAG_LIST_CUSTOM_GETTER(V)
 
 // List of Isolate flags with default getters.
 //
 //     V(when, name, bit-name, Dart_IsolateFlags-name, command-line-flag-name)
 //
-#define BOOL_ISOLATE_FLAG_LIST_DEFAULT_GETTER(V)                               \
+#define BOOL_ISOLATE_GROUP_FLAG_LIST_DEFAULT_GETTER(V)                         \
+  V(PRECOMPILER, obfuscate, Obfuscate, obfuscate, false)                       \
   V(NONPRODUCT, asserts, EnableAsserts, enable_asserts, FLAG_enable_asserts)   \
   V(NONPRODUCT, use_field_guards, UseFieldGuards, use_field_guards,            \
     FLAG_use_field_guards)                                                     \
-  V(NONPRODUCT, use_osr, UseOsr, use_osr, FLAG_use_osr)                        \
-  V(PRECOMPILER, obfuscate, Obfuscate, obfuscate, false_by_default)            \
+  V(NONPRODUCT, use_osr, UseOsr, use_osr, FLAG_use_osr)
+
+#define BOOL_ISOLATE_FLAG_LIST_DEFAULT_GETTER(V)                               \
   V(PRODUCT, should_load_vmservice_library, ShouldLoadVmService,               \
-    load_vmservice_library, false_by_default)                                  \
-  V(PRODUCT, copy_parent_code, CopyParentCode, copy_parent_code,               \
-    false_by_default)                                                          \
-  V(PRODUCT, is_system_isolate, IsSystemIsolate, is_system_isolate,            \
-    false_by_default)
+    load_vmservice_library, false)                                             \
+  V(PRODUCT, copy_parent_code, CopyParentCode, copy_parent_code, false)        \
+  V(PRODUCT, is_system_isolate, IsSystemIsolate, is_system_isolate, false)
 
 // List of Isolate flags with custom getters named #name().
 //
 //     V(when, name, bit-name, Dart_IsolateFlags-name, default_value)
 //
-#define BOOL_ISOLATE_FLAG_LIST_CUSTOM_GETTER(V)                                \
-  V(PRODUCT, null_safety, NullSafety, null_safety, false_by_default)
+#define BOOL_ISOLATE_GROUP_FLAG_LIST_CUSTOM_GETTER(V)                          \
+  V(PRODUCT, null_safety, NullSafety, null_safety, false)
 
 // Represents the information used for spawning the first isolate within an
 // isolate group.
@@ -332,8 +334,11 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
  public:
   IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
                void* embedder_data,
-               ObjectStore* object_store);
-  IsolateGroup(std::shared_ptr<IsolateGroupSource> source, void* embedder_data);
+               ObjectStore* object_store,
+               Dart_IsolateFlags api_flags);
+  IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
+               void* embedder_data,
+               Dart_IsolateFlags api_flags);
   ~IsolateGroup();
 
   IsolateGroupSource* source() const { return source_.get(); }
@@ -413,7 +418,67 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     return shared_class_table_.get();
   }
 
+  void set_obfuscation_map(const char** map) { obfuscation_map_ = map; }
+  const char** obfuscation_map() const { return obfuscation_map_; }
+
   bool is_system_isolate_group() const { return is_system_isolate_group_; }
+
+  // IsolateGroup-specific flag handling.
+  static void FlagsInitialize(Dart_IsolateFlags* api_flags);
+  void FlagsCopyTo(Dart_IsolateFlags* api_flags);
+  void FlagsCopyFrom(const Dart_IsolateFlags& api_flags);
+
+#if defined(DART_PRECOMPILER)
+#define FLAG_FOR_PRECOMPILER(from_field, from_flag) (from_field)
+#else
+#define FLAG_FOR_PRECOMPILER(from_field, from_flag) (from_flag)
+#endif
+
+#if !defined(PRODUCT)
+#define FLAG_FOR_NONPRODUCT(from_field, from_flag) (from_field)
+#else
+#define FLAG_FOR_NONPRODUCT(from_field, from_flag) (from_flag)
+#endif
+
+#define FLAG_FOR_PRODUCT(from_field, from_flag) (from_field)
+
+#define DECLARE_GETTER(when, name, bitname, isolate_flag_name, flag_name)      \
+  bool name() const {                                                          \
+    return FLAG_FOR_##when(bitname##Bit::decode(isolate_group_flags_),         \
+                           flag_name);                                         \
+  }
+  BOOL_ISOLATE_GROUP_FLAG_LIST_DEFAULT_GETTER(DECLARE_GETTER)
+#undef FLAG_FOR_NONPRODUCT
+#undef FLAG_FOR_PRECOMPILER
+#undef FLAG_FOR_PRODUCT
+#undef DECLARE_GETTER
+
+  bool null_safety_not_set() const {
+    return !NullSafetySetBit::decode(isolate_group_flags_);
+  }
+
+  bool null_safety() const {
+    ASSERT(!null_safety_not_set());
+    return NullSafetyBit::decode(isolate_group_flags_);
+  }
+
+  void set_null_safety(bool null_safety) {
+    isolate_group_flags_ = NullSafetySetBit::update(true, isolate_group_flags_);
+    isolate_group_flags_ =
+        NullSafetyBit::update(null_safety, isolate_group_flags_);
+  }
+
+  bool use_strict_null_safety_checks() const {
+    return null_safety() || FLAG_strict_null_safety_checks;
+  }
+
+#if defined(PRODUCT)
+  void set_use_osr(bool use_osr) { ASSERT(!use_osr); }
+#else   // defined(PRODUCT)
+  void set_use_osr(bool use_osr) {
+    isolate_group_flags_ = UseOsrBit::update(use_osr, isolate_group_flags_);
+  }
+#endif  // defined(PRODUCT)
 
   StoreBuffer* store_buffer() const { return store_buffer_.get(); }
   ClassTable* class_table() const { return class_table_.get(); }
@@ -647,12 +712,19 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   friend class Dart;  // For `object_store_ = ` in Dart::Init
   friend class Heap;
   friend class StackFrame;  // For `[isolates_].First()`.
-  // For `object_store_shared_ptr()`, `class_table_shared_ptr()`
+  // For `object_store_shared_untag()`, `class_table_shared_untag()`
   friend class Isolate;
 
-#define ISOLATE_GROUP_FLAG_BITS(V) V(CompactionInProgress)
+#define ISOLATE_GROUP_FLAG_BITS(V)                                             \
+  V(CompactionInProgress)                                                      \
+  V(EnableAsserts)                                                             \
+  V(NullSafety)                                                                \
+  V(NullSafetySet)                                                             \
+  V(Obfuscate)                                                                 \
+  V(UseFieldGuards)                                                            \
+  V(UseOsr)
 
-  // Isolate specific flags.
+  // Isolate group specific flags.
   enum FlagBits {
 #define DECLARE_BIT(Name) k##Name##Bit,
     ISOLATE_GROUP_FLAG_BITS(DECLARE_BIT)
@@ -672,6 +744,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   const std::shared_ptr<ObjectStore>& object_store_shared_ptr() const {
     return object_store_;
   }
+
+  const char** obfuscation_map_ = nullptr;
 
   bool is_vm_isolate_heap_ = false;
   void* embedder_data_ = nullptr;
@@ -832,8 +906,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     return group()->safepoint_handler();
   }
 
-  ClassTable* class_table() { return class_table_.get(); }
-
   ClassPtr* cached_class_table_table() { return cached_class_table_table_; }
   void set_cached_class_table_table(ClassPtr* cached_class_table_table) {
     cached_class_table_table_ = cached_class_table_table;
@@ -842,7 +914,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     return OFFSET_OF(Isolate, cached_class_table_table_);
   }
 
-  SharedClassTable* shared_class_table() const { return shared_class_table_; }
   // Used during isolate creation to re-register isolate with right group.
   void set_shared_class_table(SharedClassTable* table) {
     shared_class_table_ = table;
@@ -852,7 +923,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     return OFFSET_OF(Isolate, shared_class_table_);
   }
 
-  ObjectStore* object_store() const { return object_store_shared_ptr_.get(); }
   void set_object_store(ObjectStore* object_store);
   static intptr_t cached_object_store_offset() {
     return OFFSET_OF(Isolate, cached_object_store_);
@@ -928,8 +998,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   uint64_t terminate_capability() const { return terminate_capability_; }
 
   void SendInternalLibMessage(LibMsgId msg_id, uint64_t capability);
-
-  Heap* heap() const { return isolate_group_->heap(); }
 
   void set_init_callback_data(void* value) { init_callback_data_ = value; }
   void* init_callback_data() const { return init_callback_data_; }
@@ -1134,7 +1202,9 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   VMTagCounters* vm_tag_counters() { return &vm_tag_counters_; }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  IsolateReloadContext* reload_context() { return reload_context_; }
+  ProgramReloadContext* program_reload_context() {
+    return program_reload_context_;
+  }
 
   void DeleteReloadContext();
 
@@ -1249,12 +1319,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   void PauseEventHandler();
 #endif
 
-  void AddClosureFunction(const Function& function) const;
-  FunctionPtr LookupClosureFunction(const Function& parent,
-                                    TokenPosition token_pos) const;
-  intptr_t FindClosureIndex(const Function& needle) const;
-  FunctionPtr ClosureFunctionFromIndex(intptr_t idx) const;
-
   bool is_service_isolate() const {
     return IsServiceIsolateBit::decode(isolate_flags_);
   }
@@ -1283,13 +1347,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     isolate_flags_ = ShouldLoadVmServiceBit::update(value, isolate_flags_);
   }
 
-  Dart_QualifiedFunctionName* embedder_entry_points() const {
-    return embedder_entry_points_;
-  }
-
-  void set_obfuscation_map(const char** map) { obfuscation_map_ = map; }
-  const char** obfuscation_map() const { return obfuscation_map_; }
-
   const DispatchTable* dispatch_table() const {
     return group()->dispatch_table();
   }
@@ -1315,8 +1372,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
 #define DECLARE_GETTER(when, name, bitname, isolate_flag_name, flag_name)      \
   bool name() const {                                                          \
-    const bool false_by_default = false;                                       \
-    USE(false_by_default);                                                     \
     return FLAG_FOR_##when(bitname##Bit::decode(isolate_flags_), flag_name);   \
   }
   BOOL_ISOLATE_FLAG_LIST_DEFAULT_GETTER(DECLARE_GETTER)
@@ -1324,32 +1379,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 #undef FLAG_FOR_PRECOMPILER
 #undef FLAG_FOR_PRODUCT
 #undef DECLARE_GETTER
-
-#if defined(PRODUCT)
-  void set_use_osr(bool use_osr) { ASSERT(!use_osr); }
-#else   // defined(PRODUCT)
-  void set_use_osr(bool use_osr) {
-    isolate_flags_ = UseOsrBit::update(use_osr, isolate_flags_);
-  }
-#endif  // defined(PRODUCT)
-
-  bool null_safety_not_set() const {
-    return !NullSafetySetBit::decode(isolate_flags_);
-  }
-
-  bool null_safety() const {
-    ASSERT(!null_safety_not_set());
-    return NullSafetyBit::decode(isolate_flags_);
-  }
-
-  void set_null_safety(bool null_safety) {
-    isolate_flags_ = NullSafetySetBit::update(true, isolate_flags_);
-    isolate_flags_ = NullSafetyBit::update(null_safety, isolate_flags_);
-  }
-
-  bool use_strict_null_safety_checks() const {
-    return null_safety() || FLAG_strict_null_safety_checks;
-  }
 
   bool has_attempted_stepping() const {
     return HasAttemptedSteppingBit::decode(isolate_flags_);
@@ -1522,14 +1551,8 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   V(HasAttemptedReload)                                                        \
   V(HasAttemptedStepping)                                                      \
   V(ShouldPausePostServiceRequest)                                             \
-  V(EnableAsserts)                                                             \
-  V(UseFieldGuards)                                                            \
-  V(UseOsr)                                                                    \
-  V(Obfuscate)                                                                 \
   V(CopyParentCode)                                                            \
   V(ShouldLoadVmService)                                                       \
-  V(NullSafety)                                                                \
-  V(NullSafetySet)                                                             \
   V(IsSystemIsolate)
 
   // Isolate specific flags.
@@ -1583,7 +1606,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
       0;  // we can only reload when this is 0.
   // Per-isolate copy of FLAG_reload_every.
   intptr_t reload_every_n_stack_overflow_checks_;
-  IsolateReloadContext* reload_context_ = nullptr;
+  ProgramReloadContext* program_reload_context_ = nullptr;
   // Ring buffer of objects assigned an id.
   ObjectIdRing* object_id_ring_ = nullptr;
 #endif  // !defined(PRODUCT)
@@ -1631,9 +1654,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   HandlerInfoCache handler_info_cache_;
   CatchEntryMovesCache catch_entry_moves_cache_;
-
-  Dart_QualifiedFunctionName* embedder_entry_points_ = nullptr;
-  const char** obfuscation_map_ = nullptr;
 
   DispatchTable* dispatch_table_ = nullptr;
 

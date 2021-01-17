@@ -36,6 +36,8 @@ import 'package:vm/kernel_front_end.dart';
 import 'src/javascript_bundle.dart';
 import 'src/strong_components.dart';
 
+export 'src/to_string_transformer.dart';
+
 ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('train',
       help: 'Run through sample command line to produce snapshot',
@@ -56,9 +58,6 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('tree-shake-write-only-fields',
       help: 'Enable tree shaking of fields which are only written in AOT mode.',
       defaultsTo: true)
-  ..addFlag('protobuf-tree-shaker',
-      help: 'Enable protobuf tree shaker transformation in AOT mode.',
-      defaultsTo: false)
   ..addFlag('protobuf-tree-shaker-v2',
       help: 'Enable protobuf tree shaker v2 in AOT mode.', defaultsTo: false)
   ..addFlag('minimal-kernel',
@@ -114,7 +113,8 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
       hide: true)
   ..addMultiOption('define',
       abbr: 'D',
-      help: 'The values for the environment constants (e.g. -Dkey=value).')
+      help: 'The values for the environment constants (e.g. -Dkey=value).',
+      splitCommas: false)
   ..addFlag('embed-source-text',
       help: 'Includes sources into generated dill file. Having sources'
           ' allows to effectively use observatory to debug produced'
@@ -361,6 +361,7 @@ class FrontendCompiler implements CompilerInterface {
         errors.addAll(message.plainTextFormatted);
         break;
       case Severity.warning:
+      case Severity.info:
         printMessage = true;
         break;
       case Severity.context:
@@ -528,7 +529,6 @@ class FrontendCompiler implements CompilerInterface {
           useGlobalTypeFlowAnalysis: options['tfa'],
           environmentDefines: environmentDefines,
           enableAsserts: options['enable-asserts'],
-          useProtobufTreeShaker: options['protobuf-tree-shaker'],
           useProtobufTreeShakerV2: options['protobuf-tree-shaker-v2'],
           minimalKernel: options['minimal-kernel'],
           treeShakeWriteOnlyFields: options['tree-shake-write-only-fields'],

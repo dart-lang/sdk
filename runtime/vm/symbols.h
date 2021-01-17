@@ -12,7 +12,7 @@
 namespace dart {
 
 // Forward declarations.
-class Isolate;
+class IsolateGroup;
 class ObjectPointerVisitor;
 
 // One-character symbols are added implicitly.
@@ -206,7 +206,6 @@ class ObjectPointerVisitor;
   V(List, "List")                                                              \
   V(ListFactory, "List.")                                                      \
   V(ListFilledFactory, "List.filled")                                          \
-  V(ListLiteralFactory, "List._fromLiteral")                                   \
   V(LoadLibrary, "_loadLibrary")                                               \
   V(LocalVarDescriptors, "LocalVarDescriptors")                                \
   V(Map, "Map")                                                                \
@@ -247,7 +246,6 @@ class ObjectPointerVisitor;
   V(SecondArg, "y")                                                            \
   V(Set, "set")                                                                \
   V(SetterPrefix, "set:")                                                      \
-  V(SignatureData, "SignatureData")                                            \
   V(SingleTargetCache, "SingleTargetCache")                                    \
   V(SizeOfStructField, "#sizeOf")                                              \
   V(SpaceExtendsSpace, " extends ")                                            \
@@ -351,6 +349,7 @@ class ObjectPointerVisitor;
   V(_GrowableListFactory, "_GrowableList.")                                    \
   V(_GrowableListFilledFactory, "_GrowableList.filled")                        \
   V(_GrowableListGenerateFactory, "_GrowableList.generate")                    \
+  V(_GrowableListLiteralFactory, "_GrowableList._literal")                     \
   V(_GrowableListWithData, "_GrowableList._withData")                          \
   V(_ImmutableList, "_ImmutableList")                                          \
   V(_Int16ArrayFactory, "Int16List.")                                          \
@@ -401,11 +400,12 @@ class ObjectPointerVisitor;
   V(_SyncIterableConstructor, "_SyncIterable.")                                \
   V(_SyncIterator, "_SyncIterator")                                            \
   V(_TransferableTypedDataImpl, "_TransferableTypedDataImpl")                  \
+  V(_AbstractType, "_AbstractType")                                            \
   V(_Type, "_Type")                                                            \
+  V(_FunctionType, "_FunctionType")                                            \
   V(_TypeParameter, "_TypeParameter")                                          \
   V(_TypeRef, "_TypeRef")                                                      \
   V(_TypeVariableMirror, "_TypeVariableMirror")                                \
-  V(_TypedefMirror, "_TypedefMirror")                                          \
   V(_Uint16ArrayFactory, "Uint16List.")                                        \
   V(_Uint16ArrayView, "_Uint16ArrayView")                                      \
   V(_Uint16List, "_Uint16List")                                                \
@@ -494,6 +494,7 @@ class ObjectPointerVisitor;
   V(vm_inferred_type_metadata, "vm.inferred-type.metadata")                    \
   V(vm_never_inline, "vm:never-inline")                                        \
   V(vm_non_nullable_result_type, "vm:non-nullable-result-type")                \
+  V(vm_notify_debugger_on_exception, "vm:notify-debugger-on-exception")        \
   V(vm_recognized, "vm:recognized")                                            \
   V(vm_trace_entrypoints, "vm:testing.unsafe.trace-entrypoints-fn")            \
   V(vm_procedure_attributes_metadata, "vm.procedure-attributes.metadata")      \
@@ -641,11 +642,11 @@ class Symbols : public AllStatic {
   static const String& Token(Token::Kind token);
 
   // Initialize frequently used symbols in the vm isolate.
-  static void Init(Isolate* isolate);
-  static void InitFromSnapshot(Isolate* isolate);
+  static void Init(IsolateGroup* isolate_group);
+  static void InitFromSnapshot(IsolateGroup* isolate_group);
 
   // Initialize and setup a symbol table for the isolate.
-  static void SetupSymbolTable(Isolate* isolate);
+  static void SetupSymbolTable(IsolateGroup* isolate_group);
 
   // Creates a Symbol given a C string that is assumed to contain
   // UTF-8 encoded characters and '\0' is considered a termination character.
@@ -703,8 +704,8 @@ class Symbols : public AllStatic {
     return reinterpret_cast<StringPtr*>(&predefined_);
   }
 
-  static void DumpStats(Isolate* isolate);
-  static void DumpTable(Isolate* isolate);
+  static void DumpStats(IsolateGroup* isolate_group);
+  static void DumpTable(IsolateGroup* isolate_group);
 
   // Returns Symbol::Null if no symbol is found.
   template <typename StringType>
@@ -719,7 +720,9 @@ class Symbols : public AllStatic {
   static StringPtr LookupFromSet(Thread* thread, const String& str);
   static StringPtr LookupFromDot(Thread* thread, const String& str);
 
-  static void GetStats(Isolate* isolate, intptr_t* size, intptr_t* capacity);
+  static void GetStats(IsolateGroup* isolate_group,
+                       intptr_t* size,
+                       intptr_t* capacity);
 
  private:
   enum { kInitialVMIsolateSymtabSize = 1024, kInitialSymtabSize = 2048 };

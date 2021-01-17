@@ -50,9 +50,10 @@ void setup() {
 (function(){
   // This code is inside 'setup' and so not accessible from the global scope.
   function Node(parent){ this.parentNode = parent; }
-  makeNode = function(p){return new Node(p);};
+  self.makeNode = function(p){return new Node(p);};
   self.nativeConstructor(Node);
 })()""");
+  applyTestExtensions(['Node']);
 }
 
 main() {

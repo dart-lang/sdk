@@ -147,8 +147,6 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     if (isNonNullableByDefault) {
       if (contextType is! NeverType &&
           type1 is! NeverType &&
-          isSubtypeOf(contextType, coreTypes.numNonNullableRawType,
-              SubtypeCheckMode.withNullabilities) &&
           isSubtypeOf(type1, coreTypes.numNonNullableRawType,
               SubtypeCheckMode.withNullabilities)) {
         // If e is an expression of the form e1 + e2, e1 - e2, e1 * e2, e1 % e2

@@ -8,12 +8,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart';
-import 'package:_fe_analyzer_shared/src/messages/severity.dart';
 import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
-import 'package:front_end/src/api_prototype/compiler_options.dart';
-import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:kernel/ast.dart' show Component, Library;
@@ -163,6 +159,7 @@ class ExpressionCompilerWorker {
 
   static List<String> errors = <String>[];
   static List<String> warnings = <String>[];
+  static List<String> infos = <String>[];
 
   /// Create the worker and load the sdk outlines.
   static Future<ExpressionCompilerWorker> create({
@@ -192,7 +189,7 @@ class ExpressionCompilerWorker {
       ..omitPlatform = true
       ..environmentDefines = environmentDefines
       ..explicitExperimentalFlags = explicitExperimentalFlags
-      ..onDiagnostic = _onDiagnosticHandler(errors, warnings)
+      ..onDiagnostic = _onDiagnosticHandler(errors, warnings, infos)
       ..nnbdMode = soundNullSafety ? NnbdMode.Strong : NnbdMode.Weak
       ..verbose = verbose;
     requestStream ??= stdin
@@ -279,6 +276,7 @@ class ExpressionCompilerWorker {
 
     errors.clear();
     warnings.clear();
+    infos.clear();
 
     var incrementalCompiler = IncrementalCompiler.forExpressionCompilationOnly(
         CompilerContext(_processedOptions), component, /*resetTicker*/ false);
@@ -292,6 +290,7 @@ class ExpressionCompilerWorker {
       return {
         'errors': errors,
         'warnings': warnings,
+        'infos': infos,
         'compiledProcedure': null,
         'succeeded': errors.isEmpty,
       };
@@ -336,6 +335,7 @@ class ExpressionCompilerWorker {
     return {
       'errors': errors,
       'warnings': warnings,
+      'infos': infos,
       'compiledProcedure': compiledProcedure,
       'succeeded': errors.isEmpty,
     };
@@ -465,7 +465,7 @@ class InputDill {
 }
 
 void Function(DiagnosticMessage) _onDiagnosticHandler(
-        List<String> errors, List<String> warnings) =>
+        List<String> errors, List<String> warnings, List<String> infos) =>
     (DiagnosticMessage message) {
       switch (message.severity) {
         case Severity.error:
@@ -474,6 +474,9 @@ void Function(DiagnosticMessage) _onDiagnosticHandler(
           break;
         case Severity.warning:
           warnings.add(message.plainTextFormatted.join('\n'));
+          break;
+        case Severity.info:
+          infos.add(message.plainTextFormatted.join('\n'));
           break;
         case Severity.context:
         case Severity.ignored:

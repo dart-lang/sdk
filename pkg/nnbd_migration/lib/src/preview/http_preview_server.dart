@@ -27,7 +27,7 @@ class HttpPreviewServer {
   final MigrationState migrationState;
 
   /// The [PreviewSite] that can handle GET and POST requests.
-  PreviewSite previewSite;
+  PreviewSite _previewSite;
 
   /// Future that is completed with the HTTP server once it is running.
   Future<HttpServer> _serverFuture;
@@ -57,8 +57,6 @@ class HttpPreviewServer {
 
   Future<String> get authToken async {
     await _serverFuture;
-    previewSite ??=
-        PreviewSite(migrationState, rerunFunction, applyHook, _logger);
     return previewSite.serviceAuthToken;
   }
 
@@ -71,6 +69,9 @@ class HttpPreviewServer {
   Future<int> get boundPort async {
     return (await _serverFuture)?.port;
   }
+
+  PreviewSite get previewSite => _previewSite ??=
+      PreviewSite(migrationState, rerunFunction, applyHook, _logger);
 
   void close() {
     _serverFuture?.then((HttpServer server) {
@@ -100,15 +101,11 @@ class HttpPreviewServer {
 
   /// Handle a GET request received by the HTTP server.
   Future<void> _handleGetRequest(HttpRequest request) async {
-    previewSite ??=
-        PreviewSite(migrationState, rerunFunction, applyHook, _logger);
     await previewSite.handleGetRequest(request);
   }
 
   /// Handle a POST request received by the HTTP server.
   Future<void> _handlePostRequest(HttpRequest request) async {
-    previewSite ??=
-        PreviewSite(migrationState, rerunFunction, applyHook, _logger);
     await previewSite.handlePostRequest(request);
   }
 

@@ -188,16 +188,16 @@ class TypeArgumentsVerifier {
   /// Verify that the type arguments in the given [typeName] are all within
   /// their bounds.
   void _checkForTypeArgumentNotMatchingBounds(TypeName typeName) {
-    var element = typeName.name.staticElement;
     var type = typeName.type;
 
     List<TypeParameterElement> typeParameters;
     List<DartType> typeArguments;
-    if (type is InterfaceType) {
+    var aliasElement = type.aliasElement;
+    if (aliasElement != null) {
+      typeParameters = aliasElement.typeParameters;
+      typeArguments = type.aliasArguments;
+    } else if (type is InterfaceType) {
       typeParameters = type.element.typeParameters;
-      typeArguments = type.typeArguments;
-    } else if (element is FunctionTypeAliasElement && type is FunctionType) {
-      typeParameters = element.typeParameters;
       typeArguments = type.typeArguments;
     } else {
       return;
@@ -353,10 +353,19 @@ class TypeArgumentsVerifier {
   /// - the element is marked with `@optionalTypeArgs` from "package:meta".
   bool _isMissingTypeArguments(AstNode node, DartType type, Element element,
       Expression inferenceContextNode) {
+    List<DartType> typeArguments;
+    var aliasElement = type.aliasElement;
+    if (aliasElement != null) {
+      typeArguments = type.aliasArguments;
+    } else if (type is InterfaceType) {
+      typeArguments = type.typeArguments;
+    } else {
+      return false;
+    }
+
     // Check if this type has type arguments and at least one is dynamic.
     // If so, we may need to issue a strict-raw-types error.
-    if (type is ParameterizedType &&
-        type.typeArguments.any((t) => t.isDynamic)) {
+    if (typeArguments.any((t) => t.isDynamic)) {
       // If we have an inference context node, check if the type was inferred
       // from it. Some cases will not have a context type, such as the type
       // annotation `List` in `List list;`

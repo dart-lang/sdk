@@ -29,11 +29,11 @@ Future<void> waitForStreamEvent(
     {bool useSetter = true}) async {
   final completer = Completer<void>();
   final isolateId = isolateRef.id;
-  StreamSubscription sub;
+  late StreamSubscription sub;
   sub = service.onExtensionEvent.listen((event) {
     expect(event.extensionKind, 'SocketProfilingStateChange');
-    expect(event.extensionData.data['isolateId'], isolateRef.id);
-    expect(event.extensionData.data['enabled'], state);
+    expect(event.extensionData!.data['isolateId'], isolateRef.id);
+    expect(event.extensionData!.data['enabled'], state);
     sub.cancel();
     completer.complete();
   });
@@ -60,7 +60,7 @@ Future<void> socketTest() async {
   var socket = await io.Socket.connect(localhost, serverSocket.port);
   socket.write(content);
   await socket.flush();
-  await socket.destroy();
+  socket.destroy();
 
   // rawDatagram
   final doneCompleter = Completer<void>();
@@ -88,13 +88,13 @@ var tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
     final isolate = await service.getIsolate(isolateRef.id);
     // Ensure all network profiling service extensions are registered.
-    expect(isolate.extensionRPCs.length, greaterThanOrEqualTo(5));
-    expect(isolate.extensionRPCs.contains(kClearSocketProfileRPC), isTrue);
-    expect(isolate.extensionRPCs.contains(kGetVersionRPC), isTrue);
-    expect(isolate.extensionRPCs.contains(kPauseSocketProfilingRPC), isTrue);
-    expect(isolate.extensionRPCs.contains(kStartSocketProfilingRPC), isTrue);
-    expect(isolate.extensionRPCs.contains(kPauseSocketProfilingRPC), isTrue);
-    expect(isolate.extensionRPCs.contains(kSocketProfilingEnabledRPC), isTrue);
+    expect(isolate.extensionRPCs!.length, greaterThanOrEqualTo(5));
+    expect(isolate.extensionRPCs!.contains(kClearSocketProfileRPC), isTrue);
+    expect(isolate.extensionRPCs!.contains(kGetVersionRPC), isTrue);
+    expect(isolate.extensionRPCs!.contains(kPauseSocketProfilingRPC), isTrue);
+    expect(isolate.extensionRPCs!.contains(kStartSocketProfilingRPC), isTrue);
+    expect(isolate.extensionRPCs!.contains(kPauseSocketProfilingRPC), isTrue);
+    expect(isolate.extensionRPCs!.contains(kSocketProfilingEnabledRPC), isTrue);
   },
 
   // Test getSocketProfiler

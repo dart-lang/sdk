@@ -1,0 +1,19 @@
+class ConcreteClass extends ConcreteSuper {
+  void set declaredAbstractExtendsAbstractSetter(int value);
+  void set declaredAbstractExtendsConcreteSetter(int value);
+  void set declaredAbstractSetter(int value);
+  void set declaredConcreteExtendsAbstractSetter(int value) {}
+  void set declaredConcreteExtendsConcreteSetter(int value) {}
+  void set declaredConcreteSetter(int value) {}
+}
+
+class ConcreteSuper {
+  void set declaredAbstractExtendsAbstractSetter(int value);
+  void set declaredAbstractExtendsConcreteSetter(int value) {}
+  void set declaredConcreteExtendsAbstractSetter(int value);
+  void set declaredConcreteExtendsConcreteSetter(int value) {}
+  void set extendedAbstractSetter(int value);
+  void set extendedConcreteSetter(int value) {}
+}
+
+main() {}

@@ -55,7 +55,7 @@ DEFINE_NATIVE_ENTRY(VMService_SendIsolateServiceMessage, 0, 2) {
   // TODO(turnidge): Throw an exception when the return value is false?
   bool result = PortMap::PostMessage(
       writer.WriteMessage(message, sp.Id(), Message::kOOBPriority));
-  return Bool::Get(result).raw();
+  return Bool::Get(result).ptr();
 #else
   return Object::null();
 #endif
@@ -122,7 +122,7 @@ DEFINE_NATIVE_ENTRY(VMService_ListenStream, 0, 1) {
 #ifndef PRODUCT
   GET_NON_NULL_NATIVE_ARGUMENT(String, stream_id, arguments->NativeArgAt(0));
   bool result = Service::ListenStream(stream_id.ToCString());
-  return Bool::Get(result).raw();
+  return Bool::Get(result).ptr();
 #else
   return Object::null();
 #endif
@@ -323,7 +323,7 @@ DEFINE_NATIVE_ENTRY(VMService_DecodeAssets, 0, 1) {
 #ifndef PRODUCT
   GET_NON_NULL_NATIVE_ARGUMENT(TypedData, data, arguments->NativeArgAt(0));
   Api::Scope scope(thread);
-  Dart_Handle data_handle = Api::NewHandle(thread, data.raw());
+  Dart_Handle data_handle = Api::NewHandle(thread, data.ptr());
   Dart_Handle result_list;
   {
     TransitionVMToNative transition(thread);
@@ -368,7 +368,7 @@ DEFINE_NATIVE_ENTRY(VMService_DecodeAssets, 0, 1) {
       idx += 2;
     }
   }
-  return Api::UnwrapArrayHandle(thread->zone(), result_list).raw();
+  return Api::UnwrapArrayHandle(thread->zone(), result_list).ptr();
 #else
   return Object::null();
 #endif

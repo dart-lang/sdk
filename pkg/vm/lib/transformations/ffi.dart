@@ -34,6 +34,7 @@ enum NativeType {
   kFloat,
   kDouble,
   kVoid,
+  kOpaque,
   kStruct,
   kHandle,
 }
@@ -60,6 +61,7 @@ const List<String> nativeTypeClassNames = [
   'Float',
   'Double',
   'Void',
+  'Opaque',
   'Struct',
   'Handle'
 ];
@@ -86,6 +88,7 @@ const List<int> nativeTypeSizes = [
   4, // Float
   8, // Double
   UNKNOWN, // Void
+  UNKNOWN, // Opaque
   UNKNOWN, // Struct
   WORD_SIZE, // Handle
 ];
@@ -205,9 +208,13 @@ class FfiTransformer extends Transformer {
   final Procedure numAddition;
 
   final Library ffiLibrary;
+  final Class allocatorClass;
   final Class nativeFunctionClass;
+  final Class opaqueClass;
   final Class pointerClass;
   final Class structClass;
+  final Procedure allocateMethod;
+  final Procedure allocatorAllocateMethod;
   final Procedure castMethod;
   final Procedure offsetByMethod;
   final Procedure elementAtMethod;
@@ -228,6 +235,7 @@ class FfiTransformer extends Transformer {
   final Map<NativeType, Procedure> elementAtMethods;
   final Procedure loadStructMethod;
   final Procedure memCopy;
+  final Procedure allocationTearoff;
   final Procedure asFunctionTearoff;
   final Procedure lookupFunctionTearoff;
 
@@ -257,9 +265,14 @@ class FfiTransformer extends Transformer {
         listElementAt = coreTypes.index.getMember('dart:core', 'List', '[]'),
         numAddition = coreTypes.index.getMember('dart:core', 'num', '+'),
         ffiLibrary = index.getLibrary('dart:ffi'),
+        allocatorClass = index.getClass('dart:ffi', 'Allocator'),
         nativeFunctionClass = index.getClass('dart:ffi', 'NativeFunction'),
+        opaqueClass = index.getClass('dart:ffi', 'Opaque'),
         pointerClass = index.getClass('dart:ffi', 'Pointer'),
         structClass = index.getClass('dart:ffi', 'Struct'),
+        allocateMethod = index.getMember('dart:ffi', 'AllocatorAlloc', 'call'),
+        allocatorAllocateMethod =
+            index.getMember('dart:ffi', 'Allocator', 'allocate'),
         castMethod = index.getMember('dart:ffi', 'Pointer', 'cast'),
         offsetByMethod = index.getMember('dart:ffi', 'Pointer', '_offsetBy'),
         elementAtMethod = index.getMember('dart:ffi', 'Pointer', 'elementAt'),
@@ -301,6 +314,8 @@ class FfiTransformer extends Transformer {
         }),
         loadStructMethod = index.getTopLevelMember('dart:ffi', '_loadStruct'),
         memCopy = index.getTopLevelMember('dart:ffi', '_memCopy'),
+        allocationTearoff = index.getMember(
+            'dart:ffi', 'AllocatorAlloc', LibraryIndex.tearoffPrefix + 'call'),
         asFunctionTearoff = index.getMember('dart:ffi', 'NativeFunctionPointer',
             LibraryIndex.tearoffPrefix + 'asFunction'),
         lookupFunctionTearoff = index.getMember(

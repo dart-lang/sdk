@@ -3149,7 +3149,7 @@ parameters but is invoked with 3 arguments:
 {% prettify dart tag=pre+code %}
 void f(int a, int b) {}
 void g() {
-  f[!(1, 2, 3)!];
+  f(1, 2, [!3!]);
 }
 {% endprettify %}
 
@@ -3183,7 +3183,7 @@ third argument:
 {% prettify dart tag=pre+code %}
 void f(int a, int b, {int c}) {}
 void g() {
-  f[!(1, 2, 3)!];
+  f(1, 2, [!3!]);
 }
 {% endprettify %}
 
@@ -7475,13 +7475,13 @@ class C {
 
 ### return_of_invalid_type
 
-_A value of type '{0}' can't be returned from constructor '{2}' because it has a
-return type of '{1}'._
+_A value of type '{0}' can't be returned from the constructor '{2}' because it
+has a return type of '{1}'._
 
-_A value of type '{0}' can't be returned from function '{2}' because it has a
-return type of '{1}'._
+_A value of type '{0}' can't be returned from the function '{2}' because it has
+a return type of '{1}'._
 
-_A value of type '{0}' can't be returned from method '{2}' because it has a
+_A value of type '{0}' can't be returned from the method '{2}' because it has a
 return type of '{1}'._
 
 #### Description
@@ -8408,8 +8408,27 @@ void f(Object o) {
 
 ### unchecked_use_of_nullable_value
 
+_A nullable expression can't be used as a condition._
+
+_A nullable expression can't be used as an iterator in a for-in loop._
+
+_A nullable expression can't be used in a spread._
+
+_A nullable expression can't be used in a yield-each statement._
+
 _An expression whose value can be 'null' must be null-checked before it can be
 dereferenced._
+
+_The function can't be unconditionally invoked because it can be 'null'._
+
+_The method '{0}' can't be unconditionally invoked because the receiver can be
+'null'._
+
+_The operator '{0}' can't be unconditionally invoked because the receiver can be
+'null'._
+
+_The property '{0}' can't be unconditionally accessed because the receiver can
+be 'null'._
 
 #### Description
 
@@ -9965,6 +9984,8 @@ const int y = x;
 {% endprettify %}
 
 ### wrong_number_of_parameters_for_operator
+
+_Operator '-' should declare 0 or 1 parameter, but {0} found._
 
 _Operator '{0}' should declare exactly {1} parameters, but {2} found._
 

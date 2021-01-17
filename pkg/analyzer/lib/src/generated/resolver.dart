@@ -1110,7 +1110,7 @@ class ResolverVisitor extends ScopedVisitor {
 
     if (_flowAnalysis != null) {
       if (flow != null) {
-        flow.conditional_thenBegin(condition);
+        flow.conditional_thenBegin(condition, node);
         checkUnreachableNode(thenExpression);
       }
       thenExpression.accept(this);
@@ -1517,7 +1517,7 @@ class ResolverVisitor extends ScopedVisitor {
 
     CollectionElement thenElement = node.thenElement;
     if (_flowAnalysis != null) {
-      _flowAnalysis.flow?.ifStatement_thenBegin(condition);
+      _flowAnalysis.flow?.ifStatement_thenBegin(condition, node);
       thenElement.accept(this);
     } else {
       _promoteManager.visitIfElement_thenElement(
@@ -1557,7 +1557,7 @@ class ResolverVisitor extends ScopedVisitor {
 
     Statement thenStatement = node.thenStatement;
     if (_flowAnalysis != null) {
-      _flowAnalysis.flow?.ifStatement_thenBegin(condition);
+      _flowAnalysis.flow?.ifStatement_thenBegin(condition, node);
       visitStatementInScope(thenStatement);
       nullSafetyDeadCodeVerifier?.flowEnd(thenStatement);
     } else {
@@ -1868,7 +1868,9 @@ class ResolverVisitor extends ScopedVisitor {
     super.visitSpreadElement(node);
 
     if (!node.isNullAware) {
-      nullableDereferenceVerifier.expression(node.expression);
+      nullableDereferenceVerifier.expression(node.expression,
+          errorCode:
+              CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD);
     }
   }
 
@@ -2213,7 +2215,8 @@ class ResolverVisitor extends ScopedVisitor {
   /// correspond to the list of arguments.
   ///
   /// An error will be reported to [onError] if any of the arguments cannot be
-  /// matched to a parameter. onError can be null to ignore the error.
+  /// matched to a parameter. onError will be provided the node of the first
+  /// argument that is not matched. onError can be null to ignore the error.
   ///
   /// Returns the parameters that correspond to the arguments. If no parameter
   /// matched an argument, that position will be `null` in the list.
@@ -2252,6 +2255,7 @@ class ResolverVisitor extends ScopedVisitor {
     int positionalArgumentCount = 0;
     HashSet<String> usedNames;
     bool noBlankArguments = true;
+    Expression firstUnresolvedArgument;
     for (int i = 0; i < argumentCount; i++) {
       Expression argument = arguments[i];
       if (argument is NamedExpression) {
@@ -2282,6 +2286,8 @@ class ResolverVisitor extends ScopedVisitor {
         positionalArgumentCount++;
         if (unnamedIndex < unnamedParameterCount) {
           resolvedParameters[i] = unnamedParameters[unnamedIndex++];
+        } else {
+          firstUnresolvedArgument ??= argument;
         }
       }
     }
@@ -2302,7 +2308,7 @@ class ResolverVisitor extends ScopedVisitor {
         errorCode = CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS;
       }
       if (onError != null) {
-        onError(errorCode, argumentList,
+        onError(errorCode, firstUnresolvedArgument,
             [unnamedParameterCount, positionalArgumentCount]);
       }
     }

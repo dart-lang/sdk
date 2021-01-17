@@ -84,7 +84,7 @@ static method main() → dynamic {
   }
   while (false)
   {
-    core::Iterator<core::String*>* :sync-for-iterator = <core::String*>["Hello from for-in!"].{core::Iterable::iterator};
+    core::Iterator<core::String*>* :sync-for-iterator = core::_GrowableList::_literal1<core::String*>("Hello from for-in!").{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       core::String* s = :sync-for-iterator.{core::Iterator::current};
       {
@@ -93,7 +93,7 @@ static method main() → dynamic {
     }
   }
   {
-    core::Iterator<core::String*>* :sync-for-iterator = <core::String*>["Hello from for-in without block!"].{core::Iterable::iterator};
+    core::Iterator<core::String*>* :sync-for-iterator = core::_GrowableList::_literal1<core::String*>("Hello from for-in without block!").{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       core::String* s = :sync-for-iterator.{core::Iterator::current};
       core::print(s);
@@ -101,7 +101,7 @@ static method main() → dynamic {
   }
   dynamic s;
   {
-    core::Iterator<dynamic>* :sync-for-iterator = <dynamic>["Hello from for-in without decl!"].{core::Iterable::iterator};
+    core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::_literal1<dynamic>("Hello from for-in without decl!").{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       final dynamic #t4 = :sync-for-iterator.{core::Iterator::current};
       {
@@ -111,7 +111,7 @@ static method main() → dynamic {
     }
   }
   {
-    core::Iterator<dynamic>* :sync-for-iterator = <dynamic>["Hello from for-in without decl and block!"].{core::Iterable::iterator};
+    core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::_literal1<dynamic>("Hello from for-in without decl and block!").{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       final dynamic #t5 = :sync-for-iterator.{core::Iterator::current};
       {

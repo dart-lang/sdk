@@ -1,0 +1,25 @@
+class Interface1 {
+  void implementMultipleMethod() {}
+  void declareConcreteImplementMultipleMethod() {}
+  void declareAbstractImplementMultipleMethod() {}
+}
+
+class Interface2 {
+  void implementMultipleMethod() {}
+  void declareConcreteImplementMultipleMethod() {}
+  void declareAbstractImplementMultipleMethod() {}
+}
+
+class ConcreteClass implements Interface1, Interface2 {
+  void declareConcreteImplementMultipleMethod() {}
+  void declareAbstractImplementMultipleMethod();
+}
+
+abstract class AbstractClass implements Interface1, Interface2 {
+  void declareConcreteImplementMultipleMethod() {}
+  void declareAbstractImplementMultipleMethod();
+}
+
+class ConcreteSub extends AbstractClass {}
+
+main() {}

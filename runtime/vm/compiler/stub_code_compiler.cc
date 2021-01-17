@@ -196,16 +196,21 @@ void StubCodeCompiler::GenerateInstanceOfStub(Assembler* assembler) {
 
 // For use in GenerateTypeIsTopTypeForSubtyping and
 // GenerateNullIsAssignableToType.
-static void EnsureIsTypeOrTypeParameter(Assembler* assembler,
-                                        Register type_reg,
-                                        Register scratch_reg) {
+static void EnsureIsTypeOrFunctionTypeOrTypeParameter(Assembler* assembler,
+                                                      Register type_reg,
+                                                      Register scratch_reg) {
 #if defined(DEBUG)
-  compiler::Label is_type_param_or_type;
+  compiler::Label is_type_param_or_type_or_function_type;
   __ LoadClassIdMayBeSmi(scratch_reg, type_reg);
   __ CompareImmediate(scratch_reg, kTypeParameterCid);
-  __ BranchIf(EQUAL, &is_type_param_or_type, compiler::Assembler::kNearJump);
+  __ BranchIf(EQUAL, &is_type_param_or_type_or_function_type,
+              compiler::Assembler::kNearJump);
   __ CompareImmediate(scratch_reg, kTypeCid);
-  __ BranchIf(EQUAL, &is_type_param_or_type, compiler::Assembler::kNearJump);
+  __ BranchIf(EQUAL, &is_type_param_or_type_or_function_type,
+              compiler::Assembler::kNearJump);
+  __ CompareImmediate(scratch_reg, kFunctionTypeCid);
+  __ BranchIf(EQUAL, &is_type_param_or_type_or_function_type,
+              compiler::Assembler::kNearJump);
   // Type references show up in F-bounded polymorphism, which is limited
   // to classes. Thus, TypeRefs only appear in places like class type
   // arguments or the bounds of uninstantiated class type parameters.
@@ -215,8 +220,8 @@ static void EnsureIsTypeOrTypeParameter(Assembler* assembler,
   // a function type parameter or the type of a function parameter
   // (respectively), we should never see a TypeRef here. This check is here
   // in case this changes and we need to update this stub.
-  __ Stop("not a type or type parameter");
-  __ Bind(&is_type_param_or_type);
+  __ Stop("not a type or function type or type parameter");
+  __ Bind(&is_type_param_or_type_or_function_type);
 #endif
 }
 
@@ -265,12 +270,14 @@ static void GenerateTypeIsTopTypeForSubtyping(Assembler* assembler,
   __ MoveRegister(scratch1_reg, TypeTestABI::kDstTypeReg);
   __ Bind(&check_top_type);
   // scratch1_reg: Current type to check.
-  EnsureIsTypeOrTypeParameter(assembler, scratch1_reg, scratch2_reg);
+  EnsureIsTypeOrFunctionTypeOrTypeParameter(assembler, scratch1_reg,
+                                            scratch2_reg);
   compiler::Label is_type_ref;
-  __ CompareClassId(scratch1_reg, kTypeParameterCid, scratch2_reg);
+  __ CompareClassId(scratch1_reg, kTypeCid, scratch2_reg);
   // Type parameters can't be top types themselves, though a particular
   // instantiation may result in a top type.
-  __ BranchIf(EQUAL, &done);
+  // Function types cannot be top types.
+  __ BranchIf(NOT_EQUAL, &done);
   __ LoadField(
       scratch2_reg,
       compiler::FieldAddress(scratch1_reg,
@@ -377,7 +384,8 @@ static void GenerateNullIsAssignableToType(Assembler* assembler,
     __ BranchIf(NOT_EQUAL, &done, compiler::Assembler::kNearJump);
     __ Bind(&check_null_assignable);
     // scratch1_reg: Current type to check.
-    EnsureIsTypeOrTypeParameter(assembler, scratch1_reg, scratch2_reg);
+    EnsureIsTypeOrFunctionTypeOrTypeParameter(assembler, scratch1_reg,
+                                              scratch2_reg);
     compiler::Label is_not_type;
     __ CompareClassId(scratch1_reg, kTypeCid, scratch2_reg);
     __ BranchIf(NOT_EQUAL, &is_not_type, compiler::Assembler::kNearJump);
@@ -611,13 +619,7 @@ void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
                          target::Type::type_state_offset(), kByte);
   __ CompareImmediate(
       TypeTestABI::kScratchReg,
-      target::AbstractTypeLayout::kTypeStateFinalizedInstantiated);
-  __ BranchIf(NOT_EQUAL, &is_complex_case, Assembler::kNearJump);
-
-  // Check whether this [Type] is a function type.
-  __ LoadFieldFromOffset(TypeTestABI::kScratchReg, TypeTestABI::kDstTypeReg,
-                         target::Type::signature_offset());
-  __ CompareObject(TypeTestABI::kScratchReg, NullObject());
+      target::UntaggedAbstractType::kTypeStateFinalizedInstantiated);
   __ BranchIf(NOT_EQUAL, &is_complex_case, Assembler::kNearJump);
 
   // This [Type] could be a FutureOr. Subtype2TestCache does not support Smi.
@@ -675,7 +677,7 @@ VM_TYPE_TESTING_STUB_CODE_LIST(GENERATE_BREAKPOINT_STUB)
 void StubCodeCompiler::GenerateAllocateUnhandledExceptionStub(
     Assembler* assembler) {
   Thread* thread = Thread::Current();
-  auto class_table = thread->isolate()->class_table();
+  auto class_table = thread->isolate_group()->class_table();
   ASSERT(class_table->HasValidClassAt(kUnhandledExceptionCid));
   const auto& cls = Class::ZoneHandle(thread->zone(),
                                       class_table->At(kUnhandledExceptionCid));

@@ -241,7 +241,7 @@ void IRRegExpMacroAssembler::GenerateSuccessBlock() {
   TAG();
 
   Value* type = Bind(new (Z) ConstantInstr(TypeArguments::ZoneHandle(
-      Z, Isolate::Current()->object_store()->type_argument_int())));
+      Z, IsolateGroup::Current()->object_store()->type_argument_int())));
   Value* length = Bind(Uint64Constant(saved_registers_count_));
   Value* array = Bind(new (Z) CreateArrayInstr(InstructionSource(), type,
                                                length, GetNextDeoptId()));
@@ -323,7 +323,7 @@ ArrayPtr IRRegExpMacroAssembler::Execute(const RegExp& regexp,
   }
 
   ASSERT(retval.IsArray());
-  return Array::Cast(retval).raw();
+  return Array::Cast(retval).ptr();
 }
 
 LocalVariable* IRRegExpMacroAssembler::Parameter(const String& name,
@@ -376,18 +376,14 @@ ConstantInstr* IRRegExpMacroAssembler::WordCharacterMapConstant() const {
   ASSERT(!word_character_field.IsNull());
 
   DEBUG_ASSERT(Thread::Current()->TopErrorHandlerIsSetJump());
-  if (word_character_field.IsUninitialized()) {
-    ASSERT(!Compiler::IsBackgroundCompilation());
-    const Error& error =
-        Error::Handle(Z, word_character_field.InitializeStatic());
-    if (!error.IsNull()) {
-      Report::LongJump(error);
-    }
-  }
-  ASSERT(!word_character_field.IsUninitialized());
 
-  return new (Z) ConstantInstr(
-      Instance::ZoneHandle(Z, word_character_field.StaticValue()));
+  const auto& value =
+      Object::Handle(Z, word_character_field.StaticConstFieldValue());
+  if (value.IsError()) {
+    Report::LongJump(Error::Cast(value));
+  }
+  return new (Z)
+      ConstantInstr(Instance::ZoneHandle(Z, Instance::RawCast(value.ptr())));
 }
 
 ComparisonInstr* IRRegExpMacroAssembler::Comparison(ComparisonKind kind,

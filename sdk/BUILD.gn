@@ -48,6 +48,7 @@ declare_args() {
 # ........dart2js.dart.snapshot
 # ........dart2native.dart.snapshot (if not on ia32)
 # ........dartanalyzer.dart.snapshot
+# ........dartdev.dart.snapshot
 # ........dartdev.dill
 # ........dartdevc.dart.snapshot
 # ........dartdoc.dart.snapshot
@@ -118,6 +119,10 @@ _platform_sdk_snapshots = [
     "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
   ],
   [
+    "dartdev",
+    "../utils/dartdev:dartdev",
+  ],
+  [
     "dartdoc",
     "../utils/dartdoc",
   ],
@@ -161,6 +166,10 @@ _full_sdk_snapshots = [
   [
     "dartanalyzer",
     "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
+  ],
+  [
+    "dartdev",
+    "../utils/dartdev:generate_dartdev_snapshot",
   ],
   [
     "dartdevc",

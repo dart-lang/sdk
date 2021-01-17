@@ -65,6 +65,7 @@ Future<CompilerResult> generateKernelInternal(
     bool retainDataForTesting: false,
     bool includeHierarchyAndCoreTypes: false}) async {
   ProcessedOptions options = CompilerContext.current.options;
+  options.reportNullSafetyCompilationModeInfo();
   FileSystem fs = options.fileSystem;
 
   Loader sourceLoader;

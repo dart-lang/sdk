@@ -35,9 +35,10 @@ void setup() {
     return a;
   }
 
-  makeA = function() { return new A(); };
+  self.makeA = function() { return new A(); };
   self.nativeConstructor(A);
 })()""");
+  applyTestExtensions(['A']);
 }
 
 A makeA() native;

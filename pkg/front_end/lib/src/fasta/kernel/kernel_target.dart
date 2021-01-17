@@ -640,7 +640,7 @@ class KernelTarget extends TargetImplementation {
     IndexedClass indexedClass = builder.referencesFromIndexed;
     Constructor referenceFrom;
     if (indexedClass != null) {
-      referenceFrom = indexedClass.lookupConstructor("");
+      referenceFrom = indexedClass.lookupConstructor(new Name(""));
     }
 
     /// From [Dart Programming Language Specification, 4th Edition](
@@ -691,7 +691,7 @@ class KernelTarget extends TargetImplementation {
     IndexedClass indexedClass = builder.referencesFromIndexed;
     Constructor referenceFrom;
     if (indexedClass != null) {
-      referenceFrom = indexedClass.lookupConstructor("");
+      referenceFrom = indexedClass.lookupConstructor(new Name(""));
     }
 
     if (supertype is ClassBuilder) {
@@ -702,7 +702,8 @@ class KernelTarget extends TargetImplementation {
       void addSyntheticConstructor(String name, MemberBuilder memberBuilder) {
         if (memberBuilder.member is Constructor) {
           substitutionMap ??= builder.getSubstitutionMap(superclassBuilder.cls);
-          Constructor referenceFrom = indexedClass?.lookupConstructor(name);
+          Constructor referenceFrom = indexedClass
+              ?.lookupConstructor(new Name(name, indexedClass.library));
           builder.addSyntheticConstructor(_makeMixinApplicationConstructor(
               builder,
               builder.cls.mixin,

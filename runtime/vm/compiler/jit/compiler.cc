@@ -346,7 +346,7 @@ CodePtr CompileParsedFunctionHelper::FinalizeCompilation(
 
   // CreateDeoptInfo uses the object pool and needs to be done before
   // FinalizeCode.
-  Array& deopt_info_array = Array::Handle(zone, Object::empty_array().raw());
+  Array& deopt_info_array = Array::Handle(zone, Object::empty_array().ptr());
   deopt_info_array = graph_compiler->CreateDeoptInfo(assembler);
 
   // Allocates instruction object. Since this occurs only at safepoint,
@@ -426,7 +426,7 @@ CodePtr CompileParsedFunctionHelper::FinalizeCompilation(
         // OSR is not compiled in background.
         ASSERT(!Compiler::IsBackgroundCompilation());
       }
-      ASSERT(code.owner() == function.raw());
+      ASSERT(code.owner() == function.ptr());
     } else {
       code = Code::null();
     }
@@ -469,7 +469,7 @@ CodePtr CompileParsedFunctionHelper::FinalizeCompilation(
       function.SetUsageCounter(0);
     }
   }
-  return code.raw();
+  return code.ptr();
 }
 
 void CompileParsedFunctionHelper::CheckIfBackgroundCompilerIsBeingStopped(
@@ -663,13 +663,13 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       // We bailed out or we encountered an error.
       const Error& error = Error::Handle(thread()->StealStickyError());
 
-      if (error.raw() == Object::branch_offset_error().raw()) {
+      if (error.ptr() == Object::branch_offset_error().ptr()) {
         // Compilation failed due to an out of range branch offset in the
         // assembler. We try again (done = false) with far branches enabled.
         done = false;
         ASSERT(!use_far_branches);
         use_far_branches = true;
-      } else if (error.raw() == Object::speculative_inlining_error().raw()) {
+      } else if (error.ptr() == Object::speculative_inlining_error().ptr()) {
         // Can only happen with precompilation.
         UNREACHABLE();
       } else {
@@ -691,7 +691,7 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       }
     }
   }
-  return result->raw();
+  return result->ptr();
 }
 
 static ObjectPtr CompileFunctionHelper(CompilationPipeline* pipeline,
@@ -714,7 +714,7 @@ static ObjectPtr CompileFunctionHelper(CompilationPipeline* pipeline,
     per_compile_timer.Start();
 
     ParsedFunction* parsed_function = new (zone)
-        ParsedFunction(thread, Function::ZoneHandle(zone, function.raw()));
+        ParsedFunction(thread, Function::ZoneHandle(zone, function.ptr()));
     if (trace_compiler) {
       const intptr_t token_size = function.SourceSize();
       THR_Print("Compiling %s%sfunction %s: '%s' @ token %s, size %" Pd "\n",
@@ -747,7 +747,7 @@ static ObjectPtr CompileFunctionHelper(CompilationPipeline* pipeline,
 
         // We got an error during compilation.
         // If it was a bailout, then disable optimization.
-        if (error.raw() == Object::background_compilation_error().raw()) {
+        if (error.ptr() == Object::background_compilation_error().ptr()) {
           if (FLAG_trace_compiler) {
             THR_Print(
                 "--> disabling background optimizations for '%s' (will "
@@ -775,7 +775,7 @@ static ObjectPtr CompileFunctionHelper(CompilationPipeline* pipeline,
           // The background compiler does not execute Dart code or handle
           // isolate messages.
           ASSERT(!error.IsUnwindError());
-          return error.raw();
+          return error.ptr();
         }
       }
       if (optimized) {
@@ -794,7 +794,7 @@ static ObjectPtr CompileFunctionHelper(CompilationPipeline* pipeline,
           function.SetIsOptimizable(false);
           return Error::null();
         }
-        return error.raw();
+        return error.ptr();
       } else {
         ASSERT(!optimized);
         // The non-optimizing compiler can get an unhandled exception
@@ -803,7 +803,7 @@ static ObjectPtr CompileFunctionHelper(CompilationPipeline* pipeline,
         ASSERT(error.IsUnhandledException() || error.IsUnwindError() ||
                (error.IsLanguageError() &&
                 LanguageError::Cast(error).kind() != Report::kBailout));
-        return error.raw();
+        return error.ptr();
       }
       UNREACHABLE();
     }
@@ -817,14 +817,14 @@ static ObjectPtr CompileFunctionHelper(CompilationPipeline* pipeline,
                 code.Size(), per_compile_timer.TotalElapsedTime());
     }
 
-    return result.raw();
+    return result.ptr();
   } else {
     Thread* const thread = Thread::Current();
     StackZone stack_zone(thread);
     // We got an error during compilation or it is a bailout from background
     // compilation (e.g., during parsing with EnsureIsFinalized).
     const Error& error = Error::Handle(thread->StealStickyError());
-    if (error.raw() == Object::background_compilation_error().raw()) {
+    if (error.ptr() == Object::background_compilation_error().ptr()) {
       // Exit compilation, retry it later.
       if (FLAG_trace_bailout) {
         THR_Print("Aborted background compilation: %s\n",
@@ -834,7 +834,7 @@ static ObjectPtr CompileFunctionHelper(CompilationPipeline* pipeline,
     }
     // Do not attempt to optimize functions that can cause errors.
     function.set_is_optimizable(false);
-    return error.raw();
+    return error.ptr();
   }
   UNREACHABLE();
   return Object::null();
@@ -886,16 +886,16 @@ ErrorPtr Compiler::EnsureUnoptimizedCode(Thread* thread,
       CompileFunctionHelper(pipeline, function, false, /* not optimized */
                             kNoOSRDeoptId));
   if (result.IsError()) {
-    return Error::Cast(result).raw();
+    return Error::Cast(result).ptr();
   }
   // Since CompileFunctionHelper replaces the current code, re-attach the
   // the original code if the function was already compiled.
-  if (!original_code.IsNull() && result.raw() == function.CurrentCode() &&
+  if (!original_code.IsNull() && result.ptr() == function.CurrentCode() &&
       !original_code.IsDisabled()) {
     function.AttachCode(original_code);
   }
   ASSERT(function.unoptimized_code() != Object::null());
-  ASSERT(function.unoptimized_code() == result.raw());
+  ASSERT(function.unoptimized_code() == result.ptr());
   if (FLAG_trace_compiler) {
     THR_Print("Ensure unoptimized code for %s\n", function.ToCString());
   }
@@ -939,7 +939,7 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     ParsedFunction* parsed_function =
-        new ParsedFunction(thread, Function::ZoneHandle(zone, function.raw()));
+        new ParsedFunction(thread, Function::ZoneHandle(zone, function.ptr()));
     ZoneGrowableArray<const ICData*>* ic_data_array =
         new ZoneGrowableArray<const ICData*>();
     ZoneGrowableArray<intptr_t>* context_level_array =
@@ -978,7 +978,7 @@ ErrorPtr Compiler::CompileAllFunctions(const Class& cls) {
     if (!func.HasCode() && !func.is_abstract()) {
       result = CompileFunction(thread, func);
       if (result.IsError()) {
-        return Error::Cast(result).raw();
+        return Error::Cast(result).ptr();
       }
       ASSERT(!result.IsNull());
     }
@@ -1010,7 +1010,7 @@ void Compiler::AbortBackgroundCompilation(intptr_t deopt_id, const char* msg) {
 class QueueElement {
  public:
   explicit QueueElement(const Function& function)
-      : next_(NULL), function_(function.raw()) {}
+      : next_(NULL), function_(function.ptr()) {}
 
   virtual ~QueueElement() {
     next_ = NULL;
@@ -1023,7 +1023,9 @@ class QueueElement {
   QueueElement* next() const { return next_; }
 
   ObjectPtr function() const { return function_; }
-  ObjectPtr* function_ptr() { return reinterpret_cast<ObjectPtr*>(&function_); }
+  ObjectPtr* function_untag() {
+    return reinterpret_cast<ObjectPtr*>(&function_);
+  }
 
  private:
   QueueElement* next_;
@@ -1043,7 +1045,7 @@ class BackgroundCompilationQueue {
     ASSERT(visitor != NULL);
     QueueElement* p = first_;
     while (p != NULL) {
-      visitor->VisitPointer(p->function_ptr());
+      visitor->VisitPointer(p->function_untag());
       p = p->next();
     }
   }
@@ -1088,7 +1090,7 @@ class BackgroundCompilationQueue {
   bool ContainsObj(const Object& obj) const {
     QueueElement* p = first_;
     while (p != NULL) {
-      if (p->function() == obj.raw()) {
+      if (p->function() == obj.ptr()) {
         return true;
       }
       p = p->next();

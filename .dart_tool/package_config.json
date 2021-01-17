@@ -296,7 +296,7 @@
       "name": "html",
       "rootUri": "../third_party/pkg/html",
       "packageUri": "lib/",
-      "languageVersion": "2.3"
+      "languageVersion": "2.8"
     },
     {
       "name": "http",
@@ -396,7 +396,7 @@
       "name": "matcher",
       "rootUri": "../third_party/pkg/matcher",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     },
     {
       "name": "meta",
@@ -722,7 +722,7 @@
       "name": "vm_service",
       "rootUri": "../pkg/vm_service",
       "packageUri": "lib/",
-      "languageVersion": "2.6"
+      "languageVersion": "2.12"
     },
     {
       "name": "vm_snapshot_analysis",

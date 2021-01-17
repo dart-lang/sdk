@@ -35,7 +35,7 @@ static method main() → dynamic {
   }
   for (; false; ) {
   }
-  core::List<core::String*>* list = <core::String*>["Hello, World!"];
+  core::List<core::String*>* list = core::_GrowableList::_literal1<core::String*>("Hello, World!");
   core::print(list.{core::List::[]}(i));
   list.{core::List::[]=}(i, "Hello, Brave New World!");
   core::print(list.{core::List::[]}(i));
@@ -106,4 +106,4 @@ Extra constant evaluation: evaluated: 138, effectively constant: 6
 
 Constructor coverage from constants:
 org-dartlang-testcase:///expressions.dart:
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

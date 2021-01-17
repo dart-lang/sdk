@@ -56,4 +56,4 @@ Constructor coverage from constants:
 org-dartlang-testcase:///issue41070.dart:
 - Application. (from org-dartlang-testcase:///issue41070.dart:12:7)
 - Base. (from org-dartlang-testcase:///issue41070.dart:9:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

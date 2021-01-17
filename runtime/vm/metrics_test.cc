@@ -89,8 +89,8 @@ ISOLATE_UNIT_TEST_CASE(Metric_EmbedderAPI) {
 
   // Ensure we've done new/old GCs to ensure max metrics are initialized.
   String::New("<land-in-new-space>", Heap::kNew);
-  Isolate::Current()->heap()->new_space()->Scavenge();
-  Isolate::Current()->heap()->CollectAllGarbage(Heap::kLowMemory);
+  IsolateGroup::Current()->heap()->new_space()->Scavenge();
+  IsolateGroup::Current()->heap()->CollectAllGarbage(Heap::kLowMemory);
 
   // Ensure we've something live in new space.
   String::New("<land-in-new-space2>", Heap::kNew);
@@ -159,7 +159,7 @@ ISOLATE_UNIT_TEST_CASE(Metric_SetGCEventCallback) {
   EXPECT_STREQ("debugging", last_gcevent_reason);
 
   // This call emits 2 or 3 events.
-  Isolate::Current()->heap()->CollectAllGarbage(Heap::kLowMemory);
+  IsolateGroup::Current()->heap()->CollectAllGarbage(Heap::kLowMemory);
 
   EXPECT_GE(event_counter, 3UL);
   EXPECT_STREQ("MarkCompact", last_gcevent_type);

@@ -2066,7 +2066,7 @@ class CatchBlockEntryInstr : public BlockEntryWithInitialDefs {
                                   /*stack_depth=*/0),
         graph_entry_(graph_entry),
         predecessor_(NULL),
-        catch_handler_types_(Array::ZoneHandle(handler_types.raw())),
+        catch_handler_types_(Array::ZoneHandle(handler_types.ptr())),
         catch_try_index_(catch_try_index),
         exception_var_(exception_var),
         stacktrace_var_(stacktrace_var),
@@ -2972,7 +2972,7 @@ class ReturnInstr : public TemplateInstruction<1, NoThrow> {
   ReturnInstr(const InstructionSource& source,
               Value* value,
               intptr_t deopt_id,
-              intptr_t yield_index = PcDescriptorsLayout::kInvalidYieldIndex,
+              intptr_t yield_index = UntaggedPcDescriptors::kInvalidYieldIndex,
               Representation representation = kTagged)
       : TemplateInstruction(source, deopt_id),
         token_pos_(source.token_pos),
@@ -5276,7 +5276,7 @@ class RawStoreFieldInstr : public TemplateInstruction<2, NoThrow> {
 class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {
  public:
   DebugStepCheckInstr(const InstructionSource& source,
-                      PcDescriptorsLayout::Kind stub_kind,
+                      UntaggedPcDescriptors::Kind stub_kind,
                       intptr_t deopt_id)
       : TemplateInstruction(source, deopt_id),
         token_pos_(source.token_pos),
@@ -5293,7 +5293,7 @@ class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {
 
  private:
   const TokenPosition token_pos_;
-  const PcDescriptorsLayout::Kind stub_kind_;
+  const UntaggedPcDescriptors::Kind stub_kind_;
 
   DISALLOW_COPY_AND_ASSIGN(DebugStepCheckInstr);
 };
@@ -5506,7 +5506,7 @@ class GuardFieldLengthInstr : public GuardFieldInstr {
 
 // For a field of static type G<T0, ..., Tn> and a stored value of runtime
 // type T checks that type arguments of T at G exactly match <T0, ..., Tn>
-// and updates guarded state (FieldLayout::static_type_exactness_state_)
+// and updates guarded state (UntaggedField::static_type_exactness_state_)
 // accordingly.
 //
 // See StaticTypeExactnessState for more information.
@@ -6138,7 +6138,7 @@ class AllocateObjectInstr : public AllocationInstr {
 
   const Function& closure_function() const { return closure_function_; }
   void set_closure_function(const Function& function) {
-    closure_function_ = function.raw();
+    closure_function_ = function.ptr();
   }
 
   virtual intptr_t InputCount() const {
@@ -9613,7 +9613,7 @@ StringPtr TemplateDartCall<kExtraInputs>::Selector() {
   if (auto static_call = this->AsStaticCall()) {
     return static_call->function().name();
   } else if (auto instance_call = this->AsInstanceCall()) {
-    return instance_call->function_name().raw();
+    return instance_call->function_name().ptr();
   } else {
     UNREACHABLE();
   }
@@ -9621,7 +9621,7 @@ StringPtr TemplateDartCall<kExtraInputs>::Selector() {
 
 inline bool Value::CanBe(const Object& value) {
   ConstantInstr* constant = definition()->AsConstant();
-  return (constant == nullptr) || constant->value().raw() == value.raw();
+  return (constant == nullptr) || constant->value().ptr() == value.ptr();
 }
 
 class SuccessorsIterable {

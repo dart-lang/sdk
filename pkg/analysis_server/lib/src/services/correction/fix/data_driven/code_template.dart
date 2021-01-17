@@ -86,6 +86,8 @@ class TemplateContext {
   static AstNode _getInvocation(AstNode node) {
     if (node is ArgumentList) {
       return node.parent;
+    } else if (node.parent is ArgumentList) {
+      return node.parent.parent;
     } else if (node is InstanceCreationExpression ||
         node is InvocationExpression) {
       return node;

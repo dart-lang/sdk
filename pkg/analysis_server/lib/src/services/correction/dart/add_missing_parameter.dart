@@ -12,10 +12,11 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 class AddMissingParameter extends MultiCorrectionProducer {
   @override
   Iterable<CorrectionProducer> get producers sync* {
-    if (node is! ArgumentList) {
+    // node is the unmatched argument.
+    if (node.parent is! ArgumentList) {
       return;
     }
-    var context = ExecutableParameters(sessionHelper, node.parent);
+    var context = ExecutableParameters(sessionHelper, node.parent.parent);
     if (context == null) {
       return;
     }
@@ -65,7 +66,8 @@ abstract class _AddMissingParameter extends CorrectionProducer {
 
   Future<void> _addParameter(
       ChangeBuilder builder, int offset, String prefix, String suffix) async {
-    ArgumentList argumentList = node;
+    // node is the unmatched argument.
+    ArgumentList argumentList = node.parent;
     List<Expression> arguments = argumentList.arguments;
     var numRequired = context.required.length;
     if (numRequired >= arguments.length) {

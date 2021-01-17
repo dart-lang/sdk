@@ -295,6 +295,9 @@ class FastaContext extends ChainContext with MatchContext {
   String get updateExpectationsOption => '${UPDATE_EXPECTATIONS}=true';
 
   @override
+  bool get canBeFixWithUpdateExpectations => true;
+
+  @override
   final ExpectationSet expectationSet =
       new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
 
@@ -1117,7 +1120,8 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
                     description, p, userLibraries, options, sourceTarget),
                 context.expectationSet["InstrumentationMismatch"],
                 instrumentation.problemsAsString,
-                autoFixCommand: '${UPDATE_COMMENTS}=true');
+                autoFixCommand: '${UPDATE_COMMENTS}=true',
+                canBeFixWithUpdateExpectations: true);
           }
         }
       }

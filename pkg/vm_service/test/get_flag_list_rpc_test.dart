@@ -22,14 +22,15 @@ Future getFlagValue(VmService service, String flagName) async {
 var tests = <VMTest>[
   // Modify a flag which does not exist.
   (VmService service) async {
-    final Error result = await service.setFlag('does_not_exist', 'true');
+    final Error result =
+        (await service.setFlag('does_not_exist', 'true')) as Error;
     expect(result.message, 'Cannot set flag: flag not found');
   },
 
   // Modify a flag with the wrong value type.
   (VmService service) async {
-    final Error result =
-        await service.setFlag('pause_isolates_on_start', 'not-boolean');
+    final Error result = (await service.setFlag(
+        'pause_isolates_on_start', 'not-boolean')) as Error;
     expect(result.message, equals('Cannot set flag: invalid value'));
   },
 
@@ -41,7 +42,7 @@ var tests = <VMTest>[
 
   // Modify a flag which cannot be set at runtime.
   (VmService service) async {
-    final Error result = await service.setFlag('random_seed', '42');
+    final Error result = (await service.setFlag('random_seed', '42')) as Error;
     expect(result.message, 'Cannot set flag: cannot change at runtime');
   },
 
@@ -52,7 +53,7 @@ var tests = <VMTest>[
     expect(await getFlagValue(service, kProfilePeriod), '1000');
     final completer = Completer();
     final stream = await service.onVMEvent;
-    var subscription;
+    late var subscription;
     subscription = stream.listen((Event event) {
       print(event);
       if (event.kind == EventKind.kVMFlagUpdate) {

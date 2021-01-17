@@ -1,0 +1,68 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+
+import "dart:ffi";
+import "package:ffi/ffi.dart";
+
+@#C3
+@#C8
+class Coordinate extends ffi::Struct {
+  @#C3
+  static final field core::int* #sizeOf = (#C11).{core::List::[]}(ffi::_abi())/*isLegacy*/;
+  @#C3
+  constructor #fromTypedDataBase(dynamic #pointer) → dynamic
+    : super ffi::Struct::_fromPointer(#pointer)
+    ;
+  @#C12
+  get x() → core::double
+    return ffi::_loadDouble(this.{ffi::Struct::_addressOf}, (#C14).{core::List::[]}(ffi::_abi()));
+  @#C12
+  set x(core::double #externalFieldValue) → void
+    return ffi::_storeDouble(this.{ffi::Struct::_addressOf}, (#C14).{core::List::[]}(ffi::_abi()), #externalFieldValue);
+  @#C12
+  get y() → core::double
+    return ffi::_loadDouble(this.{ffi::Struct::_addressOf}, (#C16).{core::List::[]}(ffi::_abi()));
+  @#C12
+  set y(core::double #externalFieldValue) → void
+    return ffi::_storeDouble(this.{ffi::Struct::_addressOf}, (#C16).{core::List::[]}(ffi::_abi()), #externalFieldValue);
+  get next() → ffi::Pointer<self::Coordinate>
+    return ffi::_fromAddress<self::Coordinate>(ffi::_loadIntPtr(this.{ffi::Struct::_addressOf}, (#C18).{core::List::[]}(ffi::_abi())));
+  set next(ffi::Pointer<self::Coordinate> #externalFieldValue) → void
+    return ffi::_storeIntPtr(this.{ffi::Struct::_addressOf}, (#C18).{core::List::[]}(ffi::_abi()), #externalFieldValue.{ffi::Pointer::address});
+  static factory allocate(ffi::Allocator allocator, core::double x, core::double y, ffi::Pointer<self::Coordinate> next) → self::Coordinate {
+    return let final self::Coordinate #t1 = ffi::StructPointer|get#ref<self::Coordinate>(ffi::AllocatorAlloc|call<self::Coordinate>(allocator)) in block {
+      #t1.{self::Coordinate::x} = x;
+      #t1.{self::Coordinate::y} = y;
+      #t1.{self::Coordinate::next} = next;
+    } =>#t1;
+  }
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = "vm:entry-point"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+  #C4 = "vm:ffi:struct-fields"
+  #C5 = TypeLiteralConstant(ffi::Double)
+  #C6 = TypeLiteralConstant(ffi::Pointer<ffi::NativeType>)
+  #C7 = <core::Type>[#C5, #C5, #C6]
+  #C8 = core::pragma {name:#C4, options:#C7}
+  #C9 = 24
+  #C10 = 20
+  #C11 = <core::int*>[#C9, #C10, #C9]
+  #C12 = ffi::Double {}
+  #C13 = 0
+  #C14 = <core::int*>[#C13, #C13, #C13]
+  #C15 = 8
+  #C16 = <core::int*>[#C15, #C15, #C15]
+  #C17 = 16
+  #C18 = <core::int*>[#C17, #C17, #C17]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///ffi_sample.dart:
+- Double. (from org-dartlang-sdk:///sdk/lib/ffi/native_type.dart:122:9)

@@ -204,7 +204,7 @@ class KernelLoader : public ValueObject {
   // not nullptr, then they are populated with number of classes and top-level
   // procedures in [program].
   static void FindModifiedLibraries(Program* program,
-                                    Isolate* isolate,
+                                    IsolateGroup* isolate_group,
                                     BitVector* modified_libs,
                                     bool force_reload,
                                     bool* is_empty_program,
@@ -345,7 +345,7 @@ class KernelLoader : public ValueObject {
   LibraryPtr LookupLibraryFromClass(NameIndex klass);
   ClassPtr LookupClass(const Library& library, NameIndex klass);
 
-  FunctionLayout::Kind GetFunctionType(ProcedureHelper::Kind procedure_kind);
+  UntaggedFunction::Kind GetFunctionType(ProcedureHelper::Kind procedure_kind);
 
   void EnsureExternalClassIsLookedUp() {
     if (external_name_class_.IsNull()) {

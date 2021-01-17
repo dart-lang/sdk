@@ -224,7 +224,7 @@ class ConstIterable extends col::IterableBase<core::int*> /*hasConstConstructor*
     : super col::IterableBase::•()
     ;
   get iterator() → core::Iterator<core::int*>*
-    return <core::int*>[].{core::Iterable::iterator};
+    return core::_GrowableList::•<core::int*>(0).{core::Iterable::iterator};
   abstract member-signature method cast<R extends core::Object* = dynamic>() → core::Iterable<self::ConstIterable::cast::R*>*; -> core::Iterable::cast
   abstract member-signature method followedBy(generic-covariant-impl core::Iterable<core::int*>* other) → core::Iterable<core::int*>*; -> core::Iterable::followedBy
   abstract member-signature method map<T extends core::Object* = dynamic>((core::int*) →* self::ConstIterable::map::T* f) → core::Iterable<self::ConstIterable::map::T*>*; -> core::Iterable::map
@@ -285,7 +285,7 @@ class CustomIterable extends col::IterableBase<core::String*> /*hasConstConstruc
     : super col::IterableBase::•()
     ;
   get iterator() → core::Iterator<core::String*>*
-    return <core::String*>[].{core::Iterable::iterator};
+    return core::_GrowableList::•<core::String*>(0).{core::Iterable::iterator};
   abstract member-signature method cast<R extends core::Object* = dynamic>() → core::Iterable<self::CustomIterable::cast::R*>*; -> core::Iterable::cast
   abstract member-signature method followedBy(generic-covariant-impl core::Iterable<core::String*>* other) → core::Iterable<core::String*>*; -> core::Iterable::followedBy
   abstract member-signature method map<T extends core::Object* = dynamic>((core::String*) →* self::CustomIterable::map::T* f) → core::Iterable<self::CustomIterable::map::T*>*; -> core::Iterable::map
@@ -329,7 +329,7 @@ class CustomMap extends core::Object implements core::Map<core::String*, core::S
     ;
   @#C4
   get entries() → core::Iterable<core::MapEntry<core::String*, core::String*>*>*
-    return <core::MapEntry<core::String*, core::String*>*>[];
+    return core::_GrowableList::•<core::MapEntry<core::String*, core::String*>*>(0);
   @#C4
   operator [](core::Object* key) → core::String*
     return throw new core::UnimplementedError::•();
@@ -520,5 +520,5 @@ org-dartlang-testcase:///const_collections.dart:
 - CustomIterable. (from org-dartlang-testcase:///const_collections.dart:79:9)
 - IterableBase. (from org-dartlang-sdk:///sdk/lib/collection/iterable.dart:218:9)
 - WithEquals. (from org-dartlang-testcase:///const_collections.dart:72:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:31:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
 - CustomMap. (from org-dartlang-testcase:///const_collections.dart:84:9)
