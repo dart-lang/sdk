@@ -434,6 +434,10 @@ def AddCommonGnOptionArgs(parser):
                         help='Generate an IDE file.',
                         default=os_has_ide(HOST_OS),
                         action='store_true')
+    parser.add_argument('--export-compile-commands',
+                        help='Export compile_commands.json database file.',
+                        default=False,
+                        action='store_true')
     parser.add_argument(
         '--target-sysroot',
         '-s',
@@ -513,6 +517,8 @@ def BuildGnCommand(args, mode, arch, target_os, sanitizer, out_dir):
     gn_args += GetGNArgs(args)
     if args.ide:
         command.append(ide_switch(HOST_OS))
+    if args.export_compile_commands:
+        command.append('--export-compile-commands')
     command.append('--args=%s' % ' '.join(gn_args))
 
     return command
