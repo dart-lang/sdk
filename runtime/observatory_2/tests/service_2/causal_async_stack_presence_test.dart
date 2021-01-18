@@ -11,8 +11,8 @@ import 'service_test_common.dart';
 import 'test_helper.dart';
 
 const LINE_C = 19;
-const LINE_A = 24;
-const LINE_B = 30;
+const LINE_A = 25;
+const LINE_B = 31;
 
 foobar() {
   debugger();
@@ -20,6 +20,7 @@ foobar() {
 }
 
 helper() async {
+  await 0; // Yield. The rest will run async.
   debugger();
   print('helper'); // LINE_A.
   foobar();

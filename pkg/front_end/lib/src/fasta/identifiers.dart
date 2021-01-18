@@ -11,62 +11,31 @@ import 'package:kernel/ast.dart' show Expression;
 import 'problems.dart' show unhandled, unsupported;
 
 class Identifier {
-  final String name;
-  final int charOffset;
+  final Token token;
 
-  Identifier(Token token)
-      : name = token.lexeme,
-        charOffset = token.charOffset;
+  Identifier(this.token);
 
-  Identifier._(this.name, this.charOffset);
+  String get name => token.lexeme;
 
-  factory Identifier.preserveToken(Token token) {
-    return new _TokenIdentifier(token);
-  }
+  int get charOffset => token.charOffset;
 
   Expression get initializer => null;
 
   int get endCharOffset => charOffset + name.length;
 
   QualifiedName withQualifier(Object qualifier) {
-    return new QualifiedName._(qualifier, name, charOffset);
+    return new QualifiedName(qualifier, token);
   }
 
   @override
   String toString() => "identifier($name)";
 }
 
-class _TokenIdentifier implements Identifier {
-  final Token token;
-
-  _TokenIdentifier(this.token);
-
-  @override
-  String get name => token.lexeme;
-
-  @override
-  int get charOffset => token.charOffset;
-
-  @override
-  Expression get initializer => null;
-
-  @override
-  int get endCharOffset => charOffset + name.length;
-
-  @override
-  QualifiedName withQualifier(Object qualifier) {
-    return new _TokenQualifiedName(qualifier, token);
-  }
-
-  @override
-  String toString() => "token-identifier($name)";
-}
-
-class InitializedIdentifier extends _TokenIdentifier {
+class InitializedIdentifier extends Identifier {
   @override
   final Expression initializer;
 
-  InitializedIdentifier(_TokenIdentifier identifier, this.initializer)
+  InitializedIdentifier(Identifier identifier, this.initializer)
       : super(identifier.token);
 
   @override
@@ -83,8 +52,7 @@ class QualifiedName extends Identifier {
 
   QualifiedName(this.qualifier, Token suffix) : super(suffix);
 
-  QualifiedName._(this.qualifier, String name, int charOffset)
-      : super._(name, charOffset);
+  Token get suffix => token;
 
   @override
   QualifiedName withQualifier(Object qualifier) {
@@ -93,23 +61,6 @@ class QualifiedName extends Identifier {
 
   @override
   String toString() => "qualified-name($qualifier, $name)";
-}
-
-class _TokenQualifiedName extends _TokenIdentifier implements QualifiedName {
-  @override
-  final Object qualifier;
-
-  _TokenQualifiedName(this.qualifier, Token suffix)
-      : assert(qualifier is! Identifier || qualifier is _TokenIdentifier),
-        super(suffix);
-
-  @override
-  QualifiedName withQualifier(Object qualifier) {
-    return unsupported("withQualifier", charOffset, null);
-  }
-
-  @override
-  String toString() => "token-qualified-name($qualifier, $name)";
 }
 
 void flattenQualifiedNameOn(
@@ -141,9 +92,4 @@ String flattenName(Object name, int charOffset, Uri fileUri) {
   } else {
     return unhandled("${name.runtimeType}", "flattenName", charOffset, fileUri);
   }
-}
-
-Token deprecated_extractToken(Identifier identifier) {
-  _TokenIdentifier tokenIdentifier = identifier;
-  return tokenIdentifier?.token;
 }

@@ -9555,26 +9555,6 @@ Message _withArgumentsUntranslatableUri(Uri uri_) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
-    templateUseOfDeprecatedIdentifier =
-    const Template<Message Function(String name)>(
-        messageTemplate: r"""'#name' is deprecated.""",
-        withArguments: _withArgumentsUseOfDeprecatedIdentifier);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeUseOfDeprecatedIdentifier =
-    const Code<Message Function(String name)>("UseOfDeprecatedIdentifier",
-        severity: Severity.ignored);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUseOfDeprecatedIdentifier(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeUseOfDeprecatedIdentifier,
-      message: """'${name}' is deprecated.""", arguments: {'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
     templateValueForRequiredParameterNotProvidedError =
     const Template<Message Function(String name)>(
         messageTemplate:
