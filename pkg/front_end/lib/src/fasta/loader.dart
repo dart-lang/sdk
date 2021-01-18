@@ -306,7 +306,7 @@ abstract class Loader {
       List<LocatedMessage> context,
       bool problemOnLibrary: false,
       List<Uri> involvedFiles}) {
-    severity = target.fixSeverity(severity, message, fileUri);
+    severity ??= message.code.severity;
     if (severity == Severity.ignored) return null;
     String trace = """
 message: ${message.message}

@@ -3716,10 +3716,6 @@ InitializingFormalTypeMismatchField:
   template: "The field that corresponds to the parameter."
   severity: CONTEXT
 
-UseOfDeprecatedIdentifier:
-  template: "'#name' is deprecated."
-  severity: IGNORED
-
 InitializeFromDillNotSelfContained:
   template: |
     Tried to initialize from a previous compilation (#string), but the file was not self-contained. This might be a bug.

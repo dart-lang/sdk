@@ -80,12 +80,7 @@ import '../fasta_codes.dart' as fasta;
 import '../fasta_codes.dart' show LocatedMessage, Message, noLength, Template;
 
 import '../identifiers.dart'
-    show
-        Identifier,
-        InitializedIdentifier,
-        QualifiedName,
-        deprecated_extractToken,
-        flattenName;
+    show Identifier, InitializedIdentifier, QualifiedName, flattenName;
 
 import '../messages.dart' as messages show getLocationFromUri;
 
@@ -633,9 +628,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       Object expression = pop();
       if (expression is Identifier) {
         Identifier identifier = expression;
-        expression = new UnresolvedNameGenerator(
-            this,
-            deprecated_extractToken(identifier),
+        expression = new UnresolvedNameGenerator(this, identifier.token,
             new Name(identifier.name, libraryBuilder.nameOrigin));
       }
       if (name?.isNotEmpty ?? false) {
@@ -1997,13 +1990,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void handleIdentifier(Token token, IdentifierContext context) {
     debugEvent("handleIdentifier");
     String name = token.lexeme;
-    if (name.startsWith("deprecated") &&
-        // Note that the previous check is redundant, but faster in the common
-        // case (when [name] isn't deprecated).
-        (name == "deprecated" || name.startsWith("deprecated_"))) {
-      addProblem(fasta.templateUseOfDeprecatedIdentifier.withArguments(name),
-          offsetForToken(token), lengthForToken(token));
-    }
     if (context.isScopeReference) {
       assert(!inInitializer ||
           this.scope == enclosingScope ||
@@ -2031,7 +2017,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (token.isSynthetic) {
       push(new ParserRecovery(offsetForToken(token)));
     } else {
-      push(new Identifier.preserveToken(token));
+      push(new Identifier(token));
     }
   }
 
@@ -2503,7 +2489,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     assert(isConst == (constantContext == ConstantContext.inferred));
     VariableDeclaration variable = new VariableDeclarationImpl(
         identifier.name, functionNestingLevel,
-        forSyntheticToken: deprecated_extractToken(identifier).isSynthetic,
+        forSyntheticToken: identifier.token.isSynthetic,
         initializer: initializer,
         type: buildDartType(currentLocalVariableType),
         isFinal: isFinal,
@@ -3282,7 +3268,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (name is QualifiedName) {
       QualifiedName qualified = name;
       Object prefix = qualified.qualifier;
-      Token suffix = deprecated_extractToken(qualified);
+      Token suffix = qualified.suffix;
       if (prefix is Generator) {
         name = prefix.qualifiedLookup(suffix);
       } else {
@@ -4016,7 +4002,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
               identifier.charOffset, identifier.name.length);
         }
       } else if (qualifier is Generator) {
-        type = qualifier.qualifiedLookup(deprecated_extractToken(identifier));
+        type = qualifier.qualifiedLookup(identifier.token);
         identifier = null;
       } else if (qualifier is ProblemBuilder) {
         type = qualifier;
@@ -4334,8 +4320,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     ]));
     Arguments arguments = pop();
     Identifier nameLastIdentifier = pop(NullValue.Identifier);
-    Token nameLastToken =
-        deprecated_extractToken(nameLastIdentifier) ?? nameToken;
+    Token nameLastToken = nameLastIdentifier?.token ?? nameToken;
     String name = pop();
     List<UnresolvedType> typeArguments = pop();
 
@@ -4807,7 +4792,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void endFunctionName(Token beginToken, Token token) {
     debugEvent("FunctionName");
     Identifier name = pop();
-    Token nameToken = deprecated_extractToken(name);
+    Token nameToken = name.token;
     VariableDeclaration variable = new VariableDeclarationImpl(
         name.name, functionNestingLevel,
         forSyntheticToken: nameToken.isSynthetic,
@@ -6102,7 +6087,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleSymbolVoid(Token token) {
     debugEvent("SymbolVoid");
-    push(new Identifier.preserveToken(token));
+    push(new Identifier(token));
   }
 
   @override

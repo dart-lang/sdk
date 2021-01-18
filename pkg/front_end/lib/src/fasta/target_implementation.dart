@@ -22,8 +22,6 @@ import 'loader.dart' show Loader;
 
 import 'messages.dart' show FormattedMessage, LocatedMessage, Message;
 
-import 'rewrite_severity.dart' show rewriteSeverity;
-
 import 'target.dart' show Target;
 
 import 'ticker.dart' show Ticker;
@@ -188,11 +186,6 @@ abstract class TargetImplementation extends Target {
         severity,
         messageContext,
         involvedFiles: involvedFiles);
-  }
-
-  Severity fixSeverity(Severity severity, Message message, Uri fileUri) {
-    severity ??= message.code.severity;
-    return rewriteSeverity(severity, message.code, fileUri);
   }
 
   String get currentSdkVersionString {
