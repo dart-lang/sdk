@@ -14,6 +14,9 @@ void main() {
     'language-server',
     defineLanguageServerTests,
     timeout: utils.longTimeout,
+    onPlatform: {
+      'windows': Skip('https://github.com/dart-lang/sdk/issues/44679'),
+    },
   );
 }
 
