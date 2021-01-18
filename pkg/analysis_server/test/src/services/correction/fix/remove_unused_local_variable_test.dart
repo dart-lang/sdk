@@ -20,6 +20,21 @@ class RemoveUnusedLocalVariableTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_UNUSED_LOCAL_VARIABLE;
 
+  Future<void> test_assignmentInAssignment() async {
+    await resolveTestCode(r'''
+main() {
+  var v = 1;
+  v = (v = 2);
+  print(0);
+}
+''');
+    await assertHasFix(r'''
+main() {
+  print(0);
+}
+''');
+  }
+
   Future<void> test_inArgumentList() async {
     await resolveTestCode(r'''
 main() {
