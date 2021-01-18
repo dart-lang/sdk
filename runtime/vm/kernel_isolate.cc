@@ -708,6 +708,7 @@ class KernelCompilationRequest : public ValueObject {
       int source_files_count,
       Dart_SourceFile source_files[],
       bool incremental_compile,
+      bool snapshot_compile,
       const char* package_config,
       const char* multiroot_filepaths,
       const char* multiroot_scheme,
@@ -754,6 +755,10 @@ class KernelCompilationRequest : public ValueObject {
     Dart_CObject dart_incremental;
     dart_incremental.type = Dart_CObject_kBool;
     dart_incremental.value.as_bool = incremental_compile;
+
+    Dart_CObject dart_snapshot;
+    dart_snapshot.type = Dart_CObject_kBool;
+    dart_snapshot.value.as_bool = snapshot_compile;
 
     // TODO(aam): Assert that isolate exists once we move CompileAndReadScript
     // compilation logic out of CreateIsolateAndSetupHelper and into
@@ -857,6 +862,7 @@ class KernelCompilationRequest : public ValueObject {
                                    &uri,
                                    &dart_platform_kernel,
                                    &dart_incremental,
+                                   &dart_snapshot,
                                    &null_safety,
                                    &isolate_id,
                                    &files,
@@ -1008,6 +1014,7 @@ Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
     int source_file_count,
     Dart_SourceFile source_files[],
     bool incremental_compile,
+    bool snapshot_compile,
     const char* package_config,
     const char* multiroot_filepaths,
     const char* multiroot_scheme) {
@@ -1033,8 +1040,8 @@ Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
   return request.SendAndWaitForResponse(
       kCompileTag, kernel_port, script_uri, platform_kernel,
       platform_kernel_size, source_file_count, source_files,
-      incremental_compile, package_config, multiroot_filepaths,
-      multiroot_scheme, experimental_flags_, NULL);
+      incremental_compile, snapshot_compile, package_config,
+      multiroot_filepaths, multiroot_scheme, experimental_flags_, NULL);
 }
 
 bool KernelIsolate::DetectNullSafety(const char* script_uri,
@@ -1052,7 +1059,7 @@ bool KernelIsolate::DetectNullSafety(const char* script_uri,
   KernelCompilationRequest request;
   Dart_KernelCompilationResult result = request.SendAndWaitForResponse(
       kDetectNullabilityTag, kernel_port, script_uri, nullptr, -1, 0, nullptr,
-      false, package_config, nullptr, nullptr, experimental_flags_,
+      false, false, package_config, nullptr, nullptr, experimental_flags_,
       original_working_directory);
   return result.null_safety;
 }
@@ -1068,8 +1075,8 @@ Dart_KernelCompilationResult KernelIsolate::ListDependencies() {
 
   KernelCompilationRequest request;
   return request.SendAndWaitForResponse(kListDependenciesTag, kernel_port, NULL,
-                                        NULL, 0, 0, NULL, false, NULL, NULL,
-                                        NULL, experimental_flags_, NULL);
+                                        NULL, 0, 0, NULL, false, false, NULL,
+                                        NULL, NULL, experimental_flags_, NULL);
 }
 
 Dart_KernelCompilationResult KernelIsolate::AcceptCompilation() {
@@ -1085,7 +1092,7 @@ Dart_KernelCompilationResult KernelIsolate::AcceptCompilation() {
 
   KernelCompilationRequest request;
   return request.SendAndWaitForResponse(kAcceptTag, kernel_port, NULL, NULL, 0,
-                                        0, NULL, true, NULL, NULL, NULL,
+                                        0, NULL, true, false, NULL, NULL, NULL,
                                         experimental_flags_, NULL);
 }
 
@@ -1131,7 +1138,7 @@ Dart_KernelCompilationResult KernelIsolate::UpdateInMemorySources(
   KernelCompilationRequest request;
   return request.SendAndWaitForResponse(
       kUpdateSourcesTag, kernel_port, NULL, NULL, 0, source_files_count,
-      source_files, true, NULL, NULL, NULL, experimental_flags_, NULL);
+      source_files, true, false, NULL, NULL, NULL, experimental_flags_, NULL);
 }
 
 void KernelIsolate::NotifyAboutIsolateShutdown(const Isolate* isolate) {

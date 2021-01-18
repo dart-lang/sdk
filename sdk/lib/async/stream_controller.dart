@@ -198,8 +198,6 @@ abstract class StreamController<T> implements StreamSink<T> {
 
   /// Sends or enqueues an error event.
   ///
-  /// If [error] is `null`, it is replaced by a [NullThrownError].
-  ///
   /// Listeners receive this event at a later microtask. This behavior can be
   /// overridden by using `sync` controllers. Note, however, that sync
   /// controllers have to satisfy the preconditions mentioned in the
