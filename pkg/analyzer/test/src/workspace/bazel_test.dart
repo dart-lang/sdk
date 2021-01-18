@@ -134,6 +134,16 @@ class BazelPackageUriResolverTest with ResourceProviderMixin {
         exists: true);
   }
 
+  void test_resolveAbsolute_file_bin_pathHasSpace() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/my/foo/test',
+    ]);
+    _assertResolve('file:///workspace/bazel-bin/my/test/a .dart',
+        '/workspace/my/test/a .dart',
+        exists: false, restore: false);
+  }
+
   void test_resolveAbsolute_file_bin_to_genfiles() {
     _addResources([
       '/workspace/WORKSPACE',

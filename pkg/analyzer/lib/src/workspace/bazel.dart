@@ -232,7 +232,8 @@ class BazelPackageUriResolver extends UriResolver {
   Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     return _sourceCache.putIfAbsent(uri, () {
       if (uri.scheme == 'file') {
-        var pathRelativeToRoot = _workspace._relativeToRoot(uri.path);
+        var path = fileUriToNormalizedPath(_context, uri);
+        var pathRelativeToRoot = _workspace._relativeToRoot(path);
         if (pathRelativeToRoot == null) return null;
         var fullFilePath = _context.join(_workspace.root, pathRelativeToRoot);
         File file = _workspace.findFile(fullFilePath);
