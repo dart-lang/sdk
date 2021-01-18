@@ -35,7 +35,7 @@ Future<void> main(List<String> args) async {
       ]);
       Expect.equals('', result.stderr);
       Expect.equals(0, result.exitCode);
-      Expect.equals('$unsoundNullSafetyMessage\n', result.stdout);
+      Expect.equals('', result.stdout);
     }
 
     {
