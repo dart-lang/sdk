@@ -1042,7 +1042,20 @@ class FieldDeserializationCluster : public DeserializationCluster {
         field->untag()->end_token_pos_ = d->ReadTokenPosition();
         field->untag()->guarded_cid_ = d->ReadCid();
         field->untag()->is_nullable_ = d->ReadCid();
-        field->untag()->static_type_exactness_state_ = d->Read<int8_t>();
+        const int8_t static_type_exactness_state = d->Read<int8_t>();
+#if defined(TARGET_ARCH_X64)
+        field->untag()->static_type_exactness_state_ =
+            static_type_exactness_state;
+#else
+        // We might produce core snapshots using X64 VM and then consume
+        // them in IA32 or ARM VM. In which case we need to simply ignore
+        // static type exactness state written into snapshot because non-X64
+        // builds don't have this feature enabled.
+        // TODO(dartbug.com/34170) Support other architectures.
+        USE(static_type_exactness_state);
+        field->untag()->static_type_exactness_state_ =
+            StaticTypeExactnessState::NotTracking().Encode();
+#endif  // defined(TARGET_ARCH_X64)
 #if !defined(DART_PRECOMPILED_RUNTIME)
         field->untag()->kernel_offset_ = d->Read<uint32_t>();
 #endif
