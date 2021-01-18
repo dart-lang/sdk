@@ -118,6 +118,9 @@ class TypeError extends Error {}
 class CastError extends Error {}
 
 /// Error thrown when attempting to throw `null`.
+///
+/// In null safe code, you are statically disallowed from throwing `null`,
+/// so this error will go away when non-null safe code stops being supported.
 class NullThrownError extends Error {
   @pragma("vm:entry-point")
   NullThrownError();
