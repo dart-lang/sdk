@@ -266,12 +266,14 @@ class DartDevelopmentServiceClient {
     // Unless otherwise specified, the request is forwarded to the VM service.
     // NOTE: This must be the last fallback registered.
     _clientPeer.registerFallback((parameters) async {
-      try {
-        return await _vmServicePeer.sendRequest(
-            parameters.method, parameters.value);
-      } on StateError {
-        await dds.shutdown();
-      }
+      // If _vmServicePeer closes in the middle of a request, this will throw
+      // a StateError that will be forwarded to the requesting client.
+      // Listeners in dds_impl.dart will handle shutting down the DDS, so
+      // we don't try and handle the error here.
+      return await _vmServicePeer.sendRequest(
+        parameters.method,
+        parameters.value,
+      );
     });
   }
 
