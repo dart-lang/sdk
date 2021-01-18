@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+// @dart = 2.9
+
 part of 'type_inferrer.dart';
 
 /// Keeps track of information about the innermost function or closure being

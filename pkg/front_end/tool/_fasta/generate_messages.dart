@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.9
+
 import 'dart:io';
 
 import 'dart:isolate';
@@ -53,10 +55,14 @@ Future<Messages> generateMessagesFiles() async {
   StringBuffer sharedMessages = new StringBuffer();
   StringBuffer cfeMessages = new StringBuffer();
 
-  const String preamble = """
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+  const String preamble1 = """
+// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+""";
+
+  const String preamble2 = """
 
 // NOTE: THIS FILE IS GENERATED. DO NOT EDIT.
 //
@@ -66,12 +72,19 @@ Future<Messages> generateMessagesFiles() async {
 // ignore_for_file: lines_longer_than_80_chars
 """;
 
-  sharedMessages.writeln(preamble);
+  sharedMessages.writeln(preamble1);
+  sharedMessages.writeln(preamble2);
   sharedMessages.writeln("""
 part of _fe_analyzer_shared.messages.codes;
 """);
 
-  cfeMessages.writeln(preamble);
+  cfeMessages.writeln(preamble1);
+  cfeMessages.writeln("""
+
+// @dart = 2.9
+
+""");
+  cfeMessages.writeln(preamble2);
   cfeMessages.writeln("""
 part of fasta.codes;
 """);

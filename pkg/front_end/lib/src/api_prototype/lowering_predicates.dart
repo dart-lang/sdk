@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:kernel/ast.dart';
 import '../fasta/kernel/late_lowering.dart';
 import '../fasta/source/source_extension_builder.dart' show extensionThisName;

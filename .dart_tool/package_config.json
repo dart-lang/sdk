@@ -1,6 +1,6 @@
 {
   "copyright": [
-    "Copyright (c) 2020, the Dart project authors. Please see the AUTHORS ",
+    "Copyright (c) 2021, the Dart project authors. Please see the AUTHORS ",
     "file for details. All rights reserved. Use of this source code is ",
     "governed by a BSD-style license that can be found in the LICENSE file."
   ],
@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2020-12-16T11:30:30.799202",
+  "generated": "2021-01-16T20:34:15.774260",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -273,7 +273,7 @@
       "name": "front_end",
       "rootUri": "../pkg/front_end",
       "packageUri": "lib/",
-      "languageVersion": "2.6"
+      "languageVersion": "2.12"
     },
     {
       "name": "front_end_testcases",
@@ -367,7 +367,7 @@
       "name": "kernel",
       "rootUri": "../pkg/kernel",
       "packageUri": "lib/",
-      "languageVersion": "2.6"
+      "languageVersion": "2.12"
     },
     {
       "name": "language_versioning_2.7_test",

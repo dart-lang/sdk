@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.9
+
 import 'dart:io' show File, Platform;
 
 import 'package:_fe_analyzer_shared/src/scanner/characters.dart'
@@ -57,9 +59,11 @@ String generateKernelFile() {
   StringBuffer sb = new StringBuffer();
 
   sb.write('''
-// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// @dart = 2.9
 
 // NOTE: THIS FILE IS GENERATED. DO NOT EDIT.
 //
@@ -91,9 +95,11 @@ String generateCfeFile() {
   StringBuffer sb = new StringBuffer();
 
   sb.write('''
-// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// @dart = 2.9
 
 // NOTE: THIS FILE IS GENERATED. DO NOT EDIT.
 //

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// Provides a default implementation of the report and format methods of
 /// [CompilerContext] that are suitable for command-line tools. The methods in
 /// this library aren't intended to be called directly, instead, one should use
