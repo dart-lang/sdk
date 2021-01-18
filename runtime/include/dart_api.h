@@ -3537,6 +3537,10 @@ DART_EXPORT Dart_Port Dart_KernelPort();
  *
  * \param platform_kernel_size The length of the platform_kernel buffer.
  *
+ * \param snapshot_compile Set to `true` when the compilation is for a snapshot.
+ * This is used by the frontend to determine if compilation related information
+ * should be printed to console (e.g., null safety mode).
+ *
  * \return Returns the result of the compilation.
  *
  * On a successful compilation the returned [Dart_KernelCompilationResult] has
@@ -3554,6 +3558,7 @@ Dart_CompileToKernel(const char* script_uri,
                      const uint8_t* platform_kernel,
                      const intptr_t platform_kernel_size,
                      bool incremental_compile,
+                     bool snapshot_compile,
                      const char* package_config);
 
 typedef struct {
