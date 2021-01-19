@@ -941,7 +941,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitIfElement(IfElement node) {
+    _flowAnalysis.ifStatement_conditionBegin();
     _checkExpressionNotNull(node.condition);
+    _flowAnalysis.ifStatement_thenBegin(node.condition, node);
     NullabilityNode trueGuard;
     NullabilityNode falseGuard;
     if (identical(_conditionInfo?.condition, node.condition)) {
@@ -962,6 +964,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
     }
     if (node.elseElement != null) {
+      _flowAnalysis.ifStatement_elseBegin();
       if (falseGuard != null) {
         _guards.add(falseGuard);
       }
@@ -974,6 +977,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         }
       }
     }
+    _flowAnalysis.ifStatement_end(node.elseElement != null);
     return null;
   }
 

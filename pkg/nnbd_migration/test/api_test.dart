@@ -4458,6 +4458,24 @@ int? g() => null;
         {path2: file2, path1: file1}, {path1: expected1, path2: expected2});
   }
 
+  Future<void> test_list_conditional_element() async {
+    var content = '''
+void bar(List<String> l) {}
+
+void test({String foo}) {
+    bar([if (foo != null) foo]);
+}
+''';
+    var expected = '''
+void bar(List<String> l) {}
+
+void test({String? foo}) {
+    bar([if (foo != null) foo]);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_literal_null_without_valid_migration() async {
     var content = '''
 void f(int/*!*/ x) {}
