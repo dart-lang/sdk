@@ -1,3 +1,9 @@
+## 2.10.5 - 2020-01-21
+
+This is a patch release that fixes a crash in the Dart VM. (issue [#44563][]).
+
+[#44563]: https://github.com/dart-lang/sdk/issues/44563
+
 ## 2.10.4 - 2020-11-12
 
 This is a patch release that fixes a crash in the Dart VM (issues [#43941][],
