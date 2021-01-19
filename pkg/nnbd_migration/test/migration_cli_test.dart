@@ -185,9 +185,9 @@ class _MigrationCliRunner extends MigrationCliRunner {
   }
 
   @override
-  bool shouldBeMigrated2(String path) =>
+  bool shouldBeMigrated(String path) =>
       cli._test.overrideShouldBeMigrated?.call(path) ??
-      super.shouldBeMigrated2(path);
+      super.shouldBeMigrated(path);
 
   /// Sorts the paths in [paths] for repeatability of migration tests.
   Set<String> _sortPaths(Set<String> paths) {
