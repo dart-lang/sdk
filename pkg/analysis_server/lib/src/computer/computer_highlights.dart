@@ -380,7 +380,9 @@ class DartUnitHighlightsComputer {
     var type = node.inDeclarationContext()
         ? HighlightRegionType.PARAMETER_DECLARATION
         : HighlightRegionType.PARAMETER_REFERENCE;
-    return _addRegion_node(node, type);
+    var modifiers =
+        node.parent is Label ? {CustomSemanticTokenModifiers.label} : null;
+    return _addRegion_node(node, type, semanticTokenModifiers: modifiers);
   }
 
   bool _addIdentifierRegion_typeParameter(SimpleIdentifier node) {
@@ -459,10 +461,21 @@ class DartUnitHighlightsComputer {
     }
   }
 
-  bool _addRegion_node(AstNode node, HighlightRegionType type) {
+  bool _addRegion_node(
+    AstNode node,
+    HighlightRegionType type, {
+    SemanticTokenTypes semanticTokenType,
+    Set<SemanticTokenModifiers> semanticTokenModifiers,
+  }) {
     var offset = node.offset;
     var length = node.length;
-    _addRegion(offset, length, type);
+    _addRegion(
+      offset,
+      length,
+      type,
+      semanticTokenType: semanticTokenType,
+      semanticTokenModifiers: semanticTokenModifiers,
+    );
     return true;
   }
 
