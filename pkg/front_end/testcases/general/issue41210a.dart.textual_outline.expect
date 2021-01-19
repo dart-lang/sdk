@@ -20,4 +20,8 @@ abstract class D implements Interface, Interface2 {}
 
 class E with A, D {}
 
+abstract class F implements Interface {}
+
+class G with A, F {}
+
 main() {}

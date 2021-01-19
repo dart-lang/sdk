@@ -19,3 +19,5 @@ abstract class B implements Interface {
 }
 
 abstract class D implements Interface, Interface2 {}
+
+abstract class F implements Interface {}

@@ -10,17 +10,6 @@ library /*isNonNullableByDefault*/;
 //   void set setter2(num n) {}
 //            ^
 //
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_setter.dart:22:7: Error: The implementation of 'setter2' in the non-abstract class 'Class' does not conform to its interface.
-// class Class extends Super implements Interface {
-//       ^^^^^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_setter.dart:7:24: Context: The parameter 'n' of the method 'Super.setter2' has type 'num', which does not match the corresponding type, 'String', in the overridden method, 'Class.setter2'.
-// Change to a supertype of 'String', or, for a covariant parameter, a subtype.
-//   void set setter2(num n) {}
-//                        ^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_setter.dart:24:12: Context: This is the overridden method ('setter2').
-//   void set setter2(String i);
-//            ^
-//
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_setter.dart:24:27: Error: The parameter 'i' of the method 'Class.setter2' has type 'String', which does not match the corresponding type, 'int', in the overridden method, 'Interface.setter2'.
 // Change to a supertype of 'int', or, for a covariant parameter, a subtype.
 //   void set setter2(String i);
@@ -35,6 +24,17 @@ library /*isNonNullableByDefault*/;
 //                        ^
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_setter.dart:8:12: Context: This is the overridden method ('setter3').
 //   void set setter3(num n) {}
+//            ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_setter.dart:22:7: Error: The implementation of 'setter2' in the non-abstract class 'Class' does not conform to its interface.
+// class Class extends Super implements Interface {
+//       ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_setter.dart:7:24: Context: The parameter 'n' of the method 'Super.setter2' has type 'num', which does not match the corresponding type, 'String', in the overridden method, 'Class.setter2'.
+// Change to a supertype of 'String', or, for a covariant parameter, a subtype.
+//   void set setter2(num n) {}
+//                        ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_setter.dart:24:12: Context: This is the overridden method ('setter2').
+//   void set setter2(String i);
 //            ^
 //
 import self as self;

@@ -791,9 +791,6 @@ class SourceFieldMember extends BuilderClassMember {
   bool get isProperty => true;
 
   @override
-  bool get isFunction => false;
-
-  @override
   bool isSameDeclaration(ClassMember other) {
     return other is SourceFieldMember && memberBuilder == other.memberBuilder;
   }
@@ -1460,9 +1457,6 @@ class _SynthesizedFieldClassMember implements ClassMember {
   bool get isProperty => isField || isGetter || isSetter;
 
   @override
-  bool get isFunction => !isProperty;
-
-  @override
   ClassBuilder get classBuilder => fieldBuilder.classBuilder;
 
   @override
@@ -1534,17 +1528,7 @@ class _SynthesizedFieldClassMember implements ClassMember {
   bool get isAbstract => _member.isAbstract;
 
   @override
-  bool get needsComputation => false;
-
-  @override
   bool get isSynthesized => false;
-
-  @override
-  bool get isInheritableConflict => false;
-
-  @override
-  ClassMember withParent(ClassBuilder classBuilder) =>
-      throw new UnsupportedError("$runtimeType.withParent");
 
   @override
   bool get hasDeclarations => false;
@@ -1554,10 +1538,7 @@ class _SynthesizedFieldClassMember implements ClassMember {
       throw new UnsupportedError("$runtimeType.declarations");
 
   @override
-  ClassMember get abstract => this;
-
-  @override
-  ClassMember get concrete => this;
+  ClassMember get interfaceMember => this;
 
   @override
   bool isSameDeclaration(ClassMember other) {

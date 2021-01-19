@@ -50,6 +50,7 @@ library /*isNonNullableByDefault*/;
 //  - Mixin.extendedAbstractMixedInAbstractMethod
 //  - Mixin.mixedInAbstractMethod
 //  - Super.extendedAbstractMethod
+//  - Super.extendedAbstractMixedInAbstractMethod
 // Try to either
 //  - provide an implementation,
 //  - inherit an implementation from a superclass or mixin,
@@ -67,11 +68,15 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_override.dart:8:8: Context: 'Super.extendedAbstractMethod' is defined here.
 //   void extendedAbstractMethod();
 //        ^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_override.dart:16:8: Context: 'Super.extendedAbstractMixedInAbstractMethod' is defined here.
+//   void extendedAbstractMixedInAbstractMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_override.dart:35:7: Error: The non-abstract class 'NamedMixin' is missing implementations for these members:
 //  - Mixin.extendedAbstractMixedInAbstractMethod
 //  - Mixin.mixedInAbstractMethod
 //  - Super.extendedAbstractMethod
+//  - Super.extendedAbstractMixedInAbstractMethod
 // Try to either
 //  - provide an implementation,
 //  - inherit an implementation from a superclass or mixin,
@@ -89,6 +94,9 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_override.dart:8:8: Context: 'Super.extendedAbstractMethod' is defined here.
 //   void extendedAbstractMethod();
 //        ^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_override.dart:16:8: Context: 'Super.extendedAbstractMixedInAbstractMethod' is defined here.
+//   void extendedAbstractMixedInAbstractMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_override.dart:33:7: Error: Applying the mixin 'Mixin' to 'Super' introduces an erroneous override of 'extendedConcreteMixedInConcreteMethod'.
 // class ClassMixin extends Super with Mixin {}
@@ -130,6 +138,16 @@ library /*isNonNullableByDefault*/;
 //   void extendedAbstractMixedInAbstractMethod();
 //        ^
 //
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_override.dart:33:7: Error: The implementation of 'extendedConcreteMixedInAbstractMethod' in the non-abstract class 'ClassMixin' does not conform to its interface.
+// class ClassMixin extends Super with Mixin {}
+//       ^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_override.dart:14:8: Context: The method 'Super.extendedConcreteMixedInAbstractMethod' has fewer positional arguments than those of overridden method 'Super with Mixin.extendedConcreteMixedInAbstractMethod'.
+//   void extendedConcreteMixedInAbstractMethod() {}
+//        ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_override.dart:33:7: Context: This is the overridden method ('extendedConcreteMixedInAbstractMethod').
+// class ClassMixin extends Super with Mixin {}
+//       ^
+//
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_override.dart:35:7: Error: The mixin application class 'NamedMixin' introduces an erroneous override of 'extendedConcreteMixedInConcreteMethod'.
 // class NamedMixin = Super with Mixin;
 //       ^^^^^^^^^^
@@ -170,60 +188,6 @@ library /*isNonNullableByDefault*/;
 //   void extendedAbstractMixedInAbstractMethod();
 //        ^
 //
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_override.dart:33:7: Error: Class 'Super with Mixin' inherits multiple members named 'extendedConcreteMixedInConcreteMethod' with incompatible signatures.
-// Try adding a declaration of 'extendedConcreteMixedInConcreteMethod' to 'Super with Mixin'.
-// class ClassMixin extends Super with Mixin {}
-//       ^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_override.dart:24:8: Context: This is one of the overridden members.
-//   void extendedConcreteMixedInConcreteMethod(int i) {}
-//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_override.dart:10:8: Context: This is one of the overridden members.
-//   void extendedConcreteMixedInConcreteMethod() {}
-//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_override.dart:33:7: Error: Class 'Super with Mixin' inherits multiple members named 'extendedAbstractMixedInConcreteMethod' with incompatible signatures.
-// Try adding a declaration of 'extendedAbstractMixedInConcreteMethod' to 'Super with Mixin'.
-// class ClassMixin extends Super with Mixin {}
-//       ^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_override.dart:26:8: Context: This is one of the overridden members.
-//   void extendedAbstractMixedInConcreteMethod(int i) {}
-//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_override.dart:12:8: Context: This is one of the overridden members.
-//   void extendedAbstractMixedInConcreteMethod();
-//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_override.dart:33:7: Error: The implementation of 'extendedConcreteMixedInAbstractMethod' in the non-abstract class 'ClassMixin' does not conform to its interface.
-// class ClassMixin extends Super with Mixin {}
-//       ^^^^^^^^^^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_override.dart:14:8: Context: The method 'Super.extendedConcreteMixedInAbstractMethod' has fewer positional arguments than those of overridden method 'Mixin.extendedConcreteMixedInAbstractMethod'.
-//   void extendedConcreteMixedInAbstractMethod() {}
-//        ^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_override.dart:28:8: Context: This is the overridden method ('extendedConcreteMixedInAbstractMethod').
-//   void extendedConcreteMixedInAbstractMethod(int i);
-//        ^
-//
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_override.dart:35:7: Error: Class 'NamedMixin' inherits multiple members named 'extendedConcreteMixedInConcreteMethod' with incompatible signatures.
-// Try adding a declaration of 'extendedConcreteMixedInConcreteMethod' to 'NamedMixin'.
-// class NamedMixin = Super with Mixin;
-//       ^^^^^^^^^^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_override.dart:24:8: Context: This is one of the overridden members.
-//   void extendedConcreteMixedInConcreteMethod(int i) {}
-//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_override.dart:10:8: Context: This is one of the overridden members.
-//   void extendedConcreteMixedInConcreteMethod() {}
-//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_override.dart:35:7: Error: Class 'NamedMixin' inherits multiple members named 'extendedAbstractMixedInConcreteMethod' with incompatible signatures.
-// Try adding a declaration of 'extendedAbstractMixedInConcreteMethod' to 'NamedMixin'.
-// class NamedMixin = Super with Mixin;
-//       ^^^^^^^^^^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_override.dart:26:8: Context: This is one of the overridden members.
-//   void extendedAbstractMixedInConcreteMethod(int i) {}
-//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_override.dart:12:8: Context: This is one of the overridden members.
-//   void extendedAbstractMixedInConcreteMethod();
-//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -255,6 +219,13 @@ abstract class _ClassMixin&Super&Mixin = self::Super with self::Mixin /*isAnonym
     ;
   mixin-super-stub method mixedInConcreteMethod(core::int i) → void
     return super.{self::Mixin::mixedInConcreteMethod}(i);
+  mixin-super-stub method extendedConcreteMixedInConcreteMethod(core::int i) → void
+    return super.{self::Mixin::extendedConcreteMixedInConcreteMethod}(i);
+  mixin-super-stub method extendedAbstractMixedInConcreteMethod(core::int i) → void
+    return super.{self::Mixin::extendedAbstractMixedInConcreteMethod}(i);
+  abstract mixin-stub method extendedConcreteMixedInAbstractMethod(core::int i) → void; -> self::Mixin::extendedConcreteMixedInAbstractMethod
+  abstract mixin-stub method mixedInAbstractMethod(core::int i) → void; -> self::Mixin::mixedInAbstractMethod
+  abstract mixin-stub method extendedAbstractMixedInAbstractMethod(core::int i) → void; -> self::Mixin::extendedAbstractMixedInAbstractMethod
 }
 class ClassMixin extends self::_ClassMixin&Super&Mixin {
   synthetic constructor •() → self::ClassMixin
@@ -267,5 +238,12 @@ class NamedMixin = self::Super with self::Mixin {
     ;
   mixin-super-stub method mixedInConcreteMethod(core::int i) → void
     return super.{self::Mixin::mixedInConcreteMethod}(i);
+  mixin-super-stub method extendedConcreteMixedInConcreteMethod(core::int i) → void
+    return super.{self::Mixin::extendedConcreteMixedInConcreteMethod}(i);
+  mixin-super-stub method extendedAbstractMixedInConcreteMethod(core::int i) → void
+    return super.{self::Mixin::extendedAbstractMixedInConcreteMethod}(i);
+  abstract mixin-stub method extendedConcreteMixedInAbstractMethod(core::int i) → void; -> self::Mixin::extendedConcreteMixedInAbstractMethod
+  abstract mixin-stub method mixedInAbstractMethod(core::int i) → void; -> self::Mixin::mixedInAbstractMethod
+  abstract mixin-stub method extendedAbstractMixedInAbstractMethod(core::int i) → void; -> self::Mixin::extendedAbstractMixedInAbstractMethod
 }
 static method main() → dynamic {}

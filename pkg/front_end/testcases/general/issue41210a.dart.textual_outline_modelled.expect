@@ -4,6 +4,8 @@ abstract class B implements Interface {
 
 abstract class D implements Interface, Interface2 {}
 
+abstract class F implements Interface {}
+
 abstract class Interface {
   String method(num i);
 }
@@ -15,6 +17,8 @@ abstract class Interface2 {
 class C with A, B {}
 
 class E with A, D {}
+
+class G with A, F {}
 
 main() {}
 mixin A implements Interface {

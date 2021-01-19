@@ -12,6 +12,26 @@ library;
 //   var interfaceMethod1;
 //       ^^^^^^^^^^^^^^^^
 //
+// pkg/front_end/testcases/general/abstract_members.dart:27:16: Error: Can't inherit members that conflict with each other.
+// abstract class B extends A {
+//                ^
+// pkg/front_end/testcases/general/abstract_members.dart:6:8: Context: This is one inherited member.
+//   void interfaceMethod1() {}
+//        ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/general/abstract_members.dart:12:7: Context: This is the other inherited member.
+//   var interfaceMethod1;
+//       ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/abstract_members.dart:33:7: Error: Can't inherit members that conflict with each other.
+// class MyClass extends B {
+//       ^^^^^^^
+// pkg/front_end/testcases/general/abstract_members.dart:6:8: Context: This is one inherited member.
+//   void interfaceMethod1() {}
+//        ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/general/abstract_members.dart:12:7: Context: This is the other inherited member.
+//   var interfaceMethod1;
+//       ^^^^^^^^^^^^^^^^
+//
 // pkg/front_end/testcases/general/abstract_members.dart:33:7: Error: The non-abstract class 'MyClass' is missing implementations for these members:
 //  - A.abstractMethod
 //  - A.property1=
@@ -49,6 +69,36 @@ library;
 // pkg/front_end/testcases/general/abstract_members.dart:16:8: Context: 'Interface3.interfaceMethod3' is defined here.
 //   void interfaceMethod3() {}
 //        ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/abstract_members.dart:42:7: Error: Can't inherit members that conflict with each other.
+// class MyMock1 extends B {
+//       ^^^^^^^
+// pkg/front_end/testcases/general/abstract_members.dart:6:8: Context: This is one inherited member.
+//   void interfaceMethod1() {}
+//        ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/general/abstract_members.dart:12:7: Context: This is the other inherited member.
+//   var interfaceMethod1;
+//       ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/abstract_members.dart:48:7: Error: Can't inherit members that conflict with each other.
+// class MyMock2 extends MyMock1 {
+//       ^^^^^^^
+// pkg/front_end/testcases/general/abstract_members.dart:6:8: Context: This is one inherited member.
+//   void interfaceMethod1() {}
+//        ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/general/abstract_members.dart:12:7: Context: This is the other inherited member.
+//   var interfaceMethod1;
+//       ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/abstract_members.dart:54:7: Error: Can't inherit members that conflict with each other.
+// class MyMock3 extends B {
+//       ^^^^^^^
+// pkg/front_end/testcases/general/abstract_members.dart:6:8: Context: This is one inherited member.
+//   void interfaceMethod1() {}
+//        ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/general/abstract_members.dart:12:7: Context: This is the other inherited member.
+//   var interfaceMethod1;
+//       ^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/abstract_members.dart:54:7: Error: The non-abstract class 'MyMock3' is missing implementations for these members:
 //  - A.abstractMethod

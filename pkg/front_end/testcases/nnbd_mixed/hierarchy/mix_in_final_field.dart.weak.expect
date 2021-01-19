@@ -50,6 +50,7 @@ library /*isNonNullableByDefault*/;
 //  - Mixin.extendedAbstractMixedInAbstractField
 //  - Mixin.mixedInAbstractField
 //  - Super.extendedAbstractField
+//  - Super.extendedAbstractMixedInAbstractField
 // Try to either
 //  - provide an implementation,
 //  - inherit an implementation from a superclass or mixin,
@@ -67,11 +68,15 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_final_field.dart:8:22: Context: 'Super.extendedAbstractField' is defined here.
 //   abstract final int extendedAbstractField;
 //                      ^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_final_field.dart:16:22: Context: 'Super.extendedAbstractMixedInAbstractField' is defined here.
+//   abstract final int extendedAbstractMixedInAbstractField;
+//                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_final_field.dart:35:7: Error: The non-abstract class 'NamedMixin' is missing implementations for these members:
 //  - Mixin.extendedAbstractMixedInAbstractField
 //  - Mixin.mixedInAbstractField
 //  - Super.extendedAbstractField
+//  - Super.extendedAbstractMixedInAbstractField
 // Try to either
 //  - provide an implementation,
 //  - inherit an implementation from a superclass or mixin,
@@ -89,6 +94,9 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_final_field.dart:8:22: Context: 'Super.extendedAbstractField' is defined here.
 //   abstract final int extendedAbstractField;
 //                      ^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_final_field.dart:16:22: Context: 'Super.extendedAbstractMixedInAbstractField' is defined here.
+//   abstract final int extendedAbstractMixedInAbstractField;
+//                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 import self as self;
 import "dart:core" as core;
@@ -125,6 +133,9 @@ abstract class _ClassMixin&Super&Mixin = self::Super with self::Mixin /*isAnonym
     return super.{self::Mixin::extendedConcreteMixedInConcreteField};
   mixin-super-stub get extendedAbstractMixedInConcreteField() → core::int
     return super.{self::Mixin::extendedAbstractMixedInConcreteField};
+  abstract mixin-stub get extendedConcreteMixedInAbstractField() → core::int; -> self::Mixin::extendedConcreteMixedInAbstractField
+  abstract mixin-stub get mixedInAbstractField() → core::int; -> self::Mixin::mixedInAbstractField
+  abstract mixin-stub get extendedAbstractMixedInAbstractField() → core::int; -> self::Mixin::extendedAbstractMixedInAbstractField
 }
 class ClassMixin extends self::_ClassMixin&Super&Mixin {
   synthetic constructor •() → self::ClassMixin
@@ -141,5 +152,8 @@ class NamedMixin = self::Super with self::Mixin {
     return super.{self::Mixin::extendedConcreteMixedInConcreteField};
   mixin-super-stub get extendedAbstractMixedInConcreteField() → core::int
     return super.{self::Mixin::extendedAbstractMixedInConcreteField};
+  abstract mixin-stub get extendedConcreteMixedInAbstractField() → core::int; -> self::Mixin::extendedConcreteMixedInAbstractField
+  abstract mixin-stub get mixedInAbstractField() → core::int; -> self::Mixin::mixedInAbstractField
+  abstract mixin-stub get extendedAbstractMixedInAbstractField() → core::int; -> self::Mixin::extendedAbstractMixedInAbstractField
 }
 static method main() → dynamic {}

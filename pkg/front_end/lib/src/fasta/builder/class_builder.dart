@@ -179,12 +179,8 @@ abstract class ClassBuilder implements DeclarationBuilder {
 
   void checkSupertypes(CoreTypes coreTypes);
 
-  void handleSeenCovariant(
-      Types types,
-      Member declaredMember,
-      Member interfaceMember,
-      bool isSetter,
-      callback(Member declaredMember, Member interfaceMember, bool isSetter));
+  void handleSeenCovariant(Types types, Member interfaceMember, bool isSetter,
+      callback(Member interfaceMember, bool isSetter));
 
   bool hasUserDefinedNoSuchMethod(
       Class klass, ClassHierarchy hierarchy, Class objectClass);
@@ -740,12 +736,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  void handleSeenCovariant(
-      Types types,
-      Member declaredMember,
-      Member interfaceMember,
-      bool isSetter,
-      callback(Member declaredMember, Member interfaceMember, bool isSetter)) {
+  void handleSeenCovariant(Types types, Member interfaceMember, bool isSetter,
+      callback(Member interfaceMember, bool isSetter)) {
     // When a parameter is covariant we have to check that we also
     // override the same member in all parents.
     for (Supertype supertype in interfaceMember.enclosingClass.supers) {
@@ -753,7 +745,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           supertype.classNode, interfaceMember.name,
           setter: isSetter);
       if (m != null) {
-        callback(declaredMember, m, isSetter);
+        callback(m, isSetter);
       }
     }
   }

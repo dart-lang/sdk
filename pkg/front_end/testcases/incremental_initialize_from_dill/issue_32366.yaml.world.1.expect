@@ -5,7 +5,6 @@ library from "org-dartlang-test:///main.dart" as main {
     synthetic constructor •() → main::AIterator*
       : super dart.core::Iterator::•()
       ;
-    abstract member-signature method moveNext() → dart.core::bool*; -> dart.core::Iterator::moveNext
     abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
     abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
     abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
@@ -16,6 +15,7 @@ library from "org-dartlang-test:///main.dart" as main {
     abstract member-signature method toString() → dart.core::String*; -> dart.core::Object::toString
     abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
     abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
+    abstract member-signature method moveNext() → dart.core::bool*; -> dart.core::Iterator::moveNext
   }
   class Foo extends dart.core::Object {
     final field dynamic a;

@@ -3,8 +3,11 @@ library /*isNonNullableByDefault*/;
 // Problems in library:
 //
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:34:7: Error: The non-abstract class 'ClassImplements' is missing implementations for these members:
-//  - Interface2.Mixin.mixedInMethod%Interface2.mixedInMethod
-//  - Interface2.Super.extendedMethod%Interface2.extendedMethod
+//  - Interface2.extendedMethod
+//  - Interface2.mixedInMethod
+//  - Mixin.mixedInMethod
+//  - Super with Mixin.mixedInMethod
+//  - Super.extendedMethod
 // Try to either
 //  - provide an implementation,
 //  - inherit an implementation from a superclass or mixin,
@@ -13,12 +16,65 @@ library /*isNonNullableByDefault*/;
 //
 // class ClassImplements implements Interface2 {}
 //       ^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:18:16: Context: 'Interface2.Mixin.mixedInMethod%Interface2.mixedInMethod' is defined here.
-// abstract class Interface2 extends Super with Mixin {
-//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^...
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:18:16: Context: 'Interface2.Super.extendedMethod%Interface2.extendedMethod' is defined here.
-// abstract class Interface2 extends Super with Mixin {
-//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^...
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:19:7: Context: 'Interface2.extendedMethod' is defined here.
+//   int extendedMethod();
+//       ^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:20:7: Context: 'Interface2.mixedInMethod' is defined here.
+//   int mixedInMethod();
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:10:7: Context: 'Mixin.mixedInMethod' is defined here.
+//   num mixedInMethod() => 0;
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:10:7: Context: 'Super with Mixin.mixedInMethod' is defined here.
+//   num mixedInMethod() => 0;
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:6:7: Context: 'Super.extendedMethod' is defined here.
+//   num extendedMethod() => 0;
+//       ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:23:7: Error: The implementation of 'mixedInMethod' in the non-abstract class 'ClassExtends' does not conform to its interface.
+// class ClassExtends extends Super with Mixin implements Interface1 {}
+//       ^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:23:7: Context: The return type of the method 'Super with Mixin.mixedInMethod' is 'num', which does not match the return type, 'int', of the overridden method, 'Interface1.mixedInMethod'.
+// Change to a subtype of 'int'.
+// class ClassExtends extends Super with Mixin implements Interface1 {}
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:15:7: Context: This is the overridden method ('mixedInMethod').
+//   int mixedInMethod();
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:23:7: Error: The implementation of 'extendedMethod' in the non-abstract class 'ClassExtends' does not conform to its interface.
+// class ClassExtends extends Super with Mixin implements Interface1 {}
+//       ^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:6:7: Context: The return type of the method 'Super.extendedMethod' is 'num', which does not match the return type, 'int', of the overridden method, 'Interface1.extendedMethod'.
+// Change to a subtype of 'int'.
+//   num extendedMethod() => 0;
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:14:7: Context: This is the overridden method ('extendedMethod').
+//   int extendedMethod();
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:25:7: Error: The implementation of 'mixedInMethod' in the non-abstract class 'ClassExtendsWithNoSuchMethod' does not conform to its interface.
+// class ClassExtendsWithNoSuchMethod extends Super
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:25:7: Context: The return type of the method 'Super with Mixin.mixedInMethod' is 'num', which does not match the return type, 'int', of the overridden method, 'Interface1.mixedInMethod'.
+// Change to a subtype of 'int'.
+// class ClassExtendsWithNoSuchMethod extends Super
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:15:7: Context: This is the overridden method ('mixedInMethod').
+//   int mixedInMethod();
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:25:7: Error: The implementation of 'extendedMethod' in the non-abstract class 'ClassExtendsWithNoSuchMethod' does not conform to its interface.
+// class ClassExtendsWithNoSuchMethod extends Super
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:6:7: Context: The return type of the method 'Super.extendedMethod' is 'num', which does not match the return type, 'int', of the overridden method, 'Interface1.extendedMethod'.
+// Change to a subtype of 'int'.
+//   num extendedMethod() => 0;
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:14:7: Context: This is the overridden method ('extendedMethod').
+//   int extendedMethod();
+//       ^
 //
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:43:7: Error: The implementation of 'extendedMethod' in the non-abstract class 'ClassDeclaresExtends' does not conform to its interface.
 // class ClassDeclaresExtends extends Super with Mixin {
@@ -61,50 +117,6 @@ library /*isNonNullableByDefault*/;
 // class ClassDeclaresExtendsWithNoSuchMethod extends Super with Mixin {
 //       ^
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:55:7: Context: This is the overridden method ('mixedInMethod').
-//   int mixedInMethod();
-//       ^
-//
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:23:7: Error: The implementation of 'extendedMethod' in the non-abstract class 'ClassExtends' does not conform to its interface.
-// class ClassExtends extends Super with Mixin implements Interface1 {}
-//       ^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:6:7: Context: The return type of the method 'Super.extendedMethod' is 'num', which does not match the return type, 'int', of the overridden method, 'Interface1.extendedMethod'.
-// Change to a subtype of 'int'.
-//   num extendedMethod() => 0;
-//       ^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:14:7: Context: This is the overridden method ('extendedMethod').
-//   int extendedMethod();
-//       ^
-//
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:25:7: Error: The implementation of 'extendedMethod' in the non-abstract class 'ClassExtendsWithNoSuchMethod' does not conform to its interface.
-// class ClassExtendsWithNoSuchMethod extends Super
-//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:6:7: Context: The return type of the method 'Super.extendedMethod' is 'num', which does not match the return type, 'int', of the overridden method, 'Interface1.extendedMethod'.
-// Change to a subtype of 'int'.
-//   num extendedMethod() => 0;
-//       ^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:14:7: Context: This is the overridden method ('extendedMethod').
-//   int extendedMethod();
-//       ^
-//
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:34:7: Error: The implementation of 'extendedMethod' in the non-abstract class 'ClassImplements' does not conform to its interface.
-// class ClassImplements implements Interface2 {}
-//       ^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:6:7: Context: The return type of the method 'Super.extendedMethod' is 'num', which does not match the return type, 'int', of the overridden method, 'Interface2.extendedMethod'.
-// Change to a subtype of 'int'.
-//   num extendedMethod() => 0;
-//       ^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:19:7: Context: This is the overridden method ('extendedMethod').
-//   int extendedMethod();
-//       ^
-//
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:34:7: Error: The implementation of 'mixedInMethod' in the non-abstract class 'ClassImplements' does not conform to its interface.
-// class ClassImplements implements Interface2 {}
-//       ^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:18:16: Context: The return type of the method 'Super with Mixin.mixedInMethod' is 'num', which does not match the return type, 'int', of the overridden method, 'Interface2.mixedInMethod'.
-// Change to a subtype of 'int'.
-// abstract class Interface2 extends Super with Mixin {
-//                ^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:20:7: Context: This is the overridden method ('mixedInMethod').
 //   int mixedInMethod();
 //       ^
 //

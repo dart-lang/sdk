@@ -25,8 +25,11 @@ library /*isNonNullableByDefault*/;
 //            ^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_setter.dart:33:7: Error: The non-abstract class 'ConcreteSub' is missing implementations for these members:
-//  - AbstractClass.Interface1.implementMultipleSetter=%Interface2.implementMultipleSetter==
 //  - AbstractClass.declareAbstractImplementMultipleSetter=
+//  - Interface1.declareAbstractImplementMultipleSetter=
+//  - Interface1.implementMultipleSetter=
+//  - Interface2.declareAbstractImplementMultipleSetter=
+//  - Interface2.implementMultipleSetter=
 // Try to either
 //  - provide an implementation,
 //  - inherit an implementation from a superclass or mixin,
@@ -35,12 +38,21 @@ library /*isNonNullableByDefault*/;
 //
 // class ConcreteSub extends AbstractClass {}
 //       ^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_setter.dart:27:16: Context: 'AbstractClass.Interface1.implementMultipleSetter=%Interface2.implementMultipleSetter==' is defined here.
-// abstract class AbstractClass implements Interface1, Interface2 {
-//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^...
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_setter.dart:30:12: Context: 'AbstractClass.declareAbstractImplementMultipleSetter=' is defined here.
 //   void set declareAbstractImplementMultipleSetter(int i);
 //            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_setter.dart:10:12: Context: 'Interface1.declareAbstractImplementMultipleSetter=' is defined here.
+//   void set declareAbstractImplementMultipleSetter(int i) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_setter.dart:6:12: Context: 'Interface1.implementMultipleSetter=' is defined here.
+//   void set implementMultipleSetter(int i) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_setter.dart:18:12: Context: 'Interface2.declareAbstractImplementMultipleSetter=' is defined here.
+//   void set declareAbstractImplementMultipleSetter(int i) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_setter.dart:14:12: Context: 'Interface2.implementMultipleSetter=' is defined here.
+//   void set implementMultipleSetter(int i) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^
 //
 import self as self;
 import "dart:core" as core;

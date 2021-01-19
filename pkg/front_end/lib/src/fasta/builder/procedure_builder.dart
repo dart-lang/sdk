@@ -639,9 +639,6 @@ class SourceProcedureMember extends BuilderClassMember {
       memberBuilder.kind == ProcedureKind.Setter;
 
   @override
-  bool get isFunction => !isProperty;
-
-  @override
   bool isSameDeclaration(ClassMember other) {
     return other is SourceProcedureMember &&
         memberBuilder == other.memberBuilder;

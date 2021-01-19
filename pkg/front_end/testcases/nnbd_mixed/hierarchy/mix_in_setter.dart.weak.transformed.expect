@@ -49,6 +49,7 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_setter.dart:33:7: Error: The non-abstract class 'ClassMixin' is missing implementations for these members:
 //  - Mixin.extendedAbstractMixedInAbstractSetter=
 //  - Mixin.mixedInAbstractSetter=
+//  - Super.extendedAbstractMixedInAbstractSetter=
 //  - Super.extendedAbstractSetter=
 // Try to either
 //  - provide an implementation,
@@ -64,6 +65,9 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_setter.dart:22:12: Context: 'Mixin.mixedInAbstractSetter=' is defined here.
 //   void set mixedInAbstractSetter(int i);
 //            ^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_setter.dart:16:12: Context: 'Super.extendedAbstractMixedInAbstractSetter=' is defined here.
+//   void set extendedAbstractMixedInAbstractSetter(int i);
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_setter.dart:8:12: Context: 'Super.extendedAbstractSetter=' is defined here.
 //   void set extendedAbstractSetter(int i);
 //            ^^^^^^^^^^^^^^^^^^^^^^
@@ -71,6 +75,7 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_setter.dart:35:7: Error: The non-abstract class 'NamedMixin' is missing implementations for these members:
 //  - Mixin.extendedAbstractMixedInAbstractSetter=
 //  - Mixin.mixedInAbstractSetter=
+//  - Super.extendedAbstractMixedInAbstractSetter=
 //  - Super.extendedAbstractSetter=
 // Try to either
 //  - provide an implementation,
@@ -86,6 +91,9 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_setter.dart:22:12: Context: 'Mixin.mixedInAbstractSetter=' is defined here.
 //   void set mixedInAbstractSetter(int i);
 //            ^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_setter.dart:16:12: Context: 'Super.extendedAbstractMixedInAbstractSetter=' is defined here.
+//   void set extendedAbstractMixedInAbstractSetter(int i);
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_setter.dart:8:12: Context: 'Super.extendedAbstractSetter=' is defined here.
 //   void set extendedAbstractSetter(int i);
 //            ^^^^^^^^^^^^^^^^^^^^^^
@@ -122,8 +130,8 @@ abstract class _ClassMixin&Super&Mixin extends self::Super implements self::Mixi
   set mixedInConcreteSetter(core::int i) → void {}
   set extendedConcreteMixedInConcreteSetter(core::int i) → void {}
   set extendedAbstractMixedInConcreteSetter(core::int i) → void {}
-  abstract set mixedInAbstractSetter(core::int i) → void;
   abstract set extendedConcreteMixedInAbstractSetter(core::int i) → void;
+  abstract set mixedInAbstractSetter(core::int i) → void;
   abstract set extendedAbstractMixedInAbstractSetter(core::int i) → void;
 }
 class ClassMixin extends self::_ClassMixin&Super&Mixin {
@@ -138,8 +146,8 @@ class NamedMixin extends self::Super implements self::Mixin /*isEliminatedMixin*
   set mixedInConcreteSetter(core::int i) → void {}
   set extendedConcreteMixedInConcreteSetter(core::int i) → void {}
   set extendedAbstractMixedInConcreteSetter(core::int i) → void {}
-  abstract set mixedInAbstractSetter(core::int i) → void;
   abstract set extendedConcreteMixedInAbstractSetter(core::int i) → void;
+  abstract set mixedInAbstractSetter(core::int i) → void;
   abstract set extendedAbstractMixedInAbstractSetter(core::int i) → void;
 }
 static method main() → dynamic {}

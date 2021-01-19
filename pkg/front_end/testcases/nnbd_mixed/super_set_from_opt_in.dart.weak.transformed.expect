@@ -9,8 +9,8 @@ abstract class Class extends sup::SuperClass<dynamic> {
   synthetic constructor •() → self::Class*
     : super sup::SuperClass::•()
     ;
-  abstract member-signature set property(core::Object* value) → void; -> sup::SuperClass::property
   abstract member-signature get property() → core::Object*; -> sup::SuperClass::property
+  abstract member-signature set property(core::Object* value) → void; -> sup::SuperClass::property
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf

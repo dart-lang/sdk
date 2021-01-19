@@ -28,25 +28,24 @@ class Class extends self::Super implements self::Interface, self::Mixin /*isElim
   synthetic constructor •() → self::Class
     : super self::Super::•()
     ;
+  abstract method extendedConcreteMixedInAbstractMethod() → void;
   method extendedConcreteMixedInConcreteMethod() → void {}
   abstract method extendedConcreteMixedInAbstractImplementedMethod(covariant core::int i) → void;
   method extendedConcreteMixedInConcreteImplementedMethod(covariant core::int i) → void {}
-  abstract method extendedConcreteMixedInAbstractMethod() → void;
 }
 class Sub extends self::Class {
   synthetic constructor •() → self::Sub
     : super self::Class::•()
     ;
   method test() → void {
-    this.{self::Mixin::extendedConcreteMixedInAbstractMethod}();
+    this.{self::Class::extendedConcreteMixedInAbstractMethod}();
     super.{self::Super::extendedConcreteMixedInAbstractMethod}();
     this.{self::Class::extendedConcreteMixedInConcreteMethod}();
     super.{self::Class::extendedConcreteMixedInConcreteMethod}();
-    this.{self::Sub::extendedConcreteMixedInAbstractImplementedMethod}(0);
-    super.{self::Super::extendedConcreteMixedInAbstractImplementedMethod}(0);
+    this.{self::Class::extendedConcreteMixedInAbstractImplementedMethod}(0);
+    super.{self::Class::extendedConcreteMixedInAbstractImplementedMethod}(0);
     this.{self::Class::extendedConcreteMixedInConcreteImplementedMethod}(0);
     super.{self::Class::extendedConcreteMixedInConcreteImplementedMethod}(0);
   }
-  abstract forwarding-stub method extendedConcreteMixedInAbstractImplementedMethod(covariant core::num i) → void;
 }
 static method main() → dynamic {}

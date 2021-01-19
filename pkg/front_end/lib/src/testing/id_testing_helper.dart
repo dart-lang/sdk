@@ -159,23 +159,21 @@ class CfeCompiledData<T> extends CompiledData<T> {
       Member member;
       int offset;
       if (id.className != null) {
-        Class cls = lookupClass(library, id.className);
-        member = lookupClassMember(cls, id.memberName, required: false);
-        if (member != null) {
-          offset = member.fileOffset;
-          if (offset == -1) {
+        Class cls = lookupClass(library, id.className, required: false);
+        if (cls != null) {
+          member = lookupClassMember(cls, id.memberName, required: false);
+          if (member != null) {
+            offset = member.fileOffset;
+            if (offset == -1) {
+              offset = cls.fileOffset;
+            }
+          } else {
             offset = cls.fileOffset;
           }
-        } else {
-          offset = cls.fileOffset;
         }
       } else {
         member = lookupLibraryMember(library, id.memberName, required: false);
-        if (member != null) {
-          offset = member.fileOffset;
-        } else {
-          offset = 0;
-        }
+        offset = member?.fileOffset ?? 0;
       }
       if (offset == -1) {
         offset = 0;
@@ -188,8 +186,8 @@ class CfeCompiledData<T> extends CompiledData<T> {
       if (extension != null) {
         return extension.fileOffset;
       }
-      Class cls = lookupClass(library, id.className);
-      return cls.fileOffset;
+      Class cls = lookupClass(library, id.className, required: false);
+      return cls?.fileOffset ?? 0;
     }
     return null;
   }

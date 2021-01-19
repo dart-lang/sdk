@@ -25,8 +25,11 @@ library /*isNonNullableByDefault*/;
 //           ^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_getter.dart:33:7: Error: The non-abstract class 'ConcreteSub' is missing implementations for these members:
-//  - AbstractClass.Interface1.implementMultipleGetter%Interface2.implementMultipleGetter
 //  - AbstractClass.declareAbstractImplementMultipleGetter
+//  - Interface1.declareAbstractImplementMultipleGetter
+//  - Interface1.implementMultipleGetter
+//  - Interface2.declareAbstractImplementMultipleGetter
+//  - Interface2.implementMultipleGetter
 // Try to either
 //  - provide an implementation,
 //  - inherit an implementation from a superclass or mixin,
@@ -35,12 +38,21 @@ library /*isNonNullableByDefault*/;
 //
 // class ConcreteSub extends AbstractClass {}
 //       ^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_getter.dart:27:16: Context: 'AbstractClass.Interface1.implementMultipleGetter%Interface2.implementMultipleGetter' is defined here.
-// abstract class AbstractClass implements Interface1, Interface2 {
-//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^...
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_getter.dart:30:11: Context: 'AbstractClass.declareAbstractImplementMultipleGetter' is defined here.
 //   int get declareAbstractImplementMultipleGetter;
 //           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_getter.dart:10:11: Context: 'Interface1.declareAbstractImplementMultipleGetter' is defined here.
+//   int get declareAbstractImplementMultipleGetter => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_getter.dart:6:11: Context: 'Interface1.implementMultipleGetter' is defined here.
+//   int get implementMultipleGetter => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_getter.dart:18:11: Context: 'Interface2.declareAbstractImplementMultipleGetter' is defined here.
+//   int get declareAbstractImplementMultipleGetter => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_getter.dart:14:11: Context: 'Interface2.implementMultipleGetter' is defined here.
+//   int get implementMultipleGetter => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^
 //
 import self as self;
 import "dart:core" as core;

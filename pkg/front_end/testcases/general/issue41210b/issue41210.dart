@@ -8,6 +8,8 @@ class C with A, B {} // error
 
 class E with A, D {} // ok
 
+class G with A, F {} // ok
+
 main() {
   print(C().method(0));
 }

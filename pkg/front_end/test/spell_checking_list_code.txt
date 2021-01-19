@@ -21,6 +21,7 @@ acon
 acov
 across
 activated
+adequate
 adi
 affecting
 afterwards
@@ -377,6 +378,7 @@ env
 eof
 eq
 equation
+erased
 erasure
 es
 establish
@@ -464,6 +466,8 @@ g
 gardening
 gen
 generation
+getable
+getables
 gets
 getter1a
 getter1b
@@ -1004,6 +1008,7 @@ rpc
 rs
 runnable
 s
+sanitizing
 saw
 say
 sb
@@ -1027,6 +1032,8 @@ serve
 server
 service
 session
+setable
+setables
 setaf
 sh
 sha1hash
@@ -1208,6 +1215,7 @@ traverse
 trees
 tricky
 trips
+trivially
 ts
 tty
 tuple
@@ -1246,7 +1254,9 @@ undoable
 unequal
 unescape
 unexact
+unexpectedly
 unfinalized
+unfold
 unfolds
 unfuture
 unfutured
@@ -1293,6 +1303,7 @@ utf8
 util
 utils
 v
+validly
 variable's
 variances
 variant

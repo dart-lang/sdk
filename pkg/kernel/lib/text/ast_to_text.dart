@@ -1157,17 +1157,25 @@ class Printer extends Visitor<Null> {
     if (features.isNotEmpty) {
       writeWord("/*${features.join(',')}*/");
     }
-    if (node.isMemberSignature) {
-      writeFunction(node.function,
-          name: getMemberName(node), terminateLine: false);
-      if (node.function.body is ReturnStatement) {
-        writeSymbol(';');
-      }
-      writeSymbol(' -> ');
-      writeMemberReferenceFromReference(node.stubTargetReference);
-      endLine();
-    } else {
-      writeFunction(node.function, name: getMemberName(node));
+    switch (node.stubKind) {
+      case ProcedureStubKind.Regular:
+      case ProcedureStubKind.AbstractForwardingStub:
+      case ProcedureStubKind.ConcreteForwardingStub:
+      case ProcedureStubKind.NoSuchMethodForwarder:
+      case ProcedureStubKind.ConcreteMixinStub:
+        writeFunction(node.function, name: getMemberName(node));
+        break;
+      case ProcedureStubKind.MemberSignature:
+      case ProcedureStubKind.AbstractMixinStub:
+        writeFunction(node.function,
+            name: getMemberName(node), terminateLine: false);
+        if (node.function.body is ReturnStatement) {
+          writeSymbol(';');
+        }
+        writeSymbol(' -> ');
+        writeMemberReferenceFromReference(node.stubTargetReference);
+        endLine();
+        break;
     }
   }
 

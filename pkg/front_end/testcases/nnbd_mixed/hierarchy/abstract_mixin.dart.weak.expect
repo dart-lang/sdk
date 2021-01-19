@@ -28,10 +28,12 @@ class Class = self::Super with self::Mixin implements self::Interface {
   synthetic constructor •() → self::Class
     : super self::Super::•()
     ;
+  abstract mixin-stub method extendedConcreteMixedInAbstractMethod() → void; -> self::Mixin::extendedConcreteMixedInAbstractMethod
   mixin-super-stub method extendedConcreteMixedInConcreteMethod() → void
     return super.{self::Mixin::extendedConcreteMixedInConcreteMethod}();
-  abstract forwarding-stub method extendedConcreteMixedInAbstractImplementedMethod(covariant core::num i) → void;
-  forwarding-stub method extendedConcreteMixedInConcreteImplementedMethod(covariant core::num i) → void
+  forwarding-stub method extendedConcreteMixedInAbstractImplementedMethod(covariant core::int i) → void
+    return super.{self::Super::extendedConcreteMixedInAbstractImplementedMethod}(i);
+  forwarding-stub method extendedConcreteMixedInConcreteImplementedMethod(covariant core::int i) → void
     return super.{self::Mixin::extendedConcreteMixedInConcreteImplementedMethod}(i);
 }
 class Sub extends self::Class {
@@ -39,15 +41,14 @@ class Sub extends self::Class {
     : super self::Class::•()
     ;
   method test() → void {
-    this.{self::Mixin::extendedConcreteMixedInAbstractMethod}();
+    this.{self::Class::extendedConcreteMixedInAbstractMethod}();
     super.{self::Super::extendedConcreteMixedInAbstractMethod}();
     this.{self::Class::extendedConcreteMixedInConcreteMethod}();
     super.{self::Class::extendedConcreteMixedInConcreteMethod}();
-    this.{self::Sub::extendedConcreteMixedInAbstractImplementedMethod}(0);
-    super.{self::Super::extendedConcreteMixedInAbstractImplementedMethod}(0);
+    this.{self::Class::extendedConcreteMixedInAbstractImplementedMethod}(0);
+    super.{self::Class::extendedConcreteMixedInAbstractImplementedMethod}(0);
     this.{self::Class::extendedConcreteMixedInConcreteImplementedMethod}(0);
     super.{self::Class::extendedConcreteMixedInConcreteImplementedMethod}(0);
   }
-  abstract forwarding-stub method extendedConcreteMixedInAbstractImplementedMethod(covariant core::num i) → void;
 }
 static method main() → dynamic {}

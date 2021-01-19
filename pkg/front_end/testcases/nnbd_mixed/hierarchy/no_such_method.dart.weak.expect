@@ -283,23 +283,24 @@ abstract class _FromMixinConcreteAbstract&Object&MixinConcrete&MixinAbstract = s
   const synthetic constructor •() → self::_FromMixinConcreteAbstract&Object&MixinConcrete&MixinAbstract
     : super self::_FromMixinConcreteAbstract&Object&MixinConcrete::•()
     ;
+  abstract mixin-stub method noSuchMethod(core::Invocation invocation) → dynamic; -> self::MixinAbstract::noSuchMethod
 }
 class FromMixinConcreteAbstract extends self::_FromMixinConcreteAbstract&Object&MixinConcrete&MixinAbstract implements self::Interface {
   synthetic constructor •() → self::FromMixinConcreteAbstract
     : super self::_FromMixinConcreteAbstract&Object&MixinConcrete&MixinAbstract::•()
     ;
   no-such-method-forwarder get getter() → core::int
-    return this.{self::MixinAbstract::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))) as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+    return this.{self::_FromMixinConcreteAbstract&Object&MixinConcrete&MixinAbstract::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))) as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
   no-such-method-forwarder get field() → core::int
-    return this.{self::MixinAbstract::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))) as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+    return this.{self::_FromMixinConcreteAbstract&Object&MixinConcrete&MixinAbstract::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))) as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
   no-such-method-forwarder method method() → void
-    return this.{self::MixinAbstract::noSuchMethod}(new core::_InvocationMirror::_withType(#C7, 0, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5)));
+    return this.{self::_FromMixinConcreteAbstract&Object&MixinConcrete&MixinAbstract::noSuchMethod}(new core::_InvocationMirror::_withType(#C7, 0, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5)));
   no-such-method-forwarder get finalField() → core::int
-    return this.{self::MixinAbstract::noSuchMethod}(new core::_InvocationMirror::_withType(#C8, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))) as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+    return this.{self::_FromMixinConcreteAbstract&Object&MixinConcrete&MixinAbstract::noSuchMethod}(new core::_InvocationMirror::_withType(#C8, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))) as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
   no-such-method-forwarder set setter(core::int value) → void
-    return this.{self::MixinAbstract::noSuchMethod}(new core::_InvocationMirror::_withType(#C9, 2, #C3, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5)));
+    return this.{self::_FromMixinConcreteAbstract&Object&MixinConcrete&MixinAbstract::noSuchMethod}(new core::_InvocationMirror::_withType(#C9, 2, #C3, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5)));
   no-such-method-forwarder set field(core::int value) → void
-    return this.{self::MixinAbstract::noSuchMethod}(new core::_InvocationMirror::_withType(#C10, 2, #C3, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5)));
+    return this.{self::_FromMixinConcreteAbstract&Object&MixinConcrete&MixinAbstract::noSuchMethod}(new core::_InvocationMirror::_withType(#C10, 2, #C3, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5)));
 }
 class InterfaceAbstract extends core::Object {
   synthetic constructor •() → self::InterfaceAbstract

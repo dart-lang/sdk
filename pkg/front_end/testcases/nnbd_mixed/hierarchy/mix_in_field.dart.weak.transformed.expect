@@ -77,6 +77,8 @@ library /*isNonNullableByDefault*/;
 //  - Mixin.mixedInAbstractField=
 //  - Super.extendedAbstractField
 //  - Super.extendedAbstractField=
+//  - Super.extendedAbstractMixedInAbstractField
+//  - Super.extendedAbstractMixedInAbstractField=
 // Try to either
 //  - provide an implementation,
 //  - inherit an implementation from a superclass or mixin,
@@ -103,6 +105,12 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_field.dart:8:16: Context: 'Super.extendedAbstractField=' is defined here.
 //   abstract int extendedAbstractField;
 //                ^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_field.dart:16:16: Context: 'Super.extendedAbstractMixedInAbstractField' is defined here.
+//   abstract int extendedAbstractMixedInAbstractField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_field.dart:16:16: Context: 'Super.extendedAbstractMixedInAbstractField=' is defined here.
+//   abstract int extendedAbstractMixedInAbstractField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_field.dart:35:7: Error: The non-abstract class 'NamedMixin' is missing implementations for these members:
 //  - Mixin.extendedAbstractMixedInAbstractField
@@ -111,6 +119,8 @@ library /*isNonNullableByDefault*/;
 //  - Mixin.mixedInAbstractField=
 //  - Super.extendedAbstractField
 //  - Super.extendedAbstractField=
+//  - Super.extendedAbstractMixedInAbstractField
+//  - Super.extendedAbstractMixedInAbstractField=
 // Try to either
 //  - provide an implementation,
 //  - inherit an implementation from a superclass or mixin,
@@ -137,6 +147,12 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_field.dart:8:16: Context: 'Super.extendedAbstractField=' is defined here.
 //   abstract int extendedAbstractField;
 //                ^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_field.dart:16:16: Context: 'Super.extendedAbstractMixedInAbstractField' is defined here.
+//   abstract int extendedAbstractMixedInAbstractField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_field.dart:16:16: Context: 'Super.extendedAbstractMixedInAbstractField=' is defined here.
+//   abstract int extendedAbstractMixedInAbstractField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 import self as self;
 import "dart:core" as core;
@@ -177,10 +193,10 @@ abstract class _ClassMixin&Super&Mixin extends self::Super implements self::Mixi
     : super self::Super::•()
     ;
   abstract get mixedInAbstractField() → core::int;
-  abstract set mixedInAbstractField(core::int #externalFieldValue) → void;
   abstract get extendedConcreteMixedInAbstractField() → core::int;
-  abstract set extendedConcreteMixedInAbstractField(core::int #externalFieldValue) → void;
   abstract get extendedAbstractMixedInAbstractField() → core::int;
+  abstract set mixedInAbstractField(core::int #externalFieldValue) → void;
+  abstract set extendedConcreteMixedInAbstractField(core::int #externalFieldValue) → void;
   abstract set extendedAbstractMixedInAbstractField(core::int #externalFieldValue) → void;
 }
 class ClassMixin extends self::_ClassMixin&Super&Mixin {
@@ -196,10 +212,10 @@ class NamedMixin extends self::Super implements self::Mixin /*isEliminatedMixin*
     : super self::Super::•()
     ;
   abstract get mixedInAbstractField() → core::int;
-  abstract set mixedInAbstractField(core::int #externalFieldValue) → void;
   abstract get extendedConcreteMixedInAbstractField() → core::int;
-  abstract set extendedConcreteMixedInAbstractField(core::int #externalFieldValue) → void;
   abstract get extendedAbstractMixedInAbstractField() → core::int;
+  abstract set mixedInAbstractField(core::int #externalFieldValue) → void;
+  abstract set extendedConcreteMixedInAbstractField(core::int #externalFieldValue) → void;
   abstract set extendedAbstractMixedInAbstractField(core::int #externalFieldValue) → void;
 }
 static method main() → dynamic {}

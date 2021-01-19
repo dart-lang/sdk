@@ -261,20 +261,10 @@ abstract class BuilderClassMember implements ClassMember {
   bool get isAbstract => memberBuilder.member.isAbstract;
 
   @override
-  bool get needsComputation => false;
-
-  @override
   bool get isSynthesized => false;
 
   @override
   bool get isInternalImplementation => false;
-
-  @override
-  bool get isInheritableConflict => false;
-
-  @override
-  ClassMember withParent(ClassBuilder classBuilder) =>
-      throw new UnsupportedError("$runtimeType.withParent");
 
   @override
   bool get hasDeclarations => false;
@@ -284,10 +274,7 @@ abstract class BuilderClassMember implements ClassMember {
       throw new UnsupportedError("$runtimeType.declarations");
 
   @override
-  ClassMember get abstract => this;
-
-  @override
-  ClassMember get concrete => this;
+  ClassMember get interfaceMember => this;
 
   @override
   String toString() => '$runtimeType($fullName,forSetter=${forSetter})';
