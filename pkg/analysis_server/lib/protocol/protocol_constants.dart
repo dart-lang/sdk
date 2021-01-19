@@ -166,6 +166,7 @@ const String DIAGNOSTIC_RESPONSE_GET_DIAGNOSTICS_CONTEXTS = 'contexts';
 const String DIAGNOSTIC_RESPONSE_GET_SERVER_PORT_PORT = 'port';
 const String EDIT_REQUEST_BULK_FIXES = 'edit.bulkFixes';
 const String EDIT_REQUEST_BULK_FIXES_INCLUDED = 'included';
+const String EDIT_REQUEST_BULK_FIXES_IN_TEST_MODE = 'inTestMode';
 const String EDIT_REQUEST_DARTFIX = 'edit.dartfix';
 const String EDIT_REQUEST_DARTFIX_EXCLUDED_FIXES = 'excludedFixes';
 const String EDIT_REQUEST_DARTFIX_INCLUDED = 'included';

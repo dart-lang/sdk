@@ -2191,6 +2191,18 @@
           <tt>FILE_NOT_ANALYZED</tt> will be generated.
         </p>
       </field>
+      <field name="inTestMode" optional="true">
+        <ref>bool</ref>
+        <p>
+          A flag indicating whether the bulk fixes are being run in test mode.
+          The only difference is that in test mode the fix processor will look
+          for a configuration file that can modify the content of the data file
+          used to compute the fixes when data-driven fixes are being considered.
+        </p>
+        <p>
+          If this field is omitted the flag defaults to <tt>false</tt>.
+        </p>
+      </field>
     </params>
     <result>
       <field name="edits">

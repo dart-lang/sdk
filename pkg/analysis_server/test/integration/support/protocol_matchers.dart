@@ -2241,9 +2241,11 @@ final Matcher isDiagnosticGetServerPortResult = LazyMatcher(() =>
 ///
 /// {
 ///   "included": List<FilePath>
+///   "inTestMode": optional bool
 /// }
 final Matcher isEditBulkFixesParams = LazyMatcher(() => MatchesJsonObject(
-    'edit.bulkFixes params', {'included': isListOf(isFilePath)}));
+    'edit.bulkFixes params', {'included': isListOf(isFilePath)},
+    optionalFields: {'inTestMode': isBool}));
 
 /// edit.bulkFixes result
 ///
