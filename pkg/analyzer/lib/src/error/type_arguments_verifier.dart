@@ -203,46 +203,88 @@ class TypeArgumentsVerifier {
       return;
     }
 
-    // iterate over each bounded type parameter and corresponding argument
-    NodeList<TypeAnnotation> argumentNodes = typeName.typeArguments?.arguments;
-    int loopThroughIndex =
-        math.min(typeArguments.length, typeParameters.length);
-    bool shouldSubstitute = typeArguments.isNotEmpty;
-    for (int i = 0; i < loopThroughIndex; i++) {
-      DartType argType = typeArguments[i];
-      TypeAnnotation argumentNode =
-          argumentNodes != null && i < argumentNodes.length
-              ? argumentNodes[i]
-              : typeName;
-      if (argType is FunctionType && argType.typeFormals.isNotEmpty) {
+    if (typeParameters.isEmpty) {
+      return;
+    }
+
+    // Check for regular-bounded.
+    List<_TypeArgumentIssue> issues;
+    var substitution = Substitution.fromPairs(typeParameters, typeArguments);
+    for (var i = 0; i < typeArguments.length; i++) {
+      var typeParameter = typeParameters[i];
+      var typeArgument = typeArguments[i];
+
+      if (typeArgument is FunctionType && typeArgument.typeFormals.isNotEmpty) {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
-          argumentNode,
+          _typeArgumentErrorNode(typeName, i),
         );
         continue;
       }
-      DartType boundType = typeParameters[i].bound;
-      if (argType != null && boundType != null) {
-        boundType = _libraryElement.toLegacyTypeIfOptOut(boundType);
-        if (shouldSubstitute) {
-          boundType = Substitution.fromPairs(typeParameters, typeArguments)
-              .substituteType(boundType);
-        }
 
-        if (!_typeSystem.isSubtypeOf2(argType, boundType)) {
-          if (_shouldAllowSuperBoundedTypes(typeName)) {
-            var replacedType = _typeSystem.replaceTopAndBottom(argType);
-            if (!identical(replacedType, argType) &&
-                _typeSystem.isSubtypeOf2(replacedType, boundType)) {
-              // Bound is satisfied under super-bounded rules, so we're ok.
-              continue;
-            }
-          }
-          _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
-              argumentNode,
-              [argType, boundType]);
-        }
+      var bound = typeParameter.bound;
+      if (bound == null) {
+        continue;
+      }
+
+      bound = _libraryElement.toLegacyTypeIfOptOut(bound);
+      bound = substitution.substituteType(bound);
+
+      if (!_typeSystem.isSubtypeOf2(typeArgument, bound)) {
+        issues ??= <_TypeArgumentIssue>[];
+        issues.add(
+          _TypeArgumentIssue(i, typeParameter, typeArgument),
+        );
+      }
+    }
+
+    // If regular-bounded, we are done.
+    if (issues == null) {
+      return;
+    }
+
+    // If not allowed to be super-bounded, report issues.
+    if (!_shouldAllowSuperBoundedTypes(typeName)) {
+      for (var issue in issues) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+          _typeArgumentErrorNode(typeName, issue.index),
+          [issue.argument, issue.parameter],
+        );
+      }
+      return;
+    }
+
+    // Prepare type arguments for checking for super-bounded.
+    type = _typeSystem.replaceTopAndBottom(type);
+    if (type.aliasElement != null) {
+      typeArguments = type.aliasArguments;
+    } else if (type is InterfaceType) {
+      typeArguments = type.typeArguments;
+    } else {
+      return;
+    }
+
+    // Check for super-bounded.
+    substitution = Substitution.fromPairs(typeParameters, typeArguments);
+    for (var i = 0; i < typeArguments.length; i++) {
+      var typeParameter = typeParameters[i];
+      var typeArgument = typeArguments[i];
+
+      var bound = typeParameter.bound;
+      if (bound == null) {
+        continue;
+      }
+
+      bound = _libraryElement.toLegacyTypeIfOptOut(bound);
+      bound = substitution.substituteType(bound);
+
+      if (!_typeSystem.isSubtypeOf2(typeArgument, bound)) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+          _typeArgumentErrorNode(typeName, i),
+          [typeArgument, bound],
+        );
       }
     }
   }
@@ -395,5 +437,33 @@ class TypeArgumentsVerifier {
     if (parent is ConstructorName) return false;
     if (parent is ImplementsClause) return false;
     return true;
+  }
+
+  /// Return the type arguments at [index] from [node], or the [node] itself.
+  static TypeAnnotation _typeArgumentErrorNode(TypeName node, int index) {
+    var typeArguments = node.typeArguments?.arguments;
+    if (typeArguments != null && index < typeArguments.length) {
+      return typeArguments[index];
+    }
+    return node;
+  }
+}
+
+class _TypeArgumentIssue {
+  /// The index for type argument within the passed type arguments.
+  final int index;
+
+  /// The type parameter with the bound that was violated.
+  final TypeParameterElement parameter;
+
+  /// The type argument that violated the bound.
+  final DartType argument;
+
+  _TypeArgumentIssue(this.index, this.parameter, this.argument);
+
+  @override
+  String toString() {
+    return 'TypeArgumentIssue(index=$index, parameter=$parameter, '
+        'argument=$argument)';
   }
 }
