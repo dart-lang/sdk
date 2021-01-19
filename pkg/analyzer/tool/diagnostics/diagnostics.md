@@ -894,6 +894,53 @@ void f(C c) {
 }
 {% endprettify %}
 
+### assignment_to_function
+
+_Functions can't be assigned a value._
+
+#### Description
+
+The analyzer produces this diagnostic when the name of a function appears
+on the left-hand side of an assignment expression.
+
+#### Example
+
+The following code produces this diagnostic because the assignment to the
+function `f` is invalid:
+
+{% prettify dart tag=pre+code %}
+void f() {}
+
+void g() {
+  [!f!] = () {};
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the right-hand side should be assigned to something else, such as a
+local variable, then change the left-hand side:
+
+{% prettify dart tag=pre+code %}
+void f() {}
+
+void g() {
+  var x = () {};
+  print(x);
+}
+{% endprettify %}
+
+If the intent is to change the implementation of the function, then define
+a function-valued variable instead of a function:
+
+{% prettify dart tag=pre+code %}
+void Function() f = () {};
+
+void g() {
+  f = () {};
+}
+{% endprettify %}
+
 ### assignment_to_method
 
 _Methods can't be assigned a value._
@@ -921,6 +968,100 @@ class C {
 #### Common fixes
 
 Rewrite the code so that there isn't an assignment to a method.
+
+### assignment_to_type
+
+_Types can't be assigned a value._
+
+#### Description
+
+The analyzer produces this diagnostic when the name of a type name appears
+on the left-hand side of an assignment expression.
+
+#### Example
+
+The following code produces this diagnostic because the assignment to the
+class `C` is invalid:
+
+{% prettify dart tag=pre+code %}
+class C {}
+
+void f() {
+  [!C!] = null;
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the right-hand side should be assigned to something else, such as a
+local variable, then change the left-hand side:
+
+{% prettify dart tag=pre+code %}
+void f() {}
+
+void g() {
+  var c = null;
+  print(c);
+}
+{% endprettify %}
+
+### async_for_in_wrong_context
+
+_The async for-in loop can only be used in an async function._
+
+#### Description
+
+The analyzer produces this diagnostic when an async for-in loop is found in
+a function or method whose body isn't marked as being either `async` or
+`async*`.
+
+#### Example
+
+The following code produces this diagnostic because the body of `f` isn't
+marked as being either `async` or `async*`, but `f` contains an async
+for-in loop:
+
+{% prettify dart tag=pre+code %}
+void f(list) {
+  await for (var e [!in!] list) {
+    print(e);
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the function should return a `Future`, then mark the body with `async`:
+
+{% prettify dart tag=pre+code %}
+Future<void> f(list) async {
+  await for (var e in list) {
+    print(e);
+  }
+}
+{% endprettify %}
+
+If the function should return a `Stream` of values, then mark the body with
+`async*`:
+
+{% prettify dart tag=pre+code %}
+Stream<void> f(list) async* {
+  await for (var e in list) {
+    print(e);
+  }
+}
+{% endprettify %}
+
+If the function should be synchronous, then remove the `await` before the
+loop:
+
+{% prettify dart tag=pre+code %}
+void f(list) {
+  for (var e in list) {
+    print(e);
+  }
+}
+{% endprettify %}
 
 ### await_in_late_local_variable_initializer
 
@@ -1038,6 +1179,61 @@ class C<T> {
 }
 {% endprettify %}
 
+### break_label_on_switch_member
+
+_A break label resolves to the 'case' or 'default' statement._
+
+#### Description
+
+The analyzer produces this diagnostic when a break in a case clause inside
+a switch statement has a label that is associated with another case clause.
+
+#### Example
+
+The following code produces this diagnostic because the label `l` is
+associated with the case clause for `0`:
+
+{% prettify dart tag=pre+code %}
+void f(int i) {
+  switch (i) {
+    l: case 0:
+      break;
+    case 1:
+      break [!l!];
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the intent is to transfer control to the statement after the switch,
+then remove the label from the break statement:
+
+{% prettify dart tag=pre+code %}
+void f(int i) {
+  switch (i) {
+    case 0:
+      break;
+    case 1:
+      break;
+  }
+}
+{% endprettify %}
+
+If the intent is to transfer control to a different case block, then use
+`continue` rather than `break`:
+
+{% prettify dart tag=pre+code %}
+void f(int i) {
+  switch (i) {
+    l: case 0:
+      break;
+    case 1:
+      continue l;
+  }
+}
+{% endprettify %}
+
 ### built_in_identifier_as_extension_name
 
 _The built-in identifier '{0}' can't be used as an extension name._
@@ -1125,6 +1321,105 @@ void f(int x) {
       break;
     default:
       x += 1;
+  }
+}
+{% endprettify %}
+
+### case_expression_type_implements_equals
+
+_The switch case expression type '{0}' can't override the '==' operator._
+
+#### Description
+
+The analyzer produces this diagnostic when the type of the expression
+following the keyword `case` has an implementation of the `==` operator
+other than the one in `Object`.
+
+#### Example
+
+The following code produces this diagnostic because the expression
+following the keyword `case` (`C(0)`) has the type `C`, and the class `C`
+overrides the `==` operator:
+
+{% prettify dart tag=pre+code %}
+class C {
+  final int value;
+
+  const C(this.value);
+
+  bool operator ==(Object other) {
+    return false;
+  }
+}
+
+void f(C c) {
+  switch (c) {
+    case [!C(0)!]:
+      break;
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If there isn't a strong reason not to do so, then rewrite the code to use
+an if-else structure:
+
+{% prettify dart tag=pre+code %}
+class C {
+  final int value;
+
+  const C(this.value);
+
+  bool operator ==(Object other) {
+    return false;
+  }
+}
+
+void f(C c) {
+  if (c == C(0)) {
+    // ...
+  }
+}
+{% endprettify %}
+
+If you can't rewrite the switch statement and the implementation of `==`
+isn't necessary, then remove it:
+
+{% prettify dart tag=pre+code %}
+class C {
+  final int value;
+
+  const C(this.value);
+}
+
+void f(C c) {
+  switch (c) {
+    case C(0):
+      break;
+  }
+}
+{% endprettify %}
+
+If you can't rewrite the switch statement and you can't remove the
+definition of `==`, then find some other value that can be used to control
+the switch:
+
+{% prettify dart tag=pre+code %}
+class C {
+  final int value;
+
+  const C(this.value);
+
+  bool operator ==(Object other) {
+    return false;
+  }
+}
+
+void f(C c) {
+  switch (c.value) {
+    case 0:
+      break;
   }
 }
 {% endprettify %}
@@ -2023,6 +2318,60 @@ void f(void Function([int p]) g) {
 }
 {% endprettify %}
 
+### default_value_in_redirecting_factory_constructor
+
+_Default values aren't allowed in factory constructors that redirect to another
+constructor._
+
+#### Description
+
+The analyzer produces this diagnostic when a factory constructor that
+redirects to another constructor specifies a default value for an optional
+parameter.
+
+#### Example
+
+The following code produces this diagnostic because the factory constructor
+in `A` has a default value for the optional parameter `x`:
+
+{% prettify dart tag=pre+code %}
+class A {
+  factory A([int [!x!] = 0]) = B;
+}
+
+class B implements A {
+  B([int x = 1]) {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the default value from the factory constructor:
+
+{% prettify dart tag=pre+code %}
+class A {
+  factory A([int x]) = B;
+}
+
+class B implements A {
+  B([int x = 1]) {}
+}
+{% endprettify %}
+
+Note that this fix might change the value used when the optional parameter
+is omitted. If that happens, and if that change is a problem, then consider
+making the optional parameter a required parameter in the factory method:
+
+{% prettify dart tag=pre+code %}
+class A {
+ factory A(int x) = B;
+}
+
+class B implements A {
+  B([int x = 1]) {}
+}
+{% endprettify %}
+
 ### definitely_unassigned_late_local_variable
 
 _The late local variable '{0}' is definitely unassigned at this point._
@@ -2217,6 +2566,46 @@ int x = 0;
 int y = 1;
 {% endprettify %}
 
+### duplicate_hidden_name
+
+_Duplicate hidden name._
+
+#### Description
+
+The analyzer produces this diagnostic when a name occurs multiple times in
+a `hide` clause. Repeating the name is unnecessary.
+
+#### Example
+
+The following code produces this diagnostic because the name `min` is
+hidden more than once:
+
+{% prettify dart tag=pre+code %}
+import 'dart:math' hide min, [!min!];
+
+var x = pi;
+{% endprettify %}
+
+#### Common fixes
+
+If the name was mistyped in one or more places, then correct the mistyped
+names:
+
+{% prettify dart tag=pre+code %}
+import 'dart:math' hide max, min;
+
+var x = pi;
+{% endprettify %}
+
+If the name wasn't mistyped, then remove the unnecessary name from the
+list:
+
+{% prettify dart tag=pre+code %}
+import 'dart:math' hide min;
+
+var x = pi;
+{% endprettify %}
+
 ### duplicate_ignore
 
 _The diagnostic '{0}' doesn't need to be ignored here because it's already being
@@ -2381,6 +2770,46 @@ Remove all except the first of the duplicated part directives:
 library lib;
 
 part 'part.dart';
+{% endprettify %}
+
+### duplicate_shown_name
+
+_Duplicate shown name._
+
+#### Description
+
+The analyzer produces this diagnostic when a name occurs multiple times in
+a `show` clause. Repeating the name is unnecessary.
+
+#### Example
+
+The following code produces this diagnostic because the name `min` is shown
+more than once:
+
+{% prettify dart tag=pre+code %}
+import 'dart:math' show min, [!min!];
+
+var x = min(2, min(0, 1));
+{% endprettify %}
+
+#### Common fixes
+
+If the name was mistyped in one or more places, then correct the mistyped
+names:
+
+{% prettify dart tag=pre+code %}
+import 'dart:math' show max, min;
+
+var x = max(2, min(0, 1));
+{% endprettify %}
+
+If the name wasn't mistyped, then remove the unnecessary name from the
+list:
+
+{% prettify dart tag=pre+code %}
+import 'dart:math' show min;
+
+var x = min(2, min(0, 1));
 {% endprettify %}
 
 ### equal_elements_in_const_set
@@ -3209,6 +3638,41 @@ void g() {
 }
 {% endprettify %}
 
+### field_initialized_by_multiple_initializers
+
+_The field '{0}' can't be initialized twice in the same constructor._
+
+#### Description
+
+The analyzer produces this diagnostic when the initializer list of a
+constructor initializes a field more than once. There is no value to allow
+both initializers because only the last value is preserved.
+
+#### Example
+
+The following code produces this diagnostic because the field `f` is being
+initialized twice:
+
+{% prettify dart tag=pre+code %}
+class C {
+  int f;
+
+  C() : f = 0, [!f!] = 1;
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove one of the initializers:
+
+{% prettify dart tag=pre+code %}
+class C {
+  int f;
+
+  C() : f = 0;
+}
+{% endprettify %}
+
 ### field_initialized_in_initializer_and_declaration
 
 _Fields can't be initialized in the constructor if they are final and were
@@ -3253,6 +3717,98 @@ remove the initializer in the field's declaration:
 class C {
   final int f;
   C() : f = 1;
+}
+{% endprettify %}
+
+### field_initialized_in_parameter_and_initializer
+
+_Fields can't be initialized in both the parameter list and the initializers._
+
+#### Description
+
+The analyzer produces this diagnostic when a field is initialized in both
+the parameter list and in the initializer list of a constructor.
+
+#### Example
+
+The following code produces this diagnostic because the field `f` is
+initialized both by a field formal parameter and in the initializer list:
+
+{% prettify dart tag=pre+code %}
+class C {
+  int f;
+
+  C(this.f) : [!f!] = 0;
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the field should be initialized by the parameter, then remove the
+initialization in the initializer list:
+
+{% prettify dart tag=pre+code %}
+class C {
+  int f;
+
+  C(this.f);
+}
+{% endprettify %}
+
+If the field should be initialized in the initializer list and the
+parameter isn't needed, then remove the parameter:
+
+{% prettify dart tag=pre+code %}
+class C {
+  int f;
+
+  C() : f = 0;
+}
+{% endprettify %}
+
+If the field should be initialized in the initializer list and the
+parameter is needed, then make it a normal parameter:
+
+{% prettify dart tag=pre+code %}
+class C {
+  int f;
+
+  C(int g) : f = g * 2;
+}
+{% endprettify %}
+
+### field_initializer_factory_constructor
+
+_Initializing formal parameters can't be used in factory constructors._
+
+#### Description
+
+The analyzer produces this diagnostic when a factory constructor has a
+field formal parameter. Factory constructors can't assign values to fields
+because no instance is created; hence, there is no field to assign.
+
+#### Example
+
+The following code produces this diagnostic because the factory constructor
+uses a field formal parameter:
+
+{% prettify dart tag=pre+code %}
+class C {
+  int? f;
+
+  factory C([!this.f!]) => throw 0;
+}
+{% endprettify %}
+
+#### Common fixes
+
+Replace the field formal parameter with a normal parameter:
+
+{% prettify dart tag=pre+code %}
+class C {
+  int? f;
+
+  factory C(int f) => throw 0;
 }
 {% endprettify %}
 
@@ -3303,6 +3859,182 @@ class C {
   int s;
 
   C() : s = 0;
+}
+{% endprettify %}
+
+### field_initializer_redirecting_constructor
+
+_The redirecting constructor can't have a field initializer._
+
+#### Description
+
+The analyzer produces this diagnostic when a redirecting constructor
+initializes a field in the object. This isn't allowed because the instance
+that has the field hasn't been created at the point at which it should be
+initialized.
+
+#### Example
+
+The following code produces this diagnostic because the constructor
+`C.zero`, which redirects to the constructor `C`, has a field formal
+parameter that initializes the field `f`:
+
+{% prettify dart tag=pre+code %}
+class C {
+  int f;
+
+  C(this.f);
+
+  C.zero([!this.f!]) : this(f);
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the constructor
+`C.zero`, which redirects to the constructor `C`, has an initializer that
+initializes the field `f`:
+
+{% prettify dart tag=pre+code %}
+class C {
+  int f;
+
+  C(this.f);
+
+  C.zero() : [!f = 0!], this(1);
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the initialization is done by a field formal parameter, then use a
+normal parameter:
+
+{% prettify dart tag=pre+code %}
+class C {
+  int f;
+
+  C(this.f);
+
+  C.zero(int f) : this(f);
+}
+{% endprettify %}
+
+If the initialization is done in an initializer, then remove the
+initializer:
+
+{% prettify dart tag=pre+code %}
+class C {
+  int f;
+
+  C(this.f);
+
+  C.zero() : this(0);
+}
+{% endprettify %}
+
+### field_initializing_formal_not_assignable
+
+_The parameter type '{0}' is incompatible with the field type '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when the type of a field formal
+parameter isn't assignable to the type of the field being initialized.
+
+#### Example
+
+The following code produces this diagnostic because the field formal
+parameter has the type `String`, but the type of the field is `int`. The
+parameter must have a type that is a subtype of the field's type.
+
+{% prettify dart tag=pre+code %}
+class C {
+  int f;
+
+  C([!String this.f!]);
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the type of the field is incorrect, then change the type of the field to
+match the type of the parameter, and consider removing the type from the
+parameter:
+
+{% prettify dart tag=pre+code %}
+class C {
+  String f;
+
+  C(this.f);
+}
+{% endprettify %}
+
+If the type of the parameter is incorrect, then remove the type of the
+parameter:
+
+{% prettify dart tag=pre+code %}
+class C {
+  int f;
+
+  C(this.f);
+}
+{% endprettify %}
+
+If the types of both the field and the parameter are correct, then use an
+initializer rather than a field formal parameter to convert the parameter
+value into a value of the correct type:
+
+{% prettify dart tag=pre+code %}
+class C {
+  int f;
+
+  C(String s) : f = int.parse(s);
+}
+{% endprettify %}
+
+### final_initialized_in_declaration_and_constructor
+
+_'{0}' is final and was given a value when it was declared, so it can't be set
+to a new value._
+
+#### Description
+
+The analyzer produces this diagnostic when a final field is initialized
+twice: once where it's declared and once by a constructor's parameter.
+
+#### Example
+
+The following code produces this diagnostic because the field `f` is
+initialized twice:
+
+{% prettify dart tag=pre+code %}
+class C {
+  final int f = 0;
+
+  C(this.[!f!]);
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the field should have the same value for all instances, then remove the
+initialization in the parameter list:
+
+{% prettify dart tag=pre+code %}
+class C {
+  final int f = 0;
+
+  C();
+}
+{% endprettify %}
+
+If the field can have different values in different instances, then remove
+the initialization in the declaration:
+
+{% prettify dart tag=pre+code %}
+class C {
+  final int f;
+
+  C(this.f);
 }
 {% endprettify %}
 
@@ -4397,6 +5129,34 @@ class C {
 }
 {% endprettify %}
 
+### invalid_inline_function_type
+
+_Inline function types can't be used for parameters in a generic function type._
+
+#### Description
+
+The analyzer produces this diagnostic when a generic function type has a
+function-valued parameter that is written using the older inline function
+type syntax.
+
+#### Example
+
+The following code produces this diagnostic because the parameter `f`, in
+the generic function type used to define `F`, uses the inline function
+type syntax:
+
+{% prettify dart tag=pre+code %}
+typedef F = int Function(int f[!(!]String s));
+{% endprettify %}
+
+#### Common fixes
+
+Use the generic function syntax for the parameter's type:
+
+{% prettify dart tag=pre+code %}
+typedef F = int Function(int Function(String));
+{% endprettify %}
+
 ### invalid_literal_annotation
 
 _Only const constructors can have the `@literal` annotation._
@@ -5017,6 +5777,58 @@ void f() {
 }
 {% endprettify %}
 
+### label_undefined
+
+_Can't reference an undefined label '{0}'._
+
+#### Description
+
+The analyzer produces this diagnostic when it finds a reference to a label
+that isn't defined in the scope of the `break` or `continue` statement that
+is referencing it.
+
+#### Example
+
+The following code produces this diagnostic because the label `loop` isn't
+defined anywhere:
+
+{% prettify dart tag=pre+code %}
+void f() {
+  for (int i = 0; i < 10; i++) {
+    for (int j = 0; j < 10; j++) {
+      break [!loop!];
+    }
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the label should be on the innermost enclosing `do`, `for`, `switch`, or
+`while` statement, then remove the label:
+
+{% prettify dart tag=pre+code %}
+void f() {
+  for (int i = 0; i < 10; i++) {
+    for (int j = 0; j < 10; j++) {
+      break;
+    }
+  }
+}
+{% endprettify %}
+
+If the label should be on some other statement, then add the label:
+
+{% prettify dart tag=pre+code %}
+void f() {
+  loop: for (int i = 0; i < 10; i++) {
+    for (int j = 0; j < 10; j++) {
+      break loop;
+    }
+  }
+}
+{% endprettify %}
+
 ### late_final_field_with_const_constructor
 
 _Can't have a late final field in a class with a const constructor._
@@ -5153,6 +5965,113 @@ list to allow all of the different types of objects it needs to contain:
 
 {% prettify dart tag=pre+code %}
 List<num> x = [1, 2.5, 3];
+{% endprettify %}
+
+### main_first_positional_parameter_type
+
+_The type of the first positional parameter of the 'main' function must be a
+supertype of 'List<String>'._
+
+#### Description
+
+The analyzer produces this diagnostic when the first positional parameter
+of a function named `main` isn't a supertype of `List<String>`.
+
+#### Example
+
+The following code produces this diagnostic because `List<int>` isn't a
+supertype of `List<String>`:
+
+{% prettify dart tag=pre+code %}
+void main([!List<int>!] args) {}
+{% endprettify %}
+
+#### Common fixes
+
+If the function is an entry point, then change the type of the first
+positional parameter to be a supertype of `List<String>`:
+
+{% prettify dart tag=pre+code %}
+void main(List<String> args) {}
+{% endprettify %}
+
+If the function isn't an entry point, then change the name of the function:
+
+{% prettify dart tag=pre+code %}
+void f(List<int> args) {}
+{% endprettify %}
+
+### main_has_required_named_parameters
+
+_The function 'main' can't have any required named parameters._
+
+#### Description
+
+The analyzer produces this diagnostic when a function named `main` has one
+or more required named parameters.
+
+#### Example
+
+The following code produces this diagnostic because the function named
+`main` has a required named parameter (`x`):
+
+{% prettify dart tag=pre+code %}
+void [!main!]({required int x}) {}
+{% endprettify %}
+
+#### Common fixes
+
+If the function is an entry point, then remove the `required` keyword:
+
+{% prettify dart tag=pre+code %}
+void main({int? x}) {}
+{% endprettify %}
+
+If the function isn't an entry point, then change the name of the function:
+
+{% prettify dart tag=pre+code %}
+void f({required int x}) {}
+{% endprettify %}
+
+### main_has_too_many_required_positional_parameters
+
+_The function 'main' can't have more than two required positional parameters._
+
+#### Description
+
+The analyzer produces this diagnostic when a function named `main` has more
+than two required positional parameters.
+
+#### Example
+
+The following code produces this diagnostic because the function `main` has
+three required positional parameters:
+
+{% prettify dart tag=pre+code %}
+void [!main!](List<String> args, int x, int y) {}
+{% endprettify %}
+
+#### Common fixes
+
+If the function is an entry point and the extra parameters aren't used,
+then remove them:
+
+{% prettify dart tag=pre+code %}
+void main(List<String> args, int x) {}
+{% endprettify %}
+
+If the function is an entry point, but the extra parameters used are for
+when the function isn't being used as an entry point, then make the extra
+parameters optional:
+
+{% prettify dart tag=pre+code %}
+void main(List<String> args, int x, [int y = 0]) {}
+{% endprettify %}
+
+If the function isn't an entry point, then change the name of the function:
+
+{% prettify dart tag=pre+code %}
+void f(List<String> args, int x, int y) {}
 {% endprettify %}
 
 ### main_is_not_function
@@ -6303,6 +7222,57 @@ class C {
 void f() => const C();
 {% endprettify %}
 
+### non_sync_factory
+
+_Factory bodies can't use 'async', 'async*', or 'sync*'._
+
+#### Description
+
+The analyzer produces this diagnostic when the body of a factory
+constructor is marked with `async`, `async*`, or `sync*`. All constructors,
+including factory constructors, are required to return an instance of the
+class in which they're declared, not a `Future`, `Stream`, or `Iterator`.
+
+#### Example
+
+The following code produces this diagnostic because the body of the factory
+constructor is marked with `async`:
+
+{% prettify dart tag=pre+code %}
+class C {
+  factory C() [!async!] {
+    return C._();
+  }
+  C._();
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the member must be declared as a factory constructor, then remove the
+keyword appearing before the body:
+
+{% prettify dart tag=pre+code %}
+class C {
+  factory C() {
+    return C._();
+  }
+  C._();
+}
+{% endprettify %}
+
+If the member must return something other than an instance of the enclosing
+class, then make the member a static method:
+
+{% prettify dart tag=pre+code %}
+class C {
+  static Future<C> m() async {
+    return C._();
+  }
+  C._();
+}
+{% endprettify %}
+
 ### non_type_as_type_argument
 
 _The name '{0}' isn't a type so it can't be used as a type argument._
@@ -7003,6 +7973,51 @@ mixin M {}
 class C with M {}
 {% endprettify %}
 
+### on_repeated
+
+_The type '{0}' can be included in the superclass constraints only once._
+
+#### Description
+
+The analyzer produces this diagnostic when the same type is listed in the
+superclass constraints of a mixin multiple times.
+
+#### Example
+
+The following code produces this diagnostic because `A` is included twice
+in the superclass constraints for `M`:
+
+{% prettify dart tag=pre+code %}
+mixin M on A, [!A!] {
+}
+
+class A {}
+class B {}
+{% endprettify %}
+
+#### Common fixes
+
+If a different type should be included in the superclass constraints, then
+replace one of the occurrences with the other type:
+
+{% prettify dart tag=pre+code %}
+mixin M on A, B {
+}
+
+class A {}
+class B {}
+{% endprettify %}
+
+If no other type was intended, then remove the repeated type name:
+
+{% prettify dart tag=pre+code %}
+mixin M on A {
+}
+
+class A {}
+class B {}
+{% endprettify %}
+
 ### override_on_non_overriding_member
 
 _The field doesn't override an inherited getter or setter._
@@ -7205,6 +8220,237 @@ void f() {
 
 If the name is wrong, then correct the name.
 
+### private_optional_parameter
+
+_Named parameters can't start with an underscore._
+
+#### Description
+
+The analyzer produces this diagnostic when the name of a named parameter
+starts with an underscore.
+
+#### Example
+
+The following code produces this diagnostic because the named parameter
+`_x` starts with an underscore:
+
+{% prettify dart tag=pre+code %}
+class C {
+  void m({int [!_x!] = 0}) {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+Rename the parameter so that it doesn't start with an underscore:
+
+{% prettify dart tag=pre+code %}
+class C {
+  void m({int x = 0}) {}
+}
+{% endprettify %}
+
+### recursive_compile_time_constant
+
+_The compile-time constant expression depends on itself._
+
+#### Description
+
+The analyzer produces this diagnostic when the value of a compile-time
+constant is defined in terms of itself, either directly or indirectly,
+creating an infinite loop.
+
+#### Example
+
+The following code produces this diagnostic twice because both of the
+constants are defined in terms of the other:
+
+{% prettify dart tag=pre+code %}
+const [!secondsPerHour!] = minutesPerHour * 60;
+const [!minutesPerHour!] = secondsPerHour / 60;
+{% endprettify %}
+
+#### Common fixes
+
+Break the cycle by finding an alternative way of defining at least one of
+the constants:
+
+{% prettify dart tag=pre+code %}
+const secondsPerHour = minutesPerHour * 60;
+const minutesPerHour = 60;
+{% endprettify %}
+
+### recursive_constructor_redirect
+
+_Constructors can't redirect to themselves either directly or indirectly._
+
+#### Description
+
+The analyzer produces this diagnostic when a constructor redirects to
+itself, either directly or indirectly, creating an infinite loop.
+
+#### Example
+
+The following code produces this diagnostic because the generative
+constructors `C.a` and `C.b` each redirect to the other:
+
+{% prettify dart tag=pre+code %}
+class C {
+  C.a() : [!this.b()!];
+  C.b() : [!this.a()!];
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the factory
+constructors `A` and `B` each redirect to the other:
+
+{% prettify dart tag=pre+code %}
+abstract class A {
+  factory A() = [!B!];
+}
+class B implements A {
+  factory B() = [!A!];
+  B.named();
+}
+{% endprettify %}
+
+#### Common fixes
+
+In the case of generative constructors, break the cycle by finding defining
+at least one of the constructors to not redirect to another constructor:
+
+{% prettify dart tag=pre+code %}
+class C {
+  C.a() : this.b();
+  C.b();
+}
+{% endprettify %}
+
+In the case of factory constructors, break the cycle by defining at least
+one of the factory constructors to do one of the following:
+
+- Redirect to a generative constructor:
+
+{% prettify dart tag=pre+code %}
+abstract class A {
+  factory A() = B;
+}
+class B implements A {
+  factory B() = B.named;
+  B.named();
+}
+{% endprettify %}
+
+- Not redirect to another constructor:
+
+{% prettify dart tag=pre+code %}
+abstract class A {
+  factory A() = B;
+}
+class B implements A {
+  factory B() {
+    return B.named();
+  }
+
+  B.named();
+}
+{% endprettify %}
+
+- Not be a factory constructor:
+
+{% prettify dart tag=pre+code %}
+abstract class A {
+  factory A() = B;
+}
+class B implements A {
+  B();
+  B.named();
+}
+{% endprettify %}
+
+### redirect_generative_to_missing_constructor
+
+_The constructor '{0}' couldn't be found in '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when a generative constructor
+redirects to a constructor that isn't defined.
+
+#### Example
+
+The following code produces this diagnostic because the constructor `C.a`
+redirects to the constructor `C.b`, but `C.b` isn't defined:
+
+{% prettify dart tag=pre+code %}
+class C {
+  C.a() : [!this.b()!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the missing constructor must be called, then define it:
+
+{% prettify dart tag=pre+code %}
+class C {
+  C.a() : this.b();
+  C.b();
+}
+{% endprettify %}
+
+If the missing constructor doesn't need to be called, then remove the
+redirect:
+
+{% prettify dart tag=pre+code %}
+class C {
+  C.a();
+}
+{% endprettify %}
+
+### redirect_generative_to_non_generative_constructor
+
+_Generative constructors can't redirect to a factory constructor._
+
+#### Description
+
+The analyzer produces this diagnostic when a generative constructor
+redirects to a factory constructor.
+
+#### Example
+
+The following code produces this diagnostic because the generative
+constructor `C.a` redirects to the factory constructor `C.b`:
+
+{% prettify dart tag=pre+code %}
+class C {
+  C.a() : [!this.b()!];
+  factory C.b() => C.a();
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the generative constructor doesn't need to redirect to another
+constructor, then remove the redirect.
+
+{% prettify dart tag=pre+code %}
+class C {
+  C.a();
+  factory C.b() => C.a();
+}
+{% endprettify %}
+
+If the generative constructor must redirect to another constructor, then
+make the other constructor be a generative (non-factory) constructor:
+
+{% prettify dart tag=pre+code %}
+class C {
+  C.a() : this.b();
+  C.b();
+}
+{% endprettify %}
+
 ### redirect_to_invalid_function_type
 
 _The redirected constructor '{0}' has incompatible parameters with '{1}'._
@@ -7373,6 +8619,50 @@ class C {
 }
 {% endprettify %}
 
+### redirect_to_non_const_constructor
+
+_A constant redirecting constructor can't redirect to a non-constant
+constructor._
+
+#### Description
+
+The analyzer produces this diagnostic when a constructor marked as `const`
+redirects to a constructor that isn't marked as `const`.
+
+#### Example
+
+The following code produces this diagnostic because the constructor `C.a`
+is marked as `const` but redirects to the constructor `C.b`, which isn't:
+
+{% prettify dart tag=pre+code %}
+class C {
+  const C.a() : this.[!b!]();
+  C.b();
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the non-constant constructor can be marked as `const`, then mark it as
+`const`:
+
+{% prettify dart tag=pre+code %}
+class C {
+  const C.a() : this.b();
+  const C.b();
+}
+{% endprettify %}
+
+If the non-constant constructor can't be marked as `const`, then either
+remove the redirect or remove `const` from the redirecting constructor:
+
+{% prettify dart tag=pre+code %}
+class C {
+  C.a() : this.b();
+  C.b();
+}
+{% endprettify %}
+
 ### referenced_before_declaration
 
 _Local variable '{0}' can't be referenced before it is declared._
@@ -7420,6 +8710,52 @@ void f(int i) {
   print(i);
   int x = 5;
   print(x);
+}
+{% endprettify %}
+
+### rethrow_outside_catch
+
+_A rethrow must be inside of a catch clause._
+
+#### Description
+
+The analyzer produces this diagnostic when a `rethrow` statement is outside
+a `catch` clause. The `rethrow` statement is used to throw a caught
+exception again, but there's no caught exception outside of a `catch`
+clause.
+
+#### Example
+
+The following code produces this diagnostic because the`rethrow` statement
+is outside of a `catch` clause:
+
+{% prettify dart tag=pre+code %}
+void f() {
+  [!rethrow!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+If you're trying to rethrow an exception, then wrap the `rethrow` statement
+in a `catch` clause:
+
+{% prettify dart tag=pre+code %}
+void f() {
+  try {
+    // ...
+  } catch (exception) {
+    rethrow;
+  }
+}
+{% endprettify %}
+
+If you're trying to throw a new exception, then replace the `rethrow`
+statement with a `throw` expression:
+
+{% prettify dart tag=pre+code %}
+void f() {
+  throw UnsupportedError('Not yet implemented');
 }
 {% endprettify %}
 
@@ -8088,6 +9424,49 @@ const a = [1, 2];
 var b = [...a];
 {% endprettify %}
 
+### shared_deferred_prefix
+
+_The prefix of a deferred import can't be used in other import directives._
+
+#### Description
+
+The analyzer produces this diagnostic when a prefix in a deferred import is
+also used as a prefix in other imports (whether deferred or not). The
+prefix in a deferred import can't be shared with other imports because the
+prefix is used to load the imported library.
+
+#### Example
+
+The following code produces this diagnostic because the prefix `x` is used
+as the prefix for a deferred import and is also used for one other import:
+
+{% prettify dart tag=pre+code %}
+import 'dart:math' [!deferred!] as x;
+import 'dart:convert' as x;
+
+var y = x.json.encode(x.min(0, 1));
+{% endprettify %}
+
+#### Common fixes
+
+If you can use a different name for the deferred import, then do so:
+
+{% prettify dart tag=pre+code %}
+import 'dart:math' deferred as math;
+import 'dart:convert' as x;
+
+var y = x.json.encode(math.min(0, 1));
+{% endprettify %}
+
+If you can use a different name for the other imports, then do so:
+
+{% prettify dart tag=pre+code %}
+import 'dart:math' deferred as x;
+import 'dart:convert' as convert;
+
+var y = convert.json.encode(x.min(0, 1));
+{% endprettify %}
+
 ### static_access_to_instance_member
 
 _Instance member '{0}' can't be accessed using static access._
@@ -8260,6 +9639,40 @@ void f() {
 
 Rewrite the code to not use `super`.
 
+### super_in_redirecting_constructor
+
+_The redirecting constructor can't have a 'super' initializer._
+
+#### Description
+
+The analyzer produces this diagnostic when a constructor that redirects to
+another constructor also attempts to invoke a constructor from the
+superclass. The superclass constructor will be invoked when the constructor
+that the redirecting constructor is redirected to is invoked.
+
+#### Example
+
+The following code produces this diagnostic because the constructor `C.a`
+both redirects to `C.b` and invokes a constructor from the superclass:
+
+{% prettify dart tag=pre+code %}
+class C {
+  C.a() : this.b(), [!super()!];
+  C.b();
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the invocation of the `super` constructor:
+
+{% prettify dart tag=pre+code %}
+class C {
+  C.a() : this.b();
+  C.b();
+}
+{% endprettify %}
+
 ### switch_expression_not_assignable
 
 _Type '{0}' of the switch expression isn't assignable to the type '{1}' of case
@@ -8371,6 +9784,48 @@ class A<E extends num> {}
 
 var a = A<int>();
 {% endprettify %}
+
+### type_parameter_referenced_by_static
+
+_Static members can't reference type parameters of the class._
+
+#### Description
+
+The analyzer produces this diagnostic when a static member references a
+type parameter that is declared for the class. Type parameters only have
+meaning for instances of the class.
+
+#### Example
+
+The following code produces this diagnostic because the static method
+`hasType` has a reference to the type parameter `T`:
+
+{% prettify dart tag=pre+code %}
+class C<T> {
+  static bool hasType(Object o) => o is [!T!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the member can be an instance member, then remove the keyword `static`:
+
+{% prettify dart tag=pre+code %}
+class C<T> {
+  bool hasType(Object o) => o is T;
+}
+{% endprettify %}
+
+If the member must be a static member, then make the member be generic:
+
+{% prettify dart tag=pre+code %}
+class C<T> {
+  static bool hasType<S>(Object o) => o is S;
+}
+{% endprettify %}
+
+Note, however, that there isn’t a relationship between `T` and `S`, so this
+second option changes the semantics from what was likely to be intended.
 
 ### type_test_with_undefined_name
 
@@ -9513,6 +10968,84 @@ void f(int x) {
 }
 {% endprettify %}
 
+### unnecessary_type_check
+
+_Unnecessary type check; the result is always 'false'._
+
+_Unnecessary type check; the result is always 'true'._
+
+#### Description
+
+The analyzer produces this diagnostic when the value of a type check (using
+either `is` or `is!`) is known at compile time.
+
+#### Example
+
+The following code produces this diagnostic because the test `a is Object?`
+is always `true`:
+
+{% prettify dart tag=pre+code %}
+bool f<T>(T a) => [!a is Object?!];
+{% endprettify %}
+
+#### Common fixes
+
+If the type check doesn't check what you intended to check, then change the
+test:
+
+{% prettify dart tag=pre+code %}
+bool f<T>(T a) => a is Object;
+{% endprettify %}
+
+If the type check does check what you intended to check, then replace the
+type check with its known value or completely remove it:
+
+{% prettify dart tag=pre+code %}
+bool f<T>(T a) => true;
+{% endprettify %}
+
+### unqualified_reference_to_non_local_static_member
+
+_Static members from supertypes must be qualified by the name of the defining
+type._
+
+#### Description
+
+The analyzer produces this diagnostic when code in one class references a
+static member in a superclass without prefixing the member's name with the
+name of the superclass. Static members can only be referenced without a
+prefix in the class in which they're declared.
+
+#### Example
+
+The following code produces this diagnostic because the static field `x` is
+referenced in the getter `g` without prefixing it with the name of the
+defining class:
+
+{% prettify dart tag=pre+code %}
+class A {
+  static int x = 3;
+}
+
+class B extends A {
+  int get g => [!x!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+Prefix the name of the static member with the name of the declaring class:
+
+{% prettify dart tag=pre+code %}
+class A {
+  static int x = 3;
+}
+
+class B extends A {
+  int get g => A.x;
+}
+{% endprettify %}
+
 ### unqualified_reference_to_static_member_of_extended_type
 
 _Static members from the extended type or one of its superclasses must be
@@ -9917,6 +11450,39 @@ file.
 If the file isn't a generated file, then check the spelling of the URI or
 create the file.
 
+### uri_with_interpolation
+
+_URIs can't use string interpolation._
+
+#### Description
+
+The analyzer produces this diagnostic when the string literal in an
+`import`, `export`, or `part` directive contains an interpolation. The
+resolution of the URIs in directives must happen before the declarations
+are compiled, so expressions can’t be  evaluated  while determining the
+values of the URIs.
+
+#### Example
+
+The following code produces this diagnostic because the string in the
+`import` directive contains an interpolation:
+
+{% prettify dart tag=pre+code %}
+import [!'dart:$m'!];
+
+const m = 'math';
+{% endprettify %}
+
+#### Common fixes
+
+Remove the interpolation from the URI:
+
+{% prettify dart tag=pre+code %}
+import 'dart:math';
+
+var zero = min(0, 0);
+{% endprettify %}
+
 ### use_of_void_result
 
 _This expression has a type of 'void' so its value can't be used._
@@ -10149,6 +11715,49 @@ class C {
 }
 
 int f(C c) => c.m(2);
+{% endprettify %}
+
+### yield_of_invalid_type
+
+_The type '{0}' implied by the 'yield' expression must be assignable to '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when the type of object produced by a
+`yield` expression doesn't match the type of objects that are to be
+returned from the `Iterable` or `Stream` types that are returned from a
+generator (a function or method marked with either `sync*` or `async*`).
+
+#### Example
+
+The following code produces this diagnostic because the getter `zero` is
+declared to return an `Iterable` that returns integers, but the `yield` is
+returning a string from the iterable:
+
+{% prettify dart tag=pre+code %}
+Iterable<int> get zero sync* {
+  yield [!'0'!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the return type of the function is correct, then fix the expression
+following the keyword `yield` to return the correct type:
+
+{% prettify dart tag=pre+code %}
+Iterable<int> get zero sync* {
+  yield 0;
+}
+{% endprettify %}
+
+If the expression following the `yield` is correct, then change the return
+type of the function to allow it:
+
+{% prettify dart tag=pre+code %}
+Iterable<String> get zero sync* {
+  yield '0';
+}
 {% endprettify %}
 
 ### undefined_super_method

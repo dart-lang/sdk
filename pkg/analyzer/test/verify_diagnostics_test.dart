@@ -46,9 +46,15 @@ class DocumentationValidator {
     'CompileTimeErrorCode.INVALID_URI',
     // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE',
+    // Produces two diagnostics when it should only produce one.
+    'CompileTimeErrorCode.NON_SYNC_FACTORY',
     // Need a way to make auxiliary files that (a) are not included in the
     // generated docs or (b) can be made persistent for fixes.
     'CompileTimeErrorCode.PART_OF_NON_PART',
+    // Produces two diagnostic out of necessity.
+    'CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT',
+    // Produces two diagnostic out of necessity.
+    'CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT',
     // Produces the diagnostic HintCode.UNUSED_LOCAL_VARIABLE when it shouldn't.
     'CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT',
     // The code has been replaced but is not yet removed.
