@@ -64,10 +64,10 @@ self.makeT1B = function(){return new T1B()};
 self.makeT1C = function(){return new T1C()};
 self.makeT1D = function(){return new T1D()};
 
-self.nativeConstructor(T1A);
-self.nativeConstructor(T1B);
-self.nativeConstructor(T1C);
-self.nativeConstructor(T1D);
+self.nativeConstructor(T1A, undefined, true);
+self.nativeConstructor(T1B, undefined, true);
+self.nativeConstructor(T1C, undefined, true);
+self.nativeConstructor(T1D, undefined, true);
 
 var getTagCount = 0;
 self.getTagCallCount = function() { return getTagCount; };
