@@ -1,3 +1,9 @@
+# 0.1.128
+
+* new lint: `avoid_dynamic_calls`
+* (internal): updated `avoid_type_to_string` to use `addArgumentList` registry API 
+* documentation improvements
+
 # 0.1.127
 
 * fixed crash in `prefer_collection_literals` when there is no static parameter
