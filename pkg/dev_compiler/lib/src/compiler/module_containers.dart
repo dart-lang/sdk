@@ -198,8 +198,7 @@ class ModuleItemObjectContainer<K> extends ModuleItemContainer<K> {
     containersToProperties.forEach((containerId, properties) {
       var containerObject = js_ast.ObjectInitializer(properties,
           multiline: properties.length > 1);
-      statements.add(js.statement(
-          'var # = Object.create(#)', [containerId, containerObject]));
+      statements.add(js.statement('var # = #', [containerId, containerObject]));
       aggregatedContainers.add(js.call('#', [containerId]));
     });
     // Create an aggregated access point over all containers for eval.
