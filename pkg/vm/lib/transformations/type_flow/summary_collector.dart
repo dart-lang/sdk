@@ -596,8 +596,9 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   Summary createSummary(Member member,
       {fieldSummaryType: FieldSummaryType.kInitializer}) {
-    debugPrint(
-        "===== ${member}${fieldSummaryType == FieldSummaryType.kFieldGuard ? " (guard)" : ""} =====");
+    final String summaryName =
+        "${member}${fieldSummaryType == FieldSummaryType.kFieldGuard ? " (guard)" : ""}";
+    debugPrint("===== $summaryName =====");
     assert(!member.isAbstract);
     assert(!(member is Procedure && member.isRedirectingFactoryConstructor));
 
@@ -620,14 +621,14 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       if (hasReceiver) {
         final int numArgs =
             fieldSummaryType == FieldSummaryType.kInitializer ? 1 : 2;
-        _summary = new Summary(
+        _summary = new Summary(summaryName,
             parameterCount: numArgs, positionalParameterCount: numArgs);
         // TODO(alexmarkov): subclass cone
         _receiver = _declareParameter("this",
             _environment.coreTypes.legacyRawType(member.enclosingClass), null,
             isReceiver: true);
       } else {
-        _summary = new Summary();
+        _summary = new Summary(summaryName);
       }
 
       _translator = new RuntimeTypeTranslatorImpl(
@@ -647,7 +648,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       final numTypeParameters = numTypeParams(member);
       final firstParamIndex = (hasReceiver ? 1 : 0) + numTypeParameters;
 
-      _summary = new Summary(
+      _summary = new Summary(summaryName,
           parameterCount: firstParamIndex +
               function.positionalParameters.length +
               function.namedParameters.length,

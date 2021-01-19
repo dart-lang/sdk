@@ -23,6 +23,7 @@ abstract class CallHandler {
 abstract class Statement extends TypeExpr {
   /// Index of this statement in the [Summary].
   int index = -1;
+  Summary summary;
 
   @override
   Type getComputedType(List<Type> types) {
@@ -258,9 +259,11 @@ class Call extends Statement {
     if (selector is! DirectSelector) {
       _observeReceiverType(argTypes[0], typeHierarchy);
     }
+    final Stopwatch timer = kPrintTimings ? (new Stopwatch()..start()) : null;
     Type result = callHandler.applyCall(
         this, selector, new Args<Type>(argTypes, names: args.names),
         isResultUsed: isResultUsed);
+    summary.calleeTime += kPrintTimings ? timer.elapsedMicroseconds : 0;
     if (isResultUsed) {
       if (staticResultType != null) {
         result = result.intersection(staticResultType, typeHierarchy);
@@ -586,6 +589,7 @@ class TypeCheck extends Statement {
 /// Summary is a linear sequence of statements representing a type flow in
 /// one member, function or initializer.
 class Summary {
+  final String name;
   int parameterCount;
   int positionalParameterCount;
   int requiredParameterCount;
@@ -594,7 +598,10 @@ class Summary {
   TypeExpr result = null;
   Type resultType = EmptyType();
 
-  Summary(
+  // Analysis time of callees. Populated only if kPrintTimings.
+  int calleeTime;
+
+  Summary(this.name,
       {this.parameterCount: 0,
       this.positionalParameterCount: 0,
       this.requiredParameterCount: 0});
@@ -603,6 +610,7 @@ class Summary {
 
   Statement add(Statement op) {
     op.index = _statements.length;
+    op.summary = this;
     _statements.add(op);
     return op;
   }
@@ -621,6 +629,9 @@ class Summary {
   /// Apply this summary to the given arguments and return the resulting type.
   Type apply(Args<Type> arguments, TypeHierarchy typeHierarchy,
       CallHandler callHandler) {
+    final Stopwatch timer = kPrintTimings ? (new Stopwatch()..start()) : null;
+    final int oldCalleeTime = calleeTime;
+    calleeTime = 0;
     final args = arguments.values;
     final positionalArgCount = arguments.positionalCount;
     final namedArgCount = arguments.namedCount;
@@ -699,6 +710,16 @@ class Summary {
 
     Type computedType = result.getComputedType(types);
     resultType = resultType.union(computedType, typeHierarchy);
+
+    if (kPrintTimings) {
+      final dirtyTime = timer.elapsedMicroseconds;
+      final pureTime = dirtyTime < calleeTime ? 0 : (dirtyTime - calleeTime);
+      Statistics.numSummaryApplications.add(name);
+      Statistics.dirtySummaryAnalysisTime.add(name, dirtyTime);
+      Statistics.pureSummaryAnalysisTime.add(name, pureTime);
+    }
+    calleeTime = oldCalleeTime;
+
     return computedType;
   }
 
