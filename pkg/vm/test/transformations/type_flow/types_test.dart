@@ -25,7 +25,7 @@ class TestTypeHierarchy extends TypeHierarchy {
   }
 
   @override
-  Type specializeTypeCone(TFClass base) {
+  Type specializeTypeCone(TFClass base, {bool allowWideCone = false}) {
     Type result = specializations[base.classNode];
     expect(result, isNotNull,
         reason: "specializeTypeCone($base) is not defined");
