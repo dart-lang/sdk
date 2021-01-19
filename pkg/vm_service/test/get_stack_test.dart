@@ -95,22 +95,16 @@ final tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
     final result = await service.getStack(isolateRef.id);
 
-    expect(result.frames, hasLength(10));
     expect(result.asyncCausalFrames, hasLength(26));
     expect(result.awaiterFrames, hasLength(2));
 
-    expectFrames(result.frames, [
+    expectFrames(result.frames.sublist(0, 2), [
       [equals('Regular'), endsWith(' func10')],
       [equals('Regular'), endsWith(' _RootZone.runUnary')],
-      [equals('Regular'), anything], // Internal mech. ..
-      [equals('Regular'), anything],
-      [equals('Regular'), anything],
-      [equals('Regular'), anything],
-      [equals('Regular'), anything],
-      [equals('Regular'), anything],
-      [equals('Regular'), anything],
-      [equals('Regular'), endsWith(' _RawReceivePortImpl._handleMessage')],
     ]);
+    // Some internal machinery happening in the middle.
+    expectFrame(result.frames.last, equals('Regular'),
+        endsWith(' _RawReceivePortImpl._handleMessage'));
 
     expectFrames(result.asyncCausalFrames, [
       [equals('Regular'), endsWith(' func10')],

@@ -607,32 +607,58 @@ class _Future<T> implements Future<T> {
     });
   }
 
+  // Single linked stack of futures and listeners to propagate to.
+  static _FuturePropagation? _nextPropagation;
+  static bool _isPropagating = false;
+
   /// Propagates the value/error of [source] to its [listeners], executing the
   /// listeners' callbacks.
+  ///
+  /// If we are already propagating a value, then we enqueue the future and
+  /// listeners and deal with them afterwards,
+  /// rather than risk unbounded recursion.
   static void _propagateToListeners(
       _Future source, _FutureListener? listeners) {
-    while (true) {
-      assert(source._isComplete);
-      bool hasError = source._hasError;
-      if (listeners == null) {
-        if (hasError) {
-          AsyncError asyncError = source._error;
-          source._zone
-              .handleUncaughtError(asyncError.error, asyncError.stackTrace);
-        }
-        return;
+    assert(source._isComplete);
+    if (listeners == null) {
+      if (source._hasError) {
+        AsyncError asyncError = source._error;
+        source._zone
+            .handleUncaughtError(asyncError.error, asyncError.stackTrace);
       }
-      // Usually futures only have one listener. If they have several, we
-      // call handle them separately in recursive calls, continuing
-      // here only when there is only one listener left.
-      _FutureListener listener = listeners;
-      _FutureListener? nextListener = listener._nextListener;
-      while (nextListener != null) {
-        listener._nextListener = null;
-        _propagateToListeners(source, listener);
-        listener = nextListener;
-        nextListener = listener._nextListener;
+      return;
+    }
+    if (_isPropagating) {
+      // Add to stack for later access.
+      _nextPropagation =
+          _FuturePropagation(source, listeners, _nextPropagation);
+      return;
+    }
+    assert(_nextPropagation == null);
+    _isPropagating = true;
+    var moreListeners = listeners._nextListener;
+    if (moreListeners != null) {
+      _nextPropagation = _FuturePropagation(source, moreListeners);
+    }
+
+    var listener = listeners;
+
+    bool nextPropagation() {
+      var next = _nextPropagation;
+      if (next == null) return false;
+      source = next.source;
+      listener = next.listeners;
+      var moreListeners = listener._nextListener;
+      if (moreListeners != null) {
+        next.listeners = moreListeners;
+      } else {
+        _nextPropagation = next.next;
       }
+      return true;
+    }
+
+    do {
+      var hasError = source._hasError;
 
       final dynamic sourceResult = source._resultOrListeners;
       // Do the actual propagation.
@@ -655,7 +681,7 @@ class _Future<T> implements Future<T> {
           AsyncError asyncError = source._error;
           source._zone
               .handleUncaughtError(asyncError.error, asyncError.stackTrace);
-          return;
+          continue;
         }
 
         _Zone? oldZone;
@@ -754,9 +780,10 @@ class _Future<T> implements Future<T> {
           _Future result = listener.result;
           if (chainSource is _Future) {
             if (chainSource._isComplete) {
-              listeners = result._removeListeners();
+              var listeners = result._removeListeners();
               result._cloneResult(chainSource);
-              source = chainSource;
+              var source = chainSource;
+              _propagateToListeners(source, listeners);
               continue;
             } else {
               _chainCoreFuture(chainSource, result);
@@ -764,20 +791,21 @@ class _Future<T> implements Future<T> {
           } else {
             result._chainForeignFuture(chainSource);
           }
-          return;
+          continue;
         }
       }
       _Future result = listener.result;
-      listeners = result._removeListeners();
+      var newListeners = result._removeListeners();
       if (!listenerHasError) {
         result._setValue(listenerValueOrError);
       } else {
         AsyncError asyncError = listenerValueOrError;
         result._setErrorObject(asyncError);
       }
-      // Prepare for next round.
-      source = result;
-    }
+      _propagateToListeners(result, newListeners);
+    } while (nextPropagation());
+    _isPropagating = false;
+    assert(_nextPropagation == null);
   }
 
   @pragma("vm:recognized", "other")
@@ -846,4 +874,13 @@ Function _registerErrorHandler(Function errorHandler, Zone zone) {
       "onError",
       "Error handler must accept one Object or one Object and a StackTrace"
           " as arguments, and return a valid result");
+}
+
+// A single-linked list of completed futures and their listeners
+// which still need propagating to.
+class _FuturePropagation {
+  final _FuturePropagation? next;
+  final _Future source;
+  _FutureListener listeners;
+  _FuturePropagation(this.source, this.listeners, [this.next]);
 }
