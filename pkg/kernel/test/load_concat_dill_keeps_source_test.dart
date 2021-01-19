@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Test that 79cc54e51924cd5a6bdc2bd1771f2d0ee7af8899 works as intended.
 
 import 'dart:convert';

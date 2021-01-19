@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'binary/utils.dart';

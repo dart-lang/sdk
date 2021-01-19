@@ -23,9 +23,7 @@ library runtime.tools.kernel_service;
 import 'dart:async' show Future, ZoneSpecification, runZoned;
 import 'dart:collection' show UnmodifiableMapBase;
 import 'dart:convert' show utf8;
-import 'dart:io'
-    show Directory, File, Platform, stderr, stdout
-    hide FileSystemEntity;
+import 'dart:io' show Directory, File, Platform, stderr hide FileSystemEntity;
 import 'dart:isolate';
 import 'dart:typed_data' show Uint8List;
 
@@ -94,8 +92,7 @@ CompilerOptions setupCompilerOptions(
     int nullSafety,
     List<String> experimentalFlags,
     Uri packagesUri,
-    List<String> errors,
-    String invocationModes) {
+    List<String> errors) {
   final expFlags = <String>[];
   if (experimentalFlags != null) {
     for (String flag in experimentalFlags) {
@@ -119,33 +116,27 @@ CompilerOptions setupCompilerOptions(
         ? NnbdMode.Strong
         : NnbdMode.Weak
     ..onDiagnostic = (DiagnosticMessage message) {
-      bool printToStdErr = false;
-      bool printToStdOut = false;
+      bool printMessage;
       switch (message.severity) {
         case Severity.error:
         case Severity.internalProblem:
           // TODO(sigmund): support emitting code with errors as long as they
           // are handled in the generated code.
-          printToStdErr = false; // errors are printed by VM
+          printMessage = false; // errors are printed by VM
           errors.addAll(message.plainTextFormatted);
           break;
         case Severity.warning:
-          printToStdErr = !suppressWarnings;
-          break;
         case Severity.info:
-          printToStdOut = !suppressWarnings;
+          printMessage = !suppressWarnings;
           break;
         case Severity.context:
         case Severity.ignored:
           throw "Unexpected severity: ${message.severity}";
       }
-      if (printToStdErr) {
+      if (printMessage) {
         printDiagnosticMessage(message, stderr.writeln);
-      } else if (printToStdOut) {
-        printDiagnosticMessage(message, stdout.writeln);
       }
-    }
-    ..invocationModes = InvocationMode.parseArguments(invocationModes);
+    };
 }
 
 abstract class Compiler {
@@ -157,7 +148,6 @@ abstract class Compiler {
   final int nullSafety;
   final List<String> experimentalFlags;
   final String packageConfig;
-  final String invocationModes;
 
   // Code coverage and hot reload are only supported by incremental compiler,
   // which is used if vm-service is enabled.
@@ -175,8 +165,7 @@ abstract class Compiler {
       this.experimentalFlags: null,
       this.supportCodeCoverage: false,
       this.supportHotReload: false,
-      this.packageConfig: null,
-      this.invocationModes: ''}) {
+      this.packageConfig: null}) {
     Uri packagesUri = null;
     if (packageConfig != null) {
       packagesUri = Uri.parse(packageConfig);
@@ -199,8 +188,7 @@ abstract class Compiler {
         nullSafety,
         experimentalFlags,
         packagesUri,
-        errors,
-        invocationModes);
+        errors);
   }
 
   Future<CompilerResult> compile(Uri script) {
@@ -290,8 +278,7 @@ class IncrementalCompilerWrapper extends Compiler {
       bool enableAsserts: false,
       int nullSafety: kNullSafetyOptionUnspecified,
       List<String> experimentalFlags: null,
-      String packageConfig: null,
-      String invocationModes: ''})
+      String packageConfig: null})
       : super(isolateId, fileSystem, platformKernelPath,
             suppressWarnings: suppressWarnings,
             enableAsserts: enableAsserts,
@@ -299,8 +286,7 @@ class IncrementalCompilerWrapper extends Compiler {
             experimentalFlags: experimentalFlags,
             supportHotReload: true,
             supportCodeCoverage: true,
-            packageConfig: packageConfig,
-            invocationModes: invocationModes);
+            packageConfig: packageConfig);
 
   factory IncrementalCompilerWrapper.forExpressionCompilationOnly(
       Component component,
@@ -310,15 +296,13 @@ class IncrementalCompilerWrapper extends Compiler {
       {bool suppressWarnings: false,
       bool enableAsserts: false,
       List<String> experimentalFlags: null,
-      String packageConfig: null,
-      String invocationModes: ''}) {
+      String packageConfig: null}) {
     IncrementalCompilerWrapper result = IncrementalCompilerWrapper(
         isolateId, fileSystem, platformKernelPath,
         suppressWarnings: suppressWarnings,
         enableAsserts: enableAsserts,
         experimentalFlags: experimentalFlags,
-        packageConfig: packageConfig,
-        invocationModes: invocationModes);
+        packageConfig: packageConfig);
     result.generator = new IncrementalCompiler.forExpressionCompilationOnly(
         component,
         result.options,
@@ -347,8 +331,7 @@ class IncrementalCompilerWrapper extends Compiler {
         enableAsserts: enableAsserts,
         nullSafety: nullSafety,
         experimentalFlags: experimentalFlags,
-        packageConfig: packageConfig,
-        invocationModes: invocationModes);
+        packageConfig: packageConfig);
 
     generator.resetDeltaState();
     Component fullComponent = await generator.compile();
@@ -378,15 +361,13 @@ class SingleShotCompilerWrapper extends Compiler {
       bool enableAsserts: false,
       int nullSafety: kNullSafetyOptionUnspecified,
       List<String> experimentalFlags: null,
-      String packageConfig: null,
-      String invocationModes: ''})
+      String packageConfig: null})
       : super(isolateId, fileSystem, platformKernelPath,
             suppressWarnings: suppressWarnings,
             enableAsserts: enableAsserts,
             nullSafety: nullSafety,
             experimentalFlags: experimentalFlags,
-            packageConfig: packageConfig,
-            invocationModes: invocationModes);
+            packageConfig: packageConfig);
 
   @override
   Future<CompilerResult> compileInternal(Uri script) async {
@@ -422,8 +403,7 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
     List<String> experimentalFlags: null,
     String packageConfig: null,
     String multirootFilepaths,
-    String multirootScheme,
-    String invocationModes: ''}) async {
+    String multirootScheme}) async {
   IncrementalCompilerWrapper compiler = lookupIncrementalCompiler(isolateId);
   if (compiler != null) {
     updateSources(compiler, sourceFiles);
@@ -452,8 +432,7 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
           enableAsserts: enableAsserts,
           nullSafety: nullSafety,
           experimentalFlags: experimentalFlags,
-          packageConfig: packageConfig,
-          invocationModes: invocationModes);
+          packageConfig: packageConfig);
     }
     isolateCompilers[isolateId] = compiler;
   }
@@ -673,7 +652,10 @@ List<int> _serializeDependencies(List<Uri> uris) {
   return utf8.encode(uris.map(_escapeDependency).join(" "));
 }
 
-Future _processListDependenciesRequest(SendPort port, int isolateId) async {
+Future _processListDependenciesRequest(request) async {
+  final SendPort port = request[1];
+  final int isolateId = request[6];
+
   final List<Uri> dependencies = isolateDependencies[isolateId] ?? <Uri>[];
 
   CompilationResult result;
@@ -727,34 +709,32 @@ Future _processLoadRequest(request) async {
     return;
   }
 
+  if (tag == kListDependenciesTag) {
+    await _processListDependenciesRequest(request);
+    return;
+  }
+
   if (tag == kNotifyIsolateShutdownTag) {
     await _processIsolateShutdownNotification(request);
     return;
   }
 
   final SendPort port = request[1];
-  final int isolateId = request[7];
-
-  if (tag == kListDependenciesTag) {
-    await _processListDependenciesRequest(port, isolateId);
-    return;
-  }
-
   final String inputFileUri = request[2];
   final Uri script =
       inputFileUri != null ? Uri.base.resolve(inputFileUri) : null;
   final bool incremental = request[4];
-  final bool snapshot = request[5];
-  final int nullSafety = request[6];
-  final List sourceFiles = request[8];
-  final bool suppressWarnings = request[9];
-  final bool enableAsserts = request[10];
+  final int nullSafety = request[5];
+  final int isolateId = request[6];
+  final List sourceFiles = request[7];
+  final bool suppressWarnings = request[8];
+  final bool enableAsserts = request[9];
   final List<String> experimentalFlags =
-      request[11] != null ? request[11].cast<String>() : null;
-  final String packageConfig = request[12];
-  final String multirootFilepaths = request[13];
-  final String multirootScheme = request[14];
-  final String workingDirectory = request[15];
+      request[10] != null ? request[10].cast<String>() : null;
+  final String packageConfig = request[11];
+  final String multirootFilepaths = request[12];
+  final String multirootScheme = request[13];
+  final String workingDirectory = request[14];
 
   Uri platformKernelPath = null;
   List<int> platformKernel = null;
@@ -767,8 +747,6 @@ Future _processLoadRequest(request) async {
     platformKernelPath =
         computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
   }
-
-  final String invocationModes = snapshot ? 'compile' : '';
 
   Compiler compiler;
 
@@ -814,16 +792,8 @@ Future _processLoadRequest(request) async {
       packagesUri = Uri.directory(workingDirectory).resolveUri(packagesUri);
     }
     final List<String> errors = <String>[];
-    var options = setupCompilerOptions(
-        fileSystem,
-        platformKernelPath,
-        false,
-        false,
-        nullSafety,
-        experimentalFlags,
-        packagesUri,
-        errors,
-        invocationModes);
+    var options = setupCompilerOptions(fileSystem, platformKernelPath, false,
+        false, nullSafety, experimentalFlags, packagesUri, errors);
 
     // script should only be null for kUpdateSourcesTag.
     assert(script != null);
@@ -849,8 +819,7 @@ Future _processLoadRequest(request) async {
         experimentalFlags: experimentalFlags,
         packageConfig: packageConfig,
         multirootFilepaths: multirootFilepaths,
-        multirootScheme: multirootScheme,
-        invocationModes: invocationModes);
+        multirootScheme: multirootScheme);
   } else {
     FileSystem fileSystem = _buildFileSystem(
         sourceFiles, platformKernel, multirootFilepaths, multirootScheme);
@@ -861,8 +830,7 @@ Future _processLoadRequest(request) async {
         enableAsserts: enableAsserts,
         nullSafety: nullSafety,
         experimentalFlags: experimentalFlags,
-        packageConfig: packageConfig,
-        invocationModes: invocationModes);
+        packageConfig: packageConfig);
   }
 
   CompilationResult result;
@@ -1006,7 +974,6 @@ Future trainInternal(String scriptUri, String platformKernelPath) async {
     scriptUri,
     platformKernelPath,
     false /* incremental */,
-    false /* snapshot */,
     kNullSafetyOptionUnspecified /* null safety */,
     1 /* isolateId chosen randomly */,
     [] /* source files */,

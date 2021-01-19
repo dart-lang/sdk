@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+// @dart = 2.9
+
 library fasta.testing.scanner_chain;
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'

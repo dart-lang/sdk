@@ -31,7 +31,7 @@ enum Operator {
   unaryMinus,
 }
 
-Operator operatorFromString(String string) {
+Operator? operatorFromString(String string) {
   if (identical("+", string)) return Operator.add;
   if (identical("&", string)) return Operator.bitwiseAnd;
   if (identical("~", string)) return Operator.bitwiseNot;
@@ -101,7 +101,6 @@ String operatorToString(Operator operator) {
     case Operator.unaryMinus:
       return "unary-";
   }
-  return null;
 }
 
 int operatorRequiredArgumentCount(Operator operator) {
@@ -133,5 +132,4 @@ int operatorRequiredArgumentCount(Operator operator) {
     case Operator.indexSet:
       return 2;
   }
-  return -1;
 }

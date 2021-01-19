@@ -39,10 +39,7 @@ ${result.processResult.stderr}''');
 
 void expectOutput(String what, Result result) {
   if (result.output != what) {
-    reportError(
-        result,
-        'Expected test to print \'${what}\' to stdout. '
-        'Actual: ${result.output}');
+    reportError(result, 'Expected test to print \'${what}\' to stdout');
   }
 }
 
@@ -130,12 +127,6 @@ checkDeterministicSnapshot(String snapshotKind, String expectedStdout) async {
     final snapshot1Path = p.join(temp, 'snapshot1');
     final snapshot2Path = p.join(temp, 'snapshot2');
 
-    if (expectedStdout.isEmpty) {
-      expectedStdout = unsoundNullSafetyMessage;
-    } else {
-      expectedStdout = '$unsoundNullSafetyMessage\n$expectedStdout';
-    }
-
     print("Version ${Platform.version}");
 
     final generate1Result = await runDart('GENERATE SNAPSHOT 1', [
@@ -192,11 +183,8 @@ runAppJitTest(Uri testScriptUri,
       testPath,
       '--train'
     ]);
-    expectOutput("$unsoundNullSafetyMessage\nOK(Trained)", trainingResult);
+    expectOutput("OK(Trained)", trainingResult);
     final runResult = await runSnapshot(snapshotPath);
     expectOutput("OK(Run)", runResult);
   });
 }
-
-const String unsoundNullSafetyMessage =
-    'Info: Compiling with unsound null safety';
