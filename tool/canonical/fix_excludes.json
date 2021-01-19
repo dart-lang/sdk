@@ -8,6 +8,10 @@
     "notes" : "naming"
   },
   {
+    "lint" : "avoid_types_as_parameter_names",
+    "notes" : "semantics; possible to do if the fix is constrained.  see: https://dart-review.googlesource.com/c/sdk/+/178660"
+  },
+  {
     "lint" : "camel_case_extensions",
     "notes" : "naming"
   },
