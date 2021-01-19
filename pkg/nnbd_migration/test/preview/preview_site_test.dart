@@ -156,14 +156,29 @@ void main(List args) {
   void test_optOutOfNullSafety_commentThenCode() {
     expect(
         IncrementalPlan.optCodeOutOfNullSafety('// comment\n\nvoid main() {}'),
-        equals('// comment\n\n\n// @dart=2.9\n\nvoid main() {}'));
+        equals('// comment\n\n// @dart=2.9\n\n\nvoid main() {}'));
   }
 
   void test_optOutOfNullSafety_commentThenCode_windows() {
     expect(
         IncrementalPlan.optCodeOutOfNullSafety(
             '// comment\r\n\r\nvoid main() {}'),
-        equals('// comment\r\n\r\n\r\n// @dart=2.9\r\n\r\nvoid main() {}'));
+        equals('// comment\r\n\r\n// @dart=2.9\r\n\r\n\r\nvoid main() {}'));
+  }
+
+  void test_optOutOfNullSafety_commentThenDirective() {
+    expect(
+        IncrementalPlan.optCodeOutOfNullSafety(
+            '// comment\nimport "dart:core";'),
+        equals('// comment\n\n// @dart=2.9\n\nimport "dart:core";'));
+  }
+
+  void test_optOutOfNullSafety_commentThenDirective_multiLine() {
+    expect(
+        IncrementalPlan.optCodeOutOfNullSafety(
+            '// comment\n// comment\nimport "dart:core";'),
+        equals(
+            '// comment\n// comment\n\n// @dart=2.9\n\nimport "dart:core";'));
   }
 
   void test_optOutOfNullSafety_empty() {

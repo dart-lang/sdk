@@ -100,15 +100,23 @@ abstract class CustomMethods {
 }
 
 abstract class CustomSemanticTokenModifiers {
-  // A modifier applied to control keywords like if/for/etc. so they can be
-  // coloured differently to other keywords (void, import, etc), matching the
-  // original Dart textmate grammar.
-  // https://github.com/dart-lang/dart-syntax-highlight/blob/84a8e84f79bc917ebd959a4587349c865dc945e0/grammars/dart.json#L244-L261
+  /// A modifier applied to control keywords like if/for/etc. so they can be
+  /// coloured differently to other keywords (void, import, etc), matching the
+  /// original Dart textmate grammar.
+  /// https://github.com/dart-lang/dart-syntax-highlight/blob/84a8e84f79bc917ebd959a4587349c865dc945e0/grammars/dart.json#L244-L261
   static const control = SemanticTokenModifiers('control');
+
+  /// A modifier applied to parameter references to indicate they are the name/label
+  /// to allow theming them differently to the values. For example in the code
+  /// `foo({String a}) => foo(a: a)` the a's will be differentiated as:
+  /// - parameter.declaration
+  /// - parameter.label
+  /// - parameter
+  static const label = SemanticTokenModifiers('label');
 
   /// All custom semantic token modifiers, used to populate the LSP Legend which must
   /// include all used modifiers.
-  static const values = [control];
+  static const values = [control, label];
 }
 
 abstract class CustomSemanticTokenTypes {

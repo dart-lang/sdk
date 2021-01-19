@@ -179,6 +179,10 @@ class IncrementalPlan {
 
     var index = 0;
 
+    // Returns the next line and updates [index].
+    //
+    // After this function returns, [index] points to the character after the
+    // end of the line which was returned.
     String getLine() {
       var nextIndex = code.indexOf('\n', index);
       if (nextIndex < 0) {
@@ -220,24 +224,37 @@ class IncrementalPlan {
         // [code] consists _only_ of one comment line.
         return '$code$newline$newline// @dart=2.9$newline';
       }
-      line = getLine();
-      lineStart = line.indexOf(_nonWhitespaceChar);
-      while (lineStart >= 0 &&
-          line.length > lineStart + 1 &&
-          line.codeUnitAt(lineStart) == $slash &&
-          line.codeUnitAt(lineStart + 1) == $slash) {
-        // Another comment line.
+      var previousLineIndex = index;
+      while (true) {
+        previousLineIndex = index;
         line = getLine();
-        if (index == length) {
-          // [code] consists _only_ of this block comment.
-          return '$code$newline$newline// @dart=2.9$newline';
-        }
         lineStart = line.indexOf(_nonWhitespaceChar);
+        if (lineStart < 0) {
+          // Line of whitespace; end of block comment.
+          break;
+        }
+        if (line.length <= lineStart + 1) {
+          // Only one character; not a comment; end of block comment.
+          break;
+        }
+        if (line.codeUnitAt(lineStart) == $slash &&
+            line.codeUnitAt(lineStart + 1) == $slash) {
+          // Comment line.
+          if (index == length) {
+            // [code] consists _only_ of this block comment.
+            return '$code$newline$newline// @dart=2.9$newline';
+          }
+          continue;
+        } else {
+          // Non-blank, non-comment line.
+          break;
+        }
       }
-      // [index] points to the start of [line], which is the first
+      // [previousLineIndex] points to the start of [line], which is the first
       // non-comment line following the first comment.
-      return '${code.substring(0, index)}$newline// @dart=2.9$newline$newline'
-          '${code.substring(index)}';
+      return '${code.substring(0, previousLineIndex)}$newline'
+          '// @dart=2.9$newline$newline'
+          '${code.substring(previousLineIndex)}';
     } else {
       // [code] does not start with a block comment.
       return '// @dart=2.9$newline$newline$code';

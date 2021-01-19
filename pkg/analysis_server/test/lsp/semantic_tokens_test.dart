@@ -600,6 +600,33 @@ class MyClass {}
     expect(decoded, equals(expected));
   }
 
+  Future<void> test_namedArguments() async {
+    final content = '''
+    f({String a}) {
+      f(a: a);
+    }    
+    ''';
+
+    final expected = [
+      _Token('f', SemanticTokenTypes.function,
+          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
+      _Token('String', SemanticTokenTypes.class_),
+      _Token('a', SemanticTokenTypes.parameter,
+          [SemanticTokenModifiers.declaration]),
+      _Token('f', SemanticTokenTypes.function),
+      _Token('a', SemanticTokenTypes.parameter,
+          [CustomSemanticTokenModifiers.label]),
+      _Token('a', SemanticTokenTypes.parameter),
+    ];
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final tokens = await getSemanticTokens(mainFileUri);
+    final decoded = decodeSemanticTokens(content, tokens);
+    expect(decoded, equals(expected));
+  }
+
   Future<void> test_range() async {
     final content = '''
     /// class docs
