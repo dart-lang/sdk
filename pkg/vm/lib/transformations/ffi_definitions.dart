@@ -418,6 +418,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
 
     _annoteStructWithFields(node, classes);
     if (classes.isEmpty) {
+      diagnosticReporter.report(templateFfiEmptyStruct.withArguments(node.name),
+          node.fileOffset, node.name.length, node.location.file);
       emptyStructs.add(node);
     }
 
