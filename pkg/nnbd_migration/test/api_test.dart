@@ -4591,6 +4591,80 @@ int f() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_local_function_expression_inhibits_non_null_intent() async {
+    var content = '''
+void call(void Function() callback) {
+  callback();
+}
+test(int i, int j) {
+  call(() {
+    i = j;
+  });
+  print(i + 1);
+}
+main() {
+  test(null, 0);
+}
+''';
+    // `print(i + 1)` does *not* demonstrate non-null intent for `i` because it
+    // is write captured by the local function expression, so it's not
+    // guaranteed that a null value of `i` on entry to the function will lead to
+    // an exception.
+    var expected = '''
+void call(void Function() callback) {
+  callback();
+}
+test(int? i, int j) {
+  call(() {
+    i = j;
+  });
+  print(i! + 1);
+}
+main() {
+  test(null, 0);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_local_function_inhibits_non_null_intent() async {
+    var content = '''
+void call(void Function() callback) {
+  callback();
+}
+test(int i, int j) {
+  void f() {
+    i = j;
+  }
+  call(f);
+  print(i + 1);
+}
+main() {
+  test(null, 0);
+}
+''';
+    // `print(i + 1)` does *not* demonstrate non-null intent for `i` because it
+    // is write captured by the local function expression, so it's not
+    // guaranteed that a null value of `i` on entry to the function will lead to
+    // an exception.
+    var expected = '''
+void call(void Function() callback) {
+  callback();
+}
+test(int? i, int j) {
+  void f() {
+    i = j;
+  }
+  call(f);
+  print(i! + 1);
+}
+main() {
+  test(null, 0);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_local_function_return() async {
     var content = '''
 void test({String foo}) async {
