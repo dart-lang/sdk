@@ -17,7 +17,7 @@ void main() {
 
 const String soundNullSafetyMessage = 'Info: Compiling with sound null safety';
 const String unsoundNullSafetyMessage =
-    'Info: Compiling with unsound null safety';
+    'Info: Compiling without sound null safety';
 
 void defineCompileTests() {
   // *** NOTE ***: These tests *must* be run with the `--use-sdk` option

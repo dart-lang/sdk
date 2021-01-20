@@ -70,7 +70,7 @@ CantUseSuperBoundedTypeForInstanceCreation/example: Fail
 ClassInNullAwareReceiver/analyzerCode: Fail
 ColonInPlaceOfIn/example: Fail
 CompilingWithSoundNullSafety/analyzerCode: Fail
-CompilingWithUnsoundNullSafety/analyzerCode: Fail
+CompilingWithoutSoundNullSafety/analyzerCode: Fail
 ConflictingModifiers/part_wrapped_script1: Fail
 ConflictingModifiers/script1: Fail
 ConflictsWithConstructor/example: Fail

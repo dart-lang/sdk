@@ -4940,8 +4940,8 @@ CompilingWithSoundNullSafety:
   script: |
     main() {}
 
-CompilingWithUnsoundNullSafety:
-  template: "Compiling with unsound null safety"
+CompilingWithoutSoundNullSafety:
+  template: "Compiling without sound null safety"
   configuration: nnbd-weak,compile
   severity: INFO
   script: |

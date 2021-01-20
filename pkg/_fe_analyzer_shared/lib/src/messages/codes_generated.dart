@@ -998,14 +998,14 @@ const MessageCode messageCompilingWithSoundNullSafety = const MessageCode(
     message: r"""Compiling with sound null safety""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeCompilingWithUnsoundNullSafety =
-    messageCompilingWithUnsoundNullSafety;
+const Code<Null> codeCompilingWithoutSoundNullSafety =
+    messageCompilingWithoutSoundNullSafety;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageCompilingWithUnsoundNullSafety = const MessageCode(
-    "CompilingWithUnsoundNullSafety",
+const MessageCode messageCompilingWithoutSoundNullSafety = const MessageCode(
+    "CompilingWithoutSoundNullSafety",
     severity: Severity.info,
-    message: r"""Compiling with unsound null safety""");
+    message: r"""Compiling without sound null safety""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
