@@ -11,9 +11,11 @@ import "ast.dart"
         Extension,
         Field,
         Library,
+        Member,
         Name,
-        Reference,
         Procedure,
+        ProcedureKind,
+        Reference,
         Typedef;
 
 class ReferenceFromIndex {
@@ -41,15 +43,21 @@ abstract class IndexedContainer {
 
   void _addProcedures(List<Procedure> procedures) {
     for (int i = 0; i < procedures.length; i++) {
-      Procedure procedure = procedures[i];
-      Name name = procedure.name;
-      if (procedure.isSetter) {
-        assert(_setterReferences[name] == null);
-        _setterReferences[name] = procedure.reference;
-      } else {
-        assert(_getterReferences[name] == null);
-        _getterReferences[name] = procedure.reference;
-      }
+      _addProcedure(procedures[i]);
+    }
+  }
+
+  void _addProcedure(Procedure procedure) {
+    Name name = procedure.name;
+    if (procedure.isSetter) {
+      assert(_setterReferences[name] == null);
+      _setterReferences[name] = procedure.reference;
+    } else {
+      assert(_getterReferences[name] == null);
+      assert(procedure.kind == ProcedureKind.Method ||
+          procedure.kind == ProcedureKind.Getter ||
+          procedure.kind == ProcedureKind.Operator);
+      _getterReferences[name] = procedure.reference;
     }
   }
 
@@ -104,7 +112,7 @@ class IndexedLibrary extends IndexedContainer {
 }
 
 class IndexedClass extends IndexedContainer {
-  final Map<Name, Constructor> _constructors = new Map<Name, Constructor>();
+  final Map<Name, Member> _constructors = new Map<Name, Member>();
   final Library library;
 
   IndexedClass._(Class c, this.library) {
@@ -112,9 +120,16 @@ class IndexedClass extends IndexedContainer {
       Constructor constructor = c.constructors[i];
       _constructors[constructor.name] = constructor;
     }
-    _addProcedures(c.procedures);
+    for (int i = 0; i < c.procedures.length; i++) {
+      Procedure procedure = c.procedures[i];
+      if (procedure.isFactory) {
+        _constructors[procedure.name] = procedure;
+      } else {
+        _addProcedure(procedure);
+      }
+    }
     _addFields(c.fields);
   }
 
-  Constructor lookupConstructor(Name name) => _constructors[name];
+  Member lookupConstructor(Name name) => _constructors[name];
 }

@@ -17,6 +17,12 @@ void main() {
 
 @reflectiveTest
 class FoldingComputerTest extends AbstractContextTest {
+  static const commentKinds = {
+    FoldingKind.FILE_HEADER,
+    FoldingKind.COMMENT,
+    FoldingKind.DOCUMENTATION_COMMENT
+  };
+
   String sourcePath;
 
   @override
@@ -125,15 +131,72 @@ class Person {/*1:INC*/
 
   Future<void> test_comment_is_not_considered_file_header() async {
     var content = """
-// This is not the file header
-// It's just a comment
+// This is not the file header/*1:EXC*/
+// It's just a comment/*1:INC:COMMENT*/
 main() {}
 """;
 
     // Since there are no region comment markers above
     // just check the length instead of the contents
     final regions = await _computeRegions(content);
-    expect(regions, hasLength(0));
+    _compareRegions(regions, content);
+  }
+
+  Future<void> test_comment_multiline() async {
+    var content = '''
+main() {
+/*/*1:EXC*/
+ * comment 1
+ *//*1:EXC:COMMENT*/
+
+/* this comment starts on the same line as delimeters/*2:EXC*/
+ * second line
+ *//*2:EXC:COMMENT*/
+}
+''';
+
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content, commentKinds);
+  }
+
+  Future<void> test_comment_singleFollowedByBlankLine() async {
+    var content = '''
+main() {
+// this is/*1:EXC*/
+// a comment/*1:INC:COMMENT*/
+/// this is not part of it
+}
+''';
+
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content, commentKinds);
+  }
+
+  Future<void> test_comment_singleFollowedByMulti() async {
+    var content = '''
+main() {
+  // this is/*1:EXC*/
+  // a comment/*1:INC:COMMENT*/
+  /* this is not part of it */
+  String foo;
+}
+''';
+
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content, commentKinds);
+  }
+
+  Future<void> test_comment_singleFollowedByTripleSlash() async {
+    var content = '''
+main() {
+// this is/*1:EXC*/
+// a comment/*1:INC:COMMENT*/
+/// this is not part of it
+}
+''';
+
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content, commentKinds);
   }
 
   Future<void> test_constructor_invocations() async {
@@ -164,7 +227,7 @@ main() {}
 """;
 
     final regions = await _computeRegions(content);
-    _compareRegions(regions, content);
+    _compareRegions(regions, content, {FoldingKind.FILE_HEADER});
   }
 
   Future<void> test_file_header_does_not_include_block_comments() async {
@@ -179,7 +242,7 @@ main() {}
 """;
 
     final regions = await _computeRegions(content);
-    expect(regions, hasLength(0));
+    _compareRegions(regions, content, {FoldingKind.FILE_HEADER});
   }
 
   Future<void> test_file_header_with_no_function_comment() async {
@@ -191,7 +254,7 @@ main() {}
 ''';
 
     final regions = await _computeRegions(content);
-    _compareRegions(regions, content);
+    _compareRegions(regions, content, {FoldingKind.FILE_HEADER});
   }
 
   Future<void> test_file_header_with_non_end_of_line_comment() async {
@@ -204,7 +267,7 @@ main() {}
 """;
 
     final regions = await _computeRegions(content);
-    _compareRegions(regions, content);
+    _compareRegions(regions, content, {FoldingKind.FILE_HEADER});
   }
 
   Future<void> test_file_header_with_script_prefix() async {
@@ -217,6 +280,19 @@ main() {}
 // It's just a comment
 main() {}
 """;
+
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content, {FoldingKind.FILE_HEADER});
+  }
+
+  Future<void> test_fileHeader_singleFollowedByBlank() async {
+    var content = '''
+// this is/*1:EXC*/
+// a file header/*1:INC:FILE_HEADER*/
+
+// this is not part of it
+main() {}
+''';
 
     final regions = await _computeRegions(content);
     _compareRegions(regions, content);
@@ -263,7 +339,7 @@ main2() {/*2:INC*/
     var content = '''
 // Content before
 
-/*1:EXC*//// This is a doc comment
+/// This is a doc comment/*1:EXC*/
 /// that spans lines/*1:INC:DOCUMENTATION_COMMENT*/
 main() {/*2:INC*/
   print("Hello, world!");
@@ -434,10 +510,18 @@ main() {}
 
   /// Compares provided folding regions with expected
   /// regions extracted from the comments in the provided content.
-  void _compareRegions(List<FoldingRegion> regions, String content) {
+  ///
+  /// If [onlyKinds] is supplied only regions of that type will be compared.
+  void _compareRegions(List<FoldingRegion> regions, String content,
+      [Set<FoldingKind> onlyKinds]) {
     // Find all numeric markers for region starts.
     final regex = RegExp(r'/\*(\d+):(INC|EXC)\*/');
     final expectedRegions = regex.allMatches(content);
+
+    if (onlyKinds != null) {
+      regions =
+          regions.where((region) => onlyKinds.contains(region.kind)).toList();
+    }
 
     // Check we didn't get more than expected, since the loop below only
     // checks for the presence of matches, not absence.

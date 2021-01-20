@@ -109,7 +109,7 @@ a:focus, a:hover {
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  1.32.1
+  1.32.2
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -236,9 +236,13 @@ a:focus, a:hover {
   ignoring the item or treating it with some default/fallback handling.
 </p>
 <h3>Changelog</h3>
+<h4>1.32.2</h4>
+<ul>
+  <li>Added <tt>FoldingKind.COMMENT</tt> for folding regions for blocks of comments.</li>
+</ul>
 <h4>1.32.1</h4>
 <ul>
-  <li>Added <tt>CompletionSuggestionKind.PACKAGE_NAME</tt> for Pub package name completions in <tt>pubspec.yaml</tt></li>
+  <li>Added <tt>CompletionSuggestionKind.PACKAGE_NAME</tt> for Pub package name completions in <tt>pubspec.yaml</tt>.</li>
 </ul>
 <h3>Domains</h3>
 <p>
@@ -4226,7 +4230,7 @@ a:focus, a:hover {
       An enumeration of the kinds of folding regions.
     </p>
     
-  <dl><dt class="value">ANNOTATIONS</dt><dt class="value">BLOCK</dt><dt class="value">CLASS_BODY</dt><dt class="value">DIRECTIVES</dt><dt class="value">DOCUMENTATION_COMMENT</dt><dt class="value">FILE_HEADER</dt><dt class="value">FUNCTION_BODY</dt><dt class="value">INVOCATION</dt><dt class="value">LITERAL</dt></dl></dd><dt class="typeDefinition"><a name="type_FoldingRegion">FoldingRegion: object</a></dt><dd>
+  <dl><dt class="value">ANNOTATIONS</dt><dt class="value">BLOCK</dt><dt class="value">CLASS_BODY</dt><dt class="value">COMMENT</dt><dt class="value">DIRECTIVES</dt><dt class="value">DOCUMENTATION_COMMENT</dt><dt class="value">FILE_HEADER</dt><dt class="value">FUNCTION_BODY</dt><dt class="value">INVOCATION</dt><dt class="value">LITERAL</dt></dl></dd><dt class="typeDefinition"><a name="type_FoldingRegion">FoldingRegion: object</a></dt><dd>
     <p>
       A description of a region that can be folded.
     </p>

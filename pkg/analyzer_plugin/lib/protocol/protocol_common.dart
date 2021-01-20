@@ -1904,6 +1904,7 @@ class ElementKind implements Enum {
 ///   ANNOTATIONS
 ///   BLOCK
 ///   CLASS_BODY
+///   COMMENT
 ///   DIRECTIVES
 ///   DOCUMENTATION_COMMENT
 ///   FILE_HEADER
@@ -1919,6 +1920,8 @@ class FoldingKind implements Enum {
   static const FoldingKind BLOCK = FoldingKind._('BLOCK');
 
   static const FoldingKind CLASS_BODY = FoldingKind._('CLASS_BODY');
+
+  static const FoldingKind COMMENT = FoldingKind._('COMMENT');
 
   static const FoldingKind DIRECTIVES = FoldingKind._('DIRECTIVES');
 
@@ -1938,6 +1941,7 @@ class FoldingKind implements Enum {
     ANNOTATIONS,
     BLOCK,
     CLASS_BODY,
+    COMMENT,
     DIRECTIVES,
     DOCUMENTATION_COMMENT,
     FILE_HEADER,
@@ -1959,6 +1963,8 @@ class FoldingKind implements Enum {
         return BLOCK;
       case 'CLASS_BODY':
         return CLASS_BODY;
+      case 'COMMENT':
+        return COMMENT;
       case 'DIRECTIVES':
         return DIRECTIVES;
       case 'DOCUMENTATION_COMMENT':

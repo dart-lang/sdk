@@ -231,6 +231,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   final Map<MethodInvocation, DecoratedType Function(DecoratedType)>
       _deferredMethodInvocationProcessing = {};
 
+  /// If we are visiting a local function or closure, the set of local variables
+  /// assigned to so far inside it.  Otherwise `null`.
+  Set<Element> _elementsWrittenToInLocalFunction;
+
   EdgeBuilder(this.typeProvider, this._typeSystem, this._variables, this._graph,
       this.source, this.listener, this._decoratedClassHierarchy,
       {this.instrumentation})
@@ -857,12 +861,21 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (_flowAnalysis != null) {
       // This is a local function.
       var previousPostDominatedLocals = _postDominatedLocals;
+      var previousElementsWrittenToInLocalFunction =
+          _elementsWrittenToInLocalFunction;
       try {
+        _elementsWrittenToInLocalFunction = {};
         _postDominatedLocals = _ScopedLocalSet();
         _flowAnalysis.functionExpression_begin(node);
         _dispatch(node.functionExpression);
         _flowAnalysis.functionExpression_end();
       } finally {
+        for (var element in _elementsWrittenToInLocalFunction) {
+          previousElementsWrittenToInLocalFunction?.add(element);
+          previousPostDominatedLocals.removeFromAllScopes(element);
+        }
+        _elementsWrittenToInLocalFunction =
+            previousElementsWrittenToInLocalFunction;
         _postDominatedLocals = previousPostDominatedLocals;
       }
     } else {
@@ -911,7 +924,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _currentFunctionType =
         _variables.decoratedElementType(node.declaredElement);
     var previousPostDominatedLocals = _postDominatedLocals;
+    var previousElementsWrittenToInLocalFunction =
+        _elementsWrittenToInLocalFunction;
     try {
+      if (node.parent is! FunctionDeclaration) {
+        _elementsWrittenToInLocalFunction = {};
+      }
       _postDominatedLocals = _ScopedLocalSet();
       _postDominatedLocals.doScoped(
           elements: node.declaredElement.parameters,
@@ -921,6 +939,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } finally {
       if (node.parent is! FunctionDeclaration) {
         _flowAnalysis.functionExpression_end();
+        for (var element in _elementsWrittenToInLocalFunction) {
+          previousElementsWrittenToInLocalFunction?.add(element);
+          previousPostDominatedLocals.removeFromAllScopes(element);
+        }
+        _elementsWrittenToInLocalFunction =
+            previousElementsWrittenToInLocalFunction;
       }
       _currentFunctionType = previousFunctionType;
       _currentFunctionExpression = previousFunction;
@@ -2373,7 +2397,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
     }
     if (destinationExpression != null) {
-      _postDominatedLocals.removeReferenceFromAllScopes(destinationExpression);
+      var element = _postDominatedLocals
+          .removeReferenceFromAllScopes(destinationExpression);
+      if (element != null) {
+        _elementsWrittenToInLocalFunction?.add(element);
+      }
     }
     return sourceType;
   }
@@ -3639,11 +3667,16 @@ class _ScopedLocalSet extends ScopedSet<Element> {
     return false;
   }
 
-  void removeReferenceFromAllScopes(Expression expression) {
+  /// If [expression] references an element, removes that element from all
+  /// scopes and returns it.  Otherwise returns `null`.
+  Element removeReferenceFromAllScopes(Expression expression) {
     expression = expression.unParenthesized;
     if (expression is SimpleIdentifier) {
       var element = expression.staticElement;
       removeFromAllScopes(element);
+      return element;
+    } else {
+      return null;
     }
   }
 }
