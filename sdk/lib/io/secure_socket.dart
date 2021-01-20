@@ -882,69 +882,70 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     }
   }
 
-  Future<void> _scheduleFilter() async {
+  Future<void> _scheduleFilter() {
     _filterPending = true;
     return _tryFilter();
   }
 
   Future<void> _tryFilter() async {
-    if (_status == closedStatus) {
-      return;
-    }
-    if (!_filterPending || _filterActive) {
-      return;
-    }
-    _filterActive = true;
-    _filterPending = false;
-
     try {
-      _filterStatus = await _pushAllFilterStages();
-      _filterActive = false;
-      if (_status == closedStatus) {
-        _secureFilter!.destroy();
-        _secureFilter = null;
-        return;
-      }
-      _socket.readEventsEnabled = true;
-      if (_filterStatus.writeEmpty && _closedWrite && !_socketClosedWrite) {
-        // Checks for and handles all cases of partially closed sockets.
-        shutdown(SocketDirection.send);
+      while (true) {
         if (_status == closedStatus) {
           return;
         }
-      }
-      if (_filterStatus.readEmpty && _socketClosedRead && !_closedRead) {
-        if (_status == handshakeStatus) {
-          _secureFilter!.handshake();
-          if (_status == handshakeStatus) {
-            throw new HandshakeException(
-                'Connection terminated during handshake');
+        if (!_filterPending || _filterActive) {
+          return;
+        }
+        _filterActive = true;
+        _filterPending = false;
+
+        _filterStatus = await _pushAllFilterStages();
+        _filterActive = false;
+        if (_status == closedStatus) {
+          _secureFilter!.destroy();
+          _secureFilter = null;
+          return;
+        }
+        _socket.readEventsEnabled = true;
+        if (_filterStatus.writeEmpty && _closedWrite && !_socketClosedWrite) {
+          // Checks for and handles all cases of partially closed sockets.
+          shutdown(SocketDirection.send);
+          if (_status == closedStatus) {
+            return;
           }
         }
-        _closeHandler();
+        if (_filterStatus.readEmpty && _socketClosedRead && !_closedRead) {
+          if (_status == handshakeStatus) {
+            _secureFilter!.handshake();
+            if (_status == handshakeStatus) {
+              throw new HandshakeException(
+                  'Connection terminated during handshake');
+            }
+          }
+          _closeHandler();
+        }
+        if (_status == closedStatus) {
+          return;
+        }
+        if (_filterStatus.progress) {
+          _filterPending = true;
+          if (_filterStatus.writeEncryptedNoLongerEmpty) {
+            _writeSocket();
+          }
+          if (_filterStatus.writePlaintextNoLongerFull) {
+            _sendWriteEvent();
+          }
+          if (_filterStatus.readEncryptedNoLongerFull) {
+            _readSocket();
+          }
+          if (_filterStatus.readPlaintextNoLongerEmpty) {
+            _scheduleReadEvent();
+          }
+          if (_status == handshakeStatus) {
+            await _secureHandshake();
+          }
+        }
       }
-      if (_status == closedStatus) {
-        return;
-      }
-      if (_filterStatus.progress) {
-        _filterPending = true;
-        if (_filterStatus.writeEncryptedNoLongerEmpty) {
-          _writeSocket();
-        }
-        if (_filterStatus.writePlaintextNoLongerFull) {
-          _sendWriteEvent();
-        }
-        if (_filterStatus.readEncryptedNoLongerFull) {
-          _readSocket();
-        }
-        if (_filterStatus.readPlaintextNoLongerEmpty) {
-          _scheduleReadEvent();
-        }
-        if (_status == handshakeStatus) {
-          await _secureHandshake();
-        }
-      }
-      return _tryFilter();
     } catch (e, st) {
       _reportError(e, st);
     }
