@@ -173,7 +173,14 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
     final Member target = node.target;
     try {
-      if (target == lookupFunctionMethod) {
+      if (target == structPointerRef || target == structPointerElemAt) {
+        final DartType nativeType = node.arguments.types[0];
+
+        _ensureNativeTypeValid(nativeType, node, allowStructItself: false);
+
+        // TODO(http://dartbug.com/38721): Replace calls with direct
+        // constructor invocations.
+      } else if (target == lookupFunctionMethod) {
         final DartType nativeType = InterfaceType(
             nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
         final DartType dartType = node.arguments.types[1];
@@ -427,9 +434,11 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   }
 
   void _ensureNativeTypeValid(DartType nativeType, Expression node,
-      {bool allowHandle: false}) {
+      {bool allowHandle: false, bool allowStructItself = true}) {
     if (!_nativeTypeValid(nativeType,
-        allowStructs: true, allowHandle: allowHandle)) {
+        allowStructs: true,
+        allowStructItself: allowStructItself,
+        allowHandle: allowHandle)) {
       diagnosticReporter.report(
           templateFfiTypeInvalid.withArguments(
               nativeType, currentLibrary.isNonNullableByDefault),
@@ -466,9 +475,13 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   /// The Dart type system does not enforce that NativeFunction return and
   /// parameter types are only NativeTypes, so we need to check this.
   bool _nativeTypeValid(DartType nativeType,
-      {bool allowStructs: false, allowHandle: false}) {
+      {bool allowStructs: false,
+      bool allowStructItself = false,
+      bool allowHandle = false}) {
     return convertNativeTypeToDartType(nativeType,
-            allowStructs: allowStructs, allowHandle: allowHandle) !=
+            allowStructs: allowStructs,
+            allowStructItself: allowStructItself,
+            allowHandle: allowHandle) !=
         null;
   }
 
