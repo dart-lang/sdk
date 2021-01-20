@@ -47,6 +47,12 @@ void main() {
   testNativeFunctionSignatureInvalidOptionalNamed();
   testNativeFunctionSignatureInvalidOptionalPositional();
   testHandleVariance();
+  testEmptyStructLookupFunctionArgument();
+  testEmptyStructLookupFunctionReturn();
+  testEmptyStructAsFunctionArgument();
+  testEmptyStructAsFunctionReturn();
+  testEmptyStructFromFunctionArgument();
+  testEmptyStructFromFunctionReturn();
   testAllocateGeneric();
   testAllocateNativeType();
 }
@@ -515,9 +521,49 @@ class TestStruct1002 extends Struct {
   Pointer notEmpty;
 }
 
-class EmptyStruct extends Struct {} //# 1100: compile-time error
+class EmptyStruct extends Struct {}
 
-class EmptyStruct extends Struct {} //# 1106: compile-time error
+void testEmptyStructLookupFunctionArgument() {
+  testLibrary.lookupFunction< //# 1100: compile-time error
+      Void Function(EmptyStruct), //# 1100: compile-time error
+      void Function(EmptyStruct)>("DoesNotExist"); //# 1100: compile-time error
+}
+
+void testEmptyStructLookupFunctionReturn() {
+  testLibrary.lookupFunction< //# 1101: compile-time error
+      EmptyStruct Function(), //# 1101: compile-time error
+      EmptyStruct Function()>("DoesNotExist"); //# 1101: compile-time error
+}
+
+void testEmptyStructAsFunctionArgument() {
+  final pointer =
+      Pointer<NativeFunction<Void Function(EmptyStruct)>>.fromAddress(1234);
+  pointer.asFunction<void Function(EmptyStruct)>(); //# 1102: compile-time error
+}
+
+void testEmptyStructAsFunctionReturn() {
+  final pointer =
+      Pointer<NativeFunction<EmptyStruct Function()>>.fromAddress(1234);
+  pointer.asFunction<EmptyStruct Function()>(); //# 1103: compile-time error
+}
+
+void _consumeEmptyStruct(EmptyStruct e) {
+  print(e);
+}
+
+void testEmptyStructFromFunctionArgument() {
+  Pointer.fromFunction<Void Function(EmptyStruct)>(//# 1104: compile-time error
+      _consumeEmptyStruct); //# 1104: compile-time error
+}
+
+EmptyStruct _returnEmptyStruct() {
+  return EmptyStruct();
+}
+
+void testEmptyStructFromFunctionReturn() {
+  Pointer.fromFunction<EmptyStruct Function()>(//# 1105: compile-time error
+      _returnEmptyStruct); //# 1105: compile-time error
+}
 
 class HasNestedEmptyStruct extends Struct {
   EmptyStruct nestedEmptyStruct; //# 1106: compile-time error
