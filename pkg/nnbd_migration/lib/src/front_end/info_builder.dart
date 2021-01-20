@@ -25,6 +25,7 @@ import 'package:nnbd_migration/src/front_end/instrumentation_information.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
 import 'package:nnbd_migration/src/front_end/offset_mapper.dart';
 import 'package:nnbd_migration/src/front_end/web/navigation_tree.dart';
+import 'package:nnbd_migration/src/hint_action.dart';
 import 'package:nnbd_migration/src/utilities/progress_bar.dart';
 
 /// A builder used to build the migration information for a library.

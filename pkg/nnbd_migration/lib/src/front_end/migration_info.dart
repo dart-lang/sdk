@@ -6,11 +6,11 @@ import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
-import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/front_end/offset_mapper.dart';
 import 'package:nnbd_migration/src/front_end/unit_link.dart';
 import 'package:nnbd_migration/src/front_end/web/navigation_tree.dart';
+import 'package:nnbd_migration/src/hint_action.dart';
 import 'package:nnbd_migration/src/preview/preview_site.dart';
 import 'package:path/path.dart' as path;
 
@@ -37,24 +37,6 @@ class EditDetail {
           String description, SourceEdit sourceEdit) =>
       EditDetail(description, sourceEdit.offset, sourceEdit.length,
           sourceEdit.replacement);
-}
-
-/// Everything the front end needs to know to tell the server to perform a hint
-/// action.
-class HintAction {
-  final HintActionKind kind;
-  final int nodeId;
-  HintAction(this.kind, this.nodeId);
-
-  HintAction.fromJson(Map<String, Object> json)
-      : nodeId = json['nodeId'] as int,
-        kind = HintActionKind.values
-            .singleWhere((action) => action.index == json['kind']);
-
-  Map<String, Object> toJson() => {
-        'nodeId': nodeId,
-        'kind': kind.index,
-      };
 }
 
 /// A class storing rendering information for an entire migration report.

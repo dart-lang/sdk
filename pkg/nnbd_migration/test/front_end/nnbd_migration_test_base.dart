@@ -14,6 +14,7 @@ import 'package:nnbd_migration/src/front_end/instrumentation_listener.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
 import 'package:nnbd_migration/src/front_end/non_nullable_fix.dart';
 import 'package:nnbd_migration/src/front_end/offset_mapper.dart';
+import 'package:nnbd_migration/src/hint_action.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
