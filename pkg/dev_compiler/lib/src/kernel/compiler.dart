@@ -3101,15 +3101,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     _typeTable.typeContainer.incrementalMode = true;
 
     // Emit function with additional information, such as types that are used
-    // in the expression. Note that typeTable can be null if this function is
-    // called from the expression compilation service, since we currently do
-    // not optimize for size of generated javascript in that scenario.
-    // TODO: figure whether or when optimizing for build time vs JavaScript
-    // size on expression evaluation is better.
-    // Issue: https://github.com/dart-lang/sdk/issues/43288
+    // in the expression.
     var fun = _emitFunction(functionNode, name);
 
-    var types = _typeTable?.dischargeBoundTypes();
+    var types = _typeTable.dischargeBoundTypes();
     var constants = _dischargeConstTable();
 
     var body = js_ast.Block([...?types, ...?constants, ...fun.body.statements]);
