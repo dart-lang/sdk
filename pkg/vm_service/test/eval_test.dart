@@ -39,54 +39,56 @@ var tests = <IsolateTest>[
 
 // Evaluate against library, class, and instance.
   (VmService service, IsolateRef isolateRef) async {
-    final isolate = await service.getIsolate(isolateRef.id);
-    final stack = await service.getStack(isolateRef.id);
+    final isolateId = isolateRef.id!;
+    final isolate = await service.getIsolate(isolateId);
+    final stack = await service.getStack(isolateId);
 
     // Make sure we are in the right place.
-    expect(stack.frames.length, greaterThanOrEqualTo(2));
-    expect(stack.frames[0].function!.name, 'method');
-    expect((stack.frames[0].function!.owner as ClassRef).name, 'MyClass');
+    expect(stack.frames!.length, greaterThanOrEqualTo(2));
+    expect(stack.frames![0].function!.name, 'method');
+    expect((stack.frames![0].function!.owner as ClassRef).name, 'MyClass');
 
     final LibraryRef lib = isolate.rootLib!;
-    final ClassRef cls = stack.frames[0].function!.owner;
-    final InstanceRef instance = stack.frames[0].vars![0].value;
+    final ClassRef cls = stack.frames![0].function!.owner;
+    final InstanceRef instance = stack.frames![0].vars![0].value;
 
     dynamic result =
-        await service.evaluate(isolate.id, lib.id, 'globalVar + 5');
+        await service.evaluate(isolateId, lib.id!, 'globalVar + 5');
     print(result);
     expect(result.valueAsString, '105');
 
     await expectError(() =>
-        service.evaluate(isolate.id, lib.id, 'globalVar + staticVar + 5'));
+        service.evaluate(isolateId, lib.id!, 'globalVar + staticVar + 5'));
 
     result =
-        await service.evaluate(isolate.id, cls.id, 'globalVar + staticVar + 5');
+        await service.evaluate(isolateId, cls.id!, 'globalVar + staticVar + 5');
     print(result);
     expect(result.valueAsString, '1105');
 
-    await expectError(() => service.evaluate(isolate.id, cls.id, 'this + 5'));
+    await expectError(() => service.evaluate(isolateId, cls.id!, 'this + 5'));
 
-    result = await service.evaluate(isolate.id, instance.id, 'this + 5');
+    result = await service.evaluate(isolateId, instance.id!, 'this + 5');
     print(result);
     expect(result.valueAsString, '10005');
 
     await expectError(
-        () => service.evaluate(isolate.id, instance.id, 'this + frog'));
+        () => service.evaluate(isolateId, instance.id!, 'this + frog'));
   },
   resumeIsolate,
   hasStoppedAtBreakpoint,
   (VmService service, IsolateRef isolate) async {
-    final stack = await service.getStack(isolate.id);
+    final isolateId = isolate.id!;
+    final stack = await service.getStack(isolateId);
 
     // Make sure we are in the right place.
-    expect(stack.frames.length, greaterThanOrEqualTo(2));
-    expect(stack.frames[0].function!.name, 'foo');
-    expect((stack.frames[0].function!.owner as ClassRef).name, '_MyClass');
+    expect(stack.frames!.length, greaterThanOrEqualTo(2));
+    expect(stack.frames![0].function!.name, 'foo');
+    expect((stack.frames![0].function!.owner as ClassRef).name, '_MyClass');
 
-    final ClassRef cls = stack.frames[0].function!.owner;
+    final ClassRef cls = stack.frames![0].function!.owner;
 
     final InstanceRef result =
-        await service.evaluate(isolate.id, cls.id, "1+1") as InstanceRef;
+        await service.evaluate(isolateId, cls.id!, "1+1") as InstanceRef;
     print(result);
     expect(result.valueAsString, "2");
   }

@@ -54,7 +54,7 @@ final tests = <IsolateTest>[
   stoppedAtLine(LINE_A),
   // At LINE_A we're still running sync. so no asyncCausalFrames.
   (VmService service, IsolateRef isolateRef) async {
-    final result = await service.getStack(isolateRef.id);
+    final result = await service.getStack(isolateRef.id!);
 
     expect(result.frames, hasLength(16));
     expect(result.asyncCausalFrames, isNull);
@@ -93,17 +93,17 @@ final tests = <IsolateTest>[
   stoppedAtLine(LINE_B),
   // After resuming the continuation - i.e. running async.
   (VmService service, IsolateRef isolateRef) async {
-    final result = await service.getStack(isolateRef.id);
+    final result = await service.getStack(isolateRef.id!);
 
     expect(result.asyncCausalFrames, hasLength(26));
     expect(result.awaiterFrames, hasLength(2));
 
-    expectFrames(result.frames.sublist(0, 2), [
+    expectFrames(result.frames!.sublist(0, 2), [
       [equals('Regular'), endsWith(' func10')],
       [equals('Regular'), endsWith(' _RootZone.runUnary')],
     ]);
     // Some internal machinery happening in the middle.
-    expectFrame(result.frames.last, equals('Regular'),
+    expectFrame(result.frames!.last, equals('Regular'),
         endsWith(' _RawReceivePortImpl._handleMessage'));
 
     expectFrames(result.asyncCausalFrames, [

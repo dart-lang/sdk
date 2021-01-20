@@ -270,7 +270,7 @@ class HeapSnapshotGraph {
       }
     });
 
-    await service.requestHeapSnapshot(isolate.id);
+    await service.requestHeapSnapshot(isolate.id!);
     return completer.future;
   }
 

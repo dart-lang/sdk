@@ -95,7 +95,7 @@ extension DartIOExtension on VmService {
     final version = await _version(isolateId);
     // Parameter name changed in version 1.4.
     final enableKey =
-        ((version.major == 1 && version.minor > 3) || version.major >= 2)
+        ((version.major! == 1 && version.minor! > 3) || version.major! >= 2)
             ? 'enabled'
             : 'enable';
     return _callHelper('ext.dart.io.httpEnableTimelineLogging', isolateId,

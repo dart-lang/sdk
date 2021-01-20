@@ -30,41 +30,42 @@ void testFunction() {
 var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   (VmService service, IsolateRef isolateRef) async {
-    final isolate = await service.getIsolate(isolateRef.id);
+    final isolateId = isolateRef.id!;
+    final isolate = await service.getIsolate(isolateId);
     final Library lib =
-        await service.getObject(isolate.id, isolate.rootLib!.id) as Library;
-    final cls = lib.classes.singleWhere((cls) => cls.name == "Klass");
+        await service.getObject(isolateId, isolate.rootLib!.id!) as Library;
+    final cls = lib.classes!.singleWhere((cls) => cls.name == "Klass");
     FieldRef fieldRef =
-        lib.variables.singleWhere((field) => field.name == "instance");
-    Field field = await service.getObject(isolate.id, fieldRef.id) as Field;
-    final instance = await service.getObject(isolate.id, field.staticValue!.id);
+        lib.variables!.singleWhere((field) => field.name == "instance");
+    Field field = await service.getObject(isolateId, fieldRef.id!) as Field;
+    final instance = await service.getObject(isolateId, field.staticValue!.id!);
 
-    fieldRef = lib.variables.singleWhere((field) => field.name == "apple");
-    field = await service.getObject(isolate.id, fieldRef.id) as Field;
-    final apple = await service.getObject(isolate.id, field.staticValue!.id);
-    fieldRef = lib.variables.singleWhere((field) => field.name == "banana");
-    field = await service.getObject(isolate.id, fieldRef.id) as Field;
+    fieldRef = lib.variables!.singleWhere((field) => field.name == "apple");
+    field = await service.getObject(isolateId, fieldRef.id!) as Field;
+    final apple = await service.getObject(isolateId, field.staticValue!.id!);
+    fieldRef = lib.variables!.singleWhere((field) => field.name == "banana");
+    field = await service.getObject(isolateId, fieldRef.id!) as Field;
     Instance banana =
-        await service.getObject(isolate.id, field.staticValue!.id) as Instance;
+        await service.getObject(isolateId, field.staticValue!.id!) as Instance;
 
     dynamic result =
-        await service.invoke(isolate.id, lib.id, 'libraryFunction', []);
+        await service.invoke(isolateId, lib.id!, 'libraryFunction', []);
     expect(result.valueAsString, equals('foobar1'));
 
     result =
-        await service.invoke(isolate.id, cls.id, "classFunction", [apple.id]);
+        await service.invoke(isolateId, cls.id!, "classFunction", [apple.id!]);
     expect(result.valueAsString, equals('foobar2apple'));
 
     result = await service.invoke(
-        isolate.id, instance.id, "instanceFunction", [apple.id, banana.id]);
+        isolateId, instance.id!, "instanceFunction", [apple.id!, banana.id!]);
     expect(result.valueAsString, equals('foobar3applebanana'));
 
     // Wrong arity.
     await expectError(() => service
-        .invoke(isolate.id, instance.id, "instanceFunction", [apple.id]));
+        .invoke(isolateId, instance.id!, "instanceFunction", [apple.id!]));
     // No such target.
     await expectError(() => service
-        .invoke(isolate.id, instance.id, "functionDoesNotExist", [apple.id]));
+        .invoke(isolateId, instance.id!, "functionDoesNotExist", [apple.id!]));
   },
   resumeIsolate,
 ];

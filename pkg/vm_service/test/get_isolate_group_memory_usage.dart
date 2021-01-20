@@ -11,7 +11,7 @@ var tests = <VMTest>[
   (VmService service) async {
     final vm = await service.getVM();
     final result =
-        await service.getIsolateGroupMemoryUsage(vm.isolateGroups.first.id);
+        await service.getIsolateGroupMemoryUsage(vm.isolateGroups!.first.id!);
     expect(result.heapUsage, isPositive);
     expect(result.heapCapacity, isPositive);
     expect(result.externalUsage, isNonNegative);

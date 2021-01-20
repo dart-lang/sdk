@@ -2538,22 +2538,22 @@ class AllocationProfile extends Response {
       json == null ? null : AllocationProfile._fromJson(json);
 
   /// Allocation information for all class types.
-  late final List<ClassHeapStats> members;
+  List<ClassHeapStats>? members;
 
   /// Information about memory usage for the isolate.
-  late final MemoryUsage memoryUsage;
+  MemoryUsage? memoryUsage;
 
   /// The timestamp of the last accumulator reset.
   ///
   /// If the accumulators have not been reset, this field is not present.
   @optional
-  late final int? dateLastAccumulatorReset;
+  int? dateLastAccumulatorReset;
 
   /// The timestamp of the last manually triggered GC.
   ///
   /// If a GC has not been triggered manually, this field is not present.
   @optional
-  late final int? dateLastServiceGC;
+  int? dateLastServiceGC;
 
   AllocationProfile({
     required this.members,
@@ -2587,8 +2587,8 @@ class AllocationProfile extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'members': members.map((f) => f.toJson()).toList(),
-      'memoryUsage': memoryUsage.toJson(),
+      'members': members?.map((f) => f.toJson()).toList(),
+      'memoryUsage': memoryUsage?.toJson(),
     });
     _setIfNotNull(json, 'dateLastAccumulatorReset', dateLastAccumulatorReset);
     _setIfNotNull(json, 'dateLastServiceGC', dateLastServiceGC);
@@ -2611,10 +2611,10 @@ class BoundField {
   static BoundField? parse(Map<String, dynamic>? json) =>
       json == null ? null : BoundField._fromJson(json);
 
-  late final FieldRef decl;
+  FieldRef? decl;
 
   /// [value] can be one of [InstanceRef] or [Sentinel].
-  late final dynamic value;
+  dynamic? value;
 
   BoundField({
     required this.decl,
@@ -2631,8 +2631,8 @@ class BoundField {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     json.addAll({
-      'decl': decl.toJson(),
-      'value': value.toJson(),
+      'decl': decl?.toJson(),
+      'value': value?.toJson(),
     });
     return json;
   }
@@ -2655,19 +2655,19 @@ class BoundVariable extends Response {
   static BoundVariable? parse(Map<String, dynamic>? json) =>
       json == null ? null : BoundVariable._fromJson(json);
 
-  late final String name;
+  String? name;
 
   /// [value] can be one of [InstanceRef], [TypeArgumentsRef] or [Sentinel].
-  late final dynamic value;
+  dynamic? value;
 
   /// The token position where this variable was declared.
-  late final int declarationTokenPos;
+  int? declarationTokenPos;
 
   /// The first token position where this variable is visible to the scope.
-  late final int scopeStartTokenPos;
+  int? scopeStartTokenPos;
 
   /// The last token position where this variable is visible to the scope.
-  late final int scopeEndTokenPos;
+  int? scopeEndTokenPos;
 
   BoundVariable({
     required this.name,
@@ -2695,7 +2695,7 @@ class BoundVariable extends Response {
     json['type'] = type;
     json.addAll({
       'name': name,
-      'value': value.toJson(),
+      'value': value?.toJson(),
       'declarationTokenPos': declarationTokenPos,
       'scopeStartTokenPos': scopeStartTokenPos,
       'scopeEndTokenPos': scopeEndTokenPos,
@@ -2719,21 +2719,21 @@ class Breakpoint extends Obj {
       json == null ? null : Breakpoint._fromJson(json);
 
   /// A number identifying this breakpoint to the user.
-  late final int breakpointNumber;
+  int? breakpointNumber;
 
   /// Has this breakpoint been assigned to a specific program location?
-  late final bool resolved;
+  bool? resolved;
 
   /// Is this a breakpoint that was added synthetically as part of a step
   /// OverAsyncSuspension resume command?
   @optional
-  late final bool? isSyntheticAsyncContinuation;
+  bool? isSyntheticAsyncContinuation;
 
   /// SourceLocation when breakpoint is resolved, UnresolvedSourceLocation when
   /// a breakpoint is not resolved.
   ///
   /// [location] can be one of [SourceLocation] or [UnresolvedSourceLocation].
-  late final dynamic location;
+  dynamic? location;
 
   Breakpoint({
     required this.breakpointNumber,
@@ -2763,7 +2763,7 @@ class Breakpoint extends Obj {
     json.addAll({
       'breakpointNumber': breakpointNumber,
       'resolved': resolved,
-      'location': location.toJson(),
+      'location': location?.toJson(),
     });
     _setIfNotNull(
         json, 'isSyntheticAsyncContinuation', isSyntheticAsyncContinuation);
@@ -2785,7 +2785,7 @@ class ClassRef extends ObjRef {
       json == null ? null : ClassRef._fromJson(json);
 
   /// The name of this class.
-  late final String name;
+  String? name;
 
   ClassRef({
     required this.name,
@@ -2824,55 +2824,55 @@ class Class extends Obj implements ClassRef {
       json == null ? null : Class._fromJson(json);
 
   /// The name of this class.
-  late final String name;
+  String? name;
 
   /// The error which occurred during class finalization, if it exists.
   @optional
-  late final ErrorRef? error;
+  ErrorRef? error;
 
   /// Is this an abstract class?
-  late final bool isAbstract;
+  bool? isAbstract;
 
   /// Is this a const class?
-  late final bool isConst;
+  bool? isConst;
 
   /// The library which contains this class.
-  late final LibraryRef library;
+  LibraryRef? library;
 
   /// The location of this class in the source code.
   @optional
-  late final SourceLocation? location;
+  SourceLocation? location;
 
   /// The superclass of this class, if any.
   @optional
-  late final ClassRef? superClass;
+  ClassRef? superClass;
 
   /// The supertype for this class, if any.
   ///
   /// The value will be of the kind: Type.
   @optional
-  late final InstanceRef? superType;
+  InstanceRef? superType;
 
   /// A list of interface types for this class.
   ///
   /// The values will be of the kind: Type.
-  late final List<InstanceRef> interfaces;
+  List<InstanceRef>? interfaces;
 
   /// The mixin type for this class, if any.
   ///
   /// The value will be of the kind: Type.
   @optional
-  late final InstanceRef? mixin;
+  InstanceRef? mixin;
 
   /// A list of fields in this class. Does not include fields from superclasses.
-  late final List<FieldRef> fields;
+  List<FieldRef>? fields;
 
   /// A list of functions in this class. Does not include functions from
   /// superclasses.
-  late final List<FuncRef> functions;
+  List<FuncRef>? functions;
 
   /// A list of subclasses of this class.
-  late final List<ClassRef> subclasses;
+  List<ClassRef>? subclasses;
 
   Class({
     required this.name,
@@ -2933,11 +2933,11 @@ class Class extends Obj implements ClassRef {
       'name': name,
       'abstract': isAbstract,
       'const': isConst,
-      'library': library.toJson(),
-      'interfaces': interfaces.map((f) => f.toJson()).toList(),
-      'fields': fields.map((f) => f.toJson()).toList(),
-      'functions': functions.map((f) => f.toJson()).toList(),
-      'subclasses': subclasses.map((f) => f.toJson()).toList(),
+      'library': library?.toJson(),
+      'interfaces': interfaces?.map((f) => f.toJson()).toList(),
+      'fields': fields?.map((f) => f.toJson()).toList(),
+      'functions': functions?.map((f) => f.toJson()).toList(),
+      'subclasses': subclasses?.map((f) => f.toJson()).toList(),
     });
     _setIfNotNull(json, 'error', error?.toJson());
     _setIfNotNull(json, 'location', location?.toJson());
@@ -2959,21 +2959,21 @@ class ClassHeapStats extends Response {
       json == null ? null : ClassHeapStats._fromJson(json);
 
   /// The class for which this memory information is associated.
-  late final ClassRef classRef;
+  ClassRef? classRef;
 
   /// The number of bytes allocated for instances of class since the accumulator
   /// was last reset.
-  late final int accumulatedSize;
+  int? accumulatedSize;
 
   /// The number of bytes currently allocated for instances of class.
-  late final int bytesCurrent;
+  int? bytesCurrent;
 
   /// The number of instances of class which have been allocated since the
   /// accumulator was last reset.
-  late final int instancesAccumulated;
+  int? instancesAccumulated;
 
   /// The number of instances of class which are currently alive.
-  late final int instancesCurrent;
+  int? instancesCurrent;
 
   ClassHeapStats({
     required this.classRef,
@@ -3000,7 +3000,7 @@ class ClassHeapStats extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'class': classRef.toJson(),
+      'class': classRef?.toJson(),
       'accumulatedSize': accumulatedSize,
       'bytesCurrent': bytesCurrent,
       'instancesAccumulated': instancesAccumulated,
@@ -3018,7 +3018,7 @@ class ClassList extends Response {
   static ClassList? parse(Map<String, dynamic>? json) =>
       json == null ? null : ClassList._fromJson(json);
 
-  late final List<ClassRef> classes;
+  List<ClassRef>? classes;
 
   ClassList({
     required this.classes,
@@ -3038,7 +3038,7 @@ class ClassList extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'classes': classes.map((f) => f.toJson()).toList(),
+      'classes': classes?.map((f) => f.toJson()).toList(),
     });
     return json;
   }
@@ -3052,10 +3052,10 @@ class CodeRef extends ObjRef {
       json == null ? null : CodeRef._fromJson(json);
 
   /// A name for this code object.
-  late final String name;
+  String? name;
 
   /// What kind of code object is this?
-  late final /*CodeKind*/ String kind;
+  /*CodeKind*/ String? kind;
 
   CodeRef({
     required this.name,
@@ -3097,10 +3097,10 @@ class Code extends ObjRef implements CodeRef {
       json == null ? null : Code._fromJson(json);
 
   /// A name for this code object.
-  late final String name;
+  String? name;
 
   /// What kind of code object is this?
-  late final /*CodeKind*/ String kind;
+  /*CodeKind*/ String? kind;
 
   Code({
     required this.name,
@@ -3141,7 +3141,7 @@ class ContextRef extends ObjRef {
       json == null ? null : ContextRef._fromJson(json);
 
   /// The number of variables in this context.
-  late final int length;
+  int? length;
 
   ContextRef({
     required this.length,
@@ -3181,14 +3181,14 @@ class Context extends Obj implements ContextRef {
       json == null ? null : Context._fromJson(json);
 
   /// The number of variables in this context.
-  late final int length;
+  int? length;
 
   /// The enclosing context for this context.
   @optional
-  late final Context? parent;
+  Context? parent;
 
   /// The variables in this context object.
-  late final List<ContextElement> variables;
+  List<ContextElement>? variables;
 
   Context({
     required this.length,
@@ -3217,7 +3217,7 @@ class Context extends Obj implements ContextRef {
     json['type'] = type;
     json.addAll({
       'length': length,
-      'variables': variables.map((f) => f.toJson()).toList(),
+      'variables': variables?.map((f) => f.toJson()).toList(),
     });
     _setIfNotNull(json, 'parent', parent?.toJson());
     return json;
@@ -3236,7 +3236,7 @@ class ContextElement {
       json == null ? null : ContextElement._fromJson(json);
 
   /// [value] can be one of [InstanceRef] or [Sentinel].
-  late final dynamic value;
+  dynamic? value;
 
   ContextElement({
     required this.value,
@@ -3251,7 +3251,7 @@ class ContextElement {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     json.addAll({
-      'value': value.toJson(),
+      'value': value?.toJson(),
     });
     return json;
   }
@@ -3265,35 +3265,35 @@ class CpuSamples extends Response {
       json == null ? null : CpuSamples._fromJson(json);
 
   /// The sampling rate for the profiler in microseconds.
-  late final int samplePeriod;
+  int? samplePeriod;
 
   /// The maximum possible stack depth for samples.
-  late final int maxStackDepth;
+  int? maxStackDepth;
 
   /// The number of samples returned.
-  late final int sampleCount;
+  int? sampleCount;
 
   /// The timespan the set of returned samples covers, in microseconds.
-  late final int timeSpan;
+  int? timeSpan;
 
   /// The start of the period of time in which the returned samples were
   /// collected.
-  late final int timeOriginMicros;
+  int? timeOriginMicros;
 
   /// The duration of time covered by the returned samples.
-  late final int timeExtentMicros;
+  int? timeExtentMicros;
 
   /// The process ID for the VM.
-  late final int pid;
+  int? pid;
 
   /// A list of functions seen in the relevant samples. These references can be
   /// looked up using the indicies provided in a `CpuSample` `stack` to
   /// determine which function was on the stack.
-  late final List<ProfileFunction> functions;
+  List<ProfileFunction>? functions;
 
   /// A list of samples collected in the range `[timeOriginMicros,
   /// timeOriginMicros + timeExtentMicros]`
-  late final List<CpuSample> samples;
+  List<CpuSample>? samples;
 
   CpuSamples({
     required this.samplePeriod,
@@ -3339,8 +3339,8 @@ class CpuSamples extends Response {
       'timeOriginMicros': timeOriginMicros,
       'timeExtentMicros': timeExtentMicros,
       'pid': pid,
-      'functions': functions.map((f) => f.toJson()).toList(),
-      'samples': samples.map((f) => f.toJson()).toList(),
+      'functions': functions?.map((f) => f.toJson()).toList(),
+      'samples': samples?.map((f) => f.toJson()).toList(),
     });
     return json;
   }
@@ -3354,26 +3354,26 @@ class CpuSample {
       json == null ? null : CpuSample._fromJson(json);
 
   /// The thread ID representing the thread on which this sample was collected.
-  late final int tid;
+  int? tid;
 
   /// The time this sample was collected in microseconds.
-  late final int timestamp;
+  int? timestamp;
 
   /// The name of VM tag set when this sample was collected. Omitted if the VM
   /// tag for the sample is not considered valid.
   @optional
-  late final String? vmTag;
+  String? vmTag;
 
   /// The name of the User tag set when this sample was collected. Omitted if no
   /// User tag was set when this sample was collected.
   @optional
-  late final String? userTag;
+  String? userTag;
 
   /// Provided and set to true if the sample's stack was truncated. This can
   /// happen if the stack is deeper than the `stackDepth` in the `CpuSamples`
   /// response.
   @optional
-  late final bool? truncated;
+  bool? truncated;
 
   /// The call stack at the time this sample was collected. The stack is to be
   /// interpreted as top to bottom. Each element in this array is a key into the
@@ -3383,7 +3383,7 @@ class CpuSample {
   ///
   /// `functions[stack[0]] = @Function(bar())` `functions[stack[1]] =
   /// @Function(foo())` `functions[stack[2]] = @Function(main())`
-  late final List<int> stack;
+  List<int>? stack;
 
   CpuSample({
     required this.tid,
@@ -3408,7 +3408,7 @@ class CpuSample {
     json.addAll({
       'tid': tid,
       'timestamp': timestamp,
-      'stack': stack.map((f) => f).toList(),
+      'stack': stack?.map((f) => f).toList(),
     });
     _setIfNotNull(json, 'vmTag', vmTag);
     _setIfNotNull(json, 'userTag', userTag);
@@ -3426,10 +3426,10 @@ class ErrorRef extends ObjRef {
       json == null ? null : ErrorRef._fromJson(json);
 
   /// What kind of error is this?
-  late final /*ErrorKind*/ String kind;
+  /*ErrorKind*/ String? kind;
 
   /// A description of the error.
-  late final String message;
+  String? message;
 
   ErrorRef({
     required this.kind,
@@ -3473,20 +3473,20 @@ class Error extends Obj implements ErrorRef {
       json == null ? null : Error._fromJson(json);
 
   /// What kind of error is this?
-  late final /*ErrorKind*/ String kind;
+  /*ErrorKind*/ String? kind;
 
   /// A description of the error.
-  late final String message;
+  String? message;
 
   /// If this error is due to an unhandled exception, this is the exception
   /// thrown.
   @optional
-  late final InstanceRef? exception;
+  InstanceRef? exception;
 
   /// If this error is due to an unhandled exception, this is the stacktrace
   /// object.
   @optional
-  late final InstanceRef? stacktrace;
+  InstanceRef? stacktrace;
 
   Error({
     required this.kind,
@@ -3540,27 +3540,27 @@ class Event extends Response {
       json == null ? null : Event._fromJson(json);
 
   /// What kind of event is this?
-  late final /*EventKind*/ String kind;
+  /*EventKind*/ String? kind;
 
   /// The isolate with which this event is associated.
   ///
   /// This is provided for all event kinds except for:
   ///  - VMUpdate, VMFlagUpdate
   @optional
-  late final IsolateRef? isolate;
+  IsolateRef? isolate;
 
   /// The vm with which this event is associated.
   ///
   /// This is provided for the event kind:
   ///  - VMUpdate, VMFlagUpdate
   @optional
-  late final VMRef? vm;
+  VMRef? vm;
 
   /// The timestamp (in milliseconds since the epoch) associated with this
   /// event. For some isolate pause events, the timestamp is from when the
   /// isolate was paused. For other events, the timestamp is from when the event
   /// was created.
-  late final int timestamp;
+  int? timestamp;
 
   /// The breakpoint which was added, removed, or resolved.
   ///
@@ -3570,7 +3570,7 @@ class Event extends Response {
   ///  - BreakpointRemoved
   ///  - BreakpointResolved
   @optional
-  late final Breakpoint? breakpoint;
+  Breakpoint? breakpoint;
 
   /// The list of breakpoints at which we are currently paused for a
   /// PauseBreakpoint event.
@@ -3584,7 +3584,7 @@ class Event extends Response {
   /// This is provided for the event kinds:
   ///  - PauseBreakpoint
   @optional
-  late final List<Breakpoint>? pauseBreakpoints;
+  List<Breakpoint>? pauseBreakpoints;
 
   /// The top stack frame associated with this event, if applicable.
   ///
@@ -3600,54 +3600,54 @@ class Event extends Response {
   /// the initial resume event that is delivered when an isolate begins
   /// execution.
   @optional
-  late final Frame? topFrame;
+  Frame? topFrame;
 
   /// The exception associated with this event, if this is a PauseException
   /// event.
   @optional
-  late final InstanceRef? exception;
+  InstanceRef? exception;
 
   /// An array of bytes, encoded as a base64 string.
   ///
   /// This is provided for the WriteEvent event.
   @optional
-  late final String? bytes;
+  String? bytes;
 
   /// The argument passed to dart:developer.inspect.
   ///
   /// This is provided for the Inspect event.
   @optional
-  late final InstanceRef? inspectee;
+  InstanceRef? inspectee;
 
   /// The RPC name of the extension that was added.
   ///
   /// This is provided for the ServiceExtensionAdded event.
   @optional
-  late final String? extensionRPC;
+  String? extensionRPC;
 
   /// The extension event kind.
   ///
   /// This is provided for the Extension event.
   @optional
-  late final String? extensionKind;
+  String? extensionKind;
 
   /// The extension event data.
   ///
   /// This is provided for the Extension event.
   @optional
-  late final ExtensionData? extensionData;
+  ExtensionData? extensionData;
 
   /// An array of TimelineEvents
   ///
   /// This is provided for the TimelineEvents event.
   @optional
-  late final List<TimelineEvent>? timelineEvents;
+  List<TimelineEvent>? timelineEvents;
 
   /// The new set of recorded timeline streams.
   ///
   /// This is provided for the TimelineStreamSubscriptionsUpdate event.
   @optional
-  late final List<String>? updatedStreams;
+  List<String>? updatedStreams;
 
   /// Is the isolate paused at an await, yield, or yield* statement?
   ///
@@ -3655,19 +3655,19 @@ class Event extends Response {
   ///  - PauseBreakpoint
   ///  - PauseInterrupted
   @optional
-  late final bool? atAsyncSuspension;
+  bool? atAsyncSuspension;
 
   /// The status (success or failure) related to the event. This is provided for
   /// the event kinds:
   ///  - IsolateReloaded
   @optional
-  late final String? status;
+  String? status;
 
   /// LogRecord data.
   ///
   /// This is provided for the Logging event.
   @optional
-  late final LogRecord? logRecord;
+  LogRecord? logRecord;
 
   /// The service identifier.
   ///
@@ -3675,7 +3675,7 @@ class Event extends Response {
   ///  - ServiceRegistered
   ///  - ServiceUnregistered
   @optional
-  late final String? service;
+  String? service;
 
   /// The RPC method that should be used to invoke the service.
   ///
@@ -3683,42 +3683,42 @@ class Event extends Response {
   ///  - ServiceRegistered
   ///  - ServiceUnregistered
   @optional
-  late final String? method;
+  String? method;
 
   /// The alias of the registered service.
   ///
   /// This is provided for the event kinds:
   ///  - ServiceRegistered
   @optional
-  late final String? alias;
+  String? alias;
 
   /// The name of the changed flag.
   ///
   /// This is provided for the event kinds:
   ///  - VMFlagUpdate
   @optional
-  late final String? flag;
+  String? flag;
 
   /// The new value of the changed flag.
   ///
   /// This is provided for the event kinds:
   ///  - VMFlagUpdate
   @optional
-  late final String? newValue;
+  String? newValue;
 
   /// Specifies whether this event is the last of a group of events.
   ///
   /// This is provided for the event kinds:
   ///  - HeapSnapshot
   @optional
-  late final bool? last;
+  bool? last;
 
   /// Binary data associated with the event.
   ///
   /// This is provided for the event kinds:
   ///   - HeapSnapshot
   @optional
-  late final ByteData? data;
+  ByteData? data;
 
   Event({
     required this.kind,
@@ -3839,25 +3839,25 @@ class FieldRef extends ObjRef {
       json == null ? null : FieldRef._fromJson(json);
 
   /// The name of this field.
-  late final String name;
+  String? name;
 
   /// The owner of this field, which can be either a Library or a Class.
-  late final ObjRef owner;
+  ObjRef? owner;
 
   /// The declared type of this field.
   ///
   /// The value will always be of one of the kinds: Type, TypeRef,
   /// TypeParameter, BoundedType.
-  late final InstanceRef declaredType;
+  InstanceRef? declaredType;
 
   /// Is this field const?
-  late final bool isConst;
+  bool? isConst;
 
   /// Is this field final?
-  late final bool isFinal;
+  bool? isFinal;
 
   /// Is this field static?
-  late final bool isStatic;
+  bool? isStatic;
 
   FieldRef({
     required this.name,
@@ -3891,8 +3891,8 @@ class FieldRef extends ObjRef {
     json['type'] = type;
     json.addAll({
       'name': name,
-      'owner': owner.toJson(),
-      'declaredType': declaredType.toJson(),
+      'owner': owner?.toJson(),
+      'declaredType': declaredType?.toJson(),
       'const': isConst,
       'final': isFinal,
       'static': isStatic,
@@ -3915,33 +3915,33 @@ class Field extends Obj implements FieldRef {
       json == null ? null : Field._fromJson(json);
 
   /// The name of this field.
-  late final String name;
+  String? name;
 
   /// The owner of this field, which can be either a Library or a Class.
-  late final ObjRef owner;
+  ObjRef? owner;
 
   /// The declared type of this field.
   ///
   /// The value will always be of one of the kinds: Type, TypeRef,
   /// TypeParameter, BoundedType.
-  late final InstanceRef declaredType;
+  InstanceRef? declaredType;
 
   /// Is this field const?
-  late final bool isConst;
+  bool? isConst;
 
   /// Is this field final?
-  late final bool isFinal;
+  bool? isFinal;
 
   /// Is this field static?
-  late final bool isStatic;
+  bool? isStatic;
 
   /// The value of this field, if the field is static.
   @optional
-  late final InstanceRef? staticValue;
+  InstanceRef? staticValue;
 
   /// The location of this field in the source code.
   @optional
-  late final SourceLocation? location;
+  SourceLocation? location;
 
   Field({
     required this.name,
@@ -3982,8 +3982,8 @@ class Field extends Obj implements FieldRef {
     json['type'] = type;
     json.addAll({
       'name': name,
-      'owner': owner.toJson(),
-      'declaredType': declaredType.toJson(),
+      'owner': owner?.toJson(),
+      'declaredType': declaredType?.toJson(),
       'const': isConst,
       'final': isFinal,
       'static': isStatic,
@@ -4008,19 +4008,19 @@ class Flag {
       json == null ? null : Flag._fromJson(json);
 
   /// The name of the flag.
-  late final String name;
+  String? name;
 
   /// A description of the flag.
-  late final String comment;
+  String? comment;
 
   /// Has this flag been modified from its default setting?
-  late final bool modified;
+  bool? modified;
 
   /// The value of this flag as a string.
   ///
   /// If this property is absent, then the value of the flag was NULL.
   @optional
-  late final String? valueAsString;
+  String? valueAsString;
 
   Flag({
     required this.name,
@@ -4057,7 +4057,7 @@ class FlagList extends Response {
       json == null ? null : FlagList._fromJson(json);
 
   /// A list of all flags in the VM.
-  late final List<Flag> flags;
+  List<Flag>? flags;
 
   FlagList({
     required this.flags,
@@ -4076,7 +4076,7 @@ class FlagList extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'flags': flags.map((f) => f.toJson()).toList(),
+      'flags': flags?.map((f) => f.toJson()).toList(),
     });
     return json;
   }
@@ -4088,22 +4088,23 @@ class Frame extends Response {
   static Frame? parse(Map<String, dynamic>? json) =>
       json == null ? null : Frame._fromJson(json);
 
-  late final int index;
+  int? index;
 
   @optional
-  late final FuncRef? function;
+  FuncRef? function;
 
   @optional
-  late final CodeRef? code;
+  CodeRef? code;
 
   @optional
-  late final SourceLocation? location;
+  SourceLocation? location;
 
   @optional
-  late final List<BoundVariable>? vars;
+  List<BoundVariable>? vars;
 
   @optional
-  late final /*FrameKind*/ String? kind;
+  /*FrameKind*/
+  String? kind;
 
   Frame({
     required this.index,
@@ -4156,18 +4157,18 @@ class FuncRef extends ObjRef {
       json == null ? null : FuncRef._fromJson(json);
 
   /// The name of this function.
-  late final String name;
+  String? name;
 
   /// The owner of this function, which can be a Library, Class, or a Function.
   ///
   /// [owner] can be one of [LibraryRef], [ClassRef] or [FuncRef].
-  late final dynamic owner;
+  dynamic? owner;
 
   /// Is this function static?
-  late final bool isStatic;
+  bool? isStatic;
 
   /// Is this function const?
-  late final bool isConst;
+  bool? isConst;
 
   FuncRef({
     required this.name,
@@ -4196,7 +4197,7 @@ class FuncRef extends ObjRef {
     json['type'] = type;
     json.addAll({
       'name': name,
-      'owner': owner.toJson(),
+      'owner': owner?.toJson(),
       'static': isStatic,
       'const': isConst,
     });
@@ -4218,26 +4219,26 @@ class Func extends Obj implements FuncRef {
       json == null ? null : Func._fromJson(json);
 
   /// The name of this function.
-  late final String name;
+  String? name;
 
   /// The owner of this function, which can be a Library, Class, or a Function.
   ///
   /// [owner] can be one of [LibraryRef], [ClassRef] or [FuncRef].
-  late final dynamic owner;
+  dynamic? owner;
 
   /// Is this function static?
-  late final bool isStatic;
+  bool? isStatic;
 
   /// Is this function const?
-  late final bool isConst;
+  bool? isConst;
 
   /// The location of this function in the source code.
   @optional
-  late final SourceLocation? location;
+  SourceLocation? location;
 
   /// The compiled code associated with this function.
   @optional
-  late final CodeRef? code;
+  CodeRef? code;
 
   Func({
     required this.name,
@@ -4271,7 +4272,7 @@ class Func extends Obj implements FuncRef {
     json['type'] = type;
     json.addAll({
       'name': name,
-      'owner': owner.toJson(),
+      'owner': owner?.toJson(),
       'static': isStatic,
       'const': isConst,
     });
@@ -4295,10 +4296,10 @@ class InstanceRef extends ObjRef {
       json == null ? null : InstanceRef._fromJson(json);
 
   /// What kind of instance is this?
-  late final /*InstanceKind*/ String kind;
+  /*InstanceKind*/ String? kind;
 
   /// Instance references always include their class.
-  late final ClassRef classRef;
+  ClassRef? classRef;
 
   /// The value of this instance as a string.
   ///
@@ -4313,14 +4314,14 @@ class InstanceRef extends ObjRef {
   ///  - Int32x4
   ///  - StackTrace
   @optional
-  late final String? valueAsString;
+  String? valueAsString;
 
   /// The valueAsString for String references may be truncated. If so, this
   /// property is added with the value 'true'.
   ///
   /// New code should use 'length' and 'count' instead.
   @optional
-  late final bool? valueAsStringIsTruncated;
+  bool? valueAsStringIsTruncated;
 
   /// The length of a List or the number of associations in a Map or the number
   /// of codeunits in a String.
@@ -4344,28 +4345,28 @@ class InstanceRef extends ObjRef {
   ///  - Float32x4List
   ///  - Float64x2List
   @optional
-  late final int? length;
+  int? length;
 
   /// The name of a Type instance.
   ///
   /// Provided for instance kinds:
   ///  - Type
   @optional
-  late final String? name;
+  String? name;
 
   /// The corresponding Class if this Type has a resolved typeClass.
   ///
   /// Provided for instance kinds:
   ///  - Type
   @optional
-  late final ClassRef? typeClass;
+  ClassRef? typeClass;
 
   /// The parameterized class of a type parameter:
   ///
   /// Provided for instance kinds:
   ///  - TypeParameter
   @optional
-  late final ClassRef? parameterizedClass;
+  ClassRef? parameterizedClass;
 
   /// The pattern of a RegExp instance.
   ///
@@ -4374,42 +4375,42 @@ class InstanceRef extends ObjRef {
   /// Provided for instance kinds:
   ///  - RegExp
   @optional
-  late final InstanceRef? pattern;
+  InstanceRef? pattern;
 
   /// The function associated with a Closure instance.
   ///
   /// Provided for instance kinds:
   ///  - Closure
   @optional
-  late final FuncRef? closureFunction;
+  FuncRef? closureFunction;
 
   /// The context associated with a Closure instance.
   ///
   /// Provided for instance kinds:
   ///  - Closure
   @optional
-  late final ContextRef? closureContext;
+  ContextRef? closureContext;
 
   /// The port ID for a ReceivePort.
   ///
   /// Provided for instance kinds:
   ///  - ReceivePort
   @optional
-  late final int? portId;
+  int? portId;
 
   /// The stack trace associated with the allocation of a ReceivePort.
   ///
   /// Provided for instance kinds:
   ///  - ReceivePort
   @optional
-  late final InstanceRef? allocationLocation;
+  InstanceRef? allocationLocation;
 
   /// A name associated with a ReceivePort used for debugging purposes.
   ///
   /// Provided for instance kinds:
   ///  - ReceivePort
   @optional
-  late final String? debugName;
+  String? debugName;
 
   InstanceRef({
     required this.kind,
@@ -4468,7 +4469,7 @@ class InstanceRef extends ObjRef {
     json['type'] = type;
     json.addAll({
       'kind': kind,
-      'class': classRef.toJson(),
+      'class': classRef?.toJson(),
     });
     _setIfNotNull(json, 'valueAsString', valueAsString);
     _setIfNotNull(json, 'valueAsStringIsTruncated', valueAsStringIsTruncated);
@@ -4499,11 +4500,11 @@ class Instance extends Obj implements InstanceRef {
       json == null ? null : Instance._fromJson(json);
 
   /// What kind of instance is this?
-  late final /*InstanceKind*/ String kind;
+  /*InstanceKind*/ String? kind;
 
   /// Instance references always include their class.
   @override
-  covariant late final ClassRef classRef;
+  ClassRef? classRef;
 
   /// The value of this instance as a string.
   ///
@@ -4514,14 +4515,14 @@ class Instance extends Obj implements InstanceRef {
   ///  - String (value may be truncated)
   ///  - StackTrace
   @optional
-  late final String? valueAsString;
+  String? valueAsString;
 
   /// The valueAsString for String references may be truncated. If so, this
   /// property is added with the value 'true'.
   ///
   /// New code should use 'length' and 'count' instead.
   @optional
-  late final bool? valueAsStringIsTruncated;
+  bool? valueAsStringIsTruncated;
 
   /// The length of a List or the number of associations in a Map or the number
   /// of codeunits in a String.
@@ -4545,7 +4546,7 @@ class Instance extends Obj implements InstanceRef {
   ///  - Float32x4List
   ///  - Float64x2List
   @optional
-  late final int? length;
+  int? length;
 
   /// The index of the first element or association or codeunit returned. This
   /// is only provided when it is non-zero.
@@ -4569,7 +4570,7 @@ class Instance extends Obj implements InstanceRef {
   ///  - Float32x4List
   ///  - Float64x2List
   @optional
-  late final int? offset;
+  int? offset;
 
   /// The number of elements or associations or codeunits returned. This is only
   /// provided when it is less than length.
@@ -4593,46 +4594,46 @@ class Instance extends Obj implements InstanceRef {
   ///  - Float32x4List
   ///  - Float64x2List
   @optional
-  late final int? count;
+  int? count;
 
   /// The name of a Type instance.
   ///
   /// Provided for instance kinds:
   ///  - Type
   @optional
-  late final String? name;
+  String? name;
 
   /// The corresponding Class if this Type is canonical.
   ///
   /// Provided for instance kinds:
   ///  - Type
   @optional
-  late final ClassRef? typeClass;
+  ClassRef? typeClass;
 
   /// The parameterized class of a type parameter:
   ///
   /// Provided for instance kinds:
   ///  - TypeParameter
   @optional
-  late final ClassRef? parameterizedClass;
+  ClassRef? parameterizedClass;
 
   /// The fields of this Instance.
   @optional
-  late final List<BoundField>? fields;
+  List<BoundField>? fields;
 
   /// The elements of a List instance.
   ///
   /// Provided for instance kinds:
   ///  - List
   @optional
-  late final List<dynamic>? elements;
+  List<dynamic>? elements;
 
   /// The elements of a Map instance.
   ///
   /// Provided for instance kinds:
   ///  - Map
   @optional
-  late final List<MapAssociation>? associations;
+  List<MapAssociation>? associations;
 
   /// The bytes of a TypedData instance.
   ///
@@ -4654,77 +4655,77 @@ class Instance extends Obj implements InstanceRef {
   ///  - Float32x4List
   ///  - Float64x2List
   @optional
-  late final String? bytes;
+  String? bytes;
 
   /// The referent of a MirrorReference instance.
   ///
   /// Provided for instance kinds:
   ///  - MirrorReference
   @optional
-  late final InstanceRef? mirrorReferent;
+  InstanceRef? mirrorReferent;
 
   /// The pattern of a RegExp instance.
   ///
   /// Provided for instance kinds:
   ///  - RegExp
   @optional
-  late final InstanceRef? pattern;
+  InstanceRef? pattern;
 
   /// The function associated with a Closure instance.
   ///
   /// Provided for instance kinds:
   ///  - Closure
   @optional
-  late final FuncRef? closureFunction;
+  FuncRef? closureFunction;
 
   /// The context associated with a Closure instance.
   ///
   /// Provided for instance kinds:
   ///  - Closure
   @optional
-  late final ContextRef? closureContext;
+  ContextRef? closureContext;
 
   /// Whether this regular expression is case sensitive.
   ///
   /// Provided for instance kinds:
   ///  - RegExp
   @optional
-  late final bool? isCaseSensitive;
+  bool? isCaseSensitive;
 
   /// Whether this regular expression matches multiple lines.
   ///
   /// Provided for instance kinds:
   ///  - RegExp
   @optional
-  late final bool? isMultiLine;
+  bool? isMultiLine;
 
   /// The key for a WeakProperty instance.
   ///
   /// Provided for instance kinds:
   ///  - WeakProperty
   @optional
-  late final InstanceRef? propertyKey;
+  InstanceRef? propertyKey;
 
   /// The key for a WeakProperty instance.
   ///
   /// Provided for instance kinds:
   ///  - WeakProperty
   @optional
-  late final InstanceRef? propertyValue;
+  InstanceRef? propertyValue;
 
   /// The type arguments for this type.
   ///
   /// Provided for instance kinds:
   ///  - Type
   @optional
-  late final TypeArgumentsRef? typeArguments;
+  TypeArgumentsRef? typeArguments;
 
   /// The index of a TypeParameter instance.
   ///
   /// Provided for instance kinds:
   ///  - TypeParameter
   @optional
-  late final int? parameterIndex;
+  int? parameterIndex;
 
   /// The type bounded by a BoundedType instance - or - the referent of a
   /// TypeRef instance.
@@ -4736,7 +4737,7 @@ class Instance extends Obj implements InstanceRef {
   ///  - BoundedType
   ///  - TypeRef
   @optional
-  late final InstanceRef? targetType;
+  InstanceRef? targetType;
 
   /// The bound of a TypeParameter or BoundedType.
   ///
@@ -4747,28 +4748,28 @@ class Instance extends Obj implements InstanceRef {
   ///  - BoundedType
   ///  - TypeParameter
   @optional
-  late final InstanceRef? bound;
+  InstanceRef? bound;
 
   /// The port ID for a ReceivePort.
   ///
   /// Provided for instance kinds:
   ///  - ReceivePort
   @optional
-  late final int? portId;
+  int? portId;
 
   /// The stack trace associated with the allocation of a ReceivePort.
   ///
   /// Provided for instance kinds:
   ///  - ReceivePort
   @optional
-  late final InstanceRef? allocationLocation;
+  InstanceRef? allocationLocation;
 
   /// A name associated with a ReceivePort used for debugging purposes.
   ///
   /// Provided for instance kinds:
   ///  - ReceivePort
   @optional
-  late final String? debugName;
+  String? debugName;
 
   Instance({
     required this.kind,
@@ -4835,7 +4836,7 @@ class Instance extends Obj implements InstanceRef {
     json['type'] = type;
     json.addAll({
       'kind': kind,
-      'class': classRef.toJson(),
+      'class': classRef?.toJson(),
     });
     _setIfNotNull(json, 'valueAsString', valueAsString);
     _setIfNotNull(json, 'valueAsStringIsTruncated', valueAsStringIsTruncated);
@@ -4882,17 +4883,17 @@ class IsolateRef extends Response {
       json == null ? null : IsolateRef._fromJson(json);
 
   /// The id which is passed to the getIsolate RPC to load this isolate.
-  late final String id;
+  String? id;
 
   /// A numeric id for this isolate, represented as a string. Unique.
-  late final String number;
+  String? number;
 
   /// A name identifying this isolate. Not guaranteed to be unique.
-  late final String name;
+  String? name;
 
   /// Specifies whether the isolate was spawned by the VM or embedder for
   /// internal use. If `false`, this isolate is likely running user code.
-  late final bool isSystemIsolate;
+  bool? isSystemIsolate;
 
   IsolateRef({
     required this.id,
@@ -4938,65 +4939,65 @@ class Isolate extends Response implements IsolateRef {
       json == null ? null : Isolate._fromJson(json);
 
   /// The id which is passed to the getIsolate RPC to reload this isolate.
-  late final String id;
+  String? id;
 
   /// A numeric id for this isolate, represented as a string. Unique.
-  late final String number;
+  String? number;
 
   /// A name identifying this isolate. Not guaranteed to be unique.
-  late final String name;
+  String? name;
 
   /// Specifies whether the isolate was spawned by the VM or embedder for
   /// internal use. If `false`, this isolate is likely running user code.
-  late final bool isSystemIsolate;
+  bool? isSystemIsolate;
 
   /// The list of isolate flags provided to this isolate. See Dart_IsolateFlags
   /// in dart_api.h for the list of accepted isolate flags.
-  late final List<IsolateFlag> isolateFlags;
+  List<IsolateFlag>? isolateFlags;
 
   /// The time that the VM started in milliseconds since the epoch.
   ///
   /// Suitable to pass to DateTime.fromMillisecondsSinceEpoch.
-  late final int startTime;
+  int? startTime;
 
   /// Is the isolate in a runnable state?
-  late final bool runnable;
+  bool? runnable;
 
   /// The number of live ports for this isolate.
-  late final int livePorts;
+  int? livePorts;
 
   /// Will this isolate pause when exiting?
-  late final bool pauseOnExit;
+  bool? pauseOnExit;
 
   /// The last pause event delivered to the isolate. If the isolate is running,
   /// this will be a resume event.
-  late final Event pauseEvent;
+  Event? pauseEvent;
 
   /// The root library for this isolate.
   ///
   /// Guaranteed to be initialized when the IsolateRunnable event fires.
   @optional
-  late final LibraryRef? rootLib;
+  LibraryRef? rootLib;
 
   /// A list of all libraries for this isolate.
   ///
   /// Guaranteed to be initialized when the IsolateRunnable event fires.
-  late final List<LibraryRef> libraries;
+  List<LibraryRef>? libraries;
 
   /// A list of all breakpoints for this isolate.
-  late final List<Breakpoint> breakpoints;
+  List<Breakpoint>? breakpoints;
 
   /// The error that is causing this isolate to exit, if applicable.
   @optional
-  late final Error? error;
+  Error? error;
 
   /// The current pause on exception mode for this isolate.
-  late final /*ExceptionPauseMode*/ String exceptionPauseMode;
+  /*ExceptionPauseMode*/ String? exceptionPauseMode;
 
   /// The list of service extension RPCs that are registered for this isolate,
   /// if any.
   @optional
-  late final List<String>? extensionRPCs;
+  List<String>? extensionRPCs;
 
   Isolate({
     required this.id,
@@ -5060,14 +5061,14 @@ class Isolate extends Response implements IsolateRef {
       'number': number,
       'name': name,
       'isSystemIsolate': isSystemIsolate,
-      'isolateFlags': isolateFlags.map((f) => f.toJson()).toList(),
+      'isolateFlags': isolateFlags?.map((f) => f.toJson()).toList(),
       'startTime': startTime,
       'runnable': runnable,
       'livePorts': livePorts,
       'pauseOnExit': pauseOnExit,
-      'pauseEvent': pauseEvent.toJson(),
-      'libraries': libraries.map((f) => f.toJson()).toList(),
-      'breakpoints': breakpoints.map((f) => f.toJson()).toList(),
+      'pauseEvent': pauseEvent?.toJson(),
+      'libraries': libraries?.map((f) => f.toJson()).toList(),
+      'breakpoints': breakpoints?.map((f) => f.toJson()).toList(),
       'exceptionPauseMode': exceptionPauseMode,
     });
     _setIfNotNull(json, 'rootLib', rootLib?.toJson());
@@ -5089,10 +5090,10 @@ class IsolateFlag {
       json == null ? null : IsolateFlag._fromJson(json);
 
   /// The name of the flag.
-  late final String name;
+  String? name;
 
   /// The value of this flag as a string.
-  late final String valueAsString;
+  String? valueAsString;
 
   IsolateFlag({
     required this.name,
@@ -5124,17 +5125,17 @@ class IsolateGroupRef extends Response {
 
   /// The id which is passed to the getIsolateGroup RPC to load this isolate
   /// group.
-  late final String id;
+  String? id;
 
   /// A numeric id for this isolate group, represented as a string. Unique.
-  late final String number;
+  String? number;
 
   /// A name identifying this isolate group. Not guaranteed to be unique.
-  late final String name;
+  String? name;
 
   /// Specifies whether the isolate group was spawned by the VM or embedder for
   /// internal use. If `false`, this isolate group is likely running user code.
-  late final bool isSystemIsolateGroup;
+  bool? isSystemIsolateGroup;
 
   IsolateGroupRef({
     required this.id,
@@ -5180,20 +5181,20 @@ class IsolateGroup extends Response implements IsolateGroupRef {
       json == null ? null : IsolateGroup._fromJson(json);
 
   /// The id which is passed to the getIsolate RPC to reload this isolate.
-  late final String id;
+  String? id;
 
   /// A numeric id for this isolate, represented as a string. Unique.
-  late final String number;
+  String? number;
 
   /// A name identifying this isolate. Not guaranteed to be unique.
-  late final String name;
+  String? name;
 
   /// Specifies whether the isolate group was spawned by the VM or embedder for
   /// internal use. If `false`, this isolate group is likely running user code.
-  late final bool isSystemIsolateGroup;
+  bool? isSystemIsolateGroup;
 
   /// A list of all isolates in this isolate group.
-  late final List<IsolateRef> isolates;
+  List<IsolateRef>? isolates;
 
   IsolateGroup({
     required this.id,
@@ -5225,7 +5226,7 @@ class IsolateGroup extends Response implements IsolateGroupRef {
       'number': number,
       'name': name,
       'isSystemIsolateGroup': isSystemIsolateGroup,
-      'isolates': isolates.map((f) => f.toJson()).toList(),
+      'isolates': isolates?.map((f) => f.toJson()).toList(),
     });
     return json;
   }
@@ -5245,7 +5246,7 @@ class InboundReferences extends Response {
       json == null ? null : InboundReferences._fromJson(json);
 
   /// An array of inbound references to an object.
-  late final List<InboundReference> references;
+  List<InboundReference>? references;
 
   InboundReferences({
     required this.references,
@@ -5267,7 +5268,7 @@ class InboundReferences extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'references': references.map((f) => f.toJson()).toList(),
+      'references': references?.map((f) => f.toJson()).toList(),
     });
     return json;
   }
@@ -5281,17 +5282,17 @@ class InboundReference {
       json == null ? null : InboundReference._fromJson(json);
 
   /// The object holding the inbound reference.
-  late final ObjRef source;
+  ObjRef? source;
 
   /// If source is a List, parentListIndex is the index of the inbound
   /// reference.
   @optional
-  late final int? parentListIndex;
+  int? parentListIndex;
 
   /// If source is a field of an object, parentField is the field containing the
   /// inbound reference.
   @optional
-  late final FieldRef? parentField;
+  FieldRef? parentField;
 
   InboundReference({
     required this.source,
@@ -5309,7 +5310,7 @@ class InboundReference {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     json.addAll({
-      'source': source.toJson(),
+      'source': source?.toJson(),
     });
     _setIfNotNull(json, 'parentListIndex', parentListIndex);
     _setIfNotNull(json, 'parentField', parentField?.toJson());
@@ -5325,10 +5326,10 @@ class InstanceSet extends Response {
       json == null ? null : InstanceSet._fromJson(json);
 
   /// The number of instances of the requested type currently allocated.
-  late final int totalCount;
+  int? totalCount;
 
   /// An array of instances of the requested type.
-  late final List<ObjRef> instances;
+  List<ObjRef>? instances;
 
   InstanceSet({
     required this.totalCount,
@@ -5351,7 +5352,7 @@ class InstanceSet extends Response {
     json['type'] = type;
     json.addAll({
       'totalCount': totalCount,
-      'instances': instances.map((f) => f.toJson()).toList(),
+      'instances': instances?.map((f) => f.toJson()).toList(),
     });
     return json;
   }
@@ -5366,10 +5367,10 @@ class LibraryRef extends ObjRef {
       json == null ? null : LibraryRef._fromJson(json);
 
   /// The name of this library.
-  late final String name;
+  String? name;
 
   /// The uri of this library.
-  late final String uri;
+  String? uri;
 
   LibraryRef({
     required this.name,
@@ -5413,28 +5414,28 @@ class Library extends Obj implements LibraryRef {
       json == null ? null : Library._fromJson(json);
 
   /// The name of this library.
-  late final String name;
+  String? name;
 
   /// The uri of this library.
-  late final String uri;
+  String? uri;
 
   /// Is this library debuggable? Default true.
-  late final bool debuggable;
+  bool? debuggable;
 
   /// A list of the imports for this library.
-  late final List<LibraryDependency> dependencies;
+  List<LibraryDependency>? dependencies;
 
   /// A list of the scripts which constitute this library.
-  late final List<ScriptRef> scripts;
+  List<ScriptRef>? scripts;
 
   /// A list of the top-level variables in this library.
-  late final List<FieldRef> variables;
+  List<FieldRef>? variables;
 
   /// A list of the top-level functions in this library.
-  late final List<FuncRef> functions;
+  List<FuncRef>? functions;
 
   /// A list of all classes in this library.
-  late final List<ClassRef> classes;
+  List<ClassRef>? classes;
 
   Library({
     required this.name,
@@ -5481,11 +5482,11 @@ class Library extends Obj implements LibraryRef {
       'name': name,
       'uri': uri,
       'debuggable': debuggable,
-      'dependencies': dependencies.map((f) => f.toJson()).toList(),
-      'scripts': scripts.map((f) => f.toJson()).toList(),
-      'variables': variables.map((f) => f.toJson()).toList(),
-      'functions': functions.map((f) => f.toJson()).toList(),
-      'classes': classes.map((f) => f.toJson()).toList(),
+      'dependencies': dependencies?.map((f) => f.toJson()).toList(),
+      'scripts': scripts?.map((f) => f.toJson()).toList(),
+      'variables': variables?.map((f) => f.toJson()).toList(),
+      'functions': functions?.map((f) => f.toJson()).toList(),
+      'classes': classes?.map((f) => f.toJson()).toList(),
     });
     return json;
   }
@@ -5503,16 +5504,16 @@ class LibraryDependency {
       json == null ? null : LibraryDependency._fromJson(json);
 
   /// Is this dependency an import (rather than an export)?
-  late final bool isImport;
+  bool? isImport;
 
   /// Is this dependency deferred?
-  late final bool isDeferred;
+  bool? isDeferred;
 
   /// The prefix of an 'as' import, or null.
-  late final String prefix;
+  String? prefix;
 
   /// The library being imported or exported.
-  late final LibraryRef target;
+  LibraryRef? target;
 
   LibraryDependency({
     required this.isImport,
@@ -5535,7 +5536,7 @@ class LibraryDependency {
       'isImport': isImport,
       'isDeferred': isDeferred,
       'prefix': prefix,
-      'target': target.toJson(),
+      'target': target?.toJson(),
     });
     return json;
   }
@@ -5550,31 +5551,31 @@ class LogRecord extends Response {
       json == null ? null : LogRecord._fromJson(json);
 
   /// The log message.
-  late final InstanceRef message;
+  InstanceRef? message;
 
   /// The timestamp.
-  late final int time;
+  int? time;
 
   /// The severity level (a value between 0 and 2000).
   ///
   /// See the package:logging `Level` class for an overview of the possible
   /// values.
-  late final int level;
+  int? level;
 
   /// A monotonically increasing sequence number.
-  late final int sequenceNumber;
+  int? sequenceNumber;
 
   /// The name of the source of the log message.
-  late final InstanceRef loggerName;
+  InstanceRef? loggerName;
 
   /// The zone where the log was emitted.
-  late final InstanceRef zone;
+  InstanceRef? zone;
 
   /// An error object associated with this log event.
-  late final InstanceRef error;
+  InstanceRef? error;
 
   /// A stack trace associated with this log event.
-  late final InstanceRef stackTrace;
+  InstanceRef? stackTrace;
 
   LogRecord({
     required this.message,
@@ -5611,14 +5612,14 @@ class LogRecord extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'message': message.toJson(),
+      'message': message?.toJson(),
       'time': time,
       'level': level,
       'sequenceNumber': sequenceNumber,
-      'loggerName': loggerName.toJson(),
-      'zone': zone.toJson(),
-      'error': error.toJson(),
-      'stackTrace': stackTrace.toJson(),
+      'loggerName': loggerName?.toJson(),
+      'zone': zone?.toJson(),
+      'error': error?.toJson(),
+      'stackTrace': stackTrace?.toJson(),
     });
     return json;
   }
@@ -5631,10 +5632,10 @@ class MapAssociation {
       json == null ? null : MapAssociation._fromJson(json);
 
   /// [key] can be one of [InstanceRef] or [Sentinel].
-  late final dynamic key;
+  dynamic? key;
 
   /// [value] can be one of [InstanceRef] or [Sentinel].
-  late final dynamic value;
+  dynamic? value;
 
   MapAssociation({
     required this.key,
@@ -5652,8 +5653,8 @@ class MapAssociation {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     json.addAll({
-      'key': key.toJson(),
-      'value': value.toJson(),
+      'key': key?.toJson(),
+      'value': value?.toJson(),
     });
     return json;
   }
@@ -5674,15 +5675,15 @@ class MemoryUsage extends Response {
   /// supplied to these APIs from the VM embedder or native extensions. This
   /// external memory applies GC pressure, but is separate from heapUsage and
   /// heapCapacity.
-  late final int externalUsage;
+  int? externalUsage;
 
   /// The total capacity of the heap in bytes. This is the amount of memory used
   /// by the Dart heap from the perspective of the operating system.
-  late final int heapCapacity;
+  int? heapCapacity;
 
   /// The current heap memory usage in bytes. Heap usage is always less than or
   /// equal to the heap capacity.
-  late final int heapUsage;
+  int? heapUsage;
 
   MemoryUsage({
     required this.externalUsage,
@@ -5724,25 +5725,25 @@ class Message extends Response {
 
   /// The index in the isolate's message queue. The 0th message being the next
   /// message to be processed.
-  late final int index;
+  int? index;
 
   /// An advisory name describing this message.
-  late final String name;
+  String? name;
 
   /// An instance id for the decoded message. This id can be passed to other
   /// RPCs, for example, getObject or evaluate.
-  late final String messageObjectId;
+  String? messageObjectId;
 
   /// The size (bytes) of the encoded message.
-  late final int size;
+  int? size;
 
   /// A reference to the function that will be invoked to handle this message.
   @optional
-  late final FuncRef? handler;
+  FuncRef? handler;
 
   /// The source location of handler.
   @optional
-  late final SourceLocation? location;
+  SourceLocation? location;
 
   Message({
     required this.index,
@@ -5794,7 +5795,7 @@ class NativeFunction {
       json == null ? null : NativeFunction._fromJson(json);
 
   /// The name of the native function this object represents.
-  late final String name;
+  String? name;
 
   NativeFunction({
     required this.name,
@@ -5822,7 +5823,7 @@ class NullValRef extends InstanceRef {
 
   /// Always 'null'.
   @override
-  covariant late final String valueAsString;
+  String? valueAsString;
 
   NullValRef({
     required this.valueAsString,
@@ -5867,7 +5868,7 @@ class NullVal extends Instance implements NullValRef {
 
   /// Always 'null'.
   @override
-  covariant late final String valueAsString;
+  String? valueAsString;
 
   NullVal({
     required this.valueAsString,
@@ -5912,13 +5913,13 @@ class ObjRef extends Response {
 
   /// A unique identifier for an Object. Passed to the getObject RPC to load
   /// this Object.
-  late final String id;
+  String? id;
 
   /// Provided and set to true if the id of an Object is fixed. If true, the id
   /// of an Object is guaranteed not to change or expire. The object may,
   /// however, still be _Collected_.
   @optional
-  late final bool? fixedId;
+  bool? fixedId;
 
   ObjRef({
     required this.id,
@@ -5960,13 +5961,13 @@ class Obj extends Response implements ObjRef {
   /// this Object.
   ///
   /// Some objects may get a new id when they are reloaded.
-  late final String id;
+  String? id;
 
   /// Provided and set to true if the id of an Object is fixed. If true, the id
   /// of an Object is guaranteed not to change or expire. The object may,
   /// however, still be _Collected_.
   @optional
-  late final bool? fixedId;
+  bool? fixedId;
 
   /// If an object is allocated in the Dart heap, it will have a corresponding
   /// class object.
@@ -5977,7 +5978,7 @@ class Obj extends Response implements ObjRef {
   /// Moving an Object into or out of the heap is considered a backwards
   /// compatible change for types other than Instance.
   @optional
-  late final ClassRef? classRef;
+  ClassRef? classRef;
 
   /// The size of this object in the heap.
   ///
@@ -5987,7 +5988,7 @@ class Obj extends Response implements ObjRef {
   /// implementation, this occurs for small integers, which are stored entirely
   /// within their object pointers.
   @optional
-  late final int? size;
+  int? size;
 
   Obj({
     required this.id,
@@ -6034,7 +6035,7 @@ class PortList extends Response {
   static PortList? parse(Map<String, dynamic>? json) =>
       json == null ? null : PortList._fromJson(json);
 
-  late final List<InstanceRef> ports;
+  List<InstanceRef>? ports;
 
   PortList({
     required this.ports,
@@ -6054,7 +6055,7 @@ class PortList extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'ports': ports.map((f) => f.toJson()).toList(),
+      'ports': ports?.map((f) => f.toJson()).toList(),
     });
     return json;
   }
@@ -6071,20 +6072,20 @@ class ProfileFunction {
       json == null ? null : ProfileFunction._fromJson(json);
 
   /// The kind of function this object represents.
-  late final String kind;
+  String? kind;
 
   /// The number of times function appeared on the stack during sampling events.
-  late final int inclusiveTicks;
+  int? inclusiveTicks;
 
   /// The number of times function appeared on the top of the stack during
   /// sampling events.
-  late final int exclusiveTicks;
+  int? exclusiveTicks;
 
   /// The resolved URL for the script containing function.
-  late final String resolvedUrl;
+  String? resolvedUrl;
 
   /// The function captured during profiling.
-  late final dynamic function;
+  dynamic? function;
 
   ProfileFunction({
     required this.kind,
@@ -6110,7 +6111,7 @@ class ProfileFunction {
       'inclusiveTicks': inclusiveTicks,
       'exclusiveTicks': exclusiveTicks,
       'resolvedUrl': resolvedUrl,
-      'function': function.toJson(),
+      'function': function?.toJson(),
     });
     return json;
   }
@@ -6129,7 +6130,7 @@ class ProtocolList extends Response {
       json == null ? null : ProtocolList._fromJson(json);
 
   /// A list of supported protocols provided by this service.
-  late final List<Protocol> protocols;
+  List<Protocol>? protocols;
 
   ProtocolList({
     required this.protocols,
@@ -6149,7 +6150,7 @@ class ProtocolList extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'protocols': protocols.map((f) => f.toJson()).toList(),
+      'protocols': protocols?.map((f) => f.toJson()).toList(),
     });
     return json;
   }
@@ -6163,13 +6164,13 @@ class Protocol {
       json == null ? null : Protocol._fromJson(json);
 
   /// The name of the supported protocol.
-  late final String protocolName;
+  String? protocolName;
 
   /// The major revision of the protocol.
-  late final int major;
+  int? major;
 
   /// The minor revision of the protocol.
-  late final int minor;
+  int? minor;
 
   Protocol({
     required this.protocolName,
@@ -6202,7 +6203,7 @@ class ProcessMemoryUsage extends Response {
   static ProcessMemoryUsage? parse(Map<String, dynamic>? json) =>
       json == null ? null : ProcessMemoryUsage._fromJson(json);
 
-  late final ProcessMemoryItem root;
+  ProcessMemoryItem? root;
 
   ProcessMemoryUsage({
     required this.root,
@@ -6222,7 +6223,7 @@ class ProcessMemoryUsage extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'root': root.toJson(),
+      'root': root?.toJson(),
     });
     return json;
   }
@@ -6235,17 +6236,17 @@ class ProcessMemoryItem {
       json == null ? null : ProcessMemoryItem._fromJson(json);
 
   /// A short name for this bucket of memory.
-  late final String name;
+  String? name;
 
   /// A longer description for this item.
-  late final String description;
+  String? description;
 
   /// The amount of memory in bytes. This is a retained size, not a shallow
   /// size. That is, it includes the size of children.
-  late final int size;
+  int? size;
 
   /// Subdivisons of this bucket of memory.
-  late final List<ProcessMemoryItem> children;
+  List<ProcessMemoryItem>? children;
 
   ProcessMemoryItem({
     required this.name,
@@ -6270,7 +6271,7 @@ class ProcessMemoryItem {
       'name': name,
       'description': description,
       'size': size,
-      'children': children.map((f) => f.toJson()).toList(),
+      'children': children?.map((f) => f.toJson()).toList(),
     });
     return json;
   }
@@ -6285,7 +6286,7 @@ class ReloadReport extends Response {
       json == null ? null : ReloadReport._fromJson(json);
 
   /// Did the reload succeed or fail?
-  late final bool success;
+  bool? success;
 
   ReloadReport({
     required this.success,
@@ -6317,19 +6318,19 @@ class RetainingObject {
       json == null ? null : RetainingObject._fromJson(json);
 
   /// An object that is part of a retaining path.
-  late final ObjRef value;
+  ObjRef? value;
 
   /// The offset of the retaining object in a containing list.
   @optional
-  late final int? parentListIndex;
+  int? parentListIndex;
 
   /// The key mapping to the retaining object in a containing map.
   @optional
-  late final ObjRef? parentMapKey;
+  ObjRef? parentMapKey;
 
   /// The name of the field containing the retaining object within an object.
   @optional
-  late final String? parentField;
+  String? parentField;
 
   RetainingObject({
     required this.value,
@@ -6349,7 +6350,7 @@ class RetainingObject {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     json.addAll({
-      'value': value.toJson(),
+      'value': value?.toJson(),
     });
     _setIfNotNull(json, 'parentListIndex', parentListIndex);
     _setIfNotNull(json, 'parentMapKey', parentMapKey?.toJson());
@@ -6366,15 +6367,15 @@ class RetainingPath extends Response {
       json == null ? null : RetainingPath._fromJson(json);
 
   /// The length of the retaining path.
-  late final int length;
+  int? length;
 
   /// The type of GC root which is holding a reference to the specified object.
   /// Possible values include:  * class table  * local handle  * persistent
   /// handle  * stack  * user global  * weak persistent handle  * unknown
-  late final String gcRootType;
+  String? gcRootType;
 
   /// The chain of objects which make up the retaining path.
-  late final List<RetainingObject> elements;
+  List<RetainingObject>? elements;
 
   RetainingPath({
     required this.length,
@@ -6401,7 +6402,7 @@ class RetainingPath extends Response {
     json.addAll({
       'length': length,
       'gcRootType': gcRootType,
-      'elements': elements.map((f) => f.toJson()).toList(),
+      'elements': elements?.map((f) => f.toJson()).toList(),
     });
     return json;
   }
@@ -6446,10 +6447,10 @@ class Sentinel extends Response {
       json == null ? null : Sentinel._fromJson(json);
 
   /// What kind of sentinel is this?
-  late final /*SentinelKind*/ String kind;
+  /*SentinelKind*/ String? kind;
 
   /// A reasonable string representation of this sentinel.
-  late final String valueAsString;
+  String? valueAsString;
 
   Sentinel({
     required this.kind,
@@ -6485,7 +6486,7 @@ class ScriptRef extends ObjRef {
       json == null ? null : ScriptRef._fromJson(json);
 
   /// The uri from which this script was loaded.
-  late final String uri;
+  String? uri;
 
   ScriptRef({
     required this.uri,
@@ -6556,26 +6557,26 @@ class Script extends Obj implements ScriptRef {
   final _tokenToColumn = <int, int>{};
 
   /// The uri from which this script was loaded.
-  late final String uri;
+  String? uri;
 
   /// The library which owns this script.
-  late final LibraryRef library;
+  LibraryRef? library;
 
   @optional
-  late final int? lineOffset;
+  int? lineOffset;
 
   @optional
-  late final int? columnOffset;
+  int? columnOffset;
 
   /// The source code for this script. This can be null for certain built-in
   /// scripts.
   @optional
-  late final String? source;
+  String? source;
 
   /// A table encoding a mapping from token position to line and column. This
   /// field is null if sources aren't available.
   @optional
-  late final List<List<int>>? tokenPosTable;
+  List<List<int>>? tokenPosTable;
 
   Script({
     required this.uri,
@@ -6640,7 +6641,7 @@ class Script extends Obj implements ScriptRef {
     json['type'] = type;
     json.addAll({
       'uri': uri,
-      'library': library.toJson(),
+      'library': library?.toJson(),
     });
     _setIfNotNull(json, 'lineOffset', lineOffset);
     _setIfNotNull(json, 'columnOffset', columnOffset);
@@ -6661,7 +6662,7 @@ class ScriptList extends Response {
   static ScriptList? parse(Map<String, dynamic>? json) =>
       json == null ? null : ScriptList._fromJson(json);
 
-  late final List<ScriptRef> scripts;
+  List<ScriptRef>? scripts;
 
   ScriptList({
     required this.scripts,
@@ -6681,7 +6682,7 @@ class ScriptList extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'scripts': scripts.map((f) => f.toJson()).toList(),
+      'scripts': scripts?.map((f) => f.toJson()).toList(),
     });
     return json;
   }
@@ -6696,14 +6697,14 @@ class SourceLocation extends Response {
       json == null ? null : SourceLocation._fromJson(json);
 
   /// The script containing the source location.
-  late final ScriptRef script;
+  ScriptRef? script;
 
   /// The first token of the location.
-  late final int tokenPos;
+  int? tokenPos;
 
   /// The last token of the location if this is a range.
   @optional
-  late final int? endTokenPos;
+  int? endTokenPos;
 
   SourceLocation({
     required this.script,
@@ -6726,7 +6727,7 @@ class SourceLocation extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'script': script.toJson(),
+      'script': script?.toJson(),
       'tokenPos': tokenPos,
     });
     _setIfNotNull(json, 'endTokenPos', endTokenPos);
@@ -6751,10 +6752,10 @@ class SourceReport extends Response {
   /// functions.
   ///
   /// Note that ranges may be duplicated, in the case of mixins.
-  late final List<SourceReportRange> ranges;
+  List<SourceReportRange>? ranges;
 
   /// A list of scripts, referenced by index in the report's ranges.
-  late final List<ScriptRef> scripts;
+  List<ScriptRef>? scripts;
 
   SourceReport({
     required this.ranges,
@@ -6777,8 +6778,8 @@ class SourceReport extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'ranges': ranges.map((f) => f.toJson()).toList(),
-      'scripts': scripts.map((f) => f.toJson()).toList(),
+      'ranges': ranges?.map((f) => f.toJson()).toList(),
+      'scripts': scripts?.map((f) => f.toJson()).toList(),
     });
     return json;
   }
@@ -6797,11 +6798,11 @@ class SourceReportCoverage {
 
   /// A list of token positions in a SourceReportRange which have been executed.
   /// The list is sorted.
-  late final List<int> hits;
+  List<int>? hits;
 
   /// A list of token positions in a SourceReportRange which have not been
   /// executed.  The list is sorted.
-  late final List<int> misses;
+  List<int>? misses;
 
   SourceReportCoverage({
     required this.hits,
@@ -6816,8 +6817,8 @@ class SourceReportCoverage {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
     json.addAll({
-      'hits': hits.map((f) => f).toList(),
-      'misses': misses.map((f) => f).toList(),
+      'hits': hits?.map((f) => f).toList(),
+      'misses': misses?.map((f) => f).toList(),
     });
     return json;
   }
@@ -6838,33 +6839,33 @@ class SourceReportRange {
 
   /// An index into the script table of the SourceReport, indicating which
   /// script contains this range of code.
-  late final int scriptIndex;
+  int? scriptIndex;
 
   /// The token position at which this range begins.
-  late final int startPos;
+  int? startPos;
 
   /// The token position at which this range ends.  Inclusive.
-  late final int endPos;
+  int? endPos;
 
   /// Has this range been compiled by the Dart VM?
-  late final bool compiled;
+  bool? compiled;
 
   /// The error while attempting to compile this range, if this report was
   /// generated with forceCompile=true.
   @optional
-  late final ErrorRef? error;
+  ErrorRef? error;
 
   /// Code coverage information for this range.  Provided only when the Coverage
   /// report has been requested and the range has been compiled.
   @optional
-  late final SourceReportCoverage? coverage;
+  SourceReportCoverage? coverage;
 
   /// Possible breakpoint information for this range, represented as a sorted
   /// list of token positions.  Provided only when the when the
   /// PossibleBreakpoint report has been requested and the range has been
   /// compiled.
   @optional
-  late final List<int>? possibleBreakpoints;
+  List<int>? possibleBreakpoints;
 
   SourceReportRange({
     required this.scriptIndex,
@@ -6920,24 +6921,24 @@ class Stack extends Response {
   /// A list of frames that make up the synchronous stack, rooted at the message
   /// loop (i.e., the frames since the last asynchronous gap or the isolate's
   /// entrypoint).
-  late final List<Frame> frames;
+  List<Frame>? frames;
 
   /// A list of frames representing the asynchronous path. Comparable to
   /// `awaiterFrames`, if provided, although some frames may be different.
   @optional
-  late final List<Frame>? asyncCausalFrames;
+  List<Frame>? asyncCausalFrames;
 
   /// A list of frames representing the asynchronous path. Comparable to
   /// `asyncCausalFrames`, if provided, although some frames may be different.
   @optional
-  late final List<Frame>? awaiterFrames;
+  List<Frame>? awaiterFrames;
 
   /// A list of messages in the isolate's message queue.
-  late final List<Message> messages;
+  List<Message>? messages;
 
   /// Specifies whether or not this stack is complete or has been artificially
   /// truncated.
-  late final bool truncated;
+  bool? truncated;
 
   Stack({
     required this.frames,
@@ -6974,8 +6975,8 @@ class Stack extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'frames': frames.map((f) => f.toJson()).toList(),
-      'messages': messages.map((f) => f.toJson()).toList(),
+      'frames': frames?.map((f) => f.toJson()).toList(),
+      'messages': messages?.map((f) => f.toJson()).toList(),
       'truncated': truncated,
     });
     _setIfNotNull(json, 'asyncCausalFrames',
@@ -7019,13 +7020,13 @@ class Timeline extends Response {
   /// A list of timeline events. No order is guarenteed for these events; in
   /// particular, these events may be unordered with respect to their
   /// timestamps.
-  late final List<TimelineEvent> traceEvents;
+  List<TimelineEvent>? traceEvents;
 
   /// The start of the period of time in which traceEvents were collected.
-  late final int timeOriginMicros;
+  int? timeOriginMicros;
 
   /// The duration of time covered by the timeline.
-  late final int timeExtentMicros;
+  int? timeExtentMicros;
 
   Timeline({
     required this.traceEvents,
@@ -7050,7 +7051,7 @@ class Timeline extends Response {
     final json = <String, dynamic>{};
     json['type'] = type;
     json.addAll({
-      'traceEvents': traceEvents.map((f) => f.toJson()).toList(),
+      'traceEvents': traceEvents?.map((f) => f.toJson()).toList(),
       'timeOriginMicros': timeOriginMicros,
       'timeExtentMicros': timeExtentMicros,
     });
@@ -7093,13 +7094,13 @@ class TimelineFlags extends Response {
   /// The name of the recorder currently in use. Recorder types include, but are
   /// not limited to: Callback, Endless, Fuchsia, Macos, Ring, Startup, and
   /// Systrace. Set to "null" if no recorder is currently set.
-  late final String recorderName;
+  String? recorderName;
 
   /// The list of all available timeline streams.
-  late final List<String> availableStreams;
+  List<String>? availableStreams;
 
   /// The list of timeline streams that are currently enabled.
-  late final List<String> recordedStreams;
+  List<String>? recordedStreams;
 
   TimelineFlags({
     required this.recorderName,
@@ -7122,8 +7123,8 @@ class TimelineFlags extends Response {
     json['type'] = type;
     json.addAll({
       'recorderName': recorderName,
-      'availableStreams': availableStreams.map((f) => f).toList(),
-      'recordedStreams': recordedStreams.map((f) => f).toList(),
+      'availableStreams': availableStreams?.map((f) => f).toList(),
+      'recordedStreams': recordedStreams?.map((f) => f).toList(),
     });
     return json;
   }
@@ -7138,7 +7139,7 @@ class Timestamp extends Response {
       json == null ? null : Timestamp._fromJson(json);
 
   /// A timestamp in microseconds since epoch.
-  late final int timestamp;
+  int? timestamp;
 
   Timestamp({
     required this.timestamp,
@@ -7170,7 +7171,7 @@ class TypeArgumentsRef extends ObjRef {
       json == null ? null : TypeArgumentsRef._fromJson(json);
 
   /// A name for this type argument list.
-  late final String name;
+  String? name;
 
   TypeArgumentsRef({
     required this.name,
@@ -7211,13 +7212,13 @@ class TypeArguments extends Obj implements TypeArgumentsRef {
       json == null ? null : TypeArguments._fromJson(json);
 
   /// A name for this type argument list.
-  late final String name;
+  String? name;
 
   /// A list of types.
   ///
   /// The value will always be one of the kinds: Type, TypeRef, TypeParameter,
   /// BoundedType.
-  late final List<InstanceRef> types;
+  List<InstanceRef>? types;
 
   TypeArguments({
     required this.name,
@@ -7243,7 +7244,7 @@ class TypeArguments extends Obj implements TypeArgumentsRef {
     json['type'] = type;
     json.addAll({
       'name': name,
-      'types': types.map((f) => f.toJson()).toList(),
+      'types': types?.map((f) => f.toJson()).toList(),
     });
     return json;
   }
@@ -7272,27 +7273,27 @@ class UnresolvedSourceLocation extends Response {
 
   /// The script containing the source location if the script has been loaded.
   @optional
-  late final ScriptRef? script;
+  ScriptRef? script;
 
   /// The uri of the script containing the source location if the script has yet
   /// to be loaded.
   @optional
-  late final String? scriptUri;
+  String? scriptUri;
 
   /// An approximate token position for the source location. This may change
   /// when the location is resolved.
   @optional
-  late final int? tokenPos;
+  int? tokenPos;
 
   /// An approximate line number for the source location. This may change when
   /// the location is resolved.
   @optional
-  late final int? line;
+  int? line;
 
   /// An approximate column number for the source location. This may change when
   /// the location is resolved.
   @optional
-  late final int? column;
+  int? column;
 
   UnresolvedSourceLocation({
     this.script,
@@ -7337,11 +7338,11 @@ class Version extends Response {
 
   /// The major version number is incremented when the protocol is changed in a
   /// potentially incompatible way.
-  late final int major;
+  int? major;
 
   /// The minor version number is incremented when the protocol is changed in a
   /// backwards compatible way.
-  late final int minor;
+  int? minor;
 
   Version({
     required this.major,
@@ -7376,7 +7377,7 @@ class VMRef extends Response {
       json == null ? null : VMRef._fromJson(json);
 
   /// A name identifying this vm. Not guaranteed to be unique.
-  late final String name;
+  String? name;
 
   VMRef({
     required this.name,
@@ -7407,42 +7408,42 @@ class VM extends Response implements VMRef {
       json == null ? null : VM._fromJson(json);
 
   /// A name identifying this vm. Not guaranteed to be unique.
-  late final String name;
+  String? name;
 
   /// Word length on target architecture (e.g. 32, 64).
-  late final int architectureBits;
+  int? architectureBits;
 
   /// The CPU we are actually running on.
-  late final String hostCPU;
+  String? hostCPU;
 
   /// The operating system we are running on.
-  late final String operatingSystem;
+  String? operatingSystem;
 
   /// The CPU we are generating code for.
-  late final String targetCPU;
+  String? targetCPU;
 
   /// The Dart VM version string.
-  late final String version;
+  String? version;
 
   /// The process id for the VM.
-  late final int pid;
+  int? pid;
 
   /// The time that the VM started in milliseconds since the epoch.
   ///
   /// Suitable to pass to DateTime.fromMillisecondsSinceEpoch.
-  late final int startTime;
+  int? startTime;
 
   /// A list of isolates running in the VM.
-  late final List<IsolateRef> isolates;
+  List<IsolateRef>? isolates;
 
   /// A list of isolate groups running in the VM.
-  late final List<IsolateGroupRef> isolateGroups;
+  List<IsolateGroupRef>? isolateGroups;
 
   /// A list of system isolates running in the VM.
-  late final List<IsolateRef> systemIsolates;
+  List<IsolateRef>? systemIsolates;
 
   /// A list of isolate groups which contain system isolates running in the VM.
-  late final List<IsolateGroupRef> systemIsolateGroups;
+  List<IsolateGroupRef>? systemIsolateGroups;
 
   VM({
     required this.name,
@@ -7500,11 +7501,11 @@ class VM extends Response implements VMRef {
       'version': version,
       'pid': pid,
       'startTime': startTime,
-      'isolates': isolates.map((f) => f.toJson()).toList(),
-      'isolateGroups': isolateGroups.map((f) => f.toJson()).toList(),
-      'systemIsolates': systemIsolates.map((f) => f.toJson()).toList(),
+      'isolates': isolates?.map((f) => f.toJson()).toList(),
+      'isolateGroups': isolateGroups?.map((f) => f.toJson()).toList(),
+      'systemIsolates': systemIsolates?.map((f) => f.toJson()).toList(),
       'systemIsolateGroups':
-          systemIsolateGroups.map((f) => f.toJson()).toList(),
+          systemIsolateGroups?.map((f) => f.toJson()).toList(),
     });
     return json;
   }

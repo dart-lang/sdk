@@ -71,16 +71,17 @@ Future setupFiles() async {
 
 var fileTests = <IsolateTest>[
   (VmService service, IsolateRef isolate) async {
+    final isolateId = isolate.id!;
     await service.callServiceExtension(
       'ext.dart.io.setup',
       isolateId: isolate.id,
     );
     try {
-      final result = await service.getOpenFiles(isolate.id);
+      final result = await service.getOpenFiles(isolateId);
       expect(result, isA<OpenFileList>());
       expect(result.files.length, equals(2));
       final writing = await service.getOpenFileById(
-        isolate.id,
+        isolateId,
         result.files[0].id,
       );
 
@@ -92,7 +93,7 @@ var fileTests = <IsolateTest>[
       expect(writing.lastReadTime.millisecondsSinceEpoch, 0);
 
       final reading = await service.getOpenFileById(
-        isolate.id,
+        isolateId,
         result.files[1].id,
       );
       expect(reading.readBytes, 5);
