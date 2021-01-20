@@ -749,7 +749,6 @@ import 'dart:ffi';
 import "package:expect/expect.dart";
 import "package:ffi/ffi.dart";
 
-import 'calloc.dart';
 import 'dylib_utils.dart';
 
 final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
@@ -802,7 +801,6 @@ import "package:expect/expect.dart";
 import "package:ffi/ffi.dart";
 
 import 'callback_tests_utils.dart';
-import 'calloc.dart';
 
 // Reuse the struct classes.
 import 'function_structs_by_value_generated_test.dart';

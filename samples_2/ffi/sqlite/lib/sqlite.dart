@@ -10,5 +10,3 @@
 library sqlite;
 
 export "src/database.dart";
-
-export "src/ffi/calloc.dart" show calloc;

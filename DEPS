@@ -102,7 +102,7 @@ vars = {
 
   "chromedriver_tag": "83.0.4103.39",
   "dartdoc_rev" : "9e61a4f11091aaa8998525a2692b14148dc24ab5",
-  "ffi_rev": "31352979f261f7c6ea88fa0a2cfb0fdd004c38fb",
+  "ffi_rev": "ad6700de10ca3af16f0c3d9ff8aa15d2bd7cd21c",
   "fixnum_rev": "16d3890c6dc82ca629659da1934e412292508bba",
   "file_rev": "0e09370f581ab6388d46fda4cdab66638c0171a1",
   "glob_rev": "7c0ef8d4fa086f6b185c4dd724b700e7d7ad8f79",
@@ -115,7 +115,7 @@ vars = {
   "http_throttle_tag" : "1.0.2",
   "icu_rev" : "79326efe26e5440f530963704c3c0ff965b3a4ac",
   "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
-  "intl_tag": "0.17.0-nullsafety",
+  "intl_tag": "ade5a936a1de62e7cd04c3ea956c02bd491d7868",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_rev": "b8dfe403fd8528fd14399dee3a6527b55802dd4d",
   "linter_tag": "0.1.128",

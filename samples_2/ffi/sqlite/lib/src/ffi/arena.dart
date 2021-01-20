@@ -9,8 +9,6 @@ import "dart:ffi";
 
 import 'package:ffi/ffi.dart';
 
-import 'calloc.dart';
-
 /// [Arena] manages allocated C memory.
 ///
 /// Arenas are zoned.
