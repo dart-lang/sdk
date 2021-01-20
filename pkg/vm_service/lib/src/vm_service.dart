@@ -3936,8 +3936,10 @@ class Field extends Obj implements FieldRef {
   bool? isStatic;
 
   /// The value of this field, if the field is static.
+  ///
+  /// [staticValue] can be one of [InstanceRef] or [Sentinel].
   @optional
-  InstanceRef? staticValue;
+  dynamic? staticValue;
 
   /// The location of this field in the source code.
   @optional
@@ -3966,9 +3968,8 @@ class Field extends Obj implements FieldRef {
     isConst = json['const'] ?? false;
     isFinal = json['final'] ?? false;
     isStatic = json['static'] ?? false;
-    staticValue =
-        createServiceObject(json['staticValue'], const ['InstanceRef'])
-            as InstanceRef?;
+    staticValue = createServiceObject(
+        json['staticValue'], const ['InstanceRef', 'Sentinel']) as dynamic?;
     location = createServiceObject(json['location'], const ['SourceLocation'])
         as SourceLocation?;
   }

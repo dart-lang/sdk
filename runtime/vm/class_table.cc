@@ -523,7 +523,7 @@ void ClassTable::PrintToJSONObject(JSONObject* object) {
   object->AddProperty("type", "ClassList");
   {
     JSONArray members(object, "classes");
-    for (intptr_t i = 1; i < top_; i++) {
+    for (intptr_t i = ClassId::kObjectCid; i < top_; i++) {
       if (HasValidClassAt(i)) {
         cls = At(i);
         members.AddValue(cls);

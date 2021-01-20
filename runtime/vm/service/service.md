@@ -2250,8 +2250,9 @@ class Field extends Object {
   // Is this field static?
   bool static;
 
-  // The value of this field, if the field is static.
-  @Instance staticValue [optional];
+  // The value of this field, if the field is static. If uninitialized,
+  // this will take the value of an uninitialized Sentinel.
+  @Instance|Sentinel staticValue [optional];
 
   // The location of this field in the source code.
   SourceLocation location [optional];
