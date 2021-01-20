@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:dds/dds.dart';
 import 'package:dds/src/dds_impl.dart';
+import 'package:dds/src/rpc_error_codes.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:pedantic/pedantic.dart';
 import 'package:test/test.dart';
@@ -81,15 +82,21 @@ void main() {
     final client = json_rpc.Client(ws.cast<String>());
     unawaited(client.listen());
 
+    bool caught = false;
+
     // Make a request that causes the VM service peer to close in the middle of
     // handling a request. This is meant to mimic a device being disconnected
     // unexpectedly.
     try {
       await client.sendRequest('foo');
-    } on json_rpc.RpcException {
+    } on json_rpc.RpcException catch (e) {
       // This RPC exception is expected. This test is ensuring that DDS exits
       // gracefully even if the VM service disappears.
+      expect(e.code, RpcErrorCodes.kServiceDisappeared);
+      caught = true;
     }
+
+    expect(caught, true);
 
     // DDS should shutdown if the VM service peer disconnects.
     await dds.done;
