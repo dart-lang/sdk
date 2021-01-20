@@ -538,8 +538,6 @@ extension StructPointer<T extends Struct> on Pointer<T> {
   ///
   /// The [address] must be aligned according to the struct alignment rules of
   /// the platform.
-  ///
-  /// This extension method must be invoked with a compile-time constant [T].
   external T get ref;
 
   /// Creates a reference to access the fields of this struct backed by native
@@ -547,8 +545,6 @@ extension StructPointer<T extends Struct> on Pointer<T> {
   ///
   /// The [address] must be aligned according to the struct alignment rules of
   /// the platform.
-  ///
-  /// This extension method must be invoked with a compile-time constant [T].
   external T operator [](int index);
 }
 
