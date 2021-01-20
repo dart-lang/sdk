@@ -473,29 +473,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * 15 Metadata: The constant expression given in an annotation is type checked
-   * and evaluated in the scope surrounding the declaration being annotated.
-   *
-   * 16.12.2 Const: It is a compile-time error if <i>T</i> is not a class
-   * accessible in the current scope, optionally followed by type arguments.
-   *
-   * 16.12.2 Const: If <i>e</i> is of the form <i>const T.id(a<sub>1</sub>,
-   * &hellip;, a<sub>n</sub>, x<sub>n+1</sub>: a<sub>n+1</sub>, &hellip;
-   * x<sub>n+k</sub>: a<sub>n+k</sub>)</i> it is a compile-time error if
-   * <i>T</i> is not a class accessible in the current scope, optionally
-   * followed by type arguments.
-   *
-   * Parameters:
-   * 0: the name of the non-type element
-   */
-  static const CompileTimeErrorCode ANNOTATION_WITH_NON_CLASS =
-      CompileTimeErrorCode(
-          'ANNOTATION_WITH_NON_CLASS', "The name '{0}' isn't a class.",
-          correction: "Try importing the library that declares the class, "
-              "correcting the name to match a defined class, or "
-              "defining a class with the given name.");
-
-  /**
    * Parameters:
    * 0: the name of the actual argument type
    * 1: the name of the expected type
@@ -5634,18 +5611,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "annotations.",
           correction: "Try removing the annotation, or "
               "changing the import to not be deferred.");
-
-  /**
-   * No parameters.
-   */
-  static const CompileTimeErrorCode INVALID_ANNOTATION_GETTER =
-      CompileTimeErrorCode(
-    'INVALID_ANNOTATION',
-    "Getters can't be used as annotations.",
-    correction: "Try using a top-level variable or a field.",
-    hasPublishedDocs: true,
-    uniqueName: 'INVALID_ANNOTATION_GETTER',
-  );
 
   /**
    * Parameters:

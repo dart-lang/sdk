@@ -17,7 +17,6 @@ import 'ambiguous_import_test.dart' as ambiguous_import;
 import 'ambiguous_set_or_map_literal_test.dart' as ambiguous_set_or_map_literal;
 import 'annotation_on_pointer_field_test.dart' as annotation_on_pointer_field;
 import 'annotation_syntax_test.dart' as annotation_syntax;
-import 'annotation_with_non_class_test.dart' as annotation_with_non_class;
 import 'argument_type_not_assignable_test.dart' as argument_type_not_assignable;
 import 'assert_in_redirecting_constructor_test.dart'
     as assert_in_redirecting_constructor;
@@ -274,7 +273,6 @@ import 'integer_literal_imprecise_as_double_test.dart'
 import 'integer_literal_out_of_range_test.dart' as integer_literal_out_of_range;
 import 'invalid_annotation_from_deferred_library_test.dart'
     as invalid_annotation_from_deferred_library;
-import 'invalid_annotation_getter_test.dart' as invalid_annotation_getter;
 import 'invalid_annotation_target_test.dart' as invalid_annotation_target;
 import 'invalid_annotation_test.dart' as invalid_annotation;
 import 'invalid_assignment_test.dart' as invalid_assignment;
@@ -672,7 +670,6 @@ main() {
     ambiguous_set_or_map_literal.main();
     annotation_on_pointer_field.main();
     annotation_syntax.main();
-    annotation_with_non_class.main();
     argument_type_not_assignable.main();
     assert_in_redirecting_constructor.main();
     assignment_of_do_not_store.main();
@@ -840,7 +837,6 @@ main() {
     integer_literal_out_of_range.main();
     invalid_annotation.main();
     invalid_annotation_from_deferred_library.main();
-    invalid_annotation_getter.main();
     invalid_annotation_target.main();
     invalid_assignment.main();
     invalid_cast_new_expr.main();

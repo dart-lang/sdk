@@ -4906,8 +4906,6 @@ var x = BigInt.parse('9223372036854775810');
 _Annotation must be either a const variable reference or const constructor
 invocation._
 
-_Getters can't be used as annotations._
-
 #### Description
 
 The analyzer produces this diagnostic when an annotation is found that is
