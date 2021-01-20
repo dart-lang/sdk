@@ -53,7 +53,7 @@ import 'package:front_end/src/fasta/util/direct_parser_ast_helper.dart';
 import 'package:front_end/src/fasta/util/textual_outline.dart'
     show textualOutline;
 
-import 'package:kernel/ast.dart' show Component;
+import 'package:kernel/ast.dart' show Component, LibraryPart;
 
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
@@ -1746,8 +1746,9 @@ worlds:
   }
 
   bool _isUriNnbd(Uri uri) {
+    Uri asImportUri = _getImportUri(uri);
     LibraryBuilder libraryBuilder = _latestCrashingIncrementalCompiler
-        .userCode.loader.builders[_getImportUri(uri)];
+        .userCode.loader.builders[asImportUri];
     if (libraryBuilder != null) {
       return libraryBuilder.isNonNullableByDefault;
     }
@@ -1755,12 +1756,18 @@ worlds:
     for (LibraryBuilder libraryBuilder
         in _latestCrashingIncrementalCompiler.userCode.loader.builders.values) {
       if (libraryBuilder.importUri == uri) {
-        print("Found $uri as ${libraryBuilder.importUri} "
-            "(!= ${_getImportUri(uri)})");
+        print("Found $uri as ${libraryBuilder.importUri} (!= ${asImportUri})");
         return libraryBuilder.isNonNullableByDefault;
       }
+      // Check parts too.
+      for (LibraryPart part in libraryBuilder.library.parts) {
+        Uri thisPartUri = libraryBuilder.importUri.resolve(part.partUri);
+        if (thisPartUri == uri || thisPartUri == asImportUri) {
+          print("Found $uri as part of ${libraryBuilder.importUri}");
+          return libraryBuilder.isNonNullableByDefault;
+        }
+      }
     }
-    // This might be parts?
     throw "Couldn't lookup $uri at all!";
   }
 

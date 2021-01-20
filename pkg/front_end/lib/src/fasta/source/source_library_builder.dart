@@ -2258,7 +2258,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       String nativeMethodName,
       {Token beginInitializers}) {
     MetadataCollector metadataCollector = loader.target.metadataCollector;
-    Constructor referenceFrom;
+    Member referenceFrom;
     if (_currentClassReferencesFromIndexed != null) {
       referenceFrom = _currentClassReferencesFromIndexed.lookupConstructor(
           new Name(
@@ -2438,9 +2438,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       procedureName = name;
     }
 
-    Reference reference =
-        _currentClassReferencesFromIndexed?.lookupGetterReference(new Name(
-            procedureName, _currentClassReferencesFromIndexed.library));
+    Reference reference = _currentClassReferencesFromIndexed
+        ?.lookupConstructor(
+            new Name(procedureName, _currentClassReferencesFromIndexed.library))
+        ?.reference;
 
     ProcedureBuilder procedureBuilder;
     if (redirectionTarget != null) {
