@@ -269,28 +269,15 @@ class AnnotationResolver {
 
   void _resolveAnnotationElementGetter(
       Annotation annotation, PropertyAccessorElement accessorElement) {
-    // accessor should be synthetic
-    if (!accessorElement.isSynthetic) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.INVALID_ANNOTATION_GETTER, annotation);
-      return;
-    }
-    // variable should be constant
+    // The accessor should be synthetic, the variable should be constant, and
+    // there should be no arguments.
     VariableElement variableElement = accessorElement.variable;
-    if (!variableElement.isConst) {
+    if (!accessorElement.isSynthetic ||
+        !variableElement.isConst ||
+        annotation.arguments != null) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
-      return;
     }
-    // no arguments
-    if (annotation.arguments != null) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.ANNOTATION_WITH_NON_CLASS,
-          annotation.name,
-          [annotation.name]);
-    }
-    // OK
-    return;
   }
 
   /// Given an [argumentList] and the [executableElement] that will be invoked

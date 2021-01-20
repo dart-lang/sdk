@@ -178,22 +178,12 @@ Future futureSyncWhenComplete() {
   return Future.sync(throwAsync).whenComplete(() => 'nop');
 }
 
-// ----
-// Scenario: Future.then:
-// ----
-
-Future futureThen() {
-  return Future.value(0).then((value) {
-    throwSync();
-  });
-}
-
 // Helpers:
 
 // We want lines that either start with a frame index or an async gap marker.
 final _lineRE = RegExp(r'^(?:#(?<number>\d+)|<asynchronous suspension>)');
 
-Future<void> assertStack(List<String> expects, StackTrace stackTrace,
+void assertStack(List<String> expects, StackTrace stackTrace,
     [String? debugInfoFilename]) async {
   final original = await Stream.value(stackTrace.toString())
       .transform(const LineSplitter())
@@ -263,7 +253,7 @@ Future<void> doTestAwait(Future f(), List<String> expectedStack,
     await f();
     Expect.fail('No exception thrown!');
   } on String catch (e, s) {
-    return assertStack(expectedStack, s, debugInfoFilename);
+    assertStack(expectedStack, s, debugInfoFilename);
   }
 }
 
@@ -277,7 +267,7 @@ Future<void> doTestAwaitThen(Future f(), List<String> expectedStack,
     await f().then((e) => Expect.fail('No exception thrown!'));
     Expect.fail('No exception thrown!');
   } on String catch (e, s) {
-    return assertStack(expectedStack, s, debugInfoFilename);
+    assertStack(expectedStack, s, debugInfoFilename);
   }
 }
 
@@ -288,7 +278,7 @@ Future<void> doTestAwaitCatchError(Future f(), List<String> expectedStack,
   await f().catchError((e, s) {
     stackTrace = s;
   });
-  return assertStack(expectedStack, stackTrace, debugInfoFilename);
+  assertStack(expectedStack, stackTrace, debugInfoFilename);
 }
 
 // ----
@@ -337,32 +327,39 @@ Future<void> doTestsNoCausalNoLazy([String? debugInfoFilename]) async {
             r'^#13     Future._propagateToListeners ',
             r'^#14     Future._completeWithValue ',
             r'^#15     _completeOnAsyncReturn ',
-            r'^#16     assertStack ',
+            r'^#16     doTestAwaitCatchError ',
             r'^#17     _RootZone.runUnary ',
             r'^#18     _FutureListener.handleValue ',
             r'^#19     Future._propagateToListeners.handleValueCallback ',
             r'^#20     Future._propagateToListeners ',
-            r'^#21     Future._complete ',
-            r'^#22     Stream.toList.<anonymous closure> ',
-            r'^#23     _RootZone.runGuarded ',
-            r'^#24     _BufferingStreamSubscription._sendDone.sendDone ',
-            r'^#25     _BufferingStreamSubscription._sendDone ',
-            r'^#26     _BufferingStreamSubscription._close ',
-            r'^#27     _SinkTransformerStreamSubscription._close ',
-            r'^#28     _EventSinkWrapper.close ',
-            r'^#29     _StringAdapterSink.close ',
-            r'^#30     _LineSplitterSink.close ',
-            r'^#31     _SinkTransformerStreamSubscription._handleDone ',
-            r'^#32     _RootZone.runGuarded ',
-            r'^#33     _BufferingStreamSubscription._sendDone.sendDone ',
-            r'^#34     _BufferingStreamSubscription._sendDone ',
-            r'^#35     _DelayedDone.perform ',
-            r'^#36     _StreamImplEvents.handleNext ',
-            r'^#37     _PendingEvents.schedule.<anonymous closure> ',
-            r'^#38     _microtaskLoop ',
-            r'^#39     _startMicrotaskLoop ',
-            r'^#40     _runPendingImmediateCallback ',
-            r'^#41     _RawReceivePortImpl._handleMessage ',
+            r'^#21     Future._completeError ',
+            r'^#22     _completeOnAsyncError ',
+            r'^#23     allYield ',
+            r'^#24     _asyncErrorWrapperHelper.errorCallback ',
+            r'^#25     _RootZone.runBinary ',
+            r'^#26     _FutureListener.handleError ',
+            r'^#27     Future._propagateToListeners.handleError ',
+            r'^#28     Future._propagateToListeners ',
+            r'^#29     Future._completeError ',
+            r'^#30     _completeOnAsyncError ',
+            r'^#31     allYield2 ',
+            r'^#32     _asyncErrorWrapperHelper.errorCallback ',
+            r'^#33     _RootZone.runBinary ',
+            r'^#34     _FutureListener.handleError ',
+            r'^#35     Future._propagateToListeners.handleError ',
+            r'^#36     Future._propagateToListeners ',
+            r'^#37     Future._completeError ',
+            r'^#38     _completeOnAsyncError ',
+            r'^#39     allYield3 ',
+            r'^#40     _RootZone.runUnary ',
+            r'^#41     _FutureListener.handleValue ',
+            r'^#42     Future._propagateToListeners.handleValueCallback ',
+            r'^#43     Future._propagateToListeners ',
+            r'^#44     Future._addListener.<anonymous closure> ',
+            r'^#45     _microtaskLoop ',
+            r'^#46     _startMicrotaskLoop ',
+            r'^#47     _runPendingImmediateCallback ',
+            r'^#48     _RawReceivePortImpl._handleMessage ',
           ],
       debugInfoFilename);
   await doTestAwaitThen(
@@ -378,32 +375,34 @@ Future<void> doTestsNoCausalNoLazy([String? debugInfoFilename]) async {
             r'^#13     Future._propagateToListeners ',
             r'^#14     Future._completeWithValue ',
             r'^#15     _completeOnAsyncReturn ',
-            r'^#16     assertStack ',
-            r'^#17     _RootZone.runUnary ',
-            r'^#18     _FutureListener.handleValue ',
-            r'^#19     Future._propagateToListeners.handleValueCallback ',
-            r'^#20     Future._propagateToListeners ',
-            r'^#21     Future._complete ',
-            r'^#22     Stream.toList.<anonymous closure> ',
-            r'^#23     _RootZone.runGuarded ',
-            r'^#24     _BufferingStreamSubscription._sendDone.sendDone ',
-            r'^#25     _BufferingStreamSubscription._sendDone ',
-            r'^#26     _BufferingStreamSubscription._close ',
-            r'^#27     _SinkTransformerStreamSubscription._close ',
-            r'^#28     _EventSinkWrapper.close ',
-            r'^#29     _StringAdapterSink.close ',
-            r'^#30     _LineSplitterSink.close ',
-            r'^#31     _SinkTransformerStreamSubscription._handleDone ',
-            r'^#32     _RootZone.runGuarded ',
-            r'^#33     _BufferingStreamSubscription._sendDone.sendDone ',
-            r'^#34     _BufferingStreamSubscription._sendDone ',
-            r'^#35     _DelayedDone.perform ',
-            r'^#36     _StreamImplEvents.handleNext ',
-            r'^#37     _PendingEvents.schedule.<anonymous closure> ',
-            r'^#38     _microtaskLoop ',
-            r'^#39     _startMicrotaskLoop ',
-            r'^#40     _runPendingImmediateCallback ',
-            r'^#41     _RawReceivePortImpl._handleMessage ',
+            r'^#16     doTestAwait ',
+            r'^#17     _asyncErrorWrapperHelper.errorCallback ',
+            r'^#18     _RootZone.runBinary ',
+            r'^#19     _FutureListener.handleError ',
+            r'^#20     Future._propagateToListeners.handleError ',
+            r'^#21     Future._propagateToListeners ',
+            r'^#22     Future._completeError ',
+            r'^#23     _completeOnAsyncError ',
+            r'^#24     noYields ',
+            r'^#25     _asyncErrorWrapperHelper.errorCallback ',
+            r'^#26     _RootZone.runBinary ',
+            r'^#27     _FutureListener.handleError ',
+            r'^#28     Future._propagateToListeners.handleError ',
+            r'^#29     Future._propagateToListeners ',
+            r'^#30     Future._completeError ',
+            r'^#31     _completeOnAsyncError ',
+            r'^#32     noYields2 ',
+            r'^#33     _asyncErrorWrapperHelper.errorCallback ',
+            r'^#34     _RootZone.runBinary ',
+            r'^#35     _FutureListener.handleError ',
+            r'^#36     Future._propagateToListeners.handleError ',
+            r'^#37     Future._propagateToListeners ',
+            r'^#38     Future._completeError ',
+            r'^#39     Future._asyncCompleteError.<anonymous closure> ',
+            r'^#40     _microtaskLoop ',
+            r'^#41     _startMicrotaskLoop ',
+            r'^#42     _runPendingImmediateCallback ',
+            r'^#43     _RawReceivePortImpl._handleMessage ',
           ],
       debugInfoFilename);
   await doTestAwaitCatchError(
@@ -419,32 +418,34 @@ Future<void> doTestsNoCausalNoLazy([String? debugInfoFilename]) async {
             r'^#13     Future._propagateToListeners ',
             r'^#14     Future._completeWithValue ',
             r'^#15     _completeOnAsyncReturn ',
-            r'^#16     assertStack ',
-            r'^#17     _RootZone.runUnary ',
-            r'^#18     _FutureListener.handleValue ',
-            r'^#19     Future._propagateToListeners.handleValueCallback ',
-            r'^#20     Future._propagateToListeners ',
-            r'^#21     Future._complete ',
-            r'^#22     Stream.toList.<anonymous closure> ',
-            r'^#23     _RootZone.runGuarded ',
-            r'^#24     _BufferingStreamSubscription._sendDone.sendDone ',
-            r'^#25     _BufferingStreamSubscription._sendDone ',
-            r'^#26     _BufferingStreamSubscription._close ',
-            r'^#27     _SinkTransformerStreamSubscription._close ',
-            r'^#28     _EventSinkWrapper.close ',
-            r'^#29     _StringAdapterSink.close ',
-            r'^#30     _LineSplitterSink.close ',
-            r'^#31     _SinkTransformerStreamSubscription._handleDone ',
-            r'^#32     _RootZone.runGuarded ',
-            r'^#33     _BufferingStreamSubscription._sendDone.sendDone ',
-            r'^#34     _BufferingStreamSubscription._sendDone ',
-            r'^#35     _DelayedDone.perform ',
-            r'^#36     _StreamImplEvents.handleNext ',
-            r'^#37     _PendingEvents.schedule.<anonymous closure> ',
-            r'^#38     _microtaskLoop ',
-            r'^#39     _startMicrotaskLoop ',
-            r'^#40     _runPendingImmediateCallback ',
-            r'^#41     _RawReceivePortImpl._handleMessage ',
+            r'^#16     doTestAwaitThen ',
+            r'^#17     _asyncErrorWrapperHelper.errorCallback ',
+            r'^#18     _RootZone.runBinary ',
+            r'^#19     _FutureListener.handleError ',
+            r'^#20     Future._propagateToListeners.handleError ',
+            r'^#21     Future._propagateToListeners ',
+            r'^#22     Future._completeError ',
+            r'^#23     _completeOnAsyncError ',
+            r'^#24     noYields ',
+            r'^#25     _asyncErrorWrapperHelper.errorCallback ',
+            r'^#26     _RootZone.runBinary ',
+            r'^#27     _FutureListener.handleError ',
+            r'^#28     Future._propagateToListeners.handleError ',
+            r'^#29     Future._propagateToListeners ',
+            r'^#30     Future._completeError ',
+            r'^#31     _completeOnAsyncError ',
+            r'^#32     noYields2 ',
+            r'^#33     _asyncErrorWrapperHelper.errorCallback ',
+            r'^#34     _RootZone.runBinary ',
+            r'^#35     _FutureListener.handleError ',
+            r'^#36     Future._propagateToListeners.handleError ',
+            r'^#37     Future._propagateToListeners ',
+            r'^#38     Future._completeError ',
+            r'^#39     Future._asyncCompleteError.<anonymous closure> ',
+            r'^#40     _microtaskLoop ',
+            r'^#41     _startMicrotaskLoop ',
+            r'^#42     _runPendingImmediateCallback ',
+            r'^#43     _RawReceivePortImpl._handleMessage ',
           ],
       debugInfoFilename);
 
@@ -641,497 +642,329 @@ Future<void> doTestsNoCausalNoLazy([String? debugInfoFilename]) async {
     await doTestAwaitCatchError(
         futureSyncWhenComplete, expected, debugInfoFilename);
   }
-
-  {
-    final expected = const <String>[
-      r'^#0      throwSync \(.*/utils.dart:16(:3)?\)$',
-      r'^#1      futureThen.<anonymous closure> \(.*/utils.dart:187(:5)?\)$',
-      r'^#2      _RootZone.runUnary ',
-      r'^#3      _FutureListener.handleValue ',
-      r'^#4      Future._propagateToListeners.handleValueCallback ',
-      r'^#5      Future._propagateToListeners ',
-      r'^#6      Future._completeWithValue ',
-      r'^#7      Future._asyncCompleteWithValue.<anonymous closure> ',
-      r'^#8      _microtaskLoop ',
-      r'^#9      _startMicrotaskLoop ',
-      r'^#10     _runPendingImmediateCallback ',
-      r'^#11     _RawReceivePortImpl._handleMessage ',
-    ];
-    await doTestAwait(futureThen, expected, debugInfoFilename);
-    await doTestAwaitThen(futureThen, expected, debugInfoFilename);
-    await doTestAwaitCatchError(futureThen, expected, debugInfoFilename);
-  }
 }
 
 // For: --lazy-async-stacks
 Future<void> doTestsLazy([String? debugInfoFilename]) async {
-  // allYield
-  {
-    final allYieldExpected = const <String>[
-      r'^#0      throwSync \(.*/utils.dart:16(:3)?\)$',
-      r'^#1      allYield3 \(.*/utils.dart:39(:3)?\)$',
-      r'^<asynchronous suspension>$',
-      r'^#2      allYield2 \(.*/utils.dart:34(:3)?\)$',
-      r'^<asynchronous suspension>$',
-      r'^#3      allYield \(.*/utils.dart:29(:3)?\)$',
-      r'^<asynchronous suspension>$',
-    ];
-    await doTestAwait(
-        allYield,
-        allYieldExpected +
-            const <String>[
-              r'^#4      doTestAwait ',
-              r'^<asynchronous suspension>$',
-              r'^#5      doTestsLazy ',
-              r'^<asynchronous suspension>$',
-              r'^#6      main ',
-              r'^<asynchronous suspension>$',
-            ],
-        debugInfoFilename);
-    await doTestAwaitThen(
-        allYield,
-        allYieldExpected +
-            const <String>[
-              r'^#4      doTestAwaitThen ',
-              r'^<asynchronous suspension>$',
-              r'^#5      doTestsLazy ',
-              r'^<asynchronous suspension>$',
-              r'^#6      main ',
-              r'^<asynchronous suspension>$',
-            ],
-        debugInfoFilename);
-    await doTestAwaitCatchError(
-        allYield,
-        allYieldExpected +
-            const <String>[
-              r'^#4      doTestAwaitCatchError ',
-              r'^<asynchronous suspension>$',
-              r'^#5      doTestsLazy ',
-              r'^<asynchronous suspension>$',
-              r'^#6      main ',
-              r'^<asynchronous suspension>$',
-            ],
-        debugInfoFilename);
-  }
+  final allYieldExpected = const <String>[
+    r'^#0      throwSync \(.*/utils.dart:16(:3)?\)$',
+    r'^#1      allYield3 \(.*/utils.dart:39(:3)?\)$',
+    r'^<asynchronous suspension>$',
+    r'^#2      allYield2 \(.*/utils.dart:34(:3)?\)$',
+    r'^<asynchronous suspension>$',
+    r'^#3      allYield \(.*/utils.dart:29(:3)?\)$',
+    r'^<asynchronous suspension>$',
+  ];
+  await doTestAwait(
+      allYield,
+      allYieldExpected +
+          const <String>[
+            r'^#4      doTestAwait ',
+            r'^<asynchronous suspension>$',
+            r'^#5      doTestsLazy ',
+            r'^<asynchronous suspension>$',
+            r'^#6      main ',
+            r'^<asynchronous suspension>$',
+          ],
+      debugInfoFilename);
+  await doTestAwaitThen(
+      allYield,
+      allYieldExpected +
+          const <String>[
+            r'^#4      doTestAwaitThen.<anonymous closure> ',
+            r'^<asynchronous suspension>$',
+          ],
+      debugInfoFilename);
+  await doTestAwaitCatchError(allYield, allYieldExpected, debugInfoFilename);
 
-  // noYields
-  {
-    final noYieldsExpected = const <String>[
-      r'^#0      throwSync \(.*/utils.dart:16(:3)?\)$',
-      r'^#1      noYields3 \(.*/utils.dart:54(:3)?\)$',
-      r'^#2      noYields2 \(.*/utils.dart:50(:9)?\)$',
-      r'^#3      noYields \(.*/utils.dart:46(:9)?\)$',
-    ];
-    await doTestAwait(
-        noYields,
-        noYieldsExpected +
-            const <String>[
-              r'^#4      doTestAwait ',
-              r'^#5      doTestsLazy ',
-              r'^<asynchronous suspension>$',
-              r'^#6      main ',
-              r'^<asynchronous suspension>$',
-            ],
-        debugInfoFilename);
-    await doTestAwaitThen(
-        noYields,
-        noYieldsExpected +
-            const <String>[
-              r'^#4      doTestAwaitThen ',
-              r'^#5      doTestsLazy ',
-              r'^<asynchronous suspension>$',
-              r'^#6      main ',
-              r'^<asynchronous suspension>$',
-            ],
-        debugInfoFilename);
-    await doTestAwaitCatchError(
-        noYields,
-        noYieldsExpected +
-            const <String>[
-              r'^#4      doTestAwaitCatchError ',
-              r'^#5      doTestsLazy ',
-              r'^<asynchronous suspension>$',
-              r'^#6      main ',
-              r'^<asynchronous suspension>$',
-            ],
-        debugInfoFilename);
-  }
+  final noYieldsExpected = const <String>[
+    r'^#0      throwSync \(.*/utils.dart:16(:3)?\)$',
+    r'^#1      noYields3 \(.*/utils.dart:54(:3)?\)$',
+    r'^#2      noYields2 \(.*/utils.dart:50(:9)?\)$',
+    r'^#3      noYields \(.*/utils.dart:46(:9)?\)$',
+  ];
+  await doTestAwait(
+      noYields,
+      noYieldsExpected +
+          const <String>[
+            r'^#4      doTestAwait ',
+            r'^#5      doTestsLazy ',
+            r'^<asynchronous suspension>$',
+            r'^#6      main ',
+            r'^<asynchronous suspension>$',
+          ],
+      debugInfoFilename);
+  await doTestAwaitThen(
+      noYields,
+      noYieldsExpected +
+          const <String>[
+            r'^#4      doTestAwaitThen ',
+            r'^#5      doTestsLazy ',
+            r'^<asynchronous suspension>$',
+            r'^#6      main ',
+            r'^<asynchronous suspension>$',
+          ],
+      debugInfoFilename);
+  await doTestAwaitCatchError(
+      noYields,
+      noYieldsExpected +
+          const <String>[
+            r'^#4      doTestAwaitCatchError ',
+            r'^#5      doTestsLazy ',
+            r'^<asynchronous suspension>$',
+            r'^#6      main ',
+            r'^<asynchronous suspension>$',
+          ],
+      debugInfoFilename);
 
-  // mixedYields
-  {
-    final mixedYieldsExpected = const <String>[
-      r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
-      r'^<asynchronous suspension>$',
-      r'^#1      mixedYields2 \(.*/utils.dart:66(:3)?\)$',
-      r'^<asynchronous suspension>$',
-      r'^#2      mixedYields \(.*/utils.dart:61(:3)?\)$',
-      r'^<asynchronous suspension>$',
-    ];
-    await doTestAwait(
-        mixedYields,
-        mixedYieldsExpected +
-            const <String>[
-              r'^#3      doTestAwait ',
-              r'^<asynchronous suspension>$',
-              r'^#4      doTestsLazy ',
-              r'^<asynchronous suspension>$',
-              r'^#5      main ',
-              r'^<asynchronous suspension>$',
-            ],
-        debugInfoFilename);
-    await doTestAwaitThen(
-        mixedYields,
-        mixedYieldsExpected +
-            const <String>[
-              r'^#3      doTestAwaitThen ',
-              r'^<asynchronous suspension>$',
-              r'^#4      doTestsLazy ',
-              r'^<asynchronous suspension>$',
-              r'^#5      main ',
-              r'^<asynchronous suspension>$',
-            ],
-        debugInfoFilename);
-    await doTestAwaitCatchError(
-        mixedYields,
-        mixedYieldsExpected +
-            const <String>[
-              r'^#3      doTestAwaitCatchError ',
-              r'^<asynchronous suspension>$',
-              r'^#4      doTestsLazy ',
-              r'^<asynchronous suspension>$',
-              r'^#5      main ',
-              r'^<asynchronous suspension>$',
-            ],
-        debugInfoFilename);
-  }
+  final mixedYieldsExpected = const <String>[
+    r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
+    r'^<asynchronous suspension>$',
+    r'^#1      mixedYields2 \(.*/utils.dart:66(:3)?\)$',
+    r'^<asynchronous suspension>$',
+    r'^#2      mixedYields \(.*/utils.dart:61(:3)?\)$',
+    r'^<asynchronous suspension>$',
+  ];
+  await doTestAwait(
+      mixedYields,
+      mixedYieldsExpected +
+          const <String>[
+            r'^#3      doTestAwait ',
+            r'^<asynchronous suspension>$',
+            r'^#4      doTestsLazy ',
+            r'^<asynchronous suspension>$',
+            r'^#5      main ',
+            r'^<asynchronous suspension>$',
+          ],
+      debugInfoFilename);
+  await doTestAwaitThen(
+      mixedYields,
+      mixedYieldsExpected +
+          const <String>[
+            r'^#3      doTestAwaitThen.<anonymous closure> ',
+            r'^<asynchronous suspension>$',
+          ],
+      debugInfoFilename);
+  await doTestAwaitCatchError(
+      mixedYields, mixedYieldsExpected, debugInfoFilename);
 
-  // syncSuffix
-  {
-    final syncSuffixExpected = const <String>[
-      r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
-      r'^<asynchronous suspension>$',
-      r'^#1      syncSuffix2 \(.*/utils.dart:82(:3)?\)$',
-      r'^<asynchronous suspension>$',
-      r'^#2      syncSuffix \(.*/utils.dart:77(:3)?\)$',
-      r'^<asynchronous suspension>$',
-    ];
-    await doTestAwait(
-        syncSuffix,
-        syncSuffixExpected +
-            const <String>[
-              r'^#3      doTestAwait ',
-              r'^<asynchronous suspension>$',
-              r'^#4      doTestsLazy ',
-              r'^<asynchronous suspension>$',
-              r'^#5      main ',
-              r'^<asynchronous suspension>$',
-            ],
-        debugInfoFilename);
-    await doTestAwaitThen(
-        syncSuffix,
-        syncSuffixExpected +
-            const <String>[
-              r'^#3      doTestAwaitThen ',
-              r'^<asynchronous suspension>$',
-              r'^#4      doTestsLazy ',
-              r'^<asynchronous suspension>$',
-              r'^#5      main ',
-              r'^<asynchronous suspension>$',
-            ],
-        debugInfoFilename);
-    await doTestAwaitCatchError(
-        syncSuffix,
-        syncSuffixExpected +
-            const <String>[
-              r'^#3      doTestAwaitCatchError ',
-              r'^<asynchronous suspension>$',
-              r'^#4      doTestsLazy ',
-              r'^<asynchronous suspension>$',
-              r'^#5      main ',
-              r'^<asynchronous suspension>$',
-            ],
-        debugInfoFilename);
-  }
+  final syncSuffixExpected = const <String>[
+    r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
+    r'^<asynchronous suspension>$',
+    r'^#1      syncSuffix2 \(.*/utils.dart:82(:3)?\)$',
+    r'^<asynchronous suspension>$',
+    r'^#2      syncSuffix \(.*/utils.dart:77(:3)?\)$',
+    r'^<asynchronous suspension>$',
+  ];
+  await doTestAwait(
+      syncSuffix,
+      syncSuffixExpected +
+          const <String>[
+            r'^#3      doTestAwait ',
+            r'^<asynchronous suspension>$',
+            r'^#4      doTestsLazy ',
+            r'^<asynchronous suspension>$',
+            r'^#5      main ',
+            r'^<asynchronous suspension>$',
+          ],
+      debugInfoFilename);
+  await doTestAwaitThen(
+      syncSuffix,
+      syncSuffixExpected +
+          const <String>[
+            r'^#3      doTestAwaitThen.<anonymous closure> ',
+            r'^<asynchronous suspension>$',
+          ],
+      debugInfoFilename);
+  await doTestAwaitCatchError(
+      syncSuffix, syncSuffixExpected, debugInfoFilename);
 
-  // nonAsyncNoStack
-  {
-    final nonAsyncNoStackExpected = const <String>[
-      r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
-      r'^<asynchronous suspension>$',
-      r'^#1      nonAsyncNoStack1 \(.*/utils.dart:95(:36)?\)$',
-      r'^<asynchronous suspension>$',
-      r'^#2      nonAsyncNoStack \(.*/utils.dart:93(:35)?\)$',
-      r'^<asynchronous suspension>$',
-    ];
-    await doTestAwait(
-        nonAsyncNoStack,
-        nonAsyncNoStackExpected +
-            const <String>[
-              r'^#3      doTestAwait ',
-              r'^<asynchronous suspension>$',
-              r'^#4      doTestsLazy ',
-              r'^<asynchronous suspension>$',
-              r'^#5      main ',
-              r'^<asynchronous suspension>$',
-            ],
-        debugInfoFilename);
-    await doTestAwaitThen(
-        nonAsyncNoStack,
-        nonAsyncNoStackExpected +
-            const <String>[
-              r'^#3      doTestAwaitThen ',
-              r'^<asynchronous suspension>$',
-              r'^#4      doTestsLazy ',
-              r'^<asynchronous suspension>$',
-              r'^#5      main ',
-              r'^<asynchronous suspension>$',
-            ],
-        debugInfoFilename);
-    await doTestAwaitCatchError(
-        nonAsyncNoStack,
-        nonAsyncNoStackExpected +
-            const <String>[
-              r'^#3      doTestAwaitCatchError ',
-              r'^<asynchronous suspension>$',
-              r'^#4      doTestsLazy ',
-              r'^<asynchronous suspension>$',
-              r'^#5      main ',
-              r'^<asynchronous suspension>$',
-            ],
-        debugInfoFilename);
-  }
+  final nonAsyncNoStackExpected = const <String>[
+    r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
+    r'^<asynchronous suspension>$',
+    r'^#1      nonAsyncNoStack1 \(.*/utils.dart:95(:36)?\)$',
+    r'^<asynchronous suspension>$',
+    r'^#2      nonAsyncNoStack \(.*/utils.dart:93(:35)?\)$',
+    r'^<asynchronous suspension>$',
+  ];
+  await doTestAwait(
+      nonAsyncNoStack,
+      nonAsyncNoStackExpected +
+          const <String>[
+            r'^#3      doTestAwait ',
+            r'^<asynchronous suspension>$',
+            r'^#4      doTestsLazy ',
+            r'^<asynchronous suspension>$',
+            r'^#5      main ',
+            r'^<asynchronous suspension>$',
+          ],
+      debugInfoFilename);
+  await doTestAwaitThen(
+      nonAsyncNoStack,
+      nonAsyncNoStackExpected +
+          const <String>[
+            r'^#3      doTestAwaitThen.<anonymous closure> ',
+            r'^<asynchronous suspension>$',
+          ],
+      debugInfoFilename);
+  await doTestAwaitCatchError(
+      nonAsyncNoStack, nonAsyncNoStackExpected, debugInfoFilename);
 
-  // awaitEveryAsyncStarThrowSync
-  {
-    final asyncStarThrowSyncExpected = const <String>[
-      r'^#0      throwSync \(.+/utils.dart:16(:3)?\)$',
-      r'^#1      asyncStarThrowSync \(.+/utils.dart:112(:11)?\)$',
-      r'^<asynchronous suspension>$',
-      r'^#2      awaitEveryAsyncStarThrowSync \(.+/utils.dart:104(:3)?\)$',
-      r'^<asynchronous suspension>$',
-    ];
-    await doTestAwait(
-        awaitEveryAsyncStarThrowSync,
-        asyncStarThrowSyncExpected +
-            const <String>[
-              r'^#3      doTestAwait ',
-              r'^<asynchronous suspension>$',
-              r'^#4      doTestsLazy ',
-              r'^<asynchronous suspension>$',
-              r'^#5      main ',
-              r'^<asynchronous suspension>$',
-            ],
-        debugInfoFilename);
-    await doTestAwaitThen(
-        awaitEveryAsyncStarThrowSync,
-        asyncStarThrowSyncExpected +
-            const <String>[
-              r'^#3      doTestAwaitThen ',
-              r'^<asynchronous suspension>$',
-              r'^#4      doTestsLazy ',
-              r'^<asynchronous suspension>$',
-              r'^#5      main ',
-              r'^<asynchronous suspension>$',
-            ],
-        debugInfoFilename);
-    await doTestAwaitCatchError(
-        awaitEveryAsyncStarThrowSync,
-        asyncStarThrowSyncExpected +
-            const <String>[
-              r'^#3      doTestAwaitCatchError ',
-              r'^<asynchronous suspension>$',
-              r'^#4      doTestsLazy ',
-              r'^<asynchronous suspension>$',
-              r'^#5      main ',
-              r'^<asynchronous suspension>$',
-            ],
-        debugInfoFilename);
-  }
+  final asyncStarThrowSyncExpected = const <String>[
+    r'^#0      throwSync \(.+/utils.dart:16(:3)?\)$',
+    r'^#1      asyncStarThrowSync \(.+/utils.dart:112(:11)?\)$',
+    r'^<asynchronous suspension>$',
+    r'^#2      awaitEveryAsyncStarThrowSync \(.+/utils.dart:104(:3)?\)$',
+    r'^<asynchronous suspension>$',
+  ];
+  await doTestAwait(
+      awaitEveryAsyncStarThrowSync,
+      asyncStarThrowSyncExpected +
+          const <String>[
+            r'^#3      doTestAwait ',
+            r'^<asynchronous suspension>$',
+            r'^#4      doTestsLazy ',
+            r'^<asynchronous suspension>$',
+            r'^#5      main ',
+            r'^<asynchronous suspension>$',
+          ],
+      debugInfoFilename);
+  await doTestAwaitThen(
+      awaitEveryAsyncStarThrowSync,
+      asyncStarThrowSyncExpected +
+          const <String>[
+            r'^#3      doTestAwaitThen.<anonymous closure> ',
+            r'^<asynchronous suspension>$',
+          ],
+      debugInfoFilename);
+  await doTestAwaitCatchError(awaitEveryAsyncStarThrowSync,
+      asyncStarThrowSyncExpected, debugInfoFilename);
 
-  // awaitEveryAsyncStarThrowAsync
-  {
-    final asyncStarThrowAsyncExpected = const <String>[
-      r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
-      r'^<asynchronous suspension>$',
-      r'^#1      asyncStarThrowAsync \(.*/utils.dart:126(:5)?\)$',
-      r'^<asynchronous suspension>$',
-      r'^#2      awaitEveryAsyncStarThrowAsync \(.+/utils.dart:117(:3)?\)$',
-      r'^<asynchronous suspension>$',
-    ];
-    await doTestAwait(
-        awaitEveryAsyncStarThrowAsync,
-        asyncStarThrowAsyncExpected +
-            const <String>[
-              r'^#3      doTestAwait ',
-              r'^<asynchronous suspension>$',
-              r'^#4      doTestsLazy ',
-              r'^<asynchronous suspension>$',
-              r'^#5      main ',
-              r'^<asynchronous suspension>$',
-            ],
-        debugInfoFilename);
-    await doTestAwaitThen(
-        awaitEveryAsyncStarThrowAsync,
-        asyncStarThrowAsyncExpected +
-            const <String>[
-              r'^#3      doTestAwaitThen ',
-              r'^<asynchronous suspension>$',
-              r'^#4      doTestsLazy ',
-              r'^<asynchronous suspension>$',
-              r'^#5      main ',
-              r'^<asynchronous suspension>$',
-            ],
-        debugInfoFilename);
-    await doTestAwaitCatchError(
-        awaitEveryAsyncStarThrowAsync,
-        asyncStarThrowAsyncExpected +
-            const <String>[
-              r'^#3      doTestAwaitCatchError ',
-              r'^<asynchronous suspension>$',
-              r'^#4      doTestsLazy ',
-              r'^<asynchronous suspension>$',
-              r'^#5      main ',
-              r'^<asynchronous suspension>$',
-            ],
-        debugInfoFilename);
-  }
+  final asyncStarThrowAsyncExpected = const <String>[
+    r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
+    r'^<asynchronous suspension>$',
+    r'^#1      asyncStarThrowAsync \(.*/utils.dart:126(:5)?\)$',
+    r'^<asynchronous suspension>$',
+    r'^#2      awaitEveryAsyncStarThrowAsync \(.+/utils.dart:117(:3)?\)$',
+    r'^<asynchronous suspension>$',
+  ];
+  await doTestAwait(
+      awaitEveryAsyncStarThrowAsync,
+      asyncStarThrowAsyncExpected +
+          const <String>[
+            r'^#3      doTestAwait ',
+            r'^<asynchronous suspension>$',
+            r'^#4      doTestsLazy ',
+            r'^<asynchronous suspension>$',
+            r'^#5      main ',
+            r'^<asynchronous suspension>$',
+          ],
+      debugInfoFilename);
+  await doTestAwaitThen(
+      awaitEveryAsyncStarThrowAsync,
+      asyncStarThrowAsyncExpected +
+          const <String>[
+            r'^#3      doTestAwaitThen.<anonymous closure> ',
+            r'^<asynchronous suspension>$',
+          ],
+      debugInfoFilename);
+  await doTestAwaitCatchError(awaitEveryAsyncStarThrowAsync,
+      asyncStarThrowAsyncExpected, debugInfoFilename);
 
-  // listenAsyncStarThrowAsync
-  {
-    final listenAsyncStartExpected = const <String>[
-      r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
-      r'^<asynchronous suspension>$',
-      r'^#1      asyncStarThrowAsync \(.*/utils.dart:126(:5)?\)$',
-      r'^<asynchronous suspension>$',
-      r'^#2      listenAsyncStarThrowAsync.<anonymous closure> \(.+/utils.dart(:0)?\)$',
-      r'^<asynchronous suspension>$',
-    ];
-    await doTestAwait(
-        listenAsyncStarThrowAsync, listenAsyncStartExpected, debugInfoFilename);
-    await doTestAwaitThen(
-        listenAsyncStarThrowAsync, listenAsyncStartExpected, debugInfoFilename);
-    await doTestAwaitCatchError(
-        listenAsyncStarThrowAsync, listenAsyncStartExpected, debugInfoFilename);
-  }
+  final listenAsyncStartExpected = const <String>[
+    r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
+    r'^<asynchronous suspension>$',
+    r'^#1      asyncStarThrowAsync \(.*/utils.dart:126(:5)?\)$',
+    r'^<asynchronous suspension>$',
+    r'^#2      listenAsyncStarThrowAsync.<anonymous closure> \(.+/utils.dart(:0)?\)$',
+    r'^<asynchronous suspension>$',
+  ];
+  await doTestAwait(
+      listenAsyncStarThrowAsync, listenAsyncStartExpected, debugInfoFilename);
+  await doTestAwaitThen(
+      listenAsyncStarThrowAsync, listenAsyncStartExpected, debugInfoFilename);
+  await doTestAwaitCatchError(
+      listenAsyncStarThrowAsync, listenAsyncStartExpected, debugInfoFilename);
 
-  // customErrorZone
-  {
-    final customErrorZoneExpected = const <String>[
-      r'#0      throwSync \(.*/utils.dart:16(:3)?\)$',
-      r'#1      allYield3 \(.*/utils.dart:39(:3)?\)$',
-      r'<asynchronous suspension>$',
-      r'#2      allYield2 \(.*/utils.dart:34(:3)?\)$',
-      r'<asynchronous suspension>$',
-      r'#3      allYield \(.*/utils.dart:29(:3)?\)$',
-      r'<asynchronous suspension>$',
-      r'#4      customErrorZone.<anonymous closure> \(.*/utils.dart:144(:5)?\)$',
-      r'<asynchronous suspension>$',
-    ];
-    await doTestAwait(
-        customErrorZone, customErrorZoneExpected, debugInfoFilename);
-    await doTestAwaitThen(
-        customErrorZone, customErrorZoneExpected, debugInfoFilename);
-    await doTestAwaitCatchError(
-        customErrorZone, customErrorZoneExpected, debugInfoFilename);
-  }
+  final customErrorZoneExpected = const <String>[
+    r'#0      throwSync \(.*/utils.dart:16(:3)?\)$',
+    r'#1      allYield3 \(.*/utils.dart:39(:3)?\)$',
+    r'<asynchronous suspension>$',
+    r'#2      allYield2 \(.*/utils.dart:34(:3)?\)$',
+    r'<asynchronous suspension>$',
+    r'#3      allYield \(.*/utils.dart:29(:3)?\)$',
+    r'<asynchronous suspension>$',
+    r'#4      customErrorZone.<anonymous closure> \(.*/utils.dart:144(:5)?\)$',
+    r'<asynchronous suspension>$',
+  ];
+  await doTestAwait(
+      customErrorZone, customErrorZoneExpected, debugInfoFilename);
+  await doTestAwaitThen(
+      customErrorZone, customErrorZoneExpected, debugInfoFilename);
+  await doTestAwaitCatchError(
+      customErrorZone, customErrorZoneExpected, debugInfoFilename);
 
-  // awaitTimeout
-  {
-    final awaitTimeoutExpected = const <String>[
-      r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
-      r'^<asynchronous suspension>$',
-      r'^#1      Future.timeout.<anonymous closure> \(dart:async/future_impl.dart',
-      r'^<asynchronous suspension>$',
-      r'^#2      awaitTimeout ',
-      r'^<asynchronous suspension>$',
-    ];
-    await doTestAwait(
-        awaitTimeout,
-        awaitTimeoutExpected +
-            const <String>[
-              r'^#3      doTestAwait ',
-              r'^<asynchronous suspension>$',
-              r'^#4      doTestsLazy ',
-              r'^<asynchronous suspension>$',
-              r'^#5      main ',
-              r'^<asynchronous suspension>$',
-            ],
-        debugInfoFilename);
-    await doTestAwaitThen(
-        awaitTimeout,
-        awaitTimeoutExpected +
-            const <String>[
-              r'^#3      doTestAwaitThen ',
-              r'^<asynchronous suspension>$',
-              r'^#4      doTestsLazy ',
-              r'^<asynchronous suspension>$',
-              r'^#5      main ',
-              r'^<asynchronous suspension>$',
-            ],
-        debugInfoFilename);
-    await doTestAwaitCatchError(
-        awaitTimeout,
-        awaitTimeoutExpected +
-            const <String>[
-              r'^#3      doTestAwaitCatchError ',
-              r'^<asynchronous suspension>$',
-              r'^#4      doTestsLazy ',
-              r'^<asynchronous suspension>$',
-              r'^#5      main ',
-              r'^<asynchronous suspension>$',
-            ],
-        debugInfoFilename);
-  }
+  final awaitTimeoutExpected = const <String>[
+    r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
+    r'^<asynchronous suspension>$',
+    r'^#1      Future.timeout.<anonymous closure> \(dart:async/future_impl.dart',
+    r'^<asynchronous suspension>$',
+    r'^#2      awaitTimeout ',
+    r'^<asynchronous suspension>$',
+  ];
+  await doTestAwait(
+      awaitTimeout,
+      awaitTimeoutExpected +
+          const <String>[
+            r'^#3      doTestAwait ',
+            r'^<asynchronous suspension>$',
+            r'^#4      doTestsLazy ',
+            r'^<asynchronous suspension>$',
+            r'^#5      main ',
+            r'^<asynchronous suspension>$',
+          ],
+      debugInfoFilename);
+  await doTestAwaitThen(
+      awaitTimeout,
+      awaitTimeoutExpected +
+          const <String>[
+            r'^#3      doTestAwaitThen.<anonymous closure> ',
+            r'^<asynchronous suspension>$',
+          ],
+      debugInfoFilename);
+  await doTestAwaitCatchError(
+      awaitTimeout, awaitTimeoutExpected, debugInfoFilename);
 
-  // awaitWait
-  {
-    final awaitWaitExpected = const <String>[
-      r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
-      r'^<asynchronous suspension>$',
-      r'^#1      Future.wait.<anonymous closure> \(dart:async/future.dart',
-      r'^<asynchronous suspension>$',
-      r'^#2      awaitWait ',
-      r'^<asynchronous suspension>$',
-    ];
-    await doTestAwait(
-        awaitWait,
-        awaitWaitExpected +
-            const <String>[
-              r'^#3      doTestAwait ',
-              r'^<asynchronous suspension>$',
-              r'^#4      doTestsLazy ',
-              r'^<asynchronous suspension>$',
-              r'^#5      main ',
-              r'^<asynchronous suspension>$',
-            ],
-        debugInfoFilename);
-    await doTestAwaitThen(
-        awaitWait,
-        awaitWaitExpected +
-            const <String>[
-              r'^#3      doTestAwaitThen ',
-              r'^<asynchronous suspension>$',
-              r'^#4      doTestsLazy ',
-              r'^<asynchronous suspension>$',
-              r'^#5      main ',
-              r'^<asynchronous suspension>$',
-            ],
-        debugInfoFilename);
-    await doTestAwaitCatchError(
-        awaitWait,
-        awaitWaitExpected +
-            const <String>[
-              r'^#3      doTestAwaitCatchError ',
-              r'^<asynchronous suspension>$',
-              r'^#4      doTestsLazy ',
-              r'^<asynchronous suspension>$',
-              r'^#5      main ',
-              r'^<asynchronous suspension>$',
-            ],
-        debugInfoFilename);
-  }
+  final awaitWaitExpected = const <String>[
+    r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
+    r'^<asynchronous suspension>$',
+    r'^#1      Future.wait.<anonymous closure> \(dart:async/future.dart',
+    r'^<asynchronous suspension>$',
+    r'^#2      awaitWait ',
+    r'^<asynchronous suspension>$',
+  ];
+  await doTestAwait(
+      awaitWait,
+      awaitWaitExpected +
+          const <String>[
+            r'^#3      doTestAwait ',
+            r'^<asynchronous suspension>$',
+            r'^#4      doTestsLazy ',
+            r'^<asynchronous suspension>$',
+            r'^#5      main ',
+            r'^<asynchronous suspension>$',
+          ],
+      debugInfoFilename);
+  await doTestAwaitThen(
+      awaitWait,
+      awaitWaitExpected +
+          const <String>[
+            r'^#3      doTestAwaitThen.<anonymous closure> ',
+            r'^<asynchronous suspension>$',
+          ],
+      debugInfoFilename);
+  await doTestAwaitCatchError(awaitWait, awaitWaitExpected, debugInfoFilename);
 
-  // futureSyncWhenComplete
   {
     final expected = const <String>[
       r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
@@ -1153,70 +986,11 @@ Future<void> doTestsLazy([String? debugInfoFilename]) async {
         futureSyncWhenComplete,
         expected +
             const <String>[
-              r'^#1      doTestAwaitThen ',
-              r'^<asynchronous suspension>$',
-              r'^#2      doTestsLazy ',
-              r'^<asynchronous suspension>$',
-              r'^#3      main ',
+              r'^#1      doTestAwaitThen.<anonymous closure> ',
               r'^<asynchronous suspension>$',
             ],
         debugInfoFilename);
     await doTestAwaitCatchError(
-        futureSyncWhenComplete,
-        expected +
-            const <String>[
-              r'^#1      doTestAwaitCatchError ',
-              r'^<asynchronous suspension>$',
-              r'^#2      doTestsLazy ',
-              r'^<asynchronous suspension>$',
-              r'^#3      main ',
-              r'^<asynchronous suspension>$',
-            ],
-        debugInfoFilename);
-  }
-
-  // futureThen
-  {
-    final expected = const <String>[
-      r'^#0      throwSync \(.*/utils.dart:16(:3)?\)$',
-      r'^#1      futureThen.<anonymous closure> ',
-      r'^<asynchronous suspension>$',
-    ];
-    await doTestAwait(
-        futureThen,
-        expected +
-            const <String>[
-              r'^#2      doTestAwait ',
-              r'^<asynchronous suspension>$',
-              r'^#3      doTestsLazy ',
-              r'^<asynchronous suspension>$',
-              r'^#4      main ',
-              r'^<asynchronous suspension>$',
-            ],
-        debugInfoFilename);
-    await doTestAwaitThen(
-        futureThen,
-        expected +
-            const <String>[
-              r'^#2      doTestAwaitThen ',
-              r'^<asynchronous suspension>$',
-              r'^#3      doTestsLazy ',
-              r'^<asynchronous suspension>$',
-              r'^#4      main ',
-              r'^<asynchronous suspension>$',
-            ],
-        debugInfoFilename);
-    await doTestAwaitCatchError(
-        futureThen,
-        expected +
-            const <String>[
-              r'^#2      doTestAwaitCatchError ',
-              r'^<asynchronous suspension>$',
-              r'^#3      doTestsLazy ',
-              r'^<asynchronous suspension>$',
-              r'^#4      main ',
-              r'^<asynchronous suspension>$',
-            ],
-        debugInfoFilename);
+        futureSyncWhenComplete, expected, debugInfoFilename);
   }
 }

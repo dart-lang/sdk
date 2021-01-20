@@ -30,7 +30,6 @@ class C extends core::Iterable<core::Object*> {
   synthetic constructor •() → self::C*
     : super core::Iterable::•()
     ;
-  abstract member-signature get iterator() → core::Iterator<core::Object*>*; -> core::Iterable::iterator
   abstract member-signature method cast<R extends core::Object* = dynamic>() → core::Iterable<self::C::cast::R*>*; -> core::Iterable::cast
   abstract member-signature method followedBy(generic-covariant-impl core::Iterable<core::Object*>* other) → core::Iterable<core::Object*>*; -> core::Iterable::followedBy
   abstract member-signature method map<T extends core::Object* = dynamic>((core::Object*) →* self::C::map::T* f) → core::Iterable<self::C::map::T*>*; -> core::Iterable::map
@@ -67,6 +66,7 @@ class C extends core::Iterable<core::Object*> {
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  abstract member-signature get iterator() → core::Iterator<core::Object*>*; -> core::Iterable::iterator
 }
 static method test() → dynamic {
   invalid-expression "pkg/front_end/testcases/general/sdk_diagnostic.dart:12:8: Error: Too few positional arguments: 1 required, 0 given.

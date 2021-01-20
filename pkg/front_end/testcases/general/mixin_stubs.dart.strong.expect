@@ -66,10 +66,13 @@ abstract class ClassEqMixinClass = self::Super with self::MixinClass {
     ;
   mixin-super-stub method concreteExtendsConcreteMixin() → void
     return super.{self::MixinClass::concreteExtendsConcreteMixin}();
+  abstract mixin-stub method concreteExtendsAbstractMixin() → void; -> self::MixinClass::concreteExtendsAbstractMixin
   mixin-super-stub method concreteMixin() → void
     return super.{self::MixinClass::concreteMixin}();
   mixin-super-stub method abstractExtendsConcreteMixin() → void
     return super.{self::MixinClass::abstractExtendsConcreteMixin}();
+  abstract mixin-stub method abstractExtendsAbstractMixin() → void; -> self::MixinClass::abstractExtendsAbstractMixin
+  abstract mixin-stub method abstractMixin() → void; -> self::MixinClass::abstractMixin
 }
 abstract class _ClassExtendsMixinClass&Super&MixinClass = self::Super with self::MixinClass /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_ClassExtendsMixinClass&Super&MixinClass*
@@ -77,10 +80,13 @@ abstract class _ClassExtendsMixinClass&Super&MixinClass = self::Super with self:
     ;
   mixin-super-stub method concreteExtendsConcreteMixin() → void
     return super.{self::MixinClass::concreteExtendsConcreteMixin}();
+  abstract mixin-stub method concreteExtendsAbstractMixin() → void; -> self::MixinClass::concreteExtendsAbstractMixin
   mixin-super-stub method concreteMixin() → void
     return super.{self::MixinClass::concreteMixin}();
   mixin-super-stub method abstractExtendsConcreteMixin() → void
     return super.{self::MixinClass::abstractExtendsConcreteMixin}();
+  abstract mixin-stub method abstractExtendsAbstractMixin() → void; -> self::MixinClass::abstractExtendsAbstractMixin
+  abstract mixin-stub method abstractMixin() → void; -> self::MixinClass::abstractMixin
 }
 abstract class ClassExtendsMixinClass extends self::_ClassExtendsMixinClass&Super&MixinClass {
   synthetic constructor •() → self::ClassExtendsMixinClass*
@@ -93,10 +99,13 @@ abstract class ClassEqMixin = self::Super with self::Mixin {
     ;
   mixin-super-stub method concreteExtendsConcreteMixin() → void
     return super.{self::Mixin::concreteExtendsConcreteMixin}();
+  abstract mixin-stub method concreteExtendsAbstractMixin() → void; -> self::Mixin::concreteExtendsAbstractMixin
   mixin-super-stub method concreteMixin() → void
     return super.{self::Mixin::concreteMixin}();
   mixin-super-stub method abstractExtendsConcreteMixin() → void
     return super.{self::Mixin::abstractExtendsConcreteMixin}();
+  abstract mixin-stub method abstractExtendsAbstractMixin() → void; -> self::Mixin::abstractExtendsAbstractMixin
+  abstract mixin-stub method abstractMixin() → void; -> self::Mixin::abstractMixin
 }
 abstract class _ClassExtendsMixin&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_ClassExtendsMixin&Super&Mixin*
@@ -104,10 +113,13 @@ abstract class _ClassExtendsMixin&Super&Mixin = self::Super with self::Mixin /*i
     ;
   mixin-super-stub method concreteExtendsConcreteMixin() → void
     return super.{self::Mixin::concreteExtendsConcreteMixin}();
+  abstract mixin-stub method concreteExtendsAbstractMixin() → void; -> self::Mixin::concreteExtendsAbstractMixin
   mixin-super-stub method concreteMixin() → void
     return super.{self::Mixin::concreteMixin}();
   mixin-super-stub method abstractExtendsConcreteMixin() → void
     return super.{self::Mixin::abstractExtendsConcreteMixin}();
+  abstract mixin-stub method abstractExtendsAbstractMixin() → void; -> self::Mixin::abstractExtendsAbstractMixin
+  abstract mixin-stub method abstractMixin() → void; -> self::Mixin::abstractMixin
 }
 abstract class ClassExtendsMixin extends self::_ClassExtendsMixin&Super&Mixin {
   synthetic constructor •() → self::ClassExtendsMixin*
@@ -120,11 +132,11 @@ abstract class SubclassEqMixinClass extends self::ClassEqMixinClass {
     ;
   method method() → dynamic {
     this.{self::ClassEqMixinClass::concreteExtendsConcreteMixin}();
-    this.{self::MixinClass::concreteExtendsAbstractMixin}();
+    this.{self::ClassEqMixinClass::concreteExtendsAbstractMixin}();
     this.{self::ClassEqMixinClass::concreteMixin}();
     this.{self::ClassEqMixinClass::abstractExtendsConcreteMixin}();
-    this.{self::MixinClass::abstractExtendsAbstractMixin}();
-    this.{self::MixinClass::abstractMixin}();
+    this.{self::ClassEqMixinClass::abstractExtendsAbstractMixin}();
+    this.{self::ClassEqMixinClass::abstractMixin}();
     super.{self::ClassEqMixinClass::concreteExtendsConcreteMixin}();
     super.{self::Super::concreteExtendsAbstractMixin}();
     super.{self::ClassEqMixinClass::concreteMixin}();
@@ -138,10 +150,10 @@ abstract class SubclassExtendsMixinClass extends self::ClassExtendsMixinClass {
   method method() → dynamic {
     this.{self::_ClassExtendsMixinClass&Super&MixinClass::concreteExtendsConcreteMixin}();
     this.{self::_ClassExtendsMixinClass&Super&MixinClass::concreteMixin}();
-    this.{self::MixinClass::concreteExtendsAbstractMixin}();
+    this.{self::_ClassExtendsMixinClass&Super&MixinClass::concreteExtendsAbstractMixin}();
     this.{self::_ClassExtendsMixinClass&Super&MixinClass::abstractExtendsConcreteMixin}();
-    this.{self::MixinClass::abstractExtendsAbstractMixin}();
-    this.{self::MixinClass::abstractMixin}();
+    this.{self::_ClassExtendsMixinClass&Super&MixinClass::abstractExtendsAbstractMixin}();
+    this.{self::_ClassExtendsMixinClass&Super&MixinClass::abstractMixin}();
     super.{self::_ClassExtendsMixinClass&Super&MixinClass::concreteExtendsConcreteMixin}();
     super.{self::Super::concreteExtendsAbstractMixin}();
     super.{self::_ClassExtendsMixinClass&Super&MixinClass::concreteMixin}();
@@ -154,11 +166,11 @@ abstract class SubclassEqMixin extends self::ClassEqMixin {
     ;
   method method() → dynamic {
     this.{self::ClassEqMixin::concreteExtendsConcreteMixin}();
-    this.{self::Mixin::concreteExtendsAbstractMixin}();
+    this.{self::ClassEqMixin::concreteExtendsAbstractMixin}();
     this.{self::ClassEqMixin::concreteMixin}();
     this.{self::ClassEqMixin::abstractExtendsConcreteMixin}();
-    this.{self::Mixin::abstractExtendsAbstractMixin}();
-    this.{self::Mixin::abstractMixin}();
+    this.{self::ClassEqMixin::abstractExtendsAbstractMixin}();
+    this.{self::ClassEqMixin::abstractMixin}();
     super.{self::ClassEqMixin::concreteExtendsConcreteMixin}();
     super.{self::Super::concreteExtendsAbstractMixin}();
     super.{self::ClassEqMixin::concreteMixin}();
@@ -171,11 +183,11 @@ abstract class SubclassExtendsMixin extends self::ClassExtendsMixin {
     ;
   method method() → dynamic {
     this.{self::_ClassExtendsMixin&Super&Mixin::concreteExtendsConcreteMixin}();
-    this.{self::Mixin::concreteExtendsAbstractMixin}();
+    this.{self::_ClassExtendsMixin&Super&Mixin::concreteExtendsAbstractMixin}();
     this.{self::_ClassExtendsMixin&Super&Mixin::concreteMixin}();
     this.{self::_ClassExtendsMixin&Super&Mixin::abstractExtendsConcreteMixin}();
-    this.{self::Mixin::abstractExtendsAbstractMixin}();
-    this.{self::Mixin::abstractMixin}();
+    this.{self::_ClassExtendsMixin&Super&Mixin::abstractExtendsAbstractMixin}();
+    this.{self::_ClassExtendsMixin&Super&Mixin::abstractMixin}();
     super.{self::_ClassExtendsMixin&Super&Mixin::concreteExtendsConcreteMixin}();
     super.{self::Super::concreteExtendsAbstractMixin}();
     super.{self::_ClassExtendsMixin&Super&Mixin::concreteMixin}();

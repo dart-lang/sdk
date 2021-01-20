@@ -969,13 +969,11 @@ class SourceClassBuilder extends ClassBuilderImpl
     return count;
   }
 
-  void checkOverride(
-      Types types,
-      Member declaredMember,
-      Member interfaceMember,
-      bool isSetter,
-      callback(Member declaredMember, Member interfaceMember, bool isSetter),
-      {bool isInterfaceCheck = false}) {
+  void checkOverride(Types types, Member declaredMember, Member interfaceMember,
+      bool isSetter, callback(Member interfaceMember, bool isSetter),
+      {bool isInterfaceCheck, bool declaredNeedsLegacyErasure}) {
+    assert(isInterfaceCheck != null);
+    assert(declaredNeedsLegacyErasure != null);
     if (declaredMember == interfaceMember) {
       return;
     }
@@ -989,21 +987,34 @@ class SourceClassBuilder extends ClassBuilderImpl
       if (declaredMember.kind == interfaceMember.kind) {
         if (declaredMember.kind == ProcedureKind.Method ||
             declaredMember.kind == ProcedureKind.Operator) {
-          bool seenCovariant = checkMethodOverride(types, declaredMember,
-              interfaceMember, interfaceMemberOrigin, isInterfaceCheck);
+          bool seenCovariant = checkMethodOverride(
+              types,
+              declaredMember,
+              interfaceMember,
+              interfaceMemberOrigin,
+              isInterfaceCheck,
+              declaredNeedsLegacyErasure);
           if (seenCovariant) {
-            handleSeenCovariant(
-                types, declaredMember, interfaceMember, isSetter, callback);
+            handleSeenCovariant(types, interfaceMember, isSetter, callback);
           }
         } else if (declaredMember.kind == ProcedureKind.Getter) {
-          checkGetterOverride(types, declaredMember, interfaceMember,
-              interfaceMemberOrigin, isInterfaceCheck);
+          checkGetterOverride(
+              types,
+              declaredMember,
+              interfaceMember,
+              interfaceMemberOrigin,
+              isInterfaceCheck,
+              declaredNeedsLegacyErasure);
         } else if (declaredMember.kind == ProcedureKind.Setter) {
-          bool seenCovariant = checkSetterOverride(types, declaredMember,
-              interfaceMember, interfaceMemberOrigin, isInterfaceCheck);
+          bool seenCovariant = checkSetterOverride(
+              types,
+              declaredMember,
+              interfaceMember,
+              interfaceMemberOrigin,
+              isInterfaceCheck,
+              declaredNeedsLegacyErasure);
           if (seenCovariant) {
-            handleSeenCovariant(
-                types, declaredMember, interfaceMember, isSetter, callback);
+            handleSeenCovariant(types, interfaceMember, isSetter, callback);
           }
         } else {
           assert(
@@ -1026,15 +1037,24 @@ class SourceClassBuilder extends ClassBuilderImpl
               !interfaceMember.isConst) ||
           interfaceMember is Procedure && interfaceMember.isSetter;
       if (declaredMemberHasGetter && interfaceMemberHasGetter) {
-        checkGetterOverride(types, declaredMember, interfaceMember,
-            interfaceMemberOrigin, isInterfaceCheck);
+        checkGetterOverride(
+            types,
+            declaredMember,
+            interfaceMember,
+            interfaceMemberOrigin,
+            isInterfaceCheck,
+            declaredNeedsLegacyErasure);
       }
       if (declaredMemberHasSetter && interfaceMemberHasSetter) {
-        bool seenCovariant = checkSetterOverride(types, declaredMember,
-            interfaceMember, interfaceMemberOrigin, isInterfaceCheck);
+        bool seenCovariant = checkSetterOverride(
+            types,
+            declaredMember,
+            interfaceMember,
+            interfaceMemberOrigin,
+            isInterfaceCheck,
+            declaredNeedsLegacyErasure);
         if (seenCovariant) {
-          handleSeenCovariant(
-              types, declaredMember, interfaceMember, isSetter, callback);
+          handleSeenCovariant(types, interfaceMember, isSetter, callback);
         }
       }
     }
@@ -1204,7 +1224,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       Member interfaceMemberOrigin,
       FunctionNode declaredFunction,
       FunctionNode interfaceFunction,
-      bool isInterfaceCheck) {
+      bool isInterfaceCheck,
+      bool declaredNeedsLegacyErasure) {
     Substitution interfaceSubstitution = Substitution.empty;
     if (interfaceMember.enclosingClass.typeParameters.isNotEmpty) {
       Class enclosingClass = interfaceMember.enclosingClass;
@@ -1256,6 +1277,9 @@ class SourceClassBuilder extends ClassBuilderImpl
           DartType computedBound = substitution.substituteType(interfaceBound);
           if (!library.isNonNullableByDefault) {
             computedBound = legacyErasure(computedBound);
+          }
+          if (declaredNeedsLegacyErasure) {
+            declaredBound = legacyErasure(declaredBound);
           }
           if (!types
               .performNullabilityAwareMutualSubtypesCheck(
@@ -1315,12 +1339,16 @@ class SourceClassBuilder extends ClassBuilderImpl
       bool isCovariant,
       VariableDeclaration declaredParameter,
       bool isInterfaceCheck,
+      bool declaredNeedsLegacyErasure,
       {bool asIfDeclaredParameter = false}) {
     if (interfaceSubstitution != null) {
       interfaceType = interfaceSubstitution.substituteType(interfaceType);
     }
     if (declaredSubstitution != null) {
       declaredType = declaredSubstitution.substituteType(declaredType);
+    }
+    if (declaredNeedsLegacyErasure) {
+      declaredType = legacyErasure(declaredType);
     }
 
     if (!declaredMember.isNonNullableByDefault &&
@@ -1411,7 +1439,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       Procedure declaredMember,
       Procedure interfaceMember,
       Member interfaceMemberOrigin,
-      bool isInterfaceCheck) {
+      bool isInterfaceCheck,
+      bool declaredNeedsLegacyErasure) {
     assert(declaredMember.kind == interfaceMember.kind);
     assert(declaredMember.kind == ProcedureKind.Method ||
         declaredMember.kind == ProcedureKind.Operator);
@@ -1426,7 +1455,8 @@ class SourceClassBuilder extends ClassBuilderImpl
         interfaceMemberOrigin,
         declaredFunction,
         interfaceFunction,
-        isInterfaceCheck);
+        isInterfaceCheck,
+        declaredNeedsLegacyErasure);
 
     Substitution declaredSubstitution =
         _computeDeclaredSubstitution(types, declaredMember);
@@ -1442,7 +1472,8 @@ class SourceClassBuilder extends ClassBuilderImpl
         interfaceFunction.returnType,
         false,
         null,
-        isInterfaceCheck);
+        isInterfaceCheck,
+        declaredNeedsLegacyErasure);
     if (declaredFunction.positionalParameters.length <
         interfaceFunction.positionalParameters.length) {
       reportInvalidOverride(
@@ -1451,15 +1482,15 @@ class SourceClassBuilder extends ClassBuilderImpl
           templateOverrideFewerPositionalArguments.withArguments(
               "${declaredMember.enclosingClass.name}."
                   "${declaredMember.name.text}",
-              "${interfaceMember.enclosingClass.name}."
-                  "${interfaceMember.name.text}"),
+              "${interfaceMemberOrigin.enclosingClass.name}."
+                  "${interfaceMemberOrigin.name.text}"),
           declaredMember.fileOffset,
           noLength,
           context: [
             templateOverriddenMethodCause
-                .withArguments(interfaceMember.name.text)
-                .withLocation(interfaceMember.fileUri,
-                    interfaceMember.fileOffset, noLength)
+                .withArguments(interfaceMemberOrigin.name.text)
+                .withLocation(interfaceMemberOrigin.fileUri,
+                    interfaceMemberOrigin.fileOffset, noLength)
           ]);
     }
     if (interfaceFunction.requiredParameterCount <
@@ -1470,15 +1501,15 @@ class SourceClassBuilder extends ClassBuilderImpl
           templateOverrideMoreRequiredArguments.withArguments(
               "${declaredMember.enclosingClass.name}."
                   "${declaredMember.name.text}",
-              "${interfaceMember.enclosingClass.name}."
-                  "${interfaceMember.name.text}"),
+              "${interfaceMemberOrigin.enclosingClass.name}."
+                  "${interfaceMemberOrigin.name.text}"),
           declaredMember.fileOffset,
           noLength,
           context: [
             templateOverriddenMethodCause
-                .withArguments(interfaceMember.name.text)
-                .withLocation(interfaceMember.fileUri,
-                    interfaceMember.fileOffset, noLength)
+                .withArguments(interfaceMemberOrigin.name.text)
+                .withLocation(interfaceMemberOrigin.fileUri,
+                    interfaceMemberOrigin.fileOffset, noLength)
           ]);
     }
     for (int i = 0;
@@ -1511,7 +1542,8 @@ class SourceClassBuilder extends ClassBuilderImpl
           interfaceParameter.type,
           declaredParameter.isCovariant || interfaceParameter.isCovariant,
           declaredParameter,
-          isInterfaceCheck);
+          isInterfaceCheck,
+          declaredNeedsLegacyErasure);
       if (declaredParameter.isCovariant) seenCovariant = true;
     }
     if (declaredFunction.namedParameters.isEmpty &&
@@ -1589,8 +1621,10 @@ class SourceClassBuilder extends ClassBuilderImpl
           interfaceNamedParameters.current.type,
           declaredParameter.isCovariant,
           declaredParameter,
-          isInterfaceCheck);
+          isInterfaceCheck,
+          declaredNeedsLegacyErasure);
       if (declaredMember.isNonNullableByDefault &&
+          !declaredNeedsLegacyErasure &&
           declaredParameter.isRequired &&
           interfaceMember.isNonNullableByDefault &&
           !interfaceNamedParameters.current.isRequired) {
@@ -1627,7 +1661,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       Member declaredMember,
       Member interfaceMember,
       Member interfaceMemberOrigin,
-      bool isInterfaceCheck) {
+      bool isInterfaceCheck,
+      bool declaredNeedsLegacyErasure) {
     Substitution interfaceSubstitution = _computeInterfaceSubstitution(
         types,
         declaredMember,
@@ -1635,7 +1670,8 @@ class SourceClassBuilder extends ClassBuilderImpl
         interfaceMemberOrigin,
         /* declaredFunction = */ null,
         /* interfaceFunction = */ null,
-        isInterfaceCheck);
+        isInterfaceCheck,
+        declaredNeedsLegacyErasure);
     Substitution declaredSubstitution =
         _computeDeclaredSubstitution(types, declaredMember);
     DartType declaredType = declaredMember.getterType;
@@ -1651,7 +1687,8 @@ class SourceClassBuilder extends ClassBuilderImpl
         interfaceType,
         /* isCovariant = */ false,
         /* declaredParameter = */ null,
-        isInterfaceCheck);
+        isInterfaceCheck,
+        declaredNeedsLegacyErasure);
   }
 
   /// Checks whether [declaredMember] correctly overrides [interfaceMember].
@@ -1667,7 +1704,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       Member declaredMember,
       Member interfaceMember,
       Member interfaceMemberOrigin,
-      bool isInterfaceCheck) {
+      bool isInterfaceCheck,
+      bool declaredNeedsLegacyErasure) {
     Substitution interfaceSubstitution = _computeInterfaceSubstitution(
         types,
         declaredMember,
@@ -1675,7 +1713,8 @@ class SourceClassBuilder extends ClassBuilderImpl
         interfaceMemberOrigin,
         /* declaredFunction = */ null,
         /* interfaceFunction = */ null,
-        isInterfaceCheck);
+        isInterfaceCheck,
+        declaredNeedsLegacyErasure);
     Substitution declaredSubstitution =
         _computeDeclaredSubstitution(types, declaredMember);
     DartType declaredType = declaredMember.setterType;
@@ -1701,6 +1740,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         isCovariant,
         declaredParameter,
         isInterfaceCheck,
+        declaredNeedsLegacyErasure,
         asIfDeclaredParameter: true);
     return isCovariant;
   }

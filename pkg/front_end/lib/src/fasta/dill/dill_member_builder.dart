@@ -254,6 +254,7 @@ class DillClassMember extends BuilderClassMember {
   bool get isSynthesized {
     Member member = memberBuilder.member;
     return member is Procedure &&
+        // TODO(johnniwinther): Should this just be `member.isSynthesized`?
         (member.isMemberSignature ||
             (member.isForwardingStub && !member.isForwardingSemiStub));
   }
@@ -266,9 +267,6 @@ class DillClassMember extends BuilderClassMember {
     return _covariance ??=
         new Covariance.fromMember(memberBuilder.member, forSetter: forSetter);
   }
-
-  @override
-  bool get isFunction => !isProperty;
 
   @override
   void inferType(ClassHierarchyBuilder hierarchy) {

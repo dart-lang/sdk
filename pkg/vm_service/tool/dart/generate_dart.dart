@@ -1787,7 +1787,6 @@ void _parseTokenPosTable() {
 
   // Writes the code to retrieve the serialized value of a field.
   void generateSerializedFieldAccess(TypeField field, DartGenerator gen) {
-    var nullAware = field.optional ? '?' : '';
     if (field.type.isSimple || field.type.isEnum) {
       gen.write('${field.generatableName}');
       if (field.defaultValue != null) {
@@ -1795,9 +1794,9 @@ void _parseTokenPosTable() {
       }
     } else if (name == 'Event' && field.name == 'extensionData') {
       // Special case `Event.extensionData`.
-      gen.writeln('extensionData$nullAware.data');
+      gen.writeln('extensionData?.data');
     } else if (field.type.isArray) {
-      gen.write('${field.generatableName}$nullAware.map((f) => f');
+      gen.write('${field.generatableName}?.map((f) => f');
       // Special case `tokenPosTable` which is a List<List<int>>.
       if (field.name == 'tokenPosTable') {
         gen.write('.toList()');
@@ -1806,7 +1805,7 @@ void _parseTokenPosTable() {
       }
       gen.write(').toList()');
     } else {
-      gen.write('${field.generatableName}$nullAware.toJson()');
+      gen.write('${field.generatableName}?.toJson()');
     }
   }
 
@@ -1822,7 +1821,7 @@ void _parseTokenPosTable() {
             String assertMethodName = 'assertListOf' +
                 arrayType.name!.substring(0, 1).toUpperCase() +
                 arrayType.name!.substring(1);
-            gen.writeln('$assertMethodName(obj.${field.generatableName});');
+            gen.writeln('$assertMethodName(obj.${field.generatableName}!);');
           } else {
             gen.writeln(
                 '// assert obj.${field.generatableName} is ${type.name}');
@@ -1837,7 +1836,7 @@ void _parseTokenPosTable() {
             String assertMethodName = 'assert' +
                 typeRef.name!.substring(0, 1).toUpperCase() +
                 typeRef.name!.substring(1);
-            gen.writeln('$assertMethodName(obj.${field.generatableName});');
+            gen.writeln('$assertMethodName(obj.${field.generatableName}!);');
           }
           gen.writeln('} else {');
           gen.writeln(
@@ -1847,7 +1846,7 @@ void _parseTokenPosTable() {
           String assertMethodName = 'assert' +
               type.name!.substring(0, 1).toUpperCase() +
               type.name!.substring(1);
-          gen.writeln('$assertMethodName(obj.${field.generatableName});');
+          gen.writeln('$assertMethodName(obj.${field.generatableName}!);');
         }
       }
     }
@@ -1928,18 +1927,16 @@ class TypeField extends Member {
     if (overrides) gen.write('@override ');
     // Special case where Instance extends Obj, but 'classRef' is not optional
     // for Instance although it is for Obj.
-    if (parent.name == 'Instance' && generatableName == 'classRef') {
+    /*if (parent.name == 'Instance' && generatableName == 'classRef') {
       gen.writeStatement('covariant late final ClassRef classRef;');
     } else if (parent.name!.contains('NullVal') &&
         generatableName == 'valueAsString') {
       gen.writeStatement('covariant late final String valueAsString;');
-    } else {
+    } else */
+    {
       String? typeName =
           api.isEnumName(type.name) ? '/*${type.name}*/ String' : type.name;
-      if (optional) {
-        typeName = '$typeName?';
-      }
-      typeName = 'late final $typeName';
+      typeName = '$typeName?';
       gen.writeStatement('${typeName} ${generatableName};');
       if (parent.fields.any((field) => field.hasDocs)) gen.writeln();
     }

@@ -1918,8 +1918,8 @@ void h(List<int> x) {
 class C<T> {
   int Function(T) f;
 }
-void main() {
-  C<String> c;
+void main(dynamic d) {
+  C<String> c = d;
   int Function(String) f1 = c.f; // should not have a nullable arg
   c.f(null); // exact nullability induced here
 }
@@ -1928,8 +1928,8 @@ void main() {
 class C<T> {
   int Function(T)? f;
 }
-void main() {
-  C<String?> c;
+void main(dynamic d) {
+  C<String?> c = d;
   int Function(String)? f1 = c.f; // should not have a nullable arg
   c.f!(null); // exact nullability induced here
 }
@@ -1945,8 +1945,8 @@ class C<T> {
   T Function(String) f;
 }
 int Function(String) f1; // should not have a nullable return
-void main() {
-  C<int> c;
+void main(dynamic d) {
+  C<int> c = d;
   c.f = f1;
   c.f = (_) => null; // exact nullability induced here
 }
@@ -1956,8 +1956,8 @@ class C<T> {
   T Function(String)? f;
 }
 int Function(String)? f1; // should not have a nullable return
-void main() {
-  C<int?> c;
+void main(dynamic d) {
+  C<int?> c = d;
   c.f = f1;
   c.f = (_) => null; // exact nullability induced here
 }
@@ -3066,6 +3066,28 @@ abstract class C {
 int? test(C c) {
   c.f(null);
   return c.g();
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_function_expression_return() async {
+    var content = '''
+void test({String foo}) async {
+  var f = () {
+    return "hello";
+  }
+
+  foo.length;
+}
+''';
+    var expected = '''
+void test({required String foo}) async {
+  var f = () {
+    return "hello";
+  }
+
+  foo.length;
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -4458,6 +4480,24 @@ int? g() => null;
         {path2: file2, path1: file1}, {path1: expected1, path2: expected2});
   }
 
+  Future<void> test_list_conditional_element() async {
+    var content = '''
+void bar(List<String> l) {}
+
+void test({String foo}) {
+    bar([if (foo != null) foo]);
+}
+''';
+    var expected = '''
+void bar(List<String> l) {}
+
+void test({String? foo}) {
+    bar([if (foo != null) foo]);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_literal_null_without_valid_migration() async {
     var content = '''
 void f(int/*!*/ x) {}
@@ -4546,6 +4586,28 @@ int f() {
     i = 1;
   });
   return i + 1;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_local_function_return() async {
+    var content = '''
+void test({String foo}) async {
+  String f() {
+    return "hello";
+  }
+
+  foo.length;
+}
+''';
+    var expected = '''
+void test({required String foo}) async {
+  String f() {
+    return "hello";
+  }
+
+  foo.length;
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -6800,7 +6862,7 @@ f() {
     var expected = '''
 typedef F = Function(int?);
 
-F _f;
+late F _f;
 
 f() {
   _f(null);
@@ -6865,7 +6927,7 @@ f() {
     var expected = '''
 typedef F = Function<T>(T);
 
-F _f;
+late F _f;
 
 f() {
   _f<int?>(null);
@@ -6887,7 +6949,7 @@ f() {
     var expected = '''
 typedef F<R> = Function<T>(T);
 
-F<Object> _f;
+late F<Object> _f;
 
 f() {
   _f<int?>(null);
@@ -6909,7 +6971,7 @@ f() {
     var expected = '''
 typedef F<T> = Function(T);
 
-F<int?> _f;
+late F<int?> _f;
 
 f() {
   _f(null);
@@ -6931,7 +6993,7 @@ f() {
     var expected = '''
 typedef F<T> = Function(T);
 
-F<int?> _f;
+late F<int?> _f;
 
 f() {
   _f(null);
@@ -6967,7 +7029,7 @@ f() {
     var expected = '''
 typedef F(int? x);
 
-F _f;
+late F _f;
 
 f() {
   _f(null);
@@ -7017,7 +7079,7 @@ f() {
     var expected = '''
 typedef F<T>(T t);
 
-F<int?> _f;
+late F<int?> _f;
 
 f() {
   _f(null);
@@ -7039,7 +7101,7 @@ f() {
     var expected = '''
 typedef F<T>(T t);
 
-F<int?> _f;
+late F<int?> _f;
 
 f() {
   _f(null);

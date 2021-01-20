@@ -25,8 +25,11 @@ library /*isNonNullableByDefault*/;
 //        ^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_method.dart:33:7: Error: The non-abstract class 'ConcreteSub' is missing implementations for these members:
-//  - AbstractClass.Interface1.implementMultipleMethod%Interface2.implementMultipleMethod
 //  - AbstractClass.declareAbstractImplementMultipleMethod
+//  - Interface1.declareAbstractImplementMultipleMethod
+//  - Interface1.implementMultipleMethod
+//  - Interface2.declareAbstractImplementMultipleMethod
+//  - Interface2.implementMultipleMethod
 // Try to either
 //  - provide an implementation,
 //  - inherit an implementation from a superclass or mixin,
@@ -35,12 +38,21 @@ library /*isNonNullableByDefault*/;
 //
 // class ConcreteSub extends AbstractClass {}
 //       ^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_method.dart:27:16: Context: 'AbstractClass.Interface1.implementMultipleMethod%Interface2.implementMultipleMethod' is defined here.
-// abstract class AbstractClass implements Interface1, Interface2 {
-//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^...
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_method.dart:30:8: Context: 'AbstractClass.declareAbstractImplementMultipleMethod' is defined here.
 //   void declareAbstractImplementMultipleMethod();
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_method.dart:10:8: Context: 'Interface1.declareAbstractImplementMultipleMethod' is defined here.
+//   void declareAbstractImplementMultipleMethod() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_method.dart:6:8: Context: 'Interface1.implementMultipleMethod' is defined here.
+//   void implementMultipleMethod() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_method.dart:18:8: Context: 'Interface2.declareAbstractImplementMultipleMethod' is defined here.
+//   void declareAbstractImplementMultipleMethod() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_method.dart:14:8: Context: 'Interface2.implementMultipleMethod' is defined here.
+//   void implementMultipleMethod() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^
 //
 import self as self;
 import "dart:core" as core;

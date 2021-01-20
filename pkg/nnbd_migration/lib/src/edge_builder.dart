@@ -190,7 +190,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   ///
   /// Note that this is not guaranteed to be complete. It is used to make hard
   /// edges on a best-effort basis.
-  final _postDominatedLocals = _ScopedLocalSet();
+  var _postDominatedLocals = _ScopedLocalSet();
 
   /// Map whose keys are expressions of the form `a?.b` on the LHS of
   /// assignments, and whose values are the nullability nodes corresponding to
@@ -856,9 +856,15 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _dispatch(node.returnType);
     if (_flowAnalysis != null) {
       // This is a local function.
-      _flowAnalysis.functionExpression_begin(node);
-      _dispatch(node.functionExpression);
-      _flowAnalysis.functionExpression_end();
+      var previousPostDominatedLocals = _postDominatedLocals;
+      try {
+        _postDominatedLocals = _ScopedLocalSet();
+        _flowAnalysis.functionExpression_begin(node);
+        _dispatch(node.functionExpression);
+        _flowAnalysis.functionExpression_end();
+      } finally {
+        _postDominatedLocals = previousPostDominatedLocals;
+      }
     } else {
       _createFlowAnalysis(node, node.functionExpression.parameters);
       // Initialize a new postDominator scope that contains only the parameters.
@@ -904,7 +910,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _currentFunctionExpression = node;
     _currentFunctionType =
         _variables.decoratedElementType(node.declaredElement);
+    var previousPostDominatedLocals = _postDominatedLocals;
     try {
+      _postDominatedLocals = _ScopedLocalSet();
       _postDominatedLocals.doScoped(
           elements: node.declaredElement.parameters,
           action: () => _dispatch(node.body));
@@ -916,6 +924,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
       _currentFunctionType = previousFunctionType;
       _currentFunctionExpression = previousFunction;
+      _postDominatedLocals = previousPostDominatedLocals;
     }
   }
 
@@ -941,7 +950,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitIfElement(IfElement node) {
+    _flowAnalysis.ifStatement_conditionBegin();
     _checkExpressionNotNull(node.condition);
+    _flowAnalysis.ifStatement_thenBegin(node.condition, node);
     NullabilityNode trueGuard;
     NullabilityNode falseGuard;
     if (identical(_conditionInfo?.condition, node.condition)) {
@@ -962,6 +973,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
     }
     if (node.elseElement != null) {
+      _flowAnalysis.ifStatement_elseBegin();
       if (falseGuard != null) {
         _guards.add(falseGuard);
       }
@@ -974,6 +986,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         }
       }
     }
+    _flowAnalysis.ifStatement_end(node.elseElement != null);
     return null;
   }
 

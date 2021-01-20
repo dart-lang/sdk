@@ -267,13 +267,18 @@ class DartDevelopmentServiceClient {
     // NOTE: This must be the last fallback registered.
     _clientPeer.registerFallback((parameters) async {
       // If _vmServicePeer closes in the middle of a request, this will throw
-      // a StateError that will be forwarded to the requesting client.
-      // Listeners in dds_impl.dart will handle shutting down the DDS, so
-      // we don't try and handle the error here.
-      return await _vmServicePeer.sendRequest(
-        parameters.method,
-        parameters.value,
-      );
+      // a StateError. Listeners in dds_impl.dart will handle shutting down the
+      // DDS instance, so we don't try and handle the error here.
+      try {
+        return await _vmServicePeer.sendRequest(
+          parameters.method,
+          parameters.value,
+        );
+      } on StateError {
+        throw RpcErrorCodes.buildRpcException(
+          RpcErrorCodes.kServiceDisappeared,
+        );
+      }
     });
   }
 

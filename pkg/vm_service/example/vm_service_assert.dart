@@ -245,18 +245,18 @@ String assertStepOption(String obj) {
 
 vms.AllocationProfile assertAllocationProfile(vms.AllocationProfile obj) {
   assertNotNull(obj);
-  assertListOfClassHeapStats(obj.members);
-  assertMemoryUsage(obj.memoryUsage);
+  assertListOfClassHeapStats(obj.members!);
+  assertMemoryUsage(obj.memoryUsage!);
   return obj;
 }
 
 vms.BoundField assertBoundField(vms.BoundField obj) {
   assertNotNull(obj);
-  assertFieldRef(obj.decl);
+  assertFieldRef(obj.decl!);
   if (obj.value is vms.InstanceRef) {
-    assertInstanceRef(obj.value);
+    assertInstanceRef(obj.value!);
   } else if (obj.value is vms.Sentinel) {
-    assertSentinel(obj.value);
+    assertSentinel(obj.value!);
   } else {
     throw "Unexpected value: ${obj.value}";
   }
@@ -265,19 +265,19 @@ vms.BoundField assertBoundField(vms.BoundField obj) {
 
 vms.BoundVariable assertBoundVariable(vms.BoundVariable obj) {
   assertNotNull(obj);
-  assertString(obj.name);
+  assertString(obj.name!);
   if (obj.value is vms.InstanceRef) {
-    assertInstanceRef(obj.value);
+    assertInstanceRef(obj.value!);
   } else if (obj.value is vms.TypeArgumentsRef) {
-    assertTypeArgumentsRef(obj.value);
+    assertTypeArgumentsRef(obj.value!);
   } else if (obj.value is vms.Sentinel) {
-    assertSentinel(obj.value);
+    assertSentinel(obj.value!);
   } else {
     throw "Unexpected value: ${obj.value}";
   }
-  assertInt(obj.declarationTokenPos);
-  assertInt(obj.scopeStartTokenPos);
-  assertInt(obj.scopeEndTokenPos);
+  assertInt(obj.declarationTokenPos!);
+  assertInt(obj.scopeStartTokenPos!);
+  assertInt(obj.scopeEndTokenPos!);
   return obj;
 }
 
@@ -291,13 +291,13 @@ List<vms.BoundVariable> assertListOfBoundVariable(
 
 vms.Breakpoint assertBreakpoint(vms.Breakpoint obj) {
   assertNotNull(obj);
-  assertString(obj.id);
-  assertInt(obj.breakpointNumber);
-  assertBool(obj.resolved);
+  assertString(obj.id!);
+  assertInt(obj.breakpointNumber!);
+  assertBool(obj.resolved!);
   if (obj.location is vms.SourceLocation) {
-    assertSourceLocation(obj.location);
+    assertSourceLocation(obj.location!);
   } else if (obj.location is vms.UnresolvedSourceLocation) {
-    assertUnresolvedSourceLocation(obj.location);
+    assertUnresolvedSourceLocation(obj.location!);
   } else {
     throw "Unexpected value: ${obj.location}";
   }
@@ -313,8 +313,8 @@ List<vms.Breakpoint> assertListOfBreakpoint(List<vms.Breakpoint> list) {
 
 vms.ClassRef assertClassRef(vms.ClassRef obj) {
   assertNotNull(obj);
-  assertString(obj.id);
-  assertString(obj.name);
+  assertString(obj.id!);
+  assertString(obj.name!);
   return obj;
 }
 
@@ -327,25 +327,25 @@ List<vms.ClassRef> assertListOfClassRef(List<vms.ClassRef> list) {
 
 vms.Class assertClass(vms.Class obj) {
   assertNotNull(obj);
-  assertString(obj.id);
-  assertString(obj.name);
-  assertBool(obj.isAbstract);
-  assertBool(obj.isConst);
-  assertLibraryRef(obj.library);
-  assertListOfInstanceRef(obj.interfaces);
-  assertListOfFieldRef(obj.fields);
-  assertListOfFuncRef(obj.functions);
-  assertListOfClassRef(obj.subclasses);
+  assertString(obj.id!);
+  assertString(obj.name!);
+  assertBool(obj.isAbstract!);
+  assertBool(obj.isConst!);
+  assertLibraryRef(obj.library!);
+  assertListOfInstanceRef(obj.interfaces!);
+  assertListOfFieldRef(obj.fields!);
+  assertListOfFuncRef(obj.functions!);
+  assertListOfClassRef(obj.subclasses!);
   return obj;
 }
 
 vms.ClassHeapStats assertClassHeapStats(vms.ClassHeapStats obj) {
   assertNotNull(obj);
-  assertClassRef(obj.classRef);
-  assertInt(obj.accumulatedSize);
-  assertInt(obj.bytesCurrent);
-  assertInt(obj.instancesAccumulated);
-  assertInt(obj.instancesCurrent);
+  assertClassRef(obj.classRef!);
+  assertInt(obj.accumulatedSize!);
+  assertInt(obj.bytesCurrent!);
+  assertInt(obj.instancesAccumulated!);
+  assertInt(obj.instancesCurrent!);
   return obj;
 }
 
@@ -359,15 +359,15 @@ List<vms.ClassHeapStats> assertListOfClassHeapStats(
 
 vms.ClassList assertClassList(vms.ClassList obj) {
   assertNotNull(obj);
-  assertListOfClassRef(obj.classes);
+  assertListOfClassRef(obj.classes!);
   return obj;
 }
 
 vms.CodeRef assertCodeRef(vms.CodeRef obj) {
   assertNotNull(obj);
-  assertString(obj.id);
-  assertString(obj.name);
-  assertCodeKind(obj.kind);
+  assertString(obj.id!);
+  assertString(obj.name!);
+  assertCodeKind(obj.kind!);
   return obj;
 }
 
@@ -380,16 +380,16 @@ List<vms.CodeRef> assertListOfCodeRef(List<vms.CodeRef> list) {
 
 vms.Code assertCode(vms.Code obj) {
   assertNotNull(obj);
-  assertString(obj.id);
-  assertString(obj.name);
-  assertCodeKind(obj.kind);
+  assertString(obj.id!);
+  assertString(obj.name!);
+  assertCodeKind(obj.kind!);
   return obj;
 }
 
 vms.ContextRef assertContextRef(vms.ContextRef obj) {
   assertNotNull(obj);
-  assertString(obj.id);
-  assertInt(obj.length);
+  assertString(obj.id!);
+  assertInt(obj.length!);
   return obj;
 }
 
@@ -402,18 +402,18 @@ List<vms.ContextRef> assertListOfContextRef(List<vms.ContextRef> list) {
 
 vms.Context assertContext(vms.Context obj) {
   assertNotNull(obj);
-  assertString(obj.id);
-  assertInt(obj.length);
-  assertListOfContextElement(obj.variables);
+  assertString(obj.id!);
+  assertInt(obj.length!);
+  assertListOfContextElement(obj.variables!);
   return obj;
 }
 
 vms.ContextElement assertContextElement(vms.ContextElement obj) {
   assertNotNull(obj);
   if (obj.value is vms.InstanceRef) {
-    assertInstanceRef(obj.value);
+    assertInstanceRef(obj.value!);
   } else if (obj.value is vms.Sentinel) {
-    assertSentinel(obj.value);
+    assertSentinel(obj.value!);
   } else {
     throw "Unexpected value: ${obj.value}";
   }
@@ -430,23 +430,23 @@ List<vms.ContextElement> assertListOfContextElement(
 
 vms.CpuSamples assertCpuSamples(vms.CpuSamples obj) {
   assertNotNull(obj);
-  assertInt(obj.samplePeriod);
-  assertInt(obj.maxStackDepth);
-  assertInt(obj.sampleCount);
-  assertInt(obj.timeSpan);
-  assertInt(obj.timeOriginMicros);
-  assertInt(obj.timeExtentMicros);
-  assertInt(obj.pid);
-  assertListOfProfileFunction(obj.functions);
-  assertListOfCpuSample(obj.samples);
+  assertInt(obj.samplePeriod!);
+  assertInt(obj.maxStackDepth!);
+  assertInt(obj.sampleCount!);
+  assertInt(obj.timeSpan!);
+  assertInt(obj.timeOriginMicros!);
+  assertInt(obj.timeExtentMicros!);
+  assertInt(obj.pid!);
+  assertListOfProfileFunction(obj.functions!);
+  assertListOfCpuSample(obj.samples!);
   return obj;
 }
 
 vms.CpuSample assertCpuSample(vms.CpuSample obj) {
   assertNotNull(obj);
-  assertInt(obj.tid);
-  assertInt(obj.timestamp);
-  assertListOfInt(obj.stack);
+  assertInt(obj.tid!);
+  assertInt(obj.timestamp!);
+  assertListOfInt(obj.stack!);
   return obj;
 }
 
@@ -459,9 +459,9 @@ List<vms.CpuSample> assertListOfCpuSample(List<vms.CpuSample> list) {
 
 vms.ErrorRef assertErrorRef(vms.ErrorRef obj) {
   assertNotNull(obj);
-  assertString(obj.id);
-  assertErrorKind(obj.kind);
-  assertString(obj.message);
+  assertString(obj.id!);
+  assertErrorKind(obj.kind!);
+  assertString(obj.message!);
   return obj;
 }
 
@@ -474,16 +474,16 @@ List<vms.ErrorRef> assertListOfErrorRef(List<vms.ErrorRef> list) {
 
 vms.Error assertError(vms.Error obj) {
   assertNotNull(obj);
-  assertString(obj.id);
-  assertErrorKind(obj.kind);
-  assertString(obj.message);
+  assertString(obj.id!);
+  assertErrorKind(obj.kind!);
+  assertString(obj.message!);
   return obj;
 }
 
 vms.Event assertEvent(vms.Event obj) {
   assertNotNull(obj);
-  assertEventKind(obj.kind);
-  assertInt(obj.timestamp);
+  assertEventKind(obj.kind!);
+  assertInt(obj.timestamp!);
   return obj;
 }
 
@@ -494,13 +494,13 @@ vms.ExtensionData assertExtensionData(vms.ExtensionData obj) {
 
 vms.FieldRef assertFieldRef(vms.FieldRef obj) {
   assertNotNull(obj);
-  assertString(obj.id);
-  assertString(obj.name);
-  assertObjRef(obj.owner);
-  assertInstanceRef(obj.declaredType);
-  assertBool(obj.isConst);
-  assertBool(obj.isFinal);
-  assertBool(obj.isStatic);
+  assertString(obj.id!);
+  assertString(obj.name!);
+  assertObjRef(obj.owner!);
+  assertInstanceRef(obj.declaredType!);
+  assertBool(obj.isConst!);
+  assertBool(obj.isFinal!);
+  assertBool(obj.isStatic!);
   return obj;
 }
 
@@ -513,21 +513,21 @@ List<vms.FieldRef> assertListOfFieldRef(List<vms.FieldRef> list) {
 
 vms.Field assertField(vms.Field obj) {
   assertNotNull(obj);
-  assertString(obj.id);
-  assertString(obj.name);
-  assertObjRef(obj.owner);
-  assertInstanceRef(obj.declaredType);
-  assertBool(obj.isConst);
-  assertBool(obj.isFinal);
-  assertBool(obj.isStatic);
+  assertString(obj.id!);
+  assertString(obj.name!);
+  assertObjRef(obj.owner!);
+  assertInstanceRef(obj.declaredType!);
+  assertBool(obj.isConst!);
+  assertBool(obj.isFinal!);
+  assertBool(obj.isStatic!);
   return obj;
 }
 
 vms.Flag assertFlag(vms.Flag obj) {
   assertNotNull(obj);
-  assertString(obj.name);
-  assertString(obj.comment);
-  assertBool(obj.modified);
+  assertString(obj.name!);
+  assertString(obj.comment!);
+  assertBool(obj.modified!);
   return obj;
 }
 
@@ -540,13 +540,13 @@ List<vms.Flag> assertListOfFlag(List<vms.Flag> list) {
 
 vms.FlagList assertFlagList(vms.FlagList obj) {
   assertNotNull(obj);
-  assertListOfFlag(obj.flags);
+  assertListOfFlag(obj.flags!);
   return obj;
 }
 
 vms.Frame assertFrame(vms.Frame obj) {
   assertNotNull(obj);
-  assertInt(obj.index);
+  assertInt(obj.index!);
   return obj;
 }
 
@@ -559,19 +559,19 @@ List<vms.Frame> assertListOfFrame(List<vms.Frame> list) {
 
 vms.FuncRef assertFuncRef(vms.FuncRef obj) {
   assertNotNull(obj);
-  assertString(obj.id);
-  assertString(obj.name);
+  assertString(obj.id!);
+  assertString(obj.name!);
   if (obj.owner is vms.LibraryRef) {
-    assertLibraryRef(obj.owner);
+    assertLibraryRef(obj.owner!);
   } else if (obj.owner is vms.ClassRef) {
-    assertClassRef(obj.owner);
+    assertClassRef(obj.owner!);
   } else if (obj.owner is vms.FuncRef) {
-    assertFuncRef(obj.owner);
+    assertFuncRef(obj.owner!);
   } else {
     throw "Unexpected value: ${obj.owner}";
   }
-  assertBool(obj.isStatic);
-  assertBool(obj.isConst);
+  assertBool(obj.isStatic!);
+  assertBool(obj.isConst!);
   return obj;
 }
 
@@ -584,27 +584,27 @@ List<vms.FuncRef> assertListOfFuncRef(List<vms.FuncRef> list) {
 
 vms.Func assertFunc(vms.Func obj) {
   assertNotNull(obj);
-  assertString(obj.id);
-  assertString(obj.name);
+  assertString(obj.id!);
+  assertString(obj.name!);
   if (obj.owner is vms.LibraryRef) {
-    assertLibraryRef(obj.owner);
+    assertLibraryRef(obj.owner!);
   } else if (obj.owner is vms.ClassRef) {
-    assertClassRef(obj.owner);
+    assertClassRef(obj.owner!);
   } else if (obj.owner is vms.FuncRef) {
-    assertFuncRef(obj.owner);
+    assertFuncRef(obj.owner!);
   } else {
     throw "Unexpected value: ${obj.owner}";
   }
-  assertBool(obj.isStatic);
-  assertBool(obj.isConst);
+  assertBool(obj.isStatic!);
+  assertBool(obj.isConst!);
   return obj;
 }
 
 vms.InstanceRef assertInstanceRef(vms.InstanceRef obj) {
   assertNotNull(obj);
-  assertString(obj.id);
-  assertInstanceKind(obj.kind);
-  assertClassRef(obj.classRef);
+  assertString(obj.id!);
+  assertInstanceKind(obj.kind!);
+  assertClassRef(obj.classRef!);
   return obj;
 }
 
@@ -617,18 +617,18 @@ List<vms.InstanceRef> assertListOfInstanceRef(List<vms.InstanceRef> list) {
 
 vms.Instance assertInstance(vms.Instance obj) {
   assertNotNull(obj);
-  assertString(obj.id);
-  assertInstanceKind(obj.kind);
-  assertClassRef(obj.classRef);
+  assertString(obj.id!);
+  assertInstanceKind(obj.kind!);
+  assertClassRef(obj.classRef!);
   return obj;
 }
 
 vms.IsolateRef assertIsolateRef(vms.IsolateRef obj) {
   assertNotNull(obj);
-  assertString(obj.id);
-  assertString(obj.number);
-  assertString(obj.name);
-  assertBool(obj.isSystemIsolate);
+  assertString(obj.id!);
+  assertString(obj.number!);
+  assertString(obj.name!);
+  assertBool(obj.isSystemIsolate!);
   return obj;
 }
 
@@ -641,35 +641,35 @@ List<vms.IsolateRef> assertListOfIsolateRef(List<vms.IsolateRef> list) {
 
 vms.Isolate assertIsolate(vms.Isolate obj) {
   assertNotNull(obj);
-  assertString(obj.id);
-  assertString(obj.number);
-  assertString(obj.name);
-  assertBool(obj.isSystemIsolate);
-  assertListOfIsolateFlag(obj.isolateFlags);
-  assertInt(obj.startTime);
-  assertBool(obj.runnable);
-  assertInt(obj.livePorts);
-  assertBool(obj.pauseOnExit);
-  assertEvent(obj.pauseEvent);
-  assertListOfLibraryRef(obj.libraries);
-  assertListOfBreakpoint(obj.breakpoints);
-  assertExceptionPauseMode(obj.exceptionPauseMode);
+  assertString(obj.id!);
+  assertString(obj.number!);
+  assertString(obj.name!);
+  assertBool(obj.isSystemIsolate!);
+  assertListOfIsolateFlag(obj.isolateFlags!);
+  assertInt(obj.startTime!);
+  assertBool(obj.runnable!);
+  assertInt(obj.livePorts!);
+  assertBool(obj.pauseOnExit!);
+  assertEvent(obj.pauseEvent!);
+  assertListOfLibraryRef(obj.libraries!);
+  assertListOfBreakpoint(obj.breakpoints!);
+  assertExceptionPauseMode(obj.exceptionPauseMode!);
   return obj;
 }
 
 vms.IsolateFlag assertIsolateFlag(vms.IsolateFlag obj) {
   assertNotNull(obj);
-  assertString(obj.name);
-  assertString(obj.valueAsString);
+  assertString(obj.name!);
+  assertString(obj.valueAsString!);
   return obj;
 }
 
 vms.IsolateGroupRef assertIsolateGroupRef(vms.IsolateGroupRef obj) {
   assertNotNull(obj);
-  assertString(obj.id);
-  assertString(obj.number);
-  assertString(obj.name);
-  assertBool(obj.isSystemIsolateGroup);
+  assertString(obj.id!);
+  assertString(obj.number!);
+  assertString(obj.name!);
+  assertBool(obj.isSystemIsolateGroup!);
   return obj;
 }
 
@@ -683,23 +683,23 @@ List<vms.IsolateGroupRef> assertListOfIsolateGroupRef(
 
 vms.IsolateGroup assertIsolateGroup(vms.IsolateGroup obj) {
   assertNotNull(obj);
-  assertString(obj.id);
-  assertString(obj.number);
-  assertString(obj.name);
-  assertBool(obj.isSystemIsolateGroup);
-  assertListOfIsolateRef(obj.isolates);
+  assertString(obj.id!);
+  assertString(obj.number!);
+  assertString(obj.name!);
+  assertBool(obj.isSystemIsolateGroup!);
+  assertListOfIsolateRef(obj.isolates!);
   return obj;
 }
 
 vms.InboundReferences assertInboundReferences(vms.InboundReferences obj) {
   assertNotNull(obj);
-  assertListOfInboundReference(obj.references);
+  assertListOfInboundReference(obj.references!);
   return obj;
 }
 
 vms.InboundReference assertInboundReference(vms.InboundReference obj) {
   assertNotNull(obj);
-  assertObjRef(obj.source);
+  assertObjRef(obj.source!);
   return obj;
 }
 
@@ -713,16 +713,16 @@ List<vms.InboundReference> assertListOfInboundReference(
 
 vms.InstanceSet assertInstanceSet(vms.InstanceSet obj) {
   assertNotNull(obj);
-  assertInt(obj.totalCount);
-  assertListOfObjRef(obj.instances);
+  assertInt(obj.totalCount!);
+  assertListOfObjRef(obj.instances!);
   return obj;
 }
 
 vms.LibraryRef assertLibraryRef(vms.LibraryRef obj) {
   assertNotNull(obj);
-  assertString(obj.id);
-  assertString(obj.name);
-  assertString(obj.uri);
+  assertString(obj.id!);
+  assertString(obj.name!);
+  assertString(obj.uri!);
   return obj;
 }
 
@@ -735,24 +735,24 @@ List<vms.LibraryRef> assertListOfLibraryRef(List<vms.LibraryRef> list) {
 
 vms.Library assertLibrary(vms.Library obj) {
   assertNotNull(obj);
-  assertString(obj.id);
-  assertString(obj.name);
-  assertString(obj.uri);
-  assertBool(obj.debuggable);
-  assertListOfLibraryDependency(obj.dependencies);
-  assertListOfScriptRef(obj.scripts);
-  assertListOfFieldRef(obj.variables);
-  assertListOfFuncRef(obj.functions);
-  assertListOfClassRef(obj.classes);
+  assertString(obj.id!);
+  assertString(obj.name!);
+  assertString(obj.uri!);
+  assertBool(obj.debuggable!);
+  assertListOfLibraryDependency(obj.dependencies!);
+  assertListOfScriptRef(obj.scripts!);
+  assertListOfFieldRef(obj.variables!);
+  assertListOfFuncRef(obj.functions!);
+  assertListOfClassRef(obj.classes!);
   return obj;
 }
 
 vms.LibraryDependency assertLibraryDependency(vms.LibraryDependency obj) {
   assertNotNull(obj);
-  assertBool(obj.isImport);
-  assertBool(obj.isDeferred);
-  assertString(obj.prefix);
-  assertLibraryRef(obj.target);
+  assertBool(obj.isImport!);
+  assertBool(obj.isDeferred!);
+  assertString(obj.prefix!);
+  assertLibraryRef(obj.target!);
   return obj;
 }
 
@@ -766,30 +766,30 @@ List<vms.LibraryDependency> assertListOfLibraryDependency(
 
 vms.LogRecord assertLogRecord(vms.LogRecord obj) {
   assertNotNull(obj);
-  assertInstanceRef(obj.message);
-  assertInt(obj.time);
-  assertInt(obj.level);
-  assertInt(obj.sequenceNumber);
-  assertInstanceRef(obj.loggerName);
-  assertInstanceRef(obj.zone);
-  assertInstanceRef(obj.error);
-  assertInstanceRef(obj.stackTrace);
+  assertInstanceRef(obj.message!);
+  assertInt(obj.time!);
+  assertInt(obj.level!);
+  assertInt(obj.sequenceNumber!);
+  assertInstanceRef(obj.loggerName!);
+  assertInstanceRef(obj.zone!);
+  assertInstanceRef(obj.error!);
+  assertInstanceRef(obj.stackTrace!);
   return obj;
 }
 
 vms.MapAssociation assertMapAssociation(vms.MapAssociation obj) {
   assertNotNull(obj);
   if (obj.key is vms.InstanceRef) {
-    assertInstanceRef(obj.key);
+    assertInstanceRef(obj.key!);
   } else if (obj.key is vms.Sentinel) {
-    assertSentinel(obj.key);
+    assertSentinel(obj.key!);
   } else {
     throw "Unexpected value: ${obj.key}";
   }
   if (obj.value is vms.InstanceRef) {
-    assertInstanceRef(obj.value);
+    assertInstanceRef(obj.value!);
   } else if (obj.value is vms.Sentinel) {
-    assertSentinel(obj.value);
+    assertSentinel(obj.value!);
   } else {
     throw "Unexpected value: ${obj.value}";
   }
@@ -798,18 +798,18 @@ vms.MapAssociation assertMapAssociation(vms.MapAssociation obj) {
 
 vms.MemoryUsage assertMemoryUsage(vms.MemoryUsage obj) {
   assertNotNull(obj);
-  assertInt(obj.externalUsage);
-  assertInt(obj.heapCapacity);
-  assertInt(obj.heapUsage);
+  assertInt(obj.externalUsage!);
+  assertInt(obj.heapCapacity!);
+  assertInt(obj.heapUsage!);
   return obj;
 }
 
 vms.Message assertMessage(vms.Message obj) {
   assertNotNull(obj);
-  assertInt(obj.index);
-  assertString(obj.name);
-  assertString(obj.messageObjectId);
-  assertInt(obj.size);
+  assertInt(obj.index!);
+  assertString(obj.name!);
+  assertString(obj.messageObjectId!);
+  assertInt(obj.size!);
   return obj;
 }
 
@@ -822,16 +822,16 @@ List<vms.Message> assertListOfMessage(List<vms.Message> list) {
 
 vms.NativeFunction assertNativeFunction(vms.NativeFunction obj) {
   assertNotNull(obj);
-  assertString(obj.name);
+  assertString(obj.name!);
   return obj;
 }
 
 vms.NullValRef assertNullValRef(vms.NullValRef obj) {
   assertNotNull(obj);
-  assertString(obj.id);
-  assertInstanceKind(obj.kind);
-  assertClassRef(obj.classRef);
-  assertString(obj.valueAsString);
+  assertString(obj.id!);
+  assertInstanceKind(obj.kind!);
+  assertClassRef(obj.classRef!);
+  assertString(obj.valueAsString!);
   return obj;
 }
 
@@ -844,16 +844,16 @@ List<vms.NullValRef> assertListOfNullValRef(List<vms.NullValRef> list) {
 
 vms.NullVal assertNullVal(vms.NullVal obj) {
   assertNotNull(obj);
-  assertString(obj.id);
-  assertInstanceKind(obj.kind);
-  assertClassRef(obj.classRef);
-  assertString(obj.valueAsString);
+  assertString(obj.id!);
+  assertInstanceKind(obj.kind!);
+  assertClassRef(obj.classRef!);
+  assertString(obj.valueAsString!);
   return obj;
 }
 
 vms.ObjRef assertObjRef(vms.ObjRef obj) {
   assertNotNull(obj);
-  assertString(obj.id);
+  assertString(obj.id!);
   return obj;
 }
 
@@ -866,23 +866,23 @@ List<vms.ObjRef> assertListOfObjRef(List<vms.ObjRef> list) {
 
 vms.Obj assertObj(vms.Obj obj) {
   assertNotNull(obj);
-  assertString(obj.id);
+  assertString(obj.id!);
   return obj;
 }
 
 vms.PortList assertPortList(vms.PortList obj) {
   assertNotNull(obj);
-  assertListOfInstanceRef(obj.ports);
+  assertListOfInstanceRef(obj.ports!);
   return obj;
 }
 
 vms.ProfileFunction assertProfileFunction(vms.ProfileFunction obj) {
   assertNotNull(obj);
-  assertString(obj.kind);
-  assertInt(obj.inclusiveTicks);
-  assertInt(obj.exclusiveTicks);
-  assertString(obj.resolvedUrl);
-  assertDynamic(obj.function);
+  assertString(obj.kind!);
+  assertInt(obj.inclusiveTicks!);
+  assertInt(obj.exclusiveTicks!);
+  assertString(obj.resolvedUrl!);
+  assertDynamic(obj.function!);
   return obj;
 }
 
@@ -896,15 +896,15 @@ List<vms.ProfileFunction> assertListOfProfileFunction(
 
 vms.ProtocolList assertProtocolList(vms.ProtocolList obj) {
   assertNotNull(obj);
-  assertListOfProtocol(obj.protocols);
+  assertListOfProtocol(obj.protocols!);
   return obj;
 }
 
 vms.Protocol assertProtocol(vms.Protocol obj) {
   assertNotNull(obj);
-  assertString(obj.protocolName);
-  assertInt(obj.major);
-  assertInt(obj.minor);
+  assertString(obj.protocolName!);
+  assertInt(obj.major!);
+  assertInt(obj.minor!);
   return obj;
 }
 
@@ -917,16 +917,16 @@ List<vms.Protocol> assertListOfProtocol(List<vms.Protocol> list) {
 
 vms.ProcessMemoryUsage assertProcessMemoryUsage(vms.ProcessMemoryUsage obj) {
   assertNotNull(obj);
-  assertProcessMemoryItem(obj.root);
+  assertProcessMemoryItem(obj.root!);
   return obj;
 }
 
 vms.ProcessMemoryItem assertProcessMemoryItem(vms.ProcessMemoryItem obj) {
   assertNotNull(obj);
-  assertString(obj.name);
-  assertString(obj.description);
-  assertInt(obj.size);
-  assertListOfProcessMemoryItem(obj.children);
+  assertString(obj.name!);
+  assertString(obj.description!);
+  assertInt(obj.size!);
+  assertListOfProcessMemoryItem(obj.children!);
   return obj;
 }
 
@@ -940,13 +940,13 @@ List<vms.ProcessMemoryItem> assertListOfProcessMemoryItem(
 
 vms.ReloadReport assertReloadReport(vms.ReloadReport obj) {
   assertNotNull(obj);
-  assertBool(obj.success);
+  assertBool(obj.success!);
   return obj;
 }
 
 vms.RetainingObject assertRetainingObject(vms.RetainingObject obj) {
   assertNotNull(obj);
-  assertObjRef(obj.value);
+  assertObjRef(obj.value!);
   return obj;
 }
 
@@ -960,9 +960,9 @@ List<vms.RetainingObject> assertListOfRetainingObject(
 
 vms.RetainingPath assertRetainingPath(vms.RetainingPath obj) {
   assertNotNull(obj);
-  assertInt(obj.length);
-  assertString(obj.gcRootType);
-  assertListOfRetainingObject(obj.elements);
+  assertInt(obj.length!);
+  assertString(obj.gcRootType!);
+  assertListOfRetainingObject(obj.elements!);
   return obj;
 }
 
@@ -973,15 +973,15 @@ vms.Response assertResponse(vms.Response obj) {
 
 vms.Sentinel assertSentinel(vms.Sentinel obj) {
   assertNotNull(obj);
-  assertSentinelKind(obj.kind);
-  assertString(obj.valueAsString);
+  assertSentinelKind(obj.kind!);
+  assertString(obj.valueAsString!);
   return obj;
 }
 
 vms.ScriptRef assertScriptRef(vms.ScriptRef obj) {
   assertNotNull(obj);
-  assertString(obj.id);
-  assertString(obj.uri);
+  assertString(obj.id!);
+  assertString(obj.uri!);
   return obj;
 }
 
@@ -994,46 +994,46 @@ List<vms.ScriptRef> assertListOfScriptRef(List<vms.ScriptRef> list) {
 
 vms.Script assertScript(vms.Script obj) {
   assertNotNull(obj);
-  assertString(obj.id);
-  assertString(obj.uri);
-  assertLibraryRef(obj.library);
+  assertString(obj.id!);
+  assertString(obj.uri!);
+  assertLibraryRef(obj.library!);
   return obj;
 }
 
 vms.ScriptList assertScriptList(vms.ScriptList obj) {
   assertNotNull(obj);
-  assertListOfScriptRef(obj.scripts);
+  assertListOfScriptRef(obj.scripts!);
   return obj;
 }
 
 vms.SourceLocation assertSourceLocation(vms.SourceLocation obj) {
   assertNotNull(obj);
-  assertScriptRef(obj.script);
-  assertInt(obj.tokenPos);
+  assertScriptRef(obj.script!);
+  assertInt(obj.tokenPos!);
   return obj;
 }
 
 vms.SourceReport assertSourceReport(vms.SourceReport obj) {
   assertNotNull(obj);
-  assertListOfSourceReportRange(obj.ranges);
-  assertListOfScriptRef(obj.scripts);
+  assertListOfSourceReportRange(obj.ranges!);
+  assertListOfScriptRef(obj.scripts!);
   return obj;
 }
 
 vms.SourceReportCoverage assertSourceReportCoverage(
     vms.SourceReportCoverage obj) {
   assertNotNull(obj);
-  assertListOfInt(obj.hits);
-  assertListOfInt(obj.misses);
+  assertListOfInt(obj.hits!);
+  assertListOfInt(obj.misses!);
   return obj;
 }
 
 vms.SourceReportRange assertSourceReportRange(vms.SourceReportRange obj) {
   assertNotNull(obj);
-  assertInt(obj.scriptIndex);
-  assertInt(obj.startPos);
-  assertInt(obj.endPos);
-  assertBool(obj.compiled);
+  assertInt(obj.scriptIndex!);
+  assertInt(obj.startPos!);
+  assertInt(obj.endPos!);
+  assertBool(obj.compiled!);
   return obj;
 }
 
@@ -1047,17 +1047,17 @@ List<vms.SourceReportRange> assertListOfSourceReportRange(
 
 vms.Stack assertStack(vms.Stack obj) {
   assertNotNull(obj);
-  assertListOfFrame(obj.frames);
-  assertListOfMessage(obj.messages);
-  assertBool(obj.truncated);
+  assertListOfFrame(obj.frames!);
+  assertListOfMessage(obj.messages!);
+  assertBool(obj.truncated!);
   return obj;
 }
 
 vms.Timeline assertTimeline(vms.Timeline obj) {
   assertNotNull(obj);
-  assertListOfTimelineEvent(obj.traceEvents);
-  assertInt(obj.timeOriginMicros);
-  assertInt(obj.timeExtentMicros);
+  assertListOfTimelineEvent(obj.traceEvents!);
+  assertInt(obj.timeOriginMicros!);
+  assertInt(obj.timeExtentMicros!);
   return obj;
 }
 
@@ -1076,22 +1076,22 @@ List<vms.TimelineEvent> assertListOfTimelineEvent(
 
 vms.TimelineFlags assertTimelineFlags(vms.TimelineFlags obj) {
   assertNotNull(obj);
-  assertString(obj.recorderName);
-  assertListOfString(obj.availableStreams);
-  assertListOfString(obj.recordedStreams);
+  assertString(obj.recorderName!);
+  assertListOfString(obj.availableStreams!);
+  assertListOfString(obj.recordedStreams!);
   return obj;
 }
 
 vms.Timestamp assertTimestamp(vms.Timestamp obj) {
   assertNotNull(obj);
-  assertInt(obj.timestamp);
+  assertInt(obj.timestamp!);
   return obj;
 }
 
 vms.TypeArgumentsRef assertTypeArgumentsRef(vms.TypeArgumentsRef obj) {
   assertNotNull(obj);
-  assertString(obj.id);
-  assertString(obj.name);
+  assertString(obj.id!);
+  assertString(obj.name!);
   return obj;
 }
 
@@ -1105,9 +1105,9 @@ List<vms.TypeArgumentsRef> assertListOfTypeArgumentsRef(
 
 vms.TypeArguments assertTypeArguments(vms.TypeArguments obj) {
   assertNotNull(obj);
-  assertString(obj.id);
-  assertString(obj.name);
-  assertListOfInstanceRef(obj.types);
+  assertString(obj.id!);
+  assertString(obj.name!);
+  assertListOfInstanceRef(obj.types!);
   return obj;
 }
 
@@ -1119,14 +1119,14 @@ vms.UnresolvedSourceLocation assertUnresolvedSourceLocation(
 
 vms.Version assertVersion(vms.Version obj) {
   assertNotNull(obj);
-  assertInt(obj.major);
-  assertInt(obj.minor);
+  assertInt(obj.major!);
+  assertInt(obj.minor!);
   return obj;
 }
 
 vms.VMRef assertVMRef(vms.VMRef obj) {
   assertNotNull(obj);
-  assertString(obj.name);
+  assertString(obj.name!);
   return obj;
 }
 
@@ -1139,17 +1139,17 @@ List<vms.VMRef> assertListOfVMRef(List<vms.VMRef> list) {
 
 vms.VM assertVM(vms.VM obj) {
   assertNotNull(obj);
-  assertString(obj.name);
-  assertInt(obj.architectureBits);
-  assertString(obj.hostCPU);
-  assertString(obj.operatingSystem);
-  assertString(obj.targetCPU);
-  assertString(obj.version);
-  assertInt(obj.pid);
-  assertInt(obj.startTime);
-  assertListOfIsolateRef(obj.isolates);
-  assertListOfIsolateGroupRef(obj.isolateGroups);
-  assertListOfIsolateRef(obj.systemIsolates);
-  assertListOfIsolateGroupRef(obj.systemIsolateGroups);
+  assertString(obj.name!);
+  assertInt(obj.architectureBits!);
+  assertString(obj.hostCPU!);
+  assertString(obj.operatingSystem!);
+  assertString(obj.targetCPU!);
+  assertString(obj.version!);
+  assertInt(obj.pid!);
+  assertInt(obj.startTime!);
+  assertListOfIsolateRef(obj.isolates!);
+  assertListOfIsolateGroupRef(obj.isolateGroups!);
+  assertListOfIsolateRef(obj.systemIsolates!);
+  assertListOfIsolateGroupRef(obj.systemIsolateGroups!);
   return obj;
 }

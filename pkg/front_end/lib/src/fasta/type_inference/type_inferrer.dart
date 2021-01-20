@@ -1132,6 +1132,39 @@ class TypeInferrerImpl implements TypeInferrer {
     return null;
   }
 
+  /// Returns [type] as passed from [superClass] to the current class.
+  ///
+  /// If a legacy class occurs between the current class and [superClass] then
+  /// [type] needs to be legacy erased. For instance
+  ///
+  ///    // Opt in:
+  ///    class Super {
+  ///      int extendedMethod(int i, {required int j}) => i;
+  ///    }
+  ///    class Mixin {
+  ///      int mixedInMethod(int i, {required int j}) => i;
+  ///    }
+  ///    // Opt out:
+  ///    class Legacy extends Super with Mixin {}
+  ///    // Opt in:
+  ///    class Class extends Legacy {
+  ///      test() {
+  ///        // Ok to call `Legacy.extendedMethod` since its type is
+  ///        // `int* Function(int*, {int* j})`.
+  ///        super.extendedMethod(null);
+  ///        // Ok to call `Legacy.mixedInMethod` since its type is
+  ///        // `int* Function(int*, {int* j})`.
+  ///        super.mixedInMethod(null);
+  ///      }
+  ///    }
+  ///
+  DartType computeTypeFromSuperClass(Class superClass, DartType type) {
+    if (needsLegacyErasure(thisType.classNode, superClass)) {
+      type = legacyErasure(type);
+    }
+    return type;
+  }
+
   /// Returns the type of [target] when accessed as a getter on [receiverType].
   ///
   /// For instance
@@ -3479,9 +3512,11 @@ class TypeInferrerImpl implements TypeInferrer {
   ExpressionInferenceResult inferSuperMethodInvocation(
       SuperMethodInvocation expression,
       DartType typeContext,
-      ObjectAccessTarget target) {
-    assert(
-        target.isInstanceMember || target.isObjectMember || target.isMissing);
+      Procedure procedure) {
+    ObjectAccessTarget target = procedure != null
+        ? new ObjectAccessTarget.interfaceMember(procedure,
+            isPotentiallyNullable: false)
+        : const ObjectAccessTarget.missing();
     int fileOffset = expression.fileOffset;
     Name methodName = expression.name;
     Arguments arguments = expression.arguments;
@@ -3490,6 +3525,12 @@ class TypeInferrerImpl implements TypeInferrer {
         isSpecialCasedBinaryOperatorForReceiverType(target, receiverType);
     DartType calleeType = getGetterType(target, receiverType);
     FunctionType functionType = getFunctionType(target, receiverType);
+    if (procedure != null) {
+      calleeType =
+          computeTypeFromSuperClass(procedure.enclosingClass, calleeType);
+      functionType =
+          computeTypeFromSuperClass(procedure.enclosingClass, functionType);
+    }
     if (isNonNullableByDefault &&
         expression.name == equalsName &&
         functionType.positionalParameters.length == 1) {
@@ -3503,7 +3544,7 @@ class TypeInferrerImpl implements TypeInferrer {
         typeContext, fileOffset, functionType, arguments,
         isSpecialCasedBinaryOperator: isSpecialCasedBinaryOperator,
         receiverType: receiverType,
-        isImplicitExtensionMember: target.isExtensionMember);
+        isImplicitExtensionMember: false);
     DartType inferredType = result.inferredType;
     if (methodName.text == '==') {
       inferredType = coreTypes.boolRawType(library.nonNullable);
@@ -3534,18 +3575,20 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   /// Performs the core type inference algorithm for super property get.
-  ExpressionInferenceResult inferSuperPropertyGet(SuperPropertyGet expression,
-      DartType typeContext, ObjectAccessTarget readTarget) {
-    assert(readTarget.isInstanceMember ||
-        readTarget.isObjectMember ||
-        readTarget.isMissing);
+  ExpressionInferenceResult inferSuperPropertyGet(
+      SuperPropertyGet expression, DartType typeContext, Member member) {
+    ObjectAccessTarget readTarget = member != null
+        ? new ObjectAccessTarget.interfaceMember(member,
+            isPotentiallyNullable: false)
+        : const ObjectAccessTarget.missing();
     DartType receiverType = thisType;
     DartType inferredType = getGetterType(readTarget, receiverType);
-    if (readTarget.isInstanceMember || readTarget.isObjectMember) {
-      Member member = readTarget.member;
-      if (member is Procedure && member.kind == ProcedureKind.Method) {
-        return instantiateTearOff(inferredType, typeContext, expression);
-      }
+    if (member != null) {
+      inferredType =
+          computeTypeFromSuperClass(member.enclosingClass, inferredType);
+    }
+    if (member is Procedure && member.kind == ProcedureKind.Method) {
+      return instantiateTearOff(inferredType, typeContext, expression);
     }
     return new ExpressionInferenceResult(inferredType, expression);
   }

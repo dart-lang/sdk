@@ -24,6 +24,10 @@ abstract class D implements Interface, Interface2 {}
 
 class E with A, D {} // ok
 
+abstract class F implements Interface {}
+
+class G with A, F {} // ok
+
 main() {
   print(C().method(0));
 }

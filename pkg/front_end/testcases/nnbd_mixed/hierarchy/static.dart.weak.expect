@@ -19,9 +19,9 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/static.dart:70:15: Error: Can't declare a member that conflicts with an inherited one.
 //   static void mixedInInstanceDeclaredStaticMethod() {}
 //               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/static.dart:56:16: Context: This is the inherited member.
-// abstract class Class extends Super with Mixin implements Interface {
-//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/static.dart:27:8: Context: This is the inherited member.
+//   void mixedInInstanceDeclaredStaticMethod() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/static.dart:73:15: Error: Can't declare a member that conflicts with an inherited one.
 //   static void implementedInstanceDeclaredStaticMethod() {}

@@ -5,7 +5,6 @@
 import 'dart:io';
 
 import 'package:cli_util/cli_logging.dart';
-import 'package:dartdev/src/commands/fix.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -68,7 +67,6 @@ ${result.stderr}
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
-    expect(result.stdout, contains(FixCommand.disclaimer));
     expect(
         result.stdout, contains('Apply automated fixes to Dart source code.'));
   });
@@ -80,7 +78,6 @@ ${result.stderr}
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
-    expect(result.stdout, contains(FixCommand.disclaimer));
     expect(
         result.stdout, contains('Apply automated fixes to Dart source code.'));
   });
@@ -92,7 +89,6 @@ ${result.stderr}
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
-    expect(result.stdout, contains(FixCommand.disclaimer));
     expect(result.stdout, contains('Nothing to fix!'));
   });
 

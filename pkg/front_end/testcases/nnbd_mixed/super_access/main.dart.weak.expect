@@ -26,10 +26,10 @@ abstract class _Class&Object&Mixin1&Mixin2<T extends core::Object* = dynamic> = 
   synthetic constructor •() → self::_Class&Object&Mixin1&Mixin2<self::_Class&Object&Mixin1&Mixin2::T*>*
     : super self::_Class&Object&Mixin1::•()
     ;
-  mixin-super-stub set field((dynamic) →* core::Type* value) → void
-    return super.{mai::Mixin2::field} = value;
   mixin-super-stub get field() → (dynamic) →* core::Type*
     return super.{mai::Mixin2::field};
+  mixin-super-stub set field((dynamic) →* core::Type* value) → void
+    return super.{mai::Mixin2::field} = value;
   mixin-super-stub method method1() → (dynamic) →* core::Type*
     return super.{mai::Mixin2::method1}();
   mixin-super-stub method method2((dynamic) →* core::Type* t) → void
@@ -59,8 +59,10 @@ abstract class Mixin1<T extends core::Object* = dynamic> extends core::Object im
   synthetic constructor •() → mai::Mixin1<mai::Mixin1::T*>*
     : super core::Object::•()
     ;
-  abstract member-signature set field((core::Object*) →* core::Type* value) → void; -> mai2::Interface::field
   abstract member-signature get field() → (core::Object*) →* core::Type*; -> mai2::Interface::field
+  abstract member-signature set field((core::Object*) →* core::Type* value) → void; -> mai2::Interface::field
+  abstract member-signature method method1() → (core::Object*) →* core::Type*; -> mai2::Interface::method1
+  abstract member-signature method method2((core::Object*) →* core::Type* t) → void; -> mai2::Interface::method2
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -71,8 +73,6 @@ abstract class Mixin1<T extends core::Object* = dynamic> extends core::Object im
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  abstract member-signature method method1() → (core::Object*) →* core::Type*; -> mai2::Interface::method1
-  abstract member-signature method method2((core::Object*) →* core::Type* t) → void; -> mai2::Interface::method2
 }
 abstract class Mixin2<T extends core::Object* = dynamic> extends core::Object implements mai2::Interface<mai2::Value<dynamic>*, core::Object*> {
   field (dynamic) →* core::Type* field = null;

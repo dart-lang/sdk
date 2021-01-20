@@ -1,0 +1,11 @@
+class Class implements Interface {
+  int get implementedLateFieldDeclaredGetterSetter => 0;
+  void set implementedLateFieldDeclaredGetterSetter(int value) {}
+}
+class Interface {
+  ---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+  int implementedLateFieldDeclaredGetterSetter;
+}
+main() {}

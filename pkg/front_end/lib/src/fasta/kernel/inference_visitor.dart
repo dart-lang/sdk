@@ -5964,12 +5964,7 @@ class InferenceVisitor
     }
     assert(node.interfaceTarget == null || node.interfaceTarget is Procedure);
     return inferrer.inferSuperMethodInvocation(
-        node,
-        typeContext,
-        node.interfaceTarget != null
-            ? new ObjectAccessTarget.interfaceMember(node.interfaceTarget,
-                isPotentiallyNullable: false)
-            : const ObjectAccessTarget.missing());
+        node, typeContext, node.interfaceTarget);
   }
 
   @override
@@ -5983,12 +5978,7 @@ class InferenceVisitor
           new InstrumentationValueForMember(node.interfaceTarget));
     }
     return inferrer.inferSuperPropertyGet(
-        node,
-        typeContext,
-        node.interfaceTarget != null
-            ? new ObjectAccessTarget.interfaceMember(node.interfaceTarget,
-                isPotentiallyNullable: false)
-            : const ObjectAccessTarget.missing());
+        node, typeContext, node.interfaceTarget);
   }
 
   @override
@@ -6004,6 +5994,10 @@ class InferenceVisitor
             isPotentiallyNullable: false)
         : const ObjectAccessTarget.missing();
     DartType writeContext = inferrer.getSetterType(writeTarget, receiverType);
+    if (node.interfaceTarget != null) {
+      writeContext = inferrer.computeTypeFromSuperClass(
+          node.interfaceTarget.enclosingClass, writeContext);
+    }
     ExpressionInferenceResult rhsResult = inferrer.inferExpression(
         node.value, writeContext ?? const UnknownType(), true,
         isVoidAllowed: true);

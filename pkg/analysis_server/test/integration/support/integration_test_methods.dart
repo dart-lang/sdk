@@ -1582,6 +1582,15 @@ abstract class IntegrationTestMixin {
   ///   analysis.setAnalysisRoots), an error of type FILE_NOT_ANALYZED will be
   ///   generated.
   ///
+  /// inTestMode: bool (optional)
+  ///
+  ///   A flag indicating whether the bulk fixes are being run in test mode.
+  ///   The only difference is that in test mode the fix processor will look
+  ///   for a configuration file that can modify the content of the data file
+  ///   used to compute the fixes when data-driven fixes are being considered.
+  ///
+  ///   If this field is omitted the flag defaults to false.
+  ///
   /// Returns
   ///
   /// edits: List<SourceFileEdit>
@@ -1592,8 +1601,9 @@ abstract class IntegrationTestMixin {
   ///
   ///   Details that summarize the fixes associated with the recommended
   ///   changes.
-  Future<EditBulkFixesResult> sendEditBulkFixes(List<String> included) async {
-    var params = EditBulkFixesParams(included).toJson();
+  Future<EditBulkFixesResult> sendEditBulkFixes(List<String> included,
+      {bool inTestMode}) async {
+    var params = EditBulkFixesParams(included, inTestMode: inTestMode).toJson();
     var result = await server.send('edit.bulkFixes', params);
     var decoder = ResponseDecoder(null);
     return EditBulkFixesResult.fromJson(decoder, 'result', result);

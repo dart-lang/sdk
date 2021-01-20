@@ -89,7 +89,7 @@ class C = self::B with self::M implements self::I<core::int*> {
     return super.{self::M::x} = value;
   mixin-super-stub get y() → core::int*
     return super.{self::M::y};
-  forwarding-stub set y(covariant core::Object* value) → void
+  forwarding-stub set y(covariant core::int* value) → void
     return super.{self::M::y} = value;
 }
 static method expectTypeError(() →* void callback) → void {

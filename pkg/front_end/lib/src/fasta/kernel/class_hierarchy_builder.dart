@@ -22,6 +22,7 @@ import 'package:kernel/src/norm.dart';
 import 'package:kernel/src/standard_bounds.dart';
 import 'package:kernel/src/types.dart' show Types;
 
+import '../../base/common.dart';
 import '../../testing/id_testing_utils.dart' show typeToText;
 
 import '../builder/builder.dart';
@@ -62,7 +63,6 @@ import '../messages.dart'
 
 import '../names.dart' show noSuchMethodName;
 
-import '../problems.dart';
 import '../scope.dart' show Scope;
 
 import '../source/source_class_builder.dart';
@@ -227,13 +227,15 @@ abstract class ClassMember {
   bool get isFinal;
   bool get isConst;
   bool get forSetter;
-  bool get isSourceDeclaration;
 
-  /// Returns `true` if this member is a regular method or operator.
-  bool get isFunction;
+  /// Returns `true` if this member corresponds to a declaration in the source
+  /// code.
+  bool get isSourceDeclaration;
 
   /// Returns `true` if this member is a field, getter or setter.
   bool get isProperty;
+
+  /// Computes the [Member] node resulting from this class member.
   Member getMember(ClassHierarchyBuilder hierarchy);
 
   /// Returns the member [Covariance] for this class member.
@@ -243,12 +245,17 @@ abstract class ClassMember {
   String get fullName;
   String get fullNameForErrors;
   ClassBuilder get classBuilder;
+
+  /// Returns `true` if this class member is declared in Object from dart:core.
   bool isObjectMember(ClassBuilder objectClass);
   Uri get fileUri;
   int get charOffset;
+
+  /// Returns `true` if this class member is an interface member.
   bool get isAbstract;
 
-  bool get needsComputation;
+  /// Returns `true` if this member doesn't corresponds to a declaration in the
+  /// source code.
   bool get isSynthesized;
 
   // If `true` this member is not part of the interface but only part of the
@@ -258,17 +265,71 @@ abstract class ClassMember {
   // lowering.
   bool get isInternalImplementation;
 
-  bool get isInheritableConflict;
-  ClassMember withParent(ClassBuilder classBuilder);
+  /// Returns `true` if this member is composed from a list of class members
+  /// accessible through [declarations].
   bool get hasDeclarations;
+
+  /// If [hasDeclaration] is `true`, this returns the list of class members
+  /// from which this class member is composed.
+  ///
+  /// This is used in [unfoldDeclarations] to retrieve all underlying member
+  /// source declarations, and in [toSet] to retrieve all members used for
+  /// this class member wrt. certain level of the hierarchy.
+  /// TODO(johnniwinther): Can the use of [toSet] be replaced with a direct
+  /// use of [declarations]?
   List<ClassMember> get declarations;
-  ClassMember get abstract;
-  ClassMember get concrete;
+
+  /// The interface member corresponding to this member.
+  ///
+  /// If this member is declared on the source, the interface member is
+  /// the member itself. For instance
+  ///
+  ///     abstract class Class {
+  ///        void concreteMethod() {}
+  ///        void abstractMethod();
+  ///     }
+  ///
+  /// the interface members for `concreteMethod` and `abstractMethod` are the
+  /// members themselves.
+  ///
+  /// If this member is a synthesized interface member, the
+  /// interface member is the member itself. For instance
+  ///
+  ///     abstract class Interface1 {
+  ///        void method() {}
+  ///     }
+  ///     abstract class Interface2 {
+  ///        void method() {}
+  ///     }
+  ///     abstract class Class implements Interface1, Interface2 {}
+  ///
+  /// the interface member for `method` in `Class` is the synthesized interface
+  /// member created for the implemented members `Interface1.method` and
+  /// `Interface2.method`.
+  ///
+  /// If this member is a concrete member that implements an interface member,
+  /// the interface member is the implemented interface member. For instance
+  ///
+  ///     class Super {
+  ///        void method() {}
+  ///     }
+  ///     class Interface {
+  ///        void method() {}
+  ///     }
+  ///     class Class extends Super implements Interface {}
+  ///
+  /// the interface member for `Super.method` implementing `method` in `Class`
+  /// is the synthesized interface member created for the implemented members
+  /// `Super.method` and `Interface.method`.
+  ClassMember get interfaceMember;
 
   void inferType(ClassHierarchyBuilder hierarchy);
   void registerOverrideDependency(Set<ClassMember> overriddenMembers);
 
   /// Returns `true` if this has the same underlying declaration as [other].
+  ///
+  /// This is used for avoiding unnecessary checks and can this trivially
+  /// return `false`.
   bool isSameDeclaration(ClassMember other);
 }
 
@@ -381,9 +442,10 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
     _delayedTypeComputations.add(computation);
   }
 
-  void registerOverrideCheck(
-      SourceClassBuilder classBuilder, ClassMember a, ClassMember b) {
-    _delayedChecks.add(new DelayedOverrideCheck(classBuilder, a, b));
+  void registerOverrideCheck(SourceClassBuilder classBuilder,
+      ClassMember declaredMember, Set<ClassMember> overriddenMembers) {
+    _delayedChecks.add(new DelayedOverrideCheck(
+        classBuilder, declaredMember, overriddenMembers));
   }
 
   void registerGetterSetterCheck(
@@ -645,8 +707,6 @@ class ClassHierarchyNodeBuilder {
   final ClassBuilder classBuilder;
 
   bool hasNoSuchMethod = false;
-
-  List<ClassMember> abstractMembers = null;
 
   final Map<Class, Substitution> substitutions;
 
@@ -985,7 +1045,7 @@ class ClassHierarchyNodeBuilder {
     }
   }
 
-  /// Infers the field type of [declaredMember] based on [overriddenMembers].
+  /// Infers the field type of [fieldBuilder] based on [overriddenMembers].
   static void inferFieldType(
       ClassHierarchyBuilder hierarchy,
       ClassBuilder classBuilder,
@@ -1088,6 +1148,15 @@ class ClassHierarchyNodeBuilder {
               messageDeclaredMemberConflictsWithInheritedMemberCause
                   .withLocation(b.fileUri, b.charOffset, name.length)
             ]);
+      } else if (b.classBuilder == classBuilder) {
+        classBuilder.addProblem(
+            messageDeclaredMemberConflictsWithInheritedMember,
+            b.charOffset,
+            name.length,
+            context: <LocatedMessage>[
+              messageDeclaredMemberConflictsWithInheritedMemberCause
+                  .withLocation(a.fileUri, a.charOffset, name.length)
+            ]);
       } else {
         classBuilder.addProblem(messageInheritedMembersConflict,
             classBuilder.charOffset, classBuilder.fullNameForErrors.length,
@@ -1137,15 +1206,6 @@ class ClassHierarchyNodeBuilder {
     }
   }
 
-  void recordAbstractMember(ClassMember member) {
-    abstractMembers ??= <ClassMember>[];
-    if (member.hasDeclarations && classBuilder == member.classBuilder) {
-      abstractMembers.addAll(member.declarations);
-    } else {
-      abstractMembers.add(member);
-    }
-  }
-
   ClassHierarchyNode build() {
     assert(!classBuilder.isPatch);
     ClassHierarchyNode supernode;
@@ -1158,12 +1218,23 @@ class ClassHierarchyNodeBuilder {
       assert(supernode != null);
     }
 
+    /// Set to `true` if the class needs interfaces, that is, if it has any
+    /// members where the interface member is different from its corresponding
+    /// class members.
+    ///
+    /// This is an optimization to avoid unnecessary computation of interface
+    /// members.
+    bool hasInterfaces = false;
+
     Map<Name, Tuple> memberMap = {};
 
     Scope scope = classBuilder.scope;
 
     for (MemberBuilder memberBuilder in scope.localMembers) {
       for (ClassMember classMember in memberBuilder.localMembers) {
+        if (classMember.isAbstract) {
+          hasInterfaces = true;
+        }
         Tuple tuple = memberMap[classMember.name];
         if (tuple == null) {
           memberMap[classMember.name] = new Tuple.declareMember(classMember);
@@ -1172,6 +1243,9 @@ class ClassHierarchyNodeBuilder {
         }
       }
       for (ClassMember classMember in memberBuilder.localSetters) {
+        if (classMember.isAbstract) {
+          hasInterfaces = true;
+        }
         Tuple tuple = memberMap[classMember.name];
         if (tuple == null) {
           memberMap[classMember.name] = new Tuple.declareSetter(classMember);
@@ -1183,6 +1257,9 @@ class ClassHierarchyNodeBuilder {
 
     for (MemberBuilder memberBuilder in scope.localSetters) {
       for (ClassMember classMember in memberBuilder.localMembers) {
+        if (classMember.isAbstract) {
+          hasInterfaces = true;
+        }
         Tuple tuple = memberMap[classMember.name];
         if (tuple == null) {
           memberMap[classMember.name] = new Tuple.declareMember(classMember);
@@ -1191,6 +1268,9 @@ class ClassHierarchyNodeBuilder {
         }
       }
       for (ClassMember classMember in memberBuilder.localSetters) {
+        if (classMember.isAbstract) {
+          hasInterfaces = true;
+        }
         Tuple tuple = memberMap[classMember.name];
         if (tuple == null) {
           memberMap[classMember.name] = new Tuple.declareSetter(classMember);
@@ -1219,6 +1299,9 @@ class ClassHierarchyNodeBuilder {
 
         for (MemberBuilder memberBuilder in scope.localMembers) {
           for (ClassMember classMember in memberBuilder.localMembers) {
+            if (classMember.isAbstract) {
+              hasInterfaces = true;
+            }
             Tuple tuple = memberMap[classMember.name];
             if (tuple == null) {
               memberMap[classMember.name] = new Tuple.mixInMember(classMember);
@@ -1227,6 +1310,9 @@ class ClassHierarchyNodeBuilder {
             }
           }
           for (ClassMember classMember in memberBuilder.localSetters) {
+            if (classMember.isAbstract) {
+              hasInterfaces = true;
+            }
             Tuple tuple = memberMap[classMember.name];
             if (tuple == null) {
               memberMap[classMember.name] = new Tuple.mixInSetter(classMember);
@@ -1238,6 +1324,9 @@ class ClassHierarchyNodeBuilder {
 
         for (MemberBuilder memberBuilder in scope.localSetters) {
           for (ClassMember classMember in memberBuilder.localMembers) {
+            if (classMember.isAbstract) {
+              hasInterfaces = true;
+            }
             Tuple tuple = memberMap[classMember.name];
             if (tuple == null) {
               memberMap[classMember.name] = new Tuple.mixInMember(classMember);
@@ -1246,6 +1335,9 @@ class ClassHierarchyNodeBuilder {
             }
           }
           for (ClassMember classMember in memberBuilder.localSetters) {
+            if (classMember.isAbstract) {
+              hasInterfaces = true;
+            }
             Tuple tuple = memberMap[classMember.name];
             if (tuple == null) {
               memberMap[classMember.name] = new Tuple.mixInSetter(classMember);
@@ -1309,7 +1401,6 @@ class ClassHierarchyNodeBuilder {
       }
     }
 
-    bool hasInterfaces = false;
     if (supernode == null) {
       // This should be Object.
       superclasses = new List<Supertype>.filled(0, null);
@@ -1365,8 +1456,10 @@ class ClassHierarchyNodeBuilder {
         hasInterfaces = true;
       }
 
-      implement(supernode.interfaceMemberMap);
-      implement(supernode.interfaceSetterMap);
+      if (hasInterfaces) {
+        implement(supernode.interfaceMemberMap ?? supernode.classMemberMap);
+        implement(supernode.interfaceSetterMap ?? supernode.classSetterMap);
+      }
 
       if (directInterfaceBuilders != null) {
         for (int i = 0; i < directInterfaceBuilders.length; i++) {
@@ -1459,516 +1552,1460 @@ class ClassHierarchyNodeBuilder {
     /// [ClassHierarchyNode].
     Map<Name, ClassMember> interfaceSetterMap = {};
 
-    void registerOverrideCheck(
-        ClassMember member, ClassMember overriddenMember) {
+    /// Map for members declared in this class to the members that they
+    /// override. This is used for checking valid overrides and to ensure that
+    /// override inference correctly propagates inferred types through the
+    /// class hierarchy.
+    Map<ClassMember, Set<ClassMember>> declaredOverridesMap = {};
+
+    /// In case this class is a mixin application, this maps members declared in
+    /// the mixin to the members that they override. This is used for checking
+    /// valid overrides but _not_ as for [declaredOverridesMap] for override
+    /// inference.
+    Map<ClassMember, Set<ClassMember>> mixinApplicationOverridesMap = {};
+
+    /// In case this class is concrete, this maps concrete members that are
+    /// inherited into this class to the members they should override to validly
+    /// implement the interface of this class.
+    Map<ClassMember, Set<ClassMember>> inheritedImplementsMap = {};
+
+    /// In case this class is concrete, this holds the interface members
+    /// without a corresponding class member. These are either reported as
+    /// missing implementations or trigger insertion of noSuchMethod forwarders.
+    List<ClassMember> abstractMembers = [];
+
+    ClassHierarchyNodeDataForTesting dataForTesting;
+    if (retainDataForTesting) {
+      dataForTesting = new ClassHierarchyNodeDataForTesting(
+          abstractMembers,
+          declaredOverridesMap,
+          mixinApplicationOverridesMap,
+          inheritedImplementsMap);
+    }
+
+    /// Registers that the current class has an interface member without a
+    /// corresponding class member.
+    ///
+    /// This is used to report missing implementation or, in the case the class
+    /// has a user defined concrete noSuchMethod, to insert noSuchMethod
+    /// forwarders. (Currently, insertion of forwarders is handled elsewhere.)
+    ///
+    /// For instance:
+    ///
+    ///    abstract class Interface {
+    ///      method();
+    ///    }
+    ///    class Class1 implements Interface {
+    ///      // Missing implementation for `Interface.method`.
+    ///    }
+    ///    class Class2 implements Interface {
+    ///      noSuchMethod(_) {}
+    ///      // A noSuchMethod forwarder is added for `Interface.method`.
+    ///    }
+    ///
+    void registerAbstractMember(ClassMember abstractMember) {
+      if (!abstractMember.isInternalImplementation) {
+        /// If `isInternalImplementation` is `true`, the member is synthesized
+        /// implementation that does not require implementation in other
+        /// classes.
+        ///
+        /// This is for instance used for late lowering where
+        ///
+        ///    class Interface {
+        ///      late int? field;
+        ///    }
+        ///    class Class implements Interface {
+        ///      int? field;
+        ///    }
+        ///
+        /// is encoded as
+        ///
+        ///    class Interface {
+        ///      bool _#field#isSet = false;
+        ///      int? _#field = null;
+        ///      int? get field => _#field#isSet ? _#field : throw ...;
+        ///      void set field(int? value) { ... }
+        ///    }
+        ///    class Class implements Interface {
+        ///      int? field;
+        ///    }
+        ///
+        /// and `Class` should not be required to implement
+        /// `Interface._#field#isSet` and `Interface._#field`.
+        abstractMembers.add(abstractMember);
+      }
+    }
+
+    /// Registers that [inheritedMember] should be checked to validly override
+    /// [overrides].
+    ///
+    /// This is needed in the case where a concrete member is inherited into
+    /// a concrete subclass. For instance:
+    ///
+    ///    class Super {
+    ///      void method() {}
+    ///    }
+    ///    abstract class Interface {
+    ///      void method();
+    ///    }
+    ///    class Class extends Super implements Interface {}
+    ///
+    /// Here `Super.method` must be checked to be a valid implementation for
+    /// `Interface.method` by being a valid override of it.
+    void registerInheritedImplements(
+        ClassMember inheritedMember, Set<ClassMember> overrides,
+        {ClassMember aliasForTesting}) {
       if (classBuilder is SourceClassBuilder) {
-        if (overriddenMember.hasDeclarations &&
-            classBuilder == overriddenMember.classBuilder) {
-          for (int i = 0; i < overriddenMember.declarations.length; i++) {
-            hierarchy.registerOverrideCheck(
-                classBuilder, member, overriddenMember.declarations[i]);
-          }
-        } else {
-          hierarchy.registerOverrideCheck(
-              classBuilder, member, overriddenMember);
+        assert(
+            inheritedMember.classBuilder != classBuilder,
+            "Only inherited members can implement by inheritance: "
+            "${inheritedMember}");
+        inheritedImplementsMap[inheritedMember] = overrides;
+        if (dataForTesting != null && aliasForTesting != null) {
+          dataForTesting.aliasMap[aliasForTesting] = inheritedMember;
         }
       }
     }
 
-    memberMap.forEach((Name name, Tuple tuple) {
-      Set<ClassMember> overriddenMembers = {};
+    /// Returns `true` if the current class is from an opt-out library and
+    /// [classMember] is from an opt-in library.
+    ///
+    /// In this case a member signature needs to be inserted to show the
+    /// legacy erased type of the interface member. For instance:
+    ///
+    ///    // Opt-in library:
+    ///    class Super {
+    ///      int? method(int i) {}
+    ///    }
+    ///    // Opt-out library:
+    ///    class Class extends Super {
+    ///      // A member signature is inserted:
+    ///      // int* method(int* i);
+    ///    }
+    ///
+    bool needsMemberSignatureFor(ClassMember classMember) {
+      return !classBuilder.library.isNonNullableByDefault &&
+          classMember.classBuilder.library.isNonNullableByDefault;
+    }
 
-      void registerOverrideDependency(
-          ClassMember member, ClassMember overriddenMember) {
-        if (classBuilder == member.classBuilder && member.isSourceDeclaration) {
-          if (overriddenMember.hasDeclarations &&
-              classBuilder == overriddenMember.classBuilder) {
-            for (int i = 0; i < overriddenMember.declarations.length; i++) {
-              registerOverrideDependency(
-                  member, overriddenMember.declarations[i]);
-            }
+    memberMap.forEach((Name name, Tuple tuple) {
+      /// The computation starts by sanitizing the members. Conflicts between
+      /// methods and properties (getters/setters) or between static and
+      /// instance members are reported. Conflicting members and members
+      /// overridden by duplicates are removed.
+      ///
+      /// For this [definingGetable] and [definingSetable] hold the first member
+      /// of its kind found among declared, mixed in, extended and implemented
+      /// members.
+      ///
+      /// Conflicts between [definingGetable] and [definingSetable] are reported
+      /// afterwards.
+
+      ClassMember definingGetable;
+      ClassMember definingSetable;
+
+      ClassMember declaredGetable = tuple.declaredMember;
+      if (declaredGetable != null) {
+        /// class Class {
+        ///   method() {}
+        /// }
+        definingGetable = declaredGetable;
+      }
+      ClassMember declaredSetable = tuple.declaredSetter;
+      if (declaredSetable != null) {
+        /// class Class {
+        ///   set setter(value) {}
+        /// }
+        definingSetable = declaredSetable;
+      }
+
+      ClassMember mixedInGetable;
+      if (tuple.mixedInMember != null &&
+          !tuple.mixedInMember.isStatic &&
+          !tuple.mixedInMember.isDuplicate) {
+        /// We treat
+        ///
+        ///   class Mixin {
+        ///     static method1() {}
+        ///     method2() {}
+        ///     method2() {}
+        ///   }
+        ///   class Class with Mixin {}
+        ///
+        /// as
+        ///
+        ///   class Mixin {}
+        ///   class Class with Mixin {}
+        ///
+        if (definingGetable == null) {
+          /// class Mixin {
+          ///   method() {}
+          /// }
+          /// class Class with Mixin {}
+          definingGetable = mixedInGetable = tuple.mixedInMember;
+        } else if (!definingGetable.isDuplicate) {
+          // This case is currently unreachable from source code since classes
+          // cannot both declare and mix in members. From dill, this can occur
+          // but should not conflicting members.
+          //
+          // The case is handled for consistency.
+          if (definingGetable.isStatic ||
+              definingGetable.isProperty != tuple.mixedInMember.isProperty) {
+            reportInheritanceConflict(definingGetable, tuple.mixedInMember);
           } else {
-            overriddenMembers.add(overriddenMember);
+            mixedInGetable = tuple.mixedInMember;
+          }
+        }
+      }
+      ClassMember mixedInSetable;
+      if (tuple.mixedInSetter != null &&
+          !tuple.mixedInSetter.isStatic &&
+          !tuple.mixedInSetter.isDuplicate) {
+        /// We treat
+        ///
+        ///   class Mixin {
+        ///     static set setter1(value) {}
+        ///     set setter2(value) {}
+        ///     set setter2(value) {}
+        ///   }
+        ///   class Class with Mixin {}
+        ///
+        /// as
+        ///
+        ///   class Mixin {}
+        ///   class Class with Mixin {}
+        ///
+        if (definingSetable == null) {
+          /// class Mixin {
+          ///   set setter(value) {}
+          /// }
+          /// class Class with Mixin {}
+          definingSetable = mixedInSetable = tuple.mixedInSetter;
+        } else if (!definingSetable.isDuplicate) {
+          if (definingSetable.isStatic ||
+              definingSetable.isProperty != tuple.mixedInSetter.isProperty) {
+            reportInheritanceConflict(definingGetable, tuple.mixedInSetter);
+          } else {
+            mixedInSetable = tuple.mixedInSetter;
           }
         }
       }
 
-      ClassMember computeClassMember(
+      ClassMember extendedGetable;
+      if (tuple.extendedMember != null &&
+          !tuple.extendedMember.isStatic &&
+          !tuple.extendedMember.isDuplicate) {
+        /// We treat
+        ///
+        ///   class Super {
+        ///     static method1() {}
+        ///     method2() {}
+        ///     method2() {}
+        ///   }
+        ///   class Class extends Super {}
+        ///
+        /// as
+        ///
+        ///   class Super {}
+        ///   class Class extends Super {}
+        ///
+        if (definingGetable == null) {
+          /// class Super {
+          ///   method() {}
+          /// }
+          /// class Class extends Super {}
+          definingGetable = extendedGetable = tuple.extendedMember;
+        } else if (!definingGetable.isDuplicate) {
+          if (definingGetable.isStatic ||
+              definingGetable.isProperty != tuple.extendedMember.isProperty) {
+            ///   class Super {
+            ///     method() {}
+            ///   }
+            ///   class Class extends Super {
+            ///     static method() {}
+            ///   }
+            ///
+            /// or
+            ///
+            ///   class Super {
+            ///     method() {}
+            ///   }
+            ///   class Class extends Super {
+            ///     get getter => 0;
+            ///   }
+            reportInheritanceConflict(definingGetable, tuple.extendedMember);
+          } else {
+            extendedGetable = tuple.extendedMember;
+          }
+        }
+      }
+      ClassMember extendedSetable;
+      if (tuple.extendedSetter != null &&
+          !tuple.extendedSetter.isStatic &&
+          !tuple.extendedSetter.isDuplicate) {
+        /// We treat
+        ///
+        ///   class Super {
+        ///     static set setter1(value) {}
+        ///     set setter2(value) {}
+        ///     set setter2(value) {}
+        ///   }
+        ///   class Class extends Super {}
+        ///
+        /// as
+        ///
+        ///   class Super {}
+        ///   class Class extends Super {}
+        ///
+        if (definingSetable == null) {
+          /// class Super {
+          ///   set setter(value) {}
+          /// }
+          /// class Class extends Super {}
+          definingSetable = extendedSetable = tuple.extendedSetter;
+        } else if (!definingSetable.isDuplicate) {
+          if (definingSetable.isStatic ||
+              definingSetable.isProperty != tuple.extendedSetter.isProperty) {
+            reportInheritanceConflict(definingSetable, tuple.extendedSetter);
+          } else {
+            extendedSetable = tuple.extendedSetter;
+          }
+        }
+      }
+
+      // TODO(johnniwinther): Remove extended and mixed in members/setters
+      // from implemented members/setters. Mixin applications always implement
+      // the mixin class leading to unnecessary interface members.
+      List<ClassMember> implementedGetables;
+      if (tuple.implementedMembers != null &&
+          // Skip implemented members if we already have a duplicate.
+          !(definingGetable != null && definingGetable.isDuplicate)) {
+        for (int i = 0; i < tuple.implementedMembers.length; i++) {
+          ClassMember implementedGetable = tuple.implementedMembers[i];
+          if (implementedGetable.isStatic || implementedGetable.isDuplicate) {
+            /// We treat
+            ///
+            ///   class Interface {
+            ///     static method1() {}
+            ///     method2() {}
+            ///     method2() {}
+            ///   }
+            ///   class Class implements Interface {}
+            ///
+            /// as
+            ///
+            ///   class Interface {}
+            ///   class Class implements Interface {}
+            ///
+            implementedGetable = null;
+          } else {
+            if (definingGetable == null) {
+              /// class Interface {
+              ///   method() {}
+              /// }
+              /// class Class implements Interface {}
+              definingGetable = implementedGetable;
+            } else if (definingGetable.isStatic ||
+                definingGetable.isProperty != implementedGetable.isProperty) {
+              ///   class Interface {
+              ///     method() {}
+              ///   }
+              ///   class Class implements Interface {
+              ///     static method() {}
+              ///   }
+              ///
+              /// or
+              ///
+              ///   class Interface {
+              ///     method() {}
+              ///   }
+              ///   class Class implements Interface {
+              ///     get getter => 0;
+              ///   }
+              reportInheritanceConflict(definingGetable, implementedGetable);
+              implementedGetable = null;
+            }
+          }
+          if (implementedGetable == null) {
+            // On the first skipped member we add all previous.
+            implementedGetables ??= tuple.implementedMembers.take(i).toList();
+          } else if (implementedGetables != null) {
+            // If already skipping members we add [implementedGetable]
+            // explicitly.
+            implementedGetables.add(implementedGetable);
+          }
+        }
+        if (implementedGetables == null) {
+          // No members were skipped so we use the full list.
+          implementedGetables = tuple.implementedMembers;
+        } else if (implementedGetables.isEmpty) {
+          // No members were included.
+          implementedGetables = null;
+        }
+      }
+
+      List<ClassMember> implementedSetables;
+      if (tuple.implementedSetters != null &&
+          // Skip implemented setters if we already have a duplicate.
+          !(definingSetable != null && definingSetable.isDuplicate)) {
+        for (int i = 0; i < tuple.implementedSetters.length; i++) {
+          ClassMember implementedSetable = tuple.implementedSetters[i];
+          if (implementedSetable.isStatic || implementedSetable.isDuplicate) {
+            /// We treat
+            ///
+            ///   class Interface {
+            ///     static set setter1(value) {}
+            ///     set setter2(value) {}
+            ///     set setter2(value) {}
+            ///   }
+            ///   class Class implements Interface {}
+            ///
+            /// as
+            ///
+            ///   class Interface {}
+            ///   class Class implements Interface {}
+            ///
+            implementedSetable = null;
+          } else {
+            if (definingSetable == null) {
+              /// class Interface {
+              ///   set setter(value) {}
+              /// }
+              /// class Class implements Interface {}
+              definingSetable = implementedSetable;
+            } else if (definingSetable.isStatic ||
+                definingSetable.isProperty != implementedSetable.isProperty) {
+              /// class Interface {
+              ///   set setter(value) {}
+              /// }
+              /// class Class implements Interface {
+              ///   static set setter(value) {}
+              /// }
+              reportInheritanceConflict(definingSetable, implementedSetable);
+              implementedSetable = null;
+            }
+          }
+          if (implementedSetable == null) {
+            // On the first skipped setter we add all previous.
+            implementedSetables ??= tuple.implementedSetters.take(i).toList();
+          } else if (implementedSetables != null) {
+            // If already skipping setters we add [implementedSetable]
+            // explicitly.
+            implementedSetables.add(implementedSetable);
+          }
+        }
+        if (implementedSetables == null) {
+          // No setters were skipped so we use the full list.
+          implementedSetables = tuple.implementedSetters;
+        } else if (implementedSetables.isEmpty) {
+          // No setters were included.
+          implementedSetables = null;
+        }
+      }
+
+      if (definingGetable != null && definingSetable != null) {
+        if (definingGetable.isStatic != definingSetable.isStatic ||
+            definingGetable.isProperty != definingSetable.isProperty) {
+          reportInheritanceConflict(definingGetable, definingSetable);
+          // TODO(johnniwinther): Should we remove [definingSetable]? If we
+          // leave it in this conflict will also be reported in subclasses. If
+          // we remove it, any write to the setable will be unresolved.
+        }
+      }
+
+      // TODO(johnniwinther): Handle declared members together with mixed in
+      // members. This should only occur from .dill, though.
+      if (mixedInGetable != null) {
+        declaredGetable = null;
+      }
+      if (mixedInSetable != null) {
+        declaredSetable = null;
+      }
+
+      /// Set to `true` if declared members have been registered in
+      /// [registerDeclaredOverride] or [registerMixedInOverride].
+      bool hasDeclaredMembers = false;
+
+      /// Declared methods, getters and setters registered in
+      /// [registerDeclaredOverride].
+      ClassMember declaredMethod;
+      List<ClassMember> declaredProperties;
+
+      /// Declared methods, getters and setters registered in
+      /// [registerDeclaredOverride].
+      ClassMember mixedInMethod;
+      List<ClassMember> mixedInProperties;
+
+      /// Registers that [declaredMember] overrides extended and implemented
+      /// members.
+      ///
+      /// Getters and setters share overridden members so the registration
+      /// of override relations is performed after the interface members have
+      /// been computed.
+      ///
+      /// Declared members must be checked for valid override of the overridden
+      /// members _and_ must register an override dependency with the overridden
+      /// members so that override inference can propagate inferred types
+      /// correctly. For instance:
+      ///
+      ///    class Super {
+      ///      int get property => 42;
+      ///    }
+      ///    class Class extends Super {
+      ///      void set property(value) {}
+      ///    }
+      ///
+      /// Here the parameter type of the setter `Class.property` must be
+      /// inferred from the type of the getter `Super.property`.
+      void registerDeclaredOverride(ClassMember declaredMember,
+          {ClassMember aliasForTesting}) {
+        if (classBuilder is SourceClassBuilder && !declaredMember.isStatic) {
+          assert(
+              declaredMember.isSourceDeclaration &&
+                  declaredMember.classBuilder == classBuilder,
+              "Only declared members can override: ${declaredMember}");
+          hasDeclaredMembers = true;
+          if (declaredMember.isProperty) {
+            declaredProperties ??= [];
+            declaredProperties.add(declaredMember);
+          } else {
+            assert(
+                declaredMethod == null,
+                "Multiple methods unexpectedly declared: "
+                "${declaredMethod} and ${declaredMember}.");
+            declaredMethod = declaredMember;
+          }
+          if (dataForTesting != null && aliasForTesting != null) {
+            dataForTesting.aliasMap[aliasForTesting] = declaredMember;
+          }
+        }
+      }
+
+      /// Registers that [mixedMember] overrides extended and implemented
+      /// members through application.
+      ///
+      /// Getters and setters share overridden members so the registration
+      /// of override relations in performed after the interface members have
+      /// been computed.
+      ///
+      /// Declared mixed in members must be checked for valid override of the
+      /// overridden members but _not_ register an override dependency with the
+      /// overridden members. This is in contrast to declared members. For
+      /// instance:
+      ///
+      ///    class Super {
+      ///      int get property => 42;
+      ///    }
+      ///    class Mixin {
+      ///      void set property(value) {}
+      ///    }
+      ///    class Class = Super with Mixin;
+      ///
+      /// Here the parameter type of the setter `Mixin.property` must _not_ be
+      /// inferred from the type of the getter `Super.property`, but should
+      /// instead default to `dynamic`.
+      void registerMixedInOverride(ClassMember mixedInMember,
+          {ClassMember aliasForTesting}) {
+        assert(mixedInMember.classBuilder != classBuilder,
+            "Only mixin members can override by application: ${mixedInMember}");
+        if (classBuilder is SourceClassBuilder) {
+          hasDeclaredMembers = true;
+          if (mixedInMember.isProperty) {
+            mixedInProperties ??= [];
+            mixedInProperties.add(mixedInMember);
+          } else {
+            assert(
+                mixedInMethod == null,
+                "Multiple methods unexpectedly declared in mixin: "
+                "${mixedInMethod} and ${mixedInMember}.");
+            mixedInMethod = mixedInMember;
+          }
+          if (dataForTesting != null && aliasForTesting != null) {
+            dataForTesting.aliasMap[aliasForTesting] = mixedInMember;
+          }
+        }
+      }
+
+      /// Computes the class and interface members for a method, getter, or
+      /// setter in the current [tuple].
+      ///
+      /// [definingMember] is the member which defines whether the computation
+      /// is for a method, a getter or a setter.
+      /// [declaredMember] is the member declared in the current class, if any.
+      /// [mixedInMember] is the member declared in a mixin that is mixed into
+      /// the current current class, if any.
+      /// [extendedMember] is the member inherited from the super class.
+      /// [implementedMembers] are the members inherited from the super
+      /// interfaces, if none this is `null`.
+      ///
+      /// The computed class and interface members are added to [classMemberMap]
+      /// and [interfaceMemberMap], respectively.
+      ClassMember computeMembers(
+          {ClassMember definingMember,
           ClassMember declaredMember,
           ClassMember mixedInMember,
           ClassMember extendedMember,
-          bool forSetter) {
+          List<ClassMember> implementedMembers,
+          Map<Name, ClassMember> classMemberMap,
+          Map<Name, ClassMember> interfaceMemberMap}) {
+        ClassMember classMember;
+        ClassMember interfaceMember;
+
         if (mixedInMember != null) {
-          // TODO(johnniwinther): Handle members declared in mixin applications
-          // correctly.
-          declaredMember = null;
-        }
-        if (declaredMember != null) {
-          if (extendedMember != null && !extendedMember.isStatic) {
-            if (declaredMember == extendedMember) return declaredMember;
-            if (declaredMember.isDuplicate || extendedMember.isDuplicate) {
-              // Don't check overrides involving duplicated members.
-              return declaredMember;
-            }
-            ClassMember result =
-                checkInheritanceConflict(declaredMember, extendedMember);
-            if (result != null) return result;
-            assert(
-                declaredMember.isProperty == extendedMember.isProperty,
-                "Unexpected member combination: "
-                "$declaredMember vs $extendedMember");
-            result = declaredMember;
+          if (mixedInMember.isAbstract) {
+            ///    class Mixin {
+            ///      method();
+            ///    }
+            ///    class Class = Object with Mixin;
 
-            // [declaredMember] is a method declared in [cls]. This means it
-            // defines the interface of this class regardless if its abstract.
-            if (!declaredMember.isSynthesized) {
-              registerOverrideDependency(
-                  declaredMember, extendedMember.abstract);
-              registerOverrideCheck(declaredMember, extendedMember.abstract);
+            /// Interface members from the extended, mixed in, and implemented
+            /// members define the combined member signature.
+            Set<ClassMember> interfaceMembers = {};
+
+            if (extendedMember != null) {
+              ///    class Super {
+              ///      method() {}
+              ///    }
+              ///    class Mixin {
+              ///      method();
+              ///    }
+              ///    class Class = Super with Mixin;
+              interfaceMembers.add(extendedMember.interfaceMember);
             }
 
-            if (declaredMember.isAbstract) {
-              if (extendedMember.isAbstract) {
-                recordAbstractMember(declaredMember);
-              } else {
-                if (!classBuilder.isAbstract) {
-                  // The interface of this class is [declaredMember]. But the
-                  // implementation is [extendedMember]. So [extendedMember]
-                  // must implement [declaredMember], unless [cls] is abstract.
-                  registerOverrideCheck(extendedMember, declaredMember);
-                }
-                ClassMember concrete = extendedMember.concrete;
-                result = new AbstractMemberOverridingImplementation(
-                    classBuilder,
-                    declaredMember,
-                    concrete,
-                    declaredMember.isProperty,
-                    forSetter,
-                    shouldModifyKernel,
-                    concrete.isAbstract,
-                    concrete.name);
-                hierarchy.registerMemberComputation(result);
+            interfaceMembers.add(mixedInMember);
+
+            if (implementedMembers != null) {
+              ///    class Interface {
+              ///      method() {}
+              ///    }
+              ///    class Mixin {
+              ///      method();
+              ///    }
+              ///    class Class = Object with Mixin implements Interface;
+              interfaceMembers.addAll(implementedMembers);
+            }
+
+            /// We always create a synthesized interface member, even in the
+            /// case of [interfaceMembers] being a singleton, to insert the
+            /// abstract mixin stub.
+            interfaceMember = new SynthesizedInterfaceMember(
+                classBuilder, name, interfaceMembers.toList(),
+                superClassMember: extendedMember,
+                canonicalMember: mixedInMember,
+                mixedInMember: mixedInMember,
+                isProperty: definingMember.isProperty,
+                forSetter: definingMember.forSetter,
+                shouldModifyKernel: shouldModifyKernel);
+            hierarchy.registerMemberComputation(interfaceMember);
+
+            if (extendedMember != null) {
+              ///    class Super {
+              ///      method() {}
+              ///    }
+              ///    class Mixin {
+              ///      method();
+              ///    }
+              ///    class Class = Super with Mixin;
+              ///
+              /// The concrete extended member is the class member but might
+              /// be overwritten by a concrete forwarding stub:
+              ///
+              ///    class Super {
+              ///      method(int i) {}
+              ///    }
+              ///    class Interface {
+              ///      method(covariant int i) {}
+              ///    }
+              ///    class Mixin {
+              ///      method(int i);
+              ///    }
+              ///    // A concrete forwarding stub
+              ///    //   method(covariant int i) => super.method(i);
+              ///    // will be inserted.
+              ///    class Class = Super with Mixin implements Interface;
+              ///
+              classMember = new InheritedClassMemberImplementsInterface(
+                  classBuilder, name,
+                  inheritedClassMember: extendedMember,
+                  implementedInterfaceMember: interfaceMember,
+                  forSetter: definingMember.forSetter,
+                  isProperty: definingMember.isProperty);
+              hierarchy.registerMemberComputation(classMember);
+              if (!classBuilder.isAbstract) {
+                registerInheritedImplements(extendedMember, {interfaceMember},
+                    aliasForTesting: classMember);
               }
+            } else if (!classBuilder.isAbstract) {
+              ///    class Mixin {
+              ///      method(); // Missing implementation.
+              ///    }
+              ///    class Class = Object with Mixin;
+              registerAbstractMember(interfaceMember);
             }
-            assert(
-                !(classBuilder.isMixinApplication &&
-                    declaredMember.classBuilder != classBuilder),
-                "Unexpected declared member ${declaredMember} in "
-                "${classBuilder} from foreign class.");
 
-            if (result.name == noSuchMethodName &&
-                !result.isObjectMember(objectClass)) {
-              hasNoSuchMethod = true;
-            }
-            return result;
-          } else {
-            if (declaredMember.isAbstract) {
-              recordAbstractMember(declaredMember);
-            }
-            return declaredMember;
-          }
-        } else if (mixedInMember != null) {
-          if (extendedMember != null && !extendedMember.isStatic) {
-            if (mixedInMember == extendedMember) return mixedInMember;
-            if (mixedInMember.isDuplicate || extendedMember.isDuplicate) {
-              // Don't check overrides involving duplicated members.
-              return mixedInMember;
-            }
-            ClassMember result =
-                checkInheritanceConflict(mixedInMember, extendedMember);
-            if (result != null) return result;
-            assert(
-                mixedInMember.isProperty == extendedMember.isProperty,
-                "Unexpected member combination: "
-                "$mixedInMember vs $extendedMember");
-            result = mixedInMember;
-
-            // [declaredMember] is a method declared in [cls]. This means it
-            // defines the interface of this class regardless if its abstract.
             if (!mixedInMember.isSynthesized) {
-              registerOverrideDependency(
-                  mixedInMember, extendedMember.abstract);
-              registerOverrideCheck(mixedInMember, extendedMember.abstract);
+              /// Members declared in the mixin must override extended and
+              /// implemented members.
+              ///
+              /// When loading from .dill the mixed in member might be
+              /// synthesized, for instance a member signature or forwarding
+              /// stub, and this should not be checked to override the extended
+              /// and implemented members:
+              ///
+              ///    // Opt-out library, from source:
+              ///    class Mixin {}
+              ///    // Opt-out library, from .dill:
+              ///    class Mixin {
+              ///      ...
+              ///      String* toString(); // member signature
+              ///    }
+              ///    // Opt-out library, from source:
+              ///    class Class = Object with Mixin;
+              ///    // Mixin.toString should not be checked to override
+              ///    // Object.toString.
+              ///
+              registerMixedInOverride(mixedInMember,
+                  aliasForTesting: interfaceMember);
             }
-
-            if (mixedInMember.isAbstract) {
-              if (extendedMember.isAbstract) {
-                recordAbstractMember(mixedInMember);
-              } else {
-                if (!classBuilder.isAbstract) {
-                  // The interface of this class is [declaredMember]. But the
-                  // implementation is [extendedMember]. So [extendedMember]
-                  // must implement [declaredMember], unless [cls] is abstract.
-                  registerOverrideCheck(extendedMember, mixedInMember);
-                }
-                ClassMember concrete = extendedMember.concrete;
-                result = new AbstractMemberOverridingImplementation(
-                    classBuilder,
-                    mixedInMember,
-                    concrete,
-                    mixedInMember.isProperty,
-                    forSetter,
-                    shouldModifyKernel,
-                    concrete.isAbstract,
-                    concrete.name);
-                hierarchy.registerMemberComputation(result);
-              }
-            } else {
-              assert(
-                  (classBuilder.isMixinApplication &&
-                      mixedInMember.classBuilder != classBuilder),
-                  "Unexpected mixed in member ${mixedInMember} in "
-                  "${classBuilder} from the current class.");
-              result = InheritedImplementationInterfaceConflict.combined(
-                  classBuilder,
-                  mixedInMember,
-                  /*isSuperClassMemberMixedIn = */ true,
-                  extendedMember,
-                  forSetter,
-                  shouldModifyKernel,
-                  isInheritableConflict: false);
-              if (result.needsComputation) {
-                hierarchy.registerMemberComputation(result);
-              }
-            }
-
-            if (result.name == noSuchMethodName &&
-                !result.isObjectMember(objectClass)) {
-              hasNoSuchMethod = true;
-            }
-            return result;
           } else {
-            if (mixedInMember.isAbstract) {
-              recordAbstractMember(mixedInMember);
+            assert(!mixedInMember.isAbstract);
+
+            ///    class Mixin {
+            ///      method() {}
+            ///    }
+            ///    class Class = Object with Mixin;
+            ///
+
+            /// Interface members from the extended, mixed in, and implemented
+            /// members define the combined member signature.
+            Set<ClassMember> interfaceMembers = {};
+
+            if (extendedMember != null) {
+              ///    class Super {
+              ///      method() {}
+              ///    }
+              ///    class Mixin {
+              ///      method() {}
+              ///    }
+              ///    class Class = Super with Mixin;
+              interfaceMembers.add(extendedMember.interfaceMember);
+            }
+
+            interfaceMembers.add(mixedInMember);
+
+            if (implementedMembers != null) {
+              ///    class Interface {
+              ///      method() {}
+              ///    }
+              ///    class Mixin {
+              ///      method() {}
+              ///    }
+              ///    class Class = Object with Mixin implements Interface;
+              interfaceMembers.addAll(implementedMembers);
+            }
+
+            /// We always create a synthesized interface member, even in the
+            /// case of [interfaceMembers] being a singleton, to insert the
+            /// concrete mixin stub.
+            interfaceMember = new SynthesizedInterfaceMember(
+                classBuilder, name, interfaceMembers.toList(),
+                superClassMember: mixedInMember,
+                canonicalMember: mixedInMember,
+                mixedInMember: mixedInMember,
+                isProperty: definingMember.isProperty,
+                forSetter: definingMember.forSetter,
+                shouldModifyKernel: shouldModifyKernel);
+            hierarchy.registerMemberComputation(interfaceMember);
+
+            /// The concrete mixed in member is the class member but will
+            /// be overwritten by a concrete mixin stub:
+            ///
+            ///    class Mixin {
+            ///       method() {}
+            ///    }
+            ///    // A concrete mixin stub
+            ///    //   method() => super.method();
+            ///    // will be inserted.
+            ///    class Class = Object with Mixin;
+            ///
+            classMember = new InheritedClassMemberImplementsInterface(
+                classBuilder, name,
+                inheritedClassMember: mixedInMember,
+                implementedInterfaceMember: interfaceMember,
+                forSetter: definingMember.forSetter,
+                isProperty: definingMember.isProperty);
+            hierarchy.registerMemberComputation(classMember);
+
+            if (!classBuilder.isAbstract) {
+              ///    class Interface {
+              ///      method() {}
+              ///    }
+              ///    class Mixin {
+              ///      method() {}
+              ///    }
+              ///    class Class = Object with Mixin;
+              ///
+              /// [mixinMember] must implemented interface member.
+              registerInheritedImplements(mixedInMember, {interfaceMember},
+                  aliasForTesting: classMember);
+            }
+            if (!mixedInMember.isSynthesized) {
+              /// Members declared in the mixin must override extended and
+              /// implemented members.
+              ///
+              /// When loading from .dill the mixed in member might be
+              /// synthesized, for instance a member signature or forwarding
+              /// stub, and this should not be checked to override the extended
+              /// and implemented members.
+              ///
+              /// These synthesized mixed in members should always be abstract
+              /// and therefore not be handled here, but we handled them here
+              /// for consistency.
+              registerMixedInOverride(mixedInMember);
+            }
+          }
+        } else if (declaredMember != null) {
+          if (declaredMember.isAbstract) {
+            ///    class Class {
+            ///      method();
+            ///    }
+            interfaceMember = declaredMember;
+
+            /// Interface members from the declared, extended, and implemented
+            /// members define the combined member signature.
+            Set<ClassMember> interfaceMembers = {};
+
+            if (extendedMember != null) {
+              ///    class Super {
+              ///      method() {}
+              ///    }
+              ///    class Class extends Super {
+              ///      method();
+              ///    }
+              interfaceMembers.add(extendedMember);
+            }
+
+            interfaceMembers.add(declaredMember);
+
+            if (implementedMembers != null) {
+              ///    class Interface {
+              ///      method() {}
+              ///    }
+              ///    class Class implements Interface {
+              ///      method();
+              ///    }
+              interfaceMembers.addAll(implementedMembers);
+            }
+
+            /// If only one member defines the interface member there is no
+            /// need for a synthesized interface member, since its result will
+            /// simply be that one member.
+            if (interfaceMembers.length > 1) {
+              ///    class Super {
+              ///      method() {}
+              ///    }
+              ///    class Interface {
+              ///      method() {}
+              ///    }
+              ///    class Class extends Super implements Interface {
+              ///      method();
+              ///    }
+              interfaceMember = new SynthesizedInterfaceMember(
+                  classBuilder, name, interfaceMembers.toList(),
+                  superClassMember: extendedMember,
+                  canonicalMember: declaredMember,
+                  isProperty: definingMember.isProperty,
+                  forSetter: definingMember.forSetter,
+                  shouldModifyKernel: shouldModifyKernel);
+              hierarchy.registerMemberComputation(interfaceMember);
+            }
+
+            if (extendedMember != null) {
+              ///    class Super {
+              ///      method() {}
+              ///    }
+              ///    class Class extends Super {
+              ///      method();
+              ///    }
+              ///
+              /// The concrete extended member is the class member but might
+              /// be overwritten by a concrete forwarding stub:
+              ///
+              ///    class Super {
+              ///      method(int i) {}
+              ///    }
+              ///    class Interface {
+              ///      method(covariant int i) {}
+              ///    }
+              ///    class Class extends Super implements Interface {
+              ///      // This will be turned into the concrete forwarding stub
+              ///      //    method(covariant int i) => super.method(i);
+              ///      method(int i);
+              ///    }
+              ///
+              classMember = new InheritedClassMemberImplementsInterface(
+                  classBuilder, name,
+                  inheritedClassMember: extendedMember,
+                  implementedInterfaceMember: interfaceMember,
+                  forSetter: definingMember.forSetter,
+                  isProperty: definingMember.isProperty);
+              hierarchy.registerMemberComputation(classMember);
+
+              if (!classBuilder.isAbstract) {
+                ///    class Super {
+                ///      method() {}
+                ///    }
+                ///    class Class extends Super {
+                ///      method();
+                ///    }
+                ///
+                /// [extendedMember] must implemented interface member.
+                registerInheritedImplements(extendedMember, {interfaceMember},
+                    aliasForTesting: classMember);
+              }
+            } else if (!classBuilder.isAbstract) {
+              ///    class Class {
+              ///      method(); // Missing implementation.
+              ///    }
+              registerAbstractMember(declaredMember);
+            }
+
+            /// The declared member must override extended and implemented
+            /// members.
+            registerDeclaredOverride(declaredMember,
+                aliasForTesting: interfaceMember);
+          } else {
+            assert(!declaredMember.isAbstract);
+
+            ///    class Class {
+            ///      method() {}
+            ///    }
+            classMember = declaredMember;
+
+            /// The declared member must override extended and implemented
+            /// members.
+            registerDeclaredOverride(declaredMember);
+          }
+        } else if (extendedMember != null) {
+          ///    class Super {
+          ///      method() {}
+          ///    }
+          ///    class Class extends Super {}
+          assert(!extendedMember.isAbstract,
+              "Abstract extended member: ${extendedMember}");
+
+          classMember = extendedMember;
+
+          if (implementedMembers != null) {
+            ///    class Super {
+            ///      method() {}
+            ///    }
+            ///    class Interface {
+            ///      method() {}
+            ///    }
+            ///    class Class extends Super implements Interface {}
+            ClassMember extendedInterfaceMember =
+                extendedMember.interfaceMember;
+
+            /// Interface members from the extended and implemented
+            /// members define the combined member signature.
+            Set<ClassMember> interfaceMembers = {extendedInterfaceMember};
+
+            // TODO(johnniwinther): The extended member might be included in
+            // a synthesized implemented member. For instance:
+            //
+            //    class Super {
+            //      void method() {}
+            //    }
+            //    class Interface {
+            //      void method() {}
+            //    }
+            //    abstract class Class extends Super implements Interface {
+            //      // Synthesized interface member of
+            //      //   {Super.method, Interface.method}
+            //    }
+            //    class Sub extends Class {
+            //      // Super.method implements Class.method =
+            //      //   {Super.method, Interface.method}
+            //      // Synthesized interface member of
+            //      //   {Super.method, Class.method}
+            //    }
+            //
+            // Maybe we should recognized this.
+            interfaceMembers.addAll(implementedMembers);
+
+            /// Normally, if only one member defines the interface member there
+            /// is no need for a synthesized interface member, since its result
+            /// will simply be that one member, but if the extended member is
+            /// from an opt-in library and the current class is from an opt-out
+            /// library we need to create a member signature:
+            ///
+            ///    // Opt-in:
+            ///    class Super {
+            ///      int? method() => null;
+            ///    }
+            ///    class Interface implements Super {}
+            ///    // Opt-out:
+            ///    class Class extends Super implements Interface {
+            ///      // Member signature added:
+            ///      int* method();
+            ///    }
+            ///
+            if (interfaceMembers.length == 1 &&
+                !needsMemberSignatureFor(extendedInterfaceMember)) {
+              ///    class Super {
+              ///      method() {}
+              ///    }
+              ///    class Interface implements Super {}
+              ///    class Class extends Super implements Interface {}
+              interfaceMember = interfaceMembers.first;
             } else {
-              if (!mixedInMember.isSynthesized) {
-                mixedInMember = new InterfaceConflict(
-                    classBuilder,
-                    mixedInMember,
-                    /*_isSuperClassMemberMixedIn = */ true,
-                    [mixedInMember],
-                    mixedInMember.isProperty,
-                    forSetter,
-                    shouldModifyKernel,
-                    mixedInMember.isAbstract,
-                    mixedInMember.name,
-                    isImplicitlyAbstract: mixedInMember.isAbstract);
-                hierarchy.registerMemberComputation(mixedInMember);
+              ///    class Super {
+              ///      method() {}
+              ///    }
+              ///    class Interface {
+              ///      method() {}
+              ///    }
+              ///    class Class extends Super implements Interface {}
+              interfaceMember = new SynthesizedInterfaceMember(
+                  classBuilder, name, interfaceMembers.toList(),
+                  superClassMember: extendedMember,
+                  isProperty: definingMember.isProperty,
+                  forSetter: definingMember.forSetter,
+                  shouldModifyKernel: shouldModifyKernel);
+              hierarchy.registerMemberComputation(interfaceMember);
+            }
+            if (interfaceMember == classMember) {
+              ///    class Super {
+              ///      method() {}
+              ///    }
+              ///    class Interface implements Super {}
+              ///    class Class extends Super implements Interface {}
+              ///
+              /// We keep track of whether a class needs interfaces, that is,
+              /// whether is has any members that have an interface member
+              /// different from its corresponding class member, so we set
+              /// [interfaceMember] to `null` so show that the interface member
+              /// is not needed.
+              interfaceMember = null;
+            } else {
+              ///    class Super {
+              ///      method() {}
+              ///    }
+              ///    class Interface {
+              ///      method() {}
+              ///    }
+              ///    class Class extends Super implements Interface {}
+              ///
+              /// The concrete extended member is the class member but might
+              /// be overwritten by a concrete forwarding stub:
+              ///
+              ///    class Super {
+              ///      method(int i) {}
+              ///    }
+              ///    class Interface {
+              ///      method(covariant int i) {}
+              ///    }
+              ///    class Class extends Super implements Interface {
+              ///      // A concrete forwarding stub will be created:
+              ///      //    method(covariant int i) => super.method(i);
+              ///    }
+              ///
+              classMember = new InheritedClassMemberImplementsInterface(
+                  classBuilder, name,
+                  inheritedClassMember: extendedMember,
+                  implementedInterfaceMember: interfaceMember,
+                  isProperty: definingMember.isProperty,
+                  forSetter: definingMember.forSetter);
+              hierarchy.registerMemberComputation(classMember);
+              if (!classBuilder.isAbstract) {
+                ///    class Super {
+                ///      method() {}
+                ///    }
+                ///    class Interface {
+                ///      method() {}
+                ///    }
+                ///    class Class extends Super implements Interface {}
+                registerInheritedImplements(extendedMember, {interfaceMember},
+                    aliasForTesting: classMember);
               }
             }
-            return mixedInMember;
+          } else if (needsMemberSignatureFor(extendedMember)) {
+            ///    // Opt-in library:
+            ///    class Super {
+            ///      method() {}
+            ///    }
+            ///    // opt-out library:
+            ///    class Class extends Super {}
+            interfaceMember = new SynthesizedInterfaceMember(
+                classBuilder, name, [extendedMember],
+                superClassMember: extendedMember,
+                isProperty: definingMember.isProperty,
+                forSetter: definingMember.forSetter,
+                shouldModifyKernel: shouldModifyKernel);
+            hierarchy.registerMemberComputation(interfaceMember);
+
+            /// The concrete extended member is the class member and should
+            /// be able to be overwritten by a synthesized concrete member here,
+            /// but we handle the case for consistency.
+            classMember = new InheritedClassMemberImplementsInterface(
+                classBuilder, name,
+                inheritedClassMember: extendedMember,
+                implementedInterfaceMember: interfaceMember,
+                isProperty: definingMember.isProperty,
+                forSetter: definingMember.forSetter);
+            hierarchy.registerMemberComputation(classMember);
           }
-        } else if (extendedMember != null && !extendedMember.isStatic) {
-          if (extendedMember.isAbstract) {
-            if (isNameVisibleIn(extendedMember.name, classBuilder.library)) {
-              recordAbstractMember(extendedMember);
+        } else if (implementedMembers != null) {
+          ///    class Interface {
+          ///      method() {}
+          ///    }
+          ///    class Class implements Interface {}
+          Set<ClassMember> interfaceMembers = implementedMembers.toSet();
+          if (interfaceMembers.isNotEmpty) {
+            /// Normally, if only one member defines the interface member there
+            /// is no need for a synthesized interface member, since its result
+            /// will simply be that one member, but if the implemented member is
+            /// from an opt-in library and the current class is from an opt-out
+            /// library we need to create a member signature:
+            ///
+            ///    // Opt-in:
+            ///    class Interface {
+            ///      int? method() => null;
+            ///    }
+            ///    // Opt-out:
+            ///    class Class implements Interface {
+            ///      // Member signature added:
+            ///      int* method();
+            ///    }
+            ///
+            if (interfaceMembers.length == 1 &&
+                !needsMemberSignatureFor(interfaceMembers.first)) {
+              ///    class Interface {
+              ///      method() {}
+              ///    }
+              ///    class Class implements Interface {}
+              interfaceMember = interfaceMembers.first;
+            } else {
+              ///    class Interface1 {
+              ///      method() {}
+              ///    }
+              ///    class Interface2 {
+              ///      method() {}
+              ///    }
+              ///    class Class implements Interface1, Interface2 {}
+              interfaceMember = new SynthesizedInterfaceMember(
+                  classBuilder, name, interfaceMembers.toList(),
+                  isProperty: definingMember.isProperty,
+                  forSetter: definingMember.forSetter,
+                  shouldModifyKernel: shouldModifyKernel);
+              hierarchy.registerMemberComputation(interfaceMember);
+            }
+            if (!classBuilder.isAbstract) {
+              ///    class Interface {
+              ///      method() {}
+              ///    }
+              ///    class Class implements Interface {}
+              for (ClassMember abstractMember in interfaceMembers) {
+                registerAbstractMember(abstractMember);
+              }
             }
           }
-          if (extendedMember.name == noSuchMethodName &&
-              !extendedMember.isObjectMember(objectClass)) {
+        }
+
+        if (interfaceMember != null) {
+          // We have an explicit interface.
+          hasInterfaces = true;
+        }
+        if (classMember != null) {
+          if (name == noSuchMethodName &&
+              !classMember.isObjectMember(objectClass)) {
             hasNoSuchMethod = true;
           }
-          if (extendedMember.isInheritableConflict) {
-            extendedMember = extendedMember.withParent(classBuilder);
-            hierarchy.registerMemberComputation(extendedMember);
-          }
-          if (extendedMember.classBuilder.library.isNonNullableByDefault &&
-              !classBuilder.library.isNonNullableByDefault) {
-            if (!extendedMember.isSynthesized) {
-              extendedMember = new InterfaceConflict(
-                  classBuilder,
-                  extendedMember.concrete,
-                  /*_isSuperClassMemberMixedIn = */ false,
-                  [extendedMember],
-                  extendedMember.isProperty,
-                  forSetter,
-                  shouldModifyKernel,
-                  extendedMember.isAbstract,
-                  extendedMember.name,
-                  isImplicitlyAbstract: extendedMember.isAbstract);
-              hierarchy.registerMemberComputation(extendedMember);
-            }
-          }
-          return extendedMember;
+          classMemberMap[name] = classMember;
+          interfaceMember ??= classMember.interfaceMember;
         }
-        return null;
-      }
-
-      ClassMember computeInterfaceMember(ClassMember classMember,
-          List<ClassMember> implementedMembers, bool forSetter) {
-        ClassMember interfaceMember;
-        if (implementedMembers != null) {
-          for (ClassMember member in implementedMembers) {
-            if (member.isStatic) continue;
-            if (interfaceMember == null) {
-              interfaceMember = member;
-            } else {
-              ClassMember handleMergeConflict(ClassMember a, ClassMember b) {
-                if (a == b) return a;
-                if (a.isDuplicate || b.isDuplicate) {
-                  // Don't check overrides involving duplicated members.
-                  return a;
-                }
-                ClassMember result = checkInheritanceConflict(a, b);
-                if (result != null) return result;
-                assert(a.isProperty == b.isProperty,
-                    "Unexpected member combination: $a vs $b");
-                result = a;
-                result = InterfaceConflict.combined(
-                    classBuilder, a, b, forSetter, shouldModifyKernel);
-                return result;
-              }
-
-              interfaceMember = handleMergeConflict(interfaceMember, member);
-            }
-          }
-        }
-        if (hasInterfaces) {
-          if (interfaceMember != null) {
-            if (classMember != null) {
-              if (classMember == interfaceMember) return classMember;
-              if (classMember.isDuplicate || interfaceMember.isDuplicate) {
-                // Don't check overrides involving duplicated members.
-                return classMember;
-              }
-              ClassMember result =
-                  checkInheritanceConflict(classMember, interfaceMember);
-              if (result != null) return result;
-              assert(
-                  classMember.isProperty == interfaceMember.isProperty,
-                  "Unexpected member combination: "
-                  "$classMember vs $interfaceMember");
-              result = classMember;
-
-              // [interfaceMember] is inherited from an interface so it is
-              // implicitly abstract.
-              classMember = classMember.abstract;
-              interfaceMember = interfaceMember.abstract;
-
-              // If [classMember] is declared in this class, it defines the
-              // interface.
-              if (classMember.classBuilder == classBuilder) {
-                if (!classMember.isSynthesized) {
-                  registerOverrideDependency(classMember, interfaceMember);
-                  registerOverrideCheck(classMember, interfaceMember);
-                }
-                if (classMember.hasDeclarations) {
-                  if (interfaceMember.hasDeclarations &&
-                      interfaceMember.classBuilder == classBuilder) {
-                    addAllDeclarationsTo(
-                        interfaceMember, classMember.declarations);
-                  } else {
-                    addDeclarationIfDifferent(
-                        interfaceMember, classMember.declarations);
-                  }
-                }
-              } else {
-                if (classMember.isAbstract) {
-                  result = InterfaceConflict.combined(classBuilder, classMember,
-                      interfaceMember, forSetter, shouldModifyKernel);
-                } else {
-                  result = InheritedImplementationInterfaceConflict.combined(
-                      classBuilder,
-                      classMember,
-                      /* _isSuperClassMemberMixedIn = */ false,
-                      interfaceMember,
-                      forSetter,
-                      shouldModifyKernel);
-                }
-                if (result.needsComputation) {
-                  hierarchy.registerMemberComputation(result);
-                }
-              }
-
-              return result;
-            } else {
-              if (isNameVisibleIn(interfaceMember.name, classBuilder.library)) {
-                if (!interfaceMember.isInternalImplementation) {
-                  recordAbstractMember(interfaceMember);
-                }
-              }
-              if (interfaceMember.isInheritableConflict) {
-                interfaceMember = interfaceMember.withParent(classBuilder);
-                hierarchy.registerMemberComputation(interfaceMember);
-              }
-              if (interfaceMember.classBuilder.library.isNonNullableByDefault &&
-                  !classBuilder.library.isNonNullableByDefault) {
-                if (!interfaceMember.isSynthesized) {
-                  interfaceMember = new InterfaceConflict(
-                      classBuilder,
-                      null,
-                      /*_isSuperClassMemberMixedIn = */ false,
-                      [interfaceMember],
-                      interfaceMember.isProperty,
-                      forSetter,
-                      shouldModifyKernel,
-                      interfaceMember.isAbstract,
-                      interfaceMember.name,
-                      isImplicitlyAbstract: interfaceMember.isAbstract);
-                  hierarchy.registerMemberComputation(interfaceMember);
-                }
-              }
-              return interfaceMember;
-            }
-          } else if (classMember != null) {
-            return classMember;
-          }
+        if (interfaceMember != null) {
+          interfaceMemberMap[name] = interfaceMember;
         }
         return interfaceMember;
       }
 
-      void checkMemberVsSetter(
-          ClassMember member, ClassMember overriddenMember) {
-        if (overriddenMember.classBuilder == classBuilder &&
-            overriddenMember.hasDeclarations) {
-          for (ClassMember declaration in overriddenMember.declarations) {
-            checkMemberVsSetter(member, declaration);
-          }
-          return;
-        }
-
-        if (classBuilder is! SourceClassBuilder) return;
-        if (overriddenMember.isStatic) return;
-        if (member == overriddenMember) return;
-        if (member.isDuplicate || overriddenMember.isDuplicate) {
-          // Don't check overrides involving duplicated members.
-          return;
-        }
-        ClassMember result = checkInheritanceConflict(member, overriddenMember);
-        if (result != null) return;
-        assert(member.isProperty == overriddenMember.isProperty,
-            "Unexpected member combination: $member vs $overriddenMember");
-        if (member.classBuilder == classBuilder &&
-            overriddenMember.classBuilder != classBuilder) {
-          if (member is SourceFieldMember) {
-            registerOverrideDependency(member, overriddenMember);
-            hierarchy.registerOverrideCheck(
-                classBuilder, member, overriddenMember);
-          } else if (member is SourceProcedureMember) {
-            registerOverrideDependency(member, overriddenMember);
-            hierarchy.registerOverrideCheck(
-                classBuilder, member, overriddenMember);
-          }
-        }
+      ClassMember interfaceGetable;
+      if (definingGetable != null) {
+        interfaceGetable = computeMembers(
+            definingMember: definingGetable,
+            declaredMember: declaredGetable,
+            mixedInMember: mixedInGetable,
+            extendedMember: extendedGetable,
+            implementedMembers: implementedGetables,
+            classMemberMap: classMemberMap,
+            interfaceMemberMap: interfaceMemberMap);
       }
-
-      ClassMember classMember = computeClassMember(tuple.declaredMember,
-          tuple.mixedInMember, tuple.extendedMember, false);
-      ClassMember interfaceMember =
-          computeInterfaceMember(classMember, tuple.implementedMembers, false);
-      ClassMember classSetter = computeClassMember(tuple.declaredSetter,
-          tuple.mixedInSetter, tuple.extendedSetter, true);
-      ClassMember interfaceSetter =
-          computeInterfaceMember(classSetter, tuple.implementedSetters, true);
-
-      if ((tuple.mixedInMember != null || tuple.declaredMember != null) &&
-          classSetter != null) {
-        checkMemberVsSetter(
-            tuple.mixedInMember ?? tuple.declaredMember, classSetter);
-      }
-      if ((tuple.mixedInSetter != null || tuple.declaredSetter != null) &&
-          classMember != null) {
-        checkMemberVsSetter(
-            tuple.mixedInSetter ?? tuple.declaredSetter, classMember);
-      }
-      if (classMember != null && interfaceSetter != null) {
-        checkMemberVsSetter(classMember, interfaceSetter);
-      }
-      if (classSetter != null && interfaceMember != null) {
-        checkMemberVsSetter(classSetter, interfaceMember);
-      }
-
-      if (classMember != null &&
-          interfaceMember != null &&
-          classMember != interfaceMember) {
-        if (classMember.isAbstract == interfaceMember.isAbstract) {
-          // TODO(johnniwinther): Ensure that we don't have both class and
-          //  interface members that can give rise to a forwarding stub in
-          //  the current class. We might already have registered a delayed
-          //  member computation for the [classMember] that we're replacing
-          //  and therefore create two stubs for this member.
-          classMember = interfaceMember;
-        }
-      }
-      if (classSetter != null &&
-          interfaceSetter != null &&
-          classSetter != interfaceSetter) {
-        if (classSetter.isAbstract == interfaceSetter.isAbstract) {
-          // TODO(johnniwinther): Ensure that we don't have both class and
-          //  interface members that can give rise to a forwarding stub in
-          //  the current class. We might already have registered a delayed
-          //  member computation for the [classMember] that we're replacing
-          //  and therefore create two stubs for this member.
-          classSetter = interfaceSetter;
-        }
+      ClassMember interfaceSetable;
+      if (definingSetable != null) {
+        interfaceSetable = computeMembers(
+            definingMember: definingSetable,
+            declaredMember: declaredSetable,
+            mixedInMember: mixedInSetable,
+            extendedMember: extendedSetable,
+            implementedMembers: implementedSetables,
+            classMemberMap: classSetterMap,
+            interfaceMemberMap: interfaceSetterMap);
       }
       if (classBuilder is SourceClassBuilder) {
-        ClassMember member = interfaceMember ?? classMember;
-        ClassMember setter = interfaceSetter ?? classSetter;
-        if (member != null &&
-            setter != null &&
-            member.isProperty &&
-            setter.isProperty &&
-            member.isStatic == setter.isStatic &&
-            !member.isSameDeclaration(setter)) {
-          hierarchy.registerGetterSetterCheck(classBuilder, member, setter);
+        if (interfaceGetable != null &&
+            interfaceSetable != null &&
+            interfaceGetable.isProperty &&
+            interfaceSetable.isProperty &&
+            interfaceGetable.isStatic == interfaceSetable.isStatic &&
+            !interfaceGetable.isSameDeclaration(interfaceSetable)) {
+          /// We need to check that the getter type is a subtype of the setter
+          /// type. For instance
+          ///
+          ///    class Super {
+          ///       int get property1 => null;
+          ///       num get property2 => null;
+          ///    }
+          ///    class Mixin {
+          ///       void set property1(num value) {}
+          ///       void set property2(int value) {}
+          ///    }
+          ///    class Class = Super with Mixin;
+          ///
+          /// Here `Super.property1` and `Mixin.property1` form a valid getter/
+          /// setter pair in `Class` because the type of the getter
+          /// `Super.property1` is a subtype of the setter `Mixin.property1`.
+          ///
+          /// In contrast the pair `Super.property2` and `Mixin.property2` is
+          /// not a valid getter/setter in `Class` because the type of the getter
+          /// `Super.property2` is _not_ a subtype of the setter
+          /// `Mixin.property1`.
+          hierarchy.registerGetterSetterCheck(
+              classBuilder, interfaceGetable, interfaceSetable);
         }
       }
-      if (classMember != null) {
-        classMemberMap[name] = classMember;
-      }
-      if (interfaceMember != null) {
-        interfaceMemberMap[name] = interfaceMember;
-      }
-      if (classSetter != null) {
-        classSetterMap[name] = classSetter;
-      }
-      if (interfaceSetter != null) {
-        interfaceSetterMap[name] = interfaceSetter;
-      }
-      if (overriddenMembers.isNotEmpty) {
-        void registerOverrideDependencies(ClassMember member) {
-          if (member != null &&
-              member.classBuilder == classBuilder &&
-              member.isSourceDeclaration) {
-            member.registerOverrideDependency(overriddenMembers);
-            DelayedTypeComputation computation =
-                new DelayedTypeComputation(this, member, overriddenMembers);
-            hierarchy.registerDelayedTypeComputation(computation);
+      if (hasDeclaredMembers) {
+        Set<ClassMember> getableOverrides = {};
+        Set<ClassMember> setableOverrides = {};
+        if (extendedGetable != null) {
+          ///    (abstract) class Super {
+          ///      method() {}
+          ///      int get property => 0;
+          ///    }
+          ///    (abstract) class Class extends Super {
+          ///      method() {}
+          ///      set property(int value) {}
+          ///    }
+          getableOverrides.add(extendedGetable.interfaceMember);
+        }
+        if (extendedSetable != null) {
+          ///    (abstract) class Super {
+          ///      set setter(int value) {}
+          ///      set property(int value) {}
+          ///    }
+          ///    (abstract) class Class extends Super {
+          ///      set setter(int value) {}
+          ///      int get property => 0;
+          ///    }
+          setableOverrides.add(extendedSetable.interfaceMember);
+        }
+        if (implementedGetables != null) {
+          ///    (abstract) class Interface {
+          ///      method() {}
+          ///      int get property => 0;
+          ///    }
+          ///    (abstract) class Class implements Interface {
+          ///      method() {}
+          ///      set property(int value) {}
+          ///    }
+          getableOverrides.addAll(implementedGetables);
+        }
+        if (implementedSetables != null) {
+          ///    (abstract) class Interface {
+          ///      set setter(int value) {}
+          ///      set property(int value) {}
+          ///    }
+          ///    (abstract) class Class implements Interface {
+          ///      set setter(int value) {}
+          ///      int get property => 0;
+          ///    }
+          setableOverrides.addAll(implementedSetables);
+        }
+        if (getableOverrides.isNotEmpty || setableOverrides.isNotEmpty) {
+          if (declaredMethod != null && getableOverrides.isNotEmpty) {
+            ///    class Super {
+            ///      method() {}
+            ///    }
+            ///    class Class extends Super {
+            ///      method() {}
+            ///    }
+            declaredOverridesMap[declaredMethod] = getableOverrides;
+          }
+          if (declaredProperties != null) {
+            Set<ClassMember> overrides;
+            if (declaredMethod != null) {
+              ///    class Super {
+              ///      set setter() {}
+              ///    }
+              ///    class Class extends Super {
+              ///      method() {}
+              ///    }
+              overrides = setableOverrides;
+            } else {
+              ///    class Super {
+              ///      get property => null
+              ///      void set property(value) {}
+              ///    }
+              ///    class Class extends Super {
+              ///      get property => null
+              ///      void set property(value) {}
+              ///    }
+              overrides = {...getableOverrides, ...setableOverrides};
+            }
+            if (overrides.isNotEmpty) {
+              for (ClassMember declaredMember in declaredProperties) {
+                declaredOverridesMap[declaredMember] = overrides;
+              }
+            }
+          }
+          if (mixedInMethod != null && getableOverrides.isNotEmpty) {
+            ///    class Super {
+            ///      method() {}
+            ///    }
+            ///    class Mixin {
+            ///      method() {}
+            ///    }
+            ///    class Class = Super with Mixin;
+            mixinApplicationOverridesMap[mixedInMethod] = getableOverrides;
+          }
+          if (mixedInProperties != null) {
+            Set<ClassMember> overrides;
+            if (mixedInMethod != null) {
+              ///    class Super {
+              ///      set setter() {}
+              ///    }
+              ///    class Mixin {
+              ///      method() {}
+              ///    }
+              ///    class Class = Super with Mixin;
+              overrides = setableOverrides;
+            } else {
+              ///    class Super {
+              ///      method() {}
+              ///    }
+              ///    class Mixin extends Super {
+              ///      method() {}
+              ///    }
+              overrides = {...getableOverrides, ...setableOverrides};
+            }
+            if (overrides.isNotEmpty) {
+              for (ClassMember mixedInMember in mixedInProperties) {
+                mixinApplicationOverridesMap[mixedInMember] = overrides;
+              }
+            }
           }
         }
-
-        registerOverrideDependencies(
-            tuple.mixedInMember ?? tuple.declaredMember);
-        registerOverrideDependencies(
-            tuple.mixedInSetter ?? tuple.declaredSetter);
       }
     });
 
+    if (classBuilder is SourceClassBuilder) {
+      // TODO(johnniwinther): Avoid duplicate override check computations
+      //  between [declaredOverridesMap], [mixinApplicationOverridesMap] and
+      //  [inheritedImplementsMap].
+
+      // TODO(johnniwinther): Ensure that a class member is only checked to
+      // validly override another member once. Currently it can happen multiple
+      // times as an inherited implementation.
+
+      declaredOverridesMap.forEach(
+          (ClassMember classMember, Set<ClassMember> overriddenMembers) {
+        /// A declared member can inherit its type from the overridden members.
+        ///
+        /// We register this with the class member itself so the it can force
+        /// computation of type on the overridden members before determining its
+        /// own type.
+        ///
+        /// Member types can be queried at arbitrary points during top level
+        /// inference so we need to ensure that types are computed in dependency
+        /// order.
+        classMember.registerOverrideDependency(overriddenMembers);
+
+        /// Not all member type are queried during top level inference so we
+        /// register delayed computation to ensure that all types have been
+        /// computed before override checks are performed.
+        DelayedTypeComputation computation =
+            new DelayedTypeComputation(this, classMember, overriddenMembers);
+        hierarchy.registerDelayedTypeComputation(computation);
+
+        /// Declared members must be checked to validly override the the
+        /// overridden members.
+        hierarchy.registerOverrideCheck(
+            classBuilder, classMember, overriddenMembers);
+      });
+
+      mixinApplicationOverridesMap.forEach(
+          (ClassMember classMember, Set<ClassMember> overriddenMembers) {
+        /// Declared mixed in members must be checked to validly override the
+        /// overridden members.
+        hierarchy.registerOverrideCheck(
+            classBuilder, classMember, overriddenMembers);
+      });
+
+      inheritedImplementsMap.forEach(
+          (ClassMember classMember, Set<ClassMember> overriddenMembers) {
+        /// Concrete members must be checked to validly override the overridden
+        /// members in concrete classes.
+        hierarchy.registerOverrideCheck(
+            classBuilder, classMember, overriddenMembers);
+      });
+    }
+
     if (!hasInterfaces) {
+      /// All interface members also class members to we don't need to store
+      /// the interface members separately.
+      assert(
+          classMemberMap.length == interfaceMemberMap.length,
+          "Class/interface member mismatch. Class members: "
+          "$classMemberMap, interface members: $interfaceMemberMap.");
+      assert(
+          classSetterMap.length == interfaceSetterMap.length,
+          "Class/interface setter mismatch. Class setters: "
+          "$classSetterMap, interface setters: $interfaceSetterMap.");
+      assert(
+          classMemberMap.keys.every((Name name) =>
+              identical(classMemberMap[name], interfaceMemberMap[name])),
+          "Class/interface member mismatch. Class members: "
+          "$classMemberMap, interface members: $interfaceMemberMap.");
+      assert(
+          classSetterMap.keys.every((Name name) =>
+              identical(classSetterMap[name], interfaceSetterMap[name])),
+          "Class/interface setter mismatch. Class setters: "
+          "$classSetterMap, interface setters: $interfaceSetterMap.");
       interfaceMemberMap = null;
       interfaceSetterMap = null;
     }
 
     if (abstractMembers != null && !classBuilder.isAbstract) {
       if (!hasNoSuchMethod) {
-        reportMissingMembers();
+        reportMissingMembers(abstractMembers);
       } else {
         installNsmHandlers();
       }
     }
 
     return new ClassHierarchyNode(
-      classBuilder,
-      classMemberMap,
-      classSetterMap,
-      interfaceMemberMap,
-      interfaceSetterMap,
-      superclasses,
-      interfaces,
-      maxInheritancePath,
-      hasNoSuchMethod,
-    );
+        classBuilder,
+        classMemberMap,
+        classSetterMap,
+        interfaceMemberMap,
+        interfaceSetterMap,
+        superclasses,
+        interfaces,
+        maxInheritancePath,
+        hasNoSuchMethod,
+        dataForTesting);
   }
 
   Supertype recordSupertype(Supertype supertype) {
@@ -2081,10 +3118,9 @@ class ClassHierarchyNodeBuilder {
     interfaces.add(type);
   }
 
-  void reportMissingMembers() {
+  void reportMissingMembers(List<ClassMember> abstractMembers) {
     Map<String, LocatedMessage> contextMap = <String, LocatedMessage>{};
-    for (int i = 0; i < abstractMembers.length; i++) {
-      ClassMember declaration = abstractMembers[i];
+    for (ClassMember declaration in unfoldDeclarations(abstractMembers)) {
       if (isNameVisibleIn(declaration.name, classBuilder.library)) {
         String name = declaration.fullNameForErrors;
         String className = declaration.classBuilder?.fullNameForErrors;
@@ -2196,6 +3232,8 @@ class ClassHierarchyNode {
 
   final bool hasNoSuchMethod;
 
+  final ClassHierarchyNodeDataForTesting dataForTesting;
+
   ClassHierarchyNode(
       this.classBuilder,
       this.classMemberMap,
@@ -2205,7 +3243,8 @@ class ClassHierarchyNode {
       this.superclasses,
       this.interfaces,
       this.maxInheritancePath,
-      this.hasNoSuchMethod);
+      this.hasNoSuchMethod,
+      this.dataForTesting);
 
   /// Returns a list of all supertypes of [classBuilder], including this node.
   List<ClassHierarchyNode> computeAllSuperNodes(
@@ -2327,6 +3366,17 @@ class ClassHierarchyNode {
   }
 }
 
+class ClassHierarchyNodeDataForTesting {
+  final List<ClassMember> abstractMembers;
+  final Map<ClassMember, Set<ClassMember>> declaredOverrides;
+  final Map<ClassMember, Set<ClassMember>> mixinApplicationOverrides;
+  final Map<ClassMember, Set<ClassMember>> inheritedImplements;
+  final Map<ClassMember, ClassMember> aliasMap = {};
+
+  ClassHierarchyNodeDataForTesting(this.abstractMembers, this.declaredOverrides,
+      this.mixinApplicationOverrides, this.inheritedImplements);
+}
+
 List<LocatedMessage> _inheritedConflictContext(ClassMember a, ClassMember b) {
   int length = a.fullNameForErrors.length;
   // TODO(ahe): Delete this method when it isn't used by [InterfaceResolver].
@@ -2436,25 +3486,57 @@ abstract class DelayedCheck {
 }
 
 class DelayedOverrideCheck implements DelayedCheck {
-  final SourceClassBuilder classBuilder;
-  final ClassMember declaredMember;
-  final ClassMember overriddenMember;
+  final SourceClassBuilder _classBuilder;
+  final ClassMember _declaredMember;
+  final Set<ClassMember> _overriddenMembers;
 
-  const DelayedOverrideCheck(
-      this.classBuilder, this.declaredMember, this.overriddenMember);
+  DelayedOverrideCheck(
+      this._classBuilder, this._declaredMember, this._overriddenMembers);
 
   void check(ClassHierarchyBuilder hierarchy) {
-    void callback(
-        Member declaredMember, Member interfaceMember, bool isSetter) {
-      classBuilder.checkOverride(
+    Member declaredMember = _declaredMember.getMember(hierarchy);
+
+    /// If [_declaredMember] is a class member that is declared in an opt-in
+    /// library but inherited to [_classBuilder] through an opt-out class then
+    /// we need to apply legacy erasure to the declared type to get the
+    /// inherited type.
+    ///
+    /// For interface members this is handled by member signatures but since
+    /// these are abstract they will never be the inherited class member.
+    ///
+    /// For instance:
+    ///
+    ///    // Opt in:
+    ///    class Super {
+    ///      int extendedMethod(int i, {required int j}) => i;
+    ///    }
+    ///    class Mixin {
+    ///      int mixedInMethod(int i, {required int j}) => i;
+    ///    }
+    ///    // Opt out:
+    ///    class Legacy extends Super with Mixin {}
+    ///    // Opt in:
+    ///    class Class extends Legacy {
+    ///      // Valid overrides since the type of `Legacy.extendedMethod` is
+    ///      // `int* Function(int*, {int* j})`.
+    ///      int? extendedMethod(int? i, {int? j}) => i;
+    ///      // Valid overrides since the type of `Legacy.mixedInMethod` is
+    ///      // `int* Function(int*, {int* j})`.
+    ///      int? mixedInMethod(int? i, {int? j}) => i;
+    ///    }
+    ///
+    bool declaredNeedsLegacyErasure =
+        needsLegacyErasure(_classBuilder.cls, declaredMember.enclosingClass);
+    void callback(Member interfaceMember, bool isSetter) {
+      _classBuilder.checkOverride(
           hierarchy.types, declaredMember, interfaceMember, isSetter, callback,
-          isInterfaceCheck: !classBuilder.isMixinApplication);
+          isInterfaceCheck: !_classBuilder.isMixinApplication,
+          declaredNeedsLegacyErasure: declaredNeedsLegacyErasure);
     }
 
-    debug?.log("Delayed override check of ${declaredMember.fullName} "
-        "${overriddenMember.fullName} wrt. ${classBuilder.fullNameForErrors}");
-    callback(declaredMember.getMember(hierarchy),
-        overriddenMember.getMember(hierarchy), declaredMember.isSetter);
+    for (ClassMember overriddenMember in _overriddenMembers) {
+      callback(overriddenMember.getMember(hierarchy), _declaredMember.isSetter);
+    }
   }
 }
 
@@ -2502,564 +3584,6 @@ class DelayedTypeComputation {
   @override
   String toString() => 'DelayedTypeComputation('
       '${builder.classBuilder.name},$declaredMember,$overriddenMembers)';
-}
-
-abstract class DelayedMember implements ClassMember {
-  /// The class which has inherited [declarations].
-  @override
-  final ClassBuilder classBuilder;
-
-  bool get hasDeclarations => true;
-
-  /// Conflicting declarations.
-  final List<ClassMember> declarations;
-
-  final bool isProperty;
-
-  final bool isSetter;
-
-  final bool modifyKernel;
-
-  final bool isExplicitlyAbstract;
-
-  @override
-  final Name name;
-
-  DelayedMember(this.classBuilder, this.declarations, this.isProperty,
-      this.isSetter, this.modifyKernel, this.isExplicitlyAbstract, this.name) {
-    assert(declarations.every((element) => element.isProperty == isProperty),
-        "isProperty mismatch for $this");
-  }
-
-  @override
-  bool get isSourceDeclaration => false;
-
-  @override
-  bool get needsComputation => true;
-
-  @override
-  bool get isSynthesized => true;
-
-  @override
-  bool get isInternalImplementation => false;
-
-  @override
-  bool get forSetter => isSetter;
-
-  @override
-  bool get isFunction => !isProperty;
-
-  @override
-  bool get isAbstract => isExplicitlyAbstract;
-
-  bool get isStatic => false;
-  bool get isField => false;
-  bool get isGetter => false;
-  bool get isFinal => false;
-  bool get isConst => false;
-  bool get isAssignable => false;
-  bool get isDuplicate => false;
-
-  DelayedMember withParent(ClassBuilder parent);
-
-  @override
-  ClassMember get abstract => this;
-
-  @override
-  ClassMember get concrete => this;
-
-  @override
-  Uri get fileUri => classBuilder.fileUri;
-
-  @override
-  int get charOffset => classBuilder.charOffset;
-
-  @override
-  String get fullNameForErrors =>
-      declarations.map((ClassMember m) => m.fullName).join("%");
-
-  bool get isInheritableConflict => true;
-
-  String get fullName {
-    String suffix = isSetter ? "=" : "";
-    return "${fullNameForErrors}$suffix";
-  }
-
-  @override
-  void inferType(ClassHierarchyBuilder hierarchy) {
-    // Do nothing; this is only for declared members.
-  }
-
-  @override
-  void registerOverrideDependency(Set<ClassMember> overriddenMembers) {
-    // Do nothing; this is only for declared members.
-  }
-}
-
-/// This represents a concrete implementation inherited from a superclass that
-/// has conflicts with methods inherited from an interface. The concrete
-/// implementation is the first element of [declarations].
-class InheritedImplementationInterfaceConflict extends DelayedMember {
-  Member _member;
-  Covariance _covariance;
-  final ClassMember concreteMember;
-  final bool _isSuperClassMemberMixedIn;
-
-  @override
-  final bool isInheritableConflict;
-
-  InheritedImplementationInterfaceConflict(
-      ClassBuilder parent,
-      this.concreteMember,
-      this._isSuperClassMemberMixedIn,
-      List<ClassMember> declarations,
-      bool isProperty,
-      bool isSetter,
-      bool modifyKernel,
-      bool isAbstract,
-      Name name,
-      {this.isInheritableConflict = true})
-      : assert(!concreteMember.isAbstract),
-        super(parent, declarations, isProperty, isSetter, modifyKernel,
-            isAbstract, name);
-
-  @override
-  bool isObjectMember(ClassBuilder objectClass) {
-    return concreteMember.isObjectMember(objectClass);
-  }
-
-  @override
-  String toString() {
-    return "InheritedImplementationInterfaceConflict("
-        "${classBuilder.fullNameForErrors}, $concreteMember, "
-        "[${declarations.join(', ')}])";
-  }
-
-  void _ensureMemberAndCovariance(ClassHierarchyBuilder hierarchy) {
-    if (_member == null) {
-      if (!classBuilder.isAbstract) {
-        if (classBuilder is SourceClassBuilder) {
-          for (int i = 0; i < declarations.length; i++) {
-            if (concreteMember != declarations[i]) {
-              new DelayedOverrideCheck(
-                      classBuilder, concreteMember, declarations[i])
-                  .check(hierarchy);
-            }
-          }
-        }
-      }
-      InterfaceConflict interfaceConflict = new InterfaceConflict(
-          classBuilder,
-          concreteMember,
-          /*_isSuperClassMemberMixedIn = */ _isSuperClassMemberMixedIn,
-          declarations,
-          isProperty,
-          isSetter,
-          modifyKernel,
-          isAbstract,
-          name);
-      _member = interfaceConflict.getMember(hierarchy);
-      _covariance = interfaceConflict.getCovariance(hierarchy);
-    }
-  }
-
-  @override
-  Member getMember(ClassHierarchyBuilder hierarchy) {
-    _ensureMemberAndCovariance(hierarchy);
-    return _member;
-  }
-
-  @override
-  Covariance getCovariance(ClassHierarchyBuilder hierarchy) {
-    _ensureMemberAndCovariance(hierarchy);
-    return _covariance;
-  }
-
-  @override
-  DelayedMember withParent(ClassBuilder parent) {
-    return parent == this.classBuilder
-        ? this
-        : new InheritedImplementationInterfaceConflict(
-            parent,
-            concreteMember,
-            /*_isSuperClassMemberMixedIn = */ false,
-            [this],
-            isProperty,
-            isSetter,
-            modifyKernel,
-            isAbstract,
-            name);
-  }
-
-  @override
-  bool isSameDeclaration(ClassMember other) {
-    // This could be more precise but it currently has no benefit.
-    return identical(this, other);
-  }
-
-  static ClassMember combined(
-      ClassBuilder parent,
-      ClassMember concreteImplementation,
-      bool isSuperClassMemberMixedIn,
-      ClassMember other,
-      bool isSetter,
-      bool createForwarders,
-      {bool isInheritableConflict = true}) {
-    assert(concreteImplementation.isProperty == other.isProperty,
-        "Unexpected member combination: $concreteImplementation vs $other");
-    List<ClassMember> declarations = <ClassMember>[];
-    if (concreteImplementation.hasDeclarations &&
-        concreteImplementation.classBuilder == parent) {
-      addAllDeclarationsTo(concreteImplementation, declarations);
-    } else {
-      declarations.add(concreteImplementation);
-    }
-    if (other.hasDeclarations && other.classBuilder == parent) {
-      addAllDeclarationsTo(other, declarations);
-    } else {
-      addDeclarationIfDifferent(other, declarations);
-    }
-    if (declarations.length == 1) {
-      return declarations.single;
-    } else {
-      return new InheritedImplementationInterfaceConflict(
-          parent,
-          concreteImplementation.concrete,
-          isSuperClassMemberMixedIn,
-          declarations,
-          concreteImplementation.isProperty,
-          isSetter,
-          createForwarders,
-          declarations.first.isAbstract,
-          declarations.first.name,
-          isInheritableConflict: isInheritableConflict);
-    }
-  }
-}
-
-class InterfaceConflict extends DelayedMember {
-  final ClassMember _superClassMember;
-  final bool _isSuperClassMemberMixedIn;
-  final bool isImplicitlyAbstract;
-
-  InterfaceConflict(
-      ClassBuilder parent,
-      this._superClassMember,
-      this._isSuperClassMemberMixedIn,
-      List<ClassMember> declarations,
-      bool isProperty,
-      bool isSetter,
-      bool modifyKernel,
-      bool isAbstract,
-      Name name,
-      {this.isImplicitlyAbstract: true})
-      : super(parent, declarations, isProperty, isSetter, modifyKernel,
-            isAbstract, name);
-
-  @override
-  bool isObjectMember(ClassBuilder objectClass) =>
-      declarations.first.isObjectMember(objectClass);
-
-  @override
-  bool get isAbstract => isExplicitlyAbstract || isImplicitlyAbstract;
-
-  Member _member;
-  Covariance _covariance;
-
-  @override
-  String toString() {
-    return "InterfaceConflict(${classBuilder.fullNameForErrors}, "
-        "[${declarations.join(', ')}])";
-  }
-
-  void _ensureMemberAndCovariance(ClassHierarchyBuilder hierarchy) {
-    if (_member != null) {
-      return;
-    }
-    if (classBuilder.library is! SourceLibraryBuilder) {
-      _member = declarations.first.getMember(hierarchy);
-      _covariance = declarations.first.getCovariance(hierarchy);
-      return;
-    }
-
-    CombinedClassMemberSignature combinedMemberSignature =
-        new CombinedClassMemberSignature(hierarchy, classBuilder, declarations,
-            forSetter: isSetter);
-
-    if (combinedMemberSignature.canonicalMember == null) {
-      String name = classBuilder.fullNameForErrors;
-      int length = classBuilder.isAnonymousMixinApplication ? 1 : name.length;
-      List<LocatedMessage> context = declarations.map((ClassMember d) {
-        return messageDeclaredMemberConflictsWithOverriddenMembersCause
-            .withLocation(d.fileUri, d.charOffset, d.fullNameForErrors.length);
-      }).toList();
-
-      classBuilder.addProblem(
-          templateCombinedMemberSignatureFailed.withArguments(
-              classBuilder.fullNameForErrors,
-              declarations.first.fullNameForErrors),
-          classBuilder.charOffset,
-          length,
-          context: context);
-      // TODO(johnniwinther): Maybe we should have an invalid marker to avoid
-      // cascading errors.
-      _member = declarations.first.getMember(hierarchy);
-      _covariance = declarations.first.getCovariance(hierarchy);
-      return;
-    }
-    debug?.log("Combined Member Signature of ${fullNameForErrors}: "
-        "${combinedMemberSignature.canonicalMember.fullName}");
-
-    if (modifyKernel) {
-      ProcedureKind kind = ProcedureKind.Method;
-      Member bestMemberSoFar =
-          combinedMemberSignature.canonicalMember.getMember(hierarchy);
-      if (combinedMemberSignature.canonicalMember.isProperty) {
-        kind = isSetter ? ProcedureKind.Setter : ProcedureKind.Getter;
-      } else if (bestMemberSoFar is Procedure &&
-          bestMemberSoFar.kind == ProcedureKind.Operator) {
-        kind = ProcedureKind.Operator;
-      }
-
-      debug?.log("Combined Member Signature of ${fullNameForErrors}: new "
-          "ForwardingNode($classBuilder, "
-          "${combinedMemberSignature.canonicalMember}, "
-          "$declarations, $kind)");
-      Member stub = new ForwardingNode(combinedMemberSignature, kind,
-              _superClassMember, _isSuperClassMemberMixedIn)
-          .finalize();
-      if (stub != null && classBuilder.cls == stub.enclosingClass) {
-        if (stub is Procedure) {
-          classBuilder.cls.addProcedure(stub);
-        } else if (stub is Field) {
-          classBuilder.cls.addField(stub);
-        } else if (stub is Constructor) {
-          classBuilder.cls.addConstructor(stub);
-        } else if (stub is RedirectingFactoryConstructor) {
-          classBuilder.cls.addRedirectingFactoryConstructor(stub);
-        } else {
-          unhandled("${stub.runtimeType}", "getMember", stub.fileOffset,
-              stub.fileUri);
-        }
-        SourceLibraryBuilder library = classBuilder.library;
-        Member bestMemberSoFar =
-            combinedMemberSignature.canonicalMember.getMember(hierarchy);
-        if (bestMemberSoFar is Procedure) {
-          library.forwardersOrigins..add(stub)..add(bestMemberSoFar);
-        }
-        debug?.log("Combined Member Signature of ${fullNameForErrors}: "
-            "added stub $stub");
-        _member = stub;
-        _covariance = combinedMemberSignature.combinedMemberSignatureCovariance;
-        assert(
-            _covariance ==
-                new Covariance.fromMember(_member, forSetter: forSetter),
-            "Unexpected covariance for combined members signature "
-            "$_member. Found $_covariance, expected "
-            "${new Covariance.fromMember(_member, forSetter: forSetter)}.");
-        return;
-      }
-    }
-
-    debug?.log(
-        "Combined Member Signature of ${fullNameForErrors}: picked bestSoFar");
-    _member = combinedMemberSignature.canonicalMember.getMember(hierarchy);
-    _covariance = combinedMemberSignature.combinedMemberSignatureCovariance;
-  }
-
-  @override
-  Member getMember(ClassHierarchyBuilder hierarchy) {
-    _ensureMemberAndCovariance(hierarchy);
-    return _member;
-  }
-
-  @override
-  Covariance getCovariance(ClassHierarchyBuilder hierarchy) {
-    _ensureMemberAndCovariance(hierarchy);
-    return _covariance;
-  }
-
-  @override
-  DelayedMember withParent(ClassBuilder parent) {
-    return parent == this.classBuilder
-        ? this
-        : new InterfaceConflict(
-            parent,
-            _superClassMember,
-            /*_isSuperClassMemberMixedIn = */ false,
-            [this],
-            isProperty,
-            isSetter,
-            modifyKernel,
-            isAbstract,
-            name,
-            isImplicitlyAbstract: isImplicitlyAbstract);
-  }
-
-  @override
-  bool isSameDeclaration(ClassMember other) {
-    // This could be more precise but it currently has no benefit.
-    return identical(this, other);
-  }
-
-  static ClassMember combined(ClassBuilder parent, ClassMember a, ClassMember b,
-      bool isSetter, bool createForwarders) {
-    assert(a.isProperty == b.isProperty,
-        "Unexpected member combination: $a vs $b");
-    List<ClassMember> declarations = <ClassMember>[];
-    if (a.hasDeclarations && a.classBuilder == parent) {
-      addAllDeclarationsTo(a, declarations);
-    } else {
-      declarations.add(a);
-    }
-    if (b.hasDeclarations && b.classBuilder == parent) {
-      addAllDeclarationsTo(b, declarations);
-    } else {
-      addDeclarationIfDifferent(b, declarations);
-    }
-    if (declarations.length == 1) {
-      return declarations.single;
-    } else {
-      return new InterfaceConflict(
-          parent,
-          null,
-          /*_isSuperClassMemberMixedIn = */ false,
-          declarations,
-          a.isProperty,
-          isSetter,
-          createForwarders,
-          declarations.first.isAbstract,
-          declarations.first.name);
-    }
-  }
-
-  @override
-  ClassMember get concrete {
-    if (isAbstract) {
-      return declarations.first.concrete;
-    }
-    return this;
-  }
-}
-
-class AbstractMemberOverridingImplementation extends DelayedMember {
-  AbstractMemberOverridingImplementation(
-      ClassBuilder parent,
-      ClassMember abstractMember,
-      ClassMember concreteImplementation,
-      bool isProperty,
-      bool isSetter,
-      bool modifyKernel,
-      bool isAbstract,
-      Name name)
-      : super(parent, <ClassMember>[concreteImplementation, abstractMember],
-            isProperty, isSetter, modifyKernel, isAbstract, name);
-
-  @override
-  bool isObjectMember(ClassBuilder objectClass) =>
-      concreteImplementation.isObjectMember(objectClass);
-
-  ClassMember get concreteImplementation => declarations[0];
-
-  ClassMember get abstractMember => declarations[1];
-
-  bool _isChecked = false;
-
-  void _ensureMemberAndCovariance(ClassHierarchyBuilder hierarchy) {
-    if (!_isChecked) {
-      _isChecked = true;
-      if (!classBuilder.isAbstract &&
-          !hierarchy.nodes[classBuilder.cls].hasNoSuchMethod) {
-        if (classBuilder is SourceClassBuilder) {
-          new DelayedOverrideCheck(
-                  classBuilder, concreteImplementation, abstractMember)
-              .check(hierarchy);
-        }
-      }
-
-      ProcedureKind kind = ProcedureKind.Method;
-      if (abstractMember.isProperty) {
-        kind = isSetter ? ProcedureKind.Setter : ProcedureKind.Getter;
-      }
-      if (modifyKernel) {
-        // This call will add a body to the abstract method if needed for
-        // isGenericCovariantImpl checks.
-        new ForwardingNode(
-                new CombinedClassMemberSignature.internal(
-                    hierarchy, classBuilder, 1, declarations,
-                    forSetter: isSetter),
-                kind,
-                concrete,
-                /*_isSuperClassMemberMixedIn =*/ false)
-            .finalize();
-      }
-    }
-  }
-
-  @override
-  Member getMember(ClassHierarchyBuilder hierarchy) {
-    _ensureMemberAndCovariance(hierarchy);
-    return abstractMember.getMember(hierarchy);
-  }
-
-  @override
-  Covariance getCovariance(ClassHierarchyBuilder hierarchy) {
-    _ensureMemberAndCovariance(hierarchy);
-    return abstractMember.getCovariance(hierarchy);
-  }
-
-  @override
-  DelayedMember withParent(ClassBuilder parent) {
-    return parent == this.classBuilder
-        ? this
-        : new AbstractMemberOverridingImplementation(
-            parent,
-            abstractMember,
-            concreteImplementation,
-            isProperty,
-            isSetter,
-            modifyKernel,
-            isAbstract,
-            name);
-  }
-
-  @override
-  String toString() {
-    return "AbstractMemberOverridingImplementation("
-        "${classBuilder.fullNameForErrors}, "
-        "[${declarations.join(', ')}])";
-  }
-
-  @override
-  ClassMember get abstract => abstractMember;
-
-  @override
-  ClassMember get concrete => concreteImplementation;
-
-  @override
-  bool isSameDeclaration(ClassMember other) {
-    if (identical(this, other)) return false;
-    return other is AbstractMemberOverridingImplementation &&
-        classBuilder == other.classBuilder &&
-        abstract.isSameDeclaration(other.abstract) &&
-        concrete.isSameDeclaration(other.concrete);
-  }
-}
-
-void addDeclarationIfDifferent(
-    ClassMember declaration, List<ClassMember> declarations) {
-  for (int i = 0; i < declarations.length; i++) {
-    if (declaration == declarations[i]) return;
-  }
-  declarations.add(declaration);
-}
-
-void addAllDeclarationsTo(ClassMember member, List<ClassMember> declarations) {
-  assert(member.hasDeclarations);
-  for (int i = 0; i < member.declarations.length; i++) {
-    addDeclarationIfDifferent(member.declarations[i], declarations);
-  }
-  assert(declarations.toSet().length == declarations.length);
 }
 
 int compareNamedParameters(VariableDeclaration a, VariableDeclaration b) {
@@ -3226,4 +3750,483 @@ void _toSet(ClassBuilder classBuilder, Iterable<ClassMember> members,
       result.add(member);
     }
   }
+}
+
+Set<ClassMember> unfoldDeclarations(Iterable<ClassMember> members) {
+  Set<ClassMember> result = <ClassMember>{};
+  _unfoldDeclarations(members, result);
+  return result;
+}
+
+void _unfoldDeclarations(
+    Iterable<ClassMember> members, Set<ClassMember> result) {
+  for (ClassMember member in members) {
+    if (member.hasDeclarations) {
+      _unfoldDeclarations(member.declarations, result);
+    } else {
+      result.add(member);
+    }
+  }
+}
+
+abstract class SynthesizedMember extends ClassMember {
+  @override
+  final ClassBuilder classBuilder;
+
+  @override
+  final Name name;
+
+  @override
+  final bool forSetter;
+
+  @override
+  final bool isProperty;
+
+  SynthesizedMember(this.classBuilder, this.name,
+      {this.forSetter, this.isProperty})
+      : assert(forSetter != null),
+        assert(isProperty != null);
+
+  @override
+  List<ClassMember> get declarations => throw new UnimplementedError();
+
+  @override
+  void inferType(ClassHierarchyBuilder hierarchy) {}
+
+  @override
+  bool get isAssignable => throw new UnimplementedError();
+
+  @override
+  bool get isConst => throw new UnimplementedError();
+
+  @override
+  bool get isDuplicate => false;
+
+  @override
+  bool get isField => throw new UnimplementedError();
+
+  @override
+  bool get isFinal => throw new UnimplementedError();
+
+  @override
+  bool get isGetter => throw new UnimplementedError();
+
+  @override
+  bool get isInternalImplementation => false;
+
+  @override
+  bool get isSetter => forSetter;
+
+  @override
+  bool get isSourceDeclaration => false;
+
+  @override
+  bool get isStatic => false;
+
+  @override
+  bool get isSynthesized => true;
+
+  @override
+  void registerOverrideDependency(Set<ClassMember> overriddenMembers) {}
+}
+
+/// Class member for a set of interface members.
+///
+/// This is used to compute combined member signature of a set of interface
+/// members inherited into the same class, and to insert forwarding stubs,
+/// mixin stubs, and member signatures where needed.
+class SynthesizedInterfaceMember extends SynthesizedMember {
+  @override
+  final List<ClassMember> declarations;
+
+  /// The concrete member in the super class overridden by [declarations], if
+  /// any.
+  ///
+  /// This is used to as the target when creating concrete forwarding and mixin
+  /// stub. For instance:
+  ///
+  ///    class Super {
+  ///      method(int i) {}
+  ///    }
+  ///    class Interface {
+  ///      method(covariant int i) {}
+  ///    }
+  ///    class Class extends Super implements Interface {
+  ///      // Concrete forwarding stub calling [_superClassMember]:
+  ///      method(covariant int i) => super.method(i);
+  ///
+  final ClassMember _superClassMember;
+
+  /// The canonical member of the combined member signature if it is known by
+  /// construction. The canonical member defines the type of combined member
+  /// signature.
+  ///
+  /// This is used when a declared member is part of a set of implemented
+  /// members. For instance
+  ///
+  ///     class Super {
+  ///       method(int i) {}
+  ///     }
+  ///     class Interface {
+  ///       method(covariant num i) {}
+  ///     }
+  ///     class Class implements Interface {
+  ///       // This member is updated to be a concrete forwarding stub with an
+  ///       // covariant parameter but with its declared parameter type:
+  ///       //    method(covariant int i) => super.method(i);
+  ///       method(int i);
+  ///     }
+  final ClassMember _canonicalMember;
+
+  /// The member in [declarations] that is mixed in, if any.
+  ///
+  /// This is used to create mixin stubs. If the mixed in member is abstract,
+  /// an abstract mixin stub is created:
+  ///
+  ///    class Super {
+  ///      void method() {}
+  ///    }
+  ///    class Mixin {
+  ///      void method();
+  ///    }
+  ///    // Abstract mixin stub with `Mixin.method` as target inserted:
+  ///    //   void method();
+  ///    class Class = Super with Mixin;
+  ///
+  /// If the mixed in member is concrete, a concrete mixin member is created:
+  ///
+  ///    class Super {
+  ///      void method() {}
+  ///    }
+  ///    class Mixin {
+  ///      void method() {}
+  ///    }
+  ///    // Concrete mixin stub with `Mixin.method` as target inserted:
+  ///    //   void method() => super.method();
+  ///    class Class = Super with Mixin;
+  ///
+  /// If a forwarding stub is needed, the created stub will be a possibly
+  /// concrete forwarding stub:
+  ///
+  ///    class Super {
+  ///      void method(int i) {}
+  ///    }
+  ///    class Interface {
+  ///      void method(covariant num i) {}
+  ///    }
+  ///    class Mixin {
+  ///      void method(int i);
+  ///    }
+  ///    // Concrete forwarding stub with `Super.method` as target inserted:
+  ///    //   void method(covariant int i) => super.method(i);
+  ///    class Class = Super with Mixin implements Interface;
+  ///
+  final ClassMember _mixedInMember;
+
+  /// If `true`, a stub should be inserted, if needed.
+  final bool _shouldModifyKernel;
+
+  Member _member;
+  Covariance _covariance;
+
+  SynthesizedInterfaceMember(
+      ClassBuilder classBuilder, Name name, this.declarations,
+      {ClassMember superClassMember,
+      ClassMember canonicalMember,
+      ClassMember mixedInMember,
+      bool isProperty,
+      bool forSetter,
+      bool shouldModifyKernel})
+      : this._superClassMember = superClassMember,
+        this._canonicalMember = canonicalMember,
+        this._mixedInMember = mixedInMember,
+        this._shouldModifyKernel = shouldModifyKernel,
+        super(classBuilder, name, isProperty: isProperty, forSetter: forSetter);
+
+  @override
+  bool get hasDeclarations => true;
+
+  void _ensureMemberAndCovariance(ClassHierarchyBuilder hierarchy) {
+    if (_member != null) {
+      return;
+    }
+    if (classBuilder.library is! SourceLibraryBuilder) {
+      if (_canonicalMember != null) {
+        _member = _canonicalMember.getMember(hierarchy);
+        _covariance = _canonicalMember.getCovariance(hierarchy);
+      } else {
+        _member = declarations.first.getMember(hierarchy);
+        _covariance = declarations.first.getCovariance(hierarchy);
+      }
+      return;
+    }
+    CombinedClassMemberSignature combinedMemberSignature;
+    if (_canonicalMember != null) {
+      combinedMemberSignature = new CombinedClassMemberSignature.internal(
+          hierarchy,
+          classBuilder,
+          declarations.indexOf(_canonicalMember),
+          declarations,
+          forSetter: isSetter);
+    } else {
+      combinedMemberSignature = new CombinedClassMemberSignature(
+          hierarchy, classBuilder, declarations,
+          forSetter: isSetter);
+
+      if (combinedMemberSignature.canonicalMember == null) {
+        String name = classBuilder.fullNameForErrors;
+        int length = classBuilder.isAnonymousMixinApplication ? 1 : name.length;
+        List<LocatedMessage> context = declarations.map((ClassMember d) {
+          return messageDeclaredMemberConflictsWithOverriddenMembersCause
+              .withLocation(
+                  d.fileUri, d.charOffset, d.fullNameForErrors.length);
+        }).toList();
+
+        classBuilder.addProblem(
+            templateCombinedMemberSignatureFailed.withArguments(
+                classBuilder.fullNameForErrors,
+                declarations.first.fullNameForErrors),
+            classBuilder.charOffset,
+            length,
+            context: context);
+        // TODO(johnniwinther): Maybe we should have an invalid marker to avoid
+        // cascading errors.
+        _member = declarations.first.getMember(hierarchy);
+        _covariance = declarations.first.getCovariance(hierarchy);
+        return;
+      }
+    }
+
+    if (_shouldModifyKernel) {
+      ProcedureKind kind = ProcedureKind.Method;
+      Member canonicalMember =
+          combinedMemberSignature.canonicalMember.getMember(hierarchy);
+      if (combinedMemberSignature.canonicalMember.isProperty) {
+        kind = isSetter ? ProcedureKind.Setter : ProcedureKind.Getter;
+      } else if (canonicalMember is Procedure &&
+          canonicalMember.kind == ProcedureKind.Operator) {
+        kind = ProcedureKind.Operator;
+      }
+
+      Procedure stub = new ForwardingNode(
+              combinedMemberSignature, kind, _superClassMember, _mixedInMember)
+          .finalize();
+      if (stub != null) {
+        assert(classBuilder.cls == stub.enclosingClass);
+        assert(stub != canonicalMember);
+        classBuilder.cls.addProcedure(stub);
+        SourceLibraryBuilder library = classBuilder.library;
+        if (canonicalMember is Procedure) {
+          library.forwardersOrigins..add(stub)..add(canonicalMember);
+        }
+        _member = stub;
+        _covariance = combinedMemberSignature.combinedMemberSignatureCovariance;
+        assert(
+            _covariance ==
+                new Covariance.fromMember(_member, forSetter: forSetter),
+            "Unexpected covariance for combined members signature "
+            "$_member. Found $_covariance, expected "
+            "${new Covariance.fromMember(_member, forSetter: forSetter)}.");
+        return;
+      }
+    }
+
+    _member = combinedMemberSignature.canonicalMember.getMember(hierarchy);
+    _covariance = combinedMemberSignature.combinedMemberSignatureCovariance;
+  }
+
+  @override
+  Member getMember(ClassHierarchyBuilder hierarchy) {
+    _ensureMemberAndCovariance(hierarchy);
+    return _member;
+  }
+
+  @override
+  Covariance getCovariance(ClassHierarchyBuilder hierarchy) {
+    _ensureMemberAndCovariance(hierarchy);
+    return _covariance;
+  }
+
+  @override
+  ClassMember get interfaceMember => this;
+
+  @override
+  bool isObjectMember(ClassBuilder objectClass) {
+    return false;
+  }
+
+  @override
+  bool isSameDeclaration(ClassMember other) {
+    // TODO(johnniwinther): Optimize this.
+    return false;
+  }
+
+  @override
+  int get charOffset => declarations.first.charOffset;
+
+  @override
+  Uri get fileUri => declarations.first.fileUri;
+
+  @override
+  bool get isAbstract => true;
+
+  @override
+  String get fullNameForErrors =>
+      declarations.map((ClassMember m) => m.fullName).join("%");
+
+  @override
+  String get fullName {
+    String suffix = isSetter ? "=" : "";
+    return "${fullNameForErrors}$suffix";
+  }
+
+  String toString() => 'SynthesizedInterfaceMember($classBuilder,$name,'
+      '$declarations,forSetter=$forSetter)';
+}
+
+/// Class member for an inherited concrete member that implements an interface
+/// member.
+///
+/// This is used to ensure that both the inherited concrete member and the
+/// interface member is taken into account when computing the resulting [Member]
+/// node.
+///
+/// This is needed because an interface member, though initially abstract, can
+/// result in a concrete stub that overrides the concrete member. For instance
+///
+///    class Super {
+///      method(int i) {}
+///    }
+///    class Interface {
+///      method(covariant int i) {}
+///    }
+///    class Class extends Super implements Interface {
+///      // A concrete forwarding stub is inserted:
+///      method(covariant int i) => super.method(i);
+///    }
+///    class Sub extends Class implements Interface {
+///      // No forwarding stub should be inserted since `Class.method` is
+///      // adequate.
+///    }
+///
+///
+///  Here the create stub `Class.method` overrides `Super.method` and should
+///  be used to determine whether to insert a forwarding stub in subclasses.
+class InheritedClassMemberImplementsInterface extends SynthesizedMember {
+  final ClassMember inheritedClassMember;
+  final ClassMember implementedInterfaceMember;
+
+  Member _member;
+  Covariance _covariance;
+
+  InheritedClassMemberImplementsInterface(ClassBuilder classBuilder, Name name,
+      {this.inheritedClassMember,
+      this.implementedInterfaceMember,
+      bool isProperty,
+      bool forSetter})
+      : assert(inheritedClassMember != null),
+        assert(implementedInterfaceMember != null),
+        super(classBuilder, name, isProperty: isProperty, forSetter: forSetter);
+
+  void _ensureMemberAndCovariance(ClassHierarchyBuilder hierarchy) {
+    if (_member == null) {
+      Member classMember = inheritedClassMember.getMember(hierarchy);
+      Member interfaceMember = implementedInterfaceMember.getMember(hierarchy);
+      if (!interfaceMember.isAbstract &&
+          interfaceMember.enclosingClass == classBuilder.cls) {
+        /// The interface member resulted in a concrete stub being inserted.
+        /// For instance for `method1` but _not_ for `method2` here:
+        ///
+        ///    class Super {
+        ///      method1(int i) {}
+        ///      method2(covariant int i) {}
+        ///    }
+        ///    class Interface {
+        ///      method1(covariant int i) {}
+        ///      method2(int i) {}
+        ///    }
+        ///    class Class extends Super implements Interface {
+        ///      // A concrete forwarding stub is inserted for `method1` since
+        ///      // the parameter on `Super.method1` is _not_ marked as
+        ///      // covariant:
+        ///      method1(covariant int i) => super.method(i);
+        ///      // No concrete forwarding stub is inserted for `method2` since
+        ///      // the parameter on `Super.method2` is already marked as
+        ///      // covariant.
+        ///    }
+        ///
+        /// The inserted stub should be used as the resulting member.
+        _member = interfaceMember;
+        _covariance = implementedInterfaceMember.getCovariance(hierarchy);
+      } else {
+        /// The interface member did not result in an inserted stub or the
+        /// inserted stub was abstract. For instance:
+        ///
+        ///    // Opt-in:
+        ///    class Super {
+        ///      method(int? i) {}
+        ///    }
+        ///    // Opt-out:
+        ///    class Class extends Super {
+        ///      // An abstract member signature stub is inserted:
+        ///      method(int* i);
+        ///    }
+        ///
+        /// The inserted stub should _not_ be used as the resulting member
+        /// since it is abstract and therefore not a class member.
+        _member = classMember;
+        _covariance = inheritedClassMember.getCovariance(hierarchy);
+      }
+    }
+  }
+
+  @override
+  Member getMember(ClassHierarchyBuilder hierarchy) {
+    _ensureMemberAndCovariance(hierarchy);
+    return _member;
+  }
+
+  @override
+  Covariance getCovariance(ClassHierarchyBuilder hierarchy) {
+    _ensureMemberAndCovariance(hierarchy);
+    return _covariance;
+  }
+
+  @override
+  ClassMember get interfaceMember => implementedInterfaceMember;
+
+  @override
+  bool isObjectMember(ClassBuilder objectClass) {
+    return inheritedClassMember.isObjectMember(objectClass);
+  }
+
+  @override
+  bool isSameDeclaration(ClassMember other) {
+    // TODO(johnniwinther): Optimize this.
+    return false;
+  }
+
+  @override
+  int get charOffset => inheritedClassMember.charOffset;
+
+  @override
+  Uri get fileUri => inheritedClassMember.fileUri;
+
+  @override
+  bool get hasDeclarations => false;
+
+  @override
+  bool get isAbstract => false;
+
+  @override
+  String get fullNameForErrors => inheritedClassMember.fullNameForErrors;
+
+  String get fullName => inheritedClassMember.fullName;
+
+  @override
+  String toString() =>
+      'InheritedClassMemberImplementsInterface($classBuilder,$name,'
+      'inheritedClassMember=$inheritedClassMember,'
+      'implementedInterfaceMember=$implementedInterfaceMember,'
+      'forSetter=$forSetter)';
 }

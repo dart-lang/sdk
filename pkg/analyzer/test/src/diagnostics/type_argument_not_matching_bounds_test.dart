@@ -13,11 +13,30 @@ main() {
     defineReflectiveTests(
       TypeArgumentNotMatchingBoundsWithNullSafetyTest,
     );
+    defineReflectiveTests(
+      TypeArgumentNotMatchingBoundsWithNonFunctionTypeAliasesTest,
+    );
   });
 }
 
 @reflectiveTest
-class TypeArgumentNotMatchingBoundsTest extends PubPackageResolutionTest {
+class TypeArgumentNotMatchingBoundsTest extends PubPackageResolutionTest
+    with TypeArgumentNotMatchingBoundsTestCases {
+  test_regression_42196_Null() async {
+    await assertNoErrorsInCode(r'''
+typedef G<X> = Function(X);
+class A<X extends G<A<X,Y>>, Y extends X> {}
+
+test<X>() { print("OK"); }
+
+main() {
+  test<A<G<A<Null, Null>>, dynamic>>();
+}
+''');
+  }
+}
+
+mixin TypeArgumentNotMatchingBoundsTestCases on PubPackageResolutionTest {
   test_classTypeAlias() async {
     await assertErrorsInCode(r'''
 class A {}
@@ -352,19 +371,6 @@ class X<T extends A> {
     ]);
   }
 
-  test_regression_42196_Null() async {
-    await assertNoErrorsInCode(r'''
-typedef G<X> = Function(X);
-class A<X extends G<A<X,Y>>, Y extends X> {}
-
-test<X>() { print("OK"); }
-
-main() {
-  test<A<G<A<Null, Null>>, dynamic>>();
-}
-''');
-  }
-
   test_typeArgumentList() async {
     await assertErrorsInCode(r'''
 class A {}
@@ -413,8 +419,43 @@ class C extends Object with G<B>{}
 }
 
 @reflectiveTest
+class TypeArgumentNotMatchingBoundsWithNonFunctionTypeAliasesTest
+    extends PubPackageResolutionTest
+    with
+        WithNonFunctionTypeAliasesMixin,
+        TypeArgumentNotMatchingBoundsTestCases {
+  test_nonFunctionTypeAlias_interfaceType_parameter() async {
+    await assertErrorsInCode(r'''
+class A {}
+typedef X<T extends A> = Map<int, T>;
+void f(X<String> a) {}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 58, 6),
+    ]);
+  }
+
+  test_nonFunctionTypeAlias_interfaceType_parameter_regularBounded() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+class B extends A {}
+typedef X<T extends A> = Map<int, T>;
+void f(X<B> a) {}
+''');
+  }
+
+  test_nonFunctionTypeAlias_interfaceType_parameter_superBounded() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+typedef X<T extends A> = Map<int, T>;
+void f(X<Never> a) {}
+''');
+  }
+}
+
+@reflectiveTest
 class TypeArgumentNotMatchingBoundsWithNullSafetyTest
-    extends TypeArgumentNotMatchingBoundsTest with WithNullSafetyMixin {
+    extends PubPackageResolutionTest
+    with TypeArgumentNotMatchingBoundsTestCases, WithNullSafetyMixin {
   test_extends_optIn_fromOptOut_Null() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 class A<X extends int> {}
@@ -447,6 +488,16 @@ main() {
 ''');
   }
 
+  test_notRegularBounded_notSuperBounded_invariant() async {
+    await assertErrorsInCode(r'''
+typedef A<X> = X Function(X);
+typedef G<X extends A<X>> = void Function<Y extends X>();
+foo(G g) {}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 92, 1),
+    ]);
+  }
+
   test_regression_42196() async {
     await assertNoErrorsInCode(r'''
 typedef G<X> = Function(X);
@@ -458,23 +509,6 @@ main() {
   test<A<G<A<Never, Never>>, dynamic>>();
 }
 ''');
-  }
-
-  @override
-  test_regression_42196_Null() async {
-    await assertErrorsInCode(r'''
-typedef G<X> = Function(X);
-class A<X extends G<A<X,Y>>, Y extends X> {}
-
-test<X>() { print("OK"); }
-
-main() {
-  test<A<G<A<Null, Null>>, dynamic>>();
-}
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 120, 16),
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 124, 4),
-    ]);
   }
 
   test_regression_42196_object() async {

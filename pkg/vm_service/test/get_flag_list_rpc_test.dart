@@ -11,7 +11,7 @@ import 'common/test_helper.dart';
 
 Future getFlagValue(VmService service, String flagName) async {
   final result = await service.getFlagList();
-  final flags = result.flags;
+  final flags = result.flags!;
   for (final flag in flags) {
     if (flag.name == flagName) {
       return flag.valueAsString;

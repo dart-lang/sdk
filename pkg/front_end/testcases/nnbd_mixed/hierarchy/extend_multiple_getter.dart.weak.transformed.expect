@@ -3,9 +3,12 @@ library /*isNonNullableByDefault*/;
 // Problems in library:
 //
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_getter.dart:37:7: Error: The non-abstract class 'ConcreteSub' is missing implementations for these members:
-//  - AbstractClass.Super.extendedAbstractImplementedGetter%Interface1.extendedAbstractImplementedGetter
-//  - AbstractClass.Super.extendedAbstractImplementedMultipleGetter%Interface1.extendedAbstractImplementedMultipleGetter%Interface2.extendedAbstractImplementedMultipleGetter
+//  - Interface1.extendedAbstractImplementedGetter
+//  - Interface1.extendedAbstractImplementedMultipleGetter
+//  - Interface2.extendedAbstractImplementedMultipleGetter
 //  - Super.extendedAbstractGetter
+//  - Super.extendedAbstractImplementedGetter
+//  - Super.extendedAbstractImplementedMultipleGetter
 // Try to either
 //  - provide an implementation,
 //  - inherit an implementation from a superclass or mixin,
@@ -14,17 +17,29 @@ library /*isNonNullableByDefault*/;
 //
 // class ConcreteSub extends AbstractClass {}
 //       ^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_getter.dart:35:16: Context: 'AbstractClass.Super.extendedAbstractImplementedGetter%Interface1.extendedAbstractImplementedGetter' is defined here.
-// abstract class AbstractClass extends Super implements Interface1, Interface2 {}
-//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^...
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_getter.dart:35:16: Context: 'AbstractClass.Super.extendedAbstractImplementedMultipleGetter%Interface1.extendedAbstractImplementedMultipleGetter%Interface2.extendedAbstractImplementedMultipleGetter' is defined here.
-// abstract class AbstractClass extends Super implements Interface1, Interface2 {}
-//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^...
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_getter.dart:22:11: Context: 'Interface1.extendedAbstractImplementedGetter' is defined here.
+//   int get extendedAbstractImplementedGetter => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_getter.dart:26:11: Context: 'Interface1.extendedAbstractImplementedMultipleGetter' is defined here.
+//   int get extendedAbstractImplementedMultipleGetter => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_getter.dart:32:11: Context: 'Interface2.extendedAbstractImplementedMultipleGetter' is defined here.
+//   int get extendedAbstractImplementedMultipleGetter => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_getter.dart:8:11: Context: 'Super.extendedAbstractGetter' is defined here.
 //   int get extendedAbstractGetter;
 //           ^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_getter.dart:12:11: Context: 'Super.extendedAbstractImplementedGetter' is defined here.
+//   int get extendedAbstractImplementedGetter;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_getter.dart:16:11: Context: 'Super.extendedAbstractImplementedMultipleGetter' is defined here.
+//   int get extendedAbstractImplementedMultipleGetter;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_getter.dart:39:7: Error: The non-abstract class 'ConcreteClass' is missing implementations for these members:
+//  - Interface1.extendedAbstractImplementedGetter
+//  - Interface1.extendedAbstractImplementedMultipleGetter
+//  - Interface2.extendedAbstractImplementedMultipleGetter
 //  - Super.extendedAbstractGetter
 //  - Super.extendedAbstractImplementedGetter
 //  - Super.extendedAbstractImplementedMultipleGetter
@@ -36,6 +51,15 @@ library /*isNonNullableByDefault*/;
 //
 // class ConcreteClass extends Super implements Interface1, Interface2 {}
 //       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_getter.dart:22:11: Context: 'Interface1.extendedAbstractImplementedGetter' is defined here.
+//   int get extendedAbstractImplementedGetter => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_getter.dart:26:11: Context: 'Interface1.extendedAbstractImplementedMultipleGetter' is defined here.
+//   int get extendedAbstractImplementedMultipleGetter => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_getter.dart:32:11: Context: 'Interface2.extendedAbstractImplementedMultipleGetter' is defined here.
+//   int get extendedAbstractImplementedMultipleGetter => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/extend_multiple_getter.dart:8:11: Context: 'Super.extendedAbstractGetter' is defined here.
 //   int get extendedAbstractGetter;
 //           ^^^^^^^^^^^^^^^^^^^^^^

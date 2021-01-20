@@ -21,8 +21,6 @@ class CallerClosureFinder {
 
   ClosurePtr GetCallerInFutureImpl(const Object& future_);
 
-  ClosurePtr GetCallerInFutureListener(const Object& future_listener);
-
   ClosurePtr FindCallerInAsyncClosure(const Context& receiver_context);
 
   ClosurePtr FindCallerInAsyncGenClosure(const Context& receiver_context);
@@ -63,8 +61,6 @@ class CallerClosureFinder {
   Field& state_field;
   Field& on_data_field;
   Field& state_data_field;
-
-  DISALLOW_COPY_AND_ASSIGN(CallerClosureFinder);
 };
 
 class StackTraceUtils : public AllStatic {
@@ -72,20 +68,6 @@ class StackTraceUtils : public AllStatic {
   // Find the async_op closure from the stack frame.
   static ClosurePtr FindClosureInFrame(ObjectPtr* last_object_in_caller,
                                        const Function& function);
-
-  static ClosurePtr ClosureFromFrameFunction(
-      Zone* zone,
-      CallerClosureFinder* caller_closure_finder,
-      const DartFrameIterator& frames,
-      StackFrame* frame,
-      bool* skip_frame,
-      bool* is_async);
-
-  static void UnwindAwaiterChain(Zone* zone,
-                                 const GrowableObjectArray& code_array,
-                                 const GrowableObjectArray& pc_offset_array,
-                                 CallerClosureFinder* caller_closure_finder,
-                                 ClosurePtr leaf_closure);
 
   /// Collects all frames on the current stack until an async/async* frame is
   /// hit which has yielded before (i.e. is not in sync-async case).

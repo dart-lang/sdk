@@ -58,6 +58,20 @@ library;
 //   void set property3(int i);
 //            ^^^^^^^^^
 //
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:92:11: Error: The type 'int' of the getter 'C2.property5' is not assignable to the type 'String' of the inherited setter 'C1.property5'.
+//   int get property5; // error
+//           ^^^^^^^^^
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:76:10: Context: This is the declaration of the setter 'C1.property5'.
+//   String property5;
+//          ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:96:14: Error: The type 'String' of the getter 'C2.property6' is not assignable to the type 'int' of the inherited setter 'C1.property6'.
+//   String get property6; // error
+//              ^^^^^^^^^
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:78:7: Context: This is the declaration of the setter 'C1.property6'.
+//   int property6;
+//       ^^^^^^^^^
+//
 // pkg/front_end/testcases/general/getter_vs_setter_type.dart:92:11: Error: The return type of the method 'C2.property5' is 'int', which does not match the return type, 'String', of the overridden method, 'C1.property5'.
 // Change to a subtype of 'String'.
 //   int get property5; // error
@@ -66,13 +80,6 @@ library;
 //   String property5;
 //          ^
 //
-// pkg/front_end/testcases/general/getter_vs_setter_type.dart:92:11: Error: The type 'int' of the getter 'C2.property5' is not assignable to the type 'String' of the inherited setter 'C1.property5'.
-//   int get property5; // error
-//           ^^^^^^^^^
-// pkg/front_end/testcases/general/getter_vs_setter_type.dart:76:10: Context: This is the declaration of the setter 'C1.property5'.
-//   String property5;
-//          ^^^^^^^^^
-//
 // pkg/front_end/testcases/general/getter_vs_setter_type.dart:96:14: Error: The return type of the method 'C2.property6' is 'String', which does not match the return type, 'int', of the overridden method, 'C1.property6'.
 // Change to a subtype of 'int'.
 //   String get property6; // error
@@ -80,13 +87,6 @@ library;
 // pkg/front_end/testcases/general/getter_vs_setter_type.dart:78:7: Context: This is the overridden method ('property6').
 //   int property6;
 //       ^
-//
-// pkg/front_end/testcases/general/getter_vs_setter_type.dart:96:14: Error: The type 'String' of the getter 'C2.property6' is not assignable to the type 'int' of the inherited setter 'C1.property6'.
-//   String get property6; // error
-//              ^^^^^^^^^
-// pkg/front_end/testcases/general/getter_vs_setter_type.dart:78:7: Context: This is the declaration of the setter 'C1.property6'.
-//   int property6;
-//       ^^^^^^^^^
 //
 // pkg/front_end/testcases/general/getter_vs_setter_type.dart:115:16: Error: The type 'int' of the inherited getter 'D1.property2' is not assignable to the type 'String' of the inherited setter 'D2.property2'.
 // abstract class D3 implements D1, D2 /* error on property2 and property3 */ {}

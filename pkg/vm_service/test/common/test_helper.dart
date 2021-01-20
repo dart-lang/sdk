@@ -311,9 +311,9 @@ class _ServiceTesterRunner {
 
   Future<IsolateRef> getFirstIsolate(VmService service) async {
     var vm = await service.getVM();
-
-    if (vm.isolates.isNotEmpty) {
-      return vm.isolates.first;
+    final vmIsolates = vm.isolates!;
+    if (vmIsolates.isNotEmpty) {
+      return vmIsolates.first;
     }
     Completer<dynamic>? completer = Completer();
     late StreamSubscription subscription;
@@ -324,18 +324,18 @@ class _ServiceTesterRunner {
       }
       if (event.kind == EventKind.kIsolateRunnable) {
         vm = await service.getVM();
-        assert(vm.isolates.isNotEmpty);
+        assert(vmIsolates.isNotEmpty);
         await subscription.cancel();
-        completer!.complete(vm.isolates.first);
+        completer!.complete(vmIsolates.first);
         completer = null;
       }
     });
 
     // The isolate may have started before we subscribed.
     vm = await service.getVM();
-    if (vm.isolates.isNotEmpty) {
+    if (vmIsolates.isNotEmpty) {
       await subscription.cancel();
-      completer!.complete(vm.isolates.first);
+      completer!.complete(vmIsolates.first);
       completer = null;
     }
     return await (completer!.future as FutureOr<IsolateRef>);

@@ -78,6 +78,8 @@ nnbd_mixed/hierarchy/in_out_in: TypeCheckError
 nnbd_mixed/hierarchy/mix_in_override: TypeCheckError
 nnbd_mixed/hierarchy/override: TypeCheckError
 nnbd_mixed/inheritance_from_opt_in: TypeCheckError
+nnbd_mixed/issue40512/issue40512: TypeCheckError
+nnbd_mixed/issue41210a/issue41210: TypeCheckError
 nnbd_mixed/issue41567: TypeCheckError
 nnbd_mixed/messages_with_types_opt_in: TypeCheckError
 nnbd_mixed/messages_with_types_opt_out: TypeCheckError

@@ -91,16 +91,17 @@ Future setupProcesses() async {
 final processTests = <IsolateTest>[
   // Initial.
   (VmService service, IsolateRef isolate) async {
+    final isolateId = isolate.id!;
     final setup = await service.callServiceExtension(
       'ext.dart.io.setup',
-      isolateId: isolate.id,
+      isolateId: isolateId,
     );
     try {
-      SpawnedProcessList all = await service.getSpawnedProcesses(isolate.id);
+      SpawnedProcessList all = await service.getSpawnedProcesses(isolateId);
       expect(all.processes.length, equals(3));
 
       final first = await service.getSpawnedProcessById(
-        isolate.id,
+        isolateId,
         all.processes[0].id,
       );
 
@@ -110,7 +111,7 @@ final processTests = <IsolateTest>[
       expect(first.startedAt, greaterThan(0));
 
       final second = await service.getSpawnedProcessById(
-        isolate.id,
+        isolateId,
         all.processes[1].id,
       );
 
@@ -122,7 +123,7 @@ final processTests = <IsolateTest>[
       expect(second.startedAt, greaterThanOrEqualTo(first.startedAt));
 
       final third = await service.getSpawnedProcessById(
-        isolate.id,
+        isolateId,
         all.processes[2].id,
       );
 
@@ -134,14 +135,14 @@ final processTests = <IsolateTest>[
 
       await service.callServiceExtension(
         'ext.dart.io.closeStdin',
-        isolateId: isolate.id,
+        isolateId: isolateId,
       );
-      all = await service.getSpawnedProcesses(isolate.id);
+      all = await service.getSpawnedProcesses(isolateId);
       expect(all.processes.length, equals(2));
     } finally {
       await service.callServiceExtension(
         'ext.dart.io.cleanup',
-        isolateId: isolate.id,
+        isolateId: isolateId,
       );
     }
   },

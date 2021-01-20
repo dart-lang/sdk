@@ -17,6 +17,9 @@ const bool kPrintTrace =
 const bool kPrintDebug =
     const bool.fromEnvironment('global.type.flow.print.debug');
 
+const bool kPrintTimings =
+    const bool.fromEnvironment('global.type.flow.print.timings');
+
 const bool kPrintStats =
     const bool.fromEnvironment('global.type.flow.print.stats');
 
@@ -123,6 +126,51 @@ VariableDeclaration findNamedParameter(FunctionNode function, String name) {
       .firstWhere((p) => p.name == name, orElse: () => null);
 }
 
+class Histogram<K> {
+  final Map<K, int> values = <K, int>{};
+
+  void add(K key, [int addition = 1]) {
+    final v = values[key];
+    values[key] = (v ?? 0) + addition;
+  }
+
+  void printTop(String title, int n) {
+    print(
+        '-------------------------------------------------------------------');
+    print(title);
+    print(
+        '-------------------------------------------------------------------');
+    List<K> keys = values.keys.toList();
+    keys.sort((k1, k2) => values[k1].compareTo(values[k2]));
+    final cut = keys.length < n ? 0 : keys.length - n;
+    for (int i = keys.length - 1; i >= cut; --i) {
+      final k = keys[i];
+      print("${values[k].toString().padLeft(9)}   $k");
+    }
+    print(
+        '-------------------------------------------------------------------');
+  }
+}
+
+class CommutativePair {
+  final dynamic v1;
+  final dynamic v2;
+
+  CommutativePair(this.v1, this.v2);
+
+  @override
+  bool operator ==(other) =>
+      other is CommutativePair &&
+      ((v1 == other.v1 && v2 == other.v2) ||
+          (v1 == other.v2 && v2 == other.v1));
+
+  @override
+  int get hashCode => v1.hashCode ^ v2.hashCode;
+
+  @override
+  String toString() => "<$v1, $v2>";
+}
+
 /// Holds various statistic counters for type flow analysis.
 class Statistics {
   static int summariesCreated = 0;
@@ -134,6 +182,7 @@ class Statistics {
   static int maxInvalidationsPerInvocation = 0;
   static int recursiveInvocationsApproximated = 0;
   static int typeConeSpecializations = 0;
+  static int typeSpecializationsUsedWideCone = 0;
   static int iterationsOverInvocationsWorkList = 0;
   static int invocationsInvalidatedDuringProcessing = 0;
   static int invocationsQueriedInCache = 0;
@@ -152,6 +201,9 @@ class Statistics {
   static int protobufMessagesUsed = 0;
   static int protobufMetadataInitializersUpdated = 0;
   static int protobufMetadataFieldsPruned = 0;
+  static Histogram<String> numSummaryApplications = Histogram<String>();
+  static Histogram<String> dirtySummaryAnalysisTime = Histogram<String>();
+  static Histogram<String> pureSummaryAnalysisTime = Histogram<String>();
 
   /// Resets statistic counters.
   static void reset() {
@@ -164,6 +216,7 @@ class Statistics {
     maxInvalidationsPerInvocation = 0;
     recursiveInvocationsApproximated = 0;
     typeConeSpecializations = 0;
+    typeSpecializationsUsedWideCone = 0;
     iterationsOverInvocationsWorkList = 0;
     invocationsInvalidatedDuringProcessing = 0;
     invocationsQueriedInCache = 0;
@@ -182,9 +235,22 @@ class Statistics {
     protobufMessagesUsed = 0;
     protobufMetadataInitializersUpdated = 0;
     protobufMetadataFieldsPruned = 0;
+    numSummaryApplications = Histogram<String>();
+    dirtySummaryAnalysisTime = Histogram<String>();
+    pureSummaryAnalysisTime = Histogram<String>();
   }
 
   static void print(String caption) {
+    if (kPrintTimings) {
+      numSummaryApplications.printTop(
+          "Top summaries by number of times analyzed", 1000);
+      dirtySummaryAnalysisTime.printTop(
+          "Top summaries by dirty analysis time (including callees), in microseconds",
+          1000);
+      pureSummaryAnalysisTime.printTop(
+          "Top summaries by pure analysis time (excluding callees), in microseconds",
+          1000);
+    }
     statPrint("""${caption}:
     ${summariesCreated} summaries created
     ${summariesAnalyzed} summaries analyzed
@@ -195,6 +261,7 @@ class Statistics {
     ${maxInvalidationsPerInvocation} maximum invalidations per invocation
     ${recursiveInvocationsApproximated} recursive invocations approximated
     ${typeConeSpecializations} type cones specialized
+    ${typeSpecializationsUsedWideCone} type specializations used wide cone
     ${iterationsOverInvocationsWorkList} iterations over invocations work list
     ${invocationsInvalidatedDuringProcessing} invocations invalidated during processing
     ${invocationsQueriedInCache} invocations queried in cache

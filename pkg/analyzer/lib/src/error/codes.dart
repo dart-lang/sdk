@@ -473,29 +473,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * 15 Metadata: The constant expression given in an annotation is type checked
-   * and evaluated in the scope surrounding the declaration being annotated.
-   *
-   * 16.12.2 Const: It is a compile-time error if <i>T</i> is not a class
-   * accessible in the current scope, optionally followed by type arguments.
-   *
-   * 16.12.2 Const: If <i>e</i> is of the form <i>const T.id(a<sub>1</sub>,
-   * &hellip;, a<sub>n</sub>, x<sub>n+1</sub>: a<sub>n+1</sub>, &hellip;
-   * x<sub>n+k</sub>: a<sub>n+k</sub>)</i> it is a compile-time error if
-   * <i>T</i> is not a class accessible in the current scope, optionally
-   * followed by type arguments.
-   *
-   * Parameters:
-   * 0: the name of the non-type element
-   */
-  static const CompileTimeErrorCode ANNOTATION_WITH_NON_CLASS =
-      CompileTimeErrorCode(
-          'ANNOTATION_WITH_NON_CLASS', "The name '{0}' isn't a class.",
-          correction: "Try importing the library that declares the class, "
-              "correcting the name to match a defined class, or "
-              "defining a class with the given name.");
-
-  /**
    * Parameters:
    * 0: the name of the actual argument type
    * 1: the name of the expected type
@@ -807,12 +784,50 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * 12.18 Assignment: It is as static warning if an assignment of the form
-   * <i>v = e</i> occurs inside a top level or static function (be it function,
-   * method, getter, or setter) or variable initializer and there is neither a
-   * local variable declaration with name <i>v</i> nor setter declaration with
-   * name <i>v=</i> in the lexical scope enclosing the assignment.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the name of a function appears
+  // on the left-hand side of an assignment expression.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the assignment to the
+  // function `f` is invalid:
+  //
+  // ```dart
+  // void f() {}
+  //
+  // void g() {
+  //   [!f!] = () {};
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the right-hand side should be assigned to something else, such as a
+  // local variable, then change the left-hand side:
+  //
+  // ```dart
+  // void f() {}
+  //
+  // void g() {
+  //   var x = () {};
+  //   print(x);
+  // }
+  // ```
+  //
+  // If the intent is to change the implementation of the function, then define
+  // a function-valued variable instead of a function:
+  //
+  // ```dart
+  // void Function() f = () {};
+  //
+  // void g() {
+  //   f = () {};
+  // }
+  // ```
   static const CompileTimeErrorCode ASSIGNMENT_TO_FUNCTION =
       CompileTimeErrorCode(
           'ASSIGNMENT_TO_FUNCTION', "Functions can't be assigned a value.");
@@ -848,25 +863,104 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       hasPublishedDocs: true);
 
   /**
-   * 12.18 Assignment: It is as static warning if an assignment of the form
-   * <i>v = e</i> occurs inside a top level or static function (be it function,
-   * method, getter, or setter) or variable initializer and there is neither a
-   * local variable declaration with name <i>v</i> nor setter declaration with
-   * name <i>v=</i> in the lexical scope enclosing the assignment.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the name of a type name appears
+  // on the left-hand side of an assignment expression.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the assignment to the
+  // class `C` is invalid:
+  //
+  // ```dart
+  // class C {}
+  //
+  // void f() {
+  //   [!C!] = null;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the right-hand side should be assigned to something else, such as a
+  // local variable, then change the left-hand side:
+  //
+  // ```dart
+  // void f() {}
+  //
+  // void g() {
+  //   var c = null;
+  //   print(c);
+  // }
+  // ```
   static const CompileTimeErrorCode ASSIGNMENT_TO_TYPE = CompileTimeErrorCode(
       'ASSIGNMENT_TO_TYPE', "Types can't be assigned a value.");
 
   /**
-   * 17.6.3 Asynchronous For-in: It is a compile-time error if an asynchronous
-   * for-in statement appears inside a synchronous function.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an async for-in loop is found in
+  // a function or method whose body isn't marked as being either `async` or
+  // `async*`.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the body of `f` isn't
+  // marked as being either `async` or `async*`, but `f` contains an async
+  // for-in loop:
+  //
+  // ```dart
+  // void f(list) {
+  //   await for (var e [!in!] list) {
+  //     print(e);
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the function should return a `Future`, then mark the body with `async`:
+  //
+  // ```dart
+  // Future<void> f(list) async {
+  //   await for (var e in list) {
+  //     print(e);
+  //   }
+  // }
+  // ```
+  //
+  // If the function should return a `Stream` of values, then mark the body with
+  // `async*`:
+  //
+  // ```dart
+  // Stream<void> f(list) async* {
+  //   await for (var e in list) {
+  //     print(e);
+  //   }
+  // }
+  // ```
+  //
+  // If the function should be synchronous, then remove the `await` before the
+  // loop:
+  //
+  // ```dart
+  // void f(list) {
+  //   for (var e in list) {
+  //     print(e);
+  //   }
+  // }
+  // ```
   static const CompileTimeErrorCode ASYNC_FOR_IN_WRONG_CONTEXT =
       CompileTimeErrorCode('ASYNC_FOR_IN_WRONG_CONTEXT',
-          "The async for-in can only be used in an async function.",
+          "The async for-in loop can only be used in an async function.",
           correction:
               "Try marking the function body with either 'async' or 'async*', "
-              "or removing the 'await' before the for loop.");
+              "or removing the 'await' before the for-in loop.");
 
   /**
    * No parameters.
@@ -1009,9 +1103,62 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "Try adding either a return or a throw statement at the end.",
           hasPublishedDocs: true);
 
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a break in a case clause inside
+  // a switch statement has a label that is associated with another case clause.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the label `l` is
+  // associated with the case clause for `0`:
+  //
+  // ```dart
+  // void f(int i) {
+  //   switch (i) {
+  //     l: case 0:
+  //       break;
+  //     case 1:
+  //       break [!l!];
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the intent is to transfer control to the statement after the switch,
+  // then remove the label from the break statement:
+  //
+  // ```dart
+  // void f(int i) {
+  //   switch (i) {
+  //     case 0:
+  //       break;
+  //     case 1:
+  //       break;
+  //   }
+  // }
+  // ```
+  //
+  // If the intent is to transfer control to a different case block, then use
+  // `continue` rather than `break`:
+  //
+  // ```dart
+  // void f(int i) {
+  //   switch (i) {
+  //     l: case 0:
+  //       break;
+  //     case 1:
+  //       continue l;
+  //   }
+  // }
+  // ```
   static const CompileTimeErrorCode BREAK_LABEL_ON_SWITCH_MEMBER =
       CompileTimeErrorCode('BREAK_LABEL_ON_SWITCH_MEMBER',
-          "Break label resolves to case or default statement");
+          "A break label resolves to the 'case' or 'default' statement.");
 
   /**
    * Parameters:
@@ -1176,16 +1323,107 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * 13.9 Switch: It is a compile-time error if the class <i>C</i> implements
-   * the operator <i>==</i>.
-   *
    * Parameters:
    * 0: the this of the switch case expression
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the type of the expression
+  // following the keyword `case` has an implementation of the `==` operator
+  // other than the one in `Object`.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the expression
+  // following the keyword `case` (`C(0)`) has the type `C`, and the class `C`
+  // overrides the `==` operator:
+  //
+  // ```dart
+  // class C {
+  //   final int value;
+  //
+  //   const C(this.value);
+  //
+  //   bool operator ==(Object other) {
+  //     return false;
+  //   }
+  // }
+  //
+  // void f(C c) {
+  //   switch (c) {
+  //     case [!C(0)!]:
+  //       break;
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If there isn't a strong reason not to do so, then rewrite the code to use
+  // an if-else structure:
+  //
+  // ```dart
+  // class C {
+  //   final int value;
+  //
+  //   const C(this.value);
+  //
+  //   bool operator ==(Object other) {
+  //     return false;
+  //   }
+  // }
+  //
+  // void f(C c) {
+  //   if (c == C(0)) {
+  //     // ...
+  //   }
+  // }
+  // ```
+  //
+  // If you can't rewrite the switch statement and the implementation of `==`
+  // isn't necessary, then remove it:
+  //
+  // ```dart
+  // class C {
+  //   final int value;
+  //
+  //   const C(this.value);
+  // }
+  //
+  // void f(C c) {
+  //   switch (c) {
+  //     case C(0):
+  //       break;
+  //   }
+  // }
+  // ```
+  //
+  // If you can't rewrite the switch statement and you can't remove the
+  // definition of `==`, then find some other value that can be used to control
+  // the switch:
+  //
+  // ```dart
+  // class C {
+  //   final int value;
+  //
+  //   const C(this.value);
+  //
+  //   bool operator ==(Object other) {
+  //     return false;
+  //   }
+  // }
+  //
+  // void f(C c) {
+  //   switch (c.value) {
+  //     case 0:
+  //       break;
+  //   }
+  // }
+  // ```
   static const CompileTimeErrorCode CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS =
       CompileTimeErrorCode(
           'CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS',
-          "The switch case expression type '{0}' can't override the == "
+          "The switch case expression type '{0}' can't override the '==' "
               "operator.");
 
   /**
@@ -2306,9 +2544,56 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * 7.6.2 Factories: It is a compile-time error if <i>k</i> explicitly
-   * specifies a default value for an optional parameter.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a factory constructor that
+  // redirects to another constructor specifies a default value for an optional
+  // parameter.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the factory constructor
+  // in `A` has a default value for the optional parameter `x`:
+  //
+  // ```dart
+  // class A {
+  //   factory A([int [!x!] = 0]) = B;
+  // }
+  //
+  // class B implements A {
+  //   B([int x = 1]) {}
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the default value from the factory constructor:
+  //
+  // ```dart
+  // class A {
+  //   factory A([int x]) = B;
+  // }
+  //
+  // class B implements A {
+  //   B([int x = 1]) {}
+  // }
+  // ```
+  //
+  // Note that this fix might change the value used when the optional parameter
+  // is omitted. If that happens, and if that change is a problem, then consider
+  // making the optional parameter a required parameter in the factory method:
+  //
+  // ```dart
+  // class A {
+  //  factory A(int x) = B;
+  // }
+  //
+  // class B implements A {
+  //   B([int x = 1]) {}
+  // }
+  // ```
   static const CompileTimeErrorCode
       DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR = CompileTimeErrorCode(
           'DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR',
@@ -3521,13 +3806,39 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It
-   * is a compile time error if more than one initializer corresponding to a
-   * given instance variable appears in <i>k</i>'s list.
-   *
    * Parameters:
    * 0: the name of the field being initialized multiple times
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the initializer list of a
+  // constructor initializes a field more than once. There is no value to allow
+  // both initializers because only the last value is preserved.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the field `f` is being
+  // initialized twice:
+  //
+  // ```dart
+  // class C {
+  //   int f;
+  //
+  //   C() : f = 0, [!f!] = 1;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove one of the initializers:
+  //
+  // ```dart
+  // class C {
+  //   int f;
+  //
+  //   C() : f = 0;
+  // }
+  // ```
   static const CompileTimeErrorCode FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS =
       CompileTimeErrorCode('FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS',
           "The field '{0}' can't be initialized twice in the same constructor.",
@@ -3586,11 +3897,60 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It
-   * is a compile time error if <i>k</i>'s initializer list contains an
-   * initializer for a variable that is initialized by means of an initializing
-   * formal of <i>k</i>.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a field is initialized in both
+  // the parameter list and in the initializer list of a constructor.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the field `f` is
+  // initialized both by a field formal parameter and in the initializer list:
+  //
+  // ```dart
+  // class C {
+  //   int f;
+  //
+  //   C(this.f) : [!f!] = 0;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the field should be initialized by the parameter, then remove the
+  // initialization in the initializer list:
+  //
+  // ```dart
+  // class C {
+  //   int f;
+  //
+  //   C(this.f);
+  // }
+  // ```
+  //
+  // If the field should be initialized in the initializer list and the
+  // parameter isn't needed, then remove the parameter:
+  //
+  // ```dart
+  // class C {
+  //   int f;
+  //
+  //   C() : f = 0;
+  // }
+  // ```
+  //
+  // If the field should be initialized in the initializer list and the
+  // parameter is needed, then make it a normal parameter:
+  //
+  // ```dart
+  // class C {
+  //   int f;
+  //
+  //   C(int g) : f = g * 2;
+  // }
+  // ```
   static const CompileTimeErrorCode
       FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER = CompileTimeErrorCode(
           'FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER',
@@ -3599,10 +3959,38 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try removing one of the initializations.");
 
   /**
-   * 7.6.1 Generative Constructors: It is a compile-time error if an
-   * initializing formal is used by a function other than a non-redirecting
-   * generative constructor.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a factory constructor has a
+  // field formal parameter. Factory constructors can't assign values to fields
+  // because no instance is created; hence, there is no field to assign.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the factory constructor
+  // uses a field formal parameter:
+  //
+  // ```dart
+  // class C {
+  //   int? f;
+  //
+  //   factory C([!this.f!]) => throw 0;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Replace the field formal parameter with a normal parameter:
+  //
+  // ```dart
+  // class C {
+  //   int? f;
+  //
+  //   factory C(int f) => throw 0;
+  // }
+  // ```
   static const CompileTimeErrorCode FIELD_INITIALIZER_FACTORY_CONSTRUCTOR =
       CompileTimeErrorCode(
           'FIELD_INITIALIZER_FACTORY_CONSTRUCTOR',
@@ -3675,27 +4063,139 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try using a normal parameter.");
 
   /**
-   * 7.6.1 Generative Constructors: A generative constructor may be redirecting,
-   * in which case its only action is to invoke another generative constructor.
-   *
-   * 7.6.1 Generative Constructors: It is a compile-time error if an
-   * initializing formal is used by a function other than a non-redirecting
-   * generative constructor.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a redirecting constructor
+  // initializes a field in the object. This isn't allowed because the instance
+  // that has the field hasn't been created at the point at which it should be
+  // initialized.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the constructor
+  // `C.zero`, which redirects to the constructor `C`, has a field formal
+  // parameter that initializes the field `f`:
+  //
+  // ```dart
+  // class C {
+  //   int f;
+  //
+  //   C(this.f);
+  //
+  //   C.zero([!this.f!]) : this(f);
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because the constructor
+  // `C.zero`, which redirects to the constructor `C`, has an initializer that
+  // initializes the field `f`:
+  //
+  // ```dart
+  // class C {
+  //   int f;
+  //
+  //   C(this.f);
+  //
+  //   C.zero() : [!f = 0!], this(1);
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the initialization is done by a field formal parameter, then use a
+  // normal parameter:
+  //
+  // ```dart
+  // class C {
+  //   int f;
+  //
+  //   C(this.f);
+  //
+  //   C.zero(int f) : this(f);
+  // }
+  // ```
+  //
+  // If the initialization is done in an initializer, then remove the
+  // initializer:
+  //
+  // ```dart
+  // class C {
+  //   int f;
+  //
+  //   C(this.f);
+  //
+  //   C.zero() : this(0);
+  // }
+  // ```
   static const CompileTimeErrorCode FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR =
       CompileTimeErrorCode('FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR',
           "The redirecting constructor can't have a field initializer.",
-          correction: "Try using a normal parameter.");
+          correction:
+              "Try initializing the field in the constructor being redirected "
+              "to.");
 
   /**
-   * 7.6.1 Generative Constructors: An initializing formal has the form
-   * <i>this.id</i>. It is a static warning if the static type of <i>id</i> is
-   * not assignable to <i>T<sub>id</sub></i>.
-   *
    * Parameters:
    * 0: the name of the type of the field formal parameter
    * 1: the name of the type of the field
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the type of a field formal
+  // parameter isn't assignable to the type of the field being initialized.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the field formal
+  // parameter has the type `String`, but the type of the field is `int`. The
+  // parameter must have a type that is a subtype of the field's type.
+  //
+  // ```dart
+  // class C {
+  //   int f;
+  //
+  //   C([!String this.f!]);
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the type of the field is incorrect, then change the type of the field to
+  // match the type of the parameter, and consider removing the type from the
+  // parameter:
+  //
+  // ```dart
+  // class C {
+  //   String f;
+  //
+  //   C(this.f);
+  // }
+  // ```
+  //
+  // If the type of the parameter is incorrect, then remove the type of the
+  // parameter:
+  //
+  // ```dart
+  // class C {
+  //   int f;
+  //
+  //   C(this.f);
+  // }
+  // ```
+  //
+  // If the types of both the field and the parameter are correct, then use an
+  // initializer rather than a field formal parameter to convert the parameter
+  // value into a value of the correct type:
+  //
+  // ```dart
+  // class C {
+  //   int f;
+  //
+  //   C(String s) : f = int.parse(s);
+  // }
+  // ```
   static const CompileTimeErrorCode FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE =
       CompileTimeErrorCode('FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE',
           "The parameter type '{0}' is incompatible with the field type '{1}'.",
@@ -3703,13 +4203,50 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "changing the field's type.");
 
   /**
-   * 5. Variables: It is a static warning if a final instance variable that has
-   * been initialized at its point of declaration is also initialized in a
-   * constructor.
-   *
    * Parameters:
    * 0: the name of the field in question
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a final field is initialized
+  // twice: once where it's declared and once by a constructor's parameter.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the field `f` is
+  // initialized twice:
+  //
+  // ```dart
+  // class C {
+  //   final int f = 0;
+  //
+  //   C(this.[!f!]);
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the field should have the same value for all instances, then remove the
+  // initialization in the parameter list:
+  //
+  // ```dart
+  // class C {
+  //   final int f = 0;
+  //
+  //   C();
+  // }
+  // ```
+  //
+  // If the field can have different values in different instances, then remove
+  // the initialization in the declaration:
+  //
+  // ```dart
+  // class C {
+  //   final int f;
+  //
+  //   C(this.f);
+  // }
+  // ```
   static const CompileTimeErrorCode
       FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR = CompileTimeErrorCode(
           'FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR',
@@ -5076,18 +5613,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "changing the import to not be deferred.");
 
   /**
-   * No parameters.
-   */
-  static const CompileTimeErrorCode INVALID_ANNOTATION_GETTER =
-      CompileTimeErrorCode(
-    'INVALID_ANNOTATION',
-    "Getters can't be used as annotations.",
-    correction: "Try using a top-level variable or a field.",
-    hasPublishedDocs: true,
-    uniqueName: 'INVALID_ANNOTATION_GETTER',
-  );
-
-  /**
    * Parameters:
    * 0: the name of the right hand side type
    * 1: the name of the left hand side type
@@ -5365,6 +5890,32 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "the immediately enclosing class.",
           hasPublishedDocs: true);
 
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a generic function type has a
+  // function-valued parameter that is written using the older inline function
+  // type syntax.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the parameter `f`, in
+  // the generic function type used to define `F`, uses the inline function
+  // type syntax:
+  //
+  // ```dart
+  // typedef F = int Function(int f[!(!]String s));
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Use the generic function syntax for the parameter's type:
+  //
+  // ```dart
+  // typedef F = int Function(int Function(String));
+  // ```
   static const CompileTimeErrorCode INVALID_INLINE_FUNCTION_TYPE =
       CompileTimeErrorCode(
           'INVALID_INLINE_FUNCTION_TYPE',
@@ -5895,19 +6446,58 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       "Can't reference label '{0}' declared in an outer method.");
 
   /**
-   * 13.13 Break: It is a compile-time error if no such statement
-   * <i>s<sub>E</sub></i> exists within the innermost function in which
-   * <i>s<sub>b</sub></i> occurs.
-   *
-   * 13.14 Continue: It is a compile-time error if no such statement or case
-   * clause <i>s<sub>E</sub></i> exists within the innermost function in which
-   * <i>s<sub>c</sub></i> occurs.
-   *
    * Parameters:
    * 0: the name of the unresolvable label
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when it finds a reference to a label
+  // that isn't defined in the scope of the `break` or `continue` statement that
+  // is referencing it.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the label `loop` isn't
+  // defined anywhere:
+  //
+  // ```dart
+  // void f() {
+  //   for (int i = 0; i < 10; i++) {
+  //     for (int j = 0; j < 10; j++) {
+  //       break [!loop!];
+  //     }
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the label should be on the innermost enclosing `do`, `for`, `switch`, or
+  // `while` statement, then remove the label:
+  //
+  // ```dart
+  // void f() {
+  //   for (int i = 0; i < 10; i++) {
+  //     for (int j = 0; j < 10; j++) {
+  //       break;
+  //     }
+  //   }
+  // }
+  // ```
+  //
+  // If the label should be on some other statement, then add the label:
+  //
+  // ```dart
+  // void f() {
+  //   loop: for (int i = 0; i < 10; i++) {
+  //     for (int j = 0; j < 10; j++) {
+  //       break loop;
+  //     }
+  //   }
+  // }
+  // ```
   static const CompileTimeErrorCode LABEL_UNDEFINED = CompileTimeErrorCode(
-      'LABEL_UNDEFINED', "Can't reference undefined label '{0}'.",
+      'LABEL_UNDEFINED', "Can't reference an undefined label '{0}'.",
       correction: "Try defining the label, or "
           "correcting the name to match an existing label.");
 
@@ -6067,34 +6657,127 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the first positional parameter
+  // of a function named `main` isn't a supertype of `List<String>`.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `List<int>` isn't a
+  // supertype of `List<String>`:
+  //
+  // ```dart
+  // void main([!List<int>!] args) {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the function is an entry point, then change the type of the first
+  // positional parameter to be a supertype of `List<String>`:
+  //
+  // ```dart
+  // void main(List<String> args) {}
+  // ```
+  //
+  // If the function isn't an entry point, then change the name of the function:
+  //
+  // ```dart
+  // void f(List<int> args) {}
+  // ```
   static const CompileTimeErrorCode MAIN_FIRST_POSITIONAL_PARAMETER_TYPE =
       CompileTimeErrorCode(
     'MAIN_FIRST_POSITIONAL_PARAMETER_TYPE',
-    "The type of the first positional parameter of the 'main' function "
-        "must be a supertype of List<String>.",
+    "The type of the first positional parameter of the 'main' function must be "
+        "a supertype of 'List<String>'.",
     correction: "Try changing the type of the parameter.",
   );
 
   /**
    * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a function named `main` has one
+  // or more required named parameters.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the function named
+  // `main` has a required named parameter (`x`):
+  //
+  // ```dart
+  // void [!main!]({required int x}) {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the function is an entry point, then remove the `required` keyword:
+  //
+  // ```dart
+  // void main({int? x}) {}
+  // ```
+  //
+  // If the function isn't an entry point, then change the name of the function:
+  //
+  // ```dart
+  // void f({required int x}) {}
+  // ```
   static const CompileTimeErrorCode MAIN_HAS_REQUIRED_NAMED_PARAMETERS =
       CompileTimeErrorCode(
     'MAIN_HAS_REQUIRED_NAMED_PARAMETERS',
     "The function 'main' can't have any required named parameters.",
-    correction: "Try using a different name for the function, "
-        "or removing the 'required' modifier.",
+    correction: "Try using a different name for the function, or removing the "
+        "'required' modifier.",
   );
 
   /**
    * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a function named `main` has more
+  // than two required positional parameters.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the function `main` has
+  // three required positional parameters:
+  //
+  // ```dart
+  // void [!main!](List<String> args, int x, int y) {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the function is an entry point and the extra parameters aren't used,
+  // then remove them:
+  //
+  // ```dart
+  // void main(List<String> args, int x) {}
+  // ```
+  //
+  // If the function is an entry point, but the extra parameters used are for
+  // when the function isn't being used as an entry point, then make the extra
+  // parameters optional:
+  //
+  // ```dart
+  // void main(List<String> args, int x, [int y = 0]) {}
+  // ```
+  //
+  // If the function isn't an entry point, then change the name of the function:
+  //
+  // ```dart
+  // void f(List<String> args, int x, int y) {}
+  // ```
   static const CompileTimeErrorCode
       MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS = CompileTimeErrorCode(
     'MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS',
-    "The function 'main' can't have more than two required positional parameters.",
-    correction: "Try using a different name for the function, "
-        "or removing extra parameters.",
+    "The function 'main' can't have more than two required positional "
+        "parameters.",
+    correction:
+        "Try using a different name for the function, or removing extra "
+        "parameters.",
   );
 
   /**
@@ -7681,6 +8364,55 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "superinitializer or changing the superclass constructor '{2}' "
               "to not be a factory constructor.");
 
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the body of a factory
+  // constructor is marked with `async`, `async*`, or `sync*`. All constructors,
+  // including factory constructors, are required to return an instance of the
+  // class in which they're declared, not a `Future`, `Stream`, or `Iterator`.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the body of the factory
+  // constructor is marked with `async`:
+  //
+  // ```dart
+  // class C {
+  //   factory C() [!async!] {
+  //     return C._();
+  //   }
+  //   C._();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the member must be declared as a factory constructor, then remove the
+  // keyword appearing before the body:
+  //
+  // ```dart
+  // class C {
+  //   factory C() {
+  //     return C._();
+  //   }
+  //   C._();
+  // }
+  // ```
+  //
+  // If the member must return something other than an instance of the enclosing
+  // class, then make the member a static method:
+  //
+  // ```dart
+  // class C {
+  //   static Future<C> m() async {
+  //     return C._();
+  //   }
+  //   C._();
+  // }
+  // ```
   static const CompileTimeErrorCode NON_SYNC_FACTORY = CompileTimeErrorCode(
       'NON_SYNC_FACTORY',
       "Factory bodies can't use 'async', 'async*', or 'sync*'.");
@@ -8381,17 +9113,53 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The class 'Object' can't extend any other class.");
 
   /**
-   * 10.10 Superinterfaces: It is a compile-time error if two elements in the
-   * type list of the implements clause of a class `C` specifies the same
-   * type `T`.
-   *
    * Parameters:
    * 0: the name of the interface that is implemented more than once
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the same type is listed in the
+  // superclass constraints of a mixin multiple times.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `A` is included twice
+  // in the superclass constraints for `M`:
+  //
+  // ```dart
+  // mixin M on A, [!A!] {
+  // }
+  //
+  // class A {}
+  // class B {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If a different type should be included in the superclass constraints, then
+  // replace one of the occurrences with the other type:
+  //
+  // ```dart
+  // mixin M on A, B {
+  // }
+  //
+  // class A {}
+  // class B {}
+  // ```
+  //
+  // If no other type was intended, then remove the repeated type name:
+  //
+  // ```dart
+  // mixin M on A {
+  // }
+  //
+  // class A {}
+  // class B {}
+  // ```
   static const CompileTimeErrorCode ON_REPEATED = CompileTimeErrorCode(
       'ON_REPEATED',
-      "'{0}' can only be used in super-class constraints only once.",
-      correction: "Try removing all but one occurrence of the class name.");
+      "The type '{0}' can be included in the superclass constraints only once.",
+      correction: "Try removing all except one occurrence of the type name.");
 
   /**
    * 7.1.1 Operators: It is a compile-time error to declare an optional
@@ -8636,9 +9404,33 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try removing '{1}' from the 'with' clause.");
 
   /**
-   * 6.2.2 Optional Formals: It is a compile-time error if the name of a named
-   * optional parameter begins with an '_' character.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the name of a named parameter
+  // starts with an underscore.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the named parameter
+  // `_x` starts with an underscore:
+  //
+  // ```dart
+  // class C {
+  //   void m({int [!_x!] = 0}) {}
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Rename the parameter so that it doesn't start with an underscore:
+  //
+  // ```dart
+  // class C {
+  //   void m({int x = 0}) {}
+  // }
+  // ```
   static const CompileTimeErrorCode PRIVATE_OPTIONAL_PARAMETER =
       CompileTimeErrorCode('PRIVATE_OPTIONAL_PARAMETER',
           "Named parameters can't start with an underscore.");
@@ -8658,16 +9450,39 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   /**
-   * 12.1 Constants: It is a compile-time error if the value of a compile-time
-   * constant expression depends on itself.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the value of a compile-time
+  // constant is defined in terms of itself, either directly or indirectly,
+  // creating an infinite loop.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic twice because both of the
+  // constants are defined in terms of the other:
+  //
+  // ```dart
+  // const [!secondsPerHour!] = minutesPerHour * 60;
+  // const [!minutesPerHour!] = secondsPerHour / 60;
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Break the cycle by finding an alternative way of defining at least one of
+  // the constants:
+  //
+  // ```dart
+  // const secondsPerHour = minutesPerHour * 60;
+  // const minutesPerHour = 60;
+  // ```
   static const CompileTimeErrorCode RECURSIVE_COMPILE_TIME_CONSTANT =
       CompileTimeErrorCode('RECURSIVE_COMPILE_TIME_CONSTANT',
-          "Compile-time constant expression depends on itself.");
+          "The compile-time constant expression depends on itself.");
 
   /**
-   * 7.6.1 Generative Constructors: A generative constructor may be redirecting,
-   * in which case its only action is to invoke another generative constructor.
+   * No parameters.
    *
    * TODO(scheglov) review this later, there are no explicit "it is a
    * compile-time error" in specification. But it was added to the co19 and
@@ -8675,6 +9490,89 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    *
    * https://code.google.com/p/dart/issues/detail?id=954
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a constructor redirects to
+  // itself, either directly or indirectly, creating an infinite loop.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the generative
+  // constructors `C.a` and `C.b` each redirect to the other:
+  //
+  // ```dart
+  // class C {
+  //   C.a() : [!this.b()!];
+  //   C.b() : [!this.a()!];
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because the factory
+  // constructors `A` and `B` each redirect to the other:
+  //
+  // ```dart
+  // abstract class A {
+  //   factory A() = [!B!];
+  // }
+  // class B implements A {
+  //   factory B() = [!A!];
+  //   B.named();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // In the case of generative constructors, break the cycle by finding defining
+  // at least one of the constructors to not redirect to another constructor:
+  //
+  // ```dart
+  // class C {
+  //   C.a() : this.b();
+  //   C.b();
+  // }
+  // ```
+  //
+  // In the case of factory constructors, break the cycle by defining at least
+  // one of the factory constructors to do one of the following:
+  //
+  // - Redirect to a generative constructor:
+  //
+  // ```dart
+  // abstract class A {
+  //   factory A() = B;
+  // }
+  // class B implements A {
+  //   factory B() = B.named;
+  //   B.named();
+  // }
+  // ```
+  //
+  // - Not redirect to another constructor:
+  //
+  // ```dart
+  // abstract class A {
+  //   factory A() = B;
+  // }
+  // class B implements A {
+  //   factory B() {
+  //     return B.named();
+  //   }
+  //
+  //   B.named();
+  // }
+  // ```
+  //
+  // - Not be a factory constructor:
+  //
+  // ```dart
+  // abstract class A {
+  //   factory A() = B;
+  // }
+  // class B implements A {
+  //   B();
+  //   B.named();
+  // }
+  // ```
   static const CompileTimeErrorCode RECURSIVE_CONSTRUCTOR_REDIRECT =
       CompileTimeErrorCode(
           'RECURSIVE_CONSTRUCTOR_REDIRECT',
@@ -8684,9 +9582,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               'redirect.');
 
   /**
-   * 7.6.2 Factories: It is a compile-time error if a redirecting factory
-   * constructor redirects to itself, either directly or indirectly via a
-   * sequence of redirections.
+   * No parameters.
    */
   static const CompileTimeErrorCode RECURSIVE_FACTORY_REDIRECT =
       CompileTimeErrorCode(
@@ -8694,8 +9590,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "Constructors can't redirect to themselves either directly or "
               "indirectly.",
           uniqueName: 'RECURSIVE_FACTORY_REDIRECT',
-          correction: 'Try changing one of the constructors in the loop to '
-              'redirect to a non-factory constructor.');
+          correction: 'Try changing one of the constructors in the loop to not '
+              'redirect.');
 
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the interface of a
@@ -8775,10 +9671,43 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "'{0}' can't use itself as a mixin.");
 
   /**
-   * 7.6.1 Generative constructors: A generative constructor may be
-   * <i>redirecting</i>, in which case its only action is to invoke another
-   * generative constructor.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a generative constructor
+  // redirects to a constructor that isn't defined.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the constructor `C.a`
+  // redirects to the constructor `C.b`, but `C.b` isn't defined:
+  //
+  // ```dart
+  // class C {
+  //   C.a() : [!this.b()!];
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the missing constructor must be called, then define it:
+  //
+  // ```dart
+  // class C {
+  //   C.a() : this.b();
+  //   C.b();
+  // }
+  // ```
+  //
+  // If the missing constructor doesn't need to be called, then remove the
+  // redirect:
+  //
+  // ```dart
+  // class C {
+  //   C.a();
+  // }
+  // ```
   static const CompileTimeErrorCode REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR =
       CompileTimeErrorCode('REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR',
           "The constructor '{0}' couldn't be found in '{1}'.",
@@ -8786,14 +9715,50 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "defining the constructor named '{0}'.");
 
   /**
-   * 7.6.1 Generative constructors: A generative constructor may be
-   * <i>redirecting</i>, in which case its only action is to invoke another
-   * generative constructor.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a generative constructor
+  // redirects to a factory constructor.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the generative
+  // constructor `C.a` redirects to the factory constructor `C.b`:
+  //
+  // ```dart
+  // class C {
+  //   C.a() : [!this.b()!];
+  //   factory C.b() => C.a();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the generative constructor doesn't need to redirect to another
+  // constructor, then remove the redirect.
+  //
+  // ```dart
+  // class C {
+  //   C.a();
+  //   factory C.b() => C.a();
+  // }
+  // ```
+  //
+  // If the generative constructor must redirect to another constructor, then
+  // make the other constructor be a generative (non-factory) constructor:
+  //
+  // ```dart
+  // class C {
+  //   C.a() : this.b();
+  //   C.b();
+  // }
+  // ```
   static const CompileTimeErrorCode
       REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR = CompileTimeErrorCode(
           'REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR',
-          "Generative constructor can't redirect to a factory constructor.",
+          "Generative constructors can't redirect to a factory constructor.",
           correction: "Try redirecting to a different constructor.");
 
   /**
@@ -9009,13 +9974,50 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * 7.6.2 Factories: It is a compile-time error if <i>k</i> is prefixed with
-   * the const modifier but <i>k'</i> is not a constant constructor.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a constructor marked as `const`
+  // redirects to a constructor that isn't marked as `const`.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the constructor `C.a`
+  // is marked as `const` but redirects to the constructor `C.b`, which isn't:
+  //
+  // ```dart
+  // class C {
+  //   const C.a() : this.[!b!]();
+  //   C.b();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the non-constant constructor can be marked as `const`, then mark it as
+  // `const`:
+  //
+  // ```dart
+  // class C {
+  //   const C.a() : this.b();
+  //   const C.b();
+  // }
+  // ```
+  //
+  // If the non-constant constructor can't be marked as `const`, then either
+  // remove the redirect or remove `const` from the redirecting constructor:
+  //
+  // ```dart
+  // class C {
+  //   C.a() : this.b();
+  //   C.b();
+  // }
+  // ```
   static const CompileTimeErrorCode REDIRECT_TO_NON_CONST_CONSTRUCTOR =
       CompileTimeErrorCode(
           'REDIRECT_TO_NON_CONST_CONSTRUCTOR',
-          "Constant redirecting constructor can't redirect to a non-constant "
+          "A constant redirecting constructor can't redirect to a non-constant "
               "constructor.",
           correction: "Try redirecting to a different constructor.");
 
@@ -9092,12 +10094,52 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * 12.8.1 Rethrow: It is a compile-time error if an expression of the form
-   * <i>rethrow;</i> is not enclosed within a on-catch clause.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a `rethrow` statement is outside
+  // a `catch` clause. The `rethrow` statement is used to throw a caught
+  // exception again, but there's no caught exception outside of a `catch`
+  // clause.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the`rethrow` statement
+  // is outside of a `catch` clause:
+  //
+  // ```dart
+  // void f() {
+  //   [!rethrow!];
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you're trying to rethrow an exception, then wrap the `rethrow` statement
+  // in a `catch` clause:
+  //
+  // ```dart
+  // void f() {
+  //   try {
+  //     // ...
+  //   } catch (exception) {
+  //     rethrow;
+  //   }
+  // }
+  // ```
+  //
+  // If you're trying to throw a new exception, then replace the `rethrow`
+  // statement with a `throw` expression:
+  //
+  // ```dart
+  // void f() {
+  //   throw UnsupportedError('Not yet implemented');
+  // }
+  // ```
   static const CompileTimeErrorCode RETHROW_OUTSIDE_CATCH =
-      CompileTimeErrorCode(
-          'RETHROW_OUTSIDE_CATCH', "Rethrow must be inside of catch clause.",
+      CompileTimeErrorCode('RETHROW_OUTSIDE_CATCH',
+          "A rethrow must be inside of a catch clause.",
           correction:
               "Try moving the expression into a catch clause, or using a "
               "'throw' expression.");
@@ -9326,9 +10368,46 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The element type '{0}' can't be assigned to the set type '{1}'.");
 
   /**
-   * 14.1 Imports: It is a compile-time error if a prefix used in a deferred
-   * import is used in another import clause.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a prefix in a deferred import is
+  // also used as a prefix in other imports (whether deferred or not). The
+  // prefix in a deferred import can't be shared with other imports because the
+  // prefix is used to load the imported library.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the prefix `x` is used
+  // as the prefix for a deferred import and is also used for one other import:
+  //
+  // ```dart
+  // import 'dart:math' [!deferred!] as x;
+  // import 'dart:convert' as x;
+  //
+  // var y = x.json.encode(x.min(0, 1));
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you can use a different name for the deferred import, then do so:
+  //
+  // ```dart
+  // import 'dart:math' deferred as math;
+  // import 'dart:convert' as x;
+  //
+  // var y = x.json.encode(math.min(0, 1));
+  // ```
+  //
+  // If you can use a different name for the other imports, then do so:
+  //
+  // ```dart
+  // import 'dart:math' deferred as x;
+  // import 'dart:convert' as convert;
+  //
+  // var y = convert.json.encode(x.min(0, 1));
+  // ```
   static const CompileTimeErrorCode SHARED_DEFERRED_PREFIX =
       CompileTimeErrorCode(
           'SHARED_DEFERRED_PREFIX',
@@ -9466,9 +10545,37 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * 7.6.1 Generative Constructors: A generative constructor may be redirecting,
-   * in which case its only action is to invoke another generative constructor.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a constructor that redirects to
+  // another constructor also attempts to invoke a constructor from the
+  // superclass. The superclass constructor will be invoked when the constructor
+  // that the redirecting constructor is redirected to is invoked.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the constructor `C.a`
+  // both redirects to `C.b` and invokes a constructor from the superclass:
+  //
+  // ```dart
+  // class C {
+  //   C.a() : this.b(), [!super()!];
+  //   C.b();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the invocation of the `super` constructor:
+  //
+  // ```dart
+  // class C {
+  //   C.a() : this.b();
+  //   C.b();
+  // }
+  // ```
   static const CompileTimeErrorCode SUPER_IN_REDIRECTING_CONSTRUCTOR =
       CompileTimeErrorCode('SUPER_IN_REDIRECTING_CONSTRUCTOR',
           "The redirecting constructor can't have a 'super' initializer.");
@@ -9666,13 +10773,45 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * 10 Generics: However, a type parameter is considered to be a malformed type
-   * when referenced by a static member.
-   *
-   * 15.1 Static Types: Any use of a malformed type gives rise to a static
-   * warning. A malformed type is then interpreted as dynamic by the static type
-   * checker and the runtime.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a static member references a
+  // type parameter that is declared for the class. Type parameters only have
+  // meaning for instances of the class.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the static method
+  // `hasType` has a reference to the type parameter `T`:
+  //
+  // ```dart
+  // class C<T> {
+  //   static bool hasType(Object o) => o is [!T!];
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the member can be an instance member, then remove the keyword `static`:
+  //
+  // ```dart
+  // class C<T> {
+  //   bool hasType(Object o) => o is T;
+  // }
+  // ```
+  //
+  // If the member must be a static member, then make the member be generic:
+  //
+  // ```dart
+  // class C<T> {
+  //   static bool hasType<S>(Object o) => o is S;
+  // }
+  // ```
+  //
+  // Note, however, that there isn’t a relationship between `T` and `S`, so this
+  // second option changes the semantics from what was likely to be intended.
   static const CompileTimeErrorCode TYPE_PARAMETER_REFERENCED_BY_STATIC =
       CompileTimeErrorCode('TYPE_PARAMETER_REFERENCED_BY_STATIC',
           "Static members can't reference type parameters of the class.",
@@ -10934,9 +12073,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   /**
-   * 12.15.1 Ordinary Invocation: It is a static type warning if <i>T</i> does
-   * not have an accessible (3.2) instance member named <i>m</i>.
-   *
    * This is a specialization of [INSTANCE_ACCESS_TO_STATIC_MEMBER] that is used
    * when we are able to find the name defined in a supertype. It exists to
    * provide a more informative error message.
@@ -10944,6 +12080,42 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the name of the defining type
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when code in one class references a
+  // static member in a superclass without prefixing the member's name with the
+  // name of the superclass. Static members can only be referenced without a
+  // prefix in the class in which they're declared.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the static field `x` is
+  // referenced in the getter `g` without prefixing it with the name of the
+  // defining class:
+  //
+  // ```dart
+  // class A {
+  //   static int x = 3;
+  // }
+  //
+  // class B extends A {
+  //   int get g => [!x!];
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Prefix the name of the static member with the name of the declaring class:
+  //
+  // ```dart
+  // class A {
+  //   static int x = 3;
+  // }
+  //
+  // class B extends A {
+  //   int get g => A.x;
+  // }
+  // ```
   static const CompileTimeErrorCode
       UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER = CompileTimeErrorCode(
           'UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER',
@@ -11090,16 +12262,36 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * 14.1 Imports: It is a compile-time error if <i>x</i> is not a compile-time
-   * constant, or if <i>x</i> involves string interpolation.
-   *
-   * 14.3 Parts: It is a compile-time error if <i>s</i> is not a compile-time
-   * constant, or if <i>s</i> involves string interpolation.
-   *
-   * 14.5 URIs: It is a compile-time error if the string literal <i>x</i> that
-   * describes a URI is not a compile-time constant, or if <i>x</i> involves
-   * string interpolation.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the string literal in an
+  // `import`, `export`, or `part` directive contains an interpolation. The
+  // resolution of the URIs in directives must happen before the declarations
+  // are compiled, so expressions can’t be  evaluated  while determining the
+  // values of the URIs.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the string in the
+  // `import` directive contains an interpolation:
+  //
+  // ```dart
+  // import [!'dart:$m'!];
+  //
+  // const m = 'math';
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the interpolation from the URI:
+  //
+  // ```dart
+  // import 'dart:math';
+  //
+  // var zero = min(0, 0);
+  // ```
   static const CompileTimeErrorCode URI_WITH_INTERPOLATION =
       CompileTimeErrorCode(
           'URI_WITH_INTERPOLATION', "URIs can't use string interpolation.");
@@ -11521,23 +12713,48 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "Try adding 'async*' or 'sync*' to the enclosing function.");
 
   /**
-   * 17.16.1 Yield: Let T be the static type of e [the expression to the right
-   * of "yield"] and let f be the immediately enclosing function.  It is a
-   * static type warning if either:
-   *
-   * - the body of f is marked async* and the type Stream<T> may not be
-   *   assigned to the declared return type of f.
-   *
-   * - the body of f is marked sync* and the type Iterable<T> may not be
-   *   assigned to the declared return type of f.
-   *
-   * 17.16.2 Yield-Each: Let T be the static type of e [the expression to the
-   * right of "yield*"] and let f be the immediately enclosing function.  It is
-   * a static type warning if T may not be assigned to the declared return type
-   * of f.  If f is synchronous it is a static type warning if T may not be
-   * assigned to Iterable.  If f is asynchronous it is a static type warning if
-   * T may not be assigned to Stream.
+   * Parameters:
+   * 0: the type of the expression after `yield`
+   * 1: the return type of the function containing the `yield`
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the type of object produced by a
+  // `yield` expression doesn't match the type of objects that are to be
+  // returned from the `Iterable` or `Stream` types that are returned from a
+  // generator (a function or method marked with either `sync*` or `async*`).
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the getter `zero` is
+  // declared to return an `Iterable` that returns integers, but the `yield` is
+  // returning a string from the iterable:
+  //
+  // ```dart
+  // Iterable<int> get zero sync* {
+  //   yield [!'0'!];
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the return type of the function is correct, then fix the expression
+  // following the keyword `yield` to return the correct type:
+  //
+  // ```dart
+  // Iterable<int> get zero sync* {
+  //   yield 0;
+  // }
+  // ```
+  //
+  // If the expression following the `yield` is correct, then change the return
+  // type of the function to allow it:
+  //
+  // ```dart
+  // Iterable<String> get zero sync* {
+  //   yield '0';
+  // }
+  // ```
   static const CompileTimeErrorCode YIELD_OF_INVALID_TYPE =
       CompileTimeErrorCode(
           'YIELD_OF_INVALID_TYPE',

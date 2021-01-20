@@ -7301,11 +7301,14 @@ class DiagnosticGetServerPortResult implements ResponseResult {
 ///
 /// {
 ///   "included": List<FilePath>
+///   "inTestMode": optional bool
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditBulkFixesParams implements RequestParams {
   List<String> _included;
+
+  bool _inTestMode;
 
   /// A list of the files and directories for which edits should be suggested.
   ///
@@ -7330,8 +7333,27 @@ class EditBulkFixesParams implements RequestParams {
     _included = value;
   }
 
-  EditBulkFixesParams(List<String> included) {
+  /// A flag indicating whether the bulk fixes are being run in test mode. The
+  /// only difference is that in test mode the fix processor will look for a
+  /// configuration file that can modify the content of the data file used to
+  /// compute the fixes when data-driven fixes are being considered.
+  ///
+  /// If this field is omitted the flag defaults to false.
+  bool get inTestMode => _inTestMode;
+
+  /// A flag indicating whether the bulk fixes are being run in test mode. The
+  /// only difference is that in test mode the fix processor will look for a
+  /// configuration file that can modify the content of the data file used to
+  /// compute the fixes when data-driven fixes are being considered.
+  ///
+  /// If this field is omitted the flag defaults to false.
+  set inTestMode(bool value) {
+    _inTestMode = value;
+  }
+
+  EditBulkFixesParams(List<String> included, {bool inTestMode}) {
     this.included = included;
+    this.inTestMode = inTestMode;
   }
 
   factory EditBulkFixesParams.fromJson(
@@ -7345,7 +7367,12 @@ class EditBulkFixesParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'included');
       }
-      return EditBulkFixesParams(included);
+      bool inTestMode;
+      if (json.containsKey('inTestMode')) {
+        inTestMode = jsonDecoder.decodeBool(
+            jsonPath + '.inTestMode', json['inTestMode']);
+      }
+      return EditBulkFixesParams(included, inTestMode: inTestMode);
     } else {
       throw jsonDecoder.mismatch(jsonPath, 'edit.bulkFixes params', json);
     }
@@ -7360,6 +7387,9 @@ class EditBulkFixesParams implements RequestParams {
   Map<String, dynamic> toJson() {
     var result = <String, dynamic>{};
     result['included'] = included;
+    if (inTestMode != null) {
+      result['inTestMode'] = inTestMode;
+    }
     return result;
   }
 
@@ -7375,7 +7405,8 @@ class EditBulkFixesParams implements RequestParams {
   bool operator ==(other) {
     if (other is EditBulkFixesParams) {
       return listEqual(
-          included, other.included, (String a, String b) => a == b);
+              included, other.included, (String a, String b) => a == b) &&
+          inTestMode == other.inTestMode;
     }
     return false;
   }
@@ -7384,6 +7415,7 @@ class EditBulkFixesParams implements RequestParams {
   int get hashCode {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, included.hashCode);
+    hash = JenkinsSmiHash.combine(hash, inTestMode.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }

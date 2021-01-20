@@ -1,3 +1,7 @@
+# 1.7.3
+- Return an RpcException error with code `kServiceDisappeared` if the VM
+  service connection disappears with an outstanding forwarded request.
+
 # 1.7.2
 - Fixed issue where a null JSON RPC result could be sent if the VM service
   disconnected with a request in flight (see https://github.com/flutter/flutter/issues/74051).

@@ -1,4 +1,6 @@
 # Changelog
+## 6.0.0-nullsafety.1
+- Null safety migration, take two. Assume all object fields are nullable.
 ## 6.0.0-nullsafety-dev
 - Migrate to use null safety.
 

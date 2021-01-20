@@ -263,17 +263,6 @@ abstract class CombinedMemberSignatureBase<T> {
     return _containsNnbdTypes;
   }
 
-  /// Returns `true` if the covariance of the combined member signature is
-  /// different from the covariance of the overridden member in the superclass.
-  ///
-  /// If `true` a concrete forwarding stub that checks the covariance must
-  /// be generated.
-  // TODO(johnniwinther): This is imprecise. It assumes that the 0th member is
-  // from the superclass which might not be the case.
-  bool get needsSuperImpl {
-    return _getMemberCovariance(0) != combinedMemberSignatureCovariance;
-  }
-
   /// The this type of [classBuilder].
   DartType get thisType {
     return _thisType ??= _coreTypes.thisInterfaceType(

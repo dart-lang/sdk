@@ -2,28 +2,6 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Error: Applying the mixin 'Mixin' to 'Super' introduces an erroneous override of 'extendedGetterMixedInField'.
-// abstract class Class extends Super
-//                ^^^^^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:28:7: Context: The return type of the method 'Mixin.extendedGetterMixedInField' is 'int', which does not match the return type, 'String', of the overridden method, 'Super.extendedGetterMixedInField'.
-// Change to a subtype of 'String'.
-//   int extendedGetterMixedInField = 0;
-//       ^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:7:14: Context: This is the overridden method ('extendedGetterMixedInField').
-//   String get extendedGetterMixedInField => '';
-//              ^
-//
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Error: Class 'Super with Mixin' inherits multiple members named 'extendedGetterMixedInField' with incompatible signatures.
-// Try adding a declaration of 'extendedGetterMixedInField' to 'Super with Mixin'.
-// abstract class Class extends Super
-//                ^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:28:7: Context: This is one of the overridden members.
-//   int extendedGetterMixedInField = 0;
-//       ^^^^^^^^^^^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:7:14: Context: This is one of the overridden members.
-//   String get extendedGetterMixedInField => '';
-//              ^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Error: The type 'String' of the getter 'Super with Mixin.extendedSetterMixedInField' is not a subtype of the type 'int' of the inherited setter 'Super.extendedSetterMixedInField'.
 // abstract class Class extends Super
 //                ^^^^^^^^^^^^^^^^^^^^...
@@ -52,12 +30,15 @@ library /*isNonNullableByDefault*/;
 //   final String extendedFieldMixedInSetter = '';
 //                ^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:90:7: Error: The return type of the method 'Class.extendedGetterDeclaredField' is 'int', which does not match the return type, 'String', of the overridden method, 'Super.extendedGetterDeclaredField'.
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Error: Applying the mixin 'Mixin' to 'Super' introduces an erroneous override of 'extendedGetterMixedInField'.
+// abstract class Class extends Super
+//                ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:28:7: Context: The return type of the method 'Mixin.extendedGetterMixedInField' is 'int', which does not match the return type, 'String', of the overridden method, 'Super.extendedGetterMixedInField'.
 // Change to a subtype of 'String'.
-//   int extendedGetterDeclaredField = 0;
+//   int extendedGetterMixedInField = 0;
 //       ^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:6:14: Context: This is the overridden method ('extendedGetterDeclaredField').
-//   String get extendedGetterDeclaredField => '';
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:7:14: Context: This is the overridden method ('extendedGetterMixedInField').
+//   String get extendedGetterMixedInField => '';
 //              ^
 //
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:93:16: Error: The type 'String' of the field 'Class.extendedSetterDeclaredField' is not a subtype of the type 'int' of the inherited setter 'Super.extendedSetterDeclaredField'.
@@ -74,14 +55,6 @@ library /*isNonNullableByDefault*/;
 //   void set extendedSetterDeclaredGetter(int value) {}
 //            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:96:7: Error: The return type of the method 'Class.mixedInGetterDeclaredField' is 'int', which does not match the return type, 'String', of the overridden method, 'Super with Mixin.mixedInGetterDeclaredField'.
-// Change to a subtype of 'String'.
-//   int mixedInGetterDeclaredField = 0;
-//       ^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Context: This is the overridden method ('mixedInGetterDeclaredField').
-// abstract class Class extends Super
-//                ^
-//
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:99:16: Error: The type 'String' of the field 'Class.mixedInSetterDeclaredField' is not a subtype of the type 'int' of the inherited setter 'Super with Mixin.mixedInSetterDeclaredField'.
 //   final String mixedInSetterDeclaredField = '';
 //                ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -95,14 +68,6 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Context: This is the declaration of the setter 'Super with Mixin.mixedInSetterDeclaredGetter'.
 // abstract class Class extends Super
 //                ^^^^^^^^^^^^^^^^^^^^...
-//
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:102:7: Error: The return type of the method 'Class.implementedGetterDeclaredField' is 'int', which does not match the return type, 'String', of the overridden method, 'Interface1.implementedGetterDeclaredField'.
-// Change to a subtype of 'String'.
-//   int implementedGetterDeclaredField = 0;
-//       ^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:63:14: Context: This is the overridden method ('implementedGetterDeclaredField').
-//   String get implementedGetterDeclaredField => '';
-//              ^
 //
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:105:16: Error: The type 'String' of the field 'Class.implementedSetterDeclaredField' is not a subtype of the type 'int' of the inherited setter 'Interface1.implementedSetterDeclaredField'.
 //   final String implementedSetterDeclaredField = '';
@@ -198,9 +163,9 @@ library /*isNonNullableByDefault*/;
 // Try adding a declaration of 'Mixin.mixedInGetterImplementedField' to 'Class'.
 // abstract class Class extends Super
 //                ^^^^^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Context: This is one of the overridden members.
-// abstract class Class extends Super
-//                ^^^^^^^^^^^^^^^^^^^^...
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:35:14: Context: This is one of the overridden members.
+//   String get mixedInGetterImplementedField => '';
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:57:7: Context: This is one of the overridden members.
 //   int mixedInGetterImplementedField = 0;
 //       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -397,6 +362,30 @@ library /*isNonNullableByDefault*/;
 //   void set implementedSetterImplementedGetter(int value) {}
 //            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:90:7: Error: The return type of the method 'Class.extendedGetterDeclaredField' is 'int', which does not match the return type, 'String', of the overridden method, 'Super.extendedGetterDeclaredField'.
+// Change to a subtype of 'String'.
+//   int extendedGetterDeclaredField = 0;
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:6:14: Context: This is the overridden method ('extendedGetterDeclaredField').
+//   String get extendedGetterDeclaredField => '';
+//              ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:96:7: Error: The return type of the method 'Class.mixedInGetterDeclaredField' is 'int', which does not match the return type, 'String', of the overridden method, 'Super with Mixin.mixedInGetterDeclaredField'.
+// Change to a subtype of 'String'.
+//   int mixedInGetterDeclaredField = 0;
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Context: This is the overridden method ('mixedInGetterDeclaredField').
+// abstract class Class extends Super
+//                ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:102:7: Error: The return type of the method 'Class.implementedGetterDeclaredField' is 'int', which does not match the return type, 'String', of the overridden method, 'Interface1.implementedGetterDeclaredField'.
+// Change to a subtype of 'String'.
+//   int implementedGetterDeclaredField = 0;
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:63:14: Context: This is the overridden method ('implementedGetterDeclaredField').
+//   String get implementedGetterDeclaredField => '';
+//              ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -505,6 +494,8 @@ abstract class _Class&Super&Mixin = self::Super with self::Mixin /*isAnonymousMi
     return super.{self::Mixin::mixedInGetterDeclaredSetter};
   mixin-super-stub get mixedInFieldDeclaredSetter() → core::String
     return super.{self::Mixin::mixedInFieldDeclaredSetter};
+  mixin-super-stub get extendedGetterMixedInField() → core::int
+    return super.{self::Mixin::extendedGetterMixedInField};
   mixin-super-stub set extendedGetterMixedInField(core::int value) → void
     return super.{self::Mixin::extendedGetterMixedInField} = value;
   mixin-super-stub get extendedSetterMixedInField() → core::String

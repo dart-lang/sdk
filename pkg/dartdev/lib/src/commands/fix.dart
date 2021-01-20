@@ -24,13 +24,7 @@ class FixCommand extends DartdevCommand {
 
 This tool looks for and fixes analysis issues that have associated automated fixes.
 
-To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed changes for a project, or ['dart fix --apply'] to apply the changes.
-
-[Note:] $disclaimer''';
-
-  static const disclaimer = 'The `fix` command is under development and '
-      'subject to change before the next stable release. Feedback is welcome - '
-      'please file at https://github.com/dart-lang/sdk/issues.';
+To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed changes for a project, or ['dart fix --apply'] to apply the changes.''';
 
   FixCommand({bool verbose = false}) : super(cmdName, cmdDescription) {
     argParser.addFlag('dry-run',
@@ -68,14 +62,12 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
   @override
   FutureOr<int> run() async {
     var dryRun = argResults['dry-run'];
-    var testMode = argResults['compare-to-golden'];
+    var inTestMode = argResults['compare-to-golden'];
     var apply = argResults['apply'];
-    if (!apply && !dryRun && !testMode) {
+    if (!apply && !dryRun && !inTestMode) {
       printUsage();
       return 0;
     }
-
-    log.stdout('\n${log.ansi.emphasized('Note:')} $disclaimer\n');
 
     var arguments = argResults.rest;
     var argumentCount = arguments.length;
@@ -113,14 +105,14 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       }
     });
 
-    fixes = await server.requestBulkFixes(dirPath);
+    fixes = await server.requestBulkFixes(dirPath, inTestMode);
     final List<SourceFileEdit> edits = fixes.edits;
 
     await server.shutdown();
 
     progress.finish(showTiming: true);
 
-    if (testMode) {
+    if (inTestMode) {
       var result = _compareFixesInDirectory(dir, edits);
       log.stdout('Passed: ${result.passCount}, Failed: ${result.failCount}');
       return result.failCount > 0 ? 1 : 0;

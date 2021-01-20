@@ -37,7 +37,6 @@ class AddLateTest extends FixProcessorTest with WithNullSafetyMixin {
   @override
   FixKind get kind => DartFixKind.ADD_LATE;
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44534')
   Future<void> test_changeInImportedLib() async {
     addSource('/home/test/lib/a.dart', '''
 class C {
@@ -58,7 +57,7 @@ class C {
 ''', target: '/home/test/lib/a.dart');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44534')
+  @FailingTest(reason: 'The lint does not fire for parts.')
   Future<void> test_changeInPart() async {
     addSource('/home/test/lib/a.dart', '''
 part 'test.dart';

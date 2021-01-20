@@ -794,9 +794,14 @@ void updatePage(String path, [int offset]) {
       link.classes.remove('selected-file');
     }
   });
-  migrateUnitStatusIconLabel.classes.add('visible');
   var entity = navigationTree.find(path);
-  updateIconForStatus(migrateUnitStatusIcon, entity.migrationStatus);
+  // Update migration status for files in current migration.
+  if (entity == null) {
+    migrateUnitStatusIconLabel.classes.remove('visible');
+  } else {
+    migrateUnitStatusIconLabel.classes.add('visible');
+    updateIconForStatus(migrateUnitStatusIcon, entity.migrationStatus);
+  }
 }
 
 /// Updates the parent icons of [entity] with list item [element] in the

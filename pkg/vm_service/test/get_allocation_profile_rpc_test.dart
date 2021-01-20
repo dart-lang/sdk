@@ -12,25 +12,27 @@ Future<void> sleep(int milliseconds) =>
 
 var tests = <IsolateTest>[
   (VmService service, IsolateRef isolate) async {
-    AllocationProfile result = await service.getAllocationProfile(isolate.id);
+    final isolateId = isolate.id!;
+
+    AllocationProfile result = await service.getAllocationProfile(isolateId);
     expect(result.dateLastAccumulatorReset, isNull);
     expect(result.dateLastServiceGC, isNull);
-    expect(result.members.length, isPositive);
+    expect(result.members!.length, isPositive);
 
-    ClassHeapStats member = result.members[0];
+    ClassHeapStats member = result.members![0];
     expect(member.instancesAccumulated, isNotNull);
     expect(member.instancesCurrent, isNotNull);
     expect(member.bytesCurrent, isNotNull);
     expect(member.accumulatedSize, isNotNull);
 
     // reset.
-    result = await service.getAllocationProfile(isolate.id, reset: true);
+    result = await service.getAllocationProfile(isolateId, reset: true);
     final firstReset = result.dateLastAccumulatorReset;
     expect(firstReset, isNotNull);
     expect(result.dateLastServiceGC, isNull);
-    expect(result.members.length, isPositive);
+    expect(result.members!.length, isPositive);
 
-    member = result.members[0];
+    member = result.members![0];
     expect(member.instancesAccumulated, isNotNull);
     expect(member.instancesCurrent, isNotNull);
     expect(member.bytesCurrent, isNotNull);
@@ -38,18 +40,18 @@ var tests = <IsolateTest>[
 
     await sleep(1000);
 
-    result = await service.getAllocationProfile(isolate.id, reset: true);
+    result = await service.getAllocationProfile(isolateId, reset: true);
     final secondReset = result.dateLastAccumulatorReset;
     expect(secondReset, isNot(firstReset));
 
     // gc.
-    result = await service.getAllocationProfile(isolate.id, gc: true);
+    result = await service.getAllocationProfile(isolateId, gc: true);
     expect(result.dateLastAccumulatorReset, secondReset);
     final firstGC = result.dateLastServiceGC;
     expect(firstGC, isNotNull);
-    expect(result.members.length, isPositive);
+    expect(result.members!.length, isPositive);
 
-    member = result.members[0];
+    member = result.members![0];
     expect(member.instancesAccumulated, isNotNull);
     expect(member.instancesCurrent, isNotNull);
     expect(member.bytesCurrent, isNotNull);
@@ -57,7 +59,7 @@ var tests = <IsolateTest>[
 
     await sleep(1000);
 
-    result = await service.getAllocationProfile(isolate.id, gc: true);
+    result = await service.getAllocationProfile(isolateId, gc: true);
     final secondGC = result.dateLastAccumulatorReset;
     expect(secondGC, isNot(firstGC));
   },

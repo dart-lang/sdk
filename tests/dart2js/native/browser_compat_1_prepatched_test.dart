@@ -41,9 +41,9 @@ void setup() {
   self.makeT1B = function(){return new T1CrazyB()};
   self.makeT1C = function(){return new T1fakeA()};
 
-  self.nativeConstructor(T1A);
-  self.nativeConstructor(T1CrazyB);
-  self.nativeConstructor(T1fakeA);
+  self.nativeConstructor(T1A, undefined, true);
+  self.nativeConstructor(T1CrazyB, undefined, true);
+  self.nativeConstructor(T1fakeA, undefined, true);
 
   var getTagCount = 0;
   getTagCallCount = function() { return getTagCount; };

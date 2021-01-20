@@ -10,8 +10,8 @@ import 'common/test_helper.dart';
 var tests = <VMTest>[
   (VmService vm) async {
     final result = await vm.getVersion();
-    expect(result.major > 0, isTrue);
-    expect(result.minor >= 0, isTrue);
+    expect(result.major! > 0, isTrue);
+    expect(result.minor! >= 0, isTrue);
   },
 ];
 

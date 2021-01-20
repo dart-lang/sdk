@@ -2,6 +2,8 @@ library;
 import self as self;
 import "foundation_binding_lib.dart" as fou;
 import "scheduler_binding_lib.dart" as sch;
+import "dart:core" as core;
+import "dart:async" as asy;
 import "services_binding_lib.dart" as ser;
 
 import "org-dartlang-testcase:///foundation_lib.dart";
@@ -12,6 +14,17 @@ abstract class _TestSchedulerBinding&BindingBase&SchedulerBinding = fou::Binding
   synthetic constructor •() → self::_TestSchedulerBinding&BindingBase&SchedulerBinding*
     : super fou::BindingBase::•()
     ;
+  abstract mixin-stub method registerSignalServiceExtension({core::String* name = #C1, () →* asy::Future<Null>* callback = #C1}) → void; -> sch::SchedulerBinding::registerSignalServiceExtension
+  abstract mixin-stub get _identityHashCode() → core::int*; -> sch::SchedulerBinding::_identityHashCode
+  abstract mixin-stub method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> sch::SchedulerBinding::_instanceOf
+  abstract mixin-stub method _simpleInstanceOf(dynamic type) → core::bool*; -> sch::SchedulerBinding::_simpleInstanceOf
+  abstract mixin-stub method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> sch::SchedulerBinding::_simpleInstanceOfTrue
+  abstract mixin-stub method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> sch::SchedulerBinding::_simpleInstanceOfFalse
+  abstract mixin-stub operator ==(dynamic other) → core::bool*; -> sch::SchedulerBinding::==
+  abstract mixin-stub get hashCode() → core::int*; -> sch::SchedulerBinding::hashCode
+  abstract mixin-stub method toString() → core::String*; -> sch::SchedulerBinding::toString
+  abstract mixin-stub method noSuchMethod(core::Invocation* invocation) → dynamic; -> sch::SchedulerBinding::noSuchMethod
+  abstract mixin-stub get runtimeType() → core::Type*; -> sch::SchedulerBinding::runtimeType
 }
 abstract class _TestSchedulerBinding&BindingBase&SchedulerBinding&ServicesBinding = self::_TestSchedulerBinding&BindingBase&SchedulerBinding with ser::ServicesBinding /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_TestSchedulerBinding&BindingBase&SchedulerBinding&ServicesBinding*

@@ -79,14 +79,17 @@ opted out of null safety by adding `// @dart=2.9` to the beginning of the file.
 
 #### Linter
 
-Updated the Linter to `0.1.127`, which includes:
+Updated the Linter to `0.1.128`, which includes:
 
-* fixed crash in `prefer_collection_literals` when there is no static parameter
+* New lint: `avoid_dynamic_calls`.
+* (Internal): `avoid_type_to_string` updated to use `addArgumentList` registry API.
+* Miscellaneous documentation improvements.
+* Fixed crash in `prefer_collection_literals` when there is no static parameter
   element.
-* fixed false negatives for `prefer_collection_literals` when a LinkedHashSet or
+* Fixed false negatives for `prefer_collection_literals` when a LinkedHashSet or
   LinkedHashMap instantiation is passed as the argument to a function in any
   position other than the first.
-* fixed false negatives for `prefer_collection_literals` when a LinkedHashSet or
+* Fixed false negatives for `prefer_collection_literals` when a LinkedHashSet or
   LinkedHashMap instantiation is used in a place with a static type other than
   Set or Map.
 * (Internal): test updates to the new `PhysicalResourceProvider` API.

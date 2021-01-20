@@ -6,6 +6,7 @@ analyzer:
   exclude:
     - parser_testcases/**
     - test/analyser_ignored/**
+    - test/class_hierarchy/data/**
     - test/enable_non_nullable/data/**
     - test/extensions/data/**
     - test/id_testing/data/**

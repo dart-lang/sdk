@@ -25,8 +25,11 @@ library /*isNonNullableByDefault*/;
 //             ^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_final_field.dart:33:7: Error: The non-abstract class 'ConcreteSub' is missing implementations for these members:
-//  - AbstractClass.Interface1.implementMultipleField%Interface2.implementMultipleField
 //  - AbstractClass.declareAbstractImplementMultipleField
+//  - Interface1.declareAbstractImplementMultipleField
+//  - Interface1.implementMultipleField
+//  - Interface2.declareAbstractImplementMultipleField
+//  - Interface2.implementMultipleField
 // Try to either
 //  - provide an implementation,
 //  - inherit an implementation from a superclass or mixin,
@@ -35,12 +38,21 @@ library /*isNonNullableByDefault*/;
 //
 // class ConcreteSub extends AbstractClass {}
 //       ^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_final_field.dart:27:16: Context: 'AbstractClass.Interface1.implementMultipleField%Interface2.implementMultipleField' is defined here.
-// abstract class AbstractClass implements Interface1, Interface2 {
-//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^...
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_final_field.dart:30:22: Context: 'AbstractClass.declareAbstractImplementMultipleField' is defined here.
 //   abstract final int declareAbstractImplementMultipleField;
 //                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_final_field.dart:10:13: Context: 'Interface1.declareAbstractImplementMultipleField' is defined here.
+//   final int declareAbstractImplementMultipleField = 0;
+//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_final_field.dart:6:13: Context: 'Interface1.implementMultipleField' is defined here.
+//   final int implementMultipleField = 0;
+//             ^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_final_field.dart:18:13: Context: 'Interface2.declareAbstractImplementMultipleField' is defined here.
+//   final int declareAbstractImplementMultipleField = 0;
+//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_final_field.dart:14:13: Context: 'Interface2.implementMultipleField' is defined here.
+//   final int implementMultipleField = 0;
+//             ^^^^^^^^^^^^^^^^^^^^^^
 //
 import self as self;
 import "dart:core" as core;

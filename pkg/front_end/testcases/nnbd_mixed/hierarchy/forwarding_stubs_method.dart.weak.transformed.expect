@@ -3,11 +3,15 @@ library /*isNonNullableByDefault*/;
 // Problems in library:
 //
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_method.dart:41:7: Error: The non-abstract class 'ConcreteSub' is missing implementations for these members:
-//  - AbstractClass.Interface1.implementsMultipleCovariantMethod1%Interface2.implementsMultipleCovariantMethod1
-//  - AbstractClass.Interface1.implementsMultipleCovariantMethod2%Interface2.implementsMultipleCovariantMethod2
-//  - AbstractClass.Super.extendedAbstractCovariantImplementedMethod%Interface1.extendedAbstractCovariantImplementedMethod
-//  - AbstractClass.Super.extendedAbstractImplementedCovariantMethod%Interface1.extendedAbstractImplementedCovariantMethod
+//  - Interface1.extendedAbstractCovariantImplementedMethod
+//  - Interface1.extendedAbstractImplementedCovariantMethod
+//  - Interface1.implementsMultipleCovariantMethod1
+//  - Interface1.implementsMultipleCovariantMethod2
+//  - Interface2.implementsMultipleCovariantMethod1
+//  - Interface2.implementsMultipleCovariantMethod2
+//  - Super.extendedAbstractCovariantImplementedMethod
 //  - Super.extendedAbstractCovariantMethod
+//  - Super.extendedAbstractImplementedCovariantMethod
 // Try to either
 //  - provide an implementation,
 //  - inherit an implementation from a superclass or mixin,
@@ -16,23 +20,37 @@ library /*isNonNullableByDefault*/;
 //
 // class ConcreteSub extends AbstractClass {}
 //       ^^^^^^^^^^^
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_method.dart:39:16: Context: 'AbstractClass.Interface1.implementsMultipleCovariantMethod1%Interface2.implementsMultipleCovariantMethod1' is defined here.
-// abstract class AbstractClass extends Super implements Interface1, Interface2 {}
-//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^...
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_method.dart:39:16: Context: 'AbstractClass.Interface1.implementsMultipleCovariantMethod2%Interface2.implementsMultipleCovariantMethod2' is defined here.
-// abstract class AbstractClass extends Super implements Interface1, Interface2 {}
-//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^...
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_method.dart:39:16: Context: 'AbstractClass.Super.extendedAbstractCovariantImplementedMethod%Interface1.extendedAbstractCovariantImplementedMethod' is defined here.
-// abstract class AbstractClass extends Super implements Interface1, Interface2 {}
-//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^...
-// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_method.dart:39:16: Context: 'AbstractClass.Super.extendedAbstractImplementedCovariantMethod%Interface1.extendedAbstractImplementedCovariantMethod' is defined here.
-// abstract class AbstractClass extends Super implements Interface1, Interface2 {}
-//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^...
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_method.dart:22:8: Context: 'Interface1.extendedAbstractCovariantImplementedMethod' is defined here.
+//   void extendedAbstractCovariantImplementedMethod(int i) {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_method.dart:26:8: Context: 'Interface1.extendedAbstractImplementedCovariantMethod' is defined here.
+//   void extendedAbstractImplementedCovariantMethod(covariant int i) {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_method.dart:28:8: Context: 'Interface1.implementsMultipleCovariantMethod1' is defined here.
+//   void implementsMultipleCovariantMethod1(covariant int i) {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_method.dart:30:8: Context: 'Interface1.implementsMultipleCovariantMethod2' is defined here.
+//   void implementsMultipleCovariantMethod2(int i) {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_method.dart:34:8: Context: 'Interface2.implementsMultipleCovariantMethod1' is defined here.
+//   void implementsMultipleCovariantMethod1(int i) {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_method.dart:36:8: Context: 'Interface2.implementsMultipleCovariantMethod2' is defined here.
+//   void implementsMultipleCovariantMethod2(covariant int i) {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_method.dart:12:8: Context: 'Super.extendedAbstractCovariantImplementedMethod' is defined here.
+//   void extendedAbstractCovariantImplementedMethod(covariant int i);
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_method.dart:8:8: Context: 'Super.extendedAbstractCovariantMethod' is defined here.
 //   void extendedAbstractCovariantMethod(covariant int i);
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_method.dart:16:8: Context: 'Super.extendedAbstractImplementedCovariantMethod' is defined here.
+//   void extendedAbstractImplementedCovariantMethod(int i);
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_method.dart:43:7: Error: The non-abstract class 'ConcreteClass' is missing implementations for these members:
+//  - Interface1.extendedAbstractCovariantImplementedMethod
+//  - Interface1.extendedAbstractImplementedCovariantMethod
 //  - Interface1.implementsMultipleCovariantMethod1
 //  - Interface1.implementsMultipleCovariantMethod2
 //  - Interface2.implementsMultipleCovariantMethod1
@@ -48,6 +66,12 @@ library /*isNonNullableByDefault*/;
 //
 // class ConcreteClass extends Super implements Interface1, Interface2 {}
 //       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_method.dart:22:8: Context: 'Interface1.extendedAbstractCovariantImplementedMethod' is defined here.
+//   void extendedAbstractCovariantImplementedMethod(int i) {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_method.dart:26:8: Context: 'Interface1.extendedAbstractImplementedCovariantMethod' is defined here.
+//   void extendedAbstractImplementedCovariantMethod(covariant int i) {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_method.dart:28:8: Context: 'Interface1.implementsMultipleCovariantMethod1' is defined here.
 //   void implementsMultipleCovariantMethod1(covariant int i) {}
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

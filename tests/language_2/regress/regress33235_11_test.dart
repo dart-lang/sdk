@@ -14,6 +14,8 @@ class C {
   static int n() => 42;
   //         ^
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+  // [cfe] 'n' is already declared in this scope.
+  //         ^
   // [cfe] Conflicts with setter 'n'.
 }
 

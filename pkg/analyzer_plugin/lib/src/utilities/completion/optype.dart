@@ -635,6 +635,15 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     if (offset <= node.fields.offset) {
       optype.includeTypeNameSuggestions = true;
     }
+
+    // If there is no type then the first "field" could be intended as a type
+    // so also include type name suggestions. eg:
+    //     class MyClass2 { static MyCl^ }
+    if (node.fields.type == null &&
+        (node.fields.variables.isEmpty ||
+            offset <= node.fields.variables.first.end)) {
+      optype.includeTypeNameSuggestions = true;
+    }
   }
 
   @override
