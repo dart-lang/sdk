@@ -237,6 +237,7 @@ class _ClassVerifier {
           superMember: interfaceElement,
           errorReporter: reporter,
           errorNode: classNameNode,
+          errorCode: CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE,
         );
       }
 

@@ -290,6 +290,8 @@ import 'invalid_factory_name_not_a_class_test.dart'
     as invalid_factory_name_not_a_class;
 import 'invalid_field_type_in_struct_test.dart' as invalid_field_type_in_struct;
 import 'invalid_immutable_annotation_test.dart' as invalid_immutable_annotation;
+import 'invalid_implementation_override_test.dart'
+    as invalid_implementation_override;
 import 'invalid_internal_annotation_test.dart' as invalid_internal_annotation;
 import 'invalid_language_override_greater_test.dart'
     as invalid_language_override_greater;
@@ -850,6 +852,7 @@ main() {
     invalid_factory_name_not_a_class.main();
     invalid_field_type_in_struct.main();
     invalid_immutable_annotation.main();
+    invalid_implementation_override.main();
     invalid_internal_annotation.main();
     invalid_language_override_greater.main();
     invalid_language_override.main();

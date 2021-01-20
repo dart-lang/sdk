@@ -240,6 +240,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME,
   CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT,
   CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS,
+  CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE,
   CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE,
   CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR,
   CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
