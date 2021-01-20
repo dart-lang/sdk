@@ -1055,6 +1055,7 @@ lsp.FoldingRange toFoldingRange(
 
 lsp.FoldingRangeKind toFoldingRangeKind(server.FoldingKind kind) {
   switch (kind) {
+    case server.FoldingKind.COMMENT:
     case server.FoldingKind.DOCUMENTATION_COMMENT:
     case server.FoldingKind.FILE_HEADER:
       return lsp.FoldingRangeKind.Comment;

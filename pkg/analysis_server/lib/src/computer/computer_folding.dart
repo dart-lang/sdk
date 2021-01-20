@@ -49,7 +49,6 @@ class DartUnitFoldingComputer {
 
   /// Returns a list of folding regions, not `null`.
   List<FoldingRegion> compute() {
-    _addFileHeaderRegion();
     _unit.accept(_DartUnitFoldingComputerVisitor(this));
 
     if (_firstDirective != null &&
@@ -61,39 +60,90 @@ class DartUnitFoldingComputer {
           _lastDirective.end - _firstDirective.keyword.end));
     }
 
+    _addCommentRegions();
+
     return _foldingRegions;
   }
 
-  void _addFileHeaderRegion() {
-    var firstToken = _unit.beginToken;
-    while (firstToken?.type == TokenType.SCRIPT_TAG) {
-      firstToken = firstToken.next;
+  /// Create a folding region for the provided comment, reading forwards if neccesary.
+  ///
+  /// If [mayBeFileHeader] is true, the token will be considered a file header
+  /// if comment is a single-line-comment and there is a blank line or another
+  /// comment type after it.
+  ///
+  /// Returns the next comment to be processed or null if there are no more comments
+  /// to process in the chain.
+  Token _addCommentRegion(Token commentToken, {bool mayBeFileHeader = false}) {
+    int offset, end;
+    var isFileHeader = false;
+    Token nextComment;
+
+    if (commentToken.type == TokenType.MULTI_LINE_COMMENT) {
+      // Multiline comments already span all of their lines but the folding
+      // region should start at the end of the first line.
+      offset = commentToken.offset + (commentToken.eolOffset ?? 0);
+      end = commentToken.end;
+      nextComment = commentToken.next;
+    } else {
+      // Single line comments need grouping together explicitly but should
+      // only group if the prefix is the same and up to any blank line.
+      final isTripleSlash = commentToken.isTripleSlash;
+      // Track the last comment that belongs to this folding region.
+      var lastComment = commentToken;
+      var current = lastComment.next;
+      while (current != null &&
+          current.type == lastComment.type &&
+          current.isTripleSlash == isTripleSlash &&
+          !_hasBlankLineBetween(lastComment.end, current.offset)) {
+        lastComment = current;
+        current = current.next;
+      }
+
+      // For single line comments we prefer to start the range at the end of
+      // first token so the first line is still visible when the range is
+      // collapsed.
+      offset = commentToken.end;
+      end = lastComment.end;
+      nextComment = lastComment.next;
+
+      // Single line comments are file headers if they're followed by a different
+      // comment type of there's a blank line between them and the first token.
+      isFileHeader = mayBeFileHeader &&
+          (nextComment != null ||
+              _hasBlankLineBetween(end, _unit.beginToken.offset));
     }
 
-    final Token firstComment = firstToken?.precedingComments;
-    if (firstComment == null ||
-        firstComment.type != TokenType.SINGLE_LINE_COMMENT) {
-      return;
+    final kind = isFileHeader
+        ? FoldingKind.FILE_HEADER
+        : (commentToken.lexeme.startsWith('///') ||
+                commentToken.lexeme.startsWith('/**'))
+            ? FoldingKind.DOCUMENTATION_COMMENT
+            : FoldingKind.COMMENT;
+
+    _addRegion(offset, end, kind);
+
+    return nextComment;
+  }
+
+  void _addCommentRegions() {
+    var token = _unit.beginToken;
+    if (token.type == TokenType.SCRIPT_TAG) {
+      token = token.next;
     }
-
-    // Walk through the comments looking for a blank line to signal the end of
-    // the file header.
-    var lastComment = firstComment;
-    while (lastComment.next != null) {
-      lastComment = lastComment.next;
-
-      // If we ran out of tokens, use the original token as starting position.
-      final hasBlankLine =
-          _hasBlankLineBetween(lastComment, lastComment.next ?? firstToken);
-
-      // Also considered non-single-line-comments as the end
-      final nextCommentIsDifferentType = lastComment.next != null &&
-          lastComment.next.type != TokenType.SINGLE_LINE_COMMENT;
-
-      if (hasBlankLine || nextCommentIsDifferentType) {
-        _addRegion(firstComment.end, lastComment.end, FoldingKind.FILE_HEADER);
+    var isFirstToken = true;
+    while (token != null) {
+      Token commentToken = token.precedingComments;
+      while (commentToken != null) {
+        commentToken =
+            _addCommentRegion(commentToken, mayBeFileHeader: isFirstToken);
+      }
+      isFirstToken = false;
+      // Only exit the loop when hitting EOF *after* processing the token as
+      // the EOF token may have preceeding comments.
+      if (token.type == TokenType.EOF) {
         break;
       }
+      token = token.next;
     }
   }
 
@@ -114,9 +164,9 @@ class DartUnitFoldingComputer {
     }
   }
 
-  bool _hasBlankLineBetween(Token first, Token second) {
-    final CharacterLocation firstLoc = _lineInfo.getLocation(first.end);
-    final CharacterLocation secondLoc = _lineInfo.getLocation(second.offset);
+  bool _hasBlankLineBetween(int offset, int end) {
+    final CharacterLocation firstLoc = _lineInfo.getLocation(offset);
+    final CharacterLocation secondLoc = _lineInfo.getLocation(end);
     return secondLoc.lineNumber - firstLoc.lineNumber > 1;
   }
 
@@ -159,15 +209,6 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
     _computer._addRegion(
         node.leftBracket.end, node.rightBracket.offset, FoldingKind.CLASS_BODY);
     super.visitClassDeclaration(node);
-  }
-
-  @override
-  void visitComment(Comment node) {
-    if (node.isDocumentation) {
-      _computer._addRegion(
-          node.offset, node.end, FoldingKind.DOCUMENTATION_COMMENT);
-    }
-    super.visitComment(node);
   }
 
   @override
@@ -302,4 +343,18 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
     }
     super.visitWhileStatement(node);
   }
+}
+
+extension _CommentTokenExtensions on Token {
+  static final _newlinePattern = RegExp(r'[\r\n]');
+
+  /// The offset of the first eol character or null
+  /// if no newlines were found.
+  int get eolOffset {
+    final offset = lexeme.indexOf(_newlinePattern);
+    return offset != -1 ? offset : null;
+  }
+
+  /// Whether this comment is a triple-slash single line comment.
+  bool get isTripleSlash => lexeme.startsWith('///');
 }
