@@ -69,6 +69,9 @@ CodePtr StubCode::Generate(
     const char* name,
     compiler::ObjectPoolBuilder* object_pool_builder,
     void (*GenerateStub)(compiler::Assembler* assembler)) {
+  auto thread = Thread::Current();
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+
   compiler::Assembler assembler(object_pool_builder);
   GenerateStub(&assembler);
   const Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
@@ -188,11 +191,13 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
         Array::Handle(zone, compiler::StubCodeCompiler::BuildStaticCallsTable(
                                 zone, &unresolved_calls));
 
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+
     auto mutator_fun = [&]() {
       stub = Code::FinalizeCode(nullptr, &assembler, pool_attachment,
                                 /*optimized=*/false,
                                 /*stats=*/nullptr);
-      // Check if background compilation thread has not already added the stub.
+      // Check if some other thread has not already added the stub.
       if (cls.allocation_stub() == Code::null()) {
         stub.set_owner(cls);
         if (!static_calls_table.IsNull()) {
@@ -201,32 +206,13 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
         cls.set_allocation_stub(stub);
       }
     };
-    auto bg_compiler_fun = [&]() {
-      ASSERT(Thread::Current()->IsAtSafepoint());
-      stub = cls.allocation_stub();
-      // Check if stub was already generated.
-      if (!stub.IsNull()) {
-        return;
-      }
-      stub = Code::FinalizeCode(nullptr, &assembler, pool_attachment,
-                                /*optimized=*/false, /*stats=*/nullptr);
-      stub.set_owner(cls);
-      if (!static_calls_table.IsNull()) {
-        stub.set_static_calls_target_table(static_calls_table);
-      }
-      cls.set_allocation_stub(stub);
-    };
 
     // We have to ensure no mutators are running, because:
     //
     //   a) We allocate an instructions object, which might cause us to
     //      temporarily flip page protections from (RX -> RW -> RX).
-    //
-    //   b) To ensure only one thread succeeds installing an allocation for the
-    //      given class.
-    //
-    thread->isolate_group()->RunWithStoppedMutators(
-        mutator_fun, bg_compiler_fun, /*use_force_growth=*/true);
+    thread->isolate_group()->RunWithStoppedMutators(mutator_fun,
+                                                    /*use_force_growth=*/true);
 
     // We notify code observers after finalizing the code in order to be
     // outside a [SafepointOperationScope].

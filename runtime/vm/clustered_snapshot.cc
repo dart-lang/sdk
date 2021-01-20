@@ -741,17 +741,17 @@ class FunctionDeserializationCluster : public DeserializationCluster {
         func ^= refs.At(i);
         code = func.CurrentCode();
         if (func.HasCode() && !code.IsDisabled()) {
-          func.SetInstructions(code);  // Set entrypoint.
+          func.SetInstructionsSafe(code);  // Set entrypoint.
           func.SetWasCompiled(true);
         } else {
-          func.ClearCode();  // Set code and entrypoint to lazy compile stub.
+          func.ClearCodeSafe();  // Set code and entrypoint to lazy compile stub
         }
       }
     } else {
       Function& func = Function::Handle(d->zone());
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         func ^= refs.At(i);
-        func.ClearCode();  // Set code and entrypoint to lazy compile stub.
+        func.ClearCodeSafe();  // Set code and entrypoint to lazy compile stub.
       }
     }
   }

@@ -6854,10 +6854,12 @@ static void DropRegExpMatchCode(Zone* zone) {
       Class::Handle(zone, core_lib.LookupClassAllowPrivate(Symbols::_RegExp()));
   ASSERT(!reg_exp_class.IsNull());
 
+  auto thread = Thread::Current();
   Function& func = Function::Handle(
       zone, reg_exp_class.LookupFunctionAllowPrivate(execute_match_name));
   ASSERT(!func.IsNull());
   Code& code = Code::Handle(zone);
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   if (func.HasCode()) {
     code = func.CurrentCode();
     ASSERT(!code.IsNull());

@@ -2940,7 +2940,10 @@ void DeoptimizeAt(const Code& optimized_code, StackFrame* frame) {
   ASSERT(!unoptimized_code.IsNull());
   // The switch to unoptimized code may have already occurred.
   if (function.HasOptimizedCode()) {
-    function.SwitchToUnoptimizedCode();
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    if (function.HasOptimizedCode()) {
+      function.SwitchToUnoptimizedCode();
+    }
   }
 
   if (frame->IsMarkedForLazyDeopt()) {

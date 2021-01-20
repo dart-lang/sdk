@@ -54,7 +54,6 @@ intptr_t FieldTable::FieldOffsetFor(intptr_t field_id) {
 bool FieldTable::Register(const Field& field, intptr_t expected_field_id) {
   DEBUG_ASSERT(
       IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-  ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(is_ready_to_use_);
 
   if (free_head_ < 0) {

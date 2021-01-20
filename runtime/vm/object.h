@@ -2600,7 +2600,9 @@ class Function : public Object {
   void InstallOptimizedCode(const Code& code) const;
   void AttachCode(const Code& value) const;
   void SetInstructions(const Code& value) const;
+  void SetInstructionsSafe(const Code& value) const;
   void ClearCode() const;
+  void ClearCodeSafe() const;
 
   // Disables optimized code and switches to unoptimized code.
   void SwitchToUnoptimizedCode() const;
@@ -3723,7 +3725,6 @@ class Function : public Object {
   void set_parameter_names(const Array& value) const;
   void set_parameter_types(const Array& value) const;
   void set_ic_data_array(const Array& value) const;
-  void SetInstructionsSafe(const Code& value) const;
   void set_name(const String& value) const;
   void set_kind(UntaggedFunction::Kind value) const;
   void set_parent_function(const Function& value) const;
@@ -3888,11 +3889,16 @@ class Field : public Object {
   }
   // Called in parser after allocating field, immutable property otherwise.
   // Marks fields that are initialized with a simple double constant.
-  void set_is_double_initialized(bool value) const {
-    ASSERT(Thread::Current()->IsMutatorThread());
+  void set_is_double_initialized_unsafe(bool value) const {
     ASSERT(IsOriginal());
     // TODO(36097): Once concurrent access is possible ensure updates are safe.
     set_kind_bits(DoubleInitializedBit::update(value, untag()->kind_bits_));
+  }
+
+  void set_is_double_initialized(bool value) const {
+    DEBUG_ASSERT(
+        IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+    set_is_double_initialized_unsafe(value);
   }
 
   bool initializer_changed_after_initialization() const {
@@ -3968,6 +3974,7 @@ class Field : public Object {
 
   inline intptr_t field_id() const;
   inline void set_field_id(intptr_t field_id) const;
+  inline void set_field_id_unsafe(intptr_t field_id) const;
 
   ClassPtr Owner() const;
   ClassPtr Origin() const;  // Either mixin class, or same as owner().
@@ -3977,6 +3984,7 @@ class Field : public Object {
   AbstractTypePtr type() const { return untag()->type(); }
   // Used by class finalizer, otherwise initialized in constructor.
   void SetFieldType(const AbstractType& value) const;
+  void SetFieldTypeSafe(const AbstractType& value) const;
 
   DART_WARN_UNUSED_RESULT
   ErrorPtr VerifyEntryPoint(EntryPointPragma kind) const;
@@ -4023,24 +4031,33 @@ class Field : public Object {
     return HasNontrivialInitializerBit::decode(kind_bits());
   }
   // Called by parser after allocating field.
-  void set_has_nontrivial_initializer(bool has_nontrivial_initializer) const {
+  void set_has_nontrivial_initializer_unsafe(
+      bool has_nontrivial_initializer) const {
     ASSERT(IsOriginal());
-    ASSERT(Thread::Current()->IsMutatorThread());
     // TODO(36097): Once concurrent access is possible ensure updates are safe.
     set_kind_bits(HasNontrivialInitializerBit::update(
         has_nontrivial_initializer, untag()->kind_bits_));
+  }
+  void set_has_nontrivial_initializer(bool has_nontrivial_initializer) const {
+    DEBUG_ASSERT(
+        IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+    set_has_nontrivial_initializer_unsafe(has_nontrivial_initializer);
   }
 
   bool has_initializer() const {
     return HasInitializerBit::decode(kind_bits());
   }
   // Called by parser after allocating field.
-  void set_has_initializer(bool has_initializer) const {
+  void set_has_initializer_unsafe(bool has_initializer) const {
     ASSERT(IsOriginal());
-    ASSERT(Thread::Current()->IsMutatorThread());
     // TODO(36097): Once concurrent access is possible ensure updates are safe.
     set_kind_bits(
         HasInitializerBit::update(has_initializer, untag()->kind_bits_));
+  }
+  void set_has_initializer(bool has_initializer) const {
+    DEBUG_ASSERT(
+        IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+    set_has_initializer_unsafe(has_initializer);
   }
 
   bool has_trivial_initializer() const {
@@ -4167,25 +4184,13 @@ class Field : public Object {
   // Internally we is_nullable_ field contains either kNullCid (nullable) or
   // kInvalidCid (non-nullable) instead of boolean. This is done to simplify
   // guarding sequence in the generated code.
-  bool is_nullable(bool silence_assert = false) const {
-#if defined(DEBUG)
-    if (!silence_assert) {
-      // Same assert as guarded_cid(), because is_nullable() also needs to be
-      // consistent for the background compiler.
-      Thread* thread = Thread::Current();
-      ASSERT(!IsOriginal() || is_static() || thread->IsMutatorThread() ||
-             thread->IsAtSafepoint());
-    }
-#endif
-    return untag()->is_nullable_ == kNullCid;
-  }
+  bool is_nullable(bool silence_assert = false) const;
   void set_is_nullable(bool val) const {
     DEBUG_ASSERT(
         IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
     set_is_nullable_unsafe(val);
   }
   void set_is_nullable_unsafe(bool val) const {
-    ASSERT(Thread::Current()->IsMutatorThread());
     StoreNonPointer(&untag()->is_nullable_, val ? kNullCid : kIllegalCid);
   }
   static intptr_t is_nullable_offset() {
@@ -6386,7 +6391,6 @@ class Code : public Object {
 
   void Enable() const {
     if (!IsDisabled()) return;
-    ASSERT(Thread::Current()->IsMutatorThread());
     ResetActiveInstructions();
   }
 
@@ -6463,6 +6467,8 @@ class Code : public Object {
   // entry point addresses.
   void SetActiveInstructions(const Instructions& instructions,
                              uint32_t unchecked_offset) const;
+  void SetActiveInstructionsSafe(const Instructions& instructions,
+                                 uint32_t unchecked_offset) const;
 
   // Resets [active_instructions_] to its original value of [instructions_] and
   // updates the cached entry point addresses to match.
@@ -11290,8 +11296,13 @@ inline intptr_t Field::field_id() const {
 }
 
 void Field::set_field_id(intptr_t field_id) const {
+  DEBUG_ASSERT(
+      IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  set_field_id_unsafe(field_id);
+}
+
+void Field::set_field_id_unsafe(intptr_t field_id) const {
   ASSERT(is_static());
-  ASSERT(Thread::Current()->IsMutatorThread());
   untag()->set_host_offset_or_field_id(Smi::New(field_id));
 }
 

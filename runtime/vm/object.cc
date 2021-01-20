@@ -2909,7 +2909,6 @@ void Class::SetFunctions(const Array& value) const {
   const intptr_t len = value.Length();
 #if defined(DEBUG)
   Thread* thread = Thread::Current();
-  ASSERT(thread->IsMutatorThread());
   ASSERT(thread->isolate_group()->program_lock()->IsCurrentThreadWriter());
   if (is_finalized()) {
     Function& function = Function::Handle();
@@ -3807,7 +3806,6 @@ ArrayPtr Class::invocation_dispatcher_cache() const {
 void Class::Finalize() const {
   auto thread = Thread::Current();
   auto isolate_group = thread->isolate_group();
-  ASSERT(thread->IsMutatorThread());
   ASSERT(!thread->isolate()->all_classes_finalized());
   ASSERT(!is_finalized());
   // Prefinalized classes have a VM internal representation and no Dart fields.
@@ -3898,15 +3896,8 @@ void Class::RegisterCHACode(const Code& code) {
 }
 
 void Class::DisableCHAOptimizedCode(const Class& subclass) {
-  Thread* thread = Thread::Current();
-  ASSERT(thread->IsMutatorThread());
-  // TODO(dartbug.com/36097): The program_lock acquisition has to move up the
-  // call chain to ClassFinalizer::AllocateFinalizeClass() so that:
-  //   - no two threads allocate-finalize a class at the same time(we should
-  // use the logic similar to what is used in EnsureIsAllocateFinalized()).
-  //   - code is deoptimized before we violate optimization assumptions
-  // potentially done concurrently (AddDirectSubclass/AddDirectImplementor).
-  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+  DEBUG_ASSERT(
+      IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   CHACodeArray a(*this);
   if (FLAG_trace_deoptimization && a.HasCodes()) {
     if (subclass.IsNull()) {
@@ -4286,16 +4277,11 @@ ErrorPtr Class::EnsureIsFinalized(Thread* thread) const {
   if (is_finalized()) {
     return Error::null();
   }
-  if (Compiler::IsBackgroundCompilation()) {
-    Compiler::AbortBackgroundCompilation(DeoptId::kNone,
-                                         "Class finalization while compiling");
-  }
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   if (is_finalized()) {
     return Error::null();
   }
   LeaveCompilerScope ncs(thread);
-  ASSERT(thread->IsMutatorThread());
   ASSERT(thread != NULL);
   const Error& error =
       Error::Handle(thread->zone(), ClassFinalizer::LoadClassMembers(*this));
@@ -4316,15 +4302,10 @@ ErrorPtr Class::EnsureIsAllocateFinalized(Thread* thread) const {
   if (is_allocate_finalized()) {
     return Error::null();
   }
-  if (Compiler::IsBackgroundCompilation()) {
-    Compiler::AbortBackgroundCompilation(
-        DeoptId::kNone, "Class allocate finalization while compiling");
-  }
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   if (is_allocate_finalized()) {
     return Error::null();
   }
-  ASSERT(thread->IsMutatorThread());
   ASSERT(thread != NULL);
   Error& error = Error::Handle(thread->zone(), EnsureIsFinalized(thread));
   if (!error.IsNull()) {
@@ -4346,7 +4327,6 @@ void Class::SetFields(const Array& value) const {
   ASSERT(!value.IsNull());
 #if defined(DEBUG)
   Thread* thread = Thread::Current();
-  ASSERT(thread->IsMutatorThread());
   ASSERT(thread->isolate_group()->program_lock()->IsCurrentThreadWriter());
   // Verify that all the fields in the array have this class as owner.
   Field& field = Field::Handle();
@@ -4364,7 +4344,6 @@ void Class::SetFields(const Array& value) const {
 void Class::AddField(const Field& field) const {
 #if defined(DEBUG)
   Thread* thread = Thread::Current();
-  ASSERT(thread->IsMutatorThread());
   ASSERT(thread->isolate_group()->program_lock()->IsCurrentThreadWriter());
 #endif
   const Array& arr = Array::Handle(fields());
@@ -4376,7 +4355,6 @@ void Class::AddField(const Field& field) const {
 void Class::AddFields(const GrowableArray<const Field*>& new_fields) const {
 #if defined(DEBUG)
   Thread* thread = Thread::Current();
-  ASSERT(thread->IsMutatorThread());
   ASSERT(thread->isolate_group()->program_lock()->IsCurrentThreadWriter());
 #endif
   const intptr_t num_new_fields = new_fields.length();
@@ -5063,6 +5041,14 @@ void Class::set_allocation_stub(const Code& value) const {
 }
 
 void Class::DisableAllocationStub() const {
+  {
+    const Code& existing_stub = Code::Handle(allocation_stub());
+    if (existing_stub.IsNull()) {
+      return;
+    }
+  }
+  auto thread = Thread::Current();
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   const Code& existing_stub = Code::Handle(allocation_stub());
   if (existing_stub.IsNull()) {
     return;
@@ -6695,7 +6681,7 @@ bool Function::HasBreakpoint() const {
 }
 
 void Function::InstallOptimizedCode(const Code& code) const {
-  DEBUG_ASSERT(IsMutatorOrAtSafepoint());
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   // We may not have previous code if FLAG_precompile is set.
   // Hot-reload may have already disabled the current code.
   if (HasCode() && !Code::Handle(CurrentCode()).IsDisabled()) {
@@ -6705,8 +6691,14 @@ void Function::InstallOptimizedCode(const Code& code) const {
 }
 
 void Function::SetInstructions(const Code& value) const {
-  DEBUG_ASSERT(IsMutatorOrAtSafepoint());
-  SetInstructionsSafe(value);
+  // Ensure that nobody is executing this function when we install it.
+  if (untag()->code() != Code::null() && HasCode()) {
+    SafepointOperationScope safepoint(Thread::Current());
+    SetInstructionsSafe(value);
+  } else {
+    ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+    SetInstructionsSafe(value);
+  }
 }
 
 void Function::SetInstructionsSafe(const Code& value) const {
@@ -6717,7 +6709,7 @@ void Function::SetInstructionsSafe(const Code& value) const {
 }
 
 void Function::AttachCode(const Code& value) const {
-  DEBUG_ASSERT(IsMutatorOrAtSafepoint());
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   // Finish setting up code before activating it.
   value.set_owner(*this);
   SetInstructions(value);
@@ -6741,11 +6733,19 @@ void Function::ClearCode() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
 #else
-  ASSERT(Thread::Current()->IsMutatorThread());
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  untag()->set_unoptimized_code(Code::null());
+  SetInstructions(StubCode::LazyCompile());
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+}
 
+void Function::ClearCodeSafe() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   untag()->set_unoptimized_code(Code::null());
 
-  SetInstructions(StubCode::LazyCompile());
+  SetInstructionsSafe(StubCode::LazyCompile());
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
@@ -6766,9 +6766,10 @@ void Function::EnsureHasCompiledUnoptimizedCode() const {
 void Function::SwitchToUnoptimizedCode() const {
   ASSERT(HasOptimizedCode());
   Thread* thread = Thread::Current();
+  DEBUG_ASSERT(
+      thread->isolate_group()->program_lock()->IsCurrentThreadWriter());
   Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
-  ASSERT(thread->IsMutatorThread());
   // TODO(35224): DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
   const Code& current_code = Code::Handle(zone, CurrentCode());
 
@@ -10065,6 +10066,23 @@ intptr_t Field::guarded_cid() const {
       &untag()->guarded_cid_);
 }
 
+bool Field::is_nullable(bool silence_assert) const {
+#if defined(DEBUG)
+  if (!silence_assert) {
+    // Same assert as guarded_cid(), because is_nullable() also needs to be
+    // consistent for the background compiler.
+    Thread* thread = Thread::Current();
+    ASSERT(
+        !thread->IsInsideCompiler() ||
+#if !defined(DART_PRECOMPILED_RUNTIME)
+        ((CompilerState::Current().should_clone_fields() == !IsOriginal())) ||
+#endif
+        is_static());
+  }
+#endif
+  return untag()->is_nullable_ == kNullCid;
+}
+
 void Field::SetOriginal(const Field& value) const {
   ASSERT(value.IsOriginal());
   ASSERT(!value.IsNull());
@@ -10210,14 +10228,19 @@ intptr_t Field::KernelDataProgramOffset() const {
   return PatchClass::Cast(obj).library_kernel_offset();
 }
 
-// Called at finalization time
-void Field::SetFieldType(const AbstractType& value) const {
-  ASSERT(Thread::Current()->IsMutatorThread());
+void Field::SetFieldTypeSafe(const AbstractType& value) const {
   ASSERT(IsOriginal());
   ASSERT(!value.IsNull());
   if (value.ptr() != type()) {
     untag()->set_type(value.ptr());
   }
+}
+
+// Called at finalization time
+void Field::SetFieldType(const AbstractType& value) const {
+  DEBUG_ASSERT(
+      IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  SetFieldTypeSafe(value);
 }
 
 FieldPtr Field::New() {
@@ -10241,7 +10264,7 @@ void Field::InitializeNew(const Field& result,
   result.set_name(name);
   result.set_is_static(is_static);
   if (is_static) {
-    result.set_field_id(-1);
+    result.set_field_id_unsafe(-1);
   } else {
     result.SetOffset(0, 0);
   }
@@ -10249,12 +10272,12 @@ void Field::InitializeNew(const Field& result,
   result.set_is_const(is_const);
   result.set_is_reflectable(is_reflectable);
   result.set_is_late(is_late);
-  result.set_is_double_initialized(false);
+  result.set_is_double_initialized_unsafe(false);
   result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_end_token_pos(end_token_pos);
-  result.set_has_nontrivial_initializer(false);
-  result.set_has_initializer(false);
+  result.set_has_nontrivial_initializer_unsafe(false);
+  result.set_has_initializer_unsafe(false);
   if (FLAG_precompiled_mode) {
     // May be updated by KernelLoader::ReadInferredType
     result.set_is_unboxing_candidate_unsafe(false);
@@ -10307,7 +10330,7 @@ FieldPtr Field::New(const String& name,
   const Field& result = Field::Handle(Field::New());
   InitializeNew(result, name, is_static, is_final, is_const, is_reflectable,
                 is_late, owner, token_pos, end_token_pos);
-  result.SetFieldType(type);
+  result.SetFieldTypeSafe(type);
   return result.ptr();
 }
 
@@ -10374,7 +10397,6 @@ intptr_t Field::guarded_list_length() const {
 }
 
 void Field::set_guarded_list_length_unsafe(intptr_t list_length) const {
-  ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(IsOriginal());
   untag()->set_guarded_list_length(Smi::New(list_length));
 }
@@ -10385,7 +10407,6 @@ intptr_t Field::guarded_list_length_in_object_offset() const {
 
 void Field::set_guarded_list_length_in_object_offset_unsafe(
     intptr_t list_length_offset) const {
-  ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(IsOriginal());
   StoreNonPointer(&untag()->guarded_list_length_in_object_offset_,
                   static_cast<int8_t>(list_length_offset - kHeapObjectTag));
@@ -16430,7 +16451,9 @@ CodePtr Code::FinalizeCodeAndNotify(const Function& function,
                                     PoolAttachment pool_attachment,
                                     bool optimized,
                                     CodeStatistics* stats) {
-  DEBUG_ASSERT(IsMutatorOrAtSafepoint());
+  auto thread = Thread::Current();
+  ASSERT(thread->isolate_group()->program_lock()->IsCurrentThreadWriter());
+
   const auto& code = Code::Handle(
       FinalizeCode(compiler, assembler, pool_attachment, optimized, stats));
   NotifyCodeObservers(function, code, optimized);
@@ -16443,7 +16466,9 @@ CodePtr Code::FinalizeCodeAndNotify(const char* name,
                                     PoolAttachment pool_attachment,
                                     bool optimized,
                                     CodeStatistics* stats) {
-  DEBUG_ASSERT(IsMutatorOrAtSafepoint());
+  auto thread = Thread::Current();
+  ASSERT(thread->isolate_group()->program_lock()->IsCurrentThreadWriter());
+
   const auto& code = Code::Handle(
       FinalizeCode(compiler, assembler, pool_attachment, optimized, stats));
   NotifyCodeObservers(name, code, optimized);
@@ -16460,7 +16485,8 @@ CodePtr Code::FinalizeCode(FlowGraphCompiler* compiler,
                            PoolAttachment pool_attachment,
                            bool optimized,
                            CodeStatistics* stats /* = nullptr */) {
-  DEBUG_ASSERT(IsMutatorOrAtSafepoint());
+  auto thread = Thread::Current();
+  ASSERT(thread->isolate_group()->program_lock()->IsCurrentThreadWriter());
 
   ASSERT(assembler != NULL);
   ObjectPool& object_pool = ObjectPool::Handle();
@@ -16514,7 +16540,6 @@ CodePtr Code::FinalizeCode(FlowGraphCompiler* compiler,
 
     // Set pointer offsets list in Code object and resolve all handles in
     // the instruction stream to raw objects.
-    Thread* thread = Thread::Current();
     for (intptr_t i = 0; i < pointer_offsets.length(); i++) {
       intptr_t offset_in_instrs = pointer_offsets[i];
       code.SetPointerOffsetAt(i, offset_in_instrs);
@@ -16797,7 +16822,7 @@ bool Code::IsFunctionCode() const {
 }
 
 void Code::DisableDartCode() const {
-  DEBUG_ASSERT(IsMutatorOrAtSafepoint());
+  SafepointOperationScope safepoint(Thread::Current());
   ASSERT(IsFunctionCode());
   ASSERT(instructions() == active_instructions());
   const Code& new_code = StubCode::FixCallersTarget();
@@ -16806,7 +16831,7 @@ void Code::DisableDartCode() const {
 }
 
 void Code::DisableStubCode() const {
-  ASSERT(Thread::Current()->IsMutatorThread());
+  SafepointOperationScope safepoint(Thread::Current());
   ASSERT(IsAllocationStubCode());
   ASSERT(instructions() == active_instructions());
   const Code& new_code = StubCode::FixAllocationStubTarget();
@@ -16833,7 +16858,16 @@ void Code::SetActiveInstructions(const Instructions& instructions,
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
 #else
-  DEBUG_ASSERT(IsMutatorOrAtSafepoint() || !is_alive());
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  SetActiveInstructionsSafe(instructions, unchecked_offset);
+#endif
+}
+
+void Code::SetActiveInstructionsSafe(const Instructions& instructions,
+                                     uint32_t unchecked_offset) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   // RawInstructions are never allocated in New space and hence a
   // store buffer update is not needed here.
   untag()->set_active_instructions(instructions.ptr());

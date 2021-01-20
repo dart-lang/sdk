@@ -226,7 +226,7 @@ void Class::CopyStaticFieldValues(ProgramReloadContext* reload_context,
             reload_context->isolate()->group()->initial_field_table()->Free(
                 field.field_id());
             reload_context->isolate()->field_table()->Free(field.field_id());
-            field.set_field_id(old_field.field_id());
+            field.set_field_id_unsafe(old_field.field_id());
           }
           reload_context->AddStaticFieldMapping(old_field, field);
         } else {

@@ -2078,13 +2078,15 @@ void ProgramReloadContext::InvalidateFunctions(
     Zone* zone,
     const GrowableArray<const Function*>& functions) {
   TIMELINE_SCOPE(InvalidateFunctions);
-  HANDLESCOPE(Thread::Current());
+  auto thread = Thread::Current();
+  HANDLESCOPE(thread);
 
   CallSiteResetter resetter(zone);
 
   Class& owning_class = Class::Handle(zone);
   Library& owning_lib = Library::Handle(zone);
   Code& code = Code::Handle(zone);
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   for (intptr_t i = 0; i < functions.length(); i++) {
     const Function& func = *functions[i];
 

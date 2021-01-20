@@ -654,8 +654,8 @@ static bool IsHex(int c) {
 #endif
 
 void AssemblerTest::Assemble() {
-  const String& function_name =
-      String::ZoneHandle(Symbols::New(Thread::Current(), name_));
+  auto thread = Thread::Current();
+  const String& function_name = String::ZoneHandle(Symbols::New(thread, name_));
 
   // We make a dummy script so that exception objects can be composed for
   // assembler instructions that do runtime calls.
@@ -669,6 +669,7 @@ void AssemblerTest::Assemble() {
   Function& function = Function::ZoneHandle(Function::New(
       signature, function_name, UntaggedFunction::kRegularFunction, true, false,
       false, false, false, cls, TokenPosition::kMinSource));
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   code_ = Code::FinalizeCodeAndNotify(function, nullptr, assembler_,
                                       Code::PoolAttachment::kAttachPool);
   code_.set_owner(function);

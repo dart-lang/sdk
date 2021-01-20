@@ -2729,6 +2729,8 @@ ISOLATE_UNIT_TEST_CASE(Code) {
   compiler::Assembler _assembler_(&object_pool_builder);
   GenerateIncrement(&_assembler_);
   const Function& function = Function::Handle(CreateFunction("Test_Code"));
+  SafepointWriteRwLocker locker(thread,
+                                thread->isolate_group()->program_lock());
   Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
       function, nullptr, &_assembler_, Code::PoolAttachment::kAttachPool));
   function.AttachCode(code);
@@ -2751,6 +2753,8 @@ ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeImmutability, "Crash") {
   compiler::Assembler _assembler_(&object_pool_builder);
   GenerateIncrement(&_assembler_);
   const Function& function = Function::Handle(CreateFunction("Test_Code"));
+  SafepointWriteRwLocker locker(thread,
+                                thread->isolate_group()->program_lock());
   Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
       function, nullptr, &_assembler_, Code::PoolAttachment::kAttachPool));
   function.AttachCode(code);
@@ -2789,6 +2793,8 @@ ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeExecutability, "Crash") {
   compiler::Assembler _assembler_(&object_pool_builder);
   GenerateIncrement(&_assembler_);
   const Function& function = Function::Handle(CreateFunction("Test_Code"));
+  SafepointWriteRwLocker locker(thread,
+                                thread->isolate_group()->program_lock());
   Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
       function, nullptr, &_assembler_, Code::PoolAttachment::kAttachPool));
   function.AttachCode(code);
@@ -2830,6 +2836,8 @@ ISOLATE_UNIT_TEST_CASE(EmbedStringInCode) {
   GenerateEmbedStringInCode(&_assembler_, kHello);
   const Function& function =
       Function::Handle(CreateFunction("Test_EmbedStringInCode"));
+  SafepointWriteRwLocker locker(thread,
+                                thread->isolate_group()->program_lock());
   const Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
       function, nullptr, &_assembler_, Code::PoolAttachment::kAttachPool));
   function.AttachCode(code);
@@ -2854,6 +2862,8 @@ ISOLATE_UNIT_TEST_CASE(EmbedSmiInCode) {
   GenerateEmbedSmiInCode(&_assembler_, kSmiTestValue);
   const Function& function =
       Function::Handle(CreateFunction("Test_EmbedSmiInCode"));
+  SafepointWriteRwLocker locker(thread,
+                                thread->isolate_group()->program_lock());
   const Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
       function, nullptr, &_assembler_, Code::PoolAttachment::kAttachPool));
   function.AttachCode(code);
@@ -2873,6 +2883,8 @@ ISOLATE_UNIT_TEST_CASE(EmbedSmiIn64BitCode) {
   GenerateEmbedSmiInCode(&_assembler_, kSmiTestValue);
   const Function& function =
       Function::Handle(CreateFunction("Test_EmbedSmiIn64BitCode"));
+  SafepointWriteRwLocker locker(thread,
+                                thread->isolate_group()->program_lock());
   const Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
       function, nullptr, &_assembler_, Code::PoolAttachment::kAttachPool));
   function.AttachCode(code);
@@ -2898,6 +2910,8 @@ ISOLATE_UNIT_TEST_CASE(ExceptionHandlers) {
   compiler::ObjectPoolBuilder object_pool_builder;
   compiler::Assembler _assembler_(&object_pool_builder);
   GenerateIncrement(&_assembler_);
+  SafepointWriteRwLocker locker(thread,
+                                thread->isolate_group()->program_lock());
   Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
       Function::Handle(CreateFunction("Test_Code")), nullptr, &_assembler_,
       Code::PoolAttachment::kAttachPool));
@@ -2945,6 +2959,8 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptors) {
   compiler::ObjectPoolBuilder object_pool_builder;
   compiler::Assembler _assembler_(&object_pool_builder);
   GenerateIncrement(&_assembler_);
+  SafepointWriteRwLocker locker(thread,
+                                thread->isolate_group()->program_lock());
   Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
       Function::Handle(CreateFunction("Test_Code")), nullptr, &_assembler_,
       Code::PoolAttachment::kAttachPool));
@@ -3015,6 +3031,8 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptorsLargeDeltas) {
   compiler::ObjectPoolBuilder object_pool_builder;
   compiler::Assembler _assembler_(&object_pool_builder);
   GenerateIncrement(&_assembler_);
+  SafepointWriteRwLocker locker(thread,
+                                thread->isolate_group()->program_lock());
   Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
       Function::Handle(CreateFunction("Test_Code")), nullptr, &_assembler_,
       Code::PoolAttachment::kAttachPool));
