@@ -1918,8 +1918,8 @@ void h(List<int> x) {
 class C<T> {
   int Function(T) f;
 }
-void main() {
-  C<String> c;
+void main(dynamic d) {
+  C<String> c = d;
   int Function(String) f1 = c.f; // should not have a nullable arg
   c.f(null); // exact nullability induced here
 }
@@ -1928,8 +1928,8 @@ void main() {
 class C<T> {
   int Function(T)? f;
 }
-void main() {
-  C<String?> c;
+void main(dynamic d) {
+  C<String?> c = d;
   int Function(String)? f1 = c.f; // should not have a nullable arg
   c.f!(null); // exact nullability induced here
 }
@@ -1945,8 +1945,8 @@ class C<T> {
   T Function(String) f;
 }
 int Function(String) f1; // should not have a nullable return
-void main() {
-  C<int> c;
+void main(dynamic d) {
+  C<int> c = d;
   c.f = f1;
   c.f = (_) => null; // exact nullability induced here
 }
@@ -1956,8 +1956,8 @@ class C<T> {
   T Function(String)? f;
 }
 int Function(String)? f1; // should not have a nullable return
-void main() {
-  C<int?> c;
+void main(dynamic d) {
+  C<int?> c = d;
   c.f = f1;
   c.f = (_) => null; // exact nullability induced here
 }
@@ -6818,7 +6818,7 @@ f() {
     var expected = '''
 typedef F = Function(int?);
 
-F _f;
+late F _f;
 
 f() {
   _f(null);
@@ -6883,7 +6883,7 @@ f() {
     var expected = '''
 typedef F = Function<T>(T);
 
-F _f;
+late F _f;
 
 f() {
   _f<int?>(null);
@@ -6905,7 +6905,7 @@ f() {
     var expected = '''
 typedef F<R> = Function<T>(T);
 
-F<Object> _f;
+late F<Object> _f;
 
 f() {
   _f<int?>(null);
@@ -6927,7 +6927,7 @@ f() {
     var expected = '''
 typedef F<T> = Function(T);
 
-F<int?> _f;
+late F<int?> _f;
 
 f() {
   _f(null);
@@ -6949,7 +6949,7 @@ f() {
     var expected = '''
 typedef F<T> = Function(T);
 
-F<int?> _f;
+late F<int?> _f;
 
 f() {
   _f(null);
@@ -6985,7 +6985,7 @@ f() {
     var expected = '''
 typedef F(int? x);
 
-F _f;
+late F _f;
 
 f() {
   _f(null);
@@ -7035,7 +7035,7 @@ f() {
     var expected = '''
 typedef F<T>(T t);
 
-F<int?> _f;
+late F<int?> _f;
 
 f() {
   _f(null);
@@ -7057,7 +7057,7 @@ f() {
     var expected = '''
 typedef F<T>(T t);
 
-F<int?> _f;
+late F<int?> _f;
 
 f() {
   _f(null);

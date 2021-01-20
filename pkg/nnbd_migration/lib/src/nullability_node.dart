@@ -1434,22 +1434,6 @@ class _PropagationState {
         var edge = step.edge;
         if (!edge.isTriggered) continue;
         var node = edge.destinationNode;
-        var nonNullIntent = node.nonNullIntent;
-        if (nonNullIntent.isPresent) {
-          if (edge.isCheckable) {
-            // The node has already been marked as having non-null intent, and
-            // the edge can be addressed by adding a null check, so we prefer to
-            // leave the edge unsatisfied and let the null check happen.
-            result.unsatisfiedEdges.add(edge);
-            continue;
-          }
-          if (nonNullIntent.isDirect) {
-            // The node has direct non-null intent so we aren't in a position to
-            // mark it as nullable.
-            result.unsatisfiedEdges.add(edge);
-            continue;
-          }
-        }
         if (edge.isUninit && !node.isNullable) {
           // [edge] is an edge from always to an uninitialized variable
           // declaration.
@@ -1470,6 +1454,22 @@ class _PropagationState {
             continue;
           } else if (isSetupAssigned) {
             node._lateCondition = LateCondition.possiblyLateDueToTestSetup;
+            continue;
+          }
+        }
+        var nonNullIntent = node.nonNullIntent;
+        if (nonNullIntent.isPresent) {
+          if (edge.isCheckable) {
+            // The node has already been marked as having non-null intent, and
+            // the edge can be addressed by adding a null check, so we prefer to
+            // leave the edge unsatisfied and let the null check happen.
+            result.unsatisfiedEdges.add(edge);
+            continue;
+          }
+          if (nonNullIntent.isDirect) {
+            // The node has direct non-null intent so we aren't in a position to
+            // mark it as nullable.
+            result.unsatisfiedEdges.add(edge);
             continue;
           }
         }
