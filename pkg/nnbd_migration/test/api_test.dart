@@ -3071,6 +3071,28 @@ int? test(C c) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_function_expression_return() async {
+    var content = '''
+void test({String foo}) async {
+  var f = () {
+    return "hello";
+  }
+
+  foo.length;
+}
+''';
+    var expected = '''
+void test({required String foo}) async {
+  var f = () {
+    return "hello";
+  }
+
+  foo.length;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_function_typed_field_formal_param() async {
     var content = '''
 class C {
@@ -4564,6 +4586,28 @@ int f() {
     i = 1;
   });
   return i + 1;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_local_function_return() async {
+    var content = '''
+void test({String foo}) async {
+  String f() {
+    return "hello";
+  }
+
+  foo.length;
+}
+''';
+    var expected = '''
+void test({required String foo}) async {
+  String f() {
+    return "hello";
+  }
+
+  foo.length;
 }
 ''';
     await _checkSingleFileChanges(content, expected);
