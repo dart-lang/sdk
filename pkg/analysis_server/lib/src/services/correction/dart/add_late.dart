@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
@@ -70,7 +71,8 @@ class AddLate extends CorrectionProducer {
             var keywordToken = declarationList.keyword;
             if (declarationList.variables.length == 1 &&
                 keywordToken.keyword == Keyword.FINAL) {
-              await _insertAt(builder, keywordToken.offset);
+              await _insertAt(builder, keywordToken.offset,
+                  source: declarationResult.element.source);
             }
           }
         }
@@ -78,8 +80,9 @@ class AddLate extends CorrectionProducer {
     }
   }
 
-  Future<void> _insertAt(ChangeBuilder builder, int offset) async {
-    await builder.addDartFileEdit(file, (builder) {
+  Future<void> _insertAt(ChangeBuilder builder, int offset,
+      {Source source}) async {
+    await builder.addDartFileEdit(source?.fullName ?? file, (builder) {
       builder.addSimpleInsertion(offset, 'late ');
     });
   }
