@@ -8,6 +8,7 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 
+import 'calloc.dart';
 import 'coordinate.dart';
 
 main() {

@@ -9,6 +9,7 @@ import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 import 'package:expect/expect.dart';
 
+import 'calloc.dart';
 import 'dylib_utils.dart';
 
 class Struct43693 extends Struct {

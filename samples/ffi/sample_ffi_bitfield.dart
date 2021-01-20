@@ -7,6 +7,8 @@ import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 import 'package:expect/expect.dart';
 
+import 'calloc.dart';
+
 /// typedef struct {
 ///     unsigned int bold      : 1;
 ///     unsigned int underline : 2;

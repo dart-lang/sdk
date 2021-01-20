@@ -6,6 +6,8 @@ import 'dart:ffi';
 
 import "package:ffi/ffi.dart";
 
+import 'calloc.dart';
+
 main() {
   final data = calloc<Uint8>(3);
   for (int i = 0; i < 3; ++i) {

@@ -13,6 +13,7 @@ import 'dart:io';
 import 'package:ffi/ffi.dart';
 import 'package:benchmark_harness/benchmark_harness.dart';
 
+import 'calloc.dart';
 import 'dlopen_helper.dart';
 
 //

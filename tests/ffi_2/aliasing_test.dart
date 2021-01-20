@@ -13,6 +13,7 @@ import 'dart:ffi';
 import "package:ffi/ffi.dart";
 import "package:expect/expect.dart";
 
+import 'calloc.dart';
 import 'ffi_test_helpers.dart';
 
 void main() {

@@ -10,6 +10,7 @@ import 'dart:ffi';
 
 import "package:ffi/ffi.dart";
 
+import 'calloc.dart';
 import 'dylib_utils.dart';
 
 void main() {

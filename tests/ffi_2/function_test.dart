@@ -19,6 +19,7 @@ import "package:ffi/ffi.dart";
 import "package:expect/expect.dart";
 
 import 'dylib_utils.dart';
+import 'calloc.dart';
 
 void main() {
   for (int i = 0; i < 100; ++i) {

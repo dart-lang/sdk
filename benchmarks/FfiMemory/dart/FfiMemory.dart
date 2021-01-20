@@ -14,6 +14,8 @@ import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 import 'package:benchmark_harness/benchmark_harness.dart';
 
+import 'calloc.dart';
+
 //
 // Pointer store.
 //

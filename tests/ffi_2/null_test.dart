@@ -20,6 +20,7 @@ import 'dart:ffi';
 import "package:expect/expect.dart";
 import "package:ffi/ffi.dart";
 
+import 'calloc.dart';
 import 'dylib_utils.dart';
 import 'ffi_test_helpers.dart';
 

@@ -15,6 +15,8 @@ import "bindings/types.dart" hide Database;
 import "bindings/constants.dart";
 import "collections/closable_iterator.dart";
 
+import 'ffi/calloc.dart';
+
 /// [Database] represents an open connection to a SQLite database.
 ///
 /// All functions against a database may throw [SQLiteError].

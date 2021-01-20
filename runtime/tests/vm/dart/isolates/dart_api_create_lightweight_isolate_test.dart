@@ -14,6 +14,7 @@ import 'dart:isolate';
 import 'package:expect/expect.dart';
 import 'package:ffi/ffi.dart';
 
+import '../../../../../tests/ffi/calloc.dart';
 import '../../../../../tests/ffi/dylib_utils.dart';
 
 final bool isAOT = Platform.executable.contains('dart_precompiled_runtime');

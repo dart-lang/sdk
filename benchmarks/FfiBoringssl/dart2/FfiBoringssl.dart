@@ -13,6 +13,7 @@ import 'dart:typed_data';
 import 'package:benchmark_harness/benchmark_harness.dart';
 import 'package:ffi/ffi.dart';
 
+import 'calloc.dart';
 import 'digest.dart';
 import 'types.dart';
 

@@ -65,6 +65,8 @@ import 'dart:ffi';
 import "package:expect/expect.dart";
 import "package:ffi/ffi.dart";
 
+import 'calloc.dart';
+
 // ===== a.value = b ======
 // The tests follow table cells left to right, top to bottom.
 void store1() {
