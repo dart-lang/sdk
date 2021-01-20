@@ -958,6 +958,8 @@ FunctionPtr TypeFeedbackLoader::FindFunction(UntaggedFunction::Kind kind,
     if (!func_.IsNull() && func_.IsDynamicFunction()) {
       name = func_.name();  // With private mangling.
       name = Function::CreateDynamicInvocationForwarderName(name);
+      SafepointWriteRwLocker ml(thread_,
+                                thread_->isolate_group()->program_lock());
       func_ = func_.CreateDynamicInvocationForwarder(name);
     } else {
       func_ = Function::null();
