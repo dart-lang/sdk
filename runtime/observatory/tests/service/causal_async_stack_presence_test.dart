@@ -11,8 +11,8 @@ import 'service_test_common.dart';
 import 'test_helper.dart';
 
 const LINE_C = 19;
-const LINE_A = 25;
-const LINE_B = 31;
+const LINE_A = 24;
+const LINE_B = 30;
 
 foobar() {
   debugger();
@@ -20,7 +20,6 @@ foobar() {
 }
 
 helper() async {
-  await 0; // Yield. The rest will run async.
   debugger();
   print('helper'); // LINE_A.
   foobar();
@@ -37,7 +36,6 @@ var tests = <IsolateTest>[
   (Isolate isolate) async {
     ServiceMap stack = await isolate.getStack();
     // No causal frames because we are in a completely synchronous stack.
-    // Async function hasn't yielded yet.
     expect(stack['asyncCausalFrames'], isNull);
   },
   resumeIsolate,
@@ -45,7 +43,7 @@ var tests = <IsolateTest>[
   stoppedAtLine(LINE_A),
   (Isolate isolate) async {
     ServiceMap stack = await isolate.getStack();
-    // Async function has yielded once, so it's now running async.
+    // Has causal frames (we are inside an async function)
     expect(stack['asyncCausalFrames'], isNotNull);
   },
   resumeIsolate,
