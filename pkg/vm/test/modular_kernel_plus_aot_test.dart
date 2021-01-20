@@ -157,8 +157,8 @@ class Foo {
 }
 class Mixin {
   void set mixinProperty(v) {}
-  Foo get mixinProperty{}
-  Foo mixinMethod(v) {}
+  Foo get mixinProperty => new Foo();
+  Foo mixinMethod(v) => new Foo();
 }
 class A1 extends Object with Mixin { }
 class A2 extends Object with Mixin { }
