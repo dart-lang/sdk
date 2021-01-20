@@ -398,6 +398,8 @@ class BecomeMapTraits {
     } else if (obj.IsClosure()) {
       return String::HashRawSymbol(
           Function::Handle(Closure::Cast(obj).function()).name());
+    } else if (obj.IsLibraryPrefix()) {
+      return String::HashRawSymbol(LibraryPrefix::Cast(obj).name());
     } else {
       FATAL1("Unexpected type in become: %s\n", obj.ToCString());
     }
