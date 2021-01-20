@@ -805,6 +805,9 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
     // Non-implicit setter are inlined like normal method calls.
     return false;
   }
+  if (!CompilerState::Current().is_aot() && !target.WasCompiled()) {
+    return false;
+  }
   Field& field = Field::ZoneHandle(Z, target.accessor_field());
   ASSERT(!field.IsNull());
   if (should_clone_fields_) {
@@ -965,6 +968,9 @@ bool CallSpecializer::TryInlineInstanceGetter(InstanceCallInstr* call) {
   if (target.kind() != UntaggedFunction::kImplicitGetter) {
     // Non-implicit getters are inlined like normal methods by conventional
     // inlining in FlowGraphInliner.
+    return false;
+  }
+  if (!CompilerState::Current().is_aot() && !target.WasCompiled()) {
     return false;
   }
   return TryInlineImplicitInstanceGetter(call);
