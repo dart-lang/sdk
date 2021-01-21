@@ -36,7 +36,11 @@ import '../../../compiler_new.dart';
 import '../../common.dart';
 import '../../common/tasks.dart';
 import '../../constants/values.dart'
-    show ConstantValue, FunctionConstantValue, NullConstantValue;
+    show
+        ConstantValue,
+        FunctionConstantValue,
+        LateSentinelConstantValue,
+        NullConstantValue;
 import '../../common_elements.dart' show CommonElements, JElementEnvironment;
 import '../../deferred_load.dart' show OutputUnit;
 import '../../dump_info.dart';
@@ -88,7 +92,7 @@ class ModelEmitter {
   final Namer _namer;
   final CompilerTask _task;
   final Emitter _emitter;
-  ConstantEmitter _constantEmitter;
+  ConstantEmitter constantEmitter;
   final NativeEmitter _nativeEmitter;
   final bool _shouldGenerateSourceMap;
   final JClosedWorld _closedWorld;
@@ -125,8 +129,9 @@ class ModelEmitter {
       RecipeEncoder rtiRecipeEncoder,
       this._shouldGenerateSourceMap)
       : _constantOrdering = new ConstantOrdering(_closedWorld.sorter) {
-    this._constantEmitter = new ConstantEmitter(
+    this.constantEmitter = new ConstantEmitter(
         _options,
+        _namer,
         _closedWorld.commonElements,
         _closedWorld.elementEnvironment,
         _closedWorld.rtiNeed,
@@ -146,6 +151,7 @@ class ModelEmitter {
     if (constant.isFunction) return true; // Already emitted.
     if (constant.isPrimitive) return true; // Inlined.
     if (constant.isDummy) return true; // Inlined.
+    if (constant is LateSentinelConstantValue) return true; // Inlined.
     return false;
   }
 
@@ -181,7 +187,7 @@ class ModelEmitter {
     // We are only interested in the "isInlined" part, but it does not hurt to
     // test for the other predicates.
     if (isConstantInlinedOrAlreadyEmitted(value)) {
-      return _constantEmitter.generate(value);
+      return constantEmitter.generate(value);
     }
     return js.js('#.#',
         [_namer.globalObjectForConstant(value), _namer.constantName(value)]);
@@ -199,7 +205,7 @@ class ModelEmitter {
         _dumpInfoTask,
         _namer,
         _emitter,
-        _constantEmitter,
+        constantEmitter,
         this,
         _nativeEmitter,
         _closedWorld,

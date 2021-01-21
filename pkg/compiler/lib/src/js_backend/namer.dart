@@ -1910,6 +1910,11 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   }
 
   @override
+  void visitLateSentinel(LateSentinelConstantValue constant, [_]) {
+    add('late_sentinel');
+  }
+
+  @override
   void visitUnreachable(UnreachableConstantValue constant, [_]) {
     add('unreachable');
   }
@@ -2044,6 +2049,13 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
         'DummyInterceptorConstantValue should never be named and '
         'never be subconstant');
   }
+
+  @override
+  int visitLateSentinel(LateSentinelConstantValue constant, [_]) =>
+      throw failedAt(
+          NO_LOCATION_SPANNABLE,
+          'LateSentinelConstantValue should never be named and '
+          'never be subconstant');
 
   @override
   int visitUnreachable(UnreachableConstantValue constant, [_]) {

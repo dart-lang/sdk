@@ -118,7 +118,7 @@ class ModularEmitterImpl extends ModularEmitterBase {
 
   ModularEmitterImpl(
       ModularNamer namer, this._registry, CompilerOptions options)
-      : _constantEmitter = new ModularConstantEmitter(options),
+      : _constantEmitter = new ModularConstantEmitter(options, namer),
         super(namer);
 
   @override

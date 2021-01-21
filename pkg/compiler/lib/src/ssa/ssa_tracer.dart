@@ -169,6 +169,10 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   @override
+  String visitIsLateSentinel(HIsLateSentinel node) =>
+      'IsLateSentinel: ${temporaryId(node.inputs[0])}';
+
+  @override
   String visitLateValue(HLateValue node) {
     return "LateValue: ${temporaryId(node.inputs[0])}";
   }

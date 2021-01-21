@@ -546,6 +546,8 @@ abstract class AbstractDataSource extends DataSourceMixin
         return new DeferredGlobalConstantValue(constant, unit);
       case ConstantValueKind.DUMMY_INTERCEPTOR:
         return DummyInterceptorConstantValue();
+      case ConstantValueKind.LATE_SENTINEL:
+        return LateSentinelConstantValue();
       case ConstantValueKind.UNREACHABLE:
         return UnreachableConstantValue();
       case ConstantValueKind.JS_NAME:
