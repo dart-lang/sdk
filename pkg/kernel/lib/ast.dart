@@ -1468,6 +1468,11 @@ class Extension extends NamedNode implements FileUriNode {
   }
 
   @override
+  Location _getLocationInEnclosingFile(int offset) {
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
+  }
+
+  @override
   String toString() {
     return "Extension(${toStringInternal()})";
   }

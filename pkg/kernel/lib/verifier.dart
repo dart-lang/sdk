@@ -80,9 +80,12 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
 
   Class currentClass;
 
+  Extension currentExtension;
+
   TreeNode currentParent;
 
-  TreeNode get currentClassOrMember => currentMember ?? currentClass;
+  TreeNode get currentClassOrExtensionOrMember =>
+      currentMember ?? currentClass ?? currentExtension;
 
   static void check(Component component, {bool isOutline, bool afterConst}) {
     component.accept(
@@ -111,7 +114,7 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
   }
 
   problem(TreeNode node, String details, {TreeNode context}) {
-    context ??= currentClassOrMember;
+    context ??= currentClassOrExtensionOrMember;
     throw new VerificationError(context, node, details);
   }
 
@@ -242,11 +245,13 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
   }
 
   visitExtension(Extension node) {
+    currentExtension = node;
     declareTypeParameters(node.typeParameters);
     final TreeNode oldParent = enterParent(node);
     node.visitChildren(this);
     exitParent(oldParent);
     undeclareTypeParameters(node.typeParameters);
+    currentExtension = null;
   }
 
   void checkTypedef(Typedef node) {
