@@ -296,6 +296,33 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @override
+  bool referencesAny(Set<TypeParameterElement> parameters) {
+    if (typeFormals.any((element) {
+      var elementImpl = element as TypeParameterElementImpl;
+      assert(!parameters.contains(elementImpl));
+
+      var bound = elementImpl.bound as TypeImpl;
+      if (bound != null && bound.referencesAny(parameters)) {
+        return true;
+      }
+
+      var defaultType = elementImpl.defaultType as TypeImpl;
+      return defaultType.referencesAny(parameters);
+    })) {
+      return true;
+    }
+
+    if (this.parameters.any((element) {
+      var type = element.type as TypeImpl;
+      return type.referencesAny(parameters);
+    })) {
+      return true;
+    }
+
+    return (returnType as TypeImpl).referencesAny(parameters);
+  }
+
+  @override
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
     if (this.nullabilitySuffix == nullabilitySuffix) return this;
     return FunctionTypeImpl(
@@ -1312,6 +1339,14 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  bool referencesAny(Set<TypeParameterElement> parameters) {
+    return typeArguments.any((argument) {
+      var argumentImpl = argument as TypeImpl;
+      return argumentImpl.referencesAny(parameters);
+    });
+  }
+
+  @override
   InterfaceTypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
     if (this.nullabilitySuffix == nullabilitySuffix) return this;
 
@@ -1712,6 +1747,11 @@ abstract class TypeImpl implements DartType {
     return builder.toString();
   }
 
+  /// Returns true if this type references any of the [parameters].
+  bool referencesAny(Set<TypeParameterElement> parameters) {
+    return false;
+  }
+
   @override
   DartType resolveToBound(DartType objectType) => this;
 
@@ -1850,6 +1890,11 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   @override
   InterfaceType asInstanceOf(ClassElement element) {
     return bound?.asInstanceOf(element);
+  }
+
+  @override
+  bool referencesAny(Set<TypeParameterElement> parameters) {
+    return parameters.contains(element);
   }
 
   @override
