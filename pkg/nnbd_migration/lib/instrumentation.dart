@@ -274,6 +274,7 @@ enum EdgeOriginKind {
   implicitMixinSuperCall,
   implicitNullInitializer,
   implicitNullReturn,
+  implicitThis,
   inferredTypeParameterInstantiation,
   instanceCreation,
   instantiateToBounds,

@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
@@ -1268,6 +1269,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
     } else if (target == null && callee.enclosingElement is ClassElement) {
       targetType = _thisOrSuper(node);
+      _checkThisNotNull(targetType, node);
     }
     DecoratedType expressionType;
     DecoratedType calleeType;
@@ -1575,6 +1577,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitSimpleIdentifier(SimpleIdentifier node) {
+    DecoratedType targetType;
     DecoratedType result;
     var staticElement = getWriteOrReadElement(node);
     if (staticElement is PromotableElement) {
@@ -1594,15 +1597,16 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else if (staticElement is FunctionElement ||
         staticElement is MethodElement ||
         staticElement is ConstructorElement) {
-      result = getOrComputeElementType(staticElement,
-          targetType: staticElement.enclosingElement is ClassElement
-              ? _thisOrSuper(node)
-              : null);
+      if (staticElement.enclosingElement is ClassElement) {
+        targetType = _thisOrSuper(node);
+      }
+      result = getOrComputeElementType(staticElement, targetType: targetType);
     } else if (staticElement is PropertyAccessorElement) {
-      var elementType = getOrComputeElementType(staticElement,
-          targetType: staticElement.enclosingElement is ClassElement
-              ? _thisOrSuper(node)
-              : null);
+      if (staticElement.enclosingElement is ClassElement) {
+        targetType = _thisOrSuper(node);
+      }
+      var elementType =
+          getOrComputeElementType(staticElement, targetType: targetType);
       result = staticElement.isGetter
           ? elementType.returnType
           : elementType.positionalParameters[0];
@@ -1620,6 +1624,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       // TODO(paulberry)
       _unimplemented(node,
           'Simple identifier with a static element of type ${staticElement.runtimeType}');
+    }
+    if (targetType != null) {
+      _checkThisNotNull(targetType, node);
     }
     return result;
   }
@@ -1984,6 +1991,18 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       origin.checks.edges[FixReasonTarget.root] = edge;
     }
     return sourceType;
+  }
+
+  /// Generates the appropriate edge to assert that the value of `this` is
+  /// non-null.
+  void _checkThisNotNull(DecoratedType thisType, AstNode node) {
+    // `this` can only be `null` in extensions, so if we're not in an extension,
+    // there's nothing to do.
+    if (_currentExtendedType == null) return;
+    var origin = ImplicitThisOrigin(source, node);
+    var hard =
+        _postDominatedLocals.isInScope(_postDominatedLocals.extensionThis);
+    _graph.makeNonNullable(thisType.node, origin, hard: hard, guards: _guards);
   }
 
   @override
@@ -2397,9 +2416,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
     }
     if (destinationExpression != null) {
-      var element = _postDominatedLocals
-          .removeReferenceFromAllScopes(destinationExpression);
+      var element =
+          _postDominatedLocals.referencedElement(destinationExpression);
       if (element != null) {
+        _postDominatedLocals.removeFromAllScopes(element);
         _elementsWrittenToInLocalFunction?.add(element);
       }
     }
@@ -2451,6 +2471,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _addParametersToFlowAnalysis(parameters);
     // Push a scope of post-dominated declarations on the stack.
     _postDominatedLocals.pushScope(elements: declaredElement.parameters);
+    if (declaredElement.enclosingElement is ExtensionElement) {
+      _postDominatedLocals.add(_postDominatedLocals.extensionThis);
+    }
     try {
       _dispatchList(initializers);
       if (declaredElement is ConstructorElement &&
@@ -3658,23 +3681,23 @@ class _ConditionInfo {
 ///
 /// Contains helpers for dealing with expressions as if they were elements.
 class _ScopedLocalSet extends ScopedSet<Element> {
+  /// The synthetic element we use as a stand-in for `this` when analyzing
+  /// extension methods.
+  Element get extensionThis => DynamicElementImpl.instance;
+
   bool isReferenceInScope(Expression expression) {
-    expression = expression.unParenthesized;
-    if (expression is SimpleIdentifier) {
-      var element = expression.staticElement;
-      return isInScope(element);
-    }
-    return false;
+    var element = referencedElement(expression);
+    return element != null && isInScope(element);
   }
 
-  /// If [expression] references an element, removes that element from all
-  /// scopes and returns it.  Otherwise returns `null`.
-  Element removeReferenceFromAllScopes(Expression expression) {
+  /// Returns the element referenced directly by [expression], if any; otherwise
+  /// returns `null`.
+  Element referencedElement(Expression expression) {
     expression = expression.unParenthesized;
     if (expression is SimpleIdentifier) {
-      var element = expression.staticElement;
-      removeFromAllScopes(element);
-      return element;
+      return expression.staticElement;
+    } else if (expression is ThisExpression || expression is SuperExpression) {
+      return extensionThis;
     } else {
       return null;
     }

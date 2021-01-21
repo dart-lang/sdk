@@ -495,6 +495,20 @@ class MigrationResolutionHooksImpl
         (_shouldStayNullAware[node] ??= _fixBuilder._shouldStayNullAware(node));
   }
 
+  /// Indicates whether the given [element] is a member of an extension on a
+  /// potentially nullable type (and hence the extension member can be invoked
+  /// on a nullable type without introducing a null check).
+  bool isNullableExtensionMember(Element element) {
+    if (element != null) {
+      var enclosingElement = element.enclosingElement;
+      if (enclosingElement is ExtensionElement) {
+        return _fixBuilder._typeSystem
+            .isPotentiallyNullable(enclosingElement.extendedType);
+      }
+    }
+    return false;
+  }
+
   @override
   bool isPropertyAccessNullAware(PropertyAccess node) {
     return node.isNullAware &&
@@ -705,38 +719,49 @@ class MigrationResolutionHooksImpl
             operatorType == TokenType.BANG_EQ) {
           return false;
         } else {
-          return true;
+          return !isNullableExtensionMember(parent.staticElement);
         }
       }
     } else if (parent is PrefixedIdentifier) {
-      if (isDeclaredOnObject(parent.identifier.name)) {
+      if (isDeclaredOnObject(parent.identifier.name) ||
+          isNullableExtensionMember(parent.identifier.staticElement)) {
         return false;
       }
       return identical(node, parent.prefix);
     } else if (parent is PropertyAccess) {
-      if (isDeclaredOnObject(parent.propertyName.name)) {
+      if (isDeclaredOnObject(parent.propertyName.name) ||
+          isNullableExtensionMember(parent.propertyName.staticElement)) {
         return false;
       }
       // TODO(paulberry): what about cascaded?
       return parent.operator.type == TokenType.PERIOD &&
           identical(node, parent.target);
     } else if (parent is MethodInvocation) {
-      if (isDeclaredOnObject(parent.methodName.name)) {
+      if (isDeclaredOnObject(parent.methodName.name) ||
+          isNullableExtensionMember(parent.methodName.staticElement)) {
         return false;
       }
       // TODO(paulberry): what about cascaded?
       return parent.operator.type == TokenType.PERIOD &&
           identical(node, parent.target);
     } else if (parent is IndexExpression) {
-      return identical(node, parent.target);
+      if (identical(node, parent.target)) {
+        return !isNullableExtensionMember(parent.staticElement);
+      } else {
+        return false;
+      }
     } else if (parent is ConditionalExpression) {
       return identical(node, parent.condition);
     } else if (parent is FunctionExpressionInvocation) {
-      return identical(node, parent.function);
+      if (identical(node, parent.function)) {
+        return !isNullableExtensionMember(parent.staticElement);
+      } else {
+        return false;
+      }
     } else if (parent is PrefixExpression) {
       // TODO(paulberry): for prefix increment/decrement, inserting a null check
       // isn't sufficient.
-      return true;
+      return !isNullableExtensionMember(parent.staticElement);
     } else if (parent is ThrowExpression) {
       return true;
     }

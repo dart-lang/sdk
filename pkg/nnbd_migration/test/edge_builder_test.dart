@@ -2952,6 +2952,87 @@ extension CurryFunction<R, S, T> on R Function(S, T) {
     // adding assertion(s).
   }
 
+  Future<void> test_extension_this_non_null_intent_explicit_direct() async {
+    await analyze('''
+extension on int {
+  f() => g(this);
+}
+void g(int i) {}
+''');
+    assertEdge(decoratedTypeAnnotation('int {').node,
+        decoratedTypeAnnotation('int i').node,
+        hard: true);
+  }
+
+  Future<void> test_extension_this_non_null_intent_explicit_method() async {
+    await analyze('''
+extension on int {
+  f() => this.abs();
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node, never, hard: true);
+  }
+
+  Future<void>
+      test_extension_this_non_null_intent_explicit_property_get() async {
+    await analyze('''
+extension on int {
+  f() => this.isEven;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node, never, hard: true);
+  }
+
+  Future<void>
+      test_extension_this_non_null_intent_explicit_property_set() async {
+    await analyze('''
+class C {
+  int x;
+}
+extension on C /*reference*/ {
+  f() {
+    this.x = 0;
+  }
+}
+''');
+    assertEdge(decoratedTypeAnnotation('C /*reference*/').node, never,
+        hard: true);
+  }
+
+  Future<void> test_extension_this_non_null_intent_implicit_method() async {
+    await analyze('''
+extension on int {
+  f() => abs();
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node, never, hard: true);
+  }
+
+  Future<void> test_extension_this_non_null_intent_implicit_property() async {
+    await analyze('''
+extension on int {
+  f() => isEven;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node, never, hard: true);
+  }
+
+  Future<void>
+      test_extension_this_non_null_intent_implicit_property_set() async {
+    await analyze('''
+class C {
+  int x;
+}
+extension on C /*reference*/ {
+  f() {
+    x = 0;
+  }
+}
+''');
+    assertEdge(decoratedTypeAnnotation('C /*reference*/').node, never,
+        hard: true);
+  }
+
   Future<void> test_field_final_does_not_override_setter() async {
     await analyze('''
 abstract class A {
@@ -7712,11 +7793,11 @@ extension on int {
 }
 ''');
     expect(
-        assertEdge(anyNode, decoratedTypeAnnotation('int f1').node, hard: false)
+        assertEdge(anyNode, decoratedTypeAnnotation('int f1').node, hard: true)
             .sourceNode,
         isNot(never));
     expect(
-        assertEdge(anyNode, decoratedTypeAnnotation('int f2').node, hard: false)
+        assertEdge(anyNode, decoratedTypeAnnotation('int f2').node, hard: true)
             .sourceNode,
         never);
     expect(hasNullCheckHint(findNode.this_('this/*!*/')), isTrue);
