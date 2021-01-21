@@ -14,6 +14,8 @@ import 'flutter_use_case_test.dart' as flutter_use_case;
 import 'modify_parameters_test.dart' as modify_parameters;
 import 'rename_parameter_test.dart' as rename_parameter;
 import 'rename_test.dart' as rename;
+import 'transform_override_set_parser_test.dart'
+    as transform_override_set_parser;
 import 'transform_set_manager_test.dart' as transform_set_manager;
 import 'transform_set_parser_test.dart' as transform_set_parser;
 
@@ -29,6 +31,7 @@ void main() {
     modify_parameters.main();
     rename_parameter.main();
     rename.main();
+    transform_override_set_parser.main();
     transform_set_manager.main();
     transform_set_parser.main();
   });

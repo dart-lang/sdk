@@ -67,12 +67,16 @@ import 'package:analysis_server/src/services/correction/dart/use_curly_braces.da
 import 'package:analysis_server/src/services/correction/dart/use_is_not_empty.dart';
 import 'package:analysis_server/src/services/correction/dart/use_rethrow.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/transform_override_set.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/transform_override_set_parser.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -391,6 +395,10 @@ class BulkFixProcessor {
   /// will be produced.
   final DartChangeWorkspace workspace;
 
+  /// A flag indicating whether configuration files should be used to override
+  /// the transforms.
+  final bool useConfigFiles;
+
   /// The change builder used to build the changes required to fix the
   /// diagnostics.
   ChangeBuilder builder;
@@ -400,8 +408,10 @@ class BulkFixProcessor {
 
   /// Initialize a newly created processor to create fixes for diagnostics in
   /// libraries in the [workspace].
-  BulkFixProcessor(this.instrumentationService, this.workspace)
-      : builder = ChangeBuilder(workspace: workspace);
+  BulkFixProcessor(this.instrumentationService, this.workspace,
+      {bool useConfigFiles})
+      : useConfigFiles = useConfigFiles ?? false,
+        builder = ChangeBuilder(workspace: workspace);
 
   List<BulkFix> get fixDetails {
     var details = <BulkFix>[];
@@ -455,11 +465,12 @@ class BulkFixProcessor {
       (name) => [],
     );
 
+    var overrideSet = _readOverrideSet(unit);
     for (var error in errors) {
       final processor = ErrorProcessor.getProcessor(analysisOptions, error);
       // Only fix errors not filtered out in analysis options.
       if (processor == null || processor.severity != null) {
-        await _fixSingleError(fixContext, unit, error);
+        await _fixSingleError(fixContext, unit, error, overrideSet);
       }
     }
 
@@ -533,11 +544,12 @@ class BulkFixProcessor {
         null,
         (name) => [],
       );
+      var overrideSet = _readOverrideSet(unitResult);
       for (var error in unitResult.errors) {
         var processor = ErrorProcessor.getProcessor(analysisOptions, error);
         // Only fix errors not filtered out in analysis options.
         if (processor == null || processor.severity != null) {
-          await _fixSingleError(fixContext, unitResult, error);
+          await _fixSingleError(fixContext, unitResult, error, overrideSet);
         }
       }
     }
@@ -546,12 +558,16 @@ class BulkFixProcessor {
   /// Use the change [builder] and the [fixContext] to create a fix for the
   /// given [diagnostic] in the compilation unit associated with the analysis
   /// [result].
-  Future<void> _fixSingleError(DartFixContext fixContext,
-      ResolvedUnitResult result, AnalysisError diagnostic) async {
+  Future<void> _fixSingleError(
+      DartFixContext fixContext,
+      ResolvedUnitResult result,
+      AnalysisError diagnostic,
+      TransformOverrideSet overrideSet) async {
     var context = CorrectionProducerContext(
       applyingBulkFixes: true,
       dartFixContext: fixContext,
       diagnostic: diagnostic,
+      overrideSet: overrideSet,
       resolvedResult: result,
       selectionOffset: diagnostic.offset,
       selectionLength: diagnostic.length,
@@ -625,6 +641,29 @@ class BulkFixProcessor {
           e,
           s);
     }
+  }
+
+  /// Return the override set corresponding to the given [result], or `null` if
+  /// there is no corresponding configuration file or the file content isn't a
+  /// valid override set.
+  TransformOverrideSet _readOverrideSet(ResolvedUnitResult result) {
+    if (useConfigFiles) {
+      var provider = result.session.resourceProvider;
+      var context = provider.pathContext;
+      var dartFileName = result.path;
+      var configFileName =
+          context.join(context.withoutExtension(dartFileName), 'config');
+      var configFile = provider.getFile(configFileName);
+      try {
+        var content = configFile.readAsStringSync();
+        var parser = TransformOverrideSetParser(ErrorReporter(
+            AnalysisErrorListener.NULL_LISTENER, configFile.createSource()));
+        return parser.parse(content);
+      } on FileSystemException {
+        // Fall through to return null.
+      }
+    }
+    return null;
   }
 }
 
