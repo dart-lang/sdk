@@ -2214,8 +2214,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
       return type;
     } catch (exception, stackTrace) {
-      listener.reportException(source, node, exception, stackTrace);
-      return null;
+      if (listener != null) {
+        listener.reportException(source, node, exception, stackTrace);
+        return null;
+      } else {
+        rethrow;
+      }
     }
   }
 
