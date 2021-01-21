@@ -85,6 +85,18 @@ class ArgumentErrorCheckNotNullOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.argumentErrorCheckNotNull;
 }
 
+/// An edge origin used for edges that originated because of a tear-off of
+/// `call` on a function type.
+class CallTearOffOrigin extends EdgeOrigin {
+  CallTearOffOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  String get description => 'tear-off of .call';
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.callTearOff;
+}
+
 /// Edge origin resulting from the use of a value on the LHS of a compound
 /// assignment.
 class CompoundAssignmentOrigin extends EdgeOrigin {
@@ -395,18 +407,6 @@ class ListLengthConstructorOrigin extends EdgeOrigin {
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.listLengthConstructor;
-}
-
-/// An edge origin used for edges that originated because of a tear-off of
-/// `call` on a function type.
-class CallTearOffOrigin extends EdgeOrigin {
-  CallTearOffOrigin(Source source, AstNode node) : super(source, node);
-
-  @override
-  String get description => 'tear-off of .call';
-
-  @override
-  EdgeOriginKind get kind => EdgeOriginKind.callTearOff;
 }
 
 /// An edge origin used for edges that originated because a literal expression
