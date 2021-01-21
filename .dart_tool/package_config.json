@@ -472,7 +472,7 @@
       "name": "package_config",
       "rootUri": "../third_party/pkg_tested/package_config",
       "packageUri": "lib/",
-      "languageVersion": "2.7"
+      "languageVersion": "2.12"
     },
     {
       "name": "package_deps",
