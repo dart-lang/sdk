@@ -1,3 +1,5 @@
+# 0.1.129
+
 - fixed a bug where `avoid_dynamic_calls` produced false-positives for `.call()`
 
 # 0.1.128
