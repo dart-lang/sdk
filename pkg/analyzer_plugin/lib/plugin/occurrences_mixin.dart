@@ -19,8 +19,6 @@ import 'package:analyzer_plugin/utilities/occurrences/occurrences.dart';
 mixin DartOccurrencesMixin implements OccurrencesMixin {
   @override
   Future<OccurrencesRequest> getOccurrencesRequest(String path) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var result = await getResolvedUnitResult(path);
     return DartOccurrencesRequestImpl(resourceProvider, result);
   }
@@ -44,8 +42,6 @@ mixin OccurrencesMixin implements ServerPlugin {
 
   @override
   Future<void> sendOccurrencesNotification(String path) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     try {
       var request = await getOccurrencesRequest(path);
       var generator = OccurrencesGenerator(getOccurrencesContributors(path));

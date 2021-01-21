@@ -19,8 +19,6 @@ import 'package:analyzer_plugin/utilities/folding/folding.dart';
 mixin DartFoldingMixin implements FoldingMixin {
   @override
   Future<FoldingRequest> getFoldingRequest(String path) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var result = await getResolvedUnitResult(path);
     return DartFoldingRequestImpl(resourceProvider, result);
   }
@@ -44,8 +42,6 @@ mixin FoldingMixin implements ServerPlugin {
 
   @override
   Future<void> sendFoldingNotification(String path) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     try {
       var request = await getFoldingRequest(path);
       var generator = FoldingGenerator(getFoldingContributors(path));
