@@ -85,7 +85,7 @@
 
 #### Linter
 
-Updated the Linter to `0.1.128`, which includes:
+Updated the Linter to `0.1.129`, which includes:
 
 * New lint: `avoid_dynamic_calls`.
 * (Internal): `avoid_type_to_string` updated to use `addArgumentList` registry API.
