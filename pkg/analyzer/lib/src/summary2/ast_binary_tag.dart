@@ -20,6 +20,9 @@ enum MarkerTag {
   AsExpression_type,
   AsExpression_expression2,
   AsExpression_end,
+  AwaitExpression_expression,
+  AwaitExpression_expression2,
+  AwaitExpression_end,
   Expression_staticType,
   AssertInitializer_condition,
   AssertInitializer_message,
@@ -343,6 +346,7 @@ class Tag {
   static const int AsExpression = 84;
   static const int AssertInitializer = 82;
   static const int AssignmentExpression = 96;
+  static const int AwaitExpression = 100;
   static const int BinaryExpression = 52;
   static const int BooleanLiteral = 4;
   static const int CascadeExpression = 95;
