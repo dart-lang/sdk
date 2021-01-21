@@ -12,10 +12,11 @@ test1() {
   String? foo() => /*Null*/ null;
   String bar() => /*String!*/ "bar";
 
-  var s = /*invoke: String?*/ foo() ?? /*invoke: String!*/ bar();
+  var s = /*invoke: String?*/ foo() /*String!*/ ?? /*invoke: String!*/ bar();
   /*String!*/ s;
 
-  String s2 = /*invoke: String?*/ hest1/*<String?>*/() ?? /*String!*/ "fisk";
+  String
+      s2 = /*invoke: String?*/ hest1/*<String?>*/() /*String!*/ ?? /*String!*/ "fisk";
 }
 
 // ------------------------- If-null property set. -----------------------------
@@ -24,22 +25,24 @@ class A2 {
 }
 
 test2(A2 a) {
-  var s =
-      (/*A2!*/ a. /*String?*/ /*update: String!*/ foo ??= /*String!*/ "bar");
+  var s = (/*A2!*/ a
+      . /*String?*/ /*update: String!*/ foo /*String!*/ ??= /*String!*/ "bar");
   /*String!*/ s;
 }
 
 // ------------------------------ If-null set. ---------------------------------
 test3() {
   String? s = /*Null*/ null;
-  var s2 = (/*String?*/ /*update: String!*/ s ??= /*String!*/ "bar");
+  var s2 =
+      (/*String?*/ /*update: String!*/ s /*String!*/ ??= /*String!*/ "bar");
   /*String!*/ s2;
 }
 
 // --------------------------- If-null index set. ------------------------------
 test4() {
   List<String?> list = /*List<String?>!*/ [/*Null*/ null];
-  var s = (/*List<String?>!*/ list /*String?*/ /*update: void*/ [/*int!*/ 0] ??=
+  var s = (/*List<String?>!*/ list /*String?*/ /*update: void*/ [
+          /*int!*/ 0] /*String!*/ ??=
       /*String!*/ "bar");
   /*String!*/ s;
 }
@@ -52,7 +55,7 @@ class A5 {
 
 class B5 extends A5 {
   test5() {
-    var s = (super[/*int!*/ 0] ??= /*String!*/ "bar");
+    var s = (super[/*int!*/ 0] /*String!*/ ??= /*String!*/ "bar");
     /*String!*/ s;
   }
 }
@@ -65,7 +68,7 @@ extension E6 on double {
 
 test6() {
   var s = (E6(/*double!*/ 3.14) /*invoke: String?|void*/ [
-      /*int!*/ 0] ??= /*String!*/ "bar");
+      /*int!*/ 0] /*String!*/ ??= /*String!*/ "bar");
   /*String!*/ s;
 }
 
@@ -76,12 +79,12 @@ class A7 {
 }
 
 test7(A7? a) {
-  var s =
-      (/*A7?*/ a?. /*String!*/ /*update: String!*/ foo ??= /*String!*/ "bar");
+  var s = (/*A7?|String?|String!*/ a
+      ?. /*String!*/ /*update: String!*/ foo ??= /*String!*/ "bar");
   /*String?*/ s;
 
-  var s2 =
-      (/*A7?*/ a?. /*String?*/ /*update: String!*/ bar ??= /*String!*/ "bar");
+  var s2 = (/*A7?|String?|String!*/ a
+      ?. /*String?*/ /*update: String!*/ bar ??= /*String!*/ "bar");
   /*String?*/ s2;
 }
 

@@ -617,4 +617,16 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
         node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
     return super.visitBlock(node);
   }
+
+  @override
+  visitConditionalExpression(ConditionalExpression node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    return super.visitConditionalExpression(node);
+  }
+
+  @override
+  visitLogicalExpression(LogicalExpression node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    return super.visitLogicalExpression(node);
+  }
 }
