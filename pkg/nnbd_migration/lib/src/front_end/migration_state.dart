@@ -77,7 +77,7 @@ class MigrationState {
   }
 
   /// Refresh the state of the migration after the migration has been updated.
-  Future<void> refresh(Logger logger) async {
+  Future<void> refresh(Logger logger, Iterable<String> pathsToProcess) async {
     assert(!hasBeenApplied);
     var provider = listener.server.resourceProvider;
     var infoBuilder = InfoBuilder(
@@ -88,7 +88,8 @@ class MigrationState {
         migration,
         nodeMapper,
         logger,
-        shouldBeMigratedFunction);
+        shouldBeMigratedFunction,
+        pathsToProcess);
     var unitInfos = await infoBuilder.explainMigration();
     var pathContext = provider.pathContext;
     migrationInfo = MigrationInfo(

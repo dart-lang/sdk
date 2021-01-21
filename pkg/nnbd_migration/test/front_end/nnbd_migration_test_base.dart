@@ -159,6 +159,8 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     var includedRoot = resourceProvider.pathContext.dirname(testFile);
     await _buildMigrationInfo([testFile],
         includedRoot: includedRoot,
+        shouldBeMigratedFunction: (String path) => true,
+        pathsToProcess: [testFile],
         removeViaComments: removeViaComments,
         warnOnWeakCode: warnOnWeakCode);
   }
@@ -190,13 +192,20 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
   ///
   /// Returns the singular [UnitInfo] which was built.
   Future<List<UnitInfo>> buildInfoForTestFiles(Map<String, String> files,
-      {String includedRoot}) async {
+      {@required String includedRoot,
+      bool Function(String) shouldBeMigratedFunction,
+      Iterable<String> pathsToProcess}) async {
+    shouldBeMigratedFunction ??= (String path) => true;
     var testPaths = <String>[];
     files.forEach((String path, String content) {
       newFile(path, content: content);
       testPaths.add(path);
     });
-    await _buildMigrationInfo(testPaths, includedRoot: includedRoot);
+    pathsToProcess ??= testPaths;
+    await _buildMigrationInfo(testPaths,
+        includedRoot: includedRoot,
+        shouldBeMigratedFunction: shouldBeMigratedFunction,
+        pathsToProcess: pathsToProcess);
     // Ignore info for dart:core.
     var filteredInfos = [
       for (var info in infos)
@@ -212,8 +221,10 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
 
   /// Uses the InfoBuilder to build information for files at [testPaths], which
   /// should all share a common parent directory, [includedRoot].
-  Future<void> _buildMigrationInfo(List<String> testPaths,
-      {String includedRoot,
+  Future<void> _buildMigrationInfo(Iterable<String> testPaths,
+      {@required String includedRoot,
+      @required bool Function(String) shouldBeMigratedFunction,
+      @required Iterable<String> pathsToProcess,
       bool removeViaComments = true,
       bool warnOnWeakCode = false}) async {
     // Compute the analysis results.
@@ -243,8 +254,16 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     // Build the migration info.
     var info = instrumentationListener.data;
     var logger = TestLogger(false);
-    var builder = InfoBuilder(resourceProvider, includedRoot, info, listener,
-        migration, nodeMapper, logger, (String path) => true);
+    var builder = InfoBuilder(
+        resourceProvider,
+        includedRoot,
+        info,
+        listener,
+        migration,
+        nodeMapper,
+        logger,
+        shouldBeMigratedFunction,
+        pathsToProcess);
     infos = await builder.explainMigration();
   }
 }
