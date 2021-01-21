@@ -356,4 +356,145 @@ void main() {}
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
   });
+
+  test('Compile AOT snapshot with sound null safety', () {
+    final p = project(mainSrc: '''void main() {}''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myaot'));
+
+    var result = p.runSync(
+      [
+        'compile',
+        'aot-snapshot',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stdout, contains(soundNullSafetyMessage));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
+  });
+
+  test('Compile AOT snapshot with unsound null safety', () {
+    final p = project(mainSrc: '''
+// @dart=2.9
+void main() {}
+''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myaot'));
+
+    var result = p.runSync(
+      [
+        'compile',
+        'aot-snapshot',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stdout, contains(unsoundNullSafetyMessage));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
+  });
+
+  test('Compile kernel with sound null safety', () {
+    final p = project(mainSrc: '''void main() {}''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
+
+    var result = p.runSync(
+      [
+        'compile',
+        'kernel',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stdout, contains(soundNullSafetyMessage));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
+  });
+
+  test('Compile kernel with unsound null safety', () {
+    final p = project(mainSrc: '''
+// @dart=2.9
+void main() {}
+''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
+
+    var result = p.runSync(
+      [
+        'compile',
+        'kernel',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stdout, contains(unsoundNullSafetyMessage));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
+  });
+
+  test('Compile JIT snapshot with sound null safety', () {
+    final p = project(mainSrc: '''void main() {}''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myjit'));
+
+    var result = p.runSync(
+      [
+        'compile',
+        'jit-snapshot',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stdout, contains(soundNullSafetyMessage));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
+  });
+
+  test('Compile JIT snapshot with unsound null safety', () {
+    final p = project(mainSrc: '''
+// @dart=2.9
+void main() {}
+''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myjit'));
+
+    var result = p.runSync(
+      [
+        'compile',
+        'jit-snapshot',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stdout, contains(unsoundNullSafetyMessage));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
+  });
 }
