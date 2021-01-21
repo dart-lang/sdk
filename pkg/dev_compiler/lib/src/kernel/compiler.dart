@@ -3989,7 +3989,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         [_visitExpression(node.iterable)]);
 
     var iter = _emitTemporaryId('iter');
-    return js.statement(
+
+    var savedContinueTargets = _currentContinueTargets;
+    var savedBreakTargets = _currentBreakTargets;
+    _currentContinueTargets = <LabeledStatement>[];
+    _currentBreakTargets = <LabeledStatement>[];
+    var awaitForStmt = js.statement(
         '{'
         '  let # = #;'
         '  try {'
@@ -4007,6 +4012,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           js_ast.Yield(js.call('#.cancel()', iter))
             ..sourceInformation = _nodeStart(node.variable)
         ]);
+    _currentContinueTargets = savedContinueTargets;
+    _currentBreakTargets = savedBreakTargets;
+    return awaitForStmt;
   }
 
   @override
