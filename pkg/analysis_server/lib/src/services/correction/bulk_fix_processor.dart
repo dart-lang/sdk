@@ -651,8 +651,7 @@ class BulkFixProcessor {
       var provider = result.session.resourceProvider;
       var context = provider.pathContext;
       var dartFileName = result.path;
-      var configFileName =
-          context.join(context.withoutExtension(dartFileName), 'config');
+      var configFileName = '${context.withoutExtension(dartFileName)}.config';
       var configFile = provider.getFile(configFileName);
       try {
         var content = configFile.readAsStringSync();

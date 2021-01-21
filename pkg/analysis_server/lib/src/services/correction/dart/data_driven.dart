@@ -52,7 +52,13 @@ class DataDriven extends MultiCorrectionProducer {
     if (transformSetsForTests != null) {
       return transformSetsForTests;
     }
-    return TransformSetManager.instance.forLibrary(library);
+    var transformSets = TransformSetManager.instance.forLibrary(library);
+    var overrideSet = this.overrideSet;
+    if (overrideSet != null) {
+      transformSets =
+          transformSets.map((set) => set.applyOverrides(overrideSet)).toList();
+    }
+    return transformSets;
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.

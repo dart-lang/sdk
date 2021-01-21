@@ -30,6 +30,9 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   /// Return the lint code being tested.
   String get lintCode => null;
 
+  /// Return `true` if this test uses config files.
+  bool get useConfigFiles => false;
+
   /// The workspace in which fixes contributor operates.
   ChangeWorkspace get workspace {
     return DartChangeWorkspace([session]);
@@ -58,7 +61,8 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
     var analysisContext = contextFor(testFile);
     tracker.addContext(analysisContext);
-    var processor = BulkFixProcessor(TestInstrumentationService(), workspace);
+    var processor = BulkFixProcessor(TestInstrumentationService(), workspace,
+        useConfigFiles: useConfigFiles);
     await processor.fixErrors([analysisContext]);
     return processor;
   }
