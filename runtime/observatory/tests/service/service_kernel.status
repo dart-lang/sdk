@@ -88,6 +88,7 @@ debugger_location_second_test: SkipByDesign # Debugger is disabled in AOT mode.
 debugger_location_test: SkipByDesign # Debugger is disabled in AOT mode.
 debugging_inlined_finally_test: SkipByDesign # Debugger is disabled in AOT mode.
 debugging_test: SkipByDesign # Debugger is disabled in AOT mode.
+deferred_import_reload_test: SkipByDesign # Hot reload is disabled in AOT mode.
 dev_fs_spawn_test: SkipByDesign # Debugger is disabled in AOT mode.
 developer_extension_test: SkipByDesign # Debugger is disabled in AOT mode.
 developer_service_get_isolate_id_test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -167,7 +168,7 @@ positive_token_pos_test: SkipByDesign # Debugger is disabled in AOT mode.
 regress_28443_test: SkipByDesign # Debugger is disabled in AOT mode.
 regress_28980_test: SkipByDesign # Debugger is disabled in AOT mode.
 regress_34841_test: SkipByDesign # Debugger is disabled in AOT mode.
-reload_sources_test: SkipByDesign # Debugger is disabled in AOT mode.
+reload_sources_test: SkipByDesign #  Hot reload is disabled in AOT mode.
 rewind_optimized_out_test: SkipByDesign # Debugger is disabled in AOT mode.
 rewind_test: SkipByDesign # Debugger is disabled in AOT mode.
 set_library_debuggable_test: SkipByDesign # Debugger is disabled in AOT mode.
