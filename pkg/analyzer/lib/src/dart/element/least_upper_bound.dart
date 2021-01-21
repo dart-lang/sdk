@@ -635,7 +635,7 @@ class LeastUpperBoundHelper {
 
     // UP(X1 extends B1, T2)
     // UP(X1 & B1, T2)
-    if (T1 is TypeParameterType) {
+    if (T1 is TypeParameterTypeImpl) {
       // T2 if X1 <: T2
       if (_typeSystem.isSubtypeOf2(T1, T2)) {
         return T2;
@@ -644,14 +644,16 @@ class LeastUpperBoundHelper {
       if (_typeSystem.isSubtypeOf2(T2, T1)) {
         return T1;
       }
-      // otherwise UP(B1[Object/X1], T2)
-      var T1_toObject = _typeParameterResolveToObjectBounds(T1);
-      return getLeastUpperBound(T1_toObject, T2);
+      // otherwise UP(B1a, T2)
+      //   where B1a is the greatest closure of B1 with respect to X1
+      var bound = _typeParameterBound(T1);
+      var closure = _typeSystem.greatestClosure(bound, [T1.element]);
+      return getLeastUpperBound(closure, T2);
     }
 
     // UP(T1, X2 extends B2)
     // UP(T1, X2 & B2)
-    if (T2 is TypeParameterType) {
+    if (T2 is TypeParameterTypeImpl) {
       // X2 if T1 <: X2
       if (_typeSystem.isSubtypeOf2(T1, T2)) {
         // TODO(scheglov) How to get here?
@@ -661,9 +663,11 @@ class LeastUpperBoundHelper {
       if (_typeSystem.isSubtypeOf2(T2, T1)) {
         return T1;
       }
-      // otherwise UP(T1, B2[Object/X2])
-      var T2_toObject = _typeParameterResolveToObjectBounds(T2);
-      return getLeastUpperBound(T1, T2_toObject);
+      // otherwise UP(T1, B2a)
+      //   where B2a is the greatest closure of B2 with respect to X2
+      var bound = _typeParameterBound(T2);
+      var closure = _typeSystem.greatestClosure(bound, [T2.element]);
+      return getLeastUpperBound(T1, closure);
     }
 
     // UP(T Function<...>(...), Function) = Function
@@ -880,16 +884,14 @@ class LeastUpperBoundHelper {
     return _typeSystem.getGreatestLowerBound(a.type, b.type);
   }
 
-  /// TODO(scheglov) Use greatest closure.
-  /// See https://github.com/dart-lang/language/pull/1195
-  DartType _typeParameterResolveToObjectBounds(DartType type) {
-    var element = type.element;
-
-    var objectType = _typeSystem.isNonNullableByDefault
+  /// Return the promoted or declared bound of the type parameter.
+  DartType _typeParameterBound(TypeParameterTypeImpl type) {
+    var bound = type.promotedBound ?? type.element.bound;
+    if (bound != null) {
+      return bound;
+    }
+    return _typeSystem.isNonNullableByDefault
         ? _typeSystem.objectQuestion
         : _typeSystem.objectStar;
-
-    type = type.resolveToBound(objectType);
-    return Substitution.fromMap({element: objectType}).substituteType(type);
   }
 }

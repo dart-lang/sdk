@@ -365,10 +365,10 @@ class GenericInferrer {
         return lower;
       }
       if (!identical(UnknownInferredType.instance, upper)) {
-        return toKnownType ? _typeSystem.greatestClosure(upper) : upper;
+        return toKnownType ? _typeSystem.greatestClosureOfSchema(upper) : upper;
       }
       if (!identical(UnknownInferredType.instance, lower)) {
-        return toKnownType ? _typeSystem.leastClosure(lower) : lower;
+        return toKnownType ? _typeSystem.leastClosureOfSchema(lower) : lower;
       }
       return upper;
     } else {
@@ -379,10 +379,10 @@ class GenericInferrer {
         return upper;
       }
       if (!identical(UnknownInferredType.instance, lower)) {
-        return toKnownType ? _typeSystem.leastClosure(lower) : lower;
+        return toKnownType ? _typeSystem.leastClosureOfSchema(lower) : lower;
       }
       if (!identical(UnknownInferredType.instance, upper)) {
-        return toKnownType ? _typeSystem.greatestClosure(upper) : upper;
+        return toKnownType ? _typeSystem.greatestClosureOfSchema(upper) : upper;
       }
       return lower;
     }

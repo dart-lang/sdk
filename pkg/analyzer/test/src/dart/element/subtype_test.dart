@@ -5410,6 +5410,21 @@ class SubtypeTest extends _SubtypingTestBase {
     );
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/language/issues/433')
+  test_typeParameter_44() {
+    var T = typeParameter('T');
+    var T_none = typeParameterTypeNone(T);
+    var FutureOr_T_none = futureOrNone(T_none);
+    T.bound = FutureOr_T_none;
+
+    isSubtype(
+      T_none,
+      FutureOr_T_none,
+      strT0: 'T, T extends FutureOr<T>',
+      strT1: 'FutureOr<T>, T extends FutureOr<T>',
+    );
+  }
+
   void _defineType(String str, DartType type) {
     for (var key in _types.keys) {
       if (key == 'Never' || _typeStr(type) == 'Never') {
