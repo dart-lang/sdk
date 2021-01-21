@@ -1,4 +1,10 @@
 # Changelog
+
+## 6.0.0-nullsafety.3
+- Fixed issue where `Response.type` and classes which override `Response.type` were
+  returning the name of the `package:vm_service` reference object (e.g., InstanceRef) instead of
+  the type specified in the specification (e.g., @Instance).
+
 ## 6.0.0-nullsafety.2
 - *breaking* Updated signature of `Field.staticValue` to `dynamic` in order to
   properly allow for uninitialized sentinel values.

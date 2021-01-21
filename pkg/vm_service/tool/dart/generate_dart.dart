@@ -1671,7 +1671,7 @@ Map<String, dynamic> toJson() {
     } else {
       if (isResponse) {
         gen.writeln('@override');
-        gen.writeln("String get type => '$name';");
+        gen.writeln("String get type => '$rawName';");
         gen.writeln();
       }
 
