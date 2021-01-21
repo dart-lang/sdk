@@ -2397,9 +2397,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
     }
     if (destinationExpression != null) {
-      var element = _postDominatedLocals
-          .removeReferenceFromAllScopes(destinationExpression);
+      var element =
+          _postDominatedLocals.referencedElement(destinationExpression);
       if (element != null) {
+        _postDominatedLocals.removeFromAllScopes(element);
         _elementsWrittenToInLocalFunction?.add(element);
       }
     }
@@ -3659,22 +3660,16 @@ class _ConditionInfo {
 /// Contains helpers for dealing with expressions as if they were elements.
 class _ScopedLocalSet extends ScopedSet<Element> {
   bool isReferenceInScope(Expression expression) {
-    expression = expression.unParenthesized;
-    if (expression is SimpleIdentifier) {
-      var element = expression.staticElement;
-      return isInScope(element);
-    }
-    return false;
+    var element = referencedElement(expression);
+    return element != null && isInScope(element);
   }
 
-  /// If [expression] references an element, removes that element from all
-  /// scopes and returns it.  Otherwise returns `null`.
-  Element removeReferenceFromAllScopes(Expression expression) {
+  /// Returns the element referenced directly by [expression], if any; otherwise
+  /// returns `null`.
+  Element referencedElement(Expression expression) {
     expression = expression.unParenthesized;
     if (expression is SimpleIdentifier) {
-      var element = expression.staticElement;
-      removeFromAllScopes(element);
-      return element;
+      return expression.staticElement;
     } else {
       return null;
     }
