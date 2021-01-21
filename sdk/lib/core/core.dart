@@ -168,6 +168,8 @@ import "dart:typed_data" show Uint8List;
 
 @Since("2.1")
 export "dart:async" show Future, Stream;
+@Since("2.12")
+export "dart:async" show FutureExtensions;
 
 part "annotations.dart";
 part "bigint.dart";

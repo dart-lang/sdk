@@ -20,10 +20,18 @@
 
 ### Core libraries
 
+#### `dart:async`
+
+* Adds extension method `onError` on `Future` to allow better typing
+  of error handling.
+
 #### `dart:collection`
 
 * Added `UnmodifiableSetView` class, which allows users to guarantee that
   methods that could change underlying `Set` instance can not be invoked.
+
+* `LinkedList` made it explicit that elements are compared by identity,
+  and updated `contains` to take advantage of this.
 
 #### `dart:core`
 
@@ -40,11 +48,6 @@
 * Added `debugName` positional parameter to `ReceivePort` and `RawReceivePort`
   constructors, a name which can be associated with the port and displayed in
   tooling.
-
-#### `dart:collection`
-
-* `LinkedList` made it explicit that elements are compared by identity,
-  and updated `contains` to take advantage of this.
 
 #### `dart:html`
 

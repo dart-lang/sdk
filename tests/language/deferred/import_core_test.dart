@@ -5,7 +5,7 @@
 // Nothing in the language spec explicitly prohibits a deferred import of
 // 'dart:core'.  Make sure it doesn't lead to any strange behavior.
 
-import "dart:core" deferred as core;
+import "dart:core" deferred as core show Object;
 
 main() {
   core.loadLibrary().then((_) => null);

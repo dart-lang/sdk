@@ -3853,10 +3853,10 @@ CantUseDeferredPrefixAsConstant:
     from the import.
   analyzerCode: CONST_DEFERRED_CLASS
   script: |
-    import "dart:core" deferred as prefix;
+    import "dart:convert" deferred as prefix;
 
     main() {
-      const prefix.Object();
+      const prefix.JsonCodec();
     }
 
 CyclicRedirectingFactoryConstructors:
