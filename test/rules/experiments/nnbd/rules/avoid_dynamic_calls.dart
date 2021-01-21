@@ -75,11 +75,15 @@ void tearOffFunctions(TearOffFunction a) {
   alsoIdentical(true, false); // OK
 }
 
+typedef F = void Function();
+
 void functionExpressionInvocations(
   dynamic a(),
   Function b(),
   void Function() c,
   d(),
+  F f,
+  F? fn,
 ) {
   a(); // OK
   a()(); // LINT
@@ -87,12 +91,18 @@ void functionExpressionInvocations(
   b()(); // LINT
   c(); // OK
   d(); // OK
+  f.call; // OK
+  f.call(); // OK
+  fn?.call; // OK
+  fn?.call(); // OK
 }
 
 void typedFunctionButBasicallyDynamic(Function a, Wrapper<Function> b) {
   a(); // LINT
   b.field(); // LINT
   (b.field)(); // LINT
+  a.call; // OK
+  a.call(); // LINT
 }
 
 void binaryExpressions(dynamic a, int b, bool c) {
