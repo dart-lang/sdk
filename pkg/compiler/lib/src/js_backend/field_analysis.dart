@@ -58,9 +58,16 @@ class KFieldAnalysis {
 
       FieldEntity fieldElement = _elementMap.getField(field);
       ir.Expression expression = field.initializer;
-      ConstantValue value = _elementMap.getConstantValue(
-          _elementMap.getStaticTypeContext(fieldElement), expression,
-          requireConstant: false, implicitNull: true);
+      ConstantValue value;
+      if (expression is ir.StaticInvocation &&
+          identical(
+              expression.target, _elementMap.coreTypes.createSentinelMethod)) {
+        value = LateSentinelConstantValue();
+      } else {
+        value = _elementMap.getConstantValue(
+            _elementMap.getStaticTypeContext(fieldElement), expression,
+            requireConstant: false, implicitNull: true);
+      }
       if (value != null && value.isConstant) {
         fieldData[fieldElement] = new AllocatorData(value);
       }
@@ -127,9 +134,16 @@ class KFieldAnalysis {
   void registerStaticField(KField field, EvaluationComplexity complexity) {
     ir.Field node = _elementMap.getMemberNode(field);
     ir.Expression expression = node.initializer;
-    ConstantValue value = _elementMap.getConstantValue(
-        _elementMap.getStaticTypeContext(field), expression,
-        requireConstant: node.isConst, implicitNull: true);
+    ConstantValue value;
+    if (expression is ir.StaticInvocation &&
+        identical(
+            expression.target, _elementMap.coreTypes.createSentinelMethod)) {
+      value = LateSentinelConstantValue();
+    } else {
+      value = _elementMap.getConstantValue(
+          _elementMap.getStaticTypeContext(field), expression,
+          requireConstant: node.isConst, implicitNull: true);
+    }
     if (value != null && !value.isConstant) {
       value = null;
     }
@@ -358,7 +372,8 @@ class JFieldAnalysis {
               } else if (value.isNull ||
                   value.isInt ||
                   value.isBool ||
-                  value.isString) {
+                  value.isString ||
+                  value is LateSentinelConstantValue) {
                 // TODO(johnniwinther,sra): Support non-primitive constants in
                 // allocators when it does cause allocators to deoptimized
                 // because of deferred loading.
