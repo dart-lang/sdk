@@ -6850,6 +6850,22 @@ void f() {
         hard: false);
   }
 
+  Future<void> test_propertyAccess_extension_nullTarget_get_explicit() async {
+    await analyze('''
+class C {}
+extension E on C /*1*/ {
+  int get x => 0;
+}
+void f() {
+  C g() => null;
+  E(g()).x;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('C g()').node,
+        decoratedTypeAnnotation('C /*1*/').node,
+        hard: false);
+  }
+
   Future<void> test_propertyAccess_extension_nullTarget_set() async {
     await analyze('''
 class C {}
@@ -6859,6 +6875,22 @@ extension on C /*1*/ {
 void f() {
   C g() => null;
   g().x = 0;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('C g()').node,
+        decoratedTypeAnnotation('C /*1*/').node,
+        hard: false);
+  }
+
+  Future<void> test_propertyAccess_extension_nullTarget_set_explicit() async {
+    await analyze('''
+class C {}
+extension E on C /*1*/ {
+  set x(int value) {}
+}
+void f() {
+  C g() => null;
+  E(g()).x = 0;
 }
 ''');
     assertEdge(decoratedTypeAnnotation('C g()').node,
