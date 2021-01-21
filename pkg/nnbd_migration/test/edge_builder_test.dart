@@ -6473,6 +6473,38 @@ double f2() => m.pi/*!*/;
     expect(hasNullCheckHint(findNode.prefixed('m.pi/*!*/')), isTrue);
   }
 
+  Future<void> test_prefixedIdentifier_extension_nullTarget_get() async {
+    await analyze('''
+class C {}
+extension on C /*1*/ {
+  int get x => 0;
+}
+void f() {
+  C c = null;
+  c.x;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('C c').node,
+        decoratedTypeAnnotation('C /*1*/').node,
+        hard: true);
+  }
+
+  Future<void> test_prefixedIdentifier_extension_nullTarget_set() async {
+    await analyze('''
+class C {}
+extension on C /*1*/ {
+  set x(int value) {}
+}
+void f() {
+  C c = null;
+  c.x = 0;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('C c').node,
+        decoratedTypeAnnotation('C /*1*/').node,
+        hard: true);
+  }
+
   Future<void> test_prefixedIdentifier_field_type() async {
     await analyze('''
 class C {
@@ -6799,6 +6831,38 @@ int f(dynamic d) {
         decoratedTypeAnnotation('int f').node);
     // We do, however, assume that it might return anything, including `null`.
     assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int f').node,
+        hard: false);
+  }
+
+  Future<void> test_propertyAccess_extension_nullTarget_get() async {
+    await analyze('''
+class C {}
+extension on C /*1*/ {
+  int get x => 0;
+}
+void f() {
+  C g() => null;
+  g().x;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('C g()').node,
+        decoratedTypeAnnotation('C /*1*/').node,
+        hard: false);
+  }
+
+  Future<void> test_propertyAccess_extension_nullTarget_set() async {
+    await analyze('''
+class C {}
+extension on C /*1*/ {
+  set x(int value) {}
+}
+void f() {
+  C g() => null;
+  g().x = 0;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('C g()').node,
+        decoratedTypeAnnotation('C /*1*/').node,
         hard: false);
   }
 
