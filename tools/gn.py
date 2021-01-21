@@ -212,7 +212,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
     gn_args['is_ubsan'] = sanitizer == 'ubsan'
     gn_args['is_qemu'] = args.use_qemu
 
-    if not args.platform_sdk and not gn_args['target_cpu'].startswith('arm'):
+    if not args.platform_sdk:
         gn_args['dart_platform_sdk'] = args.platform_sdk
 
     # We don't support stripping on Windows

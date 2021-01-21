@@ -171,8 +171,13 @@ void TestPipeline::CompileGraphAndAttachFunction() {
   const auto& deopt_info_array =
       Array::Handle(zone, graph_compiler.CreateDeoptInfo(&assembler));
   const auto pool_attachment = Code::PoolAttachment::kAttachPool;
-  const auto& code = Code::Handle(Code::FinalizeCode(
-      &graph_compiler, &assembler, pool_attachment, optimized, nullptr));
+  Code& code = Code::Handle();
+  {
+    SafepointWriteRwLocker ml(thread_,
+                              thread_->isolate_group()->program_lock());
+    code ^= Code::FinalizeCode(&graph_compiler, &assembler, pool_attachment,
+                               optimized, nullptr);
+  }
   code.set_is_optimized(optimized);
   code.set_owner(function_);
 
@@ -186,11 +191,15 @@ void TestPipeline::CompileGraphAndAttachFunction() {
   graph_compiler.FinalizeStaticCallTargetsTable(code);
   graph_compiler.FinalizeCodeSourceMap(code);
 
-  if (optimized) {
-    function_.InstallOptimizedCode(code);
-  } else {
-    function_.set_unoptimized_code(code);
-    function_.AttachCode(code);
+  {
+    SafepointWriteRwLocker ml(thread_,
+                              thread_->isolate_group()->program_lock());
+    if (optimized) {
+      function_.InstallOptimizedCode(code);
+    } else {
+      function_.set_unoptimized_code(code);
+      function_.AttachCode(code);
+    }
   }
 
   // We expect there to be no deoptimizations.

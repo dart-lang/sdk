@@ -2799,7 +2799,7 @@ class ClassRef extends ObjRef {
   }
 
   @override
-  String get type => 'ClassRef';
+  String get type => '@Class';
 
   @override
   Map<String, dynamic> toJson() {
@@ -3071,7 +3071,7 @@ class CodeRef extends ObjRef {
   }
 
   @override
-  String get type => 'CodeRef';
+  String get type => '@Code';
 
   @override
   Map<String, dynamic> toJson() {
@@ -3155,7 +3155,7 @@ class ContextRef extends ObjRef {
   }
 
   @override
-  String get type => 'ContextRef';
+  String get type => '@Context';
 
   @override
   Map<String, dynamic> toJson() {
@@ -3445,7 +3445,7 @@ class ErrorRef extends ObjRef {
   }
 
   @override
-  String get type => 'ErrorRef';
+  String get type => '@Error';
 
   @override
   Map<String, dynamic> toJson() {
@@ -3883,7 +3883,7 @@ class FieldRef extends ObjRef {
   }
 
   @override
-  String get type => 'FieldRef';
+  String get type => '@Field';
 
   @override
   Map<String, dynamic> toJson() {
@@ -3935,9 +3935,12 @@ class Field extends Obj implements FieldRef {
   /// Is this field static?
   bool? isStatic;
 
-  /// The value of this field, if the field is static.
+  /// The value of this field, if the field is static. If uninitialized, this
+  /// will take the value of an uninitialized Sentinel.
+  ///
+  /// [staticValue] can be one of [InstanceRef] or [Sentinel].
   @optional
-  InstanceRef? staticValue;
+  dynamic? staticValue;
 
   /// The location of this field in the source code.
   @optional
@@ -3966,9 +3969,8 @@ class Field extends Obj implements FieldRef {
     isConst = json['const'] ?? false;
     isFinal = json['final'] ?? false;
     isStatic = json['static'] ?? false;
-    staticValue =
-        createServiceObject(json['staticValue'], const ['InstanceRef'])
-            as InstanceRef?;
+    staticValue = createServiceObject(
+        json['staticValue'], const ['InstanceRef', 'Sentinel']) as dynamic?;
     location = createServiceObject(json['location'], const ['SourceLocation'])
         as SourceLocation?;
   }
@@ -4189,7 +4191,7 @@ class FuncRef extends ObjRef {
   }
 
   @override
-  String get type => 'FuncRef';
+  String get type => '@Function';
 
   @override
   Map<String, dynamic> toJson() {
@@ -4264,7 +4266,7 @@ class Func extends Obj implements FuncRef {
   }
 
   @override
-  String get type => 'Func';
+  String get type => 'Function';
 
   @override
   Map<String, dynamic> toJson() {
@@ -4461,7 +4463,7 @@ class InstanceRef extends ObjRef {
   }
 
   @override
-  String get type => 'InstanceRef';
+  String get type => '@Instance';
 
   @override
   Map<String, dynamic> toJson() {
@@ -4910,7 +4912,7 @@ class IsolateRef extends Response {
   }
 
   @override
-  String get type => 'IsolateRef';
+  String get type => '@Isolate';
 
   @override
   Map<String, dynamic> toJson() {
@@ -5152,7 +5154,7 @@ class IsolateGroupRef extends Response {
   }
 
   @override
-  String get type => 'IsolateGroupRef';
+  String get type => '@IsolateGroup';
 
   @override
   Map<String, dynamic> toJson() {
@@ -5386,7 +5388,7 @@ class LibraryRef extends ObjRef {
   }
 
   @override
-  String get type => 'LibraryRef';
+  String get type => '@Library';
 
   @override
   Map<String, dynamic> toJson() {
@@ -5841,7 +5843,7 @@ class NullValRef extends InstanceRef {
   }
 
   @override
-  String get type => 'NullValRef';
+  String get type => '@Null';
 
   @override
   Map<String, dynamic> toJson() {
@@ -5886,7 +5888,7 @@ class NullVal extends Instance implements NullValRef {
   }
 
   @override
-  String get type => 'NullVal';
+  String get type => 'Null';
 
   @override
   Map<String, dynamic> toJson() {
@@ -5932,7 +5934,7 @@ class ObjRef extends Response {
   }
 
   @override
-  String get type => 'ObjRef';
+  String get type => '@Object';
 
   @override
   Map<String, dynamic> toJson() {
@@ -6006,7 +6008,7 @@ class Obj extends Response implements ObjRef {
   }
 
   @override
-  String get type => 'Obj';
+  String get type => 'Object';
 
   @override
   Map<String, dynamic> toJson() {
@@ -6500,7 +6502,7 @@ class ScriptRef extends ObjRef {
   }
 
   @override
-  String get type => 'ScriptRef';
+  String get type => '@Script';
 
   @override
   Map<String, dynamic> toJson() {
@@ -7186,7 +7188,7 @@ class TypeArgumentsRef extends ObjRef {
   }
 
   @override
-  String get type => 'TypeArgumentsRef';
+  String get type => '@TypeArguments';
 
   @override
   Map<String, dynamic> toJson() {
@@ -7388,7 +7390,7 @@ class VMRef extends Response {
   }
 
   @override
-  String get type => 'VMRef';
+  String get type => '@VM';
 
   @override
   Map<String, dynamic> toJson() {

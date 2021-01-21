@@ -925,8 +925,13 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
   } else {
 #if !defined(TARGET_ARCH_IA32)
     if (I != Dart::vm_isolate()) {
-      IG->object_store()->set_build_method_extractor_code(
-          Code::Handle(StubCode::GetBuildMethodExtractorStub(nullptr)));
+      if (IG->object_store()->build_method_extractor_code() != nullptr) {
+        SafepointWriteRwLocker ml(T, IG->program_lock());
+        if (IG->object_store()->build_method_extractor_code() != nullptr) {
+          IG->object_store()->set_build_method_extractor_code(
+              Code::Handle(StubCode::GetBuildMethodExtractorStub(nullptr)));
+        }
+      }
     }
 #endif  // !defined(TARGET_ARCH_IA32)
   }

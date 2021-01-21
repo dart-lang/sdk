@@ -16,6 +16,7 @@ import 'package:nnbd_migration/src/front_end/migration_info.dart';
 import 'package:nnbd_migration/src/front_end/migration_state.dart';
 import 'package:nnbd_migration/src/front_end/path_mapper.dart';
 import 'package:nnbd_migration/src/front_end/web/navigation_tree.dart';
+import 'package:nnbd_migration/src/hint_action.dart';
 import 'package:nnbd_migration/src/preview/dart_file_page.dart';
 import 'package:nnbd_migration/src/preview/dart_logo_page.dart';
 import 'package:nnbd_migration/src/preview/exception_page.dart';

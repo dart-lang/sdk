@@ -224,7 +224,7 @@ if (!dart_library) {
   function reload(clearState) {
     // TODO(jmesserly): once we've rolled out `clearState` make it the default,
     // and eventually remove the parameter.
-    if (clearState == null) clearState = false;
+    if (clearState == null) clearState = true;
 
 
     // TODO(jmesserly): we may want to change these APIs to use the

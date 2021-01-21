@@ -72,7 +72,7 @@ var tests = <IsolateTest>[
 
 expectError(func) async {
   dynamic result = await func();
-  expect(result.type == 'Error' || result.type == 'ErrorRef', isTrue);
+  expect(result.type == 'Error' || result.type == '@Error', isTrue);
 }
 
 main([args = const <String>[]]) =>

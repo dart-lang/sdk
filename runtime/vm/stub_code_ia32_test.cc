@@ -59,6 +59,7 @@ ISOLATE_UNIT_TEST_CASE(CallRuntimeStubCode) {
   const char* kName = "Test_CallRuntimeStubCode";
   compiler::Assembler assembler(nullptr);
   GenerateCallToCallRuntimeStub(&assembler, length);
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   const Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
       *CreateFunction("Test_CallRuntimeStubCode"), nullptr, &assembler,
       Code::PoolAttachment::kAttachPool));
@@ -104,6 +105,7 @@ ISOLATE_UNIT_TEST_CASE(CallLeafRuntimeStubCode) {
   compiler::Assembler assembler(nullptr);
   GenerateCallToCallLeafRuntimeStub(&assembler, str_value, lhs_index_value,
                                     rhs_index_value, length_value);
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   const Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
       *CreateFunction("Test_CallLeafRuntimeStubCode"), nullptr, &assembler,
       Code::PoolAttachment::kAttachPool));

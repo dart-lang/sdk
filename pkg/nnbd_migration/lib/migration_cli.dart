@@ -591,7 +591,10 @@ class MigrationCliRunner implements DartFixListenerClient {
   Set<String> computePathsToProcess(DriverBasedAnalysisContext context) =>
       context.contextRoot
           .analyzedFiles()
-          .where((s) => s.endsWith('.dart'))
+          .where((s) =>
+              s.endsWith('.dart') &&
+              // Any file may have been deleted since its initial analysis.
+              resourceProvider.getFile(s).exists)
           .toSet();
 
   NonNullableFix createNonNullableFix(
@@ -1159,6 +1162,8 @@ class _FixCodeProcessor extends Object {
     _progressBar.complete();
     _migrationCli.logger.stdout(_migrationCli.ansi
         .emphasized('Compiling instrumentation information...'));
+    // Update the tasks paths-to-process, in case of new or deleted files.
+    _task.pathsToProcess = pathsToProcess;
     var state = await _task.finish();
     _task.processPackage(context.contextRoot.root, state.neededPackages);
     if (_migrationCli.options.webPreview) {

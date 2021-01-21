@@ -1326,9 +1326,20 @@ class _TreeShakerPass2 extends Transformer {
           _makeUnreachableBody(node.function);
         }
         node.function.asyncMarker = AsyncMarker.Sync;
-        if (node.concreteForwardingStubTarget != null ||
-            node.abstractForwardingStubTarget != null) {
-          node.stubTarget = null;
+        switch (node.stubKind) {
+          case ProcedureStubKind.Regular:
+          case ProcedureStubKind.NoSuchMethodForwarder:
+            break;
+          case ProcedureStubKind.MemberSignature:
+          case ProcedureStubKind.AbstractForwardingStub:
+          case ProcedureStubKind.ConcreteForwardingStub:
+          case ProcedureStubKind.AbstractMixinStub:
+          case ProcedureStubKind.ConcreteMixinStub:
+            // Make the stub look like a regular procedure so the stub target
+            // isn't expected to be non-null, for instance by the verifier.
+            node.stubKind = ProcedureStubKind.Regular;
+            node.stubTarget = null;
+            break;
         }
         Statistics.methodBodiesDropped++;
       } else if (node is Field) {

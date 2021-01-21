@@ -269,13 +269,20 @@ class PreviewSiteWithEngineTest extends NnbdMigrationTestBase
     with ResourceProviderMixin, PreviewSiteTestMixin {
   MigrationInfo migrationInfo;
 
-  Future<void> setUpMigrationInfo(Map<String, String> files) async {
-    await buildInfoForTestFiles(files, includedRoot: projectPath);
+  Future<void> setUpMigrationInfo(Map<String, String> files,
+      {bool Function(String) shouldBeMigratedFunction,
+      Iterable<String> pathsToProcess}) async {
+    shouldBeMigratedFunction ??= (String path) => true;
+    pathsToProcess ??= files.keys;
+    await buildInfoForTestFiles(files,
+        includedRoot: projectPath,
+        shouldBeMigratedFunction: shouldBeMigratedFunction,
+        pathsToProcess: pathsToProcess);
     dartfixListener = DartFixListener(null, ListenerClient());
     migrationInfo =
         MigrationInfo(infos, {}, resourceProvider.pathContext, projectPath);
     state = MigrationState(
-        null, null, dartfixListener, null, {}, (String path) => true);
+        null, null, dartfixListener, null, {}, shouldBeMigratedFunction);
     nodeMapper = state.nodeMapper;
     state.pathMapper = PathMapper(resourceProvider);
     state.migrationInfo = migrationInfo;
@@ -467,6 +474,32 @@ void main() {}''');
 Opted 1 file out of null safety with a new Dart language version comment:
     ${convertPath('lib/a.dart')}
 '''));
+  }
+
+  void test_applyMigration_doNotOptOutFileNotInPathsToProcess() async {
+    final pathA = convertPath('$projectPath/lib/a.dart');
+    final pathB = convertPath('$projectPath/lib/b.dart');
+    final content = 'void main() {}';
+    await setUpMigrationInfo({pathA: content, pathB: content},
+        // Neither [pathA] nor [[pathB] should be migrated.
+        shouldBeMigratedFunction: (String path) => false,
+        pathsToProcess: [pathA]);
+    site.unitInfoMap[pathA] = UnitInfo(pathA)
+      ..diskContent = content
+      ..wasExplicitlyOptedOut = false
+      ..migrationStatus = UnitMigrationStatus.optingOut;
+    site.unitInfoMap[pathB] = UnitInfo(pathB)
+      ..diskContent = content
+      ..wasExplicitlyOptedOut = false
+      ..migrationStatus = UnitMigrationStatus.optingOut;
+    var navigationTree =
+        NavigationTreeRenderer(migrationInfo, state.pathMapper).render();
+    site.performApply(navigationTree);
+    expect(getFile(pathA).readAsStringSync(), '''
+// @dart=2.9
+
+void main() {}''');
+    expect(getFile(pathB).readAsStringSync(), 'void main() {}');
   }
 
   void test_applyMigration_optOutOne_migrateAnother() async {

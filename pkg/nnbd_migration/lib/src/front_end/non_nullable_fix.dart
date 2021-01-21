@@ -79,6 +79,9 @@ class NonNullableFix {
   /// migrated.
   final bool Function(String) shouldBeMigratedFunction;
 
+  /// The set of files which are being considered for migration.
+  Iterable<String> pathsToProcess;
+
   /// Completes when the server has been shutdown.
   Completer<void> serverIsShutdown;
 
@@ -116,7 +119,7 @@ class NonNullableFix {
     var neededPackages = migration.finish();
     final state = MigrationState(migration, includedRoot, listener,
         instrumentationListener, neededPackages, shouldBeMigratedFunction);
-    await state.refresh(_logger);
+    await state.refresh(_logger, pathsToProcess);
     return state;
   }
 

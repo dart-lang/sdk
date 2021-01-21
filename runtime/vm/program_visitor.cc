@@ -1220,7 +1220,7 @@ void ProgramVisitor::DedupInstructions(Zone* zone,
       // ProgramWalker, but as long as the deduplication process is idempotent,
       // the cached entry points won't change during the second visit.
       VisitCode(code_);
-      function.SetInstructions(code_);  // Update cached entry point.
+      function.SetInstructionsSafe(code_);  // Update cached entry point.
     }
 
     void VisitCode(const Code& code) {
@@ -1231,8 +1231,8 @@ void ProgramVisitor::DedupInstructions(Zone* zone,
         instructions_ = code.active_instructions();
         instructions_ = Dedup(instructions_);
       }
-      code.SetActiveInstructions(instructions_,
-                                 code.UncheckedEntryPointOffset());
+      code.SetActiveInstructionsSafe(instructions_,
+                                     code.UncheckedEntryPointOffset());
     }
 
    private:
@@ -1258,15 +1258,15 @@ void ProgramVisitor::DedupInstructions(Zone* zone,
       // ProgramWalker, but as long as the deduplication process is idempotent,
       // the cached entry points won't change during the second visit.
       VisitCode(code_);
-      function.SetInstructions(code_);  // Update cached entry point.
+      function.SetInstructionsSafe(code_);  // Update cached entry point.
     }
 
     void VisitCode(const Code& code) {
       if (code.IsDisabled()) return;
       canonical_ = Dedup(code);
       instructions_ = canonical_.instructions();
-      code.SetActiveInstructions(instructions_,
-                                 code.UncheckedEntryPointOffset());
+      code.SetActiveInstructionsSafe(instructions_,
+                                     code.UncheckedEntryPointOffset());
       code.set_instructions(instructions_);
     }
 

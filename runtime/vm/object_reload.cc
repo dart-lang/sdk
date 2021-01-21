@@ -226,7 +226,7 @@ void Class::CopyStaticFieldValues(ProgramReloadContext* reload_context,
             reload_context->isolate()->group()->initial_field_table()->Free(
                 field.field_id());
             reload_context->isolate()->field_table()->Free(field.field_id());
-            field.set_field_id(old_field.field_id());
+            field.set_field_id_unsafe(old_field.field_id());
           }
           reload_context->AddStaticFieldMapping(old_field, field);
         } else {
@@ -640,29 +640,6 @@ class InstanceSizeConflict : public ClassReasonForCancelling {
   }
 };
 
-class UnimplementedDeferredLibrary : public ReasonForCancelling {
- public:
-  UnimplementedDeferredLibrary(Zone* zone,
-                               const Library& from,
-                               const Library& to,
-                               const String& name)
-      : ReasonForCancelling(zone), from_(from), to_(to), name_(name) {}
-
- private:
-  const Library& from_;
-  const Library& to_;
-  const String& name_;
-
-  StringPtr ToString() {
-    const String& lib_url = String::Handle(to_.url());
-    from_.ToCString();
-    return String::NewFormatted(
-        "Reloading support for deferred loading has not yet been implemented:"
-        " library '%s' has deferred import '%s'",
-        lib_url.ToCString(), name_.ToCString());
-  }
-};
-
 // This is executed before iterating over the instances.
 void Class::CheckReload(const Class& replacement,
                         ProgramReloadContext* context) const {
@@ -852,21 +829,36 @@ bool Class::CanReloadPreFinalized(const Class& replacement,
 
 void Library::CheckReload(const Library& replacement,
                           ProgramReloadContext* context) const {
-  // TODO(26878): If the replacement library uses deferred loading,
-  // reject it.  We do not yet support reloading deferred libraries.
+  // Carry over the loaded bit of any deferred prefixes.
   Object& object = Object::Handle();
   LibraryPrefix& prefix = LibraryPrefix::Handle();
+  LibraryPrefix& original_prefix = LibraryPrefix::Handle();
+  String& name = String::Handle();
+  String& original_name = String::Handle();
   DictionaryIterator it(replacement);
   while (it.HasNext()) {
     object = it.GetNext();
     if (!object.IsLibraryPrefix()) continue;
     prefix ^= object.ptr();
-    if (prefix.is_deferred_load()) {
-      const String& prefix_name = String::Handle(prefix.name());
-      context->group_reload_context()->AddReasonForCancelling(
-          new (context->zone()) UnimplementedDeferredLibrary(
-              context->zone(), *this, replacement, prefix_name));
-      return;
+    if (!prefix.is_deferred_load()) continue;
+
+    name = prefix.name();
+    DictionaryIterator original_it(*this);
+    while (original_it.HasNext()) {
+      object = original_it.GetNext();
+      if (!object.IsLibraryPrefix()) continue;
+      original_prefix ^= object.ptr();
+      if (!original_prefix.is_deferred_load()) continue;
+      original_name = original_prefix.name();
+      if (!name.Equals(original_name)) continue;
+
+      if (original_prefix.is_loaded()) {
+        prefix.set_is_loaded(true);
+      }
+
+      // The old prefix may be captured in the message queue for a pending load
+      // completion. This pending load should carry to the new prefix.
+      context->AddBecomeMapping(original_prefix, prefix);
     }
   }
 }

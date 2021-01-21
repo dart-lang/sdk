@@ -243,6 +243,7 @@ CodePtr TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
   //   a) We allocate an instructions object, which might cause us to
   //      temporarily flip page protections from (RX -> RW -> RX).
   //
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   thread->isolate_group()->RunWithStoppedMutators(install_code_fun,
                                                   /*use_force_growth=*/true);
 

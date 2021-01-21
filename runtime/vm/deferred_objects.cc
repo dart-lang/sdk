@@ -152,6 +152,7 @@ void DeferredPcMarker::Materialize(DeoptContext* deopt_context) {
   Function& function = Function::Handle(zone);
   function ^= deopt_context->ObjectAt(index_);
   ASSERT(!function.IsNull());
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   const Error& error =
       Error::Handle(zone, Compiler::EnsureUnoptimizedCode(thread, function));
   if (!error.IsNull()) {

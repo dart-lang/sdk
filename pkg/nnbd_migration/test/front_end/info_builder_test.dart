@@ -5,10 +5,10 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:meta/meta.dart';
-import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/front_end/info_builder.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
+import 'package:nnbd_migration/src/hint_action.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

@@ -5891,6 +5891,23 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
+   * Parameters:
+   * 0: the name of the declared member that is not a valid override.
+   * 1: the name of the interface that declares the member.
+   * 2: the type of the declared member in the interface.
+   * 3. the name of the interface with the overridden member.
+   * 4. the type of the overridden member.
+   *
+   * These parameters must be kept in sync with those of
+   * [CompileTimeErrorCode.INVALID_OVERRIDE].
+   */
+  static const CompileTimeErrorCode INVALID_IMPLEMENTATION_OVERRIDE =
+      CompileTimeErrorCode(
+          'INVALID_IMPLEMENTATION_OVERRIDE',
+          "'{1}.{0}' ('{2}') isn't a valid concrete implementation of "
+              "'{3}.{0}' ('{4}').");
+
+  /**
    * No parameters.
    */
   // #### Description

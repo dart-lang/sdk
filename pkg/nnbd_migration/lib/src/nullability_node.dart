@@ -11,6 +11,7 @@ import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nullability_state.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
+import 'package:nnbd_migration/src/hint_action.dart';
 import 'package:nnbd_migration/src/nullability_node_target.dart';
 import 'package:nnbd_migration/src/postmortem_file.dart';
 

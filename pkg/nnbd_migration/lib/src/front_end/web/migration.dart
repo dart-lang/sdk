@@ -6,11 +6,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
 
-import 'package:nnbd_migration/instrumentation.dart';
-import 'package:nnbd_migration/src/front_end/migration_info.dart';
 import 'package:nnbd_migration/src/front_end/web/edit_details.dart';
 import 'package:nnbd_migration/src/front_end/web/file_details.dart';
 import 'package:nnbd_migration/src/front_end/web/navigation_tree.dart';
+import 'package:nnbd_migration/src/hint_action.dart';
 import 'package:path/path.dart' as _p;
 
 import 'highlight_js.dart';

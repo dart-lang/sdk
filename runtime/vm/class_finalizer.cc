@@ -1126,7 +1126,6 @@ ErrorPtr ClassFinalizer::AllocateFinalizeClass(const Class& cls) {
 
 ErrorPtr ClassFinalizer::LoadClassMembers(const Class& cls) {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-  ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(!cls.is_finalized());
 
   LongJumpScope jump;
@@ -1663,6 +1662,7 @@ void ClassFinalizer::ClearAllCode(bool including_nonchanging_cids) {
 #else
   auto const thread = Thread::Current();
   auto const isolate_group = thread->isolate_group();
+  SafepointWriteRwLocker ml(thread, isolate_group->program_lock());
   StackZone stack_zone(thread);
   HANDLESCOPE(thread);
   auto const zone = thread->zone();

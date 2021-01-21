@@ -300,8 +300,12 @@ void Precompiler::DoCompileAll() {
   IG->object_store()->set_##member(stub_code);
         OBJECT_STORE_STUB_CODE_LIST(DO)
 #undef DO
-        stub_code =
-            StubCode::GetBuildMethodExtractorStub(global_object_pool_builder());
+
+        {
+          SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
+          stub_code = StubCode::GetBuildMethodExtractorStub(
+              global_object_pool_builder());
+        }
         IG->object_store()->set_build_method_extractor_code(stub_code);
       }
 
@@ -2519,6 +2523,8 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
   const auto pool_attachment = FLAG_use_bare_instructions
                                    ? Code::PoolAttachment::kNotAttachPool
                                    : Code::PoolAttachment::kAttachPool;
+
+  SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
   const Code& code = Code::Handle(
       Code::FinalizeCodeAndNotify(function, graph_compiler, assembler,
                                   pool_attachment, optimized(), stats));

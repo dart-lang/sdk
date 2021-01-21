@@ -87,8 +87,37 @@ class B	extends A {
   int add();
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 52, 1),
+      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 52, 1),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 72, 3),
+    ]);
+  }
+
+  test_method_abstractOverridesConcreteInMixin() async {
+    await assertErrorsInCode('''
+mixin M {
+  int add(int a, int b) => a + b;
+}
+class A with M {
+  int add();
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 52, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 69, 3),
+    ]);
+  }
+
+  test_method_abstractOverridesConcreteViaMixin() async {
+    await assertErrorsInCode('''
+class A {
+  int add(int a, int b) => a + b;
+}
+mixin M {
+  int add();
+}
+class B	extends A with M {}
+''', [
+      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 77, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 94, 1),
     ]);
   }
 

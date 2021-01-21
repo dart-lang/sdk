@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:meta/meta.dart';
-import 'package:nnbd_migration/src/front_end/migration_info.dart';
+import 'package:nnbd_migration/src/hint_action.dart';
 
 /// Information about what should be populated into the "Edit Details" view of
 /// the migration preview tool.

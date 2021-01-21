@@ -3809,7 +3809,7 @@ class C = Object with B;
 
 class D extends Object with C implements A {}
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 100, 1),
+      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 100, 1),
     ]);
   }
 
@@ -4180,8 +4180,8 @@ class D extends B with X { }
 class E extends B implements A { }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 78, 4),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 159, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 189, 1),
+      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 159, 1),
+      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 189, 1),
     ]);
   }
 
