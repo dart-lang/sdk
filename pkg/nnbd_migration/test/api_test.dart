@@ -2116,6 +2116,51 @@ int f(int? i) => i!;
     await _checkSingleFileChanges(content, expected, removeViaComments: true);
   }
 
+  Future<void> test_extension_extended_type_nullability_intent() async {
+    var content = '''
+extension E on C {
+  String foo() => this.bar();
+}
+
+class C {
+  String bar() => null;
+}
+
+void test(C c, bool b) {
+  if (b) {
+    c.foo();
+  }
+}
+
+main() {
+  test(null, false);
+}
+''';
+    // The call to `bar` from `foo` should be taken as a demonstration that the
+    // extension E is not intended to apply to nullable types, so the call to
+    // `foo` should be null checked.
+    var expected = '''
+extension E on C {
+  String? foo() => this.bar();
+}
+
+class C {
+  String? bar() => null;
+}
+
+void test(C? c, bool b) {
+  if (b) {
+    c!.foo();
+  }
+}
+
+main() {
+  test(null, false);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_extension_null_check_non_nullable() async {
     var content = '''
 class C {}

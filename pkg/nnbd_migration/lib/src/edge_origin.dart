@@ -324,6 +324,18 @@ class ImplicitNullReturnOrigin extends EdgeOrigin {
   ReturnStatement get node => super.node as ReturnStatement;
 }
 
+/// Edge origin used for edges that arise from an implicit use of `this`, e.g.
+/// during a method call from an extension.
+class ImplicitThisOrigin extends EdgeOrigin {
+  ImplicitThisOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  String get description => 'implicit use of `this`';
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.implicitThis;
+}
+
 /// Edge origin resulting from the inference of a type parameter, which
 /// can affects the nullability of that type parameter's bound.
 class InferredTypeParameterInstantiationOrigin extends EdgeOrigin {
