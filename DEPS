@@ -152,7 +152,7 @@ vars = {
   "stagehand_rev": "e64ac90cac508981011299c4ceb819149e71f1bd",
   "stream_channel_tag": "d7251e61253ec389ee6e045ee1042311bced8f1d",
   "string_scanner_rev": "1b63e6e5db5933d7be0a45da6e1129fe00262734",
-  "sync_http_rev": "36a5f1f50aa729b4ffa9fcd8db3d16e742cd4d56",
+  "sync_http_rev": "b59c134f2e34d12acac110d4f17f83e5a7db4330",
   "test_descriptor_tag": "1.1.1",
   "test_process_tag": "1.0.3",
   "term_glyph_rev": "6a0f9b6fb645ba75e7a00a4e20072678327a0347",
