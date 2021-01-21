@@ -2116,6 +2116,118 @@ int f(int? i) => i!;
     await _checkSingleFileChanges(content, expected, removeViaComments: true);
   }
 
+  Future<void> test_extension_null_check_non_nullable() async {
+    var content = '''
+class C {}
+extension E on C/*!*/ {
+  void m() {}
+}
+void f(C c, bool b) {
+  if (b) {
+    c.m();
+  }
+}
+void g() => f(null, false);
+''';
+    var expected = '''
+class C {}
+extension E on C {
+  void m() {}
+}
+void f(C? c, bool b) {
+  if (b) {
+    c!.m();
+  }
+}
+void g() => f(null, false);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_extension_null_check_non_nullable_generic() async {
+    var content = '''
+class C {}
+extension E<T extends Object/*!*/> on T/*!*/ {
+  void m() {}
+}
+void f(C c, bool b) {
+  if (b) {
+    c.m();
+  }
+}
+void g() => f(null, false);
+''';
+    var expected = '''
+class C {}
+extension E<T extends Object> on T {
+  void m() {}
+}
+void f(C? c, bool b) {
+  if (b) {
+    c!.m();
+  }
+}
+void g() => f(null, false);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_extension_null_check_nullable() async {
+    var content = '''
+class C {}
+extension E on C/*?*/ {
+  void m() {}
+}
+void f(C c, bool b) {
+  if (b) {
+    c.m();
+  }
+}
+void g() => f(null, false);
+''';
+    var expected = '''
+class C {}
+extension E on C? {
+  void m() {}
+}
+void f(C? c, bool b) {
+  if (b) {
+    c.m();
+  }
+}
+void g() => f(null, false);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_extension_null_check_nullable_generic() async {
+    var content = '''
+class C {}
+extension E<T extends Object/*?*/> on T/*!*/ {
+  void m() {}
+}
+void f(C c, bool b) {
+  if (b) {
+    c.m();
+  }
+}
+void g() => f(null, false);
+''';
+    var expected = '''
+class C {}
+extension E<T extends Object?> on T {
+  void m() {}
+}
+void f(C? c, bool b) {
+  if (b) {
+    c.m();
+  }
+}
+void g() => f(null, false);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_extension_null_check_target() async {
     var content = '''
 extension E on int/*!*/ {
@@ -2218,7 +2330,6 @@ void f() => E(null).m();
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40023')
   Future<void> test_extension_nullableOnType_viaImplicitInvocation() async {
     var content = '''
 class C {}
