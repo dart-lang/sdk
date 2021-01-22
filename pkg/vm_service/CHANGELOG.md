@@ -1,5 +1,8 @@
 # Changelog
 
+## 6.0.1-nullsafety.0
+- Fix versioning for pub.
+
 ## 6.0.0-nullsafety.4
 - Fixed issue where response parsing could fail for `SourceReportRange.coverage`
   if no coverage information was provided.
