@@ -119,7 +119,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
           invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:14:10: Error: Can't assign to a type literal.
     for (Fisk in x) {
          ^^^^";
-          core::print(self::Fisk*);
+          core::print(#C1);
         }
       }
     }
@@ -145,7 +145,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
           invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:20:10: Error: Can't assign to a type literal.
     for (VoidFunction in x) {
          ^^^^^^^^^^^^";
-          core::print(() →* void);
+          core::print(#C2);
         }
       }
     }
@@ -207,7 +207,7 @@ static method main(dynamic arguments) → dynamic {
         invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:34:8: Error: Can't assign to a type literal.
   for (Fisk in arguments) {
        ^^^^";
-        core::print(self::Fisk*);
+        core::print(#C1);
       }
     }
   }
@@ -233,7 +233,7 @@ static method main(dynamic arguments) → dynamic {
         invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:40:8: Error: Can't assign to a type literal.
   for (VoidFunction in arguments) {
        ^^^^^^^^^^^^";
-        core::print(() →* void);
+        core::print(#C2);
       }
     }
   }
@@ -259,10 +259,7 @@ static method main(dynamic arguments) → dynamic {
   }
 }
 
-
-Extra constant evaluation status:
-Evaluated: TypeLiteral @ org-dartlang-testcase:///unresolved_for_in.dart:15:13 -> TypeLiteralConstant(Fisk*)
-Evaluated: TypeLiteral @ org-dartlang-testcase:///unresolved_for_in.dart:21:13 -> TypeLiteralConstant(void Function()*)
-Evaluated: TypeLiteral @ org-dartlang-testcase:///unresolved_for_in.dart:35:11 -> TypeLiteralConstant(Fisk*)
-Evaluated: TypeLiteral @ org-dartlang-testcase:///unresolved_for_in.dart:41:11 -> TypeLiteralConstant(void Function()*)
-Extra constant evaluation: evaluated: 85, effectively constant: 4
+constants  {
+  #C1 = TypeLiteralConstant(self::Fisk*)
+  #C2 = TypeLiteralConstant(() →* void)
+}

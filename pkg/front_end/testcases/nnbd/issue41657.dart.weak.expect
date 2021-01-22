@@ -20,5 +20,5 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
 constants  {
   #C1 = true
   #C2 = <Null>[]
-  #C3 = <core::int*>[]
+  #C3 = <core::int?>[]
 }

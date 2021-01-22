@@ -57,7 +57,7 @@ class PropertyState#1<I extends core::Object* = dynamic, O extends core::Object*
   method dispose() → void {
     for (final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/issue42997.dart:12:10: Error: Can't use 'PropertyState' because it is declared more than once.
     for (PropertyState<Object, Object>> state in _states) ;
-         ^".<(core::Object*); invalid-expression "pkg/front_end/testcases/general/issue42997.dart:12:30: Error: This couldn't be parsed.
+         ^".<(#C1); invalid-expression "pkg/front_end/testcases/general/issue42997.dart:12:30: Error: This couldn't be parsed.
     for (PropertyState<Object, Object>> state in _states) ;
                              ^"; invalid-expression "pkg/front_end/testcases/general/issue42997.dart:12:30: Error: This couldn't be parsed.
     for (PropertyState<Object, Object>> state in _states) ;
@@ -82,7 +82,6 @@ Try correcting the operator to an existing operator, or defining a '>>' operator
 static method main() → dynamic {}
 static abstract method PropertyState() → dynamic;
 
-
-Extra constant evaluation status:
-Evaluated: TypeLiteral @ org-dartlang-testcase:///issue42997.dart:12:24 -> TypeLiteralConstant(Object*)
-Extra constant evaluation: evaluated: 2, effectively constant: 1
+constants  {
+  #C1 = TypeLiteralConstant(core::Object*)
+}

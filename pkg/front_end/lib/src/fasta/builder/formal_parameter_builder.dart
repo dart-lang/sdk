@@ -19,7 +19,9 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:front_end/src/fasta/builder/procedure_builder.dart';
 
 import 'package:kernel/ast.dart'
-    show DynamicType, Expression, VariableDeclaration;
+    show DartType, DynamicType, Expression, VariableDeclaration;
+
+import 'package:kernel/src/legacy_erasure.dart';
 
 import '../constant_context.dart' show ConstantContext;
 
@@ -119,8 +121,12 @@ class FormalParameterBuilder extends ModifierBuilderImpl
       SourceLibraryBuilder library, int functionNestingLevel,
       [bool notInstanceContext]) {
     if (variable == null) {
+      DartType builtType = type?.build(library, null, notInstanceContext);
+      if (!library.isNonNullableByDefault && builtType != null) {
+        builtType = legacyErasure(builtType);
+      }
       variable = new VariableDeclarationImpl(name, functionNestingLevel,
-          type: type?.build(library, null, notInstanceContext),
+          type: builtType,
           isFinal: isFinal,
           isConst: isConst,
           isFieldFormal: isInitializingFormal,

@@ -1,0 +1,20 @@
+import 'dart:async';
+
+class A<X> {
+  const A();
+}
+
+class Check {
+  const Check(x, y)
+      : assert(identical(x, y)),
+        _ignored = identical(x, y) ? 42 : 1 ~/ 0;
+  final _ignored;
+}
+
+main() {}
+test1() {}
+typedef F1 = A<FutureOr<dynamic>> Function();
+typedef F2 = A<dynamic> Function();
+typedef F3 = A<FutureOr<FutureOr<dynamic>?>> Function();
+typedef F4 = A Function();
+void expectEqual(x, y) {}

@@ -7,7 +7,7 @@ class C extends core::Object {
     : super core::Object::•()
     ;
   get x() → dynamic
-    return "${self::C*}".{core::String::hashCode};
+    return "${#C1}".{core::String::hashCode};
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -18,4 +18,8 @@ class C extends core::Object {
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+
+constants  {
+  #C1 = TypeLiteralConstant(self::C*)
 }

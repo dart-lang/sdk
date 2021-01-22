@@ -70,13 +70,13 @@ class C<T extends core::Object* = dynamic> extends core::Object /*hasConstConstr
     : super core::Object::•()
     ;
   static method staticMethod() → self::C<dynamic>* {
-    core::print(invalid-type);
+    core::print(#C1);
     invalid-type t;
     self::C<invalid-type>* l;
     self::C<self::C<invalid-type>*>* ll;
-    #C1;
     #C2;
     #C3;
+    #C4;
     #C5;
     #C6;
   }
@@ -85,9 +85,9 @@ class C<T extends core::Object* = dynamic> extends core::Object /*hasConstConstr
     self::C::T* t;
     self::C<self::C::T*>* l;
     self::C<self::C<self::C::T*>*>* ll;
-    #C1;
     #C2;
     #C3;
+    #C4;
     #C5;
     #C6;
   }
@@ -105,17 +105,13 @@ class C<T extends core::Object* = dynamic> extends core::Object /*hasConstConstr
 static method main() → dynamic {}
 
 constants  {
-  #C1 = self::C<invalid-type> {}
-  #C2 = <invalid-type>[]
-  #C3 = <self::C<invalid-type>*>[]
-  #C4 = TypeLiteralConstant(invalid-type)
-  #C5 = <core::Object*>[#C4]
-  #C6 = <core::Object*>[#C1]
+  #C1 = TypeLiteralConstant(invalid-type)
+  #C2 = self::C<invalid-type> {}
+  #C3 = <invalid-type>[]
+  #C4 = <self::C<invalid-type>*>[]
+  #C5 = <core::Object*>[#C1]
+  #C6 = <core::Object*>[#C2]
 }
-
-Extra constant evaluation status:
-Evaluated: TypeLiteral @ org-dartlang-testcase:///type_variable_uses.dart:10:11 -> TypeLiteralConstant(<invalid>)
-Extra constant evaluation: evaluated: 4, effectively constant: 1
 
 
 Constructor coverage from constants:

@@ -48,19 +48,19 @@ class B extends nev::A {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class C extends nev::A {
-  field Null neverField = null;
-  field Null nullField = null;
+  field Never* neverField = null;
+  field Never* nullField = null;
   synthetic constructor •() → self::C*
     : super nev::A::•()
     ;
-  method neverMethod(Null value) → Null
+  method neverMethod(Null value) → Never*
     return value;
-  get neverProperty() → Null
+  get neverProperty() → Never*
     return null;
   set neverProperty(Null value) → void {}
-  method nullMethod(Null value) → Null
+  method nullMethod(Null value) → Never*
     return value;
-  get nullProperty() → Null
+  get nullProperty() → Never*
     return null;
   set nullProperty(Null value) → void {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -74,15 +74,15 @@ class C extends nev::A {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-static field Null optOutNever;
+static field Never* optOutNever;
 static field dynamic inferredOptOutNever = nev::optInNever;
 static method genericMethod<T extends core::Object* = dynamic>() → dynamic {}
 static method main() → dynamic {
   nev::optInNever = self::optOutNever;
-  core::Type* typeNever = Null;
-  self::genericMethod<Null>();
-  new self::GenericClass::•<Null>();
-  Null localNever = null;
+  core::Type* typeNever = #C1;
+  self::genericMethod<Never*>();
+  new self::GenericClass::•<Never*>();
+  Never* localNever = null;
   Null localNull = null;
   dynamic inferredLocalNever = nev::optInNever;
   localNever = localNever;
@@ -109,14 +109,14 @@ static method main() → dynamic {
   localNull = localNull;
   self::inferredOptOutNever = localNull;
   inferredLocalNever = localNull;
-  localNever = self::inferredOptOutNever as{TypeError,ForDynamic} Null;
-  self::optOutNever = self::inferredOptOutNever as{TypeError,ForDynamic} Null;
+  localNever = self::inferredOptOutNever as{TypeError,ForDynamic} Never*;
+  self::optOutNever = self::inferredOptOutNever as{TypeError,ForDynamic} Never*;
   nev::optInNever = self::inferredOptOutNever as{TypeError,ForDynamic} Never;
   localNull = self::inferredOptOutNever as{TypeError,ForDynamic} Null;
   self::inferredOptOutNever = self::inferredOptOutNever;
   inferredLocalNever = self::inferredOptOutNever;
-  localNever = inferredLocalNever as{TypeError,ForDynamic} Null;
-  self::optOutNever = inferredLocalNever as{TypeError,ForDynamic} Null;
+  localNever = inferredLocalNever as{TypeError,ForDynamic} Never*;
+  self::optOutNever = inferredLocalNever as{TypeError,ForDynamic} Never*;
   nev::optInNever = inferredLocalNever as{TypeError,ForDynamic} Never;
   localNull = inferredLocalNever as{TypeError,ForDynamic} Null;
   self::inferredOptOutNever = inferredLocalNever;
@@ -182,7 +182,6 @@ static method boundedGenericMethod1<T extends Never = Never>() → nev::boundedG
 static method boundedGenericMethod2<T extends Never = Never>() → core::List<nev::boundedGenericMethod2::T>
   return core::_GrowableList::•<nev::boundedGenericMethod2::T>(0);
 
-
-Extra constant evaluation status:
-Evaluated: TypeLiteral @ org-dartlang-testcase:///never_opt_out.dart:19:20 -> TypeLiteralConstant(Null)
-Extra constant evaluation: evaluated: 136, effectively constant: 1
+constants  {
+  #C1 = TypeLiteralConstant(Never*)
+}

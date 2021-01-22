@@ -98,6 +98,7 @@ cb
 cc
 ccc
 cell
+cf
 charset
 checkme
 checkout
@@ -511,7 +512,10 @@ oh
 okay
 ol
 onull
+oo
+oocf
 ooo
+oovf
 opacity
 operate
 ops
@@ -756,6 +760,7 @@ val
 vars
 verbatim
 versioned
+vf
 vp
 vt
 vte
