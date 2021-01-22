@@ -6,6 +6,8 @@
 # Kernel ASTs directly, that is, code in pkg/fasta/lib/src/kernel/ with
 # strong-mode enabled.
 
+# general/platform_invalid_uris/main: SemiFuzzFailure # semi fuzz fails but isn't currently enabled by default.
+
 extensions/call_methods: TypeCheckError
 extensions/extension_setter_error: TypeCheckError
 extensions/instance_access_of_static: RuntimeError

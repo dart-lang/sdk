@@ -316,6 +316,8 @@ frozen
 fulfill
 func
 futures
+fuzz
+fuzzing
 fx
 gallery
 gamma
@@ -361,6 +363,7 @@ implementor
 in1
 in2
 inclosure
+inconsistencies
 increased
 incrementally
 increments
@@ -626,6 +629,7 @@ sdks
 secondary
 segment
 selection
+semifuzz
 sensitive
 services
 setter1a
