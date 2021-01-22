@@ -4267,6 +4267,13 @@ FfiFieldCyclic:
     #names
   external: test/ffi_test.dart
 
+FfiNonConstantTypeArgumentWarning:
+  # Used by dart:ffi
+  template: "Support for using non-constant type arguments '#type' in this FFI API is deprecated and will be removed in the next stable version of Dart. Rewrite the code to ensure that type arguments are compile time constants referring to a valid native type."
+  analyzerCode: NON_CONSTANT_TYPE_ARGUMENT_WARNING
+  severity: INFO
+  external: test/ffi_test.dart
+
 FfiNotStatic:
   # Used by dart:ffi
   template: "#name expects a static function as parameter. dart:ffi only supports calling static Dart functions from native code."

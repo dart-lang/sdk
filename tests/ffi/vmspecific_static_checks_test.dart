@@ -56,6 +56,7 @@ void main() {
   testEmptyStructFromFunctionReturn();
   testAllocateGeneric();
   testAllocateNativeType();
+  testRefStruct();
 }
 
 typedef Int8UnOp = Int8 Function(Int8);
@@ -601,3 +602,19 @@ void testAllocateGeneric() {
 void testAllocateNativeType() {
   calloc(); //# 1321: compile-time error
 }
+
+void testRefStruct() {
+  final myStructPointer = calloc<TestStruct13>();
+  Pointer<Struct> structPointer = myStructPointer;
+  structPointer.ref; //# 1330: ok
+  calloc.free(myStructPointer);
+}
+
+T genericRef<T extends Struct>(Pointer<T> p) => //# 1200: ok
+    p.ref; //# 1200: ok
+
+T genericRef2<T extends Struct>(Pointer<T> p) => //# 1201: ok
+    p.cast<T>().ref; //# 1201: ok
+
+T genericRef3<T extends Struct>(Pointer<T> p) => //# 1202: ok
+    p[0]; //# 1202: ok

@@ -219,6 +219,8 @@ class FfiTransformer extends Transformer {
   final Procedure offsetByMethod;
   final Procedure elementAtMethod;
   final Procedure addressGetter;
+  final Procedure structPointerRef;
+  final Procedure structPointerElemAt;
   final Procedure asFunctionMethod;
   final Procedure asFunctionInternal;
   final Procedure lookupFunctionMethod;
@@ -282,6 +284,10 @@ class FfiTransformer extends Transformer {
             index.getMember('dart:ffi', 'Struct', '_fromPointer'),
         fromAddressInternal =
             index.getTopLevelMember('dart:ffi', '_fromAddress'),
+        structPointerRef =
+            index.getMember('dart:ffi', 'StructPointer', 'get:ref'),
+        structPointerElemAt =
+            index.getMember('dart:ffi', 'StructPointer', '[]'),
         asFunctionMethod =
             index.getMember('dart:ffi', 'NativeFunctionPointer', 'asFunction'),
         asFunctionInternal =
@@ -344,7 +350,9 @@ class FfiTransformer extends Transformer {
   /// [NativeFunction]<T1 Function(T2, T3) -> S1 Function(S2, S3)
   ///    where DartRepresentationOf(Tn) -> Sn
   DartType convertNativeTypeToDartType(DartType nativeType,
-      {bool allowStructs = false, bool allowHandle = false}) {
+      {bool allowStructs = false,
+      bool allowStructItself = false,
+      bool allowHandle = false}) {
     if (nativeType is! InterfaceType) {
       return null;
     }
@@ -353,6 +361,9 @@ class FfiTransformer extends Transformer {
     final NativeType nativeType_ = getType(nativeClass);
 
     if (hierarchy.isSubclassOf(nativeClass, structClass)) {
+      if (structClass == nativeClass) {
+        return allowStructItself ? nativeType : null;
+      }
       return allowStructs ? nativeType : null;
     }
     if (nativeType_ == null) {

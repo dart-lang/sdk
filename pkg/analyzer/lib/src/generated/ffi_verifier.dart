@@ -153,6 +153,19 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitIndexExpression(IndexExpression node) {
+    Element element = node.staticElement;
+    Element enclosingElement = element?.enclosingElement;
+    if (enclosingElement is ExtensionElement) {
+      if (_isNativeStructPointerExtension(enclosingElement)) {
+        if (element.name == '[]') {
+          _validateRefIndexed(node);
+        }
+      }
+    }
+  }
+
+  @override
   void visitMethodInvocation(MethodInvocation node) {
     Element element = node.methodName.staticElement;
     if (element is MethodElement) {
@@ -176,6 +189,34 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
     }
     super.visitMethodInvocation(node);
+  }
+
+  @override
+  void visitPrefixedIdentifier(PrefixedIdentifier node) {
+    Element element = node.staticElement;
+    Element enclosingElement = element?.enclosingElement;
+    if (enclosingElement is ExtensionElement) {
+      if (_isNativeStructPointerExtension(enclosingElement)) {
+        if (element.name == 'ref') {
+          _validateRefPrefixedIdentifier(node);
+        }
+      }
+    }
+    super.visitPrefixedIdentifier(node);
+  }
+
+  @override
+  void visitPropertyAccess(PropertyAccess node) {
+    Element element = node.propertyName.staticElement;
+    Element enclosingElement = element?.enclosingElement;
+    if (enclosingElement is ExtensionElement) {
+      if (_isNativeStructPointerExtension(enclosingElement)) {
+        if (element.name == 'ref') {
+          _validateRefPropertyAccess(node);
+        }
+      }
+    }
+    super.visitPropertyAccess(node);
   }
 
   /// Return `true` if the given [element] represents the extension
@@ -239,6 +280,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   bool _isNativeFunctionPointerExtension(Element element) =>
       element.name == 'NativeFunctionPointer' &&
       element.library.name == _dartFfiLibraryName;
+
+  bool _isNativeStructPointerExtension(Element element) =>
+      element.name == 'StructPointer' && element.library.name == 'dart.ffi';
 
   /// Returns `true` iff [nativeType] is a `ffi.NativeType` type.
   bool _isNativeTypeInterfaceType(DartType nativeType) {
@@ -338,6 +382,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   }
 
   /// Validates that the given [nativeType] is a valid dart:ffi native type.
+  // TODO(https://dartbug.com/44747): Change to named arguments.
   bool _isValidFfiNativeType(
       DartType nativeType, bool allowVoid, bool allowEmptyStruct) {
     if (nativeType is InterfaceType) {
@@ -694,6 +739,35 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.reportErrorForNode(
             FfiCode.ANNOTATION_ON_POINTER_FIELD, annotation);
       }
+    }
+  }
+
+  void _validateRefIndexed(IndexExpression node) {
+    DartType targetType = node.target.staticType;
+    if (!_isValidFfiNativeType(targetType, false, true)) {
+      final AstNode errorNode = node;
+      _errorReporter.reportErrorForNode(
+          FfiCode.NON_CONSTANT_TYPE_ARGUMENT_WARNING, errorNode, ['[]']);
+    }
+  }
+
+  /// Validate the invocation of the extension method
+  /// `Pointer<T extends Struct>.ref`.
+  void _validateRefPrefixedIdentifier(PrefixedIdentifier node) {
+    DartType targetType = node.prefix.staticType;
+    if (!_isValidFfiNativeType(targetType, false, true)) {
+      final AstNode errorNode = node;
+      _errorReporter.reportErrorForNode(
+          FfiCode.NON_CONSTANT_TYPE_ARGUMENT_WARNING, errorNode, ['ref']);
+    }
+  }
+
+  void _validateRefPropertyAccess(PropertyAccess node) {
+    DartType targetType = node.target.staticType;
+    if (!_isValidFfiNativeType(targetType, false, true)) {
+      final AstNode errorNode = node;
+      _errorReporter.reportErrorForNode(
+          FfiCode.NON_CONSTANT_TYPE_ARGUMENT_WARNING, errorNode, ['ref']);
     }
   }
 

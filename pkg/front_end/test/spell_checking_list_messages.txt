@@ -11,6 +11,7 @@
 
 JS
 adjusting
+api
 argument(s)
 assigning
 b
@@ -29,6 +30,7 @@ dname
 e.g
 enum's
 f
+ffi
 flutter_runner
 futureor
 h
