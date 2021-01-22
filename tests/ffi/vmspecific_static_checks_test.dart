@@ -57,6 +57,10 @@ void main() {
   testAllocateGeneric();
   testAllocateNativeType();
   testRefStruct();
+  testSizeOfGeneric();
+  testSizeOfNativeType();
+  testElementAtGeneric();
+  testElementAtNativeType();
 }
 
 typedef Int8UnOp = Int8 Function(Int8);
@@ -618,3 +622,42 @@ T genericRef2<T extends Struct>(Pointer<T> p) => //# 1201: ok
 
 T genericRef3<T extends Struct>(Pointer<T> p) => //# 1202: ok
     p[0]; //# 1202: ok
+
+void testSizeOfGeneric() {
+  int generic<T extends Pointer>() {
+    int size = sizeOf<IntPtr>();
+    size = sizeOf<T>(); //# 1300: ok
+    return size;
+  }
+
+  int size = generic<Pointer<Int64>>();
+}
+
+void testSizeOfNativeType() {
+  try {
+    sizeOf(); //# 1301: ok
+  } catch (e) {
+    print(e);
+  }
+}
+
+void testElementAtGeneric() {
+  Pointer<T> generic<T extends NativeType>(Pointer<T> pointer) {
+    Pointer<T> returnValue = pointer;
+    returnValue = returnValue.elementAt(1); //# 1310: ok
+    return returnValue;
+  }
+
+  Pointer<Int8> p = calloc();
+  p.elementAt(1);
+  generic(p);
+  calloc.free(p);
+}
+
+void testElementAtNativeType() {
+  Pointer<Int8> p = calloc();
+  p.elementAt(1);
+  Pointer<NativeType> p2 = p;
+  p2.elementAt(1); //# 1311: ok
+  calloc.free(p);
+}

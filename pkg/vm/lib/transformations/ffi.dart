@@ -223,6 +223,7 @@ class FfiTransformer extends Transformer {
   final Procedure structPointerElemAt;
   final Procedure asFunctionMethod;
   final Procedure asFunctionInternal;
+  final Procedure sizeOfMethod;
   final Procedure lookupFunctionMethod;
   final Procedure fromFunctionMethod;
   final Field addressOfField;
@@ -292,6 +293,7 @@ class FfiTransformer extends Transformer {
             index.getMember('dart:ffi', 'NativeFunctionPointer', 'asFunction'),
         asFunctionInternal =
             index.getTopLevelMember('dart:ffi', '_asFunctionInternal'),
+        sizeOfMethod = index.getTopLevelMember('dart:ffi', 'sizeOf'),
         lookupFunctionMethod = index.getMember(
             'dart:ffi', 'DynamicLibraryExtension', 'lookupFunction'),
         fromFunctionMethod =

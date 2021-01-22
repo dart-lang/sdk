@@ -174,6 +174,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         if (_isPointer(enclosingElement)) {
           if (element.name == 'fromFunction') {
             _validateFromFunction(node, element);
+          } else if (element.name == 'elementAt') {
+            _validateElementAt(node);
           }
         }
       }
@@ -185,6 +187,15 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         } else if (_isDynamicLibraryExtension(enclosingElement) &&
             element.name == 'lookupFunction') {
           _validateLookupFunction(node);
+        }
+      }
+    } else if (element is FunctionElement) {
+      Element enclosingElement = element.enclosingElement;
+      if (enclosingElement is CompilationUnitElement) {
+        if (element.library.name == 'dart.ffi') {
+          if (element.name == 'sizeOf') {
+            _validateSizeOf(node);
+          }
         }
       }
     }
@@ -618,6 +629,24 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  void _validateElementAt(MethodInvocation node) {
+    Expression target = node.realTarget;
+    DartType targetType = target.staticType;
+    if (targetType is InterfaceType &&
+        _isPointer(targetType.element) &&
+        targetType.typeArguments.length == 1) {
+      final DartType T = targetType.typeArguments[0];
+
+      if (!_isValidFfiNativeType(T, true, true)) {
+        final AstNode errorNode = node;
+        _errorReporter.reportErrorForNode(
+            FfiCode.NON_CONSTANT_TYPE_ARGUMENT_WARNING,
+            errorNode,
+            ['elementAt']);
+      }
+    }
+  }
+
   /// Validate that the fields declared by the given [node] meet the
   /// requirements for fields within a struct class.
   void _validateFieldsInStruct(FieldDeclaration node) {
@@ -768,6 +797,15 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       final AstNode errorNode = node;
       _errorReporter.reportErrorForNode(
           FfiCode.NON_CONSTANT_TYPE_ARGUMENT_WARNING, errorNode, ['ref']);
+    }
+  }
+
+  void _validateSizeOf(MethodInvocation node) {
+    final DartType T = node.typeArgumentTypes[0];
+    if (!_isValidFfiNativeType(T, true, true)) {
+      final AstNode errorNode = node;
+      _errorReporter.reportErrorForNode(
+          FfiCode.NON_CONSTANT_TYPE_ARGUMENT_WARNING, errorNode, ['sizeOf']);
     }
   }
 

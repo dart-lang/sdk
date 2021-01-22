@@ -25,6 +25,10 @@ part "struct.dart";
 /// Number of bytes used by native type T.
 ///
 /// Includes padding and alignment of structs.
+///
+/// Support for invoking this function with non-constant [T] will be removed in
+/// the next stable version of Dart and it will become mandatory to invoke it
+/// with a compile-time constant [T].
 external int sizeOf<T extends NativeType>();
 
 /// Represents a pointer into the native C memory corresponding to "NULL", e.g.
@@ -62,6 +66,10 @@ class Pointer<T extends NativeType> extends NativeType {
   external int get address;
 
   /// Pointer arithmetic (takes element size into account).
+  ///
+  /// Support for invoking this method with non-constant [T] will be removed in
+  /// the next stable version of Dart and it will become mandatory to invoke it
+  /// with a compile-time constant [T].
   external Pointer<T> elementAt(int index);
 
   /// Cast Pointer<T> to a Pointer<V>.

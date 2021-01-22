@@ -181,6 +181,15 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
         // TODO(http://dartbug.com/38721): Replace calls with direct
         // constructor invocations.
+      } else if (target == sizeOfMethod) {
+        final DartType nativeType = node.arguments.types[0];
+
+        if (!isFfiLibrary) {
+          _warningNativeTypeValid(nativeType, node);
+        }
+
+        // TODO(http://dartbug.com/38721): Replace calls with constant
+        // expressions.
       } else if (target == lookupFunctionMethod) {
         final DartType nativeType = InterfaceType(
             nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
@@ -384,6 +393,9 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         final DartType pointerType =
             node.receiver.getStaticType(_staticTypeContext);
         final DartType nativeType = _pointerTypeGetTypeArg(pointerType);
+
+        _warningNativeTypeValid(nativeType, node);
+
         if (nativeType is TypeParameterType) {
           // Do not rewire generic invocations.
           return node;
