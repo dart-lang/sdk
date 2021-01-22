@@ -32,6 +32,17 @@ class FfiCode extends AnalyzerErrorCode {
       correction: "Try adding a field to '{0}' or use a different Struct.");
 
   /**
+   * Parameters:
+   * 0: the name of the struct class
+   */
+  static const FfiCode EMPTY_STRUCT_WARNING = FfiCode(
+      name: 'EMPTY_STRUCT_WARNING',
+      message:
+          "Struct '{0}' is empty. Support for empty structs is deprecated and will be removed in the next stable version of Dart. Use Opaque instead.",
+      correction: "Try adding a field to '{0}' or use a different Struct.",
+      type: ErrorType.HINT);
+
+  /**
    * No parameters.
    */
   static const FfiCode EXTRA_ANNOTATION_ON_STRUCT_FIELD = FfiCode(
@@ -252,6 +263,9 @@ class FfiCode extends AnalyzerErrorCode {
     uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_WITH',
   );
 
+  @override
+  final ErrorType type;
+
   /// Initialize a newly created error code to have the given [name]. If
   /// [uniqueName] is provided, then it will be used to construct the unique
   /// name for the code, otherwise the name will be used to construct the unique
@@ -268,7 +282,9 @@ class FfiCode extends AnalyzerErrorCode {
     @required String message,
     @required String name,
     String uniqueName,
-  }) : super(
+    ErrorType type = ErrorType.COMPILE_TIME_ERROR,
+  })  : type = type,
+        super(
           correction: correction,
           hasPublishedDocs: hasPublishedDocs,
           message: message,
@@ -278,7 +294,4 @@ class FfiCode extends AnalyzerErrorCode {
 
   @override
   ErrorSeverity get errorSeverity => type.severity;
-
-  @override
-  ErrorType get type => ErrorType.COMPILE_TIME_ERROR;
 }
