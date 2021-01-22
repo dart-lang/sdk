@@ -59,7 +59,7 @@ class AssignmentVerifier {
 
     if (recovery is ClassElement ||
         recovery is DynamicElementImpl ||
-        recovery is FunctionTypeAliasElement ||
+        recovery is TypeAliasElement ||
         recovery is TypeParameterElement) {
       _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.ASSIGNMENT_TO_TYPE,

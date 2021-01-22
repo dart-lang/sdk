@@ -1314,7 +1314,7 @@ class C<T extends C<dynamic> = C<dynamic>> {
 ''');
   }
 
-  test_class_notSimplyBounded_complex_by_cycle() async {
+  test_class_notSimplyBounded_complex_by_cycle_class() async {
     var library = await checkLibrary('''
 class C<T extends D> {}
 class D<T extends C> {}
@@ -1324,6 +1324,29 @@ notSimplyBounded class C<T extends D<dynamic>> {
 }
 notSimplyBounded class D<T extends C<dynamic>> {
 }
+''');
+  }
+
+  test_class_notSimplyBounded_complex_by_cycle_typedef_functionType() async {
+    var library = await checkLibrary('''
+typedef C<T extends D> = void Function();
+typedef D<T extends C> = void Function();
+''');
+    checkElementText(library, r'''
+notSimplyBounded typedef C<T extends dynamic Function()> = void Function();
+notSimplyBounded typedef D<T extends dynamic Function()> = void Function();
+''');
+  }
+
+  test_class_notSimplyBounded_complex_by_cycle_typedef_interfaceType() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary('''
+typedef C<T extends D> = List<T>;
+typedef D<T extends C> = List<T>;
+''');
+    checkElementText(library, r'''
+notSimplyBounded typedef C<T extends dynamic> = List<T>;
+notSimplyBounded typedef D<T extends dynamic> = List<T>;
 ''');
   }
 

@@ -7823,7 +7823,7 @@ class C {
     await resolveTestFile();
 
     FunctionTypeAlias alias = findNode.functionTypeAlias('F<T>');
-    FunctionTypeAliasElement aliasElement = alias.declaredElement;
+    TypeAliasElement aliasElement = alias.declaredElement;
 
     FieldDeclaration fDeclaration = findNode.fieldDeclaration('F<int> f');
 
@@ -7915,7 +7915,7 @@ typedef void F(int p);
     CompilationUnit unit = result.unit;
 
     FunctionTypeAlias fNode = unit.declarations[1];
-    FunctionTypeAliasElement fElement = fNode.declaredElement;
+    TypeAliasElement fElement = fNode.declaredElement;
 
     var statements = _getMainStatements(result);
 

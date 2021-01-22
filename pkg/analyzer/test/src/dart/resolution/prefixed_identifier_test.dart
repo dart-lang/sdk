@@ -167,6 +167,38 @@ void f() {
     );
   }
 
+  test_read_typedef_functionType() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+typedef A = void Function();
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart' as p;
+
+void f() {
+  p.A;
+}
+''');
+
+    var importFind = findElement.importFind('package:test/a.dart');
+    var A = importFind.typeAlias('A');
+
+    var prefixed = findNode.prefixed('p.A');
+    assertPrefixedIdentifier(
+      prefixed,
+      element: A,
+      type: 'Type',
+    );
+
+    assertImportPrefix(prefixed.prefix, importFind.prefix);
+
+    assertSimpleIdentifier(
+      prefixed.identifier,
+      element: A,
+      type: 'Type',
+    );
+  }
+
   test_readWrite_assignment() async {
     await assertNoErrorsInCode('''
 class A {
@@ -286,6 +318,38 @@ void f() {
       findNode.simple('foo;'),
       element: findElement.getter('foo'),
       type: 'int',
+    );
+  }
+
+  test_read_typedef_interfaceType() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+typedef A = List<int>;
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart' as p;
+
+void f() {
+  p.A;
+}
+''');
+
+    var importFind = findElement.importFind('package:test/a.dart');
+    var A = importFind.typeAlias('A');
+
+    var prefixed = findNode.prefixed('p.A');
+    assertPrefixedIdentifier(
+      prefixed,
+      element: A,
+      type: 'Type',
+    );
+
+    assertImportPrefix(prefixed.prefix, importFind.prefix);
+
+    assertSimpleIdentifier(
+      prefixed.identifier,
+      element: A,
+      type: 'Type',
     );
   }
 }

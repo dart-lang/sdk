@@ -1153,6 +1153,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   /// A list containing all of the function type aliases contained in this
   /// compilation unit.
+  @Deprecated('Use typeAliases instead')
   List<FunctionTypeAliasElement> _functionTypeAliases;
 
   /// A list containing all of the type aliases contained in this compilation
