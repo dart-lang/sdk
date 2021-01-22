@@ -5151,18 +5151,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Optimize some internal SDK calls.
     if (isSdkInternalRuntime(target.enclosingLibrary)) {
       var name = target.name.text;
-      if (node.arguments.positional.isEmpty) {
-        if (name == 'typeRep') {
-          return _emitType(node.arguments.types.single);
-        }
+      if (node.arguments.positional.isEmpty &&
+          node.arguments.types.length == 1) {
+        var type = node.arguments.types.single;
+        if (name == 'typeRep') return _emitType(type);
         if (name == 'legacyTypeRep') {
-          return _emitType(node.arguments.types.single
-              .withDeclaredNullability(Nullability.legacy));
+          return _emitType(type.withDeclaredNullability(Nullability.legacy));
         }
-      } else if (node.arguments.positional.length == 1) {
-        var firstArg = node.arguments.positional[0];
-        if (name == 'getGenericClass' && firstArg is TypeLiteral) {
-          var type = firstArg.type;
+        if (name == 'getGenericClassStatic') {
           if (type is InterfaceType) {
             return _emitTopLevelNameNoInterop(type.classNode, suffix: '\$');
           }
@@ -5170,6 +5166,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             return _emitFutureOrNameNoInterop(suffix: '\$');
           }
         }
+      } else if (node.arguments.positional.length == 1) {
+        var firstArg = node.arguments.positional[0];
         if (name == 'unwrapType' && firstArg is TypeLiteral) {
           return _emitType(firstArg.type);
         }
