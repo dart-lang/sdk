@@ -58,6 +58,12 @@ main(List<String> arguments) async {
           settings.targetString = "flutter";
         } else if (arg.startsWith("--target=ddc")) {
           settings.targetString = "ddc";
+        } else if (arg == "--noTryToDeleteEmptyFilesUpFront") {
+          settings.noTryToDeleteEmptyFilesUpFront = true;
+        } else if (arg.startsWith("--wantErrorOnReload=")) {
+          String wantErrorOnReload =
+              arg.substring("--wantErrorOnReload=".length);
+          settings.lookForErrorErrorOnReload = wantErrorOnReload;
         } else if (arg == "--oldBlockDelete") {
           settings.oldBlockDelete = true;
         } else if (arg == "--lineDelete") {
