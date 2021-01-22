@@ -239,8 +239,8 @@ class IncrementalPlan {
         }
         if (line.length <= lineStart + 1) {
           // Only one character; not a comment; end of block comment.
-          break;
           newlinesAfterDlvc = '$newline$newline';
+          break;
         }
         if (line.codeUnitAt(lineStart) == $slash &&
             line.codeUnitAt(lineStart + 1) == $slash) {

@@ -159,6 +159,12 @@ void main(List args) {
         equals('// comment\n\n// @dart=2.9\n\nvoid main() {}'));
   }
 
+  void test_optOutOfNullSafety_commentThenSemicolon() {
+    expect(
+        IncrementalPlan.optCodeOutOfNullSafety('// comment\n;\nvoid main() {}'),
+        equals('// comment\n\n// @dart=2.9\n\n;\nvoid main() {}'));
+  }
+
   void test_optOutOfNullSafety_commentThenCode_windows() {
     expect(
         IncrementalPlan.optCodeOutOfNullSafety(
