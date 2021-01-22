@@ -13,21 +13,19 @@ class _Platform {
   external static _executable();
   external static _resolvedExecutable();
 
-  /**
-   * Retrieve the entries of the process environment.
-   *
-   * The result is an [Iterable] of strings, where each string represents
-   * an environment entry.
-   *
-   * Environment entries should be strings containing
-   * a non-empty name and a value separated by a '=' character.
-   * The name does not contain a '=' character,
-   * so the name is everything up to the first '=' character.
-   * Values are everything after the first '=' character.
-   * A value may contain further '=' characters, and it may be empty.
-   *
-   * Returns an [OSError] if retrieving the environment fails.
-   */
+  /// Retrieve the entries of the process environment.
+  ///
+  /// The result is an [Iterable] of strings, where each string represents
+  /// an environment entry.
+  ///
+  /// Environment entries should be strings containing
+  /// a non-empty name and a value separated by a '=' character.
+  /// The name does not contain a '=' character,
+  /// so the name is everything up to the first '=' character.
+  /// Values are everything after the first '=' character.
+  /// A value may contain further '=' characters, and it may be empty.
+  ///
+  /// Returns an [OSError] if retrieving the environment fails.
   external static _environment();
   external static List<String> _executableArguments();
   external static String? _packageConfig();

@@ -4,35 +4,36 @@
 
 part of dart.io;
 
-/// Embedder-specific, fine-grained dart:io configuration.
+/// Embedder-specific, fine-grained `dart:io` configuration.
 ///
 /// This class contains per-Isolate flags that an embedder can set to put
 /// fine-grained limitations on what process-visible operations Isolates are
-/// permitted to use (e.g. exit()). By default, the whole dart:io API is
+/// permitted to use (e.g. [exit]). By default, the whole `dart:io` API is
 /// enabled. When a disallowed operation is attempted, an `UnsupportedError` is
 /// thrown.
 @pragma('vm:entry-point')
 abstract class _EmbedderConfig {
-  /// The Isolate may set Directory.current.
+  /// Whether the isolate may set [Directory.current].
   static bool _mayChdir = true;
 
-  /// The Isolate may call exit().
+  /// Whether the isolate may call [exit].
   @pragma("vm:entry-point")
   static bool _mayExit = true;
 
-  // The Isolate may set Stdin.echoMode.
+  // Whether the isolate may set [Stdin.echoMode].
   @pragma('vm:entry-point')
   static bool _maySetEchoMode = true;
 
-  // The Isolate may set Stdin.lineMode.
+  // Whether the isolate may set [Stdin.lineMode].
   @pragma('vm:entry-point')
   static bool _maySetLineMode = true;
 
-  /// The Isolate may call sleep().
+  /// Whether the isolate may call [sleep].
   @pragma('vm:entry-point')
   static bool _maySleep = true;
 
-  /// The Isolate may establish insecure socket connections to all domains.
+  /// Whether the isolate may establish insecure socket connections
+  /// to all domains.
   ///
   /// This setting can be overridden by per-domain policies.
   @pragma('vm:entry-point')
