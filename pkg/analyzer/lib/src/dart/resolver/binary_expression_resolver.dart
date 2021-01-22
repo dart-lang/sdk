@@ -293,6 +293,7 @@ class BinaryExpressionResolver {
         );
       }
       node.staticElement = member;
+      node.staticInvokeType = member?.type;
       return;
     }
 
