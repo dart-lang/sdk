@@ -545,6 +545,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.testMode, passThrough),
     new OptionHandler('${Flags.dumpSsa}=.+', passThrough),
     new OptionHandler('${Flags.cfeInvocationModes}=.+', passThrough),
+    new OptionHandler('${Flags.verbosity}=.+', passThrough),
 
     // Experimental features.
     // We don't provide documentation for these yet.

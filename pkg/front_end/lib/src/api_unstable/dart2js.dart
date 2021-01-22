@@ -21,7 +21,7 @@ import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/target/targets.dart' show Target;
 
 import '../api_prototype/compiler_options.dart'
-    show CompilerOptions, InvocationMode;
+    show CompilerOptions, InvocationMode, Verbosity;
 
 import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 
@@ -103,6 +103,7 @@ export '../api_prototype/compiler_options.dart'
     show
         CompilerOptions,
         InvocationMode,
+        Verbosity,
         parseExperimentalFlags,
         parseExperimentalArguments;
 
@@ -146,7 +147,8 @@ InitializedCompilerState initializeCompiler(
     {Map<ExperimentalFlag, bool> explicitExperimentalFlags,
     bool verify: false,
     NnbdMode nnbdMode,
-    Set<InvocationMode> invocationModes: const <InvocationMode>{}}) {
+    Set<InvocationMode> invocationModes: const <InvocationMode>{},
+    Verbosity verbosity: Verbosity.all}) {
   additionalDills.sort((a, b) => a.toString().compareTo(b.toString()));
 
   // We don't check `target` because it doesn't support '==' and each
@@ -160,7 +162,8 @@ InitializedCompilerState initializeCompiler(
           explicitExperimentalFlags) &&
       oldState.options.verify == verify &&
       oldState.options.nnbdMode == nnbdMode &&
-      equalSets(oldState.options.invocationModes, invocationModes)) {
+      equalSets(oldState.options.invocationModes, invocationModes) &&
+      oldState.options.verbosity == verbosity) {
     return oldState;
   }
 
@@ -171,7 +174,8 @@ InitializedCompilerState initializeCompiler(
     ..packagesFileUri = packagesFileUri
     ..explicitExperimentalFlags = explicitExperimentalFlags
     ..verify = verify
-    ..invocationModes = invocationModes;
+    ..invocationModes = invocationModes
+    ..verbosity = verbosity;
   if (nnbdMode != null) options.nnbdMode = nnbdMode;
 
   ProcessedOptions processedOpts = new ProcessedOptions(options: options);

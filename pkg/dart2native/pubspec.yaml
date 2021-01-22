@@ -12,5 +12,7 @@ executables:
 dependencies:
    args: ^1.4.0
    path: any
+   front_end:
+     path: ../front_end
 
 dev_dependencies:

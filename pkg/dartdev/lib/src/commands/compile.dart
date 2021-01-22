@@ -7,6 +7,8 @@ import 'dart:io';
 
 import 'package:dart2native/generate.dart';
 import 'package:path/path.dart' as path;
+import 'package:front_end/src/api_prototype/compiler_options.dart'
+    show Verbosity;
 
 import '../core.dart';
 import '../experiments.dart';
@@ -19,8 +21,17 @@ class Option {
   final String flag;
   final String help;
   final String abbr;
+  final String defaultsTo;
+  final List<String> allowed;
+  final Map<String, String> allowedHelp;
 
-  Option({this.flag, this.help, this.abbr});
+  Option(
+      {this.flag,
+      this.help,
+      this.abbr,
+      this.defaultsTo,
+      this.allowed,
+      this.allowedHelp});
 }
 
 final Map<String, Option> commonOptions = {
@@ -31,6 +42,15 @@ final Map<String, Option> commonOptions = {
 Write the output to <file name>.
 This can be an absolute or relative path.
 ''',
+  ),
+  'verbosity': Option(
+    flag: 'verbosity',
+    help: '''
+Sets the verbosity level of the compilation.
+''',
+    defaultsTo: Verbosity.defaultValue,
+    allowed: Verbosity.allowedValues,
+    allowedHelp: Verbosity.allowedValuesHelp,
   ),
 };
 
@@ -53,6 +73,15 @@ class CompileJSCommand extends CompileSubcommandCommand {
         commonOptions['outputFile'].flag,
         help: commonOptions['outputFile'].help,
         abbr: commonOptions['outputFile'].abbr,
+        defaultsTo: commonOptions['outputFile'].defaultsTo,
+      )
+      ..addOption(
+        commonOptions['verbosity'].flag,
+        help: commonOptions['verbosity'].help,
+        abbr: commonOptions['verbosity'].abbr,
+        defaultsTo: commonOptions['verbosity'].defaultsTo,
+        allowed: commonOptions['verbosity'].allowed,
+        allowedHelp: commonOptions['verbosity'].allowedHelp,
       )
       ..addFlag(
         'minified',
@@ -196,6 +225,14 @@ class CompileNativeCommand extends CompileSubcommandCommand {
         help: commonOptions['outputFile'].help,
         abbr: commonOptions['outputFile'].abbr,
       )
+      ..addOption(
+        commonOptions['verbosity'].flag,
+        help: commonOptions['verbosity'].help,
+        abbr: commonOptions['verbosity'].abbr,
+        defaultsTo: commonOptions['verbosity'].defaultsTo,
+        allowed: commonOptions['verbosity'].allowed,
+        allowedHelp: commonOptions['verbosity'].allowedHelp,
+      )
       ..addMultiOption('define', abbr: 'D', valueHelp: 'key=value', help: '''
 Define an environment declaration. To specify multiple declarations, use multiple options or use commas to separate key-value pairs.
 For example: dart compile $commandName -Da=1,b=2 main.dart''')
@@ -246,6 +283,7 @@ Remove debugging information from the output and save it separately to the speci
         enableExperiment: argResults.enabledExperiments.join(','),
         debugFile: argResults['save-debugging-info'],
         verbose: verbose,
+        verbosity: argResults['verbosity'],
       );
       return 0;
     } catch (e) {

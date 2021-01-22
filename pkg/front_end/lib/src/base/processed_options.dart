@@ -26,7 +26,7 @@ import 'package:kernel/target/targets.dart'
 import 'package:package_config/package_config.dart';
 
 import '../api_prototype/compiler_options.dart'
-    show CompilerOptions, InvocationMode, DiagnosticMessage;
+    show CompilerOptions, InvocationMode, Verbosity, DiagnosticMessage;
 
 import '../api_prototype/experimental_flags.dart' as flags;
 
@@ -263,7 +263,9 @@ class ProcessedOptions {
   }
 
   void _defaultDiagnosticMessageHandler(DiagnosticMessage message) {
-    printDiagnosticMessage(message, print);
+    if (Verbosity.shouldPrint(_raw.verbosity, message)) {
+      printDiagnosticMessage(message, print);
+    }
   }
 
   // TODO(askesc): Remove this and direct callers directly to report.

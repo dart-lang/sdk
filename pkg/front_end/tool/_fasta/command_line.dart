@@ -195,6 +195,7 @@ const Map<String, ValueSpecification> optionSpecification =
   Flags.nnbdAgnosticMode: const BoolValue(false),
   Flags.target: const StringValue(),
   Flags.verbose: const BoolValue(false),
+  Flags.verbosity: const StringValue(),
   Flags.verify: const BoolValue(false),
   Flags.verifySkipPlatform: const BoolValue(false),
   Flags.warnOnReachabilityCheck: const BoolValue(false),
@@ -308,6 +309,8 @@ ProcessedOptions analyzeCommandLine(String programName,
 
   final String invocationModes = options[Flags.invocationModes] ?? '';
 
+  final String verbosity = options[Flags.verbosity] ?? Verbosity.defaultValue;
+
   if (nnbdStrongMode && nnbdWeakMode) {
     return throw new CommandLineProblem.deprecated(
         "Can't specify both '${Flags.nnbdStrongMode}' and "
@@ -359,7 +362,8 @@ ProcessedOptions analyzeCommandLine(String programName,
     ..additionalDills = linkDependencies
     ..emitDeps = !noDeps
     ..warnOnReachabilityCheck = warnOnReachabilityCheck
-    ..invocationModes = InvocationMode.parseArguments(invocationModes);
+    ..invocationModes = InvocationMode.parseArguments(invocationModes)
+    ..verbosity = Verbosity.parseArgument(verbosity);
 
   if (programName == "compile_platform") {
     if (arguments.length != 5) {

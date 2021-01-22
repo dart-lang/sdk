@@ -7,6 +7,8 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:dart2native/generate.dart';
+import 'package:front_end/src/api_prototype/compiler_options.dart'
+    show Verbosity;
 
 void printUsage(final ArgParser parser) {
   print('''
@@ -65,7 +67,16 @@ Remove debugging information from the output and save it separately to the speci
 Comma separated list of experimental features.
 ''')
     ..addFlag('verbose',
-        abbr: 'v', negatable: false, help: 'Show verbose output.');
+        abbr: 'v', negatable: false, help: 'Show verbose output.')
+    ..addOption(
+      'verbosity',
+      defaultsTo: Verbosity.defaultValue,
+      help: '''
+Sets the verbosity level used for filtering messages during compilation.
+''',
+      allowed: Verbosity.allowedValues,
+      allowedHelp: Verbosity.allowedValuesHelp,
+    );
 
   ArgResults parsedArgs;
   try {
@@ -106,6 +117,7 @@ Comma separated list of experimental features.
         enableExperiment: parsedArgs['enable-experiment'],
         enableAsserts: parsedArgs['enable-asserts'],
         verbose: parsedArgs['verbose'],
+        verbosity: parsedArgs['verbosity'],
         extraOptions: parsedArgs['extra-gen-snapshot-options']);
   } catch (e) {
     stderr.writeln('Failed to generate native files:');

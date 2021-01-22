@@ -33,6 +33,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         ProcessedOptions,
         Severity,
         StandardFileSystem,
+        Verbosity,
         getMessageUri,
         kernelForProgram,
         parseExperimentalArguments,
@@ -131,6 +132,10 @@ void declareCompilerOptions(ArgParser args) {
   args.addOption('invocation-modes',
       help: 'Provides information to the front end about how it is invoked.',
       defaultsTo: '');
+  args.addOption('verbosity',
+      help: 'Sets the verbosity level used for filtering messages during '
+          'compilation.',
+      defaultsTo: Verbosity.defaultValue);
 }
 
 /// Create ArgParser and populate it with options consumed by [runCompiler].
@@ -215,7 +220,8 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     mainUri = await convertToPackageUri(fileSystem, mainUri, packagesUri);
   }
 
-  final errorPrinter = new ErrorPrinter();
+  final verbosity = Verbosity.parseArgument(options['verbosity']);
+  final errorPrinter = new ErrorPrinter(verbosity);
   final errorDetector = new ErrorDetector(previousErrorHandler: errorPrinter);
 
   final CompilerOptions compilerOptions = new CompilerOptions()
@@ -232,7 +238,8 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     }
     ..embedSourceText = embedSources
     ..invocationModes =
-        InvocationMode.parseArguments(options['invocation-modes']);
+        InvocationMode.parseArguments(options['invocation-modes'])
+    ..verbosity = verbosity;
 
   if (nullSafety == null &&
       compilerOptions.isExperimentEnabled(ExperimentalFlag.nonNullable)) {
@@ -489,10 +496,11 @@ class ErrorDetector {
 }
 
 class ErrorPrinter {
+  final Verbosity verbosity;
   final DiagnosticMessageHandler previousErrorHandler;
   final compilationMessages = <Uri, List<DiagnosticMessage>>{};
 
-  ErrorPrinter({this.previousErrorHandler});
+  ErrorPrinter(this.verbosity, {this.previousErrorHandler});
 
   void call(DiagnosticMessage message) {
     final sourceUri = getMessageUri(message);
@@ -516,7 +524,9 @@ class ErrorPrinter {
       });
     for (final Uri sourceUri in sortedUris) {
       for (final DiagnosticMessage message in compilationMessages[sourceUri]) {
-        printDiagnosticMessage(message, print);
+        if (Verbosity.shouldPrint(verbosity, message)) {
+          printDiagnosticMessage(message, print);
+        }
       }
     }
   }
