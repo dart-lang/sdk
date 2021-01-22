@@ -6886,7 +6886,7 @@ class SourceReportRange {
     compiled = json['compiled'] ?? false;
     error = createServiceObject(json['error'], const ['ErrorRef']) as ErrorRef?;
     coverage =
-        _createSpecificObject(json['coverage']!, SourceReportCoverage.parse);
+        _createSpecificObject(json['coverage'], SourceReportCoverage.parse);
     possibleBreakpoints = json['possibleBreakpoints'] == null
         ? null
         : List<int>.from(json['possibleBreakpoints']);

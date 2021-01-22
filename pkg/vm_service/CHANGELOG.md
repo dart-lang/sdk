@@ -1,5 +1,8 @@
 # Changelog
 
+## 6.0.0-nullsafety.4
+- Fixed issue where response parsing could fail for `SourceReportRange.coverage`
+  if no coverage information was provided.
 ## 6.0.0-nullsafety.3
 - Fixed issue where `Response.type` and classes which override `Response.type` were
   returning the name of the `package:vm_service` reference object (e.g., InstanceRef) instead of
