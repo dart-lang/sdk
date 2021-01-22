@@ -6039,9 +6039,25 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             'tearoffInterop(#)', [_emitStaticTarget(node.procedure)]);
       }
     }
-    if (_isInForeignJS && node is TypeLiteralConstant) {
-      return _emitTypeLiteral(
-          node.type.withDeclaredNullability(Nullability.nonNullable));
+    if (node is TypeLiteralConstant) {
+      // We bypass the use of constants, since types are already canonicalized
+      // in the DDC output. DDC emits type literals in two contexts:
+      //   * Foreign JS functions: we use the non-nullable version of some types
+      //     directly in the runtime libraries (e.g. dart:_runtime). For
+      //     correctness of those libraries, we need to remove the legacy marker
+      //     that was added by the CFE normalization of type literals.
+      //
+      //   * Regular user code: we need to emit a canonicalized type. We do so
+      //     by calling `wrapType` on the type at runtime. By emitting the
+      //     non-nullable version we save some redundant work at runtime.
+      //     Technically, emitting a legacy type in this case would be correct,
+      //     only more verbose and inefficient.
+      var type = node.type;
+      if (type.nullability == Nullability.legacy) {
+        type = type.withDeclaredNullability(Nullability.nonNullable);
+      }
+      assert(!_isInForeignJS || type.nullability == Nullability.nonNullable);
+      return _emitTypeLiteral(type);
     }
     if (isSdkInternalRuntime(_currentLibrary) || node is PrimitiveConstant) {
       return super.visitConstant(node);
