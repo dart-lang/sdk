@@ -1366,30 +1366,32 @@ class Transform extends Step<ComponentResult, ComponentResult, FastaContext> {
 
   Future<Result<ComponentResult>> run(
       ComponentResult result, FastaContext context) async {
-    Component component = result.component;
-    KernelTarget sourceTarget = context.componentToTarget[component];
-    context.componentToTarget.remove(component);
-    Target backendTarget = sourceTarget.backendTarget;
-    if (backendTarget is TestVmTarget) {
-      backendTarget.enabled = true;
-    }
-    try {
-      if (sourceTarget.loader.coreTypes != null) {
-        sourceTarget.runBuildTransformations();
-      }
-    } finally {
+    return await CompilerContext.runWithOptions(result.options, (_) async {
+      Component component = result.component;
+      KernelTarget sourceTarget = context.componentToTarget[component];
+      context.componentToTarget.remove(component);
+      Target backendTarget = sourceTarget.backendTarget;
       if (backendTarget is TestVmTarget) {
-        backendTarget.enabled = false;
+        backendTarget.enabled = true;
       }
-    }
-    List<String> errors = VerifyTransformed.verify(component);
-    if (errors.isNotEmpty) {
-      return new Result<ComponentResult>(
-          result,
-          context.expectationSet["TransformVerificationError"],
-          errors.join('\n'));
-    }
-    return pass(result);
+      try {
+        if (sourceTarget.loader.coreTypes != null) {
+          sourceTarget.runBuildTransformations();
+        }
+      } finally {
+        if (backendTarget is TestVmTarget) {
+          backendTarget.enabled = false;
+        }
+      }
+      List<String> errors = VerifyTransformed.verify(component);
+      if (errors.isNotEmpty) {
+        return new Result<ComponentResult>(
+            result,
+            context.expectationSet["TransformVerificationError"],
+            errors.join('\n'));
+      }
+      return pass(result);
+    });
   }
 }
 
