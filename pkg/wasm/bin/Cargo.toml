@@ -1,0 +1,13 @@
+[package]
+name = "wasmer"
+version = "1.0.0-alpha5"
+
+[lib]
+name = "wasmer"
+crate-type = ["staticlib"]
+path = "wasmer.rs"
+
+[dependencies.wasmer-c-api]
+version = "1.0.0-alpha5"
+default-features = false
+features = ["jit", "cranelift", "wasi"]
