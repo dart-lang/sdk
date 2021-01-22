@@ -1071,9 +1071,7 @@ class NullabilityAwareTypeVariableEliminator extends ReplacementVisitor {
   @override
   DartType visitTypeParameterType(TypeParameterType node) {
     if (eliminationTargets.contains(node.parameter)) {
-      return typeParameterReplacement.withDeclaredNullability(
-          uniteNullabilities(
-              typeParameterReplacement.nullability, node.nullability));
+      return typeParameterReplacement;
     }
     return super.visitTypeParameterType(node);
   }

@@ -87,12 +87,14 @@ class TestMinimizerSettings {
   bool widgetTransformation = false;
   final List<Uri> invalidate = [];
   String targetString = "VM";
+  bool noTryToDeleteEmptyFilesUpFront = false;
   bool oldBlockDelete = false;
   bool lineDelete = false;
   bool byteDelete = false;
   bool askAboutRedirectCrashTarget = false;
   bool autoUncoverAllCrashes = false;
   int stackTraceMatches = 1;
+  String lookForErrorErrorOnReload;
   final Set<String> askedAboutRedirect = {};
   final List<Map<String, dynamic>> fileSystems = [];
   final Set<String> allAutoRedirects = {};
@@ -116,6 +118,7 @@ class TestMinimizerSettings {
       'widgetTransformation': widgetTransformation,
       'invalidate': invalidate.map((uri) => uri.toString()).toList(),
       'targetString': targetString,
+      'noTryToDeleteEmptyFilesUpFront': noTryToDeleteEmptyFilesUpFront,
       'oldBlockDelete': oldBlockDelete,
       'lineDelete': lineDelete,
       'byteDelete': byteDelete,
@@ -125,6 +128,7 @@ class TestMinimizerSettings {
       'askedAboutRedirect': askedAboutRedirect.toList(),
       'fileSystems': fileSystems,
       'allAutoRedirects': allAutoRedirects.toList(),
+      'lookForErrorErrorOnReload': lookForErrorErrorOnReload,
     };
   }
 
@@ -139,6 +143,7 @@ class TestMinimizerSettings {
     invalidate.addAll(
         (json["invalidate"] as List).map((uriString) => Uri.parse(uriString)));
     targetString = json["targetString"];
+    noTryToDeleteEmptyFilesUpFront = json["noTryToDeleteEmptyFilesUpFront"];
     oldBlockDelete = json["oldBlockDelete"];
     lineDelete = json["lineDelete"];
     byteDelete = json["byteDelete"];
@@ -151,6 +156,7 @@ class TestMinimizerSettings {
     fileSystems.addAll((json["fileSystems"] as List).cast());
     allAutoRedirects.clear();
     allAutoRedirects.addAll((json["allAutoRedirects"] as List).cast());
+    lookForErrorErrorOnReload = json["lookForErrorErrorOnReload"];
 
     _fsNotInitial.initializeFromJson(fileSystems.removeLast());
   }
@@ -172,6 +178,7 @@ class TestMinimizer {
   bool _skip = false;
   bool _check = false;
   int _currentFsNum = -1;
+  bool _gotWantedError = false;
 
   Component _latestComponent;
   IncrementalCompiler _latestCrashingIncrementalCompiler;
@@ -332,20 +339,22 @@ class TestMinimizer {
       }
 
       // Try to delete empty files.
-      bool changedSome2 = true;
-      while (changedSome2) {
-        if (await _shouldQuit()) break;
-        changedSome2 = false;
-        for (int i = 0; i < uris.length; i++) {
+      if (!_settings.noTryToDeleteEmptyFilesUpFront) {
+        bool changedSome2 = true;
+        while (changedSome2) {
           if (await _shouldQuit()) break;
-          Uri uri = uris[i];
-          if (_fs.data[uri] == null || _fs.data[uri].isNotEmpty) continue;
-          print("About to work on file $i of ${uris.length}");
-          await _deleteContent(uris, i, false, initialComponent,
-              deleteFile: true);
-          if (_fs.data[uri] == null) {
-            changedSome = true;
-            changedSome2 = true;
+          changedSome2 = false;
+          for (int i = 0; i < uris.length; i++) {
+            if (await _shouldQuit()) break;
+            Uri uri = uris[i];
+            if (_fs.data[uri] == null || _fs.data[uri].isNotEmpty) continue;
+            print("About to work on file $i of ${uris.length}");
+            await _deleteContent(uris, i, false, initialComponent,
+                deleteFile: true);
+            if (_fs.data[uri] == null) {
+              changedSome = true;
+              changedSome2 = true;
+            }
           }
         }
       }
@@ -435,6 +444,15 @@ class TestMinimizer {
           }
         }
       }
+
+      // Partially a sanity-check, and partially to make sure there's a latest
+      // component for [_tryToRemoveUnreferencedFileContent] to work with (if
+      // crashing after an invalidation).
+      if (!await _crashesOnCompile(initialComponent)) {
+        throw "At a state where we should crash, we didn't!";
+      }
+      await _tryToRemoveUnreferencedFileContent(initialComponent,
+          deleteFile: true);
     }
 
     if (await _shouldQuit()) {
@@ -890,9 +908,11 @@ worlds:
     bool removedSome = false;
     if (await _shouldQuit()) return;
     for (MapEntry<Uri, Uint8List> entry in _fs.data.entries) {
-      if (entry.value == null || entry.value.isEmpty) continue;
+      if (entry.value == null) continue;
+      if (!deleteFile && entry.value.isEmpty) continue;
       if (!entry.key.toString().endsWith(".dart")) continue;
-      if (!neededUris.contains(entry.key) && _fs.data[entry.key].length != 0) {
+      if (!neededUris.contains(entry.key) &&
+          (deleteFile || _fs.data[entry.key].length != 0)) {
         if (deleteFile) {
           _fs.data[entry.key] = null;
         } else {
@@ -1773,6 +1793,8 @@ worlds:
 
   Future<bool> _crashesOnCompile(Component initialComponent) async {
     IncrementalCompiler incrementalCompiler;
+    _gotWantedError = false;
+    bool didNotGetWantedErrorAfterFirstCompile = true;
     if (_settings.noPlatform) {
       incrementalCompiler = new IncrementalCompiler(_setupCompilerContext());
     } else {
@@ -1788,8 +1810,10 @@ worlds:
         ByteSink sink = new ByteSink();
         BinaryPrinter printer = new BinaryPrinter(sink);
         printer.writeComponentFile(_latestComponent);
-        sink.builder.takeBytes();
       }
+
+      if (_gotWantedError) didNotGetWantedErrorAfterFirstCompile = false;
+
       for (Uri uri in _settings.invalidate) {
         incrementalCompiler.invalidate(uri);
         Component delta = await incrementalCompiler.computeDelta();
@@ -1801,6 +1825,13 @@ worlds:
           printer.writeComponentFile(delta);
           sink.builder.takeBytes();
         }
+      }
+      if (_settings.lookForErrorErrorOnReload != null &&
+          _gotWantedError &&
+          didNotGetWantedErrorAfterFirstCompile) {
+        // We throw here so the "compile crashes"... This is looking for
+        // crashes after-all :)
+        throw "Got the wanted error!";
       }
       _latestComponent = null; // if it didn't crash this isn't relevant.
       return false;
@@ -1908,6 +1939,12 @@ worlds:
     options.omitPlatform = false;
     options.onDiagnostic = (DiagnosticMessage message) {
       // don't care.
+      // Except if we're looking to trigger a specific error on reload.
+      if (_settings.lookForErrorErrorOnReload != null &&
+          message.ansiFormatted.first
+              .contains(_settings.lookForErrorErrorOnReload)) {
+        _gotWantedError = true;
+      }
     };
     if (_settings.noPlatform) {
       options.librariesSpecificationUri = null;
