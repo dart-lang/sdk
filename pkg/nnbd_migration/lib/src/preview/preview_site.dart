@@ -220,23 +220,27 @@ class IncrementalPlan {
     if (line.length > lineStart + 1 &&
         line.codeUnitAt(lineStart) == $slash &&
         line.codeUnitAt(lineStart + 1) == $slash) {
-      // Comment.
+      // [line] is a comment.
+
       if (index == length) {
         // [code] consists _only_ of one comment line.
         return '$code$newline$newline// @dart=2.9$newline';
       }
       var previousLineIndex = index;
+      String newlinesAfterDlvc;
       while (true) {
         previousLineIndex = index;
         line = getLine();
         lineStart = line.indexOf(_nonWhitespaceChar);
         if (lineStart < 0) {
-          // Line of whitespace; end of block comment.
+          // Line of zero-or-more whitespace; end of block comment.
+          newlinesAfterDlvc = newline;
           break;
         }
         if (line.length <= lineStart + 1) {
           // Only one character; not a comment; end of block comment.
           break;
+          newlinesAfterDlvc = '$newline$newline';
         }
         if (line.codeUnitAt(lineStart) == $slash &&
             line.codeUnitAt(lineStart + 1) == $slash) {
@@ -248,13 +252,14 @@ class IncrementalPlan {
           continue;
         } else {
           // Non-blank, non-comment line.
+          newlinesAfterDlvc = '$newline$newline';
           break;
         }
       }
       // [previousLineIndex] points to the start of [line], which is the first
       // non-comment line following the first comment.
       return '${code.substring(0, previousLineIndex)}$newline'
-          '// @dart=2.9$newline$newline'
+          '// @dart=2.9$newlinesAfterDlvc'
           '${code.substring(previousLineIndex)}';
     } else {
       // [code] does not start with a block comment.
