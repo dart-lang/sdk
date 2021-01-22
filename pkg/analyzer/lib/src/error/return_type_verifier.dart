@@ -155,7 +155,13 @@ class ReturnTypeVerifier {
     var S = expression.staticType;
 
     void reportTypeError() {
-      if (enclosingExecutable.isClosure) {
+      if (enclosingExecutable.catchErrorOnErrorReturnType != null) {
+        _errorReporter.reportErrorForNode(
+          HintCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR,
+          expression,
+          [S, T],
+        );
+      } else if (enclosingExecutable.isClosure) {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
           expression,
@@ -256,7 +262,13 @@ class ReturnTypeVerifier {
     var S = expression.staticType;
 
     void reportTypeError() {
-      if (enclosingExecutable.isClosure) {
+      if (enclosingExecutable.catchErrorOnErrorReturnType != null) {
+        _errorReporter.reportErrorForNode(
+          HintCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR,
+          expression,
+          [S, T],
+        );
+      } else if (enclosingExecutable.isClosure) {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
           expression,

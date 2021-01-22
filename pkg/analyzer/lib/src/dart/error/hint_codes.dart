@@ -1746,6 +1746,28 @@ class HintCode extends AnalyzerErrorCode {
       correction: "Annotate '{1}' with 'doNotStore'.");
 
   /**
+   * Parameters:
+   * 0: the return type as declared in the return statement
+   * 1: the expected return type as defined by the type of the Future
+   */
+  static const HintCode RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR = HintCode(
+    'RETURN_OF_INVALID_TYPE',
+    "A value of type '{0}' can't be returned by the 'onError' handler because "
+        "it must be assignable to '{1}'.",
+    uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR',
+  );
+
+  /**
+   * Parameters:
+   * 0: the return type of the function
+   * 1: the expected return type as defined by the type of the Future
+   */
+  static const HintCode RETURN_TYPE_INVALID_FOR_CATCH_ERROR = HintCode(
+      'RETURN_TYPE_INVALID_FOR_CATCH_ERROR',
+      "The return type '{0}' isn't assignable to '{1}', as required by "
+          "'Future.catchError'.");
+
+  /**
    * No parameters.
    */
   // #### Description
