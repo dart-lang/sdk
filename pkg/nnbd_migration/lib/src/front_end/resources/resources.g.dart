@@ -7708,7 +7708,7 @@ anMtbWV0YSB7CiAgY29sb3I6ICM2Mjc5Nzg7Cn0K
 ''';
 
 String _migration_js;
-// migration_dart md5 is 'ed25ca8e4192ae0a3fd5a19afb8efe5f'
+// migration_dart md5 is 'f0f101e4851eb5288f5fa4074c4246a6'
 String _migration_js_base64 = '''
 KGZ1bmN0aW9uIGRhcnRQcm9ncmFtKCl7ZnVuY3Rpb24gY29weVByb3BlcnRpZXMoYSxiKXt2YXIgcz1P
 YmplY3Qua2V5cyhhKQpmb3IodmFyIHI9MDtyPHMubGVuZ3RoO3IrKyl7dmFyIHE9c1tyXQpiW3FdPWFb

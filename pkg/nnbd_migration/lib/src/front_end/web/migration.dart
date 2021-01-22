@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Explicitly opt out this file from null safety, for build reasons, inside
+// Google.
+// @dart=2.9
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
