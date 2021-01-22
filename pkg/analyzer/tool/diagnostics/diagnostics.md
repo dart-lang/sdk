@@ -8878,7 +8878,7 @@ String Function(String) f = (s) => 3.toString();
 
 ### return_without_value
 
-_The  return value is missing after 'return'._
+_The return value is missing after 'return'._
 
 #### Description
 

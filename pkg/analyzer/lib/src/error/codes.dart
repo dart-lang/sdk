@@ -10365,7 +10365,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // }
   // ```
   static const CompileTimeErrorCode RETURN_WITHOUT_VALUE = CompileTimeErrorCode(
-      'RETURN_WITHOUT_VALUE', "The  return value is missing after 'return'.",
+      'RETURN_WITHOUT_VALUE', "The return value is missing after 'return'.",
       hasPublishedDocs: true);
 
   static const CompileTimeErrorCode SET_ELEMENT_FROM_DEFERRED_LIBRARY =
