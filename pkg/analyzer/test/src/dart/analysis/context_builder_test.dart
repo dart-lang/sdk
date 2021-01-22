@@ -88,4 +88,14 @@ class ContextBuilderImplTest with ResourceProviderMixin {
     expect(context.driver.sourceFactory.dartSdk.mapDartUri('dart:core'),
         sdk.mapDartUri('dart:core'));
   }
+
+  test_createContext_sdkRoot() {
+    MockSdk(resourceProvider: resourceProvider);
+    DriverBasedAnalysisContext context = contextBuilder.createContext(
+        contextRoot: contextRoot,
+        sdkPath: resourceProvider.convertPath(sdkRoot));
+    expect(context.analysisOptions, isNotNull);
+    expect(context.contextRoot, contextRoot);
+    expect(context.sdkRoot.path, sdkRoot);
+  }
 }

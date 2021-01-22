@@ -4,6 +4,7 @@
 * Widened the dependency on package:crypto to include version 3.0.0.
 * Deprecated `CompilationUnitElement.functionTypeAliases`.
   Use `CompilationUnitElement.typeAliases` instead.
+* Added `AnalysisContext.sdkRoot`.
 
 ## 0.41.1
 * Updated `PackageBuildWorkspace` that supports `package:build` to stop
