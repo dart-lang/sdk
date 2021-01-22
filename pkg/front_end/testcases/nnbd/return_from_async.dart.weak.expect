@@ -1,0 +1,94 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+import "dart:async";
+
+static field core::bool caughtFutureOrInt = false;
+static field core::bool caughtInt = false;
+static field core::bool caughtFutureInt = false;
+static field core::bool caughtDynamic = false;
+static field core::bool caughtFutureNum = false;
+static method throwFutureOrInt() → FutureOr<core::int> async {
+  throw "FutureOr<int>";
+}
+static method callFutureOrInt() → asy::Future<core::int> async {
+  try {
+    return let final FutureOr<core::int>#t1 = self::throwFutureOrInt() in #t1 is asy::Future<core::int> ?{FutureOr<core::int>} await #t1 : #t1;
+  }
+  on core::Object catch(final core::Object e) {
+    core::print("Caught \"${e}\"");
+    self::caughtFutureOrInt = true;
+    return let final core::int #t2 = 0 in #t2 is asy::Future<core::int> ?{FutureOr<core::int>} await #t2 : #t2;
+  }
+}
+static method throwInt() → core::int {
+  throw "int";
+}
+static method callInt() → asy::Future<core::int> async {
+  try {
+    return let final core::int #t3 = self::throwInt() in #t3 is asy::Future<core::int> ?{FutureOr<core::int>} await #t3 : #t3;
+  }
+  on core::Object catch(final core::Object e) {
+    core::print("Caught \"${e}\"");
+    self::caughtInt = true;
+    return let final core::int #t4 = 0 in #t4 is asy::Future<core::int> ?{FutureOr<core::int>} await #t4 : #t4;
+  }
+}
+static method throwFutureInt() → asy::Future<core::int> async {
+  throw "Future<int>";
+}
+static method callFutureInt() → asy::Future<core::int> async {
+  try {
+    return let final asy::Future<core::int> #t5 = self::throwFutureInt() in #t5 is asy::Future<core::int> ?{FutureOr<core::int>} await #t5 : #t5;
+  }
+  on core::Object catch(final core::Object e) {
+    core::print("Caught \"${e}\"");
+    self::caughtFutureInt = true;
+    return let final core::int #t6 = 0 in #t6 is asy::Future<core::int> ?{FutureOr<core::int>} await #t6 : #t6;
+  }
+}
+static method throwDynamic() → dynamic {
+  throw "dynamic";
+}
+static method callDynamic() → asy::Future<core::int> async {
+  try {
+    return let final dynamic #t7 = self::throwDynamic() as{TypeError,ForDynamic,ForNonNullableByDefault} FutureOr<core::int> in #t7 is asy::Future<core::int> ?{FutureOr<core::int>} await #t7 : #t7;
+  }
+  on core::Object catch(final core::Object e) {
+    core::print("Caught \"${e}\"");
+    self::caughtDynamic = true;
+    return let final core::int #t8 = 0 in #t8 is asy::Future<core::int> ?{FutureOr<core::int>} await #t8 : #t8;
+  }
+}
+static method throwFutureNum() → asy::Future<core::int> async {
+  throw "Future<num>";
+}
+static method callFutureNum() → asy::Future<core::num> async {
+  try {
+    return let final asy::Future<core::int> #t9 = self::throwFutureNum() in #t9 is asy::Future<core::num> ?{FutureOr<core::num>} await #t9 : #t9;
+  }
+  on core::Object catch(final core::Object e) {
+    core::print("Caught \"${e}\"");
+    self::caughtFutureNum = true;
+    return let final core::int #t10 = 0 in #t10 is asy::Future<core::num> ?{FutureOr<core::num>} await #t10 : #t10;
+  }
+}
+static method main() → void async {
+  await self::callFutureOrInt();
+  if(!self::caughtFutureOrInt)
+    throw "Uncaught async return";
+  await self::callInt();
+  if(!self::caughtInt)
+    throw "Uncaught async return";
+  await self::callFutureInt();
+  if(!self::caughtFutureInt)
+    throw "Uncaught async return";
+  await self::callDynamic();
+  if(!self::caughtDynamic)
+    throw "Uncaught async return";
+  await self::callFutureNum();
+  if(!self::caughtFutureNum)
+    throw "Uncaught async return";
+}

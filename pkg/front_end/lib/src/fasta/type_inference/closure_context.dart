@@ -546,30 +546,75 @@ class _AsyncClosureContext implements ClosureContext {
               statement.expression.fileOffset,
               noLength)
             ..parent = statement;
-        } else if (flattenedExpressionType is! VoidType &&
-            !inferrer.typeSchemaEnvironment
-                .performNullabilityAwareSubtypeCheck(
-                    flattenedExpressionType, futureValueType)
-                .isSubtypeWhenUsingNullabilities()) {
-          // It is a compile-time error if s is `return e;`, flatten(S) is not
-          // void, S is not assignable to T_v, and flatten(S) is not a subtype
-          // of T_v.
-          statement.expression = inferrer.ensureAssignable(
-              futureValueType, expressionType, statement.expression,
-              fileOffset: statement.expression.fileOffset,
-              runtimeCheckedType:
-                  inferrer.computeGreatestClosure2(_returnContext),
-              declaredContextType: returnType,
-              isVoidAllowed: false,
-              errorTemplate: templateInvalidReturnAsync,
-              nullabilityErrorTemplate: templateInvalidReturnAsyncNullability,
-              nullabilityPartErrorTemplate:
-                  templateInvalidReturnAsyncPartNullability,
-              nullabilityNullErrorTemplate:
-                  templateInvalidReturnAsyncNullabilityNull,
-              nullabilityNullTypeErrorTemplate:
-                  templateInvalidReturnAsyncNullabilityNullType)
-            ..parent = statement;
+        } else {
+          DartType futureOrType =
+              inferrer.computeGreatestClosure2(_returnContext);
+          if (flattenedExpressionType is! VoidType &&
+              !inferrer.typeSchemaEnvironment
+                  .performNullabilityAwareSubtypeCheck(
+                      flattenedExpressionType, futureValueType)
+                  .isSubtypeWhenUsingNullabilities()) {
+            // It is a compile-time error if s is `return e;`, flatten(S) is not
+            // void, S is not assignable to T_v, and flatten(S) is not a subtype
+            // of T_v.
+            statement.expression = inferrer.ensureAssignable(
+                futureValueType, expressionType, statement.expression,
+                fileOffset: statement.expression.fileOffset,
+                runtimeCheckedType: futureOrType,
+                declaredContextType: returnType,
+                isVoidAllowed: false,
+                errorTemplate: templateInvalidReturnAsync,
+                nullabilityErrorTemplate: templateInvalidReturnAsyncNullability,
+                nullabilityPartErrorTemplate:
+                    templateInvalidReturnAsyncPartNullability,
+                nullabilityNullErrorTemplate:
+                    templateInvalidReturnAsyncNullabilityNull,
+                nullabilityNullTypeErrorTemplate:
+                    templateInvalidReturnAsyncNullabilityNullType)
+              ..parent = statement;
+          }
+          // For `return e`:
+          // When `f` is an asynchronous non-generator with future value type
+          // T_v, evaluation proceeds as follows:
+          //
+          //    The expression `e` is evaluated to an object `o`.
+          //      If the run-time type of `o` is a subtype of `Future<T_v>`,
+          //         let `v` be a fresh variable bound to `o` and
+          //         evaluate `await v` to an object `r`;
+          //         otherwise let `r` be `o`.
+          //    A dynamic error occurs unless the dynamic type of `r`
+          //      is a subtype of the actual value of T_v.
+          //    Then the return statement `s` completes returning `r`.
+          DartType futureType = new InterfaceType(
+              inferrer.coreTypes.futureClass,
+              Nullability.nonNullable,
+              [futureValueType]);
+          VariableDeclaration variable;
+          Expression isOperand;
+          Expression awaitOperand;
+          Expression resultExpression;
+          if (isPureExpression(statement.expression)) {
+            isOperand = clonePureExpression(statement.expression);
+            awaitOperand = clonePureExpression(statement.expression);
+            resultExpression = statement.expression;
+          } else {
+            variable = createVariable(statement.expression, expressionType);
+            isOperand = createVariableGet(variable);
+            awaitOperand = createVariableGet(variable);
+            resultExpression = createVariableGet(variable);
+          }
+          Expression replacement = new ConditionalExpression(
+              new IsExpression(isOperand, futureType)
+                ..fileOffset = statement.fileOffset,
+              new AwaitExpression(awaitOperand)
+                ..fileOffset = statement.fileOffset,
+              resultExpression,
+              futureOrType)
+            ..fileOffset = statement.fileOffset;
+          if (variable != null) {
+            replacement = createLet(variable, replacement);
+          }
+          statement.expression = replacement..parent = statement;
         }
       }
     } else {

@@ -2514,16 +2514,13 @@ class TypeInferrerImpl implements TypeInferrer {
     // `void` if `B’` contains no `yield` expressions.  Otherwise, let `M` be
     // the least upper bound of the types of the `return` expressions in `B’`,
     // or `void` if `B’` contains no `return` expressions.
-    DartType inferredReturnType;
     if (needToSetReturnType) {
-      inferredReturnType = closureContext.inferReturnType(this,
+      DartType inferredReturnType = closureContext.inferReturnType(this,
           hasImplicitReturn: flowAnalysis.isReachable);
-    }
 
-    // Then the result of inference is `<T0, ..., Tn>(R0 x0, ..., Rn xn) B` with
-    // type `<T0, ..., Tn>(R0, ..., Rn) -> M’` (with some of the `Ri` and `xi`
-    // denoted as optional or named parameters, if appropriate).
-    if (needToSetReturnType) {
+      // Then the result of inference is `<T0, ..., Tn>(R0 x0, ..., Rn xn) B`
+      // with type `<T0, ..., Tn>(R0, ..., Rn) -> M'` (with some of the `Ri` and
+      // `xi` denoted as optional or named parameters, if appropriate).
       instrumentation?.record(uriForInstrumentation, fileOffset, 'returnType',
           new InstrumentationValueForType(inferredReturnType));
       function.returnType = inferredReturnType;

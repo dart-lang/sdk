@@ -37,6 +37,7 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
+import "dart:_internal" as _in;
 
 static method throwing() → Never
   return throw "";
@@ -63,11 +64,21 @@ static method main() → void {
     (core::Object, core::StackTrace) → dynamic :async_op_error;
     core::int :await_jump_var = 0;
     dynamic :await_ctx_var;
+    dynamic :saved_try_context_var0;
+    FutureOr<core::String>:async_temporary_0;
     function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
       try {
         #L1:
         {
-          :return_value = throw v;
+          final Never #t1 = throw v;
+          if(#t1 is asy::Future<Never>) {
+            [yield] let dynamic #t2 = asy::_awaitHelper(#t1, :async_op_then, :async_op_error, :async_op) in null;
+            :async_temporary_0 = _in::unsafeCast<Never>(:result);
+          }
+          else {
+            :async_temporary_0 = #t1;
+          }
+          :return_value = :async_temporary_0;
           break #L1;
         }
         asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
@@ -116,11 +127,21 @@ static method main() → void {
     (core::Object, core::StackTrace) → dynamic :async_op_error;
     core::int :await_jump_var = 0;
     dynamic :await_ctx_var;
+    dynamic :saved_try_context_var0;
+    FutureOr<core::String>:async_temporary_0;
     function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
       try {
         #L3:
         {
-          :return_value = throw v;
+          final Never #t3 = throw v;
+          if(#t3 is asy::Future<Never>) {
+            [yield] let dynamic #t4 = asy::_awaitHelper(#t3, :async_op_then, :async_op_error, :async_op) in null;
+            :async_temporary_0 = _in::unsafeCast<Never>(:result);
+          }
+          else {
+            :async_temporary_0 = #t3;
+          }
+          :return_value = :async_temporary_0;
           break #L3;
         }
         asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
@@ -143,11 +164,21 @@ static method main() → void {
     (core::Object, core::StackTrace) → dynamic :async_op_error;
     core::int :await_jump_var = 0;
     dynamic :await_ctx_var;
+    dynamic :saved_try_context_var0;
+    FutureOr<core::String>:async_temporary_0;
     function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
       try {
         #L4:
         {
-          :return_value = self::throwing();
+          final Never #t5 = self::throwing();
+          if(#t5 is asy::Future<Never>) {
+            [yield] let dynamic #t6 = asy::_awaitHelper(#t5, :async_op_then, :async_op_error, :async_op) in null;
+            :async_temporary_0 = _in::unsafeCast<Never>(:result);
+          }
+          else {
+            :async_temporary_0 = #t5;
+          }
+          :return_value = :async_temporary_0;
           break #L4;
         }
         asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
@@ -196,11 +227,21 @@ static method main() → void {
     (core::Object, core::StackTrace) → dynamic :async_op_error;
     core::int :await_jump_var = 0;
     dynamic :await_ctx_var;
+    dynamic :saved_try_context_var0;
+    FutureOr<core::String>:async_temporary_0;
     function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
       try {
         #L6:
         {
-          :return_value = self::throwing();
+          final Never #t7 = self::throwing();
+          if(#t7 is asy::Future<Never>) {
+            [yield] let dynamic #t8 = asy::_awaitHelper(#t7, :async_op_then, :async_op_error, :async_op) in null;
+            :async_temporary_0 = _in::unsafeCast<Never>(:result);
+          }
+          else {
+            :async_temporary_0 = #t7;
+          }
+          :return_value = :async_temporary_0;
           break #L6;
         }
         asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
@@ -234,7 +275,7 @@ static method errors() → void /* originally async */ {
           }
           on core::Object catch(final core::Object _) {
           }
-          return let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:39:29: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+          return let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:39:29: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   String Function(int) x2 = (int v) /* error */ {
                             ^" in null;
         };
@@ -244,7 +285,7 @@ static method errors() → void /* originally async */ {
           }
           on core::Object catch(final core::Object _) {
           }
-          return let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:44:29: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+          return let final<BottomType> #t10 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:44:29: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   String Function(int) x3 = (int v) /* error */ {
                             ^" in null;
         };
@@ -254,7 +295,7 @@ static method errors() → void /* originally async */ {
           }
           on core::Object catch(final core::Object _) {
           }
-          return let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:49:29: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+          return let final<BottomType> #t11 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:49:29: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   String Function(int) x5 = (int v) /* error */ {
                             ^" in null;
         };
@@ -264,7 +305,7 @@ static method errors() → void /* originally async */ {
           }
           on core::Object catch(final core::Object _) {
           }
-          return let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:54:29: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+          return let final<BottomType> #t12 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:54:29: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   String Function(int) x6 = (int v) /* error */ {
                             ^" in null;
         };
@@ -285,7 +326,7 @@ static method errors() → void /* originally async */ {
                 }
                 on core::Object catch(final core::Object _) {
                 }
-                :return_value = let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:59:37: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+                :return_value = let final<BottomType> #t13 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:59:37: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   Future<String> Function(int) y2 = (int v) async /* error */ {
                                     ^" in null;
                 break #L8;
@@ -310,17 +351,28 @@ static method errors() → void /* originally async */ {
           (core::Object, core::StackTrace) → dynamic :async_op_error;
           core::int :await_jump_var = 0;
           dynamic :await_ctx_var;
+          dynamic :saved_try_context_var0;
+          dynamic :saved_try_context_var1;
+          FutureOr<core::String>:async_temporary_0;
           function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
             try {
               #L9:
               {
                 try {
-                  :return_value = throw v;
+                  final Never #t14 = throw v;
+                  if(#t14 is asy::Future<core::String>) {
+                    [yield] let dynamic #t15 = asy::_awaitHelper(#t14, :async_op_then, :async_op_error, :async_op) in null;
+                    :async_temporary_0 = _in::unsafeCast<Never>(:result);
+                  }
+                  else {
+                    :async_temporary_0 = #t14;
+                  }
+                  :return_value = :async_temporary_0;
                   break #L9;
                 }
                 on core::Object catch(final core::Object _) {
                 }
-                :return_value = let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:64:37: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+                :return_value = let final<BottomType> #t16 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:64:37: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   Future<String> Function(int) y3 = (int v) async /* error */ {
                                     ^" in null;
                 break #L9;
@@ -354,7 +406,7 @@ static method errors() → void /* originally async */ {
                 }
                 on core::Object catch(final core::Object _) {
                 }
-                :return_value = let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:69:37: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+                :return_value = let final<BottomType> #t17 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:69:37: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   Future<String> Function(int) y5 = (int v) async /* error */ {
                                     ^" in null;
                 break #L10;
@@ -379,17 +431,28 @@ static method errors() → void /* originally async */ {
           (core::Object, core::StackTrace) → dynamic :async_op_error;
           core::int :await_jump_var = 0;
           dynamic :await_ctx_var;
+          dynamic :saved_try_context_var0;
+          dynamic :saved_try_context_var1;
+          FutureOr<core::String>:async_temporary_0;
           function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
             try {
               #L11:
               {
                 try {
-                  :return_value = self::throwing();
+                  final Never #t18 = self::throwing();
+                  if(#t18 is asy::Future<core::String>) {
+                    [yield] let dynamic #t19 = asy::_awaitHelper(#t18, :async_op_then, :async_op_error, :async_op) in null;
+                    :async_temporary_0 = _in::unsafeCast<Never>(:result);
+                  }
+                  else {
+                    :async_temporary_0 = #t18;
+                  }
+                  :return_value = :async_temporary_0;
                   break #L11;
                 }
                 on core::Object catch(final core::Object _) {
                 }
-                :return_value = let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:74:37: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+                :return_value = let final<BottomType> #t20 = invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:74:37: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   Future<String> Function(int) y6 = (int v) async /* error */ {
                                     ^" in null;
                 break #L11;

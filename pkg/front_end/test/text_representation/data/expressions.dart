@@ -382,7 +382,9 @@ exprEmptyTypedMap() => <int, String>{};
 exprMap() => {0: "foo", 1: "bar"};
 
 /*member: exprAwait:await o*/
-exprAwait(o) async => await o;
+exprAwait(o) async {
+  await o;
+}
 
 /*member: exprLoadLibrary:prefix.loadLibrary()*/
 exprLoadLibrary() => prefix.loadLibrary();
