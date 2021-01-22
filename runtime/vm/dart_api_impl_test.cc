@@ -4564,7 +4564,6 @@ TEST_CASE(DartAPI_TypeGetNonParamtericTypes) {
 }
 
 TEST_CASE(DartAPI_TypeGetParameterizedTypes) {
-  // TODO(dartbug.com/40176): Clean up this test once the API supports NNBD.
   const char* kScriptChars =
       "class MyClass0<A, B> {\n"
       "}\n"
@@ -4638,7 +4637,10 @@ TEST_CASE(DartAPI_TypeGetParameterizedTypes) {
 
   // Now create objects of the type and validate the object type matches
   // the one returned above. Also get the runtime type of the object and
-  // verify that it matches the type returned above.
+  // verify that it matches the type returned above. Note: we use
+  // Dart_ObjectEquals instead of Dart_IdentityEquals since we are comparing
+  // type literals with non-literals which would fail in unsound null safety
+  // mode.
   // MyClass0<int, double> type.
   Dart_Handle type0_obj = Dart_Invoke(lib, NewString("getMyClass0"), 0, NULL);
   EXPECT_VALID(type0_obj);
@@ -4647,7 +4649,10 @@ TEST_CASE(DartAPI_TypeGetParameterizedTypes) {
   EXPECT(instanceOf);
   type0_obj = Dart_Invoke(lib, NewString("getMyClass0Type"), 0, NULL);
   EXPECT_VALID(type0_obj);
-  EXPECT(Dart_IdentityEquals(type0_obj, myclass0_type));
+
+  bool equal = false;
+  EXPECT_VALID(Dart_ObjectEquals(type0_obj, myclass0_type, &equal));
+  EXPECT(equal);
 
   // MyClass1<List<int>, List> type.
   Dart_Handle type1_obj = Dart_Invoke(lib, NewString("getMyClass1"), 0, NULL);
@@ -4656,7 +4661,9 @@ TEST_CASE(DartAPI_TypeGetParameterizedTypes) {
   EXPECT(instanceOf);
   type1_obj = Dart_Invoke(lib, NewString("getMyClass1Type"), 0, NULL);
   EXPECT_VALID(type1_obj);
-  EXPECT(Dart_IdentityEquals(type1_obj, myclass1_type));
+
+  EXPECT_VALID(Dart_ObjectEquals(type1_obj, myclass1_type, &equal));
+  EXPECT(equal);
 
   // MyClass0<double, int> type.
   type0_obj = Dart_Invoke(lib, NewString("getMyClass0_1"), 0, NULL);
@@ -4665,7 +4672,8 @@ TEST_CASE(DartAPI_TypeGetParameterizedTypes) {
   EXPECT(!instanceOf);
   type0_obj = Dart_Invoke(lib, NewString("getMyClass0_1Type"), 0, NULL);
   EXPECT_VALID(type0_obj);
-  EXPECT(!Dart_IdentityEquals(type0_obj, myclass0_type));
+  EXPECT_VALID(Dart_ObjectEquals(type0_obj, myclass0_type, &equal));
+  EXPECT(!equal);
 
   // MyClass1<List<int>, List<double>> type.
   type1_obj = Dart_Invoke(lib, NewString("getMyClass1_1"), 0, NULL);
@@ -4674,7 +4682,8 @@ TEST_CASE(DartAPI_TypeGetParameterizedTypes) {
   EXPECT(instanceOf);
   type1_obj = Dart_Invoke(lib, NewString("getMyClass1_1Type"), 0, NULL);
   EXPECT_VALID(type1_obj);
-  EXPECT(!Dart_IdentityEquals(type1_obj, myclass1_type));
+  EXPECT_VALID(Dart_ObjectEquals(type1_obj, myclass1_type, &equal));
+  EXPECT(!equal);
 }
 
 static void TestFieldOk(Dart_Handle container,
