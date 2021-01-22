@@ -1027,6 +1027,7 @@ CompilationSetup createCompilationSetup(
       ..allowedExperimentalFlagsForTesting = allowedExperimentalFlags
       ..experimentEnabledVersionForTesting = experimentEnabledVersion
       ..experimentReleasedVersionForTesting = experimentReleasedVersion
+      ..verifySkipPlatform = true
       ..target = createTarget(folderOptions, context);
     if (folderOptions.overwriteCurrentSdkVersion != null) {
       compilerOptions.currentSdkVersion =
