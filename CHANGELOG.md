@@ -162,6 +162,9 @@ Updated the Linter to `0.1.129`, which includes:
   dependencies are allowed.
 * New option `dart pub outdated --mode=null-safety` that will analyze your
   dependencies for null-safety.
+* `dart pub get` and `dart pub upgrade` will highlight dependencies that have
+  been [discontinued](https://dart.dev/tools/pub/publishing#discontinue) on
+  pub.dev.
 * `dart pub publish` will now check your pubspec keys for likely typos.
 * `dart pub upgrade package_foo` will fetch dependencies, but ignore the
   `pubspec.lock` for `package_foo`, allowing users to only upgrade a subset of
