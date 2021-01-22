@@ -6,7 +6,7 @@ import "org-dartlang-testcase:///variance_from_dill_lib.dart";
 
 typedef G<unrelated T extends core::Object* = dynamic> = (() →* dynamic) →* dynamic;
 static method main() → dynamic {
-  core::print((() →* dynamic) →* dynamic);
+  core::print(#C1);
 }
 
 library;
@@ -15,7 +15,6 @@ import "dart:core" as core;
 
 typedef F<unrelated T extends core::Object* = dynamic> = () →* dynamic;
 
-
-Extra constant evaluation status:
-Evaluated: TypeLiteral @ org-dartlang-testcase:///variance_from_dill.dart:5:9 -> TypeLiteralConstant(dynamic Function(dynamic Function()*)*)
-Extra constant evaluation: evaluated: 2, effectively constant: 1
+constants  {
+  #C1 = TypeLiteralConstant((() →* dynamic) →* dynamic)
+}

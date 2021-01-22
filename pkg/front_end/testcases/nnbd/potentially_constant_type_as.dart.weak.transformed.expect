@@ -237,7 +237,7 @@ constants  {
   #C20 = self::ClassWithList<core::String*> {field:#C19}
   #C21 = tearoff self::dynamicFunction
   #C22 = self::ClassWithFunction<dynamic> {field:#C21}
-  #C23 = self::ClassWithFunction<core::Object*> {field:#C21}
+  #C23 = self::ClassWithFunction<core::Object?> {field:#C21}
   #C24 = tearoff self::objectFunction
   #C25 = self::ClassWithFunction<dynamic> {field:#C24}
   #C26 = self::ClassWithFunction<void> {field:#C24}

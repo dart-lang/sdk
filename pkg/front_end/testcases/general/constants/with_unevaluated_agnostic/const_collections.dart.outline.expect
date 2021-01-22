@@ -36,11 +36,9 @@ Evaluated: SetLiteral @ org-dartlang-testcase:///const_collections.dart:21:44 ->
 Evaluated: SetLiteral @ org-dartlang-testcase:///const_collections.dart:21:44 -> SetConstant(const <bool>{false})
 Evaluated: ListLiteral @ org-dartlang-testcase:///const_collections.dart:23:16 -> ListConstant(const <int>[])
 Evaluated: ListLiteral @ org-dartlang-testcase:///const_collections.dart:24:17 -> ListConstant(const <int?>[])
-Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:25:27 -> ListConstant(const <int>[])
-Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:25:30 -> ListConstant(const <int?>[])
+Evaluated: SetLiteral @ org-dartlang-testcase:///const_collections.dart:25:26 -> SetConstant(const <List<int?>>{const <int>[], const <int?>[]})
 Evaluated with empty environment: MapLiteral @ org-dartlang-testcase:///const_collections.dart:27:38 -> MapConstant(const <bool, bool>{false: false})
 Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///const_collections.dart:28:8 -> BoolConstant(false)
 Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///const_collections.dart:28:37 -> BoolConstant(false)
-Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:31:27 -> ListConstant(const <int>[])
-Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:31:33 -> ListConstant(const <int?>[])
-Extra constant evaluation: evaluated: 25, effectively constant: 20
+Evaluated: MapLiteral @ org-dartlang-testcase:///const_collections.dart:31:26 -> MapConstant(const <List<int?>, int>{const <int>[]: 0, const <int?>[]: 1})
+Extra constant evaluation: evaluated: 21, effectively constant: 18

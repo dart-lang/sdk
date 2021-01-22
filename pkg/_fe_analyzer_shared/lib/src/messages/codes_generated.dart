@@ -3745,6 +3745,32 @@ Message _withArgumentsFfiEmptyStruct(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateFfiEmptyStructWarning = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Struct '#name' is empty. Support for empty structs is deprecated and will be removed in the next stable version of Dart. Use Opaque instead.""",
+    withArguments: _withArgumentsFfiEmptyStructWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeFfiEmptyStructWarning =
+    const Code<Message Function(String name)>("FfiEmptyStructWarning",
+        analyzerCodes: <String>["EMPTY_STRUCT_WARNING"],
+        severity: Severity.info);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiEmptyStructWarning(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFfiEmptyStructWarning,
+      message:
+          """Struct '${name}' is empty. Support for empty structs is deprecated and will be removed in the next stable version of Dart. Use Opaque instead.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFfiExceptionalReturnNull = messageFfiExceptionalReturnNull;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

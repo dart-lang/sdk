@@ -56,6 +56,11 @@ void main() {
   testEmptyStructFromFunctionReturn();
   testAllocateGeneric();
   testAllocateNativeType();
+  testRefStruct();
+  testSizeOfGeneric();
+  testSizeOfNativeType();
+  testElementAtGeneric();
+  testElementAtNativeType();
 }
 
 typedef Int8UnOp = Int8 Function(Int8);
@@ -524,7 +529,9 @@ class TestStruct1002 extends Struct {
   external Pointer notEmpty;
 }
 
-class EmptyStruct extends Struct {}
+class EmptyStruct extends Struct {} //# 1099: ok
+
+class EmptyStruct extends Struct {} //# 1100: compile-time error
 
 void testEmptyStructLookupFunctionArgument() {
   testLibrary.lookupFunction< //# 1100: compile-time error
@@ -532,41 +539,53 @@ void testEmptyStructLookupFunctionArgument() {
       void Function(EmptyStruct)>("DoesNotExist"); //# 1100: compile-time error
 }
 
+class EmptyStruct extends Struct {} //# 1101: compile-time error
+
 void testEmptyStructLookupFunctionReturn() {
   testLibrary.lookupFunction< //# 1101: compile-time error
       EmptyStruct Function(), //# 1101: compile-time error
       EmptyStruct Function()>("DoesNotExist"); //# 1101: compile-time error
 }
 
+class EmptyStruct extends Struct {} //# 1102: compile-time error
+
 void testEmptyStructAsFunctionArgument() {
-  final pointer =
-      Pointer<NativeFunction<Void Function(EmptyStruct)>>.fromAddress(1234);
+  final Pointer< //# 1102: compile-time error
+          NativeFunction< //# 1102: compile-time error
+              Void Function(EmptyStruct)>> //# 1102: compile-time error
+      pointer = Pointer.fromAddress(1234); //# 1102: compile-time error
   pointer.asFunction<void Function(EmptyStruct)>(); //# 1102: compile-time error
 }
 
+class EmptyStruct extends Struct {} //# 1103: compile-time error
+
 void testEmptyStructAsFunctionReturn() {
-  final pointer =
-      Pointer<NativeFunction<EmptyStruct Function()>>.fromAddress(1234);
+  final Pointer< //# 1103: compile-time error
+          NativeFunction<EmptyStruct Function()>> //# 1103: compile-time error
+      pointer = Pointer.fromAddress(1234); //# 1103: compile-time error
   pointer.asFunction<EmptyStruct Function()>(); //# 1103: compile-time error
 }
 
-void _consumeEmptyStruct(EmptyStruct e) {
-  print(e);
-}
+class EmptyStruct extends Struct {} //# 1104: compile-time error
+
+void _consumeEmptyStruct(EmptyStruct e) => //# 1104: compile-time error
+    print(e); //# 1104: compile-time error
 
 void testEmptyStructFromFunctionArgument() {
   Pointer.fromFunction<Void Function(EmptyStruct)>(//# 1104: compile-time error
       _consumeEmptyStruct); //# 1104: compile-time error
 }
 
-EmptyStruct _returnEmptyStruct() {
-  return EmptyStruct();
-}
+class EmptyStruct extends Struct {} //# 1105: compile-time error
+
+EmptyStruct _returnEmptyStruct() => EmptyStruct(); //# 1105: compile-time error
 
 void testEmptyStructFromFunctionReturn() {
   Pointer.fromFunction<EmptyStruct Function()>(//# 1105: compile-time error
       _returnEmptyStruct); //# 1105: compile-time error
 }
+
+class EmptyStruct extends Struct {} //# 1106: compile-time error
 
 class HasNestedEmptyStruct extends Struct {
   external EmptyStruct nestedEmptyStruct; //# 1106: compile-time error
@@ -586,4 +605,59 @@ void testAllocateGeneric() {
 
 void testAllocateNativeType() {
   calloc(); //# 1321: compile-time error
+}
+
+void testRefStruct() {
+  final myStructPointer = calloc<TestStruct13>();
+  Pointer<Struct> structPointer = myStructPointer;
+  structPointer.ref; //# 1330: ok
+  calloc.free(myStructPointer);
+}
+
+T genericRef<T extends Struct>(Pointer<T> p) => //# 1200: ok
+    p.ref; //# 1200: ok
+
+T genericRef2<T extends Struct>(Pointer<T> p) => //# 1201: ok
+    p.cast<T>().ref; //# 1201: ok
+
+T genericRef3<T extends Struct>(Pointer<T> p) => //# 1202: ok
+    p[0]; //# 1202: ok
+
+void testSizeOfGeneric() {
+  int generic<T extends Pointer>() {
+    int size = sizeOf<IntPtr>();
+    size = sizeOf<T>(); //# 1300: ok
+    return size;
+  }
+
+  int size = generic<Pointer<Int64>>();
+}
+
+void testSizeOfNativeType() {
+  try {
+    sizeOf(); //# 1301: ok
+  } catch (e) {
+    print(e);
+  }
+}
+
+void testElementAtGeneric() {
+  Pointer<T> generic<T extends NativeType>(Pointer<T> pointer) {
+    Pointer<T> returnValue = pointer;
+    returnValue = returnValue.elementAt(1); //# 1310: ok
+    return returnValue;
+  }
+
+  Pointer<Int8> p = calloc();
+  p.elementAt(1);
+  generic(p);
+  calloc.free(p);
+}
+
+void testElementAtNativeType() {
+  Pointer<Int8> p = calloc();
+  p.elementAt(1);
+  Pointer<NativeType> p2 = p;
+  p2.elementAt(1); //# 1311: ok
+  calloc.free(p);
 }

@@ -1,3 +1,8 @@
+//
+// Problems outside component:
+//
+// third_party/pkg/ffi/lib/src/allocation.dart: Info: Support for using non-constant type arguments 'T' in this FFI API is deprecated and will be removed in the next stable version of Dart. Rewrite the code to ensure that type arguments are compile time constants referring to a valid native type.
+//
 library;
 import self as self;
 import "dart:core" as core;

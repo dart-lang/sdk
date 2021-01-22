@@ -39,6 +39,7 @@ import 'dart:ffi';
 class S extends Struct {}
 class C implements S {}
 ''', [
+      error(FfiCode.EMPTY_STRUCT_WARNING, 19, 25),
       error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS, 64, 1),
     ]);
   }
@@ -52,6 +53,7 @@ import 'dart:ffi';
 class S extends Struct {}
 class C with S {}
 ''', [
+      error(FfiCode.EMPTY_STRUCT_WARNING, 19, 25),
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 58, 1),
       error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH, 58, 1),
     ]);

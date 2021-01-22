@@ -163,6 +163,15 @@ DartType instantiateToBounds(
 /// of the algorithm for details.
 List<DartType> calculateBounds(List<TypeParameter> typeParameters,
     Class objectClass, Library contextLibrary) {
+  return calculateBoundsInternal(typeParameters, objectClass,
+      isNonNullableByDefault: contextLibrary.isNonNullableByDefault);
+}
+
+List<DartType> calculateBoundsInternal(
+    List<TypeParameter> typeParameters, Class objectClass,
+    {bool isNonNullableByDefault}) {
+  assert(isNonNullableByDefault != null);
+
   List<DartType> bounds =
       new List<DartType>.filled(typeParameters.length, null);
   for (int i = 0; i < typeParameters.length; i++) {
@@ -182,7 +191,7 @@ List<DartType> calculateBounds(List<TypeParameter> typeParameters,
   TypeVariableGraph graph = new TypeVariableGraph(typeParameters, bounds);
   List<List<int>> stronglyConnected = computeStrongComponents(graph);
   final DartType topType = const DynamicType();
-  final DartType bottomType = contextLibrary.isNonNullableByDefault
+  final DartType bottomType = isNonNullableByDefault
       ? const NeverType(Nullability.nonNullable)
       : const BottomType();
   for (List<int> component in stronglyConnected) {

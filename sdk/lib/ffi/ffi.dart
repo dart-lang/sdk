@@ -5,8 +5,6 @@
 /**
  * Foreign Function Interface for interoperability with the C programming language.
  *
- * **NOTE**: Dart:FFI is in beta, and breaking API changes might still happen.
- *
  * For further details, please see: https://dart.dev/server/c-interop
  *
  * {@category VM}
@@ -25,6 +23,10 @@ part "struct.dart";
 /// Number of bytes used by native type T.
 ///
 /// Includes padding and alignment of structs.
+///
+/// Support for invoking this function with non-constant [T] will be removed in
+/// the next stable version of Dart and it will become mandatory to invoke it
+/// with a compile-time constant [T].
 external int sizeOf<T extends NativeType>();
 
 /// Represents a pointer into the native C memory corresponding to "NULL", e.g.
@@ -62,6 +64,10 @@ class Pointer<T extends NativeType> extends NativeType {
   external int get address;
 
   /// Pointer arithmetic (takes element size into account).
+  ///
+  /// Support for invoking this method with non-constant [T] will be removed in
+  /// the next stable version of Dart and it will become mandatory to invoke it
+  /// with a compile-time constant [T].
   external Pointer<T> elementAt(int index);
 
   /// Cast Pointer<T> to a Pointer<V>.
@@ -538,6 +544,10 @@ extension StructPointer<T extends Struct> on Pointer<T> {
   ///
   /// The [address] must be aligned according to the struct alignment rules of
   /// the platform.
+  ///
+  /// Support for invoking this extension method with non-constant [T] will be
+  /// removed in the next stable version of Dart and it will become mandatory
+  /// to invoke it with a compile-time constant [T].
   external T get ref;
 
   /// Creates a reference to access the fields of this struct backed by native
@@ -545,6 +555,10 @@ extension StructPointer<T extends Struct> on Pointer<T> {
   ///
   /// The [address] must be aligned according to the struct alignment rules of
   /// the platform.
+  ///
+  /// Support for invoking this extension method with non-constant [T] will be
+  /// removed in the next stable version of Dart and it will become mandatory
+  /// to invoke it with a compile-time constant [T].
   external T operator [](int index);
 }
 

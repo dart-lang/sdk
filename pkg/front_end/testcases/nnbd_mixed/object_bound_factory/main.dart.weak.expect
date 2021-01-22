@@ -96,7 +96,7 @@ class Class5<T extends dynamic = dynamic> extends core::Object /*hasConstConstru
 static method testOptIn() → dynamic {
   new opt::Class1::_<core::Object?>();
   new opt::Class1::_<core::Object?>();
-  #C1;
+  #C6;
   opt::Class1::fact<core::Object?>();
   new opt::Class2::_<core::Object>();
   new opt::Class2::_<core::Object>();
@@ -122,6 +122,7 @@ constants  {
   #C3 = opt::Class3<core::String*> {}
   #C4 = opt::Class4<dynamic> {}
   #C5 = opt::Class5<dynamic> {}
+  #C6 = opt::Class1<core::Object?> {}
 }
 
 

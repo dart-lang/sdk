@@ -29,7 +29,9 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/clone.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
+import 'package:kernel/src/const_canonical_type.dart';
 import 'package:kernel/src/legacy_erasure.dart';
+import 'package:kernel/src/norm.dart';
 import 'package:kernel/src/printer.dart' show AstPrinter, AstTextStrategy;
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
@@ -200,8 +202,12 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant> {
 
   @override
   Constant visitMapConstant(MapConstant node) {
-    DartType keyType = rawLegacyErasure(node.keyType);
-    DartType valueType = rawLegacyErasure(node.valueType);
+    DartType keyType = computeConstCanonicalType(
+        node.keyType, _evaluator.coreTypes,
+        isNonNullableByDefault: _evaluator.isNonNullableByDefault);
+    DartType valueType = computeConstCanonicalType(
+        node.valueType, _evaluator.coreTypes,
+        isNonNullableByDefault: _evaluator.isNonNullableByDefault);
     List<ConstantMapEntry> entries;
     for (int index = 0; index < node.entries.length; index++) {
       ConstantMapEntry entry = node.entries[index];
@@ -222,7 +228,9 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant> {
 
   @override
   Constant visitListConstant(ListConstant node) {
-    DartType typeArgument = rawLegacyErasure(node.typeArgument);
+    DartType typeArgument = computeConstCanonicalType(
+        node.typeArgument, _evaluator.coreTypes,
+        isNonNullableByDefault: _evaluator.isNonNullableByDefault);
     List<Constant> entries;
     for (int index = 0; index < node.entries.length; index++) {
       Constant entry = visitConstant(node.entries[index]);
@@ -240,7 +248,9 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant> {
 
   @override
   Constant visitSetConstant(SetConstant node) {
-    DartType typeArgument = rawLegacyErasure(node.typeArgument);
+    DartType typeArgument = computeConstCanonicalType(
+        node.typeArgument, _evaluator.coreTypes,
+        isNonNullableByDefault: _evaluator.isNonNullableByDefault);
     List<Constant> entries;
     for (int index = 0; index < node.entries.length; index++) {
       Constant entry = visitConstant(node.entries[index]);
@@ -260,7 +270,9 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant> {
   Constant visitInstanceConstant(InstanceConstant node) {
     List<DartType> typeArguments;
     for (int index = 0; index < node.typeArguments.length; index++) {
-      DartType typeArgument = rawLegacyErasure(node.typeArguments[index]);
+      DartType typeArgument = computeConstCanonicalType(
+          node.typeArguments[index], _evaluator.coreTypes,
+          isNonNullableByDefault: _evaluator.isNonNullableByDefault);
       if (typeArgument != null) {
         typeArguments ??= node.typeArguments.toList(growable: false);
         typeArguments[index] = typeArgument;
@@ -286,7 +298,9 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant> {
       PartialInstantiationConstant node) {
     List<DartType> types;
     for (int index = 0; index < node.types.length; index++) {
-      DartType type = rawLegacyErasure(node.types[index]);
+      DartType type = computeConstCanonicalType(
+          node.types[index], _evaluator.coreTypes,
+          isNonNullableByDefault: _evaluator.isNonNullableByDefault);
       if (type != null) {
         types ??= node.types.toList(growable: false);
         types[index] = type;
@@ -303,7 +317,8 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant> {
 
   @override
   Constant visitTypeLiteralConstant(TypeLiteralConstant node) {
-    DartType type = rawLegacyErasure(node.type);
+    DartType type = computeConstCanonicalType(node.type, _evaluator.coreTypes,
+        isNonNullableByDefault: _evaluator.isNonNullableByDefault);
     if (type != null) {
       return new TypeLiteralConstant(type);
     }
@@ -705,6 +720,14 @@ class ConstantsTransformer extends Transformer {
   }
 
   @override
+  Expression visitTypeLiteral(TypeLiteral node) {
+    if (!containsFreeTypeVariables(node.type)) {
+      return evaluateAndTransformWithContext(node, node);
+    }
+    return super.visitTypeLiteral(node);
+  }
+
+  @override
   Expression visitMapConcatenation(MapConcatenation node) {
     return evaluateAndTransformWithContext(node, node);
   }
@@ -849,9 +872,10 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     switch (evaluationMode) {
       case EvaluationMode.strong:
       case EvaluationMode.agnostic:
-        return type;
+        return norm(coreTypes, type);
       case EvaluationMode.weak:
-        return legacyErasure(type);
+        return computeConstCanonicalType(norm(coreTypes, type), coreTypes,
+            isNonNullableByDefault: isNonNullableByDefault);
     }
     throw new UnsupportedError(
         "Unexpected evaluation mode: ${evaluationMode}.");
@@ -861,9 +885,13 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     switch (evaluationMode) {
       case EvaluationMode.strong:
       case EvaluationMode.agnostic:
-        return types;
+        return types.map((DartType type) => norm(coreTypes, type)).toList();
       case EvaluationMode.weak:
-        return types.map((DartType type) => legacyErasure(type)).toList();
+        return types
+            .map((DartType type) => computeConstCanonicalType(
+                norm(coreTypes, type), coreTypes,
+                isNonNullableByDefault: isNonNullableByDefault))
+            .toList();
     }
     throw new UnsupportedError(
         "Unexpected evaluation mode: ${evaluationMode}.");
@@ -1147,7 +1175,10 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   @override
   Constant visitTypeLiteral(TypeLiteral node) {
-    final DartType type = _evaluateDartType(node, node.type);
+    DartType type = _evaluateDartType(node, node.type);
+    if (type != null) {
+      type = convertType(type);
+    }
     if (type == null && _gotError != null) {
       AbortConstant error = _gotError;
       _gotError = null;

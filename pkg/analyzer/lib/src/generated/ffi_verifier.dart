@@ -63,6 +63,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         final className = superclass.name.staticElement.name;
         if (className == _structClassName) {
           inStruct = true;
+          if (_isEmptyStruct(node.declaredElement)) {
+            _errorReporter.reportErrorForNode(
+                FfiCode.EMPTY_STRUCT_WARNING, node, [node.name]);
+          }
         } else if (className != _allocatorClassName &&
             className != _opaqueClassName) {
           _errorReporter.reportErrorForNode(
@@ -149,6 +153,19 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitIndexExpression(IndexExpression node) {
+    Element element = node.staticElement;
+    Element enclosingElement = element?.enclosingElement;
+    if (enclosingElement is ExtensionElement) {
+      if (_isNativeStructPointerExtension(enclosingElement)) {
+        if (element.name == '[]') {
+          _validateRefIndexed(node);
+        }
+      }
+    }
+  }
+
+  @override
   void visitMethodInvocation(MethodInvocation node) {
     Element element = node.methodName.staticElement;
     if (element is MethodElement) {
@@ -157,6 +174,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         if (_isPointer(enclosingElement)) {
           if (element.name == 'fromFunction') {
             _validateFromFunction(node, element);
+          } else if (element.name == 'elementAt') {
+            _validateElementAt(node);
           }
         }
       }
@@ -170,8 +189,45 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           _validateLookupFunction(node);
         }
       }
+    } else if (element is FunctionElement) {
+      Element enclosingElement = element.enclosingElement;
+      if (enclosingElement is CompilationUnitElement) {
+        if (element.library.name == 'dart.ffi') {
+          if (element.name == 'sizeOf') {
+            _validateSizeOf(node);
+          }
+        }
+      }
     }
     super.visitMethodInvocation(node);
+  }
+
+  @override
+  void visitPrefixedIdentifier(PrefixedIdentifier node) {
+    Element element = node.staticElement;
+    Element enclosingElement = element?.enclosingElement;
+    if (enclosingElement is ExtensionElement) {
+      if (_isNativeStructPointerExtension(enclosingElement)) {
+        if (element.name == 'ref') {
+          _validateRefPrefixedIdentifier(node);
+        }
+      }
+    }
+    super.visitPrefixedIdentifier(node);
+  }
+
+  @override
+  void visitPropertyAccess(PropertyAccess node) {
+    Element element = node.propertyName.staticElement;
+    Element enclosingElement = element?.enclosingElement;
+    if (enclosingElement is ExtensionElement) {
+      if (_isNativeStructPointerExtension(enclosingElement)) {
+        if (element.name == 'ref') {
+          _validateRefPropertyAccess(node);
+        }
+      }
+    }
+    super.visitPropertyAccess(node);
   }
 
   /// Return `true` if the given [element] represents the extension
@@ -235,6 +291,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   bool _isNativeFunctionPointerExtension(Element element) =>
       element.name == 'NativeFunctionPointer' &&
       element.library.name == _dartFfiLibraryName;
+
+  bool _isNativeStructPointerExtension(Element element) =>
+      element.name == 'StructPointer' && element.library.name == 'dart.ffi';
 
   /// Returns `true` iff [nativeType] is a `ffi.NativeType` type.
   bool _isNativeTypeInterfaceType(DartType nativeType) {
@@ -334,6 +393,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   }
 
   /// Validates that the given [nativeType] is a valid dart:ffi native type.
+  // TODO(https://dartbug.com/44747): Change to named arguments.
   bool _isValidFfiNativeType(
       DartType nativeType, bool allowVoid, bool allowEmptyStruct) {
     if (nativeType is InterfaceType) {
@@ -569,6 +629,24 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  void _validateElementAt(MethodInvocation node) {
+    Expression target = node.realTarget;
+    DartType targetType = target.staticType;
+    if (targetType is InterfaceType &&
+        _isPointer(targetType.element) &&
+        targetType.typeArguments.length == 1) {
+      final DartType T = targetType.typeArguments[0];
+
+      if (!_isValidFfiNativeType(T, true, true)) {
+        final AstNode errorNode = node;
+        _errorReporter.reportErrorForNode(
+            FfiCode.NON_CONSTANT_TYPE_ARGUMENT_WARNING,
+            errorNode,
+            ['elementAt']);
+      }
+    }
+  }
+
   /// Validate that the fields declared by the given [node] meet the
   /// requirements for fields within a struct class.
   void _validateFieldsInStruct(FieldDeclaration node) {
@@ -690,6 +768,44 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.reportErrorForNode(
             FfiCode.ANNOTATION_ON_POINTER_FIELD, annotation);
       }
+    }
+  }
+
+  void _validateRefIndexed(IndexExpression node) {
+    DartType targetType = node.target.staticType;
+    if (!_isValidFfiNativeType(targetType, false, true)) {
+      final AstNode errorNode = node;
+      _errorReporter.reportErrorForNode(
+          FfiCode.NON_CONSTANT_TYPE_ARGUMENT_WARNING, errorNode, ['[]']);
+    }
+  }
+
+  /// Validate the invocation of the extension method
+  /// `Pointer<T extends Struct>.ref`.
+  void _validateRefPrefixedIdentifier(PrefixedIdentifier node) {
+    DartType targetType = node.prefix.staticType;
+    if (!_isValidFfiNativeType(targetType, false, true)) {
+      final AstNode errorNode = node;
+      _errorReporter.reportErrorForNode(
+          FfiCode.NON_CONSTANT_TYPE_ARGUMENT_WARNING, errorNode, ['ref']);
+    }
+  }
+
+  void _validateRefPropertyAccess(PropertyAccess node) {
+    DartType targetType = node.target.staticType;
+    if (!_isValidFfiNativeType(targetType, false, true)) {
+      final AstNode errorNode = node;
+      _errorReporter.reportErrorForNode(
+          FfiCode.NON_CONSTANT_TYPE_ARGUMENT_WARNING, errorNode, ['ref']);
+    }
+  }
+
+  void _validateSizeOf(MethodInvocation node) {
+    final DartType T = node.typeArgumentTypes[0];
+    if (!_isValidFfiNativeType(T, true, true)) {
+      final AstNode errorNode = node;
+      _errorReporter.reportErrorForNode(
+          FfiCode.NON_CONSTANT_TYPE_ARGUMENT_WARNING, errorNode, ['sizeOf']);
     }
   }
 

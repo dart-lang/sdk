@@ -13,6 +13,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         templateFfiExpectedExceptionalReturn,
         templateFfiExpectedNoExceptionalReturn,
         templateFfiExtendsOrImplementsSealedClass,
+        templateFfiNonConstantTypeArgumentWarning,
         templateFfiNotStatic,
         templateFfiTypeInvalid,
         templateFfiTypeMismatch;
@@ -173,7 +174,23 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
     final Member target = node.target;
     try {
-      if (target == lookupFunctionMethod) {
+      if (target == structPointerRef || target == structPointerElemAt) {
+        final DartType nativeType = node.arguments.types[0];
+
+        _warningNativeTypeValid(nativeType, node, allowStructItself: false);
+
+        // TODO(http://dartbug.com/38721): Replace calls with direct
+        // constructor invocations.
+      } else if (target == sizeOfMethod) {
+        final DartType nativeType = node.arguments.types[0];
+
+        if (!isFfiLibrary) {
+          _warningNativeTypeValid(nativeType, node);
+        }
+
+        // TODO(http://dartbug.com/38721): Replace calls with constant
+        // expressions.
+      } else if (target == lookupFunctionMethod) {
         final DartType nativeType = InterfaceType(
             nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
         final DartType dartType = node.arguments.types[1];
@@ -376,6 +393,9 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         final DartType pointerType =
             node.receiver.getStaticType(_staticTypeContext);
         final DartType nativeType = _pointerTypeGetTypeArg(pointerType);
+
+        _warningNativeTypeValid(nativeType, node);
+
         if (nativeType is TypeParameterType) {
           // Do not rewire generic invocations.
           return node;
@@ -427,11 +447,29 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   }
 
   void _ensureNativeTypeValid(DartType nativeType, Expression node,
-      {bool allowHandle: false}) {
+      {bool allowHandle: false, bool allowStructItself = true}) {
     if (!_nativeTypeValid(nativeType,
-        allowStructs: true, allowHandle: allowHandle)) {
+        allowStructs: true,
+        allowStructItself: allowStructItself,
+        allowHandle: allowHandle)) {
       diagnosticReporter.report(
           templateFfiTypeInvalid.withArguments(
+              nativeType, currentLibrary.isNonNullableByDefault),
+          node.fileOffset,
+          1,
+          node.location.file);
+      throw _FfiStaticTypeError();
+    }
+  }
+
+  void _warningNativeTypeValid(DartType nativeType, Expression node,
+      {bool allowHandle: false, bool allowStructItself = true}) {
+    if (!_nativeTypeValid(nativeType,
+        allowStructs: true,
+        allowStructItself: allowStructItself,
+        allowHandle: allowHandle)) {
+      diagnosticReporter.report(
+          templateFfiNonConstantTypeArgumentWarning.withArguments(
               nativeType, currentLibrary.isNonNullableByDefault),
           node.fileOffset,
           1,
@@ -466,9 +504,13 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   /// The Dart type system does not enforce that NativeFunction return and
   /// parameter types are only NativeTypes, so we need to check this.
   bool _nativeTypeValid(DartType nativeType,
-      {bool allowStructs: false, allowHandle: false}) {
+      {bool allowStructs: false,
+      bool allowStructItself = false,
+      bool allowHandle = false}) {
     return convertNativeTypeToDartType(nativeType,
-            allowStructs: allowStructs, allowHandle: allowHandle) !=
+            allowStructs: allowStructs,
+            allowStructItself: allowStructItself,
+            allowHandle: allowHandle) !=
         null;
   }
 

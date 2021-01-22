@@ -829,6 +829,7 @@ detect
 detected
 detecting
 detection
+detector
 detects
 determination
 determine
@@ -1285,6 +1286,7 @@ gatherer
 gathering
 general
 generalized
+generalizes
 generally
 generate
 generated
@@ -2435,6 +2437,7 @@ referenced
 references
 referencing
 referred
+referring
 refers
 refine
 refinement

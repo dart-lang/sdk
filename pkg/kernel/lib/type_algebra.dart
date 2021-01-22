@@ -96,6 +96,14 @@ bool containsFreeFunctionTypeVariables(DartType type) {
   return new _FreeFunctionTypeVariableVisitor().visit(type);
 }
 
+/// Returns `true` if [type] contains any free type variables
+///
+/// Returns `true` if [type] contains a [TypeParameterType] that doesn't refer
+/// to an enclosing generic [FunctionType] within [type].
+bool containsFreeTypeVariables(DartType type) {
+  return new _FreeTypeVariableVisitor().visit(type);
+}
+
 /// Generates a fresh copy of the given type parameters, with their bounds
 /// substituted to reference the new parameters.
 ///
@@ -752,6 +760,62 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
   }
 }
 
+class _FreeTypeVariableVisitor implements DartTypeVisitor<bool> {
+  final Set<TypeParameter> variables = new Set<TypeParameter>();
+
+  _FreeTypeVariableVisitor();
+
+  bool visit(DartType node) => node.accept(this);
+
+  bool defaultDartType(DartType node) {
+    throw new UnsupportedError("Unsupported type $node (${node.runtimeType}.");
+  }
+
+  bool visitNamedType(NamedType node) {
+    return visit(node.type);
+  }
+
+  bool visitBottomType(BottomType node) => false;
+  bool visitNeverType(NeverType node) => false;
+  bool visitNullType(NullType node) => false;
+  bool visitInvalidType(InvalidType node) => false;
+  bool visitDynamicType(DynamicType node) => false;
+  bool visitVoidType(VoidType node) => false;
+
+  bool visitInterfaceType(InterfaceType node) {
+    return node.typeArguments.any(visit);
+  }
+
+  bool visitFutureOrType(FutureOrType node) {
+    return visit(node.typeArgument);
+  }
+
+  bool visitTypedefType(TypedefType node) {
+    return node.typeArguments.any(visit);
+  }
+
+  bool visitFunctionType(FunctionType node) {
+    variables.addAll(node.typeParameters);
+    bool result = node.typeParameters.any(handleTypeParameter) ||
+        node.positionalParameters.any(visit) ||
+        node.namedParameters.any(visitNamedType) ||
+        visit(node.returnType);
+    variables.removeAll(node.typeParameters);
+    return result;
+  }
+
+  bool visitTypeParameterType(TypeParameterType node) {
+    return !variables.contains(node.parameter);
+  }
+
+  bool handleTypeParameter(TypeParameter node) {
+    assert(variables.contains(node));
+    if (node.bound.accept(this)) return true;
+    if (node.defaultType == null) return false;
+    return node.defaultType.accept(this);
+  }
+}
+
 Nullability uniteNullabilities(Nullability a, Nullability b) {
   if (a == Nullability.nullable || b == Nullability.nullable) {
     return Nullability.nullable;
@@ -1023,14 +1087,18 @@ class NullabilityAwareTypeVariableEliminator extends ReplacementVisitor {
 /// returning the non-nullable version of type int.  In case of
 /// [TypeParameterType]s, the result may be either [Nullability.nonNullable] or
 /// [Nullability.undetermined], depending on the bound.
-DartType computeTypeWithoutNullabilityMarker(
-    DartType type, Library clientLibrary) {
+DartType computeTypeWithoutNullabilityMarker(DartType type,
+    {bool isNonNullableByDefault}) {
+  assert(isNonNullableByDefault != null);
+
   if (type is TypeParameterType) {
     if (type.promotedBound == null) {
       // The default nullability for library is used when there are no
       // nullability markers on the type.
-      return new TypeParameterType.withDefaultNullabilityForLibrary(
-          type.parameter, clientLibrary);
+      return new TypeParameterType(
+          type.parameter,
+          _defaultNullabilityForTypeParameterType(type.parameter,
+              isNonNullableByDefault: isNonNullableByDefault));
     } else {
       // Intersection types can't be arguments to the nullable and the legacy
       // type constructors, so nothing can be peeled off.
@@ -1051,15 +1119,92 @@ DartType computeTypeWithoutNullabilityMarker(
 /// type parameter.  Some examples of types declared without nullability markers
 /// are T% and S, where T and S are type parameters such that T extends Object?
 /// and S extends Object.
-bool isTypeParameterTypeWithoutNullabilityMarker(
-    TypeParameterType type, Library clientLibrary) {
+bool isTypeParameterTypeWithoutNullabilityMarker(TypeParameterType type,
+    {bool isNonNullableByDefault}) {
+  assert(isNonNullableByDefault != null);
+
   // The default nullability for library is used when there are no nullability
   // markers on the type.
   return type.promotedBound == null &&
       type.declaredNullability ==
-          new TypeParameterType.withDefaultNullabilityForLibrary(
-                  type.parameter, clientLibrary)
-              .declaredNullability;
+          _defaultNullabilityForTypeParameterType(type.parameter,
+              isNonNullableByDefault: isNonNullableByDefault);
+}
+
+bool isTypeWithoutNullabilityMarker(DartType type,
+    {bool isNonNullableByDefault}) {
+  assert(isNonNullableByDefault != null);
+  return !type.accept(new _NullabilityMarkerDetector(isNonNullableByDefault));
+}
+
+class _NullabilityMarkerDetector implements DartTypeVisitor<bool> {
+  final bool isNonNullableByDefault;
+
+  const _NullabilityMarkerDetector(this.isNonNullableByDefault);
+
+  @override
+  bool defaultDartType(DartType node) {
+    throw new UnsupportedError("Unsupported operation: "
+        "_NullabilityMarkerDetector(${node.runtimeType})");
+  }
+
+  @override
+  bool visitBottomType(BottomType node) => false;
+
+  @override
+  bool visitDynamicType(DynamicType node) => false;
+
+  @override
+  bool visitFunctionType(FunctionType node) {
+    assert(node.declaredNullability != Nullability.undetermined);
+    return node.declaredNullability == Nullability.nullable ||
+        node.declaredNullability == Nullability.legacy;
+  }
+
+  @override
+  bool visitFutureOrType(FutureOrType node) {
+    if (node.declaredNullability == Nullability.nullable ||
+        node.declaredNullability == Nullability.legacy) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitInterfaceType(InterfaceType node) {
+    assert(node.declaredNullability != Nullability.undetermined);
+    return node.declaredNullability == Nullability.nullable ||
+        node.declaredNullability == Nullability.legacy;
+  }
+
+  @override
+  bool visitInvalidType(InvalidType node) => false;
+
+  @override
+  bool visitNeverType(NeverType node) {
+    assert(node.declaredNullability != Nullability.undetermined);
+    return node.declaredNullability == Nullability.nullable ||
+        node.declaredNullability == Nullability.legacy;
+  }
+
+  @override
+  bool visitNullType(NullType node) => false;
+
+  @override
+  bool visitTypeParameterType(TypeParameterType node) {
+    return !isTypeParameterTypeWithoutNullabilityMarker(node,
+        isNonNullableByDefault: isNonNullableByDefault);
+  }
+
+  @override
+  bool visitTypedefType(TypedefType node) {
+    assert(node.declaredNullability != Nullability.undetermined);
+    return node.declaredNullability == Nullability.nullable ||
+        node.declaredNullability == Nullability.legacy;
+  }
+
+  @override
+  bool visitVoidType(VoidType node) => false;
 }
 
 /// Returns true if [type] is an application of the nullable type constructor.
@@ -1085,23 +1230,28 @@ bool isNullableTypeConstructorApplication(DartType type) {
 /// A type is considered an application of the legacy type constructor if it was
 /// declared within a legacy library and is not one of exempt types, such as
 /// dynamic or void.
-bool isLegacyTypeConstructorApplication(DartType type, Library clientLibrary) {
+bool isLegacyTypeConstructorApplication(DartType type,
+    {bool isNonNullableByDefault}) {
+  assert(isNonNullableByDefault != null);
+
   if (type is TypeParameterType) {
-    if (type.promotedBound == null) {
-      // The legacy nullability is considered an application of the legacy
-      // nullability constructor if it doesn't match the default nullability
-      // of the type-parameter type for the library.
-      return type.declaredNullability == Nullability.legacy &&
-          type.declaredNullability !=
-              new TypeParameterType.withDefaultNullabilityForLibrary(
-                      type.parameter, clientLibrary)
-                  .declaredNullability;
-    } else {
-      return false;
-    }
+    // The legacy nullability is considered an application of the legacy
+    // nullability constructor if it doesn't match the default nullability
+    // of the type-parameter type for the library.
+    return type.declaredNullability == Nullability.legacy &&
+        !isTypeParameterTypeWithoutNullabilityMarker(type,
+            isNonNullableByDefault: isNonNullableByDefault);
   } else if (type is InvalidType) {
     return false;
   } else {
     return type.declaredNullability == Nullability.legacy;
   }
+}
+
+Nullability _defaultNullabilityForTypeParameterType(TypeParameter parameter,
+    {bool isNonNullableByDefault}) {
+  assert(isNonNullableByDefault != null);
+  return isNonNullableByDefault
+      ? TypeParameterType.computeNullabilityFromBound(parameter)
+      : Nullability.legacy;
 }

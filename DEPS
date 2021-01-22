@@ -102,7 +102,7 @@ vars = {
 
   "chromedriver_tag": "83.0.4103.39",
   "dartdoc_rev" : "9e61a4f11091aaa8998525a2692b14148dc24ab5",
-  "ffi_rev": "31352979f261f7c6ea88fa0a2cfb0fdd004c38fb",
+  "ffi_rev": "f288e906c92e2ab378768dfa61a40814ede7a2a5",
   "fixnum_rev": "16d3890c6dc82ca629659da1934e412292508bba",
   "file_rev": "0e09370f581ab6388d46fda4cdab66638c0171a1",
   "glob_rev": "7c0ef8d4fa086f6b185c4dd724b700e7d7ad8f79",
@@ -133,7 +133,7 @@ vars = {
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "7abe634002a1ba8a0928eded086062f1307ccfae",
   "protobuf_rev": "0d03fd588df69e9863e2a2efc0059dee8f18d5b2",
-  "pub_rev": "392a3cb455af48f7ce8807a96174691945f97f0a",
+  "pub_rev": "7cff05f2522d5468648f854695ca8671aae2104d",
   "pub_semver_rev": "10569a1e867e909cf5db201f73118020453e5db8",
   "resource_rev": "6b79867d0becf5395e5819a75720963b8298e9a7",
   "root_certificates_rev": "7e5ec82c99677a2e5b95ce296c4d68b0d3378ed8",

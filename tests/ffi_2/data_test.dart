@@ -47,10 +47,8 @@ void main() {
   testEquality();
   testAllocateVoid();
   testAllocateNativeFunction();
-  testSizeOfGeneric();
   testSizeOfVoid();
   testSizeOfNativeFunction();
-  testSizeOfNativeType();
   testDynamicInvocation();
   testMemoryAddressTruncation();
   testNullptrCast();
@@ -434,17 +432,6 @@ void testAllocateNativeFunction() {
   });
 }
 
-void testSizeOfGeneric() {
-  int generic<T extends Pointer>() {
-    int size;
-    size = sizeOf<T>();
-    return size;
-  }
-
-  int size = generic<Pointer<Int64>>();
-  Expect.isTrue(size == 8 || size == 4);
-}
-
 void testSizeOfVoid() {
   Expect.throws(() {
     sizeOf<Void>();
@@ -454,12 +441,6 @@ void testSizeOfVoid() {
 void testSizeOfNativeFunction() {
   Expect.throws(() {
     sizeOf<NativeFunction<Int8UnOp>>();
-  });
-}
-
-void testSizeOfNativeType() {
-  Expect.throws(() {
-    sizeOf();
   });
 }
 

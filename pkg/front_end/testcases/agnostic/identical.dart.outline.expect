@@ -12,6 +12,5 @@ static method main() → dynamic
 Extra constant evaluation status:
 Evaluated: ListLiteral @ org-dartlang-testcase:///identical.dart:5:16 -> ListConstant(const <int>[])
 Evaluated: ListLiteral @ org-dartlang-testcase:///identical.dart:6:17 -> ListConstant(const <int?>[])
-Evaluated: StaticGet @ org-dartlang-testcase:///identical.dart:7:21 -> ListConstant(const <int>[])
-Evaluated: StaticGet @ org-dartlang-testcase:///identical.dart:7:24 -> ListConstant(const <int?>[])
-Extra constant evaluation: evaluated: 5, effectively constant: 4
+Evaluated: StaticInvocation @ org-dartlang-testcase:///identical.dart:7:11 -> BoolConstant(false)
+Extra constant evaluation: evaluated: 3, effectively constant: 3

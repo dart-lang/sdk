@@ -56,9 +56,7 @@ class _WindowsCodePageEncoder extends Converter<String, List<int>> {
     return encoded;
   }
 
-  /**
-   * Starts a chunked conversion.
-   */
+  /// Starts a chunked conversion.
   StringConversionSink startChunkedConversion(Sink<List<int>> sink) {
     return new _WindowsCodePageEncoderSink(sink);
   }
@@ -102,9 +100,7 @@ class _WindowsCodePageDecoder extends Converter<List<int>, String> {
     return _decodeBytes(input);
   }
 
-  /**
-   * Starts a chunked conversion.
-   */
+  /// Starts a chunked conversion.
   ByteConversionSink startChunkedConversion(Sink<String> sink) {
     return new _WindowsCodePageDecoderSink(sink);
   }

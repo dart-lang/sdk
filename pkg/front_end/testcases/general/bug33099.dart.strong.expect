@@ -61,9 +61,9 @@ class MyTest2 extends self::_MyTest2&Object&MyTest {
 }
 static const field self::_FailingTest* failingTest = #C1;
 static method main() → dynamic {
-  mir::ClassMirror* classMirror = mir::reflectClass(self::MyTest2*);
+  mir::ClassMirror* classMirror = mir::reflectClass(#C2);
   classMirror.{mir::ClassMirror::instanceMembers}.{core::Map::forEach}((core::Symbol* symbol, mir::MethodMirror* memberMirror) → Null {
-    if(memberMirror.{mir::DeclarationMirror::simpleName}.{core::Symbol::==}(#C2)) {
+    if(memberMirror.{mir::DeclarationMirror::simpleName}.{core::Symbol::==}(#C3)) {
       core::print(memberMirror);
       core::print(self::_hasFailingTestAnnotation(memberMirror));
     }
@@ -82,7 +82,8 @@ static method _hasAnnotationInstance(mir::DeclarationMirror* declaration, dynami
 
 constants  {
   #C1 = self::_FailingTest {}
-  #C2 = #foo
+  #C2 = TypeLiteralConstant(self::MyTest2*)
+  #C3 = #foo
 }
 
 

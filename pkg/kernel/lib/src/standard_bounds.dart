@@ -399,9 +399,11 @@ mixin StandardBounds {
     // [intersectNullabilities] to compute the resulting type if the subtype
     // relation is established.
     DartType typeWithoutNullabilityMarker1 =
-        computeTypeWithoutNullabilityMarker(type1, clientLibrary);
+        computeTypeWithoutNullabilityMarker(type1,
+            isNonNullableByDefault: clientLibrary.isNonNullableByDefault);
     DartType typeWithoutNullabilityMarker2 =
-        computeTypeWithoutNullabilityMarker(type2, clientLibrary);
+        computeTypeWithoutNullabilityMarker(type2,
+            isNonNullableByDefault: clientLibrary.isNonNullableByDefault);
     if (isSubtypeOf(typeWithoutNullabilityMarker1,
         typeWithoutNullabilityMarker2, SubtypeCheckMode.withNullabilities)) {
       return type1.withDeclaredNullability(intersectNullabilities(
@@ -771,9 +773,11 @@ mixin StandardBounds {
     // uses [uniteNullabilities] to compute the resulting type if the subtype
     // relation is established.
     InterfaceType typeWithoutNullabilityMarker1 =
-        computeTypeWithoutNullabilityMarker(type1, clientLibrary);
+        computeTypeWithoutNullabilityMarker(type1,
+            isNonNullableByDefault: clientLibrary.isNonNullableByDefault);
     InterfaceType typeWithoutNullabilityMarker2 =
-        computeTypeWithoutNullabilityMarker(type2, clientLibrary);
+        computeTypeWithoutNullabilityMarker(type2,
+            isNonNullableByDefault: clientLibrary.isNonNullableByDefault);
 
     if (isSubtypeOf(typeWithoutNullabilityMarker1,
         typeWithoutNullabilityMarker2, SubtypeCheckMode.withNullabilities)) {

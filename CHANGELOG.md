@@ -69,6 +69,25 @@
 
 [#42312]: https://github.com/dart-lang/sdk/issues/42312
 
+### Foreign Function Interface (`dart:ffi`)
+
+*   **Breaking Change** [#44621][]: Invocations with a generic `T` of
+    `sizeOf<T>`, `Pointer<T>.elementAt()`, `Pointer<T extends Struct>.ref`, and
+    `Pointer<T extends Struct>[]` are being deprecated in the current stable
+    release (2.12), and are planned to be fully removed in the following stable
+    release (2.13). Consequently, `allocate` in `package:ffi` will no longer be
+    able to invoke `sizeOf<T>` generically, and will be deprecated as well.
+    Instead, the `Allocator` it is introduced to `dart:ffi`, and also requires
+    a constant `T` on invocations. For migration notes see the breaking change
+    request.
+*   **Breaking Change** [#44622][]: Subtypes of `Struct` without any native
+    member are being deprecated in the current stable release (2.12), and are
+    planned to be fully removed in the following stable release (2.13).
+    Migrate opaque types to extend `Opaque` rather than `Struct`.
+
+[#44621]: https://github.com/dart-lang/sdk/issues/44621
+[#44622]: https://github.com/dart-lang/sdk/issues/44622
+
 ### Dart2JS
 
 * Removed `--no-defer-class-types` and `--no-new-deferred-split`.
@@ -162,6 +181,9 @@ Updated the Linter to `0.1.129`, which includes:
   dependencies are allowed.
 * New option `dart pub outdated --mode=null-safety` that will analyze your
   dependencies for null-safety.
+* `dart pub get` and `dart pub upgrade` will highlight dependencies that have
+  been [discontinued](https://dart.dev/tools/pub/publishing#discontinue) on
+  pub.dev.
 * `dart pub publish` will now check your pubspec keys for likely typos.
 * `dart pub upgrade package_foo` will fetch dependencies, but ignore the
   `pubspec.lock` for `package_foo`, allowing users to only upgrade a subset of

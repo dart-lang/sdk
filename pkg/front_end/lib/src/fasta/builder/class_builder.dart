@@ -35,6 +35,8 @@ import 'package:kernel/type_algebra.dart' show Substitution, substitute;
 import 'package:kernel/type_environment.dart'
     show SubtypeCheckMode, TypeEnvironment;
 
+import 'package:kernel/src/legacy_erasure.dart';
+
 import 'package:kernel/src/types.dart' show Types;
 
 import '../dill/dill_member_builder.dart';
@@ -609,7 +611,13 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   Supertype buildSupertype(
       LibraryBuilder library, List<TypeBuilder> arguments) {
     Class cls = isPatch ? origin.cls : this.cls;
-    return new Supertype(cls, buildTypeArguments(library, arguments));
+    List<DartType> typeArguments = buildTypeArguments(library, arguments);
+    if (!library.isNonNullableByDefault) {
+      for (int i = 0; i < typeArguments.length; ++i) {
+        typeArguments[i] = legacyErasure(typeArguments[i]);
+      }
+    }
+    return new Supertype(cls, typeArguments);
   }
 
   @override
