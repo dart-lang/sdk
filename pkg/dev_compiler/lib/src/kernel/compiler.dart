@@ -5142,6 +5142,21 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return js_ast.PropertyAccess(js_ast.This(), jsMethod.name);
   }
 
+  /// If [e] is a [TypeLiteral] or a [TypeLiteralConstant] expression, return
+  /// the underlying [DartType], otherwise returns null.
+  // TODO(sigmund,nshahan): remove all uses of type literals in the runtime
+  // libraries, so that this pattern can be deleted.
+  DartType getTypeLiteralType(Expression e) {
+    if (e is TypeLiteral) return e.type;
+    if (e is ConstantExpression) {
+      var constant = e.constant;
+      if (constant is TypeLiteralConstant) {
+        return constant.type.withDeclaredNullability(Nullability.nonNullable);
+      }
+    }
+    return null;
+  }
+
   @override
   js_ast.Expression visitStaticInvocation(StaticInvocation node) {
     var target = node.target;
@@ -5168,8 +5183,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         }
       } else if (node.arguments.positional.length == 1) {
         var firstArg = node.arguments.positional[0];
-        if (name == 'unwrapType' && firstArg is TypeLiteral) {
-          return _emitType(firstArg.type);
+        var type = getTypeLiteralType(firstArg);
+        if (name == 'unwrapType' && type != null) {
+          return _emitType(type);
         }
         if (name == 'extensionSymbol' && firstArg is StringLiteral) {
           return getSymbol(getExtensionSymbolInternal(firstArg.value));
@@ -5185,19 +5201,18 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       } else if (node.arguments.positional.length == 2) {
         var firstArg = node.arguments.positional[0];
         var secondArg = node.arguments.positional[1];
-        if (name == '_jsInstanceOf' && secondArg is TypeLiteral) {
+        var type = getTypeLiteralType(secondArg);
+        if (name == '_jsInstanceOf' && type != null) {
           return js.call('# instanceof #', [
             _visitExpression(firstArg),
-            _emitType(
-                secondArg.type.withDeclaredNullability(Nullability.nonNullable))
+            _emitType(type.withDeclaredNullability(Nullability.nonNullable))
           ]);
         }
 
-        if (name == '_equalType' && secondArg is TypeLiteral) {
+        if (name == '_equalType' && type != null) {
           return js.call('# === #', [
             _visitExpression(firstArg),
-            _emitType(
-                secondArg.type.withDeclaredNullability(Nullability.nonNullable))
+            _emitType(type.withDeclaredNullability(Nullability.nonNullable))
           ]);
         }
       }
@@ -6023,6 +6038,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         return runtimeCall(
             'tearoffInterop(#)', [_emitStaticTarget(node.procedure)]);
       }
+    }
+    if (_isInForeignJS && node is TypeLiteralConstant) {
+      return _emitTypeLiteral(
+          node.type.withDeclaredNullability(Nullability.nonNullable));
     }
     if (isSdkInternalRuntime(_currentLibrary) || node is PrimitiveConstant) {
       return super.visitConstant(node);
