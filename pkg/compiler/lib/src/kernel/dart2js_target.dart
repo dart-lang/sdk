@@ -74,7 +74,7 @@ class Dart2jsTarget extends Target {
   int get enabledLateLowerings => LateLowering.all;
 
   @override
-  bool get supportsLateLoweringSentinel => false;
+  bool get supportsLateLoweringSentinel => true;
 
   @override
   bool get useStaticFieldLowering => false;

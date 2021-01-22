@@ -20,6 +20,12 @@ main() {
 /// and analysis finishes without exceptions.
 @reflectiveTest
 class InvalidCodeTest extends PubPackageResolutionTest {
+  test_const_AwaitExpression() async {
+    await _assertCanBeAnalyzed(r'''
+const a = await b();
+''');
+  }
+
   test_const_ForPartsWithExpression() async {
     await _assertCanBeAnalyzed(r'''
 @A([for (;;) 0])

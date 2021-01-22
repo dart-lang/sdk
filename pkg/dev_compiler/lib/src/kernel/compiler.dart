@@ -3989,7 +3989,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         [_visitExpression(node.iterable)]);
 
     var iter = _emitTemporaryId('iter');
-    return js.statement(
+
+    var savedContinueTargets = _currentContinueTargets;
+    var savedBreakTargets = _currentBreakTargets;
+    _currentContinueTargets = <LabeledStatement>[];
+    _currentBreakTargets = <LabeledStatement>[];
+    var awaitForStmt = js.statement(
         '{'
         '  let # = #;'
         '  try {'
@@ -4007,6 +4012,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           js_ast.Yield(js.call('#.cancel()', iter))
             ..sourceInformation = _nodeStart(node.variable)
         ]);
+    _currentContinueTargets = savedContinueTargets;
+    _currentBreakTargets = savedBreakTargets;
+    return awaitForStmt;
   }
 
   @override
@@ -5134,6 +5142,21 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return js_ast.PropertyAccess(js_ast.This(), jsMethod.name);
   }
 
+  /// If [e] is a [TypeLiteral] or a [TypeLiteralConstant] expression, return
+  /// the underlying [DartType], otherwise returns null.
+  // TODO(sigmund,nshahan): remove all uses of type literals in the runtime
+  // libraries, so that this pattern can be deleted.
+  DartType getTypeLiteralType(Expression e) {
+    if (e is TypeLiteral) return e.type;
+    if (e is ConstantExpression) {
+      var constant = e.constant;
+      if (constant is TypeLiteralConstant) {
+        return constant.type.withDeclaredNullability(Nullability.nonNullable);
+      }
+    }
+    return null;
+  }
+
   @override
   js_ast.Expression visitStaticInvocation(StaticInvocation node) {
     var target = node.target;
@@ -5143,18 +5166,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Optimize some internal SDK calls.
     if (isSdkInternalRuntime(target.enclosingLibrary)) {
       var name = target.name.text;
-      if (node.arguments.positional.isEmpty) {
-        if (name == 'typeRep') {
-          return _emitType(node.arguments.types.single);
-        }
+      if (node.arguments.positional.isEmpty &&
+          node.arguments.types.length == 1) {
+        var type = node.arguments.types.single;
+        if (name == 'typeRep') return _emitType(type);
         if (name == 'legacyTypeRep') {
-          return _emitType(node.arguments.types.single
-              .withDeclaredNullability(Nullability.legacy));
+          return _emitType(type.withDeclaredNullability(Nullability.legacy));
         }
-      } else if (node.arguments.positional.length == 1) {
-        var firstArg = node.arguments.positional[0];
-        if (name == 'getGenericClass' && firstArg is TypeLiteral) {
-          var type = firstArg.type;
+        if (name == 'getGenericClassStatic') {
           if (type is InterfaceType) {
             return _emitTopLevelNameNoInterop(type.classNode, suffix: '\$');
           }
@@ -5162,8 +5181,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             return _emitFutureOrNameNoInterop(suffix: '\$');
           }
         }
-        if (name == 'unwrapType' && firstArg is TypeLiteral) {
-          return _emitType(firstArg.type);
+      } else if (node.arguments.positional.length == 1) {
+        var firstArg = node.arguments.positional[0];
+        var type = getTypeLiteralType(firstArg);
+        if (name == 'unwrapType' && type != null) {
+          return _emitType(type);
         }
         if (name == 'extensionSymbol' && firstArg is StringLiteral) {
           return getSymbol(getExtensionSymbolInternal(firstArg.value));
@@ -5179,19 +5201,18 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       } else if (node.arguments.positional.length == 2) {
         var firstArg = node.arguments.positional[0];
         var secondArg = node.arguments.positional[1];
-        if (name == '_jsInstanceOf' && secondArg is TypeLiteral) {
+        var type = getTypeLiteralType(secondArg);
+        if (name == '_jsInstanceOf' && type != null) {
           return js.call('# instanceof #', [
             _visitExpression(firstArg),
-            _emitType(
-                secondArg.type.withDeclaredNullability(Nullability.nonNullable))
+            _emitType(type.withDeclaredNullability(Nullability.nonNullable))
           ]);
         }
 
-        if (name == '_equalType' && secondArg is TypeLiteral) {
+        if (name == '_equalType' && type != null) {
           return js.call('# === #', [
             _visitExpression(firstArg),
-            _emitType(
-                secondArg.type.withDeclaredNullability(Nullability.nonNullable))
+            _emitType(type.withDeclaredNullability(Nullability.nonNullable))
           ]);
         }
       }
@@ -6017,6 +6038,26 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         return runtimeCall(
             'tearoffInterop(#)', [_emitStaticTarget(node.procedure)]);
       }
+    }
+    if (node is TypeLiteralConstant) {
+      // We bypass the use of constants, since types are already canonicalized
+      // in the DDC output. DDC emits type literals in two contexts:
+      //   * Foreign JS functions: we use the non-nullable version of some types
+      //     directly in the runtime libraries (e.g. dart:_runtime). For
+      //     correctness of those libraries, we need to remove the legacy marker
+      //     that was added by the CFE normalization of type literals.
+      //
+      //   * Regular user code: we need to emit a canonicalized type. We do so
+      //     by calling `wrapType` on the type at runtime. By emitting the
+      //     non-nullable version we save some redundant work at runtime.
+      //     Technically, emitting a legacy type in this case would be correct,
+      //     only more verbose and inefficient.
+      var type = node.type;
+      if (type.nullability == Nullability.legacy) {
+        type = type.withDeclaredNullability(Nullability.nonNullable);
+      }
+      assert(!_isInForeignJS || type.nullability == Nullability.nonNullable);
+      return _emitTypeLiteral(type);
     }
     if (isSdkInternalRuntime(_currentLibrary) || node is PrimitiveConstant) {
       return super.visitConstant(node);

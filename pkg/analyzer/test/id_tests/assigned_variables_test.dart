@@ -69,12 +69,16 @@ class _AssignedVariablesDataExtractor extends AstDataExtractor<_Data> {
     if (node == _currentDeclaration) {
       return _Data(
           _convertVars(_currentAssignedVariables.declaredAtTopLevel),
+          _convertVars(_currentAssignedVariables.readAnywhere),
+          _convertVars(_currentAssignedVariables.readCapturedAnywhere),
           _convertVars(_currentAssignedVariables.writtenAnywhere),
           _convertVars(_currentAssignedVariables.capturedAnywhere));
     }
     if (!_currentAssignedVariables.isTracked(node)) return null;
     return _Data(
         _convertVars(_currentAssignedVariables.declaredInNode(node)),
+        _convertVars(_currentAssignedVariables.readInNode(node)),
+        _convertVars(_currentAssignedVariables.readCapturedInNode(node)),
         _convertVars(_currentAssignedVariables.writtenInNode(node)),
         _convertVars(_currentAssignedVariables.capturedInNode(node)));
   }
@@ -123,6 +127,12 @@ class _AssignedVariablesDataInterpreter implements DataInterpreter<_Data> {
     if (actualData.declared.isNotEmpty) {
       parts.add('declared=${_setToString(actualData.declared)}');
     }
+    if (actualData.read.isNotEmpty) {
+      parts.add('read=${_setToString(actualData.read)}');
+    }
+    if (actualData.readCaptured.isNotEmpty) {
+      parts.add('read=${_setToString(actualData.readCaptured)}');
+    }
     if (actualData.assigned.isNotEmpty) {
       parts.add('assigned=${_setToString(actualData.assigned)}');
     }
@@ -156,9 +166,14 @@ class _AssignedVariablesDataInterpreter implements DataInterpreter<_Data> {
 class _Data {
   final Set<String> declared;
 
+  final Set<String> read;
+
+  final Set<String> readCaptured;
+
   final Set<String> assigned;
 
   final Set<String> captured;
 
-  _Data(this.declared, this.assigned, this.captured);
+  _Data(this.declared, this.read, this.readCaptured, this.assigned,
+      this.captured);
 }

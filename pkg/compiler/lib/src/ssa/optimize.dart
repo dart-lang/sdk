@@ -1186,6 +1186,20 @@ class SsaInstructionSimplifier extends HBaseVisitor
     return newInstruction == null ? super.visitIdentity(node) : newInstruction;
   }
 
+  @override
+  HInstruction visitIsLateSentinel(HIsLateSentinel node) {
+    HInstruction value = node.inputs[0];
+    if (value is HConstant) {
+      return _graph.addConstantBool(
+          value.constant is LateSentinelConstantValue, _closedWorld);
+    }
+
+    // TODO(fishythefish): Simplify to `false` when the input cannot evalute to
+    // the sentinel. This can be implemented in the powerset domain.
+
+    return super.visitIsLateSentinel(node);
+  }
+
   void simplifyCondition(
       HBasicBlock block, HInstruction condition, bool value) {
     // `excludePhiOutEdges: true` prevents replacing a partially dominated phi

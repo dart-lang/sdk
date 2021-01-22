@@ -4,7 +4,11 @@
 
 // @dart = 2.9
 
-/*library: scope=[AmbiguousExtension1,AmbiguousExtension2,UnambiguousExtension1]*/
+/*library: scope=[
+  AmbiguousExtension1,
+  AmbiguousExtension2,
+  UnambiguousExtension1,
+  async.dart.FutureExtensions]*/
 
 /*class: AmbiguousExtension1:
  builder-name=AmbiguousExtension1,

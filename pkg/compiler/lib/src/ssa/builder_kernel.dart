@@ -4147,6 +4147,10 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       _handleForeignTypeRef(invocation);
     } else if (name == 'LEGACY_TYPE_REF') {
       _handleForeignLegacyTypeRef(invocation);
+    } else if (name == 'createJsSentinel') {
+      _handleForeignCreateJsSentinel(invocation);
+    } else if (name == 'isJsSentinel') {
+      _handleForeignIsJsSentinel(invocation);
     } else {
       reporter.internalError(
           _elementMap.getSpannable(targetElement, invocation),
@@ -4860,6 +4864,22 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     SourceInformation sourceInformation =
         _sourceInformationBuilder.buildCall(invocation, invocation);
     push(HLoadType.type(type, _abstractValueDomain.dynamicType)
+      ..sourceInformation = sourceInformation);
+  }
+
+  void _handleForeignCreateJsSentinel(ir.StaticInvocation invocation) {
+    SourceInformation sourceInformation =
+        _sourceInformationBuilder.buildCall(invocation, invocation);
+    stack.add(graph.addConstantLateSentinel(closedWorld,
+        sourceInformation: sourceInformation));
+  }
+
+  void _handleForeignIsJsSentinel(ir.StaticInvocation invocation) {
+    SourceInformation sourceInformation =
+        _sourceInformationBuilder.buildCall(invocation, invocation);
+    HInstruction checkedExpression =
+        _visitPositionalArguments(invocation.arguments).single;
+    push(HIsLateSentinel(checkedExpression, _abstractValueDomain.boolType)
       ..sourceInformation = sourceInformation);
   }
 

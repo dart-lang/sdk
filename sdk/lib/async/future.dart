@@ -698,6 +698,80 @@ abstract class Future<T> {
   Future<T> timeout(Duration timeLimit, {FutureOr<T> onTimeout()?});
 }
 
+/// Convenience methods on futures.
+///
+/// Adds functionality to futures which makes it easier to
+/// write well-typed asynchronous code.
+@Since("2.12")
+extension FutureExtensions<T> on Future<T> {
+  /// Handles errors on this future.
+  ///
+  /// Catches errors of type [E] that this future complete with.
+  /// If [test] is supplied, only catches errors of type [E]
+  /// where [test] returns `true`.
+  /// If [E] is [Object], then all errors are potentially caught,
+  /// depending only on a supplied [test].toString()
+  ///
+  /// If the error is caught,
+  /// the returned future completes with the result of calling [handleError]
+  /// with the error and stack trace.
+  /// This result must be a value of the same type that this future
+  /// could otherwise complete with.
+  /// For example, if this future cannot complete with `null`,
+  /// then [handleError] also cannot return `null`.
+  /// Example:
+  /// ```dart
+  /// Future<T> retryOperation<T>(Future<T> operation(), T onFailure()) =>
+  ///     operation().onError<RetryException>((e, s) {
+  ///       if (e.canRetry) {
+  ///         return retryOperation(operation, onFailure);
+  ///       }
+  ///       return onFailure();
+  ///     });
+  /// ```
+  ///
+  /// If [handleError] throws, the returned future completes
+  /// with the thrown error and stack trace,
+  /// except that if it throws the *same* error object again,
+  /// then it is considered a "rethrow"
+  /// and the original stack trace is retained.
+  /// This can be used as an alternative to skipping the
+  /// error in [test].
+  /// Example:
+  /// ```dart
+  /// // Unwraps an an exceptions cause, if it has one.
+  /// someFuture.onError<SomeException>((e, _) {
+  ///   throw e.cause ?? e;
+  /// });
+  /// // vs.
+  /// someFuture.onError<SomeException>((e, _) {
+  ///   throw e.cause!;
+  /// }, test: (e) => e.cause != null);
+  /// ```
+  ///
+  /// If the error is not caught, the returned future
+  /// completes with the same result, value or error,
+  /// as this future.
+  ///
+  /// This method is effectively a more precisely typed version
+  /// of [Future.catchError].
+  /// It makes it easy to catch specific error types,
+  /// and requires a correctly typed error handler function,
+  /// rather than just [Function].
+  /// Because of this, the error handlers must accept
+  /// the stack trace argument.
+  Future<T> onError<E extends Object>(
+      FutureOr<T> handleError(E error, StackTrace stackTrace),
+      {bool test(E error)?}) {
+    // There are various ways to optimize this to avoid the double is E/as E
+    // type check, but for now we are not optimizing the error path.
+    return this.catchError(
+        (Object error, StackTrace stackTrace) =>
+            handleError(error as E, stackTrace),
+        test: (Object error) => error is E && (test == null || test(error)));
+  }
+}
+
 /// Thrown when a scheduled timeout happens while waiting for an async result.
 class TimeoutException implements Exception {
   /// Description of the cause of the timeout.

@@ -46,6 +46,8 @@ class AstBinaryReader {
         return _readAssertInitializer();
       case Tag.AssignmentExpression:
         return _readAssignmentExpression();
+      case Tag.AwaitExpression:
+        return _readAwaitExpression();
       case Tag.BinaryExpression:
         return _readBinaryExpression();
       case Tag.BooleanLiteral:
@@ -307,6 +309,11 @@ class AstBinaryReader {
       Tokens.fromType(operatorType),
       rightHandSide,
     );
+  }
+
+  AwaitExpression _readAwaitExpression() {
+    var expression = readNode() as Expression;
+    return astFactory.awaitExpression(Tokens.AWAIT, expression);
   }
 
   BinaryExpression _readBinaryExpression() {

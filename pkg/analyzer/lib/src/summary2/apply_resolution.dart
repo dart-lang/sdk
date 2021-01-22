@@ -141,6 +141,15 @@ class ApplyResolutionVisitor extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitAwaitExpression(AwaitExpression node) {
+    _expectMarker(MarkerTag.AwaitExpression_expression);
+    node.expression.accept(this);
+    _expectMarker(MarkerTag.AwaitExpression_expression2);
+    _expression(node);
+    _expectMarker(MarkerTag.AwaitExpression_end);
+  }
+
+  @override
   void visitBinaryExpression(BinaryExpression node) {
     _expectMarker(MarkerTag.BinaryExpression_leftOperand);
     node.leftOperand.accept(this);

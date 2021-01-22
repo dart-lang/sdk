@@ -257,8 +257,10 @@ class CollectionTransformer extends Transformer {
           ? elseStatements.first
           : _createBlock(elseStatements);
     }
-    body.add(_createIf(element.fileOffset,
-        element.condition.accept<TreeNode>(this), thenBody, elseBody));
+    IfStatement ifStatement = _createIf(element.fileOffset,
+        element.condition.accept<TreeNode>(this), thenBody, elseBody);
+    _dataForTesting?.registerAlias(element, ifStatement);
+    body.add(ifStatement);
   }
 
   void _translateForElement(
@@ -510,8 +512,10 @@ class CollectionTransformer extends Transformer {
       elseStatement =
           elseBody.length == 1 ? elseBody.first : _createBlock(elseBody);
     }
-    body.add(_createIf(entry.fileOffset, entry.condition.accept<TreeNode>(this),
-        thenStatement, elseStatement));
+    IfStatement ifStatement = _createIf(entry.fileOffset,
+        entry.condition.accept<TreeNode>(this), thenStatement, elseStatement);
+    _dataForTesting?.registerAlias(entry, ifStatement);
+    body.add(ifStatement);
   }
 
   void _translateForEntry(

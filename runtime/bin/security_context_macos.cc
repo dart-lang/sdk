@@ -136,6 +136,7 @@ static ssl_verify_result_t CertificateVerificationCallback(SSL* ssl,
   int current_cert = 0;
   cert_chain.set(CFArrayCreateMutable(NULL, num_certs, NULL));
   X509* ca;
+  // Look for the last certificate in the chain - it's a root certificate.
   while ((ca = sk_X509_shift(unverified)) != NULL) {
     ScopedSecCertificateRef cert(CreateSecCertificateFromX509(ca));
     if (cert == NULL) {
@@ -145,9 +146,12 @@ static ssl_verify_result_t CertificateVerificationCallback(SSL* ssl,
     ++current_cert;
 
     if (current_cert == num_certs) {
-      root_cert = ca;
+      break;
     }
   }
+  ASSERT(current_cert == num_certs);
+  root_cert = ca;
+  X509_up_ref(ca);
 
   SSL_CTX* ssl_ctx = SSL_get_SSL_CTX(ssl);
   X509_STORE* store = SSL_CTX_get_cert_store(ssl_ctx);

@@ -2214,8 +2214,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
       return type;
     } catch (exception, stackTrace) {
-      listener.reportException(source, node, exception, stackTrace);
-      return null;
+      if (listener != null) {
+        listener.reportException(source, node, exception, stackTrace);
+        return null;
+      } else {
+        rethrow;
+      }
     }
   }
 
@@ -3038,16 +3042,16 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
   }
 
-  DecoratedType _handleTarget(Expression target, String name, Element method) {
+  DecoratedType _handleTarget(Expression target, String name, Element callee) {
     if (isDeclaredOnObject(name)) {
       return _dispatch(target);
-    } else if (method is MethodElement &&
-        method.enclosingElement is ExtensionElement) {
+    } else if ((callee is MethodElement || callee is PropertyAccessorElement) &&
+        callee.enclosingElement is ExtensionElement) {
       // Extension methods can be called on a `null` target, when the `on` type
       // of the extension is nullable.
       return _handleAssignment(target,
           destinationType:
-              _variables.decoratedElementType(method.enclosingElement));
+              _variables.decoratedElementType(callee.enclosingElement));
     } else {
       return _checkExpressionNotNull(target);
     }

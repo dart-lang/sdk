@@ -4,7 +4,9 @@
 
 // @dart = 2.9
 
-/*library: scope=[GeneralGeneric]*/
+/*library: scope=[
+  GeneralGeneric,
+  async.dart.FutureExtensions]*/
 
 /*class: GeneralGeneric:
  builder-name=GeneralGeneric,

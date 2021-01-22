@@ -1189,7 +1189,8 @@ class InferenceVisitor
         variableGet.promotedType = nonNullableLhsType;
       }
       ConditionalExpression conditional = new ConditionalExpression(
-          equalsNull, rhsResult.expression, variableGet, inferredType);
+          equalsNull, rhsResult.expression, variableGet, inferredType)
+        ..fileOffset = node.fileOffset;
       replacement = new Let(variable, conditional)
         ..fileOffset = node.fileOffset;
     }
@@ -5664,7 +5665,8 @@ class InferenceVisitor
       Expression readEqualsNull =
           inferrer.createEqualsNull(node.readOffset, read, readEqualsMember);
       replacement = new ConditionalExpression(readEqualsNull, write,
-          new NullLiteral()..fileOffset = node.writeOffset, inferredType);
+          new NullLiteral()..fileOffset = node.writeOffset, inferredType)
+        ..fileOffset = node.writeOffset;
     } else {
       // Encode `receiver?.name ??= value` as:
       //
@@ -5684,7 +5686,8 @@ class InferenceVisitor
         variableGet.promotedType = nonNullableReadType;
       }
       ConditionalExpression condition = new ConditionalExpression(
-          readEqualsNull, write, variableGet, inferredType);
+          readEqualsNull, write, variableGet, inferredType)
+        ..fileOffset = receiverVariable.fileOffset;
       replacement = createLet(readVariable, condition);
     }
 

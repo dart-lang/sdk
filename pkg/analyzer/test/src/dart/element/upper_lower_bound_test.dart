@@ -3092,6 +3092,63 @@ class UpperBoundTest extends _BoundsTestBase {
     );
   }
 
+  void test_typeParameter_greatestClosure_functionBounded() {
+    var T = typeParameter('T');
+    var T_none = typeParameterTypeNone(T);
+    T.bound = functionTypeNone(
+      returnType: voidNone,
+      parameters: [
+        requiredParameter(type: T_none),
+      ],
+    );
+
+    _checkLeastUpperBound(
+      T_none,
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          requiredParameter(type: nullNone),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          requiredParameter(type: neverNone),
+        ],
+      ),
+    );
+  }
+
+  void test_typeParameter_greatestClosure_functionPromoted() {
+    var T = typeParameter('T');
+    var T_none = typeParameterTypeNone(T);
+    var T_none_promoted = typeParameterTypeNone(
+      T,
+      promotedBound: functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          requiredParameter(type: T_none),
+        ],
+      ),
+    );
+
+    _checkLeastUpperBound(
+      T_none_promoted,
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          requiredParameter(type: nullNone),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          requiredParameter(type: neverNone),
+        ],
+      ),
+    );
+  }
+
   void test_typeParameter_interface_bounded() {
     var A = class_(name: 'A');
     var A_none = interfaceTypeNone(A);

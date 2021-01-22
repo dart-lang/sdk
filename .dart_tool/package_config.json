@@ -632,7 +632,7 @@
       "name": "sync_http",
       "rootUri": "../third_party/pkg/sync_http",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.12"
     },
     {
       "name": "telemetry",

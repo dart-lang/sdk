@@ -19,6 +19,7 @@ import '../js_emitter/code_emitter_task.dart';
 import '../js_model/type_recipe.dart' show TypeExpressionRecipe;
 import '../options.dart';
 import 'field_analysis.dart' show JFieldAnalysis;
+import 'namer.dart';
 import 'runtime_types_new.dart' show RecipeEncoder;
 import 'runtime_types_resolution.dart';
 
@@ -31,8 +32,9 @@ typedef jsAst.Expression _ConstantListGenerator(jsAst.Expression array);
 class ModularConstantEmitter
     implements ConstantValueVisitor<jsAst.Expression, Null> {
   final CompilerOptions _options;
+  final ModularNamer _namer;
 
-  ModularConstantEmitter(this._options);
+  ModularConstantEmitter(this._options, this._namer);
 
   /// Constructs a literal expression that evaluates to the constant. Uses a
   /// canonical name unless the constant can be emitted multiple times (as for
@@ -159,6 +161,10 @@ class ModularConstantEmitter
   }
 
   @override
+  jsAst.Expression visitLateSentinel(LateSentinelConstantValue constant, [_]) =>
+      js('#', _namer.staticStateHolder);
+
+  @override
   jsAst.Expression visitUnreachable(UnreachableConstantValue constant, [_]) {
     // Unreachable constants should be rare in generated code, so we use
     // `undefined` encoded as `void 1' to make them distinctive.
@@ -226,6 +232,7 @@ class ConstantEmitter extends ModularConstantEmitter {
   /// can be inlined.
   ConstantEmitter(
       CompilerOptions options,
+      ModularNamer _namer,
       this._commonElements,
       this._elementEnvironment,
       this._rtiNeed,
@@ -234,7 +241,7 @@ class ConstantEmitter extends ModularConstantEmitter {
       this._emitter,
       this._constantReferenceGenerator,
       this._makeConstantList)
-      : super(options);
+      : super(options, _namer);
 
   @override
   jsAst.Expression visitList(ListConstantValue constant, [_]) {

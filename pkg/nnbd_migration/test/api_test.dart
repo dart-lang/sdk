@@ -2289,7 +2289,6 @@ int f(int? x) => x!.plusOne;
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/42529')
   Future<void> test_extension_nullable_target() async {
     var content = '''
 extension E on int {
@@ -2507,7 +2506,6 @@ int? f(int x) => E(x).nullValue;
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/42529')
   Future<void> test_extension_override_nullable_target() async {
     var content = '''
 extension E on int {

@@ -163,4 +163,6 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   ///
   /// This is needed for type promotion.
   void registerVariableAssignment(VariableDeclaration variable);
+
+  void registerVariableDeclaration(VariableDeclaration variable);
 }

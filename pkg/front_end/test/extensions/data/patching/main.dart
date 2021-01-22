@@ -4,7 +4,10 @@
 
 // @dart = 2.9
 
-/*library: scope=[origin.dart.Extension,origin.dart.GenericExtension]*/
+/*library: scope=[
+  async.dart.FutureExtensions,
+  origin.dart.Extension,
+  origin.dart.GenericExtension]*/
 
 // ignore: uri_does_not_exist
 import 'dart:test';

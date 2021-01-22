@@ -28,8 +28,6 @@ mixin AssistsMixin implements ServerPlugin {
   @override
   Future<EditGetAssistsResult> handleEditGetAssists(
       EditGetAssistsParams parameters) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var path = parameters.file;
     var request = await getAssistRequest(parameters);
     var generator = AssistGenerator(getAssistContributors(path));
@@ -50,8 +48,6 @@ abstract class DartAssistsMixin implements AssistsMixin {
   @override
   Future<AssistRequest> getAssistRequest(
       EditGetAssistsParams parameters) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var path = parameters.file;
     var result = await getResolvedUnitResult(path);
     return DartAssistRequestImpl(

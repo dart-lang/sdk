@@ -4,7 +4,8 @@
 
 /*library: scope=[
   Extension,
-  _extension#0]*/
+  _extension#0,
+  async.dart.FutureExtensions]*/
 
 part 'part.dart';
 

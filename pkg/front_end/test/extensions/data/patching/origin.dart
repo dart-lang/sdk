@@ -4,7 +4,10 @@
 
 // @dart = 2.9
 
-/*library: scope=[Extension,GenericExtension]*/
+/*library: scope=[
+  Extension,
+  GenericExtension,
+  async.dart.FutureExtensions]*/
 
 /*class: Extension:
  builder-name=Extension,

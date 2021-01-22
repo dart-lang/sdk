@@ -298,9 +298,14 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     }
     uint8_t* application_kernel_buffer = NULL;
     intptr_t application_kernel_buffer_size = 0;
+    // Only pass snapshot = true when generating an AppJIT snapshot to avoid
+    // duplicate null-safety info messages from the frontend when generating
+    // a kernel snapshot (this flag is instead set in
+    // Snapshot::GenerateKernel()).
+    const bool snapshot = Options::gen_snapshot_kind() == kAppJIT;
     dfe.CompileAndReadScript(script_uri, &application_kernel_buffer,
                              &application_kernel_buffer_size, error, exit_code,
-                             resolved_packages_config);
+                             resolved_packages_config, snapshot);
     if (application_kernel_buffer == NULL) {
       Dart_ExitScope();
       Dart_ShutdownIsolate();

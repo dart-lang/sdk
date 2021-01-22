@@ -66,6 +66,7 @@ abstract class HVisitor<R> {
   R visitInvokeSuper(HInvokeSuper node);
   R visitInvokeConstructorBody(HInvokeConstructorBody node);
   R visitInvokeGeneratorBody(HInvokeGeneratorBody node);
+  R visitIsLateSentinel(HIsLateSentinel node);
   R visitLateValue(HLateValue node);
   R visitLazyStatic(HLazyStatic node);
   R visitLess(HLess node);
@@ -339,6 +340,11 @@ class HGraph {
     return addConstant(UnreachableConstantValue(), closedWorld);
   }
 
+  HConstant addConstantLateSentinel(JClosedWorld closedWorld,
+          {SourceInformation sourceInformation}) =>
+      addConstant(LateSentinelConstantValue(), closedWorld,
+          sourceInformation: sourceInformation);
+
   void finalize(AbstractValueDomain domain) {
     addBlock(exit);
     exit.open();
@@ -576,6 +582,8 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitTruncatingDivide(HTruncatingDivide node) => visitBinaryArithmetic(node);
   @override
   visitTry(HTry node) => visitControlFlow(node);
+  @override
+  visitIsLateSentinel(HIsLateSentinel node) => visitInstruction(node);
   @override
   visitLateValue(HLateValue node) => visitInstruction(node);
   @override
@@ -1092,6 +1100,8 @@ abstract class HInstruction implements Spannable {
   static const int INSTANCE_ENVIRONMENT_TYPECODE = 55;
   static const int TYPE_EVAL_TYPECODE = 56;
   static const int TYPE_BIND_TYPECODE = 57;
+
+  static const int IS_LATE_SENTINEL_TYPECODE = 58;
 
   HInstruction(this.inputs, this.instructionType) {
     assert(inputs.every((e) => e != null), "inputs: $inputs");
@@ -4512,4 +4522,26 @@ class HTypeBind extends HRtiInstruction {
 
   @override
   String toString() => 'HTypeBind()';
+}
+
+class HIsLateSentinel extends HInstruction {
+  HIsLateSentinel(HInstruction value, AbstractValue type)
+      : super([value], type) {
+    setUseGvn();
+  }
+
+  @override
+  accept(HVisitor visitor) => visitor.visitIsLateSentinel(this);
+
+  @override
+  int typeCode() => HInstruction.IS_LATE_SENTINEL_TYPECODE;
+
+  @override
+  bool typeEquals(HInstruction other) => other is HIsLateSentinel;
+
+  @override
+  bool dataEquals(HIsLateSentinel other) => true;
+
+  @override
+  String toString() => 'HIsLateSentinel()';
 }

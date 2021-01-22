@@ -7,9 +7,9 @@ cStyle(int a, int b, int c, int d) {
   [/*assigned={b, c, d}*/ for (a = 0; (b = 0) != 0; c = 0) (d = 0)];
 }
 
-/*member: cStyle_unparenthesized:declared={a, b, c, d, e}, assigned={a, b, d, e}*/
+/*member: cStyle_unparenthesized:declared={a, b, c, d, e}, read={c}, assigned={a, b, d, e}*/
 cStyle_unparenthesized(int a, bool b, bool c, int d, int e) {
-  [/*assigned={b, d, e}*/ for (a = 0; b = c; d = 0) e = 0];
+  [/*read={c}, assigned={b, d, e}*/ for (a = 0; b = c; d = 0) e = 0];
 }
 
 /*member: cStyleWithDeclaration:declared={a, b, c, d, e}, assigned={a, b, c, d}*/
@@ -17,9 +17,9 @@ cStyleWithDeclaration(int a, int b, int c, int d) {
   [/*assigned={b, c, d}*/ for (int e = (a = 0); (b = 0) != 0; c = 0) (d = 0)];
 }
 
-/*member: cStyleWithDeclaration_unparenthesized:declared={a, b, c, d, e, f}, assigned={a, b, d, e}*/
+/*member: cStyleWithDeclaration_unparenthesized:declared={a, b, c, d, e, f}, read={c}, assigned={a, b, d, e}*/
 cStyleWithDeclaration_unparenthesized(int a, bool b, bool c, int d, int e) {
-  [/*assigned={b, d, e}*/ for (int f = a = 0; b = c; d = 0) e = 0];
+  [/*read={c}, assigned={b, d, e}*/ for (int f = a = 0; b = c; d = 0) e = 0];
 }
 
 /*member: forEach:declared={a, b, c}, assigned={a, b, c}*/

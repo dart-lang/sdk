@@ -4421,7 +4421,8 @@ class NullAwareGuard {
         equalsNull,
         new NullLiteral()..fileOffset = _nullAwareFileOffset,
         nullAwareAction,
-        inferredType);
+        inferredType)
+      ..fileOffset = _nullAwareFileOffset;
     return new Let(_nullAwareVariable, condition)
       ..fileOffset = _nullAwareFileOffset;
   }

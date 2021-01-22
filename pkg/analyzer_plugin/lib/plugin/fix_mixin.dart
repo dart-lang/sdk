@@ -21,8 +21,6 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 mixin DartFixesMixin implements FixesMixin {
   @override
   Future<FixesRequest> getFixesRequest(EditGetFixesParams parameters) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var path = parameters.file;
     var offset = parameters.offset;
     var result = await getResolvedUnitResult(path);
@@ -59,8 +57,6 @@ mixin FixesMixin implements ServerPlugin {
   @override
   Future<EditGetFixesResult> handleEditGetFixes(
       EditGetFixesParams parameters) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var path = parameters.file;
     var request = await getFixesRequest(parameters);
     var generator = FixGenerator(getFixContributors(path));

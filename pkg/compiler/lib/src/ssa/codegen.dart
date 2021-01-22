@@ -642,7 +642,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   List<js.Expression> visitArguments(List<HInstruction> inputs,
       {int start: HInvoke.ARGUMENTS_OFFSET}) {
     assert(inputs.length >= start);
-    List<js.Expression> result = new List<js.Expression>.filled(inputs.length - start, null);
+    List<js.Expression> result =
+        new List<js.Expression>.filled(inputs.length - start, null);
     for (int i = start; i < inputs.length; i++) {
       use(inputs[i]);
       result[i - start] = pop();
@@ -2564,6 +2565,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         use(input.inputs[0]);
       } else if (input is HIdentity) {
         emitIdentityComparison(input, sourceInformation, inverse: true);
+      } else if (input is HIsLateSentinel) {
+        _emitIsLateSentinel(input, sourceInformation, inverse: true);
       } else if (canGenerateOptimizedComparison(input)) {
         HRelational relational = input;
         constant_system.BinaryOperation operation = relational.operation();
@@ -2710,7 +2713,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       assert(over != null || under != null);
       js.Expression underOver = under == null
           ? over
-          : over == null ? under : new js.Binary("||", under, over);
+          : over == null
+              ? under
+              : new js.Binary("||", under, over);
       js.Statement thenBody = new js.Block.empty();
       js.Block oldContainer = currentContainer;
       currentContainer = thenBody;
@@ -3272,4 +3277,18 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     _registry.registerStaticUse(
         new StaticUse.directInvoke(method, selector.callStructure, null));
   }
+
+  _emitIsLateSentinel(HIsLateSentinel node, SourceInformation sourceInformation,
+      {inverse: false}) {
+    use(node.inputs[0]);
+    js.Expression value = pop();
+    js.Expression sentinel =
+        _emitter.constantReference(LateSentinelConstantValue());
+    push(js.Binary(mapRelationalOperator('===', inverse), value, sentinel)
+        .withSourceInformation(sourceInformation));
+  }
+
+  @override
+  visitIsLateSentinel(HIsLateSentinel node) =>
+      _emitIsLateSentinel(node, node.sourceInformation);
 }

@@ -450,6 +450,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
+  void registerVariableDeclaration(VariableDeclaration variable) {
+    typeInferrer?.assignedVariables?.declare(variable);
+  }
+
+  @override
   void push(Object node) {
     if (node is DartType) {
       unhandled("DartType", "push", -1, uri);
@@ -1692,6 +1697,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
       VariableDeclaration variable =
           forest.createVariableDeclarationForValue(expression);
+      registerVariableDeclaration(variable);
       push(new Cascade(variable, isNullAware: isNullAware)
         ..fileOffset = expression.fileOffset);
       push(_createReadOnlyVariableAccess(variable, token, expression.fileOffset,
@@ -1725,9 +1731,15 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   void beginBinaryExpression(Token token) {
-    if (optional("&&", token) || optional("||", token)) {
+    bool isAnd = optional("&&", token);
+    if (isAnd || optional("||", token)) {
       Expression lhs = popForValue();
       typePromoter?.enterLogicalExpression(lhs, token.stringValue);
+      // This is matched by the call to [endNode] in
+      // [doLogicalExpression].
+      if (isAnd) {
+        typeInferrer?.assignedVariables?.beginNode();
+      }
       push(lhs);
     }
   }
@@ -1812,6 +1824,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         offsetForToken(token), receiver, token.stringValue, argument);
     typePromoter?.exitLogicalExpression(argument, logicalExpression);
     push(logicalExpression);
+    if (optional("&&", token)) {
+      // This is matched by the call to [beginNode] in
+      // [beginBinaryExpression].
+      typeInferrer?.assignedVariables?.endNode(logicalExpression);
+    }
   }
 
   /// Handle `a ?? b`.
@@ -2028,6 +2045,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   VariableGet createVariableGet(VariableDeclaration variable, int charOffset,
       {bool forNullGuardedAccess: false}) {
+    if (!(variable as VariableDeclarationImpl).isLocalFunction) {
+      typeInferrer?.assignedVariables?.read(variable);
+    }
     Object fact =
         typePromoter?.getFactForAccess(variable, functionNestingLevel);
     Object scope = typePromoter?.currentScope;
@@ -2395,6 +2415,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void beginThenStatement(Token token) {
     Expression condition = popForValue();
     enterThenForTypePromotion(condition);
+    // This is matched by the call to [deferNode] in
+    // [endThenStatement].
+    typeInferrer?.assignedVariables?.beginNode();
     push(condition);
     super.beginThenStatement(token);
   }
@@ -2403,16 +2426,26 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void endThenStatement(Token token) {
     typePromoter?.enterElse();
     super.endThenStatement(token);
+    // This is matched by the call to [beginNode] in
+    // [beginThenStatement] and by the call to [storeInfo] in
+    // [endIfStatement].
+    push(typeInferrer?.assignedVariables?.deferNode());
   }
 
   @override
   void endIfStatement(Token ifToken, Token elseToken) {
     Statement elsePart = popStatementIfNotNull(elseToken);
+    AssignedVariablesNodeInfo<VariableDeclaration> assignedVariablesInfo =
+        pop();
     Statement thenPart = popStatement();
     Expression condition = pop();
     typePromoter?.exitConditional();
-    push(forest.createIfStatement(
-        offsetForToken(ifToken), condition, thenPart, elsePart));
+    Statement node = forest.createIfStatement(
+        offsetForToken(ifToken), condition, thenPart, elsePart);
+    // This is matched by the call to [deferNode] in
+    // [endThenStatement].
+    typeInferrer?.assignedVariables?.storeInfo(node, assignedVariablesInfo);
+    push(node);
   }
 
   @override
@@ -3456,6 +3489,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void beginConditionalExpression(Token question) {
     Expression condition = popForValue();
     typePromoter?.enterThen(condition);
+    // This is matched by the call to [deferNode] in
+    // [handleConditionalExpressionColon].
+    typeInferrer?.assignedVariables?.beginNode();
     push(condition);
     super.beginConditionalExpression(question);
   }
@@ -3464,6 +3500,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void handleConditionalExpressionColon() {
     Expression then = popForValue();
     typePromoter?.enterElse();
+    // This is matched by the call to [beginNode] in
+    // [beginConditionalExpression] and by the call to [storeInfo] in
+    // [endConditionalExpression].
+    push(typeInferrer?.assignedVariables?.deferNode());
     push(then);
     super.handleConditionalExpressionColon();
   }
@@ -3473,10 +3513,16 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("ConditionalExpression");
     Expression elseExpression = popForValue();
     Expression thenExpression = pop();
+    AssignedVariablesNodeInfo<VariableDeclaration> assignedVariablesInfo =
+        pop();
     Expression condition = pop();
     typePromoter?.exitConditional();
-    push(forest.createConditionalExpression(
-        offsetForToken(question), condition, thenExpression, elseExpression));
+    Expression node = forest.createConditionalExpression(
+        offsetForToken(question), condition, thenExpression, elseExpression);
+    push(node);
+    // This is matched by the call to [deferNode] in
+    // [handleConditionalExpressionColon].
+    typeInferrer?.assignedVariables?.storeInfo(node, assignedVariablesInfo);
   }
 
   @override
@@ -4618,6 +4664,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void handleThenControlFlow(Token token) {
     Expression condition = popForValue();
     enterThenForTypePromotion(condition);
+    // This is matched by the call to [deferNode] in
+    // [handleElseControlFlow] and by the call to [endNode] in
+    // [endIfControlFlow].
+    typeInferrer?.assignedVariables?.beginNode();
     push(condition);
     super.handleThenControlFlow(token);
   }
@@ -4628,6 +4678,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     // happens before we go into the else block.
     Object node = pop();
     if (node is! MapEntry) node = toValue(node);
+    // This is matched by the call to [beginNode] in
+    // [handleThenControlFlow] and by the call to [storeInfo] in
+    // [endIfElseControlFlow].
+    push(typeInferrer?.assignedVariables?.deferNode());
     push(node);
     typePromoter?.enterElse();
   }
@@ -4640,15 +4694,20 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Token ifToken = pop();
 
     transformCollections = true;
+    TreeNode node;
     if (entry is MapEntry) {
-      push(forest.createIfMapEntry(
-          offsetForToken(ifToken), toValue(condition), entry));
+      node = forest.createIfMapEntry(
+          offsetForToken(ifToken), toValue(condition), entry);
     } else {
-      push(forest.createIfElement(
-          offsetForToken(ifToken), toValue(condition), toValue(entry)));
+      node = forest.createIfElement(
+          offsetForToken(ifToken), toValue(condition), toValue(entry));
     }
+    push(node);
     typePromoter?.enterElse();
     typePromoter?.exitConditional();
+    // This is matched by the call to [beginNode] in
+    // [handleThenControlFlow].
+    typeInferrer?.assignedVariables?.endNode(node);
   }
 
   @override
@@ -4656,72 +4715,79 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("endIfElseControlFlow");
     Object elseEntry = pop(); // else entry
     Object thenEntry = pop(); // then entry
+    AssignedVariablesNodeInfo<VariableDeclaration> assignedVariablesInfo =
+        pop();
     Object condition = pop(); // parenthesized expression
     Token ifToken = pop();
     typePromoter?.exitConditional();
 
     transformCollections = true;
+    TreeNode node;
     if (thenEntry is MapEntry) {
       if (elseEntry is MapEntry) {
-        push(forest.createIfMapEntry(
-            offsetForToken(ifToken), toValue(condition), thenEntry, elseEntry));
+        node = forest.createIfMapEntry(
+            offsetForToken(ifToken), toValue(condition), thenEntry, elseEntry);
       } else if (elseEntry is ControlFlowElement) {
         MapEntry elseMapEntry =
             elseEntry.toMapEntry(typeInferrer?.assignedVariables?.reassignInfo);
         if (elseMapEntry != null) {
-          push(forest.createIfMapEntry(offsetForToken(ifToken),
-              toValue(condition), thenEntry, elseMapEntry));
+          node = forest.createIfMapEntry(offsetForToken(ifToken),
+              toValue(condition), thenEntry, elseMapEntry);
         } else {
           int offset = elseEntry is Expression
               ? elseEntry.fileOffset
               : offsetForToken(ifToken);
-          push(new MapEntry(
+          node = new MapEntry(
               buildProblem(
                   fasta.messageCantDisambiguateAmbiguousInformation, offset, 1),
               new NullLiteral())
-            ..fileOffset = offsetForToken(ifToken));
+            ..fileOffset = offsetForToken(ifToken);
         }
       } else {
         int offset = elseEntry is Expression
             ? elseEntry.fileOffset
             : offsetForToken(ifToken);
-        push(new MapEntry(
+        node = new MapEntry(
             buildProblem(fasta.templateExpectedAfterButGot.withArguments(':'),
                 offset, 1),
             new NullLiteral())
-          ..fileOffset = offsetForToken(ifToken));
+          ..fileOffset = offsetForToken(ifToken);
       }
     } else if (elseEntry is MapEntry) {
       if (thenEntry is ControlFlowElement) {
         MapEntry thenMapEntry =
             thenEntry.toMapEntry(typeInferrer?.assignedVariables?.reassignInfo);
         if (thenMapEntry != null) {
-          push(forest.createIfMapEntry(offsetForToken(ifToken),
-              toValue(condition), thenMapEntry, elseEntry));
+          node = forest.createIfMapEntry(offsetForToken(ifToken),
+              toValue(condition), thenMapEntry, elseEntry);
         } else {
           int offset = thenEntry is Expression
               ? thenEntry.fileOffset
               : offsetForToken(ifToken);
-          push(new MapEntry(
+          node = new MapEntry(
               buildProblem(
                   fasta.messageCantDisambiguateAmbiguousInformation, offset, 1),
               new NullLiteral())
-            ..fileOffset = offsetForToken(ifToken));
+            ..fileOffset = offsetForToken(ifToken);
         }
       } else {
         int offset = thenEntry is Expression
             ? thenEntry.fileOffset
             : offsetForToken(ifToken);
-        push(new MapEntry(
+        node = new MapEntry(
             buildProblem(fasta.templateExpectedAfterButGot.withArguments(':'),
                 offset, 1),
             new NullLiteral())
-          ..fileOffset = offsetForToken(ifToken));
+          ..fileOffset = offsetForToken(ifToken);
       }
     } else {
-      push(forest.createIfElement(offsetForToken(ifToken), toValue(condition),
-          toValue(thenEntry), toValue(elseEntry)));
+      node = forest.createIfElement(offsetForToken(ifToken), toValue(condition),
+          toValue(thenEntry), toValue(elseEntry));
     }
+    push(node);
+    // This is matched by the call to [deferNode] in
+    // [handleElseControlFlow].
+    typeInferrer?.assignedVariables?.storeInfo(node, assignedVariablesInfo);
   }
 
   @override
@@ -6253,6 +6319,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (isNullAware) {
       VariableDeclaration variable =
           forest.createVariableDeclarationForValue(receiver);
+      registerVariableDeclaration(variable);
       return new NullAwareMethodInvocation(
           variable,
           forest.createMethodInvocation(

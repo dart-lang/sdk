@@ -17,5 +17,5 @@ main() {
       Class c in
       /*cfe.as: Iterable<dynamic>*/
       /*cfe:nnbd.as: Iterable<dynamic>!*/
-      /*dynamic*/ o?. /*dynamic*/ iterable) {}
+      /*dynamic|dynamic*/ o?. /*dynamic*/ iterable) {}
 }

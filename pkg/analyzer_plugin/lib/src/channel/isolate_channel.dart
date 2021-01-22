@@ -181,8 +181,6 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
   Future<void> listen(void Function(Response response) onResponse,
       void Function(Notification notification) onNotification,
       {void Function(dynamic error) onError, void Function() onDone}) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     if (_isolate != null) {
       throw StateError('Cannot listen to the same channel more than once.');
     }

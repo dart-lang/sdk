@@ -19,8 +19,6 @@ import 'package:analyzer_plugin/utilities/highlights/highlights.dart';
 mixin DartHighlightsMixin implements HighlightsMixin {
   @override
   Future<HighlightsRequest> getHighlightsRequest(String path) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var result = await getResolvedUnitResult(path);
     return DartHighlightsRequestImpl(resourceProvider, result);
   }
@@ -44,8 +42,6 @@ mixin HighlightsMixin implements ServerPlugin {
 
   @override
   Future<void> sendHighlightsNotification(String path) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     try {
       var request = await getHighlightsRequest(path);
       var generator = HighlightsGenerator(getHighlightsContributors(path));
