@@ -461,36 +461,6 @@ Transfer-Encoding: chunked\r
     _testParseRequest(request, "POST", "/test",
         expectedTransferLength: -1, expectedBytesReceived: 10, chunked: true);
 
-    // Test mixing chunked encoding and content length (content length
-    // is ignored).
-    request = """
-POST /test HTTP/1.1\r
-Content-Length: 7\r
-Transfer-Encoding: chunked\r
-\r
-5\r
-01234\r
-5\r
-56789\r
-0\r\n\r\n""";
-    _testParseRequest(request, "POST", "/test",
-        expectedTransferLength: -1, expectedBytesReceived: 10, chunked: true);
-
-    // Test mixing chunked encoding and content length (content length
-    // is ignored).
-    request = """
-POST /test HTTP/1.1\r
-Transfer-Encoding: chunked\r
-Content-Length: 3\r
-\r
-5\r
-01234\r
-5\r
-56789\r
-0\r\n\r\n""";
-    _testParseRequest(request, "POST", "/test",
-        expectedTransferLength: -1, expectedBytesReceived: 10, chunked: true);
-
     // Test upper and lower case hex digits in chunked encoding.
     request = """
 POST /test HTTP/1.1\r
@@ -771,6 +741,32 @@ Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\r
     _testParseInvalidRequest(request);
 
     request = "GET / HTTP/1.1\r\nKeep-Alive: False\r\nbadheader\r\n\r\n";
+    _testParseInvalidRequest(request);
+
+    // Content-Length and "Transfer-Encoding: chunked" are specified (error
+    // per RFC-7320).
+    request = """
+POST /test HTTP/1.1\r
+Content-Length: 7\r
+Transfer-Encoding: chunked\r
+\r
+5\r
+01234\r
+5\r
+56789\r
+0\r\n\r\n""";
+    _testParseInvalidRequest(request);
+
+    request = """
+POST /test HTTP/1.1\r
+Transfer-Encoding: chunked\r
+Content-Length: 7\r
+\r
+5\r
+01234\r
+5\r
+56789\r
+0\r\n\r\n""";
     _testParseInvalidRequest(request);
   }
 

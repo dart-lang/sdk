@@ -684,11 +684,16 @@ class _HttpParser extends Stream<_HttpIncoming> {
           } else {
             String headerField = new String.fromCharCodes(_headerField);
             String headerValue = new String.fromCharCodes(_headerValue);
+            const errorIfBothText = "Both Content-Length and Transfer-Encoding "
+                "are specified, at most one is allowed";
             if (headerField == HttpHeaders.contentLengthHeader) {
               // Content Length header should not have more than one occurance
               // or coexist with Transfer Encoding header.
-              if (_contentLength || _transferEncoding) {
-                _statusCode = HttpStatus.badRequest;
+              if (_contentLength) {
+                throw HttpException("The Content-Length header occurred "
+                    "more than once, at most one is allowed.");
+              } else if (_transferEncoding) {
+                throw HttpException(errorIfBothText);
               }
               _contentLength = true;
             } else if (headerField == HttpHeaders.transferEncodingHeader) {
@@ -697,7 +702,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
                 _chunked = true;
               }
               if (_contentLength) {
-                _statusCode = HttpStatus.badRequest;
+                throw HttpException(errorIfBothText);
               }
             }
             var headers = _headers!;
