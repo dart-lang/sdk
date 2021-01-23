@@ -55,7 +55,7 @@ class _TestAssistContributor implements AssistContributor {
   _TestAssistContributor(this.changes);
 
   @override
-  void computeAssists(AssistRequest request, AssistCollector collector) {
+  Future<void> computeAssists(AssistRequest request, AssistCollector collector) async {
     for (var change in changes) {
       collector.addAssist(change);
     }

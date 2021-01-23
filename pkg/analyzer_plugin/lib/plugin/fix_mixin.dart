@@ -60,7 +60,7 @@ mixin FixesMixin implements ServerPlugin {
     var path = parameters.file;
     var request = await getFixesRequest(parameters);
     var generator = FixGenerator(getFixContributors(path));
-    var result = generator.generateFixesResponse(request);
+    var result = await generator.generateFixesResponse(request);
     result.sendNotifications(channel);
     return result.result;
   }
