@@ -61,7 +61,7 @@ class _TestFixContributor implements FixContributor {
   _TestFixContributor(this.changes);
 
   @override
-  void computeFixes(FixesRequest request, FixCollector collector) {
+  Future<void> computeFixes(FixesRequest request, FixCollector collector) async {
     for (var change in changes) {
       collector.addFix(request.errorsToFix[0], change);
     }
