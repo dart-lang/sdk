@@ -30,9 +30,10 @@ abstract class FixContributorMixin implements FixContributor {
     if (change.edits.isEmpty) {
       return;
     }
+    change.id = kind.id;
     change.message = formatList(kind.message, args);
     collector.addFix(
-        error, PrioritizedSourceChange(kind.priority, builder.sourceChange));
+        error, PrioritizedSourceChange(kind.priority, change));
   }
 
   @override
