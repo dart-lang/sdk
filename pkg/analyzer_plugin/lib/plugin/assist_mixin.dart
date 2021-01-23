@@ -31,7 +31,7 @@ mixin AssistsMixin implements ServerPlugin {
     var path = parameters.file;
     var request = await getAssistRequest(parameters);
     var generator = AssistGenerator(getAssistContributors(path));
-    var result = generator.generateAssistsResponse(request);
+    var result = await generator.generateAssistsResponse(request);
     result.sendNotifications(channel);
     return result.result;
   }
