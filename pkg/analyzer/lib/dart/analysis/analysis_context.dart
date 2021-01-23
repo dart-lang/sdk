@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 
@@ -26,6 +27,10 @@ abstract class AnalysisContext {
 
   /// Return the currently active analysis session.
   AnalysisSession get currentSession;
+
+  /// The root directory of the SDK against which files of this context are
+  /// analyzed, or `null` if the SDK is not directory based.
+  Folder get sdkRoot;
 
   /// Return the workspace for containing the context root.
   Workspace get workspace;

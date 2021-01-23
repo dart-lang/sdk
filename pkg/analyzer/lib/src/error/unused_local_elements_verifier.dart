@@ -343,8 +343,6 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
         _visitFieldElement(element);
       } else if (element is FunctionElement) {
         _visitFunctionElement(element);
-      } else if (element is FunctionTypeAliasElement) {
-        _visitFunctionTypeAliasElement(element);
       } else if (element is LocalVariableElement) {
         _visitLocalVariableElement(element);
       } else if (element is MethodElement) {
@@ -353,6 +351,8 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
         _visitPropertyAccessorElement(element);
       } else if (element is TopLevelVariableElement) {
         _visitTopLevelVariableElement(element);
+      } else if (element is TypeAliasElement) {
+        _visitTypeAliasElement(element);
       }
     }
   }
@@ -580,13 +580,6 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  void _visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
-    if (!_isUsedElement(element)) {
-      _reportErrorForElement(
-          HintCode.UNUSED_ELEMENT, element, [element.displayName]);
-    }
-  }
-
   void _visitLocalVariableElement(LocalVariableElement element) {
     if (!_isUsedElement(element) && !_isNamedUnderscore(element)) {
       HintCode errorCode;
@@ -616,6 +609,13 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _visitTopLevelVariableElement(TopLevelVariableElement element) {
+    if (!_isUsedElement(element)) {
+      _reportErrorForElement(
+          HintCode.UNUSED_ELEMENT, element, [element.displayName]);
+    }
+  }
+
+  void _visitTypeAliasElement(TypeAliasElement element) {
     if (!_isUsedElement(element)) {
       _reportErrorForElement(
           HintCode.UNUSED_ELEMENT, element, [element.displayName]);

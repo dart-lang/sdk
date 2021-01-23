@@ -13,6 +13,7 @@ export '../api_prototype/compiler_options.dart'
     show
         CompilerOptions,
         InvocationMode,
+        Verbosity,
         parseExperimentalArguments,
         parseExperimentalFlags;
 

@@ -1,0 +1,122 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+import "return_from_async_lib.dart" as ret;
+
+import "dart:async";
+import "org-dartlang-testcase:///return_from_async_lib.dart";
+
+abstract class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  abstract method throwFutureOrInt() → FutureOr<core::int>;
+  abstract method throwInt() → core::int;
+  abstract method throwFutureInt() → asy::Future<core::int>;
+  abstract method throwDynamic() → dynamic;
+  abstract method throwFutureNum() → asy::Future<core::num>;
+}
+static field core::bool caughtFutureOrInt = false;
+static field core::bool caughtInt = false;
+static field core::bool caughtFutureInt = false;
+static field core::bool caughtDynamic = false;
+static field core::bool caughtFutureNum = false;
+static method callFutureOrInt(self::Class c) → asy::Future<core::int> async {
+  try {
+    return let final FutureOr<core::int>#t1 = c.{self::Class::throwFutureOrInt}() in #t1 is asy::Future<core::int> ?{FutureOr<core::int>} await #t1 : #t1;
+  }
+  on core::Object catch(final core::Object e) {
+    core::print("Caught \"${e}\"");
+    self::caughtFutureOrInt = true;
+    return let final core::int #t2 = 0 in #t2 is asy::Future<core::int> ?{FutureOr<core::int>} await #t2 : #t2;
+  }
+}
+static method callInt(self::Class c) → asy::Future<core::int> async {
+  try {
+    return let final core::int #t3 = c.{self::Class::throwInt}() in #t3 is asy::Future<core::int> ?{FutureOr<core::int>} await #t3 : #t3;
+  }
+  on core::Object catch(final core::Object e) {
+    core::print("Caught \"${e}\"");
+    self::caughtInt = true;
+    return let final core::int #t4 = 0 in #t4 is asy::Future<core::int> ?{FutureOr<core::int>} await #t4 : #t4;
+  }
+}
+static method callFutureInt(self::Class c) → asy::Future<core::int> async {
+  try {
+    return let final asy::Future<core::int> #t5 = c.{self::Class::throwFutureInt}() in #t5 is asy::Future<core::int> ?{FutureOr<core::int>} await #t5 : #t5;
+  }
+  on core::Object catch(final core::Object e) {
+    core::print("Caught \"${e}\"");
+    self::caughtFutureInt = true;
+    return let final core::int #t6 = 0 in #t6 is asy::Future<core::int> ?{FutureOr<core::int>} await #t6 : #t6;
+  }
+}
+static method callDynamic(self::Class c) → asy::Future<core::int> async {
+  try {
+    return let final dynamic #t7 = c.{self::Class::throwDynamic}() as{TypeError,ForDynamic,ForNonNullableByDefault} FutureOr<core::int> in #t7 is asy::Future<core::int> ?{FutureOr<core::int>} await #t7 : #t7;
+  }
+  on core::Object catch(final core::Object e) {
+    core::print("Caught \"${e}\"");
+    self::caughtDynamic = true;
+    return let final core::int #t8 = 0 in #t8 is asy::Future<core::int> ?{FutureOr<core::int>} await #t8 : #t8;
+  }
+}
+static method callFutureNum(self::Class c) → asy::Future<core::num> async {
+  try {
+    return let final asy::Future<core::num> #t9 = c.{self::Class::throwFutureNum}() in #t9 is asy::Future<core::num> ?{FutureOr<core::num>} await #t9 : #t9;
+  }
+  on core::Object catch(final core::Object e) {
+    core::print("Caught \"${e}\"");
+    self::caughtFutureNum = true;
+    return let final core::int #t10 = 0 in #t10 is asy::Future<core::num> ?{FutureOr<core::num>} await #t10 : #t10;
+  }
+}
+static method main() → void async {
+  self::Class c = new ret::Subclass::•();
+  await self::callFutureOrInt(c);
+  if(!self::caughtFutureOrInt)
+    throw "Uncaught async return";
+  await self::callInt(c);
+  if(!self::caughtInt)
+    throw "Uncaught async return";
+  await self::callFutureInt(c);
+  if(!self::caughtFutureInt)
+    throw "Uncaught async return";
+  await self::callDynamic(c);
+  if(!self::caughtDynamic)
+    throw "Uncaught async return";
+  await self::callFutureNum(c);
+  if(!self::caughtFutureNum)
+    throw "Uncaught async return";
+}
+
+library /*isNonNullableByDefault*/;
+import self as ret;
+import "dart:core" as core;
+import "return_from_async.dart" as self;
+import "dart:async" as asy;
+
+import "dart:async";
+import "org-dartlang-testcase:///return_from_async.dart";
+
+class Subclass extends core::Object implements self::Class {
+  synthetic constructor •() → ret::Subclass
+    : super core::Object::•()
+    ;
+  method throwFutureOrInt() → FutureOr<core::int> async {
+    throw "FutureOr<int>";
+  }
+  method throwInt() → core::int {
+    throw "int";
+  }
+  method throwFutureInt() → asy::Future<core::int> async {
+    throw "Future<int>";
+  }
+  method throwDynamic() → dynamic {
+    throw "dynamic";
+  }
+  method throwFutureNum() → asy::Future<core::num> async {
+    throw "Future<num>";
+  }
+}

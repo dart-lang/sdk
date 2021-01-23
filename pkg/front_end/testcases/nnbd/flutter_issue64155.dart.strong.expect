@@ -21,7 +21,7 @@ abstract class TestMixin<R extends core::Object? = dynamic, T extends core::Obje
         else {
           throw core::Exception::•("Invalid response type");
         }
-    return result;
+    return let final self::TestMixin::T% #t1 = result in #t1 is asy::Future<self::TestMixin::T%> ?{FutureOr<self::TestMixin::T%>} await #t1 : #t1;
   }
 }
 class PagingResponse<T extends core::Object? = dynamic> extends core::Object {

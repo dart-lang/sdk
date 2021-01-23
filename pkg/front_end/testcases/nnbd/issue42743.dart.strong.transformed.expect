@@ -2,6 +2,7 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:async" as asy;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 
 static method main() → dynamic /* originally async */ {
   final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
@@ -28,12 +29,22 @@ static method main() → dynamic /* originally async */ {
           (core::Object, core::StackTrace) → dynamic :async_op_error;
           core::int :await_jump_var = 0;
           dynamic :await_ctx_var;
+          dynamic :saved_try_context_var0;
+          FutureOr<dynamic>:async_temporary_0;
           function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
             try {
               #L2:
               {
                 if(b) {
-                  :return_value = 42;
+                  final core::int #t1 = 42;
+                  if(#t1 is asy::Future<core::int?>) {
+                    [yield] let dynamic #t2 = asy::_awaitHelper(#t1, :async_op_then, :async_op_error, :async_op) in null;
+                    :async_temporary_0 = _in::unsafeCast<core::int>(:result);
+                  }
+                  else {
+                    :async_temporary_0 = #t1;
+                  }
+                  :return_value = :async_temporary_0;
                   break #L2;
                 }
               }

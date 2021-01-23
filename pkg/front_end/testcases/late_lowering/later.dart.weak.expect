@@ -154,7 +154,7 @@ static method hest() → dynamic async {
   await for (core::String s in asy::Stream::fromIterable<core::String>(<core::String>["hest"])) {
     core::print(s);
   }
-  return "hest";
+  return let final core::String #t8 = "hest" in #t8 is asy::Future<dynamic> ?{FutureOr<dynamic>} await #t8 : #t8;
 }
 static method fisk() → dynamic async {
   lowered core::String? #s1;
@@ -168,9 +168,9 @@ static method fisk() → dynamic async {
     }
     return #s1{core::String};
   }
-  function #s1#set(core::String #t8) → dynamic {
+  function #s1#set(core::String #t9) → dynamic {
     #s1#isSet = true;
-    return #s1 = #t8;
+    return #s1 = #t9;
   }
   lowered core::String? #s2;
   lowered core::bool #s2#isSet = false;
@@ -183,22 +183,22 @@ static method fisk() → dynamic async {
     }
     return #s2{core::String};
   }
-  function #s2#set(core::String #t9) → dynamic {
+  function #s2#set(core::String #t10) → dynamic {
     #s2#isSet = true;
-    return #s2 = #t9;
+    return #s2 = #t10;
   }
   lowered core::Function? #f;
   lowered core::bool #f#isSet = false;
   function #f#get() → core::Function {
     if(!#f#isSet) {
-      #f = () → asy::Future<dynamic> async => await self::hest();
+      #f = () → asy::Future<dynamic> async => let final dynamic #t11 = await self::hest() in #t11 is asy::Future<dynamic> ?{FutureOr<dynamic>} await #t11 : #t11;
       #f#isSet = true;
     }
     return #f{core::Function};
   }
-  function #f#set(core::Function #t10) → dynamic {
+  function #f#set(core::Function #t12) → dynamic {
     #f#isSet = true;
-    return #f = #t10;
+    return #f = #t12;
   }
 }
 static method main() → dynamic {}

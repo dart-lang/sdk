@@ -96,6 +96,7 @@ class Flags {
   static const String useNewSourceInfo = '--use-new-source-info';
   static const String useOldRti = '--use-old-rti';
   static const String verbose = '--verbose';
+  static const String verbosity = '--verbosity';
   static const String progress = '--show-internal-progress';
   static const String version = '--version';
   static const String reportMetrics = '--report-metrics';

@@ -156,14 +156,16 @@ class TextRepresentationDataExtractor extends CfeDataExtractor<String> {
 
   @override
   String computeMemberValue(Id id, Member node) {
-    if (node.name.text == 'stmtVariableDeclarationMulti') {
-      print(node);
-    }
     if (node.name.text.startsWith(expressionMarker)) {
       if (node is Procedure) {
         Statement body = node.function.body;
         if (body is ReturnStatement) {
           return body.expression.toText(strategy);
+        } else if (body is Block &&
+            body.statements.isNotEmpty &&
+            body.statements.first is ExpressionStatement) {
+          ExpressionStatement statement = body.statements.first;
+          return statement.expression.toText(strategy);
         }
       } else if (node is Field && node.initializer != null) {
         return node.initializer.toText(strategy);

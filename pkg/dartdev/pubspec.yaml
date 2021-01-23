@@ -17,6 +17,8 @@ dependencies:
   dart2native:
     path: ../dart2native
   dart_style: any
+  front_end:
+    path: ../front_end
   intl: any
   meta:
     path: ../meta

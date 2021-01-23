@@ -8,6 +8,7 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' show AnalysisDriver;
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptions;
 import 'package:analyzer/src/workspace/workspace.dart';
 
@@ -40,6 +41,15 @@ class DriverBasedAnalysisContext implements AnalysisContext {
 
   @override
   AnalysisSession get currentSession => driver.currentSession;
+
+  @override
+  Folder get sdkRoot {
+    var sdk = driver.sourceFactory.dartSdk;
+    if (sdk is FolderBasedDartSdk) {
+      return sdk.directory;
+    }
+    return null;
+  }
 
   @override
   Workspace get workspace {

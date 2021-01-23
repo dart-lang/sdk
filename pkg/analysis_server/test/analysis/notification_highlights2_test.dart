@@ -16,14 +16,13 @@ import '../analysis_abstract.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisNotificationHighlightsTest);
-    defineReflectiveTests(HighlightsWithControlFlowCollectionsTest);
-    defineReflectiveTests(HighlightsWithNullSafetyTest);
     defineReflectiveTests(HighlightTypeTest);
   });
 }
 
 @reflectiveTest
-class AnalysisNotificationHighlightsTest extends HighlightsTestSupport {
+class AnalysisNotificationHighlightsTest extends HighlightsTestSupport
+    with WithNullSafetyServerAnalysisMixin {
   Future<void> test_ANNOTATION_hasArguments() async {
     addTestFile('''
 class AAA {
@@ -97,6 +96,42 @@ main() async {
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.BUILT_IN, 'await 42');
     assertHasRegion(HighlightRegionType.BUILT_IN, 'await for');
+  }
+
+  Future<void> test_BUILT_IN_awaitForIn_list() async {
+    addTestFile('''
+f(a) async {
+  return [await for(var b in a) b];
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'await');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'for');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'in');
+  }
+
+  Future<void> test_BUILT_IN_awaitForIn_map() async {
+    addTestFile('''
+f(a) async {
+  return {await for(var b in a) b : 0};
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'await');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'for');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'in');
+  }
+
+  Future<void> test_BUILT_IN_awaitForIn_set() async {
+    addTestFile('''
+f(a) async {
+  return {await for(var b in a) b};
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'await');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'for');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'in');
   }
 
   Future<void> test_BUILT_IN_deferred() async {
@@ -704,6 +739,93 @@ class C = Object with A;
     assertHasRegion(HighlightRegionType.KEYWORD, 'with A;');
   }
 
+  Future<void> test_KEYWORD_const_list() async {
+    addTestFile('''
+var v = const [];
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'const');
+  }
+
+  Future<void> test_KEYWORD_const_map() async {
+    addTestFile('''
+var v = const {0 : 1};
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'const');
+  }
+
+  Future<void> test_KEYWORD_const_set() async {
+    addTestFile('''
+var v = const {0};
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'const');
+  }
+
+  Future<void> test_KEYWORD_if_list() async {
+    addTestFile('''
+f(a, b) {
+  return [if (a < b) 'a'];
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'if');
+  }
+
+  Future<void> test_KEYWORD_if_map() async {
+    addTestFile('''
+f(a, b) {
+  return {if (a < b) 'a' : 1};
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'if');
+  }
+
+  Future<void> test_KEYWORD_if_set() async {
+    addTestFile('''
+f(a, b) {
+  return {if (a < b) 'a'};
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'if');
+  }
+
+  Future<void> test_KEYWORD_ifElse_list() async {
+    addTestFile('''
+f(a, b) {
+  return [if (a < b) 'a' else 'b'];
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'if');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'else');
+  }
+
+  Future<void> test_KEYWORD_ifElse_map() async {
+    addTestFile('''
+f(a, b) {
+  return {if (a < b) 'a' : 1 else 'b' : 2};
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'if');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'else');
+  }
+
+  Future<void> test_KEYWORD_ifElse_set() async {
+    addTestFile('''
+f(a, b) {
+  return {if (a < b) 'a' else 'b'};
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'if');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'else');
+  }
+
   Future<void> test_KEYWORD_ifElse_statement() async {
     addTestFile('''
 f(a, b) {
@@ -715,12 +837,30 @@ f(a, b) {
     assertHasRegion(HighlightRegionType.KEYWORD, 'else');
   }
 
+  Future<void> test_KEYWORD_late() async {
+    addTestFile('''
+class C {
+  late int x;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'late');
+  }
+
   Future<void> test_KEYWORD_mixin() async {
     addTestFile('''
 mixin M {}
 ''');
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.BUILT_IN, 'mixin');
+  }
+
+  Future<void> test_KEYWORD_required() async {
+    addTestFile('''
+void f({required int x}) {}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'required');
   }
 
   Future<void> test_KEYWORD_void() async {
@@ -1150,179 +1290,6 @@ class HighlightsTestSupport extends AbstractAnalysisTest {
 library lib;
 part 'test.dart';
     ''');
-  }
-}
-
-@reflectiveTest
-class HighlightsWithControlFlowCollectionsTest extends HighlightsTestSupport {
-  @failingTest
-  Future<void> test_KEYWORD_awaitForIn_list() async {
-    addTestFile('''
-f(a) async {
-  return [await for(var b in a) b];
-}
-''');
-    await prepareHighlights();
-    assertHasRegion(HighlightRegionType.KEYWORD, 'await');
-    assertHasRegion(HighlightRegionType.KEYWORD, 'for');
-    assertHasRegion(HighlightRegionType.KEYWORD, 'in');
-  }
-
-  @failingTest
-  Future<void> test_KEYWORD_awaitForIn_map() async {
-    addTestFile('''
-f(a) async {
-  return {await for(var b in a) b : 0};
-}
-''');
-    await prepareHighlights();
-    assertHasRegion(HighlightRegionType.KEYWORD, 'await');
-    assertHasRegion(HighlightRegionType.KEYWORD, 'for');
-    assertHasRegion(HighlightRegionType.KEYWORD, 'in');
-  }
-
-  @failingTest
-  Future<void> test_KEYWORD_awaitForIn_set() async {
-    addTestFile('''
-f(a) async {
-  return {await for(var b in a) b};
-}
-''');
-    await prepareHighlights();
-    assertHasRegion(HighlightRegionType.KEYWORD, 'await');
-    assertHasRegion(HighlightRegionType.KEYWORD, 'for');
-    assertHasRegion(HighlightRegionType.KEYWORD, 'in');
-  }
-
-  Future<void> test_KEYWORD_const_list() async {
-    addTestFile('''
-var v = const [];
-''');
-    await prepareHighlights();
-    assertHasRegion(HighlightRegionType.KEYWORD, 'const');
-  }
-
-  Future<void> test_KEYWORD_const_map() async {
-    addTestFile('''
-var v = const {0 : 1};
-''');
-    await prepareHighlights();
-    assertHasRegion(HighlightRegionType.KEYWORD, 'const');
-  }
-
-  Future<void> test_KEYWORD_const_set() async {
-    addTestFile('''
-var v = const {0};
-''');
-    await prepareHighlights();
-    assertHasRegion(HighlightRegionType.KEYWORD, 'const');
-  }
-
-  Future<void> test_KEYWORD_if_list() async {
-    addTestFile('''
-f(a, b) {
-  return [if (a < b) 'a'];
-}
-''');
-    await prepareHighlights();
-    assertHasRegion(HighlightRegionType.KEYWORD, 'if');
-  }
-
-  Future<void> test_KEYWORD_if_map() async {
-    addTestFile('''
-f(a, b) {
-  return {if (a < b) 'a' : 1};
-}
-''');
-    await prepareHighlights();
-    assertHasRegion(HighlightRegionType.KEYWORD, 'if');
-  }
-
-  Future<void> test_KEYWORD_if_set() async {
-    addTestFile('''
-f(a, b) {
-  return {if (a < b) 'a'};
-}
-''');
-    await prepareHighlights();
-    assertHasRegion(HighlightRegionType.KEYWORD, 'if');
-  }
-
-  Future<void> test_KEYWORD_ifElse_list() async {
-    addTestFile('''
-f(a, b) {
-  return [if (a < b) 'a' else 'b'];
-}
-''');
-    await prepareHighlights();
-    assertHasRegion(HighlightRegionType.KEYWORD, 'if');
-    assertHasRegion(HighlightRegionType.KEYWORD, 'else');
-  }
-
-  Future<void> test_KEYWORD_ifElse_map() async {
-    addTestFile('''
-f(a, b) {
-  return {if (a < b) 'a' : 1 else 'b' : 2};
-}
-''');
-    await prepareHighlights();
-    assertHasRegion(HighlightRegionType.KEYWORD, 'if');
-    assertHasRegion(HighlightRegionType.KEYWORD, 'else');
-  }
-
-  Future<void> test_KEYWORD_ifElse_set() async {
-    addTestFile('''
-f(a, b) {
-  return {if (a < b) 'a' else 'b'};
-}
-''');
-    await prepareHighlights();
-    assertHasRegion(HighlightRegionType.KEYWORD, 'if');
-    assertHasRegion(HighlightRegionType.KEYWORD, 'else');
-  }
-
-  Future<void> test_LITERAL_LIST() async {
-    addTestFile('var V = <int>[1, 2, 3];');
-    await prepareHighlights();
-    assertHasStringRegion(HighlightRegionType.LITERAL_LIST, '<int>[1, 2, 3]');
-  }
-
-  Future<void> test_LITERAL_MAP() async {
-    addTestFile("var V = const <int, String>{1: 'a', 2: 'b', 3: 'c'};");
-    await prepareHighlights();
-    assertHasStringRegion(HighlightRegionType.LITERAL_MAP,
-        "const <int, String>{1: 'a', 2: 'b', 3: 'c'}");
-  }
-}
-
-@reflectiveTest
-class HighlightsWithNullSafetyTest extends HighlightsTestSupport {
-  @override
-  void createProject({Map<String, String> packageRoots}) {
-    addAnalysisOptionsFile('''
-analyzer:
-  enable-experiment:
-    - non-nullable
-''');
-    super.createProject(packageRoots: packageRoots);
-  }
-
-  Future<void> test_KEYWORD_late() async {
-    addTestFile('''
-class C {
-  late int x;
-}
-''');
-    await prepareHighlights();
-    assertHasRegion(HighlightRegionType.KEYWORD, 'late');
-  }
-
-  Future<void> test_KEYWORD_required() async {
-    addTestFile('''
-void f({required int x}) {}
-''');
-    await prepareHighlights();
-    assertHasRegion(HighlightRegionType.KEYWORD, 'required');
   }
 }
 

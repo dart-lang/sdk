@@ -227,3 +227,15 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     return serverChannel.sendRequest(request, throwOnError: throwOnError);
   }
 }
+
+mixin WithNullSafetyServerAnalysisMixin on AbstractAnalysisTest {
+  @override
+  void createProject({Map<String, String> packageRoots}) {
+    addAnalysisOptionsFile('''
+analyzer:
+  enable-experiment:
+    - non-nullable
+''');
+    super.createProject(packageRoots: packageRoots);
+  }
+}

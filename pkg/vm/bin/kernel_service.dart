@@ -95,7 +95,8 @@ CompilerOptions setupCompilerOptions(
     List<String> experimentalFlags,
     Uri packagesUri,
     List<String> errors,
-    String invocationModes) {
+    String invocationModes,
+    String verbosityLevel) {
   final expFlags = <String>[];
   if (experimentalFlags != null) {
     for (String flag in experimentalFlags) {
@@ -103,6 +104,7 @@ CompilerOptions setupCompilerOptions(
     }
   }
 
+  Verbosity verbosity = Verbosity.parseArgument(verbosityLevel);
   return new CompilerOptions()
     ..fileSystem = fileSystem
     ..target = new VmTarget(new TargetFlags(
@@ -139,13 +141,16 @@ CompilerOptions setupCompilerOptions(
         case Severity.ignored:
           throw "Unexpected severity: ${message.severity}";
       }
-      if (printToStdErr) {
-        printDiagnosticMessage(message, stderr.writeln);
-      } else if (printToStdOut) {
-        printDiagnosticMessage(message, stdout.writeln);
+      if (Verbosity.shouldPrint(verbosity, message)) {
+        if (printToStdErr) {
+          printDiagnosticMessage(message, stderr.writeln);
+        } else if (printToStdOut) {
+          printDiagnosticMessage(message, stdout.writeln);
+        }
       }
     }
-    ..invocationModes = InvocationMode.parseArguments(invocationModes);
+    ..invocationModes = InvocationMode.parseArguments(invocationModes)
+    ..verbosity = verbosity;
 }
 
 abstract class Compiler {
@@ -158,6 +163,7 @@ abstract class Compiler {
   final List<String> experimentalFlags;
   final String packageConfig;
   final String invocationModes;
+  final String verbosityLevel;
 
   // Code coverage and hot reload are only supported by incremental compiler,
   // which is used if vm-service is enabled.
@@ -176,7 +182,8 @@ abstract class Compiler {
       this.supportCodeCoverage: false,
       this.supportHotReload: false,
       this.packageConfig: null,
-      this.invocationModes: ''}) {
+      this.invocationModes: '',
+      this.verbosityLevel: Verbosity.defaultValue}) {
     Uri packagesUri = null;
     if (packageConfig != null) {
       packagesUri = Uri.parse(packageConfig);
@@ -200,7 +207,8 @@ abstract class Compiler {
         experimentalFlags,
         packagesUri,
         errors,
-        invocationModes);
+        invocationModes,
+        verbosityLevel);
   }
 
   Future<CompilerResult> compile(Uri script) {
@@ -291,7 +299,8 @@ class IncrementalCompilerWrapper extends Compiler {
       int nullSafety: kNullSafetyOptionUnspecified,
       List<String> experimentalFlags: null,
       String packageConfig: null,
-      String invocationModes: ''})
+      String invocationModes: '',
+      String verbosityLevel: Verbosity.defaultValue})
       : super(isolateId, fileSystem, platformKernelPath,
             suppressWarnings: suppressWarnings,
             enableAsserts: enableAsserts,
@@ -300,7 +309,8 @@ class IncrementalCompilerWrapper extends Compiler {
             supportHotReload: true,
             supportCodeCoverage: true,
             packageConfig: packageConfig,
-            invocationModes: invocationModes);
+            invocationModes: invocationModes,
+            verbosityLevel: verbosityLevel);
 
   factory IncrementalCompilerWrapper.forExpressionCompilationOnly(
       Component component,
@@ -379,14 +389,16 @@ class SingleShotCompilerWrapper extends Compiler {
       int nullSafety: kNullSafetyOptionUnspecified,
       List<String> experimentalFlags: null,
       String packageConfig: null,
-      String invocationModes: ''})
+      String invocationModes: '',
+      String verbosityLevel: Verbosity.defaultValue})
       : super(isolateId, fileSystem, platformKernelPath,
             suppressWarnings: suppressWarnings,
             enableAsserts: enableAsserts,
             nullSafety: nullSafety,
             experimentalFlags: experimentalFlags,
             packageConfig: packageConfig,
-            invocationModes: invocationModes);
+            invocationModes: invocationModes,
+            verbosityLevel: verbosityLevel);
 
   @override
   Future<CompilerResult> compileInternal(Uri script) async {
@@ -423,7 +435,8 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
     String packageConfig: null,
     String multirootFilepaths,
     String multirootScheme,
-    String invocationModes: ''}) async {
+    String invocationModes: '',
+    String verbosityLevel: Verbosity.defaultValue}) async {
   IncrementalCompilerWrapper compiler = lookupIncrementalCompiler(isolateId);
   if (compiler != null) {
     updateSources(compiler, sourceFiles);
@@ -453,7 +466,8 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
           nullSafety: nullSafety,
           experimentalFlags: experimentalFlags,
           packageConfig: packageConfig,
-          invocationModes: invocationModes);
+          invocationModes: invocationModes,
+          verbosityLevel: verbosityLevel);
     }
     isolateCompilers[isolateId] = compiler;
   }
@@ -755,6 +769,8 @@ Future _processLoadRequest(request) async {
   final String multirootFilepaths = request[13];
   final String multirootScheme = request[14];
   final String workingDirectory = request[15];
+  // TODO(johnniwinther,bkonyi): Pass verbosity from command line arguments.
+  final String verbosityLevel = Verbosity.defaultValue;
 
   Uri platformKernelPath = null;
   List<int> platformKernel = null;
@@ -823,7 +839,8 @@ Future _processLoadRequest(request) async {
         experimentalFlags,
         packagesUri,
         errors,
-        invocationModes);
+        invocationModes,
+        verbosityLevel);
 
     // script should only be null for kUpdateSourcesTag.
     assert(script != null);
@@ -850,7 +867,8 @@ Future _processLoadRequest(request) async {
         packageConfig: packageConfig,
         multirootFilepaths: multirootFilepaths,
         multirootScheme: multirootScheme,
-        invocationModes: invocationModes);
+        invocationModes: invocationModes,
+        verbosityLevel: verbosityLevel);
   } else {
     FileSystem fileSystem = _buildFileSystem(
         sourceFiles, platformKernel, multirootFilepaths, multirootScheme);
@@ -862,7 +880,8 @@ Future _processLoadRequest(request) async {
         nullSafety: nullSafety,
         experimentalFlags: experimentalFlags,
         packageConfig: packageConfig,
-        invocationModes: invocationModes);
+        invocationModes: invocationModes,
+        verbosityLevel: verbosityLevel);
   }
 
   CompilationResult result;

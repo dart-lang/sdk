@@ -433,7 +433,10 @@ class CompilerOptions implements DiagnosticOptions {
   /// See `InvocationMode` in
   /// `pkg/front_end/lib/src/api_prototype/compiler_options.dart` for all
   /// possible options.
-  String cfeInvocationModes = '';
+  Set<fe.InvocationMode> cfeInvocationModes = {};
+
+  /// Verbosity level used for filtering messages during compilation.
+  fe.Verbosity verbosity = fe.Verbosity.all;
 
   // -------------------------------------------------
   // Options for deprecated features
@@ -547,8 +550,13 @@ class CompilerOptions implements DiagnosticOptions {
       .._noSoundNullSafety = _hasOption(options, Flags.noSoundNullSafety)
       .._mergeFragmentsThreshold =
           _extractIntOption(options, '${Flags.mergeFragmentsThreshold}=')
-      ..cfeInvocationModes =
-          _extractStringOption(options, '${Flags.cfeInvocationModes}=', '');
+      ..cfeInvocationModes = fe.InvocationMode.parseArguments(
+          _extractStringOption(options, '${Flags.cfeInvocationModes}=', ''),
+          onError: onError)
+      ..verbosity = fe.Verbosity.parseArgument(
+          _extractStringOption(
+              options, '${Flags.verbosity}=', fe.Verbosity.defaultValue),
+          onError: onError);
   }
 
   void validate() {

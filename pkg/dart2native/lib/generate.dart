@@ -27,6 +27,7 @@ Future<void> generateNative({
   String enableExperiment = '',
   bool enableAsserts = false,
   bool verbose = false,
+  String verbosity = 'all',
   List<String> extraOptions = const [],
 }) async {
   final Directory tempDir = Directory.systemTemp.createTempSync();
@@ -58,7 +59,10 @@ Future<void> generateNative({
     final kernelResult = await generateAotKernel(Platform.executable, genKernel,
         productPlatformDill, sourcePath, kernelFile, packages, defines,
         enableExperiment: enableExperiment,
-        extraGenKernelOptions: ['--invocation-modes=compile']);
+        extraGenKernelOptions: [
+          '--invocation-modes=compile',
+          '--verbosity=$verbosity'
+        ]);
     if (kernelResult.exitCode != 0) {
       // We pipe both stdout and stderr to stderr because the CFE doesn't print
       // errors to stderr. This unfortunately does emit info-only output in
