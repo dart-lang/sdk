@@ -109,7 +109,7 @@ a:focus, a:hover {
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  1.32.2
+  1.32.3
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -236,13 +236,20 @@ a:focus, a:hover {
   ignoring the item or treating it with some default/fallback handling.
 </p>
 <h3>Changelog</h3>
+<h4>1.32.3</h4>
+<ul>
+  <li>Removed the experimental <tt>completion.listTokenDetails</tt> request and
+    the associated data types.</li>
+</ul>
 <h4>1.32.2</h4>
 <ul>
-  <li>Added <tt>FoldingKind.COMMENT</tt> for folding regions for blocks of comments.</li>
+  <li>Added <tt>FoldingKind.COMMENT</tt> for folding regions for blocks of
+    comments.</li>
 </ul>
 <h4>1.32.1</h4>
 <ul>
-  <li>Added <tt>CompletionSuggestionKind.PACKAGE_NAME</tt> for Pub package name completions in <tt>pubspec.yaml</tt>.</li>
+  <li>Added <tt>CompletionSuggestionKind.PACKAGE_NAME</tt> for Pub package name
+    completions in <tt>pubspec.yaml</tt>.</li>
 </ul>
 <h3>Domains</h3>
 <p>
@@ -1490,7 +1497,6 @@ a:focus, a:hover {
     The code completion domain contains commands related to
     getting code completion suggestions.
   </p>
-  
   
   
   
@@ -2995,7 +3001,6 @@ a:focus, a:hover {
     This section contains descriptions of the data types referenced
     in the API’s of the various domains.
   </p>
-  
   
   
   

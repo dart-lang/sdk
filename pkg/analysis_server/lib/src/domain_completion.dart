@@ -16,7 +16,6 @@ import 'package:analysis_server/src/provisional/completion/completion_core.dart'
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
-import 'package:analysis_server/src/services/completion/token_details/token_detail_builder.dart';
 import 'package:analysis_server/src/services/completion/yaml/analysis_options_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/fix_data_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/pubspec_generator.dart';
@@ -251,9 +250,6 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       } else if (requestName == COMPLETION_REQUEST_GET_SUGGESTIONS) {
         processRequest(request);
         return Response.DELAYED_RESPONSE;
-      } else if (requestName == COMPLETION_REQUEST_LIST_TOKEN_DETAILS) {
-        listTokenDetails(request);
-        return Response.DELAYED_RESPONSE;
       } else if (requestName == COMPLETION_REQUEST_SET_SUBSCRIPTIONS) {
         return setSubscriptions(request);
       }
@@ -271,40 +267,6 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     if (_currentRequest == completionRequest) {
       _currentRequest = null;
     }
-  }
-
-  /// Process a `completion.listTokenDetails` request.
-  Future<void> listTokenDetails(Request request) async {
-    var params = CompletionListTokenDetailsParams.fromRequest(request);
-
-    var file = params.file;
-    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
-      return;
-    }
-
-    var analysisDriver = server.getAnalysisDriver(file);
-    if (analysisDriver == null) {
-      server.sendResponse(Response.invalidParameter(
-        request,
-        'file',
-        'File is not being analyzed: $file',
-      ));
-    }
-    var session = analysisDriver.currentSession;
-    var result = await session.getResolvedUnit(file);
-    if (result.state != ResultState.VALID) {
-      server.sendResponse(Response.invalidParameter(
-        request,
-        'file',
-        'File does not exist or cannot be read: $file',
-      ));
-    }
-
-    var builder = TokenDetailBuilder();
-    builder.visitNode(result.unit);
-    server.sendResponse(
-      CompletionListTokenDetailsResult(builder.details).toResponse(request.id),
-    );
   }
 
   /// Process a `completion.getSuggestions` request.

@@ -412,16 +412,6 @@ public interface AnalysisServer {
   public void completion_getSuggestions(String file, int offset, GetSuggestionsConsumer consumer);
 
   /**
-   * {@code completion.listTokenDetails}
-   *
-   * Inspect analysis server's knowledge about all of a file's tokens including their lexeme, type,
-   * and what element kinds would have been appropriate for the token's program location.
-   *
-   * @param file The path to the file from which tokens should be returned.
-   */
-  public void completion_listTokenDetails(String file, ListTokenDetailsConsumer consumer);
-
-  /**
    * {@code completion.registerLibraryPaths}
    *
    * The client can make this request to express interest in certain libraries to receive completion

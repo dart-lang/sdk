@@ -7,10 +7,10 @@ import 'dart:collection';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 
-import 'domain_completion_test.dart';
+import 'domain_completion_util.dart';
 
 /// A base class for classes containing completion tests.
-class CompletionTestCase extends CompletionDomainHandlerListTokenDetailsTest {
+class CompletionTestCase extends AbstractCompletionDomainTest {
   static const String CURSOR_MARKER = '!';
 
   List get suggestedCompletions => suggestions
