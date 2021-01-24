@@ -37,7 +37,16 @@ class TransformSetManager {
         transformSets.add(transformSet);
       }
     }
-    // TODO(brianwilkerson) Consider looking for a data file in the SDK.
+    var sdkRoot = library.session.analysisContext.sdkRoot;
+    if (sdkRoot != null) {
+      var file = sdkRoot.getChildAssumingFile('lib/_internal/$dataFileName');
+      if (file.exists) {
+        var transformSet = _loadTransformSet(file);
+        if (transformSet != null) {
+          transformSets.add(transformSet);
+        }
+      }
+    }
     return transformSets;
   }
 

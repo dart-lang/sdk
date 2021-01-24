@@ -103,8 +103,8 @@ class _MicroAnalysisContextImpl implements AnalysisContext {
   _MicroAnalysisSessionImpl currentSession;
 
   final DeclaredVariables declaredVariables;
-  final SourceFactory sourceFactory;
 
+  final SourceFactory sourceFactory;
   Workspace _workspace;
 
   _MicroAnalysisContextImpl(
@@ -121,6 +121,9 @@ class _MicroAnalysisContextImpl implements AnalysisContext {
   AnalysisOptionsImpl get analysisOptions {
     return synchronousSession.analysisOptions;
   }
+
+  @override
+  Folder get sdkRoot => null;
 
   @override
   Workspace get workspace {
