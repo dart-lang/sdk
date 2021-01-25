@@ -228,7 +228,19 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   }
 }
 
-mixin WithNullSafetyServerAnalysisMixin on AbstractAnalysisTest {
+mixin WithNonFunctionTypeAliasesMixin on AbstractAnalysisTest {
+  @override
+  void createProject({Map<String, String> packageRoots}) {
+    addAnalysisOptionsFile('''
+analyzer:
+  enable-experiment:
+    - nonfunction-type-aliases
+''');
+    super.createProject(packageRoots: packageRoots);
+  }
+}
+
+mixin WithNullSafetyMixin on AbstractAnalysisTest {
   @override
   void createProject({Map<String, String> packageRoots}) {
     addAnalysisOptionsFile('''
