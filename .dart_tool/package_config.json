@@ -354,8 +354,9 @@
     },
     {
       "name": "js_runtime",
-      "rootUri": "../sdk/lib/_internal/js_runtime",
-      "packageUri": "lib/"
+      "rootUri": "../pkg/js_runtime",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
     },
     {
       "name": "json_rpc_2",

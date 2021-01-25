@@ -54,7 +54,7 @@ http_throttle:third_party/pkg/http_throttle/lib
 intl:third_party/pkg/intl/lib
 js:pkg/js/lib
 js_ast:pkg/js_ast/lib
-js_runtime:sdk/lib/_internal/js_runtime/lib
+js_runtime:pkg/js_runtime/lib
 json_rpc_2:third_party/pkg/json_rpc_2/lib
 kernel:pkg/kernel/lib
 linter:third_party/pkg/linter/lib

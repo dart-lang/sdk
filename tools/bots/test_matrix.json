@@ -2205,6 +2205,13 @@
           ]
         },
         {
+          "name": "js_runtime unit tests",
+          "arguments": [
+            "-nunittest-asserts-no-sdk-linux",
+            "pkg//js_runtime/"
+          ]
+        },
+        {
           "name": "dart2js unit tests",
           "arguments": [
             "-nunittest-asserts-no-sdk-linux",
@@ -3218,7 +3225,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
-            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|front_end|kernel|nnbd_migration)/)"
+            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|js_runtime|front_end|kernel|nnbd_migration)/)"
           ]
         },
         {
@@ -3256,7 +3263,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
-            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|front_end|kernel|nnbd_migration)/)"
+            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|js_runtime|front_end|kernel|nnbd_migration)/)"
           ]
         },
         {

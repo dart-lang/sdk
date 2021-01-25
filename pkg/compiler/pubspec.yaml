@@ -26,7 +26,7 @@ dependencies:
   js_ast:
     path: ../js_ast
   js_runtime:
-    path: ../../sdk/lib/_internal/js_runtime
+    path: ../js_runtime
 
 dev_dependencies:
   # Published packages - repo version ensured via dependency_overrides
