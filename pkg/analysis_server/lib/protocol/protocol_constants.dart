@@ -6,7 +6,7 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
-const String PROTOCOL_VERSION = '1.32.2';
+const String PROTOCOL_VERSION = '1.32.3';
 
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES = 'analysis.analyzedFiles';
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES_DIRECTORIES = 'directories';
@@ -145,9 +145,6 @@ const String COMPLETION_REQUEST_GET_SUGGESTION_DETAILS_FILE = 'file';
 const String COMPLETION_REQUEST_GET_SUGGESTION_DETAILS_ID = 'id';
 const String COMPLETION_REQUEST_GET_SUGGESTION_DETAILS_LABEL = 'label';
 const String COMPLETION_REQUEST_GET_SUGGESTION_DETAILS_OFFSET = 'offset';
-const String COMPLETION_REQUEST_LIST_TOKEN_DETAILS =
-    'completion.listTokenDetails';
-const String COMPLETION_REQUEST_LIST_TOKEN_DETAILS_FILE = 'file';
 const String COMPLETION_REQUEST_REGISTER_LIBRARY_PATHS =
     'completion.registerLibraryPaths';
 const String COMPLETION_REQUEST_REGISTER_LIBRARY_PATHS_PATHS = 'paths';
@@ -159,7 +156,6 @@ const String COMPLETION_RESPONSE_GET_SUGGESTIONS_ID = 'id';
 const String COMPLETION_RESPONSE_GET_SUGGESTION_DETAILS_CHANGE = 'change';
 const String COMPLETION_RESPONSE_GET_SUGGESTION_DETAILS_COMPLETION =
     'completion';
-const String COMPLETION_RESPONSE_LIST_TOKEN_DETAILS_TOKENS = 'tokens';
 const String DIAGNOSTIC_REQUEST_GET_DIAGNOSTICS = 'diagnostic.getDiagnostics';
 const String DIAGNOSTIC_REQUEST_GET_SERVER_PORT = 'diagnostic.getServerPort';
 const String DIAGNOSTIC_RESPONSE_GET_DIAGNOSTICS_CONTEXTS = 'contexts';

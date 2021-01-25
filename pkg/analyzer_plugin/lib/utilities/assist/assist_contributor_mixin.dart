@@ -25,8 +25,9 @@ abstract class AssistContributorMixin implements AssistContributor {
     if (change.edits.isEmpty) {
       return;
     }
+    change.id = kind.id;
     change.message = formatList(kind.message, args);
     collector.addAssist(
-        PrioritizedSourceChange(kind.priority, builder.sourceChange));
+        PrioritizedSourceChange(kind.priority, change));
   }
 }

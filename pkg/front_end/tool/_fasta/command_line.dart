@@ -197,7 +197,7 @@ const Map<String, ValueSpecification> optionSpecification =
   Flags.verbose: const BoolValue(false),
   Flags.verbosity: const StringValue(),
   Flags.verify: const BoolValue(false),
-  Flags.verifySkipPlatform: const BoolValue(false),
+  Flags.skipPlatformVerification: const BoolValue(false),
   Flags.warnOnReachabilityCheck: const BoolValue(false),
   Flags.linkDependencies: const UriListValue(),
   Flags.noDeps: const BoolValue(false),
@@ -269,7 +269,7 @@ ProcessedOptions analyzeCommandLine(String programName,
 
   final bool verify = options[Flags.verify];
 
-  final bool verifySkipPlatform = options[Flags.verifySkipPlatform];
+  final bool skipPlatformVerification = options[Flags.skipPlatformVerification];
 
   final bool dumpIr = options[Flags.dumpIr];
 
@@ -355,7 +355,7 @@ ProcessedOptions analyzeCommandLine(String programName,
     ..omitPlatform = omitPlatform
     ..verbose = verbose
     ..verify = verify
-    ..verifySkipPlatform = verifySkipPlatform
+    ..skipPlatformVerification = skipPlatformVerification
     ..explicitExperimentalFlags = explicitExperimentalFlags
     ..environmentDefines = noDefines ? null : parsedArguments.defines
     ..nnbdMode = nnbdMode

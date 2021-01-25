@@ -1046,30 +1046,6 @@ abstract class IntegrationTestMixin {
         decoder, 'result', result);
   }
 
-  /// Inspect analysis server's knowledge about all of a file's tokens
-  /// including their lexeme, type, and what element kinds would have been
-  /// appropriate for the token's program location.
-  ///
-  /// Parameters
-  ///
-  /// file: FilePath
-  ///
-  ///   The path to the file from which tokens should be returned.
-  ///
-  /// Returns
-  ///
-  /// tokens: List<TokenDetails>
-  ///
-  ///   A list of the file's scanned tokens including analysis information
-  ///   about them.
-  Future<CompletionListTokenDetailsResult> sendCompletionListTokenDetails(
-      String file) async {
-    var params = CompletionListTokenDetailsParams(file).toJson();
-    var result = await server.send('completion.listTokenDetails', params);
-    var decoder = ResponseDecoder(null);
-    return CompletionListTokenDetailsResult.fromJson(decoder, 'result', result);
-  }
-
   /// Reports the completion suggestions that should be presented to the user.
   /// The set of suggestions included in the notification is always a complete
   /// list that supersedes any previously reported suggestions.

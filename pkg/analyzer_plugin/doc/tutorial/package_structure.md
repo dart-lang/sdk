@@ -87,7 +87,7 @@ function within the plugin package that will create and start the plugin.
 When a bootstrap package is to be run, the contents of the directory containing
 the bootstrap package are copied to a temporary directory, the [`pub`][pub]
 command is run in that directory to produce a `.packages` file for the bootstrap
-package, and the file `tools/analysis_plugin/bin/plugin.dart` is run in its own
+package, and the file `tools/analyzer_plugin/bin/plugin.dart` is run in its own
 isolate.
 
 [pub]:https://www.dartlang.org/tools/pub/get-started

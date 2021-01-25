@@ -1,3 +1,6 @@
+# 1.7.4
+- Update `package:vm_service` to 6.0.1-nullsafety.0.
+
 # 1.7.3
 - Return an RpcException error with code `kServiceDisappeared` if the VM
   service connection disappears with an outstanding forwarded request.

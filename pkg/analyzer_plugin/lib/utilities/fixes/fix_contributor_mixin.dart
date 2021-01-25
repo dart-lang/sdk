@@ -30,18 +30,19 @@ abstract class FixContributorMixin implements FixContributor {
     if (change.edits.isEmpty) {
       return;
     }
+    change.id = kind.id;
     change.message = formatList(kind.message, args);
     collector.addFix(
-        error, PrioritizedSourceChange(kind.priority, builder.sourceChange));
+        error, PrioritizedSourceChange(kind.priority, change));
   }
 
   @override
-  void computeFixes(DartFixesRequest request, FixCollector collector) {
+  Future<void> computeFixes(DartFixesRequest request, FixCollector collector) async {
     this.request = request;
     this.collector = collector;
     try {
       for (var error in request.errorsToFix) {
-        computeFixesForError(error);
+        await computeFixesForError(error);
       }
     } finally {
       this.request = null;
@@ -51,5 +52,5 @@ abstract class FixContributorMixin implements FixContributor {
 
   /// Compute the fixes that are appropriate for the given [error] and add them
   /// to the fix [collector].
-  void computeFixesForError(AnalysisError error);
+  Future<void> computeFixesForError(AnalysisError error);
 }

@@ -1625,23 +1625,6 @@ final Matcher isSourceFileEdit = LazyMatcher(() => MatchesJsonObject(
     'SourceFileEdit',
     {'file': isFilePath, 'fileStamp': isInt, 'edits': isListOf(isSourceEdit)}));
 
-/// TokenDetails
-///
-/// {
-///   "lexeme": String
-///   "type": optional String
-///   "validElementKinds": optional List<String>
-///   "offset": int
-/// }
-final Matcher isTokenDetails = LazyMatcher(() => MatchesJsonObject(
-        'TokenDetails', {
-      'lexeme': isString,
-      'offset': isInt
-    }, optionalFields: {
-      'type': isString,
-      'validElementKinds': isListOf(isString)
-    }));
-
 /// TypeHierarchyItem
 ///
 /// {
@@ -2133,24 +2116,6 @@ final Matcher isCompletionGetSuggestionsParams = LazyMatcher(() =>
 final Matcher isCompletionGetSuggestionsResult = LazyMatcher(() =>
     MatchesJsonObject(
         'completion.getSuggestions result', {'id': isCompletionId}));
-
-/// completion.listTokenDetails params
-///
-/// {
-///   "file": FilePath
-/// }
-final Matcher isCompletionListTokenDetailsParams = LazyMatcher(() =>
-    MatchesJsonObject(
-        'completion.listTokenDetails params', {'file': isFilePath}));
-
-/// completion.listTokenDetails result
-///
-/// {
-///   "tokens": List<TokenDetails>
-/// }
-final Matcher isCompletionListTokenDetailsResult = LazyMatcher(() =>
-    MatchesJsonObject('completion.listTokenDetails result',
-        {'tokens': isListOf(isTokenDetails)}));
 
 /// completion.registerLibraryPaths params
 ///

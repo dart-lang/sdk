@@ -167,7 +167,7 @@ class ProcessedOptions {
 
   bool get verify => _raw.verify;
 
-  bool get verifySkipPlatform => _raw.verifySkipPlatform;
+  bool get skipPlatformVerification => _raw.skipPlatformVerification;
 
   bool get debugDump => _raw.debugDump;
 

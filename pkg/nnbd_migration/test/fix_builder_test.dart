@@ -959,6 +959,20 @@ f(C/*?*/ c) => c + c;
         changes: {binaryExpression.rightOperand: isNullCheck});
   }
 
+  Future<void>
+      test_binaryExpression_extensionMember_allowsNull_explicit() async {
+    await analyze('''
+class C {}
+extension E on C/*?*/ {
+  void operator+(C/*!*/ other) {}
+}
+f(C/*?*/ c) => E(c) + c;
+''');
+    var binaryExpression = findNode.binary('E(c) + c');
+    visitSubexpression(binaryExpression, 'void',
+        changes: {binaryExpression.rightOperand: isNullCheck});
+  }
+
   Future<void> test_binaryExpression_extensionMember_disallowsNull() async {
     await analyze('''
 class C {}
@@ -970,6 +984,20 @@ f(C/*?*/ c) => c + c;
     var binaryExpression = findNode.binary('c + c');
     visitSubexpression(binaryExpression, 'void',
         changes: {binaryExpression.leftOperand: isNullCheck});
+  }
+
+  Future<void>
+      test_binaryExpression_extensionMember_disallowsNull_explicit() async {
+    await analyze('''
+class C {}
+extension E on C/*!*/ {
+  void operator+(C/*!*/ other) {}
+}
+f(C/*?*/ c) => E(c) + c;
+''');
+    var binaryExpression = findNode.binary('E(c) + c');
+    visitSubexpression(binaryExpression, 'void',
+        changes: {findNode.simple('c) +'): isNullCheck});
   }
 
   Future<void> test_binaryExpression_question_question() async {
@@ -1431,6 +1459,20 @@ f(C/*?*/ c) => c();
   }
 
   Future<void>
+      test_functionExpressionInvocation_extensionMember_allowsNull_explicit() async {
+    await analyze('''
+class C {}
+extension E on C/*?*/ {
+  void call() {}
+}
+f(C/*?*/ c) => E(c)();
+''');
+    var functoinExpressionInvocation =
+        findNode.functionExpressionInvocation('E(c)()');
+    visitSubexpression(functoinExpressionInvocation, 'void');
+  }
+
+  Future<void>
       test_functionExpressionInvocation_extensionMember_disallowsNull() async {
     await analyze('''
 class C {}
@@ -1443,6 +1485,21 @@ f(C/*?*/ c) => c();
         findNode.functionExpressionInvocation('c()');
     visitSubexpression(functionExpressionInvocation, 'void',
         changes: {functionExpressionInvocation.function: isNullCheck});
+  }
+
+  Future<void>
+      test_functionExpressionInvocation_extensionMember_disallowsNull_explicit() async {
+    await analyze('''
+class C {}
+extension E on C/*!*/ {
+  void call() {}
+}
+f(C/*?*/ c) => E(c)();
+''');
+    var functionExpressionInvocation =
+        findNode.functionExpressionInvocation('E(c)()');
+    visitSubexpression(functionExpressionInvocation, 'void',
+        changes: {findNode.simple('c)()'): isNullCheck});
   }
 
   Future<void> test_functionExpressionInvocation_function_checked() async {
@@ -1727,6 +1784,19 @@ f(C/*?*/ c) => c[0];
     visitSubexpression(indexExpression, 'int');
   }
 
+  Future<void>
+      test_indexExpression_extensionMember_allowsNull_explicit() async {
+    await analyze('''
+class C {}
+extension E on C/*?*/ {
+  int operator[](int index) => 0;
+}
+f(C/*?*/ c) => E(c)[0];
+''');
+    var indexExpression = findNode.index('E(c)[0]');
+    visitSubexpression(indexExpression, 'int');
+  }
+
   Future<void> test_indexExpression_extensionMember_disallowsNull() async {
     await analyze('''
 class C {}
@@ -1738,6 +1808,20 @@ f(C/*?*/ c) => c[0];
     var indexExpression = findNode.index('c[0]');
     visitSubexpression(indexExpression, 'int',
         changes: {indexExpression.target: isNullCheck});
+  }
+
+  Future<void>
+      test_indexExpression_extensionMember_disallowsNull_explicit() async {
+    await analyze('''
+class C {}
+extension E on C/*!*/ {
+  int operator[](int index) => 0;
+}
+f(C/*?*/ c) => E(c)[0];
+''');
+    var indexExpression = findNode.index('E(c)[0]');
+    visitSubexpression(indexExpression, 'int',
+        changes: {findNode.simple('c)[0]'): isNullCheck});
   }
 
   Future<void> test_indexExpression_simple() async {
@@ -2023,6 +2107,19 @@ f(C/*?*/ c) => c.foo();
     visitSubexpression(methodInvocation, 'void');
   }
 
+  Future<void>
+      test_methodInvocation_extensionMember_allowsNull_explicit() async {
+    await analyze('''
+class C {}
+extension E on C/*?*/ {
+  void foo() {}
+}
+f(C/*?*/ c) => E(c).foo();
+''');
+    var methodInvocation = findNode.methodInvocation('E(c).foo');
+    visitSubexpression(methodInvocation, 'void');
+  }
+
   Future<void> test_methodInvocation_extensionMember_disallowsNull() async {
     await analyze('''
 class C {}
@@ -2034,6 +2131,20 @@ f(C/*?*/ c) => c.foo();
     var methodInvocation = findNode.methodInvocation('c.foo');
     visitSubexpression(methodInvocation, 'void',
         changes: {methodInvocation.target: isNullCheck});
+  }
+
+  Future<void>
+      test_methodInvocation_extensionMember_disallowsNull_explicit() async {
+    await analyze('''
+class C {}
+extension E on C/*!*/ {
+  void foo() {}
+}
+f(C/*?*/ c) => E(c).foo();
+''');
+    var methodInvocation = findNode.methodInvocation('E(c).foo');
+    visitSubexpression(methodInvocation, 'void',
+        changes: {findNode.simple('c).foo'): isNullCheck});
   }
 
   Future<void> test_methodInvocation_function_call_nullCheck() async {
@@ -2794,6 +2905,19 @@ f(C/*?*/ c) => -c;
     visitSubexpression(prefixExpression, 'C');
   }
 
+  Future<void>
+      test_prefixExpression_extensionMember_allowsNull_explicit() async {
+    await analyze('''
+class C {}
+extension E on C/*?*/ {
+  C operator-() => C();
+}
+f(C/*?*/ c) => -E(c);
+''');
+    var prefixExpression = findNode.prefix('-E(c)');
+    visitSubexpression(prefixExpression, 'C');
+  }
+
   Future<void> test_prefixExpression_extensionMember_disallowsNull() async {
     await analyze('''
 class C {}
@@ -2805,6 +2929,20 @@ f(C/*?*/ c) => -c;
     var prefixExpression = findNode.prefix('-c');
     visitSubexpression(prefixExpression, 'C',
         changes: {prefixExpression.operand: isNullCheck});
+  }
+
+  Future<void>
+      test_prefixExpression_extensionMember_disallowsNull_explicit() async {
+    await analyze('''
+class C {}
+extension E on C/*!*/ {
+  C operator-() => C();
+}
+f(C/*?*/ c) => -E(c);
+''');
+    var prefixExpression = findNode.prefix('-E(c)');
+    visitSubexpression(prefixExpression, 'C',
+        changes: {findNode.simple('c);'): isNullCheck});
   }
 
   Future<void> test_prefixExpression_increment_undoes_promotion() async {
@@ -2944,6 +3082,18 @@ f(C/*?*/ Function() g) => g().foo;
     visitSubexpression(propertyAccess, 'int');
   }
 
+  Future<void> test_propertyAccess_extensionMember_allowsNull_explicit() async {
+    await analyze('''
+class C {}
+extension E on C/*?*/ {
+  int get foo => 0;
+}
+f(C/*?*/ Function() g) => E(g()).foo;
+''');
+    var propertyAccess = findNode.propertyAccess('E(g()).foo');
+    visitSubexpression(propertyAccess, 'int');
+  }
+
   Future<void> test_propertyAccess_extensionMember_disallowsNull() async {
     await analyze('''
 class C {}
@@ -2955,6 +3105,21 @@ f(C/*?*/ Function() g) => g().foo;
     var propertyAccess = findNode.propertyAccess('g().foo');
     visitSubexpression(propertyAccess, 'int',
         changes: {propertyAccess.target: isNullCheck});
+  }
+
+  Future<void>
+      test_propertyAccess_extensionMember_disallowsNull_explicit() async {
+    await analyze('''
+class C {}
+extension E on C/*!*/ {
+  int get foo => 0;
+}
+f(C/*?*/ Function() g) => E(g()).foo;
+''');
+    var propertyAccess = findNode.propertyAccess('E(g()).foo');
+    visitSubexpression(propertyAccess, 'int', changes: {
+      findNode.functionExpressionInvocation('g()).foo'): isNullCheck
+    });
   }
 
   Future<void> test_propertyAccess_field_nonNullable() async {
