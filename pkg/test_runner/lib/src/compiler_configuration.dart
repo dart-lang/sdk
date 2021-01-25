@@ -1258,7 +1258,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
 
     var compilerArguments = [
       '--verify',
-      '--verify-skip-platform',
+      '--skip-platform-verification',
       "-o",
       outputFileName,
       "--platform",

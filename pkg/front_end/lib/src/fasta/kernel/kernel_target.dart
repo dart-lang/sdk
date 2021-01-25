@@ -1334,7 +1334,7 @@ class KernelTarget extends TargetImplementation {
   void verify() {
     // TODO(ahe): How to handle errors.
     verifyComponent(component,
-        skipPlatform: context.options.verifySkipPlatform);
+        skipPlatform: context.options.skipPlatformVerification);
     ClassHierarchy hierarchy =
         new ClassHierarchy(component, new CoreTypes(component),
             onAmbiguousSupertypes: (Class cls, Supertype a, Supertype b) {
@@ -1342,7 +1342,7 @@ class KernelTarget extends TargetImplementation {
     });
     verifyGetStaticType(
         new TypeEnvironment(loader.coreTypes, hierarchy), component,
-        skipPlatform: context.options.verifySkipPlatform);
+        skipPlatform: context.options.skipPlatformVerification);
     ticker.logMs("Verified component");
   }
 

@@ -192,7 +192,7 @@ class CompilerOptions {
   bool verify = false;
 
   /// Whether to - if verifying - skip the platform.
-  bool verifySkipPlatform = false;
+  bool skipPlatformVerification = false;
 
   /// Whether to dump generated components in a text format (also mainly for
   /// debugging).
@@ -338,7 +338,9 @@ class CompilerOptions {
     }
     if (!ignoreVerify) {
       if (verify != other.verify) return false;
-      if (verifySkipPlatform != other.verifySkipPlatform) return false;
+      if (skipPlatformVerification != other.skipPlatformVerification) {
+        return false;
+      }
     }
     if (!ignoreDebugDump) {
       if (debugDump != other.debugDump) return false;
