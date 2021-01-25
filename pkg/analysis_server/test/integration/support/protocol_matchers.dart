@@ -448,6 +448,7 @@ final Matcher isElementDeclaration =
 ///   PREFIX
 ///   SETTER
 ///   TOP_LEVEL_VARIABLE
+///   TYPE_ALIAS
 ///   TYPE_PARAMETER
 ///   UNIT_TEST_GROUP
 ///   UNIT_TEST_TEST
@@ -477,6 +478,7 @@ final Matcher isElementKind = MatchesEnum('ElementKind', [
   'PREFIX',
   'SETTER',
   'TOP_LEVEL_VARIABLE',
+  'TYPE_ALIAS',
   'TYPE_PARAMETER',
   'UNIT_TEST_GROUP',
   'UNIT_TEST_TEST',
@@ -846,6 +848,7 @@ final Matcher isHighlightRegion = LazyMatcher(() => MatchesJsonObject(
 ///   TOP_LEVEL_SETTER_DECLARATION
 ///   TOP_LEVEL_SETTER_REFERENCE
 ///   TOP_LEVEL_VARIABLE_DECLARATION
+///   TYPE_ALIAS
 ///   TYPE_NAME_DYNAMIC
 ///   TYPE_PARAMETER
 ///   UNRESOLVED_INSTANCE_MEMBER_REFERENCE
@@ -921,6 +924,7 @@ final Matcher isHighlightRegionType = MatchesEnum('HighlightRegionType', [
   'TOP_LEVEL_SETTER_DECLARATION',
   'TOP_LEVEL_SETTER_REFERENCE',
   'TOP_LEVEL_VARIABLE_DECLARATION',
+  'TYPE_ALIAS',
   'TYPE_NAME_DYNAMIC',
   'TYPE_PARAMETER',
   'UNRESOLVED_INSTANCE_MEMBER_REFERENCE',
