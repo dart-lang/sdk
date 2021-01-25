@@ -99,6 +99,46 @@
 * Removed the `--use-fasta-parser`, `--preview-dart-2`, and
   `--enable-assert-initializers` command line options. These options haven't
   been supported in a while and were no-ops.
+* Report diagnostics regarding the
+  [`@internal`](https://pub.dev/documentation/meta/latest/meta/internal-constant.html)
+  annotation.
+* Improve diagnostic-reporting regarding the
+  [`@doNotStore`](https://pub.dev/documentation/meta/latest/meta/doNotStore-constant.html)
+  annotation.
+* Introduce a diagnostic which is reported when a library member named `main`
+  is not a function.
+* Introduce a diagnostic which is reported when a `main` function's first
+  parameter is not a supertype of `List<String>`.
+* Introduce a diagnostic which is reported when an `// ignore` comment contains
+  an error code which is not being reported.
+* Introduce a diagnostic which is reported when an `// ignore` comment contains
+  an error code which cannot be ignored.
+* Introduce a diagnostic which is reported when an `// ignore` comment contains
+  an error code which is already being ignored.
+* Report diagnostics when using
+  [`@visibleForTesting`](https://pub.dev/documentation/meta/latest/meta/visibleForTesting-constant.html)
+  on top-level variables.
+* Fix false positive reports of "unused element" for top-level setters and
+  getters.
+* Fix false positive reports regarding `@deprecated` field formal parameters at
+  their declaration.
+* For null safety, introduce a diagnostic which reports when a null-check will
+  always fail.
+* Fix false positive reports regarding optional parameters on privat
+  constructors being unused.
+* Introduce a diagnostic which is reported when a constructor includes
+  duplicate field formal parameters.
+* Improve the "unused import" diagnostic when multiple import directives share
+  a common prefix.
+* Fix false positive "unused import" diagnostic regarding an import which
+  provides an extension method which is used.
+* For null safety, improve the messaging of "use of nullable value" diagnostics
+  for eight different contexts.
+* Fix false positive reports regarding `@visibleForTesting` members in a "hide"
+  combinator of an import or export directive.
+* Improve the messaging of "invalid override" diagnostics.
+* Introduce a diagnostic which is reported when `Future<T>.catchError` is
+  called with an `onError` callback which does not return `FutureOr<T>`.
 
 #### dartfmt
 
