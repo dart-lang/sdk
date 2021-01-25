@@ -287,9 +287,9 @@ class TypeArgumentIssue {
 List<TypeArgumentIssue> findTypeArgumentIssues(Library library, DartType type,
     TypeEnvironment typeEnvironment, SubtypeCheckMode subtypeCheckMode,
     {bool allowSuperBounded = false}) {
-  List<TypeParameter> variables;
-  List<DartType> arguments;
-  List<TypeArgumentIssue> typedefRhsResult;
+  List<TypeParameter> variables = const <TypeParameter>[];
+  List<DartType> arguments = const <DartType>[];
+  List<TypeArgumentIssue> typedefRhsResult = const <TypeArgumentIssue>[];
 
   if (type is FunctionType && type.typedefType != null) {
     // [type] is a function type that is an application of a parametrized
@@ -316,64 +316,42 @@ List<TypeArgumentIssue> findTypeArgumentIssues(Library library, DartType type,
     variables = type.typedefNode.typeParameters;
     arguments = type.typeArguments;
   } else if (type is FunctionType) {
-    List<TypeArgumentIssue> result = null;
+    List<TypeArgumentIssue> result = <TypeArgumentIssue>[];
 
     for (TypeParameter parameter in type.typeParameters) {
-      List<TypeArgumentIssue> parameterResult = findTypeArgumentIssues(
+      result.addAll(findTypeArgumentIssues(
           library, parameter.bound, typeEnvironment, subtypeCheckMode,
-          allowSuperBounded: true);
-      if (result == null) {
-        result = parameterResult;
-      } else if (parameterResult != null) {
-        result.addAll(parameterResult);
-      }
+          allowSuperBounded: true));
     }
 
     for (DartType formal in type.positionalParameters) {
-      List<TypeArgumentIssue> parameterResult = findTypeArgumentIssues(
+      result.addAll(findTypeArgumentIssues(
           library, formal, typeEnvironment, subtypeCheckMode,
-          allowSuperBounded: true);
-      if (result == null) {
-        result = parameterResult;
-      } else if (parameterResult != null) {
-        result.addAll(parameterResult);
-      }
+          allowSuperBounded: true));
     }
 
     for (NamedType named in type.namedParameters) {
-      List<TypeArgumentIssue> parameterResult = findTypeArgumentIssues(
+      result.addAll(findTypeArgumentIssues(
           library, named.type, typeEnvironment, subtypeCheckMode,
-          allowSuperBounded: true);
-      if (result == null) {
-        result = parameterResult;
-      } else if (parameterResult != null) {
-        result.addAll(parameterResult);
-      }
+          allowSuperBounded: true));
     }
 
-    {
-      List<TypeArgumentIssue> returnTypeResult = findTypeArgumentIssues(
-          library, type.returnType, typeEnvironment, subtypeCheckMode,
-          allowSuperBounded: true);
-      if (result == null) {
-        result = returnTypeResult;
-      } else if (returnTypeResult != null) {
-        result.addAll(returnTypeResult);
-      }
-    }
+    result.addAll(findTypeArgumentIssues(
+        library, type.returnType, typeEnvironment, subtypeCheckMode,
+        allowSuperBounded: true));
 
     return result;
   } else if (type is FutureOrType) {
     variables = typeEnvironment.coreTypes.futureClass.typeParameters;
     arguments = <DartType>[type.typeArgument];
   } else {
-    return null;
+    return const <TypeArgumentIssue>[];
   }
 
-  if (variables == null) return null;
+  if (variables.isEmpty) return const <TypeArgumentIssue>[];
 
-  List<TypeArgumentIssue> result = null;
-  List<TypeArgumentIssue> argumentsResult = null;
+  List<TypeArgumentIssue> result = <TypeArgumentIssue>[];
+  List<TypeArgumentIssue> argumentsResult = <TypeArgumentIssue>[];
 
   Map<TypeParameter, DartType> substitutionMap =
       new Map<TypeParameter, DartType>.fromIterables(variables, arguments);
@@ -381,7 +359,6 @@ List<TypeArgumentIssue> findTypeArgumentIssues(Library library, DartType type,
     DartType argument = arguments[i];
     if (isGenericFunctionTypeOrAlias(argument)) {
       // Generic function types aren't allowed as type arguments either.
-      result ??= <TypeArgumentIssue>[];
       result.add(new TypeArgumentIssue(i, argument, variables[i], type));
     } else if (variables[i].bound is! InvalidType) {
       DartType bound = substitute(variables[i].bound, substitutionMap);
@@ -389,7 +366,6 @@ List<TypeArgumentIssue> findTypeArgumentIssues(Library library, DartType type,
         bound = legacyErasure(bound);
       }
       if (!typeEnvironment.isSubtypeOf(argument, bound, subtypeCheckMode)) {
-        result ??= <TypeArgumentIssue>[];
         result.add(new TypeArgumentIssue(i, argument, variables[i], type));
       }
     } else {
@@ -397,25 +373,15 @@ List<TypeArgumentIssue> findTypeArgumentIssues(Library library, DartType type,
       // reported already at the time of the creation of InvalidType.
     }
 
-    List<TypeArgumentIssue> issues = findTypeArgumentIssues(
+    argumentsResult.addAll(findTypeArgumentIssues(
         library, argument, typeEnvironment, subtypeCheckMode,
-        allowSuperBounded: true);
-    if (issues != null) {
-      argumentsResult ??= <TypeArgumentIssue>[];
-      argumentsResult.addAll(issues);
-    }
+        allowSuperBounded: true));
   }
-  if (argumentsResult != null) {
-    result ??= <TypeArgumentIssue>[];
-    result.addAll(argumentsResult);
-  }
-  if (typedefRhsResult != null) {
-    result ??= <TypeArgumentIssue>[];
-    result.addAll(typedefRhsResult);
-  }
+  result.addAll(argumentsResult);
+  result.addAll(typedefRhsResult);
 
   // [type] is regular-bounded.
-  if (result == null) return null;
+  if (result.isEmpty) return const <TypeArgumentIssue>[];
   if (!allowSuperBounded) return result;
 
   bool isCorrectSuperBounded = true;
@@ -450,16 +416,16 @@ List<TypeArgumentIssue> findTypeArgumentIssues(Library library, DartType type,
       isCorrectSuperBounded = false;
     }
   }
-  if (argumentsResult != null) {
+  if (argumentsResult.isNotEmpty) {
     isCorrectSuperBounded = false;
   }
-  if (typedefRhsResult != null) {
+  if (typedefRhsResult.isNotEmpty) {
     isCorrectSuperBounded = false;
   }
 
   // The inverted type is regular-bounded, which means that [type] is
   // well-bounded.
-  if (isCorrectSuperBounded) return null;
+  if (isCorrectSuperBounded) return const <TypeArgumentIssue>[];
 
   // The inverted type isn't regular-bounded, but it's different from [type].
   // In this case we'll provide the programmer with the inverted type as a hint,
@@ -491,7 +457,7 @@ List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
   assert(arguments.length == parameters.length);
   assert(bottomType == const NeverType(Nullability.nonNullable) ||
       bottomType is NullType);
-  List<TypeArgumentIssue> result;
+  List<TypeArgumentIssue> result = <TypeArgumentIssue>[];
   Map<TypeParameter, DartType> substitutionMap = <TypeParameter, DartType>{};
   for (int i = 0; i < arguments.length; ++i) {
     substitutionMap[parameters[i]] = arguments[i];
@@ -499,11 +465,9 @@ List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
   for (int i = 0; i < arguments.length; ++i) {
     DartType argument = arguments[i];
     if (argument is TypeParameterType && argument.promotedBound != null) {
-      result ??= <TypeArgumentIssue>[];
       result.add(new TypeArgumentIssue(i, argument, parameters[i], null));
     } else if (isGenericFunctionTypeOrAlias(argument)) {
       // Generic function types aren't allowed as type arguments either.
-      result ??= <TypeArgumentIssue>[];
       result.add(new TypeArgumentIssue(i, argument, parameters[i], null));
     } else if (parameters[i].bound is! InvalidType) {
       DartType bound = substitute(parameters[i].bound, substitutionMap);
@@ -511,18 +475,13 @@ List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
         bound = legacyErasure(bound);
       }
       if (!typeEnvironment.isSubtypeOf(argument, bound, subtypeCheckMode)) {
-        result ??= <TypeArgumentIssue>[];
         result.add(new TypeArgumentIssue(i, argument, parameters[i], null));
       }
     }
 
-    List<TypeArgumentIssue> issues = findTypeArgumentIssues(
+    result.addAll(findTypeArgumentIssues(
         library, argument, typeEnvironment, subtypeCheckMode,
-        allowSuperBounded: true);
-    if (issues != null) {
-      result ??= <TypeArgumentIssue>[];
-      result.addAll(issues);
-    }
+        allowSuperBounded: true));
   }
   return result;
 }

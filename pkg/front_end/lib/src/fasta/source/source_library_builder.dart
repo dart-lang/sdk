@@ -3374,17 +3374,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       List<TypeParameter> typeParameters, Uri fileUri) {
     // Check in bounds of own type variables.
     for (TypeParameter parameter in typeParameters) {
-      Set<TypeArgumentIssue> issues = {};
-      issues.addAll(findTypeArgumentIssues(library, parameter.bound,
-              typeEnvironment, SubtypeCheckMode.ignoringNullabilities,
-              allowSuperBounded: true) ??
-          const []);
-      if (library.isNonNullableByDefault) {
-        issues.addAll(findTypeArgumentIssues(library, parameter.bound,
-                typeEnvironment, SubtypeCheckMode.withNullabilities,
-                allowSuperBounded: true) ??
-            const []);
-      }
+      List<TypeArgumentIssue> issues = findTypeArgumentIssues(
+          library,
+          parameter.bound,
+          typeEnvironment,
+          isNonNullableByDefault
+              ? SubtypeCheckMode.withNullabilities
+              : SubtypeCheckMode.ignoringNullabilities,
+          allowSuperBounded: true);
       for (TypeArgumentIssue issue in issues) {
         DartType argument = issue.argument;
         TypeParameter typeParameter = issue.typeParameter;
@@ -3453,17 +3450,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
     if (!skipReturnType && returnType != null) {
-      Set<TypeArgumentIssue> issues = {};
-      issues.addAll(findTypeArgumentIssues(library, returnType, typeEnvironment,
-              SubtypeCheckMode.ignoringNullabilities,
-              allowSuperBounded: true) ??
-          const []);
-      if (isNonNullableByDefault) {
-        issues.addAll(findTypeArgumentIssues(library, returnType,
-                typeEnvironment, SubtypeCheckMode.withNullabilities,
-                allowSuperBounded: true) ??
-            const []);
-      }
+      List<TypeArgumentIssue> issues = findTypeArgumentIssues(
+          library,
+          returnType,
+          typeEnvironment,
+          isNonNullableByDefault
+              ? SubtypeCheckMode.withNullabilities
+              : SubtypeCheckMode.ignoringNullabilities,
+          allowSuperBounded: true);
       for (TypeArgumentIssue issue in issues) {
         DartType argument = issue.argument;
         TypeParameter typeParameter = issue.typeParameter;
@@ -3564,17 +3558,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void checkBoundsInType(
       DartType type, TypeEnvironment typeEnvironment, Uri fileUri, int offset,
       {bool inferred, bool allowSuperBounded = true}) {
-    Set<TypeArgumentIssue> issues = {};
-    issues.addAll(findTypeArgumentIssues(library, type, typeEnvironment,
-            SubtypeCheckMode.ignoringNullabilities,
-            allowSuperBounded: allowSuperBounded) ??
-        const []);
-    if (isNonNullableByDefault) {
-      issues.addAll(findTypeArgumentIssues(library, type, typeEnvironment,
-              SubtypeCheckMode.withNullabilities,
-              allowSuperBounded: allowSuperBounded) ??
-          const []);
-    }
+    List<TypeArgumentIssue> issues = findTypeArgumentIssues(
+        library,
+        type,
+        typeEnvironment,
+        isNonNullableByDefault
+            ? SubtypeCheckMode.withNullabilities
+            : SubtypeCheckMode.ignoringNullabilities,
+        allowSuperBounded: allowSuperBounded);
     reportTypeArgumentIssues(issues, fileUri, offset, inferred: inferred);
   }
 
@@ -3631,25 +3622,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     final DartType bottomType = isNonNullableByDefault
         ? const NeverType(Nullability.nonNullable)
         : const NullType();
-    Set<TypeArgumentIssue> issues = {};
-    issues.addAll(findTypeArgumentIssuesForInvocation(
-            library,
-            parameters,
-            arguments,
-            typeEnvironment,
-            SubtypeCheckMode.ignoringNullabilities,
-            bottomType) ??
-        const []);
-    if (isNonNullableByDefault) {
-      issues.addAll(findTypeArgumentIssuesForInvocation(
-              library,
-              parameters,
-              arguments,
-              typeEnvironment,
-              SubtypeCheckMode.withNullabilities,
-              bottomType) ??
-          const []);
-    }
+    List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
+        library,
+        parameters,
+        arguments,
+        typeEnvironment,
+        isNonNullableByDefault
+            ? SubtypeCheckMode.withNullabilities
+            : SubtypeCheckMode.ignoringNullabilities,
+        bottomType);
     if (issues.isNotEmpty) {
       DartType targetReceiver;
       if (klass != null) {
@@ -3718,25 +3699,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     final DartType bottomType = isNonNullableByDefault
         ? const NeverType(Nullability.nonNullable)
         : const NullType();
-    Set<TypeArgumentIssue> issues = {};
-    issues.addAll(findTypeArgumentIssuesForInvocation(
-            library,
-            instantiatedMethodParameters,
-            arguments.types,
-            typeEnvironment,
-            SubtypeCheckMode.ignoringNullabilities,
-            bottomType) ??
-        const []);
-    if (isNonNullableByDefault) {
-      issues.addAll(findTypeArgumentIssuesForInvocation(
-              library,
-              instantiatedMethodParameters,
-              arguments.types,
-              typeEnvironment,
-              SubtypeCheckMode.withNullabilities,
-              bottomType) ??
-          const []);
-    }
+    List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
+        library,
+        instantiatedMethodParameters,
+        arguments.types,
+        typeEnvironment,
+        isNonNullableByDefault
+            ? SubtypeCheckMode.withNullabilities
+            : SubtypeCheckMode.ignoringNullabilities,
+        bottomType);
     reportTypeArgumentIssues(issues, fileUri, offset,
         typeArgumentsInfo: getTypeArgumentsInfo(arguments),
         targetReceiver: receiverType,

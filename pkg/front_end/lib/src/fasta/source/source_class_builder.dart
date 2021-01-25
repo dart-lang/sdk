@@ -430,25 +430,15 @@ class SourceClassBuilder extends ClassBuilderImpl
     SourceLibraryBuilder libraryBuilder = this.library;
     Library library = libraryBuilder.library;
 
-    Set<TypeArgumentIssue> issues = {};
-    issues.addAll(findTypeArgumentIssues(
-            library,
-            new InterfaceType(supertype.classNode, library.nonNullable,
-                supertype.typeArguments),
-            typeEnvironment,
-            SubtypeCheckMode.ignoringNullabilities,
-            allowSuperBounded: false) ??
-        const []);
-    if (library.isNonNullableByDefault) {
-      issues.addAll(findTypeArgumentIssues(
-              library,
-              new InterfaceType(supertype.classNode, library.nonNullable,
-                  supertype.typeArguments),
-              typeEnvironment,
-              SubtypeCheckMode.withNullabilities,
-              allowSuperBounded: false) ??
-          const []);
-    }
+    List<TypeArgumentIssue> issues = findTypeArgumentIssues(
+        library,
+        new InterfaceType(
+            supertype.classNode, library.nonNullable, supertype.typeArguments),
+        typeEnvironment,
+        libraryBuilder.isNonNullableByDefault
+            ? SubtypeCheckMode.withNullabilities
+            : SubtypeCheckMode.ignoringNullabilities,
+        allowSuperBounded: false);
     for (TypeArgumentIssue issue in issues) {
       DartType argument = issue.argument;
       TypeParameter typeParameter = issue.typeParameter;
