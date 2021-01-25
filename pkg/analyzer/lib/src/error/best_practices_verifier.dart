@@ -23,7 +23,6 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:analyzer/src/error/catch_error_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/deprecated_member_use_verifier.dart';
 import 'package:analyzer/src/error/must_call_super_verifier.dart';
@@ -73,8 +72,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   final MustCallSuperVerifier _mustCallSuperVerifier;
 
-  final CatchErrorVerifier _catchErrorVerifier;
-
   /// The [WorkspacePackage] in which [_currentLibrary] is declared.
   final WorkspacePackage _workspacePackage;
 
@@ -112,8 +109,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _deprecatedVerifier =
             DeprecatedMemberUseVerifier(workspacePackage, _errorReporter),
         _mustCallSuperVerifier = MustCallSuperVerifier(_errorReporter),
-        _catchErrorVerifier =
-            CatchErrorVerifier(_errorReporter, typeProvider, typeSystem),
         _workspacePackage = workspacePackage {
     _deprecatedVerifier.pushInDeprecatedValue(_currentLibrary.hasDeprecated);
     _inDoNotStoreMember = _currentLibrary.hasDoNotStore;
@@ -593,7 +588,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitMethodInvocation(MethodInvocation node) {
     _deprecatedVerifier.methodInvocation(node);
     _checkForNullAwareHints(node, node.operator);
-    _catchErrorVerifier.verifyMethodInvocation(node);
     super.visitMethodInvocation(node);
   }
 

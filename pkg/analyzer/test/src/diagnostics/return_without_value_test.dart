@@ -36,16 +36,6 @@ Future<Object> f() async {
     ]);
   }
 
-  test_catchError_futureOfVoid() async {
-    await assertNoErrorsInCode('''
-void f(Future<void> future) {
-  future.catchError((e) {
-    return;
-  });
-}
-''');
-  }
-
   test_factoryConstructor() async {
     await assertErrorsInCode('''
 class A {

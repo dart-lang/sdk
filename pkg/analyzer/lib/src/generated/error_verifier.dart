@@ -53,12 +53,6 @@ class EnclosingExecutableContext {
   final bool inFactoryConstructor;
   final bool inStaticMethod;
 
-  /// If this [EnclosingExecutableContext] is the first argument in a method
-  /// invocation of [Future.catchError], returns the return type expected for
-  /// `Future<T>.catchError`'s `onError` parameter, which is `FutureOr<T>`,
-  /// otherwise `null`.
-  final InterfaceType catchErrorOnErrorReturnType;
-
   /// The return statements that have a value.
   final List<ReturnStatement> _returnsWith = [];
 
@@ -69,10 +63,8 @@ class EnclosingExecutableContext {
   /// for the kind of the function body, e.g. not `Future` for `async`.
   bool hasLegalReturnType = true;
 
-  EnclosingExecutableContext(this.element,
-      {bool isAsynchronous, this.catchErrorOnErrorReturnType})
-      : isAsynchronous =
-            isAsynchronous ?? (element != null && element.isAsynchronous),
+  EnclosingExecutableContext(this.element)
+      : isAsynchronous = element != null && element.isAsynchronous,
         isConstConstructor = element is ConstructorElement && element.isConst,
         isGenerativeConstructor =
             element is ConstructorElement && !element.isFactory,
@@ -112,7 +104,7 @@ class EnclosingExecutableContext {
 
   bool get isSynchronous => !isAsynchronous;
 
-  DartType get returnType => catchErrorOnErrorReturnType ?? element.returnType;
+  DartType get returnType => element.returnType;
 
   static bool _inFactoryConstructor(ExecutableElement element) {
     if (element is ConstructorElement) {
@@ -754,12 +746,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionExpression(FunctionExpression node) {
     _isInLateLocalVariable.add(false);
-    if (node.parent is FunctionDeclaration) {
-      super.visitFunctionExpression(node);
-    } else {
+
+    if (node.parent is! FunctionDeclaration) {
       _withEnclosingExecutable(node.declaredElement, () {
         super.visitFunctionExpression(node);
       });
+    } else {
+      super.visitFunctionExpression(node);
     }
 
     _isInLateLocalVariable.removeLast();
