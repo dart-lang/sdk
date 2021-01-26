@@ -15,17 +15,45 @@ import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../support/abstract_context.dart';
 import '../support/abstract_single_unit.dart';
 
 void main() {
+  defineReflectiveTests(AnalyzerConverterNullableTest);
   defineReflectiveTests(AnalyzerConverterTest);
 }
 
 @reflectiveTest
-class AnalyzerConverterTest extends AbstractSingleUnitTest {
-  AnalyzerConverter converter = AnalyzerConverter();
-  analyzer.Source source;
+class AnalyzerConverterNullableTest extends _AnalyzerConverterTest {
+  Future<void> test_convertElement_method() async {
+    await resolveTestCode('''
+class A {
+  static List<String> myMethod(int a, {String b, int c}) {
+    return [];
+  }
+}''');
+    var engineElement = findElement.method('myMethod');
+    // create notification Element
+    var element = converter.convertElement(engineElement);
+    expect(element.kind, plugin.ElementKind.METHOD);
+    expect(element.name, 'myMethod');
+    {
+      var location = element.location;
+      expect(location.file, testFile);
+      expect(location.offset, 32);
+      expect(location.length, 'myGetter'.length);
+      expect(location.startLine, 2);
+      expect(location.startColumn, 23);
+    }
+    expect(element.parameters, '(int a, {String b, int c})');
+    expect(element.returnType, 'List<String>');
+    expect(element.flags, plugin.Element.FLAG_STATIC);
+  }
+}
 
+@reflectiveTest
+class AnalyzerConverterTest extends _AnalyzerConverterTest
+    with WithNonFunctionTypeAliasesMixin {
   /// Assert that the given [pluginError] matches the given [analyzerError].
   void assertError(
       plugin.AnalysisError pluginError, analyzer.AnalysisError analyzerError,
@@ -65,13 +93,6 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
         analyzer.CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT,
         null,
         contextMessages);
-  }
-
-  @override
-  void setUp() {
-    super.setUp();
-    source = newFile('/foo/bar.dart').createSource();
-    testFile = convertPath('$testPackageRootPath/lib/test.dart');
   }
 
   void test_convertAnalysisError_contextMessages() {
@@ -239,7 +260,7 @@ class B<K, V> {}''');
   Future<void> test_convertElement_constructor() async {
     await resolveTestCode('''
 class A {
-  const A.myConstructor(int a, [String b]);
+  const A.myConstructor(int a, [String? b]);
 }''');
     var engineElement = findElement.constructor('myConstructor');
     // create notification Element
@@ -429,7 +450,7 @@ typedef int F<T>(String x);
     var engineElement = findElement.typeAlias('F');
     // create notification Element
     var element = converter.convertElement(engineElement);
-    expect(element.kind, plugin.ElementKind.FUNCTION_TYPE_ALIAS);
+    expect(element.kind, plugin.ElementKind.TYPE_ALIAS);
     expect(element.name, 'F');
     expect(element.typeParameters, '<T>');
     {
@@ -439,29 +460,6 @@ typedef int F<T>(String x);
       expect(location.length, 'F'.length);
       expect(location.startLine, 1);
       expect(location.startColumn, 13);
-    }
-    expect(element.parameters, '(String x)');
-    expect(element.returnType, 'int');
-    expect(element.flags, 0);
-  }
-
-  Future<void> test_convertElement_genericTypeAlias_function() async {
-    await resolveTestCode('''
-typedef F<T> = int Function(String x);
-''');
-    var engineElement = findElement.typeAlias('F');
-    // create notification Element
-    var element = converter.convertElement(engineElement);
-    expect(element.kind, plugin.ElementKind.FUNCTION_TYPE_ALIAS);
-    expect(element.name, 'F');
-    expect(element.typeParameters, '<T>');
-    {
-      var location = element.location;
-      expect(location.file, testFile);
-      expect(location.offset, 8);
-      expect(location.length, 'F'.length);
-      expect(location.startLine, 1);
-      expect(location.startColumn, 9);
     }
     expect(element.parameters, '(String x)');
     expect(element.returnType, 'int');
@@ -491,11 +489,37 @@ class A {
     expect(element.flags, 0);
   }
 
+  Future<void> test_convertElement_LABEL() async {
+    await resolveTestCode('''
+main() {
+myLabel:
+  while (true) {
+    break myLabel;
+  }
+}''');
+    var engineElement = findElement.label('myLabel');
+    // create notification Element
+    var element = converter.convertElement(engineElement);
+    expect(element.kind, plugin.ElementKind.LABEL);
+    expect(element.name, 'myLabel');
+    {
+      var location = element.location;
+      expect(location.file, testFile);
+      expect(location.offset, 9);
+      expect(location.length, 'myLabel'.length);
+      expect(location.startLine, 2);
+      expect(location.startColumn, 1);
+    }
+    expect(element.parameters, isNull);
+    expect(element.returnType, isNull);
+    expect(element.flags, 0);
+  }
+
   Future<void> test_convertElement_method() async {
     await resolveTestCode('''
 class A {
-  static List<String> myMethod(int a, {String b, int c}) {
-    return null;
+  static List<String> myMethod(int a, {String? b, int? c}) {
+    return [];
   }
 }''');
     var engineElement = findElement.method('myMethod');
@@ -539,6 +563,52 @@ class A {
     expect(element.flags, 0);
   }
 
+  Future<void> test_convertElement_typeAlias_functionType() async {
+    await resolveTestCode('''
+typedef F<T> = int Function(String x);
+''');
+    var engineElement = findElement.typeAlias('F');
+    // create notification Element
+    var element = converter.convertElement(engineElement);
+    expect(element.kind, plugin.ElementKind.TYPE_ALIAS);
+    expect(element.name, 'F');
+    expect(element.typeParameters, '<T>');
+    {
+      var location = element.location;
+      expect(location.file, testFile);
+      expect(location.offset, 8);
+      expect(location.length, 'F'.length);
+      expect(location.startLine, 1);
+      expect(location.startColumn, 9);
+    }
+    expect(element.parameters, '(String x)');
+    expect(element.returnType, 'int');
+    expect(element.flags, 0);
+  }
+
+  Future<void> test_convertElement_typeAlias_interfaceType() async {
+    await resolveTestCode('''
+typedef A<T> = Map<int, T>;
+''');
+    var engineElement = findElement.typeAlias('A');
+    // create notification Element
+    var element = converter.convertElement(engineElement);
+    expect(element.kind, plugin.ElementKind.TYPE_ALIAS);
+    expect(element.name, 'A');
+    expect(element.typeParameters, '<out T>');
+    {
+      var location = element.location;
+      expect(location.file, testFile);
+      expect(location.offset, 8);
+      expect(location.length, 'A'.length);
+      expect(location.startLine, 1);
+      expect(location.startColumn, 9);
+    }
+    expect(element.parameters, isNull);
+    expect(element.returnType, 'Map<int, T>');
+    expect(element.flags, 0);
+  }
+
   void test_convertElementKind() {
     expect(converter.convertElementKind(analyzer.ElementKind.CLASS),
         plugin.ElementKind.CLASS);
@@ -570,6 +640,8 @@ class A {
     expect(
         converter.convertElementKind(analyzer.ElementKind.TOP_LEVEL_VARIABLE),
         plugin.ElementKind.TOP_LEVEL_VARIABLE);
+    expect(converter.convertElementKind(analyzer.ElementKind.TYPE_ALIAS),
+        plugin.ElementKind.TYPE_ALIAS);
     expect(converter.convertElementKind(analyzer.ElementKind.TYPE_PARAMETER),
         plugin.ElementKind.TYPE_PARAMETER);
   }
@@ -588,30 +660,16 @@ class A {
       expect(converter.convertErrorType(type), isNotNull, reason: type.name);
     }
   }
+}
 
-  Future<void> test_fromElement_LABEL() async {
-    await resolveTestCode('''
-main() {
-myLabel:
-  while (true) {
-    break myLabel;
-  }
-}''');
-    var engineElement = findElement.label('myLabel');
-    // create notification Element
-    var element = converter.convertElement(engineElement);
-    expect(element.kind, plugin.ElementKind.LABEL);
-    expect(element.name, 'myLabel');
-    {
-      var location = element.location;
-      expect(location.file, testFile);
-      expect(location.offset, 9);
-      expect(location.length, 'myLabel'.length);
-      expect(location.startLine, 2);
-      expect(location.startColumn, 1);
-    }
-    expect(element.parameters, isNull);
-    expect(element.returnType, isNull);
-    expect(element.flags, 0);
+class _AnalyzerConverterTest extends AbstractSingleUnitTest {
+  AnalyzerConverter converter = AnalyzerConverter();
+  analyzer.Source source;
+
+  @override
+  void setUp() {
+    super.setUp();
+    source = newFile('/foo/bar.dart').createSource();
+    testFile = convertPath('$testPackageRootPath/lib/test.dart');
   }
 }

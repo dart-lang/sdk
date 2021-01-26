@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart'
 import 'package:analyzer/dart/analysis/results.dart' as engine;
 import 'package:analyzer/dart/ast/ast.dart' as engine;
 import 'package:analyzer/dart/element/element.dart' as engine;
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart' as engine;
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/exception/exception.dart';
@@ -58,12 +59,12 @@ String getReturnTypeString(engine.Element element) {
         ? type.getDisplayString(withNullability: false)
         : 'dynamic';
   } else if (element is engine.TypeAliasElement) {
-    var aliasedElement = element.aliasedElement;
-    if (aliasedElement is engine.GenericFunctionTypeElement) {
-      var returnType = aliasedElement.returnType;
+    var aliasedType = element.aliasedType;
+    if (aliasedType is FunctionType) {
+      var returnType = aliasedType.returnType;
       return returnType.getDisplayString(withNullability: false);
     } else {
-      return null;
+      return aliasedType.getDisplayString(withNullability: false);
     }
   } else {
     return null;

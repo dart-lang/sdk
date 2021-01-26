@@ -92,6 +92,9 @@ ElementKind convertElementKind(engine.ElementKind kind) {
   if (kind == engine.ElementKind.TOP_LEVEL_VARIABLE) {
     return ElementKind.TOP_LEVEL_VARIABLE;
   }
+  if (kind == engine.ElementKind.TYPE_ALIAS) {
+    return ElementKind.TYPE_ALIAS;
+  }
   if (kind == engine.ElementKind.TYPE_PARAMETER) {
     return ElementKind.TYPE_PARAMETER;
   }
@@ -159,7 +162,9 @@ String _getParametersString(engine.Element element) {
         closeOptionalString = ']';
       }
     }
-    if (parameter.hasRequired) {
+    if (parameter.isRequiredNamed) {
+      sb.write('required ');
+    } else if (parameter.hasRequired) {
       sb.write('@required ');
     }
     parameter.appendToWithoutDelimiters(sb, withNullability: false);
@@ -172,7 +177,7 @@ String _getTypeParametersString(engine.Element element) {
   List<engine.TypeParameterElement> typeParameters;
   if (element is engine.ClassElement) {
     typeParameters = element.typeParameters;
-  } else if (element is engine.FunctionTypeAliasElement) {
+  } else if (element is engine.TypeAliasElement) {
     typeParameters = element.typeParameters;
   }
   if (typeParameters == null || typeParameters.isEmpty) {

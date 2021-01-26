@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/test_utilities/mock_packages.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -167,9 +168,25 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 }
 
+mixin WithNonFunctionTypeAliasesMixin on AbstractContextTest {
+  @override
+  String get testPackageLanguageVersion => null;
+
+  @override
+  void setUp() {
+    super.setUp();
+
+    createAnalysisOptionsFile(
+      experiments: [
+        EnableString.nonfunction_type_aliases,
+      ],
+    );
+  }
+}
+
 mixin WithNullSafetyMixin on AbstractContextTest {
   @override
-  String get testPackageLanguageVersion => '2.12';
+  String get testPackageLanguageVersion => null;
 }
 
 /// Wraps the given [_ElementVisitorFunction] into an instance of

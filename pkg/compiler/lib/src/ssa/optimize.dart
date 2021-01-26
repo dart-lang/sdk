@@ -3399,27 +3399,65 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
 
   @override
   void visitBasicBlock(HBasicBlock block) {
-    if (block.predecessors.length == 0) {
+    final predecessors = block.predecessors;
+    final indegree = predecessors.length;
+    if (indegree == 0) {
       // Entry block.
       memorySet = new MemorySet(_closedWorld);
-    } else if (block.predecessors.length == 1 &&
-        block.predecessors[0].successors.length == 1) {
+    } else if (indegree == 1 && predecessors[0].successors.length == 1) {
       // No need to clone, there is no other successor for
-      // `block.predecessors[0]`, and this block has only one
-      // predecessor. Since we are not going to visit
-      // `block.predecessors[0]` again, we can just re-use its
-      // [memorySet].
-      memorySet = memories[block.predecessors[0].id];
-    } else if (block.predecessors.length == 1) {
-      // Clone the memorySet of the predecessor, because it is also used
-      // by other successors of it.
-      memorySet = memories[block.predecessors[0].id].clone();
+      // `block.predecessors[0]`, and this block has only one predecessor. Since
+      // we are not going to visit `block.predecessors[0]` again, we can just
+      // re-use its [memorySet].
+      memorySet = memories[predecessors[0].id];
+    } else if (indegree == 1) {
+      // Clone the memorySet of the predecessor, because it is also used by
+      // other successors of it.
+      memorySet = memories[predecessors[0].id].clone();
     } else {
       // Compute the intersection of all predecessors.
-      memorySet = memories[block.predecessors[0].id];
-      for (int i = 1; i < block.predecessors.length; i++) {
-        memorySet = memorySet.intersectionFor(
-            memories[block.predecessors[i].id], block, i);
+      //
+      // If a predecessor does not have a reachable exit, the kills on that path
+      // can be ignored. Since the usual case is conditional diamond flow with
+      // two predecessors, this is done by detecting a single non-dead
+      // predecessor and cloning the memory-set, but removing expressions that
+      // are not valid in the current block (invalid instructions would be in
+      // one arm of the diamond).
+
+      List<MemorySet> inputs = List.filled(indegree, null);
+      int firstLiveIndex = -1;
+      int otherLiveIndex = -1;
+      int firstDeadIndex = -1;
+      bool pendingBackEdge = false;
+
+      for (int i = 0; i < indegree; i++) {
+        final predecessor = predecessors[i];
+        final input = inputs[i] = memories[predecessor.id];
+        if (input == null) pendingBackEdge = true;
+        if (hasUnreachableExit(predecessor)) {
+          if (firstDeadIndex == -1) firstDeadIndex = i;
+        } else {
+          if (firstLiveIndex == -1) {
+            firstLiveIndex = i;
+          } else if (otherLiveIndex == -1) {
+            otherLiveIndex = i;
+          }
+        }
+      }
+
+      if (firstLiveIndex != -1 &&
+          otherLiveIndex == -1 &&
+          firstDeadIndex != -1 &&
+          !pendingBackEdge) {
+        // Single live input intersection.
+        memorySet = memories[predecessors[firstLiveIndex].id]
+            .cloneIfDominatesBlock(block);
+      } else {
+        // Standard intersection over all predecessors.
+        memorySet = inputs[0];
+        for (int i = 1; i < inputs.length; i++) {
+          memorySet = memorySet.intersectionFor(inputs[i], block, i);
+        }
       }
     }
 
@@ -4011,6 +4049,40 @@ class MemorySet {
     });
 
     result.nonEscapingReceivers.addAll(nonEscapingReceivers);
+    return result;
+  }
+
+  /// Returns a copy of [this] memory set, removing any expressions that are not
+  /// valid in [block].
+  MemorySet cloneIfDominatesBlock(HBasicBlock block) {
+    bool instructionDominatesBlock(HInstruction instruction) {
+      return instruction != null && instruction.block.dominates(block);
+    }
+
+    MemorySet result = MemorySet(closedWorld);
+
+    fieldValues.forEach((element, values) {
+      values.forEach((receiver, value) {
+        if ((receiver == null || instructionDominatesBlock(receiver)) &&
+            instructionDominatesBlock(value)) {
+          result.registerFieldValue(element, receiver, value);
+        }
+      });
+    });
+
+    keyedValues.forEach((receiver, values) {
+      if (instructionDominatesBlock(receiver)) {
+        values.forEach((index, value) {
+          if (instructionDominatesBlock(index) &&
+              instructionDominatesBlock(value)) {
+            result.registerKeyedValue(receiver, index, value);
+          }
+        });
+      }
+    });
+
+    result.nonEscapingReceivers
+        .addAll(nonEscapingReceivers.where(instructionDominatesBlock));
     return result;
   }
 }
