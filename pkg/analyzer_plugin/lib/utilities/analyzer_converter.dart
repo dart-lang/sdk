@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart' as analyzer;
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart' as analyzer;
 import 'package:analyzer/error/error.dart' as analyzer;
 import 'package:analyzer/exception/exception.dart' as analyzer;
@@ -164,6 +165,8 @@ class AnalyzerConverter {
       return plugin.ElementKind.SETTER;
     } else if (kind == analyzer.ElementKind.TOP_LEVEL_VARIABLE) {
       return plugin.ElementKind.TOP_LEVEL_VARIABLE;
+    } else if (kind == analyzer.ElementKind.TYPE_ALIAS) {
+      return plugin.ElementKind.TYPE_ALIAS;
     } else if (kind == analyzer.ElementKind.TYPE_PARAMETER) {
       return plugin.ElementKind.TYPE_PARAMETER;
     }
@@ -281,12 +284,12 @@ class AnalyzerConverter {
           ? type.getDisplayString(withNullability: false)
           : 'dynamic';
     } else if (element is analyzer.TypeAliasElement) {
-      var aliasedElement = element.aliasedElement;
-      if (aliasedElement is analyzer.GenericFunctionTypeElement) {
-        var returnType = aliasedElement.returnType;
+      var aliasedType = element.aliasedType;
+      if (aliasedType is FunctionType) {
+        var returnType = aliasedType.returnType;
         return returnType.getDisplayString(withNullability: false);
       } else {
-        return null;
+        return aliasedType.getDisplayString(withNullability: false);
       }
     }
     return null;
