@@ -83,5 +83,5 @@ else
     --report-on=lib \
     --check-ignore
 
-    exit $status
+  exit $status
 fi
