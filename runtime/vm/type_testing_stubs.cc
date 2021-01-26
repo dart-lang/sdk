@@ -275,8 +275,8 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
   // These are handled via the TopTypeTypeTestStub!
   ASSERT(!type.IsTopTypeForSubtyping());
 
-  // Fast case for 'int'.
-  if (type.IsIntType()) {
+  // Fast case for 'int' and '_Smi' (which can appear in core libraries).
+  if (type.IsIntType() || type.IsSmiType()) {
     compiler::Label non_smi_value;
     __ BranchIfNotSmi(TypeTestABI::kInstanceReg, &non_smi_value);
     __ Ret();
@@ -309,8 +309,8 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
         /*include_abstract=*/false,
         /*exclude_null=*/!Instance::NullIsAssignableTo(type));
 
-    const Type& int_type = Type::Handle(Type::IntType());
-    const bool smi_is_ok = int_type.IsSubtypeOf(type, Heap::kNew);
+    const Type& smi_type = Type::Handle(Type::SmiType());
+    const bool smi_is_ok = smi_type.IsSubtypeOf(type, Heap::kNew);
 
     BuildOptimizedSubtypeRangeCheck(assembler, ranges, smi_is_ok);
   } else {
@@ -477,10 +477,11 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
     __ BranchIf(NOT_EQUAL, check_failed);
   } else {
     const Class& type_class = Class::Handle(type_arg.type_class());
-    const CidRangeVector& ranges = hi->SubtypeRangesForClass(
-        type_class,
-        /*include_abstract=*/true,
-        /*exclude_null=*/!Instance::NullIsAssignableTo(type_arg));
+    const bool null_is_assignable = Instance::NullIsAssignableTo(type_arg);
+    const CidRangeVector& ranges =
+        hi->SubtypeRangesForClass(type_class,
+                                  /*include_abstract=*/true,
+                                  /*exclude_null=*/!null_is_assignable);
 
     __ LoadField(
         TTSInternalRegs::kScratchReg,
@@ -494,6 +495,10 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
 
     compiler::Label is_subtype;
     __ SmiUntag(TTSInternalRegs::kScratchReg);
+    if (null_is_assignable) {
+      __ CompareImmediate(TTSInternalRegs::kScratchReg, kNullCid);
+      __ BranchIf(EQUAL, &is_subtype);
+    }
     FlowGraphCompiler::GenerateCidRangesCheck(
         assembler, TTSInternalRegs::kScratchReg, ranges, &is_subtype,
         check_failed, true);
