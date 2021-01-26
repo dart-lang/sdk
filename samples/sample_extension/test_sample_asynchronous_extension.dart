@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library test_sample_extension;
 
 import 'sample_asynchronous_extension.dart';
@@ -32,16 +30,16 @@ void main() {
 void checkNormal(List l) {
   // Count how many times each byte value occurs.  Assert that the counts
   // are all within a reasonable (six-sigma) range.
-  List counts = new List<int>.filled(256, 0);
+  List<int> counts = new List<int>.filled(256, 0);
   for (var e in l) {
     counts[e]++;
   }
   new RandomArray().randomArray(18, 256000).then(checkCorrelation(counts));
 }
 
-Function checkCorrelation(List counts) {
-  return (List l) {
-    List counts_2 = new List<int>.filled(256, 0);
+dynamic Function(List<int>) checkCorrelation(List<int> counts) {
+  return (List<int> l) {
+    List<int> counts_2 = new List<int>.filled(256, 0);
     for (var e in l) {
       counts_2[e]++;
     }
