@@ -308,21 +308,6 @@ test() {}
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  Future<void> test_checkNewName_FunctionTypeAliasElement() async {
-    await indexTestUnit('''
-typedef Test();
-''');
-    createRenameRefactoringAtString('Test();');
-    // null
-    refactoring.newName = null;
-    assertRefactoringStatus(
-        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Function type alias name must not be null.');
-    // OK
-    refactoring.newName = 'NewName';
-    assertRefactoringStatusOK(refactoring.checkNewName());
-  }
-
   Future<void> test_checkNewName_TopLevelVariableElement() async {
     await indexTestUnit('''
 var test;
@@ -340,6 +325,51 @@ var test;
         expectedMessage: 'Variable name must not be empty.');
     // OK
     refactoring.newName = 'newName';
+    assertRefactoringStatusOK(refactoring.checkNewName());
+  }
+
+  Future<void> test_checkNewName_TypeAliasElement_functionType() async {
+    await indexTestUnit('''
+typedef Test = void Function();
+''');
+    createRenameRefactoringAtString('Test =');
+    // null
+    refactoring.newName = null;
+    assertRefactoringStatus(
+        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
+        expectedMessage: 'Type alias name must not be null.');
+    // OK
+    refactoring.newName = 'NewName';
+    assertRefactoringStatusOK(refactoring.checkNewName());
+  }
+
+  Future<void> test_checkNewName_TypeAliasElement_interfaceType() async {
+    await indexTestUnit('''
+typedef Test = List<int>;
+''');
+    createRenameRefactoringAtString('Test =');
+    // null
+    refactoring.newName = null;
+    assertRefactoringStatus(
+        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
+        expectedMessage: 'Type alias name must not be null.');
+    // OK
+    refactoring.newName = 'NewName';
+    assertRefactoringStatusOK(refactoring.checkNewName());
+  }
+
+  Future<void> test_checkNewName_TypeAliasElement_legacy() async {
+    await indexTestUnit('''
+typedef Test();
+''');
+    createRenameRefactoringAtString('Test();');
+    // null
+    refactoring.newName = null;
+    assertRefactoringStatus(
+        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
+        expectedMessage: 'Type alias name must not be null.');
+    // OK
+    refactoring.newName = 'NewName';
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 

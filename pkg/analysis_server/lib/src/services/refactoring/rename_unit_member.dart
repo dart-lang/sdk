@@ -94,8 +94,8 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
     if (element is FunctionElement) {
       result.addStatus(validateFunctionName(newName));
     }
-    if (element is FunctionTypeAliasElement) {
-      result.addStatus(validateFunctionTypeAliasName(newName));
+    if (element is TypeAliasElement) {
+      result.addStatus(validateTypeAliasName(newName));
     }
     if (element is ClassElement) {
       result.addStatus(validateClassName(newName));

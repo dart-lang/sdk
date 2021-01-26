@@ -46,14 +46,6 @@ RefactoringStatus validateFunctionName(String name) {
 /// - OK if the name is valid;
 /// - WARNING if the name is discouraged;
 /// - FATAL if the name is illegal.
-RefactoringStatus validateFunctionTypeAliasName(String name) {
-  return _validateUpperCamelCase(name, 'Function type alias');
-}
-
-/// Returns the [RefactoringStatus] with severity:
-/// - OK if the name is valid;
-/// - WARNING if the name is discouraged;
-/// - FATAL if the name is illegal.
 RefactoringStatus validateImportPrefixName(String name) {
   if (name != null && name.isEmpty) {
     return RefactoringStatus();
@@ -118,6 +110,14 @@ RefactoringStatus validateMethodName(String name) {
 /// - FATAL if the name is illegal.
 RefactoringStatus validateParameterName(String name) {
   return _validateLowerCamelCase(name, 'Parameter', allowBuiltIn: true);
+}
+
+/// Returns the [RefactoringStatus] with severity:
+/// - OK if the name is valid;
+/// - WARNING if the name is discouraged;
+/// - FATAL if the name is illegal.
+RefactoringStatus validateTypeAliasName(String name) {
+  return _validateUpperCamelCase(name, 'Type alias');
 }
 
 /// Returns the [RefactoringStatus] with severity:
