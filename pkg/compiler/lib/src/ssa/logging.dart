@@ -21,7 +21,7 @@ class OptimizationTestLog {
       void f(Features features)) {
     if (converted == null) {
       _unconverted ??= {};
-      Set<HInstruction> set = _unconverted[tag] ??= new Set<HInstruction>();
+      Set<HInstruction> set = _unconverted[tag] ??= {};
       if (!set.add(original)) {
         return null;
       }
@@ -42,6 +42,15 @@ class OptimizationTestLog {
           '${check.field.enclosingClass.name}.${check.field.name}';
     }
     entries.add(new OptimizationLogEntry('NullCheck', features));
+  }
+
+  void registerConditionValue(
+      HInstruction original, bool value, String where, int count) {
+    Features features = new Features();
+    features['value'] = '$value';
+    features['where'] = where;
+    features['count'] = '$count';
+    entries.add(OptimizationLogEntry('ConditionValue', features));
   }
 
   void registerFieldGet(HInvokeDynamicGetter original, HFieldGet converted) {
