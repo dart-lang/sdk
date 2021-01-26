@@ -258,6 +258,9 @@ For example: dart compile $commandName -Da=1,b=2 main.dart''')
               '''Get package locations from the specified file instead of .packages.
 <path> can be relative or absolute.
 For example: dart compile $commandName --packages=/tmp/pkgs main.dart''')
+      ..addFlag('sound-null-safety',
+          help: 'Respect the nullability of types at runtime.',
+          defaultsTo: null)
       ..addOption('save-debugging-info', abbr: 'S', valueHelp: 'path', help: '''
 Remove debugging information from the output and save it separately to the specified file.
 <path> can be relative or absolute.''');
@@ -294,6 +297,7 @@ Remove debugging information from the output and save it separately to the speci
         packages: argResults['packages'],
         enableAsserts: argResults['enable-asserts'],
         enableExperiment: argResults.enabledExperiments.join(','),
+        soundNullSafety: argResults['sound-null-safety'],
         debugFile: argResults['save-debugging-info'],
         verbose: verbose,
         verbosity: argResults['verbosity'],

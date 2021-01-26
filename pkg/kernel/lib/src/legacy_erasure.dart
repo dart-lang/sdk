@@ -21,7 +21,7 @@ DartType legacyErasure(DartType type) {
 ///
 /// Returns `null` if the type wasn't changed.
 DartType rawLegacyErasure(DartType type) {
-  return type.accept(const _LegacyErasure());
+  return type.accept1(const _LegacyErasure(), Variance.covariant);
 }
 
 /// Returns legacy erasure of [supertype], that is, the type in which all nnbd
@@ -34,7 +34,8 @@ Supertype legacyErasureSupertype(Supertype supertype) {
   List<DartType> newTypeArguments;
   for (int i = 0; i < supertype.typeArguments.length; i++) {
     DartType typeArgument = supertype.typeArguments[i];
-    DartType newTypeArgument = typeArgument.accept(const _LegacyErasure());
+    DartType newTypeArgument =
+        typeArgument.accept1(const _LegacyErasure(), Variance.covariant);
     if (newTypeArgument != null) {
       newTypeArguments ??= supertype.typeArguments.toList(growable: false);
       newTypeArguments[i] = newTypeArgument;
@@ -69,7 +70,7 @@ class _LegacyErasure extends ReplacementVisitor {
   }
 
   @override
-  DartType visitNeverType(NeverType node) => const NullType();
+  DartType visitNeverType(NeverType node, int variance) => const NullType();
 }
 
 /// Returns `true` if a member declared in [declaringClass] inherited or

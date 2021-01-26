@@ -24,7 +24,7 @@ import "dart:_internal"
         POWERS_OF_TEN,
         SubListIterable,
         UnmodifiableListBase,
-        is64Bit,
+        has63BitSmis,
         makeFixedListUnmodifiable,
         makeListFixedLength,
         patch,

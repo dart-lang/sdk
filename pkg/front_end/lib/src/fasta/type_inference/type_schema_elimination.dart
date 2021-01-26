@@ -53,17 +53,11 @@ class _TypeSchemaEliminationVisitor extends ReplacementVisitor {
   final DartType topType;
   final DartType bottomType;
 
-  bool isLeastClosure;
-
-  _TypeSchemaEliminationVisitor(
-      this.isLeastClosure, this.topType, this.bottomType);
-
-  void changeVariance() {
-    isLeastClosure = !isLeastClosure;
-  }
+  _TypeSchemaEliminationVisitor(this.topType, this.bottomType);
 
   @override
-  DartType defaultDartType(DartType node) {
+  DartType defaultDartType(DartType node, int variance) {
+    bool isLeastClosure = variance == Variance.covariant;
     if (node is UnknownType) {
       return isLeastClosure ? bottomType : topType;
     }
@@ -84,9 +78,9 @@ class _TypeSchemaEliminationVisitor extends ReplacementVisitor {
     assert(bottomType == const NeverType(Nullability.nonNullable) ||
         bottomType is NullType);
     _TypeSchemaEliminationVisitor visitor =
-        new _TypeSchemaEliminationVisitor(isLeastClosure, topType, bottomType);
-    DartType result = schema.accept(visitor);
-    assert(visitor.isLeastClosure == isLeastClosure);
+        new _TypeSchemaEliminationVisitor(topType, bottomType);
+    DartType result = schema.accept1(
+        visitor, isLeastClosure ? Variance.covariant : Variance.contravariant);
     return result ?? schema;
   }
 }

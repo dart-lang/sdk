@@ -102,9 +102,9 @@ class VMLibraryHooks {
   }
 }
 
-final bool is64Bit = _inquireIs64Bit();
+final bool has63BitSmis = _has63BitSmis();
 
-bool _inquireIs64Bit() native "Internal_inquireIs64Bit";
+bool _has63BitSmis() native "Internal_has63BitSmis";
 
 @pragma("vm:recognized", "other")
 @pragma("vm:entry-point", "call")

@@ -310,6 +310,74 @@ void main() {}
         reason: 'File not found: $outFile');
   });
 
+  test('Compile and run exe with --sound-null-safety', () {
+    final p = project(mainSrc: '''void main() {
+      print((<int?>[] is List<int>) ? 'oh no' : 'sound');
+    }''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
+
+    var result = p.runSync(
+      [
+        'compile',
+        'exe',
+        '--sound-null-safety',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains(soundNullSafetyMessage));
+    expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
+
+    result = Process.runSync(
+      outFile,
+      [],
+    );
+
+    expect(result.stdout, contains('sound'));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+  });
+
+  test('Compile and run exe with --no-sound-null-safety', () {
+    final p = project(mainSrc: '''void main() {
+      print((<int?>[] is List<int>) ? 'unsound' : 'oh no');
+    }''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
+
+    var result = p.runSync(
+      [
+        'compile',
+        'exe',
+        '--no-sound-null-safety',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains(unsoundNullSafetyMessage));
+    expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
+
+    result = Process.runSync(
+      outFile,
+      [],
+    );
+
+    expect(result.stdout, contains('unsound'));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+  });
+
   test('Compile exe without info', () {
     final p = project(mainSrc: '''void main() {}''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));

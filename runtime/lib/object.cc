@@ -266,8 +266,8 @@ DEFINE_NATIVE_ENTRY(LibraryPrefix_issueLoad, 0, 1) {
   return unit.IssueLoad();
 }
 
-DEFINE_NATIVE_ENTRY(Internal_inquireIs64Bit, 0, 0) {
-#if defined(ARCH_IS_64_BIT)
+DEFINE_NATIVE_ENTRY(Internal_has63BitSmis, 0, 0) {
+#if defined(ARCH_IS_64_BIT) && !defined(DART_COMPRESSED_POINTERS)
   return Bool::True().ptr();
 #else
   return Bool::False().ptr();

@@ -1356,7 +1356,7 @@ void AsmIntrinsifier::DoubleToInteger(Assembler* assembler,
   __ fcmpd(V0, V0);
   __ b(normal_ir_body, VS);
 
-  __ fcvtzds(R0, V0);
+  __ fcvtzdsx(R0, V0);
   // Overflow is signaled with minint.
   // Check for overflow and that it fits into Smi.
   __ CompareImmediate(R0, 0xC000000000000000);
@@ -1380,7 +1380,7 @@ void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
 
   // Convert double value to signed 64-bit int in R0 and back to a
   // double value in V1.
-  __ fcvtzds(R0, V0);
+  __ fcvtzdsx(R0, V0);
   __ scvtfdx(V1, R0);
 
   // Tag the int as a Smi, making sure that it fits; this checks for

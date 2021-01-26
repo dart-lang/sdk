@@ -602,33 +602,39 @@ part 'b.dart';
 
   test_isReferencedBy_ConstructorElement() async {
     await _indexTestUnit('''
+/// [new A.foo] 1
+/// [A.foo] 2
+/// [new A] 3
 class A implements B {
   A() {}
   A.foo() {}
 }
 class B extends A {
-  B() : super(); // 1
-  B.foo() : super.foo(); // 2
-  factory B.bar() = A.foo; // 3
+  B() : super(); // 4
+  B.foo() : super.foo(); // 5
+  factory B.bar() = A.foo; // 6
 }
 main() {
-  new A(); // 4
-  new A.foo(); // 5
+  new A(); // 7
+  new A.foo(); // 8
 }
 ''');
     var constA = findElement.unnamedConstructor('A');
     var constA_foo = findElement.constructor('foo', of: 'A');
     // A()
     assertThat(constA)
-      ..hasRelationCount(2)
-      ..isReferencedAt('(); // 1', true, length: 0)
-      ..isReferencedAt('(); // 4', true, length: 0);
+      ..hasRelationCount(3)
+      ..isReferencedAt('] 3', true, length: 0)
+      ..isReferencedAt('(); // 4', true, length: 0)
+      ..isReferencedAt('(); // 7', true, length: 0);
     // A.foo()
     assertThat(constA_foo)
-      ..hasRelationCount(3)
-      ..isReferencedAt('.foo(); // 2', true, length: 4)
-      ..isReferencedAt('.foo; // 3', true, length: 4)
-      ..isReferencedAt('.foo(); // 5', true, length: 4);
+      ..hasRelationCount(5)
+      ..isReferencedAt('.foo] 1', true, length: 4)
+      ..isReferencedAt('.foo] 2', true, length: 4)
+      ..isReferencedAt('.foo(); // 5', true, length: 4)
+      ..isReferencedAt('.foo; // 6', true, length: 4)
+      ..isReferencedAt('.foo(); // 8', true, length: 4);
   }
 
   test_isReferencedBy_ConstructorElement_classTypeAlias() async {

@@ -337,7 +337,7 @@ namespace dart {
   V(Internal_collectAllGarbage, 0)                                             \
   V(Internal_makeListFixedLength, 1)                                           \
   V(Internal_makeFixedListUnmodifiable, 1)                                     \
-  V(Internal_inquireIs64Bit, 0)                                                \
+  V(Internal_has63BitSmis, 0)                                                  \
   V(Internal_extractTypeArguments, 2)                                          \
   V(Internal_prependTypeArguments, 4)                                          \
   V(Internal_boundsCheckForPartialInstantiation, 2)                            \

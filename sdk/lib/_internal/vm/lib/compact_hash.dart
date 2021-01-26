@@ -109,7 +109,7 @@ abstract class _HashBase implements _HashVMBase {
   // as unsigned words.
   static int _indexSizeToHashMask(int indexSize) {
     int indexBits = indexSize.bitLength - 2;
-    return internal.is64Bit
+    return internal.has63BitSmis
         ? (1 << (32 - indexBits)) - 1
         : (1 << (30 - indexBits)) - 1;
   }
