@@ -12,7 +12,7 @@ import 'replacement_visitor.dart';
 
 /// Returns normalization of [type].
 DartType norm(CoreTypes coreTypes, DartType type) {
-  return type.accept1(new _Norm(coreTypes), Variance.covariant) ?? type;
+  return type.accept(new _Norm(coreTypes)) ?? type;
 }
 
 /// Returns normalization of [supertype].
@@ -21,8 +21,7 @@ Supertype normSupertype(CoreTypes coreTypes, Supertype supertype) {
   _Norm normVisitor = new _Norm(coreTypes);
   List<DartType> typeArguments = null;
   for (int i = 0; i < supertype.typeArguments.length; ++i) {
-    DartType typeArgument =
-        supertype.typeArguments[i].accept1(normVisitor, Variance.covariant);
+    DartType typeArgument = supertype.typeArguments[i].accept(normVisitor);
     if (typeArgument != null) {
       typeArguments ??= supertype.typeArguments.toList();
       typeArguments[i] = typeArgument;
@@ -43,16 +42,16 @@ class _Norm extends ReplacementVisitor {
   _Norm(this.coreTypes);
 
   @override
-  DartType visitInterfaceType(InterfaceType node, int variance) {
+  DartType visitInterfaceType(InterfaceType node) {
     return super
-        .visitInterfaceType(node, variance)
+        .visitInterfaceType(node)
         ?.withDeclaredNullability(node.nullability);
   }
 
   @override
-  DartType visitFutureOrType(FutureOrType node, int variance) {
+  DartType visitFutureOrType(FutureOrType node) {
     DartType typeArgument = node.typeArgument;
-    typeArgument = typeArgument.accept1(this, variance) ?? typeArgument;
+    typeArgument = typeArgument.accept(this) ?? typeArgument;
     if (coreTypes.isTop(typeArgument)) {
       assert(typeArgument.nullability == Nullability.nullable ||
           typeArgument.nullability == Nullability.legacy);
@@ -91,20 +90,20 @@ class _Norm extends ReplacementVisitor {
   }
 
   @override
-  DartType visitTypeParameterType(TypeParameterType node, int variance) {
+  DartType visitTypeParameterType(TypeParameterType node) {
     if (node.promotedBound == null) {
       DartType bound = node.parameter.bound;
       if (normalizesToNever(bound)) {
         DartType result = new NeverType(Nullability.nonNullable)
             .withDeclaredNullability(node.nullability);
-        return result.accept1(this, variance) ?? result;
+        return result.accept(this) ?? result;
       }
       assert(!coreTypes.isBottom(bound));
       // If the bound isn't Never, the type is already normalized.
       return null;
     } else {
       DartType bound = node.promotedBound;
-      bound = bound.accept1(this, variance) ?? bound;
+      bound = bound.accept(this) ?? bound;
       if (bound is NeverType && bound.nullability == Nullability.nonNullable) {
         return bound;
       } else if (coreTypes.isTop(bound)) {
@@ -134,7 +133,7 @@ class _Norm extends ReplacementVisitor {
   }
 
   @override
-  DartType visitNeverType(NeverType node, int variance) {
+  DartType visitNeverType(NeverType node) {
     if (node.nullability == Nullability.nullable) return const NullType();
     return null;
   }

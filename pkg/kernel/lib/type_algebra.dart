@@ -1001,6 +1001,7 @@ class NullabilityAwareTypeVariableEliminator extends ReplacementVisitor {
   final DartType topFunctionType;
   final Set<TypeParameter> eliminationTargets;
   bool isLeastClosure;
+  bool isCovariant = true;
   bool Function(DartType type, bool Function(DartType type) recursor)
       unhandledTypeHandler; // Can be null.
 
@@ -1017,32 +1018,37 @@ class NullabilityAwareTypeVariableEliminator extends ReplacementVisitor {
 
   /// Returns a subtype of [type] for all values of [eliminationTargets].
   DartType eliminateToLeast(DartType type) {
+    isCovariant = true;
     isLeastClosure = true;
-    return type.accept1(this, Variance.covariant) ?? type;
+    return type.accept(this) ?? type;
   }
 
   /// Returns a supertype of [type] for all values of [eliminationTargets].
   DartType eliminateToGreatest(DartType type) {
+    isCovariant = true;
     isLeastClosure = false;
-    return type.accept1(this, Variance.covariant) ?? type;
+    return type.accept(this) ?? type;
   }
 
-  DartType getTypeParameterReplacement(int variance) {
-    bool isCovariant = variance == Variance.covariant;
+  DartType get typeParameterReplacement {
     return isLeastClosure && isCovariant || (!isLeastClosure && !isCovariant)
         ? bottomType
         : topType;
   }
 
-  DartType getFunctionReplacement(int variance) {
-    bool isCovariant = variance == Variance.covariant;
+  DartType get functionReplacement {
     return isLeastClosure && isCovariant || (!isLeastClosure && !isCovariant)
         ? bottomType
         : topFunctionType;
   }
 
   @override
-  DartType visitFunctionType(FunctionType node, int variance) {
+  void changeVariance() {
+    isCovariant = !isCovariant;
+  }
+
+  @override
+  DartType visitFunctionType(FunctionType node) {
     // - if `S` is
     //   `T Function<X0 extends B0, ...., Xk extends Bk>(T0 x0, ...., Tn xn,
     //       [Tn+1 xn+1, ..., Tm xm])`
@@ -1055,19 +1061,19 @@ class NullabilityAwareTypeVariableEliminator extends ReplacementVisitor {
       for (TypeParameter typeParameter in node.typeParameters) {
         if (containsTypeVariable(typeParameter.bound, eliminationTargets,
             unhandledTypeHandler: unhandledTypeHandler)) {
-          return getFunctionReplacement(variance);
+          return functionReplacement;
         }
       }
     }
-    return super.visitFunctionType(node, variance);
+    return super.visitFunctionType(node);
   }
 
   @override
-  DartType visitTypeParameterType(TypeParameterType node, int variance) {
+  DartType visitTypeParameterType(TypeParameterType node) {
     if (eliminationTargets.contains(node.parameter)) {
-      return getTypeParameterReplacement(variance);
+      return typeParameterReplacement;
     }
-    return super.visitTypeParameterType(node, variance);
+    return super.visitTypeParameterType(node);
   }
 }
 

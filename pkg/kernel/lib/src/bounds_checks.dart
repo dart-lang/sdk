@@ -4,8 +4,6 @@
 
 // @dart = 2.9
 
-import 'package:kernel/src/replacement_visitor.dart';
-
 import '../ast.dart'
     show
         BottomType,
@@ -503,172 +501,195 @@ String getGenericTypeName(DartType type) {
 DartType convertSuperBoundedToRegularBounded(
     Library clientLibrary, TypeEnvironment typeEnvironment, DartType type,
     {int variance = Variance.covariant}) {
-  return type.accept1(
-      new _SuperBoundedTypeInverter(typeEnvironment,
-          isNonNullableByDefault: clientLibrary.isNonNullableByDefault),
-      variance);
-}
-
-class _SuperBoundedTypeInverter extends ReplacementVisitor {
-  final TypeEnvironment typeEnvironment;
-  final bool isNonNullableByDefault;
-
-  _SuperBoundedTypeInverter(this.typeEnvironment, {this.isNonNullableByDefault})
-      : assert(typeEnvironment != null),
-        assert(isNonNullableByDefault != null);
-
-  bool flipTop(int variance) {
-    return isNonNullableByDefault
-        ? variance != Variance.contravariant
-        : variance == Variance.covariant;
+  bool flipTop;
+  bool flipBottom;
+  DartType topType;
+  DartType bottomType;
+  bool isTop;
+  bool isBottom;
+  if (clientLibrary.isNonNullableByDefault) {
+    flipTop = variance != Variance.contravariant;
+    flipBottom = variance == Variance.contravariant;
+    topType = typeEnvironment.coreTypes.objectNullableRawType;
+    bottomType = const NeverType(Nullability.nonNullable);
+    isTop = typeEnvironment.coreTypes.isTop(type);
+    isBottom = typeEnvironment.coreTypes.isBottom(type);
+  } else {
+    flipTop = variance == Variance.covariant;
+    flipBottom = variance != Variance.covariant;
+    topType = const DynamicType();
+    bottomType = const NullType();
+    isTop = type is DynamicType ||
+        type is VoidType ||
+        type is InterfaceType &&
+            type.classNode == typeEnvironment.coreTypes.objectClass;
+    isBottom = type is NullType || type is BottomType;
   }
 
-  bool flipBottom(int variance) {
-    return isNonNullableByDefault
-        ? variance == Variance.contravariant
-        : variance != Variance.covariant;
-  }
+  if (isTop && flipTop) {
+    return bottomType;
+  } else if (isBottom && flipBottom) {
+    return topType;
+  } else if (type is InterfaceType &&
+      type.classNode.typeParameters.isNotEmpty) {
+    assert(type.classNode.typeParameters.length == type.typeArguments.length);
 
-  DartType get topType {
-    return isNonNullableByDefault
-        ? typeEnvironment.coreTypes.objectNullableRawType
-        : const DynamicType();
-  }
-
-  DartType get bottomType {
-    return isNonNullableByDefault
-        ? const NeverType(Nullability.nonNullable)
-        : const NullType();
-  }
-
-  bool isTop(DartType node) {
-    if (isNonNullableByDefault) {
-      return typeEnvironment.coreTypes.isTop(node);
-    } else {
-      return node is DynamicType ||
-          node is VoidType ||
-          node is InterfaceType &&
-              node.classNode == typeEnvironment.coreTypes.objectClass;
+    List<DartType> convertedTypeArguments = null;
+    for (int i = 0; i < type.typeArguments.length; ++i) {
+      DartType convertedTypeArgument = convertSuperBoundedToRegularBounded(
+          clientLibrary, typeEnvironment, type.typeArguments[i],
+          variance: variance);
+      if (convertedTypeArgument != null) {
+        convertedTypeArguments ??= new List<DartType>.of(type.typeArguments);
+        convertedTypeArguments[i] = convertedTypeArgument;
+      }
     }
-  }
+    if (convertedTypeArguments == null) return null;
+    return new InterfaceType(
+        type.classNode, type.nullability, convertedTypeArguments);
+  } else if (type is TypedefType &&
+      type.typedefNode.typeParameters.isNotEmpty) {
+    assert(type.typedefNode.typeParameters.length == type.typeArguments.length);
 
-  bool isBottom(DartType node) {
-    if (isNonNullableByDefault) {
-      return typeEnvironment.coreTypes.isBottom(node);
-    } else {
-      return node is NullType || node is BottomType;
-    }
-  }
-
-  @override
-  DartType visitDynamicType(DynamicType node, int variance) {
-    // dynamic is always a top type.
-    assert(isTop(node));
-    if (flipTop(variance)) {
-      return bottomType;
-    } else {
-      return null;
-    }
-  }
-
-  @override
-  DartType visitVoidType(VoidType node, int variance) {
-    // void is always a top type.
-    assert(isTop(node));
-    if (flipTop(variance)) {
-      return bottomType;
-    } else {
-      return null;
-    }
-  }
-
-  @override
-  DartType visitInterfaceType(InterfaceType node, int variance) {
-    // Check for Object-based top types.
-    if (isTop(node) && flipTop(variance)) {
-      return bottomType;
-    } else {
-      return super.visitInterfaceType(node, variance);
-    }
-  }
-
-  @override
-  DartType visitFutureOrType(FutureOrType node, int variance) {
-    // Check FutureOr-based top types.
-    if (isTop(node) && flipTop(variance)) {
-      return bottomType;
-    } else {
-      return super.visitFutureOrType(node, variance);
-    }
-  }
-
-  @override
-  DartType visitNullType(NullType node, int variance) {
-    // Null isn't a bottom type in NNBD.
-    if (isBottom(node) && flipBottom(variance)) {
-      return topType;
-    } else {
-      return null;
-    }
-  }
-
-  @override
-  DartType visitNeverType(NeverType node, int variance) {
-    // Depending on the variance, Never may not be a bottom type.
-    if (isBottom(node) && flipBottom(variance)) {
-      return topType;
-    } else {
-      return null;
-    }
-  }
-
-  @override
-  DartType visitTypeParameterType(TypeParameterType node, int variance) {
-    // Types such as X extends Never are bottom types.
-    if (isBottom(node) && flipBottom(variance)) {
-      return topType;
-    } else {
-      return null;
-    }
-  }
-
-  @override
-  DartType visitBottomType(BottomType node, int variance) {
-    // Bottom is always a bottom type.
-    assert(isBottom(node));
-    if (flipBottom(variance)) {
-      return topType;
-    } else {
-      return null;
-    }
-  }
-
-  // TypedefTypes receive special treatment because the variance of their
-  // arguments' positions depend on the opt-in status of the library.
-  // TODO(dmitryas): Remove the method when the discrepancy between the NNBD
-  // modes is resolved.
-  @override
-  DartType visitTypedefType(TypedefType node, int variance) {
-    Nullability newNullability = visitNullability(node);
-    List<DartType> newTypeArguments = null;
-    for (int i = 0; i < node.typeArguments.length; i++) {
+    List<DartType> convertedTypeArguments = null;
+    for (int i = 0; i < type.typeArguments.length; i++) {
       // The implementation of instantiate-to-bound in legacy mode ignored the
       // variance of type parameters of the typedef.  This behavior is preserved
       // here in passing the 'variance' parameter unchanged in for legacy
       // libraries.
-      DartType newTypeArgument = node.typeArguments[i].accept1(
-          this,
-          isNonNullableByDefault
+      DartType convertedTypeArgument = convertSuperBoundedToRegularBounded(
+          clientLibrary, typeEnvironment, type.typeArguments[i],
+          variance: clientLibrary.isNonNullableByDefault
               ? Variance.combine(
-                  variance, node.typedefNode.typeParameters[i].variance)
+                  variance, type.typedefNode.typeParameters[i].variance)
               : variance);
-      if (newTypeArgument != null) {
-        newTypeArguments ??= new List<DartType>.of(node.typeArguments);
-        newTypeArguments[i] = newTypeArgument;
+      if (convertedTypeArgument != null) {
+        convertedTypeArguments ??= new List<DartType>.of(type.typeArguments);
+        convertedTypeArguments[i] = convertedTypeArgument;
       }
     }
-    return createTypedef(node, newNullability, newTypeArguments);
+    if (convertedTypeArguments == null) return null;
+    return new TypedefType(
+        type.typedefNode, type.nullability, convertedTypeArguments);
+  } else if (type is FunctionType) {
+    if (clientLibrary.isNonNullableByDefault && type.typedefType != null) {
+      return convertSuperBoundedToRegularBounded(
+          clientLibrary, typeEnvironment, type.typedefType,
+          variance: variance);
+    }
+
+    DartType convertedReturnType = convertSuperBoundedToRegularBounded(
+        clientLibrary, typeEnvironment, type.returnType,
+        variance: variance);
+
+    List<DartType> convertedPositionalParameters = null;
+    for (int i = 0; i < type.positionalParameters.length; i++) {
+      DartType convertedPositionalParameter =
+          convertSuperBoundedToRegularBounded(
+              clientLibrary, typeEnvironment, type.positionalParameters[i],
+              variance: Variance.combine(variance, Variance.contravariant));
+      if (convertedPositionalParameter != null) {
+        convertedPositionalParameters ??=
+            new List<DartType>.of(type.positionalParameters);
+        convertedPositionalParameters[i] = convertedPositionalParameter;
+      }
+    }
+
+    List<NamedType> convertedNamedParameters = null;
+    for (int i = 0; i < type.namedParameters.length; i++) {
+      NamedType convertedNamedParameter = new NamedType(
+          type.namedParameters[i].name,
+          convertSuperBoundedToRegularBounded(
+              clientLibrary, typeEnvironment, type.namedParameters[i].type,
+              variance: Variance.combine(variance, Variance.contravariant)),
+          isRequired: type.namedParameters[i].isRequired);
+      if (convertedNamedParameter != null) {
+        convertedNamedParameters ??=
+            new List<NamedType>.of(type.namedParameters);
+        convertedNamedParameters[i] = convertedNamedParameter;
+      }
+    }
+
+    List<TypeParameter> convertedTypeParameters = null;
+    if (clientLibrary.isNonNullableByDefault &&
+        type.typeParameters.isNotEmpty) {
+      for (int i = 0; i < type.typeParameters.length; ++i) {
+        DartType convertedBound = convertSuperBoundedToRegularBounded(
+            clientLibrary, typeEnvironment, type.typeParameters[i].bound,
+            variance: Variance.combine(variance, Variance.invariant));
+        if (convertedBound != null) {
+          if (convertedTypeParameters == null) {
+            convertedTypeParameters = <TypeParameter>[];
+            for (TypeParameter parameter in type.typeParameters) {
+              convertedTypeParameters.add(new TypeParameter(parameter.name));
+            }
+          }
+          convertedTypeParameters[i].bound = convertedBound;
+        }
+      }
+
+      Map<TypeParameter, DartType> substitutionMap =
+          <TypeParameter, DartType>{};
+      for (int i = 0; i < type.typeParameters.length; ++i) {
+        substitutionMap[type.typeParameters[i]] =
+            new TypeParameterType.forAlphaRenaming(
+                type.typeParameters[i], convertedTypeParameters[i]);
+      }
+      for (TypeParameter parameter in convertedTypeParameters) {
+        parameter.bound = substitute(parameter.bound, substitutionMap);
+      }
+      List<DartType> defaultTypes = calculateBounds(convertedTypeParameters,
+          typeEnvironment.coreTypes.objectClass, clientLibrary);
+      for (int i = 0; i < convertedTypeParameters.length; ++i) {
+        convertedTypeParameters[i].defaultType = defaultTypes[i];
+      }
+
+      if (convertedReturnType != null) {
+        convertedReturnType = substitute(convertedReturnType, substitutionMap);
+      }
+      if (convertedPositionalParameters != null) {
+        for (int i = 0; i < convertedPositionalParameters.length; ++i) {
+          convertedPositionalParameters[i] =
+              substitute(convertedPositionalParameters[i], substitutionMap);
+        }
+      }
+      if (convertedNamedParameters != null) {
+        for (int i = 0; i < convertedNamedParameters.length; ++i) {
+          convertedNamedParameters[i] = new NamedType(
+              convertedNamedParameters[i].name,
+              substitute(convertedNamedParameters[i].type, substitutionMap),
+              isRequired: convertedNamedParameters[i].isRequired);
+        }
+      }
+    }
+
+    if (convertedReturnType == null &&
+        convertedPositionalParameters == null &&
+        convertedNamedParameters == null &&
+        convertedTypeParameters == null) {
+      return null;
+    }
+
+    convertedReturnType ??= type.returnType;
+    convertedPositionalParameters ??= type.positionalParameters;
+    convertedNamedParameters ??= type.namedParameters;
+    convertedTypeParameters ??= type.typeParameters;
+
+    return new FunctionType(
+        convertedPositionalParameters, convertedReturnType, type.nullability,
+        namedParameters: convertedNamedParameters,
+        typeParameters: type.typeParameters,
+        requiredParameterCount: type.requiredParameterCount,
+        typedefType: type.typedefType);
+  } else if (type is FutureOrType) {
+    DartType convertedTypeArgument = convertSuperBoundedToRegularBounded(
+        clientLibrary, typeEnvironment, type.typeArgument,
+        variance: variance);
+    if (convertedTypeArgument == null) return null;
+    return new FutureOrType(convertedTypeArgument, type.declaredNullability);
   }
+
+  return null;
 }
 
 int computeVariance(TypeParameter typeParameter, DartType type,

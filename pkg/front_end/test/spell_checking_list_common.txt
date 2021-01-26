@@ -878,7 +878,6 @@ discards
 discover
 discovered
 discovery
-discrepancy
 disk
 dispatch
 dispatches
@@ -1605,7 +1604,6 @@ invariantly
 inversion
 invert
 inverted
-inverter
 investigate
 invisible
 invocation
