@@ -56,7 +56,7 @@ analyzer:
 
 If a listed host package can be found (via the `.packages` file associated with
 the target package), then the tool looks in the host package for the folder
-`<host_package>/tools/analysis_plugin`. If that directory exists and contains a
+`<host_package>/tools/analyzer_plugin`. If that directory exists and contains a
 valid bootstrap package, then the bootstrap package is run as a plugin.
 
 ## Bootstrap Package Structure

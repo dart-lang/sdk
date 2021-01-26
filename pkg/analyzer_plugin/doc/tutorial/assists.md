@@ -102,7 +102,7 @@ class MyPlugin extends ServerPlugin with AssistsMixin, DartAssistsMixin {
   // ...
 
   @override
-  List<AssistContributor> getAssistContributors(AnalysisDriver driver) {
+  List<AssistContributor> getAssistContributors(String path) {
     return <AssistContributor>[MyAssistContributor()];
   }
 }
