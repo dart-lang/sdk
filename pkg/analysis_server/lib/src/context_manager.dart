@@ -1324,9 +1324,6 @@ class ContextManagerImpl implements ContextManager {
     if (info.excludes(path)) {
       return;
     }
-    if (info.ignored(path)) {
-      return;
-    }
     // handle the change
     switch (type) {
       case ChangeType.ADD:
