@@ -89,7 +89,6 @@ const int kNullSafetyOptionStrong = 2;
 CompilerOptions setupCompilerOptions(
     FileSystem fileSystem,
     Uri platformKernelPath,
-    bool suppressWarnings,
     bool enableAsserts,
     int nullSafety,
     List<String> experimentalFlags,
@@ -132,10 +131,10 @@ CompilerOptions setupCompilerOptions(
           errors.addAll(message.plainTextFormatted);
           break;
         case Severity.warning:
-          printToStdErr = !suppressWarnings;
+          printToStdErr = true;
           break;
         case Severity.info:
-          printToStdOut = !suppressWarnings;
+          printToStdOut = true;
           break;
         case Severity.context:
         case Severity.ignored:
@@ -157,7 +156,6 @@ abstract class Compiler {
   final int isolateId;
   final FileSystem fileSystem;
   final Uri platformKernelPath;
-  final bool suppressWarnings;
   final bool enableAsserts;
   final int nullSafety;
   final List<String> experimentalFlags;
@@ -175,8 +173,7 @@ abstract class Compiler {
   CompilerOptions options;
 
   Compiler(this.isolateId, this.fileSystem, this.platformKernelPath,
-      {this.suppressWarnings: false,
-      this.enableAsserts: false,
+      {this.enableAsserts: false,
       this.nullSafety: kNullSafetyOptionUnspecified,
       this.experimentalFlags: null,
       this.supportCodeCoverage: false,
@@ -201,7 +198,6 @@ abstract class Compiler {
     options = setupCompilerOptions(
         fileSystem,
         platformKernelPath,
-        suppressWarnings,
         enableAsserts,
         nullSafety,
         experimentalFlags,
@@ -294,15 +290,13 @@ class IncrementalCompilerWrapper extends Compiler {
 
   IncrementalCompilerWrapper(
       int isolateId, FileSystem fileSystem, Uri platformKernelPath,
-      {bool suppressWarnings: false,
-      bool enableAsserts: false,
+      {bool enableAsserts: false,
       int nullSafety: kNullSafetyOptionUnspecified,
       List<String> experimentalFlags: null,
       String packageConfig: null,
       String invocationModes: '',
       String verbosityLevel: Verbosity.defaultValue})
       : super(isolateId, fileSystem, platformKernelPath,
-            suppressWarnings: suppressWarnings,
             enableAsserts: enableAsserts,
             nullSafety: nullSafety,
             experimentalFlags: experimentalFlags,
@@ -317,14 +311,12 @@ class IncrementalCompilerWrapper extends Compiler {
       int isolateId,
       FileSystem fileSystem,
       Uri platformKernelPath,
-      {bool suppressWarnings: false,
-      bool enableAsserts: false,
+      {bool enableAsserts: false,
       List<String> experimentalFlags: null,
       String packageConfig: null,
       String invocationModes: ''}) {
     IncrementalCompilerWrapper result = IncrementalCompilerWrapper(
         isolateId, fileSystem, platformKernelPath,
-        suppressWarnings: suppressWarnings,
         enableAsserts: enableAsserts,
         experimentalFlags: experimentalFlags,
         packageConfig: packageConfig,
@@ -353,7 +345,6 @@ class IncrementalCompilerWrapper extends Compiler {
   Future<IncrementalCompilerWrapper> clone(int isolateId) async {
     IncrementalCompilerWrapper clone = IncrementalCompilerWrapper(
         isolateId, fileSystem, platformKernelPath,
-        suppressWarnings: suppressWarnings,
         enableAsserts: enableAsserts,
         nullSafety: nullSafety,
         experimentalFlags: experimentalFlags,
@@ -384,7 +375,6 @@ class SingleShotCompilerWrapper extends Compiler {
   SingleShotCompilerWrapper(
       int isolateId, FileSystem fileSystem, Uri platformKernelPath,
       {this.requireMain: false,
-      bool suppressWarnings: false,
       bool enableAsserts: false,
       int nullSafety: kNullSafetyOptionUnspecified,
       List<String> experimentalFlags: null,
@@ -392,7 +382,6 @@ class SingleShotCompilerWrapper extends Compiler {
       String invocationModes: '',
       String verbosityLevel: Verbosity.defaultValue})
       : super(isolateId, fileSystem, platformKernelPath,
-            suppressWarnings: suppressWarnings,
             enableAsserts: enableAsserts,
             nullSafety: nullSafety,
             experimentalFlags: experimentalFlags,
@@ -428,8 +417,7 @@ IncrementalCompilerWrapper lookupIncrementalCompiler(int isolateId) {
 
 Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
     List sourceFiles, Uri platformKernelPath, List<int> platformKernel,
-    {bool suppressWarnings: false,
-    bool enableAsserts: false,
+    {bool enableAsserts: false,
     int nullSafety: kNullSafetyOptionUnspecified,
     List<String> experimentalFlags: null,
     String packageConfig: null,
@@ -461,7 +449,6 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
       // isolate was shut down. Message should be handled here in this script.
       compiler = new IncrementalCompilerWrapper(
           isolateId, fileSystem, platformKernelPath,
-          suppressWarnings: suppressWarnings,
           enableAsserts: enableAsserts,
           nullSafety: nullSafety,
           experimentalFlags: experimentalFlags,
@@ -516,10 +503,9 @@ Future _processExpressionCompilationRequest(request) async {
   final bool isStatic = request[9];
   final List dillData = request[10];
   final int blobLoadCount = request[11];
-  final bool suppressWarnings = request[12];
-  final bool enableAsserts = request[13];
+  final bool enableAsserts = request[12];
   final List<String> experimentalFlags =
-      request[14] != null ? request[14].cast<String>() : null;
+      request[13] != null ? request[13].cast<String>() : null;
 
   IncrementalCompilerWrapper compiler = isolateCompilers[isolateId];
 
@@ -599,7 +585,6 @@ Future _processExpressionCompilationRequest(request) async {
       try {
         compiler = new IncrementalCompilerWrapper.forExpressionCompilationOnly(
             component, isolateId, fileSystem, null,
-            suppressWarnings: suppressWarnings,
             enableAsserts: enableAsserts,
             experimentalFlags: experimentalFlags,
             packageConfig: dotPackagesFile);
@@ -761,17 +746,14 @@ Future _processLoadRequest(request) async {
   final bool snapshot = request[5];
   final int nullSafety = request[6];
   final List sourceFiles = request[8];
-  final bool suppressWarnings = request[9];
-  final bool enableAsserts = request[10];
+  final bool enableAsserts = request[9];
   final List<String> experimentalFlags =
-      request[11] != null ? request[11].cast<String>() : null;
-  final String packageConfig = request[12];
-  final String multirootFilepaths = request[13];
-  final String multirootScheme = request[14];
-  final String workingDirectory = request[15];
-  // TODO(johnniwinther,bkonyi): Pass verbosity from command line arguments.
-  final String verbosityLevel = Verbosity.defaultValue;
-
+      request[10] != null ? request[10].cast<String>() : null;
+  final String packageConfig = request[11];
+  final String multirootFilepaths = request[12];
+  final String multirootScheme = request[13];
+  final String workingDirectory = request[14];
+  final String verbosityLevel = request[15];
   Uri platformKernelPath = null;
   List<int> platformKernel = null;
   if (request[3] is String) {
@@ -834,7 +816,6 @@ Future _processLoadRequest(request) async {
         fileSystem,
         platformKernelPath,
         false,
-        false,
         nullSafety,
         experimentalFlags,
         packagesUri,
@@ -860,7 +841,6 @@ Future _processLoadRequest(request) async {
   if (incremental) {
     compiler = await lookupOrBuildNewIncrementalCompiler(
         isolateId, sourceFiles, platformKernelPath, platformKernel,
-        suppressWarnings: suppressWarnings,
         enableAsserts: enableAsserts,
         nullSafety: nullSafety,
         experimentalFlags: experimentalFlags,
@@ -875,7 +855,6 @@ Future _processLoadRequest(request) async {
     compiler = new SingleShotCompilerWrapper(
         isolateId, fileSystem, platformKernelPath,
         requireMain: false,
-        suppressWarnings: suppressWarnings,
         enableAsserts: enableAsserts,
         nullSafety: nullSafety,
         experimentalFlags: experimentalFlags,
@@ -1029,13 +1008,13 @@ Future trainInternal(String scriptUri, String platformKernelPath) async {
     kNullSafetyOptionUnspecified /* null safety */,
     1 /* isolateId chosen randomly */,
     [] /* source files */,
-    false /* suppress warnings */,
     false /* enable asserts */,
     null /* experimental_flags */,
     null /* package_config */,
     null /* multirootFilepaths */,
     null /* multirootScheme */,
     null /* original working directory */,
+    'all' /* CFE logging mode */,
   ];
   await _processLoadRequest(request);
 }

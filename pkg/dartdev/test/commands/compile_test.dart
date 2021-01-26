@@ -236,7 +236,7 @@ void main() {
         reason: 'File not found: $outFile');
   });
 
-  test('Compile exe with warning', () {
+  test('Compile exe with warnings', () {
     final p = project(mainSrc: '''
 void main() {
   int i = 0;
@@ -334,6 +334,33 @@ void main() {}
         reason: 'File not found: $outFile');
   });
 
+  test('Compile exe without warnings', () {
+    final p = project(mainSrc: '''
+void main() {
+  int i = 0;
+  i?.isEven;
+}
+''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
+
+    var result = p.runSync(
+      [
+        'compile',
+        'exe',
+        '--verbosity=error',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stdout,
+        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+  });
+
   test('Compile JS with sound null safety', () {
     final p = project(mainSrc: '''void main() {}''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
@@ -403,6 +430,33 @@ void main() {}
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
+  });
+
+  test('Compile JS without warnings', () {
+    final p = project(mainSrc: '''
+void main() {
+  int i = 0;
+  i?.isEven;
+}
+''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myjs'));
+
+    var result = p.runSync(
+      [
+        'compile',
+        'js',
+        '--verbosity=error',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stdout,
+        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
   });
 
   test('Compile AOT snapshot with sound null safety', () {
@@ -476,6 +530,61 @@ void main() {}
         reason: 'File not found: $outFile');
   });
 
+  test('Compile AOT snapshot without warnings', () {
+    final p = project(mainSrc: '''
+void main() {
+  int i = 0;
+  i?.isEven;
+}
+''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myaot'));
+
+    var result = p.runSync(
+      [
+        'compile',
+        'aot-snapshot',
+        '--verbosity=error',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stdout,
+        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+  });
+
+  test('Compile AOT snapshot with warnings', () {
+    final p = project(mainSrc: '''
+void main() {
+  int i = 0;
+  i?.isEven;
+}
+''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myaot'));
+
+    var result = p.runSync(
+      [
+        'compile',
+        'aot-snapshot',
+        '--verbosity=warning',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stdout,
+        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+    expect(result.stdout, contains('Warning: '));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+  });
+
   test('Compile kernel with sound null safety', () {
     final p = project(mainSrc: '''void main() {}''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
@@ -523,6 +632,82 @@ void main() {}
         reason: 'File not found: $outFile');
   });
 
+  test('Compile kernel without info', () {
+    final p = project(mainSrc: '''void main() {}''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
+
+    var result = p.runSync(
+      [
+        'compile',
+        'kernel',
+        '--verbosity=warning',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stdout,
+        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
+  });
+
+  test('Compile kernel without warning', () {
+    final p = project(mainSrc: '''
+void main() {
+    int i;
+    i?.isEven;
+}''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
+
+    var result = p.runSync(
+      [
+        'compile',
+        'kernel',
+        '--verbosity=error',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stdout,
+        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+    expect(result.stderr, contains('must be assigned before it can be used'));
+    expect(result.exitCode, 254);
+  });
+
+  test('Compile kernel with warnings', () {
+    final p = project(mainSrc: '''
+void main() {
+    int i = 0;
+    i?.isEven;
+}''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
+
+    var result = p.runSync(
+      [
+        'compile',
+        'kernel',
+        '--verbosity=warning',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stdout,
+        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+    expect(result.stderr, contains('Warning:'));
+    expect(result.exitCode, 0);
+  });
+
   test('Compile JIT snapshot with sound null safety', () {
     final p = project(mainSrc: '''void main() {}''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
@@ -568,5 +753,81 @@ void main() {}
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
+  });
+
+  test('Compile JIT snapshot without info', () {
+    final p = project(mainSrc: '''void main() {}''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myjit'));
+
+    var result = p.runSync(
+      [
+        'compile',
+        'jit-snapshot',
+        '--verbosity=warning',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stdout,
+        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
+  });
+
+  test('Compile JIT snapshot without warnings', () {
+    final p = project(mainSrc: '''
+void main() {
+    int i;
+    i?.isEven;
+}''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myjit'));
+
+    var result = p.runSync(
+      [
+        'compile',
+        'jit-snapshot',
+        '--verbosity=error',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stdout,
+        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+    expect(result.stderr, contains('must be assigned before it can be used'));
+    expect(result.exitCode, 254);
+  });
+
+  test('Compile JIT snapshot with warnings', () {
+    final p = project(mainSrc: '''
+void main() {
+    int i = 0;
+    i?.isEven;
+}''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myjit'));
+
+    var result = p.runSync(
+      [
+        'compile',
+        'jit-snapshot',
+        '--verbosity=warning',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stdout,
+        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
+    expect(result.stderr, contains('Warning:'));
+    expect(result.exitCode, 0);
   });
 }

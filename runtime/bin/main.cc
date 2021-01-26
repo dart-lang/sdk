@@ -1283,6 +1283,7 @@ void main(int argc, char** argv) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // Load vm_platform_strong.dill for dart:* source support.
   dfe.Init();
+  dfe.set_verbosity(Options::verbosity_level());
   if (script_name != nullptr) {
     uint8_t* application_kernel_buffer = NULL;
     intptr_t application_kernel_buffer_size = 0;

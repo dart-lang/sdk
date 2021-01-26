@@ -157,7 +157,16 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
         commonOptions['outputFile'].flag,
         help: commonOptions['outputFile'].help,
         abbr: commonOptions['outputFile'].abbr,
+      )
+      ..addOption(
+        commonOptions['verbosity'].flag,
+        help: commonOptions['verbosity'].help,
+        abbr: commonOptions['verbosity'].abbr,
+        defaultsTo: commonOptions['verbosity'].defaultsTo,
+        allowed: commonOptions['verbosity'].allowed,
+        allowedHelp: commonOptions['verbosity'].allowedHelp,
       );
+
     addExperimentalFlags(argParser, verbose);
   }
 
@@ -189,6 +198,10 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
     List<String> args = [];
     args.add('--snapshot-kind=$formatName');
     args.add('--snapshot=${path.canonicalize(outputFile)}');
+
+    String verbosity = argResults[commonOptions['verbosity'].flag];
+    args.add('--verbosity=$verbosity');
+
     if (enabledExperiments.isNotEmpty) {
       args.add("--enable-experiment=${enabledExperiments.join(',')}");
     }
