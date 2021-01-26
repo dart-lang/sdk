@@ -584,6 +584,28 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitCommentReference(CommentReference node) {
+    var identifier = node.identifier;
+    var element = identifier.staticElement;
+    if (element is ConstructorElement) {
+      if (identifier is PrefixedIdentifier) {
+        var offset = identifier.prefix.end;
+        var length = identifier.end - offset;
+        recordRelationOffset(
+            element, IndexRelationKind.IS_REFERENCED_BY, offset, length, true);
+        return;
+      } else {
+        var offset = identifier.end;
+        recordRelationOffset(
+            element, IndexRelationKind.IS_REFERENCED_BY, offset, 0, true);
+        return;
+      }
+    }
+
+    return super.visitCommentReference(node);
+  }
+
+  @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     SimpleIdentifier fieldName = node.fieldName;
     if (fieldName != null) {
