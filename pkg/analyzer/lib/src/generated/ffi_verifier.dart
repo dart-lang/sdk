@@ -775,7 +775,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _validateRefIndexed(IndexExpression node) {
-    DartType targetType = node.target?.staticType;
+    DartType targetType = node.realTarget?.staticType;
     if (!_isValidFfiNativeType(targetType, false, true)) {
       final AstNode errorNode = node;
       _errorReporter.reportErrorForNode(
@@ -795,7 +795,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _validateRefPropertyAccess(PropertyAccess node) {
-    DartType targetType = node.target?.staticType;
+    DartType targetType = node.realTarget?.staticType;
     if (!_isValidFfiNativeType(targetType, false, true)) {
       final AstNode errorNode = node;
       _errorReporter.reportErrorForNode(

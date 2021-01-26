@@ -24,6 +24,7 @@ void main() {
     testBareStruct();
     testTypeTest();
     testUtf8();
+    testDotDotRef();
   }
 }
 
@@ -134,4 +135,11 @@ void testUtf8() {
   final Pointer<Utf8> medium = Utf8.toUtf8(test);
   Expect.equals(test, Utf8.fromUtf8(medium));
   calloc.free(medium);
+}
+
+void testDotDotRef() {
+  final pointer = calloc<Coordinate>()
+    ..ref.x = 1
+    ..ref.y = 1;
+  calloc.free(pointer);
 }

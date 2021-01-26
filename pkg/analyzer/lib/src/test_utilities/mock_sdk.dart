@@ -661,6 +661,8 @@ class Double extends NativeType {
 }
 
 class Pointer<T extends NativeType> extends NativeType {
+  external factory Pointer.fromAddress(int ptr);
+
   static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
       @DartRepresentationOf("T") Function f,
       [Object exceptionalReturn]) {}
@@ -684,6 +686,12 @@ abstract class NativeFunction<T extends Function> extends NativeType {}
 
 class DartRepresentationOf {
   const DartRepresentationOf(String nativeType);
+}
+
+extension StructPointer<T extends Struct> on Pointer<T> {
+  external T get ref;
+
+  external T operator [](int index);
 }
 ''',
   )
