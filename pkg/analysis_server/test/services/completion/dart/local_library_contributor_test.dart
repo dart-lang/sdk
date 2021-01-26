@@ -212,6 +212,8 @@ void f() {^}
         class A { var a1; a2(){}}
         var m;
         typedef t1(int blue);
+        typedef t2 = void Function(int blue);
+        typedef t3 = List<int>;
         int af() {return 0;}''');
     addTestSource('''
         part of libA;
@@ -227,7 +229,9 @@ void f() {^}
     }
     assertSuggestFunction('af', 'int');
     assertSuggestTopLevelVar('m', null);
-    assertSuggestFunctionTypeAlias('t1', null);
+    assertSuggestTypeAlias('t1', null);
+    assertSuggestTypeAlias('t2', 'void');
+    assertSuggestTypeAlias('t3', 'List<int>');
     assertNotSuggested('a1');
     assertNotSuggested('a2');
     // Suggested by LocalConstructorContributor
@@ -270,7 +274,7 @@ void f() {^}
     }
     assertSuggestFunction('bf', 'int');
     assertSuggestTopLevelVar('n', null);
-    assertSuggestFunctionTypeAlias('t1', null);
+    assertSuggestTypeAlias('t1', null);
     assertNotSuggested('b1');
     assertNotSuggested('b2');
     // Suggested by ConstructorContributor

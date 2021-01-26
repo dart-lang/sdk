@@ -224,7 +224,10 @@ main() {
         lib B;
         var T1;
         class X { }
-        class Y { }''');
+        class Y { }
+        typedef void TypeAliasLegacy();
+        typedef TypeAliasFunctionType = void Function();
+        typedef TypeAliasInterfaceType = List<int>;''');
     addTestSource('''
         import "b.dart" as b;
         var T2;
@@ -235,6 +238,9 @@ main() {
     expect(replacementLength, 0);
     assertSuggestClass('X');
     assertSuggestClass('Y');
+    assertSuggestTypeAlias('TypeAliasLegacy', 'void');
+    assertSuggestTypeAlias('TypeAliasFunctionType', 'void');
+    assertSuggestTypeAlias('TypeAliasInterfaceType', 'List<int>');
     assertNotSuggested('T1');
     assertNotSuggested('T2');
     assertNotSuggested('Object');

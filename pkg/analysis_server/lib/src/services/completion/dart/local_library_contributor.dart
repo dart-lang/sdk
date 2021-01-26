@@ -96,7 +96,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
   @override
   void visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
     if (opType.includeTypeNameSuggestions) {
-      builder.suggestFunctionTypeAlias(element, prefix: prefix);
+      builder.suggestTypeAlias(element, prefix: prefix);
     }
   }
 
@@ -123,6 +123,13 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
   void visitTopLevelVariableElement(TopLevelVariableElement element) {
     if (opType.includeReturnValueSuggestions && !element.isSynthetic) {
       builder.suggestTopLevelVariable(element, prefix: prefix);
+    }
+  }
+
+  @override
+  void visitTypeAliasElement(TypeAliasElement element) {
+    if (opType.includeTypeNameSuggestions) {
+      builder.suggestTypeAlias(element, prefix: prefix);
     }
   }
 

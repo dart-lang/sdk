@@ -382,11 +382,11 @@ class SuggestionBuilder {
     } else if (element is FunctionElement &&
         element.enclosingElement is CompilationUnitElement) {
       suggestTopLevelFunction(element, kind: kind);
-    } else if (element is FunctionTypeAliasElement) {
-      suggestFunctionTypeAlias(element, kind: kind);
     } else if (element is PropertyAccessorElement &&
         element.enclosingElement is CompilationUnitElement) {
       suggestTopLevelPropertyAccessor(element, kind: kind);
+    } else if (element is TypeAliasElement) {
+      suggestTypeAlias(element, kind: kind);
     } else {
       throw ArgumentError('Cannot suggest a ${element.runtimeType}');
     }
@@ -485,19 +485,6 @@ class SuggestionBuilder {
       requiredParameterCount: 0,
       hasNamedParameters: false,
     ));
-  }
-
-  /// Add a suggestion for a [functionTypeAlias]. If a [kind] is provided it
-  /// will be used as the kind for the suggestion. If the alias can only be
-  /// referenced using a prefix, then the [prefix] should be provided.
-  void suggestFunctionTypeAlias(FunctionTypeAliasElement functionTypeAlias,
-      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
-      String prefix}) {
-    var relevance = _computeTopLevelRelevance(functionTypeAlias,
-        defaultRelevance: 750,
-        elementType: _instantiateFunctionTypeAlias(functionTypeAlias));
-    _add(_createSuggestion(functionTypeAlias,
-        kind: kind, prefix: prefix, relevance: relevance));
   }
 
   /// Add a suggestion for a [keyword]. The [offset] is the offset from the
@@ -863,6 +850,18 @@ class SuggestionBuilder {
         kind: kind, prefix: prefix, relevance: relevance));
   }
 
+  /// Add a suggestion for a [typeAlias]. If a [kind] is provided it
+  /// will be used as the kind for the suggestion. If the alias can only be
+  /// referenced using a prefix, then the [prefix] should be provided.
+  void suggestTypeAlias(TypeAliasElement typeAlias,
+      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
+      String prefix}) {
+    var relevance = _computeTopLevelRelevance(typeAlias,
+        defaultRelevance: 750, elementType: _instantiateTypeAlias(typeAlias));
+    _add(_createSuggestion(typeAlias,
+        kind: kind, prefix: prefix, relevance: relevance));
+  }
+
   /// Add a suggestion for a type [parameter].
   void suggestTypeParameter(TypeParameterElement parameter) {
     var elementKind = _computeElementKind(parameter);
@@ -1083,7 +1082,7 @@ class SuggestionBuilder {
     );
   }
 
-  FunctionType _instantiateFunctionTypeAlias(FunctionTypeAliasElement element) {
+  DartType _instantiateTypeAlias(TypeAliasElement element) {
     var typeParameters = element.typeParameters;
     var typeArguments = const <DartType>[];
     if (typeParameters.isNotEmpty) {
