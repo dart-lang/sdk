@@ -1,0 +1,166 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:32:8: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   int? extensionInstanceFieldAndSetter;
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:39:19: Error: 'extensionStaticFieldAndSetter' is already declared in this scope.
+//   static void set extensionStaticFieldAndSetter(int? value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:36:19: Context: Previous declaration of 'extensionStaticFieldAndSetter'.
+//   static void set extensionStaticFieldAndSetter(int? value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:44:8: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   int? extensionInstanceFieldAndStaticSetter;
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:13:12: Error: Conflicts with member 'instanceFieldAndSetter'.
+//   void set instanceFieldAndSetter(int? value) {}
+//            ^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:12:8: Error: Conflicts with setter 'instanceFieldAndSetter'.
+//   int? instanceFieldAndSetter;
+//        ^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:19:19: Error: Conflicts with member 'staticFieldAndSetter'.
+//   static void set staticFieldAndSetter(int? value) {}
+//                   ^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:18:15: Error: Conflicts with setter 'staticFieldAndSetter'.
+//   static int? staticFieldAndSetter;
+//               ^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:25:12: Error: Conflicts with member 'staticFieldAndInstanceSetter'.
+//   void set staticFieldAndInstanceSetter(int? value) {}
+//            ^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:24:15: Error: Conflicts with setter 'staticFieldAndInstanceSetter'.
+//   static int? staticFieldAndInstanceSetter;
+//               ^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:28:19: Error: Conflicts with member 'instanceFieldAndStaticSetter'.
+//   static void set instanceFieldAndStaticSetter(int? value) {}
+//                   ^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:27:8: Error: Conflicts with setter 'instanceFieldAndStaticSetter'.
+//   int? instanceFieldAndStaticSetter;
+//        ^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:33:12: Error: Conflicts with member 'extensionInstanceFieldAndSetter'.
+//   void set extensionInstanceFieldAndSetter(int? value) {}
+//            ^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:32:8: Error: Conflicts with setter 'extensionInstanceFieldAndSetter'.
+//   int? extensionInstanceFieldAndSetter;
+//        ^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:39:19: Error: Conflicts with member 'extensionStaticFieldAndSetter'.
+//   static void set extensionStaticFieldAndSetter(int? value) {}
+//                   ^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:35:15: Error: Conflicts with setter 'extensionStaticFieldAndSetter'.
+//   static int? extensionStaticFieldAndSetter;
+//               ^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:42:12: Error: Conflicts with member 'extensionStaticFieldAndInstanceSetter'.
+//   void set extensionStaticFieldAndInstanceSetter(int? value) {}
+//            ^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:41:15: Error: Conflicts with setter 'extensionStaticFieldAndInstanceSetter'.
+//   static int? extensionStaticFieldAndInstanceSetter;
+//               ^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:45:19: Error: Conflicts with member 'extensionInstanceFieldAndStaticSetter'.
+//   static void set extensionInstanceFieldAndStaticSetter(int? value) {}
+//                   ^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:44:8: Error: Conflicts with setter 'extensionInstanceFieldAndStaticSetter'.
+//   int? extensionInstanceFieldAndStaticSetter;
+//        ^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:6:10: Error: Conflicts with member 'topLevelFieldAndSetter'.
+// void set topLevelFieldAndSetter(int? value) {}
+//          ^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:5:6: Error: Conflicts with setter 'topLevelFieldAndSetter'.
+// int? topLevelFieldAndSetter;
+//      ^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:24:15: Error: This static member conflicts with an instance member.
+//   static int? staticFieldAndInstanceSetter;
+//               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:25:12: Context: This is the instance member.
+//   void set staticFieldAndInstanceSetter(int? value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:28:19: Error: This static member conflicts with an instance member.
+//   static void set instanceFieldAndStaticSetter(int? value) {}
+//                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/field_vs_setter.dart:27:8: Context: This is the instance member.
+//   int? instanceFieldAndStaticSetter;
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::int? instanceFieldAndSetter;
+  late final [setter] field core::int? instanceLateFinalFieldAndSetter;
+  static field core::int? staticFieldAndSetter;
+  late static final [setter] field core::int? staticLateFinalFieldAndSetter;
+  static field core::int? staticFieldAndInstanceSetter;
+  field core::int? instanceFieldAndStaticSetter;
+  synthetic constructor •() → self::Class
+    ;
+  set instanceFieldAndSetter(core::int? value) → void
+    ;
+  set instanceLateFinalFieldAndSetter(core::int? value) → void
+    ;
+  static set staticFieldAndSetter(core::int? value) → void
+    ;
+  static set staticLateFinalFieldAndSetter(core::int? value) → void
+    ;
+  set staticFieldAndInstanceSetter(core::int? value) → void
+    ;
+  static set instanceFieldAndStaticSetter(core::int? value) → void
+    ;
+}
+extension Extension on core::int? {
+  field extensionInstanceFieldAndSetter = self::Extension|extensionInstanceFieldAndSetter;
+  static field extensionStaticFieldAndSetter = self::Extension|extensionStaticFieldAndSetter;
+  static field extensionStaticLateFinalFieldAndSetter = self::Extension|extensionStaticLateFinalFieldAndSetter;
+  static field extensionStaticFieldAndInstanceSetter = self::Extension|extensionStaticFieldAndInstanceSetter;
+  field extensionInstanceFieldAndStaticSetter = self::Extension|extensionInstanceFieldAndStaticSetter;
+  set extensionInstanceFieldAndSetter = self::Extension|set#extensionInstanceFieldAndSetter;
+  static set extensionStaticFieldAndSetter = set self::Extension|extensionStaticFieldAndSetter;
+  set extensionStaticFieldAndInstanceSetter = self::Extension|set#extensionStaticFieldAndInstanceSetter;
+  static set extensionInstanceFieldAndStaticSetter = set self::Extension|extensionInstanceFieldAndStaticSetter;
+}
+static field core::int? topLevelFieldAndSetter;
+late static final [setter] field core::int? topLevelLateFinalFieldAndSetter;
+static field core::int? Extension|extensionInstanceFieldAndSetter;
+static field core::int? Extension|extensionStaticFieldAndSetter;
+late static final [setter] field core::int? Extension|extensionStaticLateFinalFieldAndSetter;
+static field core::int? Extension|extensionStaticFieldAndInstanceSetter;
+static field core::int? Extension|extensionInstanceFieldAndStaticSetter;
+static set topLevelFieldAndSetter(core::int? value) → void
+  ;
+static set topLevelLateFinalFieldAndSetter(core::int? value) → void
+  ;
+static method Extension|set#extensionInstanceFieldAndSetter(lowered final core::int? #this, core::int? value) → void
+  ;
+static set Extension|extensionStaticFieldAndSetter(core::int? value) → void
+  ;
+static method Extension|set#extensionStaticFieldAndInstanceSetter(lowered final core::int? #this, core::int? value) → void
+  ;
+static set Extension|extensionInstanceFieldAndStaticSetter(core::int? value) → void
+  ;
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

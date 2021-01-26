@@ -1,0 +1,41 @@
+expect(expected, actual) {}
+final int topLevelDuplicateFieldAndDuplicateSetter = 1;
+final int topLevelDuplicateFieldAndDuplicateSetter = 2;
+final int topLevelDuplicateFieldAndSetter = 1;
+final int topLevelDuplicateFieldAndSetter = 2;
+final int topLevelFieldAndDuplicateSetter = 1;
+final int topLevelLateFinalFieldAndSetter1;
+final int topLevelLateFinalFieldAndSetter2;
+int get topLevelGetter => 1;
+int get topLevelGetter => 2;
+int topLevelField = 1;
+int topLevelField = 2;
+int topLevelFieldAndSetter1 = 1;
+int topLevelFieldAndSetter2 = 1;
+int topLevelMethod() => 1;
+int topLevelMethod() => 2;
+void set topLevelLateFinalFieldAndSetter1(int value) {}
+void set topLevelLateFinalFieldAndSetter2(int value) {}
+---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+throws(dynamic Function() f) {}
+var result;
+void set topLevelDuplicateFieldAndSetter(int value) {}
+void set topLevelFieldAndDuplicateSetter(int value) {}
+void set topLevelFieldAndDuplicateSetter(int value) {}
+void set topLevelFieldAndSetter1(int value) {}
+void set topLevelFieldAndSetter2(int value) {}
+---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+int topLevelMethodAndSetter1() => 1;
+int topLevelMethodAndSetter2() => 1;
+main() {}
+test() {}
+void set topLevelDuplicateFieldAndDuplicateSetter(int value) {}
+void set topLevelDuplicateFieldAndDuplicateSetter(int value) {}
+void set topLevelMethodAndSetter1(int value) {}
+void set topLevelMethodAndSetter2(int value) {}
+void set topLevelSetter(value) {}
+void set topLevelSetter(value) {}
