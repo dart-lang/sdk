@@ -4,16 +4,30 @@
 
 import 'dart:math' as math;
 
+/// Print the given [table].
+void printTable(List<List<String>> table) {
+  var buffer = StringBuffer();
+  buffer.writeTable(table);
+  print(buffer.toString());
+}
+
+/// Return an interable that will produce all of the integer values between
+/// [first] and [last] inclusive.
+Iterable<int> range(int first, int last) sync* {
+  for (var i = first; i < last; i++) {
+    yield i;
+  }
+}
+
 /// Given a [table] represented as a list of rows, right justify all of the
-/// cells in the given [column], except for the first row under the assumption
-/// that the first row contains headers.
-void rightJustifyColumn(int column, List<List<String>> table) {
+/// cells in the given [column].
+void rightJustifyColumn(List<List<String>> table, int column) {
   var width = 0;
   for (var i = 0; i < table.length; i++) {
     var row = table[i];
     width = math.max(width, row[column].length);
   }
-  for (var i = 1; i < table.length; i++) {
+  for (var i = 0; i < table.length; i++) {
     var row = table[i];
     var cellValue = row[column];
     var length = cellValue.length;
@@ -21,6 +35,14 @@ void rightJustifyColumn(int column, List<List<String>> table) {
       var padding = ' ' * (width - length);
       row[column] = '$padding$cellValue';
     }
+  }
+}
+
+/// Given a [table] represented as a list of rows, right justify all of the
+/// cells in the given [columns].
+void rightJustifyColumns(List<List<String>> table, Iterable<int> columns) {
+  for (var column in columns) {
+    rightJustifyColumn(table, column);
   }
 }
 

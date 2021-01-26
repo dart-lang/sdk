@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:math' as math;
 
@@ -14,18 +13,26 @@ import 'package:analysis_server/src/services/completion/completion_performance.d
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
+import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart'
     show
         ClassElement,
-        Element,
-        ExtensionElement,
         ClassMemberElement,
+        CompilationUnitElement,
+        Element,
         ExecutableElement,
+        ExtensionElement,
         FieldElement,
+        FunctionElement,
+        LocalVariableElement,
+        ParameterElement,
+        PrefixElement,
+        TypeParameterElement,
         VariableElement;
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart' as err;
@@ -37,7 +44,6 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart' show ElementKind;
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 import 'package:args/args.dart';
 import 'package:meta/meta.dart';
@@ -54,71 +60,20 @@ Future<void> main(List<String> args) async {
     return io.exit(1);
   }
 
-  var options = CompletionMetricsOptions(
-      availableSuggestions: result[AVAILABLE_SUGGESTIONS],
-      overlay: result[OVERLAY],
-      printMissedCompletionDetails: result[PRINT_MISSED_COMPLETION_DETAILS],
-      printMissedCompletionSummary: result[PRINT_MISSED_COMPLETION_SUMMARY],
-      printMissingInformation: result[PRINT_MISSING_INFORMATION],
-      printMrrByLocation: result[PRINT_MRR_BY_LOCATION],
-      printSlowestResults: result[PRINT_SLOWEST_RESULTS],
-      printWorstResults: result[PRINT_WORST_RESULTS]);
+  var options = CompletionMetricsOptions(result);
   var root = result.rest[0];
   print('Analyzing root: "$root"');
   var stopwatch = Stopwatch()..start();
-  var code = await CompletionMetricsComputer(root, options).compute();
+  var computer = CompletionMetricsComputer(root, options);
+  var code = await computer.computeMetrics();
   stopwatch.stop();
 
   var duration = Duration(milliseconds: stopwatch.elapsedMilliseconds);
   print('');
   print('Metrics computed in $duration');
+  computer.printResults();
   return io.exit(code);
 }
-
-const String AVAILABLE_SUGGESTIONS = 'available-suggestions';
-
-/// An option to control whether and how overlays should be produced.
-const String OVERLAY = 'overlay';
-
-/// A mode indicating that no overlays should be produced.
-const String OVERLAY_NONE = 'none';
-
-/// A mode indicating that everything from the completion offset to the end of
-/// the file should be removed.
-const String OVERLAY_REMOVE_REST_OF_FILE = 'remove-rest-of-file';
-
-/// A mode indicating that the token whose offset is the same as the
-/// completion offset should be removed.
-const String OVERLAY_REMOVE_TOKEN = 'remove-token';
-
-/// A flag that causes detailed information to be printed every time a
-/// completion request fails to produce a suggestions matching the expected
-/// suggestion.
-const String PRINT_MISSED_COMPLETION_DETAILS =
-    'print-missed-completion-details';
-
-/// A flag that causes summary information to be printed about the times that a
-/// completion request failed to produce a suggestions matching the expected
-/// suggestion.
-const String PRINT_MISSED_COMPLETION_SUMMARY =
-    'print-missed-completion-summary';
-
-/// A flag that causes information to be printed about places where no
-/// completion location was computed and about information that's missing in the
-/// completion tables.
-const String PRINT_MISSING_INFORMATION = 'print-missing-information';
-
-/// A flag that causes information to be printed about the mrr score achieved at
-/// each completion location.
-const String PRINT_MRR_BY_LOCATION = 'print-mrr-by-location';
-
-/// A flag that causes information to be printed about the completion requests
-/// that were the slowest to return suggestions.
-const String PRINT_SLOWEST_RESULTS = 'print-slowest-results';
-
-/// A flag that causes information to be printed about the completion requests
-/// that had the worst mrr scores.
-const String PRINT_WORST_RESULTS = 'print-worst-results';
 
 /// A [Counter] to track the performance of each of the completion strategies
 /// that are being compared.
@@ -127,7 +82,7 @@ Counter rankComparison = Counter('relevance rank comparison');
 /// Create a parser that can be used to parse the command-line arguments.
 ArgParser createArgParser() {
   return ArgParser()
-    ..addFlag(AVAILABLE_SUGGESTIONS,
+    ..addFlag(CompletionMetricsOptions.AVAILABLE_SUGGESTIONS,
         abbr: 'a',
         help:
             'Use the available suggestions feature in the Analysis Server when '
@@ -137,42 +92,46 @@ ArgParser createArgParser() {
             'support in LSP.',
         defaultsTo: false,
         negatable: false)
+    ..addFlag(CompletionMetricsOptions.MD,
+        help: 'Use markdown as the output format.',
+        defaultsTo: false,
+        negatable: false)
     ..addOption(
       'help',
       abbr: 'h',
       help: 'Print this help message.',
     )
-    ..addOption(OVERLAY,
+    ..addOption(CompletionMetricsOptions.OVERLAY,
         allowed: [
-          OVERLAY_NONE,
-          OVERLAY_REMOVE_TOKEN,
-          OVERLAY_REMOVE_REST_OF_FILE
+          CompletionMetricsOptions.OVERLAY_NONE,
+          CompletionMetricsOptions.OVERLAY_REMOVE_TOKEN,
+          CompletionMetricsOptions.OVERLAY_REMOVE_REST_OF_FILE
         ],
-        defaultsTo: OVERLAY_NONE,
+        defaultsTo: CompletionMetricsOptions.OVERLAY_NONE,
         help:
             'Before attempting a completion at the location of each token, the '
             'token can be removed, or the rest of the file can be removed to '
             'test code completion with diverse methods. The default mode is to '
             'complete at the start of the token without modifying the file.')
-    ..addFlag(PRINT_MISSED_COMPLETION_DETAILS,
+    ..addFlag(CompletionMetricsOptions.PRINT_MISSED_COMPLETION_DETAILS,
         defaultsTo: false,
         help:
             'Print detailed information every time a completion request fails '
             'to produce a suggestions matching the expected suggestion.',
         negatable: false)
-    ..addFlag(PRINT_MISSED_COMPLETION_SUMMARY,
+    ..addFlag(CompletionMetricsOptions.PRINT_MISSED_COMPLETION_SUMMARY,
         defaultsTo: false,
         help: 'Print summary information about the times that a completion '
             'request failed to produce a suggestions matching the expected '
             'suggestion.',
         negatable: false)
-    ..addFlag(PRINT_MISSING_INFORMATION,
+    ..addFlag(CompletionMetricsOptions.PRINT_MISSING_INFORMATION,
         defaultsTo: false,
         help: 'Print information about places where no completion location was '
             'computed and about information that is missing in the completion '
             'tables.',
         negatable: false)
-    ..addFlag(PRINT_MRR_BY_LOCATION,
+    ..addFlag(CompletionMetricsOptions.PRINT_MRR_BY_LOCATION,
         defaultsTo: false,
         help:
             'Print information about the mrr score achieved at each completion '
@@ -180,16 +139,15 @@ ArgParser createArgParser() {
             'score by pointing out the locations that are causing the biggest '
             'impact.',
         negatable: false)
-    ..addFlag(PRINT_SLOWEST_RESULTS,
+    ..addFlag(CompletionMetricsOptions.PRINT_SLOWEST_RESULTS,
         defaultsTo: false,
         help: 'Print information about the completion requests that were the '
             'slowest to return suggestions.',
         negatable: false)
-    ..addFlag(PRINT_WORST_RESULTS,
+    ..addFlag(CompletionMetricsOptions.PRINT_WORST_RESULTS,
         defaultsTo: false,
-        help:
-            'Print information about the completion requests that had the worst '
-            'mrr scores.',
+        help: 'Print information about the completion requests that had the '
+            'worst mrr scores.',
         negatable: false);
 }
 
@@ -227,12 +185,34 @@ bool validArguments(ArgParser parser, ArgResults result) {
 /// An indication of the group in which the completion falls for the purposes of
 /// subdividing the results.
 enum CompletionGroup {
+  classElement,
+  constructorElement,
+  enumElement,
+  extensionElement,
+
+  /// An instance member of a class, enum, mixin or extension.
   instanceMember,
+
+  labelElement,
+  localFunctionElement,
+  localVariableElement,
+  mixinElement,
+  parameterElement,
+  prefixElement,
+
+  /// A static member of a class, enum, mixin or extension.
   staticMember,
-  typeReference,
-  localReference,
-  paramReference,
-  topLevel
+
+  topLevelMember,
+  typeParameterElement,
+
+  // Groups for keywords.
+
+  keywordDynamic,
+  keywordVoid,
+
+  /// Anything that doesn't fit in one of the other groups.
+  unknown,
 }
 
 /// A wrapper for the collection of [Counter] and [MeanReciprocalRankComputer]
@@ -253,7 +233,7 @@ class CompletionMetrics {
   /// The function to be executed when this metrics collector is disabled.
   final void Function() disableFunction;
 
-  Counter completionCounter = Counter('successful/ unsuccessful completions');
+  Counter completionCounter = Counter('all completions');
 
   Counter completionMissedTokenCounter =
       Counter('unsuccessful completion token counter');
@@ -268,29 +248,17 @@ class CompletionMetrics {
       ArithmeticMeanComputer('ms per completion');
 
   MeanReciprocalRankComputer mrrComputer =
-      MeanReciprocalRankComputer('successful/ unsuccessful completions');
+      MeanReciprocalRankComputer('all completions');
 
   MeanReciprocalRankComputer successfulMrrComputer =
       MeanReciprocalRankComputer('successful completions');
 
-  MeanReciprocalRankComputer instanceMemberMrrComputer =
-      MeanReciprocalRankComputer('instance member completions');
+  /// A table mapping completion groups to the mrr computer used to track the
+  /// quality of suggestions for those groups.
+  Map<CompletionGroup, MeanReciprocalRankComputer> groupMrrComputers = {};
 
-  MeanReciprocalRankComputer staticMemberMrrComputer =
-      MeanReciprocalRankComputer('static member completions');
-
-  MeanReciprocalRankComputer typeRefMrrComputer =
-      MeanReciprocalRankComputer('type reference completions');
-
-  MeanReciprocalRankComputer localRefMrrComputer =
-      MeanReciprocalRankComputer('local reference completions');
-
-  MeanReciprocalRankComputer paramRefMrrComputer =
-      MeanReciprocalRankComputer('param reference completions');
-
-  MeanReciprocalRankComputer topLevelMrrComputer =
-      MeanReciprocalRankComputer('non-type member completions');
-
+  /// A table mapping locations to the mrr computer used to track the quality of
+  /// suggestions for those locations.
   Map<String, MeanReciprocalRankComputer> locationMrrComputers = {};
 
   ArithmeticMeanComputer charsBeforeTop =
@@ -309,55 +277,11 @@ class CompletionMetrics {
   /// The completion locations for which no relevance table was available.
   Set<String> missingCompletionLocationTables = {};
 
-  /// A list of the top [maxWorstResults] completion results with the highest
-  /// (worst) ranks for completing to instance members.
-  List<CompletionResult> instanceMemberWorstResults = [];
+  Map<CompletionGroup, List<CompletionResult>> slowestResults = {};
 
-  /// A list of the top [maxWorstResults] completion results with the highest
-  /// (worst) ranks for completing to static members.
-  List<CompletionResult> staticMemberWorstResults = [];
+  Map<CompletionGroup, List<CompletionResult>> worstResults = {};
 
-  /// A list of the top [maxWorstResults] completion results with the highest
-  /// (worst) ranks for completing to type references.
-  List<CompletionResult> typeRefWorstResults = [];
-
-  /// A list of the top [maxWorstResults] completion results with the highest
-  /// (worst) ranks for completing to local references.
-  List<CompletionResult> localRefWorstResults = [];
-
-  /// A list of the top [maxWorstResults] completion results with the highest
-  /// (worst) ranks for completing to parameter references.
-  List<CompletionResult> paramRefWorstResults = [];
-
-  /// A list of the top [maxWorstResults] completion results with the highest
-  /// (worst) ranks for completing to top-level declarations.
-  List<CompletionResult> topLevelWorstResults = [];
-
-  /// A list of the top [maxSlowestResults] completion results that took the
-  /// longest top compute for instance members.
-  List<CompletionResult> instanceMemberSlowestResults = [];
-
-  /// A list of the top [maxSlowestResults] completion results that took the
-  /// longest top compute for static members.
-  List<CompletionResult> staticMemberSlowestResults = [];
-
-  /// A list of the top [maxSlowestResults] completion results that took the
-  /// longest top compute for type references.
-  List<CompletionResult> typeRefSlowestResults = [];
-
-  /// A list of the top [maxSlowestResults] completion results that took the
-  /// longest top compute for local references.
-  List<CompletionResult> localRefSlowestResults = [];
-
-  /// A list of the top [maxSlowestResults] completion results that took the
-  /// longest top compute for parameter references.
-  List<CompletionResult> paramRefSlowestResults = [];
-
-  /// A list of the top [maxSlowestResults] completion results that took the
-  /// longest top compute for top-level declarations.
-  List<CompletionResult> topLevelSlowestResults = [];
-
-  CompletionMetrics(this.name, this.enableFunction, this.disableFunction);
+  CompletionMetrics(this.name, {this.enableFunction, this.disableFunction});
 
   /// Perform any operations required in order to revert computing the kind of
   /// completions represented by this metrics collector.
@@ -375,24 +299,25 @@ class CompletionMetrics {
     }
   }
 
-  /// Record this completion result, this method handles the worst ranked items
+  /// Record the completion [result]. This method handles the worst ranked items
   /// as well as the longest sets of results to compute.
-  void recordCompletionResult(CompletionResult result) {
+  void recordCompletionResult(
+      CompletionResult result, MetricsSuggestionListener listener) {
     _recordTime(result);
     _recordMrr(result);
     _recordWorstResult(result);
     _recordSlowestResult(result);
-    _recordMissingInformation(result);
+    _recordMissingInformation(listener);
   }
 
   /// If the completion location was requested but missing when computing the
   /// [result], then record where that happened.
-  void _recordMissingInformation(CompletionResult result) {
-    var location = result.listener?.missingCompletionLocation;
+  void _recordMissingInformation(MetricsSuggestionListener listener) {
+    var location = listener?.missingCompletionLocation;
     if (location != null) {
       missingCompletionLocations.add(location);
     } else {
-      location = result.listener?.missingCompletionLocationTable;
+      location = listener?.missingCompletionLocationTable;
       if (location != null) {
         missingCompletionLocationTables.add(location);
       }
@@ -405,26 +330,10 @@ class CompletionMetrics {
     // Record globally.
     successfulMrrComputer.addRank(rank);
     // Record by group.
-    switch (result.group) {
-      case CompletionGroup.instanceMember:
-        instanceMemberMrrComputer.addRank(rank);
-        break;
-      case CompletionGroup.staticMember:
-        staticMemberMrrComputer.addRank(rank);
-        break;
-      case CompletionGroup.typeReference:
-        typeRefMrrComputer.addRank(rank);
-        break;
-      case CompletionGroup.localReference:
-        localRefMrrComputer.addRank(rank);
-        break;
-      case CompletionGroup.paramReference:
-        paramRefMrrComputer.addRank(rank);
-        break;
-      case CompletionGroup.topLevel:
-        topLevelMrrComputer.addRank(rank);
-        break;
-    }
+    var group = result.group;
+    groupMrrComputers
+        .putIfAbsent(group, () => MeanReciprocalRankComputer(group.name))
+        .addRank(rank);
     // Record by completion location.
     var location = result.completionLocation;
     if (location != null) {
@@ -437,33 +346,15 @@ class CompletionMetrics {
   /// If the [result] is took longer than any previously recorded results,
   /// record it.
   void _recordSlowestResult(CompletionResult result) {
-    List<CompletionResult> getSlowestResults() {
-      switch (result.group) {
-        case CompletionGroup.instanceMember:
-          return instanceMemberSlowestResults;
-        case CompletionGroup.staticMember:
-          return staticMemberSlowestResults;
-        case CompletionGroup.typeReference:
-          return typeRefSlowestResults;
-        case CompletionGroup.localReference:
-          return localRefSlowestResults;
-        case CompletionGroup.paramReference:
-          return paramRefSlowestResults;
-        case CompletionGroup.topLevel:
-          return topLevelSlowestResults;
-      }
-      return const <CompletionResult>[];
-    }
-
-    var slowestResults = getSlowestResults();
-    if (slowestResults.length >= maxSlowestResults) {
-      if (result.elapsedMS <= slowestResults.last.elapsedMS) {
+    var results = slowestResults.putIfAbsent(result.group, () => []);
+    if (results.length >= maxSlowestResults) {
+      if (result.elapsedMS <= results.last.elapsedMS) {
         return;
       }
-      slowestResults.removeLast();
+      results.removeLast();
     }
-    slowestResults.add(result);
-    slowestResults.sort((first, second) => second.elapsedMS - first.elapsedMS);
+    results.add(result);
+    results.sort((first, second) => second.elapsedMS - first.elapsedMS);
   }
 
   /// Record this elapsed ms count for the average ms count.
@@ -473,33 +364,15 @@ class CompletionMetrics {
 
   /// If the [result] is worse than any previously recorded results, record it.
   void _recordWorstResult(CompletionResult result) {
-    List<CompletionResult> getWorstResults() {
-      switch (result.group) {
-        case CompletionGroup.instanceMember:
-          return instanceMemberWorstResults;
-        case CompletionGroup.staticMember:
-          return staticMemberWorstResults;
-        case CompletionGroup.typeReference:
-          return typeRefWorstResults;
-        case CompletionGroup.localReference:
-          return localRefWorstResults;
-        case CompletionGroup.paramReference:
-          return paramRefWorstResults;
-        case CompletionGroup.topLevel:
-          return topLevelWorstResults;
-      }
-      return const <CompletionResult>[];
-    }
-
-    var worstResults = getWorstResults();
-    if (worstResults.length >= maxWorstResults) {
-      if (result.place.rank <= worstResults.last.place.rank) {
+    var results = worstResults.putIfAbsent(result.group, () => []);
+    if (results.length >= maxWorstResults) {
+      if (result.place.rank <= results.last.place.rank) {
         return;
       }
-      worstResults.removeLast();
+      results.removeLast();
     }
-    worstResults.add(result);
-    worstResults.sort((first, second) => second.place.rank - first.place.rank);
+    results.add(result);
+    results.sort((first, second) => second.place.rank - first.place.rank);
   }
 }
 
@@ -513,7 +386,7 @@ class CompletionMetricsComputer {
 
   ResolvedUnitResult _resolvedUnitResult;
 
-  /// The int to be returned from the [compute] call.
+  /// The int to be returned from the [computeMetrics] call.
   int resultCode;
 
   /// A list of the metrics to be computed.
@@ -526,36 +399,19 @@ class CompletionMetricsComputer {
 
   CompletionMetricsComputer(this.rootPath, this.options);
 
-  Future<int> compute() async {
+  Future<int> computeMetrics() async {
     resultCode = 0;
     // To compare two or more changes to completions, add a `CompletionMetrics`
     // object with enable and disable functions to the list of `targetMetrics`.
-    targetMetrics.add(CompletionMetrics('shipping', null, null));
+    targetMetrics.add(CompletionMetrics('shipping',
+        enableFunction: null, disableFunction: null));
+
     final collection = AnalysisContextCollection(
       includedPaths: [rootPath],
       resourceProvider: PhysicalResourceProvider.INSTANCE,
     );
     for (var context in collection.contexts) {
       await _computeInContext(context.contextRoot);
-    }
-    printComparison();
-    for (var metrics in targetMetrics) {
-      printMetrics(metrics);
-
-      print('');
-      print('====================');
-      rankComparison.printCounterValues();
-      print('====================');
-
-      if (options.printMissingInformation) {
-        printMissingInformation(metrics);
-      }
-      if (options.printSlowestResults) {
-        printSlowestResults(metrics);
-      }
-      if (options.printWorstResults) {
-        printWorstResults(metrics);
-      }
     }
     return resultCode;
   }
@@ -567,8 +423,7 @@ class CompletionMetricsComputer {
       String completionLocation,
       List<protocol.CompletionSuggestion> suggestions,
       CompletionMetrics metrics,
-      int elapsedMS,
-      bool doPrintMissedCompletions) {
+      int elapsedMS) {
     assert(suggestions != null);
 
     var place = placementInSuggestionList(suggestions, expectedCompletion);
@@ -578,8 +433,36 @@ class CompletionMetricsComputer {
     if (place.denominator != 0) {
       metrics.completionCounter.count('successful');
 
-      metrics.recordCompletionResult(CompletionResult(place, request, listener,
-          suggestions, expectedCompletion, completionLocation, elapsedMS));
+      var rank = place.rank;
+      var suggestion = suggestions[rank - 1];
+      var actualSuggestion =
+          SuggestionData(suggestion, listener.featureMap[suggestion]);
+      List<SuggestionData> topSuggestions;
+      Map<int, int> precedingRelevanceCounts;
+      if (options.printWorstResults) {
+        topSuggestions = suggestions
+            .sublist(0, math.min(10, suggestions.length))
+            .map((suggestion) =>
+                SuggestionData(suggestion, listener.featureMap[suggestion]))
+            .toList();
+        precedingRelevanceCounts = <int, int>{};
+        for (var i = 0; i < rank - 1; i++) {
+          var relevance = suggestions[i].relevance;
+          precedingRelevanceCounts[relevance] =
+              (precedingRelevanceCounts[relevance] ?? 0) + 1;
+        }
+      }
+      metrics.recordCompletionResult(
+          CompletionResult(
+              place,
+              request,
+              actualSuggestion,
+              topSuggestions,
+              precedingRelevanceCounts,
+              expectedCompletion,
+              completionLocation,
+              elapsedMS),
+          listener);
 
       var charsBeforeTop =
           _computeCharsBeforeTop(expectedCompletion, suggestions);
@@ -598,7 +481,7 @@ class CompletionMetricsComputer {
       metrics.completionElementKindCounter
           .count(expectedCompletion.elementKind.toString());
 
-      if (doPrintMissedCompletions) {
+      if (options.printMissedCompletionDetails) {
         protocol.CompletionSuggestion closeMatchSuggestion;
         for (var suggestion in suggestions) {
           if (suggestion.completion == expectedCompletion.completion) {
@@ -619,50 +502,64 @@ class CompletionMetricsComputer {
     }
   }
 
-  void printComparison() {
-    List<String> toRow(Iterable<MeanReciprocalRankComputer> computers) {
-      return [
-        computers.first.name,
-        for (var computer in computers) (1 / computer.mrr).toStringAsFixed(3),
-      ];
+  void printComparisons() {
+    printHeading(1, 'Comparison of experiments');
+    printMrrComparison();
+    printCounter(rankComparison);
+    printOtherMetrics();
+    printCompletionCounts();
+  }
+
+  void printCompletionCounts() {
+    String toString(int count, int totalCount) {
+      return '$count (${printPercentage(count / totalCount, 2)})';
     }
 
-    var buffer = StringBuffer();
+    var counters = targetMetrics.map((metrics) => metrics.completionCounter);
     var table = [
       ['', for (var metrics in targetMetrics) metrics.name],
-      toRow(targetMetrics.map((metrics) => metrics.mrrComputer)),
-      toRow(targetMetrics.map((metrics) => metrics.successfulMrrComputer)),
-      toRow(targetMetrics.map((metrics) => metrics.instanceMemberMrrComputer)),
-      toRow(targetMetrics.map((metrics) => metrics.staticMemberMrrComputer)),
-      toRow(targetMetrics.map((metrics) => metrics.typeRefMrrComputer)),
-      toRow(targetMetrics.map((metrics) => metrics.localRefMrrComputer)),
-      toRow(targetMetrics.map((metrics) => metrics.paramRefMrrComputer)),
-      toRow(targetMetrics.map((metrics) => metrics.topLevelMrrComputer)),
+      ['total', for (var counter in counters) counter.totalCount.toString()],
+      [
+        'successful',
+        for (var counter in counters)
+          toString(counter.getCountOf('successful'), counter.totalCount)
+      ],
+      [
+        'unsuccessful',
+        for (var counter in counters)
+          toString(counter.getCountOf('unsuccessful'), counter.totalCount)
+      ],
     ];
-    for (var i = 1; i < table[0].length; i++) {
-      rightJustifyColumn(i, table);
-    }
-    buffer.writeTable(table);
+    rightJustifyColumns(table, range(1, table[0].length));
 
+    printHeading(2, 'Comparison of completion counts');
+    printTable(table);
+  }
+
+  void printCounter(Counter counter) {
+    var name = counter.name;
+    var total = counter.totalCount;
+    printHeading(2, "Counts for '$name' (total = $total)");
+    counter.printCounterValues();
+  }
+
+  void printHeading(int level, String heading) {
+    if (options.markdown) {
+      var prefix = '#' * level;
+      print('$prefix $heading');
+    } else {
+      print(heading);
+      print(((level == 1) ? '=' : '-') * heading.length);
+    }
     print('');
-    print('Comparison of inverse mean reciprocal ranks (lower is better)');
-    print('');
-    print(buffer.toString());
   }
 
   void printMetrics(CompletionMetrics metrics) {
-    print('====================');
-    print('Completion metrics for ${metrics.name}:');
-    print('');
+    printHeading(1, 'Completion metrics for ${metrics.name}');
     if (options.printMissedCompletionSummary) {
-      metrics.completionMissedTokenCounter.printCounterValues();
-      print('');
-
-      metrics.completionKindCounter.printCounterValues();
-      print('');
-
-      metrics.completionElementKindCounter.printCounterValues();
-      print('');
+      printCounter(metrics.completionMissedTokenCounter);
+      printCounter(metrics.completionKindCounter);
+      printCounter(metrics.completionElementKindCounter);
     }
 
     List<String> toRow(MeanReciprocalRankComputer computer) {
@@ -676,26 +573,18 @@ class CompletionMetricsComputer {
       ];
     }
 
-    var buffer = StringBuffer();
+    var groups = metrics.groupMrrComputers.keys.toList();
+    groups.sort((first, second) => first.name.compareTo(second.name));
     var table = [
       ['', 'mrr', 'inverse mrr', 'mrr_5', 'inverse mrr_5', 'count'],
       toRow(metrics.mrrComputer),
       toRow(metrics.successfulMrrComputer),
-      toRow(metrics.instanceMemberMrrComputer),
-      toRow(metrics.staticMemberMrrComputer),
-      toRow(metrics.typeRefMrrComputer),
-      toRow(metrics.localRefMrrComputer),
-      toRow(metrics.paramRefMrrComputer),
-      toRow(metrics.topLevelMrrComputer),
+      for (var group in groups) toRow(metrics.groupMrrComputers[group]),
     ];
-    rightJustifyColumn(2, table);
-    rightJustifyColumn(4, table);
-    rightJustifyColumn(5, table);
-    buffer.writeTable(table);
+    rightJustifyColumns(table, [2, 4, 5]);
 
-    print('Mean Reciprocal Rank');
-    print('');
-    print(buffer.toString());
+    printHeading(2, 'Mean Reciprocal Rank');
+    printTable(table);
 
     if (options.printMrrByLocation) {
       var lines = <LocationTableLine>[];
@@ -722,69 +611,158 @@ class CompletionMetricsComputer {
         var mrr_5 = line.mrr_5.toStringAsFixed(3);
         table.add([location, product, count, mrr, mrr_5]);
       }
-      var buffer = StringBuffer();
-      buffer.writeTable(table);
-      print(buffer.toString());
-      print('');
+      printTable(table);
     }
-
-    metrics.charsBeforeTop.printMean();
-    metrics.charsBeforeTopFive.printMean();
-    metrics.insertionLengthTheoretical.printMean();
-    print('');
-
-    print('Summary for $rootPath:');
-    metrics.meanCompletionMS.printMean();
-    metrics.completionCounter.printCounterValues();
-    print('====================');
   }
 
   void printMissingInformation(CompletionMetrics metrics) {
     var locations = metrics.missingCompletionLocations;
     if (locations.isNotEmpty) {
       print('');
-      print('====================');
-      print('Missing completion location in the following places:');
+      printHeading(2, 'Missing completion location in the following places');
       for (var location in locations.toList()..sort()) {
-        print('  $location');
+        print('- $location');
       }
     }
 
     var tables = metrics.missingCompletionLocationTables;
     if (tables.isNotEmpty) {
       print('');
-      print('====================');
-      print('Missing tables for the following completion locations:');
+      printHeading(2, 'Missing tables for the following completion locations');
       for (var table in tables.toList()..sort()) {
-        print('  $table');
+        print('- $table');
+      }
+    }
+  }
+
+  void printMrrComparison() {
+    List<String> toRow(Iterable<MeanReciprocalRankComputer> sources) {
+      var computers = sources.toList();
+      var baseComputer = computers.first;
+      var row = [baseComputer.name];
+      var baseInverseMrr = 1 / baseComputer.mrr;
+      row.add(baseInverseMrr.toStringAsFixed(3));
+      for (var i = 1; i < computers.length; i++) {
+        var inverseMrr = 1 / computers[i].mrr;
+        var delta = inverseMrr - baseInverseMrr;
+        row.add('|');
+        row.add(inverseMrr.toStringAsFixed(3));
+        row.add(delta.toStringAsFixed(3));
+      }
+      return row;
+    }
+
+    var columnHeaders = [' ', targetMetrics[0].name];
+    for (var i = 1; i < targetMetrics.length; i++) {
+      columnHeaders.add('|');
+      columnHeaders.add('${targetMetrics[i].name}');
+      columnHeaders.add('delta');
+    }
+    var blankRow = [for (int i = 0; i < columnHeaders.length; i++) ''];
+    var table = [
+      columnHeaders,
+      toRow(targetMetrics.map((metrics) => metrics.mrrComputer)),
+      toRow(targetMetrics.map((metrics) => metrics.successfulMrrComputer)),
+      blankRow,
+    ];
+    var elementKinds = targetMetrics
+        .expand((metrics) => metrics.groupMrrComputers.keys)
+        .toSet()
+        .toList();
+    elementKinds.sort((first, second) => first.name.compareTo(second.name));
+    for (var kind in elementKinds) {
+      table.add(toRow(
+          targetMetrics.map((metrics) => metrics.groupMrrComputers[kind])));
+    }
+    if (options.printMrrByLocation) {
+      table.add(blankRow);
+      var locations = targetMetrics
+          .expand((metrics) => metrics.locationMrrComputers.keys)
+          .toSet()
+          .toList();
+      locations.sort();
+      for (var location in locations) {
+        table.add(toRow(targetMetrics
+            .map((metrics) => metrics.locationMrrComputers[location])));
+      }
+    }
+    rightJustifyColumns(table, range(1, table[0].length));
+
+    printHeading(2, 'Comparison of inverse mean reciprocal ranks');
+    print('A lower value is better, so a negative delta is good.');
+    print('');
+    printTable(table);
+  }
+
+  void printOtherMetrics() {
+    List<String> toRow(Iterable<ArithmeticMeanComputer> sources) {
+      var computers = sources.toList();
+      var row = [computers.first.name];
+      for (var computer in computers) {
+        row.add(computer.mean.toStringAsFixed(6));
+      }
+      return row;
+    }
+
+    var table = [
+      ['', for (var metrics in targetMetrics) metrics.name],
+      toRow(targetMetrics.map((metrics) => metrics.meanCompletionMS)),
+      toRow(targetMetrics.map((metrics) => metrics.charsBeforeTop)),
+      toRow(targetMetrics.map((metrics) => metrics.charsBeforeTopFive)),
+      toRow(targetMetrics.map((metrics) => metrics.insertionLengthTheoretical)),
+    ];
+    rightJustifyColumns(table, range(1, table[0].length));
+
+    printHeading(2, 'Comparison of other metrics');
+    printTable(table);
+  }
+
+  void printResults() {
+    if (targetMetrics.length > 1) {
+      print('');
+      printComparisons();
+    }
+    var needsBlankLine = false;
+    for (var metrics in targetMetrics) {
+      if (needsBlankLine) {
+        print('');
+      } else {
+        needsBlankLine = true;
+      }
+      printMetrics(metrics);
+
+      if (options.printMissingInformation) {
+        printMissingInformation(metrics);
+      }
+      if (options.printSlowestResults) {
+        printSlowestResults(metrics);
+      }
+      if (options.printWorstResults) {
+        printWorstResults(metrics);
       }
     }
   }
 
   void printSlowestResults(CompletionMetrics metrics) {
+    var slowestResults = metrics.slowestResults;
+    var groups = slowestResults.keys.toList();
+    groups.sort((first, second) => first.name.compareTo(second.name));
     print('');
-    print('====================');
-    print('The slowest completion results to compute');
-    _printSlowestResults(
-        'Instance members', metrics.instanceMemberSlowestResults);
-    _printSlowestResults('Static members', metrics.staticMemberSlowestResults);
-    _printSlowestResults('Type references', metrics.typeRefSlowestResults);
-    _printSlowestResults('Local references', metrics.localRefSlowestResults);
-    _printSlowestResults(
-        'Parameter references', metrics.paramRefSlowestResults);
-    _printSlowestResults('Top level', metrics.topLevelSlowestResults);
+    printHeading(2, 'The slowest completion results to compute');
+    for (var group in groups) {
+      _printSlowestResults('In ${group.name}', slowestResults[group]);
+    }
   }
 
   void printWorstResults(CompletionMetrics metrics) {
+    var worstResults = metrics.worstResults;
+    var groups = worstResults.keys.toList();
+    groups.sort((first, second) => first.name.compareTo(second.name));
     print('');
-    print('====================');
-    print('The worst completion results');
-    _printWorstResults('Instance members', metrics.instanceMemberWorstResults);
-    _printWorstResults('Static members', metrics.staticMemberWorstResults);
-    _printWorstResults('Type references', metrics.topLevelWorstResults);
-    _printWorstResults('Local references', metrics.localRefWorstResults);
-    _printWorstResults('Parameter references', metrics.paramRefWorstResults);
-    _printWorstResults('Top level', metrics.topLevelWorstResults);
+    printHeading(2, 'The worst completion results');
+    for (var group in groups) {
+      _printWorstResults('In ${group.name}', worstResults[group]);
+    }
   }
 
   int _computeCharsBeforeTop(ExpectedCompletion target,
@@ -948,11 +926,9 @@ class CompletionMetricsComputer {
 
             // If an overlay option is being used, compute the overlay file, and
             // have the context reanalyze the file
-            if (options.overlay != OVERLAY_NONE) {
+            if (options.overlay != CompletionMetricsOptions.OVERLAY_NONE) {
               var overlayContents = _getOverlayContents(
-                  _resolvedUnitResult.content,
-                  expectedCompletion,
-                  options.overlay);
+                  _resolvedUnitResult.content, expectedCompletion);
 
               _provider.setOverlay(filePath,
                   content: overlayContents,
@@ -970,8 +946,7 @@ class CompletionMetricsComputer {
 
             Future<int> handleExpectedCompletion(
                 {MetricsSuggestionListener listener,
-                @required CompletionMetrics metrics,
-                @required bool printMissedCompletions}) async {
+                @required CompletionMetrics metrics}) async {
               var stopwatch = Stopwatch()..start();
               var request = CompletionRequestImpl(
                 resolvedUnitResult,
@@ -1006,8 +981,7 @@ class CompletionMetricsComputer {
                   opType.completionLocation,
                   suggestions,
                   metrics,
-                  stopwatch.elapsedMilliseconds,
-                  printMissedCompletions);
+                  stopwatch.elapsedMilliseconds);
             }
 
             var bestRank = -1;
@@ -1015,11 +989,14 @@ class CompletionMetricsComputer {
             for (var metrics in targetMetrics) {
               // Compute the completions.
               metrics.enable();
+              // if (FeatureComputer.noDisabledFeatures) {
+              //   var line = expectedCompletion.lineNumber;
+              //   var column = expectedCompletion.columnNumber;
+              //   print('$filePath:$line:$column');
+              // }
               var listener = MetricsSuggestionListener();
               var rank = await handleExpectedCompletion(
-                  listener: listener,
-                  metrics: metrics,
-                  printMissedCompletions: options.printMissedCompletionDetails);
+                  listener: listener, metrics: metrics);
               if (bestRank < 0 || rank < bestRank) {
                 bestRank = rank;
                 bestName = metrics.name;
@@ -1030,7 +1007,7 @@ class CompletionMetricsComputer {
 
             // If an overlay option is being used, remove the overlay applied
             // earlier
-            if (options.overlay != OVERLAY_NONE) {
+            if (options.overlay != CompletionMetricsOptions.OVERLAY_NONE) {
               _provider.removeOverlay(filePath);
             }
           }
@@ -1046,38 +1023,46 @@ class CompletionMetricsComputer {
 
   List<protocol.CompletionSuggestion> _filterSuggestions(
       String prefix, List<protocol.CompletionSuggestion> suggestions) {
-    // TODO(brianwilkerson) Replace this with a more realistic filtering algorithm.
+    // TODO(brianwilkerson) Replace this with a more realistic filtering
+    //  algorithm.
     return suggestions
         .where((suggestion) => suggestion.completion.startsWith(prefix))
         .toList();
   }
 
-  String _getOverlayContents(String contents,
-      ExpectedCompletion expectedCompletion, String overlayMode) {
+  String _getOverlayContents(
+      String contents, ExpectedCompletion expectedCompletion) {
     assert(contents.isNotEmpty);
     var offset = expectedCompletion.offset;
     var length = expectedCompletion.syntacticEntity.length;
     assert(offset >= 0);
     assert(length > 0);
-    if (overlayMode == OVERLAY_REMOVE_TOKEN) {
+    if (options.overlay == CompletionMetricsOptions.OVERLAY_REMOVE_TOKEN) {
       return contents.substring(0, offset) +
           contents.substring(offset + length);
-    } else if (overlayMode == OVERLAY_REMOVE_REST_OF_FILE) {
+    } else if (options.overlay ==
+        CompletionMetricsOptions.OVERLAY_REMOVE_REST_OF_FILE) {
       return contents.substring(0, offset);
     } else {
+      var removeToken = CompletionMetricsOptions.OVERLAY_REMOVE_TOKEN;
+      var removeRest = CompletionMetricsOptions.OVERLAY_REMOVE_REST_OF_FILE;
       throw Exception('\'_getOverlayContents\' called with option other than'
-          '$OVERLAY_REMOVE_TOKEN and $OVERLAY_REMOVE_REST_OF_FILE: $overlayMode');
+          '$removeToken and $removeRest: ${options.overlay}');
     }
   }
 
   void _printSlowestResults(
       String title, List<CompletionResult> slowestResults) {
-    print('');
-    print(title);
+    printHeading(3, title);
+    var needsBlankLine = false;
     for (var result in slowestResults) {
       var elapsedMS = result.elapsedMS;
       var expected = result.expectedCompletion;
-      print('');
+      if (needsBlankLine) {
+        print('');
+      } else {
+        needsBlankLine = true;
+      }
       print('  Elapsed ms: $elapsedMS');
       print('  Completion: ${expected.completion}');
       print('  Completion kind: ${expected.kind}');
@@ -1087,45 +1072,79 @@ class CompletionMetricsComputer {
   }
 
   void _printWorstResults(String title, List<CompletionResult> worstResults) {
-    print('');
-    print(title);
+    List<String> suggestionRow(int rank, SuggestionData data) {
+      var suggestion = data.suggestion;
+      return [
+        rank.toString(),
+        suggestion.relevance.toString(),
+        suggestion.completion,
+        suggestion.kind.toString()
+      ];
+    }
+
+    List<String> featuresRow(int rank, SuggestionData data) {
+      var features = data.features;
+      return [
+        rank.toString(),
+        for (var feature in features) feature.toStringAsFixed(4)
+      ];
+    }
+
+    printHeading(3, title);
+    var needsBlankLine = false;
     for (var result in worstResults) {
       var rank = result.place.rank;
+      var actualSuggestion = result.actualSuggestion;
       var expected = result.expectedCompletion;
-      var suggestions = result.suggestions;
-      var suggestion = suggestions[rank - 1];
 
-      var features = result.listener?.featureMap[suggestion];
-      var topSuggestions =
-          suggestions.sublist(0, math.min(10, suggestions.length));
+      var topSuggestions = result.topSuggestions;
       var topSuggestionCount = topSuggestions.length;
 
-      var preceding = <int, int>{};
-      for (var i = 0; i < rank - 1; i++) {
-        var relevance = suggestions[i].relevance;
-        preceding[relevance] = (preceding[relevance] ?? 0) + 1;
-      }
+      var preceding = result.precedingRelevanceCounts;
       var precedingRelevances = preceding.keys.toList();
       precedingRelevances.sort();
 
-      print('');
+      var suggestionsTable = [
+        ['Rank', 'Relevance', 'Completion', 'Kind']
+      ];
+      for (var i = 0; i < topSuggestionCount; i++) {
+        suggestionsTable.add(suggestionRow(i, topSuggestions[i]));
+      }
+      suggestionsTable.add(suggestionRow(rank, actualSuggestion));
+      rightJustifyColumns(suggestionsTable, [0, 1]);
+
+      var featuresTable = [
+        [
+          'Rank',
+          'contextType',
+          'elementKind',
+          'hasDeprecated',
+          'inheritanceDistance',
+          'isConstant',
+          'keyword',
+          'localVariableDistance',
+          'startsWithDollar',
+          'superMatches'
+        ]
+      ];
+      for (var i = 0; i < topSuggestionCount; i++) {
+        featuresTable.add(featuresRow(i, topSuggestions[i]));
+      }
+      featuresTable.add(featuresRow(rank, actualSuggestion));
+      rightJustifyColumns(featuresTable, range(0, featuresTable[0].length));
+
+      if (needsBlankLine) {
+        print('');
+      } else {
+        needsBlankLine = true;
+      }
       print('  Rank: $rank');
       print('  Location: ${expected.location}');
-      print('  Suggestion: ${suggestion.description}');
-      print('  Features: $features');
-      print('  Top $topSuggestionCount suggestions:');
-      for (var i = 0; i < topSuggestionCount; i++) {
-        var topSuggestion = topSuggestions[i];
-        print('  $i Suggestion: ${topSuggestion.description}');
-        if (result.listener != null) {
-          var feature = result.listener.featureMap[topSuggestion];
-          if (feature == null || feature.isEmpty) {
-            print('    Features: <none>');
-          } else {
-            print('    Features: $feature');
-          }
-        }
-      }
+      print('  Comparison with the top $topSuggestionCount suggestions:');
+      printTable(suggestionsTable);
+      print('  Comparison of features with the top $topSuggestionCount '
+          'suggestions:');
+      printTable(featuresTable);
       print('  Preceding relevance scores and counts:');
       for (var relevance in precedingRelevances.reversed) {
         print('    $relevance: ${preceding[relevance]}');
@@ -1161,9 +1180,62 @@ class CompletionMetricsComputer {
 
 /// The options specified on the command-line.
 class CompletionMetricsOptions {
+  /// A flag that causes the available suggestion sets to be used while
+  /// computing suggestions.
+  static const String AVAILABLE_SUGGESTIONS = 'available-suggestions';
+
+  /// A flag that causes the output to be in markdown format.
+  static const String MD = 'md';
+
+  /// An option to control whether and how overlays should be produced.
+  static const String OVERLAY = 'overlay';
+
+  /// A mode indicating that no overlays should be produced.
+  static const String OVERLAY_NONE = 'none';
+
+  /// A mode indicating that everything from the completion offset to the end of
+  /// the file should be removed.
+  static const String OVERLAY_REMOVE_REST_OF_FILE = 'remove-rest-of-file';
+
+  /// A mode indicating that the token whose offset is the same as the
+  /// completion offset should be removed.
+  static const String OVERLAY_REMOVE_TOKEN = 'remove-token';
+
+  /// A flag that causes detailed information to be printed every time a
+  /// completion request fails to produce a suggestions matching the expected
+  /// suggestion.
+  static const String PRINT_MISSED_COMPLETION_DETAILS =
+      'print-missed-completion-details';
+
+  /// A flag that causes summary information to be printed about the times that
+  /// a completion request failed to produce a suggestions matching the expected
+  /// suggestion.
+  static const String PRINT_MISSED_COMPLETION_SUMMARY =
+      'print-missed-completion-summary';
+
+  /// A flag that causes information to be printed about places where no
+  /// completion location was computed and about information that's missing in
+  /// the completion tables.
+  static const String PRINT_MISSING_INFORMATION = 'print-missing-information';
+
+  /// A flag that causes information to be printed about the mrr score achieved
+  /// at each completion location.
+  static const String PRINT_MRR_BY_LOCATION = 'print-mrr-by-location';
+
+  /// A flag that causes information to be printed about the completion requests
+  /// that were the slowest to return suggestions.
+  static const String PRINT_SLOWEST_RESULTS = 'print-slowest-results';
+
+  /// A flag that causes information to be printed about the completion requests
+  /// that had the worst mrr scores.
+  static const String PRINT_WORST_RESULTS = 'print-worst-results';
+
   /// A flag indicating whether available suggestions should be enabled for this
   /// run.
   final bool availableSuggestions;
+
+  /// A flag indicating whether the output should use markdown.
+  final bool markdown;
 
   /// The overlay mode that should be used.
   final String overlay;
@@ -1195,8 +1267,22 @@ class CompletionMetricsOptions {
   /// completion requests that had the worst mrr scores.
   final bool printWorstResults;
 
-  CompletionMetricsOptions(
+  factory CompletionMetricsOptions(results) {
+    return CompletionMetricsOptions._(
+        availableSuggestions: results[AVAILABLE_SUGGESTIONS],
+        markdown: results[MD],
+        overlay: results[OVERLAY],
+        printMissedCompletionDetails: results[PRINT_MISSED_COMPLETION_DETAILS],
+        printMissedCompletionSummary: results[PRINT_MISSED_COMPLETION_SUMMARY],
+        printMissingInformation: results[PRINT_MISSING_INFORMATION],
+        printMrrByLocation: results[PRINT_MRR_BY_LOCATION],
+        printSlowestResults: results[PRINT_SLOWEST_RESULTS],
+        printWorstResults: results[PRINT_WORST_RESULTS]);
+  }
+
+  CompletionMetricsOptions._(
       {@required this.availableSuggestions,
+      @required this.markdown,
       @required this.overlay,
       @required this.printMissedCompletionDetails,
       @required this.printMissedCompletionSummary,
@@ -1215,9 +1301,9 @@ class CompletionResult {
 
   final CompletionRequestImpl request;
 
-  final MetricsSuggestionListener listener;
+  final SuggestionData actualSuggestion;
 
-  final List<protocol.CompletionSuggestion> suggestions;
+  final List<SuggestionData> topSuggestions;
 
   final ExpectedCompletion expectedCompletion;
 
@@ -1225,13 +1311,23 @@ class CompletionResult {
 
   final int elapsedMS;
 
-  CompletionResult(this.place, this.request, this.listener, this.suggestions,
-      this.expectedCompletion, this.completionLocation, this.elapsedMS);
+  final Map<int, int> precedingRelevanceCounts;
+
+  CompletionResult(
+      this.place,
+      this.request,
+      this.actualSuggestion,
+      this.topSuggestions,
+      this.precedingRelevanceCounts,
+      this.expectedCompletion,
+      this.completionLocation,
+      this.elapsedMS);
 
   /// Return the completion group for the location at which completion was
   /// requested.
   CompletionGroup get group {
-    var element = _getElement(expectedCompletion.syntacticEntity);
+    var entity = expectedCompletion.syntacticEntity;
+    var element = _getElement(entity);
     if (element != null) {
       var parent = element.enclosingElement;
       if (parent is ClassElement || parent is ExtensionElement) {
@@ -1240,25 +1336,75 @@ class CompletionResult {
         } else {
           return CompletionGroup.instanceMember;
         }
-      } else if (expectedCompletion.elementKind == ElementKind.CLASS ||
-          expectedCompletion.elementKind == ElementKind.MIXIN ||
-          expectedCompletion.elementKind == ElementKind.ENUM ||
-          expectedCompletion.elementKind == ElementKind.TYPE_PARAMETER) {
-        return CompletionGroup.typeReference;
-      } else if (expectedCompletion.elementKind == ElementKind.LOCAL_VARIABLE) {
-        return CompletionGroup.localReference;
-      } else if (expectedCompletion.elementKind == ElementKind.PARAMETER) {
-        return CompletionGroup.paramReference;
+      } else if (parent is CompilationUnitElement &&
+          element is! ClassElement &&
+          element is! ExtensionElement) {
+        return CompletionGroup.topLevelMember;
+      }
+      if (element is ClassElement) {
+        if (element.isEnum) {
+          return CompletionGroup.enumElement;
+        } else if (element.isMixin) {
+          return CompletionGroup.mixinElement;
+        }
+        if (entity is SimpleIdentifier &&
+            entity.parent is TypeName &&
+            entity.parent.parent is ConstructorName &&
+            entity.parent.parent.parent is InstanceCreationExpression) {
+          return CompletionGroup.constructorElement;
+        }
+        return CompletionGroup.classElement;
+      } else if (element is ExtensionElement) {
+        return CompletionGroup.extensionElement;
+      } else if (element is FunctionElement) {
+        return CompletionGroup.localFunctionElement;
+      } else if (element is LocalVariableElement) {
+        return CompletionGroup.localVariableElement;
+      } else if (element is ParameterElement) {
+        return CompletionGroup.parameterElement;
+      } else if (element is PrefixElement) {
+        return CompletionGroup.prefixElement;
+      } else if (element is TypeParameterElement) {
+        return CompletionGroup.typeParameterElement;
       }
     }
-    return CompletionGroup.topLevel;
+    if (entity is SimpleIdentifier) {
+      var name = entity.name;
+      if (name == 'void') {
+        return CompletionGroup.keywordVoid;
+      } else if (name == 'dynamic') {
+        return CompletionGroup.keywordDynamic;
+      }
+    }
+    return CompletionGroup.unknown;
   }
 
   /// Return the element associated with the syntactic [entity], or `null` if
   /// there is no such element.
   Element _getElement(SyntacticEntity entity) {
     if (entity is SimpleIdentifier) {
-      return entity.staticElement;
+      var element = entity.staticElement;
+      if (element != null) {
+        return element;
+      }
+      AstNode node = entity;
+      while (node != null) {
+        var parent = node.parent;
+        if (parent is AssignmentExpression) {
+          if (node == parent.leftHandSide) {
+            return parent.readElement ?? parent.writeElement;
+          }
+          return null;
+        } else if (parent is PrefixExpression) {
+          if (parent.operator.type == TokenType.PLUS_PLUS ||
+              parent.operator.type == TokenType.MINUS_MINUS) {
+            return parent.readElement ?? parent.writeElement;
+          }
+        } else if (parent is PostfixExpression) {
+          return parent.readElement ?? parent.writeElement;
+        }
+        node = parent;
+      }
     }
     return null;
   }
@@ -1297,48 +1443,52 @@ class LocationTableLine {
 }
 
 class MetricsSuggestionListener implements SuggestionListener {
-  Map<protocol.CompletionSuggestion, String> featureMap = {};
+  Map<protocol.CompletionSuggestion, List<double>> featureMap = {};
 
-  String cachedFeatures = '';
+  List<double> cachedFeatures = const [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ];
 
   String missingCompletionLocation;
+
   String missingCompletionLocationTable;
 
   @override
   void builtSuggestion(protocol.CompletionSuggestion suggestion) {
     featureMap[suggestion] = cachedFeatures;
-    cachedFeatures = '';
+    cachedFeatures = const [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
   }
 
   @override
   void computedFeatures(
-      {double contextType,
-      double elementKind,
-      double hasDeprecated,
-      double inheritanceDistance,
-      double startsWithDollar,
-      double superMatches}) {
-    var buffer = StringBuffer();
-
-    bool write(String label, double value, bool needsComma) {
-      if (value != null) {
-        if (needsComma) {
-          buffer.write(', ');
-        }
-        buffer.write('$label: $value');
-        return true;
-      }
-      return needsComma;
-    }
-
-    var needsComma = false;
-    needsComma = write('contextType', contextType, needsComma);
-    needsComma = write('elementKind', elementKind, needsComma);
-    needsComma = write('hasDeprecated', hasDeprecated, needsComma);
-    needsComma = write('inheritanceDistance', inheritanceDistance, needsComma);
-    needsComma = write('startsWithDollar', startsWithDollar, needsComma);
-    needsComma = write('superMatches', superMatches, needsComma);
-    cachedFeatures = buffer.toString();
+      {double contextType = 0.0,
+      double elementKind = 0.0,
+      double hasDeprecated = 0.0,
+      double inheritanceDistance = 0.0,
+      double isConstant = 0.0,
+      double keyword = 0.0,
+      double localVariableDistance = 0.0,
+      double startsWithDollar = 0.0,
+      double superMatches = 0.0}) {
+    cachedFeatures = [
+      contextType,
+      elementKind,
+      hasDeprecated,
+      inheritanceDistance,
+      isConstant,
+      keyword,
+      localVariableDistance,
+      startsWithDollar,
+      superMatches
+    ];
   }
 
   @override
@@ -1364,10 +1514,59 @@ class MetricsSuggestionListener implements SuggestionListener {
   }
 }
 
-extension on protocol.CompletionSuggestion {
-  /// A shorter description of the suggestion than [toString] provides.
-  String get description =>
-      json.encode(toJson()..remove('docSummary')..remove('docComplete'));
+/// The information being remembered about an individual suggestion.
+class SuggestionData {
+  /// The suggestion that was produced.
+  protocol.CompletionSuggestion suggestion;
+
+  /// The values of the features used to compute the suggestion.
+  List<double> features;
+
+  SuggestionData(this.suggestion, this.features);
+}
+
+extension on CompletionGroup {
+  String get name {
+    switch (this) {
+      case CompletionGroup.classElement:
+        return 'class';
+      case CompletionGroup.constructorElement:
+        return 'constructor';
+      case CompletionGroup.enumElement:
+        return 'enum';
+      case CompletionGroup.extensionElement:
+        return 'extension';
+      case CompletionGroup.instanceMember:
+        return 'instance member';
+      case CompletionGroup.labelElement:
+        return 'label';
+      case CompletionGroup.localFunctionElement:
+        return 'local function';
+      case CompletionGroup.localVariableElement:
+        return 'local variable';
+      case CompletionGroup.mixinElement:
+        return 'mixin';
+      case CompletionGroup.parameterElement:
+        return 'parameter';
+      case CompletionGroup.prefixElement:
+        return 'prefix';
+      case CompletionGroup.staticMember:
+        return 'static member';
+      case CompletionGroup.topLevelMember:
+        return 'top level member';
+      case CompletionGroup.typeParameterElement:
+        return 'type parameter';
+
+      case CompletionGroup.keywordDynamic:
+        return 'keyword dynamic';
+      case CompletionGroup.keywordVoid:
+        return 'keyword void';
+
+      case CompletionGroup.unknown:
+        return 'unknown';
+    }
+    return '<unknown>';
+  }
 }
 
 extension AvailableSuggestionsExtension on protocol.AvailableSuggestion {

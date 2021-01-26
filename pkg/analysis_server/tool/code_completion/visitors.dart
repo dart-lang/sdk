@@ -210,68 +210,78 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitAsExpression(AsExpression node) {
     safelyRecordKeywordCompletion(node.asOperator);
-    return super.visitAsExpression(node);
+    super.visitAsExpression(node);
+  }
+
+  @override
+  void visitAssertInitializer(AssertInitializer node) {
+    safelyRecordKeywordCompletion(node.assertKeyword);
+    super.visitAssertInitializer(node);
+  }
+
+  @override
+  void visitAssertStatement(AssertStatement node) {
+    safelyRecordKeywordCompletion(node.assertKeyword);
+    super.visitAssertStatement(node);
   }
 
   @override
   void visitAwaitExpression(AwaitExpression node) {
     safelyRecordKeywordCompletion(node.awaitKeyword);
-    return super.visitAwaitExpression(node);
+    super.visitAwaitExpression(node);
   }
 
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
     // 'async' | 'async' '*' | 'sync' '*':
     safelyRecordKeywordCompletion(node.keyword);
-    return super.visitBlockFunctionBody(node);
+    super.visitBlockFunctionBody(node);
   }
 
   @override
   void visitBooleanLiteral(BooleanLiteral node) {
     // 'false' | 'true'
     safelyRecordKeywordCompletion(node.literal);
-    return super.visitBooleanLiteral(node);
+    super.visitBooleanLiteral(node);
   }
 
   @override
   void visitBreakStatement(BreakStatement node) {
     safelyRecordKeywordCompletion(node.breakKeyword);
-    return super.visitBreakStatement(node);
+    super.visitBreakStatement(node);
   }
 
   @override
   void visitCatchClause(CatchClause node) {
-    // Should we 'catch', it won't be suggested when it already exists as a
-    // keyword in the file?
     safelyRecordKeywordCompletion(node.catchKeyword);
     safelyRecordKeywordCompletion(node.onKeyword);
-    return super.visitCatchClause(node);
+    super.visitCatchClause(node);
   }
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     safelyRecordKeywordCompletion(node.abstractKeyword);
     safelyRecordKeywordCompletion(node.classKeyword);
-    return super.visitClassDeclaration(node);
+    super.visitClassDeclaration(node);
   }
 
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
     safelyRecordKeywordCompletion(node.abstractKeyword);
     safelyRecordKeywordCompletion(node.typedefKeyword);
-    return super.visitClassTypeAlias(node);
+    super.visitClassTypeAlias(node);
   }
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
     _enclosingCompilationUnit = node;
-    return super.visitCompilationUnit(node);
+    super.visitCompilationUnit(node);
   }
 
   @override
   void visitConfiguration(Configuration node) {
     safelyRecordKeywordCompletion(node.ifKeyword);
-    return super.visitConfiguration(node);
+    super.visitConfiguration(node);
   }
 
   @override
@@ -279,70 +289,64 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
     safelyRecordKeywordCompletion(node.externalKeyword);
     safelyRecordKeywordCompletion(node.constKeyword);
     safelyRecordKeywordCompletion(node.factoryKeyword);
-    return super.visitConstructorDeclaration(node);
+    super.visitConstructorDeclaration(node);
   }
 
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     safelyRecordKeywordCompletion(node.thisKeyword);
-    return super.visitConstructorFieldInitializer(node);
+    super.visitConstructorFieldInitializer(node);
   }
 
   @override
   void visitContinueStatement(ContinueStatement node) {
     safelyRecordKeywordCompletion(node.continueKeyword);
-    return super.visitContinueStatement(node);
+    super.visitContinueStatement(node);
   }
 
   @override
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
     // 'final', 'const' or 'var'
     safelyRecordKeywordCompletion(node.keyword);
-    return super.visitDeclaredIdentifier(node);
+    super.visitDeclaredIdentifier(node);
   }
 
   @override
   void visitDoStatement(DoStatement node) {
     safelyRecordKeywordCompletion(node.doKeyword);
     safelyRecordKeywordCompletion(node.whileKeyword);
-    return super.visitDoStatement(node);
+    super.visitDoStatement(node);
   }
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
     safelyRecordKeywordCompletion(node.enumKeyword);
-    return super.visitEnumDeclaration(node);
+    super.visitEnumDeclaration(node);
   }
 
   @override
   void visitExportDirective(ExportDirective node) {
     safelyRecordKeywordCompletion(node.keyword);
-    return super.visitExportDirective(node);
+    super.visitExportDirective(node);
   }
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
     safelyRecordKeywordCompletion(node.keyword);
-    return super.visitExpressionFunctionBody(node);
+    super.visitExpressionFunctionBody(node);
   }
 
   @override
   void visitExtendsClause(ExtendsClause node) {
     safelyRecordKeywordCompletion(node.extendsKeyword);
-    return super.visitExtendsClause(node);
+    super.visitExtendsClause(node);
   }
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     safelyRecordKeywordCompletion(node.extensionKeyword);
     safelyRecordKeywordCompletion(node.onKeyword);
-    return super.visitExtensionDeclaration(node);
-  }
-
-  @override
-  void visitExtensionOverride(ExtensionOverride node) {
-    node.visitChildren(this);
-    return null;
+    super.visitExtensionDeclaration(node);
   }
 
   @override
@@ -351,7 +355,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
     safelyRecordKeywordCompletion(node.covariantKeyword);
     safelyRecordKeywordCompletion(node.externalKeyword);
     safelyRecordKeywordCompletion(node.staticKeyword);
-    return super.visitFieldDeclaration(node);
+    super.visitFieldDeclaration(node);
   }
 
   @override
@@ -359,33 +363,33 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
     // 'final', 'const' or 'var'
     safelyRecordKeywordCompletion(node.keyword);
     safelyRecordKeywordCompletion(node.thisKeyword);
-    return super.visitFieldFormalParameter(node);
+    super.visitFieldFormalParameter(node);
   }
 
   @override
   void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
     safelyRecordKeywordCompletion(node.inKeyword);
-    return super.visitForEachPartsWithDeclaration(node);
+    super.visitForEachPartsWithDeclaration(node);
   }
 
   @override
   void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
     safelyRecordKeywordCompletion(node.inKeyword);
-    return super.visitForEachPartsWithIdentifier(node);
+    super.visitForEachPartsWithIdentifier(node);
   }
 
   @override
   void visitForElement(ForElement node) {
     safelyRecordKeywordCompletion(node.awaitKeyword);
     safelyRecordKeywordCompletion(node.forKeyword);
-    return super.visitForElement(node);
+    super.visitForElement(node);
   }
 
   @override
   void visitForStatement(ForStatement node) {
     safelyRecordKeywordCompletion(node.awaitKeyword);
     safelyRecordKeywordCompletion(node.forKeyword);
-    return super.visitForStatement(node);
+    super.visitForStatement(node);
   }
 
   @override
@@ -393,58 +397,59 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
     safelyRecordKeywordCompletion(node.externalKeyword);
     // 'get' or 'set':
     safelyRecordKeywordCompletion(node.propertyKeyword);
-    return super.visitFunctionDeclaration(node);
+    super.visitFunctionDeclaration(node);
   }
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     safelyRecordKeywordCompletion(node.typedefKeyword);
-    return super.visitFunctionTypeAlias(node);
+    super.visitFunctionTypeAlias(node);
   }
 
   @override
   void visitGenericFunctionType(GenericFunctionType node) {
     safelyRecordKeywordCompletion(node.functionKeyword);
-    return super.visitGenericFunctionType(node);
+    super.visitGenericFunctionType(node);
   }
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
     safelyRecordKeywordCompletion(node.typedefKeyword);
-    return super.visitGenericTypeAlias(node);
+    super.visitGenericTypeAlias(node);
   }
 
   @override
   void visitHideCombinator(HideCombinator node) {
     safelyRecordKeywordCompletion(node.keyword);
-    return super.visitHideCombinator(node);
+    super.visitHideCombinator(node);
   }
 
   @override
   void visitIfElement(IfElement node) {
     safelyRecordKeywordCompletion(node.ifKeyword);
     safelyRecordKeywordCompletion(node.elseKeyword);
-    return super.visitIfElement(node);
+    super.visitIfElement(node);
   }
 
   @override
   void visitIfStatement(IfStatement node) {
     safelyRecordKeywordCompletion(node.ifKeyword);
     safelyRecordKeywordCompletion(node.elseKeyword);
-    return super.visitIfStatement(node);
+    super.visitIfStatement(node);
   }
 
   @override
   void visitImplementsClause(ImplementsClause node) {
     safelyRecordKeywordCompletion(node.implementsKeyword);
-    return super.visitImplementsClause(node);
+    super.visitImplementsClause(node);
   }
 
   @override
   void visitImportDirective(ImportDirective node) {
     safelyRecordKeywordCompletion(node.keyword);
     safelyRecordKeywordCompletion(node.asKeyword);
-    return super.visitImportDirective(node);
+    safelyRecordKeywordCompletion(node.deferredKeyword);
+    super.visitImportDirective(node);
   }
 
   @override
@@ -452,29 +457,28 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
     // Here we explicitly do not record 'new' as we don't suggest it in the
     // completion service.
     // https://dart-review.googlesource.com/c/sdk/+/131020
-    var keywordStr = node.keyword?.lexeme;
-    if (Keyword.CONST.lexeme == keywordStr) {
+    if (node.keyword?.type == Keyword.CONST) {
       safelyRecordKeywordCompletion(node.keyword);
     }
-    return super.visitInstanceCreationExpression(node);
+    super.visitInstanceCreationExpression(node);
   }
 
   @override
   void visitIsExpression(IsExpression node) {
     safelyRecordKeywordCompletion(node.isOperator);
-    return super.visitIsExpression(node);
+    super.visitIsExpression(node);
   }
 
   @override
   void visitLibraryDirective(LibraryDirective node) {
     safelyRecordKeywordCompletion(node.libraryKeyword);
-    return super.visitLibraryDirective(node);
+    super.visitLibraryDirective(node);
   }
 
   @override
   void visitListLiteral(ListLiteral node) {
     safelyRecordKeywordCompletion(node.constKeyword);
-    return super.visitListLiteral(node);
+    super.visitListLiteral(node);
   }
 
   @override
@@ -483,57 +487,57 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
     safelyRecordKeywordCompletion(node.modifierKeyword);
     safelyRecordKeywordCompletion(node.operatorKeyword);
     safelyRecordKeywordCompletion(node.propertyKeyword);
-    return super.visitMethodDeclaration(node);
+    super.visitMethodDeclaration(node);
   }
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
     safelyRecordKeywordCompletion(node.mixinKeyword);
-    return super.visitMixinDeclaration(node);
+    super.visitMixinDeclaration(node);
   }
 
   @override
   void visitNativeClause(NativeClause node) {
     safelyRecordKeywordCompletion(node.nativeKeyword);
-    return super.visitNativeClause(node);
+    super.visitNativeClause(node);
   }
 
   @override
   void visitNativeFunctionBody(NativeFunctionBody node) {
     safelyRecordKeywordCompletion(node.nativeKeyword);
-    return super.visitNativeFunctionBody(node);
+    super.visitNativeFunctionBody(node);
   }
 
   @override
   void visitNullLiteral(NullLiteral node) {
     safelyRecordKeywordCompletion(node.literal);
-    return super.visitNullLiteral(node);
+    super.visitNullLiteral(node);
   }
 
   @override
   void visitOnClause(OnClause node) {
     safelyRecordKeywordCompletion(node.onKeyword);
-    return super.visitOnClause(node);
+    super.visitOnClause(node);
   }
 
   @override
   void visitPartDirective(PartDirective node) {
     safelyRecordKeywordCompletion(node.partKeyword);
-    return super.visitPartDirective(node);
+    super.visitPartDirective(node);
   }
 
   @override
   void visitPartOfDirective(PartOfDirective node) {
     safelyRecordKeywordCompletion(node.partKeyword);
     safelyRecordKeywordCompletion(node.ofKeyword);
-    return super.visitPartOfDirective(node);
+    super.visitPartOfDirective(node);
   }
 
   @override
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     safelyRecordKeywordCompletion(node.thisKeyword);
-    return super.visitRedirectingConstructorInvocation(node);
+    super.visitRedirectingConstructorInvocation(node);
   }
 
   @override
@@ -545,19 +549,19 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitReturnStatement(ReturnStatement node) {
     safelyRecordKeywordCompletion(node.returnKeyword);
-    return super.visitReturnStatement(node);
+    super.visitReturnStatement(node);
   }
 
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     safelyRecordKeywordCompletion(node.constKeyword);
-    return super.visitSetOrMapLiteral(node);
+    super.visitSetOrMapLiteral(node);
   }
 
   @override
   void visitShowCombinator(ShowCombinator node) {
     safelyRecordKeywordCompletion(node.keyword);
-    return super.visitShowCombinator(node);
+    super.visitShowCombinator(node);
   }
 
   @override
@@ -565,7 +569,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
     // 'final', 'const' or 'var'
     safelyRecordKeywordCompletion(node.keyword);
     safelyRecordKeywordCompletion(node.covariantKeyword);
-    return super.visitSimpleFormalParameter(node);
+    super.visitSimpleFormalParameter(node);
   }
 
   @override
@@ -620,68 +624,68 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
       }
       safelyRecordEntity(node, elementKind: elementKind);
     }
-    return super.visitSimpleIdentifier(node);
+    super.visitSimpleIdentifier(node);
   }
 
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     safelyRecordKeywordCompletion(node.superKeyword);
-    return super.visitSuperConstructorInvocation(node);
+    super.visitSuperConstructorInvocation(node);
   }
 
   @override
   void visitSuperExpression(SuperExpression node) {
     safelyRecordKeywordCompletion(node.superKeyword);
-    return super.visitSuperExpression(node);
+    super.visitSuperExpression(node);
   }
 
   @override
   void visitSwitchCase(SwitchCase node) {
     safelyRecordKeywordCompletion(node.keyword);
-    return super.visitSwitchCase(node);
+    super.visitSwitchCase(node);
   }
 
   @override
   void visitSwitchDefault(SwitchDefault node) {
     safelyRecordKeywordCompletion(node.keyword);
-    return super.visitSwitchDefault(node);
+    super.visitSwitchDefault(node);
   }
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
     safelyRecordKeywordCompletion(node.switchKeyword);
-    return super.visitSwitchStatement(node);
+    super.visitSwitchStatement(node);
   }
 
   @override
   void visitThisExpression(ThisExpression node) {
     safelyRecordKeywordCompletion(node.thisKeyword);
-    return super.visitThisExpression(node);
+    super.visitThisExpression(node);
   }
 
   @override
   void visitThrowExpression(ThrowExpression node) {
     safelyRecordKeywordCompletion(node.throwKeyword);
-    return super.visitThrowExpression(node);
+    super.visitThrowExpression(node);
   }
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     safelyRecordKeywordCompletion(node.externalKeyword);
-    return super.visitTopLevelVariableDeclaration(node);
+    super.visitTopLevelVariableDeclaration(node);
   }
 
   @override
   void visitTryStatement(TryStatement node) {
     safelyRecordKeywordCompletion(node.tryKeyword);
     safelyRecordKeywordCompletion(node.finallyKeyword);
-    return super.visitTryStatement(node);
+    super.visitTryStatement(node);
   }
 
   @override
   void visitTypeParameter(TypeParameter node) {
     safelyRecordKeywordCompletion(node.extendsKeyword);
-    return super.visitTypeParameter(node);
+    super.visitTypeParameter(node);
   }
 
   @override
@@ -689,25 +693,25 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
     // 'final', 'const' or 'var'
     safelyRecordKeywordCompletion(node.keyword);
     safelyRecordKeywordCompletion(node.lateKeyword);
-    return super.visitVariableDeclarationList(node);
+    super.visitVariableDeclarationList(node);
   }
 
   @override
   void visitWhileStatement(WhileStatement node) {
     safelyRecordKeywordCompletion(node.whileKeyword);
-    return super.visitWhileStatement(node);
+    super.visitWhileStatement(node);
   }
 
   @override
   void visitWithClause(WithClause node) {
     safelyRecordKeywordCompletion(node.withKeyword);
-    return super.visitWithClause(node);
+    super.visitWithClause(node);
   }
 
   @override
   void visitYieldStatement(YieldStatement node) {
     safelyRecordKeywordCompletion(node.yieldKeyword);
-    return super.visitYieldStatement(node);
+    super.visitYieldStatement(node);
   }
 
   bool _doIncludeSimpleIdentifier(SimpleIdentifier node) {

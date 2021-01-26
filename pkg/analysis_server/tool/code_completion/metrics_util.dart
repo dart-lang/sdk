@@ -5,6 +5,8 @@
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 
+import 'output_utilities.dart';
+
 /// https://en.wikipedia.org/wiki/Average#Arithmetic_mean
 class ArithmeticMeanComputer {
   final String name;
@@ -74,15 +76,19 @@ class Counter {
   int getCountOf(String id) => _buckets[id] ?? 0;
 
   void printCounterValues() {
-    print('Counts for \'$name\' (total = $_totalCount):');
     if (_totalCount > 0) {
+      var table = [
+        ['', 'count', 'percent']
+      ];
       var entries = _buckets.entries.toList();
       entries.sort((first, second) => second.value - first.value);
       for (var entry in entries) {
         var id = entry.key;
         var count = entry.value;
-        print('[$id] $count (${printPercentage(count / _totalCount, 2)})');
+        table.add(
+            [id, count.toString(), printPercentage(count / _totalCount, 2)]);
       }
+      printTable(table);
     } else {
       print('<no counts>');
     }
