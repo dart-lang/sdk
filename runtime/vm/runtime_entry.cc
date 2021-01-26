@@ -920,6 +920,21 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
     TypeTestingStubGenerator::SpecializeStubFor(thread, dst_type);
 #if defined(DEBUG)
     ASSERT(old_code.ptr() != dst_type.type_test_stub());
+    const auto& old_instructions =
+        Instructions::Handle(old_code.instructions());
+    const auto& new_code = Code::Handle(dst_type.type_test_stub());
+    const auto& new_instructions =
+        Instructions::Handle(new_code.instructions());
+    // Check if specialization produced exactly the same sequence of
+    // instructions. If it did then we have a bug in the TTS code
+    // generation code: we know that old code could not handle src_instance
+    // which means new code would not be able to handle it either
+    // (because the code is exactly the same) and will fall through into
+    // runtime again given a similar instance and again ask compiler to
+    // specialize the stub, which would produce the same code again and
+    // so on - leading to a serious performance problem if this type check
+    // is hot.
+    ASSERT(!old_instructions.Equals(new_instructions));
 #endif
     // Only create the cache when we come from a normal stub.
     should_update_cache = false;
