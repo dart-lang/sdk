@@ -43,6 +43,8 @@ abstract class Future<T> {
     throw 0;
   }
 
+  Future<T> catchError(Function onError, {bool test(Object error)});
+
   Future<R> then<R>(FutureOr<R> onValue(T value));
 
   Future<T> whenComplete(action());

@@ -22,7 +22,7 @@ void main() {
 
 @reflectiveTest
 class AnalysisNotificationHighlightsTest extends HighlightsTestSupport
-    with WithNullSafetyServerAnalysisMixin {
+    with WithNonFunctionTypeAliasesMixin {
   Future<void> test_ANNOTATION_hasArguments() async {
     addTestFile('''
 class AAA {
@@ -184,6 +184,18 @@ main() {
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.BUILT_IN, 'factory A()');
     assertNoRegion(HighlightRegionType.BUILT_IN, 'factory = 42');
+  }
+
+  Future<void> test_BUILT_IN_Function() async {
+    addTestFile('''
+typedef F = void Function();
+
+void f(void Function() a, Function b) {}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'Function();');
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'Function() a');
+    assertNoRegion(HighlightRegionType.BUILT_IN, 'Function b');
   }
 
   Future<void> test_BUILT_IN_get() async {
@@ -380,11 +392,15 @@ main() {
   Future<void> test_BUILT_IN_typedef() async {
     addTestFile('''
 typedef A();
+typedef B = void Function();
+typedef C = List<int>;
 main() {
   var typedef = 42;
 }''');
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.BUILT_IN, 'typedef A();');
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'typedef B =');
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'typedef C =');
     assertNoRegion(HighlightRegionType.BUILT_IN, 'typedef = 42');
   }
 
@@ -583,13 +599,15 @@ main() {
 
   Future<void> test_FUNCTION_TYPE_ALIAS() async {
     addTestFile('''
-typedef FFF(p);
-main(FFF fff) {
-}
+typedef A();
+typedef B = void Function();
+void f(A a, B b) {}
 ''');
     await prepareHighlights();
-    assertHasRegion(HighlightRegionType.FUNCTION_TYPE_ALIAS, 'FFF(p)');
-    assertHasRegion(HighlightRegionType.FUNCTION_TYPE_ALIAS, 'FFF fff)');
+    assertHasRegion(HighlightRegionType.FUNCTION_TYPE_ALIAS, 'A();');
+    assertHasRegion(HighlightRegionType.FUNCTION_TYPE_ALIAS, 'A a');
+    assertHasRegion(HighlightRegionType.FUNCTION_TYPE_ALIAS, 'B = ');
+    assertHasRegion(HighlightRegionType.FUNCTION_TYPE_ALIAS, 'B b');
   }
 
   Future<void> test_GETTER() async {
@@ -1109,6 +1127,26 @@ main() {
         HighlightRegionType.TOP_LEVEL_GETTER_REFERENCE, 'V1 // annotation');
     assertHasRegion(HighlightRegionType.TOP_LEVEL_GETTER_REFERENCE, 'V1);');
     assertHasRegion(HighlightRegionType.TOP_LEVEL_SETTER_REFERENCE, 'V2 = 3');
+  }
+
+  Future<void> test_TYPE_ALIAS_dynamicType() async {
+    addTestFile('''
+typedef A = dynamic;
+void f(A a) {}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.TYPE_ALIAS, 'A =');
+    assertHasRegion(HighlightRegionType.TYPE_ALIAS, 'A a');
+  }
+
+  Future<void> test_TYPE_ALIAS_interfaceType() async {
+    addTestFile('''
+typedef A = List<int>;
+void f(A a) {}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.TYPE_ALIAS, 'A =');
+    assertHasRegion(HighlightRegionType.TYPE_ALIAS, 'A a');
   }
 
   Future<void> test_TYPE_NAME_DYNAMIC() async {

@@ -95,7 +95,8 @@ abstract class ServerPlugin {
   /// Return the SDK manager used to manage SDKs.
   DartSdkManager get sdkManager => _sdkManager;
 
-  /// Return the version number of this plugin, encoded as a string.
+  /// Return the version number of the plugin spec required by this plugin,
+  /// encoded as a string.
   String get version;
 
   /// Handle the fact that the file with the given [path] has been modified.

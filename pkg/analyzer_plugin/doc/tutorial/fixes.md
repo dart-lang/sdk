@@ -117,8 +117,7 @@ class MyPlugin extends ServerPlugin with FixesMixin, DartFixesMixin {
   // ...
 
   @override
-  List<FixContributor> getFixContributors(
-      AnalysisDriverGeneric driver) {
+  List<FixContributor> getFixContributors(String path) {
     return <FixContributor>[MyFixContributor()];
   }
 }

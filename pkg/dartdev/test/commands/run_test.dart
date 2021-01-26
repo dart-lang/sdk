@@ -9,6 +9,8 @@ import 'package:test/test.dart';
 
 import '../utils.dart';
 
+const String soundNullSafetyMessage = 'Info: Compiling with sound null safety';
+
 void main() {
   group('run', run, timeout: longTimeout);
 }
@@ -276,6 +278,23 @@ void main(List<String> args) => print("$b $args");
     ]);
 
     expect(result.stdout, isEmpty);
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+  });
+
+  test('without verbose CFE info', () {
+    final p = project(mainSrc: '''void main() {}''');
+
+    var result = p.runSync(
+      [
+        'run',
+        '--verbosity=warning',
+        p.relativeFilePath,
+      ],
+    );
+
+    expect(result.stdout,
+        predicate((o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
   });

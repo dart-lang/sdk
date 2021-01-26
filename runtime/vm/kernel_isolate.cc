@@ -31,10 +31,6 @@ namespace dart {
 #define Z (T->zone())
 
 DEFINE_FLAG(bool, trace_kernel, false, "Trace Kernel service requests.");
-DEFINE_FLAG(bool,
-            suppress_fe_warnings,
-            false,
-            "Suppress warnings from the FE.");
 DEFINE_FLAG(charp,
             kernel_multiroot_filepaths,
             NULL,
@@ -621,10 +617,6 @@ class KernelCompilationRequest : public ValueObject {
     num_blob_loads.type = Dart_CObject_kInt64;
     num_blob_loads.value.as_int64 = source->num_blob_loads_;
 
-    Dart_CObject suppress_warnings;
-    suppress_warnings.type = Dart_CObject_kBool;
-    suppress_warnings.value.as_bool = FLAG_suppress_fe_warnings;
-
     Dart_CObject enable_asserts;
     enable_asserts.type = Dart_CObject_kBool;
     enable_asserts.value.as_bool = isolate_group->asserts();
@@ -656,7 +648,6 @@ class KernelCompilationRequest : public ValueObject {
                                    &is_static_object,
                                    &dills_object,
                                    &num_blob_loads,
-                                   &suppress_warnings,
                                    &enable_asserts,
                                    &experimental_flags_object};
     message.value.as_array.values = message_arr;
@@ -713,7 +704,8 @@ class KernelCompilationRequest : public ValueObject {
       const char* multiroot_filepaths,
       const char* multiroot_scheme,
       const MallocGrowableArray<char*>* experimental_flags,
-      const char* original_working_directory) {
+      const char* original_working_directory,
+      Dart_KernelCompilationVerbosityLevel verbosity) {
     // Build the message for the Kernel isolate.
     // tag is used to specify which operation the frontend should perform.
     Dart_CObject tag;
@@ -779,10 +771,6 @@ class KernelCompilationRequest : public ValueObject {
     message.type = Dart_CObject_kArray;
 
     Dart_CObject files = BuildFilesPairs(source_files_count, source_files);
-
-    Dart_CObject suppress_warnings;
-    suppress_warnings.type = Dart_CObject_kBool;
-    suppress_warnings.value.as_bool = FLAG_suppress_fe_warnings;
 
     Dart_CObject enable_asserts;
     enable_asserts.type = Dart_CObject_kBool;
@@ -857,6 +845,11 @@ class KernelCompilationRequest : public ValueObject {
       }
     }
 
+    Dart_CObject verbosity_str;
+    verbosity_str.type = Dart_CObject_kString;
+    verbosity_str.value.as_string =
+        const_cast<char*>(KernelCompilationVerbosityLevelToString(verbosity));
+
     Dart_CObject* message_arr[] = {&tag,
                                    &send_port,
                                    &uri,
@@ -866,13 +859,13 @@ class KernelCompilationRequest : public ValueObject {
                                    &null_safety,
                                    &isolate_id,
                                    &files,
-                                   &suppress_warnings,
                                    &enable_asserts,
                                    &experimental_flags_object,
                                    &package_config_uri,
                                    &multiroot_filepaths_object,
                                    &multiroot_scheme_object,
-                                   &original_working_directory_object};
+                                   &original_working_directory_object,
+                                   &verbosity_str};
     message.value.as_array.values = message_arr;
     message.value.as_array.length = ARRAY_SIZE(message_arr);
     // Send the message.
@@ -987,6 +980,22 @@ class KernelCompilationRequest : public ValueObject {
     return NULL;
   }
 
+  static const char* KernelCompilationVerbosityLevelToString(
+      Dart_KernelCompilationVerbosityLevel verbosity) {
+    switch (verbosity) {
+      case Dart_KernelCompilationVerbosityLevel_Error:
+        return "error";
+      case Dart_KernelCompilationVerbosityLevel_Warning:
+        return "warning";
+      case Dart_KernelCompilationVerbosityLevel_Info:
+        return "info";
+      case Dart_KernelCompilationVerbosityLevel_All:
+        return "all";
+      default:
+        UNREACHABLE();
+    }
+  }
+
   // This monitor must be held whenever linked list of requests is accessed.
   static Monitor* requests_monitor_;
 
@@ -1017,7 +1026,8 @@ Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
     bool snapshot_compile,
     const char* package_config,
     const char* multiroot_filepaths,
-    const char* multiroot_scheme) {
+    const char* multiroot_scheme,
+    Dart_KernelCompilationVerbosityLevel verbosity) {
   // Start the kernel Isolate if it is not already running.
   if (!Start()) {
     Dart_KernelCompilationResult result = {};
@@ -1041,7 +1051,8 @@ Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
       kCompileTag, kernel_port, script_uri, platform_kernel,
       platform_kernel_size, source_file_count, source_files,
       incremental_compile, snapshot_compile, package_config,
-      multiroot_filepaths, multiroot_scheme, experimental_flags_, NULL);
+      multiroot_filepaths, multiroot_scheme, experimental_flags_, NULL,
+      verbosity);
 }
 
 bool KernelIsolate::DetectNullSafety(const char* script_uri,
@@ -1060,7 +1071,7 @@ bool KernelIsolate::DetectNullSafety(const char* script_uri,
   Dart_KernelCompilationResult result = request.SendAndWaitForResponse(
       kDetectNullabilityTag, kernel_port, script_uri, nullptr, -1, 0, nullptr,
       false, false, package_config, nullptr, nullptr, experimental_flags_,
-      original_working_directory);
+      original_working_directory, Dart_KernelCompilationVerbosityLevel_Error);
   return result.null_safety;
 }
 
@@ -1074,9 +1085,10 @@ Dart_KernelCompilationResult KernelIsolate::ListDependencies() {
   }
 
   KernelCompilationRequest request;
-  return request.SendAndWaitForResponse(kListDependenciesTag, kernel_port, NULL,
-                                        NULL, 0, 0, NULL, false, false, NULL,
-                                        NULL, NULL, experimental_flags_, NULL);
+  return request.SendAndWaitForResponse(
+      kListDependenciesTag, kernel_port, NULL, NULL, 0, 0, NULL, false, false,
+      NULL, NULL, NULL, experimental_flags_, NULL,
+      Dart_KernelCompilationVerbosityLevel_Error);
 }
 
 Dart_KernelCompilationResult KernelIsolate::AcceptCompilation() {
@@ -1091,9 +1103,10 @@ Dart_KernelCompilationResult KernelIsolate::AcceptCompilation() {
   }
 
   KernelCompilationRequest request;
-  return request.SendAndWaitForResponse(kAcceptTag, kernel_port, NULL, NULL, 0,
-                                        0, NULL, true, false, NULL, NULL, NULL,
-                                        experimental_flags_, NULL);
+  return request.SendAndWaitForResponse(
+      kAcceptTag, kernel_port, NULL, NULL, 0, 0, NULL, true, false, NULL, NULL,
+      NULL, experimental_flags_, NULL,
+      Dart_KernelCompilationVerbosityLevel_Error);
 }
 
 Dart_KernelCompilationResult KernelIsolate::CompileExpressionToKernel(
@@ -1138,7 +1151,8 @@ Dart_KernelCompilationResult KernelIsolate::UpdateInMemorySources(
   KernelCompilationRequest request;
   return request.SendAndWaitForResponse(
       kUpdateSourcesTag, kernel_port, NULL, NULL, 0, source_files_count,
-      source_files, true, false, NULL, NULL, NULL, experimental_flags_, NULL);
+      source_files, true, false, NULL, NULL, NULL, experimental_flags_, NULL,
+      Dart_KernelCompilationVerbosityLevel_Error);
 }
 
 void KernelIsolate::NotifyAboutIsolateShutdown(const Isolate* isolate) {

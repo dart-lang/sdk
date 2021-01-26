@@ -191,7 +191,7 @@ Dart_KernelCompilationResult DFE::CompileScript(const char* script_uri,
 
   return Dart_CompileToKernel(sanitized_uri, platform_strong_dill,
                               platform_strong_dill_size, incremental, snapshot,
-                              package_config);
+                              package_config, verbosity());
 }
 
 void DFE::CompileAndReadScript(const char* script_uri,

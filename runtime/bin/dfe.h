@@ -42,6 +42,11 @@ class DFE {
   }
   bool use_incremental_compiler() const { return use_incremental_compiler_; }
 
+  void set_verbosity(Dart_KernelCompilationVerbosityLevel verbosity) {
+    verbosity_ = verbosity;
+  }
+  Dart_KernelCompilationVerbosityLevel verbosity() const { return verbosity_; }
+
   // Returns the platform binary file name if the path to
   // kernel binaries was set using SetKernelBinaries.
   const char* GetPlatformBinaryFilename();
@@ -115,6 +120,8 @@ class DFE {
   bool use_dfe_;
   bool use_incremental_compiler_;
   char* frontend_filename_;
+  Dart_KernelCompilationVerbosityLevel verbosity_ =
+      Dart_KernelCompilationVerbosityLevel_All;
 
   // Kernel binary specified on the cmd line.
   uint8_t* application_kernel_buffer_;

@@ -14,6 +14,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
@@ -109,9 +110,6 @@ class DartUnitHighlightsComputer {
     if (_addIdentifierRegion_function(node)) {
       return;
     }
-    if (_addIdentifierRegion_functionTypeAlias(node)) {
-      return;
-    }
     if (_addIdentifierRegion_importPrefix(node)) {
       return;
     }
@@ -125,6 +123,9 @@ class DartUnitHighlightsComputer {
       return;
     }
     if (_addIdentifierRegion_parameter(node)) {
+      return;
+    }
+    if (_addIdentifierRegion_typeAlias(node)) {
       return;
     }
     if (_addIdentifierRegion_typeParameter(node)) {
@@ -268,14 +269,6 @@ class DartUnitHighlightsComputer {
     return _addRegion_node(node, type);
   }
 
-  bool _addIdentifierRegion_functionTypeAlias(SimpleIdentifier node) {
-    var element = node.writeOrReadElement;
-    if (element is! FunctionTypeAliasElement) {
-      return false;
-    }
-    return _addRegion_node(node, HighlightRegionType.FUNCTION_TYPE_ALIAS);
-  }
-
   bool _addIdentifierRegion_getterSetterDeclaration(SimpleIdentifier node) {
     // should be declaration
     var parent = node.parent;
@@ -383,6 +376,17 @@ class DartUnitHighlightsComputer {
     var modifiers =
         node.parent is Label ? {CustomSemanticTokenModifiers.label} : null;
     return _addRegion_node(node, type, semanticTokenModifiers: modifiers);
+  }
+
+  bool _addIdentifierRegion_typeAlias(SimpleIdentifier node) {
+    var element = node.writeOrReadElement;
+    if (element is TypeAliasElement) {
+      var type = element.aliasedType is FunctionType
+          ? HighlightRegionType.FUNCTION_TYPE_ALIAS
+          : HighlightRegionType.TYPE_ALIAS;
+      return _addRegion_node(node, type);
+    }
+    return false;
   }
 
   bool _addIdentifierRegion_typeParameter(SimpleIdentifier node) {
@@ -743,13 +747,14 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitGenericFunctionType(GenericFunctionType node) {
     computer._addRegion_token(
-        node.functionKeyword, HighlightRegionType.KEYWORD);
+        node.functionKeyword, HighlightRegionType.BUILT_IN);
     super.visitGenericFunctionType(node);
   }
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
-    computer._addRegion_token(node.typedefKeyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(
+        node.typedefKeyword, HighlightRegionType.BUILT_IN);
     super.visitGenericTypeAlias(node);
   }
 

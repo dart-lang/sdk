@@ -8,6 +8,8 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:front_end/src/api_prototype/compiler_options.dart'
+    show Verbosity;
 import 'package:path/path.dart';
 import 'package:pub/pub.dart';
 
@@ -91,6 +93,13 @@ class RunCommand extends DartdevCommand {
       ..addFlag(
         'enable-asserts',
         help: 'Enable assert statements.',
+      )
+      ..addOption(
+        'verbosity',
+        help: 'Sets the verbosity level of the compilation.',
+        defaultsTo: Verbosity.defaultValue,
+        allowed: Verbosity.allowedValues,
+        allowedHelp: Verbosity.allowedValuesHelp,
       );
 
     if (verbose) {

@@ -63,7 +63,9 @@ namespace bin {
 // In main_options.cc there must be a list of strings that matches the enum
 // called k{enum_type}Names. The field is not automatically declared in
 // main_options.cc. It must be explicitly declared.
-#define ENUM_OPTIONS_LIST(V) V(snapshot_kind, SnapshotKind, gen_snapshot_kind)
+#define ENUM_OPTIONS_LIST(V)                                                   \
+  V(snapshot_kind, SnapshotKind, gen_snapshot_kind)                            \
+  V(verbosity, VerbosityLevel, verbosity)
 
 // Callbacks passed to DEFINE_CB_OPTION().
 #define CB_OPTIONS_LIST(V)                                                     \
@@ -77,6 +79,14 @@ enum SnapshotKind {
   kNone,
   kKernel,
   kAppJIT,
+};
+
+// This enum must match the strings in kVerbosityLevelNames in main_options.cc.
+enum VerbosityLevel {
+  kError,
+  kWarning,
+  kInfo,
+  kAll,
 };
 
 static constexpr const char* DEFAULT_VM_SERVICE_SERVER_IP = "localhost";
@@ -131,6 +141,9 @@ class Options {
   static const char* vm_service_server_ip() { return vm_service_server_ip_; }
   static int vm_service_server_port() { return vm_service_server_port_; }
 
+  static Dart_KernelCompilationVerbosityLevel verbosity_level() {
+    return VerbosityLevelToDartAPI(verbosity_);
+  }
 #if !defined(DART_PRECOMPILED_RUNTIME)
   static DFE* dfe() { return dfe_; }
   static void set_dfe(DFE* dfe) { dfe_ = dfe; }
@@ -168,6 +181,22 @@ class Options {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   static DFE* dfe_;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+  static Dart_KernelCompilationVerbosityLevel VerbosityLevelToDartAPI(
+      VerbosityLevel level) {
+    switch (level) {
+      case kError:
+        return Dart_KernelCompilationVerbosityLevel_Error;
+      case kWarning:
+        return Dart_KernelCompilationVerbosityLevel_Warning;
+      case kInfo:
+        return Dart_KernelCompilationVerbosityLevel_Info;
+      case kAll:
+        return Dart_KernelCompilationVerbosityLevel_All;
+      default:
+        UNREACHABLE();
+    }
+  }
 
   // VM Service argument processing.
   static const char* vm_service_server_ip_;

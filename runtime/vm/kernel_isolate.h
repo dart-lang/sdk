@@ -54,7 +54,9 @@ class KernelIsolate : public AllStatic {
       bool snapshot_compile = false,
       const char* package_config = NULL,
       const char* multiroot_filepaths = NULL,
-      const char* multiroot_scheme = NULL);
+      const char* multiroot_scheme = NULL,
+      Dart_KernelCompilationVerbosityLevel verbosity =
+          Dart_KernelCompilationVerbosityLevel_All);
 
   static bool DetectNullSafety(const char* script_uri,
                                const char* package_config,

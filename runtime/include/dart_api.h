@@ -3525,6 +3525,13 @@ typedef struct {
   intptr_t kernel_size;
 } Dart_KernelCompilationResult;
 
+typedef enum {
+  Dart_KernelCompilationVerbosityLevel_Error = 0,
+  Dart_KernelCompilationVerbosityLevel_Warning,
+  Dart_KernelCompilationVerbosityLevel_Info,
+  Dart_KernelCompilationVerbosityLevel_All,
+} Dart_KernelCompilationVerbosityLevel;
+
 DART_EXPORT bool Dart_IsKernelIsolate(Dart_Isolate isolate);
 DART_EXPORT bool Dart_KernelIsolateIsRunning();
 DART_EXPORT Dart_Port Dart_KernelPort();
@@ -3540,6 +3547,9 @@ DART_EXPORT Dart_Port Dart_KernelPort();
  * \param snapshot_compile Set to `true` when the compilation is for a snapshot.
  * This is used by the frontend to determine if compilation related information
  * should be printed to console (e.g., null safety mode).
+ *
+ * \param verbosity Specifies the logging behavior of the kernel compilation
+ * service.
  *
  * \return Returns the result of the compilation.
  *
@@ -3559,7 +3569,8 @@ Dart_CompileToKernel(const char* script_uri,
                      const intptr_t platform_kernel_size,
                      bool incremental_compile,
                      bool snapshot_compile,
-                     const char* package_config);
+                     const char* package_config,
+                     Dart_KernelCompilationVerbosityLevel verbosity);
 
 typedef struct {
   const char* uri;

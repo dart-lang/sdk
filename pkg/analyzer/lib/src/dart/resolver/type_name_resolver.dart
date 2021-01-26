@@ -144,12 +144,7 @@ class TypeNameResolver {
   NullabilitySuffix _getNullability(TypeName node) {
     if (isNonNullableByDefault) {
       if (node.question != null) {
-        if (identical(node, classHierarchy_typeName)) {
-          _reportInvalidNullableType(node);
-          return NullabilitySuffix.none;
-        } else {
-          return NullabilitySuffix.question;
-        }
+        return NullabilitySuffix.question;
       } else {
         return NullabilitySuffix.none;
       }
@@ -275,33 +270,6 @@ class TypeNameResolver {
     }
   }
 
-  /// Given a [typeName] that has a question mark, report an error and return
-  /// `true` if it appears in a location where a nullable type is not allowed.
-  void _reportInvalidNullableType(TypeName typeName) {
-    AstNode parent = typeName.parent;
-    if (parent is ExtendsClause || parent is ClassTypeAlias) {
-      errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE,
-        typeName,
-      );
-    } else if (parent is ImplementsClause) {
-      errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE,
-        typeName,
-      );
-    } else if (parent is OnClause) {
-      errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE,
-        typeName,
-      );
-    } else if (parent is WithClause) {
-      errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE,
-        typeName,
-      );
-    }
-  }
-
   void _resolveToElement(TypeName node, Element element) {
     if (element == null) {
       node.type = dynamicType;
@@ -316,7 +284,9 @@ class TypeNameResolver {
       return;
     }
 
-    node.type = _instantiateElement(node, element);
+    var type = _instantiateElement(node, element);
+    type = _verifyNullability(node, type);
+    node.type = type;
   }
 
   /// We parse `foo.bar` as `prefix.Name` with the expectation that `prefix`
@@ -365,6 +335,42 @@ class TypeNameResolver {
         [typeIdentifier.name],
       );
     }
+  }
+
+  /// If the [node] appears in a location where a nullable type is not allowed,
+  /// but the [type] is nullable (because the question mark was specified,
+  /// or the type alias is nullable), report an error, and return the
+  /// corresponding non-nullable type.
+  DartType _verifyNullability(TypeName node, DartType type) {
+    if (identical(node, classHierarchy_typeName)) {
+      if (type.nullabilitySuffix == NullabilitySuffix.question) {
+        var parent = node.parent;
+        if (parent is ExtendsClause || parent is ClassTypeAlias) {
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE,
+            node,
+          );
+        } else if (parent is ImplementsClause) {
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE,
+            node,
+          );
+        } else if (parent is OnClause) {
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE,
+            node,
+          );
+        } else if (parent is WithClause) {
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE,
+            node,
+          );
+        }
+        return (type as TypeImpl).withNullability(NullabilitySuffix.none);
+      }
+    }
+
+    return type;
   }
 
   DartType _verifyTypeAliasForContext(
