@@ -66,6 +66,8 @@ Remove debugging information from the output and save it separately to the speci
         defaultsTo: '', valueHelp: 'feature', hide: true, help: '''
 Comma separated list of experimental features.
 ''')
+    ..addFlag('sound-null-safety',
+        help: 'Respect the nullability of types at runtime.', defaultsTo: null)
     ..addFlag('verbose',
         abbr: 'v', negatable: false, help: 'Show verbose output.')
     ..addOption(
@@ -116,6 +118,7 @@ Sets the verbosity level used for filtering messages during compilation.
         defines: parsedArgs['define'],
         enableExperiment: parsedArgs['enable-experiment'],
         enableAsserts: parsedArgs['enable-asserts'],
+        soundNullSafety: parsedArgs['sound-null-safety'],
         verbose: parsedArgs['verbose'],
         verbosity: parsedArgs['verbosity'],
         extraOptions: parsedArgs['extra-gen-snapshot-options']);
