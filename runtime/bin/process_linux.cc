@@ -399,6 +399,8 @@ class ProcessStarter {
   }
 
  private:
+  static constexpr int kErrorBufferSize = 1024;
+
   int CreatePipes() {
     int result;
     result = TEMP_FAILURE_RETRY(pipe2(exec_control_, O_CLOEXEC));
@@ -705,9 +707,8 @@ class ProcessStarter {
   }
 
   void SetChildOsErrorMessage() {
-    const int kBufferSize = 1024;
-    char* error_message = DartUtils::ScopedCString(kBufferSize);
-    Utils::StrError(errno, error_message, kBufferSize);
+    char* error_message = DartUtils::ScopedCString(kErrorBufferSize);
+    Utils::StrError(errno, error_message, kErrorBufferSize);
     *os_error_message_ = error_message;
   }
 
@@ -715,9 +716,9 @@ class ProcessStarter {
     // In the case of failure in the child process write the errno and
     // the OS error message to the exec control pipe and exit.
     int child_errno = errno;
-    const int kBufferSize = 1024;
-    char error_buf[kBufferSize];
-    char* os_error_message = Utils::StrError(errno, error_buf, kBufferSize);
+    char error_buf[kErrorBufferSize];
+    char* os_error_message =
+        Utils::StrError(errno, error_buf, kErrorBufferSize);
     int bytes_written = FDUtils::WriteToBlocking(exec_control_[1], &child_errno,
                                                  sizeof(child_errno));
     if (bytes_written == sizeof(child_errno)) {
@@ -741,11 +742,10 @@ class ProcessStarter {
   }
 
   void ReadChildError() {
-    const int kMaxMessageSize = 256;
-    char* message = DartUtils::ScopedCString(kMaxMessageSize);
+    char* message = DartUtils::ScopedCString(kErrorBufferSize);
     if (message != NULL) {
-      FDUtils::ReadFromBlocking(exec_control_[0], message, kMaxMessageSize);
-      message[kMaxMessageSize - 1] = '\0';
+      FDUtils::ReadFromBlocking(exec_control_[0], message, kErrorBufferSize);
+      message[kErrorBufferSize - 1] = '\0';
       *os_error_message_ = message;
     } else {
       // Could not get error message. It will be NULL.

@@ -195,12 +195,15 @@ class DartUtils {
                                         const char* message,
                                         Dart_Handle os_error);
 
-  // Create a new Dart String object from a C String.
+  // Create a new Dart String object from a UTF8 encoded C String.
   static Dart_Handle NewString(const char* str) {
     ASSERT(str != NULL);
     return Dart_NewStringFromUTF8(reinterpret_cast<const uint8_t*>(str),
                                   strlen(str));
   }
+
+  // Create a new Dart String object from a formatted string.
+  static Dart_Handle NewStringFormatted(const char* format, ...);
 
   // Allocate length bytes for a C string with Dart_ScopeAllocate.
   static char* ScopedCString(intptr_t length) {
