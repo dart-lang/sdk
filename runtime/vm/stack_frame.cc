@@ -528,6 +528,19 @@ StackFrameIterator::StackFrameIterator(uword fp,
   frames_.Unpoison();
 }
 
+StackFrameIterator::StackFrameIterator(const StackFrameIterator& orig)
+    : validate_(orig.validate_),
+      entry_(orig.thread_),
+      exit_(orig.thread_),
+      frames_(orig.thread_),
+      current_frame_(nullptr),
+      thread_(orig.thread_) {
+  frames_.fp_ = orig.frames_.fp_;
+  frames_.sp_ = orig.frames_.sp_;
+  frames_.pc_ = orig.frames_.pc_;
+  frames_.Unpoison();
+}
+
 StackFrame* StackFrameIterator::NextFrame() {
   // When we are at the start of iteration after having created an
   // iterator object, current_frame_ will be NULL as we haven't seen

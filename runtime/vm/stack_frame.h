@@ -236,6 +236,8 @@ class StackFrameIterator : public ValueObject {
                      Thread* thread,
                      CrossThreadPolicy cross_thread_policy);
 
+  StackFrameIterator(const StackFrameIterator& orig);
+
   // Checks if a next frame exists.
   bool HasNextFrame() const { return frames_.fp_ != 0; }
 
@@ -300,7 +302,6 @@ class StackFrameIterator : public ValueObject {
   Thread* thread_;
 
   friend class ProfilerDartStackWalker;
-  DISALLOW_COPY_AND_ASSIGN(StackFrameIterator);
 };
 
 // Iterator for iterating over all dart frames (skips over exit frames,
@@ -339,6 +340,8 @@ class DartFrameIterator : public ValueObject {
                 thread,
                 cross_thread_policy) {}
 
+  DartFrameIterator(const DartFrameIterator& orig) : frames_(orig.frames_) {}
+
   // Get next dart frame.
   StackFrame* NextFrame() {
     StackFrame* frame = frames_.NextFrame();
@@ -350,8 +353,6 @@ class DartFrameIterator : public ValueObject {
 
  private:
   StackFrameIterator frames_;
-
-  DISALLOW_COPY_AND_ASSIGN(DartFrameIterator);
 };
 
 // Iterator for iterating over all inlined dart functions in an optimized

@@ -63,18 +63,19 @@ class _SyncCompleter<T> extends _Completer<T> {
 }
 
 class _FutureListener<S, T> {
+  // Keep in sync with sdk/runtime/vm/stack_trace.cc.
   static const int maskValue = 1;
   static const int maskError = 2;
   static const int maskTestError = 4;
-  static const int maskWhencomplete = 8;
+  static const int maskWhenComplete = 8;
   static const int stateChain = 0;
   static const int stateThen = maskValue;
   static const int stateThenOnerror = maskValue | maskError;
-  static const int stateCatcherror = maskError;
-  static const int stateCatcherrorTest = maskError | maskTestError;
-  static const int stateWhencomplete = maskWhencomplete;
+  static const int stateCatchError = maskError;
+  static const int stateCatchErrorTest = maskError | maskTestError;
+  static const int stateWhenComplete = maskWhenComplete;
   static const int maskType =
-      maskValue | maskError | maskTestError | maskWhencomplete;
+      maskValue | maskError | maskTestError | maskWhenComplete;
   static const int stateIsAwait = 16;
 
   // Listeners on the same future are linked through this link.
@@ -109,18 +110,18 @@ class _FutureListener<S, T> {
             stateIsAwait;
 
   _FutureListener.catchError(this.result, this.errorCallback, this.callback)
-      : state = (callback == null) ? stateCatcherror : stateCatcherrorTest;
+      : state = (callback == null) ? stateCatchError : stateCatchErrorTest;
 
   _FutureListener.whenComplete(this.result, this.callback)
       : errorCallback = null,
-        state = stateWhencomplete;
+        state = stateWhenComplete;
 
   _Zone get _zone => result._zone;
 
   bool get handlesValue => (state & maskValue != 0);
   bool get handlesError => (state & maskError != 0);
-  bool get hasErrorTest => (state & maskType == stateCatcherrorTest);
-  bool get handlesComplete => (state & maskType == stateWhencomplete);
+  bool get hasErrorTest => (state & maskType == stateCatchErrorTest);
+  bool get handlesComplete => (state & maskType == stateWhenComplete);
   bool get isAwait => (state & stateIsAwait != 0);
 
   FutureOr<T> Function(S) get _onValue {
@@ -148,6 +149,8 @@ class _FutureListener<S, T> {
     return _onError != null;
   }
 
+  @pragma("vm:recognized", "other")
+  @pragma("vm:never-inline")
   FutureOr<T> handleValue(S sourceResult) {
     return _zone.runUnary<FutureOr<T>, S>(_onValue, sourceResult);
   }

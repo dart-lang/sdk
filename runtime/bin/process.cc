@@ -164,13 +164,29 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
     result =
         DartUtils::SetIntegerField(status_handle, "_errorCode", error_code);
     ThrowIfError(result);
-    Dart_Handle val = DartUtils::NewString(os_error_message != NULL
-                                               ? os_error_message
-                                               : "Cannot get error message");
+
+    const char* error_message = (os_error_message != NULL)
+                                    ? os_error_message
+                                    : "Failed to get error message";
+    Dart_Handle val = DartUtils::NewString(error_message);
     if (Dart_IsError(val)) {
-      // If conversion of the OS error message to a Dart string fails, fall back
-      // on a stock message.
-      val = DartUtils::NewString("OS error message was a not a utf8 string.");
+      // Try to clean the message from non-ASCII characters.
+      const intptr_t len = strlen(error_message);
+      char* ascii_message =
+          reinterpret_cast<char*>(Dart_ScopeAllocate(len + 1));
+      for (intptr_t i = 0; i < len; i++) {
+        if (static_cast<uint8_t>(error_message[i]) < 0x80) {
+          ascii_message[i] = error_message[i];
+        } else {
+          ascii_message[i] = '?';
+        }
+      }
+      ascii_message[len] = '\0';
+
+      val = DartUtils::NewStringFormatted(
+          "Failed to start %s. OS returned an error (code %d) which can't be "
+          "fully converted to Dart string (%s): %s",
+          path, error_code, Dart_GetError(val), ascii_message);
     }
     result = Dart_SetField(status_handle, DartUtils::NewString("_errorMessage"),
                            val);

@@ -758,6 +758,22 @@ Dart_Handle DartUtils::NewInternalError(const char* message) {
   return NewDartExceptionWithMessage(kCoreLibURL, "_InternalError", message);
 }
 
+Dart_Handle DartUtils::NewStringFormatted(const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  intptr_t len = vsnprintf(NULL, 0, format, args);
+  va_end(args);
+
+  char* buffer = reinterpret_cast<char*>(Dart_ScopeAllocate(len + 1));
+  MSAN_UNPOISON(buffer, (len + 1));
+  va_list args2;
+  va_start(args2, format);
+  vsnprintf(buffer, (len + 1), format, args2);
+  va_end(args2);
+
+  return NewString(buffer);
+}
+
 bool DartUtils::SetOriginalWorkingDirectory() {
   // If we happen to re-initialize the Dart VM multiple times, make sure to free
   // the old string (allocated by getcwd()) before setting a new one.
