@@ -20,8 +20,8 @@ CallPattern::CallPattern(uword pc, const Code& code)
     : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
       target_code_pool_index_(-1) {
   ASSERT(code.ContainsInstructionAt(pc));
-  // Last instruction: blr ip0.
-  ASSERT(*(reinterpret_cast<uint32_t*>(pc) - 1) == 0xd63f0200);
+  // Last instruction: blr lr.
+  ASSERT(*(reinterpret_cast<uint32_t*>(pc) - 1) == 0xd63f03c0);
 
   Register reg;
   InstructionPattern::DecodeLoadWordFromPool(pc - 2 * Instr::kInstrSize, &reg,
