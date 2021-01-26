@@ -54,11 +54,11 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
     if (element is FunctionElement) {
       return 'Rename Top-Level Function';
     }
-    if (element is FunctionTypeAliasElement) {
-      return 'Rename Function Type Alias';
-    }
     if (element is TopLevelVariableElement) {
       return 'Rename Top-Level Variable';
+    }
+    if (element is TypeAliasElement) {
+      return 'Rename Type Alias';
     }
     return 'Rename Class';
   }
