@@ -5140,7 +5140,7 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ fcmpd(VTMP, VTMP);
   __ b(&do_call, VS);
 
-  __ fcvtzds(result, VTMP);
+  __ fcvtzdsx(result, VTMP);
   // Overflow is signaled with minint.
 
   // Check for overflow and that it fits into Smi.
@@ -5188,7 +5188,7 @@ void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ fcmpd(value, value);
   __ b(deopt, VS);
 
-  __ fcvtzds(result, value);
+  __ fcvtzdsx(result, value);
   // Check for overflow and that it fits into Smi.
   __ CompareImmediate(result, 0xC000000000000000);
   __ b(deopt, MI);

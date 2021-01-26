@@ -1213,11 +1213,17 @@ class Assembler : public AssemblerBase {
     const Register crn = ConcreteRegister(rn);
     EmitFPIntCvtOp(SCVTFD, static_cast<Register>(vd), crn, kFourBytes);
   }
-  void fcvtzds(Register rd, VRegister vn) {
+  void fcvtzdsx(Register rd, VRegister vn) {
     ASSERT(rd != R31);
     ASSERT(rd != CSP);
     const Register crd = ConcreteRegister(rd);
     EmitFPIntCvtOp(FCVTZDS, crd, static_cast<Register>(vn));
+  }
+  void fcvtzdsw(Register rd, VRegister vn) {
+    ASSERT(rd != R31);
+    ASSERT(rd != CSP);
+    const Register crd = ConcreteRegister(rd);
+    EmitFPIntCvtOp(FCVTZDS, crd, static_cast<Register>(vn), kFourBytes);
   }
   void fmovdd(VRegister vd, VRegister vn) { EmitFPOneSourceOp(FMOVDD, vd, vn); }
   void fabsd(VRegister vd, VRegister vn) { EmitFPOneSourceOp(FABSD, vd, vn); }
