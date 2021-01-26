@@ -9,12 +9,13 @@ on:
     branches:
       - master
 
+env:
+  PUB_ENVIRONMENT: bot.github
+
 jobs:
   build:
     name: ${{ matrix.linter-bot }}
     runs-on: ubuntu-latest
-    container:
-      image:  google/dart:dev
     strategy:
       fail-fast: false
       matrix:
@@ -26,6 +27,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+      - uses: dart-lang/setup-dart@v0.3
 
       - name: pub get
         run: dart pub get
@@ -34,3 +36,9 @@ jobs:
         env:
           LINTER_BOT: ${{ matrix.linter-bot }}
         run: ./tool/travis.sh
+      - name: upload coverage
+        if: matrix.linter-bot == 'main'
+        uses: coverallsapp/github-action@v1.1.2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: var/lcov.info
