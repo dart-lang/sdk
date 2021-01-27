@@ -24,7 +24,7 @@ bool containsOnlyWhitespace(Iterable<dom.Node> nodes) {
 String innerText(dom.Element parent) {
   var buffer = StringBuffer();
   void recurse(dom.Element parent) {
-    for (dom.Node child in parent.nodes) {
+    for (var child in parent.nodes) {
       if (child is dom.Text) {
         buffer.write(child.text);
       } else if (child is dom.Element) {
