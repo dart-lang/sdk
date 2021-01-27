@@ -372,7 +372,8 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode DUPLICATE_HIDDEN_NAME =
       HintCode('DUPLICATE_HIDDEN_NAME', "Duplicate hidden name.",
           correction: "Try removing the repeated name from the list of hidden "
-              "members.");
+              "members.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -426,7 +427,8 @@ class HintCode extends AnalyzerErrorCode {
           "already being ignored.",
       correction:
           "Try removing the name from the list, or removing the whole comment "
-          "if this is the only name in the list.");
+          "if this is the only name in the list.",
+      hasPublishedDocs: true);
 
   /**
    * Duplicate imports.
@@ -505,7 +507,8 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode DUPLICATE_SHOWN_NAME =
       HintCode('DUPLICATE_SHOWN_NAME', "Duplicate shown name.",
           correction: "Try removing the repeated name from the list of shown "
-              "members.");
+              "members.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -2222,7 +2225,8 @@ class HintCode extends AnalyzerErrorCode {
       'SDK_VERSION_NEVER',
       "The type 'Never' wasn't supported until version 2.X.0, but this code is "
           "required to be able to run on earlier versions.",
-      correction: "Try updating the SDK constraints.");
+      correction: "Try updating the SDK constraints.",
+      hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -2681,6 +2685,7 @@ class HintCode extends AnalyzerErrorCode {
     'UNNECESSARY_TYPE_CHECK',
     "Unnecessary type check; the result is always 'false'.",
     correction: "Try correcting the type check, or removing the type check.",
+    hasPublishedDocs: true,
     uniqueName: 'UNNECESSARY_TYPE_CHECK_FALSE',
   );
 
@@ -2691,6 +2696,7 @@ class HintCode extends AnalyzerErrorCode {
     'UNNECESSARY_TYPE_CHECK',
     "Unnecessary type check; the result is always 'true'.",
     correction: "Try correcting the type check, or removing the type check.",
+    hasPublishedDocs: true,
     uniqueName: 'UNNECESSARY_TYPE_CHECK_TRUE',
   );
 

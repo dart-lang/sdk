@@ -64,30 +64,31 @@ class AnalysisErrorTest {
             engine.LineInfo([0, 5, 9, 20]), false, null, [engineError]),
         engineError);
     expect(error.toJson(), {
-      'severity': 'ERROR',
-      'type': 'COMPILE_TIME_ERROR',
-      'location': {
-        'file': 'foo.dart',
-        'offset': 10,
-        'length': 20,
-        'startLine': 3,
-        'startColumn': 2
+      SEVERITY: 'ERROR',
+      TYPE: 'COMPILE_TIME_ERROR',
+      LOCATION: {
+        FILE: 'foo.dart',
+        OFFSET: 10,
+        LENGTH: 20,
+        START_LINE: 3,
+        START_COLUMN: 2
       },
-      'message': 'my message',
-      'code': 'ambiguous_export',
-      'contextMessages': [
+      MESSAGE: 'my message',
+      CODE: 'ambiguous_export',
+      URL: 'https://dart.dev/tools/diagnostic-messages#ambiguous_export',
+      CONTEXT_MESSAGES: [
         {
-          'message': 'context',
-          'location': {
-            'file': 'bar.dart',
-            'offset': 30,
-            'length': 5,
-            'startLine': 4,
-            'startColumn': 11
+          MESSAGE: 'context',
+          LOCATION: {
+            FILE: 'bar.dart',
+            OFFSET: 30,
+            LENGTH: 5,
+            START_LINE: 4,
+            START_COLUMN: 11
           }
         }
       ],
-      'hasFix': false
+      HAS_FIX: false
     });
   }
 
@@ -107,6 +108,7 @@ class AnalysisErrorTest {
       MESSAGE: 'my message',
       CORRECTION: 'my correction',
       CODE: 'ambiguous_export',
+      URL: 'https://dart.dev/tools/diagnostic-messages#ambiguous_export',
       HAS_FIX: false
     });
   }
@@ -176,6 +178,7 @@ class AnalysisErrorTest {
       },
       MESSAGE: 'my message',
       CODE: 'ambiguous_export',
+      URL: 'https://dart.dev/tools/diagnostic-messages#ambiguous_export',
       HAS_FIX: false
     });
   }
@@ -198,6 +201,7 @@ class AnalysisErrorTest {
       },
       MESSAGE: 'my message',
       CODE: 'ambiguous_export',
+      URL: 'https://dart.dev/tools/diagnostic-messages#ambiguous_export',
       HAS_FIX: false
     });
   }
