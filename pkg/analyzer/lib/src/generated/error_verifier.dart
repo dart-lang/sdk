@@ -114,26 +114,28 @@ class EnclosingExecutableContext {
 
   DartType get returnType => catchErrorOnErrorReturnType ?? element.returnType;
 
-  static bool _inFactoryConstructor(ExecutableElement element) {
+  static bool _inFactoryConstructor(Element element) {
+    var enclosing = element?.enclosingElement;
+    if (enclosing == null) {
+      return false;
+    }
     if (element is ConstructorElement) {
       return element.isFactory;
     }
-    var enclosing = element?.enclosingElement;
-    if (enclosing is ExecutableElement) {
-      return _inFactoryConstructor(enclosing);
-    }
-    return false;
+    return _inFactoryConstructor(enclosing);
   }
 
-  static bool _inStaticMethod(ExecutableElement element) {
+  static bool _inStaticMethod(Element element) {
     var enclosing = element?.enclosingElement;
+    if (enclosing == null) {
+      return false;
+    }
     if (enclosing is ClassElement || enclosing is ExtensionElement) {
-      return element.isStatic;
+      if (element is ExecutableElement) {
+        return element.isStatic;
+      }
     }
-    if (enclosing is ExecutableElement) {
-      return _inStaticMethod(enclosing);
-    }
-    return false;
+    return _inStaticMethod(enclosing);
   }
 }
 
