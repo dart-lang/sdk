@@ -27,6 +27,10 @@ class StaticMemberContributor extends DartCompletionContributor {
     var targetId = request.dotTarget;
     if (targetId is Identifier && !request.target.isCascade) {
       var element = targetId.staticElement;
+      if (element is TypeAliasElement) {
+        var aliasedType = (element as TypeAliasElement).aliasedType;
+        element = aliasedType.element;
+      }
       if (element is ClassElement) {
         for (var accessor in element.accessors) {
           if (accessor.isStatic &&
