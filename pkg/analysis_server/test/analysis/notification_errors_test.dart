@@ -8,6 +8,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
@@ -162,6 +163,40 @@ analyzer:
     //
     var errors = filesErrors[manifestFile];
     expect(errors, isNull);
+  }
+
+  Future<void> test_dartToolGeneratedProject_referencedByUserProject() async {
+    // Although errors are not generated for dotfolders, their contents should
+    // still be analyzed so that code that references them (for example
+    // flutter_gen) should still be updated.
+    final configPath = join(projectPath, '.dart_tool/package_config.json');
+    final generatedProject = join(projectPath, '.dart_tool/foo');
+    final generatedFile = join(generatedProject, 'lib', 'foo.dart');
+
+    // Add the generated project into package_config.json.
+    final config = PackageConfigFileBuilder();
+    config.add(name: 'foo', rootPath: generatedProject);
+    newFile(configPath, content: config.toContent(toUriStr: toUriStr));
+
+    // Set up project that references the class prior to initial analysis.
+    newFile(generatedFile, content: 'class A {}');
+    addTestFile('''
+import 'package:foo/foo.dart';
+A? a;
+    ''');
+
+    createProject();
+    await waitForTasksFinished();
+    await pumpEventQueue(times: 5000);
+    expect(filesErrors[testFile], isEmpty);
+
+    // Remove the class, which should cause the main project to have an analysis
+    // error.
+    modifyFile(generatedFile, '');
+
+    await waitForTasksFinished();
+    await pumpEventQueue(times: 5000);
+    expect(filesErrors[testFile], isNotEmpty);
   }
 
   Future<void> test_dataFile() async {

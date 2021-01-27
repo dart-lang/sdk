@@ -4545,6 +4545,53 @@ class B extends A {
     assertNoSuggestions();
   }
 
+  Future<void> test_typeAlias_aliasedType() async {
+    addTestSource(r'''
+var a = 0;
+typedef F = ^;
+''');
+
+    await computeSuggestions();
+    assertCoreTypeSuggestions();
+    assertNotSuggested('a');
+  }
+
+  Future<void> test_typeAlias_functionType_parameterType() async {
+    addTestSource(r'''
+typedef F = void Function(^);
+''');
+
+    await computeSuggestions();
+    assertCoreTypeSuggestions();
+  }
+
+  Future<void> test_typeAlias_functionType_returnType() async {
+    addTestSource(r'''
+typedef F = ^ Function();
+''');
+
+    await computeSuggestions();
+    assertCoreTypeSuggestions();
+  }
+
+  Future<void> test_typeAlias_interfaceType_argumentType() async {
+    addTestSource(r'''
+typedef F = List<^>;
+''');
+
+    await computeSuggestions();
+    assertCoreTypeSuggestions();
+  }
+
+  Future<void> test_typeAlias_legacy_parameterType() async {
+    addTestSource(r'''
+typedef void F(^);
+''');
+
+    await computeSuggestions();
+    assertCoreTypeSuggestions();
+  }
+
   Future<void> test_TypeArgumentList() async {
     // SimpleIdentifier  BinaryExpression  ExpressionStatement
     resolveSource('/home/test/lib/a.dart', '''

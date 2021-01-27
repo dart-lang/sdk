@@ -586,7 +586,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
     ASSERT(name != nullptr);
 
     auto group = state_->isolate_group();
-    if (!FLAG_enable_isolate_groups || group == nullptr) {
+    if (!IsolateGroup::AreIsolateGroupsEnabled() || group == nullptr) {
       RunHeavyweight(name);
     } else {
       RunLightweight(name);

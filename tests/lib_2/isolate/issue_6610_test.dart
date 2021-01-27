@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--enable-experiment=no-non-nullable --enable-isolate-groups
+// VMOptions=--enable-experiment=no-non-nullable --enable-isolate-groups --experimental-enable-isolate-groups-jit
 // VMOptions=--enable-experiment=no-non-nullable --no-enable-isolate-groups
 
 // Testing that Isolate.spawn copies the source code of the parent isolate,

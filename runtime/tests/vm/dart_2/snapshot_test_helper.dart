@@ -61,6 +61,7 @@ final String checkedInDartVM =
 Future<Result> runDart(String prefix, List<String> arguments) {
   final augmentedArguments = <String>[]
     ..addAll(Platform.executableArguments)
+    ..add('--verbosity=warning')
     ..addAll(arguments);
   return runBinary(prefix, Platform.executable, augmentedArguments);
 }

@@ -296,7 +296,7 @@
       "name": "html",
       "rootUri": "../third_party/pkg/html",
       "packageUri": "lib/",
-      "languageVersion": "2.8"
+      "languageVersion": "2.12"
     },
     {
       "name": "http",

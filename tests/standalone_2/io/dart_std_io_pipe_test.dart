@@ -39,7 +39,9 @@ void test(String shellScript, String dartScript, String type, bool devNull) {
   String redirectOutFile = "${dir.path}/redirect";
   String executable = Platform.executable;
   List<String> args = [
-    ([executable]..addAll(Platform.executableArguments)).join(' '),
+    ([executable]
+        ..addAll(Platform.executableArguments)
+        ..add('--verbosity=warning')).join(' '),
     dartScript,
     type,
     pipeOutFile,

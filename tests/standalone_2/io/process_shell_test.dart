@@ -18,6 +18,7 @@ void testRunShell() {
             Platform.executable,
             []
               ..addAll(Platform.executableArguments)
+              ..add('--verbosity=warning')
               ..add(script)
               ..addAll(args),
             runInShell: true)

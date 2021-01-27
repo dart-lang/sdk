@@ -20,6 +20,7 @@ void testSignals(int usr1Expect, int usr2Expect,
           Platform.executable,
           []
             ..addAll(Platform.executableArguments)
+            ..add('--verbosity=warning')
             ..addAll([
               Platform.script.resolve('signals_test_script.dart').toFilePath(),
               usr1Expect.toString(),
@@ -54,6 +55,7 @@ void testSignal(ProcessSignal signal) {
           Platform.executable,
           []
             ..addAll(Platform.executableArguments)
+            ..add('--verbosity=warning')
             ..addAll([
               Platform.script.resolve('signal_test_script.dart').toFilePath(),
               signal.toString()
@@ -85,6 +87,7 @@ void testMultipleSignals(List<ProcessSignal> signals) {
             Platform.executable,
             []
               ..addAll(Platform.executableArguments)
+              ..add('--verbosity=warning')
               ..add(Platform.script
                   .resolve('signal_test_script.dart')
                   .toFilePath())

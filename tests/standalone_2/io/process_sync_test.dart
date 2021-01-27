@@ -15,6 +15,7 @@ test(int blockCount, int stdoutBlockSize, int stderrBlockSize, int exitCode,
       Platform.script.resolve("process_sync_script.dart").toFilePath());
   var args = <String>[]
     ..addAll(Platform.executableArguments)
+    ..add('--verbosity=warning')
     ..addAll([
       scriptFile.path,
       blockCount.toString(),

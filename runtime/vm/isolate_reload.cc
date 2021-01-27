@@ -565,7 +565,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
   // All isolates within an isolate group need to share one heap.
   // TODO(dartbug.com/36097): Remove this assert once the shared heap CL has
   // landed.
-  RELEASE_ASSERT(!FLAG_enable_isolate_groups);
+  RELEASE_ASSERT(!IsolateGroup::AreIsolateGroupsEnabled());
   Heap* heap = IG->heap();
 
   num_old_libs_ =

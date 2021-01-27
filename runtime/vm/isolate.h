@@ -708,6 +708,20 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   void RegisterStaticField(const Field& field, const Instance& initial_value);
 
+  static bool AreIsolateGroupsEnabled() {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return FLAG_enable_isolate_groups;
+#else
+    return FLAG_enable_isolate_groups &&
+           FLAG_experimental_enable_isolate_groups_jit;
+#endif
+  }
+
+  static void ForceEnableIsolateGroupsForTesting() {
+    FLAG_enable_isolate_groups = true;
+    FLAG_experimental_enable_isolate_groups_jit = true;
+  }
+
  private:
   friend class Dart;  // For `object_store_ = ` in Dart::Init
   friend class Heap;

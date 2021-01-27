@@ -4,7 +4,7 @@
 
 // SharedObjects=ffi_test_functions
 // VMOptions=
-// VMOptions=--enable-isolate-groups --disable-heap-verification
+// VMOptions=--enable-isolate-groups --experimental-enable-isolate-groups-jit --disable-heap-verification
 
 import 'dart:async';
 import 'dart:ffi';
@@ -18,8 +18,10 @@ import '../../../../../tests/ffi/calloc.dart';
 import '../../../../../tests/ffi/dylib_utils.dart';
 
 final bool isAOT = Platform.executable.contains('dart_precompiled_runtime');
-final bool isolateGropusEnabled =
+final bool isolateGroupsEnabled =
     Platform.executableArguments.contains('--enable-isolate-groups');
+final bool isolateGroupsEnabledInJIT = Platform.executableArguments
+    .contains('--experimental-enable-isolate-groups-jit');
 final sdkRoot = Platform.script.resolve('../../../../../');
 
 class Isolate extends Opaque {}
@@ -242,13 +244,17 @@ Future testJit() async {
 }
 
 Future main(args) async {
-  if (!isolateGropusEnabled) {
+  if (!isolateGroupsEnabled) {
     await testNotSupported();
     return;
   }
   if (isAOT) {
     await testAot();
   } else {
-    await testJit();
+    if (isolateGroupsEnabledInJIT) {
+      await testJit();
+    } else {
+      await testNotSupported();
+    }
   }
 }

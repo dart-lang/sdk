@@ -3099,6 +3099,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Set module item containers to incremental mode.
     setSymbolContainerIncrementalMode(true);
     _typeTable.typeContainer.incrementalMode = true;
+    _constTableCache.incrementalMode = true;
 
     // Emit function with additional information, such as types that are used
     // in the expression.
@@ -3316,10 +3317,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // In the body of an `async`, `await` is generated simply as `yield`.
     var gen = emitGeneratorFn((_) => []);
     // Return type of an async body is `Future<flatten(T)>`, where T is the
-    // declared return type.
-    var returnType = _types.flatten(function
+    // declared return type, unless T is Object. In that case the Object refers
+    // to a return type of `Future<Object?>`.
+    // TODO(nshahan) Use the Future type value when available on a FunctionNode.
+    var declaredReturnType = function
         .computeThisFunctionType(_currentLibrary.nonNullable)
-        .returnType);
+        .returnType;
+    var returnType = _coreTypes.isObject(declaredReturnType)
+        ? _coreTypes.objectNullableRawType
+        : _types.flatten(declaredReturnType);
     return js.call('#.async(#, #)',
         [emitLibraryName(_coreTypes.asyncLibrary), _emitType(returnType), gen]);
   }
@@ -6062,6 +6068,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (isSdkInternalRuntime(_currentLibrary) || node is PrimitiveConstant) {
       return super.visitConstant(node);
     }
+
+    // Avoid caching constants during evaluation while scoping issues remain.
+    // See: #44713
+    if (_constTableCache.incrementalMode) {
+      return super.visitConstant(node);
+    }
+
     var constAlias = constAliasCache[node];
     if (constAlias != null) {
       return constAlias;
