@@ -209,7 +209,7 @@ bool FlowGraphCompiler::IsUnboxedField(const Field& field) {
   ASSERT(!field.is_non_nullable_integer() || FLAG_precompiled_mode);
   // Unboxed fields in JIT lightweight isolates mode are not supported yet.
   const bool valid_class =
-      (FLAG_precompiled_mode || !FLAG_enable_isolate_groups) &&
+      (FLAG_precompiled_mode || !IsolateGroup::AreIsolateGroupsEnabled()) &&
       ((SupportsUnboxedDoubles() && (field.guarded_cid() == kDoubleCid)) ||
        (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat32x4Cid)) ||
        (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat64x2Cid)) ||
@@ -225,7 +225,8 @@ bool FlowGraphCompiler::IsPotentialUnboxedField(const Field& field) {
     return IsUnboxedField(field);
   }
   // Unboxed fields in JIT lightweight isolates mode are not supported yet.
-  return !FLAG_enable_isolate_groups && field.is_unboxing_candidate() &&
+  return !IsolateGroup::AreIsolateGroupsEnabled() &&
+         field.is_unboxing_candidate() &&
          (FlowGraphCompiler::IsUnboxedField(field) ||
           (field.guarded_cid() == kIllegalCid));
 }

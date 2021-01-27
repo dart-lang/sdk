@@ -104,7 +104,7 @@ void VerifyCanonicalVisitor::VisitObject(ObjectPtr obj) {
   // other isolates. We should either scan live objects from the roots of each
   // individual isolate, or wait until we are ready to share constants across
   // isolates.
-  if (!FLAG_enable_isolate_groups || FLAG_precompiled_mode) {
+  if (!IsolateGroup::AreIsolateGroupsEnabled() || FLAG_precompiled_mode) {
     if ((obj->GetClassId() >= kInstanceCid) &&
         (obj->GetClassId() != kTypeArgumentsCid)) {
       if (obj->untag()->IsCanonical()) {

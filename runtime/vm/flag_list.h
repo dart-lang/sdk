@@ -189,7 +189,12 @@ constexpr bool kDartUseBackgroundCompilation = true;
   P(retain_function_objects, bool, true,                                       \
     "Serialize function objects for all code objects even if not otherwise "   \
     "needed in the precompiled runtime.")                                      \
-  P(enable_isolate_groups, bool, false, "Enable isolate group support.")       \
+  P(enable_isolate_groups, bool, false,                                        \
+    "Enable isolate group support in AOT.")                                    \
+  P(experimental_enable_isolate_groups_jit, bool, false,                       \
+    "As an experimental feature enable isolate group support in JIT"           \
+    "(goes into effect only when enable_isolate_groups is turned on as "       \
+    "well).")                                                                  \
   P(show_invisible_frames, bool, false,                                        \
     "Show invisible frames in stack traces.")                                  \
   R(support_il_printer, false, bool, true, "Support the IL printer.")          \

@@ -1984,7 +1984,7 @@ bool IsolateGroup::ReloadSources(JSONStream* js,
   ASSERT(!IsReloading());
 
   // TODO(dartbug.com/36097): Support multiple isolates within an isolate group.
-  RELEASE_ASSERT(!FLAG_enable_isolate_groups);
+  RELEASE_ASSERT(!IsolateGroup::AreIsolateGroupsEnabled());
   RELEASE_ASSERT(isolates_.First() == isolates_.Last());
   RELEASE_ASSERT(isolates_.First() == Isolate::Current());
 
@@ -2017,7 +2017,7 @@ bool IsolateGroup::ReloadKernel(JSONStream* js,
   ASSERT(!IsReloading());
 
   // TODO(dartbug.com/36097): Support multiple isolates within an isolate group.
-  RELEASE_ASSERT(!FLAG_enable_isolate_groups);
+  RELEASE_ASSERT(!IsolateGroup::AreIsolateGroupsEnabled());
   RELEASE_ASSERT(isolates_.First() == isolates_.Last());
   RELEASE_ASSERT(isolates_.First() == Isolate::Current());
 
@@ -2534,7 +2534,7 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
       Dart::thread_pool()->Run<ShutdownGroupTask>(isolate_group);
     }
   } else {
-    if (FLAG_enable_isolate_groups) {
+    if (IsolateGroup::AreIsolateGroupsEnabled()) {
       // TODO(dartbug.com/36097): An isolate just died. A significant amount of
       // memory might have become unreachable. We should evaluate how to best
       // inform the GC about this situation.
@@ -2696,7 +2696,7 @@ void IsolateGroup::RunWithStoppedMutatorsCallable(
     bool use_force_growth_in_otherwise) {
   auto thread = Thread::Current();
 
-  if (thread->IsMutatorThread() && !FLAG_enable_isolate_groups) {
+  if (thread->IsMutatorThread() && !IsolateGroup::AreIsolateGroupsEnabled()) {
     single_current_mutator->Call();
     return;
   }

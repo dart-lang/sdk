@@ -1408,7 +1408,7 @@ Dart_CreateIsolateInGroup(Dart_Isolate group_member,
 
   *error = nullptr;
 
-  if (!FLAG_enable_isolate_groups) {
+  if (!IsolateGroup::AreIsolateGroupsEnabled()) {
     *error = Utils::StrDup(
         "Lightweight isolates are only implemented in AOT "
         "mode and need to be explicitly enabled by passing "

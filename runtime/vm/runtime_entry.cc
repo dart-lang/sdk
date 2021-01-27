@@ -685,7 +685,7 @@ static void UpdateTypeTestCache(
         new_cache.WriteEntryToBuffer(zone, &buffer, colliding_index, "      ");
         OS::PrintErr("%s\n", buffer.buffer());
       }
-      if (!FLAG_enable_isolate_groups) {
+      if (!IsolateGroup::AreIsolateGroupsEnabled()) {
         FATAL("Duplicate subtype test cache entry");
       }
       if (old_result.ptr() != result.ptr()) {
@@ -1048,7 +1048,7 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
   const Code& target_code = Code::Handle(zone, target_function.EnsureHasCode());
   // Before patching verify that we are not repeatedly patching to the same
   // target.
-  ASSERT(FLAG_enable_isolate_groups ||
+  ASSERT(IsolateGroup::AreIsolateGroupsEnabled() ||
          target_code.ptr() != CodePatcher::GetStaticCallTargetAt(
                                   caller_frame->pc(), caller_code));
   if (target_code.ptr() !=

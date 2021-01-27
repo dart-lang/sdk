@@ -366,7 +366,7 @@ StringPtr Symbols::NewSymbol(Thread* thread, const StringType& str) {
       // TODO(https://dartbug.com/41943): Get rid of the symbol table accesses
       // within safepoint operation scope.
       RELEASE_ASSERT(group->safepoint_handler()->IsOwnedByTheThread(thread));
-      RELEASE_ASSERT(FLAG_enable_isolate_groups || !USING_PRODUCT);
+      RELEASE_ASSERT(IsolateGroup::AreIsolateGroupsEnabled() || !USING_PRODUCT);
 
       // Uncommon case: We are at a safepoint, all mutators are stopped and we
       // have therefore exclusive access to the symbol table.
@@ -395,7 +395,7 @@ StringPtr Symbols::NewSymbol(Thread* thread, const StringType& str) {
         };
 
         SafepointWriteRwLocker sl(thread, group->symbols_lock());
-        if (FLAG_enable_isolate_groups || !USING_PRODUCT) {
+        if (IsolateGroup::AreIsolateGroupsEnabled() || !USING_PRODUCT) {
           // NOTE: Strictly speaking we should use a safepoint operation scope
           // here to ensure the lock-free usage inside safepoint operations (see
           // above) is safe. Though this would really kill the performance.
@@ -440,7 +440,7 @@ StringPtr Symbols::Lookup(Thread* thread, const StringType& str) {
       // In DEBUG mode the snapshot writer also calls this method inside a
       // safepoint.
 #if !defined(DEBUG)
-      RELEASE_ASSERT(FLAG_enable_isolate_groups || !USING_PRODUCT);
+      RELEASE_ASSERT(IsolateGroup::AreIsolateGroupsEnabled() || !USING_PRODUCT);
 #endif
       data = object_store->symbol_table();
       CanonicalStringSet table(&key, &value, &data);
