@@ -130,12 +130,6 @@ checkDeterministicSnapshot(String snapshotKind, String expectedStdout) async {
     final snapshot1Path = p.join(temp, 'snapshot1');
     final snapshot2Path = p.join(temp, 'snapshot2');
 
-    if (expectedStdout.isEmpty) {
-      expectedStdout = nullSafetyMessage;
-    } else {
-      expectedStdout = '$nullSafetyMessage\n$expectedStdout';
-    }
-
     print("Version ${Platform.version}");
 
     final generate1Result = await runDart('GENERATE SNAPSHOT 1', [
@@ -144,6 +138,7 @@ checkDeterministicSnapshot(String snapshotKind, String expectedStdout) async {
       '--trace_type_finalization',
       '--trace_compiler',
       '--verbose_gc',
+      '--verbosity=warning',
       '--snapshot=$snapshot1Path',
       '--snapshot-kind=$snapshotKind',
       Platform.script.toFilePath(),
@@ -157,6 +152,7 @@ checkDeterministicSnapshot(String snapshotKind, String expectedStdout) async {
       '--trace_type_finalization',
       '--trace_compiler',
       '--verbose_gc',
+      '--verbosity=warning',
       '--snapshot=$snapshot2Path',
       '--snapshot-kind=$snapshotKind',
       Platform.script.toFilePath(),
@@ -189,18 +185,12 @@ runAppJitTest(Uri testScriptUri,
     final trainingResult = await runDart('TRAINING RUN', [
       '--snapshot=$snapshotPath',
       '--snapshot-kind=app-jit',
+      '--verbosity=warning',
       testPath,
       '--train'
     ]);
-    expectOutput("$nullSafetyMessage\nOK(Trained)", trainingResult);
+    expectOutput("OK(Trained)", trainingResult);
     final runResult = await runSnapshot!(snapshotPath);
     expectOutput("OK(Run)", runResult);
   });
 }
-
-final String nullSafetyMessage =
-    hasSoundNullSafety ? soundNullSafetyMessage : unsoundNullSafetyMessage;
-
-const String soundNullSafetyMessage = 'Info: Compiling with sound null safety';
-const String unsoundNullSafetyMessage =
-    'Info: Compiling without sound null safety';

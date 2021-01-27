@@ -197,14 +197,18 @@ extension on CType {
         return "${dartType} ${variableName};\n";
 
       case StructType:
-        return "${dartType} ${variableName} = calloc<$dartType>().ref;\n";
+        return """
+final ${variableName}Pointer = calloc<$dartType>();
+final ${dartType} ${variableName} = ${variableName}Pointer.ref;
+""";
     }
 
     throw Exception("Not implemented for ${this.runtimeType}");
   }
 
   /// A list of Dart statements allocating as zero or nullptr.
-  String dartAllocateZeroStatements(String variableName) {
+  String dartAllocateZeroStatements(String variableName,
+      {bool structsAsPointers = false}) {
     switch (this.runtimeType) {
       case FundamentalType:
         final this_ = this as FundamentalType;
@@ -214,7 +218,11 @@ extension on CType {
         return "${dartType} ${variableName} = 0.0;\n";
 
       case StructType:
-        return "${dartType} ${variableName} = ${dartType}();\n";
+        if (structsAsPointers) {
+          return "Pointer<${dartType}> ${variableName}Pointer = nullptr;\n";
+        } else {
+          return "${dartType} ${variableName} = ${dartType}();\n";
+        }
     }
 
     throw Exception("Not implemented for ${this.runtimeType}");
@@ -229,7 +237,7 @@ extension on List<Member> {
   }
 
   /// A list of Dart statements as zero or nullptr.
-  String dartAllocateZeroStatements([String namePrefix = ""]) {
+  String dartAllocateZeroStatements(String namePrefix) {
     return map((m) => m.type.dartAllocateZeroStatements("$namePrefix${m.name}"))
         .join();
   }
@@ -243,7 +251,7 @@ extension on CType {
         return "";
 
       case StructType:
-        return "calloc.free($variableName.addressOf);\n";
+        return "calloc.free(${variableName}Pointer);\n";
     }
 
     throw Exception("Not implemented for ${this.runtimeType}");
@@ -472,6 +480,8 @@ extension on FunctionType {
 
     final prints = arguments.map((a) => "\$\{${a.name}\}").join(", ");
 
+    bool structsAsPointers = false;
+    String assignReturnGlobal = "";
     String buildReturnValue = "";
     switch (testType) {
       case TestType.structArguments:
@@ -481,19 +491,24 @@ extension on FunctionType {
 
         ${arguments.addToResultStatements('${dartName}_')}
         """;
+        assignReturnGlobal = "${dartName}Result = result;";
         break;
       case TestType.structReturn:
         // Allocate a struct.
         buildReturnValue = """
-        ${returnValue.dartType} result = calloc<${returnValue.dartType}>().ref;
+        final resultPointer = calloc<${returnValue.dartType}>();
+        final result = resultPointer.ref;
 
         ${arguments.copyValueStatements("${dartName}_", "result.")}
         """;
+        assignReturnGlobal = "${dartName}ResultPointer = resultPointer;";
+        structsAsPointers = true;
         break;
       case TestType.structReturnArgument:
         buildReturnValue = """
         ${returnValue.cType} result = ${dartName}_${structReturnArgument.name};
         """;
+        assignReturnGlobal = "${dartName}Result = result;";
         break;
     }
 
@@ -542,12 +557,12 @@ extension on FunctionType {
     $globals
 
     // Result variable also global, so we can delete it after the callback.
-    ${returnValue.dartAllocateZeroStatements("${dartName}Result")}
+    ${returnValue.dartAllocateZeroStatements("${dartName}Result", structsAsPointers: structsAsPointers)}
 
     ${returnValue.dartType} ${dartName}CalculateResult() {
       $buildReturnValue
 
-      ${dartName}Result = result;
+      $assignReturnGlobal
 
       return result;
     }
