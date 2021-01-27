@@ -1316,7 +1316,8 @@ class ContextManagerImpl implements ContextManager {
 
     // maybe excluded globally
     if (_isExcluded(path) ||
-        _isContainedInDotFolder(info.folder.path, path) ||
+        _isContainedInDotFolder(info.folder.path, path,
+            exclude: {'.dart_tool'}) ||
         _isInTopLevelDocDir(info.folder.path, path)) {
       return;
     }
@@ -1430,14 +1431,17 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /// Determine whether the given [path], when interpreted relative to the
-  /// context root [root], contains a folder whose name starts with '.'.
-  bool _isContainedInDotFolder(String root, String path) {
+  /// context root [root], contains a folder whose name starts with '.' but is
+  /// not included in [exclude].
+  bool _isContainedInDotFolder(String root, String path,
+      {Set<String> exclude}) {
     var pathDir = pathContext.dirname(path);
     var rootPrefix = root + pathContext.separator;
     if (pathDir.startsWith(rootPrefix)) {
       var suffixPath = pathDir.substring(rootPrefix.length);
       for (var pathComponent in pathContext.split(suffixPath)) {
-        if (pathComponent.startsWith('.')) {
+        if (pathComponent.startsWith('.') &&
+            !(exclude?.contains(pathComponent) ?? false)) {
           return true;
         }
       }
