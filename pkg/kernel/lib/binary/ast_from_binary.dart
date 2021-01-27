@@ -314,86 +314,122 @@ class BinaryBuilder {
     final int constantTag = readByte();
     switch (constantTag) {
       case ConstantTag.NullConstant:
-        return new NullConstant();
+        return _readNullConstant();
       case ConstantTag.BoolConstant:
-        return new BoolConstant(readByte() == 1);
+        return _readBoolConstant();
       case ConstantTag.IntConstant:
-        return new IntConstant((readExpression() as IntLiteral).value);
+        return _readIntConstant();
       case ConstantTag.DoubleConstant:
-        return new DoubleConstant(readDouble());
+        return _readDoubleConstant();
       case ConstantTag.StringConstant:
-        return new StringConstant(readStringReference());
+        return _readStringConstant();
       case ConstantTag.SymbolConstant:
-        Reference libraryReference = readLibraryReference(allowNull: true);
-        return new SymbolConstant(readStringReference(), libraryReference);
+        return _readSymbolConstant();
       case ConstantTag.MapConstant:
-        final DartType keyType = readDartType();
-        final DartType valueType = readDartType();
-        final int length = readUInt30();
-        final List<ConstantMapEntry> entries =
-            new List<ConstantMapEntry>.filled(length, null, growable: true);
-        for (int i = 0; i < length; i++) {
-          final Constant key = readConstantReference();
-          final Constant value = readConstantReference();
-          entries[i] = new ConstantMapEntry(key, value);
-        }
-        return new MapConstant(keyType, valueType, entries);
+        return _readMapConstant();
       case ConstantTag.ListConstant:
-        final DartType typeArgument = readDartType();
-        final int length = readUInt30();
-        final List<Constant> entries =
-            new List<Constant>.filled(length, null, growable: true);
-        for (int i = 0; i < length; i++) {
-          entries[i] = readConstantReference();
-        }
-        return new ListConstant(typeArgument, entries);
+        return _readListConstant();
       case ConstantTag.SetConstant:
-        final DartType typeArgument = readDartType();
-        final int length = readUInt30();
-        final List<Constant> entries =
-            new List<Constant>.filled(length, null, growable: true);
-        for (int i = 0; i < length; i++) {
-          entries[i] = readConstantReference();
-        }
-        return new SetConstant(typeArgument, entries);
+        return _readSetConstant();
       case ConstantTag.InstanceConstant:
-        final Reference classReference = readClassReference();
-        final int typeArgumentCount = readUInt30();
-        final List<DartType> typeArguments =
-            new List<DartType>.filled(typeArgumentCount, null, growable: true);
-        for (int i = 0; i < typeArgumentCount; i++) {
-          typeArguments[i] = readDartType();
-        }
-        final int fieldValueCount = readUInt30();
-        final Map<Reference, Constant> fieldValues = <Reference, Constant>{};
-        for (int i = 0; i < fieldValueCount; i++) {
-          final Reference fieldRef =
-              readCanonicalNameReference().getReference();
-          final Constant constant = readConstantReference();
-          fieldValues[fieldRef] = constant;
-        }
-        return new InstanceConstant(classReference, typeArguments, fieldValues);
+        return _readInstanceConstant();
       case ConstantTag.PartialInstantiationConstant:
-        final TearOffConstant tearOffConstant =
-            readConstantReference() as TearOffConstant;
-        final int length = readUInt30();
-        final List<DartType> types = new List<DartType>.filled(length, null);
-        for (int i = 0; i < length; i++) {
-          types[i] = readDartType();
-        }
-        return new PartialInstantiationConstant(tearOffConstant, types);
+        return _readPartialInstantiationConstant();
       case ConstantTag.TearOffConstant:
-        final Reference reference = readCanonicalNameReference().getReference();
-        return new TearOffConstant.byReference(reference);
+        return _readTearOffConstant();
       case ConstantTag.TypeLiteralConstant:
-        final DartType type = readDartType();
-        return new TypeLiteralConstant(type);
+        return _readTypeLiteralConstant();
       case ConstantTag.UnevaluatedConstant:
-        final Expression expression = readExpression();
-        return new UnevaluatedConstant(expression);
+        return _readUnevaluatedConstant();
     }
 
     throw fail('unexpected constant tag: $constantTag');
+  }
+
+  Constant _readNullConstant() {
+    return new NullConstant();
+  }
+
+  Constant _readBoolConstant() {
+    return new BoolConstant(readByte() == 1);
+  }
+
+  Constant _readIntConstant() {
+    return new IntConstant((readExpression() as IntLiteral).value);
+  }
+
+  Constant _readDoubleConstant() {
+    return new DoubleConstant(readDouble());
+  }
+
+  Constant _readStringConstant() {
+    return new StringConstant(readStringReference());
+  }
+
+  Constant _readSymbolConstant() {
+    Reference libraryReference = readLibraryReference(allowNull: true);
+    return new SymbolConstant(readStringReference(), libraryReference);
+  }
+
+  Constant _readMapConstant() {
+    final DartType keyType = readDartType();
+    final DartType valueType = readDartType();
+    final int length = readUInt30();
+    final List<ConstantMapEntry> entries =
+        new List<ConstantMapEntry>.filled(length, null, growable: true);
+    for (int i = 0; i < length; i++) {
+      final Constant key = readConstantReference();
+      final Constant value = readConstantReference();
+      entries[i] = new ConstantMapEntry(key, value);
+    }
+    return new MapConstant(keyType, valueType, entries);
+  }
+
+  Constant _readListConstant() {
+    final DartType typeArgument = readDartType();
+    List<Constant> entries = _readConstantReferenceList();
+    return new ListConstant(typeArgument, entries);
+  }
+
+  Constant _readSetConstant() {
+    final DartType typeArgument = readDartType();
+    List<Constant> entries = _readConstantReferenceList();
+    return new SetConstant(typeArgument, entries);
+  }
+
+  Constant _readInstanceConstant() {
+    final Reference classReference = readClassReference();
+    final List<DartType> typeArguments = readDartTypeList();
+    final int fieldValueCount = readUInt30();
+    final Map<Reference, Constant> fieldValues = <Reference, Constant>{};
+    for (int i = 0; i < fieldValueCount; i++) {
+      final Reference fieldRef = readCanonicalNameReference().getReference();
+      final Constant constant = readConstantReference();
+      fieldValues[fieldRef] = constant;
+    }
+    return new InstanceConstant(classReference, typeArguments, fieldValues);
+  }
+
+  Constant _readPartialInstantiationConstant() {
+    final TearOffConstant tearOffConstant =
+        readConstantReference() as TearOffConstant;
+    final List<DartType> types = readDartTypeList();
+    return new PartialInstantiationConstant(tearOffConstant, types);
+  }
+
+  Constant _readTearOffConstant() {
+    final Reference reference = readCanonicalNameReference().getReference();
+    return new TearOffConstant.byReference(reference);
+  }
+
+  Constant _readTypeLiteralConstant() {
+    final DartType type = readDartType();
+    return new TypeLiteralConstant(type);
+  }
+
+  Constant _readUnevaluatedConstant() {
+    final Expression expression = readExpression();
+    return new UnevaluatedConstant(expression);
   }
 
   Constant readConstantReference() {
@@ -401,6 +437,16 @@ class BinaryBuilder {
     Constant constant = _constantTable[offset];
     assert(constant != null);
     return constant;
+  }
+
+  List<Constant> _readConstantReferenceList() {
+    final int length = readUInt30();
+    final List<Constant> list =
+        new List<Constant>.filled(length, null, growable: true);
+    for (int i = 0; i < length; i++) {
+      list[i] = readConstantReference();
+    }
+    return list;
   }
 
   Uri readUriReference() {
@@ -1566,31 +1612,55 @@ class BinaryBuilder {
     bool isSynthetic = readByte() == 1;
     switch (tag) {
       case Tag.InvalidInitializer:
-        return new InvalidInitializer();
+        return _readInvalidInitializer();
       case Tag.FieldInitializer:
-        Reference reference = readMemberReference();
-        Expression value = readExpression();
-        return new FieldInitializer.byReference(reference, value)
-          ..isSynthetic = isSynthetic;
+        return _readFieldInitializer(isSynthetic);
       case Tag.SuperInitializer:
-        int offset = readOffset();
-        Reference reference = readMemberReference();
-        Arguments arguments = readArguments();
-        return new SuperInitializer.byReference(reference, arguments)
-          ..isSynthetic = isSynthetic
-          ..fileOffset = offset;
+        return _readSuperInitializer(isSynthetic);
       case Tag.RedirectingInitializer:
-        int offset = readOffset();
-        return new RedirectingInitializer.byReference(
-            readMemberReference(), readArguments())
-          ..fileOffset = offset;
+        return _readRedirectingInitializer();
       case Tag.LocalInitializer:
-        return new LocalInitializer(readAndPushVariableDeclaration());
+        return _readLocalInitializer();
       case Tag.AssertInitializer:
-        return new AssertInitializer(readStatement());
+        return _readAssertInitializer();
       default:
         throw fail('unexpected initializer tag: $tag');
     }
+  }
+
+  Initializer _readInvalidInitializer() {
+    return new InvalidInitializer();
+  }
+
+  Initializer _readFieldInitializer(bool isSynthetic) {
+    Reference reference = readMemberReference();
+    Expression value = readExpression();
+    return new FieldInitializer.byReference(reference, value)
+      ..isSynthetic = isSynthetic;
+  }
+
+  Initializer _readSuperInitializer(bool isSynthetic) {
+    int offset = readOffset();
+    Reference reference = readMemberReference();
+    Arguments arguments = readArguments();
+    return new SuperInitializer.byReference(reference, arguments)
+      ..isSynthetic = isSynthetic
+      ..fileOffset = offset;
+  }
+
+  Initializer _readRedirectingInitializer() {
+    int offset = readOffset();
+    return new RedirectingInitializer.byReference(
+        readMemberReference(), readArguments())
+      ..fileOffset = offset;
+  }
+
+  Initializer _readLocalInitializer() {
+    return new LocalInitializer(readAndPushVariableDeclaration());
+  }
+
+  Initializer _readAssertInitializer() {
+    return new AssertInitializer(readStatement());
   }
 
   FunctionNode readFunctionNodeOption(bool lazyLoadBody, int outerEndOffset) {
@@ -1733,360 +1803,634 @@ class BinaryBuilder {
         : (tagByte & Tag.SpecializedTagMask);
     switch (tag) {
       case Tag.LoadLibrary:
-        return new LoadLibrary(readLibraryDependencyReference());
+        return _readLoadLibrary();
       case Tag.CheckLibraryIsLoaded:
-        return new CheckLibraryIsLoaded(readLibraryDependencyReference());
+        return _readCheckLibraryIsLoaded();
       case Tag.InvalidExpression:
-        int offset = readOffset();
-        return new InvalidExpression(readStringOrNullIfEmpty())
-          ..fileOffset = offset;
+        return _readInvalidExpression();
       case Tag.VariableGet:
-        int offset = readOffset();
-        readUInt30(); // offset of the variable declaration in the binary.
-        return new VariableGet(readVariableReference(), readDartTypeOption())
-          ..fileOffset = offset;
+        return _readVariableGet();
       case Tag.SpecializedVariableGet:
-        int index = tagByte & Tag.SpecializedPayloadMask;
-        int offset = readOffset();
-        readUInt30(); // offset of the variable declaration in the binary.
-        return new VariableGet(variableStack[index])..fileOffset = offset;
+        return _readSpecializedVariableGet(tagByte);
       case Tag.VariableSet:
-        int offset = readOffset();
-        readUInt30(); // offset of the variable declaration in the binary.
-        return new VariableSet(readVariableReference(), readExpression())
-          ..fileOffset = offset;
+        return _readVariableSet();
       case Tag.SpecializedVariableSet:
-        int index = tagByte & Tag.SpecializedPayloadMask;
-        int offset = readOffset();
-        readUInt30(); // offset of the variable declaration in the binary.
-        return new VariableSet(variableStack[index], readExpression())
-          ..fileOffset = offset;
+        return _readSpecializedVariableSet(tagByte);
       case Tag.PropertyGet:
-        int offset = readOffset();
-        return new PropertyGet.byReference(readExpression(), readName(),
-            readInstanceMemberReference(allowNull: true))
-          ..fileOffset = offset;
+        return _readPropertyGet();
       case Tag.InstanceGet:
-        InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
-        int offset = readOffset();
-        return new InstanceGet.byReference(kind, readExpression(), readName(),
-            resultType: readDartType(),
-            interfaceTargetReference: readInstanceMemberReference())
-          ..fileOffset = offset;
+        return _readInstanceGet();
       case Tag.InstanceTearOff:
-        InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
-        int offset = readOffset();
-        return new InstanceTearOff.byReference(
-            kind, readExpression(), readName(),
-            resultType: readDartType(),
-            interfaceTargetReference: readInstanceMemberReference())
-          ..fileOffset = offset;
+        return _readInstanceTearOff();
       case Tag.DynamicGet:
-        DynamicAccessKind kind = DynamicAccessKind.values[readByte()];
-        int offset = readOffset();
-        return new DynamicGet(kind, readExpression(), readName())
-          ..fileOffset = offset;
+        return _readDynamicGet();
       case Tag.PropertySet:
-        int offset = readOffset();
-        return new PropertySet.byReference(readExpression(), readName(),
-            readExpression(), readInstanceMemberReference(allowNull: true))
-          ..fileOffset = offset;
+        return _readPropertySet();
       case Tag.InstanceSet:
-        InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
-        int offset = readOffset();
-        return new InstanceSet.byReference(
-            kind, readExpression(), readName(), readExpression(),
-            interfaceTargetReference: readInstanceMemberReference())
-          ..fileOffset = offset;
+        return _readInstanceSet();
       case Tag.DynamicSet:
-        DynamicAccessKind kind = DynamicAccessKind.values[readByte()];
-        int offset = readOffset();
-        return new DynamicSet(
-            kind, readExpression(), readName(), readExpression())
-          ..fileOffset = offset;
+        return _readDynamicSet();
       case Tag.SuperPropertyGet:
-        int offset = readOffset();
-        addTransformerFlag(TransformerFlag.superCalls);
-        return new SuperPropertyGet.byReference(
-            readName(), readInstanceMemberReference(allowNull: true))
-          ..fileOffset = offset;
+        return _readSuperPropertyGet();
       case Tag.SuperPropertySet:
-        int offset = readOffset();
-        addTransformerFlag(TransformerFlag.superCalls);
-        return new SuperPropertySet.byReference(readName(), readExpression(),
-            readInstanceMemberReference(allowNull: true))
-          ..fileOffset = offset;
+        return _readSuperPropertySet();
       case Tag.StaticGet:
-        int offset = readOffset();
-        return new StaticGet.byReference(readMemberReference())
-          ..fileOffset = offset;
+        return _readStaticGet();
       case Tag.StaticTearOff:
-        int offset = readOffset();
-        return new StaticTearOff.byReference(readMemberReference())
-          ..fileOffset = offset;
+        return _readStaticTearOff();
       case Tag.StaticSet:
-        int offset = readOffset();
-        return new StaticSet.byReference(
-            readMemberReference(), readExpression())
-          ..fileOffset = offset;
+        return _readStaticSet();
       case Tag.MethodInvocation:
-        int flags = readByte();
-        int offset = readOffset();
-        return new MethodInvocation.byReference(readExpression(), readName(),
-            readArguments(), readInstanceMemberReference(allowNull: true))
-          ..fileOffset = offset
-          ..flags = flags;
+        return _readMethodInvocation();
       case Tag.InstanceInvocation:
-        InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
-        int flags = readByte();
-        int offset = readOffset();
-        return new InstanceInvocation.byReference(
-            kind, readExpression(), readName(), readArguments(),
-            functionType: readDartType(),
-            interfaceTargetReference: readInstanceMemberReference())
-          ..fileOffset = offset
-          ..flags = flags;
+        return _readInstanceInvocation();
       case Tag.DynamicInvocation:
-        DynamicAccessKind kind = DynamicAccessKind.values[readByte()];
-        int offset = readOffset();
-        return new DynamicInvocation(
-            kind, readExpression(), readName(), readArguments())
-          ..fileOffset = offset;
+        return _readDynamicInvocation();
       case Tag.FunctionInvocation:
-        FunctionAccessKind kind = FunctionAccessKind.values[readByte()];
-        int offset = readOffset();
-        Expression receiver = readExpression();
-        Arguments arguments = readArguments();
-        DartType functionType = readDartType();
-        // `const DynamicType()` is used to encode a missing function type.
-        assert(functionType is FunctionType || functionType is DynamicType,
-            "Unexpected function type $functionType for FunctionInvocation");
-        return new FunctionInvocation(kind, receiver, arguments,
-            functionType: functionType is FunctionType ? functionType : null)
-          ..fileOffset = offset;
+        return _readFunctionInvocation();
       case Tag.FunctionTearOff:
-        int offset = readOffset();
-        return new FunctionTearOff(readExpression())..fileOffset = offset;
+        return _readFunctionTearOff();
       case Tag.LocalFunctionInvocation:
-        int offset = readOffset();
-        readUInt30(); // offset of the variable declaration in the binary.
-        return new LocalFunctionInvocation(
-            readVariableReference(), readArguments(),
-            functionType: readDartType())
-          ..fileOffset = offset;
+        return _readLocalFunctionInvocation();
       case Tag.EqualsNull:
-        int offset = readOffset();
-        return new EqualsNull(readExpression(), isNot: readByte() == 1)
-          ..fileOffset = offset;
+        return _readEqualsNull();
       case Tag.EqualsCall:
-        int offset = readOffset();
-        return new EqualsCall.byReference(readExpression(), readExpression(),
-            isNot: readByte() == 1,
-            functionType: readDartType(),
-            interfaceTargetReference: readInstanceMemberReference())
-          ..fileOffset = offset;
+        return _readEqualsCall();
       case Tag.SuperMethodInvocation:
-        int offset = readOffset();
-        addTransformerFlag(TransformerFlag.superCalls);
-        return new SuperMethodInvocation.byReference(readName(),
-            readArguments(), readInstanceMemberReference(allowNull: true))
-          ..fileOffset = offset;
+        return _readSuperMethodInvocation();
       case Tag.StaticInvocation:
-        int offset = readOffset();
-        return new StaticInvocation.byReference(
-            readMemberReference(), readArguments(),
-            isConst: false)
-          ..fileOffset = offset;
+        return _readStaticInvocation();
       case Tag.ConstStaticInvocation:
-        int offset = readOffset();
-        return new StaticInvocation.byReference(
-            readMemberReference(), readArguments(),
-            isConst: true)
-          ..fileOffset = offset;
+        return _readConstStaticInvocation();
       case Tag.ConstructorInvocation:
-        int offset = readOffset();
-        return new ConstructorInvocation.byReference(
-            readMemberReference(), readArguments(),
-            isConst: false)
-          ..fileOffset = offset;
+        return _readConstructorInvocation();
       case Tag.ConstConstructorInvocation:
-        int offset = readOffset();
-        return new ConstructorInvocation.byReference(
-            readMemberReference(), readArguments(),
-            isConst: true)
-          ..fileOffset = offset;
+        return _readConstConstructorInvocation();
       case Tag.Not:
-        return new Not(readExpression());
+        return _readNot();
       case Tag.NullCheck:
-        int offset = readOffset();
-        return new NullCheck(readExpression())..fileOffset = offset;
+        return _readNullCheck();
       case Tag.LogicalExpression:
-        return new LogicalExpression(readExpression(),
-            logicalOperatorToEnum(readByte()), readExpression());
+        return _readLogicalExpression();
       case Tag.ConditionalExpression:
-        return new ConditionalExpression(readExpression(), readExpression(),
-            readExpression(), readDartTypeOption());
+        return _readConditionalExpression();
       case Tag.StringConcatenation:
-        int offset = readOffset();
-        return new StringConcatenation(readExpressionList())
-          ..fileOffset = offset;
+        return _readStringConcatenation();
       case Tag.ListConcatenation:
-        int offset = readOffset();
-        DartType typeArgument = readDartType();
-        return new ListConcatenation(readExpressionList(),
-            typeArgument: typeArgument)
-          ..fileOffset = offset;
+        return _readListConcatenation();
       case Tag.SetConcatenation:
-        int offset = readOffset();
-        DartType typeArgument = readDartType();
-        return new SetConcatenation(readExpressionList(),
-            typeArgument: typeArgument)
-          ..fileOffset = offset;
+        return _readSetConcatenation();
       case Tag.MapConcatenation:
-        int offset = readOffset();
-        DartType keyType = readDartType();
-        DartType valueType = readDartType();
-        return new MapConcatenation(readExpressionList(),
-            keyType: keyType, valueType: valueType)
-          ..fileOffset = offset;
+        return _readMapConcatenation();
       case Tag.InstanceCreation:
-        int offset = readOffset();
-        Reference classReference = readClassReference();
-        List<DartType> typeArguments = readDartTypeList();
-        int fieldValueCount = readUInt30();
-        Map<Reference, Expression> fieldValues = <Reference, Expression>{};
-        for (int i = 0; i < fieldValueCount; i++) {
-          final Reference fieldRef =
-              readCanonicalNameReference().getReference();
-          final Expression value = readExpression();
-          fieldValues[fieldRef] = value;
-        }
-        int assertCount = readUInt30();
-        List<AssertStatement> asserts =
-            new List<AssertStatement>.filled(assertCount, null);
-        for (int i = 0; i < assertCount; i++) {
-          asserts[i] = readStatement();
-        }
-        List<Expression> unusedArguments = readExpressionList();
-        return new InstanceCreation(classReference, typeArguments, fieldValues,
-            asserts, unusedArguments)
-          ..fileOffset = offset;
+        return _readInstanceCreation();
       case Tag.FileUriExpression:
-        Uri fileUri = readUriReference();
-        int offset = readOffset();
-        return new FileUriExpression(readExpression(), fileUri)
-          ..fileOffset = offset;
+        return _readFileUriExpression();
       case Tag.IsExpression:
-        int offset = readOffset();
-        int flags = readByte();
-        return new IsExpression(readExpression(), readDartType())
-          ..fileOffset = offset
-          ..flags = flags;
+        return _readIsExpression();
       case Tag.AsExpression:
-        int offset = readOffset();
-        int flags = readByte();
-        return new AsExpression(readExpression(), readDartType())
-          ..fileOffset = offset
-          ..flags = flags;
+        return _readAsExpression();
       case Tag.StringLiteral:
-        return new StringLiteral(readStringReference());
+        return _readStringLiteral();
       case Tag.SpecializedIntLiteral:
-        int biasedValue = tagByte & Tag.SpecializedPayloadMask;
-        return new IntLiteral(biasedValue - Tag.SpecializedIntLiteralBias);
+        return _readSpecializedIntLiteral(tagByte);
       case Tag.PositiveIntLiteral:
-        return new IntLiteral(readUInt30());
+        return _readPositiveIntLiteral();
       case Tag.NegativeIntLiteral:
-        return new IntLiteral(-readUInt30());
+        return _readNegativeIntLiteral();
       case Tag.BigIntLiteral:
-        return new IntLiteral(int.parse(readStringReference()));
+        return _readBigIntLiteral();
       case Tag.DoubleLiteral:
-        return new DoubleLiteral(readDouble());
+        return _readDoubleLiteral();
       case Tag.TrueLiteral:
-        return new BoolLiteral(true);
+        return _readTrueLiteral();
       case Tag.FalseLiteral:
-        return new BoolLiteral(false);
+        return _readFalseLiteral();
       case Tag.NullLiteral:
-        return new NullLiteral();
+        return _readNullLiteral();
       case Tag.SymbolLiteral:
-        return new SymbolLiteral(readStringReference());
+        return _readSymbolLiteral();
       case Tag.TypeLiteral:
-        return new TypeLiteral(readDartType());
+        return _readTypeLiteral();
       case Tag.ThisExpression:
-        return new ThisExpression();
+        return _readThisLiteral();
       case Tag.Rethrow:
-        int offset = readOffset();
-        return new Rethrow()..fileOffset = offset;
+        return _readRethrow();
       case Tag.Throw:
-        int offset = readOffset();
-        return new Throw(readExpression())..fileOffset = offset;
+        return _readThrow();
       case Tag.ListLiteral:
-        int offset = readOffset();
-        DartType typeArgument = readDartType();
-        return new ListLiteral(readExpressionList(),
-            typeArgument: typeArgument, isConst: false)
-          ..fileOffset = offset;
+        return _readListLiteral();
       case Tag.ConstListLiteral:
-        int offset = readOffset();
-        DartType typeArgument = readDartType();
-        return new ListLiteral(readExpressionList(),
-            typeArgument: typeArgument, isConst: true)
-          ..fileOffset = offset;
+        return _readConstListLiteral();
       case Tag.SetLiteral:
-        int offset = readOffset();
-        DartType typeArgument = readDartType();
-        return new SetLiteral(readExpressionList(),
-            typeArgument: typeArgument, isConst: false)
-          ..fileOffset = offset;
+        return _readSetLiteral();
       case Tag.ConstSetLiteral:
-        int offset = readOffset();
-        DartType typeArgument = readDartType();
-        return new SetLiteral(readExpressionList(),
-            typeArgument: typeArgument, isConst: true)
-          ..fileOffset = offset;
+        return _readConstSetLiteral();
       case Tag.MapLiteral:
-        int offset = readOffset();
-        DartType keyType = readDartType();
-        DartType valueType = readDartType();
-        return new MapLiteral(readMapEntryList(),
-            keyType: keyType, valueType: valueType, isConst: false)
-          ..fileOffset = offset;
+        return _readMapLiteral();
       case Tag.ConstMapLiteral:
-        int offset = readOffset();
-        DartType keyType = readDartType();
-        DartType valueType = readDartType();
-        return new MapLiteral(readMapEntryList(),
-            keyType: keyType, valueType: valueType, isConst: true)
-          ..fileOffset = offset;
+        return _readConstMapLiteral();
       case Tag.AwaitExpression:
-        return new AwaitExpression(readExpression());
+        return _readAwaitExpression();
       case Tag.FunctionExpression:
-        int offset = readOffset();
-        return new FunctionExpression(readFunctionNode())..fileOffset = offset;
+        return _readFunctionExpression();
       case Tag.Let:
-        VariableDeclaration variable = readVariableDeclaration();
-        int stackHeight = variableStack.length;
-        pushVariableDeclaration(variable);
-        Expression body = readExpression();
-        variableStack.length = stackHeight;
-        return new Let(variable, body);
+        return _readLet();
       case Tag.BlockExpression:
-        int stackHeight = variableStack.length;
-        List<Statement> statements = readStatementList();
-        Expression value = readExpression();
-        variableStack.length = stackHeight;
-        return new BlockExpression(new Block(statements), value);
+        return _readBlockExpression();
       case Tag.Instantiation:
-        Expression expression = readExpression();
-        List<DartType> typeArguments = readDartTypeList();
-        return new Instantiation(expression, typeArguments);
+        return _readInstantiation();
       case Tag.ConstantExpression:
-        int offset = readOffset();
-        DartType type = readDartType();
-        Constant constant = readConstantReference();
-        return new ConstantExpression(constant, type)..fileOffset = offset;
+        return _readConstantExpression();
       default:
         throw fail('unexpected expression tag: $tag');
     }
+  }
+
+  Expression _readLoadLibrary() {
+    return new LoadLibrary(readLibraryDependencyReference());
+  }
+
+  Expression _readCheckLibraryIsLoaded() {
+    return new CheckLibraryIsLoaded(readLibraryDependencyReference());
+  }
+
+  Expression _readInvalidExpression() {
+    int offset = readOffset();
+    return new InvalidExpression(readStringOrNullIfEmpty())
+      ..fileOffset = offset;
+  }
+
+  Expression _readVariableGet() {
+    int offset = readOffset();
+    readUInt30(); // offset of the variable declaration in the binary.
+    return new VariableGet(readVariableReference(), readDartTypeOption())
+      ..fileOffset = offset;
+  }
+
+  Expression _readSpecializedVariableGet(int tagByte) {
+    int index = tagByte & Tag.SpecializedPayloadMask;
+    int offset = readOffset();
+    readUInt30(); // offset of the variable declaration in the binary.
+    return new VariableGet(variableStack[index])..fileOffset = offset;
+  }
+
+  Expression _readVariableSet() {
+    int offset = readOffset();
+    readUInt30(); // offset of the variable declaration in the binary.
+    return new VariableSet(readVariableReference(), readExpression())
+      ..fileOffset = offset;
+  }
+
+  Expression _readSpecializedVariableSet(int tagByte) {
+    int index = tagByte & Tag.SpecializedPayloadMask;
+    int offset = readOffset();
+    readUInt30(); // offset of the variable declaration in the binary.
+    return new VariableSet(variableStack[index], readExpression())
+      ..fileOffset = offset;
+  }
+
+  Expression _readPropertyGet() {
+    int offset = readOffset();
+    return new PropertyGet.byReference(readExpression(), readName(),
+        readInstanceMemberReference(allowNull: true))
+      ..fileOffset = offset;
+  }
+
+  Expression _readInstanceGet() {
+    InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
+    int offset = readOffset();
+    return new InstanceGet.byReference(kind, readExpression(), readName(),
+        resultType: readDartType(),
+        interfaceTargetReference: readInstanceMemberReference())
+      ..fileOffset = offset;
+  }
+
+  Expression _readInstanceTearOff() {
+    InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
+    int offset = readOffset();
+    return new InstanceTearOff.byReference(kind, readExpression(), readName(),
+        resultType: readDartType(),
+        interfaceTargetReference: readInstanceMemberReference())
+      ..fileOffset = offset;
+  }
+
+  Expression _readDynamicGet() {
+    DynamicAccessKind kind = DynamicAccessKind.values[readByte()];
+    int offset = readOffset();
+    return new DynamicGet(kind, readExpression(), readName())
+      ..fileOffset = offset;
+  }
+
+  Expression _readPropertySet() {
+    int offset = readOffset();
+    return new PropertySet.byReference(readExpression(), readName(),
+        readExpression(), readInstanceMemberReference(allowNull: true))
+      ..fileOffset = offset;
+  }
+
+  Expression _readInstanceSet() {
+    InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
+    int offset = readOffset();
+    return new InstanceSet.byReference(
+        kind, readExpression(), readName(), readExpression(),
+        interfaceTargetReference: readInstanceMemberReference())
+      ..fileOffset = offset;
+  }
+
+  Expression _readDynamicSet() {
+    DynamicAccessKind kind = DynamicAccessKind.values[readByte()];
+    int offset = readOffset();
+    return new DynamicSet(kind, readExpression(), readName(), readExpression())
+      ..fileOffset = offset;
+  }
+
+  Expression _readSuperPropertyGet() {
+    int offset = readOffset();
+    addTransformerFlag(TransformerFlag.superCalls);
+    return new SuperPropertyGet.byReference(
+        readName(), readInstanceMemberReference(allowNull: true))
+      ..fileOffset = offset;
+  }
+
+  Expression _readSuperPropertySet() {
+    int offset = readOffset();
+    addTransformerFlag(TransformerFlag.superCalls);
+    return new SuperPropertySet.byReference(readName(), readExpression(),
+        readInstanceMemberReference(allowNull: true))
+      ..fileOffset = offset;
+  }
+
+  Expression _readStaticGet() {
+    int offset = readOffset();
+    return new StaticGet.byReference(readMemberReference())
+      ..fileOffset = offset;
+  }
+
+  Expression _readStaticTearOff() {
+    int offset = readOffset();
+    return new StaticTearOff.byReference(readMemberReference())
+      ..fileOffset = offset;
+  }
+
+  Expression _readStaticSet() {
+    int offset = readOffset();
+    return new StaticSet.byReference(readMemberReference(), readExpression())
+      ..fileOffset = offset;
+  }
+
+  Expression _readMethodInvocation() {
+    int flags = readByte();
+    int offset = readOffset();
+    return new MethodInvocation.byReference(readExpression(), readName(),
+        readArguments(), readInstanceMemberReference(allowNull: true))
+      ..fileOffset = offset
+      ..flags = flags;
+  }
+
+  Expression _readInstanceInvocation() {
+    InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
+    int flags = readByte();
+    int offset = readOffset();
+    return new InstanceInvocation.byReference(
+        kind, readExpression(), readName(), readArguments(),
+        functionType: readDartType(),
+        interfaceTargetReference: readInstanceMemberReference())
+      ..fileOffset = offset
+      ..flags = flags;
+  }
+
+  Expression _readDynamicInvocation() {
+    DynamicAccessKind kind = DynamicAccessKind.values[readByte()];
+    int offset = readOffset();
+    return new DynamicInvocation(
+        kind, readExpression(), readName(), readArguments())
+      ..fileOffset = offset;
+  }
+
+  Expression _readFunctionInvocation() {
+    FunctionAccessKind kind = FunctionAccessKind.values[readByte()];
+    int offset = readOffset();
+    Expression receiver = readExpression();
+    Arguments arguments = readArguments();
+    DartType functionType = readDartType();
+    // `const DynamicType()` is used to encode a missing function type.
+    assert(functionType is FunctionType || functionType is DynamicType,
+        "Unexpected function type $functionType for FunctionInvocation");
+    return new FunctionInvocation(kind, receiver, arguments,
+        functionType: functionType is FunctionType ? functionType : null)
+      ..fileOffset = offset;
+  }
+
+  Expression _readFunctionTearOff() {
+    int offset = readOffset();
+    return new FunctionTearOff(readExpression())..fileOffset = offset;
+  }
+
+  Expression _readLocalFunctionInvocation() {
+    int offset = readOffset();
+    readUInt30(); // offset of the variable declaration in the binary.
+    return new LocalFunctionInvocation(readVariableReference(), readArguments(),
+        functionType: readDartType())
+      ..fileOffset = offset;
+  }
+
+  Expression _readEqualsNull() {
+    int offset = readOffset();
+    return new EqualsNull(readExpression(), isNot: readByte() == 1)
+      ..fileOffset = offset;
+  }
+
+  Expression _readEqualsCall() {
+    int offset = readOffset();
+    return new EqualsCall.byReference(readExpression(), readExpression(),
+        isNot: readByte() == 1,
+        functionType: readDartType(),
+        interfaceTargetReference: readInstanceMemberReference())
+      ..fileOffset = offset;
+  }
+
+  Expression _readSuperMethodInvocation() {
+    int offset = readOffset();
+    addTransformerFlag(TransformerFlag.superCalls);
+    return new SuperMethodInvocation.byReference(readName(), readArguments(),
+        readInstanceMemberReference(allowNull: true))
+      ..fileOffset = offset;
+  }
+
+  Expression _readStaticInvocation() {
+    int offset = readOffset();
+    return new StaticInvocation.byReference(
+        readMemberReference(), readArguments(),
+        isConst: false)
+      ..fileOffset = offset;
+  }
+
+  Expression _readConstStaticInvocation() {
+    int offset = readOffset();
+    return new StaticInvocation.byReference(
+        readMemberReference(), readArguments(),
+        isConst: true)
+      ..fileOffset = offset;
+  }
+
+  Expression _readConstructorInvocation() {
+    int offset = readOffset();
+    return new ConstructorInvocation.byReference(
+        readMemberReference(), readArguments(),
+        isConst: false)
+      ..fileOffset = offset;
+  }
+
+  Expression _readConstConstructorInvocation() {
+    int offset = readOffset();
+    return new ConstructorInvocation.byReference(
+        readMemberReference(), readArguments(),
+        isConst: true)
+      ..fileOffset = offset;
+  }
+
+  Expression _readNot() {
+    return new Not(readExpression());
+  }
+
+  Expression _readNullCheck() {
+    int offset = readOffset();
+    return new NullCheck(readExpression())..fileOffset = offset;
+  }
+
+  Expression _readLogicalExpression() {
+    return new LogicalExpression(
+        readExpression(), logicalOperatorToEnum(readByte()), readExpression());
+  }
+
+  Expression _readConditionalExpression() {
+    return new ConditionalExpression(readExpression(), readExpression(),
+        readExpression(), readDartTypeOption());
+  }
+
+  Expression _readStringConcatenation() {
+    int offset = readOffset();
+    return new StringConcatenation(readExpressionList())..fileOffset = offset;
+  }
+
+  Expression _readListConcatenation() {
+    int offset = readOffset();
+    DartType typeArgument = readDartType();
+    return new ListConcatenation(readExpressionList(),
+        typeArgument: typeArgument)
+      ..fileOffset = offset;
+  }
+
+  Expression _readSetConcatenation() {
+    int offset = readOffset();
+    DartType typeArgument = readDartType();
+    return new SetConcatenation(readExpressionList(),
+        typeArgument: typeArgument)
+      ..fileOffset = offset;
+  }
+
+  Expression _readMapConcatenation() {
+    int offset = readOffset();
+    DartType keyType = readDartType();
+    DartType valueType = readDartType();
+    return new MapConcatenation(readExpressionList(),
+        keyType: keyType, valueType: valueType)
+      ..fileOffset = offset;
+  }
+
+  Expression _readInstanceCreation() {
+    int offset = readOffset();
+    Reference classReference = readClassReference();
+    List<DartType> typeArguments = readDartTypeList();
+    int fieldValueCount = readUInt30();
+    Map<Reference, Expression> fieldValues = <Reference, Expression>{};
+    for (int i = 0; i < fieldValueCount; i++) {
+      final Reference fieldRef = readCanonicalNameReference().getReference();
+      final Expression value = readExpression();
+      fieldValues[fieldRef] = value;
+    }
+    int assertCount = readUInt30();
+    List<AssertStatement> asserts =
+        new List<AssertStatement>.filled(assertCount, null);
+    for (int i = 0; i < assertCount; i++) {
+      asserts[i] = readStatement();
+    }
+    List<Expression> unusedArguments = readExpressionList();
+    return new InstanceCreation(
+        classReference, typeArguments, fieldValues, asserts, unusedArguments)
+      ..fileOffset = offset;
+  }
+
+  Expression _readFileUriExpression() {
+    Uri fileUri = readUriReference();
+    int offset = readOffset();
+    return new FileUriExpression(readExpression(), fileUri)
+      ..fileOffset = offset;
+  }
+
+  Expression _readIsExpression() {
+    int offset = readOffset();
+    int flags = readByte();
+    return new IsExpression(readExpression(), readDartType())
+      ..fileOffset = offset
+      ..flags = flags;
+  }
+
+  Expression _readAsExpression() {
+    int offset = readOffset();
+    int flags = readByte();
+    return new AsExpression(readExpression(), readDartType())
+      ..fileOffset = offset
+      ..flags = flags;
+  }
+
+  Expression _readStringLiteral() {
+    return new StringLiteral(readStringReference());
+  }
+
+  Expression _readSpecializedIntLiteral(int tagByte) {
+    int biasedValue = tagByte & Tag.SpecializedPayloadMask;
+    return new IntLiteral(biasedValue - Tag.SpecializedIntLiteralBias);
+  }
+
+  Expression _readPositiveIntLiteral() {
+    return new IntLiteral(readUInt30());
+  }
+
+  Expression _readNegativeIntLiteral() {
+    return new IntLiteral(-readUInt30());
+  }
+
+  Expression _readBigIntLiteral() {
+    return new IntLiteral(int.parse(readStringReference()));
+  }
+
+  Expression _readDoubleLiteral() {
+    return new DoubleLiteral(readDouble());
+  }
+
+  Expression _readTrueLiteral() {
+    return new BoolLiteral(true);
+  }
+
+  Expression _readFalseLiteral() {
+    return new BoolLiteral(false);
+  }
+
+  Expression _readNullLiteral() {
+    return new NullLiteral();
+  }
+
+  Expression _readSymbolLiteral() {
+    return new SymbolLiteral(readStringReference());
+  }
+
+  Expression _readTypeLiteral() {
+    return new TypeLiteral(readDartType());
+  }
+
+  Expression _readThisLiteral() {
+    return new ThisExpression();
+  }
+
+  Expression _readRethrow() {
+    int offset = readOffset();
+    return new Rethrow()..fileOffset = offset;
+  }
+
+  Expression _readThrow() {
+    int offset = readOffset();
+    return new Throw(readExpression())..fileOffset = offset;
+  }
+
+  Expression _readListLiteral() {
+    int offset = readOffset();
+    DartType typeArgument = readDartType();
+    return new ListLiteral(readExpressionList(),
+        typeArgument: typeArgument, isConst: false)
+      ..fileOffset = offset;
+  }
+
+  Expression _readConstListLiteral() {
+    int offset = readOffset();
+    DartType typeArgument = readDartType();
+    return new ListLiteral(readExpressionList(),
+        typeArgument: typeArgument, isConst: true)
+      ..fileOffset = offset;
+  }
+
+  Expression _readSetLiteral() {
+    int offset = readOffset();
+    DartType typeArgument = readDartType();
+    return new SetLiteral(readExpressionList(),
+        typeArgument: typeArgument, isConst: false)
+      ..fileOffset = offset;
+  }
+
+  Expression _readConstSetLiteral() {
+    int offset = readOffset();
+    DartType typeArgument = readDartType();
+    return new SetLiteral(readExpressionList(),
+        typeArgument: typeArgument, isConst: true)
+      ..fileOffset = offset;
+  }
+
+  Expression _readMapLiteral() {
+    int offset = readOffset();
+    DartType keyType = readDartType();
+    DartType valueType = readDartType();
+    return new MapLiteral(readMapEntryList(),
+        keyType: keyType, valueType: valueType, isConst: false)
+      ..fileOffset = offset;
+  }
+
+  Expression _readConstMapLiteral() {
+    int offset = readOffset();
+    DartType keyType = readDartType();
+    DartType valueType = readDartType();
+    return new MapLiteral(readMapEntryList(),
+        keyType: keyType, valueType: valueType, isConst: true)
+      ..fileOffset = offset;
+  }
+
+  Expression _readAwaitExpression() {
+    return new AwaitExpression(readExpression());
+  }
+
+  Expression _readFunctionExpression() {
+    int offset = readOffset();
+    return new FunctionExpression(readFunctionNode())..fileOffset = offset;
+  }
+
+  Expression _readLet() {
+    VariableDeclaration variable = readVariableDeclaration();
+    int stackHeight = variableStack.length;
+    pushVariableDeclaration(variable);
+    Expression body = readExpression();
+    variableStack.length = stackHeight;
+    return new Let(variable, body);
+  }
+
+  Expression _readBlockExpression() {
+    int stackHeight = variableStack.length;
+    List<Statement> statements = readStatementList();
+    Expression value = readExpression();
+    variableStack.length = stackHeight;
+    return new BlockExpression(new Block(statements), value);
+  }
+
+  Expression _readInstantiation() {
+    Expression expression = readExpression();
+    List<DartType> typeArguments = readDartTypeList();
+    return new Instantiation(expression, typeArguments);
+  }
+
+  Expression _readConstantExpression() {
+    int offset = readOffset();
+    DartType type = readDartType();
+    Constant constant = readConstantReference();
+    return new ConstantExpression(constant, type)..fileOffset = offset;
   }
 
   List<MapEntry> readMapEntryList() {
@@ -2130,116 +2474,187 @@ class BinaryBuilder {
     int tag = readByte();
     switch (tag) {
       case Tag.ExpressionStatement:
-        return new ExpressionStatement(readExpression());
+        return _readExpressionStatement();
       case Tag.Block:
-        return readBlock();
+        return _readBlock();
       case Tag.AssertBlock:
-        return readAssertBlock();
+        return _readAssertBlock();
       case Tag.EmptyStatement:
-        return new EmptyStatement();
+        return _readEmptyStatement();
       case Tag.AssertStatement:
-        return new AssertStatement(readExpression(),
-            conditionStartOffset: readOffset(),
-            conditionEndOffset: readOffset(),
-            message: readExpressionOption());
+        return _readAssertStatement();
       case Tag.LabeledStatement:
-        LabeledStatement label = new LabeledStatement(null);
-        labelStack.add(label);
-        label.body = readStatement()..parent = label;
-        labelStack.removeLast();
-        return label;
+        return _readLabeledStatement();
       case Tag.BreakStatement:
-        int offset = readOffset();
-        int index = readUInt30();
-        return new BreakStatement(labelStack[labelStackBase + index])
-          ..fileOffset = offset;
+        return _readBreakStatement();
       case Tag.WhileStatement:
-        int offset = readOffset();
-        return new WhileStatement(readExpression(), readStatement())
-          ..fileOffset = offset;
+        return _readWhileStatement();
       case Tag.DoStatement:
-        int offset = readOffset();
-        return new DoStatement(readStatement(), readExpression())
-          ..fileOffset = offset;
+        return _readDoStatement();
       case Tag.ForStatement:
-        int variableStackHeight = variableStack.length;
-        int offset = readOffset();
-        List<VariableDeclaration> variables =
-            readAndPushVariableDeclarationList();
-        Expression condition = readExpressionOption();
-        List<Expression> updates = readExpressionList();
-        Statement body = readStatement();
-        variableStack.length = variableStackHeight;
-        return new ForStatement(variables, condition, updates, body)
-          ..fileOffset = offset;
+        return _readForStatement();
       case Tag.ForInStatement:
       case Tag.AsyncForInStatement:
-        bool isAsync = tag == Tag.AsyncForInStatement;
-        int variableStackHeight = variableStack.length;
-        int offset = readOffset();
-        int bodyOffset = readOffset();
-        VariableDeclaration variable = readAndPushVariableDeclaration();
-        Expression iterable = readExpression();
-        Statement body = readStatement();
-        variableStack.length = variableStackHeight;
-        return new ForInStatement(variable, iterable, body, isAsync: isAsync)
-          ..fileOffset = offset
-          ..bodyOffset = bodyOffset;
+        return _readForInStatement(tag);
       case Tag.SwitchStatement:
-        int offset = readOffset();
-        Expression expression = readExpression();
-        int count = readUInt30();
-        List<SwitchCase> cases =
-            new List<SwitchCase>.filled(count, null, growable: true);
-        for (int i = 0; i < count; ++i) {
-          cases[i] = new SwitchCase.empty();
-        }
-        switchCaseStack.addAll(cases);
-        for (int i = 0; i < cases.length; ++i) {
-          readSwitchCaseInto(cases[i]);
-        }
-        switchCaseStack.length -= count;
-        return new SwitchStatement(expression, cases)..fileOffset = offset;
+        return _readSwitchStatement();
       case Tag.ContinueSwitchStatement:
-        int offset = readOffset();
-        int index = readUInt30();
-        return new ContinueSwitchStatement(
-            switchCaseStack[switchCaseStackBase + index])
-          ..fileOffset = offset;
+        return _readContinueSwitchStatement();
       case Tag.IfStatement:
-        int offset = readOffset();
-        return new IfStatement(
-            readExpression(), readStatement(), readStatementOrNullIfEmpty())
-          ..fileOffset = offset;
+        return _readIfStatement();
       case Tag.ReturnStatement:
-        int offset = readOffset();
-        return new ReturnStatement(readExpressionOption())..fileOffset = offset;
+        return _readReturnStatement();
       case Tag.TryCatch:
-        Statement body = readStatement();
-        int flags = readByte();
-        return new TryCatch(body, readCatchList(), isSynthetic: flags & 2 == 2);
+        return _readTryCatch();
       case Tag.TryFinally:
-        return new TryFinally(readStatement(), readStatement());
+        return _readTryFinally();
       case Tag.YieldStatement:
-        int offset = readOffset();
-        int flags = readByte();
-        return new YieldStatement(readExpression(),
-            isYieldStar: flags & YieldStatement.FlagYieldStar != 0,
-            isNative: flags & YieldStatement.FlagNative != 0)
-          ..fileOffset = offset;
+        return _readYieldStatement();
       case Tag.VariableDeclaration:
-        VariableDeclaration variable = readVariableDeclaration();
-        variableStack.add(variable); // Will be popped by the enclosing scope.
-        return variable;
+        return _readVariableDeclaration();
       case Tag.FunctionDeclaration:
-        int offset = readOffset();
-        VariableDeclaration variable = readVariableDeclaration();
-        variableStack.add(variable); // Will be popped by the enclosing scope.
-        FunctionNode function = readFunctionNode();
-        return new FunctionDeclaration(variable, function)..fileOffset = offset;
+        return _readFunctionDeclaration();
       default:
         throw fail('unexpected statement tag: $tag');
     }
+  }
+
+  Statement _readExpressionStatement() {
+    return new ExpressionStatement(readExpression());
+  }
+
+  Statement _readEmptyStatement() {
+    return new EmptyStatement();
+  }
+
+  Statement _readAssertStatement() {
+    return new AssertStatement(readExpression(),
+        conditionStartOffset: readOffset(),
+        conditionEndOffset: readOffset(),
+        message: readExpressionOption());
+  }
+
+  Statement _readLabeledStatement() {
+    LabeledStatement label = new LabeledStatement(null);
+    labelStack.add(label);
+    label.body = readStatement()..parent = label;
+    labelStack.removeLast();
+    return label;
+  }
+
+  Statement _readBreakStatement() {
+    int offset = readOffset();
+    int index = readUInt30();
+    return new BreakStatement(labelStack[labelStackBase + index])
+      ..fileOffset = offset;
+  }
+
+  Statement _readWhileStatement() {
+    int offset = readOffset();
+    return new WhileStatement(readExpression(), readStatement())
+      ..fileOffset = offset;
+  }
+
+  Statement _readDoStatement() {
+    int offset = readOffset();
+    return new DoStatement(readStatement(), readExpression())
+      ..fileOffset = offset;
+  }
+
+  Statement _readForStatement() {
+    int variableStackHeight = variableStack.length;
+    int offset = readOffset();
+    List<VariableDeclaration> variables = readAndPushVariableDeclarationList();
+    Expression condition = readExpressionOption();
+    List<Expression> updates = readExpressionList();
+    Statement body = readStatement();
+    variableStack.length = variableStackHeight;
+    return new ForStatement(variables, condition, updates, body)
+      ..fileOffset = offset;
+  }
+
+  Statement _readForInStatement(int tag) {
+    bool isAsync = tag == Tag.AsyncForInStatement;
+    int variableStackHeight = variableStack.length;
+    int offset = readOffset();
+    int bodyOffset = readOffset();
+    VariableDeclaration variable = readAndPushVariableDeclaration();
+    Expression iterable = readExpression();
+    Statement body = readStatement();
+    variableStack.length = variableStackHeight;
+    return new ForInStatement(variable, iterable, body, isAsync: isAsync)
+      ..fileOffset = offset
+      ..bodyOffset = bodyOffset;
+  }
+
+  Statement _readSwitchStatement() {
+    int offset = readOffset();
+    Expression expression = readExpression();
+    int count = readUInt30();
+    List<SwitchCase> cases =
+        new List<SwitchCase>.filled(count, null, growable: true);
+    for (int i = 0; i < count; ++i) {
+      cases[i] = new SwitchCase.empty();
+    }
+    switchCaseStack.addAll(cases);
+    for (int i = 0; i < cases.length; ++i) {
+      readSwitchCaseInto(cases[i]);
+    }
+    switchCaseStack.length -= count;
+    return new SwitchStatement(expression, cases)..fileOffset = offset;
+  }
+
+  Statement _readContinueSwitchStatement() {
+    int offset = readOffset();
+    int index = readUInt30();
+    return new ContinueSwitchStatement(
+        switchCaseStack[switchCaseStackBase + index])
+      ..fileOffset = offset;
+  }
+
+  Statement _readIfStatement() {
+    int offset = readOffset();
+    return new IfStatement(
+        readExpression(), readStatement(), readStatementOrNullIfEmpty())
+      ..fileOffset = offset;
+  }
+
+  Statement _readReturnStatement() {
+    int offset = readOffset();
+    return new ReturnStatement(readExpressionOption())..fileOffset = offset;
+  }
+
+  Statement _readTryCatch() {
+    Statement body = readStatement();
+    int flags = readByte();
+    return new TryCatch(body, readCatchList(), isSynthetic: flags & 2 == 2);
+  }
+
+  Statement _readTryFinally() {
+    return new TryFinally(readStatement(), readStatement());
+  }
+
+  Statement _readYieldStatement() {
+    int offset = readOffset();
+    int flags = readByte();
+    return new YieldStatement(readExpression(),
+        isYieldStar: flags & YieldStatement.FlagYieldStar != 0,
+        isNative: flags & YieldStatement.FlagNative != 0)
+      ..fileOffset = offset;
+  }
+
+  Statement _readVariableDeclaration() {
+    VariableDeclaration variable = readVariableDeclaration();
+    variableStack.add(variable); // Will be popped by the enclosing scope.
+    return variable;
+  }
+
+  Statement _readFunctionDeclaration() {
+    int offset = readOffset();
+    VariableDeclaration variable = readVariableDeclaration();
+    variableStack.add(variable); // Will be popped by the enclosing scope.
+    FunctionNode function = readFunctionNode();
+    return new FunctionDeclaration(variable, function)..fileOffset = offset;
   }
 
   void readSwitchCaseInto(SwitchCase caseNode) {
@@ -2275,7 +2690,7 @@ class BinaryBuilder {
       ..fileOffset = offset;
   }
 
-  Block readBlock() {
+  Block _readBlock() {
     int stackHeight = variableStack.length;
     int offset = readOffset();
     int endOffset = readOffset();
@@ -2286,7 +2701,7 @@ class BinaryBuilder {
       ..fileEndOffset = endOffset;
   }
 
-  AssertBlock readAssertBlock() {
+  AssertBlock _readAssertBlock() {
     int stackHeight = variableStack.length;
     List<Statement> body = readStatementList();
     variableStack.length = stackHeight;
@@ -2353,85 +2768,125 @@ class BinaryBuilder {
     int tag = readByte();
     switch (tag) {
       case Tag.TypedefType:
-        int nullabilityIndex = readByte();
-        return new TypedefType.byReference(readTypedefReference(),
-            Nullability.values[nullabilityIndex], readDartTypeList());
+        return _readTypedefType();
       case Tag.BottomType:
-        return const BottomType();
+        return _readBottomType();
       case Tag.InvalidType:
-        return const InvalidType();
+        return _readInvalidType();
       case Tag.DynamicType:
-        return const DynamicType();
+        return _readDynamicType();
       case Tag.VoidType:
-        return const VoidType();
+        return _readVoidType();
       case Tag.NeverType:
-        int nullabilityIndex = readByte();
-        return new NeverType(Nullability.values[nullabilityIndex]);
+        return _readNeverType();
       case Tag.InterfaceType:
-        int nullabilityIndex = readByte();
-        Reference reference = readClassReference();
-        List<DartType> typeArguments = readDartTypeList();
-        {
-          CanonicalName canonicalName = reference.canonicalName;
-          if (canonicalName.name == "FutureOr" &&
-              canonicalName.parent != null &&
-              canonicalName.parent.name == "dart:async" &&
-              canonicalName.parent.parent != null &&
-              canonicalName.parent.parent.isRoot) {
-            return new FutureOrType(
-                typeArguments.single, Nullability.values[nullabilityIndex]);
-          }
-        }
-        return new InterfaceType.byReference(
-            reference, Nullability.values[nullabilityIndex], typeArguments);
+        return _readInterfaceType();
       case Tag.SimpleInterfaceType:
-        int nullabilityIndex = readByte();
-        Reference classReference = readClassReference();
-        {
-          CanonicalName canonicalName = classReference.canonicalName;
-          if (canonicalName != null &&
-              !forSupertype &&
-              canonicalName.name == "Null" &&
-              canonicalName.parent?.name == "dart:core" &&
-              (canonicalName.parent?.parent?.isRoot ?? false)) {
-            return const NullType();
-          }
-        }
-        return new InterfaceType.byReference(classReference,
-            Nullability.values[nullabilityIndex], const <DartType>[]);
+        return _readSimpleInterfaceType(forSupertype);
       case Tag.FunctionType:
-        int typeParameterStackHeight = typeParameterStack.length;
-        int nullabilityIndex = readByte();
-        List<TypeParameter> typeParameters = readAndPushTypeParameterList();
-        int requiredParameterCount = readUInt30();
-        int totalParameterCount = readUInt30();
-        List<DartType> positional = readDartTypeList();
-        List<NamedType> named = readNamedTypeList();
-        DartType typedefType = readDartTypeOption();
-        assert(positional.length + named.length == totalParameterCount);
-        DartType returnType = readDartType();
-        typeParameterStack.length = typeParameterStackHeight;
-        return new FunctionType(
-            positional, returnType, Nullability.values[nullabilityIndex],
-            typeParameters: typeParameters,
-            requiredParameterCount: requiredParameterCount,
-            namedParameters: named,
-            typedefType: typedefType);
+        return _readFunctionType();
       case Tag.SimpleFunctionType:
-        int nullabilityIndex = readByte();
-        List<DartType> positional = readDartTypeList();
-        DartType returnType = readDartType();
-        return new FunctionType(
-            positional, returnType, Nullability.values[nullabilityIndex]);
+        return _readSimpleFunctionType();
       case Tag.TypeParameterType:
-        int declaredNullabilityIndex = readByte();
-        int index = readUInt30();
-        DartType bound = readDartTypeOption();
-        return new TypeParameterType(typeParameterStack[index],
-            Nullability.values[declaredNullabilityIndex], bound);
+        return _readTypeParameterType();
       default:
         throw fail('unexpected dart type tag: $tag');
     }
+  }
+
+  DartType _readTypedefType() {
+    int nullabilityIndex = readByte();
+    return new TypedefType.byReference(readTypedefReference(),
+        Nullability.values[nullabilityIndex], readDartTypeList());
+  }
+
+  DartType _readBottomType() {
+    return const BottomType();
+  }
+
+  DartType _readInvalidType() {
+    return const InvalidType();
+  }
+
+  DartType _readDynamicType() {
+    return const DynamicType();
+  }
+
+  DartType _readVoidType() {
+    return const VoidType();
+  }
+
+  DartType _readNeverType() {
+    int nullabilityIndex = readByte();
+    return new NeverType(Nullability.values[nullabilityIndex]);
+  }
+
+  DartType _readInterfaceType() {
+    int nullabilityIndex = readByte();
+    Reference reference = readClassReference();
+    List<DartType> typeArguments = readDartTypeList();
+    CanonicalName canonicalName = reference.canonicalName;
+    if (canonicalName.name == "FutureOr" &&
+        canonicalName.parent != null &&
+        canonicalName.parent.name == "dart:async" &&
+        canonicalName.parent.parent != null &&
+        canonicalName.parent.parent.isRoot) {
+      return new FutureOrType(
+          typeArguments.single, Nullability.values[nullabilityIndex]);
+    }
+    return new InterfaceType.byReference(
+        reference, Nullability.values[nullabilityIndex], typeArguments);
+  }
+
+  DartType _readSimpleInterfaceType(bool forSupertype) {
+    int nullabilityIndex = readByte();
+    Reference classReference = readClassReference();
+    CanonicalName canonicalName = classReference.canonicalName;
+    if (canonicalName != null &&
+        !forSupertype &&
+        canonicalName.name == "Null" &&
+        canonicalName.parent?.name == "dart:core" &&
+        (canonicalName.parent?.parent?.isRoot ?? false)) {
+      return const NullType();
+    }
+    return new InterfaceType.byReference(classReference,
+        Nullability.values[nullabilityIndex], const <DartType>[]);
+  }
+
+  DartType _readFunctionType() {
+    int typeParameterStackHeight = typeParameterStack.length;
+    int nullabilityIndex = readByte();
+    List<TypeParameter> typeParameters = readAndPushTypeParameterList();
+    int requiredParameterCount = readUInt30();
+    int totalParameterCount = readUInt30();
+    List<DartType> positional = readDartTypeList();
+    List<NamedType> named = readNamedTypeList();
+    DartType typedefType = readDartTypeOption();
+    assert(positional.length + named.length == totalParameterCount);
+    DartType returnType = readDartType();
+    typeParameterStack.length = typeParameterStackHeight;
+    return new FunctionType(
+        positional, returnType, Nullability.values[nullabilityIndex],
+        typeParameters: typeParameters,
+        requiredParameterCount: requiredParameterCount,
+        namedParameters: named,
+        typedefType: typedefType);
+  }
+
+  DartType _readSimpleFunctionType() {
+    int nullabilityIndex = readByte();
+    List<DartType> positional = readDartTypeList();
+    DartType returnType = readDartType();
+    return new FunctionType(
+        positional, returnType, Nullability.values[nullabilityIndex]);
+  }
+
+  DartType _readTypeParameterType() {
+    int declaredNullabilityIndex = readByte();
+    int index = readUInt30();
+    DartType bound = readDartTypeOption();
+    return new TypeParameterType(typeParameterStack[index],
+        Nullability.values[declaredNullabilityIndex], bound);
   }
 
   List<TypeParameter> readAndPushTypeParameterList(
