@@ -815,10 +815,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   void visitGenericTypeAlias(GenericTypeAlias node) {
     if (entity == node.type) {
       optype.includeTypeNameSuggestions = true;
-    }
-    // TODO(scheglov) Use `node.type`, rename the location.
-    if (entity == node.functionType) {
-      optype.completionLocation = 'GenericTypeAlias_functionType';
+      optype.completionLocation = 'GenericTypeAlias_type';
     }
   }
 

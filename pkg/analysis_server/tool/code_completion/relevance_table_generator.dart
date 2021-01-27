@@ -707,7 +707,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
-    _recordDataForNode('GenericTypeAlias_functionType', node.functionType,
+    _recordDataForNode('GenericTypeAlias_type', node.functionType,
         allowedKeywords: [Keyword.FUNCTION]);
     super.visitGenericTypeAlias(node);
   }
