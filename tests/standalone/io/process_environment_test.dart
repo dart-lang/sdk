@@ -16,9 +16,14 @@ runEnvironmentProcess(
   if (!new File(printEnv).existsSync()) {
     printEnv = '../$printEnv';
   }
-  Process.run(dartExecutable,
-          []..addAll(Platform.executableArguments)..addAll([printEnv, name]),
-          environment: environment, includeParentEnvironment: includeParent)
+  Process.run(
+          dartExecutable,
+          []
+            ..addAll(Platform.executableArguments)
+            ..add('--verbosity=warning')
+            ..addAll([printEnv, name]),
+          environment: environment,
+          includeParentEnvironment: includeParent)
       .then((result) {
     if (result.exitCode != 0) {
       print('print_env.dart subprocess failed '

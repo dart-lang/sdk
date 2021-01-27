@@ -15,6 +15,7 @@ void main() {
           Platform.executable,
           []
             ..addAll(Platform.executableArguments)
+            ..add('--verbosity=warning')
             ..add(
                 Platform.script.resolve('print_sync_script.dart').toFilePath()))
       .then((out) {

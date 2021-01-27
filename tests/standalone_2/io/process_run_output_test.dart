@@ -37,6 +37,7 @@ test(scriptFile, String encoding, stream) {
 
   var args = <String>[]
     ..addAll(Platform.executableArguments)
+    ..add('--verbosity=warning')
     ..addAll([scriptFile, encoding, stream]);
 
   if (stream == 'stdout') {

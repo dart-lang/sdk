@@ -57,21 +57,25 @@ serverRunning(HttpServer server) {
   Future<ProcessResult> no_http_run = Process.run(
       pathToExecutable,
       []
+        ..add('--verbosity=warning')
         ..addAll(executableArguments)
         ..add(pathOfData.resolve('http_launch_main.dart').toFilePath()));
   Future<ProcessResult> http_run = Process.run(
       pathToExecutable,
       []
+        ..add('--verbosity=warning')
         ..addAll(executableArguments)
         ..add('http://127.0.0.1:$port/http_launch_main.dart'));
   Future<ProcessResult> http_pkg_root_run = Process.run(
       pathToExecutable,
       []
+        ..add('--verbosity=warning')
         ..addAll(executableArguments)
         ..addAll(['http://127.0.0.1:$port/http_launch_main.dart']));
   Future<ProcessResult> isolate_run = Process.run(
       pathToExecutable,
       []
+        ..add('--verbosity=warning')
         ..addAll(executableArguments)
         ..addAll(['http://127.0.0.1:$port/http_spawn_main.dart', '$port']));
   Future<List<ProcessResult>> results =

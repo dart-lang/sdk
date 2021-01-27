@@ -16,6 +16,7 @@ void main() {
           Platform.executable,
           []
             ..addAll(Platform.executableArguments)
+            ..add('--verbosity=warning')
             ..add(script),
           stdoutEncoding: ascii,
           stderrEncoding: ascii)
