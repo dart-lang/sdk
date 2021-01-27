@@ -1435,6 +1435,7 @@ class DiagnosticMessage implements HasToJson {
 ///   "parameters": optional String
 ///   "returnType": optional String
 ///   "typeParameters": optional String
+///   "aliasedType": optional String
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -1476,6 +1477,8 @@ class Element implements HasToJson {
   String _returnType;
 
   String _typeParameters;
+
+  String _aliasedType;
 
   /// The kind of the element.
   ElementKind get kind => _kind;
@@ -1566,11 +1569,22 @@ class Element implements HasToJson {
     _typeParameters = value;
   }
 
+  /// If the element is a type alias, this field is the aliased type. Otherwise
+  /// this field will not be defined.
+  String get aliasedType => _aliasedType;
+
+  /// If the element is a type alias, this field is the aliased type. Otherwise
+  /// this field will not be defined.
+  set aliasedType(String value) {
+    _aliasedType = value;
+  }
+
   Element(ElementKind kind, String name, int flags,
       {Location location,
       String parameters,
       String returnType,
-      String typeParameters}) {
+      String typeParameters,
+      String aliasedType}) {
     this.kind = kind;
     this.name = name;
     this.location = location;
@@ -1578,6 +1592,7 @@ class Element implements HasToJson {
     this.parameters = parameters;
     this.returnType = returnType;
     this.typeParameters = typeParameters;
+    this.aliasedType = aliasedType;
   }
 
   factory Element.fromJson(
@@ -1623,11 +1638,17 @@ class Element implements HasToJson {
         typeParameters = jsonDecoder.decodeString(
             jsonPath + '.typeParameters', json['typeParameters']);
       }
+      String aliasedType;
+      if (json.containsKey('aliasedType')) {
+        aliasedType = jsonDecoder.decodeString(
+            jsonPath + '.aliasedType', json['aliasedType']);
+      }
       return Element(kind, name, flags,
           location: location,
           parameters: parameters,
           returnType: returnType,
-          typeParameters: typeParameters);
+          typeParameters: typeParameters,
+          aliasedType: aliasedType);
     } else {
       throw jsonDecoder.mismatch(jsonPath, 'Element', json);
     }
@@ -1658,6 +1679,9 @@ class Element implements HasToJson {
     if (typeParameters != null) {
       result['typeParameters'] = typeParameters;
     }
+    if (aliasedType != null) {
+      result['aliasedType'] = aliasedType;
+    }
     return result;
   }
 
@@ -1673,7 +1697,8 @@ class Element implements HasToJson {
           flags == other.flags &&
           parameters == other.parameters &&
           returnType == other.returnType &&
-          typeParameters == other.typeParameters;
+          typeParameters == other.typeParameters &&
+          aliasedType == other.aliasedType;
     }
     return false;
   }
@@ -1688,6 +1713,7 @@ class Element implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, parameters.hashCode);
     hash = JenkinsSmiHash.combine(hash, returnType.hashCode);
     hash = JenkinsSmiHash.combine(hash, typeParameters.hashCode);
+    hash = JenkinsSmiHash.combine(hash, aliasedType.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }

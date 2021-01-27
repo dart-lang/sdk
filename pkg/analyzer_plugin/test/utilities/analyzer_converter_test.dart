@@ -604,8 +604,9 @@ typedef A<T> = Map<int, T>;
       expect(location.startLine, 1);
       expect(location.startColumn, 9);
     }
+    expect(element.aliasedType, 'Map<int, T>');
     expect(element.parameters, isNull);
-    expect(element.returnType, 'Map<int, T>');
+    expect(element.returnType, isNull);
     expect(element.flags, 0);
   }
 

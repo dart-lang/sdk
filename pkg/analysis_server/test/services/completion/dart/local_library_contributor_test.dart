@@ -229,9 +229,11 @@ void f() {^}
     }
     assertSuggestFunction('af', 'int');
     assertSuggestTopLevelVar('m', null);
-    assertSuggestTypeAlias('t1', null);
-    assertSuggestTypeAlias('t2', 'void');
-    assertSuggestTypeAlias('t3', 'List<int>');
+    assertSuggestTypeAlias('t1',
+        aliasedType: 'dynamic Function(int)', returnType: 'dynamic');
+    assertSuggestTypeAlias('t2',
+        aliasedType: 'void Function(int)', returnType: 'void');
+    assertSuggestTypeAlias('t3', aliasedType: 'List<int>');
     assertNotSuggested('a1');
     assertNotSuggested('a2');
     // Suggested by LocalConstructorContributor
@@ -274,7 +276,8 @@ void f() {^}
     }
     assertSuggestFunction('bf', 'int');
     assertSuggestTopLevelVar('n', null);
-    assertSuggestTypeAlias('t1', null);
+    assertSuggestTypeAlias('t1',
+        aliasedType: 'dynamic Function(int)', returnType: 'dynamic');
     assertNotSuggested('b1');
     assertNotSuggested('b2');
     // Suggested by ConstructorContributor

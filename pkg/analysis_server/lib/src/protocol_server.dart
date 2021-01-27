@@ -46,6 +46,14 @@ void doSourceChange_addSourceEdit(
   change.addEdit(file, isNewFile ? -1 : 0, edit);
 }
 
+String getAliasedTypeString(engine.Element element) {
+  if (element is engine.TypeAliasElement) {
+    var aliasedType = element.aliasedType;
+    return aliasedType.getDisplayString(withNullability: false);
+  }
+  return null;
+}
+
 String getReturnTypeString(engine.Element element) {
   if (element is engine.ExecutableElement) {
     if (element.kind == engine.ElementKind.SETTER) {
@@ -63,12 +71,9 @@ String getReturnTypeString(engine.Element element) {
     if (aliasedType is FunctionType) {
       var returnType = aliasedType.returnType;
       return returnType.getDisplayString(withNullability: false);
-    } else {
-      return aliasedType.getDisplayString(withNullability: false);
     }
-  } else {
-    return null;
   }
+  return null;
 }
 
 /// Translates engine errors through the ErrorProcessor.

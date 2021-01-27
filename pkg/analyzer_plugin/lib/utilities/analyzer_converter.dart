@@ -111,19 +111,22 @@ class AnalyzerConverter {
   plugin.Element convertElement(analyzer.Element element) {
     var kind = _convertElementToElementKind(element);
     return plugin.Element(
-        kind,
-        element.displayName,
-        plugin.Element.makeFlags(
-            isPrivate: element.isPrivate,
-            isDeprecated: element.hasDeprecated,
-            isAbstract: _isAbstract(element),
-            isConst: _isConst(element),
-            isFinal: _isFinal(element),
-            isStatic: _isStatic(element)),
-        location: locationFromElement(element),
-        typeParameters: _getTypeParametersString(element),
-        parameters: _getParametersString(element),
-        returnType: _getReturnTypeString(element));
+      kind,
+      element.displayName,
+      plugin.Element.makeFlags(
+        isPrivate: element.isPrivate,
+        isDeprecated: element.hasDeprecated,
+        isAbstract: _isAbstract(element),
+        isConst: _isConst(element),
+        isFinal: _isFinal(element),
+        isStatic: _isStatic(element),
+      ),
+      location: locationFromElement(element),
+      typeParameters: _getTypeParametersString(element),
+      aliasedType: _getAliasedTypeString(element),
+      parameters: _getParametersString(element),
+      returnType: _getReturnTypeString(element),
+    );
   }
 
   /// Convert the element [kind] from the 'analyzer' package to an element kind
@@ -224,6 +227,14 @@ class AnalyzerConverter {
     return convertElementKind(element.kind);
   }
 
+  String _getAliasedTypeString(analyzer.Element element) {
+    if (element is analyzer.TypeAliasElement) {
+      var aliasedType = element.aliasedType;
+      return aliasedType.getDisplayString(withNullability: false);
+    }
+    return null;
+  }
+
   /// Return a textual representation of the parameters of the given [element],
   /// or `null` if the element does not have any parameters.
   String _getParametersString(analyzer.Element element) {
@@ -288,8 +299,6 @@ class AnalyzerConverter {
       if (aliasedType is FunctionType) {
         var returnType = aliasedType.returnType;
         return returnType.getDisplayString(withNullability: false);
-      } else {
-        return aliasedType.getDisplayString(withNullability: false);
       }
     }
     return null;
