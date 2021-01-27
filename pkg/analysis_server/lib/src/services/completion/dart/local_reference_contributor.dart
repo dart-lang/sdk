@@ -310,16 +310,14 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   @override
   void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {
     if (opType.includeTypeNameSuggestions) {
-      builder.suggestFunctionTypeAlias(declaration.declaredElement,
-          kind: _defaultKind);
+      builder.suggestTypeAlias(declaration.declaredElement, kind: _defaultKind);
     }
   }
 
   @override
   void declaredGenericTypeAlias(GenericTypeAlias declaration) {
     if (opType.includeTypeNameSuggestions) {
-      builder.suggestFunctionTypeAlias(declaration.declaredElement,
-          kind: _defaultKind);
+      builder.suggestTypeAlias(declaration.declaredElement, kind: _defaultKind);
     }
   }
 

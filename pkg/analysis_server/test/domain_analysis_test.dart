@@ -305,12 +305,135 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
 class AnalysisDomainTest extends AbstractAnalysisTest {
   Map<String, List<AnalysisError>> filesErrors = {};
 
+  void assertHasErrors(String path) {
+    expect(filesErrors[path], isNotEmpty);
+  }
+
+  void assertNoErrors(String path) {
+    expect(filesErrors[path], isEmpty);
+  }
+
+  void assertNoErrorsNotification(String path) {
+    expect(filesErrors[path], isNull);
+  }
+
   @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
       var decoded = AnalysisErrorsParams.fromNotification(notification);
       filesErrors[decoded.file] = decoded.errors;
     }
+  }
+
+  Future<void> test_fileSystem_addFile_excluded() async {
+    var a_path = convertPath('$projectPath/lib/a.dart');
+    var b_path = convertPath('$projectPath/lib/b.dart');
+
+    newFile('$projectPath/analysis_options.yaml', content: r'''
+analyzer:
+  exclude:
+    - "**/a.dart"
+''');
+
+    newFile(b_path, content: r'''
+import 'a.dart';
+void f(A a) {}
+''');
+
+    createProject();
+    await pumpEventQueue();
+    await server.onAnalysisComplete;
+
+    // We don't have a.dart, so the import cannot be resolved.
+    assertHasErrors(b_path);
+
+    newFile(a_path, content: r'''
+class A {}
+''');
+    await pumpEventQueue();
+    await server.onAnalysisComplete;
+
+    // We excluded 'a.dart' from analysis, no errors notification for it.
+    assertNoErrorsNotification(a_path);
+
+    // We added a.dart with `A`, so no errors.
+    assertNoErrors(b_path);
+  }
+
+  Future<void> test_fileSystem_changeFile_excluded() async {
+    var a_path = convertPath('$projectPath/lib/a.dart');
+    var b_path = convertPath('$projectPath/lib/b.dart');
+
+    newFile('$projectPath/analysis_options.yaml', content: r'''
+analyzer:
+  exclude:
+    - "**/a.dart"
+''');
+
+    newFile(a_path, content: r'''
+class B {}
+''');
+
+    newFile(b_path, content: r'''
+import 'a.dart';
+void f(A a) {}
+''');
+
+    createProject();
+    await pumpEventQueue();
+    await server.onAnalysisComplete;
+
+    // We excluded 'a.dart' from analysis, no errors notification for it.
+    assertNoErrorsNotification(a_path);
+
+    // We have `B`, not `A`, in a.dart, so has errors.
+    assertHasErrors(b_path);
+
+    newFile(a_path, content: r'''
+class A {}
+''');
+    await pumpEventQueue();
+    await server.onAnalysisComplete;
+
+    // We changed a.dart, to have `A`, so no errors.
+    assertNoErrors(b_path);
+  }
+
+  Future<void> test_fileSystem_deleteFile_excluded() async {
+    var a_path = convertPath('$projectPath/lib/a.dart');
+    var b_path = convertPath('$projectPath/lib/b.dart');
+
+    newFile('$projectPath/analysis_options.yaml', content: r'''
+analyzer:
+  exclude:
+    - "**/a.dart"
+''');
+
+    newFile(a_path, content: r'''
+class A {}
+''');
+
+    newFile(b_path, content: r'''
+import 'a.dart';
+void f(A a) {}
+''');
+
+    createProject();
+    await pumpEventQueue();
+    await server.onAnalysisComplete;
+
+    // We excluded 'a.dart' from analysis, no errors notification for it.
+    assertNoErrorsNotification(a_path);
+
+    // We have `A` in a.dart, so no errors.
+    assertNoErrors(b_path);
+
+    deleteFile(a_path);
+    await pumpEventQueue();
+    await server.onAnalysisComplete;
+
+    // We deleted a.dart, so `A` cannot be resolved.
+    assertHasErrors(b_path);
   }
 
   Future<void> test_setRoots_packages() {

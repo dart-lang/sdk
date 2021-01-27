@@ -2400,7 +2400,7 @@ class B extends A {
     assertSuggestClass('Object');
     assertNotSuggested('T1');
     assertNotSuggested('F1');
-    assertSuggestFunctionTypeAlias('D1', 'dynamic');
+    assertSuggestTypeAlias('D1', 'dynamic');
     assertSuggestClass('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
@@ -2430,7 +2430,7 @@ class B extends A {
     assertSuggestClass('Object');
     assertNotSuggested('T1');
     assertNotSuggested('F1');
-    assertSuggestFunctionTypeAlias('D1', 'dynamic');
+    assertSuggestTypeAlias('D1', 'dynamic');
     assertSuggestClass('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
@@ -2461,7 +2461,7 @@ class B extends A {
     assertSuggestClass('Object');
     assertNotSuggested('T1');
     assertNotSuggested('F1');
-    assertSuggestFunctionTypeAlias('D1', 'dynamic');
+    assertSuggestTypeAlias('D1', 'dynamic');
     assertSuggestClass('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
@@ -2498,7 +2498,7 @@ main() {
 }
 ''');
     await computeSuggestions();
-    assertSuggestFunctionTypeAlias('F', 'void');
+    assertSuggestTypeAlias('F', 'void');
   }
 
   Future<void> test_functionTypeAlias_old() async {
@@ -2513,7 +2513,7 @@ main() {
 }
 ''');
     await computeSuggestions();
-    assertSuggestFunctionTypeAlias('F', 'void');
+    assertSuggestTypeAlias('F', 'void');
   }
 
   Future<void> test_IfStatement() async {
@@ -2914,7 +2914,7 @@ main() {
     // in which case suggestions will have null (unresolved) returnType
     assertSuggestTopLevelVar('T1', null);
     assertSuggestFunction('F1', null);
-    assertSuggestFunctionTypeAlias('D1', 'dynamic');
+    assertSuggestTypeAlias('D1', 'dynamic');
     assertSuggestClass('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
@@ -3178,7 +3178,7 @@ main() {
     // to be resolved.
     assertSuggestTopLevelVar('T1', /* null */ 'int');
     assertSuggestFunction('F1', /* null */ 'dynamic');
-    assertSuggestFunctionTypeAlias('D1', /* null */ 'dynamic');
+    assertSuggestTypeAlias('D1', /* null */ 'dynamic');
     assertSuggestClass('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
@@ -3477,7 +3477,7 @@ class B {
     assertSuggestClass('Object');
     assertNotSuggested('T1');
     assertNotSuggested('F1');
-    assertSuggestFunctionTypeAlias('D1', 'dynamic');
+    assertSuggestTypeAlias('D1', 'dynamic');
     assertSuggestClass('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
@@ -3506,7 +3506,7 @@ class B {
     assertSuggestClass('Object');
     assertNotSuggested('T1');
     assertNotSuggested('F1');
-    assertSuggestFunctionTypeAlias('D1', 'dynamic');
+    assertSuggestTypeAlias('D1', 'dynamic');
     assertSuggestClass('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
@@ -3535,7 +3535,7 @@ class B {
     assertSuggestClass('Object');
     assertNotSuggested('T1');
     assertNotSuggested('F1');
-    assertSuggestFunctionTypeAlias('D1', 'dynamic');
+    assertSuggestTypeAlias('D1', 'dynamic');
     assertSuggestClass('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
@@ -3566,7 +3566,7 @@ class B {
     assertSuggestClass('Object');
     assertNotSuggested('T1');
     assertNotSuggested('F1');
-    assertSuggestFunctionTypeAlias('D1', 'dynamic');
+    assertSuggestTypeAlias('D1', 'dynamic');
     assertSuggestClass('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
@@ -4564,7 +4564,7 @@ class B extends A {
     expect(replacementLength, 0);
     assertSuggestClass('Object');
     assertSuggestClass('C1');
-    assertSuggestFunctionTypeAlias('T1', 'String');
+    assertSuggestTypeAlias('T1', 'String');
     assertNotSuggested('C2');
     assertNotSuggested('T2');
     assertNotSuggested('F1');

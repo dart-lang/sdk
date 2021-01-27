@@ -68,7 +68,8 @@ abstract class DartCompletionContributorTest
   }
 }
 
-abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
+abstract class _BaseDartCompletionContributorTest extends AbstractContextTest
+    with WithNonFunctionTypeAliasesMixin {
   static const String _UNCHECKED = '__UNCHECKED__';
   String testFile;
   int completionOffset;
@@ -354,36 +355,6 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
     return cs;
   }
 
-  CompletionSuggestion assertSuggestFunctionTypeAlias(
-    String name,
-    String returnType, {
-    bool isDeprecated = false,
-    CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
-  }) {
-    var cs = assertSuggest(name, csKind: kind, isDeprecated: isDeprecated);
-    if (returnType != null) {
-      expect(cs.returnType, returnType);
-    } else if (isNullExpectedReturnTypeConsideredDynamic) {
-      expect(cs.returnType, 'dynamic');
-    } else {
-      expect(cs.returnType, isNull);
-    }
-    var element = cs.element;
-    expect(element, isNotNull);
-    expect(element.kind, equals(ElementKind.FUNCTION_TYPE_ALIAS));
-    expect(element.name, equals(name));
-    expect(element.isDeprecated, equals(isDeprecated));
-    // TODO (danrubel) Determine why params are null
-    //    String param = element.parameters;
-    //    expect(param, isNotNull);
-    //    expect(param[0], equals('('));
-    //    expect(param[param.length - 1], equals(')'));
-    expect(element.returnType, equals(returnType ?? 'dynamic'));
-    // TODO (danrubel) Determine why param info is missing
-    //    assertHasParameterInfo(cs);
-    return cs;
-  }
-
   CompletionSuggestion assertSuggestGetter(String name, String returnType,
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
       bool isDeprecated = false}) {
@@ -526,6 +497,36 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
       expect(element.returnType, 'dynamic');
     }
     assertHasNoParameterInfo(cs);
+    return cs;
+  }
+
+  CompletionSuggestion assertSuggestTypeAlias(
+    String name,
+    String returnType, {
+    bool isDeprecated = false,
+    CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
+  }) {
+    var cs = assertSuggest(name, csKind: kind, isDeprecated: isDeprecated);
+    if (returnType != null) {
+      expect(cs.returnType, returnType);
+    } else if (isNullExpectedReturnTypeConsideredDynamic) {
+      expect(cs.returnType, 'dynamic');
+    } else {
+      expect(cs.returnType, isNull);
+    }
+    var element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(ElementKind.TYPE_ALIAS));
+    expect(element.name, equals(name));
+    expect(element.isDeprecated, equals(isDeprecated));
+    // TODO (danrubel) Determine why params are null
+    //    String param = element.parameters;
+    //    expect(param, isNotNull);
+    //    expect(param[0], equals('('));
+    //    expect(param[param.length - 1], equals(')'));
+    expect(element.returnType, equals(returnType ?? 'dynamic'));
+    // TODO (danrubel) Determine why param info is missing
+    //    assertHasParameterInfo(cs);
     return cs;
   }
 

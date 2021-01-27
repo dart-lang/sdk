@@ -715,8 +715,8 @@ foo({String children}) {}
     addTestSource('main() { int.parse("16", ^);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
-      'radix': 'int',
-      'onError': 'int Function(String)'
+      'radix': 'int?',
+      'onError': 'int Function(String)?'
     });
   }
 
@@ -725,8 +725,8 @@ foo({String children}) {}
     addTestSource('main() { int.parse("16", r^);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
-      'radix': 'int',
-      'onError': 'int Function(String)'
+      'radix': 'int?',
+      'onError': 'int Function(String)?'
     });
   }
 
@@ -735,7 +735,7 @@ foo({String children}) {}
     addTestSource('main() { int.parse("16", radix: 7, ^);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'onError': 'int Function(String)'});
+        namedArgumentsWithTypes: {'onError': 'int Function(String)?'});
   }
 
   Future<void> test_ArgumentList_imported_function_named_param2a() async {
@@ -750,8 +750,8 @@ foo({String children}) {}
     addTestSource('main() { int.parse("16", r^: 16);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
-      'radix': 'int',
-      'onError': 'int Function(String)'
+      'radix': 'int?',
+      'onError': 'int Function(String)?'
     }, includeColon: false);
   }
 
@@ -767,8 +767,8 @@ foo({String children}) {}
     addTestSource('main() { int.parse("16", ^: 16);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
-      'radix': 'int',
-      'onError': 'int Function(String)'
+      'radix': 'int?',
+      'onError': 'int Function(String)?'
     });
   }
 

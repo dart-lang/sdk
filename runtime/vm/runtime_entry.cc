@@ -1048,17 +1048,26 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
   const Code& target_code = Code::Handle(zone, target_function.EnsureHasCode());
   // Before patching verify that we are not repeatedly patching to the same
   // target.
-  ASSERT(target_code.ptr() !=
-         CodePatcher::GetStaticCallTargetAt(caller_frame->pc(), caller_code));
-  CodePatcher::PatchStaticCallAt(caller_frame->pc(), caller_code, target_code);
-  caller_code.SetStaticCallTargetCodeAt(caller_frame->pc(), target_code);
-  if (FLAG_trace_patching) {
-    THR_Print("PatchStaticCall: patching caller pc %#" Px
-              ""
-              " to '%s' new entry point %#" Px " (%s)\n",
-              caller_frame->pc(), target_function.ToFullyQualifiedCString(),
-              target_code.EntryPoint(),
-              target_code.is_optimized() ? "optimized" : "unoptimized");
+  ASSERT(FLAG_enable_isolate_groups ||
+         target_code.ptr() != CodePatcher::GetStaticCallTargetAt(
+                                  caller_frame->pc(), caller_code));
+  if (target_code.ptr() !=
+      CodePatcher::GetStaticCallTargetAt(caller_frame->pc(), caller_code)) {
+    SafepointOperationScope safepoint(thread);
+    if (target_code.ptr() !=
+        CodePatcher::GetStaticCallTargetAt(caller_frame->pc(), caller_code)) {
+      CodePatcher::PatchStaticCallAt(caller_frame->pc(), caller_code,
+                                     target_code);
+      caller_code.SetStaticCallTargetCodeAt(caller_frame->pc(), target_code);
+      if (FLAG_trace_patching) {
+        THR_Print("PatchStaticCall: patching caller pc %#" Px
+                  ""
+                  " to '%s' new entry point %#" Px " (%s)\n",
+                  caller_frame->pc(), target_function.ToFullyQualifiedCString(),
+                  target_code.EntryPoint(),
+                  target_code.is_optimized() ? "optimized" : "unoptimized");
+      }
+    }
   }
   arguments.SetReturn(target_code);
 #else

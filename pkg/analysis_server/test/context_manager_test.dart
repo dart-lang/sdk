@@ -227,32 +227,6 @@ sky_engine:lib/''');
     });
   }
 
-  Future<void> test_path_filter() async {
-    // Setup context.
-    var root = newFolder(projPath);
-    manager.setRoots(<String>[projPath], <String>[]);
-    expect(callbacks.currentFilePaths, isEmpty);
-    // Set ignore patterns for context.
-    var rootInfo = manager.getContextInfoFor(root);
-    manager.setIgnorePatternsForContext(
-        rootInfo, ['sdk_ext/**', 'lib/ignoreme.dart']);
-    // Start creating files.
-    newFile('$projPath/${ContextManagerImpl.PUBSPEC_NAME}');
-    var libPath = '$projPath/${ContextManagerTest.LIB_NAME}';
-    newFile('$libPath/main.dart');
-    newFile('$libPath/ignoreme.dart');
-    var sdkExtPath = '$projPath/sdk_ext';
-    newFile('$sdkExtPath/entry.dart');
-    var sdkExtSrcPath = '$projPath/sdk_ext/src';
-    newFile('$sdkExtSrcPath/part.dart');
-    // Pump event loop so new files are discovered and added to context.
-    await pumpEventQueue();
-    // Verify that ignored files were ignored.
-    var filePaths = callbacks.currentFilePaths;
-    expect(filePaths, hasLength(1));
-    expect(filePaths, contains(convertPath('/my/proj/lib/main.dart')));
-  }
-
   Future<void> test_refresh_folder_with_packagespec() {
     // create a context with a .packages file
     var packagespecFile = join(projPath, '.packages');
