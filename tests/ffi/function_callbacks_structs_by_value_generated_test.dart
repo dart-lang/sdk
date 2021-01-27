@@ -5242,14 +5242,15 @@ typedef ReturnStruct1ByteIntType = Struct1ByteInt Function(Int8);
 int returnStruct1ByteInt_a0 = 0;
 
 // Result variable also global, so we can delete it after the callback.
-Struct1ByteInt returnStruct1ByteIntResult = Struct1ByteInt();
+Pointer<Struct1ByteInt> returnStruct1ByteIntResultPointer = nullptr;
 
 Struct1ByteInt returnStruct1ByteIntCalculateResult() {
-  Struct1ByteInt result = calloc<Struct1ByteInt>().ref;
+  final resultPointer = calloc<Struct1ByteInt>();
+  final result = resultPointer.ref;
 
   result.a0 = returnStruct1ByteInt_a0;
 
-  returnStruct1ByteIntResult = result;
+  returnStruct1ByteIntResultPointer = resultPointer;
 
   return result;
 }
@@ -5276,13 +5277,13 @@ Struct1ByteInt returnStruct1ByteInt(int a0) {
 }
 
 void returnStruct1ByteIntAfterCallback() {
-  calloc.free(returnStruct1ByteIntResult.addressOf);
+  calloc.free(returnStruct1ByteIntResultPointer);
 
   final result = returnStruct1ByteIntCalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStruct1ByteIntResult.addressOf);
+  calloc.free(returnStruct1ByteIntResultPointer);
 }
 
 typedef ReturnStruct3BytesHomogeneousUint8Type = Struct3BytesHomogeneousUint8
@@ -5294,19 +5295,19 @@ int returnStruct3BytesHomogeneousUint8_a1 = 0;
 int returnStruct3BytesHomogeneousUint8_a2 = 0;
 
 // Result variable also global, so we can delete it after the callback.
-Struct3BytesHomogeneousUint8 returnStruct3BytesHomogeneousUint8Result =
-    Struct3BytesHomogeneousUint8();
+Pointer<Struct3BytesHomogeneousUint8>
+    returnStruct3BytesHomogeneousUint8ResultPointer = nullptr;
 
 Struct3BytesHomogeneousUint8
     returnStruct3BytesHomogeneousUint8CalculateResult() {
-  Struct3BytesHomogeneousUint8 result =
-      calloc<Struct3BytesHomogeneousUint8>().ref;
+  final resultPointer = calloc<Struct3BytesHomogeneousUint8>();
+  final result = resultPointer.ref;
 
   result.a0 = returnStruct3BytesHomogeneousUint8_a0;
   result.a1 = returnStruct3BytesHomogeneousUint8_a1;
   result.a2 = returnStruct3BytesHomogeneousUint8_a2;
 
-  returnStruct3BytesHomogeneousUint8Result = result;
+  returnStruct3BytesHomogeneousUint8ResultPointer = resultPointer;
 
   return result;
 }
@@ -5336,13 +5337,13 @@ Struct3BytesHomogeneousUint8 returnStruct3BytesHomogeneousUint8(
 }
 
 void returnStruct3BytesHomogeneousUint8AfterCallback() {
-  calloc.free(returnStruct3BytesHomogeneousUint8Result.addressOf);
+  calloc.free(returnStruct3BytesHomogeneousUint8ResultPointer);
 
   final result = returnStruct3BytesHomogeneousUint8CalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStruct3BytesHomogeneousUint8Result.addressOf);
+  calloc.free(returnStruct3BytesHomogeneousUint8ResultPointer);
 }
 
 typedef ReturnStruct3BytesInt2ByteAlignedType = Struct3BytesInt2ByteAligned
@@ -5353,17 +5354,17 @@ int returnStruct3BytesInt2ByteAligned_a0 = 0;
 int returnStruct3BytesInt2ByteAligned_a1 = 0;
 
 // Result variable also global, so we can delete it after the callback.
-Struct3BytesInt2ByteAligned returnStruct3BytesInt2ByteAlignedResult =
-    Struct3BytesInt2ByteAligned();
+Pointer<Struct3BytesInt2ByteAligned>
+    returnStruct3BytesInt2ByteAlignedResultPointer = nullptr;
 
 Struct3BytesInt2ByteAligned returnStruct3BytesInt2ByteAlignedCalculateResult() {
-  Struct3BytesInt2ByteAligned result =
-      calloc<Struct3BytesInt2ByteAligned>().ref;
+  final resultPointer = calloc<Struct3BytesInt2ByteAligned>();
+  final result = resultPointer.ref;
 
   result.a0 = returnStruct3BytesInt2ByteAligned_a0;
   result.a1 = returnStruct3BytesInt2ByteAligned_a1;
 
-  returnStruct3BytesInt2ByteAlignedResult = result;
+  returnStruct3BytesInt2ByteAlignedResultPointer = resultPointer;
 
   return result;
 }
@@ -5392,13 +5393,13 @@ Struct3BytesInt2ByteAligned returnStruct3BytesInt2ByteAligned(int a0, int a1) {
 }
 
 void returnStruct3BytesInt2ByteAlignedAfterCallback() {
-  calloc.free(returnStruct3BytesInt2ByteAlignedResult.addressOf);
+  calloc.free(returnStruct3BytesInt2ByteAlignedResultPointer);
 
   final result = returnStruct3BytesInt2ByteAlignedCalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStruct3BytesInt2ByteAlignedResult.addressOf);
+  calloc.free(returnStruct3BytesInt2ByteAlignedResultPointer);
 }
 
 typedef ReturnStruct4BytesHomogeneousInt16Type = Struct4BytesHomogeneousInt16
@@ -5409,18 +5410,18 @@ int returnStruct4BytesHomogeneousInt16_a0 = 0;
 int returnStruct4BytesHomogeneousInt16_a1 = 0;
 
 // Result variable also global, so we can delete it after the callback.
-Struct4BytesHomogeneousInt16 returnStruct4BytesHomogeneousInt16Result =
-    Struct4BytesHomogeneousInt16();
+Pointer<Struct4BytesHomogeneousInt16>
+    returnStruct4BytesHomogeneousInt16ResultPointer = nullptr;
 
 Struct4BytesHomogeneousInt16
     returnStruct4BytesHomogeneousInt16CalculateResult() {
-  Struct4BytesHomogeneousInt16 result =
-      calloc<Struct4BytesHomogeneousInt16>().ref;
+  final resultPointer = calloc<Struct4BytesHomogeneousInt16>();
+  final result = resultPointer.ref;
 
   result.a0 = returnStruct4BytesHomogeneousInt16_a0;
   result.a1 = returnStruct4BytesHomogeneousInt16_a1;
 
-  returnStruct4BytesHomogeneousInt16Result = result;
+  returnStruct4BytesHomogeneousInt16ResultPointer = resultPointer;
 
   return result;
 }
@@ -5449,13 +5450,13 @@ Struct4BytesHomogeneousInt16 returnStruct4BytesHomogeneousInt16(
 }
 
 void returnStruct4BytesHomogeneousInt16AfterCallback() {
-  calloc.free(returnStruct4BytesHomogeneousInt16Result.addressOf);
+  calloc.free(returnStruct4BytesHomogeneousInt16ResultPointer);
 
   final result = returnStruct4BytesHomogeneousInt16CalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStruct4BytesHomogeneousInt16Result.addressOf);
+  calloc.free(returnStruct4BytesHomogeneousInt16ResultPointer);
 }
 
 typedef ReturnStruct7BytesHomogeneousUint8Type = Struct7BytesHomogeneousUint8
@@ -5471,13 +5472,13 @@ int returnStruct7BytesHomogeneousUint8_a5 = 0;
 int returnStruct7BytesHomogeneousUint8_a6 = 0;
 
 // Result variable also global, so we can delete it after the callback.
-Struct7BytesHomogeneousUint8 returnStruct7BytesHomogeneousUint8Result =
-    Struct7BytesHomogeneousUint8();
+Pointer<Struct7BytesHomogeneousUint8>
+    returnStruct7BytesHomogeneousUint8ResultPointer = nullptr;
 
 Struct7BytesHomogeneousUint8
     returnStruct7BytesHomogeneousUint8CalculateResult() {
-  Struct7BytesHomogeneousUint8 result =
-      calloc<Struct7BytesHomogeneousUint8>().ref;
+  final resultPointer = calloc<Struct7BytesHomogeneousUint8>();
+  final result = resultPointer.ref;
 
   result.a0 = returnStruct7BytesHomogeneousUint8_a0;
   result.a1 = returnStruct7BytesHomogeneousUint8_a1;
@@ -5487,7 +5488,7 @@ Struct7BytesHomogeneousUint8
   result.a5 = returnStruct7BytesHomogeneousUint8_a5;
   result.a6 = returnStruct7BytesHomogeneousUint8_a6;
 
-  returnStruct7BytesHomogeneousUint8Result = result;
+  returnStruct7BytesHomogeneousUint8ResultPointer = resultPointer;
 
   return result;
 }
@@ -5522,13 +5523,13 @@ Struct7BytesHomogeneousUint8 returnStruct7BytesHomogeneousUint8(
 }
 
 void returnStruct7BytesHomogeneousUint8AfterCallback() {
-  calloc.free(returnStruct7BytesHomogeneousUint8Result.addressOf);
+  calloc.free(returnStruct7BytesHomogeneousUint8ResultPointer);
 
   final result = returnStruct7BytesHomogeneousUint8CalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStruct7BytesHomogeneousUint8Result.addressOf);
+  calloc.free(returnStruct7BytesHomogeneousUint8ResultPointer);
 }
 
 typedef ReturnStruct7BytesInt4ByteAlignedType = Struct7BytesInt4ByteAligned
@@ -5540,18 +5541,18 @@ int returnStruct7BytesInt4ByteAligned_a1 = 0;
 int returnStruct7BytesInt4ByteAligned_a2 = 0;
 
 // Result variable also global, so we can delete it after the callback.
-Struct7BytesInt4ByteAligned returnStruct7BytesInt4ByteAlignedResult =
-    Struct7BytesInt4ByteAligned();
+Pointer<Struct7BytesInt4ByteAligned>
+    returnStruct7BytesInt4ByteAlignedResultPointer = nullptr;
 
 Struct7BytesInt4ByteAligned returnStruct7BytesInt4ByteAlignedCalculateResult() {
-  Struct7BytesInt4ByteAligned result =
-      calloc<Struct7BytesInt4ByteAligned>().ref;
+  final resultPointer = calloc<Struct7BytesInt4ByteAligned>();
+  final result = resultPointer.ref;
 
   result.a0 = returnStruct7BytesInt4ByteAligned_a0;
   result.a1 = returnStruct7BytesInt4ByteAligned_a1;
   result.a2 = returnStruct7BytesInt4ByteAligned_a2;
 
-  returnStruct7BytesInt4ByteAlignedResult = result;
+  returnStruct7BytesInt4ByteAlignedResultPointer = resultPointer;
 
   return result;
 }
@@ -5582,13 +5583,13 @@ Struct7BytesInt4ByteAligned returnStruct7BytesInt4ByteAligned(
 }
 
 void returnStruct7BytesInt4ByteAlignedAfterCallback() {
-  calloc.free(returnStruct7BytesInt4ByteAlignedResult.addressOf);
+  calloc.free(returnStruct7BytesInt4ByteAlignedResultPointer);
 
   final result = returnStruct7BytesInt4ByteAlignedCalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStruct7BytesInt4ByteAlignedResult.addressOf);
+  calloc.free(returnStruct7BytesInt4ByteAlignedResultPointer);
 }
 
 typedef ReturnStruct8BytesIntType = Struct8BytesInt Function(
@@ -5600,16 +5601,17 @@ int returnStruct8BytesInt_a1 = 0;
 int returnStruct8BytesInt_a2 = 0;
 
 // Result variable also global, so we can delete it after the callback.
-Struct8BytesInt returnStruct8BytesIntResult = Struct8BytesInt();
+Pointer<Struct8BytesInt> returnStruct8BytesIntResultPointer = nullptr;
 
 Struct8BytesInt returnStruct8BytesIntCalculateResult() {
-  Struct8BytesInt result = calloc<Struct8BytesInt>().ref;
+  final resultPointer = calloc<Struct8BytesInt>();
+  final result = resultPointer.ref;
 
   result.a0 = returnStruct8BytesInt_a0;
   result.a1 = returnStruct8BytesInt_a1;
   result.a2 = returnStruct8BytesInt_a2;
 
-  returnStruct8BytesIntResult = result;
+  returnStruct8BytesIntResultPointer = resultPointer;
 
   return result;
 }
@@ -5638,13 +5640,13 @@ Struct8BytesInt returnStruct8BytesInt(int a0, int a1, int a2) {
 }
 
 void returnStruct8BytesIntAfterCallback() {
-  calloc.free(returnStruct8BytesIntResult.addressOf);
+  calloc.free(returnStruct8BytesIntResultPointer);
 
   final result = returnStruct8BytesIntCalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStruct8BytesIntResult.addressOf);
+  calloc.free(returnStruct8BytesIntResultPointer);
 }
 
 typedef ReturnStruct8BytesHomogeneousFloatType = Struct8BytesHomogeneousFloat
@@ -5655,18 +5657,18 @@ double returnStruct8BytesHomogeneousFloat_a0 = 0.0;
 double returnStruct8BytesHomogeneousFloat_a1 = 0.0;
 
 // Result variable also global, so we can delete it after the callback.
-Struct8BytesHomogeneousFloat returnStruct8BytesHomogeneousFloatResult =
-    Struct8BytesHomogeneousFloat();
+Pointer<Struct8BytesHomogeneousFloat>
+    returnStruct8BytesHomogeneousFloatResultPointer = nullptr;
 
 Struct8BytesHomogeneousFloat
     returnStruct8BytesHomogeneousFloatCalculateResult() {
-  Struct8BytesHomogeneousFloat result =
-      calloc<Struct8BytesHomogeneousFloat>().ref;
+  final resultPointer = calloc<Struct8BytesHomogeneousFloat>();
+  final result = resultPointer.ref;
 
   result.a0 = returnStruct8BytesHomogeneousFloat_a0;
   result.a1 = returnStruct8BytesHomogeneousFloat_a1;
 
-  returnStruct8BytesHomogeneousFloatResult = result;
+  returnStruct8BytesHomogeneousFloatResultPointer = resultPointer;
 
   return result;
 }
@@ -5695,13 +5697,13 @@ Struct8BytesHomogeneousFloat returnStruct8BytesHomogeneousFloat(
 }
 
 void returnStruct8BytesHomogeneousFloatAfterCallback() {
-  calloc.free(returnStruct8BytesHomogeneousFloatResult.addressOf);
+  calloc.free(returnStruct8BytesHomogeneousFloatResultPointer);
 
   final result = returnStruct8BytesHomogeneousFloatCalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStruct8BytesHomogeneousFloatResult.addressOf);
+  calloc.free(returnStruct8BytesHomogeneousFloatResultPointer);
 }
 
 typedef ReturnStruct8BytesMixedType = Struct8BytesMixed Function(
@@ -5713,16 +5715,17 @@ int returnStruct8BytesMixed_a1 = 0;
 int returnStruct8BytesMixed_a2 = 0;
 
 // Result variable also global, so we can delete it after the callback.
-Struct8BytesMixed returnStruct8BytesMixedResult = Struct8BytesMixed();
+Pointer<Struct8BytesMixed> returnStruct8BytesMixedResultPointer = nullptr;
 
 Struct8BytesMixed returnStruct8BytesMixedCalculateResult() {
-  Struct8BytesMixed result = calloc<Struct8BytesMixed>().ref;
+  final resultPointer = calloc<Struct8BytesMixed>();
+  final result = resultPointer.ref;
 
   result.a0 = returnStruct8BytesMixed_a0;
   result.a1 = returnStruct8BytesMixed_a1;
   result.a2 = returnStruct8BytesMixed_a2;
 
-  returnStruct8BytesMixedResult = result;
+  returnStruct8BytesMixedResultPointer = resultPointer;
 
   return result;
 }
@@ -5751,13 +5754,13 @@ Struct8BytesMixed returnStruct8BytesMixed(double a0, int a1, int a2) {
 }
 
 void returnStruct8BytesMixedAfterCallback() {
-  calloc.free(returnStruct8BytesMixedResult.addressOf);
+  calloc.free(returnStruct8BytesMixedResultPointer);
 
   final result = returnStruct8BytesMixedCalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStruct8BytesMixedResult.addressOf);
+  calloc.free(returnStruct8BytesMixedResultPointer);
 }
 
 typedef ReturnStruct9BytesHomogeneousUint8Type = Struct9BytesHomogeneousUint8
@@ -5775,13 +5778,13 @@ int returnStruct9BytesHomogeneousUint8_a7 = 0;
 int returnStruct9BytesHomogeneousUint8_a8 = 0;
 
 // Result variable also global, so we can delete it after the callback.
-Struct9BytesHomogeneousUint8 returnStruct9BytesHomogeneousUint8Result =
-    Struct9BytesHomogeneousUint8();
+Pointer<Struct9BytesHomogeneousUint8>
+    returnStruct9BytesHomogeneousUint8ResultPointer = nullptr;
 
 Struct9BytesHomogeneousUint8
     returnStruct9BytesHomogeneousUint8CalculateResult() {
-  Struct9BytesHomogeneousUint8 result =
-      calloc<Struct9BytesHomogeneousUint8>().ref;
+  final resultPointer = calloc<Struct9BytesHomogeneousUint8>();
+  final result = resultPointer.ref;
 
   result.a0 = returnStruct9BytesHomogeneousUint8_a0;
   result.a1 = returnStruct9BytesHomogeneousUint8_a1;
@@ -5793,7 +5796,7 @@ Struct9BytesHomogeneousUint8
   result.a7 = returnStruct9BytesHomogeneousUint8_a7;
   result.a8 = returnStruct9BytesHomogeneousUint8_a8;
 
-  returnStruct9BytesHomogeneousUint8Result = result;
+  returnStruct9BytesHomogeneousUint8ResultPointer = resultPointer;
 
   return result;
 }
@@ -5832,13 +5835,13 @@ Struct9BytesHomogeneousUint8 returnStruct9BytesHomogeneousUint8(
 }
 
 void returnStruct9BytesHomogeneousUint8AfterCallback() {
-  calloc.free(returnStruct9BytesHomogeneousUint8Result.addressOf);
+  calloc.free(returnStruct9BytesHomogeneousUint8ResultPointer);
 
   final result = returnStruct9BytesHomogeneousUint8CalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStruct9BytesHomogeneousUint8Result.addressOf);
+  calloc.free(returnStruct9BytesHomogeneousUint8ResultPointer);
 }
 
 typedef ReturnStruct9BytesInt4Or8ByteAlignedType
@@ -5849,18 +5852,18 @@ int returnStruct9BytesInt4Or8ByteAligned_a0 = 0;
 int returnStruct9BytesInt4Or8ByteAligned_a1 = 0;
 
 // Result variable also global, so we can delete it after the callback.
-Struct9BytesInt4Or8ByteAligned returnStruct9BytesInt4Or8ByteAlignedResult =
-    Struct9BytesInt4Or8ByteAligned();
+Pointer<Struct9BytesInt4Or8ByteAligned>
+    returnStruct9BytesInt4Or8ByteAlignedResultPointer = nullptr;
 
 Struct9BytesInt4Or8ByteAligned
     returnStruct9BytesInt4Or8ByteAlignedCalculateResult() {
-  Struct9BytesInt4Or8ByteAligned result =
-      calloc<Struct9BytesInt4Or8ByteAligned>().ref;
+  final resultPointer = calloc<Struct9BytesInt4Or8ByteAligned>();
+  final result = resultPointer.ref;
 
   result.a0 = returnStruct9BytesInt4Or8ByteAligned_a0;
   result.a1 = returnStruct9BytesInt4Or8ByteAligned_a1;
 
-  returnStruct9BytesInt4Or8ByteAlignedResult = result;
+  returnStruct9BytesInt4Or8ByteAlignedResultPointer = resultPointer;
 
   return result;
 }
@@ -5891,13 +5894,13 @@ Struct9BytesInt4Or8ByteAligned returnStruct9BytesInt4Or8ByteAligned(
 }
 
 void returnStruct9BytesInt4Or8ByteAlignedAfterCallback() {
-  calloc.free(returnStruct9BytesInt4Or8ByteAlignedResult.addressOf);
+  calloc.free(returnStruct9BytesInt4Or8ByteAlignedResultPointer);
 
   final result = returnStruct9BytesInt4Or8ByteAlignedCalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStruct9BytesInt4Or8ByteAlignedResult.addressOf);
+  calloc.free(returnStruct9BytesInt4Or8ByteAlignedResultPointer);
 }
 
 typedef ReturnStruct12BytesHomogeneousFloatType = Struct12BytesHomogeneousFloat
@@ -5909,19 +5912,19 @@ double returnStruct12BytesHomogeneousFloat_a1 = 0.0;
 double returnStruct12BytesHomogeneousFloat_a2 = 0.0;
 
 // Result variable also global, so we can delete it after the callback.
-Struct12BytesHomogeneousFloat returnStruct12BytesHomogeneousFloatResult =
-    Struct12BytesHomogeneousFloat();
+Pointer<Struct12BytesHomogeneousFloat>
+    returnStruct12BytesHomogeneousFloatResultPointer = nullptr;
 
 Struct12BytesHomogeneousFloat
     returnStruct12BytesHomogeneousFloatCalculateResult() {
-  Struct12BytesHomogeneousFloat result =
-      calloc<Struct12BytesHomogeneousFloat>().ref;
+  final resultPointer = calloc<Struct12BytesHomogeneousFloat>();
+  final result = resultPointer.ref;
 
   result.a0 = returnStruct12BytesHomogeneousFloat_a0;
   result.a1 = returnStruct12BytesHomogeneousFloat_a1;
   result.a2 = returnStruct12BytesHomogeneousFloat_a2;
 
-  returnStruct12BytesHomogeneousFloatResult = result;
+  returnStruct12BytesHomogeneousFloatResultPointer = resultPointer;
 
   return result;
 }
@@ -5952,13 +5955,13 @@ Struct12BytesHomogeneousFloat returnStruct12BytesHomogeneousFloat(
 }
 
 void returnStruct12BytesHomogeneousFloatAfterCallback() {
-  calloc.free(returnStruct12BytesHomogeneousFloatResult.addressOf);
+  calloc.free(returnStruct12BytesHomogeneousFloatResultPointer);
 
   final result = returnStruct12BytesHomogeneousFloatCalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStruct12BytesHomogeneousFloatResult.addressOf);
+  calloc.free(returnStruct12BytesHomogeneousFloatResultPointer);
 }
 
 typedef ReturnStruct16BytesHomogeneousFloatType = Struct16BytesHomogeneousFloat
@@ -5971,20 +5974,20 @@ double returnStruct16BytesHomogeneousFloat_a2 = 0.0;
 double returnStruct16BytesHomogeneousFloat_a3 = 0.0;
 
 // Result variable also global, so we can delete it after the callback.
-Struct16BytesHomogeneousFloat returnStruct16BytesHomogeneousFloatResult =
-    Struct16BytesHomogeneousFloat();
+Pointer<Struct16BytesHomogeneousFloat>
+    returnStruct16BytesHomogeneousFloatResultPointer = nullptr;
 
 Struct16BytesHomogeneousFloat
     returnStruct16BytesHomogeneousFloatCalculateResult() {
-  Struct16BytesHomogeneousFloat result =
-      calloc<Struct16BytesHomogeneousFloat>().ref;
+  final resultPointer = calloc<Struct16BytesHomogeneousFloat>();
+  final result = resultPointer.ref;
 
   result.a0 = returnStruct16BytesHomogeneousFloat_a0;
   result.a1 = returnStruct16BytesHomogeneousFloat_a1;
   result.a2 = returnStruct16BytesHomogeneousFloat_a2;
   result.a3 = returnStruct16BytesHomogeneousFloat_a3;
 
-  returnStruct16BytesHomogeneousFloatResult = result;
+  returnStruct16BytesHomogeneousFloatResultPointer = resultPointer;
 
   return result;
 }
@@ -6015,13 +6018,13 @@ Struct16BytesHomogeneousFloat returnStruct16BytesHomogeneousFloat(
 }
 
 void returnStruct16BytesHomogeneousFloatAfterCallback() {
-  calloc.free(returnStruct16BytesHomogeneousFloatResult.addressOf);
+  calloc.free(returnStruct16BytesHomogeneousFloatResultPointer);
 
   final result = returnStruct16BytesHomogeneousFloatCalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStruct16BytesHomogeneousFloatResult.addressOf);
+  calloc.free(returnStruct16BytesHomogeneousFloatResultPointer);
 }
 
 typedef ReturnStruct16BytesMixedType = Struct16BytesMixed Function(
@@ -6032,15 +6035,16 @@ double returnStruct16BytesMixed_a0 = 0.0;
 int returnStruct16BytesMixed_a1 = 0;
 
 // Result variable also global, so we can delete it after the callback.
-Struct16BytesMixed returnStruct16BytesMixedResult = Struct16BytesMixed();
+Pointer<Struct16BytesMixed> returnStruct16BytesMixedResultPointer = nullptr;
 
 Struct16BytesMixed returnStruct16BytesMixedCalculateResult() {
-  Struct16BytesMixed result = calloc<Struct16BytesMixed>().ref;
+  final resultPointer = calloc<Struct16BytesMixed>();
+  final result = resultPointer.ref;
 
   result.a0 = returnStruct16BytesMixed_a0;
   result.a1 = returnStruct16BytesMixed_a1;
 
-  returnStruct16BytesMixedResult = result;
+  returnStruct16BytesMixedResultPointer = resultPointer;
 
   return result;
 }
@@ -6068,13 +6072,13 @@ Struct16BytesMixed returnStruct16BytesMixed(double a0, int a1) {
 }
 
 void returnStruct16BytesMixedAfterCallback() {
-  calloc.free(returnStruct16BytesMixedResult.addressOf);
+  calloc.free(returnStruct16BytesMixedResultPointer);
 
   final result = returnStruct16BytesMixedCalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStruct16BytesMixedResult.addressOf);
+  calloc.free(returnStruct16BytesMixedResultPointer);
 }
 
 typedef ReturnStruct16BytesMixed2Type = Struct16BytesMixed2 Function(
@@ -6087,17 +6091,18 @@ double returnStruct16BytesMixed2_a2 = 0.0;
 int returnStruct16BytesMixed2_a3 = 0;
 
 // Result variable also global, so we can delete it after the callback.
-Struct16BytesMixed2 returnStruct16BytesMixed2Result = Struct16BytesMixed2();
+Pointer<Struct16BytesMixed2> returnStruct16BytesMixed2ResultPointer = nullptr;
 
 Struct16BytesMixed2 returnStruct16BytesMixed2CalculateResult() {
-  Struct16BytesMixed2 result = calloc<Struct16BytesMixed2>().ref;
+  final resultPointer = calloc<Struct16BytesMixed2>();
+  final result = resultPointer.ref;
 
   result.a0 = returnStruct16BytesMixed2_a0;
   result.a1 = returnStruct16BytesMixed2_a1;
   result.a2 = returnStruct16BytesMixed2_a2;
   result.a3 = returnStruct16BytesMixed2_a3;
 
-  returnStruct16BytesMixed2Result = result;
+  returnStruct16BytesMixed2ResultPointer = resultPointer;
 
   return result;
 }
@@ -6129,13 +6134,13 @@ Struct16BytesMixed2 returnStruct16BytesMixed2(
 }
 
 void returnStruct16BytesMixed2AfterCallback() {
-  calloc.free(returnStruct16BytesMixed2Result.addressOf);
+  calloc.free(returnStruct16BytesMixed2ResultPointer);
 
   final result = returnStruct16BytesMixed2CalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStruct16BytesMixed2Result.addressOf);
+  calloc.free(returnStruct16BytesMixed2ResultPointer);
 }
 
 typedef ReturnStruct17BytesIntType = Struct17BytesInt Function(
@@ -6147,16 +6152,17 @@ int returnStruct17BytesInt_a1 = 0;
 int returnStruct17BytesInt_a2 = 0;
 
 // Result variable also global, so we can delete it after the callback.
-Struct17BytesInt returnStruct17BytesIntResult = Struct17BytesInt();
+Pointer<Struct17BytesInt> returnStruct17BytesIntResultPointer = nullptr;
 
 Struct17BytesInt returnStruct17BytesIntCalculateResult() {
-  Struct17BytesInt result = calloc<Struct17BytesInt>().ref;
+  final resultPointer = calloc<Struct17BytesInt>();
+  final result = resultPointer.ref;
 
   result.a0 = returnStruct17BytesInt_a0;
   result.a1 = returnStruct17BytesInt_a1;
   result.a2 = returnStruct17BytesInt_a2;
 
-  returnStruct17BytesIntResult = result;
+  returnStruct17BytesIntResultPointer = resultPointer;
 
   return result;
 }
@@ -6187,13 +6193,13 @@ Struct17BytesInt returnStruct17BytesInt(int a0, int a1, int a2) {
 }
 
 void returnStruct17BytesIntAfterCallback() {
-  calloc.free(returnStruct17BytesIntResult.addressOf);
+  calloc.free(returnStruct17BytesIntResultPointer);
 
   final result = returnStruct17BytesIntCalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStruct17BytesIntResult.addressOf);
+  calloc.free(returnStruct17BytesIntResultPointer);
 }
 
 typedef ReturnStruct19BytesHomogeneousUint8Type
@@ -6240,13 +6246,13 @@ int returnStruct19BytesHomogeneousUint8_a17 = 0;
 int returnStruct19BytesHomogeneousUint8_a18 = 0;
 
 // Result variable also global, so we can delete it after the callback.
-Struct19BytesHomogeneousUint8 returnStruct19BytesHomogeneousUint8Result =
-    Struct19BytesHomogeneousUint8();
+Pointer<Struct19BytesHomogeneousUint8>
+    returnStruct19BytesHomogeneousUint8ResultPointer = nullptr;
 
 Struct19BytesHomogeneousUint8
     returnStruct19BytesHomogeneousUint8CalculateResult() {
-  Struct19BytesHomogeneousUint8 result =
-      calloc<Struct19BytesHomogeneousUint8>().ref;
+  final resultPointer = calloc<Struct19BytesHomogeneousUint8>();
+  final result = resultPointer.ref;
 
   result.a0 = returnStruct19BytesHomogeneousUint8_a0;
   result.a1 = returnStruct19BytesHomogeneousUint8_a1;
@@ -6268,7 +6274,7 @@ Struct19BytesHomogeneousUint8
   result.a17 = returnStruct19BytesHomogeneousUint8_a17;
   result.a18 = returnStruct19BytesHomogeneousUint8_a18;
 
-  returnStruct19BytesHomogeneousUint8Result = result;
+  returnStruct19BytesHomogeneousUint8ResultPointer = resultPointer;
 
   return result;
 }
@@ -6335,13 +6341,13 @@ Struct19BytesHomogeneousUint8 returnStruct19BytesHomogeneousUint8(
 }
 
 void returnStruct19BytesHomogeneousUint8AfterCallback() {
-  calloc.free(returnStruct19BytesHomogeneousUint8Result.addressOf);
+  calloc.free(returnStruct19BytesHomogeneousUint8ResultPointer);
 
   final result = returnStruct19BytesHomogeneousUint8CalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStruct19BytesHomogeneousUint8Result.addressOf);
+  calloc.free(returnStruct19BytesHomogeneousUint8ResultPointer);
 }
 
 typedef ReturnStruct20BytesHomogeneousInt32Type = Struct20BytesHomogeneousInt32
@@ -6355,13 +6361,13 @@ int returnStruct20BytesHomogeneousInt32_a3 = 0;
 int returnStruct20BytesHomogeneousInt32_a4 = 0;
 
 // Result variable also global, so we can delete it after the callback.
-Struct20BytesHomogeneousInt32 returnStruct20BytesHomogeneousInt32Result =
-    Struct20BytesHomogeneousInt32();
+Pointer<Struct20BytesHomogeneousInt32>
+    returnStruct20BytesHomogeneousInt32ResultPointer = nullptr;
 
 Struct20BytesHomogeneousInt32
     returnStruct20BytesHomogeneousInt32CalculateResult() {
-  Struct20BytesHomogeneousInt32 result =
-      calloc<Struct20BytesHomogeneousInt32>().ref;
+  final resultPointer = calloc<Struct20BytesHomogeneousInt32>();
+  final result = resultPointer.ref;
 
   result.a0 = returnStruct20BytesHomogeneousInt32_a0;
   result.a1 = returnStruct20BytesHomogeneousInt32_a1;
@@ -6369,7 +6375,7 @@ Struct20BytesHomogeneousInt32
   result.a3 = returnStruct20BytesHomogeneousInt32_a3;
   result.a4 = returnStruct20BytesHomogeneousInt32_a4;
 
-  returnStruct20BytesHomogeneousInt32Result = result;
+  returnStruct20BytesHomogeneousInt32ResultPointer = resultPointer;
 
   return result;
 }
@@ -6402,13 +6408,13 @@ Struct20BytesHomogeneousInt32 returnStruct20BytesHomogeneousInt32(
 }
 
 void returnStruct20BytesHomogeneousInt32AfterCallback() {
-  calloc.free(returnStruct20BytesHomogeneousInt32Result.addressOf);
+  calloc.free(returnStruct20BytesHomogeneousInt32ResultPointer);
 
   final result = returnStruct20BytesHomogeneousInt32CalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStruct20BytesHomogeneousInt32Result.addressOf);
+  calloc.free(returnStruct20BytesHomogeneousInt32ResultPointer);
 }
 
 typedef ReturnStruct20BytesHomogeneousFloatType = Struct20BytesHomogeneousFloat
@@ -6422,13 +6428,13 @@ double returnStruct20BytesHomogeneousFloat_a3 = 0.0;
 double returnStruct20BytesHomogeneousFloat_a4 = 0.0;
 
 // Result variable also global, so we can delete it after the callback.
-Struct20BytesHomogeneousFloat returnStruct20BytesHomogeneousFloatResult =
-    Struct20BytesHomogeneousFloat();
+Pointer<Struct20BytesHomogeneousFloat>
+    returnStruct20BytesHomogeneousFloatResultPointer = nullptr;
 
 Struct20BytesHomogeneousFloat
     returnStruct20BytesHomogeneousFloatCalculateResult() {
-  Struct20BytesHomogeneousFloat result =
-      calloc<Struct20BytesHomogeneousFloat>().ref;
+  final resultPointer = calloc<Struct20BytesHomogeneousFloat>();
+  final result = resultPointer.ref;
 
   result.a0 = returnStruct20BytesHomogeneousFloat_a0;
   result.a1 = returnStruct20BytesHomogeneousFloat_a1;
@@ -6436,7 +6442,7 @@ Struct20BytesHomogeneousFloat
   result.a3 = returnStruct20BytesHomogeneousFloat_a3;
   result.a4 = returnStruct20BytesHomogeneousFloat_a4;
 
-  returnStruct20BytesHomogeneousFloatResult = result;
+  returnStruct20BytesHomogeneousFloatResultPointer = resultPointer;
 
   return result;
 }
@@ -6469,13 +6475,13 @@ Struct20BytesHomogeneousFloat returnStruct20BytesHomogeneousFloat(
 }
 
 void returnStruct20BytesHomogeneousFloatAfterCallback() {
-  calloc.free(returnStruct20BytesHomogeneousFloatResult.addressOf);
+  calloc.free(returnStruct20BytesHomogeneousFloatResultPointer);
 
   final result = returnStruct20BytesHomogeneousFloatCalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStruct20BytesHomogeneousFloatResult.addressOf);
+  calloc.free(returnStruct20BytesHomogeneousFloatResultPointer);
 }
 
 typedef ReturnStruct32BytesHomogeneousDoubleType
@@ -6488,20 +6494,20 @@ double returnStruct32BytesHomogeneousDouble_a2 = 0.0;
 double returnStruct32BytesHomogeneousDouble_a3 = 0.0;
 
 // Result variable also global, so we can delete it after the callback.
-Struct32BytesHomogeneousDouble returnStruct32BytesHomogeneousDoubleResult =
-    Struct32BytesHomogeneousDouble();
+Pointer<Struct32BytesHomogeneousDouble>
+    returnStruct32BytesHomogeneousDoubleResultPointer = nullptr;
 
 Struct32BytesHomogeneousDouble
     returnStruct32BytesHomogeneousDoubleCalculateResult() {
-  Struct32BytesHomogeneousDouble result =
-      calloc<Struct32BytesHomogeneousDouble>().ref;
+  final resultPointer = calloc<Struct32BytesHomogeneousDouble>();
+  final result = resultPointer.ref;
 
   result.a0 = returnStruct32BytesHomogeneousDouble_a0;
   result.a1 = returnStruct32BytesHomogeneousDouble_a1;
   result.a2 = returnStruct32BytesHomogeneousDouble_a2;
   result.a3 = returnStruct32BytesHomogeneousDouble_a3;
 
-  returnStruct32BytesHomogeneousDoubleResult = result;
+  returnStruct32BytesHomogeneousDoubleResultPointer = resultPointer;
 
   return result;
 }
@@ -6533,13 +6539,13 @@ Struct32BytesHomogeneousDouble returnStruct32BytesHomogeneousDouble(
 }
 
 void returnStruct32BytesHomogeneousDoubleAfterCallback() {
-  calloc.free(returnStruct32BytesHomogeneousDoubleResult.addressOf);
+  calloc.free(returnStruct32BytesHomogeneousDoubleResultPointer);
 
   final result = returnStruct32BytesHomogeneousDoubleCalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStruct32BytesHomogeneousDoubleResult.addressOf);
+  calloc.free(returnStruct32BytesHomogeneousDoubleResultPointer);
 }
 
 typedef ReturnStruct40BytesHomogeneousDoubleType
@@ -6554,13 +6560,13 @@ double returnStruct40BytesHomogeneousDouble_a3 = 0.0;
 double returnStruct40BytesHomogeneousDouble_a4 = 0.0;
 
 // Result variable also global, so we can delete it after the callback.
-Struct40BytesHomogeneousDouble returnStruct40BytesHomogeneousDoubleResult =
-    Struct40BytesHomogeneousDouble();
+Pointer<Struct40BytesHomogeneousDouble>
+    returnStruct40BytesHomogeneousDoubleResultPointer = nullptr;
 
 Struct40BytesHomogeneousDouble
     returnStruct40BytesHomogeneousDoubleCalculateResult() {
-  Struct40BytesHomogeneousDouble result =
-      calloc<Struct40BytesHomogeneousDouble>().ref;
+  final resultPointer = calloc<Struct40BytesHomogeneousDouble>();
+  final result = resultPointer.ref;
 
   result.a0 = returnStruct40BytesHomogeneousDouble_a0;
   result.a1 = returnStruct40BytesHomogeneousDouble_a1;
@@ -6568,7 +6574,7 @@ Struct40BytesHomogeneousDouble
   result.a3 = returnStruct40BytesHomogeneousDouble_a3;
   result.a4 = returnStruct40BytesHomogeneousDouble_a4;
 
-  returnStruct40BytesHomogeneousDoubleResult = result;
+  returnStruct40BytesHomogeneousDoubleResultPointer = resultPointer;
 
   return result;
 }
@@ -6602,13 +6608,13 @@ Struct40BytesHomogeneousDouble returnStruct40BytesHomogeneousDouble(
 }
 
 void returnStruct40BytesHomogeneousDoubleAfterCallback() {
-  calloc.free(returnStruct40BytesHomogeneousDoubleResult.addressOf);
+  calloc.free(returnStruct40BytesHomogeneousDoubleResultPointer);
 
   final result = returnStruct40BytesHomogeneousDoubleCalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStruct40BytesHomogeneousDoubleResult.addressOf);
+  calloc.free(returnStruct40BytesHomogeneousDoubleResultPointer);
 }
 
 typedef ReturnStruct1024BytesHomogeneousUint64Type
@@ -6873,13 +6879,13 @@ int returnStruct1024BytesHomogeneousUint64_a126 = 0;
 int returnStruct1024BytesHomogeneousUint64_a127 = 0;
 
 // Result variable also global, so we can delete it after the callback.
-Struct1024BytesHomogeneousUint64 returnStruct1024BytesHomogeneousUint64Result =
-    Struct1024BytesHomogeneousUint64();
+Pointer<Struct1024BytesHomogeneousUint64>
+    returnStruct1024BytesHomogeneousUint64ResultPointer = nullptr;
 
 Struct1024BytesHomogeneousUint64
     returnStruct1024BytesHomogeneousUint64CalculateResult() {
-  Struct1024BytesHomogeneousUint64 result =
-      calloc<Struct1024BytesHomogeneousUint64>().ref;
+  final resultPointer = calloc<Struct1024BytesHomogeneousUint64>();
+  final result = resultPointer.ref;
 
   result.a0 = returnStruct1024BytesHomogeneousUint64_a0;
   result.a1 = returnStruct1024BytesHomogeneousUint64_a1;
@@ -7010,7 +7016,7 @@ Struct1024BytesHomogeneousUint64
   result.a126 = returnStruct1024BytesHomogeneousUint64_a126;
   result.a127 = returnStruct1024BytesHomogeneousUint64_a127;
 
-  returnStruct1024BytesHomogeneousUint64Result = result;
+  returnStruct1024BytesHomogeneousUint64ResultPointer = resultPointer;
 
   return result;
 }
@@ -7294,13 +7300,13 @@ Struct1024BytesHomogeneousUint64 returnStruct1024BytesHomogeneousUint64(
 }
 
 void returnStruct1024BytesHomogeneousUint64AfterCallback() {
-  calloc.free(returnStruct1024BytesHomogeneousUint64Result.addressOf);
+  calloc.free(returnStruct1024BytesHomogeneousUint64ResultPointer);
 
   final result = returnStruct1024BytesHomogeneousUint64CalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStruct1024BytesHomogeneousUint64Result.addressOf);
+  calloc.free(returnStruct1024BytesHomogeneousUint64ResultPointer);
 }
 
 typedef ReturnStructArgumentStruct1ByteIntType = Struct1ByteInt Function(
@@ -7616,16 +7622,17 @@ int returnStructAlignmentInt16_a1 = 0;
 int returnStructAlignmentInt16_a2 = 0;
 
 // Result variable also global, so we can delete it after the callback.
-StructAlignmentInt16 returnStructAlignmentInt16Result = StructAlignmentInt16();
+Pointer<StructAlignmentInt16> returnStructAlignmentInt16ResultPointer = nullptr;
 
 StructAlignmentInt16 returnStructAlignmentInt16CalculateResult() {
-  StructAlignmentInt16 result = calloc<StructAlignmentInt16>().ref;
+  final resultPointer = calloc<StructAlignmentInt16>();
+  final result = resultPointer.ref;
 
   result.a0 = returnStructAlignmentInt16_a0;
   result.a1 = returnStructAlignmentInt16_a1;
   result.a2 = returnStructAlignmentInt16_a2;
 
-  returnStructAlignmentInt16Result = result;
+  returnStructAlignmentInt16ResultPointer = resultPointer;
 
   return result;
 }
@@ -7654,13 +7661,13 @@ StructAlignmentInt16 returnStructAlignmentInt16(int a0, int a1, int a2) {
 }
 
 void returnStructAlignmentInt16AfterCallback() {
-  calloc.free(returnStructAlignmentInt16Result.addressOf);
+  calloc.free(returnStructAlignmentInt16ResultPointer);
 
   final result = returnStructAlignmentInt16CalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStructAlignmentInt16Result.addressOf);
+  calloc.free(returnStructAlignmentInt16ResultPointer);
 }
 
 typedef ReturnStructAlignmentInt32Type = StructAlignmentInt32 Function(
@@ -7672,16 +7679,17 @@ int returnStructAlignmentInt32_a1 = 0;
 int returnStructAlignmentInt32_a2 = 0;
 
 // Result variable also global, so we can delete it after the callback.
-StructAlignmentInt32 returnStructAlignmentInt32Result = StructAlignmentInt32();
+Pointer<StructAlignmentInt32> returnStructAlignmentInt32ResultPointer = nullptr;
 
 StructAlignmentInt32 returnStructAlignmentInt32CalculateResult() {
-  StructAlignmentInt32 result = calloc<StructAlignmentInt32>().ref;
+  final resultPointer = calloc<StructAlignmentInt32>();
+  final result = resultPointer.ref;
 
   result.a0 = returnStructAlignmentInt32_a0;
   result.a1 = returnStructAlignmentInt32_a1;
   result.a2 = returnStructAlignmentInt32_a2;
 
-  returnStructAlignmentInt32Result = result;
+  returnStructAlignmentInt32ResultPointer = resultPointer;
 
   return result;
 }
@@ -7710,13 +7718,13 @@ StructAlignmentInt32 returnStructAlignmentInt32(int a0, int a1, int a2) {
 }
 
 void returnStructAlignmentInt32AfterCallback() {
-  calloc.free(returnStructAlignmentInt32Result.addressOf);
+  calloc.free(returnStructAlignmentInt32ResultPointer);
 
   final result = returnStructAlignmentInt32CalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStructAlignmentInt32Result.addressOf);
+  calloc.free(returnStructAlignmentInt32ResultPointer);
 }
 
 typedef ReturnStructAlignmentInt64Type = StructAlignmentInt64 Function(
@@ -7728,16 +7736,17 @@ int returnStructAlignmentInt64_a1 = 0;
 int returnStructAlignmentInt64_a2 = 0;
 
 // Result variable also global, so we can delete it after the callback.
-StructAlignmentInt64 returnStructAlignmentInt64Result = StructAlignmentInt64();
+Pointer<StructAlignmentInt64> returnStructAlignmentInt64ResultPointer = nullptr;
 
 StructAlignmentInt64 returnStructAlignmentInt64CalculateResult() {
-  StructAlignmentInt64 result = calloc<StructAlignmentInt64>().ref;
+  final resultPointer = calloc<StructAlignmentInt64>();
+  final result = resultPointer.ref;
 
   result.a0 = returnStructAlignmentInt64_a0;
   result.a1 = returnStructAlignmentInt64_a1;
   result.a2 = returnStructAlignmentInt64_a2;
 
-  returnStructAlignmentInt64Result = result;
+  returnStructAlignmentInt64ResultPointer = resultPointer;
 
   return result;
 }
@@ -7766,13 +7775,13 @@ StructAlignmentInt64 returnStructAlignmentInt64(int a0, int a1, int a2) {
 }
 
 void returnStructAlignmentInt64AfterCallback() {
-  calloc.free(returnStructAlignmentInt64Result.addressOf);
+  calloc.free(returnStructAlignmentInt64ResultPointer);
 
   final result = returnStructAlignmentInt64CalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStructAlignmentInt64Result.addressOf);
+  calloc.free(returnStructAlignmentInt64ResultPointer);
 }
 
 typedef ReturnStruct8BytesNestedIntType = Struct8BytesNestedInt Function(
@@ -7785,18 +7794,19 @@ Struct4BytesHomogeneousInt16 returnStruct8BytesNestedInt_a1 =
     Struct4BytesHomogeneousInt16();
 
 // Result variable also global, so we can delete it after the callback.
-Struct8BytesNestedInt returnStruct8BytesNestedIntResult =
-    Struct8BytesNestedInt();
+Pointer<Struct8BytesNestedInt> returnStruct8BytesNestedIntResultPointer =
+    nullptr;
 
 Struct8BytesNestedInt returnStruct8BytesNestedIntCalculateResult() {
-  Struct8BytesNestedInt result = calloc<Struct8BytesNestedInt>().ref;
+  final resultPointer = calloc<Struct8BytesNestedInt>();
+  final result = resultPointer.ref;
 
   result.a0.a0 = returnStruct8BytesNestedInt_a0.a0;
   result.a0.a1 = returnStruct8BytesNestedInt_a0.a1;
   result.a1.a0 = returnStruct8BytesNestedInt_a1.a0;
   result.a1.a1 = returnStruct8BytesNestedInt_a1.a1;
 
-  returnStruct8BytesNestedIntResult = result;
+  returnStruct8BytesNestedIntResultPointer = resultPointer;
 
   return result;
 }
@@ -7825,13 +7835,13 @@ Struct8BytesNestedInt returnStruct8BytesNestedInt(
 }
 
 void returnStruct8BytesNestedIntAfterCallback() {
-  calloc.free(returnStruct8BytesNestedIntResult.addressOf);
+  calloc.free(returnStruct8BytesNestedIntResultPointer);
 
   final result = returnStruct8BytesNestedIntCalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStruct8BytesNestedIntResult.addressOf);
+  calloc.free(returnStruct8BytesNestedIntResultPointer);
 }
 
 typedef ReturnStruct8BytesNestedFloatType = Struct8BytesNestedFloat Function(
@@ -7842,16 +7852,17 @@ Struct4BytesFloat returnStruct8BytesNestedFloat_a0 = Struct4BytesFloat();
 Struct4BytesFloat returnStruct8BytesNestedFloat_a1 = Struct4BytesFloat();
 
 // Result variable also global, so we can delete it after the callback.
-Struct8BytesNestedFloat returnStruct8BytesNestedFloatResult =
-    Struct8BytesNestedFloat();
+Pointer<Struct8BytesNestedFloat> returnStruct8BytesNestedFloatResultPointer =
+    nullptr;
 
 Struct8BytesNestedFloat returnStruct8BytesNestedFloatCalculateResult() {
-  Struct8BytesNestedFloat result = calloc<Struct8BytesNestedFloat>().ref;
+  final resultPointer = calloc<Struct8BytesNestedFloat>();
+  final result = resultPointer.ref;
 
   result.a0.a0 = returnStruct8BytesNestedFloat_a0.a0;
   result.a1.a0 = returnStruct8BytesNestedFloat_a1.a0;
 
-  returnStruct8BytesNestedFloatResult = result;
+  returnStruct8BytesNestedFloatResultPointer = resultPointer;
 
   return result;
 }
@@ -7880,13 +7891,13 @@ Struct8BytesNestedFloat returnStruct8BytesNestedFloat(
 }
 
 void returnStruct8BytesNestedFloatAfterCallback() {
-  calloc.free(returnStruct8BytesNestedFloatResult.addressOf);
+  calloc.free(returnStruct8BytesNestedFloatResultPointer);
 
   final result = returnStruct8BytesNestedFloatCalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStruct8BytesNestedFloatResult.addressOf);
+  calloc.free(returnStruct8BytesNestedFloatResultPointer);
 }
 
 typedef ReturnStruct8BytesNestedFloat2Type = Struct8BytesNestedFloat2 Function(
@@ -7897,16 +7908,17 @@ Struct4BytesFloat returnStruct8BytesNestedFloat2_a0 = Struct4BytesFloat();
 double returnStruct8BytesNestedFloat2_a1 = 0.0;
 
 // Result variable also global, so we can delete it after the callback.
-Struct8BytesNestedFloat2 returnStruct8BytesNestedFloat2Result =
-    Struct8BytesNestedFloat2();
+Pointer<Struct8BytesNestedFloat2> returnStruct8BytesNestedFloat2ResultPointer =
+    nullptr;
 
 Struct8BytesNestedFloat2 returnStruct8BytesNestedFloat2CalculateResult() {
-  Struct8BytesNestedFloat2 result = calloc<Struct8BytesNestedFloat2>().ref;
+  final resultPointer = calloc<Struct8BytesNestedFloat2>();
+  final result = resultPointer.ref;
 
   result.a0.a0 = returnStruct8BytesNestedFloat2_a0.a0;
   result.a1 = returnStruct8BytesNestedFloat2_a1;
 
-  returnStruct8BytesNestedFloat2Result = result;
+  returnStruct8BytesNestedFloat2ResultPointer = resultPointer;
 
   return result;
 }
@@ -7936,13 +7948,13 @@ Struct8BytesNestedFloat2 returnStruct8BytesNestedFloat2(
 }
 
 void returnStruct8BytesNestedFloat2AfterCallback() {
-  calloc.free(returnStruct8BytesNestedFloat2Result.addressOf);
+  calloc.free(returnStruct8BytesNestedFloat2ResultPointer);
 
   final result = returnStruct8BytesNestedFloat2CalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStruct8BytesNestedFloat2Result.addressOf);
+  calloc.free(returnStruct8BytesNestedFloat2ResultPointer);
 }
 
 typedef ReturnStruct8BytesNestedMixedType = Struct8BytesNestedMixed Function(
@@ -7954,17 +7966,18 @@ Struct4BytesHomogeneousInt16 returnStruct8BytesNestedMixed_a0 =
 Struct4BytesFloat returnStruct8BytesNestedMixed_a1 = Struct4BytesFloat();
 
 // Result variable also global, so we can delete it after the callback.
-Struct8BytesNestedMixed returnStruct8BytesNestedMixedResult =
-    Struct8BytesNestedMixed();
+Pointer<Struct8BytesNestedMixed> returnStruct8BytesNestedMixedResultPointer =
+    nullptr;
 
 Struct8BytesNestedMixed returnStruct8BytesNestedMixedCalculateResult() {
-  Struct8BytesNestedMixed result = calloc<Struct8BytesNestedMixed>().ref;
+  final resultPointer = calloc<Struct8BytesNestedMixed>();
+  final result = resultPointer.ref;
 
   result.a0.a0 = returnStruct8BytesNestedMixed_a0.a0;
   result.a0.a1 = returnStruct8BytesNestedMixed_a0.a1;
   result.a1.a0 = returnStruct8BytesNestedMixed_a1.a0;
 
-  returnStruct8BytesNestedMixedResult = result;
+  returnStruct8BytesNestedMixedResultPointer = resultPointer;
 
   return result;
 }
@@ -7993,13 +8006,13 @@ Struct8BytesNestedMixed returnStruct8BytesNestedMixed(
 }
 
 void returnStruct8BytesNestedMixedAfterCallback() {
-  calloc.free(returnStruct8BytesNestedMixedResult.addressOf);
+  calloc.free(returnStruct8BytesNestedMixedResultPointer);
 
   final result = returnStruct8BytesNestedMixedCalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStruct8BytesNestedMixedResult.addressOf);
+  calloc.free(returnStruct8BytesNestedMixedResultPointer);
 }
 
 typedef ReturnStruct16BytesNestedIntType = Struct16BytesNestedInt Function(
@@ -8010,11 +8023,12 @@ Struct8BytesNestedInt returnStruct16BytesNestedInt_a0 = Struct8BytesNestedInt();
 Struct8BytesNestedInt returnStruct16BytesNestedInt_a1 = Struct8BytesNestedInt();
 
 // Result variable also global, so we can delete it after the callback.
-Struct16BytesNestedInt returnStruct16BytesNestedIntResult =
-    Struct16BytesNestedInt();
+Pointer<Struct16BytesNestedInt> returnStruct16BytesNestedIntResultPointer =
+    nullptr;
 
 Struct16BytesNestedInt returnStruct16BytesNestedIntCalculateResult() {
-  Struct16BytesNestedInt result = calloc<Struct16BytesNestedInt>().ref;
+  final resultPointer = calloc<Struct16BytesNestedInt>();
+  final result = resultPointer.ref;
 
   result.a0.a0.a0 = returnStruct16BytesNestedInt_a0.a0.a0;
   result.a0.a0.a1 = returnStruct16BytesNestedInt_a0.a0.a1;
@@ -8025,7 +8039,7 @@ Struct16BytesNestedInt returnStruct16BytesNestedIntCalculateResult() {
   result.a1.a1.a0 = returnStruct16BytesNestedInt_a1.a1.a0;
   result.a1.a1.a1 = returnStruct16BytesNestedInt_a1.a1.a1;
 
-  returnStruct16BytesNestedIntResult = result;
+  returnStruct16BytesNestedIntResultPointer = resultPointer;
 
   return result;
 }
@@ -8054,13 +8068,13 @@ Struct16BytesNestedInt returnStruct16BytesNestedInt(
 }
 
 void returnStruct16BytesNestedIntAfterCallback() {
-  calloc.free(returnStruct16BytesNestedIntResult.addressOf);
+  calloc.free(returnStruct16BytesNestedIntResultPointer);
 
   final result = returnStruct16BytesNestedIntCalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStruct16BytesNestedIntResult.addressOf);
+  calloc.free(returnStruct16BytesNestedIntResultPointer);
 }
 
 typedef ReturnStruct32BytesNestedIntType = Struct32BytesNestedInt Function(
@@ -8073,11 +8087,12 @@ Struct16BytesNestedInt returnStruct32BytesNestedInt_a1 =
     Struct16BytesNestedInt();
 
 // Result variable also global, so we can delete it after the callback.
-Struct32BytesNestedInt returnStruct32BytesNestedIntResult =
-    Struct32BytesNestedInt();
+Pointer<Struct32BytesNestedInt> returnStruct32BytesNestedIntResultPointer =
+    nullptr;
 
 Struct32BytesNestedInt returnStruct32BytesNestedIntCalculateResult() {
-  Struct32BytesNestedInt result = calloc<Struct32BytesNestedInt>().ref;
+  final resultPointer = calloc<Struct32BytesNestedInt>();
+  final result = resultPointer.ref;
 
   result.a0.a0.a0.a0 = returnStruct32BytesNestedInt_a0.a0.a0.a0;
   result.a0.a0.a0.a1 = returnStruct32BytesNestedInt_a0.a0.a0.a1;
@@ -8096,7 +8111,7 @@ Struct32BytesNestedInt returnStruct32BytesNestedIntCalculateResult() {
   result.a1.a1.a1.a0 = returnStruct32BytesNestedInt_a1.a1.a1.a0;
   result.a1.a1.a1.a1 = returnStruct32BytesNestedInt_a1.a1.a1.a1;
 
-  returnStruct32BytesNestedIntResult = result;
+  returnStruct32BytesNestedIntResultPointer = resultPointer;
 
   return result;
 }
@@ -8125,13 +8140,13 @@ Struct32BytesNestedInt returnStruct32BytesNestedInt(
 }
 
 void returnStruct32BytesNestedIntAfterCallback() {
-  calloc.free(returnStruct32BytesNestedIntResult.addressOf);
+  calloc.free(returnStruct32BytesNestedIntResultPointer);
 
   final result = returnStruct32BytesNestedIntCalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStruct32BytesNestedIntResult.addressOf);
+  calloc.free(returnStruct32BytesNestedIntResultPointer);
 }
 
 typedef ReturnStructNestedIntStructAlignmentInt16Type
@@ -8145,14 +8160,13 @@ StructAlignmentInt16 returnStructNestedIntStructAlignmentInt16_a1 =
     StructAlignmentInt16();
 
 // Result variable also global, so we can delete it after the callback.
-StructNestedIntStructAlignmentInt16
-    returnStructNestedIntStructAlignmentInt16Result =
-    StructNestedIntStructAlignmentInt16();
+Pointer<StructNestedIntStructAlignmentInt16>
+    returnStructNestedIntStructAlignmentInt16ResultPointer = nullptr;
 
 StructNestedIntStructAlignmentInt16
     returnStructNestedIntStructAlignmentInt16CalculateResult() {
-  StructNestedIntStructAlignmentInt16 result =
-      calloc<StructNestedIntStructAlignmentInt16>().ref;
+  final resultPointer = calloc<StructNestedIntStructAlignmentInt16>();
+  final result = resultPointer.ref;
 
   result.a0.a0 = returnStructNestedIntStructAlignmentInt16_a0.a0;
   result.a0.a1 = returnStructNestedIntStructAlignmentInt16_a0.a1;
@@ -8161,7 +8175,7 @@ StructNestedIntStructAlignmentInt16
   result.a1.a1 = returnStructNestedIntStructAlignmentInt16_a1.a1;
   result.a1.a2 = returnStructNestedIntStructAlignmentInt16_a1.a2;
 
-  returnStructNestedIntStructAlignmentInt16Result = result;
+  returnStructNestedIntStructAlignmentInt16ResultPointer = resultPointer;
 
   return result;
 }
@@ -8191,13 +8205,13 @@ StructNestedIntStructAlignmentInt16 returnStructNestedIntStructAlignmentInt16(
 }
 
 void returnStructNestedIntStructAlignmentInt16AfterCallback() {
-  calloc.free(returnStructNestedIntStructAlignmentInt16Result.addressOf);
+  calloc.free(returnStructNestedIntStructAlignmentInt16ResultPointer);
 
   final result = returnStructNestedIntStructAlignmentInt16CalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStructNestedIntStructAlignmentInt16Result.addressOf);
+  calloc.free(returnStructNestedIntStructAlignmentInt16ResultPointer);
 }
 
 typedef ReturnStructNestedIntStructAlignmentInt32Type
@@ -8211,14 +8225,13 @@ StructAlignmentInt32 returnStructNestedIntStructAlignmentInt32_a1 =
     StructAlignmentInt32();
 
 // Result variable also global, so we can delete it after the callback.
-StructNestedIntStructAlignmentInt32
-    returnStructNestedIntStructAlignmentInt32Result =
-    StructNestedIntStructAlignmentInt32();
+Pointer<StructNestedIntStructAlignmentInt32>
+    returnStructNestedIntStructAlignmentInt32ResultPointer = nullptr;
 
 StructNestedIntStructAlignmentInt32
     returnStructNestedIntStructAlignmentInt32CalculateResult() {
-  StructNestedIntStructAlignmentInt32 result =
-      calloc<StructNestedIntStructAlignmentInt32>().ref;
+  final resultPointer = calloc<StructNestedIntStructAlignmentInt32>();
+  final result = resultPointer.ref;
 
   result.a0.a0 = returnStructNestedIntStructAlignmentInt32_a0.a0;
   result.a0.a1 = returnStructNestedIntStructAlignmentInt32_a0.a1;
@@ -8227,7 +8240,7 @@ StructNestedIntStructAlignmentInt32
   result.a1.a1 = returnStructNestedIntStructAlignmentInt32_a1.a1;
   result.a1.a2 = returnStructNestedIntStructAlignmentInt32_a1.a2;
 
-  returnStructNestedIntStructAlignmentInt32Result = result;
+  returnStructNestedIntStructAlignmentInt32ResultPointer = resultPointer;
 
   return result;
 }
@@ -8257,13 +8270,13 @@ StructNestedIntStructAlignmentInt32 returnStructNestedIntStructAlignmentInt32(
 }
 
 void returnStructNestedIntStructAlignmentInt32AfterCallback() {
-  calloc.free(returnStructNestedIntStructAlignmentInt32Result.addressOf);
+  calloc.free(returnStructNestedIntStructAlignmentInt32ResultPointer);
 
   final result = returnStructNestedIntStructAlignmentInt32CalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStructNestedIntStructAlignmentInt32Result.addressOf);
+  calloc.free(returnStructNestedIntStructAlignmentInt32ResultPointer);
 }
 
 typedef ReturnStructNestedIntStructAlignmentInt64Type
@@ -8277,14 +8290,13 @@ StructAlignmentInt64 returnStructNestedIntStructAlignmentInt64_a1 =
     StructAlignmentInt64();
 
 // Result variable also global, so we can delete it after the callback.
-StructNestedIntStructAlignmentInt64
-    returnStructNestedIntStructAlignmentInt64Result =
-    StructNestedIntStructAlignmentInt64();
+Pointer<StructNestedIntStructAlignmentInt64>
+    returnStructNestedIntStructAlignmentInt64ResultPointer = nullptr;
 
 StructNestedIntStructAlignmentInt64
     returnStructNestedIntStructAlignmentInt64CalculateResult() {
-  StructNestedIntStructAlignmentInt64 result =
-      calloc<StructNestedIntStructAlignmentInt64>().ref;
+  final resultPointer = calloc<StructNestedIntStructAlignmentInt64>();
+  final result = resultPointer.ref;
 
   result.a0.a0 = returnStructNestedIntStructAlignmentInt64_a0.a0;
   result.a0.a1 = returnStructNestedIntStructAlignmentInt64_a0.a1;
@@ -8293,7 +8305,7 @@ StructNestedIntStructAlignmentInt64
   result.a1.a1 = returnStructNestedIntStructAlignmentInt64_a1.a1;
   result.a1.a2 = returnStructNestedIntStructAlignmentInt64_a1.a2;
 
-  returnStructNestedIntStructAlignmentInt64Result = result;
+  returnStructNestedIntStructAlignmentInt64ResultPointer = resultPointer;
 
   return result;
 }
@@ -8323,13 +8335,13 @@ StructNestedIntStructAlignmentInt64 returnStructNestedIntStructAlignmentInt64(
 }
 
 void returnStructNestedIntStructAlignmentInt64AfterCallback() {
-  calloc.free(returnStructNestedIntStructAlignmentInt64Result.addressOf);
+  calloc.free(returnStructNestedIntStructAlignmentInt64ResultPointer);
 
   final result = returnStructNestedIntStructAlignmentInt64CalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStructNestedIntStructAlignmentInt64Result.addressOf);
+  calloc.free(returnStructNestedIntStructAlignmentInt64ResultPointer);
 }
 
 typedef ReturnStructNestedIrregularEvenBiggerType
@@ -8345,13 +8357,13 @@ StructNestedIrregularBigger returnStructNestedIrregularEvenBigger_a2 =
 double returnStructNestedIrregularEvenBigger_a3 = 0.0;
 
 // Result variable also global, so we can delete it after the callback.
-StructNestedIrregularEvenBigger returnStructNestedIrregularEvenBiggerResult =
-    StructNestedIrregularEvenBigger();
+Pointer<StructNestedIrregularEvenBigger>
+    returnStructNestedIrregularEvenBiggerResultPointer = nullptr;
 
 StructNestedIrregularEvenBigger
     returnStructNestedIrregularEvenBiggerCalculateResult() {
-  StructNestedIrregularEvenBigger result =
-      calloc<StructNestedIrregularEvenBigger>().ref;
+  final resultPointer = calloc<StructNestedIrregularEvenBigger>();
+  final result = resultPointer.ref;
 
   result.a0 = returnStructNestedIrregularEvenBigger_a0;
   result.a1.a0.a0 = returnStructNestedIrregularEvenBigger_a1.a0.a0;
@@ -8388,7 +8400,7 @@ StructNestedIrregularEvenBigger
   result.a2.a3 = returnStructNestedIrregularEvenBigger_a2.a3;
   result.a3 = returnStructNestedIrregularEvenBigger_a3;
 
-  returnStructNestedIrregularEvenBiggerResult = result;
+  returnStructNestedIrregularEvenBiggerResultPointer = resultPointer;
 
   return result;
 }
@@ -8420,11 +8432,11 @@ StructNestedIrregularEvenBigger returnStructNestedIrregularEvenBigger(int a0,
 }
 
 void returnStructNestedIrregularEvenBiggerAfterCallback() {
-  calloc.free(returnStructNestedIrregularEvenBiggerResult.addressOf);
+  calloc.free(returnStructNestedIrregularEvenBiggerResultPointer);
 
   final result = returnStructNestedIrregularEvenBiggerCalculateResult();
 
   print("after callback result = $result");
 
-  calloc.free(returnStructNestedIrregularEvenBiggerResult.addressOf);
+  calloc.free(returnStructNestedIrregularEvenBiggerResultPointer);
 }
