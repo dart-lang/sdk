@@ -3099,6 +3099,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Set module item containers to incremental mode.
     setSymbolContainerIncrementalMode(true);
     _typeTable.typeContainer.incrementalMode = true;
+    _constTableCache.incrementalMode = true;
 
     // Emit function with additional information, such as types that are used
     // in the expression.
@@ -6067,6 +6068,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (isSdkInternalRuntime(_currentLibrary) || node is PrimitiveConstant) {
       return super.visitConstant(node);
     }
+
+    // Avoid caching constants during evaluation while scoping issues remain.
+    // See: #44713
+    if (_constTableCache.incrementalMode) {
+      return super.visitConstant(node);
+    }
+
     var constAlias = constAliasCache[node];
     if (constAlias != null) {
       return constAlias;
