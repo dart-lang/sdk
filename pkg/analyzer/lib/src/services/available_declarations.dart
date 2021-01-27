@@ -1920,11 +1920,19 @@ class _File {
   }
 
   static CompilationUnit _parse(FeatureSet featureSet, String content) {
-    return parseString(
-      content: content,
-      featureSet: featureSet,
-      throwIfDiagnostics: false,
-    ).unit;
+    try {
+      return parseString(
+        content: content,
+        featureSet: featureSet,
+        throwIfDiagnostics: false,
+      ).unit;
+    } catch (e) {
+      return parseString(
+        content: '',
+        featureSet: featureSet,
+        throwIfDiagnostics: false,
+      ).unit;
+    }
   }
 
   static String _readContent(File resource) {
