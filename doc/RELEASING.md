@@ -11,9 +11,9 @@ Before releasing there are a few boxes to tick off.
 
 ## Doing the Push
 
-First, make sure travis is GREEN.
+First, make sure the build is GREEN.
 
-[![Build Status](https://travis-ci.org/dart-lang/linter.svg)](https://travis-ci.org/dart-lang/linter)
+[![Build Status](https://github.com/dart-lang/linter/workflows/linter/badge.svg)](https://github.com/dart-lang/linter/actions)
 
 All clear?  Then:
 
