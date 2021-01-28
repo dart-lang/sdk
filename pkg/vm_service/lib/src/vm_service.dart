@@ -4811,21 +4811,63 @@ class Instance extends Obj implements InstanceRef {
 
   Instance._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'] ?? '';
+    classRef =
+        createServiceObject(json['class']!, const ['ClassRef']) as ClassRef;
     valueAsString = json['valueAsString'];
     valueAsStringIsTruncated = json['valueAsStringIsTruncated'];
     length = json['length'];
     offset = json['offset'];
     count = json['count'];
     name = json['name'];
+    typeClass =
+        createServiceObject(json['typeClass'], const ['ClassRef']) as ClassRef?;
+    parameterizedClass =
+        createServiceObject(json['parameterizedClass'], const ['ClassRef'])
+            as ClassRef?;
+    fields = json['fields'] == null
+        ? null
+        : List<BoundField>.from(
+            createServiceObject(json['fields'], const ['BoundField'])! as List);
+    elements = json['elements'] == null
+        ? null
+        : List<dynamic>.from(
+            createServiceObject(json['elements'], const ['dynamic'])! as List);
     associations = json['associations'] == null
         ? null
         : List<MapAssociation>.from(
             _createSpecificObject(json['associations'], MapAssociation.parse));
     bytes = json['bytes'];
+    mirrorReferent =
+        createServiceObject(json['mirrorReferent'], const ['InstanceRef'])
+            as InstanceRef?;
+    pattern = createServiceObject(json['pattern'], const ['InstanceRef'])
+        as InstanceRef?;
+    closureFunction =
+        createServiceObject(json['closureFunction'], const ['FuncRef'])
+            as FuncRef?;
+    closureContext =
+        createServiceObject(json['closureContext'], const ['ContextRef'])
+            as ContextRef?;
     isCaseSensitive = json['isCaseSensitive'];
     isMultiLine = json['isMultiLine'];
+    propertyKey =
+        createServiceObject(json['propertyKey'], const ['InstanceRef'])
+            as InstanceRef?;
+    propertyValue =
+        createServiceObject(json['propertyValue'], const ['InstanceRef'])
+            as InstanceRef?;
+    typeArguments =
+        createServiceObject(json['typeArguments'], const ['TypeArgumentsRef'])
+            as TypeArgumentsRef?;
     parameterIndex = json['parameterIndex'];
+    targetType = createServiceObject(json['targetType'], const ['InstanceRef'])
+        as InstanceRef?;
+    bound = createServiceObject(json['bound'], const ['InstanceRef'])
+        as InstanceRef?;
     portId = json['portId'];
+    allocationLocation =
+        createServiceObject(json['allocationLocation'], const ['InstanceRef'])
+            as InstanceRef?;
     debugName = json['debugName'];
   }
 
