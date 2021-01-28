@@ -30,6 +30,9 @@ class JsInteropChecks extends RecursiveVisitor<void> {
   bool _classHasAnonymousAnnotation = false;
   bool _libraryHasJSAnnotation = false;
   bool _libraryIsGlobalNamespace = false;
+  // TODO(srujzs): This currently disables this check always. This check should
+  // instead only be disabled up until a given language version.
+  bool _disableJSNativeClassConflict = true;
 
   JsInteropChecks(
       this._coreTypes, this._diagnosticsReporter, this._nativeClasses);
@@ -83,7 +86,8 @@ class JsInteropChecks extends RecursiveVisitor<void> {
             cls.location.file);
       }
     }
-    if (_classHasJSAnnotation &&
+    if (!_disableJSNativeClassConflict &&
+        _classHasJSAnnotation &&
         !_classHasAnonymousAnnotation &&
         _libraryIsGlobalNamespace) {
       var jsClass = getJSName(cls);
