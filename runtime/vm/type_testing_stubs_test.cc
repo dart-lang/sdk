@@ -407,6 +407,7 @@ const char* kSubtypeRangeCheckScript =
       createI2() => I2();
       createBaseInt() => Base<int>();
       createBaseNull() => Base<Null>();
+      createBaseNever() => Base<Never>();
       createA() => A();
       createA1() => A1();
       createA2() => A2<int>();
@@ -433,6 +434,8 @@ ISOLATE_UNIT_TEST_CASE(TTS_SubtypeRangeCheck) {
       Object::Handle(Invoke(root_library, "createBaseInt"));
   const auto& obj_base_null =
       Object::Handle(Invoke(root_library, "createBaseNull"));
+  const auto& obj_base_never =
+      Object::Handle(Invoke(root_library, "createBaseNever"));
   const auto& obj_a = Object::Handle(Invoke(root_library, "createA"));
   const auto& obj_a1 = Object::Handle(Invoke(root_library, "createA1"));
   const auto& obj_a2 = Object::Handle(Invoke(root_library, "createA2"));
@@ -516,20 +519,42 @@ ISOLATE_UNIT_TEST_CASE(TTS_SubtypeRangeCheck) {
   RunTTSTest(obj_b2, type_base, tav_null, tav_null, ExpectLazilyHandledViaTTS,
              ExpectHandledViaTTS);
 
-  // Base<Null> as Base<int?>
-  // This is a regression test verifying that Null is included in
-  // class-id ranges for int?.
-  auto& type_int = Type::Handle(Type::IntType());
-  type_int = type_int.ToNullability(
+  // Base<Null|Never> as Base<int?>
+  // This is a regression test verifying that we don't fall through into
+  // runtime for Null and Never.
+  auto& type_nullable_int = Type::Handle(Type::IntType());
+  type_nullable_int = type_nullable_int.ToNullability(
       TestCase::IsNNBD() ? Nullability::kNullable : Nullability::kLegacy,
       Heap::kNew);
-  auto& tav_int = TypeArguments::Handle(TypeArguments::New(1));
-  tav_int.SetTypeAt(0, type_int);
-  CanonicalizeTAV(&tav_int);
-  auto& type_base_int = AbstractType::Handle(Type::New(class_base, tav_int));
-  FinalizeAndCanonicalize(&type_base_int);
-  RunTTSTest(obj_base_null, type_base_int, tav_null, tav_null,
+  auto& tav_nullable_int = TypeArguments::Handle(TypeArguments::New(1));
+  tav_nullable_int.SetTypeAt(0, type_nullable_int);
+  CanonicalizeTAV(&tav_nullable_int);
+  auto& type_base_nullable_int =
+      AbstractType::Handle(Type::New(class_base, tav_nullable_int));
+  FinalizeAndCanonicalize(&type_base_nullable_int);
+  RunTTSTest(obj_base_null, type_base_nullable_int, tav_null, tav_null,
              ExpectLazilyHandledViaTTS, ExpectHandledViaTTS);
+  RunTTSTest(obj_base_never, type_base_nullable_int, tav_null, tav_null,
+             ExpectLazilyHandledViaTTS, ExpectHandledViaTTS);
+
+  if (TestCase::IsNNBD()) {
+    // Base<Null|Never> as Base<int>
+    auto& type_int = Type::Handle(Type::IntType());
+    type_int = type_int.ToNullability(Nullability::kNonNullable, Heap::kNew);
+    auto& tav_int = TypeArguments::Handle(TypeArguments::New(1));
+    tav_int.SetTypeAt(0, type_int);
+    CanonicalizeTAV(&tav_int);
+    auto& type_base_int = Type::Handle(Type::New(class_base, tav_int));
+    type_base_int =
+        type_base_int.ToNullability(Nullability::kNonNullable, Heap::kNew);
+    FinalizeAndCanonicalize(&type_base_int);
+    if (IsolateGroup::Current()->null_safety()) {
+      RunTTSTest(obj_base_null, type_base_int, tav_null, tav_null,
+                 ExpectLazilyFailedViaTTS, ExpectFailedViaTTS);
+    }
+    RunTTSTest(obj_base_never, type_base_int, tav_null, tav_null,
+               ExpectLazilyHandledViaTTS, ExpectHandledViaTTS);
+  }
 
   // <...> as I2
   const auto& type_i2 = AbstractType::Handle(class_i2.RareType());

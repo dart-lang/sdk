@@ -978,7 +978,7 @@
           "name": "unit tests",
           "arguments": [
             "-ncfe-unittest-asserts-${mode}-${system}",
-            "pkg/(kernel|front_end|fasta)"
+            "pkg/pkg/(kernel|front_end|fasta)/"
           ]
         },
         {

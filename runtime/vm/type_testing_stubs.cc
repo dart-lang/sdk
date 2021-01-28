@@ -499,6 +499,9 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
       __ CompareImmediate(TTSInternalRegs::kScratchReg, kNullCid);
       __ BranchIf(EQUAL, &is_subtype);
     }
+    // Never is a bottom type.
+    __ CompareImmediate(TTSInternalRegs::kScratchReg, kNeverCid);
+    __ BranchIf(EQUAL, &is_subtype);
     FlowGraphCompiler::GenerateCidRangesCheck(
         assembler, TTSInternalRegs::kScratchReg, ranges, &is_subtype,
         check_failed, true);

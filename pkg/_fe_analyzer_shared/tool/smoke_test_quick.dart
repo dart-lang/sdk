@@ -14,7 +14,7 @@ main(List<String> args) async {
   futures.add(run("pkg/front_end/test/spelling_test_src_suite.dart",
       ["--", "spelling_test_src/_fe_analyzer_shared/..."]));
   futures.add(run(
-      "pkg/front_end/test/explicit_creation_test.dart", ["--shared-only"],
+      "pkg/front_end/test/explicit_creation_git_test.dart", ["--shared-only"],
       filter: false));
   futures.add(run("pkg/front_end/test/lint_suite.dart",
       ["--", "lint/_fe_analyzer_shared/..."]));

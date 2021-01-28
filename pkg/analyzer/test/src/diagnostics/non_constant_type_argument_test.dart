@@ -9,50 +9,9 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(NonConstantTypeArgumentNoWarningTest);
-    defineReflectiveTests(NonConstantTypeArgumentNoWarningTest2);
     defineReflectiveTests(NonConstantTypeArgumentTest);
     defineReflectiveTests(NonConstantTypeArgumentWarningTest);
   });
-}
-
-@reflectiveTest
-class NonConstantTypeArgumentNoWarningTest extends PubPackageResolutionTest {
-  test_asFunction_R() async {
-    await assertNoErrorsInCode(r'''
-import 'dart:ffi';
-
-class MyStruct extends Struct {
-  @Uint8()
-  int myField;
-}
-
-void main(){
-  final pointer = Pointer<MyStruct>.fromAddress(0);
-  pointer.ref.myField = 1;
-}
-''');
-  }
-}
-
-@reflectiveTest
-class NonConstantTypeArgumentNoWarningTest2 extends PubPackageResolutionTest {
-  test_asFunction_R() async {
-    await assertNoErrorsInCode(r'''
-import 'dart:ffi';
-
-class MyStruct extends Struct {
-  @Uint8()
-  int myField;
-}
-
-void main(){
-  final pointer = Pointer<MyStruct>.fromAddress(0)
-    ..ref.myField = 1;
-  print(pointer);
-}
-''');
-  }
 }
 
 @reflectiveTest
@@ -74,7 +33,40 @@ class C<R extends int Function(int)> {
 
 @reflectiveTest
 class NonConstantTypeArgumentWarningTest extends PubPackageResolutionTest {
-  test_asFunction_R() async {
+  test_ref_class() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+class MyStruct extends Struct {
+  @Uint8()
+  int myField;
+}
+
+void main() {
+  final pointer = Pointer<MyStruct>.fromAddress(0);
+  pointer.ref.myField = 1;
+}
+''');
+  }
+
+  test_ref_class_cascade() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+class MyStruct extends Struct {
+  @Uint8()
+  int myField;
+}
+
+void main() {
+  final pointer = Pointer<MyStruct>.fromAddress(0)
+    ..ref.myField = 1;
+  print(pointer);
+}
+''');
+  }
+
+  test_ref_typeParameter() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 

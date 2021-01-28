@@ -237,23 +237,33 @@ class DartUnitOutlineComputer {
   }
 
   Outline _newGenericTypeAliasOutline(GenericTypeAlias node) {
-    var functionType = node.functionType;
-    var returnType = functionType?.returnType;
     var nameNode = node.name;
     var name = nameNode.name;
-    var parameters = functionType?.parameters;
-    var parametersStr = _safeToSource(parameters);
-    var returnTypeStr = _safeToSource(returnType);
+
+    var aliasedType = node.type;
+    var aliasedFunctionType =
+        aliasedType is GenericFunctionType ? aliasedType : null;
+
     var element = Element(
-        ElementKind.FUNCTION_TYPE_ALIAS,
-        name,
-        Element.makeFlags(
-            isPrivate: Identifier.isPrivateName(name),
-            isDeprecated: _isDeprecated(node)),
-        location: _getLocationNode(nameNode),
-        parameters: parametersStr,
-        returnType: returnTypeStr,
-        typeParameters: _getTypeParametersStr(node.typeParameters));
+      aliasedFunctionType != null
+          ? ElementKind.FUNCTION_TYPE_ALIAS
+          : ElementKind.TYPE_ALIAS,
+      name,
+      Element.makeFlags(
+        isPrivate: Identifier.isPrivateName(name),
+        isDeprecated: _isDeprecated(node),
+      ),
+      aliasedType: _safeToSource(aliasedType),
+      location: _getLocationNode(nameNode),
+      parameters: aliasedFunctionType != null
+          ? _safeToSource(aliasedFunctionType.parameters)
+          : null,
+      returnType: aliasedFunctionType != null
+          ? _safeToSource(aliasedFunctionType.returnType)
+          : null,
+      typeParameters: _getTypeParametersStr(node.typeParameters),
+    );
+
     return _nodeOutline(node, element);
   }
 
