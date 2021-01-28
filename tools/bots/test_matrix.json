@@ -964,7 +964,7 @@
             "co19_2"
           ],
           "fileset": "front-end",
-          "shards": 10
+          "shards": 2
         },
         {
           "name": "sdk tests",
@@ -972,22 +972,44 @@
             "-ncfe-${system}"
           ],
           "fileset": "front-end",
-          "shards": 5
+          "shards": 2
         },
         {
-          "name": "unit tests",
+          "name": "unit tests (no git)",
           "arguments": [
             "-ncfe-unittest-asserts-${mode}-${system}",
-            "pkg/pkg/(kernel|front_end|fasta)/"
-          ]
+            "pkg/pkg/(kernel|front_end|fasta)\/(*?)(?<!_git)_test"
+          ],
+          "fileset": "front-end",
+          "shards": 3
         },
         {
-          "name": "unit tests suites",
+          "name": "unit tests suites (no git)",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "testRunner": true,
           "arguments": [
             "pkg/front_end/test/unit_test_suites.dart",
-            "-ncfe-unittest-asserts-${mode}-${system}"
+            "-ncfe-unittest-asserts-${mode}-${system}",
+            "--skipTestsThatRequireGit"
+          ],
+          "fileset": "front-end",
+          "shards": 3
+        },
+        {
+          "name": "unit tests (with git)",
+          "arguments": [
+            "-ncfe-unittest-asserts-${mode}-${system}",
+            "pkg/pkg/(kernel|front_end|fasta)\/(*?)(_git)_test"
+          ]
+        },
+        {
+          "name": "unit tests suites (with git)",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/front_end/test/unit_test_suites.dart",
+            "-ncfe-unittest-asserts-${mode}-${system}",
+            "--onlyTestsThatRequireGit"
           ]
         }
       ]

@@ -67,7 +67,7 @@ Future<Null> runMe(List<String> arguments, CreateContext f,
             shards: shards, shard: shard, logger: logger);
       }
     }
-  });
+  }, logger: logger);
 }
 
 /// This is called from a `_test.dart` file, and helps integration in other
