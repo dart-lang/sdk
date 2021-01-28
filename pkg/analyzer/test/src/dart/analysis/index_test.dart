@@ -17,7 +17,6 @@ import '../resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IndexTest);
-    defineReflectiveTests(IndexWithNonFunctionTypeAliasesTest);
   });
 }
 
@@ -35,7 +34,8 @@ class ExpectedLocation {
 }
 
 @reflectiveTest
-class IndexTest extends PubPackageResolutionTest with _IndexMixin {
+class IndexTest extends PubPackageResolutionTest
+    with _IndexMixin, WithNonFunctionTypeAliasesMixin {
   test_fieldFormalParameter_noSuchField() async {
     await _indexTestUnit('''
 class B<T> {
@@ -128,6 +128,18 @@ class A {}
     assertThat(elementObject).isExtendedAt('A {}', true, length: 0);
   }
 
+  test_isExtendedBy_ClassDeclaration_TypeAliasElement() async {
+    await _indexTestUnit('''
+class A<T> {}
+typedef B = A<int>;
+class C extends B {}
+''');
+    var B = findElement.typeAlias('B');
+    assertThat(B)
+      ..isExtendedAt('B {}', false)
+      ..isReferencedAt('B {}', false);
+  }
+
   test_isExtendedBy_ClassTypeAlias() async {
     await _indexTestUnit('''
 class A {}
@@ -178,6 +190,18 @@ class B implements p.A {} // 2
     assertThat(elementA)
       ..isImplementedAt('A {} // 2', true)
       ..isReferencedAt('A {} // 2', true);
+  }
+
+  test_isImplementedBy_ClassDeclaration_TypeAliasElement() async {
+    await _indexTestUnit('''
+class A<T> {}
+typedef B = A<int>;
+class C implements B {}
+''');
+    var B = findElement.typeAlias('B');
+    assertThat(B)
+      ..isImplementedAt('B {}', false)
+      ..isReferencedAt('B {}', false);
   }
 
   test_isImplementedBy_ClassTypeAlias() async {
@@ -378,6 +402,18 @@ main(A a) {
     assertThat(element).isInvokedAt('~a', true, length: 1);
   }
 
+  test_isMixedBy_ClassDeclaration_TypeAliasElement() async {
+    await _indexTestUnit('''
+class A<T> {}
+typedef B = A<int>;
+class C extends Object with B {}
+''');
+    var B = findElement.typeAlias('B');
+    assertThat(B)
+      ..isMixedInAt('B {}', false)
+      ..isReferencedAt('B {}', false);
+  }
+
   test_isMixedInBy_ClassDeclaration_class() async {
     await _indexTestUnit('''
 class A {} // 1
@@ -515,6 +551,16 @@ main() {
 }''');
     ClassElement element = findElement.class_('A');
     assertThat(element).isReferencedAt('A();', false);
+  }
+
+  test_isReferencedBy_ClassElement_inTypeAlias() async {
+    await _indexTestUnit('''
+class A<T> {}
+
+typedef B = A<int>;
+''');
+    assertThat(findElement.class_('A')).isReferencedAt('A<int', false);
+    assertThat(intElement).isReferencedAt('int>;', false);
   }
 
   test_isReferencedBy_ClassElement_invocation_isQualified() async {
@@ -961,7 +1007,7 @@ main() {
 
   test_isReferencedBy_ParameterElement_genericFunctionType() async {
     await _indexTestUnit('''
-typedef F = void Function({int p});
+typedef F = void Function({int? p});
 
 void main(F f) {
   f(p: 0);
@@ -973,7 +1019,7 @@ void main(F f) {
 
   test_isReferencedBy_ParameterElement_genericFunctionType_call() async {
     await _indexTestUnit('''
-typedef F<T> = void Function({T test});
+typedef F<T> = void Function({T? test});
 
 main(F<int> f) {
   f.call(test: 0);
@@ -984,10 +1030,10 @@ main(F<int> f) {
 
   test_isReferencedBy_ParameterElement_multiplyDefined_generic() async {
     newFile('/test/lib/a.dart', content: r'''
-void foo<T>({T a}) {}
+void foo<T>({T? a}) {}
 ''');
     newFile('/test/lib/b.dart', content: r'''
-void foo<T>({T a}) {}
+void foo<T>({T? a}) {}
 ''');
     await _indexTestUnit(r"""
 import 'a.dart';
@@ -1000,10 +1046,10 @@ void main() {
     // No exceptions.
   }
 
-  test_isReferencedBy_ParameterElement_named_ofConstructor_genericClass() async {
+  test_isReferencedBy_ParameterElement_optionalNamed_ofConstructor_genericClass() async {
     await _indexTestUnit('''
 class A<T> {
-  A({T test});
+  A({T? test});
 }
 
 main() {
@@ -1014,14 +1060,26 @@ main() {
     assertThat(element)..isReferencedAt('test: 0', true);
   }
 
-  test_isReferencedBy_ParameterElement_named_ofMethod_genericClass() async {
+  test_isReferencedBy_ParameterElement_optionalNamed_ofMethod_genericClass() async {
     await _indexTestUnit('''
 class A<T> {
-  void foo({T test}) {}
+  void foo({T? test}) {}
 }
 
 main(A<int> a) {
   a.foo(test: 0);
+}
+''');
+    Element element = findElement.parameter('test');
+    assertThat(element)..isReferencedAt('test: 0', true);
+  }
+
+  test_isReferencedBy_ParameterElement_optionalNamed_ofTopFunction() async {
+    await _indexTestUnit('''
+void foo({int? test}) {}
+
+void() {
+  foo(test: 0);
 }
 ''');
     Element element = findElement.parameter('test');
@@ -1041,6 +1099,18 @@ main() {
     assertThat(element)
       ..hasRelationCount(1)
       ..isReferencedAt('1); // 2', true, length: 0);
+  }
+
+  test_isReferencedBy_ParameterElement_requiredNamed_ofTopFunction() async {
+    await _indexTestUnit('''
+void foo({required int test}) {}
+
+void() {
+  foo(test: 0);
+}
+''');
+    Element element = findElement.parameter('test');
+    assertThat(element)..isReferencedAt('test: 0', true);
   }
 
   test_isReferencedBy_PropertyAccessor_ofNamedExtension_instance() async {
@@ -1171,6 +1241,33 @@ import 'lib.dart' show V;
 ''');
     TopLevelVariableElement element = importFindLib().topVar('V');
     assertThat(element).isReferencedAt('V;', true);
+  }
+
+  test_isReferencedBy_TypeAliasElement() async {
+    await _indexTestUnit('''
+class A<T> {
+  static int field = 0;
+  static void method() {}
+}
+
+typedef B = A<int>;
+
+void f(B p) {
+  B v;
+  B(); // 2
+  B.field = 1;
+  B.field; // 3
+  B.method(); // 4
+}
+''');
+    var element = findElement.typeAlias('B');
+    assertThat(element)
+      ..isReferencedAt('B p) {', false)
+      ..isReferencedAt('B v;', false)
+      ..isReferencedAt('B(); // 2', false)
+      ..isReferencedAt('B.field = 1;', false)
+      ..isReferencedAt('B.field; // 3', false)
+      ..isReferencedAt('B.method(); // 4', false);
   }
 
   test_isReferencedBy_typeInVariableList() async {
@@ -1394,83 +1491,6 @@ main() {
       ..isUsed('x = 1;', IndexRelationKind.IS_WRITTEN_BY)
       ..isUsed('x += 2;', IndexRelationKind.IS_READ_WRITTEN_BY)
       ..isUsed('x();', IndexRelationKind.IS_INVOKED_BY);
-  }
-}
-
-@reflectiveTest
-class IndexWithNonFunctionTypeAliasesTest extends PubPackageResolutionTest
-    with WithNonFunctionTypeAliasesMixin, _IndexMixin {
-  test_isExtendedBy_ClassDeclaration_TypeAliasElement() async {
-    await _indexTestUnit('''
-class A<T> {}
-typedef B = A<int>;
-class C extends B {}
-''');
-    var B = findElement.typeAlias('B');
-    assertThat(B)
-      ..isExtendedAt('B {}', false)
-      ..isReferencedAt('B {}', false);
-  }
-
-  test_isImplementedBy_ClassDeclaration_TypeAliasElement() async {
-    await _indexTestUnit('''
-class A<T> {}
-typedef B = A<int>;
-class C implements B {}
-''');
-    var B = findElement.typeAlias('B');
-    assertThat(B)
-      ..isImplementedAt('B {}', false)
-      ..isReferencedAt('B {}', false);
-  }
-
-  test_isMixedBy_ClassDeclaration_TypeAliasElement() async {
-    await _indexTestUnit('''
-class A<T> {}
-typedef B = A<int>;
-class C extends Object with B {}
-''');
-    var B = findElement.typeAlias('B');
-    assertThat(B)
-      ..isMixedInAt('B {}', false)
-      ..isReferencedAt('B {}', false);
-  }
-
-  test_isReferencedBy_ClassElement_inTypeAlias() async {
-    await _indexTestUnit('''
-class A<T> {}
-
-typedef B = A<int>;
-''');
-    assertThat(findElement.class_('A')).isReferencedAt('A<int', false);
-    assertThat(intElement).isReferencedAt('int>;', false);
-  }
-
-  test_isReferencedBy_TypeAliasElement() async {
-    await _indexTestUnit('''
-class A<T> {
-  static int field = 0;
-  static void method() {}
-}
-
-typedef B = A<int>;
-
-void f(B p) {
-  B v;
-  B(); // 2
-  B.field = 1;
-  B.field; // 3
-  B.method(); // 4
-}
-''');
-    var element = findElement.typeAlias('B');
-    assertThat(element)
-      ..isReferencedAt('B p) {', false)
-      ..isReferencedAt('B v;', false)
-      ..isReferencedAt('B(); // 2', false)
-      ..isReferencedAt('B.field = 1;', false)
-      ..isReferencedAt('B.field; // 3', false)
-      ..isReferencedAt('B.method(); // 4', false);
   }
 }
 

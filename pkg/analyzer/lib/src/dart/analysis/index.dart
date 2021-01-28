@@ -492,9 +492,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
         elementKind == ElementKind.FUNCTION &&
             element is FunctionElement &&
             element.enclosingElement is ExecutableElement ||
-        elementKind == ElementKind.PARAMETER &&
-            element is ParameterElement &&
-            !element.isOptional ||
         false) {
       return;
     }
