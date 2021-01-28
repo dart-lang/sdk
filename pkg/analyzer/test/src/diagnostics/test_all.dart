@@ -17,6 +17,8 @@ import 'ambiguous_import_test.dart' as ambiguous_import;
 import 'ambiguous_set_or_map_literal_test.dart' as ambiguous_set_or_map_literal;
 import 'annotation_on_pointer_field_test.dart' as annotation_on_pointer_field;
 import 'annotation_syntax_test.dart' as annotation_syntax;
+import 'argument_type_not_assignable_catch_error_on_error_test.dart'
+    as argument_type_not_assignable_catch_error_on_error;
 import 'argument_type_not_assignable_test.dart' as argument_type_not_assignable;
 import 'assert_in_redirecting_constructor_test.dart'
     as assert_in_redirecting_constructor;
@@ -677,6 +679,7 @@ main() {
     annotation_on_pointer_field.main();
     annotation_syntax.main();
     argument_type_not_assignable.main();
+    argument_type_not_assignable_catch_error_on_error.main();
     assert_in_redirecting_constructor.main();
     assignment_of_do_not_store.main();
     assignment_to_const.main();

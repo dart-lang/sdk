@@ -52,6 +52,8 @@ class CatchErrorVerifier {
     var targetFutureType = targetType.typeArguments.first;
     var expectedReturnType = _typeProvider.futureOrType2(targetFutureType);
     if (callback is FunctionExpression) {
+      _checkOnErrorFunctionType(
+          callback, callback.staticType, expectedReturnType);
       var catchErrorOnErrorExecutable = EnclosingExecutableContext(
           callback.declaredElement,
           isAsynchronous: true,
@@ -64,7 +66,53 @@ class CatchErrorVerifier {
       var callbackType = callback.staticType;
       if (callbackType is FunctionType) {
         _checkReturnType(expectedReturnType, callbackType.returnType, callback);
+        _checkOnErrorFunctionType(callback, callbackType, expectedReturnType);
+      } else {
+        // If [callback] is not even a Function, then ErrorVerifier will have
+        // reported this.
       }
+    }
+  }
+
+  void _checkOnErrorFunctionType(Expression expression,
+      FunctionType expressionType, DartType expectedFunctionReturnType) {
+    void report() {
+      _errorReporter.reportErrorForNode(
+        HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_CATCH_ERROR_ON_ERROR,
+        expression,
+        [expressionType, expectedFunctionReturnType],
+      );
+    }
+
+    var parameters = expressionType.parameters;
+    if (parameters == null || parameters.isEmpty) {
+      return report();
+    }
+    var firstParameter = parameters.first;
+    if (firstParameter.isNamed) {
+      return report();
+    } else if (firstParameter.isOptionalPositional) {
+      return report();
+    } else {
+      if (!_typeSystem.isSubtypeOf(
+          _typeProvider.objectType, firstParameter.type)) {
+        return report();
+      }
+    }
+    if (parameters.length == 2) {
+      var secondParameter = parameters[1];
+      if (secondParameter.isNamed) {
+        return report();
+      } else if (firstParameter.isOptionalPositional) {
+        return report();
+      } else {
+        if (!_typeSystem.isSubtypeOf(
+            _typeProvider.stackTraceType, secondParameter.type)) {
+          return report();
+        }
+      }
+    } else if (parameters.length > 2) {
+      return report();
     }
   }
 
