@@ -20212,11 +20212,9 @@ AbstractTypePtr Type::Canonicalize(Thread* thread, TrailPtr trail) const {
       }
     }
     ASSERT(this->Equals(type));
-    // TODO(rmacnak): Revisit immediately returning type after to changes to
-    // recanonicalization on load for literal splitting.
-    if (type.IsCanonical()) {
-      return type.ptr();
-    }
+    ASSERT(type.IsCanonical());
+    ASSERT(type.IsOld());
+    return type.ptr();
   }
 
   Type& type = Type::Handle(zone);
