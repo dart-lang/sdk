@@ -68,7 +68,7 @@ dev_compiler/test/options/*: Skip # test needs fixes
 dev_compiler/test/sourcemap/*: SkipByDesign # Skip sourcemap tests
 dev_compiler/test/sourcemap/testfiles/*: SkipByDesign # Skip dev_compiler codegen tests
 dev_compiler/test/worker/*: Skip # test needs fixes
-front_end/test/fasta/analyze_test: Pass, Slow
+front_end/test/fasta/analyze_git_test: Pass, Slow
 front_end/test/fasta/ast_builder_test: Pass, Slow
 front_end/test/fasta/bootstrap_test: Pass, Slow
 front_end/test/fasta/fast_legacy_test: Pass, Slow
