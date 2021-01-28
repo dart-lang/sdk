@@ -248,7 +248,8 @@ abstract class ListMixin<E> implements List<E> {
     return SkipWhileIterable<E>(this, test);
   }
 
-  Iterable<E> take(int count) => SubListIterable<E>(this, 0, count);
+  Iterable<E> take(int count) =>
+      SubListIterable<E>(this, 0, checkNotNullable(count, "count"));
 
   Iterable<E> takeWhile(bool test(E element)) {
     return TakeWhileIterable<E>(this, test);

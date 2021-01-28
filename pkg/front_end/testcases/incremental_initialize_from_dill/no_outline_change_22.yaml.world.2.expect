@@ -188,7 +188,7 @@ library from "org-dartlang-test:///main.dart" as main {
       return new dart._internal::SkipWhileIterable::•<dart.core::int*>(this, test);
     }
     method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ take(dart.core::int count) → dart.core::Iterable<dart.core::int*>
-      return new dart._internal::SubListIterable::•<dart.core::int*>(this, 0, count);
+      return new dart._internal::SubListIterable::•<dart.core::int*>(this, 0, dart._internal::checkNotNullable<dart.core::int>(count, "count"));
     method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ takeWhile((dart.core::int*) → dart.core::bool test) → dart.core::Iterable<dart.core::int*> {
       return new dart._internal::TakeWhileIterable::•<dart.core::int*>(this, test);
     }
