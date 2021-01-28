@@ -28,8 +28,8 @@
 //  * Target architecture
 //  * DART_PRECOMPILED_RUNTIME (i.e, AOT vs. JIT)
 //
-// That is, fields in UntaggedObject and its subclasses should only be included or
-// excluded conditionally based on these factors. Otherwise, the generated
+// That is, fields in UntaggedObject and its subclasses should only be included
+// or excluded conditionally based on these factors. Otherwise, the generated
 // offsets can be wrong (which should be caught by offset checking in dart.cc).
 //
 // TODO(dartbug.com/43646): Add DART_PRECOMPILER as another axis.
@@ -819,6 +819,8 @@ class UntaggedClass : public UntaggedObject {
   POINTER_FIELD(LibraryPtr, library)
   POINTER_FIELD(TypeArgumentsPtr, type_parameters)  // Array of TypeParameter.
   POINTER_FIELD(AbstractTypePtr, super_type)
+  POINTER_FIELD(ArrayPtr,
+                constants)  // Canonicalized const instances of this class.
   POINTER_FIELD(TypePtr, declaration_type)  // Declaration type for this class.
   POINTER_FIELD(ArrayPtr,
                 invocation_dispatcher_cache)  // Cache for dispatcher functions.
@@ -828,9 +830,7 @@ class UntaggedClass : public UntaggedObject {
                 direct_implementors)                        // Array of Class.
   POINTER_FIELD(GrowableObjectArrayPtr, direct_subclasses)  // Array of Class.
   POINTER_FIELD(ArrayPtr, dependent_code)  // CHA optimized codes.
-  POINTER_FIELD(ArrayPtr,
-                constants)  // Canonicalized const instances of this class.
-  VISIT_TO(ObjectPtr, constants)
+  VISIT_TO(ObjectPtr, dependent_code)
   ObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
@@ -1642,8 +1642,6 @@ class UntaggedObjectPool : public UntaggedObject {
 
   friend class Object;
   friend class CodeSerializationCluster;
-  friend class UnitSerializationRoots;
-  friend class UnitDeserializationRoots;
 };
 
 class UntaggedInstructions : public UntaggedObject {
