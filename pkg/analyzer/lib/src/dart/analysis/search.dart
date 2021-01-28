@@ -456,7 +456,7 @@ class Search {
       },
       searchedFiles,
     ));
-    if (parameter.isOptional) {
+    if (parameter.isNamed || parameter.isOptionalPositional) {
       results.addAll(await _searchReferences(parameter, searchedFiles));
     }
     return results;

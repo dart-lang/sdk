@@ -14,8 +14,6 @@ import '../resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SearchTest);
-    defineReflectiveTests(SearchWithNullSafetyTest);
-    defineReflectiveTests(SearchWithNonFunctionTypeAliasesTest);
   });
 }
 
@@ -62,7 +60,8 @@ class ExpectedResult {
 }
 
 @reflectiveTest
-class SearchTest extends PubPackageResolutionTest {
+class SearchTest extends PubPackageResolutionTest
+    with WithNonFunctionTypeAliasesMixin {
   AnalysisDriver get driver => driverFor(testFilePath);
 
   CompilationUnitElement get resultUnitElement => result.unit.declaredElement;
@@ -387,6 +386,27 @@ main() {
     await _verifyReferences(element, expected);
   }
 
+  test_searchReferences_ConstructorElement_named_viaTypeAlias() async {
+    await resolveTestCode('''
+class A<T> {
+  A.named();
+}
+
+typedef B = A<int>;
+
+void f() {
+  B.named(); // ref
+}
+''');
+
+    var element = findElement.constructor('named');
+    var f = findElement.topFunction('f');
+    await _verifyReferences(element, [
+      _expectIdQ(f, SearchResultKind.REFERENCE, '.named(); // ref',
+          length: '.named'.length),
+    ]);
+  }
+
   test_searchReferences_ConstructorElement_synthetic() async {
     await resolveTestCode('''
 class A {
@@ -607,6 +627,37 @@ Random bar() => null;
     await _verifyReferences(element, expected);
   }
 
+  test_searchReferences_ImportElement_noPrefix_optIn_fromOptOut() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class N1 {}
+void N2() {}
+int get N3 => 0;
+set N4(int _) {}
+''');
+
+    await resolveTestCode('''
+// @dart = 2.7
+import 'a.dart';
+
+main() {
+  N1;
+  N2();
+  N3;
+  N4 = 0;
+}
+''');
+    ImportElement element = findElement.import('package:test/a.dart');
+    var main = findElement.function('main');
+    var kind = SearchResultKind.REFERENCE;
+    var expected = [
+      _expectId(main, kind, 'N1;', length: 0),
+      _expectId(main, kind, 'N2();', length: 0),
+      _expectId(main, kind, 'N3;', length: 0),
+      _expectId(main, kind, 'N4 =', length: 0),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
   test_searchReferences_ImportElement_withPrefix() async {
     await resolveTestCode('''
 import 'dart:math' as math show max, pi, Random hide min;
@@ -658,6 +709,38 @@ main() {
       ];
       await _verifyReferences(element, expected);
     }
+  }
+
+  test_searchReferences_ImportElement_withPrefix_optIn_fromOptOut() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class N1 {}
+void N2() {}
+int get N3 => 0;
+set N4(int _) {}
+''');
+
+    await resolveTestCode('''
+// @dart = 2.7
+import 'a.dart' as a;
+
+main() {
+  a.N1;
+  a.N2();
+  a.N3;
+  a.N4 = 0;
+}
+''');
+    ImportElement element = findElement.import('package:test/a.dart');
+    var main = findElement.function('main');
+    var kind = SearchResultKind.REFERENCE;
+    var length = 'a.'.length;
+    var expected = [
+      _expectId(main, kind, 'a.N1;', length: length),
+      _expectId(main, kind, 'a.N2()', length: length),
+      _expectId(main, kind, 'a.N3', length: length),
+      _expectId(main, kind, 'a.N4', length: length),
+    ];
+    await _verifyReferences(element, expected);
   }
 
   test_searchReferences_LabelElement() async {
@@ -966,7 +1049,7 @@ main(A<int> a) {
     await _verifyReferences(method, expected);
   }
 
-  test_searchReferences_ParameterElement_named() async {
+  test_searchReferences_ParameterElement_optionalNamed() async {
     await resolveTestCode('''
 foo({p}) {
   p = 1;
@@ -991,7 +1074,57 @@ main() {
     await _verifyReferences(element, expected);
   }
 
-  test_searchReferences_ParameterElement_ofConstructor() async {
+  test_searchReferences_ParameterElement_optionalPositional() async {
+    await resolveTestCode('''
+foo([p]) {
+  p = 1;
+  p += 2;
+  print(p);
+  p();
+}
+main() {
+  foo(42);
+}
+''');
+    var element = findElement.parameter('p');
+    var foo = findElement.function('foo');
+    var main = findElement.function('main');
+    var expected = [
+      _expectId(foo, SearchResultKind.WRITE, 'p = 1;'),
+      _expectId(foo, SearchResultKind.READ_WRITE, 'p += 2;'),
+      _expectId(foo, SearchResultKind.READ, 'p);'),
+      _expectId(foo, SearchResultKind.READ, 'p();'),
+      _expectIdQ(main, SearchResultKind.REFERENCE, '42', length: 0)
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ParameterElement_requiredNamed() async {
+    await resolveTestCode('''
+foo({required int p}) {
+  p = 1;
+  p += 2;
+  print(p);
+  p();
+}
+main() {
+  foo(p: 42);
+}
+''');
+    var element = findElement.parameter('p');
+    var foo = findElement.function('foo');
+    var main = findElement.function('main');
+    var expected = [
+      _expectId(foo, SearchResultKind.WRITE, 'p = 1;'),
+      _expectId(foo, SearchResultKind.READ_WRITE, 'p += 2;'),
+      _expectId(foo, SearchResultKind.READ, 'p);'),
+      _expectId(foo, SearchResultKind.READ, 'p();'),
+      _expectIdQ(main, SearchResultKind.REFERENCE, 'p: 42')
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ParameterElement_requiredPositional_ofConstructor() async {
     await resolveTestCode('''
 class C {
   var f;
@@ -1018,7 +1151,7 @@ main() {
     await _verifyReferences(element, expected);
   }
 
-  test_searchReferences_ParameterElement_ofLocalFunction() async {
+  test_searchReferences_ParameterElement_requiredPositional_ofLocalFunction() async {
     await resolveTestCode('''
 main() {
   foo(p) {
@@ -1041,7 +1174,7 @@ main() {
     await _verifyReferences(element, expected);
   }
 
-  test_searchReferences_ParameterElement_ofMethod() async {
+  test_searchReferences_ParameterElement_requiredPositional_ofMethod() async {
     await resolveTestCode('''
 class C {
   foo(p) {
@@ -1066,7 +1199,7 @@ main(C c) {
     await _verifyReferences(element, expected);
   }
 
-  test_searchReferences_ParameterElement_ofTopLevelFunction() async {
+  test_searchReferences_ParameterElement_requiredPositional_ofTopLevelFunction() async {
     await resolveTestCode('''
 foo(p) {
   p = 1;
@@ -1085,31 +1218,6 @@ main() {
       _expectId(foo, SearchResultKind.READ_WRITE, 'p += 2;'),
       _expectId(foo, SearchResultKind.READ, 'p);'),
       _expectId(foo, SearchResultKind.READ, 'p();')
-    ];
-    await _verifyReferences(element, expected);
-  }
-
-  test_searchReferences_ParameterElement_optionalPositional() async {
-    await resolveTestCode('''
-foo([p]) {
-  p = 1;
-  p += 2;
-  print(p);
-  p();
-}
-main() {
-  foo(42);
-}
-''');
-    var element = findElement.parameter('p');
-    var foo = findElement.function('foo');
-    var main = findElement.function('main');
-    var expected = [
-      _expectId(foo, SearchResultKind.WRITE, 'p = 1;'),
-      _expectId(foo, SearchResultKind.READ_WRITE, 'p += 2;'),
-      _expectId(foo, SearchResultKind.READ, 'p);'),
-      _expectId(foo, SearchResultKind.READ, 'p();'),
-      _expectIdQ(main, SearchResultKind.REFERENCE, '42', length: 0)
     ];
     await _verifyReferences(element, expected);
   }
@@ -1423,6 +1531,77 @@ main() {
       _expectId(main, SearchResultKind.READ, 'V(); // nq'),
     ];
     await _verifyReferences(variable, expected);
+  }
+
+  test_searchReferences_TypeAliasElement() async {
+    await resolveTestCode('''
+class A<T> {
+  static int field = 0;
+  static void method() {}
+}
+
+typedef B = A<int>;
+
+class C extends B {} // extends
+
+void f(B p) {
+  B v;
+  B.field = 1;
+  B.field;
+  B.method();
+}
+''');
+
+    var element = findElement.typeAlias('B');
+    var f = findElement.topFunction('f');
+    await _verifyReferences(element, [
+      _expectId(findElement.class_('C'), SearchResultKind.REFERENCE,
+          'B {} // extends'),
+      _expectId(findElement.parameter('p'), SearchResultKind.REFERENCE, 'B p'),
+      _expectId(f, SearchResultKind.REFERENCE, 'B v'),
+      _expectId(f, SearchResultKind.REFERENCE, 'B.field ='),
+      _expectId(f, SearchResultKind.REFERENCE, 'B.field;'),
+      _expectId(f, SearchResultKind.REFERENCE, 'B.method();'),
+    ]);
+  }
+
+  test_searchReferences_TypeAliasElement_fromLegacy() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+typedef A<T> = Map<int, T>;
+''');
+    await resolveTestCode('''
+// @dart = 2.9
+import 'a.dart';
+
+void f(A<String> a) {}
+''');
+
+    var A = findElement.importFind('package:test/a.dart').typeAlias('A');
+    await _verifyReferences(A, [
+      _expectId(
+        findElement.parameter('a'),
+        SearchResultKind.REFERENCE,
+        'A<String>',
+      ),
+    ]);
+  }
+
+  test_searchReferences_TypeAliasElement_inConstructorName() async {
+    await resolveTestCode('''
+class A<T> {}
+
+typedef B = A<int>;
+
+void f() {
+  B();
+}
+''');
+
+    var element = findElement.typeAlias('B');
+    var f = findElement.topFunction('f');
+    await _verifyReferences(element, [
+      _expectId(f, SearchResultKind.REFERENCE, 'B();'),
+    ]);
   }
 
   test_searchReferences_TypeParameterElement_ofClass() async {
@@ -1853,167 +2032,5 @@ class NoMatchABCDEF {}
   static void _assertResults(
       List<SearchResult> matches, List<ExpectedResult> expectedMatches) {
     expect(matches, unorderedEquals(expectedMatches));
-  }
-}
-
-@reflectiveTest
-class SearchWithNonFunctionTypeAliasesTest extends SearchTest
-    with WithNonFunctionTypeAliasesMixin {
-  test_searchReferences_ConstructorElement_named_viaTypeAlias() async {
-    await resolveTestCode('''
-class A<T> {
-  A.named();
-}
-
-typedef B = A<int>;
-
-void f() {
-  B.named(); // ref
-}
-''');
-
-    var element = findElement.constructor('named');
-    var f = findElement.topFunction('f');
-    await _verifyReferences(element, [
-      _expectIdQ(f, SearchResultKind.REFERENCE, '.named(); // ref',
-          length: '.named'.length),
-    ]);
-  }
-
-  test_searchReferences_TypeAliasElement() async {
-    await resolveTestCode('''
-class A<T> {
-  static int field = 0;
-  static void method() {}
-}
-
-typedef B = A<int>;
-
-class C extends B {} // extends
-
-void f(B p) {
-  B v;
-  B.field = 1;
-  B.field;
-  B.method();
-}
-''');
-
-    var element = findElement.typeAlias('B');
-    var f = findElement.topFunction('f');
-    await _verifyReferences(element, [
-      _expectId(findElement.class_('C'), SearchResultKind.REFERENCE,
-          'B {} // extends'),
-      _expectId(findElement.parameter('p'), SearchResultKind.REFERENCE, 'B p'),
-      _expectId(f, SearchResultKind.REFERENCE, 'B v'),
-      _expectId(f, SearchResultKind.REFERENCE, 'B.field ='),
-      _expectId(f, SearchResultKind.REFERENCE, 'B.field;'),
-      _expectId(f, SearchResultKind.REFERENCE, 'B.method();'),
-    ]);
-  }
-
-  test_searchReferences_TypeAliasElement_fromLegacy() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-typedef A<T> = Map<int, T>;
-''');
-    await resolveTestCode('''
-// @dart = 2.9
-import 'a.dart';
-
-void f(A<String> a) {}
-''');
-
-    var A = findElement.importFind('package:test/a.dart').typeAlias('A');
-    await _verifyReferences(A, [
-      _expectId(
-        findElement.parameter('a'),
-        SearchResultKind.REFERENCE,
-        'A<String>',
-      ),
-    ]);
-  }
-
-  test_searchReferences_TypeAliasElement_inConstructorName() async {
-    await resolveTestCode('''
-class A<T> {}
-
-typedef B = A<int>;
-
-void f() {
-  B();
-}
-''');
-
-    var element = findElement.typeAlias('B');
-    var f = findElement.topFunction('f');
-    await _verifyReferences(element, [
-      _expectId(f, SearchResultKind.REFERENCE, 'B();'),
-    ]);
-  }
-}
-
-@reflectiveTest
-class SearchWithNullSafetyTest extends SearchTest with WithNullSafetyMixin {
-  test_searchReferences_ImportElement_noPrefix_optIn_fromOptOut() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-class N1 {}
-void N2() {}
-int get N3 => 0;
-set N4(int _) {}
-''');
-
-    await resolveTestCode('''
-// @dart = 2.7
-import 'a.dart';
-
-main() {
-  N1;
-  N2();
-  N3;
-  N4 = 0;
-}
-''');
-    ImportElement element = findElement.import('package:test/a.dart');
-    var main = findElement.function('main');
-    var kind = SearchResultKind.REFERENCE;
-    var expected = [
-      _expectId(main, kind, 'N1;', length: 0),
-      _expectId(main, kind, 'N2();', length: 0),
-      _expectId(main, kind, 'N3;', length: 0),
-      _expectId(main, kind, 'N4 =', length: 0),
-    ];
-    await _verifyReferences(element, expected);
-  }
-
-  test_searchReferences_ImportElement_withPrefix_optIn_fromOptOut() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-class N1 {}
-void N2() {}
-int get N3 => 0;
-set N4(int _) {}
-''');
-
-    await resolveTestCode('''
-// @dart = 2.7
-import 'a.dart' as a;
-
-main() {
-  a.N1;
-  a.N2();
-  a.N3;
-  a.N4 = 0;
-}
-''');
-    ImportElement element = findElement.import('package:test/a.dart');
-    var main = findElement.function('main');
-    var kind = SearchResultKind.REFERENCE;
-    var length = 'a.'.length;
-    var expected = [
-      _expectId(main, kind, 'a.N1;', length: length),
-      _expectId(main, kind, 'a.N2()', length: length),
-      _expectId(main, kind, 'a.N3', length: length),
-      _expectId(main, kind, 'a.N4', length: length),
-    ];
-    await _verifyReferences(element, expected);
   }
 }
