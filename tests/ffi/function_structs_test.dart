@@ -9,13 +9,12 @@
 
 import 'dart:ffi';
 
-import 'dylib_utils.dart';
-
 import "package:expect/expect.dart";
 import "package:ffi/ffi.dart";
 
 import 'calloc.dart';
 import 'coordinate.dart';
+import 'dylib_utils.dart';
 import 'very_large_struct.dart';
 
 typedef NativeCoordinateOp = Pointer<Coordinate> Function(Pointer<Coordinate>);
@@ -34,10 +33,13 @@ void testFunctionWithStruct() {
       ffiTestFunctions.lookup("TransposeCoordinate");
   NativeCoordinateOp f1 = p1.asFunction();
 
-  Pointer<Coordinate> c1 =
-      Coordinate.allocate(calloc, 10.0, 20.0, nullptr).addressOf;
-  Pointer<Coordinate> c2 =
-      Coordinate.allocate(calloc, 42.0, 84.0, c1).addressOf;
+  final c1 = calloc<Coordinate>()
+    ..ref.x = 10.0
+    ..ref.y = 20.0;
+  final c2 = calloc<Coordinate>()
+    ..ref.x = 42.0
+    ..ref.y = 84.0
+    ..ref.next = c1;
   c1.ref.next = c2;
 
   Coordinate result = f1(c1).ref;
@@ -58,24 +60,25 @@ void testFunctionWithStructArray() {
       ffiTestFunctions.lookup("CoordinateElemAt1");
   NativeCoordinateOp f1 = p1.asFunction();
 
-  Coordinate c1 = calloc<Coordinate>(3).ref;
-  Coordinate c2 = c1.addressOf[1];
-  Coordinate c3 = c1.addressOf[2];
+  final coordinateArray = calloc<Coordinate>(3);
+  Coordinate c1 = coordinateArray[0];
+  Coordinate c2 = coordinateArray[1];
+  Coordinate c3 = coordinateArray[2];
   c1.x = 10.0;
   c1.y = 10.0;
-  c1.next = c3.addressOf;
+  c1.next = coordinateArray.elementAt(2);
   c2.x = 20.0;
   c2.y = 20.0;
-  c2.next = c1.addressOf;
+  c2.next = coordinateArray.elementAt(0);
   c3.x = 30.0;
   c3.y = 30.0;
-  c3.next = c2.addressOf;
+  c3.next = coordinateArray.elementAt(1);
 
-  Coordinate result = f1(c1.addressOf).ref;
+  Coordinate result = f1(coordinateArray.elementAt(0)).ref;
   Expect.approxEquals(20.0, result.x);
   Expect.approxEquals(20.0, result.y);
 
-  calloc.free(c1.addressOf);
+  calloc.free(coordinateArray);
 }
 
 typedef VeryLargeStructSum = int Function(Pointer<VeryLargeStruct>);
@@ -86,8 +89,9 @@ void testFunctionWithVeryLargeStruct() {
       ffiTestFunctions.lookup("SumVeryLargeStruct");
   VeryLargeStructSum f = p1.asFunction();
 
-  VeryLargeStruct vls1 = calloc<VeryLargeStruct>(2).ref;
-  VeryLargeStruct vls2 = vls1.addressOf[1];
+  final vlsArray = calloc<VeryLargeStruct>(2);
+  VeryLargeStruct vls1 = vlsArray[0];
+  VeryLargeStruct vls2 = vlsArray[1];
   List<VeryLargeStruct> structs = [vls1, vls2];
   for (VeryLargeStruct struct in structs) {
     struct.a = 1;
@@ -103,19 +107,19 @@ void testFunctionWithVeryLargeStruct() {
     struct.k = 1024;
     struct.smallLastField = 1;
   }
-  vls1.parent = vls2.addressOf;
+  vls1.parent = vlsArray.elementAt(1);
   vls1.numChildren = 2;
-  vls1.children = vls1.addressOf;
-  vls2.parent = vls2.addressOf;
+  vls1.children = vlsArray.elementAt(0);
+  vls2.parent = vlsArray.elementAt(1);
   vls2.parent = nullptr;
   vls2.numChildren = 0;
   vls2.children = nullptr;
 
-  int result = f(vls1.addressOf);
+  int result = f(vlsArray.elementAt(0));
   Expect.equals(2051, result);
 
-  result = f(vls2.addressOf);
+  result = f(vlsArray.elementAt(1));
   Expect.equals(2048, result);
 
-  calloc.free(vls1.addressOf);
+  calloc.free(vlsArray);
 }

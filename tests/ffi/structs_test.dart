@@ -4,7 +4,7 @@
 //
 // Dart test program for testing dart:ffi struct pointers.
 //
-// VMOptions=--deterministic --optimization-counter-threshold=50
+// VMOptions=--deterministic --optimization-counter-threshold=50 --enable-inlining-annotations
 
 import 'dart:ffi';
 
@@ -12,16 +12,13 @@ import "package:expect/expect.dart";
 import "package:ffi/ffi.dart";
 
 import 'calloc.dart';
-import 'coordinate_bare.dart' as bare;
 import 'coordinate.dart';
-import 'ffi_test_helpers.dart';
 
 void main() {
   for (int i = 0; i < 100; i++) {
     testStructAllocate();
     testStructFromAddress();
     testStructWithNulls();
-    testBareStruct();
     testTypeTest();
     testUtf8();
     testDotDotRef();
@@ -30,12 +27,17 @@ void main() {
 
 /// allocates each coordinate separately in c memory
 void testStructAllocate() {
-  Pointer<Coordinate> c1 =
-      Coordinate.allocate(calloc, 10.0, 10.0, nullptr).addressOf;
-  Pointer<Coordinate> c2 =
-      Coordinate.allocate(calloc, 20.0, 20.0, c1).addressOf;
-  Pointer<Coordinate> c3 =
-      Coordinate.allocate(calloc, 30.0, 30.0, c2).addressOf;
+  final c1 = calloc<Coordinate>()
+    ..ref.x = 10.0
+    ..ref.y = 10.0;
+  final c2 = calloc<Coordinate>()
+    ..ref.x = 20.0
+    ..ref.y = 20.0
+    ..ref.next = c1;
+  final c3 = calloc<Coordinate>()
+    ..ref.x = 30.0
+    ..ref.y = 30.0
+    ..ref.next = c2;
   c1.ref.next = c3;
 
   Coordinate currentCoordinate = c1.ref;
@@ -83,8 +85,9 @@ void testStructFromAddress() {
 }
 
 void testStructWithNulls() {
-  Pointer<Coordinate> coordinate =
-      Coordinate.allocate(calloc, 10.0, 10.0, nullptr).addressOf;
+  final coordinate = calloc<Coordinate>()
+    ..ref.x = 10.0
+    ..ref.y = 10.0;
   Expect.equals(coordinate.ref.next, nullptr);
   coordinate.ref.next = coordinate;
   Expect.notEquals(coordinate.ref.next, nullptr);
@@ -93,41 +96,13 @@ void testStructWithNulls() {
   calloc.free(coordinate);
 }
 
-void testBareStruct() {
-  int structSize = sizeOf<Double>() * 2 + sizeOf<IntPtr>();
-  bare.Coordinate c1 =
-      calloc<Uint8>(structSize * 3).cast<bare.Coordinate>().ref;
-  bare.Coordinate c2 =
-      c1.addressOf.offsetBy(structSize).cast<bare.Coordinate>().ref;
-  bare.Coordinate c3 =
-      c1.addressOf.offsetBy(structSize * 2).cast<bare.Coordinate>().ref;
-  c1.x = 10.0;
-  c1.y = 10.0;
-  c1.next = c3.addressOf;
-  c2.x = 20.0;
-  c2.y = 20.0;
-  c2.next = c1.addressOf;
-  c3.x = 30.0;
-  c3.y = 30.0;
-  c3.next = c2.addressOf;
-
-  bare.Coordinate currentCoordinate = c1;
-  Expect.equals(10.0, currentCoordinate.x);
-  currentCoordinate = currentCoordinate.next.ref;
-  Expect.equals(30.0, currentCoordinate.x);
-  currentCoordinate = currentCoordinate.next.ref;
-  Expect.equals(20.0, currentCoordinate.x);
-  currentCoordinate = currentCoordinate.next.ref;
-  Expect.equals(10.0, currentCoordinate.x);
-
-  calloc.free(c1.addressOf);
-}
-
 void testTypeTest() {
-  Coordinate c = Coordinate.allocate(calloc, 10, 10, nullptr);
+  final pointer = calloc<Coordinate>();
+  Coordinate c = pointer.ref;
   Expect.isTrue(c is Struct);
+  // TODO(https://dartbug.com/40667): Remove support for this.
   Expect.isTrue(c.addressOf is Pointer<Coordinate>);
-  calloc.free(c.addressOf);
+  calloc.free(pointer);
 }
 
 void testUtf8() {
