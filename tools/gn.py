@@ -70,7 +70,10 @@ def ToCommandLine(gn_args):
 def HostCpuForArch(arch):
     if arch in ['ia32', 'arm', 'armv6', 'simarm', 'simarmv6', 'simarm_x64']:
         return 'x86'
-    if arch in ['x64', 'arm64', 'simarm64', 'arm_x64']:
+    if arch in [
+            'x64', 'arm64', 'simarm64', 'arm_x64', 'x64_comp_ptr',
+            'arm64_comp_ptr', 'simarm64_comp_ptr'
+    ]:
         return 'x64'
 
 
@@ -78,10 +81,14 @@ def HostCpuForArch(arch):
 def TargetCpuForArch(arch, target_os):
     if arch in ['ia32', 'simarm', 'simarmv6']:
         return 'x86'
-    if arch in ['x64', 'simarm64', 'simarm_x64']:
+    if arch in [
+            'x64', 'simarm64', 'simarm_x64', 'x64_comp_ptr', 'simarm64_comp_ptr'
+    ]:
         return 'x64'
     if arch == 'arm_x64':
         return 'arm'
+    if arch == 'arm64_comp_ptr':
+        return 'arm64'
     return arch
 
 
@@ -89,15 +96,19 @@ def TargetCpuForArch(arch, target_os):
 def DartTargetCpuForArch(arch):
     if arch in ['ia32']:
         return 'ia32'
-    if arch in ['x64']:
+    if arch in ['x64', 'x64_comp_ptr']:
         return 'x64'
     if arch in ['arm', 'simarm', 'simarm_x64', 'arm_x64']:
         return 'arm'
     if arch in ['armv6', 'simarmv6']:
         return 'armv6'
-    if arch in ['arm64', 'simarm64']:
+    if arch in ['arm64', 'simarm64', 'arm64_comp_ptr', 'simarm64_comp_ptr']:
         return 'arm64'
     return arch
+
+
+def IsCompressedPointerArch(arch):
+    return arch in ['x64_comp_ptr', 'arm64_comp_ptr', 'simarm64_comp_ptr']
 
 
 def HostOsForGn(host_os):
@@ -147,6 +158,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
     gn_args['host_cpu'] = HostCpuForArch(arch)
     gn_args['target_cpu'] = TargetCpuForArch(arch, target_os)
     gn_args['dart_target_arch'] = DartTargetCpuForArch(arch)
+    gn_args['dart_use_compressed_pointers'] = IsCompressedPointerArch(arch)
 
     # Configure Crashpad library if it is used.
     gn_args['dart_use_crashpad'] = (args.use_crashpad or
