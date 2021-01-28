@@ -625,12 +625,14 @@
     },
     "dart2js-hostasserts-(linux|mac|win)-(ia32|x64)-d8": {
       "options": {
-        "host-checked": true
+        "host-checked": true,
+        "timeout": 240
       }
     },
     "dart2js-hostasserts-(linux|mac|win)-(ia32|x64)-d8-unsound": {
       "options": {
         "host-checked": true,
+        "timeout": 240,
         "dart2js-options": [
           "--no-sound-null-safety"
         ]
@@ -638,70 +640,70 @@
     },
     "dart2js-hostasserts-weak-(linux|win)-x64-(d8|chrome)": {
       "options": {
+        "host-checked": true,
+        "timeout": 240,
         "builder-tag": "dart2js-weak",
         "dart2js-options": [
           "--libraries-spec=sdk/lib/libraries.json",
           "--platform-binaries=out/ReleaseX64/"
-        ],
-        "timeout": 240,
-        "host-checked": true
+        ]
       }
     },
     "dart2js-hostasserts-weak-max-fragments-(linux|win)-x64-(d8|chrome)": {
       "options": {
+        "host-checked": true,
+        "timeout": 240,
         "builder-tag": "dart2js-weak",
         "dart2js-options": [
           "--libraries-spec=sdk/lib/libraries.json",
           "--platform-binaries=out/ReleaseX64/",
           "--merge-fragments-threshold=3"
-        ],
-        "timeout": 240,
-        "host-checked": true
+        ]
       }
     },
     "dart2js-hostasserts-weak-mac-x64-(d8|chrome)": {
       "options": {
+        "host-checked": true,
+        "timeout": 240,
         "builder-tag": "dart2js-weak",
         "dart2js-options": [
           "--libraries-spec=sdk/lib/libraries.json",
           "--platform-binaries=xcodebuild/ReleaseX64/"
-        ],
-        "timeout": 240,
-        "host-checked": true
+        ]
       }
     },
     "dart2js-hostasserts-strong-(linux|win)-x64-(d8|chrome)": {
       "options": {
+        "host-checked": true,
+        "timeout": 240,
         "builder-tag": "dart2js-strong",
         "dart2js-options": [
           "--libraries-spec=sdk/lib/libraries.json",
           "--platform-binaries=out/ReleaseX64/"
-        ],
-        "timeout": 240,
-        "host-checked": true
+        ]
       }
     },
     "dart2js-hostasserts-strong-max-fragments-(linux|win)-x64-(d8|chrome)": {
       "options": {
+        "host-checked": true,
+        "timeout": 240,
         "builder-tag": "dart2js-strong",
         "dart2js-options": [
           "--libraries-spec=sdk/lib/libraries.json",
           "--platform-binaries=out/ReleaseX64/",
           "--merge-fragments-threshold=3"
-        ],
-        "timeout": 240,
-        "host-checked": true
+        ]
       }
     },
     "dart2js-hostasserts-strong-mac-x64-(d8|chrome)": {
       "options": {
+        "host-checked": true,
+        "timeout": 240,
         "builder-tag": "dart2js-strong",
         "dart2js-options": [
           "--libraries-spec=sdk/lib/libraries.json",
           "--platform-binaries=xcodebuild/ReleaseX64/"
-        ],
-        "timeout": 240,
-        "host-checked": true
+        ]
       }
     },
     "dartkp-android-(debug|product|release)-arm_x64": {
