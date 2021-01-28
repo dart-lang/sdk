@@ -2836,7 +2836,11 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
         current_target_code.EntryPoint(),
         current_target_code.is_optimized() ? "optimized" : "unoptimized");
   }
-  ASSERT(!current_target_code.IsDisabled());
+  // With isolate groups enabled, it is possible that the target code
+  // has been deactivated just now(as a result of re-optimizatin for example),
+  // which will result in another run through FixCallersTarget.
+  ASSERT(!current_target_code.IsDisabled() ||
+         IsolateGroup::AreIsolateGroupsEnabled());
   arguments.SetReturn(current_target_code);
 #else
   UNREACHABLE();
@@ -2882,7 +2886,11 @@ DEFINE_RUNTIME_ENTRY(FixCallersTargetMonomorphic, 0) {
         current_target_code.EntryPoint(),
         current_target_code.is_optimized() ? "optimized" : "unoptimized");
   }
-  ASSERT(!current_target_code.IsDisabled());
+  // With isolate groups enabled, it is possible that the target code
+  // has been deactivated just now(as a result of re-optimizatin for example),
+  // which will result in another run through FixCallersTarget.
+  ASSERT(!current_target_code.IsDisabled() ||
+         IsolateGroup::AreIsolateGroupsEnabled());
   arguments.SetReturn(current_target_code);
 #else
   UNREACHABLE();
