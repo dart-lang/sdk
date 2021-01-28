@@ -441,6 +441,11 @@ class ResolverVisitor extends ScopedVisitor {
             CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY,
             errorNode,
           );
+        } else if (errorNode is BlockFunctionBody) {
+          errorReporter.reportErrorForToken(
+            CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY,
+            errorNode.block.leftBracket,
+          );
         } else {
           errorReporter.reportErrorForNode(
             CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY,

@@ -171,23 +171,23 @@ int foo() {
 
   test_functionExpression_future_int_blockBody_async() async {
     await assertErrorsInCode(r'''
-main() {
+void f() {
   Future<int> Function() foo = () async {};
   foo;
 }
 ''', [
-      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 43, 8),
+      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 51, 1),
     ]);
   }
 
   test_functionExpression_future_void_blockBody() async {
     await assertErrorsInCode(r'''
-main() {
+void f() {
   Future<void> Function() foo = () {};
   foo;
 }
 ''', [
-      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 44, 2),
+      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 46, 1),
     ]);
   }
 
@@ -202,13 +202,13 @@ main() {
 
   test_functionExpression_notNullable_blockBody() async {
     await assertErrorsInCode(r'''
-main() {
+void f() {
   int Function() foo = () {
   };
   foo;
 }
 ''', [
-      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 35, 5),
+      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 37, 1),
     ]);
   }
 
