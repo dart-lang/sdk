@@ -40,6 +40,8 @@
 
 #define COMMON_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, PAYLOAD_SIZEOF, RANGE,       \
                             CONSTANT)                                          \
+  ARRAY(ContextScope, element_offset)                                          \
+  ARRAY(ExceptionHandlers, element_offset)                                     \
   ARRAY(ObjectPool, element_offset)                                            \
   CONSTANT(Array, kMaxElements)                                                \
   CONSTANT(Array, kMaxNewSpaceElements)                                        \

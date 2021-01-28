@@ -440,6 +440,7 @@ class ObjectPool : public AllStatic {
  public:
   // Return offset to the element with the given [index] in the object pool.
   static word element_offset(intptr_t index);
+  static word InstanceSize(intptr_t length);
   static word InstanceSize();
   static word NextFieldOffset();
 };
@@ -560,6 +561,7 @@ class Array : public AllStatic {
   static word length_offset();
   static word element_offset(intptr_t index);
   static intptr_t index_at_offset(intptr_t offset_in_bytes);
+  static word InstanceSize(intptr_t length);
   static word InstanceSize();
   static word NextFieldOffset();
 
@@ -591,6 +593,7 @@ class TypedDataBase : public PointerBase {
 class TypedData : public AllStatic {
  public:
   static word data_offset();
+  static word InstanceSize(intptr_t lengthInBytes);
   static word InstanceSize();
   static word NextFieldOffset();
 };
@@ -725,6 +728,7 @@ class String : public AllStatic {
 class OneByteString : public AllStatic {
  public:
   static word data_offset();
+  static word InstanceSize(intptr_t length);
   static word InstanceSize();
   static word NextFieldOffset();
 };
@@ -732,6 +736,7 @@ class OneByteString : public AllStatic {
 class TwoByteString : public AllStatic {
  public:
   static word data_offset();
+  static word InstanceSize(intptr_t length);
   static word InstanceSize();
   static word NextFieldOffset();
 };
@@ -845,12 +850,16 @@ class LocalVarDescriptors : public AllStatic {
 
 class ExceptionHandlers : public AllStatic {
  public:
+  static word element_offset(intptr_t index);
+  static word InstanceSize(intptr_t length);
   static word InstanceSize();
   static word NextFieldOffset();
 };
 
 class ContextScope : public AllStatic {
  public:
+  static word element_offset(intptr_t index);
+  static word InstanceSize(intptr_t length);
   static word InstanceSize();
   static word NextFieldOffset();
 };
@@ -1333,6 +1342,7 @@ class TypeArguments : public AllStatic {
   static word nullability_offset();
   static word type_at_offset(intptr_t i);
   static word types_offset();
+  static word InstanceSize(intptr_t length);
   static word InstanceSize();
   static word NextFieldOffset();
 

@@ -128,6 +128,7 @@ void SerializationCluster::WriteAndMeasureAlloc(Serializer* serializer) {
   }
   size_ += (stop_size - start_size) + (stop_data - start_data);
   num_objects_ += (stop_objects - start_objects);
+  target_memory_size_ += num_objects_ * target_instance_size_;
 }
 
 void SerializationCluster::WriteAndMeasureFill(Serializer* serializer) {
@@ -178,7 +179,7 @@ static UnboxedFieldBitmap CalculateTargetUnboxedFieldsBitmap(
 class ClassSerializationCluster : public SerializationCluster {
  public:
   explicit ClassSerializationCluster(intptr_t num_cids)
-      : SerializationCluster("Class"),
+      : SerializationCluster("Class", compiler::target::Class::InstanceSize()),
         predefined_(kNumPredefinedCids),
         objects_(num_cids) {}
   ~ClassSerializationCluster() {}
@@ -432,6 +433,8 @@ class TypeArgumentsSerializationCluster : public SerializationCluster {
       AutoTraceObject(type_args);
       const intptr_t length = Smi::Value(type_args->untag()->length_);
       s->WriteUnsigned(length);
+      target_memory_size_ +=
+          compiler::target::TypeArguments::InstanceSize(length);
     }
   }
 
@@ -517,7 +520,9 @@ class TypeArgumentsDeserializationCluster : public DeserializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class PatchClassSerializationCluster : public SerializationCluster {
  public:
-  PatchClassSerializationCluster() : SerializationCluster("PatchClass") {}
+  PatchClassSerializationCluster()
+      : SerializationCluster("PatchClass",
+                             compiler::target::PatchClass::InstanceSize()) {}
   ~PatchClassSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -587,7 +592,9 @@ class PatchClassDeserializationCluster : public DeserializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class FunctionSerializationCluster : public SerializationCluster {
  public:
-  FunctionSerializationCluster() : SerializationCluster("Function") {}
+  FunctionSerializationCluster()
+      : SerializationCluster("Function",
+                             compiler::target::Function::InstanceSize()) {}
   ~FunctionSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -765,7 +772,9 @@ class FunctionDeserializationCluster : public DeserializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class ClosureDataSerializationCluster : public SerializationCluster {
  public:
-  ClosureDataSerializationCluster() : SerializationCluster("ClosureData") {}
+  ClosureDataSerializationCluster()
+      : SerializationCluster("ClosureData",
+                             compiler::target::ClosureData::InstanceSize()) {}
   ~ClosureDataSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -852,7 +861,9 @@ class ClosureDataDeserializationCluster : public DeserializationCluster {
 class FfiTrampolineDataSerializationCluster : public SerializationCluster {
  public:
   FfiTrampolineDataSerializationCluster()
-      : SerializationCluster("FfiTrampolineData") {}
+      : SerializationCluster(
+            "FfiTrampolineData",
+            compiler::target::FfiTrampolineData::InstanceSize()) {}
   ~FfiTrampolineDataSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -923,7 +934,9 @@ class FfiTrampolineDataDeserializationCluster : public DeserializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class FieldSerializationCluster : public SerializationCluster {
  public:
-  FieldSerializationCluster() : SerializationCluster("Field") {}
+  FieldSerializationCluster()
+      : SerializationCluster("Field", compiler::target::Field::InstanceSize()) {
+  }
   ~FieldSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -1106,7 +1119,9 @@ class FieldDeserializationCluster : public DeserializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class ScriptSerializationCluster : public SerializationCluster {
  public:
-  ScriptSerializationCluster() : SerializationCluster("Script") {}
+  ScriptSerializationCluster()
+      : SerializationCluster("Script",
+                             compiler::target::Script::InstanceSize()) {}
   ~ScriptSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -1187,7 +1202,9 @@ class ScriptDeserializationCluster : public DeserializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class LibrarySerializationCluster : public SerializationCluster {
  public:
-  LibrarySerializationCluster() : SerializationCluster("Library") {}
+  LibrarySerializationCluster()
+      : SerializationCluster("Library",
+                             compiler::target::Library::InstanceSize()) {}
   ~LibrarySerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -1266,7 +1283,9 @@ class LibraryDeserializationCluster : public DeserializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class NamespaceSerializationCluster : public SerializationCluster {
  public:
-  NamespaceSerializationCluster() : SerializationCluster("Namespace") {}
+  NamespaceSerializationCluster()
+      : SerializationCluster("Namespace",
+                             compiler::target::Namespace::InstanceSize()) {}
   ~NamespaceSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -1329,7 +1348,9 @@ class NamespaceDeserializationCluster : public DeserializationCluster {
 class KernelProgramInfoSerializationCluster : public SerializationCluster {
  public:
   KernelProgramInfoSerializationCluster()
-      : SerializationCluster("KernelProgramInfo") {}
+      : SerializationCluster(
+            "KernelProgramInfo",
+            compiler::target::KernelProgramInfo::InstanceSize()) {}
   ~KernelProgramInfoSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -1407,7 +1428,8 @@ class KernelProgramInfoDeserializationCluster : public DeserializationCluster {
 class CodeSerializationCluster : public SerializationCluster {
  public:
   explicit CodeSerializationCluster(Heap* heap)
-      : SerializationCluster("Code"), array_(Array::Handle()) {}
+      : SerializationCluster("Code", compiler::target::Code::InstanceSize()),
+        array_(Array::Handle()) {}
   ~CodeSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -1873,6 +1895,7 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
       AutoTraceObject(pool);
       const intptr_t length = pool->untag()->length_;
       s->WriteUnsigned(length);
+      target_memory_size_ += compiler::target::ObjectPool::InstanceSize(length);
     }
   }
 
@@ -1975,7 +1998,9 @@ class WeakSerializationReferenceSerializationCluster
     : public SerializationCluster {
  public:
   WeakSerializationReferenceSerializationCluster(Zone* zone, Heap* heap)
-      : SerializationCluster("WeakSerializationReference"),
+      : SerializationCluster(
+            "WeakSerializationReference",
+            compiler::target::WeakSerializationReference::InstanceSize()),
         heap_(ASSERT_NOTNULL(heap)),
         objects_(zone, 0),
         canonical_wsrs_(zone, 0),
@@ -2137,6 +2162,8 @@ class PcDescriptorsSerializationCluster : public SerializationCluster {
       AutoTraceObject(desc);
       const intptr_t length = desc->untag()->length_;
       s->WriteUnsigned(length);
+      target_memory_size_ +=
+          compiler::target::PcDescriptors::InstanceSize(length);
     }
   }
 
@@ -2316,6 +2343,8 @@ class ExceptionHandlersSerializationCluster : public SerializationCluster {
       AutoTraceObject(handlers);
       const intptr_t length = handlers->untag()->num_entries_;
       s->WriteUnsigned(length);
+      target_memory_size_ +=
+          compiler::target::ExceptionHandlers::InstanceSize(length);
     }
   }
 
@@ -2410,6 +2439,7 @@ class ContextSerializationCluster : public SerializationCluster {
       AutoTraceObject(context);
       const intptr_t length = context->untag()->num_variables_;
       s->WriteUnsigned(length);
+      target_memory_size_ += compiler::target::Context::InstanceSize(length);
     }
   }
 
@@ -2488,6 +2518,8 @@ class ContextScopeSerializationCluster : public SerializationCluster {
       AutoTraceObject(scope);
       const intptr_t length = scope->untag()->num_variables_;
       s->WriteUnsigned(length);
+      target_memory_size_ +=
+          compiler::target::ContextScope::InstanceSize(length);
     }
   }
 
@@ -2542,7 +2574,9 @@ class ContextScopeDeserializationCluster : public DeserializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class UnlinkedCallSerializationCluster : public SerializationCluster {
  public:
-  UnlinkedCallSerializationCluster() : SerializationCluster("UnlinkedCall") {}
+  UnlinkedCallSerializationCluster()
+      : SerializationCluster("UnlinkedCall",
+                             compiler::target::UnlinkedCall::InstanceSize()) {}
   ~UnlinkedCallSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -2607,7 +2641,9 @@ class UnlinkedCallDeserializationCluster : public DeserializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class ICDataSerializationCluster : public SerializationCluster {
  public:
-  ICDataSerializationCluster() : SerializationCluster("ICData") {}
+  ICDataSerializationCluster()
+      : SerializationCluster("ICData",
+                             compiler::target::ICData::InstanceSize()) {}
   ~ICDataSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -2675,7 +2711,9 @@ class ICDataDeserializationCluster : public DeserializationCluster {
 class MegamorphicCacheSerializationCluster : public SerializationCluster {
  public:
   MegamorphicCacheSerializationCluster()
-      : SerializationCluster("MegamorphicCache") {}
+      : SerializationCluster(
+            "MegamorphicCache",
+            compiler::target::MegamorphicCache::InstanceSize()) {}
   ~MegamorphicCacheSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -2767,7 +2805,9 @@ class MegamorphicCacheDeserializationCluster : public DeserializationCluster {
 class SubtypeTestCacheSerializationCluster : public SerializationCluster {
  public:
   SubtypeTestCacheSerializationCluster()
-      : SerializationCluster("SubtypeTestCache") {}
+      : SerializationCluster(
+            "SubtypeTestCache",
+            compiler::target::SubtypeTestCache::InstanceSize()) {}
   ~SubtypeTestCacheSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -2830,7 +2870,9 @@ class SubtypeTestCacheDeserializationCluster : public DeserializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class LoadingUnitSerializationCluster : public SerializationCluster {
  public:
-  LoadingUnitSerializationCluster() : SerializationCluster("LoadingUnit") {}
+  LoadingUnitSerializationCluster()
+      : SerializationCluster("LoadingUnit",
+                             compiler::target::LoadingUnit::InstanceSize()) {}
   ~LoadingUnitSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -2897,7 +2939,9 @@ class LoadingUnitDeserializationCluster : public DeserializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class LanguageErrorSerializationCluster : public SerializationCluster {
  public:
-  LanguageErrorSerializationCluster() : SerializationCluster("LanguageError") {}
+  LanguageErrorSerializationCluster()
+      : SerializationCluster("LanguageError",
+                             compiler::target::LanguageError::InstanceSize()) {}
   ~LanguageErrorSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -2967,7 +3011,9 @@ class LanguageErrorDeserializationCluster : public DeserializationCluster {
 class UnhandledExceptionSerializationCluster : public SerializationCluster {
  public:
   UnhandledExceptionSerializationCluster()
-      : SerializationCluster("UnhandledException") {}
+      : SerializationCluster(
+            "UnhandledException",
+            compiler::target::UnhandledException::InstanceSize()) {}
   ~UnhandledExceptionSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -3037,14 +3083,12 @@ class InstanceSerializationCluster : public SerializationCluster {
     host_next_field_offset_in_words_ =
         cls->untag()->host_next_field_offset_in_words_;
     ASSERT(host_next_field_offset_in_words_ > 0);
-#if !defined(DART_PRECOMPILED_RUNTIME)
     target_next_field_offset_in_words_ =
         cls->untag()->target_next_field_offset_in_words_;
     target_instance_size_in_words_ =
         cls->untag()->target_instance_size_in_words_;
     ASSERT(target_next_field_offset_in_words_ > 0);
     ASSERT(target_instance_size_in_words_ > 0);
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   }
   ~InstanceSerializationCluster() {}
 
@@ -3073,17 +3117,17 @@ class InstanceSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
     s->Write<int32_t>(target_next_field_offset_in_words_);
     s->Write<int32_t>(target_instance_size_in_words_);
-#else
-    s->Write<int32_t>(host_next_field_offset_in_words_);
-#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
 
     for (intptr_t i = 0; i < count; i++) {
       InstancePtr instance = objects_[i];
       s->AssignRef(instance);
     }
+
+    const intptr_t instance_size = compiler::target::RoundedAllocationSize(
+        target_instance_size_in_words_ * compiler::target::kWordSize);
+    target_memory_size_ += instance_size * count;
   }
 
   void WriteFill(Serializer* s) {
@@ -3118,10 +3162,8 @@ class InstanceSerializationCluster : public SerializationCluster {
  private:
   const intptr_t cid_;
   intptr_t host_next_field_offset_in_words_;
-#if !defined(DART_PRECOMPILED_RUNTIME)
   intptr_t target_next_field_offset_in_words_;
   intptr_t target_instance_size_in_words_;
-#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
   GrowableArray<InstancePtr> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
@@ -3189,7 +3231,9 @@ class InstanceDeserializationCluster : public DeserializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class LibraryPrefixSerializationCluster : public SerializationCluster {
  public:
-  LibraryPrefixSerializationCluster() : SerializationCluster("LibraryPrefix") {}
+  LibraryPrefixSerializationCluster()
+      : SerializationCluster("LibraryPrefix",
+                             compiler::target::LibraryPrefix::InstanceSize()) {}
   ~LibraryPrefixSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -3261,7 +3305,8 @@ static constexpr intptr_t kNullabilityBitMask = (1 << kNullabilityBitSize) - 1;
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class TypeSerializationCluster : public SerializationCluster {
  public:
-  TypeSerializationCluster() : SerializationCluster("Type") {}
+  TypeSerializationCluster()
+      : SerializationCluster("Type", compiler::target::Type::InstanceSize()) {}
   ~TypeSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -3384,7 +3429,9 @@ class TypeDeserializationCluster : public DeserializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class FunctionTypeSerializationCluster : public SerializationCluster {
  public:
-  FunctionTypeSerializationCluster() : SerializationCluster("FunctionType") {}
+  FunctionTypeSerializationCluster()
+      : SerializationCluster("FunctionType",
+                             compiler::target::FunctionType::InstanceSize()) {}
   ~FunctionTypeSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -3504,7 +3551,9 @@ class FunctionTypeDeserializationCluster : public DeserializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class TypeRefSerializationCluster : public SerializationCluster {
  public:
-  TypeRefSerializationCluster() : SerializationCluster("TypeRef") {}
+  TypeRefSerializationCluster()
+      : SerializationCluster("TypeRef",
+                             compiler::target::TypeRef::InstanceSize()) {}
   ~TypeRefSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -3585,7 +3634,9 @@ class TypeRefDeserializationCluster : public DeserializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class TypeParameterSerializationCluster : public SerializationCluster {
  public:
-  TypeParameterSerializationCluster() : SerializationCluster("TypeParameter") {}
+  TypeParameterSerializationCluster()
+      : SerializationCluster("TypeParameter",
+                             compiler::target::TypeParameter::InstanceSize()) {}
   ~TypeParameterSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -3706,7 +3757,9 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class ClosureSerializationCluster : public SerializationCluster {
  public:
-  ClosureSerializationCluster() : SerializationCluster("Closure") {}
+  ClosureSerializationCluster()
+      : SerializationCluster("Closure",
+                             compiler::target::Closure::InstanceSize()) {}
   ~ClosureSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -3767,7 +3820,8 @@ class ClosureDeserializationCluster : public DeserializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class MintSerializationCluster : public SerializationCluster {
  public:
-  MintSerializationCluster() : SerializationCluster("int") {}
+  MintSerializationCluster()
+      : SerializationCluster("int", compiler::target::Mint::InstanceSize()) {}
   ~MintSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -3854,7 +3908,9 @@ class MintDeserializationCluster : public DeserializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class DoubleSerializationCluster : public SerializationCluster {
  public:
-  DoubleSerializationCluster() : SerializationCluster("double") {}
+  DoubleSerializationCluster()
+      : SerializationCluster("double",
+                             compiler::target::Double::InstanceSize()) {}
   ~DoubleSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -3915,7 +3971,9 @@ class DoubleDeserializationCluster : public DeserializationCluster {
 class GrowableObjectArraySerializationCluster : public SerializationCluster {
  public:
   GrowableObjectArraySerializationCluster()
-      : SerializationCluster("GrowableObjectArray") {}
+      : SerializationCluster(
+            "GrowableObjectArray",
+            compiler::target::GrowableObjectArray::InstanceSize()) {}
   ~GrowableObjectArraySerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -3994,12 +4052,15 @@ class TypedDataSerializationCluster : public SerializationCluster {
     s->WriteCid(cid_);
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
+    const intptr_t element_size = TypedData::ElementSizeInBytes(cid_);
     for (intptr_t i = 0; i < count; i++) {
       TypedDataPtr data = objects_[i];
       s->AssignRef(data);
       AutoTraceObject(data);
       const intptr_t length = Smi::Value(data->untag()->length_);
       s->WriteUnsigned(length);
+      target_memory_size_ +=
+          compiler::target::TypedData::InstanceSize(length * element_size);
     }
   }
 
@@ -4065,7 +4126,9 @@ class TypedDataDeserializationCluster : public DeserializationCluster {
 class TypedDataViewSerializationCluster : public SerializationCluster {
  public:
   explicit TypedDataViewSerializationCluster(intptr_t cid)
-      : SerializationCluster("TypedDataView"), cid_(cid) {}
+      : SerializationCluster("TypedDataView",
+                             compiler::target::TypedDataView::InstanceSize()),
+        cid_(cid) {}
   ~TypedDataViewSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -4142,7 +4205,10 @@ class TypedDataViewDeserializationCluster : public DeserializationCluster {
 class ExternalTypedDataSerializationCluster : public SerializationCluster {
  public:
   explicit ExternalTypedDataSerializationCluster(intptr_t cid)
-      : SerializationCluster("ExternalTypedData"), cid_(cid) {}
+      : SerializationCluster(
+            "ExternalTypedData",
+            compiler::target::ExternalTypedData::InstanceSize()),
+        cid_(cid) {}
   ~ExternalTypedDataSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -4220,7 +4286,9 @@ class ExternalTypedDataDeserializationCluster : public DeserializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class StackTraceSerializationCluster : public SerializationCluster {
  public:
-  StackTraceSerializationCluster() : SerializationCluster("StackTrace") {}
+  StackTraceSerializationCluster()
+      : SerializationCluster("StackTrace",
+                             compiler::target::StackTrace::InstanceSize()) {}
   ~StackTraceSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -4282,7 +4350,9 @@ class StackTraceDeserializationCluster : public DeserializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class RegExpSerializationCluster : public SerializationCluster {
  public:
-  RegExpSerializationCluster() : SerializationCluster("RegExp") {}
+  RegExpSerializationCluster()
+      : SerializationCluster("RegExp",
+                             compiler::target::RegExp::InstanceSize()) {}
   ~RegExpSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -4349,7 +4419,9 @@ class RegExpDeserializationCluster : public DeserializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class WeakPropertySerializationCluster : public SerializationCluster {
  public:
-  WeakPropertySerializationCluster() : SerializationCluster("WeakProperty") {}
+  WeakPropertySerializationCluster()
+      : SerializationCluster("WeakProperty",
+                             compiler::target::WeakProperty::InstanceSize()) {}
   ~WeakPropertySerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -4413,7 +4485,9 @@ class WeakPropertyDeserializationCluster : public DeserializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class LinkedHashMapSerializationCluster : public SerializationCluster {
  public:
-  LinkedHashMapSerializationCluster() : SerializationCluster("LinkedHashMap") {}
+  LinkedHashMapSerializationCluster()
+      : SerializationCluster("LinkedHashMap",
+                             compiler::target::LinkedHashMap::InstanceSize()) {}
   ~LinkedHashMapSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -4562,6 +4636,7 @@ class ArraySerializationCluster : public SerializationCluster {
       AutoTraceObject(array);
       const intptr_t length = Smi::Value(array->untag()->length_);
       s->WriteUnsigned(length);
+      target_memory_size_ += compiler::target::Array::InstanceSize(length);
     }
   }
 
@@ -4643,6 +4718,8 @@ class OneByteStringSerializationCluster : public SerializationCluster {
       AutoTraceObject(str);
       const intptr_t length = Smi::Value(str->untag()->length_);
       s->WriteUnsigned(length);
+      target_memory_size_ +=
+          compiler::target::OneByteString::InstanceSize(length);
     }
   }
 
@@ -4736,6 +4813,8 @@ class TwoByteStringSerializationCluster : public SerializationCluster {
       AutoTraceObject(str);
       const intptr_t length = Smi::Value(str->untag()->length_);
       s->WriteUnsigned(length);
+      target_memory_size_ +=
+          compiler::target::TwoByteString::InstanceSize(length);
     }
   }
 
@@ -4815,10 +4894,12 @@ class FakeSerializationCluster : public SerializationCluster {
  public:
   FakeSerializationCluster(const char* name,
                            intptr_t num_objects,
-                           intptr_t size)
+                           intptr_t size,
+                           intptr_t target_memory_size = 0)
       : SerializationCluster(name) {
     num_objects_ = num_objects;
     size_ = size;
+    target_memory_size_ = target_memory_size;
   }
   ~FakeSerializationCluster() {}
 
@@ -6146,7 +6227,8 @@ void Serializer::PrintSnapshotSizes() {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_print_snapshot_sizes_verbose) {
     OS::PrintErr(
-        "                  Cluster   Objs     Size Fraction Cumulative\n");
+        "                  Cluster   Objs     Size Fraction Cumulative "
+        " HeapSize\n");
     GrowableArray<SerializationCluster*> clusters_by_size;
     for (intptr_t cid = 1; cid < num_cids_; cid++) {
       SerializationCluster* cluster = clusters_by_cid_[cid];
@@ -6191,9 +6273,10 @@ void Serializer::PrintSnapshotSizes() {
       SerializationCluster* cluster = clusters_by_size[i];
       double fraction = static_cast<double>(cluster->size()) / total_size;
       cumulative_fraction += fraction;
-      OS::PrintErr("%25s %6" Pd " %8" Pd " %lf %lf\n", cluster->name(),
-                   cluster->num_objects(), cluster->size(), fraction,
-                   cumulative_fraction);
+      OS::PrintErr("%25s %6" Pd " %8" Pd " %lf %lf    %8" Pd "\n",
+                   cluster->name(), cluster->num_objects(), cluster->size(),
+                   fraction, cumulative_fraction,
+                   cluster->target_memory_size());
     }
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

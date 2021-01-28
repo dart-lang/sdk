@@ -5792,6 +5792,13 @@ class ExceptionHandlers : public Object {
   void SetHandledTypes(intptr_t try_index, const Array& handled_types) const;
   bool HasCatchAll(intptr_t try_index) const;
 
+  struct ArrayTraits {
+    static intptr_t elements_start_offset() {
+      return sizeof(UntaggedExceptionHandlers);
+    }
+    static constexpr intptr_t kElementSize = sizeof(ExceptionHandlerInfo);
+  };
+
   static intptr_t InstanceSize() {
     ASSERT(sizeof(UntaggedExceptionHandlers) ==
            OFFSET_OF_RETURNED_VALUE(UntaggedExceptionHandlers, data));
@@ -6669,6 +6676,13 @@ class ContextScope : public Object {
   static const intptr_t kBytesPerElement =
       sizeof(UntaggedContextScope::VariableDesc);
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
+  struct ArrayTraits {
+    static intptr_t elements_start_offset() {
+      return sizeof(UntaggedContextScope);
+    }
+    static constexpr intptr_t kElementSize = kBytesPerElement;
+  };
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(UntaggedContextScope) ==

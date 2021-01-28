@@ -869,6 +869,10 @@ word ObjectPool::NextFieldOffset() {
   return -kWordSize;
 }
 
+word ObjectPool::InstanceSize(intptr_t length) {
+  return RoundedAllocationSize(ObjectPool::element_offset(length));
+}
+
 word Class::NextFieldOffset() {
   return -kWordSize;
 }
@@ -898,6 +902,10 @@ intptr_t Array::index_at_offset(intptr_t offset_in_bytes) {
       TranslateOffsetInWordsToHost(offset_in_bytes));
 }
 
+word Array::InstanceSize(intptr_t length) {
+  return RoundedAllocationSize(Array::element_offset(length));
+}
+
 word GrowableObjectArray::NextFieldOffset() {
   return -kWordSize;
 }
@@ -908,6 +916,10 @@ word TypedDataBase::NextFieldOffset() {
 
 word TypedData::NextFieldOffset() {
   return -kWordSize;
+}
+
+word TypedData::InstanceSize(intptr_t lengthInBytes) {
+  return RoundedAllocationSize(TypedData::InstanceSize() + lengthInBytes);
 }
 
 word ExternalTypedData::NextFieldOffset() {
@@ -958,8 +970,18 @@ word OneByteString::NextFieldOffset() {
   return -kWordSize;
 }
 
+word OneByteString::InstanceSize(intptr_t length) {
+  return RoundedAllocationSize(OneByteString::InstanceSize() +
+                               length * dart::OneByteString::kBytesPerElement);
+}
+
 word TwoByteString::NextFieldOffset() {
   return -kWordSize;
+}
+
+word TwoByteString::InstanceSize(intptr_t length) {
+  return RoundedAllocationSize(TwoByteString::InstanceSize() +
+                               length * dart::TwoByteString::kBytesPerElement);
 }
 
 word ExternalOneByteString::NextFieldOffset() {
@@ -1030,8 +1052,16 @@ word ExceptionHandlers::NextFieldOffset() {
   return -kWordSize;
 }
 
+word ExceptionHandlers::InstanceSize(intptr_t length) {
+  return RoundedAllocationSize(ExceptionHandlers::element_offset(length));
+}
+
 word ContextScope::NextFieldOffset() {
   return -kWordSize;
+}
+
+word ContextScope::InstanceSize(intptr_t length) {
+  return RoundedAllocationSize(ContextScope::element_offset(length));
 }
 
 word UnlinkedCall::NextFieldOffset() {
@@ -1160,6 +1190,10 @@ word Field::NextFieldOffset() {
 
 word TypeArguments::NextFieldOffset() {
   return -kWordSize;
+}
+
+word TypeArguments::InstanceSize(intptr_t length) {
+  return RoundedAllocationSize(TypeArguments::type_at_offset(length));
 }
 
 word FreeListElement::FakeInstance::NextFieldOffset() {
