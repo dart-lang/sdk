@@ -1605,10 +1605,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   /// Verify that the given [expression] can be assigned to its corresponding
-  /// parameters. The [expectedStaticType] is the expected static type.
-  ///
-  /// This method corresponds to
-  /// [BestPracticesVerifier.checkForArgumentTypeNotAssignableWithExpectedTypes].
+  /// parameters.
   ///
   /// See [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE],
   /// [CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE],

@@ -15,6 +15,17 @@ import 'package:analyzer/src/error/analyzer_error_code.dart';
  */
 class HintCode extends AnalyzerErrorCode {
   /**
+   * Parameters:
+   * 0: the name of the actual argument type
+   * 1: the name of the expected function return type
+   */
+  static const HintCode ARGUMENT_TYPE_NOT_ASSIGNABLE_CATCH_ERROR_ON_ERROR =
+      HintCode(
+          'ARGUMENT_TYPE_NOT_ASSIGNABLE_CATCH_ERROR_ON_ERROR',
+          "The argument type '{0}' can't be assigned to the parameter type "
+              "'{1} Function(Object)' or '{1} Function(Object, StackTrace)'.");
+
+  /**
    * Users should not assign values marked `@doNotStore`.
    */
   static const HintCode ASSIGNMENT_OF_DO_NOT_STORE = HintCode(
