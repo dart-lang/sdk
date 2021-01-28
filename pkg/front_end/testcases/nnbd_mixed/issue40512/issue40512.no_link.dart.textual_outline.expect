@@ -1,0 +1,6 @@
+// @dart = 2.6
+import 'issue40512_lib.dart';
+
+class C extends Object with A, B {}
+
+void main() {}

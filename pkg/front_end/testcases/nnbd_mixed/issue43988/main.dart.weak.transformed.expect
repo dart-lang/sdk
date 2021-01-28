@@ -26,8 +26,8 @@ abstract class _E1&Object&A&D extends self::_E1&Object&A implements mai::D /*isA
   const synthetic constructor •() → self::_E1&Object&A&D*
     : super self::_E1&Object&A::•()
     ;
-  forwarding-stub method method(covariant core::num* i) → core::String*
-    return super.{self::_E1&Object&A::method}(i);
+  forwarding-stub method method(covariant core::num* i, {core::String* s = #C1}) → core::String*
+    return super.{self::_E1&Object&A::method}(i, s: s);
 }
 class E1 extends self::_E1&Object&A&D {
   synthetic constructor •() → self::E1*
@@ -55,8 +55,8 @@ class E2 extends self::_E2&Object&A implements mai::D /*isEliminatedMixin,hasCon
   const synthetic constructor •() → self::E2*
     : super self::_E2&Object&A::•()
     ;
-  forwarding-stub method method(covariant core::num* i) → core::String*
-    return super.{self::_E2&Object&A::method}(i);
+  forwarding-stub method method(covariant core::num* i, {core::String* s = #C1}) → core::String*
+    return super.{self::_E2&Object&A::method}(i, s: s);
 }
 abstract class _E3&Object&A extends core::Object implements mai::A /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_E3&Object&A*

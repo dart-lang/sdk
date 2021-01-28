@@ -49,7 +49,6 @@ worlds:
 
   - entry: main.dart
     worldType: updated
-    errors: true
     expectInitializeFromDill: false
     invalidate:
       - main.dart

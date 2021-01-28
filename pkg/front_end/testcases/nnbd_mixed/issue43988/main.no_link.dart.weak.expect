@@ -94,7 +94,7 @@ abstract class C6 extends mai::C3 implements mai::C4 {
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  abstract forwarding-stub method method2([covariant core::String* a = #C2]) → dynamic;
+  abstract forwarding-stub method method2([covariant core::String* a]) → dynamic;
 }
 abstract class C8 extends mai::C5 implements mai::C7 {
   synthetic constructor •() → self::C8*
