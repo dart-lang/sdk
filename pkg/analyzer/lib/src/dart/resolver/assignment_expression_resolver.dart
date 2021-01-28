@@ -12,7 +12,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -22,21 +21,17 @@ import 'package:meta/meta.dart';
 /// Helper for resolving [AssignmentExpression]s.
 class AssignmentExpressionResolver {
   final ResolverVisitor _resolver;
-  final FlowAnalysisHelper _flowAnalysis;
   final TypePropertyResolver _typePropertyResolver;
   final InvocationInferenceHelper _inferenceHelper;
   final AssignmentExpressionShared _assignmentShared;
 
   AssignmentExpressionResolver({
     @required ResolverVisitor resolver,
-    @required FlowAnalysisHelper flowAnalysis,
   })  : _resolver = resolver,
-        _flowAnalysis = flowAnalysis,
         _typePropertyResolver = resolver.typePropertyResolver,
         _inferenceHelper = resolver.inferenceHelper,
         _assignmentShared = AssignmentExpressionShared(
           resolver: resolver,
-          flowAnalysis: flowAnalysis,
         );
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
@@ -80,7 +75,7 @@ class AssignmentExpressionResolver {
       _setRhsContext(node, leftType, operator, right);
     }
 
-    var flow = _flowAnalysis?.flow;
+    var flow = _resolver.flowAnalysis?.flow;
     if (flow != null && isIfNull) {
       flow.ifNullExpression_rightBegin(left, node.readType);
     }
@@ -276,23 +271,22 @@ class AssignmentExpressionResolver {
 
 class AssignmentExpressionShared {
   final ResolverVisitor _resolver;
-  final FlowAnalysisHelper _flowAnalysis;
 
   AssignmentExpressionShared({
     @required ResolverVisitor resolver,
-    @required FlowAnalysisHelper flowAnalysis,
-  })  : _resolver = resolver,
-        _flowAnalysis = flowAnalysis;
+  }) : _resolver = resolver;
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
   void checkFinalAlreadyAssigned(Expression left) {
-    var flow = _flowAnalysis?.flow;
+    var flow = _resolver.flowAnalysis?.flow;
     if (flow != null && left is SimpleIdentifier) {
       var element = left.staticElement;
       if (element is VariableElement) {
-        var assigned = _flowAnalysis.isDefinitelyAssigned(left, element);
-        var unassigned = _flowAnalysis.isDefinitelyUnassigned(left, element);
+        var assigned =
+            _resolver.flowAnalysis.isDefinitelyAssigned(left, element);
+        var unassigned =
+            _resolver.flowAnalysis.isDefinitelyUnassigned(left, element);
 
         if (element.isFinal) {
           if (element.isLate) {

@@ -12,7 +12,6 @@ import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
@@ -38,14 +37,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// The type representing the type 'dynamic'.
   DartType _dynamicType;
 
-  final FlowAnalysisHelper _flowAnalysis;
-
   /// Initialize a newly created static type analyzer to analyze types for the
   /// [_resolver] based on the
   ///
   /// @param resolver the resolver driving this participant
-  StaticTypeAnalyzer(
-      this._resolver, this._flowAnalysis, this._migrationResolutionHooks) {
+  StaticTypeAnalyzer(this._resolver, this._migrationResolutionHooks) {
     _typeProvider = _resolver.typeProvider;
     _typeSystem = _resolver.typeSystem;
     _dynamicType = _typeProvider.dynamicType;
@@ -94,7 +90,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     } else {
       expression.staticType = type;
       if (_typeSystem.isBottom(type)) {
-        _flowAnalysis?.flow?.handleExit();
+        _resolver.flowAnalysis?.flow?.handleExit();
       }
     }
   }

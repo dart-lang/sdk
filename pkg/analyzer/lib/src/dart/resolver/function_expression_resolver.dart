@@ -9,7 +9,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
-import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -20,18 +19,15 @@ class FunctionExpressionResolver {
   final ResolverVisitor _resolver;
   final MigrationResolutionHooks _migrationResolutionHooks;
   final InvocationInferenceHelper _inferenceHelper;
-  final FlowAnalysisHelper _flowAnalysis;
   final TypePromotionManager _promoteManager;
 
   FunctionExpressionResolver({
     @required ResolverVisitor resolver,
     @required MigrationResolutionHooks migrationResolutionHooks,
-    @required FlowAnalysisHelper flowAnalysis,
     @required TypePromotionManager promoteManager,
   })  : _resolver = resolver,
         _migrationResolutionHooks = migrationResolutionHooks,
         _inferenceHelper = resolver.inferenceHelper,
-        _flowAnalysis = flowAnalysis,
         _promoteManager = promoteManager;
 
   bool get _isNonNullableByDefault => _typeSystem.isNonNullableByDefault;
@@ -42,9 +38,10 @@ class FunctionExpressionResolver {
     var isFunctionDeclaration = node.parent is FunctionDeclaration;
     var body = node.body;
 
-    if (_flowAnalysis != null) {
-      if (_flowAnalysis.flow != null && !isFunctionDeclaration) {
-        _flowAnalysis.executableDeclaration_enter(node, node.parameters, true);
+    if (_resolver.flowAnalysis != null) {
+      if (_resolver.flowAnalysis.flow != null && !isFunctionDeclaration) {
+        _resolver.flowAnalysis
+            .executableDeclaration_enter(node, node.parameters, true);
       }
     } else {
       _promoteManager.enterFunctionBody(body);
@@ -65,15 +62,15 @@ class FunctionExpressionResolver {
     node.visitChildren(_resolver);
     _resolve2(node);
 
-    if (_flowAnalysis != null) {
-      if (_flowAnalysis.flow != null && !isFunctionDeclaration) {
+    if (_resolver.flowAnalysis != null) {
+      if (_resolver.flowAnalysis.flow != null && !isFunctionDeclaration) {
         var bodyContext = BodyInferenceContext.of(node.body);
         _resolver.checkForBodyMayCompleteNormally(
           returnType: bodyContext?.contextType,
           body: body,
           errorNode: body,
         );
-        _flowAnalysis.flow?.functionExpression_end();
+        _resolver.flowAnalysis.flow?.functionExpression_end();
         _resolver.nullSafetyDeadCodeVerifier?.flowEnd(node);
       }
     } else {

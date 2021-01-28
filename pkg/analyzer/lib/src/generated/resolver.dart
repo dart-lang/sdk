@@ -93,7 +93,7 @@ class InferenceContext {
   void popFunctionBodyContext(FunctionBody node) {
     var context = _bodyContexts.removeLast();
 
-    var flow = _resolver._flowAnalysis?.flow;
+    var flow = _resolver.flowAnalysis?.flow;
 
     var resultType = context.computeInferredReturnType(
       endOfBlockIsReachable: flow == null || flow.isReachable,
@@ -226,7 +226,7 @@ class ResolverVisitor extends ScopedVisitor {
   /// The object keeping track of which elements have had their types promoted.
   TypePromotionManager _promoteManager;
 
-  final FlowAnalysisHelper _flowAnalysis;
+  final FlowAnalysisHelper flowAnalysis;
 
   /// A comment before a function should be resolved in the context of the
   /// function. But when we incrementally resolve a comment, we don't want to
@@ -296,7 +296,7 @@ class ResolverVisitor extends ScopedVisitor {
       FeatureSet featureSet,
       Scope nameScope,
       bool reportConstEvaluationErrors,
-      this._flowAnalysis,
+      this.flowAnalysis,
       this._migratableAstInfoProvider,
       MigrationResolutionHooks migrationResolutionHooks)
       : _featureSet = featureSet,
@@ -325,18 +325,15 @@ class ResolverVisitor extends ScopedVisitor {
     typePropertyResolver = TypePropertyResolver(this);
     inferenceHelper = InvocationInferenceHelper(
         resolver: this,
-        flowAnalysis: _flowAnalysis,
         errorReporter: errorReporter,
         typeSystem: typeSystem,
         migrationResolutionHooks: migrationResolutionHooks);
     _assignmentExpressionResolver = AssignmentExpressionResolver(
       resolver: this,
-      flowAnalysis: _flowAnalysis,
     );
     _binaryExpressionResolver = BinaryExpressionResolver(
       resolver: this,
       promoteManager: _promoteManager,
-      flowAnalysis: _flowAnalysis,
     );
     _functionExpressionInvocationResolver =
         FunctionExpressionInvocationResolver(
@@ -345,25 +342,20 @@ class ResolverVisitor extends ScopedVisitor {
     _functionExpressionResolver = FunctionExpressionResolver(
       resolver: this,
       migrationResolutionHooks: migrationResolutionHooks,
-      flowAnalysis: _flowAnalysis,
       promoteManager: _promoteManager,
     );
     _forResolver = ForResolver(
       resolver: this,
-      flowAnalysis: _flowAnalysis,
     );
     _postfixExpressionResolver = PostfixExpressionResolver(
       resolver: this,
-      flowAnalysis: _flowAnalysis,
     );
     _prefixedIdentifierResolver = PrefixedIdentifierResolver(this);
     _prefixExpressionResolver = PrefixExpressionResolver(
       resolver: this,
-      flowAnalysis: _flowAnalysis,
     );
     _variableDeclarationResolver = VariableDeclarationResolver(
       resolver: this,
-      flowAnalysis: _flowAnalysis,
       strictInference: analysisOptions.strictInference,
     );
     _yieldStatementResolver = YieldStatementResolver(
@@ -372,14 +364,13 @@ class ResolverVisitor extends ScopedVisitor {
     nullSafetyDeadCodeVerifier = NullSafetyDeadCodeVerifier(
       typeSystem,
       errorReporter,
-      _flowAnalysis,
+      flowAnalysis,
     );
     elementResolver = ElementResolver(this,
         reportConstEvaluationErrors: reportConstEvaluationErrors,
         migratableAstInfoProvider: _migratableAstInfoProvider);
     inferenceContext = InferenceContext._(this);
-    typeAnalyzer =
-        StaticTypeAnalyzer(this, _flowAnalysis, migrationResolutionHooks);
+    typeAnalyzer = StaticTypeAnalyzer(this, migrationResolutionHooks);
   }
 
   /// Return the element representing the function containing the current node,
@@ -390,8 +381,8 @@ class ResolverVisitor extends ScopedVisitor {
 
   /// Return the object providing promoted or declared types of variables.
   LocalVariableTypeProvider get localVariableTypeProvider {
-    if (_flowAnalysis != null) {
-      return _flowAnalysis.localVariableTypeProvider;
+    if (flowAnalysis != null) {
+      return flowAnalysis.localVariableTypeProvider;
     } else {
       return _promoteManager.localVariableTypeProvider;
     }
@@ -422,7 +413,7 @@ class ResolverVisitor extends ScopedVisitor {
     @required FunctionBody body,
     @required AstNode errorNode,
   }) {
-    if (!_flowAnalysis.flow.isReachable) {
+    if (!flowAnalysis.flow.isReachable) {
       return;
     }
 
@@ -460,7 +451,7 @@ class ResolverVisitor extends ScopedVisitor {
     SimpleIdentifier node,
     Element element,
   ) {
-    if (_flowAnalysis?.flow == null) {
+    if (flowAnalysis?.flow == null) {
       return;
     }
 
@@ -469,9 +460,9 @@ class ResolverVisitor extends ScopedVisitor {
     }
 
     if (element is VariableElement) {
-      var assigned = _flowAnalysis.isDefinitelyAssigned(
-          node, element as PromotableElement);
-      var unassigned = _flowAnalysis.isDefinitelyUnassigned(node, element);
+      var assigned =
+          flowAnalysis.isDefinitelyAssigned(node, element as PromotableElement);
+      var unassigned = flowAnalysis.isDefinitelyUnassigned(node, element);
 
       if (element.isLate) {
         if (unassigned) {
@@ -550,7 +541,7 @@ class ResolverVisitor extends ScopedVisitor {
     if (identical(_unfinishedNullShorts.last, node)) {
       do {
         _unfinishedNullShorts.removeLast();
-        _flowAnalysis.flow.nullAwareAccess_end();
+        flowAnalysis.flow.nullAwareAccess_end();
       } while (identical(_unfinishedNullShorts.last, node));
       if (node is! CascadeExpression && !discardType) {
         node.staticType = typeSystem.makeNullable(node.staticType as TypeImpl);
@@ -777,7 +768,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   void startNullAwareIndexExpression(IndexExpression node) {
     if (_migratableAstInfoProvider.isIndexExpressionNullAware(node)) {
-      var flow = _flowAnalysis?.flow;
+      var flow = flowAnalysis?.flow;
       if (flow != null) {
         flow.nullAwareAccess_rightBegin(node.target,
             node.realTarget.staticType ?? typeProvider.dynamicType);
@@ -788,7 +779,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   void startNullAwarePropertyAccess(PropertyAccess node) {
     if (_migratableAstInfoProvider.isPropertyAccessNullAware(node)) {
-      var flow = _flowAnalysis?.flow;
+      var flow = flowAnalysis?.flow;
       if (flow != null) {
         var target = node.target;
         if (target is SimpleIdentifier &&
@@ -886,14 +877,14 @@ class ResolverVisitor extends ScopedVisitor {
     for (var i = 0; i < length; i++) {
       if (isIdentical && length > 1 && i == 1) {
         var firstArg = arguments[0];
-        _flowAnalysis?.flow
+        flowAnalysis?.flow
             ?.equalityOp_rightBegin(firstArg, firstArg.staticType);
       }
       arguments[i].accept(this);
     }
     if (isIdentical && length > 1) {
       var secondArg = arguments[1];
-      _flowAnalysis?.flow
+      flowAnalysis?.flow
           ?.equalityOp_end(node.parent, secondArg, secondArg.staticType);
     }
     node.accept(elementResolver);
@@ -903,35 +894,35 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitAsExpression(AsExpression node) {
     super.visitAsExpression(node);
-    _flowAnalysis?.asExpression(node);
+    flowAnalysis?.asExpression(node);
   }
 
   @override
   void visitAssertInitializer(AssertInitializer node) {
     InferenceContext.setType(node.condition, typeProvider.boolType);
-    _flowAnalysis?.flow?.assert_begin();
+    flowAnalysis?.flow?.assert_begin();
     node.condition?.accept(this);
     boolExpressionVerifier.checkForNonBoolExpression(
       node.condition,
       errorCode: CompileTimeErrorCode.NON_BOOL_EXPRESSION,
     );
-    _flowAnalysis?.flow?.assert_afterCondition(node.condition);
+    flowAnalysis?.flow?.assert_afterCondition(node.condition);
     node.message?.accept(this);
-    _flowAnalysis?.flow?.assert_end();
+    flowAnalysis?.flow?.assert_end();
   }
 
   @override
   void visitAssertStatement(AssertStatement node) {
     InferenceContext.setType(node.condition, typeProvider.boolType);
-    _flowAnalysis?.flow?.assert_begin();
+    flowAnalysis?.flow?.assert_begin();
     node.condition?.accept(this);
     boolExpressionVerifier.checkForNonBoolExpression(
       node.condition,
       errorCode: CompileTimeErrorCode.NON_BOOL_EXPRESSION,
     );
-    _flowAnalysis?.flow?.assert_afterCondition(node.condition);
+    flowAnalysis?.flow?.assert_afterCondition(node.condition);
     node.message?.accept(this);
-    _flowAnalysis?.flow?.assert_end();
+    flowAnalysis?.flow?.assert_end();
   }
 
   @override
@@ -968,7 +959,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitBooleanLiteral(BooleanLiteral node) {
-    _flowAnalysis?.flow?.booleanLiteral(node, node.value);
+    flowAnalysis?.flow?.booleanLiteral(node, node.value);
     super.visitBooleanLiteral(node);
   }
 
@@ -981,7 +972,7 @@ class ResolverVisitor extends ScopedVisitor {
     checkUnreachableNode(node);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
-    _flowAnalysis?.breakStatement(node);
+    flowAnalysis?.breakStatement(node);
   }
 
   @override
@@ -989,8 +980,8 @@ class ResolverVisitor extends ScopedVisitor {
     InferenceContext.setTypeFromNode(node.target, node);
     node.target.accept(this);
 
-    if (node.isNullAware && _flowAnalysis != null) {
-      _flowAnalysis.flow.nullAwareAccess_rightBegin(
+    if (node.isNullAware && flowAnalysis != null) {
+      flowAnalysis.flow.nullAwareAccess_rightBegin(
           node.target, node.target.staticType ?? typeProvider.dynamicType);
       _unfinishedNullShorts.add(node.nullShortingTermination);
     }
@@ -1102,7 +1093,7 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitConditionalExpression(ConditionalExpression node) {
     Expression condition = node.condition;
-    var flow = _flowAnalysis?.flow;
+    var flow = flowAnalysis?.flow;
     flow?.conditional_conditionBegin();
 
     // TODO(scheglov) Do we need these checks for null?
@@ -1113,7 +1104,7 @@ class ResolverVisitor extends ScopedVisitor {
     Expression thenExpression = node.thenExpression;
     InferenceContext.setTypeFromNode(thenExpression, node);
 
-    if (_flowAnalysis != null) {
+    if (flowAnalysis != null) {
       if (flow != null) {
         flow.conditional_thenBegin(condition, node);
         checkUnreachableNode(thenExpression);
@@ -1158,9 +1149,9 @@ class ResolverVisitor extends ScopedVisitor {
     ExecutableElement outerFunction = _enclosingFunction;
     _enclosingFunction = node.declaredElement;
 
-    if (_flowAnalysis != null) {
-      _flowAnalysis.topLevelDeclaration_enter(node, node.parameters, node.body);
-      _flowAnalysis.executableDeclaration_enter(node, node.parameters, false);
+    if (flowAnalysis != null) {
+      flowAnalysis.topLevelDeclaration_enter(node, node.parameters, node.body);
+      flowAnalysis.executableDeclaration_enter(node, node.parameters, false);
     } else {
       _promoteManager.enterFunctionBody(node.body);
     }
@@ -1170,7 +1161,7 @@ class ResolverVisitor extends ScopedVisitor {
 
     super.visitConstructorDeclaration(node);
 
-    if (_flowAnalysis != null) {
+    if (flowAnalysis != null) {
       if (node.factoryKeyword != null) {
         var bodyContext = BodyInferenceContext.of(node.body);
         checkForBodyMayCompleteNormally(
@@ -1179,8 +1170,8 @@ class ResolverVisitor extends ScopedVisitor {
           errorNode: node,
         );
       }
-      _flowAnalysis.executableDeclaration_exit(node.body, false);
-      _flowAnalysis.topLevelDeclaration_exit();
+      flowAnalysis.executableDeclaration_exit(node.body, false);
+      flowAnalysis.topLevelDeclaration_exit();
       nullSafetyDeadCodeVerifier?.flowEnd(node);
     } else {
       _promoteManager.exitFunctionBody();
@@ -1238,7 +1229,7 @@ class ResolverVisitor extends ScopedVisitor {
     checkUnreachableNode(node);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
-    _flowAnalysis?.continueStatement(node);
+    flowAnalysis?.continueStatement(node);
   }
 
   @override
@@ -1263,16 +1254,16 @@ class ResolverVisitor extends ScopedVisitor {
     var body = node.body;
     var condition = node.condition;
 
-    _flowAnalysis?.flow?.doStatement_bodyBegin(node);
+    flowAnalysis?.flow?.doStatement_bodyBegin(node);
     visitStatementInScope(body);
 
-    _flowAnalysis?.flow?.doStatement_conditionBegin();
+    flowAnalysis?.flow?.doStatement_conditionBegin();
     InferenceContext.setType(condition, typeProvider.boolType);
     condition.accept(this);
     condition = node.condition;
     boolExpressionVerifier.checkForNonBoolCondition(condition);
 
-    _flowAnalysis?.flow?.doStatement_end(condition);
+    flowAnalysis?.flow?.doStatement_end(condition);
   }
 
   @override
@@ -1329,7 +1320,7 @@ class ResolverVisitor extends ScopedVisitor {
 
       super.visitExpressionFunctionBody(node);
 
-      _flowAnalysis?.flow?.handleExit();
+      flowAnalysis?.flow?.handleExit();
 
       inferenceContext.bodyContext.addReturnExpression(node.expression);
     } finally {
@@ -1390,17 +1381,17 @@ class ResolverVisitor extends ScopedVisitor {
 
     bool isLocal = node.parent is FunctionDeclarationStatement;
 
-    if (_flowAnalysis != null) {
+    if (flowAnalysis != null) {
       if (isLocal) {
-        _flowAnalysis.flow.functionExpression_begin(node);
+        flowAnalysis.flow.functionExpression_begin(node);
       } else {
-        _flowAnalysis.topLevelDeclaration_enter(
+        flowAnalysis.topLevelDeclaration_enter(
           node,
           node.functionExpression.parameters,
           node.functionExpression.body,
         );
       }
-      _flowAnalysis.executableDeclaration_enter(
+      flowAnalysis.executableDeclaration_enter(
         node,
         node.functionExpression.parameters,
         isLocal,
@@ -1414,7 +1405,7 @@ class ResolverVisitor extends ScopedVisitor {
 
     super.visitFunctionDeclaration(node);
 
-    if (_flowAnalysis != null) {
+    if (flowAnalysis != null) {
       // TODO(scheglov) encapsulate
       var bodyContext = BodyInferenceContext.of(
         node.functionExpression.body,
@@ -1424,14 +1415,14 @@ class ResolverVisitor extends ScopedVisitor {
         body: node.functionExpression.body,
         errorNode: node.name,
       );
-      _flowAnalysis.executableDeclaration_exit(
+      flowAnalysis.executableDeclaration_exit(
         node.functionExpression.body,
         isLocal,
       );
       if (isLocal) {
-        _flowAnalysis.flow.functionExpression_end();
+        flowAnalysis.flow.functionExpression_end();
       } else {
-        _flowAnalysis.topLevelDeclaration_exit();
+        flowAnalysis.topLevelDeclaration_exit();
       }
       nullSafetyDeadCodeVerifier?.flowEnd(node);
     } else {
@@ -1511,7 +1502,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitIfElement(IfElement node) {
-    _flowAnalysis?.flow?.ifStatement_conditionBegin();
+    flowAnalysis?.flow?.ifStatement_conditionBegin();
     Expression condition = node.condition;
     InferenceContext.setType(condition, typeProvider.boolType);
     // TODO(scheglov) Do we need these checks for null?
@@ -1521,8 +1512,8 @@ class ResolverVisitor extends ScopedVisitor {
     boolExpressionVerifier.checkForNonBoolCondition(condition);
 
     CollectionElement thenElement = node.thenElement;
-    if (_flowAnalysis != null) {
-      _flowAnalysis.flow?.ifStatement_thenBegin(condition, node);
+    if (flowAnalysis != null) {
+      flowAnalysis.flow?.ifStatement_thenBegin(condition, node);
       thenElement.accept(this);
     } else {
       _promoteManager.visitIfElement_thenElement(
@@ -1536,11 +1527,11 @@ class ResolverVisitor extends ScopedVisitor {
 
     var elseElement = node.elseElement;
     if (elseElement != null) {
-      _flowAnalysis?.flow?.ifStatement_elseBegin();
+      flowAnalysis?.flow?.ifStatement_elseBegin();
       elseElement.accept(this);
     }
 
-    _flowAnalysis?.flow?.ifStatement_end(elseElement != null);
+    flowAnalysis?.flow?.ifStatement_end(elseElement != null);
 
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
@@ -1549,7 +1540,7 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitIfStatement(IfStatement node) {
     checkUnreachableNode(node);
-    _flowAnalysis?.flow?.ifStatement_conditionBegin();
+    flowAnalysis?.flow?.ifStatement_conditionBegin();
 
     Expression condition = node.condition;
 
@@ -1561,8 +1552,8 @@ class ResolverVisitor extends ScopedVisitor {
     boolExpressionVerifier.checkForNonBoolCondition(condition);
 
     Statement thenStatement = node.thenStatement;
-    if (_flowAnalysis != null) {
-      _flowAnalysis.flow?.ifStatement_thenBegin(condition, node);
+    if (flowAnalysis != null) {
+      flowAnalysis.flow?.ifStatement_thenBegin(condition, node);
       visitStatementInScope(thenStatement);
       nullSafetyDeadCodeVerifier?.flowEnd(thenStatement);
     } else {
@@ -1577,12 +1568,12 @@ class ResolverVisitor extends ScopedVisitor {
 
     Statement elseStatement = node.elseStatement;
     if (elseStatement != null) {
-      _flowAnalysis?.flow?.ifStatement_elseBegin();
+      flowAnalysis?.flow?.ifStatement_elseBegin();
       visitStatementInScope(elseStatement);
       nullSafetyDeadCodeVerifier?.flowEnd(elseStatement);
     }
 
-    _flowAnalysis?.flow?.ifStatement_end(elseStatement != null);
+    flowAnalysis?.flow?.ifStatement_end(elseStatement != null);
 
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
@@ -1631,7 +1622,7 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitIsExpression(IsExpression node) {
     super.visitIsExpression(node);
-    _flowAnalysis?.isExpression(node);
+    flowAnalysis?.isExpression(node);
   }
 
   @override
@@ -1639,9 +1630,9 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitLabeledStatement(LabeledStatement node) {
-    _flowAnalysis?.labeledStatement_enter(node);
+    flowAnalysis?.labeledStatement_enter(node);
     super.visitLabeledStatement(node);
-    _flowAnalysis?.labeledStatement_exit(node);
+    flowAnalysis?.labeledStatement_exit(node);
   }
 
   @override
@@ -1658,9 +1649,9 @@ class ResolverVisitor extends ScopedVisitor {
     ExecutableElement outerFunction = _enclosingFunction;
     _enclosingFunction = node.declaredElement;
 
-    if (_flowAnalysis != null) {
-      _flowAnalysis.topLevelDeclaration_enter(node, node.parameters, node.body);
-      _flowAnalysis.executableDeclaration_enter(node, node.parameters, false);
+    if (flowAnalysis != null) {
+      flowAnalysis.topLevelDeclaration_enter(node, node.parameters, node.body);
+      flowAnalysis.executableDeclaration_enter(node, node.parameters, false);
     } else {
       _promoteManager.enterFunctionBody(node.body);
     }
@@ -1670,7 +1661,7 @@ class ResolverVisitor extends ScopedVisitor {
 
     super.visitMethodDeclaration(node);
 
-    if (_flowAnalysis != null) {
+    if (flowAnalysis != null) {
       // TODO(scheglov) encapsulate
       var bodyContext = BodyInferenceContext.of(node.body);
       checkForBodyMayCompleteNormally(
@@ -1678,8 +1669,8 @@ class ResolverVisitor extends ScopedVisitor {
         body: node.body,
         errorNode: node.name,
       );
-      _flowAnalysis.executableDeclaration_exit(node.body, false);
-      _flowAnalysis.topLevelDeclaration_exit();
+      flowAnalysis.executableDeclaration_exit(node.body, false);
+      flowAnalysis.topLevelDeclaration_exit();
       nullSafetyDeadCodeVerifier?.flowEnd(node);
     } else {
       _promoteManager.exitFunctionBody();
@@ -1694,7 +1685,7 @@ class ResolverVisitor extends ScopedVisitor {
     target?.accept(this);
 
     if (_migratableAstInfoProvider.isMethodInvocationNullAware(node)) {
-      var flow = _flowAnalysis?.flow;
+      var flow = flowAnalysis?.flow;
       if (flow != null) {
         if (target is SimpleIdentifier &&
             target.staticElement is ClassElement) {
@@ -1759,7 +1750,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitNullLiteral(NullLiteral node) {
-    _flowAnalysis?.flow?.nullLiteral(node);
+    flowAnalysis?.flow?.nullLiteral(node);
     super.visitNullLiteral(node);
   }
 
@@ -1767,7 +1758,7 @@ class ResolverVisitor extends ScopedVisitor {
   void visitParenthesizedExpression(ParenthesizedExpression node) {
     InferenceContext.setTypeFromNode(node.expression, node);
     super.visitParenthesizedExpression(node);
-    _flowAnalysis?.flow?.parenthesizedExpression(node, node.expression);
+    flowAnalysis?.flow?.parenthesizedExpression(node, node.expression);
   }
 
   @override
@@ -1838,7 +1829,7 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitRethrowExpression(RethrowExpression node) {
     super.visitRethrowExpression(node);
-    _flowAnalysis?.flow?.handleExit();
+    flowAnalysis?.flow?.handleExit();
   }
 
   @override
@@ -1851,7 +1842,7 @@ class ResolverVisitor extends ScopedVisitor {
     super.visitReturnStatement(node);
 
     inferenceContext.bodyContext?.addReturnExpression(node.expression);
-    _flowAnalysis?.flow?.handleExit();
+    flowAnalysis?.flow?.handleExit();
   }
 
   @override
@@ -1865,7 +1856,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    SimpleIdentifierResolver(this, _flowAnalysis).resolve(node);
+    SimpleIdentifierResolver(this, flowAnalysis).resolve(node);
   }
 
   @override
@@ -1900,7 +1891,7 @@ class ResolverVisitor extends ScopedVisitor {
         node.expression, _enclosingSwitchStatementExpressionType);
     super.visitSwitchCase(node);
 
-    var flow = _flowAnalysis?.flow;
+    var flow = flowAnalysis?.flow;
     if (flow != null && flow.isReachable) {
       var switchStatement = node.parent as SwitchStatement;
       if (switchStatement.members.last != node && node.statements.isNotEmpty) {
@@ -1930,8 +1921,8 @@ class ResolverVisitor extends ScopedVisitor {
       expression.accept(this);
       _enclosingSwitchStatementExpressionType = expression.staticType;
 
-      if (_flowAnalysis != null) {
-        var flow = _flowAnalysis.flow;
+      if (flowAnalysis != null) {
+        var flow = flowAnalysis.flow;
 
         flow.switchStatement_expressionEnd(node);
 
@@ -1959,17 +1950,17 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitThrowExpression(ThrowExpression node) {
     super.visitThrowExpression(node);
-    _flowAnalysis?.flow?.handleExit();
+    flowAnalysis?.flow?.handleExit();
   }
 
   @override
   void visitTryStatement(TryStatement node) {
-    if (_flowAnalysis == null) {
+    if (flowAnalysis == null) {
       return super.visitTryStatement(node);
     }
 
     checkUnreachableNode(node);
-    var flow = _flowAnalysis.flow;
+    var flow = flowAnalysis.flow;
 
     var body = node.body;
     var catchClauses = node.catchClauses;
@@ -2032,11 +2023,11 @@ class ResolverVisitor extends ScopedVisitor {
       var initializerStaticType = initializer.staticType;
       if (declaredType == null) {
         if (initializerStaticType is TypeParameterType) {
-          _flowAnalysis?.flow?.promote(
+          flowAnalysis?.flow?.promote(
               declaredElement as PromotableElement, initializerStaticType);
         }
       } else {
-        _flowAnalysis?.flow?.initialize(declaredElement as PromotableElement,
+        flowAnalysis?.flow?.initialize(declaredElement as PromotableElement,
             initializerStaticType, initializer,
             isFinal: parent.isFinal, isLate: parent.isLate);
       }
@@ -2045,7 +2036,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
-    _flowAnalysis?.variableDeclarationList(node);
+    flowAnalysis?.variableDeclarationList(node);
     for (VariableDeclaration decl in node.variables) {
       VariableElement variableElement = decl.declaredElement;
       InferenceContext.setType(decl, variableElement?.type);
@@ -2066,16 +2057,16 @@ class ResolverVisitor extends ScopedVisitor {
       Expression condition = node.condition;
       InferenceContext.setType(condition, typeProvider.boolType);
 
-      _flowAnalysis?.flow?.whileStatement_conditionBegin(node);
+      flowAnalysis?.flow?.whileStatement_conditionBegin(node);
       condition?.accept(this);
 
       boolExpressionVerifier.checkForNonBoolCondition(node.condition);
 
       Statement body = node.body;
       if (body != null) {
-        _flowAnalysis?.flow?.whileStatement_bodyBegin(node, condition);
+        flowAnalysis?.flow?.whileStatement_bodyBegin(node, condition);
         visitStatementInScope(body);
-        _flowAnalysis?.flow?.whileStatement_end();
+        flowAnalysis?.flow?.whileStatement_end();
         nullSafetyDeadCodeVerifier?.flowEnd(node.body);
       }
     } finally {
@@ -2203,7 +2194,7 @@ class ResolverVisitor extends ScopedVisitor {
       if (target is SimpleIdentifier && target.staticElement is ClassElement) {
         // `?.` to access static methods is equivalent to `.`, so do nothing.
       } else {
-        _flowAnalysis.flow.nullAwareAccess_rightBegin(function,
+        flowAnalysis.flow.nullAwareAccess_rightBegin(function,
             function.realTarget.staticType ?? typeProvider.dynamicType);
         _unfinishedNullShorts.add(node.nullShortingTermination);
       }

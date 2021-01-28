@@ -11,7 +11,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
@@ -24,17 +23,14 @@ import 'package:meta/meta.dart';
 class BinaryExpressionResolver {
   final ResolverVisitor _resolver;
   final TypePromotionManager _promoteManager;
-  final FlowAnalysisHelper _flowAnalysis;
   final TypePropertyResolver _typePropertyResolver;
   final InvocationInferenceHelper _inferenceHelper;
 
   BinaryExpressionResolver({
     @required ResolverVisitor resolver,
     @required TypePromotionManager promoteManager,
-    @required FlowAnalysisHelper flowAnalysis,
   })  : _resolver = resolver,
         _promoteManager = promoteManager,
-        _flowAnalysis = flowAnalysis,
         _typePropertyResolver = resolver.typePropertyResolver,
         _inferenceHelper = resolver.inferenceHelper;
 
@@ -111,7 +107,7 @@ class BinaryExpressionResolver {
     left.accept(_resolver);
     left = node.leftOperand;
 
-    var flow = _flowAnalysis?.flow;
+    var flow = _resolver.flowAnalysis?.flow;
     var leftExtensionOverride = left is ExtensionOverride;
     if (!leftExtensionOverride) {
       flow?.equalityOp_rightBegin(left, left.staticType);
@@ -136,7 +132,7 @@ class BinaryExpressionResolver {
   void _resolveIfNull(BinaryExpressionImpl node) {
     var left = node.leftOperand;
     var right = node.rightOperand;
-    var flow = _flowAnalysis?.flow;
+    var flow = _resolver.flowAnalysis?.flow;
 
     var leftContextType = InferenceContext.getContext(node);
     if (leftContextType != null && _isNonNullableByDefault) {
@@ -171,7 +167,7 @@ class BinaryExpressionResolver {
   void _resolveLogicalAnd(BinaryExpressionImpl node) {
     var left = node.leftOperand;
     var right = node.rightOperand;
-    var flow = _flowAnalysis?.flow;
+    var flow = _resolver.flowAnalysis?.flow;
 
     InferenceContext.setType(left, _typeProvider.boolType);
     InferenceContext.setType(right, _typeProvider.boolType);
@@ -180,7 +176,7 @@ class BinaryExpressionResolver {
     left.accept(_resolver);
     left = node.leftOperand;
 
-    if (_flowAnalysis != null) {
+    if (_resolver.flowAnalysis != null) {
       flow?.logicalBinaryOp_rightBegin(left, node, isAnd: true);
       _resolver.checkUnreachableNode(right);
 
@@ -209,7 +205,7 @@ class BinaryExpressionResolver {
   void _resolveLogicalOr(BinaryExpressionImpl node) {
     var left = node.leftOperand;
     var right = node.rightOperand;
-    var flow = _flowAnalysis?.flow;
+    var flow = _resolver.flowAnalysis?.flow;
 
     InferenceContext.setType(left, _typeProvider.boolType);
     InferenceContext.setType(right, _typeProvider.boolType);

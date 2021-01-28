@@ -10,7 +10,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -19,7 +18,6 @@ import 'package:meta/meta.dart';
 class InvocationInferenceHelper {
   final ResolverVisitor _resolver;
   final ErrorReporter _errorReporter;
-  final FlowAnalysisHelper _flowAnalysis;
   final TypeSystemImpl _typeSystem;
   final MigrationResolutionHooks _migrationResolutionHooks;
 
@@ -29,13 +27,11 @@ class InvocationInferenceHelper {
   InvocationInferenceHelper(
       {@required ResolverVisitor resolver,
       @required ErrorReporter errorReporter,
-      @required FlowAnalysisHelper flowAnalysis,
       @required TypeSystemImpl typeSystem,
       @required MigrationResolutionHooks migrationResolutionHooks})
       : _resolver = resolver,
         _errorReporter = errorReporter,
         _typeSystem = typeSystem,
-        _flowAnalysis = flowAnalysis,
         _migrationResolutionHooks = migrationResolutionHooks;
 
   /// Compute the return type of the method or function represented by the given
@@ -200,7 +196,7 @@ class InvocationInferenceHelper {
     } else {
       expression.staticType = type;
       if (_typeSystem.isBottom(type)) {
-        _flowAnalysis?.flow?.handleExit();
+        _resolver.flowAnalysis?.flow?.handleExit();
       }
     }
   }

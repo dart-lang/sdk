@@ -10,7 +10,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
-import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:meta/meta.dart';
@@ -18,13 +17,10 @@ import 'package:meta/meta.dart';
 /// Helper for resolving [ForStatement]s and [ForElement]s.
 class ForResolver {
   final ResolverVisitor _resolver;
-  final FlowAnalysisHelper _flowAnalysis;
 
   ForResolver({
     @required ResolverVisitor resolver,
-    @required FlowAnalysisHelper flowAnalysis,
-  })  : _resolver = resolver,
-        _flowAnalysis = flowAnalysis;
+  }) : _resolver = resolver;
 
   void resolveElement(ForElementImpl node) {
     var forLoopParts = node.forLoopParts;
@@ -89,7 +85,6 @@ class ForResolver {
       identifier?.accept(_resolver);
       AssignmentExpressionShared(
         resolver: _resolver,
-        flowAnalysis: _flowAnalysis,
       ).checkFinalAlreadyAssigned(identifier);
     }
 
@@ -134,10 +129,10 @@ class ForResolver {
     }
 
     if (loopVariable != null) {
-      _flowAnalysis?.flow?.declare(loopVariable.declaredElement, true);
+      _resolver.flowAnalysis?.flow?.declare(loopVariable.declaredElement, true);
     }
 
-    _flowAnalysis?.flow?.forEach_bodyBegin(
+    _resolver.flowAnalysis?.flow?.forEach_bodyBegin(
       node,
       identifierElement is VariableElement
           ? identifierElement
@@ -147,7 +142,7 @@ class ForResolver {
 
     _resolveBody(body);
 
-    _flowAnalysis?.flow?.forEach_end();
+    _resolver.flowAnalysis?.flow?.forEach_end();
   }
 
   void _forParts(AstNode node, ForParts forParts, AstNode body) {
@@ -157,7 +152,7 @@ class ForResolver {
       forParts.initialization?.accept(_resolver);
     }
 
-    _flowAnalysis?.for_conditionBegin(node);
+    _resolver.flowAnalysis?.for_conditionBegin(node);
 
     var condition = forParts.condition;
     if (condition != null) {
@@ -167,13 +162,13 @@ class ForResolver {
       _resolver.boolExpressionVerifier.checkForNonBoolCondition(condition);
     }
 
-    _flowAnalysis?.for_bodyBegin(node, condition);
+    _resolver.flowAnalysis?.for_bodyBegin(node, condition);
     _resolveBody(body);
 
-    _flowAnalysis?.flow?.for_updaterBegin();
+    _resolver.flowAnalysis?.flow?.for_updaterBegin();
     forParts.updaters.accept(_resolver);
 
-    _flowAnalysis?.flow?.for_end();
+    _resolver.flowAnalysis?.flow?.for_end();
   }
 
   void _resolveBody(AstNode body) {
