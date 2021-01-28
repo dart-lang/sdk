@@ -14,17 +14,17 @@ abstract class _TestSchedulerBinding&BindingBase&SchedulerBinding = fou::Binding
   synthetic constructor •() → self::_TestSchedulerBinding&BindingBase&SchedulerBinding*
     : super fou::BindingBase::•()
     ;
-  abstract mixin-stub method registerSignalServiceExtension({core::String* name = #C1, () →* asy::Future<Null>* callback = #C1}) → void; -> sch::SchedulerBinding::registerSignalServiceExtension
-  abstract mixin-stub get _identityHashCode() → core::int*; -> sch::SchedulerBinding::_identityHashCode
-  abstract mixin-stub method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> sch::SchedulerBinding::_instanceOf
-  abstract mixin-stub method _simpleInstanceOf(dynamic type) → core::bool*; -> sch::SchedulerBinding::_simpleInstanceOf
-  abstract mixin-stub method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> sch::SchedulerBinding::_simpleInstanceOfTrue
-  abstract mixin-stub method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> sch::SchedulerBinding::_simpleInstanceOfFalse
-  abstract mixin-stub operator ==(dynamic other) → core::bool*; -> sch::SchedulerBinding::==
-  abstract mixin-stub get hashCode() → core::int*; -> sch::SchedulerBinding::hashCode
-  abstract mixin-stub method toString() → core::String*; -> sch::SchedulerBinding::toString
-  abstract mixin-stub method noSuchMethod(core::Invocation* invocation) → dynamic; -> sch::SchedulerBinding::noSuchMethod
-  abstract mixin-stub get runtimeType() → core::Type*; -> sch::SchedulerBinding::runtimeType
+  abstract member-signature method registerSignalServiceExtension({core::String* name = #C1, () →* asy::Future<Null>* callback = #C1}) → void; -> fou::BindingBase::registerSignalServiceExtension
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 abstract class _TestSchedulerBinding&BindingBase&SchedulerBinding&ServicesBinding = self::_TestSchedulerBinding&BindingBase&SchedulerBinding with ser::ServicesBinding /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_TestSchedulerBinding&BindingBase&SchedulerBinding&ServicesBinding*

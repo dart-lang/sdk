@@ -9,6 +9,8 @@ abstract class _C&Object&A = core::Object with iss::A /*isAnonymousMixin,hasCons
   const synthetic constructor •() → self::_C&Object&A*
     : super core::Object::•()
     ;
+  mixin-super-stub method method({core::String* s = #C1}) → core::String*
+    return super.{iss::A::method}(s: s);
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -19,8 +21,6 @@ abstract class _C&Object&A = core::Object with iss::A /*isAnonymousMixin,hasCons
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  mixin-super-stub method method({core::String* s = #C1}) → core::String*
-    return super.{iss::A::method}(s: s);
 }
 abstract class _C&Object&A&B = self::_C&Object&A with iss::B /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C&Object&A&B*
@@ -61,6 +61,7 @@ abstract class B extends core::Object implements iss2::Interface {
   synthetic constructor •() → iss::B*
     : super core::Object::•()
     ;
+  abstract member-signature method method() → core::String*; -> iss2::Interface::method
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -71,7 +72,6 @@ abstract class B extends core::Object implements iss2::Interface {
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  abstract member-signature method method() → core::String*; -> iss2::Interface::method
 }
 static method main() → void {}
 

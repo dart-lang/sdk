@@ -2,13 +2,13 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/issue41210b/issue41210.dart:7:7: Error: Applying the mixin 'B' to 'Object with A' introduces an erroneous override of 'method'.
+// pkg/front_end/testcases/general/issue41210b/issue41210.no_link.dart:7:7: Error: Applying the mixin 'B' to 'Object with A' introduces an erroneous override of 'method'.
 // class C with A, B {} // error
 //       ^
 // pkg/front_end/testcases/general/issue41210b/issue41210_lib.dart:18:10: Context: The method 'B.method' has fewer named arguments than those of overridden method 'Object with A.method'.
 //   String method(num i);
 //          ^
-// pkg/front_end/testcases/general/issue41210b/issue41210.dart:7:7: Context: This is the overridden method ('method').
+// pkg/front_end/testcases/general/issue41210b/issue41210.no_link.dart:7:7: Context: This is the overridden method ('method').
 // class C with A, B {} // error
 //       ^
 //
@@ -49,6 +49,8 @@ abstract class _E&Object&A = core::Object with iss::A /*isAnonymousMixin,hasCons
   const synthetic constructor •() → self::_E&Object&A*
     : super core::Object::•()
     ;
+  mixin-super-stub method method(core::num* i, {core::String* s}) → core::String*
+    return super.{iss::A::method}(i, s: s);
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -59,8 +61,6 @@ abstract class _E&Object&A = core::Object with iss::A /*isAnonymousMixin,hasCons
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  mixin-super-stub method method(core::num* i, {core::String* s}) → core::String*
-    return super.{iss::A::method}(i, s: s);
 }
 abstract class _E&Object&A&D = self::_E&Object&A with iss::D /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_E&Object&A&D*
@@ -77,6 +77,8 @@ abstract class _G&Object&A = core::Object with iss::A /*isAnonymousMixin,hasCons
   const synthetic constructor •() → self::_G&Object&A*
     : super core::Object::•()
     ;
+  mixin-super-stub method method(core::num* i, {core::String* s}) → core::String*
+    return super.{iss::A::method}(i, s: s);
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -87,8 +89,6 @@ abstract class _G&Object&A = core::Object with iss::A /*isAnonymousMixin,hasCons
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  mixin-super-stub method method(core::num* i, {core::String* s}) → core::String*
-    return super.{iss::A::method}(i, s: s);
 }
 abstract class _G&Object&A&F = self::_G&Object&A with iss::F /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_G&Object&A&F*
@@ -137,7 +137,7 @@ abstract class Interface2 extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 abstract class A extends core::Object implements iss::Interface /*isMixinDeclaration*/  {
-  method method(core::num* i, {core::String* s = #C1}) → core::String*
+  method method(core::num* i, {core::String* s = "hello"}) → core::String*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -168,6 +168,7 @@ abstract class B extends core::Object implements iss::Interface {
 abstract class D extends core::Object implements iss::Interface, iss::Interface2 {
   synthetic constructor •() → iss::D*
     ;
+  abstract forwarding-stub method method(covariant core::num* i) → core::String*;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -178,7 +179,6 @@ abstract class D extends core::Object implements iss::Interface, iss::Interface2
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  abstract forwarding-stub method method(covariant core::num* i) → core::String*;
 }
 abstract class F extends core::Object implements iss::Interface {
   synthetic constructor •() → iss::F*
@@ -193,8 +193,4 @@ abstract class F extends core::Object implements iss::Interface {
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-}
-
-constants  {
-  #C1 = "hello"
 }

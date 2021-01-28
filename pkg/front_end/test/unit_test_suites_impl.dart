@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
+// ignore_for_file: import_of_legacy_library_into_null_safe
 
 import 'dart:async' show Timer;
 import 'dart:convert' show jsonEncode;
@@ -40,16 +40,40 @@ import 'spelling_test_src_suite.dart' as spelling_src show createContext;
 
 const suiteNamePrefix = "pkg/front_end/test";
 
+int getDefaultThreads() {
+  int numberOfWorkers = 1;
+  if (Platform.numberOfProcessors > 2) {
+    numberOfWorkers = Platform.numberOfProcessors - 1;
+  }
+  return numberOfWorkers;
+}
+
 class Options {
   final String configurationName;
   final bool verbose;
   final bool printFailureLog;
   final Uri outputDirectory;
-  final String testFilter;
+  final String? testFilter;
   final List<String> environmentOptions;
+  final int shardCount;
+  final int shard;
+  final bool skipTestsThatRequireGit;
+  final bool onlyTestsThatRequireGit;
+  final int numberOfWorkers;
 
-  Options(this.configurationName, this.verbose, this.printFailureLog,
-      this.outputDirectory, this.testFilter, this.environmentOptions);
+  Options(
+    this.configurationName,
+    this.verbose,
+    this.printFailureLog,
+    this.outputDirectory,
+    this.testFilter,
+    this.environmentOptions, {
+    required this.shardCount,
+    required this.shard,
+    required this.skipTestsThatRequireGit,
+    required this.onlyTestsThatRequireGit,
+    required this.numberOfWorkers,
+  });
 
   static Options parse(List<String> args) {
     var parser = new ArgParser()
@@ -63,24 +87,83 @@ class Options {
       ..addFlag("print",
           abbr: "p", help: "print failure logs", defaultsTo: false)
       ..addMultiOption('environment',
-          abbr: 'D', help: "environment options for the test suite");
+          abbr: 'D', help: "environment options for the test suite")
+      ..addOption("tasks",
+          abbr: "j",
+          help: "The number of parallel tasks to run.",
+          defaultsTo: "${getDefaultThreads()}")
+      ..addOption("shards", help: "Number of shards", defaultsTo: "1")
+      ..addOption("shard", help: "Which shard to run", defaultsTo: "1")
+      ..addFlag("skipTestsThatRequireGit",
+          help: "Whether to skip tests that require git to run",
+          defaultsTo: false)
+      ..addFlag("onlyTestsThatRequireGit",
+          help: "Whether to only run tests that require git",
+          defaultsTo: false);
     var parsedArguments = parser.parse(args);
     String outputPath = parsedArguments["output-directory"] ?? ".";
     Uri outputDirectory = Uri.base.resolveUri(Uri.directory(outputPath));
-    String filter;
+
+    bool verbose = parsedArguments["verbose"];
+
+    String? filter;
     if (parsedArguments.rest.length == 1) {
       filter = parsedArguments.rest.single;
       if (filter.startsWith("$suiteNamePrefix/")) {
         filter = filter.substring(suiteNamePrefix.length + 1);
       }
     }
+    String tasksString = parsedArguments["tasks"];
+    int? tasks = int.tryParse(tasksString);
+    if (tasks == null || tasks < 1) {
+      throw "--tasks (-j) has to be an integer >= 1";
+    }
+
+    String shardsString = parsedArguments["shards"];
+    int? shardCount = int.tryParse(shardsString);
+    if (shardCount == null || shardCount < 1) {
+      throw "--shards has to be an integer >= 1";
+    }
+    String shardString = parsedArguments["shard"];
+    int? shard = int.tryParse(shardString);
+    if (shard == null || shard < 1 || shard > shardCount) {
+      throw "--shard has to be an integer >= 1 (and <= --shards)";
+    }
+    bool skipTestsThatRequireGit = parsedArguments["skipTestsThatRequireGit"];
+    bool onlyTestsThatRequireGit = parsedArguments["onlyTestsThatRequireGit"];
+    if (skipTestsThatRequireGit && onlyTestsThatRequireGit) {
+      throw "Only one of --skipTestsThatRequireGit and "
+          "--onlyTestsThatRequireGit can be provided.";
+    }
+
+    if (verbose) {
+      print("NOTE: Created with options\n  "
+          "${parsedArguments["named-configuration"]},\n  "
+          "${verbose},\n  "
+          "${parsedArguments["print"]},\n  "
+          "${outputDirectory},\n  "
+          "${filter},\n  "
+          "${parsedArguments['environment']},\n  "
+          "shardCount: ${shardCount},\n  "
+          "shard: ${shard - 1 /* make it 0-indexed */},\n  "
+          "onlyTestsThatRequireGit: ${onlyTestsThatRequireGit},\n  "
+          "skipTestsThatRequireGit: ${skipTestsThatRequireGit},\n  "
+          "numberOfWorkers: ${tasks}");
+    }
+
     return Options(
-        parsedArguments["named-configuration"],
-        parsedArguments["verbose"],
-        parsedArguments["print"],
-        outputDirectory,
-        filter,
-        parsedArguments['environment']);
+      parsedArguments["named-configuration"],
+      verbose,
+      parsedArguments["print"],
+      outputDirectory,
+      filter,
+      parsedArguments['environment'],
+      shardCount: shardCount,
+      shard: shard - 1 /* make it 0-indexed */,
+      onlyTestsThatRequireGit: onlyTestsThatRequireGit,
+      skipTestsThatRequireGit: skipTestsThatRequireGit,
+      numberOfWorkers: tasks,
+    );
   }
 }
 
@@ -93,6 +176,7 @@ class ResultLogger implements Logger {
   final Map<String, Stopwatch> stopwatches = {};
   final String configurationName;
   final Set<String> seenTests = {};
+  bool gotFrameworkError = false;
 
   ResultLogger(this.prefix, this.resultsPort, this.logsPort, this.verbose,
       this.printFailureLog, this.configurationName);
@@ -134,7 +218,7 @@ class ResultLogger implements Logger {
       "configuration": configurationName,
       "suite": suite,
       "test_name": shortTestName,
-      "time_ms": stopwatches[testName].elapsedMilliseconds,
+      "time_ms": stopwatches[testName]!.elapsedMilliseconds,
       "expected": "Pass",
       "result": matchedExpectations ? "Pass" : "Fail",
       "matches": matchedExpectations,
@@ -211,116 +295,169 @@ class ResultLogger implements Logger {
     seenTests.add(testName);
     handleTestResult(description, result, prefix, false);
   }
+
+  @override
+  void noticeFrameworkCatchError(error, StackTrace stackTrace) {
+    gotFrameworkError = true;
+  }
 }
 
 class Suite {
-  final String name;
   final CreateContext createContext;
   final String testingRootPath;
-  final String path;
+  final String? path;
   final int shardCount;
-  final int shard;
   final String prefix;
+  final bool requiresGit;
 
-  const Suite(this.name, this.createContext, this.testingRootPath,
-      {this.path, this.shardCount: 1, this.shard: 0, String prefix})
-      : prefix = prefix ?? name;
+  const Suite(
+    this.prefix,
+    this.createContext,
+    this.testingRootPath, {
+    required this.shardCount,
+    this.path,
+    this.requiresGit: false,
+  });
 }
 
 const List<Suite> suites = [
   const Suite(
-      "fasta/expression", expression.createContext, "../../testing.json"),
-  const Suite("fasta/outline", outline.createContext, "../../testing.json"),
+    "fasta/expression",
+    expression.createContext,
+    "../../testing.json",
+    shardCount: 1,
+  ),
   const Suite(
-      "fasta/fast_strong", fast_strong.createContext, "../../testing.json"),
+    "fasta/outline",
+    outline.createContext,
+    "../../testing.json",
+    shardCount: 2,
+  ),
+  // TODO(CFE TEAM): Should the 'fast strong' be run at all?
   const Suite(
-      "fasta/incremental", incremental.createContext, "../../testing.json"),
-  const Suite("fasta/messages", messages.createContext, "../../testing.json"),
-  const Suite("fasta/text_serialization1", text_serialization.createContext,
-      "../../testing.json",
-      path: "fasta/text_serialization_tester.dart",
-      shardCount: 4,
-      shard: 0,
-      prefix: "fasta/text_serialization"),
-  const Suite("fasta/text_serialization2", text_serialization.createContext,
-      "../../testing.json",
-      path: "fasta/text_serialization_tester.dart",
-      shardCount: 4,
-      shard: 1,
-      prefix: "fasta/text_serialization"),
-  const Suite("fasta/text_serialization3", text_serialization.createContext,
-      "../../testing.json",
-      path: "fasta/text_serialization_tester.dart",
-      shardCount: 4,
-      shard: 2,
-      prefix: "fasta/text_serialization"),
-  const Suite("fasta/text_serialization4", text_serialization.createContext,
-      "../../testing.json",
-      path: "fasta/text_serialization_tester.dart",
-      shardCount: 4,
-      shard: 3,
-      prefix: "fasta/text_serialization"),
-  const Suite("fasta/strong1", strong.createContext, "../../testing.json",
-      path: "fasta/strong_tester.dart",
-      shardCount: 4,
-      shard: 0,
-      prefix: "fasta/strong"),
-  const Suite("fasta/strong2", strong.createContext, "../../testing.json",
-      path: "fasta/strong_tester.dart",
-      shardCount: 4,
-      shard: 1,
-      prefix: "fasta/strong"),
-  const Suite("fasta/strong3", strong.createContext, "../../testing.json",
-      path: "fasta/strong_tester.dart",
-      shardCount: 4,
-      shard: 2,
-      prefix: "fasta/strong"),
-  const Suite("fasta/strong4", strong.createContext, "../../testing.json",
-      path: "fasta/strong_tester.dart",
-      shardCount: 4,
-      shard: 3,
-      prefix: "fasta/strong"),
-  const Suite("incremental_bulk_compiler_smoke",
-      incremental_bulk_compiler.createContext, "../testing.json"),
-  const Suite("incremental_load_from_dill", incremental_load.createContext,
-      "../testing.json"),
-  const Suite("lint", lint.createContext, "../testing.json"),
-  const Suite("parser", parser.createContext, "../testing.json"),
-  const Suite("parser_all", parserAll.createContext, "../testing.json"),
-  const Suite("spelling_test_not_src", spelling_not_src.createContext,
-      "../testing.json"),
+    "fasta/fast_strong",
+    fast_strong.createContext,
+    "../../testing.json",
+    shardCount: 4,
+  ),
   const Suite(
-      "spelling_test_src", spelling_src.createContext, "../testing.json"),
-  const Suite("fasta/weak", weak.createContext, "../../testing.json"),
-  const Suite("fasta/textual_outline", textual_outline.createContext,
-      "../../testing.json"),
+    "fasta/incremental",
+    incremental.createContext,
+    "../../testing.json",
+    shardCount: 1,
+  ),
+  const Suite(
+    "fasta/messages",
+    messages.createContext,
+    "../../testing.json",
+    shardCount: 1,
+    requiresGit: true,
+  ),
+  const Suite(
+    "fasta/text_serialization",
+    text_serialization.createContext,
+    "../../testing.json",
+    path: "fasta/text_serialization_tester.dart",
+    shardCount: 10,
+  ),
+  const Suite(
+    "fasta/strong",
+    strong.createContext,
+    "../../testing.json",
+    path: "fasta/strong_tester.dart",
+    shardCount: 10,
+  ),
+  const Suite(
+    "incremental_bulk_compiler_smoke",
+    incremental_bulk_compiler.createContext,
+    "../testing.json",
+    shardCount: 1,
+  ),
+  const Suite(
+    "incremental_load_from_dill",
+    incremental_load.createContext,
+    "../testing.json",
+    shardCount: 2,
+  ),
+  const Suite(
+    "lint",
+    lint.createContext,
+    "../testing.json",
+    shardCount: 1,
+    requiresGit: true,
+  ),
+  const Suite(
+    "parser",
+    parser.createContext,
+    "../testing.json",
+    shardCount: 1,
+  ),
+  const Suite(
+    "parser_all",
+    parserAll.createContext,
+    "../testing.json",
+    shardCount: 4,
+    requiresGit:
+        true /* technically not true, but tests *many* more files
+         than in test_matrix.json file set */
+    ,
+  ),
+  const Suite(
+    "spelling_test_not_src",
+    spelling_not_src.createContext,
+    "../testing.json",
+    shardCount: 1,
+    requiresGit: true,
+  ),
+  const Suite(
+    "spelling_test_src",
+    spelling_src.createContext,
+    "../testing.json",
+    shardCount: 1,
+    requiresGit: true,
+  ),
+  const Suite(
+    "fasta/weak",
+    weak.createContext,
+    "../../testing.json",
+    shardCount: 2,
+  ),
+  const Suite(
+    "fasta/textual_outline",
+    textual_outline.createContext,
+    "../../testing.json",
+    shardCount: 1,
+  ),
 ];
 
 const Duration timeoutDuration = Duration(minutes: 30);
 
 class SuiteConfiguration {
-  final String name;
+  final Suite suite;
   final SendPort resultsPort;
   final SendPort logsPort;
   final bool verbose;
   final bool printFailureLog;
   final String configurationName;
-  final String testFilter;
+  final String? testFilter;
   final List<String> environmentOptions;
+  final int shard;
 
   const SuiteConfiguration(
-      this.name,
-      this.resultsPort,
-      this.logsPort,
-      this.verbose,
-      this.printFailureLog,
-      this.configurationName,
-      this.testFilter,
-      this.environmentOptions);
+    this.suite,
+    this.resultsPort,
+    this.logsPort,
+    this.verbose,
+    this.printFailureLog,
+    this.configurationName,
+    this.testFilter,
+    this.environmentOptions,
+    this.shard,
+  );
 }
 
-void runSuite(SuiteConfiguration configuration) {
-  Suite suite = suites.where((s) => s.name == configuration.name).single;
+void runSuite(SuiteConfiguration configuration) async {
+  Suite suite = configuration.suite;
   String name = suite.prefix;
   String fullSuiteName = "$suiteNamePrefix/$name";
   Uri suiteUri = Platform.script.resolve(suite.path ?? "${name}_suite.dart");
@@ -334,23 +471,30 @@ void runSuite(SuiteConfiguration configuration) {
       configuration.verbose,
       configuration.printFailureLog,
       configuration.configurationName);
-  runMe(<String>[
-    if (configuration.testFilter != null) configuration.testFilter,
-    if (configuration.environmentOptions != null)
+  await runMe(
+    <String>[
+      if (configuration.testFilter != null) configuration.testFilter!,
       for (String option in configuration.environmentOptions) '-D${option}',
-  ], suite.createContext,
-      me: suiteUri,
-      configurationPath: suite.testingRootPath,
-      logger: logger,
-      shards: suite.shardCount,
-      shard: suite.shard);
+    ],
+    suite.createContext,
+    me: suiteUri,
+    configurationPath: suite.testingRootPath,
+    logger: logger,
+    shards: suite.shardCount,
+    shard: configuration.shard,
+  );
+  if (logger.gotFrameworkError) {
+    throw "Got framework error!";
+  }
 }
 
-void writeLinesToFile(Uri uri, List<String> lines) async {
+Future<void> writeLinesToFile(Uri uri, List<String> lines) async {
   await File.fromUri(uri).writeAsString(lines.map((line) => "$line\n").join());
 }
 
 main([List<String> arguments = const <String>[]]) async {
+  Stopwatch totalRuntime = new Stopwatch()..start();
+
   List<String> results = [];
   List<String> logs = [];
   Options options = Options.parse(arguments);
@@ -359,13 +503,23 @@ main([List<String> arguments = const <String>[]]) async {
   ReceivePort logsPort = new ReceivePort()
     ..listen((logEntry) => logs.add(logEntry));
   List<Future<bool>> futures = [];
+
+  if (options.verbose) {
+    print("NOTE: Willing to run with ${options.numberOfWorkers} 'workers'");
+    print("");
+  }
+
+  int numberOfFreeWorkers = options.numberOfWorkers;
   // Run test suites and record the results and possible failure logs.
+  int chunkNum = 0;
   for (Suite suite in suites) {
-    String name = suite.name;
-    String filter = options.testFilter;
+    if (options.onlyTestsThatRequireGit && !suite.requiresGit) continue;
+    if (options.skipTestsThatRequireGit && suite.requiresGit) continue;
+    String prefix = suite.prefix;
+    String? filter = options.testFilter;
     if (filter != null) {
       // Skip suites that are not hit by the test filter, is there is one.
-      if (!filter.startsWith(suite.prefix)) {
+      if (!filter.startsWith(prefix)) {
         continue;
       }
       // Remove the 'fasta/' from filters, if there, because it is not used
@@ -374,39 +528,63 @@ main([List<String> arguments = const <String>[]]) async {
         filter = filter.substring("fasta/".length);
       }
     }
-    // Start the test suite in a new isolate.
-    ReceivePort exitPort = new ReceivePort();
-    SuiteConfiguration configuration = SuiteConfiguration(
-        name,
-        resultsPort.sendPort,
-        logsPort.sendPort,
-        options.verbose,
-        options.printFailureLog,
-        options.configurationName,
-        filter,
-        options.environmentOptions);
-    Future future = Future<bool>(() async {
-      Stopwatch stopwatch = Stopwatch()..start();
-      print("Running suite $name");
-      Isolate isolate = await Isolate.spawn<SuiteConfiguration>(
-          runSuite, configuration,
-          onExit: exitPort.sendPort);
-      bool timedOut = false;
-      Timer timer = Timer(timeoutDuration, () {
-        timedOut = true;
-        print("Suite $name timed out after "
-            "${timeoutDuration.inMilliseconds}ms");
-        isolate.kill(priority: Isolate.immediate);
-      });
-      await exitPort.first;
-      timer.cancel();
-      if (!timedOut) {
-        int seconds = stopwatch.elapsedMilliseconds ~/ 1000;
-        print("Suite $name finished (took ${seconds} seconds)");
+    for (int shard = 0; shard < suite.shardCount; shard++) {
+      if (chunkNum++ % options.shardCount != options.shard) continue;
+
+      while (numberOfFreeWorkers <= 0) {
+        // This might not be great design, but it'll work fine.
+        await Future.delayed(const Duration(milliseconds: 50));
       }
-      return timedOut;
-    });
-    futures.add(future);
+      numberOfFreeWorkers--;
+      // Start the test suite in a new isolate.
+      ReceivePort exitPort = new ReceivePort();
+      ReceivePort errorPort = new ReceivePort();
+      SuiteConfiguration configuration = new SuiteConfiguration(
+          suite,
+          resultsPort.sendPort,
+          logsPort.sendPort,
+          options.verbose,
+          options.printFailureLog,
+          options.configurationName,
+          filter,
+          options.environmentOptions,
+          shard);
+      Future<bool> future = new Future<bool>(() async {
+        try {
+          Stopwatch stopwatch = new Stopwatch()..start();
+          String naming = "$prefix";
+          if (suite.shardCount > 1) {
+            naming += " (${shard + 1} of ${suite.shardCount})";
+          }
+          print("Running suite $naming");
+          Isolate isolate = await Isolate.spawn<SuiteConfiguration>(
+              runSuite, configuration,
+              onExit: exitPort.sendPort, onError: errorPort.sendPort);
+          bool timedOutOrCrash = false;
+          Timer timer = new Timer(timeoutDuration, () {
+            timedOutOrCrash = true;
+            print("Suite $naming timed out after "
+                "${timeoutDuration.inMilliseconds}ms");
+            isolate.kill(priority: Isolate.immediate);
+          });
+          await exitPort.first;
+          errorPort.close();
+          bool gotError = !await errorPort.isEmpty;
+          if (gotError) {
+            timedOutOrCrash = true;
+          }
+          timer.cancel();
+          if (!timedOutOrCrash) {
+            int seconds = stopwatch.elapsedMilliseconds ~/ 1000;
+            print("Suite $naming finished (took ${seconds} seconds)");
+          }
+          return timedOutOrCrash;
+        } finally {
+          numberOfFreeWorkers++;
+        }
+      });
+      futures.add(future);
+    }
   }
   // Wait for isolates to terminate and clean up.
   Iterable<bool> timeouts = await Future.wait(futures);
@@ -419,6 +597,7 @@ main([List<String> arguments = const <String>[]]) async {
   await writeLinesToFile(logsJsonUri, logs);
   print("Log files written to ${resultJsonUri.toFilePath()} and"
       " ${logsJsonUri.toFilePath()}");
+  print("Entire run took ${totalRuntime.elapsed}.");
   // Return with exit code 1 if at least one suite timed out.
   bool timeout = timeouts.any((timeout) => timeout);
   if (timeout) {

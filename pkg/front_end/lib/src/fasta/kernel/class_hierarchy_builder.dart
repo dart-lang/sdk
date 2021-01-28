@@ -1722,13 +1722,20 @@ class ClassHierarchyNodeBuilder {
       ClassMember mixedInGetable;
       if (tuple.mixedInMember != null &&
           !tuple.mixedInMember.isStatic &&
-          !tuple.mixedInMember.isDuplicate) {
+          !tuple.mixedInMember.isDuplicate &&
+          !tuple.mixedInMember.isSynthesized) {
         /// We treat
         ///
-        ///   class Mixin {
+        ///   opt-in:
+        ///   class Interface {
+        ///     method3() {}
+        ///   }
+        ///   opt-out:
+        ///   class Mixin implements Interface {
         ///     static method1() {}
         ///     method2() {}
         ///     method2() {}
+        ///     /*member-signature*/ method3() {}
         ///   }
         ///   class Class with Mixin {}
         ///
@@ -1737,6 +1744,27 @@ class ClassHierarchyNodeBuilder {
         ///   class Mixin {}
         ///   class Class with Mixin {}
         ///
+        /// Note that skipped synthetic getable 'method3' is still included
+        /// in the implemented getables, but its type will not define the type
+        /// when mixed in. For instance
+        ///
+        ///   opt-in:
+        ///   abstract class Interface {
+        ///     num get getter;
+        ///   }
+        ///   opt-out:
+        ///   abstract class Super {
+        ///     int get getter;
+        ///   }
+        ///   abstract class Mixin implements Interface {
+        ///     /*member-signature*/ num get getter;
+        ///   }
+        ///   abstract class Class extends Super with Mixin {}
+        ///
+        /// Here the type of `Class.getter` should not be defined from the
+        /// synthetic member signature `Mixin.getter` but as a combined member
+        /// signature of `Super.getter` and `Mixin.getter`, resulting in type
+        /// `int` instead of `num`.
         if (definingGetable == null) {
           /// class Mixin {
           ///   method() {}
@@ -1760,13 +1788,15 @@ class ClassHierarchyNodeBuilder {
       ClassMember mixedInSetable;
       if (tuple.mixedInSetter != null &&
           !tuple.mixedInSetter.isStatic &&
-          !tuple.mixedInSetter.isDuplicate) {
+          !tuple.mixedInSetter.isDuplicate &&
+          !tuple.mixedInSetter.isSynthesized) {
         /// We treat
         ///
         ///   class Mixin {
         ///     static set setter1(value) {}
         ///     set setter2(value) {}
         ///     set setter2(value) {}
+        ///     /*member-signature*/ setter3() {}
         ///   }
         ///   class Class with Mixin {}
         ///
@@ -1775,6 +1805,27 @@ class ClassHierarchyNodeBuilder {
         ///   class Mixin {}
         ///   class Class with Mixin {}
         ///
+        /// Note that skipped synthetic setable 'setter3' is still included
+        /// in the implemented setables, but its type will not define the type
+        /// when mixed in. For instance
+        ///
+        ///   opt-in:
+        ///   abstract class Interface {
+        ///     void set setter(int value);
+        ///   }
+        ///   opt-out:
+        ///   abstract class Super {
+        ///     void set setter(num value);
+        ///   }
+        ///   abstract class Mixin implements Interface {
+        ///     /*member-signature*/ num get getter;
+        ///   }
+        ///   abstract class Class extends Super with Mixin {}
+        ///
+        /// Here the type of `Class.setter` should not be defined from the
+        /// synthetic member signature `Mixin.setter` but as a combined member
+        /// signature of `Super.setter` and `Mixin.setter`, resulting in type
+        /// `num` instead of `int`.
         if (definingSetable == null) {
           /// class Mixin {
           ///   set setter(value) {}
@@ -2192,6 +2243,11 @@ class ClassHierarchyNodeBuilder {
             interfaceMember = new SynthesizedInterfaceMember(
                 classBuilder, name, interfaceMembers.toList(),
                 superClassMember: extendedMember,
+                // [definingMember] and [mixedInMember] are always the same
+                // here. Use the latter here and the former below to show the
+                // the member is canonical _because_ its the mixed in member and
+                // it defines the isProperty/forSetter properties _because_ it
+                // is the defining member.
                 canonicalMember: mixedInMember,
                 mixedInMember: mixedInMember,
                 isProperty: definingMember.isProperty,
@@ -2244,6 +2300,7 @@ class ClassHierarchyNodeBuilder {
               registerAbstractMember(interfaceMember);
             }
 
+            assert(!mixedInMember.isSynthesized);
             if (!mixedInMember.isSynthesized) {
               /// Members declared in the mixin must override extended and
               /// implemented members.
@@ -2311,6 +2368,11 @@ class ClassHierarchyNodeBuilder {
             interfaceMember = new SynthesizedInterfaceMember(
                 classBuilder, name, interfaceMembers.toList(),
                 superClassMember: mixedInMember,
+                // [definingMember] and [mixedInMember] are always the same
+                // here. Use the latter here and the former below to show the
+                // the member is canonical _because_ its the mixed in member and
+                // it defines the isProperty/forSetter properties _because_ it
+                // is the defining member.
                 canonicalMember: mixedInMember,
                 mixedInMember: mixedInMember,
                 isProperty: definingMember.isProperty,
@@ -2350,6 +2412,7 @@ class ClassHierarchyNodeBuilder {
               registerInheritedImplements(mixedInMember, {interfaceMember},
                   aliasForTesting: classMember);
             }
+            assert(!mixedInMember.isSynthesized);
             if (!mixedInMember.isSynthesized) {
               /// Members declared in the mixin must override extended and
               /// implemented members.
@@ -2414,6 +2477,11 @@ class ClassHierarchyNodeBuilder {
               interfaceMember = new SynthesizedInterfaceMember(
                   classBuilder, name, interfaceMembers.toList(),
                   superClassMember: extendedMember,
+                  // [definingMember] and [declaredMember] are always the same
+                  // here. Use the latter here and the former below to show the
+                  // the member is canonical _because_ its the declared member
+                  // and it defines the isProperty/forSetter properties
+                  // _because_ it is the defining member.
                   canonicalMember: declaredMember,
                   isProperty: definingMember.isProperty,
                   forSetter: definingMember.forSetter,

@@ -7,16 +7,6 @@ library from "org-dartlang-test:///main.dart" as main {
     synthetic constructor •() → main::ABC*
       : super a::AB::•()
       ;
-    abstract mixin-stub get _identityHashCode() → dart.core::int*; -> a::C::_identityHashCode
-    abstract mixin-stub method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> a::C::_instanceOf
-    abstract mixin-stub method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> a::C::_simpleInstanceOf
-    abstract mixin-stub method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*; -> a::C::_simpleInstanceOfTrue
-    abstract mixin-stub method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*; -> a::C::_simpleInstanceOfFalse
-    abstract mixin-stub operator ==(dynamic other) → dart.core::bool*; -> a::C::==
-    abstract mixin-stub get hashCode() → dart.core::int*; -> a::C::hashCode
-    abstract mixin-stub method toString() → dart.core::String*; -> a::C::toString
-    abstract mixin-stub method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> a::C::noSuchMethod
-    abstract mixin-stub get runtimeType() → dart.core::Type*; -> a::C::runtimeType
   }
 }
 library from "package:module/a.dart" as a {

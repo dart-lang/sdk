@@ -21,6 +21,7 @@ general/invalid_operator: TypeCheckError
 general/invalid_operator_override: TypeCheckError
 general/issue41210a: TypeCheckError
 general/issue41210b/issue41210: TypeCheckError
+general/issue41210b/issue41210.no_link: TypeCheckError
 general/mixin_application_override: TypeCheckError
 general/override_check_accessor_after_inference: TypeCheckError
 general/override_check_accessor_basic: TypeCheckError
