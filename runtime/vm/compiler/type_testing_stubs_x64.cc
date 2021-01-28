@@ -20,8 +20,16 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStub(
     const Type& type,
     const Class& type_class) {
   BuildOptimizedTypeTestStubFastCases(assembler, hi, type, type_class);
-  __ jmp(compiler::Address(
-      THR, compiler::target::Thread::slow_type_test_entry_point_offset()));
+  if (!compiler::IsSameObject(
+          compiler::NullObject(),
+          compiler::CastHandle<Object>(slow_type_test_stub))) {
+    __ GenerateUnRelocatedPcRelativeTailCall();
+    unresolved_calls->Add(new compiler::UnresolvedPcRelativeCall(
+        __ CodeSize(), slow_type_test_stub, /*is_tail_call=*/true));
+  } else {
+    __ jmp(compiler::Address(
+        THR, compiler::target::Thread::slow_type_test_entry_point_offset()));
+  }
 }
 
 }  // namespace dart
