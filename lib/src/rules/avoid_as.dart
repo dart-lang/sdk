@@ -46,15 +46,21 @@ performance impact.
 HasScrollDirection scrollable = renderObject as dynamic;
 ```
 
+
+**DEPRECATED:** This advice is no longer recommended.
+ 
+The rule will be removed in a future Linter release.
 ''';
 
 class AvoidAs extends LintRule implements NodeLintRule {
   AvoidAs()
       : super(
-            name: 'avoid_as',
-            description: _desc,
-            details: _details,
-            group: Group.style);
+          name: 'avoid_as',
+          description: _desc,
+          details: _details,
+          group: Group.style,
+          maturity: Maturity.deprecated,
+        );
 
   @override
   void registerNodeProcessors(
