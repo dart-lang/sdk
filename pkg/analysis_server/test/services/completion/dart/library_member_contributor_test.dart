@@ -238,9 +238,11 @@ main() {
     expect(replacementLength, 0);
     assertSuggestClass('X');
     assertSuggestClass('Y');
-    assertSuggestTypeAlias('TypeAliasLegacy', 'void');
-    assertSuggestTypeAlias('TypeAliasFunctionType', 'void');
-    assertSuggestTypeAlias('TypeAliasInterfaceType', 'List<int>');
+    assertSuggestTypeAlias('TypeAliasLegacy',
+        aliasedType: 'void Function()', returnType: 'void');
+    assertSuggestTypeAlias('TypeAliasFunctionType',
+        aliasedType: 'void Function()', returnType: 'void');
+    assertSuggestTypeAlias('TypeAliasInterfaceType', aliasedType: 'List<int>');
     assertNotSuggested('T1');
     assertNotSuggested('T2');
     assertNotSuggested('Object');

@@ -2588,7 +2588,8 @@ class C {foo(){^} void bar() {}}''');
     assertSuggestClass('C');
     assertSuggestMethod('foo', 'C', null);
     assertSuggestMethod('bar', 'C', 'void');
-    assertSuggestTypeAlias('F2', 'int');
+    assertSuggestTypeAlias('F2',
+        aliasedType: 'int Function(int)', returnType: 'int');
     assertSuggestClass('Clz');
     assertSuggestClass('C');
     assertNotSuggested('x');
@@ -3242,7 +3243,8 @@ class C2 { }
     assertNotSuggested('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
-    assertSuggestTypeAlias('D2', 'dynamic');
+    assertSuggestTypeAlias('D2',
+        aliasedType: 'dynamic Function()', returnType: 'dynamic');
     assertSuggestClass('C2');
     assertNotSuggested('name');
   }
@@ -3272,7 +3274,8 @@ class C2 { }
     assertNotSuggested('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
-    assertSuggestTypeAlias('D2', 'dynamic');
+    assertSuggestTypeAlias('D2',
+        aliasedType: 'dynamic Function()', returnType: 'dynamic');
     assertSuggestClass('C2');
     assertNotSuggested('name');
   }
@@ -3303,7 +3306,8 @@ class C2 { }
     assertNotSuggested('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
-    assertSuggestTypeAlias('D2', 'dynamic');
+    assertSuggestTypeAlias('D2',
+        aliasedType: 'dynamic Function()', returnType: 'dynamic');
     assertSuggestClass('C2');
     assertNotSuggested('name');
   }
@@ -3870,7 +3874,8 @@ main() {String name; print("hello \${^}");}''');
     assertNotSuggested('C1');
     assertSuggestTopLevelVar('T2', 'int');
     assertSuggestFunction('F2', null);
-    assertSuggestTypeAlias('D2', 'dynamic');
+    assertSuggestTypeAlias('D2',
+        aliasedType: 'dynamic Function()', returnType: 'dynamic');
     assertSuggestClass('C2');
     assertSuggestLocalVariable('name', 'String');
   }
@@ -4218,7 +4223,8 @@ foo = {^''');
     assertNotSuggested('C1');
     assertSuggestTopLevelVar('T2', 'int');
     assertSuggestFunction('F2', null);
-    assertSuggestTypeAlias('D2', 'dynamic');
+    assertSuggestTypeAlias('D2',
+        aliasedType: 'dynamic Function()', returnType: 'dynamic');
     assertSuggestClass('C2');
   }
 
@@ -4767,7 +4773,8 @@ class C2 {^ zoo(z) { } String name; }''');
     assertNotSuggested('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
-    assertSuggestTypeAlias('D2', 'dynamic');
+    assertSuggestTypeAlias('D2',
+        aliasedType: 'dynamic Function()', returnType: 'dynamic');
     assertSuggestClass('C2');
     assertNotSuggested('name');
   }
@@ -4796,7 +4803,8 @@ class C2 {/* */ ^ zoo(z) { } String name; }''');
     assertNotSuggested('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
-    assertSuggestTypeAlias('D2', 'dynamic');
+    assertSuggestTypeAlias('D2',
+        aliasedType: 'dynamic Function()', returnType: 'dynamic');
     assertSuggestClass('C2');
     assertNotSuggested('name');
   }
@@ -4825,7 +4833,8 @@ class C2 {/** */ ^ zoo(z) { } String name; }''');
     assertNotSuggested('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
-    assertSuggestTypeAlias('D2', 'dynamic');
+    assertSuggestTypeAlias('D2',
+        aliasedType: 'dynamic Function()', returnType: 'dynamic');
     assertSuggestClass('C2');
     assertNotSuggested('name');
   }
@@ -4856,7 +4865,8 @@ class C2 {
     assertNotSuggested('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
-    assertSuggestTypeAlias('D2', 'dynamic');
+    assertSuggestTypeAlias('D2',
+        aliasedType: 'dynamic Function()', returnType: 'dynamic');
     assertSuggestClass('C2');
     assertNotSuggested('name');
   }
@@ -6035,7 +6045,8 @@ main() {
 }
 ''');
     await computeSuggestions();
-    assertSuggestTypeAlias('F', 'void');
+    assertSuggestTypeAlias('F',
+        aliasedType: 'void Function()', returnType: 'void');
   }
 
   Future<void> test_typeAlias_interfaceType() async {
@@ -6046,7 +6057,7 @@ main() {
 }
 ''');
     await computeSuggestions();
-    assertSuggestTypeAlias('F', 'List<int>');
+    assertSuggestTypeAlias('F', aliasedType: 'List<int>');
   }
 
   Future<void> test_typeAlias_legacy() async {
@@ -6057,7 +6068,8 @@ main() {
 }
 ''');
     await computeSuggestions();
-    assertSuggestTypeAlias('F', 'void');
+    assertSuggestTypeAlias('F',
+        aliasedType: 'void Function()', returnType: 'void');
   }
 
   Future<void> test_TypeArgumentList() async {
@@ -6081,7 +6093,8 @@ main() { C<^> c; }''');
     assertNotSuggested('C1');
     assertNotSuggested('T1');
     assertSuggestClass('C2');
-    assertSuggestTypeAlias('T2', 'int');
+    assertSuggestTypeAlias('T2',
+        aliasedType: 'int Function(int)', returnType: 'int');
     assertNotSuggested('F1');
     assertNotSuggested('F2');
   }

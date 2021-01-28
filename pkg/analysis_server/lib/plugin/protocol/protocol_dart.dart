@@ -10,25 +10,29 @@ import 'package:path/path.dart' as pathos;
 
 /// Return a protocol [Element] corresponding to the given [engine.Element].
 Element convertElement(engine.Element element) {
+  var kind = convertElementToElementKind(element);
   var name = getElementDisplayName(element);
   var elementTypeParameters = _getTypeParametersString(element);
+  var aliasedType = getAliasedTypeString(element);
   var elementParameters = _getParametersString(element);
   var elementReturnType = getReturnTypeString(element);
-  var kind = convertElementToElementKind(element);
   return Element(
-      kind,
-      name,
-      Element.makeFlags(
-          isPrivate: element.isPrivate,
-          isDeprecated: element.hasDeprecated,
-          isAbstract: _isAbstract(element),
-          isConst: _isConst(element),
-          isFinal: _isFinal(element),
-          isStatic: _isStatic(element)),
-      location: newLocation_fromElement(element),
-      typeParameters: elementTypeParameters,
-      parameters: elementParameters,
-      returnType: elementReturnType);
+    kind,
+    name,
+    Element.makeFlags(
+      isPrivate: element.isPrivate,
+      isDeprecated: element.hasDeprecated,
+      isAbstract: _isAbstract(element),
+      isConst: _isConst(element),
+      isFinal: _isFinal(element),
+      isStatic: _isStatic(element),
+    ),
+    location: newLocation_fromElement(element),
+    typeParameters: elementTypeParameters,
+    aliasedType: aliasedType,
+    parameters: elementParameters,
+    returnType: elementReturnType,
+  );
 }
 
 /// Return a protocol [ElementKind] corresponding to the given
@@ -229,7 +233,15 @@ bool _isStatic(engine.Element element) {
 /// Sort required named parameters before optional ones.
 int _preferRequiredParams(
     engine.ParameterElement e1, engine.ParameterElement e2) {
-  var rank1 = (e1.isRequiredNamed || e1.hasRequired) ? 0 : !e1.isNamed ? -1 : 1;
-  var rank2 = (e2.isRequiredNamed || e2.hasRequired) ? 0 : !e2.isNamed ? -1 : 1;
+  var rank1 = (e1.isRequiredNamed || e1.hasRequired)
+      ? 0
+      : !e1.isNamed
+          ? -1
+          : 1;
+  var rank2 = (e2.isRequiredNamed || e2.hasRequired)
+      ? 0
+      : !e2.isNamed
+          ? -1
+          : 1;
   return rank1 - rank2;
 }

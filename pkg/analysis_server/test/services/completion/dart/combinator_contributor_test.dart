@@ -107,8 +107,10 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
     assertSuggestFunction('F1', 'PB',
         kind: CompletionSuggestionKind.IDENTIFIER);
     assertSuggestClass('Clz', kind: CompletionSuggestionKind.IDENTIFIER);
-    assertSuggestTypeAlias('F2', null,
-        kind: CompletionSuggestionKind.IDENTIFIER);
+    assertSuggestTypeAlias('F2',
+        kind: CompletionSuggestionKind.IDENTIFIER,
+        aliasedType: 'dynamic Function(int)',
+        returnType: 'dynamic');
     assertNotSuggested('C');
     assertNotSuggested('D');
     assertNotSuggested('X');

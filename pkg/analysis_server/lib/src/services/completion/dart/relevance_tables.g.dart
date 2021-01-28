@@ -649,7 +649,7 @@ const elementKindRelevance = {
         ProbabilityRange(lower: 0.017, upper: 0.070),
     ElementKind.CLASS: ProbabilityRange(lower: 0.354, upper: 1.000),
   },
-  'GenericTypeAlias_functionType': {
+  'GenericTypeAlias_type': {
     ElementKind.FUNCTION_TYPE_ALIAS:
         ProbabilityRange(lower: 0.000, upper: 0.020),
     ElementKind.PREFIX: ProbabilityRange(lower: 0.020, upper: 0.040),
@@ -1362,7 +1362,7 @@ const keywordRelevance = {
   'FunctionDeclaration_returnType': {
     'void': ProbabilityRange(lower: 0.070, upper: 0.354),
   },
-  'GenericTypeAlias_functionType': {
+  'GenericTypeAlias_type': {
     'Function': ProbabilityRange(lower: 0.090, upper: 0.140),
     'void': ProbabilityRange(lower: 0.480, upper: 1.000),
   },

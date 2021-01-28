@@ -374,8 +374,11 @@ void FUNCTION_NAME(ProcessInfo_MaxRSS)(Dart_NativeArguments args) {
 void Process::GetRSSInformation(int64_t* max_rss, int64_t* current_rss) {
   ASSERT(max_rss != NULL);
   ASSERT(current_rss != NULL);
-  *max_rss = Process::MaxRSS();
+  // Max RSS should be queried after current RSS to produce
+  // consistent values as current RSS can grow beyond max RSS which
+  // was queried before.
   *current_rss = Process::CurrentRSS();
+  *max_rss = Process::MaxRSS();
 }
 
 }  // namespace bin

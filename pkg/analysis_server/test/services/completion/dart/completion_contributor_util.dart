@@ -501,14 +501,17 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest
   }
 
   CompletionSuggestion assertSuggestTypeAlias(
-    String name,
-    String returnType, {
+    String name, {
+    String aliasedType,
+    String returnType,
     bool isDeprecated = false,
     CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
   }) {
     var cs = assertSuggest(name, csKind: kind, isDeprecated: isDeprecated);
     if (returnType != null) {
       expect(cs.returnType, returnType);
+    } else if (aliasedType != null) {
+      // Just to don't fall into the next 'if'.
     } else if (isNullExpectedReturnTypeConsideredDynamic) {
       expect(cs.returnType, 'dynamic');
     } else {
@@ -524,7 +527,8 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest
     //    expect(param, isNotNull);
     //    expect(param[0], equals('('));
     //    expect(param[param.length - 1], equals(')'));
-    expect(element.returnType, equals(returnType ?? 'dynamic'));
+    expect(element.aliasedType, aliasedType);
+    expect(element.returnType, returnType);
     // TODO (danrubel) Determine why param info is missing
     //    assertHasParameterInfo(cs);
     return cs;
