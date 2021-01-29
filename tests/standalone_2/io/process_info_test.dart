@@ -16,4 +16,15 @@ main() {
   Expect.isTrue(maxRss > 0);
 
   Expect.isTrue(currentRss <= maxRss);
+
+  int stack_before = ProcessInfo.currentStackSize;
+  int stack_after = getStackInFunction();
+
+  Expect.isTrue(stack_before > 0);
+  Expect.isTrue(stack_after > 0);
+  Expect.isTrue(stack_after > stack_before);
+}
+
+int getStackInFunction() {
+  return ProcessInfo.currentStackSize;
 }

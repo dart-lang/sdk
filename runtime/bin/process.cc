@@ -11,6 +11,7 @@
 #include "bin/socket.h"
 #include "bin/utils.h"
 #include "platform/syslog.h"
+#include "vm/os_thread.h"
 
 #include "include/dart_api.h"
 
@@ -360,6 +361,16 @@ void FUNCTION_NAME(ProcessInfo_CurrentRSS)(Dart_NativeArguments args) {
     return;
   }
   Dart_SetIntegerReturnValue(args, current_rss);
+}
+
+void FUNCTION_NAME(ProcessInfo_CurrentStackSize)(Dart_NativeArguments args) {
+  dart::OSThread* current = dart::OSThread::Current();
+  int64_t current_stack_size = current->stack_base() - dart::OSThread::GetCurrentStackPointer();
+  if (current_stack_size < 0) {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+    return;
+  }
+  Dart_SetIntegerReturnValue(args, current_stack_size);
 }
 
 void FUNCTION_NAME(ProcessInfo_MaxRSS)(Dart_NativeArguments args) {

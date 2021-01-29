@@ -180,6 +180,15 @@ class ProcessInfo {
   }
 
   @patch
+  static int get currentStackSize {
+    var result = _currentStackSize();
+    if (result is OSError) {
+      throw result;
+    }
+    return result;
+  }
+
+  @patch
   static int get currentRss {
     var result = _currentRss();
     if (result is OSError) {
@@ -190,6 +199,7 @@ class ProcessInfo {
 
   static _maxRss() native "ProcessInfo_MaxRSS";
   static _currentRss() native "ProcessInfo_CurrentRSS";
+  static _currentStackSize() native "ProcessInfo_CurrentStackSize";
 }
 
 @pragma("vm:entry-point")

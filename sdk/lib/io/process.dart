@@ -110,6 +110,12 @@ class ProcessInfo {
   /// twice.
   external static int get currentRss;
 
+  /// The stack size of the current running thread.
+  ///
+  /// This size should be smaller than the stack limit of the current thread.
+  /// Otheriwse, as stack overflow exception will be thrown.
+  external static int get currentStackSize;
+
   /// The high-watermark in bytes for the resident set size of memory for the
   /// process.
   ///

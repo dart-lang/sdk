@@ -341,6 +341,11 @@ class ProcessInfo {
   }
 
   @patch
+  static int get currentStackSize {
+    throw UnsupportedError("ProcessInfo.currentStackSize");
+  }
+
+  @patch
   static int get maxRss {
     throw UnsupportedError("ProcessInfo.maxRss");
   }
