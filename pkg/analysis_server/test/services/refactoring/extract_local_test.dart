@@ -245,7 +245,7 @@ main() {
     await indexTestUnit('''
 main() {
   int a = 1 + 2;
-  Res b = null;
+  Res? b = null;
 }
 
 class Res {}
@@ -698,7 +698,7 @@ main() {
   Future<void> test_guessNames_singleExpression() async {
     await indexTestUnit('''
 class TreeItem {}
-TreeItem getSelectedItem() => null;
+TreeItem? getSelectedItem() => null;
 process(my) {}
 main() {
   process(getSelectedItem()); // marker
@@ -760,21 +760,21 @@ main() {
 
   Future<void> test_occurrences_differentName_samePrefix() async {
     await indexTestUnit('''
-void main(A a) {
+void f(A a) {
   if (a.foo != 1) {
   } else if (a.foo2 != 2) {
   }
 }
 
 class A {
-  int foo;
-  int foo2;
+  int? foo;
+  int? foo2;
 }
 ''');
     _createRefactoringWithSuffix('a.foo', ' != 1');
     // apply refactoring
     await _assertSuccessfulRefactoring('''
-void main(A a) {
+void f(A a) {
   var res = a.foo;
   if (res != 1) {
   } else if (a.foo2 != 2) {
@@ -782,8 +782,8 @@ void main(A a) {
 }
 
 class A {
-  int foo;
-  int foo2;
+  int? foo;
+  int? foo2;
 }
 ''');
   }
@@ -1068,7 +1068,7 @@ main() {
   Future<void> test_singleExpression_inExpressionBody_ofFunction() async {
     await indexTestUnit('''
 foo(Point p) => p.x * p.x + p.y * p.y;
-class Point {int x; int y;}
+class Point {int x = 0; int y = 0;}
 ''');
     _createRefactoringForString('p.x');
     // apply refactoring
@@ -1077,7 +1077,7 @@ foo(Point p) {
   var res = p.x;
   return res * res + p.y * p.y;
 }
-class Point {int x; int y;}
+class Point {int x = 0; int y = 0;}
 ''');
     _assertSingleLinkedEditGroup(
         length: 3, offsets: [21, 41, 47], names: ['x', 'i']);
@@ -1088,7 +1088,7 @@ class Point {int x; int y;}
 class A {
   foo(Point p) => p.x * p.x + p.y * p.y;
 }
-class Point {int x; int y;}
+class Point {int x = 0; int y = 0;}
 ''');
     _createRefactoringForString('p.x');
     // apply refactoring
@@ -1099,7 +1099,7 @@ class A {
     return res * res + p.y * p.y;
   }
 }
-class Point {int x; int y;}
+class Point {int x = 0; int y = 0;}
 ''');
     _assertSingleLinkedEditGroup(
         length: 3, offsets: [35, 57, 63], names: ['x', 'i']);
@@ -1107,7 +1107,7 @@ class Point {int x; int y;}
 
   Future<void> test_singleExpression_inIfElseIf() async {
     await indexTestUnit('''
-main(int p) {
+void f(int p) {
   if (p == 1) {
     print(1);
   } else if (p == 2) {
@@ -1118,7 +1118,7 @@ main(int p) {
     _createRefactoringForString('2');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
-main(int p) {
+void f(int p) {
   var res = 2;
   if (p == 1) {
     print(1);

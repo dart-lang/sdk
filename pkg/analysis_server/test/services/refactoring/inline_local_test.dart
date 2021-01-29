@@ -50,7 +50,7 @@ main() {
 
   Future<void> test_bad_selectionParameter() async {
     await indexTestUnit(r'''
-main(int test) {
+void f(int test) {
 }
 ''');
     _createRefactoring('test) {');
@@ -157,7 +157,7 @@ main() {
 
   Future<void> test_OK_inSwitchCase() async {
     await indexTestUnit('''
-main(int p) {
+void f(int p) {
   switch (p) {
     case 0:
       int test = 42;
@@ -169,7 +169,7 @@ main(int p) {
     _createRefactoring('test =');
     // validate change
     return assertSuccessfulRefactoring('''
-main(int p) {
+void f(int p) {
   switch (p) {
     case 0:
       print(42);
