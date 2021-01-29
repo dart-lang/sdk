@@ -124,7 +124,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// If [growable] is `false`, which is the default,
   /// the list is a fixed-length list of length zero.
   /// If [growable] is `true`, the list is growable and equivalent to `<E>[]`.
-  @Since("2.8")
+  @Since("2.9")
   external factory List.empty({bool growable = false});
 
   /// Creates a list containing all [elements].
