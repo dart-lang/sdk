@@ -60,7 +60,7 @@ class ModifyParameters extends Change<_Data> {
     var arguments = argumentList.arguments;
     var argumentCount = arguments.length;
     var templateContext = TemplateContext(argumentList.parent, fix.utils);
-    var newNamed = <AddParameter>[];
+
     var indexToNewArgumentMap = <int, AddParameter>{};
     var argumentsToInsert = <int>[];
     var argumentsToDelete = <int>[];
@@ -69,16 +69,14 @@ class ModifyParameters extends Change<_Data> {
       if (modification is AddParameter) {
         var index = modification.index;
         indexToNewArgumentMap[index] = modification;
-        if (modification.isPositional) {
+        if (modification.isPositional || modification.isRequired) {
           argumentsToInsert.add(index);
-        } else if (modification.isRequired) {
-          newNamed.add(modification);
         } else {
           var requiredIfCondition =
               modification.argumentValue?.requiredIfCondition;
           if (requiredIfCondition != null &&
               requiredIfCondition.evaluateIn(templateContext)) {
-            newNamed.add(modification);
+            argumentsToInsert.add(index);
           }
         }
       } else if (modification is RemoveParameter) {
@@ -94,7 +92,6 @@ class ModifyParameters extends Change<_Data> {
       }
     }
     argumentsToInsert.sort();
-    newNamed.sort((first, second) => first.name.compareTo(second.name));
 
     /// Write to the [builder] the argument associated with a single
     /// [parameter].
@@ -185,37 +182,19 @@ class ModifyParameters extends Change<_Data> {
         var insertionRange = insertionRanges[nextInsertionRange];
         var lower = insertionRange.lower;
         var upper = insertionRange.upper;
-        while (upper >= lower && !indexToNewArgumentMap[upper].isRequired) {
+        var parameter = indexToNewArgumentMap[upper];
+        while (upper >= lower &&
+            (parameter.isPositional && !parameter.isRequired)) {
           upper--;
         }
         if (upper >= lower) {
           builder.addInsertion(offset, (builder) {
-            writeInsertionRange(builder, _IndexRange(lower, upper), true);
+            writeInsertionRange(builder, _IndexRange(lower, upper),
+                nextRemaining > 0 || insertionCount > 0);
           });
         }
         nextInsertionRange++;
       }
-    }
-    //
-    // Insert arguments for required named parameters.
-    //
-    if (newNamed.isNotEmpty) {
-      int offset;
-      var needsInitialComma = false;
-      if (remainingArguments.isEmpty && argumentsToInsert.isEmpty) {
-        offset = argumentList.rightParenthesis.offset;
-      } else {
-        offset = arguments[arguments.length - 1].end;
-        needsInitialComma = true;
-      }
-      builder.addInsertion(offset, (builder) {
-        for (var i = 0; i < newNamed.length; i++) {
-          if (i > 0 || needsInitialComma) {
-            builder.write(', ');
-          }
-          writeArgument(builder, newNamed[i]);
-        }
-      });
     }
     //
     // The remaining deletion ranges are now ready to be removed.

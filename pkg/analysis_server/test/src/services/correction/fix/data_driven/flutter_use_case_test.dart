@@ -2526,6 +2526,152 @@ void f(ScrollPosition position) {
 ''');
   }
 
+  Future<void> test_widgets_Stack_overflow_clip() async {
+    setPackageContent('''
+class Stack {
+  const Stack({
+    @deprecated Overflow overflow: Overflow.clip,
+    Clip clipBehavior: Clip.hardEdge,
+    List<Widget> children: const <Widget>[]});
+}
+class Overflow {
+  static const Overflow clip = Overflow();
+  static const Overflow visible = Overflow();
+  const Overflow();
+}
+class Clip {
+  static const Clip hardEdge = Clip();
+  static const Clip none = Clip();
+  const Clip();
+}
+class Widget {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: "Migrate to 'clipBehavior'"
+    date: 2020-09-22
+    element:
+      uris: ['$importUri']
+      constructor: ''
+      inClass: 'Stack'
+    oneOf:
+      - if: "overflow == 'Overflow.clip'"
+        changes:
+          - kind: 'addParameter'
+            index: 0
+            name: 'clipBehavior'
+            style: optional_named
+            argumentValue:
+              expression: 'Clip.hardEdge'
+              requiredIf: "overflow == 'Overflow.clip'"
+          - kind: 'removeParameter'
+            name: 'overflow'
+      - if: "overflow == 'Overflow.visible'"
+        changes:
+          - kind: 'addParameter'
+            index: 0
+            name: 'clipBehavior'
+            style: optional_named
+            argumentValue:
+              expression: 'Clip.none'
+              requiredIf: "overflow == 'Overflow.visible'"
+          - kind: 'removeParameter'
+            name: 'overflow'
+    variables:
+      overflow:
+        kind: 'fragment'
+        value: 'arguments[overflow]'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  const Stack(overflow: Overflow.clip, children: []);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  const Stack(clipBehavior: Clip.hardEdge, children: []);
+}
+''');
+  }
+
+  Future<void> test_widgets_Stack_overflow_visible() async {
+    setPackageContent('''
+class Stack {
+  const Stack({
+    @deprecated Overflow overflow: Overflow.clip,
+    Clip clipBehavior: Clip.hardEdge,
+    List<Widget> children: const <Widget>[]});
+}
+class Overflow {
+  static const Overflow clip = Overflow();
+  static const Overflow visible = Overflow();
+  const Overflow();
+}
+class Clip {
+  static const Clip hardEdge = Clip();
+  static const Clip none = Clip();
+  const Clip();
+}
+class Widget {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: "Migrate to 'clipBehavior'"
+    date: 2020-09-22
+    element:
+      uris: ['$importUri']
+      constructor: ''
+      inClass: 'Stack'
+    oneOf:
+      - if: "overflow == 'Overflow.clip'"
+        changes:
+          - kind: 'addParameter'
+            index: 0
+            name: 'clipBehavior'
+            style: optional_named
+            argumentValue:
+              expression: 'Clip.hardEdge'
+              requiredIf: "overflow == 'Overflow.clip'"
+          - kind: 'removeParameter'
+            name: 'overflow'
+      - if: "overflow == 'Overflow.visible'"
+        changes:
+          - kind: 'addParameter'
+            index: 0
+            name: 'clipBehavior'
+            style: optional_named
+            argumentValue:
+              expression: 'Clip.none'
+              requiredIf: "overflow == 'Overflow.visible'"
+          - kind: 'removeParameter'
+            name: 'overflow'
+    variables:
+      overflow:
+        kind: 'fragment'
+        value: 'arguments[overflow]'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  const Stack(overflow: Overflow.visible, children: []);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  const Stack(clipBehavior: Clip.none, children: []);
+}
+''');
+  }
+
   Future<void>
       test_widgets_StatefulElement_inheritFromElement_deprecated() async {
     setPackageContent('''

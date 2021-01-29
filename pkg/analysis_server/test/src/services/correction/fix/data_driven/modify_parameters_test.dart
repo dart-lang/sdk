@@ -101,7 +101,7 @@ void f(C c) {
 import '$importUri';
 
 void f(C c) {
-  c.m2(b: 1, a: 0);
+  c.m2(a: 0, b: 1);
 }
 ''');
   }
