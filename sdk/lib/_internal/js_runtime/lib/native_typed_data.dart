@@ -68,8 +68,8 @@ class NativeByteBuffer implements ByteBuffer {
   }
 
   Int32x4List asInt32x4List([int offsetInBytes = 0, int? length]) {
-    var storage =
-        this.asInt32List(offsetInBytes, length != null ? length * 4 : null);
+    length ??= (lengthInBytes - offsetInBytes) ~/ Int32x4List.bytesPerElement;
+    var storage = this.asInt32List(offsetInBytes, length * 4);
     return NativeInt32x4List._externalStorage(storage);
   }
 
@@ -82,14 +82,14 @@ class NativeByteBuffer implements ByteBuffer {
   }
 
   Float32x4List asFloat32x4List([int offsetInBytes = 0, int? length]) {
-    var storage =
-        this.asFloat32List(offsetInBytes, length != null ? length * 4 : null);
+    length ??= (lengthInBytes - offsetInBytes) ~/ Float32x4List.bytesPerElement;
+    var storage = this.asFloat32List(offsetInBytes, length * 4);
     return NativeFloat32x4List._externalStorage(storage);
   }
 
   Float64x2List asFloat64x2List([int offsetInBytes = 0, int? length]) {
-    var storage =
-        this.asFloat64List(offsetInBytes, length != null ? length * 2 : null);
+    length ??= (lengthInBytes - offsetInBytes) ~/ Float64x2List.bytesPerElement;
+    var storage = this.asFloat64List(offsetInBytes, length * 2);
     return NativeFloat64x2List._externalStorage(storage);
   }
 
@@ -747,9 +747,9 @@ class NativeFloat32List extends NativeTypedArrayOfDouble
   factory NativeFloat32List.view(
       ByteBuffer buffer, int offsetInBytes, int? length) {
     _checkViewArguments(buffer, offsetInBytes, length);
-    return length == null
-        ? _create2(buffer, offsetInBytes)
-        : _create3(buffer, offsetInBytes, length);
+    length ??=
+        (buffer.lengthInBytes - offsetInBytes) ~/ Float32List.bytesPerElement;
+    return _create3(buffer, offsetInBytes, length);
   }
 
   Type get runtimeType => Float32List;
@@ -768,9 +768,6 @@ class NativeFloat32List extends NativeTypedArrayOfDouble
   static NativeFloat32List _create1(arg) =>
       JS('NativeFloat32List', 'new Float32Array(#)', arg);
 
-  static NativeFloat32List _create2(arg1, arg2) =>
-      JS('NativeFloat32List', 'new Float32Array(#, #)', arg1, arg2);
-
   static NativeFloat32List _create3(arg1, arg2, arg3) =>
       JS('NativeFloat32List', 'new Float32Array(#, #, #)', arg1, arg2, arg3);
 }
@@ -786,9 +783,9 @@ class NativeFloat64List extends NativeTypedArrayOfDouble
   factory NativeFloat64List.view(
       ByteBuffer buffer, int offsetInBytes, int? length) {
     _checkViewArguments(buffer, offsetInBytes, length);
-    return length == null
-        ? _create2(buffer, offsetInBytes)
-        : _create3(buffer, offsetInBytes, length);
+    length ??=
+        (buffer.lengthInBytes - offsetInBytes) ~/ Float64List.bytesPerElement;
+    return _create3(buffer, offsetInBytes, length);
   }
 
   Type get runtimeType => Float64List;
@@ -807,9 +804,6 @@ class NativeFloat64List extends NativeTypedArrayOfDouble
   static NativeFloat64List _create1(arg) =>
       JS('NativeFloat64List', 'new Float64Array(#)', arg);
 
-  static NativeFloat64List _create2(arg1, arg2) =>
-      JS('NativeFloat64List', 'new Float64Array(#, #)', arg1, arg2);
-
   static NativeFloat64List _create3(arg1, arg2, arg3) =>
       JS('NativeFloat64List', 'new Float64Array(#, #, #)', arg1, arg2, arg3);
 }
@@ -824,9 +818,9 @@ class NativeInt16List extends NativeTypedArrayOfInt implements Int16List {
   factory NativeInt16List.view(
       NativeByteBuffer buffer, int offsetInBytes, int? length) {
     _checkViewArguments(buffer, offsetInBytes, length);
-    return length == null
-        ? _create2(buffer, offsetInBytes)
-        : _create3(buffer, offsetInBytes, length);
+    length ??=
+        (buffer.lengthInBytes - offsetInBytes) ~/ Int16List.bytesPerElement;
+    return _create3(buffer, offsetInBytes, length);
   }
 
   Type get runtimeType => Int16List;
@@ -850,9 +844,6 @@ class NativeInt16List extends NativeTypedArrayOfInt implements Int16List {
   static NativeInt16List _create1(arg) =>
       JS('NativeInt16List', 'new Int16Array(#)', arg);
 
-  static NativeInt16List _create2(arg1, arg2) =>
-      JS('NativeInt16List', 'new Int16Array(#, #)', arg1, arg2);
-
   static NativeInt16List _create3(arg1, arg2, arg3) =>
       JS('NativeInt16List', 'new Int16Array(#, #, #)', arg1, arg2, arg3);
 }
@@ -867,9 +858,9 @@ class NativeInt32List extends NativeTypedArrayOfInt implements Int32List {
   factory NativeInt32List.view(
       ByteBuffer buffer, int offsetInBytes, int? length) {
     _checkViewArguments(buffer, offsetInBytes, length);
-    return length == null
-        ? _create2(buffer, offsetInBytes)
-        : _create3(buffer, offsetInBytes, length);
+    length ??=
+        (buffer.lengthInBytes - offsetInBytes) ~/ Int32List.bytesPerElement;
+    return _create3(buffer, offsetInBytes, length);
   }
 
   Type get runtimeType => Int32List;
@@ -892,9 +883,6 @@ class NativeInt32List extends NativeTypedArrayOfInt implements Int32List {
 
   static NativeInt32List _create1(arg) =>
       JS('NativeInt32List', 'new Int32Array(#)', arg);
-
-  static NativeInt32List _create2(arg1, arg2) =>
-      JS('NativeInt32List', 'new Int32Array(#, #)', arg1, arg2);
 
   static NativeInt32List _create3(arg1, arg2, arg3) =>
       JS('NativeInt32List', 'new Int32Array(#, #, #)', arg1, arg2, arg3);
@@ -953,9 +941,9 @@ class NativeUint16List extends NativeTypedArrayOfInt implements Uint16List {
   factory NativeUint16List.view(
       ByteBuffer buffer, int offsetInBytes, int? length) {
     _checkViewArguments(buffer, offsetInBytes, length);
-    return length == null
-        ? _create2(buffer, offsetInBytes)
-        : _create3(buffer, offsetInBytes, length);
+    length ??=
+        (buffer.lengthInBytes - offsetInBytes) ~/ Uint16List.bytesPerElement;
+    return _create3(buffer, offsetInBytes, length);
   }
 
   Type get runtimeType => Uint16List;
@@ -979,9 +967,6 @@ class NativeUint16List extends NativeTypedArrayOfInt implements Uint16List {
   static NativeUint16List _create1(arg) =>
       JS('NativeUint16List', 'new Uint16Array(#)', arg);
 
-  static NativeUint16List _create2(arg1, arg2) =>
-      JS('NativeUint16List', 'new Uint16Array(#, #)', arg1, arg2);
-
   static NativeUint16List _create3(arg1, arg2, arg3) =>
       JS('NativeUint16List', 'new Uint16Array(#, #, #)', arg1, arg2, arg3);
 }
@@ -996,9 +981,9 @@ class NativeUint32List extends NativeTypedArrayOfInt implements Uint32List {
   factory NativeUint32List.view(
       ByteBuffer buffer, int offsetInBytes, int? length) {
     _checkViewArguments(buffer, offsetInBytes, length);
-    return length == null
-        ? _create2(buffer, offsetInBytes)
-        : _create3(buffer, offsetInBytes, length);
+    length ??=
+        (buffer.lengthInBytes - offsetInBytes) ~/ Uint32List.bytesPerElement;
+    return _create3(buffer, offsetInBytes, length);
   }
 
   Type get runtimeType => Uint32List;
@@ -1021,9 +1006,6 @@ class NativeUint32List extends NativeTypedArrayOfInt implements Uint32List {
 
   static NativeUint32List _create1(arg) =>
       JS('NativeUint32List', 'new Uint32Array(#)', arg);
-
-  static NativeUint32List _create2(arg1, arg2) =>
-      JS('NativeUint32List', 'new Uint32Array(#, #)', arg1, arg2);
 
   static NativeUint32List _create3(arg1, arg2, arg3) =>
       JS('NativeUint32List', 'new Uint32Array(#, #, #)', arg1, arg2, arg3);
