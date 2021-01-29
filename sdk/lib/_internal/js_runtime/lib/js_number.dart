@@ -310,9 +310,9 @@ class JSNumber extends Interceptor implements double {
     if (result == 0) return JS('num', '0'); // Make sure we don't return -0.0.
     if (result > 0) return result;
     if (JS('num', '#', other) < 0) {
-      return result - JS<JSNumber>('JSNumber', '#', other);
+      return JS<JSNumber>('JSNumber', '# - #', result, other);
     } else {
-      return result + JS<JSNumber>('JSNumber', '#', other);
+      return JS<JSNumber>('JSNumber', '# + #', result, other);
     }
   }
 
@@ -486,7 +486,7 @@ class JSInt extends JSNumber implements int {
   }
 
   int get bitLength {
-    int nonneg = (this < 0 ? -this - 1 : this) as int;
+    int nonneg = JS<int>('int', '#', this < 0 ? -this - 1 : this);
     int wordBits = 32;
     while (nonneg >= 0x100000000) {
       nonneg = nonneg ~/ 0x100000000;

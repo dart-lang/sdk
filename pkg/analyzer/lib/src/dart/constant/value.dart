@@ -63,13 +63,13 @@ class BoolState extends InstanceState {
   }
 
   @override
-  BoolState equalEqual(InstanceState rightOperand) {
+  BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
-    return isIdentical(rightOperand);
+    return isIdentical(typeSystem, rightOperand);
   }
 
   @override
-  BoolState isIdentical(InstanceState rightOperand) {
+  BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     if (value == null) {
       return UNKNOWN_VALUE;
     }
@@ -91,11 +91,6 @@ class BoolState extends InstanceState {
     InstanceState rightOperand = rightOperandComputer();
     assertBool(rightOperand);
     return value == null ? UNKNOWN_VALUE : rightOperand.convertToBool();
-  }
-
-  @override
-  BoolState lazyEqualEqual(InstanceState rightOperand) {
-    return isIdentical(rightOperand);
   }
 
   @override
@@ -332,8 +327,8 @@ class DartObjectImpl implements DartObject {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl eagerAnd(
-      TypeSystemImpl typeSystem, DartObjectImpl rightOperand, bool allowBool) {
-    if (allowBool && isBool && rightOperand.isBool) {
+      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    if (isBool && rightOperand.isBool) {
       return DartObjectImpl(
         typeSystem,
         typeSystem.typeProvider.boolType,
@@ -355,8 +350,8 @@ class DartObjectImpl implements DartObject {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl eagerOr(
-      TypeSystemImpl typeSystem, DartObjectImpl rightOperand, bool allowBool) {
-    if (allowBool && isBool && rightOperand.isBool) {
+      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    if (isBool && rightOperand.isBool) {
       return DartObjectImpl(
         typeSystem,
         typeSystem.typeProvider.boolType,
@@ -378,8 +373,8 @@ class DartObjectImpl implements DartObject {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl eagerXor(
-      TypeSystemImpl typeSystem, DartObjectImpl rightOperand, bool allowBool) {
-    if (allowBool && isBool && rightOperand.isBool) {
+      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    if (isBool && rightOperand.isBool) {
       return DartObjectImpl(
         typeSystem,
         typeSystem.typeProvider.boolType,
@@ -415,7 +410,7 @@ class DartObjectImpl implements DartObject {
       return DartObjectImpl(
         typeSystem,
         typeSystem.typeProvider.boolType,
-        _state.equalEqual(rightOperand._state),
+        _state.equalEqual(typeSystem, rightOperand._state),
       );
     }
     throw EvaluationException(
@@ -544,7 +539,7 @@ class DartObjectImpl implements DartObject {
     return DartObjectImpl(
       typeSystem,
       typeSystem.typeProvider.boolType,
-      _state.isIdentical(rightOperand._state),
+      _state.isIdentical(typeSystem, rightOperand._state),
     );
   }
 
@@ -582,7 +577,7 @@ class DartObjectImpl implements DartObject {
       return DartObjectImpl(
         typeSystem,
         typeSystem.typeProvider.boolType,
-        _state.lazyEqualEqual(rightOperand._state),
+        _state.lazyEqualEqual(typeSystem, rightOperand._state),
       );
     }
     throw EvaluationException(
@@ -1065,7 +1060,7 @@ class DoubleState extends NumState {
   }
 
   @override
-  BoolState isIdentical(InstanceState rightOperand) {
+  BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     if (value == null) {
       return BoolState.UNKNOWN_VALUE;
     }
@@ -1083,11 +1078,6 @@ class DoubleState extends NumState {
       return BoolState.from(value == rightValue.toDouble());
     }
     return BoolState.FALSE_STATE;
-  }
-
-  @override
-  BoolState lazyEqualEqual(InstanceState rightOperand) {
-    return isIdentical(rightOperand);
   }
 
   @override
@@ -1249,12 +1239,12 @@ class FunctionState extends InstanceState {
   }
 
   @override
-  BoolState equalEqual(InstanceState rightOperand) {
-    return isIdentical(rightOperand);
+  BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
+    return isIdentical(typeSystem, rightOperand);
   }
 
   @override
-  BoolState isIdentical(InstanceState rightOperand) {
+  BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     if (_element == null) {
       return BoolState.UNKNOWN_VALUE;
     }
@@ -1266,11 +1256,6 @@ class FunctionState extends InstanceState {
       return BoolState.from(_element == rightElement);
     }
     return BoolState.FALSE_STATE;
-  }
-
-  @override
-  BoolState lazyEqualEqual(InstanceState rightOperand) {
-    return isIdentical(rightOperand);
   }
 
   @override
@@ -1340,19 +1325,14 @@ class GenericState extends InstanceState {
   StringState convertToString() => StringState.UNKNOWN_VALUE;
 
   @override
-  BoolState equalEqual(InstanceState rightOperand) {
+  BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
-    return isIdentical(rightOperand);
+    return isIdentical(typeSystem, rightOperand);
   }
 
   @override
-  BoolState isIdentical(InstanceState rightOperand) {
+  BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     return BoolState.from(this == rightOperand);
-  }
-
-  @override
-  BoolState lazyEqualEqual(InstanceState rightOperand) {
-    return isIdentical(rightOperand);
   }
 
   @override
@@ -1536,7 +1516,7 @@ abstract class InstanceState {
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
-  BoolState equalEqual(InstanceState rightOperand);
+  BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand);
 
   /// Return the result of invoking the '&gt;' operator on this object with the
   /// [rightOperand].
@@ -1573,7 +1553,7 @@ abstract class InstanceState {
 
   /// Return the result of invoking the identical function on this object with
   /// the [rightOperand].
-  BoolState isIdentical(InstanceState rightOperand);
+  BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand);
 
   /// Return the result of invoking the '&&' operator on this object with the
   /// [rightOperand].
@@ -1595,7 +1575,12 @@ abstract class InstanceState {
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
-  BoolState lazyEqualEqual(InstanceState rightOperand);
+  BoolState lazyEqualEqual(
+    TypeSystemImpl typeSystem,
+    InstanceState rightOperand,
+  ) {
+    return isIdentical(typeSystem, rightOperand);
+  }
 
   /// Return the result of invoking the '||' operator on this object with the
   /// [rightOperand].
@@ -1988,7 +1973,7 @@ class IntState extends NumState {
   }
 
   @override
-  BoolState isIdentical(InstanceState rightOperand) {
+  BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     if (value == null) {
       return BoolState.UNKNOWN_VALUE;
     }
@@ -2006,11 +1991,6 @@ class IntState extends NumState {
       return BoolState.from(rightValue == value.toDouble());
     }
     return BoolState.FALSE_STATE;
-  }
-
-  @override
-  BoolState lazyEqualEqual(InstanceState rightOperand) {
-    return isIdentical(rightOperand);
   }
 
   @override
@@ -2262,19 +2242,14 @@ class ListState extends InstanceState {
   StringState convertToString() => StringState.UNKNOWN_VALUE;
 
   @override
-  BoolState equalEqual(InstanceState rightOperand) {
+  BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
-    return isIdentical(rightOperand);
+    return isIdentical(typeSystem, rightOperand);
   }
 
   @override
-  BoolState isIdentical(InstanceState rightOperand) {
+  BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     return BoolState.from(this == rightOperand);
-  }
-
-  @override
-  BoolState lazyEqualEqual(InstanceState rightOperand) {
-    return isIdentical(rightOperand);
   }
 
   @override
@@ -2342,19 +2317,14 @@ class MapState extends InstanceState {
   StringState convertToString() => StringState.UNKNOWN_VALUE;
 
   @override
-  BoolState equalEqual(InstanceState rightOperand) {
+  BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
-    return isIdentical(rightOperand);
+    return isIdentical(typeSystem, rightOperand);
   }
 
   @override
-  BoolState isIdentical(InstanceState rightOperand) {
+  BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     return BoolState.from(this == rightOperand);
-  }
-
-  @override
-  BoolState lazyEqualEqual(InstanceState rightOperand) {
-    return isIdentical(rightOperand);
   }
 
   @override
@@ -2406,19 +2376,14 @@ class NullState extends InstanceState {
   StringState convertToString() => StringState("null");
 
   @override
-  BoolState equalEqual(InstanceState rightOperand) {
+  BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
-    return isIdentical(rightOperand);
+    return isIdentical(typeSystem, rightOperand);
   }
 
   @override
-  BoolState isIdentical(InstanceState rightOperand) {
+  BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     return BoolState.from(rightOperand is NullState);
-  }
-
-  @override
-  BoolState lazyEqualEqual(InstanceState rightOperand) {
-    return isIdentical(rightOperand);
   }
 
   @override
@@ -2436,9 +2401,9 @@ abstract class NumState extends InstanceState {
   bool get isBoolNumStringOrNull => true;
 
   @override
-  BoolState equalEqual(InstanceState rightOperand) {
+  BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
-    return isIdentical(rightOperand);
+    return isIdentical(typeSystem, rightOperand);
   }
 }
 
@@ -2488,19 +2453,14 @@ class SetState extends InstanceState {
   StringState convertToString() => StringState.UNKNOWN_VALUE;
 
   @override
-  BoolState equalEqual(InstanceState rightOperand) {
+  BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
-    return isIdentical(rightOperand);
+    return isIdentical(typeSystem, rightOperand);
   }
 
   @override
-  BoolState isIdentical(InstanceState rightOperand) {
+  BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     return BoolState.from(this == rightOperand);
-  }
-
-  @override
-  BoolState lazyEqualEqual(InstanceState rightOperand) {
-    return isIdentical(rightOperand);
   }
 
   @override
@@ -2567,13 +2527,13 @@ class StringState extends InstanceState {
   StringState convertToString() => this;
 
   @override
-  BoolState equalEqual(InstanceState rightOperand) {
+  BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
-    return isIdentical(rightOperand);
+    return isIdentical(typeSystem, rightOperand);
   }
 
   @override
-  BoolState isIdentical(InstanceState rightOperand) {
+  BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     if (value == null) {
       return BoolState.UNKNOWN_VALUE;
     }
@@ -2585,11 +2545,6 @@ class StringState extends InstanceState {
       return BoolState.from(value == rightValue);
     }
     return BoolState.FALSE_STATE;
-  }
-
-  @override
-  BoolState lazyEqualEqual(InstanceState rightOperand) {
-    return isIdentical(rightOperand);
   }
 
   @override
@@ -2631,13 +2586,13 @@ class SymbolState extends InstanceState {
   }
 
   @override
-  BoolState equalEqual(InstanceState rightOperand) {
+  BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
-    return isIdentical(rightOperand);
+    return isIdentical(typeSystem, rightOperand);
   }
 
   @override
-  BoolState isIdentical(InstanceState rightOperand) {
+  BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     if (value == null) {
       return BoolState.UNKNOWN_VALUE;
     }
@@ -2649,11 +2604,6 @@ class SymbolState extends InstanceState {
       return BoolState.from(value == rightValue);
     }
     return BoolState.FALSE_STATE;
-  }
-
-  @override
-  BoolState lazyEqualEqual(InstanceState rightOperand) {
-    return isIdentical(rightOperand);
   }
 
   @override
@@ -2687,13 +2637,13 @@ class TypeState extends InstanceState {
   }
 
   @override
-  BoolState equalEqual(InstanceState rightOperand) {
+  BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
-    return isIdentical(rightOperand);
+    return isIdentical(typeSystem, rightOperand);
   }
 
   @override
-  BoolState isIdentical(InstanceState rightOperand) {
+  BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     if (_type == null) {
       return BoolState.UNKNOWN_VALUE;
     }
@@ -2702,14 +2652,12 @@ class TypeState extends InstanceState {
       if (rightType == null) {
         return BoolState.UNKNOWN_VALUE;
       }
-      return BoolState.from(_type == rightType);
+
+      return BoolState.from(
+        typeSystem.runtimeTypesEqual(_type, rightType),
+      );
     }
     return BoolState.FALSE_STATE;
-  }
-
-  @override
-  BoolState lazyEqualEqual(InstanceState rightOperand) {
-    return isIdentical(rightOperand);
   }
 
   @override

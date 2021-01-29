@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+// @dart = 2.9
+
 import 'dart:math' as math;
 
 import '../ast.dart'
@@ -373,8 +375,6 @@ mixin StandardBounds {
       return const NeverType(Nullability.nonNullable);
     }
 
-    // The effect of the following rules is accounted for in the code below via
-    // the invocations of intersectNullabilities.
     // DOWN(T1*, T2*) = S* where S is DOWN(T1, T2)
     // DOWN(T1*, T2?) = S* where S is DOWN(T1, T2)
     // DOWN(T1?, T2*) = S* where S is DOWN(T1, T2)
@@ -383,6 +383,49 @@ mixin StandardBounds {
     // DOWN(T1?, T2?) = S? where S is DOWN(T1, T2)
     // DOWN(T1?, T2) = S where S is DOWN(T1, T2)
     // DOWN(T1, T2?) = S where S is DOWN(T1, T2)
+    {
+      bool type1HasNullabilityMarker = !isTypeWithoutNullabilityMarker(type1,
+          isNonNullableByDefault: clientLibrary.isNonNullableByDefault);
+      bool type2HasNullabilityMarker = !isTypeWithoutNullabilityMarker(type2,
+          isNonNullableByDefault: clientLibrary.isNonNullableByDefault);
+      if (type1HasNullabilityMarker && !type2HasNullabilityMarker) {
+        return _getNullabilityAwareStandardLowerBound(
+            computeTypeWithoutNullabilityMarker(type1,
+                isNonNullableByDefault: clientLibrary.isNonNullableByDefault),
+            type2,
+            clientLibrary);
+      } else if (!type1HasNullabilityMarker && type2HasNullabilityMarker) {
+        return _getNullabilityAwareStandardLowerBound(
+            type1,
+            computeTypeWithoutNullabilityMarker(type2,
+                isNonNullableByDefault: clientLibrary.isNonNullableByDefault),
+            clientLibrary);
+      } else if (isLegacyTypeConstructorApplication(type1,
+              isNonNullableByDefault: clientLibrary.isNonNullableByDefault) ||
+          isLegacyTypeConstructorApplication(type2,
+              isNonNullableByDefault: clientLibrary.isNonNullableByDefault)) {
+        return _getNullabilityAwareStandardLowerBound(
+                computeTypeWithoutNullabilityMarker(type1,
+                    isNonNullableByDefault:
+                        clientLibrary.isNonNullableByDefault),
+                computeTypeWithoutNullabilityMarker(type2,
+                    isNonNullableByDefault:
+                        clientLibrary.isNonNullableByDefault),
+                clientLibrary)
+            .withDeclaredNullability(Nullability.legacy);
+      } else if (isNullableTypeConstructorApplication(type1) &&
+          isNullableTypeConstructorApplication(type2)) {
+        return _getNullabilityAwareStandardLowerBound(
+                computeTypeWithoutNullabilityMarker(type1,
+                    isNonNullableByDefault:
+                        clientLibrary.isNonNullableByDefault),
+                computeTypeWithoutNullabilityMarker(type2,
+                    isNonNullableByDefault:
+                        clientLibrary.isNonNullableByDefault),
+                clientLibrary)
+            .withDeclaredNullability(Nullability.nullable);
+      }
+    }
 
     if (type1 is FunctionType && type2 is FunctionType) {
       return _getNullabilityAwareFunctionStandardLowerBound(
@@ -397,9 +440,11 @@ mixin StandardBounds {
     // [intersectNullabilities] to compute the resulting type if the subtype
     // relation is established.
     DartType typeWithoutNullabilityMarker1 =
-        computeTypeWithoutNullabilityMarker(type1, clientLibrary);
+        computeTypeWithoutNullabilityMarker(type1,
+            isNonNullableByDefault: clientLibrary.isNonNullableByDefault);
     DartType typeWithoutNullabilityMarker2 =
-        computeTypeWithoutNullabilityMarker(type2, clientLibrary);
+        computeTypeWithoutNullabilityMarker(type2,
+            isNonNullableByDefault: clientLibrary.isNonNullableByDefault);
     if (isSubtypeOf(typeWithoutNullabilityMarker1,
         typeWithoutNullabilityMarker2, SubtypeCheckMode.withNullabilities)) {
       return type1.withDeclaredNullability(intersectNullabilities(
@@ -674,8 +719,6 @@ mixin StandardBounds {
       return type2.withDeclaredNullability(Nullability.nullable);
     }
 
-    // The effect of the following rules is accounted for in the code below via
-    // the invocations of uniteNullabilities.
     // UP(T1*, T2*) = S* where S is UP(T1, T2)
     // UP(T1*, T2?) = S? where S is UP(T1, T2)
     // UP(T1?, T2*) = S? where S is UP(T1, T2)
@@ -684,6 +727,28 @@ mixin StandardBounds {
     // UP(T1?, T2?) = S? where S is UP(T1, T2)
     // UP(T1?, T2) = S? where S is UP(T1, T2)
     // UP(T1, T2?) = S? where S is UP(T1, T2)
+    if (isNullableTypeConstructorApplication(type1) ||
+        isNullableTypeConstructorApplication(type2)) {
+      return _getNullabilityAwareStandardUpperBound(
+              computeTypeWithoutNullabilityMarker(type1,
+                  isNonNullableByDefault: clientLibrary.isNonNullableByDefault),
+              computeTypeWithoutNullabilityMarker(type2,
+                  isNonNullableByDefault: clientLibrary.isNonNullableByDefault),
+              clientLibrary)
+          .withDeclaredNullability(Nullability.nullable);
+    }
+    if (isLegacyTypeConstructorApplication(type1,
+            isNonNullableByDefault: clientLibrary.isNonNullableByDefault) ||
+        isLegacyTypeConstructorApplication(type2,
+            isNonNullableByDefault: clientLibrary.isNonNullableByDefault)) {
+      return _getNullabilityAwareStandardUpperBound(
+              computeTypeWithoutNullabilityMarker(type1,
+                  isNonNullableByDefault: clientLibrary.isNonNullableByDefault),
+              computeTypeWithoutNullabilityMarker(type2,
+                  isNonNullableByDefault: clientLibrary.isNonNullableByDefault),
+              clientLibrary)
+          .withDeclaredNullability(Nullability.legacy);
+    }
 
     if (type1 is TypeParameterType) {
       return _getNullabilityAwareTypeParameterStandardUpperBound(
@@ -769,9 +834,11 @@ mixin StandardBounds {
     // uses [uniteNullabilities] to compute the resulting type if the subtype
     // relation is established.
     InterfaceType typeWithoutNullabilityMarker1 =
-        computeTypeWithoutNullabilityMarker(type1, clientLibrary);
+        computeTypeWithoutNullabilityMarker(type1,
+            isNonNullableByDefault: clientLibrary.isNonNullableByDefault);
     InterfaceType typeWithoutNullabilityMarker2 =
-        computeTypeWithoutNullabilityMarker(type2, clientLibrary);
+        computeTypeWithoutNullabilityMarker(type2,
+            isNonNullableByDefault: clientLibrary.isNonNullableByDefault);
 
     if (isSubtypeOf(typeWithoutNullabilityMarker1,
         typeWithoutNullabilityMarker2, SubtypeCheckMode.withNullabilities)) {

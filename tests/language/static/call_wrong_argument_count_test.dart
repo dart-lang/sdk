@@ -13,7 +13,8 @@ main() {
   Niesen.goodCall(1, 2, 3);
 
   Niesen.goodCall(1, 2, 3, 4);
-  //             ^^^^^^^^^^^^
+  //                       ^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
+  //             ^^^^^^^^^^^^
   // [cfe] Too many positional arguments: 3 allowed, but 4 found.
 }

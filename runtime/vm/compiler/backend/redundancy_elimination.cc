@@ -1684,7 +1684,6 @@ class LoadOptimizer : public ValueObject {
 
   ~LoadOptimizer() { aliased_set_->RollbackAliasedIdentites(); }
 
-  Isolate* isolate() const { return graph_->isolate(); }
   Zone* zone() const { return graph_->zone(); }
 
   static bool OptimizeGraph(FlowGraph* graph) {
@@ -1692,9 +1691,7 @@ class LoadOptimizer : public ValueObject {
 
     // For now, bail out for large functions to avoid OOM situations.
     // TODO(fschneider): Fix the memory consumption issue.
-    intptr_t function_length = graph->function().end_token_pos().Pos() -
-                               graph->function().token_pos().Pos();
-    if (function_length >= FLAG_huge_method_cutoff_in_tokens) {
+    if (graph->function().SourceSize() >= FLAG_huge_method_cutoff_in_tokens) {
       return false;
     }
 
@@ -1759,7 +1756,7 @@ class LoadOptimizer : public ValueObject {
       value = store_static->value();
     }
     return value != nullptr && value->BindsToConstant() &&
-           (value->BoundConstant().raw() == Object::sentinel().raw());
+           (value->BoundConstant().ptr() == Object::sentinel().ptr());
   }
 
   // This optimization pass tries to get rid of lazy initializer calls in
@@ -2850,9 +2847,7 @@ class StoreOptimizer : public LivenessAnalysis {
 
     // For now, bail out for large functions to avoid OOM situations.
     // TODO(fschneider): Fix the memory consumption issue.
-    intptr_t function_length = graph->function().end_token_pos().Pos() -
-                               graph->function().token_pos().Pos();
-    if (function_length >= FLAG_huge_method_cutoff_in_tokens) {
+    if (graph->function().SourceSize() >= FLAG_huge_method_cutoff_in_tokens) {
       return;
     }
 
@@ -3557,10 +3552,10 @@ void AllocationSinking::CreateMaterializationAt(
               flow_graph_->GetConstant(Smi::ZoneHandle(Z, Smi::New(index)))),
           /*index_unboxed=*/false,
           /*index_scale=*/compiler::target::Instance::ElementSizeFor(array_cid),
-          array_cid, kAlignedAccess, DeoptId::kNone, alloc->token_pos());
+          array_cid, kAlignedAccess, DeoptId::kNone, alloc->source());
     } else {
-      load = new (Z)
-          LoadFieldInstr(new (Z) Value(alloc), *slot, alloc->token_pos());
+      load =
+          new (Z) LoadFieldInstr(new (Z) Value(alloc), *slot, alloc->source());
     }
     flow_graph_->InsertBefore(load_point, load, nullptr, FlowGraph::kValue);
     values->Add(new (Z) Value(load));
@@ -3575,11 +3570,11 @@ void AllocationSinking::CreateMaterializationAt(
     num_elements = instr->num_context_variables();
   } else if (auto instr = alloc->AsCreateArray()) {
     cls = &Class::ZoneHandle(
-        flow_graph_->isolate()->object_store()->array_class());
+        flow_graph_->isolate_group()->object_store()->array_class());
     num_elements = instr->GetConstantNumElements();
   } else if (auto instr = alloc->AsAllocateTypedData()) {
     cls = &Class::ZoneHandle(
-        flow_graph_->isolate()->class_table()->At(instr->class_id()));
+        flow_graph_->isolate_group()->class_table()->At(instr->class_id()));
     num_elements = instr->GetConstantNumElements();
   } else {
     UNREACHABLE();
@@ -3695,11 +3690,13 @@ void AllocationSinking::InsertMaterializations(Definition* alloc) {
     }
   }
   if (alloc->IsCreateArray()) {
-    AddSlot(slots,
-            Slot::GetTypeArgumentsSlotFor(
-                flow_graph_->thread(),
-                Class::Handle(
-                    Z, flow_graph_->isolate()->object_store()->array_class())));
+    AddSlot(
+        slots,
+        Slot::GetTypeArgumentsSlotFor(
+            flow_graph_->thread(),
+            Class::Handle(
+                Z,
+                flow_graph_->isolate_group()->object_store()->array_class())));
   }
 
   // Collect all instructions that mention this object in the environment.

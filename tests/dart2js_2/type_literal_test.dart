@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-// dart2jsOptions=--strong
+// dart2jsOptions=--strong --no-minify
 
 import 'package:expect/expect.dart';
 

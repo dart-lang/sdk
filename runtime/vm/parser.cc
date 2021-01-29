@@ -110,12 +110,13 @@ void ParsedFunction::AddToGuardedFields(const Field* field) const {
     }
   }
 
-  // Note: the list of guarded fields must contain copies during background
+  // Note: the list of guarded fields must contain copies during optimizing
   // compilation because we will look at their guarded_cid when copying
   // the array of guarded fields from callee into the caller during
   // inlining.
-  ASSERT(!field->IsOriginal() || Thread::Current()->IsMutatorThread());
-  guarded_fields_->Add(&Field::ZoneHandle(Z, field->raw()));
+  ASSERT(field->IsOriginal() ==
+         !CompilerState::Current().should_clone_fields());
+  guarded_fields_->Add(&Field::ZoneHandle(Z, field->ptr()));
 }
 
 void ParsedFunction::Bailout(const char* origin, const char* reason) const {

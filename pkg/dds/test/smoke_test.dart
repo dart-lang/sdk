@@ -82,35 +82,6 @@ void main() {
     createSmokeTest(true, false);
     createSmokeTest(false, false);
     createSmokeTest(true, true);
-
-    test('startup fails when VM service has existing clients', () async {
-      Uri httpToWebSocketUri(Uri httpUri) {
-        final segments = (httpUri.pathSegments.isNotEmpty)
-            ? (httpUri.pathSegments.toList()..removeLast())
-            : <String>[];
-        segments.add('ws');
-        return httpUri.replace(
-          scheme: 'ws',
-          pathSegments: segments,
-        );
-      }
-
-      final _ = await vmServiceConnectUri(
-        httpToWebSocketUri(remoteVmServiceUri).toString(),
-      );
-      try {
-        dds = await DartDevelopmentService.startDartDevelopmentService(
-          remoteVmServiceUri,
-        );
-        fail(
-            'DDS startup should fail if there are existing VM service clients.');
-      } on DartDevelopmentServiceException catch (e) {
-        expect(e.message,
-            'Existing VM service clients prevent DDS from taking control.');
-        expect(e.errorCode,
-            DartDevelopmentServiceException.existingDdsInstanceError);
-      }
-    });
   });
 
   test('Invalid args test', () async {

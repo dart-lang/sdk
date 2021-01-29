@@ -58,6 +58,7 @@ class AbstractTypeTest with ElementsTypesMixin {
 
     testLibrary = library_(
       uriStr: 'package:test/test.dart',
+      analysisContext: _analysisContext,
       analysisSession: _analysisContext.analysisSession,
       typeSystem: typeSystem,
     );

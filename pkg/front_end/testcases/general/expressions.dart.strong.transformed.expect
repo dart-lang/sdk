@@ -35,7 +35,7 @@ static method main() → dynamic {
   }
   for (; false; ) {
   }
-  core::List<core::String*>* list = <core::String*>["Hello, World!"];
+  core::List<core::String*>* list = core::_GrowableList::_literal1<core::String*>("Hello, World!");
   core::print(list.{core::List::[]}(i));
   list.{core::List::[]=}(i, "Hello, Brave New World!");
   core::print(list.{core::List::[]}(i));
@@ -72,9 +72,9 @@ static method main() → dynamic {
   self::caller(({dynamic x = #C1}) → Null {
     core::print("<anon> was called with ${x}");
   });
-  core::print(core::int*.{core::Type::toString}());
-  core::print(core::int*);
-  core::print(let final core::Type* #t5 = core::int* in block {
+  core::print((#C3).{core::Type::toString}());
+  core::print(#C3);
+  core::print(let final core::Type* #t5 = #C3 in block {
     #t5.{core::Type::toString}();
   } =>#t5);
   try {
@@ -92,13 +92,16 @@ static method main() → dynamic {
 constants  {
   #C1 = null
   #C2 = core::Object {}
+  #C3 = TypeLiteralConstant(core::int*)
 }
 
 Extra constant evaluation status:
 Evaluated: StringConcatenation @ org-dartlang-testcase:///expressions.dart:21:8 -> StringConstant("foobar")
-Evaluated: TypeLiteral @ org-dartlang-testcase:///expressions.dart:70:10 -> TypeLiteralConstant(int*)
-Evaluated: TypeLiteral @ org-dartlang-testcase:///expressions.dart:71:9 -> TypeLiteralConstant(int*)
-Evaluated: TypeLiteral @ org-dartlang-testcase:///expressions.dart:72:9 -> TypeLiteralConstant(int*)
 Evaluated: VariableGetImpl @ org-dartlang-testcase:///expressions.dart:72:9 -> TypeLiteralConstant(int*)
 Evaluated: VariableGet @ org-dartlang-testcase:///expressions.dart:72:9 -> TypeLiteralConstant(int*)
-Extra constant evaluation: evaluated: 138, effectively constant: 6
+Extra constant evaluation: evaluated: 135, effectively constant: 3
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///expressions.dart:
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

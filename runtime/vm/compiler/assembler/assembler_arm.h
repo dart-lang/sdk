@@ -752,9 +752,14 @@ class Assembler : public AssemblerBase {
   // Branch and link to [base + offset]. Call sequence is never patched.
   void BranchLinkOffset(Register base, int32_t offset);
 
-  void Call(Address target) {
-    ldr(LR, target);
-    blx(LR);
+  void Call(Address target, Condition cond = AL) {
+    // CLOBBERS_LR uses __ to access the assembler.
+#define __ this->
+    CLOBBERS_LR({
+      ldr(LR, target, cond);
+      blx(LR, cond);
+    });
+#undef __
   }
   void Call(const Code& code) { BranchLink(code); }
 
@@ -855,18 +860,15 @@ class Assembler : public AssemblerBase {
   void StoreIntoObject(Register object,      // Object we are storing into.
                        const Address& dest,  // Where we are storing into.
                        Register value,       // Value we are storing.
-                       CanBeSmi can_value_be_smi = kValueCanBeSmi,
-                       bool lr_reserved = false);
+                       CanBeSmi can_value_be_smi = kValueCanBeSmi);
   void StoreIntoArray(Register object,
                       Register slot,
                       Register value,
-                      CanBeSmi can_value_be_smi = kValueCanBeSmi,
-                      bool lr_reserved = false);
+                      CanBeSmi can_value_be_smi = kValueCanBeSmi);
   void StoreIntoObjectOffset(Register object,
                              int32_t offset,
                              Register value,
-                             CanBeSmi can_value_be_smi = kValueCanBeSmi,
-                             bool lr_reserved = false);
+                             CanBeSmi can_value_be_smi = kValueCanBeSmi);
 
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
@@ -1116,7 +1118,7 @@ class Assembler : public AssemblerBase {
   // Function frame setup and tear down.
   void EnterFrame(RegList regs, intptr_t frame_space);
   void LeaveFrame(RegList regs, bool allow_pop_pc = false);
-  void Ret();
+  void Ret(Condition cond = AL);
   void ReserveAlignedFrameSpace(intptr_t frame_space);
 
   // In debug mode, this generates code to check that:
@@ -1252,7 +1254,7 @@ class Assembler : public AssemblerBase {
   // before the code can be used.
   //
   // The neccessary information for the "linker" (i.e. the relocation
-  // information) is stored in [CodeLayout::static_calls_target_table_]: an
+  // information) is stored in [UntaggedCode::static_calls_target_table_]: an
   // entry of the form
   //
   //   (Code::kPcRelativeCall & pc_offset, <target-code>, <target-function>)
@@ -1282,6 +1284,9 @@ class Assembler : public AssemblerBase {
   bool constant_pool_allowed() const { return constant_pool_allowed_; }
   void set_constant_pool_allowed(bool b) { constant_pool_allowed_ = b; }
 
+  compiler::LRState lr_state() const { return lr_state_; }
+  void set_lr_state(compiler::LRState b) { lr_state_ = b; }
+
   // Whether we can branch to a target which is [distance] bytes away from the
   // beginning of the branch instruction.
   //
@@ -1301,6 +1306,10 @@ class Assembler : public AssemblerBase {
  private:
   bool use_far_branches_;
 
+  bool constant_pool_allowed_;
+
+  compiler::LRState lr_state_ = compiler::LRState::OnEntry();
+
   // If you are thinking of using one or both of these instructions directly,
   // instead LoadImmediate should probably be used.
   void movw(Register rd, uint16_t imm16, Condition cond = AL);
@@ -1309,8 +1318,6 @@ class Assembler : public AssemblerBase {
   void BindARMv7(Label* label);
 
   void BranchLink(const ExternalLabel* label);
-
-  bool constant_pool_allowed_;
 
   void LoadObjectHelper(Register rd,
                         const Object& object,

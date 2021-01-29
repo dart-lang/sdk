@@ -436,7 +436,11 @@ b:${resourceProvider.pathContext.toUri(packageB)}
   void test_createWorkspace_noPackagesFile_hasGnMarkerFiles() {
     newFolder('/workspace/.jiri_root');
     newFile(
-        '/workspace/out/debug-x87_128/dartlang/gen/project/lib/lib.packages');
+        '/workspace/out/debug-x87_128/dartlang/gen/project/lib/lib_package_config.json',
+        content: '''{
+  "configVersion": 2,
+  "packages": []
+}''');
     Workspace workspace = ContextBuilder.createWorkspace(resourceProvider,
         convertPath('/workspace/project/lib/lib.dart'), builder);
     expect(workspace, TypeMatcher<GnWorkspace>());

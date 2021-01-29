@@ -296,7 +296,7 @@ mixin ElementsTypesMixin {
     ) as InterfaceTypeImpl;
   }
 
-  DartType futureType(DartType T) {
+  InterfaceType futureType(DartType T) {
     var futureElement = typeProvider.futureElement;
     return interfaceTypeStar(futureElement, typeArguments: [T]);
   }
@@ -378,8 +378,8 @@ mixin ElementsTypesMixin {
   LibraryElementImpl library_({
     @required String uriStr,
     @required TypeSystemImpl typeSystem,
-    AnalysisContext analysisContext,
-    AnalysisSessionImpl analysisSession,
+    @required AnalysisContext analysisContext,
+    @required AnalysisSessionImpl analysisSession,
   }) {
     var library = LibraryElementImpl(
       analysisContext,
@@ -572,6 +572,17 @@ mixin ElementsTypesMixin {
     parameter.type = type;
     parameter.isExplicitlyCovariant = isCovariant;
     return parameter;
+  }
+
+  TypeAliasElementImpl typeAlias({
+    @required String name,
+    @required List<TypeParameterElement> typeParameters,
+    @required DartType aliasedType,
+  }) {
+    var element = TypeAliasElementImpl(name, 0);
+    element.typeParameters = typeParameters;
+    element.aliasedType = aliasedType;
+    return element;
   }
 
   TypeParameterElementImpl typeParameter(String name,

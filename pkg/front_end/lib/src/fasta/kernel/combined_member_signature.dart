@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:kernel/ast.dart' hide MapEntry;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchyBase;
@@ -27,6 +29,8 @@ import 'member_covariance.dart';
 /// a set of overridden/inherited members.
 abstract class CombinedMemberSignatureBase<T> {
   ClassHierarchyBase get hierarchy;
+
+  Name get name;
 
   /// The target class for the combined member signature.
   ///
@@ -156,11 +160,9 @@ abstract class CombinedMemberSignatureBase<T> {
             candidateIndex++) {
           DartType candidateType = getMemberType(candidateIndex);
           if (!_isMoreSpecific(bestTypeSoFar, candidateType, forSetter)) {
-            if (!shouldOverrideProblemBeOverlooked(classBuilder)) {
-              bestSoFarIndex = null;
-              bestTypeSoFar = null;
-              _mutualSubtypes = null;
-            }
+            int favoredIndex = getOverlookedOverrideProblemChoice(classBuilder);
+            bestSoFarIndex = favoredIndex;
+            _mutualSubtypes = null;
             break;
           }
         }
@@ -259,17 +261,6 @@ abstract class CombinedMemberSignatureBase<T> {
   bool get containsNnbdTypes {
     _ensureCombinedMemberSignatureType();
     return _containsNnbdTypes;
-  }
-
-  /// Returns `true` if the covariance of the combined member signature is
-  /// different from the covariance of the overridden member in the superclass.
-  ///
-  /// If `true` a concrete forwarding stub that checks the covariance must
-  /// be generated.
-  // TODO(johnniwinther): This is imprecise. It assumes that the 0th member is
-  // from the superclass which might not be the case.
-  bool get needsSuperImpl {
-    return _getMemberCovariance(0) != combinedMemberSignatureCovariance;
   }
 
   /// The this type of [classBuilder].
@@ -508,10 +499,10 @@ abstract class CombinedMemberSignatureBase<T> {
       {bool copyLocation}) {
     assert(copyLocation != null);
     Class enclosingClass = classBuilder.cls;
-    Procedure referenceFrom;
+    Reference reference;
     if (classBuilder.referencesFromIndexed != null) {
-      referenceFrom = classBuilder.referencesFromIndexed
-          .lookupProcedureNotSetter(member.name.text);
+      reference =
+          classBuilder.referencesFromIndexed.lookupGetterReference(member.name);
     }
     Uri fileUri;
     int startFileOffset;
@@ -531,7 +522,7 @@ abstract class CombinedMemberSignatureBase<T> {
       new FunctionNode(null, returnType: type),
       isAbstract: true,
       fileUri: fileUri,
-      reference: referenceFrom?.reference,
+      reference: reference,
       isSynthetic: true,
       stubKind: ProcedureStubKind.MemberSignature,
       stubTarget: member.memberSignatureOrigin ?? member,
@@ -554,10 +545,10 @@ abstract class CombinedMemberSignatureBase<T> {
     assert(isGenericCovariantImpl != null);
     assert(copyLocation != null);
     Class enclosingClass = classBuilder.cls;
-    Procedure referenceFrom;
+    Reference reference;
     if (classBuilder.referencesFromIndexed != null) {
-      referenceFrom = classBuilder.referencesFromIndexed
-          .lookupProcedureSetter(member.name.text);
+      reference =
+          classBuilder.referencesFromIndexed.lookupSetterReference(member.name);
     }
     Uri fileUri;
     int startFileOffset;
@@ -583,7 +574,7 @@ abstract class CombinedMemberSignatureBase<T> {
           ]),
       isAbstract: true,
       fileUri: fileUri,
-      reference: referenceFrom?.reference,
+      reference: reference,
       isSynthetic: true,
       stubKind: ProcedureStubKind.MemberSignature,
       stubTarget: member.memberSignatureOrigin ?? member,
@@ -598,11 +589,8 @@ abstract class CombinedMemberSignatureBase<T> {
       {bool copyLocation}) {
     assert(copyLocation != null);
     Class enclosingClass = classBuilder.cls;
-    Procedure referenceFrom;
-    if (classBuilder.referencesFromIndexed != null) {
-      referenceFrom = classBuilder.referencesFromIndexed
-          .lookupProcedureNotSetter(procedure.name.text);
-    }
+    Reference reference = classBuilder.referencesFromIndexed
+        ?.lookupGetterReference(procedure.name);
     Uri fileUri;
     int startFileOffset;
     int fileOffset;
@@ -659,7 +647,7 @@ abstract class CombinedMemberSignatureBase<T> {
           requiredParameterCount: function.requiredParameterCount),
       isAbstract: true,
       fileUri: fileUri,
-      reference: referenceFrom?.reference,
+      reference: reference,
       isSynthetic: true,
       stubKind: ProcedureStubKind.MemberSignature,
       stubTarget: procedure.memberSignatureOrigin ?? procedure,
@@ -713,9 +701,11 @@ abstract class CombinedMemberSignatureBase<T> {
 class CombinedClassMemberSignature
     extends CombinedMemberSignatureBase<ClassMember> {
   /// The class hierarchy builder used for building this class.
+  @override
   final ClassHierarchyBuilder hierarchy;
 
   /// The list of the members inherited into or overridden in [classBuilder].
+  @override
   final List<ClassMember> members;
 
   /// Creates a [CombinedClassMemberSignature] whose canonical member is already
@@ -736,8 +726,13 @@ class CombinedClassMemberSignature
       {bool forSetter})
       : super(classBuilder, forSetter: forSetter);
 
+  @override
+  Name get name => members.first.name;
+
+  @override
   Types get _types => hierarchy.types;
 
+  @override
   Member _getMember(int index) {
     ClassMember candidate = members[index];
     Member target = candidate.getMember(hierarchy);
@@ -774,6 +769,9 @@ class CombinedMemberSignatureBuilder
       {bool forSetter})
       : _types = new Types(hierarchy),
         super(classBuilder, forSetter: forSetter);
+
+  @override
+  Name get name => members.first.name;
 
   @override
   Member _getMember(int index) => members[index];

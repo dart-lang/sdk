@@ -60,3 +60,10 @@ constants  {
   #C2 = self::Bar {}
   #C3 = null
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///annotation_variable_declaration.dart:
+- Bar. (from org-dartlang-testcase:///annotation_variable_declaration.dart:8:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Bar.named (from org-dartlang-testcase:///annotation_variable_declaration.dart:9:9)

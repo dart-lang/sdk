@@ -10,8 +10,6 @@ import 'package:cli_util/cli_util.dart';
 import 'package:dev_compiler/dev_compiler.dart';
 import 'package:dev_compiler/src/compiler/module_builder.dart';
 import 'package:front_end/src/api_unstable/ddc.dart';
-import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions;
 import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:front_end/src/fasta/incremental_serializer.dart';
 import 'package:kernel/ast.dart' show Component, Library;
@@ -294,6 +292,129 @@ void main() {
   group('Unsound null safety:', () {
     var options = SetupCompilerOptions(false);
 
+    group('Expression compiler scope collection tests', () {
+      var source = '''
+        ${options.dartLangComment}
+
+        class C {
+          C(int this.field);
+
+          int methodFieldAccess(int x) {
+            var inScope = 1;
+            {
+              var innerInScope = global + staticField + field;
+              /* evaluation placeholder */
+              print(innerInScope);
+              var innerNotInScope = 2;
+            }
+            var notInScope = 3;
+          }
+
+          static int staticField = 0;
+          int field;
+        }
+
+        int global = 42;
+        main() => 0;
+        ''';
+
+      TestDriver driver;
+
+      setUp(() {
+        driver = TestDriver(options, source);
+      });
+
+      tearDown(() {
+        driver.delete();
+      });
+
+      test('local in scope', () async {
+        await driver.check(
+            scope: <String, String>{'inScope': '1', 'innerInScope': '0'},
+            expression: 'inScope',
+            expectedResult: '''
+            (function(inScope, innerInScope) {
+              return inScope;
+            }.bind(this)(
+              1,
+              0
+            ))
+            ''');
+      });
+
+      test('local in inner scope', () async {
+        await driver.check(
+            scope: <String, String>{'inScope': '1', 'innerInScope': '0'},
+            expression: 'innerInScope',
+            expectedResult: '''
+            (function(inScope, innerInScope) {
+              return innerInScope;
+            }.bind(this)(
+              1,
+              0
+            ))
+            ''');
+      });
+
+      test('global in scope', () async {
+        await driver.check(
+            scope: <String, String>{'inScope': '1', 'innerInScope': '0'},
+            expression: 'global',
+            expectedResult: '''
+            (function(inScope, innerInScope) {
+              return foo.global;
+            }.bind(this)(
+              1,
+              0
+            ))
+            ''');
+      });
+
+      test('static field in scope', () async {
+        await driver.check(
+            scope: <String, String>{'inScope': '1', 'innerInScope': '0'},
+            expression: 'staticField',
+            expectedResult: '''
+            (function(inScope, innerInScope) {
+              return foo.C.staticField;
+            }.bind(this)(
+              1,
+              0
+            ))
+            ''');
+      });
+
+      test('field in scope', () async {
+        await driver.check(
+            scope: <String, String>{'inScope': '1', 'innerInScope': '0'},
+            expression: 'field',
+            expectedResult: '''
+            (function(inScope, innerInScope) {
+              return this.field;
+            }.bind(this)(
+              1,
+              0
+            ))
+            ''');
+      });
+
+      test('local not in scope', () async {
+        await driver.check(
+            scope: <String, String>{'inScope': '1', 'innerInScope': '0'},
+            expression: 'notInScope',
+            expectedError:
+                "Error: The getter 'notInScope' isn't defined for the class 'C'.");
+      });
+
+      test('local not in inner scope', () async {
+        await driver.check(
+            scope: <String, String>{'inScope': '1', 'innerInScope': '0'},
+            expression: 'innerNotInScope',
+            expectedError:
+                "Error: The getter 'innerNotInScope' isn't defined for the class 'C'.");
+      });
+    });
+
     group('Expression compiler tests in extension method:', () {
       var source = '''
         ${options.dartLangComment}
@@ -452,14 +573,13 @@ void main() {
             expression: 'main',
             expectedResult: '''
             (function(x, y, z) {
-              var VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.fnType(dart.dynamic, [])))();
+              T\$Eval.VoidTodynamic = () => (T\$Eval.VoidTodynamic = dart.constFn(dart.fnType(dart.dynamic, [])))();
               dart.defineLazy(CT, {
                 get C0() {
-                  return C0 = dart.fn(foo.main, VoidTodynamic());
+                  return C[0] = dart.fn(foo.main, T\$Eval.VoidTodynamic());
                 }
               }, false);
-              var C0;
-              return C0 || CT.C0;
+              return C[0] || CT.C0;
             }(
               1,
               2,
@@ -1342,8 +1462,8 @@ void main() {
             expression: 'baz(p as String)',
             expectedResult: '''
             (function(p) {
-              var StringL = () => (StringL = dart.constFn(dart.legacy(core.String)))();
-              return foo.baz(StringL().as(p));
+              T\$Eval.StringL = () => (T\$Eval.StringL = dart.constFn(dart.legacy(core.String)))();
+              return foo.baz(T\$Eval.StringL().as(p));
             }(
             0
             ))
@@ -1358,14 +1478,13 @@ void main() {
             (function(p) {
               dart.defineLazy(CT, {
                 get C0() {
-                  return C0 = dart.const({
+                  return C[0] = dart.const({
                     __proto__: foo.MyClass.prototype,
                     [_t]: 1
                   });
                 }
               }, false);
-              var C0;
-              return C0 || CT.C0;
+              return C[0] || CT.C0;
             }(
               1
             ))
@@ -1407,14 +1526,13 @@ void main() {
             (function(p) {
               dart.defineLazy(CT, {
                 get C0() {
-                  return C0 = dart.const({
+                  return C[0] = dart.const({
                     __proto__: foo.ValueKey.prototype,
                     [value]: "t"
                     });
                   }
               }, false);
-              var C0;
-              return C0 || CT.C0;
+              return C[0] || CT.C0;
             }(
               1
             ))
@@ -1927,10 +2045,230 @@ void main() {
             expectedError: "Error: Getter not found: 'z'");
       });
     });
+
+    group('Expression compiler tests for interactions with module containers:',
+        () {
+      var source = '''
+        ${options.dartLangComment}
+        class A {
+          const A();
+        }
+        class B {
+          const B();
+        }
+        void foo() {
+          const a = A();
+          var check = a is int;
+          /* evaluation placeholder */
+          return;
+        }
+        
+        void main() => foo();
+        ''';
+
+      TestDriver driver;
+      setUp(() {
+        driver = TestDriver(options, source);
+      });
+
+      tearDown(() {
+        driver.delete();
+      });
+
+      test('evaluation that non-destructively appends to the type container',
+          () async {
+        await driver.check(
+            scope: <String, String>{'a': 'null', 'check': 'null'},
+            expression: 'a is String',
+            expectedResult: '''
+            (function(a, check) {
+              T\$Eval.StringL = () => (T\$Eval.StringL = dart.constFn(dart.legacy(core.String)))();
+              return T\$Eval.StringL().is(a);
+            }(
+              null,
+              null
+            ))
+            ''');
+      });
+
+      test('evaluation that reuses the type container', () async {
+        await driver.check(
+            scope: <String, String>{'a': 'null', 'check': 'null'},
+            expression: 'a is int',
+            expectedResult: '''
+            (function(a, check) {
+              return T\$Eval.intL().is(a);
+            }(
+              null,
+              null
+            ))
+            ''');
+      });
+
+      test(
+          'evaluation that non-destructively appends to the constant container',
+          () async {
+        await driver.check(
+            scope: <String, String>{'a': 'null', 'check': 'null'},
+            expression: 'const B()',
+            expectedResult: '''
+            (function(a, check) {
+            dart.defineLazy(CT, {
+              get C1() {
+                return C[1] = dart.const({
+                  __proto__: foo.B.prototype
+                });
+              }
+            }, false);
+            return C[1] || CT.C1;
+            }(
+              null,
+              null
+            ))
+            ''');
+      });
+
+      test('evaluation that reuses the constant container', () async {
+        await driver.check(
+            scope: <String, String>{'a': 'null', 'check': 'null'},
+            expression: 'const A()',
+            expectedResult: '''
+            (function(a, check) {
+              return C[0] || CT.C0;
+            }(
+              null,
+              null
+            ))
+            ''');
+      });
+    });
   });
 
   group('Sound null safety:', () {
     var options = SetupCompilerOptions(true);
+
+    group('Expression compiler scope collection tests', () {
+      var source = '''
+        ${options.dartLangComment}
+
+        class C {
+          C(int this.field);
+
+          int methodFieldAccess(int x) {
+            var inScope = 1;
+            {
+              var innerInScope = global + staticField + field;
+              /* evaluation placeholder */
+              print(innerInScope);
+              var innerNotInScope = 2;
+            }
+            var notInScope = 3;
+          }
+
+          static int staticField = 0;
+          int field;
+        }
+
+        int global = 42;
+        main() => 0;
+        ''';
+
+      TestDriver driver;
+
+      setUp(() {
+        driver = TestDriver(options, source);
+      });
+
+      tearDown(() {
+        driver.delete();
+      });
+
+      test('local in scope', () async {
+        await driver.check(
+            scope: <String, String>{'inScope': '1', 'innerInScope': '0'},
+            expression: 'inScope',
+            expectedResult: '''
+            (function(inScope, innerInScope) {
+              return inScope;
+            }.bind(this)(
+              1,
+              0
+            ))
+            ''');
+      });
+
+      test('local in inner scope', () async {
+        await driver.check(
+            scope: <String, String>{'inScope': '1', 'innerInScope': '0'},
+            expression: 'innerInScope',
+            expectedResult: '''
+            (function(inScope, innerInScope) {
+              return innerInScope;
+            }.bind(this)(
+              1,
+              0
+            ))
+            ''');
+      });
+
+      test('global in scope', () async {
+        await driver.check(
+            scope: <String, String>{'inScope': '1', 'innerInScope': '0'},
+            expression: 'global',
+            expectedResult: '''
+            (function(inScope, innerInScope) {
+              return foo.global;
+            }.bind(this)(
+              1,
+              0
+            ))
+            ''');
+      });
+
+      test('static field in scope', () async {
+        await driver.check(
+            scope: <String, String>{'inScope': '1', 'innerInScope': '0'},
+            expression: 'staticField',
+            expectedResult: '''
+            (function(inScope, innerInScope) {
+              return foo.C.staticField;
+            }.bind(this)(
+              1,
+              0
+            ))
+            ''');
+      });
+
+      test('field in scope', () async {
+        await driver.check(
+            scope: <String, String>{'inScope': '1', 'innerInScope': '0'},
+            expression: 'field',
+            expectedResult: '''
+            (function(inScope, innerInScope) {
+              return this.field;
+            }.bind(this)(
+              1,
+              0
+            ))
+            ''');
+      });
+
+      test('local not in scope', () async {
+        await driver.check(
+            scope: <String, String>{'inScope': '1', 'innerInScope': '0'},
+            expression: 'notInScope',
+            expectedError:
+                "Error: The getter 'notInScope' isn't defined for the class 'C'.");
+      });
+
+      test('local not in inner scope', () async {
+        await driver.check(
+            scope: <String, String>{'inScope': '1', 'innerInScope': '0'},
+            expression: 'innerNotInScope',
+            expectedError:
+                "Error: The getter 'innerNotInScope' isn't defined for the class 'C'.");
+      });
+    });
 
     group('Expression compiler tests in extension method:', () {
       var source = '''
@@ -2090,14 +2428,13 @@ void main() {
             expression: 'main',
             expectedResult: '''
             (function(x, y, z) {
-              var VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.fnType(dart.dynamic, [])))();
+              T\$Eval.VoidTodynamic = () => (T\$Eval.VoidTodynamic = dart.constFn(dart.fnType(dart.dynamic, [])))();
               dart.defineLazy(CT, {
                 get C0() {
-                  return C0 = dart.fn(foo.main, VoidTodynamic());
+                  return C[0] = dart.fn(foo.main, T\$Eval.VoidTodynamic());
                 }
               }, false);
-              var C0;
-              return C0 || CT.C0;
+              return C[0] || CT.C0;
             }(
               1,
               2,
@@ -2995,14 +3332,13 @@ void main() {
             (function(p) {
               dart.defineLazy(CT, {
                 get C0() {
-                  return C0 = dart.const({
+                  return C[0] = dart.const({
                     __proto__: foo.MyClass.prototype,
                     [_t]: 1
                   });
                 }
               }, false);
-              var C0;
-              return C0 || CT.C0;
+              return C[0] || CT.C0;
             }(
               1
             ))
@@ -3044,14 +3380,13 @@ void main() {
             (function(p) {
               dart.defineLazy(CT, {
                 get C0() {
-                  return C0 = dart.const({
+                  return C[0] = dart.const({
                     __proto__: foo.ValueKey.prototype,
                     [value]: "t"
                     });
                   }
               }, false);
-              var C0;
-              return C0 || CT.C0;
+              return C[0] || CT.C0;
             }(
               1
             ))

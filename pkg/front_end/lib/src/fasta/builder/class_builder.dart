@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.class_builder;
 
 import 'package:kernel/ast.dart'
@@ -32,6 +34,8 @@ import 'package:kernel/type_algebra.dart' show Substitution, substitute;
 
 import 'package:kernel/type_environment.dart'
     show SubtypeCheckMode, TypeEnvironment;
+
+import 'package:kernel/src/legacy_erasure.dart';
 
 import 'package:kernel/src/types.dart' show Types;
 
@@ -177,12 +181,8 @@ abstract class ClassBuilder implements DeclarationBuilder {
 
   void checkSupertypes(CoreTypes coreTypes);
 
-  void handleSeenCovariant(
-      Types types,
-      Member declaredMember,
-      Member interfaceMember,
-      bool isSetter,
-      callback(Member declaredMember, Member interfaceMember, bool isSetter));
+  void handleSeenCovariant(Types types, Member interfaceMember, bool isSetter,
+      callback(Member interfaceMember, bool isSetter));
 
   bool hasUserDefinedNoSuchMethod(
       Class klass, ClassHierarchy hierarchy, Class objectClass);
@@ -611,7 +611,13 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   Supertype buildSupertype(
       LibraryBuilder library, List<TypeBuilder> arguments) {
     Class cls = isPatch ? origin.cls : this.cls;
-    return new Supertype(cls, buildTypeArguments(library, arguments));
+    List<DartType> typeArguments = buildTypeArguments(library, arguments);
+    if (!library.isNonNullableByDefault) {
+      for (int i = 0; i < typeArguments.length; ++i) {
+        typeArguments[i] = legacyErasure(typeArguments[i]);
+      }
+    }
+    return new Supertype(cls, typeArguments);
   }
 
   @override
@@ -738,12 +744,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  void handleSeenCovariant(
-      Types types,
-      Member declaredMember,
-      Member interfaceMember,
-      bool isSetter,
-      callback(Member declaredMember, Member interfaceMember, bool isSetter)) {
+  void handleSeenCovariant(Types types, Member interfaceMember, bool isSetter,
+      callback(Member interfaceMember, bool isSetter)) {
     // When a parameter is covariant we have to check that we also
     // override the same member in all parents.
     for (Supertype supertype in interfaceMember.enclosingClass.supers) {
@@ -751,7 +753,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           supertype.classNode, interfaceMember.name,
           setter: isSetter);
       if (m != null) {
-        callback(declaredMember, m, isSetter);
+        callback(m, isSetter);
       }
     }
   }

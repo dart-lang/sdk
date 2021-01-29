@@ -9,7 +9,7 @@ bad_reload_test: RuntimeError
 break_on_activation_test: SkipByDesign # No incremental compiler available.
 complex_reload_test: RuntimeError
 debugger_inspect_test: SkipByDesign # No incremental compiler available.
-debugger_location_second_test: RuntimeError
+debugger_location_second_test: SkipByDesign # No script sources available.
 eval_internal_class_test: SkipByDesign # No incremental compiler available.
 eval_regression_flutter20255_test: SkipByDesign # No incremental compiler available.
 eval_test: SkipByDesign # No incremental compiler available.
@@ -25,6 +25,7 @@ evaluate_in_frame_with_scope_test: SkipByDesign # No incremental compiler availa
 evaluate_in_sync_star_activation_test: SkipByDesign # No incremental compiler available.
 evaluate_with_escaping_closure_test: SkipByDesign # No incremental compiler available.
 evaluate_with_scope_test: SkipByDesign # No incremental compiler available.
+get_object_rpc_test: SkipByDesign # App-JIT snapshots don't contain script sources.
 pause_on_exceptions_test: SkipByDesign # No incremental compiler available.
 rewind_optimized_out_test: SkipByDesign # No incremental compiler available.
 rewind_test: SkipByDesign # No incremental compiler available.
@@ -87,6 +88,7 @@ debugger_location_second_test: SkipByDesign # Debugger is disabled in AOT mode.
 debugger_location_test: SkipByDesign # Debugger is disabled in AOT mode.
 debugging_inlined_finally_test: SkipByDesign # Debugger is disabled in AOT mode.
 debugging_test: SkipByDesign # Debugger is disabled in AOT mode.
+deferred_import_reload_test: SkipByDesign # Hot reload is disabled in AOT mode.
 dev_fs_spawn_test: SkipByDesign # Debugger is disabled in AOT mode.
 developer_extension_test: SkipByDesign # Debugger is disabled in AOT mode.
 developer_service_get_isolate_id_test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -152,6 +154,7 @@ next_through_simple_async_test: SkipByDesign # Debugger is disabled in AOT mode.
 next_through_simple_async_with_returns_test: SkipByDesign # Debugger is disabled in AOT mode.
 next_through_simple_linear_2_test: SkipByDesign # Debugger is disabled in AOT mode.
 next_through_simple_linear_test: SkipByDesign # Debugger is disabled in AOT mode.
+notify_debugger_on_exception_test: SkipByDesign # Debugger is disabled in AOT mode.
 parameters_in_scope_at_entry_test: SkipByDesign # Debugger is disabled in AOT mode.
 pause_idle_isolate_test: SkipByDesign # Debugger is disabled in AOT mode.
 pause_on_exceptions_test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -164,7 +167,7 @@ positive_token_pos_test: SkipByDesign # Debugger is disabled in AOT mode.
 regress_28443_test: SkipByDesign # Debugger is disabled in AOT mode.
 regress_28980_test: SkipByDesign # Debugger is disabled in AOT mode.
 regress_34841_test: SkipByDesign # Debugger is disabled in AOT mode.
-reload_sources_test: SkipByDesign # Debugger is disabled in AOT mode.
+reload_sources_test: SkipByDesign # Hot reload is disabled in AOT mode.
 rewind_optimized_out_test: SkipByDesign # Debugger is disabled in AOT mode.
 rewind_test: SkipByDesign # Debugger is disabled in AOT mode.
 set_library_debuggable_test: SkipByDesign # Debugger is disabled in AOT mode.

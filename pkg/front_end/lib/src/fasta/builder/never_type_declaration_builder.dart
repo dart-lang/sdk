@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.never_type_builder;
 
-import 'package:kernel/ast.dart' show DartType, NullType, Nullability;
+import 'package:kernel/ast.dart' show DartType, Nullability;
 
 import 'builtin_type_declaration_builder.dart';
 import 'library_builder.dart';
@@ -24,17 +26,11 @@ class NeverTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
   DartType buildType(LibraryBuilder library,
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
       [bool notInstanceContext]) {
-    if (!library.isNonNullableByDefault) {
-      return const NullType();
-    }
     return type.withDeclaredNullability(nullabilityBuilder.build(library));
   }
 
   DartType buildTypesWithBuiltArguments(LibraryBuilder library,
       Nullability nullability, List<DartType> arguments) {
-    if (!library.isNonNullableByDefault) {
-      return const NullType();
-    }
     return type.withDeclaredNullability(nullability);
   }
 }

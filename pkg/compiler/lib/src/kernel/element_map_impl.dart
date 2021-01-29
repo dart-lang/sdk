@@ -425,32 +425,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   }
 
   @override
-  MemberEntity getSuperMember(MemberEntity context, ir.Name name,
-      {bool setter: false}) {
-    // We can no longer trust the interface target of the super access since it
-    // might be a member that we have cloned.
-    ClassEntity cls = context.enclosingClass;
-    assert(
-        cls != null,
-        failedAt(context,
-            "No enclosing class for super member access in $context."));
-    IndexedClass superclass = getSuperType(cls)?.element;
-    while (superclass != null) {
-      KClassEnv env = classes.getEnv(superclass);
-      MemberEntity superMember =
-          env.lookupMember(this, name.text, setter: setter);
-      if (superMember != null) {
-        if (!superMember.isInstanceMember) return null;
-        if (!superMember.isAbstract) {
-          return superMember;
-        }
-      }
-      superclass = getSuperType(superclass)?.element;
-    }
-    return null;
-  }
-
-  @override
   ConstructorEntity getConstructor(ir.Member node) =>
       getConstructorInternal(node);
 
@@ -853,7 +827,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         requiredNamedParameters.add(variable.name);
       }
     }
-    return new ParameterStructure(
+    return ParameterStructure(
         requiredPositionalParameters,
         positionalParameters,
         namedParameters,
@@ -909,18 +883,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
 
   TypeLookup _typeLookup({bool resolveAsRaw: true}) {
     bool cachedMayLookupInMain;
-    bool mayLookupInMain() {
-      var mainUri = elementEnvironment.mainLibrary.canonicalUri;
-      // Tests permit lookup outside of dart: libraries.
-      return mainUri.path
-              .contains(RegExp(r'(?<!generated_)tests/dart2js/internal')) ||
-          mainUri.path
-              .contains(RegExp(r'(?<!generated_)tests/dart2js/native')) ||
-          mainUri.path
-              .contains(RegExp(r'(?<!generated_)tests/dart2js_2/internal')) ||
-          mainUri.path
-              .contains(RegExp(r'(?<!generated_)tests/dart2js_2/native'));
-    }
 
     DartType lookup(String typeName, {bool required}) {
       DartType findInLibrary(LibraryEntity library) {
@@ -943,8 +905,11 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       // TODO(johnniwinther): Narrow the set of lookups based on the depending
       // library.
       // TODO(johnniwinther): Cache more results to avoid redundant lookups?
+      cachedMayLookupInMain ??=
+          // Tests permit lookup outside of dart: libraries.
+          allowedNativeTest(elementEnvironment.mainLibrary.canonicalUri);
       DartType type;
-      if (cachedMayLookupInMain ??= mayLookupInMain()) {
+      if (cachedMayLookupInMain) {
         type ??= findInLibrary(elementEnvironment.mainLibrary);
       }
       type ??= findIn(Uris.dart_core);
@@ -1377,7 +1342,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     bool isStatic = node.isStatic;
     IndexedField field = createField(library, enclosingClass, name,
         isStatic: isStatic,
-        isAssignable: node.isMutable,
+        isAssignable: node.hasSetter,
         isConst: node.isConst);
     return members.register<IndexedField, KFieldData>(
         field, new KFieldDataImpl(node));

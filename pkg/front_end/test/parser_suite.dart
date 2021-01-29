@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:convert' show jsonDecode;
 
 import 'dart:io' show File;
@@ -100,6 +102,9 @@ class Context extends ChainContext with MatchContext {
 
   @override
   String get updateExpectationsOption => '${UPDATE_EXPECTATIONS}=true';
+
+  @override
+  bool get canBeFixWithUpdateExpectations => true;
 
   final bool addTrace;
   final bool annotateLines;
@@ -450,6 +455,14 @@ class ParserTestListenerWithMessageFormatting extends ParserTestListener {
       doPrint("");
       doPrint("// Line ${location.line}: $sourceLine");
     }
+  }
+
+  bool checkEof(Token token) {
+    bool result = super.checkEof(token);
+    if (result) {
+      errors.add("WARNING: Reporting at eof --- see below for details.");
+    }
+    return result;
   }
 
   void handleRecoverableError(

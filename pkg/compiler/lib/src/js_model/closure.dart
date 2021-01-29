@@ -481,7 +481,9 @@ class JsScopeInfo extends ScopeInfo {
         source.readLocalMap<Local, JRecordField>(() => source.readMember());
     Set<Local> freeVariables = source.readLocals().toSet();
     source.end(tag);
-    return new JsScopeInfo.internal(
+    if (boxedVariables.isEmpty) boxedVariables = const {};
+    if (freeVariables.isEmpty) freeVariables = const {};
+    return JsScopeInfo.internal(
         localsUsedInTryOrSync, thisLocal, boxedVariables, freeVariables);
   }
 
@@ -671,7 +673,10 @@ class KernelClosureClassInfo extends JsScopeInfo
     Map<Local, JField> localToFieldMap =
         source.readLocalMap(() => source.readMember());
     source.end(tag);
-    return new KernelClosureClassInfo.internal(
+    if (boxedVariables.isEmpty) boxedVariables = const {};
+    if (freeVariables.isEmpty) freeVariables = const {};
+    if (localToFieldMap.isEmpty) localToFieldMap = const {};
+    return KernelClosureClassInfo.internal(
         localsUsedInTryOrSync,
         thisLocal,
         boxedVariables,

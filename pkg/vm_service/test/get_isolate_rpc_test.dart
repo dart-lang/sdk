@@ -10,28 +10,28 @@ import 'common/test_helper.dart';
 var tests = <VMTest>[
   (VmService service) async {
     final vm = await service.getVM();
-    final result = await service.getIsolate(vm.isolates.first.id);
+    final result = await service.getIsolate(vm.isolates!.first.id!);
     expect(result.id, startsWith('isolates/'));
     expect(result.number, isNotNull);
     expect(result.isolateFlags, isNotNull);
-    expect(result.isolateFlags.length, isPositive);
+    expect(result.isolateFlags!.length, isPositive);
     expect(result.isSystemIsolate, isFalse);
-    expect(result.json['_originNumber'], result.number);
+    expect(result.json!['_originNumber'], result.number);
     expect(result.startTime, isPositive);
     expect(result.livePorts, isPositive);
     expect(result.pauseOnExit, isFalse);
-    expect(result.pauseEvent.type, 'Event');
+    expect(result.pauseEvent!.type, 'Event');
     expect(result.error, isNull);
     expect(result.rootLib, isNotNull);
-    expect(result.libraries.length, isPositive);
-    expect(result.libraries[0], isNotNull);
-    expect(result.breakpoints.length, isZero);
-    expect(result.json['_heaps']['new']['type'], 'HeapSpace');
-    expect(result.json['_heaps']['old']['type'], 'HeapSpace');
+    expect(result.libraries!.length, isPositive);
+    expect(result.libraries![0], isNotNull);
+    expect(result.breakpoints!.length, isZero);
+    expect(result.json!['_heaps']['new']['type'], 'HeapSpace');
+    expect(result.json!['_heaps']['old']['type'], 'HeapSpace');
   },
 
   (VmService service) async {
-    bool caughtException;
+    bool caughtException = false;
     try {
       await service.getIsolate('badid');
       expect(false, isTrue, reason: 'Unreachable');

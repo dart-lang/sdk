@@ -412,16 +412,6 @@ public interface AnalysisServer {
   public void completion_getSuggestions(String file, int offset, GetSuggestionsConsumer consumer);
 
   /**
-   * {@code completion.listTokenDetails}
-   *
-   * Inspect analysis server's knowledge about all of a file's tokens including their lexeme, type,
-   * and what element kinds would have been appropriate for the token's program location.
-   *
-   * @param file The path to the file from which tokens should be returned.
-   */
-  public void completion_listTokenDetails(String file, ListTokenDetailsConsumer consumer);
-
-  /**
    * {@code completion.registerLibraryPaths}
    *
    * The client can make this request to express interest in certain libraries to receive completion
@@ -481,8 +471,12 @@ public interface AnalysisServer {
    *         file which does not exist, or which is not currently subject to analysis (e.g. because
    *         it is not associated with any analysis root specified to analysis.setAnalysisRoots), an
    *         error of type FILE_NOT_ANALYZED will be generated.
+   * @param inTestMode A flag indicating whether the bulk fixes are being run in test mode. The only
+   *         difference is that in test mode the fix processor will look for a configuration file
+   *         that can modify the content of the data file used to compute the fixes when data-driven
+   *         fixes are being considered. If this field is omitted the flag defaults to false.
    */
-  public void edit_bulkFixes(List<String> included, BulkFixesConsumer consumer);
+  public void edit_bulkFixes(List<String> included, boolean inTestMode, BulkFixesConsumer consumer);
 
   /**
    * {@code edit.dartfix}

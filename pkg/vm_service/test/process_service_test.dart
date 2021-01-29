@@ -24,19 +24,19 @@ Future setupProcesses() async {
     '--pause_isolates_on_start',
     io.Platform.script.toFilePath(),
   ];
-  io.Process process1;
-  io.Process process2;
-  io.Process process3;
+  io.Process? process1;
+  io.Process? process2;
+  io.Process? process3;
 
   void closeDown() {
     if (process1 != null) {
-      process1.kill();
+      process1!.kill();
     }
     if (process2 != null) {
-      process2.kill();
+      process2!.kill();
     }
     if (process3 != null) {
-      process3.kill();
+      process3!.kill();
     }
     dir.deleteSync(recursive: true);
   }
@@ -70,14 +70,14 @@ Future setupProcesses() async {
 
     final result = jsonEncode({
       'type': 'foobar',
-      'pids': [process1.pid, process2.pid, process3.pid]
+      'pids': [process1!.pid, process2!.pid, process3!.pid]
     });
     return Future.value(ServiceExtensionResponse.result(result));
   }
 
   Future<ServiceExtensionResponse> closeStdin(ignored_a, ignored_b) {
-    process3.stdin.close();
-    return process3.exitCode.then<ServiceExtensionResponse>((int exit) {
+    process3!.stdin.close();
+    return process3!.exitCode.then<ServiceExtensionResponse>((int exit) {
       final result = jsonEncode({'type': 'foobar'});
       return ServiceExtensionResponse.result(result);
     });
@@ -91,57 +91,58 @@ Future setupProcesses() async {
 final processTests = <IsolateTest>[
   // Initial.
   (VmService service, IsolateRef isolate) async {
+    final isolateId = isolate.id!;
     final setup = await service.callServiceExtension(
       'ext.dart.io.setup',
-      isolateId: isolate.id,
+      isolateId: isolateId,
     );
     try {
-      SpawnedProcessList all = await service.getSpawnedProcesses(isolate.id);
+      SpawnedProcessList all = await service.getSpawnedProcesses(isolateId);
       expect(all.processes.length, equals(3));
 
       final first = await service.getSpawnedProcessById(
-        isolate.id,
+        isolateId,
         all.processes[0].id,
       );
 
       expect(first.name, io.Platform.executable);
-      expect(first.pid, equals(setup.json['pids'][0]));
+      expect(first.pid, equals(setup.json!['pids']![0]));
       expect(first.arguments.contains('foobar'), isFalse);
       expect(first.startedAt, greaterThan(0));
 
       final second = await service.getSpawnedProcessById(
-        isolate.id,
+        isolateId,
         all.processes[1].id,
       );
 
       expect(second.name, io.Platform.executable);
-      expect(second.pid, equals(setup.json['pids'][1]));
+      expect(second.pid, equals(setup.json!['pids']![1]));
       expect(second.arguments.contains('foobar'), isTrue);
       expect(second.pid != first.pid, isTrue);
       expect(second.startedAt, greaterThan(0));
       expect(second.startedAt, greaterThanOrEqualTo(first.startedAt));
 
       final third = await service.getSpawnedProcessById(
-        isolate.id,
+        isolateId,
         all.processes[2].id,
       );
 
       expect(third.name, dartJITBinary);
-      expect(third.pid, equals(setup.json['pids'][2]));
+      expect(third.pid, equals(setup.json!['pids']![2]));
       expect(third.pid != first.pid, isTrue);
       expect(third.pid != second.pid, isTrue);
       expect(third.startedAt, greaterThanOrEqualTo(second.startedAt));
 
       await service.callServiceExtension(
         'ext.dart.io.closeStdin',
-        isolateId: isolate.id,
+        isolateId: isolateId,
       );
-      all = await service.getSpawnedProcesses(isolate.id);
+      all = await service.getSpawnedProcesses(isolateId);
       expect(all.processes.length, equals(2));
     } finally {
       await service.callServiceExtension(
         'ext.dart.io.cleanup',
-        isolateId: isolate.id,
+        isolateId: isolateId,
       );
     }
   },

@@ -164,13 +164,8 @@ Dart_Isolate TestCase::CreateTestIsolateInGroup(const char* name,
                                                 void* group_data,
                                                 void* isolate_data) {
   char* error;
-#if defined(DART_PRECOMPILED_RUNTIME)
-  Isolate* result = CreateWithinExistingIsolateGroupAOT(
-      reinterpret_cast<Isolate*>(parent)->group(), name, &error);
-#else
   Isolate* result = CreateWithinExistingIsolateGroup(
       reinterpret_cast<Isolate*>(parent)->group(), name, &error);
-#endif
   if (error != nullptr) {
     OS::PrintErr("CreateTestIsolateInGroup failed: %s\n", error);
     free(error);
@@ -327,7 +322,8 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
   Zone* zone = Thread::Current()->zone();
   Dart_KernelCompilationResult result = KernelIsolate::CompileToKernel(
       url, platform_strong_dill, platform_strong_dill_size, sourcefiles_count,
-      sourcefiles, incrementally, NULL, multiroot_filepaths, multiroot_scheme);
+      sourcefiles, incrementally, false, NULL, multiroot_filepaths,
+      multiroot_scheme);
   if (result.status == Dart_KernelCompilationStatus_Ok) {
     if (KernelIsolate::AcceptCompilation().status !=
         Dart_KernelCompilationStatus_Ok) {
@@ -558,13 +554,14 @@ Dart_Handle TestCase::TriggerReload(const uint8_t* kernel_buffer,
   } else if (isolate->group()->reload_context()->reload_aborted()) {
     TransitionNativeToVM transition(thread);
     result = Api::NewHandle(
-        thread, isolate->reload_context()->group_reload_context()->error());
+        thread,
+        isolate->program_reload_context()->group_reload_context()->error());
   } else {
     result = Dart_RootLibrary();
   }
 
   TransitionNativeToVM transition(thread);
-  if (isolate->reload_context() != NULL) {
+  if (isolate->program_reload_context() != NULL) {
     isolate->DeleteReloadContext();
     isolate->group()->DeleteReloadContext();
   }
@@ -648,7 +645,7 @@ Dart_Handle TestCase::EvaluateExpression(const Library& lib,
                                          param_values,
                                          TypeArguments::null_type_arguments());
   }
-  return Api::NewHandle(thread, val.raw());
+  return Api::NewHandle(thread, val.ptr());
 }
 
 #if !defined(PRODUCT)
@@ -658,8 +655,8 @@ static bool IsHex(int c) {
 #endif
 
 void AssemblerTest::Assemble() {
-  const String& function_name =
-      String::ZoneHandle(Symbols::New(Thread::Current(), name_));
+  auto thread = Thread::Current();
+  const String& function_name = String::ZoneHandle(Symbols::New(thread, name_));
 
   // We make a dummy script so that exception objects can be composed for
   // assembler instructions that do runtime calls.
@@ -669,9 +666,11 @@ void AssemblerTest::Assemble() {
   const Library& lib = Library::Handle(Library::CoreLibrary());
   const Class& cls = Class::ZoneHandle(
       Class::New(lib, function_name, script, TokenPosition::kMinSource));
+  const FunctionType& signature = FunctionType::ZoneHandle(FunctionType::New());
   Function& function = Function::ZoneHandle(Function::New(
-      function_name, FunctionLayout::kRegularFunction, true, false, false,
-      false, false, cls, TokenPosition::kMinSource));
+      signature, function_name, UntaggedFunction::kRegularFunction, true, false,
+      false, false, false, cls, TokenPosition::kMinSource));
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   code_ = Code::FinalizeCodeAndNotify(function, nullptr, assembler_,
                                       Code::PoolAttachment::kAttachPool);
   code_.set_owner(function);

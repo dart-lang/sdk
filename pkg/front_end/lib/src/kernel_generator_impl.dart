@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// Defines the front-end API for converting source code to Dart Kernel objects.
 library front_end.kernel_generator_impl;
 
@@ -65,6 +67,7 @@ Future<CompilerResult> generateKernelInternal(
     bool retainDataForTesting: false,
     bool includeHierarchyAndCoreTypes: false}) async {
   ProcessedOptions options = CompilerContext.current.options;
+  options.reportNullSafetyCompilationModeInfo();
   FileSystem fs = options.fileSystem;
 
   Loader sourceLoader;

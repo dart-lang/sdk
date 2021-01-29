@@ -95,9 +95,9 @@ class OldPage {
     if (alias_offset == 0) {
       return obj;  // Not aliased.
     }
-    uword addr = ObjectLayout::ToAddr(obj);
+    uword addr = UntaggedObject::ToAddr(obj);
     if (memory->Contains(addr)) {
-      return ObjectLayout::FromAddr(addr + alias_offset);
+      return UntaggedObject::FromAddr(addr + alias_offset);
     }
     // obj is executable.
     ASSERT(memory->ContainsAlias(addr));
@@ -112,9 +112,9 @@ class OldPage {
     if (alias_offset == 0) {
       return obj;  // Not aliased.
     }
-    uword addr = ObjectLayout::ToAddr(obj);
+    uword addr = UntaggedObject::ToAddr(obj);
     if (memory->ContainsAlias(addr)) {
-      return ObjectLayout::FromAddr(addr - alias_offset);
+      return UntaggedObject::FromAddr(addr - alias_offset);
     }
     // obj is writable.
     ASSERT(memory->Contains(addr));
@@ -240,8 +240,6 @@ class PageSpaceController {
   friend class PageSpace;  // For MergeOtherPageSpaceController
 
   void RecordUpdate(SpaceUsage before, SpaceUsage after, const char* reason);
-  void MergeFrom(PageSpaceController* donor);
-
   void RecordUpdate(SpaceUsage before,
                     SpaceUsage after,
                     intptr_t growth_in_pages,
@@ -412,7 +410,8 @@ class PageSpace {
 
 #ifndef PRODUCT
   void PrintToJSONObject(JSONObject* object) const;
-  void PrintHeapMapToJSONStream(Isolate* isolate, JSONStream* stream) const;
+  void PrintHeapMapToJSONStream(IsolateGroup* isolate_group,
+                                JSONStream* stream) const;
 #endif  // PRODUCT
 
   void AllocateBlack(intptr_t size) {
@@ -488,8 +487,6 @@ class PageSpace {
   }
 
   bool IsObjectFromImagePages(ObjectPtr object);
-
-  void MergeFrom(PageSpace* donor);
 
  private:
   // Ids for time and data records in Heap::GCStats.

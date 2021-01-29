@@ -23,6 +23,11 @@
 
 namespace dart {
 
+// constants_arm.h does not define LR constant to prevent accidental direct use
+// of it during code generation. However using LR directly is okay in this
+// file because it is a simulator.
+constexpr Register LR = LR_DO_NOT_USE_DIRECTLY;
+
 DEFINE_FLAG(uint64_t,
             trace_sim_after,
             ULLONG_MAX,
@@ -233,7 +238,7 @@ TokenPosition SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
   uword pc_offset = pc - code.PayloadStart();
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
-  PcDescriptors::Iterator iter(descriptors, PcDescriptorsLayout::kAnyKind);
+  PcDescriptors::Iterator iter(descriptors, UntaggedPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
     if (iter.PcOffset() == pc_offset) {
       return iter.TokenPos();
@@ -276,15 +281,18 @@ void SimulatorDebugger::PrintDartFrame(uword vm_instructions,
   const Script& script = Script::Handle(function.script());
   const String& func_name = String::Handle(function.QualifiedScrubbedName());
   const String& url = String::Handle(script.url());
-  intptr_t line = -1;
-  intptr_t column = -1;
-  if (token_pos.IsReal()) {
-    script.GetTokenLocation(token_pos, &line, &column);
+  intptr_t line, column;
+  if (script.GetTokenLocation(token_pos, &line, &column)) {
+    OS::PrintErr(
+        "pc=0x%" Px " fp=0x%" Px " sp=0x%" Px " %s%s (%s:%" Pd ":%" Pd ")", pc,
+        fp, sp, is_optimized ? (is_inlined ? "inlined " : "optimized ") : "",
+        func_name.ToCString(), url.ToCString(), line, column);
+
+  } else {
+    OS::PrintErr("pc=0x%" Px " fp=0x%" Px " sp=0x%" Px " %s%s (%s)", pc, fp, sp,
+                 is_optimized ? (is_inlined ? "inlined " : "optimized ") : "",
+                 func_name.ToCString(), url.ToCString());
   }
-  OS::PrintErr(
-      "pc=0x%" Px " fp=0x%" Px " sp=0x%" Px " %s%s (%s:%" Pd ":%" Pd ")", pc,
-      fp, sp, is_optimized ? (is_inlined ? "inlined " : "optimized ") : "",
-      func_name.ToCString(), url.ToCString(), line, column);
 #if defined(DART_PRECOMPILED_RUNTIME)
   intptr_t offset;
   auto const symbol_name =
@@ -299,7 +307,7 @@ void SimulatorDebugger::PrintBacktrace() {
   auto const Z = T->zone();
 #if defined(DART_PRECOMPILED_RUNTIME)
   auto const vm_instructions = reinterpret_cast<uword>(
-      Dart::vm_isolate()->group()->source()->snapshot_instructions);
+      Dart::vm_isolate_group()->source()->snapshot_instructions);
   auto const isolate_instructions = reinterpret_cast<uword>(
       T->isolate_group()->source()->snapshot_instructions);
   OS::PrintErr("vm_instructions=0x%" Px ", isolate_instructions=0x%" Px "\n",
@@ -530,7 +538,7 @@ void SimulatorDebugger::Debug() {
           // Make the dereferencing '*' optional.
           if (((arg1[0] == '*') && GetValue(arg1 + 1, &value)) ||
               GetValue(arg1, &value)) {
-            if (Isolate::Current()->heap()->Contains(value)) {
+            if (IsolateGroup::Current()->heap()->Contains(value)) {
               OS::PrintErr("%s: \n", arg1);
 #if defined(DEBUG)
               const Object& obj = Object::Handle(static_cast<ObjectPtr>(value));

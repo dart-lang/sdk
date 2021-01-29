@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
-import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -12,6 +11,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:test/test.dart';
 
 import '../../../../../abstract_single_unit.dart';
+import '../../../../../utils/test_instrumentation_service.dart';
 
 /// A base class defining support for writing bulk fix processor tests.
 abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
@@ -29,6 +29,9 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
 
   /// Return the lint code being tested.
   String get lintCode => null;
+
+  /// Return `true` if this test uses config files.
+  bool get useConfigFiles => false;
 
   /// The workspace in which fixes contributor operates.
   ChangeWorkspace get workspace {
@@ -58,8 +61,8 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
     var analysisContext = contextFor(testFile);
     tracker.addContext(analysisContext);
-    var processor =
-        BulkFixProcessor(InstrumentationService.NULL_SERVICE, workspace);
+    var processor = BulkFixProcessor(TestInstrumentationService(), workspace,
+        useConfigFiles: useConfigFiles);
     await processor.fixErrors([analysisContext]);
     return processor;
   }

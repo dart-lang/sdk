@@ -72,9 +72,7 @@ class DartAssistKind {
   static const CONVERT_INTO_IS_NOT =
       AssistKind('dart.assist.convert.isNot', 30, 'Convert to is!');
   static const CONVERT_INTO_IS_NOT_EMPTY = AssistKind(
-      'dart.assist.convert.isNotEmpty', 30, "Convert to 'isNotEmpty'",
-      // todo (pq): unify w/ fix
-      associatedErrorCodes: <String>['prefer_is_not_empty']);
+      'dart.assist.convert.isNotEmpty', 30, "Convert to 'isNotEmpty'");
   static const CONVERT_PART_OF_TO_URI = AssistKind(
       'dart.assist.convert.partOfToPartUri', 30, 'Convert to use a URI');
   static const CONVERT_TO_DOUBLE_QUOTED_STRING = AssistKind(
@@ -92,11 +90,9 @@ class DartAssistKind {
   static const CONVERT_TO_INT_LITERAL = AssistKind(
       'dart.assist.convert.toIntLiteral', 30, 'Convert to an int literal');
   static const CONVERT_TO_LIST_LITERAL = AssistKind(
-      'dart.assist.convert.toListLiteral', 30, 'Convert to list literal',
-      associatedErrorCodes: <String>['prefer_collection_literals']);
+      'dart.assist.convert.toListLiteral', 30, 'Convert to list literal');
   static const CONVERT_TO_MAP_LITERAL = AssistKind(
-      'dart.assist.convert.toMapLiteral', 30, 'Convert to map literal',
-      associatedErrorCodes: <String>['prefer_collection_literals']);
+      'dart.assist.convert.toMapLiteral', 30, 'Convert to map literal');
   static const CONVERT_TO_MULTILINE_STRING = AssistKind(
       'dart.assist.convert.toMultilineString',
       30,
@@ -116,8 +112,7 @@ class DartAssistKind {
       30,
       'Convert to a relative import');
   static const CONVERT_TO_SET_LITERAL = AssistKind(
-      'dart.assist.convert.toSetLiteral', 30, 'Convert to set literal',
-      associatedErrorCodes: <String>['prefer_collection_literals']);
+      'dart.assist.convert.toSetLiteral', 30, 'Convert to set literal');
   static const CONVERT_TO_SINGLE_QUOTED_STRING = AssistKind(
       'dart.assist.convert.toSingleQuotedString',
       30,

@@ -29,7 +29,7 @@ static bool Equals(const Object& expected, const Object& actual) {
   }
   if (expected.IsSmi()) {
     if (actual.IsSmi()) {
-      return expected.raw() == actual.raw();
+      return expected.ptr() == actual.ptr();
     }
     return false;
   }
@@ -37,15 +37,15 @@ static bool Equals(const Object& expected, const Object& actual) {
     if (actual.IsDouble()) {
       Double& dbl1 = Double::Handle();
       Double& dbl2 = Double::Handle();
-      dbl1 ^= expected.raw();
-      dbl2 ^= actual.raw();
+      dbl1 ^= expected.ptr();
+      dbl2 ^= actual.ptr();
       return dbl1.value() == dbl2.value();
     }
     return false;
   }
   if (expected.IsBool()) {
     if (actual.IsBool()) {
-      return expected.raw() == actual.raw();
+      return expected.ptr() == actual.ptr();
     }
     return false;
   }
@@ -2064,8 +2064,9 @@ VM_UNIT_TEST_CASE(LegacyErasureDetectionInFullSnapshot) {
     Type& type = Type::Handle();
     type ^= Api::UnwrapHandle(cls);  // Dart_GetClass actually returns a Type.
     const Class& clazz = Class::Handle(type.type_class());
-    const bool required = clazz.RequireLegacyErasureOfConstants(zone.GetZone());
-    EXPECT(required == isolate->null_safety());
+    const bool required =
+        clazz.RequireCanonicalTypeErasureOfConstants(zone.GetZone());
+    EXPECT(required == isolate->group()->null_safety());
 
     // Verify that snapshot writing succeeds if erasure is not required.
     if (!required) {

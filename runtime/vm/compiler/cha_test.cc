@@ -99,7 +99,7 @@ TEST_CASE(ClassHierarchyAnalysis) {
   EXPECT(cha.IsGuardedClass(class_d.id()));
 
   const Class& closure_class =
-      Class::Handle(Isolate::Current()->object_store()->closure_class());
+      Class::Handle(IsolateGroup::Current()->object_store()->closure_class());
   EXPECT(!cha.HasSubclasses(closure_class.id()));
 }
 

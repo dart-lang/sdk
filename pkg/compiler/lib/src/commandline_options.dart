@@ -96,6 +96,7 @@ class Flags {
   static const String useNewSourceInfo = '--use-new-source-info';
   static const String useOldRti = '--use-old-rti';
   static const String verbose = '--verbose';
+  static const String verbosity = '--verbosity';
   static const String progress = '--show-internal-progress';
   static const String version = '--version';
   static const String reportMetrics = '--report-metrics';
@@ -117,6 +118,7 @@ class Flags {
 
   static const String soundNullSafety = '--sound-null-safety';
   static const String noSoundNullSafety = '--no-sound-null-safety';
+  static const String mergeFragmentsThreshold = '--merge-fragments-threshold';
 
   /// Flag for a combination of flags for 'production' mode.
   static const String benchmarkingProduction = '--benchmarking-production';
@@ -125,6 +127,8 @@ class Flags {
   static const String benchmarkingExperiment = '--benchmarking-x';
 
   static const String conditionalDirectives = '--conditional-directives';
+
+  static const String cfeInvocationModes = '--cfe-invocation-modes';
 
   // The syntax-only level of support for generic methods is included in the
   // 1.50 milestone for Dart. It is not experimental, but also not permanent:

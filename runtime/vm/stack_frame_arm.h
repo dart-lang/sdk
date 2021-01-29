@@ -68,6 +68,15 @@ COMPILE_ASSERT(kAbiPreservedFpuRegCount == 4);
 // kNativeCallbackTrampolineStackDelta must be added as well.
 constexpr intptr_t kCallbackSlotsBeforeSavedArguments = 2;
 
+// For FFI calls passing in TypedData, we save it on the stack before entering
+// a Dart frame. This denotes how to get to the backed up typed data.
+//
+// Note: This is not kCallerSpSlotFromFp on arm.
+//
+// [fp] holds callers fp, [fp+4] holds callers lr, [fp+8] is space for
+// return address, [fp+12] is our pushed TypedData pointer.
+static const int kFfiCallerTypedDataSlotFromFp = kCallerSpSlotFromFp + 1;
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_STACK_FRAME_ARM_H_

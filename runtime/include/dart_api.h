@@ -588,12 +588,6 @@ DART_EXPORT void Dart_UpdateFinalizableExternalSize(
  */
 DART_EXPORT const char* Dart_VersionString();
 
-typedef struct {
-  const char* library_uri;
-  const char* class_name;
-  const char* function_name;
-} Dart_QualifiedFunctionName;
-
 /**
  * Isolate specific flags are set when creating a new isolate using the
  * Dart_IsolateFlags structure.
@@ -610,7 +604,6 @@ typedef struct {
   bool use_field_guards;
   bool use_osr;
   bool obfuscate;
-  Dart_QualifiedFunctionName* entry_points;
   bool load_vmservice_library;
   bool copy_parent_code;
   bool null_safety;
@@ -3532,6 +3525,13 @@ typedef struct {
   intptr_t kernel_size;
 } Dart_KernelCompilationResult;
 
+typedef enum {
+  Dart_KernelCompilationVerbosityLevel_Error = 0,
+  Dart_KernelCompilationVerbosityLevel_Warning,
+  Dart_KernelCompilationVerbosityLevel_Info,
+  Dart_KernelCompilationVerbosityLevel_All,
+} Dart_KernelCompilationVerbosityLevel;
+
 DART_EXPORT bool Dart_IsKernelIsolate(Dart_Isolate isolate);
 DART_EXPORT bool Dart_KernelIsolateIsRunning();
 DART_EXPORT Dart_Port Dart_KernelPort();
@@ -3543,6 +3543,13 @@ DART_EXPORT Dart_Port Dart_KernelPort();
  * `vm_platform_strong.dill`). The VM does not take ownership of this memory.
  *
  * \param platform_kernel_size The length of the platform_kernel buffer.
+ *
+ * \param snapshot_compile Set to `true` when the compilation is for a snapshot.
+ * This is used by the frontend to determine if compilation related information
+ * should be printed to console (e.g., null safety mode).
+ *
+ * \param verbosity Specifies the logging behavior of the kernel compilation
+ * service.
  *
  * \return Returns the result of the compilation.
  *
@@ -3561,7 +3568,9 @@ Dart_CompileToKernel(const char* script_uri,
                      const uint8_t* platform_kernel,
                      const intptr_t platform_kernel_size,
                      bool incremental_compile,
-                     const char* package_config);
+                     bool snapshot_compile,
+                     const char* package_config,
+                     Dart_KernelCompilationVerbosityLevel verbosity);
 
 typedef struct {
   const char* uri;

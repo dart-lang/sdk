@@ -17,17 +17,40 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageJsInteropNonExternalConstructor,
         messageJsInteropNonExternalMember,
         templateJsInteropDartClassExtendsJSClass,
-        templateJsInteropJSClassExtendsDartClass;
+        templateJsInteropJSClassExtendsDartClass,
+        templateJsInteropNativeClassInAnnotation;
 
 import 'src/js_interop.dart';
 
 class JsInteropChecks extends RecursiveVisitor<void> {
   final CoreTypes _coreTypes;
   final DiagnosticReporter<Message, LocatedMessage> _diagnosticsReporter;
+  final Map<String, Class> _nativeClasses;
   bool _classHasJSAnnotation = false;
+  bool _classHasAnonymousAnnotation = false;
   bool _libraryHasJSAnnotation = false;
+  bool _libraryIsGlobalNamespace = false;
 
-  JsInteropChecks(this._coreTypes, this._diagnosticsReporter);
+  JsInteropChecks(
+      this._coreTypes, this._diagnosticsReporter, this._nativeClasses);
+
+  /// Extract all native class names from the [component].
+  ///
+  /// Returns a map from the name to the underlying Class node. This is a
+  /// static method so that the result can be cached in the corresponding
+  /// compiler target.
+  static Map<String, Class> getNativeClasses(Component component) {
+    Map<String, Class> nativeClasses = {};
+    for (var library in component.libraries) {
+      for (var cls in library.classes) {
+        var nativeNames = getNativeNames(cls);
+        for (var nativeName in nativeNames) {
+          nativeClasses[nativeName] = cls;
+        }
+      }
+    }
+    return nativeClasses;
+  }
 
   @override
   void defaultMember(Member member) {
@@ -40,6 +63,7 @@ class JsInteropChecks extends RecursiveVisitor<void> {
   @override
   void visitClass(Class cls) {
     _classHasJSAnnotation = hasJSInteropAnnotation(cls);
+    _classHasAnonymousAnnotation = hasAnonymousAnnotation(cls);
     var superclass = cls.superclass;
     if (superclass != null && superclass != _coreTypes.objectClass) {
       var superHasJSAnnotation = hasJSInteropAnnotation(superclass);
@@ -59,14 +83,53 @@ class JsInteropChecks extends RecursiveVisitor<void> {
             cls.location.file);
       }
     }
+    if (_classHasJSAnnotation &&
+        !_classHasAnonymousAnnotation &&
+        _libraryIsGlobalNamespace) {
+      var jsClass = getJSName(cls);
+      if (jsClass.isEmpty) {
+        // No rename, take the name of the class directly.
+        jsClass = cls.name;
+      } else {
+        // Remove any global prefixes. Regex here is greedy and will only return
+        // a value for `className` that doesn't start with 'self.' or 'window.'.
+        var classRegexp = new RegExp(r'^((self|window)\.)*(?<className>.*)$');
+        var matches = classRegexp.allMatches(jsClass);
+        jsClass = matches.first.namedGroup('className');
+      }
+      if (_nativeClasses.containsKey(jsClass)) {
+        var nativeClass = _nativeClasses[jsClass];
+        _diagnosticsReporter.report(
+            templateJsInteropNativeClassInAnnotation.withArguments(
+                cls.name,
+                nativeClass.name,
+                nativeClass.enclosingLibrary.importUri.toString()),
+            cls.fileOffset,
+            cls.name.length,
+            cls.location.file);
+      }
+    }
     super.visitClass(cls);
+    _classHasAnonymousAnnotation = false;
     _classHasJSAnnotation = false;
   }
 
   @override
   void visitLibrary(Library lib) {
     _libraryHasJSAnnotation = hasJSInteropAnnotation(lib);
+    _libraryIsGlobalNamespace = false;
+    if (_libraryHasJSAnnotation) {
+      var libraryAnnotation = getJSName(lib);
+      var globalRegexp = new RegExp(r'^(self|window)(\.(self|window))*$');
+      if (libraryAnnotation.isEmpty ||
+          globalRegexp.hasMatch(libraryAnnotation)) {
+        _libraryIsGlobalNamespace = true;
+      }
+    } else {
+      _libraryIsGlobalNamespace = true;
+    }
     super.visitLibrary(lib);
+    _libraryIsGlobalNamespace = false;
     _libraryHasJSAnnotation = false;
   }
 
@@ -98,7 +161,7 @@ class JsInteropChecks extends RecursiveVisitor<void> {
     }
 
     var isAnonymousFactory =
-        isAnonymousClassMember(procedure) && procedure.isFactory;
+        _classHasAnonymousAnnotation && procedure.isFactory;
 
     if (isAnonymousFactory) {
       if (procedure.function != null &&

@@ -24,8 +24,6 @@ const isFieldFormalParameterElement =
 
 const isFunctionElement = TypeMatcher<FunctionElement>();
 
-const isFunctionTypeAliasElement = TypeMatcher<FunctionTypeAliasElement>();
-
 const isFunctionTypedElement = TypeMatcher<FunctionTypedElement>();
 
 const isGenericFunctionTypeElement = TypeMatcher<GenericFunctionTypeElement>();

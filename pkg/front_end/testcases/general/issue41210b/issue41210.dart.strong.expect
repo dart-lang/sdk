@@ -5,12 +5,12 @@ library;
 // pkg/front_end/testcases/general/issue41210b/issue41210.dart:7:7: Error: Applying the mixin 'B' to 'Object with A' introduces an erroneous override of 'method'.
 // class C with A, B {} // error
 //       ^
-// pkg/front_end/testcases/general/issue41210b/issue41210_lib.dart:18:10: Context: The method 'B.method' has fewer named arguments than those of overridden method 'A.method'.
+// pkg/front_end/testcases/general/issue41210b/issue41210_lib.dart:18:10: Context: The method 'B.method' has fewer named arguments than those of overridden method 'Object with A.method'.
 //   String method(num i);
 //          ^
-// pkg/front_end/testcases/general/issue41210b/issue41210_lib.dart:14:10: Context: This is the overridden method ('method').
-//   String method(num i, {String s = "hello"}) => s;
-//          ^
+// pkg/front_end/testcases/general/issue41210b/issue41210.dart:7:7: Context: This is the overridden method ('method').
+// class C with A, B {} // error
+//       ^
 //
 import self as self;
 import "dart:core" as core;
@@ -22,38 +22,118 @@ abstract class _C&Object&A = core::Object with iss::A /*isAnonymousMixin,hasCons
   const synthetic constructor •() → self::_C&Object&A*
     : super core::Object::•()
     ;
+  mixin-super-stub method method(core::num* i, {core::String* s = #C1}) → core::String*
+    return super.{iss::A::method}(i, s: s);
+  abstract mixin-stub get _identityHashCode() → core::int*; -> iss::A::_identityHashCode
+  abstract mixin-stub method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> iss::A::_instanceOf
+  abstract mixin-stub method _simpleInstanceOf(dynamic type) → core::bool*; -> iss::A::_simpleInstanceOf
+  abstract mixin-stub method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> iss::A::_simpleInstanceOfTrue
+  abstract mixin-stub method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> iss::A::_simpleInstanceOfFalse
+  abstract mixin-stub operator ==(dynamic other) → core::bool*; -> iss::A::==
+  abstract mixin-stub get hashCode() → core::int*; -> iss::A::hashCode
+  abstract mixin-stub method toString() → core::String*; -> iss::A::toString
+  abstract mixin-stub method noSuchMethod(core::Invocation* invocation) → dynamic; -> iss::A::noSuchMethod
+  abstract mixin-stub get runtimeType() → core::Type*; -> iss::A::runtimeType
 }
 abstract class _C&Object&A&B = self::_C&Object&A with iss::B /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C&Object&A&B*
     : super self::_C&Object&A::•()
     ;
-  abstract member-signature method method(core::num* i, {core::String* s = #C1}) → core::String*; -> iss::A::method
+  abstract mixin-stub method method(core::num* i) → core::String*; -> iss::B::method
+  abstract mixin-stub get _identityHashCode() → core::int*; -> iss::B::_identityHashCode
+  abstract mixin-stub method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> iss::B::_instanceOf
+  abstract mixin-stub method _simpleInstanceOf(dynamic type) → core::bool*; -> iss::B::_simpleInstanceOf
+  abstract mixin-stub method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> iss::B::_simpleInstanceOfTrue
+  abstract mixin-stub method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> iss::B::_simpleInstanceOfFalse
+  abstract mixin-stub operator ==(dynamic other) → core::bool*; -> iss::B::==
+  abstract mixin-stub get hashCode() → core::int*; -> iss::B::hashCode
+  abstract mixin-stub method toString() → core::String*; -> iss::B::toString
+  abstract mixin-stub method noSuchMethod(core::Invocation* invocation) → dynamic; -> iss::B::noSuchMethod
+  abstract mixin-stub get runtimeType() → core::Type*; -> iss::B::runtimeType
 }
 class C extends self::_C&Object&A&B {
   synthetic constructor •() → self::C*
     : super self::_C&Object&A&B::•()
     ;
-  abstract member-signature method method(core::num* i, {core::String* s = #C1}) → core::String*; -> iss::A::method
 }
 abstract class _E&Object&A = core::Object with iss::A /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_E&Object&A*
     : super core::Object::•()
     ;
+  abstract mixin-stub get _identityHashCode() → core::int*; -> iss::A::_identityHashCode
+  abstract mixin-stub method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> iss::A::_instanceOf
+  abstract mixin-stub method _simpleInstanceOf(dynamic type) → core::bool*; -> iss::A::_simpleInstanceOf
+  abstract mixin-stub method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> iss::A::_simpleInstanceOfTrue
+  abstract mixin-stub method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> iss::A::_simpleInstanceOfFalse
+  abstract mixin-stub operator ==(dynamic other) → core::bool*; -> iss::A::==
+  abstract mixin-stub get hashCode() → core::int*; -> iss::A::hashCode
+  abstract mixin-stub method toString() → core::String*; -> iss::A::toString
+  abstract mixin-stub method noSuchMethod(core::Invocation* invocation) → dynamic; -> iss::A::noSuchMethod
+  abstract mixin-stub get runtimeType() → core::Type*; -> iss::A::runtimeType
+  mixin-super-stub method method(core::num* i, {core::String* s = #C1}) → core::String*
+    return super.{iss::A::method}(i, s: s);
 }
 abstract class _E&Object&A&D = self::_E&Object&A with iss::D /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_E&Object&A&D*
     : super self::_E&Object&A::•()
     ;
-  abstract forwarding-stub method method(covariant core::num* i, {core::String* s = #C1}) → core::String*;
+  abstract mixin-stub get _identityHashCode() → core::int*; -> iss::D::_identityHashCode
+  abstract mixin-stub method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> iss::D::_instanceOf
+  abstract mixin-stub method _simpleInstanceOf(dynamic type) → core::bool*; -> iss::D::_simpleInstanceOf
+  abstract mixin-stub method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> iss::D::_simpleInstanceOfTrue
+  abstract mixin-stub method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> iss::D::_simpleInstanceOfFalse
+  abstract mixin-stub operator ==(dynamic other) → core::bool*; -> iss::D::==
+  abstract mixin-stub get hashCode() → core::int*; -> iss::D::hashCode
+  abstract mixin-stub method toString() → core::String*; -> iss::D::toString
+  abstract mixin-stub method noSuchMethod(core::Invocation* invocation) → dynamic; -> iss::D::noSuchMethod
+  abstract mixin-stub get runtimeType() → core::Type*; -> iss::D::runtimeType
+  forwarding-stub method method(covariant core::num* i) → core::String*
+    return super.{self::_E&Object&A::method}(i);
 }
 class E extends self::_E&Object&A&D {
   synthetic constructor •() → self::E*
     : super self::_E&Object&A&D::•()
     ;
-  abstract member-signature method method(covariant core::num* i, {core::String* s = #C1}) → core::String*; -> self::_E&Object&A&D::method
+}
+abstract class _G&Object&A = core::Object with iss::A /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_G&Object&A*
+    : super core::Object::•()
+    ;
+  abstract mixin-stub get _identityHashCode() → core::int*; -> iss::A::_identityHashCode
+  abstract mixin-stub method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> iss::A::_instanceOf
+  abstract mixin-stub method _simpleInstanceOf(dynamic type) → core::bool*; -> iss::A::_simpleInstanceOf
+  abstract mixin-stub method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> iss::A::_simpleInstanceOfTrue
+  abstract mixin-stub method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> iss::A::_simpleInstanceOfFalse
+  abstract mixin-stub operator ==(dynamic other) → core::bool*; -> iss::A::==
+  abstract mixin-stub get hashCode() → core::int*; -> iss::A::hashCode
+  abstract mixin-stub method toString() → core::String*; -> iss::A::toString
+  abstract mixin-stub method noSuchMethod(core::Invocation* invocation) → dynamic; -> iss::A::noSuchMethod
+  abstract mixin-stub get runtimeType() → core::Type*; -> iss::A::runtimeType
+  mixin-super-stub method method(core::num* i, {core::String* s = #C1}) → core::String*
+    return super.{iss::A::method}(i, s: s);
+}
+abstract class _G&Object&A&F = self::_G&Object&A with iss::F /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_G&Object&A&F*
+    : super self::_G&Object&A::•()
+    ;
+  abstract mixin-stub get _identityHashCode() → core::int*; -> iss::F::_identityHashCode
+  abstract mixin-stub method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> iss::F::_instanceOf
+  abstract mixin-stub method _simpleInstanceOf(dynamic type) → core::bool*; -> iss::F::_simpleInstanceOf
+  abstract mixin-stub method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> iss::F::_simpleInstanceOfTrue
+  abstract mixin-stub method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> iss::F::_simpleInstanceOfFalse
+  abstract mixin-stub operator ==(dynamic other) → core::bool*; -> iss::F::==
+  abstract mixin-stub get hashCode() → core::int*; -> iss::F::hashCode
+  abstract mixin-stub method toString() → core::String*; -> iss::F::toString
+  abstract mixin-stub method noSuchMethod(core::Invocation* invocation) → dynamic; -> iss::F::noSuchMethod
+  abstract mixin-stub get runtimeType() → core::Type*; -> iss::F::runtimeType
+}
+class G extends self::_G&Object&A&F {
+  synthetic constructor •() → self::G*
+    : super self::_G&Object&A&F::•()
+    ;
 }
 static method main() → dynamic {
-  core::print(new self::C::•().{self::C::method}(0));
+  core::print(new self::C::•().{self::_C&Object&A&B::method}(0));
 }
 
 library;
@@ -137,6 +217,21 @@ abstract class D extends core::Object implements iss::Interface, iss::Interface2
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
   abstract forwarding-stub method method(covariant core::num* i) → core::String*;
+}
+abstract class F extends core::Object implements iss::Interface {
+  synthetic constructor •() → iss::F*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 
 constants  {

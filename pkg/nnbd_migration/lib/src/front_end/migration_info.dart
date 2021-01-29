@@ -6,11 +6,11 @@ import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
-import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/front_end/offset_mapper.dart';
 import 'package:nnbd_migration/src/front_end/unit_link.dart';
 import 'package:nnbd_migration/src/front_end/web/navigation_tree.dart';
+import 'package:nnbd_migration/src/hint_action.dart';
 import 'package:nnbd_migration/src/preview/preview_site.dart';
 import 'package:path/path.dart' as path;
 
@@ -37,24 +37,6 @@ class EditDetail {
           String description, SourceEdit sourceEdit) =>
       EditDetail(description, sourceEdit.offset, sourceEdit.length,
           sourceEdit.replacement);
-}
-
-/// Everything the front end needs to know to tell the server to perform a hint
-/// action.
-class HintAction {
-  final HintActionKind kind;
-  final int nodeId;
-  HintAction(this.kind, this.nodeId);
-
-  HintAction.fromJson(Map<String, Object> json)
-      : nodeId = json['nodeId'] as int,
-        kind = HintActionKind.values
-            .singleWhere((action) => action.index == json['kind']);
-
-  Map<String, Object> toJson() => {
-        'nodeId': nodeId,
-        'kind': kind.index,
-      };
 }
 
 /// A class storing rendering information for an entire migration report.
@@ -96,17 +78,29 @@ class MigrationInfo {
   /// The path of the Roboto Mono font.
   String get robotoMonoFont => PreviewSite.robotoMonoFontPath;
 
+  /// Returns the absolute path of [path], as relative to [includedRoot].
+  String absolutePathFromRoot(String path) =>
+      pathContext.join(includedRoot, path);
+
+  /// Returns the relative path of [path] from [includedRoot].
+  String relativePathFromRoot(String path) =>
+      pathContext.relative(path, from: includedRoot);
+
   /// Return the path to [unit] from [includedRoot], to be used as a display
   /// name for a library.
-  String computeName(UnitInfo unit) =>
-      pathContext.relative(unit.path, from: includedRoot);
+  String computeName(UnitInfo unit) => relativePathFromRoot(unit.path);
 
   List<UnitLink> unitLinks() {
     var links = <UnitLink>[];
     for (var unit in units) {
       var count = unit.fixRegions.length;
-      links.add(UnitLink(unit.path, pathContext.split(computeName(unit)), count,
-          unit.wasExplicitlyOptedOut, unit.migrationStatus));
+      links.add(UnitLink(
+          unit.path,
+          pathContext.split(computeName(unit)),
+          count,
+          unit.wasExplicitlyOptedOut,
+          unit.migrationStatus,
+          unit.migrationStatusCanBeChanged));
     }
     return links;
   }
@@ -152,7 +146,7 @@ class NavigationTarget extends NavigationRegion {
   int get hashCode => JenkinsSmiHash.hash3(filePath.hashCode, offset, length);
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     return other is NavigationTarget &&
         other.filePath == filePath &&
         other.offset == offset &&
@@ -283,7 +277,9 @@ class UnitInfo {
 
   /// Whether this compilation unit was explicitly opted out of null safety at
   /// the start of this migration.
-  bool wasExplicitlyOptedOut;
+  /*late*/ bool wasExplicitlyOptedOut;
+
+  /*late*/ bool migrationStatusCanBeChanged;
 
   /// Indicates the migration status of this unit.
   ///

@@ -30,6 +30,8 @@ namespace dart {
   V(AbstractType_toString, 1)                                                  \
   V(Type_getHashCode, 1)                                                       \
   V(Type_equality, 2)                                                          \
+  V(FunctionType_getHashCode, 1)                                               \
+  V(FunctionType_equality, 2)                                                  \
   V(LibraryPrefix_isLoaded, 1)                                                 \
   V(LibraryPrefix_setLoaded, 1)                                                \
   V(LibraryPrefix_loadingUnit, 1)                                              \
@@ -469,8 +471,6 @@ namespace dart {
   V(MethodMirror_return_type, 2)                                               \
   V(MethodMirror_source, 1)                                                    \
   V(ParameterMirror_type, 3)                                                   \
-  V(TypedefMirror_referent, 1)                                                 \
-  V(TypedefMirror_declaration, 1)                                              \
   V(VariableMirror_type, 2)
 
 class BootstrapNatives : public AllStatic {

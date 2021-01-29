@@ -24,7 +24,11 @@ void defineTest() {
     final result = p.runSync(['test', '--help']);
 
     expect(result.exitCode, 0);
-    expect(result.stdout, contains(' tests in this package'));
+    expect(result.stdout, startsWith('''
+Runs tests in this package.
+
+Usage: pub run test [files or directories...]
+'''));
     expect(result.stderr, isEmpty);
   });
 
@@ -46,8 +50,25 @@ void defineTest() {
     var result = p.runSync(['test']);
 
     expect(result.stderr, isEmpty);
-    expect(result.stdout, contains('No pubspec.yaml file found'));
+    expect(result.stdout, '''
+No pubspec.yaml file found - run this command in your project folder.
+''');
     expect(result.exitCode, 65);
+
+    var resultHelp = p.runSync(['test', '--help']);
+
+    expect(resultHelp.stderr, isEmpty);
+    expect(resultHelp.stdout, '''
+No pubspec.yaml file found - run this command in your project folder.
+
+Run tests in this package.
+
+Usage: dart test [arguments]
+
+
+Run "dart help" to see global options.
+''');
+    expect(resultHelp.exitCode, 65);
   });
 
   test('runs test', () {
@@ -90,7 +111,7 @@ void main() {
     expect(result.exitCode, 65);
     expect(
       result.stdout,
-      contains('You need to add a dependency on package:test'),
+      contains('You need to add a dev_dependency on package:test'),
     );
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 65);

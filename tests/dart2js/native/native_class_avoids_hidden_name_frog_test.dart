@@ -32,8 +32,8 @@ void setup1() {
 (function(){
   // Poison hidden native names 'BB' and 'CC' to prove the compiler didn't place
   // anything on the hidden native class.
-  BB = null;
-  CC = null;
+  self.BB = null;
+  self.CC = null;
 })()""");
 }
 
@@ -43,11 +43,12 @@ void setup2() {
   // This code is inside 'setup' and so not accessible from the global scope.
   function BB(){}
   function CC(){}
-  makeA = function(){return new BB()};  // AA is native "BB"
-  makeB = function(){return new CC()};  // BB is native "CC"
+  self.makeA = function(){return new BB()};  // AA is native "BB"
+  self.makeB = function(){return new CC()};  // BB is native "CC"
   self.nativeConstructor(BB);
   self.nativeConstructor(CC);
 })()""");
+  applyTestExtensions(['BB', 'CC']);
 }
 
 main() {

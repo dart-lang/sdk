@@ -544,6 +544,8 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.useOldRti, passThrough),
     new OptionHandler(Flags.testMode, passThrough),
     new OptionHandler('${Flags.dumpSsa}=.+', passThrough),
+    new OptionHandler('${Flags.cfeInvocationModes}=.+', passThrough),
+    new OptionHandler('${Flags.verbosity}=.+', passThrough),
 
     // Experimental features.
     // We don't provide documentation for these yet.
@@ -559,6 +561,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.experimentUnreachableMethodsThrow, passThrough),
     new OptionHandler(Flags.experimentCallInstrumentation, passThrough),
     new OptionHandler(Flags.experimentNewRti, ignoreOption),
+    new OptionHandler('${Flags.mergeFragmentsThreshold}=.+', passThrough),
 
     // The following three options must come last.
     new OptionHandler('-D.+=.*', addInEnvironment),

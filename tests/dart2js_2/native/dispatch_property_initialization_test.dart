@@ -25,6 +25,7 @@ void setup() {
 
   self.nativeConstructor(Foo);
 })()""");
+  applyTestExtensions(['Foo']);
 }
 
 main() {

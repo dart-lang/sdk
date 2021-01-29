@@ -192,7 +192,7 @@ ConstantInstr* FlowGraph::GetConstant(const Object& object) {
   if (constant == nullptr) {
     // Otherwise, allocate and add it to the pool.
     constant =
-        new (zone()) ConstantInstr(Object::ZoneHandle(zone(), object.raw()));
+        new (zone()) ConstantInstr(Object::ZoneHandle(zone(), object.ptr()));
     constant->set_ssa_temp_index(alloc_ssa_temp_index());
     if (NeedsPairLocation(constant->representation())) {
       alloc_ssa_temp_index();
@@ -481,7 +481,7 @@ bool FlowGraph::IsReceiver(Definition* def) const {
 
 FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
     InstanceCallInstr* call,
-    FunctionLayout::Kind kind) const {
+    UntaggedFunction::Kind kind) const {
   if (!FLAG_use_cha_deopt && !isolate()->all_classes_finalized()) {
     // Even if class or function are private, lazy class finalization
     // may later add overriding methods.
@@ -543,7 +543,7 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
   }
 
   const String& method_name =
-      (kind == FunctionLayout::kMethodExtractor)
+      (kind == UntaggedFunction::kMethodExtractor)
           ? String::Handle(zone(), Field::NameFromGetter(call->function_name()))
           : call->function_name();
 
@@ -551,7 +551,7 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
   // that is actually valid on a null receiver.
   if (receiver_maybe_null) {
     const Class& null_class =
-        Class::Handle(zone(), isolate()->object_store()->null_class());
+        Class::Handle(zone(), isolate_group()->object_store()->null_class());
     Function& target = Function::Handle(zone());
     if (null_class.EnsureIsFinalized(thread()) == Error::null()) {
       target = Resolver::ResolveDynamicAnyArgs(zone(), null_class, method_name);
@@ -585,13 +585,13 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
 Instruction* FlowGraph::CreateCheckClass(Definition* to_check,
                                          const Cids& cids,
                                          intptr_t deopt_id,
-                                         TokenPosition token_pos) {
+                                         const InstructionSource& source) {
   if (cids.IsMonomorphic() && cids.MonomorphicReceiverCid() == kSmiCid) {
     return new (zone())
-        CheckSmiInstr(new (zone()) Value(to_check), deopt_id, token_pos);
+        CheckSmiInstr(new (zone()) Value(to_check), deopt_id, source);
   }
   return new (zone())
-      CheckClassInstr(new (zone()) Value(to_check), deopt_id, cids, token_pos);
+      CheckClassInstr(new (zone()) Value(to_check), deopt_id, cids, source);
 }
 
 Definition* FlowGraph::CreateCheckBound(Definition* length,
@@ -607,12 +607,12 @@ Definition* FlowGraph::CreateCheckBound(Definition* length,
 
 void FlowGraph::AddExactnessGuard(InstanceCallInstr* call,
                                   intptr_t receiver_cid) {
-  const Class& cls = Class::Handle(
-      zone(), Isolate::Current()->class_table()->At(receiver_cid));
+  const Class& cls =
+      Class::Handle(zone(), isolate_group()->class_table()->At(receiver_cid));
 
   Definition* load_type_args = new (zone()) LoadFieldInstr(
       call->Receiver()->CopyWithType(),
-      Slot::GetTypeArgumentsSlotFor(thread(), cls), call->token_pos());
+      Slot::GetTypeArgumentsSlotFor(thread(), cls), call->source());
   InsertBefore(call, load_type_args, call->env(), FlowGraph::kValue);
 
   const AbstractType& type =
@@ -620,7 +620,7 @@ void FlowGraph::AddExactnessGuard(InstanceCallInstr* call,
   ASSERT(!type.IsNull());
   const TypeArguments& args = TypeArguments::Handle(zone(), type.arguments());
   Instruction* guard = new (zone()) CheckConditionInstr(
-      new StrictCompareInstr(call->token_pos(), Token::kEQ_STRICT,
+      new StrictCompareInstr(call->source(), Token::kEQ_STRICT,
                              new (zone()) Value(load_type_args),
                              new (zone()) Value(GetConstant(args)),
                              /*needs_number_check=*/false, call->deopt_id()),
@@ -2742,7 +2742,7 @@ JoinEntryInstr* FlowGraph::NewDiamond(Instruction* instruction,
   PhiInstr* phi =
       AddPhi(mid_point, condition.oper2, GetConstant(Bool::False()));
   StrictCompareInstr* circuit = new (zone()) StrictCompareInstr(
-      inherit->token_pos(), Token::kEQ_STRICT, new (zone()) Value(phi),
+      inherit->source(), Token::kEQ_STRICT, new (zone()) Value(phi),
       new (zone()) Value(GetConstant(Bool::True())), false,
       DeoptId::kNone);  // don't inherit
 

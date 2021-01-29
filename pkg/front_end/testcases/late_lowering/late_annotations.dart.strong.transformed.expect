@@ -179,3 +179,9 @@ Evaluated: VariableGet @ org-dartlang-testcase:///late_annotations.dart:61:25 ->
 Evaluated: VariableGet @ org-dartlang-testcase:///late_annotations.dart:16:16 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///late_annotations.dart:72:25 -> IntConstant(0)
 Extra constant evaluation: evaluated: 268, effectively constant: 6
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///late_annotations.dart:
+- Annotation. (from org-dartlang-testcase:///late_annotations.dart:6:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

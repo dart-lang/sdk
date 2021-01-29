@@ -30,7 +30,7 @@ class C {
   C.named({int b, @deprecated int a});
 }
 ''');
-    setPackageData(_rename(['C', 'named'], 'a', 'b'));
+    setPackageData(_rename(['named', 'C'], 'a', 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -53,7 +53,7 @@ class C {
   C.named({int b});
 }
 ''');
-    setPackageData(_rename(['C', 'named'], 'a', 'b'));
+    setPackageData(_rename(['named', 'C'], 'a', 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -76,7 +76,7 @@ class C {
   C({int b, @deprecated int a});
 }
 ''');
-    setPackageData(_rename(['C', ''], 'a', 'b'));
+    setPackageData(_rename(['', 'C'], 'a', 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -99,7 +99,7 @@ class C {
   C({int b});
 }
 ''');
-    setPackageData(_rename(['C', ''], 'a', 'b'));
+    setPackageData(_rename(['', 'C'], 'a', 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -128,7 +128,7 @@ class C {
   int m({int b, @deprecated int a}) => 0;
 }
 ''');
-    setPackageData(_rename(['D', 'm'], 'a', 'nbew'));
+    setPackageData(_rename(['m', 'D'], 'a', 'nbew'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -145,7 +145,7 @@ class C {
   int m({int b, @deprecated int a}) => 0;
 }
 ''');
-    setPackageData(_rename(['C', 'm'], 'a', 'b'));
+    setPackageData(_rename(['m', 'C'], 'a', 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -170,7 +170,7 @@ class C {
   int m({int b}) => 0;
 }
 ''');
-    setPackageData(_rename(['C', 'm'], 'a', 'b'));
+    setPackageData(_rename(['m', 'C'], 'a', 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -195,7 +195,7 @@ class C {
   int m({int b, @deprecated int a}) => 0;
 }
 ''');
-    setPackageData(_rename(['C', 'm'], 'a', 'b'));
+    setPackageData(_rename(['m', 'C'], 'a', 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -218,7 +218,7 @@ class C {
   int m({int b}) => 0;
 }
 ''');
-    setPackageData(_rename(['C', 'm'], 'a', 'b'));
+    setPackageData(_rename(['m', 'C'], 'a', 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -241,7 +241,7 @@ class C {
   static int m({int b, @deprecated int a}) => 0;
 }
 ''');
-    setPackageData(_rename(['C', 'm'], 'a', 'b'));
+    setPackageData(_rename(['m', 'C'], 'a', 'b'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -264,7 +264,7 @@ class C {
   static int m({int b}) => 0;
 }
 ''');
-    setPackageData(_rename(['C', 'm'], 'a', 'b'));
+    setPackageData(_rename(['m', 'C'], 'a', 'b'));
     await resolveTestCode('''
 import '$importUri';
 

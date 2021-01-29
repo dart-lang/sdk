@@ -11,6 +11,8 @@ import 'package:analyzer/src/plugin/options.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:yaml/yaml.dart';
 
+/// TODO(pq): migrate these codes to `option_codes.dart`?
+
 /// A hint code indicating reference to a deprecated lint.
 ///
 /// Parameters:

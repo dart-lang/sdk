@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library front_end.compiler_options;
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
-    show DiagnosticMessageHandler;
+    show DiagnosticMessage, DiagnosticMessageHandler;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
 import 'package:kernel/ast.dart' show Version;
 
@@ -189,7 +192,7 @@ class CompilerOptions {
   bool verify = false;
 
   /// Whether to - if verifying - skip the platform.
-  bool verifySkipPlatform = false;
+  bool skipPlatformVerification = false;
 
   /// Whether to dump generated components in a text format (also mainly for
   /// debugging).
@@ -255,6 +258,16 @@ class CompilerOptions {
   /// If `true`, a '.d' file with input dependencies is generated when
   /// compiling the platform dill.
   bool emitDeps = true;
+
+  /// Set of invocation modes the describe how the compilation is performed.
+  ///
+  /// This used to selectively emit certain messages depending on how the
+  /// CFE is invoked. For instance to emit a message about the null safety
+  /// compilation mode when the modes includes [InvocationMode.compile].
+  Set<InvocationMode> invocationModes = {};
+
+  /// Verbosity level used for filtering emitted messages.
+  Verbosity verbosity = Verbosity.all;
 
   bool isExperimentEnabledByDefault(ExperimentalFlag flag) {
     return flags.isExperimentEnabled(flag,
@@ -325,7 +338,9 @@ class CompilerOptions {
     }
     if (!ignoreVerify) {
       if (verify != other.verify) return false;
-      if (verifySkipPlatform != other.verifySkipPlatform) return false;
+      if (skipPlatformVerification != other.skipPlatformVerification) {
+        return false;
+      }
     }
     if (!ignoreDebugDump) {
       if (debugDump != other.debugDump) return false;
@@ -344,6 +359,7 @@ class CompilerOptions {
     if (nnbdMode != other.nnbdMode) return false;
     if (currentSdkVersion != other.currentSdkVersion) return false;
     if (emitDeps != other.emitDeps) return false;
+    if (!equalSets(invocationModes, other.invocationModes)) return false;
 
     return true;
   }
@@ -430,4 +446,163 @@ Map<ExperimentalFlag, bool> parseExperimentalFlags(
     }
   }
   return flags;
+}
+
+class InvocationMode {
+  /// This mode is used for when the CFE is invoked in order to compile an
+  /// executable.
+  ///
+  /// If used, a message about the null safety compilation mode will be emitted.
+  static const InvocationMode compile = const InvocationMode('compile');
+
+  final String name;
+
+  const InvocationMode(this.name);
+
+  /// Returns the set of information modes from a comma-separated list of
+  /// invocation mode names.
+  ///
+  /// If a name isn't recognized and [onError] is provided, [onError] is called
+  /// with an error messages and an empty set of invocation modes is returned.
+  ///
+  /// If a name isn't recognized and [onError] isn't provided, an error is
+  /// thrown.
+  static Set<InvocationMode> parseArguments(String arg,
+      {void Function(String) onError}) {
+    Set<InvocationMode> result = {};
+    for (String name in arg.split(',')) {
+      if (name.isNotEmpty) {
+        InvocationMode mode = fromName(name);
+        if (mode == null) {
+          String message = "Unknown invocation mode '$name'.";
+          if (onError != null) {
+            onError(message);
+          } else {
+            throw new UnsupportedError(message);
+          }
+        } else {
+          result.add(mode);
+        }
+      }
+    }
+    return result;
+  }
+
+  /// Returns the [InvocationMode] with the given [name].
+  static InvocationMode fromName(String name) {
+    for (InvocationMode invocationMode in values) {
+      if (name == invocationMode.name) {
+        return invocationMode;
+      }
+    }
+    return null;
+  }
+
+  static const List<InvocationMode> values = const [compile];
+}
+
+/// Verbosity level used for filtering messages during compilation.
+class Verbosity {
+  /// Only error messages are emitted.
+  static const Verbosity error =
+      const Verbosity('error', 'Show only error messages');
+
+  /// Error and warning messages are emitted.
+  static const Verbosity warning =
+      const Verbosity('warning', 'Show only error and warning messages');
+
+  /// Error, warning, and info messages are emitted.
+  static const Verbosity info =
+      const Verbosity('info', 'Show error, warning, and info messages');
+
+  /// All messages are emitted.
+  static const Verbosity all = const Verbosity('all', 'Show all messages');
+
+  static const List<Verbosity> values = const [error, warning, info, all];
+
+  /// Returns the names of all options.
+  static List<String> get allowedValues =>
+      [for (Verbosity value in values) value.name];
+
+  /// Returns a map from option name to option help messages.
+  static Map<String, String> get allowedValuesHelp =>
+      {for (Verbosity value in values) value.name: value.help};
+
+  /// Returns the verbosity corresponding to the given [name].
+  ///
+  /// If [name] isn't recognized and [onError] is provided, [onError] is called
+  /// with an error messages and [defaultValue] is returned.
+  ///
+  /// If [name] isn't recognized and [onError] isn't provided, an error is
+  /// thrown.
+  static Verbosity parseArgument(String name,
+      {void Function(String) onError, Verbosity defaultValue: Verbosity.all}) {
+    for (Verbosity verbosity in values) {
+      if (name == verbosity.name) {
+        return verbosity;
+      }
+    }
+    String message = "Unknown verbosity '$name'.";
+    if (onError != null) {
+      onError(message);
+      return defaultValue;
+    }
+    throw new UnsupportedError(message);
+  }
+
+  static bool shouldPrint(Verbosity verbosity, DiagnosticMessage message) {
+    Severity severity = message.severity;
+    switch (verbosity) {
+      case Verbosity.error:
+        switch (severity) {
+          case Severity.internalProblem:
+          case Severity.error:
+            return true;
+          case Severity.warning:
+          case Severity.info:
+          case Severity.context:
+          case Severity.ignored:
+            return false;
+        }
+        break;
+      case Verbosity.warning:
+        switch (severity) {
+          case Severity.internalProblem:
+          case Severity.error:
+          case Severity.warning:
+            return true;
+          case Severity.info:
+          case Severity.context:
+          case Severity.ignored:
+            return false;
+        }
+        break;
+      case Verbosity.info:
+        switch (severity) {
+          case Severity.internalProblem:
+          case Severity.error:
+          case Severity.warning:
+          case Severity.info:
+            return true;
+          case Severity.context:
+          case Severity.ignored:
+            return false;
+        }
+        break;
+      case Verbosity.all:
+        return true;
+    }
+    throw new UnsupportedError(
+        "Unsupported verbosity $verbosity and severity $severity.");
+  }
+
+  static const String defaultValue = 'all';
+
+  final String name;
+  final String help;
+
+  const Verbosity(this.name, this.help);
+
+  @override
+  String toString() => 'Verbosity($name)';
 }

@@ -114,7 +114,7 @@
     }                                                                          \
                                                                                \
     const Error& error = Error::Handle(Thread::Current()->sticky_error());     \
-    if (error.raw() == Object::branch_offset_error().raw()) {                  \
+    if (error.ptr() == Object::branch_offset_error().ptr()) {                  \
       bool use_far_branches = true;                                            \
       compiler::ObjectPoolBuilder object_pool_builder;                         \
       compiler::Assembler assembler(&object_pool_builder, use_far_branches);   \

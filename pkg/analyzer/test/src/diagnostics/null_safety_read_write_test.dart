@@ -515,7 +515,8 @@ void f() {
 ''', [
       error(CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE, 68,
           1),
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 68, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          68, 1),
     ]);
     _assertAssigned('x +=', assigned: false, unassigned: true);
   }
@@ -530,7 +531,8 @@ void f() {
 ''', [
       error(CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE, 68,
           1),
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 68, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          68, 1),
     ]);
     _assertAssigned('x++', assigned: false, unassigned: true);
   }
@@ -545,7 +547,8 @@ void f() {
 ''', [
       error(CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE, 70,
           1),
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 70, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          70, 1),
     ]);
     _assertAssigned('x; // 0', assigned: false, unassigned: true);
   }
@@ -581,7 +584,8 @@ void f(bool b) {
   x += 1;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 90, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          90, 1),
     ]);
     _assertAssigned('x +=', assigned: false, unassigned: false);
   }
@@ -595,7 +599,8 @@ void f(bool b) {
   x++;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 90, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          90, 1),
     ]);
     _assertAssigned('x++', assigned: false, unassigned: false);
   }
@@ -609,7 +614,8 @@ void f(bool b) {
   ++x; // 0
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 92, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          92, 1),
     ]);
     _assertAssigned('x; // 0', assigned: false, unassigned: false);
   }

@@ -202,14 +202,14 @@ class DuplicateDefinitionVerifier {
       for (FunctionElement function in element.functions) {
         definedGetters[function.name] = function;
       }
-      for (FunctionTypeAliasElement alias in element.functionTypeAliases) {
-        definedGetters[alias.name] = alias;
-      }
       for (TopLevelVariableElement variable in element.topLevelVariables) {
         definedGetters[variable.name] = variable;
         if (!variable.isFinal && !variable.isConst) {
           definedGetters[variable.name + '='] = variable;
         }
+      }
+      for (TypeAliasElement alias in element.typeAliases) {
+        definedGetters[alias.name] = alias;
       }
       for (ClassElement type in element.types) {
         definedGetters[type.name] = type;

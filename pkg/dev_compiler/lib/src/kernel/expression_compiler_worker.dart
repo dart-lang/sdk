@@ -8,16 +8,16 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart';
-import 'package:_fe_analyzer_shared/src/messages/severity.dart';
 import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
-import 'package:front_end/src/api_prototype/compiler_options.dart';
-import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:kernel/ast.dart' show Component, Library;
+import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
+import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/target/targets.dart' show TargetFlags;
+import 'package:kernel/src/tool/find_referenced_libraries.dart'
+    show duplicateLibrariesReachable;
 import 'package:meta/meta.dart';
 import 'package:vm/http_filesystem.dart';
 
@@ -27,29 +27,6 @@ import 'command.dart';
 import 'compiler.dart';
 import 'expression_compiler.dart';
 import 'target.dart';
-
-/// A wrapper around asset server that redirects file read requests
-/// to http get requests to the asset server.
-class AssetFileSystem extends HttpAwareFileSystem {
-  final String server;
-  final String port;
-
-  AssetFileSystem(FileSystem original, this.server, this.port)
-      : super(original);
-
-  Uri resourceUri(Uri uri) =>
-      Uri.parse('http://$server:$port/getResource?uri=${uri.toString()}');
-
-  @override
-  FileSystemEntity entityForUri(Uri uri) {
-    if (uri.scheme == 'file') {
-      return super.entityForUri(uri);
-    }
-
-    // pass the uri to the asset server in the debugger
-    return HttpFileSystemEntity(this, resourceUri(uri));
-  }
-}
 
 /// The service that handles expression compilation requests from
 /// the debugger.
@@ -100,10 +77,9 @@ class ExpressionCompilerWorker {
   final Stream<Map<String, dynamic>> requestStream;
   final void Function(Map<String, dynamic>) sendResponse;
 
-  final _libraryForUri = <Uri, Library>{};
-  final _componentForLibrary = <Library, Component>{};
-  final _componentForModuleName = <String, Component>{};
-  final _componentModuleNames = <Component, String>{};
+  final Map<String, Uri> _fullModules = {};
+  final ModuleCache _moduleCache = ModuleCache();
+
   final ProcessedOptions _processedOptions;
   final CompilerOptions _compilerOptions;
   final Component _sdkComponent;
@@ -163,6 +139,7 @@ class ExpressionCompilerWorker {
 
   static List<String> errors = <String>[];
   static List<String> warnings = <String>[];
+  static List<String> infos = <String>[];
 
   /// Create the worker and load the sdk outlines.
   static Future<ExpressionCompilerWorker> create({
@@ -192,7 +169,7 @@ class ExpressionCompilerWorker {
       ..omitPlatform = true
       ..environmentDefines = environmentDefines
       ..explicitExperimentalFlags = explicitExperimentalFlags
-      ..onDiagnostic = _onDiagnosticHandler(errors, warnings)
+      ..onDiagnostic = _onDiagnosticHandler(errors, warnings, infos)
       ..nnbdMode = soundNullSafety ? NnbdMode.Strong : NnbdMode.Weak
       ..verbose = verbose;
     requestStream ??= stdin
@@ -209,7 +186,7 @@ class ExpressionCompilerWorker {
 
     return ExpressionCompilerWorker._(processedOptions, compilerOptions,
         sdkComponent, requestStream, sendResponse)
-      .._update(sdkComponent, dartSdkModule);
+      .._updateCache(sdkComponent, dartSdkModule, true);
   }
 
   /// Starts listening and responding to commands.
@@ -223,8 +200,8 @@ class ExpressionCompilerWorker {
         if (command == 'Shutdown') break;
         switch (command) {
           case 'UpdateDeps':
-            sendResponse(
-                await _updateDeps(UpdateDepsRequest.fromJson(request)));
+            sendResponse(await _updateDependencies(
+                UpdateDependenciesRequest.fromJson(request)));
             break;
           case 'CompileExpression':
             sendResponse(await _compileExpression(
@@ -249,6 +226,8 @@ class ExpressionCompilerWorker {
   Future<Map<String, dynamic>> _compileExpression(
       CompileExpressionRequest request) async {
     var libraryUri = Uri.parse(request.libraryUri);
+    var moduleName = request.moduleName;
+
     if (libraryUri.scheme == 'dart') {
       // compiling expressions inside the SDK currently fails because
       // SDK kernel outlines do not contain information that is needed
@@ -257,70 +236,115 @@ class ExpressionCompilerWorker {
       throw Exception('Expression compilation inside SDK is not supported yet');
     }
 
-    var originalComponent = _componentForModuleName[request.moduleName];
-    if (originalComponent == null) {
-      throw ArgumentError(
-          'Unable to find library `$libraryUri`, it must be loaded first.');
-    }
-    _processedOptions.ticker.logMs(
-        'Compiling expression to JavaScript in module ${request.moduleName}');
-    var component = _sdkComponent;
+    _processedOptions.ticker
+        .logMs('Compiling expression to JavaScript in module $moduleName');
 
+    // Reset linking of libraries to the original state,
+    // so any newly loaded components are linked to the
+    // libraries in the cache.
+    _resetCacheLinks();
+
+    if (!_fullModules.containsKey(moduleName)) {
+      throw StateError('No full dill path available for $moduleName');
+    }
+
+    // Note that this doesn't actually re-load it if it's already fully loaded.
+    if (!await _loadAndUpdateComponent(
+        _fullModules[moduleName], moduleName, false)) {
+      throw ArgumentError('Failed to load full dill for module $moduleName');
+    }
+
+    var originalComponent = _moduleCache.componentForModuleName[moduleName];
+
+    var component = _sdkComponent;
     if (libraryUri.scheme != 'dart') {
+      _processedOptions.ticker.logMs('Collecting libraries for $moduleName');
+
       var libraries =
           _collectTransitiveDependencies(originalComponent, _sdkComponent);
+
+      assert(!duplicateLibrariesReachable(libraries));
+
       component = Component(
         libraries: libraries,
         nameRoot: originalComponent.root,
         uriToSource: originalComponent.uriToSource,
-      );
+      )..setMainMethodAndMode(
+          originalComponent.mainMethodName, true, originalComponent.mode);
     }
-    _processedOptions.ticker.logMs('Collected dependencies for expression');
+
+    _processedOptions.ticker.logMs('Collected libraries for $moduleName');
 
     errors.clear();
     warnings.clear();
+    infos.clear();
 
     var incrementalCompiler = IncrementalCompiler.forExpressionCompilationOnly(
         CompilerContext(_processedOptions), component, /*resetTicker*/ false);
 
-    var finalComponent =
-        await incrementalCompiler.computeDelta(entryPoints: [libraryUri]);
-    finalComponent.computeCanonicalNames();
+    var finalComponent = await incrementalCompiler
+        .computeDelta(entryPoints: [libraryUri], fullComponent: true);
+    assert(!duplicateLibrariesReachable(finalComponent.libraries));
+    assert(_canSerialize(finalComponent));
+
     _processedOptions.ticker.logMs('Computed delta for expression');
 
     if (errors.isNotEmpty) {
       return {
         'errors': errors,
         'warnings': warnings,
+        'infos': infos,
         'compiledProcedure': null,
         'succeeded': errors.isEmpty,
       };
     }
 
-    var compiler = ProgramCompiler(
+    var coreTypes = incrementalCompiler.getCoreTypes();
+    var hierarchy = incrementalCompiler.getClassHierarchy();
+
+    var kernel2jsCompiler = ProgramCompiler(
       finalComponent,
-      incrementalCompiler.getClassHierarchy(),
+      hierarchy,
       SharedCompilerOptions(
           sourceMap: true,
           summarizeApi: false,
-          moduleName: request.moduleName,
+          moduleName: moduleName,
           // Disable asserts due to failures to load source and
           // locations on kernel loaded from dill files in DDC.
           // https://github.com/dart-lang/sdk/issues/43986
           enableAsserts: false),
-      _componentForLibrary,
-      _componentModuleNames,
-      coreTypes: incrementalCompiler.getCoreTypes(),
+      _moduleCache.componentForLibrary,
+      _moduleCache.moduleNameForComponent,
+      coreTypes: coreTypes,
     );
 
-    compiler.emitModule(finalComponent);
+    assert(originalComponent.libraries.toSet().length ==
+        originalComponent.libraries.length);
+
+    // Pick the libraries from finalComponent that's also in originalComponent.
+    // This is needed because originalComponent can contain unreachable things
+    // (i.e. unreachable from the entry point used here).
+    var names = originalComponent.libraries.map((e) => e.importUri).toSet();
+    var librariesToEmit = finalComponent.libraries
+        .where((e) => names.contains(e.importUri))
+        .toList();
+    assert(_librariesAreKnown(hierarchy, librariesToEmit));
+
+    var componentToEmit = Component(
+        libraries: librariesToEmit,
+        nameRoot: finalComponent.root,
+        uriToSource: finalComponent.uriToSource)
+      ..setMainMethodAndMode(
+          originalComponent.mainMethodName, true, originalComponent.mode);
+
+    kernel2jsCompiler.emitModule(componentToEmit);
     _processedOptions.ticker.logMs('Emitted module for expression');
 
     var expressionCompiler = ExpressionCompiler(
       _compilerOptions,
       errors,
       incrementalCompiler,
-      compiler,
+      kernel2jsCompiler,
       finalComponent,
     );
 
@@ -336,49 +360,82 @@ class ExpressionCompilerWorker {
     return {
       'errors': errors,
       'warnings': warnings,
+      'infos': infos,
       'compiledProcedure': compiledProcedure,
       'succeeded': errors.isEmpty,
     };
   }
 
+  /// Collect libraries reachable from component.
   List<Library> _collectTransitiveDependencies(
       Component component, Component sdk) {
-    var libraries = <Library>{};
-    libraries.addAll(sdk.libraries);
+    var visited = <Uri>{};
+    var libraries = <Library>[];
+    var toVisit = <Uri>[];
 
-    var toVisit = <Library>[];
-    toVisit.addAll(component.libraries);
+    toVisit.addAll(sdk.libraries.map((e) => e.importUri));
+    toVisit.addAll(component.libraries.map((e) => e.importUri));
 
     while (toVisit.isNotEmpty) {
-      var lib = toVisit.removeLast();
-      if (!libraries.contains(lib)) {
-        libraries.add(lib);
-
-        for (var dep in lib.dependencies) {
-          var uri = dep.importedLibraryReference.asLibrary.importUri;
-          var library = _libraryForUri[uri];
-          assert(library == dep.importedLibraryReference.asLibrary);
-          toVisit.add(library);
+      var uri = toVisit.removeLast();
+      if (!visited.contains(uri)) {
+        visited.add(uri);
+        if (_moduleCache.libraryForUri.containsKey(uri)) {
+          var lib = _moduleCache.libraryForUri[uri];
+          libraries.add(lib);
+          for (var dep in lib.dependencies) {
+            if (dep.importedLibraryReference.node != null) {
+              toVisit.add(dep.importedLibraryReference.asLibrary.importUri);
+            } else {
+              _processedOptions.ticker.logMs(
+                  'Missing link for ${dep.importedLibraryReference.canonicalName}'
+                  ' in ${lib.importUri}');
+            }
+          }
+        } else {
+          _processedOptions.ticker.logMs('No summary found for library: $uri');
         }
       }
     }
 
-    return libraries.toList();
+    return libraries;
   }
 
   /// Loads in the specified dill files and invalidates any existing ones.
-  Future<Map<String, dynamic>> _updateDeps(UpdateDepsRequest request) async {
+  Future<Map<String, dynamic>> _updateDependencies(
+      UpdateDependenciesRequest request) async {
     _processedOptions.ticker
         .logMs('Updating dependencies for expression evaluation');
 
     for (var input in request.inputs) {
-      var file =
-          _processedOptions.fileSystem.entityForUri(Uri.parse(input.path));
-      var bytes = await file.readAsBytes();
-      var component = await _processedOptions.loadComponent(
-          bytes, _sdkComponent.root,
-          alwaysCreateNewNamedNodes: true);
-      _update(component, input.moduleName);
+      _clearCache(input.moduleName);
+    }
+
+    // Reset linking of libraries to the original state,
+    // so any newly loaded components are linked to the
+    // libraries in the cache.
+    _resetCacheLinks();
+
+    // Load summaries and store paths for full kernel files.
+    // Note that we intentionally ignore loading failures here
+    // as not all of them are fatal. We report missing dependencies
+    // instead on expression evaluation.
+    // TODO(annagrin): throw on load failures when blaze build starts
+    // producing all summaries.
+    for (var input in request.inputs) {
+      // Support older debugger versions that do not provide summary
+      // path by loading full dill kernel instead.
+      var hasSummary = input.summaryPath != null;
+      if (!hasSummary) {
+        _processedOptions.ticker
+            .logMs('Summary path is not provided for ${input.moduleName}.'
+                ' Loading full dill instead.');
+      }
+      var summaryPath = input.summaryPath ?? input.path;
+      await _loadAndUpdateComponent(
+          Uri.parse(summaryPath), input.moduleName, hasSummary);
+
+      _fullModules[input.moduleName] = Uri.parse(input.path);
     }
 
     _processedOptions.ticker
@@ -386,34 +443,151 @@ class ExpressionCompilerWorker {
     return {'succeeded': true};
   }
 
-  void _update(Component component, String moduleName) {
-    // do not update dart sdk
+  /// Load component and update cache.
+  Future<bool> _loadAndUpdateComponent(
+      Uri uri, String moduleName, bool isSummary) async {
+    if (isSummary && _moduleCache.isModuleLoaded(moduleName)) return true;
+    if (!isSummary && _moduleCache.isModuleFullyLoaded(moduleName)) return true;
+
+    var component = await _loadComponent(uri);
+    if (component == null) {
+      var componentKind = isSummary ? 'summary' : 'full kernel';
+      _processedOptions.ticker
+          .logMs('Failed to load $componentKind for $moduleName');
+      return false;
+    }
+    _updateCache(component, moduleName, isSummary);
+    return true;
+  }
+
+  Future<Component> _loadComponent(Uri uri) async {
+    var file = _processedOptions.fileSystem.entityForUri(uri);
+    if (await file.exists()) {
+      var bytes = await file.readAsBytes();
+      var component = _processedOptions.loadComponent(bytes, _sdkComponent.root,
+          alwaysCreateNewNamedNodes: true);
+      return component;
+    }
+    return null;
+  }
+
+  void _updateCache(Component component, String moduleName, bool isSummary) {
+    // Do not update dart sdk as we don't expect it to change.
     if (moduleName == dartSdkModule &&
-        _componentForModuleName.containsKey(moduleName)) {
+        _moduleCache.isModuleLoaded(moduleName)) {
       return;
     }
+    _moduleCache.addModule(moduleName, component, isSummary);
+  }
 
-    // cleanup old components and libraries
-    if (_componentForModuleName.containsKey(moduleName)) {
-      var oldComponent = _componentForModuleName[moduleName];
-      for (var lib in oldComponent.libraries) {
-        _componentForLibrary.remove(lib);
-        _libraryForUri.remove(lib.importUri);
-      }
-      _componentModuleNames.remove(oldComponent);
-      _componentForModuleName.remove(moduleName);
+  void _clearCache(String moduleName) {
+    // Do not remove dart sdk as we don't expect it to change.
+    if (moduleName == dartSdkModule) return;
+    _moduleCache.removeModule(moduleName);
+  }
+
+  /// Reset library links and canonical name trees.
+  void _resetCacheLinks() {
+    // Adopting children for the sdk and all already loaded components means
+    // that the root knows about all of it so anything new that is loaded will
+    // link correctly.
+    _sdkComponent.adoptChildren();
+    for (var component in _moduleCache.componentForModuleName.values) {
+      component.adoptChildren();
+    }
+  }
+
+  bool _librariesAreKnown(ClassHierarchy hierarchy, List<Library> libraries) {
+    for (var library in libraries) {
+      if (!hierarchy.knownLibraries.contains(library)) return false;
+    }
+    return true;
+  }
+
+  bool _canSerialize(Component component) {
+    var byteSink = _ByteSink();
+    var printer = BinaryPrinter(byteSink);
+    printer.writeComponentFile(component);
+    return true;
+  }
+}
+
+/// A wrapper around asset server that redirects file read requests
+/// to http get requests to the asset server.
+class AssetFileSystem extends HttpAwareFileSystem {
+  final String server;
+  final String port;
+
+  AssetFileSystem(FileSystem original, this.server, this.port)
+      : super(original);
+
+  Uri resourceUri(Uri uri) =>
+      Uri.parse('http://$server:$port/getResource?uri=${uri.toString()}');
+
+  @override
+  FileSystemEntity entityForUri(Uri uri) {
+    if (uri.scheme == 'file') {
+      return super.entityForUri(uri);
     }
 
-    // add new components and libraries
-    _componentModuleNames[component] = moduleName;
-    _componentForModuleName[moduleName] = component;
+    // Pass the uri to the asset server in the debugger.
+    return HttpFileSystemEntity(this, resourceUri(uri));
+  }
+}
+
+/// Module cache used to load modules and look up loaded libraries.
+///
+/// After each build, the cache is updated with summaries for
+/// new or updated modules. The summaries can be replaced by
+/// full dill kernel during a later expression evaluation in
+/// the corresponding module.
+class ModuleCache {
+  final Map<Uri, Library> libraryForUri = {};
+  final Map<Library, Component> componentForLibrary = {};
+  final Map<String, Component> componentForModuleName = {};
+  final Map<Component, String> moduleNameForComponent = {};
+  final Set<String> fullyLoadedModules = {};
+
+  bool isModuleLoaded(String moduleName) =>
+      componentForModuleName.containsKey(moduleName);
+
+  bool isModuleFullyLoaded(String moduleName) =>
+      fullyLoadedModules.contains(moduleName);
+
+  bool isLibraryLoaded(Library library) =>
+      componentForLibrary.containsKey(library);
+
+  void addModule(String moduleName, Component component, bool isSummary) {
+    moduleNameForComponent[component] = moduleName;
+    componentForModuleName[moduleName] = component;
+    if (!isSummary) fullyLoadedModules.add(moduleName);
+
     for (var lib in component.libraries) {
-      _componentForLibrary[lib] = component;
-      _libraryForUri[lib.importUri] = lib;
+      if (isLibraryLoaded(lib)) {
+        throw Exception('library ${lib.importUri} is already loaded in '
+            '${moduleNameForComponent[componentForLibrary[lib]]}');
+      }
+      componentForLibrary[lib] = component;
+      libraryForUri[lib.importUri] = lib;
+    }
+  }
+
+  void removeModule(String moduleName) {
+    if (isModuleLoaded(moduleName)) {
+      var oldComponent = componentForModuleName[moduleName];
+      for (var lib in oldComponent.libraries) {
+        componentForLibrary.remove(lib);
+        libraryForUri.remove(lib.importUri);
+      }
+
+      moduleNameForComponent.remove(oldComponent);
+      componentForModuleName.remove(moduleName);
+      fullyLoadedModules.remove(moduleName);
     }
   }
 }
 
+/// Expression compilation request to the expression compilation worker.
 class CompileExpressionRequest {
   final int column;
   final String expression;
@@ -445,27 +619,30 @@ class CompileExpressionRequest {
       );
 }
 
-class UpdateDepsRequest {
+/// Module update request to the expression compilation worker.
+class UpdateDependenciesRequest {
   final List<InputDill> inputs;
 
-  UpdateDepsRequest(this.inputs);
+  UpdateDependenciesRequest(this.inputs);
 
-  factory UpdateDepsRequest.fromJson(Map<String, dynamic> json) =>
-      UpdateDepsRequest([
+  factory UpdateDependenciesRequest.fromJson(Map<String, dynamic> json) =>
+      UpdateDependenciesRequest([
         for (var input in json['inputs'] as List)
-          InputDill(input['path'] as String, input['moduleName'] as String),
+          InputDill(input['path'] as String, input['summaryPath'] as String,
+              input['moduleName'] as String),
       ]);
 }
 
 class InputDill {
   final String moduleName;
   final String path;
+  final String summaryPath;
 
-  InputDill(this.path, this.moduleName);
+  InputDill(this.path, this.summaryPath, this.moduleName);
 }
 
 void Function(DiagnosticMessage) _onDiagnosticHandler(
-        List<String> errors, List<String> warnings) =>
+        List<String> errors, List<String> warnings, List<String> infos) =>
     (DiagnosticMessage message) {
       switch (message.severity) {
         case Severity.error:
@@ -474,6 +651,9 @@ void Function(DiagnosticMessage) _onDiagnosticHandler(
           break;
         case Severity.warning:
           warnings.add(message.plainTextFormatted.join('\n'));
+          break;
+        case Severity.info:
+          infos.add(message.plainTextFormatted.join('\n'));
           break;
         case Severity.context:
         case Severity.ignored:
@@ -498,3 +678,15 @@ final argParser = ArgParser()
 
 Uri _argToUri(String uriArg) =>
     uriArg == null ? null : Uri.base.resolve(uriArg.replaceAll('\\', '/'));
+
+class _ByteSink implements Sink<List<int>> {
+  final BytesBuilder builder = BytesBuilder();
+
+  @override
+  void add(List<int> data) {
+    builder.add(data);
+  }
+
+  @override
+  void close() {}
+}

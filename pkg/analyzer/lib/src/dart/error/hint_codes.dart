@@ -332,8 +332,43 @@ class HintCode extends AnalyzerErrorCode {
       correction: "Try re-writing the expression to use the '~/' operator.");
 
   /**
-   * Duplicate hidden names.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a name occurs multiple times in
+  // a `hide` clause. Repeating the name is unnecessary.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the name `min` is
+  // hidden more than once:
+  //
+  // ```dart
+  // import 'dart:math' hide min, [!min!];
+  //
+  // var x = pi;
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the name was mistyped in one or more places, then correct the mistyped
+  // names:
+  //
+  // ```dart
+  // import 'dart:math' hide max, min;
+  //
+  // var x = pi;
+  // ```
+  //
+  // If the name wasn't mistyped, then remove the unnecessary name from the
+  // list:
+  //
+  // ```dart
+  // import 'dart:math' hide min;
+  //
+  // var x = pi;
+  // ```
   static const HintCode DUPLICATE_HIDDEN_NAME =
       HintCode('DUPLICATE_HIDDEN_NAME', "Duplicate hidden name.",
           correction: "Try removing the repeated name from the list of hidden "
@@ -430,8 +465,43 @@ class HintCode extends AnalyzerErrorCode {
       hasPublishedDocs: true);
 
   /**
-   * Duplicate shown names.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a name occurs multiple times in
+  // a `show` clause. Repeating the name is unnecessary.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the name `min` is shown
+  // more than once:
+  //
+  // ```dart
+  // import 'dart:math' show min, [!min!];
+  //
+  // var x = min(2, min(0, 1));
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the name was mistyped in one or more places, then correct the mistyped
+  // names:
+  //
+  // ```dart
+  // import 'dart:math' show max, min;
+  //
+  // var x = max(2, min(0, 1));
+  // ```
+  //
+  // If the name wasn't mistyped, then remove the unnecessary name from the
+  // list:
+  //
+  // ```dart
+  // import 'dart:math' show min;
+  //
+  // var x = min(2, min(0, 1));
+  // ```
   static const HintCode DUPLICATE_SHOWN_NAME =
       HintCode('DUPLICATE_SHOWN_NAME', "Duplicate shown name.",
           correction: "Try removing the repeated name from the list of shown "
@@ -1546,19 +1616,6 @@ class HintCode extends AnalyzerErrorCode {
       hasPublishedDocs: true);
 
   /**
-   * Hint for classes that override equals, but not hashCode.
-   *
-   * Parameters:
-   * 0: the name of the current class
-   */
-  // TODO(brianwilkerson) Decide whether we want to implement this check
-  //  (possibly as a lint) or remove the hint code.
-  static const HintCode OVERRIDE_EQUALS_BUT_NOT_HASH_CODE = HintCode(
-      'OVERRIDE_EQUALS_BUT_NOT_HASH_CODE',
-      "The class '{0}' overrides 'operator==', but not 'get hashCode'.",
-      correction: "Try implementing 'hashCode'.");
-
-  /**
    * A field with the override annotation does not override a getter or setter.
    *
    * No parameters.
@@ -1687,6 +1744,27 @@ class HintCode extends AnalyzerErrorCode {
       "'{0}' is annotated with 'doNotStore' and shouldn't be returned unless "
           "'{1}' is also annotated.",
       correction: "Annotate '{1}' with 'doNotStore'.");
+
+  /**
+   * Parameters:
+   * 0: the return type as declared in the return statement
+   * 1: the expected return type as defined by the type of the Future
+   */
+  static const HintCode RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR = HintCode(
+    'RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR',
+    "A value of type '{0}' can't be returned by the 'onError' handler because "
+        "it must be assignable to '{1}'.",
+  );
+
+  /**
+   * Parameters:
+   * 0: the return type of the function
+   * 1: the expected return type as defined by the type of the Future
+   */
+  static const HintCode RETURN_TYPE_INVALID_FOR_CATCH_ERROR = HintCode(
+      'RETURN_TYPE_INVALID_FOR_CATCH_ERROR',
+      "The return type '{0}' isn't assignable to '{1}', as required by "
+          "'Future.catchError'.");
 
   /**
    * No parameters.
@@ -2568,25 +2646,50 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   /**
-   * Unnecessary type checks, the result is always false.
-   *
    * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the value of a type check (using
+  // either `is` or `is!`) is known at compile time.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the test `a is Object?`
+  // is always `true`:
+  //
+  // ```dart
+  // bool f<T>(T a) => [!a is Object?!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the type check doesn't check what you intended to check, then change the
+  // test:
+  //
+  // ```dart
+  // bool f<T>(T a) => a is Object;
+  // ```
+  //
+  // If the type check does check what you intended to check, then replace the
+  // type check with its known value or completely remove it:
+  //
+  // ```dart
+  // bool f<T>(T a) => true;
+  // ```
   static const HintCode UNNECESSARY_TYPE_CHECK_FALSE = HintCode(
     'UNNECESSARY_TYPE_CHECK',
-    "Unnecessary type check, the result is always false.",
+    "Unnecessary type check; the result is always 'false'.",
     correction: "Try correcting the type check, or removing the type check.",
     uniqueName: 'UNNECESSARY_TYPE_CHECK_FALSE',
   );
 
   /**
-   * Unnecessary type checks, the result is always true.
-   *
    * No parameters.
    */
   static const HintCode UNNECESSARY_TYPE_CHECK_TRUE = HintCode(
     'UNNECESSARY_TYPE_CHECK',
-    "Unnecessary type check, the result is always true.",
+    "Unnecessary type check; the result is always 'true'.",
     correction: "Try correcting the type check, or removing the type check.",
     uniqueName: 'UNNECESSARY_TYPE_CHECK_TRUE',
   );

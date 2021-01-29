@@ -42,6 +42,11 @@ class DFE {
   }
   bool use_incremental_compiler() const { return use_incremental_compiler_; }
 
+  void set_verbosity(Dart_KernelCompilationVerbosityLevel verbosity) {
+    verbosity_ = verbosity;
+  }
+  Dart_KernelCompilationVerbosityLevel verbosity() const { return verbosity_; }
+
   // Returns the platform binary file name if the path to
   // kernel binaries was set using SetKernelBinaries.
   const char* GetPlatformBinaryFilename();
@@ -59,20 +64,28 @@ class DFE {
 
   // Compiles specified script.
   // Returns result from compiling the script.
+  //
+  // `snapshot` is used by the frontend to determine if compilation
+  // related information should be printed to console (e.g., null safety mode).
   Dart_KernelCompilationResult CompileScript(const char* script_uri,
                                              bool incremental,
-                                             const char* package_config);
+                                             const char* package_config,
+                                             bool snapshot);
 
   // Compiles specified script and reads the resulting kernel file.
   // If the compilation is successful, returns a valid in memory kernel
   // representation of the script, NULL otherwise
   // 'error' and 'exit_code' have the error values in case of errors.
+  //
+  // `snapshot` is used by the frontend to determine if compilation
+  // related information should be printed to console (e.g., null safety mode).
   void CompileAndReadScript(const char* script_uri,
                             uint8_t** kernel_buffer,
                             intptr_t* kernel_buffer_size,
                             char** error,
                             int* exit_code,
-                            const char* package_config);
+                            const char* package_config,
+                            bool snapshot);
 
   // Reads the script kernel file if specified 'script_uri' is a kernel file.
   // Returns an in memory kernel representation of the specified script is a
@@ -107,6 +120,8 @@ class DFE {
   bool use_dfe_;
   bool use_incremental_compiler_;
   char* frontend_filename_;
+  Dart_KernelCompilationVerbosityLevel verbosity_ =
+      Dart_KernelCompilationVerbosityLevel_All;
 
   // Kernel binary specified on the cmd line.
   uint8_t* application_kernel_buffer_;

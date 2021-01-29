@@ -10,11 +10,22 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeAliasCannotReferenceItselfTest);
+    defineReflectiveTests(
+      TypeAliasCannotReferenceItselfWithNonFunctionTypeAliasesTest,
+    );
   });
 }
 
 @reflectiveTest
 class TypeAliasCannotReferenceItselfTest extends PubPackageResolutionTest {
+  test_functionTypeAlias_typeParameterBounds() async {
+    await assertErrorsInCode('''
+typedef A<T extends A<int>>();
+''', [
+      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 30),
+    ]);
+  }
+
   test_functionTypedParameter_returnType() async {
     await assertErrorsInCode('''
 typedef A(A b());
@@ -34,6 +45,14 @@ main() {
 ''', [
       error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 37),
       error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 38, 37),
+    ]);
+  }
+
+  test_genericTypeAlias_typeParameterBounds() async {
+    await assertErrorsInCode('''
+typedef A<T extends A<int>> = void Function();
+''', [
+      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 46),
     ]);
   }
 
@@ -141,12 +160,58 @@ typedef A B();
       error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 15, 14),
     ]);
   }
+}
 
-  test_typeVariableBounds() async {
+@reflectiveTest
+class TypeAliasCannotReferenceItselfWithNonFunctionTypeAliasesTest
+    extends PubPackageResolutionTest with WithNonFunctionTypeAliasesMixin {
+  test_nonFunction_aliasedType_cycleOf2() async {
     await assertErrorsInCode('''
-typedef A<T extends A<int>>();
+typedef T1 = T2;
+typedef T2 = T1;
 ''', [
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 30),
+      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 16),
+      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 17, 16),
+    ]);
+  }
+
+  test_nonFunction_aliasedType_directly_functionWithIt() async {
+    await assertErrorsInCode('''
+typedef T = void Function(T);
+''', [
+      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 29),
+    ]);
+  }
+
+  test_nonFunction_aliasedType_directly_it_none() async {
+    await assertErrorsInCode('''
+typedef T = T;
+''', [
+      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 14),
+    ]);
+  }
+
+  test_nonFunction_aliasedType_directly_it_question() async {
+    await assertErrorsInCode('''
+typedef T = T?;
+''', [
+      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 15),
+    ]);
+  }
+
+  test_nonFunction_aliasedType_directly_ListOfIt() async {
+    await assertErrorsInCode('''
+typedef T = List<T>;
+''', [
+      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 20),
+    ]);
+  }
+
+  test_nonFunction_typeParameterBounds() async {
+    await assertErrorsInCode('''
+typedef T<X extends T<Never>> = List<X>;
+''', [
+      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 40),
     ]);
   }
 }

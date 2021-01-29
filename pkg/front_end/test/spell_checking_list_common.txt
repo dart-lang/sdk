@@ -119,6 +119,7 @@ alternatives
 although
 altogether
 always
+ambiguity
 ambiguous
 among
 amongst
@@ -649,6 +650,7 @@ convenience
 convenient
 conventional
 conventions
+conversion
 convert
 converted
 convertible
@@ -827,6 +829,7 @@ detect
 detected
 detecting
 detection
+detector
 detects
 determination
 determine
@@ -994,6 +997,7 @@ endured
 enforcement
 engine
 engineers
+enhance
 enhancing
 enough
 ensure
@@ -1138,6 +1142,7 @@ face
 facilitate
 fact
 fact's
+facto
 factories
 factory
 facts
@@ -1213,6 +1218,7 @@ flatten
 flattened
 flexibility
 flexible
+flip
 float
 flow
 flow's
@@ -1280,6 +1286,7 @@ gatherer
 gathering
 general
 generalized
+generalizes
 generally
 generate
 generated
@@ -1594,6 +1601,7 @@ invalidating
 invalidation
 invariant
 invariantly
+inversion
 invert
 inverted
 investigate
@@ -2385,6 +2393,7 @@ reasonable
 reasoning
 reasons
 reassign
+rebase
 receive
 receiver
 recent
@@ -2428,6 +2437,7 @@ referenced
 references
 referencing
 referred
+referring
 refers
 refine
 refinement
@@ -3333,6 +3343,7 @@ working
 worklist
 works
 world
+worry
 worth
 would
 wouldn't

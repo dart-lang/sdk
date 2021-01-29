@@ -1,0 +1,297 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/none/method_invocation.dart:84:24: Error: Not a constant expression.
+//   const int call_dyn = dyn.toString(0);
+//                        ^^^
+//
+// pkg/front_end/testcases/none/method_invocation.dart:84:28: Error: Method invocation is not a constant expression.
+//   const int call_dyn = dyn.toString(0);
+//                            ^^^^^^^^
+//
+// pkg/front_end/testcases/none/method_invocation.dart:147:34: Error: Not a constant expression.
+//   const int call_localFunction = localFunction();
+//                                  ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/none/method_invocation.dart:152:22: Error: Not a constant expression.
+//   const int call_f = f();
+//                      ^
+//
+// pkg/front_end/testcases/none/method_invocation.dart:157:23: Error: Not a constant expression.
+//   const bool equals = i == j;
+//                       ^
+//
+// pkg/front_end/testcases/none/method_invocation.dart:68:42: Error: Can't use an expression of type 'Function?' as a function because it's potentially null.
+//  - 'Function' is from 'dart:core'.
+// Try calling using ?.call instead.
+//   nonNullableClass2.nullableFunctionField();
+//                                          ^
+//
+// pkg/front_end/testcases/none/method_invocation.dart:69:43: Error: Can't use an expression of type 'Function?' as a function because it's potentially null.
+//  - 'Function' is from 'dart:core'.
+// Try calling using ?.call instead.
+//   nonNullableClass2.nullableFunctionGetter();
+//                                           ^
+//
+// pkg/front_end/testcases/none/method_invocation.dart:70:47: Error: Can't use an expression of type 'void Function()?' as a function because it's potentially null.
+// Try calling using ?.call instead.
+//   nonNullableClass2.nullableFunctionTypedField();
+//                                               ^
+//
+// pkg/front_end/testcases/none/method_invocation.dart:71:48: Error: Can't use an expression of type 'void Function()?' as a function because it's potentially null.
+// Try calling using ?.call instead.
+//   nonNullableClass2.nullableFunctionTypedGetter();
+//                                                ^
+//
+// pkg/front_end/testcases/none/method_invocation.dart:74:50: Error: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
+//   nonNullableClass2.nonNullableFunctionTypedField(0);
+//                                                  ^
+//
+// pkg/front_end/testcases/none/method_invocation.dart:75:51: Error: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
+//   nonNullableClass2.nonNullableFunctionTypedGetter(0);
+//                                                   ^
+//
+// pkg/front_end/testcases/none/method_invocation.dart:78:18: Error: Method 'method' cannot be called on 'Class1?' because it is potentially null.
+//  - 'Class1' is from 'pkg/front_end/testcases/none/method_invocation.dart'.
+// Try calling using ?. instead.
+//   nullableClass1.method(0);
+//                  ^^^^^^
+//
+// pkg/front_end/testcases/none/method_invocation.dart:102:21: Error: The method 'unresolved' isn't defined for the class 'Class1'.
+//  - 'Class1' is from 'pkg/front_end/testcases/none/method_invocation.dart'.
+// Try correcting the name to the name of an existing method, or defining a method named 'unresolved'.
+//   nonNullableClass1.unresolved();
+//                     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/none/method_invocation.dart:105:27: Error: Too few positional arguments: 1 required, 0 given.
+//   nonNullableClass1.method();
+//                           ^
+//
+// pkg/front_end/testcases/none/method_invocation.dart:106:26: Error: Too few positional arguments: 1 required, 0 given.
+//   nonNullableFunctionType();
+//                          ^
+//
+// pkg/front_end/testcases/none/method_invocation.dart:132:19: Error: Can't use an expression of type 'Function?' as a function because it's potentially null.
+//  - 'Function' is from 'dart:core'.
+// Try calling using ?.call instead.
+//   nullableFunction(0);
+//                   ^
+//
+// pkg/front_end/testcases/none/method_invocation.dart:133:20: Error: Method 'call' cannot be called on 'Function?' because it is potentially null.
+//  - 'Function' is from 'dart:core'.
+// Try calling using ?. instead.
+//   nullableFunction.call(0);
+//                    ^^^^
+//
+// pkg/front_end/testcases/none/method_invocation.dart:134:23: Error: Can't use an expression of type 'int Function(int)?' as a function because it's potentially null.
+// Try calling using ?.call instead.
+//   nullableFunctionType(0);
+//                       ^
+//
+// pkg/front_end/testcases/none/method_invocation.dart:135:24: Error: Method 'call' cannot be called on 'int Function(int)?' because it is potentially null.
+// Try calling using ?. instead.
+//   nullableFunctionType.call(0);
+//                        ^^^^
+//
+// pkg/front_end/testcases/none/method_invocation.dart:138:27: Error: Too few positional arguments: 1 required, 0 given.
+//   nonNullableClass1.method().method(0);
+//                           ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class Class1 extends core::Object {
+  synthetic constructor •() → self::Class1
+    : super core::Object::•()
+    ;
+  method method(core::int o) → core::double
+    return 0.5;
+}
+class Class2<T extends core::Object? = dynamic> extends core::Object {
+  generic-covariant-impl field self::Class2::T% field;
+  field core::Function nonNullableFunctionField;
+  field core::Function? nullableFunctionField = null;
+  field () → void nonNullableFunctionTypedField;
+  field () →? void nullableFunctionTypedField = null;
+  constructor •(self::Class2::T% field, core::Function nonNullableFunctionField, () → void nonNullableFunctionTypedField) → self::Class2<self::Class2::T%>
+    : self::Class2::field = field, self::Class2::nonNullableFunctionField = nonNullableFunctionField, self::Class2::nonNullableFunctionTypedField = nonNullableFunctionTypedField, super core::Object::•()
+    ;
+  method call() → self::Class2::T%
+    return this.{self::Class2::field}{self::Class2::T%};
+  method method(core::int o) → self::Class2::T%
+    return this.{self::Class2::field}{self::Class2::T%};
+  get nonNullableFunctionGetter() → core::Function
+    return this.{self::Class2::nonNullableFunctionTypedField}{() → void};
+  get nullableFunctionGetter() → core::Function?
+    return this.{self::Class2::nonNullableFunctionTypedField}{() → void};
+  get nonNullableFunctionTypedGetter() → () → void
+    return this.{self::Class2::nonNullableFunctionTypedField}{() → void};
+  get nullableFunctionTypedGetter() → () →? void
+    return this.{self::Class2::nonNullableFunctionTypedField}{() → void};
+}
+static const field core::int i = #C1;
+static const field core::int j = #C2;
+static const field core::int k = #C3;
+static method test<T1 extends core::Function = core::Function, T2 extends (core::int) → core::int = (core::int) → core::int, T3 extends core::Object? = dynamic>(self::Class1 nonNullableClass1, self::Class1? nullableClass1, dynamic dyn, Never never, self::Class2<core::String> nonNullableClass2, self::Class2<core::String>? nullableClass2, core::Function nonNullableFunction, core::Function? nullableFunction, (core::int) → core::int nonNullableFunctionType, (core::int) →? core::int nullableFunctionType, <T extends core::Object? = dynamic>(T%) → T% genericFunctionType, self::test::T1 nonNullableTypeVariable1, self::test::T1? nullableTypeVariable1, self::test::T2 nonNullableTypeVariable2, self::test::T2? nullableTypeVariable2, self::test::T3% undeterminedTypeVariable) → dynamic {
+  core::print("InstanceInvocation");
+  nonNullableClass1.{self::Class1::method}(0){(core::int) → core::double};
+  let final self::Class1? #t1 = nullableClass1 in #t1 == null ?{core::double?} null : #t1{self::Class1}.{self::Class1::method}(0){(core::int) → core::double};
+  core::print("InstanceGet calls");
+  nonNullableClass2.{self::Class2::nonNullableFunctionField}{core::Function}();
+  nonNullableClass2.{self::Class2::nonNullableFunctionGetter}{core::Function}();
+  nonNullableClass2.{self::Class2::nonNullableFunctionTypedField}{() → void}(){() → void};
+  nonNullableClass2.{self::Class2::nonNullableFunctionTypedGetter}{() → void}(){() → void};
+  let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/none/method_invocation.dart:68:42: Error: Can't use an expression of type 'Function?' as a function because it's potentially null.
+ - 'Function' is from 'dart:core'.
+Try calling using ?.call instead.
+  nonNullableClass2.nullableFunctionField();
+                                         ^" in nonNullableClass2.{self::Class2::nullableFunctionField}{core::Function?}{<nullable>}.();
+  let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/none/method_invocation.dart:69:43: Error: Can't use an expression of type 'Function?' as a function because it's potentially null.
+ - 'Function' is from 'dart:core'.
+Try calling using ?.call instead.
+  nonNullableClass2.nullableFunctionGetter();
+                                          ^" in nonNullableClass2.{self::Class2::nullableFunctionGetter}{core::Function?}{<nullable>}.();
+  let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/none/method_invocation.dart:70:47: Error: Can't use an expression of type 'void Function()?' as a function because it's potentially null.
+Try calling using ?.call instead.
+  nonNullableClass2.nullableFunctionTypedField();
+                                              ^" in nonNullableClass2.{self::Class2::nullableFunctionTypedField}{() →? void}{<nullable>}.(){() →? void};
+  let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/none/method_invocation.dart:71:48: Error: Can't use an expression of type 'void Function()?' as a function because it's potentially null.
+Try calling using ?.call instead.
+  nonNullableClass2.nullableFunctionTypedGetter();
+                                               ^" in nonNullableClass2.{self::Class2::nullableFunctionTypedGetter}{() →? void}{<nullable>}.(){() →? void};
+  let final self::Class2<core::String> #t6 = nonNullableClass2 in let final core::int #t7 = 0 in #t6.{self::Class2::nonNullableFunctionField}{core::Function}(#t7);
+  let final self::Class2<core::String> #t8 = nonNullableClass2 in let final core::int #t9 = 0 in #t8.{self::Class2::nonNullableFunctionGetter}{core::Function}(#t9);
+  let final self::Class2<core::String> #t10 = nonNullableClass2 in let final core::int #t11 = 0 in let final<BottomType> #t12 = invalid-expression "pkg/front_end/testcases/none/method_invocation.dart:74:50: Error: Too many positional arguments: 0 allowed, but 1 found.
+Try removing the extra positional arguments.
+  nonNullableClass2.nonNullableFunctionTypedField(0);
+                                                 ^" in #t10.{self::Class2::nonNullableFunctionTypedField}{() → void}{<inapplicable>}.(#t11);
+  let final self::Class2<core::String> #t13 = nonNullableClass2 in let final core::int #t14 = 0 in let final<BottomType> #t15 = invalid-expression "pkg/front_end/testcases/none/method_invocation.dart:75:51: Error: Too many positional arguments: 0 allowed, but 1 found.
+Try removing the extra positional arguments.
+  nonNullableClass2.nonNullableFunctionTypedGetter(0);
+                                                  ^" in #t13.{self::Class2::nonNullableFunctionTypedGetter}{() → void}{<inapplicable>}.(#t14);
+  core::print("InstanceInvocation (Nullable)");
+  let final<BottomType> #t16 = invalid-expression "pkg/front_end/testcases/none/method_invocation.dart:78:18: Error: Method 'method' cannot be called on 'Class1?' because it is potentially null.
+ - 'Class1' is from 'pkg/front_end/testcases/none/method_invocation.dart'.
+Try calling using ?. instead.
+  nullableClass1.method(0);
+                 ^^^^^^" in nullableClass1.{self::Class1::method}{<nullable>}.(0){(core::int) → core::double};
+  core::print("DynamicInvocation");
+  dyn{dynamic}.method(0);
+  let final dynamic #t17 = dyn in #t17 == null ?{dynamic} null : #t17{dynamic}.method(0);
+  dyn{dynamic}.toString(0);
+  const core::int call_dyn = invalid-expression "pkg/front_end/testcases/none/method_invocation.dart:84:28: Error: Method invocation is not a constant expression.
+  const int call_dyn = dyn.toString(0);
+                           ^^^^^^^^";
+  core::print(invalid-expression "pkg/front_end/testcases/none/method_invocation.dart:84:28: Error: Method invocation is not a constant expression.
+  const int call_dyn = dyn.toString(0);
+                           ^^^^^^^^");
+  core::print("InstanceInvocation (Object)");
+  dyn.{core::Object::toString}(){() → core::String};
+  nullableClass1.{core::Object::toString}(){() → core::String};
+  nullableClass2.{core::Object::toString}(){() → core::String};
+  nullableFunction.{core::Object::toString}(){() → core::String};
+  nullableFunctionType.{core::Object::toString}(){() → core::String};
+  nullableTypeVariable1.{core::Object::toString}(){() → core::String};
+  nullableTypeVariable2.{core::Object::toString}(){() → core::String};
+  undeterminedTypeVariable.{core::Object::toString}(){() → core::String};
+  core::print("DynamicInvocation (Never)");
+  let final Never #t18 = (let final Never #t19 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.method(0) in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  let final Never #t20 = (let final Never #t21 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.toString() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  core::print("DynamicInvocation (Unresolved)");
+  invalid-expression "pkg/front_end/testcases/none/method_invocation.dart:102:21: Error: The method 'unresolved' isn't defined for the class 'Class1'.
+ - 'Class1' is from 'pkg/front_end/testcases/none/method_invocation.dart'.
+Try correcting the name to the name of an existing method, or defining a method named 'unresolved'.
+  nonNullableClass1.unresolved();
+                    ^^^^^^^^^^";
+  core::print("DynamicInvocation (Inapplicable)");
+  let final<BottomType> #t22 = invalid-expression "pkg/front_end/testcases/none/method_invocation.dart:105:27: Error: Too few positional arguments: 1 required, 0 given.
+  nonNullableClass1.method();
+                          ^" in nonNullableClass1.{self::Class1::method}{<inapplicable>}.(){() → invalid-type};
+  let final<BottomType> #t23 = invalid-expression "pkg/front_end/testcases/none/method_invocation.dart:106:26: Error: Too few positional arguments: 1 required, 0 given.
+  nonNullableFunctionType();
+                         ^" in nonNullableFunctionType{<inapplicable>}.();
+  core::print("InstanceInvocation (generic)");
+  nonNullableClass2.{self::Class2::method}(0){(core::int) → core::String};
+  let final self::Class2<core::String>? #t24 = nullableClass2 in #t24 == null ?{core::String?} null : #t24{self::Class2<core::String>}.{self::Class2::method}(0){(core::int) → core::String};
+  nonNullableClass2.{self::Class2::call}(){() → core::String};
+  nonNullableClass2.{self::Class2::call}(){() → core::String};
+  core::print("FunctionInvocation");
+  nonNullableFunction(0);
+  nonNullableFunction(0);
+  let final core::Function? #t25 = nullableFunction in #t25 == null ?{dynamic} null : #t25{core::Function}(0);
+  nonNullableFunctionType(0){(core::int) → core::int};
+  nonNullableFunctionType(0){(core::int) → core::int};
+  let final (core::int) →? core::int #t26 = nullableFunctionType in #t26 == null ?{core::int?} null : #t26{(core::int) → core::int}(0){(core::int) → core::int};
+  genericFunctionType<core::int>(0){(core::int) → core::int};
+  genericFunctionType<core::num>(0){(core::num) → core::num};
+  core::num i = genericFunctionType<core::num>(0){(core::num) → core::num};
+  nonNullableTypeVariable1(0);
+  nonNullableTypeVariable1(0);
+  let final self::test::T1? #t27 = nullableTypeVariable1 in #t27 == null ?{dynamic} null : #t27{self::test::T1}(0);
+  nonNullableTypeVariable2(0){(core::int) → core::int};
+  nonNullableTypeVariable2(0){(core::int) → core::int};
+  let final self::test::T2? #t28 = nullableTypeVariable2 in #t28 == null ?{core::int?} null : #t28{self::test::T2}(0){(core::int) → core::int};
+  core::print("FunctionInvocation (Nullable)");
+  let final<BottomType> #t29 = invalid-expression "pkg/front_end/testcases/none/method_invocation.dart:132:19: Error: Can't use an expression of type 'Function?' as a function because it's potentially null.
+ - 'Function' is from 'dart:core'.
+Try calling using ?.call instead.
+  nullableFunction(0);
+                  ^" in nullableFunction{<nullable>}.(0);
+  let final<BottomType> #t30 = invalid-expression "pkg/front_end/testcases/none/method_invocation.dart:133:20: Error: Method 'call' cannot be called on 'Function?' because it is potentially null.
+ - 'Function' is from 'dart:core'.
+Try calling using ?. instead.
+  nullableFunction.call(0);
+                   ^^^^" in nullableFunction{<nullable>}.(0);
+  let final<BottomType> #t31 = invalid-expression "pkg/front_end/testcases/none/method_invocation.dart:134:23: Error: Can't use an expression of type 'int Function(int)?' as a function because it's potentially null.
+Try calling using ?.call instead.
+  nullableFunctionType(0);
+                      ^" in nullableFunctionType{<nullable>}.(0){(core::int) →? core::int};
+  let final<BottomType> #t32 = invalid-expression "pkg/front_end/testcases/none/method_invocation.dart:135:24: Error: Method 'call' cannot be called on 'int Function(int)?' because it is potentially null.
+Try calling using ?. instead.
+  nullableFunctionType.call(0);
+                       ^^^^" in nullableFunctionType{<nullable>}.(0){(core::int) →? core::int};
+  core::print("DynamicInvocation (Invalid)");
+  (let final<BottomType> #t33 = invalid-expression "pkg/front_end/testcases/none/method_invocation.dart:138:27: Error: Too few positional arguments: 1 required, 0 given.
+  nonNullableClass1.method().method(0);
+                          ^" in nonNullableClass1.{self::Class1::method}{<inapplicable>}.(){() → invalid-type}){dynamic}.method(0);
+  core::print("LocalFunctionInvocation");
+  function localFunction() → core::int
+    return 42;
+  function genericLocalFunction<T extends core::Object? = dynamic>(T% t) → T%
+    return t;
+  localFunction(){() → core::int};
+  genericLocalFunction<core::int>(0){(core::int) → core::int};
+  genericLocalFunction<core::num>(0){(core::num) → core::num};
+  const core::int call_localFunction = invalid-expression "pkg/front_end/testcases/none/method_invocation.dart:147:34: Error: Not a constant expression.
+  const int call_localFunction = localFunction();
+                                 ^^^^^^^^^^^^^";
+  core::print(invalid-expression "pkg/front_end/testcases/none/method_invocation.dart:147:34: Error: Not a constant expression.
+  const int call_localFunction = localFunction();
+                                 ^^^^^^^^^^^^^");
+  () → core::int f = () → core::int => 42;
+  const core::int call_f = invalid-expression "pkg/front_end/testcases/none/method_invocation.dart:152:22: Error: Not a constant expression.
+  const int call_f = f();
+                     ^";
+  core::print(invalid-expression "pkg/front_end/testcases/none/method_invocation.dart:152:22: Error: Not a constant expression.
+  const int call_f = f();
+                     ^");
+  core::print(#C4);
+  const core::bool equals = invalid-expression "pkg/front_end/testcases/none/method_invocation.dart:157:23: Error: Not a constant expression.
+  const bool equals = i == j;
+                      ^";
+  core::print(invalid-expression "pkg/front_end/testcases/none/method_invocation.dart:157:23: Error: Not a constant expression.
+  const bool equals = i == j;
+                      ^");
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = 4
+  #C2 = 24
+  #C3 = 96
+  #C4 = false
+}

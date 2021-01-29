@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class NullableTypeInOnClauseTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+    with WithNonFunctionTypeAliasesMixin {
   test_nonNullable() async {
     await assertNoErrorsInCode('''
 class A {}
@@ -29,6 +29,26 @@ class A {}
 mixin B on A? {}
 ''', [
       error(CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE, 22, 2),
+    ]);
+  }
+
+  test_nullable_alias() async {
+    await assertErrorsInCode('''
+class A {}
+typedef B = A;
+mixin C on B? {}
+''', [
+      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE, 37, 2),
+    ]);
+  }
+
+  test_nullable_alias2() async {
+    await assertErrorsInCode('''
+class A {}
+typedef B = A?;
+mixin C on B {}
+''', [
+      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE, 38, 1),
     ]);
   }
 }

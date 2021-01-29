@@ -155,11 +155,12 @@ normalizeFutureOr(typeConstructor, setBaseClass) {
 
     // FutureOr<Never> --> Future<Never>
     if (_equalType(typeArg, Never)) {
-      return JS('!', '#(#)', getGenericClass(Future), typeArg);
+      return JS('!', '#(#)', getGenericClassStatic<Future>(), typeArg);
     }
     // FutureOr<Null> --> Future<Null>?
     if (_equalType(typeArg, Null)) {
-      return nullable(JS('!', '#(#)', getGenericClass(Future), typeArg));
+      return nullable(
+          JS('!', '#(#)', getGenericClassStatic<Future>(), typeArg));
     }
     // Otherwise, create the FutureOr<T> type as a normal generic type.
     var genericType = JS('!', '#(#)', genericFutureOrType, typeArg);
@@ -171,7 +172,8 @@ normalizeFutureOr(typeConstructor, setBaseClass) {
     // Add FutureOr specific is and as methods.
     is_FutureOr(obj) =>
         JS<bool>('!', '#.is(#)', typeArg, obj) ||
-        JS<bool>('!', '#(#).is(#)', getGenericClass(Future), typeArg, obj);
+        JS<bool>(
+            '!', '#(#).is(#)', getGenericClassStatic<Future>(), typeArg, obj);
     JS('!', '#.is = #', genericType, is_FutureOr);
 
     as_FutureOr(obj) {
@@ -183,10 +185,12 @@ normalizeFutureOr(typeConstructor, setBaseClass) {
       }
 
       if (JS<bool>('!', '#.is(#)', typeArg, obj) ||
-          JS<bool>('!', '#(#).is(#)', getGenericClass(Future), typeArg, obj)) {
+          JS<bool>('!', '#(#).is(#)', getGenericClassStatic<Future>(), typeArg,
+              obj)) {
         return obj;
       }
-      return cast(obj, JS('!', '#(#)', getGenericClass(FutureOr), typeArg));
+      return cast(
+          obj, JS('!', '#(#)', getGenericClassStatic<FutureOr>(), typeArg));
     }
 
     JS('!', '#.as = #', genericType, as_FutureOr);
@@ -251,6 +255,19 @@ generic(typeConstructor, setBaseClass) => JS('', '''(() => {
 })()''');
 
 getGenericClass(type) => safeGetOwnProperty(type, _originalDeclaration);
+
+/// Extracts the type argument as the accessor for the JS class.
+///
+/// Should be used in place of [getGenericClass] when we know the class we want
+/// statically.
+///
+/// This value is extracted and inlined by the compiler without any runtime
+/// operations. The implementation here is only provided as a theoretical fall
+/// back and shouldn't actually be run.
+///
+/// For example `getGenericClassStatic<FutureOr>` emits `async.FutureOr$`
+/// directly.
+external getGenericClassStatic<T>();
 
 // TODO(markzipan): Make this non-nullable if we can ensure this returns
 // an empty list or if null and the empty list are semantically the same.
@@ -500,6 +517,26 @@ applyAllExtensions(global) {
 /// JavaScript class.
 registerExtension(name, dartExtType) {
   JS('', '#.set(#, #)', _extensionMap, name, dartExtType);
+  var jsType = JS('', '#[#]', global_, name);
+  _applyExtension(jsType, dartExtType);
+}
+
+/// Apply a previously registered extension for testing purposes.
+///
+/// This method's only purpose is to aid in testing native classes. Most native
+/// tests define JavaScript classes in user code (e.g. in an eval string). The
+/// dartdevc compiler properly calls `registerExtension` when processing the
+/// native class declarations in Dart, but at that point in time the JavaScript
+/// counterpart is not defined.
+///
+/// This method is used to lookup those registrations and reapply the extension
+/// after the JavaScript declarations are added.
+///
+/// An alternative to this would be to invest in a better test infrastructure
+/// that would let us define the JavaScript code prior to loading the compiled
+/// module.
+applyExtensionForTesting(name) {
+  var dartExtType = JS('', '#.get(#)', _extensionMap, name);
   var jsType = JS('', '#[#]', global_, name);
   _applyExtension(jsType, dartExtType);
 }

@@ -6,7 +6,7 @@ import "dart:_internal" as _in;
 
 import "dart:async";
 
-static field core::List<core::String*>* stringList = <core::String*>["bar"];
+static field core::List<core::String*>* stringList = core::_GrowableList::_literal1<core::String*>("bar");
 static method asyncString() → asy::Future<core::String*>* /* originally async */ {
   final asy::_Future<core::String*>* :async_future = new asy::_Future::•<core::String*>();
   core::bool* :is_sync = false;

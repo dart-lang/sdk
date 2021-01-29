@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+// @dart = 2.9
+
 import 'package:kernel/ast.dart' hide MapEntry;
 
 import 'package:kernel/core_types.dart';
@@ -374,7 +376,8 @@ abstract class TypeConstraintGatherer {
     //
     // Under constraint _ <: X <: Q.
     if (p is TypeParameterType &&
-        isTypeParameterTypeWithoutNullabilityMarker(p, _currentLibrary) &&
+        isTypeParameterTypeWithoutNullabilityMarker(p,
+            isNonNullableByDefault: _currentLibrary.isNonNullableByDefault) &&
         _parametersToConstrain.contains(p.parameter)) {
       _constrainParameterUpper(p.parameter, q);
       return true;
@@ -384,7 +387,8 @@ abstract class TypeConstraintGatherer {
     //
     // Under constraint P <: X <: _.
     if (q is TypeParameterType &&
-        isTypeParameterTypeWithoutNullabilityMarker(q, _currentLibrary) &&
+        isTypeParameterTypeWithoutNullabilityMarker(q,
+            isNonNullableByDefault: _currentLibrary.isNonNullableByDefault) &&
         _parametersToConstrain.contains(q.parameter)) {
       _constrainParameterLower(q.parameter, p);
       return true;
@@ -403,9 +407,12 @@ abstract class TypeConstraintGatherer {
     // If P is a legacy type P0* then the match holds under constraint set C:
     //
     // Only if P0 is a subtype match for Q under constraint set C.
-    if (isLegacyTypeConstructorApplication(p, _currentLibrary)) {
+    if (isLegacyTypeConstructorApplication(p,
+        isNonNullableByDefault: _currentLibrary.isNonNullableByDefault)) {
       return _isNullabilityAwareSubtypeMatch(
-          computeTypeWithoutNullabilityMarker(p, _currentLibrary), q,
+          computeTypeWithoutNullabilityMarker(p,
+              isNonNullableByDefault: _currentLibrary.isNonNullableByDefault),
+          q,
           constrainSupertype: constrainSupertype);
     }
 
@@ -415,12 +422,16 @@ abstract class TypeConstraintGatherer {
     // set C.
     // Or if P is not dynamic or void and P is a subtype match for Q0? under
     // constraint set C.
-    if (isLegacyTypeConstructorApplication(q, _currentLibrary)) {
+    if (isLegacyTypeConstructorApplication(q,
+        isNonNullableByDefault: _currentLibrary.isNonNullableByDefault)) {
       final int baseConstraintCount = _protoConstraints.length;
 
       if ((p is DynamicType || p is VoidType) &&
           _isNullabilityAwareSubtypeMatch(
-              p, computeTypeWithoutNullabilityMarker(q, _currentLibrary),
+              p,
+              computeTypeWithoutNullabilityMarker(q,
+                  isNonNullableByDefault:
+                      _currentLibrary.isNonNullableByDefault),
               constrainSupertype: constrainSupertype)) {
         return true;
       }
@@ -485,10 +496,10 @@ abstract class TypeConstraintGatherer {
     // Or if P is a subtype match for Q0 under empty constraint set C.
     if (isNullableTypeConstructorApplication(q)) {
       final int baseConstraintCount = _protoConstraints.length;
-      final DartType rawP =
-          computeTypeWithoutNullabilityMarker(p, _currentLibrary);
-      final DartType rawQ =
-          computeTypeWithoutNullabilityMarker(q, _currentLibrary);
+      final DartType rawP = computeTypeWithoutNullabilityMarker(p,
+          isNonNullableByDefault: _currentLibrary.isNonNullableByDefault);
+      final DartType rawQ = computeTypeWithoutNullabilityMarker(q,
+          isNonNullableByDefault: _currentLibrary.isNonNullableByDefault);
 
       if (isNullableTypeConstructorApplication(p) &&
           _isNullabilityAwareSubtypeMatch(rawP, rawQ,
@@ -549,7 +560,10 @@ abstract class TypeConstraintGatherer {
     if (isNullableTypeConstructorApplication(p)) {
       final int baseConstraintCount = _protoConstraints.length;
       if (_isNullabilityAwareSubtypeMatch(
-              computeTypeWithoutNullabilityMarker(p, _currentLibrary), q,
+              computeTypeWithoutNullabilityMarker(p,
+                  isNonNullableByDefault:
+                      _currentLibrary.isNonNullableByDefault),
+              q,
               constrainSupertype: constrainSupertype) &&
           _isNullabilityAwareSubtypeMatch(const NullType(), q,
               constrainSupertype: constrainSupertype)) {

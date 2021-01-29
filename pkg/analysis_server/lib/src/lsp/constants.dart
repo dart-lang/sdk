@@ -78,17 +78,54 @@ abstract class Commands {
 }
 
 abstract class CustomMethods {
-  static const DiagnosticServer = Method('dart/diagnosticServer');
-  static const Reanalyze = Method('dart/reanalyze');
-  static const PublishClosingLabels =
+  static const diagnosticServer = Method('dart/diagnosticServer');
+  static const reanalyze = Method('dart/reanalyze');
+  static const publishClosingLabels =
       Method('dart/textDocument/publishClosingLabels');
-  static const PublishOutline = Method('dart/textDocument/publishOutline');
-  static const PublishFlutterOutline =
+  static const publishOutline = Method('dart/textDocument/publishOutline');
+  static const publishFlutterOutline =
       Method('dart/textDocument/publishFlutterOutline');
-  static const Super = Method('dart/textDocument/super');
+  static const super_ = Method('dart/textDocument/super');
+
   // TODO(dantup): Remove custom AnalyzerStatus status method soon as no clients
-  // should be relying on it and we now support proper $/progress events.
-  static const AnalyzerStatus = Method(r'$/analyzerStatus');
+  // should be relying on it as we now support proper $/progress events.
+  static const analyzerStatus = Method(r'$/analyzerStatus');
+
+  /// Semantic tokens are dynamically registered using a single string
+  /// "textDocument/semanticTokens" instead of for each individual method
+  /// (full, range, full/delta) so the built-in Method class does not contain
+  /// the required constant.
+  static const semanticTokenDynamicRegistration =
+      Method('textDocument/semanticTokens');
+}
+
+abstract class CustomSemanticTokenModifiers {
+  /// A modifier applied to control keywords like if/for/etc. so they can be
+  /// coloured differently to other keywords (void, import, etc), matching the
+  /// original Dart textmate grammar.
+  /// https://github.com/dart-lang/dart-syntax-highlight/blob/84a8e84f79bc917ebd959a4587349c865dc945e0/grammars/dart.json#L244-L261
+  static const control = SemanticTokenModifiers('control');
+
+  /// A modifier applied to parameter references to indicate they are the name/label
+  /// to allow theming them differently to the values. For example in the code
+  /// `foo({String a}) => foo(a: a)` the a's will be differentiated as:
+  /// - parameter.declaration
+  /// - parameter.label
+  /// - parameter
+  static const label = SemanticTokenModifiers('label');
+
+  /// All custom semantic token modifiers, used to populate the LSP Legend which must
+  /// include all used modifiers.
+  static const values = [control, label];
+}
+
+abstract class CustomSemanticTokenTypes {
+  static const annotation = SemanticTokenTypes('annotation');
+  static const boolean = SemanticTokenTypes('boolean');
+
+  /// All custom semantic token types, used to populate the LSP Legend which must
+  /// include all used types.
+  static const values = [annotation, boolean];
 }
 
 /// CodeActionKinds supported by the server that are not declared in the LSP spec.

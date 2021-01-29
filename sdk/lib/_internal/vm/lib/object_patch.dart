@@ -56,7 +56,7 @@ class Object {
 
   @patch
   @pragma("vm:recognized", "asm-intrinsic")
-  @pragma("vm:exact-result-type", "dart:core#_Type")
+  // Result type is either "dart:core#_Type" or "dart:core#_FunctionType".
   Type get runtimeType native "Object_runtimeType";
 
   @pragma("vm:recognized", "asm-intrinsic")

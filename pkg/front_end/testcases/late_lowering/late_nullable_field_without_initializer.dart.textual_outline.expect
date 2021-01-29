@@ -1,6 +1,5 @@
-late int;
-?
-lateTopLevelField;
+late
+int? lateTopLevelField;
 class Class<T> {
   static late int;
   operator? (){}
@@ -9,16 +8,21 @@ class Class<T> {
   operator? (){}
   lateStaticField2;
   static staticMethod() {}
-  late int;
-  operator? (){}
-  lateInstanceField;
-  late T;
-  operator? (){}
-  lateGenericInstanceField;
+  late
+  int? lateInstanceField;
+  late
+  T? lateGenericInstanceField;
   instanceMethod(T? value) {}
 }
-extension Extension<T> (){}
-on Class<T> (){}
+extension Extension<T> on Class<T> {
+  static late int;
+  operator? (){}
+  lateExtensionField1;
+  static late int;
+  operator? (){}
+  lateExtensionField2;
+  static staticMethod() {}
+}
 main() {}
 expect(expected, actual) {}
 throws(f(), String message) {}

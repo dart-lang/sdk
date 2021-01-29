@@ -58,7 +58,7 @@ void StubCode::Init() {
       ObjectPool::Handle(ObjectPool::NewFromBuilder(object_pool_builder));
 
   for (size_t i = 0; i < ARRAY_SIZE(entries_); i++) {
-    entries_[i].code->set_object_pool(object_pool.raw());
+    entries_[i].code->set_object_pool(object_pool.ptr());
   }
 }
 
@@ -69,6 +69,9 @@ CodePtr StubCode::Generate(
     const char* name,
     compiler::ObjectPoolBuilder* object_pool_builder,
     void (*GenerateStub)(compiler::Assembler* assembler)) {
+  auto thread = Thread::Current();
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+
   compiler::Assembler assembler(object_pool_builder);
   GenerateStub(&assembler);
   const Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
@@ -79,7 +82,7 @@ CodePtr StubCode::Generate(
     Disassembler::DisassembleStub(name, code);
   }
 #endif  // !PRODUCT
-  return code.raw();
+  return code.ptr();
 }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
@@ -133,13 +136,13 @@ ArrayPtr compiler::StubCodeCompiler::BuildStaticCallsTable(
     view.Set<Code::kSCallTableKindAndOffset>(kind_type_and_offset);
     view.Set<Code::kSCallTableCodeOrTypeTarget>(unresolved_call->target());
   }
-  return static_calls_table.raw();
+  return static_calls_table.ptr();
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
   Thread* thread = Thread::Current();
-  auto object_store = thread->isolate()->object_store();
+  auto object_store = thread->isolate_group()->object_store();
   Zone* zone = thread->zone();
   const Error& error =
       Error::Handle(zone, cls.EnsureIsAllocateFinalized(thread));
@@ -168,7 +171,7 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
             : Code::PoolAttachment::kAttachPool;
 
     auto zone = thread->zone();
-    auto object_store = thread->isolate()->object_store();
+    auto object_store = thread->isolate_group()->object_store();
     auto& allocate_object_stub = Code::ZoneHandle(zone);
     auto& allocate_object_parametrized_stub = Code::ZoneHandle(zone);
     if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
@@ -188,11 +191,13 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
         Array::Handle(zone, compiler::StubCodeCompiler::BuildStaticCallsTable(
                                 zone, &unresolved_calls));
 
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+
     auto mutator_fun = [&]() {
       stub = Code::FinalizeCode(nullptr, &assembler, pool_attachment,
                                 /*optimized=*/false,
                                 /*stats=*/nullptr);
-      // Check if background compilation thread has not already added the stub.
+      // Check if some other thread has not already added the stub.
       if (cls.allocation_stub() == Code::null()) {
         stub.set_owner(cls);
         if (!static_calls_table.IsNull()) {
@@ -201,32 +206,13 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
         cls.set_allocation_stub(stub);
       }
     };
-    auto bg_compiler_fun = [&]() {
-      ASSERT(Thread::Current()->IsAtSafepoint());
-      stub = cls.allocation_stub();
-      // Check if stub was already generated.
-      if (!stub.IsNull()) {
-        return;
-      }
-      stub = Code::FinalizeCode(nullptr, &assembler, pool_attachment,
-                                /*optimized=*/false, /*stats=*/nullptr);
-      stub.set_owner(cls);
-      if (!static_calls_table.IsNull()) {
-        stub.set_static_calls_target_table(static_calls_table);
-      }
-      cls.set_allocation_stub(stub);
-    };
 
     // We have to ensure no mutators are running, because:
     //
     //   a) We allocate an instructions object, which might cause us to
     //      temporarily flip page protections from (RX -> RW -> RX).
-    //
-    //   b) To ensure only one thread succeeds installing an allocation for the
-    //      given class.
-    //
-    thread->isolate_group()->RunWithStoppedMutators(
-        mutator_fun, bg_compiler_fun, /*use_force_growth=*/true);
+    thread->isolate_group()->RunWithStoppedMutators(mutator_fun,
+                                                    /*use_force_growth=*/true);
 
     // We notify code observers after finalizing the code in order to be
     // outside a [SafepointOperationScope].
@@ -238,11 +224,11 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
 #endif  // !PRODUCT
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  return stub.raw();
+  return stub.ptr();
 }
 
 CodePtr StubCode::GetAllocationStubForTypedData(classid_t class_id) {
-  auto object_store = Thread::Current()->isolate()->object_store();
+  auto object_store = Thread::Current()->isolate_group()->object_store();
   switch (class_id) {
     case kTypedDataInt8ArrayCid:
       return object_store->allocate_int8_array_stub();
@@ -283,7 +269,7 @@ CodePtr StubCode::GetBuildMethodExtractorStub(
 #if !defined(DART_PRECOMPILED_RUNTIME)
   auto thread = Thread::Current();
   auto Z = thread->zone();
-  auto object_store = thread->isolate()->object_store();
+  auto object_store = thread->isolate_group()->object_store();
 
   const auto& closure_class =
       Class::ZoneHandle(Z, object_store->closure_class());
@@ -310,7 +296,7 @@ CodePtr StubCode::GetBuildMethodExtractorStub(
     Disassembler::DisassembleStub(name, stub);
   }
 #endif  // !PRODUCT
-  return stub.raw();
+  return stub.ptr();
 #else   // !defined(DART_PRECOMPILED_RUNTIME)
   UNIMPLEMENTED();
   return nullptr;
@@ -340,7 +326,7 @@ const char* StubCode::NameOfStub(uword entry_point) {
     }
   }
 
-  auto object_store = Isolate::Current()->object_store();
+  auto object_store = IsolateGroup::Current()->object_store();
 
 #define MATCH(member, name)                                                    \
   if (object_store->member() != Code::null() &&                                \

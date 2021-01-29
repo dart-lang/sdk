@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.target_implementation;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
@@ -21,8 +23,6 @@ import 'compiler_context.dart' show CompilerContext;
 import 'loader.dart' show Loader;
 
 import 'messages.dart' show FormattedMessage, LocatedMessage, Message;
-
-import 'rewrite_severity.dart' show rewriteSeverity;
 
 import 'target.dart' show Target;
 
@@ -188,11 +188,6 @@ abstract class TargetImplementation extends Target {
         severity,
         messageContext,
         involvedFiles: involvedFiles);
-  }
-
-  Severity fixSeverity(Severity severity, Message message, Uri fileUri) {
-    severity ??= message.code.severity;
-    return rewriteSeverity(severity, message.code, fileUri);
   }
 
   String get currentSdkVersionString {

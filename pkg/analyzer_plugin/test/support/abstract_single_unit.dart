@@ -9,6 +9,8 @@ import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 
 import 'abstract_context.dart';
@@ -19,16 +21,12 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   String testCode;
   String testFile;
   CompilationUnit testUnit;
-  CompilationUnitElement testUnitElement;
-  LibraryElement testLibraryElement;
+  FindNode findNode;
+  FindElement findElement;
 
   void addTestSource(String code) {
     testCode = code;
     addSource(testFile, code);
-  }
-
-  Element findElement(String name, [ElementKind kind]) {
-    return findChildElement(testUnitElement, name, kind);
   }
 
   int findEnd(String search) {
@@ -90,10 +88,15 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     return length;
   }
 
-  Future<void> resolveTestUnit(String code) async {
+  Future<void> resolveTestCode(String code) async {
     addTestSource(code);
+    await resolveTestFile();
+  }
+
+  Future resolveTestFile() async {
     var result = await resolveFile(testFile);
-    testUnit = (result).unit;
+    testCode = result.content;
+    testUnit = result.unit;
     if (verifyNoTestUnitErrors) {
       expect(result.errors.where((AnalysisError error) {
         return error.errorCode != HintCode.DEAD_CODE &&
@@ -105,8 +108,8 @@ class AbstractSingleUnitTest extends AbstractContextTest {
             error.errorCode != HintCode.UNUSED_LOCAL_VARIABLE;
       }), isEmpty);
     }
-    testUnitElement = testUnit.declaredElement;
-    testLibraryElement = testUnitElement.library;
+    findNode = FindNode(testCode, testUnit);
+    findElement = FindElement(testUnit);
   }
 
   @override

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// Integration test that runs the incremental compiler, runs the compiled
 /// program, incrementally rebuild portions of the app, and triggers a hot
 /// reload on the running program.
@@ -37,6 +39,8 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 
 import 'package:front_end/src/fasta/hybrid_file_system.dart'
     show HybridFileSystem;
+import 'package:kernel/target/targets.dart';
+import 'package:vm/target/vm.dart';
 
 import 'tool/reload.dart' show RemoteVm;
 
@@ -304,7 +308,9 @@ IncrementalKernelGenerator createIncrementalCompiler(
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
     ..librariesSpecificationUri = Uri.base.resolve("sdk/lib/libraries.json")
-    ..fileSystem = fs;
+    ..fileSystem = fs
+    ..target = new VmTarget(new TargetFlags())
+    ..environmentDefines = {};
   return new IncrementalKernelGenerator(options, entryUri);
 }
 

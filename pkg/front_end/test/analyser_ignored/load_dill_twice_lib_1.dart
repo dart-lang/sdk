@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 export 'load_dill_twice_lib_2.dart';
 
 // Use annotation to force proper printing.

@@ -73,7 +73,7 @@ class C3 extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class A<T extends core::Object* = dynamic> extends core::Object {
-  static field dynamic _redirecting# = <dynamic>[self::A::a, self::A::b, self::A::c];
+  static final field dynamic _redirecting# = <dynamic>[self::A::a, self::A::b, self::A::c];
   constructor internal() → self::A<self::A::T*>*
     : super core::Object::•()
     ;
@@ -95,7 +95,7 @@ class A<T extends core::Object* = dynamic> extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class B<S extends core::Object* = dynamic> extends self::A<self::B::S*> {
-  static field dynamic _redirecting# = <dynamic>[self::B::a, self::B::b];
+  static final field dynamic _redirecting# = <dynamic>[self::B::a, self::B::b];
   constructor internal() → self::B<self::B::S*>*
     : super self::A::internal()
     ;

@@ -194,7 +194,7 @@ void StubCodeCompiler::GenerateSharedStubGeneric(
 
   // To make the stack map calculation architecture independent we do the same
   // as on intel.
-  __ Push(LR);
+  READS_RETURN_ADDRESS_FROM_LR(__ Push(LR));
   __ PushRegisters(all_registers);
   __ ldr(CODE_REG, Address(THR, self_code_stub_offset_from_thread));
   __ EnterStubFrame();
@@ -206,7 +206,7 @@ void StubCodeCompiler::GenerateSharedStubGeneric(
   __ LeaveStubFrame();
   __ PopRegisters(all_registers);
   __ Drop(1);  // We use the LR restored via LeaveStubFrame.
-  __ ret(LR);
+  READS_RETURN_ADDRESS_FROM_LR(__ ret(LR));
 }
 
 void StubCodeCompiler::GenerateSharedStub(
@@ -302,7 +302,7 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
     Assembler* assembler) {
   COMPILE_ASSERT(IsAbiPreservedRegister(R19));
 
-  __ mov(R19, LR);
+  SPILLS_RETURN_ADDRESS_FROM_LR_TO_REGISTER(__ mov(R19, LR));
   __ LoadImmediate(R10, target::Thread::exit_through_ffi());
   __ TransitionGeneratedToNative(R9, FPREG, R10 /*volatile*/,
                                  /*enter_safepoint=*/true);
@@ -368,12 +368,15 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   // Save THR (callee-saved) and LR on real real C stack (CSP). Keeps it
   // aligned.
   COMPILE_ASSERT(StubCodeCompiler::kNativeCallbackTrampolineStackDelta == 2);
-  __ stp(THR, LR, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex));
+  SPILLS_LR_TO_FRAME(__ stp(
+      THR, LR, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex)));
 
   COMPILE_ASSERT(!IsArgumentRegister(THR));
 
   RegisterSet all_registers;
   all_registers.AddAllArgumentRegisters();
+  all_registers.Add(Location::RegisterLocation(
+      CallingConventions::kPointerToReturnStructRegisterCall));
 
   // The call below might clobber R9 (volatile, holding callback_id).
   all_registers.Add(Location::RegisterLocation(R9));
@@ -442,7 +445,8 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   __ EnterSafepoint(/*scratch=*/R9);
 
   // Pop LR and THR from the real stack (CSP).
-  __ ldp(THR, LR, Address(CSP, 2 * target::kWordSize, Address::PairPostIndex));
+  RESTORES_LR_FROM_FRAME(__ ldp(
+      THR, LR, Address(CSP, 2 * target::kWordSize, Address::PairPostIndex)));
 
   __ ret();
 
@@ -674,8 +678,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   __ mov(R1, R5);  // Pass the function entrypoint to call.
 
   // Call native function invocation wrapper or redirection via simulator.
-  __ ldr(LR, wrapper);
-  __ blr(LR);
+  __ Call(wrapper);
 
   // Restore SP and CSP.
   __ mov(SP, CSP);
@@ -1020,7 +1023,7 @@ void StubCodeCompiler::GenerateDeoptimizeLazyFromReturnStub(
   __ LoadImmediate(TMP, kZapCodeReg);
   __ Push(TMP);
   // Return address for "call" to deopt stub.
-  __ LoadImmediate(LR, kZapReturnAddress);
+  WRITES_RETURN_ADDRESS_TO_LR(__ LoadImmediate(LR, kZapReturnAddress));
   __ ldr(CODE_REG,
          Address(THR, target::Thread::lazy_deopt_from_return_stub_offset()));
   GenerateDeoptimizationSequence(assembler, kLazyDeoptFromReturn);
@@ -1035,7 +1038,7 @@ void StubCodeCompiler::GenerateDeoptimizeLazyFromThrowStub(
   __ LoadImmediate(TMP, kZapCodeReg);
   __ Push(TMP);
   // Return address for "call" to deopt stub.
-  __ LoadImmediate(LR, kZapReturnAddress);
+  WRITES_RETURN_ADDRESS_TO_LR(__ LoadImmediate(LR, kZapReturnAddress));
   __ ldr(CODE_REG,
          Address(THR, target::Thread::lazy_deopt_from_throw_stub_offset()));
   GenerateDeoptimizationSequence(assembler, kLazyDeoptFromThrow);
@@ -1186,9 +1189,9 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     // R2: array length as Smi.
     // R3: array size.
     // R7: new object end address.
-    const intptr_t shift = target::ObjectLayout::kTagBitsSizeTagPos -
+    const intptr_t shift = target::UntaggedObject::kTagBitsSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2;
-    __ CompareImmediate(R3, target::ObjectLayout::kSizeTagMaxSizeTag);
+    __ CompareImmediate(R3, target::UntaggedObject::kSizeTagMaxSizeTag);
     // If no size tag overflow, shift R1 left, else set R1 to zero.
     __ LslImmediate(TMP, R3, shift);
     __ csel(R1, TMP, R1, LS);
@@ -1241,13 +1244,13 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   __ Pop(R1);
   __ Pop(R2);
   __ Pop(R0);
+  __ LeaveStubFrame();
 
   // Write-barrier elimination might be enabled for this array (depending on the
   // array length). To be sure we will check if the allocated object is in old
   // space and if so call a leaf runtime to add it to the remembered set.
   EnsureIsNewOrRemembered(assembler);
 
-  __ LeaveStubFrame();
   __ ret();
 }
 
@@ -1307,7 +1310,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // from over-writing Dart frames.
   __ mov(SP, CSP);
   __ SetupCSPFromThread(R3);
-  __ Push(LR);  // Marker for the profiler.
+  READS_RETURN_ADDRESS_FROM_LR(__ Push(LR));  // Marker for the profiler.
   __ EnterFrame(0);
 
   // Push code object to PC marker slot.
@@ -1425,17 +1428,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Pop(R4);
   __ StoreToOffset(R4, THR, target::Thread::vm_tag_offset());
 
-#if defined(TARGET_OS_FUCHSIA)
-  __ mov(R3, THR);
-#endif
-
-  __ PopNativeCalleeSavedRegisters();  // Clobbers THR
-
-#if defined(TARGET_OS_FUCHSIA)
-  __ str(R18, Address(R3, target::Thread::saved_shadow_call_stack_offset()));
-#elif defined(USING_SHADOW_CALL_STACK)
-#error Unimplemented
-#endif
+  __ PopNativeCalleeSavedRegisters();
 
   // Restore the frame pointer and C stack pointer and return.
   __ LeaveFrame();
@@ -1449,7 +1442,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 // Input:
 //   R1: number of context variables.
 // Output:
-//   R0: new allocated RawContext object.
+//   R0: new allocated Context object.
 // Clobbered:
 //   R2, R3, R4, TMP
 static void GenerateAllocateContextSpaceStub(Assembler* assembler,
@@ -1492,9 +1485,9 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
   // R0: new object.
   // R1: number of context variables.
   // R2: object size.
-  const intptr_t shift = target::ObjectLayout::kTagBitsSizeTagPos -
+  const intptr_t shift = target::UntaggedObject::kTagBitsSizeTagPos -
                          target::ObjectAlignment::kObjectAlignmentLog2;
-  __ CompareImmediate(R2, target::ObjectLayout::kSizeTagMaxSizeTag);
+  __ CompareImmediate(R2, target::UntaggedObject::kSizeTagMaxSizeTag);
   // If no size tag overflow, shift R2 left, else set R2 to zero.
   __ LslImmediate(TMP, R2, shift);
   __ csel(R2, TMP, R2, LS);
@@ -1519,7 +1512,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
 // Input:
 //   R1: number of context variables.
 // Output:
-//   R0: new allocated RawContext object.
+//   R0: new allocated Context object.
 // Clobbered:
 //   R2, R3, R4, TMP
 void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
@@ -1583,7 +1576,7 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
 // Input:
 //   R5: context variable to clone.
 // Output:
-//   R0: new allocated RawContext object.
+//   R0: new allocated Context object.
 // Clobbered:
 //   R1, (R2), R3, R4, (TMP)
 void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
@@ -1662,15 +1655,13 @@ void StubCodeCompiler::GenerateWriteBarrierWrappersStub(Assembler* assembler) {
 
     Register reg = static_cast<Register>(i);
     intptr_t start = __ CodeSize();
-    __ Push(LR);
+    SPILLS_LR_TO_FRAME(__ Push(LR));
     __ Push(kWriteBarrierObjectReg);
     __ mov(kWriteBarrierObjectReg, reg);
-    __ ldr(LR,
-           Address(THR, target::Thread::write_barrier_entry_point_offset()));
-    __ blr(LR);
+    __ Call(Address(THR, target::Thread::write_barrier_entry_point_offset()));
     __ Pop(kWriteBarrierObjectReg);
-    __ Pop(LR);
-    __ ret(LR);
+    RESTORES_LR_FROM_FRAME(__ Pop(LR));
+    READS_RETURN_ADDRESS_FROM_LR(__ ret(LR));
     intptr_t end = __ CodeSize();
 
     RELEASE_ASSERT(end - start == kStoreBufferWrapperSize);
@@ -1696,12 +1687,12 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 
   if (cards) {
     __ LoadFieldFromOffset(TMP, R1, target::Object::tags_offset(), kFourBytes);
-    __ tbnz(&remember_card, TMP, target::ObjectLayout::kCardRememberedBit);
+    __ tbnz(&remember_card, TMP, target::UntaggedObject::kCardRememberedBit);
   } else {
 #if defined(DEBUG)
     Label ok;
     __ LoadFieldFromOffset(TMP, R1, target::Object::tags_offset(), kFourBytes);
-    __ tbz(&ok, TMP, target::ObjectLayout::kCardRememberedBit);
+    __ tbz(&ok, TMP, target::UntaggedObject::kCardRememberedBit);
     __ Stop("Wrong barrier");
     __ Bind(&ok);
 #endif
@@ -1720,7 +1711,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ Bind(&retry);
   __ ldxr(R2, R3, kEightBytes);
   __ AndImmediate(R2, R2,
-                  ~(1 << target::ObjectLayout::kOldAndNotRememberedBit));
+                  ~(1 << target::UntaggedObject::kOldAndNotRememberedBit));
   __ stxr(R4, R2, R3, kEightBytes);
   __ cbnz(&retry, R4);
 
@@ -1770,8 +1761,8 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   // R3: Untagged address of header word (ldxr/stxr do not support offsets).
   __ Bind(&marking_retry);
   __ ldxr(R2, R3, kEightBytes);
-  __ tbz(&lost_race, R2, target::ObjectLayout::kOldAndNotMarkedBit);
-  __ AndImmediate(R2, R2, ~(1 << target::ObjectLayout::kOldAndNotMarkedBit));
+  __ tbz(&lost_race, R2, target::UntaggedObject::kOldAndNotMarkedBit);
+  __ AndImmediate(R2, R2, ~(1 << target::UntaggedObject::kOldAndNotMarkedBit));
   __ stxr(R4, R2, R3, kEightBytes);
   __ cbnz(&marking_retry, R4);
 
@@ -2786,7 +2777,7 @@ void StubCodeCompiler::GenerateDebugStepCheckStub(Assembler* assembler) {
 // Used to check class and type arguments. Arguments passed in registers:
 //
 // Inputs (mostly from TypeTestABI struct):
-//   - kSubtypeTestCacheReg: SubtypeTestCacheLayout
+//   - kSubtypeTestCacheReg: UntaggedSubtypeTestCache
 //   - kInstanceReg: instance to test against.
 //   - kDstTypeReg: destination type (for n>=3).
 //   - kInstantiatorTypeArgumentsReg: instantiator type arguments (for n=5).
@@ -2809,10 +2800,6 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 
   const Register kCacheArrayReg = TypeTestABI::kSubtypeTestCacheReg;
   const Register kScratchReg = TypeTestABI::kScratchReg;
-  const Register kInstanceCidOrFunction = R6;
-  const Register kInstanceInstantiatorTypeArgumentsReg = R5;
-  const Register kInstanceParentFunctionTypeArgumentsReg = R9;
-  const Register kInstanceDelayedFunctionTypeArgumentsReg = R10;
 
   // All of these must be distinct from TypeTestABI::kSubtypeTestCacheResultReg
   // since it is used for kNullReg as well.
@@ -2830,29 +2817,30 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 
   Label loop, not_closure;
   if (n >= 5) {
-    __ LoadClassIdMayBeSmi(kInstanceCidOrFunction,
+    __ LoadClassIdMayBeSmi(STCInternalRegs::kInstanceCidOrFunctionReg,
                            TypeTestABI::TypeTestABI::kInstanceReg);
   } else {
-    __ LoadClassId(kInstanceCidOrFunction, TypeTestABI::kInstanceReg);
+    __ LoadClassId(STCInternalRegs::kInstanceCidOrFunctionReg,
+                   TypeTestABI::kInstanceReg);
   }
-  __ CompareImmediate(kInstanceCidOrFunction, kClosureCid);
+  __ CompareImmediate(STCInternalRegs::kInstanceCidOrFunctionReg, kClosureCid);
   __ b(&not_closure, NE);
 
   // Closure handling.
   {
-    __ ldr(kInstanceCidOrFunction,
+    __ ldr(STCInternalRegs::kInstanceCidOrFunctionReg,
            FieldAddress(TypeTestABI::kInstanceReg,
                         target::Closure::function_offset()));
     if (n >= 3) {
       __ ldr(
-          kInstanceInstantiatorTypeArgumentsReg,
+          STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg,
           FieldAddress(TypeTestABI::kInstanceReg,
                        target::Closure::instantiator_type_arguments_offset()));
       if (n >= 7) {
-        __ ldr(kInstanceParentFunctionTypeArgumentsReg,
+        __ ldr(STCInternalRegs::kInstanceParentFunctionTypeArgumentsReg,
                FieldAddress(TypeTestABI::kInstanceReg,
                             target::Closure::function_type_arguments_offset()));
-        __ ldr(kInstanceDelayedFunctionTypeArgumentsReg,
+        __ ldr(STCInternalRegs::kInstanceDelayedFunctionTypeArgumentsReg,
                FieldAddress(TypeTestABI::kInstanceReg,
                             target::Closure::delayed_type_arguments_offset()));
       }
@@ -2865,8 +2853,8 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ Bind(&not_closure);
     if (n >= 3) {
       Label has_no_type_arguments;
-      __ LoadClassById(kScratchReg, kInstanceCidOrFunction);
-      __ mov(kInstanceInstantiatorTypeArgumentsReg, kNullReg);
+      __ LoadClassById(kScratchReg, STCInternalRegs::kInstanceCidOrFunctionReg);
+      __ mov(STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg, kNullReg);
       __ LoadFieldFromOffset(
           kScratchReg, kScratchReg,
           target::Class::host_type_arguments_field_offset_in_words_offset(),
@@ -2875,16 +2863,18 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
       __ b(&has_no_type_arguments, EQ);
       __ add(kScratchReg, TypeTestABI::kInstanceReg,
              Operand(kScratchReg, LSL, 3));
-      __ ldr(kInstanceInstantiatorTypeArgumentsReg,
+      __ ldr(STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg,
              FieldAddress(kScratchReg, 0));
       __ Bind(&has_no_type_arguments);
 
       if (n >= 7) {
-        __ mov(kInstanceParentFunctionTypeArgumentsReg, kNullReg);
-        __ mov(kInstanceDelayedFunctionTypeArgumentsReg, kNullReg);
+        __ mov(STCInternalRegs::kInstanceParentFunctionTypeArgumentsReg,
+               kNullReg);
+        __ mov(STCInternalRegs::kInstanceDelayedFunctionTypeArgumentsReg,
+               kNullReg);
       }
     }
-    __ SmiTag(kInstanceCidOrFunction);
+    __ SmiTag(STCInternalRegs::kInstanceCidOrFunctionReg);
   }
 
   Label found, done, next_iteration;
@@ -2897,7 +2887,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
                      target::SubtypeTestCache::kInstanceClassIdOrFunction));
   __ cmp(kScratchReg, Operand(kNullReg));
   __ b(&done, EQ);
-  __ cmp(kScratchReg, Operand(kInstanceCidOrFunction));
+  __ cmp(kScratchReg, Operand(STCInternalRegs::kInstanceCidOrFunctionReg));
   if (n == 1) {
     __ b(&found, EQ);
   } else {
@@ -2912,7 +2902,8 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
            Address(kCacheArrayReg,
                    target::kWordSize *
                        target::SubtypeTestCache::kInstanceTypeArguments));
-    __ cmp(kScratchReg, Operand(kInstanceInstantiatorTypeArgumentsReg));
+    __ cmp(kScratchReg,
+           Operand(STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg));
     if (n == 3) {
       __ b(&found, EQ);
     } else {
@@ -2939,7 +2930,9 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
                        target::kWordSize *
                            target::SubtypeTestCache::
                                kInstanceParentFunctionTypeArguments));
-        __ cmp(kScratchReg, Operand(kInstanceParentFunctionTypeArgumentsReg));
+        __ cmp(
+            kScratchReg,
+            Operand(STCInternalRegs::kInstanceParentFunctionTypeArgumentsReg));
         __ b(&next_iteration, NE);
 
         __ ldr(kScratchReg,
@@ -2947,7 +2940,9 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
                        target::kWordSize *
                            target::SubtypeTestCache::
                                kInstanceDelayedFunctionTypeArguments));
-        __ cmp(kScratchReg, Operand(kInstanceDelayedFunctionTypeArgumentsReg));
+        __ cmp(
+            kScratchReg,
+            Operand(STCInternalRegs::kInstanceDelayedFunctionTypeArgumentsReg));
         __ b(&found, EQ);
       }
     }
@@ -3003,10 +2998,10 @@ void StubCodeCompiler::GenerateGetCStackPointerStub(Assembler* assembler) {
 void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
   ASSERT(kExceptionObjectReg == R0);
   ASSERT(kStackTraceObjectReg == R1);
-  // TransitionGeneratedToNative might clobber LR if it takes the slow path.
+  __ set_lr_state(compiler::LRState::Clobbered());
   __ mov(CALLEE_SAVED_TEMP, R0);  // Program counter.
-  __ mov(SP, R1);  // Stack pointer.
-  __ mov(FP, R2);  // Frame_pointer.
+  __ mov(SP, R1);                 // Stack pointer.
+  __ mov(FP, R2);                 // Frame_pointer.
   __ mov(THR, R3);
   __ SetupCSPFromThread(THR);
 #if defined(TARGET_OS_FUCHSIA)
@@ -3048,7 +3043,8 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
 // The arguments are stored in the Thread object.
 // Does not return.
 void StubCodeCompiler::GenerateRunExceptionHandlerStub(Assembler* assembler) {
-  __ LoadFromOffset(LR, THR, target::Thread::resume_pc_offset());
+  WRITES_RETURN_ADDRESS_TO_LR(
+      __ LoadFromOffset(LR, THR, target::Thread::resume_pc_offset()));
 
   word offset_from_thread = 0;
   bool ok = target::CanLoadFromThread(NullObject(), &offset_from_thread);
@@ -3075,7 +3071,8 @@ void StubCodeCompiler::GenerateDeoptForRewindStub(Assembler* assembler) {
   __ Push(TMP);
 
   // Load the deopt pc into LR.
-  __ LoadFromOffset(LR, THR, target::Thread::resume_pc_offset());
+  WRITES_RETURN_ADDRESS_TO_LR(
+      __ LoadFromOffset(LR, THR, target::Thread::resume_pc_offset()));
   GenerateDeoptimizationSequence(assembler, kEagerDeopt);
 
   // After we have deoptimized, jump to the correct frame.
@@ -3618,9 +3615,9 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
   /* R1: new object end address. */
   /* R2: allocation size. */
   {
-    __ CompareImmediate(R2, target::ObjectLayout::kSizeTagMaxSizeTag);
+    __ CompareImmediate(R2, target::UntaggedObject::kSizeTagMaxSizeTag);
     __ LslImmediate(R2, R2,
-                    target::ObjectLayout::kTagBitsSizeTagPos -
+                    target::UntaggedObject::kTagBitsSizeTagPos -
                         target::ObjectAlignment::kObjectAlignmentLog2);
     __ csel(R2, ZR, R2, HI);
 

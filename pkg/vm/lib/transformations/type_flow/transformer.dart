@@ -590,17 +590,17 @@ class TreeShaker {
         m.type.accept(typeVisitor);
       } else if (m is Procedure) {
         func = m.function;
-        if (m.forwardingStubSuperTarget != null) {
+        if (m.concreteForwardingStubTarget != null) {
           m.stubTarget = fieldMorpher.adjustInstanceCallTarget(
-              m.forwardingStubSuperTarget,
+              m.concreteForwardingStubTarget,
               isSetter: m.isSetter);
-          addUsedMember(m.forwardingStubSuperTarget);
+          addUsedMember(m.concreteForwardingStubTarget);
         }
-        if (m.forwardingStubInterfaceTarget != null) {
+        if (m.abstractForwardingStubTarget != null) {
           m.stubTarget = fieldMorpher.adjustInstanceCallTarget(
-              m.forwardingStubInterfaceTarget,
+              m.abstractForwardingStubTarget,
               isSetter: m.isSetter);
-          addUsedMember(m.forwardingStubInterfaceTarget);
+          addUsedMember(m.abstractForwardingStubTarget);
         }
         if (m.memberSignatureOrigin != null) {
           m.stubTarget = fieldMorpher.adjustInstanceCallTarget(
@@ -1326,9 +1326,20 @@ class _TreeShakerPass2 extends Transformer {
           _makeUnreachableBody(node.function);
         }
         node.function.asyncMarker = AsyncMarker.Sync;
-        if (node.forwardingStubSuperTarget != null ||
-            node.forwardingStubInterfaceTarget != null) {
-          node.stubTarget = null;
+        switch (node.stubKind) {
+          case ProcedureStubKind.Regular:
+          case ProcedureStubKind.NoSuchMethodForwarder:
+            break;
+          case ProcedureStubKind.MemberSignature:
+          case ProcedureStubKind.AbstractForwardingStub:
+          case ProcedureStubKind.ConcreteForwardingStub:
+          case ProcedureStubKind.AbstractMixinStub:
+          case ProcedureStubKind.ConcreteMixinStub:
+            // Make the stub look like a regular procedure so the stub target
+            // isn't expected to be non-null, for instance by the verifier.
+            node.stubKind = ProcedureStubKind.Regular;
+            node.stubTarget = null;
+            break;
         }
         Statistics.methodBodiesDropped++;
       } else if (node is Field) {

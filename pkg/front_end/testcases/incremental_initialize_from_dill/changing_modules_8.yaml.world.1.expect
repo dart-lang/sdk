@@ -12,7 +12,7 @@ library from "package:module/lib1.dart" as lib1 {
   import "package:module/lib2.dart";
 
   abstract class XSet extends dart.core::Object {
-    static field dynamic _redirecting# = <dynamic>[lib1::XSet::identity];
+    static final field dynamic _redirecting# = <dynamic>[lib1::XSet::identity];
     static factory identity() → lib1::XSet*
       let dynamic #redirecting_factory = lib2::XLinkedHashSet::identity in invalid-expression;
     abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
@@ -33,7 +33,7 @@ library from "package:module/lib2.dart" as lib2 {
   import "package:module/lib3.dart";
 
   class XLinkedHashSet extends dart.core::Object implements lib1::XSet {
-    static field dynamic _redirecting# = <dynamic>[lib2::XLinkedHashSet::identity];
+    static final field dynamic _redirecting# = <dynamic>[lib2::XLinkedHashSet::identity];
     static factory identity() → lib2::XLinkedHashSet*
       let dynamic #redirecting_factory = lib3::XIdentityHashSet::• in invalid-expression;
     abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode

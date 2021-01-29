@@ -11,7 +11,7 @@ static method foo() → void {
 static method bar() → void {
   dynamic list;
   try {
-    list = <core::String*>[];
+    list = core::_GrowableList::•<core::String*>(0);
   }
   on dynamic catch(final dynamic _) {
     return;

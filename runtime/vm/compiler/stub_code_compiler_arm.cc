@@ -183,7 +183,7 @@ void StubCodeCompiler::GenerateSharedStubGeneric(
 
   // To make the stack map calculation architecture independent we do the same
   // as on intel.
-  __ Push(LR);
+  READS_RETURN_ADDRESS_FROM_LR(__ Push(LR));
   __ PushRegisters(all_registers);
   __ ldr(CODE_REG, Address(THR, self_code_stub_offset_from_thread));
   __ EnterStubFrame();
@@ -195,7 +195,7 @@ void StubCodeCompiler::GenerateSharedStubGeneric(
   __ LeaveStubFrame();
   __ PopRegisters(all_registers);
   __ Drop(1);  // We use the LR restored via LeaveStubFrame.
-  __ bx(LR);
+  READS_RETURN_ADDRESS_FROM_LR(__ bx(LR));
 }
 
 void StubCodeCompiler::GenerateSharedStub(
@@ -208,7 +208,9 @@ void StubCodeCompiler::GenerateSharedStub(
   ASSERT(!store_runtime_result_in_result_register || allow_return);
   auto perform_runtime_call = [&]() {
     if (store_runtime_result_in_result_register) {
-      __ PushRegister(LR);
+      // Reserve space for the result on the stack. This needs to be a GC
+      // safe value.
+      __ PushImmediate(Smi::RawValue(0));
     }
     __ CallRuntime(*target, /*argument_count=*/0);
     if (store_runtime_result_in_result_register) {
@@ -307,11 +309,11 @@ void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
   all_registers.AddAllGeneralRegisters();
   __ PushRegisters(all_registers);
 
-  __ EnterFrame((1 << FP) | (1 << LR), 0);
+  SPILLS_LR_TO_FRAME(__ EnterFrame((1 << FP) | (1 << LR), 0));
   __ ReserveAlignedFrameSpace(0);
   __ ldr(R0, Address(THR, kEnterSafepointRuntimeEntry.OffsetFromThread()));
   __ blx(R0);
-  __ LeaveFrame((1 << FP) | (1 << LR), 0);
+  RESTORES_LR_FROM_FRAME(__ LeaveFrame((1 << FP) | (1 << LR), 0));
 
   __ PopRegisters(all_registers);
   __ Ret();
@@ -322,7 +324,7 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
   all_registers.AddAllGeneralRegisters();
   __ PushRegisters(all_registers);
 
-  __ EnterFrame((1 << FP) | (1 << LR), 0);
+  SPILLS_LR_TO_FRAME(__ EnterFrame((1 << FP) | (1 << LR), 0));
   __ ReserveAlignedFrameSpace(0);
 
   // Set the execution state to VM while waiting for the safepoint to end.
@@ -333,7 +335,7 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
 
   __ ldr(R0, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
   __ blx(R0);
-  __ LeaveFrame((1 << FP) | (1 << LR), 0);
+  RESTORES_LR_FROM_FRAME(__ LeaveFrame((1 << FP) | (1 << LR), 0));
 
   __ PopRegisters(all_registers);
   __ Ret();
@@ -353,7 +355,7 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
   COMPILE_ASSERT(IsAbiPreservedRegister(R4));
 
   // TransitionGeneratedToNative might clobber LR if it takes the slow path.
-  __ mov(R4, Operand(LR));
+  SPILLS_RETURN_ADDRESS_FROM_LR_TO_REGISTER(__ mov(R4, Operand(LR)));
 
   __ LoadImmediate(R9, target::Thread::exit_through_ffi());
   __ TransitionGeneratedToNative(R8, FPREG, R9 /*volatile*/, NOTFP,
@@ -402,7 +404,8 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 
   // Save THR (callee-saved), R4 & R5 (temporaries, callee-saved), and LR.
   COMPILE_ASSERT(StubCodeCompiler::kNativeCallbackTrampolineStackDelta == 4);
-  __ PushList((1 << LR) | (1 << THR) | (1 << R4) | (1 << R5));
+  SPILLS_LR_TO_FRAME(
+      __ PushList((1 << LR) | (1 << THR) | (1 << R4) | (1 << R5)));
 
   // Don't rely on TMP being preserved by assembler macros anymore.
   __ mov(R4, Operand(TMP));
@@ -578,8 +581,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   __ mov(R1, Operand(R9));  // Pass the function entrypoint to call.
 
   // Call native function invocation wrapper or redirection via simulator.
-  __ ldr(LR, wrapper);
-  __ blx(LR);
+  __ Call(wrapper);
 
   // Mark that the thread is executing Dart code.
   __ LoadImmediate(R2, VMTag::kDartTagId);
@@ -910,7 +912,7 @@ void StubCodeCompiler::GenerateDeoptimizeLazyFromReturnStub(
   __ LoadImmediate(IP, kZapCodeReg);
   __ Push(IP);
   // Return address for "call" to deopt stub.
-  __ LoadImmediate(LR, kZapReturnAddress);
+  WRITES_RETURN_ADDRESS_TO_LR(__ LoadImmediate(LR, kZapReturnAddress));
   __ ldr(CODE_REG,
          Address(THR, target::Thread::lazy_deopt_from_return_stub_offset()));
   GenerateDeoptimizationSequence(assembler, kLazyDeoptFromReturn);
@@ -925,7 +927,7 @@ void StubCodeCompiler::GenerateDeoptimizeLazyFromThrowStub(
   __ LoadImmediate(IP, kZapCodeReg);
   __ Push(IP);
   // Return address for "call" to deopt stub.
-  __ LoadImmediate(LR, kZapReturnAddress);
+  WRITES_RETURN_ADDRESS_TO_LR(__ LoadImmediate(LR, kZapReturnAddress));
   __ ldr(CODE_REG,
          Address(THR, target::Thread::lazy_deopt_from_throw_stub_offset()));
   GenerateDeoptimizationSequence(assembler, kLazyDeoptFromThrow);
@@ -1056,10 +1058,10 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     // R3: new object end address.
     // R9: allocation size.
     {
-      const intptr_t shift = target::ObjectLayout::kTagBitsSizeTagPos -
+      const intptr_t shift = target::UntaggedObject::kTagBitsSizeTagPos -
                              target::ObjectAlignment::kObjectAlignmentLog2;
 
-      __ CompareImmediate(R9, target::ObjectLayout::kSizeTagMaxSizeTag);
+      __ CompareImmediate(R9, target::UntaggedObject::kSizeTagMaxSizeTag);
       __ mov(R8, Operand(R9, LSL, shift), LS);
       __ mov(R8, Operand(0), HI);
 
@@ -1112,13 +1114,13 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   // Pop arguments; result is popped in IP.
   __ PopList((1 << R1) | (1 << R2) | (1 << IP));  // R2 is restored.
   __ mov(R0, Operand(IP));
+  __ LeaveStubFrame();
 
   // Write-barrier elimination might be enabled for this array (depending on the
   // array length). To be sure we will check if the allocated object is in old
   // space and if so call a leaf runtime to add it to the remembered set.
   EnsureIsNewOrRemembered(assembler);
 
-  __ LeaveStubFrame();
   __ Ret();
 }
 
@@ -1172,8 +1174,8 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub(
 //   R2 : arguments array.
 //   R3 : current thread.
 void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
-  __ Push(LR);  // Marker for the profiler.
-  __ EnterFrame((1 << FP) | (1 << LR), 0);
+  READS_RETURN_ADDRESS_FROM_LR(__ Push(LR));  // Marker for the profiler.
+  SPILLS_LR_TO_FRAME(__ EnterFrame((1 << FP) | (1 << LR), 0));
 
   // Push code object to PC marker slot.
   __ ldr(IP, Address(R3, target::Thread::invoke_dart_code_stub_offset()));
@@ -1293,7 +1295,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ set_constant_pool_allowed(false);
 
   // Restore the frame pointer and return.
-  __ LeaveFrame((1 << FP) | (1 << LR));
+  RESTORES_LR_FROM_FRAME(__ LeaveFrame((1 << FP) | (1 << LR)));
   __ Drop(1);
   __ Ret();
 }
@@ -1303,7 +1305,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 // Input:
 //   R1: number of context variables.
 // Output:
-//   R0: new allocated RawContext object.
+//   R0: new allocated Context object.
 // Clobbered:
 //   R2, R3, R8, R9
 static void GenerateAllocateContext(Assembler* assembler, Label* slow_case) {
@@ -1347,9 +1349,9 @@ static void GenerateAllocateContext(Assembler* assembler, Label* slow_case) {
   // R1: number of context variables.
   // R2: object size.
   // R3: next object start.
-  const intptr_t shift = target::ObjectLayout::kTagBitsSizeTagPos -
+  const intptr_t shift = target::UntaggedObject::kTagBitsSizeTagPos -
                          target::ObjectAlignment::kObjectAlignmentLog2;
-  __ CompareImmediate(R2, target::ObjectLayout::kSizeTagMaxSizeTag);
+  __ CompareImmediate(R2, target::UntaggedObject::kSizeTagMaxSizeTag);
   // If no size tag overflow, shift R2 left, else set R2 to zero.
   __ mov(R9, Operand(R2, LSL, shift), LS);
   __ mov(R9, Operand(0), HI);
@@ -1375,7 +1377,7 @@ static void GenerateAllocateContext(Assembler* assembler, Label* slow_case) {
 // Input:
 //   R1: number of context variables.
 // Output:
-//   R0: new allocated RawContext object.
+//   R0: new allocated Context object.
 // Clobbered:
 //   Potentially any since is can go to runtime.
 void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
@@ -1436,7 +1438,7 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
 // Input:
 //   R4: context variable to clone.
 // Output:
-//   R0: new allocated RawContext object.
+//   R0: new allocated Context object.
 // Clobbered:
 //   Potentially any since it can go to runtime.
 void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
@@ -1507,19 +1509,17 @@ void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
 }
 
 void StubCodeCompiler::GenerateWriteBarrierWrappersStub(Assembler* assembler) {
-  RegList saved = (1 << LR) | (1 << kWriteBarrierObjectReg);
   for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
     if ((kDartAvailableCpuRegs & (1 << i)) == 0) continue;
 
     Register reg = static_cast<Register>(i);
     intptr_t start = __ CodeSize();
-    __ PushList(saved);
+    SPILLS_LR_TO_FRAME(__ PushList((1 << LR) | (1 << kWriteBarrierObjectReg)));
     __ mov(kWriteBarrierObjectReg, Operand(reg));
-    __ ldr(LR,
-           Address(THR, target::Thread::write_barrier_entry_point_offset()));
-    __ blx(LR);
-    __ PopList(saved);
-    __ bx(LR);
+    __ Call(Address(THR, target::Thread::write_barrier_entry_point_offset()));
+    RESTORES_LR_FROM_FRAME(
+        __ PopList((1 << LR) | (1 << kWriteBarrierObjectReg)));
+    READS_RETURN_ADDRESS_FROM_LR(__ bx(LR));
     intptr_t end = __ CodeSize();
 
     RELEASE_ASSERT(end - start == kStoreBufferWrapperSize);
@@ -1545,13 +1545,13 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 
   if (cards) {
     __ ldr(TMP, FieldAddress(R1, target::Object::tags_offset()));
-    __ tst(TMP, Operand(1 << target::ObjectLayout::kCardRememberedBit));
+    __ tst(TMP, Operand(1 << target::UntaggedObject::kCardRememberedBit));
     __ b(&remember_card, NOT_ZERO);
   } else {
 #if defined(DEBUG)
     Label ok;
     __ ldr(TMP, FieldAddress(R1, target::Object::tags_offset()));
-    __ tst(TMP, Operand(1 << target::ObjectLayout::kCardRememberedBit));
+    __ tst(TMP, Operand(1 << target::UntaggedObject::kCardRememberedBit));
     __ b(&ok, ZERO);
     __ Stop("Wrong barrier");
     __ Bind(&ok);
@@ -1568,7 +1568,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   Label retry;
   __ Bind(&retry);
   __ ldrex(R2, R3);
-  __ bic(R2, R2, Operand(1 << target::ObjectLayout::kOldAndNotRememberedBit));
+  __ bic(R2, R2, Operand(1 << target::UntaggedObject::kOldAndNotRememberedBit));
   __ strex(R4, R2, R3);
   __ cmp(R4, Operand(1));
   __ b(&retry, EQ);
@@ -1616,9 +1616,9 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   // R3: Untagged address of header word (ldrex/strex do not support offsets).
   __ Bind(&marking_retry);
   __ ldrex(R2, R3);
-  __ tst(R2, Operand(1 << target::ObjectLayout::kOldAndNotMarkedBit));
+  __ tst(R2, Operand(1 << target::UntaggedObject::kOldAndNotMarkedBit));
   __ b(&lost_race, ZERO);
-  __ bic(R2, R2, Operand(1 << target::ObjectLayout::kOldAndNotMarkedBit));
+  __ bic(R2, R2, Operand(1 << target::UntaggedObject::kOldAndNotMarkedBit));
   __ strex(R4, R2, R3);
   __ cmp(R4, Operand(1));
   __ b(&marking_retry, EQ);
@@ -2629,7 +2629,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // used to initialize this register.
   const Register kCacheArrayReg = TypeTestABI::kSubtypeTestCacheReg;
   const Register kScratchReg = TypeTestABI::kScratchReg;
-  const Register kInstanceCidOrFunction = R9;
+
   // Registers that are only used for n >= 3 and must be preserved if used.
   Register kInstanceInstantiatorTypeArgumentsReg = kNoRegister;
   // Registers that are only used for n >= 7 and must be preserved if used.
@@ -2674,16 +2674,18 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 
   Label loop, not_closure;
   if (n >= 5) {
-    __ LoadClassIdMayBeSmi(kInstanceCidOrFunction, TypeTestABI::kInstanceReg);
+    __ LoadClassIdMayBeSmi(STCInternalRegs::kInstanceCidOrFunctionReg,
+                           TypeTestABI::kInstanceReg);
   } else {
-    __ LoadClassId(kInstanceCidOrFunction, TypeTestABI::kInstanceReg);
+    __ LoadClassId(STCInternalRegs::kInstanceCidOrFunctionReg,
+                   TypeTestABI::kInstanceReg);
   }
-  __ CompareImmediate(kInstanceCidOrFunction, kClosureCid);
+  __ CompareImmediate(STCInternalRegs::kInstanceCidOrFunctionReg, kClosureCid);
   __ b(&not_closure, NE);
 
   // Closure handling.
   {
-    __ ldr(kInstanceCidOrFunction,
+    __ ldr(STCInternalRegs::kInstanceCidOrFunctionReg,
            FieldAddress(TypeTestABI::kInstanceReg,
                         target::Closure::function_offset()));
     if (n >= 3) {
@@ -2709,7 +2711,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ Bind(&not_closure);
     if (n >= 3) {
       Label has_no_type_arguments;
-      __ LoadClassById(kScratchReg, kInstanceCidOrFunction);
+      __ LoadClassById(kScratchReg, STCInternalRegs::kInstanceCidOrFunctionReg);
       __ mov(kInstanceInstantiatorTypeArgumentsReg, Operand(kNullReg));
       __ ldr(
           kScratchReg,
@@ -2729,7 +2731,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
         __ PushRegister(kNullReg);
       }
     }
-    __ SmiTag(kInstanceCidOrFunction);
+    __ SmiTag(STCInternalRegs::kInstanceCidOrFunctionReg);
   }
 
   const intptr_t kNoDepth = -1;
@@ -2746,7 +2748,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
                      target::SubtypeTestCache::kInstanceClassIdOrFunction));
   __ cmp(kScratchReg, Operand(kNullReg));
   __ b(&not_found, EQ);
-  __ cmp(kScratchReg, Operand(kInstanceCidOrFunction));
+  __ cmp(kScratchReg, Operand(STCInternalRegs::kInstanceCidOrFunctionReg));
   if (n == 1) {
     __ b(&found, EQ);
   } else {
@@ -2915,7 +2917,8 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
 // The arguments are stored in the Thread object.
 // Does not return.
 void StubCodeCompiler::GenerateRunExceptionHandlerStub(Assembler* assembler) {
-  __ LoadFromOffset(LR, THR, target::Thread::resume_pc_offset());
+  WRITES_RETURN_ADDRESS_TO_LR(
+      __ LoadFromOffset(LR, THR, target::Thread::resume_pc_offset()));
 
   word offset_from_thread = 0;
   bool ok = target::CanLoadFromThread(NullObject(), &offset_from_thread);
@@ -2930,7 +2933,8 @@ void StubCodeCompiler::GenerateRunExceptionHandlerStub(Assembler* assembler) {
   __ LoadFromOffset(R1, THR, target::Thread::active_stacktrace_offset());
   __ StoreToOffset(R2, THR, target::Thread::active_stacktrace_offset());
 
-  __ bx(LR);  // Jump to the exception handler code.
+  READS_RETURN_ADDRESS_FROM_LR(
+      __ bx(LR));  // Jump to the exception handler code.
 }
 
 // Deoptimize a frame on the call stack before rewinding.
@@ -2942,7 +2946,8 @@ void StubCodeCompiler::GenerateDeoptForRewindStub(Assembler* assembler) {
   __ Push(IP);
 
   // Load the deopt pc into LR.
-  __ LoadFromOffset(LR, THR, target::Thread::resume_pc_offset());
+  WRITES_RETURN_ADDRESS_TO_LR(
+      __ LoadFromOffset(LR, THR, target::Thread::resume_pc_offset()));
   GenerateDeoptimizationSequence(assembler, kEagerDeopt);
 
   // After we have deoptimized, jump to the correct frame.
@@ -3479,10 +3484,10 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
   /* R1: new object end address. */
   /* R2: allocation size. */
   {
-    __ CompareImmediate(R2, target::ObjectLayout::kSizeTagMaxSizeTag);
+    __ CompareImmediate(R2, target::UntaggedObject::kSizeTagMaxSizeTag);
     __ mov(R3,
            Operand(R2, LSL,
-                   target::ObjectLayout::kTagBitsSizeTagPos -
+                   target::UntaggedObject::kTagBitsSizeTagPos -
                        target::ObjectAlignment::kObjectAlignmentLog2),
            LS);
     __ mov(R3, Operand(0), HI);

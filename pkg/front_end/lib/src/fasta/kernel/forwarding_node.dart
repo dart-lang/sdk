@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import "package:kernel/ast.dart"
     show
         Arguments,
@@ -36,11 +38,18 @@ class ForwardingNode {
 
   final ProcedureKind kind;
 
-  ForwardingNode(this._combinedMemberSignature, this.kind);
+  final ClassMember _superClassMember;
+
+  final ClassMember _mixedInMember;
+
+  ForwardingNode(this._combinedMemberSignature, this.kind,
+      this._superClassMember, this._mixedInMember);
 
   /// Finishes handling of this node by propagating covariance and creating
   /// forwarding stubs if necessary.
-  Member finalize() => _computeCovarianceFixes();
+  ///
+  /// If a stub is created, this is returned. Otherwise `null` is returned.
+  Procedure finalize() => _computeCovarianceFixes();
 
   /// Tag the parameters of [interfaceMember] that need type checks
   ///
@@ -52,13 +61,18 @@ class ForwardingNode {
   /// occurs in [enclosingClass]'s interface.  If parameters need checks but
   /// they would not be checked in an inherited implementation, a forwarding
   /// stub is introduced as a place to put the checks.
-  Member _computeCovarianceFixes() {
+  ///
+  /// If a stub is created, this is returned. Otherwise `null` is returned.
+  Procedure _computeCovarianceFixes() {
     SourceClassBuilder classBuilder = _combinedMemberSignature.classBuilder;
     ClassMember canonicalMember = _combinedMemberSignature.canonicalMember;
     Member interfaceMember =
         canonicalMember.getMember(_combinedMemberSignature.hierarchy);
 
-    if (_combinedMemberSignature.members.length == 1) {
+    bool needMixinStub =
+        classBuilder.isMixinApplication && _mixedInMember != null;
+
+    if (_combinedMemberSignature.members.length == 1 && !needMixinStub) {
       // Covariance can only come from [interfaceMember] so we never need a
       // forwarding stub.
       if (_combinedMemberSignature.neededLegacyErasure) {
@@ -68,10 +82,13 @@ class ForwardingNode {
             copyLocation: false);
       } else {
         // Nothing to do.
-        return interfaceMember;
+        return null;
       }
     }
 
+    // TODO(johnniwinther): Remove this. This relies upon the order of the
+    // declarations matching the order in which members are returned from the
+    // [ClassHierarchy].
     bool cannotReuseExistingMember =
         !(_combinedMemberSignature.isCanonicalMemberFirst ||
             _combinedMemberSignature.isCanonicalMemberDeclared);
@@ -81,60 +98,88 @@ class ForwardingNode {
             _combinedMemberSignature.needsCovarianceMerging;
     bool stubNeeded = cannotReuseExistingMember ||
         (canonicalMember.classBuilder != classBuilder &&
-            needsTypeOrCovarianceUpdate);
+            needsTypeOrCovarianceUpdate) ||
+        needMixinStub;
+    bool needsSuperImpl = _superClassMember != null &&
+        _superClassMember.getCovariance(_combinedMemberSignature.hierarchy) !=
+            _combinedMemberSignature.combinedMemberSignatureCovariance;
     if (stubNeeded) {
       Procedure stub = _combinedMemberSignature.createMemberFromSignature(
           copyLocation: false);
-      if (_combinedMemberSignature.needsCovarianceMerging ||
-          _combinedMemberSignature.needsSuperImpl) {
-        // This is a forward stub.
+      bool needsForwardingStub =
+          _combinedMemberSignature.needsCovarianceMerging || needsSuperImpl;
+      if (needsForwardingStub || needMixinStub) {
+        ProcedureStubKind stubKind;
         Member finalTarget;
-        if (interfaceMember is Procedure && interfaceMember.isForwardingStub) {
-          finalTarget = interfaceMember.forwardingStubInterfaceTarget;
+        if (needsForwardingStub) {
+          stubKind = ProcedureStubKind.AbstractForwardingStub;
+          if (interfaceMember is Procedure) {
+            switch (interfaceMember.stubKind) {
+              case ProcedureStubKind.Regular:
+              case ProcedureStubKind.NoSuchMethodForwarder:
+                finalTarget = interfaceMember;
+                break;
+              case ProcedureStubKind.AbstractForwardingStub:
+              case ProcedureStubKind.ConcreteForwardingStub:
+              case ProcedureStubKind.MemberSignature:
+              case ProcedureStubKind.AbstractMixinStub:
+              case ProcedureStubKind.ConcreteMixinStub:
+                finalTarget = interfaceMember.stubTarget;
+                break;
+            }
+          } else {
+            finalTarget = interfaceMember;
+          }
         } else {
+          stubKind = ProcedureStubKind.AbstractMixinStub;
           finalTarget =
-              interfaceMember.memberSignatureOrigin ?? interfaceMember;
+              _mixedInMember.getMember(_combinedMemberSignature.hierarchy);
         }
-        stub.stubKind = ProcedureStubKind.ForwardingStub;
+
+        stub.stubKind = stubKind;
         stub.stubTarget = finalTarget;
-        if (_combinedMemberSignature.needsSuperImpl) {
+        if (needsSuperImpl ||
+            (needMixinStub && _superClassMember == _mixedInMember)) {
           _createForwardingImplIfNeeded(
-              stub.function, stub.name, classBuilder.cls);
+              stub.function, stub.name, classBuilder.cls,
+              isForwardingStub: needsForwardingStub);
         }
       }
+
       return stub;
     } else {
       if (_combinedMemberSignature.needsCovarianceMerging) {
         _combinedMemberSignature.combinedMemberSignatureCovariance
             .applyCovariance(interfaceMember);
       }
-      if (_combinedMemberSignature.needsSuperImpl) {
+      if (needsSuperImpl) {
         _createForwardingImplIfNeeded(
-            interfaceMember.function, interfaceMember.name, classBuilder.cls);
+            interfaceMember.function, interfaceMember.name, classBuilder.cls,
+            isForwardingStub: true);
       }
-      return interfaceMember;
+      return null;
     }
   }
 
   void _createForwardingImplIfNeeded(
-      FunctionNode function, Name name, Class enclosingClass) {
+      FunctionNode function, Name name, Class enclosingClass,
+      {bool isForwardingStub}) {
+    assert(isForwardingStub != null);
     if (function.body != null) {
       // There is already an implementation; nothing further needs to be done.
       return;
     }
-    // Find the concrete implementation in the superclass; this is what we need
-    // to forward to.  If we can't find one, then the method is fully abstract
-    // and we don't need to do anything.
-    Class superclass = enclosingClass.superclass;
-    if (superclass == null) return;
+    // If there is no concrete implementation in the superclass, then the method
+    // is fully abstract and we don't need to do anything.
+    if (_superClassMember == null) {
+      return;
+    }
     Procedure procedure = function.parent;
-    Member superTarget = _combinedMemberSignature.hierarchy
-        .getDispatchTargetKernel(
-            superclass, procedure.name, kind == ProcedureKind.Setter);
-    if (superTarget == null) return;
+    Member superTarget =
+        _superClassMember.getMember(_combinedMemberSignature.hierarchy);
     if (superTarget is Procedure && superTarget.isForwardingStub) {
       Procedure superProcedure = superTarget;
-      superTarget = superProcedure.forwardingStubSuperTarget;
+      superTarget = superProcedure.concreteForwardingStubTarget;
     } else {
       superTarget = superTarget.memberSignatureOrigin ?? superTarget;
     }
@@ -178,7 +223,9 @@ class ForwardingNode {
     }
     function.body = new ReturnStatement(superCall)..parent = function;
     procedure.transformerFlags |= TransformerFlag.superCalls;
-    procedure.stubKind = ProcedureStubKind.ForwardingSuperStub;
+    procedure.stubKind = isForwardingStub
+        ? ProcedureStubKind.ConcreteForwardingStub
+        : ProcedureStubKind.ConcreteMixinStub;
     procedure.stubTarget = superTarget;
   }
 }

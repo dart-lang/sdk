@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -48,11 +49,12 @@ class CorrectOverrideHelper {
     @required ExecutableElement superMember,
     @required ErrorReporter errorReporter,
     @required AstNode errorNode,
+    ErrorCode errorCode,
   }) {
     var isCorrect = isCorrectOverrideOf(superMember: superMember);
     if (!isCorrect) {
       errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.INVALID_OVERRIDE,
+        errorCode ?? CompileTimeErrorCode.INVALID_OVERRIDE,
         errorNode,
         [
           _thisMember.name,
@@ -189,7 +191,7 @@ class CovariantParametersVerifier {
   /// Return the [Substitution] to convert types of [superMember] to types of
   /// [_thisMember].
   Substitution _superSubstitution(_SuperMember superMember) {
-    var result = Substitution.fromInterfaceType(superMember.interface);
+    Substitution result = Substitution.fromInterfaceType(superMember.interface);
 
     // If the executable has type parameters, ensure that super uses the same.
     var thisTypeParameters = _thisMember.typeParameters;

@@ -105,7 +105,7 @@ class Baz<T extends core::Object* = dynamic, E extends core::Iterable<self::Baz:
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method test() → dynamic {
-  core::List<self::Foo*>* list = <self::Foo*>[];
+  core::List<self::Foo*>* list = core::_GrowableList::•<self::Foo*>(0);
   {
     core::Iterator<self::Foo*>* :sync-for-iterator = list.{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {

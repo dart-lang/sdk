@@ -73,3 +73,9 @@ constants  {
 Extra constant evaluation status:
 Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///magic_const.dart:23:8 -> BoolConstant(false)
 Extra constant evaluation: evaluated: 2, effectively constant: 1
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///magic_const.dart:
+- Constant. (from org-dartlang-testcase:///magic_const.dart:12:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

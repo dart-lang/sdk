@@ -22,15 +22,16 @@ testeeDo() {
 
 Future checkSamples(VmService service, IsolateRef isolate) async {
   // Grab all the samples.
-  final result = await service.getCpuSamples(isolate.id, 0, ~0);
+  final isolateId = isolate.id!;
+  final result = await service.getCpuSamples(isolateId, 0, ~0);
 
   final isString = TypeMatcher<String>();
   final isInt = TypeMatcher<int>();
   final isList = TypeMatcher<List>();
-  expect(result.functions.length, greaterThan(10),
-      reason: "Should have many functions");
+  expect(result.functions!.length, greaterThan(10),
+      reason: "Should have many functions!");
 
-  final samples = result.samples;
+  final samples = result.samples!;
   expect(samples.length, greaterThan(10), reason: "Should have many samples");
   expect(samples.length, result.sampleCount);
 
@@ -47,7 +48,7 @@ Future checkSamples(VmService service, IsolateRef isolate) async {
 }
 
 var tests = <IsolateTest>[
-  (VmService service, IsolateRef i) => checkSamples(service, i),
+  ((VmService service, IsolateRef i) => checkSamples(service, i)),
 ];
 
 var vmArgs = [

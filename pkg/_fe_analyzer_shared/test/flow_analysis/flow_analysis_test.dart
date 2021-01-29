@@ -12,10 +12,13 @@ main() {
     test('asExpression_end promotes variables', () {
       var h = Harness();
       var x = Var('x', 'int?');
+      late SsaNode<Var, Type> ssaBeforePromotion;
       h.run([
         declare(x, initialized: true),
+        getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
         x.read.as_('int').stmt,
         checkPromoted(x, 'int'),
+        getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
       ]);
     });
 
@@ -164,17 +167,32 @@ main() {
       ]);
     });
 
+    test('declare() sets Ssa', () {
+      var h = Harness();
+      var x = Var('x', 'Object');
+      h.run([
+        declare(x, initialized: false),
+        getSsaNodes((nodes) {
+          expect(nodes[x], isNotNull);
+        }),
+      ]);
+    });
+
     test('equalityOp(x != null) promotes true branch', () {
       var h = Harness();
       var x = Var('x', 'int?');
+      late SsaNode<Var, Type> ssaBeforePromotion;
       h.run([
         declare(x, initialized: true),
+        getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
         if_(x.read.notEq(nullLiteral), [
           checkReachable(true),
           checkPromoted(x, 'int'),
+          getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
         ], [
           checkReachable(true),
           checkNotPromoted(x),
+          getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
         ]),
       ]);
     });
@@ -232,14 +250,18 @@ main() {
     test('equalityOp(x == null) promotes false branch', () {
       var h = Harness();
       var x = Var('x', 'int?');
+      late SsaNode<Var, Type> ssaBeforePromotion;
       h.run([
         declare(x, initialized: true),
+        getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
         if_(x.read.eq(nullLiteral), [
           checkReachable(true),
           checkNotPromoted(x),
+          getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
         ], [
           checkReachable(true),
           checkPromoted(x, 'int'),
+          getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
         ]),
       ]);
     });
@@ -262,12 +284,16 @@ main() {
     test('equalityOp(null != x) promotes true branch', () {
       var h = Harness();
       var x = Var('x', 'int?');
+      late SsaNode<Var, Type> ssaBeforePromotion;
       h.run([
         declare(x, initialized: true),
+        getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
         if_(nullLiteral.notEq(x.read), [
           checkPromoted(x, 'int'),
+          getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
         ], [
           checkNotPromoted(x),
+          getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
         ]),
       ]);
     });
@@ -288,12 +314,16 @@ main() {
     test('equalityOp(null == x) promotes false branch', () {
       var h = Harness();
       var x = Var('x', 'int?');
+      late SsaNode<Var, Type> ssaBeforePromotion;
       h.run([
         declare(x, initialized: true),
+        getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
         if_(nullLiteral.eq(x.read), [
           checkNotPromoted(x),
+          getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
         ], [
           checkPromoted(x, 'int'),
+          getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
         ]),
       ]);
     });
@@ -381,14 +411,39 @@ main() {
       ]);
     });
 
+    test('declare(initialized: false) assigns new SSA ids', () {
+      var h = Harness();
+      var x = Var('x', 'int?');
+      var y = Var('y', 'int?');
+      h.run([
+        declare(x, initialized: false),
+        declare(y, initialized: false),
+        getSsaNodes((nodes) => expect(nodes[y], isNot(nodes[x]))),
+      ]);
+    });
+
+    test('declare(initialized: true) assigns new SSA ids', () {
+      var h = Harness();
+      var x = Var('x', 'int?');
+      var y = Var('y', 'int?');
+      h.run([
+        declare(x, initialized: true),
+        declare(y, initialized: true),
+        getSsaNodes((nodes) => expect(nodes[y], isNot(nodes[x]))),
+      ]);
+    });
+
     test('doStatement_bodyBegin() un-promotes', () {
       var h = Harness();
       var x = Var('x', 'int?');
+      late SsaNode<Var, Type> ssaBeforeLoop;
       h.run([
         declare(x, initialized: true),
         x.read.as_('int').stmt,
         checkPromoted(x, 'int'),
+        getSsaNodes((nodes) => ssaBeforeLoop = nodes[x]!),
         branchTarget((t) => do_([
+              getSsaNodes((nodes) => expect(nodes[x], isNot(ssaBeforeLoop))),
               checkNotPromoted(x),
               x.write(expr('Null')).stmt,
             ], expr('bool'))),
@@ -447,23 +502,33 @@ main() {
     test('finish checks proper nesting', () {
       var h = Harness();
       var e = expr('Null');
+      var s = if_(e, []);
       var flow = FlowAnalysis<Node, Statement, Expression, Var, Type>(
           h, AssignedVariables<Node, Var>());
       flow.ifStatement_conditionBegin();
-      flow.ifStatement_thenBegin(e);
+      flow.ifStatement_thenBegin(e, s);
       expect(() => flow.finish(), _asserts);
     });
 
     test('for_conditionBegin() un-promotes', () {
       var h = Harness();
       var x = Var('x', 'int?');
+      late SsaNode<Var, Type> ssaBeforeLoop;
       h.run([
         declare(x, initialized: true),
         x.read.as_('int').stmt,
         checkPromoted(x, 'int'),
-        for_(null, checkNotPromoted(x).thenExpr(expr('bool')), null, [
-          x.write(expr('int?')).stmt,
-        ]),
+        getSsaNodes((nodes) => ssaBeforeLoop = nodes[x]!),
+        for_(
+            null,
+            block([
+              checkNotPromoted(x),
+              getSsaNodes((nodes) => expect(nodes[x], isNot(ssaBeforeLoop))),
+            ]).thenExpr(expr('bool')),
+            null,
+            [
+              x.write(expr('int?')).stmt,
+            ]),
       ]);
     });
 
@@ -587,15 +652,75 @@ main() {
       ]);
     });
 
+    test('for_end() with break updates Ssa of modified vars', () {
+      var h = Harness();
+      var x = Var('x', 'int?');
+      var y = Var('x', 'int?');
+      late SsaNode<Var, Type> xSsaInsideLoop;
+      late SsaNode<Var, Type> ySsaInsideLoop;
+      h.run([
+        declare(x, initialized: true),
+        declare(y, initialized: true),
+        branchTarget((t) => for_(null, expr('bool'), null, [
+              x.write(expr('int?')).stmt,
+              if_(expr('bool'), [break_(t)]),
+              getSsaNodes((nodes) {
+                xSsaInsideLoop = nodes[x]!;
+                ySsaInsideLoop = nodes[y]!;
+              }),
+            ])),
+        getSsaNodes((nodes) {
+          // x's Ssa should have been changed because of the join at the end of
+          // of the loop.  y's should not, since it retains the value it had
+          // prior to the loop.
+          expect(nodes[x], isNot(xSsaInsideLoop));
+          expect(nodes[y], same(ySsaInsideLoop));
+        }),
+      ]);
+    });
+
+    test(
+        'for_end() with break updates Ssa of modified vars when types were '
+        'tested', () {
+      var h = Harness();
+      var x = Var('x', 'int?');
+      var y = Var('x', 'int?');
+      late SsaNode<Var, Type> xSsaInsideLoop;
+      late SsaNode<Var, Type> ySsaInsideLoop;
+      h.run([
+        declare(x, initialized: true),
+        declare(y, initialized: true),
+        branchTarget((t) => for_(null, expr('bool'), null, [
+              x.write(expr('int?')).stmt,
+              if_(expr('bool'), [break_(t)]),
+              if_(x.read.is_('int'), []),
+              getSsaNodes((nodes) {
+                xSsaInsideLoop = nodes[x]!;
+                ySsaInsideLoop = nodes[y]!;
+              }),
+            ])),
+        getSsaNodes((nodes) {
+          // x's Ssa should have been changed because of the join at the end of
+          // the loop.  y's should not, since it retains the value it had prior
+          // to the loop.
+          expect(nodes[x], isNot(xSsaInsideLoop));
+          expect(nodes[y], same(ySsaInsideLoop));
+        }),
+      ]);
+    });
+
     test('forEach_bodyBegin() un-promotes', () {
       var h = Harness();
       var x = Var('x', 'int?');
+      late SsaNode<Var, Type> ssaBeforeLoop;
       h.run([
         declare(x, initialized: true),
         x.read.as_('int').stmt,
         checkPromoted(x, 'int'),
+        getSsaNodes((nodes) => ssaBeforeLoop = nodes[x]!),
         forEachWithNonVariable(expr('List<int?>'), [
           checkNotPromoted(x),
+          getSsaNodes((nodes) => expect(nodes[x], isNot(ssaBeforeLoop))),
           x.write(expr('int?')).stmt,
         ]),
       ]);
@@ -626,6 +751,20 @@ main() {
         checkAssigned(x, false),
         forEachWithVariableSet(x, expr('List<int?>'), [
           checkAssigned(x, true),
+        ]),
+        checkAssigned(x, false),
+      ]);
+    });
+
+    test('forEach_bodyBegin() does not write capture loop variable', () {
+      var h = Harness();
+      var x = Var('x', 'int?');
+      h.run([
+        declare(x, initialized: false),
+        checkAssigned(x, false),
+        forEachWithVariableSet(x, expr('List<int?>'), [
+          checkAssigned(x, true),
+          if_(x.read.notEq(nullLiteral), [checkPromoted(x, 'int')]),
         ]),
         checkAssigned(x, false),
       ]);
@@ -675,13 +814,25 @@ main() {
         y.read.as_('int').stmt,
         checkPromoted(x, 'int'),
         checkPromoted(y, 'int'),
+        getSsaNodes((nodes) {
+          expect(nodes[x], isNotNull);
+          expect(nodes[y], isNotNull);
+        }),
         localFunction([
           // x is unpromoted within the local function
           checkNotPromoted(x), checkPromoted(y, 'int'),
+          getSsaNodes((nodes) {
+            expect(nodes[x], isNull);
+            expect(nodes[y], isNotNull);
+          }),
           x.write(expr('int?')).stmt, x.read.as_('int').stmt,
         ]),
         // x is unpromoted after the local function too
         checkNotPromoted(x), checkPromoted(y, 'int'),
+        getSsaNodes((nodes) {
+          expect(nodes[x], isNull);
+          expect(nodes[y], isNotNull);
+        }),
       ]);
     });
 
@@ -721,21 +872,28 @@ main() {
       var h = Harness();
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
+      late SsaNode<Var, Type> ssaBeforeFunction;
       h.run([
         declare(x, initialized: true), declare(y, initialized: true),
         x.read.as_('int').stmt, y.read.as_('int').stmt,
-        checkPromoted(x, 'int'), checkPromoted(y, 'int'),
+        checkPromoted(x, 'int'),
+        getSsaNodes((nodes) => ssaBeforeFunction = nodes[x]!),
+        checkPromoted(y, 'int'),
         localFunction([
           // x is unpromoted within the local function, because the write
           // might have happened by the time the local function executes.
-          checkNotPromoted(x), checkPromoted(y, 'int'),
+          checkNotPromoted(x),
+          getSsaNodes((nodes) => expect(nodes[x], isNot(ssaBeforeFunction))),
+          checkPromoted(y, 'int'),
           // But it can be re-promoted because the write isn't captured.
           x.read.as_('int').stmt,
           checkPromoted(x, 'int'), checkPromoted(y, 'int'),
         ]),
         // x is still promoted after the local function, though, because the
         // write hasn't occurred yet.
-        checkPromoted(x, 'int'), checkPromoted(y, 'int'),
+        checkPromoted(x, 'int'),
+        getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforeFunction))),
+        checkPromoted(y, 'int'),
         x.write(expr('int?')).stmt,
         // x is unpromoted now.
         checkNotPromoted(x), checkPromoted(y, 'int'),
@@ -762,7 +920,9 @@ main() {
       h.run([
         declare(y, initialized: true),
         y.read.as_('int').stmt,
+        getSsaNodes((nodes) => expect(nodes[x], null)),
         localFunction([
+          getSsaNodes((nodes) => expect(nodes[x], isNot(nodes[y]))),
           x.read.as_('int').stmt,
           // Promotion should not occur, because x might be write-captured by
           // the time this code is reached.
@@ -967,19 +1127,168 @@ main() {
       ]);
     });
 
+    test(
+        'ifStatement_end() discards non-matching expression info from joined '
+        'branches', () {
+      var h = Harness();
+      var w = Var('w', 'Object');
+      var x = Var('x', 'bool');
+      var y = Var('y', 'bool');
+      var z = Var('z', 'bool');
+      late SsaNode<Var, Type> xSsaNodeBeforeIf;
+      h.run([
+        declare(w, initialized: true),
+        declare(x, initialized: true),
+        declare(y, initialized: true),
+        declare(z, initialized: true),
+        x.write(w.read.is_('int')).stmt,
+        getSsaNodes((nodes) {
+          xSsaNodeBeforeIf = nodes[x]!;
+          expect(xSsaNodeBeforeIf.expressionInfo, isNotNull);
+        }),
+        if_(expr('bool'), [
+          y.write(w.read.is_('String')).stmt,
+        ], [
+          z.write(w.read.is_('bool')).stmt,
+        ]),
+        getSsaNodes((nodes) {
+          expect(nodes[x], same(xSsaNodeBeforeIf));
+          expect(nodes[y]!.expressionInfo, isNull);
+          expect(nodes[z]!.expressionInfo, isNull);
+        }),
+      ]);
+    });
+
+    test(
+        'ifStatement_end() ignores non-matching SSA info from "then" path if '
+        'unreachable', () {
+      var h = Harness();
+      var x = Var('x', 'Object');
+      late SsaNode<Var, Type> xSsaNodeBeforeIf;
+      h.run([
+        declare(x, initialized: true),
+        getSsaNodes((nodes) {
+          xSsaNodeBeforeIf = nodes[x]!;
+        }),
+        if_(expr('bool'), [
+          x.write(expr('Object')).stmt,
+          return_(),
+        ]),
+        getSsaNodes((nodes) {
+          expect(nodes[x], same(xSsaNodeBeforeIf));
+        }),
+      ]);
+    });
+
+    test(
+        'ifStatement_end() ignores non-matching SSA info from "else" path if '
+        'unreachable', () {
+      var h = Harness();
+      var x = Var('x', 'Object');
+      late SsaNode<Var, Type> xSsaNodeBeforeIf;
+      h.run([
+        declare(x, initialized: true),
+        getSsaNodes((nodes) {
+          xSsaNodeBeforeIf = nodes[x]!;
+        }),
+        if_(expr('bool'), [], [
+          x.write(expr('Object')).stmt,
+          return_(),
+        ]),
+        getSsaNodes((nodes) {
+          expect(nodes[x], same(xSsaNodeBeforeIf));
+        }),
+      ]);
+    });
+
+    test('initialize() promotes when not final', () {
+      var h = Harness();
+      var x = Var('x', 'int?');
+      h.run([
+        declareInitialized(x, expr('int')),
+        checkPromoted(x, 'int'),
+      ]);
+    });
+
+    test('initialize() does not promote when final', () {
+      var h = Harness();
+      var x = Var('x', 'int?');
+      h.run([
+        declareInitialized(x, expr('int'), isFinal: true),
+        checkNotPromoted(x),
+      ]);
+    });
+
+    test('initialize() stores expressionInfo when not late', () {
+      var h = Harness();
+      var x = Var('x', 'Object');
+      var y = Var('y', 'int?');
+      late ExpressionInfo<Var, Type> writtenValueInfo;
+      h.run([
+        declareInitialized(
+            x,
+            y.read.eq(nullLiteral).getExpressionInfo((info) {
+              expect(info, isNotNull);
+              writtenValueInfo = info!;
+            })),
+        getSsaNodes((nodes) {
+          expect(nodes[x]!.expressionInfo, same(writtenValueInfo));
+        }),
+      ]);
+    });
+
+    test('initialize() does not store expressionInfo when late', () {
+      var h = Harness();
+      var x = Var('x', 'Object');
+      var y = Var('y', 'int?');
+      h.run([
+        declareInitialized(x, y.read.eq(nullLiteral), isLate: true),
+        getSsaNodes((nodes) {
+          expect(nodes[x]!.expressionInfo, isNull);
+        }),
+      ]);
+    });
+
+    test('initialize() does not store expressionInfo for trivial expressions',
+        () {
+      var h = Harness();
+      var x = Var('x', 'Object');
+      var y = Var('y', 'int?');
+      h.run([
+        declare(y, initialized: true),
+        localFunction([
+          y.write(expr('int?')).stmt,
+        ]),
+        declareInitialized(
+            x,
+            // `y == null` is a trivial expression because y has been write
+            // captured.
+            y.read
+                .eq(nullLiteral)
+                .getExpressionInfo((info) => expect(info, isNotNull))),
+        getSsaNodes((nodes) {
+          expect(nodes[x]!.expressionInfo, isNull);
+        }),
+      ]);
+    });
+
     void _checkIs(String declaredType, String tryPromoteType,
-        String expectedPromotedTypeThen, String expectedPromotedTypeElse,
+        String? expectedPromotedTypeThen, String? expectedPromotedTypeElse,
         {bool inverted = false}) {
       var h = Harness();
       var x = Var('x', declaredType);
+      late SsaNode<Var, Type> ssaBeforePromotion;
       h.run([
         declare(x, initialized: true),
+        getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
         if_(x.read.is_(tryPromoteType, isInverted: inverted), [
           checkReachable(true),
           checkPromoted(x, expectedPromotedTypeThen),
+          getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
         ], [
           checkReachable(true),
           checkPromoted(x, expectedPromotedTypeElse),
+          getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
         ])
       ]);
     }
@@ -1173,28 +1482,58 @@ main() {
       ]);
     });
 
-    test('nonNullAssert_end(x) promotes', () {
+    test('logicalNot_end() inverts a condition', () {
       var h = Harness();
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
+        if_(x.read.eq(nullLiteral).not, [
+          checkPromoted(x, 'int'),
+        ], [
+          checkNotPromoted(x),
+        ]),
+      ]);
+    });
+
+    test('logicalNot_end() handles null literals', () {
+      var h = Harness();
+      h.run([
+        // `!null` would be a compile error, but we need to make sure we don't
+        // crash.
+        if_(nullLiteral.not, [], []),
+      ]);
+    });
+
+    test('nonNullAssert_end(x) promotes', () {
+      var h = Harness();
+      var x = Var('x', 'int?');
+      late SsaNode<Var, Type> ssaBeforePromotion;
+      h.run([
+        declare(x, initialized: true),
+        getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
         x.read.nonNullAssert.stmt,
         checkPromoted(x, 'int'),
+        getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
       ]);
     });
 
     test('nullAwareAccess temporarily promotes', () {
       var h = Harness();
       var x = Var('x', 'int?');
+      late SsaNode<Var, Type> ssaBeforePromotion;
       h.run([
         declare(x, initialized: true),
+        getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
         x.read
             .nullAwareAccess(block([
               checkReachable(true),
               checkPromoted(x, 'int'),
+              getSsaNodes(
+                  (nodes) => expect(nodes[x], same(ssaBeforePromotion))),
             ]).thenExpr(expr('Null')))
             .stmt,
         checkNotPromoted(x),
+        getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
       ]);
     });
 
@@ -1380,14 +1719,20 @@ main() {
     test('switchStatement_beginCase(true) un-promotes', () {
       var h = Harness();
       var x = Var('x', 'int?');
+      late SsaNode<Var, Type> ssaBeforeSwitch;
       h.run([
         declare(x, initialized: true),
         x.read.as_('int').stmt,
         switch_(
-            expr('Null'),
+            expr('Null').thenStmt(block([
+              checkPromoted(x, 'int'),
+              getSsaNodes((nodes) => ssaBeforeSwitch = nodes[x]!),
+            ])),
             [
               case_([
                 checkNotPromoted(x),
+                getSsaNodes(
+                    (nodes) => expect(nodes[x], isNot(ssaBeforeSwitch))),
                 x.write(expr('int?')).stmt,
                 checkNotPromoted(x),
               ], hasLabel: true),
@@ -1527,6 +1872,7 @@ main() {
         () {
       var h = Harness();
       var x = Var('x', 'int?');
+      late SsaNode<Var, Type> ssaAfterTry;
       h.run([
         declare(x, initialized: true),
         x.read.as_('int').stmt,
@@ -1535,9 +1881,11 @@ main() {
           x.write(expr('int?')).stmt,
           x.read.as_('int').stmt,
           checkPromoted(x, 'int'),
+          getSsaNodes((nodes) => ssaAfterTry = nodes[x]!),
         ], [
           catch_(body: [
             checkNotPromoted(x),
+            getSsaNodes((nodes) => expect(nodes[x], isNot(ssaAfterTry))),
           ]),
         ]),
       ]);
@@ -1673,16 +2021,27 @@ main() {
         'body', () {
       var h = Harness();
       var x = Var('x', 'int?');
+      late SsaNode<Var, Type> ssaAtStartOfTry;
+      late SsaNode<Var, Type> ssaAfterTry;
       h.run([
         declare(x, initialized: true),
         x.read.as_('int').stmt,
         checkPromoted(x, 'int'),
         tryFinally([
+          getSsaNodes((nodes) => ssaAtStartOfTry = nodes[x]!),
           x.write(expr('int?')).stmt,
           x.read.as_('int').stmt,
           checkPromoted(x, 'int'),
+          getSsaNodes((nodes) => ssaAfterTry = nodes[x]!),
         ], [
           checkNotPromoted(x),
+          // The SSA node for X should be different from what it was at any time
+          // during the try block, because there is no telling at what point an
+          // exception might have occurred.
+          getSsaNodes((nodes) {
+            expect(nodes[x], isNot(ssaAtStartOfTry));
+            expect(nodes[x], isNot(ssaAfterTry));
+          }),
         ]),
       ]);
     });
@@ -1733,6 +2092,8 @@ main() {
       var h = Harness();
       var x = Var('x', 'int?');
       var y = Var('y', 'int?');
+      late SsaNode<Var, Type> xSsaAtEndOfFinally;
+      late SsaNode<Var, Type> ySsaAtEndOfFinally;
       h.run([
         declare(x, initialized: true), declare(y, initialized: true),
         tryFinally([
@@ -1744,24 +2105,531 @@ main() {
           y.write(expr('int?')).stmt,
           y.read.as_('int').stmt,
           checkPromoted(y, 'int'),
+          getSsaNodes((nodes) {
+            xSsaAtEndOfFinally = nodes[x]!;
+            ySsaAtEndOfFinally = nodes[y]!;
+          }),
         ]),
         // x should not be re-promoted, because it might have been assigned a
         // non-promoted value in the "finally" block.  But y's promotion still
         // stands, because y was promoted in the finally block.
         checkNotPromoted(x), checkPromoted(y, 'int'),
+        // Both x and y should have the same SSA nodes they had at the end of
+        // the finally block, since the finally block is guaranteed to have
+        // executed.
+        getSsaNodes((nodes) {
+          expect(nodes[x], same(xSsaAtEndOfFinally));
+          expect(nodes[y], same(ySsaAtEndOfFinally));
+        }),
+      ]);
+    });
+
+    group('allowLocalBooleanVarsToPromote', () {
+      test(
+          'tryFinallyStatement_end() restores SSA nodes from try block when it'
+          'is sound to do so', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var x = Var('x', 'int?');
+        var y = Var('y', 'int?');
+        late SsaNode<Var, Type> xSsaAtEndOfTry;
+        late SsaNode<Var, Type> ySsaAtEndOfTry;
+        late SsaNode<Var, Type> xSsaAtEndOfFinally;
+        late SsaNode<Var, Type> ySsaAtEndOfFinally;
+        h.run([
+          declare(x, initialized: true), declare(y, initialized: true),
+          tryFinally([
+            x.write(expr('int?')).stmt,
+            y.write(expr('int?')).stmt,
+            getSsaNodes((nodes) {
+              xSsaAtEndOfTry = nodes[x]!;
+              ySsaAtEndOfTry = nodes[y]!;
+            }),
+          ], [
+            if_(expr('bool'), [
+              x.write(expr('int?')).stmt,
+            ]),
+            if_(expr('bool'), [
+              y.write(expr('int?')).stmt,
+              return_(),
+            ]),
+            getSsaNodes((nodes) {
+              xSsaAtEndOfFinally = nodes[x]!;
+              ySsaAtEndOfFinally = nodes[y]!;
+              expect(xSsaAtEndOfFinally, isNot(same(xSsaAtEndOfTry)));
+              expect(ySsaAtEndOfFinally, isNot(same(ySsaAtEndOfTry)));
+            }),
+          ]),
+          // x's SSA node should still match what it was at the end of the
+          // finally block, because it might have been written to.  But y
+          // can't have been written to, because once we reach here, we know
+          // that the finally block completed normally, and the write to y
+          // always leads to the explicit return.  So y's SSA node should be
+          // restored back to match that from the end of the try block.
+          getSsaNodes((nodes) {
+            expect(nodes[x], same(xSsaAtEndOfFinally));
+            expect(nodes[y], same(ySsaAtEndOfTry));
+          }),
+        ]);
+      });
+
+      test(
+          'tryFinallyStatement_end() sets unreachable if end of try block '
+          'unreachable', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        h.run([
+          tryFinally([
+            return_(),
+            checkReachable(false),
+          ], [
+            checkReachable(true),
+          ]),
+          checkReachable(false),
+        ]);
+      });
+
+      test(
+          'tryFinallyStatement_end() sets unreachable if end of finally block '
+          'unreachable', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        h.run([
+          tryFinally([
+            checkReachable(true),
+          ], [
+            return_(),
+            checkReachable(false),
+          ]),
+          checkReachable(false),
+        ]);
+      });
+
+      test(
+          'tryFinallyStatement_end() handles a variable declared only in the '
+          'try block', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var x = Var('x', 'int?');
+        h.run([
+          tryFinally([
+            declare(x, initialized: true),
+          ], []),
+        ]);
+      });
+
+      test(
+          'tryFinallyStatement_end() handles a variable declared only in the '
+          'finally block', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var x = Var('x', 'int?');
+        h.run([
+          tryFinally([], [
+            declare(x, initialized: true),
+          ]),
+        ]);
+      });
+
+      test(
+          'tryFinallyStatement_end() handles a variable that was write '
+          'captured in the try block', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var x = Var('x', 'int?');
+        h.run([
+          declare(x, initialized: true),
+          tryFinally([
+            localFunction([
+              x.write(expr('int?')).stmt,
+            ]),
+          ], []),
+          if_(x.read.notEq(nullLiteral), [
+            checkNotPromoted(x),
+          ]),
+        ]);
+      });
+
+      test(
+          'tryFinallyStatement_end() handles a variable that was write '
+          'captured in the finally block', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var x = Var('x', 'int?');
+        h.run([
+          declare(x, initialized: true),
+          tryFinally([], [
+            localFunction([
+              x.write(expr('int?')).stmt,
+            ]),
+          ]),
+          if_(x.read.notEq(nullLiteral), [
+            checkNotPromoted(x),
+          ]),
+        ]);
+      });
+
+      test(
+          'tryFinallyStatement_end() handles a variable that was promoted in '
+          'the try block and write captured in the finally block', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var x = Var('x', 'int?');
+        h.run([
+          declare(x, initialized: true),
+          tryFinally([
+            if_(x.read.eq(nullLiteral), [
+              return_(),
+            ]),
+            checkPromoted(x, 'int'),
+          ], [
+            localFunction([
+              x.write(expr('int?')).stmt,
+            ]),
+          ]),
+          // The capture in the `finally` cancels old promotions and prevents
+          // future promotions.
+          checkNotPromoted(x),
+          if_(x.read.notEq(nullLiteral), [
+            checkNotPromoted(x),
+          ]),
+        ]);
+      });
+
+      test(
+          'tryFinallyStatement_end() keeps promotions from both try and '
+          'finally blocks when there is no write in the finally block', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var x = Var('x', 'Object');
+        h.run([
+          declare(x, initialized: true),
+          tryFinally([
+            if_(x.read.is_('num', isInverted: true), [
+              return_(),
+            ]),
+            checkPromoted(x, 'num'),
+          ], [
+            if_(x.read.is_('int', isInverted: true), [
+              return_(),
+            ]),
+          ]),
+          // The promotion chain now contains both `num` and `int`.
+          checkPromoted(x, 'int'),
+          x.write(expr('num')).stmt,
+          checkPromoted(x, 'num'),
+        ]);
+      });
+
+      test(
+          'tryFinallyStatement_end() keeps promotions from the finally block '
+          'when there is a write in the finally block', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var x = Var('x', 'Object');
+        h.run([
+          declare(x, initialized: true),
+          tryFinally([
+            if_(x.read.is_('String', isInverted: true), [
+              return_(),
+            ]),
+            checkPromoted(x, 'String'),
+          ], [
+            x.write(expr('Object')).stmt,
+            if_(x.read.is_('int', isInverted: true), [
+              return_(),
+            ]),
+          ]),
+          checkPromoted(x, 'int'),
+        ]);
+      });
+
+      test(
+          'tryFinallyStatement_end() keeps tests from both the try and finally '
+          'blocks', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var x = Var('x', 'Object');
+        h.run([
+          declare(x, initialized: true),
+          tryFinally([
+            if_(x.read.is_('String', isInverted: true), []),
+            checkNotPromoted(x),
+          ], [
+            if_(x.read.is_('int', isInverted: true), []),
+            checkNotPromoted(x),
+          ]),
+          checkNotPromoted(x),
+          if_(expr('bool'), [
+            x.write(expr('String')).stmt,
+            checkPromoted(x, 'String'),
+          ], [
+            x.write(expr('int')).stmt,
+            checkPromoted(x, 'int'),
+          ]),
+        ]);
+      });
+
+      test(
+          'tryFinallyStatement_end() handles variables not definitely assigned '
+          'in either the try or finally block', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var x = Var('x', 'Object');
+        h.run([
+          declare(x, initialized: false),
+          checkAssigned(x, false),
+          tryFinally([
+            if_(expr('bool'), [
+              x.write(expr('Object')).stmt,
+            ]),
+            checkAssigned(x, false),
+          ], [
+            if_(expr('bool'), [
+              x.write(expr('Object')).stmt,
+            ]),
+            checkAssigned(x, false),
+          ]),
+          checkAssigned(x, false),
+        ]);
+      });
+
+      test(
+          'tryFinallyStatement_end() handles variables definitely assigned in '
+          'the try block', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var x = Var('x', 'Object');
+        h.run([
+          declare(x, initialized: false),
+          checkAssigned(x, false),
+          tryFinally([
+            x.write(expr('Object')).stmt,
+            checkAssigned(x, true),
+          ], [
+            if_(expr('bool'), [
+              x.write(expr('Object')).stmt,
+            ]),
+            checkAssigned(x, false),
+          ]),
+          checkAssigned(x, true),
+        ]);
+      });
+
+      test(
+          'tryFinallyStatement_end() handles variables definitely assigned in '
+          'the finally block', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var x = Var('x', 'Object');
+        h.run([
+          declare(x, initialized: false),
+          checkAssigned(x, false),
+          tryFinally([
+            if_(expr('bool'), [
+              x.write(expr('Object')).stmt,
+            ]),
+            checkAssigned(x, false),
+          ], [
+            x.write(expr('Object')).stmt,
+            checkAssigned(x, true),
+          ]),
+          checkAssigned(x, true),
+        ]);
+      });
+
+      test(
+          'tryFinallyStatement_end() handles variables definitely unassigned '
+          'in both the try and finally blocks', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var x = Var('x', 'Object');
+        h.run([
+          declare(x, initialized: false),
+          checkUnassigned(x, true),
+          tryFinally([
+            checkUnassigned(x, true),
+          ], [
+            checkUnassigned(x, true),
+          ]),
+          checkUnassigned(x, true),
+        ]);
+      });
+
+      test(
+          'tryFinallyStatement_end() handles variables definitely unassigned '
+          'in the try but not the finally block', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var x = Var('x', 'Object');
+        h.run([
+          declare(x, initialized: false),
+          checkUnassigned(x, true),
+          tryFinally([
+            checkUnassigned(x, true),
+          ], [
+            if_(expr('bool'), [
+              x.write(expr('Object')).stmt,
+            ]),
+            checkUnassigned(x, false),
+          ]),
+          checkUnassigned(x, false),
+        ]);
+      });
+
+      test(
+          'tryFinallyStatement_end() handles variables definitely unassigned '
+          'in the finally but not the try block', () {
+        var h = Harness(allowLocalBooleanVarsToPromote: true);
+        var x = Var('x', 'Object');
+        h.run([
+          declare(x, initialized: false),
+          checkUnassigned(x, true),
+          tryFinally([
+            if_(expr('bool'), [
+              x.write(expr('Object')).stmt,
+            ]),
+            checkUnassigned(x, false),
+          ], [
+            checkUnassigned(x, false),
+          ]),
+          checkUnassigned(x, false),
+        ]);
+      });
+    });
+
+    test('variableRead() restores promotions from previous write()', () {
+      var h = Harness(allowLocalBooleanVarsToPromote: true);
+      var x = Var('x', 'int?');
+      var y = Var('y', 'int?');
+      var z = Var('z', 'bool');
+      h.run([
+        declare(x, initialized: true),
+        declare(y, initialized: true),
+        declare(z, initialized: true),
+        // Create a variable that promotes x if its value is true, and y if its
+        // value is false.
+        z
+            .write(x.read.notEq(nullLiteral).conditional(
+                booleanLiteral(true),
+                y.read.notEq(nullLiteral).conditional(
+                    booleanLiteral(false), throw_(expr('Object')))))
+            .stmt,
+        checkNotPromoted(x),
+        checkNotPromoted(y),
+        // Simply reading the variable shouldn't promote anything.
+        z.read.stmt,
+        checkNotPromoted(x),
+        checkNotPromoted(y),
+        // But reading it in an "if" condition should promote.
+        if_(z.read, [
+          checkPromoted(x, 'int'),
+          checkNotPromoted(y),
+        ], [
+          checkNotPromoted(x),
+          checkPromoted(y, 'int'),
+        ]),
+      ]);
+    });
+
+    test('variableRead() restores promotions from previous initialization', () {
+      var h = Harness(allowLocalBooleanVarsToPromote: true);
+      var x = Var('x', 'int?');
+      var y = Var('y', 'int?');
+      var z = Var('z', 'bool');
+      h.run([
+        declare(x, initialized: true),
+        declare(y, initialized: true),
+        // Create a variable that promotes x if its value is true, and y if its
+        // value is false.
+        declareInitialized(
+            z,
+            x.read.notEq(nullLiteral).conditional(
+                booleanLiteral(true),
+                y.read.notEq(nullLiteral).conditional(
+                    booleanLiteral(false), throw_(expr('Object'))))),
+        checkNotPromoted(x),
+        checkNotPromoted(y),
+        // Simply reading the variable shouldn't promote anything.
+        z.read.stmt,
+        checkNotPromoted(x),
+        checkNotPromoted(y),
+        // But reading it in an "if" condition should promote.
+        if_(z.read, [
+          checkPromoted(x, 'int'),
+          checkNotPromoted(y),
+        ], [
+          checkNotPromoted(x),
+          checkPromoted(y, 'int'),
+        ]),
+      ]);
+    });
+
+    test('variableRead() rebases old promotions', () {
+      var h = Harness(allowLocalBooleanVarsToPromote: true);
+      var w = Var('w', 'int?');
+      var x = Var('x', 'int?');
+      var y = Var('y', 'int?');
+      var z = Var('z', 'bool');
+      h.run([
+        declare(w, initialized: true),
+        declare(x, initialized: true),
+        declare(y, initialized: true),
+        declare(z, initialized: true),
+        // Create a variable that promotes x if its value is true, and y if its
+        // value is false.
+        z
+            .write(x.read.notEq(nullLiteral).conditional(
+                booleanLiteral(true),
+                y.read.notEq(nullLiteral).conditional(
+                    booleanLiteral(false), throw_(expr('Object')))))
+            .stmt,
+        checkNotPromoted(w),
+        checkNotPromoted(x),
+        checkNotPromoted(y),
+        w.read.nonNullAssert.stmt,
+        checkPromoted(w, 'int'),
+        // Reading the value of z in an "if" condition should promote x or y,
+        // and keep the promotion of w.
+        if_(z.read, [
+          checkPromoted(w, 'int'),
+          checkPromoted(x, 'int'),
+          checkNotPromoted(y),
+        ], [
+          checkPromoted(w, 'int'),
+          checkNotPromoted(x),
+          checkPromoted(y, 'int'),
+        ]),
+      ]);
+    });
+
+    test("variableRead() doesn't restore the notion of whether a value is null",
+        () {
+      // Note: we have the available infrastructure to do this if we want, but
+      // we think it will give an inconsistent feel because comparisons like
+      // `if (i == null)` *don't* promote.
+      var h = Harness(allowLocalBooleanVarsToPromote: true);
+      var x = Var('x', 'int?');
+      var y = Var('y', 'int?');
+      h.run([
+        declare(x, initialized: true),
+        declare(y, initialized: true),
+        y.write(nullLiteral).stmt,
+        checkNotPromoted(x),
+        checkNotPromoted(y),
+        if_(x.read.eq(y.read), [
+          checkNotPromoted(x),
+          checkNotPromoted(y),
+        ], [
+          // Even though x != y and y is known to contain the value `null`, we
+          // don't promote x.
+          checkNotPromoted(x),
+          checkNotPromoted(y),
+        ]),
       ]);
     });
 
     test('whileStatement_conditionBegin() un-promotes', () {
       var h = Harness();
       var x = Var('x', 'int?');
+      late SsaNode<Var, Type> ssaBeforeLoop;
       h.run([
         declare(x, initialized: true),
         x.read.as_('int').stmt,
         checkPromoted(x, 'int'),
-        while_(checkNotPromoted(x).thenExpr(expr('bool')), [
-          x.write(expr('Null')).stmt,
-        ]),
+        getSsaNodes((nodes) => ssaBeforeLoop = nodes[x]!),
+        while_(
+            block([
+              checkNotPromoted(x),
+              getSsaNodes((nodes) => expect(nodes[x], isNot(ssaBeforeLoop))),
+            ]).thenExpr(expr('bool')),
+            [
+              x.write(expr('Null')).stmt,
+            ]),
       ]);
     });
 
@@ -1835,6 +2703,184 @@ main() {
       ]);
     });
 
+    test('whileStatement_end() with break updates Ssa of modified vars', () {
+      var h = Harness();
+      var x = Var('x', 'int?');
+      var y = Var('x', 'int?');
+      late SsaNode<Var, Type> xSsaInsideLoop;
+      late SsaNode<Var, Type> ySsaInsideLoop;
+      h.run([
+        declare(x, initialized: true),
+        declare(y, initialized: true),
+        branchTarget((t) => while_(expr('bool'), [
+              x.write(expr('int?')).stmt,
+              if_(expr('bool'), [break_(t)]),
+              getSsaNodes((nodes) {
+                xSsaInsideLoop = nodes[x]!;
+                ySsaInsideLoop = nodes[y]!;
+              }),
+            ])),
+        getSsaNodes((nodes) {
+          // x's Ssa should have been changed because of the join at the end of
+          // the loop.  y's should not, since it retains the value it had prior
+          // to the loop.
+          expect(nodes[x], isNot(xSsaInsideLoop));
+          expect(nodes[y], same(ySsaInsideLoop));
+        }),
+      ]);
+    });
+
+    test(
+        'whileStatement_end() with break updates Ssa of modified vars when '
+        'types were tested', () {
+      var h = Harness();
+      var x = Var('x', 'int?');
+      var y = Var('x', 'int?');
+      late SsaNode<Var, Type> xSsaInsideLoop;
+      late SsaNode<Var, Type> ySsaInsideLoop;
+      h.run([
+        declare(x, initialized: true),
+        declare(y, initialized: true),
+        branchTarget((t) => while_(expr('bool'), [
+              x.write(expr('int?')).stmt,
+              if_(expr('bool'), [break_(t)]),
+              if_(x.read.is_('int'), []),
+              getSsaNodes((nodes) {
+                xSsaInsideLoop = nodes[x]!;
+                ySsaInsideLoop = nodes[y]!;
+              }),
+            ])),
+        getSsaNodes((nodes) {
+          // x's Ssa should have been changed because of the join at the end of
+          // the loop.  y's should not, since it retains the value it had prior
+          // to the loop.
+          expect(nodes[x], isNot(xSsaInsideLoop));
+          expect(nodes[y], same(ySsaInsideLoop));
+        }),
+      ]);
+    });
+
+    test('write() de-promotes and updates Ssa of a promoted variable', () {
+      var h = Harness();
+      var x = Var('x', 'Object');
+      var y = Var('y', 'int?');
+      late SsaNode<Var, Type> ssaBeforeWrite;
+      late ExpressionInfo<Var, Type> writtenValueInfo;
+      h.run([
+        declare(x, initialized: true),
+        declare(y, initialized: true),
+        x.read.as_('int').stmt,
+        checkPromoted(x, 'int'),
+        getSsaNodes((nodes) => ssaBeforeWrite = nodes[x]!),
+        x
+            .write(y.read.eq(nullLiteral).getExpressionInfo((info) {
+              expect(info, isNotNull);
+              writtenValueInfo = info!;
+            }))
+            .stmt,
+        checkNotPromoted(x),
+        getSsaNodes((nodes) {
+          expect(nodes[x], isNot(ssaBeforeWrite));
+          expect(nodes[x]!.expressionInfo, same(writtenValueInfo));
+        }),
+      ]);
+    });
+
+    test('write() updates Ssa', () {
+      var h = Harness();
+      var x = Var('x', 'Object');
+      var y = Var('y', 'int?');
+      late SsaNode<Var, Type> ssaBeforeWrite;
+      late ExpressionInfo<Var, Type> writtenValueInfo;
+      h.run([
+        declare(x, initialized: true),
+        getSsaNodes((nodes) => ssaBeforeWrite = nodes[x]!),
+        x
+            .write(y.read.eq(nullLiteral).getExpressionInfo((info) {
+              expect(info, isNotNull);
+              writtenValueInfo = info!;
+            }))
+            .stmt,
+        getSsaNodes((nodes) {
+          expect(nodes[x], isNot(ssaBeforeWrite));
+          expect(nodes[x]!.expressionInfo, same(writtenValueInfo));
+        }),
+      ]);
+    });
+
+    test('write() does not copy Ssa from one variable to another', () {
+      // We could do so, and it would enable us to promote in slightly more
+      // situations, e.g.:
+      //   bool b = x != null;
+      //   if (b) { /* x promoted here */ }
+      //   var tmp = x;
+      //   x = ...;
+      //   if (b) { /* x not promoted here */ }
+      //   x = tmp;
+      //   if (b) { /* x promoted again */ }
+      // But there are a lot of corner cases to test and it's not clear how much
+      // the benefit will be, so for now we're not doing it.
+      var h = Harness(allowLocalBooleanVarsToPromote: true);
+      var x = Var('x', 'int?');
+      var y = Var('y', 'int?');
+      late SsaNode<Var, Type> xSsaBeforeWrite;
+      late SsaNode<Var, Type> ySsa;
+      h.run([
+        declare(x, initialized: true),
+        declare(y, initialized: true),
+        getSsaNodes((nodes) {
+          xSsaBeforeWrite = nodes[x]!;
+          ySsa = nodes[y]!;
+        }),
+        x.write(y.read).stmt,
+        getSsaNodes((nodes) {
+          expect(nodes[x], isNot(xSsaBeforeWrite));
+          expect(nodes[x], isNot(ySsa));
+        }),
+      ]);
+    });
+
+    test('write() does not store expressionInfo for trivial expressions', () {
+      var h = Harness();
+      var x = Var('x', 'Object');
+      var y = Var('y', 'int?');
+      late SsaNode<Var, Type> ssaBeforeWrite;
+      h.run([
+        declare(x, initialized: true),
+        declare(y, initialized: true),
+        localFunction([
+          y.write(expr('int?')).stmt,
+        ]),
+        getSsaNodes((nodes) => ssaBeforeWrite = nodes[x]!),
+        // `y == null` is a trivial expression because y has been write
+        // captured.
+        x
+            .write(y.read
+                .eq(nullLiteral)
+                .getExpressionInfo((info) => expect(info, isNotNull)))
+            .stmt,
+        getSsaNodes((nodes) {
+          expect(nodes[x], isNot(ssaBeforeWrite));
+          expect(nodes[x]!.expressionInfo, isNull);
+        }),
+      ]);
+    });
+
+    test('write() permits expression to be null', () {
+      var h = Harness();
+      var x = Var('x', 'Object');
+      late SsaNode<Var, Type> ssaBeforeWrite;
+      h.run([
+        declare(x, initialized: true),
+        getSsaNodes((nodes) => ssaBeforeWrite = nodes[x]!),
+        x.write(null).stmt,
+        getSsaNodes((nodes) {
+          expect(nodes[x], isNot(ssaBeforeWrite));
+          expect(nodes[x]!.expressionInfo, isNull);
+        }),
+      ]);
+    });
+
     test('Infinite loop does not implicitly assign variables', () {
       var h = Harness();
       var x = Var('x', 'int');
@@ -1868,8 +2914,10 @@ main() {
         localFunction([
           x.write(expr('Object')).stmt,
         ]),
+        getSsaNodes((nodes) => expect(nodes[x], isNull)),
         x.read.as_('int').stmt,
         checkNotPromoted(x),
+        getSsaNodes((nodes) => expect(nodes[x], isNull)),
       ]);
     });
 
@@ -1965,6 +3013,30 @@ main() {
           Reachability.restrict(unreachable, unreachable), same(unreachable));
     });
 
+    test('rebaseForward', () {
+      var previous = Reachability.initial;
+      var reachable = previous.split();
+      var reachable2 = previous.split();
+      var unreachable = reachable.setUnreachable();
+      var unreachablePrevious = previous.setUnreachable();
+      var reachable3 = unreachablePrevious.split();
+      expect(reachable.rebaseForward(reachable), same(reachable));
+      expect(reachable.rebaseForward(reachable2), same(reachable2));
+      expect(reachable.rebaseForward(unreachable), same(unreachable));
+      expect(unreachable.rebaseForward(reachable).parent, same(previous));
+      expect(unreachable.rebaseForward(reachable).locallyReachable, false);
+      expect(unreachable.rebaseForward(unreachable), same(unreachable));
+      expect(reachable.rebaseForward(unreachablePrevious),
+          same(unreachablePrevious));
+      expect(
+          unreachablePrevious.rebaseForward(reachable).parent, same(previous));
+      expect(
+          unreachablePrevious.rebaseForward(reachable).locallyReachable, false);
+      expect(reachable.rebaseForward(reachable3), same(reachable3));
+      expect(reachable3.rebaseForward(reachable).parent, same(previous));
+      expect(reachable3.rebaseForward(reachable).locallyReachable, false);
+    });
+
     test('join', () {
       var previous = Reachability.initial.split();
       var reachable = previous.split();
@@ -1973,6 +3045,40 @@ main() {
       expect(Reachability.join(reachable, unreachable), same(reachable));
       expect(Reachability.join(unreachable, reachable), same(reachable));
       expect(Reachability.join(unreachable, unreachable), same(unreachable));
+    });
+
+    test('commonAncestor', () {
+      var parent1 = Reachability.initial;
+      var parent2 = parent1.setUnreachable();
+      var child1 = parent1.split();
+      var child2 = parent1.split();
+      var child3 = child1.split();
+      var child4 = child2.split();
+      expect(Reachability.commonAncestor(null, null), null);
+      expect(Reachability.commonAncestor(null, parent1), null);
+      expect(Reachability.commonAncestor(parent1, null), null);
+      expect(Reachability.commonAncestor(null, child1), null);
+      expect(Reachability.commonAncestor(child1, null), null);
+      expect(Reachability.commonAncestor(null, child3), null);
+      expect(Reachability.commonAncestor(child3, null), null);
+      expect(Reachability.commonAncestor(parent1, parent1), same(parent1));
+      expect(Reachability.commonAncestor(parent1, parent2), null);
+      expect(Reachability.commonAncestor(parent2, child1), null);
+      expect(Reachability.commonAncestor(child1, parent2), null);
+      expect(Reachability.commonAncestor(parent2, child3), null);
+      expect(Reachability.commonAncestor(child3, parent2), null);
+      expect(Reachability.commonAncestor(parent1, child1), same(parent1));
+      expect(Reachability.commonAncestor(child1, parent1), same(parent1));
+      expect(Reachability.commonAncestor(parent1, child3), same(parent1));
+      expect(Reachability.commonAncestor(child3, parent1), same(parent1));
+      expect(Reachability.commonAncestor(child1, child1), same(child1));
+      expect(Reachability.commonAncestor(child1, child2), same(parent1));
+      expect(Reachability.commonAncestor(child1, child3), same(child1));
+      expect(Reachability.commonAncestor(child3, child1), same(child1));
+      expect(Reachability.commonAncestor(child1, child4), same(parent1));
+      expect(Reachability.commonAncestor(child4, child1), same(parent1));
+      expect(Reachability.commonAncestor(child3, child3), same(child3));
+      expect(Reachability.commonAncestor(child3, child4), same(parent1));
     });
   });
 
@@ -2016,21 +3122,21 @@ main() {
     group('unsplitTo', () {
       test('no change', () {
         var s1 = FlowModel<Var, Type>(Reachability.initial.split());
-        var result = s1.unsplitTo(s1.reachable.parent);
+        var result = s1.unsplitTo(s1.reachable.parent!);
         expect(result, same(s1));
       });
 
       test('unsplit once, reachable', () {
         var s1 = FlowModel<Var, Type>(Reachability.initial.split());
         var s2 = s1.split();
-        var result = s2.unsplitTo(s1.reachable.parent);
+        var result = s2.unsplitTo(s1.reachable.parent!);
         expect(result.reachable, same(s1.reachable));
       });
 
       test('unsplit once, unreachable', () {
         var s1 = FlowModel<Var, Type>(Reachability.initial.split());
         var s2 = s1.split().setUnreachable();
-        var result = s2.unsplitTo(s1.reachable.parent);
+        var result = s2.unsplitTo(s1.reachable.parent!);
         expect(result.reachable.locallyReachable, false);
         expect(result.reachable.parent, same(s1.reachable.parent));
       });
@@ -2039,7 +3145,7 @@ main() {
         var s1 = FlowModel<Var, Type>(Reachability.initial.split());
         var s2 = s1.split();
         var s3 = s2.split();
-        var result = s3.unsplitTo(s1.reachable.parent);
+        var result = s3.unsplitTo(s1.reachable.parent!);
         expect(result.reachable, same(s1.reachable));
       });
 
@@ -2047,7 +3153,7 @@ main() {
         var s1 = FlowModel<Var, Type>(Reachability.initial.split());
         var s2 = s1.split();
         var s3 = s2.split().setUnreachable();
-        var result = s3.unsplitTo(s1.reachable.parent);
+        var result = s3.unsplitTo(s1.reachable.parent!);
         expect(result.reachable.locallyReachable, false);
         expect(result.reachable.parent, same(s1.reachable.parent));
       });
@@ -2056,7 +3162,7 @@ main() {
         var s1 = FlowModel<Var, Type>(Reachability.initial.split());
         var s2 = s1.split().setUnreachable();
         var s3 = s2.split();
-        var result = s3.unsplitTo(s1.reachable.parent);
+        var result = s3.unsplitTo(s1.reachable.parent!);
         expect(result.reachable.locallyReachable, false);
         expect(result.reachable.parent, same(s1.reachable.parent));
       });
@@ -2066,28 +3172,34 @@ main() {
       test('unpromoted -> unchanged (same)', () {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial);
-        var s2 = s1.tryPromoteForTypeCheck(h, intVar, Type('int')).ifTrue;
+        var s2 =
+            s1.tryPromoteForTypeCheck(h, _varRef(intVar), Type('int')).ifTrue;
         expect(s2, same(s1));
       });
 
       test('unpromoted -> unchanged (supertype)', () {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial);
-        var s2 = s1.tryPromoteForTypeCheck(h, intVar, Type('Object')).ifTrue;
+        var s2 = s1
+            .tryPromoteForTypeCheck(h, _varRef(intVar), Type('Object'))
+            .ifTrue;
         expect(s2, same(s1));
       });
 
       test('unpromoted -> unchanged (unrelated)', () {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial);
-        var s2 = s1.tryPromoteForTypeCheck(h, intVar, Type('String')).ifTrue;
+        var s2 = s1
+            .tryPromoteForTypeCheck(h, _varRef(intVar), Type('String'))
+            .ifTrue;
         expect(s2, same(s1));
       });
 
       test('unpromoted -> subtype', () {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial);
-        var s2 = s1.tryPromoteForTypeCheck(h, intQVar, Type('int')).ifTrue;
+        var s2 =
+            s1.tryPromoteForTypeCheck(h, _varRef(intQVar), Type('int')).ifTrue;
         expect(s2.reachable.overallReachable, true);
         expect(s2.variableInfo, {
           intQVar: _matchVariableModel(chain: ['int'], ofInterest: ['int'])
@@ -2097,38 +3209,44 @@ main() {
       test('promoted -> unchanged (same)', () {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
-            .tryPromoteForTypeCheck(h, objectQVar, Type('int'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int'))
             .ifTrue;
-        var s2 = s1.tryPromoteForTypeCheck(h, objectQVar, Type('int')).ifTrue;
+        var s2 = s1
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int'))
+            .ifTrue;
         expect(s2, same(s1));
       });
 
       test('promoted -> unchanged (supertype)', () {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
-            .tryPromoteForTypeCheck(h, objectQVar, Type('int'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int'))
             .ifTrue;
-        var s2 =
-            s1.tryPromoteForTypeCheck(h, objectQVar, Type('Object')).ifTrue;
+        var s2 = s1
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('Object'))
+            .ifTrue;
         expect(s2, same(s1));
       });
 
       test('promoted -> unchanged (unrelated)', () {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
-            .tryPromoteForTypeCheck(h, objectQVar, Type('int'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int'))
             .ifTrue;
-        var s2 =
-            s1.tryPromoteForTypeCheck(h, objectQVar, Type('String')).ifTrue;
+        var s2 = s1
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('String'))
+            .ifTrue;
         expect(s2, same(s1));
       });
 
       test('promoted -> subtype', () {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
-            .tryPromoteForTypeCheck(h, objectQVar, Type('int?'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int?'))
             .ifTrue;
-        var s2 = s1.tryPromoteForTypeCheck(h, objectQVar, Type('int')).ifTrue;
+        var s2 = s1
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int'))
+            .ifTrue;
         expect(s2.reachable.overallReachable, true);
         expect(s2.variableInfo, {
           objectQVar: _matchVariableModel(
@@ -2143,8 +3261,8 @@ main() {
       test('without declaration', () {
         // This should not happen in valid code, but test that we don't crash.
         var h = Harness();
-        var s = FlowModel<Var, Type>(Reachability.initial)
-            .write(objectQVar, Type('Object?'), h);
+        var s = FlowModel<Var, Type>(Reachability.initial).write(
+            objectQVar, Type('Object?'), new SsaNode<Var, Type>(null), h);
         expect(s.variableInfo[objectQVar], isNull);
       });
 
@@ -2152,15 +3270,25 @@ main() {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
             .declare(objectQVar, true);
-        var s2 = s1.write(objectQVar, Type('Object?'), h);
-        expect(s2, same(s1));
+        var s2 = s1.write(
+            objectQVar, Type('Object?'), new SsaNode<Var, Type>(null), h);
+        expect(s2, isNot(same(s1)));
+        expect(s2.reachable, same(s1.reachable));
+        expect(
+            s2.infoFor(objectQVar),
+            _matchVariableModel(
+                chain: null,
+                ofInterest: isEmpty,
+                assigned: true,
+                unassigned: false));
       });
 
       test('marks as assigned', () {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
             .declare(objectQVar, false);
-        var s2 = s1.write(objectQVar, Type('int?'), h);
+        var s2 =
+            s1.write(objectQVar, Type('int?'), new SsaNode<Var, Type>(null), h);
         expect(s2.reachable.overallReachable, true);
         expect(
             s2.infoFor(objectQVar),
@@ -2175,10 +3303,11 @@ main() {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
             .declare(objectQVar, true)
-            .tryPromoteForTypeCheck(h, objectQVar, Type('int'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int'))
             .ifTrue;
         expect(s1.variableInfo, contains(objectQVar));
-        var s2 = s1.write(objectQVar, Type('int?'), h);
+        var s2 =
+            s1.write(objectQVar, Type('int?'), new SsaNode<Var, Type>(null), h);
         expect(s2.reachable.overallReachable, true);
         expect(s2.variableInfo, {
           objectQVar: _matchVariableModel(
@@ -2193,9 +3322,9 @@ main() {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
             .declare(objectQVar, true)
-            .tryPromoteForTypeCheck(h, objectQVar, Type('num?'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('num?'))
             .ifTrue
-            .tryPromoteForTypeCheck(h, objectQVar, Type('int'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int'))
             .ifTrue;
         expect(s1.variableInfo, {
           objectQVar: _matchVariableModel(
@@ -2204,7 +3333,8 @@ main() {
               assigned: true,
               unassigned: false)
         });
-        var s2 = s1.write(objectQVar, Type('num'), h);
+        var s2 =
+            s1.write(objectQVar, Type('num'), new SsaNode<Var, Type>(null), h);
         expect(s2.reachable.overallReachable, true);
         expect(s2.variableInfo, {
           objectQVar: _matchVariableModel(
@@ -2219,11 +3349,11 @@ main() {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
             .declare(objectQVar, true)
-            .tryPromoteForTypeCheck(h, objectQVar, Type('num?'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('num?'))
             .ifTrue
-            .tryPromoteForTypeCheck(h, objectQVar, Type('num'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('num'))
             .ifTrue
-            .tryPromoteForTypeCheck(h, objectQVar, Type('int'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int'))
             .ifTrue;
         expect(s1.variableInfo, {
           objectQVar: _matchVariableModel(
@@ -2232,7 +3362,8 @@ main() {
               assigned: true,
               unassigned: false)
         });
-        var s2 = s1.write(objectQVar, Type('num'), h);
+        var s2 =
+            s1.write(objectQVar, Type('num'), new SsaNode<Var, Type>(null), h);
         expect(s2.reachable.overallReachable, true);
         expect(s2.variableInfo, {
           objectQVar: _matchVariableModel(
@@ -2247,9 +3378,9 @@ main() {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
             .declare(objectQVar, true)
-            .tryPromoteForTypeCheck(h, objectQVar, Type('num?'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('num?'))
             .ifTrue
-            .tryPromoteForTypeCheck(h, objectQVar, Type('num'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('num'))
             .ifTrue;
         expect(s1.variableInfo, {
           objectQVar: _matchVariableModel(
@@ -2258,18 +3389,26 @@ main() {
               assigned: true,
               unassigned: false)
         });
-        var s2 = s1.write(objectQVar, Type('num'), h);
+        var s2 =
+            s1.write(objectQVar, Type('num'), new SsaNode<Var, Type>(null), h);
         expect(s2.reachable.overallReachable, true);
-        expect(s2.variableInfo, same(s1.variableInfo));
+        expect(s2.variableInfo, isNot(same(s1.variableInfo)));
+        expect(s2.variableInfo, {
+          objectQVar: _matchVariableModel(
+              chain: ['num?', 'num'],
+              ofInterest: ['num?', 'num'],
+              assigned: true,
+              unassigned: false)
+        });
       });
 
       test('leaves promoted, when writing a subtype', () {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
             .declare(objectQVar, true)
-            .tryPromoteForTypeCheck(h, objectQVar, Type('num?'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('num?'))
             .ifTrue
-            .tryPromoteForTypeCheck(h, objectQVar, Type('num'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('num'))
             .ifTrue;
         expect(s1.variableInfo, {
           objectQVar: _matchVariableModel(
@@ -2278,9 +3417,17 @@ main() {
               assigned: true,
               unassigned: false)
         });
-        var s2 = s1.write(objectQVar, Type('int'), h);
+        var s2 =
+            s1.write(objectQVar, Type('int'), new SsaNode<Var, Type>(null), h);
         expect(s2.reachable.overallReachable, true);
-        expect(s2.variableInfo, same(s1.variableInfo));
+        expect(s2.variableInfo, isNot(same(s1.variableInfo)));
+        expect(s2.variableInfo, {
+          objectQVar: _matchVariableModel(
+              chain: ['num?', 'num'],
+              ofInterest: ['num?', 'num'],
+              assigned: true,
+              unassigned: false)
+        });
       });
 
       group('Promotes to NonNull of a type of interest', () {
@@ -2293,7 +3440,7 @@ main() {
             x: _matchVariableModel(chain: null),
           });
 
-          var s2 = s1.write(x, Type('int'), h);
+          var s2 = s1.write(x, Type('int'), new SsaNode<Var, Type>(null), h);
           expect(s2.variableInfo, {
             x: _matchVariableModel(chain: ['int']),
           });
@@ -2314,7 +3461,7 @@ main() {
           });
 
           // 'x' is write-captured, so not promoted
-          var s3 = s2.write(x, Type('int'), h);
+          var s3 = s2.write(x, Type('int'), new SsaNode<Var, Type>(null), h);
           expect(s3.variableInfo, {
             x: _matchVariableModel(chain: null, writeCaptured: true),
           });
@@ -2324,7 +3471,7 @@ main() {
           var h = Harness();
           var s1 = FlowModel<Var, Type>(Reachability.initial)
               .declare(objectQVar, true)
-              .tryPromoteForTypeCheck(h, objectQVar, Type('int?'))
+              .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int?'))
               .ifTrue;
           expect(s1.variableInfo, {
             objectQVar: _matchVariableModel(
@@ -2332,7 +3479,8 @@ main() {
               ofInterest: ['int?'],
             ),
           });
-          var s2 = s1.write(objectQVar, Type('int'), h);
+          var s2 = s1.write(
+              objectQVar, Type('int'), new SsaNode<Var, Type>(null), h);
           expect(s2.variableInfo, {
             objectQVar: _matchVariableModel(
               chain: ['int?', 'int'],
@@ -2345,7 +3493,7 @@ main() {
           var h = Harness();
           var s1 = FlowModel<Var, Type>(Reachability.initial)
               .declare(objectQVar, true)
-              .tryPromoteForTypeCheck(h, objectQVar, Type('int?'))
+              .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int?'))
               .ifFalse;
           expect(s1.variableInfo, {
             objectQVar: _matchVariableModel(
@@ -2353,7 +3501,8 @@ main() {
               ofInterest: ['int?'],
             ),
           });
-          var s2 = s1.write(objectQVar, Type('int'), h);
+          var s2 = s1.write(
+              objectQVar, Type('int'), new SsaNode<Var, Type>(null), h);
           expect(s2.variableInfo, {
             objectQVar: _matchVariableModel(
               chain: ['Object', 'int'],
@@ -2367,7 +3516,7 @@ main() {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
             .declare(objectQVar, true)
-            .tryPromoteForTypeCheck(h, objectQVar, Type('num?'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('num?'))
             .ifFalse;
         expect(s1.variableInfo, {
           objectQVar: _matchVariableModel(
@@ -2375,7 +3524,8 @@ main() {
             ofInterest: ['num?'],
           ),
         });
-        var s2 = s1.write(objectQVar, Type('num?'), h);
+        var s2 =
+            s1.write(objectQVar, Type('num?'), new SsaNode<Var, Type>(null), h);
         expect(s2.variableInfo, {
           objectQVar: _matchVariableModel(
             chain: ['num?'],
@@ -2388,9 +3538,9 @@ main() {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
             .declare(objectQVar, true)
-            .tryPromoteForTypeCheck(h, objectQVar, Type('num?'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('num?'))
             .ifTrue
-            .tryPromoteForTypeCheck(h, objectQVar, Type('int?'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int?'))
             .ifFalse;
         expect(s1.variableInfo, {
           objectQVar: _matchVariableModel(
@@ -2398,7 +3548,8 @@ main() {
             ofInterest: ['num?', 'int?'],
           ),
         });
-        var s2 = s1.write(objectQVar, Type('int?'), h);
+        var s2 =
+            s1.write(objectQVar, Type('int?'), new SsaNode<Var, Type>(null), h);
         expect(s2.variableInfo, {
           objectQVar: _matchVariableModel(
             chain: ['num?', 'int?'],
@@ -2409,7 +3560,7 @@ main() {
 
       group('Multiple candidate types of interest', () {
         group('; choose most specific', () {
-          Harness h;
+          late Harness h;
 
           setUp(() {
             h = Harness();
@@ -2417,38 +3568,38 @@ main() {
             // class A {}
             // class B extends A {}
             // class C extends B {}
-            h.addSubtype(Type('Object'), Type('A'), false);
-            h.addSubtype(Type('Object'), Type('A?'), false);
-            h.addSubtype(Type('Object'), Type('B?'), false);
-            h.addSubtype(Type('A'), Type('Object'), true);
-            h.addSubtype(Type('A'), Type('Object?'), true);
-            h.addSubtype(Type('A'), Type('A?'), true);
-            h.addSubtype(Type('A'), Type('B'), false);
-            h.addSubtype(Type('A'), Type('B?'), false);
-            h.addSubtype(Type('A?'), Type('Object'), false);
-            h.addSubtype(Type('A?'), Type('Object?'), true);
-            h.addSubtype(Type('A?'), Type('A'), false);
-            h.addSubtype(Type('A?'), Type('B?'), false);
-            h.addSubtype(Type('B'), Type('Object'), true);
-            h.addSubtype(Type('B'), Type('A'), true);
-            h.addSubtype(Type('B'), Type('A?'), true);
-            h.addSubtype(Type('B'), Type('B?'), true);
-            h.addSubtype(Type('B?'), Type('Object'), false);
-            h.addSubtype(Type('B?'), Type('Object?'), true);
-            h.addSubtype(Type('B?'), Type('A'), false);
-            h.addSubtype(Type('B?'), Type('A?'), true);
-            h.addSubtype(Type('B?'), Type('B'), false);
-            h.addSubtype(Type('C'), Type('Object'), true);
-            h.addSubtype(Type('C'), Type('A'), true);
-            h.addSubtype(Type('C'), Type('A?'), true);
-            h.addSubtype(Type('C'), Type('B'), true);
-            h.addSubtype(Type('C'), Type('B?'), true);
+            h.addSubtype('Object', 'A', false);
+            h.addSubtype('Object', 'A?', false);
+            h.addSubtype('Object', 'B?', false);
+            h.addSubtype('A', 'Object', true);
+            h.addSubtype('A', 'Object?', true);
+            h.addSubtype('A', 'A?', true);
+            h.addSubtype('A', 'B', false);
+            h.addSubtype('A', 'B?', false);
+            h.addSubtype('A?', 'Object', false);
+            h.addSubtype('A?', 'Object?', true);
+            h.addSubtype('A?', 'A', false);
+            h.addSubtype('A?', 'B?', false);
+            h.addSubtype('B', 'Object', true);
+            h.addSubtype('B', 'A', true);
+            h.addSubtype('B', 'A?', true);
+            h.addSubtype('B', 'B?', true);
+            h.addSubtype('B?', 'Object', false);
+            h.addSubtype('B?', 'Object?', true);
+            h.addSubtype('B?', 'A', false);
+            h.addSubtype('B?', 'A?', true);
+            h.addSubtype('B?', 'B', false);
+            h.addSubtype('C', 'Object', true);
+            h.addSubtype('C', 'A', true);
+            h.addSubtype('C', 'A?', true);
+            h.addSubtype('C', 'B', true);
+            h.addSubtype('C', 'B?', true);
 
-            h.addFactor(Type('Object'), Type('A?'), Type('Object'));
-            h.addFactor(Type('Object'), Type('B?'), Type('Object'));
-            h.addFactor(Type('Object?'), Type('A'), Type('Object?'));
-            h.addFactor(Type('Object?'), Type('A?'), Type('Object'));
-            h.addFactor(Type('Object?'), Type('B?'), Type('Object'));
+            h.addFactor('Object', 'A?', 'Object');
+            h.addFactor('Object', 'B?', 'Object');
+            h.addFactor('Object?', 'A', 'Object?');
+            h.addFactor('Object?', 'A?', 'Object');
+            h.addFactor('Object?', 'B?', 'Object');
           });
 
           test('; first', () {
@@ -2456,9 +3607,9 @@ main() {
 
             var s1 = FlowModel<Var, Type>(Reachability.initial)
                 .declare(x, true)
-                .tryPromoteForTypeCheck(h, x, Type('B?'))
+                .tryPromoteForTypeCheck(h, _varRef(x), Type('B?'))
                 .ifFalse
-                .tryPromoteForTypeCheck(h, x, Type('A?'))
+                .tryPromoteForTypeCheck(h, _varRef(x), Type('A?'))
                 .ifFalse;
             expect(s1.variableInfo, {
               x: _matchVariableModel(
@@ -2467,7 +3618,7 @@ main() {
               ),
             });
 
-            var s2 = s1.write(x, Type('C'), h);
+            var s2 = s1.write(x, Type('C'), new SsaNode<Var, Type>(null), h);
             expect(s2.variableInfo, {
               x: _matchVariableModel(
                 chain: ['Object', 'B'],
@@ -2481,9 +3632,9 @@ main() {
 
             var s1 = FlowModel<Var, Type>(Reachability.initial)
                 .declare(x, true)
-                .tryPromoteForTypeCheck(h, x, Type('A?'))
+                .tryPromoteForTypeCheck(h, _varRef(x), Type('A?'))
                 .ifFalse
-                .tryPromoteForTypeCheck(h, x, Type('B?'))
+                .tryPromoteForTypeCheck(h, _varRef(x), Type('B?'))
                 .ifFalse;
             expect(s1.variableInfo, {
               x: _matchVariableModel(
@@ -2492,7 +3643,7 @@ main() {
               ),
             });
 
-            var s2 = s1.write(x, Type('C'), h);
+            var s2 = s1.write(x, Type('C'), new SsaNode<Var, Type>(null), h);
             expect(s2.variableInfo, {
               x: _matchVariableModel(
                 chain: ['Object', 'B'],
@@ -2506,9 +3657,9 @@ main() {
 
             var s1 = FlowModel<Var, Type>(Reachability.initial)
                 .declare(x, true)
-                .tryPromoteForTypeCheck(h, x, Type('A'))
+                .tryPromoteForTypeCheck(h, _varRef(x), Type('A'))
                 .ifFalse
-                .tryPromoteForTypeCheck(h, x, Type('A?'))
+                .tryPromoteForTypeCheck(h, _varRef(x), Type('A?'))
                 .ifFalse;
             expect(s1.variableInfo, {
               x: _matchVariableModel(
@@ -2517,7 +3668,7 @@ main() {
               ),
             });
 
-            var s2 = s1.write(x, Type('B'), h);
+            var s2 = s1.write(x, Type('B'), new SsaNode<Var, Type>(null), h);
             expect(s2.variableInfo, {
               x: _matchVariableModel(
                 chain: ['Object', 'A'],
@@ -2532,9 +3683,9 @@ main() {
             var h = Harness();
             var s1 = FlowModel<Var, Type>(Reachability.initial)
                 .declare(objectQVar, true)
-                .tryPromoteForTypeCheck(h, objectQVar, Type('num?'))
+                .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('num?'))
                 .ifFalse
-                .tryPromoteForTypeCheck(h, objectQVar, Type('num*'))
+                .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('num*'))
                 .ifFalse;
             expect(s1.variableInfo, {
               objectQVar: _matchVariableModel(
@@ -2542,10 +3693,17 @@ main() {
                 ofInterest: ['num?', 'num*'],
               ),
             });
-            var s2 = s1.write(objectQVar, Type('int'), h);
+            var s2 = s1.write(
+                objectQVar, Type('int'), new SsaNode<Var, Type>(null), h);
             // It's ambiguous whether to promote to num? or num*, so we don't
             // promote.
-            expect(s2, same(s1));
+            expect(s2, isNot(same(s1)));
+            expect(s2.variableInfo, {
+              objectQVar: _matchVariableModel(
+                chain: ['Object'],
+                ofInterest: ['num?', 'num*'],
+              ),
+            });
           });
         });
 
@@ -2553,9 +3711,9 @@ main() {
           var h = Harness();
           var s1 = FlowModel<Var, Type>(Reachability.initial)
               .declare(objectQVar, true)
-              .tryPromoteForTypeCheck(h, objectQVar, Type('num?'))
+              .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('num?'))
               .ifFalse
-              .tryPromoteForTypeCheck(h, objectQVar, Type('num*'))
+              .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('num*'))
               .ifFalse;
           expect(s1.variableInfo, {
             objectQVar: _matchVariableModel(
@@ -2563,7 +3721,8 @@ main() {
               ofInterest: ['num?', 'num*'],
             ),
           });
-          var s2 = s1.write(objectQVar, Type('num?'), h);
+          var s2 = s1.write(
+              objectQVar, Type('num?'), new SsaNode<Var, Type>(null), h);
           // It's ambiguous whether to promote to num? or num*, but since the
           // written type is exactly num?, we use that.
           expect(s2.variableInfo, {
@@ -2584,9 +3743,9 @@ main() {
 
         var s1 = FlowModel<Var, Type>(Reachability.initial)
             .declare(x, true)
-            .tryPromoteForTypeCheck(h, x, Type('num?'))
+            .tryPromoteForTypeCheck(h, _varRef(x), Type('num?'))
             .ifTrue
-            .tryPromoteForTypeCheck(h, x, Type('int?'))
+            .tryPromoteForTypeCheck(h, _varRef(x), Type('int?'))
             .ifTrue;
         expect(s1.variableInfo, {
           x: _matchVariableModel(
@@ -2595,7 +3754,7 @@ main() {
           ),
         });
 
-        var s2 = s1.write(x, Type('double'), h);
+        var s2 = s1.write(x, Type('double'), new SsaNode<Var, Type>(null), h);
         expect(s2.variableInfo, {
           x: _matchVariableModel(
             chain: ['num?', 'num'],
@@ -2629,14 +3788,14 @@ main() {
       test('unpromoted -> unchanged', () {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial);
-        var s2 = s1.tryMarkNonNullable(h, intVar).ifTrue;
+        var s2 = s1.tryMarkNonNullable(h, _varRef(intVar)).ifTrue;
         expect(s2, same(s1));
       });
 
       test('unpromoted -> promoted', () {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial);
-        var s2 = s1.tryMarkNonNullable(h, intQVar).ifTrue;
+        var s2 = s1.tryMarkNonNullable(h, _varRef(intQVar)).ifTrue;
         expect(s2.reachable.overallReachable, true);
         expect(s2.infoFor(intQVar),
             _matchVariableModel(chain: ['int'], ofInterest: []));
@@ -2645,18 +3804,18 @@ main() {
       test('promoted -> unchanged', () {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
-            .tryPromoteForTypeCheck(h, objectQVar, Type('int'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int'))
             .ifTrue;
-        var s2 = s1.tryMarkNonNullable(h, objectQVar).ifTrue;
+        var s2 = s1.tryMarkNonNullable(h, _varRef(objectQVar)).ifTrue;
         expect(s2, same(s1));
       });
 
       test('promoted -> re-promoted', () {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
-            .tryPromoteForTypeCheck(h, objectQVar, Type('int?'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int?'))
             .ifTrue;
-        var s2 = s1.tryMarkNonNullable(h, objectQVar).ifTrue;
+        var s2 = s1.tryMarkNonNullable(h, _varRef(objectQVar)).ifTrue;
         expect(s2.reachable.overallReachable, true);
         expect(s2.variableInfo, {
           objectQVar:
@@ -2667,7 +3826,7 @@ main() {
       test('promote to Never', () {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial);
-        var s2 = s1.tryMarkNonNullable(h, nullVar).ifTrue;
+        var s2 = s1.tryMarkNonNullable(h, _varRef(nullVar)).ifTrue;
         expect(s2.reachable.overallReachable, false);
         expect(s2.infoFor(nullVar),
             _matchVariableModel(chain: ['Never'], ofInterest: []));
@@ -2679,18 +3838,23 @@ main() {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
             .declare(intQVar, true)
-            .tryPromoteForTypeCheck(h, objectQVar, Type('int'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int'))
             .ifTrue;
         var s2 = s1.conservativeJoin([intQVar], []);
-        expect(s2, same(s1));
+        expect(s2, isNot(same(s1)));
+        expect(s2.reachable, same(s1.reachable));
+        expect(s2.variableInfo, {
+          objectQVar: _matchVariableModel(chain: ['int'], ofInterest: ['int']),
+          intQVar: _matchVariableModel(chain: null, ofInterest: [])
+        });
       });
 
       test('written', () {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
-            .tryPromoteForTypeCheck(h, objectQVar, Type('int'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int'))
             .ifTrue
-            .tryPromoteForTypeCheck(h, intQVar, Type('int'))
+            .tryPromoteForTypeCheck(h, _varRef(intQVar), Type('int'))
             .ifTrue;
         var s2 = s1.conservativeJoin([intQVar], []);
         expect(s2.reachable.overallReachable, true);
@@ -2703,9 +3867,9 @@ main() {
       test('write captured', () {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
-            .tryPromoteForTypeCheck(h, objectQVar, Type('int'))
+            .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int'))
             .ifTrue
-            .tryPromoteForTypeCheck(h, intQVar, Type('int'))
+            .tryPromoteForTypeCheck(h, _varRef(intQVar), Type('int'))
             .ifTrue;
         var s2 = s1.conservativeJoin([], [intQVar]);
         expect(s2.reachable.overallReachable, true);
@@ -2717,15 +3881,19 @@ main() {
       });
     });
 
-    group('restrict', () {
+    group('rebaseForward', () {
       test('reachability', () {
         var h = Harness();
         var reachable = FlowModel<Var, Type>(Reachability.initial);
         var unreachable = reachable.setUnreachable();
-        expect(reachable.restrict(h, reachable, Set()), same(reachable));
-        expect(reachable.restrict(h, unreachable, Set()), same(unreachable));
-        expect(unreachable.restrict(h, reachable, Set()), same(unreachable));
-        expect(unreachable.restrict(h, unreachable, Set()), same(unreachable));
+        expect(reachable.rebaseForward(h, reachable), same(reachable));
+        expect(reachable.rebaseForward(h, unreachable), same(unreachable));
+        expect(
+            unreachable.rebaseForward(h, reachable).reachable.overallReachable,
+            false);
+        expect(unreachable.rebaseForward(h, reachable).variableInfo,
+            same(unreachable.variableInfo));
+        expect(unreachable.rebaseForward(h, unreachable), same(unreachable));
       });
 
       test('assignments', () {
@@ -2739,9 +3907,13 @@ main() {
             .declare(b, false)
             .declare(c, false)
             .declare(d, false);
-        var s1 = s0.write(a, Type('int'), h).write(b, Type('int'), h);
-        var s2 = s1.write(a, Type('int'), h).write(c, Type('int'), h);
-        var result = s2.restrict(h, s1, Set());
+        var s1 = s0
+            .write(a, Type('int'), new SsaNode<Var, Type>(null), h)
+            .write(b, Type('int'), new SsaNode<Var, Type>(null), h);
+        var s2 = s0
+            .write(a, Type('int'), new SsaNode<Var, Type>(null), h)
+            .write(c, Type('int'), new SsaNode<Var, Type>(null), h);
+        var result = s1.rebaseForward(h, s2);
         expect(result.infoFor(a).assigned, true);
         expect(result.infoFor(b).assigned, true);
         expect(result.infoFor(c).assigned, true);
@@ -2762,7 +3934,7 @@ main() {
         // In s1, a and b are write captured.  In s2, a and c are.
         var s1 = s0.conservativeJoin([a, b], [a, b]);
         var s2 = s1.conservativeJoin([a, c], [a, c]);
-        var result = s2.restrict(h, s1, Set());
+        var result = s1.rebaseForward(h, s2);
         expect(
           result.infoFor(a),
           _matchVariableModel(writeCaptured: true, unassigned: false),
@@ -2781,24 +3953,48 @@ main() {
         );
       });
 
+      test('write captured and promoted', () {
+        var h = Harness();
+        var a = Var('a', 'num');
+        var s0 = FlowModel<Var, Type>(Reachability.initial).declare(a, false);
+        // In s1, a is write captured.  In s2 it's promoted.
+        var s1 = s0.conservativeJoin([a], [a]);
+        var s2 = s0.tryPromoteForTypeCheck(h, _varRef(a), Type('int')).ifTrue;
+        expect(
+          s1.rebaseForward(h, s2).infoFor(a),
+          _matchVariableModel(writeCaptured: true, chain: isNull),
+        );
+        expect(
+          s2.rebaseForward(h, s1).infoFor(a),
+          _matchVariableModel(writeCaptured: true, chain: isNull),
+        );
+      });
+
       test('promotion', () {
-        void _check(String thisType, String otherType, bool unsafe,
-            List<String> expectedChain) {
+        void _check(String? thisType, String? otherType, bool unsafe,
+            List<String>? expectedChain) {
           var h = Harness();
           var x = Var('x', 'Object?');
           var s0 = FlowModel<Var, Type>(Reachability.initial).declare(x, true);
-          var s1 = thisType == null
-              ? s0
-              : s0.tryPromoteForTypeCheck(h, x, Type(thisType)).ifTrue;
+          var s1 = s0;
+          if (unsafe) {
+            s1 = s1.write(x, Type('Object?'), new SsaNode<Var, Type>(null), h);
+          }
+          if (thisType != null) {
+            s1 =
+                s1.tryPromoteForTypeCheck(h, _varRef(x), Type(thisType)).ifTrue;
+          }
           var s2 = otherType == null
               ? s0
-              : s0.tryPromoteForTypeCheck(h, x, Type(otherType)).ifTrue;
-          var result = s1.restrict(h, s2, unsafe ? [x].toSet() : Set());
+              : s0
+                  .tryPromoteForTypeCheck(h, _varRef(x), Type(otherType))
+                  .ifTrue;
+          var result = s2.rebaseForward(h, s1);
           if (expectedChain == null) {
             expect(result.variableInfo, contains(x));
             expect(result.infoFor(x).promotedTypes, isNull);
           } else {
-            expect(result.infoFor(x).promotedTypes.map((t) => t.type).toList(),
+            expect(result.infoFor(x).promotedTypes!.map((t) => t.type).toList(),
                 expectedChain);
           }
         }
@@ -2809,9 +4005,9 @@ main() {
         _check('int', null, true, ['int']);
         _check(null, 'int', false, ['int']);
         _check(null, 'int', true, null);
-        _check('int?', 'int', false, ['int']);
-        _check('int', 'int?', false, ['int?', 'int']);
-        _check('int', 'String', false, ['String']);
+        _check('int?', 'int', false, ['int?', 'int']);
+        _check('int', 'int?', false, ['int']);
+        _check('int', 'String', false, ['int']);
         _check('int?', 'int', true, ['int?']);
         _check('int', 'int?', true, ['int']);
         _check('int', 'String', true, ['int']);
@@ -2820,7 +4016,7 @@ main() {
       test('promotion chains', () {
         // Verify that the given promotion chain matches the expected list of
         // strings.
-        void _checkChain(List<Type> chain, List<String> expected) {
+        void _checkChain(List<Type>? chain, List<String> expected) {
           var strings = (chain ?? <Type>[]).map((t) => t.type).toList();
           expect(strings, expected);
         }
@@ -2841,25 +4037,28 @@ main() {
           var initialModel =
               FlowModel<Var, Type>(Reachability.initial).declare(x, true);
           for (var t in before) {
-            initialModel =
-                initialModel.tryPromoteForTypeCheck(h, x, Type(t)).ifTrue;
+            initialModel = initialModel
+                .tryPromoteForTypeCheck(h, _varRef(x), Type(t))
+                .ifTrue;
           }
           _checkChain(initialModel.infoFor(x).promotedTypes, before);
           var tryModel = initialModel;
           for (var t in inTry) {
-            tryModel = tryModel.tryPromoteForTypeCheck(h, x, Type(t)).ifTrue;
+            tryModel =
+                tryModel.tryPromoteForTypeCheck(h, _varRef(x), Type(t)).ifTrue;
           }
           var expectedTryChain = before.toList()..addAll(inTry);
           _checkChain(tryModel.infoFor(x).promotedTypes, expectedTryChain);
           var finallyModel = initialModel;
           for (var t in inFinally) {
-            finallyModel =
-                finallyModel.tryPromoteForTypeCheck(h, x, Type(t)).ifTrue;
+            finallyModel = finallyModel
+                .tryPromoteForTypeCheck(h, _varRef(x), Type(t))
+                .ifTrue;
           }
           var expectedFinallyChain = before.toList()..addAll(inFinally);
           _checkChain(
               finallyModel.infoFor(x).promotedTypes, expectedFinallyChain);
-          var result = finallyModel.restrict(h, tryModel, {});
+          var result = tryModel.rebaseForward(h, finallyModel);
           _checkChain(result.infoFor(x).promotedTypes, expectedResult);
           // And verify that the inputs are unchanged.
           _checkChain(initialModel.infoFor(x).promotedTypes, before);
@@ -2868,25 +4067,42 @@ main() {
               finallyModel.infoFor(x).promotedTypes, expectedFinallyChain);
         }
 
-        _check(['Object'], ['Iterable', 'List'], ['num', 'int'],
+        _check(['Object'], ['num', 'int'], ['Iterable', 'List'],
             ['Object', 'Iterable', 'List']);
-        _check([], ['Iterable', 'List'], ['num', 'int'], ['Iterable', 'List']);
-        _check(['Object'], ['Iterable', 'List'], [],
+        _check([], ['num', 'int'], ['Iterable', 'List'], ['Iterable', 'List']);
+        _check(['Object'], [], ['Iterable', 'List'],
             ['Object', 'Iterable', 'List']);
-        _check([], ['Iterable', 'List'], [], ['Iterable', 'List']);
-        _check(['Object'], [], ['num', 'int'], ['Object', 'num', 'int']);
-        _check([], [], ['num', 'int'], ['num', 'int']);
+        _check([], [], ['Iterable', 'List'], ['Iterable', 'List']);
+        _check(['Object'], ['num', 'int'], [], ['Object', 'num', 'int']);
+        _check([], ['num', 'int'], [], ['num', 'int']);
         _check(['Object'], [], [], ['Object']);
         _check([], [], [], []);
         _check(
-            [], ['Object', 'Iterable'], ['num', 'int'], ['Object', 'Iterable']);
-        _check([], ['Object'], ['num', 'int'], ['Object', 'num', 'int']);
-        _check([], ['num', 'int'], ['Object', 'Iterable'], ['num', 'int']);
-        _check([], ['num', 'int'], ['Object'], ['num', 'int']);
-        _check([], ['Object', 'int'], ['num'], ['Object', 'int']);
-        _check([], ['Object', 'num'], ['int'], ['Object', 'num', 'int']);
-        _check([], ['num'], ['Object', 'int'], ['num', 'int']);
-        _check([], ['int'], ['Object', 'num'], ['int']);
+            [], ['num', 'int'], ['Object', 'Iterable'], ['Object', 'Iterable']);
+        _check([], ['num', 'int'], ['Object'], ['Object', 'num', 'int']);
+        _check([], ['Object', 'Iterable'], ['num', 'int'], ['num', 'int']);
+        _check([], ['Object'], ['num', 'int'], ['num', 'int']);
+        _check([], ['num'], ['Object', 'int'], ['Object', 'int']);
+        _check([], ['int'], ['Object', 'num'], ['Object', 'num', 'int']);
+        _check([], ['Object', 'int'], ['num'], ['num', 'int']);
+        _check([], ['Object', 'num'], ['int'], ['int']);
+      });
+
+      test('types of interest', () {
+        var h = Harness();
+        var a = Var('a', 'Object');
+        var s0 = FlowModel<Var, Type>(Reachability.initial).declare(a, false);
+        var s1 = s0.tryPromoteForTypeCheck(h, _varRef(a), Type('int')).ifFalse;
+        var s2 =
+            s0.tryPromoteForTypeCheck(h, _varRef(a), Type('String')).ifFalse;
+        expect(
+          s1.rebaseForward(h, s2).infoFor(a),
+          _matchVariableModel(ofInterest: ['int', 'String']),
+        );
+        expect(
+          s2.rebaseForward(h, s1).infoFor(a),
+          _matchVariableModel(ofInterest: ['int', 'String']),
+        );
       });
 
       test('variable present in one state but not the other', () {
@@ -2894,10 +4110,8 @@ main() {
         var x = Var('x', 'Object?');
         var s0 = FlowModel<Var, Type>(Reachability.initial);
         var s1 = s0.declare(x, true);
-        expect(s0.restrict(h, s1, {}), same(s0));
-        expect(s0.restrict(h, s1, {x}), same(s0));
-        expect(s1.restrict(h, s0, {}), same(s0));
-        expect(s1.restrict(h, s0, {x}), same(s0));
+        expect(s1.rebaseForward(h, s0), same(s0));
+        expect(s0.rebaseForward(h, s1), same(s1));
       });
     });
   });
@@ -2953,22 +4167,22 @@ main() {
       var D = Type('D');
       var E = Type('E');
       var F = Type('F');
-      h.addSubtype(A, B, false);
-      h.addSubtype(B, A, true);
-      h.addSubtype(B, C, false);
-      h.addSubtype(B, D, false);
-      h.addSubtype(C, B, true);
-      h.addSubtype(C, D, false);
-      h.addSubtype(C, E, false);
-      h.addSubtype(D, B, true);
-      h.addSubtype(D, C, true);
-      h.addSubtype(D, E, false);
-      h.addSubtype(D, F, false);
-      h.addSubtype(E, C, true);
-      h.addSubtype(E, D, true);
-      h.addSubtype(E, F, false);
-      h.addSubtype(F, D, true);
-      h.addSubtype(F, E, true);
+      h.addSubtype('A', 'B', false);
+      h.addSubtype('B', 'A', true);
+      h.addSubtype('B', 'C', false);
+      h.addSubtype('B', 'D', false);
+      h.addSubtype('C', 'B', true);
+      h.addSubtype('C', 'D', false);
+      h.addSubtype('C', 'E', false);
+      h.addSubtype('D', 'B', true);
+      h.addSubtype('D', 'C', true);
+      h.addSubtype('D', 'E', false);
+      h.addSubtype('D', 'F', false);
+      h.addSubtype('E', 'C', true);
+      h.addSubtype('E', 'D', true);
+      h.addSubtype('E', 'F', false);
+      h.addSubtype('F', 'D', true);
+      h.addSubtype('F', 'E', true);
 
       void check(List<Type> chain1, List<Type> chain2, Matcher matcher) {
         expect(
@@ -3072,15 +4286,14 @@ main() {
     var stringType = Type('String');
     const emptyMap = const <Var, VariableModel<Var, Type>>{};
 
-    VariableModel<Var, Type> model(List<Type> promotionChain,
-            {List<Type> typesOfInterest, bool assigned = false}) =>
+    VariableModel<Var, Type> model(List<Type>? promotionChain,
+            {List<Type>? typesOfInterest, bool assigned = false}) =>
         VariableModel<Var, Type>(
-          promotionChain,
-          typesOfInterest ?? promotionChain ?? [],
-          assigned,
-          !assigned,
-          false,
-        );
+            promotedTypes: promotionChain,
+            tested: typesOfInterest ?? promotionChain ?? [],
+            assigned: assigned,
+            unassigned: !assigned,
+            ssaNode: new SsaNode<Var, Type>(null));
 
     group('without input reuse', () {
       test('promoted with unpromoted', () {
@@ -3257,19 +4470,18 @@ main() {
     var stringType = Type('String');
     const emptyMap = const <Var, VariableModel<Var, Type>>{};
 
-    VariableModel<Var, Type> varModel(List<Type> promotionChain,
+    VariableModel<Var, Type> varModel(List<Type>? promotionChain,
             {bool assigned = false}) =>
         VariableModel<Var, Type>(
-          promotionChain,
-          promotionChain ?? [],
-          assigned,
-          !assigned,
-          false,
-        );
+            promotedTypes: promotionChain,
+            tested: promotionChain ?? [],
+            assigned: assigned,
+            unassigned: !assigned,
+            ssaNode: new SsaNode<Var, Type>(null));
 
     test('first is null', () {
       var h = Harness();
-      var s1 = FlowModel.withInfo(Reachability.initial.split(), {});
+      var s1 = FlowModel.withInfo(Reachability.initial.split(), emptyMap);
       var result = FlowModel.merge(h, null, s1, emptyMap);
       expect(result.reachable, same(Reachability.initial));
     });
@@ -3278,7 +4490,7 @@ main() {
       var h = Harness();
       var splitPoint = Reachability.initial.split();
       var afterSplit = splitPoint.split();
-      var s1 = FlowModel.withInfo(afterSplit, {});
+      var s1 = FlowModel.withInfo(afterSplit, emptyMap);
       var result = FlowModel.merge(h, s1, null, emptyMap);
       expect(result.reachable, same(splitPoint));
     });
@@ -3295,7 +4507,7 @@ main() {
       });
       var result = FlowModel.merge(h, s1, s2, emptyMap);
       expect(result.reachable, same(splitPoint));
-      expect(result.variableInfo[x].promotedTypes, isNull);
+      expect(result.variableInfo[x]!.promotedTypes, isNull);
     });
 
     test('first is unreachable', () {
@@ -3341,7 +4553,7 @@ main() {
       var result = FlowModel.merge(h, s1, s2, emptyMap);
       expect(result.reachable.locallyReachable, false);
       expect(result.reachable.parent, same(splitPoint.parent));
-      expect(result.variableInfo[x].promotedTypes, isNull);
+      expect(result.variableInfo[x]!.promotedTypes, isNull);
     });
   });
 
@@ -3352,7 +4564,12 @@ main() {
     const emptyMap = const <Var, VariableModel<Var, Type>>{};
 
     VariableModel<Var, Type> model(List<Type> typesOfInterest) =>
-        VariableModel<Var, Type>(null, typesOfInterest, true, false, false);
+        VariableModel<Var, Type>(
+            promotedTypes: null,
+            tested: typesOfInterest,
+            assigned: true,
+            unassigned: false,
+            ssaNode: new SsaNode<Var, Type>(null));
 
     test('inherits types of interest from other', () {
       var h = Harness();
@@ -3362,7 +4579,7 @@ main() {
       var m2 = FlowModel.withInfo(Reachability.initial, {
         x: model([stringType])
       });
-      expect(m1.inheritTested(h, m2).variableInfo[x].tested,
+      expect(m1.inheritTested(h, m2).variableInfo[x]!.tested,
           _matchOfInterestSet(['int', 'String']));
     });
 
@@ -3384,6 +4601,766 @@ main() {
         x: model([intType])
       });
       expect(m1.inheritTested(h, m2), same(m1));
+    });
+  });
+
+  group('Legacy promotion', () {
+    group('if statement', () {
+      group('promotes a variable whose type is shown by its condition', () {
+        test('within then-block', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            if_(x.read.is_('int'), [
+              checkPromoted(x, 'int'),
+            ]),
+          ]);
+        });
+
+        test('but not within else-block', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            if_(x.read.is_('int'), [], [
+              checkNotPromoted(x),
+            ]),
+          ]);
+        });
+
+        test('unless the then-block mutates it', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            if_(x.read.is_('int'), [
+              checkNotPromoted(x),
+              x.write(expr('int')).stmt,
+            ]),
+          ]);
+        });
+
+        test('even if the condition mutates it', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            if_(
+                x
+                    .write(expr('int'))
+                    .parenthesized
+                    .eq(expr('int'))
+                    .and(x.read.is_('int')),
+                [
+                  checkPromoted(x, 'int'),
+                ]),
+          ]);
+        });
+
+        test('even if the else-block mutates it', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            if_(x.read.is_('int'), [
+              checkPromoted(x, 'int'),
+            ], [
+              x.write(expr('int')).stmt,
+            ]),
+          ]);
+        });
+
+        test('unless a closure mutates it', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            if_(x.read.is_('int'), [
+              checkNotPromoted(x),
+            ]),
+            localFunction([
+              x.write(expr('int')).stmt,
+            ]),
+          ]);
+        });
+
+        test(
+            'unless a closure in the then-block accesses it and it is mutated '
+            'anywhere', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            if_(x.read.is_('int'), [
+              checkNotPromoted(x),
+              localFunction([
+                x.read.stmt,
+              ]),
+            ]),
+            x.write(expr('int')).stmt,
+          ]);
+        });
+
+        test(
+            'unless a closure in the then-block accesses it and it is mutated '
+            'anywhere, even if the access is deeply nested', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            if_(x.read.is_('int'), [
+              checkNotPromoted(x),
+              localFunction([
+                localFunction([
+                  x.read.stmt,
+                ]),
+              ]),
+            ]),
+            x.write(expr('int')).stmt,
+          ]);
+        });
+
+        test(
+            'even if a closure in the condition accesses it and it is mutated '
+            'somewhere', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            if_(
+                localFunction([
+                  x.read.stmt,
+                ]).thenExpr(expr('bool')).and(x.read.is_('int')),
+                [
+                  checkPromoted(x, 'int'),
+                ]),
+            x.write(expr('int')).stmt,
+          ]);
+        });
+
+        test(
+            'even if a closure in the else-block accesses it and it is mutated '
+            'somewhere', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            if_(x.read.is_('int'), [
+              checkPromoted(x, 'int'),
+            ], [
+              localFunction([
+                x.read.stmt,
+              ]),
+            ]),
+            x.write(expr('int')).stmt,
+          ]);
+        });
+
+        test(
+            'even if a closure in the then-block accesses it, provided it is '
+            'not mutated anywhere', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            if_(x.read.is_('int'), [
+              checkPromoted(x, 'int'),
+              localFunction([
+                x.read.stmt,
+              ]),
+            ]),
+          ]);
+        });
+      });
+
+      test('handles arbitrary conditions', () {
+        var h = Harness(legacy: true);
+        h.run([
+          if_(expr('bool'), []),
+        ]);
+      });
+
+      test('handles a condition that is a variable', () {
+        var h = Harness(legacy: true);
+        var x = Var('x', 'bool');
+        h.run([
+          if_(x.read, []),
+        ]);
+      });
+
+      test('handles multiple promotions', () {
+        var h = Harness(legacy: true);
+        var x = Var('x', 'Object');
+        var y = Var('y', 'Object');
+        h.run([
+          if_(x.read.is_('int').and(y.read.is_('String')), [
+            checkPromoted(x, 'int'),
+            checkPromoted(y, 'String'),
+          ]),
+        ]);
+      });
+    });
+
+    group('conditional expression', () {
+      group('promotes a variable whose type is shown by its condition', () {
+        test('within then-expression', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            x.read
+                .is_('int')
+                .conditional(checkPromoted(x, 'int').thenExpr(expr('Object')),
+                    expr('Object'))
+                .stmt,
+          ]);
+        });
+
+        test('but not within else-expression', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            x.read
+                .is_('int')
+                .conditional(expr('Object'),
+                    checkNotPromoted(x).thenExpr(expr('Object')))
+                .stmt,
+          ]);
+        });
+
+        test('unless the then-expression mutates it', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            x.read
+                .is_('int')
+                .conditional(
+                    block([
+                      checkNotPromoted(x),
+                      x.write(expr('int')).stmt,
+                    ]).thenExpr(expr('Object')),
+                    expr('Object'))
+                .stmt,
+          ]);
+        });
+
+        test('even if the condition mutates it', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            x
+                .write(expr('int'))
+                .parenthesized
+                .eq(expr('int'))
+                .and(x.read.is_('int'))
+                .conditional(checkPromoted(x, 'int').thenExpr(expr('Object')),
+                    expr('Object'))
+                .stmt,
+          ]);
+        });
+
+        test('even if the else-expression mutates it', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            x.read
+                .is_('int')
+                .conditional(checkPromoted(x, 'int').thenExpr(expr('int')),
+                    x.write(expr('int')))
+                .stmt,
+          ]);
+        });
+
+        test('unless a closure mutates it', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            x.read
+                .is_('int')
+                .conditional(checkNotPromoted(x).thenExpr(expr('Object')),
+                    expr('Object'))
+                .stmt,
+            localFunction([
+              x.write(expr('int')).stmt,
+            ]),
+          ]);
+        });
+
+        test(
+            'unless a closure in the then-expression accesses it and it is '
+            'mutated anywhere', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            x.read
+                .is_('int')
+                .conditional(
+                    block([
+                      checkNotPromoted(x),
+                      localFunction([
+                        x.read.stmt,
+                      ]),
+                    ]).thenExpr(expr('Object')),
+                    expr('Object'))
+                .stmt,
+            x.write(expr('int')).stmt,
+          ]);
+        });
+
+        test(
+            'even if a closure in the condition accesses it and it is mutated '
+            'somewhere', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            localFunction([
+              x.read.stmt,
+            ])
+                .thenExpr(expr('Object'))
+                .and(x.read.is_('int'))
+                .conditional(checkPromoted(x, 'int').thenExpr(expr('Object')),
+                    expr('Object'))
+                .stmt,
+            x.write(expr('int')).stmt,
+          ]);
+        });
+
+        test(
+            'even if a closure in the else-expression accesses it and it is '
+            'mutated somewhere', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            x.read
+                .is_('int')
+                .conditional(
+                    checkPromoted(x, 'int').thenExpr(expr('Object')),
+                    localFunction([
+                      x.read.stmt,
+                    ]).thenExpr(expr('Object')))
+                .stmt,
+            x.write(expr('int')).stmt,
+          ]);
+        });
+
+        test(
+            'even if a closure in the then-expression accesses it, provided it '
+            'is not mutated anywhere', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            x.read
+                .is_('int')
+                .conditional(
+                    block([
+                      checkPromoted(x, 'int'),
+                      localFunction([
+                        x.read.stmt,
+                      ]),
+                    ]).thenExpr(expr('Object')),
+                    expr('Object'))
+                .stmt,
+          ]);
+        });
+      });
+
+      test('handles arbitrary conditions', () {
+        var h = Harness(legacy: true);
+        h.run([
+          expr('bool').conditional(expr('Object'), expr('Object')).stmt,
+        ]);
+      });
+
+      test('handles a condition that is a variable', () {
+        var h = Harness(legacy: true);
+        var x = Var('x', 'bool');
+        h.run([
+          x.read.conditional(expr('Object'), expr('Object')).stmt,
+        ]);
+      });
+
+      test('handles multiple promotions', () {
+        var h = Harness(legacy: true);
+        var x = Var('x', 'Object');
+        var y = Var('y', 'Object');
+        h.run([
+          x.read
+              .is_('int')
+              .and(y.read.is_('String'))
+              .conditional(
+                  block([
+                    checkPromoted(x, 'int'),
+                    checkPromoted(y, 'String'),
+                  ]).thenExpr(expr('Object')),
+                  expr('Object'))
+              .stmt
+        ]);
+      });
+    });
+
+    group('logical', () {
+      group('and', () {
+        group("shows a variable's type", () {
+          test('if the lhs shows the type', () {
+            var h = Harness(legacy: true);
+            var x = Var('x', 'Object');
+            h.run([
+              if_(x.read.is_('int').and(expr('bool')), [
+                checkPromoted(x, 'int'),
+              ]),
+            ]);
+          });
+
+          test('if the rhs shows the type', () {
+            var h = Harness(legacy: true);
+            var x = Var('x', 'Object');
+            h.run([
+              if_(expr('bool').and(x.read.is_('int')), [
+                checkPromoted(x, 'int'),
+              ]),
+            ]);
+          });
+
+          test('unless the rhs mutates it', () {
+            var h = Harness(legacy: true);
+            var x = Var('x', 'Object');
+            h.run([
+              if_(x.read.is_('int').and(x.write(expr('bool'))), [
+                checkNotPromoted(x),
+              ]),
+            ]);
+          });
+
+          test('unless the rhs mutates it, even if the rhs also shows the type',
+              () {
+            var h = Harness(legacy: true);
+            var x = Var('x', 'Object');
+            h.run([
+              if_(
+                  expr('bool').and(x
+                      .write(expr('Object'))
+                      .and(x.read.is_('int'))
+                      .parenthesized),
+                  [
+                    checkNotPromoted(x),
+                  ]),
+            ]);
+          });
+
+          test('unless a closure mutates it', () {
+            var h = Harness(legacy: true);
+            var x = Var('x', 'Object');
+            h.run([
+              if_(x.read.is_('int').and(expr('bool')), [
+                checkNotPromoted(x),
+              ]),
+              localFunction([
+                x.write(expr('int')).stmt,
+              ]),
+            ]);
+          });
+        });
+
+        group('promotes a variable whose type is shown by its lhs', () {
+          test('within its rhs', () {
+            var h = Harness(legacy: true);
+            var x = Var('x', 'Object');
+            h.run([
+              x.read
+                  .is_('int')
+                  .and(checkPromoted(x, 'int').thenExpr(expr('bool')))
+                  .stmt,
+            ]);
+          });
+
+          test('unless the lhs mutates it', () {
+            var h = Harness(legacy: true);
+            var x = Var('x', 'Object');
+            h.run([
+              x
+                  .write(expr('int'))
+                  .parenthesized
+                  .eq(expr('int'))
+                  .and(x.read.is_('int'))
+                  .parenthesized
+                  .and(checkNotPromoted(x).thenExpr(expr('bool')))
+                  .stmt,
+            ]);
+          });
+
+          test('unless the rhs mutates it', () {
+            var h = Harness(legacy: true);
+            var x = Var('x', 'Object');
+            h.run([
+              x.read
+                  .is_('int')
+                  .and(checkNotPromoted(x).thenExpr(x.write(expr('bool'))))
+                  .stmt,
+            ]);
+          });
+
+          test('unless a closure mutates it', () {
+            var h = Harness(legacy: true);
+            var x = Var('x', 'Object');
+            h.run([
+              x.read
+                  .is_('int')
+                  .and(checkNotPromoted(x).thenExpr(expr('bool')))
+                  .stmt,
+              localFunction([
+                x.write(expr('int')).stmt,
+              ]),
+            ]);
+          });
+
+          test(
+              'unless a closure in the rhs accesses it and it is mutated '
+              'anywhere', () {
+            var h = Harness(legacy: true);
+            var x = Var('x', 'Object');
+            h.run([
+              x.read
+                  .is_('int')
+                  .and(block([
+                    checkNotPromoted(x),
+                    localFunction([
+                      x.read.stmt,
+                    ]),
+                  ]).thenExpr(expr('bool')))
+                  .stmt,
+              x.write(expr('int')).stmt,
+            ]);
+          });
+
+          test(
+              'even if a closure in the lhs accesses it and it is mutated '
+              'somewhere', () {
+            var h = Harness(legacy: true);
+            var x = Var('x', 'Object');
+            h.run([
+              localFunction([
+                x.read.stmt,
+              ])
+                  .thenExpr(expr('Object'))
+                  .and(x.read.is_('int'))
+                  .parenthesized
+                  .and(checkPromoted(x, 'int').thenExpr(expr('bool')))
+                  .stmt,
+              x.write(expr('int')).stmt,
+            ]);
+          });
+
+          test(
+              'even if a closure in the rhs accesses it, provided it is not '
+              'mutated anywhere', () {
+            var h = Harness(legacy: true);
+            var x = Var('x', 'Object');
+            h.run([
+              x.read
+                  .is_('int')
+                  .and(block([
+                    checkPromoted(x, 'int'),
+                    localFunction([
+                      x.read.stmt,
+                    ]),
+                  ]).thenExpr(expr('bool')))
+                  .stmt,
+            ]);
+          });
+        });
+
+        test('uses lhs promotion if rhs is not to a subtype', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          // Note: for this to be an effective test, we need to mutate `x` on
+          // the LHS of the outer `&&` so that `x` is not promoted on the RHS
+          // (and thus the lesser promotion on the RHS can take effect).
+          h.run([
+            if_(
+                x
+                    .write(expr('Object'))
+                    .parenthesized
+                    .and(x.read.is_('int'))
+                    .parenthesized
+                    .and(x.read.is_('num')),
+                [
+                  checkPromoted(x, 'int'),
+                ]),
+          ]);
+        });
+
+        test('uses rhs promotion if rhs is to a subtype', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            if_(x.read.is_('num').and(x.read.is_('int')), [
+              checkPromoted(x, 'int'),
+            ]),
+          ]);
+        });
+
+        test('can handle multiple promotions on lhs', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          var y = Var('y', 'Object');
+          h.run([
+            x.read
+                .is_('int')
+                .and(y.read.is_('String'))
+                .parenthesized
+                .and(block([
+                  checkPromoted(x, 'int'),
+                  checkPromoted(y, 'String'),
+                ]).thenExpr(expr('bool')))
+                .stmt,
+          ]);
+        });
+
+        test('handles variables', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'bool');
+          var y = Var('y', 'bool');
+          h.run([
+            if_(x.read.and(y.read), []),
+          ]);
+        });
+
+        test('handles arbitrary expressions', () {
+          var h = Harness(legacy: true);
+          h.run([
+            if_(expr('bool').and(expr('bool')), []),
+          ]);
+        });
+      });
+
+      test('or is ignored', () {
+        var h = Harness(legacy: true);
+        var x = Var('x', 'Object');
+        h.run([
+          if_(x.read.is_('int').or(x.read.is_('int')), [
+            checkNotPromoted(x),
+          ], [
+            checkNotPromoted(x),
+          ])
+        ]);
+      });
+    });
+
+    group('is test', () {
+      group("shows a variable's type", () {
+        test('normally', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            if_(x.read.is_('int'), [
+              checkPromoted(x, 'int'),
+            ], [
+              checkNotPromoted(x),
+            ])
+          ]);
+        });
+
+        test('unless the test is inverted', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            if_(x.read.is_('int', isInverted: true), [
+              checkNotPromoted(x),
+            ], [
+              checkNotPromoted(x),
+            ])
+          ]);
+        });
+
+        test('unless the tested type is not a subtype of the declared type',
+            () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'String');
+          h.run([
+            if_(x.read.is_('int'), [
+              checkNotPromoted(x),
+            ], [
+              checkNotPromoted(x),
+            ])
+          ]);
+        });
+
+        test("even when the variable's type has been previously promoted", () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            if_(x.read.is_('num'), [
+              if_(x.read.is_('int'), [
+                checkPromoted(x, 'int'),
+              ], [
+                checkPromoted(x, 'num'),
+              ])
+            ]),
+          ]);
+        });
+
+        test(
+            'unless the tested type is not a subtype of the previously '
+            'promoted type', () {
+          var h = Harness(legacy: true);
+          var x = Var('x', 'Object');
+          h.run([
+            if_(x.read.is_('String'), [
+              if_(x.read.is_('int'), [
+                checkPromoted(x, 'String'),
+              ], [
+                checkPromoted(x, 'String'),
+              ])
+            ]),
+          ]);
+        });
+
+        test('even when the declared type is a type variable', () {
+          var h = Harness(legacy: true);
+          h.addPromotionException('T', 'int', 'T&int');
+          var x = Var('x', 'T');
+          h.run([
+            if_(x.read.is_('int'), [
+              checkPromoted(x, 'T&int'),
+            ]),
+          ]);
+        });
+      });
+
+      test('handles arbitrary expressions', () {
+        var h = Harness(legacy: true);
+        h.run([
+          if_(expr('Object').is_('int'), []),
+        ]);
+      });
+    });
+
+    test('forwardExpression does not re-activate a deeply nested expression',
+        () {
+      var h = Harness(legacy: true);
+      var x = Var('x', 'Object');
+      h.run([
+        if_(x.read.is_('int').eq(expr('Object')).thenStmt(block([])), [
+          checkNotPromoted(x),
+        ]),
+      ]);
+    });
+
+    test(
+        'parenthesizedExpression does not re-activate a deeply nested '
+        'expression', () {
+      var h = Harness(legacy: true);
+      var x = Var('x', 'Object');
+      h.run([
+        if_(x.read.is_('int').eq(expr('Object')).parenthesized, [
+          checkNotPromoted(x),
+        ]),
+      ]);
+    });
+
+    test('variableRead returns the promoted type if promoted', () {
+      var h = Harness(legacy: true);
+      var x = Var('x', 'Object');
+      h.run([
+        if_(
+            x
+                .readAndCheckPromotedType((type) => expect(type, isNull))
+                .is_('int'),
+            [
+              x
+                  .readAndCheckPromotedType((type) => expect(type!.type, 'int'))
+                  .stmt,
+            ]),
+      ]);
     });
   });
 }
@@ -3413,7 +5390,7 @@ Matcher _matchOfInterestSet(List<String> expectedTypes) {
       'interest set $expectedTypes');
 }
 
-Matcher _matchPromotionChain(List<String> expectedTypes) {
+Matcher _matchPromotionChain(List<String>? expectedTypes) {
   if (expectedTypes == null) return isNull;
   return predicate(
       (List<Type> x) =>
@@ -3422,11 +5399,16 @@ Matcher _matchPromotionChain(List<String> expectedTypes) {
 }
 
 Matcher _matchVariableModel(
-    {Object chain = anything,
-    Object ofInterest = anything,
-    Object assigned = anything,
-    Object unassigned = anything,
-    Object writeCaptured = anything}) {
+    {Object? chain,
+    Object? ofInterest,
+    Object? assigned,
+    Object? unassigned,
+    Object? writeCaptured}) {
+  chain ??= anything;
+  ofInterest ??= anything;
+  assigned ??= anything;
+  unassigned ??= anything;
+  writeCaptured ??= anything;
   Matcher chainMatcher =
       chain is List<String> ? _matchPromotionChain(chain) : wrapMatcher(chain);
   Matcher ofInterestMatcher = ofInterest is List<String>
@@ -3449,3 +5431,6 @@ Matcher _matchVariableModel(
       'unassigned: ${_describeMatcher(unassignedMatcher)}, '
       'writeCaptured: ${_describeMatcher(writeCapturedMatcher)})');
 }
+
+Reference<Var, Type> _varRef(Var variable) =>
+    new VariableReference<Var, Type>(variable);

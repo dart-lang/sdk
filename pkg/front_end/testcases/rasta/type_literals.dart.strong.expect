@@ -291,14 +291,14 @@ class C<T extends core::Object* = dynamic> extends core::Object {
     : super core::Object::•()
     ;
   method test() → dynamic {
-    self::C<dynamic>*;
-    self::use(self::C<dynamic>*);
-    dynamic;
-    self::use(dynamic);
+    #C1;
+    self::use(#C1);
+    #C2;
+    self::use(#C2);
     self::C::T*;
     self::use(self::C::T*);
-    () →* void;
-    self::use(() →* void);
+    #C3;
+    self::use(#C3);
     new self::C::•<dynamic>();
     self::use(new self::C::•<dynamic>());
     invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:22:5: Error: Method not found: 'dynamic'.
@@ -439,16 +439,16 @@ class C<T extends core::Object* = dynamic> extends core::Object {
     self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:72:11: Error: Can't assign to a type literal.
     use(--Func);
           ^^^^");
-    self::C<dynamic>*.{core::Type::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:74:5: Error: Can't assign to a type literal.
+    (#C1).{core::Type::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:74:5: Error: Can't assign to a type literal.
     C ??= 42;
     ^" : null;
-    self::use(let final core::Type* #t1 = self::C<dynamic>* in #t1.{core::Type::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:75:9: Error: Can't assign to a type literal.
+    self::use(let final core::Type* #t1 = #C1 in #t1.{core::Type::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:75:9: Error: Can't assign to a type literal.
     use(C ??= 42);
         ^" : #t1);
-    dynamic.{core::Type::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:76:5: Error: Can't assign to a type literal.
+    (#C2).{core::Type::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:76:5: Error: Can't assign to a type literal.
     dynamic ??= 42;
     ^^^^^^^" : null;
-    self::use(let final core::Type* #t2 = dynamic in #t2.{core::Type::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:77:9: Error: Can't assign to a type literal.
+    self::use(let final core::Type* #t2 = #C2 in #t2.{core::Type::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:77:9: Error: Can't assign to a type literal.
     use(dynamic ??= 42);
         ^^^^^^^" : #t2);
     self::C::T*.{core::Type::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:78:5: Error: Can't assign to a type literal.
@@ -457,10 +457,10 @@ class C<T extends core::Object* = dynamic> extends core::Object {
     self::use(let final core::Type* #t3 = self::C::T* in #t3.{core::Type::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:79:9: Error: Can't assign to a type literal.
     use(T ??= 42);
         ^" : #t3);
-    () →* void.{core::Type::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:80:5: Error: Can't assign to a type literal.
+    (#C3).{core::Type::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:80:5: Error: Can't assign to a type literal.
     Func ??= 42;
     ^^^^" : null;
-    self::use(let final core::Type* #t4 = () →* void in #t4.{core::Type::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:81:9: Error: Can't assign to a type literal.
+    self::use(let final core::Type* #t4 = #C3 in #t4.{core::Type::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:81:9: Error: Can't assign to a type literal.
     use(Func ??= 42);
         ^^^^" : #t4);
     invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:83:5: Error: Can't assign to a type literal.
@@ -529,4 +529,10 @@ static method use(dynamic x) → dynamic {
 }
 static method main() → dynamic {
   new self::C::•<dynamic>().{self::C::test}();
+}
+
+constants  {
+  #C1 = TypeLiteralConstant(self::C<dynamic>*)
+  #C2 = TypeLiteralConstant(dynamic)
+  #C3 = TypeLiteralConstant(() →* void)
 }

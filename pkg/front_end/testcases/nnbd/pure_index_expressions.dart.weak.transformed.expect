@@ -1,0 +1,334 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/pure_index_expressions.dart:25:8: Warning: Operand of null-aware operation '??=' has type 'Class' which excludes null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/pure_index_expressions.dart'.
+//     map[this] ??= this;
+//        ^
+//
+// pkg/front_end/testcases/nnbd/pure_index_expressions.dart:26:8: Warning: Operand of null-aware operation '??=' has type 'Class' which excludes null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/pure_index_expressions.dart'.
+//     map[self] ??= self;
+//        ^
+//
+// pkg/front_end/testcases/nnbd/pure_index_expressions.dart:42:12: Warning: Operand of null-aware operation '??=' has type 'Class' which excludes null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/pure_index_expressions.dart'.
+//     v = map[this] ??= this;
+//            ^
+//
+// pkg/front_end/testcases/nnbd/pure_index_expressions.dart:43:12: Warning: Operand of null-aware operation '??=' has type 'Class' which excludes null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/pure_index_expressions.dart'.
+//     v = map[self] ??= self;
+//            ^
+//
+// pkg/front_end/testcases/nnbd/pure_index_expressions.dart:58:6: Warning: Operand of null-aware operation '??=' has type 'Class' which excludes null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/pure_index_expressions.dart'.
+//     i[this] ??= this;
+//      ^
+//
+// pkg/front_end/testcases/nnbd/pure_index_expressions.dart:59:6: Warning: Operand of null-aware operation '??=' has type 'Class' which excludes null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/pure_index_expressions.dart'.
+//     i[self] ??= self;
+//      ^
+//
+// pkg/front_end/testcases/nnbd/pure_index_expressions.dart:75:10: Warning: Operand of null-aware operation '??=' has type 'Class' which excludes null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/pure_index_expressions.dart'.
+//     v = i[this] ??= this;
+//          ^
+//
+// pkg/front_end/testcases/nnbd/pure_index_expressions.dart:76:10: Warning: Operand of null-aware operation '??=' has type 'Class' which excludes null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/pure_index_expressions.dart'.
+//     v = i[self] ??= self;
+//          ^
+//
+// pkg/front_end/testcases/nnbd/pure_index_expressions.dart:91:17: Warning: Operand of null-aware operation '??=' has type 'Class' which excludes null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/pure_index_expressions.dart'.
+//     Extension(i)[this] ??= this;
+//                 ^
+//
+// pkg/front_end/testcases/nnbd/pure_index_expressions.dart:92:17: Warning: Operand of null-aware operation '??=' has type 'Class' which excludes null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/pure_index_expressions.dart'.
+//     Extension(i)[self] ??= self;
+//                 ^
+//
+// pkg/front_end/testcases/nnbd/pure_index_expressions.dart:108:21: Warning: Operand of null-aware operation '??=' has type 'Class' which excludes null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/pure_index_expressions.dart'.
+//     v = Extension(i)[this] ??= this;
+//                     ^
+//
+// pkg/front_end/testcases/nnbd/pure_index_expressions.dart:109:21: Warning: Operand of null-aware operation '??=' has type 'Class' which excludes null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/pure_index_expressions.dart'.
+//     v = Extension(i)[self] ??= self;
+//                     ^
+//
+// pkg/front_end/testcases/nnbd/pure_index_expressions.dart:126:10: Warning: Operand of null-aware operation '??=' has type 'Class' which excludes null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/pure_index_expressions.dart'.
+//     super[this] ??= this;
+//          ^
+//
+// pkg/front_end/testcases/nnbd/pure_index_expressions.dart:127:10: Warning: Operand of null-aware operation '??=' has type 'Class' which excludes null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/pure_index_expressions.dart'.
+//     super[self] ??= self;
+//          ^
+//
+// pkg/front_end/testcases/nnbd/pure_index_expressions.dart:143:14: Warning: Operand of null-aware operation '??=' has type 'Class' which excludes null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/pure_index_expressions.dart'.
+//     v = super[this] ??= this;
+//              ^
+//
+// pkg/front_end/testcases/nnbd/pure_index_expressions.dart:144:14: Warning: Operand of null-aware operation '??=' has type 'Class' which excludes null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/pure_index_expressions.dart'.
+//     v = super[self] ??= self;
+//              ^
+//
+// pkg/front_end/testcases/nnbd/pure_index_expressions.dart:168:9: Warning: Operand of null-aware operation '??=' has type 'Class2' which excludes null.
+//  - 'Class2' is from 'pkg/front_end/testcases/nnbd/pure_index_expressions.dart'.
+//     this[this] ??= this;
+//         ^
+//
+// pkg/front_end/testcases/nnbd/pure_index_expressions.dart:169:9: Warning: Operand of null-aware operation '??=' has type 'Class2' which excludes null.
+//  - 'Class2' is from 'pkg/front_end/testcases/nnbd/pure_index_expressions.dart'.
+//     self[self] ??= self;
+//         ^
+//
+// pkg/front_end/testcases/nnbd/pure_index_expressions.dart:185:13: Warning: Operand of null-aware operation '??=' has type 'Class2' which excludes null.
+//  - 'Class2' is from 'pkg/front_end/testcases/nnbd/pure_index_expressions.dart'.
+//     v = this[this] ??= this;
+//             ^
+//
+// pkg/front_end/testcases/nnbd/pure_index_expressions.dart:186:13: Warning: Operand of null-aware operation '??=' has type 'Class2' which excludes null.
+//  - 'Class2' is from 'pkg/front_end/testcases/nnbd/pure_index_expressions.dart'.
+//     v = self[self] ??= self;
+//             ^
+//
+// pkg/front_end/testcases/nnbd/pure_index_expressions.dart:201:21: Warning: Operand of null-aware operation '??=' has type 'Class2' which excludes null.
+//  - 'Class2' is from 'pkg/front_end/testcases/nnbd/pure_index_expressions.dart'.
+//     Extension2(this)[this] ??= this;
+//                     ^
+//
+// pkg/front_end/testcases/nnbd/pure_index_expressions.dart:202:21: Warning: Operand of null-aware operation '??=' has type 'Class2' which excludes null.
+//  - 'Class2' is from 'pkg/front_end/testcases/nnbd/pure_index_expressions.dart'.
+//     Extension2(self)[self] ??= self;
+//                     ^
+//
+// pkg/front_end/testcases/nnbd/pure_index_expressions.dart:218:25: Warning: Operand of null-aware operation '??=' has type 'Class2' which excludes null.
+//  - 'Class2' is from 'pkg/front_end/testcases/nnbd/pure_index_expressions.dart'.
+//     v = Extension2(this)[this] ??= this;
+//                         ^
+//
+// pkg/front_end/testcases/nnbd/pure_index_expressions.dart:219:25: Warning: Operand of null-aware operation '??=' has type 'Class2' which excludes null.
+//  - 'Class2' is from 'pkg/front_end/testcases/nnbd/pure_index_expressions.dart'.
+//     v = Extension2(self)[self] ??= self;
+//                         ^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class Map<K extends core::Object? = dynamic, V extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Map<self::Map::K%, self::Map::V%>
+    : super core::Object::•()
+    ;
+  abstract operator [](generic-covariant-impl self::Map::K% index) → self::Map::V%;
+  abstract operator []=(generic-covariant-impl self::Map::K% index, generic-covariant-impl self::Map::V% value) → void;
+}
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  operator [](self::Class cls) → self::Class
+    return new self::Class::•();
+  operator []=(self::Class cls, self::Class value) → void {}
+  operator +(self::Class cls) → self::Class
+    return cls;
+  method indexGetSetForEffect(self::Map<self::Class, self::Class> map) → void {
+    late final self::Class self;
+    if(self::b)
+      self = this;
+    let final self::Map<self::Class, self::Class> #t1 = map in #t1.{self::Map::[]}(this).{core::Object::==}(null) ?{self::Class} #t1.{self::Map::[]=}(this, this) : null;
+    let final self::Map<self::Class, self::Class> #t2 = map in let final self::Class #t3 = self in #t2.{self::Map::[]}(#t3).{core::Object::==}(null) ?{self::Class} #t2.{self::Map::[]=}(#t3, self) : null;
+    map.{self::Map::[]=}(this, this);
+    map.{self::Map::[]=}(self, self);
+    map.{self::Map::[]}(this);
+    map.{self::Map::[]}(self);
+    let final self::Map<self::Class, self::Class> #t4 = map in #t4.{self::Map::[]=}(this, #t4.{self::Map::[]}(this).{self::Class::+}(this));
+    let final self::Map<self::Class, self::Class> #t5 = map in let final self::Class #t6 = self in #t5.{self::Map::[]=}(#t6, #t5.{self::Map::[]}(#t6).{self::Class::+}(self));
+  }
+  method indexGetSetForValue(self::Map<self::Class, self::Class> map) → void {
+    late final self::Class self;
+    if(self::b)
+      self = this;
+    dynamic v;
+    v = let final self::Map<self::Class, self::Class> #t7 = map in let final self::Class #t8 = #t7.{self::Map::[]}(this) in #t8.{core::Object::==}(null) ?{self::Class} let final void #t9 = #t7.{self::Map::[]=}(this, this) in this : #t8;
+    v = let final self::Map<self::Class, self::Class> #t10 = map in let final self::Class #t11 = self in let final self::Class #t12 = #t10.{self::Map::[]}(#t11) in #t12.{core::Object::==}(null) ?{self::Class} let final self::Class #t13 = self in let final void #t14 = #t10.{self::Map::[]=}(#t11, #t13) in #t13 : #t12;
+    v = let final self::Map<self::Class, self::Class> #t15 = map in let final void #t16 = #t15.{self::Map::[]=}(this, this) in this;
+    v = let final self::Map<self::Class, self::Class> #t17 = map in let final self::Class #t18 = self in let final self::Class #t19 = self in let final void #t20 = #t17.{self::Map::[]=}(#t18, #t19) in #t19;
+    v = map.{self::Map::[]}(this);
+    v = map.{self::Map::[]}(self);
+    v = let final self::Map<self::Class, self::Class> #t21 = map in let final self::Class #t22 = #t21.{self::Map::[]}(this).{self::Class::+}(this) in let final void #t23 = #t21.{self::Map::[]=}(this, #t22) in #t22;
+    v = let final self::Map<self::Class, self::Class> #t24 = map in let final self::Class #t25 = self in let final self::Class #t26 = #t24.{self::Map::[]}(#t25).{self::Class::+}(self) in let final void #t27 = #t24.{self::Map::[]=}(#t25, #t26) in #t26;
+  }
+  method implicitExtensionGetSetForEffect(core::int i) → void {
+    late final self::Class self;
+    if(self::b)
+      self = this;
+    let final core::int #t28 = i in self::Extension|[](#t28, this).{core::Object::==}(null) ?{self::Class} self::Extension|[]=(#t28, this, this) : null;
+    let final core::int #t29 = i in let final self::Class #t30 = self in self::Extension|[](#t29, #t30).{core::Object::==}(null) ?{self::Class} self::Extension|[]=(#t29, #t30, self) : null;
+    self::Extension|[]=(i, this, this);
+    self::Extension|[]=(i, self, self);
+    self::Extension|[](i, this);
+    self::Extension|[](i, self);
+    let final core::int #t31 = i in self::Extension|[]=(#t31, this, self::Extension|[](#t31, this).{self::Class::+}(this));
+    let final core::int #t32 = i in let final self::Class #t33 = self in self::Extension|[]=(#t32, #t33, self::Extension|[](#t32, #t33).{self::Class::+}(self));
+  }
+  method implicitExtensionGetSetForValue(core::int i) → void {
+    late final self::Class self;
+    if(self::b)
+      self = this;
+    dynamic v;
+    v = let final core::int #t34 = i in let final self::Class #t35 = self::Extension|[](#t34, this) in #t35.{core::Object::==}(null) ?{self::Class} let final void #t36 = self::Extension|[]=(#t34, this, this) in this : #t35;
+    v = let final core::int #t37 = i in let final self::Class #t38 = self in let final self::Class #t39 = self::Extension|[](#t37, #t38) in #t39.{core::Object::==}(null) ?{self::Class} let final self::Class #t40 = self in let final void #t41 = self::Extension|[]=(#t37, #t38, #t40) in #t40 : #t39;
+    v = let final core::int #t42 = i in let final void #t43 = self::Extension|[]=(#t42, this, this) in this;
+    v = let final core::int #t44 = i in let final self::Class #t45 = self in let final self::Class #t46 = self in let final void #t47 = self::Extension|[]=(#t44, #t45, #t46) in #t46;
+    v = self::Extension|[](i, this);
+    v = self::Extension|[](i, self);
+    v = let final core::int #t48 = i in let final self::Class #t49 = self::Extension|[](#t48, this).{self::Class::+}(this) in let final void #t50 = self::Extension|[]=(#t48, this, #t49) in #t49;
+    v = let final core::int #t51 = i in let final self::Class #t52 = self in let final self::Class #t53 = self::Extension|[](#t51, #t52).{self::Class::+}(self) in let final void #t54 = self::Extension|[]=(#t51, #t52, #t53) in #t53;
+  }
+  method explicitExtensionGetSetForEffect(core::int i) → void {
+    late final self::Class self;
+    if(self::b)
+      self = this;
+    let final core::int #t55 = i in self::Extension|[](#t55, this).{core::Object::==}(null) ?{self::Class} self::Extension|[]=(#t55, this, this) : null;
+    let final core::int #t56 = i in let final self::Class #t57 = self in self::Extension|[](#t56, #t57).{core::Object::==}(null) ?{self::Class} self::Extension|[]=(#t56, #t57, self) : null;
+    self::Extension|[]=(i, this, this);
+    self::Extension|[]=(i, self, self);
+    self::Extension|[](i, this);
+    self::Extension|[](i, self);
+    let final core::int #t58 = i in self::Extension|[]=(#t58, this, self::Extension|[](#t58, this).{self::Class::+}(this));
+    let final core::int #t59 = i in let final self::Class #t60 = self in self::Extension|[]=(#t59, #t60, self::Extension|[](#t59, #t60).{self::Class::+}(self));
+  }
+  method explicitExtensionGetSetForValue(core::int i) → void {
+    late final self::Class self;
+    if(self::b)
+      self = this;
+    dynamic v;
+    v = let final core::int #t61 = i in let final self::Class #t62 = self::Extension|[](#t61, this) in #t62.{core::Object::==}(null) ?{self::Class} let final void #t63 = self::Extension|[]=(#t61, this, this) in this : #t62;
+    v = let final core::int #t64 = i in let final self::Class #t65 = self in let final self::Class #t66 = self::Extension|[](#t64, #t65) in #t66.{core::Object::==}(null) ?{self::Class} let final self::Class #t67 = self in let final void #t68 = self::Extension|[]=(#t64, #t65, #t67) in #t67 : #t66;
+    v = let final core::int #t69 = i in let final void #t70 = self::Extension|[]=(#t69, this, this) in this;
+    v = let final core::int #t71 = i in let final self::Class #t72 = self in let final void #t73 = self::Extension|[]=(#t71, self, #t72) in #t72;
+    v = self::Extension|[](i, this);
+    v = self::Extension|[](i, self);
+    v = let final core::int #t74 = i in let final self::Class #t75 = self::Extension|[](#t74, this).{self::Class::+}(this) in let final void #t76 = self::Extension|[]=(#t74, this, #t75) in #t75;
+    v = let final core::int #t77 = i in let final self::Class #t78 = self in let final self::Class #t79 = self::Extension|[](#t77, #t78).{self::Class::+}(self) in let final void #t80 = self::Extension|[]=(#t77, #t78, #t79) in #t79;
+  }
+}
+class Subclass extends self::Class {
+  synthetic constructor •() → self::Subclass
+    : super self::Class::•()
+    ;
+  method superIndexGetSetForEffect() → void {
+    late final self::Class self;
+    if(self::b)
+      self = this;
+    super.{self::Class::[]}(this).{core::Object::==}(null) ?{self::Class} super.{self::Class::[]=}(this, this) : null;
+    let final self::Class #t81 = self in super.{self::Class::[]}(#t81).{core::Object::==}(null) ?{self::Class} super.{self::Class::[]=}(#t81, self) : null;
+    super.{self::Class::[]=}(this, this);
+    super.{self::Class::[]=}(self, self);
+    super.{self::Class::[]}(this);
+    super.{self::Class::[]}(self);
+    super.{self::Class::[]=}(this, super.{self::Class::[]}(this).{self::Class::+}(this));
+    let final self::Class #t82 = self in super.{self::Class::[]=}(#t82, super.{self::Class::[]}(#t82).{self::Class::+}(self));
+  }
+  method superIndexGetSetForValue() → void {
+    late final self::Class self;
+    if(self::b)
+      self = this;
+    dynamic v;
+    v = let final self::Class #t83 = super.{self::Class::[]}(this) in #t83.{core::Object::==}(null) ?{self::Class} let final void #t84 = super.{self::Class::[]=}(this, this) in this : #t83;
+    v = let final self::Class #t85 = self in let final self::Class #t86 = super.{self::Class::[]}(#t85) in #t86.{core::Object::==}(null) ?{self::Class} let final self::Class #t87 = self in let final void #t88 = super.{self::Class::[]=}(#t85, #t87) in #t87 : #t86;
+    v = let final void #t89 = super.{self::Class::[]=}(this, this) in this;
+    v = let final self::Class #t90 = self in let final self::Class #t91 = self in let final void #t92 = super.{self::Class::[]=}(#t90, #t91) in #t91;
+    v = super.{self::Class::[]}(this);
+    v = super.{self::Class::[]}(self);
+    v = let final self::Class #t93 = super.{self::Class::[]}(this).{self::Class::+}(this) in let final void #t94 = super.{self::Class::[]=}(this, #t93) in #t93;
+    v = let final self::Class #t95 = self in let final self::Class #t96 = super.{self::Class::[]}(#t95).{self::Class::+}(self) in let final void #t97 = super.{self::Class::[]=}(#t95, #t96) in #t96;
+  }
+}
+class Class2 extends core::Object {
+  synthetic constructor •() → self::Class2
+    : super core::Object::•()
+    ;
+  operator +(self::Class2 cls) → self::Class2
+    return cls;
+  method implicitExtensionGetSetForEffect() → void {
+    late final self::Class2 self;
+    if(self::b)
+      self = this;
+    self::Extension2|[](this, this).{core::Object::==}(null) ?{self::Class2} self::Extension2|[]=(this, this, this) : null;
+    let final self::Class2 #t98 = self in let final self::Class2 #t99 = self in self::Extension2|[](#t98, #t99).{core::Object::==}(null) ?{self::Class2} self::Extension2|[]=(#t98, #t99, self) : null;
+    self::Extension2|[]=(this, this, this);
+    self::Extension2|[]=(self, self, self);
+    self::Extension2|[](this, this);
+    self::Extension2|[](self, self);
+    self::Extension2|[]=(this, this, self::Extension2|[](this, this).{self::Class2::+}(this));
+    let final self::Class2 #t100 = self in let final self::Class2 #t101 = self in self::Extension2|[]=(#t100, #t101, self::Extension2|[](#t100, #t101).{self::Class2::+}(self));
+  }
+  method implicitExtensionGetSetForValue() → void {
+    late final self::Class2 self;
+    if(self::b)
+      self = this;
+    dynamic v;
+    v = let final self::Class2 #t102 = self::Extension2|[](this, this) in #t102.{core::Object::==}(null) ?{self::Class2} let final void #t103 = self::Extension2|[]=(this, this, this) in this : #t102;
+    v = let final self::Class2 #t104 = self in let final self::Class2 #t105 = self in let final self::Class2 #t106 = self::Extension2|[](#t104, #t105) in #t106.{core::Object::==}(null) ?{self::Class2} let final self::Class2 #t107 = self in let final void #t108 = self::Extension2|[]=(#t104, #t105, #t107) in #t107 : #t106;
+    v = let final void #t109 = self::Extension2|[]=(this, this, this) in this;
+    v = let final self::Class2 #t110 = self in let final self::Class2 #t111 = self in let final self::Class2 #t112 = self in let final void #t113 = self::Extension2|[]=(#t110, #t111, #t112) in #t112;
+    v = self::Extension2|[](this, this);
+    v = self::Extension2|[](self, self);
+    v = let final self::Class2 #t114 = self::Extension2|[](this, this).{self::Class2::+}(this) in let final void #t115 = self::Extension2|[]=(this, this, #t114) in #t114;
+    v = let final self::Class2 #t116 = self in let final self::Class2 #t117 = self in let final self::Class2 #t118 = self::Extension2|[](#t116, #t117).{self::Class2::+}(self) in let final void #t119 = self::Extension2|[]=(#t116, #t117, #t118) in #t118;
+  }
+  method explicitExtensionGetSetForEffect() → void {
+    late final self::Class2 self;
+    if(self::b)
+      self = this;
+    self::Extension2|[](this, this).{core::Object::==}(null) ?{self::Class2} self::Extension2|[]=(this, this, this) : null;
+    let final self::Class2 #t120 = self in let final self::Class2 #t121 = self in self::Extension2|[](#t120, #t121).{core::Object::==}(null) ?{self::Class2} self::Extension2|[]=(#t120, #t121, self) : null;
+    self::Extension2|[]=(this, this, this);
+    self::Extension2|[]=(self, self, self);
+    self::Extension2|[](this, this);
+    self::Extension2|[](self, self);
+    self::Extension2|[]=(this, this, self::Extension2|[](this, this).{self::Class2::+}(this));
+    let final self::Class2 #t122 = self in let final self::Class2 #t123 = self in self::Extension2|[]=(#t122, #t123, self::Extension2|[](#t122, #t123).{self::Class2::+}(self));
+  }
+  method explicitExtensionGetSetForValue() → void {
+    late final self::Class2 self;
+    if(self::b)
+      self = this;
+    dynamic v;
+    v = let final self::Class2 #t124 = self::Extension2|[](this, this) in #t124.{core::Object::==}(null) ?{self::Class2} let final void #t125 = self::Extension2|[]=(this, this, this) in this : #t124;
+    v = let final self::Class2 #t126 = self in let final self::Class2 #t127 = self in let final self::Class2 #t128 = self::Extension2|[](#t126, #t127) in #t128.{core::Object::==}(null) ?{self::Class2} let final self::Class2 #t129 = self in let final void #t130 = self::Extension2|[]=(#t126, #t127, #t129) in #t129 : #t128;
+    v = let final void #t131 = self::Extension2|[]=(this, this, this) in this;
+    v = let final self::Class2 #t132 = self in let final self::Class2 #t133 = self in let final void #t134 = self::Extension2|[]=(#t132, self, #t133) in #t133;
+    v = self::Extension2|[](this, this);
+    v = self::Extension2|[](self, self);
+    v = let final self::Class2 #t135 = self::Extension2|[](this, this).{self::Class2::+}(this) in let final void #t136 = self::Extension2|[]=(this, this, #t135) in #t135;
+    v = let final self::Class2 #t137 = self in let final self::Class2 #t138 = self in let final self::Class2 #t139 = self::Extension2|[](#t137, #t138).{self::Class2::+}(self) in let final void #t140 = self::Extension2|[]=(#t137, #t138, #t139) in #t139;
+  }
+}
+extension Extension on core::int {
+  operator [] = self::Extension|[];
+  operator []= = self::Extension|[]=;
+}
+extension Extension2 on self::Class2 {
+  operator [] = self::Extension2|[];
+  operator []= = self::Extension2|[]=;
+}
+static field core::bool b = true;
+static method Extension|[](lowered final core::int #this, self::Class cls) → self::Class
+  return new self::Class::•();
+static method Extension|[]=(lowered final core::int #this, self::Class cls, self::Class value) → void {}
+static method Extension2|[](lowered final self::Class2 #this, self::Class2 cls) → self::Class2
+  return new self::Class2::•();
+static method Extension2|[]=(lowered final self::Class2 #this, self::Class2 cls, self::Class2 value) → void {}
+static method main() → dynamic {}

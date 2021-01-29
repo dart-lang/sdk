@@ -101,7 +101,7 @@ class E4 extends self::C4 implements self::B4 {
     ;
 }
 static method main() → dynamic {
-  core::List<self::A1*>* x1 = <self::A1*>[new self::A1::•(), new self::B1::•(), new self::C1::•()];
+  core::List<self::A1*>* x1 = [@vm.inferred-type.metadata=dart.core::_GrowableList<#lib::A1*>] core::_GrowableList::_literal3<self::A1*>(new self::A1::•(), new self::B1::•(), new self::C1::•());
   {
     core::Iterator<self::A1*>* :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<#lib::A1*>] x1.{core::Iterable::iterator};
     for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(); ) {
@@ -109,7 +109,7 @@ static method main() → dynamic {
       o.{self::A1::foo}();
     }
   }
-  core::List<self::A2*>* x2 = <self::A2*>[new self::A2::•(), new self::B2::•()];
+  core::List<self::A2*>* x2 = [@vm.inferred-type.metadata=dart.core::_GrowableList<#lib::A2*>] core::_GrowableList::_literal2<self::A2*>(new self::A2::•(), new self::B2::•());
   {
     core::Iterator<self::A2*>* :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<#lib::A2*>] x2.{core::Iterable::iterator};
     for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(); ) {
@@ -117,7 +117,7 @@ static method main() → dynamic {
       o.{self::A2::foo}();
     }
   }
-  core::List<self::A3*>* x3 = <self::A3*>[new self::B3::•(), new self::C3::•()];
+  core::List<self::A3*>* x3 = [@vm.inferred-type.metadata=dart.core::_GrowableList<#lib::A3*>] core::_GrowableList::_literal2<self::A3*>(new self::B3::•(), new self::C3::•());
   {
     core::Iterator<self::A3*>* :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<#lib::A3*>] x3.{core::Iterable::iterator};
     for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(); ) {
@@ -125,7 +125,7 @@ static method main() → dynamic {
       o.{self::A3::foo}();
     }
   }
-  core::List<self::A4*>* x4 = <self::A4*>[new self::A4::•(), new self::D4::•()];
+  core::List<self::A4*>* x4 = [@vm.inferred-type.metadata=dart.core::_GrowableList<#lib::A4*>] core::_GrowableList::_literal2<self::A4*>(new self::A4::•(), new self::D4::•());
   {
     core::Iterator<self::A4*>* :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<#lib::A4*>] x4.{core::Iterable::iterator};
     for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(); ) {
@@ -133,7 +133,7 @@ static method main() → dynamic {
       o.{self::A4::foo}();
     }
   }
-  core::List<self::B4*>* y4 = <self::B4*>[new self::B4::•(), new self::D4::•(), new self::E4::•()];
+  core::List<self::B4*>* y4 = [@vm.inferred-type.metadata=dart.core::_GrowableList<#lib::B4*>] core::_GrowableList::_literal3<self::B4*>(new self::B4::•(), new self::D4::•(), new self::E4::•());
   {
     core::Iterator<self::B4*>* :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<#lib::B4*>] y4.{core::Iterable::iterator};
     for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(); ) {
@@ -141,7 +141,7 @@ static method main() → dynamic {
       o.{self::B4::foo}();
     }
   }
-  core::List<self::C4*>* z4 = <self::C4*>[new self::C4::•(), new self::E4::•()];
+  core::List<self::C4*>* z4 = [@vm.inferred-type.metadata=dart.core::_GrowableList<#lib::C4*>] core::_GrowableList::_literal2<self::C4*>(new self::C4::•(), new self::E4::•());
   {
     core::Iterator<self::C4*>* :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<#lib::C4*>] z4.{core::Iterable::iterator};
     for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(); ) {

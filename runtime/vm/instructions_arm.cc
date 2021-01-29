@@ -11,6 +11,7 @@
 #include "vm/constants.h"
 #include "vm/cpu.h"
 #include "vm/object.h"
+#include "vm/object_store.h"
 #include "vm/reverse_pc_lookup_cache.h"
 
 namespace dart {
@@ -220,12 +221,14 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
   Register dst;
   if (IsLoadWithOffset(instr, PP, &offset, &dst)) {
     intptr_t index = ObjectPool::IndexFromOffset(offset);
-    const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
-    if (!pool.IsNull()) {
-      if (pool.TypeAt(index) == ObjectPool::EntryType::kTaggedObject) {
-        *obj = pool.ObjectAt(index);
-        return true;
-      }
+    const ObjectPool& pool = ObjectPool::Handle(
+        FLAG_use_bare_instructions
+            ? IsolateGroup::Current()->object_store()->global_object_pool()
+            : code.object_pool());
+    if (!pool.IsNull() && (index < pool.Length()) &&
+        (pool.TypeAt(index) == ObjectPool::EntryType::kTaggedObject)) {
+      *obj = pool.ObjectAt(index);
+      return true;
     }
   } else if (IsLoadWithOffset(instr, THR, &offset, &dst)) {
     return Thread::ObjectAtOffset(offset, obj);
@@ -310,7 +313,7 @@ BareSwitchableCallPattern::BareSwitchableCallPattern(uword pc, const Code& code)
 
   InstructionPattern::DecodeLoadWordFromPool(data_load_end, &reg,
                                              &target_pool_index_);
-  ASSERT(reg == LR);
+  ASSERT(reg == LINK_REGISTER);
 }
 
 CodePtr BareSwitchableCallPattern::target() const {
@@ -319,7 +322,7 @@ CodePtr BareSwitchableCallPattern::target() const {
   if (result != Code::null()) {
     return result;
   }
-  result = ReversePc::Lookup(Dart::vm_isolate()->group(), pc);
+  result = ReversePc::Lookup(Dart::vm_isolate_group(), pc);
   if (result != Code::null()) {
     return result;
   }
@@ -342,7 +345,7 @@ bool ReturnPattern::IsValid() const {
   const int32_t B24 = 1 << 24;
   int32_t instruction = (static_cast<int32_t>(AL) << kConditionShift) | B24 |
                         B21 | (0xfff << 8) | B4 |
-                        (static_cast<int32_t>(LR) << kRmShift);
+                        (LINK_REGISTER.code << kRmShift);
   return bx_lr->InstructionBits() == instruction;
 }
 

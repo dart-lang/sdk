@@ -225,10 +225,10 @@ class ArgumentAllocator : public ValueObject {
       const NativeCompoundType& payload_type) {
     const auto& compound_type = payload_type.AsCompound();
     if (compound_type.ContainsHomogenuousFloats() && !SoftFpAbi() &&
-        compound_type.members().length() <= 4) {
-      const auto& elem_type = *(compound_type.members().At(0));
+        compound_type.NumPrimitiveMembersRecursive() <= 4) {
+      const auto& elem_type = compound_type.FirstPrimitiveMember();
       const intptr_t size = compound_type.SizeInBytes();
-      const intptr_t elem_size = compound_type.members().At(0)->SizeInBytes();
+      const intptr_t elem_size = elem_type.SizeInBytes();
       const auto reg_kind = FpuRegisterKindFromSize(elem_size);
       ASSERT(size % elem_size == 0);
       const intptr_t num_registers = size / elem_size;
@@ -291,9 +291,9 @@ class ArgumentAllocator : public ValueObject {
     const auto& compound_type = payload_type.AsCompound();
     const intptr_t size = compound_type.SizeInBytes();
     if (compound_type.ContainsHomogenuousFloats() &&
-        compound_type.members().length() <= 4) {
-      const auto& elem_type = *(compound_type.members().At(0));
-      const intptr_t elem_size = compound_type.members().At(0)->SizeInBytes();
+        compound_type.NumPrimitiveMembersRecursive() <= 4) {
+      const auto& elem_type = compound_type.FirstPrimitiveMember();
+      const intptr_t elem_size = elem_type.SizeInBytes();
       const auto reg_kind = kQuadFpuReg;
       ASSERT(size % elem_size == 0);
       const intptr_t num_registers = size / elem_size;
@@ -623,13 +623,13 @@ static const NativeLocation& CompoundResultLocation(
 static const NativeLocation& CompoundResultLocation(
     Zone* zone,
     const NativeCompoundType& payload_type) {
-  const intptr_t num_members = payload_type.members().length();
+  const intptr_t num_members = payload_type.NumPrimitiveMembersRecursive();
   if (payload_type.ContainsHomogenuousFloats() && !SoftFpAbi() &&
       num_members <= 4) {
     NativeLocations& multiple_locations =
         *new (zone) NativeLocations(zone, num_members);
     for (int i = 0; i < num_members; i++) {
-      const auto& member = payload_type.members().At(0)->AsPrimitive();
+      const auto& member = payload_type.FirstPrimitiveMember();
       multiple_locations.Add(new (zone) NativeFpuRegistersLocation(
           member, member, FpuRegisterKindFromSize(member.SizeInBytes()), i));
     }

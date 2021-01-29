@@ -31,7 +31,11 @@ class _DeferredNotLoadedError extends Error implements NoSuchMethodError {
 
 @pragma("vm:entry-point")
 void _completeLoads(Object unit, String? errorMessage, bool transientError) {
-  Completer<void> load = _LibraryPrefix._loads[unit]!;
+  Completer<void>? load = _LibraryPrefix._loads[unit];
+  if (load == null) {
+    // Embedder loaded even though prefix.loadLibrary() wasn't called.
+    _LibraryPrefix._loads[unit] = load = new Completer<void>();
+  }
   if (errorMessage == null) {
     load.complete(null);
   } else {

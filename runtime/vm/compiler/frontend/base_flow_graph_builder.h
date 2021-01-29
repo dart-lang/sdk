@@ -190,7 +190,7 @@ class BaseFlowGraphBuilder {
   Fragment LoadContextAt(int depth);
   Fragment GuardFieldLength(const Field& field, intptr_t deopt_id);
   Fragment GuardFieldClass(const Field& field, intptr_t deopt_id);
-  const Field& MayCloneField(const Field& field);
+  static const Field& MayCloneField(Zone* zone, const Field& field);
   Fragment StoreInstanceField(
       TokenPosition position,
       const Slot& field,
@@ -287,7 +287,7 @@ class BaseFlowGraphBuilder {
                                TargetEntryInstr** otherwise_entry);
   Fragment Return(
       TokenPosition position,
-      intptr_t yield_index = PcDescriptorsLayout::kInvalidYieldIndex);
+      intptr_t yield_index = UntaggedPcDescriptors::kInvalidYieldIndex);
   Fragment CheckStackOverflow(TokenPosition position,
                               intptr_t stack_depth,
                               intptr_t loop_depth);

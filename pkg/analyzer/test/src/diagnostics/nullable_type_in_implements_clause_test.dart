@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class NullableTypeInImplementsClauseTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+    with WithNonFunctionTypeAliasesMixin {
   test_class_nonNullable() async {
     await assertNoErrorsInCode('''
 class A {}
@@ -32,6 +32,26 @@ class B implements A? {}
     ]);
   }
 
+  test_class_nullable_alias() async {
+    await assertErrorsInCode('''
+class A {}
+typedef B = A;
+class C implements B? {}
+''', [
+      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 45, 2),
+    ]);
+  }
+
+  test_class_nullable_alias2() async {
+    await assertErrorsInCode('''
+class A {}
+typedef B = A?;
+class C implements B {}
+''', [
+      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 46, 1),
+    ]);
+  }
+
   test_mixin_nonNullable() async {
     await assertNoErrorsInCode('''
 class A {}
@@ -45,6 +65,26 @@ class A {}
 mixin B implements A? {}
 ''', [
       error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 30, 2),
+    ]);
+  }
+
+  test_mixin_nullable_alias() async {
+    await assertErrorsInCode('''
+class A {}
+typedef B = A;
+mixin C implements B? {}
+''', [
+      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 45, 2),
+    ]);
+  }
+
+  test_mixin_nullable_alias2() async {
+    await assertErrorsInCode('''
+class A {}
+typedef B = A?;
+mixin C implements B {}
+''', [
+      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, 46, 1),
     ]);
   }
 }

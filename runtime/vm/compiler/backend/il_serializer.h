@@ -72,6 +72,7 @@ class FlowGraphSerializer : ValueObject {
   // value is the null object, the null pointer is returned.
   SExpression* AbstractTypeToSExp(const AbstractType& typ);
   SExpression* ArrayToSExp(const Array& arr);
+  SExpression* ImmutableListToSExp(const Array& arr);
   SExpression* ClassToSExp(const Class& cls);
   SExpression* ClosureToSExp(const Closure& c);
   SExpression* ContextToSExp(const Context& c);
@@ -133,7 +134,7 @@ class FlowGraphSerializer : ValueObject {
 
   // A map of currently open (being serialized) recursive types. We use this
   // to determine whether to serialize the referred types in TypeRefs.
-  IntMap<const Type*> open_recursive_types_;
+  IntMap<const AbstractType*> open_recursive_types_;
 
   // Used for --populate-llvm-constant-pool in ConstantPoolToSExp.
   class LLVMPoolMapKeyEqualsTraits : public AllStatic {
@@ -142,10 +143,10 @@ class FlowGraphSerializer : ValueObject {
     static bool ReportStats() { return false; }
 
     static bool IsMatch(const Object& a, const Object& b) {
-      return a.raw() == b.raw();
+      return a.ptr() == b.ptr();
     }
     static uword Hash(const Object& obj) {
-      if (obj.IsSmi()) return static_cast<uword>(obj.raw());
+      if (obj.IsSmi()) return static_cast<uword>(obj.ptr());
       if (obj.IsInstance()) return Instance::Cast(obj).CanonicalizeHash();
       return obj.GetClassId();
     }
@@ -188,7 +189,7 @@ class FlowGraphSerializer : ValueObject {
   Function& serialize_parent_;         // SerializeCanonicalName
   AbstractType& type_arguments_elem_;  // TypeArgumentsToSExp
   Class& type_class_;                  // AbstractTypeToSExp
-  Function& type_function_;            // AbstractTypeToSExp
+  FunctionType& type_signature_;       // AbstractTypeToSExp
   AbstractType& type_ref_type_;        // AbstractTypeToSExp
 };
 

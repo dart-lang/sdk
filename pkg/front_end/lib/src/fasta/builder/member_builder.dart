@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.member_builder;
 
 import 'dart:core' hide MapEntry;
@@ -98,10 +100,10 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
 
   MemberDataForTesting dataForTesting;
 
-  MemberBuilderImpl(this.parent, int charOffset)
+  MemberBuilderImpl(this.parent, int charOffset, [Uri fileUri])
       : dataForTesting =
             retainDataForTesting ? new MemberDataForTesting() : null,
-        super(parent, charOffset);
+        super(parent, charOffset, fileUri);
 
   @override
   bool get isDeclarationInstanceMember => isDeclarationMember && !isStatic;
@@ -259,20 +261,10 @@ abstract class BuilderClassMember implements ClassMember {
   bool get isAbstract => memberBuilder.member.isAbstract;
 
   @override
-  bool get needsComputation => false;
-
-  @override
   bool get isSynthesized => false;
 
   @override
   bool get isInternalImplementation => false;
-
-  @override
-  bool get isInheritableConflict => false;
-
-  @override
-  ClassMember withParent(ClassBuilder classBuilder) =>
-      throw new UnsupportedError("$runtimeType.withParent");
 
   @override
   bool get hasDeclarations => false;
@@ -282,10 +274,7 @@ abstract class BuilderClassMember implements ClassMember {
       throw new UnsupportedError("$runtimeType.declarations");
 
   @override
-  ClassMember get abstract => this;
-
-  @override
-  ClassMember get concrete => this;
+  ClassMember get interfaceMember => this;
 
   @override
   String toString() => '$runtimeType($fullName,forSetter=${forSetter})';

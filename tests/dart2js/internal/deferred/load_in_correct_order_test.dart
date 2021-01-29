@@ -74,7 +74,25 @@ self.content = {};
 // This test has 3 loadLibrary calls, this array contains how many hunks will be
 // loaded by each call.
 self.currentLoadLibraryCall = 0;
-self.filesPerLoadLibraryCall = [4, 2, 1];
+self.filesPerLoadLibraryCall = null;
+
+self.initFilesPerLoadLibraryCall = function() {
+  // We assume we load d1, then d2, then d3.
+  var loadOrder = ['d1', 'd2', 'd3'];
+  var uniques = {};
+  self.filesPerLoadLibraryCall = [];
+  for (var i = 0; i < loadOrder.length; i++) {
+    var filesToLoad = 0;
+    var parts = init.deferredLibraryParts[loadOrder[i]];
+    for (var j = 0; j < parts.length; j++) {
+      if (!uniques.hasOwnProperty(parts[j])) {
+        uniques[parts[j]] = true;
+        filesToLoad++;
+      }
+    }
+    self.filesPerLoadLibraryCall.push(filesToLoad);
+  }
+};
 
 // Download uri via an XHR
 self.download = function(uri) {
@@ -99,6 +117,9 @@ self.increment = function() {
 
 // Hook to control how we load hunks (we force them to be out of order).
 self.dartDeferredLibraryLoader = function(uri, success, error) {
+  if (self.filesPerLoadLibraryCall == null) {
+    self.initFilesPerLoadLibraryCall();
+  }
   self.uris.push(uri);
   self.successCallbacks.push(success);
   if (isD8) {
@@ -111,13 +132,13 @@ self.dartDeferredLibraryLoader = function(uri, success, error) {
 // Do the actual load of the hunk and call the corresponding success callback.
 self.doLoad = function(i) {
   self.setTimeout(function () {
-  var uri = self.uris[i];
-  if (self.isD8) {
-    load(uri);
-  } else {
-    eval(self.content[uri]);
-  }
-  (self.successCallbacks[i])();
+    var uri = self.uris[i];
+    if (self.isD8) {
+      load(uri);
+    } else {
+      eval(self.content[uri]);
+    }
+    (self.successCallbacks[i])();
   }, 0);
 };
 
@@ -125,13 +146,10 @@ self.doLoad = function(i) {
 // purposely load the hunks out of order.
 self.doActualLoads = function() {
   self.currentLoadLibraryCall++;
-  if (self.total == 4) {
-    self.doLoad(3); // load purposely out of order!
-    self.doLoad(0);
-    self.doLoad(1);
-    self.doLoad(2);
-  } else {
-    for (var i = 0; i < self.total; i++) {
+  if (self.total >= 1) {
+    // Load out of order, last first.
+    self.doLoad(self.total - 1);
+    for (var i = 0; i < self.total - 1; i++) {
       self.doLoad(i);
     }
   }

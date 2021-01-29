@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:developer' show debugger;
 
 import 'dart:io' show Directory, File;
@@ -831,18 +833,20 @@ class NewWorldTest {
       }
 
       if (!noFullComponent) {
-        List<Library> entryLib = component.libraries
-            .where((Library lib) =>
-                entries.contains(lib.importUri) ||
-                entries.contains(lib.fileUri))
-            .toList();
-        if (entryLib.length != entries.length) {
-          return new Result<TestData>(
-              data,
-              UnexpectedEntryToLibraryCount,
-              "Expected the entries to become libraries. "
-              "Got ${entryLib.length} libraries for the expected "
-              "${entries.length} entries.");
+        if (world["checkEntries"] != false) {
+          List<Library> entryLib = component.libraries
+              .where((Library lib) =>
+                  entries.contains(lib.importUri) ||
+                  entries.contains(lib.fileUri))
+              .toList();
+          if (entryLib.length != entries.length) {
+            return new Result<TestData>(
+                data,
+                UnexpectedEntryToLibraryCount,
+                "Expected the entries to become libraries. "
+                "Got ${entryLib.length} libraries for the expected "
+                "${entries.length} entries.");
+          }
         }
       }
       if (compiler.initializedFromDill != expectInitializeFromDill) {
@@ -1120,7 +1124,8 @@ Result<TestData> checkExpectFile(TestData data, int worldNum,
           "${extra}Unexpected serialized representation. "
           "Fix or update $uri to contain the below:\n\n"
           "$actualSerialized",
-          autoFixCommand: "updateExpectations=true");
+          autoFixCommand: "updateExpectations=true",
+          canBeFixWithUpdateExpectations: true);
     }
   }
   return null;
@@ -1202,7 +1207,6 @@ Result<TestData> checkClassHierarchy(TestIncrementalCompiler compiler,
         Set<Member> members = info.lazyDeclaredGettersAndCalls.toSet();
         for (Field f in c.fields) {
           if (f.isStatic) continue;
-          if (!f.hasImplicitGetter) continue;
           if (!members.remove(f)) {
             return new Result<TestData>(
                 data,
@@ -1240,7 +1244,7 @@ Result<TestData> checkClassHierarchy(TestIncrementalCompiler compiler,
         Set<Member> members = info.lazyDeclaredSetters.toSet();
         for (Field f in c.fields) {
           if (f.isStatic) continue;
-          if (!f.hasImplicitSetter) continue;
+          if (!f.hasSetter) continue;
           if (!members.remove(f)) {
             return new Result<TestData>(data, ClassHierarchyError,
                 "Didn't find $f in lazyDeclaredSetters for $c");
@@ -1825,9 +1829,14 @@ class TestIncrementalCompiler extends IncrementalCompiler {
         invalidatedUris.map((uri) => uri.pathSegments.last).toSet();
     Set<Uri> result = new Set<Uri>();
     for (Uri uri in invalidatedImportUrisForTesting) {
-      if (uri.pathSegments.last == "nonexisting.dart") continue;
+      if (uri.pathSegments.isNotEmpty &&
+          uri.pathSegments.last == "nonexisting.dart") {
+        continue;
+      }
       if (invalidatedFilenames.contains(entryPoint.pathSegments.last) ||
-          invalidatedFilenames.contains(uri.pathSegments.last)) result.add(uri);
+          invalidatedFilenames.contains(uri.pathSegments.last)) {
+        result.add(uri);
+      }
     }
 
     return result.isEmpty ? null : result;
@@ -1910,13 +1919,10 @@ void doSimulateTransformer(Component c) {
         .toList()
         .isNotEmpty) continue;
     Name fieldName = new Name("unique_SimulateTransformer");
-    Field field = new Field(fieldName,
+    Field field = new Field.immutable(fieldName,
         isFinal: true,
         getterReference: lib.reference.canonicalName
             ?.getChildFromFieldWithName(fieldName)
-            ?.reference,
-        setterReference: lib.reference.canonicalName
-            ?.getChildFromFieldSetterWithName(fieldName)
             ?.reference);
     lib.addField(field);
     for (Class c in lib.classes) {
@@ -1925,13 +1931,10 @@ void doSimulateTransformer(Component c) {
           .toList()
           .isNotEmpty) continue;
       fieldName = new Name("unique_SimulateTransformer");
-      field = new Field(fieldName,
+      field = new Field.immutable(fieldName,
           isFinal: true,
           getterReference: c.reference.canonicalName
               ?.getChildFromFieldWithName(fieldName)
-              ?.reference,
-          setterReference: c.reference.canonicalName
-              ?.getChildFromFieldSetterWithName(fieldName)
               ?.reference);
       c.addField(field);
     }

@@ -1718,6 +1718,7 @@ class Element implements HasToJson {
 ///   PREFIX
 ///   SETTER
 ///   TOP_LEVEL_VARIABLE
+///   TYPE_ALIAS
 ///   TYPE_PARAMETER
 ///   UNIT_TEST_GROUP
 ///   UNIT_TEST_TEST
@@ -1776,6 +1777,8 @@ class ElementKind implements Enum {
   static const ElementKind TOP_LEVEL_VARIABLE =
       ElementKind._('TOP_LEVEL_VARIABLE');
 
+  static const ElementKind TYPE_ALIAS = ElementKind._('TYPE_ALIAS');
+
   static const ElementKind TYPE_PARAMETER = ElementKind._('TYPE_PARAMETER');
 
   static const ElementKind UNIT_TEST_GROUP = ElementKind._('UNIT_TEST_GROUP');
@@ -1809,6 +1812,7 @@ class ElementKind implements Enum {
     PREFIX,
     SETTER,
     TOP_LEVEL_VARIABLE,
+    TYPE_ALIAS,
     TYPE_PARAMETER,
     UNIT_TEST_GROUP,
     UNIT_TEST_TEST,
@@ -1868,6 +1872,8 @@ class ElementKind implements Enum {
         return SETTER;
       case 'TOP_LEVEL_VARIABLE':
         return TOP_LEVEL_VARIABLE;
+      case 'TYPE_ALIAS':
+        return TYPE_ALIAS;
       case 'TYPE_PARAMETER':
         return TYPE_PARAMETER;
       case 'UNIT_TEST_GROUP':
@@ -1904,6 +1910,7 @@ class ElementKind implements Enum {
 ///   ANNOTATIONS
 ///   BLOCK
 ///   CLASS_BODY
+///   COMMENT
 ///   DIRECTIVES
 ///   DOCUMENTATION_COMMENT
 ///   FILE_HEADER
@@ -1919,6 +1926,8 @@ class FoldingKind implements Enum {
   static const FoldingKind BLOCK = FoldingKind._('BLOCK');
 
   static const FoldingKind CLASS_BODY = FoldingKind._('CLASS_BODY');
+
+  static const FoldingKind COMMENT = FoldingKind._('COMMENT');
 
   static const FoldingKind DIRECTIVES = FoldingKind._('DIRECTIVES');
 
@@ -1938,6 +1947,7 @@ class FoldingKind implements Enum {
     ANNOTATIONS,
     BLOCK,
     CLASS_BODY,
+    COMMENT,
     DIRECTIVES,
     DOCUMENTATION_COMMENT,
     FILE_HEADER,
@@ -1959,6 +1969,8 @@ class FoldingKind implements Enum {
         return BLOCK;
       case 'CLASS_BODY':
         return CLASS_BODY;
+      case 'COMMENT':
+        return COMMENT;
       case 'DIRECTIVES':
         return DIRECTIVES;
       case 'DOCUMENTATION_COMMENT':
@@ -2285,6 +2297,7 @@ class HighlightRegion implements HasToJson {
 ///   TOP_LEVEL_SETTER_DECLARATION
 ///   TOP_LEVEL_SETTER_REFERENCE
 ///   TOP_LEVEL_VARIABLE_DECLARATION
+///   TYPE_ALIAS
 ///   TYPE_NAME_DYNAMIC
 ///   TYPE_PARAMETER
 ///   UNRESOLVED_INSTANCE_MEMBER_REFERENCE
@@ -2506,6 +2519,9 @@ class HighlightRegionType implements Enum {
   static const HighlightRegionType TOP_LEVEL_VARIABLE_DECLARATION =
       HighlightRegionType._('TOP_LEVEL_VARIABLE_DECLARATION');
 
+  static const HighlightRegionType TYPE_ALIAS =
+      HighlightRegionType._('TYPE_ALIAS');
+
   static const HighlightRegionType TYPE_NAME_DYNAMIC =
       HighlightRegionType._('TYPE_NAME_DYNAMIC');
 
@@ -2589,6 +2605,7 @@ class HighlightRegionType implements Enum {
     TOP_LEVEL_SETTER_DECLARATION,
     TOP_LEVEL_SETTER_REFERENCE,
     TOP_LEVEL_VARIABLE_DECLARATION,
+    TYPE_ALIAS,
     TYPE_NAME_DYNAMIC,
     TYPE_PARAMETER,
     UNRESOLVED_INSTANCE_MEMBER_REFERENCE,
@@ -2740,6 +2757,8 @@ class HighlightRegionType implements Enum {
         return TOP_LEVEL_SETTER_REFERENCE;
       case 'TOP_LEVEL_VARIABLE_DECLARATION':
         return TOP_LEVEL_VARIABLE_DECLARATION;
+      case 'TYPE_ALIAS':
+        return TYPE_ALIAS;
       case 'TYPE_NAME_DYNAMIC':
         return TYPE_NAME_DYNAMIC;
       case 'TYPE_PARAMETER':

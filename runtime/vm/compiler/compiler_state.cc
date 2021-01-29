@@ -85,7 +85,7 @@ const Class& CompilerState::ComparableClass() {
     // When obfuscation is enabled we need to obfuscate the name of the
     // class before looking it up.
     String& name = String::Handle(zone, Symbols::New(thread, "Comparable"));
-    if (thread->isolate()->obfuscate()) {
+    if (thread->isolate_group()->obfuscate()) {
       Obfuscator obfuscator(thread, Object::null_string());
       name = obfuscator.Rename(name);
     }

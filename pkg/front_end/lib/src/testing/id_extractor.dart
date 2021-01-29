@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:kernel/ast.dart';
 import '../api_prototype/lowering_predicates.dart';
@@ -196,6 +198,20 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
     computeForMember(node);
   }
 
+  _visitInvocation(Expression node, Name name) {
+    if (name.name == '[]') {
+      computeForNode(node, computeDefaultNodeId(node));
+    } else if (name.name == '[]=') {
+      computeForNode(node, createUpdateId(node));
+    } else {
+      if (node.fileOffset != TreeNode.noOffset) {
+        // TODO(johnniwinther): Ensure file offset on all method invocations.
+        // Skip synthetic invocation created in the collection transformer.
+        computeForNode(node, createInvokeId(node));
+      }
+    }
+  }
+
   @override
   visitMethodInvocation(MethodInvocation node) {
     TreeNode receiver = node.receiver;
@@ -204,24 +220,55 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
       // This is an invocation of a named local function.
       computeForNode(node, createInvokeId(node.receiver));
       node.arguments.accept(this);
-    } else if (node.name.text == '==' &&
+    } else if (node.name.name == '==' &&
         receiver is VariableGet &&
         receiver.variable.name == null) {
       // This is a desugared `?.`.
-    } else if (node.name.text == '[]') {
-      computeForNode(node, computeDefaultNodeId(node));
-      super.visitMethodInvocation(node);
-    } else if (node.name.text == '[]=') {
-      computeForNode(node, createUpdateId(node));
-      super.visitMethodInvocation(node);
     } else {
-      if (node.fileOffset != TreeNode.noOffset) {
-        // TODO(johnniwinther): Ensure file offset on all method invocations.
-        // Skip synthetic invocation created in the collection transformer.
-        computeForNode(node, createInvokeId(node));
-      }
+      _visitInvocation(node, node.name);
       super.visitMethodInvocation(node);
     }
+  }
+
+  @override
+  visitDynamicInvocation(DynamicInvocation node) {
+    _visitInvocation(node, node.name);
+    super.visitDynamicInvocation(node);
+  }
+
+  @override
+  visitFunctionInvocation(FunctionInvocation node) {
+    _visitInvocation(node, node.name);
+    super.visitFunctionInvocation(node);
+  }
+
+  @override
+  visitLocalFunctionInvocation(LocalFunctionInvocation node) {
+    computeForNode(node, createInvokeId(node));
+    super.visitLocalFunctionInvocation(node);
+  }
+
+  @override
+  visitEqualsCall(EqualsCall node) {
+    _visitInvocation(node, Name.equalsName);
+    super.visitEqualsCall(node);
+  }
+
+  @override
+  visitEqualsNull(EqualsNull node) {
+    Expression receiver = node.expression;
+    if (receiver is VariableGet && receiver.variable.name == null) {
+      // This is a desugared `?.`.
+    } else {
+      _visitInvocation(node, Name.equalsName);
+    }
+    super.visitEqualsNull(node);
+  }
+
+  @override
+  visitInstanceInvocation(InstanceInvocation node) {
+    _visitInvocation(node, node.name);
+    super.visitInstanceInvocation(node);
   }
 
   @override
@@ -233,6 +280,30 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
   visitPropertyGet(PropertyGet node) {
     computeForNode(node, computeDefaultNodeId(node));
     super.visitPropertyGet(node);
+  }
+
+  @override
+  visitDynamicGet(DynamicGet node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitDynamicGet(node);
+  }
+
+  @override
+  visitFunctionTearOff(FunctionTearOff node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitFunctionTearOff(node);
+  }
+
+  @override
+  visitInstanceGet(InstanceGet node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitInstanceGet(node);
+  }
+
+  @override
+  visitInstanceTearOff(InstanceTearOff node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitInstanceTearOff(node);
   }
 
   @override
@@ -275,6 +346,18 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
   visitPropertySet(PropertySet node) {
     computeForNode(node, createUpdateId(node));
     super.visitPropertySet(node);
+  }
+
+  @override
+  visitDynamicSet(DynamicSet node) {
+    computeForNode(node, createUpdateId(node));
+    super.visitDynamicSet(node);
+  }
+
+  @override
+  visitInstanceSet(InstanceSet node) {
+    computeForNode(node, createUpdateId(node));
+    super.visitInstanceSet(node);
   }
 
   @override
@@ -446,8 +529,11 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
     TreeNode parent = node.parent;
     if (node.fileOffset == TreeNode.noOffset ||
         (parent is PropertyGet ||
+                parent is InstanceGet ||
                 parent is PropertySet ||
-                parent is MethodInvocation) &&
+                parent is InstanceSet ||
+                parent is MethodInvocation ||
+                parent is InstanceInvocation) &&
             parent.fileOffset == node.fileOffset) {
       // Skip implicit this expressions.
     } else {
@@ -476,6 +562,12 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
   visitStaticGet(StaticGet node) {
     computeForNode(node, computeDefaultNodeId(node));
     super.visitStaticGet(node);
+  }
+
+  @override
+  visitStaticTearOff(StaticTearOff node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitStaticTearOff(node);
   }
 
   @override
@@ -524,5 +616,17 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
     computeForNode(
         node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
     return super.visitBlock(node);
+  }
+
+  @override
+  visitConditionalExpression(ConditionalExpression node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    return super.visitConditionalExpression(node);
+  }
+
+  @override
+  visitLogicalExpression(LogicalExpression node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    return super.visitLogicalExpression(node);
   }
 }

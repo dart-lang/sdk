@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:convert' as json;
 import 'dart:io';
 
@@ -260,6 +262,24 @@ class DynamicVisitor extends StaticTypeVisitorBase {
     } else {
       super.visitLibrary(node);
     }
+  }
+
+  @override
+  void visitDynamicGet(DynamicGet node) {
+    registerError(node, "Dynamic access of '${node.name}'.");
+    super.visitDynamicGet(node);
+  }
+
+  @override
+  void visitDynamicSet(DynamicSet node) {
+    registerError(node, "Dynamic update to '${node.name}'.");
+    super.visitDynamicSet(node);
+  }
+
+  @override
+  void visitDynamicInvocation(DynamicInvocation node) {
+    registerError(node, "Dynamic invocation of '${node.name}'.");
+    super.visitDynamicInvocation(node);
   }
 
   @override

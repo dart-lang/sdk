@@ -7,12 +7,11 @@
 /// AST nodes and then feed them to [Harness.run] to run them through flow
 /// analysis testing.
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 const Expression nullLiteral = const _NullLiteral();
 
-Statement assert_(Expression condition, [Expression message]) =>
+Statement assert_(Expression condition, [Expression? message]) =>
     new _Assert(condition, message);
 
 Statement block(List<Statement> statements) => new _Block(statements);
@@ -37,7 +36,7 @@ SwitchCase case_(List<Statement> body, {bool hasLabel = false}) =>
     SwitchCase._(hasLabel, body);
 
 CatchClause catch_(
-        {Var exception, Var stackTrace, @required List<Statement> body}) =>
+        {Var? exception, Var? stackTrace, required List<Statement> body}) =>
     CatchClause._(body, exception, stackTrace);
 
 /// Creates a pseudo-statement whose function is to verify that flow analysis
@@ -51,7 +50,7 @@ Statement checkNotPromoted(Var variable) => new _CheckPromoted(variable, null);
 
 /// Creates a pseudo-statement whose function is to verify that flow analysis
 /// considers [variable]'s assigned state to be promoted to [expectedTypeStr].
-Statement checkPromoted(Var variable, String expectedTypeStr) =>
+Statement checkPromoted(Var variable, String? expectedTypeStr) =>
     new _CheckPromoted(variable, expectedTypeStr);
 
 /// Creates a pseudo-statement whose function is to verify that flow analysis
@@ -68,8 +67,16 @@ Statement checkUnassigned(Var variable, bool expectedUnassignedState) =>
 Statement continue_(BranchTargetPlaceholder branchTargetPlaceholder) =>
     new _Continue(branchTargetPlaceholder);
 
-Statement declare(Var variable, {@required bool initialized}) =>
-    new _Declare(variable, initialized);
+Statement declare(Var variable,
+        {required bool initialized,
+        bool isFinal = false,
+        bool isLate = false}) =>
+    new _Declare(variable, initialized ? expr(variable.type.type) : null,
+        isFinal, isLate);
+
+Statement declareInitialized(Var variable, Expression initializer,
+        {bool isFinal = false, bool isLate = false}) =>
+    new _Declare(variable, initializer, isFinal, isLate);
 
 Statement do_(List<Statement> body, Expression condition) =>
     _Do(body, condition);
@@ -82,8 +89,8 @@ Expression expr(String typeStr) =>
 /// Creates a conventional `for` statement.  Optional boolean [forCollection]
 /// indicates that this `for` statement is actually a collection element, so
 /// `null` should be passed to [for_bodyBegin].
-Statement for_(Statement initializer, Expression condition, Expression updater,
-        List<Statement> body,
+Statement for_(Statement? initializer, Expression? condition,
+        Expression? updater, List<Statement> body,
         {bool forCollection = false}) =>
     new _For(initializer, condition, updater, body, forCollection);
 
@@ -107,6 +114,7 @@ Statement forEachWithNonVariable(Expression iterable, List<Statement> body) =>
 ///     }
 Statement forEachWithVariableDecl(
     Var variable, Expression iterable, List<Statement> body) {
+  // ignore: unnecessary_null_comparison
   assert(variable != null);
   return new _ForEach(variable, iterable, body, true);
 }
@@ -121,12 +129,19 @@ Statement forEachWithVariableDecl(
 ///     }
 Statement forEachWithVariableSet(
     Var variable, Expression iterable, List<Statement> body) {
+  // ignore: unnecessary_null_comparison
   assert(variable != null);
   return new _ForEach(variable, iterable, body, false);
 }
 
+/// Creates a [Statement] that, when analyzed, will cause [callback] to be
+/// passed an [SsaNodeHarness] allowing the test to examine the values of
+/// variables' SSA nodes.
+Statement getSsaNodes(void Function(SsaNodeHarness) callback) =>
+    new _GetSsaNodes(callback);
+
 Statement if_(Expression condition, List<Statement> ifTrue,
-        [List<Statement> ifFalse]) =>
+        [List<Statement>? ifFalse]) =>
     new _If(condition, ifTrue, ifFalse);
 
 Statement labeled(Statement body) => new _LabeledStatement(body);
@@ -136,8 +151,10 @@ Statement localFunction(List<Statement> body) => _LocalFunction(body);
 Statement return_() => new _Return();
 
 Statement switch_(Expression expression, List<SwitchCase> cases,
-        {@required bool isExhaustive}) =>
+        {required bool isExhaustive}) =>
     new _Switch(expression, cases, isExhaustive);
+
+Expression throw_(Expression operand) => new _Throw(operand);
 
 Statement tryCatch(List<Statement> body, List<CatchClause> catches) =>
     new _TryCatch(body, catches);
@@ -151,26 +168,26 @@ Statement while_(Expression condition, List<Statement> body) =>
 /// Placeholder used by [branchTarget] to tie `break` and `continue` statements
 /// to their branch targets.
 class BranchTargetPlaceholder {
-  Statement _target;
+  late Statement _target;
 
-  /*late*/ BranchTargetPlaceholder._();
+  BranchTargetPlaceholder._();
 }
 
 /// Representation of a single catch clause in a try/catch statement.  Use
 /// [catch_] to create instances of this class.
 class CatchClause implements _Visitable<void> {
   final List<Statement> _body;
-  final Var _exception;
-  final Var _stackTrace;
+  final Var? _exception;
+  final Var? _stackTrace;
 
   CatchClause._(this._body, this._exception, this._stackTrace);
 
   String toString() {
     String initialPart;
     if (_stackTrace != null) {
-      initialPart = 'catch (${_exception.name}, ${_stackTrace.name})';
+      initialPart = 'catch (${_exception!.name}, ${_stackTrace!.name})';
     } else if (_exception != null) {
-      initialPart = 'catch (${_exception.name})';
+      initialPart = 'catch (${_exception!.name})';
     } else {
       initialPart = 'on ...';
     }
@@ -192,11 +209,14 @@ class CatchClause implements _Visitable<void> {
 /// Representation of an expression in the pseudo-Dart language used for flow
 /// analysis testing.  Methods in this class may be used to create more complex
 /// expressions based on this one.
-abstract class Expression implements _Visitable<Type> {
-  const Expression();
+abstract class Expression extends Node implements _Visitable<Type> {
+  const Expression() : super._();
 
   /// If `this` is an expression `x`, creates the expression `x!`.
   Expression get nonNullAssert => new _NonNullAssert(this);
+
+  /// If `this` is an expression `x`, creates the expression `!x`.
+  Expression get not => new _Not(this);
 
   /// If `this` is an expression `x`, creates the expression `(x)`.
   Expression get parenthesized => new _ParenthesizedExpression(this);
@@ -217,6 +237,15 @@ abstract class Expression implements _Visitable<Type> {
 
   /// If `this` is an expression `x`, creates the expression `x == other`.
   Expression eq(Expression other) => new _Equal(this, other, false);
+
+  /// Creates an [Expression] that, when analyzed, will behave the same as
+  /// `this`, but after visiting it, will cause [callback] to be passed the
+  /// [ExpressionInfo] associated with it.  If the expression has no flow
+  /// analysis information associated with it, `null` will be passed to
+  /// [callback].
+  Expression getExpressionInfo(
+          void Function(ExpressionInfo<Var, Type>?) callback) =>
+      new _GetExpressionInfo(this, callback);
 
   /// If `this` is an expression `x`, creates the expression `x ?? other`.
   Expression ifNull(Expression other) => new _IfNull(this, other);
@@ -257,6 +286,8 @@ abstract class Expression implements _Visitable<Type> {
 /// needed for testing.
 class Harness extends TypeOperations<Var, Type> {
   static const Map<String, bool> _coreSubtypes = const {
+    'bool <: int': false,
+    'bool <: Object': true,
     'double <: Object': true,
     'double <: num': true,
     'double <: num?': true,
@@ -319,12 +350,14 @@ class Harness extends TypeOperations<Var, Type> {
     'Object <: num': false,
     'Object <: num?': false,
     'Object <: Object?': true,
+    'Object <: String': false,
     'Object? <: Object': false,
     'Object? <: int': false,
     'Object? <: int?': false,
     'String <: int': false,
     'String <: int?': false,
     'String <: num?': false,
+    'String <: Object': true,
     'String <: Object?': true,
   };
 
@@ -334,7 +367,9 @@ class Harness extends TypeOperations<Var, Type> {
     'Object? - num?': Type('Object'),
     'Object? - Object?': Type('Never?'),
     'Object? - String': Type('Object?'),
+    'Object - bool': Type('Object'),
     'Object - int': Type('Object'),
+    'Object - String': Type('Object'),
     'int - Object': Type('Never'),
     'int - String': Type('int'),
     'int - int': Type('Never'),
@@ -361,22 +396,34 @@ class Harness extends TypeOperations<Var, Type> {
     'num* - Object': Type('Never'),
   };
 
+  final bool allowLocalBooleanVarsToPromote;
+
+  final bool legacy;
+
   final Map<String, bool> _subtypes = Map.of(_coreSubtypes);
 
   final Map<String, Type> _factorResults = Map.of(_coreFactors);
 
-  Node _currentSwitch;
+  Node? _currentSwitch;
+
+  Map<String, Map<String, String>> _promotionExceptions = {};
+
+  Harness({this.allowLocalBooleanVarsToPromote = false, this.legacy = false});
 
   /// Updates the harness so that when a [factor] query is invoked on types
   /// [from] and [what], [result] will be returned.
-  void addFactor(Type from, Type what, Type result) {
+  void addFactor(String from, String what, String result) {
     var query = '$from - $what';
-    _factorResults[query] = result;
+    _factorResults[query] = Type(result);
+  }
+
+  void addPromotionException(String from, String to, String result) {
+    (_promotionExceptions[from] ??= {})[to] = result;
   }
 
   /// Updates the harness so that when an [isSubtypeOf] query is invoked on
   /// types [leftType] and [rightType], [isSubtype] will be returned.
-  void addSubtype(Type leftType, Type rightType, bool isSubtype) {
+  void addSubtype(String leftType, String rightType, bool isSubtype) {
     var query = '$leftType <: $rightType';
     _subtypes[query] = isSubtype;
   }
@@ -431,14 +478,22 @@ class Harness extends TypeOperations<Var, Type> {
   void run(List<Statement> statements) {
     var assignedVariables = AssignedVariables<Node, Var>();
     statements._preVisit(assignedVariables);
-    var flow = FlowAnalysis<Node, Statement, Expression, Var, Type>(
-        this, assignedVariables);
+    var flow = legacy
+        ? FlowAnalysis<Node, Statement, Expression, Var, Type>.legacy(
+            this, assignedVariables)
+        : FlowAnalysis<Node, Statement, Expression, Var, Type>(
+            this, assignedVariables,
+            allowLocalBooleanVarsToPromote: allowLocalBooleanVarsToPromote);
     statements._visit(this, flow);
     flow.finish();
   }
 
   @override
-  Type tryPromoteToType(Type to, Type from) {
+  Type? tryPromoteToType(Type to, Type from) {
+    var exception = (_promotionExceptions[from.type] ?? {})[to.type];
+    if (exception != null) {
+      return Type(exception);
+    }
     if (isSubtypeOf(to, from)) {
       return to;
     } else {
@@ -475,6 +530,10 @@ class Harness extends TypeOperations<Var, Type> {
         !isSameType(promoteToNonNull(type1), type1)) {
       // type1 is already nullable
       return type1;
+    } else if (type1.type == 'Never') {
+      return type2;
+    } else if (type2.type == 'Never') {
+      return type1;
     } else {
       throw UnimplementedError(
           'TODO(paulberry): least upper bound of $type1 and $type2');
@@ -485,7 +544,19 @@ class Harness extends TypeOperations<Var, Type> {
 /// Representation of an expression or statement in the pseudo-Dart language
 /// used for flow analysis testing.
 class Node {
-  Node._();
+  const Node._();
+}
+
+/// Helper class allowing tests to examine the values of variables' SSA nodes.
+class SsaNodeHarness {
+  final FlowAnalysis<Node, Statement, Expression, Var, Type> _flow;
+
+  SsaNodeHarness(this._flow);
+
+  /// Gets the SSA node associated with [variable] at the current point in
+  /// control flow, or `null` if the variable has been write captured.
+  SsaNode<Var, Type>? operator [](Var variable) =>
+      _flow.ssaNodeForTesting(variable);
 }
 
 /// Representation of a statement in the pseudo-Dart language used for flow
@@ -517,7 +588,7 @@ class SwitchCase implements _Visitable<void> {
 
   void _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
-    flow.switchStatement_beginCase(_hasLabel, h._currentSwitch);
+    flow.switchStatement_beginCase(_hasLabel, h._currentSwitch!);
     _body._visit(h, flow);
   }
 }
@@ -550,13 +621,18 @@ class Var {
   Var(this.name, String typeStr) : type = Type(typeStr);
 
   /// Creates an expression representing a read of this variable.
-  Expression get read => new _VariableRead(this);
+  Expression get read => new _VariableRead(this, null);
+
+  /// Creates an expression representing a read of this variable, which as a
+  /// side effect will call the given callback with the returned promoted type.
+  Expression readAndCheckPromotedType(void Function(Type?) callback) =>
+      new _VariableRead(this, callback);
 
   @override
   String toString() => '$type $name';
 
   /// Creates an expression representing a write to this variable.
-  Expression write(Expression value) => new _Write(this, value);
+  Expression write(Expression? value) => new _Write(this, value);
 }
 
 class _As extends Expression {
@@ -584,7 +660,7 @@ class _As extends Expression {
 
 class _Assert extends Statement {
   final Expression condition;
-  final Expression message;
+  final Expression? message;
 
   _Assert(this.condition, this.message) : super._();
 
@@ -662,6 +738,7 @@ class _Break extends Statement {
   @override
   void _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
+    // ignore: unnecessary_null_comparison
     assert(branchTargetPlaceholder._target != null);
     flow.handleBreak(branchTargetPlaceholder._target);
   }
@@ -691,7 +768,7 @@ class _CheckAssigned extends Statement {
 
 class _CheckPromoted extends Statement {
   final Var variable;
-  final String expectedTypeStr;
+  final String? expectedTypeStr;
 
   _CheckPromoted(this.variable, this.expectedTypeStr) : super._();
 
@@ -713,7 +790,7 @@ class _CheckPromoted extends Statement {
     if (expectedTypeStr == null) {
       expect(promotedType, isNull);
     } else {
-      expect(promotedType.type, expectedTypeStr);
+      expect(promotedType?.type, expectedTypeStr);
     }
   }
 }
@@ -771,7 +848,9 @@ class _Conditional extends Expression {
   @override
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
     condition._preVisit(assignedVariables);
+    assignedVariables.beginNode();
     ifTrue._preVisit(assignedVariables);
+    assignedVariables.endNode(this);
     ifFalse._preVisit(assignedVariables);
   }
 
@@ -779,7 +858,7 @@ class _Conditional extends Expression {
   Type _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
     flow.conditional_conditionBegin();
-    flow.conditional_thenBegin(condition.._visit(h, flow));
+    flow.conditional_thenBegin(condition.._visit(h, flow), this);
     var ifTrueType = ifTrue._visit(h, flow);
     flow.conditional_elseBegin(ifTrue);
     var ifFalseType = ifFalse._visit(h, flow);
@@ -802,6 +881,7 @@ class _Continue extends Statement {
   @override
   void _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
+    // ignore: unnecessary_null_comparison
     assert(branchTargetPlaceholder._target != null);
     flow.handleContinue(branchTargetPlaceholder._target);
   }
@@ -809,20 +889,38 @@ class _Continue extends Statement {
 
 class _Declare extends Statement {
   final Var variable;
-  final bool initialized;
+  final Expression? initializer;
+  final bool isFinal;
+  final bool isLate;
 
-  _Declare(this.variable, this.initialized) : super._();
+  _Declare(this.variable, this.initializer, this.isFinal, this.isLate)
+      : super._();
 
   @override
-  String toString() => '$variable${initialized ? ' = ...' : ''};';
+  String toString() {
+    var latePart = isLate ? 'late ' : '';
+    var finalPart = isFinal ? 'final ' : '';
+    var initializerPart = initializer != null ? ' = $initializer' : '';
+    return '$latePart$finalPart$variable${initializerPart};';
+  }
 
   @override
-  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {}
+  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
+    initializer?._preVisit(assignedVariables);
+  }
 
   @override
   void _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
-    flow.declare(variable, initialized);
+    var initializer = this.initializer;
+    if (initializer == null) {
+      flow.declare(variable, false);
+    } else {
+      var initializerType = initializer._visit(h, flow);
+      flow.declare(variable, true);
+      flow.initialize(variable, initializerType, initializer,
+          isFinal: isFinal, isLate: isLate);
+    }
   }
 }
 
@@ -902,9 +1000,9 @@ class _ExpressionStatement extends Statement {
 }
 
 class _For extends Statement {
-  final Statement initializer;
-  final Expression condition;
-  final Expression updater;
+  final Statement? initializer;
+  final Expression? condition;
+  final Expression? updater;
   final List<Statement> body;
   final bool forCollection;
 
@@ -957,7 +1055,7 @@ class _For extends Statement {
 }
 
 class _ForEach extends Statement {
-  final Var variable;
+  final Var? variable;
   final Expression iterable;
   final List<Statement> body;
   final bool declaresVariable;
@@ -973,7 +1071,7 @@ class _ForEach extends Statement {
     } else if (declaresVariable) {
       declarationPart = variable.toString();
     } else {
-      declarationPart = variable.name;
+      declarationPart = variable!.name;
     }
     return 'for ($declarationPart in $iterable) ${block(body)}';
   }
@@ -983,9 +1081,9 @@ class _ForEach extends Statement {
     iterable._preVisit(assignedVariables);
     if (variable != null) {
       if (declaresVariable) {
-        assignedVariables.declare(variable);
+        assignedVariables.declare(variable!);
       } else {
-        assignedVariables.write(variable);
+        assignedVariables.write(variable!);
       }
     }
     assignedVariables.beginNode();
@@ -1003,22 +1101,61 @@ class _ForEach extends Statement {
   }
 }
 
+class _GetExpressionInfo extends Expression {
+  final Expression target;
+
+  final void Function(ExpressionInfo<Var, Type>?) callback;
+
+  _GetExpressionInfo(this.target, this.callback);
+
+  @override
+  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
+    target._preVisit(assignedVariables);
+  }
+
+  @override
+  Type _visit(
+      Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
+    var type = target._visit(h, flow);
+    flow.forwardExpression(this, target);
+    callback(flow.expressionInfoForTesting(this));
+    return type;
+  }
+}
+
+class _GetSsaNodes extends Statement {
+  final void Function(SsaNodeHarness) callback;
+
+  _GetSsaNodes(this.callback) : super._();
+
+  @override
+  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {}
+
+  @override
+  void _visit(
+      Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
+    callback(SsaNodeHarness(flow));
+  }
+}
+
 class _If extends Statement {
   final Expression condition;
   final List<Statement> ifTrue;
-  final List<Statement> ifFalse;
+  final List<Statement>? ifFalse;
 
   _If(this.condition, this.ifTrue, this.ifFalse) : super._();
 
   @override
   String toString() =>
       'if ($condition) ${block(ifTrue)}' +
-      (ifFalse == null ? '' : 'else ${block(ifFalse)}');
+      (ifFalse == null ? '' : 'else ${block(ifFalse!)}');
 
   @override
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
     condition._preVisit(assignedVariables);
+    assignedVariables.beginNode();
     ifTrue._preVisit(assignedVariables);
+    assignedVariables.endNode(this);
     ifFalse?._preVisit(assignedVariables);
   }
 
@@ -1026,13 +1163,13 @@ class _If extends Statement {
   void _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
     flow.ifStatement_conditionBegin();
-    flow.ifStatement_thenBegin(condition.._visit(h, flow));
+    flow.ifStatement_thenBegin(condition.._visit(h, flow), this);
     ifTrue._visit(h, flow);
     if (ifFalse == null) {
       flow.ifStatement_end(false);
     } else {
       flow.ifStatement_elseBegin();
-      ifFalse._visit(h, flow);
+      ifFalse!._visit(h, flow);
       flow.ifStatement_end(true);
     }
   }
@@ -1138,7 +1275,7 @@ class _Logical extends Expression {
   final Expression rhs;
   final bool isAnd;
 
-  _Logical(this.lhs, this.rhs, {@required this.isAnd});
+  _Logical(this.lhs, this.rhs, {required this.isAnd});
 
   @override
   String toString() => '$lhs ${isAnd ? '&&' : '||'} $rhs';
@@ -1146,14 +1283,16 @@ class _Logical extends Expression {
   @override
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
     lhs._preVisit(assignedVariables);
+    assignedVariables.beginNode();
     rhs._preVisit(assignedVariables);
+    assignedVariables.endNode(this);
   }
 
   @override
   Type _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
     flow.logicalBinaryOp_begin();
-    flow.logicalBinaryOp_rightBegin(lhs.._visit(h, flow), isAnd: isAnd);
+    flow.logicalBinaryOp_rightBegin(lhs.._visit(h, flow), this, isAnd: isAnd);
     flow.logicalBinaryOp_end(this, rhs.._visit(h, flow), isAnd: isAnd);
     return Type('bool');
   }
@@ -1178,6 +1317,27 @@ class _NonNullAssert extends Expression {
     var type = operand._visit(h, flow);
     flow.nonNullAssert_end(operand);
     return h.promoteToNonNull(type);
+  }
+}
+
+class _Not extends Expression {
+  final Expression operand;
+
+  _Not(this.operand);
+
+  @override
+  String toString() => '!$operand';
+
+  @override
+  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
+    operand._preVisit(assignedVariables);
+  }
+
+  @override
+  Type _visit(
+      Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
+    flow.logicalNot_end(this, operand.._visit(h, flow));
+    return Type('bool');
   }
 }
 
@@ -1321,6 +1481,28 @@ class _Switch extends Statement {
   }
 }
 
+class _Throw extends Expression {
+  final Expression operand;
+
+  _Throw(this.operand);
+
+  @override
+  String toString() => 'throw ...';
+
+  @override
+  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
+    operand._preVisit(assignedVariables);
+  }
+
+  @override
+  Type _visit(
+      Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
+    operand._visit(h, flow);
+    flow.handleExit();
+    return Type('Never');
+  }
+}
+
 class _TryCatch extends Statement {
   final List<Statement> body;
   final List<CatchClause> catches;
@@ -1384,18 +1566,24 @@ class _TryFinally extends Statement {
 class _VariableRead extends Expression {
   final Var variable;
 
-  _VariableRead(this.variable);
+  final void Function(Type?)? callback;
+
+  _VariableRead(this.variable, this.callback);
 
   @override
   String toString() => variable.name;
 
   @override
-  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {}
+  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
+    assignedVariables.read(variable);
+  }
 
   @override
   Type _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
-    return flow.variableRead(this, variable) ?? variable.type;
+    var readResult = flow.variableRead(this, variable);
+    callback?.call(readResult);
+    return readResult ?? variable.type;
   }
 }
 
@@ -1418,7 +1606,7 @@ class _While extends Statement {
   @override
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
     assignedVariables.beginNode();
-    condition?._preVisit(assignedVariables);
+    condition._preVisit(assignedVariables);
     body._preVisit(assignedVariables);
     assignedVariables.endNode(this);
   }
@@ -1427,7 +1615,7 @@ class _While extends Statement {
   void _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
     flow.whileStatement_conditionBegin(this);
-    condition?._visit(h, flow);
+    condition._visit(h, flow);
     flow.whileStatement_bodyBegin(this, condition);
     body._visit(h, flow);
     flow.whileStatement_end();
@@ -1435,9 +1623,9 @@ class _While extends Statement {
 }
 
 class _WrappedExpression extends Expression {
-  final Statement before;
+  final Statement? before;
   final Expression expr;
-  final Statement after;
+  final Statement? after;
 
   _WrappedExpression(this.before, this.expr, this.after);
 
@@ -1475,7 +1663,7 @@ class _WrappedExpression extends Expression {
 
 class _Write extends Expression {
   final Var variable;
-  final Expression rhs;
+  final Expression? rhs;
 
   _Write(this.variable, this.rhs);
 
@@ -1485,14 +1673,15 @@ class _Write extends Expression {
   @override
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
     assignedVariables.write(variable);
-    rhs._preVisit(assignedVariables);
+    rhs?._preVisit(assignedVariables);
   }
 
   @override
   Type _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
-    var type = rhs._visit(h, flow);
-    flow.write(variable, type);
+    var rhs = this.rhs;
+    var type = rhs == null ? variable.type : rhs._visit(h, flow);
+    flow.write(variable, type, rhs);
     return type;
   }
 }

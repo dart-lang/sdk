@@ -91,7 +91,7 @@ bool Intrinsifier::CanIntrinsifyFieldAccessor(const Function& function) {
   // If we intrinsify, the intrinsified code therefore does not depend on the
   // field guard and we do not add it to the guarded fields via
   // [ParsedFunction::AddToGuardedFields].
-  if (Field::ShouldCloneFields()) {
+  if (CompilerState::Current().should_clone_fields()) {
     field = field.CloneFromOriginal();
   }
 
@@ -216,7 +216,7 @@ void Intrinsifier::InitializeState() {
   };
 
   for (intptr_t i = 0; i < kNumLibs; i++) {
-    lib = intrinsics[i].library.raw();
+    lib = intrinsics[i].library.ptr();
     for (IntrinsicDesc* intrinsic = intrinsics[i].intrinsics;
          intrinsic->class_name != nullptr; intrinsic++) {
       func = Function::null();
@@ -260,7 +260,6 @@ bool Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
     return false;
   }
 
-  ASSERT(!compiler->flow_graph().IsCompiledForOsr());
   if (GraphIntrinsifier::GraphIntrinsify(parsed_function, compiler)) {
     return compiler->intrinsic_slow_path_label()->IsUnused();
   }

@@ -665,7 +665,7 @@ constList(elements, elementType) => JS('', '''(() => {
   let value = map.get($elementType);
   if (value) return value;
 
-  ${getGenericClass(JSArray)}($elementType).unmodifiable($elements);
+  ${getGenericClassStatic<JSArray>()}($elementType).unmodifiable($elements);
   map.set($elementType, elements);
   return elements;
 })()''');
@@ -759,11 +759,34 @@ _canonicalMember(obj, name) {
   return name;
 }
 
+/// A map from libraries to a set of import prefixes that have been loaded.
+///
+/// Used to validate deferred library conventions.
+final deferredImports = JS<Object>('!', 'new Map()');
+
 /// Emulates the implicit "loadLibrary" function provided by a deferred library.
 ///
-/// Libraries are not actually deferred in DDC, so this just returns a future
-/// that completes immediately.
-Future loadLibrary() => Future.value();
+/// Libraries are not actually deferred in DDC, so this just records the import
+/// for runtime validation, then returns a future that completes immediately.
+Future loadLibrary(
+    @notNull String enclosingLibrary, @notNull String importPrefix) {
+  var result = JS('', '#.get(#)', deferredImports, enclosingLibrary);
+  if (JS<bool>('', '# === void 0', result)) {
+    JS('', '#.set(#, # = new Set())', deferredImports, enclosingLibrary,
+        result);
+  }
+  JS('', '#.add(#)', result, importPrefix);
+  return Future.value();
+}
+
+void checkDeferredIsLoaded(
+    @notNull String enclosingLibrary, @notNull String importPrefix) {
+  var loaded = JS('', '#.get(#)', deferredImports, enclosingLibrary);
+  if (JS<bool>('', '# === void 0', loaded) ||
+      JS<bool>('', '!#.has(#)', loaded, importPrefix)) {
+    throwDeferredIsLoadedError(enclosingLibrary, importPrefix);
+  }
+}
 
 /// Defines lazy statics.
 ///

@@ -8,8 +8,6 @@ import 'dart:math';
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart'
     as lsp;
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart' as lsp;
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart'
-    show ResponseError;
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart' as lsp;
@@ -29,8 +27,8 @@ import 'package:analyzer/dart/analysis/results.dart' as server;
 import 'package:analyzer/diagnostic/diagnostic.dart' as analyzer;
 import 'package:analyzer/error/error.dart' as server;
 import 'package:analyzer/source/line_info.dart' as server;
+import 'package:analyzer/source/source_range.dart' as server;
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/source.dart' as server;
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/services/available_declarations.dart' as dec;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
@@ -1057,6 +1055,7 @@ lsp.FoldingRange toFoldingRange(
 
 lsp.FoldingRangeKind toFoldingRangeKind(server.FoldingKind kind) {
   switch (kind) {
+    case server.FoldingKind.COMMENT:
     case server.FoldingKind.DOCUMENTATION_COMMENT:
     case server.FoldingKind.FILE_HEADER:
       return lsp.FoldingRangeKind.Comment;
@@ -1208,10 +1207,36 @@ lsp.SignatureHelp toSignatureHelp(List<lsp.MarkupKind> preferredFormats,
   );
 }
 
+ErrorOr<server.SourceRange> toSourceRange(
+    server.LineInfo lineInfo, Range range) {
+  if (range == null) {
+    return success(null);
+  }
+
+  // If there is a range, convert to offsets because that's what
+  // the tokens are computed using initially.
+  final start = toOffset(lineInfo, range.start);
+  final end = toOffset(lineInfo, range.end);
+  if (start?.isError ?? false) {
+    return failure(start);
+  }
+  if (end?.isError ?? false) {
+    return failure(end);
+  }
+
+  final startOffset = start?.result;
+  final endOffset = end?.result;
+
+  return success(server.SourceRange(startOffset, endOffset - startOffset));
+}
+
 lsp.TextDocumentEdit toTextDocumentEdit(FileEditInformation edit) {
   return lsp.TextDocumentEdit(
     textDocument: edit.doc,
-    edits: edit.edits.map((e) => toTextEdit(edit.lineInfo, e)).toList(),
+    edits: edit.edits
+        .map((e) => Either2<TextEdit, AnnotatedTextEdit>.t1(
+            toTextEdit(edit.lineInfo, e)))
+        .toList(),
   );
 }
 
@@ -1293,6 +1318,14 @@ Pair<String, lsp.InsertTextFormat> _buildInsertText({
 }) {
   var insertText = completion;
   var insertTextFormat = lsp.InsertTextFormat.PlainText;
+
+  // SuggestionBuilder already does the equiv of completeFunctionCalls for
+  // some methods (for example Flutter's setState). If the completion already
+  // includes any `(` then disable our own insertion as the special-cased code
+  // will likely provide better code.
+  if (completion.contains('(')) {
+    completeFunctionCalls = false;
+  }
 
   // If the client supports snippets, we can support completeFunctionCalls or
   // setting a selection.

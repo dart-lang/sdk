@@ -1,0 +1,14 @@
+class Class {}
+
+extension Extension on Class {
+  get instanceProperty => 42;
+  instanceMethod() {}
+  set instanceProperty(value) {}
+  static genericMethod<T>(T t) {}
+  static get property => 42;
+  static method() {}
+  static set property(value) {}
+  static var field;
+}
+
+main() {}

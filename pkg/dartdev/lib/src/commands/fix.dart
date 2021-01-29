@@ -19,26 +19,14 @@ class FixCommand extends DartdevCommand {
 
   static final NumberFormat _numberFormat = NumberFormat.decimalPattern();
 
-  static const String cmdDescription = '''Fix Dart source code.
+  static const String cmdDescription =
+      '''Apply automated fixes to Dart source code.
 
-This tool looks for and fixes analysis issues that have associated automated fixes or issues that have associated package API migration information. See dart.dev/go/dart-fix for more information about how automated package API changes work.
+This tool looks for and fixes analysis issues that have associated automated fixes.
 
 To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed changes for a project, or ['dart fix --apply'] to apply the changes.''';
 
-  @override
-  String get description {
-    if (log != null && log.ansi.useAnsi) {
-      return cmdDescription
-          .replaceAll('[', log.ansi.bold)
-          .replaceAll(']', log.ansi.none);
-    } else {
-      return cmdDescription.replaceAll('[', '').replaceAll(']', '');
-    }
-  }
-
-  // This command is hidden as it's currently experimental.
-  FixCommand({bool verbose = false})
-      : super(cmdName, cmdDescription, hidden: true) {
+  FixCommand({bool verbose = false}) : super(cmdName, cmdDescription) {
     argParser.addFlag('dry-run',
         abbr: 'n',
         defaultsTo: false,
@@ -61,22 +49,30 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
   }
 
   @override
-  FutureOr<int> run() async {
-    log.stdout('\n${log.ansi.emphasized('Note:')} The `fix` command is '
-        'provisional and subject to change or removal in future releases.\n');
+  String get description {
+    if (log != null && log.ansi.useAnsi) {
+      return cmdDescription
+          .replaceAll('[', log.ansi.bold)
+          .replaceAll(']', log.ansi.none);
+    } else {
+      return cmdDescription.replaceAll('[', '').replaceAll(']', '');
+    }
+  }
 
+  @override
+  FutureOr<int> run() async {
     var dryRun = argResults['dry-run'];
-    var testMode = argResults['compare-to-golden'];
+    var inTestMode = argResults['compare-to-golden'];
     var apply = argResults['apply'];
+    if (!apply && !dryRun && !inTestMode) {
+      printUsage();
+      return 0;
+    }
+
     var arguments = argResults.rest;
     var argumentCount = arguments.length;
     if (argumentCount > 1) {
       usageException('Only one file or directory is expected.');
-    }
-
-    if (!apply && !dryRun && !testMode) {
-      printUsage();
-      return 0;
     }
 
     var dir =
@@ -84,10 +80,12 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
     if (!dir.existsSync()) {
       usageException("Directory doesn't exist: ${dir.path}");
     }
+    dir = io.Directory(path.canonicalize(path.normalize(dir.absolute.path)));
+    var dirPath = dir.path;
 
     var modeText = dryRun ? ' (dry run)' : '';
 
-    final projectName = path.basename(path.canonicalize(dir.path));
+    final projectName = path.basename(dirPath);
     var progress = log.progress(
         'Computing fixes in ${log.ansi.emphasized(projectName)}$modeText');
 
@@ -107,24 +105,24 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       }
     });
 
-    fixes = await server.requestBulkFixes(dir.absolute.path);
+    fixes = await server.requestBulkFixes(dirPath, inTestMode);
     final List<SourceFileEdit> edits = fixes.edits;
 
     await server.shutdown();
 
     progress.finish(showTiming: true);
 
-    if (testMode) {
-      if (_compareFixes(edits)) {
-        return 1;
-      }
+    if (inTestMode) {
+      var result = _compareFixesInDirectory(dir, edits);
+      log.stdout('Passed: ${result.passCount}, Failed: ${result.failCount}');
+      return result.failCount > 0 ? 1 : 0;
     } else if (edits.isEmpty) {
       log.stdout('Nothing to fix!');
     } else {
       var details = fixes.details;
       details.sort((f1, f2) => path
-          .relative(f1.path, from: dir.path)
-          .compareTo(path.relative(f2.path, from: dir.path)));
+          .relative(f1.path, from: dirPath)
+          .compareTo(path.relative(f2.path, from: dirPath)));
 
       var fileCount = 0;
       var fixCount = 0;
@@ -166,31 +164,82 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
 
   /// Return `true` if any of the fixes fail to create the same content as is
   /// found in the golden file.
-  bool _compareFixes(List<SourceFileEdit> edits) {
-    var passCount = 0;
-    var failCount = 0;
+  _TestResult _compareFixesInDirectory(
+      io.Directory directory, List<SourceFileEdit> edits) {
+    var result = _TestResult();
+    //
+    // Gather the files of interest in this directory and process
+    // subdirectories.
+    //
+    var dartFiles = <io.File>[];
+    var expectFileMap = <String, io.File>{};
+    for (var child in directory.listSync()) {
+      if (child is io.Directory) {
+        var childResult = _compareFixesInDirectory(child, edits);
+        result.passCount += childResult.passCount;
+        result.failCount += childResult.failCount;
+      } else if (child is io.File) {
+        var name = child.name;
+        if (name.endsWith('.dart')) {
+          dartFiles.add(child);
+        } else if (name.endsWith('.expect')) {
+          expectFileMap[child.path] = child;
+        }
+      }
+    }
+    var editMap = <String, SourceFileEdit>{};
     for (var edit in edits) {
-      var filePath = edit.file;
+      editMap[edit.file] = edit;
+    }
+    for (var originalFile in dartFiles) {
+      var filePath = originalFile.path;
       var baseName = path.basename(filePath);
       var expectFileName = baseName + '.expect';
       var expectFilePath = path.join(path.dirname(filePath), expectFileName);
+      var expectFile = expectFileMap.remove(expectFilePath);
+      if (expectFile == null) {
+        result.failCount++;
+        log.stdout(
+            'No corresponding expect file for the Dart file at "$filePath".');
+        continue;
+      }
+      var edit = editMap[filePath];
       try {
-        var originalCode = io.File(filePath).readAsStringSync();
-        var expectedCode = io.File(expectFilePath).readAsStringSync();
-        var actualCode = SourceEdit.applySequence(originalCode, edit.edits);
-        if (actualCode != expectedCode) {
-          failCount++;
+        var originalCode = originalFile.readAsStringSync();
+        var expectedCode = expectFile.readAsStringSync();
+        var actualCode = edit == null
+            ? originalCode
+            : SourceEdit.applySequence(originalCode, edit.edits);
+        // Use a whitespace insensitive comparison.
+        if (_compressWhitespace(actualCode) !=
+            _compressWhitespace(expectedCode)) {
+          result.failCount++;
           _reportFailure(filePath, actualCode, expectedCode);
+          _printEdits(edits);
         } else {
-          passCount++;
+          result.passCount++;
         }
       } on io.FileSystemException {
-        // Ignored for now.
+        result.failCount++;
+        log.stdout('Failed to process "$filePath".');
+        log.stdout(
+            '  Ensure that the file and its expect file are both readable.');
       }
     }
-    log.stdout('Passed: $passCount, Failed: $failCount');
-    return failCount > 0;
+    //
+    // Report any `.expect` files that have no corresponding `.dart` file.
+    //
+    for (var unmatchedExpectPath in expectFileMap.keys) {
+      result.failCount++;
+      log.stdout(
+          'No corresponding Dart file for the expect file at "$unmatchedExpectPath".');
+    }
+    return result;
   }
+
+  /// Compress sequences of whitespace characters into a single space.
+  String _compressWhitespace(String code) =>
+      code.replaceAll(RegExp(r'\s*'), ' ');
 
   String _pluralFix(int count) => count == 1 ? 'fix' : 'fixes';
 
@@ -211,6 +260,16 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
     }
   }
 
+  void _printEdits(List<SourceFileEdit> edits) {
+    log.stdout('Edits returned from server:');
+    for (var fileEdit in edits) {
+      log.stdout('  ${fileEdit.file}');
+      for (var edit in fileEdit.edits) {
+        log.stdout("    ${edit.offset} - ${edit.end}, '${edit.replacement}'");
+      }
+    }
+  }
+
   /// Report that the [actualCode] produced by applying fixes to the content of
   /// [filePath] did not match the [expectedCode].
   void _reportFailure(String filePath, String actualCode, String expectedCode) {
@@ -223,4 +282,16 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
   }
 
   static String _format(int value) => _numberFormat.format(value);
+}
+
+/// The result of running tests in a given directory.
+class _TestResult {
+  /// The number of tests that passed.
+  int passCount = 0;
+
+  /// The number of tests that failed.
+  int failCount = 0;
+
+  /// Initialize a newly created result object.
+  _TestResult();
 }

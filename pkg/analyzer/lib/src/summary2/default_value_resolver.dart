@@ -98,6 +98,11 @@ class DefaultValueResolver {
   }
 
   void _parameter(ParameterElementImpl parameter) {
+    // If a function typed parameter, process nested parameters.
+    for (var localParameter in parameter.parameters) {
+      _parameter(localParameter);
+    }
+
     var node = _defaultParameter(parameter);
     if (node == null) return;
 

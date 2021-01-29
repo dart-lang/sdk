@@ -21,7 +21,7 @@ abstract class TestMixin<R extends core::Object? = dynamic, T extends core::Obje
         else {
           throw core::Exception::•("Invalid response type");
         }
-    return result;
+    return let final self::TestMixin::T% #t1 = result in #t1 is asy::Future<self::TestMixin::T%> ?{FutureOr<self::TestMixin::T%>} await #t1 : #t1;
   }
 }
 class PagingResponse<T extends core::Object? = dynamic> extends core::Object {
@@ -46,6 +46,8 @@ abstract class _Class1&Object&TestMixin = core::Object with self::TestMixin<self
   const synthetic constructor •() → self::_Class1&Object&TestMixin
     : super core::Object::•()
     ;
+  mixin-super-stub method test(generic-covariant-impl asy::Future<self::Response<core::String>> fetch) → asy::Future<core::String>
+    return super.{self::TestMixin::test}(fetch);
 }
 class Class1 extends self::_Class1&Object&TestMixin {
   synthetic constructor •() → self::Class1
@@ -53,13 +55,15 @@ class Class1 extends self::_Class1&Object&TestMixin {
     ;
   method _test() → dynamic {
     final self::Response<core::String> response = new self::Response::•<core::String>("test");
-    this.{self::TestMixin::test}(asy::Future::value<self::Response<core::String>>(response));
+    this.{self::_Class1&Object&TestMixin::test}(asy::Future::value<self::Response<core::String>>(response));
   }
 }
 abstract class _Class2&Object&TestMixin = core::Object with self::TestMixin<self::PagingResponse<core::String>, core::String> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Class2&Object&TestMixin
     : super core::Object::•()
     ;
+  mixin-super-stub method test(generic-covariant-impl asy::Future<self::PagingResponse<core::String>> fetch) → asy::Future<core::String>
+    return super.{self::TestMixin::test}(fetch);
 }
 class Class2 extends self::_Class2&Object&TestMixin {
   synthetic constructor •() → self::Class2
@@ -67,7 +71,7 @@ class Class2 extends self::_Class2&Object&TestMixin {
     ;
   method _test() → dynamic {
     final self::PagingResponse<core::String> response = new self::PagingResponse::•<core::String>(new self::PagingResponseData::•<core::String>(<core::String>["test"]));
-    this.{self::TestMixin::test}(asy::Future::value<self::PagingResponse<core::String>>(response));
+    this.{self::_Class2&Object&TestMixin::test}(asy::Future::value<self::PagingResponse<core::String>>(response));
   }
 }
 static method main() → dynamic {}

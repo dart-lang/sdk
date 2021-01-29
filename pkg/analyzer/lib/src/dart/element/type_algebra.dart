@@ -104,6 +104,25 @@ DartType substitute(
   return Substitution.fromMap(substitution).substituteType(type);
 }
 
+///  1. Substituting T=X! into T! yields X!
+///  2. Substituting T=X* into T! yields X*
+///  3. Substituting T=X? into T! yields X?
+///  4. Substituting T=X! into T* yields X*
+///  5. Substituting T=X* into T* yields X*
+///  6. Substituting T=X? into T* yields X?
+///  7. Substituting T=X! into T? yields X?
+///  8. Substituting T=X* into T? yields X?
+///  9. Substituting T=X? into T? yields X?
+NullabilitySuffix uniteNullabilities(NullabilitySuffix a, NullabilitySuffix b) {
+  if (a == NullabilitySuffix.question || b == NullabilitySuffix.question) {
+    return NullabilitySuffix.question;
+  }
+  if (a == NullabilitySuffix.star || b == NullabilitySuffix.star) {
+    return NullabilitySuffix.star;
+  }
+  return NullabilitySuffix.none;
+}
+
 class FreshTypeParameters {
   final List<TypeParameterElement> freshTypeParameters;
   final Substitution substitution;
@@ -160,7 +179,7 @@ abstract class Substitution {
 
   /// Substitutes the type parameters on the class of [type] with the
   /// type arguments provided in [type].
-  static Substitution fromInterfaceType(InterfaceType type) {
+  static MapSubstitution fromInterfaceType(InterfaceType type) {
     if (type.typeArguments.isEmpty) {
       return _NullSubstitution.instance;
     }
@@ -424,7 +443,7 @@ abstract class _TypeSubstitutor
     inner.invertVariance();
 
     var returnType = type.returnType.accept(inner);
-    var typeArguments = _mapList(type.typeArguments);
+    var aliasArguments = _mapList(type.aliasArguments);
 
     if (useCounter == before) return type;
 
@@ -433,8 +452,8 @@ abstract class _TypeSubstitutor
       parameters: parameters,
       returnType: returnType,
       nullabilitySuffix: type.nullabilitySuffix,
-      element: type.element,
-      typeArguments: typeArguments,
+      aliasElement: type.aliasElement,
+      aliasArguments: aliasArguments,
     );
   }
 
@@ -533,7 +552,7 @@ abstract class _TypeSubstitutor
 
     var parameterSuffix = type.nullabilitySuffix;
     var argumentSuffix = argument.nullabilitySuffix;
-    var nullability = _computeNullability(parameterSuffix, argumentSuffix);
+    var nullability = uniteNullabilities(parameterSuffix, argumentSuffix);
     return (argument as TypeImpl).withNullability(nullability);
   }
 
@@ -544,31 +563,8 @@ abstract class _TypeSubstitutor
   DartType visitVoidType(VoidType type) => type;
 
   List<DartType> _mapList(List<DartType> types) {
+    if (types == null) return null;
     return types.map((e) => e.accept(this)).toList();
-  }
-
-  ///  1. Substituting T=X! into T! yields X!
-  ///  2. Substituting T=X* into T! yields X*
-  ///  3. Substituting T=X? into T! yields X?
-  ///  4. Substituting T=X! into T* yields X*
-  ///  5. Substituting T=X* into T* yields X*
-  ///  6. Substituting T=X? into T* yields X?
-  ///  7. Substituting T=X! into T? yields X?
-  ///  8. Substituting T=X* into T? yields X?
-  ///  9. Substituting T=X? into T? yields X?
-  static NullabilitySuffix _computeNullability(
-    NullabilitySuffix parameterSuffix,
-    NullabilitySuffix argumentSuffix,
-  ) {
-    if (parameterSuffix == NullabilitySuffix.question ||
-        argumentSuffix == NullabilitySuffix.question) {
-      return NullabilitySuffix.question;
-    }
-    if (parameterSuffix == NullabilitySuffix.star ||
-        argumentSuffix == NullabilitySuffix.star) {
-      return NullabilitySuffix.star;
-    }
-    return NullabilitySuffix.none;
   }
 }
 

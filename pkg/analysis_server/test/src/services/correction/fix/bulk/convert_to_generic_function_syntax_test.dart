@@ -10,6 +10,7 @@ import 'bulk_fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PreferGenericFunctionTypeAliasesTest);
+    defineReflectiveTests(UseFunctionTypeSyntaxForParametersTest);
   });
 }
 
@@ -26,6 +27,32 @@ typedef F2<P, R>(P x);
     await assertHasFix('''
 typedef F = String Function(int x);
 typedef F2<P, R> = Function(P x);
+''');
+  }
+}
+
+@reflectiveTest
+class UseFunctionTypeSyntaxForParametersTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.use_function_type_syntax_for_parameters;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+g(String f(int x), int h()) {}
+''');
+    await assertHasFix('''
+g(String Function(int x) f, int Function() h) {}
+''');
+  }
+
+  @failingTest
+  Future<void> test_singleFile_nested() async {
+    // Only the outer function gets converted.
+    await resolveTestCode('''
+g(String f(int h())) {}
+''');
+    await assertHasFix('''
+g(String Function(int Function() h) f) {}
 ''');
   }
 }

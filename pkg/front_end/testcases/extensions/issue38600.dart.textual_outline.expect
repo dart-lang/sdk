@@ -1,4 +1,5 @@
 class Class<T> {}
-extension try<T> (){}
+extension on{}
+try<T> (){}
 on Class<T> (){}
 main() {}

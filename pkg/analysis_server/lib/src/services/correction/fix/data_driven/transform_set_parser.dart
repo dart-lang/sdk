@@ -657,7 +657,7 @@ class TransformSetParser {
             return null;
           }
         } else {
-          components.insert(0, containerName);
+          components.add(containerName);
         }
       }
       if (uris == null) {

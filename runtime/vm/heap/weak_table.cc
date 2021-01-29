@@ -140,12 +140,4 @@ void WeakTable::Rehash() {
   free(old_data);
 }
 
-void WeakTable::MergeFrom(WeakTable* donor) {
-  for (intptr_t i = 0; i < donor->size(); i++) {
-    if (donor->IsValidEntryAtExclusive(i)) {
-      SetValueExclusive(donor->ObjectAtExclusive(i), ValueIndex(i));
-    }
-  }
-}
-
 }  // namespace dart

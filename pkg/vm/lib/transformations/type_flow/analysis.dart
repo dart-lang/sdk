@@ -504,7 +504,7 @@ class _DispatchableInvocation extends _Invocation {
       // invocation to the receiver class. A new allocated class discovered
       // in the receiver cone will invalidate this invocation.
       receiver = typeFlowAnalysis.hierarchyCache
-          .specializeTypeCone((receiver as ConeType).cls);
+          .specializeTypeCone((receiver as ConeType).cls, allowWideCone: false);
     }
 
     assert(targets.isEmpty);
@@ -936,6 +936,11 @@ class _DynamicTargetSet extends _DependencyTracker {
 }
 
 class _TFClassImpl extends TFClass {
+  /// Maximum number of concrete types to use when calculating
+  /// subtype cone specialization. If number of allocated types
+  /// exceeds this constant, then WideConeType approximation is used.
+  static const int maxAllocatedTypesInSetSpecializations = 128;
+
   final Set<_TFClassImpl> supertypes; // List of super-types including this.
   final Set<_TFClassImpl> _allocatedSubtypes = new Set<_TFClassImpl>();
   final Map<Selector, Member> _dispatchTargets = <Selector, Member>{};
@@ -958,6 +963,15 @@ class _TFClassImpl extends TFClass {
   Type _specializedConeType;
   Type get specializedConeType =>
       _specializedConeType ??= _calculateConeTypeSpecialization();
+
+  bool get hasWideCone =>
+      _allocatedSubtypes.length > maxAllocatedTypesInSetSpecializations;
+
+  WideConeType _wideConeType;
+  WideConeType get wideConeType {
+    assert(hasWideCone);
+    return _wideConeType ??= new WideConeType(this);
+  }
 
   Type _calculateConeTypeSpecialization() {
     final int numSubTypes = _allocatedSubtypes.length;
@@ -1154,20 +1168,22 @@ class _ClassHierarchyCache extends TypeHierarchy {
   }
 
   @override
-  Type specializeTypeCone(TFClass baseClass) {
+  Type specializeTypeCone(TFClass baseClass, {bool allowWideCone = false}) {
     if (kPrintTrace) {
       tracePrint("specializeTypeCone for $baseClass");
     }
     Statistics.typeConeSpecializations++;
-
-    // TODO(alexmarkov): consider approximating type if number of allocated
-    // subtypes is too large
 
     if (baseClass.classNode == coreTypes.objectClass) {
       return const AnyType();
     }
 
     final _TFClassImpl cls = baseClass as _TFClassImpl;
+
+    if (allowWideCone && cls.hasWideCone) {
+      Statistics.typeSpecializationsUsedWideCone++;
+      return cls.wideConeType;
+    }
 
     if (!_sealed) {
       cls.dependencyTracker

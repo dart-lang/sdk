@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+// @dart = 2.9
+
 import 'dart:async' show Timer;
 import 'dart:convert' show jsonEncode;
 import 'dart:io' show File, Platform, exitCode;
@@ -138,24 +140,30 @@ class ResultLogger implements Logger {
       "matches": matchedExpectations,
     }));
     if (!matchedExpectations) {
-      String failureLog = result.log;
+      StringBuffer sb = new StringBuffer();
+      sb.write(result.log);
       if (result.error != null) {
-        failureLog = "$failureLog\n\n${result.error}";
+        sb.write("\n\n${result.error}");
       }
       if (result.trace != null) {
-        failureLog = "$failureLog\n\n${result.trace}";
+        sb.write("\n\n${result.trace}");
       }
+      sb.write("\n\nTo re-run this test, run:");
+      sb.write("\n\n   dart pkg/front_end/test/unit_test_suites.dart -p "
+          "$testName");
       if (result.autoFixCommand != null) {
-        failureLog = "$failureLog\n\n"
-            "To re-run this test, run:\n\n"
-            "   dart pkg/front_end/test/unit_test_suites.dart -p $testName\n\n"
-            "To automatically update the test expectations, run:\n\n"
-            "   dart pkg/front_end/test/unit_test_suites.dart -p $testName "
-            "-D${result.autoFixCommand}\n";
-      } else {
-        failureLog = "$failureLog\n\nRe-run this test: dart "
-            "pkg/front_end/test/unit_test_suites.dart -p $testName";
+        sb.write("\n\nTo automatically update the test expectations, run:");
+        sb.write("\n\n   dart pkg/front_end/test/unit_test_suites.dart -p "
+            "$testName -D${result.autoFixCommand}");
+        if (result.canBeFixWithUpdateExpectations) {
+          sb.write('\n\nTo update test expectations for all tests at once, '
+              'run:');
+          sb.write('\n\n  dart pkg/front_end/tool/update_expectations.dart');
+          sb.write('\n\nNote that this takes a long time and should only be '
+              'used when many tests need updating.\n');
+        }
       }
+      String failureLog = sb.toString();
       String outcome = "${result.outcome}";
       logsPort.send(jsonEncode({
         "name": testName,
@@ -288,7 +296,7 @@ const List<Suite> suites = [
       "../../testing.json"),
 ];
 
-const Duration timeoutDuration = Duration(minutes: 25);
+const Duration timeoutDuration = Duration(minutes: 30);
 
 class SuiteConfiguration {
   final String name;

@@ -1,0 +1,38 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class1 extends core::Object {
+  field core::int field;
+  static field core::int staticField;
+  constructor •(core::int field) → self::Class1
+    ;
+  method method(core::double o) → core::int
+    ;
+  static method staticMethod(core::double o) → core::int
+    ;
+}
+class Class2<T extends core::Object? = dynamic> extends core::Object {
+  generic-covariant-impl field self::Class2::T% field;
+  constructor •(self::Class2::T% field) → self::Class2<self::Class2::T%>
+    ;
+  method call() → core::int
+    ;
+}
+static field core::int topLevelField;
+static const field core::String string = "foo";
+static const field core::int stringLength = self::string.{core::String::length}{core::int};
+static const field dynamic dynamicString = "foo";
+static const field core::int dynamicStringLength = self::dynamicString{dynamic}.length as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+static method topLevelMethod(core::double o) → core::int
+  ;
+static method test<T1 extends core::Function = core::Function, T2 extends () → core::int = () → core::int>(self::Class1 nonNullableClass1, self::Class1? nullableClass1, dynamic dyn, Never never, self::Class2<core::String> nonNullableClass2, self::Class2<core::String>? nullableClass2, core::Function nonNullableFunction, core::Function? nullableFunction, () → core::int nonNullableFunctionType, () →? core::int nullableFunctionType, self::test::T1 nonNullableTypeVariable1, self::test::T1? nullableTypeVariable1, self::test::T2 nonNullableTypeVariable2, self::test::T2? nullableTypeVariable2) → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: InstanceGet @ org-dartlang-testcase:///property_get.dart:30:33 -> IntConstant(3)
+Evaluated: AsExpression @ org-dartlang-testcase:///property_get.dart:33:47 -> IntConstant(3)
+Extra constant evaluation: evaluated: 2, effectively constant: 2

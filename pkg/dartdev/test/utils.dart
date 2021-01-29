@@ -68,6 +68,12 @@ dev_dependencies:
     file.writeAsStringSync(contents);
   }
 
+  void deleteFile(String name) {
+    var file = File(path.join(dir.path, name));
+    assert(file.existsSync());
+    file.deleteSync();
+  }
+
   void dispose() {
     if (dir.existsSync()) {
       dir.deleteSync(recursive: true);
@@ -79,6 +85,20 @@ dev_dependencies:
     String workingDir,
   }) {
     return Process.runSync(
+        Platform.resolvedExecutable,
+        [
+          '--no-analytics',
+          ...arguments,
+        ],
+        workingDirectory: workingDir ?? dir.path,
+        environment: {if (logAnalytics) '_DARTDEV_LOG_ANALYTICS': 'true'});
+  }
+
+  Future<Process> start(
+    List<String> arguments, {
+    String workingDir,
+  }) {
+    return Process.start(
         Platform.resolvedExecutable,
         [
           '--no-analytics',

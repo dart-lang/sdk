@@ -127,13 +127,13 @@ static void PrintTargetsHelper(BaseTextBuffer* f,
     const CidRange& range = targets[i];
     const auto target_info = targets.TargetAt(i);
     const intptr_t count = target_info->count;
-    target = target_info->target->raw();
+    target = target_info->target->ptr();
     if (i > 0) {
       f->AddString(" | ");
     }
     if (range.IsSingleCid()) {
-      const Class& cls =
-          Class::Handle(Isolate::Current()->class_table()->At(range.cid_start));
+      const Class& cls = Class::Handle(
+          IsolateGroup::Current()->class_table()->At(range.cid_start));
       f->Printf("%s", String::Handle(cls.Name()).ToCString());
       f->Printf(" cid %" Pd " cnt:%" Pd " trgt:'%s'", range.cid_start, count,
                 target.ToQualifiedCString());
@@ -168,8 +168,8 @@ static void PrintCidsHelper(BaseTextBuffer* f,
     if (i > 0) {
       f->AddString(" | ");
     }
-    const Class& cls =
-        Class::Handle(Isolate::Current()->class_table()->At(range.cid_start));
+    const Class& cls = Class::Handle(
+        IsolateGroup::Current()->class_table()->At(range.cid_start));
     f->Printf("%s etc. ", String::Handle(cls.Name()).ToCString());
     if (range.IsSingleCid()) {
       f->Printf(" cid %" Pd, range.cid_start);
@@ -209,8 +209,8 @@ static void PrintICDataHelper(BaseTextBuffer* f,
       if (k > 0) {
         f->AddString(", ");
       }
-      const Class& cls =
-          Class::Handle(Isolate::Current()->class_table()->At(class_ids[k]));
+      const Class& cls = Class::Handle(
+          IsolateGroup::Current()->class_table()->At(class_ids[k]));
       f->Printf("%s", String::Handle(cls.Name()).ToCString());
     }
     f->Printf(" cnt:%" Pd " trgt:'%s'", count, target.ToQualifiedCString());
@@ -233,7 +233,7 @@ static void PrintICDataSortedHelper(BaseTextBuffer* f,
     const intptr_t count = ic_data.GetCountAt(i);
     const intptr_t cid = ic_data.GetReceiverClassIdAt(i);
     const Class& cls =
-        Class::Handle(Isolate::Current()->class_table()->At(cid));
+        Class::Handle(IsolateGroup::Current()->class_table()->At(cid));
     f->Printf("%s : %" Pd ", ", String::Handle(cls.Name()).ToCString(), count);
   }
   f->AddString("]");
@@ -814,14 +814,14 @@ void LoadClassIdInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 void CheckClassIdInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   value()->PrintTo(f);
 
-  const Class& cls =
-      Class::Handle(Isolate::Current()->class_table()->At(cids().cid_start));
+  const Class& cls = Class::Handle(
+      IsolateGroup::Current()->class_table()->At(cids().cid_start));
   const String& name = String::Handle(cls.ScrubbedName());
   if (cids().IsSingleCid()) {
     f->Printf(", %s", name.ToCString());
   } else {
-    const Class& cls2 =
-        Class::Handle(Isolate::Current()->class_table()->At(cids().cid_end));
+    const Class& cls2 = Class::Handle(
+        IsolateGroup::Current()->class_table()->At(cids().cid_end));
     const String& name2 = String::Handle(cls2.ScrubbedName());
     f->Printf(", cid %" Pd "-%" Pd " %s-%s", cids().cid_start, cids().cid_end,
               name.ToCString(), name2.ToCString());
@@ -1059,7 +1059,7 @@ void NativeEntryInstr::PrintTo(BaseTextBuffer* f) const {
 
 void ReturnInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   Instruction::PrintOperandsTo(f);
-  if (yield_index() != PcDescriptorsLayout::kInvalidYieldIndex) {
+  if (yield_index() != UntaggedPcDescriptors::kInvalidYieldIndex) {
     f->Printf(", yield_index = %" Pd "", yield_index());
   }
 }
@@ -1067,11 +1067,26 @@ void ReturnInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 void FfiCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   f->AddString(" pointer=");
   InputAt(TargetAddressIndex())->PrintTo(f);
-  for (intptr_t i = 0, n = InputCount(); i < n - 1; ++i) {
+  if (marshaller_.PassTypedData()) {
+    f->AddString(", typed_data=");
+    InputAt(TypedDataIndex())->PrintTo(f);
+  }
+  intptr_t def_index = 0;
+  for (intptr_t arg_index = 0; arg_index < marshaller_.num_args();
+       arg_index++) {
+    const auto& arg_location = marshaller_.Location(arg_index);
+    const bool is_compound = arg_location.container_type().IsCompound();
+    const intptr_t num_defs = marshaller_.NumDefinitions(arg_index);
     f->AddString(", ");
-    InputAt(i)->PrintTo(f);
+    if (is_compound) f->AddString("(");
+    for (intptr_t i = 0; i < num_defs; i++) {
+      InputAt(def_index)->PrintTo(f);
+      if ((i + 1) < num_defs) f->AddString(", ");
+      def_index++;
+    }
+    if (is_compound) f->AddString(")");
     f->AddString(" (@");
-    marshaller_.Location(i).PrintTo(f);
+    arg_location.PrintTo(f);
     f->AddString(")");
   }
 }
@@ -1093,10 +1108,10 @@ void NativeReturnInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 
 void NativeParameterInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   // Where the calling convention puts it.
-  marshaller_.Location(index_).PrintTo(f);
+  marshaller_.Location(marshaller_.ArgumentIndex(def_index_)).PrintTo(f);
   f->AddString(" at ");
   // Where the arguments are when pushed on the stack.
-  marshaller_.NativeLocationOfNativeParameter(index_).PrintTo(f);
+  marshaller_.NativeLocationOfNativeParameter(def_index_).PrintTo(f);
 }
 
 void CatchBlockEntryInstr::PrintTo(BaseTextBuffer* f) const {
@@ -1137,7 +1152,7 @@ void TailCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   } else {
     const Object& owner = Object::Handle(code_.owner());
     if (owner.IsFunction()) {
-      name = Function::Handle(Function::RawCast(owner.raw()))
+      name = Function::Handle(Function::RawCast(owner.ptr()))
                  .ToFullyQualifiedCString();
     }
   }

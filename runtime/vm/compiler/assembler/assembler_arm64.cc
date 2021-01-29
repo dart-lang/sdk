@@ -22,6 +22,9 @@ DECLARE_FLAG(bool, use_slow_path);
 
 DEFINE_FLAG(bool, use_far_branches, false, "Always use far branches");
 
+// For use by LR related macros (e.g. CLOBBERS_LR).
+#define __ this->
+
 namespace compiler {
 
 Assembler::Assembler(ObjectPoolBuilder* object_pool_builder,
@@ -30,14 +33,12 @@ Assembler::Assembler(ObjectPoolBuilder* object_pool_builder,
       use_far_branches_(use_far_branches),
       constant_pool_allowed_(false) {
   generate_invoke_write_barrier_wrapper_ = [&](Register reg) {
-    ldr(LR, Address(THR,
-                    target::Thread::write_barrier_wrappers_thread_offset(reg)));
-    blr(LR);
+    Call(Address(THR,
+                 target::Thread::write_barrier_wrappers_thread_offset(reg)));
   };
   generate_invoke_array_write_barrier_ = [&]() {
-    ldr(LR,
+    Call(
         Address(THR, target::Thread::array_write_barrier_entry_point_offset()));
-    blr(LR);
   };
 }
 
@@ -200,7 +201,7 @@ void Assembler::Bind(Label* label) {
       label->position_ = BindImm19Branch(position, dest);
     }
   }
-  label->BindTo(bound_pc);
+  label->BindTo(bound_pc, lr_state());
 }
 
 static int CountLeadingZeros(uint64_t value, int width) {
@@ -649,14 +650,11 @@ void Assembler::BranchLink(const Code& target,
   const intptr_t index =
       object_pool_builder().FindObject(ToObject(target), patchable);
   LoadWordFromPoolIndex(CODE_REG, index);
-  ldr(TMP,
-      FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
-  blr(TMP);
+  Call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
 }
 
 void Assembler::BranchLinkToRuntime() {
-  ldr(LR, Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
-  blr(LR);
+  Call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
 }
 
 void Assembler::BranchLinkWithEquivalence(const Code& target,
@@ -665,9 +663,7 @@ void Assembler::BranchLinkWithEquivalence(const Code& target,
   const intptr_t index =
       object_pool_builder().FindObject(ToObject(target), equivalence);
   LoadWordFromPoolIndex(CODE_REG, index);
-  ldr(TMP,
-      FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
-  blr(TMP);
+  Call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
 }
 
 void Assembler::AddImmediate(Register dest, Register rn, int64_t imm) {
@@ -968,26 +964,25 @@ void Assembler::StoreIntoObjectFilter(Register object,
 void Assembler::StoreIntoObjectOffset(Register object,
                                       int32_t offset,
                                       Register value,
-                                      CanBeSmi value_can_be_smi,
-                                      bool lr_reserved) {
+                                      CanBeSmi value_can_be_smi) {
   if (Address::CanHoldOffset(offset - kHeapObjectTag)) {
     StoreIntoObject(object, FieldAddress(object, offset), value,
-                    value_can_be_smi, lr_reserved);
+                    value_can_be_smi);
   } else {
     AddImmediate(TMP, object, offset - kHeapObjectTag);
-    StoreIntoObject(object, Address(TMP), value, value_can_be_smi, lr_reserved);
+    StoreIntoObject(object, Address(TMP), value, value_can_be_smi);
   }
 }
 
 void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
                                 Register value,
-                                CanBeSmi can_be_smi,
-                                bool lr_reserved) {
+                                CanBeSmi can_be_smi) {
+  const bool spill_lr = lr_state().LRContainsReturnAddress();
   // x.slot = x. Barrier should have be removed at the IL level.
   ASSERT(object != value);
-  ASSERT(object != LR);
-  ASSERT(value != LR);
+  ASSERT(object != LINK_REGISTER);
+  ASSERT(value != LINK_REGISTER);
   ASSERT(object != TMP);
   ASSERT(object != TMP2);
   ASSERT(value != TMP);
@@ -1001,7 +996,7 @@ void Assembler::StoreIntoObject(Register object,
   //    in progress
   // If so, call the WriteBarrier stub, which will either add object to the
   // store buffer (case 1) or add value to the marking stack (case 2).
-  // Compare ObjectLayout::StorePointer.
+  // Compare UntaggedObject::StorePointer.
   Label done;
   if (can_be_smi == kValueCanBeSmi) {
     BranchIfSmi(value, &done);
@@ -1011,11 +1006,13 @@ void Assembler::StoreIntoObject(Register object,
   ldr(TMP2, FieldAddress(value, target::Object::tags_offset(), kByte),
       kUnsignedByte);
   and_(TMP, TMP2,
-       Operand(TMP, LSR, target::ObjectLayout::kBarrierOverlapShift));
+       Operand(TMP, LSR, target::UntaggedObject::kBarrierOverlapShift));
   tst(TMP, Operand(BARRIER_MASK));
   b(&done, ZERO);
 
-  if (!lr_reserved) Push(LR);
+  if (spill_lr) {
+    SPILLS_LR_TO_FRAME(Push(LR));
+  }
   Register objectForCall = object;
   if (value != kWriteBarrierValueReg) {
     // Unlikely. Only non-graph intrinsics.
@@ -1041,15 +1038,17 @@ void Assembler::StoreIntoObject(Register object,
       PopPair(kWriteBarrierValueReg, objectForCall);
     }
   }
-  if (!lr_reserved) Pop(LR);
+  if (spill_lr) {
+    RESTORES_LR_FROM_FRAME(Pop(LR));
+  }
   Bind(&done);
 }
 
 void Assembler::StoreIntoArray(Register object,
                                Register slot,
                                Register value,
-                               CanBeSmi can_be_smi,
-                               bool lr_reserved) {
+                               CanBeSmi can_be_smi) {
+  const bool spill_lr = lr_state().LRContainsReturnAddress();
   ASSERT(object != TMP);
   ASSERT(object != TMP2);
   ASSERT(value != TMP);
@@ -1065,7 +1064,7 @@ void Assembler::StoreIntoArray(Register object,
   //    in progress
   // If so, call the WriteBarrier stub, which will either add object to the
   // store buffer (case 1) or add value to the marking stack (case 2).
-  // Compare ObjectLayout::StorePointer.
+  // Compare UntaggedObject::StorePointer.
   Label done;
   if (can_be_smi == kValueCanBeSmi) {
     BranchIfSmi(value, &done);
@@ -1075,11 +1074,12 @@ void Assembler::StoreIntoArray(Register object,
   ldr(TMP2, FieldAddress(value, target::Object::tags_offset(), kByte),
       kUnsignedByte);
   and_(TMP, TMP2,
-       Operand(TMP, LSR, target::ObjectLayout::kBarrierOverlapShift));
+       Operand(TMP, LSR, target::UntaggedObject::kBarrierOverlapShift));
   tst(TMP, Operand(BARRIER_MASK));
   b(&done, ZERO);
-  if (!lr_reserved) Push(LR);
-
+  if (spill_lr) {
+    SPILLS_LR_TO_FRAME(Push(LR));
+  }
   if ((object != kWriteBarrierObjectReg) || (value != kWriteBarrierValueReg) ||
       (slot != kWriteBarrierSlotReg)) {
     // Spill and shuffle unimplemented. Currently StoreIntoArray is only used
@@ -1088,7 +1088,9 @@ void Assembler::StoreIntoArray(Register object,
     UNIMPLEMENTED();
   }
   generate_invoke_array_write_barrier_();
-  if (!lr_reserved) Pop(LR);
+  if (spill_lr) {
+    RESTORES_LR_FROM_FRAME(Pop(LR));
+  }
   Bind(&done);
 }
 
@@ -1102,7 +1104,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 
   ldr(TMP, FieldAddress(object, target::Object::tags_offset(), kByte),
       kUnsignedByte);
-  tsti(TMP, Immediate(1 << target::ObjectLayout::kOldAndNotRememberedBit));
+  tsti(TMP, Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
   b(&done, ZERO);
 
   Stop("Store buffer update is required");
@@ -1154,25 +1156,26 @@ void Assembler::StoreInternalPointer(Register object,
 }
 
 void Assembler::ExtractClassIdFromTags(Register result, Register tags) {
-  ASSERT(target::ObjectLayout::kClassIdTagPos == 16);
-  ASSERT(target::ObjectLayout::kClassIdTagSize == 16);
-  LsrImmediate(result, tags, target::ObjectLayout::kClassIdTagPos, kFourBytes);
+  ASSERT(target::UntaggedObject::kClassIdTagPos == 16);
+  ASSERT(target::UntaggedObject::kClassIdTagSize == 16);
+  LsrImmediate(result, tags, target::UntaggedObject::kClassIdTagPos,
+               kFourBytes);
 }
 
 void Assembler::ExtractInstanceSizeFromTags(Register result, Register tags) {
-  ASSERT(target::ObjectLayout::kSizeTagPos == 8);
-  ASSERT(target::ObjectLayout::kSizeTagSize == 8);
-  ubfx(result, tags, target::ObjectLayout::kSizeTagPos,
-       target::ObjectLayout::kSizeTagSize);
+  ASSERT(target::UntaggedObject::kSizeTagPos == 8);
+  ASSERT(target::UntaggedObject::kSizeTagSize == 8);
+  ubfx(result, tags, target::UntaggedObject::kSizeTagPos,
+       target::UntaggedObject::kSizeTagSize);
   LslImmediate(result, result, target::ObjectAlignment::kObjectAlignmentLog2);
 }
 
 void Assembler::LoadClassId(Register result, Register object) {
-  ASSERT(target::ObjectLayout::kClassIdTagPos == 16);
-  ASSERT(target::ObjectLayout::kClassIdTagSize == 16);
+  ASSERT(target::UntaggedObject::kClassIdTagPos == 16);
+  ASSERT(target::UntaggedObject::kClassIdTagSize == 16);
   const intptr_t class_id_offset =
       target::Object::tags_offset() +
-      target::ObjectLayout::kClassIdTagPos / kBitsPerByte;
+      target::UntaggedObject::kClassIdTagPos / kBitsPerByte;
   LoadFromOffset(result, object, class_id_offset - kHeapObjectTag,
                  kUnsignedTwoBytes);
 }
@@ -1324,7 +1327,7 @@ void Assembler::RestoreCSP() {
 }
 
 void Assembler::EnterFrame(intptr_t frame_size) {
-  PushPair(FP, LR);  // low: FP, high: LR.
+  SPILLS_LR_TO_FRAME(PushPair(FP, LR));  // low: FP, high: LR.
   mov(FP, SP);
 
   if (frame_size > 0) {
@@ -1334,7 +1337,7 @@ void Assembler::EnterFrame(intptr_t frame_size) {
 
 void Assembler::LeaveFrame() {
   mov(SP, FP);
-  PopPair(FP, LR);  // low: FP, high: LR.
+  RESTORES_LR_FROM_FRAME(PopPair(FP, LR));  // low: FP, high: LR.
 }
 
 void Assembler::EnterDartFrame(intptr_t frame_size, Register new_pp) {
@@ -1621,12 +1624,14 @@ void Assembler::LeaveStubFrame() {
 }
 
 void Assembler::EnterCFrame(intptr_t frame_space) {
-  EnterFrame(0);
+  Push(FP);
+  mov(FP, SP);
   ReserveAlignedFrameSpace(frame_space);
 }
 
 void Assembler::LeaveCFrame() {
-  LeaveFrame();
+  mov(SP, FP);
+  Pop(FP);
 }
 
 // R0 receiver, R5 ICData entries array

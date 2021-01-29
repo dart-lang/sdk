@@ -1918,8 +1918,8 @@ void h(List<int> x) {
 class C<T> {
   int Function(T) f;
 }
-void main() {
-  C<String> c;
+void main(dynamic d) {
+  C<String> c = d;
   int Function(String) f1 = c.f; // should not have a nullable arg
   c.f(null); // exact nullability induced here
 }
@@ -1928,8 +1928,8 @@ void main() {
 class C<T> {
   int Function(T)? f;
 }
-void main() {
-  C<String?> c;
+void main(dynamic d) {
+  C<String?> c = d;
   int Function(String)? f1 = c.f; // should not have a nullable arg
   c.f!(null); // exact nullability induced here
 }
@@ -1945,8 +1945,8 @@ class C<T> {
   T Function(String) f;
 }
 int Function(String) f1; // should not have a nullable return
-void main() {
-  C<int> c;
+void main(dynamic d) {
+  C<int> c = d;
   c.f = f1;
   c.f = (_) => null; // exact nullability induced here
 }
@@ -1956,8 +1956,8 @@ class C<T> {
   T Function(String)? f;
 }
 int Function(String)? f1; // should not have a nullable return
-void main() {
-  C<int?> c;
+void main(dynamic d) {
+  C<int?> c = d;
   c.f = f1;
   c.f = (_) => null; // exact nullability induced here
 }
@@ -2116,6 +2116,163 @@ int f(int? i) => i!;
     await _checkSingleFileChanges(content, expected, removeViaComments: true);
   }
 
+  Future<void> test_extension_extended_type_nullability_intent() async {
+    var content = '''
+extension E on C {
+  String foo() => this.bar();
+}
+
+class C {
+  String bar() => null;
+}
+
+void test(C c, bool b) {
+  if (b) {
+    c.foo();
+  }
+}
+
+main() {
+  test(null, false);
+}
+''';
+    // The call to `bar` from `foo` should be taken as a demonstration that the
+    // extension E is not intended to apply to nullable types, so the call to
+    // `foo` should be null checked.
+    var expected = '''
+extension E on C {
+  String? foo() => this.bar();
+}
+
+class C {
+  String? bar() => null;
+}
+
+void test(C? c, bool b) {
+  if (b) {
+    c!.foo();
+  }
+}
+
+main() {
+  test(null, false);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_extension_null_check_non_nullable() async {
+    var content = '''
+class C {}
+extension E on C/*!*/ {
+  void m() {}
+}
+void f(C c, bool b) {
+  if (b) {
+    c.m();
+  }
+}
+void g() => f(null, false);
+''';
+    var expected = '''
+class C {}
+extension E on C {
+  void m() {}
+}
+void f(C? c, bool b) {
+  if (b) {
+    c!.m();
+  }
+}
+void g() => f(null, false);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_extension_null_check_non_nullable_generic() async {
+    var content = '''
+class C {}
+extension E<T extends Object/*!*/> on T/*!*/ {
+  void m() {}
+}
+void f(C c, bool b) {
+  if (b) {
+    c.m();
+  }
+}
+void g() => f(null, false);
+''';
+    var expected = '''
+class C {}
+extension E<T extends Object> on T {
+  void m() {}
+}
+void f(C? c, bool b) {
+  if (b) {
+    c!.m();
+  }
+}
+void g() => f(null, false);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_extension_null_check_nullable() async {
+    var content = '''
+class C {}
+extension E on C/*?*/ {
+  void m() {}
+}
+void f(C c, bool b) {
+  if (b) {
+    c.m();
+  }
+}
+void g() => f(null, false);
+''';
+    var expected = '''
+class C {}
+extension E on C? {
+  void m() {}
+}
+void f(C? c, bool b) {
+  if (b) {
+    c.m();
+  }
+}
+void g() => f(null, false);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_extension_null_check_nullable_generic() async {
+    var content = '''
+class C {}
+extension E<T extends Object/*?*/> on T/*!*/ {
+  void m() {}
+}
+void f(C c, bool b) {
+  if (b) {
+    c.m();
+  }
+}
+void g() => f(null, false);
+''';
+    var expected = '''
+class C {}
+extension E<T extends Object?> on T {
+  void m() {}
+}
+void f(C? c, bool b) {
+  if (b) {
+    c.m();
+  }
+}
+void g() => f(null, false);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_extension_null_check_target() async {
     var content = '''
 extension E on int/*!*/ {
@@ -2132,7 +2289,6 @@ int f(int? x) => x!.plusOne;
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/42529')
   Future<void> test_extension_nullable_target() async {
     var content = '''
 extension E on int {
@@ -2218,7 +2374,6 @@ void f() => E(null).m();
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40023')
   Future<void> test_extension_nullableOnType_viaImplicitInvocation() async {
     var content = '''
 class C {}
@@ -2351,7 +2506,6 @@ int? f(int x) => E(x).nullValue;
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/42529')
   Future<void> test_extension_override_nullable_target() async {
     var content = '''
 extension E on int {
@@ -3066,6 +3220,28 @@ abstract class C {
 int? test(C c) {
   c.f(null);
   return c.g();
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_function_expression_return() async {
+    var content = '''
+void test({String foo}) async {
+  var f = () {
+    return "hello";
+  }
+
+  foo.length;
+}
+''';
+    var expected = '''
+void test({required String foo}) async {
+  var f = () {
+    return "hello";
+  }
+
+  foo.length;
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -4458,6 +4634,24 @@ int? g() => null;
         {path2: file2, path1: file1}, {path1: expected1, path2: expected2});
   }
 
+  Future<void> test_list_conditional_element() async {
+    var content = '''
+void bar(List<String> l) {}
+
+void test({String foo}) {
+    bar([if (foo != null) foo]);
+}
+''';
+    var expected = '''
+void bar(List<String> l) {}
+
+void test({String? foo}) {
+    bar([if (foo != null) foo]);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_literal_null_without_valid_migration() async {
     var content = '''
 void f(int/*!*/ x) {}
@@ -4546,6 +4740,102 @@ int f() {
     i = 1;
   });
   return i + 1;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_local_function_expression_inhibits_non_null_intent() async {
+    var content = '''
+void call(void Function() callback) {
+  callback();
+}
+test(int i, int j) {
+  call(() {
+    i = j;
+  });
+  print(i + 1);
+}
+main() {
+  test(null, 0);
+}
+''';
+    // `print(i + 1)` does *not* demonstrate non-null intent for `i` because it
+    // is write captured by the local function expression, so it's not
+    // guaranteed that a null value of `i` on entry to the function will lead to
+    // an exception.
+    var expected = '''
+void call(void Function() callback) {
+  callback();
+}
+test(int? i, int j) {
+  call(() {
+    i = j;
+  });
+  print(i! + 1);
+}
+main() {
+  test(null, 0);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_local_function_inhibits_non_null_intent() async {
+    var content = '''
+void call(void Function() callback) {
+  callback();
+}
+test(int i, int j) {
+  void f() {
+    i = j;
+  }
+  call(f);
+  print(i + 1);
+}
+main() {
+  test(null, 0);
+}
+''';
+    // `print(i + 1)` does *not* demonstrate non-null intent for `i` because it
+    // is write captured by the local function expression, so it's not
+    // guaranteed that a null value of `i` on entry to the function will lead to
+    // an exception.
+    var expected = '''
+void call(void Function() callback) {
+  callback();
+}
+test(int? i, int j) {
+  void f() {
+    i = j;
+  }
+  call(f);
+  print(i! + 1);
+}
+main() {
+  test(null, 0);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_local_function_return() async {
+    var content = '''
+void test({String foo}) async {
+  String f() {
+    return "hello";
+  }
+
+  foo.length;
+}
+''';
+    var expected = '''
+void test({required String foo}) async {
+  String f() {
+    return "hello";
+  }
+
+  foo.length;
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -6800,7 +7090,7 @@ f() {
     var expected = '''
 typedef F = Function(int?);
 
-F _f;
+late F _f;
 
 f() {
   _f(null);
@@ -6865,7 +7155,7 @@ f() {
     var expected = '''
 typedef F = Function<T>(T);
 
-F _f;
+late F _f;
 
 f() {
   _f<int?>(null);
@@ -6887,7 +7177,7 @@ f() {
     var expected = '''
 typedef F<R> = Function<T>(T);
 
-F<Object> _f;
+late F<Object> _f;
 
 f() {
   _f<int?>(null);
@@ -6909,7 +7199,7 @@ f() {
     var expected = '''
 typedef F<T> = Function(T);
 
-F<int?> _f;
+late F<int?> _f;
 
 f() {
   _f(null);
@@ -6931,7 +7221,7 @@ f() {
     var expected = '''
 typedef F<T> = Function(T);
 
-F<int?> _f;
+late F<int?> _f;
 
 f() {
   _f(null);
@@ -6967,7 +7257,7 @@ f() {
     var expected = '''
 typedef F(int? x);
 
-F _f;
+late F _f;
 
 f() {
   _f(null);
@@ -7017,7 +7307,7 @@ f() {
     var expected = '''
 typedef F<T>(T t);
 
-F<int?> _f;
+late F<int?> _f;
 
 f() {
   _f(null);
@@ -7039,7 +7329,7 @@ f() {
     var expected = '''
 typedef F<T>(T t);
 
-F<int?> _f;
+late F<int?> _f;
 
 f() {
   _f(null);

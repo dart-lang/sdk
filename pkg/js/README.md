@@ -201,3 +201,10 @@ be passed as an argument to a method annotated with `@JS()`.
 **Workaround:** Avoid importing `dart:js` and only use the `package:js` provided
 approach. To handle object literals use `@anonymous` on an `@JS()` annotated
 class.
+
+#### `is` checks and `as` casts between JS interop types will always succeed
+
+For any two `@JS()` types, with or without `@anonymous`, a check of whether an
+object of one type `is` another type will always return true, regardless of
+whether those two types are in the same prototype chain. Similarly, an explicit
+cast using `as` will also succeed.

@@ -66,11 +66,13 @@ ObjectPtr Invoke(const Library& lib, const char* name);
 class TestPipeline : public ValueObject {
  public:
   explicit TestPipeline(const Function& function,
-                        CompilerPass::PipelineMode mode)
+                        CompilerPass::PipelineMode mode,
+                        bool is_optimizing = true)
       : function_(function),
         thread_(Thread::Current()),
         compiler_state_(thread_,
                         mode == CompilerPass::PipelineMode::kAOT,
+                        is_optimizing,
                         CompilerState::ShouldTrace(function)),
         mode_(mode) {}
   ~TestPipeline() { delete pass_state_; }
@@ -311,15 +313,17 @@ class FlowGraphBuilderHelper {
 
  private:
   static FlowGraph& MakeDummyGraph(Thread* thread) {
+    const FunctionType& signature =
+        FunctionType::ZoneHandle(FunctionType::New());
     const Function& func = Function::ZoneHandle(Function::New(
-        String::Handle(Symbols::New(thread, "dummy")),
-        FunctionLayout::kRegularFunction,
+        signature, String::Handle(Symbols::New(thread, "dummy")),
+        UntaggedFunction::kRegularFunction,
         /*is_static=*/true,
         /*is_const=*/false,
         /*is_abstract=*/false,
         /*is_external=*/false,
         /*is_native=*/true,
-        Class::Handle(thread->isolate()->object_store()->object_class()),
+        Class::Handle(thread->isolate_group()->object_store()->object_class()),
         TokenPosition::kNoSource));
 
     Zone* zone = thread->zone();

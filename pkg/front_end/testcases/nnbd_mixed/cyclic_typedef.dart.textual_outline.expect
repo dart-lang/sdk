@@ -1,0 +1,6 @@
+import 'cyclic_typedef_lib.dart';
+
+class Hest2<TypeX extends Fisk2> {}
+
+typedef Fisk1 = void Function<TypeY extends Hest1>();
+main() {}

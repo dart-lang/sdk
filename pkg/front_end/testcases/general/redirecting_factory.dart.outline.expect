@@ -12,7 +12,7 @@ import self as self;
 import "dart:core" as core;
 
 abstract class FooBase<Tf extends core::Object* = dynamic> extends core::Object {
-  static field dynamic _redirecting# = <dynamic>[self::FooBase::•];
+  static final field dynamic _redirecting# = <dynamic>[self::FooBase::•];
   abstract get x() → core::int*;
   static factory •<Tf extends core::Object* = dynamic>(core::int* x) → self::FooBase<self::FooBase::•::Tf*>*
     let dynamic #redirecting_factory = self::Foo::• in let self::FooBase::•::Tf* #typeArg0 = null in invalid-expression;
@@ -28,7 +28,7 @@ abstract class FooBase<Tf extends core::Object* = dynamic> extends core::Object 
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 abstract class Foo<T extends core::Object* = dynamic> extends core::Object implements self::FooBase<dynamic> {
-  static field dynamic _redirecting# = <dynamic>[self::Foo::•];
+  static final field dynamic _redirecting# = <dynamic>[self::Foo::•];
   static factory •<T extends core::Object* = dynamic>(core::int* x) → self::Foo<self::Foo::•::T*>*
     let dynamic #redirecting_factory = self::Bar::• in let core::String* #typeArg0 = null in let self::Foo::•::T* #typeArg1 = null in invalid-expression;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -74,7 +74,7 @@ class Builder<X extends core::Object* = dynamic> extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class SimpleCase<A extends core::Object* = dynamic, B extends core::Object* = dynamic> extends core::Object {
-  static field dynamic _redirecting# = <dynamic>[self::SimpleCase::•];
+  static final field dynamic _redirecting# = <dynamic>[self::SimpleCase::•];
   static factory •<A extends core::Object* = dynamic, B extends core::Object* = dynamic>() → self::SimpleCase<self::SimpleCase::•::A*, self::SimpleCase::•::B*>*
     let dynamic #redirecting_factory = self::SimpleCaseImpl::• in let self::SimpleCase::•::A* #typeArg0 = null in let self::SimpleCase::•::B* #typeArg1 = null in invalid-expression;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -89,7 +89,7 @@ class SimpleCase<A extends core::Object* = dynamic, B extends core::Object* = dy
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class SimpleCaseImpl<Ai extends core::Object* = dynamic, Bi extends core::Object* = dynamic> extends core::Object implements self::SimpleCase<self::SimpleCaseImpl::Ai*, self::SimpleCaseImpl::Bi*> {
-  static field dynamic _redirecting# = <dynamic>[self::SimpleCaseImpl::•];
+  static final field dynamic _redirecting# = <dynamic>[self::SimpleCaseImpl::•];
   static factory •<Ai extends core::Object* = dynamic, Bi extends core::Object* = dynamic>() → self::SimpleCaseImpl<self::SimpleCaseImpl::•::Ai*, self::SimpleCaseImpl::•::Bi*>*
     let dynamic #redirecting_factory = self::SimpleCaseImpl2::• in let self::SimpleCaseImpl::•::Ai* #typeArg0 = null in let self::SimpleCaseImpl::•::Bi* #typeArg1 = null in invalid-expression;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode

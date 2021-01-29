@@ -15,6 +15,9 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MethodInvocationResolutionTest);
     defineReflectiveTests(MethodInvocationResolutionWithNullSafetyTest);
+    defineReflectiveTests(
+      MethodInvocationResolutionWithNonFunctionTypeAliasesTest,
+    );
   });
 }
 
@@ -1036,7 +1039,7 @@ class B extends A {
           CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
           71,
           3),
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 74, 3),
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 75, 1),
     ]);
 
     assertMethodInvocation2(
@@ -1096,7 +1099,8 @@ void f(C<void> c) {
 }
 ''', [
       if (typeToStringWithNullability)
-        error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 61, 5),
+        error(
+            CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 61, 5),
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 61, 5),
     ]);
 
@@ -1119,7 +1123,8 @@ main() {
 }
 ''', [
       if (typeToStringWithNullability)
-        error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 23, 3),
+        error(
+            CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 23, 3),
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3),
     ]);
 
@@ -1142,7 +1147,8 @@ main() {
 }
 ''', [
       if (typeToStringWithNullability)
-        error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 26, 5),
+        error(
+            CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 26, 5),
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 26, 3),
     ]);
     assertMethodInvocation(
@@ -1161,7 +1167,8 @@ main() {
 }
 ''', [
       if (typeToStringWithNullability)
-        error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 22, 3),
+        error(
+            CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 22, 3),
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 22, 3),
     ]);
 
@@ -1341,7 +1348,7 @@ main() {
 }
 ''', [
       error(HintCode.UNUSED_IMPORT, 7, 11),
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 65, 7),
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 66, 5),
     ]);
 
     var import = findElement.importFind('dart:math');
@@ -1619,7 +1626,7 @@ main() {
     assertElement(foo.propertyName, import.class_('C').getGetter('foo'));
     assertType(foo.propertyName, 'double Function(int)');
 
-    PrefixedIdentifier target = foo.target;
+    var target = foo.target as PrefixedIdentifier;
     assertImportPrefix(target.prefix, import.prefix);
     assertClassRef(target.identifier, import.class_('C'));
   }
@@ -1648,7 +1655,7 @@ main() {
       'void Function(int)',
     );
 
-    PrefixedIdentifier target = invocation.target;
+    var target = invocation.target as PrefixedIdentifier;
     assertImportPrefix(target.prefix, import.prefix);
     assertClassRef(target.identifier, import.class_('C'));
   }
@@ -1704,6 +1711,20 @@ class B extends A {
   test_invalid_inDefaultValue_nullAware() async {
     await assertInvalidTestCode('''
 void f({a = b?.foo()}) {}
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('?.foo()'),
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'dynamic',
+      type: 'dynamic',
+    );
+  }
+
+  test_invalid_inDefaultValue_nullAware2() async {
+    await assertInvalidTestCode('''
+typedef void F({a = b?.foo()});
 ''');
 
     assertMethodInvocation2(
@@ -2342,6 +2363,60 @@ main() {
 }
 
 @reflectiveTest
+class MethodInvocationResolutionWithNonFunctionTypeAliasesTest
+    extends PubPackageResolutionTest with WithNonFunctionTypeAliasesMixin {
+  test_hasReceiver_typeAlias_staticMethod() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  static void foo(int _) {}
+}
+
+typedef B = A;
+
+void f() {
+  B.foo(0);
+}
+''');
+
+    assertMethodInvocation(
+      findNode.methodInvocation('foo(0)'),
+      findElement.method('foo'),
+      'void Function(int)',
+    );
+
+    assertTypeAliasRef(
+      findNode.simple('B.foo'),
+      findElement.typeAlias('B'),
+    );
+  }
+
+  test_hasReceiver_typeAlias_staticMethod_generic() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  static void foo(int _) {}
+}
+
+typedef B<T> = A<T>;
+
+void f() {
+  B.foo(0);
+}
+''');
+
+    assertMethodInvocation(
+      findNode.methodInvocation('foo(0)'),
+      findElement.method('foo'),
+      'void Function(int)',
+    );
+
+    assertTypeAliasRef(
+      findNode.simple('B.foo'),
+      findElement.typeAlias('B'),
+    );
+  }
+}
+
+@reflectiveTest
 class MethodInvocationResolutionWithNullSafetyTest
     extends PubPackageResolutionTest
     with WithNullSafetyMixin, MethodInvocationResolutionTestCases {
@@ -2395,7 +2470,8 @@ void f(Function? foo) {
   foo.call();
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 26, 3),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          26, 3),
     ]);
 
     assertMethodInvocation2(
@@ -2446,7 +2522,8 @@ void f(A? a) {
   a.foo();
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 46, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          46, 1),
     ]);
 
     assertMethodInvocation2(
@@ -2472,7 +2549,8 @@ void f(A? a) {
   a.foo();
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 84, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          84, 1),
     ]);
 
     assertMethodInvocation2(
@@ -2539,7 +2617,8 @@ void f(A? a) {
   a.foo();
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 29, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          29, 1),
     ]);
 
     assertMethodInvocation2(
@@ -2563,7 +2642,8 @@ void f(A? a) {
   a.foo();
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 67, 1),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          67, 1),
     ]);
 
     assertMethodInvocation2(

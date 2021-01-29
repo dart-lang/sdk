@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix/data_driven/changes_selector.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_matcher.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/transform_override.dart';
 import 'package:meta/meta.dart';
 
 /// A description of a set of changes to a single element of the API.
@@ -43,5 +44,20 @@ class Transform {
       return false;
     }
     return matcher.matches(element);
+  }
+
+  /// Return a new transform with the [override] applied, or this transform if
+  /// there are no overrides.
+  Transform applyOverride(TransformOverride override) {
+    var overriddenBulkApply = override.bulkApply;
+    if (overriddenBulkApply != null && overriddenBulkApply != bulkApply) {
+      return Transform(
+          title: title,
+          date: date,
+          bulkApply: overriddenBulkApply,
+          element: element,
+          changesSelector: changesSelector);
+    }
+    return this;
   }
 }

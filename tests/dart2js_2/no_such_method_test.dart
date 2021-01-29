@@ -4,13 +4,15 @@
 
 // @dart = 2.7
 
+// dart2jsOptions=--no-minify
+
 import "package:expect/expect.dart";
 
 class NoSuchMethodInfo {
   Object receiver;
-  String name;
+  Symbol name;
   List args;
-  NoSuchMethodInfo(Object r, String m, List a)
+  NoSuchMethodInfo(Object r, Symbol m, List a)
       : receiver = r,
         name = m,
         args = a;
@@ -33,25 +35,25 @@ NoSuchMethodInfo topLevelInfo;
 
 main() {
   A a = new A();
-  var info = a.foo();
-  Expect.equals('foo', info.name);
+  var info = (a as dynamic).foo();
+  Expect.equals(#foo, info.name);
   Expect.isTrue(info.args.isEmpty);
   Expect.isTrue(identical(info.receiver, a));
 
-  info = a.foo(2);
-  Expect.equals('foo', info.name);
+  info = (a as dynamic).foo(2);
+  Expect.equals(#foo, info.name);
   Expect.isTrue(info.args.length == 1);
   Expect.isTrue(info.args[0] == 2);
   Expect.isTrue(identical(info.receiver, a));
 
-  info = a.bar;
-  Expect.equals('bar', info.name);
+  info = (a as dynamic).bar;
+  Expect.equals(#bar, info.name);
   Expect.isTrue(info.args.length == 0);
   Expect.isTrue(identical(info.receiver, a));
 
-  a.bar = 2;
+  (a as dynamic).bar = 2;
   info = topLevelInfo;
-  Expect.equals('bar', info.name);
+  Expect.equals(const Symbol('bar='), info.name);
   Expect.isTrue(info.args.length == 1);
   Expect.isTrue(info.args[0] == 2);
   Expect.isTrue(identical(info.receiver, a));

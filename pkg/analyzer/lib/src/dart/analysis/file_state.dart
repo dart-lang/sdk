@@ -17,7 +17,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/defined_names.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
@@ -37,6 +36,7 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary2/bundle_writer.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
@@ -197,9 +197,9 @@ class FileState {
   /// parted.
   Set<FileState> get directReferencedFiles {
     return _directReferencedFiles ??= <FileState>{
-      ...importedFiles,
-      ...exportedFiles,
-      ...partedFiles,
+      ...importedFiles.whereNotNull(),
+      ...exportedFiles.whereNotNull(),
+      ...partedFiles.whereNotNull(),
     };
   }
 
@@ -207,8 +207,8 @@ class FileState {
   /// exported.
   Set<FileState> get directReferencedLibraries {
     return _directReferencedLibraries ??= <FileState>{
-      ...importedFiles,
-      ...exportedFiles,
+      ...importedFiles.whereNotNull(),
+      ...exportedFiles.whereNotNull(),
     };
   }
 
@@ -263,10 +263,6 @@ class FileState {
     return !_unlinked2.hasLibraryDirective && _unlinked2.hasPartOfDirective;
   }
 
-  /// Return `true` if the file is the "unresolved" file, which does not have
-  /// neither a valid URI, nor a path.
-  bool get isUnresolved => uri == null;
-
   /// If the file [isPart], return a currently know library the file is a part
   /// of. Return `null` if a library is not known, for example because we have
   /// not processed a library file yet.
@@ -300,7 +296,10 @@ class FileState {
   /// The list of files files that this library consists of, i.e. this library
   /// file itself and its [partedFiles].
   List<FileState> get libraryFiles {
-    return _libraryFiles ??= [this, ...partedFiles];
+    return _libraryFiles ??= [
+      this,
+      ...partedFiles.whereNotNull(),
+    ];
   }
 
   /// Return information about line in the file.
@@ -313,9 +312,11 @@ class FileState {
       for (var uri in _unlinked2.parts) {
         var file = _fileForRelativeUri(uri);
         _partedFiles.add(file);
-        _fsState._partToLibraries
-            .putIfAbsent(file, () => <FileState>[])
-            .add(this);
+        if (file != null) {
+          _fsState._partToLibraries
+              .putIfAbsent(file, () => <FileState>[])
+              .add(this);
+        }
       }
     }
     return _partedFiles;
@@ -558,18 +559,18 @@ class FileState {
     return unit;
   }
 
-  /// Return the [FileState] for the given [relativeUri], maybe "unresolved"
-  /// file if the URI cannot be parsed, cannot correspond any file, etc.
+  /// Return the [FileState] for the given [relativeUri], or `null` if the
+  /// URI cannot be parsed, cannot correspond any file, etc.
   FileState _fileForRelativeUri(String relativeUri) {
     if (relativeUri.isEmpty) {
-      return _fsState.unresolvedFile;
+      return null;
     }
 
     Uri absoluteUri;
     try {
       absoluteUri = resolveRelativeUri(uri, Uri.parse(relativeUri));
     } on FormatException {
-      return _fsState.unresolvedFile;
+      return null;
     }
 
     return _fsState.getFileForUri(absoluteUri);
@@ -592,7 +593,6 @@ class FileState {
   }
 
   CompilationUnit _parse(AnalysisErrorListener errorListener) {
-    AnalysisOptionsImpl analysisOptions = _fsState._analysisOptions;
     if (source == null) {
       return _createEmptyCompilationUnit();
     }
@@ -608,12 +608,10 @@ class FileState {
     Token token = scanner.tokenize(reportScannerErrors: false);
     LineInfo lineInfo = LineInfo(scanner.lineStarts);
 
-    bool useFasta = analysisOptions.useFastaParser;
     Parser parser = Parser(
       source,
       errorListener,
       featureSet: scanner.featureSet,
-      useFasta: useFasta,
     );
     parser.enableOptionalNewAndConst = true;
 
@@ -755,7 +753,6 @@ class FileSystemState {
   final FileContentOverlay _contentOverlay;
   final SourceFactory _sourceFactory;
   final Workspace _workspace;
-  final AnalysisOptions _analysisOptions;
   final DeclaredVariables _declaredVariables;
   final Uint32List _saltForUnlinked;
   final Uint32List _saltForElements;
@@ -803,9 +800,6 @@ class FileSystemState {
   /// The value of this field is incremented when the set of files is updated.
   int fileStamp = 0;
 
-  /// The [FileState] instance that correspond to an unresolved URI.
-  FileState _unresolvedFile;
-
   /// The cache of content of files, possibly shared with other file system
   /// states with the same resource provider and the content overlay.
   _FileContentCache _fileContentCache;
@@ -820,7 +814,8 @@ class FileSystemState {
     this.contextName,
     this._sourceFactory,
     this._workspace,
-    this._analysisOptions,
+    @Deprecated('No longer used; will be removed')
+        AnalysisOptions analysisOptions,
     this._declaredVariables,
     this._saltForUnlinked,
     this._saltForElements,
@@ -836,18 +831,6 @@ class FileSystemState {
 
   @visibleForTesting
   FileSystemStateTestView get test => _testView;
-
-  /// Return the [FileState] instance that correspond to an unresolved URI.
-  /// TODO(scheglov) Remove it.
-  FileState get unresolvedFile {
-    if (_unresolvedFile == null) {
-      var featureSet = FeatureSet.latestLanguageVersion();
-      _unresolvedFile = FileState._(this, null, null, null, null, featureSet,
-          ExperimentStatus.currentVersion);
-      _unresolvedFile.refresh();
-    }
-    return _unresolvedFile;
-  }
 
   FeatureSet contextFeatureSet(
     String path,
@@ -934,8 +917,7 @@ class FileSystemState {
       // If the URI cannot be resolved, for example because the factory
       // does not understand the scheme, return the unresolved file instance.
       if (uriSource == null) {
-        _uriToFile[uri] = unresolvedFile;
-        return unresolvedFile;
+        return null;
       }
 
       String path = uriSource.fullName;

@@ -1,0 +1,19 @@
+class ConcreteSuper {
+  void extendedConcreteMethod() {}
+  void extendedAbstractMethod();
+  void declaredConcreteExtendsConcreteMethod() {}
+  void declaredAbstractExtendsConcreteMethod() {}
+  void declaredConcreteExtendsAbstractMethod();
+  void declaredAbstractExtendsAbstractMethod();
+}
+
+class ConcreteClass extends ConcreteSuper {
+  void declaredConcreteMethod() {}
+  void declaredAbstractMethod();
+  void declaredConcreteExtendsConcreteMethod() {}
+  void declaredAbstractExtendsConcreteMethod();
+  void declaredConcreteExtendsAbstractMethod() {}
+  void declaredAbstractExtendsAbstractMethod();
+}
+
+main() {}

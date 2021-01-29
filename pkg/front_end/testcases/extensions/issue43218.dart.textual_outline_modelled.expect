@@ -1,0 +1,14 @@
+class C {
+  C() : value = 0 {}
+  init() {}
+  int get id => value;
+  int value;
+  void set id(int v) {}
+}
+
+extension Ext on C {
+  int get id => this.value + 1;
+}
+
+main() {}
+test() {}

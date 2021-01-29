@@ -13,7 +13,7 @@ static method test(dynamic x) → void {
     Never n7 = x{Never}.call();
     Never n8 = x{Never}.runtimeType();
     Never n9 = x{Never}.toString;
-    x{Never}.runtimeType = core::Object;
+    x{Never}.runtimeType = #C1;
     x{Never}.toString = () → core::String => "";
     Never v1 = x{Never}.toString();
     Never v2 = x{Never}.runtimeType;
@@ -28,4 +28,8 @@ static method test(dynamic x) → void {
 }
 static method main() → dynamic {
   self::test(null);
+}
+
+constants  {
+  #C1 = TypeLiteralConstant(core::Object)
 }

@@ -53,15 +53,19 @@ Future testAsync(Isolate isolate) async {
   var script = isolate.rootLibrary.scripts[0];
 
   var bp1 = await isolate.addBreakpoint(script, 13);
+  print("BP1 - $bp1");
   expect(bp1, isNotNull);
   expect(bp1 is Breakpoint, isTrue);
   var bp2 = await isolate.addBreakpoint(script, 18);
+  print("BP2 - $bp2");
   expect(bp2, isNotNull);
   expect(bp2 is Breakpoint, isTrue);
   var bp3 = await isolate.addBreakpoint(script, 23);
+  print("BP3 - $bp3");
   expect(bp3, isNotNull);
   expect(bp3 is Breakpoint, isTrue);
   var bp4 = await isolate.addBreakpoint(script, 27);
+  print("BP4 - $bp4");
   expect(bp4, isNotNull);
   expect(bp4 is Breakpoint, isTrue);
   var bp5 = await isolate.addBreakpoint(script, 44);

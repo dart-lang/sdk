@@ -146,6 +146,6 @@ static method main() → dynamic {
   dynamic c = subBox.{self::FinalBox::finalField};
   self::makeDynamicCall(new self::DynamicReceiver1::•());
   self::makeDynamicCall(new self::DynamicReceiver2::•());
-  core::List<core::String*>* list = <core::String*>["string"];
+  core::List<core::String*>* list = core::_GrowableList::_literal1<core::String*>("string");
   core::String* d = list.{core::List::[]}(0);
 }

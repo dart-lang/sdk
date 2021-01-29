@@ -46,7 +46,7 @@ library from "org-dartlang-test:///main_lib1.dart" as mai2 {
       : super mai2::SuperClass::•()
       ;
     forwarding-stub method method(covariant dart.core::num* i) → void
-      return super.{mai2::SuperClass::method}(i);
+      return super.{mai2::Mixin::method}(i);
   }
   class Class extends mai2::_Class&SuperClass&Mixin {
     synthetic constructor •() → mai2::Class*
@@ -64,5 +64,5 @@ library from "org-dartlang-test:///main_lib2.dart" as mai {
       ;
   }
   static method method() → dynamic
-    return new mai::SubClass::•().{mai2::_Class&SuperClass&Mixin::method}(0);
+    return new mai::SubClass::•().{mai2::_Class&SuperClass&Mixin::method}(0){(dart.core::num*) →* void};
 }

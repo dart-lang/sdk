@@ -143,7 +143,7 @@ f(F a) {}
 
     assertTypeName(
       findNode.typeName('F a'),
-      findElement.functionTypeAlias('F'),
+      findElement.typeAlias('F'),
       typeStr('int Function()', 'int* Function()*'),
     );
   }
@@ -157,7 +157,7 @@ f(F a) {}
 
     assertTypeName(
       findNode.typeName('F a'),
-      findElement.functionTypeAlias('F'),
+      findElement.typeAlias('F'),
       typeStr('num Function()', 'num* Function()*'),
     );
   }
@@ -171,7 +171,7 @@ f(F a) {}
 
     assertTypeName(
       findNode.typeName('F a'),
-      findElement.functionTypeAlias('F'),
+      findElement.typeAlias('F'),
       typeStr('dynamic Function()', 'dynamic Function()*'),
     );
   }
@@ -185,7 +185,7 @@ f(F<int> a) {}
 
     assertTypeName(
       findNode.typeName('F<int> a'),
-      findElement.functionTypeAlias('F'),
+      findElement.typeAlias('F'),
       typeStr('int Function()', 'int* Function()*'),
     );
   }
@@ -291,41 +291,58 @@ f(Never a) {}
 @reflectiveTest
 class TypeNameResolutionWithNonFunctionTypeAliasesTest
     extends PubPackageResolutionTest with WithNonFunctionTypeAliasesMixin {
-  test_typeAlias_asParameter_Never_none() async {
+  test_typeAlias_asInstanceCreation_explicitNew_typeArguments_interfaceType_none() async {
     await assertNoErrorsInCode(r'''
-typedef X = Never;
-void f(X a, X? b) {}
+class A<T> {}
+
+typedef X<T> = A<T>;
+
+void f() {
+  new X<int>();
+}
 ''');
 
     assertTypeName(
-      findNode.typeName('X a'),
+      findNode.typeName('X<int>()'),
       findElement.typeAlias('X'),
-      'Never',
-    );
-
-    assertTypeName(
-      findNode.typeName('X? b'),
-      findElement.typeAlias('X'),
-      'Never?',
+      'A<int>',
     );
   }
 
-  test_typeAlias_asParameter_Never_question() async {
+  @FailingTest(reason: 'We attempt to do type inference on A')
+  test_typeAlias_asInstanceCreation_implicitNew_toBounds_noTypeParameters_interfaceType_none() async {
     await assertNoErrorsInCode(r'''
-typedef X = Never?;
-void f(X a, X? b) {}
+class A<T> {}
+
+typedef X = A<int>;
+
+void f() {
+  X();
+}
 ''');
 
     assertTypeName(
-      findNode.typeName('X a'),
+      findNode.typeName('X()'),
       findElement.typeAlias('X'),
-      'Never?',
+      'A<int>',
     );
+  }
+
+  test_typeAlias_asInstanceCreation_implicitNew_typeArguments_interfaceType_none() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {}
+
+typedef X<T> = A<T>;
+
+void f() {
+  X<int>();
+}
+''');
 
     assertTypeName(
-      findNode.typeName('X? b'),
+      findNode.typeName('X<int>()'),
       findElement.typeAlias('X'),
-      'Never?',
+      'A<int>',
     );
   }
 
@@ -348,6 +365,23 @@ void f(X<String> a, X<String?> b) {}
     );
   }
 
+  test_typeAlias_asParameterType_interfaceType_none_inLegacy() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+typedef X<T> = Map<int, T>;
+''');
+    await assertNoErrorsInCode(r'''
+// @dart = 2.9
+import 'a.dart';
+void f(X<String> a) {}
+''');
+
+    assertTypeName(
+      findNode.typeName('X<String>'),
+      findElement.importFind('package:test/a.dart').typeAlias('X'),
+      'Map<int*, String*>*',
+    );
+  }
+
   test_typeAlias_asParameterType_interfaceType_question() async {
     await assertNoErrorsInCode(r'''
 typedef X<T> = List<T?>;
@@ -364,6 +398,91 @@ void f(X<int> a, X<int?> b) {}
       findNode.typeName('X<int?>'),
       findElement.typeAlias('X'),
       'List<int?>',
+    );
+  }
+
+  test_typeAlias_asParameterType_interfaceType_question_inLegacy() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+typedef X<T> = List<T?>;
+''');
+    await assertNoErrorsInCode(r'''
+// @dart = 2.9
+import 'a.dart';
+void f(X<int> a) {}
+''');
+
+    assertTypeName(
+      findNode.typeName('X<int>'),
+      findElement.importFind('package:test/a.dart').typeAlias('X'),
+      'List<int*>*',
+    );
+  }
+
+  test_typeAlias_asParameterType_Never_none() async {
+    await assertNoErrorsInCode(r'''
+typedef X = Never;
+void f(X a, X? b) {}
+''');
+
+    assertTypeName(
+      findNode.typeName('X a'),
+      findElement.typeAlias('X'),
+      'Never',
+    );
+
+    assertTypeName(
+      findNode.typeName('X? b'),
+      findElement.typeAlias('X'),
+      'Never?',
+    );
+  }
+
+  test_typeAlias_asParameterType_Never_none_inLegacy() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+typedef X = Never;
+''');
+    await assertNoErrorsInCode(r'''
+// @dart = 2.9
+import 'a.dart';
+void f(X a) {}
+''');
+
+    assertTypeName(
+      findNode.typeName('X a'),
+      findElement.importFind('package:test/a.dart').typeAlias('X'),
+      'Null*',
+    );
+  }
+
+  test_typeAlias_asParameterType_Never_question() async {
+    await assertNoErrorsInCode(r'''
+typedef X = Never?;
+void f(X a, X? b) {}
+''');
+
+    assertTypeName(
+      findNode.typeName('X a'),
+      findElement.typeAlias('X'),
+      'Never?',
+    );
+
+    assertTypeName(
+      findNode.typeName('X? b'),
+      findElement.typeAlias('X'),
+      'Never?',
+    );
+  }
+
+  test_typeAlias_asParameterType_question() async {
+    await assertNoErrorsInCode(r'''
+typedef X<T> = T?;
+void f(X<int> a) {}
+''');
+
+    assertTypeName(
+      findNode.typeName('X<int>'),
+      findElement.typeAlias('X'),
+      'int?',
     );
   }
 
@@ -489,7 +608,7 @@ import 'a.dart';
 f(F a) {}
 ''');
 
-    var element = import_a.functionTypeAlias('F');
+    var element = import_a.typeAlias('F');
 
     var typeName = findNode.typeName('F a');
     assertTypeName(typeName, element, 'int* Function(bool*)*');
@@ -513,7 +632,7 @@ import 'a.dart';
 f(F a) {}
 ''');
 
-    var element = import_a.functionTypeAlias('F');
+    var element = import_a.typeAlias('F');
 
     var typeName = findNode.typeName('F a');
     assertTypeName(typeName, element, 'dynamic Function(bool*)*');
@@ -537,7 +656,7 @@ import 'a.dart';
 f(F a) {}
 ''');
 
-    var element = import_a.functionTypeAlias('F');
+    var element = import_a.typeAlias('F');
 
     var typeName = findNode.typeName('F a');
     assertTypeName(typeName, element, 'num* Function(bool*)*');
@@ -561,7 +680,7 @@ import 'a.dart';
 f(F<int> a) {}
 ''');
 
-    var element = import_a.functionTypeAlias('F');
+    var element = import_a.typeAlias('F');
 
     var typeName = findNode.typeName('F<int> a');
     assertTypeName(typeName, element, 'int* Function(bool*)*');
@@ -673,7 +792,7 @@ f(F a) {}
 
     assertTypeName(
       findNode.typeName('F a'),
-      import_a.functionTypeAlias('F'),
+      import_a.typeAlias('F'),
       'int* Function()',
     );
   }
@@ -694,7 +813,7 @@ f(F a) {}
 
     assertTypeName(
       findNode.typeName('F a'),
-      import_a.functionTypeAlias('F'),
+      import_a.typeAlias('F'),
       'num* Function()',
     );
   }
@@ -715,7 +834,7 @@ f(F a) {}
 
     assertTypeName(
       findNode.typeName('F a'),
-      import_a.functionTypeAlias('F'),
+      import_a.typeAlias('F'),
       'dynamic Function()',
     );
   }
@@ -736,7 +855,7 @@ f(F<int> a) {}
 
     assertTypeName(
       findNode.typeName('F<int> a'),
-      import_a.functionTypeAlias('F'),
+      import_a.typeAlias('F'),
       'int* Function()',
     );
   }

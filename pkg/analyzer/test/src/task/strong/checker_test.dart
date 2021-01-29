@@ -2278,11 +2278,11 @@ main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 71, 1),
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 117, 9),
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 137, 15),
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 124, 1),
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 148, 3),
       error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 159, 3),
       error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 173, 5),
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 189, 9),
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 196, 1),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 190, 1),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 193, 1),
       error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 209, 3),
@@ -3809,7 +3809,7 @@ class C = Object with B;
 
 class D extends Object with C implements A {}
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 100, 1),
+      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 100, 1),
     ]);
   }
 
@@ -4180,8 +4180,8 @@ class D extends B with X { }
 class E extends B implements A { }
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 78, 4),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 159, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 189, 1),
+      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 159, 1),
+      error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 189, 1),
     ]);
   }
 

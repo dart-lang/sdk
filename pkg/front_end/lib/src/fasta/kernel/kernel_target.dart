@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.kernel_target;
 
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
@@ -129,10 +131,6 @@ class KernelTarget extends TargetImplementation {
   SourceLoader loader;
 
   Component component;
-
-  /// Temporary field meant for testing only. Follow-up CLs should get rid of
-  /// this and integrate coverage properly.
-  constants.ConstantCoverage constantCoverageForTesting;
 
   // 'dynamic' is always nullable.
   // TODO(johnniwinther): Why isn't this using a FixedTypeBuilder?
@@ -644,7 +642,7 @@ class KernelTarget extends TargetImplementation {
     IndexedClass indexedClass = builder.referencesFromIndexed;
     Constructor referenceFrom;
     if (indexedClass != null) {
-      referenceFrom = indexedClass.lookupConstructor("");
+      referenceFrom = indexedClass.lookupConstructor(new Name(""));
     }
 
     /// From [Dart Programming Language Specification, 4th Edition](
@@ -695,7 +693,7 @@ class KernelTarget extends TargetImplementation {
     IndexedClass indexedClass = builder.referencesFromIndexed;
     Constructor referenceFrom;
     if (indexedClass != null) {
-      referenceFrom = indexedClass.lookupConstructor("");
+      referenceFrom = indexedClass.lookupConstructor(new Name(""));
     }
 
     if (supertype is ClassBuilder) {
@@ -706,7 +704,8 @@ class KernelTarget extends TargetImplementation {
       void addSyntheticConstructor(String name, MemberBuilder memberBuilder) {
         if (memberBuilder.member is Constructor) {
           substitutionMap ??= builder.getSubstitutionMap(superclassBuilder.cls);
-          Constructor referenceFrom = indexedClass?.lookupConstructor(name);
+          Constructor referenceFrom = indexedClass
+              ?.lookupConstructor(new Name(name, indexedClass.library));
           builder.addSyntheticConstructor(_makeMixinApplicationConstructor(
               builder,
               builder.cls.mixin,
@@ -1251,7 +1250,6 @@ class KernelTarget extends TargetImplementation {
             isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
         errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
     ticker.logMs("Evaluated constants");
-    constantCoverageForTesting = coverage;
 
     coverage.constructorCoverage.forEach((Uri fileUri, Set<Reference> value) {
       Source source = uriToSource[fileUri];
@@ -1336,7 +1334,7 @@ class KernelTarget extends TargetImplementation {
   void verify() {
     // TODO(ahe): How to handle errors.
     verifyComponent(component,
-        skipPlatform: context.options.verifySkipPlatform);
+        skipPlatform: context.options.skipPlatformVerification);
     ClassHierarchy hierarchy =
         new ClassHierarchy(component, new CoreTypes(component),
             onAmbiguousSupertypes: (Class cls, Supertype a, Supertype b) {
@@ -1344,7 +1342,7 @@ class KernelTarget extends TargetImplementation {
     });
     verifyGetStaticType(
         new TypeEnvironment(loader.coreTypes, hierarchy), component,
-        skipPlatform: context.options.verifySkipPlatform);
+        skipPlatform: context.options.skipPlatformVerification);
     ticker.logMs("Verified component");
   }
 

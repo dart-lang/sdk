@@ -10,7 +10,7 @@ class C<T> {
 // [cfe] Cyclic definition of factory 'C'.
     = C<C<T>>
     //^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_FACTORY_REDIRECT
+    // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_CONSTRUCTOR_REDIRECT
     // [cfe] The constructor function type 'C<C<T>> Function()' isn't a subtype of 'C<T> Function()'.
   ;
 }

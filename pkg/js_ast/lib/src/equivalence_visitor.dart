@@ -341,8 +341,7 @@ class EquivalenceVisitor implements NodeVisitor1<bool, Node> {
   bool visitLiteralExpression(LiteralExpression node, Node arg) {
     if (arg is! LiteralExpression) return failAt(node, arg);
     LiteralExpression other = arg;
-    return testValues(node, node.template, other, other.template) &&
-        testNodeLists(node.inputs, other.inputs);
+    return testValues(node, node.template, other, other.template);
   }
 
   @override

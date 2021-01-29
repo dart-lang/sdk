@@ -1001,6 +1001,93 @@ void f(BuildContext context, bool b) {
 ''');
   }
 
+  Future<void> test_material_Scaffold_of_missingArgument() async {
+    setPackageContent('''
+class Scaffold {
+  static ScaffoldState of(BuildContext context) => ScaffoldState();
+  static ScaffoldState maybeOf(BuildContext context) => ScaffoldState();
+}
+class ScaffoldState {}
+class BuildContext {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Remove nullOk'
+    date: 2020-11-04
+    element:
+      uris: ['$importUri']
+      method: 'of'
+      inClass: 'Scaffold'
+    oneOf:
+      - if: "nullOk == 'true'"
+        changes:
+          - kind: 'rename'
+            newName: 'maybeOf'
+          - kind: 'removeParameter'
+            name: 'nullOk'
+      - if: "nullOk == 'false'"
+        changes:
+          - kind: 'removeParameter'
+            name: 'nullOk'
+    variables:
+      nullOk:
+        kind: 'fragment'
+        value: 'arguments[nullOk]'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f(BuildContext context) {
+  Scaffold.of(context, undefined: 3);
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_material_Scaffold_of_wrongType() async {
+    setPackageContent('''
+class Theme {
+  static ThemeData of(BuildContext context, {bool shadowThemeOnly: false}) => ThemeData();
+}
+class ThemeData {}
+class BuildContext {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Remove nullOk'
+    date: 2020-11-04
+    element:
+      uris: ['$importUri']
+      method: 'of'
+      inClass: 'Scaffold'
+    oneOf:
+      - if: "nullOk == 'true'"
+        changes:
+          - kind: 'rename'
+            newName: 'maybeOf'
+          - kind: 'removeParameter'
+            name: 'nullOk'
+      - if: "nullOk == 'false'"
+        changes:
+          - kind: 'removeParameter'
+            name: 'nullOk'
+    variables:
+      nullOk:
+        kind: 'fragment'
+        value: 'arguments[nullOk]'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f(BuildContext context) {
+  Theme.of(context, nullOk: true);
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void>
       test_material_Scaffold_resizeToAvoidBottomPadding_deprecated() async {
     setPackageContent('''

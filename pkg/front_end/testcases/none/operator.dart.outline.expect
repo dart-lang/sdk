@@ -1,0 +1,30 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Class<self::Class::T%>
+    ;
+  operator +(generic-covariant-impl self::Class<self::Class::T%> other) → self::Class<self::Class::T%>
+    ;
+  operator unary-() → self::Class<self::Class::T%>
+    ;
+  operator [](core::int index) → self::Class<self::Class::T%>
+    ;
+  operator []=(core::int index, generic-covariant-impl self::Class<self::Class::T%> value) → void
+    ;
+  method method(core::double o) → core::int
+    ;
+}
+static method add(core::num n, core::int i, core::double d, self::Class<core::String> c, dynamic dyn, Never never, core::String string) → dynamic
+  ;
+static method unaryMinus(core::num n, core::int i, core::double d, self::Class<core::String> c, dynamic dyn, Never never, core::String string) → dynamic
+  ;
+static method indexGet(core::List<core::int> list, core::Map<core::String, core::double> map, self::Class<core::String> c, dynamic dyn, Never never, core::String string) → dynamic
+  ;
+static method indexSet(core::List<core::int> list, core::Map<core::String, core::double> map, self::Class<core::String> c, dynamic dyn, Never never) → dynamic
+  ;
+static method compound(core::List<core::int> list, core::Map<core::String, core::double> map, self::Class<core::String> c, dynamic dyn, Never never) → dynamic
+  ;
+static method main() → dynamic
+  ;

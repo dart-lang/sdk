@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../utils.dart';
 import '../../dart/resolution/context_collection_resolution.dart';
 
 void main() {
@@ -20,8 +18,6 @@ void main() {
 
 @reflectiveTest
 class InferredTypeTest extends PubPackageResolutionTest {
-  CompilationUnit get _resultUnit => result.unit;
-
   CompilationUnitElement get _resultUnitElement {
     return result.unit.declaredElement;
   }
@@ -89,7 +85,7 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 241, 1),
     ]);
 
-    var f = findLocalVariable(_resultUnit, 'f');
+    var f = findElement.localVar('f');
     _assertTypeStr(f.type, 'Future<num> Function()');
   }
 
@@ -112,7 +108,7 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 192, 1),
     ]);
 
-    var f = findLocalVariable(_resultUnit, 'f');
+    var f = findElement.localVar('f');
     _assertTypeStr(f.type, 'Future<num> Function()');
   }
 
@@ -135,7 +131,7 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 215, 1),
     ]);
 
-    var f = findLocalVariable(_resultUnit, 'f');
+    var f = findElement.localVar('f');
     _assertTypeStr(f.type, 'Future<num> Function()');
   }
 
@@ -155,7 +151,7 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 122, 1),
     ]);
 
-    var f = findLocalVariable(_resultUnit, 'f');
+    var f = findElement.localVar('f');
     _assertTypeStr(f.type, 'Stream<num> Function()');
   }
 
@@ -183,7 +179,7 @@ main() {
       error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 62, 1),
     ]);
 
-    var g = findLocalVariable(_resultUnit, 'g');
+    var g = findElement.localVar('g');
     _assertTypeStr(g.type, 'String Function()');
   }
 
@@ -210,7 +206,7 @@ main() async {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 105, 1),
     ]);
 
-    var f = findLocalVariable(_resultUnit, 'f');
+    var f = findElement.localVar('f');
     _assertTypeStr(f.type, 'Future<Null> Function()');
   }
 
@@ -228,7 +224,7 @@ main() async {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 105, 1),
     ]);
 
-    var f = findLocalVariable(_resultUnit, 'f');
+    var f = findElement.localVar('f');
     _assertTypeStr(f.type, 'Stream<Null> Function()');
   }
 
@@ -251,7 +247,7 @@ main() {
       error(CompileTimeErrorCode.INVALID_CAST_LITERAL, 126, 7),
     ]);
 
-    var f = findLocalVariable(_resultUnit, 'f');
+    var f = findElement.localVar('f');
     _assertTypeStr(f.type, 'Null Function(Object)');
   }
 
@@ -269,7 +265,7 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 102, 1),
     ]);
 
-    var f = findLocalVariable(_resultUnit, 'f');
+    var f = findElement.localVar('f');
     _assertTypeStr(f.type, 'Iterable<Null> Function()');
   }
 
@@ -306,7 +302,7 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
     ]);
 
-    var f = findLocalVariable(_resultUnit, 'f');
+    var f = findElement.localVar('f');
     _assertTypeStr(f.type, 'double Function(int) Function()');
   }
 
@@ -321,7 +317,7 @@ test1() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 67, 1),
     ]);
 
-    var y = findLocalVariable(_resultUnit, 'y');
+    var y = findElement.localVar('y');
     _assertTypeStr(y.type, 'Iterable<Null>');
   }
 
@@ -340,7 +336,7 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 110, 1),
     ]);
 
-    var f = findLocalVariable(_resultUnit, 'f');
+    var f = findElement.localVar('f');
     _assertTypeStr(f.type, 'Iterable<num> Function()');
   }
 
@@ -473,11 +469,10 @@ main() {
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 349, 7),
     ]);
 
-    _assertTypeStr(findLocalVariable(_resultUnit, 'x').type, 'C<int>');
-    _assertTypeStr(findLocalVariable(_resultUnit, 'c_int').type, 'C<int>');
-    _assertTypeStr(findLocalVariable(_resultUnit, 'c_num').type, 'C<num>');
-    _assertTypeStr(
-        findLocalVariable(_resultUnit, 'c_dynamic').type, 'C<dynamic>');
+    _assertTypeStr(findElement.localVar('x').type, 'C<int>');
+    _assertTypeStr(findElement.localVar('c_int').type, 'C<int>');
+    _assertTypeStr(findElement.localVar('c_num').type, 'C<num>');
+    _assertTypeStr(findElement.localVar('c_dynamic').type, 'C<dynamic>');
   }
 
   test_constructors_inferFromArguments_const() async {
@@ -494,7 +489,7 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 63, 1),
     ]);
 
-    var x = findLocalVariable(_resultUnit, 'x');
+    var x = findElement.localVar('x');
     _assertTypeStr(x.type, 'C<int>');
   }
 
@@ -561,7 +556,7 @@ main() {
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 149, 7),
     ]);
 
-    var x = findLocalVariable(_resultUnit, 'x');
+    var x = findElement.localVar('x');
     _assertTypeStr(x.type, 'C<int>');
   }
 
@@ -592,7 +587,7 @@ main() {
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 95, 7),
     ]);
 
-    var x = findLocalVariable(_resultUnit, 'x');
+    var x = findElement.localVar('x');
     _assertTypeStr(x.type, 'C<int>');
   }
 
@@ -618,7 +613,7 @@ main() {
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 156, 7),
     ]);
 
-    var x = findLocalVariable(_resultUnit, 'x');
+    var x = findElement.localVar('x');
     _assertTypeStr(x.type, 'C<int>');
   }
 
@@ -639,7 +634,7 @@ main() {
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 123, 7),
     ]);
 
-    var x = findLocalVariable(_resultUnit, 'x');
+    var x = findElement.localVar('x');
     _assertTypeStr(x.type, 'C<int>');
   }
 
@@ -665,7 +660,7 @@ main() {
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 183, 7),
     ]);
 
-    var x = findLocalVariable(_resultUnit, 'x');
+    var x = findElement.localVar('x');
     _assertTypeStr(x.type, 'C<int>');
   }
 
@@ -689,10 +684,10 @@ main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 38, 4),
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 39, 2),
     ]);
 
-    var a = findLocalVariable(_resultUnit, 'a');
+    var a = findElement.localVar('a');
     _assertTypeStr(a.type, 'A<dynamic>');
   }
 
@@ -2326,7 +2321,7 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 118, 1),
     ]);
 
-    var v = findLocalVariable(_resultUnit, 'v');
+    var v = findElement.localVar('v');
     _assertTypeStr(v.type, 'List<int> Function(num)');
   }
 
@@ -2813,7 +2808,7 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 68, 1),
     ]);
 
-    var y = findLocalVariable(_resultUnit, 'y');
+    var y = findElement.localVar('y');
     _assertTypeStr(y.type, 'double');
   }
 
@@ -2829,7 +2824,7 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 59, 1),
     ]);
 
-    var y = findLocalVariable(_resultUnit, 'y');
+    var y = findElement.localVar('y');
     _assertTypeStr(y.type, 'double');
   }
 
@@ -2845,7 +2840,7 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 69, 1),
     ]);
 
-    var y = findLocalVariable(_resultUnit, 'y');
+    var y = findElement.localVar('y');
     _assertTypeStr(y.type, 'double');
   }
 
@@ -2861,7 +2856,7 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 1),
     ]);
 
-    var y = findLocalVariable(_resultUnit, 'y');
+    var y = findElement.localVar('y');
     _assertTypeStr(y.type, 'int');
   }
 
@@ -2930,27 +2925,25 @@ main() {
           contextMessages: [message(testFilePath, 211, 2)]),
     ]);
 
-    _assertTypeStr(findLocalFunction(_resultUnit, 'f0').type, 'int Function()');
-    _assertTypeStr(
-        findLocalFunction(_resultUnit, 'f1').type, 'Future<int> Function()');
+    void assertLocalFunctionType(String name, String expected) {
+      var type = findElement.localFunction(name).type;
+      _assertTypeStr(type, expected);
+    }
 
-    _assertTypeStr(findLocalFunction(_resultUnit, 'f2').type, 'int Function()');
-    _assertTypeStr(
-        findLocalFunction(_resultUnit, 'f3').type, 'Future<int> Function()');
-    _assertTypeStr(
-        findLocalFunction(_resultUnit, 'f4').type, 'Iterable<int> Function()');
-    _assertTypeStr(
-        findLocalFunction(_resultUnit, 'f5').type, 'Stream<int> Function()');
+    assertLocalFunctionType('f0', 'int Function()');
+    assertLocalFunctionType('f1', 'Future<int> Function()');
 
-    _assertTypeStr(findLocalFunction(_resultUnit, 'f6').type, 'num Function()');
+    assertLocalFunctionType('f2', 'int Function()');
+    assertLocalFunctionType('f3', 'Future<int> Function()');
+    assertLocalFunctionType('f4', 'Iterable<int> Function()');
+    assertLocalFunctionType('f5', 'Stream<int> Function()');
+
+    assertLocalFunctionType('f6', 'num Function()');
 
     // Recursive cases: these infer in declaration order.
-    _assertTypeStr(
-        findLocalFunction(_resultUnit, 'f7').type, 'dynamic Function()');
-    _assertTypeStr(
-        findLocalFunction(_resultUnit, 'f8').type, 'dynamic Function()');
-    _assertTypeStr(
-        findLocalFunction(_resultUnit, 'f9').type, 'Stream<int> Function()');
+    assertLocalFunctionType('f7', 'dynamic Function()');
+    assertLocalFunctionType('f8', 'dynamic Function()');
+    assertLocalFunctionType('f9', 'Stream<int> Function()');
   }
 
   test_inferParameterType_setter_fromField() async {
@@ -3032,7 +3025,7 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
     ]);
 
-    var f = findLocalVariable(_resultUnit, 'f');
+    var f = findElement.localVar('f');
     _assertTypeStr(f.type, 'Null Function()');
   }
 
@@ -3089,7 +3082,7 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 72, 1),
     ]);
 
-    var x = findLocalVariable(_resultUnit, 'x');
+    var x = findElement.localVar('x');
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
@@ -3108,7 +3101,7 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 105, 1),
     ]);
 
-    var x = findLocalVariable(_resultUnit, 'x');
+    var x = findElement.localVar('x');
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
@@ -3912,7 +3905,7 @@ test1() {
       error(CompileTimeErrorCode.INVALID_CAST_LITERAL, 36, 2),
     ]);
 
-    var x = findLocalVariable(_resultUnit, 'x');
+    var x = findElement.localVar('x');
     _assertTypeStr(x.type, 'List<Null>');
   }
 
@@ -3991,7 +3984,7 @@ test1() {
       error(CompileTimeErrorCode.INVALID_CAST_LITERAL, 45, 3),
     ]);
 
-    var x = findLocalVariable(_resultUnit, 'x');
+    var x = findElement.localVar('x');
     _assertTypeStr(x.type, 'Map<Null, Null>');
   }
 
@@ -4086,7 +4079,7 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 36, 1),
     ]);
 
-    var y = findLocalVariable(_resultUnit, 'y');
+    var y = findElement.localVar('y');
     _assertTypeStr(y.type, 'List<num>');
   }
 
@@ -4297,7 +4290,7 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
     ]);
 
-    var v = findLocalVariable(_resultUnit, 'v');
+    var v = findElement.localVar('v');
     expect(v.name, 'v');
     _assertTypeStr(v.type, 'double');
   }
@@ -4341,7 +4334,7 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 42, 1),
     ]);
 
-    var v = findLocalVariable(_resultUnit, 'v');
+    var v = findElement.localVar('v');
     expect(v.name, 'v');
     _assertTypeStr(v.type, 'C<int>');
   }
@@ -4435,7 +4428,7 @@ List<T> f<T>(T g()) => <T>[g()];
       error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
     ]);
 
-    var v = findLocalVariable(_resultUnit, 'v');
+    var v = findElement.localVar('v');
     _assertTypeStr(v.type, 'List<int>');
   }
 
@@ -4452,7 +4445,7 @@ List<T> f<T>(T g()) => <T>[g()];
       error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
     ]);
 
-    var v = findLocalVariable(_resultUnit, 'v');
+    var v = findElement.localVar('v');
     _assertTypeStr(v.type, 'List<int>');
   }
 
@@ -4466,7 +4459,7 @@ double f(x) => 1.0;
       error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
     ]);
 
-    var v = findLocalVariable(_resultUnit, 'v');
+    var v = findElement.localVar('v');
     _assertTypeStr(v.type, 'double');
   }
 
@@ -4480,7 +4473,7 @@ double f(x) => 1.0;
       error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
     ]);
 
-    var v = findLocalVariable(_resultUnit, 'v');
+    var v = findElement.localVar('v');
     _assertTypeStr(v.type, 'double');
   }
 
@@ -4493,7 +4486,7 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
     ]);
 
-    var v = findLocalVariable(_resultUnit, 'v');
+    var v = findElement.localVar('v');
     _assertTypeStr(v.type, 'List<dynamic>');
   }
 
@@ -4507,7 +4500,7 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 32, 1),
     ]);
 
-    var v = findLocalVariable(_resultUnit, 'v');
+    var v = findElement.localVar('v');
     _assertTypeStr(v.type, 'List<int Function()>');
   }
 
@@ -4523,7 +4516,7 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
     ]);
 
-    var v = findLocalVariable(_resultUnit, 'v');
+    var v = findElement.localVar('v');
     _assertTypeStr(v.type, 'List<int Function()>');
   }
 
@@ -4536,7 +4529,7 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
     ]);
 
-    var v = findLocalVariable(_resultUnit, 'v');
+    var v = findElement.localVar('v');
     _assertTypeStr(v.type, 'Map<int, dynamic>');
   }
 
@@ -4550,7 +4543,7 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 32, 1),
     ]);
 
-    var v = findLocalVariable(_resultUnit, 'v');
+    var v = findElement.localVar('v');
     _assertTypeStr(v.type, 'Map<int, int Function()>');
   }
 
@@ -4566,7 +4559,7 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
     ]);
 
-    var v = findLocalVariable(_resultUnit, 'v');
+    var v = findElement.localVar('v');
     _assertTypeStr(v.type, 'Map<int, int Function()>');
   }
 
@@ -4582,7 +4575,7 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 62, 1),
     ]);
 
-    var v = findLocalVariable(_resultUnit, 'v');
+    var v = findElement.localVar('v');
     _assertTypeStr(v.type, 'List<dynamic>');
   }
 
@@ -4598,7 +4591,7 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 62, 1),
     ]);
 
-    var v = findLocalVariable(_resultUnit, 'v');
+    var v = findElement.localVar('v');
     _assertTypeStr(v.type, 'List<int>');
   }
 
@@ -4617,7 +4610,7 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 62, 1),
     ]);
 
-    var v = findLocalVariable(_resultUnit, 'v');
+    var v = findElement.localVar('v');
     _assertTypeStr(v.type, 'List<int>');
   }
 

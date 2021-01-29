@@ -55,7 +55,7 @@ abstract class _D&A&B = self::A with self::B /*isAnonymousMixin*/  {
     : super self::A::•()
     ;
   forwarding-stub method foo(covariant core::num* x) → void
-    return super.{self::A::foo}(x);
+    return super.{self::B::foo}(x);
 }
 class D extends self::_D&A&B implements self::C {
   synthetic constructor •() → self::D*

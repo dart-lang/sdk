@@ -12,6 +12,13 @@ import '../js_backend/string_reference.dart';
 import '../js_backend/type_reference.dart';
 import '../js_emitter/metadata_collector.dart';
 
+/// Estimates the size of the Javascript AST represented by the provided [Node].
+int estimateSize(Node node) {
+  var estimator = SizeEstimator();
+  estimator.visit(node);
+  return estimator.charCount;
+}
+
 /// [SizeEstimator] is a [NodeVisitor] designed to produce a consistent size
 /// estimate for a given JavaScript AST. [SizeEstimator] trades accuracy for
 /// stability and performance. In addition, [SizeEstimator] assumes we will emit
@@ -55,9 +62,17 @@ class SizeEstimator implements NodeVisitor {
     } else if (node is StringReference) {
       // Worst case we have to inline the string so size of string + 2 bytes for
       // quotes.
-      return "'${node.constant}'";
+      return "'${node.constant.toDartString()}'";
     } else {
       throw UnsupportedError('$node type is not supported');
+    }
+  }
+
+  String literalStringToString(LiteralString node) {
+    if (node.isFinalized) {
+      return node.value;
+    } else {
+      return sizeEstimate(node);
     }
   }
 
@@ -757,7 +772,7 @@ class SizeEstimator implements NodeVisitor {
         newInForInit: inForInit, newAtStatementBegin: atStatementBegin);
     Node selector = access.selector;
     if (selector is LiteralString) {
-      String fieldWithQuotes = selector.value;
+      String fieldWithQuotes = literalStringToString(selector);
       if (isValidJavaScriptId(fieldWithQuotes)) {
         if (access.receiver is LiteralNumber) {
           // We can eliminate the space in some cases, but for simplicity we
@@ -846,11 +861,7 @@ class SizeEstimator implements NodeVisitor {
 
   @override
   void visitLiteralString(LiteralString node) {
-    if (node.isFinalized) {
-      out(node.value); // '${node.value}'
-    } else {
-      out(sizeEstimate(node));
-    }
+    out(literalStringToString(node));
   }
 
   @override
@@ -943,7 +954,7 @@ class SizeEstimator implements NodeVisitor {
   void visitProperty(Property node) {
     Node name = node.name;
     if (name is LiteralString) {
-      String text = name.value;
+      String text = literalStringToString(name);
       if (isValidJavaScriptId(text)) {
         // '${text.substring(1, text.length - 1)}
         out('${text.substring(1, text.length - 1)}');
@@ -971,21 +982,7 @@ class SizeEstimator implements NodeVisitor {
 
   @override
   void visitLiteralExpression(LiteralExpression node) {
-    String template = node.template;
-    List<Expression> inputs = node.inputs;
-
-    List<String> parts = template.split('#');
-    int inputsLength = inputs == null ? 0 : inputs.length;
-    if (parts.length != inputsLength + 1) {
-      throw UnsupportedError('Wrong number of arguments for JS: $template');
-    }
-    // Code that uses JS must take care of operator precedences, and
-    // put parenthesis if needed.
-    out(parts[0]); // '${parts[0]}'
-    for (int i = 0; i < inputsLength; i++) {
-      visit(inputs[i]);
-      out(parts[i + 1]); // '${parts[i + 1]}'
-    }
+    out(node.template); // '${node.template}'
   }
 
   @override
@@ -1033,10 +1030,4 @@ class SizeEstimator implements NodeVisitor {
     out('await '); // 'await '
     visit(node.expression);
   }
-}
-
-int EstimateSize(Node node) {
-  var estimator = SizeEstimator();
-  estimator.visit(node);
-  return estimator.charCount;
 }

@@ -1,8 +1,12 @@
+//
+// Problems outside component:
+//
+// third_party/pkg/ffi/lib/src/allocation.dart: Info: Support for using non-constant type arguments 'T' in this FFI API is deprecated and will be removed in the next stable version of Dart. Rewrite the code to ensure that type arguments are compile time constants referring to a valid native type.
+//
 library;
 import self as self;
 import "dart:core" as core;
 import "dart:ffi" as ffi;
-import "package:ffi/src/allocation.dart" as all;
 
 import "dart:ffi";
 import "package:ffi/ffi.dart";
@@ -13,11 +17,11 @@ class Coordinate extends ffi::Struct {
   @#C3
   static final field core::int* #sizeOf = (#C11).{core::List::[]}(ffi::_abi());
   @#C3
-  constructor #fromPointer(dynamic #pointer) → dynamic
+  constructor #fromTypedDataBase(dynamic #pointer) → dynamic
     : super ffi::Struct::_fromPointer(#pointer)
     ;
-  static factory allocate(core::double* x, core::double* y, ffi::Pointer<self::Coordinate*>* next) → self::Coordinate* {
-    return let final self::Coordinate* #t1 = ffi::StructPointer|get#ref<self::Coordinate*>(all::allocate<self::Coordinate*>()) in block {
+  static factory allocate(ffi::Allocator* allocator, core::double* x, core::double* y, ffi::Pointer<self::Coordinate*>* next) → self::Coordinate* {
+    return let final self::Coordinate* #t1 = ffi::StructPointer|get#ref<self::Coordinate*>(ffi::AllocatorAlloc|call<self::Coordinate*>(allocator)) in block {
       #t1.{self::Coordinate::x} = x;
       #t1.{self::Coordinate::y} = y;
       #t1.{self::Coordinate::next} = next;
@@ -68,3 +72,8 @@ constants  {
   #C16 = 16
   #C17 = <core::int*>[#C16, #C16, #C16]
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///ffi_sample.dart:
+- Double. (from org-dartlang-sdk:///sdk/lib/ffi/native_type.dart:122:9)

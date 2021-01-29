@@ -49,8 +49,7 @@ import 'b.dart';
 void main() {f^}''');
     await computeSuggestions();
 
-    assertSuggestFunction('foo', 'bool',
-        defaultArgListString: 'bar, baz: null');
+    assertSuggestFunction('foo', 'bool', defaultArgListString: 'bar, baz: baz');
   }
 
   Future<void> test_ArgumentList() async {

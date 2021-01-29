@@ -54,12 +54,12 @@ void JSONStream::Setup(Zone* zone,
                        const Array& param_values,
                        bool parameters_are_dart_objects) {
   set_reply_port(reply_port);
-  seq_ = &Instance::ZoneHandle(seq.raw());
+  seq_ = &Instance::ZoneHandle(seq.ptr());
   method_ = method.ToCString();
 
   if (parameters_are_dart_objects) {
-    parameter_keys_ = &Array::ZoneHandle(param_keys.raw());
-    parameter_values_ = &Array::ZoneHandle(param_values.raw());
+    parameter_keys_ = &Array::ZoneHandle(param_keys.ptr());
+    parameter_values_ = &Array::ZoneHandle(param_values.ptr());
     ASSERT(parameter_keys_->Length() == parameter_values_->Length());
   } else if (param_keys.Length() > 0) {
     String& string_iterator = String::Handle();
@@ -320,7 +320,7 @@ void JSONStream::PrintValue(Breakpoint* bpt) {
 
 void JSONStream::PrintValue(TokenPosition tp) {
   PrintCommaIfNeeded();
-  PrintValue(tp.value());
+  PrintValue(static_cast<intptr_t>(tp.Serialize()));
 }
 
 void JSONStream::PrintValue(const ServiceEvent* event) {

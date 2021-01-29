@@ -41,10 +41,10 @@ void setup() {
   AAA.prototype.method2 = function(){return this._m2};
   AAA.prototype.optMethod = function(){return this._m2};
 
-  makeA = function() {
+  self.makeA = function() {
     return new AAA(100, 'Albert', 200, 'amazing!');
   };
-  makeAX = function() {
+  self.makeAX = function() {
     return new AAA(void 0, void 0, void 0, void 0);
   };
 
@@ -55,15 +55,16 @@ void setup() {
     this.optName = n;
   }
 
-  makeC = function() {
+  self.makeC = function() {
     return new CCC('Carol');
   };
-  makeCX = function() {
+  self.makeCX = function() {
     return new CCC(void 0);
   };
 
   self.nativeConstructor(CCC);
 })()""");
+  applyTestExtensions(['AAA', 'CCC']);
 }
 
 // The 'NativeInterface' version of the code is passed both native and Dart

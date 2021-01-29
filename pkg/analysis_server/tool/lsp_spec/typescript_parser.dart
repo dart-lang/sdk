@@ -287,6 +287,9 @@ class Parser {
   /// Ensures the next token is [type] and moves to the next, throwing [message]
   /// if not.
   Token _consume(TokenType type, String message) {
+    // Skip over any inline comments when looking for a specific token.
+    _match([TokenType.COMMENT]);
+
     if (_check(type)) {
       return _advance();
     }

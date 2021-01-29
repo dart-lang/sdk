@@ -6,6 +6,7 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
+import 'package:analysis_server/src/lsp/semantic_tokens/legend.dart';
 
 /// Helper for reading client dynamic registrations which may be ommitted by the
 /// client.
@@ -13,7 +14,7 @@ class ClientDynamicRegistrations {
   /// All dynamic registrations supported by the Dart LSP server.
   ///
   /// Anything listed here and supported by the client will not send a static
-  /// registration but intead dynamically register (usually only for a subset of
+  /// registration but instead dynamically register (usually only for a subset of
   /// files such as for .dart/pubspec.yaml/etc).
   ///
   /// When adding new capabilities that will be registered dynamically, the
@@ -35,6 +36,12 @@ class ClientDynamicRegistrations {
     Method.textDocument_codeAction,
     Method.textDocument_rename,
     Method.textDocument_foldingRange,
+    // workspace.fileOperations covers all file operation methods but we only
+    // support this one.
+    Method.workspace_willRenameFiles,
+    // Sematic tokens are all registered under a single "method" as the
+    // actual methods are controlled by the server capabilities.
+    CustomMethods.semanticTokenDynamicRegistration,
   ];
   final ClientCapabilities _capabilities;
 
@@ -60,6 +67,9 @@ class ClientDynamicRegistrations {
   bool get documentSymbol =>
       _capabilities.textDocument?.documentSymbol?.dynamicRegistration ?? false;
 
+  bool get fileOperations =>
+      _capabilities.workspace?.fileOperations?.dynamicRegistration ?? false;
+
   bool get folding =>
       _capabilities.textDocument?.foldingRange?.dynamicRegistration ?? false;
 
@@ -81,6 +91,9 @@ class ClientDynamicRegistrations {
   bool get rename =>
       _capabilities.textDocument?.rename?.dynamicRegistration ?? false;
 
+  bool get semanticTokens =>
+      _capabilities.textDocument?.semanticTokens?.dynamicRegistration ?? false;
+
   bool get signatureHelp =>
       _capabilities.textDocument?.signatureHelp?.dynamicRegistration ?? false;
 
@@ -93,6 +106,19 @@ class ClientDynamicRegistrations {
 }
 
 class ServerCapabilitiesComputer {
+  static final fileOperationRegistrationOptions =
+      FileOperationRegistrationOptions(
+    filters: [
+      FileOperationFilter(
+        scheme: 'file',
+        pattern: FileOperationPattern(
+          glob: '**/*.dart',
+          matches: FileOperationPatternKind.file,
+        ),
+      )
+    ],
+  );
+
   final LspAnalysisServer _server;
 
   /// Map from method name to current registration data.
@@ -124,7 +150,8 @@ class ServerCapabilitiesComputer {
     return ServerCapabilities(
       textDocumentSync: dynamicRegistrations.textSync
           ? null
-          : Either2<TextDocumentSyncOptions, num>.t1(TextDocumentSyncOptions(
+          : Either2<TextDocumentSyncOptions, TextDocumentSyncKind>.t1(
+              TextDocumentSyncOptions(
               // The open/close and sync kind flags are registered dynamically if the
               // client supports them, so these static registrations are based on whether
               // the client supports dynamic registration.
@@ -206,16 +233,34 @@ class ServerCapabilitiesComputer {
               FoldingRangeRegistrationOptions>.t1(
               true,
             ),
+      semanticTokensProvider: dynamicRegistrations.semanticTokens
+          ? null
+          : Either2<SemanticTokensOptions,
+              SemanticTokensRegistrationOptions>.t1(
+              SemanticTokensOptions(
+                legend: semanticTokenLegend.lspLegend,
+                full: Either2<bool, SemanticTokensOptionsFull>.t2(
+                  SemanticTokensOptionsFull(delta: false),
+                ),
+                range: Either2<bool, SemanticTokensOptionsRange>.t1(true),
+              ),
+            ),
       executeCommandProvider: ExecuteCommandOptions(
         commands: Commands.serverSupportedCommands,
         workDoneProgress: true,
       ),
       workspaceSymbolProvider: Either2<bool, WorkspaceSymbolOptions>.t1(true),
       workspace: ServerCapabilitiesWorkspace(
-          workspaceFolders: WorkspaceFoldersServerCapabilities(
-        supported: true,
-        changeNotifications: Either2<String, bool>.t2(true),
-      )),
+        workspaceFolders: WorkspaceFoldersServerCapabilities(
+          supported: true,
+          changeNotifications: Either2<String, bool>.t2(true),
+        ),
+        fileOperations: dynamicRegistrations.fileOperations
+            ? null
+            : ServerCapabilitiesFileOperations(
+                willRename: fileOperationRegistrationOptions,
+              ),
+      ),
     );
   }
 
@@ -393,8 +438,25 @@ class ServerCapabilitiesComputer {
       TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes),
     );
     register(
+      dynamicRegistrations.fileOperations,
+      Method.workspace_willRenameFiles,
+      fileOperationRegistrationOptions,
+    );
+    register(
       dynamicRegistrations.didChangeConfiguration,
       Method.workspace_didChangeConfiguration,
+    );
+    register(
+      dynamicRegistrations.semanticTokens,
+      CustomMethods.semanticTokenDynamicRegistration,
+      SemanticTokensRegistrationOptions(
+        documentSelector: fullySupportedTypes,
+        legend: semanticTokenLegend.lspLegend,
+        full: Either2<bool, SemanticTokensOptionsFull>.t2(
+          SemanticTokensOptionsFull(delta: false),
+        ),
+        range: Either2<bool, SemanticTokensOptionsRange>.t1(true),
+      ),
     );
 
     await _applyRegistrations(registrations);

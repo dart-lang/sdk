@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:meta/meta.dart';
-
 import 'customized_codes.dart';
 
 /// An error code associated with an [AnalysisError].
@@ -23,7 +21,7 @@ abstract class ErrorCode {
 
   final String _message;
 
-  final String _correction;
+  final String? _correction;
 
   /**
    * Return `true` if diagnostics with this code have documentation for them
@@ -43,25 +41,27 @@ abstract class ErrorCode {
    * given [correction] template.
    */
   const ErrorCode({
-    String correction,
+    String? correction,
     this.hasPublishedDocs = false,
     this.isUnresolvedIdentifier: false,
-    @required String message,
-    @required this.name,
-    @required this.uniqueName,
+    required String message,
+    required this.name,
+    required this.uniqueName,
   })  : _correction = correction,
         _message = message,
+        // ignore: unnecessary_null_comparison
         assert(hasPublishedDocs != null),
+        // ignore: unnecessary_null_comparison
         assert(isUnresolvedIdentifier != null);
 
   @Deprecated('Use the default constructor')
   const ErrorCode.temporary2({
-    String correction,
+    String? correction,
     bool hasPublishedDocs = false,
     bool isUnresolvedIdentifier = false,
-    @required String message,
-    @required String name,
-    @required String uniqueName,
+    required String message,
+    required String name,
+    required String uniqueName,
   }) : this(
           correction: correction,
           hasPublishedDocs: hasPublishedDocs,
@@ -76,7 +76,7 @@ abstract class ErrorCode {
    * or `null` if there is no correction information for this error. The
    * correction should indicate how the user can fix the error.
    */
-  String get correction => customizedCorrections[uniqueName] ?? _correction;
+  String? get correction => customizedCorrections[uniqueName] ?? _correction;
 
   /**
    * The severity of the error.
@@ -102,7 +102,7 @@ abstract class ErrorCode {
    * Return a URL that can be used to access documentation for diagnostics with
    * this code, or `null` if there is no published documentation.
    */
-  String get url {
+  String? get url {
     if (hasPublishedDocs) {
       return 'https://dart.dev/tools/diagnostic-messages#${name.toLowerCase()}';
     }

@@ -50,9 +50,18 @@ class MigrationState {
   /// required version of each package.
   final Map<String, Version> neededPackages;
 
+  /// A function which returns whether a file at a given path should be
+  /// migrated.
+  final bool Function(String) shouldBeMigratedFunction;
+
   /// Initialize a newly created migration state with the given values.
-  MigrationState(this.migration, this.includedRoot, this.listener,
-      this.instrumentationListener, this.neededPackages,
+  MigrationState(
+      this.migration,
+      this.includedRoot,
+      this.listener,
+      this.instrumentationListener,
+      this.neededPackages,
+      this.shouldBeMigratedFunction,
       [this.analysisResult])
       : assert(neededPackages != null);
 
@@ -68,11 +77,19 @@ class MigrationState {
   }
 
   /// Refresh the state of the migration after the migration has been updated.
-  Future<void> refresh(Logger logger) async {
+  Future<void> refresh(Logger logger, Iterable<String> pathsToProcess) async {
     assert(!hasBeenApplied);
     var provider = listener.server.resourceProvider;
-    var infoBuilder = InfoBuilder(provider, includedRoot,
-        instrumentationListener.data, listener, migration, nodeMapper, logger);
+    var infoBuilder = InfoBuilder(
+        provider,
+        includedRoot,
+        instrumentationListener.data,
+        listener,
+        migration,
+        nodeMapper,
+        logger,
+        shouldBeMigratedFunction,
+        pathsToProcess);
     var unitInfos = await infoBuilder.explainMigration();
     var pathContext = provider.pathContext;
     migrationInfo = MigrationInfo(

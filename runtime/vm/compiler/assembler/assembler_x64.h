@@ -304,7 +304,7 @@ class Assembler : public AssemblerBase {
   void pushq(Register reg);
   void pushq(const Address& address) { EmitUnaryL(address, 0xFF, 6); }
   void pushq(const Immediate& imm);
-  void PushImmediate(const Immediate& imm);
+  void PushImmediate(const Immediate& imm) { pushq(imm); }
   void PushImmediate(int64_t value) { PushImmediate(Immediate(value)); }
 
   void popq(Register reg);
@@ -915,6 +915,15 @@ class Assembler : public AssemblerBase {
                           OperandSize sz = kEightBytes) {
     LoadFromOffset(dst, FieldAddress(base, index, scale, payload_offset), sz);
   }
+  void StoreFieldToOffset(Register src,
+                          Register base,
+                          int32_t offset,
+                          OperandSize sz = kEightBytes) {
+    if (sz != kEightBytes) {
+      UNIMPLEMENTED();
+    }
+    StoreMemoryValue(src, base, offset - kHeapObjectTag);
+  }
   void LoadFromStack(Register dst, intptr_t depth);
   void StoreToStack(Register src, intptr_t depth);
   void CompareToStack(Register src, intptr_t depth);
@@ -1028,7 +1037,7 @@ class Assembler : public AssemblerBase {
   // before the code can be used.
   //
   // The neccessary information for the "linker" (i.e. the relocation
-  // information) is stored in [CodeLayout::static_calls_target_table_]: an
+  // information) is stored in [UntaggedCode::static_calls_target_table_]: an
   // entry of the form
   //
   //   (Code::kPcRelativeCall & pc_offset, <target-code>, <target-function>)

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// Conventions for paths:
 ///
 /// - Use the [Uri] class for paths that may have the `file`, `dart` or
@@ -58,6 +60,12 @@ Future writeComponentToBinary(Component component, String path) {
   }
 
   return future;
+}
+
+List<int> writeComponentToBytes(Component component) {
+  BytesSink sink = new BytesSink();
+  new BinaryPrinter(sink).writeComponentFile(component);
+  return sink.builder.toBytes();
 }
 
 void writeLibraryToText(Library library, {String path}) {

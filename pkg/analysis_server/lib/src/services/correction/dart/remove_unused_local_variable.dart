@@ -50,6 +50,19 @@ class RemoveUnusedLocalVariable extends CorrectionProducer {
         return;
       }
 
+      var isCovered = false;
+      for (var other in sourceRanges) {
+        if (other.covers(sourceRange)) {
+          isCovered = true;
+        } else if (other.intersects(sourceRange)) {
+          return;
+        }
+      }
+
+      if (isCovered) {
+        continue;
+      }
+
       sourceRanges.add(sourceRange);
     }
 

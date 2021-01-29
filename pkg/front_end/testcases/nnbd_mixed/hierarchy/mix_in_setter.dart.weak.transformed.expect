@@ -1,0 +1,153 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_setter.dart:5:7: Error: The non-abstract class 'Super' is missing implementations for these members:
+//  - Super.extendedAbstractMixedInAbstractSetter=
+//  - Super.extendedAbstractMixedInConcreteSetter=
+//  - Super.extendedAbstractSetter=
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class Super {
+//       ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_setter.dart:16:12: Context: 'Super.extendedAbstractMixedInAbstractSetter=' is defined here.
+//   void set extendedAbstractMixedInAbstractSetter(int i);
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_setter.dart:12:12: Context: 'Super.extendedAbstractMixedInConcreteSetter=' is defined here.
+//   void set extendedAbstractMixedInConcreteSetter(int i);
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_setter.dart:8:12: Context: 'Super.extendedAbstractSetter=' is defined here.
+//   void set extendedAbstractSetter(int i);
+//            ^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_setter.dart:19:7: Error: The non-abstract class 'Mixin' is missing implementations for these members:
+//  - Mixin.extendedAbstractMixedInAbstractSetter=
+//  - Mixin.extendedConcreteMixedInAbstractSetter=
+//  - Mixin.mixedInAbstractSetter=
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class Mixin {
+//       ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_setter.dart:30:12: Context: 'Mixin.extendedAbstractMixedInAbstractSetter=' is defined here.
+//   void set extendedAbstractMixedInAbstractSetter(int i);
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_setter.dart:28:12: Context: 'Mixin.extendedConcreteMixedInAbstractSetter=' is defined here.
+//   void set extendedConcreteMixedInAbstractSetter(int i);
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_setter.dart:22:12: Context: 'Mixin.mixedInAbstractSetter=' is defined here.
+//   void set mixedInAbstractSetter(int i);
+//            ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_setter.dart:33:7: Error: The non-abstract class 'ClassMixin' is missing implementations for these members:
+//  - Mixin.extendedAbstractMixedInAbstractSetter=
+//  - Mixin.mixedInAbstractSetter=
+//  - Super.extendedAbstractMixedInAbstractSetter=
+//  - Super.extendedAbstractSetter=
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ClassMixin extends Super with Mixin {}
+//       ^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_setter.dart:30:12: Context: 'Mixin.extendedAbstractMixedInAbstractSetter=' is defined here.
+//   void set extendedAbstractMixedInAbstractSetter(int i);
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_setter.dart:22:12: Context: 'Mixin.mixedInAbstractSetter=' is defined here.
+//   void set mixedInAbstractSetter(int i);
+//            ^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_setter.dart:16:12: Context: 'Super.extendedAbstractMixedInAbstractSetter=' is defined here.
+//   void set extendedAbstractMixedInAbstractSetter(int i);
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_setter.dart:8:12: Context: 'Super.extendedAbstractSetter=' is defined here.
+//   void set extendedAbstractSetter(int i);
+//            ^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_setter.dart:35:7: Error: The non-abstract class 'NamedMixin' is missing implementations for these members:
+//  - Mixin.extendedAbstractMixedInAbstractSetter=
+//  - Mixin.mixedInAbstractSetter=
+//  - Super.extendedAbstractMixedInAbstractSetter=
+//  - Super.extendedAbstractSetter=
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class NamedMixin = Super with Mixin;
+//       ^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_setter.dart:30:12: Context: 'Mixin.extendedAbstractMixedInAbstractSetter=' is defined here.
+//   void set extendedAbstractMixedInAbstractSetter(int i);
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_setter.dart:22:12: Context: 'Mixin.mixedInAbstractSetter=' is defined here.
+//   void set mixedInAbstractSetter(int i);
+//            ^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_setter.dart:16:12: Context: 'Super.extendedAbstractMixedInAbstractSetter=' is defined here.
+//   void set extendedAbstractMixedInAbstractSetter(int i);
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/mix_in_setter.dart:8:12: Context: 'Super.extendedAbstractSetter=' is defined here.
+//   void set extendedAbstractSetter(int i);
+//            ^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    : super core::Object::•()
+    ;
+  set extendedConcreteSetter(core::int i) → void {}
+  abstract set extendedAbstractSetter(core::int i) → void;
+  set extendedConcreteMixedInConcreteSetter(core::int i) → void {}
+  abstract set extendedAbstractMixedInConcreteSetter(core::int i) → void;
+  set extendedConcreteMixedInAbstractSetter(core::int i) → void {}
+  abstract set extendedAbstractMixedInAbstractSetter(core::int i) → void;
+}
+class Mixin extends core::Object {
+  synthetic constructor •() → self::Mixin
+    : super core::Object::•()
+    ;
+  set mixedInConcreteSetter(core::int i) → void {}
+  abstract set mixedInAbstractSetter(core::int i) → void;
+  set extendedConcreteMixedInConcreteSetter(core::int i) → void {}
+  set extendedAbstractMixedInConcreteSetter(core::int i) → void {}
+  abstract set extendedConcreteMixedInAbstractSetter(core::int i) → void;
+  abstract set extendedAbstractMixedInAbstractSetter(core::int i) → void;
+}
+abstract class _ClassMixin&Super&Mixin extends self::Super implements self::Mixin /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_ClassMixin&Super&Mixin
+    : super self::Super::•()
+    ;
+  set mixedInConcreteSetter(core::int i) → void {}
+  set extendedConcreteMixedInConcreteSetter(core::int i) → void {}
+  set extendedAbstractMixedInConcreteSetter(core::int i) → void {}
+  abstract set extendedConcreteMixedInAbstractSetter(core::int i) → void;
+  abstract set mixedInAbstractSetter(core::int i) → void;
+  abstract set extendedAbstractMixedInAbstractSetter(core::int i) → void;
+}
+class ClassMixin extends self::_ClassMixin&Super&Mixin {
+  synthetic constructor •() → self::ClassMixin
+    : super self::_ClassMixin&Super&Mixin::•()
+    ;
+}
+class NamedMixin extends self::Super implements self::Mixin /*isEliminatedMixin*/  {
+  synthetic constructor •() → self::NamedMixin
+    : super self::Super::•()
+    ;
+  set mixedInConcreteSetter(core::int i) → void {}
+  set extendedConcreteMixedInConcreteSetter(core::int i) → void {}
+  set extendedAbstractMixedInConcreteSetter(core::int i) → void {}
+  abstract set extendedConcreteMixedInAbstractSetter(core::int i) → void;
+  abstract set mixedInAbstractSetter(core::int i) → void;
+  abstract set extendedAbstractMixedInAbstractSetter(core::int i) → void;
+}
+static method main() → dynamic {}

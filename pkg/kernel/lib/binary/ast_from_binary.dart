@@ -1,6 +1,9 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// @dart = 2.9
+
 library kernel.ast_from_binary;
 
 import 'dart:core' hide MapEntry;
@@ -24,13 +27,19 @@ class ParseError {
 }
 
 class InvalidKernelVersionError {
+  final String filename;
   final int version;
 
-  InvalidKernelVersionError(this.version);
+  InvalidKernelVersionError(this.filename, this.version);
 
   String toString() {
-    return 'Unexpected Kernel Format Version ${version} '
-        '(expected ${Tag.BinaryFormatVersion}).';
+    StringBuffer sb = new StringBuffer();
+    sb.write('Unexpected Kernel Format Version ${version} '
+        '(expected ${Tag.BinaryFormatVersion})');
+    if (filename != null) {
+      sb.write(' when reading $filename.');
+    }
+    return '$sb';
   }
 }
 
@@ -57,10 +66,14 @@ class CanonicalNameError {
   final String message;
 
   CanonicalNameError(this.message);
+
+  String toString() => 'CanonicalNameError: $message';
 }
 
 class CanonicalNameSdkError extends CanonicalNameError {
   CanonicalNameSdkError(String message) : super(message);
+
+  String toString() => 'CanonicalNameSdkError: $message';
 }
 
 class _ComponentIndex {
@@ -131,8 +144,15 @@ class BinaryBuilder {
       bool disableLazyClassReading = false,
       bool alwaysCreateNewNamedNodes})
       : _disableLazyReading = disableLazyReading,
-        _disableLazyClassReading =
-            disableLazyReading || disableLazyClassReading,
+        _disableLazyClassReading = disableLazyReading ||
+            disableLazyClassReading ||
+            // Disable lazy class reading when forcing the creation of new named
+            // nodes as it is a logical "relink" to the new version (overwriting
+            // the old one) - which doesn't play well with lazy loading class
+            // content as old loaded references will then potentially still
+            // point to the old content until the new class has been lazy
+            // loaded.
+            (alwaysCreateNewNamedNodes == true),
         this.alwaysCreateNewNamedNodes = alwaysCreateNewNamedNodes ?? false;
 
   fail(String message) {
@@ -529,7 +549,7 @@ class BinaryBuilder {
       }
       int version = readUint32();
       if (version != Tag.BinaryFormatVersion) {
-        throw InvalidKernelVersionError(version);
+        throw InvalidKernelVersionError(filename, version);
       }
 
       _readAndVerifySdkHash();
@@ -563,6 +583,8 @@ class BinaryBuilder {
   }
 
   /// Deserializes the source and stores it in [component].
+  /// Note that the _coverage_ normally included in the source in the
+  /// uri-to-source mapping is _not_ included.
   ///
   /// The input bytes may contain multiple files concatenated.
   void readComponentSource(Component component) {
@@ -623,11 +645,10 @@ class BinaryBuilder {
           bool checkReferenceNode = true;
           if (child.reference == null) {
             // OK for "if private: URI of library" part of "Qualified name"...
-            Iterable<CanonicalName> children = child.childrenOrNull;
-            if (parent.parent != null &&
-                children != null &&
-                children.isNotEmpty &&
-                children.first.name.startsWith("_")) {
+            // TODO(johnniwinther): This wrongfully skips checking of variable
+            // synthesized by the VM transformations. The kind of canonical
+            // name types maybe should be directly available.
+            if (parent.parent != null && child.name.contains(':')) {
               // OK then.
               checkReferenceNode = false;
             } else {
@@ -715,7 +736,7 @@ class BinaryBuilder {
 
     final int formatVersion = readUint32();
     if (formatVersion != Tag.BinaryFormatVersion) {
-      throw InvalidKernelVersionError(formatVersion);
+      throw InvalidKernelVersionError(filename, formatVersion);
     }
 
     _readAndVerifySdkHash();
@@ -724,7 +745,7 @@ class BinaryBuilder {
     _ComponentIndex index = _readComponentIndex(componentFileSize);
 
     _byteOffset = index.binaryOffsetForSourceTable;
-    Map<Uri, Source> uriToSource = readUriToSource();
+    Map<Uri, Source> uriToSource = readUriToSource(/* readCoverage = */ false);
     _mergeUriToSource(component.uriToSource, uriToSource);
 
     _byteOffset = _componentStartOffset + componentFileSize;
@@ -741,7 +762,7 @@ class BinaryBuilder {
 
     final int formatVersion = readUint32();
     if (formatVersion != Tag.BinaryFormatVersion) {
-      throw InvalidKernelVersionError(formatVersion);
+      throw InvalidKernelVersionError(filename, formatVersion);
     }
 
     _readAndVerifySdkHash();
@@ -773,7 +794,7 @@ class BinaryBuilder {
     _associateMetadata(component, _componentStartOffset);
 
     _byteOffset = index.binaryOffsetForSourceTable;
-    Map<Uri, Source> uriToSource = readUriToSource();
+    Map<Uri, Source> uriToSource = readUriToSource(/* readCoverage = */ true);
     _mergeUriToSource(component.uriToSource, uriToSource);
 
     _byteOffset = index.binaryOffsetForConstantTable;
@@ -821,7 +842,14 @@ class BinaryBuilder {
     return strings;
   }
 
-  Map<Uri, Source> readUriToSource() {
+  /// Read the uri-to-source part of the binary.
+  /// Note that this can include coverage, but that it is only included if
+  /// [readCoverage] is true, otherwise coverage will be skipped. Note also that
+  /// if [readCoverage] is true, references are read and that the link table
+  /// thus has to be read first.
+  Map<Uri, Source> readUriToSource(bool readCoverage) {
+    assert(!readCoverage || (readCoverage && _linkTable != null));
+
     int length = readUint32();
 
     // Read data.
@@ -847,10 +875,16 @@ class BinaryBuilder {
       Set<Reference> coverageConstructors;
       {
         int constructorCoverageCount = readUInt30();
-        coverageConstructors =
-            constructorCoverageCount == 0 ? null : new Set<Reference>();
-        for (int j = 0; j < constructorCoverageCount; ++j) {
-          coverageConstructors.add(readMemberReference());
+        if (readCoverage) {
+          coverageConstructors =
+              constructorCoverageCount == 0 ? null : new Set<Reference>();
+          for (int j = 0; j < constructorCoverageCount; ++j) {
+            coverageConstructors.add(readMemberReference());
+          }
+        } else {
+          for (int j = 0; j < constructorCoverageCount; ++j) {
+            skipMemberReference();
+          }
         }
       }
 
@@ -906,6 +940,10 @@ class BinaryBuilder {
     }
   }
 
+  void skipCanonicalNameReference() {
+    readUInt30();
+  }
+
   CanonicalName readCanonicalNameReference() {
     int index = readUInt30();
     if (index == 0) return null;
@@ -935,6 +973,10 @@ class BinaryBuilder {
       throw 'Expected a class reference to be valid but was `null`.';
     }
     return name?.getReference();
+  }
+
+  void skipMemberReference() {
+    skipCanonicalNameReference();
   }
 
   Reference readMemberReference({bool allowNull: false}) {
@@ -1329,14 +1371,18 @@ class BinaryBuilder {
     CanonicalName getterCanonicalName = readCanonicalNameReference();
     Reference getterReference = getterCanonicalName.getReference();
     CanonicalName setterCanonicalName = readCanonicalNameReference();
-    Reference setterReference = setterCanonicalName.getReference();
+    Reference setterReference = setterCanonicalName?.getReference();
     Field node = getterReference.node;
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
     if (node == null) {
-      node = new Field(null,
-          getterReference: getterReference, setterReference: setterReference);
+      if (setterReference != null) {
+        node = new Field.mutable(null,
+            getterReference: getterReference, setterReference: setterReference);
+      } else {
+        node = new Field.immutable(null, getterReference: getterReference);
+      }
     }
     Uri fileUri = readUriReference();
     int fileOffset = readOffset();
@@ -1458,7 +1504,7 @@ class BinaryBuilder {
     node.stubKind = stubKind;
     node.stubTargetReference = stubTargetReference;
 
-    assert((node.stubKind == ProcedureStubKind.ForwardingSuperStub &&
+    assert((node.stubKind == ProcedureStubKind.ConcreteForwardingStub &&
             node.stubTargetReference != null) ||
         !(node.isForwardingStub && node.function.body != null));
     assert(!(node.isMemberSignature && node.stubTargetReference == null),
@@ -1649,7 +1695,8 @@ class BinaryBuilder {
   VariableDeclaration readVariableReference() {
     int index = readUInt30();
     if (index >= variableStack.length) {
-      throw fail('unexpected variable index: $index');
+      throw fail('Unexpected variable index: $index. '
+          'Current variable count: ${variableStack.length}.');
     }
     return variableStack[index];
   }
@@ -1719,10 +1766,43 @@ class BinaryBuilder {
         return new PropertyGet.byReference(readExpression(), readName(),
             readInstanceMemberReference(allowNull: true))
           ..fileOffset = offset;
+      case Tag.InstanceGet:
+        InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
+        int offset = readOffset();
+        return new InstanceGet.byReference(kind, readExpression(), readName(),
+            resultType: readDartType(),
+            interfaceTargetReference: readInstanceMemberReference())
+          ..fileOffset = offset;
+      case Tag.InstanceTearOff:
+        InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
+        int offset = readOffset();
+        return new InstanceTearOff.byReference(
+            kind, readExpression(), readName(),
+            resultType: readDartType(),
+            interfaceTargetReference: readInstanceMemberReference())
+          ..fileOffset = offset;
+      case Tag.DynamicGet:
+        DynamicAccessKind kind = DynamicAccessKind.values[readByte()];
+        int offset = readOffset();
+        return new DynamicGet(kind, readExpression(), readName())
+          ..fileOffset = offset;
       case Tag.PropertySet:
         int offset = readOffset();
         return new PropertySet.byReference(readExpression(), readName(),
             readExpression(), readInstanceMemberReference(allowNull: true))
+          ..fileOffset = offset;
+      case Tag.InstanceSet:
+        InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
+        int offset = readOffset();
+        return new InstanceSet.byReference(
+            kind, readExpression(), readName(), readExpression(),
+            interfaceTargetReference: readInstanceMemberReference())
+          ..fileOffset = offset;
+      case Tag.DynamicSet:
+        DynamicAccessKind kind = DynamicAccessKind.values[readByte()];
+        int offset = readOffset();
+        return new DynamicSet(
+            kind, readExpression(), readName(), readExpression())
           ..fileOffset = offset;
       case Tag.SuperPropertyGet:
         int offset = readOffset();
@@ -1740,6 +1820,10 @@ class BinaryBuilder {
         int offset = readOffset();
         return new StaticGet.byReference(readMemberReference())
           ..fileOffset = offset;
+      case Tag.StaticTearOff:
+        int offset = readOffset();
+        return new StaticTearOff.byReference(readMemberReference())
+          ..fileOffset = offset;
       case Tag.StaticSet:
         int offset = readOffset();
         return new StaticSet.byReference(
@@ -1752,6 +1836,55 @@ class BinaryBuilder {
             readArguments(), readInstanceMemberReference(allowNull: true))
           ..fileOffset = offset
           ..flags = flags;
+      case Tag.InstanceInvocation:
+        InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
+        int flags = readByte();
+        int offset = readOffset();
+        return new InstanceInvocation.byReference(
+            kind, readExpression(), readName(), readArguments(),
+            functionType: readDartType(),
+            interfaceTargetReference: readInstanceMemberReference())
+          ..fileOffset = offset
+          ..flags = flags;
+      case Tag.DynamicInvocation:
+        DynamicAccessKind kind = DynamicAccessKind.values[readByte()];
+        int offset = readOffset();
+        return new DynamicInvocation(
+            kind, readExpression(), readName(), readArguments())
+          ..fileOffset = offset;
+      case Tag.FunctionInvocation:
+        FunctionAccessKind kind = FunctionAccessKind.values[readByte()];
+        int offset = readOffset();
+        Expression receiver = readExpression();
+        Arguments arguments = readArguments();
+        DartType functionType = readDartType();
+        // `const DynamicType()` is used to encode a missing function type.
+        assert(functionType is FunctionType || functionType is DynamicType,
+            "Unexpected function type $functionType for FunctionInvocation");
+        return new FunctionInvocation(kind, receiver, arguments,
+            functionType: functionType is FunctionType ? functionType : null)
+          ..fileOffset = offset;
+      case Tag.FunctionTearOff:
+        int offset = readOffset();
+        return new FunctionTearOff(readExpression())..fileOffset = offset;
+      case Tag.LocalFunctionInvocation:
+        int offset = readOffset();
+        readUInt30(); // offset of the variable declaration in the binary.
+        return new LocalFunctionInvocation(
+            readVariableReference(), readArguments(),
+            functionType: readDartType())
+          ..fileOffset = offset;
+      case Tag.EqualsNull:
+        int offset = readOffset();
+        return new EqualsNull(readExpression(), isNot: readByte() == 1)
+          ..fileOffset = offset;
+      case Tag.EqualsCall:
+        int offset = readOffset();
+        return new EqualsCall.byReference(readExpression(), readExpression(),
+            isNot: readByte() == 1,
+            functionType: readDartType(),
+            interfaceTargetReference: readInstanceMemberReference())
+          ..fileOffset = offset;
       case Tag.SuperMethodInvocation:
         int offset = readOffset();
         addTransformerFlag(TransformerFlag.superCalls);

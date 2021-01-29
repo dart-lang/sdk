@@ -1,22 +1,21 @@
 library;
 import self as self;
 import "dart:core" as core;
-import "deferred_lib.dart" as def;
 
 import "org-dartlang-testcase:///deferred_lib.dart" deferred as lib;
 
 static method main() → dynamic {}
 static method test() → dynamic {
-  core::print(let final core::Object* #t1 = CheckLibraryIsLoaded(lib) in def::C*);
+  core::print(let final core::Object* #t1 = CheckLibraryIsLoaded(lib) in #C1);
 }
 
 library;
-import self as def;
+import self as self2;
 import "dart:core" as core;
 
 class C extends core::Object {
   static field core::int* y = 1;
-  synthetic constructor •() → def::C*
+  synthetic constructor •() → self2::C*
     : super core::Object::•()
     ;
   static method m() → core::int*
@@ -36,7 +35,6 @@ static field core::int* x = 0;
 static method m(dynamic x) → dynamic
   return null;
 
-
-Extra constant evaluation status:
-Evaluated: TypeLiteral @ org-dartlang-testcase:///check_deferred_read_type.dart:9:13 -> TypeLiteralConstant(C*)
-Extra constant evaluation: evaluated: 4, effectively constant: 1
+constants  {
+  #C1 = TypeLiteralConstant(self2::C*)
+}

@@ -1,6 +1,9 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// @dart = 2.9
+
 library kernel.checks;
 
 import 'ast.dart';
@@ -77,9 +80,12 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
 
   Class currentClass;
 
+  Extension currentExtension;
+
   TreeNode currentParent;
 
-  TreeNode get currentClassOrMember => currentMember ?? currentClass;
+  TreeNode get currentClassOrExtensionOrMember =>
+      currentMember ?? currentClass ?? currentExtension;
 
   static void check(Component component, {bool isOutline, bool afterConst}) {
     component.accept(
@@ -108,7 +114,7 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
   }
 
   problem(TreeNode node, String details, {TreeNode context}) {
-    context ??= currentClassOrMember;
+    context ??= currentClassOrExtensionOrMember;
     throw new VerificationError(context, node, details);
   }
 
@@ -239,11 +245,13 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
   }
 
   visitExtension(Extension node) {
+    currentExtension = node;
     declareTypeParameters(node.typeParameters);
     final TreeNode oldParent = enterParent(node);
     node.visitChildren(this);
     exitParent(oldParent);
     undeclareTypeParameters(node.typeParameters);
+    currentExtension = null;
   }
 
   void checkTypedef(Typedef node) {
@@ -284,6 +292,27 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
       problem(node, "The const field '${node.name.text}' should be static",
           context: node);
     }
+    bool isImmutable = node.isLate
+        ? (node.isFinal && node.initializer != null)
+        : (node.isFinal || node.isConst);
+    if (isImmutable == node.hasSetter) {
+      if (node.hasSetter) {
+        problem(node,
+            "The immutable field '${node.name.text}' has a setter reference",
+            context: node);
+      } else {
+        if (isOutline && node.isLate) {
+          // TODO(johnniwinther): Should we add a flag on Field for having
+          // a declared initializer?
+          // The initializer is not included in the outline so we can't tell
+          // whether it has an initializer or not.
+        } else {
+          problem(node,
+              "The mutable field '${node.name.text}' has no setter reference",
+              context: node);
+        }
+      }
+    }
     classTypeParametersAreInScope = !node.isStatic;
     node.initializer?.accept(this);
     node.type.accept(this);
@@ -322,14 +351,14 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
       problem(
           node, "Member signature must have a member signature origin $node.");
     }
-    if (node.forwardingStubInterfaceTarget != null &&
+    if (node.abstractForwardingStubTarget != null &&
         !(node.isForwardingStub || node.isForwardingSemiStub)) {
       problem(
           node,
           "Only forwarding stubs can have a forwarding stub interface target "
           "$node.");
     }
-    if (node.forwardingStubSuperTarget != null &&
+    if (node.concreteForwardingStubTarget != null &&
         !(node.isForwardingStub || node.isForwardingSemiStub)) {
       problem(
           node,

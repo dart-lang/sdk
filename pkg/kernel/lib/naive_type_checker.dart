@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'class_hierarchy.dart';
 import 'core_types.dart';
 import 'kernel.dart';
@@ -281,12 +283,18 @@ super method declares ${superParameter.type}
 
     // Permit any invocation on Function type.
     if (receiver == environment.coreTypes.functionLegacyRawType &&
-        where is MethodInvocation &&
+        where is InvocationExpression &&
         where.name.text == 'call') {
       return;
     }
 
-    fail(where, 'Unresolved method invocation');
+    if (receiver is FunctionType &&
+        where is InvocationExpression &&
+        where.name.text == 'call') {
+      return;
+    }
+
+    fail(where, 'Unresolved method invocation on ${receiver}');
   }
 
   @override

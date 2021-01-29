@@ -1,12 +1,14 @@
 class Annotation {
   const Annotation();
 }
+
 @Annotation()
 external int topLevelField;
 @Annotation()
 external final int finalTopLevelField;
 external var untypedTopLevelField;
 external final untypedFinalTopLevelField;
+
 class A {
   @Annotation()
   external int instanceField;
@@ -24,6 +26,7 @@ class A {
   external static var untypedStaticField;
   external static final untypedFinalStaticField;
 }
+
 mixin B {
   @Annotation()
   external int instanceField;
@@ -41,8 +44,22 @@ mixin B {
   external static var untypedStaticField;
   external static final untypedFinalStaticField;
 }
-extension Extension ;
-on A (){}
+
+extension Extension on A {
+  @Annotation()
+  external int extensionInstanceField;
+  @Annotation()
+  external final int finalExtensionInstanceField;
+  @Annotation()
+  external static int extensionStaticField;
+  @Annotation()
+  external static final int finalExtensionStaticField;
+  external var untypedExtensionInstanceField;
+  external final untypedFinalExtensionInstanceField;
+  external static var untypedExtensionStaticField;
+  external static final untypedFinalExtensionStaticField;
+}
+
 class C implements A {
   external var instanceField;
   external final finalInstanceField;
@@ -51,4 +68,5 @@ class C implements A {
   external final untypedFinalInstanceField;
   external var untypedCovariantInstanceField;
 }
+
 main() {}

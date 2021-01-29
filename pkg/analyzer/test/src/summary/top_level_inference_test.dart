@@ -2,14 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/analysis/base.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 import 'element_text.dart';
 
@@ -17,7 +13,6 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TopLevelInferenceTest);
     defineReflectiveTests(TopLevelInferenceErrorsTest);
-    defineReflectiveTests(TopLevelInferenceTestWithSpread);
 //    defineReflectiveTests(ApplyCheckElementTextReplacements);
   });
 }
@@ -30,7 +25,8 @@ class ApplyCheckElementTextReplacements {
 }
 
 @reflectiveTest
-class TopLevelInferenceErrorsTest extends PubPackageResolutionTest {
+class TopLevelInferenceErrorsTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin {
   test_initializer_additive() async {
     await _assertErrorOnlyLeft(['+', '-']);
   }
@@ -185,7 +181,7 @@ var c = b;
 
   test_initializer_ifNull() async {
     await assertNoErrorsInCode('''
-var a = 1;
+int? a = 1;
 var t = a ?? 2;
 ''');
   }
@@ -216,8 +212,8 @@ var a = new A().f;
 
   test_initializer_methodInvocation_function() async {
     await assertNoErrorsInCode('''
-int f1() => null;
-T f2<T>() => null;
+int f1() => 0;
+T f2<T>() => throw 0;
 var t1 = f1();
 var t2 = f2();
 var t3 = f2<int>();
@@ -227,8 +223,8 @@ var t3 = f2<int>();
   test_initializer_methodInvocation_method() async {
     await assertNoErrorsInCode('''
 class A {
-  int m1() => null;
-  T m2<T>() => null;
+  int m1() => 0;
+  T m2<T>() => throw 0;
 }
 var a = new A();
 var t1 = a.m1();
@@ -303,17 +299,17 @@ var t = {
   test_override_conflictFieldType() async {
     await assertErrorsInCode('''
 abstract class A {
-  int aaa;
+  int aaa = 0;
 }
 abstract class B {
-  String aaa;
+  String aaa = '0';
 }
 class C implements A, B {
   var aaa;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 99, 3),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 99, 3),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 109, 3),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 109, 3),
     ]);
   }
 
@@ -344,7 +340,8 @@ class C implements A, B {
 }
 
 @reflectiveTest
-class TopLevelInferenceTest extends BaseAnalysisDriverTest {
+class TopLevelInferenceTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin {
   test_initializer_additive() async {
     var library = await _encodeDecodeLibrary(r'''
 var vPlusIntInt = 1 + 2;
@@ -638,7 +635,7 @@ num b1;
   }
 
   test_initializer_extractProperty_explicitlyTyped_differentLibraryCycle() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class C {
   int f = 0;
 }
@@ -669,7 +666,7 @@ int x;
   }
 
   test_initializer_extractProperty_explicitlyTyped_sameLibraryCycle() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 import 'test.dart'; // just do make it part of the library cycle
 class C {
   int f = 0;
@@ -686,7 +683,7 @@ int x;
   }
 
   test_initializer_extractProperty_implicitlyTyped_differentLibraryCycle() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class C {
   var f = 0;
 }
@@ -717,7 +714,7 @@ dynamic x;
   }
 
   test_initializer_extractProperty_implicitlyTyped_sameLibraryCycle() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 import 'test.dart'; // just do make it part of the library cycle
 class C {
   var f = 0;
@@ -2157,7 +2154,35 @@ abstract class B {
   double foo(int x);
 }
 abstract class C implements A, B {
-  Null foo/*error: overrideNoCombinedSuperSignature*/(dynamic x);
+  Never foo/*error: overrideNoCombinedSuperSignature*/(dynamic x);
+}
+''');
+  }
+
+  test_method_error_noCombinedSuperSignature2_legacy() async {
+    var library = await _encodeDecodeLibrary(r'''
+// @dart = 2.9
+abstract class A {
+  int foo(int x);
+}
+
+abstract class B {
+  double foo(int x);
+}
+
+abstract class C implements A, B {
+  Never foo(x);
+}
+''');
+    checkElementText(library, r'''
+abstract class A {
+  int* foo(int* x);
+}
+abstract class B {
+  double* foo(int* x);
+}
+abstract class C implements A*, B* {
+  Null* foo/*error: overrideNoCombinedSuperSignature*/(dynamic x);
 }
 ''');
   }
@@ -2590,7 +2615,7 @@ class C implements B<int, String> {
   }
 
   test_method_OK_single_private_linkThroughOtherLibraryOfCycle() async {
-    newFile('/test/lib/other.dart', content: r'''
+    newFile('$testPackageLibPath/other.dart', content: r'''
 import 'test.dart';
 class B extends A2 {}
 ''');
@@ -2685,21 +2710,11 @@ class C extends A implements B {
   }
 
   Future<LibraryElement> _encodeDecodeLibrary(String text) async {
-    String path = convertPath('/test/lib/test.dart');
-    newFile(path, content: text);
-    UnitElementResult result = await driver.getUnitElement(path);
+    newFile(testFilePath, content: text);
+
+    var path = convertPath(testFilePath);
+    var analysisSession = contextFor(path).currentSession;
+    var result = await analysisSession.getUnitElement(path);
     return result.element.library /*!*/;
-  }
-}
-
-@reflectiveTest
-class TopLevelInferenceTestWithSpread extends TopLevelInferenceTest {
-  @override
-  List<String> get enabledExperiments => [EnableString.spread_collections];
-
-  @override
-  @failingTest
-  test_initializer_literal_map_untyped_empty() async {
-    fail('times out.');
   }
 }

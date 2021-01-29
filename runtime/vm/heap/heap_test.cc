@@ -94,7 +94,7 @@ static ClassPtr GetClass(const Library& lib, const char* name) {
   const Class& cls = Class::Handle(
       lib.LookupClass(String::Handle(Symbols::New(Thread::Current(), name))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
-  return cls.raw();
+  return cls.ptr();
 }
 
 TEST_CASE(ClassHeapStats) {
@@ -109,8 +109,8 @@ TEST_CASE(ClassHeapStats) {
       "  return new A();\n"
       "}\n";
   Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Isolate* isolate = Isolate::Current();
-  ClassTable* class_table = isolate->class_table();
+  auto isolate_group = IsolateGroup::Current();
+  ClassTable* class_table = isolate_group->class_table();
   {
     // GC before main so allocations during the tests don't cause unexpected GC.
     TransitionNativeToVM transition(thread);
@@ -135,7 +135,7 @@ TEST_CASE(ClassHeapStats) {
       CountObjectsVisitor visitor(thread, class_table->NumCids());
       HeapIterationScope iter(thread);
       iter.IterateObjects(&visitor);
-      isolate->group()->VisitWeakPersistentHandles(&visitor);
+      isolate_group->VisitWeakPersistentHandles(&visitor);
       EXPECT_EQ(2, visitor.new_count_[cid]);
       EXPECT_EQ(0, visitor.old_count_[cid]);
     }
@@ -148,7 +148,7 @@ TEST_CASE(ClassHeapStats) {
       CountObjectsVisitor visitor(thread, class_table->NumCids());
       HeapIterationScope iter(thread);
       iter.IterateObjects(&visitor);
-      isolate->group()->VisitWeakPersistentHandles(&visitor);
+      isolate_group->VisitWeakPersistentHandles(&visitor);
       EXPECT_EQ(1, visitor.new_count_[cid]);
       EXPECT_EQ(0, visitor.old_count_[cid]);
     }
@@ -162,7 +162,7 @@ TEST_CASE(ClassHeapStats) {
       CountObjectsVisitor visitor(thread, class_table->NumCids());
       HeapIterationScope iter(thread);
       iter.IterateObjects(&visitor);
-      isolate->group()->VisitWeakPersistentHandles(&visitor);
+      isolate_group->VisitWeakPersistentHandles(&visitor);
       EXPECT_EQ(0, visitor.new_count_[cid]);
       EXPECT_EQ(1, visitor.old_count_[cid]);
     }
@@ -175,7 +175,7 @@ TEST_CASE(ClassHeapStats) {
       CountObjectsVisitor visitor(thread, class_table->NumCids());
       HeapIterationScope iter(thread);
       iter.IterateObjects(&visitor);
-      isolate->group()->VisitWeakPersistentHandles(&visitor);
+      isolate_group->VisitWeakPersistentHandles(&visitor);
       EXPECT_EQ(0, visitor.new_count_[cid]);
       EXPECT_EQ(1, visitor.old_count_[cid]);
     }
@@ -187,7 +187,7 @@ TEST_CASE(ClassHeapStats) {
       CountObjectsVisitor visitor(thread, class_table->NumCids());
       HeapIterationScope iter(thread);
       iter.IterateObjects(&visitor);
-      isolate->group()->VisitWeakPersistentHandles(&visitor);
+      isolate_group->VisitWeakPersistentHandles(&visitor);
       EXPECT_EQ(0, visitor.new_count_[cid]);
       EXPECT_EQ(1, visitor.old_count_[cid]);
     }
@@ -203,7 +203,7 @@ TEST_CASE(ClassHeapStats) {
       CountObjectsVisitor visitor(thread, class_table->NumCids());
       HeapIterationScope iter(thread);
       iter.IterateObjects(&visitor);
-      isolate->group()->VisitWeakPersistentHandles(&visitor);
+      isolate_group->VisitWeakPersistentHandles(&visitor);
       EXPECT_EQ(0, visitor.new_count_[cid]);
       EXPECT_EQ(0, visitor.old_count_[cid]);
     }
@@ -234,16 +234,15 @@ class FindNothing : public FindObjectVisitor {
 };
 
 ISOLATE_UNIT_TEST_CASE(FindObject) {
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
+  Heap* heap = IsolateGroup::Current()->heap();
   Heap::Space spaces[2] = {Heap::kOld, Heap::kNew};
   for (size_t space = 0; space < ARRAY_SIZE(spaces); ++space) {
     const String& obj = String::Handle(String::New("x", spaces[space]));
     {
       HeapIterationScope iteration(thread);
       NoSafepointScope no_safepoint;
-      FindOnly find_only(obj.raw());
-      EXPECT(obj.raw() == heap->FindObject(&find_only));
+      FindOnly find_only(obj.ptr());
+      EXPECT(obj.ptr() == heap->FindObject(&find_only));
     }
   }
   {
@@ -261,17 +260,16 @@ ISOLATE_UNIT_TEST_CASE(IterateReadOnly) {
   // progress.
   GCTestHelper::WaitForGCTasks();
 
-  Heap* heap = Thread::Current()->isolate()->heap();
-  EXPECT(heap->Contains(ObjectLayout::ToAddr(obj.raw())));
+  Heap* heap = IsolateGroup::Current()->heap();
+  EXPECT(heap->Contains(UntaggedObject::ToAddr(obj.ptr())));
   heap->WriteProtect(true);
-  EXPECT(heap->Contains(ObjectLayout::ToAddr(obj.raw())));
+  EXPECT(heap->Contains(UntaggedObject::ToAddr(obj.ptr())));
   heap->WriteProtect(false);
-  EXPECT(heap->Contains(ObjectLayout::ToAddr(obj.raw())));
+  EXPECT(heap->Contains(UntaggedObject::ToAddr(obj.ptr())));
 }
 
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadOldToNew) {
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
+  Heap* heap = IsolateGroup::Current()->heap();
 
   heap->CollectAllGarbage();
   heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
@@ -294,8 +292,7 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadOldToNew) {
 }
 
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadNewToOld) {
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
+  Heap* heap = IsolateGroup::Current()->heap();
 
   heap->CollectAllGarbage();
   heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
@@ -318,8 +315,7 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadNewToOld) {
 }
 
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadGenCycle) {
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
+  Heap* heap = IsolateGroup::Current()->heap();
 
   heap->CollectAllGarbage();
   heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
@@ -343,8 +339,7 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadGenCycle) {
 }
 
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveNewToOld) {
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
+  Heap* heap = IsolateGroup::Current()->heap();
 
   heap->CollectAllGarbage();
   heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
@@ -366,8 +361,7 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveNewToOld) {
 }
 
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveOldToNew) {
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
+  Heap* heap = IsolateGroup::Current()->heap();
 
   heap->CollectAllGarbage();
   heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
@@ -389,8 +383,7 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveOldToNew) {
 }
 
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveOldDeadNew) {
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
+  Heap* heap = IsolateGroup::Current()->heap();
 
   heap->CollectAllGarbage();
   heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
@@ -412,8 +405,7 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveOldDeadNew) {
 }
 
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveNewDeadOld) {
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
+  Heap* heap = IsolateGroup::Current()->heap();
 
   heap->CollectAllGarbage();
   heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
@@ -435,8 +427,7 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveNewDeadOld) {
 }
 
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveNewToOldChain) {
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
+  Heap* heap = IsolateGroup::Current()->heap();
 
   heap->CollectAllGarbage();
   intptr_t size_before =
@@ -459,8 +450,7 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveNewToOldChain) {
 }
 
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveOldToNewChain) {
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
+  Heap* heap = IsolateGroup::Current()->heap();
 
   heap->CollectAllGarbage();
   intptr_t size_before =
@@ -485,8 +475,8 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveOldToNewChain) {
 static void NoopFinalizer(void* isolate_callback_data, void* peer) {}
 
 ISOLATE_UNIT_TEST_CASE(ExternalPromotion) {
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
+  auto isolate_group = IsolateGroup::Current();
+  Heap* heap = isolate_group->heap();
 
   heap->CollectAllGarbage();
   intptr_t size_before = kWordSize * (heap->new_space()->ExternalInWords() +
@@ -496,7 +486,8 @@ ISOLATE_UNIT_TEST_CASE(ExternalPromotion) {
   Array& neu = Array::Handle();
   for (intptr_t i = 0; i < 100; i++) {
     neu = Array::New(1, Heap::kNew);
-    FinalizablePersistentHandle::New(isolate, neu, NULL, NoopFinalizer, 1 * MB,
+    FinalizablePersistentHandle::New(isolate_group, neu, NULL, NoopFinalizer,
+                                     1 * MB,
                                      /*auto_delete=*/true);
     old.SetAt(i, neu);
   }
@@ -548,8 +539,9 @@ class MergeIsolatesHeapsHandler : public MessageHandler {
       Bequest* bequest = message->bequest();
       PersistentHandle* handle = bequest->handle();
       // Object in the receiving isolate's heap.
-      EXPECT(isolate()->heap()->Contains(ObjectLayout::ToAddr(handle->raw())));
-      response_obj = handle->raw();
+      EXPECT(isolate()->group()->heap()->Contains(
+          UntaggedObject::ToAddr(handle->ptr())));
+      response_obj = handle->ptr();
       isolate()->group()->api_state()->FreePersistentHandle(handle);
     } else {
       Thread* thread = Thread::Current();
@@ -558,12 +550,12 @@ class MergeIsolatesHeapsHandler : public MessageHandler {
     }
     if (response_obj.IsString()) {
       String& response = String::Handle();
-      response ^= response_obj.raw();
+      response ^= response_obj.ptr();
       msg_.reset(Utils::StrDup(response.ToCString()));
     } else {
       ASSERT(response_obj.IsArray());
       Array& response_array = Array::Handle();
-      response_array ^= response_obj.raw();
+      response_array ^= response_obj.ptr();
       ASSERT(response_array.Length() == 1);
       ExternalTypedData& response = ExternalTypedData::Handle();
       response ^= response_array.At(0);
@@ -606,7 +598,7 @@ VM_UNIT_TEST_CASE(CleanupBequestNeverReceived) {
       String& string = String::Handle(String::New(TEST_MESSAGE));
       PersistentHandle* handle =
           Isolate::Current()->group()->api_state()->AllocatePersistentHandle();
-      handle->set_raw(string.raw());
+      handle->set_ptr(string.ptr());
 
       reinterpret_cast<Isolate*>(worker)->bequeath(
           std::unique_ptr<Bequest>(new Bequest(handle, port_id)));
@@ -641,7 +633,7 @@ VM_UNIT_TEST_CASE(ReceivesSendAndExitMessage) {
 
     PersistentHandle* handle =
         Isolate::Current()->group()->api_state()->AllocatePersistentHandle();
-    handle->set_raw(string.raw());
+    handle->set_ptr(string.ptr());
 
     reinterpret_cast<Isolate*>(worker)->bequeath(
         std::unique_ptr<Bequest>(new Bequest(handle, port_id)));
@@ -662,14 +654,15 @@ VM_UNIT_TEST_CASE(ReceivesSendAndExitMessage) {
 }
 
 ISOLATE_UNIT_TEST_CASE(ExternalAllocationStats) {
-  Isolate* isolate = thread->isolate();
-  Heap* heap = thread->heap();
+  auto isolate_group = thread->isolate_group();
+  Heap* heap = isolate_group->heap();
 
   Array& old = Array::Handle(Array::New(100, Heap::kOld));
   Array& neu = Array::Handle();
   for (intptr_t i = 0; i < 100; i++) {
     neu = Array::New(1, Heap::kNew);
-    FinalizablePersistentHandle::New(isolate, neu, NULL, NoopFinalizer, 1 * MB,
+    FinalizablePersistentHandle::New(isolate_group, neu, NULL, NoopFinalizer,
+                                     1 * MB,
                                      /*auto_delete=*/true);
     old.SetAt(i, neu);
 
@@ -679,10 +672,11 @@ ISOLATE_UNIT_TEST_CASE(ExternalAllocationStats) {
       HeapTestHelper::Scavenge(thread);
     }
 
-    CountObjectsVisitor visitor(thread, isolate->class_table()->NumCids());
+    CountObjectsVisitor visitor(thread,
+                                isolate_group->class_table()->NumCids());
     HeapIterationScope iter(thread);
     iter.IterateObjects(&visitor);
-    isolate->group()->VisitWeakPersistentHandles(&visitor);
+    isolate_group->VisitWeakPersistentHandles(&visitor);
     EXPECT_LE(visitor.old_external_size_[kArrayCid],
               heap->old_space()->ExternalInWords() * kWordSize);
     EXPECT_LE(visitor.new_external_size_[kArrayCid],

@@ -43,6 +43,8 @@ abstract class Future<T> {
     throw 0;
   }
 
+  Future<T> catchError(Function onError, {bool test(Object error)});
+
   Future<R> then<R>(FutureOr<R> onValue(T value));
 
   Future<T> whenComplete(action());
@@ -224,6 +226,13 @@ abstract class Converter<S, T> implements StreamTransformer {}
 abstract class Encoding {}
 
 class JsonDecoder extends Converter<String, Object> {}
+
+const JsonCodec json = JsonCodec();
+
+class JsonCodec {
+  const JsonCodec();
+  String encode(Object? value, {Object? toEncodable(dynamic object)?}) => '';
+}
 ''',
     )
   ],
@@ -571,6 +580,10 @@ class Symbol {
 }
 
 class Type {}
+
+class UnsupportedError {
+  UnsupportedError(String message);
+}
 
 class Uri {
   static List<int> parseIPv6Address(String host, [int start = 0, int end]) {

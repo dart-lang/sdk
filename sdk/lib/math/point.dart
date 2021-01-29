@@ -9,6 +9,7 @@ class Point<T extends num> {
   final T x;
   final T y;
 
+  /// Creates a point with the provided [x] and [y] coordinates.
   const Point(T x, T y)
       : this.x = x,
         this.y = y;

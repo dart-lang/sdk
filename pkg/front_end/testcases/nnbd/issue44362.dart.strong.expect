@@ -1,0 +1,11 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method foo<X extends core::Object? = dynamic>(self::foo::X? x) → dynamic {
+  if(x is{ForNonNullableByDefault} core::int) {
+    self::bar<dynamic>(x{self::foo::X? & core::int /* '?' & '!' = '!' */});
+  }
+}
+static method bar<Y extends core::Object? = dynamic>(dynamic y) → dynamic {}
+static method main() → dynamic {}

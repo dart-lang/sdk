@@ -7,7 +7,6 @@ import 'package:analysis_server/src/services/completion/dart/suggestion_builder.
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/generic_inferrer.dart'
     show GenericInferrer;
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -45,8 +44,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
         if (extension != null) {
           var extendedType = extension.extendedType.type;
           if (extendedType is InterfaceType) {
-            var types = <InterfaceType>[];
-            ClassElementImpl.collectAllSupertypes(types, extendedType, null);
+            var types = [extendedType, ...extendedType.allSupertypes];
             for (var type in types) {
               var inheritanceDistance = memberBuilder.request.featureComputer
                   .inheritanceDistanceFeature(

@@ -6253,7 +6253,7 @@ main() {
     var myLibrary = myImport.importedLibrary;
     var myUnit = myLibrary.definingCompilationUnit;
     var myClass = myUnit.types.single;
-    var myFunctionTypeAlias = myUnit.functionTypeAliases.single;
+    var myTypeAlias = myUnit.typeAliases.single;
     var myTopVariable = myUnit.topLevelVariables[0];
     var myTopFunction = myUnit.functions.single;
     var myGetter = myUnit.topLevelVariables[1].getter;
@@ -6280,7 +6280,7 @@ main() {
     }
 
     assertPrefixedIdentifier(0, myClass, typeProvider.typeType);
-    assertPrefixedIdentifier(1, myFunctionTypeAlias, typeProvider.typeType);
+    assertPrefixedIdentifier(1, myTypeAlias, typeProvider.typeType);
     assertPrefixedIdentifier(2, myTopVariable.getter, typeProvider.intType);
 
     {
@@ -7597,25 +7597,24 @@ typedef int F<T>(bool a, T b);
 
     await resolveTestFile();
     CompilationUnit unit = result.unit;
-    CompilationUnitElement unitElement = unit.declaredElement;
 
     FunctionTypeAlias alias = unit.declarations[0];
-    FunctionTypeAliasElement aliasElement = alias.declaredElement;
-    GenericFunctionTypeElement aliasFunction = aliasElement.function;
-    expect(aliasElement, same(unitElement.functionTypeAliases[0]));
-    expect(aliasFunction.returnType, typeProvider.intType);
+    TypeAliasElement aliasElement = alias.declaredElement;
+    var function = aliasElement.aliasedElement as GenericFunctionTypeElement;
+    expect(aliasElement, same(findElement.typeAlias('F')));
+    expect(function.returnType, typeProvider.intType);
 
     _assertTypeNameSimple(alias.returnType, typeProvider.intType);
 
     _assertSimpleParameter(
-        alias.parameters.parameters[0], aliasFunction.parameters[0],
+        alias.parameters.parameters[0], function.parameters[0],
         name: 'a',
         offset: 22,
         kind: ParameterKind.REQUIRED,
         type: typeProvider.boolType);
 
     _assertSimpleParameter(
-        alias.parameters.parameters[1], aliasFunction.parameters[1],
+        alias.parameters.parameters[1], function.parameters[1],
         name: 'b',
         offset: 27,
         kind: ParameterKind.REQUIRED,
@@ -7824,7 +7823,7 @@ class C {
     await resolveTestFile();
 
     FunctionTypeAlias alias = findNode.functionTypeAlias('F<T>');
-    FunctionTypeAliasElement aliasElement = alias.declaredElement;
+    TypeAliasElement aliasElement = alias.declaredElement;
 
     FieldDeclaration fDeclaration = findNode.fieldDeclaration('F<int> f');
 
@@ -7916,7 +7915,7 @@ typedef void F(int p);
     CompilationUnit unit = result.unit;
 
     FunctionTypeAlias fNode = unit.declarations[1];
-    FunctionTypeAliasElement fElement = fNode.declaredElement;
+    TypeAliasElement fElement = fNode.declaredElement;
 
     var statements = _getMainStatements(result);
 
@@ -8542,11 +8541,10 @@ main() {
       SimpleIdentifier identifier = prefixed.identifier;
       assertSimpleIdentifier(
         identifier,
-        readElement: elementMatcher(
+        element: elementMatcher(
           objectHashCode,
           isLegacy: isNullSafetySdkAndLegacyLibrary,
         ),
-        writeElement: null,
         type: 'int',
       );
     }

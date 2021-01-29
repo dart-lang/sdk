@@ -29,7 +29,7 @@ class FreeListElement {
   void set_next(FreeListElement* next) { next_ = next; }
 
   intptr_t HeapSize() {
-    intptr_t size = ObjectLayout::SizeTag::decode(tags_);
+    intptr_t size = UntaggedObject::SizeTag::decode(tags_);
     if (size != 0) return size;
     return *SizeAddress();
   }
@@ -153,8 +153,6 @@ class FreeList {
   void set_top(uword value) { top_ = value; }
   void set_end(uword value) { end_ = value; }
   void AddUnaccountedSize(intptr_t size) { unaccounted_size_ += size; }
-
-  void MergeFrom(FreeList* donor, bool is_protected);
 
  private:
   static const int kNumLists = 128;

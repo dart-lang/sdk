@@ -213,7 +213,7 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
 void StubCodeCompiler::GenerateJITCallbackTrampolines(
     Assembler* assembler,
     intptr_t next_callback_id) {
-  Label done;
+  Label done, ret_4;
 
   // EAX is volatile and doesn't hold any arguments.
   COMPILE_ASSERT(!IsArgumentRegister(EAX) && !IsCalleeSavedRegister(EAX));
@@ -232,16 +232,20 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 
   const intptr_t shared_stub_start = __ CodeSize();
 
-  // Save THR which is callee-saved.
+  // Save THR and EBX which are callee-saved.
   __ pushl(THR);
+  __ pushl(EBX);
+
+  // We need the callback ID after the call for return stack.
+  __ pushl(EAX);
 
   // THR & return address
-  COMPILE_ASSERT(StubCodeCompiler::kNativeCallbackTrampolineStackDelta == 2);
+  COMPILE_ASSERT(StubCodeCompiler::kNativeCallbackTrampolineStackDelta == 4);
 
   // Load the thread, verify the callback ID and exit the safepoint.
   //
   // We exit the safepoint inside DLRT_GetThreadForNativeCallbackTrampoline
-  // in order to safe code size on this shared stub.
+  // in order to save code size on this shared stub.
   {
     __ EnterFrame(0);
     __ ReserveAlignedFrameSpace(compiler::target::kWordSize);
@@ -278,13 +282,53 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   // the saved THR and the return address. The target will know to skip them.
   __ call(ECX);
 
+  // Register state:
+  // - callee saved registers (should be restored)
+  //   - EBX available as scratch because we restore it later.
+  //   - ESI(THR) contains thread
+  //   - EDI
+  // - return registers (should not be touched)
+  //   - EAX
+  //   - EDX
+  // - available scratch registers
+  //   - ECX free
+
+  // Load the return stack delta from the thread.
+  __ movl(ECX,
+          compiler::Address(
+              THR, compiler::target::Thread::callback_stack_return_offset()));
+  __ popl(EBX);  // Compiler callback id.
+  __ movzxb(EBX, __ ElementAddressForRegIndex(
+                     /*external=*/false,
+                     /*array_cid=*/kTypedDataUint8ArrayCid,
+                     /*index=*/1,
+                     /*index_unboxed=*/false,
+                     /*array=*/ECX,
+                     /*index=*/EBX));
+#if defined(DEBUG)
+  // Stack delta should be either 0 or 4.
+  Label check_done;
+  __ BranchIfZero(EBX, &check_done);
+  __ CompareImmediate(EBX, compiler::target::kWordSize);
+  __ BranchIf(EQUAL, &check_done);
+  __ Breakpoint();
+  __ Bind(&check_done);
+#endif
+
   // EnterSafepoint takes care to not clobber *any* registers (besides scratch).
   __ EnterSafepoint(/*scratch=*/ECX);
 
-  // Restore THR (callee-saved).
+  // Restore callee-saved registers.
+  __ movl(ECX, EBX);
+  __ popl(EBX);
   __ popl(THR);
 
+  __ cmpl(ECX, compiler::Immediate(Smi::RawValue(0)));
+  __ j(NOT_EQUAL, &ret_4, compiler::Assembler::kNearJump);
   __ ret();
+
+  __ Bind(&ret_4);
+  __ ret(Immediate(4));
 
   // 'kNativeCallbackSharedStubSize' is an upper bound because the exact
   // instruction size can vary slightly based on OS calling conventions.
@@ -822,9 +866,9 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     {
       Label size_tag_overflow, done;
       __ movl(EDI, EBX);
-      __ cmpl(EDI, Immediate(target::ObjectLayout::kSizeTagMaxSizeTag));
+      __ cmpl(EDI, Immediate(target::UntaggedObject::kSizeTagMaxSizeTag));
       __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-      __ shll(EDI, Immediate(target::ObjectLayout::kTagBitsSizeTagPos -
+      __ shll(EDI, Immediate(target::UntaggedObject::kTagBitsSizeTagPos -
                              target::ObjectAlignment::kObjectAlignmentLog2));
       __ jmp(&done, Assembler::kNearJump);
 
@@ -1034,7 +1078,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 // Input:
 // EDX: number of context variables.
 // Output:
-// EAX: new allocated RawContext object.
+// EAX: new allocated Context object.
 // Clobbered:
 // EBX
 static void GenerateAllocateContextSpaceStub(Assembler* assembler,
@@ -1084,9 +1128,9 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
     Label size_tag_overflow, done;
     __ leal(EBX, Address(EDX, TIMES_4, fixed_size_plus_alignment_padding));
     __ andl(EBX, Immediate(-target::ObjectAlignment::kObjectAlignment));
-    __ cmpl(EBX, Immediate(target::ObjectLayout::kSizeTagMaxSizeTag));
+    __ cmpl(EBX, Immediate(target::UntaggedObject::kSizeTagMaxSizeTag));
     __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-    __ shll(EBX, Immediate(target::ObjectLayout::kTagBitsSizeTagPos -
+    __ shll(EBX, Immediate(target::UntaggedObject::kTagBitsSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2));
     __ jmp(&done);
 
@@ -1113,7 +1157,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
 // Input:
 // EDX: number of context variables.
 // Output:
-// EAX: new allocated RawContext object.
+// EAX: new allocated Context object.
 // Clobbered:
 // EBX, EDX
 void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
@@ -1179,7 +1223,7 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
 // Input:
 //   ECX: context variable.
 // Output:
-//   EAX: new allocated RawContext object.
+//   EAX: new allocated Context object.
 // Clobbered:
 //   EBX, ECX, EDX
 void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
@@ -1276,7 +1320,8 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   // Spilled: EAX, ECX
   // EDX: Address being stored
   __ movl(EAX, FieldAddress(EDX, target::Object::tags_offset()));
-  __ testl(EAX, Immediate(1 << target::ObjectLayout::kOldAndNotRememberedBit));
+  __ testl(EAX,
+           Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
   __ j(NOT_EQUAL, &add_to_buffer, Assembler::kNearJump);
   __ popl(ECX);
   __ popl(EAX);
@@ -1289,12 +1334,12 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 
   if (cards) {
     // Check if this object is using remembered cards.
-    __ testl(EAX, Immediate(1 << target::ObjectLayout::kCardRememberedBit));
+    __ testl(EAX, Immediate(1 << target::UntaggedObject::kCardRememberedBit));
     __ j(NOT_EQUAL, &remember_card, Assembler::kFarJump);  // Unlikely.
   } else {
 #if defined(DEBUG)
     Label ok;
-    __ testl(EAX, Immediate(1 << target::ObjectLayout::kCardRememberedBit));
+    __ testl(EAX, Immediate(1 << target::UntaggedObject::kCardRememberedBit));
     __ j(ZERO, &ok, Assembler::kFarJump);  // Unlikely.
     __ Stop("Wrong barrier");
     __ Bind(&ok);
@@ -1304,7 +1349,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   // lock+andl is an atomic read-modify-write.
   __ lock();
   __ andl(FieldAddress(EDX, target::Object::tags_offset()),
-          Immediate(~(1 << target::ObjectLayout::kOldAndNotRememberedBit)));
+          Immediate(~(1 << target::UntaggedObject::kOldAndNotRememberedBit)));
 
   // Load the StoreBuffer block out of the thread. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
@@ -2947,9 +2992,9 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
   /* EDI: allocation size. */
   {
     Label size_tag_overflow, done;
-    __ cmpl(EDI, Immediate(target::ObjectLayout::kSizeTagMaxSizeTag));
+    __ cmpl(EDI, Immediate(target::UntaggedObject::kSizeTagMaxSizeTag));
     __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-    __ shll(EDI, Immediate(target::ObjectLayout::kTagBitsSizeTagPos -
+    __ shll(EDI, Immediate(target::UntaggedObject::kTagBitsSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2));
     __ jmp(&done, Assembler::kNearJump);
     __ Bind(&size_tag_overflow);

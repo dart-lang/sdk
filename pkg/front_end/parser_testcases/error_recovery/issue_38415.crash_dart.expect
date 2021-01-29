@@ -4,9 +4,13 @@ parser/error_recovery/issue_38415.crash:1:15: Expected '[' before this.
 f() { m(T<R(<Z
               ^...
 
+WARNING: Reporting at eof --- see below for details.
+
 parser/error_recovery/issue_38415.crash:1:15: Expected ';' after this.
 f() { m(T<R(<Z
               ^...
+
+WARNING: Reporting at eof --- see below for details.
 
 parser/error_recovery/issue_38415.crash:1:12: Can't find ')' to match '('.
 f() { m(T<R(<Z
@@ -53,6 +57,7 @@ beginCompilationUnit(f)
                 handleType(Z, null)
               endTypeArguments(1, <, >)
               handleRecoverableError(Message[ExpectedButGot, Expected '[' before this., null, {string: [}], , )
+              // WARNING: Reporting at eof for .
               handleLiteralList(0, [, null, ])
             endArguments(1, (, ))
             handleSend(R, })
@@ -60,16 +65,17 @@ beginCompilationUnit(f)
         endArguments(1, (, ))
         handleSend(m, })
         handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], , )
+        // WARNING: Reporting at eof for .
         handleExpressionStatement(;)
       endBlockFunctionBody(1, {, })
     endTopLevelMethod(f, null, })
   endTopLevelDeclaration()
   handleErrorToken(UnmatchedToken(())
-  handleRecoverableError(Message[UnmatchedToken, Can't find ')' to match '('., null, {string: ), token: (}], UnmatchedToken((), UnmatchedToken(())
+  handleRecoverableError(Message[UnmatchedToken, Can't find ')' to match '('., null, {string: ), lexeme: (}], UnmatchedToken((), UnmatchedToken(())
   handleErrorToken(UnmatchedToken(<))
-  handleRecoverableError(Message[UnmatchedToken, Can't find '>' to match '<'., null, {string: >, token: <}], UnmatchedToken(<), UnmatchedToken(<))
+  handleRecoverableError(Message[UnmatchedToken, Can't find '>' to match '<'., null, {string: >, lexeme: <}], UnmatchedToken(<), UnmatchedToken(<))
   handleErrorToken(UnmatchedToken(())
-  handleRecoverableError(Message[UnmatchedToken, Can't find ')' to match '('., null, {string: ), token: (}], UnmatchedToken((), UnmatchedToken(())
+  handleRecoverableError(Message[UnmatchedToken, Can't find ')' to match '('., null, {string: ), lexeme: (}], UnmatchedToken((), UnmatchedToken(())
   handleErrorToken(UnmatchedToken({))
-  handleRecoverableError(Message[UnmatchedToken, Can't find '}' to match '{'., null, {string: }, token: {}], UnmatchedToken({), UnmatchedToken({))
+  handleRecoverableError(Message[UnmatchedToken, Can't find '}' to match '{'., null, {string: }, lexeme: {}], UnmatchedToken({), UnmatchedToken({))
 endCompilationUnit(1, )

@@ -34,9 +34,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   /// for [_classMemberIndexItems]?
   final List<_UnitMemberIndexItem> unitMemberIndexItems = [];
   final List<_ClassMemberIndexItem> _classMemberIndexItems = [];
-  bool _isConstField = false;
-  bool _isFinalField = false;
-  bool _isConstTopLevelVariable = false;
+  bool _shouldStoreVariableInitializers = false;
   bool _hasConstConstructor = false;
   int _nextUnnamedExtensionId = 0;
 
@@ -63,9 +61,12 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   void visitAnnotation(Annotation node) {
     _writeByte(Tag.Annotation);
 
+    _writeMarker(MarkerTag.Annotation_name);
     _writeOptionalNode(node.name);
+    _writeMarker(MarkerTag.Annotation_constructorName);
     _writeOptionalNode(node.constructorName);
 
+    _writeMarker(MarkerTag.Annotation_arguments);
     var arguments = node.arguments;
     if (arguments != null) {
       if (!arguments.arguments.every(_isSerializableExpression)) {
@@ -75,6 +76,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeOptionalNode(arguments);
 
     if (_shouldWriteResolution) {
+      _writeMarker(MarkerTag.Annotation_element);
       _resolutionSink.writeElement(node.element);
     }
   }
@@ -82,29 +84,44 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   @override
   void visitArgumentList(ArgumentList node) {
     _writeByte(Tag.ArgumentList);
+    _writeMarker(MarkerTag.ArgumentList_arguments);
     _writeNodeList(node.arguments);
+    _writeMarker(MarkerTag.ArgumentList_end);
   }
 
   @override
   void visitAsExpression(AsExpression node) {
     _writeByte(Tag.AsExpression);
+
+    _writeMarker(MarkerTag.AsExpression_expression);
     _writeNode(node.expression);
+
+    _writeMarker(MarkerTag.AsExpression_type);
     _writeNode(node.type);
+
+    _writeMarker(MarkerTag.AsExpression_expression2);
     _storeExpression(node);
+
+    _writeMarker(MarkerTag.AsExpression_end);
   }
 
   @override
   void visitAssertInitializer(AssertInitializer node) {
     _writeByte(Tag.AssertInitializer);
+    _writeMarker(MarkerTag.AssertInitializer_condition);
     _writeNode(node.condition);
+    _writeMarker(MarkerTag.AssertInitializer_message);
     _writeOptionalNode(node.message);
+    _writeMarker(MarkerTag.AssertInitializer_end);
   }
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
     _writeByte(Tag.AssignmentExpression);
 
+    _writeMarker(MarkerTag.AssignmentExpression_leftHandSide);
     _writeNode(node.leftHandSide);
+    _writeMarker(MarkerTag.AssignmentExpression_rightHandSide);
     _writeNode(node.rightHandSide);
 
     var operatorToken = node.operator.type;
@@ -112,20 +129,42 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeByte(binaryToken.index);
 
     if (_shouldWriteResolution) {
+      _writeMarker(MarkerTag.AssignmentExpression_staticElement);
       _resolutionSink.writeElement(node.staticElement);
+      _writeMarker(MarkerTag.AssignmentExpression_readElement);
       _resolutionSink.writeElement(node.readElement);
+      _writeMarker(MarkerTag.AssignmentExpression_readType);
       _resolutionSink.writeType(node.readType);
+      _writeMarker(MarkerTag.AssignmentExpression_writeElement);
       _resolutionSink.writeElement(node.writeElement);
+      _writeMarker(MarkerTag.AssignmentExpression_writeType);
       _resolutionSink.writeType(node.writeType);
     }
+    _writeMarker(MarkerTag.AssignmentExpression_expression);
     _storeExpression(node);
+    _writeMarker(MarkerTag.AssignmentExpression_end);
+  }
+
+  @override
+  void visitAwaitExpression(AwaitExpression node) {
+    _writeByte(Tag.AwaitExpression);
+
+    _writeMarker(MarkerTag.AwaitExpression_expression);
+    _writeNode(node.expression);
+
+    _writeMarker(MarkerTag.AsExpression_expression2);
+    _storeExpression(node);
+
+    _writeMarker(MarkerTag.AwaitExpression_end);
   }
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
     _writeByte(Tag.BinaryExpression);
 
+    _writeMarker(MarkerTag.BinaryExpression_leftOperand);
     _writeNode(node.leftOperand);
+    _writeMarker(MarkerTag.BinaryExpression_rightOperand);
     _writeNode(node.rightOperand);
 
     var operatorToken = node.operator.type;
@@ -133,9 +172,12 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeByte(binaryToken.index);
 
     if (_shouldWriteResolution) {
+      _writeMarker(MarkerTag.BinaryExpression_staticElement);
       _resolutionSink.writeElement(node.staticElement);
-      _resolutionSink.writeType(node.staticType);
     }
+    _writeMarker(MarkerTag.BinaryExpression_expression);
+    _storeExpression(node);
+    _writeMarker(MarkerTag.BinaryExpression_end);
   }
 
   @override
@@ -143,15 +185,18 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeByte(Tag.BooleanLiteral);
     _writeByte(node.value ? 1 : 0);
     if (_shouldWriteResolution) {
-      _resolutionSink.writeType(node.staticType);
+      _storeExpression(node);
     }
   }
 
   @override
   void visitCascadeExpression(CascadeExpression node) {
     _writeByte(Tag.CascadeExpression);
+    _writeMarker(MarkerTag.CascadeExpression_target);
     _writeNode(node.target);
+    _writeMarker(MarkerTag.CascadeExpression_cascadeSections);
     _writeNodeList(node.cascadeSections);
+    _writeMarker(MarkerTag.CascadeExpression_end);
   }
 
   @override
@@ -184,12 +229,19 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
     _pushScopeTypeParameters(node.typeParameters);
 
+    _writeMarker(MarkerTag.ClassDeclaration_typeParameters);
     _writeOptionalNode(node.typeParameters);
+    _writeMarker(MarkerTag.ClassDeclaration_extendsClause);
     _writeOptionalNode(node.extendsClause);
+    _writeMarker(MarkerTag.ClassDeclaration_withClause);
     _writeOptionalNode(node.withClause);
+    _writeMarker(MarkerTag.ClassDeclaration_implementsClause);
     _writeOptionalNode(node.implementsClause);
+    _writeMarker(MarkerTag.ClassDeclaration_nativeClause);
     _writeOptionalNode(node.nativeClause);
+    _writeMarker(MarkerTag.ClassDeclaration_namedCompilationUnitMember);
     _storeNamedCompilationUnitMember(node);
+    _writeMarker(MarkerTag.ClassDeclaration_end);
     _writeUInt30(resolutionIndex);
 
     _classMemberIndexItems.clear();
@@ -238,11 +290,17 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeInformativeUint30(node.offset);
     _writeInformativeUint30(node.length);
     _pushScopeTypeParameters(node.typeParameters);
+    _writeMarker(MarkerTag.ClassTypeAlias_typeParameters);
     _writeOptionalNode(node.typeParameters);
+    _writeMarker(MarkerTag.ClassTypeAlias_superclass);
     _writeNode(node.superclass);
+    _writeMarker(MarkerTag.ClassTypeAlias_withClause);
     _writeNode(node.withClause);
+    _writeMarker(MarkerTag.ClassTypeAlias_implementsClause);
     _writeOptionalNode(node.implementsClause);
+    _writeMarker(MarkerTag.ClassTypeAlias_typeAlias);
     _storeTypeAlias(node);
+    _writeMarker(MarkerTag.ClassTypeAlias_end);
     _writeDocumentationCommentString(node.documentationComment);
     _writeUInt30(resolutionIndex);
     if (_shouldWriteResolution) {
@@ -266,8 +324,11 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   @override
   void visitConditionalExpression(ConditionalExpression node) {
     _writeByte(Tag.ConditionalExpression);
+    _writeMarker(MarkerTag.ConditionalExpression_condition);
     _writeNode(node.condition);
+    _writeMarker(MarkerTag.ConditionalExpression_thenExpression);
     _writeNode(node.thenExpression);
+    _writeMarker(MarkerTag.ConditionalExpression_elseExpression);
     _writeNode(node.elseExpression);
     _storeExpression(node);
   }
@@ -282,9 +343,13 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       ),
     );
 
+    _writeMarker(MarkerTag.Configuration_name);
     _writeNode(node.name);
+    _writeMarker(MarkerTag.Configuration_value);
     _writeOptionalNode(node.value);
+    _writeMarker(MarkerTag.Configuration_uri);
     _writeNode(node.uri);
+    _writeMarker(MarkerTag.Configuration_end);
   }
 
   @override
@@ -316,11 +381,13 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeDocumentationCommentString(node.documentationComment);
 
     var resolutionIndex = _getNextResolutionIndex();
+    _writeMarker(MarkerTag.ConstructorDeclaration_returnType);
     _writeNode(node.returnType);
     if (node.period != null) {
       _writeInformativeUint30(node.period.offset);
       _writeDeclarationName(node.name);
     }
+    _writeMarker(MarkerTag.ConstructorDeclaration_parameters);
     _writeNode(node.parameters);
 
     if (_shouldWriteResolution) {
@@ -332,6 +399,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
     // TODO(scheglov) Not nice, we skip both resolution and AST.
     // But eventually we want to store full AST, and partial resolution.
+    _writeMarker(MarkerTag.ConstructorDeclaration_initializers);
     if (node.constKeyword != null) {
       _writeNodeList(node.initializers);
     } else {
@@ -342,8 +410,11 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       _resolutionSink.localElements.popScope();
     }
 
+    _writeMarker(MarkerTag.ConstructorDeclaration_redirectedConstructor);
     _writeOptionalNode(node.redirectedConstructor);
+    _writeMarker(MarkerTag.ConstructorDeclaration_classMember);
     _storeClassMember(node);
+    _writeMarker(MarkerTag.ConstructorDeclaration_end);
     _writeUInt30(resolutionIndex);
   }
 
@@ -357,9 +428,11 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       ),
     );
 
+    _writeMarker(MarkerTag.ConstructorFieldInitializer_fieldName);
     _writeNode(node.fieldName);
+    _writeMarker(MarkerTag.ConstructorFieldInitializer_expression);
     _writeNode(node.expression);
-    _storeConstructorInitializer(node);
+    _writeMarker(MarkerTag.ConstructorFieldInitializer_end);
   }
 
   @override
@@ -374,12 +447,17 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       _resolutionSink.writeByte(node.name != null ? 1 : 0);
     }
 
+    _writeMarker(MarkerTag.ConstructorName_type);
     _writeNode(node.type);
+    _writeMarker(MarkerTag.ConstructorName_name);
     _writeOptionalNode(node.name);
 
     if (_shouldWriteResolution) {
+      _writeMarker(MarkerTag.ConstructorName_staticElement);
       _resolutionSink.writeElement(node.staticElement);
     }
+
+    _writeMarker(MarkerTag.ConstructorName_end);
   }
 
   @override
@@ -392,9 +470,13 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
         isVar: node.keyword?.keyword == Keyword.VAR,
       ),
     );
+    _writeMarker(MarkerTag.DeclaredIdentifier_type);
     _writeOptionalNode(node.type);
+    _writeMarker(MarkerTag.DeclaredIdentifier_identifier);
     _writeDeclarationName(node.identifier);
+    _writeMarker(MarkerTag.DeclaredIdentifier_declaration);
     _storeDeclaration(node);
+    _writeMarker(MarkerTag.DeclaredIdentifier_end);
   }
 
   @override
@@ -412,13 +494,16 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeInformativeUint30(node.offset);
     _writeInformativeUint30(node.length);
 
+    _writeMarker(MarkerTag.DefaultFormalParameter_parameter);
     _writeNode(node.parameter);
 
     var defaultValue = node.defaultValue;
     if (!_isSerializableExpression(defaultValue)) {
       defaultValue = null;
     }
+    _writeMarker(MarkerTag.DefaultFormalParameter_defaultValue);
     _writeOptionalNode(defaultValue);
+    _writeMarker(MarkerTag.DefaultFormalParameter_end);
   }
 
   @override
@@ -441,8 +526,11 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeInformativeUint30(node.length);
     _writeDocumentationCommentString(node.documentationComment);
 
+    _writeMarker(MarkerTag.EnumConstantDeclaration_name);
     _writeDeclarationName(node.name);
+    _writeMarker(MarkerTag.EnumConstantDeclaration_declaration);
     _storeDeclaration(node);
+    _writeMarker(MarkerTag.EnumConstantDeclaration_end);
   }
 
   @override
@@ -462,8 +550,11 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeInformativeUint30(node.length);
     _writeDocumentationCommentString(node.documentationComment);
 
+    _writeMarker(MarkerTag.EnumDeclaration_constants);
     _writeNodeList(node.constants);
+    _writeMarker(MarkerTag.EnumDeclaration_namedCompilationUnitMember);
     _storeNamedCompilationUnitMember(node);
+    _writeMarker(MarkerTag.EnumDeclaration_end);
     _writeUInt30(resolutionIndex);
   }
 
@@ -472,20 +563,26 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     var resolutionIndex = _getNextResolutionIndex();
 
     _writeByte(Tag.ExportDirective);
+    _writeMarker(MarkerTag.ExportDirective_namespaceDirective);
     _storeNamespaceDirective(node);
     _writeUInt30(resolutionIndex);
 
     if (_shouldWriteResolution) {
+      _writeMarker(MarkerTag.ExportDirective_exportedLibrary);
       _resolutionSink.writeElement(
         (node.element as ExportElementImpl).exportedLibrary,
       );
     }
+
+    _writeMarker(MarkerTag.ExportDirective_end);
   }
 
   @override
   void visitExtendsClause(ExtendsClause node) {
     _writeByte(Tag.ExtendsClause);
+    _writeMarker(MarkerTag.ExtendsClause_superclass);
     _writeNode(node.superclass);
+    _writeMarker(MarkerTag.ExtendsClause_end);
   }
 
   @override
@@ -500,10 +597,14 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeDocumentationCommentString(node.documentationComment);
 
     _pushScopeTypeParameters(node.typeParameters);
+    _writeMarker(MarkerTag.ExtensionDeclaration_typeParameters);
     _writeOptionalNode(node.typeParameters);
+    _writeMarker(MarkerTag.ExtensionDeclaration_extendedType);
     _writeNode(node.extendedType);
     _writeOptionalDeclarationName(node.name);
+    _writeMarker(MarkerTag.ExtensionDeclaration_compilationUnitMember);
     _storeCompilationUnitMember(node);
+    _writeMarker(MarkerTag.ExtensionDeclaration_end);
     _writeUInt30(resolutionIndex);
 
     _classMemberIndexItems.clear();
@@ -539,10 +640,15 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       _resolutionSink.writeByte(MethodInvocationRewriteTag.extensionOverride);
     }
 
+    _writeMarker(MarkerTag.ExtensionOverride_extensionName);
     _writeNode(node.extensionName);
+    _writeMarker(MarkerTag.ExtensionOverride_typeArguments);
     _writeOptionalNode(node.typeArguments);
+    _writeMarker(MarkerTag.ExtensionOverride_argumentList);
     _writeNode(node.argumentList);
+    _writeMarker(MarkerTag.ExtensionOverride_extendedType);
     _resolutionSink.writeType(node.extendedType);
+    _writeMarker(MarkerTag.ExtensionOverride_end);
     // TODO(scheglov) typeArgumentTypes?
   }
 
@@ -571,16 +677,18 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
     var resolutionIndex = _getNextResolutionIndex();
 
-    _isConstField = node.fields.isConst;
-    _isFinalField = node.fields.isFinal;
+    _shouldStoreVariableInitializers = node.fields.isConst ||
+        _hasConstConstructor && node.fields.isFinal && !node.isStatic;
     try {
+      _writeMarker(MarkerTag.FieldDeclaration_fields);
       _writeNode(node.fields);
     } finally {
-      _isConstField = false;
-      _isFinalField = false;
+      _shouldStoreVariableInitializers = false;
     }
 
+    _writeMarker(MarkerTag.FieldDeclaration_classMember);
     _storeClassMember(node);
+    _writeMarker(MarkerTag.FieldDeclaration_end);
 
     _writeUInt30(resolutionIndex);
   }
@@ -590,14 +698,19 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeByte(Tag.FieldFormalParameter);
 
     _pushScopeTypeParameters(node.typeParameters);
+    _writeMarker(MarkerTag.FieldFormalParameter_typeParameters);
     _writeOptionalNode(node.typeParameters);
+    _writeMarker(MarkerTag.FieldFormalParameter_type);
     _writeOptionalNode(node.type);
+    _writeMarker(MarkerTag.FieldFormalParameter_parameters);
     _writeOptionalNode(node.parameters);
+    _writeMarker(MarkerTag.FieldFormalParameter_normalFormalParameter);
     _storeNormalFormalParameter(
       node,
       node.keyword,
       hasQuestion: node.question != null,
     );
+    _writeMarker(MarkerTag.FieldFormalParameter_end);
 
     if (_shouldWriteResolution) {
       _resolutionSink.localElements.popScope();
@@ -607,15 +720,21 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   @override
   void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
     _writeByte(Tag.ForEachPartsWithDeclaration);
+    _writeMarker(MarkerTag.ForEachPartsWithDeclaration_loopVariable);
     _writeNode(node.loopVariable);
+    _writeMarker(MarkerTag.ForEachPartsWithDeclaration_forEachParts);
     _storeForEachParts(node);
+    _writeMarker(MarkerTag.ForEachPartsWithDeclaration_end);
   }
 
   @override
   void visitForElement(ForElement node) {
     _writeByte(Tag.ForElement);
+    _writeMarker(MarkerTag.ForElement_body);
     _writeNode(node.body);
+    _writeMarker(MarkerTag.ForElement_forMixin);
     _storeForMixin(node as ForElementImpl);
+    _writeMarker(MarkerTag.ForElement_end);
   }
 
   @override
@@ -630,14 +749,29 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       ),
     );
 
+    _writeMarker(MarkerTag.FormalParameterList_parameters);
     _writeNodeList(node.parameters);
+    _writeMarker(MarkerTag.FormalParameterList_end);
   }
 
   @override
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
     _writeByte(Tag.ForPartsWithDeclarations);
+    _writeMarker(MarkerTag.ForPartsWithDeclarations_variables);
     _writeNode(node.variables);
+    _writeMarker(MarkerTag.ForPartsWithDeclarations_forParts);
     _storeForParts(node);
+    _writeMarker(MarkerTag.ForPartsWithDeclarations_end);
+  }
+
+  @override
+  void visitForPartsWithExpression(ForPartsWithExpression node) {
+    _writeByte(Tag.ForPartsWithExpression);
+    _writeMarker(MarkerTag.ForPartsWithExpression_initialization);
+    _writeOptionalNode(node.initialization);
+    _writeMarker(MarkerTag.ForPartsWithExpression_forParts);
+    _storeForParts(node);
+    _writeMarker(MarkerTag.ForPartsWithExpression_end);
   }
 
   @override
@@ -675,14 +809,20 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
     _pushScopeTypeParameters(node.functionExpression.typeParameters);
 
+    _writeMarker(MarkerTag.FunctionDeclaration_functionExpression);
     _writeNode(node.functionExpression);
+    _writeMarker(MarkerTag.FunctionDeclaration_returnType);
     _writeOptionalNode(node.returnType);
+    _writeMarker(MarkerTag.FunctionDeclaration_namedCompilationUnitMember);
     _storeNamedCompilationUnitMember(node);
 
     if (_shouldWriteResolution) {
+      _writeMarker(MarkerTag.FunctionDeclaration_returnTypeType);
       _writeActualReturnType(node.declaredElement.returnType);
       _resolutionSink.localElements.popScope();
     }
+
+    _writeMarker(MarkerTag.FunctionDeclaration_end);
 
     _writeUInt30(resolutionIndex);
   }
@@ -699,8 +839,11 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       ),
     );
 
+    _writeMarker(MarkerTag.FunctionExpression_typeParameters);
     _writeOptionalNode(node.typeParameters);
+    _writeMarker(MarkerTag.FunctionExpression_parameters);
     _writeOptionalNode(node.parameters);
+    _writeMarker(MarkerTag.FunctionExpression_end);
   }
 
   @override
@@ -712,8 +855,11 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
           .writeByte(MethodInvocationRewriteTag.functionExpressionInvocation);
     }
 
+    _writeMarker(MarkerTag.FunctionExpressionInvocation_function);
     _writeNode(node.function);
+    _writeMarker(MarkerTag.FunctionExpressionInvocation_invocationExpression);
     _storeInvocationExpression(node);
+    _writeMarker(MarkerTag.FunctionExpressionInvocation_end);
   }
 
   @override
@@ -737,21 +883,29 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
     _pushScopeTypeParameters(node.typeParameters);
 
+    _writeMarker(MarkerTag.FunctionTypeAlias_typeParameters);
     _writeOptionalNode(node.typeParameters);
+    _writeMarker(MarkerTag.FunctionTypeAlias_returnType);
     _writeOptionalNode(node.returnType);
+    _writeMarker(MarkerTag.FunctionTypeAlias_parameters);
     _writeNode(node.parameters);
 
+    _writeMarker(MarkerTag.FunctionTypeAlias_typeAlias);
     _storeTypeAlias(node);
 
     if (_shouldWriteResolution) {
       var element = node.declaredElement as FunctionTypeAliasElementImpl;
+      _writeMarker(MarkerTag.FunctionTypeAlias_returnTypeType);
       _writeActualReturnType(element.function.returnType);
       // TODO(scheglov) pack into one byte
+      _writeMarker(MarkerTag.FunctionTypeAlias_flags);
       _resolutionSink.writeByte(element.isSimplyBounded ? 1 : 0);
       _resolutionSink.writeByte(element.hasSelfReference ? 1 : 0);
 
       _resolutionSink.localElements.popScope();
     }
+
+    _writeMarker(MarkerTag.FunctionTypeAlias_end);
 
     _writeUInt30(resolutionIndex);
   }
@@ -761,10 +915,15 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeByte(Tag.FunctionTypedFormalParameter);
 
     _pushScopeTypeParameters(node.typeParameters);
+    _writeMarker(MarkerTag.FunctionTypedFormalParameter_typeParameters);
     _writeOptionalNode(node.typeParameters);
+    _writeMarker(MarkerTag.FunctionTypedFormalParameter_returnType);
     _writeOptionalNode(node.returnType);
+    _writeMarker(MarkerTag.FunctionTypedFormalParameter_parameters);
     _writeNode(node.parameters);
+    _writeMarker(MarkerTag.FunctionTypedFormalParameter_normalFormalParameter);
     _storeNormalFormalParameter(node, null);
+    _writeMarker(MarkerTag.FunctionTypedFormalParameter_end);
 
     if (_shouldWriteResolution) {
       _resolutionSink.localElements.popScope();
@@ -783,14 +942,20 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
     _pushScopeTypeParameters(node.typeParameters);
 
+    _writeMarker(MarkerTag.GenericFunctionType_typeParameters);
     _writeOptionalNode(node.typeParameters);
+    _writeMarker(MarkerTag.GenericFunctionType_returnType);
     _writeOptionalNode(node.returnType);
+    _writeMarker(MarkerTag.GenericFunctionType_parameters);
     _writeNode(node.parameters);
 
     if (_shouldWriteResolution) {
+      _writeMarker(MarkerTag.GenericFunctionType_type);
       _resolutionSink.writeType(node.type);
       _resolutionSink.localElements.popScope();
     }
+
+    _writeMarker(MarkerTag.GenericFunctionType_end);
   }
 
   @override
@@ -813,17 +978,23 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
     _pushScopeTypeParameters(node.typeParameters);
 
+    _writeMarker(MarkerTag.GenericTypeAlias_typeParameters);
     _writeOptionalNode(node.typeParameters);
+    _writeMarker(MarkerTag.GenericTypeAlias_type);
     _writeOptionalNode(node.type);
+    _writeMarker(MarkerTag.GenericTypeAlias_typeAlias);
     _storeTypeAlias(node);
 
     if (_shouldWriteResolution) {
       var element = node.declaredElement as TypeAliasElementImpl;
       // TODO(scheglov) pack into one byte
+      _writeMarker(MarkerTag.GenericTypeAlias_flags);
       _resolutionSink.writeByte(element.isSimplyBounded ? 1 : 0);
       _resolutionSink.writeByte(element.hasSelfReference ? 1 : 0);
       _resolutionSink.localElements.popScope();
     }
+
+    _writeMarker(MarkerTag.GenericTypeAlias_end);
 
     _writeUInt30(resolutionIndex);
   }
@@ -838,15 +1009,21 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   @override
   void visitIfElement(IfElement node) {
     _writeByte(Tag.IfElement);
+    _writeMarker(MarkerTag.IfElement_condition);
     _writeNode(node.condition);
+    _writeMarker(MarkerTag.IfElement_thenElement);
     _writeNode(node.thenElement);
+    _writeMarker(MarkerTag.IfElement_elseElement);
     _writeOptionalNode(node.elseElement);
+    _writeMarker(MarkerTag.IfElement_end);
   }
 
   @override
   void visitImplementsClause(ImplementsClause node) {
     _writeByte(Tag.ImplementsClause);
+    _writeMarker(MarkerTag.ImplementsClause_interfaces);
     _writeNodeList(node.interfaces);
+    _writeMarker(MarkerTag.ImplementsClause_end);
   }
 
   @override
@@ -868,13 +1045,17 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       _writeInformativeUint30(prefix.offset);
     }
 
+    _writeMarker(MarkerTag.ImportDirective_namespaceDirective);
     _storeNamespaceDirective(node);
     _writeUInt30(resolutionIndex);
 
     if (_shouldWriteResolution) {
       var element = node.element as ImportElementImpl;
+      _writeMarker(MarkerTag.ImportDirective_importedLibrary);
       _resolutionSink.writeElement(element.importedLibrary);
     }
+
+    _writeMarker(MarkerTag.ImportDirective_end);
   }
 
   @override
@@ -886,12 +1067,17 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
         hasQuestion: node.question != null,
       ),
     );
+    _writeMarker(MarkerTag.IndexExpression_target);
     _writeOptionalNode(node.target);
+    _writeMarker(MarkerTag.IndexExpression_index);
     _writeNode(node.index);
     if (_shouldWriteResolution) {
+      _writeMarker(MarkerTag.IndexExpression_staticElement);
       _resolutionSink.writeElement(node.staticElement);
     }
+    _writeMarker(MarkerTag.IndexExpression_expression);
     _storeExpression(node);
+    _writeMarker(MarkerTag.IndexExpression_end);
   }
 
   @override
@@ -917,9 +1103,13 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       ),
     );
 
+    _writeMarker(MarkerTag.InstanceCreationExpression_constructorName);
     _writeNode(node.constructorName);
+    _writeMarker(MarkerTag.InstanceCreationExpression_argumentList);
     _writeNode(node.argumentList);
+    _writeMarker(MarkerTag.InstanceCreationExpression_expression);
     _storeExpression(node);
+    _writeMarker(MarkerTag.InstanceCreationExpression_end);
   }
 
   @override
@@ -951,10 +1141,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       }
     }
 
-    if (_shouldWriteResolution) {
-      // TODO(scheglov) Dont write type, AKA separate true `int` and `double`?
-      _resolutionSink.writeType(node.staticType);
-    }
+    // TODO(scheglov) Dont write type, AKA separate true `int` and `double`?
+    _storeExpression(node);
   }
 
   @override
@@ -983,9 +1171,13 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
         hasNot: node.notOperator != null,
       ),
     );
+    _writeMarker(MarkerTag.IsExpression_expression);
     _writeNode(node.expression);
+    _writeMarker(MarkerTag.IsExpression_type);
     _writeNode(node.type);
+    _writeMarker(MarkerTag.IsExpression_expression2);
     _storeExpression(node);
+    _writeMarker(MarkerTag.IsExpression_end);
   }
 
   @override
@@ -1012,16 +1204,22 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       ),
     );
 
+    _writeMarker(MarkerTag.ListLiteral_typeArguments);
     _writeOptionalNode(node.typeArguments);
+    _writeMarker(MarkerTag.ListLiteral_elements);
     _writeNodeList(node.elements);
 
+    _writeMarker(MarkerTag.ListLiteral_expression);
     _storeExpression(node);
+    _writeMarker(MarkerTag.ListLiteral_end);
   }
 
   @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
     _writeByte(Tag.MapLiteralEntry);
+    _writeMarker(MarkerTag.MapLiteralEntry_key);
     _writeNode(node.key);
+    _writeMarker(MarkerTag.MapLiteralEntry_value);
     _writeNode(node.value);
   }
 
@@ -1066,26 +1264,35 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _pushScopeTypeParameters(node.typeParameters);
 
     _writeDeclarationName(node.name);
+    _writeMarker(MarkerTag.MethodDeclaration_typeParameters);
     _writeOptionalNode(node.typeParameters);
+    _writeMarker(MarkerTag.MethodDeclaration_returnType);
     _writeOptionalNode(node.returnType);
+    _writeMarker(MarkerTag.MethodDeclaration_parameters);
     _writeOptionalNode(node.parameters);
 
+    _writeMarker(MarkerTag.MethodDeclaration_classMember);
     _storeClassMember(node);
 
     _writeUInt30(resolutionIndex);
 
     if (_shouldWriteResolution) {
       var element = node.declaredElement as ExecutableElementImpl;
+      _writeMarker(MarkerTag.MethodDeclaration_returnTypeType);
       _writeActualReturnType(element.returnType);
+      _writeMarker(MarkerTag.MethodDeclaration_inferenceError);
       _writeTopLevelInferenceError(element);
       // TODO(scheglov) move this flag into ClassElementImpl?
       if (element is MethodElementImpl) {
+        _writeMarker(MarkerTag.MethodDeclaration_flags);
         _resolutionSink.writeByte(
           element.isOperatorEqualWithParameterTypeFromObject ? 1 : 0,
         );
       }
       _resolutionSink.localElements.popScope();
     }
+
+    _writeMarker(MarkerTag.MethodDeclaration_end);
   }
 
   @override
@@ -1102,9 +1309,13 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
         hasPeriod2: node.operator?.type == TokenType.PERIOD_PERIOD,
       ),
     );
+    _writeMarker(MarkerTag.MethodInvocation_target);
     _writeOptionalNode(node.target);
+    _writeMarker(MarkerTag.MethodInvocation_methodName);
     _writeNode(node.methodName);
+    _writeMarker(MarkerTag.MethodInvocation_invocationExpression);
     _storeInvocationExpression(node);
+    _writeMarker(MarkerTag.MethodInvocation_end);
   }
 
   @override
@@ -1126,10 +1337,15 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
     _pushScopeTypeParameters(node.typeParameters);
 
+    _writeMarker(MarkerTag.MixinDeclaration_typeParameters);
     _writeOptionalNode(node.typeParameters);
+    _writeMarker(MarkerTag.MixinDeclaration_onClause);
     _writeOptionalNode(node.onClause);
+    _writeMarker(MarkerTag.MixinDeclaration_implementsClause);
     _writeOptionalNode(node.implementsClause);
+    _writeMarker(MarkerTag.MixinDeclaration_namedCompilationUnitMember);
     _storeNamedCompilationUnitMember(node);
+    _writeMarker(MarkerTag.MixinDeclaration_end);
     _writeUInt30(resolutionIndex);
 
     _classMemberIndexItems.clear();
@@ -1162,13 +1378,17 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeStringReference(nameNode.name);
     _writeInformativeUint30(nameNode.offset);
 
+    _writeMarker(MarkerTag.NamedExpression_expression);
     _writeNode(node.expression);
+    _writeMarker(MarkerTag.NamedExpression_end);
   }
 
   @override
   void visitNativeClause(NativeClause node) {
     _writeByte(Tag.NativeClause);
+    _writeMarker(MarkerTag.NativeClause_name);
     _writeNode(node.name);
+    _writeMarker(MarkerTag.NativeClause_end);
   }
 
   @override
@@ -1179,14 +1399,19 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   @override
   void visitOnClause(OnClause node) {
     _writeByte(Tag.OnClause);
+    _writeMarker(MarkerTag.OnClause_superclassConstraints);
     _writeNodeList(node.superclassConstraints);
+    _writeMarker(MarkerTag.OnClause_end);
   }
 
   @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
     _writeByte(Tag.ParenthesizedExpression);
+    _writeMarker(MarkerTag.ParenthesizedExpression_expression);
     _writeNode(node.expression);
+    _writeMarker(MarkerTag.ParenthesizedExpression_expression2);
     _storeExpression(node);
+    _writeMarker(MarkerTag.ParenthesizedExpression_end);
   }
 
   @override
@@ -1198,15 +1423,20 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   @override
   void visitPartOfDirective(PartOfDirective node) {
     _writeByte(Tag.PartOfDirective);
+    _writeMarker(MarkerTag.PartOfDirective_libraryName);
     _writeOptionalNode(node.libraryName);
+    _writeMarker(MarkerTag.PartOfDirective_uri);
     _writeOptionalNode(node.uri);
+    _writeMarker(MarkerTag.PartOfDirective_directive);
     _storeDirective(node);
+    _writeMarker(MarkerTag.PartOfDirective_end);
   }
 
   @override
   void visitPostfixExpression(PostfixExpression node) {
     _writeByte(Tag.PostfixExpression);
 
+    _writeMarker(MarkerTag.PostfixExpression_operand);
     _writeNode(node.operand);
 
     var operatorToken = node.operator.type;
@@ -1214,27 +1444,36 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeByte(binaryToken.index);
 
     if (_shouldWriteResolution) {
+      _writeMarker(MarkerTag.PostfixExpression_staticElement);
       _resolutionSink.writeElement(node.staticElement);
       if (operatorToken.isIncrementOperator) {
+        _writeMarker(MarkerTag.PostfixExpression_readElement);
         _resolutionSink.writeElement(node.readElement);
+        _writeMarker(MarkerTag.PostfixExpression_readType);
         _resolutionSink.writeType(node.readType);
+        _writeMarker(MarkerTag.PostfixExpression_writeElement);
         _resolutionSink.writeElement(node.writeElement);
+        _writeMarker(MarkerTag.PostfixExpression_writeType);
         _resolutionSink.writeType(node.writeType);
       }
     }
+    _writeMarker(MarkerTag.PostfixExpression_expression);
     _storeExpression(node);
+    _writeMarker(MarkerTag.PostfixExpression_end);
   }
 
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     _writeByte(Tag.PrefixedIdentifier);
+    _writeMarker(MarkerTag.PrefixedIdentifier_prefix);
     _writeNode(node.prefix);
+    _writeMarker(MarkerTag.PrefixedIdentifier_identifier);
     _writeNode(node.identifier);
 
-    if (_shouldWriteResolution) {
-      // TODO(scheglov) In actual prefixed identifier, the type of the identifier.
-      _resolutionSink.writeType(node.staticType);
-    }
+    // TODO(scheglov) In actual prefixed identifier, the type of the identifier.
+    _writeMarker(MarkerTag.PrefixedIdentifier_expression);
+    _storeExpression(node);
+    _writeMarker(MarkerTag.PrefixedIdentifier_end);
   }
 
   @override
@@ -1245,19 +1484,27 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     var binaryToken = TokensWriter.astToBinaryTokenType(operatorToken);
     _writeByte(binaryToken.index);
 
+    _writeMarker(MarkerTag.PrefixExpression_operand);
     _writeNode(node.operand);
 
     if (_shouldWriteResolution) {
+      _writeMarker(MarkerTag.PrefixExpression_staticElement);
       _resolutionSink.writeElement(node.staticElement);
       if (operatorToken.isIncrementOperator) {
+        _writeMarker(MarkerTag.PrefixExpression_readElement);
         _resolutionSink.writeElement(node.readElement);
+        _writeMarker(MarkerTag.PrefixExpression_readType);
         _resolutionSink.writeType(node.readType);
+        _writeMarker(MarkerTag.PrefixExpression_writeElement);
         _resolutionSink.writeElement(node.writeElement);
+        _writeMarker(MarkerTag.PrefixExpression_writeType);
         _resolutionSink.writeType(node.writeType);
       }
     }
 
+    _writeMarker(MarkerTag.PrefixExpression_expression);
     _storeExpression(node);
+    _writeMarker(MarkerTag.PrefixExpression_end);
   }
 
   @override
@@ -1269,10 +1516,14 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
         hasPeriod2: node.operator?.type == TokenType.PERIOD_PERIOD,
       ),
     );
+    _writeMarker(MarkerTag.PropertyAccess_target);
     _writeOptionalNode(node.target);
+    _writeMarker(MarkerTag.PropertyAccess_propertyName);
     _writeNode(node.propertyName);
     // TODO(scheglov) Get from the property?
+    _writeMarker(MarkerTag.PropertyAccess_expression);
     _storeExpression(node);
+    _writeMarker(MarkerTag.PropertyAccess_end);
   }
 
   @override
@@ -1286,12 +1537,15 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       ),
     );
 
+    _writeMarker(MarkerTag.RedirectingConstructorInvocation_constructorName);
     _writeOptionalNode(node.constructorName);
+    _writeMarker(MarkerTag.RedirectingConstructorInvocation_argumentList);
     _writeNode(node.argumentList);
     if (_shouldWriteResolution) {
+      _writeMarker(MarkerTag.RedirectingConstructorInvocation_staticElement);
       _resolutionSink.writeElement(node.staticElement);
     }
-    _storeConstructorInitializer(node);
+    _writeMarker(MarkerTag.RedirectingConstructorInvocation_end);
   }
 
   @override
@@ -1307,13 +1561,18 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     if (_shouldWriteResolution) {
       var isMapBit = node.isMap ? (1 << 0) : 0;
       var isSetBit = node.isSet ? (1 << 1) : 0;
+      _writeMarker(MarkerTag.SetOrMapLiteral_flags);
       _resolutionSink.writeByte(isMapBit | isSetBit);
     }
 
+    _writeMarker(MarkerTag.SetOrMapLiteral_typeArguments);
     _writeOptionalNode(node.typeArguments);
+    _writeMarker(MarkerTag.SetOrMapLiteral_elements);
     _writeNodeList(node.elements);
 
+    _writeMarker(MarkerTag.SetOrMapLiteral_expression);
     _storeExpression(node);
+    _writeMarker(MarkerTag.SetOrMapLiteral_end);
   }
 
   @override
@@ -1327,13 +1586,17 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     _writeByte(Tag.SimpleFormalParameter);
 
+    _writeMarker(MarkerTag.SimpleFormalParameter_type);
     _writeOptionalNode(node.type);
+    _writeMarker(MarkerTag.SimpleFormalParameter_normalFormalParameter);
     _storeNormalFormalParameter(node, node.keyword);
 
     if (_shouldWriteResolution) {
       var element = node.declaredElement as ParameterElementImpl;
+      _writeMarker(MarkerTag.SimpleFormalParameter_flags);
       _resolutionSink.writeByte(element.inheritsCovariant ? 1 : 0);
     }
+    _writeMarker(MarkerTag.SimpleFormalParameter_end);
   }
 
   @override
@@ -1342,10 +1605,13 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeStringReference(node.name);
     _writeInformativeUint30(node.offset);
     if (_shouldWriteResolution) {
+      _writeMarker(MarkerTag.SimpleIdentifier_staticElement);
       _resolutionSink.writeElement(node.staticElement);
       // TODO(scheglov) It is inefficient to write many null types.
-      _resolutionSink.writeType(node.staticType);
     }
+    _writeMarker(MarkerTag.SimpleIdentifier_expression);
+    _storeExpression(node);
+    _writeMarker(MarkerTag.SimpleIdentifier_end);
   }
 
   @override
@@ -1364,31 +1630,40 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
             node.spreadOperator.type == TokenType.PERIOD_PERIOD_PERIOD_QUESTION,
       ),
     );
+    _writeMarker(MarkerTag.SpreadElement_expression);
     _writeNode(node.expression);
+    _writeMarker(MarkerTag.SpreadElement_end);
   }
 
   @override
   void visitStringInterpolation(StringInterpolation node) {
     _writeByte(Tag.StringInterpolation);
+    _writeMarker(MarkerTag.StringInterpolation_elements);
     _writeNodeList(node.elements);
+    _writeMarker(MarkerTag.StringInterpolation_end);
   }
 
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     _writeByte(Tag.SuperConstructorInvocation);
 
+    _writeMarker(MarkerTag.SuperConstructorInvocation_constructorName);
     _writeOptionalNode(node.constructorName);
+    _writeMarker(MarkerTag.SuperConstructorInvocation_argumentList);
     _writeNode(node.argumentList);
     if (_shouldWriteResolution) {
+      _writeMarker(MarkerTag.SuperConstructorInvocation_staticElement);
       _resolutionSink.writeElement(node.staticElement);
     }
-    _storeConstructorInitializer(node);
+    _writeMarker(MarkerTag.SuperConstructorInvocation_end);
   }
 
   @override
   void visitSuperExpression(SuperExpression node) {
     _writeByte(Tag.SuperExpression);
+    _writeMarker(MarkerTag.SuperExpression_expression);
     _storeExpression(node);
+    _writeMarker(MarkerTag.SuperExpression_end);
   }
 
   @override
@@ -1406,14 +1681,19 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   @override
   void visitThisExpression(ThisExpression node) {
     _writeByte(Tag.ThisExpression);
+    _writeMarker(MarkerTag.ThisExpression_expression);
     _storeExpression(node);
+    _writeMarker(MarkerTag.ThisExpression_end);
   }
 
   @override
   void visitThrowExpression(ThrowExpression node) {
     _writeByte(Tag.ThrowExpression);
+    _writeMarker(MarkerTag.ThrowExpression_expression);
     _writeNode(node.expression);
+    _writeMarker(MarkerTag.ThrowExpression_expression2);
     _storeExpression(node);
+    _writeMarker(MarkerTag.ThrowExpression_end);
   }
 
   @override
@@ -1440,14 +1720,17 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
     var resolutionIndex = _getNextResolutionIndex();
 
-    _isConstTopLevelVariable = node.variables.isConst;
+    _shouldStoreVariableInitializers = node.variables.isConst;
     try {
+      _writeMarker(MarkerTag.TopLevelVariableDeclaration_variables);
       _writeNode(node.variables);
     } finally {
-      _isConstTopLevelVariable = false;
+      _shouldStoreVariableInitializers = false;
     }
 
+    _writeMarker(MarkerTag.TopLevelVariableDeclaration_compilationUnitMember);
     _storeCompilationUnitMember(node);
+    _writeMarker(MarkerTag.TopLevelVariableDeclaration_end);
 
     _writeUInt30(resolutionIndex);
   }
@@ -1455,7 +1738,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   @override
   void visitTypeArgumentList(TypeArgumentList node) {
     _writeByte(Tag.TypeArgumentList);
+    _writeMarker(MarkerTag.TypeArgumentList_arguments);
     _writeNodeList(node.arguments);
+    _writeMarker(MarkerTag.TypeArgumentList_end);
   }
 
   @override
@@ -1469,12 +1754,16 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       ),
     );
 
+    _writeMarker(MarkerTag.TypeName_name);
     _writeNode(node.name);
+    _writeMarker(MarkerTag.TypeName_typeArguments);
     _writeOptionalNode(node.typeArguments);
 
     if (_shouldWriteResolution) {
+      _writeMarker(MarkerTag.TypeName_type);
       _resolutionSink.writeType(node.type);
     }
+    _writeMarker(MarkerTag.TypeName_end);
   }
 
   @override
@@ -1483,22 +1772,29 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeInformativeUint30(node.offset);
     _writeInformativeUint30(node.length);
     _writeDeclarationName(node.name);
+    _writeMarker(MarkerTag.TypeParameter_bound);
     _writeOptionalNode(node.bound);
+    _writeMarker(MarkerTag.TypeParameter_declaration);
     _storeDeclaration(node);
 
     if (_shouldWriteResolution) {
       var element = node.declaredElement as TypeParameterElementImpl;
+      _writeMarker(MarkerTag.TypeParameter_variance);
       _resolutionSink.writeByte(
         _encodeVariance(element),
       );
+      _writeMarker(MarkerTag.TypeParameter_defaultType);
       _resolutionSink.writeType(element.defaultType);
     }
+    _writeMarker(MarkerTag.TypeParameter_end);
   }
 
   @override
   void visitTypeParameterList(TypeParameterList node) {
     _writeByte(Tag.TypeParameterList);
+    _writeMarker(MarkerTag.TypeParameterList_typeParameters);
     _writeNodeList(node.typeParameters);
+    _writeMarker(MarkerTag.TypeParameterList_end);
   }
 
   @override
@@ -1514,23 +1810,26 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     if (_shouldWriteResolution) {
       // TODO(scheglov) Enforce not null, remove `?` in `?.type` below.
       var element = node.declaredElement as VariableElementImpl;
+      _writeMarker(MarkerTag.VariableDeclaration_type);
       _writeActualType(element?.type);
+      _writeMarker(MarkerTag.VariableDeclaration_inferenceError);
       _writeTopLevelInferenceError(element);
       if (element is FieldElementImpl) {
+        _writeMarker(MarkerTag.VariableDeclaration_inheritsCovariant);
         _resolutionSink.writeByte(element.inheritsCovariant ? 1 : 0);
       }
     }
 
     Expression initializerToWrite;
-    if (_isConstField ||
-        _hasConstConstructor && _isFinalField ||
-        _isConstTopLevelVariable) {
+    if (_shouldStoreVariableInitializers) {
       var initializer = node.initializer;
       if (_isSerializableExpression(initializer)) {
         initializerToWrite = initializer;
       }
     }
+    _writeMarker(MarkerTag.VariableDeclaration_initializer);
     _writeOptionalNode(initializerToWrite);
+    _writeMarker(MarkerTag.VariableDeclaration_end);
   }
 
   @override
@@ -1544,15 +1843,21 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
         isVar: node.keyword?.keyword == Keyword.VAR,
       ),
     );
+    _writeMarker(MarkerTag.VariableDeclarationList_type);
     _writeOptionalNode(node.type);
+    _writeMarker(MarkerTag.VariableDeclarationList_variables);
     _writeNodeList(node.variables);
+    _writeMarker(MarkerTag.VariableDeclarationList_annotatedNode);
     _storeAnnotatedNode(node);
+    _writeMarker(MarkerTag.VariableDeclarationList_end);
   }
 
   @override
   void visitWithClause(WithClause node) {
     _writeByte(Tag.WithClause);
+    _writeMarker(MarkerTag.WithClause_mixinTypes);
     _writeNodeList(node.mixinTypes);
+    _writeMarker(MarkerTag.WithClause_end);
   }
 
   void _pushScopeTypeParameters(TypeParameterList node) {
@@ -1572,18 +1877,19 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   void _storeAnnotatedNode(AnnotatedNode node) {
+    _writeMarker(MarkerTag.AnnotatedNode_metadata);
     _writeNodeList(node.metadata);
+    _writeMarker(MarkerTag.AnnotatedNode_end);
   }
 
   void _storeClassMember(ClassMember node) {
+    _writeMarker(MarkerTag.ClassMember_declaration);
     _storeDeclaration(node);
   }
 
   void _storeCompilationUnitMember(CompilationUnitMember node) {
     _storeDeclaration(node);
   }
-
-  void _storeConstructorInitializer(ConstructorInitializer node) {}
 
   void _storeDeclaration(Declaration node) {
     _storeAnnotatedNode(node);
@@ -1596,19 +1902,24 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
   void _storeExpression(Expression node) {
     if (_shouldWriteResolution) {
+      _writeMarker(MarkerTag.Expression_staticType);
       _resolutionSink.writeType(node.staticType);
     }
   }
 
   void _storeForEachParts(ForEachParts node) {
+    _writeMarker(MarkerTag.ForEachParts_iterable);
     _writeNode(node.iterable);
+    _writeMarker(MarkerTag.ForEachParts_forLoopParts);
     _storeForLoopParts(node);
+    _writeMarker(MarkerTag.ForEachParts_end);
   }
 
   void _storeForLoopParts(ForLoopParts node) {}
 
   void _storeFormalParameter(FormalParameter node) {
     if (_shouldWriteResolution) {
+      _writeMarker(MarkerTag.FormalParameter_type);
       _writeActualType(node.declaredElement.type);
     }
   }
@@ -1619,19 +1930,28 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
         hasAwait: node.awaitKeyword != null,
       ),
     );
+    _writeMarker(MarkerTag.ForMixin_forLoopParts);
     _writeNode(node.forLoopParts);
   }
 
   void _storeForParts(ForParts node) {
+    _writeMarker(MarkerTag.ForParts_condition);
     _writeOptionalNode(node.condition);
+    _writeMarker(MarkerTag.ForParts_updaters);
     _writeNodeList(node.updaters);
+    _writeMarker(MarkerTag.ForParts_forLoopParts);
     _storeForLoopParts(node);
+    _writeMarker(MarkerTag.ForParts_end);
   }
 
   void _storeInvocationExpression(InvocationExpression node) {
+    _writeMarker(MarkerTag.InvocationExpression_typeArguments);
     _writeOptionalNode(node.typeArguments);
+    _writeMarker(MarkerTag.InvocationExpression_argumentList);
     _writeNode(node.argumentList);
+    _writeMarker(MarkerTag.InvocationExpression_expression);
     _storeExpression(node);
+    _writeMarker(MarkerTag.InvocationExpression_end);
     // TODO(scheglov) typeArgumentTypes and staticInvokeType?
   }
 
@@ -1641,9 +1961,13 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   void _storeNamespaceDirective(NamespaceDirective node) {
+    _writeMarker(MarkerTag.NamespaceDirective_combinators);
     _writeNodeList(node.combinators);
+    _writeMarker(MarkerTag.NamespaceDirective_configurations);
     _writeNodeList(node.configurations);
+    _writeMarker(MarkerTag.NamespaceDirective_uriBasedDirective);
     _storeUriBasedDirective(node);
+    _writeMarker(MarkerTag.NamespaceDirective_end);
   }
 
   void _storeNormalFormalParameter(
@@ -1667,11 +1991,14 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeInformativeUint30(node.offset);
     _writeInformativeUint30(node.length);
 
+    _writeMarker(MarkerTag.NormalFormalParameter_metadata);
     _writeNodeList(node.metadata);
     if (node.identifier != null) {
       _writeDeclarationName(node.identifier);
     }
+    _writeMarker(MarkerTag.NormalFormalParameter_formalParameter);
     _storeFormalParameter(node);
+    _writeMarker(MarkerTag.NormalFormalParameter_end);
   }
 
   void _storeTypeAlias(TypeAlias node) {
@@ -1679,8 +2006,11 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   void _storeUriBasedDirective(UriBasedDirective node) {
+    _writeMarker(MarkerTag.UriBasedDirective_uri);
     _writeNode(node.uri);
+    _writeMarker(MarkerTag.UriBasedDirective_directive);
     _storeDirective(node);
+    _writeMarker(MarkerTag.UriBasedDirective_end);
   }
 
   void _writeActualReturnType(DartType type) {
@@ -1786,6 +2116,14 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       _writeUint30List(lineInfo.lineStarts);
     } else {
       _writeUint30List(const <int>[0]);
+    }
+  }
+
+  void _writeMarker(MarkerTag tag) {
+    if (enableDebugResolutionMarkers) {
+      if (_shouldWriteResolution) {
+        _resolutionSink.writeUInt30(tag.index);
+      }
     }
   }
 

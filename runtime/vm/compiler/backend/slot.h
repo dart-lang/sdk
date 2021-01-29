@@ -52,16 +52,18 @@ class ParsedFunction;
 //   (i.e. initialized once at construction time and does not change after
 //   that) or like a non-final field.
 #define NULLABLE_BOXED_NATIVE_SLOTS_LIST(V)                                    \
-  V(Context, ContextLayout, parent, Context, FINAL)                            \
-  V(Closure, ClosureLayout, instantiator_type_arguments, TypeArguments, FINAL) \
-  V(Closure, ClosureLayout, delayed_type_arguments, TypeArguments, FINAL)      \
-  V(Closure, ClosureLayout, function_type_arguments, TypeArguments, FINAL)     \
-  V(ClosureData, ClosureDataLayout, default_type_arguments, TypeArguments,     \
+  V(Function, UntaggedFunction, signature, FunctionType, FINAL)                \
+  V(Context, UntaggedContext, parent, Context, FINAL)                          \
+  V(Closure, UntaggedClosure, instantiator_type_arguments, TypeArguments,      \
     FINAL)                                                                     \
-  V(Function, FunctionLayout, type_parameters, TypeArguments, FINAL)           \
-  V(Type, TypeLayout, arguments, TypeArguments, FINAL)                         \
-  V(WeakProperty, WeakPropertyLayout, key, Dynamic, VAR)                       \
-  V(WeakProperty, WeakPropertyLayout, value, Dynamic, VAR)
+  V(Closure, UntaggedClosure, delayed_type_arguments, TypeArguments, FINAL)    \
+  V(Closure, UntaggedClosure, function_type_arguments, TypeArguments, FINAL)   \
+  V(ClosureData, UntaggedClosureData, default_type_arguments, TypeArguments,   \
+    FINAL)                                                                     \
+  V(Type, UntaggedType, arguments, TypeArguments, FINAL)                       \
+  V(FunctionType, UntaggedFunctionType, type_parameters, TypeArguments, FINAL) \
+  V(WeakProperty, UntaggedWeakProperty, key, Dynamic, VAR)                     \
+  V(WeakProperty, UntaggedWeakProperty, value, Dynamic, VAR)
 
 // The list of slots that correspond to non-nullable boxed fields of native
 // objects in the following format:
@@ -77,35 +79,35 @@ class ParsedFunction;
 //   (i.e. initialized once at construction time and does not change after
 //   that) or like a non-final field.
 #define NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(V)                                 \
-  V(Array, ArrayLayout, length, Smi, FINAL)                                    \
-  V(Closure, ClosureLayout, function, Function, FINAL)                         \
-  V(Closure, ClosureLayout, context, Context, FINAL)                           \
-  V(Closure, ClosureLayout, hash, Context, VAR)                                \
-  V(ClosureData, ClosureDataLayout, default_type_arguments_info, Smi, FINAL)   \
-  V(Function, FunctionLayout, data, Dynamic, FINAL)                            \
-  V(Function, FunctionLayout, parameter_names, Array, FINAL)                   \
-  V(Function, FunctionLayout, parameter_types, Array, FINAL)                   \
-  V(GrowableObjectArray, GrowableObjectArrayLayout, length, Smi, VAR)          \
-  V(GrowableObjectArray, GrowableObjectArrayLayout, data, Array, VAR)          \
-  V(TypedDataBase, TypedDataBaseLayout, length, Smi, FINAL)                    \
-  V(TypedDataView, TypedDataViewLayout, offset_in_bytes, Smi, FINAL)           \
-  V(TypedDataView, TypedDataViewLayout, data, Dynamic, FINAL)                  \
-  V(String, StringLayout, length, Smi, FINAL)                                  \
-  V(LinkedHashMap, LinkedHashMapLayout, index, TypedDataUint32Array, VAR)      \
-  V(LinkedHashMap, LinkedHashMapLayout, data, Array, VAR)                      \
-  V(LinkedHashMap, LinkedHashMapLayout, hash_mask, Smi, VAR)                   \
-  V(LinkedHashMap, LinkedHashMapLayout, used_data, Smi, VAR)                   \
-  V(LinkedHashMap, LinkedHashMapLayout, deleted_keys, Smi, VAR)                \
-  V(ArgumentsDescriptor, ArrayLayout, type_args_len, Smi, FINAL)               \
-  V(ArgumentsDescriptor, ArrayLayout, positional_count, Smi, FINAL)            \
-  V(ArgumentsDescriptor, ArrayLayout, count, Smi, FINAL)                       \
-  V(ArgumentsDescriptor, ArrayLayout, size, Smi, FINAL)                        \
-  V(PointerBase, PointerBaseLayout, data_field, Dynamic, FINAL)                \
-  V(TypeArguments, TypeArgumentsLayout, length, Smi, FINAL)                    \
-  V(TypeParameter, TypeParameterLayout, bound, Dynamic, FINAL)                 \
-  V(TypeParameter, TypeParameterLayout, name, Dynamic, FINAL)                  \
-  V(UnhandledException, UnhandledExceptionLayout, exception, Dynamic, FINAL)   \
-  V(UnhandledException, UnhandledExceptionLayout, stacktrace, Dynamic, FINAL)
+  V(Array, UntaggedArray, length, Smi, FINAL)                                  \
+  V(Closure, UntaggedClosure, function, Function, FINAL)                       \
+  V(Closure, UntaggedClosure, context, Context, FINAL)                         \
+  V(Closure, UntaggedClosure, hash, Context, VAR)                              \
+  V(ClosureData, UntaggedClosureData, default_type_arguments_info, Smi, FINAL) \
+  V(Function, UntaggedFunction, data, Dynamic, FINAL)                          \
+  V(Function, UntaggedFunction, parameter_names, Array, FINAL)                 \
+  V(FunctionType, UntaggedFunctionType, parameter_types, Array, FINAL)         \
+  V(GrowableObjectArray, UntaggedGrowableObjectArray, length, Smi, VAR)        \
+  V(GrowableObjectArray, UntaggedGrowableObjectArray, data, Array, VAR)        \
+  V(TypedDataBase, UntaggedTypedDataBase, length, Smi, FINAL)                  \
+  V(TypedDataView, UntaggedTypedDataView, offset_in_bytes, Smi, FINAL)         \
+  V(TypedDataView, UntaggedTypedDataView, data, Dynamic, FINAL)                \
+  V(String, UntaggedString, length, Smi, FINAL)                                \
+  V(LinkedHashMap, UntaggedLinkedHashMap, index, TypedDataUint32Array, VAR)    \
+  V(LinkedHashMap, UntaggedLinkedHashMap, data, Array, VAR)                    \
+  V(LinkedHashMap, UntaggedLinkedHashMap, hash_mask, Smi, VAR)                 \
+  V(LinkedHashMap, UntaggedLinkedHashMap, used_data, Smi, VAR)                 \
+  V(LinkedHashMap, UntaggedLinkedHashMap, deleted_keys, Smi, VAR)              \
+  V(ArgumentsDescriptor, UntaggedArray, type_args_len, Smi, FINAL)             \
+  V(ArgumentsDescriptor, UntaggedArray, positional_count, Smi, FINAL)          \
+  V(ArgumentsDescriptor, UntaggedArray, count, Smi, FINAL)                     \
+  V(ArgumentsDescriptor, UntaggedArray, size, Smi, FINAL)                      \
+  V(PointerBase, UntaggedPointerBase, data_field, Dynamic, FINAL)              \
+  V(TypeArguments, UntaggedTypeArguments, length, Smi, FINAL)                  \
+  V(TypeParameter, UntaggedTypeParameter, bound, Dynamic, FINAL)               \
+  V(TypeParameter, UntaggedTypeParameter, name, Dynamic, FINAL)                \
+  V(UnhandledException, UntaggedUnhandledException, exception, Dynamic, FINAL) \
+  V(UnhandledException, UntaggedUnhandledException, stacktrace, Dynamic, FINAL)
 
 // List of slots that correspond to unboxed fields of native objects in the
 // following format:
@@ -123,9 +125,10 @@ class ParsedFunction;
 //
 // Note: As the underlying field is unboxed, these slots cannot be nullable.
 #define UNBOXED_NATIVE_SLOTS_LIST(V)                                           \
-  V(Function, FunctionLayout, kind_tag, Uint32, FINAL)                         \
-  V(Function, FunctionLayout, packed_fields, Uint32, FINAL)                    \
-  V(TypeParameter, TypeParameterLayout, flags, Uint8, FINAL)
+  V(Function, UntaggedFunction, kind_tag, Uint32, FINAL)                       \
+  V(Function, UntaggedFunction, packed_fields, Uint32, FINAL)                  \
+  V(FunctionType, UntaggedFunctionType, packed_fields, Uint32, FINAL)          \
+  V(TypeParameter, UntaggedTypeParameter, flags, Uint8, FINAL)
 
 // For uses that do not need the exact_type (boxed) or representation (unboxed)
 // or whether a boxed native slot is nullable. (Generally, such users only need

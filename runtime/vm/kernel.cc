@@ -35,7 +35,16 @@ KernelLineStartsReader::KernelLineStartsReader(
   }
 }
 
-void KernelLineStartsReader::LocationForPosition(intptr_t position,
+int32_t KernelLineStartsReader::MaxPosition() const {
+  const intptr_t line_count = line_starts_data_.Length();
+  intptr_t current_start = 0;
+  for (intptr_t i = 0; i < line_count; i++) {
+    current_start += helper_->At(line_starts_data_, i);
+  }
+  return current_start;
+}
+
+bool KernelLineStartsReader::LocationForPosition(intptr_t position,
                                                  intptr_t* line,
                                                  intptr_t* col) const {
   intptr_t line_count = line_starts_data_.Length();
@@ -45,46 +54,43 @@ void KernelLineStartsReader::LocationForPosition(intptr_t position,
     current_start += helper_->At(line_starts_data_, i);
     if (current_start > position) {
       *line = i;
-      if (col != NULL) {
+      if (col != nullptr) {
         *col = position - previous_start + 1;
       }
-      return;
+      return true;
     }
     if (current_start == position) {
       *line = i + 1;
-      if (col != NULL) {
+      if (col != nullptr) {
         *col = 1;
       }
-      return;
+      return true;
     }
     previous_start = current_start;
   }
 
-  // If the start of any of the lines did not cross |position|,
-  // then it means the position falls on the last line.
-  *line = line_count;
-  if (col != NULL) {
-    *col = position - current_start + 1;
-  }
+  return false;
 }
 
-void KernelLineStartsReader::TokenRangeAtLine(
-    intptr_t source_length,
+bool KernelLineStartsReader::TokenRangeAtLine(
     intptr_t line_number,
     TokenPosition* first_token_index,
     TokenPosition* last_token_index) const {
-  ASSERT(line_number <= line_starts_data_.Length());
+  if (line_number < 0 || line_number > line_starts_data_.Length()) {
+    return false;
+  }
   intptr_t cumulative = 0;
   for (intptr_t i = 0; i < line_number; ++i) {
     cumulative += helper_->At(line_starts_data_, i);
   }
-  *first_token_index = dart::TokenPosition(cumulative);
+  *first_token_index = dart::TokenPosition::Deserialize(cumulative);
   if (line_number == line_starts_data_.Length()) {
-    *last_token_index = dart::TokenPosition(source_length);
+    *last_token_index = *first_token_index;
   } else {
-    *last_token_index = dart::TokenPosition(
+    *last_token_index = dart::TokenPosition::Deserialize(
         cumulative + helper_->At(line_starts_data_, line_number) - 1);
   }
+  return true;
 }
 
 int32_t KernelLineStartsReader::KernelInt8LineStartsHelper::At(
@@ -168,7 +174,7 @@ void KernelTokenPositionCollector::CollectTokenPositions(
 void KernelTokenPositionCollector::RecordTokenPosition(TokenPosition position) {
   if (record_for_script_id_ == current_script_id_ &&
       record_token_positions_into_ != NULL && position.IsReal()) {
-    record_token_positions_into_->Add(position.value());
+    record_token_positions_into_->Add(position.Serialize());
   }
 }
 
@@ -187,7 +193,7 @@ static int LowestFirst(const intptr_t* a, const intptr_t* b) {
 static ArrayPtr AsSortedDuplicateFreeArray(GrowableArray<intptr_t>* source) {
   intptr_t size = source->length();
   if (size == 0) {
-    return Object::empty_array().raw();
+    return Object::empty_array().ptr();
   }
 
   source->Sort(LowestFirst);
@@ -205,7 +211,7 @@ static ArrayPtr AsSortedDuplicateFreeArray(GrowableArray<intptr_t>* source) {
     smi_value = Smi::New(source->At(i));
     array_object.SetAt(i, smi_value);
   }
-  return array_object.raw();
+  return array_object.ptr();
 }
 
 static void CollectKernelDataTokenPositions(
@@ -238,9 +244,9 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
 
   GrowableArray<intptr_t> token_positions(10);
 
-  Isolate* isolate = thread->isolate();
-  const GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(zone, isolate->object_store()->libraries());
+  auto isolate_group = thread->isolate_group();
+  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
+      zone, isolate_group->object_store()->libraries());
   Library& lib = Library::Handle(zone);
   Object& entry = Object::Handle(zone);
   Script& entry_script = Script::Handle(zone);
@@ -258,9 +264,9 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
       data = ExternalTypedData::null();
       if (entry.IsClass()) {
         const Class& klass = Class::Cast(entry);
-        if (klass.script() == interesting_script.raw()) {
-          token_positions.Add(klass.token_pos().value());
-          token_positions.Add(klass.end_token_pos().value());
+        if (klass.script() == interesting_script.ptr()) {
+          token_positions.Add(klass.token_pos().Serialize());
+          token_positions.Add(klass.end_token_pos().Serialize());
         }
         if (klass.is_finalized()) {
           temp_array = klass.fields();
@@ -271,7 +277,7 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
               continue;
             }
             entry_script = temp_field.Script();
-            if (entry_script.raw() != interesting_script.raw()) {
+            if (entry_script.ptr() != interesting_script.ptr()) {
               continue;
             }
             data = temp_field.KernelData();
@@ -285,7 +291,7 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
           for (intptr_t i = 0; i < temp_array.Length(); ++i) {
             temp_function ^= temp_array.At(i);
             entry_script = temp_function.script();
-            if (entry_script.raw() != interesting_script.raw()) {
+            if (entry_script.ptr() != interesting_script.ptr()) {
               continue;
             }
             data = temp_function.KernelData();
@@ -305,7 +311,7 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
           const intptr_t class_offset = klass.kernel_offset();
 
           entry_script = klass.script();
-          if (entry_script.raw() != interesting_script.raw()) {
+          if (entry_script.ptr() != interesting_script.ptr()) {
             continue;
           }
           CollectKernelDataTokenPositions(
@@ -313,9 +319,9 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
               library_kernel_offset, zone, &helper, &token_positions);
         }
       } else if (entry.IsFunction()) {
-        temp_function ^= entry.raw();
+        temp_function ^= entry.ptr();
         entry_script = temp_function.script();
-        if (entry_script.raw() != interesting_script.raw()) {
+        if (entry_script.ptr() != interesting_script.ptr()) {
           continue;
         }
         data = temp_function.KernelData();
@@ -330,7 +336,7 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
           continue;
         }
         entry_script = field.Script();
-        if (entry_script.raw() != interesting_script.raw()) {
+        if (entry_script.ptr() != interesting_script.ptr()) {
           continue;
         }
         data = field.KernelData();
@@ -341,7 +347,7 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
     }
   }
 
-  Script& script = Script::Handle(zone, interesting_script.raw());
+  Script& script = Script::Handle(zone, interesting_script.ptr());
   Array& array_object = Array::Handle(zone);
   array_object = AsSortedDuplicateFreeArray(&token_positions);
   script.set_debug_positions(array_object);
@@ -373,7 +379,7 @@ ArrayPtr CollectConstConstructorCoverageFrom(const Script& interesting_script) {
         zone, helper.LookupConstructorByKernelConstructor(klass, kernel_name));
     constructors.SetAt(i, target);
   }
-  return constructors.raw();
+  return constructors.ptr();
 }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -569,7 +575,7 @@ ObjectPtr ParameterDescriptorBuilder::BuildParameterDescriptor(
                              Object::null_instance());
     }
   }
-  return param_descriptor.raw();
+  return param_descriptor.ptr();
 }
 
 ObjectPtr BuildParameterDescriptor(const Function& function) {

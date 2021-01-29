@@ -8,40 +8,9 @@ library from "org-dartlang-test:///main.dart" as main {
       : super dart.core::Object::•()
       ;
     abstract member-signature get length() → dart.core::int*; -> dart.core::List::length
+    abstract member-signature set length(dart.core::int* newLength) → void; -> dart.core::List::length
     abstract member-signature operator [](dart.core::int* index) → dart.core::int*; -> dart.core::List::[]
     abstract member-signature operator []=(dart.core::int* index, generic-covariant-impl dart.core::int* value) → void; -> dart.core::List::[]=
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ toString() → dart.core::String
-      return dart.collection::IterableBase::iterableToFullString(this, "[", "]");
-    abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
-    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
-    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
-    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfTrue
-    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfFalse
-    abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
-    abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
-    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
-    abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
-    abstract member-signature set length(dart.core::int* newLength) → void; -> dart.core::List::length
-    get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ iterator() → dart.core::Iterator<dart.core::int*>
-      return new dart._internal::ListIterator::•<dart.core::int*>(this);
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ elementAt(dart.core::int index) → dart.core::int*
-      return this.{dart.core::List::[]}(index);
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ followedBy(generic-covariant-impl dart.core::Iterable<dart.core::int*> other) → dart.core::Iterable<dart.core::int*>
-      return dart._internal::FollowedByIterable::firstEfficient<dart.core::int*>(this, other);
-    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ forEach((dart.core::int*) → void action) → void {
-      dart.core::int length = this.{dart.core::List::length};
-      for (dart.core::int i = 0; i.{dart.core::num::<}(length); i = i.{dart.core::num::+}(1)) {
-        action.call(this.{dart.core::List::[]}(i));
-        if(!length.{dart.core::num::==}(this.{dart.core::List::length})) {
-          throw new dart.core::ConcurrentModificationError::•(this);
-        }
-      }
-    }
-    @#C3
-    get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ isEmpty() → dart.core::bool
-      return this.{dart.core::List::length}.{dart.core::num::==}(0);
-    get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ isNotEmpty() → dart.core::bool
-      return !this.{dart.collection::ListMixin::isEmpty};
     get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ first() → dart.core::int* {
       if(this.{dart.core::List::length}.{dart.core::num::==}(0))
         throw dart._internal::IterableElementError::noElement();
@@ -62,6 +31,26 @@ library from "org-dartlang-test:///main.dart" as main {
         throw dart._internal::IterableElementError::noElement();
       this.{dart.core::List::[]=}(this.{dart.core::List::length}.{dart.core::num::-}(1), value);
     }
+    get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ iterator() → dart.core::Iterator<dart.core::int*>
+      return new dart._internal::ListIterator::•<dart.core::int*>(this);
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ elementAt(dart.core::int index) → dart.core::int*
+      return this.{dart.core::List::[]}(index);
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ followedBy(generic-covariant-impl dart.core::Iterable<dart.core::int*> other) → dart.core::Iterable<dart.core::int*>
+      return dart._internal::FollowedByIterable::firstEfficient<dart.core::int*>(this, other);
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ forEach((dart.core::int*) → void action) → void {
+      dart.core::int length = this.{dart.core::List::length};
+      for (dart.core::int i = 0; i.{dart.core::num::<}(length); i = i.{dart.core::num::+}(1)) {
+        action.call(this.{dart.core::List::[]}(i));
+        if(!length.{dart.core::num::==}(this.{dart.core::List::length})) {
+          throw new dart.core::ConcurrentModificationError::•(this);
+        }
+      }
+    }
+    @#C3
+    get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ isEmpty() → dart.core::bool
+      return this.{dart.core::List::length}.{dart.core::num::==}(0);
+    get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ isNotEmpty() → dart.core::bool
+      return !this.{dart.collection::ListMixin::isEmpty};
     get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ single() → dart.core::int* {
       if(this.{dart.core::List::length}.{dart.core::num::==}(0))
         throw dart._internal::IterableElementError::noElement();
@@ -264,7 +253,7 @@ library from "org-dartlang-test:///main.dart" as main {
       this.{dart.collection::ListMixin::_filter}(test, true);
     }
     method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ _filter((dart.core::int*) → dart.core::bool test, dart.core::bool retainMatching) → void {
-      dart.core::List<dart.core::int*> retained = <dart.core::int*>[];
+      dart.core::List<dart.core::int*> retained = dart.core::_GrowableList::•<dart.core::int*>(0);
       dart.core::int length = this.{dart.core::List::length};
       for (dart.core::int i = 0; i.{dart.core::num::<}(length); i = i.{dart.core::num::+}(1)) {
         dart.core::int* element = this.{dart.core::List::[]}(i);
@@ -295,9 +284,6 @@ library from "org-dartlang-test:///main.dart" as main {
     }
     method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ sort([(dart.core::int*, dart.core::int*) →? dart.core::int compare = #C2]) → void {
       dart._internal::Sort::sort<dart.core::int*>(this, let final (dart.core::int*, dart.core::int*) →? dart.core::int #t4 = compare in #t4.{dart.core::Object::==}(null) ?{(dart.core::int*, dart.core::int*) → dart.core::int} #C6 : #t4{(dart.core::int*, dart.core::int*) → dart.core::int});
-    }
-    static method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ _compareAny(dynamic a, dynamic b) → dart.core::int {
-      return dart.core::Comparable::compare(a as{ForNonNullableByDefault} dart.core::Comparable<dynamic>, b as{ForNonNullableByDefault} dart.core::Comparable<dynamic>);
     }
     method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ shuffle([dart.math::Random? random = #C2]) → void {
       random.{dart.core::Object::==}(null) ?{dart.math::Random} random = dart.math::Random::•() : null;
@@ -525,6 +511,20 @@ library from "org-dartlang-test:///main.dart" as main {
     }
     get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ reversed() → dart.core::Iterable<dart.core::int*>
       return new dart._internal::ReversedListIterable::•<dart.core::int*>(this);
+    method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ toString() → dart.core::String
+      return dart.collection::IterableBase::iterableToFullString(this, "[", "]");
+    abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
+    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
+    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
+    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfTrue
+    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfFalse
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
+    abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
+    abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
+    static method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ _compareAny(dynamic a, dynamic b) → dart.core::int {
+      return dart.core::Comparable::compare(a as{ForNonNullableByDefault} dart.core::Comparable<dynamic>, b as{ForNonNullableByDefault} dart.core::Comparable<dynamic>);
+    }
   }
   class WithListMixin extends main::_WithListMixin&Object&ListMixin {
     field dart.core::int* length = 2;
@@ -535,57 +535,6 @@ library from "org-dartlang-test:///main.dart" as main {
       return index;
     operator []=(dart.core::int* index, generic-covariant-impl dart.core::int* value) → void
       return null;
-    abstract member-signature get iterator() → dart.core::Iterator<dart.core::int*>*; -> dart.collection::ListMixin::iterator
-    abstract member-signature method elementAt(dart.core::int* index) → dart.core::int*; -> dart.collection::ListMixin::elementAt
-    abstract member-signature method followedBy(generic-covariant-impl dart.core::Iterable<dart.core::int*>* other) → dart.core::Iterable<dart.core::int*>*; -> dart.collection::ListMixin::followedBy
-    abstract member-signature method forEach((dart.core::int*) →* void action) → void; -> dart.collection::ListMixin::forEach
-    abstract member-signature get isEmpty() → dart.core::bool*; -> dart.collection::ListMixin::isEmpty
-    abstract member-signature get isNotEmpty() → dart.core::bool*; -> dart.collection::ListMixin::isNotEmpty
-    abstract member-signature method contains(dart.core::Object* element) → dart.core::bool*; -> dart.collection::ListMixin::contains
-    abstract member-signature method every((dart.core::int*) →* dart.core::bool* test) → dart.core::bool*; -> dart.collection::ListMixin::every
-    abstract member-signature method any((dart.core::int*) →* dart.core::bool* test) → dart.core::bool*; -> dart.collection::ListMixin::any
-    abstract member-signature method firstWhere((dart.core::int*) →* dart.core::bool* test, {generic-covariant-impl () →* dart.core::int* orElse = #C2}) → dart.core::int*; -> dart.collection::ListMixin::firstWhere
-    abstract member-signature method lastWhere((dart.core::int*) →* dart.core::bool* test, {generic-covariant-impl () →* dart.core::int* orElse = #C2}) → dart.core::int*; -> dart.collection::ListMixin::lastWhere
-    abstract member-signature method singleWhere((dart.core::int*) →* dart.core::bool* test, {generic-covariant-impl () →* dart.core::int* orElse = #C2}) → dart.core::int*; -> dart.collection::ListMixin::singleWhere
-    abstract member-signature method join([dart.core::String* separator = #C4]) → dart.core::String*; -> dart.collection::ListMixin::join
-    abstract member-signature method where((dart.core::int*) →* dart.core::bool* test) → dart.core::Iterable<dart.core::int*>*; -> dart.collection::ListMixin::where
-    abstract member-signature method whereType<T extends dart.core::Object* = dynamic>() → dart.core::Iterable<main::WithListMixin::whereType::T*>*; -> dart.collection::ListMixin::whereType
-    abstract member-signature method map<T extends dart.core::Object* = dynamic>((dart.core::int*) →* main::WithListMixin::map::T* f) → dart.core::Iterable<main::WithListMixin::map::T*>*; -> dart.collection::ListMixin::map
-    abstract member-signature method expand<T extends dart.core::Object* = dynamic>((dart.core::int*) →* dart.core::Iterable<main::WithListMixin::expand::T*>* f) → dart.core::Iterable<main::WithListMixin::expand::T*>*; -> dart.collection::ListMixin::expand
-    abstract member-signature method reduce(generic-covariant-impl (dart.core::int*, dart.core::int*) →* dart.core::int* combine) → dart.core::int*; -> dart.collection::ListMixin::reduce
-    abstract member-signature method fold<T extends dart.core::Object* = dynamic>(main::WithListMixin::fold::T* initialValue, (main::WithListMixin::fold::T*, dart.core::int*) →* main::WithListMixin::fold::T* combine) → main::WithListMixin::fold::T*; -> dart.collection::ListMixin::fold
-    abstract member-signature method skip(dart.core::int* count) → dart.core::Iterable<dart.core::int*>*; -> dart.collection::ListMixin::skip
-    abstract member-signature method skipWhile((dart.core::int*) →* dart.core::bool* test) → dart.core::Iterable<dart.core::int*>*; -> dart.collection::ListMixin::skipWhile
-    abstract member-signature method take(dart.core::int* count) → dart.core::Iterable<dart.core::int*>*; -> dart.collection::ListMixin::take
-    abstract member-signature method takeWhile((dart.core::int*) →* dart.core::bool* test) → dart.core::Iterable<dart.core::int*>*; -> dart.collection::ListMixin::takeWhile
-    abstract member-signature method toList({dart.core::bool* growable = #C5}) → dart.core::List<dart.core::int*>*; -> dart.collection::ListMixin::toList
-    abstract member-signature method toSet() → dart.core::Set<dart.core::int*>*; -> dart.collection::ListMixin::toSet
-    abstract member-signature method addAll(generic-covariant-impl dart.core::Iterable<dart.core::int*>* iterable) → void; -> dart.collection::ListMixin::addAll
-    abstract member-signature method remove(dart.core::Object* element) → dart.core::bool*; -> dart.collection::ListMixin::remove
-    abstract member-signature method _closeGap(dart.core::int* start, dart.core::int* end) → void; -> dart.collection::ListMixin::_closeGap
-    abstract member-signature method removeWhere((dart.core::int*) →* dart.core::bool* test) → void; -> dart.collection::ListMixin::removeWhere
-    abstract member-signature method retainWhere((dart.core::int*) →* dart.core::bool* test) → void; -> dart.collection::ListMixin::retainWhere
-    abstract member-signature method _filter((dart.core::int*) →* dart.core::bool* test, dart.core::bool* retainMatching) → void; -> dart.collection::ListMixin::_filter
-    abstract member-signature method cast<R extends dart.core::Object* = dynamic>() → dart.core::List<main::WithListMixin::cast::R*>*; -> dart.collection::ListMixin::cast
-    abstract member-signature method sort([(dart.core::int*, dart.core::int*) →* dart.core::int* compare = #C2]) → void; -> dart.collection::ListMixin::sort
-    abstract member-signature method shuffle([dart.math::Random* random = #C2]) → void; -> dart.collection::ListMixin::shuffle
-    abstract member-signature method asMap() → dart.core::Map<dart.core::int*, dart.core::int*>*; -> dart.collection::ListMixin::asMap
-    abstract member-signature operator +(generic-covariant-impl dart.core::List<dart.core::int*>* other) → dart.core::List<dart.core::int*>*; -> dart.collection::ListMixin::+
-    abstract member-signature method sublist(dart.core::int* start, [dart.core::int* end = #C2]) → dart.core::List<dart.core::int*>*; -> dart.collection::ListMixin::sublist
-    abstract member-signature method getRange(dart.core::int* start, dart.core::int* end) → dart.core::Iterable<dart.core::int*>*; -> dart.collection::ListMixin::getRange
-    abstract member-signature method removeRange(dart.core::int* start, dart.core::int* end) → void; -> dart.collection::ListMixin::removeRange
-    abstract member-signature method fillRange(dart.core::int* start, dart.core::int* end, [generic-covariant-impl dart.core::int* fill = #C2]) → void; -> dart.collection::ListMixin::fillRange
-    abstract member-signature method setRange(dart.core::int* start, dart.core::int* end, generic-covariant-impl dart.core::Iterable<dart.core::int*>* iterable, [dart.core::int* skipCount = #C7]) → void; -> dart.collection::ListMixin::setRange
-    abstract member-signature method replaceRange(dart.core::int* start, dart.core::int* end, generic-covariant-impl dart.core::Iterable<dart.core::int*>* newContents) → void; -> dart.collection::ListMixin::replaceRange
-    abstract member-signature method indexOf(generic-covariant-impl dart.core::Object* element, [dart.core::int* start = #C7]) → dart.core::int*; -> dart.collection::ListMixin::indexOf
-    abstract member-signature method indexWhere((dart.core::int*) →* dart.core::bool* test, [dart.core::int* start = #C7]) → dart.core::int*; -> dart.collection::ListMixin::indexWhere
-    abstract member-signature method lastIndexOf(generic-covariant-impl dart.core::Object* element, [dart.core::int* start = #C2]) → dart.core::int*; -> dart.collection::ListMixin::lastIndexOf
-    abstract member-signature method lastIndexWhere((dart.core::int*) →* dart.core::bool* test, [dart.core::int* start = #C2]) → dart.core::int*; -> dart.collection::ListMixin::lastIndexWhere
-    abstract member-signature method insert(dart.core::int* index, generic-covariant-impl dart.core::int* element) → void; -> dart.collection::ListMixin::insert
-    abstract member-signature method removeAt(dart.core::int* index) → dart.core::int*; -> dart.collection::ListMixin::removeAt
-    abstract member-signature method insertAll(dart.core::int* index, generic-covariant-impl dart.core::Iterable<dart.core::int*>* iterable) → void; -> dart.collection::ListMixin::insertAll
-    abstract member-signature method setAll(dart.core::int* index, generic-covariant-impl dart.core::Iterable<dart.core::int*>* iterable) → void; -> dart.collection::ListMixin::setAll
-    abstract member-signature get reversed() → dart.core::Iterable<dart.core::int*>*; -> dart.collection::ListMixin::reversed
   }
 }
 constants  {

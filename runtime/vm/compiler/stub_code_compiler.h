@@ -112,8 +112,8 @@ class StubCodeCompiler : public AllStatic {
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
 #elif defined(TARGET_ARCH_IA32)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 10;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 90;
-  static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 134;
+  static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 4;
 #elif defined(TARGET_ARCH_ARM)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 12;
   static constexpr intptr_t kNativeCallbackSharedStubSize = 140;

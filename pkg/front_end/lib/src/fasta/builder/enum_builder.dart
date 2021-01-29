@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.enum_builder;
 
 import 'package:kernel/ast.dart'
@@ -17,9 +19,10 @@ import 'package:kernel/ast.dart'
         IntLiteral,
         InterfaceType,
         ListLiteral,
-        Procedure,
+        Name,
         ProcedureKind,
         PropertyGet,
+        Reference,
         ReturnStatement,
         StaticGet,
         StringLiteral,
@@ -173,17 +176,32 @@ class EnumBuilder extends SourceClassBuilder {
     ///   String toString() => _name;
     /// }
     Constructor constructorReference;
-    Procedure toStringReference;
-    Field indexReference;
-    Field _nameReference;
-    Field valuesReference;
+    Reference toStringReference;
+    Reference indexGetterReference;
+    Reference indexSetterReference;
+    Reference _nameGetterReference;
+    Reference _nameSetterReference;
+    Reference valuesGetterReference;
+    Reference valuesSetterReference;
     if (referencesFrom != null) {
-      constructorReference = referencesFromIndexed.lookupConstructor("");
+      constructorReference =
+          referencesFromIndexed.lookupConstructor(new Name(""));
       toStringReference =
-          referencesFromIndexed.lookupProcedureNotSetter("toString");
-      indexReference = referencesFromIndexed.lookupField("index");
-      _nameReference = referencesFromIndexed.lookupField("_name");
-      valuesReference = referencesFromIndexed.lookupField("values");
+          referencesFromIndexed.lookupGetterReference(new Name("toString"));
+      Name indexName = new Name("index");
+      indexGetterReference =
+          referencesFromIndexed.lookupGetterReference(indexName);
+      indexSetterReference =
+          referencesFromIndexed.lookupSetterReference(indexName);
+      _nameGetterReference = referencesFromIndexed.lookupGetterReference(
+          new Name("_name", referencesFromIndexed.library));
+      _nameSetterReference = referencesFromIndexed.lookupSetterReference(
+          new Name("_name", referencesFromIndexed.library));
+      Name valuesName = new Name("values");
+      valuesGetterReference =
+          referencesFromIndexed.lookupGetterReference(valuesName);
+      valuesSetterReference =
+          referencesFromIndexed.lookupSetterReference(valuesName);
     }
 
     members["index"] = new SourceFieldBuilder(
@@ -195,10 +213,8 @@ class EnumBuilder extends SourceClassBuilder {
         parent,
         charOffset,
         charOffset,
-        indexReference,
-        null,
-        null,
-        null);
+        fieldGetterReference: indexGetterReference,
+        fieldSetterReference: indexSetterReference);
     members["_name"] = new SourceFieldBuilder(
         null,
         stringType,
@@ -208,10 +224,8 @@ class EnumBuilder extends SourceClassBuilder {
         parent,
         charOffset,
         charOffset,
-        _nameReference,
-        null,
-        null,
-        null);
+        fieldGetterReference: _nameGetterReference,
+        fieldSetterReference: _nameSetterReference);
     ConstructorBuilder constructorBuilder = new ConstructorBuilderImpl(
         null,
         constMask,
@@ -240,10 +254,8 @@ class EnumBuilder extends SourceClassBuilder {
         parent,
         charOffset,
         charOffset,
-        valuesReference,
-        null,
-        null,
-        null);
+        fieldGetterReference: valuesGetterReference,
+        fieldSetterReference: valuesSetterReference);
     members["values"] = valuesBuilder;
     constructorBuilder
       ..registerInitializedField(members["_name"])
@@ -303,9 +315,14 @@ class EnumBuilder extends SourceClassBuilder {
               name.length,
               parent.fileUri);
         }
-        Field fieldReference;
-        if (referencesFrom != null) {
-          fieldReference = referencesFromIndexed.lookupField(name);
+        Reference getterReference;
+        Reference setterReference;
+        if (referencesFromIndexed != null) {
+          Name nameName = new Name(name, referencesFromIndexed.library);
+          getterReference =
+              referencesFromIndexed.lookupGetterReference(nameName);
+          setterReference =
+              referencesFromIndexed.lookupSetterReference(nameName);
         }
         FieldBuilder fieldBuilder = new SourceFieldBuilder(
             metadata,
@@ -316,10 +333,8 @@ class EnumBuilder extends SourceClassBuilder {
             parent,
             enumConstantInfo.charOffset,
             enumConstantInfo.charOffset,
-            fieldReference,
-            null,
-            null,
-            null);
+            fieldGetterReference: getterReference,
+            fieldSetterReference: setterReference);
         metadataCollector?.setDocumentationComment(
             fieldBuilder.field, documentationComment);
         members[name] = fieldBuilder..next = existing;

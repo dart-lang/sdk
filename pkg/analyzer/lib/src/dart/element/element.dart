@@ -267,7 +267,8 @@ abstract class AbstractClassElementImpl extends ElementImpl
   /// This method should be used only for error recovery during analysis,
   /// when instance access to a static class member, defined in this class,
   /// or a superclass.
-  ExecutableElement lookupStaticGetter(String name, LibraryElement library) {
+  PropertyAccessorElement lookupStaticGetter(
+      String name, LibraryElement library) {
     return _first(_implementationsOfGetter(name).where((element) {
       return element.isStatic && element.isAccessibleIn(library);
     }));
@@ -278,7 +279,7 @@ abstract class AbstractClassElementImpl extends ElementImpl
   /// This method should be used only for error recovery during analysis,
   /// when instance access to a static class member, defined in this class,
   /// or a superclass.
-  ExecutableElement lookupStaticMethod(String name, LibraryElement library) {
+  MethodElement lookupStaticMethod(String name, LibraryElement library) {
     return _first(_implementationsOfMethod(name).where((element) {
       return element.isStatic && element.isAccessibleIn(library);
     }));
@@ -289,7 +290,8 @@ abstract class AbstractClassElementImpl extends ElementImpl
   /// This method should be used only for error recovery during analysis,
   /// when instance access to a static class member, defined in this class,
   /// or a superclass.
-  ExecutableElement lookupStaticSetter(String name, LibraryElement library) {
+  PropertyAccessorElement lookupStaticSetter(
+      String name, LibraryElement library) {
     return _first(_implementationsOfSetter(name).where((element) {
       return element.isStatic && element.isAccessibleIn(library);
     }));
@@ -631,7 +633,7 @@ class ClassElementImpl extends AbstractClassElementImpl
   bool get hasNoSuchMethod {
     MethodElement method = lookUpConcreteMethod(
         FunctionElement.NO_SUCH_METHOD_METHOD_NAME, library);
-    ClassElement definingClass = method?.enclosingElement;
+    var definingClass = method?.enclosingElement as ClassElement;
     return definingClass != null && !definingClass.isDartCoreObject;
   }
 
@@ -902,7 +904,7 @@ class ClassElementImpl extends AbstractClassElementImpl
       return <ConstructorElement>[];
     }
 
-    ClassElementImpl superElement = supertype.element;
+    var superElement = supertype.element as ClassElementImpl;
 
     // First get the list of constructors of the superclass which need to be
     // forwarded to this class.
@@ -954,9 +956,13 @@ class ClassElementImpl extends AbstractClassElementImpl
     // substituting type parameters as appropriate.
     return constructorsToForward
         .map((ConstructorElement superclassConstructor) {
-      ConstructorElementImpl implicitConstructor =
-          ConstructorElementImpl(superclassConstructor.name, -1);
+      var containerRef = reference.getChild('@constructor');
+      var name = superclassConstructor.name;
+      var implicitConstructor = ConstructorElementImpl.forLinkedNode(
+          this, containerRef.getChild(name), null);
       implicitConstructor.isSynthetic = true;
+      implicitConstructor.name = name;
+      implicitConstructor.nameOffset = -1;
       implicitConstructor.redirectedConstructor = superclassConstructor;
       var hasMixinWithInstanceVariables = mixins.any(typeHasInstanceVariables);
       implicitConstructor.isConst =
@@ -1065,7 +1071,10 @@ class ClassElementImpl extends AbstractClassElementImpl
       if (element.isEnum || element.isMixin) {
         return false;
       }
-      if (type.isDartCoreFunction) {
+      if (type.isDartCoreFunction || type.isDartCoreNull) {
+        return false;
+      }
+      if (type.nullabilitySuffix == NullabilitySuffix.question) {
         return false;
       }
       return true;
@@ -1076,39 +1085,19 @@ class ClassElementImpl extends AbstractClassElementImpl
   /// Return `true` if the given [type] is an [InterfaceType] that can be used
   /// as an interface or a mixin.
   bool _isInterfaceTypeInterface(DartType type) {
-    return type is InterfaceType &&
-        !type.element.isEnum &&
-        !type.isDartCoreFunction;
-  }
-
-  static void collectAllSupertypes(List<InterfaceType> supertypes,
-      InterfaceType startingType, InterfaceType excludeType) {
-    List<InterfaceType> typesToVisit = <InterfaceType>[];
-    List<ClassElement> visitedClasses = <ClassElement>[];
-    typesToVisit.add(startingType);
-    while (typesToVisit.isNotEmpty) {
-      InterfaceType currentType = typesToVisit.removeAt(0);
-      ClassElement currentElement = currentType.element;
-      if (!visitedClasses.contains(currentElement)) {
-        visitedClasses.add(currentElement);
-        if (!identical(currentType, excludeType)) {
-          supertypes.add(currentType);
-        }
-        InterfaceType supertype = currentType.superclass;
-        if (supertype != null) {
-          typesToVisit.add(supertype);
-        }
-        for (InterfaceType type in currentType.superclassConstraints) {
-          typesToVisit.add(type);
-        }
-        for (InterfaceType type in currentType.interfaces) {
-          typesToVisit.add(type);
-        }
-        for (InterfaceType type in currentType.mixins) {
-          typesToVisit.add(type);
-        }
+    if (type is InterfaceType) {
+      if (type.element.isEnum) {
+        return false;
       }
+      if (type.isDartCoreFunction || type.isDartCoreNull) {
+        return false;
+      }
+      if (type.nullabilitySuffix == NullabilitySuffix.question) {
+        return false;
+      }
+      return true;
     }
+    return false;
   }
 
   static ConstructorElement getNamedConstructorFromList(
@@ -1164,6 +1153,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   /// A list containing all of the function type aliases contained in this
   /// compilation unit.
+  @Deprecated('Use typeAliases instead')
   List<FunctionTypeAliasElement> _functionTypeAliases;
 
   /// A list containing all of the type aliases contained in this compilation
@@ -1329,6 +1319,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     _functions = functions;
   }
 
+  @Deprecated('Use typeAliases instead')
   @override
   List<FunctionTypeAliasElement> get functionTypeAliases {
     return _functionTypeAliases ??=
@@ -1441,10 +1432,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     return _typeAliases ?? const <TypeAliasElement>[];
   }
 
-  /// Set the function type aliases contained in this compilation unit to the
-  /// given [typeAliases].
-  set typeAliases(List<FunctionTypeAliasElement> typeAliases) {
-    for (FunctionTypeAliasElement typeAlias in typeAliases) {
+  /// Set the type aliases contained in this compilation unit to [typeAliases].
+  set typeAliases(List<TypeAliasElement> typeAliases) {
+    for (TypeAliasElement typeAlias in typeAliases) {
       (typeAlias as ElementImpl).enclosingElement = this;
     }
     _typeAliases = typeAliases;
@@ -1535,8 +1525,8 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     safelyVisitChildren(enums, visitor);
     safelyVisitChildren(extensions, visitor);
     safelyVisitChildren(functions, visitor);
-    safelyVisitChildren(functionTypeAliases, visitor);
     safelyVisitChildren(mixins, visitor);
+    safelyVisitChildren(typeAliases, visitor);
     safelyVisitChildren(types, visitor);
     safelyVisitChildren(topLevelVariables, visitor);
   }
@@ -4357,10 +4347,15 @@ class FunctionTypeAliasElementImpl extends TypeAliasElementImpl
     List<DartType> typeArguments,
     NullabilitySuffix nullabilitySuffix,
   }) {
-    return super.instantiate(
+    var type = super.instantiate(
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
-    ) as FunctionType;
+    );
+    if (type is FunctionType) {
+      return type;
+    } else {
+      return _errorFunctionType(nullabilitySuffix);
+    }
   }
 }
 
@@ -5250,10 +5245,10 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       yield* unit.accessors;
       yield* unit.enums;
       yield* unit.extensions;
-      yield* unit.functionTypeAliases;
       yield* unit.functions;
       yield* unit.mixins;
       yield* unit.topLevelVariables;
+      yield* unit.typeAliases;
       yield* unit.types;
     }
   }
@@ -6940,7 +6935,7 @@ class TypeAliasElementImpl extends ElementImpl
   /// from anywhere except a class element or type parameter bounds.
   bool hasSelfReference = false;
 
-  bool _isRawElementReady = false;
+  bool _isAliasedElementReady = false;
   ElementImpl _aliasedElement;
   DartType _aliasedType;
 
@@ -7083,8 +7078,7 @@ class TypeAliasElementImpl extends ElementImpl
 
   @override
   T accept<T>(ElementVisitor<T> visitor) {
-    // TODO(scheglov) `visitTypeAliasElement`
-    throw UnimplementedError();
+    return visitor.visitTypeAliasElement(this);
   }
 
   @override
@@ -7118,8 +7112,16 @@ class TypeAliasElementImpl extends ElementImpl
         parameters: type.parameters,
         returnType: type.returnType,
         nullabilitySuffix: resultNullability,
-        element: this,
-        typeArguments: typeArguments,
+        aliasElement: this,
+        aliasArguments: typeArguments,
+      );
+    } else if (type is InterfaceType) {
+      return InterfaceTypeImpl(
+        element: type.element,
+        typeArguments: type.typeArguments,
+        nullabilitySuffix: resultNullability,
+        aliasElement: this,
+        aliasArguments: typeArguments,
       );
     } else {
       return (type as TypeImpl).withNullability(resultNullability);
@@ -7127,8 +7129,8 @@ class TypeAliasElementImpl extends ElementImpl
   }
 
   void _ensureAliasedElement() {
-    if (_isRawElementReady) return;
-    _isRawElementReady = true;
+    if (_isAliasedElementReady) return;
+    _isAliasedElementReady = true;
 
     var linkedNode = this.linkedNode;
     if (linkedNode != null) {
@@ -7257,7 +7259,7 @@ class TypeParameterElementImpl extends ElementImpl
   @override
   String get name {
     if (linkedNode != null) {
-      TypeParameter node = linkedNode;
+      var node = linkedNode as TypeParameter;
       return node.name.name;
     }
     return super.name;

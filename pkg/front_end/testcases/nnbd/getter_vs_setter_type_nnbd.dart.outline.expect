@@ -37,6 +37,13 @@ library /*isNonNullableByDefault*/;
 //   void set property3(int i);
 //            ^^^^^^^^^
 //
+// pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:101:12: Error: The type 'int?' of the getter 'C2.property6' is not a subtype of the type 'int' of the inherited setter 'C1.property6'.
+//   int? get property6; // error
+//            ^^^^^^^^^
+// pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:83:7: Context: This is the declaration of the setter 'C1.property6'.
+//   int property6;
+//       ^^^^^^^^^
+//
 // pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:101:12: Error: The return type of the method 'C2.property6' is 'int?', which does not match the return type, 'int', of the overridden method, 'C1.property6'.
 // Change to a subtype of 'int'.
 //   int? get property6; // error
@@ -44,13 +51,6 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:83:7: Context: This is the overridden method ('property6').
 //   int property6;
 //       ^
-//
-// pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:101:12: Error: The type 'int?' of the getter 'C2.property6' is not a subtype of the type 'int' of the inherited setter 'C1.property6'.
-//   int? get property6; // error
-//            ^^^^^^^^^
-// pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:83:7: Context: This is the declaration of the setter 'C1.property6'.
-//   int property6;
-//       ^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:120:16: Error: The type 'int?' of the inherited getter 'D1.property3' is not a subtype of the type 'int' of the inherited setter 'D2.property3'.
 // abstract class D3 implements D1, D2 /* error on property3 */ {}

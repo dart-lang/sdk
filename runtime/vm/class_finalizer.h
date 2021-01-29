@@ -31,10 +31,6 @@ class ClassFinalizer : public AllStatic {
       FinalizationKind finalization = kCanonicalize,
       PendingTypes* pending_types = NULL);
 
-  // Finalize the types in the functions's signature.
-  static void FinalizeSignature(const Function& function,
-                                FinalizationKind finalization = kCanonicalize);
-
   // Return false if we still have classes pending to be finalized.
   static bool AllClassesFinalized();
 
@@ -78,8 +74,17 @@ class ClassFinalizer : public AllStatic {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
  private:
+  // Finalize the types in the signature and the signature itself.
+  static AbstractTypePtr FinalizeSignature(
+      Zone* zone,
+      const FunctionType& signature,
+      FinalizationKind finalization = kCanonicalize,
+      PendingTypes* pending_types = NULL);
+
   static void AllocateEnumValues(const Class& enum_cls);
-  static void FinalizeTypeParameters(const Class& cls);
+  static void FinalizeTypeParameters(
+      const Class& cls,
+      FinalizationKind finalization = kCanonicalize);
   static intptr_t ExpandAndFinalizeTypeArguments(const AbstractType& type,
                                                  PendingTypes* pending_types);
   static void FinalizeTypeArguments(const Class& cls,
@@ -89,9 +94,6 @@ class ClassFinalizer : public AllStatic {
                                     TrailPtr trail);
   static void CheckRecursiveType(const AbstractType& type,
                                  PendingTypes* pending_types);
-  static void FinalizeUpperBounds(
-      const Class& cls,
-      FinalizationKind finalization = kCanonicalize);
   static void FinalizeMemberTypes(const Class& cls);
   static void PrintClassInformation(const Class& cls);
 

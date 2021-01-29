@@ -28,7 +28,7 @@ abstract class C {
 
   C(): v12 = (() {});
   C.name1(this.v10, this.v12);
-  factory C.name2(T arg1, T arg2) = C.name1;
+  factory C.name2(T arg1, T arg2) = C1.name1;
 
   T operator +(T other);
   T get g;
@@ -37,13 +37,15 @@ abstract class C {
   void m2({T arg1, T arg2(T arg21, T arg22)});
 }
 
-// Awaiting updates in front end to handle crash caused by null from
-// `ClassHierarchyBuilder.getKernelTypeAsInstanceOf`. So for now the
-// following are multi-test cases, so that the rest can be tested.
-class D1 extends T {} //# 01: ok
-abstract class D2 extends C with T {} //# 02: ok
-abstract class D3 implements T {} //# 03: ok
-abstract class D4 = C with T; //# 04: ok
+class C1 implements C {
+  C1.name1(T arg1, T arg2);
+  noSuchMethod(Invocation invocation) => throw 0;
+}
+
+class D1 extends T {}
+abstract class D2 extends C with T {}
+abstract class D3 implements T {}
+abstract class D4 = C with T;
 
 extension E on T {
   T foo(T t) => t;

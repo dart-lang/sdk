@@ -97,10 +97,8 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   static const String tag = 'locals-map';
 
   MemberEntity _currentMember;
-  final EntityDataMap<JLocal, LocalData> _locals =
-      new EntityDataMap<JLocal, LocalData>();
-  Map<ir.VariableDeclaration, JLocal> _variableMap =
-      <ir.VariableDeclaration, JLocal>{};
+  final EntityDataMap<JLocal, LocalData> _locals = EntityDataMap();
+  Map<ir.VariableDeclaration, JLocal> _variableMap;
   Map<ir.TreeNode, JJumpTarget> _jumpTargetMap;
   Iterable<ir.BreakStatement> _breaksAsContinue;
 
@@ -111,22 +109,25 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
     source.begin(tag);
     _currentMember = source.readMember();
     int localsCount = source.readInt();
-    for (int i = 0; i < localsCount; i++) {
-      int index = source.readInt();
-      String name = source.readStringOrNull();
-      bool isRegularParameter = source.readBool();
-      ir.VariableDeclaration node = source.readTreeNode();
-      JLocal local = new JLocal(name, currentMember,
-          isRegularParameter: isRegularParameter);
-      LocalData data = new LocalData(node);
-      _locals.registerByIndex(index, local, data);
-      _variableMap[node] = local;
+    if (localsCount > 0) {
+      _variableMap = {};
+      for (int i = 0; i < localsCount; i++) {
+        int index = source.readInt();
+        String name = source.readStringOrNull();
+        bool isRegularParameter = source.readBool();
+        ir.VariableDeclaration node = source.readTreeNode();
+        JLocal local =
+            JLocal(name, currentMember, isRegularParameter: isRegularParameter);
+        LocalData data = LocalData(node);
+        _locals.registerByIndex(index, local, data);
+        _variableMap[node] = local;
+      }
     }
     int jumpCount = source.readInt();
     if (jumpCount > 0) {
       _jumpTargetMap = {};
       for (int i = 0; i < jumpCount; i++) {
-        JJumpTarget target = new JJumpTarget.readFromDataSource(source);
+        JJumpTarget target = JJumpTarget.readFromDataSource(source);
         List<ir.TreeNode> nodes = source.readTreeNodes();
         for (ir.TreeNode node in nodes) {
           _jumpTargetMap[node] = target;
@@ -134,6 +135,7 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
       }
     }
     _breaksAsContinue = source.readTreeNodes();
+    if (_breaksAsContinue.isEmpty) _breaksAsContinue = const [];
     source.end(tag);
   }
 
@@ -175,7 +177,7 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   // TODO(johnniwinther): Compute this eagerly from the root of the member.
   void _ensureJumpMap(ir.TreeNode node) {
     if (_jumpTargetMap == null) {
-      JumpVisitor visitor = new JumpVisitor(currentMember);
+      JumpVisitor visitor = JumpVisitor(currentMember);
 
       // Find the root node for the current member.
       while (node is! ir.Member) {
@@ -260,10 +262,11 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
 
   @override
   Local getLocalVariable(ir.VariableDeclaration node) {
-    return _variableMap.putIfAbsent(node, () {
-      JLocal local = new JLocal(node.name, currentMember,
+    final variableMap = _variableMap ??= {};
+    return variableMap.putIfAbsent(node, () {
+      JLocal local = JLocal(node.name, currentMember,
           isRegularParameter: node.parent is ir.FunctionNode);
-      _locals.register<JLocal, LocalData>(local, new LocalData(node));
+      _locals.register<JLocal, LocalData>(local, LocalData(node));
       return local;
     });
   }
@@ -274,7 +277,7 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
     // TODO(efortuna, johnniwinther): We're not registering the type variables
     // like we are for the variable declarations. Is that okay or do we need to
     // make TypeVariableLocal a JLocal?
-    return new TypeVariableLocal(elementMap.getTypeVariableType(node).element);
+    return TypeVariableLocal(elementMap.getTypeVariableType(node).element);
   }
 
   @override
@@ -292,9 +295,8 @@ class JumpVisitor extends ir.Visitor {
   int jumpIndex = 0;
   int labelIndex = 0;
   final MemberEntity member;
-  final Map<ir.TreeNode, JJumpTarget> jumpTargetMap =
-      <ir.TreeNode, JJumpTarget>{};
-  final Set<ir.BreakStatement> breaksAsContinue = new Set<ir.BreakStatement>();
+  final Map<ir.TreeNode, JJumpTarget> jumpTargetMap = {};
+  final Set<ir.BreakStatement> breaksAsContinue = {};
 
   JumpVisitor(this.member);
 

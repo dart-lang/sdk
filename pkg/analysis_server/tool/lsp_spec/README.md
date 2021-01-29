@@ -33,6 +33,7 @@ Client workspace settings are requested with `workspace/configuration` during in
 - `dart.enableSdkFormatter`: When set to `false`, prevents registration (or unregisters) the SDK formatter. When set to `true` or not supplied, will register/reregister the SDK formatter.
 - `dart.lineLength`: The number of characters the formatter should wrap code at. If unspecified, code will be wrapped at `80` characters.
 - `dart.completeFunctionCalls`: Completes functions/methods with their required parameters.
+- `dart.showTodos`: Whether to generate diagnostics for TODO comments. If unspecified, diagnostics will not be generated.
 
 ## Method Status
 
@@ -66,6 +67,7 @@ Below is a list of LSP methods and their implementation status.
 | workspace/symbol | ✅ | ✅ | | ✅ | ✅ |
 | workspace/executeCommand | ✅ | ✅ | | ✅ | ✅ |
 | workspace/applyEdit | ✅ | ✅ | | ✅ | ✅ |
+| workspace/onWillRenameFiles | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/didOpen | ✅ | ✅ | ✅ | ✅ | ✅ |
 | textDocument/didChange | ✅ | ✅ | ✅ | ✅ | ✅ |
 | textDocument/willSave | | | | | |
@@ -100,6 +102,8 @@ Below is a list of LSP methods and their implementation status.
 | textDocument/rename | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/prepareRename | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/foldingRange | ✅ | ✅ | ✅ | ✅ | ✅ |
+| textDocument/semanticTokens/full | ✅ | ✅ | ✅ | ✅ | ✅ |
+| textDocument/semanticTokens/range | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ## Custom Methods and Notifications
 

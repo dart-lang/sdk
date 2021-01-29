@@ -1347,7 +1347,7 @@ class TypeErrorDecoder {
     // get the text "[object Object]". The shortest way to get that
     // string is using "String({})".
     // See: http://code.google.com/p/v8/issues/detail?id=2519.
-    message = JS('String', r"#.replace(String({}), '$receiver$')", message);
+    message = JS('String', r'#.replace(String({}), "$receiver$")', message);
 
     // Since we want to create a new regular expression from an unknown string,
     // we must escape all regular expression syntax.
@@ -1374,14 +1374,14 @@ class TypeErrorDecoder {
     // JavaScript, "." does not match newlines.
     String pattern = JS(
         'String',
-        r"#.replace(new RegExp('\\\\\\$arguments\\\\\\$', 'g'), "
-            r"'((?:x|[^x])*)')"
-            r".replace(new RegExp('\\\\\\$argumentsExpr\\\\\\$', 'g'),  "
-            r"'((?:x|[^x])*)')"
-            r".replace(new RegExp('\\\\\\$expr\\\\\\$', 'g'),  '((?:x|[^x])*)')"
-            r".replace(new RegExp('\\\\\\$method\\\\\\$', 'g'),  '((?:x|[^x])*)')"
-            r".replace(new RegExp('\\\\\\$receiver\\\\\\$', 'g'),  "
-            r"'((?:x|[^x])*)')",
+        r'#.replace(new RegExp("\\\\\\$arguments\\\\\\$", "g"), '
+            r'"((?:x|[^x])*)")'
+            r'.replace(new RegExp("\\\\\\$argumentsExpr\\\\\\$", "g"),  '
+            r'"((?:x|[^x])*)")'
+            r'.replace(new RegExp("\\\\\\$expr\\\\\\$", "g"),  "((?:x|[^x])*)")'
+            r'.replace(new RegExp("\\\\\\$method\\\\\\$", "g"),  "((?:x|[^x])*)")'
+            r'.replace(new RegExp("\\\\\\$receiver\\\\\\$", "g"),  '
+            r'"((?:x|[^x])*)")',
         message);
 
     return new TypeErrorDecoder(
@@ -1436,7 +1436,7 @@ class TypeErrorDecoder {
     // "(.*)\\.(.*) is not a function"
 
     var function = JS('', r"""function($expr$) {
-  var $argumentsExpr$ = '$arguments$';
+  var $argumentsExpr$ = "$arguments$";
   try {
     $expr$.$method$($argumentsExpr$);
   } catch (e) {
@@ -1451,7 +1451,7 @@ class TypeErrorDecoder {
   static String provokeCallErrorOnNull() {
     // See [provokeCallErrorOn] for a detailed explanation.
     var function = JS('', r"""function() {
-  var $argumentsExpr$ = '$arguments$';
+  var $argumentsExpr$ = "$arguments$";
   try {
     null.$method$($argumentsExpr$);
   } catch (e) {
@@ -1466,7 +1466,7 @@ class TypeErrorDecoder {
   static String provokeCallErrorOnUndefined() {
     // See [provokeCallErrorOn] for a detailed explanation.
     var function = JS('', r"""function() {
-  var $argumentsExpr$ = '$arguments$';
+  var $argumentsExpr$ = "$arguments$";
   try {
     (void 0).$method$($argumentsExpr$);
   } catch (e) {
@@ -1774,7 +1774,7 @@ class _StackTrace implements StackTrace {
 }
 
 int objectHashCode(var object) {
-  if (object == null || JS('bool', "typeof # != 'object'", object)) {
+  if (object == null || JS('bool', 'typeof # != "object"', object)) {
     return object.hashCode;
   } else {
     return Primitives.objectHashCode(object);
@@ -2960,24 +2960,20 @@ Future<Null> _loadHunk(String hunkName) {
   return completer.future;
 }
 
-class MainError extends Error implements NoSuchMethodError {
-  final String _message;
-
-  MainError(this._message);
-
-  String toString() => 'NoSuchMethodError: $_message';
-}
-
-void missingMain() {
-  throw new MainError("No top-level function named 'main'.");
-}
-
-void badMain() {
-  throw new MainError("'main' is not a function.");
-}
-
-void mainHasTooManyParameters() {
-  throw new MainError("'main' expects too many parameters.");
+/// Converts a raw JavaScript array into a `List<String>`.
+/// Called from generated code.
+List<String> convertMainArgumentList(Object? args) {
+  List<String> result = [];
+  if (args == null) return result;
+  if (args is JSArray) {
+    for (int i = 0; i < args.length; i++) {
+      JS('', '#.push(String(#[#]))', result, args, i);
+    }
+    return result;
+  }
+  // Single non-Array element. Convert to a String.
+  JS('', '#.push(String(#))', result, args);
+  return result;
 }
 
 class _AssertionError extends AssertionError {
@@ -3003,9 +2999,13 @@ Never assertUnreachable() {
 // This is currently a no-op in dart2js.
 void registerGlobalObject(object) {}
 
-// Hook to register new browser classes.
+// Hook to register new browser classes in dartdevc.
 // This is currently a no-op in dart2js.
 void applyExtension(name, nativeObject) {}
+
+// Hook to upgrade user native-type classes in dartdevc.
+// This is currently a no-op in dart2js, but used for native tests.
+void applyTestExtensions(List<String> names) {}
 
 // See tests/dart2js_2/platform_environment_variable1_test.dart
 const String testPlatformEnvironmentVariableValue = String.fromEnvironment(
@@ -3027,3 +3027,26 @@ bool isRequired(Object? value) => identical(kRequiredSentinel, value);
 
 /// Called by generated code to throw a LateInitializationError.
 void throwLateInitializationError(String name) => throw LateError(name);
+
+/// Checks that [f] is a function that supports interop.
+@pragma('dart2js:tryInline')
+bool isJSFunction(Function f) => JS('bool', 'typeof(#) == "function"', f);
+
+/// Asserts that if [value] is a function, it is a JavaScript function or has
+/// been wrapped by [allowInterop].
+///
+/// This function does not recurse if [value] is a collection.
+void assertInterop(Object? value) {
+  assert(value is! Function || isJSFunction(value),
+      'Dart function requires `allowInterop` to be passed to JavaScript.');
+}
+
+/// Like [assertInterop], except iterates over a list of arguments
+/// non-recursively.
+///
+/// This function intentionally avoids using [assertInterop] so that this
+/// function can become a no-op if assertions are disabled.
+void assertInteropArgs(List<Object?> args) {
+  assert(args.every((arg) => arg is! Function || isJSFunction(arg)),
+      'Dart function requires `allowInterop` to be passed to JavaScript.');
+}

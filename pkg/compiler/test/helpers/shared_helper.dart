@@ -232,37 +232,34 @@ class ConstantToTextVisitor
     sb.write(')');
   }
 
+  void _unsupported(ConstantValue constant) => throw UnsupportedError(
+      'Unsupported constant value: ${constant.toStructuredText(_dartTypes)}');
+
   @override
-  void visitInterceptor(InterceptorConstantValue constant, StringBuffer sb) {
-    throw new UnsupportedError(
-        'Unsupported constant value: ${constant.toStructuredText(_dartTypes)}');
-  }
+  void visitInterceptor(InterceptorConstantValue constant, StringBuffer sb) =>
+      _unsupported(constant);
 
   @override
   void visitDummyInterceptor(
-      DummyInterceptorConstantValue constant, StringBuffer sb) {
-    throw new UnsupportedError(
-        'Unsupported constant value: ${constant.toStructuredText(_dartTypes)}');
-  }
+          DummyInterceptorConstantValue constant, StringBuffer sb) =>
+      _unsupported(constant);
 
   @override
-  void visitUnreachable(UnreachableConstantValue constant, StringBuffer sb) {
-    throw new UnsupportedError(
-        'Unsupported constant value: ${constant.toStructuredText(_dartTypes)}');
-  }
+  void visitLateSentinel(LateSentinelConstantValue constant, StringBuffer sb) =>
+      _unsupported(constant);
 
   @override
-  void visitJsName(JsNameConstantValue constant, StringBuffer sb) {
-    throw new UnsupportedError(
-        'Unsupported constant value: ${constant.toStructuredText(_dartTypes)}');
-  }
+  void visitUnreachable(UnreachableConstantValue constant, StringBuffer sb) =>
+      _unsupported(constant);
+
+  @override
+  void visitJsName(JsNameConstantValue constant, StringBuffer sb) =>
+      _unsupported(constant);
 
   @override
   void visitDeferredGlobal(
-      DeferredGlobalConstantValue constant, StringBuffer sb) {
-    throw new UnsupportedError(
-        'Unsupported constant value: ${constant.toStructuredText(_dartTypes)}');
-  }
+          DeferredGlobalConstantValue constant, StringBuffer sb) =>
+      _unsupported(constant);
 
   @override
   void visitNonConstant(NonConstantValue constant, StringBuffer sb) {

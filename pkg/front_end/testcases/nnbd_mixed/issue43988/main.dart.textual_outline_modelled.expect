@@ -8,4 +8,5 @@ abstract class C8 extends C5 implements C7 {}
 class E1 with A, D {}
 
 class E2 = Object with A, D;
+class E3 = Object with A, F;
 main() {}

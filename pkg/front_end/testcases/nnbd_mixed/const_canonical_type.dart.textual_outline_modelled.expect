@@ -1,0 +1,17 @@
+import './const_canonical_type_lib.dart' as oo;
+import 'dart:async';
+
+class Check {
+  const Check(x, y)
+      : assert(identical(x, y)),
+        _ignored = identical(x, y) ? 42 : 1 ~/ 0;
+  final _ignored;
+}
+
+main() {}
+test1() {}
+typedef F1 = oo.A<FutureOr<dynamic>> Function();
+typedef F2 = oo.A<dynamic> Function();
+typedef F3 = oo.A<FutureOr<FutureOr<dynamic>?>> Function();
+typedef F4 = oo.A Function();
+void expectEqual(x, y) {}

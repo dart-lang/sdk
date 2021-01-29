@@ -29,11 +29,9 @@ main() {
   Expect.equals(null, A.fieldWithNullInit);
   Expect.equals(1, initCalls);
 
-  Expect.throws(
-      () => A.fieldWithNoInit, (error) => error is LateInitializationError);
+  Expect.throws<Error>(() => A.fieldWithNoInit);
   A.fieldWithNoInit = 123;
   Expect.equals(123, A.fieldWithNoInit);
-  Expect.throws(() => {A.fieldWithNoInit = 456},
-      (error) => error is LateInitializationError);
+  Expect.throws<Error>(() => {A.fieldWithNoInit = 456});
   Expect.equals(123, A.fieldWithNoInit);
 }

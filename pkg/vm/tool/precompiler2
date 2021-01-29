@@ -34,7 +34,6 @@ for arg in "$@"; do
     ;;
     --tfa | \
     --no-tfa | \
-    --protobuf-tree-shaker | \
     --protobuf-tree-shaker-v2 | \
     --minimal-kernel | \
     --no-embed-sources | \

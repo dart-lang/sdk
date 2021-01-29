@@ -258,9 +258,10 @@ class SnapshotReader : public BaseReader {
   Thread* thread() const { return thread_; }
   Zone* zone() const { return zone_; }
   Isolate* isolate() const { return thread_->isolate(); }
+  IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
   Heap* heap() const { return heap_; }
-  ObjectStore* object_store() const { return isolate()->object_store(); }
-  ClassTable* class_table() const { return isolate()->class_table(); }
+  ObjectStore* object_store() const { return isolate_group()->object_store(); }
+  ClassTable* class_table() const { return isolate_group()->class_table(); }
   PassiveObject* PassiveObjectHandle() { return &pobj_; }
   Array* ArrayHandle() { return &array_; }
   Class* ClassHandle() { return &cls_; }
@@ -400,10 +401,10 @@ class SnapshotReader : public BaseReader {
   friend class PatchClass;
   friend class RegExp;
   friend class Script;
-  friend class SignatureData;
   friend class SubtypeTestCache;
   friend class TransferableTypedData;
   friend class Type;
+  friend class FunctionType;
   friend class TypedDataView;
   friend class TypeArguments;
   friend class TypeParameter;
@@ -590,13 +591,14 @@ class SnapshotWriter : public BaseWriter {
   Thread* thread() const { return thread_; }
   Zone* zone() const { return thread_->zone(); }
   Isolate* isolate() const { return thread_->isolate(); }
-  Heap* heap() const { return isolate()->heap(); }
+  IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
+  Heap* heap() const { return isolate_group()->heap(); }
 
   // Serialize an object into the buffer.
   void WriteObject(ObjectPtr raw);
 
   static uint32_t GetObjectTags(ObjectPtr raw);
-  static uint32_t GetObjectTags(ObjectLayout* raw);
+  static uint32_t GetObjectTags(UntaggedObject* raw);
   static uword GetObjectTagsAndHash(ObjectPtr raw);
 
   Exceptions::ExceptionType exception_type() const { return exception_type_; }
@@ -622,7 +624,7 @@ class SnapshotWriter : public BaseWriter {
   bool CheckAndWritePredefinedObject(ObjectPtr raw);
   bool HandleVMIsolateObject(ObjectPtr raw);
 
-  void WriteClassId(ClassLayout* cls);
+  void WriteClassId(UntaggedClass* cls);
   void WriteObjectImpl(ObjectPtr raw, bool as_reference);
   void WriteMarkedObjectImpl(ObjectPtr raw,
                              intptr_t tags,
@@ -659,36 +661,37 @@ class SnapshotWriter : public BaseWriter {
   const char* exception_msg_;  // Message associated with exception.
   bool can_send_any_object_;   // True if any Dart instance can be sent.
 
-  friend class ArrayLayout;
-  friend class ClassLayout;
-  friend class CodeLayout;
-  friend class ContextScopeLayout;
-  friend class DynamicLibraryLayout;
-  friend class ExceptionHandlersLayout;
-  friend class FieldLayout;
-  friend class FunctionLayout;
-  friend class GrowableObjectArrayLayout;
-  friend class ImmutableArrayLayout;
-  friend class InstructionsLayout;
-  friend class LibraryLayout;
-  friend class LinkedHashMapLayout;
-  friend class LocalVarDescriptorsLayout;
-  friend class MirrorReferenceLayout;
-  friend class ObjectPoolLayout;
-  friend class PointerLayout;
-  friend class ReceivePortLayout;
-  friend class RegExpLayout;
-  friend class ScriptLayout;
-  friend class StackTraceLayout;
-  friend class SubtypeTestCacheLayout;
-  friend class TransferableTypedDataLayout;
-  friend class TypeLayout;
-  friend class TypeArgumentsLayout;
-  friend class TypeParameterLayout;
-  friend class TypeRefLayout;
-  friend class TypedDataViewLayout;
-  friend class UserTagLayout;
-  friend class WeakSerializationReferenceLayout;
+  friend class UntaggedArray;
+  friend class UntaggedClass;
+  friend class UntaggedCode;
+  friend class UntaggedContextScope;
+  friend class UntaggedDynamicLibrary;
+  friend class UntaggedExceptionHandlers;
+  friend class UntaggedField;
+  friend class UntaggedFunction;
+  friend class UntaggedFunctionType;
+  friend class UntaggedGrowableObjectArray;
+  friend class UntaggedImmutableArray;
+  friend class UntaggedInstructions;
+  friend class UntaggedLibrary;
+  friend class UntaggedLinkedHashMap;
+  friend class UntaggedLocalVarDescriptors;
+  friend class UntaggedMirrorReference;
+  friend class UntaggedObjectPool;
+  friend class UntaggedPointer;
+  friend class UntaggedReceivePort;
+  friend class UntaggedRegExp;
+  friend class UntaggedScript;
+  friend class UntaggedStackTrace;
+  friend class UntaggedSubtypeTestCache;
+  friend class UntaggedTransferableTypedData;
+  friend class UntaggedType;
+  friend class UntaggedTypeArguments;
+  friend class UntaggedTypeParameter;
+  friend class UntaggedTypeRef;
+  friend class UntaggedTypedDataView;
+  friend class UntaggedUserTag;
+  friend class UntaggedWeakSerializationReference;
   friend class SnapshotWriterVisitor;
   friend class WriteInlinedObjectVisitor;
   DISALLOW_COPY_AND_ASSIGN(SnapshotWriter);

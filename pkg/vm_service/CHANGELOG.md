@@ -1,5 +1,29 @@
 # Changelog
 
+## 6.0.1-nullsafety.0
+- Fix versioning for pub.
+
+## 6.0.0-nullsafety.4
+- Fixed issue where response parsing could fail for `SourceReportRange.coverage`
+  if no coverage information was provided.
+## 6.0.0-nullsafety.3
+- Fixed issue where `Response.type` and classes which override `Response.type` were
+  returning the name of the `package:vm_service` reference object (e.g., InstanceRef) instead of
+  the type specified in the specification (e.g., @Instance).
+
+## 6.0.0-nullsafety.2
+- *breaking* Updated signature of `Field.staticValue` to `dynamic` in order to
+  properly allow for uninitialized sentinel values.
+
+## 6.0.0-nullsafety.1
+- *breaking* Null safety migration, take two. Assume all object fields are nullable.
+
+## 6.0.0-nullsafety-dev
+- *breaking* Migrate to use null safety.
+
+## 5.5.1
+- Fix issue where `VmService.onDone` could complete before the provided `DisposeHandler` had finished executing.
+
 ## 5.5.0
 - Update to version `3.42.0` of the spec.
 - Added optional `limit` parameter to `getStack` RPC.

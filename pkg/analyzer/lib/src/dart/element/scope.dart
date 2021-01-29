@@ -115,46 +115,27 @@ class LibraryScope extends EnclosedScope {
     @required String prefix,
     @required String name,
   }) {
-    Iterable<NamespaceCombinator> getShowCombinators(
-        ImportElement importElement) {
-      return importElement.combinators.whereType<ShowElementCombinator>();
+    for (var importElement in _element.imports) {
+      if (importElement.prefix?.name == prefix &&
+          importElement.importedLibrary?.isSynthetic != false) {
+        var showCombinators = importElement.combinators
+            .whereType<ShowElementCombinator>()
+            .toList();
+        if (prefix != null && showCombinators.isEmpty) {
+          return true;
+        }
+        for (var combinator in showCombinators) {
+          if (combinator.shownNames.contains(name)) {
+            return true;
+          }
+        }
+      }
     }
 
-    if (prefix != null) {
-      for (var importElement in _element.imports) {
-        if (importElement.prefix?.name == prefix &&
-            importElement.importedLibrary?.isSynthetic != false) {
-          var showCombinators = getShowCombinators(importElement);
-          if (showCombinators.isEmpty) {
-            return true;
-          }
-          for (ShowElementCombinator combinator in showCombinators) {
-            if (combinator.shownNames.contains(name)) {
-              return true;
-            }
-          }
-        }
-      }
-    } else {
-      // TODO(scheglov) merge for(s).
-      for (var importElement in _element.imports) {
-        if (importElement.prefix == null &&
-            importElement.importedLibrary?.isSynthetic != false) {
-          for (ShowElementCombinator combinator
-              in getShowCombinators(importElement)) {
-            if (combinator.shownNames.contains(name)) {
-              return true;
-            }
-          }
-        }
-      }
-
-      if (name.startsWith(r'_$')) {
-        for (var partElement in _element.parts) {
-          if (partElement.isSynthetic &&
-              isGeneratedSource(partElement.source)) {
-            return true;
-          }
+    if (prefix == null && name.startsWith(r'_$')) {
+      for (var partElement in _element.parts) {
+        if (partElement.isSynthetic && isGeneratedSource(partElement.source)) {
+          return true;
         }
       }
     }

@@ -17,7 +17,6 @@ import 'ambiguous_import_test.dart' as ambiguous_import;
 import 'ambiguous_set_or_map_literal_test.dart' as ambiguous_set_or_map_literal;
 import 'annotation_on_pointer_field_test.dart' as annotation_on_pointer_field;
 import 'annotation_syntax_test.dart' as annotation_syntax;
-import 'annotation_with_non_class_test.dart' as annotation_with_non_class;
 import 'argument_type_not_assignable_test.dart' as argument_type_not_assignable;
 import 'assert_in_redirecting_constructor_test.dart'
     as assert_in_redirecting_constructor;
@@ -267,12 +266,13 @@ import 'instance_member_access_from_static_test.dart'
     as instance_member_access_from_static;
 import 'instantiate_abstract_class_test.dart' as instantiate_abstract_class;
 import 'instantiate_enum_test.dart' as instantiate_enum;
+import 'instantiate_type_alias_expands_to_type_parameter_test.dart'
+    as instantiate_type_alias_expands_to_type_parameter;
 import 'integer_literal_imprecise_as_double_test.dart'
     as integer_literal_imprecise_as_double;
 import 'integer_literal_out_of_range_test.dart' as integer_literal_out_of_range;
 import 'invalid_annotation_from_deferred_library_test.dart'
     as invalid_annotation_from_deferred_library;
-import 'invalid_annotation_getter_test.dart' as invalid_annotation_getter;
 import 'invalid_annotation_target_test.dart' as invalid_annotation_target;
 import 'invalid_annotation_test.dart' as invalid_annotation;
 import 'invalid_assignment_test.dart' as invalid_assignment;
@@ -290,6 +290,8 @@ import 'invalid_factory_name_not_a_class_test.dart'
     as invalid_factory_name_not_a_class;
 import 'invalid_field_type_in_struct_test.dart' as invalid_field_type_in_struct;
 import 'invalid_immutable_annotation_test.dart' as invalid_immutable_annotation;
+import 'invalid_implementation_override_test.dart'
+    as invalid_implementation_override;
 import 'invalid_internal_annotation_test.dart' as invalid_internal_annotation;
 import 'invalid_language_override_greater_test.dart'
     as invalid_language_override_greater;
@@ -482,8 +484,6 @@ import 'object_cannot_extend_another_class_test.dart'
     as object_cannot_extend_another_class;
 import 'optional_parameter_in_operator_test.dart'
     as optional_parameter_in_operator;
-import 'override_equals_but_not_hashcode_test.dart'
-    as override_equals_but_not_hashcode;
 import 'override_on_non_overriding_field_test.dart'
     as override_on_non_overriding_field;
 import 'override_on_non_overriding_getter_test.dart'
@@ -527,6 +527,8 @@ import 'redirect_to_missing_constructor_test.dart'
 import 'redirect_to_non_class_test.dart' as redirect_to_non_class;
 import 'redirect_to_non_const_constructor_test.dart'
     as redirect_to_non_const_constructor;
+import 'redirect_to_type_alias_expands_to_type_parameter_test.dart'
+    as redirect_to_type_alias_expands_to_type_parameter;
 import 'referenced_before_declaration_test.dart'
     as referenced_before_declaration;
 import 'rethrow_outside_catch_test.dart' as rethrow_outside_catch;
@@ -534,7 +536,11 @@ import 'return_in_generative_constructor_test.dart'
     as return_in_generative_constructor;
 import 'return_in_generator_test.dart' as return_in_generator;
 import 'return_of_do_not_store_test.dart' as return_of_do_not_store;
+import 'return_of_invalid_type_from_catch_error_test.dart'
+    as return_of_invalid_type_from_catch_error;
 import 'return_of_invalid_type_test.dart' as return_of_invalid_type;
+import 'return_type_invalid_for_catch_error_test.dart'
+    as return_type_invalid_for_catch_error;
 import 'return_without_value_test.dart' as return_without_value;
 import 'sdk_version_as_expression_in_const_context_test.dart'
     as sdk_version_as_expression_in_const_context;
@@ -670,7 +676,6 @@ main() {
     ambiguous_set_or_map_literal.main();
     annotation_on_pointer_field.main();
     annotation_syntax.main();
-    annotation_with_non_class.main();
     argument_type_not_assignable.main();
     assert_in_redirecting_constructor.main();
     assignment_of_do_not_store.main();
@@ -833,11 +838,11 @@ main() {
     instance_member_access_from_static.main();
     instantiate_abstract_class.main();
     instantiate_enum.main();
+    instantiate_type_alias_expands_to_type_parameter.main();
     integer_literal_imprecise_as_double.main();
     integer_literal_out_of_range.main();
     invalid_annotation.main();
     invalid_annotation_from_deferred_library.main();
-    invalid_annotation_getter.main();
     invalid_annotation_target.main();
     invalid_assignment.main();
     invalid_cast_new_expr.main();
@@ -851,6 +856,7 @@ main() {
     invalid_factory_name_not_a_class.main();
     invalid_field_type_in_struct.main();
     invalid_immutable_annotation.main();
+    invalid_implementation_override.main();
     invalid_internal_annotation.main();
     invalid_language_override_greater.main();
     invalid_language_override.main();
@@ -979,7 +985,6 @@ main() {
     nullable_type_in_with_clause.main();
     object_cannot_extend_another_class.main();
     optional_parameter_in_operator.main();
-    override_equals_but_not_hashcode.main();
     override_on_non_overriding_field.main();
     override_on_non_overriding_getter.main();
     override_on_non_overriding_method.main();
@@ -1005,12 +1010,15 @@ main() {
     redirect_to_missing_constructor.main();
     redirect_to_non_class.main();
     redirect_to_non_const_constructor.main();
+    redirect_to_type_alias_expands_to_type_parameter.main();
     referenced_before_declaration.main();
     rethrow_outside_catch.main();
     return_in_generative_constructor.main();
     return_in_generator.main();
     return_of_do_not_store.main();
+    return_of_invalid_type_from_catch_error.main();
     return_of_invalid_type.main();
+    return_type_invalid_for_catch_error.main();
     return_without_value.main();
     set_element_from_deferred_library.main();
     sdk_version_as_expression_in_const_context.main();

@@ -624,3 +624,13 @@ constants  {
   #C21 = tearoff self::id1
   #C22 = partial-instantiation self::id1 <core::int*>
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///various.dart:
+- ExtendsFoo2. (from org-dartlang-testcase:///various.dart:121:9)
+- Foo. (from org-dartlang-testcase:///various.dart:109:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- ConstClassWithFailingAssertWithEmptyMessage. (from org-dartlang-testcase:///various.dart:144:9)
+- ClassWithTypeArguments. (from org-dartlang-testcase:///various.dart:151:9)
+- ConstClassWithFinalFields2. (from org-dartlang-testcase:///various.dart:177:9)

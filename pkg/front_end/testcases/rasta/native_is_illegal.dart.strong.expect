@@ -38,3 +38,8 @@ constants  {
   #C9 = "foo"
   #C10 = _in::ExternalName {name:#C9}
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///native_is_illegal.dart:
+- ExternalName. (from org-dartlang-sdk:///sdk/lib/internal/internal.dart:92:9)

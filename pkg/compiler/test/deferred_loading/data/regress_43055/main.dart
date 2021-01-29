@@ -2,6 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/*library: 
+ output_units=[f1: {units: [1{libb}], usedBy: [], needs: []}],
+ steps=[libb=(f1)]
+*/
+
 // @dart = 2.7
 import 'libb.dart' deferred as libb;
 import 'libc.dart';

@@ -19,7 +19,7 @@ namespace compiler {
 
 namespace ffi {
 
-FunctionPtr NativeCallbackFunction(const Function& c_signature,
+FunctionPtr NativeCallbackFunction(const FunctionType& c_signature,
                                    const Function& dart_target,
                                    const Instance& exceptional_return);
 

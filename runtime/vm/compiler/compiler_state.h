@@ -32,10 +32,12 @@ class CompilerState : public ThreadStackResource {
  public:
   CompilerState(Thread* thread,
                 bool is_aot,
+                bool is_optimizing,
                 CompilerTracing tracing = CompilerTracing::kOn)
       : ThreadStackResource(thread),
         cha_(thread),
         is_aot_(is_aot),
+        is_optimizing_(is_optimizing),
         tracing_(tracing) {
     previous_ = thread->SetCompilerState(this);
   }
@@ -82,6 +84,11 @@ class CompilerState : public ThreadStackResource {
 
   bool is_aot() const { return is_aot_; }
 
+  bool is_optimizing() const { return is_optimizing_; }
+  bool should_clone_fields() {
+    return !is_aot() && (is_optimizing() || FLAG_force_clone_compiler_objects);
+  }
+
   bool should_trace() const { return tracing_ == CompilerTracing::kOn; }
 
   static bool ShouldTrace() { return Current().should_trace(); }
@@ -103,6 +110,7 @@ class CompilerState : public ThreadStackResource {
   ZoneGrowableArray<LocalVariable*>* dummy_captured_vars_ = nullptr;
 
   const bool is_aot_;
+  const bool is_optimizing_;
 
   const CompilerTracing tracing_;
 

@@ -47,8 +47,8 @@ class SourceReport {
   // in the isolate.
   void PrintJSON(JSONStream* js,
                  const Script& script,
-                 TokenPosition start_pos = TokenPosition::kNoSource,
-                 TokenPosition end_pos = TokenPosition::kNoSource);
+                 TokenPosition start_pos = TokenPosition::kMinSource,
+                 TokenPosition end_pos = TokenPosition::kMaxSource);
 
  private:
   void ClearScriptTable();
@@ -108,7 +108,7 @@ class SourceReport {
     static inline intptr_t Hashcode(Key key) { return key->key->Hash(); }
 
     static inline bool IsKeyEqual(Pair kv, Key key) {
-      return kv->script->raw() == key->script->raw();
+      return kv->script->ptr() == key->script->ptr();
     }
   };
 

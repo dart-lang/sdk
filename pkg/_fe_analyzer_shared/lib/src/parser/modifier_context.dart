@@ -23,8 +23,8 @@ bool isModifier(Token token) {
     //   external() => true;
     // and in
     //   for (final external in list) { }
-    Token next = token.next;
-    Keyword keyword = next.keyword;
+    Token next = token.next!;
+    Keyword? keyword = next.keyword;
     if (keyword == null && !next.isIdentifier || keyword == Keyword.IN) {
       return false;
     }
@@ -36,15 +36,15 @@ bool isModifier(Token token) {
 /// can occur, but does not call handleModifier or handleModifiers.
 class ModifierRecoveryContext {
   final Parser parser;
-  Token abstractToken;
-  Token constToken;
-  Token covariantToken;
-  Token externalToken;
-  Token finalToken;
-  Token lateToken;
-  Token requiredToken;
-  Token staticToken;
-  Token varToken;
+  Token? abstractToken;
+  Token? constToken;
+  Token? covariantToken;
+  Token? externalToken;
+  Token? finalToken;
+  Token? lateToken;
+  Token? requiredToken;
+  Token? staticToken;
+  Token? varToken;
 
   // Set `true` when parsing modifiers after the `factory` token.
   bool afterFactory = false;
@@ -54,7 +54,7 @@ class ModifierRecoveryContext {
 
   ModifierRecoveryContext(this.parser);
 
-  set staticOrCovariant(Token staticOrCovariant) {
+  set staticOrCovariant(Token? staticOrCovariant) {
     if (staticOrCovariant == null) {
       covariantToken = null;
       staticToken = null;
@@ -70,9 +70,9 @@ class ModifierRecoveryContext {
     }
   }
 
-  Token get varFinalOrConst => varToken ?? finalToken ?? constToken;
+  Token? get varFinalOrConst => varToken ?? finalToken ?? constToken;
 
-  set varFinalOrConst(Token varFinalOrConst) {
+  set varFinalOrConst(Token? varFinalOrConst) {
     if (varFinalOrConst == null) {
       varToken = null;
       finalToken = null;
@@ -121,7 +121,7 @@ class ModifierRecoveryContext {
     } else if (memberKind == MemberKind.GeneralizedFunctionType) {
       if (varFinalOrConst != null) {
         parser.reportRecoverableError(
-            varFinalOrConst, codes.messageFunctionTypedParameterVar);
+            varFinalOrConst!, codes.messageFunctionTypedParameterVar);
       }
     }
     reportExtraneousModifier(abstractToken);
@@ -137,7 +137,7 @@ class ModifierRecoveryContext {
     token = parseModifiers(token);
     if (abstractToken != null) {
       parser.reportRecoverableError(
-          abstractToken, codes.messageAbstractClassMember);
+          abstractToken!, codes.messageAbstractClassMember);
     }
     reportExtraneousModifier(lateToken);
     reportExtraneousModifier(requiredToken);
@@ -178,9 +178,9 @@ class ModifierRecoveryContext {
   /// in that order, and the others ignored.
   Token parseModifiers(Token token) {
     // Process invalid and out-of-order modifiers
-    Token next = token.next;
+    Token next = token.next!;
     while (true) {
-      final String value = next.stringValue;
+      final String? value = next.stringValue;
       if (isModifier(next)) {
         if (identical('abstract', value)) {
           token = parseAbstract(token);
@@ -210,21 +210,21 @@ class ModifierRecoveryContext {
       } else {
         break;
       }
-      next = token.next;
+      next = token.next!;
     }
     return token;
   }
 
   Token parseAbstract(Token token) {
-    Token next = token.next;
+    Token next = token.next!;
     assert(optional('abstract', next));
     if (abstractToken == null) {
       abstractToken = next;
 
       if (varFinalOrConst != null) {
-        reportModifierOutOfOrder(next, varFinalOrConst.lexeme);
+        reportModifierOutOfOrder(next, varFinalOrConst!.lexeme);
       } else if (covariantToken != null) {
-        reportModifierOutOfOrder(next, covariantToken.lexeme);
+        reportModifierOutOfOrder(next, covariantToken!.lexeme);
       }
       return next;
     }
@@ -236,7 +236,7 @@ class ModifierRecoveryContext {
   }
 
   Token parseConst(Token token) {
-    Token next = token.next;
+    Token next = token.next!;
     assert(optional('const', next));
     if (varFinalOrConst == null && covariantToken == null) {
       constToken = next;
@@ -244,7 +244,7 @@ class ModifierRecoveryContext {
       if (afterFactory) {
         reportModifierOutOfOrder(next, 'factory');
       } else if (lateToken != null) {
-        reportConflictingModifiers(next, lateToken);
+        reportConflictingModifiers(next, lateToken!);
       }
       return next;
     }
@@ -254,11 +254,11 @@ class ModifierRecoveryContext {
       parser.reportRecoverableErrorWithToken(
           next, codes.templateDuplicatedModifier);
     } else if (covariantToken != null) {
-      reportConflictingModifiers(next, covariantToken);
+      reportConflictingModifiers(next, covariantToken!);
     } else if (finalToken != null) {
       parser.reportRecoverableError(next, codes.messageConstAndFinal);
     } else if (varToken != null) {
-      reportConflictingModifiers(next, varToken);
+      reportConflictingModifiers(next, varToken!);
     } else {
       throw 'Internal Error: Unexpected varFinalOrConst: $varFinalOrConst';
     }
@@ -266,7 +266,7 @@ class ModifierRecoveryContext {
   }
 
   Token parseCovariant(Token token) {
-    Token next = token.next;
+    Token next = token.next!;
     assert(optional('covariant', next));
     if (constToken == null &&
         covariantToken == null &&
@@ -275,11 +275,11 @@ class ModifierRecoveryContext {
       covariantToken = next;
 
       if (varToken != null) {
-        reportModifierOutOfOrder(next, varToken.lexeme);
+        reportModifierOutOfOrder(next, varToken!.lexeme);
       } else if (finalToken != null) {
-        reportModifierOutOfOrder(next, finalToken.lexeme);
+        reportModifierOutOfOrder(next, finalToken!.lexeme);
       } else if (lateToken != null) {
-        reportModifierOutOfOrder(next, lateToken.lexeme);
+        reportModifierOutOfOrder(next, lateToken!.lexeme);
       }
       return next;
     }
@@ -291,7 +291,7 @@ class ModifierRecoveryContext {
     } else if (afterFactory) {
       reportExtraneousModifier(next);
     } else if (constToken != null) {
-      reportConflictingModifiers(next, constToken);
+      reportConflictingModifiers(next, constToken!);
     } else if (staticToken != null) {
       parser.reportRecoverableError(next, codes.messageCovariantAndStatic);
     } else {
@@ -301,7 +301,7 @@ class ModifierRecoveryContext {
   }
 
   Token parseExternal(Token token) {
-    Token next = token.next;
+    Token next = token.next!;
     assert(optional('external', next));
     if (externalToken == null) {
       externalToken = next;
@@ -309,15 +309,15 @@ class ModifierRecoveryContext {
       if (afterFactory) {
         reportModifierOutOfOrder(next, 'factory');
       } else if (constToken != null) {
-        reportModifierOutOfOrder(next, constToken.lexeme);
+        reportModifierOutOfOrder(next, constToken!.lexeme);
       } else if (staticToken != null) {
-        reportModifierOutOfOrder(next, staticToken.lexeme);
+        reportModifierOutOfOrder(next, staticToken!.lexeme);
       } else if (lateToken != null) {
-        reportModifierOutOfOrder(next, lateToken.lexeme);
+        reportModifierOutOfOrder(next, lateToken!.lexeme);
       } else if (varFinalOrConst != null) {
-        reportModifierOutOfOrder(next, varFinalOrConst.lexeme);
+        reportModifierOutOfOrder(next, varFinalOrConst!.lexeme);
       } else if (covariantToken != null) {
-        reportModifierOutOfOrder(next, covariantToken.lexeme);
+        reportModifierOutOfOrder(next, covariantToken!.lexeme);
       }
       return next;
     }
@@ -329,7 +329,7 @@ class ModifierRecoveryContext {
   }
 
   Token parseFinal(Token token) {
-    Token next = token.next;
+    Token next = token.next!;
     assert(optional('final', next));
     if (varFinalOrConst == null && !afterFactory) {
       finalToken = next;
@@ -347,7 +347,7 @@ class ModifierRecoveryContext {
     } else if (varToken != null) {
       parser.reportRecoverableError(next, codes.messageFinalAndVar);
     } else if (lateToken != null) {
-      reportModifierOutOfOrder(next, lateToken.lexeme);
+      reportModifierOutOfOrder(next, lateToken!.lexeme);
     } else {
       throw 'Internal Error: Unexpected varFinalOrConst: $varFinalOrConst';
     }
@@ -355,17 +355,17 @@ class ModifierRecoveryContext {
   }
 
   Token parseLate(Token token) {
-    Token next = token.next;
+    Token next = token.next!;
     assert(optional('late', next));
     if (lateToken == null) {
       lateToken = next;
 
       if (constToken != null) {
-        reportConflictingModifiers(next, constToken);
+        reportConflictingModifiers(next, constToken!);
       } else if (varToken != null) {
-        reportModifierOutOfOrder(next, varToken.lexeme);
+        reportModifierOutOfOrder(next, varToken!.lexeme);
       } else if (finalToken != null) {
-        reportModifierOutOfOrder(next, finalToken.lexeme);
+        reportModifierOutOfOrder(next, finalToken!.lexeme);
       }
       return next;
     }
@@ -377,19 +377,19 @@ class ModifierRecoveryContext {
   }
 
   Token parseRequired(Token token) {
-    Token next = token.next;
+    Token next = token.next!;
     assert(optional('required', next));
     if (requiredToken == null) {
       requiredToken = next;
 
       if (constToken != null) {
-        reportModifierOutOfOrder(requiredToken, constToken.lexeme);
+        reportModifierOutOfOrder(requiredToken!, constToken!.lexeme);
       } else if (covariantToken != null) {
-        reportModifierOutOfOrder(requiredToken, covariantToken.lexeme);
+        reportModifierOutOfOrder(requiredToken!, covariantToken!.lexeme);
       } else if (finalToken != null) {
-        reportModifierOutOfOrder(requiredToken, finalToken.lexeme);
+        reportModifierOutOfOrder(requiredToken!, finalToken!.lexeme);
       } else if (varToken != null) {
-        reportModifierOutOfOrder(requiredToken, varToken.lexeme);
+        reportModifierOutOfOrder(requiredToken!, varToken!.lexeme);
       }
       return next;
     }
@@ -401,19 +401,19 @@ class ModifierRecoveryContext {
   }
 
   Token parseStatic(Token token) {
-    Token next = token.next;
+    Token next = token.next!;
     assert(optional('static', next));
     if (covariantToken == null && staticToken == null && !afterFactory) {
       staticToken = next;
 
       if (constToken != null) {
-        reportModifierOutOfOrder(next, constToken.lexeme);
+        reportModifierOutOfOrder(next, constToken!.lexeme);
       } else if (finalToken != null) {
-        reportModifierOutOfOrder(next, finalToken.lexeme);
+        reportModifierOutOfOrder(next, finalToken!.lexeme);
       } else if (varToken != null) {
-        reportModifierOutOfOrder(next, varToken.lexeme);
+        reportModifierOutOfOrder(next, varToken!.lexeme);
       } else if (lateToken != null) {
-        reportModifierOutOfOrder(next, lateToken.lexeme);
+        reportModifierOutOfOrder(next, lateToken!.lexeme);
       }
       return next;
     }
@@ -433,7 +433,7 @@ class ModifierRecoveryContext {
   }
 
   Token parseVar(Token token) {
-    Token next = token.next;
+    Token next = token.next!;
     assert(optional('var', next));
     if (varFinalOrConst == null && !afterFactory) {
       varToken = next;
@@ -447,7 +447,7 @@ class ModifierRecoveryContext {
     } else if (afterFactory) {
       reportExtraneousModifier(next);
     } else if (constToken != null) {
-      reportConflictingModifiers(next, constToken);
+      reportConflictingModifiers(next, constToken!);
     } else if (finalToken != null) {
       parser.reportRecoverableError(next, codes.messageFinalAndVar);
     } else {
@@ -463,14 +463,14 @@ class ModifierRecoveryContext {
             .withArguments(modifier.lexeme, earlierModifier.lexeme));
   }
 
-  void reportExtraneousModifier(Token modifier) {
+  void reportExtraneousModifier(Token? modifier) {
     if (modifier != null) {
       parser.reportRecoverableErrorWithToken(
           modifier, codes.templateExtraneousModifier);
     }
   }
 
-  void reportExtraneousModifierInExtension(Token modifier) {
+  void reportExtraneousModifierInExtension(Token? modifier) {
     if (modifier != null) {
       parser.reportRecoverableErrorWithToken(
           modifier, codes.templateExtraneousModifierInExtension);

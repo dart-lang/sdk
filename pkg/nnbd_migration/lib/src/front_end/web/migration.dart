@@ -2,15 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Explicitly opt out this file from null safety, for build reasons, inside
+// Google.
+// @dart=2.9
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
 
-import 'package:nnbd_migration/instrumentation.dart';
-import 'package:nnbd_migration/src/front_end/migration_info.dart';
 import 'package:nnbd_migration/src/front_end/web/edit_details.dart';
 import 'package:nnbd_migration/src/front_end/web/file_details.dart';
 import 'package:nnbd_migration/src/front_end/web/navigation_tree.dart';
+import 'package:nnbd_migration/src/hint_action.dart';
 import 'package:path/path.dart' as _p;
 
 import 'highlight_js.dart';
@@ -38,7 +41,11 @@ void main() {
           "This will apply the changes you've previewed to your working "
           'directory. It is recommended you commit any changes you made before '
           'doing this.')) {
-        doPost('/apply-migration').then((xhr) {
+        var navigationTreeJson = [
+          for (var entity in navigationTree) entity.toJson()
+        ];
+        doPost('/apply-migration', {'navigationTree': navigationTreeJson})
+            .then((xhr) {
           document.body.classes
             ..remove('proposed')
             ..add('applied');
@@ -80,7 +87,8 @@ void main() {
           .parentNode as Element;
       var statusIcon = unitNavItem.querySelector('.status-icon');
       var entity = navigationTree.find(unitPath);
-      if (entity is NavigationTreeFileNode) {
+      if (entity is NavigationTreeFileNode &&
+          entity.migrationStatusCanBeChanged) {
         toggleFileMigrationStatus(entity);
         updateIconsForNode(statusIcon, entity);
         updateParentIcons(unitNavItem, entity);
@@ -159,11 +167,7 @@ void addClickHandlers(String selector, bool clearEditDetails) {
   // Add navigation handlers for navigation links in the source code.
   List<Element> navLinks = parentElement.querySelectorAll('.nav-link');
   navLinks.forEach((link) {
-    link.onClick.listen((event) {
-      var tableElement = document.querySelector('table[data-path]');
-      var parentPath = tableElement.dataset['path'];
-      handleNavLinkClick(event, clearEditDetails, relativeTo: parentPath);
-    });
+    link.onClick.listen((event) => handleNavLinkClick(event, clearEditDetails));
   });
 
   List<Element> regions = parentElement.querySelectorAll('.region');
@@ -346,11 +350,7 @@ void handleError(String header, Object exception, Object stackTrace) {
   logError('$header: $exception', stackTrace);
 }
 
-void handleNavLinkClick(
-  MouseEvent event,
-  bool clearEditDetails, {
-  String relativeTo,
-}) {
+void handleNavLinkClick(MouseEvent event, bool clearEditDetails) {
   Element target = event.currentTarget as Element;
   event.preventDefault();
 
@@ -454,13 +454,13 @@ void loadNavigationTree() async {
     navTree.innerHtml = '';
     navigationTree = NavigationTreeNode.listFromJson(response);
     writeNavigationSubtree(navTree, navigationTree,
-        enablePartialMigration: false);
+        enablePartialMigration: true);
   } catch (e, st) {
     handleError('Could not load navigation tree', e, st);
   }
 }
 
-void logError(e, st) {
+void logError(Object e, Object st) {
   window.console.error('$e');
   window.console.error('$st');
 }
@@ -733,12 +733,19 @@ void toggleFileMigrationStatus(NavigationTreeFileNode entity) {
 /// Updates the navigation [icon] and current file icon according to the current
 /// migration status of [entity].
 void updateIconsForNode(Element icon, NavigationTreeNode entity) {
-  updateIconForStatus(icon, entity.migrationStatus);
+  var status = entity.migrationStatus;
+  updateIconForStatus(icon, status);
   // Update the status at the top of the file view if [entity] represents the
   // current file.
   var unitPath = unitName.innerText;
   if (entity.path == unitPath) {
-    updateIconForStatus(migrateUnitStatusIcon, entity.migrationStatus);
+    if (entity is NavigationTreeFileNode &&
+        !entity.migrationStatusCanBeChanged) {
+      icon.classes.add('disabled');
+    } else {
+      icon.classes.remove('disabled');
+    }
+    updateIconForStatus(migrateUnitStatusIcon, status);
   }
 }
 
@@ -748,6 +755,7 @@ void updateIconForStatus(Element icon, UnitMigrationStatus status) {
     case UnitMigrationStatus.alreadyMigrated:
       icon.innerText = 'check_box';
       icon.classes.add('already-migrated');
+      icon.classes.add('disabled');
       icon.setAttribute('title', 'Already migrated');
       break;
     case UnitMigrationStatus.migrating:
@@ -789,7 +797,14 @@ void updatePage(String path, [int offset]) {
       link.classes.remove('selected-file');
     }
   });
-  migrateUnitStatusIconLabel.classes.add('visible');
+  var entity = navigationTree.find(path);
+  // Update migration status for files in current migration.
+  if (entity == null) {
+    migrateUnitStatusIconLabel.classes.remove('visible');
+  } else {
+    migrateUnitStatusIconLabel.classes.add('visible');
+    updateIconForStatus(migrateUnitStatusIcon, entity.migrationStatus);
+  }
 }
 
 /// Updates the parent icons of [entity] with list item [element] in the
@@ -874,12 +889,18 @@ void writeNavigationSubtree(
     } else if (entity is NavigationTreeFileNode) {
       if (enablePartialMigration) {
         var statusIcon = createIcon()..classes.add('status-icon');
+        if (entity is NavigationTreeFileNode &&
+            !entity.migrationStatusCanBeChanged) {
+          statusIcon.classes.add('disabled');
+        }
         updateIconsForNode(statusIcon, entity);
-        statusIcon.onClick.listen((MouseEvent event) {
-          toggleFileMigrationStatus(entity);
-          updateIconsForNode(statusIcon, entity);
-          updateParentIcons(li, entity);
-        });
+        if (entity.migrationStatusCanBeChanged) {
+          statusIcon.onClick.listen((MouseEvent event) {
+            toggleFileMigrationStatus(entity);
+            updateIconsForNode(statusIcon, entity);
+            updateParentIcons(li, entity);
+          });
+        }
         li.append(statusIcon);
       }
       li.append(createIcon('insert_drive_file'));

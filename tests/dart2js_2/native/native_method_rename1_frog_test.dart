@@ -37,10 +37,11 @@ void setup() {
   A.prototype.barA = function(){return 200;};
   A.prototype.bazA = function(){return 300;};
 
-  makeA = function(){return new A()};
+  self.makeA = function(){return new A()};
 
   self.nativeConstructor(A);
 })()""");
+  applyTestExtensions(['A']);
 }
 
 testDynamic() {

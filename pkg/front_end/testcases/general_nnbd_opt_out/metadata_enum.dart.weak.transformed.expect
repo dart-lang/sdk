@@ -41,3 +41,9 @@ constants  {
   #C10 = self::E {index:#C8, _name:#C9}
   #C11 = <self::E*>[#C4, #C7, #C10]
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///metadata_enum.dart:
+- E. (from org-dartlang-testcase:///metadata_enum.dart:10:6)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

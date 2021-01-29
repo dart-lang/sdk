@@ -116,16 +116,20 @@ class DeserializationCluster : public ZoneAllocated {
 
   // Allocate memory for all objects in the cluster and write their addresses
   // into the ref array. Do not touch this memory.
-  virtual void ReadAlloc(Deserializer* deserializer, bool is_canonical) = 0;
+  virtual void ReadAlloc(Deserializer* deserializer, bool stamp_canonical) = 0;
 
   // Initialize the cluster's objects. Do not touch the memory of other objects.
-  virtual void ReadFill(Deserializer* deserializer, bool is_canonical) = 0;
+  virtual void ReadFill(Deserializer* deserializer, bool stamp_canonical) = 0;
 
   // Complete any action that requires the full graph to be deserialized, such
   // as rehashing.
   virtual void PostLoad(Deserializer* deserializer,
                         const Array& refs,
-                        bool is_canonical) {}
+                        bool canonicalize) {
+    if (canonicalize) {
+      FATAL1("%s needs canonicalization but doesn't define PostLoad", name());
+    }
+  }
 
   const char* name() const { return name_; }
 
@@ -323,33 +327,31 @@ class Serializer : public ThreadStackResource {
 
   template <typename T, typename... P>
   void WriteFromTo(T obj, P&&... args) {
-    ObjectPtr* from = obj->ptr()->from();
-    ObjectPtr* to = obj->ptr()->to_snapshot(kind(), args...);
+    ObjectPtr* from = obj->untag()->from();
+    ObjectPtr* to = obj->untag()->to_snapshot(kind(), args...);
     for (ObjectPtr* p = from; p <= to; p++) {
-      WriteOffsetRef(*p, (p - reinterpret_cast<ObjectPtr*>(obj->ptr())) *
+      WriteOffsetRef(*p, (p - reinterpret_cast<ObjectPtr*>(obj->untag())) *
                              sizeof(ObjectPtr));
     }
   }
 
   template <typename T, typename... P>
   void PushFromTo(T obj, P&&... args) {
-    ObjectPtr* from = obj->ptr()->from();
-    ObjectPtr* to = obj->ptr()->to_snapshot(kind(), args...);
+    ObjectPtr* from = obj->untag()->from();
+    ObjectPtr* to = obj->untag()->to_snapshot(kind(), args...);
     for (ObjectPtr* p = from; p <= to; p++) {
       Push(*p);
     }
   }
 
-  void WriteTokenPosition(TokenPosition pos) {
-    Write<int32_t>(pos.SnapshotEncode());
-  }
+  void WriteTokenPosition(TokenPosition pos) { Write(pos.Serialize()); }
 
   void WriteCid(intptr_t cid) {
-    COMPILE_ASSERT(ObjectLayout::kClassIdTagSize <= 32);
+    COMPILE_ASSERT(UntaggedObject::kClassIdTagSize <= 32);
     Write<int32_t>(cid);
   }
 
-  void PrepareInstructions(GrowableArray<CodePtr>* codes);
+  void PrepareInstructions();
   void WriteInstructions(InstructionsPtr instr,
                          uint32_t unchecked_offset,
                          CodePtr code,
@@ -382,6 +384,7 @@ class Serializer : public ThreadStackResource {
   void set_loading_units(GrowableArray<LoadingUnitSerializationData*>* units) {
     loading_units_ = units;
   }
+  intptr_t current_loading_unit_id() { return current_loading_unit_id_; }
   void set_current_loading_unit_id(intptr_t id) {
     current_loading_unit_id_ = id;
   }
@@ -414,6 +417,13 @@ class Serializer : public ThreadStackResource {
       return RefId(Object::null());
     }
     FATAL("Missing ref");
+  }
+
+  bool HasRef(ObjectPtr object) const {
+    return heap_->GetObjectId(object) != kUnreachableReference;
+  }
+  bool IsWritten(ObjectPtr object) const {
+    return heap_->GetObjectId(object) > num_base_objects_;
   }
 
  private:
@@ -477,7 +487,7 @@ class Serializer : public ThreadStackResource {
 
 #define PushFromTo(obj, ...) s->PushFromTo(obj, ##__VA_ARGS__);
 
-#define WriteField(obj, field) s->WritePropertyRef(obj->ptr()->field, #field)
+#define WriteField(obj, field) s->WritePropertyRef(obj->untag()->field, #field)
 
 class SerializerWritingObjectScope {
  public:
@@ -575,6 +585,8 @@ class Deserializer : public ThreadStackResource {
 
   uword ReadWordWith32BitReads() { return stream_.ReadWordWith32BitReads(); }
 
+  intptr_t position() const { return stream_.Position(); }
+  void set_position(intptr_t p) { stream_.SetPosition(p); }
   const uint8_t* CurrentBufferAddress() const {
     return stream_.AddressOfCurrentPosition();
   }
@@ -586,23 +598,23 @@ class Deserializer : public ThreadStackResource {
 
   void AssignRef(ObjectPtr object) {
     ASSERT(next_ref_index_ <= num_objects_);
-    refs_->ptr()->data()[next_ref_index_] = object;
+    refs_->untag()->data()[next_ref_index_] = object;
     next_ref_index_++;
   }
 
   ObjectPtr Ref(intptr_t index) const {
     ASSERT(index > 0);
     ASSERT(index <= num_objects_);
-    return refs_->ptr()->data()[index];
+    return refs_->untag()->data()[index];
   }
 
   ObjectPtr ReadRef() { return Ref(ReadUnsigned()); }
 
   template <typename T, typename... P>
   void ReadFromTo(T obj, P&&... params) {
-    ObjectPtr* from = obj->ptr()->from();
-    ObjectPtr* to_snapshot = obj->ptr()->to_snapshot(kind(), params...);
-    ObjectPtr* to = obj->ptr()->to(params...);
+    ObjectPtr* from = obj->untag()->from();
+    ObjectPtr* to_snapshot = obj->untag()->to_snapshot(kind(), params...);
+    ObjectPtr* to = obj->untag()->to(params...);
     for (ObjectPtr* p = from; p <= to_snapshot; p++) {
       *p = ReadRef();
     }
@@ -616,11 +628,11 @@ class Deserializer : public ThreadStackResource {
   }
 
   TokenPosition ReadTokenPosition() {
-    return TokenPosition::SnapshotDecode(Read<int32_t>());
+    return TokenPosition::Deserialize(Read<int32_t>());
   }
 
   intptr_t ReadCid() {
-    COMPILE_ASSERT(ObjectLayout::kClassIdTagSize <= 32);
+    COMPILE_ASSERT(UntaggedObject::kClassIdTagSize <= 32);
     return Read<int32_t>();
   }
 
@@ -677,7 +689,8 @@ class FullSnapshotWriter {
   Thread* thread() const { return thread_; }
   Zone* zone() const { return thread_->zone(); }
   Isolate* isolate() const { return thread_->isolate(); }
-  Heap* heap() const { return isolate()->heap(); }
+  IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
+  Heap* heap() const { return isolate_group()->heap(); }
 
   // Writes a full snapshot of the program(VM isolate, regular isolate group).
   void WriteFullSnapshot(
@@ -729,6 +742,8 @@ class FullSnapshotReader {
   ApiErrorPtr ReadUnitSnapshot(const LoadingUnit& unit);
 
  private:
+  IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
+
   ApiErrorPtr ConvertToApiError(char* message);
   void PatchGlobalObjectPool();
   void InitializeBSS();

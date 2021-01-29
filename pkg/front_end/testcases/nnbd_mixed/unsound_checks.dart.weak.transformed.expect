@@ -250,8 +250,8 @@ static method main() → dynamic {
   uns::unnecessaryNullCheck(() → Null => null);
   self::expect(0, uns::unnecessaryIfNull(() → core::int* => 0, () → core::int* => 42));
   self::expect(42, uns::unnecessaryIfNull(() → Null => null, () → core::int* => 42));
-  uns::unnecessaryIfNullAssign(<core::int*>[0], () → core::int* => 42);
-  uns::unnecessaryIfNullAssign(<core::int*>[null], () → core::int* => 42);
+  uns::unnecessaryIfNullAssign(core::_GrowableList::_literal1<core::int*>(0), () → core::int* => 42);
+  uns::unnecessaryIfNullAssign(core::_GrowableList::_literal1<core::int*>(null), () → core::int* => 42);
   uns::unnecessaryNullAwareAccess(() → core::int* => 0);
   uns::unnecessaryNullAwareAccess(() → Null => null);
   self::throws(() → dynamic => uns::callReturningNever(() → <BottomType>=> throw "foo"), (core::Object* e) → core::bool* => e.{core::Object::==}("foo"));
@@ -640,3 +640,9 @@ Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks_lib.dart:39:56 
 Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks_lib.dart:134:5 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks_lib.dart:134:5 -> IntConstant(0)
 Extra constant evaluation: evaluated: 719, effectively constant: 18
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///unsound_checks_lib.dart:
+- E. (from org-dartlang-testcase:///unsound_checks_lib.dart:145:6)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

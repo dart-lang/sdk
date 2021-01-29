@@ -124,7 +124,7 @@ mixin FileTestMixin implements FileSystemTestSupport {
 
   test_equals_samePath() {
     File file1 = getFile(exists: true);
-    File file2 = provider.getResource(file1.path);
+    var file2 = provider.getResource(file1.path) as File;
 
     expect(file1 == file2, isTrue);
   }
@@ -143,7 +143,7 @@ mixin FileTestMixin implements FileSystemTestSupport {
 
   test_hashCode_samePath() {
     File file1 = getFile(exists: true);
-    File file2 = provider.getResource(file1.path);
+    var file2 = provider.getResource(file1.path) as File;
 
     expect(file1.hashCode, equals(file2.hashCode));
   }

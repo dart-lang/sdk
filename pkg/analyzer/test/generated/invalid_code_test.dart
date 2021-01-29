@@ -20,6 +20,19 @@ main() {
 /// and analysis finishes without exceptions.
 @reflectiveTest
 class InvalidCodeTest extends PubPackageResolutionTest {
+  test_const_AwaitExpression() async {
+    await _assertCanBeAnalyzed(r'''
+const a = await b();
+''');
+  }
+
+  test_const_ForPartsWithExpression() async {
+    await _assertCanBeAnalyzed(r'''
+@A([for (;;) 0])
+void f() {}
+''');
+  }
+
   /// This code results in a method with the empty name, and the default
   /// constructor, which also has the empty name. The `Map` in `f` initializer
   /// references the empty name.
@@ -120,7 +133,7 @@ void main() {
     await _assertCanBeAnalyzed(r'''
 typedef F = void Function(bool, int a(double b));
 ''');
-    var alias = findElement.functionTypeAlias('F');
+    var alias = findElement.typeAlias('F');
     assertType(
         alias.instantiate(
           typeArguments: const [],
@@ -189,7 +202,7 @@ class C {
     await _assertCanBeAnalyzed(r'''
 typedef void F(int a, this.b);
 ''');
-    var alias = findElement.functionTypeAlias('F');
+    var alias = findElement.typeAlias('F');
     assertType(
         alias.instantiate(
           typeArguments: const [],
@@ -389,6 +402,39 @@ class B {
 @reflectiveTest
 class InvalidCodeWithNullSafetyTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
+  test_functionExpression_emptyBody() async {
+    await _assertCanBeAnalyzed(r'''
+var v = <T>();
+''');
+  }
+
+  test_functionExpressionInvocation_mustBeNullShortingTerminated() async {
+    // It looks like MethodInvocation, but because `8` is not SimpleIdentifier,
+    // we parse it as FunctionExpressionInvocation.
+    await _assertCanBeAnalyzed(r'''
+var v = a?.8(b);
+''');
+  }
+
+  test_inAnnotation_noFlow_labeledStatement() async {
+    await _assertCanBeAnalyzed('''
+@A(() { label: })
+typedef F = void Function();
+''');
+  }
+
+  test_inDefaultValue_noFlow_ifExpression() async {
+    await _assertCanBeAnalyzed('''
+typedef void F({a = [if (true) 0]});
+''');
+  }
+
+  test_inDefaultValue_noFlow_ifStatement() async {
+    await _assertCanBeAnalyzed('''
+typedef void F([a = () { if (true) 0; }]);
+''');
+  }
+
   test_issue_40837() async {
     await _assertCanBeAnalyzed('''
 class A {

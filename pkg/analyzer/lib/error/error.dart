@@ -5,6 +5,7 @@
 import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
+import 'package:_fe_analyzer_shared/src/messages/codes.dart';
 import 'package:_fe_analyzer_shared/src/scanner/errors.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
@@ -69,7 +70,6 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.AMBIGUOUS_IMPORT,
   CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH,
   CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER,
-  CompileTimeErrorCode.ANNOTATION_WITH_NON_CLASS,
   CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
   CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR,
   CompileTimeErrorCode.ASSIGNMENT_TO_CONST,
@@ -222,11 +222,11 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC,
   CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS,
   CompileTimeErrorCode.INSTANTIATE_ENUM,
+  CompileTimeErrorCode.INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
   CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE,
   CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE,
   CompileTimeErrorCode.INVALID_ANNOTATION,
   CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY,
-  CompileTimeErrorCode.INVALID_ANNOTATION_GETTER,
   CompileTimeErrorCode.INVALID_ASSIGNMENT,
   CompileTimeErrorCode.INVALID_CAST_FUNCTION,
   CompileTimeErrorCode.INVALID_CAST_FUNCTION_EXPR,
@@ -240,6 +240,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME,
   CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT,
   CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS,
+  CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE,
   CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE,
   CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR,
   CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
@@ -374,6 +375,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR,
   CompileTimeErrorCode.REDIRECT_TO_NON_CLASS,
   CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR,
+  CompileTimeErrorCode.REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
   CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
   CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH,
   CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR,
@@ -403,7 +405,15 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
   CompileTimeErrorCode.TYPE_TEST_WITH_NON_TYPE,
   CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME,
+  CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE,
+  CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+  CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE,
+  CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
   CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE,
+  CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+  CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR,
+  CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD,
+  CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH,
   CompileTimeErrorCode.UNDEFINED_ANNOTATION,
   CompileTimeErrorCode.UNDEFINED_CLASS,
   CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN,
@@ -448,6 +458,8 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.YIELD_IN_NON_GENERATOR,
   CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
   FfiCode.ANNOTATION_ON_POINTER_FIELD,
+  FfiCode.EMPTY_STRUCT,
+  FfiCode.EMPTY_STRUCT_WARNING,
   FfiCode.EXTRA_ANNOTATION_ON_STRUCT_FIELD,
   FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER,
   FfiCode.FIELD_INITIALIZER_IN_STRUCT,
@@ -461,6 +473,7 @@ const List<ErrorCode> errorCodeValues = [
   FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
   FfiCode.MUST_BE_A_SUBTYPE,
   FfiCode.NON_CONSTANT_TYPE_ARGUMENT,
+  FfiCode.NON_CONSTANT_TYPE_ARGUMENT_WARNING,
   FfiCode.NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER,
   FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS,
   FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS,
@@ -539,7 +552,6 @@ const List<ErrorCode> errorCodeValues = [
   HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR,
   HintCode.NULL_CHECK_ALWAYS_FAILS,
   HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE,
-  HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE,
   HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD,
   HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER,
   HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD,
@@ -547,6 +559,8 @@ const List<ErrorCode> errorCodeValues = [
   HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT,
   HintCode.RECEIVER_OF_TYPE_NEVER,
   HintCode.RETURN_OF_DO_NOT_STORE,
+  HintCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR,
+  HintCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR,
   HintCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT,
   HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE,
   HintCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT,
@@ -828,7 +842,7 @@ const List<ErrorCode> errorCodeValues = [
 
 /// The lazy initialized map from [ErrorCode.uniqueName] to the [ErrorCode]
 /// instance.
-HashMap<String, ErrorCode> _uniqueNameToCodeMap;
+/*late final*/ HashMap<String, ErrorCode> _uniqueNameToCodeMap;
 
 /// Return the [ErrorCode] with the given [uniqueName], or `null` if not
 /// found.
@@ -925,6 +939,27 @@ class AnalysisError implements Diagnostic {
         filePath: source?.fullName,
         length: length,
         message: message,
+        offset: offset);
+    _contextMessages = contextMessages;
+  }
+
+  /// Initialize a newly created analysis error. The error is associated with
+  /// the given [source] and is located at the given [offset] with the given
+  /// [length]. The error will have the given [errorCode] and the map  of
+  /// [arguments] will be used to complete the message and correction. If any
+  /// [contextMessages] are provided, they will be recorded with the error.
+  AnalysisError.withNamedArguments(this.source, int offset, int length,
+      this.errorCode, Map<String, dynamic> arguments,
+      {List<DiagnosticMessage> contextMessages = const []}) {
+    String messageText = applyArgumentsToTemplate(errorCode.message, arguments);
+    String correctionTemplate = errorCode.correction;
+    if (correctionTemplate != null) {
+      _correction = applyArgumentsToTemplate(correctionTemplate, arguments);
+    }
+    _problemMessage = DiagnosticMessageImpl(
+        filePath: source?.fullName,
+        length: length,
+        message: messageText,
         offset: offset);
     _contextMessages = contextMessages;
   }

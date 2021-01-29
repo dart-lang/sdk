@@ -1826,30 +1826,20 @@ class _File {
     var buffer = StringBuffer();
     var ranges = <int>[];
     for (var parameter in parameters.parameters) {
-      if (parameter.isRequired) {
+      if (parameter.isRequired ||
+          (parameter.isNamed && _hasRequiredAnnotation(parameter))) {
         if (buffer.isNotEmpty) {
           buffer.write(', ');
         }
+
         if (parameter.isNamed) {
           buffer.write(parameter.identifier.name);
           buffer.write(': ');
         }
+
         var valueOffset = buffer.length;
         buffer.write(parameter.identifier.name);
         var valueLength = buffer.length - valueOffset;
-        ranges.add(valueOffset);
-        ranges.add(valueLength);
-      } else if (parameter.isNamed && _hasRequiredAnnotation(parameter)) {
-        if (buffer.isNotEmpty) {
-          buffer.write(', ');
-        }
-        buffer.write(parameter.identifier.name);
-        buffer.write(': ');
-
-        var valueOffset = buffer.length;
-        buffer.write('null');
-        var valueLength = buffer.length - valueOffset;
-
         ranges.add(valueOffset);
         ranges.add(valueLength);
       }

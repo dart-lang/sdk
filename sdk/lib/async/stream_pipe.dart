@@ -4,7 +4,7 @@
 
 part of dart.async;
 
-/** Runs user code and takes actions depending on success or failure. */
+/// Runs user code and takes actions depending on success or failure.
 _runUserCode<T>(T userCode(), onSuccess(T value),
     onError(Object error, StackTrace stackTrace)) {
   try {
@@ -43,7 +43,7 @@ void _cancelAndErrorWithReplacement(StreamSubscription subscription,
   _cancelAndError(subscription, future, error, stackTrace);
 }
 
-/** Helper function to make an onError argument to [_runUserCode]. */
+/// Helper function to make an onError argument to [_runUserCode].
 void Function(Object error, StackTrace stackTrace) _cancelAndErrorClosure(
     StreamSubscription subscription, _Future future) {
   return (Object error, StackTrace stackTrace) {
@@ -62,15 +62,13 @@ void _cancelAndValue(StreamSubscription subscription, _Future future, value) {
   }
 }
 
-/**
- * A [Stream] that forwards subscriptions to another stream.
- *
- * This stream implements [Stream], but forwards all subscriptions
- * to an underlying stream, and wraps the returned subscription to
- * modify the events on the way.
- *
- * This class is intended for internal use only.
- */
+/// A [Stream] that forwards subscriptions to another stream.
+///
+/// This stream implements [Stream], but forwards all subscriptions
+/// to an underlying stream, and wraps the returned subscription to
+/// modify the events on the way.
+///
+/// This class is intended for internal use only.
 abstract class _ForwardingStream<S, T> extends Stream<T> {
   final Stream<S> _source;
 
@@ -102,9 +100,7 @@ abstract class _ForwardingStream<S, T> extends Stream<T> {
   }
 }
 
-/**
- * Abstract superclass for subscriptions that forward to other subscriptions.
- */
+/// Abstract superclass for subscriptions that forward to other subscriptions.
 class _ForwardingStreamSubscription<S, T>
     extends _BufferingStreamSubscription<T> {
   final _ForwardingStream<S, T> _stream;
@@ -203,9 +199,7 @@ class _WhereStream<T> extends _ForwardingStream<T, T> {
 
 typedef T _Transformation<S, T>(S value);
 
-/**
- * A stream pipe that converts data events before passing them on.
- */
+/// A stream pipe that converts data events before passing them on.
 class _MapStream<S, T> extends _ForwardingStream<S, T> {
   final _Transformation<S, T> _transform;
 
@@ -225,9 +219,7 @@ class _MapStream<S, T> extends _ForwardingStream<S, T> {
   }
 }
 
-/**
- * A stream pipe that converts data events before passing them on.
- */
+/// A stream pipe that converts data events before passing them on.
 class _ExpandStream<S, T> extends _ForwardingStream<S, T> {
   final _Transformation<S, Iterable<T>> _expand;
 
@@ -248,10 +240,8 @@ class _ExpandStream<S, T> extends _ForwardingStream<S, T> {
   }
 }
 
-/**
- * A stream pipe that converts or disposes error events
- * before passing them on.
- */
+/// A stream pipe that converts or disposes error events
+/// before passing them on.
 class _HandleErrorStream<T> extends _ForwardingStream<T, T> {
   final Function _transform;
   final bool Function(Object)? _test;
@@ -327,11 +317,9 @@ class _TakeStream<T> extends _ForwardingStream<T, T> {
   }
 }
 
-/**
- * A [_ForwardingStreamSubscription] with one extra state field.
- *
- * Use by several different classes, storing an integer, bool or general.
- */
+/// A [_ForwardingStreamSubscription] with one extra state field.
+///
+/// Use by several different classes, storing an integer, bool or general.
 class _StateStreamSubscription<S, T>
     extends _ForwardingStreamSubscription<T, T> {
   S _subState;

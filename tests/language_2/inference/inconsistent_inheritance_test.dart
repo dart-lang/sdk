@@ -11,9 +11,7 @@ class B {
 }
 
 class C extends A implements B {
-  // No type can be inferred for x since the two inherited interfaces specify
-  // different types.
-  void f(/*@compile-error=unspecified*/ x) {}
+  void f(x) {}
 }
 
 void main() {}

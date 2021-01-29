@@ -8,6 +8,10 @@ fragmentation_test: Pass, Slow # GC heavy
 fragmentation_typed_data_test: Pass, Slow # GC heavy
 io/process_sync_test: Pass, Slow # Spawns synchronously subprocesses in sequence.
 
+[ $builder_tag == tsan ]
+fragmentation_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatly fails to locate its coredump.
+fragmentation_typed_data_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatly fails to locate its coredump.
+
 [ $system == android ]
 entrypoints_verification_test: Skip # Requires shared objects which the test script doesn't "adb push".
 io/http_ban_http_allowed_cases_test: Skip # Depends on grabbing local hostname which isn't supported.

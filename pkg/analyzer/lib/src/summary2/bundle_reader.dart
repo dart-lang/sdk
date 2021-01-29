@@ -585,6 +585,12 @@ class LinkedResolutionReader {
     this._byteOffset,
   );
 
+  /// TODO(scheglov) Remove after fixing http://dartbug.com/44449
+  int get byteOffset => _byteOffset;
+
+  /// TODO(scheglov) Remove after fixing http://dartbug.com/44449
+  Uint8List get bytes => _unitReader._resolutionReader.bytes;
+
   Element nextElement() {
     var memberFlags = readByte();
     var element = _readRawElement();
@@ -728,8 +734,8 @@ class LinkedResolutionReader {
       element.bound = bound;
     }
 
-    var typedefElement = nextElement();
-    var typeArguments = _readTypeList();
+    var aliasElement = nextElement();
+    var aliasArguments = aliasElement != null ? _readTypeList() : null;
 
     var returnType = nextType();
 
@@ -757,8 +763,8 @@ class LinkedResolutionReader {
       parameters: formalParameters,
       returnType: returnType,
       nullabilitySuffix: nullability,
-      element: typedefElement,
-      typeArguments: typeArguments,
+      aliasElement: aliasElement,
+      aliasArguments: aliasArguments,
     );
   }
 

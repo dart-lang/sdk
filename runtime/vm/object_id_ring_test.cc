@@ -163,8 +163,10 @@ TEST_CASE(ObjectIdRingScavengeMoveTest) {
     EXPECT_EQ(ObjectIdRing::kValid, kind);
     EXPECT_NE(Object::null(), raw_obj1);
     EXPECT_NE(Object::null(), raw_obj2);
-    EXPECT_EQ(ObjectLayout::ToAddr(raw_obj), ObjectLayout::ToAddr(raw_obj1));
-    EXPECT_EQ(ObjectLayout::ToAddr(raw_obj), ObjectLayout::ToAddr(raw_obj2));
+    EXPECT_EQ(UntaggedObject::ToAddr(raw_obj),
+              UntaggedObject::ToAddr(raw_obj1));
+    EXPECT_EQ(UntaggedObject::ToAddr(raw_obj),
+              UntaggedObject::ToAddr(raw_obj2));
     // Force a scavenge.
     GCTestHelper::CollectNewSpace();
     ObjectPtr raw_object_moved1 = ring->GetObjectForId(raw_obj_id1, &kind);
@@ -173,13 +175,13 @@ TEST_CASE(ObjectIdRingScavengeMoveTest) {
     EXPECT_EQ(ObjectIdRing::kValid, kind);
     EXPECT_NE(Object::null(), raw_object_moved1);
     EXPECT_NE(Object::null(), raw_object_moved2);
-    EXPECT_EQ(ObjectLayout::ToAddr(raw_object_moved1),
-              ObjectLayout::ToAddr(raw_object_moved2));
+    EXPECT_EQ(UntaggedObject::ToAddr(raw_object_moved1),
+              UntaggedObject::ToAddr(raw_object_moved2));
     // Test that objects have moved.
-    EXPECT_NE(ObjectLayout::ToAddr(raw_obj1),
-              ObjectLayout::ToAddr(raw_object_moved1));
-    EXPECT_NE(ObjectLayout::ToAddr(raw_obj2),
-              ObjectLayout::ToAddr(raw_object_moved2));
+    EXPECT_NE(UntaggedObject::ToAddr(raw_obj1),
+              UntaggedObject::ToAddr(raw_object_moved1));
+    EXPECT_NE(UntaggedObject::ToAddr(raw_obj2),
+              UntaggedObject::ToAddr(raw_object_moved2));
     // Test that we still point at the same list.
     moved_handle = Api::NewHandle(thread, raw_object_moved1);
     // Test id reuse.
@@ -207,7 +209,7 @@ ISOLATE_UNIT_TEST_CASE(ObjectIdRingOldGCTest) {
     EXPECT(!str.IsNull());
     EXPECT_EQ(3, str.Length());
 
-    ObjectPtr raw_obj = Object::RawCast(str.raw());
+    ObjectPtr raw_obj = Object::RawCast(str.ptr());
     // Verify that it is located in old heap.
     EXPECT(raw_obj->IsOldObject());
     EXPECT_NE(Object::null(), raw_obj);
@@ -221,8 +223,10 @@ ISOLATE_UNIT_TEST_CASE(ObjectIdRingOldGCTest) {
     EXPECT_EQ(ObjectIdRing::kValid, kind);
     EXPECT_NE(Object::null(), raw_obj1);
     EXPECT_NE(Object::null(), raw_obj2);
-    EXPECT_EQ(ObjectLayout::ToAddr(raw_obj), ObjectLayout::ToAddr(raw_obj1));
-    EXPECT_EQ(ObjectLayout::ToAddr(raw_obj), ObjectLayout::ToAddr(raw_obj2));
+    EXPECT_EQ(UntaggedObject::ToAddr(raw_obj),
+              UntaggedObject::ToAddr(raw_obj1));
+    EXPECT_EQ(UntaggedObject::ToAddr(raw_obj),
+              UntaggedObject::ToAddr(raw_obj2));
     // Exit scope. Freeing String handle.
   }
   // Force a GC. No reference exist to the old string anymore. It should be
@@ -245,27 +249,27 @@ ISOLATE_UNIT_TEST_CASE(ObjectIdRingExpiredEntryTest) {
 
   // Insert an object and check we can look it up.
   String& obj = String::Handle(String::New("I will expire"));
-  intptr_t obj_id = ring->GetIdForObject(obj.raw());
+  intptr_t obj_id = ring->GetIdForObject(obj.ptr());
   ObjectIdRing::LookupResult kind = ObjectIdRing::kInvalid;
   ObjectPtr obj_lookup = ring->GetObjectForId(obj_id, &kind);
   EXPECT_EQ(ObjectIdRing::kValid, kind);
-  EXPECT_EQ(obj.raw(), obj_lookup);
+  EXPECT_EQ(obj.ptr(), obj_lookup);
 
   // Insert as many new objects as the ring size to bump out our first entry.
   Object& new_obj = Object::Handle();
   for (intptr_t i = 0; i < ObjectIdRing::kDefaultCapacity; i++) {
     new_obj = String::New("Bump");
-    intptr_t new_obj_id = ring->GetIdForObject(new_obj.raw());
+    intptr_t new_obj_id = ring->GetIdForObject(new_obj.ptr());
     ObjectIdRing::LookupResult kind = ObjectIdRing::kInvalid;
     ObjectPtr new_obj_lookup = ring->GetObjectForId(new_obj_id, &kind);
     EXPECT_EQ(ObjectIdRing::kValid, kind);
-    EXPECT_EQ(new_obj.raw(), new_obj_lookup);
+    EXPECT_EQ(new_obj.ptr(), new_obj_lookup);
   }
 
   // Check our first entry reports it has expired.
   obj_lookup = ring->GetObjectForId(obj_id, &kind);
   EXPECT_EQ(ObjectIdRing::kExpired, kind);
-  EXPECT_NE(obj.raw(), obj_lookup);
+  EXPECT_NE(obj.ptr(), obj_lookup);
   EXPECT_EQ(Object::null(), obj_lookup);
 }
 

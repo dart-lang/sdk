@@ -11,6 +11,7 @@
 #include "vm/constants.h"
 #include "vm/cpu.h"
 #include "vm/object.h"
+#include "vm/object_store.h"
 #include "vm/reverse_pc_lookup_cache.h"
 
 namespace dart {
@@ -53,8 +54,8 @@ NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
       native_function_pool_index_(-1),
       target_code_pool_index_(-1) {
   ASSERT(code.ContainsInstructionAt(pc));
-  // Last instruction: blr ip0.
-  ASSERT(*(reinterpret_cast<uint32_t*>(end_) - 1) == 0xd63f0200);
+  // Last instruction: blr lr.
+  ASSERT(*(reinterpret_cast<uint32_t*>(end_) - 1) == 0xd63f03c0);
 
   Register reg;
   uword native_function_load_end = InstructionPattern::DecodeLoadWordFromPool(
@@ -330,17 +331,15 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
     if (instr->RnField() == PP) {
       // PP is untagged on ARM64.
       ASSERT(Utils::IsAligned(offset, 8));
-      // A code object may have an object pool attached in bare instructions
-      // mode if the v8 snapshot profile writer is active, but this pool cannot
-      // be used for object loading.
-      if (FLAG_use_bare_instructions) return false;
       intptr_t index = ObjectPool::IndexFromOffset(offset - kHeapObjectTag);
-      const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
-      if (!pool.IsNull()) {
-        if (pool.TypeAt(index) == ObjectPool::EntryType::kTaggedObject) {
-          *obj = pool.ObjectAt(index);
-          return true;
-        }
+      const ObjectPool& pool = ObjectPool::Handle(
+          FLAG_use_bare_instructions
+              ? IsolateGroup::Current()->object_store()->global_object_pool()
+              : code.object_pool());
+      if (!pool.IsNull() && (index < pool.Length()) &&
+          (pool.TypeAt(index) == ObjectPool::EntryType::kTaggedObject)) {
+        *obj = pool.ObjectAt(index);
+        return true;
       }
     } else if (instr->RnField() == THR) {
       return Thread::ObjectAtOffset(offset, obj);
@@ -449,7 +448,7 @@ BareSwitchableCallPattern::BareSwitchableCallPattern(uword pc, const Code& code)
   InstructionPattern::DecodeLoadDoubleWordFromPool(
       pc - Instr::kInstrSize, &ic_data_reg, &code_reg, &pool_index);
   ASSERT(ic_data_reg == R5);
-  ASSERT(code_reg == LR);
+  ASSERT(code_reg == LINK_REGISTER);
 
   data_pool_index_ = pool_index;
   target_pool_index_ = pool_index + 1;
@@ -461,7 +460,7 @@ CodePtr BareSwitchableCallPattern::target() const {
   if (result != Code::null()) {
     return result;
   }
-  result = ReversePc::Lookup(Dart::vm_isolate()->group(), pc);
+  result = ReversePc::Lookup(Dart::vm_isolate_group(), pc);
   if (result != Code::null()) {
     return result;
   }
@@ -479,7 +478,7 @@ ReturnPattern::ReturnPattern(uword pc) : pc_(pc) {}
 
 bool ReturnPattern::IsValid() const {
   Instr* bx_lr = Instr::At(pc_);
-  const Register crn = ConcreteRegister(LR);
+  const Register crn = ConcreteRegister(LINK_REGISTER);
   const int32_t instruction = RET | (static_cast<int32_t>(crn) << kRnShift);
   return bx_lr->InstructionBits() == instruction;
 }

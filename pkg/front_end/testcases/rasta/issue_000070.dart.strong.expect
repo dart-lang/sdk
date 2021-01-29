@@ -69,3 +69,9 @@ constants  {
   #C2 = <Null>[#C1]
   #C3 = self::A<core::int*, core::int*, core::List<dynamic>*> {field:#C2}
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue_000070.dart:
+- A.c (from org-dartlang-testcase:///issue_000070.dart:22:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

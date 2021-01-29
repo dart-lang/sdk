@@ -221,7 +221,7 @@ class ProgramBuilder {
                 "No Class for has been created for superclass "
                 "${superclass} of $c."));
       }
-      if (c.isSimpleMixinApplication || c.isSuperMixinApplication) {
+      if (c.isSimpleMixinApplication || c.isMixinApplicationWithMembers) {
         ClassEntity effectiveMixinClass =
             _elementEnvironment.getEffectiveMixinClass(cls);
         c.setMixinClass(_classes[effectiveMixinClass]);
@@ -388,7 +388,7 @@ class ProgramBuilder {
 
   js.Statement _buildInvokeMain() {
     return MainCallStubGenerator.generateInvokeMain(
-        _task.emitter, _mainFunction);
+        _commonElements, _task.emitter, _mainFunction);
   }
 
   DeferredFragment _buildDeferredFragment(LibrariesMap librariesMap) {
@@ -725,14 +725,14 @@ class ProgramBuilder {
 
     // MixinApplications run through the members of their mixin. Here, we are
     // only interested in direct members.
-    bool isSuperMixinApplication = false;
+    bool isMixinApplicationWithMembers = false;
     if (!onlyForConstructorOrRti) {
-      if (_elementEnvironment.isSuperMixinApplication(cls)) {
+      if (_elementEnvironment.isMixinApplicationWithMembers(cls)) {
         List<MemberEntity> members = <MemberEntity>[];
         void add(MemberEntity member) {
           if (member.enclosingClass == cls) {
             members.add(member);
-            isSuperMixinApplication = true;
+            isMixinApplicationWithMembers = true;
           }
         }
 
@@ -813,7 +813,7 @@ class ProgramBuilder {
     Class result;
     if (_elementEnvironment.isMixinApplication(cls) &&
         !onlyForConstructorOrRti &&
-        !isSuperMixinApplication) {
+        !isMixinApplicationWithMembers) {
       assert(!_nativeData.isNativeClass(cls));
       assert(methods.isEmpty);
       assert(!isClosureBaseClass);
@@ -854,7 +854,7 @@ class ProgramBuilder {
           isNative: _nativeData.isNativeClass(cls),
           isClosureBaseClass: isClosureBaseClass,
           isSoftDeferred: _isSoftDeferred(cls),
-          isSuperMixinApplication: isSuperMixinApplication);
+          isMixinApplicationWithMembers: isMixinApplicationWithMembers);
     }
     _classes[cls] = result;
     return result;

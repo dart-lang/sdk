@@ -499,18 +499,19 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   }
 
   @override
-  void registerSuperInvocation(ir.Name name, int positionalArguments,
+  void registerSuperInvocation(ir.Member target, int positionalArguments,
       List<String> namedArguments, List<ir.DartType> typeArguments) {
-    FunctionEntity method =
-        elementMap.getSuperMember(currentMember, name, setter: false);
-    List<DartType> dartTypeArguments = _getTypeArguments(typeArguments);
-    if (method != null) {
+    if (target != null) {
+      FunctionEntity method = elementMap.getMember(target);
+      List<DartType> dartTypeArguments = _getTypeArguments(typeArguments);
       impactBuilder.registerStaticUse(new StaticUse.superInvoke(
           method,
           new CallStructure(positionalArguments + namedArguments.length,
               namedArguments, typeArguments.length),
           dartTypeArguments));
     } else {
+      // TODO(johnniwinther): Remove this when the CFE checks for missing
+      //  concrete super targets.
       impactBuilder.registerStaticUse(new StaticUse.superInvoke(
           elementMap.getSuperNoSuchMethod(currentMember.enclosingClass),
           CallStructure.ONE_ARG));
@@ -519,16 +520,17 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   }
 
   @override
-  void registerSuperGet(ir.Name name) {
-    MemberEntity member =
-        elementMap.getSuperMember(currentMember, name, setter: false);
-    if (member != null) {
+  void registerSuperGet(ir.Member target) {
+    if (target != null) {
+      MemberEntity member = elementMap.getMember(target);
       if (member.isFunction) {
         impactBuilder.registerStaticUse(new StaticUse.superTearOff(member));
       } else {
         impactBuilder.registerStaticUse(new StaticUse.superGet(member));
       }
     } else {
+      // TODO(johnniwinther): Remove this when the CFE checks for missing
+      //  concrete super targets.
       impactBuilder.registerStaticUse(new StaticUse.superInvoke(
           elementMap.getSuperNoSuchMethod(currentMember.enclosingClass),
           CallStructure.ONE_ARG));
@@ -537,16 +539,17 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   }
 
   @override
-  void registerSuperSet(ir.Name name) {
-    MemberEntity member =
-        elementMap.getSuperMember(currentMember, name, setter: true);
-    if (member != null) {
+  void registerSuperSet(ir.Member target) {
+    if (target != null) {
+      MemberEntity member = elementMap.getMember(target);
       if (member.isField) {
         impactBuilder.registerStaticUse(new StaticUse.superFieldSet(member));
       } else {
         impactBuilder.registerStaticUse(new StaticUse.superSetterSet(member));
       }
     } else {
+      // TODO(johnniwinther): Remove this when the CFE checks for missing
+      //  concrete super targets.
       impactBuilder.registerStaticUse(new StaticUse.superInvoke(
           elementMap.getSuperNoSuchMethod(currentMember.enclosingClass),
           CallStructure.ONE_ARG));

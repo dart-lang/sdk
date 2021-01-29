@@ -8,7 +8,6 @@ import 'dart:collection';
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
-import 'package:analysis_server/protocol/protocol_generated.dart' as protocol;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/collections.dart';
@@ -248,11 +247,13 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   }
 
   /// Gets the version of a document known to the server, returning a
-  /// [VersionedTextDocumentIdentifier] with a version of `null` if the document
+  /// [OptionalVersionedTextDocumentIdentifier] with a version of `null` if the document
   /// version is not known.
-  VersionedTextDocumentIdentifier getVersionedDocumentIdentifier(String path) {
-    return documentVersions[path] ??
-        VersionedTextDocumentIdentifier(uri: Uri.file(path).toString());
+  OptionalVersionedTextDocumentIdentifier getVersionedDocumentIdentifier(
+      String path) {
+    return OptionalVersionedTextDocumentIdentifier(
+        uri: Uri.file(path).toString(),
+        version: documentVersions[path]?.version);
   }
 
   void handleClientConnection(
@@ -424,7 +425,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     final params = PublishClosingLabelsParams(
         uri: Uri.file(path).toString(), labels: labels);
     final message = NotificationMessage(
-      method: CustomMethods.PublishClosingLabels,
+      method: CustomMethods.publishClosingLabels,
       params: params,
       jsonrpc: jsonRpcVersion,
     );
@@ -446,7 +447,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     final params = PublishFlutterOutlineParams(
         uri: Uri.file(path).toString(), outline: outline);
     final message = NotificationMessage(
-      method: CustomMethods.PublishFlutterOutline,
+      method: CustomMethods.publishFlutterOutline,
       params: params,
       jsonrpc: jsonRpcVersion,
     );
@@ -457,7 +458,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     final params =
         PublishOutlineParams(uri: Uri.file(path).toString(), outline: outline);
     final message = NotificationMessage(
-      method: CustomMethods.PublishOutline,
+      method: CustomMethods.publishOutline,
       params: params,
       jsonrpc: jsonRpcVersion,
     );
@@ -552,7 +553,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     // it's unlikely to be in use by any clients.
     if (clientCapabilities.window?.workDoneProgress != true) {
       channel.sendNotification(NotificationMessage(
-        method: CustomMethods.AnalyzerStatus,
+        method: CustomMethods.analyzerStatus,
         params: AnalyzerStatusParams(isAnalyzing: status.isAnalyzing),
         jsonrpc: jsonRpcVersion,
       ));
@@ -771,9 +772,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
       if (analysisServer.shouldSendErrorsNotificationFor(path)) {
         final serverErrors = protocol.mapEngineErrors(
             result,
-            result.errors
-                .where((e) => e.errorCode.type != ErrorType.TODO)
-                .toList(),
+            result.errors.where(_shouldSendDiagnostic).toList(),
             (result, error, [severity]) => toDiagnostic(
                   result,
                   error,
@@ -812,6 +811,11 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
     analysisDriver.priorityFiles = analysisServer.priorityFiles.toList();
     analysisServer.driverMap[folder] = analysisDriver;
     return analysisDriver;
+  }
+
+  @override
+  void afterContextRefresh() {
+    analysisServer.addContextsToDeclarationsTracker();
   }
 
   @override
@@ -874,4 +878,8 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
         ?.forEach((path) => analysisServer.publishDiagnostics(path, const []));
     driver.dispose();
   }
+
+  bool _shouldSendDiagnostic(AnalysisError error) =>
+      error.errorCode.type != ErrorType.TODO ||
+      analysisServer.clientConfiguration.showTodos;
 }

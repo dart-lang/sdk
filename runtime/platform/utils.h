@@ -267,26 +267,29 @@ class Utils {
 
   // Adds two int64_t values with wrapping around
   // (two's complement arithmetic).
-  static inline int64_t AddWithWrapAround(int64_t a, int64_t b) {
+  template <typename T = int64_t>
+  static inline T AddWithWrapAround(T a, T b) {
     // Avoid undefined behavior by doing arithmetic in the unsigned type.
-    return static_cast<int64_t>(static_cast<uint64_t>(a) +
-                                static_cast<uint64_t>(b));
+    using Unsigned = typename std::make_unsigned<T>::type;
+    return static_cast<T>(static_cast<Unsigned>(a) + static_cast<Unsigned>(b));
   }
 
   // Subtracts two int64_t values with wrapping around
   // (two's complement arithmetic).
-  static inline int64_t SubWithWrapAround(int64_t a, int64_t b) {
+  template <typename T = int64_t>
+  static inline T SubWithWrapAround(T a, T b) {
     // Avoid undefined behavior by doing arithmetic in the unsigned type.
-    return static_cast<int64_t>(static_cast<uint64_t>(a) -
-                                static_cast<uint64_t>(b));
+    using Unsigned = typename std::make_unsigned<T>::type;
+    return static_cast<T>(static_cast<Unsigned>(a) - static_cast<Unsigned>(b));
   }
 
   // Multiplies two int64_t values with wrapping around
   // (two's complement arithmetic).
-  static inline int64_t MulWithWrapAround(int64_t a, int64_t b) {
+  template <typename T = int64_t>
+  static inline T MulWithWrapAround(T a, T b) {
     // Avoid undefined behavior by doing arithmetic in the unsigned type.
-    return static_cast<int64_t>(static_cast<uint64_t>(a) *
-                                static_cast<uint64_t>(b));
+    using Unsigned = typename std::make_unsigned<T>::type;
+    return static_cast<T>(static_cast<Unsigned>(a) * static_cast<Unsigned>(b));
   }
 
   // Shifts int64_t value left. Supports any non-negative number of bits and
@@ -358,15 +361,17 @@ class Utils {
     return ((-0x20000000000000LL <= value) && (value <= 0x20000000000000LL));
   }
 
+  static constexpr uword NBitMaskUnsafe(uint32_t n) {
+    static_assert((sizeof(uword) * kBitsPerByte) == kBitsPerWord,
+                  "Unexpected uword size");
+    return n == kBitsPerWord ? std::numeric_limits<uword>::max()
+                             : (static_cast<uword>(1) << n) - 1;
+  }
+
   // The lowest n bits are 1, the others are 0.
   static uword NBitMask(uint32_t n) {
     ASSERT(n <= kBitsPerWord);
-    if (n == kBitsPerWord) {
-      static_assert((sizeof(uword) * kBitsPerByte) == kBitsPerWord,
-                            "Unexpected uword size");
-      return std::numeric_limits<uword>::max();
-    }
-    return (static_cast<uword>(1) << n) - 1;
+    return NBitMaskUnsafe(n);
   }
 
   static word SignedNBitMask(uint32_t n) {

@@ -14,7 +14,8 @@ main() {
 }
 
 @reflectiveTest
-class AssignmentToTypeTest extends PubPackageResolutionTest {
+class AssignmentToTypeTest extends PubPackageResolutionTest
+    with WithNonFunctionTypeAliasesMixin {
   test_class() async {
     await assertErrorsInCode('''
 class C {}
@@ -47,7 +48,7 @@ main() {
     ]);
   }
 
-  test_typedef() async {
+  test_typedef_functionType() async {
     await assertErrorsInCode('''
 typedef void F();
 main() {
@@ -55,6 +56,18 @@ main() {
 }
 ''', [
       error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 29, 1),
+    ]);
+  }
+
+  test_typedef_interfaceType() async {
+    await assertErrorsInCode('''
+typedef F = List<int>;
+
+void f() {
+  F = null;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 37, 1),
     ]);
   }
 

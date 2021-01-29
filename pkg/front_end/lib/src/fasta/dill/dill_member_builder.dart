@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.dill_member_builder;
 
 import 'package:kernel/ast.dart'
@@ -27,7 +29,7 @@ abstract class DillMemberBuilder extends MemberBuilderImpl {
 
   DillMemberBuilder(Member member, Builder parent)
       : modifiers = computeModifiers(member),
-        super(parent, member.fileOffset);
+        super(parent, member.fileOffset, member.fileUri);
 
   Member get member;
 
@@ -252,6 +254,7 @@ class DillClassMember extends BuilderClassMember {
   bool get isSynthesized {
     Member member = memberBuilder.member;
     return member is Procedure &&
+        // TODO(johnniwinther): Should this just be `member.isSynthesized`?
         (member.isMemberSignature ||
             (member.isForwardingStub && !member.isForwardingSemiStub));
   }
@@ -264,9 +267,6 @@ class DillClassMember extends BuilderClassMember {
     return _covariance ??=
         new Covariance.fromMember(memberBuilder.member, forSetter: forSetter);
   }
-
-  @override
-  bool get isFunction => !isProperty;
 
   @override
   void inferType(ClassHierarchyBuilder hierarchy) {

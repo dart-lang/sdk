@@ -26,9 +26,10 @@ void setup() {
   A.prototype.returnUndefined = function() { return void 0; };
   A.prototype.returnEmptyString = function() { return ""; };
   A.prototype.returnZero = function() { return 0; };
-  makeA = function(){return new A()};
+  self.makeA = function(){return new A()};
   self.nativeConstructor(A);
 })()""");
+  applyTestExtensions(['A']);
 }
 
 @pragma('dart2js:noInline')

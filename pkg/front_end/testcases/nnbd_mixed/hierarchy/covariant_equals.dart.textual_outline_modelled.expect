@@ -1,0 +1,16 @@
+// @dart = 2.9
+class A {
+  bool operator ==(covariant A other) => true;
+}
+
+class B extends A {
+  bool operator ==(other) => true;
+}
+
+class C<T> {
+  bool operator ==(covariant C<T> other) => true;
+}
+
+class D extends C<int> {}
+
+main() {}

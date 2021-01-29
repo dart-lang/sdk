@@ -161,6 +161,15 @@ class CompilerOptions implements DiagnosticOptions {
   /// libraries are subdivided.
   Uri deferredMapUri;
 
+  /// The maximum number of deferred fragments to generate. If the number of
+  /// fragments exceeds this amount, then they may be merged.
+  /// Note: Currently, we only merge fragments in a single dependency chain. We
+  /// will not merge fragments with unrelated dependencies and thus we may
+  /// generate more fragments than the 'mergeFragmentsThreshold' under some
+  /// situations.
+  int mergeFragmentsThreshold = null; // default value, no max.
+  int _mergeFragmentsThreshold;
+
   /// Whether to disable inlining during the backend optimizations.
   // TODO(sigmund): negate, so all flags are positive
   bool disableInlining = false;
@@ -415,6 +424,20 @@ class CompilerOptions implements DiagnosticOptions {
   /// deserialize when using [readCodegenUri].
   int codegenShards;
 
+  /// Arguments passed to the front end about how it is invoked.
+  ///
+  /// This is used to selectively emit certain messages depending on how the
+  /// CFE is invoked. For instance to emit a message about the null safety
+  /// compilation mode when compiling an executable.
+  ///
+  /// See `InvocationMode` in
+  /// `pkg/front_end/lib/src/api_prototype/compiler_options.dart` for all
+  /// possible options.
+  Set<fe.InvocationMode> cfeInvocationModes = {};
+
+  /// Verbosity level used for filtering messages during compilation.
+  fe.Verbosity verbosity = fe.Verbosity.all;
+
   // -------------------------------------------------
   // Options for deprecated features
   // -------------------------------------------------
@@ -524,7 +547,16 @@ class CompilerOptions implements DiagnosticOptions {
       ..cfeOnly = _hasOption(options, Flags.cfeOnly)
       ..debugGlobalInference = _hasOption(options, Flags.debugGlobalInference)
       .._soundNullSafety = _hasOption(options, Flags.soundNullSafety)
-      .._noSoundNullSafety = _hasOption(options, Flags.noSoundNullSafety);
+      .._noSoundNullSafety = _hasOption(options, Flags.noSoundNullSafety)
+      .._mergeFragmentsThreshold =
+          _extractIntOption(options, '${Flags.mergeFragmentsThreshold}=')
+      ..cfeInvocationModes = fe.InvocationMode.parseArguments(
+          _extractStringOption(options, '${Flags.cfeInvocationModes}=', ''),
+          onError: onError)
+      ..verbosity = fe.Verbosity.parseArgument(
+          _extractStringOption(
+              options, '${Flags.verbosity}=', fe.Verbosity.defaultValue),
+          onError: onError);
   }
 
   void validate() {
@@ -627,6 +659,10 @@ class CompilerOptions implements DiagnosticOptions {
 
     if (_noNativeNullAssertions || nullSafetyMode != NullSafetyMode.sound) {
       nativeNullAssertions = false;
+    }
+
+    if (_mergeFragmentsThreshold != null) {
+      mergeFragmentsThreshold = _mergeFragmentsThreshold;
     }
   }
 

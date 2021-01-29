@@ -341,7 +341,6 @@ h(int x) {}
         [typeToStringWithNullability ? 'int' : 'num']);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/43114')
   test_plus_int_context_int_via_extension_explicit() async {
     await assertErrorsInCode('''
 extension E on int {
@@ -438,7 +437,6 @@ f(int Function() a, int b) {
     );
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/43114')
   test_plus_int_int_via_extension_explicit() async {
     await assertNoErrorsInCode('''
 extension E on int {
@@ -511,7 +509,6 @@ h(int x) {}
     assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['String']);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/43114')
   test_plus_other_context_int_via_extension_explicit() async {
     await assertErrorsInCode('''
 class A {}
@@ -568,7 +565,6 @@ f(A a, double b) {
     );
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/43114')
   test_plus_other_int_via_extension_explicit() async {
     await assertNoErrorsInCode('''
 class A {}

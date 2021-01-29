@@ -41,8 +41,8 @@ class Class extends core::Object {
   late field self::Class lateInstanceFieldThis = this;
   late final field self::Class lateFinalInstanceFieldThis = this;
   late static field core::int lateStaticField;
-  late static final field core::int lateFinalStaticField1;
-  late static final field core::int lateFinalStaticField2;
+  late static final [setter] field core::int lateFinalStaticField1;
+  late static final [setter] field core::int lateFinalStaticField2;
   late static final field core::int lateFinalStaticFieldWithInit = 0;
   synthetic constructor •() → self::Class
     : super core::Object::•()
@@ -74,7 +74,7 @@ Try correcting the name to the name of an existing setter, or defining a setter 
   }
 }
 late static field core::int lateTopLevelField;
-late static final field core::int lateFinalTopLevelField;
+late static final [setter] field core::int lateFinalTopLevelField;
 late static final field core::int lateFinalTopLevelFieldWithInit = 0;
 static method main() → dynamic {}
 static method noErrors() → dynamic {

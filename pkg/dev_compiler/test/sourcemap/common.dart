@@ -4,8 +4,6 @@
 
 // @dart = 2.9
 
-import 'dart:async' show Future;
-
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/testing/annotated_code_helper.dart';

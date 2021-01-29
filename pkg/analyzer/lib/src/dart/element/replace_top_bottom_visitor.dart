@@ -3,70 +3,131 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/replacement_visitor.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:meta/meta.dart';
 
 /// Replace every "top" type in a covariant position with [_bottomType].
 /// Replace every "bottom" type in a contravariant position with [_topType].
-class ReplaceTopBottomVisitor extends ReplacementVisitor {
+class ReplaceTopBottomVisitor {
+  final TypeSystemImpl _typeSystem;
   final DartType _topType;
   final DartType _bottomType;
-  final TypeSystemImpl _typeSystem;
-
-  bool _isCovariant;
 
   ReplaceTopBottomVisitor._(
     this._typeSystem,
     this._topType,
     this._bottomType,
-    this._isCovariant,
   );
 
-  @override
-  void changeVariance() {
-    _isCovariant = !_isCovariant;
-  }
-
-  @override
-  DartType visitDynamicType(DynamicType type) {
-    return _isCovariant ? _bottomType : null;
-  }
-
-  @override
-  DartType visitInterfaceType(InterfaceType type) {
-    if (_isCovariant) {
-      if (_typeSystem.isTop(type)) {
-        return _bottomType;
+  DartType process(DartType type, Variance variance) {
+    if (_typeSystem.isNonNullableByDefault) {
+      if (variance.isContravariant) {
+        // ...replacing every occurrence in `T` of a type `S` in a contravariant
+        // position where `S <: Never` by `Object?`
+        if (_typeSystem.isSubtypeOf2(type, NeverTypeImpl.instance)) {
+          return _topType;
+        }
+      } else {
+        // ...and every occurrence in `T` of a top type in a position which
+        // is not contravariant by `Never`.
+        if (_typeSystem.isTop(type)) {
+          return _bottomType;
+        }
       }
     } else {
-      if (!_typeSystem.isNonNullableByDefault && type.isDartCoreNull) {
-        return _topType;
+      if (variance.isCovariant) {
+        // ...replacing every occurrence in `T` of a top type in a covariant
+        // position by `Null`
+        if (_typeSystem.isTop(type)) {
+          return _bottomType;
+        }
+      } else if (variance.isContravariant) {
+        // ...and every occurrence in `T` of `Null` in a contravariant
+        // position by `Object`
+        if (type.isDartCoreNull) {
+          return _topType;
+        }
       }
     }
 
-    return super.visitInterfaceType(type);
-  }
-
-  @override
-  DartType visitNeverType(NeverType type) {
-    return _isCovariant ? null : _topType;
-  }
-
-  @override
-  DartType visitTypeParameterType(TypeParameterType type) {
-    if (!_isCovariant && _typeSystem.isNonNullableByDefault) {
-      if (_typeSystem.isSubtypeOf2(type, NeverTypeImpl.instance)) {
-        return _typeSystem.objectQuestion;
-      }
+    if (type.aliasElement != null) {
+      return _typeAliasInstantiation(type, variance);
+    } else if (type is InterfaceType) {
+      return _interfaceType(type, variance);
+    } else if (type is FunctionType) {
+      return _functionType(type, variance);
     }
-    return null;
+    return type;
   }
 
-  @override
-  DartType visitVoidType(VoidType type) {
-    return _isCovariant ? _bottomType : null;
+  DartType _functionType(FunctionType type, Variance variance) {
+    var newReturnType = process(type.returnType, variance);
+
+    var newParameters = type.parameters.map((parameter) {
+      return parameter.copyWith(
+        type: process(
+          parameter.type,
+          variance.combine(Variance.contravariant),
+        ),
+      );
+    }).toList();
+
+    return FunctionTypeImpl(
+      typeFormals: type.typeFormals,
+      parameters: newParameters,
+      returnType: newReturnType,
+      nullabilitySuffix: type.nullabilitySuffix,
+    );
+  }
+
+  DartType _interfaceType(InterfaceType type, Variance variance) {
+    var typeParameters = type.element.typeParameters;
+    if (typeParameters.isEmpty) {
+      return type;
+    }
+
+    var typeArguments = type.typeArguments;
+    assert(typeParameters.length == typeArguments.length);
+
+    var newTypeArguments = <DartType>[];
+    for (var i = 0; i < typeArguments.length; i++) {
+      var newTypeArgument = process(typeArguments[i], variance);
+      newTypeArguments.add(newTypeArgument);
+    }
+
+    return InterfaceTypeImpl(
+      element: type.element,
+      nullabilitySuffix: type.nullabilitySuffix,
+      typeArguments: newTypeArguments,
+    );
+  }
+
+  DartType _typeAliasInstantiation(DartType type, Variance variance) {
+    var aliasElement = type.aliasElement;
+    var aliasArguments = type.aliasArguments;
+
+    var typeParameters = aliasElement.typeParameters;
+    assert(typeParameters.length == aliasArguments.length);
+
+    var newTypeArguments = <DartType>[];
+    for (var i = 0; i < typeParameters.length; i++) {
+      var typeParameter = typeParameters[i] as TypeParameterElementImpl;
+      newTypeArguments.add(
+        process(
+          aliasArguments[i],
+          typeParameter.variance.combine(variance),
+        ),
+      );
+    }
+
+    return aliasElement.instantiate(
+      typeArguments: newTypeArguments,
+      nullabilitySuffix: type.nullabilitySuffix,
+    );
   }
 
   /// Runs an instance of the visitor on the given [type] and returns the
@@ -78,14 +139,7 @@ class ReplaceTopBottomVisitor extends ReplacementVisitor {
     @required TypeSystemImpl typeSystem,
     @required DartType type,
   }) {
-    var visitor = ReplaceTopBottomVisitor._(
-      typeSystem,
-      topType,
-      bottomType,
-      true,
-    );
-    var result = type.accept(visitor);
-    assert(visitor._isCovariant == true);
-    return result ?? type;
+    var visitor = ReplaceTopBottomVisitor._(typeSystem, topType, bottomType);
+    return visitor.process(type, Variance.covariant);
   }
 }

@@ -2,6 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/*library: 
+ output_units=[
+  f1: {units: [1{l1}], usedBy: [], needs: []},
+  f2: {units: [2{l2}], usedBy: [], needs: []}],
+ steps=[
+  l1=(f1),
+  l2=(f2)]
+*/
+
 // @dart = 2.7
 
 import 'shared.dart';

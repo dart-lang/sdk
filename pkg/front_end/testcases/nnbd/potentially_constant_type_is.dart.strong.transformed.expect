@@ -113,3 +113,13 @@ constants  {
   #C32 = self::ClassWithFunction<core::num> {field:#C19}
   #C33 = self::ClassWithFunction<core::int> {field:#C19}
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///potentially_constant_type_is.dart:
+- Class. (from org-dartlang-testcase:///potentially_constant_type_is.dart:16:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- ClassWithBound. (from org-dartlang-testcase:///potentially_constant_type_is.dart:22:9)
+- ClassWithBound.withValue (from org-dartlang-testcase:///potentially_constant_type_is.dart:24:9)
+- ClassWithList. (from org-dartlang-testcase:///potentially_constant_type_is.dart:30:9)
+- ClassWithFunction. (from org-dartlang-testcase:///potentially_constant_type_is.dart:36:9)

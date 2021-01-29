@@ -46,8 +46,6 @@ static void EmitCodeFor(FlowGraphCompiler* compiler, FlowGraph* graph) {
   // `compiler->is_optimizing()` is set to true during EmitNativeCode.
   GraphInstrinsicCodeGenScope optimizing_scope(compiler);
 
-  // The FlowGraph here is constructed by the intrinsics builder methods, and
-  // is different from compiler->flow_graph(), the original method's flow graph.
   compiler->assembler()->Comment("Graph intrinsic begin");
   for (intptr_t i = 0; i < graph->reverse_postorder().length(); i++) {
     BlockEntryInstr* block = graph->reverse_postorder()[i];
@@ -95,6 +93,8 @@ bool GraphIntrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
 
   FlowGraph* graph =
       new FlowGraph(parsed_function, graph_entry, block_id, prologue_info);
+  compiler->set_intrinsic_flow_graph(*graph);
+
   const Function& function = parsed_function.function();
 
   switch (function.recognized_kind()) {
@@ -170,8 +170,8 @@ static Definition* PrepareIndexedOp(FlowGraph* flow_graph,
                                     Definition* array,
                                     Definition* index,
                                     const Slot& length_field) {
-  Definition* length = builder->AddDefinition(new LoadFieldInstr(
-      new Value(array), length_field, TokenPosition::kNoSource));
+  Definition* length = builder->AddDefinition(
+      new LoadFieldInstr(new Value(array), length_field, InstructionSource()));
   // Note that the intrinsifier must always use deopting array bound
   // checks, because intrinsics currently don't support calls.
   Definition* safe_index = new CheckArrayBoundInstr(
@@ -247,7 +247,7 @@ static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
   Definition* result = builder.AddDefinition(new LoadIndexedInstr(
       new Value(array), new Value(index), /*index_unboxed=*/false,
       /*index_scale=*/target::Instance::ElementSizeFor(array_cid), array_cid,
-      kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
+      kAlignedAccess, DeoptId::kNone, builder.Source()));
 
   // We don't perform [RangeAnalysis] for graph intrinsics. To inform the
   // following boxing instruction about a more precise range we attach it here
@@ -355,7 +355,7 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
       // maps to kUnboxedInt64. All other situations get away with
       // truncating even non-smi values.
       builder.AddInstruction(new CheckSmiInstr(new Value(value), DeoptId::kNone,
-                                               builder.TokenPos()));
+                                               builder.Source()));
       FALL_THROUGH;
 #endif
     case kTypedDataInt8ArrayCid:
@@ -410,7 +410,7 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
       Zone* zone = flow_graph->zone();
       Cids* value_check = Cids::CreateMonomorphic(zone, value_check_cid);
       builder.AddInstruction(new CheckClassInstr(
-          new Value(value), DeoptId::kNone, *value_check, builder.TokenPos()));
+          new Value(value), DeoptId::kNone, *value_check, builder.Source()));
       value = builder.AddUnboxInstr(rep, new Value(value),
                                     /* is_checked = */ true);
       if (array_cid == kTypedDataFloat32ArrayCid) {
@@ -434,7 +434,7 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
       new Value(array), new Value(index), new Value(value), kNoStoreBarrier,
       /*index_unboxed=*/false,
       /*index_scale=*/target::Instance::ElementSizeFor(array_cid), array_cid,
-      kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
+      kAlignedAccess, DeoptId::kNone, builder.Source()));
   // Return null.
   Definition* null_def = builder.AddNullDefinition();
   builder.AddReturn(new Value(null_def));
@@ -573,7 +573,7 @@ static bool BuildCodeUnitAt(FlowGraph* flow_graph, intptr_t cid) {
   Definition* load = builder.AddDefinition(new LoadIndexedInstr(
       new Value(str), new Value(index), /*index_unboxed=*/false,
       target::Instance::ElementSizeFor(cid), cid, kAlignedAccess,
-      DeoptId::kNone, builder.TokenPos()));
+      DeoptId::kNone, builder.Source()));
 
   // We don't perform [RangeAnalysis] for graph intrinsics. To inform the
   // following boxing instruction about a more precise range we attach it here
@@ -631,7 +631,7 @@ static bool BuildSimdOp(FlowGraph* flow_graph, intptr_t cid, Token::Kind kind) {
   Cids* value_check = Cids::CreateMonomorphic(zone, cid);
   // Check argument. Receiver (left) is known to be a Float32x4.
   builder.AddInstruction(new CheckClassInstr(new Value(right), DeoptId::kNone,
-                                             *value_check, builder.TokenPos()));
+                                             *value_check, builder.Source()));
   Definition* left_simd = builder.AddUnboxInstr(rep, new Value(left),
                                                 /* is_checked = */ true);
 
@@ -737,7 +737,7 @@ static bool BuildLoadField(FlowGraph* flow_graph, const Slot& field) {
   VerifyParameterIsBoxed(&builder, 0);
 
   Definition* length = builder.AddDefinition(
-      new LoadFieldInstr(new Value(array), field, builder.TokenPos()));
+      new LoadFieldInstr(new Value(array), field, builder.Source()));
 
   length = CreateUnboxedResultIfNeeded(&builder, length);
   builder.AddReturn(new Value(length));
@@ -781,9 +781,9 @@ bool GraphIntrinsifier::Build_GrowableArrayCapacity(FlowGraph* flow_graph) {
   VerifyParameterIsBoxed(&builder, 0);
 
   Definition* backing_store = builder.AddDefinition(new LoadFieldInstr(
-      new Value(array), Slot::GrowableObjectArray_data(), builder.TokenPos()));
+      new Value(array), Slot::GrowableObjectArray_data(), builder.Source()));
   Definition* capacity = builder.AddDefinition(new LoadFieldInstr(
-      new Value(backing_store), Slot::Array_length(), builder.TokenPos()));
+      new Value(backing_store), Slot::Array_length(), builder.Source()));
   capacity = CreateUnboxedResultIfNeeded(&builder, capacity);
   builder.AddReturn(new Value(capacity));
   return true;
@@ -805,11 +805,11 @@ bool GraphIntrinsifier::Build_GrowableArrayGetIndexed(FlowGraph* flow_graph) {
 
   Definition* backing_store = builder.AddDefinition(
       new LoadFieldInstr(new Value(growable_array),
-                         Slot::GrowableObjectArray_data(), builder.TokenPos()));
+                         Slot::GrowableObjectArray_data(), builder.Source()));
   Definition* result = builder.AddDefinition(new LoadIndexedInstr(
       new Value(backing_store), new Value(index), /*index_unboxed=*/false,
       /*index_scale=*/target::Instance::ElementSizeFor(kArrayCid), kArrayCid,
-      kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
+      kAlignedAccess, DeoptId::kNone, builder.Source()));
   result = CreateUnboxedResultIfNeeded(&builder, result);
   builder.AddReturn(new Value(result));
   return true;
@@ -836,7 +836,7 @@ bool GraphIntrinsifier::Build_ObjectArraySetIndexedUnchecked(
       new Value(array), new Value(index), new Value(value), kEmitStoreBarrier,
       /*index_unboxed=*/false,
       /*index_scale=*/target::Instance::ElementSizeFor(kArrayCid), kArrayCid,
-      kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
+      kAlignedAccess, DeoptId::kNone, builder.Source()));
   // Return null.
   Definition* null_def = builder.AddNullDefinition();
   builder.AddReturn(new Value(null_def));
@@ -861,13 +861,13 @@ bool GraphIntrinsifier::Build_GrowableArraySetIndexedUnchecked(
                            Slot::GrowableObjectArray_length());
 
   Definition* backing_store = builder.AddDefinition(new LoadFieldInstr(
-      new Value(array), Slot::GrowableObjectArray_data(), builder.TokenPos()));
+      new Value(array), Slot::GrowableObjectArray_data(), builder.Source()));
 
   builder.AddInstruction(new StoreIndexedInstr(
       new Value(backing_store), new Value(index), new Value(value),
       kEmitStoreBarrier, /*index_unboxed=*/false,
       /*index_scale=*/target::Instance::ElementSizeFor(kArrayCid), kArrayCid,
-      kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
+      kAlignedAccess, DeoptId::kNone, builder.Source()));
   // Return null.
   Definition* null_def = builder.AddNullDefinition();
   builder.AddReturn(new Value(null_def));
@@ -888,11 +888,11 @@ bool GraphIntrinsifier::Build_GrowableArraySetData(FlowGraph* flow_graph) {
 
   Cids* value_check = Cids::CreateMonomorphic(zone, kArrayCid);
   builder.AddInstruction(new CheckClassInstr(new Value(data), DeoptId::kNone,
-                                             *value_check, builder.TokenPos()));
+                                             *value_check, builder.Source()));
 
   builder.AddInstruction(new StoreInstanceFieldInstr(
       Slot::GrowableObjectArray_data(), new Value(growable_array),
-      new Value(data), kEmitStoreBarrier, builder.TokenPos()));
+      new Value(data), kEmitStoreBarrier, builder.Source()));
   // Return null.
   Definition* null_def = builder.AddNullDefinition();
   builder.AddReturn(new Value(null_def));
@@ -911,10 +911,10 @@ bool GraphIntrinsifier::Build_GrowableArraySetLength(FlowGraph* flow_graph) {
   VerifyParameterIsBoxed(&builder, 1);
 
   builder.AddInstruction(
-      new CheckSmiInstr(new Value(length), DeoptId::kNone, builder.TokenPos()));
+      new CheckSmiInstr(new Value(length), DeoptId::kNone, builder.Source()));
   builder.AddInstruction(new StoreInstanceFieldInstr(
       Slot::GrowableObjectArray_length(), new Value(growable_array),
-      new Value(length), kNoStoreBarrier, builder.TokenPos()));
+      new Value(length), kNoStoreBarrier, builder.Source()));
   Definition* null_def = builder.AddNullDefinition();
   builder.AddReturn(new Value(null_def));
   return true;
@@ -984,7 +984,7 @@ static bool BuildInvokeMathCFunction(BlockBuilder* builder,
 
   Definition* unboxed_result =
       builder->AddDefinition(new InvokeMathCFunctionInstr(
-          args, DeoptId::kNone, kind, builder->TokenPos()));
+          args, DeoptId::kNone, kind, builder->Source()));
   Definition* result =
       CreateBoxedResultIfNeeded(builder, unboxed_result, kUnboxedDouble);
   builder->AddReturn(new Value(result));
@@ -1143,7 +1143,7 @@ bool GraphIntrinsifier::Build_ImplicitGetter(FlowGraph* flow_graph) {
   ASSERT(Intrinsifier::CanIntrinsifyFieldAccessor(function));
 
   auto& field = Field::Handle(zone, function.accessor_field());
-  if (Field::ShouldCloneFields()) {
+  if (CompilerState::Current().should_clone_fields()) {
     field = field.CloneFromOriginal();
   }
   ASSERT(field.is_instance() && !field.is_late() && !field.needs_load_guard());
@@ -1158,7 +1158,7 @@ bool GraphIntrinsifier::Build_ImplicitGetter(FlowGraph* flow_graph) {
   VerifyParameterIsBoxed(&builder, 0);
 
   Definition* field_value = builder.AddDefinition(new (zone) LoadFieldInstr(
-      new (zone) Value(receiver), slot, builder.TokenPos()));
+      new (zone) Value(receiver), slot, builder.Source()));
 
   // We only support cases where we do not have to create a box (whose
   // allocation could fail).
@@ -1186,7 +1186,7 @@ bool GraphIntrinsifier::Build_ImplicitSetter(FlowGraph* flow_graph) {
   ASSERT(Intrinsifier::CanIntrinsifyFieldAccessor(function));
 
   auto& field = Field::Handle(zone, function.accessor_field());
-  if (Field::ShouldCloneFields()) {
+  if (CompilerState::Current().should_clone_fields()) {
     field = field.CloneFromOriginal();
   }
   ASSERT(field.is_instance() && !field.is_final());
@@ -1220,7 +1220,7 @@ bool GraphIntrinsifier::Build_ImplicitSetter(FlowGraph* flow_graph) {
 
   builder.AddInstruction(new (zone) StoreInstanceFieldInstr(
       slot, new (zone) Value(receiver), new (zone) Value(value), barrier_mode,
-      builder.TokenPos()));
+      builder.Source()));
 
   builder.AddReturn(new (zone) Value(flow_graph->constant_null()));
   return true;

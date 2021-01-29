@@ -84,25 +84,25 @@ static method test1(Never n1, Never? n2, Null n3) → dynamic {
     final core::List<Never> #t1 = core::List::of<Never>(let final Never #t2 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
   } =>#t1;
   core::List<Never> l2 = block {
-    final core::List<Never> #t3 = <Never>[];
+    final core::List<Never> #t3 = core::_GrowableList::•<Never>(0);
     final core::Iterable<Never>? #t4 = let final Never #t5 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
     if(!#t4.{core::Object::==}(null))
       #t3.{core::List::addAll}{Invariant}(#t4{core::Iterable<Never>});
   } =>#t3;
-  core::List<dynamic> l3 = <dynamic>[invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:8:16: Error: Can't spread a value with static type 'Never?'.
+  core::List<dynamic> l3 = core::_GrowableList::_literal1<dynamic>(invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:8:16: Error: Can't spread a value with static type 'Never?'.
   var l3 = [...n2];
-               ^"];
+               ^");
   core::List<Never> l4 = block {
-    final core::List<Never> #t6 = <Never>[];
+    final core::List<Never> #t6 = core::_GrowableList::•<Never>(0);
     final core::Iterable<Never>? #t7 = n2;
     if(!#t7.{core::Object::==}(null))
       #t6.{core::List::addAll}{Invariant}(#t7{core::Iterable<Never>});
   } =>#t6;
-  core::List<dynamic> l5 = <dynamic>[invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:10:16: Error: Can't spread a value with static type 'Null'.
+  core::List<dynamic> l5 = core::_GrowableList::_literal1<dynamic>(invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:10:16: Error: Can't spread a value with static type 'Null'.
   var l5 = [...n3];
-               ^"];
+               ^");
   core::List<Never> l6 = block {
-    final core::List<Never> #t8 = <Never>[];
+    final core::List<Never> #t8 = core::_GrowableList::•<Never>(0);
     final core::Iterable<Never>? #t9 = n3;
     if(!#t9.{core::Object::==}(null))
       #t8.{core::List::addAll}{Invariant}(#t9{core::Iterable<Never>});
@@ -205,25 +205,25 @@ static method test2<N1 extends Never = Never, N2 extends Never? = Never?, N3 ext
     final core::List<Never> #t52 = core::List::of<Never>(let final self::test2::N1 #t53 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
   } =>#t52;
   core::List<Never> l2 = block {
-    final core::List<Never> #t54 = <Never>[];
+    final core::List<Never> #t54 = core::_GrowableList::•<Never>(0);
     final core::Iterable<Never>? #t55 = let final self::test2::N1 #t56 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
     if(!#t55.{core::Object::==}(null))
       #t54.{core::List::addAll}{Invariant}(#t55{core::Iterable<Never>});
   } =>#t54;
-  core::List<dynamic> l3 = <dynamic>[invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:30:16: Error: Can't spread a value with static type 'N2'.
+  core::List<dynamic> l3 = core::_GrowableList::_literal1<dynamic>(invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:30:16: Error: Can't spread a value with static type 'N2'.
   var l3 = [...n2];
-               ^"];
+               ^");
   core::List<Never> l4 = block {
-    final core::List<Never> #t57 = <Never>[];
+    final core::List<Never> #t57 = core::_GrowableList::•<Never>(0);
     final core::Iterable<Never>? #t58 = n2;
     if(!#t58.{core::Object::==}(null))
       #t57.{core::List::addAll}{Invariant}(#t58{core::Iterable<Never>});
   } =>#t57;
-  core::List<dynamic> l5 = <dynamic>[invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:32:16: Error: Can't spread a value with static type 'N3'.
+  core::List<dynamic> l5 = core::_GrowableList::_literal1<dynamic>(invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:32:16: Error: Can't spread a value with static type 'N3'.
   var l5 = [...n3];
-               ^"];
+               ^");
   core::List<Never> l6 = block {
-    final core::List<Never> #t59 = <Never>[];
+    final core::List<Never> #t59 = core::_GrowableList::•<Never>(0);
     final core::Iterable<Never>? #t60 = n3;
     if(!#t60.{core::Object::==}(null))
       #t59.{core::List::addAll}{Invariant}(#t60{core::Iterable<Never>});

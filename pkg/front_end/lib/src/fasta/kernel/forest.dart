@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.fangorn;
 
 import 'dart:core' hide MapEntry;
@@ -706,12 +708,10 @@ class Forest {
 
   IndexSet createIndexSet(
       int fileOffset, Expression receiver, Expression index, Expression value,
-      {bool forEffect, bool readOnlyReceiver}) {
+      {bool forEffect}) {
     assert(fileOffset != null);
     assert(forEffect != null);
-    assert(readOnlyReceiver != null);
-    return new IndexSet(receiver, index, value,
-        forEffect: forEffect, readOnlyReceiver: readOnlyReceiver)
+    return new IndexSet(receiver, index, value, forEffect: forEffect)
       ..fileOffset = fileOffset;
   }
 

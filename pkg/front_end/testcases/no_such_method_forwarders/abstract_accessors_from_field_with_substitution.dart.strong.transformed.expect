@@ -23,7 +23,7 @@ class B extends core::Object implements self::A<core::int*> {
     : super core::Object::•()
     ;
   method noSuchMethod(core::Invocation* i) → dynamic
-    return <dynamic>[];
+    return core::_GrowableList::•<dynamic>(0);
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -36,7 +36,7 @@ class B extends core::Object implements self::A<core::int*> {
   no-such-method-forwarder get foo() → core::List<core::int*>*
     return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::List<core::int*>*;
   no-such-method-forwarder set foo(generic-covariant-impl core::List<core::int*>* value) → void
-    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(value)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
 }
 static method expectTypeError(() →* dynamic callback) → void {
   try {
@@ -49,7 +49,7 @@ static method expectTypeError(() →* dynamic callback) → void {
 static method main() → dynamic {
   self::B* b = new self::B::•();
   self::expectTypeError(() → core::List<core::int*>* => b.{self::A::foo});
-  self::expectTypeError(() → core::List<dynamic>* => (b as dynamic).foo = <dynamic>[]);
+  self::expectTypeError(() → core::List<dynamic>* => (b as dynamic).foo = core::_GrowableList::•<dynamic>(0));
 }
 
 constants  {

@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
+import 'package:nnbd_migration/src/hint_action.dart';
 
 /// Data structure used by the nullability migration engine to refer to a
 /// specific location in source code.
@@ -273,6 +274,7 @@ enum EdgeOriginKind {
   implicitMixinSuperCall,
   implicitNullInitializer,
   implicitNullReturn,
+  implicitThis,
   inferredTypeParameterInstantiation,
   instanceCreation,
   instantiateToBounds,
@@ -302,32 +304,6 @@ enum EdgeOriginKind {
 /// Interface used by the migration engine to expose information to its client
 /// about a reason for a modification to the source file.
 abstract class FixReasonInfo {}
-
-/// Enum describing the possible hints that can be performed on an edge or a
-/// node.
-///
-/// Which actions are available can be built by other visitors, and the hint can
-/// be applied by visitors such as EditPlanner when the user requests it from
-/// the front end.
-enum HintActionKind {
-  /// Add a `/*?*/` hint to a type.
-  addNullableHint,
-
-  /// Add a `/*!*/` hint to a type.
-  addNonNullableHint,
-
-  /// Change a `/*!*/` hint to a `/*?*/` hint.
-  changeToNullableHint,
-
-  /// Change a `/*?*/` hint to a `/*!*/` hint.
-  changeToNonNullableHint,
-
-  /// Remove a `/*?*/` hint.
-  removeNullableHint,
-
-  /// Remove a `/*!*/` hint.
-  removeNonNullableHint,
-}
 
 /// Abstract interface for assigning ids numbers to nodes, and performing
 /// lookups afterwards.
@@ -537,28 +513,4 @@ abstract class UpstreamPropagationStepInfo implements PropagationStepInfo {
   NullabilityNodeInfo get node;
 
   UpstreamPropagationStepInfo get principalCause;
-}
-
-/// Extension methods to make [HintActionKind] act as a smart enum.
-extension HintActionKindBehaviors on HintActionKind {
-  /// Get the text description of a [HintActionKind], for display to users.
-  String get description {
-    switch (this) {
-      case HintActionKind.addNullableHint:
-        return 'Add /*?*/ hint';
-      case HintActionKind.addNonNullableHint:
-        return 'Add /*!*/ hint';
-      case HintActionKind.removeNullableHint:
-        return 'Remove /*?*/ hint';
-      case HintActionKind.removeNonNullableHint:
-        return 'Remove /*!*/ hint';
-      case HintActionKind.changeToNullableHint:
-        return 'Change to /*?*/ hint';
-      case HintActionKind.changeToNonNullableHint:
-        return 'Change to /*!*/ hint';
-    }
-
-    assert(false);
-    return null;
-  }
 }

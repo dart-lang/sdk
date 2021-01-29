@@ -1,0 +1,14 @@
+class A<T> {
+  ---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+  T x;
+}
+class B<T> {
+  T? _y;
+  T? get y => _y;
+  set y(T? val) {}
+}
+expect(expected, actual) {}
+main() {}
+throws(void Function() f) {}

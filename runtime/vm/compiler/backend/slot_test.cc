@@ -46,9 +46,10 @@ TEST_CASE(SlotFromGuardedField) {
       Script::Handle(), TokenPosition::kNoSource));
   dummy_class.set_is_synthesized_class();
 
+  const FunctionType& signature = FunctionType::ZoneHandle(FunctionType::New());
   const Function& dummy_function = Function::ZoneHandle(
-      Function::New(String::Handle(Symbols::New(thread, "foo")),
-                    FunctionLayout::kRegularFunction, false, false, false,
+      Function::New(signature, String::Handle(Symbols::New(thread, "foo")),
+                    UntaggedFunction::kRegularFunction, false, false, false,
                     false, false, dummy_class, TokenPosition::kMinSource));
 
   const Field& field = Field::Handle(
@@ -63,7 +64,8 @@ TEST_CASE(SlotFromGuardedField) {
   field.set_is_nullable_unsafe(false);
 
   // Enter compiler state.
-  CompilerState compiler_state(thread, /*is_aot=*/false);
+  CompilerState compiler_state(thread, /*is_aot=*/false,
+                               /*is_optimizing=*/true);
 
   const Field& field_clone_1 = Field::ZoneHandle(field.CloneFromOriginal());
   const Field& field_clone_2 = Field::ZoneHandle(field.CloneFromOriginal());
@@ -81,8 +83,8 @@ TEST_CASE(SlotFromGuardedField) {
 
   // Check that the field was added (once) to the list of guarded fields.
   EXPECT_EQ(1, parsed_function->guarded_fields()->length());
-  EXPECT_EQ(parsed_function->guarded_fields()->At(0)->raw(),
-            field_clone_1.raw());
+  EXPECT_EQ(parsed_function->guarded_fields()->At(0)->ptr(),
+            field_clone_1.ptr());
 
   // Change the guarded state of the field to "unknown" - emulating concurrent
   // modification of the guarded state in mutator) and create a new clone of
@@ -98,8 +100,8 @@ TEST_CASE(SlotFromGuardedField) {
   const Slot& slot3 = Slot::Get(field_clone_3, parsed_function2);
   EXPECT_EQ(&slot1, &slot3);
   EXPECT_EQ(1, parsed_function2->guarded_fields()->length());
-  EXPECT_EQ(parsed_function2->guarded_fields()->At(0)->raw(),
-            field_clone_1.raw());
+  EXPECT_EQ(parsed_function2->guarded_fields()->At(0)->ptr(),
+            field_clone_1.ptr());
 }
 
 }  // namespace dart

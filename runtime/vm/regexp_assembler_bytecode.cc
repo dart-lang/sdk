@@ -401,7 +401,7 @@ TypedDataPtr BytecodeRegExpMacroAssembler::GetBytecode() {
   NoSafepointScope no_safepoint;
   memmove(bytecode.DataAddr(0), buffer_->data(), len);
 
-  return bytecode.raw();
+  return bytecode.ptr();
 }
 
 intptr_t BytecodeRegExpMacroAssembler::length() {
@@ -505,9 +505,9 @@ static IrregexpInterpreter::IrregexpResult ExecRaw(const RegExp& regexp,
   }
   if (result == IrregexpInterpreter::RE_EXCEPTION) {
     Thread* thread = Thread::Current();
-    Isolate* isolate = thread->isolate();
+    auto isolate_group = thread->isolate_group();
     const Instance& exception =
-        Instance::Handle(isolate->object_store()->stack_overflow());
+        Instance::Handle(isolate_group->object_store()->stack_overflow());
     Exceptions::Throw(thread, exception);
     UNREACHABLE();
   }
@@ -554,7 +554,7 @@ InstancePtr BytecodeRegExpMacroAssembler::Interpret(const RegExp& regexp,
               capture_register_count * sizeof(int32_t));
     }
 
-    return result.raw();
+    return result.ptr();
   }
   if (result == IrregexpInterpreter::RE_EXCEPTION) {
     UNREACHABLE();

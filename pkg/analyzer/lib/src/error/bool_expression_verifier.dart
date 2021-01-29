@@ -51,7 +51,9 @@ class BoolExpressionVerifier {
     if (!_checkForUseOfVoidResult(expression) &&
         !_typeSystem.isAssignableTo2(type, _boolType)) {
       if (type.element == _boolElement) {
-        _nullableDereferenceVerifier.report(expression, type);
+        _nullableDereferenceVerifier.report(expression, type,
+            errorCode: CompileTimeErrorCode
+                .UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION);
       } else {
         _errorReporter.reportErrorForNode(errorCode, expression, arguments);
       }

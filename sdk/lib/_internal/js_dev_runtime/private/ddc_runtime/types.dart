@@ -240,18 +240,13 @@ class LazyJSType extends DartType {
   Object rawJSTypeForCheck() => _getRawJSType() ?? jsobject;
 
   @notNull
-  bool isRawJSType(obj) {
-    var raw = _getRawJSType();
-    if (raw != null) return JS('!', '# instanceof #', obj, raw);
-    return _isJsObject(obj);
-  }
-
-  @notNull
   @JSExportName('is')
-  bool is_T(obj) => isRawJSType(obj) || instanceOf(obj, this);
+  bool is_T(obj) =>
+      obj != null &&
+      (_isJsObject(obj) || isSubtypeOf(getReifiedType(obj), this));
 
   @JSExportName('as')
-  as_T(obj) => obj == null || is_T(obj) ? obj : castError(obj, this);
+  as_T(obj) => is_T(obj) ? obj : castError(obj, this);
 }
 
 /// An anonymous JS type
@@ -263,10 +258,12 @@ class AnonymousJSType extends DartType {
   toString() => _dartName;
 
   @JSExportName('is')
-  bool is_T(obj) => _isJsObject(obj) || instanceOf(obj, this);
+  bool is_T(obj) =>
+      obj != null &&
+      (_isJsObject(obj) || isSubtypeOf(getReifiedType(obj), this));
 
   @JSExportName('as')
-  as_T(obj) => obj == null || _isJsObject(obj) ? obj : cast(obj, this);
+  as_T(obj) => is_T(obj) ? obj : castError(obj, this);
 }
 
 void _warn(arg) {
@@ -1209,7 +1206,7 @@ String typeName(type) => JS('', '''(() => {
     let args = ${getGenericArgs(type)};
     if (args == null) return name;
 
-    if (${getGenericClass(type)} == ${getGenericClass(JSArray)}) name = 'List';
+    if (${getGenericClass(type)} == ${getGenericClassStatic<JSArray>()}) name = 'List';
 
     let result = name;
     result += '<';
@@ -1394,7 +1391,7 @@ external Type legacyTypeRep<T>();
 bool _isFutureOr(type) {
   var genericClass = getGenericClass(type);
   return JS<bool>('!', '# && # === #', genericClass, genericClass,
-      getGenericClass(FutureOr));
+      getGenericClassStatic<FutureOr>());
 }
 
 @notNull
@@ -1479,7 +1476,7 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) => JS<bool>('!', '''(() => {
 
     // given t1 is Future<A> | A, then:
     // (Future<A> | A) <: t2 iff Future<A> <: t2 and A <: t2.
-    let t1Future = ${getGenericClass(Future)}(t1TypeArg);
+    let t1Future = ${getGenericClassStatic<Future>()}(t1TypeArg);
     // Known to handle the case FutureOr<Null> <: Future<Null>.
     return $_isSubtype(t1Future, $t2, $strictMode) &&
         $_isSubtype(t1TypeArg, $t2, $strictMode);
@@ -1496,7 +1493,7 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) => JS<bool>('!', '''(() => {
     // given t2 is Future<A> | A, then:
     // t1 <: (Future<A> | A) iff t1 <: Future<A> or t1 <: A
     let t2TypeArg = ${getGenericArgs(t2)}[0];
-    let t2Future = ${getGenericClass(Future)}(t2TypeArg);
+    let t2Future = ${getGenericClassStatic<Future>()}(t2TypeArg);
     // TODO(nshahan) Need to handle type variables on the left.
     // https://github.com/dart-lang/sdk/issues/38816
     return $_isSubtype($t1, t2Future, $strictMode) || $_isSubtype($t1, t2TypeArg, $strictMode);
@@ -1897,7 +1894,7 @@ class _TypeInferrer {
       // - And `P` is a subtype match for `Q` with respect to `L` under
       //   constraints `C1`.
       var subtypeFuture =
-          JS<Object>('!', '#(#)', getGenericClass(Future), subtypeArg);
+          JS<Object>('!', '#(#)', getGenericClassStatic<Future>(), subtypeArg);
       return _isSubtypeMatch(subtypeFuture, supertype) &&
           _isSubtypeMatch(subtypeArg!, supertype);
     }
@@ -1912,8 +1909,8 @@ class _TypeInferrer {
       //   - And `P` is a subtype match for `Q` with respect to `L` under
       //     constraints `C`
       var supertypeArg = getGenericArgs(supertype)![0];
-      var supertypeFuture =
-          JS<Object>('!', '#(#)', getGenericClass(Future), supertypeArg);
+      var supertypeFuture = JS<Object>(
+          '!', '#(#)', getGenericClassStatic<Future>(), supertypeArg);
       return _isSubtypeMatch(subtype, supertypeFuture) ||
           _isSubtypeMatch(subtype, supertypeArg);
     }

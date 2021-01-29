@@ -153,8 +153,11 @@ class ArgListContributor extends DartCompletionContributor {
 
     var containingNode = request.target.containingNode;
     var entity = request.target.entity;
-    var token =
-        entity is AstNode ? entity.endToken : entity is Token ? entity : null;
+    var token = entity is AstNode
+        ? entity.endToken
+        : entity is Token
+            ? entity
+            : null;
     return (token != containingNode?.endToken) &&
         token?.next?.type == TokenType.COMMA &&
         !token.next.isSynthetic;

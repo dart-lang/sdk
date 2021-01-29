@@ -1,0 +1,34 @@
+class Class extends Super implements Interface {
+  void extendedAbstractDeclaredAbstractMethod();
+  void extendedAbstractDeclaredConcreteMethod() {}
+  void extendedAbstractImplementedDeclaredAbstractMethod();
+  void extendedAbstractImplementedDeclaredConcreteMethod() {}
+  void extendedConcreteDeclaredAbstractMethod();
+  void extendedConcreteDeclaredConcreteMethod() {}
+  void extendedConcreteImplementedDeclaredAbstractMethod();
+  void extendedConcreteImplementedDeclaredConcreteMethod() {}
+  void implementedDeclaredAbstractMethod();
+  void implementedDeclaredConcreteMethod() {}
+}
+
+class Interface {
+  void extendedAbstractImplementedDeclaredAbstractMethod() {}
+  void extendedAbstractImplementedDeclaredConcreteMethod() {}
+  void extendedConcreteImplementedDeclaredAbstractMethod() {}
+  void extendedConcreteImplementedDeclaredConcreteMethod() {}
+  void implementedDeclaredAbstractMethod() {}
+  void implementedDeclaredConcreteMethod() {}
+}
+
+class Super {
+  void extendedAbstractDeclaredAbstractMethod();
+  void extendedAbstractDeclaredConcreteMethod();
+  void extendedAbstractImplementedDeclaredAbstractMethod();
+  void extendedAbstractImplementedDeclaredConcreteMethod();
+  void extendedConcreteDeclaredAbstractMethod() {}
+  void extendedConcreteDeclaredConcreteMethod() {}
+  void extendedConcreteImplementedDeclaredAbstractMethod() {}
+  void extendedConcreteImplementedDeclaredConcreteMethod() {}
+}
+
+main() {}

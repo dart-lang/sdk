@@ -3,6 +3,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io';
 
 import 'package:kernel/kernel.dart';
@@ -62,9 +64,9 @@ class WrappedBinaryBuilder extends BinaryBuilder {
     linkTableSize += byteOffset;
   }
 
-  Map<Uri, Source> readUriToSource() {
+  Map<Uri, Source> readUriToSource(bool readCoverage) {
     uriToSourceSize -= byteOffset;
-    var result = super.readUriToSource();
+    var result = super.readUriToSource(readCoverage);
     uriToSourceSize += byteOffset;
     return result;
   }

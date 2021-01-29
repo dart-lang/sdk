@@ -62,7 +62,7 @@ class SymbolKeyValueTrait {
   static inline intptr_t Hashcode(Key key) { return key->Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair->raw() == key->raw();
+    return pair->ptr() == key->ptr();
   }
 };
 
@@ -73,7 +73,7 @@ struct FunctionKeyTraits {
   static uint32_t Hash(const Object& key) { return Function::Cast(key).Hash(); }
   static const char* Name() { return "FunctionKeyTraits"; }
   static bool IsMatch(const Object& x, const Object& y) {
-    return x.raw() == y.raw();
+    return x.ptr() == y.ptr();
   }
   static bool ReportStats() { return false; }
 };
@@ -94,13 +94,13 @@ class FieldKeyValueTrait {
   static inline intptr_t Hashcode(Key key) {
     const TokenPosition token_pos = key->token_pos();
     if (token_pos.IsReal()) {
-      return token_pos.value();
+      return token_pos.Hash();
     }
     return key->kernel_offset();
   }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair->raw() == key->raw();
+    return pair->ptr() == key->ptr();
   }
 };
 
@@ -117,10 +117,10 @@ class ClassKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->token_pos().value(); }
+  static inline intptr_t Hashcode(Key key) { return key->token_pos().Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair->raw() == key->raw();
+    return pair->ptr() == key->ptr();
   }
 };
 
@@ -140,11 +140,31 @@ class AbstractTypeKeyValueTrait {
   static inline intptr_t Hashcode(Key key) { return key->Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair->raw() == key->raw();
+    return pair->ptr() == key->ptr();
   }
 };
 
 typedef DirectChainedHashMap<AbstractTypeKeyValueTrait> AbstractTypeSet;
+
+class FunctionTypeKeyValueTrait {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const FunctionType* Key;
+  typedef const FunctionType* Value;
+  typedef const FunctionType* Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline intptr_t Hashcode(Key key) { return key->Hash(); }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) {
+    return pair->ptr() == key->ptr();
+  }
+};
+
+typedef DirectChainedHashMap<FunctionTypeKeyValueTrait> FunctionTypeSet;
 
 class TypeParameterKeyValueTrait {
  public:
@@ -160,7 +180,7 @@ class TypeParameterKeyValueTrait {
   static inline intptr_t Hashcode(Key key) { return key->Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair->raw() == key->raw();
+    return pair->ptr() == key->ptr();
   }
 };
 
@@ -180,7 +200,7 @@ class TypeArgumentsKeyValueTrait {
   static inline intptr_t Hashcode(Key key) { return key->Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair->raw() == key->raw();
+    return pair->ptr() == key->ptr();
   }
 };
 
@@ -200,7 +220,7 @@ class InstanceKeyValueTrait {
   static inline intptr_t Hashcode(Key key) { return key->GetClassId(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair->raw() == key->raw();
+    return pair->ptr() == key->ptr();
   }
 };
 
@@ -306,6 +326,7 @@ class Precompiler : public ValueObject {
   void DropFields();
   void TraceTypesFromRetainedClasses();
   void DropTypes();
+  void DropFunctionTypes();
   void DropTypeParameters();
   void DropTypeArguments();
   void DropMetadata();
@@ -331,6 +352,7 @@ class Precompiler : public ValueObject {
   Thread* thread() const { return thread_; }
   Zone* zone() const { return zone_; }
   Isolate* isolate() const { return isolate_; }
+  IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
 
   Thread* thread_;
   Zone* zone_;
@@ -346,6 +368,7 @@ class Precompiler : public ValueObject {
   intptr_t dropped_class_count_;
   intptr_t dropped_typearg_count_;
   intptr_t dropped_type_count_;
+  intptr_t dropped_functiontype_count_;
   intptr_t dropped_typeparam_count_;
   intptr_t dropped_library_count_;
 
@@ -360,6 +383,7 @@ class Precompiler : public ValueObject {
   ClassSet classes_to_retain_;
   TypeArgumentsSet typeargs_to_retain_;
   AbstractTypeSet types_to_retain_;
+  FunctionTypeSet functiontypes_to_retain_;
   TypeParameterSet typeparams_to_retain_;
   InstanceSet consts_to_retain_;
   TableSelectorSet seen_table_selectors_;
@@ -381,7 +405,7 @@ class FunctionsTraits {
   static bool ReportStats() { return false; }
 
   static bool IsMatch(const Object& a, const Object& b) {
-    return String::Cast(a).raw() == String::Cast(b).raw();
+    return String::Cast(a).ptr() == String::Cast(b).ptr();
   }
   static uword Hash(const Object& obj) { return String::Cast(obj).Hash(); }
 };
@@ -397,7 +421,7 @@ class ObfuscationMapTraits {
 
   // Only for non-descriptor lookup and table expansion.
   static bool IsMatch(const Object& a, const Object& b) {
-    return a.raw() == b.raw();
+    return a.ptr() == b.ptr();
   }
 
   static uword Hash(const Object& key) { return String::Cast(key).Hash(); }
@@ -443,7 +467,7 @@ class Obfuscator : public ValueObject {
   // input and it always preserves leading '_' even for atomic renames.
   StringPtr Rename(const String& name, bool atomic = false) {
     if (state_ == NULL) {
-      return name.raw();
+      return name.ptr();
     }
 
     return state_->RenameImpl(name, atomic);
@@ -466,7 +490,7 @@ class Obfuscator : public ValueObject {
  private:
   // Populate renaming map with names that should have identity renaming.
   // (or in other words: with those names that should not be renamed).
-  void InitializeRenamingMap(Isolate* isolate);
+  void InitializeRenamingMap();
 
   // ObjectStore::obfuscation_map() is an Array with two elements:
   // first element is the last used rename and the second element is
@@ -478,13 +502,13 @@ class Obfuscator : public ValueObject {
   static ArrayPtr GetRenamesFromSavedState(const Array& saved_state) {
     Array& renames = Array::Handle();
     renames ^= saved_state.At(kSavedStateRenamesIndex);
-    return renames.raw();
+    return renames.ptr();
   }
 
   static StringPtr GetNameFromSavedState(const Array& saved_state) {
     String& name = String::Handle();
     name ^= saved_state.At(kSavedStateNameIndex);
-    return name.raw();
+    return name.ptr();
   }
 
   class ObfuscationState : public ZoneAllocated {
@@ -581,7 +605,7 @@ class Obfuscator {
   ~Obfuscator() {}
 
   StringPtr Rename(const String& name, bool atomic = false) {
-    return name.raw();
+    return name.ptr();
   }
 
   void PreventRenaming(const String& name) {}

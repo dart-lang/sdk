@@ -5513,9 +5513,11 @@ static void CreateSpecializedFunction(Thread* thread,
                                       const Object& owner) {
   const intptr_t kParamCount = RegExpMacroAssembler::kParamCount;
 
+  const FunctionType& signature =
+      FunctionType::Handle(zone, FunctionType::New());
   Function& fn =
-      Function::Handle(zone, Function::New(Symbols::ColonMatcher(),
-                                           FunctionLayout::kIrregexpFunction,
+      Function::Handle(zone, Function::New(signature, Symbols::ColonMatcher(),
+                                           UntaggedFunction::kIrregexpFunction,
                                            true,   // Static.
                                            false,  // Not const.
                                            false,  // Not abstract.
@@ -5524,24 +5526,25 @@ static void CreateSpecializedFunction(Thread* thread,
                                            owner, TokenPosition::kMinSource));
 
   // TODO(zerny): Share these arrays between all irregexp functions.
+  // TODO(regis): Better, share a common signature.
   fn.set_num_fixed_parameters(kParamCount);
-  fn.set_parameter_types(
+  signature.set_parameter_types(
       Array::Handle(zone, Array::New(kParamCount, Heap::kOld)));
-  fn.CreateNameArrayIncludingFlags(Heap::kOld);
-  fn.SetParameterTypeAt(RegExpMacroAssembler::kParamRegExpIndex,
-                        Object::dynamic_type());
-  fn.SetParameterNameAt(RegExpMacroAssembler::kParamRegExpIndex,
-                        Symbols::This());
-  fn.SetParameterTypeAt(RegExpMacroAssembler::kParamStringIndex,
-                        Object::dynamic_type());
-  fn.SetParameterNameAt(RegExpMacroAssembler::kParamStringIndex,
-                        Symbols::string_param());
-  fn.SetParameterTypeAt(RegExpMacroAssembler::kParamStartOffsetIndex,
-                        Object::dynamic_type());
-  fn.SetParameterNameAt(RegExpMacroAssembler::kParamStartOffsetIndex,
-                        Symbols::start_index_param());
-  fn.set_result_type(Type::Handle(zone, Type::ArrayType()));
-  fn.TruncateUnusedParameterFlags();
+  signature.CreateNameArrayIncludingFlags(Heap::kOld);
+  signature.SetParameterTypeAt(RegExpMacroAssembler::kParamRegExpIndex,
+                               Object::dynamic_type());
+  signature.SetParameterNameAt(RegExpMacroAssembler::kParamRegExpIndex,
+                               Symbols::This());
+  signature.SetParameterTypeAt(RegExpMacroAssembler::kParamStringIndex,
+                               Object::dynamic_type());
+  signature.SetParameterNameAt(RegExpMacroAssembler::kParamStringIndex,
+                               Symbols::string_param());
+  signature.SetParameterTypeAt(RegExpMacroAssembler::kParamStartOffsetIndex,
+                               Object::dynamic_type());
+  signature.SetParameterNameAt(RegExpMacroAssembler::kParamStartOffsetIndex,
+                               Symbols::start_index_param());
+  signature.set_result_type(Type::Handle(zone, Type::ArrayType()));
+  signature.FinalizeNameArrays(fn);
 
   // Cache the result.
   regexp.set_function(specialization_cid, sticky, fn);
@@ -5580,7 +5583,7 @@ RegExpPtr RegExpEngine::CreateRegExp(Thread* thread,
     }
   }
 
-  return regexp.raw();
+  return regexp.ptr();
 }
 
 }  // namespace dart

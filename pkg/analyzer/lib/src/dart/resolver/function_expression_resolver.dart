@@ -69,7 +69,7 @@ class FunctionExpressionResolver {
       if (_flowAnalysis.flow != null && !isFunctionDeclaration) {
         var bodyContext = BodyInferenceContext.of(node.body);
         _resolver.checkForBodyMayCompleteNormally(
-          returnType: bodyContext.contextType,
+          returnType: bodyContext?.contextType,
           body: body,
           errorNode: body,
         );
@@ -98,7 +98,7 @@ class FunctionExpressionResolver {
         // corresponding parameter in the context type schema with type
         // schema `K`, the parameter is given an inferred type `T` where `T`
         // is derived from `K` as follows.
-        inferredType = _typeSystem.greatestClosure(inferredType);
+        inferredType = _typeSystem.greatestClosureOfSchema(inferredType);
 
         // If the greatest closure of `K` is `S` and `S` is a subtype of
         // `Null`, then `T` is `Object?`. Otherwise, `T` is `S`.

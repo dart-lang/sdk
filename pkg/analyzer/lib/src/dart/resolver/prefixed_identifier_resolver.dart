@@ -61,7 +61,7 @@ class PrefixedIdentifierResolver {
       node.staticType = type;
       identifier.staticType = type;
       return;
-    } else if (element is FunctionTypeAliasElement) {
+    } else if (element is TypeAliasElement) {
       if (node.parent is TypeName) {
         // no type
       } else {

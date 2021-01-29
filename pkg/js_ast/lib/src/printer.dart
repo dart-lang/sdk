@@ -1255,21 +1255,7 @@ class Printer implements NodeVisitor {
 
   @override
   void visitLiteralExpression(LiteralExpression node) {
-    String template = node.template;
-    List<Expression> inputs = node.inputs;
-
-    List<String> parts = template.split('#');
-    int inputsLength = inputs == null ? 0 : inputs.length;
-    if (parts.length != inputsLength + 1) {
-      context.error('Wrong number of arguments for JS: $template');
-    }
-    // Code that uses JS must take care of operator precedences, and
-    // put parenthesis if needed.
-    out(parts[0]);
-    for (int i = 0; i < inputsLength; i++) {
-      visit(inputs[i]);
-      out(parts[i + 1]);
-    }
+    out(node.template);
   }
 
   @override

@@ -9,7 +9,7 @@
 #include "vm/native_entry.h"
 
 #if !defined(HOST_OS_LINUX) && !defined(HOST_OS_MACOS) &&                      \
-    !defined(HOST_OS_ANDROID)
+    !defined(HOST_OS_ANDROID) && !defined(HOST_OS_FUCHSIA)
 // TODO(dacoharkes): Implement dynamic libraries for other targets & merge the
 // implementation with:
 // - runtime/bin/extensions.h
@@ -23,7 +23,8 @@
 namespace dart {
 
 static void* LoadExtensionLibrary(const char* library_file) {
-#if defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) || defined(HOST_OS_ANDROID)
+#if defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) ||                        \
+    defined(HOST_OS_ANDROID) || defined(HOST_OS_FUCHSIA)
   void* handle = dlopen(library_file, RTLD_LAZY);
   if (handle == nullptr) {
     char* error = dlerror();
@@ -77,7 +78,8 @@ DEFINE_NATIVE_ENTRY(Ffi_dl_open, 0, 1) {
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_dl_processLibrary, 0, 0) {
-#if defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) || defined(HOST_OS_ANDROID)
+#if defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) ||                        \
+    defined(HOST_OS_ANDROID) || defined(HOST_OS_FUCHSIA)
   return DynamicLibrary::New(RTLD_DEFAULT);
 #else
   const Array& args = Array::Handle(Array::New(1));
@@ -93,7 +95,8 @@ DEFINE_NATIVE_ENTRY(Ffi_dl_executableLibrary, 0, 0) {
 }
 
 static void* ResolveSymbol(void* handle, const char* symbol) {
-#if defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) || defined(HOST_OS_ANDROID)
+#if defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) ||                        \
+    defined(HOST_OS_ANDROID) || defined(HOST_OS_FUCHSIA)
   dlerror();  // Clear any errors.
   void* pointer = dlsym(handle, symbol);
   if (pointer == nullptr) {

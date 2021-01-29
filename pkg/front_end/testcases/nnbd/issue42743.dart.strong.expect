@@ -4,13 +4,13 @@ import "dart:core" as core;
 import "dart:async" as asy;
 
 static method main() → dynamic async {
-  core::bool b = true;
+  core::bool b = (() → core::bool => true).call();
   (dynamic _) → core::int? {
     if(b)
       return 42;
   };
   (dynamic _) → asy::Future<core::int?> async {
     if(b)
-      return 42;
+      return let final core::int #t1 = 42 in #t1 is asy::Future<core::int?> ?{FutureOr<dynamic>} await #t1 : #t1;
   };
 }

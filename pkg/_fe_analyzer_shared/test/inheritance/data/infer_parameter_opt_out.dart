@@ -66,8 +66,7 @@ class C1 extends A implements B {
 /*cfe|cfe:builder.member: C2._simpleInstanceOfTrue:bool* Function(dynamic)**/
 /*cfe|cfe:builder.member: C2.==:bool* Function(dynamic)**/
 class C2 extends B implements A {
-  /*cfe|cfe:builder.member: C2.method:dynamic Function(dynamic, {dynamic named})**/
-  /*analyzer.member: C2.method:Object* Function(Object*, {Object* named})**/
+  /*member: C2.method:Object* Function(Object*, {Object* named})**/
   method(o, {named}) {}
 }
 
@@ -99,8 +98,7 @@ class C3 implements A, B {
 /*cfe|cfe:builder.member: C4._simpleInstanceOfTrue:bool* Function(dynamic)**/
 /*cfe|cfe:builder.member: C4.==:bool* Function(dynamic)**/
 class C4 implements B, A {
-  /*cfe|cfe:builder.member: C4.method:dynamic Function(dynamic, {dynamic named})**/
-  /*analyzer.member: C4.method:Object* Function(Object*, {Object* named})**/
+  /*member: C4.method:Object* Function(Object*, {Object* named})**/
   method(o, {named}) {}
 }
 

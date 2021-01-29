@@ -47,6 +47,7 @@ part of dart.ffi;
 /// by native memory. The may allocated via allocation or loaded from a
 /// [Pointer], but cannot be created by a generative constructor.
 abstract class Struct extends NativeType {
+  @pragma("vm:entry-point")
   final Object _addressOf;
 
   /// Construct a reference to the [nullptr].
@@ -61,5 +62,6 @@ abstract class Struct extends NativeType {
 /// Extension on [Struct] specialized for its subtypes.
 extension StructAddressOf<T extends Struct> on T {
   /// Returns the address backing the reference.
+  @Deprecated('Hold on to the pointer backing a struct instead.')
   Pointer<T> get addressOf => _addressOf as Pointer<T>;
 }

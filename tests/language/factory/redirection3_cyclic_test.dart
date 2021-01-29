@@ -17,10 +17,10 @@ class B implements A {
 class C implements B {
   factory C.bar() = C.foo;
   //                ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_FACTORY_REDIRECT
+  // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_CONSTRUCTOR_REDIRECT
   factory C.foo() = C.bar();
   //                ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_FACTORY_REDIRECT
+  // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_CONSTRUCTOR_REDIRECT
   //                  ^^^
   // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
   // [cfe] Expected ';' after this.

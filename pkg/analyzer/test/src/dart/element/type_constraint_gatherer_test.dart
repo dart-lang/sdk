@@ -20,10 +20,10 @@ main() {
 
 @reflectiveTest
 class TypeConstraintGathererTest extends AbstractTypeSystemNullSafetyTest {
-  TypeParameterElement T;
-  TypeParameterType T_none;
-  TypeParameterType T_question;
-  TypeParameterType T_star;
+  /*late*/ TypeParameterElement T;
+  /*late*/ TypeParameterType T_none;
+  /*late*/ TypeParameterType T_question;
+  /*late*/ TypeParameterType T_star;
 
   UnknownInferredType get unknownType => UnknownInferredType.instance;
 
@@ -681,6 +681,7 @@ class TypeConstraintGathererTest extends AbstractTypeSystemNullSafetyTest {
     ) {
       var library = library_(
         uriStr: 'package:test/test.dart',
+        analysisContext: analysisContext,
         analysisSession: analysisContext.analysisSession,
         typeSystem: typeSystem,
       );

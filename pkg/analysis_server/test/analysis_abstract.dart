@@ -227,3 +227,27 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     return serverChannel.sendRequest(request, throwOnError: throwOnError);
   }
 }
+
+mixin WithNonFunctionTypeAliasesMixin on AbstractAnalysisTest {
+  @override
+  void createProject({Map<String, String> packageRoots}) {
+    addAnalysisOptionsFile('''
+analyzer:
+  enable-experiment:
+    - nonfunction-type-aliases
+''');
+    super.createProject(packageRoots: packageRoots);
+  }
+}
+
+mixin WithNullSafetyMixin on AbstractAnalysisTest {
+  @override
+  void createProject({Map<String, String> packageRoots}) {
+    addAnalysisOptionsFile('''
+analyzer:
+  enable-experiment:
+    - non-nullable
+''');
+    super.createProject(packageRoots: packageRoots);
+  }
+}

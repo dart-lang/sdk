@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io' show exitCode;
 
 import 'dart:typed_data' show Uint8List;
@@ -24,7 +26,7 @@ import 'package:kernel/target/targets.dart'
 import 'package:package_config/package_config.dart';
 
 import '../api_prototype/compiler_options.dart'
-    show CompilerOptions, DiagnosticMessage;
+    show CompilerOptions, InvocationMode, Verbosity, DiagnosticMessage;
 
 import '../api_prototype/experimental_flags.dart' as flags;
 
@@ -45,6 +47,8 @@ import '../fasta/fasta_codes.dart'
         Message,
         messageCantInferPackagesFromManyInputs,
         messageCantInferPackagesFromPackageUri,
+        messageCompilingWithSoundNullSafety,
+        messageCompilingWithoutSoundNullSafety,
         messageInternalProblemProvidedBothCompileSdkAndSdkSummary,
         messageMissingInput,
         noLength,
@@ -163,7 +167,7 @@ class ProcessedOptions {
 
   bool get verify => _raw.verify;
 
-  bool get verifySkipPlatform => _raw.verifySkipPlatform;
+  bool get skipPlatformVerification => _raw.skipPlatformVerification;
 
   bool get debugDump => _raw.debugDump;
 
@@ -259,12 +263,33 @@ class ProcessedOptions {
   }
 
   void _defaultDiagnosticMessageHandler(DiagnosticMessage message) {
-    printDiagnosticMessage(message, print);
+    if (Verbosity.shouldPrint(_raw.verbosity, message)) {
+      printDiagnosticMessage(message, print);
+    }
   }
 
   // TODO(askesc): Remove this and direct callers directly to report.
   void reportWithoutLocation(Message message, Severity severity) {
     report(message.withoutLocation(), severity);
+  }
+
+  /// If `CompilerOptions.invocationModes` contains `InvocationMode.compile`, an
+  /// info message about the null safety compilation mode is emitted.
+  void reportNullSafetyCompilationModeInfo() {
+    if (_raw.invocationModes.contains(InvocationMode.compile)) {
+      switch (nnbdMode) {
+        case NnbdMode.Weak:
+          reportWithoutLocation(messageCompilingWithoutSoundNullSafety,
+              messageCompilingWithoutSoundNullSafety.severity);
+          break;
+        case NnbdMode.Strong:
+          reportWithoutLocation(messageCompilingWithSoundNullSafety,
+              messageCompilingWithSoundNullSafety.severity);
+          break;
+        case NnbdMode.Agnostic:
+          break;
+      }
+    }
   }
 
   /// Runs various validations checks on the input options. For instance,
@@ -400,7 +425,8 @@ class ProcessedOptions {
       if (sdkSummary == null) return null;
       List<int> bytes = await loadSdkSummaryBytes();
       if (bytes != null && bytes.isNotEmpty) {
-        _sdkSummaryComponent = loadComponent(bytes, nameRoot);
+        _sdkSummaryComponent =
+            loadComponent(bytes, nameRoot, fileUri: sdkSummary);
       }
     }
     return _sdkSummaryComponent;
@@ -424,10 +450,13 @@ class ProcessedOptions {
       // TODO(sigmund): throttle # of concurrent operations.
       List<List<int>> allBytes = await Future.wait(
           uris.map((uri) => _readAsBytes(fileSystem.entityForUri(uri))));
-      _additionalDillComponents = allBytes
-          .where((bytes) => bytes != null)
-          .map((bytes) => loadComponent(bytes, nameRoot))
-          .toList();
+      List<Component> result = [];
+      for (int i = 0; i < uris.length; i++) {
+        if (allBytes[i] == null) continue;
+        List<int> bytes = allBytes[i];
+        result.add(loadComponent(bytes, nameRoot, fileUri: uris[i]));
+      }
+      _additionalDillComponents = result;
     }
     return _additionalDillComponents;
   }
@@ -442,13 +471,12 @@ class ProcessedOptions {
 
   /// Helper to load a .dill file from [uri] using the existing [nameRoot].
   Component loadComponent(List<int> bytes, CanonicalName nameRoot,
-      {bool alwaysCreateNewNamedNodes}) {
+      {bool alwaysCreateNewNamedNodes, Uri fileUri}) {
     Component component =
         target.configureComponent(new Component(nameRoot: nameRoot));
-    // TODO(ahe): Pass file name to BinaryBuilder.
     // TODO(ahe): Control lazy loading via an option.
     new BinaryBuilder(bytes,
-            filename: null,
+            filename: fileUri == null ? null : '$fileUri',
             disableLazyReading: false,
             alwaysCreateNewNamedNodes: alwaysCreateNewNamedNodes)
         .readComponent(component);

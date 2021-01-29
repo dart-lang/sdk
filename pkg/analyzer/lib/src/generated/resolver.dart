@@ -771,26 +771,29 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   void startNullAwareIndexExpression(IndexExpression node) {
-    if (_migratableAstInfoProvider.isIndexExpressionNullAware(node) &&
-        _flowAnalysis != null) {
-      _flowAnalysis.flow.nullAwareAccess_rightBegin(
-          node.target, node.realTarget.staticType ?? typeProvider.dynamicType);
-      _unfinishedNullShorts.add(node.nullShortingTermination);
+    if (_migratableAstInfoProvider.isIndexExpressionNullAware(node)) {
+      var flow = _flowAnalysis?.flow;
+      if (flow != null) {
+        flow.nullAwareAccess_rightBegin(node.target,
+            node.realTarget.staticType ?? typeProvider.dynamicType);
+        _unfinishedNullShorts.add(node.nullShortingTermination);
+      }
     }
   }
 
-  void startNullAwarePropertyAccess(
-    PropertyAccess node,
-  ) {
-    if (_migratableAstInfoProvider.isPropertyAccessNullAware(node) &&
-        _flowAnalysis != null) {
-      var target = node.target;
-      if (target is SimpleIdentifier && target.staticElement is ClassElement) {
-        // `?.` to access static methods is equivalent to `.`, so do nothing.
-      } else {
-        _flowAnalysis.flow.nullAwareAccess_rightBegin(
-            target, node.realTarget.staticType ?? typeProvider.dynamicType);
-        _unfinishedNullShorts.add(node.nullShortingTermination);
+  void startNullAwarePropertyAccess(PropertyAccess node) {
+    if (_migratableAstInfoProvider.isPropertyAccessNullAware(node)) {
+      var flow = _flowAnalysis?.flow;
+      if (flow != null) {
+        var target = node.target;
+        if (target is SimpleIdentifier &&
+            target.staticElement is ClassElement) {
+          // `?.` to access static methods is equivalent to `.`, so do nothing.
+        } else {
+          flow.nullAwareAccess_rightBegin(
+              target, node.realTarget.staticType ?? typeProvider.dynamicType);
+          _unfinishedNullShorts.add(node.nullShortingTermination);
+        }
       }
     }
   }
@@ -1107,7 +1110,7 @@ class ResolverVisitor extends ScopedVisitor {
 
     if (_flowAnalysis != null) {
       if (flow != null) {
-        flow.conditional_thenBegin(condition);
+        flow.conditional_thenBegin(condition, node);
         checkUnreachableNode(thenExpression);
       }
       thenExpression.accept(this);
@@ -1163,8 +1166,8 @@ class ResolverVisitor extends ScopedVisitor {
     super.visitConstructorDeclaration(node);
 
     if (_flowAnalysis != null) {
-      var bodyContext = BodyInferenceContext.of(node.body);
       if (node.factoryKeyword != null) {
+        var bodyContext = BodyInferenceContext.of(node.body);
         checkForBodyMayCompleteNormally(
           returnType: bodyContext?.contextType,
           body: node.body,
@@ -1468,6 +1471,7 @@ class ResolverVisitor extends ScopedVisitor {
     node.function?.accept(this);
     _functionExpressionInvocationResolver
         .resolve(node as FunctionExpressionInvocationImpl);
+    nullShortingTermination(node);
   }
 
   @override
@@ -1513,7 +1517,7 @@ class ResolverVisitor extends ScopedVisitor {
 
     CollectionElement thenElement = node.thenElement;
     if (_flowAnalysis != null) {
-      _flowAnalysis.flow.ifStatement_thenBegin(condition);
+      _flowAnalysis.flow?.ifStatement_thenBegin(condition, node);
       thenElement.accept(this);
     } else {
       _promoteManager.visitIfElement_thenElement(
@@ -1553,7 +1557,7 @@ class ResolverVisitor extends ScopedVisitor {
 
     Statement thenStatement = node.thenStatement;
     if (_flowAnalysis != null) {
-      _flowAnalysis.flow.ifStatement_thenBegin(condition);
+      _flowAnalysis.flow?.ifStatement_thenBegin(condition, node);
       visitStatementInScope(thenStatement);
       nullSafetyDeadCodeVerifier?.flowEnd(thenStatement);
     } else {
@@ -1684,14 +1688,17 @@ class ResolverVisitor extends ScopedVisitor {
     var target = node.target;
     target?.accept(this);
 
-    if (_migratableAstInfoProvider.isMethodInvocationNullAware(node) &&
-        _flowAnalysis != null) {
-      if (target is SimpleIdentifier && target.staticElement is ClassElement) {
-        // `?.` to access static methods is equivalent to `.`, so do nothing.
-      } else {
-        _flowAnalysis.flow.nullAwareAccess_rightBegin(
-            target, node.realTarget.staticType ?? typeProvider.dynamicType);
-        _unfinishedNullShorts.add(node.nullShortingTermination);
+    if (_migratableAstInfoProvider.isMethodInvocationNullAware(node)) {
+      var flow = _flowAnalysis?.flow;
+      if (flow != null) {
+        if (target is SimpleIdentifier &&
+            target.staticElement is ClassElement) {
+          // `?.` to access static methods is equivalent to `.`, so do nothing.
+        } else {
+          flow.nullAwareAccess_rightBegin(
+              target, node.realTarget.staticType ?? typeProvider.dynamicType);
+          _unfinishedNullShorts.add(node.nullShortingTermination);
+        }
       }
     }
 
@@ -1861,7 +1868,9 @@ class ResolverVisitor extends ScopedVisitor {
     super.visitSpreadElement(node);
 
     if (!node.isNullAware) {
-      nullableDereferenceVerifier.expression(node.expression);
+      nullableDereferenceVerifier.expression(node.expression,
+          errorCode:
+              CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD);
     }
   }
 
@@ -2021,10 +2030,10 @@ class ResolverVisitor extends ScopedVisitor {
           _flowAnalysis?.flow?.promote(
               declaredElement as PromotableElement, initializerStaticType);
         }
-      } else if (!parent.isFinal) {
-        _flowAnalysis?.flow?.write(
-            declaredElement as PromotableElement, initializerStaticType,
-            viaInitializer: true);
+      } else {
+        _flowAnalysis?.flow?.initialize(declaredElement as PromotableElement,
+            initializerStaticType, initializer,
+            isFinal: parent.isFinal, isLate: parent.isLate);
       }
     }
   }
@@ -2206,7 +2215,8 @@ class ResolverVisitor extends ScopedVisitor {
   /// correspond to the list of arguments.
   ///
   /// An error will be reported to [onError] if any of the arguments cannot be
-  /// matched to a parameter. onError can be null to ignore the error.
+  /// matched to a parameter. onError will be provided the node of the first
+  /// argument that is not matched. onError can be null to ignore the error.
   ///
   /// Returns the parameters that correspond to the arguments. If no parameter
   /// matched an argument, that position will be `null` in the list.
@@ -2245,6 +2255,7 @@ class ResolverVisitor extends ScopedVisitor {
     int positionalArgumentCount = 0;
     HashSet<String> usedNames;
     bool noBlankArguments = true;
+    Expression firstUnresolvedArgument;
     for (int i = 0; i < argumentCount; i++) {
       Expression argument = arguments[i];
       if (argument is NamedExpression) {
@@ -2275,6 +2286,8 @@ class ResolverVisitor extends ScopedVisitor {
         positionalArgumentCount++;
         if (unnamedIndex < unnamedParameterCount) {
           resolvedParameters[i] = unnamedParameters[unnamedIndex++];
+        } else {
+          firstUnresolvedArgument ??= argument;
         }
       }
     }
@@ -2295,7 +2308,7 @@ class ResolverVisitor extends ScopedVisitor {
         errorCode = CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS;
       }
       if (onError != null) {
-        onError(errorCode, argumentList,
+        onError(errorCode, firstUnresolvedArgument,
             [unnamedParameterCount, positionalArgumentCount]);
       }
     }
@@ -2726,9 +2739,11 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
         parent.declaredElement.parameters,
       );
     } else if (parent is FunctionTypeAlias) {
+      var aliasedElement = parent.declaredElement.aliasedElement;
+      var functionElement = aliasedElement as GenericFunctionTypeElement;
       nameScope = FormalParameterScope(
         nameScope,
-        parent.declaredElement.function.parameters,
+        functionElement.parameters,
       );
     } else if (parent is MethodDeclaration) {
       nameScope = FormalParameterScope(

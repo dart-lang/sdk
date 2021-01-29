@@ -231,6 +231,28 @@ class VMService extends MessageRouter {
   Uri? get ddsUri => _ddsUri;
   Uri? _ddsUri;
 
+  void _sendDdsConnectedEvent(Client client, String uri) {
+    final message =
+        'A Dart Developer Service instance has connected and this direct '
+        'connection to the VM service will now be closed. Please reconnect to '
+        'the Dart Development Service at $uri.';
+    final event = Response.json({
+      'jsonrpc': '2.0',
+      'method': 'streamNotify',
+      'params': {
+        'streamId': kServiceStream,
+        'event': {
+          "type": "Event",
+          "kind": "DartDevelopmentServiceConnected",
+          "message": message,
+          "uri": uri,
+          'timestamp': DateTime.now().millisecondsSinceEpoch,
+        }
+      }
+    });
+    client.post(event);
+  }
+
   Future<String> _yieldControlToDDS(Message message) async {
     final acceptNewWebSocketConnections =
         VMServiceEmbedderHooks.acceptNewWebSocketConnections;
@@ -249,14 +271,16 @@ class VMService extends MessageRouter {
     if (uri == null) {
       return encodeMissingParamError(message, 'uri');
     }
-    // DDS can only take control if there is no other clients connected
-    // directly to the VM service.
-    if (clients.length > 1) {
-      return encodeRpcError(message, kFeatureDisabled,
-          details:
-              'Existing VM service clients prevent DDS from taking control.');
-    }
     acceptNewWebSocketConnections(false);
+    // Note: we call clients.toList() to avoid concurrent modification errors.
+    for (final client in clients.toList()) {
+      // This is the DDS client.
+      if (message.client == client) {
+        continue;
+      }
+      _sendDdsConnectedEvent(client, uri);
+      client.disconnect();
+    }
     _ddsUri = Uri.parse(uri);
     await VMServiceEmbedderHooks.ddsConnected!();
     return encodeSuccess(message);

@@ -24,12 +24,12 @@ Future<void> waitForStreamEvent(
     VmService service, IsolateRef isolateRef, bool state,
     {bool useSetter = true}) async {
   final completer = Completer<void>();
-  final isolateId = isolateRef.id;
-  StreamSubscription sub;
+  final isolateId = isolateRef.id!;
+  late StreamSubscription sub;
   sub = service.onExtensionEvent.listen((event) {
     expect(event.extensionKind, 'HttpTimelineLoggingStateChange');
-    expect(event.extensionData.data['isolateId'], isolateRef.id);
-    expect(event.extensionData.data['enabled'], state);
+    expect(event.extensionData!.data['isolateId'], isolateRef.id);
+    expect(event.extensionData!.data['enabled'], state);
     sub.cancel();
     completer.complete();
   });
@@ -47,17 +47,17 @@ Future<void> waitForStreamEvent(
 
 var tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
-    final isolate = await service.getIsolate(isolateRef.id);
+    final isolate = await service.getIsolate(isolateRef.id!);
     // Ensure all HTTP service extensions are registered.
-    expect(isolate.extensionRPCs.length, greaterThanOrEqualTo(2));
+    expect(isolate.extensionRPCs!.length, greaterThanOrEqualTo(2));
     expect(
-        isolate.extensionRPCs.contains(kGetHttpEnableTimelineLogging), isTrue);
+        isolate.extensionRPCs!.contains(kGetHttpEnableTimelineLogging), isTrue);
     expect(
-        isolate.extensionRPCs.contains(kSetHttpEnableTimelineLogging), isTrue);
-    expect(isolate.extensionRPCs.contains(kHttpEnableTimelineLogging), isTrue);
+        isolate.extensionRPCs!.contains(kSetHttpEnableTimelineLogging), isTrue);
+    expect(isolate.extensionRPCs!.contains(kHttpEnableTimelineLogging), isTrue);
   },
   (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id;
+    final isolateId = isolateRef.id!;
     // ignore: deprecated_member_use_from_same_package
     dynamic response = await service.getHttpEnableTimelineLogging(isolateId);
     expect(response.enabled, false);
@@ -73,7 +73,7 @@ var tests = <IsolateTest>[
     expect(response.enabled, false);
   },
   (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id;
+    final isolateId = isolateRef.id!;
     dynamic response = await service.httpEnableTimelineLogging(isolateId, null);
     expect(response.enabled, false);
 

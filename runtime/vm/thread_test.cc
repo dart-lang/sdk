@@ -85,7 +85,7 @@ class ObjectCounter : public ObjectPointerVisitor {
 
   virtual void VisitPointers(ObjectPtr* first, ObjectPtr* last) {
     for (ObjectPtr* current = first; current <= last; ++current) {
-      if (*current == obj_->raw()) {
+      if (*current == obj_->ptr()) {
         ++count_;
       }
     }
@@ -295,7 +295,7 @@ ISOLATE_UNIT_TEST_CASE(ManySimpleTasksWithZones) {
   intptr_t done_count = 0;
   bool wait = true;
 
-  EXPECT(isolate->heap()->GrowthControlState());
+  EXPECT(isolate->group()->heap()->GrowthControlState());
 
   NoHeapGrowthControlScope no_heap_growth_scope;
 
@@ -431,9 +431,10 @@ static Function* CreateFunction(const char* name) {
       Class::New(lib, class_name, script, TokenPosition::kNoSource));
   const String& function_name =
       String::ZoneHandle(Symbols::New(Thread::Current(), name));
+  const FunctionType& signature = FunctionType::ZoneHandle(FunctionType::New());
   Function& function = Function::ZoneHandle(Function::New(
-      function_name, FunctionLayout::kRegularFunction, true, false, false,
-      false, false, owner_class, TokenPosition::kNoSource));
+      signature, function_name, UntaggedFunction::kRegularFunction, true, false,
+      false, false, false, owner_class, TokenPosition::kNoSource));
   return &function;
 }
 
@@ -543,7 +544,7 @@ class SafepointTestTask : public ThreadPool::Task {
           EXPECT_EQ(*expected_count_, counter.count());
         }
         UserTag& tag = UserTag::Handle(zone, isolate_->current_tag());
-        if (tag.raw() != isolate_->default_tag()) {
+        if (tag.ptr() != isolate_->default_tag()) {
           String& label = String::Handle(zone, tag.label());
           EXPECT(label.Equals("foo"));
           MonitorLocker ml(monitor_);
@@ -843,7 +844,7 @@ class AllocAndGCTask : public ThreadPool::Task {
       Zone* zone = stack_zone.GetZone();
       HANDLESCOPE(thread);
       String& old_str = String::Handle(zone, String::New("old", Heap::kOld));
-      isolate_->heap()->CollectAllGarbage();
+      isolate_->group()->heap()->CollectAllGarbage();
       EXPECT(old_str.Equals("old"));
     }
     Thread::ExitIsolateAsHelper();

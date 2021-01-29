@@ -13,6 +13,6 @@ abstract class TypeArguments extends Object implements TypeArgumentsRef {
   /// A list of types.
   ///
   /// The value will always be one of the kinds:
-  /// Type, TypeRef, TypeParameter.
+  /// Type, FunctionType, TypeRef, TypeParameter.
   Iterable<InstanceRef> get types;
 }

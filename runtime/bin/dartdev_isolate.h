@@ -41,8 +41,10 @@ class DartDevIsolate {
 
   static bool should_run_dart_dev() { return should_run_dart_dev_; }
 
-  // Attempts to find the DartDev snapshot. If the snapshot cannot be found,
-  // the VM will shutdown.
+  // Attempts to find the path of the DartDev kernel file.
+  static Utils::CStringUniquePtr TryResolveDartDevKernelPath();
+
+  // Attempts to find the path of the DartDev snapshot.
   static Utils::CStringUniquePtr TryResolveDartDevSnapshotPath();
 
   // Starts a DartDev instance in a new isolate and runs it to completion.
@@ -89,6 +91,8 @@ class DartDevIsolate {
   };
 
  private:
+  static Utils::CStringUniquePtr TryResolveArtifactPath(const char* filename);
+
   static DartDevRunner runner_;
   static bool should_run_dart_dev_;
 

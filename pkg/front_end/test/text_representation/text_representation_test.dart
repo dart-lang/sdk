@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io' show Directory, Platform;
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
@@ -154,14 +156,16 @@ class TextRepresentationDataExtractor extends CfeDataExtractor<String> {
 
   @override
   String computeMemberValue(Id id, Member node) {
-    if (node.name.text == 'stmtVariableDeclarationMulti') {
-      print(node);
-    }
     if (node.name.text.startsWith(expressionMarker)) {
       if (node is Procedure) {
         Statement body = node.function.body;
         if (body is ReturnStatement) {
           return body.expression.toText(strategy);
+        } else if (body is Block &&
+            body.statements.isNotEmpty &&
+            body.statements.first is ExpressionStatement) {
+          ExpressionStatement statement = body.statements.first;
+          return statement.expression.toText(strategy);
         }
       } else if (node is Field && node.initializer != null) {
         return node.initializer.toText(strategy);

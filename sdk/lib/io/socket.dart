@@ -4,12 +4,11 @@
 
 part of dart.io;
 
-/**
- * [InternetAddressType] is the type an [InternetAddress]. Currently,
- * IP version 4 (IPv4), IP version 6 (IPv6) and Unix domain address are
- * supported. Unix domain sockets are available only on Linux, MacOS and
- * Android.
- */
+/// The type, or address family, of an [InternetAddress].
+///
+/// Currently, IP version 4 (IPv4), IP version 6 (IPv6)
+/// and Unix domain address are supported.
+/// Unix domain sockets are available only on Linux, MacOS and Android.
 class InternetAddressType {
   static const InternetAddressType IPv4 = const InternetAddressType._(0);
   static const InternetAddressType IPv6 = const InternetAddressType._(1);
@@ -35,182 +34,139 @@ class InternetAddressType {
     throw new ArgumentError("Invalid type: $value");
   }
 
-  /**
-   * Get the name of the type, e.g. "IPv4" or "IPv6".
-   */
-  String get name {
-    switch (_value) {
-      case -1:
-        return "ANY";
-      case 0:
-        return "IPv4";
-      case 1:
-        return "IPv6";
-      case 2:
-        return "Unix";
-      default:
-        throw new ArgumentError("Invalid InternetAddress");
-    }
-  }
+  /// Get the name of the type, e.g. "IPv4" or "IPv6".
+  String get name => const ["ANY", "IPv4", "IPv6", "Unix"][_value + 1];
 
   String toString() => "InternetAddressType: $name";
 }
 
-/**
- * An internet address or a Unix domain address.
- *
- * This object holds an internet address. If this internet address
- * is the result of a DNS lookup, the address also holds the hostname
- * used to make the lookup.
- * An Internet address combined with a port number represents an
- * endpoint to which a socket can connect or a listening socket can
- * bind.
- */
+/// An internet address or a Unix domain address.
+///
+/// This object holds an internet address. If this internet address
+/// is the result of a DNS lookup, the address also holds the hostname
+/// used to make the lookup.
+/// An Internet address combined with a port number represents an
+/// endpoint to which a socket can connect or a listening socket can
+/// bind.
 abstract class InternetAddress {
-  /**
-   * IP version 4 loopback address. Use this address when listening on
-   * or connecting to the loopback adapter using IP version 4 (IPv4).
-   */
+  /// IP version 4 loopback address.
+  ///
+  /// Use this address when listening on or connecting
+  /// to the loopback adapter using IP version 4 (IPv4).
   static InternetAddress get loopbackIPv4 => LOOPBACK_IP_V4;
   @Deprecated("Use loopbackIPv4 instead")
   external static InternetAddress get LOOPBACK_IP_V4;
 
-  /**
-   * IP version 6 loopback address. Use this address when listening on
-   * or connecting to the loopback adapter using IP version 6 (IPv6).
-   */
+  /// IP version 6 loopback address.
+  ///
+  /// Use this address when listening on or connecting to
+  /// the loopback adapter using IP version 6 (IPv6).
   static InternetAddress get loopbackIPv6 => LOOPBACK_IP_V6;
   @Deprecated("Use loopbackIPv6 instead")
   external static InternetAddress get LOOPBACK_IP_V6;
 
-  /**
-   * IP version 4 any address. Use this address when listening on
-   * all adapters IP addresses using IP version 4 (IPv4).
-   */
+  /// IP version 4 any address.
+  ///
+  /// Use this address when listening on the addresses
+  /// of all adapters using IP version 4 (IPv4).
   static InternetAddress get anyIPv4 => ANY_IP_V4;
   @Deprecated("Use anyIPv4 instead")
   external static InternetAddress get ANY_IP_V4;
 
-  /**
-   * IP version 6 any address. Use this address when listening on
-   * all adapters IP addresses using IP version 6 (IPv6).
-   */
+  /// IP version 6 any address.
+  ///
+  /// Use this address when listening on the addresses
+  /// of all adapters using IP version 6 (IPv6).
   static InternetAddress get anyIPv6 => ANY_IP_V6;
   @Deprecated("Use anyIPv6 instead")
   external static InternetAddress get ANY_IP_V6;
 
-  /**
-   * The address family of the [InternetAddress].
-   */
+  /// The address family of the [InternetAddress].
   InternetAddressType get type;
 
-  /**
-   * The numeric address of the host.
-   *
-   * For IPv4 addresses this is using the dotted-decimal notation.
-   * For IPv6 it is using the hexadecimal representation.
-   * For Unix domain addresses, this is a file path.
-   */
+  /// The numeric address of the host.
+  ///
+  /// For IPv4 addresses this is using the dotted-decimal notation.
+  /// For IPv6 it is using the hexadecimal representation.
+  /// For Unix domain addresses, this is a file path.
   String get address;
 
-  /**
-   * The host used to lookup the address.
-   *
-   * If there is no host associated with the address this returns the [address].
-   */
+  /// The host used to lookup the address.
+  ///
+  /// If there is no host associated with the address this returns the [address].
   String get host;
 
-  /**
-   * The raw address of this [InternetAddress].
-   *
-   * For an IP address, the result is either a 4 or 16 byte long list.
-   * For a Unix domain address, UTF-8 encoded byte sequences that represents
-   * [address] is returned.
-   *
-   * The returned list is a fresh copy, making it possible to change the list without
-   * modifying the [InternetAddress].
-   */
+  /// The raw address of this [InternetAddress].
+  ///
+  /// For an IP address, the result is either a 4 or 16 byte long list.
+  /// For a Unix domain address, UTF-8 encoded byte sequences that represents
+  /// [address] is returned.
+  ///
+  /// The returned list is a fresh copy, making it possible to change the list without
+  /// modifying the [InternetAddress].
   Uint8List get rawAddress;
 
-  /**
-   * Returns true if the [InternetAddress] is a loopback address.
-   */
+  /// Whether the [InternetAddress] is a loopback address.
   bool get isLoopback;
 
-  /**
-   * Returns true if the [InternetAddress]s scope is a link-local.
-   */
+  /// Whether the scope of the [InternetAddress] is a link-local.
   bool get isLinkLocal;
 
-  /**
-   * Returns true if the [InternetAddress]s scope is multicast.
-   */
+  /// Whether the scope of the [InternetAddress] is multicast.
   bool get isMulticast;
 
-  /**
-   * Creates a new [InternetAddress] from a numeric address or a file path.
-   *
-   * If [type] is [InternetAddressType.IPv4], [address] must be a numeric IPv4
-   * address (dotted-decimal notation).
-   * If [type] is [InternetAddressType.IPv6], [address] must be a numeric IPv6
-   * address (hexadecimal notation).
-   * If [type] is [InternetAddressType.unix], [address] must be a a valid file
-   * path.
-   * If [type] is omitted, [address] must be either a numeric IPv4 or IPv6
-   * address and the type is inferred from the format.
-   *
-   * To create a Unix domain address, [type] should be
-   * [InternetAddressType.unix] and [address] should be a string.
-   */
+  /// Creates a new [InternetAddress] from a numeric address or a file path.
+  ///
+  /// If [type] is [InternetAddressType.IPv4], [address] must be a numeric IPv4
+  /// address (dotted-decimal notation).
+  /// If [type] is [InternetAddressType.IPv6], [address] must be a numeric IPv6
+  /// address (hexadecimal notation).
+  /// If [type] is [InternetAddressType.unix], [address] must be a a valid file
+  /// path.
+  /// If [type] is omitted, [address] must be either a numeric IPv4 or IPv6
+  /// address and the type is inferred from the format.
   external factory InternetAddress(String address,
       {@Since("2.8") InternetAddressType? type});
 
-  /**
-   * Creates a new [InternetAddress] from the provided raw address bytes.
-   *
-   * If the [type] is [InternetAddressType.IPv4], the [rawAddress] must have
-   * length 4.
-   * If the [type] is [InternetAddressType.IPv6], the [rawAddress] must have
-   * length 16.
-   * If the [type] is [InternetAddressType.IPv4], the [rawAddress] must be a
-   * valid UTF-8 encoded file path.
-   *
-   * If [type] is omitted, the [rawAddress] must have a length of either 4 or
-   * 16, in which case the type defaults to [InternetAddressType.IPv4] or
-   * [InternetAddressType.IPv6] respectively.
-   */
+  /// Creates a new [InternetAddress] from the provided raw address bytes.
+  ///
+  /// If the [type] is [InternetAddressType.IPv4], the [rawAddress] must have
+  /// length 4.
+  /// If the [type] is [InternetAddressType.IPv6], the [rawAddress] must have
+  /// length 16.
+  /// If the [type] is [InternetAddressType.unix], the [rawAddress] must be a
+  /// valid UTF-8 encoded file path.
+  ///
+  /// If [type] is omitted, the [rawAddress] must have a length of either 4 or
+  /// 16, in which case the type defaults to [InternetAddressType.IPv4] or
+  /// [InternetAddressType.IPv6] respectively.
   external factory InternetAddress.fromRawAddress(Uint8List rawAddress,
       {@Since("2.8") InternetAddressType? type});
 
-  /**
-   * Perform a reverse DNS lookup on this [address]
-   *
-   * Returns a new [InternetAddress] with the same address, but where the [host]
-   * field set to the result of the lookup.
-   *
-   * If this address is Unix domain addresses, no lookup is performed and this
-   * address is returned directly.
-   */
+  /// Performs a reverse DNS lookup on this [address]
+  ///
+  /// Returns a new [InternetAddress] with the same address, but where the [host]
+  /// field set to the result of the lookup.
+  ///
+  /// If this address is Unix domain addresses, no lookup is performed and this
+  /// address is returned directly.
   Future<InternetAddress> reverse();
 
-  /**
-   * Lookup a host, returning a Future of a list of
-   * [InternetAddress]s. If [type] is [InternetAddressType.ANY], it
-   * will lookup both IP version 4 (IPv4) and IP version 6 (IPv6)
-   * addresses. If [type] is either [InternetAddressType.IPv4] or
-   * [InternetAddressType.IPv6] it will only lookup addresses of the
-   * specified type. The order of the list can, and most likely will,
-   * change over time.
-   */
+  /// Looks up the addresses of a host.
+  ///
+  /// If [type] is [InternetAddressType.ANY], it will lookup both
+  /// IP version 4 (IPv4) and IP version 6 (IPv6) addresses.
+  /// If [type] is either [InternetAddressType.IPv4] or
+  /// [InternetAddressType.IPv6] it will only lookup addresses of the
+  /// specified type. The order of the list can, and most likely will,
+  /// change over time.
   external static Future<List<InternetAddress>> lookup(String host,
       {InternetAddressType type = InternetAddressType.any});
 
-  /**
-   * Clones the given [address] with the new [host].
-   *
-   * The [address] must be an [InternetAddress] that was created with one
-   * of the static methods of this class.
-   */
+  /// Clones the given [address] with the new [host].
+  ///
+  /// The [address] must be an [InternetAddress] that was created with one
+  /// of the static methods of this class.
   external static InternetAddress _cloneWithNewHost(
       InternetAddress address, String host);
 
@@ -221,166 +177,146 @@ abstract class InternetAddress {
   external static InternetAddress? tryParse(String address);
 }
 
-/**
- * A [NetworkInterface] represents an active network interface on the current
- * system. It contains a list of [InternetAddress]es that are bound to the
- * interface.
- */
+/// A [NetworkInterface] represents an active network interface on the current
+/// system. It contains a list of [InternetAddress]es that are bound to the
+/// interface.
 abstract class NetworkInterface {
-  /**
-   * Get the name of the [NetworkInterface].
-   */
+  /// The name of the [NetworkInterface].
   String get name;
 
-  /**
-   * Get the index of the [NetworkInterface].
-   */
+  /// The index of the [NetworkInterface].
   int get index;
 
-  /**
-   * Get a list of [InternetAddress]es currently bound to this
-   * [NetworkInterface].
-   */
+  /// The list of [InternetAddress]es currently bound to this
+  /// [NetworkInterface].
   List<InternetAddress> get addresses;
 
-  /**
-   * Whether [list] is supported.
-   *
-   * [list] is currently unsupported on Android.
-   */
+  /// Whether the [list] method is supported.
+  ///
+  /// The [list] method is currently unsupported on Android.
   external static bool get listSupported;
 
-  /**
-   * Query the system for [NetworkInterface]s.
-   *
-   * If [includeLoopback] is `true`, the returned list will include the
-   * loopback device. Default is `false`.
-   *
-   * If [includeLinkLocal] is `true`, the list of addresses of the returned
-   * [NetworkInterface]s, may include link local addresses. Default is `false`.
-   *
-   * If [type] is either [InternetAddressType.IPv4] or
-   * [InternetAddressType.IPv6] it will only lookup addresses of the
-   * specified type. Default is [InternetAddressType.any].
-   */
+  /// Query the system for [NetworkInterface]s.
+  ///
+  /// If [includeLoopback] is `true`, the returned list will include the
+  /// loopback device. Default is `false`.
+  ///
+  /// If [includeLinkLocal] is `true`, the list of addresses of the returned
+  /// [NetworkInterface]s, may include link local addresses. Default is `false`.
+  ///
+  /// If [type] is either [InternetAddressType.IPv4] or
+  /// [InternetAddressType.IPv6] it will only lookup addresses of the
+  /// specified type. Default is [InternetAddressType.any].
   external static Future<List<NetworkInterface>> list(
       {bool includeLoopback = false,
       bool includeLinkLocal = false,
       InternetAddressType type = InternetAddressType.any});
 }
 
-/**
- * A [RawServerSocket] represents a listening socket, and provides a
- * stream of low-level [RawSocket] objects, one for each connection
- * made to the listening socket.
- *
- * See [RawSocket] for more info.
- */
+/// A listening socket.
+///
+/// A `RawServerSocket` and provides a stream of low-level [RawSocket] objects,
+/// one for each connection made to the listening socket.
+///
+/// See [RawSocket] for more info.
 abstract class RawServerSocket implements Stream<RawSocket> {
-  /**
-   * Returns a future for a [:RawServerSocket:]. When the future
-   * completes the server socket is bound to the given [address] and
-   * [port] and has started listening on it.
-   *
-   * The [address] can either be a [String] or an
-   * [InternetAddress]. If [address] is a [String], [bind] will
-   * perform a [InternetAddress.lookup] and use the first value in the
-   * list. To listen on the loopback adapter, which will allow only
-   * incoming connections from the local host, use the value
-   * [InternetAddress.loopbackIPv4] or
-   * [InternetAddress.loopbackIPv6]. To allow for incoming
-   * connection from the network use either one of the values
-   * [InternetAddress.anyIPv4] or [InternetAddress.anyIPv6] to
-   * bind to all interfaces or the IP address of a specific interface.
-   *
-   * If an IP version 6 (IPv6) address is used, both IP version 6
-   * (IPv6) and version 4 (IPv4) connections will be accepted. To
-   * restrict this to version 6 (IPv6) only, use [v6Only] to set
-   * version 6 only.
-   *
-   * If [port] has the value [:0:] an ephemeral port will
-   * be chosen by the system. The actual port used can be retrieved
-   * using the [:port:] getter.
-   *
-   * The optional argument [backlog] can be used to specify the listen
-   * backlog for the underlying OS listen setup. If [backlog] has the
-   * value of [:0:] (the default) a reasonable value will be chosen by
-   * the system.
-   *
-   * The optional argument [shared] specifies whether additional RawServerSocket
-   * objects can bind to the same combination of `address`, `port` and `v6Only`.
-   * If `shared` is `true` and more `RawServerSocket`s from this isolate or
-   * other isolates are bound to the port, then the incoming connections will be
-   * distributed among all the bound `RawServerSocket`s. Connections can be
-   * distributed over multiple isolates this way.
-   */
+  /// Listens on a given address and port.
+  ///
+  /// When the returned future completes the server socket is bound
+  /// to the given [address] and [port] and has started listening on it.
+  ///
+  /// The [address] can either be a [String] or an
+  /// [InternetAddress]. If [address] is a [String], [bind] will
+  /// perform a [InternetAddress.lookup] and use the first value in the
+  /// list. To listen on the loopback adapter, which will allow only
+  /// incoming connections from the local host, use the value
+  /// [InternetAddress.loopbackIPv4] or
+  /// [InternetAddress.loopbackIPv6]. To allow for incoming
+  /// connection from the network use either one of the values
+  /// [InternetAddress.anyIPv4] or [InternetAddress.anyIPv6] to
+  /// bind to all interfaces or the IP address of a specific interface.
+  ///
+  /// If an IP version 6 (IPv6) address is used, both IP version 6
+  /// (IPv6) and version 4 (IPv4) connections will be accepted. To
+  /// restrict this to version 6 (IPv6) only, use [v6Only] to set
+  /// version 6 only.
+  ///
+  /// If [port] has the value `0` an ephemeral port will
+  /// be chosen by the system. The actual port used can be retrieved
+  /// using the `port` getter.
+  ///
+  /// The optional argument [backlog] can be used to specify the listen
+  /// backlog for the underlying OS listen setup. If [backlog] has the
+  /// value of `0` (the default) a reasonable value will be chosen by
+  /// the system.
+  ///
+  /// The optional argument [shared] specifies whether additional RawServerSocket
+  /// objects can bind to the same combination of [address], [port] and [v6Only].
+  /// If [shared] is `true` and more [RawServerSocket]s from this isolate or
+  /// other isolates are bound to the port, then the incoming connections will be
+  /// distributed among all the bound [RawServerSocket]s. Connections can be
+  /// distributed over multiple isolates this way.
   external static Future<RawServerSocket> bind(address, int port,
       {int backlog = 0, bool v6Only = false, bool shared = false});
 
-  /**
-   * Returns the port used by this socket.
-   */
+  /// The port used by this socket.
   int get port;
 
-  /**
-   * Returns the address used by this socket.
-   */
+  /// The address used by this socket.
   InternetAddress get address;
 
-  /**
-   * Closes the socket. The returned future completes when the socket
-   * is fully closed and is no longer bound.
-   */
+  /// Closes the socket.
+  ///
+  /// The returned future completes when the socket
+  /// is fully closed and is no longer bound.
   Future<RawServerSocket> close();
 }
 
-/**
- * A [ServerSocket] represents a listening socket, and provides a
- * stream of [Socket] objects, one for each connection made to the
- * listening socket.
- *
- * See [Socket] for more info.
- */
+/// A listening socket.
+///
+/// A [ServerSocket] provides a stream of [Socket] objects,
+/// one for each connection made to the listening socket.
+///
+/// See [Socket] for more info.
 abstract class ServerSocket implements Stream<Socket> {
-  /**
-   * Returns a future for a [:ServerSocket:]. When the future
-   * completes the server socket is bound to the given [address] and
-   * [port] and has started listening on it.
-   *
-   * The [address] can either be a [String] or an
-   * [InternetAddress]. If [address] is a [String], [bind] will
-   * perform a [InternetAddress.lookup] and use the first value in the
-   * list. To listen on the loopback adapter, which will allow only
-   * incoming connections from the local host, use the value
-   * [InternetAddress.loopbackIPv4] or
-   * [InternetAddress.loopbackIPv6]. To allow for incoming
-   * connection from the network use either one of the values
-   * [InternetAddress.anyIPv4] or [InternetAddress.anyIPv6] to
-   * bind to all interfaces or the IP address of a specific interface.
-   *
-   * If an IP version 6 (IPv6) address is used, both IP version 6
-   * (IPv6) and version 4 (IPv4) connections will be accepted. To
-   * restrict this to version 6 (IPv6) only, use [v6Only] to set
-   * version 6 only.
-   *
-   * If [port] has the value [:0:] an ephemeral port will be chosen by
-   * the system. The actual port used can be retrieved using the
-   * [port] getter.
-   *
-   * The optional argument [backlog] can be used to specify the listen
-   * backlog for the underlying OS listen setup. If [backlog] has the
-   * value of [:0:] (the default) a reasonable value will be chosen by
-   * the system.
-   *
-   * The optional argument [shared] specifies whether additional ServerSocket
-   * objects can bind to the same combination of `address`, `port` and `v6Only`.
-   * If `shared` is `true` and more `ServerSocket`s from this isolate or other
-   * isolates are bound to the port, then the incoming connections will be
-   * distributed among all the bound `ServerSocket`s. Connections can be
-   * distributed over multiple isolates this way.
-   */
+  /// Listens on a given address and port.
+  ///
+  /// When the returned future completes the server socket is bound
+  /// to the given [address] and [port] and has started listening on it.
+  ///
+  /// The [address] can either be a [String] or an
+  /// [InternetAddress]. If [address] is a [String], [bind] will
+  /// perform a [InternetAddress.lookup] and use the first value in the
+  /// list. To listen on the loopback adapter, which will allow only
+  /// incoming connections from the local host, use the value
+  /// [InternetAddress.loopbackIPv4] or
+  /// [InternetAddress.loopbackIPv6]. To allow for incoming
+  /// connection from the network use either one of the values
+  /// [InternetAddress.anyIPv4] or [InternetAddress.anyIPv6] to
+  /// bind to all interfaces or the IP address of a specific interface.
+  ///
+  /// If an IP version 6 (IPv6) address is used, both IP version 6
+  /// (IPv6) and version 4 (IPv4) connections will be accepted. To
+  /// restrict this to version 6 (IPv6) only, use [v6Only] to set
+  /// version 6 only.
+  ///
+  /// If [port] has the value `0` an ephemeral port will be chosen by
+  /// the system. The actual port used can be retrieved using the
+  /// [port] getter.
+  ///
+  /// The optional argument [backlog] can be used to specify the listen
+  /// backlog for the underlying OS listen setup. If [backlog] has the
+  /// value of `0` (the default) a reasonable value will be chosen by
+  /// the system.
+  ///
+  /// The optional argument [shared] specifies whether additional ServerSocket
+  /// objects can bind to the same combination of [address], [port] [and] [v6Only].
+  /// If [shared] is `true` and more [ServerSockets] from this isolate or other
+  /// isolates are bound to the port, then the incoming connections will be
+  /// distributed among all the bound [ServerSockets]. Connections can be
+  /// distributed over multiple isolates this way.
   static Future<ServerSocket> bind(address, int port,
-      {int backlog: 0, bool v6Only: false, bool shared: false}) {
+      {int backlog = 0, bool v6Only = false, bool shared = false}) {
     final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       return ServerSocket._bind(address, port,
@@ -393,27 +329,21 @@ abstract class ServerSocket implements Stream<Socket> {
   external static Future<ServerSocket> _bind(address, int port,
       {int backlog = 0, bool v6Only = false, bool shared = false});
 
-  /**
-   * Returns the port used by this socket.
-   */
+  /// The port used by this socket.
   int get port;
 
-  /**
-   * Returns the address used by this socket.
-   */
+  /// The address used by this socket.
   InternetAddress get address;
 
-  /**
-   * Closes the socket. The returned future completes when the socket
-   * is fully closed and is no longer bound.
-   */
+  /// Closes the socket.
+  ///
+  /// The returned future completes when the socket
+  /// is fully closed and is no longer bound.
   Future<ServerSocket> close();
 }
 
-/**
- * The [SocketDirection] is used as a parameter to [Socket.close] and
- * [RawSocket.close] to close a socket in the specified direction(s).
- */
+/// The [SocketDirection] is used as a parameter to [Socket.close] and
+/// [RawSocket.close] to close a socket in the specified direction(s).
 class SocketDirection {
   static const SocketDirection receive = const SocketDirection._(0);
   static const SocketDirection send = const SocketDirection._(1);
@@ -431,19 +361,17 @@ class SocketDirection {
   const SocketDirection._(this._value);
 }
 
-/**
- * The [SocketOption] is used as a parameter to [Socket.setOption] and
- * [RawSocket.setOption] to set customize the behaviour of the underlying
- * socket.
- */
+/// An option for a socket which is configured using [Socket.setOption].
+///
+/// The [SocketOption] is used as a parameter to [Socket.setOption] and
+/// [RawSocket.setOption] to customize the behaviour of the underlying
+/// socket.
 class SocketOption {
-  /**
-   * Enable or disable no-delay on the socket. If tcpNoDelay is enabled, the
-   * socket will not buffer data internally, but instead write each data chunk
-   * as an individual TCP packet.
-   *
-   * tcpNoDelay is disabled by default.
-   */
+  /// Enable or disable no-delay on the socket. If tcpNoDelay is enabled, the
+  /// socket will not buffer data internally, but instead write each data chunk
+  /// as an individual TCP packet.
+  ///
+  /// tcpNoDelay is disabled by default.
   static const SocketOption tcpNoDelay = const SocketOption._(0);
   @Deprecated("Use tcpNoDelay instead")
   static const SocketOption TCP_NODELAY = tcpNoDelay;
@@ -470,7 +398,7 @@ enum _RawSocketOptions {
 }
 
 /// The [RawSocketOption] is used as a parameter to [Socket.setRawOption] and
-/// [RawSocket.setRawOption] to set customize the behaviour of the underlying
+/// [RawSocket.setRawOption] to customize the behaviour of the underlying
 /// socket.
 ///
 /// It allows for fine grained control of the socket options, and its values
@@ -478,10 +406,11 @@ enum _RawSocketOptions {
 /// getsockopt.
 @Since("2.2")
 class RawSocketOption {
-  /// Creates a RawSocketOption for getRawOption andSetRawOption.
+  /// Creates a [RawSocketOption] for [RawSocket.getRawOption]
+  /// and [RawSocket.setRawOption].
   ///
-  /// The level and option arguments correspond to level and optname arguments
-  /// on the getsockopt and setsockopt native calls.
+  /// The [level] and [option] arguments correspond to `level` and `optname` arguments
+  /// on the `getsockopt()` and `setsockopt()` native calls.
   ///
   /// The value argument and its length correspond to the optval and length
   /// arguments on the native call.
@@ -493,7 +422,7 @@ class RawSocketOption {
   /// the option.
   const RawSocketOption(this.level, this.option, this.value);
 
-  /// Convenience constructor for creating an int based RawSocketOption.
+  /// Convenience constructor for creating an integer based [RawSocketOption].
   factory RawSocketOption.fromInt(int level, int option, int value) {
     final Uint8List list = Uint8List(4);
     final buffer = ByteData.view(list.buffer, list.offsetInBytes);
@@ -501,7 +430,7 @@ class RawSocketOption {
     return RawSocketOption(level, option, list);
   }
 
-  /// Convenience constructor for creating a bool based RawSocketOption.
+  /// Convenience constructor for creating a boolean based [RawSocketOption].
   factory RawSocketOption.fromBool(int level, int option, bool value) =>
       RawSocketOption.fromInt(level, option, value ? 1 : 0);
 
@@ -515,54 +444,53 @@ class RawSocketOption {
   ///   * [RawSocketOption.levelUdp]
   final int level;
 
-  /// The option to set or get.
+  /// The numeric ID of the option to set or get.
   final int option;
 
   /// The raw data to set, or the array to write the current option value into.
   ///
   /// This list must be the correct length for the expected option. For most
-  /// options that take int or bool values, the length should be 4. For options
+  /// options that take [int] or [bool] values, the length should be 4. For options
   /// that expect a struct (such as an in_addr_t), the length should be the
   /// correct length for that struct.
   final Uint8List value;
 
-  /// Socket level option for SOL_SOCKET.
+  /// Socket level option for `SOL_SOCKET`.
   static int get levelSocket =>
       _getOptionValue(_RawSocketOptions.SOL_SOCKET.index);
 
-  /// Socket level option for IPPROTO_IP.
+  /// Socket level option for `IPPROTO_IP`.
   static int get levelIPv4 =>
       _getOptionValue(_RawSocketOptions.IPPROTO_IP.index);
 
-  /// Socket option for IP_MULTICAST_IF.
+  /// Socket option for `IP_MULTICAST_IF`.
   static int get IPv4MulticastInterface =>
       _getOptionValue(_RawSocketOptions.IP_MULTICAST_IF.index);
 
-  /// Socket level option for IPPROTO_IPV6.
+  /// Socket level option for `IPPROTO_IPV6`.
   static int get levelIPv6 =>
       _getOptionValue(_RawSocketOptions.IPPROTO_IPV6.index);
 
-  /// Socket option for IPV6_MULTICAST_IF.
+  /// Socket option for `IPV6_MULTICAST_IF`.
   static int get IPv6MulticastInterface =>
       _getOptionValue(_RawSocketOptions.IPV6_MULTICAST_IF.index);
 
-  /// Socket level option for IPPROTO_TCP.
+  /// Socket level option for `IPPROTO_TCP`.
   static int get levelTcp =>
       _getOptionValue(_RawSocketOptions.IPPROTO_TCP.index);
 
-  /// Socket level option for IPPROTO_UDP.
+  /// Socket level option for `IPPROTO_UDP`.
   static int get levelUdp =>
       _getOptionValue(_RawSocketOptions.IPPROTO_UDP.index);
 
   external static int _getOptionValue(int key);
 }
 
-/**
- * Events for the [RawSocket].
- *
- * These event objects are by the [Stream] behavior of [RawSocket] (for example
- * [RawSocket.listen], [RawSocket.forEach]) when the socket's state change.
- */
+/// Events for the [RawSocket].
+///
+/// These event objects are used by the [Stream] behavior of [RawSocket]
+/// (for example [RawSocket.listen], [RawSocket.forEach])
+/// when the socket's state change.
 class RawSocketEvent {
   /// An event indicates the socket is ready to be read.
   static const RawSocketEvent read = const RawSocketEvent._(0);
@@ -598,13 +526,15 @@ class RawSocketEvent {
   }
 }
 
+/// A cancelable connection attempt.
+///
 /// Returned by the `startConnect` methods on client-side socket types `S`,
 /// `ConnectionTask<S>` allows cancelling an attempt to connect to a host.
 class ConnectionTask<S> {
   /// A `Future` that completes with value that `S.connect()` would return
   /// unless [cancel] is called on this [ConnectionTask].
   ///
-  /// If [cancel] is called, the `Future` completes with a [SocketException]
+  /// If [cancel] is called, the future completes with a [SocketException]
   /// error whose message indicates that the connection attempt was cancelled.
   final Future<S> socket;
   final void Function() _onCancel;
@@ -631,46 +561,39 @@ class ConnectionTask<S> {
 /// The [Stream] interface of this class provides event notification about when
 /// a certain change has happened, for example when data has become available
 /// ([RawSocketEvent.read]) or when the remote end has stopped listening
-/// ([RawSocketEvent.close]).
+/// ([RawSocketEvent.closed]).
 abstract class RawSocket implements Stream<RawSocketEvent> {
-  /**
-   * Set or get, if the [RawSocket] should listen for [RawSocketEvent.read]
-   * events. Default is [:true:].
-   */
-  bool get readEventsEnabled;
-  void set readEventsEnabled(bool value);
+  /// Set or get, if the [RawSocket] should listen for [RawSocketEvent.read]
+  /// events. Default is `true`.
+  abstract bool readEventsEnabled;
 
-  /**
-   * Set or get, if the [RawSocket] should listen for [RawSocketEvent.write]
-   * events. Default is [:true:].
-   * This is a one-shot listener, and writeEventsEnabled must be set
-   * to true again to receive another write event.
-   */
-  bool get writeEventsEnabled;
-  void set writeEventsEnabled(bool value);
+  /// Set or get, if the [RawSocket] should listen for [RawSocketEvent.write]
+  /// events. Default is `true`.
+  /// This is a one-shot listener, and writeEventsEnabled must be set
+  /// to true again to receive another write event.
+  abstract bool writeEventsEnabled;
 
-  /**
-   * Creates a new socket connection to the host and port and returns a [Future]
-   * that will complete with either a [RawSocket] once connected or an error
-   * if the host-lookup or connection failed.
-   *
-   * [host] can either be a [String] or an [InternetAddress]. If [host] is a
-   * [String], [connect] will perform a [InternetAddress.lookup] and try
-   * all returned [InternetAddress]es, until connected. Unless a
-   * connection was established, the error from the first failing connection is
-   * returned.
-   *
-   * The argument [sourceAddress] can be used to specify the local
-   * address to bind when making the connection. `sourceAddress` can either
-   * be a `String` or an `InternetAddress`. If a `String` is passed it must
-   * hold a numeric IP address.
-   *
-   * The argument [timeout] is used to specify the maximum allowed time to wait
-   * for a connection to be established. If [timeout] is longer than the system
-   * level timeout duration, a timeout may occur sooner than specified in
-   * [timeout]. On timeout, a [SocketException] is thrown and all ongoing
-   * connection attempts to [host] are cancelled.
-   */
+  /// Creates a new socket connection to the host and port.
+  ///
+  /// Returns a [Future] that will complete with either a [RawSocket]
+  /// once connected, or an error if the host-lookup or connection failed.
+  ///
+  /// The [host] can either be a [String] or an [InternetAddress]. If [host] is a
+  /// [String], [connect] will perform a [InternetAddress.lookup] and try
+  /// all returned [InternetAddress]es, until connected. Unless a
+  /// connection was established, the error from the first failing connection is
+  /// returned.
+  ///
+  /// The argument [sourceAddress] can be used to specify the local
+  /// address to bind when making the connection. The [sourceAddress] can either
+  /// be a [String] or an [InternetAddress]. If a [String] is passed it must
+  /// hold a numeric IP address.
+  ///
+  /// The argument [timeout] is used to specify the maximum allowed time to wait
+  /// for a connection to be established. If [timeout] is longer than the system
+  /// level timeout duration, a timeout may occur sooner than specified in
+  /// [timeout]. On timeout, a [SocketException] is thrown and all ongoing
+  /// connection attempts to [host] are cancelled.
   external static Future<RawSocket> connect(host, int port,
       {sourceAddress, Duration? timeout});
 
@@ -680,103 +603,89 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
   external static Future<ConnectionTask<RawSocket>> startConnect(host, int port,
       {sourceAddress});
 
-  /**
-   * Returns the number of received and non-read bytes in the socket that
-   * can be read.
-   */
+  /// The number of received and non-read bytes in the socket that can be read.
   int available();
 
-  /**
-   * Read up to [len] bytes from the socket. This function is
-   * non-blocking and will only return data if data is available. The
-   * number of bytes read can be less then [len] if fewer bytes are
-   * available for immediate reading. If no data is available [:null:]
-   * is returned.
-   */
+  /// Read up to [len] bytes from the socket.
+  ///
+  /// This function is non-blocking and will only return data
+  /// if data is available.
+  /// The number of bytes read can be less then [len] if fewer bytes are
+  /// available for immediate reading. If no data is available `null`
+  /// is returned.
   Uint8List? read([int? len]);
 
-  /**
-   * Writes up to [count] bytes of the buffer from [offset] buffer offset to
-   * the socket. The number of successfully written bytes is returned. This
-   * function is non-blocking and will only write data if buffer space is
-   * available in the socket.
-   *
-   * The default value for [offset] is 0, and the default value for [count] is
-   * [:buffer.length - offset:].
-   */
+  /// Writes up to [count] bytes of the buffer from [offset] buffer offset to
+  /// the socket.
+  ///
+  /// The number of successfully written bytes is returned.
+  /// This function is non-blocking and will only write data
+  /// if buffer space is available in the socket.
+  ///
+  /// The default value for [offset] is 0, and the default value for [count] is
+  /// `buffer.length - offset`.
   int write(List<int> buffer, [int offset = 0, int? count]);
 
-  /**
-   * Returns the port used by this socket.
-   *
-   * Throws a [SocketException] if the socket is closed.
-   */
+  /// The port used by this socket.
+  ///
+  /// Throws a [SocketException] if the socket is closed.
   int get port;
 
-  /**
-   * Returns the remote port connected to by this socket.
-   *
-   * Throws a [SocketException] if the socket is closed.
-   */
+  /// The remote port connected to by this socket.
+  ///
+  /// Throws a [SocketException] if the socket is closed.
   int get remotePort;
 
-  /**
-   * Returns the [InternetAddress] used to connect this socket.
-   *
-   * Throws a [SocketException] if the socket is closed.
-   */
+  /// The [InternetAddress] used to connect this socket.
+  ///
+  /// Throws a [SocketException] if the socket is closed.
   InternetAddress get address;
 
-  /**
-   * Returns the remote [InternetAddress] connected to by this socket.
-   *
-   * Throws a [SocketException] if the socket is closed.
-   */
+  /// The remote [InternetAddress] connected to by this socket.
+  ///
+  /// Throws a [SocketException] if the socket is closed.
   InternetAddress get remoteAddress;
 
-  /**
-   * Closes the socket. Returns a Future that completes with [this] when the
-   * underlying connection is completely destroyed.
-   *
-   * Calling [close] will never throw an exception
-   * and calling it several times is supported. Calling [close] can result in
-   * a [RawSocketEvent.readClosed] event.
-   */
+  /// Closes the socket.
+  ///
+  /// Returns a future that completes with this socket when the
+  /// underlying connection is completely destroyed.
+  ///
+  /// Calling [close] will never throw an exception
+  /// and calling it several times is supported. Calling [close] can result in
+  /// a [RawSocketEvent.readClosed] event.
   Future<RawSocket> close();
 
-  /**
-   * Shutdown the socket in the [direction]. Calling [shutdown] will never
-   * throw an exception and calling it several times is supported. Calling
-   * shutdown with either [SocketDirection.both] or [SocketDirection.receive]
-   * can result in a [RawSocketEvent.readClosed] event.
-   */
+  /// Shuts down the socket in the [direction].
+  ///
+  /// Calling [shutdown] will never throw an exception
+  /// and calling it several times is supported. Calling
+  /// shutdown with either [SocketDirection.both] or [SocketDirection.receive]
+  /// can result in a [RawSocketEvent.readClosed] event.
   void shutdown(SocketDirection direction);
 
-  /**
-   * Use [setOption] to customize the [RawSocket]. See [SocketOption] for
-   * available options.
-   *
-   * Returns [:true:] if the option was set successfully, false otherwise.
-   */
+  /// Customize the [RawSocket].
+  ///
+  /// See [SocketOption] for available options.
+  ///
+  /// Returns `true` if the option was set successfully, `false` otherwise.
   bool setOption(SocketOption option, bool enabled);
 
-  /**
-   * Use [getRawOption] to get low level information about the [RawSocket]. See
-   * [RawSocketOption] for available options.
-   *
-   * Returns the [RawSocketOption.value] on success.
-   *
-   * Throws an [OSError] on failure.
-   */
+  /// Reads low level information about the [RawSocket].
+  ///
+  /// See [RawSocketOption] for available options.
+  ///
+  /// Returns the [RawSocketOption.value] on success.
+  ///
+  /// Throws an [OSError] on failure.
   @Since("2.2")
   Uint8List getRawOption(RawSocketOption option);
 
-  /**
-   * Use [setRawOption] to customize the [RawSocket]. See [RawSocketOption] for
-   * available options.
-   *
-   * Throws an [OSError] on failure.
-   */
+  /// Customizes the [RawSocket].
+  ///
+  /// See [RawSocketOption] for available options.
+  ///
+  /// Throws an [OSError] on failure.
   @Since("2.2")
   void setRawOption(RawSocketOption option);
 }
@@ -788,28 +697,26 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
 /// by the [Stream] interface of this class, and can be sent to the remote
 /// socket through the [IOSink] interface of this class.
 abstract class Socket implements Stream<Uint8List>, IOSink {
-  /**
-   * Creates a new socket connection to the host and port and returns a [Future]
-   * that will complete with either a [Socket] once connected or an error
-   * if the host-lookup or connection failed.
-   *
-   * [host] can either be a [String] or an [InternetAddress]. If [host] is a
-   * [String], [connect] will perform a [InternetAddress.lookup] and try
-   * all returned [InternetAddress]es, until connected. Unless a
-   * connection was established, the error from the first failing connection is
-   * returned.
-   *
-   * The argument [sourceAddress] can be used to specify the local
-   * address to bind when making the connection. `sourceAddress` can either
-   * be a `String` or an `InternetAddress`. If a `String` is passed it must
-   * hold a numeric IP address.
-   *
-   * The argument [timeout] is used to specify the maximum allowed time to wait
-   * for a connection to be established. If [timeout] is longer than the system
-   * level timeout duration, a timeout may occur sooner than specified in
-   * [timeout]. On timeout, a [SocketException] is thrown and all ongoing
-   * connection attempts to [host] are cancelled.
-   */
+  /// Creates a new socket connection to the host and port and returns a [Future]
+  /// that will complete with either a [Socket] once connected or an error
+  /// if the host-lookup or connection failed.
+  ///
+  /// [host] can either be a [String] or an [InternetAddress]. If [host] is a
+  /// [String], [connect] will perform a [InternetAddress.lookup] and try
+  /// all returned [InternetAddress]es, until connected. Unless a
+  /// connection was established, the error from the first failing connection is
+  /// returned.
+  ///
+  /// The argument [sourceAddress] can be used to specify the local
+  /// address to bind when making the connection. The [sourceAddress] can either
+  /// be a [String] or an [InternetAddress]. If a [String] is passed it must
+  /// hold a numeric IP address.
+  ///
+  /// The argument [timeout] is used to specify the maximum allowed time to wait
+  /// for a connection to be established. If [timeout] is longer than the system
+  /// level timeout duration, a timeout may occur sooner than specified in
+  /// [timeout]. On timeout, a [SocketException] is thrown and all ongoing
+  /// connection attempts to [host] are cancelled.
   static Future<Socket> connect(host, int port,
       {sourceAddress, Duration? timeout}) {
     final IOOverrides? overrides = IOOverrides.current;
@@ -840,75 +747,63 @@ abstract class Socket implements Stream<Uint8List>, IOSink {
   external static Future<ConnectionTask<Socket>> _startConnect(host, int port,
       {sourceAddress});
 
-  /**
-   * Destroy the socket in both directions. Calling [destroy] will make the
-   * send a close event on the stream and will no longer react on data being
-   * piped to it.
-   *
-   * Call [close](inherited from [IOSink]) to only close the [Socket]
-   * for sending data.
-   */
+  /// Destroys the socket in both directions.
+  ///
+  /// Calling [destroy] will make the send a close event on the stream
+  /// and will no longer react on data being piped to it.
+  ///
+  /// Call [close] (inherited from [IOSink]) to only close the [Socket]
+  /// for sending data.
   void destroy();
 
-  /**
-   * Use [setOption] to customize the [RawSocket]. See [SocketOption] for
-   * available options.
-   *
-   * Returns [:true:] if the option was set successfully, false otherwise.
-   *
-   * Throws a [SocketException] if the socket has been destroyed or upgraded to
-   * a secure socket.
-   */
+  /// Customizes the [RawSocket].
+  ///
+  /// See [SocketOption] for available options.
+  ///
+  /// Returns `true` if the option was set successfully, false otherwise.
+  ///
+  /// Throws a [SocketException] if the socket has been destroyed or upgraded to
+  /// a secure socket.
   bool setOption(SocketOption option, bool enabled);
 
-  /**
-   * Use [getRawOption] to get low level information about the [RawSocket]. See
-   * [RawSocketOption] for available options.
-   *
-   * Returns the [RawSocketOption.value] on success.
-   *
-   * Throws an [OSError] on failure and a [SocketException] if the socket has
-   * been destroyed or upgraded to a secure socket.
-   */
+  /// Reads low level information about the [RawSocket].
+  ///
+  /// See [RawSocketOption] for available options.
+  ///
+  /// Returns the [RawSocketOption.value] on success.
+  ///
+  /// Throws an [OSError] on failure and a [SocketException] if the socket has
+  /// been destroyed or upgraded to a secure socket.
   Uint8List getRawOption(RawSocketOption option);
 
-  /**
-   * Use [setRawOption] to customize the [RawSocket]. See [RawSocketOption] for
-   * available options.
-   *
-   * Throws an [OSError] on failure and a [SocketException] if the socket has
-   * been destroyed or upgraded to a secure socket.
-   */
+  /// Customizes the [RawSocket].
+  ///
+  /// See [RawSocketOption] for available options.
+  ///
+  /// Throws an [OSError] on failure and a [SocketException] if the socket has
+  /// been destroyed or upgraded to a secure socket.
   void setRawOption(RawSocketOption option);
 
-  /**
-   * The port used by this socket.
-   *
-   * Throws a [SocketException] if the socket is closed.
-   * The port is 0 if the socket is a Unix domain socket.
-   */
+  /// The port used by this socket.
+  ///
+  /// Throws a [SocketException] if the socket is closed.
+  /// The port is 0 if the socket is a Unix domain socket.
   int get port;
 
-  /**
-   * The remote port connected to by this socket.
-   *
-   * Throws a [SocketException] if the socket is closed.
-   * The port is 0 if the socket is a Unix domain socket.
-   */
+  /// The remote port connected to by this socket.
+  ///
+  /// Throws a [SocketException] if the socket is closed.
+  /// The port is 0 if the socket is a Unix domain socket.
   int get remotePort;
 
-  /**
-   * The [InternetAddress] used to connect this socket.
-   *
-   * Throws a [SocketException] if the socket is closed.
-   */
+  /// The [InternetAddress] used to connect this socket.
+  ///
+  /// Throws a [SocketException] if the socket is closed.
   InternetAddress get address;
 
-  /**
-   * The remote [InternetAddress] connected to by this socket.
-   *
-   * Throws a [SocketException] if the socket is closed.
-   */
+  /// The remote [InternetAddress] connected to by this socket.
+  ///
+  /// Throws a [SocketException] if the socket is closed.
   InternetAddress get remoteAddress;
 
   Future close();
@@ -916,7 +811,7 @@ abstract class Socket implements Stream<Uint8List>, IOSink {
   Future get done;
 }
 
-/// A data packet which is received by a [RawDatagramSocket].
+/// A data packet received by a [RawDatagramSocket].
 class Datagram {
   /// The actual bytes of the message.
   Uint8List data;
@@ -930,167 +825,135 @@ class Datagram {
   Datagram(this.data, this.address, this.port);
 }
 
-/**
- * A [RawDatagramSocket] is an unbuffered interface to a UDP socket.
- *
- * The raw datagram socket delivers the datagrams in the same chunks as the
- * underlying operating system. It's a [Stream] of [RawSocketEvent]s.
- *
- * Note that the event [RawSocketEvent.readClosed] will never be
- * received as an UDP socket cannot be closed by a remote peer.
- *
- * It is not the same as a
- * [POSIX raw socket](http://man7.org/linux/man-pages/man7/raw.7.html).
- */
+/// An unbuffered interface to a UDP socket.
+///
+/// The raw datagram socket delivers the datagrams in the same chunks as the
+/// underlying operating system. It's a [Stream] of [RawSocketEvent]s.
+///
+/// Note that the event [RawSocketEvent.readClosed] will never be
+/// received as an UDP socket cannot be closed by a remote peer.
+///
+/// It is not the same as a
+/// [POSIX raw socket](http://man7.org/linux/man-pages/man7/raw.7.html).
 abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
-  /**
-   * Set or get, if the [RawDatagramSocket] should listen for
-   * [RawSocketEvent.read] events. Default is [:true:].
-   */
-  bool get readEventsEnabled;
-  void set readEventsEnabled(bool value);
+  /// Whether the [RawDatagramSocket] should listen for
+  /// [RawSocketEvent.read] events.
+  ///
+  /// Default is `true`.
+  abstract bool readEventsEnabled;
 
-  /**
-   * Set or get, if the [RawDatagramSocket] should listen for
-   * [RawSocketEvent.write] events. Default is [:true:].  This is a
-   * one-shot listener, and writeEventsEnabled must be set to true
-   * again to receive another write event.
-   */
-  bool get writeEventsEnabled;
-  void set writeEventsEnabled(bool value);
+  /// Whether the [RawDatagramSocket] should listen for
+  /// [RawSocketEvent.write] events.
+  ///
+  /// Default is `true`.
+  /// This is a one-shot listener, and [writeEventsEnabled] must be set to true
+  /// again to receive another write event.
+  abstract bool writeEventsEnabled;
 
-  /**
-   * Set or get, whether multicast traffic is looped back to the host.
-   *
-   * By default multicast loopback is enabled.
-   */
-  bool get multicastLoopback;
-  void set multicastLoopback(bool value);
+  /// Whether multicast traffic is looped back to the host.
+  ///
+  /// By default multicast loopback is enabled.
+  abstract bool multicastLoopback;
 
-  /**
-   * Set or get, the maximum network hops for multicast packages
-   * originating from this socket.
-   *
-   * For IPv4 this is referred to as TTL (time to live).
-   *
-   * By default this value is 1 causing multicast traffic to stay on
-   * the local network.
-   */
-  int get multicastHops;
-  void set multicastHops(int value);
+  /// The maximum network hops for multicast packages
+  /// originating from this socket.
+  ///
+  /// For IPv4 this is referred to as TTL (time to live).
+  ///
+  /// By default this value is 1 causing multicast traffic to stay on
+  /// the local network.
+  abstract int multicastHops;
 
-  /**
-   * Set or get, the network interface used for outgoing multicast packages.
-   *
-   * A value of `null`indicate that the system chooses the network
-   * interface to use.
-   *
-   * By default this value is `null`
-   */
+  /// The network interface used for outgoing multicast packages.
+  ///
+  /// A value of `null` indicate that the system chooses the network
+  /// interface to use.
+  ///
+  /// By default this value is `null`
   @Deprecated("This property is not implemented. Use getRawOption and "
       "setRawOption instead.")
   NetworkInterface? multicastInterface;
 
-  /**
-   * Set or get, whether IPv4 broadcast is enabled.
-   *
-   * IPv4 broadcast needs to be enabled by the sender for sending IPv4
-   * broadcast packages. By default IPv4 broadcast is disabled.
-   *
-   * For IPv6 there is no general broadcast mechanism. Use multicast
-   * instead.
-   */
-  bool get broadcastEnabled;
-  void set broadcastEnabled(bool value);
+  /// Whether IPv4 broadcast is enabled.
+  ///
+  /// IPv4 broadcast needs to be enabled by the sender for sending IPv4
+  /// broadcast packages. By default IPv4 broadcast is disabled.
+  ///
+  /// For IPv6 there is no general broadcast mechanism. Use multicast
+  /// instead.
+  abstract bool broadcastEnabled;
 
-  /**
-   * Binds a socket to the given [host] and the [port].
-   *
-   * When the socket is bound and has started listening on [port], the returned
-   * future completes with the [RawDatagramSocket] of the bound socket.
-   *
-   * The [host] can either be a [String] or an [InternetAddress]. If [host] is a
-   * [String], [bind] will perform a [InternetAddress.lookup] and use the first
-   * value in the list. To listen on the loopback interface, which will allow
-   * only incoming connections from the local host, use the value
-   * [InternetAddress.loopbackIPv4] or [InternetAddress.loopbackIPv6].
-   * To allow for incoming connection from any network use either one of
-   * the values [InternetAddress.anyIPv4] or [InternetAddress.anyIPv6] to
-   * bind to all interfaces, or use the IP address of a specific interface.
-   *
-   * The [reuseAddress] should be set for all listeners that bind to the same
-   * address. Otherwise, it will fail with a [SocketException].
-   *
-   * The [reusePort] specifies whether the port can be reused.
-   *
-   * The [ttl] sets `time to live` of a datagram sent on the socket.
-   */
+  /// Binds a socket to the given [host] and [port].
+  ///
+  /// When the socket is bound and has started listening on [port], the returned
+  /// future completes with the [RawDatagramSocket] of the bound socket.
+  ///
+  /// The [host] can either be a [String] or an [InternetAddress]. If [host] is a
+  /// [String], [bind] will perform a [InternetAddress.lookup] and use the first
+  /// value in the list. To listen on the loopback interface, which will allow
+  /// only incoming connections from the local host, use the value
+  /// [InternetAddress.loopbackIPv4] or [InternetAddress.loopbackIPv6].
+  /// To allow for incoming connection from any network use either one of
+  /// the values [InternetAddress.anyIPv4] or [InternetAddress.anyIPv6] to
+  /// bind to all interfaces, or use the IP address of a specific interface.
+  ///
+  /// The [reuseAddress] should be set for all listeners that bind to the same
+  /// address. Otherwise, it will fail with a [SocketException].
+  ///
+  /// The [reusePort] specifies whether the port can be reused.
+  ///
+  /// The [ttl] sets `time to live` of a datagram sent on the socket.
   external static Future<RawDatagramSocket> bind(host, int port,
       {bool reuseAddress = true, bool reusePort = false, int ttl = 1});
 
-  /**
-   * Returns the port used by this socket.
-   */
+  /// The port used by this socket.
   int get port;
 
-  /**
-   * Returns the address used by this socket.
-   */
+  /// The address used by this socket.
   InternetAddress get address;
 
-  /**
-   * Close the datagram socket.
-   */
+  /// Closes the datagram socket.
   void close();
 
-  /**
-   * Send a datagram.
-   *
-   * Returns the number of bytes written. This will always be either
-   * the size of [buffer] or `0`.
-   */
+  /// Sends a datagram.
+  ///
+  /// Returns the number of bytes written. This will always be either
+  /// the size of [buffer] or `0`.
   int send(List<int> buffer, InternetAddress address, int port);
 
-  /**
-   * Receive a datagram. If there are no datagrams available `null` is
-   * returned.
-   *
-   * The maximum length of the datagram that can be received is 65503 bytes.
-   */
+  /// Receives a datagram.
+  ///
+  /// Returns `null` if there are no datagrams available.
+  ///
+  /// The maximum length of the datagram that can be received is 65503 bytes.
   Datagram? receive();
 
-  /**
-   * Join a multicast group.
-   *
-   * If an error occur when trying to join the multicast group an
-   * exception is thrown.
-   */
+  /// Joins a multicast group.
+  ///
+  /// If an error occur when trying to join the multicast group, an
+  /// exception is thrown.
   void joinMulticast(InternetAddress group, [NetworkInterface? interface]);
 
-  /**
-   * Leave a multicast group.
-   *
-   * If an error occur when trying to join the multicase group an
-   * exception is thrown.
-   */
+  /// Leaves a multicast group.
+  ///
+  /// If an error occur when trying to join the multicase group, an
+  /// exception is thrown.
   void leaveMulticast(InternetAddress group, [NetworkInterface? interface]);
 
-  /**
-   * Use [getRawOption] to get low level information about the [RawSocket]. See
-   * [RawSocketOption] for available options.
-   *
-   * Returns [RawSocketOption.value] on success.
-   *
-   * Throws an [OSError] on failure.
-   */
+  /// Reads low level information about the [RawSocket].
+  ///
+  /// See [RawSocketOption] for available options.
+  ///
+  /// Returns [RawSocketOption.value] on success.
+  ///
+  /// Throws an [OSError] on failure.
   Uint8List getRawOption(RawSocketOption option);
 
-  /**
-   * Use [setRawOption] to customize the [RawSocket]. See [RawSocketOption] for
-   * available options.
-   *
-   * Throws an [OSError] on failure.
-   */
+  /// Customizes the [RawSocket].
+  ///
+  /// See [RawSocketOption] for available options.
+  ///
+  /// Throws an [OSError] on failure.
   void setRawOption(RawSocketOption option);
 }
 

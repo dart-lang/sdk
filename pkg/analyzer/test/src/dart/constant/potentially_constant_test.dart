@@ -14,7 +14,7 @@ main() {
     defineReflectiveTests(IsConstantTypeExpressionTest);
     defineReflectiveTests(IsPotentiallyConstantTypeExpressionTest);
     defineReflectiveTests(PotentiallyConstantTest);
-    defineReflectiveTests(PotentiallyConstantWithNullSafetyTest);
+    defineReflectiveTests(PotentiallyConstantWithNonFunctionTypeAliasesTest);
   });
 }
 
@@ -749,6 +749,12 @@ class A<T> {
 ''', () => _xInitializer(), () => [findNode.typeName('T>{0')]);
   }
 
+  test_simpleIdentifier_class() async {
+    await _assertConst(r'''
+var x = int;
+''', () => _xInitializer());
+  }
+
   test_simpleIdentifier_function() async {
     await _assertConst(r'''
 var x = f;
@@ -845,9 +851,10 @@ var x = a + 1;
     );
   }
 
-  test_simpleIdentifier_type_class() async {
+  test_simpleIdentifier_typedef_functionType() async {
     await _assertConst(r'''
-var x = int;
+typedef A = void Function();
+var x = A;
 ''', () => _xInitializer());
   }
 
@@ -918,8 +925,8 @@ var x = 'a';
 }
 
 @reflectiveTest
-class PotentiallyConstantWithNullSafetyTest extends PotentiallyConstantTest
-    with WithNullSafetyMixin {
+class PotentiallyConstantWithNonFunctionTypeAliasesTest
+    extends PotentiallyConstantTest with WithNonFunctionTypeAliasesMixin {
   @override
   test_asExpression_typeParameter() async {
     await _assertConst(r'''
@@ -963,6 +970,23 @@ class A<T> {
     var x = a is List<T>;
   }
 }
+''', () => _xInitializer());
+  }
+
+  test_prefixedIdentifier_typedef_interfaceType() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+typedef A = List<int>;
+''');
+    await _assertConst(r'''
+import 'a.dart' as p;
+var x = p.A;
+''', () => _xInitializer());
+  }
+
+  test_simpleIdentifier_typedef_interfaceType() async {
+    await _assertConst(r'''
+typedef A = List<int>;
+var x = A;
 ''', () => _xInitializer());
   }
 }

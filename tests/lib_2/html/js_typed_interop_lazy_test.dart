@@ -133,7 +133,6 @@ baz.LazyClass = function LazyClass(a) {
       expect(l is AnonClass, isTrue);
       expect((l as AnonClass) == l, isTrue);
       expect((l as AnonClass2) == l, isTrue);
-      expect(anon is! LazyClass, isTrue); //# 01: ok
       expect(anon is AnonClass, isTrue);
       expect(anon is AnonClass2, isTrue);
 
@@ -226,7 +225,6 @@ baz.foo.NestedLazyClass = function NestedLazyClass(a) {
       expect(l is AnonClass, isTrue);
       expect((l as AnonClass) == l, isTrue);
       expect((l as AnonClass2) == l, isTrue);
-      expect(anon is! NestedLazyClass, isTrue); //# 01: ok
       expect(anon is AnonClass, isTrue);
       expect(anon is AnonClass2, isTrue);
 

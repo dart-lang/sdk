@@ -15,4 +15,11 @@ static method main() → dynamic
   ;
 
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_29987.dart:5:8: Error: Expected a URI.
+// import "dart_:core";
+//        ^
+//
 import self as self2;

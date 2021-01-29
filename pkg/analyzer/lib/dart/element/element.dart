@@ -391,6 +391,7 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
 
   /// Return a list containing all of the function type aliases contained in
   /// this compilation unit.
+  @Deprecated('Use typeAliases instead')
   List<FunctionTypeAliasElement> get functionTypeAliases;
 
   /// Return `true` if this compilation unit defines a top-level function named
@@ -993,6 +994,8 @@ abstract class ElementVisitor<R> {
 
   R visitTopLevelVariableElement(TopLevelVariableElement element);
 
+  R visitTypeAliasElement(TypeAliasElement element);
+
   R visitTypeParameterElement(TypeParameterElement element);
 }
 
@@ -1167,6 +1170,7 @@ abstract class FunctionElement implements ExecutableElement, LocalElement {
 abstract class FunctionTypeAliasElement implements TypeAliasElement {
   /// Return the generic function type element representing the generic function
   /// type on the right side of the equals.
+  @Deprecated('Use aliasedElement instead')
   GenericFunctionTypeElement get function;
 
   @override

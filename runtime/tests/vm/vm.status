@@ -58,9 +58,11 @@ dart_2/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel 
 [ $builder_tag == tsan ]
 dart/appjit_cha_deopt_test: SkipSlow
 dart/regress_40462_test: SkipSlow
+dart/regress_40753_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatly fails to locate its coredump.
 dart/trigger_gc_in_native_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatly fails to locate its coredump.
 dart_2/appjit_cha_deopt_test: SkipSlow
 dart_2/regress_40462_test: SkipSlow
+dart_2/regress_40753_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatly fails to locate its coredump.
 dart_2/trigger_gc_in_native_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatly fails to locate its coredump.
 
 [ $compiler == app_jitk ]

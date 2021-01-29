@@ -86,6 +86,8 @@ abstract class _Class1&Object&TestMixin = core::Object with self::TestMixin<self
   const synthetic constructor •() → self::_Class1&Object&TestMixin*
     : super core::Object::•()
     ;
+  mixin-super-stub method test(generic-covariant-impl asy::Future<self::Response<core::String*>*>* fetch) → asy::Future<core::String*>*
+    return super.{self::TestMixin::test}(fetch);
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -103,13 +105,15 @@ class Class1 extends self::_Class1&Object&TestMixin {
     ;
   method _test() → dynamic {
     final self::Response<core::String*>* response = new self::Response::•<core::String*>("test");
-    this.{self::TestMixin::test}(asy::Future::value<self::Response<core::String*>*>(response));
+    this.{self::_Class1&Object&TestMixin::test}(asy::Future::value<self::Response<core::String*>*>(response));
   }
 }
 abstract class _Class2&Object&TestMixin = core::Object with self::TestMixin<self::PagingResponse<core::String*>*, core::String*> /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_Class2&Object&TestMixin*
     : super core::Object::•()
     ;
+  mixin-super-stub method test(generic-covariant-impl asy::Future<self::PagingResponse<core::String*>*>* fetch) → asy::Future<core::String*>*
+    return super.{self::TestMixin::test}(fetch);
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -127,7 +131,7 @@ class Class2 extends self::_Class2&Object&TestMixin {
     ;
   method _test() → dynamic {
     final self::PagingResponse<core::String*>* response = new self::PagingResponse::•<core::String*>(new self::PagingResponseData::•<core::String*>(<core::String*>["test"]));
-    this.{self::TestMixin::test}(asy::Future::value<self::PagingResponse<core::String*>*>(response));
+    this.{self::_Class2&Object&TestMixin::test}(asy::Future::value<self::PagingResponse<core::String*>*>(response));
   }
 }
 static method main() → dynamic {}

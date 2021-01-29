@@ -2952,6 +2952,87 @@ extension CurryFunction<R, S, T> on R Function(S, T) {
     // adding assertion(s).
   }
 
+  Future<void> test_extension_this_non_null_intent_explicit_direct() async {
+    await analyze('''
+extension on int {
+  f() => g(this);
+}
+void g(int i) {}
+''');
+    assertEdge(decoratedTypeAnnotation('int {').node,
+        decoratedTypeAnnotation('int i').node,
+        hard: true);
+  }
+
+  Future<void> test_extension_this_non_null_intent_explicit_method() async {
+    await analyze('''
+extension on int {
+  f() => this.abs();
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node, never, hard: true);
+  }
+
+  Future<void>
+      test_extension_this_non_null_intent_explicit_property_get() async {
+    await analyze('''
+extension on int {
+  f() => this.isEven;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node, never, hard: true);
+  }
+
+  Future<void>
+      test_extension_this_non_null_intent_explicit_property_set() async {
+    await analyze('''
+class C {
+  int x;
+}
+extension on C /*reference*/ {
+  f() {
+    this.x = 0;
+  }
+}
+''');
+    assertEdge(decoratedTypeAnnotation('C /*reference*/').node, never,
+        hard: true);
+  }
+
+  Future<void> test_extension_this_non_null_intent_implicit_method() async {
+    await analyze('''
+extension on int {
+  f() => abs();
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node, never, hard: true);
+  }
+
+  Future<void> test_extension_this_non_null_intent_implicit_property() async {
+    await analyze('''
+extension on int {
+  f() => isEven;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node, never, hard: true);
+  }
+
+  Future<void>
+      test_extension_this_non_null_intent_implicit_property_set() async {
+    await analyze('''
+class C {
+  int x;
+}
+extension on C /*reference*/ {
+  f() {
+    x = 0;
+  }
+}
+''');
+    assertEdge(decoratedTypeAnnotation('C /*reference*/').node, never,
+        hard: true);
+  }
+
   Future<void> test_field_final_does_not_override_setter() async {
     await analyze('''
 abstract class A {
@@ -6197,6 +6278,58 @@ void test() {
         assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
   }
 
+  Future<void> test_postDominators_subFunction_nested() async {
+    await analyze('''
+f1(int a, int b, int c, int d) {
+  f2() {
+    a = 0;
+    f3() {
+      b = 0;
+    }
+    c = 0;
+  }
+  a + 1;
+  b + 1;
+  c + 1;
+  d + 1;
+}
+''');
+    // a, b, and c may all be written to prior to their use, so their use sites
+    // don't demonstrate non-null intent.
+    assertEdge(decoratedTypeAnnotation('int a').node, never, hard: false);
+    assertEdge(decoratedTypeAnnotation('int b').node, never, hard: false);
+    assertEdge(decoratedTypeAnnotation('int c').node, never, hard: false);
+    // However, the use of `d` does demonstrate non-null intent because there's
+    // no write to `d`.
+    assertEdge(decoratedTypeAnnotation('int d').node, never, hard: true);
+  }
+
+  Future<void> test_postDominators_subFunction_nested_closure() async {
+    await analyze('''
+f1(int a, int b, int c, int d) {
+  var f2 = () {
+    a = 0;
+    var f3 = () {
+      b = 0;
+    };
+    c = 0;
+  };
+  a + 1;
+  b + 1;
+  c + 1;
+  d + 1;
+}
+''');
+    // a, b, and c may all be written to prior to their use, so their use sites
+    // don't demonstrate non-null intent.
+    assertEdge(decoratedTypeAnnotation('int a').node, never, hard: false);
+    assertEdge(decoratedTypeAnnotation('int b').node, never, hard: false);
+    assertEdge(decoratedTypeAnnotation('int c').node, never, hard: false);
+    // However, the use of `d` does demonstrate non-null intent because there's
+    // no write to `d`.
+    assertEdge(decoratedTypeAnnotation('int d').node, never, hard: true);
+  }
+
   Future<void> test_postDominators_ternaryOperator() async {
     await analyze('''
 class C {
@@ -6338,6 +6471,38 @@ double f2() => m.pi/*!*/;
             .sourceNode,
         never);
     expect(hasNullCheckHint(findNode.prefixed('m.pi/*!*/')), isTrue);
+  }
+
+  Future<void> test_prefixedIdentifier_extension_nullTarget_get() async {
+    await analyze('''
+class C {}
+extension on C /*1*/ {
+  int get x => 0;
+}
+void f() {
+  C c = null;
+  c.x;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('C c').node,
+        decoratedTypeAnnotation('C /*1*/').node,
+        hard: true);
+  }
+
+  Future<void> test_prefixedIdentifier_extension_nullTarget_set() async {
+    await analyze('''
+class C {}
+extension on C /*1*/ {
+  set x(int value) {}
+}
+void f() {
+  C c = null;
+  c.x = 0;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('C c').node,
+        decoratedTypeAnnotation('C /*1*/').node,
+        hard: true);
   }
 
   Future<void> test_prefixedIdentifier_field_type() async {
@@ -6666,6 +6831,70 @@ int f(dynamic d) {
         decoratedTypeAnnotation('int f').node);
     // We do, however, assume that it might return anything, including `null`.
     assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int f').node,
+        hard: false);
+  }
+
+  Future<void> test_propertyAccess_extension_nullTarget_get() async {
+    await analyze('''
+class C {}
+extension on C /*1*/ {
+  int get x => 0;
+}
+void f() {
+  C g() => null;
+  g().x;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('C g()').node,
+        decoratedTypeAnnotation('C /*1*/').node,
+        hard: false);
+  }
+
+  Future<void> test_propertyAccess_extension_nullTarget_get_explicit() async {
+    await analyze('''
+class C {}
+extension E on C /*1*/ {
+  int get x => 0;
+}
+void f() {
+  C g() => null;
+  E(g()).x;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('C g()').node,
+        decoratedTypeAnnotation('C /*1*/').node,
+        hard: false);
+  }
+
+  Future<void> test_propertyAccess_extension_nullTarget_set() async {
+    await analyze('''
+class C {}
+extension on C /*1*/ {
+  set x(int value) {}
+}
+void f() {
+  C g() => null;
+  g().x = 0;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('C g()').node,
+        decoratedTypeAnnotation('C /*1*/').node,
+        hard: false);
+  }
+
+  Future<void> test_propertyAccess_extension_nullTarget_set_explicit() async {
+    await analyze('''
+class C {}
+extension E on C /*1*/ {
+  set x(int value) {}
+}
+void f() {
+  C g() => null;
+  E(g()).x = 0;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('C g()').node,
+        decoratedTypeAnnotation('C /*1*/').node,
         hard: false);
   }
 
@@ -7660,11 +7889,11 @@ extension on int {
 }
 ''');
     expect(
-        assertEdge(anyNode, decoratedTypeAnnotation('int f1').node, hard: false)
+        assertEdge(anyNode, decoratedTypeAnnotation('int f1').node, hard: true)
             .sourceNode,
         isNot(never));
     expect(
-        assertEdge(anyNode, decoratedTypeAnnotation('int f2').node, hard: false)
+        assertEdge(anyNode, decoratedTypeAnnotation('int f2').node, hard: true)
             .sourceNode,
         never);
     expect(hasNullCheckHint(findNode.this_('this/*!*/')), isTrue);

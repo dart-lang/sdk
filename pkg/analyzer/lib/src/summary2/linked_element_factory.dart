@@ -210,8 +210,8 @@ class LinkedElementFactory {
   }
 
   void createTypeProviders(
-    LibraryElementImpl dartCore,
-    LibraryElementImpl dartAsync,
+    LibraryElementImpl /*!*/ dartCore,
+    LibraryElementImpl /*!*/ dartAsync,
   ) {
     if (analysisContext.typeProviderNonNullableByDefault != null) {
       return;
@@ -379,6 +379,10 @@ class LinkedElementFactory {
     if (library == null) return const [];
 
     return library.exports;
+  }
+
+  bool hasLibrary(String uriStr) {
+    return libraryReaders[uriStr] != null;
   }
 
   bool isLibraryUri(String uriStr) {

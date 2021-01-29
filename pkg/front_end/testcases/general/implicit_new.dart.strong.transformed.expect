@@ -86,8 +86,8 @@ static method main() → dynamic {
   self::f(new self::Foo::•());
   self::f(new self::Bar::named());
   self::f(new self::Bar::named());
-  core::List<core::Object*>* l = <core::Object*>[new self::Foo::•(), new self::Bar::named()];
-  l = <core::Object*>[new self::Foo::•(), new self::Bar::named()];
+  core::List<core::Object*>* l = core::_GrowableList::_literal2<core::Object*>(new self::Foo::•(), new self::Bar::named());
+  l = core::_GrowableList::_literal2<core::Object*>(new self::Foo::•(), new self::Bar::named());
   core::Map<core::String*, core::Object*>* m = <core::String*, core::Object*>{"foo": new self::Foo::•(), "bar": new self::Bar::named()};
   m = <core::String*, core::Object*>{"foo": new self::Foo::•(), "bar": new self::Bar::named()};
   self::IndexTester* i = new self::IndexTester::•();

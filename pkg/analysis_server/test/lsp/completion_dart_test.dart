@@ -31,11 +31,21 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     );
   }
 
+  @override
+  void setUp() {
+    super.setUp();
+    writePackageConfig(
+      projectFolderPath,
+      flutter: true,
+    );
+  }
+
   Future<void> test_commitCharacter_completionItem() async {
     await provideConfig(
       () => initialize(
-        textDocumentCapabilities: withAllSupportedDynamicRegistrations(
-            emptyTextDocumentClientCapabilities),
+        textDocumentCapabilities:
+            withAllSupportedTextDocumentDynamicRegistrations(
+                emptyTextDocumentClientCapabilities),
         workspaceCapabilities:
             withConfigurationSupport(emptyWorkspaceClientCapabilities),
       ),
@@ -63,8 +73,9 @@ main() {
       () => monitorDynamicRegistrations(
         registrations,
         () => initialize(
-            textDocumentCapabilities: withAllSupportedDynamicRegistrations(
-                emptyTextDocumentClientCapabilities),
+            textDocumentCapabilities:
+                withAllSupportedTextDocumentDynamicRegistrations(
+                    emptyTextDocumentClientCapabilities),
             workspaceCapabilities:
                 withDidChangeConfigurationDynamicRegistration(
                     withConfigurationSupport(
@@ -115,6 +126,55 @@ main() {
     // placeholders.
     expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
     expect(item.insertText, equals(r'myFunction(${1:a}, ${2:b})'));
+    expect(item.textEdit.newText, equals(item.insertText));
+    expect(
+      item.textEdit.range,
+      equals(rangeFromMarkers(content)),
+    );
+  }
+
+  Future<void> test_completeFunctionCalls_flutterSetState() async {
+    // Flutter's setState method has special handling inside SuggestionBuilder
+    // that already adds in a selection (which overlaps with completeFunctionCalls).
+    // Ensure we don't end up with two sets of parens/placeholders in this case.
+    final content = '''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatefulWidget {
+  @override
+  _MyWidgetState createState() => _MyWidgetState();
+}
+
+class _MyWidgetState extends State<MyWidget> {
+  @override
+  Widget build(BuildContext context) {
+    [[setSt^]]
+    return Container();
+  }
+}
+    ''';
+
+    await provideConfig(
+      () => initialize(
+        textDocumentCapabilities: withCompletionItemSnippetSupport(
+            emptyTextDocumentClientCapabilities),
+        workspaceCapabilities:
+            withConfigurationSupport(emptyWorkspaceClientCapabilities),
+      ),
+      {'completeFunctionCalls': true},
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = res.singleWhere((c) => c.label.startsWith('setState('));
+
+    // Usually the label would be "setState(…)" but here it's slightly different
+    // to indicate a full statement is being inserted.
+    expect(item.label, equals('setState(() {});'));
+
+    // Ensure the snippet comes through in the expected format with the expected
+    // placeholders.
+    expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
+    expect(item.insertText, equals('setState(() {\n      \${0:}\n    \\});'));
     expect(item.textEdit.newText, equals(item.insertText));
     expect(
       item.textEdit.range,
@@ -1398,10 +1458,7 @@ class CompletionTestWithNullSafetyTest extends AbstractLspAnalysisServerTest {
   @override
   String get testPackageLanguageVersion => latestLanguageVersion;
 
-  @failingTest
   Future<void> test_completeFunctionCalls_requiredNamed() async {
-    // TODO(dantup): Find out how we can tell this parameter is required
-    // (in the completion mapping).
     final content = '''
     void myFunction(String a, int b, {required String c, String d = ''}) {}
 
@@ -1425,10 +1482,54 @@ class CompletionTestWithNullSafetyTest extends AbstractLspAnalysisServerTest {
     // Ensure the snippet comes through in the expected format with the expected
     // placeholders.
     expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
-    expect(item.insertText, equals(r'myFunction(${1:a}, ${2:b}, ${2:c})'));
+    expect(item.insertText, equals(r'myFunction(${1:a}, ${2:b}, c: ${3:c})'));
     expect(item.textEdit.newText, equals(item.insertText));
     expect(
       item.textEdit.range,
+      equals(rangeFromMarkers(content)),
+    );
+  }
+
+  Future<void> test_completeFunctionCalls_requiredNamed_suggestionSet() async {
+    final otherFile = join(projectFolderPath, 'lib', 'other.dart');
+    newFile(
+      otherFile,
+      content:
+          "void myFunction(String a, int b, {required String c, String d = ''}) {}",
+    );
+    final content = '''
+    main() {
+      [[myFu^]]
+    }
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await provideConfig(
+      () => initialize(
+        textDocumentCapabilities: withCompletionItemSnippetSupport(
+            emptyTextDocumentClientCapabilities),
+        workspaceCapabilities: withApplyEditSupport(
+            withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      ),
+      {'completeFunctionCalls': true},
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = res.singleWhere((c) => c.label == 'myFunction(…)');
+    // Ensure the snippet comes through in the expected format with the expected
+    // placeholders.
+    expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
+    expect(item.insertText, equals(r'myFunction(${1:a}, ${2:b}, c: ${3:c})'));
+    expect(item.textEdit, isNull);
+
+    // Ensure the item can be resolved and gets a proper TextEdit.
+    final resolved = await resolveCompletion(item);
+    expect(resolved.textEdit, isNotNull);
+    expect(resolved.textEdit.newText, equals(item.insertText));
+    expect(
+      resolved.textEdit.range,
       equals(rangeFromMarkers(content)),
     );
   }

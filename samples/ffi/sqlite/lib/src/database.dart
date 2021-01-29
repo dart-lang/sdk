@@ -15,6 +15,8 @@ import "bindings/types.dart" hide Database;
 import "bindings/constants.dart";
 import "collections/closable_iterator.dart";
 
+import 'ffi/calloc.dart';
+
 /// [Database] represents an open connection to a SQLite database.
 ///
 /// All functions against a database may throw [SQLiteError].
@@ -27,13 +29,13 @@ class Database {
   /// Open a database located at the file [path].
   Database(String path,
       [int flags = Flags.SQLITE_OPEN_READWRITE | Flags.SQLITE_OPEN_CREATE]) {
-    Pointer<Pointer<types.Database>> dbOut = allocate();
+    Pointer<Pointer<types.Database>> dbOut = calloc();
     final pathC = Utf8.toUtf8(path);
     final int resultCode =
         bindings.sqlite3_open_v2(pathC, dbOut, flags, nullptr);
     _database = dbOut.value;
-    free(dbOut);
-    free(pathC);
+    calloc.free(dbOut);
+    calloc.free(pathC);
 
     if (resultCode == Errors.SQLITE_OK) {
       _open = true;
@@ -63,13 +65,13 @@ class Database {
 
   /// Execute a query, discarding any returned rows.
   void execute(String query) {
-    Pointer<Pointer<Statement>> statementOut = allocate();
+    Pointer<Pointer<Statement>> statementOut = calloc();
     Pointer<Utf8> queryC = Utf8.toUtf8(query);
     int resultCode = bindings.sqlite3_prepare_v2(
         _database, queryC, -1, statementOut, nullptr);
     Pointer<Statement> statement = statementOut.value;
-    free(statementOut);
-    free(queryC);
+    calloc.free(statementOut);
+    calloc.free(queryC);
 
     while (resultCode == Errors.SQLITE_ROW || resultCode == Errors.SQLITE_OK) {
       resultCode = bindings.sqlite3_step(statement);
@@ -82,13 +84,13 @@ class Database {
 
   /// Evaluate a query and return the resulting rows as an iterable.
   Result query(String query) {
-    Pointer<Pointer<Statement>> statementOut = allocate();
+    Pointer<Pointer<Statement>> statementOut = calloc();
     Pointer<Utf8> queryC = Utf8.toUtf8(query);
     int resultCode = bindings.sqlite3_prepare_v2(
         _database, queryC, -1, statementOut, nullptr);
     Pointer<Statement> statement = statementOut.value;
-    free(statementOut);
-    free(queryC);
+    calloc.free(statementOut);
+    calloc.free(queryC);
 
     if (resultCode != Errors.SQLITE_OK) {
       bindings.sqlite3_finalize(statement);
@@ -99,7 +101,7 @@ class Database {
     int columnCount = bindings.sqlite3_column_count(statement);
     for (int i = 0; i < columnCount; i++) {
       String columnName =
-          bindings.sqlite3_column_name(statement, i).ref.toString();
+          Utf8.fromUtf8(bindings.sqlite3_column_name(statement, i));
       columnIndices[columnName] = i;
     }
 
@@ -107,9 +109,9 @@ class Database {
   }
 
   SQLiteException _loadError(int errorCode) {
-    String errorMessage = bindings.sqlite3_errmsg(_database).ref.toString();
+    String errorMessage = Utf8.fromUtf8(bindings.sqlite3_errmsg(_database));
     String errorCodeExplanation =
-        bindings.sqlite3_errstr(errorCode).ref.toString();
+        Utf8.fromUtf8(bindings.sqlite3_errstr(errorCode));
     return SQLiteException(
         "$errorMessage (Code $errorCode: $errorCodeExplanation)");
   }
@@ -204,10 +206,8 @@ class Row {
       dynamicType =
           _typeFromCode(bindings.sqlite3_column_type(_statement, columnIndex));
     } else {
-      dynamicType = _typeFromText(bindings
-          .sqlite3_column_decltype(_statement, columnIndex)
-          .ref
-          .toString());
+      dynamicType = _typeFromText(Utf8.fromUtf8(
+          bindings.sqlite3_column_decltype(_statement, columnIndex)));
     }
 
     switch (dynamicType) {
@@ -242,7 +242,7 @@ class Row {
   /// Reads column [columnIndex] and converts to [Type.Text] if not text.
   String readColumnByIndexAsText(int columnIndex) {
     _checkIsCurrentRow();
-    return bindings.sqlite3_column_text(_statement, columnIndex).ref.toString();
+    return Utf8.fromUtf8(bindings.sqlite3_column_text(_statement, columnIndex));
   }
 
   void _checkIsCurrentRow() {

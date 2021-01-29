@@ -8,7 +8,7 @@ class B extends core::Object {
     : super core::Object::•()
     ;
   method foo() → dynamic {
-    core::List<(core::num*) →* dynamic>* a = <(core::num*) →* dynamic>[];
+    core::List<(core::num*) →* dynamic>* a = core::_GrowableList::•<(core::num*) →* dynamic>(0);
   }
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -22,5 +22,5 @@ class B extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method main() → dynamic {
-  core::List<(core::num*) →* dynamic>* a = <(core::num*) →* dynamic>[];
+  core::List<(core::num*) →* dynamic>* a = core::_GrowableList::•<(core::num*) →* dynamic>(0);
 }

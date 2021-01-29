@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -148,15 +149,18 @@ G<int> g;
 
 typedef G<T> = T Function(double);
 ''');
-    FunctionType type = findElement.topVar('g').type;
+    var type = findElement.topVar('g').type as FunctionType;
     assertType(type, 'int Function(double)');
 
-    var typedefG = findElement.functionTypeAlias('G');
-    var functionG = typedefG.function;
+    var typedefG = findElement.typeAlias('G');
+    var functionG = typedefG.aliasedElement as GenericFunctionTypeElement;
 
+    expect(type.aliasElement, typedefG);
+    assertElementTypeStrings(type.aliasArguments, ['int']);
+
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
     expect(type.element, functionG);
     expect(type.element?.enclosingElement, typedefG);
-
     assertElementTypeStrings(type.typeArguments, ['int']);
   }
 
@@ -168,14 +172,14 @@ class B {}
 
 typedef F<T extends A> = B Function<U extends B>(T a, U b);
 ''');
-    var f = findElement.functionTypeAlias('F');
+    var f = findElement.typeAlias('F');
     expect(f.typeParameters, hasLength(1));
 
     var t = f.typeParameters[0];
     expect(t.name, 'T');
     assertType(t.bound, 'A');
 
-    var ff = f.function;
+    var ff = f.aliasedElement as GenericFunctionTypeElement;
     expect(ff.typeParameters, hasLength(1));
 
     var u = ff.typeParameters[0];

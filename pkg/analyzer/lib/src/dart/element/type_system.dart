@@ -16,6 +16,7 @@ import 'package:analyzer/error/listener.dart' show ErrorReporter;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/generic_inferrer.dart';
 import 'package:analyzer/src/dart/element/greatest_lower_bound.dart';
+import 'package:analyzer/src/dart/element/least_greatest_closure.dart';
 import 'package:analyzer/src/dart/element/least_upper_bound.dart';
 import 'package:analyzer/src/dart/element/normalize.dart';
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
@@ -348,6 +349,36 @@ class TypeSystemImpl implements TypeSystem {
     return _leastUpperBoundHelper.getLeastUpperBound(T1, T2);
   }
 
+  /// Returns the greatest closure of [type] with respect to [typeParameters].
+  ///
+  /// https://github.com/dart-lang/language
+  /// See `resources/type-system/inference.md`
+  DartType greatestClosure(
+    DartType type,
+    List<TypeParameterElement> typeParameters,
+  ) {
+    var typeParameterSet = Set<TypeParameterElement>.identity();
+    typeParameterSet.addAll(typeParameters);
+
+    if (isNonNullableByDefault) {
+      return LeastGreatestClosureHelper(
+        typeSystem: this,
+        topType: objectQuestion,
+        topFunctionType: typeProvider.functionType,
+        bottomType: NeverTypeImpl.instance,
+        eliminationTargets: typeParameterSet,
+      ).eliminateToGreatest(type);
+    } else {
+      return LeastGreatestClosureHelper(
+        typeSystem: this,
+        topType: DynamicTypeImpl.instance,
+        topFunctionType: typeProvider.functionType,
+        bottomType: typeProvider.nullType,
+        eliminationTargets: typeParameterSet,
+      ).eliminateToGreatest(type);
+    }
+  }
+
   /// Returns the greatest closure of the given type [schema] with respect to
   /// `_`.
   ///
@@ -362,7 +393,7 @@ class TypeSystemImpl implements TypeSystem {
   ///
   /// Note that the greatest closure of a type schema is always a supertype of
   /// any type which matches the schema.
-  DartType greatestClosure(DartType schema) {
+  DartType greatestClosureOfSchema(DartType schema) {
     if (isNonNullableByDefault) {
       return TypeSchemaEliminationVisitor.run(
         topType: objectQuestion,
@@ -1170,6 +1201,36 @@ class TypeSystemImpl implements TypeSystem {
     return false;
   }
 
+  /// Returns the least closure of [type] with respect to [typeParameters].
+  ///
+  /// https://github.com/dart-lang/language
+  /// See `resources/type-system/inference.md`
+  DartType leastClosure(
+    DartType type,
+    List<TypeParameterElement> typeParameters,
+  ) {
+    var typeParameterSet = Set<TypeParameterElement>.identity();
+    typeParameterSet.addAll(typeParameters);
+
+    if (isNonNullableByDefault) {
+      return LeastGreatestClosureHelper(
+        typeSystem: this,
+        topType: objectQuestion,
+        topFunctionType: typeProvider.functionType,
+        bottomType: NeverTypeImpl.instance,
+        eliminationTargets: typeParameterSet,
+      ).eliminateToLeast(type);
+    } else {
+      return LeastGreatestClosureHelper(
+        typeSystem: this,
+        topType: DynamicTypeImpl.instance,
+        topFunctionType: typeProvider.functionType,
+        bottomType: typeProvider.nullType,
+        eliminationTargets: typeParameterSet,
+      ).eliminateToLeast(type);
+    }
+  }
+
   /// Returns the least closure of the given type [schema] with respect to `_`.
   ///
   /// The least closure of a type schema `P` with respect to `_` is defined as
@@ -1183,7 +1244,7 @@ class TypeSystemImpl implements TypeSystem {
   ///
   /// Note that the least closure of a type schema is always a subtype of any
   /// type which matches the schema.
-  DartType leastClosure(DartType schema) {
+  DartType leastClosureOfSchema(DartType schema) {
     if (isNonNullableByDefault) {
       return TypeSchemaEliminationVisitor.run(
         topType: objectQuestion,

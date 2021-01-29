@@ -32,7 +32,7 @@ struct ScriptIndexPair {
   }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair.script_->raw() == key->raw();
+    return pair.script_->ptr() == key->ptr();
   }
 
   ScriptIndexPair(const Script* s, intptr_t index) : script_(s), index_(index) {
@@ -60,10 +60,10 @@ struct FunctionIndexPair {
 
   static Value ValueOf(Pair kv) { return kv.index_; }
 
-  static inline intptr_t Hashcode(Key key) { return key->token_pos().value(); }
+  static inline intptr_t Hashcode(Key key) { return key->token_pos().Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair.function_->raw() == key->raw();
+    return pair.function_->ptr() == key->ptr();
   }
 
   FunctionIndexPair(const Function* f, intptr_t index)
@@ -116,7 +116,7 @@ struct DwarfCodeKeyValueTrait {
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     // Code objects are always allocated in old space, so they don't move.
-    return pair.code->raw() == key->raw();
+    return pair.code->ptr() == key->ptr();
   }
 };
 

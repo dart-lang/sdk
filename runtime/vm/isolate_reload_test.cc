@@ -2357,7 +2357,7 @@ ISOLATE_UNIT_TEST_CASE(IsolateReload_DirectSubclasses_Success) {
   String& name = String::Handle();
 
   // Lookup the Stopwatch class by name from the dart core library.
-  ObjectStore* object_store = Isolate::Current()->object_store();
+  ObjectStore* object_store = IsolateGroup::Current()->object_store();
   const Library& core_lib = Library::Handle(object_store->core_library());
   name = String::New("Stopwatch");
   const Class& stopwatch_cls = Class::Handle(core_lib.LookupClass(name));
@@ -2424,7 +2424,7 @@ ISOLATE_UNIT_TEST_CASE(IsolateReload_DirectSubclasses_GhostSubclass) {
   String& name = String::Handle();
 
   // Lookup the Stopwatch class by name from the dart core library.
-  ObjectStore* object_store = Isolate::Current()->object_store();
+  ObjectStore* object_store = IsolateGroup::Current()->object_store();
   const Library& core_lib = Library::Handle(object_store->core_library());
   name = String::New("Stopwatch");
   const Class& stopwatch_cls = Class::Handle(core_lib.LookupClass(name));
@@ -2493,7 +2493,7 @@ ISOLATE_UNIT_TEST_CASE(IsolateReload_DirectSubclasses_Failure) {
   String& name = String::Handle();
 
   // Lookup the Stopwatch class by name from the dart core library.
-  ObjectStore* object_store = Isolate::Current()->object_store();
+  ObjectStore* object_store = IsolateGroup::Current()->object_store();
   const Library& core_lib = Library::Handle(object_store->core_library());
   name = String::New("Stopwatch");
   const Class& stopwatch_cls = Class::Handle(core_lib.LookupClass(name));
@@ -4195,8 +4195,7 @@ TEST_CASE(IsolateReload_DeleteStaticField) {
       HeapIterationScope iteration(thread);
       NoSafepointScope no_safepoint;
       FindNoInstancesOfClass find_only(cid);
-      Isolate* isolate = Isolate::Current();
-      Heap* heap = isolate->heap();
+      Heap* heap = IsolateGroup::Current()->heap();
       // We still expect to find references to static field values
       // because they are not deleted after hot reload.
       EXPECT_NE(heap->FindObject(&find_only), Object::null());

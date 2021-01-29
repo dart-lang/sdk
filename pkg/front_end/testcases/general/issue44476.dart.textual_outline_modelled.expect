@@ -1,0 +1,4 @@
+class A<X extends int> {}
+
+foo(A<num> x) {}
+main() {}

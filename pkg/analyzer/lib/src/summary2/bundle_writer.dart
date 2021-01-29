@@ -466,6 +466,10 @@ class ResolutionSink {
     }
   }
 
+  void writeUInt30(int value) {
+    _sink.writeUInt30(value);
+  }
+
   int _indexOfElement(Element element) {
     if (element == null) return 0;
     if (element is MultiplyDefinedElement) return 0;
@@ -525,21 +529,11 @@ class ResolutionSink {
       writeType(typeParameter.bound);
     }
 
-    Element typedefElement;
-    List<DartType> typedefTypeArguments = const <DartType>[];
-    if (type.element is FunctionTypeAliasElement) {
-      typedefElement = type.element;
-      typedefTypeArguments = type.typeArguments;
+    var aliasElement = type.aliasElement;
+    writeElement(aliasElement);
+    if (aliasElement != null) {
+      _writeTypeList(type.aliasArguments);
     }
-    // TODO(scheglov) Cleanup to always use FunctionTypeAliasElement.
-    if (type.element is GenericFunctionTypeElement &&
-        type.element.enclosingElement is FunctionTypeAliasElement) {
-      typedefElement = type.element.enclosingElement;
-      typedefTypeArguments = type.typeArguments;
-    }
-
-    writeElement(typedefElement);
-    _writeTypeList(typedefTypeArguments);
 
     writeType(type.returnType);
 

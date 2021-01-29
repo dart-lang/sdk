@@ -310,7 +310,7 @@ void main() {
         var y = (x = null) == null;
         print(x);
         print(y);
-      }''', '1, (x = null).{dart.core::Object.==}(null), y');
+      }''', '1, (x = null) == null, y');
     });
     test('declaration from variable transitive', () async {
       await expectNotNull('''main() {
@@ -369,6 +369,7 @@ void main() {
           var z = 1;
           print(z);
         }
+        f;
         f(42);
       }''', '0, void () => dart.core::print("g"), "g", g, y, 1, z, f, 42');
     });
@@ -378,6 +379,7 @@ void main() {
         f(x) {
           y = x;
         }
+        f;
         f(42);
         print(y);
       }''', '0, f, 42');

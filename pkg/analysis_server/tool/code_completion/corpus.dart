@@ -91,8 +91,9 @@ Future<CloneResult> _clone(String repo) async {
 
 Future<String> _getBody(String url) async => (await _getResponse(url)).body;
 
-Future<http.Response> _getResponse(String url) async => _client
-    .get(url, headers: const {'User-Agent': 'dart.pkg.completion_metrics'});
+Future<http.Response> _getResponse(String url) async =>
+    _client.get(Uri.parse(url),
+        headers: const {'User-Agent': 'dart.pkg.completion_metrics'});
 
 bool _hasPubspec(FileSystemEntity f) =>
     f is Directory && File(path.join(f.path, 'pubspec.yaml')).existsSync();

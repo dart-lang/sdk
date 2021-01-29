@@ -23,6 +23,26 @@ class FfiCode extends AnalyzerErrorCode {
       correction: "Try removing the annotation.");
 
   /**
+   * Parameters:
+   * 0: the name of the struct class
+   */
+  static const FfiCode EMPTY_STRUCT = FfiCode(
+      name: 'EMPTY_STRUCT',
+      message: "Struct '{0}' is empty. Empty structs are undefined behavior.",
+      correction: "Try adding a field to '{0}' or use a different Struct.");
+
+  /**
+   * Parameters:
+   * 0: the name of the struct class
+   */
+  static const FfiCode EMPTY_STRUCT_WARNING = FfiCode(
+      name: 'EMPTY_STRUCT_WARNING',
+      message:
+          "Struct '{0}' is empty. Support for empty structs is deprecated and will be removed in the next stable version of Dart. Use Opaque instead.",
+      correction: "Try adding a field to '{0}' or use a different Struct.",
+      type: ErrorType.HINT);
+
+  /**
    * No parameters.
    */
   static const FfiCode EXTRA_ANNOTATION_ON_STRUCT_FIELD = FfiCode(
@@ -37,7 +57,8 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode FIELD_IN_STRUCT_WITH_INITIALIZER = FfiCode(
       name: 'FIELD_IN_STRUCT_WITH_INITIALIZER',
       message: "Fields in subclasses of 'Struct' can't have initializers.",
-      correction: "Try removing the initializer.");
+      correction:
+          "Try removing the initializer and marking the field as external.");
 
   /**
    * No parameters.
@@ -46,7 +67,8 @@ class FfiCode extends AnalyzerErrorCode {
       name: 'FIELD_INITIALIZER_IN_STRUCT',
       message: "Constructors in subclasses of 'Struct' can't have field "
           "initializers.",
-      correction: "Try removing the field initializer.");
+      correction: "Try removing the field initializer and marking the field as"
+          " external.");
 
   /**
    * Parameters:
@@ -76,8 +98,9 @@ class FfiCode extends AnalyzerErrorCode {
       name: 'INVALID_FIELD_TYPE_IN_STRUCT',
       message:
           "Fields in struct classes can't have the type '{0}'. They can only "
-          "be declared as 'int', 'double' or 'Pointer'.",
-      correction: "Try using 'int', 'double' or 'Pointer'.");
+          "be declared as 'int', 'double', 'Pointer', or subtype of 'Struct'.",
+      correction:
+          "Try using 'int', 'double', 'Pointer', or subtype of 'Struct'.");
 
   /**
    * No parameters.
@@ -153,6 +176,20 @@ class FfiCode extends AnalyzerErrorCode {
           "The type arguments to '{0}' must be compile time constants but type "
           "parameters are not constants.",
       correction: "Try changing the type argument to be a constant type.");
+
+  /**
+   * Parameters:
+   * 0: the name of the function, method, or constructor having type arguments
+   */
+  static const FfiCode NON_CONSTANT_TYPE_ARGUMENT_WARNING = FfiCode(
+      name: 'NON_CONSTANT_TYPE_ARGUMENT_WARNING',
+      message:
+          "Support for using non-constant type arguments '{0}' in this FFI API"
+          " is deprecated and will be removed in the next stable version of "
+          "Dart. Rewrite the code to ensure that type arguments are compile "
+          "time constants referring to a valid native type.",
+      correction: "Try changing the type argument to be a constant type.",
+      type: ErrorType.HINT);
 
   /**
    * Parameters:
@@ -240,6 +277,9 @@ class FfiCode extends AnalyzerErrorCode {
     uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_WITH',
   );
 
+  @override
+  final ErrorType type;
+
   /// Initialize a newly created error code to have the given [name]. If
   /// [uniqueName] is provided, then it will be used to construct the unique
   /// name for the code, otherwise the name will be used to construct the unique
@@ -256,7 +296,9 @@ class FfiCode extends AnalyzerErrorCode {
     @required String message,
     @required String name,
     String uniqueName,
-  }) : super(
+    ErrorType type = ErrorType.COMPILE_TIME_ERROR,
+  })  : type = type,
+        super(
           correction: correction,
           hasPublishedDocs: hasPublishedDocs,
           message: message,
@@ -266,7 +308,4 @@ class FfiCode extends AnalyzerErrorCode {
 
   @override
   ErrorSeverity get errorSeverity => type.severity;
-
-  @override
-  ErrorType get type => ErrorType.COMPILE_TIME_ERROR;
 }

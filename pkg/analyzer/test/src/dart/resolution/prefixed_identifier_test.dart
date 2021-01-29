@@ -12,6 +12,9 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PrefixedIdentifierResolutionTest);
     defineReflectiveTests(PrefixedIdentifierResolutionWithNullSafetyTest);
+    defineReflectiveTests(
+      PrefixedIdentifierResolutionWithNonFunctionTypeAliasesTest,
+    );
   });
 }
 
@@ -91,15 +94,13 @@ void f(A a) {
 
     assertSimpleIdentifier(
       prefixed.prefix,
-      readElement: findElement.parameter('a'),
-      writeElement: null,
+      element: findElement.parameter('a'),
       type: 'A',
     );
 
     assertSimpleIdentifier(
       prefixed.identifier,
-      readElement: findElement.getter('foo'),
-      writeElement: null,
+      element: findElement.getter('foo'),
       type: 'int',
     );
   }
@@ -124,15 +125,13 @@ void f() {
 
     assertSimpleIdentifier(
       prefixed.prefix,
-      readElement: findElement.class_('A'),
-      writeElement: null,
+      element: findElement.class_('A'),
       type: null,
     );
 
     assertSimpleIdentifier(
       prefixed.identifier,
-      readElement: findElement.method('foo'),
-      writeElement: null,
+      element: findElement.method('foo'),
       type: 'void Function<U>(int, U)',
     );
   }
@@ -157,16 +156,46 @@ void f() {
 
     assertSimpleIdentifier(
       prefixed.prefix,
-      readElement: findElement.class_('A'),
-      writeElement: null,
+      element: findElement.class_('A'),
       type: null,
     );
 
     assertSimpleIdentifier(
       prefixed.identifier,
-      readElement: findElement.method('foo'),
-      writeElement: null,
+      element: findElement.method('foo'),
       type: 'void Function(int)',
+    );
+  }
+
+  test_read_typedef_functionType() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+typedef A = void Function();
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart' as p;
+
+void f() {
+  p.A;
+}
+''');
+
+    var importFind = findElement.importFind('package:test/a.dart');
+    var A = importFind.typeAlias('A');
+
+    var prefixed = findNode.prefixed('p.A');
+    assertPrefixedIdentifier(
+      prefixed,
+      element: A,
+      type: 'Type',
+    );
+
+    assertImportPrefix(prefixed.prefix, importFind.prefix);
+
+    assertSimpleIdentifier(
+      prefixed.identifier,
+      element: A,
+      type: 'Type',
     );
   }
 
@@ -206,19 +235,13 @@ void f(A a) {
 
     assertSimpleIdentifier(
       prefixed.prefix,
-      readElement: findElement.parameter('a'),
-      writeElement: null,
+      element: findElement.parameter('a'),
       type: 'A',
     );
 
-    if (hasAssignmentLeftResolution) {
-      assertSimpleIdentifier(
-        prefixed.identifier,
-        readElement: null,
-        writeElement: findElement.setter('foo'),
-        type: 'int',
-      );
-    }
+    assertSimpleIdentifierAssignmentTarget(
+      prefixed.identifier,
+    );
   }
 
   test_write() async {
@@ -254,19 +277,80 @@ void f(A a) {
 
     assertSimpleIdentifier(
       prefixed.prefix,
-      readElement: findElement.parameter('a'),
-      writeElement: null,
+      element: findElement.parameter('a'),
       type: 'A',
     );
 
-    if (hasAssignmentLeftResolution) {
-      assertSimpleIdentifier(
-        prefixed.identifier,
-        readElement: null,
-        writeElement: findElement.setter('foo'),
-        type: 'int',
-      );
-    }
+    assertSimpleIdentifierAssignmentTarget(
+      prefixed.identifier,
+    );
+  }
+}
+
+@reflectiveTest
+class PrefixedIdentifierResolutionWithNonFunctionTypeAliasesTest
+    extends PubPackageResolutionTest with WithNonFunctionTypeAliasesMixin {
+  test_hasReceiver_typeAlias_staticGetter() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  static int get foo => 0;
+}
+
+typedef B = A;
+
+void f() {
+  B.foo;
+}
+''');
+
+    assertPrefixedIdentifier(
+      findNode.prefixed('B.foo'),
+      element: findElement.getter('foo'),
+      type: 'int',
+    );
+
+    assertTypeAliasRef(
+      findNode.simple('B.foo'),
+      findElement.typeAlias('B'),
+    );
+
+    assertSimpleIdentifier(
+      findNode.simple('foo;'),
+      element: findElement.getter('foo'),
+      type: 'int',
+    );
+  }
+
+  test_read_typedef_interfaceType() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+typedef A = List<int>;
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart' as p;
+
+void f() {
+  p.A;
+}
+''');
+
+    var importFind = findElement.importFind('package:test/a.dart');
+    var A = importFind.typeAlias('A');
+
+    var prefixed = findNode.prefixed('p.A');
+    assertPrefixedIdentifier(
+      prefixed,
+      element: A,
+      type: 'Type',
+    );
+
+    assertImportPrefix(prefixed.prefix, importFind.prefix);
+
+    assertSimpleIdentifier(
+      prefixed.identifier,
+      element: A,
+      type: 'Type',
+    );
   }
 }
 

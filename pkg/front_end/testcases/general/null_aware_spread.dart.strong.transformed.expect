@@ -5,7 +5,7 @@ import "dart:collection" as col;
 
 static method nullAwareListSpread(core::List<core::String*>* list) → dynamic {
   list = block {
-    final core::List<core::String*>* #t1 = <core::String*>["foo"];
+    final core::List<core::String*>* #t1 = core::_GrowableList::_literal1<core::String*>("foo");
     final core::Iterable<core::String*>* #t2 = list;
     if(!#t2.{core::Object::==}(null))
       #t1.{core::List::addAll}{Invariant}(#t2);

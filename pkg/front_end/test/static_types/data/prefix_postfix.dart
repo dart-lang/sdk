@@ -243,7 +243,8 @@ class Class {
 testInstanceOnClass(Class c) {
   /*cfe.Class*/
   /*cfe:nnbd.Class!*/
-  c. /*cfe.update: num*/ /*cfe:nnbd.update: num!*/
+  c. /*cfe.update: num*/
+          /*cfe:nnbd.update: num!*/
           /*cfe.num*/
           /*cfe:nnbd.num!*/
           numInstance
@@ -255,7 +256,8 @@ testInstanceOnClass(Class c) {
 
   /*cfe.Class*/
   /*cfe:nnbd.Class!*/
-  c. /*cfe.update: num*/ /*cfe:nnbd.update: num!*/
+  c. /*cfe.update: num*/
+          /*cfe:nnbd.update: num!*/
           /*cfe.num*/
           /*cfe:nnbd.num!*/
           numInstance

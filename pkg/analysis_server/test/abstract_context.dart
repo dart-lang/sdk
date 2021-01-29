@@ -49,6 +49,17 @@ class AbstractContextTest with ResourceProviderMixin {
   final Map<String, String> _declaredVariables = {};
   AnalysisContextCollection _analysisContextCollection;
 
+  List<AnalysisContext> get allContexts {
+    _createAnalysisContexts();
+    return _analysisContextCollection.contexts;
+  }
+
+  List<AnalysisDriver> get allDrivers {
+    return allContexts
+        .map((e) => (e as DriverBasedAnalysisContext).driver)
+        .toList();
+  }
+
   /// The file system specific `/home/test/analysis_options.yaml` path.
   String get analysisOptionsPath =>
       convertPath('/home/test/analysis_options.yaml');
@@ -260,10 +271,25 @@ class AbstractContextTest with ResourceProviderMixin {
       enableIndex: true,
       includedPaths: collectionIncludedPaths.map(convertPath).toList(),
       resourceProvider: resourceProvider,
-      sdkPath: convertPath('/sdk'),
+      sdkPath: convertPath(sdkRoot),
     );
 
     verifyCreatedCollection();
+  }
+}
+
+mixin WithNonFunctionTypeAliasesMixin on AbstractContextTest {
+  @override
+  String get testPackageLanguageVersion => null;
+
+  @nonVirtual
+  @override
+  void setUp() {
+    super.setUp();
+
+    createAnalysisOptionsFile(
+      experiments: [EnableString.nonfunction_type_aliases],
+    );
   }
 }
 

@@ -8,7 +8,6 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
@@ -22,6 +21,7 @@ import 'package:test/test.dart';
 
 import '../../../../abstract_context.dart';
 import '../../../../abstract_single_unit.dart';
+import '../../../../utils/test_instrumentation_service.dart';
 
 export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 
@@ -30,6 +30,19 @@ export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 abstract class FixProcessorLintTest extends FixProcessorTest {
   /// Return the lint code being tested.
   String get lintCode;
+
+  /// Return the [LintCode] for the [lintCode] (which is actually a name).
+  Future<LintCode> lintCodeByName(String name) async {
+    var errors = await _computeErrors();
+    var lintCodeSet = errors
+        .map((error) => error.errorCode)
+        .where((errorCode) => errorCode.name == name)
+        .toSet();
+    if (lintCodeSet.length != 1) {
+      fail('Expected exactly one LintCode, actually: $lintCodeSet');
+    }
+    return lintCodeSet.single;
+  }
 
   bool Function(AnalysisError) lintNameFilter(String name) {
     return (e) {
@@ -274,7 +287,7 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
     tracker.addContext(analysisContext);
 
     var context = DartFixContextImpl(
-      InstrumentationService.NULL_SERVICE,
+      TestInstrumentationService(),
       workspace,
       testAnalysisResult,
       error,

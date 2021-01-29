@@ -6,7 +6,6 @@
 
 import 'dart:collection';
 
-import 'package:meta/meta.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'vm_service.dart';
@@ -16,10 +15,12 @@ extension DartIOExtension on VmService {
   static Map<String, Version> _isolateVersion = {};
 
   Future<Version> _version(String isolateId) async {
-    if (_isolateVersion[isolateId] == null) {
-      _isolateVersion[isolateId] = await getDartIOVersion(isolateId);
+    Version? version = _isolateVersion[isolateId];
+    if (version == null) {
+      version = await getDartIOVersion(isolateId);
+      _isolateVersion[isolateId] = version;
     }
-    return _isolateVersion[isolateId];
+    return version;
   }
 
   /// The `getDartIOVersion` RPC returns the available version of the dart:io
@@ -46,7 +47,7 @@ extension DartIOExtension on VmService {
   /// If the state of the socket profiler is changed, a `SocketProfilingStateChange`
   /// event will be sent on the `Extension` stream.
   Future<SocketProfilingState> socketProfilingEnabled(String isolateId,
-      [bool enabled]) async {
+      [bool? enabled]) async {
     return _callHelper('ext.dart.io.socketProfilingEnabled', isolateId, args: {
       if (enabled != null) 'enabled': enabled,
     });
@@ -90,11 +91,11 @@ extension DartIOExtension on VmService {
   /// If the value of `HttpClient.enableTimelineLogging` is changed, a
   /// `HttpTimelineLoggingStateChange` event will be sent on the `Extension` stream.
   Future<HttpTimelineLoggingState> httpEnableTimelineLogging(String isolateId,
-      [bool enabled]) async {
+      [bool? enabled]) async {
     final version = await _version(isolateId);
     // Parameter name changed in version 1.4.
     final enableKey =
-        ((version.major == 1 && version.minor > 3) || version.major >= 2)
+        ((version.major! == 1 && version.minor! > 3) || version.major! >= 2)
             ? 'enabled'
             : 'enable';
     return _callHelper('ext.dart.io.httpEnableTimelineLogging', isolateId,
@@ -139,7 +140,7 @@ extension DartIOExtension on VmService {
         },
       );
 
-  Future<T> _callHelper<T>(String method, String isolateId,
+  Future<T> _callHelper<T>(String method, String? isolateId,
       {Map args = const {}}) {
     if (!_factoriesRegistered) {
       _registerFactories();
@@ -170,7 +171,7 @@ extension DartIOExtension on VmService {
 }
 
 class SocketStatistic {
-  static SocketStatistic parse(Map json) =>
+  static SocketStatistic? parse(Map<String, dynamic>? json) =>
       json == null ? null : SocketStatistic._fromJson(json);
 
   /// The unique ID associated with this socket.
@@ -219,43 +220,54 @@ class SocketStatistic {
 
 /// A [SocketProfile] provides information about statistics of sockets.
 class SocketProfile extends Response {
-  static SocketProfile parse(Map json) =>
+  static SocketProfile? parse(Map<String, dynamic>? json) =>
       json == null ? null : SocketProfile._fromJson(json);
 
-  /// List of socket statistics.
-  List<SocketStatistic> sockets;
+  @override
+  String get type => 'SocketProfile';
 
-  SocketProfile({@required this.sockets});
+  /// List of socket statistics.
+  late final List<SocketStatistic> sockets;
+
+  SocketProfile({required this.sockets});
 
   SocketProfile._fromJson(Map<String, dynamic> json) {
     // TODO(bkonyi): make this part of the vm_service.dart library so we can
     // call super._fromJson.
-    type = json['type'];
     sockets = List<SocketStatistic>.from(
-        createServiceObject(json['sockets'], const ['SocketStatistic']) ?? []);
+        createServiceObject(json['sockets'], const ['SocketStatistic'])
+                as List? ??
+            []);
   }
 }
 
 /// A [Response] containing the enabled state of a service extension.
 abstract class _State extends Response {
-  _State({@required this.enabled});
+  _State({required this.enabled}) : _type = 'State';
 
   // TODO(bkonyi): make this part of the vm_service.dart library so we can
   // call super._fromJson.
-  _State._fromJson(Map<String, dynamic> json) : enabled = json['enabled'] {
-    type = json['type'];
-  }
+  _State._fromJson(Map<String, dynamic> json)
+      : enabled = json['enabled'],
+        _type = json['type'];
+
+  @override
+  String get type => _type;
 
   final bool enabled;
+  final String _type;
 }
 
 /// A [HttpTimelineLoggingState] provides information about the current state of HTTP
 /// request logging for a given isolate.
 class HttpTimelineLoggingState extends _State {
-  static HttpTimelineLoggingState parse(Map json) =>
+  static HttpTimelineLoggingState? parse(Map<String, dynamic>? json) =>
       json == null ? null : HttpTimelineLoggingState._fromJson(json);
 
-  HttpTimelineLoggingState({@required bool enabled}) : super(enabled: enabled);
+  @override
+  String get type => 'HttpTimelineLoggingState';
+
+  HttpTimelineLoggingState({required bool enabled}) : super(enabled: enabled);
 
   HttpTimelineLoggingState._fromJson(Map<String, dynamic> json)
       : super._fromJson(json);
@@ -264,10 +276,10 @@ class HttpTimelineLoggingState extends _State {
 /// A [SocketProfilingState] provides information about the current state of
 /// socket profiling for a given isolate.
 class SocketProfilingState extends _State {
-  static SocketProfilingState parse(Map json) =>
+  static SocketProfilingState? parse(Map<String, dynamic>? json) =>
       json == null ? null : SocketProfilingState._fromJson(json);
 
-  SocketProfilingState({@required bool enabled}) : super(enabled: enabled);
+  SocketProfilingState({required bool enabled}) : super(enabled: enabled);
 
   SocketProfilingState._fromJson(Map<String, dynamic> json)
       : super._fromJson(json);
@@ -275,12 +287,12 @@ class SocketProfilingState extends _State {
 
 /// A [SpawnedProcessRef] contains identifying information about a spawned process.
 class SpawnedProcessRef {
-  static SpawnedProcessRef parse(Map json) =>
+  static SpawnedProcessRef? parse(Map<String, dynamic>? json) =>
       json == null ? null : SpawnedProcessRef._fromJson(json);
 
   SpawnedProcessRef({
-    @required this.id,
-    @required this.name,
+    required this.id,
+    required this.name,
   });
 
   SpawnedProcessRef._fromJson(Map<String, dynamic> json)
@@ -301,16 +313,16 @@ class SpawnedProcessRef {
 
 /// A [SpawnedProcess] contains startup information of a spawned process.
 class SpawnedProcess extends Response implements SpawnedProcessRef {
-  static SpawnedProcess parse(Map json) =>
+  static SpawnedProcess? parse(Map<String, dynamic>? json) =>
       json == null ? null : SpawnedProcess._fromJson(json);
 
   SpawnedProcess({
-    @required this.id,
-    @required this.name,
-    @required this.pid,
-    @required this.startedAt,
-    @required List<String> arguments,
-    @required this.workingDirectory,
+    required this.id,
+    required this.name,
+    required this.pid,
+    required this.startedAt,
+    required List<String> arguments,
+    required this.workingDirectory,
   }) : _arguments = arguments;
 
   SpawnedProcess._fromJson(Map<String, dynamic> json)
@@ -322,11 +334,11 @@ class SpawnedProcess extends Response implements SpawnedProcessRef {
         pid = json['pid'],
         startedAt = json['startedAt'],
         _arguments = List<String>.from(
-            createServiceObject(json['arguments'], const ['String']) as List ??
-                []),
-        workingDirectory = json['workingDirectory'] {
-    type = json['type'];
-  }
+            createServiceObject(json['arguments'], const ['String']) as List),
+        workingDirectory = json['workingDirectory'];
+
+  @override
+  String get type => 'SpawnedProcess';
 
   /// The unique ID associated with this process.
   final int id;
@@ -349,10 +361,10 @@ class SpawnedProcess extends Response implements SpawnedProcessRef {
 }
 
 class SpawnedProcessList extends Response {
-  static SpawnedProcessList parse(Map json) =>
+  static SpawnedProcessList? parse(Map<String, dynamic>? json) =>
       json == null ? null : SpawnedProcessList._fromJson(json);
 
-  SpawnedProcessList({@required List<SpawnedProcessRef> processes})
+  SpawnedProcessList({required List<SpawnedProcessRef> processes})
       : _processes = processes;
 
   SpawnedProcessList._fromJson(Map<String, dynamic> json)
@@ -361,10 +373,10 @@ class SpawnedProcessList extends Response {
         // call super._fromJson.
         _processes = List<SpawnedProcessRef>.from(
             createServiceObject(json['processes'], const ['SpawnedProcessRef'])
-                    as List ??
-                []) {
-    type = json['type'];
-  }
+                as List);
+
+  @override
+  String get type => 'SpawnedProcessList';
 
   /// A list of processes spawned through dart:io on a given isolate.
   List<SpawnedProcessRef> get processes => UnmodifiableListView(_processes);
@@ -373,12 +385,12 @@ class SpawnedProcessList extends Response {
 
 /// A [OpenFileRef] contains identifying information about a currently opened file.
 class OpenFileRef {
-  static OpenFileRef parse(Map json) =>
+  static OpenFileRef? parse(Map<String, dynamic>? json) =>
       json == null ? null : OpenFileRef._fromJson(json);
 
   OpenFileRef({
-    @required this.id,
-    @required this.name,
+    required this.id,
+    required this.name,
   });
 
   OpenFileRef._fromJson(Map<String, dynamic> json)
@@ -399,18 +411,18 @@ class OpenFileRef {
 
 /// A [File] contains information about reads and writes to a currently opened file.
 class OpenFile extends Response implements OpenFileRef {
-  static OpenFile parse(Map json) =>
+  static OpenFile? parse(Map<String, dynamic>? json) =>
       json == null ? null : OpenFile._fromJson(json);
 
   OpenFile({
-    @required this.id,
-    @required this.name,
-    @required this.readBytes,
-    @required this.writeBytes,
-    @required this.readCount,
-    @required this.writeCount,
-    @required this.lastReadTime,
-    @required this.lastWriteTime,
+    required this.id,
+    required this.name,
+    required this.readBytes,
+    required this.writeBytes,
+    required this.readCount,
+    required this.writeCount,
+    required this.lastReadTime,
+    required this.lastWriteTime,
   });
 
   OpenFile._fromJson(Map<String, dynamic> json)
@@ -426,9 +438,10 @@ class OpenFile extends Response implements OpenFileRef {
         lastReadTime =
             DateTime.fromMillisecondsSinceEpoch(json['lastReadTime']),
         lastWriteTime =
-            DateTime.fromMillisecondsSinceEpoch(json['lastWriteTime']) {
-    type = json['type'];
-  }
+            DateTime.fromMillisecondsSinceEpoch(json['lastWriteTime']);
+
+  @override
+  String get type => 'OpenFile';
 
   /// The unique ID associated with this file.
   final int id;
@@ -456,20 +469,20 @@ class OpenFile extends Response implements OpenFileRef {
 }
 
 class OpenFileList extends Response {
-  static OpenFileList parse(Map json) =>
+  static OpenFileList? parse(Map<String, dynamic>? json) =>
       json == null ? null : OpenFileList._fromJson(json);
 
-  OpenFileList({@required List<OpenFileRef> files}) : _files = files;
+  OpenFileList({required List<OpenFileRef> files}) : _files = files;
 
   OpenFileList._fromJson(Map<String, dynamic> json)
       :
         // TODO(bkonyi): make this part of the vm_service.dart library so we can
         // call super._fromJson.
         _files = List<OpenFileRef>.from(
-            createServiceObject(json['files'], const ['OpenFileRef']) as List ??
-                []) {
-    type = json['type'];
-  }
+            createServiceObject(json['files'], const ['OpenFileRef']) as List);
+
+  @override
+  String get type => 'OpenFileList';
 
   /// A list of all files opened through dart:io on a given isolate.
   List<OpenFileRef> get files => UnmodifiableListView(_files);

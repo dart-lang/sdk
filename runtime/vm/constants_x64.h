@@ -146,6 +146,28 @@ struct InstantiationABI {
   static const Register kResultTypeReg = RAX;
 };
 
+// Registers in addition to those listed in TypeTestABI used inside the
+// implementation of type testing stubs that are _not_ preserved.
+struct TTSInternalRegs {
+  static const Register kInstanceTypeArgumentsReg = RSI;
+  static const Register kScratchReg = R8;
+
+  static const intptr_t kInternalRegisters =
+      (1 << kInstanceTypeArgumentsReg) | (1 << kScratchReg);
+};
+
+// Registers in addition to those listed in TypeTestABI used inside the
+// implementation of subtype test cache stubs that are _not_ preserved.
+struct STCInternalRegs {
+  static const Register kCacheEntryReg = RDI;
+  static const Register kInstanceCidOrFunctionReg = R10;
+  static const Register kInstanceInstantiatorTypeArgumentsReg = R13;
+
+  static const intptr_t kInternalRegisters =
+      (1 << kCacheEntryReg) | (1 << kInstanceCidOrFunctionReg) |
+      (1 << kInstanceInstantiatorTypeArgumentsReg);
+};
+
 // Calling convention when calling TypeTestingStub and SubtypeTestCacheStub.
 struct TypeTestABI {
   static const Register kInstanceReg = RAX;
@@ -164,11 +186,17 @@ struct TypeTestABI {
   // No registers need saving across SubtypeTestCacheStub calls.
   static const intptr_t kSubtypeTestCacheStubCallerSavedRegisters = 0;
 
-  static const intptr_t kAbiRegisters =
+  static const intptr_t kPreservedAbiRegisters =
       (1 << kInstanceReg) | (1 << kDstTypeReg) |
-      (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg) |
-      (1 << kSubtypeTestCacheReg) | (1 << kScratchReg) |
-      (1 << kSubtypeTestCacheResultReg);
+      (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg);
+
+  static const intptr_t kNonPreservedAbiRegisters =
+      TTSInternalRegs::kInternalRegisters |
+      STCInternalRegs::kInternalRegisters | (1 << kSubtypeTestCacheReg) |
+      (1 << kScratchReg) | (1 << kSubtypeTestCacheResultReg) | (1 << CODE_REG);
+
+  static const intptr_t kAbiRegisters =
+      kPreservedAbiRegisters | kNonPreservedAbiRegisters;
 };
 
 // Calling convention when calling AssertSubtypeStub.
@@ -246,18 +274,6 @@ struct AllocateTypedDataArrayABI {
   static const Register kLengthReg = RAX;
   static const Register kResultReg = RAX;
 };
-
-// Registers used inside the implementation of type testing stubs.
-struct TTSInternalRegs {
-  static const Register kInstanceTypeArgumentsReg = RSI;
-  static const Register kScratchReg = R8;
-
-  static const intptr_t kInternalRegisters =
-      (1 << kInstanceTypeArgumentsReg) | (1 << kScratchReg);
-};
-
-// TODO(regis): Add ABIs for type testing stubs and is-type test stubs instead
-// of reusing the constants of the instantiation stubs ABI.
 
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFFFF;
@@ -445,12 +461,12 @@ class CallingConventions {
 
   COMPILE_ASSERT((kArgumentRegisters & kReservedCpuRegisters) == 0);
 
-  static constexpr Register kFirstCalleeSavedCpuReg = RBX;
+  static constexpr Register kFfiAnyNonAbiRegister = R12;
   static constexpr Register kFirstNonArgumentRegister = RAX;
   static constexpr Register kSecondNonArgumentRegister = RBX;
   static constexpr Register kStackPointerRegister = SPREG;
 
-  COMPILE_ASSERT(((R(kFirstCalleeSavedCpuReg)) & kCalleeSaveCpuRegisters) != 0);
+  COMPILE_ASSERT(((R(kFfiAnyNonAbiRegister)) & kCalleeSaveCpuRegisters) != 0);
 
   COMPILE_ASSERT(
       ((R(kFirstNonArgumentRegister) | R(kSecondNonArgumentRegister)) &

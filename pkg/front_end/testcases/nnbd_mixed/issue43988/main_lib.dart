@@ -16,6 +16,8 @@ mixin A implements Interface {
 
 abstract class D implements Interface, Interface2 {}
 
+abstract class F implements Interface {}
+
 abstract class C1 {
   method2();
 }

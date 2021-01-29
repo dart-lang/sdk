@@ -21,7 +21,7 @@ class Y extends self::X {
     ;
 }
 class A extends core::Object {
-  static field dynamic _redirecting# = <dynamic>[self::A::redir];
+  static final field dynamic _redirecting# = <dynamic>[self::A::redir];
   constructor •() → self::A*
     ;
   static factory redir() → self::A*

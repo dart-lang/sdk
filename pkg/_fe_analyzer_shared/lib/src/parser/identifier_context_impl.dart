@@ -22,7 +22,7 @@ class CatchParameterIdentifierContext extends IdentifierContext {
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
-    Token identifier = token.next;
+    Token identifier = token.next!;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.isIdentifier) {
       checkAsyncAwaitYieldAsIdentifier(identifier, parser);
@@ -51,7 +51,7 @@ class ClassOrMixinOrExtensionIdentifierContext extends IdentifierContext {
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
-    Token identifier = token.next;
+    Token identifier = token.next!;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.type.isPseudo) {
       return identifier;
@@ -89,7 +89,7 @@ class CombinatorIdentifierContext extends IdentifierContext {
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
-    Token identifier = token.next;
+    Token identifier = token.next!;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     const List<String> followingValues = const [
       ';',
@@ -102,7 +102,7 @@ class CombinatorIdentifierContext extends IdentifierContext {
 
     if (identifier.isIdentifier) {
       if (!looksLikeStartOfNextTopLevelDeclaration(identifier) ||
-          isOneOfOrEof(identifier.next, followingValues)) {
+          isOneOfOrEof(identifier.next!, followingValues)) {
         return identifier;
       }
       // Although this is a valid identifier name, the import declaration
@@ -148,7 +148,7 @@ class ConstructorReferenceIdentifierContext extends IdentifierContext {
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
-    Token identifier = token.next;
+    Token identifier = token.next!;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.isIdentifier) {
       checkAsyncAwaitYieldAsIdentifier(identifier, parser);
@@ -177,7 +177,7 @@ class DottedNameIdentifierContext extends IdentifierContext {
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
-    Token identifier = token.next;
+    Token identifier = token.next!;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     const List<String> followingValues = const ['.', '==', ')'];
 
@@ -187,7 +187,7 @@ class DottedNameIdentifierContext extends IdentifierContext {
       // used as identifiers, they are more likely the start of the next
       // directive or declaration.
       if (!identifier.isTopLevelKeyword ||
-          isOneOfOrEof(identifier.next, followingValues)) {
+          isOneOfOrEof(identifier.next!, followingValues)) {
         return identifier;
       }
     }
@@ -222,7 +222,7 @@ class EnumDeclarationIdentifierContext extends IdentifierContext {
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
-    Token identifier = token.next;
+    Token identifier = token.next!;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.type.isPseudo) {
       return identifier;
@@ -260,7 +260,7 @@ class EnumValueDeclarationIdentifierContext extends IdentifierContext {
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
-    Token identifier = token.next;
+    Token identifier = token.next!;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.isIdentifier) {
       return identifier;
@@ -297,10 +297,10 @@ class ExpressionIdentifierContext extends IdentifierContext {
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
-    Token identifier = token.next;
+    Token identifier = token.next!;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.isIdentifier) {
-      if (optional('await', identifier) && identifier.next.isIdentifier) {
+      if (optional('await', identifier) && identifier.next!.isIdentifier) {
         // Although the `await` can be used in an expression,
         // it is followed by another identifier which does not form
         // a valid expression. Report an error on the `await` token
@@ -311,7 +311,7 @@ class ExpressionIdentifierContext extends IdentifierContext {
         // TODO(danrubel) Consider a new listener event so that analyzer
         // can represent this as an await expression in a context that does
         // not allow await.
-        return identifier.next;
+        return identifier.next!;
       } else {
         checkAsyncAwaitYieldAsIdentifier(identifier, parser);
       }
@@ -322,7 +322,7 @@ class ExpressionIdentifierContext extends IdentifierContext {
     Token reportErrorAt = identifier;
     if (optional(r'$', token) &&
         identifier.isKeyword &&
-        identifier.next.kind == STRING_TOKEN) {
+        identifier.next!.kind == STRING_TOKEN) {
       // Keyword used as identifier in string interpolation
       parser.reportRecoverableErrorWithToken(
           identifier, codes.templateExpectedIdentifierButGotKeyword);
@@ -340,7 +340,7 @@ class ExpressionIdentifierContext extends IdentifierContext {
               const ['.', ',', '(', ')', '[', ']', '{', '}', '?', ':', ';'])) {
         // When in doubt, consume the token to ensure we make progress
         token = identifier;
-        identifier = token.next;
+        identifier = token.next!;
       }
     }
 
@@ -359,7 +359,7 @@ class FieldDeclarationIdentifierContext extends IdentifierContext {
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
-    Token identifier = token.next;
+    Token identifier = token.next!;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.isIdentifier) {
       return identifier;
@@ -387,7 +387,7 @@ class FieldDeclarationIdentifierContext extends IdentifierContext {
   Token ensureIdentifierPotentiallyRecovered(
       Token token, Parser parser, bool isRecovered) {
     // Fast path good case.
-    Token identifier = token.next;
+    Token identifier = token.next!;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.isIdentifier) {
       return identifier;
@@ -412,7 +412,7 @@ class FieldInitializerIdentifierContext extends IdentifierContext {
   @override
   Token ensureIdentifier(Token token, Parser parser) {
     assert(optional('.', token));
-    Token identifier = token.next;
+    Token identifier = token.next!;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.isIdentifier) {
       return identifier;
@@ -433,7 +433,7 @@ class FormalParameterDeclarationIdentifierContext extends IdentifierContext {
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
-    Token identifier = token.next;
+    Token identifier = token.next!;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.isIdentifier) {
       checkAsyncAwaitYieldAsIdentifier(identifier, parser);
@@ -482,7 +482,7 @@ class ImportPrefixIdentifierContext extends IdentifierContext {
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
-    Token identifier = token.next;
+    Token identifier = token.next!;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.type.isPseudo) {
       return identifier;
@@ -498,7 +498,7 @@ class ImportPrefixIdentifierContext extends IdentifierContext {
       'as'
     ];
     if (identifier.type.isBuiltIn &&
-        isOneOfOrEof(identifier.next, followingValues)) {
+        isOneOfOrEof(identifier.next!, followingValues)) {
       parser.reportRecoverableErrorWithToken(
           identifier, codes.templateBuiltInIdentifierInDeclaration);
     } else if (looksLikeStartOfNextTopLevelDeclaration(identifier) ||
@@ -532,7 +532,7 @@ class LiteralSymbolIdentifierContext extends IdentifierContext {
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
-    Token identifier = token.next;
+    Token identifier = token.next!;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.isIdentifier) {
       return identifier;
@@ -556,7 +556,7 @@ class LocalFunctionDeclarationIdentifierContext extends IdentifierContext {
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
-    Token identifier = token.next;
+    Token identifier = token.next!;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.isIdentifier) {
       checkAsyncAwaitYieldAsIdentifier(identifier, parser);
@@ -592,7 +592,7 @@ class LabelDeclarationIdentifierContext extends IdentifierContext {
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
-    Token identifier = token.next;
+    Token identifier = token.next!;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.isIdentifier) {
       checkAsyncAwaitYieldAsIdentifier(identifier, parser);
@@ -627,7 +627,7 @@ class LabelReferenceIdentifierContext extends IdentifierContext {
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
-    Token identifier = token.next;
+    Token identifier = token.next!;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.isIdentifier) {
       checkAsyncAwaitYieldAsIdentifier(identifier, parser);
@@ -676,12 +676,12 @@ class LibraryIdentifierContext extends IdentifierContext {
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
-    Token identifier = token.next;
+    Token identifier = token.next!;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     const List<String> followingValues = const ['.', ';'];
 
     if (identifier.isIdentifier) {
-      Token next = identifier.next;
+      Token next = identifier.next!;
       if (!looksLikeStartOfNextTopLevelDeclaration(identifier) ||
           isOneOfOrEof(next, followingValues)) {
         return identifier;
@@ -720,7 +720,7 @@ class LocalVariableDeclarationIdentifierContext extends IdentifierContext {
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
-    Token identifier = token.next;
+    Token identifier = token.next!;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.isIdentifier) {
       checkAsyncAwaitYieldAsIdentifier(identifier, parser);
@@ -765,7 +765,7 @@ class MetadataReferenceIdentifierContext extends IdentifierContext {
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
-    Token identifier = token.next;
+    Token identifier = token.next!;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.isIdentifier) {
       checkAsyncAwaitYieldAsIdentifier(identifier, parser);
@@ -812,7 +812,7 @@ class MethodDeclarationIdentifierContext extends IdentifierContext {
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
-    Token identifier = token.next;
+    Token identifier = token.next!;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.isIdentifier) {
       return identifier;
@@ -843,7 +843,7 @@ class MethodDeclarationIdentifierContext extends IdentifierContext {
   Token ensureIdentifierPotentiallyRecovered(
       Token token, Parser parser, bool isRecovered) {
     // Fast path good case.
-    Token identifier = token.next;
+    Token identifier = token.next!;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.isIdentifier) {
       return identifier;
@@ -867,7 +867,7 @@ class NamedArgumentReferenceIdentifierContext extends IdentifierContext {
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
-    Token identifier = token.next;
+    Token identifier = token.next!;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.isIdentifier) {
       checkAsyncAwaitYieldAsIdentifier(identifier, parser);
@@ -905,11 +905,11 @@ class TopLevelDeclarationIdentifierContext extends IdentifierContext {
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
-    Token identifier = token.next;
+    Token identifier = token.next!;
     assert(identifier.kind != IDENTIFIER_TOKEN);
 
     if (identifier.isIdentifier) {
-      Token next = identifier.next;
+      Token next = identifier.next!;
       if (!looksLikeStartOfNextTopLevelDeclaration(identifier) ||
           isOneOfOrEof(next, followingValues)) {
         return identifier;
@@ -946,11 +946,11 @@ class TopLevelDeclarationIdentifierContext extends IdentifierContext {
   Token ensureIdentifierPotentiallyRecovered(
       Token token, Parser parser, bool isRecovered) {
     // Fast path good case.
-    Token identifier = token.next;
+    Token identifier = token.next!;
     assert(identifier.kind != IDENTIFIER_TOKEN);
 
     if (identifier.isIdentifier) {
-      Token next = identifier.next;
+      Token next = identifier.next!;
       if (!looksLikeStartOfNextTopLevelDeclaration(identifier) ||
           isOneOfOrEof(next, followingValues)) {
         return identifier;
@@ -976,7 +976,7 @@ class TypedefDeclarationIdentifierContext extends IdentifierContext {
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
-    Token identifier = token.next;
+    Token identifier = token.next!;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.type.isPseudo) {
       if (optional('Function', identifier)) {
@@ -989,7 +989,7 @@ class TypedefDeclarationIdentifierContext extends IdentifierContext {
     // Recovery
     const List<String> followingValues = const ['(', '<', '=', ';'];
     if (identifier.type.isBuiltIn &&
-        isOneOfOrEof(identifier.next, followingValues)) {
+        isOneOfOrEof(identifier.next!, followingValues)) {
       parser.reportRecoverableErrorWithToken(
           identifier, codes.templateBuiltInIdentifierInDeclaration);
     } else if (looksLikeStartOfNextTopLevelDeclaration(identifier) ||
@@ -1015,7 +1015,7 @@ class TypedefDeclarationIdentifierContext extends IdentifierContext {
   Token ensureIdentifierPotentiallyRecovered(
       Token token, Parser parser, bool isRecovered) {
     // Fast path good case.
-    Token identifier = token.next;
+    Token identifier = token.next!;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.type.isPseudo) {
       if (optional('Function', identifier)) {
@@ -1057,7 +1057,7 @@ class TypeReferenceIdentifierContext extends IdentifierContext {
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
-    Token next = token.next;
+    Token next = token.next!;
     assert(next.kind != IDENTIFIER_TOKEN);
     if (isValidTypeReference(next)) {
       return next;
@@ -1082,7 +1082,7 @@ class TypeReferenceIdentifierContext extends IdentifierContext {
         next, const ['<', '>', ')', '[', ']', '[]', '{', '}', ',', ';'])) {
       // When in doubt, consume the token to ensure we make progress
       token = next;
-      next = token.next;
+      next = token.next!;
     }
     // Insert a synthetic identifier to satisfy listeners.
     return parser.rewriter.insertSyntheticIdentifier(token);
@@ -1097,7 +1097,7 @@ class TypeVariableDeclarationIdentifierContext extends IdentifierContext {
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
-    Token identifier = token.next;
+    Token identifier = token.next!;
     assert(identifier.kind != IDENTIFIER_TOKEN);
     if (identifier.type.isPseudo) {
       return identifier;

@@ -84,7 +84,9 @@ class C extends Pointer {}
   test_Struct() async {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
-class C extends Struct {}
+class C extends Struct {
+  Pointer notEmpty;
+}
 ''');
   }
 

@@ -343,7 +343,14 @@ mixin ResolutionTest implements ResourceProviderMixin {
     @required FunctionTypeAliasElement element,
     @required List<String> typeArguments,
   }) {
-    assertElement2(type.element, declaration: element.function);
+    assertElement2(type.aliasElement, declaration: element);
+    assertElementTypeStrings(type.aliasArguments, typeArguments);
+
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
+    assertElement2(
+      type.element,
+      declaration: element.aliasedElement as GenericFunctionTypeElement,
+    );
     assertElementTypeStrings(type.typeArguments, typeArguments);
   }
 
@@ -400,12 +407,16 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
-  void assertInstanceCreation(InstanceCreationExpression creation,
-      ClassElement expectedClassElement, String expectedType,
-      {String constructorName,
-      bool expectedConstructorMember = false,
-      Map<String, String> expectedSubstitution,
-      PrefixElement expectedPrefix}) {
+  void assertInstanceCreation(
+    InstanceCreationExpression creation,
+    ClassElement expectedClassElement,
+    String expectedType, {
+    String constructorName,
+    bool expectedConstructorMember = false,
+    Map<String, String> expectedSubstitution,
+    PrefixElement expectedPrefix,
+    Element expectedTypeNameElement,
+  }) {
     String expectedClassName = expectedClassElement.name;
 
     ConstructorElement expectedConstructorElement;
@@ -444,7 +455,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertType(creation, expectedType);
 
     var typeName = creation.constructorName.type;
-    assertTypeName(typeName, expectedClassElement, expectedType,
+    expectedTypeNameElement ??= expectedClassElement;
+    assertTypeName(typeName, expectedTypeNameElement, expectedType,
         expectedPrefix: expectedPrefix);
   }
 
@@ -654,53 +666,22 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertSimpleIdentifier(
     SimpleIdentifier node, {
-    @required Object readElement,
-    @required Object writeElement,
+    @required Object element,
     @required String type,
   }) {
     var isRead = node.inGetterContext();
-    var isWrite = node.inSetterContext();
-    if (isRead && isWrite) {
-      // TODO(scheglov) enable this
-//      assertElement(node.auxiliaryElements?.staticElement, readElement);
-      assertElement(node.staticElement, writeElement);
-    } else if (isRead) {
-      assertElement(node.staticElement, readElement);
-    } else {
-      expect(isWrite, isTrue);
-      assertElement(node.staticElement, writeElement);
-    }
+    expect(isRead, isTrue);
 
-    if (isRead) {
-      assertType(node, type);
-    } else {
-      // TODO(scheglov) enforce this
-//      expect(type, isNull);
-//      assertTypeNull(node);
-    }
+    assertElement(node.staticElement, element);
+    assertType(node, type);
   }
 
   /// TODO(scheglov) https://github.com/dart-lang/sdk/issues/43608
-  /// TODO(scheglov) rename this method
-  void assertSimpleIdentifierAssignmentTarget(
-    SimpleIdentifier node, {
-    @required Object readElement,
-    @required Object writeElement,
-    @required String type,
-  }) {
-    if (hasAssignmentLeftResolution) {
-      assertSimpleIdentifier(
-        node,
-        readElement: readElement,
-        writeElement: writeElement,
-        type: type,
-      );
-    } else {
-      // TODO(scheglov) Enforce maybe?
-      // Currently VariableResolverVisitor sets it.
-      // expect(node.staticElement, isNull);
-      expect(node.staticType, isNull);
-    }
+  void assertSimpleIdentifierAssignmentTarget(SimpleIdentifier node) {
+    // TODO(scheglov) Enforce maybe?
+    // Currently VariableResolverVisitor sets it.
+    // expect(node.staticElement, isNull);
+    expect(node.staticType, isNull);
   }
 
   void assertSubstitution(
@@ -753,6 +734,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else {
       expect(typeString(actual), expected);
     }
+  }
+
+  /// Assert that the given [identifier] is a reference to a type alias, in the
+  /// form that is not a separate expression, e.g. in a static method
+  /// invocation like `C.staticMethod()`, or a type annotation `C c = null`.
+  void assertTypeAliasRef(
+      SimpleIdentifier identifier, TypeAliasElement expected) {
+    assertElement(identifier, expected);
+    assertTypeNull(identifier);
   }
 
   void assertTypeArgumentTypes(

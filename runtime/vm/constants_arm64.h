@@ -16,6 +16,20 @@
 
 namespace dart {
 
+// LR register should not be used directly in handwritten assembly patterns,
+// because it might contain return address. Instead use macross CLOBBERS_LR,
+// SPILLS_RETURN_ADDRESS_FROM_LR_TO_REGISTER,
+// RESTORES_RETURN_ADDRESS_FROM_REGISTER_TO_LR, SPILLS_LR_TO_FRAME,
+// RESTORES_LR_FROM_FRAME, READS_RETURN_ADDRESS_FROM_LR,
+// WRITES_RETURN_ADDRESS_TO_LR to get access to LR constant in a checked way.
+//
+// To prevent accidental use of LR constant we rename it to
+// LR_DO_NOT_USE_DIRECTLY (while keeping the code in this file and other files
+// which are permitted to access LR constant the same by defining LR as
+// LR_DO_NOT_USE_DIRECTLY). You can also use LINK_REGISTER if you need
+// to compare LR register code.
+#define LR LR_DO_NOT_USE_DIRECTLY
+
 enum Register {
   R0 = 0,
   R1 = 1,
@@ -51,6 +65,7 @@ enum Register {
   R31 = 31,  // ZR, CSP
   kNumberOfCpuRegisters = 32,
   kNoRegister = -1,
+  kNoRegister2 = -2,
 
   // These registers both use the encoding R31, but to avoid mistakes we give
   // them different values, and then translate before encoding.
@@ -62,7 +77,7 @@ enum Register {
   IP1 = R17,
   SP = R15,
   FP = R29,
-  LR = R30,
+  LR = R30,  // Note: direct access to this constant is not allowed. See above.
 };
 
 enum VRegister {
@@ -122,7 +137,6 @@ const Register DISPATCH_TABLE_REG = R21;  // Dispatch table register.
 const Register CODE_REG = R24;
 const Register FPREG = FP;          // Frame pointer register.
 const Register SPREG = R15;         // Stack pointer register.
-const Register LRREG = LR;          // Link register.
 const Register ARGS_DESC_REG = R4;  // Arguments descriptor register.
 const Register THR = R26;           // Caches current thread in generated code.
 const Register CALLEE_SAVED_TEMP = R19;
@@ -156,6 +170,31 @@ struct InstantiationABI {
   static const Register kResultTypeReg = R0;
 };
 
+// Registers in addition to those listed in TypeTestABI used inside the
+// implementation of type testing stubs that are _not_ preserved.
+struct TTSInternalRegs {
+  static const Register kInstanceTypeArgumentsReg = R7;
+  static const Register kScratchReg = R9;
+
+  static const intptr_t kInternalRegisters =
+      (1 << kInstanceTypeArgumentsReg) | (1 << kScratchReg);
+};
+
+// Registers in addition to those listed in TypeTestABI used inside the
+// implementation of subtype test cache stubs that are _not_ preserved.
+struct STCInternalRegs {
+  static const Register kInstanceCidOrFunctionReg = R6;
+  static const Register kInstanceInstantiatorTypeArgumentsReg = R5;
+  static const Register kInstanceParentFunctionTypeArgumentsReg = R9;
+  static const Register kInstanceDelayedFunctionTypeArgumentsReg = R10;
+
+  static const intptr_t kInternalRegisters =
+      (1 << kInstanceCidOrFunctionReg) |
+      (1 << kInstanceInstantiatorTypeArgumentsReg) |
+      (1 << kInstanceParentFunctionTypeArgumentsReg) |
+      (1 << kInstanceDelayedFunctionTypeArgumentsReg);
+};
+
 // Calling convention when calling TypeTestingStub and SubtypeTestCacheStub.
 struct TypeTestABI {
   static const Register kInstanceReg = R0;
@@ -175,11 +214,17 @@ struct TypeTestABI {
   static const intptr_t kSubtypeTestCacheStubCallerSavedRegisters =
       1 << kSubtypeTestCacheReg;
 
-  static const intptr_t kAbiRegisters =
+  static const intptr_t kPreservedAbiRegisters =
       (1 << kInstanceReg) | (1 << kDstTypeReg) |
-      (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg) |
-      (1 << kSubtypeTestCacheReg) | (1 << kScratchReg) |
-      (1 << kSubtypeTestCacheResultReg);
+      (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg);
+
+  static const intptr_t kNonPreservedAbiRegisters =
+      TTSInternalRegs::kInternalRegisters |
+      STCInternalRegs::kInternalRegisters | (1 << kSubtypeTestCacheReg) |
+      (1 << kScratchReg) | (1 << kSubtypeTestCacheResultReg) | (1 << CODE_REG);
+
+  static const intptr_t kAbiRegisters =
+      kPreservedAbiRegisters | kNonPreservedAbiRegisters;
 };
 
 // Calling convention when calling AssertSubtypeStub.
@@ -197,15 +242,6 @@ struct AssertSubtypeABI {
 
   // No result register, as AssertSubtype is only run for side effect
   // (throws if the subtype check fails).
-};
-
-// Registers used inside the implementation of type testing stubs.
-struct TTSInternalRegs {
-  static const Register kInstanceTypeArgumentsReg = R7;
-  static const Register kScratchReg = R9;
-
-  static const intptr_t kInternalRegisters =
-      (1 << kInstanceTypeArgumentsReg) | (1 << kScratchReg);
 };
 
 // ABI for InitStaticFieldStub.
@@ -289,6 +325,8 @@ const RegList kAllCpuRegistersList = 0xFFFFFFFF;
 const RegList kAbiArgumentCpuRegs =
     R(R0) | R(R1) | R(R2) | R(R3) | R(R4) | R(R5) | R(R6) | R(R7);
 #if defined(TARGET_OS_FUCHSIA)
+// We rely on R18 not bying touched by Dart generated assembly or stubs at all.
+// We rely on that any calls into C++ also preserve R18.
 const RegList kAbiPreservedCpuRegs = R(R18) | R(R19) | R(R20) | R(R21) |
                                      R(R22) | R(R23) | R(R24) | R(R25) |
                                      R(R26) | R(R27) | R(R28);
@@ -392,7 +430,7 @@ class CallingConventions {
   static constexpr Register kSecondReturnReg = kNoRegister;
   static constexpr FpuRegister kReturnFpuReg = V0;
 
-  static constexpr Register kFirstCalleeSavedCpuReg = kAbiFirstPreservedCpuReg;
+  static constexpr Register kFfiAnyNonAbiRegister = R19;
   static constexpr Register kFirstNonArgumentRegister = R9;
   static constexpr Register kSecondNonArgumentRegister = R10;
   static constexpr Register kStackPointerRegister = SPREG;
@@ -1370,6 +1408,24 @@ class Instr {
 };
 
 const uint64_t kBreakInstructionFiller = 0xD4200000D4200000L;  // brk #0; brk #0
+
+struct LinkRegister {};
+
+constexpr bool operator==(Register r, LinkRegister) {
+  return r == LR;
+}
+
+constexpr bool operator!=(Register r, LinkRegister lr) {
+  return !(r == lr);
+}
+
+inline Register ConcreteRegister(LinkRegister) {
+  return LR;
+}
+
+#undef LR
+
+#define LINK_REGISTER (LinkRegister())
 
 }  // namespace dart
 

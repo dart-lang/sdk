@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io';
 
 import 'package:kernel/binary/ast_from_binary.dart';
@@ -84,12 +86,18 @@ bool canRead(File dill) {
     int libs = component.libraries.length;
 
     component = new Component();
+    new BinaryBuilderWithMetadata(bytes).readComponentSource(component);
+
+    component = new Component();
     new BinaryBuilder(bytes).readComponent(component);
     if (libs != component.libraries.length) {
       throw "Didn't get the same number of libraries: $libs when reading with "
           "BinaryBuilderWithMetadata and ${component.libraries.length} "
           "when reading with BinaryBuilder";
     }
+
+    component = new Component();
+    new BinaryBuilder(bytes).readComponentSource(component);
 
     return true;
   } catch (e, st) {

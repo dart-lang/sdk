@@ -26,13 +26,13 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
   void computeForClass(Declaration node, Id id) {
     if (id == null) return;
     T value = computeNodeValue(id, node);
-    registerValue(uri, node.offset, id, value, node);
+    registerValue(uri, _nodeOffset(node), id, value, node);
   }
 
   void computeForCollectionElement(CollectionElement node, NodeId id) {
     if (id == null) return;
     T value = computeNodeValue(id, node);
-    registerValue(uri, node.offset, id, value, node);
+    registerValue(uri, _nodeOffset(node), id, value, node);
   }
 
   void computeForLibrary(LibraryElement library, Id id) {
@@ -44,13 +44,13 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
   void computeForMember(Declaration node, Id id) {
     if (id == null) return;
     T value = computeNodeValue(id, node);
-    registerValue(uri, node.offset, id, value, node);
+    registerValue(uri, _nodeOffset(node), id, value, node);
   }
 
   void computeForStatement(Statement node, NodeId id) {
     if (id == null) return;
     T value = computeNodeValue(id, node);
-    registerValue(uri, node.offset, id, value, node);
+    registerValue(uri, _nodeOffset(node), id, value, node);
   }
 
   /// Implement this to compute the data corresponding to [node].
@@ -174,7 +174,14 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
   }
 
   int _nodeOffset(AstNode node) {
-    var offset = node.offset;
+    int offset;
+    if (node is ConditionalExpression) {
+      offset = node.question.offset;
+    } else if (node is BinaryExpression) {
+      offset = node.operator.offset;
+    } else {
+      offset = node.offset;
+    }
     assert(offset != null && offset >= 0,
         "No fileOffset on $node (${node.runtimeType})");
     return offset;

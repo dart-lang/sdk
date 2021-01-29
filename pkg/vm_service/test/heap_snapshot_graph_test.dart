@@ -13,9 +13,9 @@ class Foo {
   dynamic right;
 }
 
-Foo r;
+late Foo r;
 
-List lst;
+late List lst;
 
 void script() {
   // Create 3 instances of Foo, with out-degrees

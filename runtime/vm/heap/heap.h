@@ -300,8 +300,9 @@ class Heap {
   void PrintMemoryUsageJSON(JSONObject* jsobj) const;
 
   // The heap map contains the sizes and class ids for the objects in each page.
-  void PrintHeapMapToJSONStream(Isolate* isolate, JSONStream* stream) {
-    old_space_.PrintHeapMapToJSONStream(isolate, stream);
+  void PrintHeapMapToJSONStream(IsolateGroup* isolate_group,
+                                JSONStream* stream) {
+    old_space_.PrintHeapMapToJSONStream(isolate_group, stream);
   }
 #endif  // PRODUCT
 
@@ -321,8 +322,6 @@ class Heap {
   Space SpaceForExternal(intptr_t size) const;
 
   void CollectOnNthAllocation(intptr_t num_allocations);
-
-  void MergeFrom(Heap* donor);
 
  private:
   class GCStats : public ValueObject {
@@ -429,7 +428,7 @@ class Heap {
   friend class ServiceEvent;
   friend class Scavenger;             // VerifyGC
   friend class PageSpace;             // VerifyGC
-  friend class IsolateReloadContext;  // VisitObjects
+  friend class ProgramReloadContext;  // VisitObjects
   friend class ClassFinalizer;        // VisitObjects
   friend class HeapIterationScope;    // VisitObjects
   friend class ProgramVisitor;        // VisitObjectsImagePages

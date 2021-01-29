@@ -41,6 +41,8 @@ abstract class _MyTest2&Object&MyTest = core::Object with self::MyTest /*isAnony
   const synthetic constructor •() → self::_MyTest2&Object&MyTest*
     : super core::Object::•()
     ;
+  mixin-super-stub method foo() → void
+    return super.{self::MyTest::foo}();
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -59,9 +61,9 @@ class MyTest2 extends self::_MyTest2&Object&MyTest {
 }
 static const field self::_FailingTest* failingTest = #C1;
 static method main() → dynamic {
-  mir::ClassMirror* classMirror = mir::reflectClass(self::MyTest2*);
+  mir::ClassMirror* classMirror = mir::reflectClass(#C2);
   classMirror.{mir::ClassMirror::instanceMembers}.{core::Map::forEach}((core::Symbol* symbol, mir::MethodMirror* memberMirror) → Null {
-    if(memberMirror.{mir::DeclarationMirror::simpleName}.{core::Symbol::==}(#C2)) {
+    if(memberMirror.{mir::DeclarationMirror::simpleName}.{core::Symbol::==}(#C3)) {
       core::print(memberMirror);
       core::print(self::_hasFailingTestAnnotation(memberMirror));
     }
@@ -80,5 +82,12 @@ static method _hasAnnotationInstance(mir::DeclarationMirror* declaration, dynami
 
 constants  {
   #C1 = self::_FailingTest {}
-  #C2 = #foo
+  #C2 = TypeLiteralConstant(self::MyTest2*)
+  #C3 = #foo
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///bug33099.dart:
+- _FailingTest. (from org-dartlang-testcase:///bug33099.dart:12:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

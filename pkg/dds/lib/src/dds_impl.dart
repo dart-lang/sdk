@@ -2,7 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dds;
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+import 'dart:math';
+import 'dart:typed_data';
+
+import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
+import 'package:meta/meta.dart';
+import 'package:pedantic/pedantic.dart';
+import 'package:shelf/shelf.dart';
+import 'package:shelf/shelf_io.dart' as io;
+import 'package:shelf_proxy/shelf_proxy.dart';
+import 'package:shelf_web_socket/shelf_web_socket.dart';
+import 'package:sse/server/sse_handler.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+
+import '../dds.dart';
+import 'binary_compatible_peer.dart';
+import 'client.dart';
+import 'client_manager.dart';
+import 'expression_evaluator.dart';
+import 'isolate_manager.dart';
+import 'stream_manager.dart';
 
 @visibleForTesting
 typedef PeerBuilder = Future<json_rpc.Peer> Function(WebSocketChannel, dynamic);
@@ -18,20 +40,20 @@ WebSocketBuilder webSocketBuilder = _defaultWebSocketBuilder;
 
 Future<json_rpc.Peer> _defaultPeerBuilder(
     WebSocketChannel ws, dynamic streamManager) async {
-  return _BinaryCompatiblePeer(ws, streamManager);
+  return BinaryCompatiblePeer(ws, streamManager);
 }
 
 WebSocketChannel _defaultWebSocketBuilder(Uri uri) {
   return WebSocketChannel.connect(uri.replace(scheme: 'ws'));
 }
 
-class _DartDevelopmentService implements DartDevelopmentService {
-  _DartDevelopmentService(
+class DartDevelopmentServiceImpl implements DartDevelopmentService {
+  DartDevelopmentServiceImpl(
       this._remoteVmServiceUri, this._uri, this._authCodesEnabled, this._ipv6) {
-    _clientManager = _ClientManager(this);
-    _expressionEvaluator = _ExpressionEvaluator(this);
-    _isolateManager = _IsolateManager(this);
-    _streamManager = _StreamManager(this);
+    _clientManager = ClientManager(this);
+    _expressionEvaluator = ExpressionEvaluator(this);
+    _isolateManager = IsolateManager(this);
+    _streamManager = StreamManager(this);
     _authCode = _authCodesEnabled ? _makeAuthToken() : '';
   }
 
@@ -41,22 +63,22 @@ class _DartDevelopmentService implements DartDevelopmentService {
     // TODO(bkonyi): throw if we've already shutdown.
     // Establish the connection to the VM service.
     _vmServiceSocket = webSocketBuilder(remoteVmServiceWsUri);
-    _vmServiceClient = await peerBuilder(_vmServiceSocket, _streamManager);
+    vmServiceClient = await peerBuilder(_vmServiceSocket, _streamManager);
     // Setup the JSON RPC client with the VM service.
     unawaited(
-      _vmServiceClient.listen().then(
+      vmServiceClient.listen().then(
         (_) {
           shutdown();
           if (!started && !completer.isCompleted) {
-            completer.completeError(
-                DartDevelopmentServiceException._failedToStartError());
+            completer
+                .completeError(DartDevelopmentServiceException.failedToStart());
           }
         },
         onError: (e, st) {
           shutdown();
           if (!completer.isCompleted) {
             completer.completeError(
-              DartDevelopmentServiceException._connectionError(e.toString()),
+              DartDevelopmentServiceException.connectionIssue(e.toString()),
               st,
             );
           }
@@ -109,21 +131,24 @@ class _DartDevelopmentService implements DartDevelopmentService {
     // and refuse connections from other clients. DDS is now acting in place of
     // the VM service.
     try {
-      await _vmServiceClient.sendRequest('_yieldControlToDDS', {
+      await vmServiceClient.sendRequest('_yieldControlToDDS', {
         'uri': tmpUri.toString(),
       });
     } on json_rpc.RpcException catch (e) {
       await _server.close(force: true);
+      String message = e.toString();
+      if (e.data != null) {
+        message += ' data: ${e.data}';
+      }
       // _yieldControlToDDS fails if DDS is not the only VM service client.
-      throw DartDevelopmentServiceException._existingDdsInstanceError(
-        e.data != null ? e.data['details'] : e.toString(),
-      );
+      throw DartDevelopmentServiceException.existingDdsInstance(message);
     }
 
     _uri = tmpUri;
   }
 
   /// Stop accepting requests after gracefully handling existing requests.
+  @override
   Future<void> shutdown() async {
     if (_done.isCompleted || _shuttingDown) {
       // Already shutdown.
@@ -197,10 +222,10 @@ class _DartDevelopmentService implements DartDevelopmentService {
   }
 
   Handler _webSocketHandler() => webSocketHandler((WebSocketChannel ws) {
-        final client = _DartDevelopmentServiceClient.fromWebSocket(
+        final client = DartDevelopmentServiceClient.fromWebSocket(
           this,
           ws,
-          _vmServiceClient,
+          vmServiceClient,
         );
         clientManager.addClient(client);
       });
@@ -211,10 +236,10 @@ class _DartDevelopmentService implements DartDevelopmentService {
         : SseHandler(Uri.parse('/$_kSseHandlerPath'));
 
     handler.connections.rest.listen((sseConnection) {
-      final client = _DartDevelopmentServiceClient.fromSSEConnection(
+      final client = DartDevelopmentServiceClient.fromSSEConnection(
         this,
         sseConnection,
-        _vmServiceClient,
+        vmServiceClient,
       );
       clientManager.addClient(client);
     });
@@ -260,19 +285,27 @@ class _DartDevelopmentService implements DartDevelopmentService {
     return uri.replace(scheme: 'sse', pathSegments: pathSegments);
   }
 
-  String _getNamespace(_DartDevelopmentServiceClient client) =>
+  String getNamespace(DartDevelopmentServiceClient client) =>
       clientManager.clients.keyOf(client);
 
+  @override
   bool get authCodesEnabled => _authCodesEnabled;
   final bool _authCodesEnabled;
   String _authCode;
 
+  @override
   Uri get remoteVmServiceUri => _remoteVmServiceUri;
+
+  @override
   Uri get remoteVmServiceWsUri => _toWebSocket(_remoteVmServiceUri);
   Uri _remoteVmServiceUri;
 
+  @override
   Uri get uri => _uri;
+
+  @override
   Uri get sseUri => _toSse(_uri);
+
   Uri get wsUri => _toWebSocket(_uri);
   Uri _uri;
 
@@ -284,21 +317,21 @@ class _DartDevelopmentService implements DartDevelopmentService {
   Completer _done = Completer<void>();
   bool _shuttingDown = false;
 
-  _ClientManager get clientManager => _clientManager;
-  _ClientManager _clientManager;
+  ClientManager get clientManager => _clientManager;
+  ClientManager _clientManager;
 
-  _ExpressionEvaluator get expressionEvaluator => _expressionEvaluator;
-  _ExpressionEvaluator _expressionEvaluator;
+  ExpressionEvaluator get expressionEvaluator => _expressionEvaluator;
+  ExpressionEvaluator _expressionEvaluator;
 
-  _IsolateManager get isolateManager => _isolateManager;
-  _IsolateManager _isolateManager;
+  IsolateManager get isolateManager => _isolateManager;
+  IsolateManager _isolateManager;
 
-  _StreamManager get streamManager => _streamManager;
-  _StreamManager _streamManager;
+  StreamManager get streamManager => _streamManager;
+  StreamManager _streamManager;
 
   static const _kSseHandlerPath = '\$debugHandler';
 
-  json_rpc.Peer _vmServiceClient;
+  json_rpc.Peer vmServiceClient;
   WebSocketChannel _vmServiceSocket;
   HttpServer _server;
 }

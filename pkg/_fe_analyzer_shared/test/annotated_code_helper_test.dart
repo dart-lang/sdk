@@ -53,7 +53,7 @@ void testDir(String dataDirPath) {
         const StringDataInterpreter());
 
     annotationsPerUri.forEach((Uri uri, List<Annotation> annotations) {
-      AnnotatedCode original = testData.code[uri];
+      AnnotatedCode original = testData.code[uri]!;
       AnnotatedCode generated = new AnnotatedCode(
           original.annotatedCode, original.sourceCode, annotations);
       expectStringEquals(generated.annotatedCode, generated.toText());

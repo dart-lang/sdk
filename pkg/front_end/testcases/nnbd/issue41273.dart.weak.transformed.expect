@@ -14,7 +14,7 @@ static method test(dynamic x) → void {
     Never n7 = let final Never #t15 = (let final Never #t16 = x{Never} in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")).call() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
     Never n8 = let final Never #t17 = (let final Never #t18 = x{Never} in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")).runtimeType() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
     Never n9 = let final Never #t19 = (let final Never #t20 = x{Never} in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")).toString in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
-    (let final Never #t21 = x{Never} in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")).runtimeType = core::Object;
+    (let final Never #t21 = x{Never} in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")).runtimeType = #C1;
     (let final Never #t22 = x{Never} in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")).toString = () → core::String => "";
     Never v1 = let final Never #t23 = (let final Never #t24 = x{Never} in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")).toString() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
     Never v2 = let final Never #t25 = (let final Never #t26 = x{Never} in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")).runtimeType in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
@@ -31,7 +31,6 @@ static method main() → dynamic {
   self::test(null);
 }
 
-
-Extra constant evaluation status:
-Evaluated: TypeLiteral @ org-dartlang-testcase:///issue41273.dart:16:21 -> TypeLiteralConstant(Object)
-Extra constant evaluation: evaluated: 175, effectively constant: 1
+constants  {
+  #C1 = TypeLiteralConstant(core::Object*)
+}

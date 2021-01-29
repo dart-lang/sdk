@@ -24,7 +24,7 @@ class ConvertToPackageImportTest extends FixProcessorLintTest {
   String get lintCode => LintNames.avoid_relative_lib_imports;
 
   /// More coverage in the `convert_to_package_import_test.dart` assist test.
-  @failingTest
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44673')
   Future<void> test_relativeImport() async {
     // This test fails because any attempt to specify a relative path that
     // includes 'lib' (which the lint requires) results in a malformed URI when

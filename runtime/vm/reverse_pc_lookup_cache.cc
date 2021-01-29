@@ -25,22 +25,22 @@ CodePtr ReversePc::Lookup(IsolateGroup* group,
   // this changes, would could sort the table list during deserialization and
   // binary search for the table.
   GrowableObjectArrayPtr tables = group->object_store()->code_order_tables();
-  intptr_t tables_length = Smi::Value(tables->ptr()->length_);
+  intptr_t tables_length = Smi::Value(tables->untag()->length_);
   for (intptr_t i = 0; i < tables_length; i++) {
     ArrayPtr table =
-        static_cast<ArrayPtr>(tables->ptr()->data_->ptr()->data()[i]);
+        static_cast<ArrayPtr>(tables->untag()->data_->untag()->data()[i]);
     intptr_t lo = 0;
-    intptr_t hi = Smi::Value(table->ptr()->length_) - 1;
+    intptr_t hi = Smi::Value(table->untag()->length_) - 1;
 
     // Fast check if pc belongs to this table.
     if (lo > hi) {
       continue;
     }
-    CodePtr first = static_cast<CodePtr>(table->ptr()->data()[lo]);
+    CodePtr first = static_cast<CodePtr>(table->untag()->data()[lo]);
     if (pc < Code::PayloadStartOf(first)) {
       continue;
     }
-    CodePtr last = static_cast<CodePtr>(table->ptr()->data()[hi]);
+    CodePtr last = static_cast<CodePtr>(table->untag()->data()[hi]);
     if (pc >= (Code::PayloadStartOf(last) + Code::PayloadSizeOf(last))) {
       continue;
     }
@@ -50,7 +50,7 @@ CodePtr ReversePc::Lookup(IsolateGroup* group,
       intptr_t mid = (hi - lo + 1) / 2 + lo;
       ASSERT(mid >= lo);
       ASSERT(mid <= hi);
-      CodePtr code = static_cast<CodePtr>(table->ptr()->data()[mid]);
+      CodePtr code = static_cast<CodePtr>(table->untag()->data()[mid]);
       uword code_start = Code::PayloadStartOf(code);
       uword code_end = code_start + Code::PayloadSizeOf(code);
       if (pc < code_start) {

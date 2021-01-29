@@ -1914,7 +1914,7 @@ InternalProblemUnsupportedNullability:
 
 IncrementalCompilerIllegalParameter:
   template: "Illegal parameter name '#string' found during expression compilation."
-  
+
 IncrementalCompilerIllegalTypeParameter:
   template: "Illegal type parameter name '#string' found during expression compilation."
 
@@ -3563,6 +3563,21 @@ DillOutlineSummary:
     #num2%12.3 bytes/ms, and
     #num3%12.3 ms/libraries.
 
+CantInferTypesDueToNoCombinedSignature:
+  template: "Can't infer types for '#name' as the overridden members don't have a combined signature."
+  tip: "Try adding explicit types."
+  analyzerCode: COMPILE_TIME_ERROR.NO_COMBINED_SUPER_SIGNATURE
+  script: |
+    class A {
+      void method(int a, String b) {}
+    }
+    class B {
+      void method(String a, int b) {}
+    }
+    class C implements A, B {
+      void method(a, b) {}
+    }
+
 CantInferTypeDueToNoCombinedSignature:
   template: "Can't infer a type for '#name' as the overridden members don't have a combined signature."
   tip: "Try adding an explicit type."
@@ -3594,18 +3609,6 @@ CantInferReturnTypeDueToNoCombinedSignature:
     abstract class C implements A, B {
       get getter;
     }
-
-CantInferTypeDueToInconsistentOverrides:
-  template: "Can't infer a type for '#name' as some of the overridden members have different types."
-  tip: "Try adding an explicit type."
-  analyzerCode: INVALID_METHOD_OVERRIDE
-  external: testcases/inference/inconsistent_overrides.dart
-
-CantInferReturnTypeDueToInconsistentOverrides:
-  template: "Can't infer a return type for '#name' as some of the overridden members have different types."
-  tip: "Try adding an explicit type."
-  analyzerCode: INVALID_METHOD_OVERRIDE
-  external: testcases/inference/inconsistent_overrides.dart
 
 CantInferTypeDueToCircularity:
   template: "Can't infer the type of '#string': circularity found during type inference."
@@ -3712,10 +3715,6 @@ InitializingFormalTypeMismatch:
 InitializingFormalTypeMismatchField:
   template: "The field that corresponds to the parameter."
   severity: CONTEXT
-
-UseOfDeprecatedIdentifier:
-  template: "'#name' is deprecated."
-  severity: IGNORED
 
 InitializeFromDillNotSelfContained:
   template: |
@@ -3854,10 +3853,10 @@ CantUseDeferredPrefixAsConstant:
     from the import.
   analyzerCode: CONST_DEFERRED_CLASS
   script: |
-    import "dart:core" deferred as prefix;
+    import "dart:convert" deferred as prefix;
 
     main() {
-      const prefix.Object();
+      const prefix.JsonCodec();
     }
 
 CyclicRedirectingFactoryConstructors:
@@ -4136,6 +4135,10 @@ IncorrectTypeArgumentVariable:
   template: "This is the type variable whose bound isn't conformed to."
   severity: CONTEXT
 
+SuperBoundedHint:
+  template: "If you want '#type' to be a super-bounded type, note that the inverted type '#type2' must then satisfy its bounds, which it does not."
+  severity: CONTEXT
+
 InferredPackageUri:
   template: "Interpreting this as package URI, '#uri'."
   severity: WARNING
@@ -4230,6 +4233,18 @@ FfiTypeMismatch:
   template: "Expected type '#type' to be '#type2', which is the Dart type corresponding to '#type3'."
   external: test/ffi_test.dart
 
+FfiEmptyStruct:
+  # Used by dart:ffi
+  template: "Struct '#name' is empty. Empty structs are undefined behavior."
+  external: test/ffi_test.dart
+
+FfiEmptyStructWarning:
+  # Used by dart:ffi
+  template: "Struct '#name' is empty. Support for empty structs is deprecated and will be removed in the next stable version of Dart. Use Opaque instead."
+  analyzerCode: EMPTY_STRUCT_WARNING
+  severity: INFO
+  external: test/ffi_test.dart
+
 FfiTypeInvalid:
   # Used by dart:ffi
   template: "Expected type '#type' to be a valid and instantiated subtype of 'NativeType'."
@@ -4245,6 +4260,20 @@ FfiFieldNoAnnotation:
   template: "Field '#name' requires no annotation to declare its native type, it is a Pointer which is represented by the same type in Dart and native code."
   external: test/ffi_test.dart
 
+FfiFieldCyclic:
+  # Used by dart:ffi
+  template: |
+    Struct '#name' contains itself. Cycle elements:
+    #names
+  external: test/ffi_test.dart
+
+FfiNonConstantTypeArgumentWarning:
+  # Used by dart:ffi
+  template: "Support for using non-constant type arguments '#type' in this FFI API is deprecated and will be removed in the next stable version of Dart. Rewrite the code to ensure that type arguments are compile time constants referring to a valid native type."
+  analyzerCode: NON_CONSTANT_TYPE_ARGUMENT_WARNING
+  severity: INFO
+  external: test/ffi_test.dart
+
 FfiNotStatic:
   # Used by dart:ffi
   template: "#name expects a static function as parameter. dart:ffi only supports calling static Dart functions from native code."
@@ -4253,6 +4282,7 @@ FfiNotStatic:
 FfiFieldInitializer:
   # Used by dart:ffi
   template: "Field '#name' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution."
+  tip: "Mark the field as external to avoid having to initialize it."
   external: test/ffi_test.dart
 
 FfiExtendsOrImplementsSealedClass:
@@ -4651,6 +4681,9 @@ JsInteropNamedParameters:
   template: "Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class."
   tip: "Try replacing them with normal or optional parameters."
 
+JsInteropNativeClassInAnnotation:
+  template: "JS interop class '#name' conflicts with natively supported class '#name2' in '#string3'."
+
 JsInteropNonExternalConstructor:
   template: "JS interop classes do not support non-external constructors."
   tip: "Try annotating with `external`."
@@ -4906,3 +4939,25 @@ MainWrongParameterTypeExported:
 ExportedMain:
   template: "This is exported 'main' declaration."
   severity: CONTEXT
+
+UnexpectedModifierInNonNnbd:
+  template: "The modifier '#lexeme' is only available in null safe libraries."
+  exampleAllowMoreCodes: true
+  analyzerCode: UNEXPECTED_TOKEN
+  script:
+    - "late int x;"
+
+CompilingWithSoundNullSafety:
+  template: "Compiling with sound null safety"
+  configuration: nnbd-strong,compile
+  severity: INFO
+  script: |
+    main() {}
+
+CompilingWithoutSoundNullSafety:
+  template: "Compiling without sound null safety"
+  configuration: nnbd-weak,compile
+  severity: INFO
+  script: |
+    // @dart=2.9
+    main() {}

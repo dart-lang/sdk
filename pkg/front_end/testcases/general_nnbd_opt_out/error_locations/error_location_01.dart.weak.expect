@@ -52,3 +52,9 @@ import "org-dartlang-testcase:///error_location_01_lib1.dart";
 static method bar() → dynamic {
   invalid-expression "This assertion failed.";
 }
+
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///error_location_01_lib2.dart:
+- Foo. (from org-dartlang-testcase:///error_location_01_lib1.dart:8:9)

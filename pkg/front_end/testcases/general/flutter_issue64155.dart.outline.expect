@@ -66,6 +66,8 @@ abstract class _Class1&Object&TestMixin = core::Object with self::TestMixin<self
   const synthetic constructor •() → self::_Class1&Object&TestMixin*
     : super core::Object::•()
     ;
+  mixin-super-stub method test(generic-covariant-impl asy::Future<self::Response<core::String*>*>* fetch) → asy::Future<core::String*>*
+    return super.{self::TestMixin::test}(fetch);
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -87,6 +89,8 @@ abstract class _Class2&Object&TestMixin = core::Object with self::TestMixin<self
   const synthetic constructor •() → self::_Class2&Object&TestMixin*
     : super core::Object::•()
     ;
+  mixin-super-stub method test(generic-covariant-impl asy::Future<self::PagingResponse<core::String*>*>* fetch) → asy::Future<core::String*>*
+    return super.{self::TestMixin::test}(fetch);
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf

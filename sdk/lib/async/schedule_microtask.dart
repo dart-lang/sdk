@@ -12,24 +12,23 @@ class _AsyncCallbackEntry {
   _AsyncCallbackEntry(this.callback);
 }
 
-/** Head of single linked list of pending callbacks. */
+/// Head of single linked list of pending callbacks.
 _AsyncCallbackEntry? _nextCallback;
-/** Tail of single linked list of pending callbacks. */
+
+/// Tail of single linked list of pending callbacks.
 _AsyncCallbackEntry? _lastCallback;
-/**
- * Tail of priority callbacks added by the currently executing callback.
- *
- * Priority callbacks are put at the beginning of the
- * callback queue, so that if one callback schedules more than one
- * priority callback, they are still enqueued in scheduling order.
- */
+
+/// Tail of priority callbacks added by the currently executing callback.
+///
+/// Priority callbacks are put at the beginning of the
+/// callback queue, so that if one callback schedules more than one
+/// priority callback, they are still enqueued in scheduling order.
 _AsyncCallbackEntry? _lastPriorityCallback;
-/**
- * Whether we are currently inside the callback loop.
- *
- * If we are inside the loop, we never need to schedule the loop,
- * even if adding a first element.
- */
+
+/// Whether we are currently inside the callback loop.
+///
+/// If we are inside the loop, we never need to schedule the loop,
+/// even if adding a first element.
 bool _isInCallbackLoop = false;
 
 void _microtaskLoop() {
@@ -57,12 +56,10 @@ void _startMicrotaskLoop() {
   }
 }
 
-/**
- * Schedules a callback to be called as a microtask.
- *
- * The microtask is called after all other currently scheduled
- * microtasks, but as part of the current system event.
- */
+/// Schedules a callback to be called as a microtask.
+///
+/// The microtask is called after all other currently scheduled
+/// microtasks, but as part of the current system event.
 void _scheduleAsyncCallback(_AsyncCallback callback) {
   _AsyncCallbackEntry newEntry = new _AsyncCallbackEntry(callback);
   _AsyncCallbackEntry? lastCallback = _lastCallback;
@@ -77,14 +74,12 @@ void _scheduleAsyncCallback(_AsyncCallback callback) {
   }
 }
 
-/**
- * Schedules a callback to be called before all other currently scheduled ones.
- *
- * This callback takes priority over existing scheduled callbacks.
- * It is only used internally to give higher priority to error reporting.
- *
- * Is always run in the root zone.
- */
+/// Schedules a callback to be called before all other currently scheduled ones.
+///
+/// This callback takes priority over existing scheduled callbacks.
+/// It is only used internally to give higher priority to error reporting.
+///
+/// Is always run in the root zone.
 void _schedulePriorityAsyncCallback(_AsyncCallback callback) {
   if (_nextCallback == null) {
     _scheduleAsyncCallback(callback);
@@ -107,31 +102,29 @@ void _schedulePriorityAsyncCallback(_AsyncCallback callback) {
   }
 }
 
-/**
- * Runs a function asynchronously.
- *
- * Callbacks registered through this function are always executed in order and
- * are guaranteed to run before other asynchronous events (like [Timer] events,
- * or DOM events).
- *
- * **Warning:** it is possible to starve the DOM by registering asynchronous
- * callbacks through this method. For example the following program runs
- * the callbacks without ever giving the Timer callback a chance to execute:
- *
- *     main() {
- *       Timer.run(() { print("executed"); });  // Will never be executed.
- *       foo() {
- *         scheduleMicrotask(foo);  // Schedules [foo] in front of other events.
- *       }
- *       foo();
- *     }
- *
- * ## Other resources
- *
- * * [The Event Loop and Dart](https://dart.dev/articles/event-loop/):
- * Learn how Dart handles the event queue and microtask queue, so you can write
- * better asynchronous code with fewer surprises.
- */
+/// Runs a function asynchronously.
+///
+/// Callbacks registered through this function are always executed in order and
+/// are guaranteed to run before other asynchronous events (like [Timer] events,
+/// or DOM events).
+///
+/// **Warning:** it is possible to starve the DOM by registering asynchronous
+/// callbacks through this method. For example the following program runs
+/// the callbacks without ever giving the Timer callback a chance to execute:
+/// ```dart
+/// main() {
+///   Timer.run(() { print("executed"); });  // Will never be executed.
+///   foo() {
+///     scheduleMicrotask(foo);  // Schedules [foo] in front of other events.
+///   }
+///   foo();
+/// }
+/// ```
+/// ## Other resources
+///
+/// * [The Event Loop and Dart](https://dart.dev/articles/event-loop/):
+/// Learn how Dart handles the event queue and microtask queue, so you can write
+/// better asynchronous code with fewer surprises.
 void scheduleMicrotask(void Function() callback) {
   _Zone currentZone = Zone._current;
   if (identical(_rootZone, currentZone)) {
@@ -151,6 +144,6 @@ void scheduleMicrotask(void Function() callback) {
 }
 
 class _AsyncRun {
-  /** Schedule the given callback before any other event in the event-loop. */
+  /// Schedule the given callback before any other event in the event-loop.
   external static void _scheduleImmediate(void Function() callback);
 }

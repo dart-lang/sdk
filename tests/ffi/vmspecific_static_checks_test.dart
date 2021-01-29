@@ -10,6 +10,7 @@ import 'dart:ffi';
 
 import "package:ffi/ffi.dart";
 
+import 'calloc.dart';
 import 'dylib_utils.dart';
 
 void main() {
@@ -40,11 +41,26 @@ void main() {
   testLookupFunctionGeneric2();
   testLookupFunctionWrongNativeFunctionSignature();
   testLookupFunctionTypeMismatch();
+  testLookupFunctionPointervoid();
+  testLookupFunctionPointerNFdyn();
   testNativeFunctionSignatureInvalidReturn();
   testNativeFunctionSignatureInvalidParam();
   testNativeFunctionSignatureInvalidOptionalNamed();
   testNativeFunctionSignatureInvalidOptionalPositional();
   testHandleVariance();
+  testEmptyStructLookupFunctionArgument();
+  testEmptyStructLookupFunctionReturn();
+  testEmptyStructAsFunctionArgument();
+  testEmptyStructAsFunctionReturn();
+  testEmptyStructFromFunctionArgument();
+  testEmptyStructFromFunctionReturn();
+  testAllocateGeneric();
+  testAllocateNativeType();
+  testRefStruct();
+  testSizeOfGeneric();
+  testSizeOfNativeType();
+  testElementAtGeneric();
+  testElementAtNativeType();
 }
 
 typedef Int8UnOp = Int8 Function(Int8);
@@ -57,20 +73,20 @@ void testGetGeneric() {
     return result;
   }
 
-  Pointer<Int8> p = allocate();
+  Pointer<Int8> p = calloc();
   p.value = 123;
   Pointer loseType = p;
   generic(loseType);
-  free(p);
+  calloc.free(p);
 }
 
 void testGetGeneric2() {
   T? generic<T extends Object>() {
-    Pointer<Int8> p = allocate();
+    Pointer<Int8> p = calloc();
     p.value = 123;
     T? result;
     result = p.value; //# 21: compile-time error
-    free(p);
+    calloc.free(p);
     return result;
   }
 
@@ -78,12 +94,12 @@ void testGetGeneric2() {
 }
 
 void testGetVoid() {
-  Pointer<IntPtr> p1 = allocate();
+  Pointer<IntPtr> p1 = calloc();
   Pointer<Void> p2 = p1.cast();
 
   p2.value; //# 22: compile-time error
 
-  free(p1);
+  calloc.free(p1);
 }
 
 void testGetNativeFunction() {
@@ -96,14 +112,14 @@ void testGetNativeType() {
 }
 
 void testGetTypeMismatch() {
-  Pointer<Pointer<Int16>> p = allocate();
+  Pointer<Pointer<Int16>> p = calloc();
   Pointer<Int16> typedNull = nullptr;
   p.value = typedNull;
 
   // this fails to compile due to type mismatch
   Pointer<Int8> p2 = p.value; //# 25: compile-time error
 
-  free(p);
+  calloc.free(p);
 }
 
 void testSetGeneric() {
@@ -111,30 +127,30 @@ void testSetGeneric() {
     p.value = 123; //# 26: compile-time error
   }
 
-  Pointer<Int8> p = allocate();
+  Pointer<Int8> p = calloc();
   p.value = 123;
   Pointer loseType = p;
   generic(loseType);
-  free(p);
+  calloc.free(p);
 }
 
 void testSetGeneric2() {
   void generic<T extends Object>(T arg) {
-    Pointer<Int8> p = allocate();
+    Pointer<Int8> p = calloc();
     p.value = arg; //# 27: compile-time error
-    free(p);
+    calloc.free(p);
   }
 
   generic<int>(123);
 }
 
 void testSetVoid() {
-  Pointer<IntPtr> p1 = allocate();
+  Pointer<IntPtr> p1 = calloc();
   Pointer<Void> p2 = p1.cast();
 
   p2.value = 1234; //# 28: compile-time error
 
-  free(p1);
+  calloc.free(p1);
 }
 
 void testSetNativeFunction() {
@@ -149,16 +165,16 @@ void testSetNativeType() {
 
 void testSetTypeMismatch() {
   // the pointer to pointer types must match up
-  Pointer<Int8> pHelper = allocate();
+  Pointer<Int8> pHelper = calloc();
   pHelper.value = 123;
 
-  Pointer<Pointer<Int16>> p = allocate();
+  Pointer<Pointer<Int16>> p = calloc();
 
   // this fails to compile due to type mismatch
   p.value = pHelper; //# 40: compile-time error
 
-  free(pHelper);
-  free(p);
+  calloc.free(pHelper);
+  calloc.free(p);
 }
 
 void testAsFunctionGeneric() {
@@ -285,6 +301,24 @@ void testLookupFunctionTypeMismatch() {
   l.lookupFunction<NativeDoubleUnOp, IntUnOp>("cos"); //# 18: compile-time error
 }
 
+typedef PointervoidN = Void Function(Pointer<void>);
+typedef PointervoidD = void Function(Pointer<void>);
+
+void testLookupFunctionPointervoid() {
+  DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
+  // TODO(https://dartbug.com/44593): This should be a compile-time error in CFE.
+  // l.lookupFunction<PointervoidN, PointervoidD>("cos");
+}
+
+typedef PointerNFdynN = Void Function(Pointer<NativeFunction>);
+typedef PointerNFdynD = void Function(Pointer<NativeFunction>);
+
+void testLookupFunctionPointerNFdyn() {
+  DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
+  // TODO(https://dartbug.com/44594): Should this be an error or not?
+  // l.lookupFunction<PointerNFdynN, PointerNFdynD>("cos");
+}
+
 // TODO(dacoharkes): make the next 4 test compile errors
 typedef Invalid1 = int Function(Int8);
 typedef Invalid2 = Int8 Function(int);
@@ -329,30 +363,40 @@ class TestStruct4 extends Struct {
 class TestStruct5 extends Struct {
   @Int64() //# 54: compile-time error
   external double z; //# 54: compile-time error
+
+  external Pointer notEmpty;
 }
 
 // error on annotation not matching up
 class TestStruct6 extends Struct {
   @Void() //# 55: compile-time error
   external double z; //# 55: compile-time error
+
+  external Pointer notEmpty;
 }
 
 // error on annotation not matching up
 class TestStruct7 extends Struct {
   @NativeType() //# 56: compile-time error
   external double z; //# 56: compile-time error
+
+  external Pointer notEmpty;
 }
 
 // error on field initializer on field
 class TestStruct8 extends Struct {
   @Double() //# 57: compile-time error
   double z = 10.0; //# 57: compile-time error
+
+  external Pointer notEmpty;
 }
 
 // error on field initializer in constructor
 class TestStruct9 extends Struct {
   @Double() //# 58: compile-time error
   double z; //# 58: compile-time error
+
+  external Pointer notEmpty;
 
   TestStruct9() : z = 0.0 {} //# 58: compile-time error
 }
@@ -366,6 +410,8 @@ class TestStruct11<T> extends //# 60: compile-time error
 class TestStruct12 extends Struct {
   @Pointer //# 61: compile-time error
   external TestStruct9 struct; //# 61: compile-time error
+
+  external Pointer notEmpty;
 }
 
 class DummyAnnotation {
@@ -449,6 +495,8 @@ class IPointer implements Pointer {} //# 814: compile-time error
 
 class IStruct implements Struct {} //# 815: compile-time error
 
+class IOpaque implements Opaque {} //# 816: compile-time error
+
 class MyClass {
   int x;
   MyClass(this.x);
@@ -469,10 +517,147 @@ void testHandleVariance() {
 }
 
 class TestStruct1001 extends Struct {
-  Handle handle; //# 1001: compile-time error
+  external Handle handle; //# 1001: compile-time error
+
+  external Pointer notEmpty;
 }
 
 class TestStruct1002 extends Struct {
   @Handle() //# 1002: compile-time error
-  Object handle; //# 1002: compile-time error
+  external Object handle; //# 1002: compile-time error
+
+  external Pointer notEmpty;
+}
+
+class EmptyStruct extends Struct {} //# 1099: ok
+
+class EmptyStruct extends Struct {} //# 1100: compile-time error
+
+void testEmptyStructLookupFunctionArgument() {
+  testLibrary.lookupFunction< //# 1100: compile-time error
+      Void Function(EmptyStruct), //# 1100: compile-time error
+      void Function(EmptyStruct)>("DoesNotExist"); //# 1100: compile-time error
+}
+
+class EmptyStruct extends Struct {} //# 1101: compile-time error
+
+void testEmptyStructLookupFunctionReturn() {
+  testLibrary.lookupFunction< //# 1101: compile-time error
+      EmptyStruct Function(), //# 1101: compile-time error
+      EmptyStruct Function()>("DoesNotExist"); //# 1101: compile-time error
+}
+
+class EmptyStruct extends Struct {} //# 1102: compile-time error
+
+void testEmptyStructAsFunctionArgument() {
+  final Pointer< //# 1102: compile-time error
+          NativeFunction< //# 1102: compile-time error
+              Void Function(EmptyStruct)>> //# 1102: compile-time error
+      pointer = Pointer.fromAddress(1234); //# 1102: compile-time error
+  pointer.asFunction<void Function(EmptyStruct)>(); //# 1102: compile-time error
+}
+
+class EmptyStruct extends Struct {} //# 1103: compile-time error
+
+void testEmptyStructAsFunctionReturn() {
+  final Pointer< //# 1103: compile-time error
+          NativeFunction<EmptyStruct Function()>> //# 1103: compile-time error
+      pointer = Pointer.fromAddress(1234); //# 1103: compile-time error
+  pointer.asFunction<EmptyStruct Function()>(); //# 1103: compile-time error
+}
+
+class EmptyStruct extends Struct {} //# 1104: compile-time error
+
+void _consumeEmptyStruct(EmptyStruct e) => //# 1104: compile-time error
+    print(e); //# 1104: compile-time error
+
+void testEmptyStructFromFunctionArgument() {
+  Pointer.fromFunction<Void Function(EmptyStruct)>(//# 1104: compile-time error
+      _consumeEmptyStruct); //# 1104: compile-time error
+}
+
+class EmptyStruct extends Struct {} //# 1105: compile-time error
+
+EmptyStruct _returnEmptyStruct() => EmptyStruct(); //# 1105: compile-time error
+
+void testEmptyStructFromFunctionReturn() {
+  Pointer.fromFunction<EmptyStruct Function()>(//# 1105: compile-time error
+      _returnEmptyStruct); //# 1105: compile-time error
+}
+
+class EmptyStruct extends Struct {} //# 1106: compile-time error
+
+class HasNestedEmptyStruct extends Struct {
+  external EmptyStruct nestedEmptyStruct; //# 1106: compile-time error
+
+  external Pointer notEmpty;
+}
+
+void testAllocateGeneric() {
+  Pointer<T> generic<T extends NativeType>() {
+    Pointer<T> pointer = nullptr;
+    pointer = calloc(); //# 1320: compile-time error
+    return pointer;
+  }
+
+  Pointer p = generic<Int64>();
+}
+
+void testAllocateNativeType() {
+  calloc(); //# 1321: compile-time error
+}
+
+void testRefStruct() {
+  final myStructPointer = calloc<TestStruct13>();
+  Pointer<Struct> structPointer = myStructPointer;
+  structPointer.ref; //# 1330: ok
+  calloc.free(myStructPointer);
+}
+
+T genericRef<T extends Struct>(Pointer<T> p) => //# 1200: ok
+    p.ref; //# 1200: ok
+
+T genericRef2<T extends Struct>(Pointer<T> p) => //# 1201: ok
+    p.cast<T>().ref; //# 1201: ok
+
+T genericRef3<T extends Struct>(Pointer<T> p) => //# 1202: ok
+    p[0]; //# 1202: ok
+
+void testSizeOfGeneric() {
+  int generic<T extends Pointer>() {
+    int size = sizeOf<IntPtr>();
+    size = sizeOf<T>(); //# 1300: ok
+    return size;
+  }
+
+  int size = generic<Pointer<Int64>>();
+}
+
+void testSizeOfNativeType() {
+  try {
+    sizeOf(); //# 1301: ok
+  } catch (e) {
+    print(e);
+  }
+}
+
+void testElementAtGeneric() {
+  Pointer<T> generic<T extends NativeType>(Pointer<T> pointer) {
+    Pointer<T> returnValue = pointer;
+    returnValue = returnValue.elementAt(1); //# 1310: ok
+    return returnValue;
+  }
+
+  Pointer<Int8> p = calloc();
+  p.elementAt(1);
+  generic(p);
+  calloc.free(p);
+}
+
+void testElementAtNativeType() {
+  Pointer<Int8> p = calloc();
+  p.elementAt(1);
+  Pointer<NativeType> p2 = p;
+  p2.elementAt(1); //# 1311: ok
+  calloc.free(p);
 }

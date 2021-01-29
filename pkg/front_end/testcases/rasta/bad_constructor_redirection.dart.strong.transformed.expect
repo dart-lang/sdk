@@ -38,3 +38,9 @@ Try removing the extra positional arguments.
   const C() : this.x(1);
                     ^";
 }
+
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///bad_constructor_redirection.dart:
+- C. (from org-dartlang-testcase:///bad_constructor_redirection.dart:6:9)

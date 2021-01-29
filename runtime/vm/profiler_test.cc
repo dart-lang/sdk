@@ -164,7 +164,7 @@ static LibraryPtr LoadTestScript(const char* script) {
   }
   Library& lib = Library::Handle();
   lib ^= Api::UnwrapHandle(api_lib);
-  return lib.raw();
+  return lib.ptr();
 }
 
 static ClassPtr GetClass(const Library& lib, const char* name) {
@@ -172,7 +172,7 @@ static ClassPtr GetClass(const Library& lib, const char* name) {
   const Class& cls = Class::Handle(
       lib.LookupClassAllowPrivate(String::Handle(Symbols::New(thread, name))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
-  return cls.raw();
+  return cls.ptr();
 }
 
 static FunctionPtr GetFunction(const Library& lib, const char* name) {
@@ -180,7 +180,7 @@ static FunctionPtr GetFunction(const Library& lib, const char* name) {
   const Function& func = Function::Handle(lib.LookupFunctionAllowPrivate(
       String::Handle(Symbols::New(thread, name))));
   EXPECT(!func.IsNull());  // No ambiguity error expected.
-  return func.raw();
+  return func.ptr();
 }
 
 static void Invoke(const Library& lib,
@@ -188,7 +188,7 @@ static void Invoke(const Library& lib,
                    intptr_t argc = 0,
                    Dart_Handle* argv = NULL) {
   Thread* thread = Thread::Current();
-  Dart_Handle api_lib = Api::NewHandle(thread, lib.raw());
+  Dart_Handle api_lib = Api::NewHandle(thread, lib.ptr());
   TransitionVMToNative transition(thread);
   Dart_Handle result = Dart_Invoke(api_lib, NewString(name), argc, argv);
   EXPECT_VALID(result);
@@ -262,39 +262,36 @@ class ProfileStackWalker {
 
   const char* CurrentToken() {
     if (!as_functions_) {
-      return NULL;
+      return nullptr;
     }
     ProfileFunction* func = GetFunction();
     const Function& function = *(func->function());
     if (function.IsNull()) {
       // No function.
-      return NULL;
+      return nullptr;
     }
     Zone* zone = Thread::Current()->zone();
     const Script& script = Script::Handle(zone, function.script());
     if (script.IsNull()) {
       // No script.
-      return NULL;
+      return nullptr;
     }
     ProfileFunctionSourcePosition pfsp(TokenPosition::kNoSource);
     if (!func->GetSinglePosition(&pfsp)) {
       // Not exactly one source position.
-      return NULL;
-    }
-    TokenPosition token_pos = pfsp.token_pos();
-    if (!token_pos.IsSourcePosition()) {
-      // Not a location in a script.
-      return NULL;
-    }
-    if (token_pos.IsSynthetic()) {
-      token_pos = token_pos.FromSynthetic();
+      return nullptr;
     }
 
-    intptr_t line = 0, column = 0, token_len = 0;
-    script.GetTokenLocation(token_pos, &line, &column, &token_len);
-    const auto& str = String::Handle(
-        zone, script.GetSnippet(line, column, line, column + token_len));
-    return str.IsNull() ? NULL : str.ToCString();
+    const TokenPosition& token_pos = pfsp.token_pos();
+    intptr_t line, column;
+    if (script.GetTokenLocation(token_pos, &line, &column)) {
+      const intptr_t token_len = script.GetTokenLength(token_pos);
+      const auto& str = String::Handle(
+          zone, script.GetSnippet(line, column, line, column + token_len));
+      if (!str.IsNull()) return str.ToCString();
+    }
+    // Couldn't get line/number information.
+    return nullptr;
   }
 
   intptr_t CurrentInclusiveTicks() {
@@ -368,7 +365,7 @@ class ProfileStackWalker {
     TokenPosition token_position = TokenPosition::kNoSource;
     Code& code = Code::ZoneHandle();
     if (profile_code->code().IsCode()) {
-      code ^= profile_code->code().raw();
+      code ^= profile_code->code().ptr();
       inlined_functions_cache_.Get(pc, code, sample_, index_,
                                    &inlined_functions_,
                                    &inlined_token_positions_, &token_position);
@@ -836,7 +833,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_IntrinsicAllocation) {
   Isolate* isolate = thread->isolate();
 
   const Class& double_class =
-      Class::Handle(isolate->object_store()->double_class());
+      Class::Handle(isolate->group()->object_store()->double_class());
   EXPECT(!double_class.IsNull());
 
   Dart_Handle args[2];
@@ -905,7 +902,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ArrayAllocation) {
   Isolate* isolate = thread->isolate();
 
   const Class& array_class =
-      Class::Handle(isolate->object_store()->array_class());
+      Class::Handle(isolate->group()->object_store()->array_class());
   EXPECT(!array_class.IsNull());
 
   Invoke(root_library, "foo");
@@ -1063,7 +1060,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ClosureAllocation) {
   Isolate* isolate = thread->isolate();
 
   const Class& closure_class =
-      Class::Handle(Isolate::Current()->object_store()->closure_class());
+      Class::Handle(IsolateGroup::Current()->object_store()->closure_class());
   EXPECT(!closure_class.IsNull());
   closure_class.SetTraceAllocation(true);
 
@@ -1121,7 +1118,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TypedArrayAllocation) {
   Isolate* isolate = thread->isolate();
 
   const Library& typed_data_library =
-      Library::Handle(isolate->object_store()->typed_data_library());
+      Library::Handle(isolate->group()->object_store()->typed_data_library());
 
   const Class& float32_list_class =
       Class::Handle(GetClass(typed_data_library, "_Float32List"));
@@ -1197,7 +1194,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringAllocation) {
   Isolate* isolate = thread->isolate();
 
   const Class& one_byte_string_class =
-      Class::Handle(isolate->object_store()->one_byte_string_class());
+      Class::Handle(isolate->group()->object_store()->one_byte_string_class());
   EXPECT(!one_byte_string_class.IsNull());
 
   Dart_Handle args[2];
@@ -1275,7 +1272,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringInterpolation) {
   Isolate* isolate = thread->isolate();
 
   const Class& one_byte_string_class =
-      Class::Handle(isolate->object_store()->one_byte_string_class());
+      Class::Handle(isolate->group()->object_store()->one_byte_string_class());
   EXPECT(!one_byte_string_class.IsNull());
 
   Dart_Handle args[2];
@@ -2315,10 +2312,10 @@ ISOLATE_UNIT_TEST_CASE(Profiler_GetSourceReport) {
       "}\n";
 
   // Token position of * in `i * i`.
-  const TokenPosition squarePosition = TokenPosition(19);
+  const TokenPosition squarePosition = TokenPosition::Deserialize(19);
 
   // Token position of the call to `doWork`.
-  const TokenPosition callPosition = TokenPosition(95);
+  const TokenPosition callPosition = TokenPosition::Deserialize(95);
 
   DisableNativeProfileScope dnps;
   // Disable profiling for this thread.

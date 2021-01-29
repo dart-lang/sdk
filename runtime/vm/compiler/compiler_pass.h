@@ -69,16 +69,7 @@ struct CompilerPassState {
   CompilerPassState(Thread* thread,
                     FlowGraph* flow_graph,
                     SpeculativeInliningPolicy* speculative_policy,
-                    Precompiler* precompiler = NULL)
-      : thread(thread),
-        precompiler(precompiler),
-        inlining_depth(0),
-        sinking(NULL),
-        call_specializer(NULL),
-        speculative_policy(speculative_policy),
-        reorder_blocks(false),
-        sticky_flags(0),
-        flow_graph_(flow_graph) {}
+                    Precompiler* precompiler = NULL);
 
   FlowGraph* flow_graph() const { return flow_graph_; }
 

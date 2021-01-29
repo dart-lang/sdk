@@ -50,7 +50,7 @@ class P<T extends core::Object = core::Object> extends core::Object /*hasConstCo
     ;
 }
 class CP<T extends core::Object = core::Object> extends opt::P<opt::CP::T> /*hasConstConstructor*/  {
-  static field dynamic _redirecting# = <dynamic>[opt::CP::•]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[opt::CP::•]/*isLegacy*/;
   const constructor _(core::Object token) → opt::CP<opt::CP::T>
     : super opt::P::_(token)
     ;
@@ -63,7 +63,7 @@ class Token<T extends core::Object = core::Object> extends core::Object /*hasCon
     ;
 }
 class VP<T extends core::Object = core::Object> extends opt::P<opt::VP::T> /*hasConstConstructor*/  {
-  static field dynamic _redirecting# = <dynamic>[opt::VP::forToken]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[opt::VP::forToken]/*isLegacy*/;
   const constructor _(core::Object token, opt::VP::T useValue) → opt::VP<opt::VP::T>
     : super opt::P::_(token)
     ;
@@ -86,3 +86,16 @@ constants  {
   #C6 = opt::M {list:#C5}
   #C7 = <opt::P<core::Object*>*>[]
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///main.dart:
+- CP._ (from org-dartlang-testcase:///opt_in_lib.dart:14:9)
+- XToken. (from org-dartlang-testcase:///main.dart:12:9)
+- Token. (from org-dartlang-testcase:///opt_in_lib.dart:18:9)
+- VP._ (from org-dartlang-testcase:///opt_in_lib.dart:27:9)
+- M. (from org-dartlang-testcase:///opt_in_lib.dart:36:9)
+
+org-dartlang-testcase:///opt_in_lib.dart:
+- P._ (from org-dartlang-testcase:///opt_in_lib.dart:8:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

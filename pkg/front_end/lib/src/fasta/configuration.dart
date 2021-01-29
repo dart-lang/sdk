@@ -9,6 +9,7 @@ class Configuration {
   final String dottedName;
   final String condition;
   final String importUri;
+
   Configuration(
       this.charOffset, this.dottedName, this.condition, this.importUri);
 }

@@ -1,0 +1,19 @@
+abstract class AbstractClass implements Interface {
+  abstract final int declaredAbstractField;
+  abstract final int declaredAbstractImplementsAbstractField;
+  abstract final int declaredAbstractImplementsConcreteField;
+  final int declaredConcreteField = 0;
+  final int declaredConcreteImplementsAbstractField = 0;
+  final int declaredConcreteImplementsConcreteField = 0;
+}
+
+abstract class Interface {
+  abstract final int declaredAbstractImplementsAbstractField;
+  abstract final int declaredConcreteImplementsAbstractField;
+  abstract final int implementedAbstractField;
+  final int declaredAbstractImplementsConcreteField = 0;
+  final int declaredConcreteImplementsConcreteField = 0;
+  final int implementedConcreteField = 0;
+}
+
+main() {}

@@ -1,6 +1,9 @@
 class Class {}
-extension Extension ;
-on Class (){}
+
+extension Extension on Class {
+  void set setter(int value) {}
+}
+
 var c = new Class();
 var missingGetter = c.setter += 42;
 main() {}

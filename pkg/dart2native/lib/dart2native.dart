@@ -37,8 +37,14 @@ Future markExecutable(String outputFile) {
   return Process.run('chmod', ['+x', outputFile]);
 }
 
-Future generateAotKernel(String dart, String genKernel, String platformDill,
-    String sourceFile, String kernelFile, String packages, List<String> defines,
+Future<ProcessResult> generateAotKernel(
+    String dart,
+    String genKernel,
+    String platformDill,
+    String sourceFile,
+    String kernelFile,
+    String packages,
+    List<String> defines,
     {String enableExperiment = '',
     List<String> extraGenKernelOptions = const []}) {
   return Process.run(dart, [

@@ -34,7 +34,13 @@ static const char* kSnapshotKindNames[] = {
     NULL,
 };
 
+// These strings must match the enum VerbosityLevel in main_options.h.
+static const char* kVerbosityLevelNames[] = {
+    "error", "warning", "info", "all", nullptr,
+};
+
 SnapshotKind Options::gen_snapshot_kind_ = kNone;
+VerbosityLevel Options::verbosity_ = kAll;
 bool Options::enable_vm_service_ = false;
 
 #define OPTION_FIELD(variable) Options::variable##_

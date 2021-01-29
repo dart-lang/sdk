@@ -28,7 +28,7 @@ namespace dart {
 class ObjectPointerVisitor;
 class LocalVariable;
 
-extern FrameLayout runtime_frame_layout;
+extern UntaggedFrame runtime_frame_layout;
 
 // Generic stack frame.
 class StackFrame : public ValueObject {
@@ -365,7 +365,7 @@ class InlinedFunctionsIterator : public ValueObject {
 
   FunctionPtr function() const {
     ASSERT(!Done());
-    return function_.raw();
+    return function_.ptr();
   }
 
   uword pc() const {
@@ -375,7 +375,7 @@ class InlinedFunctionsIterator : public ValueObject {
 
   CodePtr code() const {
     ASSERT(!Done());
-    return code_.raw();
+    return code_.ptr();
   }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)

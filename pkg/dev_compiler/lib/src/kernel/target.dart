@@ -30,6 +30,8 @@ class DevCompilerTarget extends Target {
 
   WidgetCreatorTracker _widgetTracker;
 
+  Map<String, Class> _nativeClasses;
+
   @override
   bool get enableSuperMixins => true;
 
@@ -46,6 +48,9 @@ class DevCompilerTarget extends Target {
   //  calls encoded with an explicit property get or disallows getter calls.
   @override
   bool get supportsExplicitGetterCalls => false;
+
+  @override
+  bool get supportsNewMethodInvocationEncoding => true;
 
   @override
   String get name => 'dartdevc';
@@ -113,9 +118,7 @@ class DevCompilerTarget extends Target {
   bool _allowedTestLibrary(Uri uri) {
     // Multi-root scheme used by modular test framework.
     if (uri.scheme == 'dev-dart-app') return true;
-
-    var scriptName = uri.path;
-    return scriptName.contains('tests/dartdevc');
+    return allowedNativeTest(uri);
   }
 
   bool _allowedDartLibrary(Uri uri) => uri.scheme == 'dart';
@@ -149,10 +152,13 @@ class DevCompilerTarget extends Target {
       ReferenceFromIndex referenceFromIndex,
       {void Function(String msg) logger,
       ChangedStructureNotifier changedStructureNotifier}) {
+    _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();
-      JsInteropChecks(coreTypes,
-              diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>)
+      JsInteropChecks(
+              coreTypes,
+              diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
+              _nativeClasses)
           .visitLibrary(library);
     }
   }
@@ -400,9 +406,21 @@ class _CovarianceTransformer extends RecursiveVisitor<void> {
   }
 
   @override
+  void visitInstanceGet(InstanceGet node) {
+    _checkTearoff(node.interfaceTarget);
+    super.visitInstanceGet(node);
+  }
+
+  @override
   void visitPropertySet(PropertySet node) {
     _checkTarget(node.receiver, node.interfaceTarget);
     super.visitPropertySet(node);
+  }
+
+  @override
+  void visitInstanceSet(InstanceSet node) {
+    _checkTarget(node.receiver, node.interfaceTarget);
+    super.visitInstanceSet(node);
   }
 
   @override
@@ -410,4 +428,35 @@ class _CovarianceTransformer extends RecursiveVisitor<void> {
     _checkTarget(node.receiver, node.interfaceTarget);
     super.visitMethodInvocation(node);
   }
+
+  @override
+  void visitInstanceInvocation(InstanceInvocation node) {
+    _checkTarget(node.receiver, node.interfaceTarget);
+    super.visitInstanceInvocation(node);
+  }
+
+  @override
+  void visitInstanceTearOff(InstanceTearOff node) {
+    _checkTearoff(node.interfaceTarget);
+    super.visitInstanceTearOff(node);
+  }
+
+  @override
+  void visitEqualsCall(EqualsCall node) {
+    _checkTarget(node.left, node.interfaceTarget);
+    super.visitEqualsCall(node);
+  }
+}
+
+List<Pattern> _allowedNativeTestPatterns = [
+  'tests/dartdevc',
+  'tests/dart2js/native',
+  'tests/dart2js_2/native',
+  'tests/dart2js/internal',
+  'tests/dart2js_2/internal',
+];
+
+bool allowedNativeTest(Uri uri) {
+  var path = uri.path;
+  return _allowedNativeTestPatterns.any((pattern) => path.contains(pattern));
 }

@@ -36,7 +36,7 @@ static method main() → dynamic {
     [@vm.direct-call.metadata=#lib::B.bar] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•().{self::B::bar}([@vm.direct-call.metadata=dart.math::_Random.nextInt] [@vm.inferred-type.metadata=int (skip check)] r.{math::Random::nextInt}(10));
     [@vm.direct-call.metadata=#lib::B.bar] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•().{self::B::bar}(null);
   }
-  final core::List<self::B*>* l = <self::B*>[new self::B::•(), new self::C::•()];
+  final core::List<self::B*>* l = [@vm.inferred-type.metadata=dart.core::_GrowableList<#lib::B*>] core::_GrowableList::_literal2<self::B*>(new self::B::•(), new self::C::•());
   {
     core::Iterator<self::B*>* :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<#lib::B*>] l.{core::Iterable::iterator};
     for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(); ) {

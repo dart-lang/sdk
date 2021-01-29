@@ -313,8 +313,13 @@ class InterfaceType extends DartType {
   final ClassEntity element;
   final List<DartType> typeArguments;
 
-  InterfaceType._(this.element, this.typeArguments)
-      : assert(typeArguments.every((e) => e != null));
+  InterfaceType._allocate(this.element, this.typeArguments);
+
+  factory InterfaceType._(ClassEntity element, List<DartType> typeArguments) {
+    assert(typeArguments.every((e) => e != null));
+    if (typeArguments.isEmpty) typeArguments = const [];
+    return InterfaceType._allocate(element, typeArguments);
+  }
 
   factory InterfaceType._readFromDataSource(
       DataSource source, List<FunctionTypeVariable> functionTypeVariables) {
@@ -683,6 +688,7 @@ class FunctionType extends DartType {
     // Canonicalize empty collections to constants to save storage.
     if (parameterTypes.isEmpty) parameterTypes = const [];
     if (optionalParameterTypes.isEmpty) optionalParameterTypes = const [];
+    if (namedParameters.isEmpty) namedParameters = const [];
     if (namedParameterTypes.isEmpty) namedParameterTypes = const [];
     if (requiredNamedParameters.isEmpty) requiredNamedParameters = const {};
     if (typeVariables.isEmpty) typeVariables = const [];

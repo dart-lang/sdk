@@ -5,29 +5,31 @@
 import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 
+import 'calloc.dart';
+
 main() {
   print('start main');
 
   {
     // Basic operation: allocate, get, set, and free.
-    Pointer<Int64> p = allocate();
+    Pointer<Int64> p = calloc();
     p.value = 42;
     int pValue = p.value;
     print('${p.runtimeType} value: ${pValue}');
-    free(p);
+    calloc.free(p);
   }
 
   {
     // Undefined behavior before set.
-    Pointer<Int64> p = allocate();
+    Pointer<Int64> p = calloc();
     int pValue = p.value;
     print('If not set, returns garbage: ${pValue}');
-    free(p);
+    calloc.free(p);
   }
 
   {
     // Pointers can be created from an address.
-    Pointer<Int64> pHelper = allocate();
+    Pointer<Int64> pHelper = calloc();
     pHelper.value = 1337;
 
     int address = pHelper.address;
@@ -36,13 +38,13 @@ main() {
     Pointer<Int64> p = Pointer.fromAddress(address);
     print('${p.runtimeType} value: ${p.value}');
 
-    free(pHelper);
+    calloc.free(pHelper);
   }
 
   {
     // Address is zeroed out after free.
-    Pointer<Int64> p = allocate();
-    free(p);
+    Pointer<Int64> p = calloc();
+    calloc.free(p);
     print('After free, address is zero: ${p.address}');
   }
 
@@ -50,13 +52,13 @@ main() {
     // Allocating too much throws an exception.
     try {
       int maxMint = 9223372036854775807; // 2^63 - 1
-      allocate<Int64>(count: maxMint);
+      calloc<Int64>(maxMint);
     } on Error {
       print('Expected exception on allocating too much');
     }
     try {
       int maxInt1_8 = 1152921504606846975; // 2^60 -1
-      allocate<Int64>(count: maxInt1_8);
+      calloc<Int64>(maxInt1_8);
     } on Error {
       print('Expected exception on allocating too much');
     }
@@ -65,7 +67,7 @@ main() {
   {
     // Pointers can be cast into another type,
     // resulting in the corresponding bits read.
-    Pointer<Int64> p1 = allocate();
+    Pointer<Int64> p1 = calloc();
     p1.value = 9223372036854775807; // 2^63 - 1
 
     Pointer<Int32> p2 = p1.cast();
@@ -74,61 +76,61 @@ main() {
     Pointer<Int32> p3 = p2.elementAt(1);
     print('${p3.runtimeType} value: ${p3.value}'); // 2^31 - 1
 
-    free(p1);
+    calloc.free(p1);
   }
 
   {
     // Data can be tightly packed in memory.
-    Pointer<Int8> p = allocate(count: 8);
+    Pointer<Int8> p = calloc(8);
     for (var i in [0, 1, 2, 3, 4, 5, 6, 7]) {
       p.elementAt(i).value = i * 3;
     }
     for (var i in [0, 1, 2, 3, 4, 5, 6, 7]) {
       print('p.elementAt($i) value: ${p.elementAt(i).value}');
     }
-    free(p);
+    calloc.free(p);
   }
 
   {
     // Values that don't fit are truncated.
-    Pointer<Int32> p11 = allocate();
+    Pointer<Int32> p11 = calloc();
 
     p11.value = 9223372036854775807;
 
     print(p11);
 
-    free(p11);
+    calloc.free(p11);
   }
 
   {
     // Doubles.
-    Pointer<Double> p = allocate();
+    Pointer<Double> p = calloc();
     p.value = 3.14159265359;
     print('${p.runtimeType} value: ${p.value}');
     p.value = 3.14;
     print('${p.runtimeType} value: ${p.value}');
-    free(p);
+    calloc.free(p);
   }
 
   {
     // Floats.
-    Pointer<Float> p = allocate();
+    Pointer<Float> p = calloc();
     p.value = 3.14159265359;
     print('${p.runtimeType} value: ${p.value}');
     p.value = 3.14;
     print('${p.runtimeType} value: ${p.value}');
-    free(p);
+    calloc.free(p);
   }
 
   {
     // IntPtr varies in size based on whether the platform is 32 or 64 bit.
     // Addresses of pointers fit in this size.
-    Pointer<IntPtr> p = allocate();
+    Pointer<IntPtr> p = calloc();
     int p14addr = p.address;
     p.value = p14addr;
     int pValue = p.value;
     print('${p.runtimeType} value: ${pValue}');
-    free(p);
+    calloc.free(p);
   }
 
   {
@@ -136,19 +138,19 @@ main() {
     // The size of the element it is pointing to is undefined,
     // they cannot be allocated, read, or written.
 
-    Pointer<IntPtr> p1 = allocate();
+    Pointer<IntPtr> p1 = calloc();
     Pointer<Void> p2 = p1.cast();
     print('${p2.runtimeType} address: ${p2.address}');
 
-    free(p1);
+    calloc.free(p1);
   }
 
   {
     // Pointer to a pointer to something.
-    Pointer<Int16> pHelper = allocate();
+    Pointer<Int16> pHelper = calloc();
     pHelper.value = 17;
 
-    Pointer<Pointer<Int16>> p = allocate();
+    Pointer<Pointer<Int16>> p = calloc();
 
     // Storing into a pointer pointer automatically unboxes.
     p.value = pHelper;
@@ -160,31 +162,31 @@ main() {
     int pValue = p.value.value;
     print('${p.runtimeType} value\'s value: ${pValue}');
 
-    free(p);
-    free(pHelper);
+    calloc.free(p);
+    calloc.free(pHelper);
   }
 
   {
     // The pointer to pointer types must match up.
-    Pointer<Int8> pHelper = allocate();
+    Pointer<Int8> pHelper = calloc();
     pHelper.value = 123;
 
-    Pointer<Pointer<Int16>> p = allocate();
+    Pointer<Pointer<Int16>> p = calloc();
 
     // Trying to store `pHelper` into `p.val` would result in a type mismatch.
 
-    free(pHelper);
-    free(p);
+    calloc.free(pHelper);
+    calloc.free(p);
   }
 
   {
     // `nullptr` points to address 0 in c++.
-    Pointer<Pointer<Int8>> pointerToPointer = allocate();
+    Pointer<Pointer<Int8>> pointerToPointer = calloc();
     Pointer<Int8> value = nullptr;
     pointerToPointer.value = value;
     value = pointerToPointer.value;
     print("Loading a pointer to the 0 address is null: ${value}");
-    free(pointerToPointer);
+    calloc.free(pointerToPointer);
   }
 
   {
@@ -205,7 +207,7 @@ main() {
         head.value = value;
         return;
       }
-      Pointer<IntPtr> next = allocate<IntPtr>();
+      Pointer<IntPtr> next = calloc<IntPtr>();
       head.value = next.address;
       createChain(next, length - 1, value);
     }
@@ -220,7 +222,7 @@ main() {
 
     void freeChain(Pointer<IntPtr> head, int length) {
       Pointer<IntPtr> next = Pointer.fromAddress(head.value);
-      free(head);
+      calloc.free(head);
       if (length == 0) {
         return;
       }
@@ -228,7 +230,7 @@ main() {
     }
 
     int length = 10;
-    Pointer<IntPtr> head = allocate();
+    Pointer<IntPtr> head = calloc();
     createChain(head, length, 512);
     int tailValue = getChainValue(head, length);
     print('tailValue: ${tailValue}');

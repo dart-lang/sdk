@@ -18,16 +18,16 @@ bool optional(String value, Token token) {
 
 /// Returns the token before the close brace, bracket, or parenthesis
 /// associated with [left]. For '<', it may return `null`.
-Token beforeCloseBraceTokenFor(BeginToken left) {
-  Token endToken = left.endToken;
+Token? beforeCloseBraceTokenFor(BeginToken left) {
+  Token? endToken = left.endToken;
   if (endToken == null) {
     return null;
   }
   Token token = left;
-  Token next = token.next;
+  Token next = token.next!;
   while (next != endToken && next != next.next) {
     token = next;
-    next = token.next;
+    next = token.next!;
   }
   return token;
 }
@@ -36,7 +36,7 @@ Token beforeCloseBraceTokenFor(BeginToken left) {
 /// not synthetic or synthetic with non-zero length.
 Token findPreviousNonZeroLengthToken(Token token) {
   while (token.isSynthetic && token.length == 0) {
-    Token previous = token.beforeSynthetic;
+    Token? previous = token.beforeSynthetic;
     if (previous == token) {
       throw new StateError("token == token.beforeSynthetic");
     }
@@ -53,7 +53,7 @@ Token findPreviousNonZeroLengthToken(Token token) {
 /// This may return EOF if there are no more non-synthetic tokens in the stream.
 Token findNonZeroLengthToken(Token token) {
   while (token.isSynthetic && token.length == 0 && !token.isEof) {
-    token = token.next;
+    token = token.next!;
   }
   return token;
 }
@@ -88,37 +88,37 @@ bool isOneOfOrEof(Token token, Iterable<String> values) {
 
 /// A null-aware alternative to `token.length`.  If [token] is `null`, returns
 /// [noLength].
-int lengthForToken(Token token) {
+int lengthForToken(Token? token) {
   return token == null ? noLength : token.length;
 }
 
 /// Returns the length of the span from [begin] to [end] (inclusive). If both
 /// tokens are null, return [noLength]. If one of the tokens are null, return
 /// the length of the other token.
-int lengthOfSpan(Token begin, Token end) {
+int lengthOfSpan(Token? begin, Token? end) {
   if (begin == null) return lengthForToken(end);
   if (end == null) return lengthForToken(begin);
   return end.offset + end.length - begin.offset;
 }
 
 Token skipMetadata(Token token) {
-  token = token.next;
+  token = token.next!;
   assert(optional('@', token));
-  Token next = token.next;
+  Token next = token.next!;
   if (next.isIdentifier) {
     token = next;
-    next = token.next;
+    next = token.next!;
     while (optional('.', next)) {
       token = next;
-      next = token.next;
+      next = token.next!;
       if (next.isIdentifier) {
         token = next;
-        next = token.next;
+        next = token.next!;
       }
     }
-    if (optional('(', next) && !next.endGroup.isSynthetic) {
-      token = next.endGroup;
-      next = token.next;
+    if (optional('(', next) && !next.endGroup!.isSynthetic) {
+      token = next.endGroup!;
+      next = token.next!;
     }
   }
   return token;

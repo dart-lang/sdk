@@ -2,15 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
+// @dart = 2.9
 
-import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
+import 'package:kernel/src/tool/find_referenced_libraries.dart';
+import 'binary/utils.dart';
 
 main() {
   Component component1 = createComponent(42);
   Component component2 = createComponent(43);
+
+  expectReachable(
+      findAllReferencedLibraries(component1.libraries), component1.libraries);
+  if (duplicateLibrariesReachable(component1.libraries)) {
+    throw "Didn't expect duplicates libraries!";
+  }
+  expectReachable(
+      findAllReferencedLibraries(component2.libraries), component2.libraries);
+  if (duplicateLibrariesReachable(component2.libraries)) {
+    throw "Didn't expect duplicates libraries!";
+  }
 
   ByteSink sink = new ByteSink();
   new BinaryPrinter(sink).writeComponentFile(component1);
@@ -25,6 +37,11 @@ main() {
   Procedure target1 = getMainTarget(component1Prime);
   Procedure procedureLib1 = getLibProcedure(component1Prime);
   if (target1 != procedureLib1) throw "Unexpected target.";
+  expectReachable(findAllReferencedLibraries(component1Prime.libraries),
+      component1Prime.libraries);
+  if (duplicateLibrariesReachable(component1Prime.libraries)) {
+    throw "Didn't expect duplicates libraries!";
+  }
 
   // Loading another one saying it should overwrite works as one would expect
   // for this component: It gives a component that is linked to itself that is
@@ -36,6 +53,11 @@ main() {
   Procedure procedureLib2 = getLibProcedure(component2Prime);
   if (procedureLib2 == procedureLib1) throw "Unexpected procedure.";
   if (target2 != procedureLib2) throw "Unexpected target.";
+  expectReachable(findAllReferencedLibraries(component2Prime.libraries),
+      component2Prime.libraries);
+  if (duplicateLibrariesReachable(component2Prime.libraries)) {
+    throw "Didn't expect duplicates libraries!";
+  }
 
   // The old one that was loaded on top of was re-linked so it also points to
   // procedureLib2.
@@ -44,21 +66,64 @@ main() {
 
   // Relink back and forth a number of times: It keeps working as expected.
   for (int i = 0; i < 6; i++) {
+    // Before the relink the lib from component2Prime is also reachable!
+    expectReachable(
+        findAllReferencedLibraries(component1Prime.libraries),
+        []
+          ..addAll(component1Prime.libraries)
+          ..add(procedureLib2.enclosingLibrary));
+    if (!duplicateLibrariesReachable(component1Prime.libraries)) {
+      throw "Expected duplicates libraries!";
+    }
+
     // Relinking component1Prime works as one would expected: Both components
     // main now points to procedureLib1.
     component1Prime.relink();
+    // After the relink only the libs from component1Prime are reachable!
+    expectReachable(findAllReferencedLibraries(component1Prime.libraries),
+        component1Prime.libraries);
+    if (duplicateLibrariesReachable(component1Prime.libraries)) {
+      throw "Didn't expect duplicates libraries!";
+    }
     target1 = getMainTarget(component1Prime);
     if (target1 != procedureLib1) throw "Unexpected target.";
     target2 = getMainTarget(component2Prime);
     if (target2 != procedureLib1) throw "Unexpected target.";
 
+    // Before the relink the lib from component1Prime is also reachable!
+    expectReachable(
+        findAllReferencedLibraries(component2Prime.libraries),
+        []
+          ..addAll(component2Prime.libraries)
+          ..add(procedureLib1.enclosingLibrary));
+    if (!duplicateLibrariesReachable(component2Prime.libraries)) {
+      throw "Expected duplicates libraries!";
+    }
     // Relinking component2Prime works as one would expected: Both components
     // main now points to procedureLib2.
     component2Prime.relink();
+    // After the relink only the libs from component1Prime are reachable!
+    expectReachable(findAllReferencedLibraries(component2Prime.libraries),
+        component2Prime.libraries);
+    if (duplicateLibrariesReachable(component2Prime.libraries)) {
+      throw "Didn't expect duplicates libraries!";
+    }
     target1 = getMainTarget(component1Prime);
     if (target1 != procedureLib2) throw "Unexpected target.";
     target2 = getMainTarget(component2Prime);
     if (target2 != procedureLib2) throw "Unexpected target.";
+  }
+}
+
+void expectReachable(
+    Set<Library> findAllReferencedLibraries, List<Library> libraries) {
+  Set<Library> onlyInReferenced = findAllReferencedLibraries.toSet()
+    ..removeAll(libraries);
+  Set<Library> onlyInLibraries = libraries.toSet()
+    ..removeAll(findAllReferencedLibraries);
+  if (onlyInReferenced.isNotEmpty || onlyInLibraries.isNotEmpty) {
+    throw "Expected to be the same, but ${onlyInReferenced} was only in "
+        "reachable and ${onlyInLibraries} was only in libraries";
   }
 }
 
@@ -105,15 +170,4 @@ Component createComponent(int literal) {
   main.addProcedure(mainProcedure);
   return new Component(libraries: [main, lib])
     ..setMainMethodAndMode(null, false, NonNullableByDefaultCompiledMode.Weak);
-}
-
-/// A [Sink] that directly writes data into a byte builder.
-class ByteSink implements Sink<List<int>> {
-  final BytesBuilder builder = new BytesBuilder();
-
-  void add(List<int> data) {
-    builder.add(data);
-  }
-
-  void close() {}
 }

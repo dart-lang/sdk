@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+// @dart = 2.9
+
 import '../ast.dart' hide MapEntry;
 
 import 'replacement_visitor.dart';
@@ -68,4 +70,48 @@ class _LegacyErasure extends ReplacementVisitor {
 
   @override
   DartType visitNeverType(NeverType node) => const NullType();
+}
+
+/// Returns `true` if a member declared in [declaringClass] inherited or
+/// mixed into [enclosingClass] needs legacy erasure to compute its inherited
+/// type.
+///
+/// For instance:
+///
+///    // Opt in:
+///    class Super {
+///      int extendedMethod(int i, {required int j}) => i;
+///    }
+///    class Mixin {
+///      int mixedInMethod(int i, {required int j}) => i;
+///    }
+///    // Opt out:
+///    class Legacy extends Super with Mixin {}
+///    // Opt in:
+///    class Class extends Legacy {
+///      test() {
+///        // Ok to call `Legacy.extendedMethod` since its type is
+///        // `int* Function(int*, {int* j})`.
+///        super.extendedMethod(null);
+///        // Ok to call `Legacy.mixedInMethod` since its type is
+///        // `int* Function(int*, {int* j})`.
+///        super.mixedInMethod(null);
+///      }
+///    }
+///
+bool needsLegacyErasure(Class enclosingClass, Class declaringClass) {
+  Class cls = enclosingClass;
+  while (cls != null) {
+    if (!cls.enclosingLibrary.isNonNullableByDefault) {
+      return true;
+    }
+    if (cls == declaringClass) {
+      return false;
+    }
+    if (cls.mixedInClass == declaringClass) {
+      return false;
+    }
+    cls = cls.superclass;
+  }
+  return false;
 }

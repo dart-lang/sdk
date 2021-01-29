@@ -1,6 +1,9 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// @dart = 2.9
+
 library kernel.class_hierarchy;
 
 import 'dart:collection';
@@ -1200,46 +1203,50 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
         setters ? info.lazyDeclaredSetters : info.lazyDeclaredGettersAndCalls;
     if (members != null) return members;
 
+    // To support that mixin application can declare their own members, for
+    // instance cloned mixin members and concrete forwarding stubs, we first
+    // collect the members in a map before creating the list of members, so that
+    // declared members can replace mixed in members.
+    Map<Name, Member> memberMap = {};
     if (classNode.mixedInType != null) {
       Class mixedInClassNode = classNode.mixedInType.classNode;
       _ClassInfo mixedInInfo = _infoMap[mixedInClassNode];
 
-      members = <Member>[];
       for (Member mixinMember in _buildDeclaredMembers(
           mixedInClassNode, mixedInInfo,
           setters: setters)) {
         if (mixinMember is! Procedure ||
             (mixinMember is Procedure &&
                 !mixinMember.isNoSuchMethodForwarder)) {
-          members.add(mixinMember);
+          memberMap[mixinMember.name] = mixinMember;
         }
       }
-    } else {
-      members = <Member>[];
-      for (Procedure procedure in classNode.procedures) {
-        if (procedure.isStatic) continue;
-        if (procedure.kind == ProcedureKind.Setter) {
-          if (setters) {
-            members.add(procedure);
-          }
-        } else {
-          if (!setters) {
-            members.add(procedure);
-          }
-        }
-      }
-      for (Field field in classNode.fields) {
-        if (field.isStatic) continue;
-        if (!setters && field.hasImplicitGetter) {
-          members.add(field);
-        }
-        if (setters && field.hasImplicitSetter) {
-          members.add(field);
-        }
-      }
-
-      members.sort(ClassHierarchy.compareMembers);
     }
+
+    for (Procedure procedure in classNode.procedures) {
+      if (procedure.isStatic) continue;
+      if (procedure.kind == ProcedureKind.Setter) {
+        if (setters) {
+          memberMap[procedure.name] = procedure;
+        }
+      } else {
+        if (!setters) {
+          memberMap[procedure.name] = procedure;
+        }
+      }
+    }
+    for (Field field in classNode.fields) {
+      if (field.isStatic) continue;
+      if (!setters) {
+        memberMap[field.name] = field;
+      }
+      if (setters && field.hasSetter) {
+        memberMap[field.name] = field;
+      }
+    }
+
+    members = memberMap.values.toList();
+    members.sort(ClassHierarchy.compareMembers);
 
     if (setters) {
       info.lazyDeclaredSetters = members;

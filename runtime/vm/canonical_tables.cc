@@ -45,11 +45,14 @@ bool MetadataMapTraits::IsMatch(const Object& a, const Object& b) {
     if (!name_a.Equals(name_b)) {
       return false;
     }
-    const Object& owner_a = Object::Handle(TypeParameter::Cast(a).Owner());
-    const Object& owner_b = Object::Handle(TypeParameter::Cast(b).Owner());
-    return IsMatch(owner_a, owner_b);
+    if (TypeParameter::Cast(a).index() != TypeParameter::Cast(b).index() ||
+        TypeParameter::Cast(a).base() != TypeParameter::Cast(b).base()) {
+      return false;
+    }
+    return TypeParameter::Cast(a).parameterized_class_id() ==
+           TypeParameter::Cast(b).parameterized_class_id();
   }
-  return a.raw() == b.raw();
+  return a.ptr() == b.ptr();
 }
 
 uword MetadataMapTraits::Hash(const Object& key) {

@@ -7,7 +7,10 @@ import 'dart:io';
 
 Uri remoteVmServiceUri;
 
-Future<Process> spawnDartProcess(String script) async {
+Future<Process> spawnDartProcess(
+  String script, {
+  bool pauseOnStart = true,
+}) async {
   final executable = Platform.executable;
   final tmpDir = await Directory.systemTemp.createTemp('dart_service');
   final serviceInfoUri = tmpDir.uri.resolve('service_info.json');
@@ -16,7 +19,7 @@ Future<Process> spawnDartProcess(String script) async {
   final arguments = [
     '--disable-dart-dev',
     '--observe=0',
-    '--pause-isolates-on-start',
+    if (pauseOnStart) '--pause-isolates-on-start',
     '--write-service-info=$serviceInfoUri',
     ...Platform.executableArguments,
     Platform.script.resolve(script).toString(),

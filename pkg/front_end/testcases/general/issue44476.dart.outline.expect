@@ -1,0 +1,33 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue44476.dart:7:12: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A'.
+// Try changing type arguments so that they conform to the bounds.
+// foo(A<num> x) {
+//            ^
+// pkg/front_end/testcases/general/issue44476.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<X extends int> {}
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::int* = core::int*> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X*>*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method foo(self::A<core::num*>* x) → dynamic
+  ;
+static method main() → dynamic
+  ;

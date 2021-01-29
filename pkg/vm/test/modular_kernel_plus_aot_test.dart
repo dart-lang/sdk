@@ -56,19 +56,22 @@ main() async {
 
     const useGlobalTypeFlowAnalysis = true;
     const enableAsserts = false;
-    const useProtobufTreeShaker = false;
     const useProtobufTreeShakerV2 = false;
     await runGlobalTransformations(
         vmTarget,
         component,
         useGlobalTypeFlowAnalysis,
         enableAsserts,
-        useProtobufTreeShaker,
         useProtobufTreeShakerV2,
         ErrorDetector());
 
     // Verify after running global transformations.
     verifyComponent(component, isOutline: false, afterConst: true);
+
+    // Verify that we can reserialize the component to ensure that all
+    // references are contained within the component.
+    writeComponentToBytes(
+        loadComponentFromBytes(writeComponentToBytes(component)));
   });
 }
 
@@ -90,7 +93,7 @@ Future compileToKernel(
       StandardFileSystem.instance, const <String>[], const <String, String>{});
 
   void onDiagnostic(fe.DiagnosticMessage message) {
-    print(message);
+    message.plainTextFormatted.forEach(print);
   }
 
   final Component component =
@@ -119,11 +122,16 @@ Uint8List concat(List<int> a, List<int> b) {
 Uri sdkRootFile(name) => Directory.current.uri.resolveUri(Uri.file(name));
 
 const String mainFile = r'''
+// @dart=2.9
+// This library is opt-out to provoke the creation of member signatures in
+// R that point to members of A2.
+
 import 'mixin.dart';
+
 class R extends A2 {
   void bar() {
     mixinProperty = '';
-    mixinProperty .foo();
+    mixinProperty.foo();
     mixinMethod('').foo();
     super.mixinProperty= '';
     super.mixinProperty.foo();
@@ -139,6 +147,7 @@ main() {
   a2.mixinProperty= '';
   a2.mixinProperty.foo();
   a2.mixinMethod('').foo();
+  R().bar();
 }
 ''';
 
@@ -148,8 +157,8 @@ class Foo {
 }
 class Mixin {
   void set mixinProperty(v) {}
-  Foo get mixinProperty{}
-  Foo mixinMethod(v) {}
+  Foo get mixinProperty => new Foo();
+  Foo mixinMethod(v) => new Foo();
 }
 class A1 extends Object with Mixin { }
 class A2 extends Object with Mixin { }

@@ -84,6 +84,13 @@ class OutputUnit implements Comparable<OutputUnit> {
 
   Set<ImportEntity> get importsForTesting => _imports;
 
+  void merge(OutputUnit that) {
+    assert(this != that);
+    // We don't currently support merging code into the main output unit.
+    assert(!isMainOutput);
+    this._imports.addAll(that._imports);
+  }
+
   @override
   String toString() => "OutputUnit($name, $_imports)";
 }

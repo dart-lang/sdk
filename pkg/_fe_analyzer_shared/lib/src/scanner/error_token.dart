@@ -94,13 +94,13 @@ abstract class ErrorToken extends SimpleToken {
 
   Code<dynamic> get errorCode => assertionMessage.code;
 
-  int get character => null;
+  int? get character => null;
 
-  String get start => null;
+  String? get start => null;
 
-  int get endOffset => null;
+  int? get endOffset => null;
 
-  BeginToken get begin => null;
+  BeginToken? get begin => null;
 
   @override
   Token copy() {

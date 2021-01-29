@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+// @dart = 2.9
+
 library fasta.testing.suite;
 
 import 'dart:convert' show jsonDecode;
@@ -49,6 +51,9 @@ import 'package:front_end/src/base/nnbd_mode.dart';
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
+
+import 'package:front_end/src/fasta/incremental_compiler.dart'
+    show IncrementalCompiler;
 
 import 'package:front_end/src/fasta/kernel/class_hierarchy_builder.dart'
     show ClassHierarchyNode;
@@ -188,6 +193,10 @@ const String EXPECTATIONS = '''
   {
     "name": "TextSerializationFailure",
     "group": "Fail"
+  },
+  {
+    "name": "SemiFuzzFailure",
+    "group": "Fail"
   }
 ]
 ''';
@@ -276,6 +285,7 @@ class FastaContext extends ChainContext with MatchContext {
   final bool onlyCrashes;
   final Map<ExperimentalFlag, bool> explicitExperimentalFlags;
   final bool skipVm;
+  final bool semiFuzz;
   final bool verify;
   final bool weak;
   final Map<Component, KernelTarget> componentToTarget =
@@ -295,6 +305,9 @@ class FastaContext extends ChainContext with MatchContext {
   String get updateExpectationsOption => '${UPDATE_EXPECTATIONS}=true';
 
   @override
+  bool get canBeFixWithUpdateExpectations => true;
+
+  @override
   final ExpectationSet expectationSet =
       new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
 
@@ -312,6 +325,7 @@ class FastaContext extends ChainContext with MatchContext {
       this.updateExpectations,
       bool updateComments,
       this.skipVm,
+      this.semiFuzz,
       bool kernelTextSerialization,
       bool fullCompile,
       this.verify,
@@ -370,6 +384,9 @@ class FastaContext extends ChainContext with MatchContext {
       if (!skipVm) {
         steps.add(const WriteDill());
         steps.add(const Run());
+      }
+      if (semiFuzz) {
+        steps.add(const FuzzCompiles());
       }
     }
   }
@@ -699,6 +716,7 @@ class FastaContext extends ChainContext with MatchContext {
     bool updateExpectations = environment[UPDATE_EXPECTATIONS] == "true";
     bool updateComments = environment[UPDATE_COMMENTS] == "true";
     bool skipVm = environment["skipVm"] == "true";
+    bool semiFuzz = environment["semiFuzz"] == "true";
     bool verify = environment["verify"] != "false";
     bool kernelTextSerialization =
         environment.containsKey(KERNEL_TEXT_SERIALIZATION);
@@ -718,6 +736,7 @@ class FastaContext extends ChainContext with MatchContext {
         updateExpectations,
         updateComments,
         skipVm,
+        semiFuzz,
         kernelTextSerialization,
         environment.containsKey(ENABLE_FULL_COMPILE),
         verify,
@@ -725,7 +744,7 @@ class FastaContext extends ChainContext with MatchContext {
   }
 }
 
-class Run extends Step<ComponentResult, int, FastaContext> {
+class Run extends Step<ComponentResult, ComponentResult, FastaContext> {
   const Run();
 
   String get name => "run";
@@ -734,7 +753,8 @@ class Run extends Step<ComponentResult, int, FastaContext> {
 
   bool get isRuntime => true;
 
-  Future<Result<int>> run(ComponentResult result, FastaContext context) async {
+  Future<Result<ComponentResult>> run(
+      ComponentResult result, FastaContext context) async {
     FolderOptions folderOptions =
         context.computeFolderOptions(result.description);
     Map<ExperimentalFlag, bool> experimentalFlags = folderOptions
@@ -765,17 +785,18 @@ class Run extends Step<ComponentResult, int, FastaContext> {
           // In this case we expect and want a runtime error.
           if (runResult.outcome == ExpectationSet.Default["RuntimeError"]) {
             // We convert this to pass because that's exactly what we'd expect.
-            return pass(0);
+            return pass(result);
           } else {
             // Different outcome - that's a failure!
-            return new Result<int>(runResult.output,
+            return new Result<ComponentResult>(result,
                 ExpectationSet.Default["MissingRuntimeError"], runResult.error);
           }
         }
-        return runResult;
+        return new Result<ComponentResult>(
+            result, runResult.outcome, runResult.error);
       case "none":
       case "noneWithJs":
-        return pass(0);
+        return pass(result);
       default:
         throw new ArgumentError(
             "Unsupported run target '${folderOptions.target}'.");
@@ -957,6 +978,237 @@ class StressConstantEvaluatorVisitor extends RecursiveVisitor<Node>
   }
 }
 
+class CompilationSetup {
+  final TestOptions testOptions;
+  final FolderOptions folderOptions;
+  final ProcessedOptions options;
+  final List<Iterable<String>> errors;
+  final ProcessedOptions Function(
+          NnbdMode nnbdMode,
+          AllowedExperimentalFlags allowedExperimentalFlags,
+          Map<ExperimentalFlag, Version> experimentEnabledVersion,
+          Map<ExperimentalFlag, Version> experimentReleasedVersion)
+      createProcessedOptions;
+
+  CompilationSetup(this.testOptions, this.folderOptions, this.options,
+      this.errors, this.createProcessedOptions);
+}
+
+CompilationSetup createCompilationSetup(
+    TestDescription description, FastaContext context) {
+  List<Iterable<String>> errors = <Iterable<String>>[];
+
+  Uri librariesSpecificationUri =
+      context.computeLibrariesSpecificationUri(description);
+  TestOptions testOptions = context.computeTestOptions(description);
+  FolderOptions folderOptions = context.computeFolderOptions(description);
+  Map<ExperimentalFlag, bool> experimentalFlags = folderOptions
+      .computeExplicitExperimentalFlags(context.explicitExperimentalFlags);
+  NnbdMode nnbdMode = context.weak ||
+          !isExperimentEnabled(ExperimentalFlag.nonNullable,
+              explicitExperimentalFlags: experimentalFlags)
+      ? NnbdMode.Weak
+      : (folderOptions.nnbdAgnosticMode ? NnbdMode.Agnostic : NnbdMode.Strong);
+  List<Uri> inputs = <Uri>[description.uri];
+
+  ProcessedOptions createProcessedOptions(
+      NnbdMode nnbdMode,
+      AllowedExperimentalFlags allowedExperimentalFlags,
+      Map<ExperimentalFlag, Version> experimentEnabledVersion,
+      Map<ExperimentalFlag, Version> experimentReleasedVersion) {
+    CompilerOptions compilerOptions = new CompilerOptions()
+      ..onDiagnostic = (DiagnosticMessage message) {
+        errors.add(message.plainTextFormatted);
+      }
+      ..environmentDefines = folderOptions.defines
+      ..explicitExperimentalFlags = experimentalFlags
+      ..nnbdMode = nnbdMode
+      ..librariesSpecificationUri = librariesSpecificationUri
+      ..allowedExperimentalFlagsForTesting = allowedExperimentalFlags
+      ..experimentEnabledVersionForTesting = experimentEnabledVersion
+      ..experimentReleasedVersionForTesting = experimentReleasedVersion
+      ..skipPlatformVerification = true
+      ..target = createTarget(folderOptions, context);
+    if (folderOptions.overwriteCurrentSdkVersion != null) {
+      compilerOptions.currentSdkVersion =
+          folderOptions.overwriteCurrentSdkVersion;
+    }
+    return new ProcessedOptions(options: compilerOptions, inputs: inputs);
+  }
+
+  // Disable colors to ensure that expectation files are the same across
+  // platforms and independent of stdin/stderr.
+  colors.enableColors = false;
+
+  ProcessedOptions options = createProcessedOptions(
+      nnbdMode,
+      testOptions.allowedExperimentalFlags,
+      testOptions.experimentEnabledVersion,
+      testOptions.experimentReleasedVersion);
+
+  return new CompilationSetup(
+      testOptions, folderOptions, options, errors, createProcessedOptions);
+}
+
+class FuzzCompiles
+    extends Step<ComponentResult, ComponentResult, FastaContext> {
+  const FuzzCompiles();
+
+  String get name {
+    return "semifuzz";
+  }
+
+  Future<Result<ComponentResult>> run(
+      ComponentResult result, FastaContext context) async {
+    bool originalFlag = context.explicitExperimentalFlags[
+        ExperimentalFlag.alternativeInvalidationStrategy];
+    context.explicitExperimentalFlags[
+        ExperimentalFlag.alternativeInvalidationStrategy] = true;
+
+    CompilationSetup compilationSetup =
+        createCompilationSetup(result.description, context);
+
+    Target backendTarget = compilationSetup.options.target;
+    if (backendTarget is TestVmTarget) {
+      // For the fuzzing we want to run the VM transformations, i.e. have the
+      // incremental compiler behave as normal.
+      backendTarget.enabled = true;
+    }
+
+    UriTranslator uriTranslator =
+        await context.computeUriTranslator(result.description);
+
+    Component platform = await context.loadPlatform();
+    IncrementalCompiler incrementalCompiler =
+        new IncrementalCompiler.fromComponent(
+            new CompilerContext(compilationSetup.options), platform);
+    final Component component = await incrementalCompiler.computeDelta();
+
+    final Set<Uri> userLibraries =
+        createUserLibrariesImportUriSet(component, uriTranslator);
+    final bool expectErrors = compilationSetup.errors.isNotEmpty;
+    List<Iterable<String>> originalErrors =
+        new List<Iterable<String>>.from(compilationSetup.errors);
+
+    Set<Uri> intersectionUserLibraries =
+        result.userLibraries.intersection(userLibraries);
+    if (intersectionUserLibraries.length != userLibraries.length ||
+        userLibraries.length != result.userLibraries.length) {
+      return new Result<ComponentResult>(
+          result,
+          context.expectationSet["SemiFuzzFailure"],
+          "Got a different amount of user libraries on first compile "
+          "compared to 'original' compilation:\n\n"
+          "This compile:\n"
+          "${userLibraries.map((e) => e.toString()).join("\n")}\n\n"
+          "Original compile:\n"
+          "${result.userLibraries.map((e) => e.toString()).join("\n")}");
+    }
+
+    compilationSetup.errors.clear();
+    for (Uri importUri in userLibraries) {
+      incrementalCompiler.invalidate(importUri);
+      final Component newComponent =
+          await incrementalCompiler.computeDelta(fullComponent: true);
+
+      final Set<Uri> newUserLibraries =
+          createUserLibrariesImportUriSet(newComponent, uriTranslator);
+      final bool gotErrors = compilationSetup.errors.isNotEmpty;
+
+      if (expectErrors != gotErrors) {
+        if (expectErrors) {
+          String errorsString =
+              originalErrors.map((error) => error.join('\n')).join('\n\n');
+          return new Result<ComponentResult>(
+              result,
+              context.expectationSet["SemiFuzzFailure"],
+              "Expected these errors:\n${errorsString}\n\n"
+              "but didn't get any after invalidating $importUri");
+        } else {
+          String errorsString = compilationSetup.errors
+              .map((error) => error.join('\n'))
+              .join('\n\n');
+          return new Result<ComponentResult>(
+              result,
+              context.expectationSet["SemiFuzzFailure"],
+              "Unexpected errors:\n${errorsString}\n\n"
+              "after invalidating $importUri");
+        }
+      }
+
+      Set<Uri> intersectionUserLibraries =
+          userLibraries.intersection(newUserLibraries);
+      if (intersectionUserLibraries.length != newUserLibraries.length ||
+          newUserLibraries.length != userLibraries.length) {
+        return new Result<ComponentResult>(
+            result,
+            context.expectationSet["SemiFuzzFailure"],
+            "Got a different amount of user libraries on recompile "
+            "compared to 'original' compilation after having invalidated "
+            "$importUri.\n\n"
+            "This compile:\n"
+            "${newUserLibraries.map((e) => e.toString()).join("\n")}\n\n"
+            "Original compile:\n"
+            "${result.userLibraries.map((e) => e.toString()).join("\n")}");
+      }
+    }
+
+    context.explicitExperimentalFlags[
+        ExperimentalFlag.alternativeInvalidationStrategy] = originalFlag;
+
+    return pass(result);
+  }
+}
+
+Target createTarget(FolderOptions folderOptions, FastaContext context) {
+  TargetFlags targetFlags = new TargetFlags(
+    forceLateLoweringsForTesting: folderOptions.forceLateLowerings,
+    forceLateLoweringSentinelForTesting:
+        folderOptions.forceLateLoweringSentinel,
+    forceStaticFieldLoweringForTesting: folderOptions.forceStaticFieldLowering,
+    forceNoExplicitGetterCallsForTesting:
+        folderOptions.forceNoExplicitGetterCalls,
+    enableNullSafety: !context.weak,
+  );
+  Target target;
+  switch (folderOptions.target) {
+    case "vm":
+      target = new TestVmTarget(targetFlags);
+      break;
+    case "none":
+      target = new NoneTarget(targetFlags);
+      break;
+    case "noneWithJs":
+      target = new NoneWithJsTarget(targetFlags);
+      break;
+    default:
+      throw new ArgumentError(
+          "Unsupported test target '${folderOptions.target}'.");
+  }
+  return target;
+}
+
+Set<Uri> createUserLibrariesImportUriSet(
+    Component component, UriTranslator uriTranslator) {
+  Set<Uri> knownUris =
+      component.libraries.map((Library library) => library.importUri).toSet();
+  Set<Uri> userLibraries = component.libraries
+      .where((Library library) =>
+          library.importUri.scheme != 'dart' &&
+          library.importUri.scheme != 'package')
+      .map((Library library) => library.importUri)
+      .toSet();
+  // Mark custom "dart:" libraries defined in the test-specific libraries.json
+  // file as user libraries.
+  // Note that this method takes a uriTranslator directly because of
+  // inconsistencies with targets (namely that test-specific libraries.json
+  // specifies target 'none' even if the target is 'vm', which works because
+  // the normal testing pipeline use target 'none' for the dill loader).
+  userLibraries.addAll(uriTranslator.dartLibraries.allLibraries
+      .map((LibraryInfo info) => info.importUri));
+  return userLibraries.intersection(knownUris);
+}
+
 class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
   final bool fullCompile;
 
@@ -972,77 +1224,35 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
 
   Future<Result<ComponentResult>> run(
       TestDescription description, FastaContext context) async {
-    List<Iterable<String>> errors = <Iterable<String>>[];
+    CompilationSetup compilationSetup =
+        createCompilationSetup(description, context);
 
-    Uri librariesSpecificationUri =
-        context.computeLibrariesSpecificationUri(description);
-    TestOptions testOptions = context.computeTestOptions(description);
-    FolderOptions folderOptions = context.computeFolderOptions(description);
-    Map<ExperimentalFlag, bool> experimentalFlags = folderOptions
-        .computeExplicitExperimentalFlags(context.explicitExperimentalFlags);
-    NnbdMode nnbdMode = context.weak ||
-            !isExperimentEnabled(ExperimentalFlag.nonNullable,
-                explicitExperimentalFlags: experimentalFlags)
-        ? NnbdMode.Weak
-        : (folderOptions.nnbdAgnosticMode
-            ? NnbdMode.Agnostic
-            : NnbdMode.Strong);
-    List<Uri> inputs = <Uri>[description.uri];
-
-    ProcessedOptions createProcessedOptions(
-        NnbdMode nnbdMode,
-        AllowedExperimentalFlags allowedExperimentalFlags,
-        Map<ExperimentalFlag, Version> experimentEnabledVersion,
-        Map<ExperimentalFlag, Version> experimentReleasedVersion) {
-      CompilerOptions compilerOptions = new CompilerOptions()
-        ..onDiagnostic = (DiagnosticMessage message) {
-          errors.add(message.plainTextFormatted);
-        }
-        ..environmentDefines = folderOptions.defines
-        ..explicitExperimentalFlags = experimentalFlags
-        ..nnbdMode = nnbdMode
-        ..librariesSpecificationUri = librariesSpecificationUri
-        ..allowedExperimentalFlagsForTesting = allowedExperimentalFlags
-        ..experimentEnabledVersionForTesting = experimentEnabledVersion
-        ..experimentReleasedVersionForTesting = experimentReleasedVersion;
-      if (folderOptions.overwriteCurrentSdkVersion != null) {
-        compilerOptions.currentSdkVersion =
-            folderOptions.overwriteCurrentSdkVersion;
-      }
-      return new ProcessedOptions(options: compilerOptions, inputs: inputs);
-    }
-
-    // Disable colors to ensure that expectation files are the same across
-    // platforms and independent of stdin/stderr.
-    colors.enableColors = false;
-
-    ProcessedOptions options = createProcessedOptions(
-        nnbdMode,
-        testOptions.allowedExperimentalFlags,
-        testOptions.experimentEnabledVersion,
-        testOptions.experimentReleasedVersion);
-
-    if (testOptions.linkDependencies.isNotEmpty &&
-        testOptions.component == null) {
+    if (compilationSetup.testOptions.linkDependencies.isNotEmpty &&
+        compilationSetup.testOptions.component == null) {
       // Compile linked dependency.
-      ProcessedOptions linkOptions = options;
-      if (testOptions.nnbdMode != null) {
-        linkOptions = createProcessedOptions(
-            testOptions.nnbdMode,
-            testOptions.allowedExperimentalFlags,
-            testOptions.experimentEnabledVersion,
-            testOptions.experimentReleasedVersion);
+      ProcessedOptions linkOptions = compilationSetup.options;
+      if (compilationSetup.testOptions.nnbdMode != null) {
+        linkOptions = compilationSetup.createProcessedOptions(
+            compilationSetup.testOptions.nnbdMode,
+            compilationSetup.testOptions.allowedExperimentalFlags,
+            compilationSetup.testOptions.experimentEnabledVersion,
+            compilationSetup.testOptions.experimentReleasedVersion);
       }
       await CompilerContext.runWithOptions(linkOptions, (_) async {
-        KernelTarget sourceTarget = await outlineInitialization(context,
-            description, folderOptions, testOptions.linkDependencies.toList());
-        if (testOptions.errors != null) {
-          errors.addAll(testOptions.errors);
+        KernelTarget sourceTarget = await outlineInitialization(
+            context,
+            description,
+            linkOptions,
+            compilationSetup.testOptions.linkDependencies.toList());
+        if (compilationSetup.testOptions.errors != null) {
+          compilationSetup.errors.addAll(compilationSetup.testOptions.errors);
         }
         Component p = await sourceTarget.buildOutlines();
         if (fullCompile) {
           p = await sourceTarget.buildComponent(
-              verify: folderOptions.noVerify ? false : context.verify);
+              verify: compilationSetup.folderOptions.noVerify
+                  ? false
+                  : context.verify);
         }
 
         // To avoid possible crash in mixin transformation in the transformation
@@ -1062,27 +1272,29 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
           }
         }
 
-        testOptions.component = p;
+        compilationSetup.testOptions.component = p;
         List<Library> keepLibraries = <Library>[];
         for (Library lib in p.libraries) {
-          if (testOptions.linkDependencies.contains(lib.importUri)) {
+          if (compilationSetup.testOptions.linkDependencies
+              .contains(lib.importUri)) {
             keepLibraries.add(lib);
           }
         }
         p.libraries.clear();
         p.libraries.addAll(keepLibraries);
-        testOptions.errors = errors.toList();
-        errors.clear();
+        compilationSetup.testOptions.errors = compilationSetup.errors.toList();
+        compilationSetup.errors.clear();
       });
     }
 
-    return await CompilerContext.runWithOptions(options, (_) async {
-      Component alsoAppend = testOptions.component;
+    return await CompilerContext.runWithOptions(compilationSetup.options,
+        (_) async {
+      Component alsoAppend = compilationSetup.testOptions.component;
       if (description.uri.pathSegments.last.endsWith(".no_link.dart")) {
         alsoAppend = null;
       }
-      KernelTarget sourceTarget = await outlineInitialization(
-          context, description, folderOptions, <Uri>[description.uri],
+      KernelTarget sourceTarget = await outlineInitialization(context,
+          description, compilationSetup.options, <Uri>[description.uri],
           alsoAppend: alsoAppend);
       ValidatingInstrumentation instrumentation =
           new ValidatingInstrumentation();
@@ -1092,78 +1304,48 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
       context.componentToTarget.clear();
       context.componentToTarget[p] = sourceTarget;
       context.componentToDiagnostics.clear();
-      context.componentToDiagnostics[p] = errors;
-      Set<Uri> userLibraries = p.libraries
-          .where((Library library) =>
-              library.importUri.scheme != 'dart' &&
-              library.importUri.scheme != 'package')
-          .map((Library library) => library.importUri)
-          .toSet();
-      // Mark custom dart: libraries defined in the test-specific libraries.json
-      // file as user libraries.
-      UriTranslator uriTranslator = sourceTarget.uriTranslator;
-      userLibraries.addAll(uriTranslator.dartLibraries.allLibraries
-          .map((LibraryInfo info) => info.importUri));
+      context.componentToDiagnostics[p] = compilationSetup.errors;
+      Set<Uri> userLibraries =
+          createUserLibrariesImportUriSet(p, sourceTarget.uriTranslator);
       if (fullCompile) {
         p = await sourceTarget.buildComponent(
-            verify: folderOptions.noVerify ? false : context.verify);
+            verify: compilationSetup.folderOptions.noVerify
+                ? false
+                : context.verify);
         instrumentation.finish();
         if (instrumentation.hasProblems) {
           if (updateComments) {
             await instrumentation.fixSource(description.uri, false);
           } else {
             return new Result<ComponentResult>(
-                new ComponentResult(description, p, userLibraries, options,
-                    sourceTarget, sourceTarget.constantCoverageForTesting),
+                new ComponentResult(description, p, userLibraries,
+                    compilationSetup.options, sourceTarget),
                 context.expectationSet["InstrumentationMismatch"],
                 instrumentation.problemsAsString,
-                autoFixCommand: '${UPDATE_COMMENTS}=true');
+                autoFixCommand: '${UPDATE_COMMENTS}=true',
+                canBeFixWithUpdateExpectations: true);
           }
         }
       }
-      return pass(new ComponentResult(description, p, userLibraries, options,
-          sourceTarget, sourceTarget.constantCoverageForTesting));
+      return pass(new ComponentResult(description, p, userLibraries,
+          compilationSetup.options, sourceTarget));
     });
   }
 
   Future<KernelTarget> outlineInitialization(
       FastaContext context,
       TestDescription description,
-      FolderOptions testOptions,
+      ProcessedOptions options,
       List<Uri> entryPoints,
       {Component alsoAppend}) async {
     Component platform = await context.loadPlatform();
     Ticker ticker = new Ticker();
     UriTranslator uriTranslator =
         await context.computeUriTranslator(description);
-    TargetFlags targetFlags = new TargetFlags(
-      forceLateLoweringsForTesting: testOptions.forceLateLowerings,
-      forceLateLoweringSentinelForTesting:
-          testOptions.forceLateLoweringSentinel,
-      forceStaticFieldLoweringForTesting: testOptions.forceStaticFieldLowering,
-      forceNoExplicitGetterCallsForTesting:
-          testOptions.forceNoExplicitGetterCalls,
-      enableNullSafety: !context.weak,
-    );
-    Target target;
-    switch (testOptions.target) {
-      case "vm":
-        target = new TestVmTarget(targetFlags);
-        break;
-      case "none":
-        target = new NoneTarget(targetFlags);
-        break;
-      case "noneWithJs":
-        target = new NoneWithJsTarget(targetFlags);
-        break;
-      default:
-        throw new ArgumentError(
-            "Unsupported test target '${testOptions.target}'.");
-    }
     DillTarget dillTarget = new DillTarget(
       ticker,
       uriTranslator,
-      target,
+      options.target,
     );
     dillTarget.loader.appendLibraries(platform);
     if (alsoAppend != null) {
@@ -1185,30 +1367,32 @@ class Transform extends Step<ComponentResult, ComponentResult, FastaContext> {
 
   Future<Result<ComponentResult>> run(
       ComponentResult result, FastaContext context) async {
-    Component component = result.component;
-    KernelTarget sourceTarget = context.componentToTarget[component];
-    context.componentToTarget.remove(component);
-    Target backendTarget = sourceTarget.backendTarget;
-    if (backendTarget is TestVmTarget) {
-      backendTarget.enabled = true;
-    }
-    try {
-      if (sourceTarget.loader.coreTypes != null) {
-        sourceTarget.runBuildTransformations();
-      }
-    } finally {
+    return await CompilerContext.runWithOptions(result.options, (_) async {
+      Component component = result.component;
+      KernelTarget sourceTarget = context.componentToTarget[component];
+      context.componentToTarget.remove(component);
+      Target backendTarget = sourceTarget.backendTarget;
       if (backendTarget is TestVmTarget) {
-        backendTarget.enabled = false;
+        backendTarget.enabled = true;
       }
-    }
-    List<String> errors = VerifyTransformed.verify(component);
-    if (errors.isNotEmpty) {
-      return new Result<ComponentResult>(
-          result,
-          context.expectationSet["TransformVerificationError"],
-          errors.join('\n'));
-    }
-    return pass(result);
+      try {
+        if (sourceTarget.loader.coreTypes != null) {
+          sourceTarget.runBuildTransformations();
+        }
+      } finally {
+        if (backendTarget is TestVmTarget) {
+          backendTarget.enabled = false;
+        }
+      }
+      List<String> errors = VerifyTransformed.verify(component);
+      if (errors.isNotEmpty) {
+        return new Result<ComponentResult>(
+            result,
+            context.expectationSet["TransformVerificationError"],
+            errors.join('\n'));
+      }
+      return pass(result);
+    });
   }
 }
 

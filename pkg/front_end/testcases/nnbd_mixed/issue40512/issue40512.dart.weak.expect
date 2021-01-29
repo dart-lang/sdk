@@ -9,18 +9,37 @@ abstract class _C&Object&A = core::Object with baz2::A /*isAnonymousMixin,hasCon
   const synthetic constructor •() → self::_C&Object&A*
     : super core::Object::•()
     ;
+  abstract mixin-stub get _identityHashCode() → core::int*; -> baz2::A::_identityHashCode
+  abstract mixin-stub method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> baz2::A::_instanceOf
+  abstract mixin-stub method _simpleInstanceOf(dynamic type) → core::bool*; -> baz2::A::_simpleInstanceOf
+  abstract mixin-stub method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> baz2::A::_simpleInstanceOfTrue
+  abstract mixin-stub method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> baz2::A::_simpleInstanceOfFalse
+  abstract mixin-stub operator ==(dynamic other) → core::bool*; -> baz2::A::==
+  abstract mixin-stub get hashCode() → core::int*; -> baz2::A::hashCode
+  mixin-super-stub method toString({core::String* s = #C1}) → core::String*
+    return super.{baz2::A::toString}(s: s);
+  abstract mixin-stub method noSuchMethod(core::Invocation* invocation) → dynamic; -> baz2::A::noSuchMethod
+  abstract mixin-stub get runtimeType() → core::Type*; -> baz2::A::runtimeType
 }
 abstract class _C&Object&A&B = self::_C&Object&A with baz2::B /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_C&Object&A&B*
     : super self::_C&Object&A::•()
     ;
-  abstract member-signature method toString({core::String* s = #C1}) → core::String*; -> baz2::A::toString
+  abstract mixin-stub get _identityHashCode() → core::int*; -> baz2::B::_identityHashCode
+  abstract mixin-stub method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> baz2::B::_instanceOf
+  abstract mixin-stub method _simpleInstanceOf(dynamic type) → core::bool*; -> baz2::B::_simpleInstanceOf
+  abstract mixin-stub method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> baz2::B::_simpleInstanceOfTrue
+  abstract mixin-stub method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> baz2::B::_simpleInstanceOfFalse
+  abstract mixin-stub operator ==(dynamic other) → core::bool*; -> baz2::B::==
+  abstract mixin-stub get hashCode() → core::int*; -> baz2::B::hashCode
+  abstract mixin-stub method toString() → core::String*; -> baz2::B::toString
+  abstract mixin-stub method noSuchMethod(core::Invocation* invocation) → dynamic; -> baz2::B::noSuchMethod
+  abstract mixin-stub get runtimeType() → core::Type*; -> baz2::B::runtimeType
 }
 class C extends self::_C&Object&A&B {
   synthetic constructor •() → self::C*
     : super self::_C&Object&A&B::•()
     ;
-  abstract member-signature method toString({core::String* s = #C1}) → core::String*; -> baz2::A::toString
 }
 static method main() → void {
   core::print(new baz2::B::•());

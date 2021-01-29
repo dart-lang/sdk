@@ -20,6 +20,8 @@ accumulating
 acon
 acov
 across
+activated
+adequate
 adi
 affecting
 afterwards
@@ -33,8 +35,10 @@ alexmarkov
 aligned
 alive
 allocate
+allocator
 altered
 analogous
+analogy
 annotate
 ansi
 answering
@@ -175,6 +179,7 @@ ck
 cl
 claim
 claimed
+claims
 clamp
 clarification
 clashes
@@ -326,6 +331,7 @@ disambiguator
 disjoint
 dispatched
 distribute
+diverged
 divided
 dmitryas
 doc
@@ -372,14 +378,17 @@ env
 eof
 eq
 equation
+erased
 erasure
 es
+establish
 established
 estimate
 eval
 exhausted
 existentially
 exp
+expando
 expense
 exportable
 exportee
@@ -396,6 +405,7 @@ factor
 factored
 fangorn
 fasta
+favored
 favoring
 fc
 fcon
@@ -417,6 +427,7 @@ field2
 fieldformal
 file's
 filenames
+finally's
 finv
 firsts
 fishy
@@ -433,6 +444,7 @@ fo
 foo
 foobar
 footer
+forcing
 foreign
 formed
 former
@@ -454,6 +466,8 @@ g
 gardening
 gen
 generation
+getable
+getables
 gets
 getter1a
 getter1b
@@ -481,8 +495,10 @@ gz
 gzip
 gzipped
 h
+hacky
 hadn't
 hang
+hardcode
 harness
 hashes
 hashing
@@ -496,6 +512,7 @@ highlighting
 highlights
 hillerstrom
 histogram
+history
 hit
 hoc
 hopefully
@@ -524,6 +541,7 @@ imply
 implying
 importantly
 imprecise
+improperly
 inapplicable
 inc
 incomparable
@@ -534,6 +552,8 @@ indexer
 indexing
 indirection
 individual
+inequality
+influence
 informative
 infos
 init
@@ -555,6 +575,7 @@ interior
 interleaved
 intermediate
 interpolations
+interrupted
 intersects
 interval
 intervals
@@ -596,9 +617,11 @@ kv
 k’s
 l
 lacks
+lags
 lang
 largest
 lattice
+launched
 launcher
 layer
 layout
@@ -742,6 +765,7 @@ nullable3
 nullary
 nullification
 nullify
+nullness
 nulls
 o
 oauth
@@ -818,6 +842,7 @@ permit
 pi
 picking
 pkg
+play
 player
 plugin
 pm
@@ -836,12 +861,14 @@ prebuilt
 preexisted
 preexisting
 preorder
+presubmit
 prev
 prime
 printer
 printf
 println
 proc
+proceeds
 producers
 product
 progresses
@@ -894,7 +921,10 @@ reachability
 react
 realign
 realise
+reapplies
 reassigned
+rebased
+rebasing
 rebind
 rebuild
 rebuilds
@@ -902,6 +932,7 @@ recalculating
 recalculation
 recall
 received
+receivers
 recheck
 recognizing
 recompiled
@@ -926,6 +957,7 @@ regis
 registering
 rehash
 reindexed
+reinstate
 reissued
 rejoin
 relatively
@@ -956,6 +988,7 @@ restriction
 resumed
 ret
 reusage
+rewinds
 rewrites
 rewrote
 rf
@@ -976,6 +1009,7 @@ rpc
 rs
 runnable
 s
+sanitizing
 saw
 say
 sb
@@ -986,6 +1020,7 @@ scoping
 sdk's
 seconds
 sections
+selectively
 selectors
 semantically
 semver
@@ -997,6 +1032,9 @@ serializers
 serve
 server
 service
+session
+setable
+setables
 setaf
 sh
 sha1hash
@@ -1043,6 +1081,7 @@ spaced
 sparse
 spec
 spec'ed
+specialization
 specially
 specifics
 speeding
@@ -1052,11 +1091,13 @@ sq
 sra
 srawlins
 src
+ssa
 st
 stability
 stacktrace
 stacktraces
 stale
+stand
 starter
 statics
 stderr
@@ -1067,6 +1108,7 @@ stdout
 sticky
 stmt
 stopped
+storage
 str
 strategies
 streak
@@ -1165,6 +1207,7 @@ topological
 tops
 tput
 tracker
+traditional
 transformers
 transforming
 translation
@@ -1173,6 +1216,7 @@ traverse
 trees
 tricky
 trips
+trivially
 ts
 tty
 tuple
@@ -1205,12 +1249,15 @@ uncommon
 unconditionally
 unconstrained
 undeclare
+undergo
 undo
 undoable
 unequal
 unescape
 unexact
+unexpectedly
 unfinalized
+unfold
 unfolds
 unfuture
 unfutured
@@ -1234,6 +1281,7 @@ unparsed
 unpleasant
 unreachable
 unseen
+unset
 unshadowed
 unsortable
 unsound
@@ -1256,11 +1304,13 @@ utf8
 util
 utils
 v
+validly
 variable's
 variances
 variant
 variants
 variation
+vars
 vary
 vb
 vector
@@ -1270,6 +1320,7 @@ versa
 vice
 video
 violated
+violating
 visit*
 visitors
 visits
@@ -1302,6 +1353,7 @@ wn
 worthwhile
 worthy
 writeln
+wrongfully
 wrt
 wtf
 www

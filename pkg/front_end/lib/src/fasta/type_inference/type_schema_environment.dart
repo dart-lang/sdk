@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+// @dart = 2.9
+
 import 'package:kernel/ast.dart' hide MapEntry;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -147,8 +149,6 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     if (isNonNullableByDefault) {
       if (contextType is! NeverType &&
           type1 is! NeverType &&
-          isSubtypeOf(contextType, coreTypes.numNonNullableRawType,
-              SubtypeCheckMode.withNullabilities) &&
           isSubtypeOf(type1, coreTypes.numNonNullableRawType,
               SubtypeCheckMode.withNullabilities)) {
         // If e is an expression of the form e1 + e2, e1 - e2, e1 * e2, e1 % e2

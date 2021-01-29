@@ -140,14 +140,23 @@ class KernelLineStartsReader {
     return helper_->At(line_starts_data_, index);
   }
 
-  void LocationForPosition(intptr_t position,
-                           intptr_t* line,
-                           intptr_t* col) const;
+  int32_t MaxPosition() const;
 
-  void TokenRangeAtLine(intptr_t source_length,
-                        intptr_t line_number,
-                        dart::TokenPosition* first_token_index,
-                        dart::TokenPosition* last_token_index) const;
+  // Returns whether the given offset corresponds to a valid source offset
+  // If it does, then *line and *column (if column is not nullptr) are set
+  // to the line and column the token starts at.
+  DART_WARN_UNUSED_RESULT bool LocationForPosition(
+      intptr_t position,
+      intptr_t* line,
+      intptr_t* col = nullptr) const;
+
+  // Returns whether any tokens were found for the given line. When found,
+  // *first_token_index and *last_token_index are set to the first and
+  // last token on the line, respectively.
+  DART_WARN_UNUSED_RESULT bool TokenRangeAtLine(
+      intptr_t line_number,
+      dart::TokenPosition* first_token_index,
+      dart::TokenPosition* last_token_index) const;
 
  private:
   class KernelLineStartsHelper {

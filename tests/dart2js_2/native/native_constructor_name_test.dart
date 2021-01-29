@@ -25,9 +25,10 @@ void setup() {
   JS('', r"""
 (function(){
   function A(){}
-  makeZ = function(){return new A()};
+  self.makeZ = function(){return new A()};
   self.nativeConstructor(A);
 })()""");
+  applyTestExtensions(['A']);
 }
 
 main() {

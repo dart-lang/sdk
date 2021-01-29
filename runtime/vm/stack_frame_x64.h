@@ -68,6 +68,10 @@ static const int kExitLinkSlotFromEntryFp = -11;
 constexpr intptr_t kCallbackSlotsBeforeSavedArguments =
     2 + CallingConventions::kShadowSpaceBytes / kWordSize;
 
+// For FFI calls passing in TypedData, we save it on the stack before entering
+// a Dart frame. This denotes how to get to the backed up typed data.
+static const int kFfiCallerTypedDataSlotFromFp = kCallerSpSlotFromFp;
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_STACK_FRAME_X64_H_

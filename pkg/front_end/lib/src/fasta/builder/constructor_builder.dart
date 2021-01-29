@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:core' hide MapEntry;
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
@@ -138,7 +140,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
       int charOffset,
       this.charOpenParenOffset,
       int charEndOffset,
-      Constructor referenceFrom,
+      Member referenceFrom,
       [String nativeMethodName])
       : _constructor = new Constructor(null,
             fileUri: compilationUnit.fileUri,

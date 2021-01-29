@@ -1,3 +1,25 @@
+# 1.7.4
+- Update `package:vm_service` to 6.0.1-nullsafety.0.
+
+# 1.7.3
+- Return an RpcException error with code `kServiceDisappeared` if the VM
+  service connection disappears with an outstanding forwarded request.
+
+# 1.7.2
+- Fixed issue where a null JSON RPC result could be sent if the VM service
+  disconnected with a request in flight (see https://github.com/flutter/flutter/issues/74051).
+
+# 1.7.1
+- Fixed issue where DartDevelopmentServiceException could have a null message.
+
+# 1.7.0
+- Added `package:dds/vm_service_extensions.dart`, which adds DDS functionality to
+  `package:vm_service` when imported.
+  - Added `onEventWithHistory` method and `onLoggingEventWithHistory`, 
+    `onStdoutEventWithHistory`, `onStderrEventWithHistory`, and 
+    `onExtensionEventWithHistory` getters.
+- Added `getStreamHistory` RPC.
+
 # 1.6.1
 - Fixed unhandled `StateError` that could be thrown if the VM service disconnected
   while a request was outstanding.

@@ -14,6 +14,7 @@ import 'dart:isolate';
 import 'package:expect/expect.dart';
 import 'package:ffi/ffi.dart';
 
+import '../../../../../tests/ffi/calloc.dart';
 import '../../../../../tests/ffi/dylib_utils.dart';
 
 final bool isAOT = Platform.executable.contains('dart_precompiled_runtime');
@@ -21,7 +22,7 @@ final bool isolateGropusEnabled =
     Platform.executableArguments.contains('--enable-isolate-groups');
 final sdkRoot = Platform.script.resolve('../../../../../');
 
-class Isolate extends Struct {}
+class Isolate extends Opaque {}
 
 abstract class FfiBindings {
   static final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
@@ -62,7 +63,7 @@ abstract class FfiBindings {
       Expect.isTrue(isolate.address != 0);
       return isolate;
     } finally {
-      free(cname);
+      calloc.free(cname);
     }
   }
 
@@ -86,8 +87,8 @@ abstract class FfiBindings {
         onError != null ? onError.nativePort : 0,
         onExit != null ? onExit.nativePort : 0);
 
-    free(libraryUri);
-    free(functionName);
+    calloc.free(libraryUri);
+    calloc.free(functionName);
   }
 }
 
@@ -120,7 +121,7 @@ Future withPeerPointer(fun(Pointer<Void> peer)) async {
     // wait a little here to ensure the write of the callback has arrived.
     await Future.delayed(const Duration(milliseconds: 100));
     Expect.equals('xbz', Utf8.fromUtf8(peer.cast()));
-    free(peer);
+    calloc.free(peer);
   }
 }
 

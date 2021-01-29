@@ -51,7 +51,7 @@ class D<P extends core::Object* = dynamic, Q extends core::Object* = dynamic> ex
     return (z as core::Map<self::D::foo3::T2*, self::D::Q*>*).{core::Map::values};
   }
   method foo4(dynamic w) → core::Map<self::D::P*, self::D::Q*>* {
-    core::List<core::Map<self::D::P*, self::D::Q*>*>* list = <core::Map<self::D::P*, self::D::Q*>*>[w as{TypeError,ForDynamic} core::Map<self::D::P*, self::D::Q*>*];
+    core::List<core::Map<self::D::P*, self::D::Q*>*>* list = core::_GrowableList::_literal1<core::Map<self::D::P*, self::D::Q*>*>(w as{TypeError,ForDynamic} core::Map<self::D::P*, self::D::Q*>*);
     return w as{TypeError,ForDynamic} core::Map<self::D::P*, self::D::Q*>*;
   }
 }

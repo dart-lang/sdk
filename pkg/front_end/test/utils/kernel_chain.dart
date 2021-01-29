@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+// @dart = 2.9
+
 library fasta.testing.kernel_chain;
 
 import 'dart:io' show Directory, File, IOSink, Platform;
@@ -23,8 +25,6 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/fasta_codes.dart' show templateUnspecified;
-import 'package:front_end/src/fasta/kernel/constant_evaluator.dart'
-    show ConstantCoverage;
 
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
@@ -34,7 +34,7 @@ import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
 import 'package:front_end/src/fasta/messages.dart'
     show DiagnosticMessageFromJson, LocatedMessage;
 
-import 'package:kernel/ast.dart' show Component, Library;
+import 'package:kernel/ast.dart' show Component, Library, Reference, Source;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
@@ -68,6 +68,8 @@ abstract class MatchContext implements ChainContext {
 
   String get updateExpectationsOption;
 
+  bool get canBeFixWithUpdateExpectations;
+
   ExpectationSet get expectationSet;
 
   Expectation get expectationFileMismatch =>
@@ -98,7 +100,10 @@ abstract class MatchContext implements ChainContext {
             output, onMismatch, "$uri doesn't match ${expectedFile.uri}\n$diff",
             autoFixCommand: onMismatch == expectationFileMismatch
                 ? updateExpectationsOption
-                : null);
+                : null,
+            canBeFixWithUpdateExpectations:
+                onMismatch == expectationFileMismatch &&
+                    canBeFixWithUpdateExpectations);
       } else {
         return new Result<O>.pass(output);
       }
@@ -295,24 +300,26 @@ class MatchExpectation
         buffer.writeln(extraConstantString);
       }
     }
-    // TODO(jensj): Don't comment this out. Will be done in a follow-up-CL.
-    // if (result.constantCoverage != null) {
-    //   ConstantCoverage constantCoverage = result.constantCoverage;
-    //   if (constantCoverage.constructorCoverage.isNotEmpty) {
-    //     buffer.writeln("");
-    //     buffer.writeln("");
-    //     buffer.writeln("Constructor coverage from constants:");
-    //     for (MapEntry<Uri, Set<Reference>> entry
-    //         in constantCoverage.constructorCoverage.entries) {
-    //       buffer.writeln("${entry.key}:");
-    //       for (Reference reference in entry.value) {
-    //         buffer.writeln(
-    //             "- ${reference.node} (from ${reference.node.location})");
-    //       }
-    //       buffer.writeln("");
-    //     }
-    //   }
-    // }
+    bool printedConstantCoverageHeader = false;
+    for (Source source in result.component.uriToSource.values) {
+      if (!result.isUserLibraryImportUri(source.importUri)) continue;
+
+      if (source.constantCoverageConstructors != null &&
+          source.constantCoverageConstructors.isNotEmpty) {
+        if (!printedConstantCoverageHeader) {
+          buffer.writeln("");
+          buffer.writeln("");
+          buffer.writeln("Constructor coverage from constants:");
+          printedConstantCoverageHeader = true;
+        }
+        buffer.writeln("${source.fileUri}:");
+        for (Reference reference in source.constantCoverageConstructors) {
+          buffer
+              .writeln("- ${reference.node} (from ${reference.node.location})");
+        }
+        buffer.writeln("");
+      }
+    }
 
     String actual = "$buffer";
     String binariesPath =
@@ -413,14 +420,8 @@ class WriteDill extends Step<ComponentResult, ComponentResult, ChainContext> {
     Uri uri = tmp.uri.resolve("generated.dill");
     File generated = new File.fromUri(uri);
     IOSink sink = generated.openWrite();
-    result = new ComponentResult(
-        result.description,
-        result.component,
-        result.userLibraries,
-        result.options,
-        result.sourceTarget,
-        result.constantCoverage,
-        uri);
+    result = new ComponentResult(result.description, result.component,
+        result.userLibraries, result.options, result.sourceTarget, uri);
     try {
       new BinaryPrinter(sink).writeComponentFile(component);
     } catch (e, s) {
@@ -519,13 +520,16 @@ class ComponentResult {
   final ProcessedOptions options;
   final KernelTarget sourceTarget;
   final List<String> extraConstantStrings = [];
-  final ConstantCoverage constantCoverage;
 
   ComponentResult(this.description, this.component, this.userLibraries,
-      this.options, this.sourceTarget, this.constantCoverage,
+      this.options, this.sourceTarget,
       [this.outputUri]);
 
   bool isUserLibrary(Library library) {
-    return userLibraries.contains(library.importUri);
+    return isUserLibraryImportUri(library.importUri);
+  }
+
+  bool isUserLibraryImportUri(Uri importUri) {
+    return userLibraries.contains(importUri);
   }
 }

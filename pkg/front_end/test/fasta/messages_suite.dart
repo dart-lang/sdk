@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import "dart:convert" show utf8;
 
 import 'dart:io' show File, Platform;
@@ -26,7 +28,7 @@ import "package:vm/target/vm.dart" show VmTarget;
 import "package:yaml/yaml.dart" show YamlList, YamlMap, YamlNode, loadYamlNode;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions;
+    show CompilerOptions, InvocationMode;
 
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
     show ExperimentalFlag;
@@ -70,8 +72,9 @@ class MessageTestDescription extends TestDescription {
 
 class Configuration {
   final NnbdMode nnbdMode;
+  final Set<InvocationMode> invocationModes;
 
-  const Configuration(this.nnbdMode);
+  const Configuration(this.nnbdMode, this.invocationModes);
 
   CompilerOptions apply(CompilerOptions options) {
     if (nnbdMode != null) {
@@ -80,10 +83,12 @@ class Configuration {
     } else {
       options.explicitExperimentalFlags[ExperimentalFlag.nonNullable] = false;
     }
+    options.invocationModes = invocationModes;
     return options;
   }
 
-  static const Configuration defaultConfiguration = const Configuration(null);
+  static const Configuration defaultConfiguration =
+      const Configuration(null, const {});
 }
 
 class MessageTestSuite extends ChainContext {
@@ -345,12 +350,25 @@ class MessageTestSuite extends ChainContext {
             break;
 
           case "configuration":
-            if (value == "nnbd-weak") {
-              configuration = const Configuration(NnbdMode.Weak);
-            } else if (value == "nnbd-strong") {
-              configuration = const Configuration(NnbdMode.Strong);
-            } else {
-              throw new ArgumentError("Unknown configuration '$value'.");
+            if (value is String) {
+              NnbdMode nnbdMode;
+              Set<InvocationMode> invocationModes = {};
+              for (String part in value.split(',')) {
+                if (part.isEmpty) continue;
+                if (part == "nnbd-weak") {
+                  nnbdMode = NnbdMode.Weak;
+                } else if (part == "nnbd-strong") {
+                  nnbdMode = NnbdMode.Strong;
+                } else {
+                  InvocationMode invocationMode = InvocationMode.fromName(part);
+                  if (invocationMode != null) {
+                    invocationModes.add(invocationMode);
+                  } else {
+                    throw new ArgumentError("Unknown configuration '$part'.");
+                  }
+                }
+              }
+              configuration = new Configuration(nnbdMode, invocationModes);
             }
             break;
 

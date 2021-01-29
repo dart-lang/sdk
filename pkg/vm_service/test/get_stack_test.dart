@@ -53,7 +53,7 @@ final tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
   (VmService service, IsolateRef isolateRef) async {
-    final result = await service.getStack(isolateRef.id);
+    final result = await service.getStack(isolateRef.id!);
 
     expect(result.frames, hasLength(16));
     expect(result.asyncCausalFrames, hasLength(16));
@@ -106,13 +106,13 @@ final tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_B),
   (VmService service, IsolateRef isolateRef) async {
-    final result = await service.getStack(isolateRef.id);
+    final result = await service.getStack(isolateRef.id!);
 
     expect(result.frames, hasLength(10));
     expect(result.asyncCausalFrames, hasLength(26));
     expect(result.awaiterFrames, hasLength(2));
 
-    expectFrames(result.frames, [
+    expectFrames(result.frames!, [
       [equals('Regular'), endsWith(' func10')],
       [equals('Regular'), endsWith(' _RootZone.runUnary')],
       [equals('Regular'), anything], // Internal mech. ..

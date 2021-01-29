@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:convert' show json;
 
 import 'package:kernel/ast.dart'
@@ -35,6 +37,7 @@ import 'package:kernel/ast.dart'
         SymbolConstant,
         TearOffConstant,
         TreeNode,
+        Typedef,
         TypedefType,
         TypeLiteralConstant,
         TypeParameter,
@@ -142,7 +145,26 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   }
 
   void defaultDartType(DartType type) {}
-  void visitTypedefType(TypedefType node) {}
+
+  void visitTypedefType(TypedefType node) {
+    Typedef typedefNode = node.typedefNode;
+    result.add(nameForEntity(
+        typedefNode,
+        typedefNode.name,
+        typedefNode.enclosingLibrary.importUri,
+        typedefNode.enclosingLibrary.fileUri));
+    if (node.typeArguments.isNotEmpty) {
+      result.add("<");
+      bool first = true;
+      for (DartType typeArg in node.typeArguments) {
+        if (!first) result.add(", ");
+        typeArg.accept(this);
+        first = false;
+      }
+      result.add(">");
+    }
+    addNullability(node.nullability);
+  }
 
   void visitInvalidType(InvalidType node) {
     // TODO(askesc): Throw internal error if InvalidType appears in diagnostics.

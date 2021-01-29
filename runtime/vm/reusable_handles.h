@@ -45,7 +45,7 @@ namespace dart {
     ~Reusable##name##HandleScope() {                                           \
       ASSERT(thread_->reusable_##name##_handle_scope_active());                \
       thread_->set_reusable_##name##_handle_scope_active(false);               \
-      Handle().raw_ = name::null();                                            \
+      Handle().ptr_ = name::null();                                            \
     }                                                                          \
     name& Handle() const {                                                     \
       ASSERT(thread_->name##_handle_ != NULL);                                 \
@@ -64,7 +64,7 @@ namespace dart {
         : handle_(thread->name##_handle_) {}                                   \
     Reusable##name##HandleScope()                                              \
         : handle_(Thread::Current()->name##_handle_) {}                        \
-    ~Reusable##name##HandleScope() { handle_->raw_ = name::null(); }           \
+    ~Reusable##name##HandleScope() { handle_->ptr_ = name::null(); }           \
     name& Handle() const {                                                     \
       ASSERT(handle_ != NULL);                                                 \
       return *handle_;                                                         \

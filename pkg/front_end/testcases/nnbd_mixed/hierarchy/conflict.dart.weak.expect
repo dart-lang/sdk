@@ -1,0 +1,323 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:90:16: Error: Can't inherit members that conflict with each other.
+// abstract class Class extends Super
+//                ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:13:8: Context: This is one inherited member.
+//   void extendedMethodMixedInGetter() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:43:11: Context: This is the other inherited member.
+//   int get extendedMethodMixedInGetter => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:93:11: Error: Can't declare a member that conflicts with an inherited one.
+//   int get extendedMethodDeclaredGetter => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:6:8: Context: This is the inherited member.
+//   void extendedMethodDeclaredGetter() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:95:7: Error: Can't declare a member that conflicts with an inherited one.
+//   int extendedMethodDeclaredField = 0;
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:8:8: Context: This is the inherited member.
+//   void extendedMethodDeclaredField() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:96:8: Error: Can't declare a member that conflicts with an inherited one.
+//   void extendedGetterDeclaredMethod() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:9:11: Context: This is the inherited member.
+//   int get extendedGetterDeclaredMethod => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:97:8: Error: Can't declare a member that conflicts with an inherited one.
+//   void extendedSetterDeclaredMethod() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:10:12: Context: This is the inherited member.
+//   void set extendedSetterDeclaredMethod(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:98:8: Error: Can't declare a member that conflicts with an inherited one.
+//   void extendedFieldDeclaredMethod() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:11:7: Context: This is the inherited member.
+//   int extendedFieldDeclaredMethod = 0;
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:100:11: Error: Can't declare a member that conflicts with an inherited one.
+//   int get mixedInMethodDeclaredGetter => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:29:8: Context: This is the inherited member.
+//   void mixedInMethodDeclaredGetter() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:102:7: Error: Can't declare a member that conflicts with an inherited one.
+//   int mixedInMethodDeclaredField = 0;
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:31:8: Context: This is the inherited member.
+//   void mixedInMethodDeclaredField() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:103:8: Error: Can't declare a member that conflicts with an inherited one.
+//   void mixedInGetterDeclaredMethod() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:32:11: Context: This is the inherited member.
+//   int get mixedInGetterDeclaredMethod => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:104:8: Error: Can't declare a member that conflicts with an inherited one.
+//   void mixedInSetterDeclaredMethod() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:33:12: Context: This is the inherited member.
+//   void set mixedInSetterDeclaredMethod(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:105:8: Error: Can't declare a member that conflicts with an inherited one.
+//   void mixedInFieldDeclaredMethod() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:34:7: Context: This is the inherited member.
+//   int mixedInFieldDeclaredMethod = 0;
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:107:11: Error: Can't declare a member that conflicts with an inherited one.
+//   int get implementedMethodDeclaredGetter => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:52:8: Context: This is the inherited member.
+//   void implementedMethodDeclaredGetter() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:109:7: Error: Can't declare a member that conflicts with an inherited one.
+//   int implementedMethodDeclaredField = 0;
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:54:8: Context: This is the inherited member.
+//   void implementedMethodDeclaredField() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:110:8: Error: Can't declare a member that conflicts with an inherited one.
+//   void implementedGetterDeclaredMethod() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:55:11: Context: This is the inherited member.
+//   int get implementedGetterDeclaredMethod => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:111:8: Error: Can't declare a member that conflicts with an inherited one.
+//   void implementedSetterDeclaredMethod() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:56:12: Context: This is the inherited member.
+//   void set implementedSetterDeclaredMethod(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:112:8: Error: Can't declare a member that conflicts with an inherited one.
+//   void implementedFieldDeclaredMethod() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:57:7: Context: This is the inherited member.
+//   int implementedFieldDeclaredMethod = 0;
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:115:12: Error: 'declaredMethodAndSetter' is already declared in this scope.
+//   void set declaredMethodAndSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:114:8: Context: Previous declaration of 'declaredMethodAndSetter'.
+//   void declaredMethodAndSetter() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:94:12: Error: Can't declare a member that conflicts with an inherited one.
+//   void set extendedMethodDeclaredSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:7:8: Context: This is the inherited member.
+//   void extendedMethodDeclaredSetter() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:101:12: Error: Can't declare a member that conflicts with an inherited one.
+//   void set mixedInMethodDeclaredSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:30:8: Context: This is the inherited member.
+//   void mixedInMethodDeclaredSetter() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:108:12: Error: Can't declare a member that conflicts with an inherited one.
+//   void set implementedMethodDeclaredSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/conflict.dart:53:8: Context: This is the inherited member.
+//   void implementedMethodDeclaredSetter() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  field core::int extendedFieldDeclaredMethod = 0;
+  field core::int extendedFieldMixedInMethod = 0;
+  field core::int extendedFieldImplementedMethod = 0;
+  synthetic constructor •() → self::Super
+    : super core::Object::•()
+    ;
+  method extendedMethodDeclaredGetter() → void {}
+  method extendedMethodDeclaredSetter() → void {}
+  method extendedMethodDeclaredField() → void {}
+  get extendedGetterDeclaredMethod() → core::int
+    return 0;
+  set extendedSetterDeclaredMethod(core::int value) → void {}
+  method extendedMethodMixedInGetter() → void {}
+  method extendedMethodMixedInSetter() → void {}
+  method extendedMethodMixedInField() → void {}
+  get extendedGetterMixedInMethod() → core::int
+    return 0;
+  set extendedSetterMixedInMethod(core::int value) → void {}
+  method extendedMethodImplementedGetter() → void {}
+  method extendedMethodImplementedSetter() → void {}
+  method extendedMethodImplementedField() → void {}
+  get extendedGetterImplementedMethod() → core::int
+    return 0;
+  set extendedSetterImplementedMethod(core::int value) → void {}
+}
+class Mixin extends core::Object {
+  field core::int mixedInFieldDeclaredMethod = 0;
+  field core::int mixedInFieldImplementedMethod = 0;
+  field core::int extendedMethodMixedInField = 0;
+  synthetic constructor •() → self::Mixin
+    : super core::Object::•()
+    ;
+  method mixedInMethodDeclaredGetter() → void {}
+  method mixedInMethodDeclaredSetter() → void {}
+  method mixedInMethodDeclaredField() → void {}
+  get mixedInGetterDeclaredMethod() → core::int
+    return 0;
+  set mixedInSetterDeclaredMethod(core::int value) → void {}
+  method mixedInMethodImplementedGetter() → void {}
+  method mixedInMethodImplementedSetter() → void {}
+  method mixedInMethodImplementedField() → void {}
+  get mixedInGetterImplementedMethod() → core::int
+    return 0;
+  set mixedInSetterImplementedMethod(core::int value) → void {}
+  get extendedMethodMixedInGetter() → core::int
+    return 0;
+  set extendedMethodMixedInSetter(core::int value) → void {}
+  method extendedGetterMixedInMethod() → void {}
+  method extendedSetterMixedInMethod() → void {}
+  method extendedFieldMixedInMethod() → void {}
+}
+class Interface1 extends core::Object {
+  field core::int implementedFieldDeclaredMethod = 0;
+  field core::int implementedFieldImplementedMethod = 0;
+  field core::int extendedMethodImplementedField = 0;
+  field core::int mixedInMethodImplementedField = 0;
+  synthetic constructor •() → self::Interface1
+    : super core::Object::•()
+    ;
+  method implementedMethodDeclaredGetter() → void {}
+  method implementedMethodDeclaredSetter() → void {}
+  method implementedMethodDeclaredField() → void {}
+  get implementedGetterDeclaredMethod() → core::int
+    return 0;
+  set implementedSetterDeclaredMethod(core::int value) → void {}
+  method implementedMethodImplementedGetter() → void {}
+  method implementedMethodImplementedSetter() → void {}
+  method implementedMethodImplementedField() → void {}
+  get implementedGetterImplementedMethod() → core::int
+    return 0;
+  set implementedSetterImplementedMethod(core::int value) → void {}
+  get extendedMethodImplementedGetter() → core::int
+    return 0;
+  set extendedMethodImplementedSetter(core::int value) → void {}
+  method extendedGetterImplementedMethod() → void {}
+  method extendedSetterImplementedMethod() → void {}
+  method extendedFieldImplementedMethod() → void {}
+  get mixedInMethodImplementedGetter() → core::int
+    return 0;
+  set mixedInMethodImplementedSetter(core::int value) → void {}
+  method mixedInGetterImplementedMethod() → void {}
+  method mixedInSetterImplementedMethod() → void {}
+  method mixedInFieldImplementedMethod() → void {}
+}
+class Interface2 extends core::Object {
+  field core::int implementedMethodImplementedField = 0;
+  synthetic constructor •() → self::Interface2
+    : super core::Object::•()
+    ;
+  get implementedMethodImplementedGetter() → core::int
+    return 0;
+  set implementedMethodImplementedSetter(core::int value) → void {}
+  method implementedGetterImplementedMethod() → void {}
+  method implementedSetterImplementedMethod() → void {}
+  method implementedFieldImplementedMethod() → void {}
+}
+abstract class _Class&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Class&Super&Mixin
+    : super self::Super::•()
+    ;
+  mixin-super-stub method mixedInMethodDeclaredSetter() → void
+    return super.{self::Mixin::mixedInMethodDeclaredSetter}();
+  mixin-super-stub get mixedInFieldDeclaredMethod() → core::int
+    return super.{self::Mixin::mixedInFieldDeclaredMethod};
+  mixin-super-stub set mixedInFieldDeclaredMethod(core::int value) → void
+    return super.{self::Mixin::mixedInFieldDeclaredMethod} = value;
+  mixin-super-stub get mixedInFieldImplementedMethod() → core::int
+    return super.{self::Mixin::mixedInFieldImplementedMethod};
+  mixin-super-stub set mixedInFieldImplementedMethod(core::int value) → void
+    return super.{self::Mixin::mixedInFieldImplementedMethod} = value;
+  mixin-super-stub get extendedMethodMixedInField() → core::int
+    return super.{self::Mixin::extendedMethodMixedInField};
+  mixin-super-stub set extendedMethodMixedInField(core::int value) → void
+    return super.{self::Mixin::extendedMethodMixedInField} = value;
+  mixin-super-stub method mixedInMethodDeclaredGetter() → void
+    return super.{self::Mixin::mixedInMethodDeclaredGetter}();
+  mixin-super-stub method mixedInMethodDeclaredField() → void
+    return super.{self::Mixin::mixedInMethodDeclaredField}();
+  mixin-super-stub get mixedInGetterDeclaredMethod() → core::int
+    return super.{self::Mixin::mixedInGetterDeclaredMethod};
+  mixin-super-stub method mixedInMethodImplementedGetter() → void
+    return super.{self::Mixin::mixedInMethodImplementedGetter}();
+  mixin-super-stub method mixedInMethodImplementedSetter() → void
+    return super.{self::Mixin::mixedInMethodImplementedSetter}();
+  mixin-super-stub method mixedInMethodImplementedField() → void
+    return super.{self::Mixin::mixedInMethodImplementedField}();
+  mixin-super-stub get mixedInGetterImplementedMethod() → core::int
+    return super.{self::Mixin::mixedInGetterImplementedMethod};
+  mixin-super-stub get extendedMethodMixedInGetter() → core::int
+    return super.{self::Mixin::extendedMethodMixedInGetter};
+  mixin-super-stub method extendedGetterMixedInMethod() → void
+    return super.{self::Mixin::extendedGetterMixedInMethod}();
+  mixin-super-stub method extendedSetterMixedInMethod() → void
+    return super.{self::Mixin::extendedSetterMixedInMethod}();
+  mixin-super-stub method extendedFieldMixedInMethod() → void
+    return super.{self::Mixin::extendedFieldMixedInMethod}();
+  mixin-super-stub set mixedInSetterDeclaredMethod(core::int value) → void
+    return super.{self::Mixin::mixedInSetterDeclaredMethod} = value;
+  mixin-super-stub set mixedInSetterImplementedMethod(core::int value) → void
+    return super.{self::Mixin::mixedInSetterImplementedMethod} = value;
+  mixin-super-stub set extendedMethodMixedInSetter(core::int value) → void
+    return super.{self::Mixin::extendedMethodMixedInSetter} = value;
+}
+abstract class Class extends self::_Class&Super&Mixin implements self::Interface1, self::Interface2 {
+  field core::int extendedMethodDeclaredField = 0;
+  field core::int mixedInMethodDeclaredField = 0;
+  field core::int implementedMethodDeclaredField = 0;
+  synthetic constructor •() → self::Class
+    : super self::_Class&Super&Mixin::•()
+    ;
+  get extendedMethodDeclaredGetter() → core::int
+    return 0;
+  set extendedMethodDeclaredSetter(core::int value) → void {}
+  method extendedGetterDeclaredMethod() → void {}
+  method extendedSetterDeclaredMethod() → void {}
+  method extendedFieldDeclaredMethod() → void {}
+  get mixedInMethodDeclaredGetter() → core::int
+    return 0;
+  set mixedInMethodDeclaredSetter(core::int value) → void {}
+  method mixedInGetterDeclaredMethod() → void {}
+  method mixedInSetterDeclaredMethod() → void {}
+  method mixedInFieldDeclaredMethod() → void {}
+  get implementedMethodDeclaredGetter() → core::int
+    return 0;
+  set implementedMethodDeclaredSetter(core::int value) → void {}
+  method implementedGetterDeclaredMethod() → void {}
+  method implementedSetterDeclaredMethod() → void {}
+  method implementedFieldDeclaredMethod() → void {}
+  method declaredMethodAndSetter() → void {}
+  set declaredMethodAndSetter(core::int value) → void {}
+}
+static method main() → dynamic {}

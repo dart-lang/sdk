@@ -261,6 +261,87 @@ class DartObjectImplTest {
     _assertDivide(_doubleValue(null), _intValue(null), _intValue(2));
   }
 
+  void test_eagerAnd_knownBool_knownBool() {
+    void check(bool left, bool right, bool expected) {
+      _assertEagerAnd(
+        _boolValue(expected),
+        _boolValue(left),
+        _boolValue(right),
+      );
+    }
+
+    check(false, false, false);
+    check(true, false, false);
+    check(false, true, false);
+    check(true, true, true);
+  }
+
+  void test_eagerAnd_knownBool_knownInt() {
+    _assertEagerAnd(null, _boolValue(true), _intValue(0));
+  }
+
+  void test_eagerAnd_knownBool_unknownBool() {
+    _assertEagerAnd(_boolValue(null), _boolValue(true), _boolValue(null));
+  }
+
+  void test_eagerAnd_unknownBool_knownBool() {
+    _assertEagerAnd(_boolValue(null), _boolValue(null), _boolValue(true));
+  }
+
+  void test_eagerOr_knownBool_knownBool() {
+    void check(bool left, bool right, bool expected) {
+      _assertEagerOr(
+        _boolValue(expected),
+        _boolValue(left),
+        _boolValue(right),
+      );
+    }
+
+    check(false, false, false);
+    check(true, false, true);
+    check(false, true, true);
+    check(true, true, true);
+  }
+
+  void test_eagerOr_knownBool_knownInt() {
+    _assertEagerOr(null, _boolValue(true), _intValue(0));
+  }
+
+  void test_eagerOr_knownBool_unknownBool() {
+    _assertEagerOr(_boolValue(null), _boolValue(true), _boolValue(null));
+  }
+
+  void test_eagerOr_unknownBool_knownBool() {
+    _assertEagerOr(_boolValue(null), _boolValue(null), _boolValue(true));
+  }
+
+  void test_eagerXor_knownBool_knownBool() {
+    void check(bool left, bool right, bool expected) {
+      _assertEagerXor(
+        _boolValue(expected),
+        _boolValue(left),
+        _boolValue(right),
+      );
+    }
+
+    check(false, false, false);
+    check(true, false, true);
+    check(false, true, true);
+    check(true, true, false);
+  }
+
+  void test_eagerXor_knownBool_knownInt() {
+    _assertEagerXor(null, _boolValue(true), _intValue(0));
+  }
+
+  void test_eagerXor_knownBool_unknownBool() {
+    _assertEagerXor(_boolValue(null), _boolValue(true), _boolValue(null));
+  }
+
+  void test_eagerXor_unknownBool_knownBool() {
+    _assertEagerXor(_boolValue(null), _boolValue(null), _boolValue(true));
+  }
+
   void test_equalEqual_bool_false() {
     _assertEqualEqual(_boolValue(false), _boolValue(false), _boolValue(true));
   }
@@ -832,6 +913,34 @@ class DartObjectImplTest {
 
   void test_identical_string_unknown() {
     _assertIdentical(_boolValue(null), _stringValue(null), _stringValue("def"));
+  }
+
+  void test_identical_Type_interfaceType() {
+    _assertIdentical(
+      _boolValue(true),
+      _typeValue(_typeProvider.intType),
+      _typeValue(_typeProvider.intType),
+    );
+
+    _assertIdentical(
+      _boolValue(false),
+      _typeValue(_typeProvider.intType),
+      _typeValue(_typeProvider.numType),
+    );
+
+    _assertIdentical(
+      _boolValue(true),
+      _typeValue(_typeProvider.futureOrType2(_typeProvider.objectType)),
+      _typeValue(_typeProvider.objectType),
+    );
+  }
+
+  void test_identical_Type_notType() {
+    _assertIdentical(
+      _boolValue(false),
+      _typeValue(_typeProvider.intType),
+      _intValue(0),
+    );
   }
 
   void test_integerDivide_infinity_knownDouble() {
@@ -1688,10 +1797,10 @@ class DartObjectImplTest {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.eagerAnd(_typeSystem, right, false);
+        left.eagerAnd(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.eagerAnd(_typeSystem, right, false);
+      DartObjectImpl result = left.eagerAnd(_typeSystem, right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1704,10 +1813,10 @@ class DartObjectImplTest {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.eagerOr(_typeSystem, right, false);
+        left.eagerOr(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.eagerOr(_typeSystem, right, false);
+      DartObjectImpl result = left.eagerOr(_typeSystem, right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -1720,10 +1829,10 @@ class DartObjectImplTest {
       DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
-        left.eagerXor(_typeSystem, right, false);
+        left.eagerXor(_typeSystem, right);
       }, throwsEvaluationException);
     } else {
-      DartObjectImpl result = left.eagerXor(_typeSystem, right, false);
+      DartObjectImpl result = left.eagerXor(_typeSystem, right);
       expect(result, isNotNull);
       expect(result, expected);
     }
@@ -2140,6 +2249,14 @@ class DartObjectImplTest {
       _typeSystem,
       _typeProvider.symbolType,
       SymbolState(value),
+    );
+  }
+
+  DartObjectImpl _typeValue(DartType value) {
+    return DartObjectImpl(
+      _typeSystem,
+      _typeProvider.typeType,
+      TypeState(value),
     );
   }
 }

@@ -132,6 +132,13 @@ class MethodInvocationResolver {
           name,
           _resolver.typeProvider.typeType.element,
         );
+      } else if (element is TypeAliasElement) {
+        var aliasedType = element.aliasedType;
+        if (aliasedType is InterfaceType) {
+          _resolveReceiverTypeLiteral(
+              node, aliasedType.element, nameNode, name);
+          return;
+        }
       }
     }
 
@@ -459,7 +466,9 @@ class MethodInvocationResolver {
         );
       } else {
         _setDynamicResolution(node);
-        _resolver.nullableDereferenceVerifier.report(receiver, receiverType);
+        _resolver.nullableDereferenceVerifier.report(receiver, receiverType,
+            errorCode: CompileTimeErrorCode
+                .UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE);
       }
       return;
     }

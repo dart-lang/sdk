@@ -25,6 +25,7 @@ import 'package:nnbd_migration/src/front_end/instrumentation_information.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
 import 'package:nnbd_migration/src/front_end/offset_mapper.dart';
 import 'package:nnbd_migration/src/front_end/web/navigation_tree.dart';
+import 'package:nnbd_migration/src/hint_action.dart';
 import 'package:nnbd_migration/src/utilities/progress_bar.dart';
 
 /// A builder used to build the migration information for a library.
@@ -54,9 +55,24 @@ class InfoBuilder {
   /// unit.
   final Map<String, UnitInfo> unitMap = {};
 
+  /// A function which returns whether a file at a given path should be
+  /// migrated.
+  final bool Function(String) shouldBeMigratedFunction;
+
+  /// The set of files which are being considered for migration.
+  final Iterable<String> _pathsToProcess;
+
   /// Initialize a newly created builder.
-  InfoBuilder(this.provider, this.includedPath, this.info, this.listener,
-      this.migration, this.nodeMapper, this._logger);
+  InfoBuilder(
+      this.provider,
+      this.includedPath,
+      this.info,
+      this.listener,
+      this.migration,
+      this.nodeMapper,
+      this._logger,
+      this.shouldBeMigratedFunction,
+      this._pathsToProcess);
 
   /// The provider used to get information about libraries.
   DriverProviderImpl get driverProvider => listener.server;
@@ -67,11 +83,18 @@ class InfoBuilder {
     var sourceInfoMap = info.sourceInformation;
     Set<UnitInfo> units =
         SplayTreeSet<UnitInfo>((u1, u2) => u1.path.compareTo(u2.path));
-    var progressBar = ProgressBar(_logger, sourceInfoMap.length);
 
-    for (var source in sourceInfoMap.keys) {
+    // Collect all of the sources for which we have [SourceInformation], as well
+    // as all files which are being "processed" during this migration, which may
+    // include already migrated files.
+    var sources = {
+      ...sourceInfoMap.keys.map((source) => source.fullName),
+      ..._pathsToProcess,
+    };
+    var progressBar = ProgressBar(_logger, sources.length);
+
+    for (var filePath in sources) {
       progressBar.tick();
-      var filePath = source.fullName;
       var session = driverProvider.getAnalysisSession(filePath);
       if (!session.getFile(filePath).isPart) {
         var result = await session.getResolvedLibrary(filePath);
@@ -90,7 +113,7 @@ class InfoBuilder {
           sourceInfo ??= SourceInformation();
           var edit = listener.sourceChange.getFileEdit(unitResult.path);
           var unit = _explainUnit(sourceInfo, unitResult, edit);
-          if (provider.pathContext.isWithin(includedPath, unitResult.path)) {
+          if (_pathsToProcess.contains(unitResult.path)) {
             units.add(unit);
           }
         }
@@ -353,9 +376,16 @@ class InfoBuilder {
     var alreadyMigrated =
         result.unit.featureSet.isEnabled(Feature.non_nullable);
     unitInfo.wasExplicitlyOptedOut = result.unit.languageVersionToken != null;
-    unitInfo.migrationStatus = alreadyMigrated
-        ? UnitMigrationStatus.alreadyMigrated
-        : UnitMigrationStatus.migrating;
+    if (alreadyMigrated) {
+      unitInfo.migrationStatus = UnitMigrationStatus.alreadyMigrated;
+      unitInfo.migrationStatusCanBeChanged = false;
+    } else if (shouldBeMigratedFunction(result.path)) {
+      unitInfo.migrationStatus = UnitMigrationStatus.migrating;
+      unitInfo.migrationStatusCanBeChanged = true;
+    } else {
+      unitInfo.migrationStatus = UnitMigrationStatus.optingOut;
+      unitInfo.migrationStatusCanBeChanged = false;
+    }
     var regions = unitInfo.regions;
 
     // There are certain rare conditions involving generated code in a bazel

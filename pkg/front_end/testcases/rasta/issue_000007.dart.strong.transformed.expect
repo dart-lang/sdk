@@ -57,5 +57,5 @@ class Sub extends self::_Sub&Base&Mixin {
     ;
 }
 static method main() → dynamic {
-  new self::Sub::•().{self::Mixin::foo}();
+  new self::Sub::•().{self::_Sub&Base&Mixin::foo}();
 }

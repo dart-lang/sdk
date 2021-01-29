@@ -6,6 +6,7 @@ library from "org-dartlang-test:///after_layout.dart" as aft {
   abstract class AfterLayoutMixin<T extends fra::StatefulWidget* = fra::StatefulWidget*> extends fra::State<aft::AfterLayoutMixin::T*> /*isMixinDeclaration*/  {
     abstract member-signature get _widget() → aft::AfterLayoutMixin::T*; -> fra::State::_widget
     abstract member-signature set _widget(generic-covariant-impl aft::AfterLayoutMixin::T* value) → void; -> fra::State::_widget
+    abstract member-signature method toString() → dart.core::String*; -> fra::_State&Object&Diagnosticable::toString
     abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
     abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
     abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
@@ -23,6 +24,8 @@ library from "package:flutter/framework.dart" as fra {
     const synthetic constructor •() → fra::_State&Object&Diagnosticable
       : super dart.core::Object::•()
       ;
+    mixin-super-stub method toString() → dart.core::String
+      return super.{fra::Diagnosticable::toString}();
   }
   abstract class State<T extends fra::StatefulWidget = fra::StatefulWidget> extends fra::_State&Object&Diagnosticable {
     generic-covariant-impl field fra::State::T? _widget = null;
@@ -66,6 +69,7 @@ library from "org-dartlang-test:///main.dart" as main {
       ;
     abstract member-signature get _widget() → main::HotReloadIssue*; -> fra::State::_widget
     abstract member-signature set _widget(generic-covariant-impl main::HotReloadIssue* value) → void; -> fra::State::_widget
+    abstract member-signature method toString() → dart.core::String*; -> fra::_State&Object&Diagnosticable::toString
     abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
     abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
     abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod

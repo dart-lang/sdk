@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  bool b = false;
+  bool b = (() => false)();
   late final int lateLocal;
 
   if (b) {
@@ -50,7 +50,7 @@ throws(f(), String message) {
   dynamic value;
   try {
     value = f();
-  } on LateInitializationError catch (e) {
+  } on Error catch (e) {
     print(e);
     return;
   }

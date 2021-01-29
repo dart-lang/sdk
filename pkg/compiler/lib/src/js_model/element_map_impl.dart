@@ -37,6 +37,7 @@ import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/native_data.dart';
+import '../kernel/dart2js_target.dart' show allowedNativeTest;
 import '../kernel/element_map_impl.dart';
 import '../kernel/env.dart';
 import '../kernel/kelements.dart';
@@ -806,32 +807,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   }
 
   @override
-  MemberEntity getSuperMember(MemberEntity context, ir.Name name,
-      {bool setter: false}) {
-    // We can no longer trust the interface target of the super access since it
-    // might be a member that we have cloned.
-    ClassEntity cls = getMemberThisType(context).element;
-    assert(
-        cls != null,
-        failedAt(context,
-            "No enclosing class for super member access in $context."));
-    IndexedClass superclass = getSuperType(cls)?.element;
-    while (superclass != null) {
-      JClassEnv env = classes.getEnv(superclass);
-      MemberEntity superMember =
-          env.lookupMember(this, name.text, setter: setter);
-      if (superMember != null) {
-        if (!superMember.isInstanceMember) return null;
-        if (!superMember.isAbstract) {
-          return superMember;
-        }
-      }
-      superclass = getSuperType(superclass)?.element;
-    }
-    return null;
-  }
-
-  @override
   ConstructorEntity getConstructor(ir.Member node) =>
       getConstructorInternal(node);
 
@@ -1066,10 +1041,10 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     return env.isUnnamedMixinApplication;
   }
 
-  bool _isSuperMixinApplication(IndexedClass cls) {
+  bool _isMixinApplicationWithMembers(IndexedClass cls) {
     assert(checkFamily(cls));
     JClassEnv env = classes.getEnv(cls);
-    return env.isSuperMixinApplication;
+    return env.isMixinApplicationWithMembers;
   }
 
   void _forEachSupertype(IndexedClass cls, void f(InterfaceType supertype)) {
@@ -1321,18 +1296,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
 
   TypeLookup _typeLookup({bool resolveAsRaw: true}) {
     bool cachedMayLookupInMain;
-    bool mayLookupInMain() {
-      var mainUri = elementEnvironment.mainLibrary.canonicalUri;
-      // Tests permit lookup outside of dart: libraries.
-      return mainUri.path
-              .contains(RegExp(r'(?<!generated_)tests/dart2js/internal')) ||
-          mainUri.path
-              .contains(RegExp(r'(?<!generated_)tests/dart2js/native')) ||
-          mainUri.path
-              .contains(RegExp(r'(?<!generated_)tests/dart2js_2/internal')) ||
-          mainUri.path
-              .contains(RegExp(r'(?<!generated_)tests/dart2js_2/native'));
-    }
 
     DartType lookup(String typeName, {bool required}) {
       DartType findInLibrary(LibraryEntity library) {
@@ -1355,8 +1318,11 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       // TODO(johnniwinther): Narrow the set of lookups based on the depending
       // library.
       // TODO(johnniwinther): Cache more results to avoid redundant lookups?
+      cachedMayLookupInMain ??=
+          // Tests permit lookup outside of dart: libraries.
+          allowedNativeTest(elementEnvironment.mainLibrary.canonicalUri);
       DartType type;
-      if (cachedMayLookupInMain ??= mayLookupInMain()) {
+      if (cachedMayLookupInMain) {
         type ??= findInLibrary(elementEnvironment.mainLibrary);
       }
       type ??= findIn(Uris.dart_core);
@@ -2140,6 +2106,10 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       } else if (node is ir.Constructor) {
         parts.add(utils.reconstructConstructorName(getMember(node)));
         break;
+      } else if (node is ir.Field) {
+        // Add the field name for closures in field initializers.
+        String name = node.name?.name;
+        if (name != null) parts.add(name);
       }
       current = current.parent;
     }
@@ -2246,8 +2216,8 @@ class JsElementEnvironment extends ElementEnvironment
   }
 
   @override
-  bool isSuperMixinApplication(ClassEntity cls) {
-    return elementMap._isSuperMixinApplication(cls);
+  bool isMixinApplicationWithMembers(ClassEntity cls) {
+    return elementMap._isMixinApplicationWithMembers(cls);
   }
 
   @override

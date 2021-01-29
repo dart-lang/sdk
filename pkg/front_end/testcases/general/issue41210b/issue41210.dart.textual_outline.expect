@@ -4,4 +4,6 @@ class C with A, B {}
 
 class E with A, D {}
 
+class G with A, F {}
+
 main() {}

@@ -314,6 +314,9 @@ class WasmMemory {
     _view[index] = value;
   }
 
+  /// Returns a Uint8List view into the memory.
+  Uint8List get view => _view;
+
   /// Grow the memory by deltaPages.
   void grow(int deltaPages) {
     var runtime = WasmRuntime();

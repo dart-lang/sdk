@@ -108,7 +108,7 @@ static BoolPtr CopyData(const Instance& dst,
     TypedData::Copy<DstType, SrcType>(dst_array, dst_offset_in_bytes, src_array,
                                       src_offset_in_bytes, length_in_bytes);
   }
-  return Bool::True().raw();
+  return Bool::True().ptr();
 }
 
 static bool IsClamped(intptr_t cid) {
@@ -174,7 +174,7 @@ DEFINE_NATIVE_ENTRY(TypedData_setRange, 0, 7) {
     }
   }
   UNREACHABLE();
-  return Bool::False().raw();
+  return Bool::False().ptr();
 }
 
 // Native methods for typed data allocation are recognized and implemented

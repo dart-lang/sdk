@@ -1,0 +1,22 @@
+import 'dart:async';
+import 'return_from_async_lib.dart';
+
+abstract class Class {
+  FutureOr<int> throwFutureOrInt();
+  int throwInt();
+  Future<int> throwFutureInt();
+  dynamic throwDynamic();
+  Future<num> throwFutureNum();
+}
+
+bool caughtFutureOrInt = false;
+Future<int> callFutureOrInt(Class c) async {}
+bool caughtInt = false;
+Future<int> callInt(Class c) async {}
+bool caughtFutureInt = false;
+Future<int> callFutureInt(Class c) async {}
+bool caughtDynamic = false;
+Future<int> callDynamic(Class c) async {}
+bool caughtFutureNum = false;
+Future<num> callFutureNum(Class c) async {}
+void main() async {}

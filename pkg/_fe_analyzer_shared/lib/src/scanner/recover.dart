@@ -22,14 +22,14 @@ Token scannerRecovery(List<int> bytes, Token tokens, List<int> lineStarts) {
   // Skip over prepended error tokens
   Token token = tokens;
   while (token is ErrorToken) {
-    token = token.next;
+    token = token.next!;
   }
 
   // Assert no error tokens in the remaining tokens
   while (!token.isEof) {
     if (token is ErrorToken) {
       for (int count = 0; count < 3; ++count) {
-        Token previous = token.previous;
+        Token previous = token.previous!;
         if (previous.isEof) break;
         token = previous;
       }
@@ -38,11 +38,11 @@ Token scannerRecovery(List<int> bytes, Token tokens, List<int> lineStarts) {
       for (int count = 0; count < 7; ++count) {
         if (token.isEof) break;
         msg.write(' ${token.runtimeType},');
-        token = token.next;
+        token = token.next!;
       }
       throw msg.toString();
     }
-    token = token.next;
+    token = token.next!;
   }
 
   return tokens;
@@ -54,7 +54,7 @@ Token synthesizeToken(int charOffset, String value, TokenType type) {
 
 Token skipToEof(Token token) {
   while (!token.isEof) {
-    token = token.next;
+    token = token.next!;
   }
   return token;
 }
@@ -66,7 +66,7 @@ String closeBraceFor(String openBrace) {
     '{': '}',
     '<': '>',
     r'${': '}',
-  }[openBrace];
+  }[openBrace]!;
 }
 
 String closeQuoteFor(String openQuote) {
@@ -79,5 +79,5 @@ String closeQuoteFor(String openQuote) {
     "r'": "'",
     'r"""': '"""',
     "r'''": "'''",
-  }[openQuote];
+  }[openQuote]!;
 }

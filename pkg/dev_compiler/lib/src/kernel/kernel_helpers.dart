@@ -190,8 +190,20 @@ List<Class> getImmediateSuperclasses(Class c) {
   return result;
 }
 
-Expression getInvocationReceiver(InvocationExpression node) =>
-    node is MethodInvocation ? node.receiver : null;
+Expression getInvocationReceiver(InvocationExpression node) {
+  if (node is MethodInvocation) {
+    return node.receiver;
+  } else if (node is InstanceInvocation) {
+    return node.receiver;
+  } else if (node is DynamicInvocation) {
+    return node.receiver;
+  } else if (node is FunctionInvocation) {
+    return node.receiver;
+  } else if (node is LocalFunctionInvocation) {
+    return VariableGet(node.variable);
+  }
+  return null;
+}
 
 bool isInlineJS(Member e) =>
     e is Procedure &&
@@ -341,3 +353,28 @@ bool isKnownDartTypeImplementor(DartType t) {
       t is TypedefType ||
       t is VoidType;
 }
+
+/// Whether [member] is declared native, as in:
+///
+///    void foo() native;
+///
+/// This syntax is only allowed in sdk libraries and native tests.
+bool isNative(Member member) =>
+    // The CFE represents `native` members with the `external` bit and with an
+    // internal @ExternalName annotation as a marker.
+    member.isExternal && member.annotations.any(_isNativeMarkerAnnotation);
+
+bool _isNativeMarkerAnnotation(Expression annotation) {
+  if (annotation is ConstantExpression) {
+    var constant = annotation.constant;
+    if (constant is InstanceConstant &&
+        constant.classNode.name == 'ExternalName' &&
+        _isDartInternal(constant.classNode.enclosingLibrary.importUri)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool _isDartInternal(Uri uri) =>
+    uri.scheme == 'dart' && uri.path == '_internal';

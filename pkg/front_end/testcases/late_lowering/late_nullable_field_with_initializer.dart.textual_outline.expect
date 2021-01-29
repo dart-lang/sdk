@@ -1,7 +1,6 @@
 int? lateTopLevelField1Init() => 123;
-late int;
-?
-lateTopLevelField1 = lateTopLevelField1Init();
+late
+int? lateTopLevelField1 = lateTopLevelField1Init();
 class Class<T> {
   static int? lateStaticField1Init() => 87;
   static late int;
@@ -13,18 +12,25 @@ class Class<T> {
   lateStaticField2 = lateStaticField2Init();
   static staticMethod() {}
   int? lateInstanceFieldInit() => 16;
-  late int;
-  operator? (){}
-  lateInstanceField = lateInstanceFieldInit();
+  late
+  int? lateInstanceField = lateInstanceFieldInit();
   final T? field;
   T? lateGenericInstanceFieldInit() => field;
-  late T;
-  operator? (){}
-  lateGenericInstanceField = lateGenericInstanceFieldInit();
+  late
+  T? lateGenericInstanceField = lateGenericInstanceFieldInit();
   Class(this.field);
   instanceMethod(T? value) {}
 }
-extension Extension<T> (){}
-on Class<T> (){}
+extension Extension<T> on Class<T> {
+  static int? lateExtensionField1Init() => 87;
+  static late int;
+  operator? (){}
+  lateExtensionField1 = lateExtensionField1Init();
+  static int? lateExtensionField2Init() => 42;
+  static late int;
+  operator? (){}
+  lateExtensionField2 = lateExtensionField2Init();
+  static staticMethod() {}
+}
 main() {}
 expect(expected, actual) {}

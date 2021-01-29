@@ -1,6 +1,9 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// @dart = 2.9
+
 library kernel.type_checker;
 
 import 'ast.dart';
@@ -1076,4 +1079,122 @@ class TypeCheckingVisitor
 
   @override
   visitInvalidInitializer(InvalidInitializer node) {}
+
+  @override
+  DartType visitDynamicGet(DynamicGet node) {
+    DartType receiverType = visitExpression(node.receiver);
+    checkUnresolvedInvocation(receiverType, node);
+    return const DynamicType();
+  }
+
+  @override
+  DartType visitDynamicInvocation(DynamicInvocation node) {
+    DartType receiverType = visitExpression(node.receiver);
+    checkUnresolvedInvocation(receiverType, node);
+    node.arguments.positional.forEach(visitExpression);
+    node.arguments.named
+        .forEach((NamedExpression n) => visitExpression(n.value));
+    return const DynamicType();
+  }
+
+  @override
+  DartType visitDynamicSet(DynamicSet node) {
+    DartType value = visitExpression(node.value);
+    final DartType receiver = visitExpression(node.receiver);
+    checkUnresolvedInvocation(receiver, node);
+    return value;
+  }
+
+  @override
+  DartType visitEqualsCall(EqualsCall node) {
+    visitExpression(node.left);
+    visitExpression(node.right);
+    // TODO(johnniwinther): Return Never as type for equals call on Never.
+    return environment.coreTypes.boolLegacyRawType;
+  }
+
+  @override
+  DartType visitEqualsNull(EqualsNull node) {
+    visitExpression(node.expression);
+    return environment.coreTypes.boolLegacyRawType;
+  }
+
+  @override
+  DartType visitFunctionInvocation(FunctionInvocation node) {
+    DartType receiverType = visitExpression(node.receiver);
+    checkUnresolvedInvocation(receiverType, node);
+    node.arguments.positional.forEach(visitExpression);
+    node.arguments.named
+        .forEach((NamedExpression n) => visitExpression(n.value));
+    // TODO(johnniwinther): Return the correct result type.
+    return const DynamicType();
+  }
+
+  @override
+  DartType visitInstanceGet(InstanceGet node) {
+    Substitution receiver =
+        getReceiverType(node, node.receiver, node.interfaceTarget);
+    return receiver.substituteType(node.interfaceTarget.getterType);
+  }
+
+  @override
+  DartType visitInstanceInvocation(InstanceInvocation node) {
+    // TODO(johnniwinther): Use embedded static type.
+    Member target = node.interfaceTarget;
+    if (target is Procedure &&
+        environment.isSpecialCasedBinaryOperator(target)) {
+      assert(node.arguments.positional.length == 1);
+      DartType receiver = visitExpression(node.receiver);
+      DartType argument = visitExpression(node.arguments.positional[0]);
+      return environment.getTypeOfSpecialCasedBinaryOperator(
+          receiver, argument);
+    } else {
+      visitExpression(node.receiver);
+      return handleCall(node.arguments, target.getterType,
+          receiver: getReceiverType(node, node.receiver, node.interfaceTarget));
+    }
+  }
+
+  @override
+  DartType visitInstanceSet(InstanceSet node) {
+    DartType value = visitExpression(node.value);
+    Substitution receiver =
+        getReceiverType(node, node.receiver, node.interfaceTarget);
+    checkAssignable(
+        node.value,
+        value,
+        receiver.substituteType(node.interfaceTarget.setterType,
+            contravariant: true));
+    return value;
+  }
+
+  @override
+  DartType visitInstanceTearOff(InstanceTearOff node) {
+    Substitution receiver =
+        getReceiverType(node, node.receiver, node.interfaceTarget);
+    return receiver.substituteType(node.interfaceTarget.getterType);
+  }
+
+  @override
+  DartType visitLocalFunctionInvocation(LocalFunctionInvocation node) {
+    checkUnresolvedInvocation(node.functionType, node);
+    node.arguments.positional.forEach(visitExpression);
+    node.arguments.named
+        .forEach((NamedExpression n) => visitExpression(n.value));
+    // TODO(johnniwinther): Return the correct result type.
+    return const DynamicType();
+  }
+
+  @override
+  DartType visitStaticTearOff(StaticTearOff node) {
+    return node.target.getterType;
+  }
+
+  @override
+  DartType visitFunctionTearOff(FunctionTearOff node) {
+    DartType receiverType = visitExpression(node.receiver);
+    checkUnresolvedInvocation(receiverType, node);
+    // TODO(johnniwinther): Return the correct result type.
+    return const DynamicType();
+  }
 }

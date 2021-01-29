@@ -20,6 +20,7 @@ class BaseTextBuffer : public ValueObject {
   virtual ~BaseTextBuffer() {}
 
   intptr_t Printf(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
+  intptr_t VPrintf(const char* format, va_list args);
   void AddChar(char ch);
   void EscapeAndAddUTF16CodeUnit(uint16_t cu);
   void EscapeAndAddCodeUnit(uint32_t cu);

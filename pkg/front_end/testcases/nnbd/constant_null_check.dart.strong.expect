@@ -52,3 +52,9 @@ constants  {
   #C2 = null
   #C3 = self::Class {y:#C1}
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///constant_null_check.dart:
+- Class. (from org-dartlang-testcase:///constant_null_check.dart:13:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

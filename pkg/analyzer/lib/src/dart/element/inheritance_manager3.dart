@@ -743,7 +743,7 @@ class InheritanceManager3 {
     FunctionType resultType;
     for (var executable in validOverrides) {
       var type = executable.type;
-      var normalizedType = typeSystem.normalize(type);
+      var normalizedType = typeSystem.normalize(type) as FunctionType;
       if (resultType == null) {
         resultType = normalizedType;
       } else {

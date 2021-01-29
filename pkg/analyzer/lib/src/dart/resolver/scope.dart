@@ -248,11 +248,10 @@ class NamespaceBuilder {
     for (FunctionElement element in compilationUnit.functions) {
       _addIfPublic(definedNames, element);
     }
-    for (FunctionTypeAliasElement element
-        in compilationUnit.functionTypeAliases) {
+    for (ClassElement element in compilationUnit.mixins) {
       _addIfPublic(definedNames, element);
     }
-    for (ClassElement element in compilationUnit.mixins) {
+    for (TypeAliasElement element in compilationUnit.typeAliases) {
       _addIfPublic(definedNames, element);
     }
     for (ClassElement element in compilationUnit.types) {

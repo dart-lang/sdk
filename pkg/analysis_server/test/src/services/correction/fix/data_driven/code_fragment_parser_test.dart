@@ -9,7 +9,6 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/expressi
 import 'package:analysis_server/src/services/correction/fix/data_driven/value_generator.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/variable_scope.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:matcher/matcher.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

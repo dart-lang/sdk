@@ -22,7 +22,7 @@ abstract class Stream extends core::Object {
     : super core::Object::•()
     ;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  abstract method foobar() → self::StreamSubscription*;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3]  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3]  abstract operator ==(dynamic other) → core::bool*;
 }
 abstract class _StreamImpl extends self::Stream {
   synthetic constructor •() → self::_StreamImpl*

@@ -15,7 +15,6 @@ import 'package:dev_compiler/dev_compiler.dart';
 import 'package:dev_compiler/src/js_ast/js_ast.dart' as js_ast;
 import 'package:dev_compiler/src/kernel/compiler.dart';
 
-import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_unstable/ddc.dart';
 
 import 'package:kernel/ast.dart'
@@ -40,7 +39,7 @@ import 'package:kernel/ast.dart'
         Visitor;
 
 DiagnosticMessage _createInternalError(Uri uri, int line, int col, String msg) {
-  return Message(Code<String>('Expression Compiler Internal error', null),
+  return Message(Code<String>('Expression Compiler Internal error'),
           message: msg)
       .withLocation(uri, 0, 0)
       .withFormatting(
@@ -164,8 +163,14 @@ class DartScopeBuilder extends Visitor<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration decl) {
-    // collect locals and formals
-    _definitions[decl.name] = decl.type;
+    // Collect locals and formals appearing before current breakpoint.
+    // Note that we include variables with no offset because the offset
+    // is not set in many cases in generated code, so omitting them would
+    // make expression evaluation fail in too many cases.
+    // Issue: https://github.com/dart-lang/sdk/issues/43966
+    if (decl.fileOffset < 0 || decl.fileOffset < _offset) {
+      _definitions[decl.name] = decl.type;
+    }
     super.visitVariableDeclaration(decl);
   }
 

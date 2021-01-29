@@ -14,7 +14,8 @@ library dart.js_util;
 import 'dart:_foreign_helper' show JS;
 import 'dart:collection' show HashMap;
 import 'dart:async' show Completer;
-import 'dart:_js_helper' show convertDartClosureToJS;
+import 'dart:_js_helper'
+    show convertDartClosureToJS, assertInterop, assertInteropArgs;
 
 /// Recursively converts a JSON-like collection to JavaScript compatible
 /// representation.
@@ -70,11 +71,15 @@ bool hasProperty(Object o, Object name) => JS('bool', '# in #', name, o);
 dynamic getProperty(Object o, Object name) =>
     JS('Object|Null', '#[#]', o, name);
 
-dynamic setProperty(Object o, Object name, Object? value) =>
-    JS('', '#[#]=#', o, name, value);
+dynamic setProperty(Object o, Object name, Object? value) {
+  assertInterop(value);
+  return JS('', '#[#]=#', o, name, value);
+}
 
-dynamic callMethod(Object o, String method, List<Object?> args) =>
-    JS('Object|Null', '#[#].apply(#, #)', o, method, o, args);
+dynamic callMethod(Object o, String method, List<Object?> args) {
+  assertInteropArgs(args);
+  return JS('Object|Null', '#[#].apply(#, #)', o, method, o, args);
+}
 
 /// Check whether [o] is an instance of [type].
 ///
@@ -83,9 +88,11 @@ dynamic callMethod(Object o, String method, List<Object?> args) =>
 bool instanceof(Object? o, Object type) =>
     JS('bool', '# instanceof #', o, type);
 
-dynamic callConstructor(Object constr, List<Object?> arguments) {
+dynamic callConstructor(Object constr, List<Object?>? arguments) {
   if (arguments == null) {
     return JS('Object', 'new #()', constr);
+  } else {
+    assertInteropArgs(arguments);
   }
 
   if (JS('bool', '# instanceof Array', arguments)) {

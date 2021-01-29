@@ -195,7 +195,7 @@ namespace dart {
   V(::, reachabilityFence, ReachabilityFence, 0xde1dc5bd)                      \
   V(_Utf8Decoder, _scan, Utf8DecoderScan, 0xb35ced99)                          \
   V(_Future, timeout, FutureTimeout, 0x6ad7d1ef)                               \
-  V(Future, wait, FutureWait, 0xb4396ca1)                                      \
+  V(Future, wait, FutureWait, 0x264aacc2)                                      \
 
 // List of intrinsics:
 // (class-name, function-name, intrinsification method, fingerprint).
@@ -232,7 +232,7 @@ namespace dart {
   V(_RegExp, _ExecuteMatch, RegExp_ExecuteMatch, 0xd8114d5f)                   \
   V(_RegExp, _ExecuteMatchSticky, RegExp_ExecuteMatchSticky, 0xd0dd0025)       \
   V(Object, ==, ObjectEquals, 0xd3f5f95a)                                      \
-  V(Object, get:runtimeType, ObjectRuntimeType, 0x8177627e)                    \
+  V(Object, get:runtimeType, ObjectRuntimeType, 0x81775ebd)                    \
   V(Object, _haveSameRuntimeType, ObjectHaveSameRuntimeType, 0xe61da79f)       \
   V(_StringBase, get:hashCode, String_getHashCode, 0x4e27ab52)                 \
   V(_StringBase, get:_identityHashCode, String_identityHash, 0x1fec4010)       \
@@ -246,6 +246,8 @@ namespace dart {
   V(_TwoByteString, ==, TwoByteString_equality, 0x483ef8d2)                    \
   V(_Type, get:hashCode, Type_getHashCode, 0x4e27ab52)                         \
   V(_Type, ==, Type_equality, 0xd3f5f1d8)                                      \
+  V(_FunctionType, get:hashCode, FunctionType_getHashCode, 0x4e27ab52)         \
+  V(_FunctionType, ==, FunctionType_equality, 0xd3f5f1d8)                      \
   V(::, _getHash, Object_getHash, 0x1d1372ac)                                  \
   V(::, _setHash, Object_setHash, 0x77e0bb27)                                  \
 
@@ -434,7 +436,7 @@ namespace dart {
   V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 0x1b858d66)              \
   V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 0x9e2320c0)          \
   V(_TypedList, _setInt32x4, ByteArrayBaseSetInt32x4, 0xfa1f5cf1)              \
-  V(Object, get:runtimeType, ObjectRuntimeType, 0x8177627e)
+  V(Object, get:runtimeType, ObjectRuntimeType, 0x81775ebd)
 
 // List of recognized list factories:
 // (factory-name-symbol, class-name-string, constructor-name-string,

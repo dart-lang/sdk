@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.9
+
 library fasta.tool.command_line;
 
 import 'dart:io' show exit;
@@ -193,11 +195,13 @@ const Map<String, ValueSpecification> optionSpecification =
   Flags.nnbdAgnosticMode: const BoolValue(false),
   Flags.target: const StringValue(),
   Flags.verbose: const BoolValue(false),
+  Flags.verbosity: const StringValue(),
   Flags.verify: const BoolValue(false),
-  Flags.verifySkipPlatform: const BoolValue(false),
+  Flags.skipPlatformVerification: const BoolValue(false),
   Flags.warnOnReachabilityCheck: const BoolValue(false),
   Flags.linkDependencies: const UriListValue(),
   Flags.noDeps: const BoolValue(false),
+  Flags.invocationModes: const StringValue(),
   "-D": const DefineValue(),
   "-h": const AliasValue(Flags.help),
   "--out": const AliasValue(Flags.output),
@@ -265,7 +269,7 @@ ProcessedOptions analyzeCommandLine(String programName,
 
   final bool verify = options[Flags.verify];
 
-  final bool verifySkipPlatform = options[Flags.verifySkipPlatform];
+  final bool skipPlatformVerification = options[Flags.skipPlatformVerification];
 
   final bool dumpIr = options[Flags.dumpIr];
 
@@ -302,6 +306,10 @@ ProcessedOptions analyzeCommandLine(String programName,
   final bool warnOnReachabilityCheck = options[Flags.warnOnReachabilityCheck];
 
   final List<Uri> linkDependencies = options[Flags.linkDependencies] ?? [];
+
+  final String invocationModes = options[Flags.invocationModes] ?? '';
+
+  final String verbosity = options[Flags.verbosity] ?? Verbosity.defaultValue;
 
   if (nnbdStrongMode && nnbdWeakMode) {
     return throw new CommandLineProblem.deprecated(
@@ -347,13 +355,15 @@ ProcessedOptions analyzeCommandLine(String programName,
     ..omitPlatform = omitPlatform
     ..verbose = verbose
     ..verify = verify
-    ..verifySkipPlatform = verifySkipPlatform
+    ..skipPlatformVerification = skipPlatformVerification
     ..explicitExperimentalFlags = explicitExperimentalFlags
     ..environmentDefines = noDefines ? null : parsedArguments.defines
     ..nnbdMode = nnbdMode
     ..additionalDills = linkDependencies
     ..emitDeps = !noDeps
-    ..warnOnReachabilityCheck = warnOnReachabilityCheck;
+    ..warnOnReachabilityCheck = warnOnReachabilityCheck
+    ..invocationModes = InvocationMode.parseArguments(invocationModes)
+    ..verbosity = Verbosity.parseArgument(verbosity);
 
   if (programName == "compile_platform") {
     if (arguments.length != 5) {

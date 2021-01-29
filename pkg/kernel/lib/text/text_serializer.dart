@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library kernel.text_serializer;
 
 import '../ast.dart';
@@ -1460,8 +1462,6 @@ const Map<int, String> fieldFlagToName = const {
   Field.FlagFinal: "final",
   Field.FlagConst: "const",
   Field.FlagStatic: "static",
-  Field.FlagHasImplicitGetter: "has-implicit-getter",
-  Field.FlagHasImplicitSetter: "has-implicit-setter",
   Field.FlagCovariant: "covariant",
   Field.FlagGenericCovariantImpl: "generic-covariant-impl",
   Field.FlagLate: "late",
@@ -1537,7 +1537,7 @@ class MemberTagger implements Tagger<Member> {
 
   String tag(Member node) {
     if (node is Field) {
-      return "field";
+      return node.hasSetter ? "mutable-field" : "immutable-field";
     } else if (node is Constructor) {
       return "constructor";
     } else if (node is RedirectingFactoryConstructor) {
@@ -1563,10 +1563,18 @@ class MemberTagger implements Tagger<Member> {
   }
 }
 
-TextSerializer<Field> fieldSerializer =
+TextSerializer<Field> mutableFieldSerializer =
     Wrapped<Tuple4<Name, int, DartType, Expression>, Field>(
         (w) => Tuple4(w.name, w.flags, w.type, w.initializer),
-        (u) => Field(u.first, type: u.third, initializer: u.fourth)
+        (u) => Field.mutable(u.first, type: u.third, initializer: u.fourth)
+          ..flags = u.second,
+        Tuple4Serializer(nameSerializer, fieldFlagsSerializer,
+            dartTypeSerializer, Optional(expressionSerializer)));
+
+TextSerializer<Field> immutableFieldSerializer =
+    Wrapped<Tuple4<Name, int, DartType, Expression>, Field>(
+        (w) => Tuple4(w.name, w.flags, w.type, w.initializer),
+        (u) => Field.immutable(u.first, type: u.third, initializer: u.fourth)
           ..flags = u.second,
         Tuple4Serializer(nameSerializer, fieldFlagsSerializer,
             dartTypeSerializer, Optional(expressionSerializer)));
@@ -2191,7 +2199,8 @@ void initializeSerializers() {
     "local-fun": functionDeclarationSerializer,
   });
   memberSerializer.registerTags({
-    "field": fieldSerializer,
+    "mutable-field": mutableFieldSerializer,
+    "immutable-field": immutableFieldSerializer,
     "method": methodSerializer,
     "getter": getterSerializer,
     "setter": setterSerializer,

@@ -14,7 +14,7 @@ static method test() → dynamic {
             [yield] true;
           }
           {
-            :iterator.{core::_SyncIterator::_yieldEachIterable} = <core::num*>[3, 4.0];
+            :iterator.{core::_SyncIterator::_yieldEachIterable} = core::_GrowableList::_literal2<core::num*>(3, 4.0);
             [yield] true;
           }
         }

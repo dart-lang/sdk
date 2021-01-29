@@ -25,13 +25,13 @@ DEFINE_NATIVE_ENTRY(Developer_debugger, 0, 2) {
   GET_NATIVE_ARGUMENT(String, msg, arguments->NativeArgAt(1));
   Debugger* debugger = isolate->debugger();
   if (debugger == nullptr) {
-    return when.raw();
+    return when.ptr();
   }
   if (when.value()) {
     debugger->PauseDeveloper(msg);
   }
 #endif
-  return when.raw();
+  return when.ptr();
 }
 
 DEFINE_NATIVE_ENTRY(Developer_inspect, 0, 1) {
@@ -39,7 +39,7 @@ DEFINE_NATIVE_ENTRY(Developer_inspect, 0, 1) {
 #ifndef PRODUCT
   Service::SendInspectEvent(isolate, inspectee);
 #endif  // !PRODUCT
-  return inspectee.raw();
+  return inspectee.ptr();
 }
 
 DEFINE_NATIVE_ENTRY(Developer_log, 0, 8) {

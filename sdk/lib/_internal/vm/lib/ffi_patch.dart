@@ -119,6 +119,48 @@ class Pointer<T extends NativeType> {
 int _abi()
     native "Recognized method: IR graph is built in the flow graph builder.";
 
+/// Copies data byte-wise from [source] to [target].
+///
+/// [source] and [target] should either be [Pointer] or [TypedData].
+///
+/// TODO(dartbug.com/37271): Make recognized method and use MemoryCopyInstr.
+void _memCopy(Object target, int targetOffsetInBytes, Object source,
+    int sourceOffsetInBytes, int lengthInBytes) {
+  assert(source is Pointer || source is TypedData);
+  assert(target is Pointer || target is TypedData);
+  if (source is Pointer) {
+    final sourcePointer = source.cast<Uint8>();
+    if (target is Pointer) {
+      final targetPointer = target.cast<Uint8>();
+      for (int i = 0; i < lengthInBytes; i++) {
+        targetPointer[i + targetOffsetInBytes] =
+            sourcePointer[i + sourceOffsetInBytes];
+      }
+    } else if (target is TypedData) {
+      final targetTypedData = target.buffer.asUint8List(target.offsetInBytes);
+      for (int i = 0; i < lengthInBytes; i++) {
+        targetTypedData[i + targetOffsetInBytes] =
+            sourcePointer[i + sourceOffsetInBytes];
+      }
+    }
+  } else if (source is TypedData) {
+    final sourceTypedData = source.buffer.asUint8List(source.offsetInBytes);
+    if (target is Pointer) {
+      final targetPointer = target.cast<Uint8>();
+      for (int i = 0; i < lengthInBytes; i++) {
+        targetPointer[i + targetOffsetInBytes] =
+            sourceTypedData[i + sourceOffsetInBytes];
+      }
+    } else if (target is TypedData) {
+      final targetTypedData = target.buffer.asUint8List(target.offsetInBytes);
+      targetTypedData.setRange(
+          targetOffsetInBytes,
+          targetOffsetInBytes + lengthInBytes,
+          sourceTypedData.sublist(sourceOffsetInBytes));
+    }
+  }
+}
+
 // The following functions are implemented in the method recognizer.
 //
 // TODO(38172): Since these are not inlined (force optimize), they force

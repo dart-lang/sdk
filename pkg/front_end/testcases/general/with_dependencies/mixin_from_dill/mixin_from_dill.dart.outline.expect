@@ -15,6 +15,10 @@ abstract class _Foo&B&D = self2::B with self2::D /*isAnonymousMixin*/  {
   synthetic constructor •() → self2::_Foo&B&D*
     : super self2::B::•()
     ;
+  mixin-super-stub operator ==(dynamic dynamic) → core::bool*
+    return super.{self2::D::==}(dynamic);
+  mixin-super-stub method x() → void
+    return super.{self2::D::x}();
 }
 class Foo extends self2::_Foo&B&D {
   synthetic constructor •() → self2::Foo*

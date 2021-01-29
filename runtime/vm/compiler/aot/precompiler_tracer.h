@@ -92,7 +92,7 @@ class PrecompilerTracer : public ZoneAllocated {
     static const char* Name() { return "EntityTableTraits"; }
 
     static bool IsMatch(const Object& a, const Object& b) {
-      return a.raw() == b.raw();
+      return a.ptr() == b.ptr();
     }
 
     static uword Hash(const Object& obj) {
@@ -119,8 +119,7 @@ class PrecompilerTracer : public ZoneAllocated {
   void Write(const char* format, ...) PRINTF_ATTRIBUTE(2, 3) {
     va_list va;
     va_start(va, format);
-    const char* line = OS::VSCreate(zone_, format, va);
-    Dart::file_write_callback()(line, strlen(line), stream_);
+    buffer_.VPrintf(format, va);
     va_end(va);
   }
 
@@ -131,6 +130,7 @@ class PrecompilerTracer : public ZoneAllocated {
 
   Zone* zone_;
   Precompiler* precompiler_;
+  TextBuffer buffer_;
   void* stream_;
   StringTable strings_;
   EntityTable entities_;

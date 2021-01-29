@@ -115,7 +115,7 @@ class ProfileCodeInlinedFunctionsCache : public ZoneAllocated {
     intptr_t offset;
     GrowableArray<const Function*> inlined_functions;
     GrowableArray<TokenPosition> inlined_token_positions;
-    TokenPosition token_position;
+    TokenPosition token_position = TokenPosition::kNoSource;
   };
 
   static const intptr_t kCacheSize = 128;

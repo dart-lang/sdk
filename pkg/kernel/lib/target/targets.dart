@@ -1,6 +1,9 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// @dart = 2.9
+
 library kernel.target.targets;
 
 import '../ast.dart';
@@ -367,6 +370,8 @@ abstract class Target {
   /// with the accessed getter or field as the interface target.
   bool get supportsExplicitGetterCalls;
 
+  bool get supportsNewMethodInvocationEncoding;
+
   /// Builds an expression that instantiates an [Invocation] that can be passed
   /// to [noSuchMethod].
   Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
@@ -432,6 +437,9 @@ class NoneTarget extends Target {
   @override
   bool get supportsExplicitGetterCalls =>
       !flags.forceNoExplicitGetterCallsForTesting;
+
+  @override
+  bool get supportsNewMethodInvocationEncoding => true;
 
   @override
   String get name => 'none';

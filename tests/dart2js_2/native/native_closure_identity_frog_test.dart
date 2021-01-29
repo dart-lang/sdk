@@ -24,10 +24,11 @@ void setup() {
   A.prototype.setClosure = function(f) { this.f = f; };
   A.prototype.check = function(f) { return this.f === f; };
   A.prototype.invoke = function() { return this.f(); };
-  makeA = function(){return new A()};
+  self.makeA = function(){return new A()};
 
   self.nativeConstructor(A);
 })()""");
+  applyTestExtensions(['A']);
 }
 
 var staticClosure;

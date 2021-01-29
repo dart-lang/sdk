@@ -266,13 +266,22 @@ class CallingConventions {
   static constexpr Register kSecondReturnReg = EDX;
   static constexpr Register kPointerToReturnStructRegisterReturn = kReturnReg;
 
+  // Whether the callee uses `ret 4` instead of `ret` to return with struct
+  // return values.
+  // See: https://c9x.me/x86/html/file_module_x86_id_280.html
+#if defined(_WIN32)
+  static const bool kUsesRet4 = false;
+#else
+  static const bool kUsesRet4 = true;
+#endif
+
   // Floating point values are returned on the "FPU stack" (in "ST" registers).
   // However, we use XMM0 in our compiler pipeline as the location.
   // The move from and to ST is done in FfiCallInstr::EmitNativeCode and
   // NativeReturnInstr::EmitNativeCode.
   static constexpr XmmRegister kReturnFpuReg = XMM0;
 
-  static constexpr Register kFirstCalleeSavedCpuReg = EBX;
+  static constexpr Register kFfiAnyNonAbiRegister = EBX;
   static constexpr Register kFirstNonArgumentRegister = EAX;
   static constexpr Register kSecondNonArgumentRegister = ECX;
   static constexpr Register kStackPointerRegister = SPREG;

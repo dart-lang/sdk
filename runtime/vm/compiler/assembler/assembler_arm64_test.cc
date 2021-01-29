@@ -1901,11 +1901,12 @@ ASSEMBLER_TEST_RUN(AdrBr, test) {
 
 ASSEMBLER_TEST_GENERATE(AdrBlr, assembler) {
   __ movz(R0, Immediate(123), 0);
-  __ add(R3, ZR, Operand(LR));  // Save LR.
+  SPILLS_RETURN_ADDRESS_FROM_LR_TO_REGISTER(
+      __ add(R3, ZR, Operand(LR)));  // Save LR.
   // R1 <- PC + 4*Instr::kInstrSize
   __ adr(R1, Immediate(4 * Instr::kInstrSize));
   __ blr(R1);
-  __ add(LR, ZR, Operand(R3));
+  RESTORES_RETURN_ADDRESS_FROM_REGISTER_TO_LR(__ add(LR, ZR, Operand(R3)));
   __ ret();
 
   // blr goes here.
@@ -2642,7 +2643,7 @@ ASSEMBLER_TEST_GENERATE(CompareObjectNull, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(CompareObjectNull, test) {
-  EXPECT_EQ(static_cast<uword>(Bool::True().raw()),
+  EXPECT_EQ(static_cast<uword>(Bool::True().ptr()),
             test->InvokeWithCodeAndThread<uword>());
 }
 
@@ -2656,7 +2657,7 @@ ASSEMBLER_TEST_GENERATE(LoadObjectTrue, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(LoadObjectTrue, test) {
-  EXPECT_EQ(static_cast<uword>(Bool::True().raw()),
+  EXPECT_EQ(static_cast<uword>(Bool::True().ptr()),
             test->InvokeWithCodeAndThread<uword>());
 }
 
@@ -2670,7 +2671,7 @@ ASSEMBLER_TEST_GENERATE(LoadObjectFalse, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(LoadObjectFalse, test) {
-  EXPECT_EQ(static_cast<uword>(Bool::False().raw()),
+  EXPECT_EQ(static_cast<uword>(Bool::False().ptr()),
             test->InvokeWithCodeAndThread<uword>());
 }
 
@@ -4604,12 +4605,12 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ Push(CODE_REG);
   __ Push(THR);
   __ Push(BARRIER_MASK);
-  __ Push(LR);
+  SPILLS_LR_TO_FRAME(__ Push(LR));
   __ mov(THR, R2);
   __ ldr(BARRIER_MASK, Address(THR, Thread::write_barrier_mask_offset()));
   __ StoreIntoObject(R1, FieldAddress(R1, GrowableObjectArray::data_offset()),
                      R0);
-  __ Pop(LR);
+  RESTORES_LR_FROM_FRAME(__ Pop(LR));
   __ Pop(BARRIER_MASK);
   __ Pop(THR);
   __ Pop(CODE_REG);

@@ -57,7 +57,6 @@ void checkElementText(
   bool withSyntheticFields = false,
   bool withTypes = false,
   bool withTypeParameterVariance = false,
-  bool annotateNullability = false,
 }) {
   var writer = _ElementWriter(
     selfUriStr: '${library.source.uri}',
@@ -70,7 +69,6 @@ void checkElementText(
     withSyntheticFields: withSyntheticFields,
     withTypes: withTypes,
     withTypeParameterVariance: withTypeParameterVariance,
-    annotateNullability: annotateNullability,
   );
   writer.writeLibraryElement(library);
 
@@ -140,7 +138,6 @@ class _ElementWriter {
   final bool withSyntheticFields;
   final bool withTypes;
   final bool withTypeParameterVariance;
-  final bool annotateNullability;
   final StringBuffer buffer = StringBuffer();
 
   String indent = '';
@@ -156,7 +153,6 @@ class _ElementWriter {
     this.withSyntheticFields = false,
     this.withTypes = false,
     this.withTypeParameterVariance,
-    this.annotateNullability = false,
   });
 
   bool isDynamicType(DartType type) => type is DynamicTypeImpl;
@@ -305,16 +301,17 @@ class _ElementWriter {
     var initializers = (e as ConstructorElementImpl).constantInitializers;
     if (withFullyResolvedAst) {
       buffer.writeln(';');
-      if (initializers != null && initializers.isNotEmpty) {
-        _withIndent(() {
+      _withIndent(() {
+        if (initializers != null && initializers.isNotEmpty) {
           _writelnWithIndent('constantInitializers');
           _withIndent(() {
             for (var initializer in initializers) {
               _writeResolvedNode(initializer);
             }
           });
-        });
-      }
+        }
+        _writeParameterElementDefaultValues(e.parameters);
+      });
     } else {
       if (initializers != null) {
         writeList(' : ', '', initializers, ', ', writeNode);
@@ -411,6 +408,12 @@ class _ElementWriter {
     writeBodyModifiers(e);
 
     buffer.writeln(' {}');
+
+    if (withFullyResolvedAst) {
+      _withIndent(() {
+        _writeParameterElementDefaultValues(e.parameters);
+      });
+    }
   }
 
   void writeIf(bool flag, String str) {
@@ -534,6 +537,7 @@ class _ElementWriter {
       _withIndent(() {
         _writeResolvedTypeParameters(e.typeParameters);
         _writeResolvedMetadata(e.metadata);
+        _writeParameterElementDefaultValues(e.parameters);
       });
     }
   }
@@ -832,15 +836,17 @@ class _ElementWriter {
     writeName(e);
     writeCodeRange(e);
 
-    if (e.parameters.isNotEmpty) {
-      buffer.write('/*');
-      writeList('(', ')', e.parameters, ', ', writeParameterElement);
-      buffer.write('*/');
-    }
+    if (!withFullyResolvedAst) {
+      if (e.parameters.isNotEmpty) {
+        buffer.write('/*');
+        writeList('(', ')', e.parameters, ', ', writeParameterElement);
+        buffer.write('*/');
+      }
 
-    if (defaultValue != null) {
-      buffer.write(defaultValueSeparator);
-      writeNode(defaultValue);
+      if (defaultValue != null) {
+        buffer.write(defaultValueSeparator);
+        writeNode(defaultValue);
+      }
     }
 
     buffer.write(closeString);
@@ -1176,7 +1182,7 @@ class _ElementWriter {
 
   String _typeStr(DartType type) {
     return type?.getDisplayString(
-      withNullability: annotateNullability,
+      withNullability: true,
     );
   }
 
@@ -1198,6 +1204,30 @@ class _ElementWriter {
     buffer.writeln(line);
   }
 
+  void _writeParameterElementDefaultValues(
+    List<ParameterElement> parameters, {
+    String enclosingNames = '',
+  }) {
+    for (var parameter in parameters) {
+      if (parameter is DefaultParameterElementImpl) {
+        var defaultValue = parameter.constantInitializer;
+        if (defaultValue != null) {
+          _writelnWithIndent(enclosingNames + parameter.name);
+          _withIndent(() {
+            _writeResolvedNode(defaultValue);
+          });
+        }
+      }
+      var subParameters = parameter.parameters;
+      _withIndent(() {
+        _writeParameterElementDefaultValues(
+          subParameters,
+          enclosingNames: enclosingNames + parameter.name + '::',
+        );
+      });
+    }
+  }
+
   void _writeResolvedMetadata(List<ElementAnnotation> metadata) {
     if (metadata.isNotEmpty) {
       _writelnWithIndent('metadata');
@@ -1216,7 +1246,7 @@ class _ElementWriter {
         selfUriStr: selfUriStr,
         sink: buffer,
         indent: indent,
-        withNullability: annotateNullability,
+        withNullability: true,
       ),
     );
   }

@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:args/src/arg_results.dart';
 import 'package:nnbd_migration/migration_cli.dart';
 
-main(List<String> args) async {
+void main(List<String> args) async {
   var cli = MigrationCli(binaryName: 'nnbd_migration');
   ArgResults argResults;
   try {

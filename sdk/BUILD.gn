@@ -48,6 +48,7 @@ declare_args() {
 # ........dart2js.dart.snapshot
 # ........dart2native.dart.snapshot (if not on ia32)
 # ........dartanalyzer.dart.snapshot
+# ........dartdev.dart.snapshot
 # ........dartdev.dill
 # ........dartdevc.dart.snapshot
 # ........dartdoc.dart.snapshot
@@ -118,6 +119,10 @@ _platform_sdk_snapshots = [
     "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
   ],
   [
+    "dartdev",
+    "../utils/dartdev:dartdev",
+  ],
+  [
     "dartdoc",
     "../utils/dartdoc",
   ],
@@ -153,62 +158,24 @@ if (dart_target_arch != "arm") {
       ] ]
 }
 
-_full_sdk_snapshots = [
-  [
-    "dart2js",
-    "../utils/compiler:dart2js",
-  ],
-  [
-    "dartanalyzer",
-    "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
-  ],
-  [
-    "dartdevc",
-    "../utils/dartdevc",
-  ],
-  [
-    "dartdoc",
-    "../utils/dartdoc",
-  ],
-  [
-    "dartfmt",
-    "../utils/dartfmt",
-  ],
-  [
-    "dds",
-    "../utils/dds:dds",
-  ],
-  [
-    "kernel_worker",
-    "../utils/bazel:kernel_worker",
-  ],
-  [
-    "pub",
-    "../utils/pub",
-  ],
-  [
-    "frontend_server",
-    "../utils/kernel-service:frontend_server",
-  ],
-]
-if (dart_target_arch != "ia32") {
-  _full_sdk_snapshots += [ [
-        "dart2native",
-        "../utils/dart2native:generate_dart2native_snapshot",
-      ] ]
-}
-if (create_kernel_service_snapshot) {
-  _full_sdk_snapshots += [ [
-        "kernel-service",
-        "../utils/kernel-service:kernel-service_snapshot",
-      ] ]
-}
-if (dart_target_arch != "arm") {
-  _full_sdk_snapshots += [ [
-        "analysis_server",
-        "../utils/analysis_server",
-      ] ]
-}
+_full_sdk_snapshots = _platform_sdk_snapshots + [
+                        [
+                          "dart2js",
+                          "../utils/compiler:dart2js",
+                        ],
+                        [
+                          "dartdevc",
+                          "../utils/dartdevc",
+                        ],
+                        [
+                          "kernel_worker",
+                          "../utils/bazel:kernel_worker",
+                        ],
+                        [
+                          "frontend_server",
+                          "../utils/kernel-service:frontend_server",
+                        ],
+                      ]
 
 # Libraries that go under lib/
 _full_sdk_libraries = [

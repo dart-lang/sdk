@@ -29,6 +29,19 @@ void f({a = b?[0]}) {}
     );
   }
 
+  test_invalid_inDefaultValue_nullAware2() async {
+    await assertInvalidTestCode(r'''
+typedef void F({a = b?[0]});
+''');
+
+    assertIndexExpression(
+      findNode.index('[0]'),
+      readElement: null,
+      writeElement: null,
+      type: 'dynamic',
+    );
+  }
+
   test_read() async {
     await assertNoErrorsInCode(r'''
 class A {

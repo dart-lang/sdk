@@ -4,14 +4,16 @@
 //
 // Sample illustrating resource management with an explicit pool.
 
+import 'dart:async';
 import 'dart:ffi';
 
 import 'package:expect/expect.dart';
 
 import 'pool.dart';
+import 'utf8_helpers.dart';
 import '../dylib_utils.dart';
 
-main() {
+main() async {
   final ffiTestDynamicLibrary =
       dlopenPlatformSpecific("ffi_test_dynamic_library");
 
@@ -21,7 +23,7 @@ main() {
 
   // To ensure resources are freed, wrap them in a [using] call.
   using((Pool pool) {
-    final p = pool.allocate<Int64>(count: 2);
+    final p = pool<Int64>(2);
     p[0] = 24;
     MemMove(p.elementAt(1).cast<Void>(), p.cast<Void>(), sizeOf<Int64>());
     print(p[1]);
@@ -31,14 +33,14 @@ main() {
   // Resources are freed also when abnormal control flow occurs.
   try {
     using((Pool pool) {
-      final p = pool.allocate<Int64>(count: 2);
+      final p = pool<Int64>(2);
       p[0] = 25;
       MemMove(p.elementAt(1).cast<Void>(), p.cast<Void>(), 8);
       print(p[1]);
       Expect.equals(25, p[1]);
       throw Exception("Some random exception");
     });
-    // `free(p)` has been called.
+    // `calloc.free(p)` has been called.
   } on Exception catch (e) {
     print("Caught exception: $e");
   }
@@ -46,8 +48,8 @@ main() {
   // In a pool multiple resources can be allocated, which will all be freed
   // at the end of the scope.
   using((Pool pool) {
-    final p = pool.allocate<Int64>(count: 2);
-    final p2 = pool.allocate<Int64>(count: 2);
+    final p = pool<Int64>(2);
+    final p2 = pool<Int64>(2);
     p[0] = 1;
     p[1] = 2;
     MemMove(p2.cast<Void>(), p.cast<Void>(), 2 * sizeOf<Int64>());
@@ -58,7 +60,7 @@ main() {
   // If the resource allocation happens in a different scope, then one either
   // needs to pass the pool to that scope.
   f1(Pool pool) {
-    return pool.allocate<Int64>(count: 2);
+    return pool<Int64>(2);
   }
 
   using((Pool pool) {
@@ -107,7 +109,25 @@ main() {
   } on Exception catch (e) {
     print("Caught exception: $e");
   }
+
+  /// [using] waits with releasing its resources until after [Future]s
+  /// complete.
+  List<int> freed = [];
+  freeInt(int i) {
+    freed.add(i);
+  }
+
+  Future<int> myFutureInt = using((Pool pool) {
+    return Future.microtask(() {
+      pool.using(1, freeInt);
+      return 1;
+    });
+  });
+
+  Expect.isTrue(freed.isEmpty);
+  await myFutureInt;
+  Expect.equals(1, freed.single);
 }
 
 /// Represents some opaque resource being managed by a library.
-class SomeResource extends Struct {}
+class SomeResource extends Opaque {}

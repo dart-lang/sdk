@@ -54,6 +54,7 @@ import 'convert_to_int_literal_test.dart' as convert_to_int_literal;
 import 'convert_to_list_literal_test.dart' as convert_to_list_literal;
 import 'convert_to_map_literal_test.dart' as convert_to_map_literal;
 import 'convert_to_named_arguments_test.dart' as convert_to_named_arguments;
+import 'convert_to_null_aware_spread_test.dart' as convert_to_null_aware_spread;
 import 'convert_to_null_aware_test.dart' as convert_to_null_aware;
 import 'convert_to_on_type_test.dart' as convert_to_on_type;
 import 'convert_to_package_import_test.dart' as convert_to_package_import;
@@ -128,6 +129,10 @@ import 'remove_type_arguments_test.dart' as remove_type_arguments;
 import 'remove_unnecessary_cast_test.dart' as remove_unnecessary_cast;
 import 'remove_unnecessary_const_test.dart' as remove_unnecessary_const;
 import 'remove_unnecessary_new_test.dart' as remove_unnecessary_new;
+import 'remove_unnecessary_parentheses_test.dart'
+    as remove_unnecessary_parentheses;
+import 'remove_unnecessary_string_interpolation_test.dart'
+    as remove_unnecessary_string_interpolation;
 import 'remove_unused_catch_clause_test.dart' as remove_unused_catch_clause;
 import 'remove_unused_catch_stack_test.dart' as remove_unused_catch_stack;
 import 'remove_unused_element_test.dart' as remove_unused_element;
@@ -215,6 +220,7 @@ void main() {
     convert_to_map_literal.main();
     convert_to_named_arguments.main();
     convert_to_null_aware.main();
+    convert_to_null_aware_spread.main();
     convert_to_on_type.main();
     convert_to_package_import.main();
     convert_to_relative_import.main();
@@ -283,6 +289,8 @@ void main() {
     remove_unnecessary_cast.main();
     remove_unnecessary_const.main();
     remove_unnecessary_new.main();
+    remove_unnecessary_parentheses.main();
+    remove_unnecessary_string_interpolation.main();
     remove_unused_catch_clause.main();
     remove_unused_catch_stack.main();
     remove_unused_element.main();

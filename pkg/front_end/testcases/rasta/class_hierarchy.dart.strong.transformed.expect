@@ -75,7 +75,7 @@ class C extends core::Object /*hasConstConstructor*/  {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class D extends core::Object {
-  static field dynamic _redirecting# = <dynamic>[self::D::•];
+  static final field dynamic _redirecting# = <dynamic>[self::D::•];
   static factory •() → self::D*
     let core::String* #redirecting_factory = "Missing" in invalid-expression;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode

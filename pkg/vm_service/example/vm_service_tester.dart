@@ -18,10 +18,10 @@ import 'package:vm_service/vm_service_io.dart';
 final String host = 'localhost';
 final int port = 7575;
 
-VmService serviceClient;
+late VmService serviceClient;
 
 void main() {
-  Process process;
+  Process? process;
 
   tearDown(() {
     process?.kill();
@@ -43,11 +43,11 @@ void main() {
     print('dart process started');
 
     // ignore: unawaited_futures
-    process.exitCode.then((code) => print('vm exited: ${code}'));
+    process!.exitCode.then((code) => print('vm exited: ${code}'));
     // ignore: strong_mode_down_cast_composite
-    process.stdout.transform(utf8.decoder).listen(print);
+    process!.stdout.transform(utf8.decoder).listen(print);
     // ignore: strong_mode_down_cast_composite
-    process.stderr.transform(utf8.decoder).listen(print);
+    process!.stderr.transform(utf8.decoder).listen(print);
 
     await Future.delayed(Duration(milliseconds: 500));
 
@@ -70,7 +70,7 @@ void main() {
       // reserialize it back to the same exact representation (minus private
       // fields).
       var json = jsonDecode(str);
-      var originalJson = json['result'] as Map<String, dynamic>;
+      var originalJson = json['result'] as Map<String, dynamic>?;
       if (originalJson == null && json['method'] == 'streamNotify') {
         originalJson = json['params']['event'];
       }
@@ -84,7 +84,7 @@ void main() {
 
       var reserializedJson = (instance as dynamic).toJson();
 
-      forEachNestedMap(originalJson, (obj) {
+      forEachNestedMap(originalJson!, (obj) {
         // Private fields that we don't reproduce
         obj.removeWhere((k, v) => k.startsWith('_'));
         // Extra fields that aren't specified and we don't reproduce
@@ -112,7 +112,7 @@ void main() {
     VM vm = await serviceClient.getVM();
     print('hostCPU=${vm.hostCPU}');
     print(await serviceClient.getVersion());
-    List<IsolateRef> isolates = await vm.isolates;
+    List<IsolateRef> isolates = await vm.isolates!;
     print(isolates);
 
     // Disable the json reserialization checks since custom services are not
@@ -121,14 +121,14 @@ void main() {
     await testServiceRegistration();
     checkResponseJsonCompatibility = true;
 
-    await testScriptParse(vm.isolates.first);
-    await testSourceReport(vm.isolates.first);
+    await testScriptParse(vm.isolates!.first);
+    await testSourceReport(vm.isolates!.first);
 
     IsolateRef isolateRef = isolates.first;
-    print(await serviceClient.resume(isolateRef.id));
+    print(await serviceClient.resume(isolateRef.id!));
 
     print('waiting for client to shut down...');
-    serviceClient.dispose();
+    await serviceClient.dispose();
 
     await serviceClient.onDone;
     print('service client shut down');
@@ -169,48 +169,50 @@ Future testServiceRegistration() async {
   otherClient.onEvent('Service').listen((e) async {
     if (e.service == serviceName && e.kind == EventKind.kServiceRegistered) {
       assert(e.alias == serviceAlias);
-      Response response = await serviceClient.callMethod(
-        e.method,
+      Response? response = await serviceClient.callMethod(
+        e.method!,
         args: <String, dynamic>{'input': movedValue},
       );
-      assert(response.json['output'] == movedValue);
+      assert(response.json!['output'] == movedValue);
       completer.complete();
     }
   });
   await otherClient.streamListen('Service');
   await completer.future;
-  otherClient.dispose();
+  await otherClient.dispose();
 }
 
 Future testScriptParse(IsolateRef isolateRef) async {
-  final Isolate isolate = await serviceClient.getIsolate(isolateRef.id);
+  final isolateId = isolateRef.id!;
+  final Isolate isolate = await serviceClient.getIsolate(isolateId);
   final Library rootLibrary =
-      await serviceClient.getObject(isolateRef.id, isolate.rootLib.id);
-  final ScriptRef scriptRef = rootLibrary.scripts.first;
+      await serviceClient.getObject(isolateId, isolate.rootLib!.id!) as Library;
+  final ScriptRef scriptRef = rootLibrary.scripts!.first;
 
   final Script script =
-      await serviceClient.getObject(isolateRef.id, scriptRef.id);
+      await serviceClient.getObject(isolateId, scriptRef.id!) as Script;
   print(script);
   print(script.uri);
   print(script.library);
-  print(script.source.length);
-  print(script.tokenPosTable.length);
+  print(script.source!.length);
+  print(script.tokenPosTable!.length);
 }
 
 Future testSourceReport(IsolateRef isolateRef) async {
-  final Isolate isolate = await serviceClient.getIsolate(isolateRef.id);
+  final isolateId = isolateRef.id!;
+  final Isolate isolate = await serviceClient.getIsolate(isolateId);
   final Library rootLibrary =
-      await serviceClient.getObject(isolateRef.id, isolate.rootLib.id);
-  final ScriptRef scriptRef = rootLibrary.scripts.first;
+      await serviceClient.getObject(isolateId, isolate.rootLib!.id!) as Library;
+  final ScriptRef scriptRef = rootLibrary.scripts!.first;
 
   // make sure some code has run
-  await serviceClient.resume(isolateRef.id);
+  await serviceClient.resume(isolateId);
   await Future.delayed(const Duration(milliseconds: 25));
 
   final SourceReport sourceReport = await serviceClient.getSourceReport(
-      isolateRef.id, [SourceReportKind.kCoverage],
+      isolateId, [SourceReportKind.kCoverage],
       scriptId: scriptRef.id);
-  for (SourceReportRange range in sourceReport.ranges) {
+  for (SourceReportRange range in sourceReport.ranges!) {
     print('  $range');
     if (range.coverage != null) {
       print('  ${range.coverage}');

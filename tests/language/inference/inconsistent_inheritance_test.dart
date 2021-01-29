@@ -28,10 +28,7 @@ class C extends A implements B {
   void g(x, y) {
     // ^
     // [analyzer] COMPILE_TIME_ERROR.NO_COMBINED_SUPER_SIGNATURE
-    //   ^
-    // [cfe] Can't infer a type for 'x' as the overridden members don't have a combined signature.
-    //      ^
-    // [cfe] Can't infer a type for 'y' as the overridden members don't have a combined signature.
+    // [cfe] Can't infer types for 'g' as the overridden members don't have a combined signature.
   }
 }
 

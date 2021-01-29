@@ -286,6 +286,11 @@
       "out/ReleaseAndroidARM/",
       "out/ReleaseAndroidARM_X64/",
       "out/ReleaseAndroidARM64/",
+      "out/ReleaseASANX64/",
+      "out/ReleaseLSANX64/",
+      "out/ReleaseMSANX64/",
+      "out/ReleaseTSANX64/",
+      "out/ReleaseUBSANX64/",
       "out/ReleaseXARM64/",
       "out/ProductIA32/",
       "out/ProductX64/",
@@ -642,6 +647,18 @@
         "host-checked": true
       }
     },
+    "dart2js-hostasserts-weak-max-fragments-(linux|win)-x64-(d8|chrome)": {
+      "options": {
+        "builder-tag": "dart2js-weak",
+        "dart2js-options": [
+          "--libraries-spec=sdk/lib/libraries.json",
+          "--platform-binaries=out/ReleaseX64/",
+          "--merge-fragments-threshold=3"
+        ],
+        "timeout": 240,
+        "host-checked": true
+      }
+    },
     "dart2js-hostasserts-weak-mac-x64-(d8|chrome)": {
       "options": {
         "builder-tag": "dart2js-weak",
@@ -659,6 +676,18 @@
         "dart2js-options": [
           "--libraries-spec=sdk/lib/libraries.json",
           "--platform-binaries=out/ReleaseX64/"
+        ],
+        "timeout": 240,
+        "host-checked": true
+      }
+    },
+    "dart2js-hostasserts-strong-max-fragments-(linux|win)-x64-(d8|chrome)": {
+      "options": {
+        "builder-tag": "dart2js-strong",
+        "dart2js-options": [
+          "--libraries-spec=sdk/lib/libraries.json",
+          "--platform-binaries=out/ReleaseX64/",
+          "--merge-fragments-threshold=3"
         ],
         "timeout": 240,
         "host-checked": true
@@ -1436,8 +1465,11 @@
           "name": "vm tests",
           "arguments": [
             "-ndartk-${sanitizer}-${system}-${mode}-${arch}",
-            "vm/cc"
-          ]
+            "vm",
+            "standalone_2"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 8
         }
       ]
     },
@@ -1490,8 +1522,11 @@
           "name": "vm tests",
           "arguments": [
             "-ndartkp-${sanitizer}-${system}-${mode}-${arch}",
-            "vm/cc"
-          ]
+            "vm",
+            "standalone_2"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 8
         }
       ]
     },
@@ -1707,8 +1742,11 @@
           "script": "tools/build.py",
           "arguments": [
             "--os=fuchsia",
+            "--arch=x64,arm64",
             "runtime",
-            "create_sdk"
+            "create_sdk",
+            "fuchsia_test_package",
+            "fuchsia_ffi_test_package"
           ]
         }
       ]
@@ -2167,6 +2205,13 @@
           ]
         },
         {
+          "name": "js_runtime unit tests",
+          "arguments": [
+            "-nunittest-asserts-no-sdk-linux",
+            "pkg//js_runtime/"
+          ]
+        },
+        {
           "name": "dart2js unit tests",
           "arguments": [
             "-nunittest-asserts-no-sdk-linux",
@@ -2469,6 +2514,16 @@
           "fileset": "web_platform_hostasserts_nnbd"
         },
         {
+          "name": "dart2js nnbd weak d8 fragment merging tests",
+          "arguments": [
+            "-ndart2js-hostasserts-weak-max-fragments-linux-x64-d8",
+            "--dart2js-batch",
+            "dart2js/deferred/"
+          ],
+          "shards": 1,
+          "fileset": "web_platform_hostasserts_nnbd"
+        },
+        {
           "name": "dart2js nnbd weak chrome tests",
           "arguments": [
             "-ndart2js-hostasserts-weak-linux-x64-chrome",
@@ -2507,6 +2562,16 @@
             "corelib"
           ],
           "shards": 6,
+          "fileset": "web_platform_hostasserts_nnbd"
+        },
+        {
+          "name": "dart2js nnbd strong d8 fragment merging tests",
+          "arguments": [
+            "-ndart2js-hostasserts-strong-max-fragments-linux-x64-d8",
+            "--dart2js-batch",
+            "dart2js/deferred/"
+          ],
+          "shards": 1,
           "fileset": "web_platform_hostasserts_nnbd"
         },
         {
@@ -3160,7 +3225,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
-            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|front_end|kernel|nnbd_migration)/)"
+            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|js_runtime|front_end|kernel|nnbd_migration)/)"
           ]
         },
         {
@@ -3198,7 +3263,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
-            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|front_end|kernel|nnbd_migration)/)"
+            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|js_runtime|front_end|kernel|nnbd_migration)/)"
           ]
         },
         {

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.verifier;
 
 import 'dart:core' hide MapEntry;
@@ -111,9 +113,9 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
   TreeNode get localContext {
     TreeNode result = getSameLibraryLastSeenTreeNode(withLocation: true);
     if (result == null &&
-        currentClassOrMember != null &&
-        _isInSameLibrary(currentLibrary, currentClassOrMember)) {
-      result = currentClassOrMember;
+        currentClassOrExtensionOrMember != null &&
+        _isInSameLibrary(currentLibrary, currentClassOrExtensionOrMember)) {
+      result = currentClassOrExtensionOrMember;
     }
     return result;
   }
@@ -172,7 +174,7 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
 
   @override
   problem(TreeNode node, String details, {TreeNode context, TreeNode origin}) {
-    node ??= (context ?? currentClassOrMember);
+    node ??= (context ?? currentClassOrExtensionOrMember);
     int offset = node?.fileOffset ?? -1;
     Uri file = node?.location?.file ?? fileUri;
     Uri uri = file == null ? null : file;
@@ -237,6 +239,14 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
     enterTreeNode(node);
     fileUri = checkLocation(node, node.name, node.fileUri);
     super.visitClass(node);
+    exitTreeNode(node);
+  }
+
+  @override
+  void visitExtension(Extension node) {
+    enterTreeNode(node);
+    fileUri = checkLocation(node, node.name, node.fileUri);
+    super.visitExtension(node);
     exitTreeNode(node);
   }
 

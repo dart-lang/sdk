@@ -32,9 +32,12 @@ class FlowGraphChecker : public FlowGraphVisitor {
   // Constructs graph checker. The checker uses some custom-made
   // visitation to perform additional checks, and uses the
   // FlowGraphVisitor structure for anything else.
-  explicit FlowGraphChecker(FlowGraph* flow_graph)
+  FlowGraphChecker(FlowGraph* flow_graph,
+                   const GrowableArray<const Function*>& inline_id_to_function)
       : FlowGraphVisitor(flow_graph->preorder()),
         flow_graph_(flow_graph),
+        inline_id_to_function_(inline_id_to_function),
+        script_(Script::Handle(flow_graph_->zone())),
         current_block_(nullptr) {}
 
   // Performs a sanity check on the flow graph.
@@ -66,6 +69,8 @@ class FlowGraphChecker : public FlowGraphVisitor {
       PolymorphicInstanceCallInstr* call) override;
 
   FlowGraph* const flow_graph_;
+  const GrowableArray<const Function*>& inline_id_to_function_;
+  Script& script_;
   BlockEntryInstr* current_block_;
 };
 

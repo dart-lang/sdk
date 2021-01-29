@@ -86,7 +86,7 @@ static TypedDataPtr GetRandomStateArray(const Instance& receiver) {
   const TypedData& array = TypedData::Cast(state_field_value);
   ASSERT(array.Length() == 2);
   ASSERT(array.ElementType() == kUint32ArrayElement);
-  return array.raw();
+  return array.ptr();
 }
 
 // Implements:
@@ -113,7 +113,7 @@ TypedDataPtr CreateRandomState(Zone* zone, uint64_t seed) {
   result.SetUint32(0, static_cast<uint32_t>(seed));
   result.SetUint32(result.ElementSizeInBytes(),
                    static_cast<uint32_t>(seed >> 32));
-  return result.raw();
+  return result.ptr();
 }
 
 uint64_t mix64(uint64_t n) {

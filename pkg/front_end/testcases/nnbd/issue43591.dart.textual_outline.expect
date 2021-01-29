@@ -1,5 +1,7 @@
-extension E<T> (){}
-on T (){}
+extension E<T> on T {
+  T Function(T) get f => (T t) => t;
+}
+
 method1<S>(S s) {}
 method2<S extends dynamic>(S s) {}
 main() {}

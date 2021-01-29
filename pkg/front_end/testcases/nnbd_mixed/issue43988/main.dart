@@ -10,6 +10,8 @@ class E1 with A, D {}
 
 class E2 = Object with A, D;
 
+class E3 = Object with A, F;
+
 abstract class C6 extends C3 implements C4 {}
 
 abstract class C8 extends C5 implements C7 {}

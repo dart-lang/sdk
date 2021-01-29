@@ -21,7 +21,7 @@ class CharArray {
     String& result = String::Handle(StringFrom(data_, len_, Heap::kOld));
     result.SetCanonical();
     result.SetHash(hash_);
-    return result.raw();
+    return result.ptr();
   }
   bool Equals(const String& other) const {
     ASSERT(other.HasHash());
@@ -167,10 +167,49 @@ class CanonicalTypeTraits {
   }
   static uword Hash(const CanonicalTypeKey& key) { return key.Hash(); }
   static ObjectPtr NewKey(const CanonicalTypeKey& obj) {
-    return obj.key_.raw();
+    return obj.key_.ptr();
   }
 };
 typedef UnorderedHashSet<CanonicalTypeTraits> CanonicalTypeSet;
+
+class CanonicalFunctionTypeKey {
+ public:
+  explicit CanonicalFunctionTypeKey(const FunctionType& key) : key_(key) {}
+  bool Matches(const FunctionType& arg) const { return key_.Equals(arg); }
+  uword Hash() const { return key_.Hash(); }
+  const FunctionType& key_;
+
+ private:
+  DISALLOW_ALLOCATION();
+};
+
+// Traits for looking up Canonical FunctionType based on its hash.
+class CanonicalFunctionTypeTraits {
+ public:
+  static const char* Name() { return "CanonicalFunctionTypeTraits"; }
+  static bool ReportStats() { return false; }
+
+  // Called when growing the table.
+  static bool IsMatch(const Object& a, const Object& b) {
+    ASSERT(a.IsFunctionType() && b.IsFunctionType());
+    const FunctionType& arg1 = FunctionType::Cast(a);
+    const FunctionType& arg2 = FunctionType::Cast(b);
+    return arg1.Equals(arg2) && (arg1.Hash() == arg2.Hash());
+  }
+  static bool IsMatch(const CanonicalFunctionTypeKey& a, const Object& b) {
+    ASSERT(b.IsFunctionType());
+    return a.Matches(FunctionType::Cast(b));
+  }
+  static uword Hash(const Object& key) {
+    ASSERT(key.IsFunctionType());
+    return FunctionType::Cast(key).Hash();
+  }
+  static uword Hash(const CanonicalFunctionTypeKey& key) { return key.Hash(); }
+  static ObjectPtr NewKey(const CanonicalFunctionTypeKey& obj) {
+    return obj.key_.ptr();
+  }
+};
+typedef UnorderedHashSet<CanonicalFunctionTypeTraits> CanonicalFunctionTypeSet;
 
 class CanonicalTypeParameterKey {
  public:
@@ -206,7 +245,7 @@ class CanonicalTypeParameterTraits {
   }
   static uword Hash(const CanonicalTypeParameterKey& key) { return key.Hash(); }
   static ObjectPtr NewKey(const CanonicalTypeParameterKey& obj) {
-    return obj.key_.raw();
+    return obj.key_.ptr();
   }
 };
 typedef UnorderedHashSet<CanonicalTypeParameterTraits>
@@ -248,7 +287,7 @@ class CanonicalTypeArgumentsTraits {
   }
   static uword Hash(const CanonicalTypeArgumentsKey& key) { return key.Hash(); }
   static ObjectPtr NewKey(const CanonicalTypeArgumentsKey& obj) {
-    return obj.key_.raw();
+    return obj.key_.ptr();
   }
 };
 typedef UnorderedHashSet<CanonicalTypeArgumentsTraits>

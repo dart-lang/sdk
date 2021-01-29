@@ -340,8 +340,38 @@ abstract class _SetBase<E> with SetMixin<E> {
   Set<E> toSet() => _newSet()..addAll(this);
 }
 
+abstract class _UnmodifiableSetMixin<E> implements Set<E> {
+  static Never _throwUnmodifiable() {
+    throw UnsupportedError("Cannot change an unmodifiable set");
+  }
+
+  /// This operation is not supported by an unmodifiable set.
+  bool add(E value) => _throwUnmodifiable();
+
+  /// This operation is not supported by an unmodifiable set.
+  void clear() => _throwUnmodifiable();
+
+  /// This operation is not supported by an unmodifiable set.
+  void addAll(Iterable<E> elements) => _throwUnmodifiable();
+
+  /// This operation is not supported by an unmodifiable set.
+  void removeAll(Iterable<Object?> elements) => _throwUnmodifiable();
+
+  /// This operation is not supported by an unmodifiable set.
+  void retainAll(Iterable<Object?> elements) => _throwUnmodifiable();
+
+  /// This operation is not supported by an unmodifiable set.
+  void removeWhere(bool test(E element)) => _throwUnmodifiable();
+
+  /// This operation is not supported by an unmodifiable set.
+  void retainWhere(bool test(E element)) => _throwUnmodifiable();
+
+  /// This operation is not supported by an unmodifiable set.
+  bool remove(Object? value) => _throwUnmodifiable();
+}
+
 /// Class used to implement const sets.
-class _UnmodifiableSet<E> extends _SetBase<E> {
+class _UnmodifiableSet<E> extends _SetBase<E> with _UnmodifiableSetMixin<E> {
   final Map<E, Null> _map;
 
   const _UnmodifiableSet(this._map);
@@ -364,38 +394,26 @@ class _UnmodifiableSet<E> extends _SetBase<E> {
     }
     return null;
   }
+}
 
-  // Mutating methods throw.
+/// An unmodifiable [Set] view of another [Set].
+///
+/// Methods that could change the set, such as [add] and [remove],
+/// must not be called.
+@Since("2.12")
+class UnmodifiableSetView<E> extends SetBase<E> with _UnmodifiableSetMixin<E> {
+  final Set<E> _source;
 
-  bool add(E value) {
-    throw UnsupportedError("Cannot change unmodifiable set");
-  }
+  /// Creates an [UnmodifiableSetView] of [source].
+  UnmodifiableSetView(Set<E> source) : _source = source;
 
-  void clear() {
-    throw UnsupportedError("Cannot change unmodifiable set");
-  }
+  bool contains(Object? element) => _source.contains(element);
 
-  void addAll(Iterable<E> elements) {
-    throw UnsupportedError("Cannot change unmodifiable set");
-  }
+  E? lookup(Object? element) => _source.lookup(element);
 
-  void removeAll(Iterable<Object?> elements) {
-    throw UnsupportedError("Cannot change unmodifiable set");
-  }
+  int get length => _source.length;
 
-  void retainAll(Iterable<Object?> elements) {
-    throw UnsupportedError("Cannot change unmodifiable set");
-  }
+  Iterator<E> get iterator => _source.iterator;
 
-  void removeWhere(bool test(E element)) {
-    throw UnsupportedError("Cannot change unmodifiable set");
-  }
-
-  void retainWhere(bool test(E element)) {
-    throw UnsupportedError("Cannot change unmodifiable set");
-  }
-
-  bool remove(Object? value) {
-    throw UnsupportedError("Cannot change unmodifiable set");
-  }
+  Set<E> toSet() => _source.toSet();
 }

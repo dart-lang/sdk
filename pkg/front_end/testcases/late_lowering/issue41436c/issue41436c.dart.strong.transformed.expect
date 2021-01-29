@@ -12,7 +12,7 @@ class C extends iss::B {
   no-such-method-forwarder get /* from org-dartlang-testcase:///issue41436c_lib.dart */ _#A#x() → core::int?
     return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic,ForNonNullableByDefault} core::int?;
   no-such-method-forwarder set /* from org-dartlang-testcase:///issue41436c_lib.dart */ _#A#x(core::int? value) → void
-    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(value)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
 }
 static method main() → dynamic {
   new self::C::•();

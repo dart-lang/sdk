@@ -30,7 +30,7 @@ class ReplacementVisitor
 
   DartType createFunctionType({
     @required FunctionType type,
-    @required List<DartType> newTypeArguments,
+    @required List<DartType> newAliasArguments,
     @required List<TypeParameterElement> newTypeParameters,
     @required List<ParameterElement> newParameters,
     @required DartType newReturnType,
@@ -47,8 +47,8 @@ class ReplacementVisitor
       parameters: newParameters ?? type.parameters,
       returnType: newReturnType ?? type.returnType,
       nullabilitySuffix: newNullability ?? type.nullabilitySuffix,
-      element: type.element,
-      typeArguments: newTypeArguments ?? type.typeArguments,
+      aliasElement: type.aliasElement,
+      aliasArguments: newAliasArguments ?? type.aliasArguments,
     );
   }
 
@@ -75,10 +75,13 @@ class ReplacementVisitor
 
   DartType createInterfaceType({
     @required InterfaceType type,
+    @required List<DartType> newAliasArguments,
     @required List<DartType> newTypeArguments,
     @required NullabilitySuffix newNullability,
   }) {
-    if (newTypeArguments == null && newNullability == null) {
+    if (newAliasArguments == null &&
+        newTypeArguments == null &&
+        newNullability == null) {
       return null;
     }
 
@@ -86,6 +89,8 @@ class ReplacementVisitor
       element: type.element,
       typeArguments: newTypeArguments ?? type.typeArguments,
       nullabilitySuffix: newNullability ?? type.nullabilitySuffix,
+      aliasElement: type.aliasElement,
+      aliasArguments: newAliasArguments ?? type.aliasArguments,
     );
   }
 
@@ -206,12 +211,15 @@ class ReplacementVisitor
 
     var newReturnType = visitType(node.returnType);
 
-    List<DartType> newTypeArguments;
-    for (var i = 0; i < node.typeArguments.length; i++) {
-      var substitution = node.typeArguments[i].accept(this);
-      if (substitution != null) {
-        newTypeArguments ??= node.typeArguments.toList(growable: false);
-        newTypeArguments[i] = substitution;
+    List<DartType> newAliasArguments;
+    var aliasArguments = node.aliasArguments;
+    if (aliasArguments != null) {
+      for (var i = 0; i < aliasArguments.length; i++) {
+        var substitution = aliasArguments[i].accept(this);
+        if (substitution != null) {
+          newAliasArguments ??= aliasArguments.toList(growable: false);
+          newAliasArguments[i] = substitution;
+        }
       }
     }
 
@@ -241,7 +249,7 @@ class ReplacementVisitor
 
     return createFunctionType(
       type: node,
-      newTypeArguments: newTypeArguments,
+      newAliasArguments: newAliasArguments,
       newTypeParameters: newTypeParameters,
       newParameters: newParameters,
       newReturnType: newReturnType,
@@ -339,6 +347,14 @@ class ReplacementVisitor
   DartType visitInterfaceType(InterfaceType type) {
     var newNullability = visitNullability(type);
 
+    var aliasElement = type.aliasElement;
+    var newAliasArguments = aliasElement != null
+        ? _typeArguments(
+            aliasElement.typeParameters,
+            type.aliasArguments,
+          )
+        : null;
+
     var newTypeArguments = _typeArguments(
       type.element.typeParameters,
       type.typeArguments,
@@ -346,6 +362,7 @@ class ReplacementVisitor
 
     return createInterfaceType(
       type: type,
+      newAliasArguments: newAliasArguments,
       newTypeArguments: newTypeArguments,
       newNullability: newNullability,
     );
@@ -359,7 +376,7 @@ class ReplacementVisitor
     var element = type.element;
     if (element is ClassElement) {
       parameters = element.typeParameters;
-    } else if (element is FunctionTypeAliasElement) {
+    } else if (element is TypeAliasElement) {
       parameters = element.typeParameters;
     }
 

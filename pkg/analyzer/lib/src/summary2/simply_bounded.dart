@@ -19,7 +19,7 @@ void computeSimplyBounded(
   var nodes = <SimplyBoundedNode>[];
   for (var libraryBuilder in libraryBuilders) {
     for (var unit in libraryBuilder.element.units) {
-      for (var element in unit.functionTypeAliases) {
+      for (var element in unit.typeAliases) {
         var node = walker.getNode(element);
         nodes.add(node);
       }

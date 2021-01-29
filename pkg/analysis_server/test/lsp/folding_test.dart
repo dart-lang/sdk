@@ -44,7 +44,7 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_comments() async {
     final content = '''
-    [[/// This is a comment
+    /// This is a comment[[
     /// that spans many lines]]
     class MyClass2 {}
     ''';
@@ -164,13 +164,6 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_headersImportsComments() async {
-    // TODO(dantup): Review why the file header and the method comment ranges
-    // are different... one spans only the range to collapse, but the other
-    // just starts at the logical block.
-    // The LSP spec doesn't give any guidance on whether the first part of
-    // the surrounded content should be visible or not after folding
-    // so we'll need to revisit this once there's clarification:
-    // https://github.com/Microsoft/language-server-protocol/issues/659
     final content = '''
     // Copyright some year by some people[[
     // See LICENCE etc.]]
@@ -178,7 +171,7 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     import[[ 'dart:io';
     import 'dart:async';]]
 
-    [[/// This is not the file header
+    /// This is not the file header[[
     /// It's just a comment]]
     main() {}
     ''';

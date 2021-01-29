@@ -13,8 +13,6 @@ part of dart.collection;
 /// must consistent with equality, so that the same for objects that are
 /// considered equal.
 ///
-/// The set allows `null` as an element.
-///
 /// Most simple operations on `HashSet` are done in (potentially amortized)
 /// constant time: [add], [contains], [remove], and [length], provided the hash
 /// codes of objects are well distributed.
@@ -47,10 +45,10 @@ abstract class HashSet<E> implements Set<E> {
   ///
   /// If [isValidKey] is omitted, it defaults to testing if the object is an
   /// [E] instance. That means that:
-  ///
-  ///     new HashSet<int>(equals: (int e1, int e2) => (e1 - e2) % 5 == 0,
-  ///                      hashCode: (int e) => e % 5)
-  ///
+  /// ```dart
+  /// HashSet<int>(equals: (int e1, int e2) => (e1 - e2) % 5 == 0,
+  ///              hashCode: (int e) => e % 5)
+  /// ```
   /// does not need an `isValidKey` argument, because it defaults to only
   /// accepting `int` values which are accepted by both `equals` and `hashCode`.
   ///
@@ -71,9 +69,10 @@ abstract class HashSet<E> implements Set<E> {
   /// Creates an unordered identity-based set.
   ///
   /// Effectively a shorthand for:
-  ///
-  ///     new HashSet<E>(equals: identical,
-  ///                    hashCode: identityHashCode)
+  /// ```dart
+  /// HashSet<E>(equals: identical,
+  ///                hashCode: identityHashCode)
+  /// ```
   external factory HashSet.identity();
 
   /// Create a hash set containing all [elements].

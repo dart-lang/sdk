@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library fasta.stack_listener_impl;
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart' show Message;
@@ -77,7 +79,7 @@ abstract class StackListenerImpl extends StackListener {
   }
 
   /// Used to report an internal error encountered in the stack listener.
-  dynamic internalProblem(Message message, int charOffset, Uri uri) {
+  internalProblem(Message message, int charOffset, Uri uri) {
     return problems.internalProblem(message, charOffset, uri);
   }
 

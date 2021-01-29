@@ -8,4 +8,4 @@ static method main() → dynamic {
   });
 }
 static method f<T extends core::Object* = dynamic>(() →* self::f::T* g) → core::List<self::f::T*>*
-  return <self::f::T*>[g.call()];
+  return core::_GrowableList::_literal1<self::f::T*>(g.call());

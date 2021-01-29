@@ -2,15 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
+// @dart = 2.9
 
-import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
+import 'binary/utils.dart';
 
 main() {
   final Library lib1 = new Library(Uri.parse('org-dartlang:///lib.dart'));
-  final Field field = new Field(new Name("f"));
+  final Field field = new Field.mutable(new Name("f"));
   lib1.addField(field);
   final Block libProcedureBody = new Block([
     new ExpressionStatement(new StaticSet(field, new IntLiteral(42))),
@@ -88,7 +88,7 @@ main() {
   // Replace getter/setter with field.
   lib1.procedures.remove(getter);
   lib1.procedures.remove(setter);
-  final Field fieldReplacement = new Field(new Name("f"),
+  final Field fieldReplacement = new Field.mutable(new Name("f"),
       getterReference: getter.reference, setterReference: setter.reference);
   // Important: Unbind any old canonical name
   // (nulling out the canonical name is not enough, see above).
@@ -179,15 +179,4 @@ Member getGetTarget(Procedure p) {
   ReturnStatement setterStatement = block.statements[1];
   StaticGet staticGet = setterStatement.expression;
   return staticGet.target;
-}
-
-/// A [Sink] that directly writes data into a byte builder.
-class ByteSink implements Sink<List<int>> {
-  final BytesBuilder builder = new BytesBuilder();
-
-  void add(List<int> data) {
-    builder.add(data);
-  }
-
-  void close() {}
 }

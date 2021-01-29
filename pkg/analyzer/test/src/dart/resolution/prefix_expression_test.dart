@@ -491,14 +491,9 @@ class B extends A {
       type: 'int',
     );
 
-    if (hasAssignmentLeftResolution) {
-      assertSimpleIdentifier(
-        prefix.operand,
-        readElement: findElement.getter('x'),
-        writeElement: findElement.setter('x'),
-        type: 'num',
-      );
-    }
+    assertSimpleIdentifierAssignmentTarget(
+      prefix.operand,
+    );
   }
 
   test_plusPlus_simpleIdentifier_thisGetter_thisSetter() async {
@@ -526,14 +521,9 @@ class A {
       type: 'int',
     );
 
-    if (hasAssignmentLeftResolution) {
-      assertSimpleIdentifier(
-        prefix.operand,
-        readElement: findElement.getter('x'),
-        writeElement: findElement.setter('x'),
-        type: 'num',
-      );
-    }
+    assertSimpleIdentifierAssignmentTarget(
+      prefix.operand,
+    );
   }
 
   test_plusPlus_simpleIdentifier_topGetter_topSetter() async {
@@ -561,14 +551,9 @@ void f() {
       type: 'int',
     );
 
-    if (hasAssignmentLeftResolution) {
-      assertSimpleIdentifier(
-        prefix.operand,
-        readElement: findElement.topGet('x'),
-        writeElement: findElement.topSet('x'),
-        type: 'num',
-      );
-    }
+    assertSimpleIdentifierAssignmentTarget(
+      prefix.operand,
+    );
   }
 
   test_plusPlus_simpleIdentifier_topGetter_topSetter_fromClass() async {
@@ -598,14 +583,9 @@ class A {
       type: 'int',
     );
 
-    if (hasAssignmentLeftResolution) {
-      assertSimpleIdentifier(
-        prefix.operand,
-        readElement: findElement.topGet('x'),
-        writeElement: findElement.topSet('x'),
-        type: 'num',
-      );
-    }
+    assertSimpleIdentifierAssignmentTarget(
+      prefix.operand,
+    );
   }
 
   /// Verify that we get all necessary types when building the dependencies
@@ -668,7 +648,8 @@ void f(A? a) {
   !a?.foo;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 55, 6),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+          55, 6),
     ]);
 
     assertPrefixExpression(
@@ -692,7 +673,8 @@ void f(A? a) {
   -a?.foo;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 51, 6),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          51, 6),
     ]);
 
     assertPrefixExpression(
@@ -766,7 +748,8 @@ void f(A? a) {
   ~a?.foo;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 51, 6),
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          51, 6),
     ]);
 
     assertPrefixExpression(

@@ -10,7 +10,6 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analyzer_plugin/protocol/protocol.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:path/path.dart';
 
 class LspNotificationManager extends AbstractNotificationManager {

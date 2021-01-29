@@ -206,7 +206,8 @@ class A0 = self::S with self::M {
   synthetic constructor •() → self::A0*
     : super self::S::•()
     ;
-  abstract member-signature method foo([dynamic x = #C1]) → dynamic; -> self::S::foo
+  mixin-super-stub method foo() → dynamic
+    return super.{self::M::foo}();
 }
 abstract class _A1&S&M1 = self::S with self::M1 /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_A1&S&M1*
@@ -217,7 +218,8 @@ class A1 = self::_A1&S&M1 with self::M {
   synthetic constructor •() → self::A1*
     : super self::_A1&S&M1::•()
     ;
-  abstract member-signature method foo([dynamic x = #C1]) → dynamic; -> self::S::foo
+  mixin-super-stub method foo() → dynamic
+    return super.{self::M::foo}();
 }
 abstract class _A2&S&M1 = self::S with self::M1 /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_A2&S&M1*
@@ -233,13 +235,15 @@ class A2 = self::_A2&S&M1&M2 with self::M {
   synthetic constructor •() → self::A2*
     : super self::_A2&S&M1&M2::•()
     ;
-  abstract member-signature method foo([dynamic x = #C1]) → dynamic; -> self::S::foo
+  mixin-super-stub method foo() → dynamic
+    return super.{self::M::foo}();
 }
 abstract class _A0X&S&M = self::S with self::M /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_A0X&S&M*
     : super self::S::•()
     ;
-  abstract member-signature method foo([dynamic x = #C1]) → dynamic; -> self::S::foo
+  mixin-super-stub method foo() → dynamic
+    return super.{self::M::foo}();
 }
 class A0X = self::_A0X&S&M with self::MX {
   synthetic constructor •() → self::A0X*
@@ -255,7 +259,8 @@ abstract class _A1X&S&M1&M = self::_A1X&S&M1 with self::M /*isAnonymousMixin*/  
   synthetic constructor •() → self::_A1X&S&M1&M*
     : super self::_A1X&S&M1::•()
     ;
-  abstract member-signature method foo([dynamic x = #C1]) → dynamic; -> self::S::foo
+  mixin-super-stub method foo() → dynamic
+    return super.{self::M::foo}();
 }
 class A1X = self::_A1X&S&M1&M with self::MX {
   synthetic constructor •() → self::A1X*
@@ -276,7 +281,8 @@ abstract class _A2X&S&M1&M2&M = self::_A2X&S&M1&M2 with self::M /*isAnonymousMix
   synthetic constructor •() → self::_A2X&S&M1&M2&M*
     : super self::_A2X&S&M1&M2::•()
     ;
-  abstract member-signature method foo([dynamic x = #C1]) → dynamic; -> self::S::foo
+  mixin-super-stub method foo() → dynamic
+    return super.{self::M::foo}();
 }
 class A2X = self::_A2X&S&M1&M2&M with self::MX {
   synthetic constructor •() → self::A2X*
@@ -287,7 +293,8 @@ abstract class _B0&S&M = self::S with self::M /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_B0&S&M*
     : super self::S::•()
     ;
-  abstract member-signature method foo([dynamic x = #C1]) → dynamic; -> self::S::foo
+  mixin-super-stub method foo() → dynamic
+    return super.{self::M::foo}();
 }
 class B0 extends self::_B0&S&M {
   synthetic constructor •() → self::B0*
@@ -303,7 +310,8 @@ abstract class _B1&S&M1&M = self::_B1&S&M1 with self::M /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_B1&S&M1&M*
     : super self::_B1&S&M1::•()
     ;
-  abstract member-signature method foo([dynamic x = #C1]) → dynamic; -> self::S::foo
+  mixin-super-stub method foo() → dynamic
+    return super.{self::M::foo}();
 }
 class B1 extends self::_B1&S&M1&M {
   synthetic constructor •() → self::B1*
@@ -324,7 +332,8 @@ abstract class _B2&S&M1&M2&M = self::_B2&S&M1&M2 with self::M /*isAnonymousMixin
   synthetic constructor •() → self::_B2&S&M1&M2&M*
     : super self::_B2&S&M1&M2::•()
     ;
-  abstract member-signature method foo([dynamic x = #C1]) → dynamic; -> self::S::foo
+  mixin-super-stub method foo() → dynamic
+    return super.{self::M::foo}();
 }
 class B2 extends self::_B2&S&M1&M2&M {
   synthetic constructor •() → self::B2*
@@ -335,7 +344,8 @@ abstract class _B0X&S&M = self::S with self::M /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_B0X&S&M*
     : super self::S::•()
     ;
-  abstract member-signature method foo([dynamic x = #C1]) → dynamic; -> self::S::foo
+  mixin-super-stub method foo() → dynamic
+    return super.{self::M::foo}();
 }
 abstract class _B0X&S&M&MX = self::_B0X&S&M with self::MX /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_B0X&S&M&MX*
@@ -356,7 +366,8 @@ abstract class _B1X&S&M1&M = self::_B1X&S&M1 with self::M /*isAnonymousMixin*/  
   synthetic constructor •() → self::_B1X&S&M1&M*
     : super self::_B1X&S&M1::•()
     ;
-  abstract member-signature method foo([dynamic x = #C1]) → dynamic; -> self::S::foo
+  mixin-super-stub method foo() → dynamic
+    return super.{self::M::foo}();
 }
 abstract class _B1X&S&M1&M&MX = self::_B1X&S&M1&M with self::MX /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_B1X&S&M1&M&MX*
@@ -382,7 +393,8 @@ abstract class _B2X&S&M1&M2&M = self::_B2X&S&M1&M2 with self::M /*isAnonymousMix
   synthetic constructor •() → self::_B2X&S&M1&M2&M*
     : super self::_B2X&S&M1&M2::•()
     ;
-  abstract member-signature method foo([dynamic x = #C1]) → dynamic; -> self::S::foo
+  mixin-super-stub method foo() → dynamic
+    return super.{self::M::foo}();
 }
 abstract class _B2X&S&M1&M2&M&MX = self::_B2X&S&M1&M2&M with self::MX /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_B2X&S&M1&M2&M&MX*
