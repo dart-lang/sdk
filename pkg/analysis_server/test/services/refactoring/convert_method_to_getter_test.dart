@@ -55,7 +55,7 @@ class C extends B {
 class D extends A {
   int test() => 4;
 }
-main(A a, B b, C c, D d) {
+void f(A a, B b, C c, D d) {
   var va = a.test();
   var vb = b.test();
   var vc = c.test();
@@ -78,7 +78,7 @@ class C extends B {
 class D extends A {
   int get test => 4;
 }
-main(A a, B b, C c, D d) {
+void f(A a, B b, C c, D d) {
   var va = a.test;
   var vb = b.test;
   var vc = c.test;
@@ -98,7 +98,7 @@ import 'other.dart';
 class B extends A {
   int test() => 2;
 }
-main(A a, B b) {
+void f(A a, B b) {
   a.test();
   b.test();
 }
@@ -111,7 +111,7 @@ import 'other.dart';
 class B extends A {
   int get test => 2;
 }
-main(A a, B b) {
+void f(A a, B b) {
   a.test;
   b.test;
 }

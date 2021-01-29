@@ -6,7 +6,6 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../abstract_context.dart';
 import 'abstract_rename.dart';
 
 void main() {
@@ -16,8 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class RenameUnitMemberTest extends RenameRefactoringTest
-    with WithNonFunctionTypeAliasesMixin {
+class RenameUnitMemberTest extends RenameRefactoringTest {
   Future<void> test_checkFinalConditions_hasTopLevel_ClassElement() async {
     await indexTestUnit('''
 class Test {}
