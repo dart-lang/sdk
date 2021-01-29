@@ -80,8 +80,13 @@ class LoadingUnitSerializationData : public ZoneAllocated {
 
 class SerializationCluster : public ZoneAllocated {
  public:
-  explicit SerializationCluster(const char* name)
-      : name_(name), size_(0), num_objects_(0) {}
+  explicit SerializationCluster(const char* name,
+                                intptr_t target_instance_size = 0)
+      : name_(name),
+        size_(0),
+        num_objects_(0),
+        target_instance_size_(target_instance_size),
+        target_memory_size_(0) {}
   virtual ~SerializationCluster() {}
 
   // Add [object] to the cluster and push its outgoing references.
@@ -102,10 +107,21 @@ class SerializationCluster : public ZoneAllocated {
   intptr_t size() const { return size_; }
   intptr_t num_objects() const { return num_objects_; }
 
+  // Returns number of bytes needed for deserialized objects in
+  // this cluster. Printed in --print_snapshot_sizes_verbose statistics.
+  //
+  // In order to calculate this size, clusters of fixed-size objects
+  // can pass instance size as [target_instance_size] constructor parameter.
+  // Otherwise clusters should count [target_memory_size] in
+  // their [WriteAlloc] methods.
+  intptr_t target_memory_size() const { return target_memory_size_; }
+
  protected:
   const char* name_;
   intptr_t size_;
   intptr_t num_objects_;
+  const intptr_t target_instance_size_;
+  intptr_t target_memory_size_;
 };
 
 class DeserializationCluster : public ZoneAllocated {

@@ -12,7 +12,6 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
-import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -22,21 +21,17 @@ import 'package:meta/meta.dart';
 /// Helper for resolving [PostfixExpression]s.
 class PostfixExpressionResolver {
   final ResolverVisitor _resolver;
-  final FlowAnalysisHelper _flowAnalysis;
   final TypePropertyResolver _typePropertyResolver;
   final InvocationInferenceHelper _inferenceHelper;
   final AssignmentExpressionShared _assignmentShared;
 
   PostfixExpressionResolver({
     @required ResolverVisitor resolver,
-    @required FlowAnalysisHelper flowAnalysis,
   })  : _resolver = resolver,
-        _flowAnalysis = flowAnalysis,
         _typePropertyResolver = resolver.typePropertyResolver,
         _inferenceHelper = resolver.inferenceHelper,
         _assignmentShared = AssignmentExpressionShared(
           resolver: resolver,
-          flowAnalysis: flowAnalysis,
         );
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
@@ -180,7 +175,8 @@ class PostfixExpressionResolver {
       if (operand is SimpleIdentifier) {
         var element = operand.staticElement;
         if (element is PromotableElement) {
-          _flowAnalysis?.flow?.write(element, operatorReturnType, null);
+          _resolver.flowAnalysis?.flow
+              ?.write(element, operatorReturnType, null);
         }
       }
     }
@@ -219,6 +215,6 @@ class PostfixExpressionResolver {
     _inferenceHelper.recordStaticType(node, type);
 
     _resolver.nullShortingTermination(node);
-    _flowAnalysis?.flow?.nonNullAssert_end(operand);
+    _resolver.flowAnalysis?.flow?.nonNullAssert_end(operand);
   }
 }

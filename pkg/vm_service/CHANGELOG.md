@@ -1,5 +1,8 @@
 # Changelog
 
+## 6.0.1-nullsafety.1
+- Fix issue where some `Instance` properties were not being populated correctly.
+
 ## 6.0.1-nullsafety.0
 - Fix versioning for pub.
 

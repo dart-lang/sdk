@@ -46,13 +46,15 @@ main() {
     Pointer<NativeFunction<CoordinateTrice>> p2 =
         ffiTestFunctions.lookup("CoordinateUnOpTrice");
     CoordinateTrice coordinateUnOpTrice = p2.asFunction();
-    Coordinate c1 = Coordinate.allocate(calloc, 10.0, 20.0, nullptr);
-    c1.next = c1.addressOf;
-    Coordinate result =
-        coordinateUnOpTrice(transposeCoordinatePointer, c1.addressOf).ref;
+    final c1 = calloc<Coordinate>()
+      ..ref.x = 10.0
+      ..ref.y = 20.0;
+    c1.ref.next = c1;
+    Coordinate result = coordinateUnOpTrice(transposeCoordinatePointer, c1).ref;
     print(result.runtimeType);
     print(result.x);
     print(result.y);
+    calloc.free(c1);
   }
 
   {

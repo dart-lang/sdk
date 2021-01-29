@@ -77,6 +77,9 @@ declare_args() {
 
   # Whether package:wasm should be enabled.
   dart_enable_wasm = false
+
+  # Whether to use compressed pointers.
+  dart_use_compressed_pointers = false
 }
 
 declare_args() {

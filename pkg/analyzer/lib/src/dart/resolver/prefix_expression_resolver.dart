@@ -12,7 +12,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
-import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -22,21 +21,17 @@ import 'package:meta/meta.dart';
 /// Helper for resolving [PrefixExpression]s.
 class PrefixExpressionResolver {
   final ResolverVisitor _resolver;
-  final FlowAnalysisHelper _flowAnalysis;
   final TypePropertyResolver _typePropertyResolver;
   final InvocationInferenceHelper _inferenceHelper;
   final AssignmentExpressionShared _assignmentShared;
 
   PrefixExpressionResolver({
     @required ResolverVisitor resolver,
-    @required FlowAnalysisHelper flowAnalysis,
   })  : _resolver = resolver,
-        _flowAnalysis = flowAnalysis,
         _typePropertyResolver = resolver.typePropertyResolver,
         _inferenceHelper = resolver.inferenceHelper,
         _assignmentShared = AssignmentExpressionShared(
           resolver: resolver,
-          flowAnalysis: flowAnalysis,
         );
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
@@ -217,7 +212,7 @@ class PrefixExpressionResolver {
         if (operand is SimpleIdentifier) {
           var element = operand.staticElement;
           if (element is PromotableElement) {
-            _flowAnalysis?.flow?.write(element, staticType, null);
+            _resolver.flowAnalysis?.flow?.write(element, staticType, null);
           }
         }
       }
@@ -237,6 +232,6 @@ class PrefixExpressionResolver {
 
     _recordStaticType(node, _typeProvider.boolType);
 
-    _flowAnalysis?.flow?.logicalNot_end(node, operand);
+    _resolver.flowAnalysis?.flow?.logicalNot_end(node, operand);
   }
 }

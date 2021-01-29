@@ -428,8 +428,12 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
               // Add parameters for fields, local, and method parameters.
               for (var parameter in _parameters) {
                 builder.write('    ');
-                builder.write('@');
-                builder.writeReference(accessorRequired);
+                if (_isNonNullable) {
+                  builder.write('required');
+                } else {
+                  builder.write('@');
+                  builder.writeReference(accessorRequired);
+                }
                 builder.write(' ');
                 if (parameter.constructorName != parameter.name) {
                   builder.writeType(parameter.type);

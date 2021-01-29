@@ -133,7 +133,7 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   @override
@@ -184,7 +184,7 @@ Widget main() {
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   @override
@@ -220,7 +220,7 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   @override
@@ -253,7 +253,7 @@ Widget main() {
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   @override
@@ -307,7 +307,7 @@ Widget main() {
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   @override
@@ -410,8 +410,8 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
-    @required this.c,
+    Key? key,
+    required this.c,
   }) : super(key: key);
 
   final C c;
@@ -462,7 +462,7 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   @override
@@ -482,7 +482,7 @@ class Test extends StatelessWidget {
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
-  String foo;
+  String foo = '';
 
   @override
   Widget build(BuildContext context) {
@@ -510,7 +510,7 @@ class MyWidget extends StatelessWidget {
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
-  String foo;
+  String foo = '';
 
   @override
   Widget build(BuildContext context) {
@@ -526,10 +526,10 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
-    @required this.foo,
-    @required this.p1,
-    @required this.p2,
+    Key? key,
+    required this.foo,
+    required this.p1,
+    required this.p2,
   }) : super(key: key);
 
   final String foo;
@@ -548,12 +548,14 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  Future<void> test_method_parameters_named() async {
+  Future<void> test_method_parameters_namedRequired() async {
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
-  String foo;
+  final String foo;
+  
+  MyWidget(this.foo);
 
   @override
   Widget build(BuildContext context) {
@@ -566,7 +568,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  Widget createColumn({String p1, int p2}) {
+  Widget createColumn({required String p1, required int p2}) {
     var a = new Text('$foo $p1');
     var b = new Text('$p2');
     return new Column(
@@ -575,13 +577,15 @@ class MyWidget extends StatelessWidget {
   }
 }
 ''');
-    _createRefactoringForStringOffset('createColumn({String');
+    _createRefactoringForStringOffset('createColumn({');
 
     await _assertSuccessfulRefactoring(r'''
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
-  String foo;
+  final String foo;
+  
+  MyWidget(this.foo);
 
   @override
   Widget build(BuildContext context) {
@@ -597,10 +601,10 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
-    @required this.foo,
-    @required this.p1,
-    @required this.p2,
+    Key? key,
+    required this.foo,
+    required this.p1,
+    required this.p2,
   }) : super(key: key);
 
   final String foo;
@@ -624,7 +628,9 @@ class Test extends StatelessWidget {
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
-  String field;
+  final String field;
+  
+  MyWidget(this.field);
 
   @override
   Widget build(BuildContext context) {
@@ -638,7 +644,9 @@ class MyWidget extends StatelessWidget {
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
-  String field;
+  final String field;
+  
+  MyWidget(this.field);
 
   @override
   Widget build(BuildContext context) {
@@ -648,8 +656,8 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
-    @required this.field,
+    Key? key,
+    required this.field,
   }) : super(key: key);
 
   final String field;
@@ -667,7 +675,7 @@ class Test extends StatelessWidget {
 import 'package:flutter/material.dart';
 
 class C {
-  String field;
+  String field = '';
 }
 
 class MyWidget extends StatelessWidget {
@@ -685,7 +693,7 @@ class MyWidget extends StatelessWidget {
 import 'package:flutter/material.dart';
 
 class C {
-  String field;
+  String field = '';
 }
 
 class MyWidget extends StatelessWidget {
@@ -699,8 +707,8 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
-    @required this.c,
+    Key? key,
+    required this.c,
   }) : super(key: key);
 
   final C c;
@@ -717,7 +725,7 @@ class Test extends StatelessWidget {
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
-String field;
+String field = '';
 
 class MyWidget extends StatelessWidget {
   @override
@@ -731,7 +739,7 @@ class MyWidget extends StatelessWidget {
     await _assertSuccessfulRefactoring('''
 import 'package:flutter/material.dart';
 
-String field;
+String field = '';
 
 class MyWidget extends StatelessWidget {
   @override
@@ -742,7 +750,7 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   @override
@@ -759,6 +767,8 @@ import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
   String field;
+  
+  MyWidget(this.field);
 
   @override
   Widget build(BuildContext context) {
@@ -782,7 +792,7 @@ class MyWidget extends StatelessWidget {
 import 'package:flutter/material.dart';
 
 abstract class MySuperWidget extends StatelessWidget {
-  String field;
+  String field = '';
 }
 
 class MyWidget extends MySuperWidget {
@@ -808,7 +818,7 @@ class MyWidget extends MySuperWidget {
 import 'package:flutter/material.dart';
 
 class C {
-  String field;
+  String field = '';
 }
 
 class MyWidget extends StatelessWidget {
@@ -831,7 +841,7 @@ class MyWidget extends StatelessWidget {
 import 'package:flutter/material.dart';
 
 class C {
-  String field;
+  String field = '';
 }
 
 class MyWidget extends StatelessWidget {
@@ -845,8 +855,8 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
-    @required this.c,
+    Key? key,
+    required this.c,
   }) : super(key: key);
 
   final C c;
@@ -871,7 +881,7 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    String key;
+    String key = '';
     return new Text('$key $key');
   }
 }
@@ -889,7 +899,7 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    String local;
+    String local = '';
     return new Text('$local $local');
   }
 }
@@ -902,15 +912,15 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    String local;
+    String local = '';
     return Test(local: local);
   }
 }
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
-    @required this.local,
+    Key? key,
+    required this.local,
   }) : super(key: key);
 
   final String local;
@@ -951,7 +961,9 @@ class MyWidget extends StatelessWidget {
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
-  String _field;
+  final String _field;
+  
+  MyWidget(this._field);
 
   @override
   Widget build(BuildContext context) {
@@ -965,7 +977,9 @@ class MyWidget extends StatelessWidget {
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
-  String _field;
+  final String _field;
+  
+  MyWidget(this._field);
 
   @override
   Widget build(BuildContext context) {
@@ -975,8 +989,8 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
-    @required String field,
+    Key? key,
+    required String field,
   }) : _field = field, super(key: key);
 
   final String _field;
@@ -994,8 +1008,10 @@ class Test extends StatelessWidget {
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
-  int field;
-  String _field;
+  final int field;
+  final String _field;
+  
+  MyWidget(this.field, this._field);
 
   @override
   Widget build(BuildContext context) {
@@ -1009,8 +1025,10 @@ class MyWidget extends StatelessWidget {
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
-  int field;
-  String _field;
+  final int field;
+  final String _field;
+  
+  MyWidget(this.field, this._field);
 
   @override
   Widget build(BuildContext context) {
@@ -1020,9 +1038,9 @@ class MyWidget extends StatelessWidget {
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
-    @required this.field,
-    @required String field2,
+    Key? key,
+    required this.field,
+    required String field2,
   }) : _field = field2, super(key: key);
 
   final int field;
@@ -1041,11 +1059,13 @@ class Test extends StatelessWidget {
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
-  String field;
+  final String field;
+  
+  MyWidget(this.field);
 
   @override
   Widget build(BuildContext context) {
-    String local;
+    String local = '';
     return new Column(
       children: <Widget>[
         new Text(field),
@@ -1061,20 +1081,22 @@ class MyWidget extends StatelessWidget {
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
-  String field;
+  final String field;
+  
+  MyWidget(this.field);
 
   @override
   Widget build(BuildContext context) {
-    String local;
+    String local = '';
     return Test(field: field, local: local);
   }
 }
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
-    @required this.field,
-    @required this.local,
+    Key? key,
+    required this.field,
+    required this.local,
   }) : super(key: key);
 
   final String field;
@@ -1141,9 +1163,9 @@ Widget main() {
 
 class Test extends StatelessWidget {
   const Test({
-    Key key,
-    @required this.index,
-    @required this.a,
+    Key? key,
+    required this.index,
+    required this.a,
   }) : super(key: key);
 
   final int index;

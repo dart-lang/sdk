@@ -1556,15 +1556,13 @@ class Type extends Member {
         // Special case `Event.extensionData`.
         gen.writeln(
             "extensionData = ExtensionData.parse(json['extensionData']);");
-      } else if (name == 'Instance') {
-        if (field.name == 'associations') {
-          // Special case `Instance.associations`.
-          gen.writeln("associations = json['associations'] == null "
-              "? null : List<MapAssociation>.from("
-              "_createSpecificObject(json['associations'], MapAssociation.parse));");
-        } else if (field.name == 'classRef') {
-          // This is populated by `Obj`
-        }
+      } else if (name == 'Instance' && field.name == 'associations') {
+        // Special case `Instance.associations`.
+        gen.writeln("associations = json['associations'] == null "
+            "? null : List<MapAssociation>.from("
+            "_createSpecificObject(json['associations'], MapAssociation.parse));");
+      } else if (name == 'Instance' && field.name == 'classRef') {
+        // This is populated by `Obj`
       } else if (name == '_CpuProfile' && field.name == 'codes') {
         // Special case `_CpuProfile.codes`.
         gen.writeln("codes = List<CodeRegion>.from("

@@ -2126,6 +2126,72 @@ void main() {
             ''');
       });
     });
+
+    group('Expression compiler tests in generic method:', () {
+      var source = '''
+        ${options.dartLangComment}
+        class A {
+          void generic<TType, KType>(TType a, KType b) {
+            /* evaluation placeholder */
+            print(a);
+            print(b);
+          }
+        }
+
+        void main() => generic<int, String>(0, 'hi');
+        ''';
+
+      TestDriver driver;
+      setUp(() {
+        driver = TestDriver(options, source);
+      });
+
+      tearDown(() {
+        driver.delete();
+      });
+
+      test('evaluate formals', () async {
+        await driver.check(
+            scope: <String, String>{
+              'TType': 'TType',
+              'KType': 'KType',
+              'a': 'a',
+              'b': 'b'
+            },
+            expression: 'a',
+            expectedResult: '''
+            (function(TType, KType, a, b) {
+                return a;
+            }.bind(this)(
+              TType,
+              KType,
+              a,
+              b
+            ))
+            ''');
+      });
+
+      test('evaluate type parameters', () async {
+        await driver.check(
+            scope: <String, String>{
+              'TType': 'TType',
+              'KType': 'KType',
+              'a': 'a',
+              'b': 'b'
+            },
+            expression: 'TType',
+            expectedResult: '''
+            (function(TType, KType, a, b) {
+              return dart.wrapType(dart.legacy(TType));
+            }.bind(this)(
+              TType,
+              KType,
+              a,
+              b
+            ))
+            ''');
+      });
+    });
   });
 
   group('Sound null safety:', () {
@@ -3866,6 +3932,72 @@ void main() {
             scope: <String, String>{'x': '1', 'c': 'null'},
             expression: 'z',
             expectedError: "Error: Getter not found: 'z'");
+      });
+    });
+
+    group('Expression compiler tests in generic method:', () {
+      var source = '''
+        ${options.dartLangComment}
+        class A {
+          void generic<TType, KType>(TType a, KType b) {
+            /* evaluation placeholder */
+            print(a);
+            print(b);
+          }
+        }
+
+        void main() => generic<int, String>(0, 'hi');
+        ''';
+
+      TestDriver driver;
+      setUp(() {
+        driver = TestDriver(options, source);
+      });
+
+      tearDown(() {
+        driver.delete();
+      });
+
+      test('evaluate formals', () async {
+        await driver.check(
+            scope: <String, String>{
+              'TType': 'TType',
+              'KType': 'KType',
+              'a': 'a',
+              'b': 'b'
+            },
+            expression: 'a',
+            expectedResult: '''
+            (function(TType, KType, a, b) {
+                return a;
+            }.bind(this)(
+              TType,
+              KType,
+              a,
+              b
+            ))
+            ''');
+      });
+
+      test('evaluate type parameters', () async {
+        await driver.check(
+            scope: <String, String>{
+              'TType': 'TType',
+              'KType': 'KType',
+              'a': 'a',
+              'b': 'b'
+            },
+            expression: 'TType',
+            expectedResult: '''
+            (function(TType, KType, a, b) {
+              return dart.wrapType(TType);
+            }.bind(this)(
+              TType,
+              KType,
+              a,
+              b
+            ))
+            ''');
       });
     });
   });

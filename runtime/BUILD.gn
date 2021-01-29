@@ -133,6 +133,10 @@ config("dart_config") {
     include_dirs += [ "../third_party/tcmalloc/gperftools/src" ]
   }
 
+  if (dart_use_compressed_pointers) {
+    defines += [ "DART_COMPRESSED_POINTERS" ]
+  }
+
   if (is_fuchsia) {
     if (using_fuchsia_gn_sdk) {
       lib_dirs = [ root_out_dir + "/lib" ]

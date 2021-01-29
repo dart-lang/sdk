@@ -358,6 +358,7 @@ class ExpressionCompiler {
         _log('Scope not found at $libraryUri:$line:$column');
         return null;
       }
+      _log('DartScope: $dartScope');
 
       // 2. perform necessary variable substitutions
 
@@ -371,10 +372,15 @@ class ExpressionCompiler {
       dartScope.definitions
           .removeWhere((variable, type) => !jsScope.containsKey(variable));
 
+      dartScope.typeParameters
+          .removeWhere((parameter) => !jsScope.containsKey(parameter.name));
+
       // map from values from the stack when available (this allows to evaluate
       // captured variables optimized away in chrome)
-      var localJsScope =
-          dartScope.definitions.keys.map((variable) => jsScope[variable]);
+      var localJsScope = [
+        ...dartScope.typeParameters.map((parameter) => jsScope[parameter.name]),
+        ...dartScope.definitions.keys.map((variable) => jsScope[variable])
+      ];
 
       _log('Performed scope substitutions for expression');
 

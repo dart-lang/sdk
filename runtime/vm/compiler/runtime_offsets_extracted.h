@@ -22,6 +22,13 @@ static constexpr dart::compiler::target::word Function_usage_counter_offset =
     76;
 static constexpr dart::compiler::target::word
     ICData_receivers_static_type_offset = 16;
+static constexpr dart::compiler::target::word
+    ContextScope_elements_start_offset = 12;
+static constexpr dart::compiler::target::word ContextScope_element_size = 32;
+static constexpr dart::compiler::target::word
+    ExceptionHandlers_elements_start_offset = 12;
+static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
+    12;
 static constexpr dart::compiler::target::word ObjectPool_elements_start_offset =
     8;
 static constexpr dart::compiler::target::word ObjectPool_element_size = 4;
@@ -545,6 +552,13 @@ static constexpr dart::compiler::target::word Function_usage_counter_offset =
     116;
 static constexpr dart::compiler::target::word
     ICData_receivers_static_type_offset = 32;
+static constexpr dart::compiler::target::word
+    ContextScope_elements_start_offset = 16;
+static constexpr dart::compiler::target::word ContextScope_element_size = 64;
+static constexpr dart::compiler::target::word
+    ExceptionHandlers_elements_start_offset = 24;
+static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
+    12;
 static constexpr dart::compiler::target::word ObjectPool_elements_start_offset =
     16;
 static constexpr dart::compiler::target::word ObjectPool_element_size = 8;
@@ -1076,6 +1090,13 @@ static constexpr dart::compiler::target::word Function_usage_counter_offset =
     76;
 static constexpr dart::compiler::target::word
     ICData_receivers_static_type_offset = 16;
+static constexpr dart::compiler::target::word
+    ContextScope_elements_start_offset = 12;
+static constexpr dart::compiler::target::word ContextScope_element_size = 32;
+static constexpr dart::compiler::target::word
+    ExceptionHandlers_elements_start_offset = 12;
+static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
+    12;
 static constexpr dart::compiler::target::word ObjectPool_elements_start_offset =
     8;
 static constexpr dart::compiler::target::word ObjectPool_element_size = 4;
@@ -1596,6 +1617,13 @@ static constexpr dart::compiler::target::word Function_usage_counter_offset =
     116;
 static constexpr dart::compiler::target::word
     ICData_receivers_static_type_offset = 32;
+static constexpr dart::compiler::target::word
+    ContextScope_elements_start_offset = 16;
+static constexpr dart::compiler::target::word ContextScope_element_size = 64;
+static constexpr dart::compiler::target::word
+    ExceptionHandlers_elements_start_offset = 24;
+static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
+    12;
 static constexpr dart::compiler::target::word ObjectPool_elements_start_offset =
     16;
 static constexpr dart::compiler::target::word ObjectPool_element_size = 8;
@@ -2130,6 +2158,13 @@ static constexpr dart::compiler::target::word Function_usage_counter_offset =
     76;
 static constexpr dart::compiler::target::word
     ICData_receivers_static_type_offset = 16;
+static constexpr dart::compiler::target::word
+    ContextScope_elements_start_offset = 12;
+static constexpr dart::compiler::target::word ContextScope_element_size = 32;
+static constexpr dart::compiler::target::word
+    ExceptionHandlers_elements_start_offset = 12;
+static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
+    12;
 static constexpr dart::compiler::target::word ObjectPool_elements_start_offset =
     8;
 static constexpr dart::compiler::target::word ObjectPool_element_size = 4;
@@ -2647,6 +2682,13 @@ static constexpr dart::compiler::target::word Function_usage_counter_offset =
     116;
 static constexpr dart::compiler::target::word
     ICData_receivers_static_type_offset = 32;
+static constexpr dart::compiler::target::word
+    ContextScope_elements_start_offset = 16;
+static constexpr dart::compiler::target::word ContextScope_element_size = 64;
+static constexpr dart::compiler::target::word
+    ExceptionHandlers_elements_start_offset = 24;
+static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
+    12;
 static constexpr dart::compiler::target::word ObjectPool_elements_start_offset =
     16;
 static constexpr dart::compiler::target::word ObjectPool_element_size = 8;
@@ -3172,6 +3214,13 @@ static constexpr dart::compiler::target::word Function_usage_counter_offset =
     76;
 static constexpr dart::compiler::target::word
     ICData_receivers_static_type_offset = 16;
+static constexpr dart::compiler::target::word
+    ContextScope_elements_start_offset = 12;
+static constexpr dart::compiler::target::word ContextScope_element_size = 32;
+static constexpr dart::compiler::target::word
+    ExceptionHandlers_elements_start_offset = 12;
+static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
+    12;
 static constexpr dart::compiler::target::word ObjectPool_elements_start_offset =
     8;
 static constexpr dart::compiler::target::word ObjectPool_element_size = 4;
@@ -3686,6 +3735,13 @@ static constexpr dart::compiler::target::word Function_usage_counter_offset =
     116;
 static constexpr dart::compiler::target::word
     ICData_receivers_static_type_offset = 32;
+static constexpr dart::compiler::target::word
+    ContextScope_elements_start_offset = 16;
+static constexpr dart::compiler::target::word ContextScope_element_size = 64;
+static constexpr dart::compiler::target::word
+    ExceptionHandlers_elements_start_offset = 24;
+static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
+    12;
 static constexpr dart::compiler::target::word ObjectPool_elements_start_offset =
     16;
 static constexpr dart::compiler::target::word ObjectPool_element_size = 8;
@@ -4212,6 +4268,14 @@ static constexpr dart::compiler::target::word
 #if !defined(PRODUCT)
 
 #if defined(TARGET_ARCH_ARM)
+static constexpr dart::compiler::target::word
+    AOT_ContextScope_elements_start_offset = 12;
+static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
+    32;
+static constexpr dart::compiler::target::word
+    AOT_ExceptionHandlers_elements_start_offset = 12;
+static constexpr dart::compiler::target::word
+    AOT_ExceptionHandlers_element_size = 12;
 static constexpr dart::compiler::target::word
     AOT_ObjectPool_elements_start_offset = 8;
 static constexpr dart::compiler::target::word AOT_ObjectPool_element_size = 4;
@@ -4795,6 +4859,14 @@ static constexpr dart::compiler::target::word
 #endif  // defined(TARGET_ARCH_ARM)
 
 #if defined(TARGET_ARCH_X64)
+static constexpr dart::compiler::target::word
+    AOT_ContextScope_elements_start_offset = 16;
+static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
+    64;
+static constexpr dart::compiler::target::word
+    AOT_ExceptionHandlers_elements_start_offset = 24;
+static constexpr dart::compiler::target::word
+    AOT_ExceptionHandlers_element_size = 12;
 static constexpr dart::compiler::target::word
     AOT_ObjectPool_elements_start_offset = 16;
 static constexpr dart::compiler::target::word AOT_ObjectPool_element_size = 8;
@@ -5385,6 +5457,14 @@ static constexpr dart::compiler::target::word
 #endif  // defined(TARGET_ARCH_IA32)
 
 #if defined(TARGET_ARCH_ARM64)
+static constexpr dart::compiler::target::word
+    AOT_ContextScope_elements_start_offset = 16;
+static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
+    64;
+static constexpr dart::compiler::target::word
+    AOT_ExceptionHandlers_elements_start_offset = 24;
+static constexpr dart::compiler::target::word
+    AOT_ExceptionHandlers_element_size = 12;
 static constexpr dart::compiler::target::word
     AOT_ObjectPool_elements_start_offset = 16;
 static constexpr dart::compiler::target::word AOT_ObjectPool_element_size = 8;
@@ -5976,6 +6056,14 @@ static constexpr dart::compiler::target::word
 
 #if defined(TARGET_ARCH_ARM)
 static constexpr dart::compiler::target::word
+    AOT_ContextScope_elements_start_offset = 12;
+static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
+    32;
+static constexpr dart::compiler::target::word
+    AOT_ExceptionHandlers_elements_start_offset = 12;
+static constexpr dart::compiler::target::word
+    AOT_ExceptionHandlers_element_size = 12;
+static constexpr dart::compiler::target::word
     AOT_ObjectPool_elements_start_offset = 8;
 static constexpr dart::compiler::target::word AOT_ObjectPool_element_size = 4;
 static constexpr dart::compiler::target::word AOT_Array_kMaxElements =
@@ -6551,6 +6639,14 @@ static constexpr dart::compiler::target::word
 #endif  // defined(TARGET_ARCH_ARM)
 
 #if defined(TARGET_ARCH_X64)
+static constexpr dart::compiler::target::word
+    AOT_ContextScope_elements_start_offset = 16;
+static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
+    64;
+static constexpr dart::compiler::target::word
+    AOT_ExceptionHandlers_elements_start_offset = 24;
+static constexpr dart::compiler::target::word
+    AOT_ExceptionHandlers_element_size = 12;
 static constexpr dart::compiler::target::word
     AOT_ObjectPool_elements_start_offset = 16;
 static constexpr dart::compiler::target::word AOT_ObjectPool_element_size = 8;
@@ -7134,6 +7230,14 @@ static constexpr dart::compiler::target::word
 #endif  // defined(TARGET_ARCH_IA32)
 
 #if defined(TARGET_ARCH_ARM64)
+static constexpr dart::compiler::target::word
+    AOT_ContextScope_elements_start_offset = 16;
+static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
+    64;
+static constexpr dart::compiler::target::word
+    AOT_ExceptionHandlers_elements_start_offset = 24;
+static constexpr dart::compiler::target::word
+    AOT_ExceptionHandlers_element_size = 12;
 static constexpr dart::compiler::target::word
     AOT_ObjectPool_elements_start_offset = 16;
 static constexpr dart::compiler::target::word AOT_ObjectPool_element_size = 8;

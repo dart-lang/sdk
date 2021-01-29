@@ -24,14 +24,19 @@ main() {
         ffiTestFunctions.lookup("TransposeCoordinate");
     NativeCoordinateOp f1 = p1.asFunction();
 
-    Coordinate c1 = Coordinate.allocate(calloc, 10.0, 20.0, nullptr);
-    Coordinate c2 = Coordinate.allocate(calloc, 42.0, 84.0, c1.addressOf);
-    c1.next = c2.addressOf;
+    final c1 = calloc<Coordinate>()
+      ..ref.x = 10.0
+      ..ref.y = 20.0;
+    final c2 = calloc<Coordinate>()
+      ..ref.x = 42.0
+      ..ref.y = 84.0
+      ..ref.next = c1;
+    c1.ref.next = c2;
 
-    Coordinate result = f1(c1.addressOf).ref;
+    Coordinate result = f1(c1).ref;
 
-    print(c1.x);
-    print(c1.y);
+    print(c1.ref.x);
+    print(c1.ref.y);
 
     print(result.runtimeType);
 

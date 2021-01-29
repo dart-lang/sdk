@@ -12,6 +12,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show RefactoringProblemSeverity, SourceChange, SourceEdit;
 import 'package:test/test.dart';
 
+import '../../abstract_context.dart';
 import '../../abstract_single_unit.dart';
 
 int findIdentifierLength(String search) {
@@ -29,7 +30,8 @@ int findIdentifierLength(String search) {
 }
 
 /// The base class for all [Refactoring] tests.
-abstract class RefactoringTest extends AbstractSingleUnitTest {
+abstract class RefactoringTest extends AbstractSingleUnitTest
+    with WithNonFunctionTypeAliasesMixin {
   SearchEngine searchEngine;
 
   SourceChange refactoringChange;

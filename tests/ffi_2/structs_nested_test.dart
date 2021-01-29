@@ -61,10 +61,8 @@ void testRead() {
   final p = calloc<Struct8BytesNestedInt>();
   print(p);
   print(p.ref.runtimeType);
-  print(p.ref.addressOf);
-  print(p.ref.addressOf.address);
+  print(p.address);
   print(p.ref.a0.runtimeType);
-  print(p.ref.a0.addressOf);
   print(p.ref.a0.a0);
   calloc.free(p);
   print("read");

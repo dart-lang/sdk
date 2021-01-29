@@ -9,7 +9,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:meta/meta.dart';
@@ -17,15 +16,12 @@ import 'package:meta/meta.dart';
 /// Helper for resolving [VariableDeclaration]s.
 class VariableDeclarationResolver {
   final ResolverVisitor _resolver;
-  final FlowAnalysisHelper _flowAnalysis;
   final bool _strictInference;
 
   VariableDeclarationResolver({
     @required ResolverVisitor resolver,
-    @required FlowAnalysisHelper flowAnalysis,
     @required bool strictInference,
   })  : _resolver = resolver,
-        _flowAnalysis = flowAnalysis,
         _strictInference = strictInference;
 
   void resolve(VariableDeclarationImpl node) {
@@ -50,9 +46,9 @@ class VariableDeclarationResolver {
 
     InferenceContext.setTypeFromNode(initializer, node);
     if (isTopLevel) {
-      _flowAnalysis?.topLevelDeclaration_enter(node, null, null);
+      _resolver.flowAnalysis?.topLevelDeclaration_enter(node, null, null);
     } else if (element.isLate) {
-      _flowAnalysis?.flow?.lateInitializer_begin(node);
+      _resolver.flowAnalysis?.flow?.lateInitializer_begin(node);
     }
 
     initializer.accept(_resolver);
@@ -63,9 +59,9 @@ class VariableDeclarationResolver {
     }
 
     if (isTopLevel) {
-      _flowAnalysis?.topLevelDeclaration_exit();
+      _resolver.flowAnalysis?.topLevelDeclaration_exit();
     } else if (element.isLate) {
-      _flowAnalysis?.flow?.lateInitializer_end();
+      _resolver.flowAnalysis?.flow?.lateInitializer_end();
     }
 
     // Note: in addition to cloning the initializers for const variables, we
