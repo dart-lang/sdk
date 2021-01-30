@@ -303,7 +303,7 @@ void main() {
       );
 
       var debugWithAsserts2 = Configuration(
-        "different name",
+        "different-name",
         Architecture.x64,
         Compiler.dart2js,
         Mode.debug,

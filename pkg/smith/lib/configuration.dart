@@ -381,7 +381,12 @@ class Configuration {
         useHotReload = useHotReload ?? false,
         useHotReloadRollback = useHotReloadRollback ?? false,
         useSdk = useSdk ?? false,
-        useQemu = useQemu ?? false;
+        useQemu = useQemu ?? false {
+    if (name.contains(" ")) {
+      throw ArgumentError(
+          "Name of test configuration cannot contain spaces: $name");
+    }
+  }
 
   /// Returns `true` if this configuration's options all have the same values
   /// as [other].
