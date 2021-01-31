@@ -1470,6 +1470,77 @@ class A {
     assertSuggestKeywords(statementStartOutsideClass);
   }
 
+  @failingTest
+  Future<void> test_ifElement_noElse_last() async {
+    addTestSource('''
+void f() {
+  [if (true) 1 ^];
+}
+''');
+    await computeSuggestions();
+    assertSuggestKeywords([
+      ...COLLECTION_ELEMENT_START,
+      ...EXPRESSION_START_NO_INSTANCE,
+      Keyword.ELSE
+    ]);
+  }
+
+  Future<void> test_ifElement_noElse_notInElement() async {
+    addTestSource('''
+void f() {
+  [if (true) 1, ^];
+}
+''');
+    await computeSuggestions();
+    assertSuggestKeywords(
+        [...COLLECTION_ELEMENT_START, ...EXPRESSION_START_NO_INSTANCE]);
+  }
+
+  @failingTest
+  Future<void> test_ifElement_noElse_notLast() async {
+    addTestSource('''
+void f(int i) {
+  [if (true) 1 ^, i];
+}
+''');
+    await computeSuggestions();
+    assertSuggestKeywords([
+      ...COLLECTION_ELEMENT_START,
+      ...EXPRESSION_START_NO_INSTANCE,
+      Keyword.ELSE
+    ]);
+  }
+
+  @failingTest
+  Future<void> test_ifElement_partialElse_last() async {
+    addTestSource('''
+void f() {
+  [if (true) 1 e^];
+}
+''');
+    await computeSuggestions();
+    assertSuggestKeywords([
+      ...COLLECTION_ELEMENT_START,
+      ...EXPRESSION_START_NO_INSTANCE,
+      Keyword.ELSE
+    ]);
+  }
+
+  @failingTest
+  Future<void> test_ifElement_partialElse_notLast() async {
+    addTestSource('''
+void f(int i) {
+  [if (true) 1 e^, i];
+}
+''');
+    await computeSuggestions();
+    assertSuggestKeywords([
+      ...COLLECTION_ELEMENT_START,
+      ...EXPRESSION_START_NO_INSTANCE,
+      Keyword.ELSE
+    ]);
+  }
+
   Future<void> test_ifOrForElement_forElement() async {
     addTestSource('''
 f() => [for (var e in c) ^];
