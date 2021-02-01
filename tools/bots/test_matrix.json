@@ -3246,6 +3246,15 @@
           ]
         },
         {
+          "name": "validate SDK API data-driven fixes",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "fix",
+            "--compare-to-golden",
+            "tests/lib/fix_data_tests"
+          ]
+        },
+        {
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
