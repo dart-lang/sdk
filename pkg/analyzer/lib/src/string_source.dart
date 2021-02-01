@@ -4,6 +4,7 @@
 
 import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:path/path.dart' as pkg_path;
 
 /// An implementation of [Source] that's based on an in-memory Dart string.
 class StringSource extends Source {
@@ -21,7 +22,7 @@ class StringSource extends Source {
 
   StringSource(this._contents, String? fullName, {Uri? uri})
       : fullName = fullName ?? '/test.dart',
-        uri = uri ?? Uri.file(fullName ?? 'file:///test.dart'),
+        uri = _computeUri(uri, fullName),
         modificationStamp = DateTime.now().millisecondsSinceEpoch;
 
   @override
@@ -57,4 +58,17 @@ class StringSource extends Source {
 
   @override
   String toString() => 'StringSource ($fullName)';
+
+  static Uri _computeUri(Uri? uri, String? fullName) {
+    if (uri != null) {
+      return uri;
+    }
+
+    var isWindows = pkg_path.Style.platform == pkg_path.Style.windows;
+    if (isWindows) {
+      return pkg_path.toUri(r'C:\test.dart');
+    } else {
+      return pkg_path.toUri(r'/test.dart');
+    }
+  }
 }
