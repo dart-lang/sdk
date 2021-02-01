@@ -4,9 +4,7 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
-import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -774,18 +772,5 @@ class B extends A {m() {^}}
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'test');
       assertNoResult('HtmlElement');
     });
-  }
-}
-
-class MockRelevancySorter implements DartContributionSorter {
-  bool enabled = true;
-
-  @override
-  Future sort(
-      CompletionRequest request, Iterable<CompletionSuggestion> suggestions) {
-    if (!enabled) {
-      throw 'unexpected sort';
-    }
-    return Future.value();
   }
 }
