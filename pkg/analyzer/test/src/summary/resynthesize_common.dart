@@ -4525,6 +4525,7 @@ const List<int?> b;
     ListLiteral
       elements
         PropertyAccess
+          operator: ?.
           propertyName: SimpleIdentifier
             staticElement: dart:core::@class::String::@getter::length
             staticType: int

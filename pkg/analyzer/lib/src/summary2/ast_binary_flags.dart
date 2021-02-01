@@ -62,18 +62,21 @@ class AstBinaryFlags {
     0,
     IndexExpression,
     MethodInvocation,
+    PropertyAccess,
   );
 
   static final _hasPeriod2 = _checkBit(
     1,
     MethodInvocation,
+    PropertyAccess,
   );
 
   static final _hasQuestion = _checkBit(
-    1,
+    2,
     FieldFormalParameter,
     GenericFunctionType,
     IndexExpression,
+    PropertyAccess,
     TypeName,
   );
 

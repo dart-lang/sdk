@@ -78,6 +78,10 @@ class Tokens {
   static final PERIOD_PERIOD_PERIOD_QUESTION =
       TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD_PERIOD_QUESTION);
   static final QUESTION = TokenFactory.tokenFromType(TokenType.QUESTION);
+  static final QUESTION_PERIOD =
+      TokenFactory.tokenFromType(TokenType.QUESTION_PERIOD);
+  static final QUESTION_PERIOD_PERIOD =
+      TokenFactory.tokenFromType(TokenType.QUESTION_PERIOD_PERIOD);
   static final REQUIRED = TokenFactory.tokenFromKeyword(Keyword.REQUIRED);
   static final RETHROW = TokenFactory.tokenFromKeyword(Keyword.RETHROW);
   static final RETURN = TokenFactory.tokenFromKeyword(Keyword.RETURN);

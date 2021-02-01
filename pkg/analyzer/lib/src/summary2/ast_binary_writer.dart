@@ -1510,12 +1510,19 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   @override
   void visitPropertyAccess(PropertyAccess node) {
     _writeByte(Tag.PropertyAccess);
+
+    var operatorType = node.operator.type;
     _writeByte(
       AstBinaryFlags.encode(
-        hasPeriod: node.operator?.type == TokenType.PERIOD,
-        hasPeriod2: node.operator?.type == TokenType.PERIOD_PERIOD,
+        hasPeriod: operatorType == TokenType.PERIOD ||
+            operatorType == TokenType.QUESTION_PERIOD,
+        hasPeriod2: operatorType == TokenType.PERIOD_PERIOD ||
+            operatorType == TokenType.QUESTION_PERIOD_PERIOD,
+        hasQuestion: operatorType == TokenType.QUESTION_PERIOD ||
+            operatorType == TokenType.QUESTION_PERIOD_PERIOD,
       ),
     );
+
     _writeMarker(MarkerTag.PropertyAccess_target);
     _writeOptionalNode(node.target);
     _writeMarker(MarkerTag.PropertyAccess_propertyName);

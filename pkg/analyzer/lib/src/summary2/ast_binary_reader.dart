@@ -1507,16 +1507,19 @@ class AstBinaryReader {
     var flags = _readByte();
     var target = _readOptionalNode() as Expression;
     var propertyName = readNode() as SimpleIdentifier;
-    return astFactory.propertyAccess(
-      target,
-      Tokens.choose(
-        AstBinaryFlags.hasPeriod(flags),
-        Tokens.PERIOD,
-        AstBinaryFlags.hasPeriod2(flags),
-        Tokens.PERIOD_PERIOD,
-      ),
-      propertyName,
-    );
+
+    Token operator;
+    if (AstBinaryFlags.hasQuestion(flags)) {
+      operator = AstBinaryFlags.hasPeriod(flags)
+          ? Tokens.QUESTION_PERIOD
+          : Tokens.QUESTION_PERIOD_PERIOD;
+    } else {
+      operator = AstBinaryFlags.hasPeriod(flags)
+          ? Tokens.PERIOD
+          : Tokens.PERIOD_PERIOD;
+    }
+
+    return astFactory.propertyAccess(target, operator, propertyName);
   }
 
   RedirectingConstructorInvocation _readRedirectingConstructorInvocation() {
