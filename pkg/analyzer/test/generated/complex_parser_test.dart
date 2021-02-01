@@ -128,6 +128,23 @@ class ComplexParserTest extends FastaParserTestCase {
     expect(rhs.name, 'y');
   }
 
+  void test_binary_operator_written_out_expression_logical() {
+    var expression = parseExpression('x > 0 and y > 1', errors: [
+      expectedError(ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT, 6, 3),
+    ]) as BinaryExpression;
+    var lhs = expression.leftOperand as BinaryExpression;
+    expect((lhs.leftOperand as SimpleIdentifier).name, 'x');
+    expect(lhs.operator.lexeme, '>');
+    expect((lhs.rightOperand as IntegerLiteral).value, 0);
+
+    expect(expression.operator.lexeme, '&&');
+
+    var rhs = expression.rightOperand as BinaryExpression;
+    expect((rhs.leftOperand as SimpleIdentifier).name, 'y');
+    expect(rhs.operator.lexeme, '>');
+    expect((rhs.rightOperand as IntegerLiteral).value, 1);
+  }
+
   void test_bitwiseAndExpression_normal() {
     BinaryExpression expression = parseExpression("x & y & z");
     expect(expression.leftOperand, isBinaryExpression);

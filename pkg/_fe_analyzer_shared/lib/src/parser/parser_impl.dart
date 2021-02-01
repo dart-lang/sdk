@@ -4897,73 +4897,97 @@ class Parser {
   bool _attemptPrecedenceLevelRecovery(Token token, int precedence,
       int currentLevel, bool allowCascades, TypeParamOrArgInfo typeArg) {
     // Attempt recovery.
-    assert(_token_recovery_replacements.containsKey(token.next!.lexeme));
-    TokenType replacement = _token_recovery_replacements[token.next!.lexeme]!;
-    if (currentLevel >= 0) {
-      // Check that the new precedence and currentLevel would have accepted this
-      // replacement here.
-      int newLevel = replacement.precedence;
-      // The loop it would normally have gone through is something like
-      // for (; ; --level) {
-      //   while (identical(tokenLevel, level)) {
-      //   }
-      // }
-      // So if the new tokens level <= the "old" (current) level, [level] (in
-      // the above code snippet) would get down to it and accept it.
-      // But if the new tokens level > the "old" (current) level, normally we
-      // would never get to it - so we shouldn't here either. As the loop starts
-      // by taking the first tokens tokenLevel as level, recursing below won't
-      // weed that out so we need to do it here.
-      if (newLevel > currentLevel) return false;
-    }
-
-    _currentlyRecovering = true;
     _recoverAtPrecedenceLevel = false;
-    Listener originalListener = listener;
-    TokenStreamRewriter? originalRewriter = cachedRewriter;
-    NullListener nullListener = listener = new NullListener();
-    UndoableTokenStreamRewriter undoableTokenStreamRewriter =
-        new UndoableTokenStreamRewriter();
-    cachedRewriter = undoableTokenStreamRewriter;
-    rewriter.replaceNextTokenWithSyntheticToken(token, replacement);
-    bool acceptRecovery = false;
-    Token afterExpression = _parsePrecedenceExpressionLoop(
-        precedence, allowCascades, typeArg, token);
+    assert(_tokenRecoveryReplacements.containsKey(token.next!.lexeme));
+    List<TokenType> replacements =
+        _tokenRecoveryReplacements[token.next!.lexeme]!;
+    for (int i = 0; i < replacements.length; i++) {
+      TokenType replacement = replacements[i];
 
-    if (!nullListener.hasErrors &&
-        isOneOfOrEof(afterExpression.next!, const [';', ',', ')', '{', '}'])) {
-      // Seems good!
-      acceptRecovery = true;
-    }
+      if (currentLevel >= 0) {
+        // Check that the new precedence and currentLevel would have accepted
+        // this replacement here.
+        int newLevel = replacement.precedence;
+        // The loop it would normally have gone through is something like
+        // for (; ; --level) {
+        //   while (identical(tokenLevel, level)) {
+        //   }
+        // }
+        // So if the new tokens level <= the "old" (current) level, [level] (in
+        // the above code snippet) would get down to it and accept it.
+        // But if the new tokens level > the "old" (current) level, normally we
+        // would never get to it - so we shouldn't here either.
+        // As the loop starts by taking the first tokens tokenLevel as level,
+        // recursing below won't weed that out so we need to do it here.
+        if (newLevel > currentLevel) continue;
+      }
 
-    // Undo all changes and reset.
-    _currentlyRecovering = false;
-    undoableTokenStreamRewriter.undo();
-    listener = originalListener;
-    cachedRewriter = originalRewriter;
-
-    if (acceptRecovery) {
-      // Report and redo recovery.
-      reportRecoverableError(
-          token.next!,
-          codes.templateBinaryOperatorWrittenOut
-              .withArguments(token.next!.lexeme, replacement.lexeme));
+      _currentlyRecovering = true;
+      Listener originalListener = listener;
+      TokenStreamRewriter? originalRewriter = cachedRewriter;
+      NullListener nullListener = listener = new NullListener();
+      UndoableTokenStreamRewriter undoableTokenStreamRewriter =
+          new UndoableTokenStreamRewriter();
+      cachedRewriter = undoableTokenStreamRewriter;
       rewriter.replaceNextTokenWithSyntheticToken(token, replacement);
-      return true;
+      bool acceptRecovery = false;
+      Token afterExpression = _parsePrecedenceExpressionLoop(
+          precedence, allowCascades, typeArg, token);
+      Token afterExpressionNext = afterExpression.next!;
+
+      if (!nullListener.hasErrors &&
+          token != afterExpression &&
+          (isOneOfOrEof(afterExpressionNext,
+                  const [';', ',', ')', '{', '}', '|', '||', '&', '&&']) ||
+              (afterExpressionNext.type == TokenType.IDENTIFIER &&
+                  _tokenRecoveryReplacements
+                      .containsKey(afterExpressionNext.lexeme)))) {
+        // Seems good!
+        acceptRecovery = true;
+      }
+
+      // Undo all changes and reset.
+      _currentlyRecovering = false;
+      undoableTokenStreamRewriter.undo();
+      listener = originalListener;
+      cachedRewriter = originalRewriter;
+
+      if (acceptRecovery) {
+        // Report and redo recovery.
+        reportRecoverableError(
+            token.next!,
+            codes.templateBinaryOperatorWrittenOut
+                .withArguments(token.next!.lexeme, replacement.lexeme));
+        rewriter.replaceNextTokenWithSyntheticToken(token, replacement);
+        return true;
+      }
     }
+
     return false;
   }
 
   bool _recoverAtPrecedenceLevel = false;
   bool _currentlyRecovering = false;
-  static const Map<String, TokenType> _token_recovery_replacements = const {
-    // E.g. in Kotlin these are written out, see.
+  static const Map<String, List<TokenType>> _tokenRecoveryReplacements = const {
+    // E.g. in Kotlin binary operators are written out, see.
     // https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/.
-    "xor": TokenType.CARET,
-    "and": TokenType.AMPERSAND,
-    "or": TokenType.BAR,
-    "shl": TokenType.LT_LT,
-    "shr": TokenType.GT_GT,
+    "xor": [
+      TokenType.CARET,
+    ],
+    "and": [
+      TokenType.AMPERSAND,
+      TokenType.AMPERSAND_AMPERSAND,
+    ],
+    "or": [
+      TokenType.BAR,
+      TokenType.BAR_BAR,
+    ],
+    "shl": [
+      TokenType.LT_LT,
+    ],
+    "shr": [
+      TokenType.GT_GT,
+    ],
   };
 
   int _computePrecedence(Token token) {
@@ -4992,7 +5016,7 @@ class Parser {
       // An identifier at this point is not right. So some recovery is going to
       // happen soon. The question is, if we can do a better recovery here.
       if (!_currentlyRecovering &&
-          _token_recovery_replacements.containsKey(token.lexeme)) {
+          _tokenRecoveryReplacements.containsKey(token.lexeme)) {
         _recoverAtPrecedenceLevel = true;
       }
     }
