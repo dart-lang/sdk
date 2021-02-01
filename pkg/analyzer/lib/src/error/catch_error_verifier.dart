@@ -28,9 +28,8 @@ class CatchErrorVerifier {
           typeSystem: _typeSystem,
           errorReporter: _errorReporter,
         );
+
   void verifyMethodInvocation(MethodInvocation node) {
-    // TODO(https://github.com/dart-lang/sdk/issues/35825): Verify the
-    // parameters of a function passed to `Future.catchError` as well.
     var target = node.realTarget;
     if (target == null) {
       return;
@@ -91,8 +90,6 @@ class CatchErrorVerifier {
     var firstParameter = parameters.first;
     if (firstParameter.isNamed) {
       return report();
-    } else if (firstParameter.isOptionalPositional) {
-      return report();
     } else {
       if (!_typeSystem.isSubtypeOf(
           _typeProvider.objectType, firstParameter.type)) {
@@ -102,8 +99,6 @@ class CatchErrorVerifier {
     if (parameters.length == 2) {
       var secondParameter = parameters[1];
       if (secondParameter.isNamed) {
-        return report();
-      } else if (firstParameter.isOptionalPositional) {
         return report();
       } else {
         if (!_typeSystem.isSubtypeOf(
@@ -131,7 +126,9 @@ class CatchErrorVerifier {
 /// Visits a function body, looking for return statements.
 class _ReturnStatementVerifier extends RecursiveAstVisitor<void> {
   final ReturnTypeVerifier _returnTypeVerifier;
+
   _ReturnStatementVerifier(this._returnTypeVerifier);
+
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
     _returnTypeVerifier.verifyExpressionFunctionBody(node);

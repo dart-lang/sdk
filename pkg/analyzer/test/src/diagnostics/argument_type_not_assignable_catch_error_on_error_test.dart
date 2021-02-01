@@ -37,13 +37,11 @@ void f(Future<int> future, Future<int> Function({Object a}) callback) {
   }
 
   void test_firstParameterIsOptional() async {
-    await assertErrorsInCode('''
+    await assertNoErrorsInCode('''
 void f(Future<int> future, Future<int> Function([Object a]) callback) {
   future.catchError(callback);
 }
-''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_CATCH_ERROR_ON_ERROR, 92, 8),
-    ]);
+''');
   }
 
   void test_functionExpression_firstParameterIsDynamic() async {
@@ -73,13 +71,11 @@ void f(Future<void> future) {
   }
 
   void test_functionExpression_firstParameterIsOptional() async {
-    await assertErrorsInCode('''
+    await assertNoErrorsInCode('''
 void f(Future<void> future) {
   future.catchError(([Object a = 1]) {});
 }
-''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_CATCH_ERROR_ON_ERROR, 50, 19),
-    ]);
+''');
   }
 
   void test_functionExpression_firstParameterIsVar() async {
@@ -124,6 +120,14 @@ void f(Future<void> future) {
 ''', [
       error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_CATCH_ERROR_ON_ERROR, 50, 29),
     ]);
+  }
+
+  void test_functionExpression_secondParameterIsOptional() async {
+    await assertNoErrorsInCode('''
+void f(Future<void> future) {
+  future.catchError((Object a, [StackTrace st]) {});
+}
+''');
   }
 
   void test_functionExpression_secondParameterIsVar() async {
@@ -258,6 +262,15 @@ void f(Future<void> future) {
     await assertNoErrorsInCode('''
 void f(Future<void> future) {
   future.catchError((Object a, StackTrace? b) {});
+}
+''');
+  }
+
+  @override
+  void test_functionExpression_secondParameterIsOptional() async {
+    await assertNoErrorsInCode('''
+void f(Future<void> future) {
+  future.catchError((Object a, [StackTrace? st]) {});
 }
 ''');
   }
