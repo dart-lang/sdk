@@ -2359,7 +2359,7 @@ class ResolverVisitorForMigration extends ResolverVisitor {
       var subexpressionToKeep =
           conditionalKnownValue ? node.thenExpression : node.elseExpression;
       subexpressionToKeep.accept(this);
-      typeAnalyzer.recordStaticType(node, subexpressionToKeep.staticType);
+      typeAnalyzer.recordStaticType(node, subexpressionToKeep.staticType!);
     }
   }
 

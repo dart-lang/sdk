@@ -120,10 +120,12 @@ class ExtensionMemberResolver {
     var typeParameters = element.typeParameters;
 
     if (!_isValidContext(node)) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.EXTENSION_OVERRIDE_WITHOUT_ACCESS,
-        node,
-      );
+      if (!_isCascadeTarget(node)) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.EXTENSION_OVERRIDE_WITHOUT_ACCESS,
+          node,
+        );
+      }
       nodeImpl.staticType = _dynamicType;
     }
 
@@ -463,12 +465,16 @@ class ExtensionMemberResolver {
     return List<DartType>.filled(parameters.length, _dynamicType);
   }
 
+  static bool _isCascadeTarget(ExtensionOverride node) {
+    var parent = node.parent;
+    return parent is CascadeExpression && parent.target == node;
+  }
+
   /// Return `true` if the extension override [node] is being used as a target
   /// of an operation that might be accessing an instance member.
   static bool _isValidContext(ExtensionOverride node) {
     var parent = node.parent;
     return parent is BinaryExpression && parent.leftOperand == node ||
-        parent is CascadeExpression && parent.target == node ||
         parent is FunctionExpressionInvocation && parent.function == node ||
         parent is IndexExpression && parent.target == node ||
         parent is MethodInvocation && parent.target == node ||

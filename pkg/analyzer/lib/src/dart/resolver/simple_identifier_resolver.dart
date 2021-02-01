@@ -111,12 +111,9 @@ class SimpleIdentifierResolver {
   ///
   /// TODO(scheglov) this is duplicate
   void _recordStaticType(Expression expression, DartType type) {
-    if (_resolver.migrationResolutionHooks != null) {
-      // TODO(scheglov) type cannot be null
-      type = _resolver.migrationResolutionHooks!.modifyExpressionType(
-        expression,
-        type,
-      );
+    var hooks = _resolver.migrationResolutionHooks;
+    if (hooks != null) {
+      type = hooks.modifyExpressionType(expression, type);
     }
 
     expression.staticType = type;

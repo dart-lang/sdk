@@ -179,23 +179,15 @@ class InvocationInferenceHelper {
   /// @param type the static type of the node
   ///
   /// TODO(scheglov) this is duplication
-  void recordStaticType(Expression expression, DartType? type) {
-    if (_migrationResolutionHooks != null) {
-      // TODO(scheglov) type cannot be null
-      type = _migrationResolutionHooks!.modifyExpressionType(
-        expression,
-        type ?? DynamicTypeImpl.instance,
-      );
+  void recordStaticType(Expression expression, DartType type) {
+    var hooks = _migrationResolutionHooks;
+    if (hooks != null) {
+      type = hooks.modifyExpressionType(expression, type);
     }
 
-    // TODO(scheglov) type cannot be null
-    if (type == null) {
-      expression.staticType = DynamicTypeImpl.instance;
-    } else {
-      expression.staticType = type;
-      if (_typeSystem.isBottom(type)) {
-        _resolver.flowAnalysis?.flow?.handleExit();
-      }
+    expression.staticType = type;
+    if (_typeSystem.isBottom(type)) {
+      _resolver.flowAnalysis?.flow?.handleExit();
     }
   }
 

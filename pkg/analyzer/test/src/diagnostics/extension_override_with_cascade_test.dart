@@ -26,6 +26,7 @@ f() {
 ''', [
       error(CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE, 49, 1),
     ]);
+    assertTypeDynamic(findNode.extensionOverride('E('));
   }
 
   test_method() async {
@@ -39,6 +40,7 @@ f() {
 ''', [
       error(CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE, 45, 1),
     ]);
+    assertTypeDynamic(findNode.extensionOverride('E('));
   }
 
   test_setter() async {
@@ -52,5 +54,6 @@ f() {
 ''', [
       error(CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE, 49, 1),
     ]);
+    assertTypeDynamic(findNode.extensionOverride('E('));
   }
 }

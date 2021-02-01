@@ -75,23 +75,15 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// @param type the static type of the node
   ///
   /// TODO(scheglov) this is duplication
-  void recordStaticType(Expression expression, DartType? type) {
-    if (_migrationResolutionHooks != null) {
-      // TODO(scheglov) type cannot be null
-      type = _migrationResolutionHooks!.modifyExpressionType(
-        expression,
-        type ?? DynamicTypeImpl.instance,
-      );
+  void recordStaticType(Expression expression, DartType type) {
+    var hooks = _migrationResolutionHooks;
+    if (hooks != null) {
+      type = hooks.modifyExpressionType(expression, type);
     }
 
-    // TODO(scheglov) type cannot be null
-    if (type == null) {
-      expression.staticType = DynamicTypeImpl.instance;
-    } else {
-      expression.staticType = type;
-      if (_typeSystem.isBottom(type)) {
-        _resolver.flowAnalysis?.flow?.handleExit();
-      }
+    expression.staticType = type;
+    if (_typeSystem.isBottom(type)) {
+      _resolver.flowAnalysis?.flow?.handleExit();
     }
   }
 
@@ -119,8 +111,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   ///   the static type of e.
   @override
   void visitAwaitExpression(AwaitExpression node) {
-    var resultType = node.expression.staticType;
-    if (resultType != null) resultType = _typeSystem.flatten(resultType);
+    var resultType = node.expression.staticType!;
+    resultType = _typeSystem.flatten(resultType);
     recordStaticType(node, resultType);
   }
 
@@ -136,7 +128,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// t;}(e)</i>.</blockquote>
   @override
   void visitCascadeExpression(CascadeExpression node) {
-    recordStaticType(node, node.target.staticType);
+    recordStaticType(node, node.target.staticType!);
   }
 
   /// The Dart Language Specification, 12.19: <blockquote> ... a conditional expression <i>c</i> of
@@ -204,7 +196,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     _inferInstanceCreationExpression(node);
-    recordStaticType(node, node.constructorName.type.type);
+    recordStaticType(node, node.constructorName.type.type!);
   }
 
   /// <blockquote>
@@ -253,7 +245,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   @override
   void visitNamedExpression(NamedExpression node) {
     Expression expression = node.expression;
-    recordStaticType(node, expression.staticType);
+    recordStaticType(node, expression.staticType!);
   }
 
   /// The Dart Language Specification, 12.2: <blockquote>The static type of `null` is bottom.
@@ -266,7 +258,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
     Expression expression = node.expression;
-    recordStaticType(node, expression.staticType);
+    recordStaticType(node, expression.staticType!);
   }
 
   /// The Dart Language Specification, 12.9: <blockquote>The static type of a rethrow expression is
@@ -292,13 +284,14 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
   @override
   void visitSuperExpression(SuperExpression node) {
-    if (_resolver.thisType == null ||
+    var thisType = _resolver.thisType;
+    if (thisType == null ||
         node.thisOrAncestorOfType<ExtensionDeclaration>() != null) {
       // TODO(brianwilkerson) Report this error if it hasn't already been
       // reported.
       recordStaticType(node, _dynamicType);
     } else {
-      recordStaticType(node, _resolver.thisType);
+      recordStaticType(node, thisType);
     }
   }
 
@@ -311,12 +304,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// interface of the immediately enclosing class.</blockquote>
   @override
   void visitThisExpression(ThisExpression node) {
-    if (_resolver.thisType == null) {
+    var thisType = _resolver.thisType;
+    if (thisType == null) {
       // TODO(brianwilkerson) Report this error if it hasn't already been
       // reported.
       recordStaticType(node, _dynamicType);
     } else {
-      recordStaticType(node, _resolver.thisType);
+      recordStaticType(node, thisType);
     }
   }
 
