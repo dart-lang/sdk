@@ -270,7 +270,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
             opType.includeReturnValueSuggestions &&
             (!opType.inStaticMethodBody || fieldDecl.isStatic)) ||
         suggestLocalFields) {
-      var inheritanceDistance = -1.0;
+      var inheritanceDistance = 0.0;
       var enclosingClass = request.target.containingNode
           .thisOrAncestorOfType<ClassDeclaration>();
       if (enclosingClass != null) {
@@ -341,7 +341,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         (opType.includeReturnValueSuggestions ||
             opType.includeVoidReturnSuggestions) &&
         (!opType.inStaticMethodBody || declaration.isStatic)) {
-      var inheritanceDistance = -1.0;
+      var inheritanceDistance = 0.0;
       var enclosingClass = request.target.containingNode
           .thisOrAncestorOfType<ClassDeclaration>();
       if (enclosingClass != null) {

@@ -222,7 +222,7 @@ class SuggestionBuilder {
       var hasDeprecated = featureComputer.hasDeprecatedFeature(accessor);
       var isConstant = request.inConstantContext
           ? featureComputer.isConstantFeature(accessor)
-          : -1.0;
+          : 0.0;
       var startsWithDollar =
           featureComputer.startsWithDollarFeature(accessor.name);
       var superMatches = featureComputer.superMatchesFeature(
@@ -240,6 +240,7 @@ class SuggestionBuilder {
           elementKind: elementKind,
           hasDeprecated: hasDeprecated,
           inheritanceDistance: inheritanceDistance,
+          isConstant: isConstant,
           startsWithDollar: startsWithDollar,
           superMatches: superMatches);
       _add(_createSuggestion(accessor, relevance: relevance));
@@ -254,12 +255,16 @@ class SuggestionBuilder {
     var elementKind = _computeElementKind(parameter);
     var isConstant = request.inConstantContext
         ? request.featureComputer.isConstantFeature(parameter)
-        : -1.0;
-    var relevance = toRelevance(
-        weightedAverage(
-            [contextType, elementKind, isConstant], [1.0, 1.0, 1.0]),
-        800);
-    listener?.computedFeatures(contextType: contextType);
+        : 0.0;
+    var score = weightedAverage(
+        contextType: contextType,
+        elementKind: elementKind,
+        isConstant: isConstant);
+    var relevance = toRelevance(score);
+    listener?.computedFeatures(
+        contextType: contextType,
+        elementKind: elementKind,
+        isConstant: isConstant);
     _add(_createSuggestion(parameter,
         elementKind: protocol.ElementKind.PARAMETER, relevance: relevance));
   }
@@ -431,7 +436,7 @@ class SuggestionBuilder {
     var hasDeprecated = featureComputer.hasDeprecatedFeature(field);
     var isConstant = request.inConstantContext
         ? featureComputer.isConstantFeature(field)
-        : -1.0;
+        : 0.0;
     var startsWithDollar = featureComputer.startsWithDollarFeature(field.name);
     var superMatches =
         featureComputer.superMatchesFeature(_containingMemberName, field.name);
@@ -448,6 +453,7 @@ class SuggestionBuilder {
         elementKind: elementKind,
         hasDeprecated: hasDeprecated,
         inheritanceDistance: inheritanceDistance,
+        isConstant: isConstant,
         startsWithDollar: startsWithDollar,
         superMatches: superMatches);
     _add(_createSuggestion(field, relevance: relevance));
@@ -490,11 +496,11 @@ class SuggestionBuilder {
   /// Add a suggestion for a [keyword]. The [offset] is the offset from the
   /// beginning of the keyword where the cursor will be left.
   void suggestKeyword(String keyword, {int offset}) {
+    var keywordFeature = request.featureComputer
+        .keywordFeature(keyword, request.opType.completionLocation);
     // TODO(brianwilkerson) The default value should probably be a constant.
-    var relevance = toRelevance(
-        request.featureComputer
-            .keywordFeature(keyword, request.opType.completionLocation),
-        800);
+    var relevance = toRelevance(keywordFeature);
+    listener?.computedFeatures(keyword: keywordFeature);
     _add(CompletionSuggestion(CompletionSuggestionKind.KEYWORD, relevance,
         keyword, offset ?? keyword.length, 0, false, false));
   }
@@ -531,15 +537,21 @@ class SuggestionBuilder {
     var elementKind = _computeElementKind(variable);
     var isConstant = request.inConstantContext
         ? request.featureComputer.isConstantFeature(variable)
-        : -1.0;
-    var localVariableDistance = request.featureComputer
+        : 0.0;
+    double localVariableDistance;
+    localVariableDistance = request.featureComputer
         .localVariableDistanceFeature(request.target.containingNode, variable);
-    var relevance = toRelevance(
-        weightedAverage(
-            [contextType, elementKind, isConstant, localVariableDistance],
-            [1.0, 1.0, 1.0, 1.0]),
-        800);
-    listener?.computedFeatures(contextType: contextType);
+    var score = weightedAverage(
+        contextType: contextType,
+        elementKind: elementKind,
+        isConstant: isConstant,
+        localVariableDistance: localVariableDistance);
+    var relevance = toRelevance(score);
+    listener?.computedFeatures(
+        contextType: contextType,
+        elementKind: elementKind,
+        isConstant: isConstant,
+        localVariableDistance: localVariableDistance);
     _add(_createSuggestion(variable, relevance: relevance));
   }
 
@@ -560,7 +572,7 @@ class SuggestionBuilder {
     var hasDeprecated = featureComputer.hasDeprecatedFeature(method);
     var isConstant = request.inConstantContext
         ? featureComputer.isConstantFeature(method)
-        : -1.0;
+        : 0.0;
     var startsWithDollar = featureComputer.startsWithDollarFeature(method.name);
     var superMatches =
         featureComputer.superMatchesFeature(_containingMemberName, method.name);
@@ -577,6 +589,7 @@ class SuggestionBuilder {
         elementKind: elementKind,
         hasDeprecated: hasDeprecated,
         inheritanceDistance: inheritanceDistance,
+        isConstant: isConstant,
         startsWithDollar: startsWithDollar,
         superMatches: superMatches);
 
@@ -752,12 +765,16 @@ class SuggestionBuilder {
     var elementKind = _computeElementKind(parameter);
     var isConstant = request.inConstantContext
         ? request.featureComputer.isConstantFeature(parameter)
-        : -1.0;
-    var relevance = toRelevance(
-        weightedAverage(
-            [contextType, elementKind, isConstant], [1.0, 1.0, 1.0]),
-        800);
-    listener?.computedFeatures(contextType: contextType);
+        : 0.0;
+    var score = weightedAverage(
+        contextType: contextType,
+        elementKind: elementKind,
+        isConstant: isConstant);
+    var relevance = toRelevance(score);
+    listener?.computedFeatures(
+        contextType: contextType,
+        elementKind: elementKind,
+        isConstant: isConstant);
     _add(_createSuggestion(parameter, relevance: relevance));
   }
 
@@ -767,7 +784,8 @@ class SuggestionBuilder {
     // TODO(brianwilkerson) If we are in a constant context it would be nice
     //  to promote prefixes for libraries that define constants, but that
     //  might be more work than it's worth.
-    var relevance = toRelevance(elementKind, Relevance.prefix);
+    var score = weightedAverage(elementKind: elementKind);
+    var relevance = toRelevance(score);
     listener?.computedFeatures(elementKind: elementKind);
     _add(_createSuggestion(library,
         completion: prefix,
@@ -815,24 +833,29 @@ class SuggestionBuilder {
           featureComputer.contextTypeFeature(request.contextType, type);
       var elementKind = _computeElementKind(accessor);
       var hasDeprecated = featureComputer.hasDeprecatedFeature(accessor);
+      var inheritanceDistance = 0.0;
       var isConstant = request.inConstantContext
           ? featureComputer.isConstantFeature(accessor)
-          : -1.0;
+          : 0.0;
       var startsWithDollar =
           featureComputer.startsWithDollarFeature(accessor.name);
+      var superMatches = 0.0;
       var relevance = _computeMemberRelevance(
           contextType: contextType,
           elementKind: elementKind,
           hasDeprecated: hasDeprecated,
-          inheritanceDistance: -1.0,
+          inheritanceDistance: inheritanceDistance,
           isConstant: isConstant,
           startsWithDollar: startsWithDollar,
-          superMatches: -1.0);
+          superMatches: superMatches);
       listener?.computedFeatures(
           contextType: contextType,
           elementKind: elementKind,
           hasDeprecated: hasDeprecated,
-          startsWithDollar: startsWithDollar);
+          inheritanceDistance: inheritanceDistance,
+          isConstant: isConstant,
+          startsWithDollar: startsWithDollar,
+          superMatches: superMatches);
       _add(_createSuggestion(accessor, prefix: prefix, relevance: relevance));
     }
   }
@@ -857,7 +880,7 @@ class SuggestionBuilder {
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
       String prefix}) {
     var relevance = _computeTopLevelRelevance(typeAlias,
-        defaultRelevance: 750, elementType: _instantiateTypeAlias(typeAlias));
+        elementType: _instantiateTypeAlias(typeAlias));
     _add(_createSuggestion(typeAlias,
         kind: kind, prefix: prefix, relevance: relevance));
   }
@@ -867,11 +890,12 @@ class SuggestionBuilder {
     var elementKind = _computeElementKind(parameter);
     var isConstant = request.inConstantContext
         ? request.featureComputer.isConstantFeature(parameter)
-        : -1.0;
-    var relevance = toRelevance(
-        weightedAverage([elementKind, isConstant], [1.0, 1.0]),
-        Relevance.typeParameter);
-    listener?.computedFeatures(elementKind: elementKind);
+        : 0.0;
+    var score =
+        weightedAverage(elementKind: elementKind, isConstant: isConstant);
+    var relevance = toRelevance(score);
+    listener?.computedFeatures(
+        elementKind: elementKind, isConstant: isConstant);
     _add(_createSuggestion(parameter,
         kind: CompletionSuggestionKind.IDENTIFIER, relevance: relevance));
   }
@@ -936,29 +960,20 @@ class SuggestionBuilder {
       @required double isConstant,
       @required double startsWithDollar,
       @required double superMatches}) {
-    var score = weightedAverage([
-      contextType,
-      elementKind,
-      hasDeprecated,
-      inheritanceDistance,
-      isConstant,
-      startsWithDollar,
-      superMatches
-    ], [
-      1.00, // contextType
-      0.75, // elementKind
-      0.50, // hasDeprecated
-      1.00, // inheritanceDistance
-      1.00, // isConstant
-      0.50, // startsWithDollar
-      1.00, // superMatches
-    ]);
-    return toRelevance(score, Relevance.member);
+    var score = weightedAverage(
+        contextType: contextType,
+        elementKind: elementKind,
+        hasDeprecated: hasDeprecated,
+        inheritanceDistance: inheritanceDistance,
+        isConstant: isConstant,
+        startsWithDollar: startsWithDollar,
+        superMatches: superMatches);
+    return toRelevance(score);
   }
 
   /// Return the relevance score for a top-level [element].
   int _computeTopLevelRelevance(Element element,
-      {int defaultRelevance = 800, @required DartType elementType}) {
+      {@required DartType elementType}) {
     // TODO(brianwilkerson) The old relevance computation used a signal based
     //  on whether the element being suggested was from the same library in
     //  which completion is being performed. Explore whether that's a useful
@@ -970,15 +985,18 @@ class SuggestionBuilder {
     var hasDeprecated = featureComputer.hasDeprecatedFeature(element);
     var isConstant = request.inConstantContext
         ? featureComputer.isConstantFeature(element)
-        : -1.0;
-    var relevance = toRelevance(
-        weightedAverage([contextType, elementKind, hasDeprecated, isConstant],
-            [1.0, 0.75, 0.2, 1.0]),
-        defaultRelevance);
+        : 0.0;
+    var score = weightedAverage(
+        contextType: contextType,
+        elementKind: elementKind,
+        hasDeprecated: hasDeprecated,
+        isConstant: isConstant);
+    var relevance = toRelevance(score);
     listener?.computedFeatures(
         contextType: contextType,
         elementKind: elementKind,
-        hasDeprecated: hasDeprecated);
+        hasDeprecated: hasDeprecated,
+        isConstant: isConstant);
     return relevance;
   }
 
@@ -1117,14 +1135,16 @@ abstract class SuggestionListener {
   void builtSuggestion(protocol.CompletionSuggestion suggestion);
 
   /// Invoked with the values of the features that were computed in the process
-  /// of building a suggestion. This method is only invoked when using the new
-  /// relevance computations. If invoked, it is invoked prior to invoking
+  /// of building a suggestion. This method is invoked prior to invoking
   /// [builtSuggestion].
   void computedFeatures(
       {double contextType,
       double elementKind,
       double hasDeprecated,
       double inheritanceDistance,
+      double isConstant,
+      double keyword,
+      double localVariableDistance,
       double startsWithDollar,
       double superMatches});
 

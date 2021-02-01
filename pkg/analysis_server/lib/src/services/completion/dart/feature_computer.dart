@@ -10,6 +10,7 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol
     show ElementKind;
 import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
+import 'package:analysis_server/src/utilities/extensions/numeric.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -65,20 +66,56 @@ DartType impliedDartTypeWithName(TypeProvider typeProvider, String name) {
 }
 
 /// Convert a relevance score (assumed to be between `0.0` and `1.0` inclusive)
-/// to a relevance value between `0` and `1000`. If the score is outside that
-/// range, return the [defaultValue].
-int toRelevance(double score, int defaultValue) {
-  if (score < 0.0 || score > 1.0) {
-    return defaultValue;
-  }
+/// to a relevance value between `0` and `1000`.
+int toRelevance(double score) {
+  assert(score.between(0.0, 1.0));
   return (score * 1000).truncate();
+}
+
+/// Return the weighted average of the given values, applying some constant and
+/// predetermined weights.
+double weightedAverage(
+    {double contextType = 0.0,
+    double elementKind = 0.0,
+    double hasDeprecated = 0.0,
+    double inheritanceDistance = 0.0,
+    double isConstant = 0.0,
+    double localVariableDistance = 0.0,
+    double startsWithDollar = 0.0,
+    double superMatches = 0.0}) {
+  assert(contextType.between(0.0, 1.0));
+  assert(elementKind.between(0.0, 1.0));
+  assert(hasDeprecated.between(-1.0, 0.0));
+  assert(inheritanceDistance.between(0.0, 1.0));
+  assert(isConstant.between(0.0, 1.0));
+  assert(localVariableDistance.between(0.0, 1.0));
+  assert(startsWithDollar.between(-1.0, 0.0));
+  assert(superMatches.between(0.0, 1.0));
+  var average = _weightedAverage([
+    contextType,
+    elementKind,
+    hasDeprecated,
+    inheritanceDistance,
+    isConstant,
+    localVariableDistance,
+    startsWithDollar,
+    superMatches,
+  ], [
+    1.00, // contextType
+    1.00, // elementKind
+    0.50, // hasDeprecated
+    1.00, // inheritanceDistance
+    1.00, // isConstant
+    1.00, // localVariableDistance
+    0.50, // startsWithDollar
+    1.00, // superMatches
+  ]);
+  return (average + 1.0) / 2.0;
 }
 
 /// Return the weighted average of the given [values], applying the given
 /// [weights]. The number of weights must be equal to the number of values.
-/// Values less than `0.0` are ignored. If there are no non-negative values then
-/// a negative value will be returned.
-double weightedAverage(List<double> values, List<double> weights) {
+double _weightedAverage(List<double> values, List<double> weights) {
   assert(values.length == weights.length);
   var totalValue = 0.0;
   var totalWeight = 0.0;
@@ -86,12 +123,7 @@ double weightedAverage(List<double> values, List<double> weights) {
     var value = values[i];
     var weight = weights[i];
     totalWeight += weight;
-    if (value >= 0.0) {
-      totalValue += value * weight;
-    }
-  }
-  if (totalWeight == 0.0) {
-    return -1.0;
+    totalValue += value * weight;
   }
   return totalValue / totalWeight;
 }
@@ -175,7 +207,7 @@ class FeatureComputer {
   double contextTypeFeature(DartType contextType, DartType elementType) {
     if (contextType == null || elementType == null) {
       // Disable the feature if we don't have both types.
-      return -1.0;
+      return 0.0;
     }
     if (elementType == contextType) {
       // Exact match.
@@ -198,11 +230,11 @@ class FeatureComputer {
   double elementKindFeature(Element element, String completionLocation,
       {int distance}) {
     if (completionLocation == null) {
-      return -1.0;
+      return 0.0;
     }
     var locationTable = elementKindRelevance[completionLocation];
     if (locationTable == null) {
-      return -1.0;
+      return 0.0;
     }
     var range = locationTable[computeElementKind(element)];
     if (range == null) {
@@ -216,7 +248,7 @@ class FeatureComputer {
 
   /// Return the value of the _has deprecated_ feature for the given [element].
   double hasDeprecatedFeature(Element element) {
-    return element.hasOrInheritsDeprecated ? 0.0 : 1.0;
+    return element.hasOrInheritsDeprecated ? -1.0 : 0.0;
   }
 
   /// Return the inheritance distance between the [subclass] and the
@@ -261,11 +293,11 @@ class FeatureComputer {
   /// completing at the given [completionLocation].
   double keywordFeature(String keyword, String completionLocation) {
     if (completionLocation == null) {
-      return -1.0;
+      return 0.0;
     }
     var locationTable = keywordRelevance[completionLocation];
     if (locationTable == null) {
-      return -1.0;
+      return 0.0;
     }
     var range = locationTable[keyword];
     if (range == null) {
@@ -366,21 +398,22 @@ class FeatureComputer {
   }
 
   /// Return the value of the _starts with dollar_ feature.
-  double startsWithDollarFeature(String name) =>
-      name.startsWith('\$') ? 0.0 : 1.0;
+  double startsWithDollarFeature(String name) {
+    return name.startsWith('\$') ? -1.0 : 0.0;
+  }
 
   /// Return the value of the _super matches_ feature.
   double superMatchesFeature(
           String containingMethodName, String proposedMemberName) =>
       containingMethodName == null
-          ? -1.0
+          ? 0.0
           : (proposedMemberName == containingMethodName ? 1.0 : 0.0);
 
   /// Convert a [distance] to a percentage value and return the percentage. If
-  /// the [distance] is negative, return `-1.0`.
+  /// the [distance] is negative, return `0.0`.
   double _distanceToPercent(int distance) {
     if (distance < 0) {
-      return -1.0;
+      return 0.0;
     }
     return math.pow(0.98, distance);
   }

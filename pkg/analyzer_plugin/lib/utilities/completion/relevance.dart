@@ -41,10 +41,6 @@ abstract class Relevance {
   /// deferred imported library.
   static const int loadLibrary = 200;
 
-  /// The relevance used when suggesting a member of a class or extension and
-  /// there are no features that can be used to provide a relevance score.
-  static const int member = 500;
-
   /// The relevance used when suggesting a named argument corresponding to a
   /// named parameter that is not required.
   static const int namedArgument = 900;
@@ -55,15 +51,9 @@ abstract class Relevance {
   /// The relevance used when suggesting an override of an inherited member.
   static const int override = 750;
 
-  /// The relevance used when suggesting a prefix from an import directive.
-  static const int prefix = 50;
-
   /// The relevance used when suggesting a named argument corresponding to a
   /// named parameter that is required.
   static const int requiredNamedArgument = 950;
-
-  /// The relevance used when suggesting a type parameter.
-  static const int typeParameter = 500;
 }
 
 /// A name scope for constants that are related to the relevance of completion
