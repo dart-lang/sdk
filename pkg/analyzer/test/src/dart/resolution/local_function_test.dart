@@ -40,7 +40,7 @@ f() {
       error(HintCode.UNUSED_ELEMENT, 23, 1),
     ]);
     var node = findNode.functionDeclaration('g() {}');
-    var element = node.declaredElement;
+    var element = node.declaredElement!;
     expect(element.name, 'g');
     expect(element.nameOffset, 23);
   }

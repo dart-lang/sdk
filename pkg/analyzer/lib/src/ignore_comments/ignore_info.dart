@@ -63,7 +63,7 @@ class IgnoreInfo {
   /// Initialize a newly created instance of this class to represent the ignore
   /// comments in the given compilation [unit].
   IgnoreInfo.forDart(CompilationUnit unit, String content) {
-    var lineInfo = unit.lineInfo;
+    var lineInfo = unit.lineInfo!;
     for (var comment in unit.ignoreComments) {
       var lexeme = comment.lexeme;
       if (lexeme.contains('ignore:')) {
@@ -149,10 +149,10 @@ class IgnoreInfo {
       // affect older clients of this class because none of the previous APIs
       // depended on having offsets.
       Iterable<DiagnosticName> codes = match
-          .group(1)
+          .group(1)!
           .split(',')
           .map((String code) => DiagnosticName(code.trim().toLowerCase(), -1));
-      CharacterLocation location = info.getLocation(match.start);
+      var location = info.getLocation(match.start);
       int lineNumber = location.lineNumber;
       String beforeMatch = content.substring(
           info.getOffsetOfLine(lineNumber - 1),
@@ -171,7 +171,7 @@ class IgnoreInfo {
     // having offsets.
     for (Match match in fileMatches) {
       Iterable<DiagnosticName> codes = match
-          .group(1)
+          .group(1)!
           .split(',')
           .map((String code) => DiagnosticName(code.trim().toLowerCase(), -1));
       ignoreInfo._addAllForFile(codes);
@@ -196,14 +196,14 @@ extension on CompilationUnit {
             yield comment;
           }
         }
-        comment = comment.next;
+        comment = comment.next as CommentToken?;
       }
     }
 
     var currentToken = beginToken;
     while (currentToken != currentToken.next) {
       yield* processPrecedingComments(currentToken);
-      currentToken = currentToken.next;
+      currentToken = currentToken.next!;
     }
     yield* processPrecedingComments(currentToken);
   }

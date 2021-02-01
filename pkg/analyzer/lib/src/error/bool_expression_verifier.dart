@@ -11,7 +11,6 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
-import 'package:meta/meta.dart';
 
 /// Helper for verifying expression that should be of type bool.
 class BoolExpressionVerifier {
@@ -23,10 +22,10 @@ class BoolExpressionVerifier {
   final InterfaceType _boolType;
 
   BoolExpressionVerifier({
-    @required TypeSystemImpl typeSystem,
-    @required ErrorReporter errorReporter,
-    @required NullableDereferenceVerifier nullableDereferenceVerifier,
-  })  : _typeSystem = typeSystem,
+    required TypeSystemImpl typeSystem,
+    required ErrorReporter errorReporter,
+    required NullableDereferenceVerifier nullableDereferenceVerifier,
+  })   : _typeSystem = typeSystem,
         _errorReporter = errorReporter,
         _nullableDereferenceVerifier = nullableDereferenceVerifier,
         _boolElement = typeSystem.typeProvider.boolElement,
@@ -46,8 +45,8 @@ class BoolExpressionVerifier {
   /// Verify that the given [expression] is of type 'bool', and report
   /// [errorCode] if not, or a nullability error if its improperly nullable.
   void checkForNonBoolExpression(Expression expression,
-      {@required ErrorCode errorCode, List<Object> arguments}) {
-    var type = expression.staticType;
+      {required ErrorCode errorCode, List<Object>? arguments}) {
+    var type = expression.staticType!;
     if (!_checkForUseOfVoidResult(expression) &&
         !_typeSystem.isAssignableTo2(type, _boolType)) {
       if (type.element == _boolElement) {
@@ -73,8 +72,7 @@ class BoolExpressionVerifier {
   /// are void, such as identifiers.
   // TODO(scheglov) Move this in a separate verifier.
   bool _checkForUseOfVoidResult(Expression expression) {
-    if (expression == null ||
-        !identical(expression.staticType, VoidTypeImpl.instance)) {
+    if (!identical(expression.staticType, VoidTypeImpl.instance)) {
       return false;
     }
 

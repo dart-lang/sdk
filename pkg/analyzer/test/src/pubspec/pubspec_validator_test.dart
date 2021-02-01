@@ -21,7 +21,7 @@ main() {
 
 @reflectiveTest
 class PubspecValidatorTest with ResourceProviderMixin {
-  PubspecValidator validator;
+  late final PubspecValidator validator;
 
   /// Assert that when the validator is used on the given [content] the
   /// [expectedErrorCodes] are produced.
@@ -31,7 +31,7 @@ class PubspecValidatorTest with ResourceProviderMixin {
       // The file is empty.
       node = YamlMap();
     }
-    List<AnalysisError> errors = validator.validate((node as YamlMap).nodes);
+    List<AnalysisError> errors = validator.validate(node.nodes);
     GatheringErrorListener listener = GatheringErrorListener();
     listener.addAll(errors);
     listener.assertErrorsWithCodes(expectedErrorCodes);

@@ -573,7 +573,7 @@ class AstBinaryFlags {
 
   /// Check the bit for its uniqueness for the given types.
   static int _checkBit(int shift, Type type1,
-      [Type type2, Type type3, Type type4, Type type5, Type type6]) {
+      [Type? type2, Type? type3, Type? type4, Type? type5, Type? type6]) {
     _checkBit0(shift, type1);
     _checkBit0(shift, type2);
     _checkBit0(shift, type3);
@@ -584,7 +584,7 @@ class AstBinaryFlags {
   }
 
   /// Check the bit for its uniqueness for the [type].
-  static void _checkBit0(int shift, Type type) {
+  static void _checkBit0(int shift, Type? type) {
     if (type != null) {
       var currentBits = _typeBits[type] ?? 0;
       var bit = 1 << shift;

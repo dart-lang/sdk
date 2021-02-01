@@ -352,7 +352,7 @@ main(A a) {
     assertInvokeType(binaryExpression, 'int* Function(int*)*');
     assertType(binaryExpression, 'int*');
 
-    MethodElement element = binaryExpression.staticElement;
+    var element = binaryExpression.staticElement as MethodElement;
     _assertLegacyMember(element, _import_a.method('+'));
   }
 
@@ -838,7 +838,7 @@ main(A a) {
     var prefixExpression = findNode.postfix('a++');
     assertType(prefixExpression, 'A*');
 
-    MethodElement element = prefixExpression.staticElement;
+    var element = prefixExpression.staticElement as MethodElement;
     _assertLegacyMember(element, _import_a.method('+'));
   }
 
@@ -859,7 +859,7 @@ main(A a) {
     var prefixExpression = findNode.prefix('-a');
     assertType(prefixExpression, 'int*');
 
-    MethodElement element = prefixExpression.staticElement;
+    var element = prefixExpression.staticElement as MethodElement;
     _assertLegacyMember(element, _import_a.method('unary-'));
   }
 
@@ -880,7 +880,7 @@ main(A a) {
     var indexExpression = findNode.index('a[');
     assertType(indexExpression, 'int*');
 
-    MethodElement element = indexExpression.staticElement;
+    var element = indexExpression.staticElement as MethodElement;
     _assertLegacyMember(element, _import_a.method('[]'));
   }
 
@@ -1286,7 +1286,7 @@ class B extends A {
   }
 
   void _assertLegacyMember(
-    Element actualElement,
+    Element? actualElement,
     Element declaration, {
     Map<String, String> expectedSubstitution = const {},
   }) {

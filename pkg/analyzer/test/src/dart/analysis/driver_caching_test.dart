@@ -96,6 +96,7 @@ void f() {
     _assertNoLinkedCycles();
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/2399')
   test_lints() async {
     useEmptyByteStore();
 

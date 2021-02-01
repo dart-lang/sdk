@@ -18,7 +18,7 @@ main() {
 
 @reflectiveTest
 class RecursiveTypeVisitorTest extends AbstractTypeTest {
-  _MockRecursiveVisitor visitor;
+  late final _MockRecursiveVisitor visitor;
 
   @override
   void setUp() {
@@ -179,8 +179,8 @@ class RecursiveTypeVisitorTest extends AbstractTypeTest {
 }
 
 class _MockRecursiveVisitor extends RecursiveTypeVisitor {
-  final visitedTypes = <DartType>{};
-  DartType stopOnType;
+  final Set<DartType> visitedTypes = {};
+  DartType? stopOnType;
 
   void assertNotVisitedType(DartType type) {
     expect(visitedTypes, isNot(contains(type)));

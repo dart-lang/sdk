@@ -108,8 +108,7 @@ class ContextCacheEntry {
   /// automatically.
   AnalysisOptionsImpl _getAnalysisOptions() {
     var contextOptions = builder.getAnalysisOptions(requestedSourceDirectory,
-            verbosePrint: clOptions.verbose ? verbosePrint : null)
-        as AnalysisOptionsImpl;
+        verbosePrint: clOptions.verbose ? verbosePrint : null);
 
     _buildContextFeatureSet(contextOptions);
     contextOptions.hint = !clOptions.disableHints;

@@ -133,11 +133,12 @@ class LineInfoTest {
   void test_linestarts() {
     String source = "var\r\ni\n=\n1;\n";
     GatheringErrorListener listener = GatheringErrorListener();
-    Scanner scanner = Scanner(null, CharSequenceReader(source), listener)
-      ..configureFeatures(
-        featureSetForOverriding: featureSet,
-        featureSet: featureSet,
-      );
+    Scanner scanner =
+        Scanner(TestSource(), CharSequenceReader(source), listener)
+          ..configureFeatures(
+            featureSetForOverriding: featureSet,
+            featureSet: featureSet,
+          );
     var token = scanner.tokenize();
     expect(token.lexeme, 'var');
     var lineStarts = scanner.lineStarts;
@@ -150,16 +151,17 @@ class LineInfoTest {
     // See https://github.com/dart-lang/sdk/issues/30320
     String source = '<!-- @Component(';
     GatheringErrorListener listener = GatheringErrorListener();
-    Scanner scanner = Scanner(null, CharSequenceReader(source), listener)
-      ..configureFeatures(
-        featureSetForOverriding: featureSet,
-        featureSet: featureSet,
-      );
+    Scanner scanner =
+        Scanner(TestSource(), CharSequenceReader(source), listener)
+          ..configureFeatures(
+            featureSetForOverriding: featureSet,
+            featureSet: featureSet,
+          );
     Token token = scanner.tokenize(reportScannerErrors: false);
     expect(token, TypeMatcher<UnmatchedToken>());
-    token = token.next;
+    token = token.next!;
     expect(token, TypeMatcher<UnmatchedToken>());
-    token = token.next;
+    token = token.next!;
     expect(token, isNot(TypeMatcher<ErrorToken>()));
   }
 
@@ -168,7 +170,7 @@ class LineInfoTest {
     GatheringErrorListener listener = GatheringErrorListener();
     _scanWithListener(source, listener);
     listener.assertNoErrors();
-    LineInfo info = listener.getLineInfo(TestSource());
+    LineInfo info = listener.getLineInfo(TestSource())!;
     expect(info, isNotNull);
     int count = expectedLocations.length;
     for (int i = 0; i < count; i++) {
@@ -186,11 +188,12 @@ class LineInfoTest {
     String source,
     GatheringErrorListener listener,
   ) {
-    Scanner scanner = Scanner(null, CharSequenceReader(source), listener)
-      ..configureFeatures(
-        featureSetForOverriding: featureSet,
-        featureSet: featureSet,
-      );
+    Scanner scanner =
+        Scanner(TestSource(), CharSequenceReader(source), listener)
+          ..configureFeatures(
+            featureSetForOverriding: featureSet,
+            featureSet: featureSet,
+          );
     Token result = scanner.tokenize();
     listener.setLineInfo(TestSource(), scanner.lineStarts);
     return result;
@@ -277,13 +280,13 @@ class TokenStreamValidator {
     }
   }
 
-  void _validateStream(StringBuffer buffer, Token token) {
+  void _validateStream(StringBuffer buffer, Token? token) {
     if (token == null) {
       return;
     }
-    Token previousToken;
+    late Token previousToken;
     int previousEnd = -1;
-    Token currentToken = token;
+    Token? currentToken = token;
     while (currentToken != null && currentToken.type != TokenType.EOF) {
       _validateStream(buffer, currentToken.precedingComments);
       TokenType type = currentToken.type;

@@ -19,9 +19,10 @@ class MustCallSuperVerifier {
     if (node.isStatic || node.isAbstract) {
       return;
     }
-    ExecutableElement overridden =
-        _findOverriddenMemberWithMustCallSuper(node.declaredElement);
-    if (overridden != null && _hasConcreteSuperMethod(node.declaredElement)) {
+    var element = node.declaredElement!;
+    var overridden = _findOverriddenMemberWithMustCallSuper(element);
+    if (overridden != null &&
+        _hasConcreteSuperMethod(element as MethodElement)) {
       _SuperCallVerifier verifier = _SuperCallVerifier(overridden.name);
       node.accept(verifier);
       if (!verifier.superIsCalled) {
@@ -39,28 +40,28 @@ class MustCallSuperVerifier {
   /// `@mustCallSuper`.
   ///
   /// [1]: https://pub.dev/documentation/meta/latest/meta/mustCallSuper-constant.html
-  ExecutableElement _findOverriddenMemberWithMustCallSuper(
+  ExecutableElement? _findOverriddenMemberWithMustCallSuper(
       ExecutableElement element) {
     //Element member = node.declaredElement;
     if (element.enclosingElement is! ClassElement) {
       return null;
     }
-    ClassElement classElement = element.enclosingElement;
+    var classElement = element.enclosingElement as ClassElement;
     String name = element.name;
 
     // Walk up the type hierarchy from [classElement], ignoring direct
     // interfaces.
-    Queue<ClassElement> superclasses =
+    Queue<ClassElement?> superclasses =
         Queue.of(classElement.mixins.map((i) => i.element))
           ..addAll(classElement.superclassConstraints.map((i) => i.element))
           ..add(classElement.supertype?.element);
     var visitedClasses = <ClassElement>{};
     while (superclasses.isNotEmpty) {
-      ClassElement ancestor = superclasses.removeFirst();
+      var ancestor = superclasses.removeFirst();
       if (ancestor == null || !visitedClasses.add(ancestor)) {
         continue;
       }
-      ExecutableElement member = ancestor.getMethod(name) ??
+      var member = ancestor.getMethod(name) ??
           ancestor.getGetter(name) ??
           ancestor.getSetter(name);
       if (member is MethodElement && member.hasMustCallSuper) {
@@ -76,7 +77,7 @@ class MustCallSuperVerifier {
 
   /// Returns whether [node] overrides a concrete method.
   bool _hasConcreteSuperMethod(MethodElement element) {
-    ClassElement classElement = element.enclosingElement;
+    var classElement = element.enclosingElement as ClassElement;
     String name = element.name;
 
     bool isConcrete(ClassElement element) =>
@@ -91,7 +92,7 @@ class MustCallSuperVerifier {
       return true;
     }
     if (classElement.supertype != null &&
-        isConcrete(classElement.supertype.element)) {
+        isConcrete(classElement.supertype!.element)) {
       return true;
     }
 

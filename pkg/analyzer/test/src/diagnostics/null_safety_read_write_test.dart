@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1214,13 +1213,13 @@ void f(bool b) {
 
   void _assertAssigned(
     String search, {
-    @required bool assigned,
-    @required bool unassigned,
+    required bool assigned,
+    required bool unassigned,
   }) {
     var node = findNode.simple(search);
 
-    var testingData = driverFor(testFilePath).testingData;
-    var unitData = testingData.uriToFlowAnalysisData[result.uri];
+    var testingData = driverFor(testFilePath).testingData!;
+    var unitData = testingData.uriToFlowAnalysisData[result.uri]!;
 
     if (assigned) {
       expect(unitData.definitelyAssigned, contains(node));

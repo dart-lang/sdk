@@ -124,11 +124,11 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     //    \ /
     //     E
     //
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement2("B");
-    ClassElementImpl classC = ElementFactory.classElement2("C");
-    ClassElementImpl classD = ElementFactory.classElement2("D");
-    ClassElementImpl classE = ElementFactory.classElement2("E");
+    ClassElementImpl classA = class_(name: "A");
+    ClassElementImpl classB = class_(name: "B");
+    ClassElementImpl classC = class_(name: "C");
+    ClassElementImpl classD = class_(name: "D");
+    ClassElementImpl classE = class_(name: "E");
     classB.interfaces = <InterfaceType>[interfaceTypeStar(classA)];
     classC.interfaces = <InterfaceType>[interfaceTypeStar(classA)];
     classD.interfaces = <InterfaceType>[interfaceTypeStar(classC)];
@@ -155,15 +155,15 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     //    \ /
     //     E
     //
-    ClassElement classA = ElementFactory.classElement2("A");
+    ClassElement classA = class_(name: "A");
     ClassElement classB =
-        ElementFactory.classElement("B", interfaceTypeStar(classA));
+        class_(name: "B", superType: interfaceTypeStar(classA));
     ClassElement classC =
-        ElementFactory.classElement("C", interfaceTypeStar(classA));
+        class_(name: "C", superType: interfaceTypeStar(classA));
     ClassElement classD =
-        ElementFactory.classElement("D", interfaceTypeStar(classC));
+        class_(name: "D", superType: interfaceTypeStar(classC));
     ClassElementImpl classE =
-        ElementFactory.classElement("E", interfaceTypeStar(classB));
+        class_(name: "E", superType: interfaceTypeStar(classB));
     classE.interfaces = <InterfaceType>[interfaceTypeStar(classD)];
     // assertion: even though the longest path to Object for typeB is 2, and
     // typeE extends typeB, the longest path for typeE is 4 since it also
@@ -177,9 +177,9 @@ class PathToObjectTest extends AbstractTypeSystemTest {
   }
 
   void test_class_recursion() {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
+    ClassElementImpl classA = class_(name: "A");
     ClassElementImpl classB =
-        ElementFactory.classElement("B", interfaceTypeStar(classA));
+        class_(name: "B", superType: interfaceTypeStar(classA));
     classA.supertype = interfaceTypeStar(classB);
     expect(_longestPathToObject(classA), 2);
   }
@@ -194,9 +194,9 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     //     |
     //     C
     //
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement2("B");
-    ClassElementImpl classC = ElementFactory.classElement2("C");
+    ClassElementImpl classA = class_(name: "A");
+    ClassElementImpl classB = class_(name: "B");
+    ClassElementImpl classC = class_(name: "C");
     classB.interfaces = <InterfaceType>[interfaceTypeStar(classA)];
     classC.interfaces = <InterfaceType>[interfaceTypeStar(classB)];
     expect(_longestPathToObject(classA), 1);
@@ -214,11 +214,11 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     //     |
     //     C
     //
-    ClassElement classA = ElementFactory.classElement2("A");
+    ClassElement classA = class_(name: "A");
     ClassElement classB =
-        ElementFactory.classElement("B", interfaceTypeStar(classA));
+        class_(name: "B", superType: interfaceTypeStar(classA));
     ClassElement classC =
-        ElementFactory.classElement("C", interfaceTypeStar(classB));
+        class_(name: "C", superType: interfaceTypeStar(classB));
     expect(_longestPathToObject(classA), 1);
     expect(_longestPathToObject(classB), 2);
     expect(_longestPathToObject(classC), 3);
@@ -432,26 +432,26 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
 
     var instObject = InstantiatedClass.of(typeProvider.objectType);
 
-    ClassElementImpl classA = ElementFactory.classElement2('A');
+    ClassElementImpl classA = class_(name: 'A');
     var instA = InstantiatedClass(classA, const []);
 
-    var classB = ElementFactory.classElement3(
+    var classB = class_(
       name: 'B',
-      typeParameterNames: ['T'],
-      supertype: instA.withNullabilitySuffixNone,
+      typeParameters: [typeParameter('T')],
+      superType: instA.withNullabilitySuffixNone,
     );
 
     var typeParametersC = ElementFactory.typeParameters(['T']);
-    var classC = ElementFactory.classElement3(
+    var classC = class_(
       name: 'B',
       typeParameters: typeParametersC,
-      supertype: InstantiatedClass(
+      superType: InstantiatedClass(
         classB,
         [typeParameterTypeStar(typeParametersC[0])],
       ).withNullabilitySuffixNone,
     );
 
-    var classD = ElementFactory.classElement2('D');
+    var classD = class_(name: 'D');
 
     // A
     expect(
@@ -483,16 +483,16 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
   void test_mixin_constraints() {
     var instObject = InstantiatedClass.of(typeProvider.objectType);
 
-    var classA = ElementFactory.classElement3(name: 'A');
+    var classA = class_(name: 'A');
     var instA = InstantiatedClass(classA, const []);
 
-    var classB = ElementFactory.classElement3(
+    var classB = class_(
       name: 'B',
       interfaces: [instA.withNullabilitySuffixNone],
     );
     var instB = InstantiatedClass(classB, const []);
 
-    var classC = ElementFactory.classElement3(name: 'C');
+    var classC = class_(name: 'C');
     var instC = InstantiatedClass(classC, const []);
 
     var mixinM = mixin_(
@@ -525,16 +525,16 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
   void test_mixin_interfaces() {
     var instObject = InstantiatedClass.of(typeProvider.objectType);
 
-    var classA = ElementFactory.classElement3(name: 'A');
+    var classA = class_(name: 'A');
     var instA = InstantiatedClass(classA, const []);
 
-    var classB = ElementFactory.classElement3(
+    var classB = class_(
       name: 'B',
       interfaces: [instA.withNullabilitySuffixNone],
     );
     var instB = InstantiatedClass(classB, const []);
 
-    var classC = ElementFactory.classElement3(name: 'C');
+    var classC = class_(name: 'C');
     var instC = InstantiatedClass(classC, const []);
 
     var mixinM = mixin_(
@@ -555,28 +555,28 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
   void test_multipleInterfacePaths() {
     var instObject = InstantiatedClass.of(typeProvider.objectType);
 
-    var classA = ElementFactory.classElement3(name: 'A');
+    var classA = class_(name: 'A');
     var instA = InstantiatedClass(classA, const []);
 
-    var classB = ElementFactory.classElement3(
+    var classB = class_(
       name: 'B',
       interfaces: [instA.withNullabilitySuffixNone],
     );
     var instB = InstantiatedClass(classB, const []);
 
-    var classC = ElementFactory.classElement3(
+    var classC = class_(
       name: 'C',
       interfaces: [instA.withNullabilitySuffixNone],
     );
     var instC = InstantiatedClass(classC, const []);
 
-    var classD = ElementFactory.classElement3(
+    var classD = class_(
       name: 'D',
       interfaces: [instC.withNullabilitySuffixNone],
     );
     var instD = InstantiatedClass(classD, const []);
 
-    var classE = ElementFactory.classElement3(
+    var classE = class_(
       name: 'E',
       interfaces: [
         instB.withNullabilitySuffixNone,
@@ -601,30 +601,30 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
   void test_multipleSuperclassPaths() {
     var instObject = InstantiatedClass.of(typeProvider.objectType);
 
-    var classA = ElementFactory.classElement3(name: 'A');
+    var classA = class_(name: 'A');
     var instA = InstantiatedClass(classA, const []);
 
-    var classB = ElementFactory.classElement3(
+    var classB = class_(
       name: 'B',
-      supertype: instA.withNullabilitySuffixNone,
+      superType: instA.withNullabilitySuffixNone,
     );
     var instB = InstantiatedClass(classB, const []);
 
-    var classC = ElementFactory.classElement3(
+    var classC = class_(
       name: 'C',
-      supertype: instA.withNullabilitySuffixNone,
+      superType: instA.withNullabilitySuffixNone,
     );
     var instC = InstantiatedClass(classC, const []);
 
-    var classD = ElementFactory.classElement3(
+    var classD = class_(
       name: 'D',
-      supertype: instC.withNullabilitySuffixNone,
+      superType: instC.withNullabilitySuffixNone,
     );
     var instD = InstantiatedClass(classD, const []);
 
-    var classE = ElementFactory.classElement3(
+    var classE = class_(
       name: 'E',
-      supertype: instB.withNullabilitySuffixNone,
+      superType: instB.withNullabilitySuffixNone,
       interfaces: [
         instD.withNullabilitySuffixNone,
       ],
@@ -645,12 +645,12 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
   }
 
   void test_recursion() {
-    var classA = ElementFactory.classElement3(name: 'A');
+    var classA = class_(name: 'A');
     var instA = InstantiatedClass(classA, const []);
 
-    var classB = ElementFactory.classElement3(
+    var classB = class_(
       name: 'B',
-      supertype: instA.withNullabilitySuffixNone,
+      superType: instA.withNullabilitySuffixNone,
     );
     var instB = InstantiatedClass(classB, const []);
 
@@ -670,16 +670,16 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
   void test_singleInterfacePath() {
     var instObject = InstantiatedClass.of(typeProvider.objectType);
 
-    var classA = ElementFactory.classElement3(name: 'A');
+    var classA = class_(name: 'A');
     var instA = InstantiatedClass(classA, const []);
 
-    var classB = ElementFactory.classElement3(
+    var classB = class_(
       name: 'B',
       interfaces: [instA.withNullabilitySuffixNone],
     );
     var instB = InstantiatedClass(classB, const []);
 
-    var classC = ElementFactory.classElement3(
+    var classC = class_(
       name: 'C',
       interfaces: [instB.withNullabilitySuffixNone],
     );
@@ -714,18 +714,18 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
     //
     var instObject = InstantiatedClass.of(typeProvider.objectType);
 
-    var classA = ElementFactory.classElement3(name: 'A');
+    var classA = class_(name: 'A');
     var instA = InstantiatedClass(classA, const []);
 
-    var classB = ElementFactory.classElement3(
+    var classB = class_(
       name: 'B',
-      supertype: instA.withNullabilitySuffixNone,
+      superType: instA.withNullabilitySuffixNone,
     );
     var instB = InstantiatedClass(classB, const []);
 
-    var classC = ElementFactory.classElement3(
+    var classC = class_(
       name: 'C',
-      supertype: instB.withNullabilitySuffixNone,
+      superType: instB.withNullabilitySuffixNone,
     );
     var instC = InstantiatedClass(classC, const []);
 

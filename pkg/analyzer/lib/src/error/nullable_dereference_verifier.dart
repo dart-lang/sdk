@@ -9,7 +9,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:meta/meta.dart';
 
 /// Helper for checking potentially nullable dereferences.
 class NullableDereferenceVerifier {
@@ -17,22 +16,23 @@ class NullableDereferenceVerifier {
   final ErrorReporter _errorReporter;
 
   NullableDereferenceVerifier({
-    @required TypeSystemImpl typeSystem,
-    @required ErrorReporter errorReporter,
-  })  : _typeSystem = typeSystem,
+    required TypeSystemImpl typeSystem,
+    required ErrorReporter errorReporter,
+  })   : _typeSystem = typeSystem,
         _errorReporter = errorReporter;
 
-  bool expression(Expression expression, {DartType type, ErrorCode errorCode}) {
+  bool expression(Expression expression,
+      {DartType? type, ErrorCode? errorCode}) {
     if (!_typeSystem.isNonNullableByDefault) {
       return false;
     }
 
-    type ??= expression.staticType;
+    type ??= expression.staticType!;
     return _check(expression, type, errorCode: errorCode);
   }
 
   void report(AstNode errorNode, DartType receiverType,
-      {ErrorCode errorCode, List<String> arguments = const <String>[]}) {
+      {ErrorCode? errorCode, List<String> arguments = const <String>[]}) {
     if (receiverType == _typeSystem.typeProvider.nullType) {
       errorCode = CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE;
     } else {
@@ -47,7 +47,8 @@ class NullableDereferenceVerifier {
   /// receiver is the implicit `this`, the name of the invocation.
   ///
   /// Returns whether [receiverType] was reported.
-  bool _check(AstNode errorNode, DartType receiverType, {ErrorCode errorCode}) {
+  bool _check(AstNode errorNode, DartType receiverType,
+      {ErrorCode? errorCode}) {
     if (identical(receiverType, DynamicTypeImpl.instance) ||
         !_typeSystem.isPotentiallyNullable(receiverType)) {
       return false;

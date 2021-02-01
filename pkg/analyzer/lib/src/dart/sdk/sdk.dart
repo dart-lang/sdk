@@ -29,16 +29,16 @@ Version languageVersionFromSdkVersion(String sdkVersionStr) {
 /// library map.
 abstract class AbstractDartSdk implements DartSdk {
   /// The resource provider used to access the file system.
-  /*late final*/ ResourceProvider resourceProvider;
+  late final ResourceProvider resourceProvider;
 
   /// A mapping from Dart library URI's to the library represented by that URI.
   LibraryMap libraryMap = LibraryMap();
 
   /// The mapping from Dart URI's to the corresponding sources.
-  final Map<String, Source> _uriToSourceMap = HashMap<String, Source>();
+  final Map<String, Source?> _uriToSourceMap = HashMap<String, Source?>();
 
   @override
-  List<SdkLibrary> get sdkLibraries => libraryMap.sdkLibraries;
+  List<SdkLibraryImpl> get sdkLibraries => libraryMap.sdkLibraries;
 
   /// Return the path separator used by the resource provider.
   String get separator => resourceProvider.pathContext.separator;
@@ -66,10 +66,10 @@ abstract class AbstractDartSdk implements DartSdk {
   }
 
   @override
-  Source fromFileUri(Uri uri) {
+  Source? fromFileUri(Uri uri) {
     File file =
         resourceProvider.getFile(resourceProvider.pathContext.fromUri(uri));
-    String path = _getPath(file);
+    String? path = _getPath(file);
     if (path == null) {
       return null;
     }
@@ -83,12 +83,12 @@ abstract class AbstractDartSdk implements DartSdk {
     return null;
   }
 
-  String getRelativePathFromFile(File file);
+  String? getRelativePathFromFile(File file);
 
   @override
-  SdkLibrary getSdkLibrary(String dartUri) => libraryMap.getLibrary(dartUri);
+  SdkLibrary? getSdkLibrary(String dartUri) => libraryMap.getLibrary(dartUri);
 
-  Source internalMapDartUri(String dartUri) {
+  Source? internalMapDartUri(String dartUri) {
     // TODO(brianwilkerson) Figure out how to unify the implementations in the
     // two subclasses.
     String libraryName;
@@ -101,7 +101,7 @@ abstract class AbstractDartSdk implements DartSdk {
       libraryName = dartUri;
       relativePath = "";
     }
-    SdkLibrary library = getSdkLibrary(libraryName);
+    SdkLibrary? library = getSdkLibrary(libraryName);
     if (library == null) {
       return null;
     }
@@ -130,8 +130,8 @@ abstract class AbstractDartSdk implements DartSdk {
   }
 
   @override
-  Source mapDartUri(String /*!*/ dartUri) {
-    Source source = _uriToSourceMap[dartUri];
+  Source? mapDartUri(String dartUri) {
+    Source? source = _uriToSourceMap[dartUri];
     if (source == null) {
       source = internalMapDartUri(dartUri);
       _uriToSourceMap[dartUri] = source;
@@ -139,21 +139,21 @@ abstract class AbstractDartSdk implements DartSdk {
     return source;
   }
 
-  String _getPath(File file) {
+  String? _getPath(File file) {
     List<SdkLibrary> libraries = libraryMap.sdkLibraries;
     int length = libraries.length;
-    List<String> paths = List.filled(length, null);
-    String filePath = getRelativePathFromFile(file);
+    String? filePath = getRelativePathFromFile(file);
     if (filePath == null) {
       return null;
     }
+    List<String> paths = <String>[];
     for (int i = 0; i < length; i++) {
       SdkLibrary library = libraries[i];
       String libraryPath = library.path.replaceAll('/', separator);
       if (filePath == libraryPath) {
         return library.shortName;
       }
-      paths[i] = libraryPath;
+      paths.add(libraryPath);
     }
     for (int i = 0; i < length; i++) {
       SdkLibrary library = libraries[i];
@@ -178,7 +178,7 @@ class EmbedderSdk extends AbstractDartSdk {
 
   static const String _EMBEDDED_LIB_MAP_KEY = 'embedded_libs';
 
-  Version _languageVersion;
+  late final Version _languageVersion;
 
   final Map<String, String> _urlMappings = HashMap<String, String>();
 
@@ -186,8 +186,8 @@ class EmbedderSdk extends AbstractDartSdk {
   /// https://github.com/dart-lang/sdk/issues/42890
   EmbedderSdk(
     ResourceProvider resourceProvider,
-    Map<Folder, YamlMap> embedderYamls, {
-    Version languageVersion,
+    Map<Folder, YamlMap>? embedderYamls, {
+    Version? languageVersion,
   }) {
     this.resourceProvider = resourceProvider;
     _languageVersion =
@@ -196,11 +196,11 @@ class EmbedderSdk extends AbstractDartSdk {
   }
 
   @override
-  String get allowedExperimentsJson {
+  String? get allowedExperimentsJson {
     var coreSource = mapDartUri('dart:core');
     if (coreSource != null) {
       var coreFile = resourceProvider.getFile(coreSource.fullName);
-      var embeddedFolder = coreFile.parent.parent;
+      var embeddedFolder = coreFile.parent!.parent!;
       try {
         return embeddedFolder
             .getChildAssumingFolder('_internal')
@@ -225,7 +225,7 @@ class EmbedderSdk extends AbstractDartSdk {
   String getRelativePathFromFile(File file) => file.path;
 
   @override
-  Source internalMapDartUri(String dartUri) {
+  Source? internalMapDartUri(String dartUri) {
     String libraryName;
     String relativePath;
     int index = dartUri.indexOf('/');
@@ -236,7 +236,7 @@ class EmbedderSdk extends AbstractDartSdk {
       libraryName = dartUri;
       relativePath = "";
     }
-    SdkLibrary library = getSdkLibrary(libraryName);
+    SdkLibrary? library = getSdkLibrary(libraryName);
     if (library == null) {
       return null;
     }
@@ -351,17 +351,17 @@ class FolderBasedDartSdk extends AbstractDartSdk {
   final Folder _sdkDirectory;
 
   /// The directory within the SDK directory that contains the libraries.
-  /*late final*/ Folder _libraryDirectory;
+  Folder? _libraryDirectory;
 
   /// The revision number of this SDK, or `"0"` if the revision number cannot be
   /// discovered.
-  /*late final*/ String _sdkVersion;
+  String? _sdkVersion;
 
   /// The cached language version of this SDK.
-  /*late final*/ Version _languageVersion;
+  Version? _languageVersion;
 
   /// The file containing the pub executable.
-  /*late final*/ File _pubExecutable;
+  File? _pubExecutable;
 
   /// Initialize a newly created SDK to represent the Dart SDK installed in the
   /// [sdkDirectory].
@@ -373,15 +373,11 @@ class FolderBasedDartSdk extends AbstractDartSdk {
 
   @override
   String get allowedExperimentsJson {
-    try {
-      return _sdkDirectory
-          .getChildAssumingFolder('lib')
-          .getChildAssumingFolder('_internal')
-          .getChildAssumingFile('allowed_experiments.json')
-          .readAsStringSync();
-    } catch (_) {
-      return null;
-    }
+    return _sdkDirectory
+        .getChildAssumingFolder('lib')
+        .getChildAssumingFolder('_internal')
+        .getChildAssumingFile('allowed_experiments.json')
+        .readAsStringSync();
   }
 
   /// Return the directory containing the SDK.
@@ -400,7 +396,7 @@ class FolderBasedDartSdk extends AbstractDartSdk {
       _languageVersion = languageVersionFromSdkVersion(sdkVersionStr);
     }
 
-    return _languageVersion;
+    return _languageVersion!;
   }
 
   /// Return the directory within the SDK directory that contains the libraries.
@@ -424,19 +420,16 @@ class FolderBasedDartSdk extends AbstractDartSdk {
   @override
   String get sdkVersion {
     if (_sdkVersion == null) {
-      _sdkVersion = DartSdk.DEFAULT_VERSION;
       File revisionFile =
           _sdkDirectory.getChildAssumingFile(_VERSION_FILE_NAME);
       try {
         String revision = revisionFile.readAsStringSync();
-        if (revision != null) {
-          _sdkVersion = revision.trim();
-        }
+        _sdkVersion = revision.trim();
       } on FileSystemException {
-        // Fall through to return the default.
+        return _sdkVersion = DartSdk.DEFAULT_VERSION;
       }
     }
-    return _sdkVersion;
+    return _sdkVersion!;
   }
 
   /// Determine the search order for trying to locate the [_LIBRARIES_FILE].
@@ -460,7 +453,7 @@ class FolderBasedDartSdk extends AbstractDartSdk {
   }
 
   @override
-  String getRelativePathFromFile(File file) {
+  String? getRelativePathFromFile(File file) {
     String filePath = file.path;
     String libPath = libraryDirectory.path;
     if (!filePath.startsWith("$libPath$separator")) {
@@ -473,13 +466,14 @@ class FolderBasedDartSdk extends AbstractDartSdk {
   /// Return the initialized library map.
   LibraryMap initialLibraryMap() {
     List<String> searchedPaths = <String>[];
-    /*late*/ StackTrace lastStackTrace;
-    /*late*/ Object lastException;
+    late StackTrace lastStackTrace;
+    late Object lastException;
     for (File librariesFile in _libraryMapLocations) {
       try {
         String contents = librariesFile.readAsStringSync();
         return SdkLibrariesReader().readFromFile(librariesFile, contents);
       } catch (exception, stackTrace) {
+        print('[exception: $exception][stackTrace: $stackTrace]');
         searchedPaths.add(librariesFile.path);
         lastException = exception;
         lastStackTrace = stackTrace;
@@ -497,7 +491,7 @@ class FolderBasedDartSdk extends AbstractDartSdk {
   }
 
   @override
-  Source internalMapDartUri(String dartUri) {
+  Source? internalMapDartUri(String dartUri) {
     String libraryName;
     String relativePath;
     int index = dartUri.indexOf('/');
@@ -508,14 +502,14 @@ class FolderBasedDartSdk extends AbstractDartSdk {
       libraryName = dartUri;
       relativePath = "";
     }
-    SdkLibrary library = getSdkLibrary(libraryName);
+    SdkLibrary? library = getSdkLibrary(libraryName);
     if (library == null) {
       return null;
     }
     try {
       File file = libraryDirectory.getChildAssumingFile(library.path);
       if (relativePath.isNotEmpty) {
-        File relativeFile = file.parent.getChildAssumingFile(relativePath);
+        File relativeFile = file.parent!.getChildAssumingFile(relativePath);
         if (relativeFile.path == file.path) {
           // The relative file is the library, so return a Source for the
           // library rather than the part format.
@@ -568,6 +562,7 @@ class SdkLibrariesReader {
       content: libraryFileContents,
       featureSet: featureSet,
       throwIfDiagnostics: false,
+      path: source.fullName,
     );
     var unit = parseResult.unit;
 

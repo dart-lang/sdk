@@ -907,17 +907,19 @@ class B implements A {
     }
   }
 
-  void _assertGetterType(PropertyAccessorElement accessor, String expected) {
+  void _assertGetterType(PropertyAccessorElement? accessor, String expected) {
+    accessor!;
     assertType(accessor.returnType, expected);
   }
 
-  void _assertGetterTypeDynamic(PropertyAccessorElement accessor) {
+  void _assertGetterTypeDynamic(PropertyAccessorElement? accessor) {
+    accessor!;
     assertTypeDynamic(accessor.returnType);
   }
 
   void _assertParameter(
     ParameterElement element, {
-    String type,
+    String? type,
     bool isCovariant = false,
   }) {
     assertType(element.type, type);
@@ -934,7 +936,8 @@ class B implements A {
     expect(parameter.isCovariant, isCovariant);
   }
 
-  void _assertSetterTypeDynamic(PropertyAccessorElement accessor) {
+  void _assertSetterTypeDynamic(PropertyAccessorElement? accessor) {
+    accessor!;
     assertTypeDynamic(accessor.parameters.single.type);
   }
 }

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -43,19 +44,19 @@ void _fail(String message) {
 @reflectiveTest
 class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   /// The error listener to which errors will be reported.
-  GatheringErrorListener _listener;
+  late final GatheringErrorListener _listener;
 
   /// The resolver visitor used to create the analyzer.
-  ResolverVisitor _visitor;
+  late final ResolverVisitor _visitor;
 
   /// The library containing the code being resolved.
-  LibraryElementImpl _definingLibrary;
+  late final LibraryElementImpl _definingLibrary;
 
   /// The analyzer being used to analyze the test cases.
-  StaticTypeAnalyzer _analyzer;
+  late final StaticTypeAnalyzer _analyzer;
 
   /// The type provider used to access the types.
-  TypeProvider _typeProvider;
+  late final TypeProvider _typeProvider;
 
   @override
   TypeProvider get typeProvider => _definingLibrary.typeProvider;
@@ -83,6 +84,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     _createAnalyzer();
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   void test_flatten_derived() {
     // class Derived<T> extends Future<T> { ... }
     ClassElementImpl derivedClass =
@@ -111,6 +113,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
         derivedIntType);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   void test_flatten_inhibit_recursion() {
     // class A extends B
     // class B extends A
@@ -125,6 +128,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     expect(_flatten(interfaceTypeStar(classB)), interfaceTypeStar(classB));
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   void test_flatten_related_derived_types() {
     InterfaceType intType = _typeProvider.intType;
     InterfaceType numType = _typeProvider.numType;
@@ -152,6 +156,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     expect(_flatten(interfaceTypeStar(classB)), intType);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   void test_flatten_related_types() {
     InterfaceType intType = _typeProvider.intType;
     InterfaceType numType = _typeProvider.numType;
@@ -191,6 +196,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     expect(_flatten(futureFutureIntType), futureIntType);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   void test_flatten_unrelated_types() {
     InterfaceType intType = _typeProvider.intType;
     InterfaceType stringType = _typeProvider.stringType;
@@ -351,6 +357,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   void test_visitIntegerLiteral() {
     // 42
     Expression node = _resolvedInteger(42);
+    AstTestFactory.argumentList([node]);
     expect(_analyze(node), same(_typeProvider.intType));
     _listener.assertNoErrors();
   }
@@ -445,13 +452,6 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
-  void test_visitThrowExpression_withoutValue() {
-    // throw
-    Expression node = AstTestFactory.throwExpression();
-    expect(_analyze(node), same(_typeProvider.bottomType));
-    _listener.assertNoErrors();
-  }
-
   void test_visitThrowExpression_withValue() {
     // throw 0
     Expression node = AstTestFactory.throwExpression2(_resolvedInteger(0));
@@ -462,10 +462,12 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   /// Return the type associated with the given [node] after the static type
   /// analyzer has computed a type for it. If [thisType] is provided, it is the
   /// type of 'this'.
-  DartType _analyze(Expression node, [InterfaceType thisType]) {
-    _visitor.setThisInterfaceType(thisType);
+  DartType _analyze(Expression node, [InterfaceType? thisType]) {
+    if (thisType != null) {
+      _visitor.setThisInterfaceType(thisType);
+    }
     node.accept(_analyzer);
-    return node.staticType;
+    return node.staticType!;
   }
 
   void _assertType(
@@ -503,8 +505,8 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
         definingCompilationUnit.source = source;
     var featureSet = FeatureSet.forTesting();
 
-    _definingLibrary =
-        LibraryElementImpl(context, null, null, -1, 0, featureSet);
+    _definingLibrary = LibraryElementImpl(
+        context, _AnalysisSessionMock(), 'name', -1, 0, featureSet);
     _definingLibrary.definingCompilationUnit = definingCompilationUnit;
 
     _definingLibrary.typeProvider = context.typeProviderLegacy;
@@ -565,4 +567,9 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     identifier.staticType = type;
     return identifier;
   }
+}
+
+class _AnalysisSessionMock implements AnalysisSession {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

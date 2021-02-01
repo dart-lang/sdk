@@ -24,6 +24,7 @@ import 'package:analyzer/src/dart/constant/potentially_constant.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
@@ -85,7 +86,7 @@ class DartLinter implements AnalysisErrorListener {
 
   /// The total number of sources that were analyzed.  Only valid after
   /// [lintFiles] has been called.
-  int numSourcesAnalyzed;
+  late int numSourcesAnalyzed;
 
   /// Creates a new linter.
   DartLinter(this.options, {this.reporter = const PrintingReporter()});
@@ -103,10 +104,10 @@ class DartLinter implements AnalysisErrorListener {
   }
 
   Iterable<AnalysisErrorInfo> lintPubspecSource(
-      {String contents, String sourcePath}) {
+      {required String contents, String? sourcePath}) {
     var results = <AnalysisErrorInfo>[];
 
-    Uri sourceUrl = sourcePath == null ? null : p.toUri(sourcePath);
+    var sourceUrl = sourcePath == null ? null : p.toUri(sourcePath);
 
     var spec = Pubspec.parse(contents, sourceUrl: sourceUrl);
 
@@ -118,7 +119,7 @@ class DartLinter implements AnalysisErrorListener {
           // Analyzer sets reporters; if this file is not being analyzed,
           // we need to set one ourselves.  (Needless to say, when pubspec
           // processing gets pushed down, this hack can go away.)
-          if (rule.reporter == null && sourceUrl != null) {
+          if (sourceUrl != null) {
             var source = createSource(sourceUrl);
             rule.reporter = ErrorReporter(
               this,
@@ -131,7 +132,7 @@ class DartLinter implements AnalysisErrorListener {
           } on Exception catch (e) {
             reporter.exception(LinterException(e.toString()));
           }
-          if (rule._locationInfo != null && rule._locationInfo.isNotEmpty) {
+          if (rule._locationInfo.isNotEmpty) {
             results.addAll(rule._locationInfo);
             rule._locationInfo.clear();
           }
@@ -156,7 +157,7 @@ class FileGlobFilter extends LintFilter {
   Iterable<Glob> includes;
   Iterable<Glob> excludes;
 
-  FileGlobFilter([Iterable<String> includeGlobs, Iterable<String> excludeGlobs])
+  FileGlobFilter(Iterable<String> includeGlobs, Iterable<String> excludeGlobs)
       : includes = includeGlobs.map((glob) => Glob(glob)),
         excludes = excludeGlobs.map((glob) => Glob(glob));
 
@@ -188,16 +189,17 @@ class Group implements Comparable<Group> {
   final String name;
   final bool custom;
   final String description;
-  final Hyperlink link;
+  final Hyperlink? link;
 
-  factory Group(String name, {String description = '', Hyperlink link}) {
+  factory Group(String name, {String description = '', Hyperlink? link}) {
     var n = name.toLowerCase();
     return builtin.firstWhere((g) => g.name == n,
         orElse: () =>
             Group._(name, custom: true, description: description, link: link));
   }
 
-  const Group._(this.name, {this.custom = false, this.description, this.link});
+  const Group._(this.name,
+      {this.custom = false, required this.description, this.link});
 
   @override
   int compareTo(Group other) => name.compareTo(other.name);
@@ -218,7 +220,7 @@ class Hyperlink {
 /// The result of attempting to evaluate an expression.
 class LinterConstantEvaluationResult {
   /// The value of the expression, or `null` if has [errors].
-  final DartObject value;
+  final DartObject? value;
 
   /// The errors reported during the evaluation.
   final List<AnalysisError> errors;
@@ -239,7 +241,7 @@ abstract class LinterContext {
 
   InheritanceManager3 get inheritanceManager;
 
-  WorkspacePackage get package;
+  WorkspacePackage? get package;
 
   TypeProvider get typeProvider;
 
@@ -293,13 +295,13 @@ class LinterContextImpl implements LinterContext {
   final DeclaredVariables declaredVariables;
 
   @override
-  final WorkspacePackage package;
+  final WorkspacePackage? package;
 
   @override
   final TypeProvider typeProvider;
 
   @override
-  final TypeSystem typeSystem;
+  final TypeSystemImpl typeSystem;
 
   @override
   final InheritanceManager3 inheritanceManager;
@@ -328,7 +330,7 @@ class LinterContextImpl implements LinterContext {
 
   @override
   bool canBeConstConstructor(ConstructorDeclaration node) {
-    ConstructorElement element = node.declaredElement;
+    var element = node.declaredElement!;
 
     ClassElement classElement = element.enclosingElement;
     if (classElement.hasNonFinalField) return false;
@@ -346,9 +348,9 @@ class LinterContextImpl implements LinterContext {
 
   @override
   LinterConstantEvaluationResult evaluateConstant(Expression node) {
-    var unitElement = currentUnit.unit.declaredElement;
+    var unitElement = currentUnit.unit.declaredElement!;
     var source = unitElement.source;
-    var libraryElement = unitElement.library;
+    var libraryElement = unitElement.library as LibraryElementImpl;
 
     var errorListener = RecordingErrorListener();
     var errorReporter = ErrorReporter(
@@ -368,14 +370,16 @@ class LinterContextImpl implements LinterContext {
   }
 
   @override
-  bool isEnabled(Feature feature) =>
-      currentUnit.unit.declaredElement.library.featureSet.isEnabled(feature);
+  bool isEnabled(Feature feature) {
+    var unitElement = currentUnit.unit.declaredElement!;
+    return unitElement.library.featureSet.isEnabled(feature);
+  }
 
   @override
   LinterNameInScopeResolutionResult resolveNameInScope(
       String id, bool setter, AstNode node) {
-    Scope scope;
-    for (var context = node; context != null; context = context.parent) {
+    Scope? scope;
+    for (AstNode? context = node; context != null; context = context.parent) {
       scope = ScopedVisitor.getNodeNameScope(context);
       if (scope != null) {
         break;
@@ -410,20 +414,20 @@ class LinterContextImpl implements LinterContext {
     //
     // Verify that the invoked constructor is a const constructor.
     //
-    ConstructorElement element = node.constructorName.staticElement;
+    var element = node.constructorName.staticElement;
     if (element == null || !element.isConst) {
       return false;
     }
 
     // Ensure that dependencies (e.g. default parameter values) are computed.
-    ConstructorElementImpl implElement = element.declaration;
+    var implElement = element.declaration as ConstructorElementImpl;
     implElement.computeConstantDependencies();
 
     //
     // Verify that the evaluation of the constructor would not produce an
     // exception.
     //
-    Token oldKeyword = node.keyword;
+    var oldKeyword = node.keyword;
     try {
       node.keyword = KeywordToken(Keyword.CONST, node.offset);
       return !_hasConstantVerifierError(node);
@@ -433,7 +437,7 @@ class LinterContextImpl implements LinterContext {
   }
 
   bool _canBeConstTypedLiteral(TypedLiteral node) {
-    Token oldKeyword = node.constKeyword;
+    var oldKeyword = node.constKeyword;
     try {
       node.constKeyword = KeywordToken(Keyword.CONST, node.offset);
       return !_hasConstantVerifierError(node);
@@ -444,8 +448,8 @@ class LinterContextImpl implements LinterContext {
 
   /// Return `true` if [ConstantVerifier] reports an error for the [node].
   bool _hasConstantVerifierError(AstNode node) {
-    var unitElement = currentUnit.unit.declaredElement;
-    var libraryElement = unitElement.library;
+    var unitElement = currentUnit.unit.declaredElement!;
+    var libraryElement = unitElement.library as LibraryElementImpl;
 
     var dependenciesFinder = ConstantExpressionsDependenciesFinder();
     node.accept(dependenciesFinder);
@@ -486,7 +490,7 @@ class LinterContextUnit {
 /// Thrown when an error occurs in linting.
 class LinterException implements Exception {
   /// A message describing the error.
-  final String message;
+  final String? message;
 
   /// Creates a new LinterException with an optional error [message].
   const LinterException([this.message]);
@@ -499,7 +503,7 @@ class LinterException implements Exception {
 /// The result of resolving of a basename `id` in a scope.
 class LinterNameInScopeResolutionResult {
   /// The element with the requested basename, `null` is [isNone].
-  final Element element;
+  final Element? element;
 
   /// The state of the result.
   final _LinterNameInScopeResolutionResultState _state;
@@ -531,14 +535,13 @@ class LinterNameInScopeResolutionResult {
 /// Linter options.
 class LinterOptions extends DriverOptions {
   Iterable<LintRule> enabledLints;
-  String analysisOptions;
-  LintFilter filter;
-  file_system.ResourceProvider resourceProvider;
+  String? analysisOptions;
+  LintFilter? filter;
+  late file_system.ResourceProvider resourceProvider;
 
   // todo (pq): consider migrating to named params (but note Linter dep).
-  LinterOptions([this.enabledLints, this.analysisOptions]) {
-    enabledLints ??= Registry.ruleRegistry;
-  }
+  LinterOptions([Iterable<LintRule>? enabledLints, this.analysisOptions])
+      : enabledLints = enabledLints ?? Registry.ruleRegistry;
 
   void configure(LintConfig config) {
     enabledLints = Registry.ruleRegistry.where((LintRule rule) =>
@@ -577,10 +580,10 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   final List<AnalysisErrorInfo> _locationInfo = <AnalysisErrorInfo>[];
 
   LintRule({
-    this.name,
-    this.group,
-    this.description,
-    this.details,
+    required this.name,
+    required this.group,
+    required this.description,
+    required this.details,
     this.maturity = Maturity.stable,
   });
 
@@ -601,19 +604,19 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
 
   /// Return a visitor to be passed to provide access to Dart project context
   /// and to perform project-level analyses.
-  ProjectVisitor getProjectVisitor() => null;
+  ProjectVisitor? getProjectVisitor() => null;
 
   /// Return a visitor to be passed to pubspecs to perform lint
   /// analysis.
   /// Lint errors are reported via this [Linter]'s error [reporter].
-  PubspecVisitor getPubspecVisitor() => null;
+  PubspecVisitor? getPubspecVisitor() => null;
 
   @override
-  AstVisitor getVisitor() => null;
+  AstVisitor? getVisitor() => null;
 
-  void reportLint(AstNode node,
+  void reportLint(AstNode? node,
       {List<Object> arguments = const [],
-      ErrorCode errorCode,
+      ErrorCode? errorCode,
       bool ignoreSyntheticNodes = true}) {
     if (node != null && (!node.isSynthetic || !ignoreSyntheticNodes)) {
       reporter.reportErrorForNode(errorCode ?? lintCode, node, arguments);
@@ -621,14 +624,14 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   }
 
   void reportLintForOffset(int offset, int length,
-      {List<Object> arguments = const [], ErrorCode errorCode}) {
+      {List<Object> arguments = const [], ErrorCode? errorCode}) {
     reporter.reportErrorForOffset(
         errorCode ?? lintCode, offset, length, arguments);
   }
 
-  void reportLintForToken(Token token,
+  void reportLintForToken(Token? token,
       {List<Object> arguments = const [],
-      ErrorCode errorCode,
+      ErrorCode? errorCode,
       bool ignoreSyntheticTokens = true}) {
     if (token != null && (!token.isSynthetic || !ignoreSyntheticTokens)) {
       reporter.reportErrorForToken(errorCode ?? lintCode, token, arguments);
@@ -645,7 +648,7 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
     _locationInfo.add(AnalysisErrorInfoImpl([error], lineInfo));
 
     // Then do the reporting
-    reporter?.reportError(error);
+    reporter.reportError(error);
   }
 }
 
@@ -657,7 +660,7 @@ class Maturity implements Comparable<Maturity> {
   final String name;
   final int ordinal;
 
-  factory Maturity(String name, {int ordinal}) {
+  factory Maturity(String name, {required int ordinal}) {
     switch (name.toLowerCase()) {
       case 'stable':
         return stable;
@@ -670,7 +673,7 @@ class Maturity implements Comparable<Maturity> {
     }
   }
 
-  const Maturity._(this.name, {this.ordinal});
+  const Maturity._(this.name, {required this.ordinal});
 
   @override
   int compareTo(Maturity other) => ordinal - other.ordinal;
@@ -728,7 +731,7 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
   final Reporter reporter;
 
   @override
-  int numSourcesAnalyzed;
+  late int numSourcesAnalyzed;
 
   SourceLinter(this.options, {this.reporter = const PrintingReporter()});
 
@@ -747,10 +750,10 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
 
   @override
   Iterable<AnalysisErrorInfo> lintPubspecSource(
-      {String contents, String sourcePath}) {
+      {required String contents, String? sourcePath}) {
     var results = <AnalysisErrorInfo>[];
 
-    Uri sourceUrl = sourcePath == null ? null : p.toUri(sourcePath);
+    var sourceUrl = sourcePath == null ? null : p.toUri(sourcePath);
 
     var spec = Pubspec.parse(contents, sourceUrl: sourceUrl);
 
@@ -762,7 +765,7 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
           // Analyzer sets reporters; if this file is not being analyzed,
           // we need to set one ourselves.  (Needless to say, when pubspec
           // processing gets pushed down, this hack can go away.)
-          if (rule.reporter == null && sourceUrl != null) {
+          if (sourceUrl != null) {
             var source = createSource(sourceUrl);
             rule.reporter = ErrorReporter(
               this,
@@ -775,7 +778,9 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
           } on Exception catch (e) {
             reporter.exception(LinterException(e.toString()));
           }
-          if (rule._locationInfo != null && rule._locationInfo.isNotEmpty) {
+
+          var locationInfo = rule._locationInfo;
+          if (!identical(null, locationInfo) && locationInfo.isNotEmpty) {
             results.addAll(rule._locationInfo);
             rule._locationInfo.clear();
           }
@@ -837,10 +842,11 @@ class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
 }
 
 class _LintCode extends LintCode {
-  static final registry = <String, LintCode>{};
+  static final registry = <String, _LintCode>{};
 
-  factory _LintCode(String name, String message) =>
-      registry.putIfAbsent(name + message, () => _LintCode._(name, message));
+  factory _LintCode(String name, String message) {
+    return registry[name + message] ??= _LintCode._(name, message);
+  }
 
   _LintCode._(String name, String message) : super(name, message);
 }

@@ -34,7 +34,7 @@ class BasicWorkspacePackageTest extends WorkspacePackageTest {
   void test_contains_differentWorkspace() {
     newFile('/workspace2/project/lib/file.dart');
 
-    var package = findPackage('/workspace/project/lib/code.dart');
+    var package = findPackage('/workspace/project/lib/code.dart')!;
     expect(
         package.contains(
             TestSource(convertPath('/workspace2/project/lib/file.dart'))),
@@ -44,7 +44,7 @@ class BasicWorkspacePackageTest extends WorkspacePackageTest {
   void test_contains_sameWorkspace() {
     newFile('/workspace/project/lib/file2.dart');
 
-    var package = findPackage('/workspace/project/lib/code.dart');
+    var package = findPackage('/workspace/project/lib/code.dart')!;
     expect(
         package.contains(
             TestSource(convertPath('/workspace/project/lib/file2.dart'))),
@@ -62,7 +62,7 @@ class BasicWorkspacePackageTest extends WorkspacePackageTest {
   void test_findPackageFor_includedFile() {
     newFile('/workspace/project/lib/file.dart');
 
-    var package = findPackage('/workspace/project/lib/file.dart');
+    var package = findPackage('/workspace/project/lib/file.dart')!;
     expect(package, isNotNull);
     expect(package.root, convertPath('/workspace'));
     expect(package.workspace, equals(workspace));
@@ -77,7 +77,7 @@ class BasicWorkspacePackageTest extends WorkspacePackageTest {
 
   void test_packagesAvailableTo() {
     var libraryPath = convertPath('/workspace/lib/test.dart');
-    var package = findPackage(libraryPath);
+    var package = findPackage(libraryPath)!;
     var packageMap = package.packagesAvailableTo(libraryPath);
     expect(packageMap.keys, unorderedEquals(['p1', 'workspace']));
   }

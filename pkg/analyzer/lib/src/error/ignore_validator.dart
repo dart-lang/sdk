@@ -10,7 +10,6 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
-import 'package:meta/meta.dart';
 
 /// Used to validate the ignore comments in a single file.
 class IgnoreValidator {
@@ -30,7 +29,7 @@ class IgnoreValidator {
   /// be ignored. Note that this list is incomplete. Plugins might well define
   /// diagnostics with a severity of `ERROR`, but we won't be able to flag their
   /// use because we have no visibility of them here.
-  Set<String> _unignorableNames;
+  late final Set<String> _unignorableNames;
 
   /// Initialize a newly created validator to report any issues with ignore
   /// comments in the file being analyzed. The diagnostics will be reported to
@@ -144,9 +143,9 @@ class IgnoreValidator {
 
 /// Helper for caching unignorable names.
 class _UnignorableNames {
-  static Set<String> _forFlutter;
-  static Set<String> _forDart2jsTest;
-  static Set<String> _forOther;
+  static Set<String>? _forFlutter;
+  static Set<String>? _forDart2jsTest;
+  static Set<String>? _forOther;
 
   static Set<String> forFile(String filePath) {
     var isFlutter = filePath.contains('flutter');
@@ -155,15 +154,15 @@ class _UnignorableNames {
 
     if (isFlutter) {
       if (_forFlutter != null) {
-        return _forFlutter;
+        return _forFlutter!;
       }
     } else if (isDart2jsTest) {
       if (_forDart2jsTest != null) {
-        return _forDart2jsTest;
+        return _forDart2jsTest!;
       }
     } else {
       if (_forOther != null) {
-        return _forOther;
+        return _forOther!;
       }
     }
 
@@ -189,8 +188,8 @@ class _UnignorableNames {
 
   static bool isIgnorable(
     ErrorCode code, {
-    @required bool isFlutter,
-    @required bool isDart2jsTest,
+    required bool isFlutter,
+    required bool isDart2jsTest,
   }) {
     if (code.isIgnorable) {
       return true;

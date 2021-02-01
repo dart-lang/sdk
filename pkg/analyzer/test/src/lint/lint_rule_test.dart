@@ -67,26 +67,26 @@ const LintCode customCode = LintCode(
     correction: 'Implement `==`.');
 
 class CollectingReporter extends ErrorReporter {
-  ErrorCode code;
+  ErrorCode? code;
 
   CollectingReporter(AnalysisErrorListener listener, Source source)
       : super(listener, source, isNonNullableByDefault: false);
 
   @override
   void reportErrorForElement(ErrorCode errorCode, Element element,
-      [List<Object> arguments]) {
+      [List<Object?>? arguments]) {
     code = errorCode;
   }
 
   @override
   void reportErrorForNode(ErrorCode errorCode, AstNode node,
-      [List<Object> arguments]) {
+      [List<Object?>? arguments]) {
     code = errorCode;
   }
 
   @override
   void reportErrorForToken(ErrorCode errorCode, Token token,
-      [List<Object> arguments]) {
+      [List<Object?>? arguments]) {
     code = errorCode;
   }
 }

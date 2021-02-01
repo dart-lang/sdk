@@ -4,11 +4,10 @@
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
-import 'package:analyzer/src/dart/constant/value.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/engine.dart' show RecordingErrorListener;
 import 'package:analyzer/src/generated/source.dart' show Source;
@@ -99,12 +98,12 @@ class ConstantEvaluator {
   final Source _source;
 
   /// The library containing the expression(s) that will be evaluated.
-  final LibraryElement _library;
+  final LibraryElementImpl _library;
 
   /// Initialize a newly created evaluator to evaluate expressions in the given
   /// [source]. The [typeProvider] is the type provider used to access known
   /// types.
-  ConstantEvaluator(this._source, LibraryElement library) : _library = library;
+  ConstantEvaluator(this._source, this._library);
 
   EvaluationResult evaluate(Expression expression) {
     RecordingErrorListener errorListener = RecordingErrorListener();
@@ -113,7 +112,7 @@ class ConstantEvaluator {
       _source,
       isNonNullableByDefault: _library.isNonNullableByDefault,
     );
-    DartObjectImpl result = expression.accept(ConstantVisitor(
+    var result = expression.accept(ConstantVisitor(
         ConstantEvaluationEngine(
           DeclaredVariables(),
         ),

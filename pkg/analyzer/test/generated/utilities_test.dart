@@ -16,6 +16,7 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
+import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -40,7 +41,7 @@ class AstCloneComparator extends AstComparator {
   AstCloneComparator(this.expectTokensCopied);
 
   @override
-  bool isEqualNodes(AstNode first, AstNode second) {
+  bool isEqualNodes(AstNode? first, AstNode? second) {
     if (first != null && identical(first, second)) {
       fail('Failed to copy node: $first (${first.offset})');
     }
@@ -48,14 +49,15 @@ class AstCloneComparator extends AstComparator {
   }
 
   @override
-  bool isEqualTokens(Token first, Token second) {
+  bool isEqualTokens(Token? first, Token? second) {
     if (expectTokensCopied && first != null && identical(first, second)) {
       fail('Failed to copy token: ${first.lexeme} (${first.offset})');
     }
-    if (first?.precedingComments != null) {
-      CommentToken comment = first.precedingComments;
-      if (comment.parent != first) {
-        fail('Failed to link the comment "$comment" with the token "$first".');
+    var firstComment = first?.precedingComments;
+    if (firstComment != null) {
+      if (firstComment.parent != first) {
+        fail(
+            'Failed to link the comment "$firstComment" with the token "$first".');
       }
     }
     return super.isEqualTokens(first, second);
@@ -1126,7 +1128,7 @@ library l;''');
   ///           given node
   void _assertClone(AstNode node) {
     {
-      AstNode clone = node.accept(AstCloner());
+      AstNode clone = node.accept(AstCloner())!;
       AstCloneComparator comparator = AstCloneComparator(false);
       if (!comparator.isEqualNodes(node, clone)) {
         fail("Failed to clone ${node.runtimeType.toString()}");
@@ -1134,7 +1136,7 @@ library l;''');
       _assertEqualTokens(clone, node);
     }
     {
-      AstNode clone = node.accept(AstCloner(true));
+      AstNode clone = node.accept(AstCloner(true))!;
       AstCloneComparator comparator = AstCloneComparator(true);
       if (!comparator.isEqualNodes(node, clone)) {
         fail("Failed to clone ${node.runtimeType.toString()}");
@@ -1166,7 +1168,7 @@ library l;''');
   Expression _parseExpression(String code) {
     CompilationUnit unit = _parseUnit('var v = $code;');
     var decl = unit.declarations.single as TopLevelVariableDeclaration;
-    return decl.variables.variables.single.initializer;
+    return decl.variables.variables.single.initializer!;
   }
 
   Statement _parseStatement(String code) {
@@ -1180,7 +1182,7 @@ library l;''');
     GatheringErrorListener listener = GatheringErrorListener();
     CharSequenceReader reader = CharSequenceReader(code);
     var featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
-    Scanner scanner = Scanner(null, reader, listener)
+    Scanner scanner = Scanner(TestSource(), reader, listener)
       ..configureFeatures(
         featureSetForOverriding: featureSet,
         featureSet: featureSet,
@@ -1216,16 +1218,16 @@ library l;''');
       _assertHasPrevious(original);
       _assertHasPrevious(clone);
     }
-    Token stopOriginalToken = originalNode.endToken.next;
-    Token skipCloneComment;
-    Token skipOriginalComment;
+    Token stopOriginalToken = originalNode.endToken.next!;
+    Token? skipCloneComment;
+    Token? skipOriginalComment;
     while (original != stopOriginalToken) {
       expect(clone, isNotNull);
       _assertEqualToken(clone, original);
       // comments
       {
-        Token cloneComment = clone.precedingComments;
-        Token originalComment = original.precedingComments;
+        var cloneComment = clone.precedingComments;
+        var originalComment = original.precedingComments;
         if (cloneComment != skipCloneComment &&
             originalComment != skipOriginalComment) {
           while (true) {
@@ -1234,9 +1236,9 @@ library l;''');
               break;
             }
             expect(cloneComment, isNotNull);
-            _assertEqualToken(cloneComment, originalComment);
-            cloneComment = cloneComment.next;
-            originalComment = originalComment.next;
+            _assertEqualToken(cloneComment!, originalComment);
+            cloneComment = cloneComment.next as CommentToken?;
+            originalComment = originalComment.next as CommentToken?;
           }
         }
       }
@@ -1245,24 +1247,26 @@ library l;''');
         expect(clone, TypeMatcher<CommentToken>());
         skipOriginalComment = original;
         skipCloneComment = clone;
-        original = (original as CommentToken).parent;
-        clone = (clone as CommentToken).parent;
+        original = original.parent!;
+        clone = (clone as CommentToken).parent!;
       } else {
-        clone = clone.next;
-        original = original.next;
+        clone = clone.next!;
+        original = original.next!;
       }
     }
   }
 
   /// Assert that the [token] has `previous` set, and if it `EOF`, then it
   /// points itself.
-  static void _assertHasPrevious(Token token) {
-    expect(token, isNotNull);
+  static void _assertHasPrevious(Token? token) {
+    if (token == null) {
+      fail('Expected not null');
+    }
     if (token.type == TokenType.EOF) {
       return;
     }
     while (token != null) {
-      Token previous = token.previous;
+      var previous = token.previous;
       expect(previous, isNotNull);
       if (token.type == TokenType.EOF) {
         expect(previous, same(token));
@@ -1343,7 +1347,9 @@ class ExceptionHandlingDelegatingAstVisitorTest {
             dynamic exception, StackTrace stackTrace) {
       handlerInvoked = true;
     });
-    astFactory.nullLiteral(null).accept(visitor);
+    astFactory
+        .nullLiteral(TokenFactory.tokenFromKeyword(Keyword.NULL))
+        .accept(visitor);
     expect(handlerInvoked, isTrue);
   }
 }
@@ -1351,7 +1357,7 @@ class ExceptionHandlingDelegatingAstVisitorTest {
 class Getter_NodeReplacerTest_test_annotation
     implements NodeReplacerTest_Getter<Annotation, ArgumentList> {
   @override
-  ArgumentList get(Annotation node) => node.arguments;
+  ArgumentList? get(Annotation node) => node.arguments;
 }
 
 class Getter_NodeReplacerTest_test_annotation_2
@@ -1363,13 +1369,13 @@ class Getter_NodeReplacerTest_test_annotation_2
 class Getter_NodeReplacerTest_test_annotation_3
     implements NodeReplacerTest_Getter<Annotation, SimpleIdentifier> {
   @override
-  SimpleIdentifier get(Annotation node) => node.constructorName;
+  SimpleIdentifier? get(Annotation node) => node.constructorName;
 }
 
 class Getter_NodeReplacerTest_test_asExpression
     implements NodeReplacerTest_Getter<AsExpression, TypeAnnotation> {
   @override
-  TypeAnnotation get(AsExpression node) => node.type;
+  TypeAnnotation? get(AsExpression node) => node.type;
 }
 
 class Getter_NodeReplacerTest_test_asExpression_2
@@ -1387,7 +1393,7 @@ class Getter_NodeReplacerTest_test_assertStatement
 class Getter_NodeReplacerTest_test_assertStatement_2
     implements NodeReplacerTest_Getter<AssertStatement, Expression> {
   @override
-  Expression get(AssertStatement node) => node.message;
+  Expression? get(AssertStatement node) => node.message;
 }
 
 class Getter_NodeReplacerTest_test_assignmentExpression
@@ -1429,7 +1435,7 @@ class Getter_NodeReplacerTest_test_blockFunctionBody
 class Getter_NodeReplacerTest_test_breakStatement
     implements NodeReplacerTest_Getter<BreakStatement, SimpleIdentifier> {
   @override
-  SimpleIdentifier get(BreakStatement node) => node.label;
+  SimpleIdentifier? get(BreakStatement node) => node.label;
 }
 
 class Getter_NodeReplacerTest_test_cascadeExpression
@@ -1441,49 +1447,49 @@ class Getter_NodeReplacerTest_test_cascadeExpression
 class Getter_NodeReplacerTest_test_catchClause
     implements NodeReplacerTest_Getter<CatchClause, SimpleIdentifier> {
   @override
-  SimpleIdentifier get(CatchClause node) => node.stackTraceParameter;
+  SimpleIdentifier? get(CatchClause node) => node.stackTraceParameter;
 }
 
 class Getter_NodeReplacerTest_test_catchClause_2
     implements NodeReplacerTest_Getter<CatchClause, SimpleIdentifier> {
   @override
-  SimpleIdentifier get(CatchClause node) => node.exceptionParameter;
+  SimpleIdentifier? get(CatchClause node) => node.exceptionParameter;
 }
 
 class Getter_NodeReplacerTest_test_catchClause_3
     implements NodeReplacerTest_Getter<CatchClause, TypeAnnotation> {
   @override
-  TypeAnnotation get(CatchClause node) => node.exceptionType;
+  TypeAnnotation? get(CatchClause node) => node.exceptionType;
 }
 
 class Getter_NodeReplacerTest_test_classDeclaration
     implements NodeReplacerTest_Getter<ClassDeclaration, ImplementsClause> {
   @override
-  ImplementsClause get(ClassDeclaration node) => node.implementsClause;
+  ImplementsClause? get(ClassDeclaration node) => node.implementsClause;
 }
 
 class Getter_NodeReplacerTest_test_classDeclaration_2
     implements NodeReplacerTest_Getter<ClassDeclaration, WithClause> {
   @override
-  WithClause get(ClassDeclaration node) => node.withClause;
+  WithClause? get(ClassDeclaration node) => node.withClause;
 }
 
 class Getter_NodeReplacerTest_test_classDeclaration_3
     implements NodeReplacerTest_Getter<ClassDeclaration, NativeClause> {
   @override
-  NativeClause get(ClassDeclaration node) => node.nativeClause;
+  NativeClause? get(ClassDeclaration node) => node.nativeClause;
 }
 
 class Getter_NodeReplacerTest_test_classDeclaration_4
     implements NodeReplacerTest_Getter<ClassDeclaration, ExtendsClause> {
   @override
-  ExtendsClause get(ClassDeclaration node) => node.extendsClause;
+  ExtendsClause? get(ClassDeclaration node) => node.extendsClause;
 }
 
 class Getter_NodeReplacerTest_test_classDeclaration_5
     implements NodeReplacerTest_Getter<ClassDeclaration, TypeParameterList> {
   @override
-  TypeParameterList get(ClassDeclaration node) => node.typeParameters;
+  TypeParameterList? get(ClassDeclaration node) => node.typeParameters;
 }
 
 class Getter_NodeReplacerTest_test_classDeclaration_6
@@ -1501,7 +1507,7 @@ class Getter_NodeReplacerTest_test_classTypeAlias
 class Getter_NodeReplacerTest_test_classTypeAlias_2
     implements NodeReplacerTest_Getter<ClassTypeAlias, ImplementsClause> {
   @override
-  ImplementsClause get(ClassTypeAlias node) => node.implementsClause;
+  ImplementsClause? get(ClassTypeAlias node) => node.implementsClause;
 }
 
 class Getter_NodeReplacerTest_test_classTypeAlias_3
@@ -1519,7 +1525,7 @@ class Getter_NodeReplacerTest_test_classTypeAlias_4
 class Getter_NodeReplacerTest_test_classTypeAlias_5
     implements NodeReplacerTest_Getter<ClassTypeAlias, TypeParameterList> {
   @override
-  TypeParameterList get(ClassTypeAlias node) => node.typeParameters;
+  TypeParameterList? get(ClassTypeAlias node) => node.typeParameters;
 }
 
 class Getter_NodeReplacerTest_test_commentReference
@@ -1531,7 +1537,7 @@ class Getter_NodeReplacerTest_test_commentReference
 class Getter_NodeReplacerTest_test_compilationUnit
     implements NodeReplacerTest_Getter<CompilationUnit, ScriptTag> {
   @override
-  ScriptTag get(CompilationUnit node) => node.scriptTag;
+  ScriptTag? get(CompilationUnit node) => node.scriptTag;
 }
 
 class Getter_NodeReplacerTest_test_conditionalExpression
@@ -1556,7 +1562,7 @@ class Getter_NodeReplacerTest_test_constructorDeclaration
     implements
         NodeReplacerTest_Getter<ConstructorDeclaration, ConstructorName> {
   @override
-  ConstructorName get(ConstructorDeclaration node) =>
+  ConstructorName? get(ConstructorDeclaration node) =>
       node.redirectedConstructor;
 }
 
@@ -1564,7 +1570,7 @@ class Getter_NodeReplacerTest_test_constructorDeclaration_2
     implements
         NodeReplacerTest_Getter<ConstructorDeclaration, SimpleIdentifier> {
   @override
-  SimpleIdentifier get(ConstructorDeclaration node) => node.name;
+  SimpleIdentifier? get(ConstructorDeclaration node) => node.name;
 }
 
 class Getter_NodeReplacerTest_test_constructorDeclaration_3
@@ -1583,7 +1589,7 @@ class Getter_NodeReplacerTest_test_constructorDeclaration_4
 class Getter_NodeReplacerTest_test_constructorDeclaration_5
     implements NodeReplacerTest_Getter<ConstructorDeclaration, FunctionBody> {
   @override
-  FunctionBody get(ConstructorDeclaration node) => node.body;
+  FunctionBody? get(ConstructorDeclaration node) => node.body;
 }
 
 class Getter_NodeReplacerTest_test_constructorFieldInitializer
@@ -1609,19 +1615,19 @@ class Getter_NodeReplacerTest_test_constructorName
 class Getter_NodeReplacerTest_test_constructorName_2
     implements NodeReplacerTest_Getter<ConstructorName, SimpleIdentifier> {
   @override
-  SimpleIdentifier get(ConstructorName node) => node.name;
+  SimpleIdentifier? get(ConstructorName node) => node.name;
 }
 
 class Getter_NodeReplacerTest_test_continueStatement
     implements NodeReplacerTest_Getter<ContinueStatement, SimpleIdentifier> {
   @override
-  SimpleIdentifier get(ContinueStatement node) => node.label;
+  SimpleIdentifier? get(ContinueStatement node) => node.label;
 }
 
 class Getter_NodeReplacerTest_test_declaredIdentifier
     implements NodeReplacerTest_Getter<DeclaredIdentifier, TypeAnnotation> {
   @override
-  TypeAnnotation get(DeclaredIdentifier node) => node.type;
+  TypeAnnotation? get(DeclaredIdentifier node) => node.type;
 }
 
 class Getter_NodeReplacerTest_test_declaredIdentifier_2
@@ -1640,7 +1646,7 @@ class Getter_NodeReplacerTest_test_defaultFormalParameter
 class Getter_NodeReplacerTest_test_defaultFormalParameter_2
     implements NodeReplacerTest_Getter<DefaultFormalParameter, Expression> {
   @override
-  Expression get(DefaultFormalParameter node) => node.defaultValue;
+  Expression? get(DefaultFormalParameter node) => node.defaultValue;
 }
 
 class Getter_NodeReplacerTest_test_doStatement
@@ -1697,13 +1703,13 @@ class Getter_NodeReplacerTest_test_fieldFormalParameter
     implements
         NodeReplacerTest_Getter<FieldFormalParameter, FormalParameterList> {
   @override
-  FormalParameterList get(FieldFormalParameter node) => node.parameters;
+  FormalParameterList? get(FieldFormalParameter node) => node.parameters;
 }
 
 class Getter_NodeReplacerTest_test_fieldFormalParameter_2
     implements NodeReplacerTest_Getter<FieldFormalParameter, TypeAnnotation> {
   @override
-  TypeAnnotation get(FieldFormalParameter node) => node.type;
+  TypeAnnotation? get(FieldFormalParameter node) => node.type;
 }
 
 class Getter_NodeReplacerTest_test_forEachStatement_withIdentifier
@@ -1755,14 +1761,14 @@ class Getter_NodeReplacerTest_test_forStatement_withInitialization
 class Getter_NodeReplacerTest_test_forStatement_withInitialization_2
     implements NodeReplacerTest_Getter<ForStatement, Expression> {
   @override
-  Expression get(ForStatement node) =>
+  Expression? get(ForStatement node) =>
       (node.forLoopParts as ForParts).condition;
 }
 
 class Getter_NodeReplacerTest_test_forStatement_withInitialization_3
     implements NodeReplacerTest_Getter<ForStatement, Expression> {
   @override
-  Expression get(ForStatement node) =>
+  Expression? get(ForStatement node) =>
       (node.forLoopParts as ForPartsWithExpression).initialization;
 }
 
@@ -1782,14 +1788,14 @@ class Getter_NodeReplacerTest_test_forStatement_withVariables_2
 class Getter_NodeReplacerTest_test_forStatement_withVariables_3
     implements NodeReplacerTest_Getter<ForStatement, Expression> {
   @override
-  Expression get(ForStatement node) =>
+  Expression? get(ForStatement node) =>
       (node.forLoopParts as ForParts).condition;
 }
 
 class Getter_NodeReplacerTest_test_functionDeclaration
     implements NodeReplacerTest_Getter<FunctionDeclaration, TypeAnnotation> {
   @override
-  TypeAnnotation get(FunctionDeclaration node) => node.returnType;
+  TypeAnnotation? get(FunctionDeclaration node) => node.returnType;
 }
 
 class Getter_NodeReplacerTest_test_functionDeclaration_2
@@ -1818,13 +1824,13 @@ class Getter_NodeReplacerTest_test_functionExpression
     implements
         NodeReplacerTest_Getter<FunctionExpression, FormalParameterList> {
   @override
-  FormalParameterList get(FunctionExpression node) => node.parameters;
+  FormalParameterList? get(FunctionExpression node) => node.parameters;
 }
 
 class Getter_NodeReplacerTest_test_functionExpression_2
     implements NodeReplacerTest_Getter<FunctionExpression, FunctionBody> {
   @override
-  FunctionBody get(FunctionExpression node) => node.body;
+  FunctionBody? get(FunctionExpression node) => node.body;
 }
 
 class Getter_NodeReplacerTest_test_functionExpressionInvocation
@@ -1844,7 +1850,7 @@ class Getter_NodeReplacerTest_test_functionExpressionInvocation_2
 class Getter_NodeReplacerTest_test_functionTypeAlias
     implements NodeReplacerTest_Getter<FunctionTypeAlias, TypeParameterList> {
   @override
-  TypeParameterList get(FunctionTypeAlias node) => node.typeParameters;
+  TypeParameterList? get(FunctionTypeAlias node) => node.typeParameters;
 }
 
 class Getter_NodeReplacerTest_test_functionTypeAlias_2
@@ -1856,7 +1862,7 @@ class Getter_NodeReplacerTest_test_functionTypeAlias_2
 class Getter_NodeReplacerTest_test_functionTypeAlias_3
     implements NodeReplacerTest_Getter<FunctionTypeAlias, TypeAnnotation> {
   @override
-  TypeAnnotation get(FunctionTypeAlias node) => node.returnType;
+  TypeAnnotation? get(FunctionTypeAlias node) => node.returnType;
 }
 
 class Getter_NodeReplacerTest_test_functionTypeAlias_4
@@ -1869,7 +1875,7 @@ class Getter_NodeReplacerTest_test_functionTypedFormalParameter
     implements
         NodeReplacerTest_Getter<FunctionTypedFormalParameter, TypeAnnotation> {
   @override
-  TypeAnnotation get(FunctionTypedFormalParameter node) => node.returnType;
+  TypeAnnotation? get(FunctionTypedFormalParameter node) => node.returnType;
 }
 
 class Getter_NodeReplacerTest_test_functionTypedFormalParameter_2
@@ -1889,7 +1895,7 @@ class Getter_NodeReplacerTest_test_ifStatement
 class Getter_NodeReplacerTest_test_ifStatement_2
     implements NodeReplacerTest_Getter<IfStatement, Statement> {
   @override
-  Statement get(IfStatement node) => node.elseStatement;
+  Statement? get(IfStatement node) => node.elseStatement;
 }
 
 class Getter_NodeReplacerTest_test_ifStatement_3
@@ -1901,13 +1907,13 @@ class Getter_NodeReplacerTest_test_ifStatement_3
 class Getter_NodeReplacerTest_test_importDirective
     implements NodeReplacerTest_Getter<ImportDirective, SimpleIdentifier> {
   @override
-  SimpleIdentifier get(ImportDirective node) => node.prefix;
+  SimpleIdentifier? get(ImportDirective node) => node.prefix;
 }
 
 class Getter_NodeReplacerTest_test_indexExpression
     implements NodeReplacerTest_Getter<IndexExpression, Expression> {
   @override
-  Expression get(IndexExpression node) => node.target;
+  Expression? get(IndexExpression node) => node.target;
 }
 
 class Getter_NodeReplacerTest_test_indexExpression_2
@@ -1945,7 +1951,7 @@ class Getter_NodeReplacerTest_test_isExpression
 class Getter_NodeReplacerTest_test_isExpression_2
     implements NodeReplacerTest_Getter<IsExpression, TypeAnnotation> {
   @override
-  TypeAnnotation get(IsExpression node) => node.type;
+  TypeAnnotation? get(IsExpression node) => node.type;
 }
 
 class Getter_NodeReplacerTest_test_label
@@ -1981,7 +1987,7 @@ class Getter_NodeReplacerTest_test_mapLiteralEntry_2
 class Getter_NodeReplacerTest_test_methodDeclaration
     implements NodeReplacerTest_Getter<MethodDeclaration, TypeAnnotation> {
   @override
-  TypeAnnotation get(MethodDeclaration node) => node.returnType;
+  TypeAnnotation? get(MethodDeclaration node) => node.returnType;
 }
 
 class Getter_NodeReplacerTest_test_methodDeclaration_2
@@ -1999,7 +2005,7 @@ class Getter_NodeReplacerTest_test_methodDeclaration_3
 class Getter_NodeReplacerTest_test_methodDeclaration_4
     implements NodeReplacerTest_Getter<MethodDeclaration, FormalParameterList> {
   @override
-  FormalParameterList get(MethodDeclaration node) => node.parameters;
+  FormalParameterList? get(MethodDeclaration node) => node.parameters;
 }
 
 class Getter_NodeReplacerTest_test_methodInvocation
@@ -2011,7 +2017,7 @@ class Getter_NodeReplacerTest_test_methodInvocation
 class Getter_NodeReplacerTest_test_methodInvocation_2
     implements NodeReplacerTest_Getter<MethodInvocation, Expression> {
   @override
-  Expression get(MethodInvocation node) => node.target;
+  Expression? get(MethodInvocation node) => node.target;
 }
 
 class Getter_NodeReplacerTest_test_methodInvocation_3
@@ -2035,13 +2041,13 @@ class Getter_NodeReplacerTest_test_namedExpression_2
 class Getter_NodeReplacerTest_test_nativeClause
     implements NodeReplacerTest_Getter<NativeClause, StringLiteral> {
   @override
-  StringLiteral get(NativeClause node) => node.name;
+  StringLiteral? get(NativeClause node) => node.name;
 }
 
 class Getter_NodeReplacerTest_test_nativeFunctionBody
     implements NodeReplacerTest_Getter<NativeFunctionBody, StringLiteral> {
   @override
-  StringLiteral get(NativeFunctionBody node) => node.stringLiteral;
+  StringLiteral? get(NativeFunctionBody node) => node.stringLiteral;
 }
 
 class Getter_NodeReplacerTest_test_parenthesizedExpression
@@ -2053,7 +2059,7 @@ class Getter_NodeReplacerTest_test_parenthesizedExpression
 class Getter_NodeReplacerTest_test_partOfDirective
     implements NodeReplacerTest_Getter<PartOfDirective, LibraryIdentifier> {
   @override
-  LibraryIdentifier get(PartOfDirective node) => node.libraryName;
+  LibraryIdentifier? get(PartOfDirective node) => node.libraryName;
 }
 
 class Getter_NodeReplacerTest_test_postfixExpression
@@ -2083,7 +2089,7 @@ class Getter_NodeReplacerTest_test_prefixExpression
 class Getter_NodeReplacerTest_test_propertyAccess
     implements NodeReplacerTest_Getter<PropertyAccess, Expression> {
   @override
-  Expression get(PropertyAccess node) => node.target;
+  Expression? get(PropertyAccess node) => node.target;
 }
 
 class Getter_NodeReplacerTest_test_propertyAccess_2
@@ -2097,7 +2103,7 @@ class Getter_NodeReplacerTest_test_redirectingConstructorInvocation
         NodeReplacerTest_Getter<RedirectingConstructorInvocation,
             SimpleIdentifier> {
   @override
-  SimpleIdentifier get(RedirectingConstructorInvocation node) =>
+  SimpleIdentifier? get(RedirectingConstructorInvocation node) =>
       node.constructorName;
 }
 
@@ -2112,20 +2118,21 @@ class Getter_NodeReplacerTest_test_redirectingConstructorInvocation_2
 class Getter_NodeReplacerTest_test_returnStatement
     implements NodeReplacerTest_Getter<ReturnStatement, Expression> {
   @override
-  Expression get(ReturnStatement node) => node.expression;
+  Expression? get(ReturnStatement node) => node.expression;
 }
 
 class Getter_NodeReplacerTest_test_simpleFormalParameter
     implements NodeReplacerTest_Getter<SimpleFormalParameter, TypeAnnotation> {
   @override
-  TypeAnnotation get(SimpleFormalParameter node) => node.type;
+  TypeAnnotation? get(SimpleFormalParameter node) => node.type;
 }
 
 class Getter_NodeReplacerTest_test_superConstructorInvocation
     implements
         NodeReplacerTest_Getter<SuperConstructorInvocation, SimpleIdentifier> {
   @override
-  SimpleIdentifier get(SuperConstructorInvocation node) => node.constructorName;
+  SimpleIdentifier? get(SuperConstructorInvocation node) =>
+      node.constructorName;
 }
 
 class Getter_NodeReplacerTest_test_superConstructorInvocation_2
@@ -2165,7 +2172,7 @@ class Getter_NodeReplacerTest_test_topLevelVariableDeclaration
 class Getter_NodeReplacerTest_test_tryStatement
     implements NodeReplacerTest_Getter<TryStatement, Block> {
   @override
-  Block get(TryStatement node) => node.finallyBlock;
+  Block? get(TryStatement node) => node.finallyBlock;
 }
 
 class Getter_NodeReplacerTest_test_tryStatement_2
@@ -2177,7 +2184,7 @@ class Getter_NodeReplacerTest_test_tryStatement_2
 class Getter_NodeReplacerTest_test_typeName
     implements NodeReplacerTest_Getter<TypeName, TypeArgumentList> {
   @override
-  TypeArgumentList get(TypeName node) => node.typeArguments;
+  TypeArgumentList? get(TypeName node) => node.typeArguments;
 }
 
 class Getter_NodeReplacerTest_test_typeName_2
@@ -2189,7 +2196,7 @@ class Getter_NodeReplacerTest_test_typeName_2
 class Getter_NodeReplacerTest_test_typeParameter
     implements NodeReplacerTest_Getter<TypeParameter, TypeAnnotation> {
   @override
-  TypeAnnotation get(TypeParameter node) => node.bound;
+  TypeAnnotation? get(TypeParameter node) => node.bound;
 }
 
 class Getter_NodeReplacerTest_test_typeParameter_2
@@ -2207,14 +2214,14 @@ class Getter_NodeReplacerTest_test_variableDeclaration
 class Getter_NodeReplacerTest_test_variableDeclaration_2
     implements NodeReplacerTest_Getter<VariableDeclaration, Expression> {
   @override
-  Expression get(VariableDeclaration node) => node.initializer;
+  Expression? get(VariableDeclaration node) => node.initializer;
 }
 
 class Getter_NodeReplacerTest_test_variableDeclarationList
     implements
         NodeReplacerTest_Getter<VariableDeclarationList, TypeAnnotation> {
   @override
-  TypeAnnotation get(VariableDeclarationList node) => node.type;
+  TypeAnnotation? get(VariableDeclarationList node) => node.type;
 }
 
 class Getter_NodeReplacerTest_test_variableDeclarationStatement
@@ -2247,26 +2254,26 @@ class Getter_NodeReplacerTest_test_yieldStatement
 class Getter_NodeReplacerTest_testAnnotatedNode
     implements NodeReplacerTest_Getter<AnnotatedNode, Comment> {
   @override
-  Comment get(AnnotatedNode node) => node.documentationComment;
+  Comment? get(AnnotatedNode node) => node.documentationComment;
 }
 
 class Getter_NodeReplacerTest_testNormalFormalParameter
     implements
         NodeReplacerTest_Getter<NormalFormalParameter, SimpleIdentifier> {
   @override
-  SimpleIdentifier get(NormalFormalParameter node) => node.identifier;
+  SimpleIdentifier? get(NormalFormalParameter node) => node.identifier;
 }
 
 class Getter_NodeReplacerTest_testNormalFormalParameter_2
     implements NodeReplacerTest_Getter<NormalFormalParameter, Comment> {
   @override
-  Comment get(NormalFormalParameter node) => node.documentationComment;
+  Comment? get(NormalFormalParameter node) => node.documentationComment;
 }
 
 class Getter_NodeReplacerTest_testTypedLiteral
     implements NodeReplacerTest_Getter<TypedLiteral, TypeArgumentList> {
   @override
-  TypeArgumentList get(TypedLiteral node) => node.typeArguments;
+  TypeArgumentList? get(TypedLiteral node) => node.typeArguments;
 }
 
 class Getter_NodeReplacerTest_testUriBasedDirective
@@ -2287,29 +2294,23 @@ class LineInfoTest {
     }, throwsArgumentError);
   }
 
-  void test_creation_null() {
-    expect(() {
-      LineInfo(null);
-    }, throwsArgumentError);
-  }
-
   void test_getLocation_firstLine() {
     LineInfo info = LineInfo(<int>[0, 12, 34]);
-    CharacterLocation location = info.getLocation(4);
+    var location = info.getLocation(4);
     expect(location.lineNumber, 1);
     expect(location.columnNumber, 5);
   }
 
   void test_getLocation_lastLine() {
     LineInfo info = LineInfo(<int>[0, 12, 34]);
-    CharacterLocation location = info.getLocation(36);
+    var location = info.getLocation(36);
     expect(location.lineNumber, 3);
     expect(location.columnNumber, 3);
   }
 
   void test_getLocation_middleLine() {
     LineInfo info = LineInfo(<int>[0, 12, 34]);
-    CharacterLocation location = info.getLocation(12);
+    var location = info.getLocation(12);
     expect(location.lineNumber, 2);
     expect(location.columnNumber, 1);
   }
@@ -3406,7 +3407,7 @@ class NodeReplacerTest {
 
   void test_typeArgumentList() {
     TypeArgumentList node =
-        AstTestFactory.typeArgumentList([AstTestFactory.typeName4("A")]);
+        AstTestFactory.typeArgumentList2([AstTestFactory.typeName4("A")]);
     _assertReplace(node, ListGetter_NodeReplacerTest_test_typeArgumentList(0));
   }
 
@@ -3425,7 +3426,7 @@ class NodeReplacerTest {
   }
 
   void test_typeParameterList() {
-    TypeParameterList node = AstTestFactory.typeParameterList(["A", "B"]);
+    TypeParameterList node = AstTestFactory.typeParameterList2(["A", "B"]);
     _assertReplace(node, ListGetter_NodeReplacerTest_test_typeParameterList(0));
   }
 
@@ -3484,9 +3485,9 @@ class NodeReplacerTest {
   }
 
   void _assertReplace(AstNode parent, NodeReplacerTest_Getter getter) {
-    AstNode child = getter.get(parent);
+    var child = getter.get(parent);
     if (child != null) {
-      AstNode clone = child.accept(AstCloner());
+      AstNode clone = child.accept(AstCloner())!;
       NodeReplacer.replace(child, clone);
       expect(getter.get(parent), clone);
       expect(clone.parent, child.parent);
@@ -3525,8 +3526,8 @@ class NodeReplacerTest {
   }
 }
 
-abstract class NodeReplacerTest_Getter<P, C> {
-  C get(P parent);
+abstract class NodeReplacerTest_Getter<P, C extends AstNode> {
+  C? get(P parent);
 }
 
 abstract class NodeReplacerTest_ListGetter<P extends AstNode, C extends AstNode>
@@ -3536,7 +3537,7 @@ abstract class NodeReplacerTest_ListGetter<P extends AstNode, C extends AstNode>
   NodeReplacerTest_ListGetter(this._index);
 
   @override
-  C get(P parent) {
+  C? get(P parent) {
     NodeList<C> list = getList(parent);
     if (list.isEmpty) {
       return null;
@@ -3618,7 +3619,6 @@ class SourceRangeTest {
 
   void test_equals() {
     SourceRange r = SourceRange(10, 1);
-    expect(r == null, isFalse);
     // ignore: unrelated_type_equality_checks
     expect(r == this, isFalse);
     expect(r == SourceRange(20, 2), isFalse);
@@ -3808,7 +3808,7 @@ class StringUtilitiesTest {
 
   void test_printListOfQuotedNames_empty() {
     expect(() {
-      StringUtilities.printListOfQuotedNames(List<String>.filled(0, null));
+      StringUtilities.printListOfQuotedNames([]);
     }, throwsArgumentError);
   }
 
@@ -3937,7 +3937,6 @@ class StringUtilitiesTest {
   }
 
   void test_substringBeforeChar() {
-    expect(StringUtilities.substringBeforeChar(null, 0x61), null);
     expect(StringUtilities.substringBeforeChar("", 0x61), "");
     expect(StringUtilities.substringBeforeChar("abc", 0x61), "");
     expect(StringUtilities.substringBeforeChar("abcba", 0x62), "a");

@@ -60,7 +60,7 @@ void main() => print('Hello, world!')
     String content = '''
 void main() => print('Hello, world!')
 ''';
-    /*late*/ String expectedPath;
+    late String expectedPath;
     ParseStringResult result =
         _withMemoryFile(content, (resourceProvider, path) {
       expectedPath = path;
@@ -221,7 +221,7 @@ class A {}
       featureSet: FeatureSet.latestLanguageVersion(),
     );
 
-    var languageVersion = result.unit.languageVersionToken;
+    var languageVersion = result.unit.languageVersionToken!;
     expect(languageVersion.major, 2);
     expect(languageVersion.minor, 7);
   }

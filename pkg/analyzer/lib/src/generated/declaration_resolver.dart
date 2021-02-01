@@ -11,27 +11,27 @@ class ElementWalker {
   /// The element whose child elements are being walked.
   final Element element;
 
-  List<PropertyAccessorElement> _accessors;
+  List<PropertyAccessorElement>? _accessors;
   int _accessorIndex = 0;
-  List<ClassElement> _classes;
+  List<ClassElement>? _classes;
   int _classIndex = 0;
-  List<ConstructorElement> _constructors;
+  List<ConstructorElement>? _constructors;
   int _constructorIndex = 0;
-  List<ClassElement> _enums;
+  List<ClassElement>? _enums;
   int _enumIndex = 0;
-  List<ExtensionElement> _extensions;
+  List<ExtensionElement>? _extensions;
   int _extensionIndex = 0;
-  List<ExecutableElement> _functions;
+  List<ExecutableElement>? _functions;
   int _functionIndex = 0;
-  List<ClassElement> _mixins;
+  List<ClassElement>? _mixins;
   int _mixinIndex = 0;
-  List<ParameterElement> _parameters;
+  List<ParameterElement>? _parameters;
   int _parameterIndex = 0;
-  List<TypeAliasElement> _typedefs;
+  List<TypeAliasElement>? _typedefs;
   int _typedefIndex = 0;
-  List<TypeParameterElement> _typeParameters;
+  List<TypeParameterElement>? _typeParameters;
   int _typeParameterIndex = 0;
-  List<VariableElement> _variables;
+  List<VariableElement>? _variables;
   int _variableIndex = 0;
 
   /// Creates an [ElementWalker] which walks the child elements of a class
@@ -104,63 +104,69 @@ class ElementWalker {
         _typeParameters = element.typeParameters;
 
   void consumeLocalElements() {
-    _functionIndex = _functions.length;
+    _functionIndex = _functions!.length;
   }
 
   void consumeParameters() {
-    _parameterIndex = _parameters.length;
+    _parameterIndex = _parameters!.length;
   }
 
   /// Returns the next non-synthetic child of [element] which is an accessor;
   /// throws an [IndexError] if there are no more.
-  PropertyAccessorElement getAccessor() => _accessors[_accessorIndex++];
+  PropertyAccessorElementImpl getAccessor() =>
+      _accessors![_accessorIndex++] as PropertyAccessorElementImpl;
 
   /// Returns the next non-synthetic child of [element] which is a class; throws
   /// an [IndexError] if there are no more.
-  ClassElement getClass() => _classes[_classIndex++];
+  ClassElementImpl getClass() => _classes![_classIndex++] as ClassElementImpl;
 
   /// Returns the next non-synthetic child of [element] which is a constructor;
   /// throws an [IndexError] if there are no more.
-  ConstructorElement getConstructor() => _constructors[_constructorIndex++];
+  ConstructorElementImpl getConstructor() =>
+      _constructors![_constructorIndex++] as ConstructorElementImpl;
 
   /// Returns the next non-synthetic child of [element] which is an enum; throws
   /// an [IndexError] if there are no more.
-  ClassElement getEnum() => _enums[_enumIndex++];
+  EnumElementImpl getEnum() => _enums![_enumIndex++] as EnumElementImpl;
 
-  ExtensionElement getExtension() => _extensions[_extensionIndex++];
+  ExtensionElement getExtension() => _extensions![_extensionIndex++];
 
   /// Returns the next non-synthetic child of [element] which is a top level
   /// function, method, or local function; throws an [IndexError] if there are
   /// no more.
-  ExecutableElement getFunction() => _functions[_functionIndex++];
+  ExecutableElementImpl getFunction() =>
+      _functions![_functionIndex++] as ExecutableElementImpl;
 
   /// Returns the next non-synthetic child of [element] which is a mixin; throws
   /// an [IndexError] if there are no more.
-  ClassElement getMixin() => _mixins[_mixinIndex++];
+  ClassElement getMixin() => _mixins![_mixinIndex++];
 
   /// Returns the next non-synthetic child of [element] which is a parameter;
   /// throws an [IndexError] if there are no more.
-  ParameterElement getParameter() => _parameters[_parameterIndex++];
+  ParameterElementImpl getParameter() =>
+      _parameters![_parameterIndex++] as ParameterElementImpl;
 
   /// Returns the next non-synthetic child of [element] which is a typedef;
   /// throws an [IndexError] if there are no more.
-  TypeAliasElement getTypedef() => _typedefs[_typedefIndex++];
+  TypeAliasElementImpl getTypedef() =>
+      _typedefs![_typedefIndex++] as TypeAliasElementImpl;
 
   /// Returns the next non-synthetic child of [element] which is a type
   /// parameter; throws an [IndexError] if there are no more.
-  TypeParameterElement getTypeParameter() =>
-      _typeParameters[_typeParameterIndex++];
+  TypeParameterElementImpl getTypeParameter() =>
+      _typeParameters![_typeParameterIndex++] as TypeParameterElementImpl;
 
   /// Returns the next non-synthetic child of [element] which is a top level
   /// variable, field, or local variable; throws an [IndexError] if there are no
   /// more.
-  VariableElement getVariable() => _variables[_variableIndex++];
+  VariableElementImpl getVariable() =>
+      _variables![_variableIndex++] as VariableElementImpl;
 
   /// Verifies that all non-synthetic children of [element] have been obtained
   /// from their corresponding "get" method calls; if not, throws a
   /// [StateError].
   void validate() {
-    void check(List<Element> elements, int index) {
+    void check(List<Element>? elements, int index) {
       if (elements != null && elements.length != index) {
         throw StateError(
             'Unmatched ${elements[index].runtimeType} ${elements[index]}');

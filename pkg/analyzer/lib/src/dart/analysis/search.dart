@@ -19,9 +19,12 @@ import 'package:collection/collection.dart';
 Element _getEnclosingElement(CompilationUnitElement unitElement, int offset) {
   var finder = _ContainingElementFinder(offset);
   unitElement.accept(finder);
-  Element element = finder.containingElement;
-  assert(element != null,
-      'No containing element in ${unitElement.source.fullName} at $offset');
+  var element = finder.containingElement;
+  if (element == null) {
+    throw StateError(
+      'No containing element in ${unitElement.source.fullName} at $offset',
+    );
+  }
   return element;
 }
 
@@ -51,7 +54,7 @@ class Search {
     List<String> files = await _driver.getFilesDefiningClassMemberName(name);
     for (String file in files) {
       if (searchedFiles.add(file, this)) {
-        UnitElementResult unitResult = await _driver.getUnitElement(file);
+        var unitResult = await _driver.getUnitElement(file);
         if (unitResult != null) {
           unitResult.element.types.forEach(addElements);
           unitResult.element.mixins.forEach(addElements);
@@ -63,7 +66,7 @@ class Search {
 
   /// Returns references to the [element].
   Future<List<SearchResult>> references(
-      Element element, SearchedFiles searchedFiles) async {
+      Element? element, SearchedFiles searchedFiles) async {
     if (element == null) {
       return const <SearchResult>[];
     }
@@ -75,12 +78,11 @@ class Search {
         element is PropertyAccessorElement && element.isSetter ||
         element is TypeAliasElement) {
       return _searchReferences(element, searchedFiles);
-    } else if (kind == ElementKind.COMPILATION_UNIT) {
+    } else if (element is CompilationUnitElement) {
       return _searchReferences_CompilationUnit(element);
-    } else if (kind == ElementKind.GETTER) {
+    } else if (element is PropertyAccessorElement && element.isGetter) {
       return _searchReferences_Getter(element, searchedFiles);
-    } else if (kind == ElementKind.FIELD ||
-        kind == ElementKind.TOP_LEVEL_VARIABLE) {
+    } else if (element is PropertyInducingElement) {
       return _searchReferences_Field(element, searchedFiles);
     } else if (kind == ElementKind.FUNCTION || kind == ElementKind.METHOD) {
       if (element.enclosingElement is ExecutableElement) {
@@ -88,18 +90,18 @@ class Search {
             element, (n) => n is Block, searchedFiles);
       }
       return _searchReferences_Function(element, searchedFiles);
-    } else if (kind == ElementKind.IMPORT) {
+    } else if (element is ImportElement) {
       return _searchReferences_Import(element, searchedFiles);
     } else if (kind == ElementKind.LABEL ||
         kind == ElementKind.LOCAL_VARIABLE) {
       return _searchReferences_Local(element, (n) => n is Block, searchedFiles);
-    } else if (kind == ElementKind.LIBRARY) {
+    } else if (element is LibraryElement) {
       return _searchReferences_Library(element, searchedFiles);
-    } else if (kind == ElementKind.PARAMETER) {
+    } else if (element is ParameterElement) {
       return _searchReferences_Parameter(element, searchedFiles);
-    } else if (kind == ElementKind.PREFIX) {
+    } else if (element is PrefixElement) {
       return _searchReferences_Prefix(element, searchedFiles);
-    } else if (kind == ElementKind.TYPE_PARAMETER) {
+    } else if (element is TypeParameterElement) {
       return _searchReferences_Local(
           element, (n) => n.parent is CompilationUnit, searchedFiles);
     }
@@ -112,7 +114,7 @@ class Search {
   /// [Search] object, so should be only searched by it to avoid duplicate
   /// results; and updated to take ownership if the file is not owned yet.
   Future<List<SearchResult>> subTypes(
-      ClassElement type, SearchedFiles searchedFiles) async {
+      ClassElement? type, SearchedFiles searchedFiles) async {
     if (type == null) {
       return const <SearchResult>[];
     }
@@ -127,14 +129,14 @@ class Search {
 
   /// Return direct [SubtypeResult]s for either the [type] or [subtype].
   Future<List<SubtypeResult>> subtypes(SearchedFiles searchedFiles,
-      {ClassElement type, SubtypeResult subtype}) async {
+      {ClassElement? type, SubtypeResult? subtype}) async {
     String name;
     String id;
     if (type != null) {
       name = type.name;
       id = '${type.librarySource.uri};${type.source.uri};$name';
     } else {
-      name = subtype.name;
+      name = subtype!.name;
       id = subtype.id;
     }
 
@@ -147,8 +149,8 @@ class Search {
 
     if (files != null) {
       for (FileState file in files) {
-        if (searchedFiles.add(file.path, this)) {
-          AnalysisDriverUnitIndex index = await _driver.getIndex(file.path);
+        if (searchedFiles.add(file.path!, this)) {
+          var index = await _driver.getIndex(file.path!);
           if (index != null) {
             var request = _IndexRequest(index);
             request.addSubtypes(id, results, file);
@@ -172,7 +174,7 @@ class Search {
 
     List<FileState> knownFiles = _driver.fsState.knownFiles.toList();
     for (FileState file in knownFiles) {
-      UnitElementResult unitResult = await _driver.getUnitElement(file.path);
+      var unitResult = await _driver.getUnitElement(file.path!);
       if (unitResult != null) {
         CompilationUnitElement unitElement = unitResult.element;
         unitElement.accessors.forEach(addElement);
@@ -190,7 +192,7 @@ class Search {
 
   /// Returns unresolved references to the given [name].
   Future<List<SearchResult>> unresolvedMemberReferences(
-      String name, SearchedFiles searchedFiles) async {
+      String? name, SearchedFiles searchedFiles) async {
     if (name == null) {
       return const <SearchResult>[];
     }
@@ -202,7 +204,7 @@ class Search {
     List<SearchResult> results = [];
     for (String file in files) {
       if (searchedFiles.add(file, this)) {
-        AnalysisDriverUnitIndex index = await _driver.getIndex(file);
+        var index = await _driver.getIndex(file);
         if (index != null) {
           _IndexRequest request = _IndexRequest(index);
           var fileResults = await request.getUnresolvedMemberReferences(
@@ -236,14 +238,14 @@ class Search {
 
     // Prepare the list of files that reference the element name.
     List<String> files = <String>[];
-    String path = element.source.fullName;
+    String path = element.source!.fullName;
     if (name.startsWith('_')) {
-      String libraryPath = element.library.source.fullName;
+      String libraryPath = element.library!.source.fullName;
       if (searchedFiles.add(libraryPath, this)) {
         FileState library = _driver.fsState.getFileForPath(libraryPath);
         for (FileState file in library.libraryFiles) {
           if (file.path == path || file.referencedNames.contains(name)) {
-            files.add(file.path);
+            files.add(file.path!);
           }
         }
       }
@@ -268,7 +270,7 @@ class Search {
       Element element,
       Map<IndexRelationKind, SearchResultKind> relationToResultKind,
       String file) async {
-    AnalysisDriverUnitIndex index = await _driver.getIndex(file);
+    var index = await _driver.getIndex(file);
     if (index != null) {
       _IndexRequest request = _IndexRequest(index);
       int elementId = request.findElementId(element);
@@ -280,8 +282,8 @@ class Search {
     }
   }
 
-  Future<CompilationUnitElement> _getUnitElement(String file) async {
-    UnitElementResult result = await _driver.getUnitElement(file);
+  Future<CompilationUnitElement?> _getUnitElement(String file) async {
+    var result = await _driver.getUnitElement(file);
     return result?.element;
   }
 
@@ -314,7 +316,7 @@ class Search {
               const {
                 IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE
               },
-              file.path);
+              file.path!);
         }
       }
     }
@@ -324,8 +326,8 @@ class Search {
   Future<List<SearchResult>> _searchReferences_Field(
       PropertyInducingElement field, SearchedFiles searchedFiles) async {
     List<SearchResult> results = <SearchResult>[];
-    PropertyAccessorElement getter = field.getter;
-    PropertyAccessorElement setter = field.setter;
+    PropertyAccessorElement? getter = field.getter;
+    PropertyAccessorElement? setter = field.setter;
     if (!field.isSynthetic) {
       await _addResults(results, field, searchedFiles, const {
         IndexRelationKind.IS_WRITTEN_BY: SearchResultKind.WRITE,
@@ -348,7 +350,7 @@ class Search {
   Future<List<SearchResult>> _searchReferences_Function(
       Element element, SearchedFiles searchedFiles) async {
     List<SearchResult> results = <SearchResult>[];
-    await _addResults(results, element.declaration, searchedFiles, const {
+    await _addResults(results, element.declaration!, searchedFiles, const {
       IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
       IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION
     });
@@ -376,10 +378,10 @@ class Search {
     LibraryElement libraryElement = element.library;
     for (CompilationUnitElement unitElement in libraryElement.units) {
       String unitPath = unitElement.source.fullName;
-      ResolvedUnitResult unitResult = await _driver.getResult(unitPath);
+      ResolvedUnitResult unitResult = (await _driver.getResult(unitPath))!;
       _ImportElementReferencesVisitor visitor =
           _ImportElementReferencesVisitor(element, unitElement);
-      unitResult.unit.accept(visitor);
+      unitResult.unit!.accept(visitor);
       results.addAll(visitor.results);
     }
     return results;
@@ -395,15 +397,15 @@ class Search {
     List<SearchResult> results = <SearchResult>[];
     for (CompilationUnitElement unitElement in element.units) {
       String unitPath = unitElement.source.fullName;
-      ResolvedUnitResult unitResult = await _driver.getResult(unitPath);
-      CompilationUnit unit = unitResult.unit;
+      ResolvedUnitResult unitResult = (await _driver.getResult(unitPath))!;
+      CompilationUnit unit = unitResult.unit!;
       for (Directive directive in unit.directives) {
         if (directive is PartOfDirective && directive.element == element) {
           results.add(SearchResult._(
-              unit.declaredElement,
+              unit.declaredElement!,
               SearchResultKind.REFERENCE,
-              directive.libraryName.offset,
-              directive.libraryName.length,
+              directive.libraryName!.offset,
+              directive.libraryName!.length,
               true,
               false));
         }
@@ -414,33 +416,33 @@ class Search {
 
   Future<List<SearchResult>> _searchReferences_Local(Element element,
       bool Function(AstNode n) isRootNode, SearchedFiles searchedFiles) async {
-    String path = element.source.fullName;
+    String path = element.source!.fullName;
     if (!searchedFiles.add(path, this)) {
       return const <SearchResult>[];
     }
 
     // Prepare the unit.
-    ResolvedUnitResult unitResult = await _driver.getResult(path);
-    CompilationUnit unit = unitResult.unit;
+    ResolvedUnitResult unitResult = (await _driver.getResult(path))!;
+    var unit = unitResult.unit;
     if (unit == null) {
       return const <SearchResult>[];
     }
 
     // Prepare the node.
-    AstNode node = NodeLocator(element.nameOffset).searchWithin(unit);
+    var node = NodeLocator(element.nameOffset).searchWithin(unit);
     if (node == null) {
       return const <SearchResult>[];
     }
 
     // Prepare the enclosing node.
-    AstNode enclosingNode = node.thisOrAncestorMatching(isRootNode);
+    var enclosingNode = node.thisOrAncestorMatching(isRootNode);
     if (enclosingNode == null) {
       return const <SearchResult>[];
     }
 
     // Find the matches.
     _LocalReferencesVisitor visitor =
-        _LocalReferencesVisitor(element, unit.declaredElement);
+        _LocalReferencesVisitor(element, unit.declaredElement!);
     enclosingNode.accept(visitor);
     return visitor.results;
   }
@@ -451,7 +453,7 @@ class Search {
     results.addAll(await _searchReferences_Local(
       parameter,
       (AstNode node) {
-        AstNode parent = node.parent;
+        var parent = node.parent;
         return parent is ClassDeclaration || parent is CompilationUnit;
       },
       searchedFiles,
@@ -473,10 +475,10 @@ class Search {
     LibraryElement libraryElement = element.library;
     for (CompilationUnitElement unitElement in libraryElement.units) {
       String unitPath = unitElement.source.fullName;
-      ResolvedUnitResult unitResult = await _driver.getResult(unitPath);
+      ResolvedUnitResult unitResult = (await _driver.getResult(unitPath))!;
       _LocalReferencesVisitor visitor =
           _LocalReferencesVisitor(element, unitElement);
-      unitResult.unit.accept(visitor);
+      unitResult.unit!.accept(visitor);
       results.addAll(visitor.results);
     }
     return results;
@@ -501,7 +503,7 @@ class SearchedFiles {
   }
 
   void ownAnalyzed(Search search) {
-    var contextRoot = search._driver.analysisContext.contextRoot;
+    var contextRoot = search._driver.analysisContext!.contextRoot;
     for (var path in contextRoot.analyzedFiles()) {
       if (path.endsWith('.dart')) {
         add(path, search);
@@ -531,8 +533,7 @@ class SearchResult {
   final bool isQualified;
 
   SearchResult._(this.enclosingElement, this.kind, this.offset, this.length,
-      this.isResolved, this.isQualified)
-      : assert(enclosingElement != null);
+      this.isResolved, this.isQualified);
 
   @override
   String toString() {
@@ -580,7 +581,7 @@ class SubtypeResult {
 /// A visitor that finds the deep-most [Element] that contains the [offset].
 class _ContainingElementFinder extends GeneralizingElementVisitor<void> {
   final int offset;
-  Element containingElement;
+  Element? containingElement;
 
   _ContainingElementFinder(this.offset);
 
@@ -588,8 +589,8 @@ class _ContainingElementFinder extends GeneralizingElementVisitor<void> {
   void visitElement(Element element) {
     if (element is ElementImpl) {
       if (element.codeOffset != null &&
-          element.codeOffset <= offset &&
-          offset <= element.codeOffset + element.codeLength) {
+          element.codeOffset! <= offset &&
+          offset <= element.codeOffset! + element.codeLength!) {
         containingElement = element;
         super.visitElement(element);
       }
@@ -604,7 +605,7 @@ class _ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
   final ImportElement importElement;
   final CompilationUnitElement enclosingUnitElement;
 
-  Set<Element> importedElements;
+  late final Set<Element> importedElements;
 
   _ImportElementReferencesVisitor(
       ImportElement element, this.enclosingUnitElement)
@@ -625,7 +626,7 @@ class _ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
     }
     if (importElement.prefix != null) {
       if (node.staticElement == importElement.prefix) {
-        AstNode parent = node.parent;
+        var parent = node.parent;
         if (parent is PrefixedIdentifier && parent.prefix == node) {
           var element = parent.writeOrReadElement?.declaration;
           if (importedElements.contains(element)) {
@@ -745,7 +746,8 @@ class _IndexRequest {
   Future<List<SearchResult>> getRelations(
       int elementId,
       Map<IndexRelationKind, SearchResultKind> relationToResultKind,
-      Future<CompilationUnitElement> Function() getEnclosingUnitElement) async {
+      Future<CompilationUnitElement?> Function()
+          getEnclosingUnitElement) async {
     // Find the first usage of the element.
     int i = _findFirstOccurrence(index.usedElements, elementId);
     if (i == -1) {
@@ -753,12 +755,12 @@ class _IndexRequest {
     }
     // Create locations for every usage of the element.
     List<SearchResult> results = <SearchResult>[];
-    CompilationUnitElement enclosingUnitElement;
+    CompilationUnitElement? enclosingUnitElement;
     for (;
         i < index.usedElements.length && index.usedElements[i] == elementId;
         i++) {
       IndexRelationKind relationKind = index.usedElementKinds[i];
-      SearchResultKind resultKind = relationToResultKind[relationKind];
+      SearchResultKind? resultKind = relationToResultKind[relationKind];
       if (resultKind != null) {
         int offset = index.usedElementOffsets[i];
         enclosingUnitElement ??= await getEnclosingUnitElement();
@@ -780,7 +782,7 @@ class _IndexRequest {
 
   /// Return the identifier of [str] in the [index] or `-1` if [str] is not
   /// used in the [index].
-  int getStringId(String str) {
+  int getStringId(String? str) {
     if (str == null) {
       return index.nullStringId;
     }
@@ -814,7 +816,8 @@ class _IndexRequest {
   Future<List<SearchResult>> getUnresolvedMemberReferences(
       String name,
       Map<IndexRelationKind, SearchResultKind> relationToResultKind,
-      Future<CompilationUnitElement> Function() getEnclosingUnitElement) async {
+      Future<CompilationUnitElement?> Function()
+          getEnclosingUnitElement) async {
     // Find the name identifier.
     int nameId = getStringId(name);
     if (nameId == -1) {
@@ -829,10 +832,10 @@ class _IndexRequest {
 
     // Create results for every usage of the name.
     List<SearchResult> results = <SearchResult>[];
-    CompilationUnitElement enclosingUnitElement;
+    CompilationUnitElement? enclosingUnitElement;
     for (; i < index.usedNames.length && index.usedNames[i] == nameId; i++) {
       IndexRelationKind relationKind = index.usedNameKinds[i];
-      SearchResultKind resultKind = relationToResultKind[relationKind];
+      SearchResultKind? resultKind = relationToResultKind[relationKind];
       if (resultKind != null) {
         int offset = index.usedNameOffsets[i];
         enclosingUnitElement ??= await getEnclosingUnitElement();
@@ -888,7 +891,7 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
       return;
     }
     if (node.staticElement == element) {
-      AstNode parent = node.parent;
+      var parent = node.parent;
       SearchResultKind kind = SearchResultKind.REFERENCE;
       if (element is FunctionElement) {
         if (parent is MethodInvocation && parent.methodName == node) {

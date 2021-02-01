@@ -111,7 +111,7 @@ void f(A a) {
 
     var indexElement = findElement.method('[]');
     var indexEqElement = findElement.method('[]=');
-    var numPlusElement = numElement.getMethod('+');
+    var numPlusElement = numElement.getMethod('+')!;
 
     var indexExpression = findNode.index('a[0]');
     if (hasAssignmentLeftResolution) {
@@ -160,7 +160,7 @@ void f(A<double> a) {
 
     var indexElement = findElement.method('[]');
     var indexEqElement = findElement.method('[]=');
-    var doublePlusElement = doubleElement.getMethod('+');
+    var doublePlusElement = doubleElement.getMethod('+')!;
 
     var indexExpression = findNode.index('a[0]');
     if (hasAssignmentLeftResolution) {
@@ -369,7 +369,7 @@ void f(A? a) {
 
     var indexElement = findElement.method('[]');
     var indexEqElement = findElement.method('[]=');
-    var numPlusElement = numElement.getMethod('+');
+    var numPlusElement = numElement.getMethod('+')!;
 
     var indexExpression = findNode.index('a?[0]');
     if (hasAssignmentLeftResolution) {

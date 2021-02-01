@@ -7,7 +7,6 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -29,20 +28,20 @@ main() {
 abstract class BaseTest extends FileSystemTestSupport {
   /// The resource provider to be used by the tests. Tests should use [provider]
   /// to access the resource provider.
-  MemoryResourceProvider _provider;
+  MemoryResourceProvider? _provider;
 
   /// The absolute path to the temporary directory in which all of the tests are
   /// to work.
   @override
-  /*late*/ String tempPath;
+  late final String tempPath;
 
   /// A path to a folder within the [tempPath] that can be used by tests.
   @override
-  /*late*/ String defaultFolderPath;
+  late final String defaultFolderPath;
 
   /// A path to a file within the [defaultFolderPath] that can be used by tests.
   @override
-  /*late*/ String defaultFilePath;
+  late final String defaultFilePath;
 
   /// The content used for the file at the [defaultFilePath] if it is created
   /// and no other content is provided.
@@ -59,7 +58,7 @@ abstract class BaseTest extends FileSystemTestSupport {
   MemoryResourceProvider createProvider() => MemoryResourceProvider();
 
   @override
-  File getFile({@required bool exists, String content, String filePath}) {
+  File getFile({required bool exists, String? content, String? filePath}) {
     if (filePath == null) {
       filePath = defaultFilePath;
     } else {
@@ -72,7 +71,7 @@ abstract class BaseTest extends FileSystemTestSupport {
   }
 
   @override
-  Folder getFolder({@required bool exists, String folderPath}) {
+  Folder getFolder({required bool exists, String? folderPath}) {
     if (folderPath == null) {
       folderPath = defaultFolderPath;
     } else {
@@ -104,8 +103,8 @@ class FileSystemExceptionTest {
 
 @reflectiveTest
 class MemoryFileSourceExistingTest extends BaseTest {
-  /*late*/ String sourcePath;
-  /*late*/ Source source;
+  late final String sourcePath;
+  late final Source source;
 
   @override
   setUp() {
@@ -184,8 +183,8 @@ class MemoryFileSourceExistingTest extends BaseTest {
 
 @reflectiveTest
 class MemoryFileSourceNotExistingTest extends BaseTest {
-  /*late*/ String sourcePath;
-  /*late*/ Source source;
+  late final String sourcePath;
+  late final Source source;
 
   @override
   setUp() {

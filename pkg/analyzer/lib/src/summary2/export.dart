@@ -8,17 +8,15 @@ import 'package:analyzer/src/summary2/reference.dart';
 
 class Export {
   final LibraryBuilder exporter;
-  final LibraryBuilder exported;
+  final LibraryBuilder? exported;
   final List<Combinator> combinators;
 
   Export(this.exporter, this.exported, this.combinators);
 
   bool addToExportScope(String name, Reference reference) {
-    if (combinators != null) {
-      for (Combinator combinator in combinators) {
-        if (combinator.isShow && !combinator.matches(name)) return false;
-        if (combinator.isHide && combinator.matches(name)) return false;
-      }
+    for (Combinator combinator in combinators) {
+      if (combinator.isShow && !combinator.matches(name)) return false;
+      if (combinator.isHide && combinator.matches(name)) return false;
     }
     return exporter.addToExportScope(name, reference);
   }

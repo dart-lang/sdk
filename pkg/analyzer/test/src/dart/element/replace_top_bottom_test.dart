@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -63,7 +62,7 @@ class ReplaceTopBottomLegacyTest extends AbstractTypeSystemTest {
     _check(listStar(intStar), 'List<int*>*');
   }
 
-  void _check(DartType type, String expectedStr, {String typeStr}) {
+  void _check(DartType type, String expectedStr, {String? typeStr}) {
     NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
       if (typeStr != null) {
         expect(_typeString(type), typeStr);
@@ -75,7 +74,7 @@ class ReplaceTopBottomLegacyTest extends AbstractTypeSystemTest {
     });
   }
 
-  String _typeString(TypeImpl type) {
+  String _typeString(DartType type) {
     return type.getDisplayString(withNullability: true);
   }
 }
@@ -163,7 +162,7 @@ class ReplaceTopBottomNullSafetyTest extends AbstractTypeSystemNullSafetyTest {
     _check(F_dynamic, 'Never Function(Never)');
   }
 
-  void _check(DartType type, String expectedStr, {String typeStr}) {
+  void _check(DartType type, String expectedStr, {String? typeStr}) {
     NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
       if (typeStr != null) {
         expect(_typeString(type), typeStr);
@@ -175,7 +174,7 @@ class ReplaceTopBottomNullSafetyTest extends AbstractTypeSystemNullSafetyTest {
     });
   }
 
-  String _typeString(TypeImpl type) {
+  String _typeString(DartType type) {
     return type.getDisplayString(withNullability: true);
   }
 }

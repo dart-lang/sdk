@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -21,17 +20,17 @@ main() {
 
 @reflectiveTest
 class ExtensionOverrideTest extends PubPackageResolutionTest {
-  ExtensionElement extension;
-  ExtensionOverride extensionOverride;
+  late ExtensionElement extension;
+  late ExtensionOverride extensionOverride;
 
   void findDeclarationAndOverride(
-      {@required String declarationName,
-      @required String overrideSearch,
-      String declarationUri}) {
+      {required String declarationName,
+      required String overrideSearch,
+      String? declarationUri}) {
     if (declarationUri == null) {
       ExtensionDeclaration declaration =
           findNode.extensionDeclaration('extension $declarationName');
-      extension = declaration?.declaredElement;
+      extension = declaration.declaredElement as ExtensionElement;
     } else {
       extension =
           findElement.importFind(declarationUri).extension_(declarationName);
@@ -670,14 +669,14 @@ f(C c) => E(c).a;
 
   void validateBinaryExpression() {
     BinaryExpression binary = extensionOverride.parent as BinaryExpression;
-    Element resolvedElement = binary.staticElement;
+    Element? resolvedElement = binary.staticElement;
     expect(resolvedElement, extension.getMethod('+'));
   }
 
   void validateCall() {
     FunctionExpressionInvocation invocation =
         extensionOverride.parent as FunctionExpressionInvocation;
-    Element resolvedElement = invocation.staticElement;
+    Element? resolvedElement = invocation.staticElement;
     expect(resolvedElement, extension.getMethod('call'));
 
     NodeList<Expression> arguments = invocation.argumentList.arguments;
@@ -701,7 +700,7 @@ f(C c) => E(c).a;
     }
   }
 
-  void validateOverride({List<DartType> typeArguments}) {
+  void validateOverride({List<DartType>? typeArguments}) {
     expect(extensionOverride.extensionName.staticElement, extension);
 
     expect(extensionOverride.staticType, isNull);
@@ -711,7 +710,7 @@ f(C c) => E(c).a;
       expect(extensionOverride.typeArguments, isNull);
     } else {
       expect(
-          extensionOverride.typeArguments.arguments
+          extensionOverride.typeArguments!.arguments
               .map((annotation) => annotation.type),
           unorderedEquals(typeArguments));
     }

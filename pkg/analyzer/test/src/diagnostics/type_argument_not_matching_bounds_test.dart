@@ -303,7 +303,7 @@ void main() {}
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 65, 3),
     ]);
     // Instantiate-to-bounds should have instantiated "Bar" to "Bar<Foo>".
-    assertType(result.unit.declaredElement.getType('Baz').supertype,
+    assertType(result.unit!.declaredElement!.getType('Baz')!.supertype,
         'Bar<Foo<dynamic>>');
   }
 

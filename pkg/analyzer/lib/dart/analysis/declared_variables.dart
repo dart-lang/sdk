@@ -25,6 +25,6 @@ class DeclaredVariables {
   Iterable<String> get variableNames => _declaredVariables.keys;
 
   /// Return the raw string value of the variable with the given [name],
-  /// or `null` of the variable is not defined.
-  String get(String name) => _declaredVariables[name];
+  /// or `null` if the variable is not defined.
+  String? get(String name) => _declaredVariables[name];
 }

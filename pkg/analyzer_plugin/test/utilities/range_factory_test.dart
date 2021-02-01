@@ -3,9 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:test/test.dart';
@@ -200,9 +198,14 @@ void g(int a) {}
     expect(range.endStart(mainName, mainBody), SourceRange(4, 3));
   }
 
-  void test_error() {
-    var error = AnalysisError(null, 10, 5, ParserErrorCode.CONST_CLASS, []);
-    expect(range.error(error), SourceRange(10, 5));
+  Future<void> test_error() async {
+    addTestSource('''
+class A {}
+const class B {}
+''');
+    var result = await resolveFile(testFile);
+    var error = result.errors.single;
+    expect(range.error(error), SourceRange(11, 5));
   }
 
   Future<void> test_node() async {

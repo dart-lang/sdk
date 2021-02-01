@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -32,19 +31,19 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   /// A cached flag indicating whether references to the constant-update-2018
   /// features need to be checked. Use [checkConstantUpdate2018] to access this
   /// field.
-  bool _checkConstantUpdate2018;
+  bool? _checkConstantUpdate2018;
 
   /// A cached flag indicating whether uses of extension method features need to
   /// be checked. Use [checkExtensionMethods] to access this field.
-  bool _checkExtensionMethods;
+  bool? _checkExtensionMethods;
 
   /// A cached flag indicating whether references to Future and Stream need to
   /// be checked. Use [checkFutureAndStream] to access this field.
-  bool _checkFutureAndStream;
+  bool? _checkFutureAndStream;
 
   /// A cached flag indicating whether references to set literals need to
   /// be checked. Use [checkSetLiterals] to access this field.
-  bool _checkSetLiterals;
+  bool? _checkSetLiterals;
 
   /// A flag indicating whether we are visiting code inside a set literal. Used
   /// to prevent over-reporting uses of set literals.
@@ -52,7 +51,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
   /// A cached flag indicating whether references to the ui-as-code features
   /// need to be checked. Use [checkUiAsCode] to access this field.
-  bool _checkUiAsCode;
+  bool? _checkUiAsCode;
 
   /// A flag indicating whether we are visiting code inside one of the
   /// ui-as-code features. Used to prevent over-reporting uses of these
@@ -132,7 +131,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
               operatorType == TokenType.BAR ||
               operatorType == TokenType.CARET) &&
           (node as BinaryExpressionImpl).inConstantContext) {
-        if (node.leftOperand.staticType.isDartCoreBool) {
+        if (node.leftOperand.staticType!.isDartCoreBool) {
           _errorReporter.reportErrorForToken(
               HintCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT,
               node.operator,
@@ -141,7 +140,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
       } else if (operatorType == TokenType.EQ_EQ &&
           (node as BinaryExpressionImpl).inConstantContext) {
         bool primitive(Expression node) {
-          DartType type = node.staticType;
+          DartType type = node.staticType!;
           return type.isDartCoreBool ||
               type.isDartCoreDouble ||
               type.isDartCoreInt ||
@@ -242,15 +241,16 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
     if (node.inDeclarationContext()) {
       return;
     }
-    Element element = node.staticElement;
+    var element = node.staticElement;
     if (checkFutureAndStream &&
+        element is ClassElement &&
         (element == _typeProvider.futureElement ||
             element == _typeProvider.streamElement)) {
       for (LibraryElement importedLibrary
           in _containingLibrary.importedLibraries) {
         if (!importedLibrary.isDartCore) {
-          Namespace namespace = importedLibrary.exportNamespace;
-          if (namespace != null && namespace.get(element.name) != null) {
+          var namespace = importedLibrary.exportNamespace;
+          if (namespace.get(element.name) != null) {
             return;
           }
         }
@@ -287,7 +287,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   void _validateUiAsCodeInConstContext(AstNode node) {
     if (checkConstantUpdate2018 &&
         !_inUiAsCode &&
-        node.thisOrAncestorOfType<TypedLiteral>().isConst) {
+        node.thisOrAncestorOfType<TypedLiteral>()!.isConst) {
       _errorReporter.reportErrorForNode(
           HintCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT, node);
     }

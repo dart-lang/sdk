@@ -25,9 +25,9 @@ main() {
 @reflectiveTest
 class NormalizeTypeTest with ElementsTypesMixin {
   @override
-  TypeProvider typeProvider;
+  late final TypeProvider typeProvider;
 
-  TypeSystemImpl typeSystem;
+  late final TypeSystemImpl typeSystem;
 
   FeatureSet get testFeatureSet {
     return FeatureSet.forTesting(
@@ -504,7 +504,7 @@ T2: ${_typeString(T2 as TypeImpl)}
     }
   }
 
-  String _typeParametersStr(TypeImpl type) {
+  String _typeParametersStr(DartType type) {
     var typeStr = '';
 
     var typeParameterCollector = _TypeParameterCollector();
@@ -515,8 +515,7 @@ T2: ${_typeString(T2 as TypeImpl)}
     return typeStr;
   }
 
-  String _typeString(TypeImpl type) {
-    if (type == null) return null;
+  String _typeString(DartType type) {
     return type.getDisplayString(withNullability: true) +
         _typeParametersStr(type);
   }

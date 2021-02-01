@@ -41,11 +41,11 @@ abstract class TypeSystem {
   /// One and only one of [classElement] or [typeAliasElement] must
   /// be provided.
   DartType instantiateToBounds2({
-    ClassElement classElement,
+    ClassElement? classElement,
     @Deprecated("Use 'typeAliasElement' instead")
-        FunctionTypeAliasElement functionTypeAliasElement,
-    TypeAliasElement typeAliasElement,
-    @required NullabilitySuffix nullabilitySuffix,
+        FunctionTypeAliasElement? functionTypeAliasElement,
+    TypeAliasElement? typeAliasElement,
+    required NullabilitySuffix nullabilitySuffix,
   });
 
   /// Return `true` if the [leftType] is assignable to the [rightType].

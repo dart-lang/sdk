@@ -22,7 +22,7 @@ class ExpectedContextMessage {
   final int length;
 
   /// The message text for the error.
-  final String text;
+  final String? text;
 
   ExpectedContextMessage(this.filePath, this.offset, this.length, {this.text});
 
@@ -51,11 +51,11 @@ class ExpectedError {
   final int length;
 
   /// The message text of the error or `null` if the message should not be checked.
-  final String message;
+  final String? message;
 
   /// A pattern that should be contained in the error message or `null` if the message
   /// contents should not be checked.
-  final Pattern messageContains;
+  final Pattern? messageContains;
 
   /// The list of context messages that are expected to be associated with the
   /// error.
@@ -79,7 +79,7 @@ class ExpectedError {
       return false;
     }
     if (messageContains != null &&
-        error.message?.contains(messageContains) != true) {
+        error.message.contains(messageContains!) != true) {
       return false;
     }
     List<DiagnosticMessage> contextMessages = error.contextMessages.toList();
@@ -246,7 +246,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
     //
     Map<ErrorCode, int> expectedCounts = <ErrorCode, int>{};
     for (ErrorCode code in expectedErrorCodes) {
-      int count = expectedCounts[code];
+      var count = expectedCounts[code];
       if (count == null) {
         count = 1;
       } else {
@@ -269,7 +269,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
     //
     expectedCounts.forEach((ErrorCode code, int expectedCount) {
       int actualCount;
-      List<AnalysisError> list = errorsByCode.remove(code);
+      var list = errorsByCode.remove(code);
       if (list == null) {
         actualCount = 0;
       } else {
@@ -357,7 +357,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
 
   /// Return the line information associated with the given [source], or `null`
   /// if no line information has been associated with the source.
-  LineInfo getLineInfo(Source source) => _lineInfoMap[source];
+  LineInfo? getLineInfo(Source source) => _lineInfoMap[source];
 
   /// Return `true` if an error with the given [errorCode] has been gathered.
   bool hasError(ErrorCode errorCode) {
@@ -394,8 +394,8 @@ class TestInstrumentor extends NoopInstrumentationService {
 
   @override
   void logException(dynamic exception,
-      [StackTrace stackTrace,
-      List<InstrumentationServiceAttachment> attachments]) {
+      [StackTrace? stackTrace,
+      List<InstrumentationServiceAttachment>? attachments]) {
     log.add("error: $exception $stackTrace");
   }
 
@@ -418,7 +418,7 @@ class TestSource extends Source {
   /// The number of times that the contents of this source have been requested.
   int readCount = 0;
 
-  TestSource([this._name = '/test.dart', this._contents]);
+  TestSource([this._name = '/test.dart', this._contents = '']);
 
   @override
   TimestampedData<String> get contents {
@@ -492,7 +492,7 @@ class TestSourceWithUri extends TestSource {
   @override
   final Uri uri;
 
-  TestSourceWithUri(String path, this.uri, [String content])
+  TestSourceWithUri(String path, this.uri, [String content = ''])
       : super(path, content);
 
   @override
@@ -500,9 +500,7 @@ class TestSourceWithUri extends TestSource {
 
   @override
   UriKind get uriKind {
-    if (uri == null) {
-      return UriKind.FILE_URI;
-    } else if (uri.scheme == 'dart') {
+    if (uri.scheme == 'dart') {
       return UriKind.DART_URI;
     } else if (uri.scheme == 'package') {
       return UriKind.PACKAGE_URI;

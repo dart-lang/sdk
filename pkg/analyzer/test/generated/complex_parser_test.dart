@@ -27,43 +27,43 @@ main() {
 @reflectiveTest
 class ComplexParserTest extends FastaParserTestCase {
   void test_additiveExpression_normal() {
-    BinaryExpression expression = parseExpression("x + y - z");
+    var expression = parseExpression("x + y - z") as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);
   }
 
   void test_additiveExpression_noSpaces() {
-    BinaryExpression expression = parseExpression("i+1");
+    var expression = parseExpression("i+1") as BinaryExpression;
     expect(expression.leftOperand, isSimpleIdentifier);
     expect(expression.rightOperand, isIntegerLiteral);
   }
 
   void test_additiveExpression_precedence_multiplicative_left() {
-    BinaryExpression expression = parseExpression("x * y + z");
+    var expression = parseExpression("x * y + z") as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);
   }
 
   void test_additiveExpression_precedence_multiplicative_left_withSuper() {
-    BinaryExpression expression = parseExpression("super * y - z");
+    var expression = parseExpression("super * y - z") as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);
   }
 
   void test_additiveExpression_precedence_multiplicative_right() {
-    BinaryExpression expression = parseExpression("x + y * z");
+    var expression = parseExpression("x + y * z") as BinaryExpression;
     expect(expression.rightOperand, isBinaryExpression);
   }
 
   void test_additiveExpression_super() {
-    BinaryExpression expression = parseExpression("super + y - z");
+    var expression = parseExpression("super + y - z") as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);
   }
 
   void test_assignableExpression_arguments_normal_chain() {
-    PropertyAccess propertyAccess1 = parseExpression("a(b)(c).d(e).f");
+    var propertyAccess1 = parseExpression("a(b)(c).d(e).f") as PropertyAccess;
     expect(propertyAccess1.propertyName.name, "f");
     //
     // a(b)(c).d(e)
     //
-    MethodInvocation invocation2 = propertyAccess1.target;
+    var invocation2 = propertyAccess1.target as MethodInvocation;
     expect(invocation2.methodName.name, "d");
     expect(invocation2.typeArguments, isNull);
     ArgumentList argumentList2 = invocation2.argumentList;
@@ -72,7 +72,7 @@ class ComplexParserTest extends FastaParserTestCase {
     //
     // a(b)(c)
     //
-    FunctionExpressionInvocation invocation3 = invocation2.target;
+    var invocation3 = invocation2.target as FunctionExpressionInvocation;
     expect(invocation3.typeArguments, isNull);
     ArgumentList argumentList3 = invocation3.argumentList;
     expect(argumentList3, isNotNull);
@@ -80,7 +80,7 @@ class ComplexParserTest extends FastaParserTestCase {
     //
     // a(b)
     //
-    MethodInvocation invocation4 = invocation3.function;
+    var invocation4 = invocation3.function as MethodInvocation;
     expect(invocation4.methodName.name, "a");
     expect(invocation4.typeArguments, isNull);
     ArgumentList argumentList4 = invocation4.argumentList;
@@ -94,25 +94,25 @@ class ComplexParserTest extends FastaParserTestCase {
   }
 
   void test_assignmentExpression_compound() {
-    AssignmentExpression expression = parseExpression("x = y = 0");
+    var expression = parseExpression("x = y = 0") as AssignmentExpression;
     expect(expression.leftHandSide, isSimpleIdentifier);
     expect(expression.rightHandSide, isAssignmentExpression);
   }
 
   void test_assignmentExpression_indexExpression() {
-    AssignmentExpression expression = parseExpression("x[1] = 0");
+    var expression = parseExpression("x[1] = 0") as AssignmentExpression;
     expect(expression.leftHandSide, isIndexExpression);
     expect(expression.rightHandSide, isIntegerLiteral);
   }
 
   void test_assignmentExpression_prefixedIdentifier() {
-    AssignmentExpression expression = parseExpression("x.y = 0");
+    var expression = parseExpression("x.y = 0") as AssignmentExpression;
     expect(expression.leftHandSide, isPrefixedIdentifier);
     expect(expression.rightHandSide, isIntegerLiteral);
   }
 
   void test_assignmentExpression_propertyAccess() {
-    AssignmentExpression expression = parseExpression("super.y = 0");
+    var expression = parseExpression("super.y = 0") as AssignmentExpression;
     expect(expression.leftHandSide, isPropertyAccess);
     expect(expression.rightHandSide, isIntegerLiteral);
   }
@@ -146,68 +146,68 @@ class ComplexParserTest extends FastaParserTestCase {
   }
 
   void test_bitwiseAndExpression_normal() {
-    BinaryExpression expression = parseExpression("x & y & z");
+    var expression = parseExpression("x & y & z") as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);
   }
 
   void test_bitwiseAndExpression_precedence_equality_left() {
-    BinaryExpression expression = parseExpression("x == y && z");
+    var expression = parseExpression("x == y && z") as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);
   }
 
   void test_bitwiseAndExpression_precedence_equality_right() {
-    BinaryExpression expression = parseExpression("x && y == z");
+    var expression = parseExpression("x && y == z") as BinaryExpression;
     expect(expression.rightOperand, isBinaryExpression);
   }
 
   void test_bitwiseAndExpression_super() {
-    BinaryExpression expression = parseExpression("super & y & z");
+    var expression = parseExpression("super & y & z") as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);
   }
 
   void test_bitwiseOrExpression_normal() {
-    BinaryExpression expression = parseExpression("x | y | z");
+    var expression = parseExpression("x | y | z") as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);
   }
 
   void test_bitwiseOrExpression_precedence_xor_left() {
-    BinaryExpression expression = parseExpression("x ^ y | z");
+    var expression = parseExpression("x ^ y | z") as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);
   }
 
   void test_bitwiseOrExpression_precedence_xor_right() {
-    BinaryExpression expression = parseExpression("x | y ^ z");
+    var expression = parseExpression("x | y ^ z") as BinaryExpression;
     expect(expression.rightOperand, isBinaryExpression);
   }
 
   void test_bitwiseOrExpression_super() {
-    BinaryExpression expression = parseExpression("super | y | z");
+    var expression = parseExpression("super | y | z") as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);
   }
 
   void test_bitwiseXorExpression_normal() {
-    BinaryExpression expression = parseExpression("x ^ y ^ z");
+    var expression = parseExpression("x ^ y ^ z") as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);
   }
 
   void test_bitwiseXorExpression_precedence_and_left() {
-    BinaryExpression expression = parseExpression("x & y ^ z");
+    var expression = parseExpression("x & y ^ z") as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);
   }
 
   void test_bitwiseXorExpression_precedence_and_right() {
-    BinaryExpression expression = parseExpression("x ^ y & z");
+    var expression = parseExpression("x ^ y & z") as BinaryExpression;
     expect(expression.rightOperand, isBinaryExpression);
   }
 
   void test_bitwiseXorExpression_super() {
-    BinaryExpression expression = parseExpression("super ^ y ^ z");
+    var expression = parseExpression("super ^ y ^ z") as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);
   }
 
   void test_cascade_withAssignment() {
-    CascadeExpression cascade =
-        parseExpression("new Map()..[3] = 4 ..[0] = 11");
+    var cascade =
+        parseExpression("new Map()..[3] = 4 ..[0] = 11") as CascadeExpression;
     Expression target = cascade.target;
     for (Expression section in cascade.cascadeSections) {
       expect(section, isAssignmentExpression);
@@ -220,18 +220,19 @@ class ComplexParserTest extends FastaParserTestCase {
   }
 
   void test_conditionalExpression_precedence_ifNullExpression() {
-    ConditionalExpression expression = parseExpression('a ?? b ? y : z');
+    var expression = parseExpression('a ?? b ? y : z') as ConditionalExpression;
     expect(expression.condition, isBinaryExpression);
   }
 
   void test_conditionalExpression_precedence_logicalOrExpression() {
-    ConditionalExpression expression = parseExpression("a | b ? y : z");
+    var expression = parseExpression("a | b ? y : z") as ConditionalExpression;
     expect(expression.condition, isBinaryExpression);
   }
 
   void test_conditionalExpression_precedence_nullableType_as() {
-    ExpressionStatement statement = parseStatement('x as bool ? (x + y) : z;');
-    ConditionalExpression expression = statement.expression;
+    var statement =
+        parseStatement('x as bool ? (x + y) : z;') as ExpressionStatement;
+    var expression = statement.expression as ConditionalExpression;
     Expression condition = expression.condition;
     expect(condition, isAsExpression);
     Expression thenExpression = expression.thenExpression;
@@ -246,7 +247,7 @@ class ComplexParserTest extends FastaParserTestCase {
     var expression = statement.expression as ConditionalExpression;
     var asExpression = expression.condition as AsExpression;
     var type = asExpression.type as TypeName;
-    expect(type.question.lexeme, '?');
+    expect(type.question!.lexeme, '?');
     Expression thenExpression = expression.thenExpression;
     expect(thenExpression, isParenthesizedExpression);
     Expression elseExpression = expression.elseExpression;
@@ -261,7 +262,7 @@ class ComplexParserTest extends FastaParserTestCase {
     var condition = expression.condition as ParenthesizedExpression;
     var asExpression = condition.expression as AsExpression;
     var type = asExpression.type as TypeName;
-    expect(type.question.lexeme, '?');
+    expect(type.question!.lexeme, '?');
     Expression thenExpression = expression.thenExpression;
     expect(thenExpression, isParenthesizedExpression);
     Expression elseExpression = expression.elseExpression;
@@ -270,9 +271,9 @@ class ComplexParserTest extends FastaParserTestCase {
   }
 
   void test_conditionalExpression_precedence_nullableType_is() {
-    ExpressionStatement statement =
-        parseStatement('x is String ? (x + y) : z;');
-    ConditionalExpression expression = statement.expression;
+    var statement =
+        parseStatement('x is String ? (x + y) : z;') as ExpressionStatement;
+    var expression = statement.expression as ConditionalExpression;
     Expression condition = expression.condition;
     expect(condition, isIsExpression);
     Expression thenExpression = expression.thenExpression;
@@ -287,7 +288,7 @@ class ComplexParserTest extends FastaParserTestCase {
     var expression = statement.expression as ConditionalExpression;
     var isExpression = expression.condition as IsExpression;
     var type = isExpression.type as TypeName;
-    expect(type.question.lexeme, '?');
+    expect(type.question!.lexeme, '?');
     Expression thenExpression = expression.thenExpression;
     expect(thenExpression, isParenthesizedExpression);
     Expression elseExpression = expression.elseExpression;
@@ -302,7 +303,7 @@ class ComplexParserTest extends FastaParserTestCase {
     var condition = expression.condition as ParenthesizedExpression;
     var isExpression = condition.expression as IsExpression;
     var type = isExpression.type as TypeName;
-    expect(type.question.lexeme, '?');
+    expect(type.question!.lexeme, '?');
     Expression thenExpression = expression.thenExpression;
     expect(thenExpression, isParenthesizedExpression);
     Expression elseExpression = expression.elseExpression;
@@ -311,9 +312,9 @@ class ComplexParserTest extends FastaParserTestCase {
   }
 
   void test_conditionalExpression_precedence_nullableTypeWithTypeArg1_is() {
-    ExpressionStatement statement =
-        parseStatement('x is String<S> ? (x + y) : z;');
-    ConditionalExpression expression = statement.expression;
+    var statement =
+        parseStatement('x is String<S> ? (x + y) : z;') as ExpressionStatement;
+    var expression = statement.expression as ConditionalExpression;
     Expression condition = expression.condition;
     expect(condition, TypeMatcher<IsExpression>());
     Expression thenExpression = expression.thenExpression;
@@ -323,9 +324,9 @@ class ComplexParserTest extends FastaParserTestCase {
   }
 
   void test_conditionalExpression_precedence_nullableTypeWithTypeArg1GFT_is() {
-    ExpressionStatement statement =
-        parseStatement('x is String<S> Function() ? (x + y) : z;');
-    ConditionalExpression expression = statement.expression;
+    var statement = parseStatement('x is String<S> Function() ? (x + y) : z;')
+        as ExpressionStatement;
+    var expression = statement.expression as ConditionalExpression;
     Expression condition = expression.condition;
     expect(condition, TypeMatcher<IsExpression>());
     Expression thenExpression = expression.thenExpression;
@@ -335,9 +336,9 @@ class ComplexParserTest extends FastaParserTestCase {
   }
 
   void test_conditionalExpression_precedence_nullableTypeWithTypeArg2_is() {
-    ExpressionStatement statement =
-        parseStatement('x is String<S,T> ? (x + y) : z;');
-    ConditionalExpression expression = statement.expression;
+    var statement = parseStatement('x is String<S,T> ? (x + y) : z;')
+        as ExpressionStatement;
+    var expression = statement.expression as ConditionalExpression;
     Expression condition = expression.condition;
     expect(condition, TypeMatcher<IsExpression>());
     Expression thenExpression = expression.thenExpression;
@@ -347,10 +348,11 @@ class ComplexParserTest extends FastaParserTestCase {
   }
 
   void test_conditionalExpression_precedence_prefixedNullableType_is() {
-    ExpressionStatement statement = parseStatement('x is p.A ? (x + y) : z;');
-    ConditionalExpression expression = statement.expression;
+    var statement =
+        parseStatement('x is p.A ? (x + y) : z;') as ExpressionStatement;
+    var expression = statement.expression as ConditionalExpression;
 
-    Expression condition = expression.condition;
+    var condition = expression.condition;
     expect(condition, TypeMatcher<IsExpression>());
     Expression thenExpression = expression.thenExpression;
     expect(thenExpression, TypeMatcher<ParenthesizedExpression>());
@@ -359,29 +361,31 @@ class ComplexParserTest extends FastaParserTestCase {
   }
 
   void test_conditionalExpression_precedence_withAssignment() {
-    ExpressionStatement statement = parseStatement('b ? c = true : g();');
-    ConditionalExpression expression = statement.expression;
+    var statement =
+        parseStatement('b ? c = true : g();') as ExpressionStatement;
+    var expression = statement.expression as ConditionalExpression;
     expect(expression.condition, TypeMatcher<SimpleIdentifier>());
     expect(expression.thenExpression, TypeMatcher<AssignmentExpression>());
   }
 
   void test_conditionalExpression_precedence_withAssignment2() {
-    ExpressionStatement statement = parseStatement('b.x ? c = true : g();');
-    ConditionalExpression expression = statement.expression;
+    var statement =
+        parseStatement('b.x ? c = true : g();') as ExpressionStatement;
+    var expression = statement.expression as ConditionalExpression;
     expect(expression.condition, TypeMatcher<PrefixedIdentifier>());
     expect(expression.thenExpression, TypeMatcher<AssignmentExpression>());
   }
 
   void test_conditionalExpression_prefixedValue() {
-    ExpressionStatement statement = parseStatement('a.b ? y : z;');
-    ConditionalExpression expression = statement.expression;
+    var statement = parseStatement('a.b ? y : z;') as ExpressionStatement;
+    var expression = statement.expression as ConditionalExpression;
     expect(expression.condition, TypeMatcher<PrefixedIdentifier>());
     expect(expression.thenExpression, TypeMatcher<SimpleIdentifier>());
   }
 
   void test_conditionalExpression_prefixedValue2() {
-    ExpressionStatement statement = parseStatement('a.b ? x.y : z;');
-    ConditionalExpression expression = statement.expression;
+    var statement = parseStatement('a.b ? x.y : z;') as ExpressionStatement;
+    var expression = statement.expression as ConditionalExpression;
     expect(expression.condition, TypeMatcher<PrefixedIdentifier>());
     expect(expression.thenExpression, TypeMatcher<PrefixedIdentifier>());
   }
@@ -398,151 +402,154 @@ class C {
   }
 
   void test_equalityExpression_normal() {
-    BinaryExpression expression = parseExpression("x == y != z",
-        codes: [ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND]);
+    var expression = parseExpression("x == y != z",
+            codes: [ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND])
+        as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);
   }
 
   void test_equalityExpression_precedence_relational_left() {
-    BinaryExpression expression = parseExpression("x is y == z");
+    var expression = parseExpression("x is y == z") as BinaryExpression;
     expect(expression.leftOperand, isIsExpression);
   }
 
   void test_equalityExpression_precedence_relational_right() {
-    BinaryExpression expression = parseExpression("x == y is z");
+    var expression = parseExpression("x == y is z") as BinaryExpression;
     expect(expression.rightOperand, isIsExpression);
   }
 
   void test_equalityExpression_super() {
-    BinaryExpression expression = parseExpression("super == y != z",
-        codes: [ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND]);
+    var expression = parseExpression("super == y != z",
+            codes: [ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND])
+        as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);
   }
 
   void test_ifNullExpression() {
-    BinaryExpression expression = parseExpression('x ?? y ?? z');
+    var expression = parseExpression('x ?? y ?? z') as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);
   }
 
   void test_ifNullExpression_precedence_logicalOr_left() {
-    BinaryExpression expression = parseExpression('x || y ?? z');
+    var expression = parseExpression('x || y ?? z') as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);
   }
 
   void test_ifNullExpression_precedence_logicalOr_right() {
-    BinaryExpression expression = parseExpression('x ?? y || z');
+    var expression = parseExpression('x ?? y || z') as BinaryExpression;
     expect(expression.rightOperand, isBinaryExpression);
   }
 
   void test_logicalAndExpression() {
-    BinaryExpression expression = parseExpression("x && y && z");
+    var expression = parseExpression("x && y && z") as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);
   }
 
   void test_logicalAndExpression_precedence_bitwiseOr_left() {
-    BinaryExpression expression = parseExpression("x | y < z");
+    var expression = parseExpression("x | y < z") as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);
   }
 
   void test_logicalAndExpression_precedence_bitwiseOr_right() {
-    BinaryExpression expression = parseExpression("x < y | z");
+    var expression = parseExpression("x < y | z") as BinaryExpression;
     expect(expression.rightOperand, isBinaryExpression);
   }
 
   void test_logicalAndExpressionStatement() {
     // Assert that `<` and `>` are not interpreted as type arguments.
-    ExpressionStatement statement = parseStatement("C<T && T>U;");
-    BinaryExpression expression = statement.expression;
+    var statement = parseStatement("C<T && T>U;") as ExpressionStatement;
+    var expression = statement.expression as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);
   }
 
   void test_logicalOrExpression() {
-    BinaryExpression expression = parseExpression("x || y || z");
+    var expression = parseExpression("x || y || z") as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);
   }
 
   void test_logicalOrExpression_precedence_logicalAnd_left() {
-    BinaryExpression expression = parseExpression("x && y || z");
+    var expression = parseExpression("x && y || z") as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);
   }
 
   void test_logicalOrExpression_precedence_logicalAnd_right() {
-    BinaryExpression expression = parseExpression("x || y && z");
+    var expression = parseExpression("x || y && z") as BinaryExpression;
     expect(expression.rightOperand, isBinaryExpression);
   }
 
   void test_methodInvocation1() {
     // Assert that `<` and `>` are not interpreted as type arguments.
-    ExpressionStatement statement = parseStatement("f(a < b, c > 3);");
+    var statement = parseStatement("f(a < b, c > 3);") as ExpressionStatement;
     assertNoErrors();
-    MethodInvocation method = statement.expression;
+    var method = statement.expression as MethodInvocation;
     expect(method.argumentList.arguments, hasLength(2));
   }
 
   void test_methodInvocation2() {
     // Assert that `<` and `>` are not interpreted as type arguments.
-    ExpressionStatement statement = parseStatement("f(a < b, c >> 3);");
+    var statement = parseStatement("f(a < b, c >> 3);") as ExpressionStatement;
     assertNoErrors();
-    MethodInvocation method = statement.expression;
+    var method = statement.expression as MethodInvocation;
     expect(method.argumentList.arguments, hasLength(2));
   }
 
   void test_methodInvocation3() {
     // Assert that `<` and `>` are not interpreted as type arguments.
-    ExpressionStatement statement = parseStatement("f(a < b, c < d >> 3);");
+    var statement =
+        parseStatement("f(a < b, c < d >> 3);") as ExpressionStatement;
     assertNoErrors();
-    MethodInvocation method = statement.expression;
+    var method = statement.expression as MethodInvocation;
     expect(method.argumentList.arguments, hasLength(2));
   }
 
   void test_multipleLabels_statement() {
-    LabeledStatement statement = parseStatement("a: b: c: return x;");
+    var statement = parseStatement("a: b: c: return x;") as LabeledStatement;
     expect(statement.labels, hasLength(3));
     expect(statement.statement, isReturnStatement);
   }
 
   void test_multiplicativeExpression_normal() {
-    BinaryExpression expression = parseExpression("x * y / z");
+    var expression = parseExpression("x * y / z") as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);
   }
 
   void test_multiplicativeExpression_precedence_unary_left() {
-    BinaryExpression expression = parseExpression("-x * y");
+    var expression = parseExpression("-x * y") as BinaryExpression;
     expect(expression.leftOperand, isPrefixExpression);
   }
 
   void test_multiplicativeExpression_precedence_unary_right() {
-    BinaryExpression expression = parseExpression("x * -y");
+    var expression = parseExpression("x * -y") as BinaryExpression;
     expect(expression.rightOperand, isPrefixExpression);
   }
 
   void test_multiplicativeExpression_super() {
-    BinaryExpression expression = parseExpression("super * y / z");
+    var expression = parseExpression("super * y / z") as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);
   }
 
   void test_relationalExpression_precedence_shift_right() {
-    IsExpression expression = parseExpression("x << y is z");
+    var expression = parseExpression("x << y is z") as IsExpression;
     expect(expression.expression, isBinaryExpression);
   }
 
   void test_shiftExpression_normal() {
-    BinaryExpression expression = parseExpression("x >> 4 << 3");
+    var expression = parseExpression("x >> 4 << 3") as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);
   }
 
   void test_shiftExpression_precedence_additive_left() {
-    BinaryExpression expression = parseExpression("x + y << z");
+    var expression = parseExpression("x + y << z") as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);
   }
 
   void test_shiftExpression_precedence_additive_right() {
-    BinaryExpression expression = parseExpression("x << y + z");
+    var expression = parseExpression("x << y + z") as BinaryExpression;
     expect(expression.rightOperand, isBinaryExpression);
   }
 
   void test_shiftExpression_super() {
-    BinaryExpression expression = parseExpression("super >> 4 << 3");
+    var expression = parseExpression("super >> 4 << 3") as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);
   }
 
@@ -558,12 +565,13 @@ void f() {
   void _validate_assignableExpression_arguments_normal_chain_typeArguments(
       String code,
       [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
-    PropertyAccess propertyAccess1 = parseExpression(code, codes: errorCodes);
+    var propertyAccess1 =
+        parseExpression(code, codes: errorCodes) as PropertyAccess;
     expect(propertyAccess1.propertyName.name, "f");
     //
     // a<E>(b)<F>(c).d<G>(e)
     //
-    MethodInvocation invocation2 = propertyAccess1.target;
+    var invocation2 = propertyAccess1.target as MethodInvocation;
     expect(invocation2.methodName.name, "d");
     expect(invocation2.typeArguments, isNotNull);
     ArgumentList argumentList2 = invocation2.argumentList;
@@ -572,7 +580,7 @@ void f() {
     //
     // a<E>(b)<F>(c)
     //
-    FunctionExpressionInvocation invocation3 = invocation2.target;
+    var invocation3 = invocation2.target as FunctionExpressionInvocation;
     expect(invocation3.typeArguments, isNotNull);
     ArgumentList argumentList3 = invocation3.argumentList;
     expect(argumentList3, isNotNull);
@@ -580,7 +588,7 @@ void f() {
     //
     // a(b)
     //
-    MethodInvocation invocation4 = invocation3.function;
+    var invocation4 = invocation3.function as MethodInvocation;
     expect(invocation4.methodName.name, "a");
     expect(invocation4.typeArguments, isNotNull);
     ArgumentList argumentList4 = invocation4.argumentList;

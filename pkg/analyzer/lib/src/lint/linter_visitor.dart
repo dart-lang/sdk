@@ -1445,7 +1445,7 @@ class NodeLintRegistry {
   }
 
   /// Get the timer associated with the given [linter].
-  Stopwatch _getTimer(LintRule linter) {
+  Stopwatch? _getTimer(LintRule linter) {
     if (enableTiming) {
       return lintRegistry.getTimer(linter);
     } else {
@@ -1458,7 +1458,7 @@ class NodeLintRegistry {
 class _Subscription<T> {
   final LintRule linter;
   final AstVisitor visitor;
-  final Stopwatch timer;
+  final Stopwatch? timer;
 
   _Subscription(this.linter, this.visitor, this.timer);
 }

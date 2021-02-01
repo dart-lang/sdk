@@ -55,12 +55,14 @@ class _UnitApiSignatureComputer {
     addToken(node.rightBracket);
   }
 
-  void addFunctionBodyModifiers(FunctionBody node) {
-    signature.addBool(node.isSynchronous);
-    signature.addBool(node.isGenerator);
+  void addFunctionBodyModifiers(FunctionBody? node) {
+    if (node != null) {
+      signature.addBool(node.isSynchronous);
+      signature.addBool(node.isGenerator);
+    }
   }
 
-  void addNode(AstNode node) {
+  void addNode(AstNode? node) {
     if (node != null) {
       addTokens(node.beginToken, node.endToken);
     }
@@ -79,10 +81,10 @@ class _UnitApiSignatureComputer {
   /// Appends tokens from [begin] (including), to [end] (also including).
   void addTokens(Token begin, Token end) {
     if (begin is CommentToken) {
-      begin = (begin as CommentToken).parent;
+      begin = begin.parent!;
     }
 
-    Token token = begin;
+    Token? token = begin;
     while (token != null) {
       addToken(token);
 
@@ -111,13 +113,13 @@ class _UnitApiSignatureComputer {
         includeInitializers) {
       addTokens(node.beginToken, node.endToken);
     } else {
-      addTokens(node.beginToken, variableList.type.endToken);
+      addTokens(node.beginToken, variableList.type!.endToken);
 
       signature.addInt(variableList.variables.length);
       for (var variable in variableList.variables) {
         addTokens(variable.beginToken, variable.name.endToken);
         signature.addBool(variable.initializer != null);
-        addToken(variable.endToken.next); // `,` or `;`
+        addToken(variable.endToken.next!); // `,` or `;`
       }
     }
   }

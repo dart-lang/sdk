@@ -18,7 +18,7 @@ main() {
 
 @reflectiveTest
 class AnalysisSessionHelperTest extends PubPackageResolutionTest {
-  AnalysisSessionHelper helper;
+  late final AnalysisSessionHelper helper;
 
   @override
   void setUp() {
@@ -34,8 +34,7 @@ int v = 0;
 ''');
     String uri = file.toUri().toString();
 
-    var element = await helper.getClass(uri, 'C');
-    expect(element, isNotNull);
+    var element = (await helper.getClass(uri, 'C'))!;
     expect(element.displayName, 'C');
   }
 
@@ -58,8 +57,7 @@ export 'a.dart';
 ''');
     String bUri = bFile.toUri().toString();
 
-    var element = await helper.getClass(bUri, 'A');
-    expect(element, isNotNull);
+    var element = (await helper.getClass(bUri, 'A'))!;
     expect(element.displayName, 'A');
   }
 
@@ -81,8 +79,8 @@ import 'a.dart';
 class A {}
 ''');
     var element = findElement.class_('A');
-    var result = await helper.getElementDeclaration(element);
-    ClassDeclaration node = result.node;
+    var result = (await helper.getElementDeclaration(element))!;
+    var node = result.node as ClassDeclaration;
     expect(node.name.name, 'A');
   }
 
@@ -91,9 +89,9 @@ class A {}
 class A {}
 class B {}
 ''');
-    var element = findNode.classDeclaration('A').declaredElement;
-    var resolvedUnit = await helper.getResolvedUnitByElement(element);
-    expect(resolvedUnit.unit.declarations, hasLength(2));
+    var element = findNode.classDeclaration('A').declaredElement!;
+    var resolvedUnit = (await helper.getResolvedUnitByElement(element))!;
+    expect(resolvedUnit.unit!.declarations, hasLength(2));
   }
 
   test_getTopLevelPropertyAccessor_defined_getter() async {
@@ -102,8 +100,7 @@ int get a => 0;
 ''');
     String uri = file.toUri().toString();
 
-    var element = await helper.getTopLevelPropertyAccessor(uri, 'a');
-    expect(element, isNotNull);
+    var element = (await helper.getTopLevelPropertyAccessor(uri, 'a'))!;
     expect(element.kind, ElementKind.GETTER);
     expect(element.displayName, 'a');
   }
@@ -114,8 +111,7 @@ set a(_) {}
 ''');
     String uri = file.toUri().toString();
 
-    var element = await helper.getTopLevelPropertyAccessor(uri, 'a=');
-    expect(element, isNotNull);
+    var element = (await helper.getTopLevelPropertyAccessor(uri, 'a='))!;
     expect(element.kind, ElementKind.SETTER);
     expect(element.displayName, 'a');
   }
@@ -126,8 +122,7 @@ int a;
 ''');
     String uri = file.toUri().toString();
 
-    var element = await helper.getTopLevelPropertyAccessor(uri, 'a');
-    expect(element, isNotNull);
+    var element = (await helper.getTopLevelPropertyAccessor(uri, 'a'))!;
     expect(element.kind, ElementKind.GETTER);
     expect(element.displayName, 'a');
   }
@@ -141,8 +136,7 @@ export 'a.dart';
 ''');
     String bUri = bFile.toUri().toString();
 
-    var element = await helper.getTopLevelPropertyAccessor(bUri, 'a');
-    expect(element, isNotNull);
+    var element = (await helper.getTopLevelPropertyAccessor(bUri, 'a'))!;
     expect(element.kind, ElementKind.GETTER);
     expect(element.displayName, 'a');
   }

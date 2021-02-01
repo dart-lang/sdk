@@ -20,7 +20,6 @@ import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/super_context.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
-import 'package:meta/meta.dart';
 
 class MethodInvocationResolver {
   /// Resolver visitor is separated from the elements resolver, which calls
@@ -58,16 +57,16 @@ class MethodInvocationResolver {
   final MigratableAstInfoProvider _migratableAstInfoProvider;
 
   /// The invocation being resolved.
-  MethodInvocationImpl _invocation;
+  MethodInvocationImpl? _invocation;
 
   /// The [Name] object of the invocation being resolved by [resolve].
-  Name _currentName;
+  Name? _currentName;
 
   MethodInvocationResolver(
     this._resolver,
     this._migratableAstInfoProvider, {
-    @required InvocationInferenceHelper inferenceHelper,
-  })  : _typeType = _resolver.typeProvider.typeType,
+    required InvocationInferenceHelper inferenceHelper,
+  })   : _typeType = _resolver.typeProvider.typeType,
         _inheritance = _resolver.inheritance,
         _definingLibrary = _resolver.definingLibrary,
         _definingLibraryUri = _resolver.definingLibrary.source.uri,
@@ -80,14 +79,14 @@ class MethodInvocationResolver {
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
-  void resolve(MethodInvocation node) {
+  void resolve(MethodInvocationImpl node) {
     _invocation = node;
 
     SimpleIdentifier nameNode = node.methodName;
     String name = nameNode.name;
     _currentName = Name(_definingLibraryUri, name);
 
-    Expression receiver = node.realTarget;
+    var receiver = node.realTarget;
 
     if (receiver == null) {
       _resolveReceiverNull(node, nameNode, name);
@@ -142,7 +141,7 @@ class MethodInvocationResolver {
       }
     }
 
-    DartType receiverType = receiver.staticType;
+    DartType receiverType = receiver.staticType!;
 
     if (_typeSystem.isDynamicBounded(receiverType)) {
       _resolveReceiverDynamicBounded(node);
@@ -246,8 +245,8 @@ class MethodInvocationResolver {
 
   void _reportUndefinedFunction(
     MethodInvocation node, {
-    @required String prefix,
-    @required String name,
+    required String? prefix,
+    required String name,
   }) {
     _setDynamicResolution(node);
 
@@ -308,11 +307,11 @@ class MethodInvocationResolver {
 
   /// Given that we are accessing a property of the given [classElement] with the
   /// given [propertyName], return the element that represents the property.
-  Element _resolveElement(
+  Element? _resolveElement(
       ClassElement classElement, SimpleIdentifier propertyName) {
     // TODO(scheglov) Replace with class hierarchy.
     String name = propertyName.name;
-    Element element;
+    Element? element;
     if (propertyName.inSetterContext()) {
       element = classElement.getSetter(name);
     }
@@ -362,7 +361,7 @@ class MethodInvocationResolver {
       _resolver.errorReporter.reportErrorForNode(
         CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD,
         nameNode,
-        [name, override.staticElement.name],
+        [name, override.staticElement!.name],
       );
       return;
     }
@@ -528,9 +527,9 @@ class MethodInvocationResolver {
 
     DartType receiverType;
     if (_resolver.enclosingClass != null) {
-      receiverType = _resolver.enclosingClass.thisType;
+      receiverType = _resolver.enclosingClass!.thisType;
     } else if (_resolver.enclosingExtension != null) {
-      receiverType = _resolver.enclosingExtension.extendedType;
+      receiverType = _resolver.enclosingExtension!.extendedType;
     } else {
       return _reportUndefinedFunction(
         node,
@@ -561,7 +560,7 @@ class MethodInvocationResolver {
         element = _resolver.toLegacyElement(element);
         if (element is ExecutableElement) {
           nameNode.staticElement = element;
-          return _setResolution(node, element.type);
+          return _setResolution(node, (element as ExecutableElement).type);
         }
       }
     }
@@ -599,8 +598,8 @@ class MethodInvocationResolver {
     }
 
     var target = _inheritance.getMember2(
-      enclosingClass,
-      _currentName,
+      enclosingClass!,
+      _currentName!,
       forSuper: true,
     );
     target = _resolver.toLegacyElement(target);
@@ -618,7 +617,7 @@ class MethodInvocationResolver {
     // Otherwise, this is an error.
     // But we would like to give the user at least some resolution.
     // So, we try to find the interface target.
-    target = _inheritance.getInherited2(enclosingClass, _currentName);
+    target = _inheritance.getInherited2(enclosingClass, _currentName!);
     if (target != null) {
       nameNode.staticElement = target;
       _setResolution(node, target.type);
@@ -639,12 +638,12 @@ class MethodInvocationResolver {
   }
 
   void _resolveReceiverType({
-    @required MethodInvocation node,
-    @required Expression receiver,
-    @required DartType receiverType,
-    @required SimpleIdentifier nameNode,
-    @required String name,
-    @required Expression receiverErrorNode,
+    required MethodInvocation node,
+    required Expression? receiver,
+    required DartType receiverType,
+    required SimpleIdentifier nameNode,
+    required String name,
+    required Expression receiverErrorNode,
   }) {
     var result = _resolver.typePropertyResolver.resolve(
       receiver: receiver,
@@ -701,7 +700,7 @@ class MethodInvocationResolver {
     }
 
     var element = _resolveElement(receiver, nameNode);
-    element = _resolver.toLegacyElement(element);
+    element = _resolver.toLegacyElement(element) as ExecutableElement?;
     if (element != null) {
       if (element is ExecutableElement) {
         nameNode.staticElement = element;
@@ -748,13 +747,13 @@ class MethodInvocationResolver {
       if (target is SimpleIdentifier && target.staticElement is PrefixElement) {
         functionExpression = astFactory.prefixedIdentifier(
           target,
-          node.operator,
+          node.operator!,
           node.methodName,
         );
       } else {
         functionExpression = astFactory.propertyAccess(
           target,
-          node.operator,
+          node.operator!,
           node.methodName,
         );
       }
@@ -788,12 +787,12 @@ class MethodInvocationResolver {
   ///
   /// TODO(scheglov) when we do inference in this resolver, do we need this?
   void _setExplicitTypeArgumentTypes() {
-    var typeArgumentList = _invocation.typeArguments;
+    var typeArgumentList = _invocation!.typeArguments;
     if (typeArgumentList != null) {
       var arguments = typeArgumentList.arguments;
-      _invocation.typeArgumentTypes = arguments.map((n) => n.type).toList();
+      _invocation!.typeArgumentTypes = arguments.map((n) => n.type!).toList();
     } else {
-      _invocation.typeArgumentTypes = [];
+      _invocation!.typeArgumentTypes = [];
     }
   }
 
@@ -808,7 +807,8 @@ class MethodInvocationResolver {
     }
 
     if (type is FunctionType) {
-      _inferenceHelper.resolveMethodInvocation(node: node, rawType: type);
+      _inferenceHelper.resolveMethodInvocation(
+          node: node as MethodInvocationImpl, rawType: type);
       return;
     }
 
@@ -823,16 +823,16 @@ class MethodInvocationResolver {
   /// this method resolver. If we rewrite a [MethodInvocation] node, this
   /// method will return the resulting [FunctionExpressionInvocation], so
   /// that the resolver visitor will know to continue resolving this new node.
-  static FunctionExpressionInvocation getRewriteResult(MethodInvocation node) {
+  static FunctionExpressionInvocation? getRewriteResult(MethodInvocation node) {
     return node.getProperty(_rewriteResultKey);
   }
 
   /// Checks whether the given [expression] is a reference to a class. If it is
   /// then the element representing the class is returned, otherwise `null` is
   /// returned.
-  static ClassElement getTypeReference(Expression expression) {
+  static ClassElement? getTypeReference(Expression expression) {
     if (expression is Identifier) {
-      Element staticElement = expression.staticElement;
+      var staticElement = expression.staticElement;
       if (staticElement is ClassElement) {
         return staticElement;
       }

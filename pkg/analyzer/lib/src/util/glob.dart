@@ -22,8 +22,8 @@ class Glob {
   /// The pattern string.
   final String _pattern;
 
-  String _suffix;
-  RegExp _regex;
+  String? _suffix;
+  RegExp? _regex;
 
   Glob(this._separator, this._pattern) {
     if (_hasJustPrefix(_pattern, '**/*')) {
@@ -46,9 +46,9 @@ class Glob {
   bool matches(String path) {
     String posixPath = _toPosixPath(path);
     if (_suffix != null) {
-      return posixPath.toLowerCase().endsWith(_suffix);
+      return posixPath.toLowerCase().endsWith(_suffix!);
     }
-    return _regex.matchAsPrefix(posixPath) != null;
+    return _regex!.matchAsPrefix(posixPath) != null;
   }
 
   @override

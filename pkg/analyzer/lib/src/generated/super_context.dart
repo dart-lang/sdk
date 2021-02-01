@@ -28,7 +28,7 @@ class SuperContext {
   /// Return an indication of the context in which the super [expression] is
   /// being used.
   factory SuperContext.of(SuperExpression expression) {
-    for (AstNode node = expression; node != null; node = node.parent) {
+    for (AstNode? node = expression; node != null; node = node.parent) {
       if (node is Annotation) {
         return SuperContext.annotation;
       } else if (node is CompilationUnit) {

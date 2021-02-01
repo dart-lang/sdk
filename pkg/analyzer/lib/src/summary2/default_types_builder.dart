@@ -13,33 +13,32 @@ import 'package:analyzer/src/summary2/function_type_builder.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 import 'package:analyzer/src/util/graph.dart';
-import 'package:meta/meta.dart';
 
 class DefaultTypesBuilder {
   void build(List<AstNode> nodes) {
     for (var node in nodes) {
       if (node is ClassDeclaration) {
-        var element = node.declaredElement;
+        var element = node.declaredElement!;
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
       } else if (node is ClassTypeAlias) {
-        var element = node.declaredElement;
+        var element = node.declaredElement!;
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
       } else if (node is FunctionTypeAlias) {
-        var element = node.declaredElement;
+        var element = node.declaredElement!;
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
       } else if (node is GenericTypeAlias) {
-        var element = node.declaredElement;
+        var element = node.declaredElement!;
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
       } else if (node is MixinDeclaration) {
-        var element = node.declaredElement;
+        var element = node.declaredElement!;
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
@@ -62,7 +61,7 @@ class DefaultTypesBuilder {
 
   void _breakRawTypeCycles(
     Element declarationElement,
-    TypeParameterList parameterList,
+    TypeParameterList? parameterList,
   ) {
     if (parameterList == null) return;
 
@@ -73,7 +72,7 @@ class DefaultTypesBuilder {
 
       var cycles = _findRawTypePathsToDeclaration(
         parameter,
-        boundNode.type,
+        boundNode.type!,
         declarationElement,
         Set<Element>.identity(),
       );
@@ -92,11 +91,11 @@ class DefaultTypesBuilder {
     }
   }
 
-  void _breakSelfCycles(TypeParameterList parameterList) {
+  void _breakSelfCycles(TypeParameterList? parameterList) {
     if (parameterList == null) return;
     var typeParameters = parameterList.typeParameters;
 
-    Map<String, TypeParameter> typeParametersByName;
+    Map<String, TypeParameter>? typeParametersByName;
     for (var parameter in typeParameters) {
       var boundNode = parameter.bound;
       if (boundNode is TypeName) {
@@ -108,7 +107,7 @@ class DefaultTypesBuilder {
           }
         }
 
-        var current = parameter;
+        TypeParameter? current = parameter;
         for (var step = 0;
             current != null && step < typeParameters.length;
             ++step) {
@@ -132,7 +131,7 @@ class DefaultTypesBuilder {
   }
 
   /// Build actual default type [DartType]s from computed [TypeBuilder]s.
-  void _build(TypeParameterList parameterList) {
+  void _build(TypeParameterList? parameterList) {
     if (parameterList == null) return;
 
     for (var parameter in parameterList.typeParameters) {
@@ -149,24 +148,25 @@ class DefaultTypesBuilder {
   /// arguments on raw types with the given type parameters.
   void _computeBounds(
     Element declarationElement,
-    TypeParameterList parameterList,
+    TypeParameterList? parameterList,
   ) {
     if (parameterList == null) return;
 
-    var typeProvider = declarationElement.library.typeProvider;
+    var library = declarationElement.library!;
+    var typeProvider = library.typeProvider;
     var dynamicType = DynamicTypeImpl.instance;
-    var bottomType = declarationElement.library.isNonNullableByDefault
+    var bottomType = library.isNonNullableByDefault
         ? NeverTypeImpl.instance
         : typeProvider.nullType;
 
     var nodes = parameterList.typeParameters;
     var length = nodes.length;
-    var elements = List<TypeParameterElementImpl>.filled(length, null);
-    var bounds = List<DartType>.filled(length, null);
+    var elements = <TypeParameterElementImpl>[];
+    var bounds = <DartType>[];
     for (int i = 0; i < length; i++) {
       var node = nodes[i];
-      elements[i] = node.declaredElement;
-      bounds[i] = node.bound?.type ?? dynamicType;
+      elements.add(node.declaredElement as TypeParameterElementImpl);
+      bounds.add(node.bound?.type ?? dynamicType);
     }
 
     var graph = _TypeParametersGraph(elements, bounds);
@@ -234,14 +234,15 @@ class DefaultTypesBuilder {
           ]);
         } else if (visited.add(startType.element)) {
           void recurseParameters(List<TypeParameterElement> parameters) {
-            for (TypeParameterElementImpl parameter in parameters) {
-              TypeParameter parameterNode = parameter.linkedNode;
+            for (var parameter in parameters) {
+              var parameterImpl = parameter as TypeParameterElementImpl;
+              var parameterNode = parameterImpl.linkedNode as TypeParameter;
               // TODO(scheglov) How to we skip already linked?
               var bound = parameterNode.bound;
               if (bound != null) {
                 var tails = _findRawTypePathsToDeclaration(
                   parameterNode,
-                  bound.type,
+                  bound.type!,
                   end,
                   visited,
                 );
@@ -310,11 +311,11 @@ class _CycleElement {
 /// declaration.
 class _TypeParametersGraph implements Graph<int> {
   @override
-  List<int> vertices;
+  final List<int> vertices = [];
 
   // Each `edges[i]` is the list of indices of type parameters that reference
   // the type parameter with the index `i` in their bounds.
-  List<List<int>> _edges;
+  final List<List<int>> _edges = [];
 
   final Map<TypeParameterElement, int> _parameterToIndex = Map.identity();
 
@@ -324,11 +325,9 @@ class _TypeParametersGraph implements Graph<int> {
   ) {
     assert(parameters.length == bounds.length);
 
-    vertices = List<int>.filled(parameters.length, null);
-    _edges = List<List<int>>.filled(parameters.length, null);
-    for (int i = 0; i < vertices.length; i++) {
-      vertices[i] = i;
-      _edges[i] = <int>[];
+    for (int i = 0; i < parameters.length; i++) {
+      vertices.add(i);
+      _edges.add(<int>[]);
       _parameterToIndex[parameters[i]] = i;
     }
 
@@ -344,7 +343,7 @@ class _TypeParametersGraph implements Graph<int> {
   }
 
   /// Collect references to the [index]th type parameter from the [type].
-  void _collectReferencesFrom(int index, DartType type) {
+  void _collectReferencesFrom(int index, DartType? type) {
     if (type is FunctionTypeBuilder) {
       for (var parameter in type.typeFormals) {
         _collectReferencesFrom(index, parameter.bound);
@@ -372,10 +371,10 @@ class _UpperLowerReplacementVisitor extends ReplacementVisitor {
   Variance _variance;
 
   _UpperLowerReplacementVisitor({
-    @required Map<TypeParameterElement, DartType> upper,
-    @required Map<TypeParameterElement, DartType> lower,
-    @required Variance variance,
-  })  : _upper = upper,
+    required Map<TypeParameterElement, DartType> upper,
+    required Map<TypeParameterElement, DartType> lower,
+    required Variance variance,
+  })   : _upper = upper,
         _lower = lower,
         _variance = variance;
 
@@ -393,7 +392,7 @@ class _UpperLowerReplacementVisitor extends ReplacementVisitor {
   }
 
   @override
-  DartType visitTypeArgument(
+  DartType? visitTypeArgument(
     TypeParameterElement parameter,
     DartType argument,
   ) {
@@ -409,7 +408,7 @@ class _UpperLowerReplacementVisitor extends ReplacementVisitor {
   }
 
   @override
-  DartType visitTypeParameterType(TypeParameterType type) {
+  DartType? visitTypeParameterType(TypeParameterType type) {
     if (_variance == Variance.contravariant) {
       return _lower[type.element];
     } else {

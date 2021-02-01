@@ -64,7 +64,7 @@ class SearchTest extends PubPackageResolutionTest
     with WithNonFunctionTypeAliasesMixin {
   AnalysisDriver get driver => driverFor(testFilePath);
 
-  CompilationUnitElement get resultUnitElement => result.unit.declaredElement;
+  CompilationUnitElement get resultUnitElement => result.unit!.declaredElement!;
 
   String get testUriStr => 'package:test/test.dart';
 
@@ -258,7 +258,7 @@ main(A p) {
   A v;
 }
 ''');
-    var element = findNode.simple('A p').staticElement;
+    var element = findNode.simple('A p').staticElement!;
     var p = findElement.parameter('p');
     var main = findElement.function('main');
     var expected = [
@@ -358,8 +358,8 @@ class A {
 ''');
     var element = findElement.unnamedConstructor('A');
 
-    CompilationUnit otherUnit = (await driver.getResult(other)).unit;
-    Element main = otherUnit.declaredElement.functions[0];
+    CompilationUnit otherUnit = (await driver.getResult(other))!.unit!;
+    Element main = otherUnit.declaredElement!.functions[0];
     var expected = [
       ExpectedResult(main, SearchResultKind.REFERENCE,
           otherCode.indexOf('(); // in other'), 0,
@@ -492,15 +492,15 @@ main() {
 ''');
     var enumElement = findElement.enum_('MyEnum');
     var main = findElement.function('main');
-    await _verifyReferences(enumElement.getField('index'),
+    await _verifyReferences(enumElement.getField('index')!,
         [_expectIdQ(main, SearchResultKind.READ, 'index);')]);
-    await _verifyReferences(enumElement.getField('values'),
+    await _verifyReferences(enumElement.getField('values')!,
         [_expectIdQ(main, SearchResultKind.READ, 'values);')]);
-    await _verifyReferences(enumElement.getField('A'), [
+    await _verifyReferences(enumElement.getField('A')!, [
       _expectIdQ(main, SearchResultKind.READ, 'A.index);'),
       _expectIdQ(main, SearchResultKind.READ, 'A);')
     ]);
-    await _verifyReferences(enumElement.getField('B'),
+    await _verifyReferences(enumElement.getField('B')!,
         [_expectIdQ(main, SearchResultKind.READ, 'B);')]);
   }
 
@@ -1516,9 +1516,9 @@ main() {
   V(); // nq
 }
 ''');
-    ImportElement importElement = findNode.import('show V').element;
+    ImportElement importElement = findNode.import('show V').element!;
     CompilationUnitElement impUnit =
-        importElement.importedLibrary.definingCompilationUnit;
+        importElement.importedLibrary!.definingCompilationUnit;
     TopLevelVariableElement variable = impUnit.topLevelVariables[0];
     var main = findElement.function('main');
     var expected = [
@@ -1804,7 +1804,7 @@ class A {
 ''');
 
     var aLibrary = await driver.getLibraryByUri(aUri);
-    ClassElement aClass = aLibrary.getType('A');
+    ClassElement aClass = aLibrary.getType('A')!;
 
     // Search by 'type'.
     List<SubtypeResult> subtypes =
@@ -1849,7 +1849,7 @@ class A {
     newFile(cccFilePath, content: 'class C implements List {}');
 
     LibraryElement coreLib = await driver.getLibraryByUri('dart:core');
-    ClassElement listElement = coreLib.getType('List');
+    ClassElement listElement = coreLib.getType('List')!;
 
     var searchedFiles = SearchedFiles();
     var results = await driver.search.subTypes(listElement, searchedFiles);
@@ -1857,7 +1857,7 @@ class A {
     void assertHasResult(String path, String name, {bool not = false}) {
       var matcher = contains(predicate((SearchResult r) {
         var element = r.enclosingElement;
-        return element.name == name && element.source.fullName == path;
+        return element.name == name && element.source!.fullName == path;
       }));
       expect(results, not ? isNot(matcher) : matcher);
     }
@@ -1977,7 +1977,7 @@ class NoMatchABCDEF {}
 
   ExpectedResult _expectId(
       Element enclosingElement, SearchResultKind kind, String search,
-      {int length, bool isResolved = true, bool isQualified = false}) {
+      {int? length, bool isResolved = true, bool isQualified = false}) {
     int offset = findNode.offset(search);
     length ??= findNode.simple(search).length;
     return ExpectedResult(enclosingElement, kind, offset, length,
@@ -1987,14 +1987,14 @@ class NoMatchABCDEF {}
   /// Create [ExpectedResult] for a qualified and resolved match.
   ExpectedResult _expectIdQ(
       Element element, SearchResultKind kind, String search,
-      {int length}) {
+      {int? length}) {
     return _expectId(element, kind, search, isQualified: true, length: length);
   }
 
   /// Create [ExpectedResult] for a qualified and unresolved match.
   ExpectedResult _expectIdQU(
       Element element, SearchResultKind kind, String search,
-      {int length}) {
+      {int? length}) {
     return _expectId(element, kind, search,
         isQualified: true, isResolved: false, length: length);
   }
@@ -2002,7 +2002,7 @@ class NoMatchABCDEF {}
   /// Create [ExpectedResult] for a unqualified and unresolved match.
   ExpectedResult _expectIdU(
       Element element, SearchResultKind kind, String search,
-      {int length}) {
+      {int? length}) {
     return _expectId(element, kind, search,
         isQualified: false, isResolved: false, length: length);
   }

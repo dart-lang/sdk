@@ -14,21 +14,21 @@ class ConstructorInitializerResolver {
   final Linker _linker;
   final LibraryElementImpl _libraryElement;
 
-  CompilationUnitElement _unitElement;
-  ClassElement _classElement;
-  ConstructorElement _constructorElement;
-  ConstructorDeclarationImpl _constructorNode;
-  AstResolver _astResolver;
+  late CompilationUnitElementImpl _unitElement;
+  late ClassElement _classElement;
+  late ConstructorElement _constructorElement;
+  late ConstructorDeclarationImpl _constructorNode;
+  late AstResolver _astResolver;
 
   ConstructorInitializerResolver(this._linker, this._libraryElement);
 
   void resolve() {
     for (var unit in _libraryElement.units) {
-      _unitElement = unit;
+      _unitElement = unit as CompilationUnitElementImpl;
       for (var classElement in unit.types) {
         _classElement = classElement;
         for (var constructorElement in classElement.constructors) {
-          _constructor(constructorElement);
+          _constructor(constructorElement as ConstructorElementImpl);
         }
       }
     }
@@ -38,7 +38,8 @@ class ConstructorInitializerResolver {
     if (constructorElement.isSynthetic) return;
 
     _constructorElement = constructorElement;
-    _constructorNode = constructorElement.linkedNode;
+    _constructorNode =
+        constructorElement.linkedNode as ConstructorDeclarationImpl;
 
     var functionScope = LinkingNodeContext.get(_constructorNode).scope;
     var initializerScope = ConstructorInitializerScope(
@@ -48,7 +49,7 @@ class ConstructorInitializerResolver {
 
     _astResolver = AstResolver(_linker, _unitElement, initializerScope);
 
-    FunctionBodyImpl body = _constructorNode.body;
+    var body = _constructorNode.body as FunctionBodyImpl;
     body.localVariableInfo = LocalVariableInfo();
 
     _initializers();

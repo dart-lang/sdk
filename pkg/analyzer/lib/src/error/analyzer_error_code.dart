@@ -3,18 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/error/error.dart';
-import 'package:meta/meta.dart';
 
 /// A superclass for error codes that can have a url associated with them.
 abstract class AnalyzerErrorCode extends ErrorCode {
   /// Initialize a newly created error code.
   const AnalyzerErrorCode({
-    String correction,
+    String? correction,
     bool hasPublishedDocs = false,
     bool isUnresolvedIdentifier = false,
-    @required String message,
-    @required String name,
-    @required String uniqueName,
+    required String message,
+    required String name,
+    required String uniqueName,
   }) : super(
           correction: correction,
           hasPublishedDocs: hasPublishedDocs,

@@ -20,10 +20,10 @@ const String _SERVER_DIR = ".dartServer";
 /// Generally this is ~/.dartServer. It can be overridden via the
 /// ANALYZER_STATE_LOCATION_OVERRIDE environment variable, in which case this
 /// method will return the contents of that environment variable.
-String _getStandardStateLocation() {
+String? _getStandardStateLocation() {
   final Map<String, String> env = io.Platform.environment;
   if (env.containsKey('ANALYZER_STATE_LOCATION_OVERRIDE')) {
-    return env['ANALYZER_STATE_LOCATION_OVERRIDE'];
+    return env['ANALYZER_STATE_LOCATION_OVERRIDE']!;
   }
 
   final home = io.Platform.isWindows ? env['LOCALAPPDATA'] : env['HOME'];
@@ -38,7 +38,7 @@ String _getStandardStateLocation() {
 ///
 /// If any exception happens, the file is considered as a not existing and
 /// `-1` is its modification time.
-List<int> _pathsToTimes(List<String> paths) {
+List<int?> _pathsToTimes(List<String?> paths) {
   return paths.map((path) {
     if (path != null) {
       try {
@@ -58,9 +58,9 @@ class PhysicalResourceProvider implements ResourceProvider {
   static final PhysicalResourceProvider INSTANCE = PhysicalResourceProvider();
 
   /// The path to the base folder where state is stored.
-  final String _stateLocation;
+  final String? _stateLocation;
 
-  PhysicalResourceProvider({String stateLocation})
+  PhysicalResourceProvider({String? stateLocation})
       : _stateLocation = stateLocation ?? _getStandardStateLocation();
 
   @override
@@ -79,7 +79,7 @@ class PhysicalResourceProvider implements ResourceProvider {
   }
 
   @override
-  Future<List<int>> getModificationTimes(List<Source> sources) async {
+  Future<List<int?>> getModificationTimes(List<Source> sources) async {
     List<String> paths = sources.map((source) => source.fullName).toList();
     return _pathsToTimes(paths);
   }
@@ -95,9 +95,9 @@ class PhysicalResourceProvider implements ResourceProvider {
   }
 
   @override
-  Folder getStateLocation(String pluginId) {
+  Folder? getStateLocation(String pluginId) {
     if (_stateLocation != null) {
-      io.Directory directory = io.Directory(join(_stateLocation, pluginId));
+      io.Directory directory = io.Directory(join(_stateLocation!, pluginId));
       directory.createSync(recursive: true);
       return _PhysicalFolder(directory);
     }
@@ -131,7 +131,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
     try {
       return _file.lengthSync();
     } on io.FileSystemException catch (exception) {
-      throw FileSystemException(exception.path, exception.message);
+      throw _wrapException(exception);
     }
   }
 
@@ -140,7 +140,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
     try {
       return _file.lastModifiedSync().millisecondsSinceEpoch;
     } on io.FileSystemException catch (exception) {
-      throw FileSystemException(exception.path, exception.message);
+      throw _wrapException(exception);
     }
   }
 
@@ -156,7 +156,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
   }
 
   @override
-  Source createSource([Uri uri]) {
+  Source createSource([Uri? uri]) {
     return FileSource(this, uri ?? pathContext.toUri(path));
   }
 
@@ -171,7 +171,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
     try {
       return _file.readAsBytesSync();
     } on io.FileSystemException catch (exception) {
-      throw FileSystemException(exception.path, exception.message);
+      throw _wrapException(exception);
     }
   }
 
@@ -181,7 +181,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
     try {
       return _file.readAsStringSync();
     } on io.FileSystemException catch (exception) {
-      throw FileSystemException(exception.path, exception.message);
+      throw _wrapException(exception);
     }
   }
 
@@ -190,7 +190,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
     try {
       return _PhysicalFile(_file.renameSync(newPath));
     } on io.FileSystemException catch (exception) {
-      throw FileSystemException(exception.path, exception.message);
+      throw _wrapException(exception);
     }
   }
 
@@ -199,7 +199,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
     try {
       return _PhysicalFile(io.File(_file.resolveSymbolicLinksSync()));
     } on io.FileSystemException catch (exception) {
-      throw FileSystemException(exception.path, exception.message);
+      throw _wrapException(exception);
     }
   }
 
@@ -211,7 +211,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
     try {
       _file.writeAsBytesSync(bytes);
     } on io.FileSystemException catch (exception) {
-      throw FileSystemException(exception.path, exception.message);
+      throw _wrapException(exception);
     }
   }
 
@@ -220,7 +220,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
     try {
       _file.writeAsStringSync(content);
     } on io.FileSystemException catch (exception) {
-      throw FileSystemException(exception.path, exception.message);
+      throw _wrapException(exception);
     }
   }
 }
@@ -305,7 +305,7 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
       }
       return children;
     } on io.FileSystemException catch (exception) {
-      throw FileSystemException(exception.path, exception.message);
+      throw _wrapException(exception);
     }
   }
 
@@ -323,7 +323,7 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
       return _PhysicalFolder(
           io.Directory(_directory.resolveSymbolicLinksSync()));
     } on io.FileSystemException catch (exception) {
-      throw FileSystemException(exception.path, exception.message);
+      throw _wrapException(exception);
     }
   }
 
@@ -350,7 +350,7 @@ abstract class _PhysicalResource implements Resource {
   int get hashCode => path.hashCode;
 
   @override
-  Folder get parent {
+  Folder? get parent {
     String parentPath = pathContext.dirname(path);
     if (parentPath == path) {
       return null;
@@ -383,7 +383,7 @@ abstract class _PhysicalResource implements Resource {
     try {
       _entry.deleteSync(recursive: true);
     } on io.FileSystemException catch (exception) {
-      throw FileSystemException(exception.path, exception.message);
+      throw _wrapException(exception);
     }
   }
 
@@ -413,5 +413,9 @@ abstract class _PhysicalResource implements Resource {
             path, 'Windows device drivers cannot be read.');
       }
     }
+  }
+
+  FileSystemException _wrapException(io.FileSystemException e) {
+    return FileSystemException(e.path ?? path, e.message);
   }
 }

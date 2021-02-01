@@ -30,7 +30,7 @@ class AnalysisOptionsErrorCode extends ErrorCode {
 
   /// Initialize a newly created error code to have the given [name].
   const AnalysisOptionsErrorCode(String name, String message,
-      {String correction})
+      {String? correction})
       : super(
           correction: correction,
           message: message,
@@ -82,7 +82,7 @@ class AnalysisOptionsHintCode extends ErrorCode {
 
   /// Initialize a newly created hint code to have the given [name].
   const AnalysisOptionsHintCode(String name, String message,
-      {String correction})
+      {String? correction})
       : super(
           correction: correction,
           message: message,
@@ -209,7 +209,7 @@ class AnalysisOptionsWarningCode extends ErrorCode {
 
   /// Initialize a newly created warning code to have the given [name].
   const AnalysisOptionsWarningCode(String name, String message,
-      {String correction})
+      {String? correction})
       : super(
           correction: correction,
           message: message,

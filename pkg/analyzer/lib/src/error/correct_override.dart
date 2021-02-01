@@ -15,19 +15,18 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:meta/meta.dart';
 
 class CorrectOverrideHelper {
   final LibraryElementImpl _library;
   final TypeSystemImpl _typeSystem;
 
   final ExecutableElement _thisMember;
-  FunctionType _thisTypeForSubtype;
+  FunctionType? _thisTypeForSubtype;
 
   CorrectOverrideHelper({
-    @required LibraryElement library,
-    @required ExecutableElement thisMember,
-  })  : _library = library,
+    required LibraryElementImpl library,
+    required ExecutableElement thisMember,
+  })   : _library = library,
         _typeSystem = library.typeSystem,
         _thisMember = thisMember {
     _computeThisTypeForSubtype();
@@ -35,21 +34,21 @@ class CorrectOverrideHelper {
 
   /// Return `true` if [_thisMember] is a correct override of [superMember].
   bool isCorrectOverrideOf({
-    @required ExecutableElement superMember,
+    required ExecutableElement superMember,
   }) {
     superMember = _library.toLegacyElementIfOptOut(superMember);
 
     var superType = superMember.type;
-    return _typeSystem.isSubtypeOf2(_thisTypeForSubtype, superType);
+    return _typeSystem.isSubtypeOf2(_thisTypeForSubtype!, superType);
   }
 
   /// If [_thisMember] is not a correct override of [superMember], report the
   /// error.
   void verify({
-    @required ExecutableElement superMember,
-    @required ErrorReporter errorReporter,
-    @required AstNode errorNode,
-    ErrorCode errorCode,
+    required ExecutableElement superMember,
+    required ErrorReporter errorReporter,
+    required AstNode errorNode,
+    ErrorCode? errorCode,
   }) {
     var isCorrect = isCorrectOverrideOf(superMember: superMember);
     if (!isCorrect) {
@@ -72,7 +71,7 @@ class CorrectOverrideHelper {
   void _computeThisTypeForSubtype() {
     var parameters = _thisMember.parameters;
 
-    List<ParameterElement> newParameters;
+    List<ParameterElement>? newParameters;
     for (var i = 0; i < parameters.length; i++) {
       var parameter = parameters[i];
       if (parameter.isCovariant) {
@@ -106,14 +105,14 @@ class CovariantParametersVerifier {
   final ExecutableElement _thisMember;
 
   CovariantParametersVerifier({
-    @required ExecutableElement thisMember,
-  })  : _session = thisMember.library.session,
-        _typeSystem = thisMember.library.typeSystem,
+    required ExecutableElement thisMember,
+  })   : _session = thisMember.library.session as AnalysisSessionImpl,
+        _typeSystem = thisMember.library.typeSystem as TypeSystemImpl,
         _thisMember = thisMember;
 
   void verify({
-    @required ErrorReporter errorReporter,
-    @required AstNode errorNode,
+    required ErrorReporter errorReporter,
+    required AstNode errorNode,
   }) {
     var superParameters = _superParameters();
     for (var entry in superParameters.entries) {
@@ -142,7 +141,7 @@ class CovariantParametersVerifier {
 
   List<_SuperMember> _superMembers() {
     var classHierarchy = _session.classHierarchy;
-    var classElement = _thisMember.enclosingElement;
+    var classElement = _thisMember.enclosingElement as ClassElement;
     var interfaces = classHierarchy.implementedInterfaces(classElement);
 
     var superMembers = <_SuperMember>[];
@@ -161,7 +160,7 @@ class CovariantParametersVerifier {
   Map<ParameterElement, List<_SuperParameter>> _superParameters() {
     var result = <ParameterElement, List<_SuperParameter>>{};
 
-    List<_SuperMember> superMembers;
+    List<_SuperMember>? superMembers;
     var parameters = _thisMember.parameters;
     for (var i = 0; i < parameters.length; i++) {
       var parameter = parameters[i];
@@ -215,7 +214,7 @@ class CovariantParametersVerifier {
 
   /// Return a member from [classElement] that corresponds to the [proto],
   /// or `null` if no such member exist.
-  static ExecutableElement _correspondingMember(
+  static ExecutableElement? _correspondingMember(
     ClassElement classElement,
     ExecutableElement proto,
   ) {
@@ -233,7 +232,7 @@ class CovariantParametersVerifier {
 
   /// Return an element of [parameters] that corresponds for the [proto],
   /// or `null` if no such parameter exist.
-  static ParameterElement _correspondingParameter(
+  static ParameterElement? _correspondingParameter(
     List<ParameterElement> parameters,
     ParameterElement proto,
     int protoIndex,
@@ -270,5 +269,5 @@ class _SuperParameter {
 
   _SuperParameter(this.element, this.type);
 
-  ExecutableElement get member => element.enclosingElement;
+  ExecutableElement get member => element.enclosingElement as ExecutableElement;
 }

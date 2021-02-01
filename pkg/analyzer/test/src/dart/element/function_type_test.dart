@@ -416,38 +416,6 @@ class MockCompilationUnitElement implements CompilationUnitElement {
   }
 }
 
-class MockFunctionTypedElement implements FunctionTypedElement {
-  @override
-  final List<ParameterElement> parameters;
-
-  @override
-  final DartType returnType;
-
-  @override
-  final List<TypeParameterElement> typeParameters;
-
-  @override
-  final Element enclosingElement;
-
-  MockFunctionTypedElement(
-      {this.parameters = const [],
-      DartType returnType,
-      this.typeParameters = const [],
-      this.enclosingElement = const MockCompilationUnitElement()})
-      : returnType = returnType ?? dynamicType;
-
-  MockFunctionTypedElement.withNullReturn(
-      {this.parameters = const [],
-      this.typeParameters = const [],
-      this.enclosingElement = const MockCompilationUnitElement()})
-      : returnType = null;
-
-  @override
-  noSuchMethod(Invocation invocation) {
-    return super.noSuchMethod(invocation);
-  }
-}
-
 class MockLibraryElement implements LibraryElement {
   const MockLibraryElement();
 

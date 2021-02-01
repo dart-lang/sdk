@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -12,6 +13,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
@@ -99,7 +101,7 @@ class NodeLocatorTest extends ParserTestCase {
 class A {}
 class B {}''');
     NodeLocator locator = NodeLocator(1024, 1024);
-    AstNode node = locator.searchWithin(unit.declarations[0]);
+    var node = locator.searchWithin(unit.declarations[0]);
     expect(node, isNull);
   }
 
@@ -108,7 +110,7 @@ class B {}''');
 class A {}
 class B {}''');
     NodeLocator locator = NodeLocator(0, 0);
-    AstNode node = locator.searchWithin(unit.declarations[1]);
+    var node = locator.searchWithin(unit.declarations[1]);
     expect(node, isNull);
   }
 
@@ -118,8 +120,7 @@ class B {}''');
     int end,
   ) {
     NodeLocator locator = NodeLocator(start, end);
-    AstNode node = locator.searchWithin(unit);
-    expect(node, isNotNull);
+    var node = locator.searchWithin(unit)!;
     expect(locator.foundNode, same(node));
     expect(node.offset <= start, isTrue, reason: "Node starts after range");
     expect(node.offset + node.length > end, isTrue,
@@ -158,8 +159,14 @@ class ResolutionCopierTest with ElementsTypesMixin {
 
   void test_visitAdjacentStrings() {
     AdjacentStrings createNode() => astFactory.adjacentStrings([
-          astFactory.simpleStringLiteral(null, 'hello'),
-          astFactory.simpleStringLiteral(null, 'world')
+          astFactory.simpleStringLiteral(
+            TokenFactory.tokenFromString('hello'),
+            'hello',
+          ),
+          astFactory.simpleStringLiteral(
+            TokenFactory.tokenFromString('world'),
+            'world',
+          )
         ]);
 
     AdjacentStrings fromNode = createNode();
@@ -280,16 +287,14 @@ class ResolutionCopierTest with ElementsTypesMixin {
     var fromNode = AstTestFactory.constructorDeclaration(
         AstTestFactory.identifier3(className),
         constructorName,
-        AstTestFactory.formalParameterList(),
-        null) as ConstructorDeclarationImpl;
+        AstTestFactory.formalParameterList(), []) as ConstructorDeclarationImpl;
     ConstructorElement element = ElementFactory.constructorElement2(
         ElementFactory.classElement2(className), constructorName);
     fromNode.declaredElement = element;
     ConstructorDeclaration toNode = AstTestFactory.constructorDeclaration(
         AstTestFactory.identifier3(className),
         constructorName,
-        AstTestFactory.formalParameterList(),
-        null);
+        AstTestFactory.formalParameterList(), []);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect(toNode.declaredElement, same(element));
   }
@@ -368,6 +373,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
     ForEachPartsWithDeclaration createNode() =>
         astFactory.forEachPartsWithDeclaration(
             loopVariable: AstTestFactory.declaredIdentifier3('a'),
+            inKeyword: TokenFactory.tokenFromKeyword(Keyword.IN),
             iterable: AstTestFactory.identifier3('b'));
 
     DartType typeB = interfaceTypeStar(ElementFactory.classElement2('B'));
@@ -384,6 +390,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
     ForEachPartsWithIdentifier createNode() =>
         astFactory.forEachPartsWithIdentifier(
             identifier: AstTestFactory.identifier3('a'),
+            inKeyword: TokenFactory.tokenFromKeyword(Keyword.IN),
             iterable: AstTestFactory.identifier3('b'));
 
     DartType typeA = interfaceTypeStar(ElementFactory.classElement2('A'));
@@ -401,9 +408,13 @@ class ResolutionCopierTest with ElementsTypesMixin {
 
   void test_visitForElement() {
     ForElement createNode() => astFactory.forElement(
+        forKeyword: TokenFactory.tokenFromKeyword(Keyword.FOR),
+        leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
         forLoopParts: astFactory.forEachPartsWithIdentifier(
             identifier: AstTestFactory.identifier3('a'),
+            inKeyword: TokenFactory.tokenFromKeyword(Keyword.IN),
             iterable: AstTestFactory.identifier3('b')),
+        rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
         body: AstTestFactory.identifier3('c'));
 
     DartType typeC = interfaceTypeStar(ElementFactory.classElement2('C'));
@@ -421,7 +432,9 @@ class ResolutionCopierTest with ElementsTypesMixin {
         astFactory.forPartsWithDeclarations(
             variables: AstTestFactory.variableDeclarationList2(
                 Keyword.VAR, [AstTestFactory.variableDeclaration('a')]),
+            leftSeparator: TokenFactory.tokenFromType(TokenType.SEMICOLON),
             condition: AstTestFactory.identifier3('b'),
+            rightSeparator: TokenFactory.tokenFromType(TokenType.SEMICOLON),
             updaters: [AstTestFactory.identifier3('c')]);
 
     DartType typeB = interfaceTypeStar(ElementFactory.classElement2('B'));
@@ -440,7 +453,9 @@ class ResolutionCopierTest with ElementsTypesMixin {
   void test_visitForPartsWithExpression() {
     ForPartsWithExpression createNode() => astFactory.forPartsWithExpression(
         initialization: AstTestFactory.identifier3('a'),
+        leftSeparator: TokenFactory.tokenFromType(TokenType.SEMICOLON),
         condition: AstTestFactory.identifier3('b'),
+        rightSeparator: TokenFactory.tokenFromType(TokenType.SEMICOLON),
         updaters: [AstTestFactory.identifier3('c')]);
 
     DartType typeA = interfaceTypeStar(ElementFactory.classElement2('A'));
@@ -461,9 +476,13 @@ class ResolutionCopierTest with ElementsTypesMixin {
 
   void test_visitForStatement() {
     ForStatement createNode() => astFactory.forStatement(
+        forKeyword: TokenFactory.tokenFromKeyword(Keyword.FOR),
+        leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
         forLoopParts: astFactory.forEachPartsWithIdentifier(
             identifier: AstTestFactory.identifier3('a'),
+            inKeyword: TokenFactory.tokenFromKeyword(Keyword.IN),
             iterable: AstTestFactory.identifier3('b')),
+        rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
         body: AstTestFactory.expressionStatement(
             AstTestFactory.identifier3('c')));
 
@@ -530,7 +549,10 @@ class ResolutionCopierTest with ElementsTypesMixin {
 
   void test_visitIfElement() {
     IfElement createNode() => astFactory.ifElement(
+        ifKeyword: TokenFactory.tokenFromKeyword(Keyword.IF),
+        leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
         condition: AstTestFactory.identifier3('a'),
+        rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
         thenElement: AstTestFactory.identifier3('b'),
         elseElement: AstTestFactory.identifier3('c'));
 
@@ -629,24 +651,25 @@ class ResolutionCopierTest with ElementsTypesMixin {
 
   void test_visitListLiteral() {
     ListLiteral createNode() => astFactory.listLiteral(
-        null,
-        AstTestFactory.typeArgumentList([AstTestFactory.typeName4('A')]),
-        null,
-        [AstTestFactory.identifier3('b')],
-        null);
+          null,
+          AstTestFactory.typeArgumentList([AstTestFactory.typeName4('A')]),
+          TokenFactory.tokenFromType(TokenType.OPEN_SQUARE_BRACKET),
+          [AstTestFactory.identifier3('b')],
+          TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET),
+        );
 
     DartType typeA = interfaceTypeStar(ElementFactory.classElement2('A'));
     DartType typeB = interfaceTypeStar(ElementFactory.classElement2('B'));
     DartType typeC = interfaceTypeStar(ElementFactory.classElement2('C'));
 
     ListLiteral fromNode = createNode();
-    (fromNode.typeArguments.arguments[0] as TypeName).type = typeA;
+    (fromNode.typeArguments!.arguments[0] as TypeName).type = typeA;
     (fromNode.elements[0] as SimpleIdentifier).staticType = typeB;
     fromNode.staticType = typeC;
 
     ListLiteral toNode = createNode();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect((toNode.typeArguments.arguments[0] as TypeName).type, same(typeA));
+    expect((toNode.typeArguments!.arguments[0] as TypeName).type, same(typeA));
     expect((toNode.elements[0] as SimpleIdentifier).staticType, same(typeB));
     expect(fromNode.staticType, same(typeC));
   }
@@ -705,7 +728,12 @@ class ResolutionCopierTest with ElementsTypesMixin {
   void test_visitPartDirective() {
     PartDirective fromNode = AstTestFactory.partDirective2("part.dart");
     LibraryElement element = LibraryElementImpl(
-        null, null, 'lib', -1, 0, FeatureSet.latestLanguageVersion());
+        _AnalysisContextMock(),
+        _AnalysisSessionMock(),
+        'lib',
+        -1,
+        0,
+        FeatureSet.latestLanguageVersion());
     fromNode.element = element;
     PartDirective toNode = AstTestFactory.partDirective2("part.dart");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -716,7 +744,12 @@ class ResolutionCopierTest with ElementsTypesMixin {
     PartOfDirective fromNode = AstTestFactory.partOfDirective(
         AstTestFactory.libraryIdentifier2(["lib"]));
     LibraryElement element = LibraryElementImpl(
-        null, null, 'lib', -1, 0, FeatureSet.latestLanguageVersion());
+        _AnalysisContextMock(),
+        _AnalysisSessionMock(),
+        'lib',
+        -1,
+        0,
+        FeatureSet.latestLanguageVersion());
     fromNode.element = element;
     PartOfDirective toNode = AstTestFactory.partOfDirective(
         AstTestFactory.libraryIdentifier2(["lib"]));
@@ -798,9 +831,13 @@ class ResolutionCopierTest with ElementsTypesMixin {
 
   void test_visitSetOrMapLiteral_map() {
     SetOrMapLiteral createNode() => astFactory.setOrMapLiteral(
-        typeArguments: AstTestFactory.typeArgumentList(
-            [AstTestFactory.typeName4('A'), AstTestFactory.typeName4('B')]),
-        elements: [AstTestFactory.mapLiteralEntry3('c', 'd')]);
+          typeArguments: AstTestFactory.typeArgumentList(
+              [AstTestFactory.typeName4('A'), AstTestFactory.typeName4('B')]),
+          leftBracket: TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
+          elements: [AstTestFactory.mapLiteralEntry3('c', 'd')],
+          rightBracket:
+              TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET),
+        );
 
     DartType typeA = interfaceTypeStar(ElementFactory.classElement2('A'));
     DartType typeB = interfaceTypeStar(ElementFactory.classElement2('B'));
@@ -808,16 +845,16 @@ class ResolutionCopierTest with ElementsTypesMixin {
     DartType typeD = interfaceTypeStar(ElementFactory.classElement2('D'));
 
     SetOrMapLiteral fromNode = createNode();
-    (fromNode.typeArguments.arguments[0] as TypeName).type = typeA;
-    (fromNode.typeArguments.arguments[1] as TypeName).type = typeB;
+    (fromNode.typeArguments!.arguments[0] as TypeName).type = typeA;
+    (fromNode.typeArguments!.arguments[1] as TypeName).type = typeB;
     MapLiteralEntry fromEntry = fromNode.elements[0] as MapLiteralEntry;
     (fromEntry.key as SimpleStringLiteral).staticType = typeC;
     (fromEntry.value as SimpleStringLiteral).staticType = typeD;
 
     SetOrMapLiteral toNode = createNode();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect((toNode.typeArguments.arguments[0] as TypeName).type, same(typeA));
-    expect((toNode.typeArguments.arguments[1] as TypeName).type, same(typeB));
+    expect((toNode.typeArguments!.arguments[0] as TypeName).type, same(typeA));
+    expect((toNode.typeArguments!.arguments[1] as TypeName).type, same(typeB));
     MapLiteralEntry toEntry = fromNode.elements[0] as MapLiteralEntry;
     expect((toEntry.key as SimpleStringLiteral).staticType, same(typeC));
     expect((toEntry.value as SimpleStringLiteral).staticType, same(typeD));
@@ -825,20 +862,24 @@ class ResolutionCopierTest with ElementsTypesMixin {
 
   void test_visitSetOrMapLiteral_set() {
     SetOrMapLiteral createNode() => astFactory.setOrMapLiteral(
-        typeArguments:
-            AstTestFactory.typeArgumentList([AstTestFactory.typeName4('A')]),
-        elements: [AstTestFactory.identifier3('b')]);
+          typeArguments:
+              AstTestFactory.typeArgumentList([AstTestFactory.typeName4('A')]),
+          leftBracket: TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
+          elements: [AstTestFactory.identifier3('b')],
+          rightBracket:
+              TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET),
+        );
 
     DartType typeA = interfaceTypeStar(ElementFactory.classElement2('A'));
     DartType typeB = interfaceTypeStar(ElementFactory.classElement2('B'));
 
     SetOrMapLiteral fromNode = createNode();
-    (fromNode.typeArguments.arguments[0] as TypeName).type = typeA;
+    (fromNode.typeArguments!.arguments[0] as TypeName).type = typeA;
     (fromNode.elements[0] as SimpleIdentifier).staticType = typeB;
 
     SetOrMapLiteral toNode = createNode();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect((toNode.typeArguments.arguments[0] as TypeName).type, same(typeA));
+    expect((toNode.typeArguments!.arguments[0] as TypeName).type, same(typeA));
     expect((toNode.elements[0] as SimpleIdentifier).staticType, same(typeB));
   }
 
@@ -869,7 +910,11 @@ class ResolutionCopierTest with ElementsTypesMixin {
         spreadOperator:
             TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD_PERIOD),
         expression: astFactory.listLiteral(
-            null, null, null, [AstTestFactory.identifier3('a')], null));
+            null,
+            null,
+            TokenFactory.tokenFromType(TokenType.OPEN_SQUARE_BRACKET),
+            [AstTestFactory.identifier3('a')],
+            TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET)));
 
     DartType typeA = interfaceTypeStar(ElementFactory.classElement2('A'));
 
@@ -936,10 +981,14 @@ class ResolutionCopierTest with ElementsTypesMixin {
   }
 
   void test_visitThrowExpression() {
-    ThrowExpression fromNode = AstTestFactory.throwExpression();
+    ThrowExpression fromNode = AstTestFactory.throwExpression2(
+      AstTestFactory.integer(0),
+    );
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
-    ThrowExpression toNode = AstTestFactory.throwExpression();
+    ThrowExpression toNode = AstTestFactory.throwExpression2(
+      AstTestFactory.integer(0),
+    );
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect(toNode.staticType, same(staticType));
   }
@@ -965,14 +1014,22 @@ class ResolutionCopierTest with ElementsTypesMixin {
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect(toNode.staticType, same(staticType));
     expect(toNode.staticInvokeType, same(staticInvokeType));
-    List<TypeAnnotation> fromTypeArguments = toNode.typeArguments.arguments;
-    List<TypeAnnotation> toTypeArguments = fromNode.typeArguments.arguments;
-    if (fromTypeArguments != null) {
-      for (int i = 0; i < fromTypeArguments.length; i++) {
-        TypeAnnotation toArgument = fromTypeArguments[i];
-        TypeAnnotation fromArgument = toTypeArguments[i];
-        expect(toArgument.type, same(fromArgument.type));
-      }
+    List<TypeAnnotation> fromTypeArguments = toNode.typeArguments!.arguments;
+    List<TypeAnnotation> toTypeArguments = fromNode.typeArguments!.arguments;
+    for (int i = 0; i < fromTypeArguments.length; i++) {
+      TypeAnnotation toArgument = fromTypeArguments[i];
+      TypeAnnotation fromArgument = toTypeArguments[i];
+      expect(toArgument.type, same(fromArgument.type));
     }
   }
+}
+
+class _AnalysisContextMock implements AnalysisContext {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _AnalysisSessionMock implements AnalysisSession {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

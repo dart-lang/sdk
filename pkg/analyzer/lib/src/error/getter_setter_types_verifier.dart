@@ -10,7 +10,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:meta/meta.dart';
 
 /// Verifies that the return type of the getter matches the parameter type
 /// of the corresponding setter. Where "match" means "subtype" in non-nullable,
@@ -20,9 +19,9 @@ class GetterSetterTypesVerifier {
   final ErrorReporter _errorReporter;
 
   GetterSetterTypesVerifier({
-    @required TypeSystemImpl typeSystem,
-    @required ErrorReporter errorReporter,
-  })  : _typeSystem = typeSystem,
+    required TypeSystemImpl typeSystem,
+    required ErrorReporter errorReporter,
+  })   : _typeSystem = typeSystem,
         _errorReporter = errorReporter;
 
   ErrorCode get _errorCode {
@@ -36,7 +35,8 @@ class GetterSetterTypesVerifier {
   void checkExtension(ExtensionDeclaration node) {
     for (var getterNode in node.members) {
       if (getterNode is MethodDeclaration && getterNode.isGetter) {
-        checkGetter(getterNode.name, getterNode.declaredElement);
+        checkGetter(getterNode.name,
+            getterNode.declaredElement as PropertyAccessorElement);
       }
     }
   }
@@ -74,7 +74,7 @@ class GetterSetterTypesVerifier {
     for (var name in interface.map.keys) {
       if (!name.isAccessibleFor(libraryUri)) continue;
 
-      var getter = interface.map[name];
+      var getter = interface.map[name]!;
       if (getter.kind == ElementKind.GETTER) {
         var setter = interface.map[Name(libraryUri, '${name.name}=')];
         if (setter != null && setter.parameters.length == 1) {
@@ -125,7 +125,7 @@ class GetterSetterTypesVerifier {
   }
 
   /// Return the type of the first parameter of the [setter].
-  static DartType _getSetterType(PropertyAccessorElement setter) {
+  static DartType? _getSetterType(PropertyAccessorElement setter) {
     var parameters = setter.parameters;
     if (parameters.isNotEmpty) {
       return parameters[0].type;

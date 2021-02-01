@@ -18,7 +18,7 @@ class ResolutionResult {
   final _ResolutionResultState state;
 
   /// Return the element that is invoked for reading.
-  final ExecutableElement getter;
+  final ExecutableElement? getter;
 
   /// If `true`, then the [getter] is `null`, and this is an error that has
   /// not yet been reported, and the client should report it.
@@ -31,7 +31,7 @@ class ResolutionResult {
   final bool needsGetterError;
 
   /// Return the element that is invoked for writing.
-  final ExecutableElement setter;
+  final ExecutableElement? setter;
 
   /// If `true`, then the [setter] is `null`, and this is an error that has
   /// not yet been reported, and the client should report it.
@@ -47,9 +47,9 @@ class ResolutionResult {
   /// reading and / or writing result.
   ResolutionResult({
     this.getter,
-    this.needsGetterError,
+    this.needsGetterError = true,
     this.setter,
-    this.needsSetterError,
+    this.needsSetterError = true,
   }) : state = _ResolutionResultState.single;
 
   /// Initialize a newly created result with no elements and the given [state].

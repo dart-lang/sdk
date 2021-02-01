@@ -4,7 +4,6 @@
 
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -126,7 +125,7 @@ bbb:${toUriStr('/packages/bbb/lib')}
       },
     );
 
-    void check(String posixPath, String expectedPackageName) {
+    void check(String posixPath, String? expectedPackageName) {
       var path = convertPath(posixPath);
       var package = packages.packageForPath(path);
       expect(package?.name, expectedPackageName);
@@ -135,7 +134,7 @@ bbb:${toUriStr('/packages/bbb/lib')}
     check('/home/aaa/lib/a.dart', 'aaa');
     check('/home/aaa/bbb/lib/b.dart', 'bbb');
     check('/home/ccc/lib/c.dart', 'ccc');
-    check('/home/ddd/lib/c.dart', null);
+    check('/home/ddd/lib/d.dart', null);
   }
 
   test_parseDotPackagesFile() {
@@ -313,11 +312,11 @@ bbb:${toUriStr('/packages/bbb/lib')}
 
   void _assertPackage(
     Packages packages, {
-    @required String name,
-    @required String expectedLibPath,
-    @required Version expectedVersion,
+    required String name,
+    required String expectedLibPath,
+    required Version? expectedVersion,
   }) {
-    var package = packages[name];
+    var package = packages[name]!;
     expect(package.name, name);
     expect(package.libFolder.path, convertPath(expectedLibPath));
     expect(package.languageVersion, expectedVersion);

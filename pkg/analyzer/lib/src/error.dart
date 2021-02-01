@@ -22,7 +22,7 @@ class AnalyzerError implements Exception {
     // Print a less friendly string representation to ensure that
     // error.source.contents is not executed, as .contents it isn't async
     String sourceName = error.source.shortName;
-    sourceName ??= '<unknown source>';
+    // sourceName ??= '<unknown source>';
     builder.write("Error in $sourceName: ${error.message}");
 
 //    var content = error.source.contents.data;

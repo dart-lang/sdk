@@ -13,8 +13,8 @@ class CustomUriResolver extends UriResolver {
   CustomUriResolver(this.resourceProvider, this._urlMappings);
 
   @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
-    String mapping = _urlMappings[uri.toString()];
+  Source? resolveAbsolute(Uri uri, [Uri? actualUri]) {
+    var mapping = _urlMappings[uri.toString()];
     if (mapping == null) {
       return null;
     }

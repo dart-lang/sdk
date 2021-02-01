@@ -22,8 +22,8 @@ void main() {
 class FromEnvironmentEvaluatorTest {
   static const String _defaultValue = 'defaultValue';
 
-  /*late final*/ TypeProvider typeProvider;
-  /*late final*/ TypeSystemImpl typeSystem;
+  late final TypeProvider typeProvider;
+  late final TypeSystemImpl typeSystem;
 
   DartObjectImpl get _boolValueFalse {
     return DartObjectImpl(
@@ -217,7 +217,7 @@ class FromEnvironmentEvaluatorTest {
     return variables.getBool2(
       name,
       namedValues,
-      typeProvider.boolElement.getNamedConstructor('fromEnvironment'),
+      typeProvider.boolElement.getNamedConstructor('fromEnvironment')!,
     );
   }
 
@@ -229,7 +229,7 @@ class FromEnvironmentEvaluatorTest {
     return variables.getInt2(
       name,
       namedValues,
-      typeProvider.intElement.getNamedConstructor('fromEnvironment'),
+      typeProvider.intElement.getNamedConstructor('fromEnvironment')!,
     );
   }
 
@@ -241,7 +241,7 @@ class FromEnvironmentEvaluatorTest {
     return variables.getString2(
       name,
       namedValues,
-      typeProvider.stringElement.getNamedConstructor('fromEnvironment'),
+      typeProvider.stringElement.getNamedConstructor('fromEnvironment')!,
     );
   }
 

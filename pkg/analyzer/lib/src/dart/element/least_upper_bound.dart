@@ -69,11 +69,11 @@ class InstantiatedClass {
 
   /// Return the superclass of this type, or `null` if this type represents
   /// the class 'Object'.
-  InstantiatedClass get superclass {
+  InstantiatedClass? get superclass {
     var supertype = element.supertype;
     if (supertype == null) return null;
 
-    supertype = _substitution.substituteType(supertype);
+    supertype = _substitution.substituteType(supertype) as InterfaceType;
     return InstantiatedClass.of(supertype);
   }
 
@@ -124,7 +124,7 @@ class InstantiatedClass {
     return buffer.toString();
   }
 
-  InterfaceType withNullability(NullabilitySuffix nullability) {
+  InterfaceTypeImpl withNullability(NullabilitySuffix nullability) {
     return InterfaceTypeImpl(
       element: element,
       typeArguments: arguments,
@@ -135,11 +135,12 @@ class InstantiatedClass {
   List<InstantiatedClass> _toInstantiatedClasses(
     List<InterfaceType> interfaces,
   ) {
-    var result = List<InstantiatedClass>.filled(interfaces.length, null);
+    var result = <InstantiatedClass>[];
     for (var i = 0; i < interfaces.length; i++) {
       var interface = interfaces[i];
-      var substituted = _substitution.substituteType(interface);
-      result[i] = InstantiatedClass.of(substituted);
+      var substituted =
+          _substitution.substituteType(interface) as InterfaceType;
+      result.add(InstantiatedClass.of(substituted));
     }
 
     return result;
@@ -196,19 +197,19 @@ class InterfaceLeastUpperBoundHelper {
       assert(args1.length == args2.length);
       assert(args1.length == params.length);
 
-      var args = List<DartType>.filled(args1.length, null);
+      var args = <DartType>[];
       for (int i = 0; i < args1.length; i++) {
         // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
         // variance is added to the interface.
         Variance parameterVariance =
             (params[i] as TypeParameterElementImpl).variance;
         if (parameterVariance.isCovariant) {
-          args[i] = typeSystem.getLeastUpperBound(args1[i], args2[i]);
+          args.add(typeSystem.getLeastUpperBound(args1[i], args2[i]));
         } else if (parameterVariance.isContravariant) {
           if (typeSystem is TypeSystemImpl) {
-            args[i] = typeSystem.getGreatestLowerBound(args1[i], args2[i]);
+            args.add(typeSystem.getGreatestLowerBound(args1[i], args2[i]));
           } else {
-            args[i] = typeSystem.getLeastUpperBound(args1[i], args2[i]);
+            args.add(typeSystem.getLeastUpperBound(args1[i], args2[i]));
           }
         } else if (parameterVariance.isInvariant) {
           if (!typeSystem.isSubtypeOf2(args1[i], args2[i]) ||
@@ -221,7 +222,7 @@ class InterfaceLeastUpperBoundHelper {
           }
           // TODO (kallentu) : Fix asymmetric bounds behavior for invariant type
           //  parameters.
-          args[i] = args1[i];
+          args.add(args1[i]);
         } else {
           throw StateError('Type parameter ${params[i]} has unknown '
               'variance $parameterVariance for bounds calculation.');
@@ -426,8 +427,7 @@ class InterfaceLeastUpperBoundHelper {
     }
     // Should be impossible--there should always be exactly one type with the
     // maximum depth.
-    assert(false);
-    return null;
+    throw StateError('Empty path: $types');
   }
 
   /// Return the intersection of the [first] and [second] sets of types, where
@@ -682,7 +682,7 @@ class LeastUpperBoundHelper {
 
     // UP(T Function<...>(...), S Function<...>(...)) = Function
     // And other, more interesting variants.
-    if (T1 is FunctionType && T2 is FunctionType) {
+    if (T1 is FunctionTypeImpl && T2 is FunctionTypeImpl) {
       return _functionType(T1, T2);
     }
 
@@ -705,7 +705,10 @@ class LeastUpperBoundHelper {
     // UP(T1, T2) = T1 if T2 <: T1
     // And other, more complex variants of interface types.
     var helper = InterfaceLeastUpperBoundHelper(_typeSystem);
-    return helper.compute(T1, T2);
+    return helper.compute(
+      T1 as InterfaceTypeImpl,
+      T2 as InterfaceTypeImpl,
+    );
   }
 
   /// Compute the least upper bound of function types [f] and [g].
@@ -830,7 +833,7 @@ class LeastUpperBoundHelper {
     );
   }
 
-  DartType _futureOr(DartType T1, DartType T2) {
+  DartType? _futureOr(DartType T1, DartType T2) {
     var T1_futureOr = T1 is InterfaceType && T1.isDartAsyncFutureOr
         ? T1.typeArguments[0]
         : null;

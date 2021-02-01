@@ -18,13 +18,13 @@ class FileByteStoreValidatorTest {
 
   test_get_bad_notEnoughBytes() {
     List<int> bytes = <int>[1, 2, 3];
-    List<int> data = validator.getData(bytes);
+    var data = validator.getData(bytes);
     expect(data, isNull);
   }
 
   test_get_bad_notEnoughBytes_zero() {
     List<int> bytes = <int>[];
-    List<int> data = validator.getData(bytes);
+    var data = validator.getData(bytes);
     expect(data, isNull);
   }
 
@@ -36,20 +36,20 @@ class FileByteStoreValidatorTest {
     expect(bytes[bytes.length - 1], isNot(42));
     bytes[bytes.length - 1] = 42;
 
-    List<int> data2 = validator.getData(bytes);
+    var data2 = validator.getData(bytes);
     expect(data2, isNull);
   }
 
   test_get_bad_wrongVersion() {
     List<int> bytes = <int>[0xBA, 0xDA, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
-    List<int> data = validator.getData(bytes);
+    var data = validator.getData(bytes);
     expect(data, isNull);
   }
 
   test_get_good() {
     List<int> data = <int>[1, 2, 3];
     List<int> bytes = validator.wrapData(data);
-    List<int> data2 = validator.getData(bytes);
+    var data2 = validator.getData(bytes);
     expect(data2, hasLength(3));
     expect(data2, data);
   }
@@ -57,7 +57,7 @@ class FileByteStoreValidatorTest {
   test_get_good_zeroBytesData() {
     List<int> data = <int>[];
     List<int> bytes = validator.wrapData(data);
-    List<int> data2 = validator.getData(bytes);
+    var data2 = validator.getData(bytes);
     expect(data2, hasLength(0));
     expect(data2, data);
   }

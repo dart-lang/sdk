@@ -12,9 +12,11 @@ class NoopInstrumentationService implements InstrumentationService {
   void logError(String message) {}
 
   @override
-  void logException(dynamic exception,
-      [StackTrace stackTrace,
-      List<InstrumentationServiceAttachment> attachments]) {}
+  void logException(
+    Object exception, [
+    StackTrace? stackTrace,
+    List<InstrumentationServiceAttachment>? attachments,
+  ]) {}
 
   @override
   void logInfo(String message, [dynamic exception]) {}
@@ -32,7 +34,7 @@ class NoopInstrumentationService implements InstrumentationService {
 
   @override
   void logPluginException(
-      PluginData plugin, dynamic exception, StackTrace stackTrace) {}
+      PluginData plugin, dynamic exception, StackTrace? stackTrace) {}
 
   @override
   void logPluginNotification(String pluginId, String notification) {}

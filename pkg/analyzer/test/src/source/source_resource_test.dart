@@ -32,7 +32,7 @@ class FileSourceTest with ResourceProviderMixin {
   void test_equals_false_null() {
     File file = getFile("/does/not/exist1.dart");
     FileSource source1 = FileSource(file);
-    expect(source1 == null, isFalse);
+    expect(source1, isNotNull);
   }
 
   void test_equals_true() {
@@ -87,12 +87,10 @@ class FileSourceTest with ResourceProviderMixin {
     UriResolver resolver = DartUriResolver(sdk);
     SourceFactory factory = SourceFactory([resolver]);
     // resolve dart:core
-    Source result = resolver.resolveAbsolute(Uri.parse("dart:async"));
-    expect(result, isNotNull);
+    Source result = resolver.resolveAbsolute(Uri.parse("dart:async"))!;
     expect(result.isInSystemLibrary, isTrue);
     // system libraries reference only other system libraries
-    Source partSource = factory.resolveUri(result, "stream.dart");
-    expect(partSource, isNotNull);
+    Source partSource = factory.resolveUri(result, "stream.dart")!;
     expect(partSource.isInSystemLibrary, isTrue);
   }
 

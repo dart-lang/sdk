@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/constant.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
@@ -31,9 +32,9 @@ main() {
 
 @reflectiveTest
 class ConstantFinderTest {
-  AstNode _node;
-  TypeProvider _typeProvider;
-  Source _source;
+  late final AstNode _node;
+  late final TypeProvider _typeProvider;
+  late final Source _source;
 
   void setUp() {
     _typeProvider = TestTypeProvider();
@@ -43,10 +44,10 @@ class ConstantFinderTest {
   /// Test an annotation that consists solely of an identifier (and hence
   /// represents a reference to a compile-time constant variable).
   void test_visitAnnotation_constantVariable() {
-    CompilationUnitElement compilationUnitElement =
+    var compilationUnitElement =
         ElementFactory.compilationUnit('/test.dart', _source)..source = _source;
-    ElementFactory.library(null, 'L').definingCompilationUnit =
-        compilationUnitElement;
+    ElementFactory.library(_AnalysisContextMock(), 'L')
+        .definingCompilationUnit = compilationUnitElement;
     ElementAnnotationImpl elementAnnotation =
         ElementAnnotationImpl(compilationUnitElement);
     _node = elementAnnotation.annotationAst =
@@ -67,10 +68,10 @@ class ConstantFinderTest {
   /// Test an annotation that represents the invocation of a constant
   /// constructor.
   void test_visitAnnotation_invocation() {
-    CompilationUnitElement compilationUnitElement =
+    var compilationUnitElement =
         ElementFactory.compilationUnit('/test.dart', _source)..source = _source;
-    ElementFactory.library(null, 'L').definingCompilationUnit =
-        compilationUnitElement;
+    ElementFactory.library(_AnalysisContextMock(), 'L')
+        .definingCompilationUnit = compilationUnitElement;
     ElementAnnotationImpl elementAnnotation =
         ElementAnnotationImpl(compilationUnitElement);
     _node = elementAnnotation.annotationAst = AstTestFactory.annotation2(
@@ -182,16 +183,15 @@ class ConstantFinderTest {
   }
 
   ConstructorElement _setupConstructorDeclaration(String name, bool isConst) {
-    Keyword constKeyword = isConst ? Keyword.CONST : null;
-    ConstructorDeclarationImpl constructorDeclaration =
-        AstTestFactory.constructorDeclaration2(
-            constKeyword,
-            null,
-            null,
-            name,
-            AstTestFactory.formalParameterList(),
-            null,
-            AstTestFactory.blockFunctionBody2());
+    var constKeyword = isConst ? Keyword.CONST : null;
+    var constructorDeclaration = AstTestFactory.constructorDeclaration2(
+        constKeyword,
+        null,
+        AstTestFactory.identifier3(name),
+        null,
+        AstTestFactory.formalParameterList(),
+        [],
+        AstTestFactory.blockFunctionBody2()) as ConstructorDeclarationImpl;
     ClassElement classElement = ElementFactory.classElement2(name);
     ConstructorElement element =
         ElementFactory.constructorElement(classElement, name, isConst);
@@ -209,7 +209,7 @@ class ConstantFinderTest {
         ? AstTestFactory.variableDeclaration2(
             fieldName, AstTestFactory.integer(0))
         : AstTestFactory.variableDeclaration(fieldName);
-    VariableElement fieldElement = ElementFactory.fieldElement(
+    var fieldElement = ElementFactory.fieldElement(
         fieldName,
         isStatic,
         keyword == Keyword.FINAL,
@@ -226,15 +226,14 @@ class ConstantFinderTest {
     classElement.fields = <FieldElement>[fieldElement];
     classDeclaration.name.staticElement = classElement;
     if (hasConstConstructor) {
-      ConstructorDeclarationImpl constructorDeclaration =
-          AstTestFactory.constructorDeclaration2(
-              Keyword.CONST,
-              null,
-              AstTestFactory.identifier3(className),
-              null,
-              AstTestFactory.formalParameterList(),
-              null,
-              AstTestFactory.blockFunctionBody2());
+      var constructorDeclaration = AstTestFactory.constructorDeclaration2(
+          Keyword.CONST,
+          null,
+          AstTestFactory.identifier3(className),
+          null,
+          AstTestFactory.formalParameterList(),
+          [],
+          AstTestFactory.blockFunctionBody2()) as ConstructorDeclarationImpl;
       classDeclaration.members.add(constructorDeclaration);
       ConstructorElement constructorElement =
           ElementFactory.constructorElement(classElement, '', true);
@@ -255,7 +254,11 @@ class ConstantFinderTest {
     SimpleIdentifier identifier = variableDeclaration.name;
     VariableElement element = ElementFactory.localVariableElement(identifier);
     identifier.staticElement = element;
-    Keyword keyword = isConst ? Keyword.CONST : isFinal ? Keyword.FINAL : null;
+    var keyword = isConst
+        ? Keyword.CONST
+        : isFinal
+            ? Keyword.FINAL
+            : null;
     AstTestFactory.variableDeclarationList2(keyword, [variableDeclaration]);
     _node = variableDeclaration;
     return element;
@@ -264,7 +267,7 @@ class ConstantFinderTest {
 
 @reflectiveTest
 class ReferenceFinderTest {
-  Element _tail;
+  late final Element _tail;
   final List<ConstantEvaluationTarget> _dependencies = [];
 
   void test_visitSimpleIdentifier_const() {
@@ -337,4 +340,9 @@ class ReferenceFinderTest {
     });
     node.accept(referenceFinder);
   }
+}
+
+class _AnalysisContextMock implements AnalysisContext {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

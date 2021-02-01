@@ -10,7 +10,6 @@ import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:meta/meta.dart';
 import 'package:pub_semver/src/version.dart';
 
 const String sdkRoot = '/sdk';
@@ -284,6 +283,7 @@ abstract class bool extends Object {
 
 abstract class Comparable<T> {
   int compareTo(T other);
+  static int compare(Comparable a, Comparable b) => a.compareTo(b);
 }
 
 typedef Comparator<T> = int Function(T a, T b);
@@ -1083,7 +1083,7 @@ class Point<T extends num> {}
   ],
 );
 
-final List<SdkLibrary> _LIBRARIES = [
+final List<MockSdkLibrary> _LIBRARIES = [
   _LIB_CORE,
   _LIB_ASYNC,
   _LIB_ASYNC2,
@@ -1117,9 +1117,9 @@ class MockSdk implements DartSdk {
   final Map<String, String> uriMap = {};
 
   @override
-  final List<SdkLibrary> sdkLibraries = [];
+  final List<MockSdkLibrary> sdkLibraries = [];
 
-  File _versionFile;
+  late final File _versionFile;
 
   /// Optional [additionalLibraries] should have unique URIs, and paths in
   /// their units are relative (will be put into `sdkRoot/lib`).
@@ -1130,10 +1130,10 @@ class MockSdk implements DartSdk {
   /// [sdkVersion], if supplied will override the version stored in the mock
   /// SDK's `version` file.
   MockSdk({
-    @required this.resourceProvider,
+    required this.resourceProvider,
     List<MockSdkLibrary> additionalLibraries = const [],
     List<String> nullSafePackages = const [],
-    String sdkVersion,
+    String? sdkVersion,
   }) {
     sdkVersion ??= '${ExperimentStatus.currentVersion.major}.'
         '${ExperimentStatus.currentVersion.minor}.0';
@@ -1215,7 +1215,7 @@ class MockSdk implements DartSdk {
   }
 
   @override
-  String get allowedExperimentsJson {
+  String? get allowedExperimentsJson {
     try {
       var convertedRoot = resourceProvider.convertPath(sdkRoot);
       return resourceProvider
@@ -1243,7 +1243,7 @@ class MockSdk implements DartSdk {
       sdkLibraries.map((SdkLibrary library) => library.shortName).toList();
 
   @override
-  Source fromFileUri(Uri uri) {
+  Source? fromFileUri(Uri uri) {
     String filePath = resourceProvider.pathContext.fromUri(uri);
     if (!filePath.startsWith(resourceProvider.convertPath('$sdkRoot/lib/'))) {
       return null;
@@ -1252,7 +1252,7 @@ class MockSdk implements DartSdk {
       String libraryPath = library.path;
       if (filePath == libraryPath) {
         try {
-          File file = resourceProvider.getResource(filePath);
+          var file = resourceProvider.getFile(filePath);
           Uri dartUri = Uri.parse(library.shortName);
           return file.createSource(dartUri);
         } catch (exception) {
@@ -1266,7 +1266,7 @@ class MockSdk implements DartSdk {
         String pathInLibrary = filePath.substring(libraryRootPath.length);
         String uriStr = '${library.shortName}/$pathInLibrary';
         try {
-          File file = resourceProvider.getResource(filePath);
+          var file = resourceProvider.getFile(filePath);
           Uri dartUri = Uri.parse(uriStr);
           return file.createSource(dartUri);
         } catch (exception) {
@@ -1278,7 +1278,7 @@ class MockSdk implements DartSdk {
   }
 
   @override
-  SdkLibrary getSdkLibrary(String dartUri) {
+  SdkLibrary? getSdkLibrary(String dartUri) {
     for (SdkLibrary library in _LIBRARIES) {
       if (library.shortName == dartUri) {
         return library;
@@ -1288,10 +1288,10 @@ class MockSdk implements DartSdk {
   }
 
   @override
-  Source mapDartUri(String dartUri) {
-    String path = uriMap[dartUri];
+  Source? mapDartUri(String dartUri) {
+    var path = uriMap[dartUri];
     if (path != null) {
-      File file = resourceProvider.getResource(path);
+      var file = resourceProvider.getFile(path);
       Uri uri = Uri(scheme: 'dart', path: dartUri.substring(5));
       return file.createSource(uri);
     }

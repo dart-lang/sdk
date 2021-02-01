@@ -21,7 +21,7 @@ main() {
 
 @reflectiveTest
 class DriverBasedUriConverterTest with ResourceProviderMixin {
-  DriverBasedUriConverter uriConverter;
+  late final DriverBasedUriConverter uriConverter;
 
   void setUp() {
     Folder barFolder = newFolder('/packages/bar/lib');
@@ -84,13 +84,13 @@ class DriverBasedUriConverterTest with ResourceProviderMixin {
 
 class MockAnalysisDriver implements AnalysisDriver {
   @override
-  ResourceProvider resourceProvider;
+  late final ResourceProvider resourceProvider;
 
   @override
-  SourceFactory sourceFactory;
+  late final SourceFactory sourceFactory;
 
   @override
-  ContextRoot contextRoot;
+  late final ContextRoot contextRoot;
 
   @override
   dynamic noSuchMethod(Invocation invocation) {

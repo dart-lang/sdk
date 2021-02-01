@@ -8,7 +8,6 @@ import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
-import 'package:meta/meta.dart';
 
 /// Replace every "top" type in a covariant position with [_bottomType].
 /// Replace every "bottom" type in a contravariant position with [_topType].
@@ -107,8 +106,8 @@ class ReplaceTopBottomVisitor {
   }
 
   DartType _typeAliasInstantiation(DartType type, Variance variance) {
-    var aliasElement = type.aliasElement;
-    var aliasArguments = type.aliasArguments;
+    var aliasElement = type.aliasElement!;
+    var aliasArguments = type.aliasArguments!;
 
     var typeParameters = aliasElement.typeParameters;
     assert(typeParameters.length == aliasArguments.length);
@@ -134,10 +133,10 @@ class ReplaceTopBottomVisitor {
   /// resulting type.  If the type contains no instances of Top or Bottom, the
   /// original type object is returned to avoid unnecessary allocation.
   static DartType run({
-    @required DartType topType,
-    @required DartType bottomType,
-    @required TypeSystemImpl typeSystem,
-    @required DartType type,
+    required DartType topType,
+    required DartType bottomType,
+    required TypeSystemImpl typeSystem,
+    required DartType type,
   }) {
     var visitor = ReplaceTopBottomVisitor._(typeSystem, topType, bottomType);
     return visitor.process(type, Variance.covariant);

@@ -36,7 +36,7 @@ mixin M {
     var fpNode = findNode.fieldFormalParameter('f);');
     assertElement(fpNode.identifier, constructorElement.parameters[0]);
 
-    FieldFormalParameterElement fpElement = fpNode.declaredElement;
+    var fpElement = fpNode.declaredElement as FieldFormalParameterElement;
     assertElement(fpElement.field, findElement.field('f'));
   }
 

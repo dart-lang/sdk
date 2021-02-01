@@ -7,7 +7,6 @@ import 'dart:collection';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
@@ -100,7 +99,7 @@ class PrefixedNamespaceTest extends PubPackageResolutionTest {
   Map<String, Element> _toMap(List<Element> elements) {
     Map<String, Element> map = HashMap<String, Element>();
     for (Element element in elements) {
-      map[element.name] = element;
+      map[element.name!] = element;
     }
     return map;
   }
@@ -180,7 +179,7 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
   @override
   void visitExpression(Expression node) {
     node.visitChildren(this);
-    DartType staticType = node.staticType;
+    var staticType = node.staticType;
     if (staticType == null) {
       _unresolvedExpressions.add(node);
     } else {
@@ -201,7 +200,7 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     // In cases where we have a prefixed identifier where the prefix is dynamic,
     // we don't want to assert that the node will have a type.
-    if (node.staticType == null && node.prefix.staticType.isDynamic) {
+    if (node.staticType == null && node.prefix.staticType!.isDynamic) {
       return;
     }
     super.visitPrefixedIdentifier(node);
@@ -211,7 +210,7 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
   void visitSimpleIdentifier(SimpleIdentifier node) {
     // In cases where identifiers are being used for something other than an
     // expressions, then they can be ignored.
-    AstNode parent = node.parent;
+    var parent = node.parent;
     if (parent is MethodInvocation && identical(node, parent.methodName)) {
       return;
     } else if (parent is RedirectingConstructorInvocation &&
@@ -255,7 +254,7 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
     }
   }
 
-  String _getFileName(AstNode node) {
+  String _getFileName(AstNode? node) {
     // TODO (jwren) there are two copies of this method, one here and one in
     // ResolutionVerifier, they should be resolved into a single method
     if (node != null) {
@@ -263,7 +262,7 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
       if (root is CompilationUnit) {
         CompilationUnit rootCU = root;
         if (rootCU.declaredElement != null) {
-          return rootCU.declaredElement.source.fullName;
+          return rootCU.declaredElement!.source.fullName;
         } else {
           return "<unknown file- CompilationUnit.getElement() returned null>";
         }

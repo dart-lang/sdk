@@ -104,11 +104,11 @@ class Tokens {
   static final WHILE = TokenFactory.tokenFromKeyword(Keyword.WHILE);
   static final YIELD = TokenFactory.tokenFromKeyword(Keyword.YIELD);
 
-  static Token choose(bool if1, Token then1, bool if2, Token then2,
-      [bool if3, Token then3]) {
+  static Token? choose(bool if1, Token then1, bool if2, Token then2,
+      [bool? if3, Token? then3]) {
     if (if1) return then1;
     if (if2) return then2;
-    if (if2 == true) return then3;
+    if (if3 == true) return then3!;
     return null;
   }
 

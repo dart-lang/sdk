@@ -12,15 +12,16 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart';
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// "Mini AST" representation of a declaration which can accept annotations.
 class AnnotatedNode {
-  final Comment documentationComment;
+  final Comment? documentationComment;
 
   final List<Annotation> metadata;
 
-  AnnotatedNode(this.documentationComment, List<Annotation> metadata)
+  AnnotatedNode(this.documentationComment, List<Annotation>? metadata)
       : metadata = metadata ?? const [];
 }
 
@@ -28,9 +29,9 @@ class AnnotatedNode {
 class Annotation {
   final String name;
 
-  final String constructorName;
+  final String? constructorName;
 
-  final List<Expression> arguments;
+  final List<Expression>? arguments;
 
   Annotation(this.name, this.constructorName, this.arguments);
 }
@@ -43,14 +44,14 @@ class ClassDeclaration extends CompilationUnitMember {
 
   final List<ClassMember> members;
 
-  ClassDeclaration(Comment documentationComment, List<Annotation> metadata,
+  ClassDeclaration(Comment? documentationComment, List<Annotation>? metadata,
       this.name, this.superclass, this.members)
       : super(documentationComment, metadata);
 }
 
 /// "Mini AST" representation of a class member.
 class ClassMember extends AnnotatedNode {
-  ClassMember(Comment documentationComment, List<Annotation> metadata)
+  ClassMember(Comment? documentationComment, List<Annotation>? metadata)
       : super(documentationComment, metadata);
 }
 
@@ -63,13 +64,14 @@ class Comment {
   factory Comment(Token commentToken) {
     var tokens = <Token>[];
     bool isDocumentation = false;
-    while (commentToken != null) {
-      if (commentToken.lexeme.startsWith('/**') ||
-          commentToken.lexeme.startsWith('///')) {
+
+    Token? token = commentToken;
+    while (token != null) {
+      if (token.lexeme.startsWith('/**') || token.lexeme.startsWith('///')) {
         isDocumentation = true;
       }
-      tokens.add(commentToken);
-      commentToken = commentToken.next;
+      tokens.add(token);
+      token = token.next;
     }
     return Comment._(isDocumentation, tokens);
   }
@@ -84,7 +86,8 @@ class CompilationUnit {
 
 /// "Mini AST" representation of a top level member of a compilation unit.
 class CompilationUnitMember extends AnnotatedNode {
-  CompilationUnitMember(Comment documentationComment, List<Annotation> metadata)
+  CompilationUnitMember(
+      Comment? documentationComment, List<Annotation>? metadata)
       : super(documentationComment, metadata);
 }
 
@@ -93,7 +96,7 @@ class ConstructorDeclaration extends ClassMember {
   final String name;
 
   ConstructorDeclaration(
-      Comment documentationComment, List<Annotation> metadata, this.name)
+      Comment? documentationComment, List<Annotation>? metadata, this.name)
       : super(documentationComment, metadata);
 }
 
@@ -103,7 +106,7 @@ class EnumConstantDeclaration extends AnnotatedNode {
   final String name;
 
   EnumConstantDeclaration(
-      Comment documentationComment, List<Annotation> metadata, this.name)
+      Comment? documentationComment, List<Annotation> metadata, this.name)
       : super(documentationComment, metadata);
 }
 
@@ -113,7 +116,7 @@ class EnumDeclaration extends CompilationUnitMember {
 
   final List<EnumConstantDeclaration> constants;
 
-  EnumDeclaration(Comment documentationComment, List<Annotation> metadata,
+  EnumDeclaration(Comment? documentationComment, List<Annotation>? metadata,
       this.name, this.constants)
       : super(documentationComment, metadata);
 }
@@ -154,7 +157,7 @@ class MethodDeclaration extends ClassMember {
 
   final TypeName returnType;
 
-  MethodDeclaration(Comment documentationComment, List<Annotation> metadata,
+  MethodDeclaration(Comment? documentationComment, List<Annotation>? metadata,
       this.isGetter, this.name, this.returnType)
       : super(documentationComment, metadata);
 }
@@ -167,11 +170,11 @@ class MiniAstBuilder extends StackListener {
   final compilationUnit = CompilationUnit();
 
   @override
-  Uri get uri => null;
+  Uri get uri => throw UnimplementedError();
 
   @override
   void addProblem(Message message, int charOffset, int length,
-      {bool wasHandled = false, List<LocatedMessage> context}) {
+      {bool wasHandled = false, List<LocatedMessage>? context}) {
     internalProblem(message, charOffset, uri);
   }
 
@@ -183,8 +186,9 @@ class MiniAstBuilder extends StackListener {
   @override
   void beginMetadataStar(Token token) {
     debugEvent("beginMetadataStar");
-    if (token.precedingComments != null) {
-      push(Comment(token.precedingComments));
+    var precedingComments = token.precedingComments;
+    if (precedingComments != null) {
+      push(Comment(precedingComments));
     } else {
       push(NullValue.Comments);
     }
@@ -201,7 +205,7 @@ class MiniAstBuilder extends StackListener {
     debugEvent("BinaryExpression");
 
     if (identical('.', token.stringValue)) {
-      var rightOperand = pop();
+      var rightOperand = pop() as String;
       var leftOperand = pop();
       if (leftOperand is String && !leftOperand.contains('.')) {
         push(PrefixedIdentifier(leftOperand, token, rightOperand));
@@ -218,12 +222,12 @@ class MiniAstBuilder extends StackListener {
   @override
   void endClassDeclaration(Token beginToken, Token endToken) {
     debugEvent("ClassDeclaration");
-    List<ClassMember> members = popTypedList();
-    TypeName superclass = pop();
+    var members = popTypedList<ClassMember>() ?? [];
+    var superclass = pop() as TypeName;
     pop(); // Type variables
-    String name = pop();
-    List<Annotation> metadata = popTypedList();
-    Comment comment = pop();
+    var name = pop() as String;
+    var metadata = popTypedList<Annotation>();
+    var comment = pop() as Comment?;
     compilationUnit.declarations
         .add(ClassDeclaration(comment, metadata, name, superclass, members));
   }
@@ -234,24 +238,24 @@ class MiniAstBuilder extends StackListener {
     debugEvent("ClassFactoryMethod");
     pop(); // Body
     pop(); // Type variables
-    String name = pop();
-    List<Annotation> metadata = popTypedList();
-    Comment comment = pop();
+    var name = pop() as String;
+    var metadata = popTypedList() as List<Annotation>?;
+    var comment = pop() as Comment?;
     push(ConstructorDeclaration(comment, metadata, name));
   }
 
   @override
-  void endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
-      Token beginInitializers, Token endToken) {
+  void endClassMethod(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
     debugEvent("Method");
     pop(); // Body
     pop(); // Initializers
     pop(); // Formal parameters
     pop(); // Type variables
-    String name = pop();
-    TypeName returnType = pop();
-    List<Annotation> metadata = popTypedList();
-    Comment comment = pop();
+    var name = pop() as String;
+    var returnType = pop() as TypeName;
+    var metadata = popTypedList<Annotation>();
+    var comment = pop() as Comment?;
     push(MethodDeclaration(
         comment, metadata, getOrSet?.lexeme == 'get', name, returnType));
   }
@@ -261,7 +265,7 @@ class MiniAstBuilder extends StackListener {
       DeclarationKind kind, int memberCount, Token beginToken, Token endToken) {
     debugEvent("ClassOrMixinBody");
     push(popList(memberCount,
-        List<ClassMember>.filled(memberCount, null, growable: true)));
+        List<ClassMember?>.filled(memberCount, null, growable: true)));
   }
 
   @override
@@ -283,14 +287,14 @@ class MiniAstBuilder extends StackListener {
   @override
   void endEnum(Token enumKeyword, Token leftBrace, int count) {
     debugEvent("Enum");
-    List<EnumConstantDeclaration> constants =
-        List.filled(count, null, growable: true);
+    var constants =
+        List<EnumConstantDeclaration?>.filled(count, null, growable: true);
     popList(count, constants);
-    String name = pop();
-    List<Annotation> metadata = popTypedList();
-    Comment comment = pop();
-    compilationUnit.declarations
-        .add(EnumDeclaration(comment, metadata, name, constants));
+    var name = pop() as String;
+    var metadata = popTypedList<Annotation>();
+    var comment = pop() as Comment?;
+    compilationUnit.declarations.add(EnumDeclaration(
+        comment, metadata, name, constants.whereNotNull().toList()));
   }
 
   @override
@@ -301,11 +305,11 @@ class MiniAstBuilder extends StackListener {
 
   @override
   void endFormalParameter(
-      Token thisKeyword,
-      Token periodAfterThis,
+      Token? thisKeyword,
+      Token? periodAfterThis,
       Token nameToken,
-      Token initializerStart,
-      Token initializerEnd,
+      Token? initializerStart,
+      Token? initializerEnd,
       FormalParameterKind kind,
       MemberKind memberKind) {
     debugEvent("FormalParameter");
@@ -322,7 +326,7 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endImport(Token importKeyword, Token semicolon) {
+  void endImport(Token importKeyword, Token? semicolon) {
     debugEvent("Import");
     pop(NullValue.Prefix); // Prefix identifier
     pop(); // URI
@@ -341,7 +345,7 @@ class MiniAstBuilder extends StackListener {
   @override
   void endLiteralString(int interpolationCount, Token endToken) {
     super.endLiteralString(interpolationCount, endToken);
-    String value = pop();
+    var value = pop() as String;
     push(StringLiteral(value));
   }
 
@@ -351,13 +355,13 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
+  void endMetadata(Token beginToken, Token? periodBeforeName, Token endToken) {
     debugEvent("Metadata");
     inMetadata = false;
-    List arguments = pop();
-    String constructorName = popIfNotNull(periodBeforeName);
+    var arguments = pop() as List?;
+    var constructorName = popIfNotNull(periodBeforeName) as String;
     pop(); // Type arguments
-    String name = pop();
+    var name = pop() as String;
     push(Annotation(name, constructorName,
         arguments == null ? null : arguments.cast<Expression>()));
   }
@@ -365,8 +369,9 @@ class MiniAstBuilder extends StackListener {
   @override
   void endMetadataStar(int count) {
     debugEvent("MetadataStar");
-    push(popList(count, List<Annotation>.filled(count, null, growable: true)) ??
-        NullValue.Metadata);
+    push(
+        popList(count, List<Annotation?>.filled(count, null, growable: true)) ??
+            NullValue.Metadata);
   }
 
   @override
@@ -377,11 +382,11 @@ class MiniAstBuilder extends StackListener {
 
   @override
   void endTopLevelFields(
-      Token externalToken,
-      Token staticToken,
-      Token covariantToken,
-      Token lateToken,
-      Token varFinalOrConst,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
       int count,
       Token beginToken,
       Token endToken) {
@@ -397,11 +402,11 @@ class MiniAstBuilder extends StackListener {
   @override
   void endTypeArguments(int count, Token beginToken, Token endToken) {
     debugEvent("TypeArguments");
-    push(popList(count, List<TypeName>.filled(count, null, growable: true)));
+    push(popList(count, List<TypeName?>.filled(count, null, growable: true)));
   }
 
   @override
-  void handleAsyncModifier(Token asyncToken, Token starToken) {
+  void handleAsyncModifier(Token? asyncToken, Token? starToken) {
     debugEvent("AsyncModifier");
   }
 
@@ -429,8 +434,8 @@ class MiniAstBuilder extends StackListener {
   @override
   void handleIdentifier(Token token, IdentifierContext context) {
     if (context == IdentifierContext.enumValueDeclaration) {
-      List<Annotation> metadata = popTypedList();
-      Comment comment = pop();
+      var metadata = popTypedList() as List<Annotation>;
+      var comment = pop() as Comment?;
       push(EnumConstantDeclaration(comment, metadata, token.lexeme));
     } else {
       push(token.lexeme);
@@ -444,7 +449,7 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void handleImportPrefix(Token deferredKeyword, Token asKeyword) {
+  void handleImportPrefix(Token? deferredKeyword, Token? asKeyword) {
     debugEvent("ImportPrefix");
     pushIfNull(asKeyword, NullValue.Prefix);
   }
@@ -475,10 +480,10 @@ class MiniAstBuilder extends StackListener {
 
   @override
   void handleLiteralList(
-      int count, Token leftBracket, Token constKeyword, Token rightBracket) {
+      int count, Token leftBracket, Token? constKeyword, Token rightBracket) {
     debugEvent("LiteralList");
 
-    var elements = List<Object>.filled(count, null);
+    var elements = List<Object?>.filled(count, null);
     popList(count, elements);
     pop(); // type arguments
 
@@ -499,8 +504,8 @@ class MiniAstBuilder extends StackListener {
 
   @override
   void handleNamedArgument(Token colon) {
-    var expression = pop();
-    var name = pop();
+    var expression = pop() as Expression;
+    var name = pop() as String;
     push(NamedExpression(name, colon, expression));
   }
 
@@ -536,8 +541,8 @@ class MiniAstBuilder extends StackListener {
   @override
   void handleQualified(Token period) {
     debugEvent("Qualified");
-    String suffix = pop();
-    String prefix = pop();
+    var suffix = pop() as String;
+    var prefix = pop() as String;
     push('$prefix.$suffix');
   }
 
@@ -547,7 +552,7 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void handleRecoverImport(Token semicolon) {
+  void handleRecoverImport(Token? semicolon) {
     debugEvent("RecoverImport");
     pop(NullValue.Prefix); // Prefix identifier
   }
@@ -567,32 +572,32 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void handleType(Token beginToken, Token questionMark) {
+  void handleType(Token beginToken, Token? questionMark) {
     debugEvent("Type");
-    reportErrorIfNullableType(questionMark);
-    List<TypeName> typeArguments = popTypedList();
-    String name = pop();
+    // reportErrorIfNullableType(questionMark);
+    var typeArguments = popTypedList<TypeName>();
+    var name = pop() as String;
     push(TypeName(name, typeArguments));
   }
 
   @override
-  internalProblem(Message message, int charOffset, Uri uri) {
+  internalProblem(Message message, int charOffset, Uri? uri) {
     throw UnsupportedError(message.message);
   }
 
-  List popList(int n, List list) {
+  List? popList(int n, List list) {
     if (n == 0) return null;
     return stack.popList(n, list, null);
   }
 
   /// Calls [pop] and creates a list with the appropriate type parameter `T`
   /// from the resulting `List<dynamic>`.
-  List<T> popTypedList<T>() {
-    List list = pop();
+  List<T>? popTypedList<T>() {
+    var list = pop() as List?;
     return list != null ? List<T>.from(list) : null;
   }
 
-  void reportErrorIfNullableType(Token questionMark) {
+  void reportErrorIfNullableType(Token? questionMark) {
     if (questionMark != null) {
       assert(optional('?', questionMark));
       var feature = ExperimentalFeatures.non_nullable;
@@ -630,7 +635,7 @@ class MiniAstParser extends Parser {
 
   @override
   Token parseArgumentsOpt(Token token) {
-    MiniAstBuilder listener = this.listener;
+    var listener = this.listener as MiniAstBuilder;
     if (listener.inMetadata) {
       return super.parseArgumentsOpt(token);
     } else {
@@ -681,7 +686,7 @@ class StringLiteral extends Expression {
 class TypeName {
   final String name;
 
-  final List<TypeName> typeArguments;
+  final List<TypeName>? typeArguments;
 
   TypeName(this.name, this.typeArguments);
 }

@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -412,6 +413,7 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
   }
 
   void test_getImmediateSupertypes_generic() {
+    var library = _LibraryElementMock();
     var t = ElementFactory.typeParameterElement('T');
     var class_ = element = ElementFactory.classElement3(
       name: 'C',
@@ -420,7 +422,7 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
         t.instantiate(nullabilitySuffix: suffix),
       ),
     );
-    class_.enclosingElement = ElementFactory.compilationUnit('test.dart');
+    class_.enclosingElement = library.definingCompilationUnit;
     var decoratedSupertypes = decorator.getImmediateSupertypes(class_).toList();
     expect(decoratedSupertypes, hasLength(1));
     checkIterable(
@@ -432,10 +434,11 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
   }
 
   void test_getImmediateSupertypes_interface() {
+    var library = _LibraryElementMock();
     var class_ =
         element = ElementFactory.classElement('C', typeProvider.objectType);
     class_.interfaces = [typeProvider.numType];
-    class_.enclosingElement = ElementFactory.compilationUnit('test.dart');
+    class_.enclosingElement = library.definingCompilationUnit;
     var decoratedSupertypes = decorator.getImmediateSupertypes(class_).toList();
     expect(decoratedSupertypes, hasLength(2));
     checkObject(decoratedSupertypes[0], checkExplicitlyNonNullable,
@@ -445,10 +448,11 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
   }
 
   void test_getImmediateSupertypes_mixin() {
+    var library = _LibraryElementMock();
     var class_ =
         element = ElementFactory.classElement('C', typeProvider.objectType);
     class_.mixins = [typeProvider.numType];
-    class_.enclosingElement = ElementFactory.compilationUnit('test.dart');
+    class_.enclosingElement = library.definingCompilationUnit;
     var decoratedSupertypes = decorator.getImmediateSupertypes(class_).toList();
     expect(decoratedSupertypes, hasLength(2));
     checkObject(decoratedSupertypes[0], checkExplicitlyNonNullable,
@@ -458,9 +462,10 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
   }
 
   void test_getImmediateSupertypes_superclassConstraint() {
+    var library = _LibraryElementMock();
     var class_ = element = ElementFactory.mixinElement(
         name: 'C', constraints: [typeProvider.numType]);
-    class_.enclosingElement = ElementFactory.compilationUnit('test.dart');
+    class_.enclosingElement = library.definingCompilationUnit;
     var decoratedSupertypes = decorator.getImmediateSupertypes(class_).toList();
     expect(decoratedSupertypes, hasLength(1));
     checkNum(decoratedSupertypes[0], checkExplicitlyNonNullable,
@@ -468,9 +473,10 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
   }
 
   void test_getImmediateSupertypes_supertype() {
+    var library = _LibraryElementMock();
     var class_ =
         element = ElementFactory.classElement('C', typeProvider.objectType);
-    class_.enclosingElement = ElementFactory.compilationUnit('test.dart');
+    class_.enclosingElement = library.definingCompilationUnit;
     var decoratedSupertypes = decorator.getImmediateSupertypes(class_).toList();
     expect(decoratedSupertypes, hasLength(1));
     // TODO(paulberry): displayName should be 'Object supertype of C'
@@ -505,6 +511,47 @@ class _AlreadyMigratedCodeDecoratorTestProvisional
       : super(NullabilitySuffix.star);
 }
 
+class _CompilationUnitElementMock implements CompilationUnitElementImpl {
+  @override
+  final LibraryElement enclosingElement;
+
+  @override
+  final Source source;
+
+  _CompilationUnitElementMock(this.enclosingElement, this.source);
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _LibraryElementMock implements LibraryElementImpl {
+  @override
+  CompilationUnitElement definingCompilationUnit;
+
+  @override
+  Source source;
+
+  _LibraryElementMock() {
+    source = _SourceMock();
+    definingCompilationUnit = _CompilationUnitElementMock(this, source);
+  }
+
+  @override
+  Element get enclosingElement => null;
+
+  @override
+  bool get isNonNullableByDefault => false;
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 class _MockElement implements Element {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _SourceMock implements Source {
+  String get fullName => '/test.dart';
+
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

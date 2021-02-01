@@ -28,13 +28,14 @@ class AnnotationResolver {
     _resolve1(node);
 
     node.constructorName?.accept(_resolver);
-    Element element = node.element;
+    var element = node.element;
     if (element is ExecutableElement) {
       InferenceContext.setType(node.arguments, element.type);
     }
     node.arguments?.accept(_resolver);
 
-    ElementAnnotationImpl elementAnnotationImpl = node.elementAnnotation;
+    var elementAnnotationImpl =
+        node.elementAnnotation as ElementAnnotationImpl?;
     if (elementAnnotationImpl == null) {
       // Analyzer ignores annotations on "part of" directives.
       assert(parent is PartDirective || parent is PartOfDirective);
@@ -135,14 +136,13 @@ class AnnotationResolver {
 
   void _resolveAnnotationConstructorInvocationArguments(
       Annotation annotation, ConstructorElement constructor) {
-    ArgumentList argumentList = annotation.arguments;
+    var argumentList = annotation.arguments;
     // error will be reported in ConstantVerifier
     if (argumentList == null) {
       return;
     }
     // resolve arguments to parameters
-    List<ParameterElement> parameters =
-        _resolveArgumentsToFunction(argumentList, constructor);
+    var parameters = _resolveArgumentsToFunction(argumentList, constructor);
     if (parameters != null) {
       argumentList.correspondingStaticParameters = parameters;
     }
@@ -150,8 +150,8 @@ class AnnotationResolver {
 
   /// Continues resolution of the given [annotation].
   void _resolveAnnotationElement(Annotation annotation) {
-    SimpleIdentifier nameNode1;
-    SimpleIdentifier nameNode2;
+    late final SimpleIdentifier nameNode1;
+    SimpleIdentifier? nameNode2;
     {
       Identifier annName = annotation.name;
       if (annName is PrefixedIdentifier) {
@@ -162,14 +162,14 @@ class AnnotationResolver {
         nameNode2 = null;
       }
     }
-    SimpleIdentifier nameNode3 = annotation.constructorName;
-    ConstructorElement constructor;
+    SimpleIdentifier? nameNode3 = annotation.constructorName;
+    ConstructorElement? constructor;
     bool undefined = false;
     //
     // CONST or Class(args)
     //
-    if (nameNode1 != null && nameNode2 == null && nameNode3 == null) {
-      Element element1 = nameNode1.staticElement;
+    if (nameNode2 == null && nameNode3 == null) {
+      var element1 = nameNode1.staticElement;
       // TODO(scheglov) Must be const.
       if (element1 is VariableElement) {
         return;
@@ -191,9 +191,9 @@ class AnnotationResolver {
     //
     // prefix.CONST or prefix.Class() or Class.CONST or Class.constructor(args)
     //
-    if (nameNode1 != null && nameNode2 != null && nameNode3 == null) {
-      Element element1 = nameNode1.staticElement;
-      Element element2 = nameNode2.staticElement;
+    if (nameNode2 != null && nameNode3 == null) {
+      var element1 = nameNode1.staticElement;
+      var element2 = nameNode2.staticElement;
       // Class.CONST - not resolved yet
       if (element1 is ClassElement) {
         element2 = element1.lookUpGetter(nameNode2.name, _definingLibrary);
@@ -228,16 +228,15 @@ class AnnotationResolver {
     //
     // prefix.Class.CONST or prefix.Class.constructor(args)
     //
-    if (nameNode1 != null && nameNode2 != null && nameNode3 != null) {
-      Element element2 = nameNode2.staticElement;
+    if (nameNode2 != null && nameNode3 != null) {
+      var element2 = nameNode2.staticElement;
       // element2 should be ClassElement
       if (element2 is ClassElement) {
         String name3 = nameNode3.name;
         // prefix.Class.CONST
-        PropertyAccessorElement getter =
-            element2.lookUpGetter(name3, _definingLibrary);
+        var getter = element2.lookUpGetter(name3, _definingLibrary);
         if (getter != null) {
-          getter = _resolver.toLegacyElement(getter);
+          getter = _resolver.toLegacyElement(getter)!;
           nameNode3.staticElement = getter;
           annotation.element = getter;
           _resolveAnnotationElementGetter(annotation, getter);
@@ -287,8 +286,8 @@ class AnnotationResolver {
   /// the arguments, or `null` if no correspondence could be computed.
   ///
   /// TODO(scheglov) this is duplicate
-  List<ParameterElement> _resolveArgumentsToFunction(
-      ArgumentList argumentList, ExecutableElement executableElement) {
+  List<ParameterElement?>? _resolveArgumentsToFunction(
+      ArgumentList argumentList, ExecutableElement? executableElement) {
     if (executableElement == null) {
       return null;
     }
@@ -303,7 +302,7 @@ class AnnotationResolver {
   /// correspond to the arguments.
   ///
   /// TODO(scheglov) this is duplicate
-  List<ParameterElement> _resolveArgumentsToParameters(
+  List<ParameterElement?> _resolveArgumentsToParameters(
       ArgumentList argumentList, List<ParameterElement> parameters) {
     return ResolverVisitor.resolveArgumentsToParameters(
         argumentList, parameters, _errorReporter.reportErrorForNode);

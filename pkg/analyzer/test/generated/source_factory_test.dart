@@ -27,7 +27,7 @@ class AbsoluteUriResolver extends UriResolver {
   AbsoluteUriResolver(this.resourceProvider);
 
   @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+  Source resolveAbsolute(Uri uri, [Uri? actualUri]) {
     return FileSource(
         resourceProvider.getFile(resourceProvider.pathContext.fromUri(uri)),
         actualUri);
@@ -55,7 +55,7 @@ class SourceFactoryTest with ResourceProviderMixin {
     String targetPath = convertPath(targetRawPath);
     String targetUri = toUri(targetRawPath).toString();
     Source sourceSource = FileSource(getFile(sourcePath));
-    Source result = factory.resolveUri(sourceSource, targetUri);
+    var result = factory.resolveUri(sourceSource, targetUri)!;
     expect(result.fullName, targetPath);
   }
 
@@ -63,7 +63,7 @@ class SourceFactoryTest with ResourceProviderMixin {
     SourceFactory factory =
         SourceFactory([AbsoluteUriResolver(resourceProvider)]);
     Source containingSource = FileSource(getFile('/does/not/have.dart'));
-    Source result = factory.resolveUri(containingSource, 'exist.dart');
+    var result = factory.resolveUri(containingSource, 'exist.dart')!;
     expect(result.fullName, convertPath('/does/not/exist.dart'));
   }
 
@@ -90,7 +90,7 @@ class SourceFactoryTest with ResourceProviderMixin {
     Source librarySource =
         firstFile.createSource(Uri.parse('package:package/dir/first.dart'));
 
-    Source result = factory.resolveUri(librarySource, 'second.dart');
+    var result = factory.resolveUri(librarySource, 'second.dart')!;
     expect(result, isNotNull);
     expect(result.fullName, secondPath);
     expect(result.uri.toString(), 'package:package/dir/second.dart');
@@ -105,7 +105,7 @@ class SourceFactoryTest with ResourceProviderMixin {
     SourceFactory factory =
         SourceFactory([UriResolver_restoreUri(source1, expected1)]);
     expect(factory.restoreUri(source1), same(expected1));
-    expect(factory.restoreUri(source2), same(null));
+    expect(factory.restoreUri(source2), isNull);
   }
 }
 
@@ -115,7 +115,7 @@ class UriResolver_absolute extends UriResolver {
   UriResolver_absolute();
 
   @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+  Source? resolveAbsolute(Uri uri, [Uri? actualUri]) {
     invoked = true;
     return null;
   }
@@ -127,10 +127,10 @@ class UriResolver_restoreUri extends UriResolver {
   UriResolver_restoreUri(this.source1, this.expected1);
 
   @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) => null;
+  Source? resolveAbsolute(Uri uri, [Uri? actualUri]) => null;
 
   @override
-  Uri restoreAbsolute(Source source) {
+  Uri? restoreAbsolute(Source source) {
     if (identical(source, source1)) {
       return expected1;
     }
@@ -144,7 +144,7 @@ class UriResolver_SourceFactoryTest_test_fromEncoding_valid
   UriResolver_SourceFactoryTest_test_fromEncoding_valid(this.encoding);
 
   @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+  Source? resolveAbsolute(Uri uri, [Uri? actualUri]) {
     if (uri.toString() == encoding) {
       return TestSource();
     }

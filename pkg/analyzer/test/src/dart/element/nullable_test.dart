@@ -6,7 +6,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -784,8 +783,8 @@ class PromoteToNonNullTest extends AbstractTypeSystemNullSafetyTest {
 
   void _checkTypeParameter(
     TypeParameterType type, {
-    @required TypeParameterElement element,
-    @required DartType promotedBound,
+    required TypeParameterElement element,
+    required DartType? promotedBound,
   }) {
     var actual = typeSystem.promoteToNonNull(type) as TypeParameterTypeImpl;
     expect(actual.element, same(element));

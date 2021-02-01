@@ -5,9 +5,9 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/return_type_verifier.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
@@ -16,9 +16,9 @@ import 'package:analyzer/src/generated/error_verifier.dart';
 class CatchErrorVerifier {
   final ErrorReporter _errorReporter;
 
-  final TypeProvider _typeProvider;
+  final TypeProviderImpl _typeProvider;
 
-  final TypeSystem _typeSystem;
+  final TypeSystemImpl _typeSystem;
 
   final ReturnTypeVerifier _returnTypeVerifier;
 
@@ -36,7 +36,7 @@ class CatchErrorVerifier {
     }
     var methodName = node.methodName;
     if (!(methodName.name == 'catchError' &&
-        target.staticType.isDartAsyncFuture)) {
+        target.staticType!.isDartAsyncFuture)) {
       return;
     }
     if (node.argumentList.arguments.isEmpty) {
@@ -51,8 +51,9 @@ class CatchErrorVerifier {
     var targetFutureType = targetType.typeArguments.first;
     var expectedReturnType = _typeProvider.futureOrType2(targetFutureType);
     if (callback is FunctionExpression) {
-      _checkOnErrorFunctionType(
-          callback, callback.staticType, expectedReturnType);
+      // TODO(migration): should be FunctionType, not nullable
+      var callbackType = callback.staticType as FunctionType;
+      _checkOnErrorFunctionType(callback, callbackType, expectedReturnType);
       var catchErrorOnErrorExecutable = EnclosingExecutableContext(
           callback.declaredElement,
           isAsynchronous: true,
@@ -60,7 +61,7 @@ class CatchErrorVerifier {
       var returnStatementVerifier =
           _ReturnStatementVerifier(_returnTypeVerifier);
       _returnTypeVerifier.enclosingExecutable = catchErrorOnErrorExecutable;
-      callback.body.accept(returnStatementVerifier);
+      callback.body!.accept(returnStatementVerifier);
     } else {
       var callbackType = callback.staticType;
       if (callbackType is FunctionType) {
@@ -84,7 +85,7 @@ class CatchErrorVerifier {
     }
 
     var parameters = expressionType.parameters;
-    if (parameters == null || parameters.isEmpty) {
+    if (parameters.isEmpty) {
       return report();
     }
     var firstParameter = parameters.first;

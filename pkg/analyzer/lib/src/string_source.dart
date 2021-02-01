@@ -19,9 +19,9 @@ class StringSource extends Source {
   @override
   final int modificationStamp;
 
-  StringSource(this._contents, String fullName, {Uri uri})
-      : fullName = fullName,
-        uri = uri ?? (fullName == null ? null : Uri.file(fullName)),
+  StringSource(this._contents, String? fullName, {Uri? uri})
+      : fullName = fullName ?? '/test.dart',
+        uri = uri ?? Uri.file(fullName ?? 'file:///test.dart'),
         modificationStamp = DateTime.now().millisecondsSinceEpoch;
 
   @override

@@ -60,38 +60,38 @@ class ContextBuilder {
   /// arguments as the dart analysis driver constructor so that plugins may
   /// create their own drivers with the same tools, in theory. Here as a stopgap
   /// until the official plugin API is complete
-  static Function onCreateAnalysisDriver;
+  static Function? onCreateAnalysisDriver;
 
   /// The [ResourceProvider] by which paths are converted into [Resource]s.
   final ResourceProvider resourceProvider;
 
   /// The manager used to manage the DartSdk's that have been created so that
   /// they can be shared across contexts.
-  final DartSdkManager sdkManager;
+  final DartSdkManager? sdkManager;
 
   /// The cache containing the contents of overlaid files. If this builder will
   /// be used to build analysis drivers, set the [fileContentOverlay] instead.
-  final ContentCache contentCache;
+  final ContentCache? contentCache;
 
   /// The options used by the context builder.
   final ContextBuilderOptions builderOptions;
 
   /// The scheduler used by any analysis drivers created through this interface.
-  AnalysisDriverScheduler analysisDriverScheduler;
+  late final AnalysisDriverScheduler analysisDriverScheduler;
 
   /// The performance log used by any analysis drivers created through this
   /// interface.
-  PerformanceLog performanceLog;
+  late final PerformanceLog performanceLog;
 
   /// If `true`, additional analysis data useful for testing is stored.
   bool retainDataForTesting = false;
 
   /// The byte store used by any analysis drivers created through this interface.
-  ByteStore byteStore;
+  late final ByteStore byteStore;
 
   /// The file content overlay used by analysis drivers. If this builder will be
   /// used to build analysis contexts, set the [contentCache] instead.
-  FileContentOverlay fileContentOverlay;
+  FileContentOverlay? fileContentOverlay;
 
   /// Whether any analysis driver created through this interface should support
   /// indexing and search.
@@ -100,19 +100,18 @@ class ContextBuilder {
   /// Initialize a newly created builder to be ready to build a context rooted in
   /// the directory with the given [rootDirectoryPath].
   ContextBuilder(this.resourceProvider, this.sdkManager, this.contentCache,
-      {ContextBuilderOptions options})
+      {ContextBuilderOptions? options})
       : builderOptions = options ?? ContextBuilderOptions();
 
   /// Return an analysis driver that is configured correctly to analyze code in
   /// the directory with the given [path].
   AnalysisDriver buildDriver(ContextRoot contextRoot) {
     String path = contextRoot.root;
-    AnalysisOptions options =
-        getAnalysisOptions(path, contextRoot: contextRoot);
+    var options = getAnalysisOptions(path, contextRoot: contextRoot);
     //_processAnalysisOptions(context, optionMap);
-    SummaryDataStore summaryData;
+    SummaryDataStore? summaryData;
     if (builderOptions.librarySummaryPaths != null) {
-      summaryData = SummaryDataStore(builderOptions.librarySummaryPaths);
+      summaryData = SummaryDataStore(builderOptions.librarySummaryPaths!);
     }
     Workspace workspace =
         ContextBuilder.createWorkspace(resourceProvider, path, this);
@@ -152,7 +151,7 @@ class ContextBuilder {
 
     // temporary plugin support:
     if (onCreateAnalysisDriver != null) {
-      onCreateAnalysisDriver(driver, analysisDriverScheduler, performanceLog,
+      onCreateAnalysisDriver!(driver, analysisDriverScheduler, performanceLog,
           resourceProvider, byteStore, fileContentOverlay, path, sf, options);
     }
     declareVariablesInDriver(driver);
@@ -160,8 +159,8 @@ class ContextBuilder {
   }
 
   /// Return an analysis options object containing the default option values.
-  AnalysisOptions createDefaultOptions() {
-    AnalysisOptions defaultOptions = builderOptions.defaultOptions;
+  AnalysisOptionsImpl createDefaultOptions() {
+    AnalysisOptions? defaultOptions = builderOptions.defaultOptions;
     if (defaultOptions == null) {
       return AnalysisOptionsImpl();
     }
@@ -203,7 +202,7 @@ class ContextBuilder {
   }
 
   SourceFactory createSourceFactory(String rootPath,
-      {SummaryDataStore summaryData}) {
+      {SummaryDataStore? summaryData}) {
     Workspace workspace =
         ContextBuilder.createWorkspace(resourceProvider, rootPath, this);
     DartSdk sdk = findSdk(workspace);
@@ -214,7 +213,7 @@ class ContextBuilder {
   }
 
   SourceFactory createSourceFactoryFromWorkspace(Workspace workspace,
-      {SummaryDataStore summaryData}) {
+      {SummaryDataStore? summaryData}) {
     DartSdk sdk = findSdk(workspace);
     if (summaryData != null && sdk is SummaryBasedDartSdk) {
       summaryData.addBundle(null, sdk.bundle);
@@ -225,8 +224,8 @@ class ContextBuilder {
   /// Add any [declaredVariables] to the list of declared variables used by the
   /// given analysis [driver].
   void declareVariablesInDriver(AnalysisDriver driver) {
-    Map<String, String> variables = builderOptions.declaredVariables;
-    if (variables != null && variables.isNotEmpty) {
+    var variables = builderOptions.declaredVariables;
+    if (variables.isNotEmpty) {
       driver.declaredVariables = DeclaredVariables.fromMap(variables);
       driver.configure();
     }
@@ -234,8 +233,8 @@ class ContextBuilder {
 
   /// Return the SDK that should be used to analyze code. Use the given
   /// [workspace] to locate the SDK.
-  DartSdk findSdk(Workspace workspace) {
-    String summaryPath = builderOptions.dartSdkSummaryPath;
+  DartSdk findSdk(Workspace? workspace) {
+    String? summaryPath = builderOptions.dartSdkSummaryPath;
     if (summaryPath != null) {
       return SummaryBasedDartSdk(summaryPath, true,
           resourceProvider: resourceProvider);
@@ -243,9 +242,9 @@ class ContextBuilder {
 
     DartSdk folderSdk;
     {
-      String sdkPath = sdkManager.defaultSdkDirectory;
+      String sdkPath = sdkManager!.defaultSdkDirectory;
       SdkDescription description = SdkDescription(sdkPath);
-      folderSdk = sdkManager.getSdk(description, () {
+      folderSdk = sdkManager!.getSdk(description, () {
         return FolderBasedDartSdk(
           resourceProvider,
           resourceProvider.getFolder(sdkPath),
@@ -260,7 +259,7 @@ class ContextBuilder {
       );
       if (embedderYamlSource != null) {
         var embedderYamlPath = embedderYamlSource.fullName;
-        var libFolder = resourceProvider.getFile(embedderYamlPath).parent;
+        var libFolder = resourceProvider.getFile(embedderYamlPath).parent!;
         EmbedderYamlLocator locator =
             EmbedderYamlLocator.forLibFolder(libFolder);
         Map<Folder, YamlMap> embedderMap = locator.embedderYamls;
@@ -281,8 +280,8 @@ class ContextBuilder {
   /// Return the analysis options that should be used to analyze code in the
   /// directory with the given [path]. Use [verbosePrint] to echo verbose
   /// information about the analysis options selection process.
-  AnalysisOptions getAnalysisOptions(String path,
-      {void Function(String text) verbosePrint, ContextRoot contextRoot}) {
+  AnalysisOptionsImpl getAnalysisOptions(String path,
+      {void Function(String text)? verbosePrint, ContextRoot? contextRoot}) {
     void verbose(String text) {
       if (verbosePrint != null) {
         verbosePrint(text);
@@ -298,8 +297,8 @@ class ContextBuilder {
         AnalysisOptionsProvider(sourceFactory);
 
     AnalysisOptionsImpl options = createDefaultOptions();
-    File optionsFile = getOptionsFile(path);
-    YamlMap optionMap;
+    File? optionsFile = getOptionsFile(path);
+    YamlMap? optionMap;
 
     if (optionsFile != null) {
       try {
@@ -314,7 +313,7 @@ class ContextBuilder {
       }
     } else {
       // Search for the default analysis options.
-      Source source;
+      Source? source;
       if (workspace is WorkspaceWithDefaultAnalysisOptions) {
         source = sourceFactory.forUri(WorkspaceWithDefaultAnalysisOptions.uri);
       } else {
@@ -338,7 +337,7 @@ class ContextBuilder {
     if (optionMap != null) {
       applyToAnalysisOptions(options, optionMap);
       if (builderOptions.argResults != null) {
-        applyAnalysisOptionFlags(options, builderOptions.argResults,
+        applyAnalysisOptionFlags(options, builderOptions.argResults!,
             verbosePrint: verbosePrint);
       }
     } else {
@@ -363,15 +362,15 @@ class ContextBuilder {
   /// If [forceSearch] is true, then don't return the default analysis options
   /// path. This allows cli to locate what *would* have been the analysis options
   /// file path, and super-impose the defaults over it in-place.
-  File getOptionsFile(String path, {bool forceSearch = false}) {
+  File? getOptionsFile(String path, {bool forceSearch = false}) {
     if (!forceSearch) {
-      String filePath = builderOptions.defaultAnalysisOptionsFilePath;
+      String? filePath = builderOptions.defaultAnalysisOptionsFilePath;
       if (filePath != null) {
         return resourceProvider.getFile(filePath);
       }
     }
     Folder root = resourceProvider.getFolder(path);
-    for (Folder folder = root; folder != null; folder = folder.parent) {
+    for (Folder? folder = root; folder != null; folder = folder.parent) {
       File file = folder
           .getChildAssumingFile(AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
       if (file.exists) {
@@ -383,8 +382,8 @@ class ContextBuilder {
 
   /// Return the `pubspec.yaml` file that should be used when analyzing code in
   /// the directory with the given [path], possibly `null`.
-  File _findPubspecFile(String path) {
-    var resource = resourceProvider.getResource(path);
+  File? _findPubspecFile(String path) {
+    Resource? resource = resourceProvider.getResource(path);
     while (resource != null) {
       if (resource is Folder) {
         File pubspecFile = resource.getChildAssumingFile('pubspec.yaml');
@@ -414,7 +413,7 @@ class ContextBuilder {
           PubWorkspace.find(resourceProvider, packageMap, rootPath) ??
           BasicWorkspace.find(resourceProvider, packageMap, rootPath);
     }
-    Workspace workspace = BazelWorkspace.find(resourceProvider, rootPath);
+    Workspace? workspace = BazelWorkspace.find(resourceProvider, rootPath);
     workspace ??= GnWorkspace.find(resourceProvider, rootPath);
     workspace ??=
         PackageBuildWorkspace.find(resourceProvider, packageMap, rootPath);
@@ -427,7 +426,7 @@ class ContextBuilder {
   /// directory contains a `.packages` file.
   static bool _hasPackageFileInPath(
       ResourceProvider resourceProvider, String rootPath) {
-    Folder folder = resourceProvider.getFolder(rootPath);
+    Folder? folder = resourceProvider.getFolder(rootPath);
     while (folder != null) {
       File file = folder.getChildAssumingFile('.packages');
       if (file.exists) {
@@ -443,35 +442,34 @@ class ContextBuilder {
 class ContextBuilderOptions {
   /// The results of parsing the command line arguments as defined by
   /// [defineAnalysisArguments] or `null` if none.
-  ArgResults argResults;
+  ArgResults? argResults;
 
   /// The file path of the file containing the summary of the SDK that should be
   /// used to "analyze" the SDK. This option should only be specified by
   /// command-line tools such as 'dartanalyzer' or 'ddc'.
-  String dartSdkSummaryPath;
+  String? dartSdkSummaryPath;
 
   /// The file path of the analysis options file that should be used in place of
   /// any file in the root directory or a parent of the root directory, or `null`
   /// if the normal lookup mechanism should be used.
-  String defaultAnalysisOptionsFilePath;
+  String? defaultAnalysisOptionsFilePath;
 
-  /// A table mapping variable names to values for the declared variables, or
-  /// `null` if no additional variables should be declared.
-  Map<String, String> declaredVariables;
+  /// A table mapping variable names to values for the declared variables.
+  Map<String, String> declaredVariables = {};
 
   /// The default analysis options that should be used unless some or all of them
   /// are overridden in the analysis options file, or `null` if the default
   /// defaults should be used.
-  AnalysisOptions defaultOptions;
+  AnalysisOptions? defaultOptions;
 
   /// The file path of the .packages file that should be used in place of any
   /// file found using the normal (Package Specification DEP) lookup mechanism,
   /// or `null` if the normal lookup mechanism should be used.
-  String defaultPackageFilePath;
+  String? defaultPackageFilePath;
 
   /// A list of the paths of summary files that are to be used, or `null` if no
   /// summary information is available.
-  List<String> librarySummaryPaths;
+  List<String>? librarySummaryPaths;
 
   /// Initialize a newly created set of options
   ContextBuilderOptions();
@@ -489,7 +487,7 @@ class EmbedderYamlLocator {
 
   /// Initialize a newly created locator by processing the packages in the given
   /// [packageMap].
-  EmbedderYamlLocator(Map<String, List<Folder>> packageMap) {
+  EmbedderYamlLocator(Map<String, List<Folder>>? packageMap) {
     if (packageMap != null) {
       _processPackageMap(packageMap);
     }
@@ -507,7 +505,7 @@ class EmbedderYamlLocator {
 
   /// Refresh the map of located files to those found by processing the given
   /// [packageMap].
-  void refresh(Map<String, List<Folder>> packageMap) {
+  void refresh(Map<String, List<Folder>>? packageMap) {
     // Clear existing.
     embedderYamls.clear();
     if (packageMap != null) {
@@ -532,7 +530,7 @@ class EmbedderYamlLocator {
   /// `_embedder.yaml` files that are found in any of the folders.
   void _processPackage(List<Folder> libDirs) {
     for (Folder libDir in libDirs) {
-      String embedderYaml = _readEmbedderYaml(libDir);
+      String? embedderYaml = _readEmbedderYaml(libDir);
       if (embedderYaml != null) {
         _processEmbedderYaml(libDir, embedderYaml);
       }
@@ -544,10 +542,10 @@ class EmbedderYamlLocator {
     packageMap.values.forEach(_processPackage);
   }
 
-  /// Read and return the contents of [libDir]/[EMBEDDER_FILE_NAME], or `null` if
-  /// the file doesn't exist.
-  String _readEmbedderYaml(Folder libDir) {
-    File file = libDir.getChild(EMBEDDER_FILE_NAME);
+  /// Read and return the contents of [libDir]/[EMBEDDER_FILE_NAME], or `null`
+  /// if the file doesn't exist.
+  String? _readEmbedderYaml(Folder libDir) {
+    var file = libDir.getChildAssumingFile(EMBEDDER_FILE_NAME);
     try {
       return file.readAsStringSync();
     } on FileSystemException {

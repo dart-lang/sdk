@@ -15,12 +15,12 @@ abstract class UriConverter {
   ///
   /// Throws an `ArgumentError` if the [path] is `null` or is not a valid
   /// absolute file path.
-  Uri pathToUri(String path, {String containingPath});
+  Uri? pathToUri(String path, {String? containingPath});
 
   /// Return the absolute path of the file to which the absolute [uri] resolves,
   /// or `null` if the [uri] cannot be resolved in this converter’s context.
   ///
   /// Throws an `ArgumentError` if the [uri] is `null` or is not an absolute
   /// URI.
-  String uriToPath(Uri uri);
+  String? uriToPath(Uri uri);
 }

@@ -13,8 +13,8 @@ class LintCode extends ErrorCode {
   const LintCode(
     String name,
     String message, {
-    String correction,
-    String uniqueName,
+    String? correction,
+    String? uniqueName,
   }) : super(
           correction: correction,
           message: message,
@@ -42,7 +42,7 @@ class LintCode extends ErrorCode {
 @Deprecated('Use SecurityLintCode and its uniqueName')
 class LintCodeWithUniqueName extends LintCode {
   const LintCodeWithUniqueName(String name, String uniqueName, String message,
-      {String correction})
+      {String? correction})
       : super(name, message, uniqueName: uniqueName, correction: correction);
 }
 
@@ -52,7 +52,7 @@ class LintCodeWithUniqueName extends LintCode {
 /// suppressed with `// ignore:` or `// ignore_for_file:` comments.
 class SecurityLintCode extends LintCode {
   const SecurityLintCode(String name, String message,
-      {String uniqueName, String correction})
+      {String? uniqueName, String? correction})
       : super(name, message,
             uniqueName: uniqueName ?? 'LintCode.$name', correction: correction);
 
@@ -64,6 +64,6 @@ class SecurityLintCode extends LintCode {
 class SecurityLintCodeWithUniqueName extends SecurityLintCode {
   const SecurityLintCodeWithUniqueName(
       String name, String uniqueName, String message,
-      {String correction})
+      {String? correction})
       : super(name, message, uniqueName: uniqueName, correction: correction);
 }

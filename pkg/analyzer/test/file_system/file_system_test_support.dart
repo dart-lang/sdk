@@ -4,7 +4,6 @@
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -37,22 +36,22 @@ abstract class FileSystemTestSupport {
   /// have the [defaultFileContent]. If the file does not exist then the content
   /// is ignored. If a [filePath] is provided, then the file will be located at
   /// that path; otherwise the file will have the [defaultFilePath].
-  File getFile({@required bool exists, String content, String filePath});
+  File getFile({required bool exists, String? content, String? filePath});
 
   /// Return a folder accessed through the resource provider. If [exists] is
   /// `true` then the returned folder will exist, otherwise it won't. If a
   /// [folderPath] is provided, then the folder will be located at that path;
   /// otherwise the folder will have the [defaultFolderPath].
-  Folder getFolder({@required bool exists, String folderPath});
+  Folder getFolder({required bool exists, String? folderPath});
 
   /// Return a file path composed of the provided parts as defined by the
   /// current path context.
   String join(String part1,
-          [String part2,
-          String part3,
-          String part4,
-          String part5,
-          String part6]) =>
+          [String? part2,
+          String? part3,
+          String? part4,
+          String? part5,
+          String? part6]) =>
       provider.pathContext.join(part1, part2, part3, part4, part5, part6);
 }
 
@@ -189,8 +188,7 @@ mixin FileTestMixin implements FileSystemTestSupport {
   test_parent() {
     File file = getFile(exists: true);
 
-    Folder parent = file.parent;
-    expect(parent, isNotNull);
+    var parent = file.parent!;
     expect(parent.exists, isTrue);
     expect(parent.path, defaultFolderPath);
   }
@@ -426,7 +424,7 @@ mixin FolderTestMixin implements FileSystemTestSupport {
   test_delete() {
     File file =
         getFile(exists: true, filePath: join(defaultFolderPath, 'myFile'));
-    Folder folder = file.parent;
+    var folder = file.parent!;
     expect(folder.exists, isTrue);
     expect(file.exists, isTrue);
 
@@ -596,7 +594,7 @@ mixin FolderTestMixin implements FileSystemTestSupport {
   test_parent() {
     Folder folder = getFolder(exists: true);
 
-    Folder parent = folder.parent;
+    var parent = folder.parent!;
     expect(parent.path, equals(tempPath));
     //
     // Since the OS is in control of where tempPath is, we don't know how far it
@@ -604,7 +602,7 @@ mixin FolderTestMixin implements FileSystemTestSupport {
     // in a folder with a shorter path, and that we reach the root eventually.
     //
     while (true) {
-      Folder grandParent = parent.parent;
+      var grandParent = parent.parent;
       if (grandParent == null) {
         break;
       }
@@ -645,8 +643,8 @@ mixin FolderTestMixin implements FileSystemTestSupport {
       }
     }
     for (String fileName in sourceFiles.keys) {
-      File sourceChild = sourceFiles[fileName];
-      File copiedChild = copyFiles[fileName];
+      var sourceChild = sourceFiles[fileName]!;
+      var copiedChild = copyFiles[fileName];
       if (copiedChild == null) {
         fail('Failed to copy file ${sourceChild.path}');
       }
@@ -654,8 +652,8 @@ mixin FolderTestMixin implements FileSystemTestSupport {
           reason: 'Incorrectly copied file ${sourceChild.path}');
     }
     for (String fileName in sourceFolders.keys) {
-      Folder sourceChild = sourceFolders[fileName];
-      Folder copiedChild = copyFolders[fileName];
+      var sourceChild = sourceFolders[fileName]!;
+      var copiedChild = copyFolders[fileName];
       if (copiedChild == null) {
         fail('Failed to copy folder ${sourceChild.path}');
       }
@@ -700,14 +698,14 @@ mixin ResourceProviderTestMixin implements FileSystemTestSupport {
   test_getModificationTimes_existing() async {
     Source source = getFile(exists: true).createSource();
 
-    List<int> times = await provider.getModificationTimes([source]);
+    var times = await provider.getModificationTimes([source]);
     expect(times, [source.modificationStamp]);
   }
 
   test_getModificationTimes_notExisting() async {
     Source source = getFile(exists: false).createSource();
 
-    List<int> times = await provider.getModificationTimes([source]);
+    var times = await provider.getModificationTimes([source]);
     expect(times, [-1]);
   }
 
@@ -733,10 +731,10 @@ mixin ResourceProviderTestMixin implements FileSystemTestSupport {
   }
 
   test_getStateLocation_uniqueness() {
-    Folder folderOne = provider.getStateLocation('one');
+    var folderOne = provider.getStateLocation('one')!;
     expect(folderOne, isNotNull);
 
-    Folder folderTwo = provider.getStateLocation('two');
+    var folderTwo = provider.getStateLocation('two')!;
     expect(folderTwo, isNotNull);
     expect(folderTwo, isNot(equals(folderOne)));
 

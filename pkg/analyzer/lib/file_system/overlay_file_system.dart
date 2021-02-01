@@ -9,7 +9,6 @@ import 'dart:typed_data';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/source/source_resource.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:watcher/watcher.dart';
 
@@ -67,8 +66,10 @@ class OverlayResourceProvider implements ResourceProvider {
   }
 
   @override
-  Folder getStateLocation(String pluginId) =>
-      _OverlayFolder(this, baseProvider.getStateLocation(pluginId));
+  Folder? getStateLocation(String pluginId) {
+    var location = baseProvider.getStateLocation(pluginId);
+    return location != null ? _OverlayFolder(this, location) : null;
+  }
 
   /// Return `true` if there is an overlay associated with the file at the given
   /// [path].
@@ -87,15 +88,7 @@ class OverlayResourceProvider implements ResourceProvider {
   /// to have the given [content] and [modificationStamp] even if the file is
   /// modified in the base resource provider.
   void setOverlay(String path,
-      {@required String content, @required int modificationStamp}) {
-    if (content == null) {
-      throw ArgumentError(
-          'OverlayResourceProvider.setOverlay: content cannot be null');
-    } else if (modificationStamp == null) {
-      throw ArgumentError(
-          'OverlayResourceProvider.setOverlay: modificationStamp cannot be '
-          'null');
-    }
+      {required String content, required int modificationStamp}) {
     _overlayContent[path] = content;
     _overlayModificationStamps[path] = modificationStamp;
   }
@@ -104,20 +97,21 @@ class OverlayResourceProvider implements ResourceProvider {
   /// file with the [newPath].
   void _copyOverlay(String oldPath, String newPath) {
     if (hasOverlay(oldPath)) {
-      _overlayContent[newPath] = _overlayContent[oldPath];
-      _overlayModificationStamps[newPath] = _overlayModificationStamps[oldPath];
+      _overlayContent[newPath] = _overlayContent[oldPath]!;
+      _overlayModificationStamps[newPath] =
+          _overlayModificationStamps[oldPath]!;
     }
   }
 
   /// Return the content of the overlay of the file at the given [path], or
   /// `null` if there is no overlay for the specified file.
-  String _getOverlayContent(String path) {
+  String? _getOverlayContent(String path) {
     return _overlayContent[path];
   }
 
   /// Return the modification stamp of the overlay of the file at the given
   /// [path], or `null` if there is no overlay for the specified file.
-  int _getOverlayModificationStamp(String path) {
+  int? _getOverlayModificationStamp(String path) {
     return _overlayModificationStamps[path];
   }
 
@@ -147,7 +141,7 @@ class _OverlayFile extends _OverlayResource implements File {
 
   @override
   int get lengthSync {
-    String content = provider._getOverlayContent(path);
+    String? content = provider._getOverlayContent(path);
     if (content != null) {
       return content.length;
     }
@@ -156,7 +150,7 @@ class _OverlayFile extends _OverlayResource implements File {
 
   @override
   int get modificationStamp {
-    int stamp = provider._getOverlayModificationStamp(path);
+    int? stamp = provider._getOverlayModificationStamp(path);
     if (stamp != null) {
       return stamp;
     }
@@ -182,7 +176,7 @@ class _OverlayFile extends _OverlayResource implements File {
   }
 
   @override
-  Source createSource([Uri uri]) =>
+  Source createSource([Uri? uri]) =>
       FileSource(this, uri ?? provider.pathContext.toUri(path));
 
   @override
@@ -196,8 +190,8 @@ class _OverlayFile extends _OverlayResource implements File {
   }
 
   @override
-  Uint8List readAsBytesSync() {
-    String content = provider._getOverlayContent(path);
+  List<int> readAsBytesSync() {
+    String? content = provider._getOverlayContent(path);
     if (content != null) {
       return utf8.encode(content) as Uint8List;
     }
@@ -206,7 +200,7 @@ class _OverlayFile extends _OverlayResource implements File {
 
   @override
   String readAsStringSync() {
-    String content = provider._getOverlayContent(path);
+    String? content = provider._getOverlayContent(path);
     if (content != null) {
       return content;
     }
@@ -217,9 +211,11 @@ class _OverlayFile extends _OverlayResource implements File {
   File renameSync(String newPath) {
     File newFile = _file.renameSync(newPath);
     if (provider.hasOverlay(path)) {
-      provider.setOverlay(newPath,
-          content: provider._getOverlayContent(path),
-          modificationStamp: provider._getOverlayModificationStamp(path));
+      provider.setOverlay(
+        newPath,
+        content: provider._getOverlayContent(path)!,
+        modificationStamp: provider._getOverlayModificationStamp(path)!,
+      );
       provider.removeOverlay(path);
     }
     return _OverlayFile(provider, newFile);
@@ -353,8 +349,8 @@ abstract class _OverlayResource implements Resource {
   int get hashCode => path.hashCode;
 
   @override
-  Folder get parent {
-    Folder parent = _resource.parent;
+  Folder? get parent {
+    Folder? parent = _resource.parent;
     if (parent == null) {
       return null;
     }

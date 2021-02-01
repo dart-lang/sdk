@@ -1407,7 +1407,7 @@ class LowerBoundTest extends _BoundsTestBase {
   }
 
   test_typeParameter() {
-    void check({DartType bound, DartType T2}) {
+    void check({DartType? bound, required DartType T2}) {
       var T1 = typeParameterTypeNone(
         typeParameter('T', bound: bound),
       );
@@ -2094,14 +2094,14 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     var bElementStar = class_(name: 'B', superType: aStar);
     var bElementNone = class_(name: 'B', superType: aNone);
 
-    InterfaceTypeImpl _bTypeStarElement(NullabilitySuffix nullability) {
+    InterfaceType _bTypeStarElement(NullabilitySuffix nullability) {
       return interfaceType(
         bElementStar,
         nullabilitySuffix: nullability,
       );
     }
 
-    InterfaceTypeImpl _bTypeNoneElement(NullabilitySuffix nullability) {
+    InterfaceType _bTypeNoneElement(NullabilitySuffix nullability) {
       return interfaceType(
         bElementNone,
         nullabilitySuffix: nullability,
@@ -2310,14 +2310,14 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     var cElementNone = class_(name: 'C', superType: aNone);
     var cElementStar = class_(name: 'C', superType: aStar);
 
-    InterfaceTypeImpl bTypeElementNone(NullabilitySuffix nullability) {
+    InterfaceType bTypeElementNone(NullabilitySuffix nullability) {
       return interfaceType(
         bElementNone,
         nullabilitySuffix: nullability,
       );
     }
 
-    InterfaceTypeImpl bTypeElementStar(NullabilitySuffix nullability) {
+    InterfaceType bTypeElementStar(NullabilitySuffix nullability) {
       return interfaceType(
         bElementStar,
         nullabilitySuffix: nullability,
@@ -2332,14 +2332,14 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     var bStarStar = bTypeElementStar(NullabilitySuffix.star);
     var bStarNone = bTypeElementStar(NullabilitySuffix.none);
 
-    InterfaceTypeImpl cTypeElementNone(NullabilitySuffix nullability) {
+    InterfaceType cTypeElementNone(NullabilitySuffix nullability) {
       return interfaceType(
         cElementNone,
         nullabilitySuffix: nullability,
       );
     }
 
-    InterfaceTypeImpl cTypeElementStar(NullabilitySuffix nullability) {
+    InterfaceType cTypeElementStar(NullabilitySuffix nullability) {
       return interfaceType(
         cElementStar,
         nullabilitySuffix: nullability,
@@ -3260,8 +3260,8 @@ class UpperBoundTest extends _BoundsTestBase {
   void test_typeParameters_multi_basic() {
     // class A<out T, inout U, in V>
     var T = typeParameter('T', variance: Variance.covariant);
-    var U = typeParameter('T', variance: Variance.invariant);
-    var V = typeParameter('T', variance: Variance.contravariant);
+    var U = typeParameter('U', variance: Variance.invariant);
+    var V = typeParameter('V', variance: Variance.contravariant);
     var A = class_(name: 'A', typeParameters: [T, U, V]);
 
     // A<num, num, num>
@@ -3270,7 +3270,7 @@ class UpperBoundTest extends _BoundsTestBase {
       A,
       typeArguments: [numNone, numNone, numNone],
     );
-    var A_num_int_num = interfaceTypeNone(
+    var A_int_num_int = interfaceTypeNone(
       A,
       typeArguments: [intNone, numNone, intNone],
     );
@@ -3281,7 +3281,7 @@ class UpperBoundTest extends _BoundsTestBase {
       typeArguments: [numNone, numNone, intNone],
     );
 
-    _checkLeastUpperBound(A_num_num_num, A_num_int_num, A_num_num_int);
+    _checkLeastUpperBound(A_num_num_num, A_int_num_int, A_num_num_int);
   }
 
   void test_typeParameters_multi_objectInterface() {
@@ -3447,7 +3447,7 @@ actual: $resultStr
     });
   }
 
-  String _typeParametersStr(TypeImpl type) {
+  String _typeParametersStr(DartType type) {
     var typeStr = '';
 
     var typeParameterCollector = _TypeParameterCollector();
@@ -3458,8 +3458,7 @@ actual: $resultStr
     return typeStr;
   }
 
-  String _typeString(TypeImpl type) {
-    if (type == null) return null;
+  String _typeString(DartType type) {
     return type.getDisplayString(withNullability: true) +
         _typeParametersStr(type);
   }

@@ -12,8 +12,8 @@ class Cache<K, V> {
 
   Cache(this._maxSizeBytes, this._meter);
 
-  V get(K key, V Function() getNotCached) {
-    V value = _map.remove(key);
+  V? get(K key, V? Function() getNotCached) {
+    V? value = _map.remove(key);
     if (value == null) {
       value = getNotCached();
       if (value != null) {
@@ -28,7 +28,7 @@ class Cache<K, V> {
   }
 
   void put(K key, V value) {
-    V oldValue = _map[key];
+    V? oldValue = _map[key];
     if (oldValue != null) {
       _currentSizeBytes -= _meter(oldValue);
     }
@@ -47,7 +47,7 @@ class Cache<K, V> {
         break;
       }
       K key = _map.keys.first;
-      V value = _map.remove(key);
+      V value = _map.remove(key)!;
       _currentSizeBytes -= _meter(value);
     }
   }

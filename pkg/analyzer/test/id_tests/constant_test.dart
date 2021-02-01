@@ -41,7 +41,7 @@ class ConstantsDataComputer extends DataComputer<String> {
   bool get supportsErrors => true;
 
   @override
-  String computeErrorData(TestConfig config, TestingData testingData, Id id,
+  String? computeErrorData(TestConfig config, TestingData testingData, Id id,
       List<AnalysisError> errors) {
     var errorCodes = errors.map((e) => e.errorCode).where((errorCode) =>
         errorCode !=
@@ -52,7 +52,7 @@ class ConstantsDataComputer extends DataComputer<String> {
   @override
   void computeUnitData(TestingData testingData, CompilationUnit unit,
       Map<Id, ActualData<String>> actualMap) {
-    ConstantsDataExtractor(unit.declaredElement.source.uri, actualMap)
+    ConstantsDataExtractor(unit.declaredElement!.source.uri, actualMap)
         .run(unit);
   }
 }
@@ -62,7 +62,7 @@ class ConstantsDataExtractor extends AstDataExtractor<String> {
       : super(uri, actualMap);
 
   @override
-  String computeNodeValue(Id id, AstNode node) {
+  String? computeNodeValue(Id id, AstNode node) {
     if (node is Identifier) {
       var element = node.staticElement;
       if (element is PropertyAccessorElement && element.isSynthetic) {
@@ -92,27 +92,27 @@ class ConstantsDataExtractor extends AstDataExtractor<String> {
       } else if (type.isDartCoreSymbol) {
         return 'Symbol(${value.toSymbolValue()})';
       } else if (type.isDartCoreSet) {
-        var elements = value.toSetValue().map(_stringify).join(',');
+        var elements = value.toSetValue()!.map(_stringify).join(',');
         return '${_stringifyType(type)}($elements)';
       } else if (type.isDartCoreList) {
-        var elements = value.toListValue().map(_stringify).join(',');
+        var elements = value.toListValue()!.map(_stringify).join(',');
         return '${_stringifyType(type)}($elements)';
       } else if (type.isDartCoreMap) {
-        var elements = value.toMapValue().entries.map((entry) {
-          var key = _stringify(entry.key);
-          var value = _stringify(entry.value);
+        var elements = value.toMapValue()!.entries.map((entry) {
+          var key = _stringify(entry.key!);
+          var value = _stringify(entry.value!);
           return '$key:$value';
         }).join(',');
         return '${_stringifyType(type)}($elements)';
       } else {
         // TODO(paulberry): Add `isDartCoreType` to properly recognize type
         // literal constants.
-        return 'TypeLiteral(${_stringifyType(value.toTypeValue())})';
+        return 'TypeLiteral(${_stringifyType(value.toTypeValue()!)})';
       }
       // TODO(paulberry): Support object constants.
     } else if (type is FunctionType) {
-      var element = value.toFunctionValue();
-      return 'Function(${element.name},type=${_stringifyType(value.type)})';
+      var element = value.toFunctionValue()!;
+      return 'Function(${element.name},type=${_stringifyType(value.type!)})';
     }
     throw UnimplementedError('_stringify for type $type');
   }

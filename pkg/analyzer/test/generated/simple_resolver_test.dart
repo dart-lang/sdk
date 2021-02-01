@@ -431,7 +431,7 @@ export 'a.dart';
 ''');
 
     var library = result.libraryElement;
-    var main = library.entryPoint;
+    var main = library.entryPoint!;
 
     expect(main, isNotNull);
     expect(main.library, isNot(same(library)));
@@ -443,7 +443,7 @@ main() {}
 ''');
 
     var library = result.libraryElement;
-    var main = library.entryPoint;
+    var main = library.entryPoint!;
 
     expect(main, isNotNull);
     expect(main.library, same(library));
@@ -1112,7 +1112,7 @@ main() {
   /// Verify that all of the identifiers in the [result] have been resolved.
   void verifyTestResolved() {
     var verifier = ResolutionVerifier();
-    result.unit.accept(verifier);
+    result.unit!.accept(verifier);
     verifier.assertResolved();
   }
 

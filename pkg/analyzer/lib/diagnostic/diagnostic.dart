@@ -17,7 +17,7 @@ abstract class Diagnostic {
 
   /// A description of how to fix the problem, or `null` if there is no such
   /// description.
-  String get correctionMessage;
+  String? get correctionMessage;
 
   /// A message describing what is wrong and why.
   DiagnosticMessage get problemMessage;

@@ -13,18 +13,18 @@ import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/type_promotion_manager.dart';
-import 'package:meta/meta.dart';
+import 'package:collection/collection.dart';
 
 class FunctionExpressionResolver {
   final ResolverVisitor _resolver;
-  final MigrationResolutionHooks _migrationResolutionHooks;
+  final MigrationResolutionHooks? _migrationResolutionHooks;
   final InvocationInferenceHelper _inferenceHelper;
   final TypePromotionManager _promoteManager;
 
   FunctionExpressionResolver({
-    @required ResolverVisitor resolver,
-    @required MigrationResolutionHooks migrationResolutionHooks,
-    @required TypePromotionManager promoteManager,
+    required ResolverVisitor resolver,
+    required MigrationResolutionHooks? migrationResolutionHooks,
+    required TypePromotionManager promoteManager,
   })  : _resolver = resolver,
         _migrationResolutionHooks = migrationResolutionHooks,
         _inferenceHelper = resolver.inferenceHelper,
@@ -36,11 +36,11 @@ class FunctionExpressionResolver {
 
   void resolve(FunctionExpression node) {
     var isFunctionDeclaration = node.parent is FunctionDeclaration;
-    var body = node.body;
+    var body = node.body!;
 
     if (_resolver.flowAnalysis != null) {
-      if (_resolver.flowAnalysis.flow != null && !isFunctionDeclaration) {
-        _resolver.flowAnalysis
+      if (_resolver.flowAnalysis!.flow != null && !isFunctionDeclaration) {
+        _resolver.flowAnalysis!
             .executableDeclaration_enter(node, node.parameters, true);
       }
     } else {
@@ -63,15 +63,15 @@ class FunctionExpressionResolver {
     _resolve2(node);
 
     if (_resolver.flowAnalysis != null) {
-      if (_resolver.flowAnalysis.flow != null && !isFunctionDeclaration) {
-        var bodyContext = BodyInferenceContext.of(node.body);
+      if (_resolver.flowAnalysis!.flow != null && !isFunctionDeclaration) {
+        var bodyContext = BodyInferenceContext.of(node.body!);
         _resolver.checkForBodyMayCompleteNormally(
           returnType: bodyContext?.contextType,
           body: body,
           errorNode: body,
         );
-        _resolver.flowAnalysis.flow?.functionExpression_end();
-        _resolver.nullSafetyDeadCodeVerifier?.flowEnd(node);
+        _resolver.flowAnalysis!.flow?.functionExpression_end();
+        _resolver.nullSafetyDeadCodeVerifier.flowEnd(node);
       }
     } else {
       _promoteManager.exitFunctionBody();
@@ -80,7 +80,7 @@ class FunctionExpressionResolver {
 
   /// Infer types of implicitly typed formal parameters.
   void _inferFormalParameters(
-    FormalParameterList node,
+    FormalParameterList? node,
     FunctionType contextType,
   ) {
     if (node == null) {
@@ -90,7 +90,7 @@ class FunctionExpressionResolver {
     void inferType(ParameterElementImpl p, DartType inferredType) {
       // Check that there is no declared type, and that we have not already
       // inferred a type in some fashion.
-      if (p.hasImplicitType && (p.type == null || p.type.isDynamic)) {
+      if (p.hasImplicitType && p.type.isDynamic) {
         // If no type is declared for a parameter and there is a
         // corresponding parameter in the context type schema with type
         // schema `K`, the parameter is given an inferred type `T` where `T`
@@ -105,8 +105,8 @@ class FunctionExpressionResolver {
               : _typeSystem.objectStar;
         }
         if (_migrationResolutionHooks != null) {
-          inferredType = _migrationResolutionHooks.modifyInferredParameterType(
-              p, inferredType);
+          inferredType = _migrationResolutionHooks!
+              .modifyInferredParameterType(p, inferredType);
         } else {
           inferredType = _typeSystem.nonNullifyLegacy(inferredType);
         }
@@ -116,14 +116,15 @@ class FunctionExpressionResolver {
       }
     }
 
-    List<ParameterElement> parameters = node.parameterElements;
+    var parameters = node.parameterElements.whereNotNull();
     {
       Iterator<ParameterElement> positional =
           parameters.where((p) => p.isPositional).iterator;
       Iterator<ParameterElement> fnPositional =
           contextType.parameters.where((p) => p.isPositional).iterator;
       while (positional.moveNext() && fnPositional.moveNext()) {
-        inferType(positional.current, fnPositional.current.type);
+        inferType(positional.current as ParameterElementImpl,
+            fnPositional.current.type);
       }
     }
 
@@ -131,11 +132,11 @@ class FunctionExpressionResolver {
       Map<String, DartType> namedParameterTypes =
           contextType.namedParameterTypes;
       Iterable<ParameterElement> named = parameters.where((p) => p.isNamed);
-      for (ParameterElementImpl p in named) {
+      for (var p in named) {
         if (!namedParameterTypes.containsKey(p.name)) {
           continue;
         }
-        inferType(p, namedParameterTypes[p.name]);
+        inferType(p as ParameterElementImpl, namedParameterTypes[p.name]!);
       }
     }
   }
@@ -143,7 +144,7 @@ class FunctionExpressionResolver {
   /// Infers the return type of a local function, either a lambda or
   /// (in strong mode) a local function declaration.
   DartType _inferLocalFunctionReturnType(FunctionExpression node) {
-    FunctionBody body = node.body;
+    var body = node.body;
     return InferenceContext.getContext(body) ?? DynamicTypeImpl.instance;
   }
 
@@ -152,8 +153,8 @@ class FunctionExpressionResolver {
   ///
   /// Return `null` is the number of element in [typeParameterList] is not
   /// the same as the number of type parameters in the [type].
-  FunctionType _matchTypeParameters(
-      TypeParameterList typeParameterList, FunctionType type) {
+  FunctionType? _matchTypeParameters(
+      TypeParameterList? typeParameterList, FunctionType type) {
     if (typeParameterList == null) {
       if (type.typeFormals.isEmpty) {
         return type;
@@ -167,7 +168,7 @@ class FunctionExpressionResolver {
     }
 
     return type.instantiate(typeParameters.map((typeParameter) {
-      return typeParameter.declaredElement.instantiate(
+      return typeParameter.declaredElement!.instantiate(
         nullabilitySuffix: _resolver.noneOrStarSuffix,
       );
     }).toList());
@@ -188,7 +189,7 @@ class FunctionExpressionResolver {
     var parent = node.parent;
     if (parent is FunctionDeclaration) {
       // Local function without declared return type.
-      return node.parent.parent is FunctionDeclarationStatement &&
+      return parent.parent is FunctionDeclarationStatement &&
           parent.returnType == null;
     } else {
       // Pure function expression.

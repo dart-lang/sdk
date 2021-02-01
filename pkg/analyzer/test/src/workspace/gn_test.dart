@@ -23,7 +23,7 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
     newFile('/ws/some/code/BUILD.gn');
     var targetFile = newFile('/ws/some/code/lib/code.dart');
 
-    var package = workspace.findPackageFor(targetFile.path);
+    var package = workspace.findPackageFor(targetFile.path)!;
     // A file that is _not_ in this package is not required to have a BUILD.gn
     // file above it, for simplicity and reduced I/O.
     expect(
@@ -37,7 +37,7 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
     newFile('/ws/some/code/BUILD.gn');
     var targetFile = newFile('/ws/some/code/lib/code.dart');
 
-    var package = workspace.findPackageFor(targetFile.path);
+    var package = workspace.findPackageFor(targetFile.path)!;
     expect(package.contains(TestSource(convertPath('/ws2/some/file.dart'))),
         isFalse);
   }
@@ -51,7 +51,7 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
     var targetBinFile = newFile('/ws/some/code/bin/code.dart');
     var targetTestFile = newFile('/ws/some/code/test/code_test.dart');
 
-    var package = workspace.findPackageFor(targetFile.path);
+    var package = workspace.findPackageFor(targetFile.path)!;
     expect(package.contains(TestSource(targetFile2.path)), isTrue);
     expect(package.contains(TestSource(targetFile3.path)), isTrue);
     expect(package.contains(TestSource(targetBinFile.path)), isTrue);
@@ -66,7 +66,7 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
     newFile('/ws/some/code/testing/lib/testing.dart');
 
     var package =
-        workspace.findPackageFor(convertPath('/ws/some/code/lib/code.dart'));
+        workspace.findPackageFor(convertPath('/ws/some/code/lib/code.dart'))!;
     expect(
         package.contains(
             TestSource(convertPath('/ws/some/code/testing/lib/testing.dart'))),
@@ -78,8 +78,7 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
     newFile('/ws/some/code/BUILD.gn');
     var targetFile = newFile('/ws/some/code/lib/code.dart');
 
-    var package = workspace.findPackageFor(targetFile.path);
-    expect(package, isNotNull);
+    var package = workspace.findPackageFor(targetFile.path)!;
     expect(package.root, convertPath('/ws/some/code'));
     expect(package.workspace, equals(workspace));
   }
@@ -97,7 +96,7 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
     GnWorkspace workspace = _buildStandardGnWorkspace();
     newFile('/ws/some/code/BUILD.gn');
     var libraryPath = newFile('/ws/some/code/lib/code.dart').path;
-    var package = workspace.findPackageFor(libraryPath);
+    var package = workspace.findPackageFor(libraryPath)!;
     var packageMap = package.packagesAvailableTo(libraryPath);
     expect(packageMap.keys, unorderedEquals(['p1', 'workspace']));
   }
@@ -127,7 +126,7 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
 }''');
     newFolder('/ws/some/code');
     var gnWorkspace =
-        GnWorkspace.find(resourceProvider, convertPath('/ws/some/code'));
+        GnWorkspace.find(resourceProvider, convertPath('/ws/some/code'))!;
     expect(gnWorkspace.isBazel, isFalse);
     return gnWorkspace;
   }
@@ -137,7 +136,7 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
 class GnWorkspaceTest with ResourceProviderMixin {
   void test_find_noJiriRoot() {
     newFolder('/workspace');
-    GnWorkspace workspace =
+    var workspace =
         GnWorkspace.find(resourceProvider, convertPath('/workspace'));
     expect(workspace, isNull);
   }
@@ -145,7 +144,7 @@ class GnWorkspaceTest with ResourceProviderMixin {
   void test_find_noPackagesFiles() {
     newFolder('/workspace/.jiri_root');
     newFolder('/workspace/some/code');
-    GnWorkspace workspace =
+    var workspace =
         GnWorkspace.find(resourceProvider, convertPath('/workspace'));
     expect(workspace, isNull);
   }
@@ -164,9 +163,8 @@ class GnWorkspaceTest with ResourceProviderMixin {
     newFile('/workspace/.fx-build-dir', content: '$buildDir\n');
     newFile(
         '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json');
-    GnWorkspace workspace =
-        GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'));
-    expect(workspace, isNotNull);
+    var workspace =
+        GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'))!;
     expect(workspace.root, convertPath('/workspace'));
   }
 
@@ -191,12 +189,11 @@ class GnWorkspaceTest with ResourceProviderMixin {
     }
   ]
 }''');
-    GnWorkspace workspace =
-        GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'));
-    expect(workspace, isNotNull);
+    var workspace =
+        GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'))!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.packageMap.length, 1);
-    expect(workspace.packageMap['flutter'][0].path,
+    expect(workspace.packageMap['flutter']![0].path,
         convertPath("$packageLocation/lib"));
   }
 
@@ -221,12 +218,11 @@ class GnWorkspaceTest with ResourceProviderMixin {
     }
   ]
 }''');
-    GnWorkspace workspace =
-        GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'));
-    expect(workspace, isNotNull);
+    var workspace =
+        GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'))!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.packageMap.length, 1);
-    expect(workspace.packageMap['flutter'][0].path,
+    expect(workspace.packageMap['flutter']![0].path,
         convertPath("$packageLocation/lib"));
   }
 
@@ -249,12 +245,11 @@ class GnWorkspaceTest with ResourceProviderMixin {
     }
   ]
 }''');
-    GnWorkspace workspace =
-        GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'));
-    expect(workspace, isNotNull);
+    var workspace =
+        GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'))!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.packageMap.length, 1);
-    expect(workspace.packageMap['flutter'][0].path,
+    expect(workspace.packageMap['flutter']![0].path,
         convertPath("$packageLocation/lib"));
   }
 
@@ -278,12 +273,11 @@ class GnWorkspaceTest with ResourceProviderMixin {
     }
   ]
 }''');
-    GnWorkspace workspace =
-        GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'));
-    expect(workspace, isNotNull);
+    var workspace =
+        GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'))!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.packageMap.length, 1);
-    expect(workspace.packageMap['flutter'][0].path,
+    expect(workspace.packageMap['flutter']![0].path,
         convertPath("$packageLocation/lib"));
   }
 
@@ -324,12 +318,11 @@ class GnWorkspaceTest with ResourceProviderMixin {
     }
   ]
 }''');
-    GnWorkspace workspace =
-        GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'));
-    expect(workspace, isNotNull);
+    var workspace =
+        GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'))!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.packageMap.length, 1);
-    expect(workspace.packageMap['rettulf'][0].path,
+    expect(workspace.packageMap['rettulf']![0].path,
         convertPath("$otherPackageLocation/lib2"));
   }
 
@@ -370,14 +363,13 @@ class GnWorkspaceTest with ResourceProviderMixin {
     }
   ]
 }''');
-    GnWorkspace workspace =
-        GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'));
-    expect(workspace, isNotNull);
+    var workspace =
+        GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'))!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.packageMap.length, 2);
-    expect(workspace.packageMap['flutter'][0].path,
+    expect(workspace.packageMap['flutter']![0].path,
         convertPath("$packageOneLocation/one/lib"));
-    expect(workspace.packageMap['rettulf'][0].path,
+    expect(workspace.packageMap['rettulf']![0].path,
         convertPath("$packageTwoLocation/two/lib"));
   }
 }

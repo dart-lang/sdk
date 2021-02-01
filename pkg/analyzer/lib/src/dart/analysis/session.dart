@@ -8,16 +8,15 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/analysis/uri_converter.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as driver;
 import 'package:analyzer/src/dart/analysis/uri_converter.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:meta/meta.dart';
 
 /// A concrete implementation of an analysis session.
 class AnalysisSessionImpl implements AnalysisSession {
@@ -25,7 +24,7 @@ class AnalysisSessionImpl implements AnalysisSession {
   final driver.AnalysisDriver _driver;
 
   /// The URI converter used to convert between URI's and file paths.
-  UriConverter _uriConverter;
+  UriConverter? _uriConverter;
 
   /// The cache of libraries for URIs.
   final Map<String, LibraryElement> _uriToLibraryCache = {};
@@ -37,7 +36,7 @@ class AnalysisSessionImpl implements AnalysisSession {
   AnalysisSessionImpl(this._driver);
 
   @override
-  AnalysisContext get analysisContext => _driver?.analysisContext;
+  AnalysisContext get analysisContext => _driver.analysisContext!;
 
   @override
   DeclaredVariables get declaredVariables => _driver.declaredVariables;
@@ -60,7 +59,7 @@ class AnalysisSessionImpl implements AnalysisSession {
   driver.AnalysisDriver getDriver() => _driver;
 
   @override
-  Future<ErrorsResult> getErrors(String path) {
+  Future<ErrorsResult?> getErrors(String path) {
     _checkConsistency();
     return _driver.getErrors(path);
   }
@@ -116,19 +115,19 @@ class AnalysisSessionImpl implements AnalysisSession {
   }
 
   @override
-  Future<ResolvedUnitResult> getResolvedUnit(String path) {
+  Future<ResolvedUnitResult?> getResolvedUnit(String path) {
     _checkConsistency();
     return _driver.getResult(path);
   }
 
   @override
-  Future<SourceKind> getSourceKind(String path) {
+  Future<SourceKind?> getSourceKind(String path) {
     _checkConsistency();
     return _driver.getSourceKind(path);
   }
 
   @override
-  Future<UnitElementResult> getUnitElement(String path) {
+  Future<UnitElementResult?> getUnitElement(String path) {
     _checkConsistency();
     return _driver.getUnitElement(path);
   }
@@ -164,11 +163,11 @@ class SynchronousSession {
 
   final DeclaredVariables declaredVariables;
 
-  TypeProvider _typeProviderLegacy;
-  TypeProvider _typeProviderNonNullableByDefault;
+  TypeProviderImpl? _typeProviderLegacy;
+  TypeProviderImpl? _typeProviderNonNullableByDefault;
 
-  TypeSystemImpl _typeSystemLegacy;
-  TypeSystemImpl _typeSystemNonNullableByDefault;
+  TypeSystemImpl? _typeSystemLegacy;
+  TypeSystemImpl? _typeSystemNonNullableByDefault;
 
   SynchronousSession(this._analysisOptions, this.declaredVariables);
 
@@ -188,20 +187,22 @@ class SynchronousSession {
     );
   }
 
-  TypeProvider get typeProviderLegacy {
-    return _typeProviderLegacy;
+  bool get hasTypeProvider => _typeProviderNonNullableByDefault != null;
+
+  TypeProviderImpl get typeProviderLegacy {
+    return _typeProviderLegacy!;
   }
 
-  TypeProvider get typeProviderNonNullableByDefault {
-    return _typeProviderNonNullableByDefault;
+  TypeProviderImpl get typeProviderNonNullableByDefault {
+    return _typeProviderNonNullableByDefault!;
   }
 
   TypeSystemImpl get typeSystemLegacy {
-    return _typeSystemLegacy;
+    return _typeSystemLegacy!;
   }
 
   TypeSystemImpl get typeSystemNonNullableByDefault {
-    return _typeSystemNonNullableByDefault;
+    return _typeSystemNonNullableByDefault!;
   }
 
   void clearTypeProvider() {
@@ -213,8 +214,8 @@ class SynchronousSession {
   }
 
   void setTypeProviders({
-    @required TypeProvider legacy,
-    @required TypeProvider nonNullableByDefault,
+    required TypeProviderImpl legacy,
+    required TypeProviderImpl nonNullableByDefault,
   }) {
     if (_typeProviderLegacy != null ||
         _typeProviderNonNullableByDefault != null) {
@@ -228,14 +229,14 @@ class SynchronousSession {
       implicitCasts: _analysisOptions.implicitCasts,
       isNonNullableByDefault: false,
       strictInference: _analysisOptions.strictInference,
-      typeProvider: _typeProviderLegacy,
+      typeProvider: legacy,
     );
 
     _typeSystemNonNullableByDefault = TypeSystemImpl(
       implicitCasts: _analysisOptions.implicitCasts,
       isNonNullableByDefault: true,
       strictInference: _analysisOptions.strictInference,
-      typeProvider: _typeProviderNonNullableByDefault,
+      typeProvider: nonNullableByDefault,
     );
   }
 }

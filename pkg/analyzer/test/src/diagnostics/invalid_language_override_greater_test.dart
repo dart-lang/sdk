@@ -5,7 +5,6 @@
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
-import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -60,11 +59,11 @@ class A {}
   }
 
   void _assertUnitLanguageVersion({
-    @required Version package,
-    @required Version override,
+    required Version package,
+    required Version? override,
   }) {
     var unitImpl = result.unit as CompilationUnitImpl;
-    var languageVersion = unitImpl.languageVersion;
+    var languageVersion = unitImpl.languageVersion!;
     expect(languageVersion.package, package);
     expect(languageVersion.override, override);
   }

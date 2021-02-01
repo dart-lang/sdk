@@ -4,11 +4,10 @@
 
 import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'element_test.dart';
+import '../../../generated/type_system_test.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -18,15 +17,12 @@ main() {
 }
 
 @reflectiveTest
-class TypeParameterElementTest extends _TypeParameterElementBase {
+class TypeParameterElementTest extends AbstractTypeSystemNullSafetyTest {
   test_equal_elementElement_sameLocation() {
     var T1 = typeParameter('T');
     var T2 = typeParameter('T');
     var U = typeParameter('U');
-
-    _setEnclosingElement(T1);
-    _setEnclosingElement(T2);
-    _setEnclosingElement(U);
+    class_(name: 'A', typeParameters: [T1, T2, U]);
 
     expect(T1 == T1, isTrue);
     expect(T2 == T2, isTrue);
@@ -50,13 +46,11 @@ class TypeParameterElementTest extends _TypeParameterElementBase {
 }
 
 @reflectiveTest
-class TypeParameterTypeTest extends _TypeParameterElementBase {
+class TypeParameterTypeTest extends AbstractTypeSystemNullSafetyTest {
   test_equal_equalElements() {
     var T1 = typeParameter('T');
     var T2 = typeParameter('T');
-
-    _setEnclosingElement(T1);
-    _setEnclosingElement(T2);
+    class_(name: 'A', typeParameters: [T1, T2]);
 
     _assertEqual(typeParameterTypeNone(T1), typeParameterTypeNone(T2), isTrue);
     _assertEqual(typeParameterTypeNone(T2), typeParameterTypeNone(T1), isTrue);
@@ -78,8 +72,7 @@ class TypeParameterTypeTest extends _TypeParameterElementBase {
       typeParameterTypeStar(T2),
     ]);
 
-    _setEnclosingElement(T1);
-    _setEnclosingElement(T2);
+    class_(name: 'B', typeParameters: [T1, T2]);
 
     _assertEqual(typeParameterTypeNone(T1), typeParameterTypeNone(T2), isTrue);
     _assertEqual(typeParameterTypeNone(T2), typeParameterTypeNone(T1), isTrue);
@@ -90,7 +83,7 @@ class TypeParameterTypeTest extends _TypeParameterElementBase {
 
   test_equal_sameElement_promotedBounds() {
     var T = typeParameter('T');
-    _setEnclosingElement(T);
+    class_(name: 'A', typeParameters: [T]);
 
     _assertEqual(
       promotedTypeParameterTypeNone(T, intNone),
@@ -157,12 +150,5 @@ class TypeParameterTypeTest extends _TypeParameterElementBase {
     NullSafetyUnderstandingFlag.enableNullSafetyTypes(() async {
       expect(T1 == T2, matcher);
     });
-  }
-}
-
-class _TypeParameterElementBase extends AbstractTypeTest {
-  /// Ensure that the [element] has a location.
-  void _setEnclosingElement(TypeParameterElementImpl element) {
-    element.enclosingElement = method('foo', typeProvider.voidType);
   }
 }

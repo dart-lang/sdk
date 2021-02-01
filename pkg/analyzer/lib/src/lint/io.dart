@@ -34,7 +34,7 @@ Iterable<File> collectFiles(String path) {
         var relative = p.relative(entry.path, from: directory.path);
 
         if (isLintable(entry) && !isInHiddenDir(relative)) {
-          files.add(entry);
+          files.add(entry as File);
         }
       }
     }

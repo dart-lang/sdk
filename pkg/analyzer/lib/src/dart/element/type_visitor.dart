@@ -43,7 +43,8 @@ class RecursiveTypeVisitor extends UnifyingTypeVisitor<bool> {
         type.returnType,
         ...type.typeFormals
             .map((formal) => formal.bound)
-            .where((type) => type != null),
+            .where((type) => type != null)
+            .map((type) => type!),
         ...type.parameters.map((param) => param.type),
       ]);
 

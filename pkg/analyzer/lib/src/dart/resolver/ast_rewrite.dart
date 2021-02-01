@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:meta/meta.dart';
 
 /// Helper for [MethodInvocation]s into [InstanceCreationExpression] to support
 /// the optional `new` and `const` feature, or [ExtensionOverride].
@@ -27,14 +26,14 @@ class AstRewriter {
       return node;
     }
 
-    Expression target = node.target;
+    var target = node.target;
     if (target == null) {
       // Possible cases: C() or C<>()
       if (node.realTarget != null) {
         // This isn't a constructor invocation because it's in a cascade.
         return node;
       }
-      Element element = nameScope.lookup(methodName.name).getter;
+      var element = nameScope.lookup(methodName.name).getter;
       if (element is ClassElement) {
         return _toInstanceCreation_type(
           node: node,
@@ -60,7 +59,7 @@ class AstRewriter {
         // This isn't a constructor invocation because a null aware operator is
         // being used.
       }
-      Element element = nameScope.lookup(target.name).getter;
+      var element = nameScope.lookup(target.name).getter;
       if (element is ClassElement) {
         // class C { C.named(); }
         // C.named()
@@ -72,7 +71,7 @@ class AstRewriter {
         );
       } else if (element is PrefixElement) {
         // Possible cases: p.C() or p.C<>()
-        Element prefixedElement = element.scope.lookup(methodName.name).getter;
+        var prefixedElement = element.scope.lookup(methodName.name).getter;
         if (prefixedElement is ClassElement) {
           return _toInstanceCreation_prefix_type(
             node: node,
@@ -81,7 +80,7 @@ class AstRewriter {
           );
         } else if (prefixedElement is ExtensionElement) {
           PrefixedIdentifier extensionName =
-              astFactory.prefixedIdentifier(target, node.operator, methodName);
+              astFactory.prefixedIdentifier(target, node.operator!, methodName);
           ExtensionOverride extensionOverride = astFactory.extensionOverride(
               extensionName: extensionName,
               typeArguments: node.typeArguments,
@@ -141,10 +140,10 @@ class AstRewriter {
   }
 
   AstNode _instanceCreation_prefix_type_name({
-    @required MethodInvocation node,
-    @required PrefixedIdentifier typeNameIdentifier,
-    @required SimpleIdentifier constructorIdentifier,
-    @required ClassElement classElement,
+    required MethodInvocation node,
+    required PrefixedIdentifier typeNameIdentifier,
+    required SimpleIdentifier constructorIdentifier,
+    required ClassElement classElement,
   }) {
     var constructorElement = classElement.getNamedConstructor(
       constructorIdentifier.name,
@@ -171,13 +170,13 @@ class AstRewriter {
   }
 
   InstanceCreationExpression _toInstanceCreation_prefix_type({
-    @required MethodInvocation node,
-    @required SimpleIdentifier prefixIdentifier,
-    @required SimpleIdentifier typeIdentifier,
+    required MethodInvocation node,
+    required SimpleIdentifier prefixIdentifier,
+    required SimpleIdentifier typeIdentifier,
   }) {
     var typeName = astFactory.typeName(
         astFactory.prefixedIdentifier(
-            prefixIdentifier, node.operator, typeIdentifier),
+            prefixIdentifier, node.operator!, typeIdentifier),
         node.typeArguments);
     var constructorName = astFactory.constructorName(typeName, null, null);
     var instanceCreationExpression = astFactory.instanceCreationExpression(
@@ -187,8 +186,8 @@ class AstRewriter {
   }
 
   InstanceCreationExpression _toInstanceCreation_type({
-    @required MethodInvocation node,
-    @required SimpleIdentifier typeIdentifier,
+    required MethodInvocation node,
+    required SimpleIdentifier typeIdentifier,
   }) {
     var typeName = astFactory.typeName(typeIdentifier, node.typeArguments);
     var constructorName = astFactory.constructorName(typeName, null, null);
@@ -199,10 +198,10 @@ class AstRewriter {
   }
 
   AstNode _toInstanceCreation_type_constructor({
-    @required MethodInvocation node,
-    @required SimpleIdentifier typeIdentifier,
-    @required SimpleIdentifier constructorIdentifier,
-    @required ClassElement classElement,
+    required MethodInvocation node,
+    required SimpleIdentifier typeIdentifier,
+    required SimpleIdentifier constructorIdentifier,
+    required ClassElement classElement,
   }) {
     var name = constructorIdentifier.name;
     var constructorElement = classElement.getNamedConstructor(name);

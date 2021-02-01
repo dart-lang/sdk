@@ -17,14 +17,14 @@ bool isTrue(Object value) =>
 
 /// Safely convert the given [value] to a bool value, or return `null` if the
 /// value could not be converted.
-bool toBool(Object value) {
+bool? toBool(Object value) {
   if (value is YamlScalar) {
-    value = (value as YamlScalar).value;
+    value = value.value;
   }
   if (value is bool) {
     return value;
   }
-  String string = toLowerCase(value);
+  var string = toLowerCase(value);
   if (string == 'true') {
     return true;
   }
@@ -36,11 +36,11 @@ bool toBool(Object value) {
 
 /// Safely convert this [value] to lower case, returning `null` if [value] is
 /// null.
-String toLowerCase(Object value) => value?.toString()?.toLowerCase();
+String? toLowerCase(Object? value) => value?.toString().toLowerCase();
 
 /// Safely convert this [value] to upper case, returning `null` if [value] is
 /// null.
-String toUpperCase(Object value) => value?.toString()?.toUpperCase();
+String? toUpperCase(Object? value) => value?.toString().toUpperCase();
 
 /// Jenkins hash function, optimized for small integers.
 ///

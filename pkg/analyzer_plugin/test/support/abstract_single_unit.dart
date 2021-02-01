@@ -93,7 +93,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     await resolveTestFile();
   }
 
-  Future resolveTestFile() async {
+  Future<void> resolveTestFile() async {
     var result = await resolveFile(testFile);
     testCode = result.content;
     testUnit = result.unit;

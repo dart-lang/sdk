@@ -27,7 +27,7 @@ class UnitApiSignatureTest extends ParseBase {
     assertSignature(oldCode, newCode, same: true);
   }
 
-  void assertSignature(String oldCode, String newCode, {bool same}) {
+  void assertSignature(String oldCode, String newCode, {required bool same}) {
     var path = convertPath('/test.dart');
 
     newFile(path, content: oldCode);

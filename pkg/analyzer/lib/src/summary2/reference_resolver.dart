@@ -40,13 +40,13 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   /// The depth-first number of the next [GenericFunctionType] node.
   int _nextGenericFunctionTypeId = 0;
 
-  Reference reference;
+  Reference? reference;
   Scope scope;
 
   ReferenceResolver(
     this.nodesToBuildType,
     this.elementFactory,
-    LibraryElement libraryElement,
+    LibraryElementImpl libraryElement,
     this.unitReference,
     this.isNNBD,
     this.scope,
@@ -62,7 +62,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerReference = reference;
 
     var element = node.declaredElement as ClassElementImpl;
-    reference = element.reference;
+    reference = element.reference!;
     element.accessors; // create elements
     element.constructors; // create elements
     element.methods; // create elements
@@ -91,15 +91,15 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerReference = reference;
 
     var element = node.declaredElement as ClassElementImpl;
-    reference = element.reference;
+    reference = element.reference!;
 
     _createTypeParameterElements(element, node.typeParameters);
     scope = TypeParameterScope(scope, element.typeParameters);
     LinkingNodeContext(node, scope);
 
     node.typeParameters?.accept(this);
-    node.superclass?.accept(this);
-    node.withClause?.accept(this);
+    node.superclass.accept(this);
+    node.withClause.accept(this);
     node.implementsClause?.accept(this);
     nodesToBuildType.addDeclaration(node);
 
@@ -119,13 +119,13 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerReference = reference;
 
     var element = node.declaredElement as ConstructorElementImpl;
-    reference = element.reference;
+    reference = element.reference!;
     element.parameters; // create elements
 
     scope = TypeParameterScope(scope, element.typeParameters);
     LinkingNodeContext(node, scope);
 
-    node.parameters?.accept(this);
+    node.parameters.accept(this);
 
     scope = outerScope;
     reference = outerReference;
@@ -153,7 +153,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerReference = reference;
 
     var element = node.declaredElement as ExtensionElementImpl;
-    reference = element.reference;
+    reference = element.reference!;
 
     _createTypeParameterElements(element, node.typeParameters);
     scope = TypeParameterScope(scope, element.typeParameters);
@@ -208,7 +208,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerReference = reference;
 
     var element = node.declaredElement as ExecutableElementImpl;
-    reference = element.reference;
+    reference = element.reference!;
     element.parameters; // create elements
 
     _createTypeParameterElements(
@@ -238,7 +238,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerReference = reference;
 
     var element = node.declaredElement as FunctionTypeAliasElementImpl;
-    reference = element.reference;
+    reference = element.reference!;
 
     _createTypeParameterElements(element, node.typeParameters);
     scope = TypeParameterScope(outerScope, element.typeParameters);
@@ -247,7 +247,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.typeParameters?.accept(this);
 
     var functionElement = element.function;
-    reference = functionElement.reference;
+    reference = functionElement.reference!;
     functionElement.parameters; // create elements
     node.parameters.accept(this);
 
@@ -280,6 +280,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitGenericFunctionType(GenericFunctionType node) {
+    var nodeImpl = node as GenericFunctionTypeImpl;
     var outerScope = scope;
     var outerReference = reference;
 
@@ -289,8 +290,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     reference = containerRef.getChild('$id');
 
     var element = GenericFunctionTypeElementImpl.forLinkedNode(
-      unitReference.element,
-      reference,
+      unitReference.element as CompilationUnitElementImpl,
+      reference!,
       node,
     );
     element.parameters; // create elements
@@ -303,8 +304,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.parameters.accept(this);
 
     var nullabilitySuffix = _getNullabilitySuffix(node.question != null);
-    var builder = FunctionTypeBuilder.of(isNNBD, node, nullabilitySuffix);
-    (node as GenericFunctionTypeImpl).type = builder;
+    var builder = FunctionTypeBuilder.of(isNNBD, nodeImpl, nullabilitySuffix);
+    nodeImpl.type = builder;
     nodesToBuildType.addTypeBuilder(builder);
 
     scope = outerScope;
@@ -317,13 +318,13 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerReference = reference;
 
     var element = node.declaredElement as TypeAliasElementImpl;
-    reference = element.reference;
+    reference = element.reference!;
 
     _createTypeParameterElements(element, node.typeParameters);
     scope = TypeParameterScope(outerScope, element.typeParameters);
 
     node.typeParameters?.accept(this);
-    node.type?.accept(this);
+    node.type.accept(this);
     nodesToBuildType.addDeclaration(node);
 
     var aliasedType = node.type;
@@ -348,7 +349,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerReference = reference;
 
     var element = node.declaredElement as ExecutableElementImpl;
-    reference = element.reference;
+    reference = element.reference!;
     element.parameters; // create elements
 
     _createTypeParameterElements(element, node.typeParameters);
@@ -371,7 +372,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerReference = reference;
 
     var element = node.declaredElement as MixinElementImpl;
-    reference = element.reference;
+    reference = element.reference!;
     element.accessors; // create elements
     element.constructors; // create elements
     element.methods; // create elements
@@ -418,7 +419,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   void visitTypeName(TypeName node) {
     var typeIdentifier = node.name;
 
-    Element element;
+    Element? element;
     if (typeIdentifier is PrefixedIdentifier) {
       var prefix = typeIdentifier.prefix;
       var prefixName = prefix.name;
@@ -448,7 +449,9 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.typeArguments?.accept(this);
 
     var nullabilitySuffix = _getNullabilitySuffix(node.question != null);
-    if (element is TypeParameterElement) {
+    if (element == null) {
+      node.type = DynamicTypeImpl.instance;
+    } else if (element is TypeParameterElement) {
       node.type = TypeParameterTypeImpl(
         element: element,
         nullabilitySuffix: nullabilitySuffix,
@@ -499,7 +502,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   void _createTypeParameterElements(
     ElementImpl enclosingElement,
-    TypeParameterList typeParameterList,
+    TypeParameterList? typeParameterList,
   ) {
     if (typeParameterList == null) return;
 

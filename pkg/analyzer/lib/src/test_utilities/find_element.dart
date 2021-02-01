@@ -13,13 +13,13 @@ class FindElement extends _FindElementBase {
   FindElement(this.unit);
 
   @override
-  CompilationUnitElement get unitElement => unit.declaredElement;
+  CompilationUnitElement get unitElement => unit.declaredElement!;
 
   ExportElement export(String targetUri) {
-    ExportElement result;
+    ExportElement? result;
 
     for (var export in unitElement.library.exports) {
-      var exportedUri = export.exportedLibrary.source.uri.toString();
+      var exportedUri = export.exportedLibrary!.source.uri.toString();
       if (exportedUri == targetUri) {
         if (result != null) {
           throw StateError('Not unique: $targetUri');
@@ -48,10 +48,10 @@ class FindElement extends _FindElementBase {
   }
 
   ImportElement import(String targetUri, {bool mustBeUnique = true}) {
-    ImportElement importElement;
+    ImportElement? importElement;
 
     for (var import in unitElement.library.imports) {
-      var importedUri = import.importedLibrary.source.uri.toString();
+      var importedUri = import.importedLibrary!.source.uri.toString();
       if (importedUri == targetUri) {
         if (importElement == null) {
           importElement = import;
@@ -73,7 +73,7 @@ class FindElement extends _FindElementBase {
   }
 
   LabelElement label(String name) {
-    LabelElement result;
+    LabelElement? result;
 
     void updateResult(Element element) {
       if (element is LabelElement && element.name == name) {
@@ -86,18 +86,18 @@ class FindElement extends _FindElementBase {
 
     unit.accept(FunctionAstVisitor(
       label: (node) {
-        updateResult(node.label.staticElement);
+        updateResult(node.label.staticElement!);
       },
     ));
 
     if (result == null) {
       throw StateError('Not found: $name');
     }
-    return result;
+    return result!;
   }
 
   FunctionElement localFunction(String name) {
-    FunctionElement result;
+    FunctionElement? result;
 
     unit.accept(FunctionAstVisitor(
       functionDeclarationStatement: (node) {
@@ -114,11 +114,11 @@ class FindElement extends _FindElementBase {
     if (result == null) {
       throw StateError('Not found: $name');
     }
-    return result;
+    return result!;
   }
 
   LocalVariableElement localVar(String name) {
-    LocalVariableElement result;
+    LocalVariableElement? result;
 
     void updateResult(Element element) {
       if (element is LocalVariableElement && element.name == name) {
@@ -131,26 +131,26 @@ class FindElement extends _FindElementBase {
 
     unit.accept(FunctionAstVisitor(
       declaredIdentifier: (node) {
-        updateResult(node.declaredElement);
+        updateResult(node.declaredElement!);
       },
       simpleIdentifier: (node) {
         if (node.parent is CatchClause) {
-          updateResult(node.staticElement);
+          updateResult(node.staticElement!);
         }
       },
       variableDeclaration: (node) {
-        updateResult(node.declaredElement);
+        updateResult(node.declaredElement!);
       },
     ));
 
     if (result == null) {
       throw StateError('Not found: $name');
     }
-    return result;
+    return result!;
   }
 
   ParameterElement parameter(String name) {
-    ParameterElement result;
+    ParameterElement? result;
 
     void findIn(List<ParameterElement> parameters) {
       for (var parameter in parameters) {
@@ -199,20 +199,20 @@ class FindElement extends _FindElementBase {
     unit.accept(
       FunctionAstVisitor(functionExpression: (node, local) {
         if (local) {
-          var functionElement = node.declaredElement;
+          var functionElement = node.declaredElement!;
           findIn(functionElement.parameters);
         }
       }),
     );
 
     if (result != null) {
-      return result;
+      return result!;
     }
     throw StateError('Not found: $name');
   }
 
   CompilationUnitElement part(String targetUri) {
-    CompilationUnitElement partElement;
+    CompilationUnitElement? partElement;
 
     for (var part in unitElement.library.parts) {
       if (part.uri == targetUri) {
@@ -238,14 +238,14 @@ class FindElement extends _FindElementBase {
     for (var import_ in unitElement.library.imports) {
       var prefix = import_.prefix;
       if (prefix?.name == name) {
-        return prefix;
+        return prefix!;
       }
     }
     throw StateError('Not found: $name');
   }
 
   TypeParameterElement typeParameter(String name) {
-    TypeParameterElement result;
+    TypeParameterElement? result;
 
     void findIn(List<TypeParameterElement> typeParameters) {
       for (var typeParameter in typeParameters) {
@@ -287,7 +287,7 @@ class FindElement extends _FindElementBase {
     }
 
     if (result != null) {
-      return result;
+      return result!;
     }
     throw StateError('Not found: $name');
   }
@@ -299,9 +299,9 @@ class ImportFindElement extends _FindElementBase {
 
   ImportFindElement(this.import);
 
-  LibraryElement get importedLibrary => import.importedLibrary;
+  LibraryElement get importedLibrary => import.importedLibrary!;
 
-  PrefixElement get prefix => import.prefix;
+  PrefixElement? get prefix => import.prefix;
 
   @override
   CompilationUnitElement get unitElement {
@@ -342,9 +342,9 @@ abstract class _FindElementBase {
     throw StateError('Not found: $name');
   }
 
-  ConstructorElement constructor(String name, {String of}) {
+  ConstructorElement constructor(String name, {String? of}) {
     assert(name != '');
-    ConstructorElement result;
+    ConstructorElement? result;
     for (var class_ in unitElement.types) {
       if (of == null || class_.name == of) {
         for (var constructor in class_.constructors) {
@@ -381,8 +381,8 @@ abstract class _FindElementBase {
     throw StateError('Not found: $name');
   }
 
-  FieldElement field(String name, {String of}) {
-    FieldElement result;
+  FieldElement field(String name, {String? of}) {
+    FieldElement? result;
 
     void findIn(List<FieldElement> fields) {
       for (var field in fields) {
@@ -424,13 +424,13 @@ abstract class _FindElementBase {
     }
 
     if (result != null) {
-      return result;
+      return result!;
     }
     throw StateError('Not found: $name');
   }
 
-  PropertyAccessorElement getter(String name, {String of}) {
-    PropertyAccessorElement result;
+  PropertyAccessorElement getter(String name, {String? of}) {
+    PropertyAccessorElement? result;
 
     void findIn(List<PropertyAccessorElement> accessors) {
       for (var accessor in accessors) {
@@ -472,13 +472,13 @@ abstract class _FindElementBase {
     }
 
     if (result != null) {
-      return result;
+      return result!;
     }
     throw StateError('Not found: $name');
   }
 
-  MethodElement method(String name, {String of}) {
-    MethodElement result;
+  MethodElement method(String name, {String? of}) {
+    MethodElement? result;
 
     void findIn(List<MethodElement> methods) {
       for (var method in methods) {
@@ -513,7 +513,7 @@ abstract class _FindElementBase {
     }
 
     if (result != null) {
-      return result;
+      return result!;
     }
     throw StateError('Not found: $name');
   }
@@ -527,8 +527,8 @@ abstract class _FindElementBase {
     throw StateError('Not found: $name');
   }
 
-  PropertyAccessorElement setter(String name, {String of}) {
-    PropertyAccessorElement result;
+  PropertyAccessorElement setter(String name, {String? of}) {
+    PropertyAccessorElement? result;
 
     void findIn(List<PropertyAccessorElement> accessors) {
       for (var accessor in accessors) {
@@ -563,7 +563,7 @@ abstract class _FindElementBase {
     }
 
     if (result != null) {
-      return result;
+      return result!;
     }
     throw StateError('Not found: $name');
   }
@@ -578,11 +578,11 @@ abstract class _FindElementBase {
   }
 
   PropertyAccessorElement topGet(String name) {
-    return topVar(name).getter;
+    return topVar(name).getter!;
   }
 
   PropertyAccessorElement topSet(String name) {
-    return topVar(name).setter;
+    return topVar(name).setter!;
   }
 
   TopLevelVariableElement topVar(String name) {
@@ -604,6 +604,6 @@ abstract class _FindElementBase {
   }
 
   ConstructorElement unnamedConstructor(String name) {
-    return class_(name).unnamedConstructor;
+    return class_(name).unnamedConstructor!;
   }
 }

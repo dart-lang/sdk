@@ -10,7 +10,7 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 /// source or in-memory source etc.)
 class FileInstrumentationLogger implements InstrumentationLogger {
   final String filePath;
-  IOSink _sink;
+  late final IOSink _sink;
 
   FileInstrumentationLogger(this.filePath) {
     File file = File(filePath);
@@ -25,6 +25,5 @@ class FileInstrumentationLogger implements InstrumentationLogger {
   @override
   Future shutdown() async {
     await _sink.close();
-    _sink = null;
   }
 }

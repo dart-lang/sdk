@@ -6,7 +6,7 @@
 
 part of 'syntactic_errors.dart';
 
-final fastaAnalyzerErrorCodes = <ErrorCode>[
+final fastaAnalyzerErrorCodes = <ErrorCode?>[
   null,
   _EQUALITY_CANNOT_BE_EQUALITY_OPERAND,
   _CONTINUE_OUTSIDE_OF_LOOP,

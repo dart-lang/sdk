@@ -7,13 +7,13 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 /// [RecursiveAstVisitor] that delegates visit methods to functions.
 class FunctionAstVisitor extends RecursiveAstVisitor<void> {
-  final void Function(DeclaredIdentifier) declaredIdentifier;
-  final void Function(FunctionDeclarationStatement)
+  final void Function(DeclaredIdentifier)? declaredIdentifier;
+  final void Function(FunctionDeclarationStatement)?
       functionDeclarationStatement;
-  final void Function(FunctionExpression, bool) functionExpression;
-  final void Function(Label) label;
-  final void Function(SimpleIdentifier) simpleIdentifier;
-  final void Function(VariableDeclaration) variableDeclaration;
+  final void Function(FunctionExpression, bool)? functionExpression;
+  final void Function(Label)? label;
+  final void Function(SimpleIdentifier)? simpleIdentifier;
+  final void Function(VariableDeclaration)? variableDeclaration;
 
   FunctionAstVisitor({
     this.declaredIdentifier,
@@ -27,7 +27,7 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
     if (declaredIdentifier != null) {
-      declaredIdentifier(node);
+      declaredIdentifier!(node);
     }
     super.visitDeclaredIdentifier(node);
   }
@@ -35,7 +35,7 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
     if (functionDeclarationStatement != null) {
-      functionDeclarationStatement(node);
+      functionDeclarationStatement!(node);
     }
     super.visitFunctionDeclarationStatement(node);
   }
@@ -44,8 +44,8 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
   void visitFunctionExpression(FunctionExpression node) {
     if (functionExpression != null) {
       var local = node.parent is! FunctionDeclaration ||
-          node.parent.parent is FunctionDeclarationStatement;
-      functionExpression(node, local);
+          node.parent!.parent is FunctionDeclarationStatement;
+      functionExpression!(node, local);
     }
     super.visitFunctionExpression(node);
   }
@@ -53,7 +53,7 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitLabel(Label node) {
     if (label != null) {
-      label(node);
+      label!(node);
     }
     super.visitLabel(node);
   }
@@ -61,7 +61,7 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (simpleIdentifier != null) {
-      simpleIdentifier(node);
+      simpleIdentifier!(node);
     }
     super.visitSimpleIdentifier(node);
   }
@@ -69,7 +69,7 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     if (variableDeclaration != null) {
-      variableDeclaration(node);
+      variableDeclaration!(node);
     }
     super.visitVariableDeclaration(node);
   }

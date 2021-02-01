@@ -62,7 +62,7 @@ class ElementTypeProvider {
       element.typeInternal;
 
   /// Queries the bound of a type parameter.
-  DartType getTypeParameterBound(TypeParameterElementImpl element) =>
+  DartType? getTypeParameterBound(TypeParameterElementImpl element) =>
       element.boundInternal;
 
   /// Queries the type of a variable element.

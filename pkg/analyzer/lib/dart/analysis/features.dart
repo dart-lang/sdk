@@ -43,11 +43,11 @@ abstract class Feature {
   /// experimental flag that may be used to enable it.  Otherwise `null`.
   ///
   /// Should be `null` if [status] is `current` or `abandoned`.
-  String get experimentalFlag;
+  String? get experimentalFlag;
 
   /// If [status] is not `future`, the first language version in which this
   /// feature was enabled by default.  Otherwise `null`.
-  Version get releaseVersion;
+  Version? get releaseVersion;
 
   /// The status of the feature.
   FeatureStatus get status;
@@ -75,8 +75,8 @@ abstract class FeatureSet {
   /// Computes the set of features implied by the given set of experimental
   /// enable flags.
   factory FeatureSet.fromEnableFlags2({
-    @required Version sdkLanguageVersion,
-    @required List<String> flags,
+    required Version sdkLanguageVersion,
+    required List<String> flags,
   }) = ExperimentStatus.fromStrings2;
 
   /// Computes the set of features for the latest language version known

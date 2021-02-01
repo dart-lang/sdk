@@ -164,8 +164,10 @@ class BuilderTest {
     // read and verify
     BufferContext buf = BufferContext.fromBytes(byteList);
     int objectOffset = buf.derefObject(0);
-    expect(const StringReader().vTableGet(buf, objectOffset, 0), latinString);
-    expect(const StringReader().vTableGet(buf, objectOffset, 1), unicodeString);
+    expect(const StringReader().vTableGetOrNull(buf, objectOffset, 0),
+        latinString);
+    expect(const StringReader().vTableGetOrNull(buf, objectOffset, 1),
+        unicodeString);
   }
 
   void test_table_types() {
@@ -188,14 +190,15 @@ class BuilderTest {
     // read and verify
     BufferContext buf = BufferContext.fromBytes(byteList);
     int objectOffset = buf.derefObject(0);
-    expect(const BoolReader().vTableGet(buf, objectOffset, 0), true);
-    expect(const Int8Reader().vTableGet(buf, objectOffset, 1), 10);
-    expect(const Int32Reader().vTableGet(buf, objectOffset, 2), 20);
-    expect(const StringReader().vTableGet(buf, objectOffset, 3), '12345');
-    expect(const Int32Reader().vTableGet(buf, objectOffset, 4), 40);
-    expect(const Uint32Reader().vTableGet(buf, objectOffset, 5), 0x9ABCDEF0);
-    expect(const Uint8Reader().vTableGet(buf, objectOffset, 6), 0x9A);
-    expect(const Float64Reader().vTableGet(buf, objectOffset, 7), -12.34);
+    expect(const BoolReader().vTableGetOrNull(buf, objectOffset, 0), true);
+    expect(const Int8Reader().vTableGetOrNull(buf, objectOffset, 1), 10);
+    expect(const Int32Reader().vTableGetOrNull(buf, objectOffset, 2), 20);
+    expect(const StringReader().vTableGetOrNull(buf, objectOffset, 3), '12345');
+    expect(const Int32Reader().vTableGetOrNull(buf, objectOffset, 4), 40);
+    expect(
+        const Uint32Reader().vTableGetOrNull(buf, objectOffset, 5), 0x9ABCDEF0);
+    expect(const Uint8Reader().vTableGetOrNull(buf, objectOffset, 6), 0x9A);
+    expect(const Float64Reader().vTableGetOrNull(buf, objectOffset, 7), -12.34);
   }
 
   void test_writeList_of_Uint32() {
@@ -352,7 +355,7 @@ class BuilderTest {
     // read and verify
     BufferContext buf = BufferContext.fromBytes(byteList);
     StringListWrapperImpl reader = StringListWrapperReader().read(buf, 0);
-    List<String> items = reader.items;
+    List<String> items = reader.items!;
     expect(items, hasLength(2));
     expect(items, contains('12345'));
     expect(items, contains('ABC'));
@@ -393,8 +396,8 @@ class StringListWrapperImpl {
 
   StringListWrapperImpl(this.bp, this.offset);
 
-  List<String> get items =>
-      const ListReader<String>(StringReader()).vTableGet(bp, offset, 0);
+  List<String>? get items =>
+      const ListReader<String>(StringReader()).vTableGetOrNull(bp, offset, 0);
 }
 
 class StringListWrapperReader extends TableReader<StringListWrapperImpl> {

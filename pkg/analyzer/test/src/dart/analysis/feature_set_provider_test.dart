@@ -14,7 +14,6 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -27,9 +26,9 @@ main() {
 
 @reflectiveTest
 class FeatureSetProviderTest with ResourceProviderMixin {
-  MockSdk mockSdk;
-  SourceFactory sourceFactory;
-  FeatureSetProvider provider;
+  late final MockSdk mockSdk;
+  late SourceFactory sourceFactory;
+  late FeatureSetProvider provider;
 
   void setUp() {
     newFile('/test/lib/test.dart', content: '');
@@ -264,9 +263,9 @@ class FeatureSetProviderTest with ResourceProviderMixin {
     );
 
     void check({
-      @required String uriStr,
-      @required String posixPath,
-      @required Version expected,
+      required String uriStr,
+      required String posixPath,
+      required Version expected,
     }) {
       var uri = Uri.parse(uriStr);
       var path = convertPath(posixPath);
@@ -426,7 +425,7 @@ class FeatureSetProviderTest with ResourceProviderMixin {
     return PackageMapUriResolver(resourceProvider, map);
   }
 
-  void _createSourceFactory({UriResolver packageUriResolver}) {
+  void _createSourceFactory({UriResolver? packageUriResolver}) {
     var resolvers = <UriResolver>[];
     if (packageUriResolver != null) {
       resolvers.add(packageUriResolver);
@@ -441,14 +440,14 @@ class FeatureSetProviderTest with ResourceProviderMixin {
   FeatureSet _getPathFeatureSet(String path) {
     path = convertPath(path);
     var fileUri = toUri(path);
-    var fileSource = sourceFactory.forUri2(fileUri);
-    var uri = sourceFactory.restoreUri(fileSource);
+    var fileSource = sourceFactory.forUri2(fileUri)!;
+    var uri = sourceFactory.restoreUri(fileSource)!;
     return provider.getFeatureSet(path, uri);
   }
 
   FeatureSet _getSdkFeatureSet(String uriStr) {
     var uri = Uri.parse(uriStr);
-    var path = sourceFactory.forUri2(uri).fullName;
+    var path = sourceFactory.forUri2(uri)!.fullName;
     return provider.getFeatureSet(path, uri);
   }
 

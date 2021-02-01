@@ -11,7 +11,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 class ElementLocator {
   /// Return the element associated with the given [node], or `null` if there
   /// is no element associated with the node.
-  static Element locate(AstNode node) {
+  static Element? locate(AstNode? node) {
     if (node == null) return null;
 
     var mapper = _ElementMapper();
@@ -22,47 +22,47 @@ class ElementLocator {
 /// Visitor that maps nodes to elements.
 class _ElementMapper extends GeneralizingAstVisitor<Element> {
   @override
-  Element visitAnnotation(Annotation node) {
+  Element? visitAnnotation(Annotation node) {
     return node.element;
   }
 
   @override
-  Element visitAssignmentExpression(AssignmentExpression node) {
+  Element? visitAssignmentExpression(AssignmentExpression node) {
     return node.staticElement;
   }
 
   @override
-  Element visitBinaryExpression(BinaryExpression node) {
+  Element? visitBinaryExpression(BinaryExpression node) {
     return node.staticElement;
   }
 
   @override
-  Element visitClassDeclaration(ClassDeclaration node) {
+  Element? visitClassDeclaration(ClassDeclaration node) {
     return node.declaredElement;
   }
 
   @override
-  Element visitCompilationUnit(CompilationUnit node) {
+  Element? visitCompilationUnit(CompilationUnit node) {
     return node.declaredElement;
   }
 
   @override
-  Element visitConstructorDeclaration(ConstructorDeclaration node) {
+  Element? visitConstructorDeclaration(ConstructorDeclaration node) {
     return node.declaredElement;
   }
 
   @override
-  Element visitExportDirective(ExportDirective node) {
+  Element? visitExportDirective(ExportDirective node) {
     return node.element;
   }
 
   @override
-  Element visitFunctionDeclaration(FunctionDeclaration node) {
+  Element? visitFunctionDeclaration(FunctionDeclaration node) {
     return node.declaredElement;
   }
 
   @override
-  Element visitIdentifier(Identifier node) {
+  Element? visitIdentifier(Identifier node) {
     var parent = node.parent;
     if (parent is Annotation) {
       // Type name in Annotation
@@ -98,57 +98,57 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   }
 
   @override
-  Element visitImportDirective(ImportDirective node) {
+  Element? visitImportDirective(ImportDirective node) {
     return node.element;
   }
 
   @override
-  Element visitIndexExpression(IndexExpression node) {
+  Element? visitIndexExpression(IndexExpression node) {
     return node.staticElement;
   }
 
   @override
-  Element visitInstanceCreationExpression(InstanceCreationExpression node) {
+  Element? visitInstanceCreationExpression(InstanceCreationExpression node) {
     return node.constructorName.staticElement;
   }
 
   @override
-  Element visitLibraryDirective(LibraryDirective node) {
+  Element? visitLibraryDirective(LibraryDirective node) {
     return node.element;
   }
 
   @override
-  Element visitMethodDeclaration(MethodDeclaration node) {
+  Element? visitMethodDeclaration(MethodDeclaration node) {
     return node.declaredElement;
   }
 
   @override
-  Element visitMethodInvocation(MethodInvocation node) {
+  Element? visitMethodInvocation(MethodInvocation node) {
     return node.methodName.staticElement;
   }
 
   @override
-  Element visitPartOfDirective(PartOfDirective node) {
+  Element? visitPartOfDirective(PartOfDirective node) {
     return node.element;
   }
 
   @override
-  Element visitPostfixExpression(PostfixExpression node) {
+  Element? visitPostfixExpression(PostfixExpression node) {
     return node.staticElement;
   }
 
   @override
-  Element visitPrefixedIdentifier(PrefixedIdentifier node) {
+  Element? visitPrefixedIdentifier(PrefixedIdentifier node) {
     return node.staticElement;
   }
 
   @override
-  Element visitPrefixExpression(PrefixExpression node) {
+  Element? visitPrefixExpression(PrefixExpression node) {
     return node.staticElement;
   }
 
   @override
-  Element visitStringLiteral(StringLiteral node) {
+  Element? visitStringLiteral(StringLiteral node) {
     var parent = node.parent;
     if (parent is UriBasedDirective) {
       return parent.uriElement;
@@ -157,7 +157,7 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   }
 
   @override
-  Element visitVariableDeclaration(VariableDeclaration node) {
+  Element? visitVariableDeclaration(VariableDeclaration node) {
     return node.declaredElement;
   }
 }

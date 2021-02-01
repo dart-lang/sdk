@@ -204,7 +204,7 @@ class GreatestLowerBoundHelper {
     assert(T1_nullability == NullabilitySuffix.none);
     assert(T2_nullability == NullabilitySuffix.none);
 
-    if (T1 is FunctionType && T2 is FunctionType) {
+    if (T1 is FunctionTypeImpl && T2 is FunctionTypeImpl) {
       return _functionType(T1, T2);
     }
 
@@ -219,18 +219,18 @@ class GreatestLowerBoundHelper {
     }
 
     // FutureOr<S1>
-    if (T1 is InterfaceType && T1.isDartAsyncFutureOr) {
+    if (T1 is InterfaceTypeImpl && T1.isDartAsyncFutureOr) {
       var S1 = T1.typeArguments[0];
       // DOWN(FutureOr<S1>, FutureOr<S2>) = FutureOr(S)
       //   S = DOWN(S1, S2)
-      if (T2 is InterfaceType && T2.isDartAsyncFutureOr) {
+      if (T2 is InterfaceTypeImpl && T2.isDartAsyncFutureOr) {
         var S2 = T2.typeArguments[0];
         var S = getGreatestLowerBound(S1, S2);
         return _typeProvider.futureOrType2(S);
       }
       // DOWN(FutureOr<S1>, Future<S2>) = Future(S)
       //   S = DOWN(S1, S2)
-      if (T2 is InterfaceType && T2.isDartAsyncFuture) {
+      if (T2 is InterfaceTypeImpl && T2.isDartAsyncFuture) {
         var S2 = T2.typeArguments[0];
         var S = getGreatestLowerBound(S1, S2);
         return _typeProvider.futureType2(S);
@@ -240,11 +240,11 @@ class GreatestLowerBoundHelper {
     }
 
     // FutureOr<S2>
-    if (T2 is InterfaceType && T2.isDartAsyncFutureOr) {
+    if (T2 is InterfaceTypeImpl && T2.isDartAsyncFutureOr) {
       var S2 = T2.typeArguments[0];
       // DOWN(Future<S1>, FutureOr<S2>) = Future<S>
       //   S = DOWN(S1, S2)
-      if (T1 is InterfaceType && T1.isDartAsyncFuture) {
+      if (T1 is InterfaceTypeImpl && T1.isDartAsyncFuture) {
         var S1 = T1.typeArguments[0];
         var S = getGreatestLowerBound(S1, S2);
         return _typeProvider.futureType2(S);

@@ -24,14 +24,14 @@ class DriverBasedAnalysisContext implements AnalysisContext {
   final AnalysisDriver driver;
 
   /// The [Workspace] for this context, `null` if not yet created.
-  Workspace _workspace;
+  Workspace? _workspace;
 
   /// Initialize a newly created context that uses the given [resourceProvider]
   /// to access the file system and that is based on the given analysis
   /// [driver].
   DriverBasedAnalysisContext(
       this.resourceProvider, this.contextRoot, this.driver,
-      {Workspace workspace})
+      {Workspace? workspace})
       : _workspace = workspace {
     driver.analysisContext = this;
   }
@@ -43,7 +43,7 @@ class DriverBasedAnalysisContext implements AnalysisContext {
   AnalysisSession get currentSession => driver.currentSession;
 
   @override
-  Folder get sdkRoot {
+  Folder? get sdkRoot {
     var sdk = driver.sourceFactory.dartSdk;
     if (sdk is FolderBasedDartSdk) {
       return sdk.directory;

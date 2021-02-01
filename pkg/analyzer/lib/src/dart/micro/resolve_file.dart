@@ -36,7 +36,6 @@ import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
-import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
 const M = 1024 * 1024 /*1 MiB*/;
@@ -64,18 +63,18 @@ class FileResolver {
 
   /// A function that fetches the given list of files. This function can be used
   /// to batch file reads in systems where file fetches are expensive.
-  final void Function(List<String> paths) prefetchFiles;
+  final void Function(List<String> paths)? prefetchFiles;
 
   final Workspace workspace;
 
   /// This field gets value only during testing.
-  FileResolverTestView testView;
+  FileResolverTestView? testView;
 
-  FileSystemState fsState;
+  FileSystemState? fsState;
 
-  MicroContextObjects contextObjects;
+  MicroContextObjects? contextObjects;
 
-  _LibraryContext libraryContext;
+  _LibraryContext? libraryContext;
 
   /// List of ids for cache elements that are invalidated. Track elements that
   /// are invalidated during [changeFile]. Used in [releaseAndClearRemovedIds]
@@ -89,8 +88,8 @@ class FileResolver {
     SourceFactory sourceFactory,
     String Function(String path) getFileDigest,
     void Function(List<String> paths) prefetchFiles, {
-    @required Workspace workspace,
-    @deprecated Duration libraryContextResetTimeout,
+    required Workspace workspace,
+    @deprecated Duration? libraryContextResetTimeout,
   }) : this.from(
           logger: logger,
           resourceProvider: resourceProvider,
@@ -103,23 +102,21 @@ class FileResolver {
         );
 
   FileResolver.from({
-    @required PerformanceLog logger,
-    @required ResourceProvider resourceProvider,
-    @required SourceFactory sourceFactory,
-    @required String Function(String path) getFileDigest,
-    @required void Function(List<String> paths) prefetchFiles,
-    @required Workspace workspace,
-    CiderByteStore byteStore,
-    @deprecated Duration libraryContextResetTimeout,
+    required PerformanceLog logger,
+    required ResourceProvider resourceProvider,
+    required SourceFactory sourceFactory,
+    required String Function(String path) getFileDigest,
+    required void Function(List<String> paths)? prefetchFiles,
+    required Workspace workspace,
+    CiderByteStore? byteStore,
+    @deprecated Duration? libraryContextResetTimeout,
   })  : logger = logger,
         sourceFactory = sourceFactory,
         resourceProvider = resourceProvider,
         getFileDigest = getFileDigest,
         prefetchFiles = prefetchFiles,
-        workspace = workspace {
-    byteStore ??= CiderCachedByteStore(memoryCacheSize);
-    this.byteStore = byteStore;
-  }
+        workspace = workspace,
+        byteStore = byteStore ?? CiderCachedByteStore(memoryCacheSize);
 
   /// Update the resolver to reflect the fact that the file with the given
   /// [path] was changed. We need to make sure that when this file, of any file
@@ -133,7 +130,7 @@ class FileResolver {
 
     // Remove this file and all files that transitively depend on it.
     var removedFiles = <FileState>[];
-    fsState.changeFile(path, removedFiles);
+    fsState!.changeFile(path, removedFiles);
 
     // Schedule disposing references to cached unlinked data.
     for (var removedFile in removedFiles) {
@@ -143,23 +140,23 @@ class FileResolver {
     // Remove libraries represented by removed files.
     // If we need these libraries later, we will relink and reattach them.
     if (libraryContext != null) {
-      libraryContext.remove(removedFiles, removedCacheIds);
+      libraryContext!.remove(removedFiles, removedCacheIds);
     }
   }
 
   /// Collects all the cached artifacts and add all the cache id's for the
   /// removed artifacts to [removedCacheIds].
   void collectSharedDataIdentifiers() {
-    removedCacheIds.addAll(fsState.collectSharedDataIdentifiers());
-    removedCacheIds.addAll(libraryContext.collectSharedDataIdentifiers());
+    removedCacheIds.addAll(fsState!.collectSharedDataIdentifiers());
+    removedCacheIds.addAll(libraryContext!.collectSharedDataIdentifiers());
   }
 
   @deprecated
   void dispose() {}
 
   ErrorsResult getErrors({
-    @required String path,
-    OperationPerformanceImpl performance,
+    required String path,
+    OperationPerformanceImpl? performance,
   }) {
     _throwIfNotAbsoluteNormalizedPath(path);
 
@@ -168,7 +165,7 @@ class FileResolver {
     return logger.run('Get errors for $path', () {
       var fileContext = getFileContext(
         path: path,
-        performance: performance,
+        performance: performance!,
       );
       var file = fileContext.file;
 
@@ -179,11 +176,11 @@ class FileResolver {
 
       var errorsKey = file.path + '.errors';
       var bytes = byteStore.get(errorsKey, errorsSignature)?.bytes;
-      List<AnalysisError> errors;
+      List<AnalysisError>? errors;
       if (bytes != null) {
         var data = CiderUnitErrors.fromBuffer(bytes);
         errors = data.errors.map((error) {
-          return ErrorEncoding.decode(file.source, error);
+          return ErrorEncoding.decode(file.source, error)!;
         }).toList();
       }
 
@@ -202,7 +199,7 @@ class FileResolver {
       }
 
       return ErrorsResultImpl(
-        contextObjects.analysisSession,
+        contextObjects!.analysisSession,
         path,
         file.uri,
         file.lineInfo,
@@ -214,8 +211,8 @@ class FileResolver {
 
   @deprecated
   ErrorsResult getErrors2({
-    @required String path,
-    OperationPerformanceImpl performance,
+    required String path,
+    OperationPerformanceImpl? performance,
   }) {
     return getErrors(
       path: path,
@@ -224,8 +221,8 @@ class FileResolver {
   }
 
   FileContext getFileContext({
-    @required String path,
-    @required OperationPerformanceImpl performance,
+    required String path,
+    required OperationPerformanceImpl performance,
   }) {
     return performance.run('fileContext', (performance) {
       var analysisOptions = performance.run('analysisOptions', (performance) {
@@ -240,7 +237,7 @@ class FileResolver {
       });
 
       var file = performance.run('fileForPath', (performance) {
-        return fsState.getFileForPath(
+        return fsState!.getFileForPath(
           path: path,
           performance: performance,
         );
@@ -251,12 +248,12 @@ class FileResolver {
   }
 
   String getLibraryLinkedSignature({
-    @required String path,
-    @required OperationPerformanceImpl performance,
+    required String path,
+    required OperationPerformanceImpl performance,
   }) {
     _throwIfNotAbsoluteNormalizedPath(path);
 
-    var file = fsState.getFileForPath(
+    var file = fsState!.getFileForPath(
       path: path,
       performance: performance,
     );
@@ -284,7 +281,7 @@ class FileResolver {
   /// from bytes, which will be done by [getErrors]. It is OK for it to
   /// spend some more time on this.
   void linkLibraries({
-    @required String path,
+    required String path,
   }) {
     _throwIfNotAbsoluteNormalizedPath(path);
 
@@ -297,7 +294,7 @@ class FileResolver {
     var file = fileContext.file;
     var libraryFile = file.partOfLibrary ?? file;
 
-    libraryContext.load2(
+    libraryContext!.load2(
       targetLibrary: libraryFile,
       performance: performance,
     );
@@ -316,7 +313,7 @@ class FileResolver {
   /// [FileState]'s. Adds the cache id's for the removed [FileState]'s to
   /// [removedCacheIds].
   void removeFilesNotNecessaryForAnalysisOf(List<String> files) {
-    var removedFiles = fsState.removeUnusedFiles(files);
+    var removedFiles = fsState!.removeUnusedFiles(files);
     for (var removedFile in removedFiles) {
       removedCacheIds.add(removedFile.id);
     }
@@ -324,10 +321,10 @@ class FileResolver {
 
   /// The [completionLine] and [completionColumn] are zero based.
   ResolvedUnitResult resolve({
-    int completionLine,
-    int completionColumn,
-    @required String path,
-    OperationPerformanceImpl performance,
+    int? completionLine,
+    int? completionColumn,
+    required String path,
+    OperationPerformanceImpl? performance,
   }) {
     _throwIfNotAbsoluteNormalizedPath(path);
 
@@ -336,19 +333,19 @@ class FileResolver {
     return logger.run('Resolve $path', () {
       var fileContext = getFileContext(
         path: path,
-        performance: performance,
+        performance: performance!,
       );
       var file = fileContext.file;
       var libraryFile = file.partOfLibrary ?? file;
 
-      int completionOffset;
+      int? completionOffset;
       if (completionLine != null && completionColumn != null) {
         var lineOffset = file.lineInfo.getOffsetOfLine(completionLine);
         completionOffset = lineOffset + completionColumn;
       }
 
       performance.run('libraryContext', (performance) {
-        libraryContext.load2(
+        libraryContext!.load2(
           targetLibrary: libraryFile,
           performance: performance,
         );
@@ -360,24 +357,23 @@ class FileResolver {
       var errorListener = RecordingErrorListener();
       var unit = file.parse(errorListener, content);
 
-      Map<FileState, UnitAnalysisResult> results;
+      late Map<FileState, UnitAnalysisResult> results;
 
       logger.run('Compute analysis results', () {
         var libraryAnalyzer = LibraryAnalyzer(
           fileContext.analysisOptions,
-          contextObjects.declaredVariables,
+          contextObjects!.declaredVariables,
           sourceFactory,
           (_) => true, // _isLibraryUri
-          contextObjects.analysisContext,
-          libraryContext.elementFactory,
-          contextObjects.inheritanceManager,
+          contextObjects!.analysisContext,
+          libraryContext!.elementFactory,
+          contextObjects!.inheritanceManager,
           libraryFile,
-          resourceProvider,
           (file) => file.getContentWithSameDigest(),
         );
 
         try {
-          results = performance.run('analyze', (performance) {
+          results = performance!.run('analyze', (performance) {
             return NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
               return libraryAnalyzer.analyzeSync(
                 completionPath: completionOffset != null ? path : null,
@@ -399,15 +395,15 @@ class FileResolver {
           );
         }
       });
-      UnitAnalysisResult fileResult = results[file];
+      UnitAnalysisResult fileResult = results[file]!;
 
       return ResolvedUnitResultImpl(
-        contextObjects.analysisSession,
+        contextObjects!.analysisSession,
         path,
         file.uri,
         file.exists,
         content,
-        unit.lineInfo,
+        unit.lineInfo!,
         false, // isPart
         fileResult.unit,
         fileResult.errors,
@@ -429,7 +425,7 @@ class FileResolver {
   /// for another.
   void _createContext(String path, AnalysisOptionsImpl fileAnalysisOptions) {
     if (contextObjects != null) {
-      contextObjects.analysisOptions = fileAnalysisOptions;
+      contextObjects!.analysisOptions = fileAnalysisOptions;
       return;
     }
 
@@ -479,14 +475,14 @@ class FileResolver {
         logger,
         resourceProvider,
         byteStore,
-        contextObjects,
+        contextObjects!,
       );
     }
   }
 
-  File _findOptionsFile(Folder folder) {
+  File? _findOptionsFile(Folder? folder) {
     while (folder != null) {
-      File packagesFile =
+      var packagesFile =
           _getFile(folder, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
       if (packagesFile != null) {
         return packagesFile;
@@ -505,17 +501,17 @@ class FileResolver {
   ///
   /// Otherwise, return the default options.
   AnalysisOptionsImpl _getAnalysisOptions({
-    @required String path,
-    @required OperationPerformanceImpl performance,
+    required String path,
+    required OperationPerformanceImpl performance,
   }) {
-    YamlMap optionMap;
+    YamlMap? optionMap;
 
     var separator = resourceProvider.pathContext.separator;
     var isThirdParty = path
             .contains('${separator}third_party${separator}dart$separator') ||
         path.contains('${separator}third_party${separator}dart_lang$separator');
 
-    File optionsFile;
+    File? optionsFile;
     if (!isThirdParty) {
       optionsFile = performance.run('findOptionsFile', (_) {
         var folder = resourceProvider.getFile(path).parent;
@@ -527,7 +523,7 @@ class FileResolver {
       performance.run('getOptionsFromFile', (_) {
         try {
           var optionsProvider = AnalysisOptionsProvider(sourceFactory);
-          optionMap = optionsProvider.getOptionsFromFile(optionsFile);
+          optionMap = optionsProvider.getOptionsFromFile(optionsFile!);
         } catch (e) {
           // ignored
         }
@@ -564,7 +560,7 @@ class FileResolver {
 
     if (optionMap != null) {
       performance.run('applyToAnalysisOptions', (_) {
-        applyToAnalysisOptions(options, optionMap);
+        applyToAnalysisOptions(options, optionMap!);
       });
     }
 
@@ -596,7 +592,7 @@ class FileResolver {
     }
   }
 
-  static File _getFile(Folder directory, String name) {
+  static File? _getFile(Folder directory, String name) {
     Resource resource = directory.getChild(name);
     if (resource is File && resource.exists) {
       return resource;
@@ -622,7 +618,7 @@ class _LibraryContext {
   final CiderByteStore byteStore;
   final MicroContextObjects contextObjects;
 
-  LinkedElementFactory elementFactory;
+  late final LinkedElementFactory elementFactory;
 
   Set<LibraryCycle> loadedBundles = Set.identity();
 
@@ -643,9 +639,16 @@ class _LibraryContext {
   /// artifacts.
   Set<int> collectSharedDataIdentifiers() {
     var idSet = <int>{};
+
+    void addIfNotNull(int? id) {
+      if (id != null) {
+        idSet.add(id);
+      }
+    }
+
     for (var cycle in loadedBundles) {
-      idSet.add(cycle.astId);
-      idSet.add(cycle.resolutionId);
+      addIfNotNull(cycle.astId);
+      addIfNotNull(cycle.resolutionId);
     }
     loadedBundles.clear();
     return idSet;
@@ -653,8 +656,8 @@ class _LibraryContext {
 
   /// Load data required to access elements of the given [targetLibrary].
   void load2({
-    @required FileState targetLibrary,
-    @required OperationPerformanceImpl performance,
+    required FileState targetLibrary,
+    required OperationPerformanceImpl performance,
   }) {
     var librariesLinked = 0;
     var librariesLinkedTimer = Stopwatch();
@@ -682,7 +685,6 @@ class _LibraryContext {
         var inputLibraries = <link2.LinkInputLibrary>[];
         for (var libraryFile in cycle.libraries) {
           var librarySource = libraryFile.source;
-          if (librarySource == null) continue;
 
           var inputUnits = <link2.LinkInputUnit>[];
           var partIndex = -1;
@@ -698,7 +700,7 @@ class _LibraryContext {
               content,
             );
 
-            String partUriStr;
+            String? partUriStr;
             if (partIndex >= 0) {
               partUriStr = libraryFile.unlinked2.parts[partIndex];
             }
@@ -741,14 +743,14 @@ class _LibraryContext {
         performance.getDataInt('bytesGet').add(resolutionBytes.length);
         performance.getDataInt('libraryLoadCount').add(cycle.libraries.length);
       }
-      cycle.astId = astData.id;
-      cycle.resolutionId = resolutionData.id;
+      cycle.astId = astData!.id;
+      cycle.resolutionId = resolutionData!.id;
 
       elementFactory.addBundle(
         BundleReader(
           elementFactory: elementFactory,
-          astBytes: astBytes,
-          resolutionBytes: resolutionBytes,
+          astBytes: astBytes as Uint8List,
+          resolutionBytes: resolutionBytes as Uint8List,
         ),
       );
 
@@ -775,10 +777,17 @@ class _LibraryContext {
     );
 
     var removedSet = removed.toSet();
+
+    void addIfNotNull(int? id) {
+      if (id != null) {
+        removedIds.add(id);
+      }
+    }
+
     loadedBundles.removeWhere((cycle) {
       if (cycle.libraries.any(removedSet.contains)) {
-        removedIds.add(cycle.astId);
-        removedIds.add(cycle.resolutionId);
+        addIfNotNull(cycle.astId);
+        addIfNotNull(cycle.resolutionId);
         return true;
       }
       return false;
@@ -788,9 +797,9 @@ class _LibraryContext {
   /// Ensure that type provider is created.
   void _createElementFactoryTypeProvider() {
     var analysisContext = contextObjects.analysisContext;
-    if (analysisContext.typeProviderNonNullableByDefault == null) {
-      var dartCore = elementFactory.libraryOfUri('dart:core');
-      var dartAsync = elementFactory.libraryOfUri('dart:async');
+    if (!analysisContext.hasTypeProvider) {
+      var dartCore = elementFactory.libraryOfUri2('dart:core');
+      var dartAsync = elementFactory.libraryOfUri2('dart:async');
       elementFactory.createTypeProviders(dartCore, dartAsync);
     }
   }

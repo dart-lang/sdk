@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:meta/meta.dart';
 
 /// Some [ConstructorElement]s can be temporary marked as "const" to check
 /// if doing this is valid.
@@ -18,7 +17,7 @@ final temporaryConstConstructorElements = Expando<bool>();
 /// Return the list of nodes that are not potentially constant.
 List<AstNode> getNotPotentiallyConstants(
   AstNode node, {
-  @required bool isNonNullableByDefault,
+  required bool isNonNullableByDefault,
 }) {
   var collector = _Collector(
     isNonNullableByDefault: isNonNullableByDefault,
@@ -54,7 +53,7 @@ class _Collector {
   final bool isNonNullableByDefault;
   final List<AstNode> nodes = [];
 
-  _Collector({@required this.isNonNullableByDefault});
+  _Collector({required this.isNonNullableByDefault});
 
   void collect(AstNode node) {
     if (node is BooleanLiteral ||
@@ -182,7 +181,7 @@ class _Collector {
       collect(node.condition);
       collect(node.thenElement);
       if (node.elseElement != null) {
-        collect(node.elseElement);
+        collect(node.elseElement!);
       }
       return;
     }
@@ -248,9 +247,9 @@ class _Collector {
   }
 
   void _methodInvocation(MethodInvocation node) {
-    var arguments = node.argumentList?.arguments;
-    if (arguments?.length == 2 && node.methodName.name == 'identical') {
-      var library = node.methodName?.staticElement?.library;
+    var arguments = node.argumentList.arguments;
+    if (arguments.length == 2 && node.methodName.name == 'identical') {
+      var library = node.methodName.staticElement?.library;
       if (library?.isDartCore == true) {
         collect(arguments[0]);
         collect(arguments[1]);
@@ -261,12 +260,14 @@ class _Collector {
   }
 
   void _propertyAccess(PropertyAccess node) {
+    // CascadeExpression is not a constant, so the target is never null.
+    var target = node.target!;
+
     if (node.propertyName.name == 'length') {
-      collect(node.target);
+      collect(target);
       return;
     }
 
-    var target = node.target;
     if (target is PrefixedIdentifier) {
       if (target.isDeferred) {
         nodes.add(node);
@@ -294,7 +295,7 @@ class _Collector {
 
     if (node is ListLiteral) {
       var typeArguments = node.typeArguments?.arguments;
-      if (typeArguments?.length == 1) {
+      if (typeArguments != null && typeArguments.length == 1) {
         var elementType = typeArguments[0];
         if (!isConstantTypeExpression(elementType)) {
           nodes.add(elementType);
@@ -309,14 +310,14 @@ class _Collector {
 
     if (node is SetOrMapLiteral) {
       var typeArguments = node.typeArguments?.arguments;
-      if (typeArguments?.length == 1) {
+      if (typeArguments != null && typeArguments.length == 1) {
         var elementType = typeArguments[0];
         if (!isConstantTypeExpression(elementType)) {
           nodes.add(elementType);
         }
       }
 
-      if (typeArguments?.length == 2) {
+      if (typeArguments != null && typeArguments.length == 2) {
         var keyType = typeArguments[0];
         var valueType = typeArguments[1];
         if (!isConstantTypeExpression(keyType)) {
@@ -342,10 +343,10 @@ class _Collector {
 class _ConstantTypeChecker {
   final bool potentially;
 
-  _ConstantTypeChecker({@required this.potentially});
+  _ConstantTypeChecker({required this.potentially});
 
   /// Return `true` if the [node] is a constant type expression.
-  bool check(TypeAnnotation node) {
+  bool check(TypeAnnotation? node) {
     if (potentially) {
       if (node is TypeName) {
         var element = node.name.staticElement;
@@ -394,13 +395,11 @@ class _ConstantTypeChecker {
         }
       }
 
-      var formalParameters = node.parameters?.parameters;
-      if (formalParameters != null) {
-        for (var parameter in formalParameters) {
-          if (parameter is SimpleFormalParameter) {
-            if (!check(parameter.type)) {
-              return false;
-            }
+      var formalParameters = node.parameters.parameters;
+      for (var parameter in formalParameters) {
+        if (parameter is SimpleFormalParameter) {
+          if (!check(parameter.type)) {
+            return false;
           }
         }
       }

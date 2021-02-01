@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/ast.dart' as ast;
 import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
@@ -26,12 +27,12 @@ class LibraryBuilder {
   final Linker linker;
   final Uri uri;
   final Reference reference;
-  List<Reference> exports;
+  late final List<Reference> exports;
 
-  LinkedLibraryContext context;
+  late final LinkedLibraryContext context;
 
-  LibraryElementImpl element;
-  LibraryScope scope;
+  late final LibraryElementImpl element;
+  late final LibraryScope scope;
 
   /// Local declarations.
   final Scope localScope = Scope.top();
@@ -45,9 +46,9 @@ class LibraryBuilder {
 
   void addExporters() {
     var unitContext = context.definingUnit;
-    for (var directive in unitContext.unit.directives) {
+    for (var directive in unitContext.unit!.directives) {
       if (directive is ast.ExportDirective) {
-        Uri uri;
+        Uri? uri;
         try {
           uri = _selectAbsoluteUri(directive);
           if (uri == null) continue;
@@ -62,8 +63,9 @@ class LibraryBuilder {
           } else if (node is ast.HideCombinator) {
             var nameList = node.hiddenNames.map((i) => i.name).toList();
             return Combinator.hide(nameList);
+          } else {
+            throw UnimplementedError();
           }
-          return null;
         }).toList();
 
         var exported = linker.builders[uri];
@@ -99,7 +101,7 @@ class LibraryBuilder {
       var setterRef = unitRef.getChild('@setter');
       var variableRef = unitRef.getChild('@variable');
       var nextUnnamedExtensionId = 0;
-      for (var node in linkingUnit.unit.declarations) {
+      for (var node in linkingUnit.unit!.declarations) {
         if (node is ast.ClassDeclaration) {
           var name = node.name.name;
           var reference = classRef.getChild(name);
@@ -107,7 +109,9 @@ class LibraryBuilder {
           localScope.declare(name, reference);
 
           ClassElementImpl.forLinkedNode(
-              linkingUnit.reference.element, reference, node);
+              linkingUnit.reference.element as CompilationUnitElementImpl,
+              reference,
+              node);
         } else if (node is ast.ClassTypeAlias) {
           var name = node.name.name;
           var reference = classRef.getChild(name);
@@ -115,7 +119,9 @@ class LibraryBuilder {
           localScope.declare(name, reference);
 
           ClassElementImpl.forLinkedNode(
-              linkingUnit.reference.element, reference, node);
+              linkingUnit.reference.element as CompilationUnitElementImpl,
+              reference,
+              node);
         } else if (node is ast.EnumDeclaration) {
           var name = node.name.name;
           var reference = enumRef.getChild(name);
@@ -123,8 +129,10 @@ class LibraryBuilder {
           localScope.declare(name, reference);
 
           EnumElementImpl.forLinkedNode(
-              linkingUnit.reference.element, reference, node);
-        } else if (node is ast.ExtensionDeclaration) {
+              linkingUnit.reference.element as CompilationUnitElementImpl,
+              reference,
+              node);
+        } else if (node is ast.ExtensionDeclarationImpl) {
           var name = node.name?.name;
           var refName = name ?? 'extension-${nextUnnamedExtensionId++}';
 
@@ -136,7 +144,9 @@ class LibraryBuilder {
           }
 
           ExtensionElementImpl.forLinkedNode(
-              linkingUnit.reference.element, reference, node);
+              linkingUnit.reference.element as CompilationUnitElementImpl,
+              reference,
+              node);
         } else if (node is ast.FunctionDeclaration) {
           var name = node.name.name;
 
@@ -144,15 +154,15 @@ class LibraryBuilder {
           if (node.isGetter) {
             reference = getterRef.getChild(name);
             PropertyAccessorElementImpl.forLinkedNode(
-                linkingUnit.reference.element, reference, node);
+                linkingUnit.reference.element as ElementImpl, reference, node);
           } else if (node.isSetter) {
             reference = setterRef.getChild(name);
             PropertyAccessorElementImpl.forLinkedNode(
-                linkingUnit.reference.element, reference, node);
+                linkingUnit.reference.element as ElementImpl, reference, node);
           } else {
             reference = functionRef.getChild(name);
             FunctionElementImpl.forLinkedNode(
-                linkingUnit.reference.element, reference, node);
+                linkingUnit.reference.element as ElementImpl, reference, node);
           }
 
           reference.node ??= node;
@@ -169,7 +179,9 @@ class LibraryBuilder {
           localScope.declare(name, reference);
 
           TypeAliasElementImpl.forLinkedNodeFactory(
-              linkingUnit.reference.element, reference, node);
+              linkingUnit.reference.element as CompilationUnitElementImpl,
+              reference,
+              node);
         } else if (node is ast.GenericTypeAlias) {
           var name = node.name.name;
           var reference = typeAliasRef.getChild(name);
@@ -178,7 +190,9 @@ class LibraryBuilder {
           localScope.declare(name, reference);
 
           TypeAliasElementImpl.forLinkedNodeFactory(
-              linkingUnit.reference.element, reference, node);
+              linkingUnit.reference.element as CompilationUnitElementImpl,
+              reference,
+              node);
         } else if (node is ast.MixinDeclaration) {
           var name = node.name.name;
           var reference = mixinRef.getChild(name);
@@ -186,7 +200,9 @@ class LibraryBuilder {
           localScope.declare(name, reference);
 
           MixinElementImpl.forLinkedNode(
-              linkingUnit.reference.element, reference, node);
+              linkingUnit.reference.element as CompilationUnitElementImpl,
+              reference,
+              node);
         } else if (node is ast.TopLevelVariableDeclaration) {
           for (var variable in node.variables.variables) {
             var name = variable.name.name;
@@ -195,7 +211,9 @@ class LibraryBuilder {
             reference.node ??= node;
 
             TopLevelVariableElementImpl.forLinkedNode(
-                linkingUnit.reference.element, reference, variable);
+                linkingUnit.reference.element as CompilationUnitElementImpl,
+                reference,
+                variable);
 
             var getter = getterRef.getChild(name);
             localScope.declare(name, getter);
@@ -240,7 +258,7 @@ class LibraryBuilder {
     // Store elements only for the defining unit of the library.
     var isDefiningUnit = true;
     for (var unitContext in context.units) {
-      for (var node in unitContext.unit.directives) {
+      for (var node in unitContext.unit!.directives) {
         if (node is ast.ExportDirective) {
           var exportElement = ExportElementImpl.forLinkedNode(element, node);
           if (isDefiningUnit) {
@@ -260,7 +278,7 @@ class LibraryBuilder {
     element.exports = exports;
 
     if (!hasCoreImport) {
-      var dartCore = linker.elementFactory.libraryOfUri('dart:core');
+      var dartCore = linker.elementFactory.libraryOfUri2('dart:core');
       imports.add(
         ImportElementImpl(-1)
           ..importedLibrary = dartCore
@@ -272,9 +290,8 @@ class LibraryBuilder {
   }
 
   void buildElement() {
-    linker.elementFactory.createLibraryElementForLinking(context);
-    element = reference.element;
-    assert(element != null);
+    element = linker.elementFactory.createLibraryElementForLinking(context)
+        as LibraryElementImpl;
   }
 
   void buildInitialExportScope() {
@@ -284,12 +301,12 @@ class LibraryBuilder {
   }
 
   void buildScope() {
-    scope = element.scope;
+    scope = element.scope as LibraryScope;
   }
 
   void collectMixinSuperInvokedNames() {
     for (var unitContext in context.units) {
-      for (var declaration in unitContext.unit.declarations) {
+      for (var declaration in unitContext.unit!.declarations) {
         if (declaration is ast.MixinDeclaration) {
           var names = <String>{};
           var collector = MixinSuperInvokedNamesCollector(names);
@@ -314,9 +331,10 @@ class LibraryBuilder {
   }
 
   void resolveMetadata() {
-    for (CompilationUnitElementImpl unit in element.units) {
+    for (var unit in element.units) {
+      var unitImpl = unit as CompilationUnitElementImpl;
       var resolver = MetadataResolver(linker, scope, unit);
-      unit.linkedNode.accept(resolver);
+      unitImpl.linkedNode!.accept(resolver);
     }
   }
 
@@ -329,16 +347,16 @@ class LibraryBuilder {
         linker.elementFactory,
         element,
         unitReference,
-        unitContext.unit.featureSet.isEnabled(Feature.non_nullable),
+        unitContext.unit!.featureSet.isEnabled(Feature.non_nullable),
         scope,
       );
-      unitContext.unit.accept(resolver);
+      unitContext.unit!.accept(resolver);
     }
   }
 
   void resolveUriDirectives() {
     var unitContext = context.units[0];
-    for (var directive in unitContext.unit.directives) {
+    for (var directive in unitContext.unit!.directives) {
       if (directive is ast.NamespaceDirective) {
         try {
           var uri = _selectAbsoluteUri(directive);
@@ -370,7 +388,7 @@ class LibraryBuilder {
     // }
   }
 
-  Uri _selectAbsoluteUri(ast.NamespaceDirective directive) {
+  Uri? _selectAbsoluteUri(ast.NamespaceDirective directive) {
     var relativeUriStr = _selectRelativeUri(
       directive.configurations,
       directive.uri.stringValue,
@@ -382,9 +400,9 @@ class LibraryBuilder {
     return resolveRelativeUri(uri, relativeUri);
   }
 
-  String _selectRelativeUri(
+  String? _selectRelativeUri(
     List<ast.Configuration> configurations,
-    String defaultUri,
+    String? defaultUri,
   ) {
     for (var configuration in configurations) {
       var name = configuration.name.components.join('.');
@@ -406,8 +424,7 @@ class LibraryBuilder {
     var unitRef = reference.getChild('@unit');
     var unitIndex = 0;
     for (var inputUnit in inputLibrary.units) {
-      var source = inputUnit.source;
-      var uriStr = source != null ? '${source.uri}' : '';
+      var uriStr = inputUnit.uriStr;
       var reference = unitRef.getChild(uriStr);
       context.units.add(
         LinkedUnitContext(

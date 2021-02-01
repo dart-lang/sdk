@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:meta/meta.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -1522,9 +1521,9 @@ class _PackageBuildWorkspaceBase extends PubPackageResolutionTest {
   }
 
   void _newTestPackageGeneratedFile({
-    @required String packageName,
-    @required String pathInLib,
-    @required String content,
+    required String packageName,
+    required String pathInLib,
+    required String content,
   }) {
     newFile(
       '$testPackageGeneratedPath/$packageName/lib/$pathInLib',

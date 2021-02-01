@@ -17,7 +17,6 @@ import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/type_promotion_manager.dart';
-import 'package:meta/meta.dart';
 
 /// Helper for resolving [BinaryExpression]s.
 class BinaryExpressionResolver {
@@ -27,8 +26,8 @@ class BinaryExpressionResolver {
   final InvocationInferenceHelper _inferenceHelper;
 
   BinaryExpressionResolver({
-    @required ResolverVisitor resolver,
-    @required TypePromotionManager promoteManager,
+    required ResolverVisitor resolver,
+    required TypePromotionManager promoteManager,
   })  : _resolver = resolver,
         _promoteManager = promoteManager,
         _typePropertyResolver = resolver.typePropertyResolver,
@@ -79,15 +78,7 @@ class BinaryExpressionResolver {
   /// TODO(scheglov) this is duplicate
   void _analyzeLeastUpperBoundTypes(
       Expression node, DartType staticType1, DartType staticType2) {
-    // TODO(brianwilkerson) Determine whether this can still happen.
-    staticType1 ??= DynamicTypeImpl.instance;
-
-    // TODO(brianwilkerson) Determine whether this can still happen.
-    staticType2 ??= DynamicTypeImpl.instance;
-
-    DartType staticType =
-        _typeSystem.getLeastUpperBound(staticType1, staticType2) ??
-            DynamicTypeImpl.instance;
+    var staticType = _typeSystem.getLeastUpperBound(staticType1, staticType2);
 
     staticType = _resolver.toLegacyTypeIfOptOut(staticType);
 
@@ -102,7 +93,7 @@ class BinaryExpressionResolver {
     );
   }
 
-  void _resolveEqual(BinaryExpressionImpl node, {@required bool notEqual}) {
+  void _resolveEqual(BinaryExpressionImpl node, {required bool notEqual}) {
     var left = node.leftOperand;
     left.accept(_resolver);
     left = node.leftOperand;
@@ -110,7 +101,7 @@ class BinaryExpressionResolver {
     var flow = _resolver.flowAnalysis?.flow;
     var leftExtensionOverride = left is ExtensionOverride;
     if (!leftExtensionOverride) {
-      flow?.equalityOp_rightBegin(left, left.staticType);
+      flow?.equalityOp_rightBegin(left, left.staticType!);
     }
 
     var right = node.rightOperand;
@@ -118,7 +109,7 @@ class BinaryExpressionResolver {
     right = node.rightOperand;
 
     if (!leftExtensionOverride) {
-      flow?.equalityOp_end(node, right, right.staticType, notEqual: notEqual);
+      flow?.equalityOp_end(node, right, right.staticType!, notEqual: notEqual);
     }
 
     _resolveUserDefinableElement(
@@ -142,7 +133,7 @@ class BinaryExpressionResolver {
 
     left.accept(_resolver);
     left = node.leftOperand;
-    var leftType = left.staticType;
+    var leftType = left.staticType!;
 
     var rightContextType = InferenceContext.getContext(node);
     if (rightContextType == null || rightContextType.isDynamic) {
@@ -155,7 +146,7 @@ class BinaryExpressionResolver {
     right = node.rightOperand;
     flow?.ifNullExpression_end();
 
-    var rightType = right.staticType;
+    var rightType = right.staticType!;
     if (_isNonNullableByDefault) {
       var promotedLeftType = _typeSystem.promoteToNonNull(leftType);
       _analyzeLeastUpperBoundTypes(node, promotedLeftType, rightType);
@@ -183,7 +174,7 @@ class BinaryExpressionResolver {
       right.accept(_resolver);
       right = node.rightOperand;
 
-      _resolver.nullSafetyDeadCodeVerifier?.flowEnd(right);
+      _resolver.nullSafetyDeadCodeVerifier.flowEnd(right);
       flow?.logicalBinaryOp_end(node, right, isAnd: true);
     } else {
       _promoteManager.visitBinaryExpression_and_rhs(
@@ -220,7 +211,7 @@ class BinaryExpressionResolver {
     right.accept(_resolver);
     right = node.rightOperand;
 
-    _resolver.nullSafetyDeadCodeVerifier?.flowEnd(right);
+    _resolver.nullSafetyDeadCodeVerifier.flowEnd(right);
     flow?.logicalBinaryOp_end(node, right, isAnd: false);
 
     _checkNonBoolOperand(left, '||');
@@ -234,7 +225,7 @@ class BinaryExpressionResolver {
   ///
   /// TODO(scheglov) this is duplicate
   DartType _resolveTypeParameter(DartType type) =>
-      type?.resolveToBound(_typeProvider.objectType);
+      type.resolveToBound(_typeProvider.objectType);
 
   void _resolveUnsupportedOperator(BinaryExpressionImpl node) {
     node.leftOperand.accept(_resolver);
@@ -279,8 +270,9 @@ class BinaryExpressionResolver {
     Expression leftOperand = node.leftOperand;
 
     if (leftOperand is ExtensionOverride) {
-      ExtensionElement extension = leftOperand.extensionName.staticElement;
-      MethodElement member = extension.getMethod(methodName);
+      var extension =
+          leftOperand.extensionName.staticElement as ExtensionElement;
+      var member = extension.getMethod(methodName);
       if (member == null) {
         _errorReporter.reportErrorForToken(
           CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
@@ -293,7 +285,7 @@ class BinaryExpressionResolver {
       return;
     }
 
-    var leftType = leftOperand.staticType;
+    var leftType = leftOperand.staticType!;
     leftType = _resolveTypeParameter(leftType);
 
     if (identical(leftType, NeverTypeImpl.instance)) {
@@ -316,7 +308,7 @@ class BinaryExpressionResolver {
       nameErrorEntity: node,
     );
 
-    node.staticElement = result.getter;
+    node.staticElement = result.getter as MethodElement?;
     node.staticInvokeType = result.getter?.type;
     if (result.needsGetterError) {
       if (leftOperand is SuperExpression) {
@@ -338,8 +330,13 @@ class BinaryExpressionResolver {
   void _resolveUserDefinableType(BinaryExpressionImpl node) {
     var leftOperand = node.leftOperand;
 
-    var leftType = leftOperand.staticType;
-    leftType = _resolveTypeParameter(leftType);
+    DartType leftType;
+    if (leftOperand is ExtensionOverride) {
+      leftType = leftOperand.extendedType!;
+    } else {
+      leftType = leftOperand.staticType!;
+      leftType = _resolveTypeParameter(leftType);
+    }
 
     if (identical(leftType, NeverTypeImpl.instance)) {
       _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance);
@@ -352,7 +349,7 @@ class BinaryExpressionResolver {
       staticType = _typeSystem.refineBinaryExpressionType(
         leftType,
         node.operator.type,
-        node.rightOperand.staticType,
+        node.rightOperand.staticType!,
         staticType,
         node.staticElement,
       );

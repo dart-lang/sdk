@@ -21,7 +21,7 @@ class AnalysisSessionHelper {
   /// Return the [ClassElement] with the given [className] that is exported
   /// from the library with the given [libraryUri], or `null` if the library
   /// does not export a class with such name.
-  Future<ClassElement> getClass(String libraryUri, String className) async {
+  Future<ClassElement?> getClass(String libraryUri, String className) async {
     var libraryElement = await session.getLibraryByUri(libraryUri);
     var element = libraryElement.exportNamespace.get(className);
     if (element is ClassElement) {
@@ -33,9 +33,9 @@ class AnalysisSessionHelper {
 
   /// Return the declaration of the [element], or `null` is the [element]
   /// is synthetic, or is declared in a file that is not a part of a library.
-  Future<ElementDeclarationResult> getElementDeclaration(
+  Future<ElementDeclarationResult?> getElementDeclaration(
       Element element) async {
-    var libraryPath = element.library.source.fullName;
+    var libraryPath = element.library!.source.fullName;
 
     // This should not happen in valid code, but sometimes we treat a file
     // with a `part of` directive as a library, because there is no library
@@ -49,12 +49,12 @@ class AnalysisSessionHelper {
   }
 
   /// Return the resolved unit that declares the given [element].
-  Future<ResolvedUnitResult> getResolvedUnitByElement(Element element) async {
-    var libraryPath = element.library.source.fullName;
+  Future<ResolvedUnitResult?> getResolvedUnitByElement(Element element) async {
+    var libraryPath = element.library!.source.fullName;
     var resolvedLibrary = await _getResolvedLibrary(libraryPath);
 
-    var unitPath = element.source.fullName;
-    return resolvedLibrary.units.singleWhere((resolvedUnit) {
+    var unitPath = element.source!.fullName;
+    return resolvedLibrary.units!.singleWhere((resolvedUnit) {
       return resolvedUnit.path == unitPath;
     });
   }
@@ -62,7 +62,7 @@ class AnalysisSessionHelper {
   /// Return the [PropertyAccessorElement] with the given [name] that is
   /// exported from the library with the given [uri], or `null` if the
   /// library does not export a top-level accessor with such name.
-  Future<PropertyAccessorElement> getTopLevelPropertyAccessor(
+  Future<PropertyAccessorElement?> getTopLevelPropertyAccessor(
       String uri, String name) async {
     var libraryElement = await session.getLibraryByUri(uri);
     var element = libraryElement.exportNamespace.get(name);

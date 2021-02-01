@@ -18,11 +18,11 @@ class DriverBasedUriConverter implements UriConverter {
   DriverBasedUriConverter(this.driver);
 
   @override
-  Uri pathToUri(String path, {String containingPath}) {
+  Uri? pathToUri(String path, {String? containingPath}) {
     ResourceProvider provider = driver.resourceProvider;
     if (containingPath != null) {
       Context context = provider.pathContext;
-      String root = driver.contextRoot.root;
+      String root = driver.contextRoot!.root;
       if (context.isWithin(root, path) &&
           context.isWithin(root, containingPath)) {
         String relativePath =
@@ -37,5 +37,5 @@ class DriverBasedUriConverter implements UriConverter {
   }
 
   @override
-  String uriToPath(Uri uri) => driver.sourceFactory.forUri2(uri)?.fullName;
+  String? uriToPath(Uri uri) => driver.sourceFactory.forUri2(uri)?.fullName;
 }

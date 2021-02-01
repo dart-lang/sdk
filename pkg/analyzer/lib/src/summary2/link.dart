@@ -19,7 +19,6 @@ import 'package:analyzer/src/summary2/top_level_inference.dart';
 import 'package:analyzer/src/summary2/type_alias.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/summary2/variance_builder.dart';
-import 'package:meta/meta.dart';
 
 var timerLinkingLinkingBundle = Stopwatch();
 var timerLinkingRemoveBundle = Stopwatch();
@@ -44,11 +43,11 @@ class Linker {
   /// Libraries that are being linked.
   final Map<Uri, LibraryBuilder> builders = {};
 
-  InheritanceManager3 inheritance; // TODO(scheglov) cache it
+  late InheritanceManager3 inheritance; // TODO(scheglov) cache it
 
-  BundleWriter bundleWriter;
-  Uint8List astBytes;
-  Uint8List resolutionBytes;
+  late BundleWriter bundleWriter;
+  late Uint8List astBytes;
+  late Uint8List resolutionBytes;
 
   Linker(this.elementFactory, this.withInformative);
 
@@ -172,8 +171,8 @@ class Linker {
   }
 
   void _createTypeSystem() {
-    var coreLib = elementFactory.libraryOfUri('dart:core');
-    var asyncLib = elementFactory.libraryOfUri('dart:async');
+    var coreLib = elementFactory.libraryOfUri2('dart:core');
+    var asyncLib = elementFactory.libraryOfUri2('dart:async');
     elementFactory.createTypeProviders(coreLib, asyncLib);
 
     inheritance = InheritanceManager3();
@@ -240,7 +239,7 @@ class Linker {
             return UnitToWriteResolution(
               uriStr: e.uriStr,
               partUriStr: e.partUriStr,
-              node: e.unit,
+              node: e.unit!,
               isSynthetic: e.isSynthetic,
             );
           }).toList(),
@@ -266,7 +265,7 @@ class LinkInputLibrary {
 }
 
 class LinkInputUnit {
-  final String partUriStr;
+  final String? partUriStr;
   final Source source;
   final bool isSynthetic;
   final CompilationUnit unit;
@@ -279,9 +278,6 @@ class LinkInputUnit {
   );
 
   String get uriStr {
-    if (source == null) {
-      return '';
-    }
     return '${source.uri}';
   }
 }
@@ -291,7 +287,7 @@ class LinkResult {
   final Uint8List resolutionBytes;
 
   LinkResult({
-    @required this.astBytes,
-    @required this.resolutionBytes,
+    required this.astBytes,
+    required this.resolutionBytes,
   });
 }

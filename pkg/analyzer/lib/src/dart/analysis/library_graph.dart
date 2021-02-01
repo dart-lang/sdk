@@ -36,7 +36,7 @@ class LibraryCycle {
   /// transitive signatures of the cycles that the [libraries] reference
   /// directly.  So, indirectly it is based on the transitive closure of all
   /// files that [libraries] reference (but we don't compute these files).
-  String transitiveSignature;
+  String? transitiveSignature;
 
   /// The map from a library in [libraries] to its transitive signature.
   ///
@@ -110,8 +110,8 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
 
     // Sort libraries to produce stable signatures.
     scc.sort((first, second) {
-      var firstPath = first.file.path;
-      var secondPath = second.file.path;
+      var firstPath = first.file.path!;
+      var secondPath = second.file.path!;
       return firstPath.compareTo(secondPath);
     });
 
@@ -128,7 +128,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
     for (var node in scc) {
       cycle.libraries.add(node.file);
 
-      signature.addLanguageVersion(node.file.packageLanguageVersion);
+      signature.addLanguageVersion(node.file.packageLanguageVersion!);
       signature.addString(node.file.uriStr);
 
       signature.addInt(node.file.libraryFiles.length);
@@ -145,7 +145,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
     for (var node in scc) {
       var librarySignatureBuilder = ApiSignature()
         ..addString(node.file.uriStr)
-        ..addString(cycle.transitiveSignature);
+        ..addString(cycle.transitiveSignature!);
       var librarySignature = librarySignatureBuilder.toHex();
 
       node.file.internal_setLibraryCycle(
@@ -173,7 +173,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
 
       if (cycle.directDependencies.add(referencedCycle)) {
         referencedCycle._directUsers.add(cycle);
-        signature.addString(referencedCycle.transitiveSignature);
+        signature.addString(referencedCycle.transitiveSignature!);
       }
     }
   }

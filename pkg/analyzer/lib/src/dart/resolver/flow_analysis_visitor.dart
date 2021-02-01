@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/migration.dart';
@@ -53,16 +52,16 @@ class FlowAnalysisHelper {
   final TypeSystemTypeOperations _typeOperations;
 
   /// Precomputed sets of potentially assigned variables.
-  AssignedVariables<AstNode, PromotableElement> assignedVariables;
+  AssignedVariables<AstNode, PromotableElement>? assignedVariables;
 
   /// The result for post-resolution stages of analysis, for testing only.
-  final FlowAnalysisDataForTesting dataForTesting;
+  final FlowAnalysisDataForTesting? dataForTesting;
 
   /// The current flow, when resolving a function body, or `null` otherwise.
-  FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>
+  FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>?
       flow;
 
-  FlowAnalysisHelper(TypeSystem typeSystem, bool retainDataForTesting)
+  FlowAnalysisHelper(TypeSystemImpl typeSystem, bool retainDataForTesting)
       : this._(TypeSystemTypeOperations(typeSystem),
             retainDataForTesting ? FlowAnalysisDataForTesting() : null);
 
@@ -78,14 +77,14 @@ class FlowAnalysisHelper {
     var expression = node.expression;
     var typeAnnotation = node.type;
 
-    flow.asExpression_end(expression, typeAnnotation.type);
+    flow!.asExpression_end(expression, typeAnnotation.type!);
   }
 
   void assignmentExpression(AssignmentExpression node) {
     if (flow == null) return null;
 
     if (node.operator.type == TokenType.QUESTION_QUESTION_EQ) {
-      flow.ifNullExpression_rightBegin(node.leftHandSide, node.readType);
+      flow!.ifNullExpression_rightBegin(node.leftHandSide, node.readType!);
     }
   }
 
@@ -93,72 +92,76 @@ class FlowAnalysisHelper {
     if (flow == null) return null;
 
     if (node.operator.type == TokenType.QUESTION_QUESTION_EQ) {
-      flow.ifNullExpression_end();
+      flow!.ifNullExpression_end();
     }
   }
 
   void breakStatement(BreakStatement node) {
     var target = getLabelTarget(node, node.label?.staticElement);
-    flow.handleBreak(target);
+    if (target != null) {
+      flow!.handleBreak(target);
+    }
   }
 
   /// Mark the [node] as unreachable if it is not covered by another node that
   /// is already known to be unreachable.
   void checkUnreachableNode(AstNode node) {
     if (flow == null) return;
-    if (flow.isReachable) return;
+    if (flow!.isReachable) return;
 
     if (dataForTesting != null) {
-      dataForTesting.unreachableNodes.add(node);
+      dataForTesting!.unreachableNodes.add(node);
     }
   }
 
   void continueStatement(ContinueStatement node) {
     var target = getLabelTarget(node, node.label?.staticElement);
-    flow.handleContinue(target);
+    if (target != null) {
+      flow!.handleContinue(target);
+    }
   }
 
   void executableDeclaration_enter(
-      AstNode node, FormalParameterList parameters, bool isClosure) {
+      AstNode node, FormalParameterList? parameters, bool isClosure) {
     if (isClosure) {
-      flow.functionExpression_begin(node);
+      flow!.functionExpression_begin(node);
     }
 
     if (parameters != null) {
       for (var parameter in parameters.parameters) {
-        flow.declare(parameter.declaredElement, true);
+        flow!.declare(parameter.declaredElement!, true);
       }
     }
   }
 
   void executableDeclaration_exit(FunctionBody body, bool isClosure) {
     if (isClosure) {
-      flow.functionExpression_end();
+      flow!.functionExpression_end();
     }
-    if (!flow.isReachable) {
-      dataForTesting?.functionBodiesThatDontComplete?.add(body);
+    if (!flow!.isReachable) {
+      dataForTesting?.functionBodiesThatDontComplete.add(body);
     }
   }
 
-  void for_bodyBegin(AstNode node, Expression condition) {
-    flow.for_bodyBegin(node is Statement ? node : null, condition);
+  void for_bodyBegin(AstNode node, Expression? condition) {
+    flow!.for_bodyBegin(node is Statement ? node : null, condition);
   }
 
   void for_conditionBegin(AstNode node) {
-    flow.for_conditionBegin(node);
+    flow!.for_conditionBegin(node);
   }
 
   bool isDefinitelyAssigned(
     SimpleIdentifier node,
     PromotableElement element,
   ) {
-    var isAssigned = flow.isAssigned(element);
+    var isAssigned = flow!.isAssigned(element);
 
     if (dataForTesting != null) {
       if (isAssigned) {
-        dataForTesting.definitelyAssigned.add(node);
+        dataForTesting!.definitelyAssigned.add(node);
       } else {
-        dataForTesting.notDefinitelyAssigned.add(node);
+        dataForTesting!.notDefinitelyAssigned.add(node);
       }
     }
 
@@ -169,10 +172,10 @@ class FlowAnalysisHelper {
     SimpleIdentifier node,
     PromotableElement element,
   ) {
-    var isUnassigned = flow.isUnassigned(element);
+    var isUnassigned = flow!.isUnassigned(element);
 
     if (dataForTesting != null && isUnassigned) {
-      dataForTesting.definitelyUnassigned.add(node);
+      dataForTesting!.definitelyUnassigned.add(node);
     }
 
     return isUnassigned;
@@ -184,37 +187,37 @@ class FlowAnalysisHelper {
     var expression = node.expression;
     var typeAnnotation = node.type;
 
-    flow.isExpression_end(
+    flow!.isExpression_end(
       node,
       expression,
       node.notOperator != null,
-      typeAnnotation.type,
+      typeAnnotation.type!,
     );
   }
 
   void labeledStatement_enter(LabeledStatement node) {
     if (flow == null) return;
 
-    flow.labeledStatement_begin(node);
+    flow!.labeledStatement_begin(node);
   }
 
   void labeledStatement_exit(LabeledStatement node) {
     if (flow == null) return;
 
-    flow.labeledStatement_end();
+    flow!.labeledStatement_end();
   }
 
   void topLevelDeclaration_enter(
-      Declaration node, FormalParameterList parameters, FunctionBody body) {
-    assert(node != null);
+      Declaration node, FormalParameterList? parameters, FunctionBody? body) {
     assert(flow == null);
     assignedVariables = computeAssignedVariables(node, parameters,
         retainDataForTesting: dataForTesting != null);
     if (dataForTesting != null) {
-      dataForTesting.assignedVariables[node] = assignedVariables;
+      dataForTesting!.assignedVariables[node] = assignedVariables
+          as AssignedVariablesForTesting<AstNode, PromotableElement>;
     }
     flow = FlowAnalysis<AstNode, Statement, Expression, PromotableElement,
-        DartType>(_typeOperations, assignedVariables);
+        DartType>(_typeOperations, assignedVariables!);
   }
 
   void topLevelDeclaration_exit() {
@@ -225,7 +228,7 @@ class FlowAnalysisHelper {
     this.flow = null;
     assignedVariables = null;
 
-    flow.finish();
+    flow!.finish();
   }
 
   void variableDeclarationList(VariableDeclarationList node) {
@@ -233,14 +236,15 @@ class FlowAnalysisHelper {
       var variables = node.variables;
       for (var i = 0; i < variables.length; ++i) {
         var variable = variables[i];
-        flow.declare(variable.declaredElement, variable.initializer != null);
+        flow!.declare(variable.declaredElement as PromotableElement,
+            variable.initializer != null);
       }
     }
   }
 
   /// Computes the [AssignedVariables] map for the given [node].
   static AssignedVariables<AstNode, PromotableElement> computeAssignedVariables(
-      Declaration node, FormalParameterList parameters,
+      Declaration node, FormalParameterList? parameters,
       {bool retainDataForTesting = false}) {
     AssignedVariables<AstNode, PromotableElement> assignedVariables =
         retainDataForTesting
@@ -256,14 +260,14 @@ class FlowAnalysisHelper {
   /// Return the target of the `break` or `continue` statement with the
   /// [element] label. The [element] might be `null` (when the statement does
   /// not specify a label), so the default enclosing target is returned.
-  static Statement getLabelTarget(AstNode node, Element element) {
+  static Statement? getLabelTarget(AstNode? node, Element? element) {
     for (; node != null; node = node.parent) {
       if (element == null) {
         if (node is DoStatement ||
             node is ForStatement ||
             node is SwitchStatement ||
             node is WhileStatement) {
-          return node;
+          return node as Statement;
         }
       } else {
         if (node is LabeledStatement) {
@@ -305,12 +309,12 @@ class FlowAnalysisHelperForMigration extends FlowAnalysisHelper {
   final MigrationResolutionHooks migrationResolutionHooks;
 
   FlowAnalysisHelperForMigration(
-      TypeSystem typeSystem, this.migrationResolutionHooks)
+      TypeSystemImpl typeSystem, this.migrationResolutionHooks)
       : super(typeSystem, false);
 
   @override
   void topLevelDeclaration_enter(
-      Declaration node, FormalParameterList parameters, FunctionBody body) {
+      Declaration node, FormalParameterList? parameters, FunctionBody? body) {
     super.topLevelDeclaration_enter(node, parameters, body);
     migrationResolutionHooks.setFlowAnalysis(flow);
   }
@@ -365,7 +369,7 @@ class TypeSystemTypeOperations
   }
 
   @override
-  DartType tryPromoteToType(DartType to, DartType from) {
+  DartType? tryPromoteToType(DartType to, DartType from) {
     return typeSystem.tryPromoteToType(to, from);
   }
 
@@ -390,7 +394,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
 
     if (left is SimpleIdentifier) {
       var element = left.staticElement;
-      if (element is VariableElement) {
+      if (element is PromotableElement) {
         assignedVariables.write(element);
       }
     }
@@ -532,7 +536,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     var element = node.staticElement;
-    if (element is VariableElement &&
+    if (element is PromotableElement &&
         node.inGetterContext() &&
         node.parent is! FormalParameter &&
         node.parent is! CatchClause) {
@@ -572,12 +576,12 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    var grandParent = node.parent.parent;
+    var grandParent = node.parent!.parent;
     if (grandParent is TopLevelVariableDeclaration ||
         grandParent is FieldDeclaration) {
       throw StateError('Should not visit top level declarations');
     }
-    var declaredElement = node.declaredElement;
+    var declaredElement = node.declaredElement as PromotableElement;
     assignedVariables.declare(declaredElement);
     if (declaredElement.isLate && node.initializer != null) {
       assignedVariables.beginNode();
@@ -595,10 +599,10 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
     assignedVariables.endNode(node);
   }
 
-  void _declareParameters(FormalParameterList parameters) {
+  void _declareParameters(FormalParameterList? parameters) {
     if (parameters == null) return;
     for (var parameter in parameters.parameters) {
-      assignedVariables.declare(parameter.declaredElement);
+      assignedVariables.declare(parameter.declaredElement!);
     }
   }
 
@@ -607,7 +611,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
       if (forLoopParts is ForPartsWithExpression) {
         forLoopParts.initialization?.accept(this);
       } else if (forLoopParts is ForPartsWithDeclarations) {
-        forLoopParts.variables?.accept(this);
+        forLoopParts.variables.accept(this);
       } else {
         throw StateError('Unrecognized for loop parts');
       }
@@ -615,7 +619,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
       assignedVariables.beginNode();
       forLoopParts.condition?.accept(this);
       body.accept(this);
-      forLoopParts.updaters?.accept(this);
+      forLoopParts.updaters.accept(this);
       assignedVariables.endNode(node);
     } else if (forLoopParts is ForEachParts) {
       var iterable = forLoopParts.iterable;
@@ -624,11 +628,11 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
 
       if (forLoopParts is ForEachPartsWithIdentifier) {
         var element = forLoopParts.identifier.staticElement;
-        if (element is VariableElement) {
+        if (element is PromotableElement) {
           assignedVariables.write(element);
         }
       } else if (forLoopParts is ForEachPartsWithDeclaration) {
-        var variable = forLoopParts.loopVariable.declaredElement;
+        var variable = forLoopParts.loopVariable.declaredElement!;
         assignedVariables.declare(variable);
       } else {
         throw StateError('Unrecognized for loop parts');

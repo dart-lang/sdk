@@ -13,7 +13,6 @@ import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:glob/glob.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart';
 
@@ -37,23 +36,22 @@ class ContextLocatorImpl implements ContextLocator {
   /// Initialize a newly created context locator. If a [resourceProvider] is
   /// supplied, it will be used to access the file system. Otherwise the default
   /// resource provider will be used.
-  ContextLocatorImpl({ResourceProvider resourceProvider})
+  ContextLocatorImpl({ResourceProvider? resourceProvider})
       : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE;
 
   @override
   List<ContextRoot> locateRoots(
-      {@required List<String> includedPaths,
-      List<String> excludedPaths,
-      String optionsFile,
-      String packagesFile}) {
+      {required List<String> includedPaths,
+      List<String>? excludedPaths,
+      String? optionsFile,
+      String? packagesFile}) {
     //
     // Compute the list of folders and files that are to be included.
     //
     List<Folder> includedFolders = <Folder>[];
     List<File> includedFiles = <File>[];
-    _resourcesFromPaths(
-        includedPaths ?? const <String>[], includedFolders, includedFiles);
+    _resourcesFromPaths(includedPaths, includedFolders, includedFiles);
     //
     // Compute the list of folders and files that are to be excluded.
     //
@@ -81,14 +79,14 @@ class ContextLocatorImpl implements ContextLocator {
     // analyzed. For each, walk the directory structure and figure out where to
     // create context roots.
     //
-    File defaultOptionsFile;
+    File? defaultOptionsFile;
     if (optionsFile != null) {
       defaultOptionsFile = resourceProvider.getFile(optionsFile);
       if (!defaultOptionsFile.exists) {
         defaultOptionsFile = null;
       }
     }
-    File defaultPackagesFile;
+    File? defaultPackagesFile;
     if (packagesFile != null) {
       defaultPackagesFile = resourceProvider.getFile(packagesFile);
       if (!defaultPackagesFile.exists) {
@@ -108,7 +106,7 @@ class ContextLocatorImpl implements ContextLocator {
     }
     Map<Folder, ContextRoot> rootMap = <Folder, ContextRoot>{};
     for (File file in includedFiles) {
-      Folder parent = file.parent;
+      Folder parent = file.parent!;
       ContextRoot root = rootMap.putIfAbsent(parent, () {
         ContextRootImpl root = ContextRootImpl(resourceProvider, parent);
         root.packagesFile = defaultPackagesFile ?? _findPackagesFile(parent);
@@ -144,17 +142,17 @@ class ContextLocatorImpl implements ContextLocator {
       List<Folder> excludedFolders,
       ContextRoot containingRoot,
       List<Glob> excludedGlobs,
-      File optionsFile,
-      File packagesFile) {
+      File? optionsFile,
+      File? packagesFile) {
     //
     // If the options and packages files are allowed to be locally specified,
     // then look to see whether they are.
     //
-    File localOptionsFile;
+    File? localOptionsFile;
     if (optionsFile == null) {
       localOptionsFile = _getOptionsFile(folder);
     }
-    File localPackagesFile;
+    File? localPackagesFile;
     if (packagesFile == null) {
       localPackagesFile = _getPackagesFile(folder);
     }
@@ -195,8 +193,8 @@ class ContextLocatorImpl implements ContextLocator {
       List<Folder> excludedFolders,
       ContextRoot containingRoot,
       List<Glob> excludedGlobs,
-      File optionsFile,
-      File packagesFile) {
+      File? optionsFile,
+      File? packagesFile) {
     bool isExcluded(Folder folder) {
       if (excludedFolders.contains(folder) ||
           folder.shortName.startsWith('.')) {
@@ -234,13 +232,13 @@ class ContextLocatorImpl implements ContextLocator {
   /// Return the analysis options file to be used to analyze files in the given
   /// [folder], or `null` if there is no analysis options file in the given
   /// folder or any parent folder.
-  File _findOptionsFile(Folder folder) {
-    while (folder != null) {
-      File optionsFile = _getOptionsFile(folder);
+  File? _findOptionsFile(Folder? folder) {
+    for (Folder? current = folder; current != null;) {
+      File? optionsFile = _getOptionsFile(current);
       if (optionsFile != null) {
         return optionsFile;
       }
-      folder = folder.parent;
+      current = current.parent;
     }
     return null;
   }
@@ -248,13 +246,13 @@ class ContextLocatorImpl implements ContextLocator {
   /// Return the packages file to be used to analyze files in the given
   /// [folder], or `null` if there is no packages file in the given folder or
   /// any parent folder.
-  File _findPackagesFile(Folder folder) {
-    while (folder != null) {
-      File packagesFile = _getPackagesFile(folder);
+  File? _findPackagesFile(Folder folder) {
+    for (Folder? current = folder; current != null;) {
+      File? packagesFile = _getPackagesFile(current);
       if (packagesFile != null) {
         return packagesFile;
       }
-      folder = folder.parent;
+      current = current.parent;
     }
     return null;
   }
@@ -266,24 +264,24 @@ class ContextLocatorImpl implements ContextLocator {
   /// associated with the context root.
   List<Glob> _getExcludedGlobs(ContextRootImpl root) {
     List<Glob> patterns = [];
-    File optionsFile = root.optionsFile;
+    File? optionsFile = root.optionsFile;
     if (optionsFile != null) {
       try {
         String content = optionsFile.readAsStringSync();
         YamlNode doc = loadYamlNode(content);
         if (doc is YamlMap) {
-          YamlNode analyzerOptions = getValue(doc, AnalyzerOptions.analyzer);
+          var analyzerOptions = getValue(doc, AnalyzerOptions.analyzer);
           if (analyzerOptions is YamlMap) {
-            YamlNode excludeOptions =
+            var excludeOptions =
                 getValue(analyzerOptions, AnalyzerOptions.exclude);
             if (excludeOptions is YamlList) {
-              List<String> excludeList = toStringList(excludeOptions);
+              List<String>? excludeList = toStringList(excludeOptions);
               if (excludeList != null) {
                 for (String excludedPath in excludeList) {
                   Context context = resourceProvider.pathContext;
                   if (context.isRelative(excludedPath)) {
                     excludedPath = posix.joinAll([
-                      ...context.split(optionsFile.parent.path),
+                      ...context.split(optionsFile.parent!.path),
                       ...posix.split(excludedPath),
                     ]);
                   }
@@ -303,7 +301,7 @@ class ContextLocatorImpl implements ContextLocator {
 
   /// If the given [directory] contains a file with the given [name], then
   /// return the file. Otherwise, return `null`.
-  File _getFile(Folder directory, String name) {
+  File? _getFile(Folder directory, String name) {
     Resource resource = directory.getChild(name);
     if (resource is File && resource.exists) {
       return resource;
@@ -313,12 +311,12 @@ class ContextLocatorImpl implements ContextLocator {
 
   /// Return the analysis options file in the given [folder], or `null` if the
   /// folder does not contain an analysis options file.
-  File _getOptionsFile(Folder folder) =>
+  File? _getOptionsFile(Folder folder) =>
       _getFile(folder, ANALYSIS_OPTIONS_NAME);
 
   /// Return the packages file in the given [folder], or `null` if the folder
   /// does not contain a packages file.
-  File _getPackagesFile(Folder folder) {
+  File? _getPackagesFile(Folder folder) {
     var file = folder
         .getChildAssumingFolder(DOT_DART_TOOL_NAME)
         .getChildAssumingFile(PACKAGE_CONFIG_JSON_NAME);

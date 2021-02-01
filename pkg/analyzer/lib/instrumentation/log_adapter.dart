@@ -25,7 +25,7 @@ class InstrumentationLogAdapter implements InstrumentationService {
   static const String TAG_WATCH_EVENT = 'Watch';
 
   /// A logger used to log instrumentation in string format.
-  final InstrumentationLogger _instrumentationLogger;
+  final InstrumentationLogger? _instrumentationLogger;
 
   /// Initialize a newly created instrumentation service to communicate with the
   /// given [_instrumentationLogger].
@@ -38,13 +38,15 @@ class InstrumentationLogAdapter implements InstrumentationService {
   void logError(String message) => _log(TAG_ERROR, message);
 
   @override
-  void logException(dynamic exception,
-      [StackTrace stackTrace,
-      List<InstrumentationServiceAttachment> attachments]) {
+  void logException(
+    dynamic exception, [
+    StackTrace? stackTrace,
+    List<InstrumentationServiceAttachment>? attachments,
+  ]) {
     if (_instrumentationLogger != null) {
       String message = _toString(exception);
       String trace = _toString(stackTrace);
-      _instrumentationLogger.log(_join([TAG_EXCEPTION, message, trace]));
+      _instrumentationLogger!.log(_join([TAG_EXCEPTION, message, trace]));
     }
   }
 
@@ -53,14 +55,14 @@ class InstrumentationLogAdapter implements InstrumentationService {
       _log(TAG_INFO, message + (exception == null ? "" : exception.toString()));
 
   @override
-  void logLogEntry(String level, DateTime time, String message,
+  void logLogEntry(String level, DateTime? time, String message,
       Object exception, StackTrace stackTrace) {
     if (_instrumentationLogger != null) {
       String timeStamp =
           time == null ? 'null' : time.millisecondsSinceEpoch.toString();
       String exceptionText = exception.toString();
       String stackTraceText = stackTrace.toString();
-      _instrumentationLogger.log(_join([
+      _instrumentationLogger!.log(_join([
         TAG_LOG_ENTRY,
         level,
         timeStamp,
@@ -86,13 +88,13 @@ class InstrumentationLogAdapter implements InstrumentationService {
         stackTrace
       ];
       plugin.addToFields(fields);
-      _instrumentationLogger.log(_join(fields));
+      _instrumentationLogger!.log(_join(fields));
     }
   }
 
   @override
   void logPluginException(
-      PluginData plugin, dynamic exception, StackTrace stackTrace) {
+      PluginData plugin, dynamic exception, StackTrace? stackTrace) {
     if (_instrumentationLogger != null) {
       List<String> fields = <String>[
         TAG_PLUGIN_EXCEPTION,
@@ -100,14 +102,14 @@ class InstrumentationLogAdapter implements InstrumentationService {
         _toString(stackTrace)
       ];
       plugin.addToFields(fields);
-      _instrumentationLogger.log(_join(fields));
+      _instrumentationLogger!.log(_join(fields));
     }
   }
 
   @override
   void logPluginNotification(String pluginId, String notification) {
     if (_instrumentationLogger != null) {
-      _instrumentationLogger.log(
+      _instrumentationLogger!.log(
           _join([TAG_PLUGIN_NOTIFICATION, notification, pluginId, '', '']));
     }
   }
@@ -115,7 +117,7 @@ class InstrumentationLogAdapter implements InstrumentationService {
   @override
   void logPluginRequest(String pluginId, String request) {
     if (_instrumentationLogger != null) {
-      _instrumentationLogger
+      _instrumentationLogger!
           .log(_join([TAG_PLUGIN_REQUEST, request, pluginId, '', '']));
     }
   }
@@ -123,7 +125,7 @@ class InstrumentationLogAdapter implements InstrumentationService {
   @override
   void logPluginResponse(String pluginId, String response) {
     if (_instrumentationLogger != null) {
-      _instrumentationLogger
+      _instrumentationLogger!
           .log(_join([TAG_PLUGIN_RESPONSE, response, pluginId, '', '']));
     }
   }
@@ -133,7 +135,7 @@ class InstrumentationLogAdapter implements InstrumentationService {
     if (_instrumentationLogger != null) {
       List<String> fields = <String>[TAG_PLUGIN_TIMEOUT, request];
       plugin.addToFields(fields);
-      _instrumentationLogger.log(_join(fields));
+      _instrumentationLogger!.log(_join(fields));
     }
   }
 
@@ -146,11 +148,11 @@ class InstrumentationLogAdapter implements InstrumentationService {
   @override
   void logVersion(String uuid, String clientId, String clientVersion,
       String serverVersion, String sdkVersion) {
-    String normalize(String value) =>
+    String normalize(String? value) =>
         value != null && value.isNotEmpty ? value : 'unknown';
 
     if (_instrumentationLogger != null) {
-      _instrumentationLogger.log(_join([
+      _instrumentationLogger!.log(_join([
         TAG_VERSION,
         uuid,
         normalize(clientId),
@@ -164,13 +166,15 @@ class InstrumentationLogAdapter implements InstrumentationService {
   @override
   void logWatchEvent(String folderPath, String filePath, String changeType) {
     if (_instrumentationLogger != null) {
-      _instrumentationLogger
+      _instrumentationLogger!
           .log(_join([TAG_WATCH_EVENT, folderPath, filePath, changeType]));
     }
   }
 
   @override
-  Future<void> shutdown() => _instrumentationLogger.shutdown();
+  Future<void> shutdown() async {
+    await _instrumentationLogger?.shutdown();
+  }
 
   /// Write an escaped version of the given [field] to the given [buffer].
   void _escape(StringBuffer buffer, String field) {
@@ -197,7 +201,7 @@ class InstrumentationLogAdapter implements InstrumentationService {
     int length = fields.length;
     for (int i = 0; i < length; i++) {
       buffer.write(':');
-      _escape(buffer, fields[i] ?? 'null');
+      _escape(buffer, fields[i]);
     }
     return buffer.toString();
   }
@@ -205,12 +209,12 @@ class InstrumentationLogAdapter implements InstrumentationService {
   /// Log the given message with the given tag.
   void _log(String tag, String message) {
     if (_instrumentationLogger != null) {
-      _instrumentationLogger.log(_join([tag, message]));
+      _instrumentationLogger!.log(_join([tag, message]));
     }
   }
 
   /// Convert the given [object] to a string.
-  String _toString(Object object) {
+  String _toString(Object? object) {
     if (object == null) {
       return 'null';
     }

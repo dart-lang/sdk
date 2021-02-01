@@ -25,7 +25,7 @@ abstract class CiderByteStore {
   /// [signature].
   ///
   /// Return `null` if the association does not exist.
-  CacheData get(String key, List<int> signature);
+  CacheData? get(String key, List<int> signature);
 
   /// Associate the given [bytes] with the [key] and [signature]. Return the
   /// [CacheData].
@@ -44,14 +44,14 @@ class CiderCachedByteStore implements CiderByteStore {
   int idCounter = 0;
 
   /// This field gets value only during testing.
-  CiderByteStoreTestView testView;
+  CiderByteStoreTestView? testView;
 
   CiderCachedByteStore(int maxCacheSize)
       : _cache = Cache<String, CiderCacheEntry>(
             maxCacheSize, (v) => v.data.bytes.length);
 
   @override
-  CacheData get(String key, List<int> signature) {
+  CacheData? get(String key, List<int> signature) {
     var entry = _cache.get(key, () => null);
 
     if (entry != null &&

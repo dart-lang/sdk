@@ -8,13 +8,13 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart'
 /// Search for the token before [target] starting the search with [start].
 /// Return `null` if [target] is a comment token
 /// or the previous token cannot be found.
-Token findPrevious(Token start, Token target) {
+Token? findPrevious(Token start, Token? target) {
   if (start == target || target is CommentToken) {
     return null;
   }
-  Token token = start is CommentToken ? start.parent : start;
+  Token token = start is CommentToken ? start.parent! : start;
   do {
-    Token next = token.next;
+    Token next = token.next!;
     if (next == target) {
       return token;
     }

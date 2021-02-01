@@ -26,10 +26,10 @@ class ContextRootImpl implements ContextRoot {
   List<Glob> excludedGlobs = [];
 
   @override
-  File optionsFile;
+  File? optionsFile;
 
   @override
-  File packagesFile;
+  File? packagesFile;
 
   /// Initialize a newly created context root.
   ContextRootImpl(this.resourceProvider, this.root);

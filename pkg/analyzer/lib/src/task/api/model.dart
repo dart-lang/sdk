@@ -12,9 +12,9 @@ import 'package:analyzer/src/generated/source.dart';
 abstract class AnalysisTarget {
   /// If this target is associated with a library, return the source of the
   /// library's defining compilation unit; otherwise return `null`.
-  Source get librarySource;
+  Source? get librarySource;
 
   /// Return the source associated with this target, or `null` if this target is
   /// not associated with a source.
-  Source get source;
+  Source? get source;
 }

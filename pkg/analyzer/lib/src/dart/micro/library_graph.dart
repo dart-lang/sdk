@@ -33,7 +33,6 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
-import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// Ensure that the [FileState.libraryCycle] for the [file] and anything it
@@ -58,7 +57,7 @@ class FileState {
   /// The [WorkspacePackage] that contains this file.
   ///
   /// It might be `null` if the file is outside of the workspace.
-  final WorkspacePackage workspacePackage;
+  final WorkspacePackage? workspacePackage;
 
   /// The [FeatureSet] for all files in the analysis context.
   ///
@@ -82,16 +81,16 @@ class FileState {
   final Set<FileState> directReferencedFiles = {};
   final Set<FileState> directReferencedLibraries = {};
   final List<FileState> libraryFiles = [];
-  FileState partOfLibrary;
+  FileState? partOfLibrary;
 
-  List<int> _digest;
-  bool _exists;
-  List<int> _apiSignature;
-  UnlinkedUnit2 unlinked2;
-  LibraryCycle _libraryCycle;
+  late List<int> _digest;
+  late bool _exists;
+  late List<int> _apiSignature;
+  late UnlinkedUnit2 unlinked2;
+  LibraryCycle? _libraryCycle;
 
   /// id of the cache entry.
-  int id;
+  late int id;
 
   FileState._(
     this._fsState,
@@ -115,7 +114,7 @@ class FileState {
     if (_libraryCycle == null) {
       computeLibraryCycle(_fsState._linkedSalt, this);
     }
-    return _libraryCycle;
+    return _libraryCycle!;
   }
 
   LineInfo get lineInfo => LineInfo(unlinked2.lineStarts);
@@ -215,7 +214,7 @@ class FileState {
   }
 
   void refresh({
-    @required OperationPerformanceImpl performance,
+    required OperationPerformanceImpl performance,
   }) {
     _fsState.testView.refreshedFiles.add(path);
     performance.getDataInt('count').increment();
@@ -228,7 +227,8 @@ class FileState {
     String unlinkedKey = path;
 
     // Prepare bytes of the unlinked bundle - existing or new.
-    List<int> bytes;
+    // TODO(migration): should not be nullable
+    List<int>? bytes;
     {
       var cacheData = _fsState._byteStore.get(unlinkedKey, _digest);
       bytes = cacheData?.bytes;
@@ -247,21 +247,21 @@ class FileState {
         performance.run('unlinked', (performance) {
           var unlinkedBuilder = serializeAstCiderUnlinked(_digest, unit);
           bytes = unlinkedBuilder.toBuffer();
-          performance.getDataInt('length').add(bytes.length);
-          cacheData = _fsState._byteStore.putGet(unlinkedKey, _digest, bytes);
-          bytes = cacheData.bytes;
+          performance.getDataInt('length').add(bytes!.length);
+          cacheData = _fsState._byteStore.putGet(unlinkedKey, _digest, bytes!);
+          bytes = cacheData!.bytes;
         });
 
         performance.run('prefetch', (_) {
-          unlinked2 = CiderUnlinkedUnit.fromBuffer(bytes).unlinkedUnit;
+          unlinked2 = CiderUnlinkedUnit.fromBuffer(bytes!).unlinkedUnit!;
           _prefetchDirectReferences(unlinked2);
         });
       }
-      id = cacheData.id;
+      id = cacheData!.id;
     }
 
     // Read the unlinked bundle.
-    unlinked2 = CiderUnlinkedUnit.fromBuffer(bytes).unlinkedUnit;
+    unlinked2 = CiderUnlinkedUnit.fromBuffer(bytes!).unlinkedUnit!;
     _apiSignature = Uint8List.fromList(unlinked2.apiSignature);
 
     // Build the graph.
@@ -300,7 +300,7 @@ class FileState {
           performance: performance,
         );
         if (partOfLibrary != null) {
-          directReferencedFiles.add(partOfLibrary);
+          directReferencedFiles.add(partOfLibrary!);
         }
       }
     }
@@ -320,9 +320,9 @@ class FileState {
     return path;
   }
 
-  FileState _fileForRelativeUri({
-    @required String relativeUri,
-    @required OperationPerformanceImpl performance,
+  FileState? _fileForRelativeUri({
+    required String relativeUri,
+    required OperationPerformanceImpl performance,
   }) {
     if (relativeUri.isEmpty) {
       return null;
@@ -379,7 +379,7 @@ class FileState {
     for (var uri in unlinked2.parts) {
       findPathForUri(uri);
     }
-    _fsState.prefetchFiles(paths.toList());
+    _fsState.prefetchFiles!(paths.toList());
   }
 
   static CiderUnlinkedUnitBuilder serializeAstCiderUnlinked(
@@ -409,7 +409,7 @@ class FileState {
       } else if (directive is PartOfDirective) {
         hasPartOfDirective = true;
         if (directive.uri != null) {
-          partOfUriStr = directive.uri.stringValue;
+          partOfUriStr = directive.uri!.stringValue!;
         }
       }
     }
@@ -428,7 +428,7 @@ class FileState {
       hasLibraryDirective: hasLibraryDirective,
       hasPartOfDirective: hasPartOfDirective,
       partOfUri: partOfUriStr,
-      lineStarts: unit.lineInfo.lineStarts,
+      lineStarts: unit.lineInfo!.lineStarts,
     );
     return CiderUnlinkedUnitBuilder(
         contentDigest: digest, unlinkedUnit: unlinkedBuilder);
@@ -470,7 +470,7 @@ class FileSystemState {
 
   /// A function that fetches the given list of files. This function can be used
   /// to batch file reads in systems where file fetches are expensive.
-  final void Function(List<String> paths) prefetchFiles;
+  final void Function(List<String> paths)? prefetchFiles;
 
   final FileSystemStateTimers timers2 = FileSystemStateTimers();
 
@@ -522,7 +522,7 @@ class FileSystemState {
   FeatureSet contextFeatureSet(
     String path,
     Uri uri,
-    WorkspacePackage workspacePackage,
+    WorkspacePackage? workspacePackage,
   ) {
     var workspacePackageExperiments = workspacePackage?.enabledExperiments;
     if (workspacePackageExperiments != null) {
@@ -537,7 +537,7 @@ class FileSystemState {
   Version contextLanguageVersion(
     String path,
     Uri uri,
-    WorkspacePackage workspacePackage,
+    WorkspacePackage? workspacePackage,
   ) {
     var workspaceLanguageVersion = workspacePackage?.languageVersion;
     if (workspaceLanguageVersion != null) {
@@ -548,18 +548,18 @@ class FileSystemState {
   }
 
   FileState getFileForPath({
-    @required String path,
-    @required OperationPerformanceImpl performance,
+    required String path,
+    required OperationPerformanceImpl performance,
   }) {
     var file = _pathToFile[path];
     if (file == null) {
       var fileUri = _resourceProvider.pathContext.toUri(path);
       var uri = _sourceFactory.restoreUri(
         _FakeSource(path, fileUri),
-      );
+      )!;
 
-      var source = _sourceFactory.forUri2(uri);
-      var workspacePackage = _workspace?.findPackageFor(path);
+      var source = _sourceFactory.forUri2(uri)!;
+      var workspacePackage = _workspace.findPackageFor(path);
       var featureSet = contextFeatureSet(path, uri, workspacePackage);
       var packageLanguageVersion =
           contextLanguageVersion(path, uri, workspacePackage);
@@ -570,7 +570,7 @@ class FileSystemState {
       _uriToFile[uri] = file;
 
       performance.run('refresh', (performance) {
-        file.refresh(
+        file!.refresh(
           performance: performance,
         );
       });
@@ -578,11 +578,11 @@ class FileSystemState {
     return file;
   }
 
-  FileState getFileForUri({
-    @required Uri uri,
-    @required OperationPerformanceImpl performance,
+  FileState? getFileForUri({
+    required Uri uri,
+    required OperationPerformanceImpl performance,
   }) {
-    FileState file = _uriToFile[uri];
+    var file = _uriToFile[uri];
     if (file == null) {
       var source = _sourceFactory.forUri2(uri);
       if (source == null) {
@@ -590,7 +590,7 @@ class FileSystemState {
       }
       var path = source.fullName;
 
-      var workspacePackage = _workspace?.findPackageFor(path);
+      var workspacePackage = _workspace.findPackageFor(path);
       var featureSet = contextFeatureSet(path, uri, workspacePackage);
       var packageLanguageVersion =
           contextLanguageVersion(path, uri, workspacePackage);
@@ -607,7 +607,7 @@ class FileSystemState {
     return file;
   }
 
-  String getPathForUri(Uri uri) {
+  String? getPathForUri(Uri uri) {
     var source = _sourceFactory.forUri2(uri);
     if (source == null) {
       return null;
@@ -624,13 +624,13 @@ class FileSystemState {
     var deps = HashSet<String>();
     for (var path in files) {
       unusedFiles.remove(path);
-      _pathToFile[path].collectAllReferencedFiles(deps);
+      _pathToFile[path]!.collectAllReferencedFiles(deps);
     }
     for (var path in deps) {
       unusedFiles.remove(path);
     }
     for (var path in unusedFiles) {
-      var file = _pathToFile.remove(path);
+      var file = _pathToFile.remove(path)!;
       _uriToFile.remove(file.uri);
       removedFiles.add(file);
     }
@@ -696,16 +696,18 @@ class LibraryCycle {
   /// the signatures of the cycles that the [libraries] reference
   /// directly.  So, indirectly it is based on the transitive closure of all
   /// files that [libraries] reference (but we don't compute these files).
-  List<int> signature;
+  late List<int> signature;
 
   /// The hash of all the paths of the files in this cycle.
-  String cyclePathsHash;
+  late String cyclePathsHash;
 
-  /// id of the ast cache entry.
-  int astId;
+  /// The ID of the ast cache entry.
+  /// It is `null` if we failed to load libraries of the cycle.
+  int? astId;
 
-  /// id of the resolution cache entry.
-  int resolutionId;
+  /// The ID of the resolution cache entry.
+  /// It is `null` if we failed to load libraries of the cycle.
+  int? resolutionId;
 
   LibraryCycle();
 

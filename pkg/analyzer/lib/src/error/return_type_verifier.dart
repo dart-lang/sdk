@@ -13,20 +13,19 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/analyzer_error_code.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
-import 'package:meta/meta.dart';
 
 class ReturnTypeVerifier {
   final TypeProviderImpl _typeProvider;
   final TypeSystemImpl _typeSystem;
   final ErrorReporter _errorReporter;
 
-  EnclosingExecutableContext enclosingExecutable;
+  late EnclosingExecutableContext enclosingExecutable;
 
   ReturnTypeVerifier({
-    @required TypeProviderImpl typeProvider,
-    @required TypeSystemImpl typeSystem,
-    @required ErrorReporter errorReporter,
-  })  : _typeProvider = typeProvider,
+    required TypeProviderImpl typeProvider,
+    required TypeSystemImpl typeSystem,
+    required ErrorReporter errorReporter,
+  })   : _typeProvider = typeProvider,
         _typeSystem = typeSystem,
         _errorReporter = errorReporter;
 
@@ -80,7 +79,7 @@ class ReturnTypeVerifier {
     _checkReturnExpression(expression);
   }
 
-  void verifyReturnType(TypeAnnotation returnType) {
+  void verifyReturnType(TypeAnnotation? returnType) {
     // If no declared type, then the type is `dynamic`, which is valid.
     if (returnType == null) {
       return;
@@ -152,7 +151,7 @@ class ReturnTypeVerifier {
     // `T` is the declared return type.
     // `S` is the static type of the expression.
     var T = enclosingExecutable.returnType;
-    var S = expression.staticType;
+    var S = expression.staticType!;
 
     void reportTypeError() {
       if (enclosingExecutable.catchErrorOnErrorReturnType != null) {
@@ -259,7 +258,7 @@ class ReturnTypeVerifier {
     // `T` is the declared return type.
     // `S` is the static type of the expression.
     var T = enclosingExecutable.returnType;
-    var S = expression.staticType;
+    var S = expression.staticType!;
 
     void reportTypeError() {
       if (enclosingExecutable.catchErrorOnErrorReturnType != null) {

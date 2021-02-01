@@ -26,16 +26,16 @@ class B<U> {
 
 B<int> b;
 ''');
-    var classB_constructor = findElement.class_('B').unnamedConstructor;
+    var classB_constructor = findElement.class_('B').unnamedConstructor!;
     assertMember(
       classB_constructor.redirectedConstructor,
       findElement.unnamedConstructor('A'),
       {'T': 'U'},
     );
 
-    InterfaceType B_int = findElement.topVar('b').type;
+    var B_int = findElement.topVar('b').type as InterfaceType;
     var B_int_constructor = B_int.constructors.single;
-    var B_int_redirect = B_int_constructor.redirectedConstructor;
+    var B_int_redirect = B_int_constructor.redirectedConstructor!;
     assertMember(
       B_int_redirect,
       findElement.unnamedConstructor('A'),

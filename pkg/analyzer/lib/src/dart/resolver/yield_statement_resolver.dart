@@ -11,17 +11,16 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:meta/meta.dart';
 
 /// Helper for resolving [YieldStatement]s.
 class YieldStatementResolver {
   final ResolverVisitor _resolver;
 
   YieldStatementResolver({
-    @required ResolverVisitor resolver,
+    required ResolverVisitor resolver,
   }) : _resolver = resolver;
 
-  ExecutableElement get _enclosingFunction => _resolver.enclosingFunction;
+  ExecutableElement get _enclosingFunction => _resolver.enclosingFunction!;
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
@@ -30,7 +29,7 @@ class YieldStatementResolver {
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
   void resolve(YieldStatement node) {
-    if (_enclosingFunction?.isGenerator ?? false) {
+    if (_enclosingFunction.isGenerator) {
       _resolve_generator(node);
     } else {
       _resolve_notGenerator(node);
@@ -73,7 +72,7 @@ class YieldStatementResolver {
     var declaredReturnType = _enclosingFunction.returnType;
 
     var expression = node.expression;
-    var expressionType = expression.staticType;
+    var expressionType = expression.staticType!;
 
     DartType impliedReturnType;
     if (isYieldEach) {
@@ -84,15 +83,13 @@ class YieldStatementResolver {
       impliedReturnType = _typeProvider.streamType2(expressionType);
     }
 
-    if (declaredReturnType != null) {
-      if (!_typeSystem.isAssignableTo2(impliedReturnType, declaredReturnType)) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
-          expression,
-          [impliedReturnType, declaredReturnType],
-        );
-        return;
-      }
+    if (!_typeSystem.isAssignableTo2(impliedReturnType, declaredReturnType)) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
+        expression,
+        [impliedReturnType, declaredReturnType],
+      );
+      return;
     }
 
     if (isYieldEach) {

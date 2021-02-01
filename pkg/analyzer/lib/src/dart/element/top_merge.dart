@@ -137,7 +137,7 @@ class TopMergeHelper {
       var T_none = (T as TypeImpl).withNullability(NullabilitySuffix.none);
       var S_none = (S as TypeImpl).withNullability(NullabilitySuffix.none);
       var R_none = topMerge(T_none, S_none) as TypeImpl;
-      return R_none?.withNullability(resultNullability);
+      return R_none.withNullability(resultNullability);
     }
 
     assert(T_nullability == NullabilitySuffix.none);
@@ -178,11 +178,11 @@ class TopMergeHelper {
     }
 
     List<TypeParameterElement> R_typeParameters;
-    Substitution T_Substitution;
-    Substitution S_Substitution;
+    Substitution? T_Substitution;
+    Substitution? S_Substitution;
 
     DartType mergeTypes(DartType T, DartType S) {
-      if (T_Substitution != null) {
+      if (T_Substitution != null && S_Substitution != null) {
         T = T_Substitution.substituteType(T);
         S = S_Substitution.substituteType(S);
       }
@@ -212,7 +212,7 @@ class TopMergeHelper {
       throw _TopMergeStateError(T, S, 'Different number of formal parameters');
     }
 
-    var R_parameters = List<ParameterElement>.filled(T_parameters.length, null);
+    var R_parameters = <ParameterElement>[];
     for (var i = 0; i < T_parameters.length; i++) {
       var T_parameter = T_parameters[i];
       var S_parameter = S_parameters[i];
@@ -254,9 +254,11 @@ class TopMergeHelper {
         R_type = mergeTypes(T_parameter.type, S_parameter.type);
       }
 
-      R_parameters[i] = T_parameter.copyWith(
-        type: R_type,
-        kind: R_kind,
+      R_parameters.add(
+        T_parameter.copyWith(
+          type: R_type,
+          kind: R_kind,
+        ),
       );
     }
 
@@ -278,10 +280,10 @@ class TopMergeHelper {
     if (T_arguments.isEmpty) {
       return T;
     } else {
-      var arguments = List<DartType>.filled(T_arguments.length, null);
-      for (var i = 0; i < T_arguments.length; i++) {
-        arguments[i] = topMerge(T_arguments[i], S_arguments[i]);
-      }
+      var arguments = List.generate(
+        T_arguments.length,
+        (i) => topMerge(T_arguments[i], S_arguments[i]),
+      );
       return T.element.instantiate(
         typeArguments: arguments,
         nullabilitySuffix: NullabilitySuffix.none,
@@ -289,7 +291,7 @@ class TopMergeHelper {
     }
   }
 
-  ParameterKind _parameterKind(
+  ParameterKind? _parameterKind(
     ParameterElement T_parameter,
     ParameterElement S_parameter,
   ) {
@@ -314,7 +316,7 @@ class TopMergeHelper {
     return null;
   }
 
-  _MergeTypeParametersResult _typeParameters(
+  _MergeTypeParametersResult? _typeParameters(
     List<TypeParameterElement> aParameters,
     List<TypeParameterElement> bParameters,
   ) {

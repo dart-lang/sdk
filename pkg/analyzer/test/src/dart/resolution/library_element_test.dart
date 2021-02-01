@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -279,8 +278,8 @@ class LibraryElementTest_featureSet extends PubPackageResolutionTest {
   }
 
   void _assertLanguageVersion({
-    @required Version package,
-    @required Version override,
+    required Version package,
+    required Version? override,
   }) async {
     var element = result.libraryElement;
     expect(element.languageVersion.package, package);

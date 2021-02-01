@@ -11,7 +11,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:meta/meta.dart';
 
 /// Helper for resolving [VariableDeclaration]s.
 class VariableDeclarationResolver {
@@ -19,8 +18,8 @@ class VariableDeclarationResolver {
   final bool _strictInference;
 
   VariableDeclarationResolver({
-    @required ResolverVisitor resolver,
-    @required bool strictInference,
+    required ResolverVisitor resolver,
+    required bool strictInference,
   })  : _resolver = resolver,
         _strictInference = strictInference;
 
@@ -40,7 +39,7 @@ class VariableDeclarationResolver {
       return;
     }
 
-    var element = node.declaredElement;
+    var element = node.declaredElement!;
     var isTopLevel =
         element is FieldElement || element is TopLevelVariableElement;
 
@@ -55,7 +54,7 @@ class VariableDeclarationResolver {
     initializer = node.initializer;
 
     if (parent.type == null) {
-      _setInferredType(element, initializer.staticType);
+      _setInferredType(element, initializer!.staticType!);
     }
 
     if (isTopLevel) {
@@ -70,7 +69,7 @@ class VariableDeclarationResolver {
     // evaluate the const constructor).
     if (element is ConstVariableElement) {
       (element as ConstVariableElement).constantInitializer =
-          ConstantAstCloner().cloneNode(initializer);
+          ConstantAstCloner().cloneNullableNode(initializer);
     }
   }
 
