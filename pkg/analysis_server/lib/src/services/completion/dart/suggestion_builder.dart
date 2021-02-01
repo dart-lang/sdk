@@ -532,15 +532,17 @@ class SuggestionBuilder {
   /// Add a suggestion for a local [variable].
   void suggestLocalVariable(LocalVariableElement variable) {
     var variableType = variable.type;
+    var target = request.target;
+    var entity = target.entity;
+    var node = entity is AstNode ? entity : target.containingNode;
     var contextType = request.featureComputer
         .contextTypeFeature(request.contextType, variableType);
     var elementKind = _computeElementKind(variable);
     var isConstant = request.inConstantContext
         ? request.featureComputer.isConstantFeature(variable)
         : 0.0;
-    double localVariableDistance;
-    localVariableDistance = request.featureComputer
-        .localVariableDistanceFeature(request.target.containingNode, variable);
+    var localVariableDistance =
+        request.featureComputer.localVariableDistanceFeature(node, variable);
     var score = weightedAverage(
         contextType: contextType,
         elementKind: elementKind,
