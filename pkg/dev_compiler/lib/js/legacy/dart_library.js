@@ -5,9 +5,9 @@
 // This file defines the module loader for the dart runtime.
 var dart_library;
 if (!dart_library) {
-  dart_library = typeof module != "undefined" && module.exports || {};
+  dart_library = typeof module != 'undefined' && module.exports || {};
 
-  (function (dart_library) {
+  (function(dart_library) {
     'use strict';
 
     // Throws an error related to module loading.
@@ -19,13 +19,55 @@ if (!dart_library) {
       // capturing the exception.
       if (!!self.dispatchEvent) {
         self.dispatchEvent(
-          new CustomEvent('dartLoadException', {detail: message}));
+            new CustomEvent('dartLoadException', {detail: message}));
       }
       throw Error(message);
     }
 
     const libraryImports = Symbol('libraryImports');
     dart_library.libraryImports = libraryImports;
+
+    const _metrics = Symbol('metrics');
+    const _logMetrics = false;
+
+    // Returns a map from module name to various metrics for module.
+    function metrics() {
+      const map = {};
+      const keys = Array.from(_libraries.keys());
+      for (const key of keys) {
+        const lib = _libraries.get(key);
+        map[lib._name] = lib._library[_metrics];
+      }
+      return map;
+    }
+    dart_library.metrics = metrics;
+
+    function _sortFn(key1, key2) {
+      const t1 = _libraries.get(key1)._library[_metrics].loadTime;
+      const t2 = _libraries.get(key2)._library[_metrics].loadTime;
+      return t1 - t2;
+    }
+
+    // Convenience method to print the metrics in the browser console
+    // in CSV format.
+    function metricsCsv() {
+      let buffer =
+          'Module, JS Size, Dart Size, Load Time, Cumulative JS Size\n';
+      const keys = Array.from(_libraries.keys());
+      keys.sort(_sortFn);
+      let cumulativeJsSize = 0;
+      for (const key of keys) {
+        const lib = _libraries.get(key);
+        const jsSize = lib._library[_metrics].jsSize;
+        cumulativeJsSize += jsSize;
+        const dartSize = lib._library[_metrics].dartSize;
+        const loadTime = lib._library[_metrics].loadTime;
+        buffer += '"' + lib._name + '", ' + jsSize + ', ' + dartSize + ', ' +
+            loadTime + ', ' + cumulativeJsSize + '\n';
+      }
+      return buffer;
+    }
+    dart_library.metricsCsv = metricsCsv;
 
     // Module support.  This is a simplified module system for Dart.
     // Longer term, we can easily migrate to an existing JS module system:
@@ -34,7 +76,7 @@ if (!dart_library) {
     // Returns a proxy that delegates to the underlying loader.
     // This defers loading of a module until a library is actually used.
     const loadedModule = Symbol('loadedModule');
-    dart_library.defer = function (module, name, patch) {
+    dart_library.defer = function(module, name, patch) {
       let done = false;
       function loadDeferred() {
         done = true;
@@ -47,11 +89,11 @@ if (!dart_library) {
       // library object should be get (to read a top-level variable, method, or
       // Class) or set (to write a top-level variable).
       return new Proxy({}, {
-        get: function (o, p) {
+        get: function(o, p) {
           if (!done) loadDeferred();
           return module[name][p];
         },
-        set: function (o, p, value) {
+        set: function(o, p, value) {
           if (!done) loadDeferred();
           module[name][p] = value;
           return true;
@@ -60,10 +102,13 @@ if (!dart_library) {
     };
 
     let _reverseImports = new Map();
-    class LibraryLoader {
 
-      constructor(name, defaultValue, imports, loader) {
-        imports.forEach(function (i) {
+    // Set of libraries that were not only loaded on the page but also executed.
+    let _executedLibraries = new Set();
+
+    class LibraryLoader {
+      constructor(name, defaultValue, imports, loader, data) {
+        imports.forEach(function(i) {
           let deps = _reverseImports.get(i);
           if (!deps) {
             deps = new Set();
@@ -75,6 +120,9 @@ if (!dart_library) {
         this._library = defaultValue ? defaultValue : {};
         this._imports = imports;
         this._loader = loader;
+        data.jsSize = loader.toString().length;
+        data.loadTime = Infinity;
+        this._metrics = data;
 
         // Cyclic import detection
         this._state = LibraryLoader.NOT_LOADED;
@@ -95,6 +143,7 @@ if (!dart_library) {
         } else if (this._state >= LibraryLoader.READY) {
           return this._library;
         }
+        _executedLibraries.add(this._name);
         this._state = LibraryLoader.LOADING;
 
         // Handle imports
@@ -106,19 +155,33 @@ if (!dart_library) {
 
         library[libraryImports] = this._imports;
         library[loadedModule] = library;
+        library[_metrics] = this._metrics;
         args.unshift(library);
 
         if (this._name == 'dart_sdk') {
           // Eagerly load the SDK.
+          if (!!self.performance) {
+            library[_metrics].loadTime = self.performance.now();
+          }
+          if (_logMetrics) console.time('Load ' + this._name);
           this._loader.apply(null, args);
+          if (_logMetrics) console.timeEnd('Load ' + this._name);
         } else {
           // Load / parse other modules on demand.
           let done = false;
           this._library = new Proxy(library, {
-            get: function (o, name) {
+            get: function(o, name) {
+              if (name == _metrics) {
+                return o[name];
+              }
               if (!done) {
                 done = true;
+                if (!!self.performance) {
+                  library[_metrics].loadTime = self.performance.now();
+                }
+                if (_logMetrics) console.time('Load ' + loader._name);
                 loader._loader.apply(null, args);
+                if (_logMetrics) console.timeEnd('Load ' + loader._name);
               }
               return o[name];
             }
@@ -139,12 +202,12 @@ if (!dart_library) {
 
     // Map from name to LibraryLoader
     let _libraries = new Map();
-    dart_library.libraries = function () {
+    dart_library.libraries = function() {
       return _libraries.keys();
     };
-    dart_library.debuggerLibraries = function () {
+    dart_library.debuggerLibraries = function() {
       let debuggerLibraries = [];
-      _libraries.forEach(function (value, key, map) {
+      _libraries.forEach(function(value, key, map) {
         debuggerLibraries.push(value.load());
       });
       debuggerLibraries.__proto__ = null;
@@ -162,41 +225,75 @@ if (!dart_library) {
       deps.forEach(_invalidateLibrary);
     }
 
-    function library(name, defaultValue, imports, loader) {
+    function library(name, defaultValue, imports, loader, data = {}) {
       let result = _libraries.get(name);
       if (result) {
         console.log('Re-loading ' + name);
         _invalidateLibrary(name);
       }
-      result = new LibraryLoader(name, defaultValue, imports, loader);
+      result = new LibraryLoader(name, defaultValue, imports, loader, data);
       _libraries.set(name, result);
       return result;
     }
     dart_library.library = library;
 
-    // Maintain a stack of active imports.  If a requested library/module is not
-    // available, print the stack to show where/how it was requested.
-    let _stack = [];
+    // Store executed modules upon reload.
+    if (!!self.addEventListener && !!self.localStorage) {
+      self.addEventListener('beforeunload', function(event) {
+        let libraryCache = {
+          'time': new Date().getTime(),
+          'modules': Array.from(_executedLibraries.keys())
+        };
+        self.localStorage.setItem(
+            'dartLibraryCache', JSON.stringify(libraryCache));
+      });
+    }
+
+    // Map from module name to corresponding proxy library.
+    let _proxyLibs = new Map();
+
     function import_(name) {
-      let lib = _libraries.get(name);
-      if (!lib) {
-        let message = 'Module ' + name + ' not loaded in the browser.';
-        if (_stack != []) {
-          message += '\nDependency via:';
-          let indent = '';
-          for (let last = _stack.length - 1; last >= 0; last--) {
-            indent += ' ';
-            message += '\n' + indent + '- ' + _stack[last];
+      let proxy = _proxyLibs.get(name);
+      if (proxy) return proxy;
+      let proxyLib = new Proxy({}, {
+        get: function(o, p) {
+          let lib = _libraries.get(name);
+          if (self.$dartJITModules) {
+            // The backing module changed so update the reference
+            if (!lib) {
+              let xhr = new XMLHttpRequest();
+              let sourceURL = $dartLoader.moduleIdToUrl.get(name);
+              xhr.open('GET', sourceURL, false);
+              xhr.withCredentials = true;
+              xhr.send();
+              // Append sourceUrl so the resource shows up in the Chrome
+              // console.
+              eval(xhr.responseText + '//@ sourceURL=' + sourceURL);
+              lib = _libraries.get(name);
+            }
           }
+          if (!lib) {
+            throwLibraryError('Module ' + name + ' not loaded in the browser.');
+          }
+          // Always load the library before accessing a property as it may have
+          // been invalidated.
+          return lib.load()[p];
         }
-        throwLibraryError(message);
-      }
-      _stack.push(name);
-      let result = lib.load();
-      _stack.pop();
-      return result;
+      });
+      _proxyLibs.set(name, proxyLib);
+      return proxyLib;
     }
     dart_library.import = import_;
+
+    // Removes the corresponding library and invalidates all things that
+    // depend on it.
+    function _invalidateImport(name) {
+      let lib = _libraries.get(name);
+      if (!lib) return;
+      _invalidateLibrary(name);
+      _libraries.delete(name);
+    }
+    dart_library.invalidateImport = _invalidateImport;
 
     let _debuggerInitialized = false;
 
@@ -224,8 +321,8 @@ if (!dart_library) {
     // 5. `$dartWarmReload` calls the callback to rerun main.
     //
     function reload(clearState) {
-      // TODO(jmesserly): once we've rolled out `clearState` make it the default,
-      // and eventually remove the parameter.
+      // TODO(jmesserly): once we've rolled out `clearState` make it the
+      // default, and eventually remove the parameter.
       if (clearState == null) clearState = true;
 
 
@@ -234,7 +331,8 @@ if (!dart_library) {
       // "hot reload" refers to keeping the application state and attempting to
       // patch the code for the application while it is executing
       // (https://flutter.io/hot-reload/), whereas "hot restart" refers to what
-      // dartdevc supports: tear down the app, update the code, and rerun the app.
+      // dartdevc supports: tear down the app, update the code, and rerun the
+      // app.
       if (!self || !self.$dartWarmReload) {
         console.warn('Hot restart not supported in this environment.');
         return;
@@ -246,7 +344,7 @@ if (!dart_library) {
         result = _lastLibrary.onReloadStart();
       }
 
-      let sdk = _libraries.get("dart_sdk");
+      let sdk = _libraries.get('dart_sdk');
 
       /// Once the `onReloadStart()` completes, this finishes the restart.
       function finishHotRestart() {
@@ -254,7 +352,7 @@ if (!dart_library) {
         if (clearState) {
           // This resets all initialized fields and clears type caches and other
           // temporary data structures used by the compiler/SDK.
-          sdk.dart.hotRestart();
+          sdk._library.dart.hotRestart();
         }
         // Call the module loader to reload the necessary modules.
         self.$dartWarmReload(() => {
@@ -317,6 +415,5 @@ if (!dart_library) {
       library.main([]);
     }
     dart_library.start = start;
-
   })(dart_library);
 }
