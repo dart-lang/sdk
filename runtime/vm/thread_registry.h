@@ -58,6 +58,7 @@ class ThreadRegistry {
   friend class IsolateGroup;
   friend class SafepointHandler;
   friend class Scavenger;
+  friend class WeakCodeReferences;
   DISALLOW_COPY_AND_ASSIGN(ThreadRegistry);
 };
 
