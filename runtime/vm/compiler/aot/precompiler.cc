@@ -715,11 +715,13 @@ void Precompiler::AddCalleesOf(const Function& function, intptr_t gop_offset) {
     }
   }
 
-  const Array& inlined_functions =
-      Array::Handle(Z, code.inlined_id_to_function());
-  for (intptr_t i = 0; i < inlined_functions.Length(); i++) {
-    target ^= inlined_functions.At(i);
-    AddTypesOf(target);
+  if (!FLAG_dwarf_stack_traces_mode) {
+    const Array& inlined_functions =
+        Array::Handle(Z, code.inlined_id_to_function());
+    for (intptr_t i = 0; i < inlined_functions.Length(); i++) {
+      target ^= inlined_functions.At(i);
+      AddTypesOf(target);
+    }
   }
 }
 
@@ -2313,7 +2315,6 @@ void Precompiler::DropClasses() {
       THR_Print("Dropping class %" Pd " %s\n", cid, cls.ToCString());
     }
 
-    class_table->Unregister(cid);
     cls.set_id(kIllegalCid);  // We check this when serializing.
   }
 }

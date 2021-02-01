@@ -1461,7 +1461,22 @@ class UntaggedNamespace : public UntaggedObject {
   POINTER_FIELD(ArrayPtr, hide_names)  // list of names that are hidden.
   POINTER_FIELD(LibraryPtr, owner)
   VISIT_TO(ObjectPtr, owner)
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) {
+    switch (kind) {
+      case Snapshot::kFullAOT:
+        return reinterpret_cast<ObjectPtr*>(&target_);
+      case Snapshot::kFull:
+      case Snapshot::kFullCore:
+      case Snapshot::kFullJIT:
+        return reinterpret_cast<ObjectPtr*>(&owner_);
+      case Snapshot::kMessage:
+      case Snapshot::kNone:
+      case Snapshot::kInvalid:
+        break;
+    }
+    UNREACHABLE();
+    return NULL;
+  }
 };
 
 class UntaggedKernelProgramInfo : public UntaggedObject {
