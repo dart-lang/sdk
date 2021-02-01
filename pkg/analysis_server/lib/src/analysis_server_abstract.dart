@@ -269,11 +269,6 @@ abstract class AbstractAnalysisServer {
     return null;
   }
 
-  /// Return the appropriate analysis session for the file with the given
-  /// [path].
-  AnalysisSession getAnalysisSession(String path) =>
-      getAnalysisDriver(path).currentSession;
-
   DartdocDirectiveInfo getDartdocDirectiveInfoFor(ResolvedUnitResult result) {
     return declarationsTracker
             ?.getContext(result.session.analysisContext)

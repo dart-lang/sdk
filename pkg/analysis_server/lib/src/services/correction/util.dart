@@ -164,16 +164,6 @@ List<SourceRange> getCommentRanges(CompilationUnit unit) {
   return ranges;
 }
 
-/// Return the given [element] if it is a [CompilationUnitElement].
-/// Return the enclosing [CompilationUnitElement] of the given [element],
-/// maybe `null`.
-CompilationUnitElement getCompilationUnitElement(Element element) {
-  if (element is CompilationUnitElement) {
-    return element;
-  }
-  return element.thisOrAncestorOfType();
-}
-
 String getDefaultValueCode(DartType type) {
   if (type != null) {
     if (type.isDartCoreBool) {

@@ -5,8 +5,6 @@
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/services/correction/util.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 
 /// Fuzzy matching between static analysis and model-predicted lexemes
@@ -62,23 +60,6 @@ List<String> constructQuery(DartCompletionRequest request, int n) {
   }
 
   return result.reversed.toList(growable: false);
-}
-
-/// Constructs a [CompletionSuggestion] object.
-CompletionSuggestion createCompletionSuggestion(
-    String completion, FeatureSet featureSet, int relevance) {
-  final tokens = TokenUtils.getTokens(completion, featureSet);
-  final token = tokens.isNotEmpty ? tokens[0] : null;
-  final completionKind = token != null && token.isKeyword
-      ? CompletionSuggestionKind.KEYWORD
-      : CompletionSuggestionKind.IDENTIFIER;
-  if (isLiteral(completion) &&
-      (completion.startsWith('"package:') ||
-          completion.startsWith('\'package:'))) {
-    completion = completion.replaceAll('\'', '').replaceAll('\"', '');
-  }
-  return CompletionSuggestion(completionKind, relevance, completion,
-      completion.length, 0, false, false);
 }
 
 /// Maps included relevance tags formatted as
@@ -171,32 +152,6 @@ List<MapEntry<String, double>> selectStringLiterals(List<MapEntry> entries) {
       .map<MapEntry<String, double>>(
           (MapEntry entry) => MapEntry(trimQuotes(entry.key), entry.value))
       .toList();
-}
-
-bool testFollowingDot(DartCompletionRequest request) {
-  final token = getCurrentToken(request);
-  return isTokenDot(token) || isTokenDot(token.previous);
-}
-
-bool testInsideQuotes(DartCompletionRequest request) {
-  final token = getCurrentToken(request);
-  if (token == null || token.isSynthetic) {
-    return false;
-  }
-
-  final cursorOffset = request.offset;
-  if (cursorOffset == token.offset ||
-      cursorOffset == token.offset + token.length) {
-    // We are not inside the current token, quoted or otherwise.
-    return false;
-  }
-
-  final lexeme = token.lexeme;
-  if (lexeme.length > 2 && lexeme[0] == 'r') {
-    return lexeme[1] == "'" || lexeme[1] == '"';
-  }
-
-  return lexeme.length > 1 && (lexeme[0] == "'" || lexeme[0] == '"');
 }
 
 /// Tests whether all completion suggestions are for named arguments.
