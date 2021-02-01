@@ -8,14 +8,14 @@
 ///     format('{0} are you {1}ing?', 'How', 'do') = 'How are you doing?'
 ///     format('{0} are you {1}ing?', 'What', 'read') = 'What are you reading?'
 String format(String pattern,
-    [Object arg0,
-    Object arg1,
-    Object arg2,
-    Object arg3,
-    Object arg4,
-    Object arg5,
-    Object arg6,
-    Object arg7]) {
+    [Object? arg0,
+    Object? arg1,
+    Object? arg2,
+    Object? arg3,
+    Object? arg4,
+    Object? arg5,
+    Object? arg6,
+    Object? arg7]) {
   // TODO(rnystrom): This is not used by analyzer, but is called by
   // analysis_server. Move this code there and remove it from here.
   return formatList(pattern, [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7]);
@@ -27,18 +27,16 @@ String format(String pattern,
 ///     format('{0} are you {1}ing?', ['How', 'do']) = 'How are you doing?'
 ///     format('{0} are you {1}ing?', ['What', 'read']) =
 ///         'What are you reading?'
-String formatList(String pattern, List<Object> arguments) {
+String formatList(String pattern, List<Object?>? arguments) {
   if (arguments == null || arguments.isEmpty) {
     assert(!pattern.contains(RegExp(r'\{(\d+)\}')),
         'Message requires arguments, but none were provided.');
     return pattern;
   }
   return pattern.replaceAllMapped(RegExp(r'\{(\d+)\}'), (match) {
-    String indexStr = match.group(1);
+    String indexStr = match.group(1)!;
     int index = int.parse(indexStr);
-    Object arg = arguments[index];
-    assert(arg != null);
-    return arg?.toString();
+    return arguments[index].toString();
   });
 }
 

@@ -5,24 +5,23 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/analysis/dependency/library_builder.dart';
 import 'package:analyzer/src/dart/analysis/dependency/node.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import '../../resolution/context_collection_resolution.dart';
 
 class BaseDependencyTest extends PubPackageResolutionTest {
 //  DependencyTracker tracker;
-  String a;
-  String b;
-  String c;
-  Uri aUri;
-  Uri bUri;
-  Uri cUri;
+  late final String a;
+  late final String b;
+  late final String c;
+  late final Uri aUri;
+  late final Uri bUri;
+  late final Uri cUri;
 
   bool hasDartCore = false;
 
   void assertNodes(List<Node> actualNodes, List<ExpectedNode> expectedNodes,
-      {Node expectedEnclosingClass}) {
+      {Node? expectedEnclosingClass}) {
     expect(actualNodes, hasLength(expectedNodes.length));
     for (var expectedNode in expectedNodes) {
       var topNode = _getNode(
@@ -34,7 +33,7 @@ class BaseDependencyTest extends PubPackageResolutionTest {
       expect(topNode.enclosingClass, expectedEnclosingClass);
 
       if (expectedNode.classMembers != null) {
-        assertNodes(topNode.classMembers, expectedNode.classMembers,
+        assertNodes(topNode.classMembers!, expectedNode.classMembers!,
             expectedEnclosingClass: topNode);
       } else {
         expect(topNode.classMembers, isNull);
@@ -42,8 +41,8 @@ class BaseDependencyTest extends PubPackageResolutionTest {
 
       if (expectedNode.classTypeParameters != null) {
         assertNodes(
-          topNode.classTypeParameters,
-          expectedNode.classTypeParameters,
+          topNode.classTypeParameters!,
+          expectedNode.classTypeParameters!,
           expectedEnclosingClass: topNode,
         );
       } else {
@@ -65,7 +64,7 @@ class BaseDependencyTest extends PubPackageResolutionTest {
     driverFor(path).changeFile(path);
 
     var units = await _resolveLibrary(path);
-    var uri = units.first.declaredElement.source.uri;
+    var uri = units.first.declaredElement!.source.uri;
 
     return buildLibrary(uri, units);
 
@@ -78,10 +77,10 @@ class BaseDependencyTest extends PubPackageResolutionTest {
   }
 
   Node getNode(Library library,
-      {@required String name,
-      NodeKind kind,
-      String memberOf,
-      String typeParameterOf}) {
+      {required String name,
+      NodeKind? kind,
+      String? memberOf,
+      String? typeParameterOf}) {
     var uri = library.uri;
     var nodes = library.declaredNodes;
     if (memberOf != null) {
@@ -90,11 +89,11 @@ class BaseDependencyTest extends PubPackageResolutionTest {
         class_.kind,
         anyOf(NodeKind.CLASS, NodeKind.ENUM, NodeKind.MIXIN),
       );
-      nodes = class_.classMembers;
+      nodes = class_.classMembers!;
     } else if (typeParameterOf != null) {
       var class_ = _getNode(nodes, uri: uri, name: typeParameterOf);
       expect(class_.kind, anyOf(NodeKind.CLASS, NodeKind.MIXIN));
-      nodes = class_.classTypeParameters;
+      nodes = class_.classTypeParameters!;
     }
     return _getNode(nodes, uri: uri, name: name, kind: kind);
   }
@@ -124,7 +123,7 @@ class BaseDependencyTest extends PubPackageResolutionTest {
 //  }
 
   Node _getNode(List<Node> nodes,
-      {@required Uri uri, @required String name, NodeKind kind}) {
+      {required Uri uri, required String name, NodeKind? kind}) {
     var nameObj = LibraryQualifiedName(uri, name);
     for (var node in nodes) {
       if (node.name == nameObj) {
@@ -140,7 +139,7 @@ class BaseDependencyTest extends PubPackageResolutionTest {
   Future<List<CompilationUnit>> _resolveLibrary(String libraryPath) async {
     var session = contextFor(libraryPath).currentSession;
     var resolvedLibrary = await session.getResolvedLibrary(libraryPath);
-    return resolvedLibrary.units.map((ru) => ru.unit).toList();
+    return resolvedLibrary.units!.map((ru) => ru.unit!).toList();
   }
 }
 
@@ -148,8 +147,8 @@ class ExpectedNode {
   final Uri uri;
   final String name;
   final NodeKind kind;
-  final List<ExpectedNode> classMembers;
-  final List<ExpectedNode> classTypeParameters;
+  final List<ExpectedNode>? classMembers;
+  final List<ExpectedNode>? classTypeParameters;
 
   ExpectedNode(
     this.uri,

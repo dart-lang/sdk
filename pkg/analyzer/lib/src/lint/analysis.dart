@@ -6,7 +6,6 @@ import 'dart:collection';
 import 'dart:io' as io;
 
 import 'package:analyzer/dart/analysis/context_locator.dart' as api;
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart'
     show File, Folder, ResourceProvider, ResourceUriResolver;
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -50,7 +49,7 @@ void printAndFail(String message, {int exitCode = 15}) {
   io.exit(exitCode);
 }
 
-AnalysisOptions _buildAnalyzerOptions(LinterOptions options) {
+AnalysisOptionsImpl _buildAnalyzerOptions(LinterOptions options) {
   AnalysisOptionsImpl analysisOptions = AnalysisOptionsImpl();
   if (options.analysisOptions != null) {
     YamlMap map =
@@ -61,7 +60,7 @@ AnalysisOptions _buildAnalyzerOptions(LinterOptions options) {
   analysisOptions.hint = false;
   analysisOptions.lint = options.enableLints;
   analysisOptions.enableTiming = options.enableTiming;
-  analysisOptions.lintRules = options.enabledLints?.toList(growable: false);
+  analysisOptions.lintRules = options.enabledLints.toList(growable: false);
   return analysisOptions;
 }
 
@@ -71,7 +70,7 @@ class DriverOptions {
   int cacheSize = 512;
 
   /// The path to the dart SDK.
-  String dartSdkPath;
+  String? dartSdkPath;
 
   /// Whether to show lint warnings.
   bool enableLints = true;
@@ -80,17 +79,17 @@ class DriverOptions {
   bool enableTiming = false;
 
   /// The path to a `.packages` configuration file
-  String packageConfigPath;
+  String? packageConfigPath;
 
   /// The path to the package root.
   @Deprecated('https://github.com/dart-lang/sdk/issues/41197')
-  String packageRootPath;
+  String? packageRootPath;
 
   /// Whether to use Dart's Strong Mode analyzer.
   bool strongMode = true;
 
   /// The mock SDK (to speed up testing) or `null` to use the actual SDK.
-  DartSdk mockSdk;
+  DartSdk? mockSdk;
 
   /// Return `true` is the parser is able to parse asserts in the initializer
   /// list of a constructor.
@@ -183,7 +182,7 @@ class LintDriver {
       File sourceFile =
           resourceProvider.getFile(p.normalize(file.absolute.path));
       Source source = sourceFile.createSource();
-      Uri uri = sourceFactory.restoreUri(source);
+      var uri = sourceFactory.restoreUri(source);
       if (uri != null) {
         // Ensure that we analyze the file using its canonical URI (e.g. if
         // it's in "/lib", analyze it using a "package:" URI).
@@ -203,8 +202,7 @@ class LintDriver {
 
     List<AnalysisErrorInfo> errors = [];
     for (Source source in sources) {
-      ErrorsResult errorsResult =
-          await analysisDriver.getErrors(source.fullName);
+      var errorsResult = (await analysisDriver.getErrors(source.fullName))!;
       errors.add(
           AnalysisErrorInfoImpl(errorsResult.errors, errorsResult.lineInfo));
       _sourcesAnalyzed.add(source);
@@ -215,11 +213,11 @@ class LintDriver {
 
   void registerLinters(AnalysisContext context) {
     if (options.enableLints) {
-      setLints(context, options.enabledLints?.toList(growable: false));
+      setLints(context, options.enabledLints.toList(growable: false));
     }
   }
 
-  PackageMapUriResolver _getPackageUriResolver() {
+  PackageMapUriResolver? _getPackageUriResolver() {
     var packageConfigPath = options.packageConfigPath;
     if (packageConfigPath != null) {
       var resourceProvider = PhysicalResourceProvider.INSTANCE;
@@ -257,9 +255,6 @@ class LintDriver {
     }
 
     var rootPath = p.normalize(files.first.absolute.path);
-    if (rootPath == null) {
-      return;
-    }
 
     var apiContextRoots = api.ContextLocator(
       resourceProvider: resourceProvider,
@@ -286,7 +281,7 @@ class LintDriver {
 /// [errorSink].
 class StdInstrumentation extends NoopInstrumentationService {
   @override
-  void logError(String message, [Object exception]) {
+  void logError(String message, [Object? exception]) {
     errorSink.writeln(message);
     if (exception != null) {
       errorSink.writeln(exception);
@@ -295,14 +290,14 @@ class StdInstrumentation extends NoopInstrumentationService {
 
   @override
   void logException(dynamic exception,
-      [StackTrace stackTrace,
-      List<InstrumentationServiceAttachment> attachments]) {
+      [StackTrace? stackTrace,
+      List<InstrumentationServiceAttachment>? attachments]) {
     errorSink.writeln(exception);
     errorSink.writeln(stackTrace);
   }
 
   @override
-  void logInfo(String message, [Object exception]) {
+  void logInfo(String message, [Object? exception]) {
     outSink.writeln(message);
     if (exception != null) {
       outSink.writeln(exception);

@@ -91,26 +91,32 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
     }
   }
 
-  void _recordIfExtensionMember(Element element) {
-    if (element != null && element.enclosingElement is ExtensionElement) {
-      _recordUsedExtension(element.enclosingElement);
+  void _recordIfExtensionMember(Element? element) {
+    if (element != null) {
+      var enclosingElement = element.enclosingElement;
+      if (enclosingElement is ExtensionElement) {
+        _recordUsedExtension(enclosingElement);
+      }
     }
   }
 
   /// If the given [identifier] is prefixed with a [PrefixElement], fill the
   /// corresponding `UsedImportedElements.prefixMap` entry and return `true`.
   bool _recordPrefixMap(SimpleIdentifier identifier, Element element) {
-    bool recordIfTargetIsPrefixElement(Expression target) {
-      if (target is SimpleIdentifier && target.staticElement is PrefixElement) {
-        List<Element> prefixedElements = usedElements.prefixMap
-            .putIfAbsent(target.staticElement, () => <Element>[]);
-        prefixedElements.add(element);
-        return true;
+    bool recordIfTargetIsPrefixElement(Expression? target) {
+      if (target is SimpleIdentifier) {
+        var targetElement = target.staticElement;
+        if (targetElement is PrefixElement) {
+          List<Element> prefixedElements = usedElements.prefixMap
+              .putIfAbsent(targetElement, () => <Element>[]);
+          prefixedElements.add(element);
+          return true;
+        }
       }
       return false;
     }
 
-    AstNode parent = identifier.parent;
+    var parent = identifier.parent;
     if (parent is MethodInvocation && parent.methodName == identifier) {
       return recordIfTargetIsPrefixElement(parent.target);
     }
@@ -122,7 +128,7 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
 
   void _recordUsedElement(Element element) {
     // Ignore if an unknown library.
-    LibraryElement containingLibrary = element.library;
+    var containingLibrary = element.library;
     if (containingLibrary == null) {
       return;
     }
@@ -149,7 +155,7 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
     directive.metadata.accept(this);
   }
 
-  void _visitIdentifier(SimpleIdentifier identifier, Element element) {
+  void _visitIdentifier(SimpleIdentifier identifier, Element? element) {
     if (element == null) {
       return;
     }
@@ -157,7 +163,7 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
     if (_recordPrefixMap(identifier, element)) {
       return;
     }
-    Element enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement;
     if (enclosingElement is CompilationUnitElement) {
       _recordUsedElement(element);
     } else if (enclosingElement is ExtensionElement) {
@@ -249,7 +255,7 @@ class ImportsVerifier {
   void addImports(CompilationUnit node) {
     for (Directive directive in node.directives) {
       if (directive is ImportDirective) {
-        LibraryElement libraryElement = directive.uriElement;
+        var libraryElement = directive.uriElement;
         if (libraryElement == null) {
           continue;
         }
@@ -259,11 +265,11 @@ class ImportsVerifier {
         // Initialize prefixElementMap
         //
         if (directive.asKeyword != null) {
-          SimpleIdentifier prefixIdentifier = directive.prefix;
+          var prefixIdentifier = directive.prefix;
           if (prefixIdentifier != null) {
-            Element element = prefixIdentifier.staticElement;
+            var element = prefixIdentifier.staticElement;
             if (element is PrefixElement) {
-              List<ImportDirective> list = _prefixElementMap[element];
+              var list = _prefixElementMap[element];
               if (list == null) {
                 list = <ImportDirective>[];
                 _prefixElementMap[element] = list;
@@ -359,9 +365,9 @@ class ImportsVerifier {
     for (int i = 0; i < length; i++) {
       ImportDirective unusedImport = _unusedImports[i];
       // Check that the imported URI exists and isn't dart:core
-      ImportElement importElement = unusedImport.element;
+      var importElement = unusedImport.element;
       if (importElement != null) {
-        LibraryElement libraryElement = importElement.importedLibrary;
+        var libraryElement = importElement.importedLibrary;
         if (libraryElement == null ||
             libraryElement.isDartCore ||
             libraryElement.isSynthetic) {
@@ -391,8 +397,7 @@ class ImportsVerifier {
       int length = identifiers.length;
       for (int i = 0; i < length; i++) {
         Identifier identifier = identifiers[i];
-        List<SimpleIdentifier> duplicateNames =
-            _duplicateShownNamesMap[importDirective];
+        var duplicateNames = _duplicateShownNamesMap[importDirective];
         if (duplicateNames == null || !duplicateNames.contains(identifier)) {
           // Only generate a hint if we won't also generate a
           // "duplicate_shown_name" hint for the same identifier.
@@ -415,8 +420,9 @@ class ImportsVerifier {
         return;
       }
       // Find import directives using namespaces.
-      for (var importDirective in _prefixElementMap[prefix] ?? []) {
-        Namespace namespace = _computeNamespace(importDirective);
+      for (var importDirective
+          in _prefixElementMap[prefix] ?? <ImportDirective>[]) {
+        var namespace = _computeNamespace(importDirective);
         if (elements.isEmpty) {
           // [prefix] and [elements] were added to [usedElements.prefixMap] but
           // [elements] is empty, so the prefix was referenced incorrectly.
@@ -425,7 +431,7 @@ class ImportsVerifier {
           _unusedImports.remove(importDirective);
         }
         for (var element in elements) {
-          if (namespace?.getPrefixed(prefix.name, element.name) != null) {
+          if (namespace?.getPrefixed(prefix.name, element.name!) != null) {
             _unusedImports.remove(importDirective);
             _removeFromUnusedShownNamesMap(element, importDirective);
           }
@@ -439,8 +445,8 @@ class ImportsVerifier {
       }
       // Find import directives using namespaces.
       for (ImportDirective importDirective in _allImports) {
-        Namespace namespace = _computeNamespace(importDirective);
-        if (namespace?.get(element.name) != null) {
+        var namespace = _computeNamespace(importDirective);
+        if (namespace?.get(element.name!) != null) {
           _unusedImports.remove(importDirective);
           _removeFromUnusedShownNamesMap(element, importDirective);
         }
@@ -453,9 +459,9 @@ class ImportsVerifier {
       }
       // Find import directives using namespaces.
       for (ImportDirective importDirective in _allImports) {
-        Namespace namespace = _computeNamespace(importDirective);
+        var namespace = _computeNamespace(importDirective);
         var prefix = importDirective.prefix?.name;
-        var elementName = extensionElement.name;
+        var elementName = extensionElement.name!;
         if (prefix == null) {
           if (namespace?.get(elementName) == extensionElement) {
             _unusedImports.remove(importDirective);
@@ -477,16 +483,14 @@ class ImportsVerifier {
   /// Add duplicate shown and hidden names from [directive] into
   /// [_duplicateHiddenNamesMap] and [_duplicateShownNamesMap].
   void _addDuplicateShownHiddenNames(NamespaceDirective directive) {
-    if (directive.combinators == null) {
-      return;
-    }
     for (Combinator combinator in directive.combinators) {
       // Use a Set to find duplicates in faster than O(n^2) time.
       Set<Element> identifiers = <Element>{};
       if (combinator is HideCombinator) {
         for (SimpleIdentifier name in combinator.hiddenNames) {
-          if (name.staticElement != null) {
-            if (!identifiers.add(name.staticElement)) {
+          var element = name.staticElement;
+          if (element != null) {
+            if (!identifiers.add(element)) {
               // [name] is a duplicate.
               List<SimpleIdentifier> duplicateNames = _duplicateHiddenNamesMap
                   .putIfAbsent(directive, () => <SimpleIdentifier>[]);
@@ -496,8 +500,9 @@ class ImportsVerifier {
         }
       } else if (combinator is ShowCombinator) {
         for (SimpleIdentifier name in combinator.shownNames) {
-          if (name.staticElement != null) {
-            if (!identifiers.add(name.staticElement)) {
+          var element = name.staticElement;
+          if (element != null) {
+            if (!identifiers.add(element)) {
               // [name] is a duplicate.
               List<SimpleIdentifier> duplicateNames = _duplicateShownNamesMap
                   .putIfAbsent(directive, () => <SimpleIdentifier>[]);
@@ -511,9 +516,6 @@ class ImportsVerifier {
 
   /// Add every shown name from [importDirective] into [_unusedShownNamesMap].
   void _addShownNames(ImportDirective importDirective) {
-    if (importDirective.combinators == null) {
-      return;
-    }
     List<SimpleIdentifier> identifiers = <SimpleIdentifier>[];
     _unusedShownNamesMap[importDirective] = identifiers;
     for (Combinator combinator in importDirective.combinators) {
@@ -536,12 +538,12 @@ class ImportsVerifier {
   /// @param importDirective the import directive used to compute the returned
   ///        namespace
   /// @return the computed or looked up [Namespace]
-  Namespace _computeNamespace(ImportDirective importDirective) {
-    Namespace namespace = _namespaceMap[importDirective];
+  Namespace? _computeNamespace(ImportDirective importDirective) {
+    var namespace = _namespaceMap[importDirective];
     if (namespace == null) {
       // If the namespace isn't in the namespaceMap, then compute and put it in
       // the map.
-      ImportElement importElement = importDirective.element;
+      var importElement = importDirective.element;
       if (importElement != null) {
         namespace = importElement.namespace;
         _namespaceMap[importDirective] = namespace;
@@ -553,7 +555,7 @@ class ImportsVerifier {
   /// Remove [element] from the list of names shown by [importDirective].
   void _removeFromUnusedShownNamesMap(
       Element element, ImportDirective importDirective) {
-    List<SimpleIdentifier> identifiers = _unusedShownNamesMap[importDirective];
+    var identifiers = _unusedShownNamesMap[importDirective];
     if (identifiers == null) {
       return;
     }

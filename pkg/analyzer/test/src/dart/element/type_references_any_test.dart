@@ -18,8 +18,8 @@ main() {
 
 @reflectiveTest
 class TypeReferencesAnyTest extends AbstractTypeSystemNullSafetyTest {
-  TypeParameterElement T;
-  TypeParameterType T_none;
+  late TypeParameterElement T;
+  late TypeParameterType T_none;
 
   @override
   void setUp() {

@@ -25,8 +25,8 @@ final Matcher throwsEvaluationException =
 
 @reflectiveTest
 class DartObjectImplTest {
-  TypeProvider _typeProvider;
-  TypeSystemImpl _typeSystem;
+  late final TypeProvider _typeProvider;
+  late final TypeSystemImpl _typeSystem;
 
   void setUp() {
     var analysisContext = TestAnalysisContext();
@@ -504,14 +504,14 @@ class DartObjectImplTest {
   }
 
   void test_getValue_list_empty() {
-    Object result = _listValue(_typeProvider.intType, []).toListValue();
+    var result = _listValue(_typeProvider.intType, []).toListValue();
     _assertInstanceOfObjectArray(result);
     List<Object> array = result as List<Object>;
     expect(array, hasLength(0));
   }
 
   void test_getValue_list_valid() {
-    Object result =
+    var result =
         _listValue(_typeProvider.intType, [_intValue(23)]).toListValue();
     _assertInstanceOfObjectArray(result);
     List<Object> array = result as List<Object>;
@@ -519,13 +519,13 @@ class DartObjectImplTest {
   }
 
   void test_getValue_map_empty() {
-    Map result = _mapValue(_typeProvider.intType, _typeProvider.stringType, [])
+    var result = _mapValue(_typeProvider.intType, _typeProvider.stringType, [])
         .toMapValue();
     expect(result, hasLength(0));
   }
 
   void test_getValue_map_valid() {
-    Map result = _mapValue(_typeProvider.stringType, _typeProvider.stringType,
+    var result = _mapValue(_typeProvider.stringType, _typeProvider.stringType,
         [_stringValue("key"), _stringValue("value")]).toMapValue();
     expect(result, hasLength(1));
   }
@@ -536,13 +536,13 @@ class DartObjectImplTest {
 
   void test_getValue_set_empty() {
     DartObjectImpl object = _setValue(_typeProvider.intType, null);
-    Set<DartObject> set = object.toSetValue();
+    var set = object.toSetValue();
     expect(set, hasLength(0));
   }
 
   void test_getValue_set_valid() {
     DartObjectImpl object = _setValue(_typeProvider.intType, {_intValue(23)});
-    Set<DartObject> set = object.toSetValue();
+    var set = object.toSetValue();
     expect(set, hasLength(1));
   }
 
@@ -1732,7 +1732,7 @@ class DartObjectImplTest {
   /// [expected] value, or that the operation throws an exception if the
   /// expected value is `null`.
   void _assertAdd(
-      DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
+      DartObjectImpl? expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
         left.add(_typeSystem, right);
@@ -1746,7 +1746,7 @@ class DartObjectImplTest {
 
   /// Assert that the bit-not of the [operand] is the [expected] value, or that
   /// the operation throws an exception if the expected value is `null`.
-  void _assertBitNot(DartObjectImpl expected, DartObjectImpl operand) {
+  void _assertBitNot(DartObjectImpl? expected, DartObjectImpl operand) {
     if (expected == null) {
       expect(() {
         operand.bitNot(_typeSystem);
@@ -1762,7 +1762,7 @@ class DartObjectImplTest {
   /// the [expected] value, or that the operation throws an exception if the
   /// expected value is `null`.
   void _assertConcatenate(
-      DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
+      DartObjectImpl? expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
         left.concatenate(_typeSystem, right);
@@ -1778,7 +1778,7 @@ class DartObjectImplTest {
   /// [expected] value, or that the operation throws an exception if the
   /// expected value is `null`.
   void _assertDivide(
-      DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
+      DartObjectImpl? expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
         left.divide(_typeSystem, right);
@@ -1794,7 +1794,7 @@ class DartObjectImplTest {
   /// the [expected] value, or that the operation throws an exception if the
   /// expected value is `null`.
   void _assertEagerAnd(
-      DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
+      DartObjectImpl? expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
         left.eagerAnd(_typeSystem, right);
@@ -1810,7 +1810,7 @@ class DartObjectImplTest {
   /// [expected] value, or that the operation throws an exception if the
   /// expected value is `null`.
   void _assertEagerOr(
-      DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
+      DartObjectImpl? expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
         left.eagerOr(_typeSystem, right);
@@ -1826,7 +1826,7 @@ class DartObjectImplTest {
   /// the [expected] value, or that the operation throws an exception if the
   /// expected value is `null`.
   void _assertEagerXor(
-      DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
+      DartObjectImpl? expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
         left.eagerXor(_typeSystem, right);
@@ -1842,7 +1842,7 @@ class DartObjectImplTest {
   /// equality is the [expected] value, or that the operation throws an
   /// exception if the expected value is `null`.
   void _assertEqualEqual(
-      DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
+      DartObjectImpl? expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
         left.equalEqual(_typeSystem, right);
@@ -1858,7 +1858,7 @@ class DartObjectImplTest {
   /// [expected] value, or that the operation throws an exception if the
   /// expected value is `null`.
   void _assertGreaterThan(
-      DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
+      DartObjectImpl? expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
         left.greaterThan(_typeSystem, right);
@@ -1874,7 +1874,7 @@ class DartObjectImplTest {
   /// [expected] value, or that the operation throws an exception if the
   /// expected value is `null`.
   void _assertGreaterThanOrEqual(
-      DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
+      DartObjectImpl? expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
         left.greaterThanOrEqual(_typeSystem, right);
@@ -1895,7 +1895,7 @@ class DartObjectImplTest {
     expect(result, expected);
   }
 
-  void _assertInstanceOfObjectArray(Object result) {
+  void _assertInstanceOfObjectArray(Object? result) {
     // TODO(scheglov) implement
   }
 
@@ -1903,7 +1903,7 @@ class DartObjectImplTest {
   /// integers is the [expected] value, or that the operation throws an
   /// exception if the expected value is `null`.
   void _assertIntegerDivide(
-      DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
+      DartObjectImpl? expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
         left.integerDivide(_typeSystem, right);
@@ -1919,7 +1919,7 @@ class DartObjectImplTest {
   /// is the [expected] value, or that the operation throws an exception if the
   /// expected value is `null`.
   void _assertLazyAnd(
-      DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
+      DartObjectImpl? expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
         left.lazyAnd(_typeSystem, () => right);
@@ -1935,7 +1935,7 @@ class DartObjectImplTest {
   /// the [expected] value, or that the operation throws an exception if the
   /// expected value is `null`.
   void _assertLazyOr(
-      DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
+      DartObjectImpl? expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
         left.lazyOr(_typeSystem, () => right);
@@ -1951,7 +1951,7 @@ class DartObjectImplTest {
   /// [expected] value, or that the operation throws an exception if the
   /// expected value is `null`.
   void _assertLessThan(
-      DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
+      DartObjectImpl? expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
         left.lessThan(_typeSystem, right);
@@ -1967,7 +1967,7 @@ class DartObjectImplTest {
   /// [expected] value, or that the operation throws an exception if the
   /// expected value is `null`.
   void _assertLessThanOrEqual(
-      DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
+      DartObjectImpl? expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
         left.lessThanOrEqual(_typeSystem, right);
@@ -1981,7 +1981,7 @@ class DartObjectImplTest {
 
   /// Assert that the logical-not of the [operand] is the [expected] value, or
   /// that the operation throws an exception if the expected value is `null`.
-  void _assertLogicalNot(DartObjectImpl expected, DartObjectImpl operand) {
+  void _assertLogicalNot(DartObjectImpl? expected, DartObjectImpl operand) {
     if (expected == null) {
       expect(() {
         operand.logicalNot(_typeSystem);
@@ -1997,7 +1997,7 @@ class DartObjectImplTest {
   /// the [expected] value, or that the operation throws an exception if the
   /// expected value is `null`.
   void _assertMinus(
-      DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
+      DartObjectImpl? expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
         left.minus(_typeSystem, right);
@@ -2011,7 +2011,7 @@ class DartObjectImplTest {
 
   /// Assert that the negation of the [operand] is the [expected] value, or that
   /// the operation throws an exception if the expected value is `null`.
-  void _assertNegated(DartObjectImpl expected, DartObjectImpl operand) {
+  void _assertNegated(DartObjectImpl? expected, DartObjectImpl operand) {
     if (expected == null) {
       expect(() {
         operand.negated(_typeSystem);
@@ -2027,7 +2027,7 @@ class DartObjectImplTest {
   /// inequality is the [expected] value, or that the operation throws an
   /// exception if the expected value is `null`.
   void _assertNotEqual(
-      DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
+      DartObjectImpl? expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
         left.notEqual(_typeSystem, right);
@@ -2041,7 +2041,8 @@ class DartObjectImplTest {
 
   /// Assert that converting the [operand] to a string is the [expected] value,
   /// or that the operation throws an exception if the expected value is `null`.
-  void _assertPerformToString(DartObjectImpl expected, DartObjectImpl operand) {
+  void _assertPerformToString(
+      DartObjectImpl? expected, DartObjectImpl operand) {
     if (expected == null) {
       expect(() {
         operand.performToString(_typeSystem);
@@ -2057,7 +2058,7 @@ class DartObjectImplTest {
   /// operands is the [expected] value, or that the operation throws an
   /// exception if the expected value is `null`.
   void _assertRemainder(
-      DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
+      DartObjectImpl? expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
         left.remainder(_typeSystem, right);
@@ -2073,7 +2074,7 @@ class DartObjectImplTest {
   /// the [expected] value, or that the operation throws an exception if the
   /// expected value is `null`.
   void _assertShiftLeft(
-      DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
+      DartObjectImpl? expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
         left.shiftLeft(_typeSystem, right);
@@ -2089,7 +2090,7 @@ class DartObjectImplTest {
   /// the [expected] value, or that the operation throws an exception if the
   /// expected value is `null`.
   void _assertShiftRight(
-      DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
+      DartObjectImpl? expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
         left.shiftRight(_typeSystem, right);
@@ -2103,7 +2104,7 @@ class DartObjectImplTest {
 
   /// Assert that the length of the [operand] is the [expected] value, or that
   /// the operation throws an exception if the expected value is `null`.
-  void _assertStringLength(DartObjectImpl expected, DartObjectImpl operand) {
+  void _assertStringLength(DartObjectImpl? expected, DartObjectImpl operand) {
     if (expected == null) {
       expect(() {
         operand.stringLength(_typeSystem);
@@ -2119,7 +2120,7 @@ class DartObjectImplTest {
   /// the [expected] value, or that the operation throws an exception if the
   /// expected value is `null`.
   void _assertTimes(
-      DartObjectImpl expected, DartObjectImpl left, DartObjectImpl right) {
+      DartObjectImpl? expected, DartObjectImpl left, DartObjectImpl right) {
     if (expected == null) {
       expect(() {
         left.times(_typeSystem, right);
@@ -2131,7 +2132,7 @@ class DartObjectImplTest {
     }
   }
 
-  DartObjectImpl _boolValue(bool value) {
+  DartObjectImpl _boolValue(bool? value) {
     if (value == null) {
       return DartObjectImpl(
         _typeSystem,
@@ -2154,7 +2155,7 @@ class DartObjectImplTest {
     fail("Invalid boolean value used in test");
   }
 
-  DartObjectImpl _doubleValue(double value) {
+  DartObjectImpl _doubleValue(double? value) {
     if (value == null) {
       return DartObjectImpl(
         _typeSystem,
@@ -2170,7 +2171,7 @@ class DartObjectImplTest {
     }
   }
 
-  DartObjectImpl _intValue(int value) {
+  DartObjectImpl _intValue(int? value) {
     if (value == null) {
       return DartObjectImpl(
         _typeSystem,
@@ -2220,7 +2221,8 @@ class DartObjectImplTest {
     );
   }
 
-  DartObjectImpl _setValue(DartType type, Set<DartObjectImpl> elements) {
+  DartObjectImpl _setValue(
+      ParameterizedType type, Set<DartObjectImpl>? elements) {
     return DartObjectImpl(
       _typeSystem,
       type,
@@ -2228,7 +2230,7 @@ class DartObjectImplTest {
     );
   }
 
-  DartObjectImpl _stringValue(String value) {
+  DartObjectImpl _stringValue(String? value) {
     if (value == null) {
       return DartObjectImpl(
         _typeSystem,

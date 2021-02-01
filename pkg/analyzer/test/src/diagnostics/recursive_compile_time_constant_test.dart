@@ -45,12 +45,10 @@ const int y = x;
 ''',
     );
     // No errors, because the cycle is not in this source.
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 import 'constants.dart';
 final z = {x: 0, y: 1};
-''', [
-      error(HintCode.EQUAL_KEYS_IN_MAP, 42, 1),
-    ]);
+''');
   }
 
   test_initializer_after_toplevel_var() async {

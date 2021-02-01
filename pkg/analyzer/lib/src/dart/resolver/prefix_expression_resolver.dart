@@ -16,7 +16,6 @@ import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:meta/meta.dart';
 
 /// Helper for resolving [PrefixExpression]s.
 class PrefixExpressionResolver {
@@ -26,7 +25,7 @@ class PrefixExpressionResolver {
   final AssignmentExpressionShared _assignmentShared;
 
   PrefixExpressionResolver({
-    @required ResolverVisitor resolver,
+    required ResolverVisitor resolver,
   })  : _resolver = resolver,
         _typePropertyResolver = resolver.typePropertyResolver,
         _inferenceHelper = resolver.inferenceHelper,
@@ -78,7 +77,7 @@ class PrefixExpressionResolver {
   /// TODO(scheglov) this is duplicate
   void _checkForInvalidAssignmentIncDec(
       PrefixExpressionImpl node, DartType type) {
-    var operandWriteType = node.writeType;
+    var operandWriteType = node.writeType!;
     if (!_typeSystem.isAssignableTo2(type, operandWriteType)) {
       _resolver.errorReporter.reportErrorForNode(
         CompileTimeErrorCode.INVALID_ASSIGNMENT,
@@ -94,18 +93,16 @@ class PrefixExpressionResolver {
   /// @return the static return type that was computed
   ///
   /// TODO(scheglov) this is duplicate
-  DartType _computeStaticReturnType(Element element) {
+  DartType _computeStaticReturnType(Element? element) {
     if (element is PropertyAccessorElement) {
       //
       // This is a function invocation expression disguised as something else.
       // We are invoking a getter and then invoking the returned function.
       //
-      FunctionType propertyType = element.type;
-      if (propertyType != null) {
-        return _resolver.inferenceHelper.computeInvokeReturnType(
-          propertyType.returnType,
-        );
-      }
+      var propertyType = element.type;
+      return _resolver.inferenceHelper.computeInvokeReturnType(
+        propertyType.returnType,
+      );
     } else if (element is ExecutableElement) {
       return _resolver.inferenceHelper.computeInvokeReturnType(element.type);
     }
@@ -145,8 +142,8 @@ class PrefixExpressionResolver {
       Expression operand = node.operand;
       String methodName = _getPrefixOperator(node);
       if (operand is ExtensionOverride) {
-        ExtensionElement element = operand.extensionName.staticElement;
-        MethodElement member = element.getMethod(methodName);
+        var element = operand.extensionName.staticElement as ExtensionElement;
+        var member = element.getMethod(methodName);
         if (member == null) {
           _errorReporter.reportErrorForToken(
               CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
@@ -157,7 +154,7 @@ class PrefixExpressionResolver {
         return;
       }
 
-      var readType = node.readType ?? operand.staticType;
+      var readType = node.readType ?? operand.staticType!;
       if (identical(readType, NeverTypeImpl.instance)) {
         _resolver.errorReporter.reportErrorForNode(
           HintCode.RECEIVER_OF_TYPE_NEVER,
@@ -173,7 +170,7 @@ class PrefixExpressionResolver {
         receiverErrorNode: operand,
         nameErrorEntity: operand,
       );
-      node.staticElement = result.getter;
+      node.staticElement = result.getter as MethodElement?;
       if (result.needsGetterError) {
         if (operand is SuperExpression) {
           _errorReporter.reportErrorForToken(
@@ -198,13 +195,13 @@ class PrefixExpressionResolver {
       _recordStaticType(node, NeverTypeImpl.instance);
     } else {
       // The other cases are equivalent to invoking a method.
-      ExecutableElement staticMethodElement = node.staticElement;
+      var staticMethodElement = node.staticElement;
       DartType staticType = _computeStaticReturnType(staticMethodElement);
       Expression operand = node.operand;
       if (operand is ExtensionOverride) {
         // No special handling for incremental operators.
       } else if (operator.isIncrementOperator) {
-        if (node.readType.isDartCoreInt) {
+        if (node.readType!.isDartCoreInt) {
           staticType = _typeProvider.intType;
         } else {
           _checkForInvalidAssignmentIncDec(node, staticType);

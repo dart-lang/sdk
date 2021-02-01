@@ -112,7 +112,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
     if (opType.includeReturnValueSuggestions) {
       var parent = element.enclosingElement;
       if (parent is ClassElement || parent is ExtensionElement) {
-        builder.suggestAccessor(element, inheritanceDistance: -1.0);
+        builder.suggestAccessor(element, inheritanceDistance: 0.0);
       } else {
         builder.suggestTopLevelPropertyAccessor(element, prefix: prefix);
       }

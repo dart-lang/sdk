@@ -10,7 +10,7 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 
 /// A simple example of using the AnalysisContextCollection API.
 void main(List<String> args) async {
-  var entity = Directory.current;
+  FileSystemEntity entity = Directory.current;
   if (args.isNotEmpty) {
     String arg = args.first;
     entity = FileSystemEntity.isDirectorySync(arg) ? Directory(arg) : File(arg);
@@ -31,7 +31,7 @@ void main(List<String> args) async {
         continue;
       }
 
-      final errorsResult = await context.currentSession.getErrors(filePath);
+      final errorsResult = (await context.currentSession.getErrors(filePath))!;
       for (final error in errorsResult.errors) {
         if (error.errorCode.type != ErrorType.TODO) {
           print(

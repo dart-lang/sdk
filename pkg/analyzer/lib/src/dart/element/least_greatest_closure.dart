@@ -8,7 +8,6 @@ import 'package:analyzer/src/dart/element/replacement_visitor.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:meta/meta.dart';
 
 class LeastGreatestClosureHelper extends ReplacementVisitor {
   final TypeSystemImpl typeSystem;
@@ -17,15 +16,15 @@ class LeastGreatestClosureHelper extends ReplacementVisitor {
   final DartType bottomType;
   final Set<TypeParameterElement> eliminationTargets;
 
-  bool _isLeastClosure;
+  late final bool _isLeastClosure;
   bool _isCovariant = true;
 
   LeastGreatestClosureHelper({
-    @required this.typeSystem,
-    @required this.topType,
-    @required this.topFunctionType,
-    @required this.bottomType,
-    @required this.eliminationTargets,
+    required this.typeSystem,
+    required this.topType,
+    required this.topFunctionType,
+    required this.bottomType,
+    required this.eliminationTargets,
   });
 
   DartType get _functionReplacement {
@@ -62,7 +61,7 @@ class LeastGreatestClosureHelper extends ReplacementVisitor {
   }
 
   @override
-  DartType visitFunctionType(FunctionType node) {
+  DartType? visitFunctionType(FunctionType node) {
     // - if `S` is
     //   `T Function<X0 extends B0, ...., Xk extends Bk>(T0 x0, ...., Tn xn,
     //       [Tn+1 xn+1, ..., Tm xm])`
@@ -82,7 +81,7 @@ class LeastGreatestClosureHelper extends ReplacementVisitor {
   }
 
   @override
-  DartType visitTypeParameterType(TypeParameterType node) {
+  DartType? visitTypeParameterType(TypeParameterType node) {
     if (eliminationTargets.contains(node.element)) {
       var replacement = _typeParameterReplacement as TypeImpl;
       return replacement.withNullability(

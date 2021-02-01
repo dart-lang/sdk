@@ -7,12 +7,10 @@ import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -30,9 +28,9 @@ main() {
 class AbstractContextTest with ResourceProviderMixin {
   final byteStore = MemoryByteStore();
 
-  AnalysisContextCollection analysisContextCollection;
+  late AnalysisContextCollection analysisContextCollection;
 
-  AnalysisContext testAnalysisContext;
+  late AnalysisContext testAnalysisContext;
 
   /// The file system specific `/home/test/analysis_options.yaml` path.
   String get analysisOptionsPath =>
@@ -78,7 +76,7 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   /// Create an analysis options file based on the given arguments.
-  void createAnalysisOptionsFile({List<String> experiments}) {
+  void createAnalysisOptionsFile({List<String>? experiments}) {
     var buffer = StringBuffer();
     if (experiments != null) {
       buffer.writeln('analyzer:');
@@ -89,9 +87,7 @@ class AbstractContextTest with ResourceProviderMixin {
     }
     newFile(analysisOptionsPath, content: buffer.toString());
 
-    if (analysisContextCollection != null) {
-      createAnalysisContexts();
-    }
+    createAnalysisContexts();
   }
 
   /// Return the existing analysis context that should be used to analyze the
@@ -195,8 +191,8 @@ class C {}
 
     await _doAllTrackerWork();
 
-    var id = uriToLibrary['package:test/test.dart'].id;
-    var library = tracker.getLibrary(id);
+    var id = uriToLibrary['package:test/test.dart']!.id;
+    var library = tracker.getLibrary(id)!;
     expect(library.id, id);
     expect(library.uriStr, 'package:test/test.dart');
   }
@@ -210,8 +206,8 @@ class A {}
 
     await _doAllTrackerWork();
 
-    var id = uriToLibrary['package:test/a.dart'].id;
-    var library = tracker.getLibrary(id);
+    var id = uriToLibrary['package:test/a.dart']!.id;
+    var library = tracker.getLibrary(id)!;
     expect(library.id, id);
   }
 
@@ -229,8 +225,8 @@ class A {}
 
     await _doAllTrackerWork();
 
-    var id = uriToLibrary['package:test/a.dart'].id;
-    var library = tracker.getLibrary(id);
+    var id = uriToLibrary['package:test/a.dart']!.id;
+    var library = tracker.getLibrary(id)!;
     expect(library.id, id);
   }
 
@@ -1172,14 +1168,13 @@ class A {}
 
     createAnalysisContexts();
 
-    DriverBasedAnalysisContext context =
-        analysisContextCollection.contextFor(file.path);
+    var context = analysisContextCollection.contextFor(file.path);
 
     tracker.addContext(context);
     await _doAllTrackerWork();
 
-    String result =
-        tracker.getContext(context).dartdocDirectiveInfo.processDartdoc('''
+    var declarationsContext = tracker.getContext(context)!;
+    var result = declarationsContext.dartdocDirectiveInfo.processDartdoc('''
 /// Before macro.
 /// {@macro foo}
 /// After macro.''');
@@ -2294,9 +2289,9 @@ library my.lib;
 
     await _doAllTrackerWork();
 
-    expect(uriToLibrary['package:test/a.dart'].isDeprecated, isFalse);
-    expect(uriToLibrary['package:test/b.dart'].isDeprecated, isTrue);
-    expect(uriToLibrary['package:test/c.dart'].isDeprecated, isTrue);
+    expect(uriToLibrary['package:test/a.dart']!.isDeprecated, isFalse);
+    expect(uriToLibrary['package:test/b.dart']!.isDeprecated, isTrue);
+    expect(uriToLibrary['package:test/c.dart']!.isDeprecated, isTrue);
   }
 
   test_library_partDirective_empty() async {
@@ -3530,7 +3525,7 @@ class C {}
   }
 
   static void _assertHasLibraries(List<Library> libraries,
-      {@required List<String> uriList, bool only = false}) {
+      {required List<String> uriList, bool only = false}) {
     var actualUriList = libraries.map((lib) => lib.uriStr).toList();
     if (only) {
       expect(actualUriList, unorderedEquals(uriList));
@@ -3548,7 +3543,7 @@ class C {}
 }
 
 class _Base extends AbstractContextTest {
-  DeclarationsTracker tracker;
+  late DeclarationsTracker tracker;
 
   final List<LibraryChange> changes = [];
 
@@ -3565,26 +3560,26 @@ class _Base extends AbstractContextTest {
     Declaration declaration,
     String name,
     DeclarationKind kind, {
-    String defaultArgumentListString,
-    List<int> defaultArgumentListTextRanges,
-    String docComplete,
-    String docSummary,
+    String? defaultArgumentListString,
+    List<int>? defaultArgumentListTextRanges,
+    String? docComplete,
+    String? docSummary,
     bool isAbstract = false,
     bool isConst = false,
     bool isDeprecated = false,
     bool isFinal = false,
     bool isStatic = false,
-    int locationOffset,
-    String locationPath,
-    int locationStartColumn,
-    int locationStartLine,
-    String parameters,
-    List<String> parameterNames,
-    List<String> parameterTypes,
-    List<String> relevanceTags,
-    int requiredParameterCount,
-    String returnType,
-    String typeParameters,
+    int? locationOffset,
+    String? locationPath,
+    int? locationStartColumn,
+    int? locationStartLine,
+    String? parameters,
+    List<String>? parameterNames,
+    List<String>? parameterTypes,
+    List<String>? relevanceTags,
+    int? requiredParameterCount,
+    String? returnType,
+    String? typeParameters,
   }) {
     expect(declaration.defaultArgumentListString, defaultArgumentListString);
     expect(
@@ -3636,9 +3631,8 @@ class _Base extends AbstractContextTest {
   /// If [declarations] provided, also checks that the library has exactly
   /// these declarations.
   void _assertHasLibrary(String uri,
-      {List<_ExpectedDeclaration> declarations}) {
-    var library = uriToLibrary[uri];
-    expect(library, isNotNull);
+      {List<_ExpectedDeclaration>? declarations}) {
+    var library = uriToLibrary[uri]!;
     if (declarations != null) {
       expect(library.declarations, hasLength(declarations.length));
       for (var expected in declarations) {
@@ -3690,9 +3684,7 @@ class _Base extends AbstractContextTest {
   }
 
   Library _getLibrary(String uriStr) {
-    var library = uriToLibrary[uriStr];
-    expect(library, isNotNull);
-    return library;
+    return uriToLibrary[uriStr]!;
   }
 }
 

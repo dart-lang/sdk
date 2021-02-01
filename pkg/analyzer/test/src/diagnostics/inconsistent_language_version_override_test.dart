@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:meta/meta.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
@@ -93,9 +92,9 @@ part of 'a.dart';
   }
 
   Future<void> _checkLibraryAndPart({
-    @required String libraryContent,
-    @required String partContent,
-    @required List<ExpectedError> libraryErrors,
+    required String libraryContent,
+    required String partContent,
+    required List<ExpectedError> libraryErrors,
   }) async {
     var libraryPath = convertPath('$testPackageLibPath/a.dart');
     var partPath = convertPath('$testPackageLibPath/b.dart');

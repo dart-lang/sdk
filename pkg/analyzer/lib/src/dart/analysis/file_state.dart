@@ -59,12 +59,12 @@ class FileContentOverlay {
   /// overlay does not override the content of the file.
   ///
   /// The [path] must be absolute and normalized.
-  String operator [](String path) => _map[path];
+  String? operator [](String path) => _map[path];
 
   /// Return the new [content] of the file with the given [path].
   ///
   /// The [path] must be absolute and normalized.
-  void operator []=(String path, String content) {
+  void operator []=(String path, String? content) {
     if (content == null) {
       _map.remove(path);
     } else {
@@ -84,18 +84,18 @@ class FileState {
   final FileSystemState _fsState;
 
   /// The absolute path of the file.
-  final String path;
+  final String? path;
 
   /// The absolute URI of the file.
   final Uri uri;
 
   /// The [Source] of the file with the [uri].
-  final Source source;
+  final Source? source;
 
   /// The [WorkspacePackage] that contains this file.
   ///
   /// It might be `null` if the file is outside of the workspace.
-  final WorkspacePackage workspacePackage;
+  final WorkspacePackage? workspacePackage;
 
   /// Return `true` if this file is a stub created for a file in the provided
   /// external summary store. The values of most properties are not the same
@@ -111,40 +111,40 @@ class FileState {
   ///
   /// This feature set is then restricted, with the [_packageLanguageVersion],
   /// or with a `@dart` language override token in the file header.
-  final FeatureSet _contextFeatureSet;
+  final FeatureSet? _contextFeatureSet;
 
   /// The language version for the package that contains this file.
-  final Version packageLanguageVersion;
+  final Version? packageLanguageVersion;
 
   int id = fileObjectId++;
-  int refreshId;
+  int? refreshId;
 
-  bool _exists;
-  String _content;
-  String _contentHash;
-  LineInfo _lineInfo;
-  Set<String> _definedClassMemberNames;
-  Set<String> _definedTopLevelNames;
-  Set<String> _referencedNames;
-  List<int> _unlinkedSignature;
-  String _unlinkedKey;
-  String _astKey;
-  AnalysisDriverUnlinkedUnit _driverUnlinkedUnit;
-  List<int> _apiSignature;
+  bool? _exists;
+  String? _content;
+  String? _contentHash;
+  LineInfo? _lineInfo;
+  Set<String>? _definedClassMemberNames;
+  Set<String>? _definedTopLevelNames;
+  Set<String>? _referencedNames;
+  List<int>? _unlinkedSignature;
+  String? _unlinkedKey;
+  String? _astKey;
+  AnalysisDriverUnlinkedUnit? _driverUnlinkedUnit;
+  List<int>? _apiSignature;
 
-  UnlinkedUnit2 _unlinked2;
+  UnlinkedUnit2? _unlinked2;
 
-  List<FileState> _importedFiles;
-  List<FileState> _exportedFiles;
-  List<FileState> _partedFiles;
-  List<FileState> _libraryFiles;
+  List<FileState?>? _importedFiles;
+  List<FileState?>? _exportedFiles;
+  List<FileState?>? _partedFiles;
+  List<FileState>? _libraryFiles;
 
-  Set<FileState> _directReferencedFiles;
-  Set<FileState> _directReferencedLibraries;
+  Set<FileState>? _directReferencedFiles;
+  Set<FileState>? _directReferencedLibraries;
 
-  LibraryCycle _libraryCycle;
-  String _transitiveSignature;
-  String _transitiveSignatureLinked;
+  LibraryCycle? _libraryCycle;
+  String? _transitiveSignature;
+  String? _transitiveSignatureLinked;
 
   /// The flag that shows whether the file has an error or warning that
   /// might be fixed by a change to another file.
@@ -173,24 +173,24 @@ class FileState {
   }
 
   /// The unlinked API signature of the file.
-  List<int> get apiSignature => _apiSignature;
+  List<int> get apiSignature => _apiSignature!;
 
   /// The content of the file.
-  String get content => _content;
+  String get content => _content!;
 
   /// The MD5 hash of the [content].
-  String get contentHash => _contentHash;
+  String get contentHash => _contentHash!;
 
   /// The class member names defined by the file.
   Set<String> get definedClassMemberNames {
     return _definedClassMemberNames ??=
-        _driverUnlinkedUnit.definedClassMemberNames.toSet();
+        _driverUnlinkedUnit!.definedClassMemberNames.toSet();
   }
 
   /// The top-level names defined by the file.
   Set<String> get definedTopLevelNames {
     return _definedTopLevelNames ??=
-        _driverUnlinkedUnit.definedTopLevelNames.toSet();
+        _driverUnlinkedUnit!.definedTopLevelNames.toSet();
   }
 
   /// Return the set of all directly referenced files - imported, exported or
@@ -213,62 +213,62 @@ class FileState {
   }
 
   /// Return `true` if the file exists.
-  bool get exists => _exists;
+  bool get exists => _exists!;
 
   /// The list of files this file exports.
-  List<FileState> get exportedFiles {
+  List<FileState?> get exportedFiles {
     if (_exportedFiles == null) {
-      _exportedFiles = <FileState>[];
-      for (var directive in _unlinked2.exports) {
+      _exportedFiles = <FileState?>[];
+      for (var directive in _unlinked2!.exports) {
         var uri = _selectRelativeUri(directive);
         var file = _fileForRelativeUri(uri);
-        _exportedFiles.add(file);
+        _exportedFiles!.add(file);
       }
     }
-    return _exportedFiles;
+    return _exportedFiles!;
   }
 
   @override
   int get hashCode => uri.hashCode;
 
   /// The list of files this file imports.
-  List<FileState> get importedFiles {
+  List<FileState?> get importedFiles {
     if (_importedFiles == null) {
-      _importedFiles = <FileState>[];
-      for (var directive in _unlinked2.imports) {
+      _importedFiles = <FileState?>[];
+      for (var directive in _unlinked2!.imports) {
         var uri = _selectRelativeUri(directive);
         var file = _fileForRelativeUri(uri);
-        _importedFiles.add(file);
+        _importedFiles!.add(file);
       }
     }
-    return _importedFiles;
+    return _importedFiles!;
   }
 
-  LibraryCycle get internal_libraryCycle => _libraryCycle;
+  LibraryCycle? get internal_libraryCycle => _libraryCycle;
 
   /// Return `true` if the file is a stub created for a library in the provided
   /// external summary store.
   bool get isExternalLibrary {
     return _fsState.externalSummaries != null &&
-        _fsState.externalSummaries.hasLinkedLibrary(uriStr);
+        _fsState.externalSummaries!.hasLinkedLibrary(uriStr);
   }
 
   /// Return `true` if the file does not have a `library` directive, and has a
   /// `part of` directive, so is probably a part.
   bool get isPart {
     if (_fsState.externalSummaries != null &&
-        _fsState.externalSummaries.hasUnlinkedUnit(uriStr)) {
-      return _fsState.externalSummaries.isPartUnit(uriStr);
+        _fsState.externalSummaries!.hasUnlinkedUnit(uriStr)) {
+      return _fsState.externalSummaries!.isPartUnit(uriStr);
     }
-    return !_unlinked2.hasLibraryDirective && _unlinked2.hasPartOfDirective;
+    return !_unlinked2!.hasLibraryDirective && _unlinked2!.hasPartOfDirective;
   }
 
   /// If the file [isPart], return a currently know library the file is a part
   /// of. Return `null` if a library is not known, for example because we have
   /// not processed a library file yet.
-  FileState get library {
+  FileState? get library {
     _fsState.readPartsForLibraries();
-    List<FileState> libraries = _fsState._partToLibraries[this];
+    List<FileState>? libraries = _fsState._partToLibraries[this];
     if (libraries == null || libraries.isEmpty) {
       return null;
     } else {
@@ -290,7 +290,7 @@ class FileState {
       computeLibraryCycle(_fsState._saltForElements, this);
     }
 
-    return _libraryCycle;
+    return _libraryCycle!;
   }
 
   /// The list of files files that this library consists of, i.e. this library
@@ -303,15 +303,15 @@ class FileState {
   }
 
   /// Return information about line in the file.
-  LineInfo get lineInfo => _lineInfo;
+  LineInfo get lineInfo => _lineInfo!;
 
   /// The list of files this library file references as parts.
-  List<FileState> get partedFiles {
+  List<FileState?> get partedFiles {
     if (_partedFiles == null) {
-      _partedFiles = <FileState>[];
-      for (var uri in _unlinked2.parts) {
+      _partedFiles = <FileState?>[];
+      for (var uri in _unlinked2!.parts) {
         var file = _fileForRelativeUri(uri);
-        _partedFiles.add(file);
+        _partedFiles!.add(file);
         if (file != null) {
           _fsState._partToLibraries
               .putIfAbsent(file, () => <FileState>[])
@@ -319,12 +319,12 @@ class FileState {
         }
       }
     }
-    return _partedFiles;
+    return _partedFiles!;
   }
 
   /// The external names referenced by the file.
   Set<String> get referencedNames {
-    return _referencedNames ??= _driverUnlinkedUnit.referencedNames.toSet();
+    return _referencedNames ??= _driverUnlinkedUnit!.referencedNames.toSet();
   }
 
   @visibleForTesting
@@ -349,7 +349,8 @@ class FileState {
   /// transitive closure of imported / exported files.
   String get transitiveSignature {
     libraryCycle; // sets _transitiveSignature
-    return _transitiveSignature;
+    _transitiveSignature ??= _invalidTransitiveSignature;
+    return _transitiveSignature!;
   }
 
   /// The value `transitiveSignature.linked` is used often, so we cache it.
@@ -358,30 +359,37 @@ class FileState {
   }
 
   /// The [UnlinkedUnit2] of the file.
-  UnlinkedUnit2 get unlinked2 => _unlinked2;
+  UnlinkedUnit2 get unlinked2 => _unlinked2!;
 
   /// The MD5 signature based on the content, feature sets, language version.
-  List<int> get unlinkedSignature => _unlinkedSignature;
+  List<int> get unlinkedSignature => _unlinkedSignature!;
 
   /// Return the [uri] string.
   String get uriStr => uri.toString();
+
+  String get _invalidTransitiveSignature {
+    return (ApiSignature()
+          ..addString(path!)
+          ..addBytes(unlinkedSignature))
+        .toHex();
+  }
 
   @override
   bool operator ==(Object other) {
     return other is FileState && other.uri == uri;
   }
 
-  Uint8List getAstBytes({CompilationUnit unit}) {
-    var bytes = _fsState._byteStore.get(_astKey);
+  Uint8List getAstBytes({CompilationUnit? unit}) {
+    var bytes = _fsState._byteStore.get(_astKey!) as Uint8List?;
     if (bytes == null) {
       unit ??= parse();
       bytes = writeUnitToBytes(unit: unit);
-      _fsState._byteStore.put(_astKey, bytes);
+      _fsState._byteStore.put(_astKey!, bytes);
     }
     return bytes;
   }
 
-  void internal_setLibraryCycle(LibraryCycle cycle, String signature) {
+  void internal_setLibraryCycle(LibraryCycle? cycle, String? signature) {
     if (cycle == null) {
       _libraryCycle = null;
       _transitiveSignature = null;
@@ -395,7 +403,7 @@ class FileState {
   /// Return a new parsed unresolved [CompilationUnit].
   ///
   /// If an exception happens during parsing, an empty unit is returned.
-  CompilationUnit parse([AnalysisErrorListener errorListener]) {
+  CompilationUnit parse([AnalysisErrorListener? errorListener]) {
     errorListener ??= AnalysisErrorListener.NULL_LISTENER;
     try {
       return _parse(errorListener);
@@ -424,7 +432,7 @@ class FileState {
     _invalidateCurrentUnresolvedData();
 
     {
-      var rawFileState = _fsState._fileContentCache.get(path, allowCached);
+      var rawFileState = _fsState._fileContentCache.get(path!, allowCached);
       _content = rawFileState.content;
       _exists = rawFileState.exists;
       _contentHash = rawFileState.contentHash;
@@ -434,21 +442,22 @@ class FileState {
     {
       var signature = ApiSignature();
       signature.addUint32List(_fsState._saltForUnlinked);
-      signature.addFeatureSet(_contextFeatureSet);
-      signature.addLanguageVersion(packageLanguageVersion);
-      signature.addString(_contentHash);
-      signature.addBool(_exists);
+      signature.addFeatureSet(_contextFeatureSet!);
+      signature.addLanguageVersion(packageLanguageVersion!);
+      signature.addString(_contentHash!);
+      signature.addBool(_exists!);
       _unlinkedSignature = signature.toByteList();
-      var signatureHex = hex.encode(_unlinkedSignature);
+      var signatureHex = hex.encode(_unlinkedSignature!);
       _unlinkedKey = '$signatureHex.unlinked2';
       // TODO(scheglov) Use the path as the key, and store the signature.
       _astKey = '$signatureHex.ast';
     }
 
     // Prepare bytes of the unlinked bundle - existing or new.
-    List<int> bytes;
+    // TODO(migration): should not be nullable
+    List<int>? bytes;
     {
-      bytes = _fsState._byteStore.get(_unlinkedKey);
+      bytes = _fsState._byteStore.get(_unlinkedKey!);
       if (bytes == null || bytes.isEmpty) {
         CompilationUnit unit = parse();
         _fsState._logger.run('Create unlinked for $path', () {
@@ -463,20 +472,20 @@ class FileState {
             referencedNames: referencedNames,
             subtypedNames: subtypedNames,
           ).toBuffer();
-          _fsState._byteStore.put(_unlinkedKey, bytes);
-          counterUnlinkedBytes += bytes.length;
-          counterUnlinkedLinkedBytes += bytes.length;
+          _fsState._byteStore.put(_unlinkedKey!, bytes!);
+          counterUnlinkedBytes += bytes!.length;
+          counterUnlinkedLinkedBytes += bytes!.length;
         });
       }
     }
 
     // Read the unlinked bundle.
-    _driverUnlinkedUnit = AnalysisDriverUnlinkedUnit.fromBuffer(bytes);
-    _unlinked2 = _driverUnlinkedUnit.unit2;
-    _lineInfo = LineInfo(_unlinked2.lineStarts);
+    _driverUnlinkedUnit = AnalysisDriverUnlinkedUnit.fromBuffer(bytes!);
+    _unlinked2 = _driverUnlinkedUnit!.unit2;
+    _lineInfo = LineInfo(_unlinked2!.lineStarts);
 
     // Prepare API signature.
-    var newApiSignature = Uint8List.fromList(_unlinked2.apiSignature);
+    var newApiSignature = Uint8List.fromList(_unlinked2!.apiSignature);
     bool apiSignatureChanged = _apiSignature != null &&
         !_equalByteLists(_apiSignature, newApiSignature);
     _apiSignature = newApiSignature;
@@ -491,14 +500,14 @@ class FileState {
       var libraries = _fsState._partToLibraries[this];
       if (libraries != null) {
         for (var library in libraries) {
-          library.libraryCycle?.invalidate();
+          library.libraryCycle.invalidate();
         }
       }
     }
 
     // This file is potentially not a library for its previous parts anymore.
     if (_partedFiles != null) {
-      for (FileState part in _partedFiles) {
+      for (var part in _partedFiles!) {
         _fsState._partToLibraries[part]?.remove(this);
       }
     }
@@ -515,7 +524,7 @@ class FileState {
     _libraryFiles = null;
 
     // Update mapping from subtyped names to files.
-    for (var name in _driverUnlinkedUnit.subtypedNames) {
+    for (var name in _driverUnlinkedUnit!.subtypedNames) {
       var files = _fsState._subtypedNameToFiles[name];
       if (files == null) {
         files = <FileState>{};
@@ -546,13 +555,13 @@ class FileState {
     var unit = astFactory.compilationUnit(
       beginToken: token,
       endToken: token,
-      featureSet: _contextFeatureSet,
+      featureSet: _contextFeatureSet!,
     ) as CompilationUnitImpl;
 
     unit.lineInfo = LineInfo(const <int>[0]);
 
     unit.languageVersion = LibraryLanguageVersion(
-      package: packageLanguageVersion,
+      package: packageLanguageVersion!,
       override: null,
     );
 
@@ -561,7 +570,7 @@ class FileState {
 
   /// Return the [FileState] for the given [relativeUri], or `null` if the
   /// URI cannot be parsed, cannot correspond any file, etc.
-  FileState _fileForRelativeUri(String relativeUri) {
+  FileState? _fileForRelativeUri(String relativeUri) {
     if (relativeUri.isEmpty) {
       return null;
     }
@@ -585,7 +594,7 @@ class FileState {
     _referencedNames = null;
 
     if (_driverUnlinkedUnit != null) {
-      for (var name in _driverUnlinkedUnit.subtypedNames) {
+      for (var name in _driverUnlinkedUnit!.subtypedNames) {
         var files = _fsState._subtypedNameToFiles[name];
         files?.remove(this);
       }
@@ -598,18 +607,18 @@ class FileState {
     }
 
     CharSequenceReader reader = CharSequenceReader(content);
-    Scanner scanner = Scanner(source, reader, errorListener)
+    Scanner scanner = Scanner(source!, reader, errorListener)
       ..configureFeatures(
-        featureSetForOverriding: _contextFeatureSet,
-        featureSet: _contextFeatureSet.restrictToVersion(
-          packageLanguageVersion,
+        featureSetForOverriding: _contextFeatureSet!,
+        featureSet: _contextFeatureSet!.restrictToVersion(
+          packageLanguageVersion!,
         ),
       );
     Token token = scanner.tokenize(reportScannerErrors: false);
     LineInfo lineInfo = LineInfo(scanner.lineStarts);
 
     Parser parser = Parser(
-      source,
+      source!,
       errorListener,
       featureSet: scanner.featureSet,
     );
@@ -631,7 +640,7 @@ $content
 
     var unitImpl = unit as CompilationUnitImpl;
     unitImpl.languageVersion = LibraryLanguageVersion(
-      package: packageLanguageVersion,
+      package: packageLanguageVersion!,
       override: scanner.overrideVersion,
     );
 
@@ -696,12 +705,12 @@ $content
       parts: parts,
       hasLibraryDirective: hasLibraryDirective,
       hasPartOfDirective: hasPartOfDirective,
-      lineStarts: unit.lineInfo.lineStarts,
+      lineStarts: unit.lineInfo!.lineStarts,
     );
   }
 
   /// Return `true` if the given byte lists are equal.
-  static bool _equalByteLists(List<int> a, List<int> b) {
+  static bool _equalByteLists(List<int>? a, List<int>? b) {
     if (a == null) {
       return b == null;
     } else if (b == null) {
@@ -741,7 +750,7 @@ class FileStateTestView {
 
   FileStateTestView(this.file);
 
-  String get unlinkedKey => file._unlinkedKey;
+  String get unlinkedKey => file._unlinkedKey!;
 }
 
 /// Information about known file system state.
@@ -750,9 +759,9 @@ class FileSystemState {
   final ResourceProvider _resourceProvider;
   final String contextName;
   final ByteStore _byteStore;
-  final FileContentOverlay _contentOverlay;
+  final FileContentOverlay? _contentOverlay;
   final SourceFactory _sourceFactory;
-  final Workspace _workspace;
+  final Workspace? _workspace;
   final DeclaredVariables _declaredVariables;
   final Uint32List _saltForUnlinked;
   final Uint32List _saltForElements;
@@ -766,7 +775,7 @@ class FileSystemState {
   /// While walking the file graph, when we reach a file that exists in the
   /// external store, we add a stub [FileState], but don't attempt to read its
   /// content, or its unlinked unit, or imported libraries, etc.
-  final SummaryDataStore externalSummaries;
+  final SummaryDataStore? externalSummaries;
 
   /// Mapping from a URI to the corresponding [FileState].
   final Map<Uri, FileState> _uriToFile = {};
@@ -802,9 +811,9 @@ class FileSystemState {
 
   /// The cache of content of files, possibly shared with other file system
   /// states with the same resource provider and the content overlay.
-  _FileContentCache _fileContentCache;
+  late final _FileContentCache _fileContentCache;
 
-  FileSystemStateTestView _testView;
+  late final FileSystemStateTestView _testView;
 
   FileSystemState(
     this._logger,
@@ -835,7 +844,7 @@ class FileSystemState {
   FeatureSet contextFeatureSet(
     String path,
     Uri uri,
-    WorkspacePackage workspacePackage,
+    WorkspacePackage? workspacePackage,
   ) {
     var workspacePackageExperiments = workspacePackage?.enabledExperiments;
     if (workspacePackageExperiments != null) {
@@ -850,7 +859,7 @@ class FileSystemState {
   Version contextLanguageVersion(
     String path,
     Uri uri,
-    WorkspacePackage workspacePackage,
+    WorkspacePackage? workspacePackage,
   ) {
     var workspaceLanguageVersion = workspacePackage?.languageVersion;
     if (workspaceLanguageVersion != null) {
@@ -866,11 +875,11 @@ class FileSystemState {
   /// Here "canonical" means that if the [path] is in a package `lib` then the
   /// returned file will have the `package:` style URI.
   FileState getFileForPath(String path) {
-    FileState file = _pathToCanonicalFile[path];
+    FileState? file = _pathToCanonicalFile[path];
     if (file == null) {
       File resource = _resourceProvider.getFile(path);
       Source fileSource = resource.createSource();
-      Uri uri = _sourceFactory.restoreUri(fileSource);
+      Uri? uri = _sourceFactory.restoreUri(fileSource);
       // Try to get the existing instance.
       file = _uriToFile[uri];
       // If we have a file, call it the canonical one and return it.
@@ -879,8 +888,8 @@ class FileSystemState {
         return file;
       }
       // Create a new file.
-      FileSource uriSource = FileSource(resource, uri);
-      WorkspacePackage workspacePackage = _workspace?.findPackageFor(path);
+      FileSource uriSource = FileSource(resource, uri!);
+      WorkspacePackage? workspacePackage = _workspace?.findPackageFor(path);
       FeatureSet featureSet = contextFeatureSet(path, uri, workspacePackage);
       Version packageLanguageVersion =
           contextLanguageVersion(path, uri, workspacePackage);
@@ -898,21 +907,21 @@ class FileSystemState {
   /// "unresolved" file if the [uri] is invalid, e.g. a `package:` URI without
   /// a package name. The returned file has the last known state since if was
   /// last refreshed.
-  FileState getFileForUri(Uri uri) {
-    FileState file = _uriToFile[uri];
+  FileState? getFileForUri(Uri uri) {
+    FileState? file = _uriToFile[uri];
     if (file == null) {
       // If the external store has this URI, create a stub file for it.
       // We are given all required unlinked and linked summaries for it.
       if (externalSummaries != null) {
         String uriStr = uri.toString();
-        if (externalSummaries.hasLinkedLibrary(uriStr)) {
+        if (externalSummaries!.hasLinkedLibrary(uriStr)) {
           file = FileState._external(this, uri);
           _uriToFile[uri] = file;
           return file;
         }
       }
 
-      Source uriSource = _sourceFactory.resolveUri(null, uri.toString());
+      Source? uriSource = _sourceFactory.resolveUri(null, uri.toString());
 
       // If the URI cannot be resolved, for example because the factory
       // does not understand the scheme, return the unresolved file instance.
@@ -923,7 +932,7 @@ class FileSystemState {
       String path = uriSource.fullName;
       File resource = _resourceProvider.getFile(path);
       FileSource source = FileSource(resource, uri);
-      WorkspacePackage workspacePackage = _workspace?.findPackageFor(path);
+      WorkspacePackage? workspacePackage = _workspace?.findPackageFor(path);
       FeatureSet featureSet = contextFeatureSet(path, uri, workspacePackage);
       Version packageLanguageVersion =
           contextLanguageVersion(path, uri, workspacePackage);
@@ -940,7 +949,7 @@ class FileSystemState {
   /// list has at least one item, and the first item is the canonical file.
   List<FileState> getFilesForPath(String path) {
     FileState canonicalFile = getFileForPath(path);
-    List<FileState> allFiles = _pathToFiles[path].toList();
+    List<FileState> allFiles = _pathToFiles[path]!.toList();
     if (allFiles.length == 1) {
       return allFiles;
     }
@@ -951,7 +960,7 @@ class FileSystemState {
 
   /// Return files where the given [name] is subtyped, i.e. used in `extends`,
   /// `with` or `implements` clauses.
-  Set<FileState> getFilesSubtypingName(String name) {
+  Set<FileState>? getFilesSubtypingName(String name) {
     return _subtypedNameToFiles[name];
   }
 
@@ -961,12 +970,12 @@ class FileSystemState {
   /// resolved to another file, e.g. a generated one in Bazel, Gn, etc, we
   /// cannot analyze the original file.
   bool hasUri(String path) {
-    bool flag = _hasUriForPath[path];
+    bool? flag = _hasUriForPath[path];
     if (flag == null) {
       File resource = _resourceProvider.getFile(path);
       Source fileSource = resource.createSource();
-      Uri uri = _sourceFactory.restoreUri(fileSource);
-      Source uriSource = _sourceFactory.forUri2(uri);
+      Uri? uri = _sourceFactory.restoreUri(fileSource);
+      Source? uriSource = _sourceFactory.forUri2(uri!);
       flag = uriSource?.fullName == path;
       _hasUriForPath[path] = flag;
     }
@@ -1068,7 +1077,7 @@ class _FileContentCache {
   static final _instances2 = Expando<_FileContentCache>();
 
   final ResourceProvider _resourceProvider;
-  final FileContentOverlay _contentOverlay;
+  final FileContentOverlay? _contentOverlay;
   final Map<String, _FileContent> _pathToFile = {};
 
   _FileContentCache(this._resourceProvider, this._contentOverlay);
@@ -1085,11 +1094,11 @@ class _FileContentCache {
     var file = allowCached ? _pathToFile[path] : null;
     if (file == null) {
       List<int> contentBytes;
-      String content;
+      String? content;
       bool exists;
       try {
         if (_contentOverlay != null) {
-          content = _contentOverlay[path];
+          content = _contentOverlay![path];
         }
         if (content != null) {
           contentBytes = utf8.encode(content);
@@ -1119,8 +1128,8 @@ class _FileContentCache {
   }
 
   static _FileContentCache getInstance(
-      ResourceProvider resourceProvider, FileContentOverlay contentOverlay) {
-    Expando<_FileContentCache> providerToInstance;
+      ResourceProvider resourceProvider, FileContentOverlay? contentOverlay) {
+    Expando<_FileContentCache>? providerToInstance;
     if (contentOverlay != null) {
       providerToInstance = _instances[contentOverlay];
       if (providerToInstance == null) {

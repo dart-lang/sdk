@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -23,15 +24,15 @@ main() {
 }
 
 abstract class AbstractTypeSystemNullSafetyTest with ElementsTypesMixin {
-  TestAnalysisContext analysisContext;
+  late TestAnalysisContext analysisContext;
 
   @override
-  LibraryElementImpl testLibrary;
+  late LibraryElementImpl testLibrary;
 
   @override
-  TypeProvider typeProvider;
+  late TypeProviderImpl typeProvider;
 
-  TypeSystemImpl typeSystem;
+  late TypeSystemImpl typeSystem;
 
   FeatureSet get testFeatureSet {
     return FeatureSet.forTesting(
@@ -56,15 +57,15 @@ abstract class AbstractTypeSystemNullSafetyTest with ElementsTypesMixin {
 }
 
 abstract class AbstractTypeSystemTest with ElementsTypesMixin {
-  TestAnalysisContext analysisContext;
+  late TestAnalysisContext analysisContext;
 
   @override
-  LibraryElementImpl testLibrary;
+  late LibraryElementImpl testLibrary;
 
   @override
-  TypeProvider typeProvider;
+  late TypeProvider typeProvider;
 
-  TypeSystemImpl typeSystem;
+  late TypeSystemImpl typeSystem;
 
   FeatureSet get testFeatureSet {
     return FeatureSet.forTesting();
@@ -390,7 +391,7 @@ class AssignabilityTest extends AbstractTypeSystemTest {
   }
 
   void _checkGroups(DartType t1,
-      {List<DartType> interassignable, List<DartType> unrelated}) {
+      {List<DartType>? interassignable, List<DartType>? unrelated}) {
     if (interassignable != null) {
       for (DartType t2 in interassignable) {
         _checkEquivalent(t1, t2);
@@ -467,6 +468,10 @@ class TryPromoteToTest extends AbstractTypeSystemTest {
   }
 
   test_typeParameter() {
+    TypeParameterTypeImpl tryPromote(DartType to, TypeParameterTypeImpl from) {
+      return typeSystem.tryPromoteToType(to, from) as TypeParameterTypeImpl;
+    }
+
     void check(
       TypeParameterTypeImpl type,
       TypeParameterElement expectedElement,
@@ -479,10 +484,10 @@ class TryPromoteToTest extends AbstractTypeSystemTest {
     var T = typeParameter('T');
     var T0 = typeParameterTypeNone(T);
 
-    var T1 = typeSystem.tryPromoteToType(numNone, T0);
+    var T1 = tryPromote(numNone, T0);
     check(T1, T, numNone);
 
-    var T2 = typeSystem.tryPromoteToType(intNone, T1);
+    var T2 = tryPromote(intNone, T1);
     check(T2, T, intNone);
   }
 }

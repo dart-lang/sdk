@@ -17,7 +17,7 @@ import 'package:yaml/yaml.dart';
 class AnalysisOptionsProvider {
   /// The source factory used to resolve include declarations
   /// in analysis options files or `null` if include is not supported.
-  SourceFactory sourceFactory;
+  SourceFactory? sourceFactory;
 
   AnalysisOptionsProvider([this.sourceFactory]);
 
@@ -27,7 +27,7 @@ class AnalysisOptionsProvider {
   /// and remove the include directive from the resulting options map.
   /// Return an empty options map if the file does not exist.
   YamlMap getOptions(Folder root, {bool crawlUp = false}) {
-    File optionsFile = getOptionsFile(root, crawlUp: crawlUp);
+    File? optionsFile = getOptionsFile(root, crawlUp: crawlUp);
     if (optionsFile == null) {
       return YamlMap();
     }
@@ -39,9 +39,9 @@ class AnalysisOptionsProvider {
   ///
   /// The given [root] directory will be searched first. If no file is found and
   /// if [crawlUp] is `true`, then enclosing directories will be searched.
-  File getOptionsFile(Folder root, {bool crawlUp = false}) {
-    Resource resource;
-    for (Folder folder = root; folder != null; folder = folder.parent) {
+  File? getOptionsFile(Folder root, {bool crawlUp = false}) {
+    Resource? resource;
+    for (Folder? folder = root; folder != null; folder = folder.parent) {
       resource = folder.getChild(AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
       if (resource.exists || !crawlUp) {
         break;
@@ -67,12 +67,14 @@ class AnalysisOptionsProvider {
   /// Return an empty options map if the file does not exist.
   YamlMap getOptionsFromSource(Source source) {
     YamlMap options = getOptionsFromString(_readAnalysisOptions(source));
-    YamlNode node = getValue(options, AnalyzerOptions.include);
+    var node = getValue(options, AnalyzerOptions.include);
     if (sourceFactory != null && node is YamlScalar) {
       var path = node.value;
       if (path is String) {
-        Source parent = sourceFactory.resolveUri(source, path);
-        options = merge(getOptionsFromSource(parent), options);
+        var parent = sourceFactory!.resolveUri(source, path);
+        if (parent != null) {
+          options = merge(getOptionsFromSource(parent), options);
+        }
       }
     }
     return options;
@@ -82,7 +84,7 @@ class AnalysisOptionsProvider {
   /// An include directive, if present, will be left as-is,
   /// and the referenced options will NOT be merged into the result.
   /// Return an empty options map if the source is null.
-  YamlMap getOptionsFromString(String optionsSource) {
+  YamlMap getOptionsFromString(String? optionsSource) {
     if (optionsSource == null) {
       return YamlMap();
     }
@@ -116,7 +118,7 @@ class AnalysisOptionsProvider {
 
   /// Read the contents of [source] as a string.
   /// Returns null if source is null or does not exist.
-  String _readAnalysisOptions(Source source) {
+  String? _readAnalysisOptions(Source source) {
     try {
       return source.contents.data;
     } catch (e) {
@@ -129,10 +131,10 @@ class AnalysisOptionsProvider {
 /// Thrown on options format exceptions.
 class OptionsFormatException implements Exception {
   final String message;
-  final SourceSpan span;
+  final SourceSpan? span;
   OptionsFormatException(this.message, [this.span]);
 
   @override
   String toString() =>
-      'OptionsFormatException: ${message?.toString()}, ${span?.toString()}';
+      'OptionsFormatException: ${message.toString()}, ${span?.toString()}';
 }

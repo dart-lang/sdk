@@ -5,7 +5,7 @@
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/package_config_json.dart';
 import 'package:analyzer/src/util/uri.dart';
-import 'package:meta/meta.dart';
+// ignore: import_of_legacy_library_into_null_safe
 import 'package:package_config/src/packages_file.dart'
     as package_config_packages_file;
 import 'package:pub_semver/pub_semver.dart';
@@ -15,7 +15,7 @@ import 'package:pub_semver/pub_semver.dart';
 /// Looks for `.dart_tool/package_config.json` or `.packages` in the given
 /// and parent directories.
 Packages findPackagesFrom(ResourceProvider provider, Resource start) {
-  for (var current = start; current != null; current = current.parent) {
+  for (Resource? current = start; current != null; current = current.parent) {
     if (current is Folder) {
       try {
         var jsonFile = current
@@ -92,11 +92,11 @@ Packages parsePackageConfigJsonFile(ResourceProvider provider, File file) {
       jsonPackage.packageUri,
     );
 
-    Version languageVersion;
+    Version? languageVersion;
     if (jsonPackage.languageVersion != null) {
       languageVersion = Version(
-        jsonPackage.languageVersion.major,
-        jsonPackage.languageVersion.minor,
+        jsonPackage.languageVersion!.major,
+        jsonPackage.languageVersion!.minor,
         0,
       );
       // New features were added in `2.2.2` over `2.2.0`.
@@ -128,7 +128,7 @@ Packages parsePackagesFile(ResourceProvider provider, File file) {
     if (isJson) {
       return parsePackageConfigJsonFile(provider, file);
     } else {
-      var relativePackageConfigFile = file.parent
+      var relativePackageConfigFile = file.parent!
           .getChildAssumingFolder('.dart_tool')
           .getChildAssumingFile('package_config.json');
       if (relativePackageConfigFile.exists) {
@@ -147,13 +147,13 @@ class Package {
   final Folder libFolder;
 
   /// The language version for this package, `null` not specified explicitly.
-  final Version languageVersion;
+  final Version? languageVersion;
 
   Package({
-    @required this.name,
-    @required this.rootFolder,
-    @required this.libFolder,
-    @required this.languageVersion,
+    required this.name,
+    required this.rootFolder,
+    required this.libFolder,
+    required this.languageVersion,
   });
 }
 
@@ -167,12 +167,12 @@ class Packages {
   Iterable<Package> get packages => _map.values;
 
   /// Return the [Package] with the given [name], or `null`.
-  Package operator [](String name) => _map[name];
+  Package? operator [](String name) => _map[name];
 
   /// Return the inner-most [Package] that contains  the [path], `null` if none.
-  Package packageForPath(String path) {
-    Package result;
-    int resultPathLength;
+  Package? packageForPath(String path) {
+    Package? result;
+    int resultPathLength = 1 << 20;
     for (var package in packages) {
       if (package.rootFolder.contains(path)) {
         var packagePathLength = package.rootFolder.path.length;

@@ -36,7 +36,7 @@ main() {
 
 @reflectiveTest
 class FileSystemStateTest with ResourceProviderMixin {
-  MockSdk sdk;
+  late final MockSdk sdk;
 
   final ByteStore byteStore = MemoryByteStore();
   final FileContentOverlay contentOverlay = FileContentOverlay();
@@ -44,10 +44,10 @@ class FileSystemStateTest with ResourceProviderMixin {
   final StringBuffer logBuffer = StringBuffer();
   final _GeneratedUriResolverMock generatedUriResolver =
       _GeneratedUriResolverMock();
-  SourceFactory sourceFactory;
-  PerformanceLog logger;
+  late final SourceFactory sourceFactory;
+  late final PerformanceLog logger;
 
-  FileSystemState fileSystemState;
+  late final FileSystemState fileSystemState;
 
   void setUp() {
     logger = PerformanceLog(logBuffer);
@@ -194,21 +194,21 @@ part ':[invalid uri]';
     FileState file = fileSystemState.getFileForPath(a);
 
     expect(_excludeSdk(file.importedFiles), hasLength(2));
-    expect(file.importedFiles[0].path, a1);
-    expect(file.importedFiles[0].uri, Uri.parse('package:aaa/a1.dart'));
-    expect(file.importedFiles[0].source, isNotNull);
+    expect(file.importedFiles[0]!.path, a1);
+    expect(file.importedFiles[0]!.uri, Uri.parse('package:aaa/a1.dart'));
+    expect(file.importedFiles[0]!.source, isNotNull);
     _assertIsUnresolvedFile(file.importedFiles[1]);
 
     expect(_excludeSdk(file.exportedFiles), hasLength(2));
-    expect(file.exportedFiles[0].path, a2);
-    expect(file.exportedFiles[0].uri, Uri.parse('package:aaa/a2.dart'));
-    expect(file.exportedFiles[0].source, isNotNull);
+    expect(file.exportedFiles[0]!.path, a2);
+    expect(file.exportedFiles[0]!.uri, Uri.parse('package:aaa/a2.dart'));
+    expect(file.exportedFiles[0]!.source, isNotNull);
     _assertIsUnresolvedFile(file.exportedFiles[1]);
 
     expect(_excludeSdk(file.partedFiles), hasLength(2));
-    expect(file.partedFiles[0].path, a3);
-    expect(file.partedFiles[0].uri, Uri.parse('package:aaa/a3.dart'));
-    expect(file.partedFiles[0].source, isNotNull);
+    expect(file.partedFiles[0]!.path, a3);
+    expect(file.partedFiles[0]!.uri, Uri.parse('package:aaa/a3.dart'));
+    expect(file.partedFiles[0]!.source, isNotNull);
     _assertIsUnresolvedFile(file.partedFiles[1]);
   }
 
@@ -240,24 +240,24 @@ class A1 {}
     expect(file.unlinked2, isNotNull);
 
     expect(_excludeSdk(file.importedFiles), hasLength(2));
-    expect(file.importedFiles[0].path, a2);
-    expect(file.importedFiles[0].uri, Uri.parse('package:aaa/a2.dart'));
-    expect(file.importedFiles[0].source, isNotNull);
-    expect(file.importedFiles[1].path, b1);
-    expect(file.importedFiles[1].uri, Uri.parse('package:bbb/b1.dart'));
-    expect(file.importedFiles[1].source, isNotNull);
+    expect(file.importedFiles[0]!.path, a2);
+    expect(file.importedFiles[0]!.uri, Uri.parse('package:aaa/a2.dart'));
+    expect(file.importedFiles[0]!.source, isNotNull);
+    expect(file.importedFiles[1]!.path, b1);
+    expect(file.importedFiles[1]!.uri, Uri.parse('package:bbb/b1.dart'));
+    expect(file.importedFiles[1]!.source, isNotNull);
 
     expect(file.exportedFiles, hasLength(2));
-    expect(file.exportedFiles[0].path, b2);
-    expect(file.exportedFiles[0].uri, Uri.parse('package:bbb/b2.dart'));
-    expect(file.exportedFiles[0].source, isNotNull);
-    expect(file.exportedFiles[1].path, a3);
-    expect(file.exportedFiles[1].uri, Uri.parse('package:aaa/a3.dart'));
-    expect(file.exportedFiles[1].source, isNotNull);
+    expect(file.exportedFiles[0]!.path, b2);
+    expect(file.exportedFiles[0]!.uri, Uri.parse('package:bbb/b2.dart'));
+    expect(file.exportedFiles[0]!.source, isNotNull);
+    expect(file.exportedFiles[1]!.path, a3);
+    expect(file.exportedFiles[1]!.uri, Uri.parse('package:aaa/a3.dart'));
+    expect(file.exportedFiles[1]!.source, isNotNull);
 
     expect(file.partedFiles, hasLength(1));
-    expect(file.partedFiles[0].path, a4);
-    expect(file.partedFiles[0].uri, Uri.parse('package:aaa/a4.dart'));
+    expect(file.partedFiles[0]!.path, a4);
+    expect(file.partedFiles[0]!.uri, Uri.parse('package:aaa/a4.dart'));
 
     expect(file.libraryFiles, [file, file.partedFiles[0]]);
 
@@ -283,9 +283,9 @@ part 'd.dart';
 part 'not_dart.txt';
 ''');
     FileState file = fileSystemState.getFileForPath(a);
-    expect(_excludeSdk(file.importedFiles).map((f) => f.path), [b, not_dart]);
-    expect(file.exportedFiles.map((f) => f.path), [c, not_dart]);
-    expect(file.partedFiles.map((f) => f.path), [d, not_dart]);
+    expect(_excludeSdk(file.importedFiles).map((f) => f!.path), [b, not_dart]);
+    expect(file.exportedFiles.map((f) => f!.path), [c, not_dart]);
+    expect(file.partedFiles.map((f) => f!.path), [d, not_dart]);
     expect(_excludeSdk(fileSystemState.knownFilePaths),
         unorderedEquals([a, b, c, d, not_dart]));
   }
@@ -357,8 +357,8 @@ part 'not-a2.dart';
     var fileUri = toUri(path);
 
     // The files with `package:` and `file:` URIs are different.
-    FileState filePackageUri = fileSystemState.getFileForUri(packageUri);
-    FileState fileFileUri = fileSystemState.getFileForUri(fileUri);
+    FileState filePackageUri = fileSystemState.getFileForUri(packageUri)!;
+    FileState fileFileUri = fileSystemState.getFileForUri(fileUri)!;
     expect(filePackageUri, isNot(same(fileFileUri)));
 
     expect(filePackageUri.path, path);
@@ -665,7 +665,7 @@ part of 'a.dart';
     expect(_excludeSdk(actual), unorderedEquals(expected));
   }
 
-  void _assertIsUnresolvedFile(FileState file) {
+  void _assertIsUnresolvedFile(FileState? file) {
     expect(file, isNull);
   }
 
@@ -682,11 +682,11 @@ part of 'a.dart';
   }
 
   List<T> _excludeSdk<T>(Iterable<T> files) {
-    return files.where((Object file) {
+    return files.where((file) {
       if (file is LibraryCycle) {
         return !file.libraries.any((file) => file.uri.isScheme('dart'));
       } else if (file is FileState) {
-        return file.uri?.scheme != 'dart';
+        return file.uri.scheme != 'dart';
       } else if (file == null) {
         return true;
       } else {
@@ -701,9 +701,9 @@ part of 'a.dart';
 }
 
 class _GeneratedUriResolverMock implements UriResolver {
-  Source Function(Uri, Uri) resolveAbsoluteFunction;
+  Source? Function(Uri, Uri?)? resolveAbsoluteFunction;
 
-  Uri Function(Source) restoreAbsoluteFunction;
+  Uri? Function(Source)? restoreAbsoluteFunction;
 
   @override
   noSuchMethod(Invocation invocation) {
@@ -711,17 +711,17 @@ class _GeneratedUriResolverMock implements UriResolver {
   }
 
   @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+  Source? resolveAbsolute(Uri uri, [Uri? actualUri]) {
     if (resolveAbsoluteFunction != null) {
-      return resolveAbsoluteFunction(uri, actualUri);
+      return resolveAbsoluteFunction!(uri, actualUri);
     }
     return null;
   }
 
   @override
-  Uri restoreAbsolute(Source source) {
+  Uri? restoreAbsolute(Source source) {
     if (restoreAbsoluteFunction != null) {
-      return restoreAbsoluteFunction(source);
+      return restoreAbsoluteFunction!(source);
     }
     return null;
   }

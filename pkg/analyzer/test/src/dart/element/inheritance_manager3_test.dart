@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1284,7 +1283,7 @@ class C extends B {}
 }
 
 class _InheritanceManager3Base extends PubPackageResolutionTest {
-  InheritanceManager3 manager;
+  late final InheritanceManager3 manager;
 
   @override
   Future<void> resolveTestFile() async {
@@ -1292,8 +1291,8 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
     manager = InheritanceManager3();
   }
 
-  void _assertExecutable(ExecutableElement element, String expected) {
-    if (expected != null) {
+  void _assertExecutable(ExecutableElement? element, String? expected) {
+    if (expected != null && element != null) {
       var enclosingElement = element.enclosingElement;
 
       var type = element.type;
@@ -1307,9 +1306,9 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
   }
 
   void _assertGetInherited({
-    @required String className,
-    @required String name,
-    String expected,
+    required String className,
+    required String name,
+    String? expected,
   }) {
     var member = manager.getInherited2(
       findElement.classOrMixin(className),
@@ -1320,13 +1319,13 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
   }
 
   void _assertGetMember({
-    @required String className,
-    @required String name,
-    String expected,
+    required String className,
+    required String name,
+    String? expected,
     bool concrete = false,
     bool forSuper = false,
   }) {
-    ExecutableElement member;
+    ExecutableElement? member;
     NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
       member = manager.getMember2(
         findElement.classOrMixin(className),
@@ -1340,9 +1339,9 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
   }
 
   void _assertGetMember2({
-    @required String className,
-    @required String name,
-    String expected,
+    required String className,
+    required String name,
+    String? expected,
   }) {
     _assertGetMember(
       className: className,
@@ -1374,8 +1373,8 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
   void _assertNameToExecutableMap(
       Map<Name, ExecutableElement> map, String expected) {
     var lines = <String>[];
-    for (var name in map.keys) {
-      var element = map[name];
+    for (var entry in map.entries) {
+      var element = entry.value;
       var type = element.type;
 
       var enclosingElement = element.enclosingElement;

@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -14,7 +15,7 @@ import 'package:analyzer/src/summary2/link.dart';
 /// Used to resolve some AST nodes - variable initializers, and annotations.
 class AstResolver {
   final Linker _linker;
-  final CompilationUnitElement _unitElement;
+  final CompilationUnitElementImpl _unitElement;
   final Scope _nameScope;
 
   AstResolver(this._linker, this._unitElement, this._nameScope);
@@ -24,11 +25,11 @@ class AstResolver {
     AstNode Function() getNode, {
     bool buildElements = true,
     bool isTopLevelVariableInitializer = false,
-    ClassElement enclosingClassElement,
-    ExecutableElement enclosingExecutableElement,
-    FunctionBody enclosingFunctionBody,
+    ClassElement? enclosingClassElement,
+    ExecutableElement? enclosingExecutableElement,
+    FunctionBody? enclosingFunctionBody,
   }) {
-    var featureSet = node.thisOrAncestorOfType<CompilationUnit>().featureSet;
+    var featureSet = node.thisOrAncestorOfType<CompilationUnit>()!.featureSet;
     var errorListener = AnalysisErrorListener.NULL_LISTENER;
 
     if (buildElements) {
@@ -52,14 +53,15 @@ class AstResolver {
       node.accept(variableResolverVisitor);
     }
 
-    FlowAnalysisHelper flowAnalysis;
+    FlowAnalysisHelper? flowAnalysis;
     if (isTopLevelVariableInitializer) {
       if (_unitElement.library.isNonNullableByDefault) {
         flowAnalysis = FlowAnalysisHelper(
           _unitElement.library.typeSystem,
           false,
         );
-        flowAnalysis.topLevelDeclaration_enter(node.parent, null, null);
+        flowAnalysis.topLevelDeclaration_enter(
+            node.parent as Declaration, null, null);
       }
     }
 

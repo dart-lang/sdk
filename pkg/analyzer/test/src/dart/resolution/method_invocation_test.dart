@@ -1501,6 +1501,31 @@ void f(C c) {
     assertType(foo.propertyName, 'double Function(int)');
   }
 
+  test_hasReceiver_instance_getter_switchStatementExpression() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  int Function() get foo => throw Error();
+}
+
+void f(C c) {
+  switch ( c.foo() ) {
+    default:
+      break;
+  }
+}
+''');
+
+    var invocation = findNode.functionExpressionInvocation('foo()');
+    assertElementNull(invocation);
+    assertInvokeType(invocation, 'int Function()');
+    assertType(invocation, 'int');
+
+    var foo = invocation.function as PropertyAccess;
+    assertType(foo, 'int Function()');
+    assertElement(foo.propertyName, findElement.getter('foo'));
+    assertType(foo.propertyName, 'int Function()');
+  }
+
   test_hasReceiver_instance_method() async {
     await assertNoErrorsInCode(r'''
 class C {
@@ -2318,9 +2343,9 @@ main() {
     assertTypeArgumentTypes(invocation, []);
   }
 
-  void _assertInvalidInvocation(String search, Element expectedElement,
-      {String expectedMethodNameType,
-      String expectedNameType,
+  void _assertInvalidInvocation(String search, Element? expectedElement,
+      {String? expectedMethodNameType,
+      String? expectedNameType,
       List<String> expectedTypeArguments = const <String>[],
       bool dynamicNameType = false}) {
     var invocation = findNode.methodInvocation(search);

@@ -55,7 +55,7 @@ const a = 42;
 Function<@a T>() x;
 ''');
     var T = findNode.typeParameter('T');
-    var annotation = T.declaredElement.metadata[0];
+    var annotation = T.declaredElement!.metadata[0];
     expect(annotation.element, findElement.topGet('a'));
   }
 

@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
+import 'package:analyzer/dart/ast/token.dart' show TokenType;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
@@ -25,9 +25,9 @@ main() {
 class NNBDParserTest extends FastaParserTestCase {
   @override
   CompilationUnit parseCompilationUnit(String content,
-          {List<ErrorCode> codes,
-          List<ExpectedError> errors,
-          FeatureSet featureSet}) =>
+          {List<ErrorCode>? codes,
+          List<ExpectedError>? errors,
+          FeatureSet? featureSet}) =>
       super.parseCompilationUnit(content,
           codes: codes,
           errors: errors,
@@ -65,14 +65,14 @@ main() {
     expect(expression.toSource(), "f1!(42)");
 
     var functionExpression = expression.function as PostfixExpression;
-    SimpleIdentifier identifier = functionExpression.operand;
+    var identifier = functionExpression.operand as SimpleIdentifier;
     expect(identifier.name, 'f1');
     expect(functionExpression.operator.lexeme, '!');
 
     expect(expression.typeArguments, null);
 
     expect(expression.argumentList.arguments.length, 1);
-    IntegerLiteral argument = expression.argumentList.arguments.single;
+    var argument = expression.argumentList.arguments.single as IntegerLiteral;
     expect(argument.value, 42);
   }
 
@@ -90,62 +90,62 @@ main() {
     expect(expression.toSource(), "f2!<int>(42)");
 
     var functionExpression = expression.function as PostfixExpression;
-    SimpleIdentifier identifier = functionExpression.operand;
+    var identifier = functionExpression.operand as SimpleIdentifier;
     expect(identifier.name, 'f2');
     expect(functionExpression.operator.lexeme, '!');
 
-    expect(expression.typeArguments.arguments.length, 1);
-    TypeName typeArgument = expression.typeArguments.arguments.single;
+    expect(expression.typeArguments!.arguments.length, 1);
+    var typeArgument = expression.typeArguments!.arguments.single as TypeName;
     expect(typeArgument.name.name, "int");
 
     expect(expression.argumentList.arguments.length, 1);
-    IntegerLiteral argument = expression.argumentList.arguments.single;
+    var argument = expression.argumentList.arguments.single as IntegerLiteral;
     expect(argument.value, 42);
   }
 
   void test_bangQuestionIndex() {
     // http://dartbug.com/41177
     CompilationUnit unit = parseCompilationUnit('f(dynamic a) { a!?[0]; }');
-    FunctionDeclaration funct = unit.declarations[0];
-    BlockFunctionBody body = funct.functionExpression.body;
+    var funct = unit.declarations[0] as FunctionDeclaration;
+    var body = funct.functionExpression.body as BlockFunctionBody;
 
-    ExpressionStatement statement = body.block.statements[0];
-    IndexExpression expression = statement.expression;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var expression = statement.expression as IndexExpression;
 
-    IntegerLiteral index = expression.index;
+    var index = expression.index as IntegerLiteral;
     expect(index.value, 0);
 
-    Token question = expression.question;
+    var question = expression.question!;
     expect(question, isNotNull);
     expect(question.lexeme, "?");
 
-    PostfixExpression target = expression.target;
-    SimpleIdentifier identifier = target.operand;
+    var target = expression.target as PostfixExpression;
+    var identifier = target.operand as SimpleIdentifier;
     expect(identifier.name, 'a');
     expect(target.operator.lexeme, '!');
   }
 
   void test_binary_expression_statement() {
     final unit = parseCompilationUnit('D? foo(X? x) { X ?? x2; }');
-    FunctionDeclaration funct = unit.declarations[0];
-    BlockFunctionBody body = funct.functionExpression.body;
-    ExpressionStatement statement = body.block.statements[0];
-    BinaryExpression expression = statement.expression;
-    SimpleIdentifier lhs = expression.leftOperand;
+    var funct = unit.declarations[0] as FunctionDeclaration;
+    var body = funct.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var expression = statement.expression as BinaryExpression;
+    var lhs = expression.leftOperand as SimpleIdentifier;
     expect(lhs.name, 'X');
     expect(expression.operator.lexeme, '??');
-    SimpleIdentifier rhs = expression.rightOperand;
+    var rhs = expression.rightOperand as SimpleIdentifier;
     expect(rhs.name, 'x2');
   }
 
   void test_cascade_withNullCheck_indexExpression() {
     var unit = parseCompilationUnit('main() { a?..[27]; }');
-    FunctionDeclaration funct = unit.declarations[0];
-    BlockFunctionBody body = funct.functionExpression.body;
-    ExpressionStatement statement = body.block.statements[0];
-    CascadeExpression cascade = statement.expression;
-    IndexExpression indexExpression = cascade.cascadeSections[0];
-    expect(indexExpression.period.lexeme, '?..');
+    var funct = unit.declarations[0] as FunctionDeclaration;
+    var body = funct.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var cascade = statement.expression as CascadeExpression;
+    var indexExpression = cascade.cascadeSections[0] as IndexExpression;
+    expect(indexExpression.period!.lexeme, '?..');
     expect(indexExpression.toSource(), '?..[27]');
   }
 
@@ -157,22 +157,22 @@ main() {
 
   void test_cascade_withNullCheck_methodInvocation() {
     var unit = parseCompilationUnit('main() { a?..foo(); }');
-    FunctionDeclaration funct = unit.declarations[0];
-    BlockFunctionBody body = funct.functionExpression.body;
-    ExpressionStatement statement = body.block.statements[0];
-    CascadeExpression cascade = statement.expression;
-    MethodInvocation invocation = cascade.cascadeSections[0];
-    expect(invocation.operator.lexeme, '?..');
+    var funct = unit.declarations[0] as FunctionDeclaration;
+    var body = funct.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var cascade = statement.expression as CascadeExpression;
+    var invocation = cascade.cascadeSections[0] as MethodInvocation;
+    expect(invocation.operator!.lexeme, '?..');
     expect(invocation.toSource(), '?..foo()');
   }
 
   void test_cascade_withNullCheck_propertyAccess() {
     var unit = parseCompilationUnit('main() { a?..x27; }');
-    FunctionDeclaration funct = unit.declarations[0];
-    BlockFunctionBody body = funct.functionExpression.body;
-    ExpressionStatement statement = body.block.statements[0];
-    CascadeExpression cascade = statement.expression;
-    PropertyAccess propertyAccess = cascade.cascadeSections[0];
+    var funct = unit.declarations[0] as FunctionDeclaration;
+    var body = funct.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var cascade = statement.expression as CascadeExpression;
+    var propertyAccess = cascade.cascadeSections[0] as PropertyAccess;
     expect(propertyAccess.operator.lexeme, '?..');
     expect(propertyAccess.toSource(), '?..x27');
   }
@@ -263,19 +263,19 @@ main() {
 
   void test_indexed() {
     CompilationUnit unit = parseCompilationUnit('main() { a[7]; }');
-    FunctionDeclaration method = unit.declarations[0];
-    BlockFunctionBody body = method.functionExpression.body;
-    ExpressionStatement statement = body.block.statements[0];
-    IndexExpression expression = statement.expression;
+    var method = unit.declarations[0] as FunctionDeclaration;
+    var body = method.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var expression = statement.expression as IndexExpression;
     expect(expression.leftBracket.lexeme, '[');
   }
 
   void test_indexed_nullAware() {
     CompilationUnit unit = parseCompilationUnit('main() { a?[7]; }');
-    FunctionDeclaration method = unit.declarations[0];
-    BlockFunctionBody body = method.functionExpression.body;
-    ExpressionStatement statement = body.block.statements[0];
-    IndexExpression expression = statement.expression;
+    var method = unit.declarations[0] as FunctionDeclaration;
+    var body = method.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var expression = statement.expression as IndexExpression;
     expect(expression.question, isNotNull);
     expect(expression.leftBracket.lexeme, '[');
     expect(expression.rightBracket.lexeme, ']');
@@ -287,11 +287,11 @@ main() {
 // @dart = 2.2
 main() { a?[7]; }''',
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 25, 1)]);
-    FunctionDeclaration method = unit.declarations[0];
-    BlockFunctionBody body = method.functionExpression.body;
-    ExpressionStatement statement = body.block.statements[0];
-    IndexExpressionImpl expression = statement.expression;
-    expect(expression.target.toSource(), 'a');
+    var method = unit.declarations[0] as FunctionDeclaration;
+    var body = method.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var expression = statement.expression as IndexExpressionImpl;
+    expect(expression.target!.toSource(), 'a');
     expect(expression.question, isNotNull);
     expect(expression.leftBracket.lexeme, '[');
     expect(expression.rightBracket.lexeme, ']');
@@ -307,12 +307,12 @@ main() { a?[7]; }''',
   void test_is_nullable() {
     CompilationUnit unit =
         parseCompilationUnit('main() { x is String? ? (x + y) : z; }');
-    FunctionDeclaration function = unit.declarations[0];
-    BlockFunctionBody body = function.functionExpression.body;
-    ExpressionStatement statement = body.block.statements[0];
-    ConditionalExpression expression = statement.expression;
+    var function = unit.declarations[0] as FunctionDeclaration;
+    var body = function.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var expression = statement.expression as ConditionalExpression;
 
-    IsExpression condition = expression.condition;
+    var condition = expression.condition as IsExpression;
     expect((condition.type as NamedType).question, isNotNull);
     Expression thenExpression = expression.thenExpression;
     expect(thenExpression, isParenthesizedExpression);
@@ -323,13 +323,13 @@ main() { a?[7]; }''',
   void test_is_nullable_parenthesis() {
     CompilationUnit unit =
         parseCompilationUnit('main() { (x is String?) ? (x + y) : z; }');
-    FunctionDeclaration function = unit.declarations[0];
-    BlockFunctionBody body = function.functionExpression.body;
-    ExpressionStatement statement = body.block.statements[0];
-    ConditionalExpression expression = statement.expression;
+    var function = unit.declarations[0] as FunctionDeclaration;
+    var body = function.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var expression = statement.expression as ConditionalExpression;
 
-    ParenthesizedExpression condition = expression.condition;
-    IsExpression isExpression = condition.expression;
+    var condition = expression.condition as ParenthesizedExpression;
+    var isExpression = condition.expression as IsExpression;
     expect((isExpression.type as NamedType).question, isNotNull);
     Expression thenExpression = expression.thenExpression;
     expect(thenExpression, isParenthesizedExpression);
@@ -387,35 +387,39 @@ class Foo {
   Foo(Object? o) : x = o as String?, y = 0;
 }
 ''');
-    ClassDeclaration classDeclaration = unit.declarations.first;
-    ConstructorDeclaration constructor = classDeclaration.getConstructor(null);
+    var classDeclaration = unit.declarations.first as ClassDeclaration;
+    var constructor =
+        classDeclaration.getConstructor(null) as ConstructorDeclaration;
 
     // Object? o
-    SimpleFormalParameter parameter = constructor.parameters.parameters.single;
-    expect(parameter.identifier.name, 'o');
-    TypeName type = parameter.type;
-    expect(type.question.lexeme, '?');
+    var parameter =
+        constructor.parameters.parameters.single as SimpleFormalParameter;
+    expect(parameter.identifier!.name, 'o');
+    var type = parameter.type as TypeName;
+    expect(type.question!.lexeme, '?');
     expect(type.name.name, 'Object');
 
     expect(constructor.initializers.length, 2);
 
     // o as String?
     {
-      ConstructorFieldInitializer initializer = constructor.initializers[0];
+      var initializer =
+          constructor.initializers[0] as ConstructorFieldInitializer;
       expect(initializer.fieldName.name, 'x');
-      AsExpression expression = initializer.expression;
-      SimpleIdentifier identifier = expression.expression;
+      var expression = initializer.expression as AsExpression;
+      var identifier = expression.expression as SimpleIdentifier;
       expect(identifier.name, 'o');
-      TypeName expressionType = expression.type;
-      expect(expressionType.question.lexeme, '?');
+      var expressionType = expression.type as TypeName;
+      expect(expressionType.question!.lexeme, '?');
       expect(expressionType.name.name, 'String');
     }
 
     // y = 0
     {
-      ConstructorFieldInitializer initializer = constructor.initializers[1];
+      var initializer =
+          constructor.initializers[1] as ConstructorFieldInitializer;
       expect(initializer.fieldName.name, 'y');
-      IntegerLiteral expression = initializer.expression;
+      var expression = initializer.expression as IntegerLiteral;
       expect(expression.value, 0);
     }
   }
@@ -429,41 +433,45 @@ class Foo {
   Foo(Object? o) : y = o is String? ? o.length : null, x = null;
 }
 ''');
-    ClassDeclaration classDeclaration = unit.declarations.first;
-    ConstructorDeclaration constructor = classDeclaration.getConstructor(null);
+    var classDeclaration = unit.declarations.first as ClassDeclaration;
+    var constructor =
+        classDeclaration.getConstructor(null) as ConstructorDeclaration;
 
     // Object? o
-    SimpleFormalParameter parameter = constructor.parameters.parameters.single;
-    expect(parameter.identifier.name, 'o');
-    TypeName type = parameter.type;
-    expect(type.question.lexeme, '?');
+    var parameter =
+        constructor.parameters.parameters.single as SimpleFormalParameter;
+    expect(parameter.identifier!.name, 'o');
+    var type = parameter.type as TypeName;
+    expect(type.question!.lexeme, '?');
     expect(type.name.name, 'Object');
 
     expect(constructor.initializers.length, 2);
 
     // y = o is String? ? o.length : null
     {
-      ConstructorFieldInitializer initializer = constructor.initializers[0];
+      var initializer =
+          constructor.initializers[0] as ConstructorFieldInitializer;
       expect(initializer.fieldName.name, 'y');
-      ConditionalExpression expression = initializer.expression;
-      IsExpression condition = expression.condition;
-      SimpleIdentifier identifier = condition.expression;
+      var expression = initializer.expression as ConditionalExpression;
+      var condition = expression.condition as IsExpression;
+      var identifier = condition.expression as SimpleIdentifier;
       expect(identifier.name, 'o');
-      TypeName expressionType = condition.type;
-      expect(expressionType.question.lexeme, '?');
+      var expressionType = condition.type as TypeName;
+      expect(expressionType.question!.lexeme, '?');
       expect(expressionType.name.name, 'String');
-      PrefixedIdentifier thenExpression = expression.thenExpression;
+      var thenExpression = expression.thenExpression as PrefixedIdentifier;
       expect(thenExpression.identifier.name, 'length');
       expect(thenExpression.prefix.name, 'o');
-      NullLiteral elseExpression = expression.elseExpression;
+      var elseExpression = expression.elseExpression as NullLiteral;
       expect(elseExpression, isNotNull);
     }
 
     // x = null
     {
-      ConstructorFieldInitializer initializer = constructor.initializers[1];
+      var initializer =
+          constructor.initializers[1] as ConstructorFieldInitializer;
       expect(initializer.fieldName.name, 'x');
-      NullLiteral expression = initializer.expression;
+      var expression = initializer.expression as NullLiteral;
       expect(expression, isNotNull);
     }
   }
@@ -478,52 +486,57 @@ class Foo {
   Foo(Object? o) : y = o is String ? o.length : null, x = null;
 }
 ''');
-    ClassDeclaration classDeclaration = unit.declarations.first;
-    ConstructorDeclaration constructor = classDeclaration.getConstructor(null);
+    var classDeclaration = unit.declarations.first as ClassDeclaration;
+    var constructor =
+        classDeclaration.getConstructor(null) as ConstructorDeclaration;
 
     // Object? o
-    SimpleFormalParameter parameter = constructor.parameters.parameters.single;
-    expect(parameter.identifier.name, 'o');
-    TypeName type = parameter.type;
-    expect(type.question.lexeme, '?');
+    var parameter =
+        constructor.parameters.parameters.single as SimpleFormalParameter;
+    expect(parameter.identifier!.name, 'o');
+    var type = parameter.type as TypeName;
+    expect(type.question!.lexeme, '?');
     expect(type.name.name, 'Object');
 
     expect(constructor.initializers.length, 2);
 
     // y = o is String ? o.length : null
     {
-      ConstructorFieldInitializer initializer = constructor.initializers[0];
+      var initializer =
+          constructor.initializers[0] as ConstructorFieldInitializer;
       expect(initializer.fieldName.name, 'y');
-      ConditionalExpression expression = initializer.expression;
-      IsExpression condition = expression.condition;
-      SimpleIdentifier identifier = condition.expression;
+      var expression = initializer.expression as ConditionalExpression;
+      var condition = expression.condition as IsExpression;
+      var identifier = condition.expression as SimpleIdentifier;
       expect(identifier.name, 'o');
-      TypeName expressionType = condition.type;
+      var expressionType = condition.type as TypeName;
       expect(expressionType.question, isNull);
       expect(expressionType.name.name, 'String');
-      PrefixedIdentifier thenExpression = expression.thenExpression;
+      var thenExpression = expression.thenExpression as PrefixedIdentifier;
       expect(thenExpression.identifier.name, 'length');
       expect(thenExpression.prefix.name, 'o');
-      NullLiteral elseExpression = expression.elseExpression;
+      var elseExpression = expression.elseExpression as NullLiteral;
       expect(elseExpression, isNotNull);
     }
 
     // x = null
     {
-      ConstructorFieldInitializer initializer = constructor.initializers[1];
+      var initializer =
+          constructor.initializers[1] as ConstructorFieldInitializer;
       expect(initializer.fieldName.name, 'x');
-      NullLiteral expression = initializer.expression;
+      var expression = initializer.expression as NullLiteral;
       expect(expression, isNotNull);
     }
   }
 
   void test_nullCheck() {
     var unit = parseCompilationUnit('f(int? y) { var x = y!; }');
-    FunctionDeclaration function = unit.declarations[0];
-    BlockFunctionBody body = function.functionExpression.body;
-    VariableDeclarationStatement statement = body.block.statements[0];
-    PostfixExpression expression = statement.variables.variables[0].initializer;
-    SimpleIdentifier identifier = expression.operand;
+    var function = unit.declarations[0] as FunctionDeclaration;
+    var body = function.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as VariableDeclarationStatement;
+    var expression =
+        statement.variables.variables[0].initializer as PostfixExpression;
+    var identifier = expression.operand as SimpleIdentifier;
     expect(identifier.name, 'y');
     expect(expression.operator.lexeme, '!');
   }
@@ -535,10 +548,11 @@ class Foo {
           expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 21, 1),
         ],
         featureSet: preNonNullable);
-    FunctionDeclaration function = unit.declarations[0];
-    BlockFunctionBody body = function.functionExpression.body;
-    VariableDeclarationStatement statement = body.block.statements[0];
-    SimpleIdentifier identifier = statement.variables.variables[0].initializer;
+    var function = unit.declarations[0] as FunctionDeclaration;
+    var body = function.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as VariableDeclarationStatement;
+    var identifier =
+        statement.variables.variables[0].initializer as SimpleIdentifier;
     expect(identifier.name, 'y');
   }
 

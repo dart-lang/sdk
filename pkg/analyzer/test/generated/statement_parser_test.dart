@@ -23,21 +23,21 @@ main() {
 @reflectiveTest
 class StatementParserTest extends FastaParserTestCase {
   void test_35177() {
-    ExpressionStatement statement = parseStatement('(f)()<int>();');
+    var statement = parseStatement('(f)()<int>();') as ExpressionStatement;
 
-    FunctionExpressionInvocation funct1 = statement.expression;
-    NodeList<TypeAnnotation> typeArgs = funct1.typeArguments.arguments;
+    var funct1 = statement.expression as FunctionExpressionInvocation;
+    List<TypeAnnotation> typeArgs = funct1.typeArguments!.arguments;
     expect(typeArgs, hasLength(1));
-    TypeName typeName = typeArgs[0];
+    var typeName = typeArgs[0] as TypeName;
     expect(typeName.name.name, 'int');
     expect(funct1.argumentList.arguments, hasLength(0));
 
-    FunctionExpressionInvocation funct2 = funct1.function;
+    var funct2 = funct1.function as FunctionExpressionInvocation;
     expect(funct2.typeArguments, isNull);
     expect(funct2.argumentList.arguments, hasLength(0));
 
-    ParenthesizedExpression expression = funct2.function;
-    SimpleIdentifier identifier = expression.expression;
+    var expression = funct2.function as ParenthesizedExpression;
+    var identifier = expression.expression as SimpleIdentifier;
     expect(identifier.name, 'f');
   }
 
@@ -51,7 +51,7 @@ class StatementParserTest extends FastaParserTestCase {
     analyzer.Token token = unit.beginToken;
     while (!token.isEof) {
       expect(token.type, isNot(TokenType.GT_GT));
-      analyzer.Token next = token.next;
+      analyzer.Token next = token.next!;
       expect(next.previous, token);
       token = next;
     }
@@ -165,10 +165,11 @@ main() {
   }
 
   void test_parseBreakStatement_label() {
-    LabeledStatement labeledStatement =
-        parseStatement('foo: while (true) { break foo; }');
-    WhileStatement whileStatement = labeledStatement.statement;
-    BreakStatement statement = (whileStatement.body as Block).statements[0];
+    var labeledStatement =
+        parseStatement('foo: while (true) { break foo; }') as LabeledStatement;
+    var whileStatement = labeledStatement.statement as WhileStatement;
+    var statement =
+        (whileStatement.body as Block).statements[0] as BreakStatement;
     assertNoErrors();
     expect(statement.breakKeyword, isNotNull);
     expect(statement.label, isNotNull);
@@ -176,8 +177,10 @@ main() {
   }
 
   void test_parseBreakStatement_noLabel() {
-    WhileStatement whileStatement = parseStatement('while (true) { break; }');
-    BreakStatement statement = (whileStatement.body as Block).statements[0];
+    var whileStatement =
+        parseStatement('while (true) { break; }') as WhileStatement;
+    var statement =
+        (whileStatement.body as Block).statements[0] as BreakStatement;
     assertNoErrors();
     expect(statement.breakKeyword, isNotNull);
     expect(statement.label, isNull);
@@ -185,10 +188,11 @@ main() {
   }
 
   void test_parseContinueStatement_label() {
-    LabeledStatement labeledStatement =
-        parseStatement('foo: while (true) { continue foo; }');
-    WhileStatement whileStatement = labeledStatement.statement;
-    ContinueStatement statement = (whileStatement.body as Block).statements[0];
+    var labeledStatement = parseStatement('foo: while (true) { continue foo; }')
+        as LabeledStatement;
+    var whileStatement = labeledStatement.statement as WhileStatement;
+    var statement =
+        (whileStatement.body as Block).statements[0] as ContinueStatement;
     assertNoErrors();
     expect(statement.continueKeyword, isNotNull);
     expect(statement.label, isNotNull);
@@ -196,9 +200,10 @@ main() {
   }
 
   void test_parseContinueStatement_noLabel() {
-    WhileStatement whileStatement =
-        parseStatement('while (true) { continue; }');
-    ContinueStatement statement = (whileStatement.body as Block).statements[0];
+    var whileStatement =
+        parseStatement('while (true) { continue; }') as WhileStatement;
+    var statement =
+        (whileStatement.body as Block).statements[0] as ContinueStatement;
     assertNoErrors();
     expect(statement.continueKeyword, isNotNull);
     expect(statement.label, isNull);
@@ -249,16 +254,16 @@ main() {
   }
 
   void test_parseForStatement_each_await2() {
-    ForStatement forStatement = parseStatement(
+    var forStatement = parseStatement(
       'await for (element in list) {}',
       inAsync: true,
       featureSet: controlFlow,
-    );
+    ) as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNotNull);
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    ForEachPartsWithIdentifier forLoopParts = forStatement.forLoopParts;
+    var forLoopParts = forStatement.forLoopParts as ForEachPartsWithIdentifier;
     expect(forLoopParts.identifier, isNotNull);
     expect(forLoopParts.inKeyword, isNotNull);
     expect(forLoopParts.iterable, isNotNull);
@@ -267,15 +272,15 @@ main() {
   }
 
   void test_parseForStatement_each_finalExternal() {
-    ForStatement forStatement = parseStatement(
+    var forStatement = parseStatement(
       'for (final external in list) {}',
       featureSet: controlFlow,
-    );
+    ) as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    ForEachPartsWithDeclaration forLoopParts = forStatement.forLoopParts;
+    var forLoopParts = forStatement.forLoopParts as ForEachPartsWithDeclaration;
     expect(forLoopParts.loopVariable.identifier.name, 'external');
     expect(forLoopParts.inKeyword, isNotNull);
     expect(forLoopParts.iterable, isNotNull);
@@ -284,15 +289,15 @@ main() {
   }
 
   void test_parseForStatement_each_finalRequired() {
-    ForStatement forStatement = parseStatement(
+    var forStatement = parseStatement(
       'for (final required in list) {}',
       featureSet: controlFlow,
-    );
+    ) as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    ForEachPartsWithDeclaration forLoopParts = forStatement.forLoopParts;
+    var forLoopParts = forStatement.forLoopParts as ForEachPartsWithDeclaration;
     expect(forLoopParts.loopVariable.identifier.name, 'required');
     expect(forLoopParts.inKeyword, isNotNull);
     expect(forLoopParts.iterable, isNotNull);
@@ -319,15 +324,15 @@ main() {
   }
 
   void test_parseForStatement_each_genericFunctionType2() {
-    ForStatement forStatement = parseStatement(
+    var forStatement = parseStatement(
       'for (void Function<T>(T) element in list) {}',
       featureSet: controlFlow,
-    );
+    ) as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    ForEachPartsWithDeclaration forLoopParts = forStatement.forLoopParts;
+    var forLoopParts = forStatement.forLoopParts as ForEachPartsWithDeclaration;
     expect(forLoopParts.loopVariable, isNotNull);
     expect(forLoopParts.inKeyword, isNotNull);
     expect(forLoopParts.iterable, isNotNull);
@@ -353,15 +358,15 @@ main() {
   }
 
   void test_parseForStatement_each_identifier2() {
-    ForStatement forStatement = parseStatement(
+    var forStatement = parseStatement(
       'for (element in list) {}',
       featureSet: controlFlow,
-    );
+    ) as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    ForEachPartsWithIdentifier forLoopParts = forStatement.forLoopParts;
+    var forLoopParts = forStatement.forLoopParts as ForEachPartsWithIdentifier;
     expect(forLoopParts.identifier, isNotNull);
     expect(forLoopParts.inKeyword, isNotNull);
     expect(forLoopParts.iterable, isNotNull);
@@ -388,15 +393,15 @@ main() {
   }
 
   void test_parseForStatement_each_noType_metadata2() {
-    ForStatement forStatement = parseStatement(
+    var forStatement = parseStatement(
       'for (@A var element in list) {}',
       featureSet: controlFlow,
-    );
+    ) as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    ForEachPartsWithDeclaration forLoopParts = forStatement.forLoopParts;
+    var forLoopParts = forStatement.forLoopParts as ForEachPartsWithDeclaration;
     expect(forLoopParts.loopVariable, isNotNull);
     expect(forLoopParts.loopVariable.metadata, hasLength(1));
     expect(forLoopParts.inKeyword, isNotNull);
@@ -423,15 +428,15 @@ main() {
   }
 
   void test_parseForStatement_each_type2() {
-    ForStatement forStatement = parseStatement(
+    var forStatement = parseStatement(
       'for (A element in list) {}',
       featureSet: controlFlow,
-    );
+    ) as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    ForEachPartsWithDeclaration forLoopParts = forStatement.forLoopParts;
+    var forLoopParts = forStatement.forLoopParts as ForEachPartsWithDeclaration;
     expect(forLoopParts.loopVariable, isNotNull);
     expect(forLoopParts.inKeyword, isNotNull);
     expect(forLoopParts.iterable, isNotNull);
@@ -457,15 +462,15 @@ main() {
   }
 
   void test_parseForStatement_each_var2() {
-    ForStatement forStatement = parseStatement(
+    var forStatement = parseStatement(
       'for (var element in list) {}',
       featureSet: controlFlow,
-    );
+    ) as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    ForEachPartsWithDeclaration forLoopParts = forStatement.forLoopParts;
+    var forLoopParts = forStatement.forLoopParts as ForEachPartsWithDeclaration;
     expect(forLoopParts.loopVariable, isNotNull);
     expect(forLoopParts.inKeyword, isNotNull);
     expect(forLoopParts.iterable, isNotNull);
@@ -491,14 +496,14 @@ main() {
   }
 
   void test_parseForStatement_loop_c2() {
-    ForStatement forStatement = parseStatement(
+    var forStatement = parseStatement(
       'for (; i < count;) {}',
       featureSet: controlFlow,
-    );
+    ) as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    ForPartsWithExpression forLoopParts = forStatement.forLoopParts;
+    var forLoopParts = forStatement.forLoopParts as ForPartsWithExpression;
     expect(forLoopParts.initialization, isNull);
     expect(forLoopParts.leftSeparator, isNotNull);
     expect(forLoopParts.condition, isNotNull);
@@ -527,14 +532,14 @@ main() {
   }
 
   void test_parseForStatement_loop_cu2() {
-    ForStatement forStatement = parseStatement(
+    var forStatement = parseStatement(
       'for (; i < count; i++) {}',
       featureSet: controlFlow,
-    );
+    ) as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    ForPartsWithExpression forLoopParts = forStatement.forLoopParts;
+    var forLoopParts = forStatement.forLoopParts as ForPartsWithExpression;
     expect(forLoopParts.initialization, isNull);
     expect(forLoopParts.leftSeparator, isNotNull);
     expect(forLoopParts.condition, isNotNull);
@@ -563,14 +568,14 @@ main() {
   }
 
   void test_parseForStatement_loop_ecu2() {
-    ForStatement forStatement = parseStatement(
+    var forStatement = parseStatement(
       'for (i--; i < count; i++) {}',
       featureSet: spread,
-    );
+    ) as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    ForPartsWithExpression forLoopParts = forStatement.forLoopParts;
+    var forLoopParts = forStatement.forLoopParts as ForPartsWithExpression;
     expect(forLoopParts.initialization, isNotNull);
     expect(forLoopParts.leftSeparator, isNotNull);
     expect(forLoopParts.condition, isNotNull);
@@ -601,14 +606,14 @@ main() {
   }
 
   void test_parseForStatement_loop_i2() {
-    ForStatement forStatement = parseStatement(
+    var forStatement = parseStatement(
       'for (var i = 0;;) {}',
       featureSet: spread,
-    );
+    ) as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    ForPartsWithDeclarations forLoopParts = forStatement.forLoopParts;
+    var forLoopParts = forStatement.forLoopParts as ForPartsWithDeclarations;
     VariableDeclarationList variables = forLoopParts.variables;
     expect(variables, isNotNull);
     expect(variables.metadata, hasLength(0));
@@ -643,14 +648,14 @@ main() {
   }
 
   void test_parseForStatement_loop_i_withMetadata2() {
-    ForStatement forStatement = parseStatement(
+    var forStatement = parseStatement(
       'for (@A var i = 0;;) {}',
       featureSet: spread,
-    );
+    ) as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    ForPartsWithDeclarations forLoopParts = forStatement.forLoopParts;
+    var forLoopParts = forStatement.forLoopParts as ForPartsWithDeclarations;
     VariableDeclarationList variables = forLoopParts.variables;
     expect(variables, isNotNull);
     expect(variables.metadata, hasLength(1));
@@ -684,14 +689,14 @@ main() {
   }
 
   void test_parseForStatement_loop_ic2() {
-    ForStatement forStatement = parseStatement(
+    var forStatement = parseStatement(
       'for (var i = 0; i < count;) {}',
       featureSet: spread,
-    );
+    ) as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    ForPartsWithDeclarations forLoopParts = forStatement.forLoopParts;
+    var forLoopParts = forStatement.forLoopParts as ForPartsWithDeclarations;
     VariableDeclarationList variables = forLoopParts.variables;
     expect(variables, isNotNull);
     expect(variables.variables, hasLength(1));
@@ -724,14 +729,14 @@ main() {
   }
 
   void test_parseForStatement_loop_icu2() {
-    ForStatement forStatement = parseStatement(
+    var forStatement = parseStatement(
       'for (var i = 0; i < count; i++) {}',
       featureSet: spread,
-    );
+    ) as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    ForPartsWithDeclarations forLoopParts = forStatement.forLoopParts;
+    var forLoopParts = forStatement.forLoopParts as ForPartsWithDeclarations;
     VariableDeclarationList variables = forLoopParts.variables;
     expect(variables, isNotNull);
     expect(variables.variables, hasLength(1));
@@ -765,14 +770,14 @@ main() {
   }
 
   void test_parseForStatement_loop_iicuu2() {
-    ForStatement forStatement = parseStatement(
+    var forStatement = parseStatement(
       'for (int i = 0, j = count; i < j; i++, j--) {}',
       featureSet: spread,
-    );
+    ) as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    ForPartsWithDeclarations forLoopParts = forStatement.forLoopParts;
+    var forLoopParts = forStatement.forLoopParts as ForPartsWithDeclarations;
     VariableDeclarationList variables = forLoopParts.variables;
     expect(variables, isNotNull);
     expect(variables.variables, hasLength(2));
@@ -805,14 +810,14 @@ main() {
   }
 
   void test_parseForStatement_loop_iu2() {
-    ForStatement forStatement = parseStatement(
+    var forStatement = parseStatement(
       'for (var i = 0;; i++) {}',
       featureSet: spread,
-    );
+    ) as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    ForPartsWithDeclarations forLoopParts = forStatement.forLoopParts;
+    var forLoopParts = forStatement.forLoopParts as ForPartsWithDeclarations;
     VariableDeclarationList variables = forLoopParts.variables;
     expect(variables, isNotNull);
     expect(variables.variables, hasLength(1));
@@ -842,14 +847,14 @@ main() {
   }
 
   void test_parseForStatement_loop_u2() {
-    ForStatement forStatement = parseStatement(
+    var forStatement = parseStatement(
       'for (;; i++) {}',
       featureSet: spread,
-    );
+    ) as ForStatement;
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    ForPartsWithExpression forLoopParts = forStatement.forLoopParts;
+    var forLoopParts = forStatement.forLoopParts as ForPartsWithExpression;
     expect(forLoopParts.initialization, isNull);
     expect(forLoopParts.leftSeparator, isNotNull);
     expect(forLoopParts.condition, isNull);
@@ -1011,7 +1016,7 @@ main() {
     var statement = parseStatement('f() {}') as FunctionDeclarationStatement;
     assertNoErrors();
     var function = statement.functionDeclaration.functionExpression;
-    expect(function.parameters.parameters, isEmpty);
+    expect(function.parameters!.parameters, isEmpty);
     expect(function.body, isNotNull);
   }
 
@@ -1020,7 +1025,7 @@ main() {
         parseStatement('f(void g()) {}') as FunctionDeclarationStatement;
     assertNoErrors();
     var function = statement.functionDeclaration.functionExpression;
-    expect(function.parameters.parameters, hasLength(1));
+    expect(function.parameters!.parameters, hasLength(1));
     expect(function.body, isNotNull);
   }
 
@@ -1174,54 +1179,54 @@ main() {
   }
 
   void test_parseNonLabeledStatement_variableDeclaration_typeParam() {
-    VariableDeclarationStatement statement = parseStatement('C<T> v;');
+    var statement = parseStatement('C<T> v;') as VariableDeclarationStatement;
     assertNoErrors();
     VariableDeclarationList variableList = statement.variables;
     List<VariableDeclaration> variables = variableList.variables;
     expect(variables, hasLength(1));
     expect(variables[0].name.name, 'v');
-    TypeName typeName = variableList.type;
+    var typeName = variableList.type as TypeName;
     expect(typeName.name.name, 'C');
-    expect(typeName.typeArguments.arguments, hasLength(1));
-    TypeName typeArgument = typeName.typeArguments.arguments[0];
+    expect(typeName.typeArguments!.arguments, hasLength(1));
+    var typeArgument = typeName.typeArguments!.arguments[0] as TypeName;
     expect(typeArgument.name.name, 'T');
   }
 
   void test_parseNonLabeledStatement_variableDeclaration_typeParam2() {
-    VariableDeclarationStatement statement =
-        parseStatement('C<T /* ignored comment */ > v;');
+    var statement = parseStatement('C<T /* ignored comment */ > v;')
+        as VariableDeclarationStatement;
     assertNoErrors();
     VariableDeclarationList variableList = statement.variables;
     List<VariableDeclaration> variables = variableList.variables;
     expect(variables, hasLength(1));
     expect(variables[0].name.name, 'v');
-    TypeName typeName = variableList.type;
+    var typeName = variableList.type as TypeName;
     expect(typeName.name.name, 'C');
-    expect(typeName.typeArguments.arguments, hasLength(1));
-    TypeName typeArgument = typeName.typeArguments.arguments[0];
+    expect(typeName.typeArguments!.arguments, hasLength(1));
+    var typeArgument = typeName.typeArguments!.arguments[0] as TypeName;
     expect(typeArgument.name.name, 'T');
   }
 
   void test_parseNonLabeledStatement_variableDeclaration_typeParam3() {
-    VariableDeclarationStatement statement =
-        parseStatement('C<T Function(String s)> v;');
+    var statement = parseStatement('C<T Function(String s)> v;')
+        as VariableDeclarationStatement;
     assertNoErrors();
     VariableDeclarationList variableList = statement.variables;
     List<VariableDeclaration> variables = variableList.variables;
     expect(variables, hasLength(1));
     expect(variables[0].name.name, 'v');
-    TypeName typeName = variableList.type;
+    var typeName = variableList.type as TypeName;
     expect(typeName.name.name, 'C');
-    expect(typeName.typeArguments.arguments, hasLength(1));
-    expect(typeName.typeArguments.arguments[0], isGenericFunctionType);
+    expect(typeName.typeArguments!.arguments, hasLength(1));
+    expect(typeName.typeArguments!.arguments[0], isGenericFunctionType);
   }
 
   void test_parseStatement_emptyTypeArgumentList() {
     var declaration = parseStatement('C<> c;') as VariableDeclarationStatement;
     assertErrorsWithCodes([ParserErrorCode.EXPECTED_TYPE_NAME]);
     VariableDeclarationList variables = declaration.variables;
-    TypeName type = variables.type;
-    TypeArgumentList argumentList = type.typeArguments;
+    var type = variables.type as TypeName;
+    var argumentList = type.typeArguments!;
     expect(argumentList.leftBracket, isNotNull);
     expect(argumentList.arguments, hasLength(1));
     expect(argumentList.arguments[0].isSynthetic, isTrue);
@@ -1330,8 +1335,9 @@ main() {
   }
 
   void test_parseSwitchStatement_labeledCase2() {
-    SwitchStatement statement =
-        parseStatement('switch (a) {l1: case 0: l2: case 1: return;}');
+    var statement =
+        parseStatement('switch (a) {l1: case 0: l2: case 1: return;}')
+            as SwitchStatement;
     assertNoErrors();
     expect(statement.switchKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
@@ -1373,8 +1379,9 @@ main() {
   }
 
   void test_parseSwitchStatement_labeledDefault2() {
-    SwitchStatement statement =
-        parseStatement('switch (a) {l1: case 0: l2: default: return;}');
+    var statement =
+        parseStatement('switch (a) {l1: case 0: l2: default: return;}')
+            as SwitchStatement;
     assertNoErrors();
     expect(statement.switchKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
@@ -1432,9 +1439,9 @@ main() {
     CompilationUnit unit = parseCompilationUnit(
         'main() { try {} catch (int e) { } }',
         errors: [expectedError(ParserErrorCode.CATCH_SYNTAX, 27, 1)]);
-    FunctionDeclaration method = unit.declarations[0];
-    BlockFunctionBody body = method.functionExpression.body;
-    TryStatement statement = body.block.statements[0];
+    var method = unit.declarations[0] as FunctionDeclaration;
+    var body = method.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as TryStatement;
     expect(statement.tryKeyword, isNotNull);
     expect(statement.body, isNotNull);
     NodeList<CatchClause> catchClauses = statement.catchClauses;
@@ -1443,9 +1450,9 @@ main() {
     expect(clause.onKeyword, isNull);
     expect(clause.exceptionType, isNull);
     expect(clause.catchKeyword, isNotNull);
-    expect(clause.exceptionParameter.name, 'int');
+    expect(clause.exceptionParameter!.name, 'int');
     expect(clause.comma, isNotNull);
-    expect(clause.stackTraceParameter.name, 'e');
+    expect(clause.stackTraceParameter!.name, 'e');
     expect(clause.body, isNotNull);
     expect(statement.finallyKeyword, isNull);
     expect(statement.finallyBlock, isNull);
@@ -1610,7 +1617,8 @@ main() {
   }
 
   void test_parseVariableDeclaration_equals_builtIn() {
-    VariableDeclarationStatement statement = parseStatement('int set = 0;');
+    var statement =
+        parseStatement('int set = 0;') as VariableDeclarationStatement;
     assertNoErrors();
     expect(statement.semicolon, isNotNull);
     VariableDeclarationList variableList = statement.variables;
@@ -1621,7 +1629,7 @@ main() {
   void test_parseVariableDeclarationListAfterMetadata_const_noType() {
     var declarationList = parseVariableDeclarationList('const a = 0');
     assertNoErrors();
-    expect(declarationList.keyword.lexeme, 'const');
+    expect(declarationList.keyword!.lexeme, 'const');
     expect(declarationList.type, isNull);
     expect(declarationList.variables, hasLength(1));
   }
@@ -1629,7 +1637,7 @@ main() {
   void test_parseVariableDeclarationListAfterMetadata_const_type() {
     var declarationList = parseVariableDeclarationList('const A a');
     assertNoErrors();
-    expect(declarationList.keyword.lexeme, 'const');
+    expect(declarationList.keyword!.lexeme, 'const');
     expect(declarationList.type, isNotNull);
     expect(declarationList.variables, hasLength(1));
   }
@@ -1645,7 +1653,7 @@ main() {
   void test_parseVariableDeclarationListAfterMetadata_final_type() {
     var declarationList = parseVariableDeclarationList('final A a');
     assertNoErrors();
-    expect(declarationList.keyword.lexeme, 'final');
+    expect(declarationList.keyword!.lexeme, 'final');
     expect(declarationList.type, isNotNull);
     expect(declarationList.variables, hasLength(1));
   }
@@ -1669,7 +1677,7 @@ main() {
   void test_parseVariableDeclarationListAfterMetadata_var_multiple() {
     var declarationList = parseVariableDeclarationList('var a, b, c');
     assertNoErrors();
-    expect(declarationList.keyword.lexeme, 'var');
+    expect(declarationList.keyword!.lexeme, 'var');
     expect(declarationList.type, isNull);
     expect(declarationList.variables, hasLength(3));
   }
@@ -1677,7 +1685,7 @@ main() {
   void test_parseVariableDeclarationListAfterMetadata_var_single() {
     var declarationList = parseVariableDeclarationList('var a');
     assertNoErrors();
-    expect(declarationList.keyword.lexeme, 'var');
+    expect(declarationList.keyword!.lexeme, 'var');
     expect(declarationList.type, isNull);
     expect(declarationList.variables, hasLength(1));
   }
@@ -1743,7 +1751,7 @@ main() {
     analyzer.Token token = unit.beginToken;
     while (!token.isEof) {
       expect(token.type, isNot(TokenType.GT_GT));
-      analyzer.Token next = token.next;
+      analyzer.Token next = token.next!;
       expect(next.previous, token);
       token = next;
     }
@@ -1760,7 +1768,7 @@ main() {
     analyzer.Token token = unit.beginToken;
     while (!token.isEof) {
       expect(token.type, isNot(TokenType.GT_GT));
-      analyzer.Token next = token.next;
+      analyzer.Token next = token.next!;
       expect(next.previous, token);
       token = next;
     }

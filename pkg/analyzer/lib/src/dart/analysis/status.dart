@@ -56,7 +56,7 @@ class StatusSupport {
 
   /// If non-null, a completer which should be completed on the next transition
   /// to idle.
-  Completer<void> _idleCompleter;
+  Completer<void>? _idleCompleter;
 
   /// Return the last status sent to the [stream].
   AnalysisStatus get currentStatus => _currentStatus;

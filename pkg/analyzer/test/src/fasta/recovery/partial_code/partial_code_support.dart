@@ -98,10 +98,10 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
   /// `descriptors.length * (suffixes.length + 1)` tests generated.
   buildTests(String groupName, List<TestDescriptor> descriptors,
       List<TestSuffix> suffixes,
-      {FeatureSet featureSet,
-      String head,
+      {FeatureSet? featureSet,
+      String? head,
       bool includeEof = true,
-      String tail}) {
+      String? tail}) {
     group(groupName, () {
       for (TestDescriptor descriptor in descriptors) {
         if (includeEof) {
@@ -116,7 +116,7 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
         }
         if (descriptor.failing != null) {
           test('${descriptor.name}_failingList', () {
-            Set<String> failing = Set.from(descriptor.failing);
+            Set<String> failing = Set.from(descriptor.failing!);
             if (includeEof) {
               failing.remove('eof');
             }
@@ -132,8 +132,8 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
 
   /// Build a single test based on the given [descriptor] and [suffix].
   _buildTestForDescriptorAndSuffix(TestDescriptor descriptor, TestSuffix suffix,
-      int suffixIndex, String head, String tail,
-      {FeatureSet featureSet}) {
+      int suffixIndex, String? head, String? tail,
+      {FeatureSet? featureSet}) {
     test('${descriptor.name}_${suffix.name}', () {
       //
       // Compose the invalid and valid pieces of code.
@@ -180,18 +180,18 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
       var expectedValidCodeErrors = <ErrorCode>[];
       expectedValidCodeErrors.addAll(baseErrorCodes);
       if (descriptor.expectedErrorsInValidCode != null) {
-        expectedValidCodeErrors.addAll(descriptor.expectedErrorsInValidCode);
+        expectedValidCodeErrors.addAll(descriptor.expectedErrorsInValidCode!);
       }
 
       var expectedInvalidCodeErrors = <ErrorCode>[];
       expectedInvalidCodeErrors.addAll(baseErrorCodes);
       if (descriptor.errorCodes != null) {
-        expectedInvalidCodeErrors.addAll(descriptor.errorCodes);
+        expectedInvalidCodeErrors.addAll(descriptor.errorCodes!);
       }
       //
       // Run the test.
       //
-      List<String> failing = descriptor.failing;
+      var failing = descriptor.failing;
       if (descriptor.allFailing ||
           (failing != null && failing.contains(suffix.name))) {
         bool failed = false;
@@ -229,25 +229,25 @@ class TestDescriptor {
   final String invalid;
 
   /// Error codes that the parser is expected to produce.
-  final List<ErrorCode> errorCodes;
+  final List<ErrorCode>? errorCodes;
 
   /// Valid code that is equivalent to what the parser should produce as part of
   /// recovering from the invalid code.
   final String valid;
 
   /// Error codes that the parser is expected to produce in the valid code.
-  final List<ErrorCode> expectedErrorsInValidCode;
+  final List<ErrorCode>? expectedErrorsInValidCode;
 
   /// A flag indicating whether all of the tests are expected to fail.
   final bool allFailing;
 
   /// A list containing the names of the suffixes for which the test is expected
   /// to fail.
-  final List<String> failing;
+  final List<String>? failing;
 
   /// A function that modifies the valid compilation unit before it is compared
   /// with the invalid compilation unit, or `null` if no modification needed.
-  AdjustValidUnitBeforeComparison adjustValidUnitBeforeComparison;
+  AdjustValidUnitBeforeComparison? adjustValidUnitBeforeComparison;
 
   /// Initialize a newly created test descriptor.
   TestDescriptor(this.name, this.invalid, this.errorCodes, this.valid,

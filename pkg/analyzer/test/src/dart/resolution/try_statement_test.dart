@@ -37,8 +37,8 @@ main() {
     assertType(st.type, 'StackTrace');
 
     var node = findNode.catchClause('catch');
-    expect(node.exceptionParameter.staticElement, e);
-    expect(node.stackTraceParameter.staticElement, st);
+    expect(node.exceptionParameter!.staticElement, e);
+    expect(node.stackTraceParameter!.staticElement, st);
   }
 
   test_catch_withType() async {
@@ -59,8 +59,8 @@ main() {
     assertType(st.type, 'StackTrace');
 
     var node = findNode.catchClause('catch');
-    expect(node.exceptionParameter.staticElement, e);
-    expect(node.stackTraceParameter.staticElement, st);
+    expect(node.exceptionParameter!.staticElement, e);
+    expect(node.stackTraceParameter!.staticElement, st);
   }
 }
 

@@ -6,7 +6,8 @@ import 'package:analyzer/src/util/yaml.dart';
 import 'package:yaml/yaml.dart';
 
 /// Parse the given map into a lint config.
-LintConfig parseConfig(YamlMap optionsMap) {
+/// Return `null` if [optionsMap] is `null` or does not have `linter` map.
+LintConfig? parseConfig(YamlMap? optionsMap) {
   if (optionsMap != null) {
     var options = getValue(optionsMap, 'linter');
     // Quick check of basic contract.
@@ -18,8 +19,9 @@ LintConfig parseConfig(YamlMap optionsMap) {
 }
 
 /// Process the given option [fileContents] and produce a corresponding
-/// [LintConfig].
-LintConfig processAnalysisOptionsFile(String fileContents, {String fileUrl}) {
+/// [LintConfig]. Return `null` if [fileContents] is not a YAML map, or
+/// does not have the `linter` child map.
+LintConfig? processAnalysisOptionsFile(String fileContents, {String? fileUrl}) {
   var yaml = loadYamlNode(fileContents,
       sourceUrl: fileUrl != null ? Uri.parse(fileUrl) : null);
   if (yaml is YamlMap) {
@@ -30,7 +32,7 @@ LintConfig processAnalysisOptionsFile(String fileContents, {String fileUrl}) {
 
 /// The configuration of lint rules within an analysis options file.
 abstract class LintConfig {
-  factory LintConfig.parse(String source, {String sourceUrl}) =>
+  factory LintConfig.parse(String source, {String? sourceUrl}) =>
       _LintConfig().._parse(source, sourceUrl: sourceUrl);
 
   factory LintConfig.parseMap(YamlMap map) => _LintConfig().._parseYaml(map);
@@ -43,8 +45,8 @@ abstract class LintConfig {
 /// The configuration of a single lint rule within an analysis options file.
 abstract class RuleConfig {
   Map<String, dynamic> args = <String, dynamic>{};
-  String get group;
-  String get name;
+  String? get group;
+  String? get name;
 
   // Provisional
   bool disables(String ruleName) =>
@@ -69,7 +71,7 @@ class _LintConfig implements LintConfig {
     }
   }
 
-  bool asBool(Object scalar) {
+  bool? asBool(Object scalar) {
     Object value = scalar is YamlScalar ? scalar.value : scalar;
     if (value is bool) {
       return value;
@@ -85,7 +87,7 @@ class _LintConfig implements LintConfig {
     return null;
   }
 
-  String asString(Object scalar) {
+  String? asString(Object scalar) {
     Object value = scalar is YamlScalar ? scalar.value : scalar;
     if (value is String) {
       return value;
@@ -93,15 +95,15 @@ class _LintConfig implements LintConfig {
     return null;
   }
 
-  Map<String, dynamic> parseArgs(Object args) {
-    bool enabled = asBool(args);
+  Map<String, dynamic>? parseArgs(Object args) {
+    var enabled = asBool(args);
     if (enabled != null) {
       return {'enabled': enabled};
     }
     return null;
   }
 
-  void _parse(String src, {String sourceUrl}) {
+  void _parse(String src, {String? sourceUrl}) {
     var yaml = loadYamlNode(src,
         sourceUrl: sourceUrl != null ? Uri.parse(sourceUrl) : null);
     if (yaml is YamlMap) {
@@ -155,7 +157,7 @@ class _LintConfig implements LintConfig {
                   var config = _RuleConfig();
                   config.group = asString(key);
                   config.name = asString(rule);
-                  config.args = parseArgs(args);
+                  config.args = parseArgs(args)!;
                   ruleConfigs.add(config);
                 });
               }
@@ -169,7 +171,7 @@ class _LintConfig implements LintConfig {
 
 class _RuleConfig extends RuleConfig {
   @override
-  String group;
+  String? group;
   @override
-  String name;
+  String? name;
 }

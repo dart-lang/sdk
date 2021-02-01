@@ -19,7 +19,8 @@ class PathFilter {
 
   /// Construct a new path filter rooted at [root] with [ignorePatterns].
   /// If [pathContext] is not specified, then the system path context is used.
-  PathFilter(this.root, List<String> ignorePatterns, [path.Context pathContext])
+  PathFilter(this.root, List<String> ignorePatterns,
+      [path.Context? pathContext])
       : pathContext = pathContext ?? path.context {
     setIgnorePatterns(ignorePatterns);
   }
@@ -33,7 +34,7 @@ class PathFilter {
   }
 
   /// Set the ignore patterns.
-  void setIgnorePatterns(List<String> ignorePatterns) {
+  void setIgnorePatterns(List<String>? ignorePatterns) {
     _ignorePatterns.clear();
     if (ignorePatterns != null) {
       for (var ignorePattern in ignorePatterns) {

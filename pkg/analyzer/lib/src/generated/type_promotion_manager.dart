@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 
@@ -17,13 +16,13 @@ import 'package:analyzer/src/generated/variable_type_provider.dart';
 class TypePromotionManager {
   final TypeSystemImpl _typeSystem;
 
-  /// The current promotion scope, or `null` if no scope has been entered.
-  _TypePromoteScope _currentScope;
+  /// The current promotion scope.
+  _TypePromoteScope _currentScope = _TypePromoteScope(null);
 
-  final List<FunctionBody> _functionBodyStack = [];
+  final List<FunctionBody?> _functionBodyStack = [];
 
   /// Body of the function currently being analyzed, if any.
-  FunctionBody _currentFunctionBody;
+  FunctionBody? _currentFunctionBody;
 
   TypePromotionManager(this._typeSystem);
 
@@ -51,75 +50,66 @@ class TypePromotionManager {
 
   void visitBinaryExpression_and_rhs(
       Expression leftOperand, Expression rightOperand, void Function() f) {
-    if (rightOperand != null) {
-      _enterScope();
-      try {
-        // Type promotion.
-        _promoteTypes(leftOperand);
-        _clearTypePromotionsIfPotentiallyMutatedIn(leftOperand);
-        _clearTypePromotionsIfPotentiallyMutatedIn(rightOperand);
-        _clearTypePromotionsIfAccessedInClosureAndPotentiallyMutated(
-            rightOperand);
-        // Visit right operand.
-        f();
-      } finally {
-        _exitScope();
-      }
+    _enterScope();
+    try {
+      // Type promotion.
+      _promoteTypes(leftOperand);
+      _clearTypePromotionsIfPotentiallyMutatedIn(leftOperand);
+      _clearTypePromotionsIfPotentiallyMutatedIn(rightOperand);
+      _clearTypePromotionsIfAccessedInClosureAndPotentiallyMutated(
+          rightOperand);
+      // Visit right operand.
+      f();
+    } finally {
+      _exitScope();
     }
   }
 
   void visitConditionalExpression_then(
       Expression condition, Expression thenExpression, void Function() f) {
-    if (thenExpression != null) {
-      _enterScope();
-      try {
-        // Type promotion.
-        _promoteTypes(condition);
-        _clearTypePromotionsIfPotentiallyMutatedIn(thenExpression);
-        _clearTypePromotionsIfAccessedInClosureAndPotentiallyMutated(
-          thenExpression,
-        );
-        // Visit "then" expression.
-        f();
-      } finally {
-        _exitScope();
-      }
+    _enterScope();
+    try {
+      // Type promotion.
+      _promoteTypes(condition);
+      _clearTypePromotionsIfPotentiallyMutatedIn(thenExpression);
+      _clearTypePromotionsIfAccessedInClosureAndPotentiallyMutated(
+        thenExpression,
+      );
+      // Visit "then" expression.
+      f();
+    } finally {
+      _exitScope();
     }
   }
 
   void visitIfElement_thenElement(
       Expression condition, CollectionElement thenElement, void Function() f) {
-    if (thenElement != null) {
-      _enterScope();
-      try {
-        // Type promotion.
-        _promoteTypes(condition);
-        _clearTypePromotionsIfPotentiallyMutatedIn(thenElement);
-        _clearTypePromotionsIfAccessedInClosureAndPotentiallyMutated(
-            thenElement);
-        // Visit "then".
-        f();
-      } finally {
-        _exitScope();
-      }
+    _enterScope();
+    try {
+      // Type promotion.
+      _promoteTypes(condition);
+      _clearTypePromotionsIfPotentiallyMutatedIn(thenElement);
+      _clearTypePromotionsIfAccessedInClosureAndPotentiallyMutated(thenElement);
+      // Visit "then".
+      f();
+    } finally {
+      _exitScope();
     }
   }
 
   void visitIfStatement_thenStatement(
       Expression condition, Statement thenStatement, void Function() f) {
-    if (thenStatement != null) {
-      _enterScope();
-      try {
-        // Type promotion.
-        _promoteTypes(condition);
-        _clearTypePromotionsIfPotentiallyMutatedIn(thenStatement);
-        _clearTypePromotionsIfAccessedInClosureAndPotentiallyMutated(
-            thenStatement);
-        // Visit "then".
-        f();
-      } finally {
-        _exitScope();
-      }
+    _enterScope();
+    try {
+      // Type promotion.
+      _promoteTypes(condition);
+      _clearTypePromotionsIfPotentiallyMutatedIn(thenStatement);
+      _clearTypePromotionsIfAccessedInClosureAndPotentiallyMutated(
+          thenStatement);
+      // Visit "then".
+      f();
+    } finally {
+      _exitScope();
     }
   }
 
@@ -132,7 +122,7 @@ class TypePromotionManager {
   void _clearTypePromotionsIfAccessedInClosureAndPotentiallyMutated(
       AstNode target) {
     for (Element element in _promotedElements) {
-      if (_currentFunctionBody
+      if (_currentFunctionBody!
           .isPotentiallyMutatedInScope(element as VariableElement)) {
         if (_isVariableAccessedInClosure(element, target)) {
           _setType(element, null);
@@ -161,25 +151,26 @@ class TypePromotionManager {
 
   /// Exit the current promotion scope.
   void _exitScope() {
-    if (_currentScope == null) {
+    var outerScope = _currentScope._outerScope;
+    if (outerScope == null) {
       throw StateError("No scope to exit");
     }
-    _currentScope = _currentScope._outerScope;
+    _currentScope = outerScope;
   }
 
   /// Return the promoted type of the given [element], or `null` if the type of
   /// the element has not been promoted.
-  DartType _getPromotedType(Element element) {
-    return _currentScope?.getType(element);
+  DartType? _getPromotedType(Element element) {
+    return _currentScope.getType(element);
   }
 
   /// Return the static element associated with the given expression whose type
   /// can be promoted, or `null` if there is no element whose type can be
   /// promoted.
-  VariableElement _getPromotionStaticElement(Expression expression) {
-    expression = expression?.unParenthesized;
+  VariableElement? _getPromotionStaticElement(Expression expression) {
+    expression = expression.unParenthesized;
     if (expression is SimpleIdentifier) {
-      Element element = expression.staticElement;
+      var element = expression.staticElement;
       if (element is VariableElement) {
         ElementKind kind = element.kind;
         if (kind == ElementKind.LOCAL_VARIABLE ||
@@ -237,21 +228,17 @@ class TypePromotionManager {
   ///        types might be promoted
   /// @param potentialType the potential type of the elements
   void _promote(Expression expression, DartType potentialType) {
-    VariableElement element = _getPromotionStaticElement(expression);
+    var element = _getPromotionStaticElement(expression);
     if (element != null) {
       // may be mutated somewhere in closure
-      if (_currentFunctionBody.isPotentiallyMutatedInClosure(element)) {
+      if (_currentFunctionBody!.isPotentiallyMutatedInClosure(element)) {
         return;
       }
       // prepare current variable type
-      DartType type = _getPromotedType(element) ??
-          expression.staticType ??
-          DynamicTypeImpl.instance;
-
-      potentialType ??= DynamicTypeImpl.instance;
+      DartType type = _getPromotedType(element) ?? expression.staticType!;
 
       // Check if we can promote to potentialType from type.
-      DartType promoteType = _typeSystem.tryPromoteToType(potentialType, type);
+      var promoteType = _typeSystem.tryPromoteToType(potentialType, type);
       if (promoteType != null) {
         // Do promote type of variable.
         _setType(element, promoteType);
@@ -271,7 +258,7 @@ class TypePromotionManager {
       }
     } else if (condition is IsExpression) {
       if (condition.notOperator == null) {
-        _promote(condition.expression, condition.type.type);
+        _promote(condition.expression, condition.type.type!);
       }
     } else if (condition is ParenthesizedExpression) {
       _promoteTypes(condition.expression);
@@ -282,8 +269,8 @@ class TypePromotionManager {
   ///
   /// @param element the element whose type might have been promoted
   /// @param type the promoted type of the given element
-  void _setType(Element element, DartType type) {
-    if (_currentScope == null) {
+  void _setType(Element element, DartType? type) {
+    if (_currentScope._outerScope == null) {
       throw StateError("Cannot promote without a scope");
     }
     _currentScope.setType(element, type);
@@ -358,11 +345,11 @@ class _ResolverVisitor_isVariablePotentiallyMutatedIn
 /// Instances of the class `TypePromoteScope` represent a scope in which the
 /// types of elements can be promoted.
 class _TypePromoteScope {
-  /// The outer scope in which types might be promoter.
-  final _TypePromoteScope _outerScope;
+  /// The outer scope in which types might be promoted.
+  final _TypePromoteScope? _outerScope;
 
   /// A table mapping elements to the promoted type of that element.
-  final Map<Element, DartType> _promotedTypes = {};
+  final Map<Element, DartType?> _promotedTypes = {};
 
   /// Initialize a newly created scope to be an empty child of the given scope.
   ///
@@ -377,15 +364,15 @@ class _TypePromoteScope {
   ///
   /// @param element the element whose type might have been promoted
   /// @return the promoted type of the given element
-  DartType getType(Element element) {
-    DartType type = _promotedTypes[element];
+  DartType? getType(Element element) {
+    var type = _promotedTypes[element];
     if (type == null && element is PropertyAccessorElement) {
       type = _promotedTypes[element.variable];
     }
     if (type != null) {
       return type;
     } else if (_outerScope != null) {
-      return _outerScope.getType(element);
+      return _outerScope!.getType(element);
     }
     return null;
   }
@@ -394,7 +381,7 @@ class _TypePromoteScope {
   ///
   /// @param element the element whose type might have been promoted
   /// @param type the promoted type of the given element
-  void setType(Element element, DartType type) {
+  void setType(Element element, DartType? type) {
     _promotedTypes[element] = type;
   }
 }

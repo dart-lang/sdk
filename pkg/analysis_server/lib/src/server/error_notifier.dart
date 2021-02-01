@@ -10,7 +10,7 @@ class ErrorNotifier extends NoopInstrumentationService {
   @override
   void logException(dynamic exception,
       [StackTrace stackTrace,
-      List<InstrumentationServiceAttachment> attachments]) {
+      List<InstrumentationServiceAttachment> attachments = const []]) {
     if (exception is SilentException) {
       // Silent exceptions should not be reported to the user.
       return;
@@ -34,6 +34,6 @@ class ErrorNotifier extends NoopInstrumentationService {
 /// Server may throw a [FatalException] to send a fatal error response to the
 /// IDEs.
 class FatalException extends CaughtException {
-  FatalException(String message, Object exception, stackTrace)
+  FatalException(String message, Object exception, StackTrace stackTrace)
       : super.withMessage(message, exception, stackTrace);
 }

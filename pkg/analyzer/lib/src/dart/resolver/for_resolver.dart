@@ -12,14 +12,13 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:meta/meta.dart';
 
 /// Helper for resolving [ForStatement]s and [ForElement]s.
 class ForResolver {
   final ResolverVisitor _resolver;
 
   ForResolver({
-    @required ResolverVisitor resolver,
+    required ResolverVisitor resolver,
   }) : _resolver = resolver;
 
   void resolveElement(ForElementImpl node) {
@@ -46,8 +45,8 @@ class ForResolver {
   /// a type for the elements being iterated over.  Inference is based
   /// on the type of the iterator or stream over which the foreach loop
   /// is defined.
-  DartType _computeForEachElementType(Expression iterable, bool isAsync) {
-    DartType iterableType = iterable.staticType;
+  DartType? _computeForEachElementType(Expression iterable, bool isAsync) {
+    var iterableType = iterable.staticType;
     if (iterableType == null) return null;
     iterableType =
         iterableType.resolveToBound(_resolver.typeProvider.objectType);
@@ -56,7 +55,7 @@ class ForResolver {
         ? _resolver.typeProvider.streamElement
         : _resolver.typeProvider.iterableElement;
 
-    InterfaceType iteratedType = iterableType.asInstanceOf(iteratedElement);
+    var iteratedType = iterableType.asInstanceOf(iteratedElement);
 
     if (iteratedType != null) {
       var elementType = iteratedType.typeArguments.single;
@@ -74,23 +73,23 @@ class ForResolver {
     AstNode body,
   ) {
     Expression iterable = forEachParts.iterable;
-    DeclaredIdentifier loopVariable;
-    SimpleIdentifier identifier;
-    Element identifierElement;
+    DeclaredIdentifier? loopVariable;
+    SimpleIdentifier? identifier;
+    Element? identifierElement;
     if (forEachParts is ForEachPartsWithDeclaration) {
       loopVariable = forEachParts.loopVariable;
     } else if (forEachParts is ForEachPartsWithIdentifier) {
       identifier = forEachParts.identifier;
       // TODO(scheglov) replace with lexical lookup
-      identifier?.accept(_resolver);
+      identifier.accept(_resolver);
       AssignmentExpressionShared(
         resolver: _resolver,
       ).checkFinalAlreadyAssigned(identifier);
     }
 
-    DartType valueType;
+    DartType? valueType;
     if (loopVariable != null) {
-      TypeAnnotation typeAnnotation = loopVariable.type;
+      var typeAnnotation = loopVariable.type;
       valueType = typeAnnotation?.type ?? UnknownInferredType.instance;
     }
     if (identifier != null) {
@@ -111,7 +110,7 @@ class ForResolver {
       InferenceContext.setType(iterable, targetType);
     }
 
-    iterable?.accept(_resolver);
+    iterable.accept(_resolver);
     iterable = forEachParts.iterable;
 
     _resolver.nullableDereferenceVerifier.expression(iterable,
@@ -129,12 +128,13 @@ class ForResolver {
     }
 
     if (loopVariable != null) {
-      _resolver.flowAnalysis?.flow?.declare(loopVariable.declaredElement, true);
+      _resolver.flowAnalysis?.flow
+          ?.declare(loopVariable.declaredElement!, true);
     }
 
     _resolver.flowAnalysis?.flow?.forEach_bodyBegin(
       node,
-      identifierElement is VariableElement
+      identifierElement is PromotableElement
           ? identifierElement
           : loopVariable?.declaredElement,
       elementType ?? DynamicTypeImpl.instance,
@@ -147,7 +147,7 @@ class ForResolver {
 
   void _forParts(AstNode node, ForParts forParts, AstNode body) {
     if (forParts is ForPartsWithDeclarations) {
-      forParts.variables?.accept(_resolver);
+      forParts.variables.accept(_resolver);
     } else if (forParts is ForPartsWithExpression) {
       forParts.initialization?.accept(_resolver);
     }
@@ -158,7 +158,7 @@ class ForResolver {
     if (condition != null) {
       InferenceContext.setType(condition, _resolver.typeProvider.boolType);
       condition.accept(_resolver);
-      condition = forParts.condition;
+      condition = forParts.condition!;
       _resolver.boolExpressionVerifier.checkForNonBoolCondition(condition);
     }
 

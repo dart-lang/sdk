@@ -30,7 +30,7 @@ abstract class AnalysisContext {
 
   /// The root directory of the SDK against which files of this context are
   /// analyzed, or `null` if the SDK is not directory based.
-  Folder get sdkRoot;
+  Folder? get sdkRoot;
 
   /// Return the workspace for containing the context root.
   Workspace get workspace;

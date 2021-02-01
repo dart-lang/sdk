@@ -42,7 +42,7 @@ class _DefiniteAssignmentDataComputer extends DataComputer<String> {
   bool get supportsErrors => true;
 
   @override
-  String computeErrorData(TestConfig config, TestingData testingData, Id id,
+  String? computeErrorData(TestConfig config, TestingData testingData, Id id,
       List<AnalysisError> errors) {
     var errorCodes = errors.map((e) => e.errorCode).where((errorCode) =>
         errorCode !=
@@ -53,10 +53,10 @@ class _DefiniteAssignmentDataComputer extends DataComputer<String> {
   @override
   void computeUnitData(TestingData testingData, CompilationUnit unit,
       Map<Id, ActualData<String>> actualMap) {
-    var flowResult =
-        testingData.uriToFlowAnalysisData[unit.declaredElement.source.uri];
+    var unitElement = unit.declaredElement!;
+    var flowResult = testingData.uriToFlowAnalysisData[unitElement.source.uri]!;
     _DefiniteUnassignmentDataExtractor(
-            unit.declaredElement.source.uri, actualMap, flowResult)
+            unitElement.source.uri, actualMap, flowResult)
         .run(unit);
   }
 }
@@ -69,7 +69,7 @@ class _DefiniteUnassignmentDataExtractor extends AstDataExtractor<String> {
       : super(uri, actualMap);
 
   @override
-  String computeNodeValue(Id id, AstNode node) {
+  String? computeNodeValue(Id id, AstNode node) {
     if (node is SimpleIdentifier && node.inGetterContext()) {
       var element = node.staticElement;
       if (element is LocalVariableElement || element is ParameterElement) {
@@ -86,10 +86,10 @@ class _DefiniteUnassignmentDataInterpreter implements DataInterpreter<String> {
   const _DefiniteUnassignmentDataInterpreter();
 
   @override
-  String getText(String actualData, [String indentation]) => actualData;
+  String getText(String actualData, [String? indentation]) => actualData;
 
   @override
-  String isAsExpected(String actualData, String expectedData) {
+  String? isAsExpected(String actualData, String? expectedData) {
     if (actualData == expectedData) {
       return null;
     } else {
@@ -98,5 +98,5 @@ class _DefiniteUnassignmentDataInterpreter implements DataInterpreter<String> {
   }
 
   @override
-  bool isEmpty(String actualData) => actualData == null;
+  bool isEmpty(String? actualData) => actualData == null;
 }

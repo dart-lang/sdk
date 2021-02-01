@@ -98,10 +98,10 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
   static Object NOT_A_CONSTANT = Object();
 
   @override
-  Object visitAdjacentStrings(AdjacentStrings node) {
+  Object? visitAdjacentStrings(AdjacentStrings node) {
     StringBuffer buffer = StringBuffer();
     for (StringLiteral string in node.strings) {
-      Object value = string.accept(this);
+      var value = string.accept(this);
       if (identical(value, NOT_A_CONSTANT)) {
         return value;
       }
@@ -111,12 +111,12 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
   }
 
   @override
-  Object visitBinaryExpression(BinaryExpression node) {
-    Object leftOperand = node.leftOperand.accept(this);
+  Object? visitBinaryExpression(BinaryExpression node) {
+    var leftOperand = node.leftOperand.accept(this);
     if (identical(leftOperand, NOT_A_CONSTANT)) {
       return leftOperand;
     }
-    Object rightOperand = node.rightOperand.accept(this);
+    var rightOperand = node.rightOperand.accept(this);
     if (identical(rightOperand, NOT_A_CONSTANT)) {
       return rightOperand;
     }
@@ -235,17 +235,17 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
   }
 
   @override
-  Object visitBooleanLiteral(BooleanLiteral node) => node.value ? true : false;
+  Object? visitBooleanLiteral(BooleanLiteral node) => node.value ? true : false;
 
   @override
-  Object visitDoubleLiteral(DoubleLiteral node) => node.value;
+  Object? visitDoubleLiteral(DoubleLiteral node) => node.value;
 
   @override
-  Object visitIntegerLiteral(IntegerLiteral node) => node.value;
+  Object? visitIntegerLiteral(IntegerLiteral node) => node.value;
 
   @override
-  Object visitInterpolationExpression(InterpolationExpression node) {
-    Object value = node.expression.accept(this);
+  Object? visitInterpolationExpression(InterpolationExpression node) {
+    var value = node.expression.accept(this);
     if (value == null || value is bool || value is String || value is num) {
       return value;
     }
@@ -253,14 +253,14 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
   }
 
   @override
-  Object visitInterpolationString(InterpolationString node) => node.value;
+  Object? visitInterpolationString(InterpolationString node) => node.value;
 
   @override
-  Object visitListLiteral(ListLiteral node) {
-    List<Object> list = <Object>[];
+  Object? visitListLiteral(ListLiteral node) {
+    List<Object?> list = <Object>[];
     for (CollectionElement element in node.elements) {
       if (element is Expression) {
-        Object value = element.accept(this);
+        var value = element.accept(this);
         if (identical(value, NOT_A_CONSTANT)) {
           return value;
         }
@@ -275,25 +275,25 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
   }
 
   @override
-  Object visitMethodInvocation(MethodInvocation node) => visitNode(node);
+  Object? visitMethodInvocation(MethodInvocation node) => visitNode(node);
 
   @override
-  Object visitNode(AstNode node) => NOT_A_CONSTANT;
+  Object? visitNode(AstNode node) => NOT_A_CONSTANT;
 
   @override
-  Object visitNullLiteral(NullLiteral node) => null;
+  Object? visitNullLiteral(NullLiteral node) => null;
 
   @override
-  Object visitParenthesizedExpression(ParenthesizedExpression node) =>
+  Object? visitParenthesizedExpression(ParenthesizedExpression node) =>
       node.expression.accept(this);
 
   @override
-  Object visitPrefixedIdentifier(PrefixedIdentifier node) =>
+  Object? visitPrefixedIdentifier(PrefixedIdentifier node) =>
       _getConstantValue(null);
 
   @override
-  Object visitPrefixExpression(PrefixExpression node) {
-    Object operand = node.operand.accept(this);
+  Object? visitPrefixExpression(PrefixExpression node) {
+    var operand = node.operand.accept(this);
     if (identical(operand, NOT_A_CONSTANT)) {
       return operand;
     }
@@ -321,18 +321,18 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
   }
 
   @override
-  Object visitPropertyAccess(PropertyAccess node) => _getConstantValue(null);
+  Object? visitPropertyAccess(PropertyAccess node) => _getConstantValue(null);
 
   @override
-  Object visitSetOrMapLiteral(SetOrMapLiteral node) {
+  Object? visitSetOrMapLiteral(SetOrMapLiteral node) {
     // There are a lot of constants that this class does not support, so we
     // didn't add support for set literals. As a result, this assumes that we're
     // looking at a map literal until we prove otherwise.
-    Map<String, Object> map = HashMap<String, Object>();
+    Map<String, Object?> map = HashMap<String, Object>();
     for (CollectionElement element in node.elements) {
       if (element is MapLiteralEntry) {
-        Object key = element.key.accept(this);
-        Object value = element.value.accept(this);
+        var key = element.key.accept(this);
+        var value = element.value.accept(this);
         if (key is String && !identical(value, NOT_A_CONSTANT)) {
           map[key] = value;
         } else {
@@ -348,17 +348,17 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
   }
 
   @override
-  Object visitSimpleIdentifier(SimpleIdentifier node) =>
+  Object? visitSimpleIdentifier(SimpleIdentifier node) =>
       _getConstantValue(null);
 
   @override
-  Object visitSimpleStringLiteral(SimpleStringLiteral node) => node.value;
+  Object? visitSimpleStringLiteral(SimpleStringLiteral node) => node.value;
 
   @override
-  Object visitStringInterpolation(StringInterpolation node) {
+  Object? visitStringInterpolation(StringInterpolation node) {
     StringBuffer buffer = StringBuffer();
     for (InterpolationElement element in node.elements) {
-      Object value = element.accept(this);
+      var value = element.accept(this);
       if (identical(value, NOT_A_CONSTANT)) {
         return value;
       }
@@ -368,7 +368,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
   }
 
   @override
-  Object visitSymbolLiteral(SymbolLiteral node) {
+  Object? visitSymbolLiteral(SymbolLiteral node) {
     // TODO(brianwilkerson) This isn't optimal because a Symbol is not a String.
     StringBuffer buffer = StringBuffer();
     for (Token component in node.components) {
@@ -382,7 +382,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
 
   /// Return the constant value of the static constant represented by the given
   /// [element].
-  Object _getConstantValue(Element element) {
+  Object _getConstantValue(Element? element) {
     // TODO(brianwilkerson) Implement this
 //    if (element is FieldElement) {
 //      FieldElement field = element;

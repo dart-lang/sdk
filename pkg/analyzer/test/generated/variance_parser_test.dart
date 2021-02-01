@@ -23,9 +23,9 @@ main() {
 class VarianceParserTest extends FastaParserTestCase {
   @override
   CompilationUnit parseCompilationUnit(String content,
-      {List<ErrorCode> codes,
-      List<ExpectedError> errors,
-      FeatureSet featureSet}) {
+      {List<ErrorCode>? codes,
+      List<ExpectedError>? errors,
+      FeatureSet? featureSet}) {
     return super.parseCompilationUnit(content,
         codes: codes,
         errors: errors,
@@ -60,27 +60,28 @@ class VarianceParserTest extends FastaParserTestCase {
     var classDecl = unit.declarations[0] as ClassDeclaration;
     expect(classDecl.name.name, 'A');
 
-    expect(classDecl.typeParameters.typeParameters, hasLength(4));
-    expect(classDecl.typeParameters.typeParameters[0].name.name, 'T');
-    expect(classDecl.typeParameters.typeParameters[1].name.name, 'U');
-    expect(classDecl.typeParameters.typeParameters[2].name.name, 'V');
-    expect(classDecl.typeParameters.typeParameters[3].name.name, 'W');
+    var typeParameters = classDecl.typeParameters!;
+    expect(typeParameters.typeParameters, hasLength(4));
+    expect(typeParameters.typeParameters[0].name.name, 'T');
+    expect(typeParameters.typeParameters[1].name.name, 'U');
+    expect(typeParameters.typeParameters[2].name.name, 'V');
+    expect(typeParameters.typeParameters[3].name.name, 'W');
 
-    var typeParameterImplList = classDecl.typeParameters.typeParameters;
+    var typeParameterImplList = typeParameters.typeParameters;
     expect((typeParameterImplList[0] as TypeParameterImpl).varianceKeyword,
         isNotNull);
     expect(
-        (typeParameterImplList[0] as TypeParameterImpl).varianceKeyword.lexeme,
+        (typeParameterImplList[0] as TypeParameterImpl).varianceKeyword!.lexeme,
         "in");
     expect((typeParameterImplList[1] as TypeParameterImpl).varianceKeyword,
         isNotNull);
     expect(
-        (typeParameterImplList[1] as TypeParameterImpl).varianceKeyword.lexeme,
+        (typeParameterImplList[1] as TypeParameterImpl).varianceKeyword!.lexeme,
         "inout");
     expect((typeParameterImplList[2] as TypeParameterImpl).varianceKeyword,
         isNotNull);
     expect(
-        (typeParameterImplList[2] as TypeParameterImpl).varianceKeyword.lexeme,
+        (typeParameterImplList[2] as TypeParameterImpl).varianceKeyword!.lexeme,
         "out");
     expect((typeParameterImplList[3] as TypeParameterImpl).varianceKeyword,
         isNull);
@@ -94,8 +95,10 @@ class VarianceParserTest extends FastaParserTestCase {
     expect(unit.declarations, hasLength(1));
     var classDecl = unit.declarations[0] as ClassDeclaration;
     expect(classDecl.name.name, 'A');
-    expect(classDecl.typeParameters.typeParameters, hasLength(1));
-    expect(classDecl.typeParameters.typeParameters[0].name.name, 'T');
+
+    var typeParameters = classDecl.typeParameters!;
+    expect(typeParameters.typeParameters, hasLength(1));
+    expect(typeParameters.typeParameters[0].name.name, 'T');
   }
 
   void test_class_enabled_single() {
@@ -103,13 +106,15 @@ class VarianceParserTest extends FastaParserTestCase {
     expect(unit.declarations, hasLength(1));
     var classDecl = unit.declarations[0] as ClassDeclaration;
     expect(classDecl.name.name, 'A');
-    expect(classDecl.typeParameters.typeParameters, hasLength(1));
-    expect(classDecl.typeParameters.typeParameters[0].name.name, 'T');
+
+    var typeParameters = classDecl.typeParameters!;
+    expect(typeParameters.typeParameters, hasLength(1));
+    expect(typeParameters.typeParameters[0].name.name, 'T');
 
     var typeParameterImpl =
-        classDecl.typeParameters.typeParameters[0] as TypeParameterImpl;
+        typeParameters.typeParameters[0] as TypeParameterImpl;
     expect(typeParameterImpl.varianceKeyword, isNotNull);
-    expect(typeParameterImpl.varianceKeyword.lexeme, "in");
+    expect(typeParameterImpl.varianceKeyword!.lexeme, "in");
   }
 
   void test_function_disabled() {
@@ -165,8 +170,10 @@ class VarianceParserTest extends FastaParserTestCase {
     expect(unit.declarations, hasLength(1));
     var mixinDecl = unit.declarations[0] as MixinDeclaration;
     expect(mixinDecl.name.name, 'A');
-    expect(mixinDecl.typeParameters.typeParameters, hasLength(1));
-    expect(mixinDecl.typeParameters.typeParameters[0].name.name, 'T');
+
+    var typeParameters = mixinDecl.typeParameters!;
+    expect(typeParameters.typeParameters, hasLength(1));
+    expect(typeParameters.typeParameters[0].name.name, 'T');
   }
 
   void test_typedef_disabled() {

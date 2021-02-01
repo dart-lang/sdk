@@ -482,7 +482,14 @@ void ClassTable::Validate() {
     if (HasValidClassAt(cid)) {
       cls = At(cid);
       ASSERT(cls.IsClass());
+#if defined(DART_PRECOMPILER)
+      // Precompiler can drop classes and set their id() to kIllegalCid.
+      // It still leaves them in the class table so dropped program
+      // structure could still be accessed while writing debug info.
+      ASSERT((cls.id() == cid) || (cls.id() == kIllegalCid));
+#else
       ASSERT(cls.id() == cid);
+#endif  // defined(DART_PRECOMPILER)
     }
   }
 }

@@ -139,7 +139,7 @@ void test() {
     String search,
     ExecutableElement element,
     String type,
-    List<String> typeArguments,
+    List<String>? typeArguments,
   ) {
     var id = findNode.simple(search);
     assertElement(id, element);

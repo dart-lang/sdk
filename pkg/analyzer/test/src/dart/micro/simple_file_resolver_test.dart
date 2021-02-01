@@ -21,9 +21,9 @@ main() {
 
 @reflectiveTest
 class FileResolver_changeFile_Test extends FileResolutionTest {
-  String aPath;
-  String bPath;
-  String cPath;
+  late final String aPath;
+  late final String bPath;
+  late final String cPath;
 
   @override
   void setUp() {
@@ -207,7 +207,7 @@ import 'a.dart';
         ..add(convertPath('/sdk/lib/math/math.dart'));
     }
 
-    var refreshedFiles = fileResolver.fsState.testView.refreshedFiles;
+    var refreshedFiles = fileResolver.fsState!.testView.refreshedFiles;
     expect(refreshedFiles, unorderedEquals(expectedPlusSdk));
 
     refreshedFiles.clear();
@@ -297,6 +297,7 @@ int b = a;
     ]);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/2399')
   test_analysisOptions_lints() async {
     newFile('/workspace/dart/analysis_options/lib/default.yaml', content: r'''
 linter:
@@ -304,7 +305,7 @@ linter:
     - omit_local_variable_types
 ''');
 
-    var rule = Registry.ruleRegistry.getRule('omit_local_variable_types');
+    var rule = Registry.ruleRegistry.getRule('omit_local_variable_types')!;
 
     await assertErrorsInCode(r'''
 main() {
@@ -344,7 +345,7 @@ class A {}
     await resolveFile(aPath);
     fileResolver.collectSharedDataIdentifiers();
     expect(fileResolver.removedCacheIds.length,
-        (fileResolver.byteStore as CiderCachedByteStore).testView.length);
+        (fileResolver.byteStore as CiderCachedByteStore).testView!.length);
   }
 
   test_getErrors() {
@@ -368,34 +369,34 @@ var foo = 0;
     var path = convertPath('/workspace/dart/test/lib/test.dart');
 
     // No resolved files yet.
-    expect(fileResolver.testView.resolvedFiles, isEmpty);
+    expect(fileResolver.testView!.resolvedFiles, isEmpty);
 
     // No cached, will resolve once.
     expect(getTestErrors().errors, hasLength(1));
-    expect(fileResolver.testView.resolvedFiles, [path]);
+    expect(fileResolver.testView!.resolvedFiles, [path]);
 
     // Has cached, will be not resolved again.
     expect(getTestErrors().errors, hasLength(1));
-    expect(fileResolver.testView.resolvedFiles, [path]);
+    expect(fileResolver.testView!.resolvedFiles, [path]);
 
     // New resolver.
     // Still has cached, will be not resolved.
     createFileResolver();
     expect(getTestErrors().errors, hasLength(1));
-    expect(fileResolver.testView.resolvedFiles, <Object>[]);
+    expect(fileResolver.testView!.resolvedFiles, <Object>[]);
 
     // Change the file, new resolver.
     // With changed file the previously cached result cannot be used.
     addTestFile('var a = c;');
     createFileResolver();
     expect(getTestErrors().errors, hasLength(1));
-    expect(fileResolver.testView.resolvedFiles, [path]);
+    expect(fileResolver.testView!.resolvedFiles, [path]);
 
     // New resolver.
     // Still has cached, will be not resolved.
     createFileResolver();
     expect(getTestErrors().errors, hasLength(1));
-    expect(fileResolver.testView.resolvedFiles, <Object>[]);
+    expect(fileResolver.testView!.resolvedFiles, <Object>[]);
   }
 
   test_getErrors_reuse_changeDependency() {
@@ -411,15 +412,15 @@ var b = a.foo;
     var path = convertPath('/workspace/dart/test/lib/test.dart');
 
     // No resolved files yet.
-    expect(fileResolver.testView.resolvedFiles, isEmpty);
+    expect(fileResolver.testView!.resolvedFiles, isEmpty);
 
     // No cached, will resolve once.
     expect(getTestErrors().errors, hasLength(1));
-    expect(fileResolver.testView.resolvedFiles, [path]);
+    expect(fileResolver.testView!.resolvedFiles, [path]);
 
     // Has cached, will be not resolved again.
     expect(getTestErrors().errors, hasLength(1));
-    expect(fileResolver.testView.resolvedFiles, [path]);
+    expect(fileResolver.testView!.resolvedFiles, [path]);
 
     // Change the dependency, new resolver.
     // The signature of the result is different.
@@ -429,13 +430,13 @@ var a = 4.2;
 ''');
     createFileResolver();
     expect(getTestErrors().errors, hasLength(1));
-    expect(fileResolver.testView.resolvedFiles, [path]);
+    expect(fileResolver.testView!.resolvedFiles, [path]);
 
     // New resolver.
     // Still has cached, will be not resolved.
     createFileResolver();
     expect(getTestErrors().errors, hasLength(1));
-    expect(fileResolver.testView.resolvedFiles, <Object>[]);
+    expect(fileResolver.testView!.resolvedFiles, <Object>[]);
   }
 
   test_hint() async {
@@ -627,8 +628,8 @@ import 'a.dart';
     await resolveFile(bPath);
     await resolveFile(cPath);
     fileResolver.removeFilesNotNecessaryForAnalysisOf([cPath]);
-    expect(fileResolver.fsState.testView.unusedFiles.contains(bPath), true);
-    expect(fileResolver.fsState.testView.unusedFiles.length, 1);
+    expect(fileResolver.fsState!.testView.unusedFiles.contains(bPath), true);
+    expect(fileResolver.fsState!.testView.unusedFiles.length, 1);
   }
 
   test_unusedFiles_mutilple() async {
@@ -665,7 +666,7 @@ import 'c.dart';
     await resolveFile(ePath);
     await resolveFile(fPath);
     fileResolver.removeFilesNotNecessaryForAnalysisOf([dPath, fPath]);
-    expect(fileResolver.fsState.testView.unusedFiles.contains(ePath), true);
-    expect(fileResolver.fsState.testView.unusedFiles.length, 2);
+    expect(fileResolver.fsState!.testView.unusedFiles.contains(ePath), true);
+    expect(fileResolver.fsState!.testView.unusedFiles.length, 2);
   }
 }

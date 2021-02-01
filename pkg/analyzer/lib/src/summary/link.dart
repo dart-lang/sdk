@@ -135,7 +135,7 @@ abstract class Node<NodeType> {
   /// in the strongly connected component to which this node belongs.
   int _lowLink = 0;
 
-  List<NodeType> _dependencies;
+  List<NodeType>? _dependencies;
 
   /// Indicates whether this node has been evaluated yet.
   bool get isEvaluated;

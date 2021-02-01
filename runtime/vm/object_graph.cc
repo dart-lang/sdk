@@ -1013,6 +1013,90 @@ class Pass2Visitor : public ObjectVisitor,
 
   DISALLOW_COPY_AND_ASSIGN(Pass2Visitor);
 };
+class Pass3Visitor : public ObjectVisitor {
+ public:
+  explicit Pass3Visitor(HeapSnapshotWriter* writer)
+      : ObjectVisitor(), isolate_(Isolate::Current()), writer_(writer) {}
+
+  void VisitObject(ObjectPtr obj) {
+    if (obj->IsPseudoObject()) {
+      return;
+    }
+    writer_->WriteUnsigned(GetHash(obj));
+  }
+
+ private:
+  uint32_t GetHash(ObjectPtr obj) {
+    if (!obj->IsHeapObject()) return 0;
+    intptr_t cid = obj->GetClassId();
+    uint32_t hash = 0;
+    switch (cid) {
+      case kForwardingCorpse:
+      case kFreeListElement:
+      case kSmiCid:
+        UNREACHABLE();
+      case kArrayCid:
+      case kBoolCid:
+      case kCodeSourceMapCid:
+      case kCompressedStackMapsCid:
+      case kDoubleCid:
+      case kExternalOneByteStringCid:
+      case kExternalTwoByteStringCid:
+      case kGrowableObjectArrayCid:
+      case kImmutableArrayCid:
+      case kInstructionsCid:
+      case kInstructionsSectionCid:
+      case kLinkedHashMapCid:
+      case kMintCid:
+      case kNeverCid:
+      case kNullCid:
+      case kObjectPoolCid:
+      case kOneByteStringCid:
+      case kPcDescriptorsCid:
+      case kTwoByteStringCid:
+      case kVoidCid:
+        // Don't provide hash codes for objects with the above CIDs in order
+        // to try and avoid having to initialize identity hash codes for common
+        // primitives and types that don't have hash codes.
+        break;
+      default: {
+        hash = GetHashHelper(obj);
+      }
+    }
+    return hash;
+  }
+
+  uint32_t GetHashHelper(ObjectPtr obj) {
+    uint32_t hash;
+#if defined(HASH_IN_OBJECT_HEADER)
+    hash = Object::GetCachedHash(obj);
+    if (hash == 0) {
+      ASSERT(
+          !isolate_->group()->heap()->old_space()->IsObjectFromImagePages(obj));
+      hash = isolate_->random()->NextUInt32();
+      Object::SetCachedHash(obj, hash);
+      hash = Object::GetCachedHash(obj);
+    }
+#else
+    Heap* heap = isolate_->group()->heap();
+    hash = heap->GetHash(obj);
+    if (hash == 0) {
+      ASSERT(!heap->old_space()->IsObjectFromImagePages(obj));
+      heap->SetHash(obj, isolate_->random()->NextUInt32());
+      hash = heap->GetHash(obj);
+    }
+#endif
+    return hash;
+  }
+
+  // TODO(dartbug.com/36097): Once the shared class table contains more
+  // information than just the size (i.e. includes an immutable class
+  // descriptor), we can remove this dependency on the current isolate.
+  Isolate* isolate_;
+  HeapSnapshotWriter* const writer_;
+
+  DISALLOW_COPY_AND_ASSIGN(Pass3Visitor);
+};
 
 void HeapSnapshotWriter::Write() {
   HeapIterationScope iteration(thread());
@@ -1179,6 +1263,18 @@ void HeapSnapshotWriter::Write() {
     // External properties.
     WriteUnsigned(external_property_count_);
     isolate()->group()->VisitWeakPersistentHandles(&visitor);
+  }
+
+  {
+    // Identity hash codes
+    Pass3Visitor visitor(this);
+
+    // Handle root object.
+    WriteUnsigned(0);
+
+    // Handle visit rest of the objects.
+    iteration.IterateVMIsolateObjects(&visitor);
+    iteration.IterateObjects(&visitor);
   }
 
   ClearObjectIds();

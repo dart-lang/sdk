@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -614,8 +616,8 @@ f(F a) {}
     assertTypeName(typeName, element, 'int* Function(bool*)*');
 
     assertFunctionTypeTypedef(
-      typeName.type,
-      element: element,
+      typeName.type as FunctionType,
+      element: element as FunctionTypeAliasElement,
       typeArguments: [],
     );
   }
@@ -638,8 +640,8 @@ f(F a) {}
     assertTypeName(typeName, element, 'dynamic Function(bool*)*');
 
     assertFunctionTypeTypedef(
-      typeName.type,
-      element: element,
+      typeName.type as FunctionType,
+      element: element as FunctionTypeAliasElement,
       typeArguments: ['dynamic'],
     );
   }
@@ -662,8 +664,8 @@ f(F a) {}
     assertTypeName(typeName, element, 'num* Function(bool*)*');
 
     assertFunctionTypeTypedef(
-      typeName.type,
-      element: element,
+      typeName.type as FunctionType,
+      element: element as FunctionTypeAliasElement,
       typeArguments: ['num*'],
     );
   }
@@ -686,8 +688,8 @@ f(F<int> a) {}
     assertTypeName(typeName, element, 'int* Function(bool*)*');
 
     assertFunctionTypeTypedef(
-      typeName.type,
-      element: element,
+      typeName.type as FunctionType,
+      element: element as FunctionTypeAliasElement,
       typeArguments: ['int*'],
     );
   }

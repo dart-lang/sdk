@@ -22,17 +22,17 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/apply_resolution.dart';
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
+import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
-import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 Map<String, LibraryReader> createLibraryReadersWithAstBytes({
-  @required LinkedElementFactory elementFactory,
-  @required Uint8List resolutionBytes,
-  @required Map<String, Map<String, Uint8List>> uriToLibrary_uriToUnitAstBytes,
+  required LinkedElementFactory elementFactory,
+  required Uint8List resolutionBytes,
+  required Map<String, Map<String, Uint8List>> uriToLibrary_uriToUnitAstBytes,
 }) {
   var _resolutionReader = SummaryDataReader(resolutionBytes);
 
@@ -63,8 +63,7 @@ Map<String, LibraryReader> createLibraryReadersWithAstBytes({
     var resolutionUnitOffsets = _resolutionReader.readUint30List();
     var exportsIndexList = _resolutionReader.readUint30List();
 
-    var uriToUnitAstBytes = uriToLibrary_uriToUnitAstBytes[libraryUriStr];
-    assert(uriToUnitAstBytes != null, libraryUriStr);
+    var uriToUnitAstBytes = uriToLibrary_uriToUnitAstBytes[libraryUriStr]!;
 
     var reference = elementFactory.rootReference.getChild(libraryUriStr);
     var libraryReader = LibraryReaderForAstBytes._(
@@ -91,10 +90,10 @@ class BundleReader {
   final Map<String, LibraryReader> libraryMap = {};
 
   BundleReader({
-    @required LinkedElementFactory elementFactory,
-    @required Uint8List astBytes,
-    @required Uint8List resolutionBytes,
-  })  : _astReader = SummaryDataReader(astBytes),
+    required LinkedElementFactory elementFactory,
+    required Uint8List astBytes,
+    required Uint8List resolutionBytes,
+  })   : _astReader = SummaryDataReader(astBytes),
         _resolutionReader = SummaryDataReader(resolutionBytes) {
     _astReader.offset = 0;
     _withInformative = _astReader.readByte() == 1;
@@ -159,7 +158,7 @@ class BundleReader {
   }
 
   LibraryReader getLibrary(String uriStr) {
-    return libraryMap[uriStr];
+    return libraryMap[uriStr]!;
   }
 }
 
@@ -177,9 +176,9 @@ abstract class LibraryReader {
 
   final Uint32List _resolutionUnitOffsets;
   final Uint32List _exportsIndexList;
-  List<Reference> _exports;
+  List<Reference>? _exports;
 
-  List<UnitReader> _units;
+  List<UnitReader>? _units;
 
   LibraryReader._(
     this._elementFactory,
@@ -191,16 +190,9 @@ abstract class LibraryReader {
   );
 
   List<Reference> get exports {
-    if (_exports == null) {
-      var length = _exportsIndexList.length;
-      _exports = List.filled(length, null, growable: false);
-      for (var i = 0; i < length; i++) {
-        var index = _exportsIndexList[i];
-        var reference = _referenceReader.referenceOfIndex(index);
-        _exports[i] = reference;
-      }
-    }
-    return _exports;
+    return _exports ??= _exportsIndexList
+        .map((index) => _referenceReader.referenceOfIndex(index))
+        .toList();
   }
 
   /// Is `true` if the defining unit has [PartOfDirective].
@@ -223,11 +215,11 @@ class LibraryReaderForAstBytes extends LibraryReader {
   final Map<String, Uint8List> _uriToUnitAstBytes;
 
   bool _hasNameRead = false;
-  bool _withInformative;
-  String _name;
-  int _nameOffset;
-  int _nameLength;
-  bool _hasPartOfDirective;
+  late final bool _withInformative;
+  late final String _name;
+  late final int _nameOffset;
+  late final int _nameLength;
+  late final bool _hasPartOfDirective;
 
   LibraryReaderForAstBytes._(
     LinkedElementFactory elementFactory,
@@ -276,7 +268,7 @@ class LibraryReaderForAstBytes extends LibraryReader {
 
   @override
   List<UnitReader> get units {
-    if (_units != null) return _units;
+    if (_units != null) return _units!;
     _units = [];
 
     for (var i = 0; i < _resolutionUnitOffsets.length; i++) {
@@ -284,7 +276,7 @@ class LibraryReaderForAstBytes extends LibraryReader {
       var unitUriStr = _resolutionReader.readStringReference();
       var isSynthetic = _resolutionReader.readByte() != 0;
       var isPart = _resolutionReader.readByte() != 0;
-      var partUriStr = _resolutionReader.readStringReference();
+      String? partUriStr = _resolutionReader.readStringReference();
       if (!isPart) {
         partUriStr = null;
       }
@@ -296,7 +288,7 @@ class LibraryReaderForAstBytes extends LibraryReader {
         unitUriStr = 'null';
       }
 
-      var astBytes = _uriToUnitAstBytes[unitUriStr];
+      var astBytes = _uriToUnitAstBytes[unitUriStr]!;
       var astReader = SummaryDataReader(astBytes);
       astReader.offset = astBytes.length - 4 * 4;
       var headerOffset = astReader.readUint32();
@@ -305,7 +297,7 @@ class LibraryReaderForAstBytes extends LibraryReader {
       var astStringsOffset = astReader.readUint32();
       astReader.createStringTable(astStringsOffset);
 
-      _units.add(
+      _units!.add(
         UnitReader._(
           this,
           resolutionDirectivesOffset,
@@ -320,7 +312,7 @@ class LibraryReaderForAstBytes extends LibraryReader {
       );
     }
 
-    return _units;
+    return _units!;
   }
 
   @override
@@ -334,7 +326,7 @@ class LibraryReaderForAstBytes extends LibraryReader {
     _hasNameRead = true;
 
     var uriStr = reference.name;
-    var definingUnitBytes = _uriToUnitAstBytes[uriStr];
+    var definingUnitBytes = _uriToUnitAstBytes[uriStr]!;
     var reader = SummaryDataReader(definingUnitBytes);
     reader.offset = definingUnitBytes.length - 4 * 2;
     var libraryDataOffset = reader.readUint32();
@@ -398,7 +390,7 @@ class LibraryReaderFromBundle extends LibraryReader {
 
   @override
   List<UnitReader> get units {
-    if (_units != null) return _units;
+    if (_units != null) return _units!;
     _units = [];
 
     for (var i = 0; i < _astUnitOffsets.length; i++) {
@@ -413,14 +405,14 @@ class LibraryReaderFromBundle extends LibraryReader {
       var unitUriStr = _resolutionReader.readStringReference();
       var isSynthetic = _resolutionReader.readByte() != 0;
       var isPart = _resolutionReader.readByte() != 0;
-      var partUriStr = _resolutionReader.readStringReference();
+      String? partUriStr = _resolutionReader.readStringReference();
       if (!isPart) {
         partUriStr = null;
       }
       var resolutionDirectivesOffset = _resolutionReader.readUInt30();
       var resolutionDeclarationOffsets = _resolutionReader.readUint30List();
 
-      _units.add(
+      _units!.add(
         UnitReader._(
           this,
           resolutionDirectivesOffset,
@@ -435,7 +427,7 @@ class LibraryReaderFromBundle extends LibraryReader {
       );
     }
 
-    return _units;
+    return _units!;
   }
 }
 
@@ -443,7 +435,7 @@ class LinkedContext implements AstLinkedContext {
   final UnitReader _unitReader;
   final AstNode _node;
   final int _resolutionIndex;
-  final Uint32List _codeOffsetLengthList;
+  final Uint32List? _codeOffsetLengthList;
   final Uint32List _documentationTokenIndexList;
 
   @override
@@ -459,18 +451,18 @@ class LinkedContext implements AstLinkedContext {
 
   bool _hasDocumentationComment = false;
 
-  _UnitMemberReader _reader;
+  late final _UnitMemberReader _reader;
 
   LinkedContext(
     this._unitReader,
     this._node, {
-    @required this.codeOffset,
-    @required this.codeLength,
+    required this.codeOffset,
+    required this.codeLength,
     this.isClassWithConstConstructor = false,
-    Uint32List codeOffsetLengthList,
-    @required int resolutionIndex,
-    @required Uint32List documentationTokenIndexList,
-  })  : _resolutionIndex = resolutionIndex,
+    Uint32List? codeOffsetLengthList,
+    required int resolutionIndex,
+    required Uint32List documentationTokenIndexList,
+  })   : _resolutionIndex = resolutionIndex,
         _codeOffsetLengthList = codeOffsetLengthList,
         _documentationTokenIndexList = documentationTokenIndexList;
 
@@ -524,7 +516,7 @@ class LinkedContext implements AstLinkedContext {
     var variables = variableList.variables;
     for (var i = 0; i < variables.length; i++) {
       if (identical(variables[i], node)) {
-        return _codeOffsetLengthList[2 * i + 1];
+        return _codeOffsetLengthList![2 * i + 1];
       }
     }
     throw StateError('No |$node| in: $variableList');
@@ -536,7 +528,7 @@ class LinkedContext implements AstLinkedContext {
     var variables = variableList.variables;
     for (var i = 0; i < variables.length; i++) {
       if (identical(variables[i], node)) {
-        return _codeOffsetLengthList[2 * i + 0];
+        return _codeOffsetLengthList![2 * i + 0];
       }
     }
     throw StateError('No |$node| in: $variableList');
@@ -591,9 +583,13 @@ class LinkedResolutionReader {
   /// TODO(scheglov) Remove after fixing http://dartbug.com/44449
   Uint8List get bytes => _unitReader._resolutionReader.bytes;
 
-  Element nextElement() {
+  Element? nextElement() {
     var memberFlags = readByte();
     var element = _readRawElement();
+
+    if (element == null) {
+      return null;
+    }
 
     if (memberFlags == Tag.RawElement) {
       return element;
@@ -608,7 +604,8 @@ class LinkedResolutionReader {
             (element.enclosingElement as TypeParameterizedElement)
                 .typeParameters;
         var substitution = Substitution.fromPairs(typeParameters, arguments);
-        element = ExecutableMember.from2(element, substitution);
+        element =
+            ExecutableMember.from2(element as ExecutableElement, substitution);
       }
     }
 
@@ -628,7 +625,7 @@ class LinkedResolutionReader {
     return _unitReader._resolutionReader.stringOfIndex(index);
   }
 
-  DartType nextType() {
+  DartType? nextType() {
     var tag = readByte();
     if (tag == Tag.NullType) {
       return null;
@@ -637,12 +634,8 @@ class LinkedResolutionReader {
     } else if (tag == Tag.FunctionType) {
       return _readFunctionType();
     } else if (tag == Tag.InterfaceType) {
-      var element = nextElement();
-      var length = _readUInt30();
-      var typeArguments = List<DartType>.filled(length, null);
-      for (var i = 0; i < length; i++) {
-        typeArguments[i] = nextType();
-      }
+      var element = nextElement() as ClassElement;
+      var typeArguments = _readTypeList();
       var nullability = _readNullability();
       return InterfaceTypeImpl(
         element: element,
@@ -650,21 +643,21 @@ class LinkedResolutionReader {
         nullabilitySuffix: nullability,
       );
     } else if (tag == Tag.InterfaceType_noTypeArguments_none) {
-      var element = nextElement();
+      var element = nextElement() as ClassElement;
       return InterfaceTypeImpl(
         element: element,
         typeArguments: const <DartType>[],
         nullabilitySuffix: NullabilitySuffix.none,
       );
     } else if (tag == Tag.InterfaceType_noTypeArguments_question) {
-      var element = nextElement();
+      var element = nextElement() as ClassElement;
       return InterfaceTypeImpl(
         element: element,
         typeArguments: const <DartType>[],
         nullabilitySuffix: NullabilitySuffix.question,
       );
     } else if (tag == Tag.InterfaceType_noTypeArguments_star) {
-      var element = nextElement();
+      var element = nextElement() as ClassElement;
       return InterfaceTypeImpl(
         element: element,
         typeArguments: const <DartType>[],
@@ -674,7 +667,7 @@ class LinkedResolutionReader {
       var nullability = _readNullability();
       return NeverTypeImpl.instance.withNullability(nullability);
     } else if (tag == Tag.TypeParameterType) {
-      var element = nextElement();
+      var element = nextElement() as TypeParameterElement;
       var nullability = _readNullability();
       return TypeParameterTypeImpl(
         element: element,
@@ -734,16 +727,16 @@ class LinkedResolutionReader {
       element.bound = bound;
     }
 
-    var aliasElement = nextElement();
+    var aliasElement = nextElement() as TypeAliasElement?;
     var aliasArguments = aliasElement != null ? _readTypeList() : null;
 
-    var returnType = nextType();
+    var returnType = nextType()!;
 
     var formalParameters = <ParameterElement>[];
     var formalParametersLength = _readUInt30();
     for (var i = 0; i < formalParametersLength; i++) {
       var kindIndex = readByte();
-      var type = nextType();
+      var type = nextType()!;
       var name = nextString();
       formalParameters.add(
         ParameterElementImpl.synthetic(
@@ -773,7 +766,7 @@ class LinkedResolutionReader {
     return NullabilitySuffix.values[index];
   }
 
-  Element _readRawElement() {
+  Element? _readRawElement() {
     var index = _readUInt30();
 
     if ((index & 0x1) == 0x1) {
@@ -797,7 +790,7 @@ class LinkedResolutionReader {
     var types = <DartType>[];
     var length = _readUInt30();
     for (var i = 0; i < length; i++) {
-      var argument = nextType();
+      var argument = nextType()!;
       types.add(argument);
     }
     return types;
@@ -846,8 +839,8 @@ class SummaryDataForFormalParameter {
   final int codeLength;
 
   SummaryDataForFormalParameter({
-    @required this.codeOffset,
-    @required this.codeLength,
+    required this.codeOffset,
+    required this.codeLength,
   });
 }
 
@@ -860,7 +853,7 @@ class SummaryDataForLibraryDirective {
   SummaryDataForLibraryDirective(
     this._unitReader,
     this._node, {
-    @required Uint32List documentationTokenIndexList,
+    required Uint32List documentationTokenIndexList,
   }) : _documentationTokenIndexList = documentationTokenIndexList {
     _node.summaryData = this;
   }
@@ -892,8 +885,8 @@ class SummaryDataForTypeParameter {
   final int codeLength;
 
   SummaryDataForTypeParameter({
-    @required this.codeOffset,
-    @required this.codeLength,
+    required this.codeOffset,
+    required this.codeLength,
   });
 }
 
@@ -906,7 +899,7 @@ class UnitReader implements ReferenceNodeAccessor {
 
   /// If a part, the URI that is used in the [PartDirective].
   /// Or `null` for the defining unit.
-  final String partUriStr;
+  final String? partUriStr;
 
   final int _directivesResolutionOffset;
   bool _isDirectivesResolutionApplied = false;
@@ -915,10 +908,10 @@ class UnitReader implements ReferenceNodeAccessor {
 
   final SummaryDataReader astReader;
 
-  int _directivesOffset;
+  late final int _directivesOffset;
   final List<_UnitMemberReader> _memberReaders = [];
 
-  CompilationUnitImpl _unit;
+  late final CompilationUnitImpl _unit;
   bool _hasDirectives = false;
   bool _hasDeclarations = false;
 
@@ -944,14 +937,14 @@ class UnitReader implements ReferenceNodeAccessor {
     _directivesOffset = astReader.offset;
 
     _unit = astFactory.compilationUnit(
-      beginToken: null,
+      beginToken: Tokens.BANG,
       // TODO(scheglov)
       // scriptTag: _readNode(data.compilationUnit_scriptTag),
       directives: [],
       declarations: [],
-      endToken: null,
+      endToken: Tokens.BANG,
       featureSet: featureSet,
-    );
+    ) as CompilationUnitImpl;
     _unit.languageVersion = languageVersion;
     _unit.lineInfo = lineInfo;
     _unit.summaryData = SummaryDataForCompilationUnit(codeLength);
@@ -1167,16 +1160,26 @@ class UnitReader implements ReferenceNodeAccessor {
   }
 }
 
+class _ClassMemberMock extends AstNodeImpl implements ClassMemberImpl {
+  static final instance = _ClassMemberMock();
+
+  @override
+  AstNode? parent;
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 class _ClassMemberReader implements ReferenceNodeAccessor {
   final UnitReader unitReader;
   final int offset;
-  final NodeListImpl<ClassMember> _members;
+  final List<ClassMember> _members;
   final int _membersIndex;
-  ClassMemberImpl _node;
+  ClassMemberImpl? _node;
 
   _ClassMemberReader(this.unitReader, this.offset, this._members)
       : _membersIndex = _members.length {
-    _members.add(null);
+    _members.add(_ClassMemberMock.instance);
   }
 
   @override
@@ -1187,9 +1190,9 @@ class _ClassMemberReader implements ReferenceNodeAccessor {
       );
       unitReader.astReader.offset = offset;
       _node = astReader.readNode() as ClassMemberImpl;
-      _members[_membersIndex] = _node;
+      _members[_membersIndex] = _node!;
     }
-    return _node;
+    return _node!;
   }
 
   @override
@@ -1202,14 +1205,14 @@ class _ClassReader extends _UnitMemberReader {
 
   bool _hasIndex = false;
   final List<_ClassMemberReader> _classMemberReaders = [];
-  List<ClassMember> _classMembers;
+  late final List<ClassMember> _classMembers;
 
   _ClassReader({
-    @required this.reference,
-    @required UnitReader unitReader,
-    @required int offset,
-    @required CompilationUnit unit,
-    @required this.indexOffset,
+    required this.reference,
+    required UnitReader unitReader,
+    required int offset,
+    required CompilationUnit unit,
+    required this.indexOffset,
   }) : super(unitReader, offset, unit) {
     reference.nodeAccessor ??= this;
   }
@@ -1293,12 +1296,20 @@ class _ClassReader extends _UnitMemberReader {
   }
 }
 
+class _CompilationUnitMemberMock extends AstNodeImpl
+    implements CompilationUnitMemberImpl {
+  static final instance = _CompilationUnitMemberMock();
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 class _ReferenceReader {
   final LinkedElementFactory elementFactory;
   final SummaryDataReader _reader;
-  Uint32List _parents;
-  Uint32List _names;
-  List<Reference> _references;
+  late final Uint32List _parents;
+  late final Uint32List _names;
+  late final List<Reference?> _references;
 
   _ReferenceReader(this.elementFactory, this._reader, int offset) {
     _reader.offset = offset;
@@ -1339,11 +1350,11 @@ class _UnitMemberReader implements ReferenceNodeAccessor {
   final int offset;
   final CompilationUnit _unit;
   final int _index;
-  CompilationUnitMemberImpl _node;
+  CompilationUnitMemberImpl? _node;
 
   _UnitMemberReader(this.unitReader, this.offset, this._unit)
       : _index = _unit.declarations.length {
-    _unit.declarations.add(null);
+    _unit.declarations.add(_CompilationUnitMemberMock.instance);
   }
 
   @override
@@ -1353,14 +1364,14 @@ class _UnitMemberReader implements ReferenceNodeAccessor {
         reader: unitReader,
       );
       unitReader.astReader.offset = offset;
-      _node = astReader.readNode() as CompilationUnitMember;
-      _unit.declarations[_index] = _node;
+      _node = astReader.readNode() as CompilationUnitMemberImpl;
+      _unit.declarations[_index] = _node!;
 
       var hasLinkedContext = _node as HasAstLinkedContext;
       var linkedContext = hasLinkedContext.linkedContext as LinkedContext;
       linkedContext._reader = this;
     }
-    return _node;
+    return _node!;
   }
 
   @override

@@ -7,16 +7,15 @@ library summary_file_builder;
 
 import 'package:analyzer/dart/sdk/build_sdk_summary.dart' as api;
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:meta/meta.dart';
 
 /// Build summary for SDK the at the given [sdkPath].
 ///
 /// If [embedderYamlPath] is provided, then libraries from this file are
 /// appended to the libraries of the specified SDK.
 List<int> buildSdkSummary({
-  @required ResourceProvider resourceProvider,
-  @required String sdkPath,
-  String embedderYamlPath,
+  required ResourceProvider resourceProvider,
+  required String sdkPath,
+  String? embedderYamlPath,
 }) {
   return api.buildSdkSummary(
     resourceProvider: resourceProvider,

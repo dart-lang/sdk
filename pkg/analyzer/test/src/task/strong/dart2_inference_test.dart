@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -730,7 +729,7 @@ void test(Iterable<num> iter) {
     await resolveTestCode(code);
     {
       var node = findNode.simple('w in');
-      VariableElement element = node.staticElement;
+      var element = node.staticElement as VariableElement;
       expect(node.staticType, isNull);
       expect(element.type, typeProvider.dynamicType);
 
@@ -740,14 +739,14 @@ void test(Iterable<num> iter) {
 
     {
       var node = findNode.simple('x in');
-      VariableElement element = node.staticElement;
+      var element = node.staticElement as VariableElement;
       expect(node.staticType, isNull);
       expect(element.type, typeProvider.numType);
     }
 
     {
       var node = findNode.simple('y in');
-      VariableElement element = node.staticElement;
+      var element = node.staticElement as VariableElement;
 
       expect(node.staticType, isNull);
       expect(element.type, typeProvider.numType);
@@ -918,8 +917,8 @@ main() {
   }
 
   void _assertTypeAnnotations() {
-    var code = result.content;
-    var unit = result.unit;
+    var code = result.content!;
+    var unit = result.unit!;
 
     var types = <int, String>{};
     {
@@ -940,11 +939,11 @@ main() {
 
     unit.accept(FunctionAstVisitor(
       simpleIdentifier: (node) {
-        Token comment = node.token.precedingComments;
+        var comment = node.token.precedingComments;
         if (comment != null) {
-          String expectedType = types[comment.offset];
+          var expectedType = types[comment.offset];
           if (expectedType != null) {
-            VariableElement element = node.staticElement;
+            var element = node.staticElement as VariableElement;
             String actualType = typeString(element.type);
             expect(actualType, expectedType, reason: '@${comment.offset}');
           }

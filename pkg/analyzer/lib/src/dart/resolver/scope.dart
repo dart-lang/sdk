@@ -11,7 +11,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:meta/meta.dart';
 
 /// The scope defined by a block.
 class BlockScope {
@@ -24,16 +23,16 @@ class BlockScope {
     for (int i = 0; i < statementCount; i++) {
       Statement statement = statements[i];
       if (statement is LabeledStatement) {
-        statement = (statement as LabeledStatement).statement;
+        statement = statement.statement;
       }
       if (statement is VariableDeclarationStatement) {
         NodeList<VariableDeclaration> variables = statement.variables.variables;
         int variableCount = variables.length;
         for (int j = 0; j < variableCount; j++) {
-          yield variables[j].declaredElement;
+          yield variables[j].declaredElement!;
         }
       } else if (statement is FunctionDeclarationStatement) {
-        yield statement.functionDeclaration.declaredElement;
+        yield statement.functionDeclaration.declaredElement!;
       }
     }
   }
@@ -46,11 +45,11 @@ class ImplicitLabelScope {
   static const ImplicitLabelScope ROOT = ImplicitLabelScope._(null, null);
 
   /// The implicit label scope enclosing this implicit label scope.
-  final ImplicitLabelScope outerScope;
+  final ImplicitLabelScope? outerScope;
 
   /// The statement that acts as a target for break and/or continue statements
   /// at this scoping level.
-  final Statement statement;
+  final Statement? statement;
 
   /// Initialize a newly created scope, enclosed within the [outerScope],
   /// representing the given [statement].
@@ -58,14 +57,14 @@ class ImplicitLabelScope {
 
   /// Return the statement which should be the target of an unlabeled `break` or
   /// `continue` statement, or `null` if there is no appropriate target.
-  Statement getTarget(bool isContinue) {
+  Statement? getTarget(bool isContinue) {
     if (outerScope == null) {
       // This scope represents the top-level of a function body, so it doesn't
       // match either break or continue.
       return null;
     }
     if (isContinue && statement is SwitchStatement) {
-      return outerScope.getTarget(isContinue);
+      return outerScope!.getTarget(isContinue);
     }
     return statement;
   }
@@ -80,7 +79,7 @@ class ImplicitLabelScope {
 /// A scope in which a single label is defined.
 class LabelScope {
   /// The label scope enclosing this label scope.
-  final LabelScope _outerScope;
+  final LabelScope? _outerScope;
 
   /// The label defined in this scope.
   final String _label;
@@ -98,7 +97,7 @@ class LabelScope {
 
   /// Return the LabelScope which defines [targetLabel], or `null` if it is not
   /// defined in this scope.
-  LabelScope lookup(String targetLabel) {
+  LabelScope? lookup(String targetLabel) {
     if (_label == targetLabel) {
       return this;
     }
@@ -125,12 +124,12 @@ class Namespace {
 
   /// Return the element in this namespace that is available to the containing
   /// scope using the given name, or `null` if there is no such element.
-  Element get(String name) => _definedNames[name];
+  Element? get(String name) => _definedNames[name];
 
   /// Return the element in this namespace whose name is the result of combining
   /// the [prefix] and the [name], separated by a period, or `null` if there is
   /// no such element.
-  Element getPrefixed(String prefix, String name) => null;
+  Element? getPrefixed(String prefix, String name) => null;
 }
 
 /// The builder used to build a namespace. Namespace builders are thread-safe
@@ -139,7 +138,7 @@ class NamespaceBuilder {
   /// Create a namespace representing the export namespace of the given
   /// [element].
   Namespace createExportNamespaceForDirective(ExportElement element) {
-    LibraryElement exportedLibrary = element.exportedLibrary;
+    var exportedLibrary = element.exportedLibrary;
     if (exportedLibrary == null) {
       //
       // The exported library will be null if the URI does not reference a valid
@@ -162,7 +161,7 @@ class NamespaceBuilder {
   /// Create a namespace representing the import namespace of the given
   /// [element].
   Namespace createImportNamespaceForDirective(ImportElement element) {
-    LibraryElement importedLibrary = element.importedLibrary;
+    var importedLibrary = element.importedLibrary;
     if (importedLibrary == null) {
       //
       // The imported library will be null if the URI does not reference a valid
@@ -172,7 +171,7 @@ class NamespaceBuilder {
     }
     Map<String, Element> exportedNames = _getExportMapping(importedLibrary);
     exportedNames = _applyCombinators(exportedNames, element.combinators);
-    PrefixElement prefix = element.prefix;
+    var prefix = element.prefix;
     if (prefix != null) {
       return PrefixedNamespace(prefix.name, exportedNames);
     }
@@ -213,19 +212,10 @@ class NamespaceBuilder {
     return _applyCombinators(map, element.combinators).values;
   }
 
-  /// Add all of the names in the given [namespace] to the table of
-  /// [definedNames].
-  void _addAllFromNamespace(
-      Map<String, Element> definedNames, Namespace namespace) {
-    if (namespace != null) {
-      definedNames.addAll(namespace.definedNames);
-    }
-  }
-
   /// Add the given [element] to the table of [definedNames] if it has a
   /// publicly visible name.
   void _addIfPublic(Map<String, Element> definedNames, Element element) {
-    String name = element.name;
+    var name = element.name;
     if (name != null && name.isNotEmpty && !Identifier.isPrivateName(name)) {
       definedNames[name] = element;
     }
@@ -277,51 +267,8 @@ class NamespaceBuilder {
     return definedNames;
   }
 
-  /// Create a mapping table representing the export namespace of the given
-  /// [library]. The set of [visitedElements] contains the libraries that do not
-  /// need to be visited when processing the export directives of the given
-  /// library because all of the names defined by them will be added by another
-  /// library.
-  Map<String, Element> _computeExportMapping(
-      LibraryElement library, HashSet<LibraryElement> visitedElements) {
-    visitedElements.add(library);
-    try {
-      Map<String, Element> definedNames = HashMap<String, Element>();
-      for (ExportElement element in library.exports) {
-        LibraryElement exportedLibrary = element.exportedLibrary;
-        if (exportedLibrary != null &&
-            !visitedElements.contains(exportedLibrary)) {
-          //
-          // The exported library will be null if the URI does not reference a
-          // valid library.
-          //
-          Map<String, Element> exportedNames =
-              _computeExportMapping(exportedLibrary, visitedElements);
-          exportedNames = _applyCombinators(exportedNames, element.combinators);
-          definedNames.addAll(exportedNames);
-        }
-      }
-      _addAllFromNamespace(
-        definedNames,
-        createPublicNamespaceForLibrary(library),
-      );
-      return definedNames;
-    } finally {
-      visitedElements.remove(library);
-    }
-  }
-
   Map<String, Element> _getExportMapping(LibraryElement library) {
-    if (library.exportNamespace != null) {
-      return library.exportNamespace.definedNames;
-    }
-    if (library is LibraryElementImpl) {
-      Map<String, Element> exportMapping =
-          _computeExportMapping(library, HashSet<LibraryElement>());
-      library.exportNamespace = Namespace(exportMapping);
-      return exportMapping;
-    }
-    return _computeExportMapping(library, HashSet<LibraryElement>());
+    return library.exportNamespace.definedNames;
   }
 
   /// Return a new map of names which has all the names from [definedNames]
@@ -341,7 +288,7 @@ class NamespaceBuilder {
       Map<String, Element> definedNames, List<String> shownNames) {
     Map<String, Element> newNames = HashMap<String, Element>();
     for (String name in shownNames) {
-      Element element = definedNames[name];
+      var element = definedNames[name];
       if (element != null) {
         newNames[name] = element;
       }
@@ -386,7 +333,7 @@ class PrefixedNamespace implements Namespace {
   }
 
   @override
-  Element get(String name) {
+  Element? get(String name) {
     if (name.length > _length && name.startsWith(_prefix)) {
       if (name.codeUnitAt(_length) == '.'.codeUnitAt(0)) {
         return _definedNames[name.substring(_length + 1)];
@@ -396,7 +343,7 @@ class PrefixedNamespace implements Namespace {
   }
 
   @override
-  Element getPrefixed(String prefix, String name) {
+  Element? getPrefixed(String prefix, String name) {
     if (prefix == _prefix) {
       return _definedNames[name];
     }
@@ -425,8 +372,8 @@ extension ScopeExtension on Scope {
   /// (might be `null`) and [name] is not defined should be ignored (from the
   /// perspective of error reporting).
   bool shouldIgnoreUndefined2({
-    @required String prefix,
-    @required String name,
+    required String? prefix,
+    required String name,
   }) {
     return _enclosingLibraryScope.shouldIgnoreUndefined(
       prefix: prefix,
@@ -439,7 +386,7 @@ extension ScopeExtension on Scope {
   }
 
   LibraryScope get _enclosingLibraryScope {
-    var scope = this;
+    Scope? scope = this;
     while (scope != null) {
       if (scope is LibraryScope) {
         return scope;

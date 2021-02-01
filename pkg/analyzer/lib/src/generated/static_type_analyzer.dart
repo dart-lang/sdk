@@ -26,16 +26,16 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// The resolver driving the resolution and type analysis.
   final ResolverVisitor _resolver;
 
-  final MigrationResolutionHooks _migrationResolutionHooks;
+  final MigrationResolutionHooks? _migrationResolutionHooks;
 
   /// The object providing access to the types defined by the language.
-  TypeProviderImpl _typeProvider;
+  late TypeProviderImpl _typeProvider;
 
   /// The type system in use for static type analysis.
-  TypeSystemImpl _typeSystem;
+  late TypeSystemImpl _typeSystem;
 
   /// The type representing the type 'dynamic'.
-  DartType _dynamicType;
+  late DartType _dynamicType;
 
   /// Initialize a newly created static type analyzer to analyze types for the
   /// [_resolver] based on the
@@ -76,22 +76,14 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   ///
   /// TODO(scheglov) this is duplication
   void recordStaticType(Expression expression, DartType type) {
-    if (_migrationResolutionHooks != null) {
-      // TODO(scheglov) type cannot be null
-      type = _migrationResolutionHooks.modifyExpressionType(
-        expression,
-        type ?? DynamicTypeImpl.instance,
-      );
+    var hooks = _migrationResolutionHooks;
+    if (hooks != null) {
+      type = hooks.modifyExpressionType(expression, type);
     }
 
-    // TODO(scheglov) type cannot be null
-    if (type == null) {
-      expression.staticType = DynamicTypeImpl.instance;
-    } else {
-      expression.staticType = type;
-      if (_typeSystem.isBottom(type)) {
-        _resolver.flowAnalysis?.flow?.handleExit();
-      }
+    expression.staticType = type;
+    if (_typeSystem.isBottom(type)) {
+      _resolver.flowAnalysis?.flow?.handleExit();
     }
   }
 
@@ -119,8 +111,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   ///   the static type of e.
   @override
   void visitAwaitExpression(AwaitExpression node) {
-    DartType resultType = node.expression.staticType;
-    if (resultType != null) resultType = _typeSystem.flatten(resultType);
+    var resultType = node.expression.staticType!;
+    resultType = _typeSystem.flatten(resultType);
     recordStaticType(node, resultType);
   }
 
@@ -136,7 +128,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// t;}(e)</i>.</blockquote>
   @override
   void visitCascadeExpression(CascadeExpression node) {
-    recordStaticType(node, node.target.staticType);
+    recordStaticType(node, node.target.staticType!);
   }
 
   /// The Dart Language Specification, 12.19: <blockquote> ... a conditional expression <i>c</i> of
@@ -204,7 +196,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     _inferInstanceCreationExpression(node);
-    recordStaticType(node, node.constructorName.type.type);
+    recordStaticType(node, node.constructorName.type.type!);
   }
 
   /// <blockquote>
@@ -253,7 +245,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   @override
   void visitNamedExpression(NamedExpression node) {
     Expression expression = node.expression;
-    recordStaticType(node, expression.staticType);
+    recordStaticType(node, expression.staticType!);
   }
 
   /// The Dart Language Specification, 12.2: <blockquote>The static type of `null` is bottom.
@@ -266,7 +258,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
     Expression expression = node.expression;
-    recordStaticType(node, expression.staticType);
+    recordStaticType(node, expression.staticType!);
   }
 
   /// The Dart Language Specification, 12.9: <blockquote>The static type of a rethrow expression is
@@ -292,13 +284,14 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
   @override
   void visitSuperExpression(SuperExpression node) {
-    if (_resolver.thisType == null ||
+    var thisType = _resolver.thisType;
+    if (thisType == null ||
         node.thisOrAncestorOfType<ExtensionDeclaration>() != null) {
       // TODO(brianwilkerson) Report this error if it hasn't already been
       // reported.
       recordStaticType(node, _dynamicType);
     } else {
-      recordStaticType(node, _resolver.thisType);
+      recordStaticType(node, thisType);
     }
   }
 
@@ -311,12 +304,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// interface of the immediately enclosing class.</blockquote>
   @override
   void visitThisExpression(ThisExpression node) {
-    if (_resolver.thisType == null) {
+    var thisType = _resolver.thisType;
+    if (thisType == null) {
       // TODO(brianwilkerson) Report this error if it hasn't already been
       // reported.
       recordStaticType(node, _dynamicType);
     } else {
-      recordStaticType(node, _resolver.thisType);
+      recordStaticType(node, thisType);
     }
   }
 
@@ -331,8 +325,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// types of subexpressions [expr1] and [expr2].
   void _analyzeLeastUpperBound(
       Expression node, Expression expr1, Expression expr2) {
-    DartType staticType1 = expr1.staticType;
-    DartType staticType2 = expr2.staticType;
+    var staticType1 = expr1.staticType!;
+    var staticType2 = expr2.staticType!;
 
     _analyzeLeastUpperBoundTypes(node, staticType1, staticType2);
   }
@@ -341,15 +335,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// types [staticType1] and [staticType2].
   void _analyzeLeastUpperBoundTypes(
       Expression node, DartType staticType1, DartType staticType2) {
-    // TODO(brianwilkerson) Determine whether this can still happen.
-    staticType1 ??= _dynamicType;
-
-    // TODO(brianwilkerson) Determine whether this can still happen.
-    staticType2 ??= _dynamicType;
-
     DartType staticType =
-        _typeSystem.getLeastUpperBound(staticType1, staticType2) ??
-            _dynamicType;
+        _typeSystem.getLeastUpperBound(staticType1, staticType2);
 
     staticType = _resolver.toLegacyTypeIfOptOut(staticType);
 
@@ -358,7 +345,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
   /// Return the type represented by the given type [annotation].
   DartType _getType(TypeAnnotation annotation) {
-    DartType type = annotation.type;
+    var type = annotation.type;
     if (type == null) {
       //TODO(brianwilkerson) Determine the conditions for which the type is
       // null.
@@ -371,7 +358,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// arguments using the current context type as well as the argument types.
   void _inferInstanceCreationExpression(InstanceCreationExpression node) {
     ConstructorName constructor = node.constructorName;
-    ConstructorElement originalElement = constructor.staticElement;
+    var originalElement = constructor.staticElement;
     // If the constructor is generic, we'll have a ConstructorMember that
     // substitutes in type arguments (possibly `dynamic`) from earlier in
     // resolution.
@@ -398,7 +385,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     FunctionType constructorType = constructorToGenericFunctionType(rawElement);
 
     ArgumentList arguments = node.argumentList;
-    FunctionType inferred = _resolver.inferenceHelper.inferGenericInvoke(
+    var inferred = _resolver.inferenceHelper.inferGenericInvoke(
         node,
         constructorType,
         constructor.type.typeArguments,

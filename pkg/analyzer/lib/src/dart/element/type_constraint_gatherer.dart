@@ -10,7 +10,6 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:meta/meta.dart';
 
 /// A constraint on the type [parameter] that we're inferring.
 /// We require that `lower <: parameter <: upper`.
@@ -42,8 +41,8 @@ class TypeConstraintGatherer {
   final List<TypeConstraint> _constraints = [];
 
   TypeConstraintGatherer({
-    @required TypeSystemImpl typeSystem,
-    @required Iterable<TypeParameterElement> typeParameters,
+    required TypeSystemImpl typeSystem,
+    required Iterable<TypeParameterElement> typeParameters,
   }) : _typeSystem = typeSystem {
     _typeParameters.addAll(typeParameters);
   }
@@ -69,7 +68,7 @@ class TypeConstraintGatherer {
 
     for (var constraint in _constraints) {
       var parameter = constraint.parameter;
-      var mergedConstraint = result[parameter];
+      var mergedConstraint = result[parameter]!;
 
       var lower = _typeSystem.getLeastUpperBound(
         mergedConstraint.lower,
@@ -560,7 +559,7 @@ class TypeConstraintGatherer {
       if (interface.element == C1) {
         var substitution = Substitution.fromInterfaceType(P);
         return _interfaceType_arguments(
-          substitution.substituteType(interface),
+          substitution.substituteType(interface) as InterfaceType,
           Q,
           leftSchema,
         );

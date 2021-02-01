@@ -29,9 +29,7 @@ class LineInfo {
   /// Initialize a newly created set of line information to represent the data
   /// encoded in the given list of [lineStarts].
   LineInfo(this.lineStarts) {
-    if (lineStarts == null) {
-      throw ArgumentError("lineStarts must be non-null");
-    } else if (lineStarts.isEmpty) {
+    if (lineStarts.isEmpty) {
       throw ArgumentError("lineStarts must be non-empty");
     }
   }

@@ -54,16 +54,12 @@ class A {
   const A.named();
 }
 ''');
-    await _validateAnnotation('', '@A.named()', (SimpleIdentifier name1,
-        SimpleIdentifier name2,
-        SimpleIdentifier name3,
-        Element annotationElement) {
-      assert(name1 != null);
-      assert(name2 != null);
-      expect(name1.staticElement, isClassElement);
-      expect(name1.staticElement.displayName, 'A');
-      expect(name2.staticElement, isConstructorElement);
-      expect(name2.staticElement.displayName, 'named');
+    await _validateAnnotation('', '@A.named()',
+        (name1, name2, name3, annotationElement) {
+      expect(name1!.staticElement, isClassElement);
+      expect(name1.staticElement!.displayName, 'A');
+      expect(name2!.staticElement, isConstructorElement);
+      expect(name2.staticElement!.displayName, 'named');
       expect(name3, isNull);
       if (annotationElement is ConstructorElement) {
         expect(annotationElement, same(name2.staticElement));
@@ -72,7 +68,7 @@ class A {
         expect(annotationElement.parameters, isEmpty);
       } else {
         fail('Expected "annotationElement" is ConstructorElement, '
-            'but (${annotationElement?.runtimeType}) $annotationElement found.');
+            'but (${annotationElement.runtimeType}) $annotationElement found.');
       }
     });
   }
@@ -83,19 +79,14 @@ class A {
   const A.named();
 }
 ''');
-    await _validateAnnotation('as p', '@p.A.named()', (SimpleIdentifier name1,
-        SimpleIdentifier name2,
-        SimpleIdentifier name3,
-        Element annotationElement) {
-      assert(name1 != null);
-      assert(name2 != null);
-      assert(name3 != null);
-      expect(name1.staticElement, isPrefixElement);
-      expect(name1.staticElement.displayName, 'p');
-      expect(name2.staticElement, isClassElement);
-      expect(name2.staticElement.displayName, 'A');
-      expect(name3.staticElement, isConstructorElement);
-      expect(name3.staticElement.displayName, 'named');
+    await _validateAnnotation('as p', '@p.A.named()',
+        (name1, name2, name3, annotationElement) {
+      expect(name1!.staticElement, isPrefixElement);
+      expect(name1.staticElement!.displayName, 'p');
+      expect(name2!.staticElement, isClassElement);
+      expect(name2.staticElement!.displayName, 'A');
+      expect(name3!.staticElement, isConstructorElement);
+      expect(name3.staticElement!.displayName, 'named');
       if (annotationElement is ConstructorElement) {
         expect(annotationElement, same(name3.staticElement));
         expect(annotationElement.enclosingElement, name2.staticElement);
@@ -103,7 +94,7 @@ class A {
         expect(annotationElement.parameters, isEmpty);
       } else {
         fail('Expected "annotationElement" is ConstructorElement, '
-            'but (${annotationElement?.runtimeType}) $annotationElement found.');
+            'but (${annotationElement.runtimeType}) $annotationElement found.');
       }
     });
   }
@@ -114,26 +105,21 @@ class A {
   static const V = 0;
 }
 ''');
-    await _validateAnnotation('as p', '@p.A.V', (SimpleIdentifier name1,
-        SimpleIdentifier name2,
-        SimpleIdentifier name3,
-        Element annotationElement) {
-      assert(name1 != null);
-      assert(name2 != null);
-      assert(name3 != null);
-      expect(name1.staticElement, isPrefixElement);
-      expect(name1.staticElement.displayName, 'p');
-      expect(name2.staticElement, isClassElement);
-      expect(name2.staticElement.displayName, 'A');
-      expect(name3.staticElement, isPropertyAccessorElement);
-      expect(name3.staticElement.displayName, 'V');
+    await _validateAnnotation('as p', '@p.A.V',
+        (name1, name2, name3, annotationElement) {
+      expect(name1!.staticElement, isPrefixElement);
+      expect(name1.staticElement!.displayName, 'p');
+      expect(name2!.staticElement, isClassElement);
+      expect(name2.staticElement!.displayName, 'A');
+      expect(name3!.staticElement, isPropertyAccessorElement);
+      expect(name3.staticElement!.displayName, 'V');
       if (annotationElement is PropertyAccessorElement) {
         expect(annotationElement, same(name3.staticElement));
         expect(annotationElement.enclosingElement, name2.staticElement);
         expect(annotationElement.displayName, 'V');
       } else {
         fail('Expected "annotationElement" is PropertyAccessorElement, '
-            'but (${annotationElement?.runtimeType}) $annotationElement found.');
+            'but (${annotationElement.runtimeType}) $annotationElement found.');
       }
     });
   }
@@ -144,16 +130,12 @@ class A {
   const A();
 }
 ''');
-    await _validateAnnotation('as p', '@p.A', (SimpleIdentifier name1,
-        SimpleIdentifier name2,
-        SimpleIdentifier name3,
-        Element annotationElement) {
-      assert(name1 != null);
-      assert(name2 != null);
-      expect(name1.staticElement, isPrefixElement);
-      expect(name1.staticElement.displayName, 'p');
-      expect(name2.staticElement, isClassElement);
-      expect(name2.staticElement.displayName, 'A');
+    await _validateAnnotation('as p', '@p.A',
+        (name1, name2, name3, annotationElement) {
+      expect(name1!.staticElement, isPrefixElement);
+      expect(name1.staticElement!.displayName, 'p');
+      expect(name2!.staticElement, isClassElement);
+      expect(name2.staticElement!.displayName, 'A');
       expect(name3, isNull);
       if (annotationElement is ConstructorElement) {
         expect(annotationElement.enclosingElement, name2.staticElement);
@@ -161,7 +143,7 @@ class A {
         expect(annotationElement.parameters, isEmpty);
       } else {
         fail('Expected "annotationElement" is ConstructorElement, '
-            'but (${annotationElement?.runtimeType}) $annotationElement found.');
+            'but (${annotationElement.runtimeType}) $annotationElement found.');
       }
     });
   }
@@ -172,16 +154,12 @@ class A {
   static const V = 0;
 }
 ''');
-    await _validateAnnotation('', '@A.V', (SimpleIdentifier name1,
-        SimpleIdentifier name2,
-        SimpleIdentifier name3,
-        Element annotationElement) {
-      assert(name1 != null);
-      assert(name2 != null);
-      expect(name1.staticElement, isClassElement);
-      expect(name1.staticElement.displayName, 'A');
-      expect(name2.staticElement, isPropertyAccessorElement);
-      expect(name2.staticElement.displayName, 'V');
+    await _validateAnnotation('', '@A.V',
+        (name1, name2, name3, annotationElement) {
+      expect(name1!.staticElement, isClassElement);
+      expect(name1.staticElement!.displayName, 'A');
+      expect(name2!.staticElement, isPropertyAccessorElement);
+      expect(name2.staticElement!.displayName, 'V');
       expect(name3, isNull);
       if (annotationElement is PropertyAccessorElement) {
         expect(annotationElement, same(name2.staticElement));
@@ -189,7 +167,7 @@ class A {
         expect(annotationElement.displayName, 'V');
       } else {
         fail('Expected "annotationElement" is PropertyAccessorElement, '
-            'but (${annotationElement?.runtimeType}) $annotationElement found.');
+            'but (${annotationElement.runtimeType}) $annotationElement found.');
       }
     });
   }
@@ -200,13 +178,10 @@ class A {
   const A();
 }
 ''');
-    await _validateAnnotation('', '@A', (SimpleIdentifier name1,
-        SimpleIdentifier name2,
-        SimpleIdentifier name3,
-        Element annotationElement) {
-      assert(name1 != null);
-      expect(name1.staticElement, isClassElement);
-      expect(name1.staticElement.displayName, 'A');
+    await _validateAnnotation('', '@A',
+        (name1, name2, name3, annotationElement) {
+      expect(name1!.staticElement, isClassElement);
+      expect(name1.staticElement!.displayName, 'A');
       expect(name2, isNull);
       expect(name3, isNull);
       if (annotationElement is ConstructorElement) {
@@ -215,7 +190,7 @@ class A {
         expect(annotationElement.parameters, isEmpty);
       } else {
         fail('Expected "annotationElement" is ConstructorElement, '
-            'but (${annotationElement?.runtimeType}) $annotationElement found.');
+            'but (${annotationElement.runtimeType}) $annotationElement found.');
       }
     });
   }
@@ -224,13 +199,10 @@ class A {
     newFile('$testPackageLibPath/a.dart', content: r'''
 const V = 0;
 ''');
-    await _validateAnnotation('', '@V', (SimpleIdentifier name1,
-        SimpleIdentifier name2,
-        SimpleIdentifier name3,
-        Element annotationElement) {
-      assert(name1 != null);
-      expect(name1.staticElement, isPropertyAccessorElement);
-      expect(name1.staticElement.displayName, 'V');
+    await _validateAnnotation('', '@V',
+        (name1, name2, name3, annotationElement) {
+      expect(name1!.staticElement, isPropertyAccessorElement);
+      expect(name1.staticElement!.displayName, 'V');
       expect(name2, isNull);
       expect(name3, isNull);
       if (annotationElement is PropertyAccessorElement) {
@@ -239,7 +211,7 @@ const V = 0;
         expect(annotationElement.displayName, 'V');
       } else {
         fail('Expected "annotationElement" is PropertyAccessorElement, '
-            'but (${annotationElement?.runtimeType}) $annotationElement found.');
+            'but (${annotationElement.runtimeType}) $annotationElement found.');
       }
     });
   }
@@ -248,16 +220,12 @@ const V = 0;
     newFile('$testPackageLibPath/a.dart', content: r'''
 const V = 0;
 ''');
-    await _validateAnnotation('as p', '@p.V', (SimpleIdentifier name1,
-        SimpleIdentifier name2,
-        SimpleIdentifier name3,
-        Element annotationElement) {
-      assert(name1 != null);
-      assert(name2 != null);
-      expect(name1.staticElement, isPrefixElement);
-      expect(name1.staticElement.displayName, 'p');
-      expect(name2.staticElement, isPropertyAccessorElement);
-      expect(name2.staticElement.displayName, 'V');
+    await _validateAnnotation('as p', '@p.V',
+        (name1, name2, name3, annotationElement) {
+      expect(name1!.staticElement, isPrefixElement);
+      expect(name1.staticElement!.displayName, 'p');
+      expect(name2!.staticElement, isPropertyAccessorElement);
+      expect(name2.staticElement!.displayName, 'V');
       expect(name3, isNull);
       if (annotationElement is PropertyAccessorElement) {
         expect(annotationElement, same(name2.staticElement));
@@ -265,7 +233,7 @@ const V = 0;
         expect(annotationElement.displayName, 'V');
       } else {
         fail('Expected "annotationElement" is PropertyAccessorElement, '
-            'but (${annotationElement?.runtimeType}) $annotationElement found.');
+            'but (${annotationElement.runtimeType}) $annotationElement found.');
       }
     });
   }
@@ -273,8 +241,8 @@ const V = 0;
   Future<void> _validateAnnotation(
       String annotationPrefix,
       String annotationText,
-      Function(SimpleIdentifier name1, SimpleIdentifier name2,
-              SimpleIdentifier name3, Element annotationElement)
+      Function(SimpleIdentifier? name, SimpleIdentifier? name2,
+              SimpleIdentifier? name3, Element annotationElement)
           validator) async {
     await resolveTestCode('''
 import 'a.dart' $annotationPrefix;
@@ -284,14 +252,14 @@ class C {}
     var clazz = findNode.classDeclaration('C');
     Annotation annotation = clazz.metadata.single;
     Identifier name = annotation.name;
-    Element annotationElement = annotation.element;
+    Element annotationElement = annotation.element!;
     if (name is SimpleIdentifier) {
       validator(name, null, annotation.constructorName, annotationElement);
     } else if (name is PrefixedIdentifier) {
       validator(name.prefix, name.identifier, annotation.constructorName,
           annotationElement);
     } else {
-      fail('Uknown "name": ${name?.runtimeType} $name');
+      fail('Uknown "name": ${name.runtimeType} $name');
     }
   }
 }
@@ -299,19 +267,19 @@ class C {}
 @reflectiveTest
 class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
   /// The error listener to which errors will be reported.
-  /*late*/ GatheringErrorListener _listener;
+  late GatheringErrorListener _listener;
 
   /// The type provider used to access the types.
-  /*late*/ TypeProvider _typeProvider;
+  late TypeProvider _typeProvider;
 
   /// The library containing the code being resolved.
-  /*late*/ LibraryElementImpl _definingLibrary;
+  late LibraryElementImpl _definingLibrary;
 
   /// The resolver visitor that maintains the state for the resolver.
-  /*late*/ ResolverVisitor _visitor;
+  late ResolverVisitor _visitor;
 
   /// The resolver being used to resolve the test cases.
-  /*late*/ ElementResolver _resolver;
+  late ElementResolver _resolver;
 
   @override
   TypeProvider get typeProvider => _typeProvider;
@@ -320,7 +288,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     _fail("Not yet tested");
     // Need to set up the exported library so that the identifier can be
     // resolved.
-    ExportDirective directive = AstTestFactory.exportDirective2(null, [
+    ExportDirective directive = AstTestFactory.exportDirective2('dart:math', [
       AstTestFactory.hideCombinator2(["A"])
     ]);
     _resolveNode(directive);
@@ -336,7 +304,8 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     _fail("Not yet tested");
     // Need to set up the imported library so that the identifier can be
     // resolved.
-    ImportDirective directive = AstTestFactory.importDirective3(null, null, [
+    ImportDirective directive =
+        AstTestFactory.importDirective3('dart:math', null, [
       AstTestFactory.showCombinator2(["A"])
     ]);
     _resolveNode(directive);
@@ -349,10 +318,11 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     // resolved.
     String prefixName = "p";
     _definingLibrary.imports = <ImportElement>[
-      ElementFactory.importFor(null, ElementFactory.prefix(prefixName))
+      ElementFactory.importFor(
+          _LibraryElementMock(), ElementFactory.prefix(prefixName))
     ];
     ImportDirective directive =
-        AstTestFactory.importDirective3(null, prefixName, [
+        AstTestFactory.importDirective3('dart:math', prefixName, [
       AstTestFactory.showCombinator2(["A"]),
       AstTestFactory.hideCombinator2(["B"])
     ]);
@@ -370,6 +340,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     _createResolver();
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   test_visitBreakStatement_withLabel() async {
     // loop: while (true) {
     //   break loop;
@@ -392,6 +363,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   test_visitCommentReference_prefixedIdentifier_class_getter() async {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     // set accessors
@@ -402,7 +374,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.setterElement(propName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getter, setter];
     // set name scope
-    _visitor.nameScope = LocalScope(null)..add(classA);
+    _visitor.nameScope = LocalScope(_RootScopeMock.instance)..add(classA);
     // prepare "A.p"
     PrefixedIdentifier prefixed = AstTestFactory.identifier5('A', 'p');
     CommentReference commentReference =
@@ -414,6 +386,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   test_visitCommentReference_prefixedIdentifier_class_method() async {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     // set method
@@ -421,7 +394,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.methodElement("m", _typeProvider.intType);
     classA.methods = <MethodElement>[method];
     // set name scope
-    _visitor.nameScope = LocalScope(null)..add(classA);
+    _visitor.nameScope = LocalScope(_RootScopeMock.instance)..add(classA);
     // prepare "A.m"
     PrefixedIdentifier prefixed = AstTestFactory.identifier5('A', 'm');
     CommentReference commentReference =
@@ -433,6 +406,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   test_visitCommentReference_prefixedIdentifier_class_operator() async {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     // set method
@@ -440,7 +414,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.methodElement("==", _typeProvider.boolType);
     classA.methods = <MethodElement>[method];
     // set name scope
-    _visitor.nameScope = LocalScope(null)..add(classA);
+    _visitor.nameScope = LocalScope(_RootScopeMock.instance)..add(classA);
     // prepare "A.=="
     PrefixedIdentifier prefixed = AstTestFactory.identifier5('A', '==');
     CommentReference commentReference =
@@ -469,7 +443,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
   test_visitConstructorName_unnamed() async {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     _encloseElement(classA);
-    String constructorName;
+    String constructorName = 'named';
     ConstructorElement constructor =
         ElementFactory.constructorElement2(classA, constructorName);
     classA.constructors = <ConstructorElement>[constructor];
@@ -480,6 +454,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   test_visitContinueStatement_withLabel() async {
     // loop: while (true) {
     //   continue loop;
@@ -503,8 +478,9 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   test_visitExportDirective_noCombinators() async {
-    ExportDirective directive = AstTestFactory.exportDirective2(null);
+    ExportDirective directive = AstTestFactory.exportDirective2('dart:math');
     directive.element = ElementFactory.exportFor(
         ElementFactory.library(_definingLibrary.context, "lib"));
     _resolveNode(directive);
@@ -526,17 +502,20 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     parameterElement.type = intType;
     parameter.identifier.staticElement = parameterElement;
     _resolveInClass(parameter, classA);
-    expect(parameter.declaredElement.type, same(intType));
+    expect(parameter.declaredElement!.type, same(intType));
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   test_visitImportDirective_noCombinators_noPrefix() async {
-    ImportDirective directive = AstTestFactory.importDirective3(null, null);
+    ImportDirective directive =
+        AstTestFactory.importDirective3('dart:math', null);
     directive.element = ElementFactory.importFor(
         ElementFactory.library(_definingLibrary.context, "lib"), null);
     _resolveNode(directive);
     _listener.assertNoErrors();
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   test_visitImportDirective_noCombinators_prefix() async {
     String prefixName = "p";
     ImportElement importElement = ElementFactory.importFor(
@@ -544,16 +523,17 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.prefix(prefixName));
     _definingLibrary.imports = <ImportElement>[importElement];
     ImportDirective directive =
-        AstTestFactory.importDirective3(null, prefixName);
+        AstTestFactory.importDirective3('dart:math', prefixName);
     directive.element = importElement;
     _resolveNode(directive);
     _listener.assertNoErrors();
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   test_visitImportDirective_withCombinators() async {
     ShowCombinator combinator = AstTestFactory.showCombinator2(["A", "B", "C"]);
     ImportDirective directive =
-        AstTestFactory.importDirective3(null, null, [combinator]);
+        AstTestFactory.importDirective3('dart:math', null, [combinator]);
     LibraryElementImpl library =
         ElementFactory.library(_definingLibrary.context, "lib");
     TopLevelVariableElementImpl varA =
@@ -565,10 +545,10 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     CompilationUnitElementImpl unit =
         library.definingCompilationUnit as CompilationUnitElementImpl;
     unit.accessors = <PropertyAccessorElement>[
-      varA.getter,
-      varA.setter,
-      varB.getter,
-      varC.setter
+      varA.getter!,
+      varA.setter!,
+      varB.getter!,
+      varC.setter!
     ];
     unit.topLevelVariables = <TopLevelVariableElement>[varA, varB, varC];
     directive.element = ElementFactory.importFor(library, null);
@@ -596,7 +576,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
 
   test_visitInstanceCreationExpression_unnamed() async {
     ClassElementImpl classA = ElementFactory.classElement2("A");
-    String constructorName;
+    String constructorName = 'named';
     ConstructorElement constructor =
         ElementFactory.constructorElement2(classA, constructorName);
     classA.constructors = <ConstructorElement>[constructor];
@@ -611,7 +591,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
 
   test_visitInstanceCreationExpression_unnamed_namedParameter() async {
     ClassElementImpl classA = ElementFactory.classElement2("A");
-    String constructorName;
+    String constructorName = 'named';
     ConstructorElementImpl constructor =
         ElementFactory.constructorElement2(classA, constructorName);
     String parameterName = "a";
@@ -644,7 +624,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     MethodInvocation invocation =
         AstTestFactory.methodInvocation(left, methodName);
     _resolveNode(invocation);
-    expect(invocation.methodName.staticElement.declaration,
+    expect(invocation.methodName.staticElement!.declaration,
         same(numType.getMethod(methodName)));
     _listener.assertNoErrors();
   }
@@ -679,7 +659,8 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     SuperConstructorInvocation invocation =
         AstTestFactory.superConstructorInvocation();
     AstTestFactory.classDeclaration(null, 'C', null, null, null, null, [
-      AstTestFactory.constructorDeclaration(null, 'C', null, [invocation])
+      AstTestFactory.constructorDeclaration(AstTestFactory.identifier3('C'),
+          null, AstTestFactory.formalParameterList(), [invocation])
     ]);
     _resolveInClass(invocation, subclass);
     expect(invocation.staticElement, superConstructor);
@@ -706,7 +687,8 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
       AstTestFactory.namedExpression2(parameterName, AstTestFactory.integer(0))
     ]);
     AstTestFactory.classDeclaration(null, 'C', null, null, null, null, [
-      AstTestFactory.constructorDeclaration(null, 'C', null, [invocation])
+      AstTestFactory.constructorDeclaration(AstTestFactory.identifier3('C'),
+          null, AstTestFactory.formalParameterList(), [invocation])
     ]);
     _resolveInClass(invocation, subclass);
     expect(invocation.staticElement, superConstructor);
@@ -752,10 +734,10 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
   /// resolver has resolved it.  [labelElement] is the label element to be
   /// defined in the statement's label scope, and [labelTarget] is the statement
   /// the label resolves to.
-  Element _resolveBreak(BreakStatement statement, LabelElementImpl labelElement,
-      Statement labelTarget) {
+  Element? _resolveBreak(BreakStatement statement,
+      LabelElementImpl labelElement, Statement labelTarget) {
     _resolveStatement(statement, labelElement, labelTarget);
-    return statement.label.staticElement;
+    return statement.label!.staticElement;
   }
 
   /// Return the element associated with the label [statement] after the
@@ -767,10 +749,10 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
   /// @param labelElement the label element to be defined in the statement's
   ///          label scope
   /// @return the element to which the statement's label was resolved
-  Element _resolveContinue(ContinueStatement statement,
+  Element? _resolveContinue(ContinueStatement statement,
       LabelElementImpl labelElement, AstNode labelTarget) {
     _resolveStatement(statement, labelElement, labelTarget);
-    return statement.label.staticElement;
+    return statement.label!.staticElement;
   }
 
   /// Return the element associated with the given identifier after the resolver
@@ -803,7 +785,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
   /// @param definedElements the elements that are to be defined in the scope in
   ///          which the element is being resolved
   /// @return the element to which the expression was resolved
-  void _resolveNode(AstNode node, [List<Element> definedElements]) {
+  void _resolveNode(AstNode node, [List<Element>? definedElements]) {
     Scope outerScope = _visitor.nameScope;
     try {
       var innerScope = LocalScope(outerScope);
@@ -826,16 +808,16 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
   /// @param labelElement the label element to be defined in the statement's
   ///          label scope
   /// @return the element to which the statement's label was resolved
-  void _resolveStatement(
-      Statement statement, LabelElementImpl labelElement, AstNode labelTarget) {
-    LabelScope outerScope = _visitor.labelScope;
+  void _resolveStatement(Statement statement, LabelElementImpl? labelElement,
+      AstNode? labelTarget) {
+    LabelScope? outerScope = _visitor.labelScope;
     try {
-      LabelScope innerScope;
+      LabelScope? innerScope;
       if (labelElement == null) {
         innerScope = outerScope;
       } else {
         innerScope = LabelScope(
-            outerScope, labelElement.name, labelTarget, labelElement);
+            outerScope, labelElement.name, labelTarget!, labelElement);
       }
       _visitor.labelScope = innerScope;
       statement.accept(_resolver);
@@ -843,4 +825,16 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
       _visitor.labelScope = outerScope;
     }
   }
+}
+
+class _LibraryElementMock implements LibraryElement {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _RootScopeMock implements Scope {
+  static final Scope instance = _RootScopeMock();
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

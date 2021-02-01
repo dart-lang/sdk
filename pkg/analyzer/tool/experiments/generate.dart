@@ -45,7 +45,7 @@ String keyToIdentifier(String key) {
 class _ExperimentsGenerator {
   final Map experimentsYaml;
 
-  List<String> keysSorted;
+  late List<String> keysSorted;
 
   final out = StringBuffer('''
 //
@@ -57,13 +57,15 @@ class _ExperimentsGenerator {
 part of 'experiments.dart';
 ''');
 
-  Map<String, dynamic> _features;
+  Map<String, dynamic>? _features;
 
   _ExperimentsGenerator(this.experimentsYaml);
 
   Map<String, dynamic> get features {
-    if (_features != null) return _features;
-    _features = {};
+    var features = _features;
+    if (features != null) return features;
+
+    features = <String, dynamic>{};
     Map yamlFeatures = experimentsYaml['features'];
     for (MapEntry entry in yamlFeatures.entries) {
       String category = entry.value['category'] ?? 'language';
@@ -72,10 +74,10 @@ part of 'experiments.dart';
         // possibly allow e.g. 'analyzer' etc.
         continue;
       }
-      _features[entry.key] = entry.value;
+      features[entry.key] = entry.value;
     }
 
-    return _features;
+    return _features = features;
   }
 
   void generateFormatCode() {

@@ -58,7 +58,7 @@ class Import {
   final Uri uri;
 
   /// The import prefix, or `null` if not specified.
-  final String prefix;
+  final String? prefix;
 
   /// The list of namespace combinators to apply, not `null`.
   final List<Combinator> combinators;
@@ -83,7 +83,7 @@ class Library {
   final List<Export> exports;
 
   /// The list of libraries that correspond to the [imports].
-  List<Library> importedLibraries;
+  List<Library>? importedLibraries;
 
   /// The list of top-level nodes defined in the library.
   ///
@@ -98,13 +98,13 @@ class Library {
   /// directives, or declared in this library.
   ///
   /// This list is sorted.
-  List<Node> exportedNodes;
+  List<Node>? exportedNodes;
 
   /// The map of nodes that are visible in the library, either imported,
   /// or declared in this library.
   ///
   /// TODO(scheglov) support for imports with prefixes
-  Map<String, Node> libraryScope;
+  Map<String, Node>? libraryScope;
 
   Library(this.uri, this.imports, this.exports, this.declaredNodes) {
     for (var node in declaredNodes) {
@@ -140,13 +140,13 @@ class _LibraryBuilder {
   /// It is mixed into every API token signature, because for example even
   /// though types of two functions might be the same, their locations
   /// are different.
-  List<int> uriSignature;
+  late List<int> uriSignature;
 
   /// The name of the enclosing class name, or `null` if outside a class.
-  String enclosingClassName;
+  String? enclosingClassName;
 
   /// The super class of the enclosing class, or `null` if outside a class.
-  TypeName enclosingSuperClass;
+  TypeName? enclosingSuperClass;
 
   /// The precomputed signature of the enclosing class name, or `null` if
   /// outside a class.
@@ -154,10 +154,10 @@ class _LibraryBuilder {
   /// It is mixed into every API token signature of every class member, because
   /// for example even though types of two methods might be the same, their
   /// locations are different.
-  List<int> enclosingClassNameSignature;
+  List<int>? enclosingClassNameSignature;
 
   /// The node of the enclosing class.
-  Node enclosingClass;
+  Node? enclosingClass;
 
   _LibraryBuilder(this.uri, this.units);
 
@@ -182,7 +182,7 @@ class _LibraryBuilder {
     }
 
     enclosingClassNameSignature =
-        (ApiSignature()..addString(enclosingClassName)).toByteList();
+        (ApiSignature()..addString(enclosingClassName!)).toByteList();
 
     var apiTokenSignature = _computeTokenSignature(
       node.beginToken,
@@ -212,7 +212,7 @@ class _LibraryBuilder {
     }
 
     enclosingClass = Node(
-      LibraryQualifiedName(uri, enclosingClassName),
+      LibraryQualifiedName(uri, enclosingClassName!),
       node is MixinDeclaration ? NodeKind.MIXIN : NodeKind.CLASS,
       api,
       Dependencies.none,
@@ -226,7 +226,7 @@ class _LibraryBuilder {
     List<Node> classTypeParameters;
     if (node.typeParameters != null) {
       classTypeParameters = <Node>[];
-      for (var typeParameter in node.typeParameters.typeParameters) {
+      for (var typeParameter in node.typeParameters!.typeParameters) {
         var api = referenceCollector.collect(
           _computeNodeTokenSignature(typeParameter),
           enclosingClassName: enclosingClassName,
@@ -238,11 +238,11 @@ class _LibraryBuilder {
           NodeKind.TYPE_PARAMETER,
           api,
           Dependencies.none,
-          enclosingClass: enclosingClass,
+          enclosingClass: enclosingClass!,
         ));
       }
       classTypeParameters.sort(Node.compare);
-      enclosingClass.setTypeParameters(classTypeParameters);
+      enclosingClass!.setTypeParameters(classTypeParameters);
     }
 
     var classMembers = <Node>[];
@@ -271,14 +271,14 @@ class _LibraryBuilder {
         NodeKind.CONSTRUCTOR,
         Dependencies.none,
         Dependencies.none,
-        enclosingClass: enclosingClass,
+        enclosingClass: enclosingClass!,
       ));
     }
 
     classMembers.sort(Node.compare);
-    enclosingClass.setClassMembers(classMembers);
+    enclosingClass!.setClassMembers(classMembers);
 
-    declaredNodes.add(enclosingClass);
+    declaredNodes.add(enclosingClass!);
     enclosingClassName = null;
     enclosingClassNameSignature = null;
     enclosingSuperClass = null;
@@ -331,7 +331,7 @@ class _LibraryBuilder {
       NodeKind.CONSTRUCTOR,
       api,
       impl,
-      enclosingClass: enclosingClass,
+      enclosingClass: enclosingClass!,
     ));
   }
 
@@ -392,7 +392,7 @@ class _LibraryBuilder {
     for (var directive in units.first.directives) {
       if (directive is ExportDirective) {
         var refUri = directive.uri.stringValue;
-        var importUri = uri.resolve(refUri);
+        var importUri = uri.resolve(refUri!);
         var combinators = _getCombinators(directive);
         exports.add(Export(importUri, combinators));
       }
@@ -466,22 +466,23 @@ class _LibraryBuilder {
   }
 
   void _addGenericTypeAlias(GenericTypeAlias node) {
+    // TODO(scheglov) Support all types.
     var functionType = node.functionType;
 
     var builder = _newApiSignatureBuilder();
     _appendMetadataTokens(builder, node.metadata);
     _appendNodeTokens(builder, node.typeParameters);
-    _appendNodeTokens(builder, functionType.returnType);
-    _appendNodeTokens(builder, functionType.typeParameters);
-    _appendFormalParametersTokens(builder, functionType.parameters);
+    _appendNodeTokens(builder, functionType?.returnType);
+    _appendNodeTokens(builder, functionType?.typeParameters);
+    _appendFormalParametersTokens(builder, functionType?.parameters);
     var apiTokenSignature = builder.toByteList();
 
     var api = referenceCollector.collect(
       apiTokenSignature,
       typeParameters: node.typeParameters,
-      typeParameters2: functionType.typeParameters,
-      formalParameters: functionType.parameters,
-      returnType: functionType.returnType,
+      typeParameters2: functionType?.typeParameters,
+      formalParameters: functionType?.parameters,
+      returnType: functionType?.returnType,
     );
 
     declaredNodes.add(Node(
@@ -498,7 +499,7 @@ class _LibraryBuilder {
     for (var directive in units.first.directives) {
       if (directive is ImportDirective) {
         var refUri = directive.uri.stringValue;
-        var importUri = uri.resolve(refUri);
+        var importUri = uri.resolve(refUri!);
 
         if (importUri.toString() == 'dart:core') {
           hasDartCoreImport = true;
@@ -506,10 +507,11 @@ class _LibraryBuilder {
 
         var combinators = _getCombinators(directive);
 
-        imports.add(Import(importUri, directive.prefix?.name, combinators));
+        var prefix = directive.prefix;
+        imports.add(Import(importUri, prefix?.name, combinators));
 
-        if (directive.prefix != null) {
-          referenceCollector.addImportPrefix(directive.prefix.name);
+        if (prefix != null) {
+          referenceCollector.addImportPrefix(prefix.name);
         }
       }
     }
@@ -557,7 +559,7 @@ class _LibraryBuilder {
 
     var name = LibraryQualifiedName(uri, node.name.name);
     classMembers.add(
-      Node(name, kind, api, impl, enclosingClass: enclosingClass),
+      Node(name, kind, api, impl, enclosingClass: enclosingClass!),
     );
   }
 
@@ -648,7 +650,7 @@ class _LibraryBuilder {
   }
 
   /// Return the signature for all tokens of the [node].
-  List<int> _computeNodeTokenSignature(AstNode node) {
+  List<int> _computeNodeTokenSignature(AstNode? node) {
     if (node == null) {
       return const <int>[];
     }
@@ -667,14 +669,14 @@ class _LibraryBuilder {
     var builder = ApiSignature();
     builder.addBytes(uriSignature);
     if (enclosingClassNameSignature != null) {
-      builder.addBytes(enclosingClassNameSignature);
+      builder.addBytes(enclosingClassNameSignature!);
     }
     return builder;
   }
 
   /// Append tokens of the given [parameters] to the [signature].
   static void _appendFormalParametersTokens(
-      ApiSignature signature, FormalParameterList parameters) {
+      ApiSignature signature, FormalParameterList? parameters) {
     if (parameters == null) return;
 
     for (var parameter in parameters.parameters) {
@@ -694,7 +696,7 @@ class _LibraryBuilder {
         _appendTokens(
           signature,
           parameter.beginToken,
-          parameter.type.endToken,
+          parameter.type!.endToken,
         );
         continue;
       }
@@ -706,15 +708,13 @@ class _LibraryBuilder {
 
   static void _appendMetadataTokens(
       ApiSignature signature, List<Annotation> metadata) {
-    if (metadata != null) {
-      for (var annotation in metadata) {
-        _appendNodeTokens(signature, annotation);
-      }
+    for (var annotation in metadata) {
+      _appendNodeTokens(signature, annotation);
     }
   }
 
   /// Append tokens of the given [node] to the [signature].
-  static void _appendNodeTokens(ApiSignature signature, AstNode node) {
+  static void _appendNodeTokens(ApiSignature signature, AstNode? node) {
     if (node != null) {
       _appendTokens(signature, node.beginToken, node.endToken);
     }
@@ -723,10 +723,10 @@ class _LibraryBuilder {
   /// Append tokens from [begin] to [end] (both including) to the [signature].
   static void _appendTokens(ApiSignature signature, Token begin, Token end) {
     if (begin is CommentToken) {
-      begin = (begin as CommentToken).parent;
+      begin = begin.parent!;
     }
 
-    Token token = begin;
+    Token? token = begin;
     while (token != null) {
       signature.addString(token.lexeme);
 

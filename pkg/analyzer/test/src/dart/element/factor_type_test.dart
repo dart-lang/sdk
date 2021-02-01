@@ -23,9 +23,9 @@ main() {
 @reflectiveTest
 class FactorTypeTest with FactorTypeTestMixin<DartType>, ElementsTypesMixin {
   @override
-  TypeProvider typeProvider;
+  late final TypeProvider typeProvider;
 
-  TypeSystemImpl typeSystem;
+  late final TypeSystemImpl typeSystem;
 
   FeatureSet get testFeatureSet {
     return FeatureSet.forTesting(

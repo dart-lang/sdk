@@ -24,25 +24,25 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 class BaseAnalysisDriverTest with ResourceProviderMixin {
-  DartSdk sdk;
+  late final DartSdk sdk;
   final ByteStore byteStore = MemoryByteStore();
   final FileContentOverlay contentOverlay = FileContentOverlay();
 
   final StringBuffer logBuffer = StringBuffer();
-  PerformanceLog logger;
+  late final PerformanceLog logger;
 
   final _GeneratedUriResolverMock generatedUriResolver =
       _GeneratedUriResolverMock();
-  AnalysisDriverScheduler scheduler;
-  AnalysisDriver driver;
+  late final AnalysisDriverScheduler scheduler;
+  late final AnalysisDriver driver;
   final List<AnalysisStatus> allStatuses = <AnalysisStatus>[];
   final List<ResolvedUnitResult> allResults = <ResolvedUnitResult>[];
   final List<ExceptionResult> allExceptions = <ExceptionResult>[];
 
-  String testProject;
-  String testProject2;
-  String testFile;
-  String testCode;
+  late final String testProject;
+  late final String testProject2;
+  late final String testFile;
+  late final String testCode;
 
   List<String> enabledExperiments = [];
 
@@ -56,8 +56,8 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
   }
 
   AnalysisDriver createAnalysisDriver(
-      {Map<String, List<Folder>> packageMap,
-      SummaryDataStore externalSummaries}) {
+      {Map<String, List<Folder>>? packageMap,
+      SummaryDataStore? externalSummaries}) {
     packageMap ??= <String, List<Folder>>{
       'test': [getFolder('$testProject/lib')],
       'aaa': [getFolder('/aaa/lib')],
@@ -155,9 +155,9 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
 }
 
 class _GeneratedUriResolverMock implements UriResolver {
-  Source Function(Uri, Uri) resolveAbsoluteFunction;
+  Source? Function(Uri, Uri?)? resolveAbsoluteFunction;
 
-  Uri Function(Source) restoreAbsoluteFunction;
+  Uri? Function(Source)? restoreAbsoluteFunction;
 
   @override
   void clearCache() {}
@@ -168,17 +168,17 @@ class _GeneratedUriResolverMock implements UriResolver {
   }
 
   @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+  Source? resolveAbsolute(Uri uri, [Uri? actualUri]) {
     if (resolveAbsoluteFunction != null) {
-      return resolveAbsoluteFunction(uri, actualUri);
+      return resolveAbsoluteFunction!(uri, actualUri);
     }
     return null;
   }
 
   @override
-  Uri restoreAbsolute(Source source) {
+  Uri? restoreAbsolute(Source source) {
     if (restoreAbsoluteFunction != null) {
-      return restoreAbsoluteFunction(source);
+      return restoreAbsoluteFunction!(source);
     }
     return null;
   }

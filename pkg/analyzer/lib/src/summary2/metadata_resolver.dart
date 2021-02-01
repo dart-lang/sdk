@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/ast_resolver.dart';
@@ -14,7 +13,7 @@ import 'package:analyzer/src/summary2/linking_node_scope.dart';
 class MetadataResolver extends ThrowingAstVisitor<void> {
   final Linker _linker;
   final Scope _libraryScope;
-  final CompilationUnitElement _unitElement;
+  final CompilationUnitElementImpl _unitElement;
   Scope _scope;
 
   MetadataResolver(this._linker, this._libraryScope, this._unitElement)

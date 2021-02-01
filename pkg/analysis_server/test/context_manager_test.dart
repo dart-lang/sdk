@@ -1533,18 +1533,18 @@ abstract class ContextManagerTest with ResourceProviderMixin {
   String projPath;
 
   AnalysisError missing_return =
-      AnalysisError(null, 0, 1, HintCode.MISSING_RETURN, [
+      AnalysisError(_MockSource('test.dart'), 0, 1, HintCode.MISSING_RETURN, [
     ['x']
   ]);
 
-  AnalysisError invalid_assignment_error =
-      AnalysisError(null, 0, 1, CompileTimeErrorCode.INVALID_ASSIGNMENT, [
+  AnalysisError invalid_assignment_error = AnalysisError(
+      _MockSource('test.dart'), 0, 1, CompileTimeErrorCode.INVALID_ASSIGNMENT, [
     ['x'],
     ['y']
   ]);
 
-  AnalysisError unused_local_variable =
-      AnalysisError(null, 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
+  AnalysisError unused_local_variable = AnalysisError(
+      _MockSource('test.dart'), 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
     ['x']
   ]);
 
@@ -2380,5 +2380,17 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
     currentContextFilePaths.remove(path);
     currentContextSources.remove(path);
     lastFlushedFiles = flushedFiles;
+  }
+}
+
+class _MockSource implements Source {
+  @override
+  final String fullName;
+
+  _MockSource(this.fullName);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    throw StateError('Unexpected invocation of ${invocation.memberName}');
   }
 }

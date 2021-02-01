@@ -645,7 +645,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// must be non-`null`.
   void fillRange(int start, int end, [E? fillValue]);
 
-  /// Replaces a range of elements with the elements of [replacement].
+  /// Replaces a range of elements with the elements of [replacements].
   ///
   /// Removes the objects in the range from [start] to [end],
   /// then inserts the elements of [replacements] at [start].
@@ -667,10 +667,10 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// but may be more efficient.
   ///
   /// The list must be growable.
-  /// This method does not work on fixed-length lists, even when [replacement]
+  /// This method does not work on fixed-length lists, even when [replacements]
   /// has the same number of elements as the replaced range. In that case use
   /// [setRange] instead.
-  void replaceRange(int start, int end, Iterable<E> replacement);
+  void replaceRange(int start, int end, Iterable<E> replacements);
 
   /// An unmodifiable [Map] view of this list.
   ///

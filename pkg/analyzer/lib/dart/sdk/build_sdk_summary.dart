@@ -12,6 +12,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
@@ -21,7 +22,6 @@ import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:analyzer/src/summary2/reference.dart';
-import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
@@ -30,9 +30,9 @@ import 'package:yaml/yaml.dart';
 /// If [embedderYamlPath] is provided, then libraries from this file are
 /// appended to the libraries of the specified SDK.
 Uint8List buildSdkSummary({
-  @required ResourceProvider resourceProvider,
-  @required String sdkPath,
-  String embedderYamlPath,
+  required ResourceProvider resourceProvider,
+  required String sdkPath,
+  String? embedderYamlPath,
 }) {
   var sdk = FolderBasedDartSdk(
     resourceProvider,
@@ -46,7 +46,7 @@ Uint8List buildSdkSummary({
     var map = loadYaml(content) as YamlMap;
     var embedderSdk = EmbedderSdk(
       resourceProvider,
-      {file.parent: map},
+      {file.parent!: map},
       languageVersion: sdk.languageVersion,
     );
     for (var library in embedderSdk.sdkLibraries) {
@@ -58,7 +58,7 @@ Uint8List buildSdkSummary({
   }
 
   var librarySources = sdk.sdkLibraries.map((e) {
-    return sdk.mapDartUri(e.shortName);
+    return sdk.mapDartUri(e.shortName)!;
   }).toList();
 
   var analysisContext = AnalysisContextImpl(
@@ -82,7 +82,7 @@ class _Builder {
   final Set<String> libraryUris = <String>{};
   final List<LinkInputLibrary> inputLibraries = [];
 
-  AllowedExperiments allowedExperiments;
+  late final AllowedExperiments allowedExperiments;
   Version languageVersion;
 
   _Builder(
@@ -91,7 +91,7 @@ class _Builder {
     this.languageVersion,
     this.librarySources,
   ) {
-    allowedExperiments = _parseAllowedExperiments(allowedExperimentsJson);
+    allowedExperiments = parseAllowedExperiments(allowedExperimentsJson);
   }
 
   /// Build the linked bundle and return its bytes.
@@ -100,7 +100,9 @@ class _Builder {
 
     var elementFactory = LinkedElementFactory(
       context,
-      AnalysisSessionImpl(null),
+      AnalysisSessionImpl(
+        _FakeAnalysisDriver(),
+      ),
       Reference.root(),
     );
 
@@ -139,12 +141,12 @@ class _Builder {
 
     for (Directive directive in definingUnit.directives) {
       if (directive is NamespaceDirective) {
-        String libUri = directive.uri.stringValue;
-        Source libSource = context.sourceFactory.resolveUri(source, libUri);
+        String libUri = directive.uri.stringValue!;
+        Source libSource = context.sourceFactory.resolveUri(source, libUri)!;
         _addLibrary(libSource);
       } else if (directive is PartDirective) {
-        String partUri = directive.uri.stringValue;
-        Source partSource = context.sourceFactory.resolveUri(source, partUri);
+        String partUri = directive.uri.stringValue!;
+        Source partSource = context.sourceFactory.resolveUri(source, partUri)!;
         CompilationUnit partUnit = _parse(partSource);
         inputUnits.add(
           LinkInputUnit(partUri, partSource, false, partUnit),
@@ -203,6 +205,7 @@ class _Builder {
       content: _getContent(source),
       featureSet: _featureSet(source.uri),
       throwIfDiagnostics: false,
+      path: source.fullName,
     );
 
     if (result.errors.isNotEmpty) {
@@ -223,16 +226,9 @@ class _Builder {
 
     return result.unit;
   }
+}
 
-  static AllowedExperiments _parseAllowedExperiments(String content) {
-    if (content == null) {
-      return AllowedExperiments(
-        sdkDefaultExperiments: [],
-        sdkLibraryExperiments: {},
-        packageExperiments: {},
-      );
-    }
-
-    return parseAllowedExperiments(content);
-  }
+class _FakeAnalysisDriver implements AnalysisDriver {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

@@ -26,10 +26,10 @@ class Registry with IterableMixin<LintRule> {
   Iterable<LintRule> get rules => _ruleMap.values;
 
   /// Return the lint rule with the given [name].
-  LintRule operator [](String name) => _ruleMap[name];
+  LintRule? operator [](String name) => _ruleMap[name];
 
   /// Return the lint code that has the given [uniqueName].
-  LintCode codeForUniqueName(String uniqueName) => _codeMap[uniqueName];
+  LintCode? codeForUniqueName(String uniqueName) => _codeMap[uniqueName];
 
   /// Return a list of the lint rules explicitly enabled by the given [config].
   ///
@@ -43,7 +43,7 @@ class Registry with IterableMixin<LintRule> {
       .where((rule) => config.ruleConfigs.any((rc) => rc.enables(rule.name)));
 
   /// Return the lint rule with the given [name].
-  LintRule getRule(String name) => _ruleMap[name];
+  LintRule? getRule(String name) => _ruleMap[name];
 
   /// Add the given lint [rule] to this registry.
   void register(LintRule rule) {

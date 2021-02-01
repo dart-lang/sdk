@@ -88,13 +88,13 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
     // B b;
     // cOfB.m(b); // infer <B>
     _assertType(
-        _inferCall2(cOfB.getMethod('m').type, [typeB]), 'B Function(B)');
+        _inferCall2(cOfB.getMethod('m')!.type, [typeB]), 'B Function(B)');
     // cOfA.m(b); // infer <B>
     _assertType(
-        _inferCall2(cOfA.getMethod('m').type, [typeB]), 'B Function(B)');
+        _inferCall2(cOfA.getMethod('m')!.type, [typeB]), 'B Function(B)');
     // cOfObject.m(b); // infer <B>
     _assertType(
-        _inferCall2(cOfObject.getMethod('m').type, [typeB]), 'B Function(B)');
+        _inferCall2(cOfObject.getMethod('m')!.type, [typeB]), 'B Function(B)');
   }
 
   void test_boundedByOuterClassSubstituted() {
@@ -141,13 +141,13 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
     // List<B> b;
     var listOfB = listNone(typeB);
     // cOfB.m(b); // infer <B>
-    _assertType(_inferCall2(cOfB.getMethod('m').type, [listOfB]),
+    _assertType(_inferCall2(cOfB.getMethod('m')!.type, [listOfB]),
         'List<B> Function(List<B>)');
     // cOfA.m(b); // infer <B>
-    _assertType(_inferCall2(cOfA.getMethod('m').type, [listOfB]),
+    _assertType(_inferCall2(cOfA.getMethod('m')!.type, [listOfB]),
         'List<B> Function(List<B>)');
     // cOfObject.m(b); // infer <B>
-    _assertType(_inferCall2(cOfObject.getMethod('m').type, [listOfB]),
+    _assertType(_inferCall2(cOfObject.getMethod('m')!.type, [listOfB]),
         'List<B> Function(List<B>)');
   }
 
@@ -636,8 +636,8 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
     expect(actualStr, expectedStr);
   }
 
-  List<DartType> _inferCall(FunctionTypeImpl ft, List<DartType> arguments,
-      {DartType returnType, bool expectError = false}) {
+  List<DartType> _inferCall(FunctionType ft, List<DartType> arguments,
+      {DartType? returnType, bool expectError = false}) {
     var listener = RecordingErrorListener();
 
     var reporter = ErrorReporter(
@@ -663,11 +663,11 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
     } else {
       expect(listener.errors, isEmpty, reason: 'did not expect any errors.');
     }
-    return typeArguments;
+    return typeArguments!;
   }
 
-  FunctionType _inferCall2(FunctionTypeImpl ft, List<DartType> arguments,
-      {DartType returnType, bool expectError = false}) {
+  FunctionType _inferCall2(FunctionType ft, List<DartType> arguments,
+      {DartType? returnType, bool expectError = false}) {
     var typeArguments = _inferCall(
       ft,
       arguments,

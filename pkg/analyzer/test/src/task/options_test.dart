@@ -36,7 +36,7 @@ main() {
 
 @reflectiveTest
 class ContextConfigurationTest {
-  final AnalysisOptions analysisOptions = AnalysisOptionsImpl();
+  final AnalysisOptionsImpl analysisOptions = AnalysisOptionsImpl();
 
   final AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider();
 
@@ -400,10 +400,10 @@ linter:
 
 @reflectiveTest
 class OptionsProviderTest {
-  TestPathTranslator pathTranslator;
-  ResourceProvider resourceProvider;
+  late final TestPathTranslator pathTranslator;
+  late final ResourceProvider resourceProvider;
 
-  AnalysisOptionsProvider provider;
+  late final AnalysisOptionsProvider provider;
 
   String get optionsFilePath => '/analysis_options.yaml';
 
@@ -468,7 +468,7 @@ linter:
   }
 
   YamlMap _getOptions(String posixPath, {bool crawlUp = false}) {
-    Resource resource = pathTranslator.getResource(posixPath);
+    var resource = pathTranslator.getResource(posixPath) as Folder;
     return provider.getOptions(resource, crawlUp: crawlUp);
   }
 
@@ -481,7 +481,19 @@ linter:
 }
 
 class TestRule extends LintRule {
-  TestRule() : super(name: 'fantastic_test_rule', description: '');
+  TestRule()
+      : super(
+          name: 'fantastic_test_rule',
+          description: '',
+          details: '',
+          group: Group.style,
+        );
 
-  TestRule.withName(String name) : super(name: name, description: '');
+  TestRule.withName(String name)
+      : super(
+          name: name,
+          description: '',
+          details: '',
+          group: Group.style,
+        );
 }

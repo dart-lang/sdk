@@ -21,46 +21,46 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
   NodeId computeDefaultNodeId(AstNode node) =>
       NodeId(_nodeOffset(node), IdKind.node);
 
-  T computeElementValue(Id id, Element element) => null;
+  T? computeElementValue(Id id, Element element) => null;
 
-  void computeForClass(Declaration node, Id id) {
+  void computeForClass(Declaration node, Id? id) {
     if (id == null) return;
-    T value = computeNodeValue(id, node);
+    T? value = computeNodeValue(id, node);
     registerValue(uri, _nodeOffset(node), id, value, node);
   }
 
-  void computeForCollectionElement(CollectionElement node, NodeId id) {
+  void computeForCollectionElement(CollectionElement node, NodeId? id) {
     if (id == null) return;
-    T value = computeNodeValue(id, node);
+    T? value = computeNodeValue(id, node);
     registerValue(uri, _nodeOffset(node), id, value, node);
   }
 
-  void computeForLibrary(LibraryElement library, Id id) {
+  void computeForLibrary(LibraryElement library, Id? id) {
     if (id == null) return;
-    T value = computeElementValue(id, library);
+    T? value = computeElementValue(id, library);
     registerValue(uri, 0, id, value, library);
   }
 
-  void computeForMember(Declaration node, Id id) {
+  void computeForMember(Declaration node, Id? id) {
     if (id == null) return;
-    T value = computeNodeValue(id, node);
+    T? value = computeNodeValue(id, node);
     registerValue(uri, _nodeOffset(node), id, value, node);
   }
 
-  void computeForStatement(Statement node, NodeId id) {
+  void computeForStatement(Statement node, NodeId? id) {
     if (id == null) return;
-    T value = computeNodeValue(id, node);
+    T? value = computeNodeValue(id, node);
     registerValue(uri, _nodeOffset(node), id, value, node);
   }
 
   /// Implement this to compute the data corresponding to [node].
   ///
   /// If `null` is returned, [node] has no associated data.
-  T computeNodeValue(Id id, AstNode node);
+  T? computeNodeValue(Id id, AstNode node);
 
   Id createClassId(Declaration node) {
-    var element = node.declaredElement;
-    return ClassId(element.name);
+    var element = node.declaredElement!;
+    return ClassId(element.name!);
   }
 
   Id createLibraryId(LibraryElement node) {
@@ -73,20 +73,20 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
   }
 
   Id createMemberId(Declaration node) {
-    var element = node.declaredElement;
+    var element = node.declaredElement!;
     if (element.enclosingElement is CompilationUnitElement) {
-      var memberName = element.name;
+      var memberName = element.name!;
       if (element is PropertyAccessorElement && element.isSetter) {
         memberName += '=';
       }
       return MemberId.internal(memberName);
     } else if (element.enclosingElement is ClassElement) {
-      var memberName = element.name;
-      var className = element.enclosingElement.name;
+      var memberName = element.name!;
+      var className = element.enclosingElement!.name;
       return MemberId.internal(memberName, className: className);
     } else if (element.enclosingElement is ExtensionElement) {
       var memberName = element.name;
-      var extensionName = element.enclosingElement.name;
+      var extensionName = element.enclosingElement!.name;
       if (element is PropertyAccessorElement) {
         memberName = '${element.isGetter ? 'get' : 'set'}#$memberName';
       }
@@ -128,7 +128,7 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    var library = node.declaredElement.library;
+    var library = node.declaredElement!.library;
     computeForLibrary(library, createLibraryId(library));
     super.visitCompilationUnit(node);
   }
@@ -165,9 +165,9 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    if (node.parent.parent is TopLevelVariableDeclaration) {
+    if (node.parent!.parent is TopLevelVariableDeclaration) {
       computeForMember(node, createMemberId(node));
-    } else if (node.parent.parent is FieldDeclaration) {
+    } else if (node.parent!.parent is FieldDeclaration) {
       computeForMember(node, createMemberId(node));
     }
     super.visitVariableDeclaration(node);
@@ -182,14 +182,13 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
     } else {
       offset = node.offset;
     }
-    assert(offset != null && offset >= 0,
-        "No fileOffset on $node (${node.runtimeType})");
+    assert(offset >= 0, "No fileOffset on $node (${node.runtimeType})");
     return offset;
   }
 }
 
 class _Failure implements Exception {
-  final String message;
+  final String? message;
 
   _Failure([this.message]);
 

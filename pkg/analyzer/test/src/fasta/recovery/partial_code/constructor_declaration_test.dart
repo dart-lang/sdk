@@ -114,8 +114,8 @@ class ConstructorTest extends PartialCodeTest {
   }
 
   CompilationUnit setSeparator(CompilationUnit unit) {
-    ClassDeclaration declaration = unit.declarations[0];
-    ConstructorDeclaration member = declaration.members[0];
+    var declaration = unit.declarations[0] as ClassDeclaration;
+    var member = declaration.members[0] as ConstructorDeclaration;
     member.separator =
         Token(TokenType.COLON, member.parameters.endToken.charOffset + 1);
     return unit;

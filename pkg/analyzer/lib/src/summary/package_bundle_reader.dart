@@ -4,6 +4,7 @@
 
 import 'dart:io' as io;
 import 'dart:math' show min;
+import 'dart:typed_data';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -17,7 +18,7 @@ class ConflictingSummaryException implements Exception {
   final String duplicatedUri;
   final String summary1Uri;
   final String summary2Uri;
-  String _message;
+  late final String _message;
 
   ConflictingSummaryException(Iterable<String> summaryPaths, this.duplicatedUri,
       this.summary1Uri, this.summary2Uri) {
@@ -88,16 +89,16 @@ class InSummarySource extends BasicSource {
 /// The [UriResolver] that knows about sources that are served from their
 /// summaries.
 class InSummaryUriResolver extends UriResolver {
-  ResourceProvider resourceProvider;
+  ResourceProvider? resourceProvider;
   final SummaryDataStore _dataStore;
 
   InSummaryUriResolver(this.resourceProvider, this._dataStore);
 
   @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+  Source? resolveAbsolute(Uri uri, [Uri? actualUri]) {
     actualUri ??= uri;
     String uriString = uri.toString();
-    String summaryPath = _dataStore.uriToSummaryPath[uriString];
+    String? summaryPath = _dataStore.uriToSummaryPath[uriString];
     if (summaryPath != null) {
       return InSummarySource(actualUri, summaryPath);
     }
@@ -113,7 +114,7 @@ class SummaryDataStore {
   final List<PackageBundleReader> bundles = [];
 
   /// Map from the URI of a unit to the summary path that contained it.
-  final Map<String, String> uriToSummaryPath = <String, String>{};
+  final Map<String, String?> uriToSummaryPath = <String, String?>{};
 
   final Set<String> _libraryUris = <String>{};
   final Set<String> _partUris = <String>{};
@@ -121,12 +122,12 @@ class SummaryDataStore {
   /// Create a [SummaryDataStore] and populate it with the summaries in
   /// [summaryPaths].
   SummaryDataStore(Iterable<String> summaryPaths,
-      {ResourceProvider resourceProvider}) {
+      {ResourceProvider? resourceProvider}) {
     summaryPaths.forEach((String path) => _fillMaps(path, resourceProvider));
   }
 
   /// Add the given [bundle] loaded from the file with the given [path].
-  void addBundle(String path, PackageBundleReader bundle) {
+  void addBundle(String? path, PackageBundleReader bundle) {
     bundles.add(bundle);
 
     for (var library in bundle.libraries) {
@@ -159,11 +160,11 @@ class SummaryDataStore {
     return _partUris.contains(uri);
   }
 
-  void _fillMaps(String path, ResourceProvider resourceProvider) {
-    List<int> bytes;
+  void _fillMaps(String path, ResourceProvider? resourceProvider) {
+    Uint8List bytes;
     if (resourceProvider != null) {
       var file = resourceProvider.getFile(path);
-      bytes = file.readAsBytesSync();
+      bytes = file.readAsBytesSync() as Uint8List;
     } else {
       io.File file = io.File(path);
       bytes = file.readAsBytesSync();

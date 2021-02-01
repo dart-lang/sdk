@@ -11,7 +11,7 @@ import 'package:cli_util/cli_util.dart';
 void main(List<String> args) {
   String command;
   String outFilePath;
-  String sdkPath;
+  String? sdkPath;
   if (args.length == 2) {
     command = args[0];
     outFilePath = args[1];

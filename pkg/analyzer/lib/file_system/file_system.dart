@@ -25,7 +25,7 @@ abstract class File implements Resource {
   File copyTo(Folder parentFolder);
 
   /// Create a new [Source] instance that serves this file.
-  Source createSource([Uri uri]);
+  Source createSource([Uri? uri]);
 
   /// Synchronously read the entire file contents as a list of bytes.
   /// Throws a [FileSystemException] if the operation fails.
@@ -43,7 +43,7 @@ abstract class File implements Resource {
   /// If [newPath] identifies an existing file, that file is replaced.
   /// If [newPath] identifies an existing resource the operation might fail and
   /// an exception is thrown.
-  File renameSync(String /*!*/ newPath);
+  File renameSync(String newPath);
 
   /// Synchronously write the given [bytes] to the file. The new content will
   /// replace any existing content.
@@ -81,12 +81,12 @@ abstract class Folder implements Resource {
   ///
   /// However, regardless of whether [path] is relative or absolute, normalize
   /// it by removing path components of the form '.' or '..'.
-  String canonicalizePath(String /*!*/ path);
+  String canonicalizePath(String path);
 
   /// Return `true` if the [path] references a resource in this folder.
   ///
   /// The [path] must be absolute and normalized.
-  bool contains(String /*!*/ path);
+  bool contains(String path);
 
   @override
   Folder copyTo(Folder parentFolder);
@@ -96,19 +96,19 @@ abstract class Folder implements Resource {
 
   /// Return an existing child [Resource] with the given [relPath].
   /// Return a not existing [File] if no such child exist.
-  Resource getChild(String /*!*/ relPath);
+  Resource getChild(String relPath);
 
   /// Return a [File] representing a child [Resource] with the given
   /// [relPath].  This call does not check whether a file with the given name
   /// exists on the filesystem - client must call the [File]'s `exists` getter
   /// to determine whether the folder actually exists.
-  File getChildAssumingFile(String /*!*/ relPath);
+  File getChildAssumingFile(String relPath);
 
   /// Return a [Folder] representing a child [Resource] with the given
   /// [relPath].  This call does not check whether a folder with the given name
   /// exists on the filesystem--client must call the [Folder]'s `exists` getter
   /// to determine whether the folder actually exists.
-  Folder getChildAssumingFolder(String /*!*/ relPath);
+  Folder getChildAssumingFolder(String relPath);
 
   /// Return a list of existing direct children [Resource]s (folders and files)
   /// in this folder, in no particular order.
@@ -124,7 +124,7 @@ abstract class Resource {
 
   /// Return the [Folder] that contains this resource, or `null` if this
   /// resource is a root folder.
-  Folder get parent;
+  Folder? get parent;
 
   /// Return the full path to this resource.
   String get path;
@@ -145,7 +145,7 @@ abstract class Resource {
   /// Existing files and folders will be overwritten.
   ///
   /// Return the resource corresponding to this resource in the parent folder.
-  Resource copyTo(Folder /*!*/ parentFolder);
+  Resource copyTo(Folder parentFolder);
 
   /// Synchronously deletes this resource and its children.
   ///
@@ -156,7 +156,7 @@ abstract class Resource {
   /// this folder.
   ///
   /// The [path] must be absolute and normalized.
-  bool isOrContains(String /*!*/ path);
+  bool isOrContains(String path);
 
   /// Return a resource that refers to the same resource as this resource, but
   /// whose path does not contain any symbolic links.
@@ -177,25 +177,25 @@ abstract class ResourceProvider {
   /// The [path] must be absolute and normalized.
   ///
   /// A file may or may not exist at this location.
-  File getFile(String /*!*/ path);
+  File getFile(String path);
 
   /// Return a [Folder] that corresponds to the given [path].
   ///
   /// The [path] must be absolute and normalized.
   ///
   /// A folder may or may not exist at this location.
-  Folder getFolder(String /*!*/ path);
+  Folder getFolder(String path);
 
   /// Complete with a list of modification times for the given [sources].
   ///
   /// If the file of a source is not managed by this provider, return `null`.
   /// If the file a source does not exist, return `-1`.
-  Future<List<int>> getModificationTimes(List<Source> sources);
+  Future<List<int?>> getModificationTimes(List<Source> sources);
 
   /// Return the [Resource] that corresponds to the given [path].
   ///
   /// The [path] must be absolute and normalized.
-  Resource getResource(String /*!*/ path);
+  Resource getResource(String path);
 
   /// Return the folder in which the plugin with the given [pluginId] can store
   /// state that will persist across sessions. The folder returned for a given
@@ -203,5 +203,5 @@ abstract class ResourceProvider {
   /// need to be concerned with file name collisions with other plugins,
   /// assuming that the plugin ids are unique. The plugin ids must be valid
   /// folder names.
-  Folder getStateLocation(String pluginId);
+  Folder? getStateLocation(String pluginId);
 }

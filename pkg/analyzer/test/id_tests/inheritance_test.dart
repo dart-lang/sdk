@@ -71,7 +71,7 @@ class _InheritanceDataComputer extends DataComputer<String> {
   @override
   void computeUnitData(TestingData testingData, CompilationUnit unit,
       Map<Id, ActualData<String>> actualMap) {
-    _InheritanceDataExtractor(unit.declaredElement.source.uri, actualMap)
+    _InheritanceDataExtractor(unit.declaredElement!.source.uri, actualMap)
         .run(unit);
   }
 }
@@ -83,7 +83,7 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
       : super(uri, actualMap);
 
   @override
-  String computeElementValue(Id id, Element element) {
+  String? computeElementValue(Id id, Element element) {
     if (element is LibraryElement) {
       return 'nnbd=${element.isNonNullableByDefault}';
     }
@@ -91,10 +91,10 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
   }
 
   @override
-  void computeForClass(Declaration node, Id id) {
+  void computeForClass(Declaration node, Id? id) {
     super.computeForClass(node, id);
     if (node is ClassDeclaration) {
-      var element = node.declaredElement;
+      var element = node.declaredElement!;
 
       void registerMember(
           MemberId id, int offset, Object object, DartType type) {
@@ -104,9 +104,9 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
 
       var interface = inheritance.getInterface(element);
       for (var name in interface.map.keys) {
-        var executable = interface.map[name];
+        var executable = interface.map[name]!;
 
-        ClassElement enclosingClass = executable.enclosingElement;
+        var enclosingClass = executable.enclosingElement as ClassElement;
         if (enclosingClass.isDartCoreObject) continue;
 
         var id = MemberId.internal(
@@ -127,6 +127,8 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
           } else {
             type = executable.parameters.first.type;
           }
+        } else {
+          throw UnimplementedError('(${executable.runtimeType}) $executable');
         }
 
         registerMember(id, offset, executable, type);
@@ -135,9 +137,9 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
   }
 
   @override
-  String computeNodeValue(Id id, AstNode node) {
+  String? computeNodeValue(Id id, AstNode node) {
     if (node is ClassDeclaration) {
-      var cls = node.declaredElement;
+      var cls = node.declaredElement!;
       var supertypes = <String>[];
       supertypes.add(supertypeToString(cls.thisType));
       for (var supertype in cls.allSupertypes) {

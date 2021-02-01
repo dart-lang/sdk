@@ -1,0 +1,25 @@
+foo(int a, int b){
+if (a == null or b == null){
+return null
+}
+}
+
+bar(int a, int b){
+if (a == null and b == null){
+return null
+}
+}
+
+
+foo[StringToken]([BeginToken]int[StringToken] a[StringToken],[SimpleToken] int[StringToken] b[StringToken])[SimpleToken]{[BeginToken]
+if[KeywordToken] ([BeginToken]a[StringToken] ==[SimpleToken] null[KeywordToken] or[StringToken] b[StringToken] ==[SimpleToken] null[KeywordToken])[SimpleToken]{[BeginToken]
+return[KeywordToken] null[KeywordToken]
+}[SimpleToken]
+}[SimpleToken]
+
+bar[StringToken]([BeginToken]int[StringToken] a[StringToken],[SimpleToken] int[StringToken] b[StringToken])[SimpleToken]{[BeginToken]
+if[KeywordToken] ([BeginToken]a[StringToken] ==[SimpleToken] null[KeywordToken] and[StringToken] b[StringToken] ==[SimpleToken] null[KeywordToken])[SimpleToken]{[BeginToken]
+return[KeywordToken] null[KeywordToken]
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

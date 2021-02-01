@@ -21,7 +21,7 @@ import 'package:analyzer/src/workspace/bazel.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer/src/workspace/package_build.dart';
 import 'package:analyzer/src/workspace/pub.dart';
-import 'package:linter/src/rules.dart';
+// import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
@@ -50,45 +50,22 @@ class AnalysisOptionsFileConfig {
   String toContent() {
     var buffer = StringBuffer();
 
-    if (experiments != null ||
-        implicitCasts != null ||
-        implicitDynamic != null ||
-        strictRawTypes != null ||
-        strictInference != null) {
-      buffer.writeln('analyzer:');
-
-      if (experiments != null) {
-        buffer.writeln('  enable-experiment:');
-        for (var experiment in experiments) {
-          buffer.writeln('    - $experiment');
-        }
-      }
-
-      buffer.writeln('  language:');
-      if (strictRawTypes != null) {
-        buffer.writeln('    strict-raw-types: $strictRawTypes');
-      }
-      if (strictInference != null) {
-        buffer.writeln('    strict-inference: $strictInference');
-      }
-
-      if (implicitCasts != null || implicitDynamic != null) {
-        buffer.writeln('  strong-mode:');
-        if (implicitCasts != null) {
-          buffer.writeln('    implicit-casts: $implicitCasts');
-        }
-        if (implicitDynamic != null) {
-          buffer.writeln('    implicit-dynamic: $implicitDynamic');
-        }
-      }
+    buffer.writeln('analyzer:');
+    buffer.writeln('  enable-experiment:');
+    for (var experiment in experiments) {
+      buffer.writeln('    - $experiment');
     }
+    buffer.writeln('  language:');
+    buffer.writeln('    strict-raw-types: $strictRawTypes');
+    buffer.writeln('    strict-inference: $strictInference');
+    buffer.writeln('  strong-mode:');
+    buffer.writeln('    implicit-casts: $implicitCasts');
+    buffer.writeln('    implicit-dynamic: $implicitDynamic');
 
-    if (lints != null) {
-      buffer.writeln('linter:');
-      buffer.writeln('  rules:');
-      for (var lint in lints) {
-        buffer.writeln('    - $lint');
-      }
+    buffer.writeln('linter:');
+    buffer.writeln('  rules:');
+    for (var lint in lints) {
+      buffer.writeln('    - $lint');
     }
 
     return buffer.toString();
@@ -134,11 +111,11 @@ abstract class ContextResolutionTest
   ByteStore _byteStore = getContextResolutionTestByteStore();
 
   Map<String, String> _declaredVariables = {};
-  AnalysisContextCollection _analysisContextCollection;
+  AnalysisContextCollection? _analysisContextCollection;
 
   /// If not `null`, [resolveFile] will use the context that corresponds
   /// to this path, instead of the given path.
-  String pathForContextSelection;
+  String? pathForContextSelection;
 
   List<MockSdkLibrary> get additionalMockSdkLibraries => [];
 
@@ -183,7 +160,7 @@ abstract class ContextResolutionTest
     _createAnalysisContexts();
 
     path = convertPath(path);
-    return _analysisContextCollection.contextFor(path);
+    return _analysisContextCollection!.contextFor(path);
   }
 
   void disposeAnalysisContextCollection() {
@@ -207,16 +184,16 @@ abstract class ContextResolutionTest
   }
 
   @override
-  Future<ResolvedUnitResult> resolveFile(String path) {
+  Future<ResolvedUnitResult> resolveFile(String path) async {
     var analysisContext = contextFor(pathForContextSelection ?? path);
     var session = analysisContext.currentSession;
-    return session.getResolvedUnit(path);
+    return (await session.getResolvedUnit(path))!;
   }
 
   @mustCallSuper
   void setUp() {
     if (!_lintRulesAreRegistered) {
-      registerLintRules();
+      // registerLintRules();
       _lintRulesAreRegistered = true;
     }
 
@@ -257,7 +234,7 @@ abstract class ContextResolutionTest
 class PubPackageResolutionTest extends ContextResolutionTest {
   AnalysisOptionsImpl get analysisOptions {
     var path = convertPath(testPackageRootPath);
-    return contextFor(path).analysisOptions;
+    return contextFor(path).analysisOptions as AnalysisOptionsImpl;
   }
 
   @override
@@ -270,7 +247,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   String get testFilePath => '$testPackageLibPath/test.dart';
 
   /// The language version to use by default for `package:test`.
-  String get testPackageLanguageVersion => '2.9';
+  String? get testPackageLanguageVersion => '2.9';
 
   String get testPackageLibPath => '$testPackageRootPath/lib';
 
@@ -304,7 +281,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
 
   void writeTestPackageConfig(
     PackageConfigFileBuilder config, {
-    String languageVersion,
+    String? languageVersion,
     bool js = false,
     bool meta = false,
   }) {
@@ -349,7 +326,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
 }
 
 class PubspecYamlFileConfig {
-  final String sdkVersion;
+  final String? sdkVersion;
 
   PubspecYamlFileConfig({this.sdkVersion});
 
@@ -367,7 +344,7 @@ class PubspecYamlFileConfig {
 
 mixin WithNonFunctionTypeAliasesMixin on PubPackageResolutionTest {
   @override
-  String get testPackageLanguageVersion => null;
+  String? get testPackageLanguageVersion => null;
 
   @override
   bool get typeToStringWithNullability => true;
@@ -387,7 +364,7 @@ mixin WithNonFunctionTypeAliasesMixin on PubPackageResolutionTest {
 
 mixin WithNullSafetyMixin on PubPackageResolutionTest {
   @override
-  String get testPackageLanguageVersion => null;
+  String? get testPackageLanguageVersion => null;
 
   @override
   bool get typeToStringWithNullability => true;

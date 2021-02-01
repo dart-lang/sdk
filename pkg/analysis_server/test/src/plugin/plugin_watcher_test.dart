@@ -8,7 +8,6 @@ import 'package:analysis_server/src/plugin/plugin_locator.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -112,8 +111,10 @@ class TestDriver implements AnalysisDriver {
 
   @override
   SourceFactory sourceFactory;
+
   @override
-  AnalysisSession currentSession;
+  AnalysisSessionImpl currentSession;
+
   @override
   AnalysisOptionsImpl analysisOptions = AnalysisOptionsImpl();
 

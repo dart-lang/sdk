@@ -34,7 +34,7 @@ extension ElementExtension on Element {
     }
     var ancestor = enclosingElement;
     if (ancestor is ClassElement || ancestor is ExtensionElement) {
-      if (ancestor.hasDoNotStore) {
+      if (ancestor!.hasDoNotStore) {
         return true;
       }
       ancestor = ancestor.enclosingElement;
@@ -46,7 +46,7 @@ extension ElementExtension on Element {
 
 extension ParameterElementExtensions on ParameterElement {
   /// Return [ParameterElement] with the specified properties replaced.
-  ParameterElement copyWith({DartType type, ParameterKind kind}) {
+  ParameterElement copyWith({DartType? type, ParameterKind? kind}) {
     return ParameterElementImpl.synthetic(
       name,
       type ?? this.type,

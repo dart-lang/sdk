@@ -166,7 +166,7 @@ main() {
     var fa = findNode.topLevelVariableDeclaration('fa');
     var fb = findNode.topLevelVariableDeclaration('fb');
 
-    var source = result.unit.declaredElement.source;
+    var source = result.unit!.declaredElement!.source;
     var reporter = ErrorReporter(
       listener,
       source,
@@ -175,7 +175,7 @@ main() {
     reporter.reportErrorForNode(
       CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
       findNode.simple('x'),
-      [fa.variables.type.type, fb.variables.type.type],
+      [fa.variables.type!.type, fb.variables.type!.type],
     );
 
     var error = listener.errors[0];
@@ -201,7 +201,7 @@ main() {
     var ba = findNode.topLevelVariableDeclaration('ba');
     var bb = findNode.topLevelVariableDeclaration('bb');
 
-    var source = result.unit.declaredElement.source;
+    var source = result.unit!.declaredElement!.source;
     var reporter = ErrorReporter(
       listener,
       source,
@@ -210,7 +210,7 @@ main() {
     reporter.reportErrorForNode(
       CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
       findNode.simple('x'),
-      [ba.variables.type.type, bb.variables.type.type],
+      [ba.variables.type!.type, bb.variables.type!.type],
     );
 
     var error = listener.errors[0];

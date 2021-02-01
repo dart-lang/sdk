@@ -33,7 +33,7 @@ abstract class SummaryClass {
   /// fields and whose values are the data stored in those fields.
   ///
   /// Intended for testing and debugging only.
-  Map<String, Object> toMap();
+  Map<String, Object?> toMap();
 }
 
 /// Annotation used in the summary IDL to indicate that a summary class can be
@@ -41,7 +41,7 @@ abstract class SummaryClass {
 class TopLevel {
   /// If non-null, identifier that will be stored in bytes 4-7 of the file,
   /// prior all other file data.  Must be exactly 4 Latin1 characters.
-  final String fileIdentifier;
+  final String? fileIdentifier;
 
   const TopLevel([this.fileIdentifier]);
 }
@@ -69,10 +69,10 @@ class VariantId {
   final int value;
 
   /// The value of the variant field in [Variant].
-  final Object variant;
+  final Object? variant;
 
   /// The list of variant values for which this field exists.
-  final List<Object> variantList;
+  final List<Object>? variantList;
 
   const VariantId(this.value, {this.variant, this.variantList});
 }

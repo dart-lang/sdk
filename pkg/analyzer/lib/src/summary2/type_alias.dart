@@ -11,7 +11,7 @@ class TypeAliasSelfReferenceFinder {
   void perform(Linker linker) {
     for (var builder in linker.builders.values) {
       for (var unitContext in builder.context.units) {
-        for (var node in unitContext.unit.declarations) {
+        for (var node in unitContext.unit!.declarations) {
           if (node is FunctionTypeAlias) {
             var finder = _Finder(node);
             finder.functionTypeAlias(node);
@@ -47,7 +47,7 @@ class _Finder {
     _visit(node.type);
   }
 
-  void _argumentList(TypeArgumentList node) {
+  void _argumentList(TypeArgumentList? node) {
     if (node != null) {
       for (var argument in node.arguments) {
         _visit(argument);
@@ -72,7 +72,7 @@ class _Finder {
     }
   }
 
-  void _typeParameterList(TypeParameterList node) {
+  void _typeParameterList(TypeParameterList? node) {
     if (node != null) {
       for (var parameter in node.typeParameters) {
         _visit(parameter.bound);
@@ -80,7 +80,7 @@ class _Finder {
     }
   }
 
-  void _visit(TypeAnnotation node) {
+  void _visit(TypeAnnotation? node) {
     if (hasSelfReference) return;
     if (node == null) return;
 
@@ -88,7 +88,7 @@ class _Finder {
       var element = node.name.staticElement;
       if (element is ElementImpl &&
           element.enclosingElement != null &&
-          element.linkedContext.isLinking) {
+          element.linkedContext!.isLinking) {
         var typeNode = element.linkedNode;
         if (typeNode == self) {
           hasSelfReference = true;

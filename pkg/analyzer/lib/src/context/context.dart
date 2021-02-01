@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:meta/meta.dart';
 
 /// An [AnalysisContext] in which analysis can be performed.
 class AnalysisContextImpl implements AnalysisContext {
@@ -34,6 +32,8 @@ class AnalysisContextImpl implements AnalysisContext {
   DeclaredVariables get declaredVariables {
     return _synchronousSession.declaredVariables;
   }
+
+  bool get hasTypeProvider => _synchronousSession.hasTypeProvider;
 
   @override
   set sourceFactory(SourceFactory factory) {
@@ -61,8 +61,8 @@ class AnalysisContextImpl implements AnalysisContext {
   }
 
   void setTypeProviders({
-    @required TypeProvider legacy,
-    @required TypeProvider nonNullableByDefault,
+    required TypeProviderImpl legacy,
+    required TypeProviderImpl nonNullableByDefault,
   }) {
     _synchronousSession.setTypeProviders(
       legacy: legacy,

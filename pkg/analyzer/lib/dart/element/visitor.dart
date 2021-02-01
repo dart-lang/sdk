@@ -83,58 +83,59 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   const GeneralizingElementVisitor();
 
   @override
-  R visitClassElement(ClassElement element) => visitElement(element);
+  R? visitClassElement(ClassElement element) => visitElement(element);
 
   @override
-  R visitCompilationUnitElement(CompilationUnitElement element) =>
+  R? visitCompilationUnitElement(CompilationUnitElement element) =>
       visitElement(element);
 
   @override
-  R visitConstructorElement(ConstructorElement element) =>
+  R? visitConstructorElement(ConstructorElement element) =>
       visitExecutableElement(element);
 
-  R visitElement(Element element) {
+  R? visitElement(Element element) {
     element.visitChildren(this);
     return null;
   }
 
-  R visitExecutableElement(ExecutableElement element) => visitElement(element);
+  R? visitExecutableElement(ExecutableElement element) => visitElement(element);
 
   @override
-  R visitExportElement(ExportElement element) => visitElement(element);
+  R? visitExportElement(ExportElement element) => visitElement(element);
 
   @override
-  R visitExtensionElement(ExtensionElement element) => visitElement(element);
+  R? visitExtensionElement(ExtensionElement element) => visitElement(element);
 
   @override
-  R visitFieldElement(FieldElement element) =>
+  R? visitFieldElement(FieldElement element) =>
       visitPropertyInducingElement(element);
 
   @override
-  R visitFieldFormalParameterElement(FieldFormalParameterElement element) =>
+  R? visitFieldFormalParameterElement(FieldFormalParameterElement element) =>
       visitParameterElement(element);
 
   @override
-  R visitFunctionElement(FunctionElement element) => visitLocalElement(element);
+  R? visitFunctionElement(FunctionElement element) =>
+      visitLocalElement(element);
 
   @override
-  R visitFunctionTypeAliasElement(FunctionTypeAliasElement element) =>
+  R? visitFunctionTypeAliasElement(FunctionTypeAliasElement element) =>
       visitElement(element);
 
   @override
-  R visitGenericFunctionTypeElement(GenericFunctionTypeElement element) =>
+  R? visitGenericFunctionTypeElement(GenericFunctionTypeElement element) =>
       visitElement(element);
 
   @override
-  R visitImportElement(ImportElement element) => visitElement(element);
+  R? visitImportElement(ImportElement element) => visitElement(element);
 
   @override
-  R visitLabelElement(LabelElement element) => visitElement(element);
+  R? visitLabelElement(LabelElement element) => visitElement(element);
 
   @override
-  R visitLibraryElement(LibraryElement element) => visitElement(element);
+  R? visitLibraryElement(LibraryElement element) => visitElement(element);
 
-  R visitLocalElement(LocalElement element) {
+  R? visitLocalElement(LocalElement element) {
     if (element is LocalVariableElement) {
       return visitVariableElement(element);
     } else if (element is ParameterElement) {
@@ -146,43 +147,43 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @override
-  R visitLocalVariableElement(LocalVariableElement element) =>
+  R? visitLocalVariableElement(LocalVariableElement element) =>
       visitLocalElement(element);
 
   @override
-  R visitMethodElement(MethodElement element) =>
+  R? visitMethodElement(MethodElement element) =>
       visitExecutableElement(element);
 
   @override
-  R visitMultiplyDefinedElement(MultiplyDefinedElement element) =>
+  R? visitMultiplyDefinedElement(MultiplyDefinedElement element) =>
       visitElement(element);
 
   @override
-  R visitParameterElement(ParameterElement element) =>
+  R? visitParameterElement(ParameterElement element) =>
       visitLocalElement(element);
 
   @override
-  R visitPrefixElement(PrefixElement element) => visitElement(element);
+  R? visitPrefixElement(PrefixElement element) => visitElement(element);
 
   @override
-  R visitPropertyAccessorElement(PropertyAccessorElement element) =>
+  R? visitPropertyAccessorElement(PropertyAccessorElement element) =>
       visitExecutableElement(element);
 
-  R visitPropertyInducingElement(PropertyInducingElement element) =>
+  R? visitPropertyInducingElement(PropertyInducingElement element) =>
       visitVariableElement(element);
 
   @override
-  R visitTopLevelVariableElement(TopLevelVariableElement element) =>
+  R? visitTopLevelVariableElement(TopLevelVariableElement element) =>
       visitPropertyInducingElement(element);
 
   @override
-  R visitTypeAliasElement(TypeAliasElement element) => visitElement(element);
+  R? visitTypeAliasElement(TypeAliasElement element) => visitElement(element);
 
   @override
-  R visitTypeParameterElement(TypeParameterElement element) =>
+  R? visitTypeParameterElement(TypeParameterElement element) =>
       visitElement(element);
 
-  R visitVariableElement(VariableElement element) => visitElement(element);
+  R? visitVariableElement(VariableElement element) => visitElement(element);
 }
 
 /// A visitor that will recursively visit all of the element in an element
@@ -201,133 +202,133 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
   const RecursiveElementVisitor();
 
   @override
-  R visitClassElement(ClassElement element) {
+  R? visitClassElement(ClassElement element) {
     element.visitChildren(this);
     return null;
   }
 
   @override
-  R visitCompilationUnitElement(CompilationUnitElement element) {
+  R? visitCompilationUnitElement(CompilationUnitElement element) {
     element.visitChildren(this);
     return null;
   }
 
   @override
-  R visitConstructorElement(ConstructorElement element) {
+  R? visitConstructorElement(ConstructorElement element) {
     element.visitChildren(this);
     return null;
   }
 
   @override
-  R visitExportElement(ExportElement element) {
+  R? visitExportElement(ExportElement element) {
     element.visitChildren(this);
     return null;
   }
 
   @override
-  R visitExtensionElement(ExtensionElement element) {
+  R? visitExtensionElement(ExtensionElement element) {
     element.visitChildren(this);
     return null;
   }
 
   @override
-  R visitFieldElement(FieldElement element) {
+  R? visitFieldElement(FieldElement element) {
     element.visitChildren(this);
     return null;
   }
 
   @override
-  R visitFieldFormalParameterElement(FieldFormalParameterElement element) {
+  R? visitFieldFormalParameterElement(FieldFormalParameterElement element) {
     element.visitChildren(this);
     return null;
   }
 
   @override
-  R visitFunctionElement(FunctionElement element) {
+  R? visitFunctionElement(FunctionElement element) {
     element.visitChildren(this);
     return null;
   }
 
   @override
-  R visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
+  R? visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
     element.visitChildren(this);
     return null;
   }
 
   @override
-  R visitGenericFunctionTypeElement(GenericFunctionTypeElement element) {
+  R? visitGenericFunctionTypeElement(GenericFunctionTypeElement element) {
     element.visitChildren(this);
     return null;
   }
 
   @override
-  R visitImportElement(ImportElement element) {
+  R? visitImportElement(ImportElement element) {
     element.visitChildren(this);
     return null;
   }
 
   @override
-  R visitLabelElement(LabelElement element) {
+  R? visitLabelElement(LabelElement element) {
     element.visitChildren(this);
     return null;
   }
 
   @override
-  R visitLibraryElement(LibraryElement element) {
+  R? visitLibraryElement(LibraryElement element) {
     element.visitChildren(this);
     return null;
   }
 
   @override
-  R visitLocalVariableElement(LocalVariableElement element) {
+  R? visitLocalVariableElement(LocalVariableElement element) {
     element.visitChildren(this);
     return null;
   }
 
   @override
-  R visitMethodElement(MethodElement element) {
+  R? visitMethodElement(MethodElement element) {
     element.visitChildren(this);
     return null;
   }
 
   @override
-  R visitMultiplyDefinedElement(MultiplyDefinedElement element) {
+  R? visitMultiplyDefinedElement(MultiplyDefinedElement element) {
     element.visitChildren(this);
     return null;
   }
 
   @override
-  R visitParameterElement(ParameterElement element) {
+  R? visitParameterElement(ParameterElement element) {
     element.visitChildren(this);
     return null;
   }
 
   @override
-  R visitPrefixElement(PrefixElement element) {
+  R? visitPrefixElement(PrefixElement element) {
     element.visitChildren(this);
     return null;
   }
 
   @override
-  R visitPropertyAccessorElement(PropertyAccessorElement element) {
+  R? visitPropertyAccessorElement(PropertyAccessorElement element) {
     element.visitChildren(this);
     return null;
   }
 
   @override
-  R visitTopLevelVariableElement(TopLevelVariableElement element) {
+  R? visitTopLevelVariableElement(TopLevelVariableElement element) {
     element.visitChildren(this);
     return null;
   }
 
   @override
-  R visitTypeAliasElement(TypeAliasElement element) {
+  R? visitTypeAliasElement(TypeAliasElement element) {
     element.visitChildren(this);
     return null;
   }
 
   @override
-  R visitTypeParameterElement(TypeParameterElement element) {
+  R? visitTypeParameterElement(TypeParameterElement element) {
     element.visitChildren(this);
     return null;
   }
@@ -344,71 +345,72 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
   const SimpleElementVisitor();
 
   @override
-  R visitClassElement(ClassElement element) => null;
+  R? visitClassElement(ClassElement element) => null;
 
   @override
-  R visitCompilationUnitElement(CompilationUnitElement element) => null;
+  R? visitCompilationUnitElement(CompilationUnitElement element) => null;
 
   @override
-  R visitConstructorElement(ConstructorElement element) => null;
+  R? visitConstructorElement(ConstructorElement element) => null;
 
   @override
-  R visitExportElement(ExportElement element) => null;
+  R? visitExportElement(ExportElement element) => null;
 
   @override
-  R visitExtensionElement(ExtensionElement element) => null;
+  R? visitExtensionElement(ExtensionElement element) => null;
 
   @override
-  R visitFieldElement(FieldElement element) => null;
+  R? visitFieldElement(FieldElement element) => null;
 
   @override
-  R visitFieldFormalParameterElement(FieldFormalParameterElement element) =>
+  R? visitFieldFormalParameterElement(FieldFormalParameterElement element) =>
       null;
 
   @override
-  R visitFunctionElement(FunctionElement element) => null;
+  R? visitFunctionElement(FunctionElement element) => null;
 
   @override
-  R visitFunctionTypeAliasElement(FunctionTypeAliasElement element) => null;
+  R? visitFunctionTypeAliasElement(FunctionTypeAliasElement element) => null;
 
   @override
-  R visitGenericFunctionTypeElement(GenericFunctionTypeElement element) => null;
+  R? visitGenericFunctionTypeElement(GenericFunctionTypeElement element) =>
+      null;
 
   @override
-  R visitImportElement(ImportElement element) => null;
+  R? visitImportElement(ImportElement element) => null;
 
   @override
-  R visitLabelElement(LabelElement element) => null;
+  R? visitLabelElement(LabelElement element) => null;
 
   @override
-  R visitLibraryElement(LibraryElement element) => null;
+  R? visitLibraryElement(LibraryElement element) => null;
 
   @override
-  R visitLocalVariableElement(LocalVariableElement element) => null;
+  R? visitLocalVariableElement(LocalVariableElement element) => null;
 
   @override
-  R visitMethodElement(MethodElement element) => null;
+  R? visitMethodElement(MethodElement element) => null;
 
   @override
-  R visitMultiplyDefinedElement(MultiplyDefinedElement element) => null;
+  R? visitMultiplyDefinedElement(MultiplyDefinedElement element) => null;
 
   @override
-  R visitParameterElement(ParameterElement element) => null;
+  R? visitParameterElement(ParameterElement element) => null;
 
   @override
-  R visitPrefixElement(PrefixElement element) => null;
+  R? visitPrefixElement(PrefixElement element) => null;
 
   @override
-  R visitPropertyAccessorElement(PropertyAccessorElement element) => null;
+  R? visitPropertyAccessorElement(PropertyAccessorElement element) => null;
 
   @override
-  R visitTopLevelVariableElement(TopLevelVariableElement element) => null;
+  R? visitTopLevelVariableElement(TopLevelVariableElement element) => null;
 
   @override
-  R visitTypeAliasElement(TypeAliasElement element) => null;
+  R? visitTypeAliasElement(TypeAliasElement element) => null;
 
   @override
-  R visitTypeParameterElement(TypeParameterElement element) => null;
+  R? visitTypeParameterElement(TypeParameterElement element) => null;
 }
 
 /// An AST visitor that will throw an exception if any of the visit methods that
@@ -423,77 +425,77 @@ class ThrowingElementVisitor<R> implements ElementVisitor<R> {
   const ThrowingElementVisitor();
 
   @override
-  R visitClassElement(ClassElement element) => _throw(element);
+  R? visitClassElement(ClassElement element) => _throw(element);
 
   @override
-  R visitCompilationUnitElement(CompilationUnitElement element) =>
+  R? visitCompilationUnitElement(CompilationUnitElement element) =>
       _throw(element);
 
   @override
-  R visitConstructorElement(ConstructorElement element) => _throw(element);
+  R? visitConstructorElement(ConstructorElement element) => _throw(element);
 
   @override
-  R visitExportElement(ExportElement element) => _throw(element);
+  R? visitExportElement(ExportElement element) => _throw(element);
 
   @override
-  R visitExtensionElement(ExtensionElement element) => _throw(element);
+  R? visitExtensionElement(ExtensionElement element) => _throw(element);
 
   @override
-  R visitFieldElement(FieldElement element) => _throw(element);
+  R? visitFieldElement(FieldElement element) => _throw(element);
 
   @override
-  R visitFieldFormalParameterElement(FieldFormalParameterElement element) =>
+  R? visitFieldFormalParameterElement(FieldFormalParameterElement element) =>
       _throw(element);
 
   @override
-  R visitFunctionElement(FunctionElement element) => _throw(element);
+  R? visitFunctionElement(FunctionElement element) => _throw(element);
 
   @override
-  R visitFunctionTypeAliasElement(FunctionTypeAliasElement element) =>
+  R? visitFunctionTypeAliasElement(FunctionTypeAliasElement element) =>
       _throw(element);
 
   @override
-  R visitGenericFunctionTypeElement(GenericFunctionTypeElement element) =>
+  R? visitGenericFunctionTypeElement(GenericFunctionTypeElement element) =>
       _throw(element);
 
   @override
-  R visitImportElement(ImportElement element) => _throw(element);
+  R? visitImportElement(ImportElement element) => _throw(element);
 
   @override
-  R visitLabelElement(LabelElement element) => _throw(element);
+  R? visitLabelElement(LabelElement element) => _throw(element);
 
   @override
-  R visitLibraryElement(LibraryElement element) => _throw(element);
+  R? visitLibraryElement(LibraryElement element) => _throw(element);
 
   @override
-  R visitLocalVariableElement(LocalVariableElement element) => _throw(element);
+  R? visitLocalVariableElement(LocalVariableElement element) => _throw(element);
 
   @override
-  R visitMethodElement(MethodElement element) => _throw(element);
+  R? visitMethodElement(MethodElement element) => _throw(element);
 
   @override
-  R visitMultiplyDefinedElement(MultiplyDefinedElement element) =>
+  R? visitMultiplyDefinedElement(MultiplyDefinedElement element) =>
       _throw(element);
 
   @override
-  R visitParameterElement(ParameterElement element) => _throw(element);
+  R? visitParameterElement(ParameterElement element) => _throw(element);
 
   @override
-  R visitPrefixElement(PrefixElement element) => _throw(element);
+  R? visitPrefixElement(PrefixElement element) => _throw(element);
 
   @override
-  R visitPropertyAccessorElement(PropertyAccessorElement element) =>
+  R? visitPropertyAccessorElement(PropertyAccessorElement element) =>
       _throw(element);
 
   @override
-  R visitTopLevelVariableElement(TopLevelVariableElement element) =>
+  R? visitTopLevelVariableElement(TopLevelVariableElement element) =>
       _throw(element);
 
   @override
-  R visitTypeAliasElement(TypeAliasElement element) => _throw(element);
+  R? visitTypeAliasElement(TypeAliasElement element) => _throw(element);
 
   @override
-  R visitTypeParameterElement(TypeParameterElement element) => _throw(element);
+  R? visitTypeParameterElement(TypeParameterElement element) => _throw(element);
 
   R _throw(Element element) {
     throw Exception('Missing implementation of visit${element.runtimeType}');

@@ -505,7 +505,7 @@ m(B b) {
       writeElement: findElement.setter('x'),
       writeType: 'int',
       operatorElement: elementMatcher(
-        numElement.getMethod('+'),
+        numElement.getMethod('+')!,
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
       type: 'int',
@@ -518,7 +518,7 @@ m(B b) {
       writeElement: findElement.setter('y'),
       writeType: 'int?',
       operatorElement: elementMatcher(
-        numElement.getMethod('+'),
+        numElement.getMethod('+')!,
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
       type: 'int',
@@ -560,7 +560,7 @@ m(B b) {
       writeElement: findElement.setter('x'),
       writeType: 'int',
       operatorElement: elementMatcher(
-        numElement.getMethod('+'),
+        numElement.getMethod('+')!,
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
       type: 'int?',
@@ -573,7 +573,7 @@ m(B b) {
       writeElement: findElement.setter('x'),
       writeType: 'int',
       operatorElement: elementMatcher(
-        numElement.getMethod('+'),
+        numElement.getMethod('+')!,
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
       type: 'int',
@@ -607,7 +607,7 @@ m(int x, int? y) {
       writeElement: findElement.parameter('x'),
       writeType: 'int',
       operatorElement: elementMatcher(
-        numElement.getMethod('+'),
+        numElement.getMethod('+')!,
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
       type: 'int',
@@ -620,7 +620,7 @@ m(int x, int? y) {
       writeElement: findElement.parameter('y'),
       writeType: 'int?',
       operatorElement: elementMatcher(
-        numElement.getMethod('+'),
+        numElement.getMethod('+')!,
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
       type: 'int',
@@ -1534,8 +1534,8 @@ m(C c) {
     ]);
     var propertyAccess1 = findNode.propertyAccess('x; // 1');
     var propertyAccess2 = findNode.propertyAccess('x; // 2');
-    PropertyAccess propertyAccess1t = propertyAccess1.target;
-    PropertyAccess propertyAccess2t = propertyAccess1.target;
+    var propertyAccess1t = propertyAccess1.target as PropertyAccess;
+    var propertyAccess2t = propertyAccess1.target as PropertyAccess;
     assertType(propertyAccess1t.target, 'B?');
     assertType(propertyAccess2t.target, 'B?');
     assertType(propertyAccess1t, 'A');

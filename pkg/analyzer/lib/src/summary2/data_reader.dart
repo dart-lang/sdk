@@ -5,17 +5,15 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:meta/meta.dart';
-
 /// Helper for reading primitive types from bytes.
 class SummaryDataReader {
   final Uint8List bytes;
   int offset = 0;
 
-  _StringTable _stringTable;
+  late final _StringTable _stringTable;
 
   final Float64List _doubleBuffer = Float64List(1);
-  Uint8List _doubleBufferUint8;
+  Uint8List? _doubleBufferUint8;
 
   SummaryDataReader(this.bytes);
 
@@ -29,15 +27,16 @@ class SummaryDataReader {
   }
 
   double readDouble() {
-    _doubleBufferUint8 ??= _doubleBuffer.buffer.asUint8List();
-    _doubleBufferUint8[0] = readByte();
-    _doubleBufferUint8[1] = readByte();
-    _doubleBufferUint8[2] = readByte();
-    _doubleBufferUint8[3] = readByte();
-    _doubleBufferUint8[4] = readByte();
-    _doubleBufferUint8[5] = readByte();
-    _doubleBufferUint8[6] = readByte();
-    _doubleBufferUint8[7] = readByte();
+    var doubleBufferUint8 =
+        _doubleBufferUint8 ??= _doubleBuffer.buffer.asUint8List();
+    doubleBufferUint8[0] = readByte();
+    doubleBufferUint8[1] = readByte();
+    doubleBufferUint8[2] = readByte();
+    doubleBufferUint8[3] = readByte();
+    doubleBufferUint8[4] = readByte();
+    doubleBufferUint8[5] = readByte();
+    doubleBufferUint8[6] = readByte();
+    doubleBufferUint8[7] = readByte();
     return _doubleBuffer[0];
   }
 
@@ -108,9 +107,9 @@ class _StringTable {
   final Uint8List _bytes;
   int _byteOffset;
 
-  Uint32List _offsets;
-  Uint32List _lengths;
-  List<String> _strings;
+  late final Uint32List _offsets;
+  late final Uint32List _lengths;
+  late final List<String?> _strings;
 
   /// The structure of the table:
   ///   <bytes with encoded strings>
@@ -118,11 +117,10 @@ class _StringTable {
   ///   <the number strings>
   ///   <the array of lengths of individual strings>
   _StringTable({
-    @required Uint8List bytes,
-    @required int startOffset,
-  }) : _bytes = bytes {
-    _byteOffset = startOffset;
-
+    required Uint8List bytes,
+    required int startOffset,
+  })   : _bytes = bytes,
+        _byteOffset = startOffset {
     var offset = startOffset - _readUInt();
     var length = _readUInt();
 

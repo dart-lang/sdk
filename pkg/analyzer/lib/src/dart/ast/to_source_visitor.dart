@@ -30,7 +30,7 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   /// Safely visit the given [node].
   @protected
-  void safelyVisitNode(AstNode node) {
+  void safelyVisitNode(AstNode? node) {
     if (node != null) {
       node.accept(this);
     }
@@ -46,19 +46,12 @@ class ToSourceVisitor implements AstVisitor<void> {
   @protected
   void safelyVisitNodeListWithSeparator(
       NodeList<AstNode> nodes, String separator) {
-    if (nodes != null) {
-      int size = nodes.length;
-      for (int i = 0; i < size; i++) {
-        if (i > 0) {
-          sink.write(separator);
-        }
-        var node = nodes[i];
-        if (node != null) {
-          node.accept(this);
-        } else {
-          sink.write('<null>');
-        }
+    int size = nodes.length;
+    for (int i = 0; i < size; i++) {
+      if (i > 0) {
+        sink.write(separator);
       }
+      nodes[i].accept(this);
     }
   }
 
@@ -67,16 +60,14 @@ class ToSourceVisitor implements AstVisitor<void> {
   @protected
   void safelyVisitNodeListWithSeparatorAndPrefix(
       String prefix, NodeList<AstNode> nodes, String separator) {
-    if (nodes != null) {
-      int size = nodes.length;
-      if (size > 0) {
-        sink.write(prefix);
-        for (int i = 0; i < size; i++) {
-          if (i > 0) {
-            sink.write(separator);
-          }
-          nodes[i].accept(this);
+    int size = nodes.length;
+    if (size > 0) {
+      sink.write(prefix);
+      for (int i = 0; i < size; i++) {
+        if (i > 0) {
+          sink.write(separator);
         }
+        nodes[i].accept(this);
       }
     }
   }
@@ -86,24 +77,22 @@ class ToSourceVisitor implements AstVisitor<void> {
   @protected
   void safelyVisitNodeListWithSeparatorAndSuffix(
       NodeList<AstNode> nodes, String separator, String suffix) {
-    if (nodes != null) {
-      int size = nodes.length;
-      if (size > 0) {
-        for (int i = 0; i < size; i++) {
-          if (i > 0) {
-            sink.write(separator);
-          }
-          nodes[i].accept(this);
+    int size = nodes.length;
+    if (size > 0) {
+      for (int i = 0; i < size; i++) {
+        if (i > 0) {
+          sink.write(separator);
         }
-        sink.write(suffix);
+        nodes[i].accept(this);
       }
+      sink.write(suffix);
     }
   }
 
   /// Safely visit the given [node], printing the [prefix] before the node if it
   /// is non-`null`.
   @protected
-  void safelyVisitNodeWithPrefix(String prefix, AstNode node) {
+  void safelyVisitNodeWithPrefix(String prefix, AstNode? node) {
     if (node != null) {
       sink.write(prefix);
       node.accept(this);
@@ -113,7 +102,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   /// Safely visit the given [node], printing the [suffix] after the node if it
   /// is non-`null`.
   @protected
-  void safelyVisitNodeWithSuffix(AstNode node, String suffix) {
+  void safelyVisitNodeWithSuffix(AstNode? node, String suffix) {
     if (node != null) {
       node.accept(this);
       sink.write(suffix);
@@ -122,7 +111,7 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   /// Safely visit the given [token].
   @protected
-  void safelyVisitToken(Token token) {
+  void safelyVisitToken(Token? token) {
     if (token != null) {
       sink.write(token.lexeme);
     }
@@ -131,7 +120,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   /// Safely visit the given [token], printing the [suffix] after the token if
   /// it is non-`null`.
   @protected
-  void safelyVisitTokenWithSuffix(Token token, String suffix) {
+  void safelyVisitTokenWithSuffix(Token? token, String suffix) {
     if (token != null) {
       sink.write(token.lexeme);
       sink.write(suffix);
@@ -220,7 +209,7 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
-    Token keyword = node.keyword;
+    var keyword = node.keyword;
     if (keyword != null) {
       sink.write(keyword.lexeme);
       if (node.star != null) {
@@ -305,7 +294,7 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    ScriptTag scriptTag = node.scriptTag;
+    var scriptTag = node.scriptTag;
     NodeList<Directive> directives = node.directives;
     safelyVisitNode(scriptTag);
     String prefix = scriptTag == null ? "" : " ";
@@ -343,7 +332,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     safelyVisitNode(node.parameters);
     safelyVisitNodeListWithSeparatorAndPrefix(" : ", node.initializers, ", ");
     safelyVisitNodeWithPrefix(" = ", node.redirectedConstructor);
-    safelyVisitFunctionWithPrefix(" ", node.body);
+    safelyVisitFunctionWithPrefix(" ", node.body!);
   }
 
   @override
@@ -382,10 +371,10 @@ class ToSourceVisitor implements AstVisitor<void> {
     }
     safelyVisitNode(node.parameter);
     if (node.separator != null) {
-      if (node.separator.lexeme != ":") {
+      if (node.separator!.lexeme != ":") {
         sink.write(" ");
       }
-      sink.write(node.separator.lexeme);
+      sink.write(node.separator!.lexeme);
       safelyVisitNodeWithPrefix(" ", node.defaultValue);
     }
   }
@@ -446,12 +435,12 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    Token keyword = node.keyword;
+    var keyword = node.keyword;
     if (keyword != null) {
       sink.write(keyword.lexeme);
       sink.write(' ');
     }
-    sink.write('${node.functionDefinition?.lexeme} ');
+    sink.write('${node.functionDefinition.lexeme} ');
     safelyVisitNode(node.expression);
     if (node.semicolon != null) {
       sink.write(';');
@@ -539,7 +528,7 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
-    String groupEnd;
+    String? groupEnd;
     sink.write('(');
     NodeList<FormalParameter> parameters = node.parameters;
     int size = parameters.length;
@@ -827,11 +816,11 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     if (node.isCascaded) {
-      sink.write(node.operator.lexeme);
+      sink.write(node.operator!.lexeme);
     } else {
       if (node.target != null) {
-        node.target.accept(this);
-        sink.write(node.operator.lexeme);
+        node.target!.accept(this);
+        sink.write(node.operator!.lexeme);
       }
     }
     safelyVisitNode(node.methodName);
@@ -950,7 +939,7 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitReturnStatement(ReturnStatement node) {
-    Expression expression = node.expression;
+    var expression = node.expression;
     if (expression == null) {
       sink.write("return;");
     } else {
@@ -1108,8 +1097,9 @@ class ToSourceVisitor implements AstVisitor<void> {
     safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
     // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
     // added to the interface.
-    if ((node as TypeParameterImpl).varianceKeyword != null) {
-      sink.write((node as TypeParameterImpl).varianceKeyword.lexeme + ' ');
+    var varianceKeyword = (node as TypeParameterImpl).varianceKeyword;
+    if (varianceKeyword != null) {
+      sink.write(varianceKeyword.lexeme + ' ');
     }
     safelyVisitNode(node.name);
     safelyVisitNodeWithPrefix(" extends ", node.bound);
@@ -1170,15 +1160,13 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   void _writeOperand(Expression node, Expression operand) {
-    if (operand != null) {
-      bool needsParenthesis = operand.precedence < node.precedence;
-      if (needsParenthesis) {
-        sink.write('(');
-      }
-      operand.accept(this);
-      if (needsParenthesis) {
-        sink.write(')');
-      }
+    bool needsParenthesis = operand.precedence < node.precedence;
+    if (needsParenthesis) {
+      sink.write('(');
+    }
+    operand.accept(this);
+    if (needsParenthesis) {
+      sink.write(')');
     }
   }
 }

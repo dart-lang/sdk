@@ -478,11 +478,6 @@ char* Flags::ProcessCommandLineFlags(int number_of_vm_flags,
     // compile-time, since that compiled code might be re-used in another
     // isolate that has not yet initialized the global field.
     FLAG_fields_may_be_reset = true;
-
-    // To eliminate potential flakiness, we will start by disabling field guards
-    // and CHA-based compilations.
-    FLAG_use_field_guards = false;
-    FLAG_use_cha_deopt = false;
   }
 #endif  // !defined(DART_PRCOMPILED_RUNTIME)
 

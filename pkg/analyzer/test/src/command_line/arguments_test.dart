@@ -51,12 +51,12 @@ class ArgumentsTest with ResourceProviderMixin {
       endsWith(dartSdkSummaryPath),
     );
 
-    Map<String, String> declaredVariables = options.declaredVariables;
+    var declaredVariables = options.declaredVariables;
     expect(declaredVariables, hasLength(2));
     expect(declaredVariables['foo'], '1');
     expect(declaredVariables['bar'], '2');
 
-    AnalysisOptionsImpl defaultOptions = options.defaultOptions;
+    var defaultOptions = options.defaultOptions as AnalysisOptionsImpl;
     expect(defaultOptions, isNotNull);
     expect(defaultOptions.implicitCasts, false);
     expect(defaultOptions.implicitDynamic, false);
@@ -74,7 +74,7 @@ class ArgumentsTest with ResourceProviderMixin {
     expect(options.declaredVariables, isEmpty);
     expect(options.defaultAnalysisOptionsFilePath, isNull);
     expect(options.defaultPackageFilePath, isNull);
-    AnalysisOptionsImpl defaultOptions = options.defaultOptions;
+    var defaultOptions = options.defaultOptions as AnalysisOptionsImpl;
     expect(defaultOptions, isNotNull);
     expect(defaultOptions.implicitCasts, true);
     expect(defaultOptions.implicitDynamic, true);
@@ -122,7 +122,7 @@ class ArgumentsTest with ResourceProviderMixin {
     ContextBuilderOptions options =
         createContextBuilderOptions(resourceProvider, result);
     expect(options, isNotNull);
-    AnalysisOptionsImpl defaultOptions = options.defaultOptions;
+    var defaultOptions = options.defaultOptions as AnalysisOptionsImpl;
     expect(defaultOptions, isNotNull);
     expect(defaultOptions.implicitCasts, true);
   }
@@ -137,7 +137,7 @@ class ArgumentsTest with ResourceProviderMixin {
     ContextBuilderOptions options =
         createContextBuilderOptions(resourceProvider, result);
     expect(options, isNotNull);
-    AnalysisOptionsImpl defaultOptions = options.defaultOptions;
+    var defaultOptions = options.defaultOptions as AnalysisOptionsImpl;
     expect(defaultOptions, isNotNull);
     expect(defaultOptions.implicitCasts, false);
   }

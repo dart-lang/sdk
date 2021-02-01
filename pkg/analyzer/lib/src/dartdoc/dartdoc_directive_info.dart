@@ -46,8 +46,8 @@ class DartdocDirectiveInfo {
   /// there is one.
   void extractTemplate(String comment) {
     for (Match match in templateRegExp.allMatches(comment)) {
-      String name = match.group(1).trim();
-      String body = match.group(2).trim();
+      String name = match.group(1)!.trim();
+      String body = match.group(2)!.trim();
       templateMap[name] = _stripDelimiters(body).join('\n');
     }
   }
@@ -62,10 +62,10 @@ class DartdocDirectiveInfo {
     List<String> lines = _stripDelimiters(comment);
     for (int i = lines.length - 1; i >= 0; i--) {
       String line = lines[i];
-      Match match = macroRegExp.firstMatch(line);
+      var match = macroRegExp.firstMatch(line);
       if (match != null) {
-        String name = match.group(1);
-        String value = templateMap[name];
+        var name = match.group(1)!;
+        var value = templateMap[name];
         if (value != null) {
           lines[i] = value;
         }
@@ -74,7 +74,7 @@ class DartdocDirectiveInfo {
 
       match = videoRegExp.firstMatch(line);
       if (match != null) {
-        String uri = match.group(2);
+        var uri = match.group(2);
         if (uri != null && uri.isNotEmpty) {
           String label = uri;
           if (label.startsWith('https://')) {
@@ -90,9 +90,6 @@ class DartdocDirectiveInfo {
 
   /// Remove the delimiters from the given [comment].
   List<String> _stripDelimiters(String comment) {
-    if (comment == null) {
-      return null;
-    }
     //
     // Remove /** */.
     //

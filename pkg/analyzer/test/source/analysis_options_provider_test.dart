@@ -101,10 +101,10 @@ analyzer:
 
 @reflectiveTest
 class AnalysisOptionsProviderTest {
-  /*late*/ TestPathTranslator pathTranslator;
-  /*late*/ ResourceProvider resourceProvider;
+  late final TestPathTranslator pathTranslator;
+  late final ResourceProvider resourceProvider;
 
-  /*late*/ AnalysisOptionsProvider provider;
+  late final AnalysisOptionsProvider provider;
 
   String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
 
@@ -232,7 +232,7 @@ analyzer:
   }
 
   YamlMap _getOptions(String posixPath, {bool crawlUp = false}) {
-    Resource resource = pathTranslator.getResource(posixPath);
+    var resource = pathTranslator.getResource(posixPath) as Folder;
     return provider.getOptions(resource, crawlUp: crawlUp);
   }
 }

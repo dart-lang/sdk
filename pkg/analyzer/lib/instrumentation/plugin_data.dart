@@ -8,10 +8,10 @@ class PluginData {
   final String pluginId;
 
   /// The name of the plugin.
-  final String name;
+  final String? name;
 
   /// The version of the plugin.
-  final String version;
+  final String? version;
 
   /// Initialize a newly created set of data about a plugin.
   PluginData(this.pluginId, this.name, this.version);

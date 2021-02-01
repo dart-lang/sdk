@@ -5,6 +5,7 @@
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
@@ -118,7 +119,7 @@ class ManifestParser {
   bool _isRelevantElement(String name) => _relevantElements.contains(name);
 
   /// Parses any whitespace, returning `null` when non-whitespace is parsed.
-  ParseResult _parseAnyWhitespace() {
+  ParseResult? _parseAnyWhitespace() {
     if (_pos >= content.length) {
       return ParseResult.error;
     }
@@ -172,7 +173,7 @@ class ManifestParser {
 
       // Parse attribute name.
       var attributeNamePos = _pos;
-      String attributeName;
+      late String attributeName;
       _pos++;
       if (_pos >= content.length) {
         return ParseAttributeResult.error;
@@ -292,7 +293,7 @@ class ManifestParser {
 
     // Parse name.
     var namePos = _pos;
-    String name;
+    late String name;
 
     while (!_isClosing && !_isTwoCharClosing && !_isWhitespace) {
       _pos++;
@@ -340,7 +341,7 @@ class ManifestParser {
       if (parseResult == ParseResult.error) {
         return ParseTagResult.error;
       }
-      attributes = attributeResult.attributes;
+      attributes = attributeResult.attributes!;
       isEmptyElement =
           parseResult == ParseResult.attributesWithEmptyElementClose;
     } else {
@@ -365,7 +366,7 @@ class ManifestParser {
           // Don't store an irrelevant element.
           continue;
         }
-        children.add(child.element);
+        children.add(child.element!);
         _pos++;
       }
     }
@@ -420,7 +421,7 @@ class ManifestValidator {
       }
     }
 
-    var manifestElement = parseTagResult.element;
+    var manifestElement = parseTagResult.element!;
     var features =
         manifestElement.children.where((e) => e.name == USES_FEATURE_TAG);
     var permissions =
@@ -430,7 +431,7 @@ class ManifestValidator {
     _validatePermissions(permissions, features, reporter);
 
     var application = manifestElement.children
-        .firstWhere((e) => e.name == APPLICATION_TAG, orElse: () => null);
+        .firstWhereOrNull((e) => e.name == APPLICATION_TAG);
     if (application != null) {
       for (var activity
           in application.children.where((e) => e.name == ACTIVITY_TAG)) {
@@ -448,11 +449,11 @@ class ManifestValidator {
           HARDWARE_FEATURE_CAMERA_AUTOFOCUS);
 
   /// Report an error for the given node.
-  void _reportErrorForNode(
-      ErrorReporter reporter, _XmlElement node, String key, ErrorCode errorCode,
-      [List<Object> arguments]) {
-    FileSpan span =
-        key == null ? node.sourceSpan : node.attributes[key].sourceSpan;
+  void _reportErrorForNode(ErrorReporter reporter, _XmlElement node,
+      String? key, ErrorCode errorCode,
+      [List<Object?>? arguments]) {
+    var span =
+        key == null ? node.sourceSpan! : node.attributes[key]!.sourceSpan;
     reporter.reportErrorForOffset(
         errorCode, span.start.offset, span.length, arguments);
   }
@@ -528,11 +529,9 @@ class ManifestValidator {
   /// Validate the presence/absence of the touchscreen feature tag.
   void _validateTouchScreenFeature(Iterable<_XmlElement> features,
       _XmlElement manifest, ErrorReporter reporter) {
-    var feature = features.firstWhere(
-        (element) =>
-            element.attributes[ANDROID_NAME]?.value ==
-            HARDWARE_FEATURE_TOUCHSCREEN,
-        orElse: () => null);
+    var feature = features.firstWhereOrNull((element) =>
+        element.attributes[ANDROID_NAME]?.value ==
+        HARDWARE_FEATURE_TOUCHSCREEN);
     if (feature != null) {
       if (!feature.attributes.containsKey(ANDROID_REQUIRED)) {
         _reportErrorForNode(
@@ -563,7 +562,7 @@ class ParseAttributeResult {
 
   final ParseResult parseResult;
 
-  final Map<String, _XmlAttribute> attributes;
+  final Map<String, _XmlAttribute>? attributes;
 
   ParseAttributeResult(this.parseResult, this.attributes);
 }
@@ -595,7 +594,7 @@ class ParseTagResult {
 
   final ParseResult parseResult;
 
-  final _XmlElement element;
+  final _XmlElement? element;
 
   ParseTagResult(this.parseResult, this.element);
 }
@@ -622,7 +621,7 @@ class _XmlElement {
   final String name;
   final Map<String, _XmlAttribute> attributes;
   final List<_XmlElement> children;
-  final SourceSpan sourceSpan;
+  final SourceSpan? sourceSpan;
 
   _XmlElement(this.name, this.attributes, this.children, this.sourceSpan);
 }

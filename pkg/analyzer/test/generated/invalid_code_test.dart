@@ -309,6 +309,7 @@ class C {
 ''');
   }
 
+  @FailingTest(reason: 'We should set the type of v')
   test_fuzz_38953() async {
     // When we enter a directive, we should stop using the element walker
     // of the unit, just like when we enter a method body. Even though using

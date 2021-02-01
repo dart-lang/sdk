@@ -15,19 +15,20 @@ class BasicWorkspace extends SimpleWorkspace {
   /// The singular package in this workspace.
   ///
   /// Each basic workspace is itself one package.
-  BasicWorkspacePackage _theOnlyPackage;
+  late final BasicWorkspacePackage _theOnlyPackage;
 
   BasicWorkspace._(
     ResourceProvider provider,
     Map<String, List<Folder>> packageMap,
     String root,
-  ) : super(provider, packageMap, root);
+  ) : super(provider, packageMap, root) {
+    _theOnlyPackage = BasicWorkspacePackage(root, this);
+  }
 
   @override
-  WorkspacePackage findPackageFor(String filePath) {
+  WorkspacePackage? findPackageFor(String filePath) {
     final Folder folder = provider.getFolder(filePath);
     if (provider.pathContext.isWithin(root, folder.path)) {
-      _theOnlyPackage ??= BasicWorkspacePackage(root, this);
       return _theOnlyPackage;
     } else {
       return null;
@@ -46,7 +47,7 @@ class BasicWorkspace extends SimpleWorkspace {
   ) {
     Resource resource = provider.getResource(path);
     if (resource is File) {
-      path = resource.parent.path;
+      path = resource.parent!.path;
     }
     return BasicWorkspace._(provider, packageMap, path);
   }

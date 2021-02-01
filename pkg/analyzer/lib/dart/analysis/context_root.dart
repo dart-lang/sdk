@@ -31,11 +31,11 @@ abstract class ContextRoot {
 
   /// The analysis options file that should be used when analyzing the files
   /// within this context root, or `null` if there is no options file.
-  File get optionsFile;
+  File? get optionsFile;
 
   /// The packages file that should be used when analyzing the files within this
   /// context root, or `null` if there is no options file.
-  File get packagesFile;
+  File? get packagesFile;
 
   /// The resource provider used to access the file system.
   ResourceProvider get resourceProvider;

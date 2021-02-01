@@ -79,7 +79,7 @@ class PrefixedIdentifierResolver {
     } else if (element is VariableElement) {
       type = element.type;
     } else if (result.functionTypeCallType != null) {
-      type = result.functionTypeCallType;
+      type = result.functionTypeCallType!;
     }
 
     type = _inferenceHelper.inferTearOff(node, identifier, type);
@@ -96,24 +96,15 @@ class PrefixedIdentifierResolver {
   /// TODO(scheglov) this is duplicate
   DartType _getTypeOfProperty(PropertyAccessorElement accessor) {
     FunctionType functionType = accessor.type;
-    if (functionType == null) {
-      // TODO(brianwilkerson) Report this internal error. This happens when we
-      // are analyzing a reference to a property before we have analyzed the
-      // declaration of the property or when the property does not have a
-      // defined type.
-      return DynamicTypeImpl.instance;
-    }
     if (accessor.isSetter) {
       List<DartType> parameterTypes = functionType.normalParameterTypes;
-      if (parameterTypes != null && parameterTypes.isNotEmpty) {
+      if (parameterTypes.isNotEmpty) {
         return parameterTypes[0];
       }
-      PropertyAccessorElement getter = accessor.variable.getter;
+      var getter = accessor.variable.getter;
       if (getter != null) {
         functionType = getter.type;
-        if (functionType != null) {
-          return functionType.returnType;
-        }
+        return functionType.returnType;
       }
       return DynamicTypeImpl.instance;
     }

@@ -87,22 +87,22 @@ class Builder {
   /// The list of existing VTable(s).
   final List<_VTable> _vTables = <_VTable>[];
 
-  ByteData _buf;
+  late ByteData _buf;
 
   /// The maximum alignment that has been seen so far.  If [_buf] has to be
   /// reallocated in the future (to insert room at its start for more bytes) the
   /// reallocation will need to be a multiple of this many bytes.
-  int _maxAlign;
+  late int _maxAlign;
 
   /// The number of bytes that have been written to the buffer so far.  The
   /// most recently written byte is this many bytes from the end of [_buf].
-  int _tail;
+  late int _tail;
 
   /// The location of the end of the current table, measured in bytes from the
   /// end of [_buf], or `null` if a table is not currently being built.
-  int _currentTableEndTail;
+  late int _currentTableEndTail;
 
-  _VTable _currentVTable;
+  _VTable? _currentVTable;
 
   /// Map containing all strings that have been written so far.  This allows us
   /// to avoid duplicating strings.
@@ -115,7 +115,7 @@ class Builder {
   /// Add the [field] with the given boolean [value].  The field is not added if
   /// the [value] is equal to [def].  Booleans are stored as 8-bit fields with
   /// `0` for `false` and `1` for `true`.
-  void addBool(int field, bool value, [bool def]) {
+  void addBool(int field, bool? value, [bool? def]) {
     _ensureCurrentVTable();
     if (value != null && value != def) {
       int size = 1;
@@ -126,7 +126,7 @@ class Builder {
   }
 
   /// Add the [field] with the given 64-bit float [value].
-  void addFloat64(int field, double value, [double def]) {
+  void addFloat64(int field, double? value, [double? def]) {
     _ensureCurrentVTable();
     if (value != null && value != def) {
       int size = 8;
@@ -138,7 +138,7 @@ class Builder {
 
   /// Add the [field] with the given 32-bit signed integer [value].  The field
   /// is not added if the [value] is equal to [def].
-  void addInt32(int field, int value, [int def]) {
+  void addInt32(int field, int? value, [int? def]) {
     _ensureCurrentVTable();
     if (value != null && value != def) {
       int size = 4;
@@ -150,7 +150,7 @@ class Builder {
 
   /// Add the [field] with the given 8-bit signed integer [value].  The field is
   /// not added if the [value] is equal to [def].
-  void addInt8(int field, int value, [int def]) {
+  void addInt8(int field, int? value, [int? def]) {
     _ensureCurrentVTable();
     if (value != null && value != def) {
       int size = 1;
@@ -161,7 +161,7 @@ class Builder {
   }
 
   /// Add the [field] referencing an object with the given [offset].
-  void addOffset(int field, Offset offset) {
+  void addOffset(int field, Offset? offset) {
     _ensureCurrentVTable();
     if (offset != null) {
       _prepare(4, 1);
@@ -172,7 +172,7 @@ class Builder {
 
   /// Add the [field] with the given 32-bit unsigned integer [value].  The field
   /// is not added if the [value] is equal to [def].
-  void addUint32(int field, int value, [int def]) {
+  void addUint32(int field, int? value, [int? def]) {
     _ensureCurrentVTable();
     if (value != null && value != def) {
       int size = 4;
@@ -184,7 +184,7 @@ class Builder {
 
   /// Add the [field] with the given 8-bit unsigned integer [value].  The field
   /// is not added if the [value] is equal to [def].
-  void addUint8(int field, int value, [int def]) {
+  void addUint8(int field, int? value, [int? def]) {
     _ensureCurrentVTable();
     if (value != null && value != def) {
       int size = 1;
@@ -203,27 +203,27 @@ class Builder {
     _prepare(4, 1);
     int tableTail = _tail;
     // Prepare the size of the current table.
-    _currentVTable.tableSize = tableTail - _currentTableEndTail;
+    _currentVTable!.tableSize = tableTail - _currentTableEndTail;
     // Prepare the VTable to use for the current table.
-    int vTableTail;
+    int? vTableTail;
     {
-      _currentVTable.computeFieldOffsets(tableTail);
+      _currentVTable!.computeFieldOffsets(tableTail);
       // Try to find an existing compatible VTable.
       for (int i = 0; i < _vTables.length; i++) {
         _VTable vTable = _vTables[i];
-        if (_currentVTable.canUseExistingVTable(vTable)) {
+        if (_currentVTable!.canUseExistingVTable(vTable)) {
           vTableTail = vTable.tail;
           break;
         }
       }
       // Write a new VTable.
       if (vTableTail == null) {
-        _currentVTable.takeFieldOffsets();
-        _prepare(2, _currentVTable.numOfUint16);
+        _currentVTable!.takeFieldOffsets();
+        _prepare(2, _currentVTable!.numOfUint16);
         vTableTail = _tail;
-        _currentVTable.tail = vTableTail;
-        _currentVTable.output(_buf, _buf.lengthInBytes - _tail);
-        _vTables.add(_currentVTable);
+        _currentVTable!.tail = vTableTail;
+        _currentVTable!.output(_buf, _buf.lengthInBytes - _tail);
+        _vTables.add(_currentVTable!);
       }
     }
     // Set the VTable offset.
@@ -238,7 +238,7 @@ class Builder {
   /// written object.  If [fileIdentifier] is specified (and not `null`), it is
   /// interpreted as a 4-byte Latin-1 encoded string that should be placed at
   /// bytes 4-7 of the file.
-  Uint8List finish(Offset offset, [String fileIdentifier]) {
+  Uint8List finish(Offset offset, [String? fileIdentifier]) {
     _prepare(max(4, _maxAlign), fileIdentifier == null ? 1 : 2);
     int alignedTail = _tail + ((-_tail) % _maxAlign);
     _setUint32AtTail(_buf, alignedTail, alignedTail - offset._tail);
@@ -398,26 +398,22 @@ class Builder {
     return result;
   }
 
-  /// Write the given string [value] and return its [Offset], or `null` if
-  /// the [value] is equal to [def].
-  Offset<String> writeString(String value, [String def]) {
+  /// Write the given string [value] and return its [Offset].
+  Offset<String> writeString(String value) {
     _ensureNoVTable();
-    if (value != def) {
-      return _strings.putIfAbsent(value, () {
-        // TODO(scheglov) optimize for ASCII strings
-        List<int> bytes = utf8.encode(value);
-        int length = bytes.length;
-        _prepare(4, 1, additionalBytes: length);
-        Offset<String> result = Offset(_tail);
-        _setUint32AtTail(_buf, _tail, length);
-        int offset = _buf.lengthInBytes - _tail + 4;
-        for (int i = 0; i < length; i++) {
-          _buf.setUint8(offset++, bytes[i]);
-        }
-        return result;
-      });
-    }
-    return null;
+    return _strings.putIfAbsent(value, () {
+      // TODO(scheglov) optimize for ASCII strings
+      List<int> bytes = utf8.encode(value);
+      int length = bytes.length;
+      _prepare(4, 1, additionalBytes: length);
+      Offset<String> result = Offset(_tail);
+      _setUint32AtTail(_buf, _tail, length);
+      int offset = _buf.lengthInBytes - _tail + 4;
+      for (int i = 0; i < length; i++) {
+        _buf.setUint8(offset++, bytes[i]);
+      }
+      return result;
+    });
   }
 
   /// Throw an exception if there is not currently a vtable.
@@ -468,7 +464,7 @@ class Builder {
 
   /// Record the offset of the given [field].
   void _trackField(int field) {
-    _currentVTable.addField(field, _tail);
+    _currentVTable!.addField(field, _tail);
   }
 
   static void _setFloat64AtTail(ByteData _buf, int tail, double x) {
@@ -570,7 +566,12 @@ abstract class Reader<T> {
   T read(BufferContext bc, int offset);
 
   /// Read the value of the given [field] in the given [object].
-  T vTableGet(BufferContext object, int offset, int field, [T defaultValue]) {
+  T vTableGet(BufferContext object, int offset, int field, T defaultValue) {
+    return vTableGetOrNull(object, offset, field) ?? defaultValue;
+  }
+
+  /// Read the value of the given [field] in the given [object].
+  T? vTableGetOrNull(BufferContext object, int offset, int field) {
     int vTableSOffset = object._getInt32(offset);
     int vTableOffset = offset - vTableSOffset;
     int vTableSize = object._getUint16(vTableOffset);
@@ -582,7 +583,7 @@ abstract class Reader<T> {
         return read(object, offset + fieldOffsetInObject);
       }
     }
-    return defaultValue;
+    return null;
   }
 }
 
@@ -686,7 +687,7 @@ class Uint8Reader extends Reader<int> {
 class _FbBoolList with ListMixin<bool> implements List<bool> {
   final BufferContext bc;
   final int offset;
-  int _length;
+  int? _length;
 
   _FbBoolList(this.bc, this.offset);
 
@@ -696,7 +697,7 @@ class _FbBoolList with ListMixin<bool> implements List<bool> {
       int byteLength = bc._getUint32(offset);
       _length = (byteLength - 1) * 8 - _getByte(byteLength - 1);
     }
-    return _length;
+    return _length!;
   }
 
   @override
@@ -730,20 +731,20 @@ class _FbFloat64List extends _FbList<double> {
 class _FbGenericList<E> extends _FbList<E> {
   final Reader<E> elementReader;
 
-  List<E> _items;
+  List<E?>? _items;
 
   _FbGenericList(this.elementReader, BufferContext bp, int offset)
       : super(bp, offset);
 
   @override
   E operator [](int i) {
-    _items ??= List<E>.filled(length, null);
-    E item = _items[i];
+    _items ??= List<E?>.filled(length, null);
+    E? item = _items![i];
     if (item == null) {
       item = elementReader.read(bc, offset + 4 + elementReader.size * i);
-      _items[i] = item;
+      _items![i] = item;
     }
-    return item;
+    return item!;
   }
 }
 
@@ -751,14 +752,13 @@ class _FbGenericList<E> extends _FbList<E> {
 abstract class _FbList<E> with ListMixin<E> implements List<E> {
   final BufferContext bc;
   final int offset;
-  int _length;
+  int? _length;
 
   _FbList(this.bc, this.offset);
 
   @override
   int get length {
-    _length ??= bc._getUint32(offset);
-    return _length;
+    return _length ??= bc._getUint32(offset);
   }
 
   @override
@@ -799,14 +799,14 @@ class _VTable {
 
   /// The private copy of [_reusedFieldOffsets], which is made only when we
   /// find that this table is unique.
-  Int32List _fieldOffsets;
+  Int32List? _fieldOffsets;
 
   /// The size of the table that uses this VTable.
-  int tableSize;
+  int? tableSize;
 
   /// The tail of this VTable.  It is used to share the same VTable between
   /// multiple tables of identical structure.
-  int tail;
+  int? tail;
 
   _VTable(this._reusedFieldTails, this._reusedFieldOffsets);
 
@@ -826,7 +826,7 @@ class _VTable {
     if (tableSize == existing.tableSize &&
         _fieldCount == existing._fieldCount) {
       for (int i = 0; i < _fieldCount; i++) {
-        if (_reusedFieldOffsets[i] != existing._fieldOffsets[i]) {
+        if (_reusedFieldOffsets[i] != existing._fieldOffsets![i]) {
           return false;
         }
       }
@@ -850,10 +850,10 @@ class _VTable {
     buf.setUint16(bufOffset, numOfUint16 * 2, Endian.little);
     bufOffset += 2;
     // Table size.
-    buf.setUint16(bufOffset, tableSize, Endian.little);
+    buf.setUint16(bufOffset, tableSize!, Endian.little);
     bufOffset += 2;
     // Field offsets.
-    for (int fieldOffset in _fieldOffsets) {
+    for (int fieldOffset in _fieldOffsets!) {
       buf.setUint16(bufOffset, fieldOffset, Endian.little);
       bufOffset += 2;
     }
@@ -864,7 +864,7 @@ class _VTable {
     assert(_fieldOffsets == null);
     _fieldOffsets = Int32List(_fieldCount);
     for (int i = 0; i < _fieldCount; ++i) {
-      _fieldOffsets[i] = _reusedFieldOffsets[i];
+      _fieldOffsets![i] = _reusedFieldOffsets[i];
     }
   }
 }

@@ -927,9 +927,9 @@ class ParserErrorCode extends ErrorCode {
   const ParserErrorCode(
     String name,
     String message, {
-    String correction,
+    String? correction,
     bool hasPublishedDocs = false,
-    String uniqueName,
+    String? uniqueName,
   }) : super(
           correction: correction,
           hasPublishedDocs: hasPublishedDocs,

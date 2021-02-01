@@ -16,7 +16,7 @@ class LinkingNodeContext {
   }
 
   static LinkingNodeContext get(AstNode node) {
-    LinkingNodeContext context = node.getProperty(_key);
+    var context = node.getProperty(_key) as LinkingNodeContext?;
     if (context == null) {
       throw StateError('No context for: $node');
     }

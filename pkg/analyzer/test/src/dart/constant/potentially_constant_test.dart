@@ -122,19 +122,19 @@ void x;
 
   Future<void> _assertConst(String code) async {
     await resolveTestCode(code);
-    var type = findNode.variableDeclarationList('x;').type;
+    var type = findNode.variableDeclarationList('x;').type!;
     expect(isConstantTypeExpression(type), isTrue);
   }
 
   Future<void> _assertNeverConst(String code) async {
     await resolveTestCode(code);
-    var type = findNode.variableDeclarationList('x;').type;
+    var type = findNode.variableDeclarationList('x;').type!;
     expect(isConstantTypeExpression(type), isFalse);
   }
 
   Future<void> _assertPotentiallyConst(String code) async {
     await resolveTestCode(code);
-    var type = findNode.variableDeclarationList('x;').type;
+    var type = findNode.variableDeclarationList('x;').type!;
     expect(isConstantTypeExpression(type), isFalse);
   }
 }
@@ -166,14 +166,14 @@ class A<T> {
   @override
   Future<void> _assertConst(String code) async {
     await resolveTestCode(code);
-    var type = findNode.variableDeclarationList('x;').type;
+    var type = findNode.variableDeclarationList('x;').type!;
     expect(isPotentiallyConstantTypeExpression(type), isTrue);
   }
 
   @override
   Future<void> _assertPotentiallyConst(String code) async {
     await resolveTestCode(code);
-    var type = findNode.variableDeclarationList('x;').type;
+    var type = findNode.variableDeclarationList('x;').type!;
     expect(isPotentiallyConstantTypeExpression(type), isTrue);
   }
 }
@@ -920,7 +920,7 @@ var x = 'a';
   }
 
   Expression _xInitializer() {
-    return findNode.variableDeclaration('x = ').initializer;
+    return findNode.variableDeclaration('x = ').initializer!;
   }
 }
 

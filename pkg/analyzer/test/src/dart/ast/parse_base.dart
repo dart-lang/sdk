@@ -49,7 +49,7 @@ class ParseBase with ResourceProviderMixin {
     return ParseResult(
       path,
       content,
-      unit.lineInfo,
+      unit.lineInfo!,
       unit,
       errorListener.errors,
     );

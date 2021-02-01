@@ -24,7 +24,7 @@ main() {
 
 @reflectiveTest
 class LegacyTypeAsserterTest {
-  TypeProvider typeProvider;
+  late final TypeProvider typeProvider;
 
   void setUp() {
     var analysisContext = TestAnalysisContext();
@@ -145,9 +145,10 @@ class LegacyTypeAsserterTest {
         AstTestFactory.functionDeclaration(
             null,
             null,
-            null,
+            'f',
             AstTestFactory.functionExpression2(
-                null, AstTestFactory.expressionFunctionBody(e)))
+                AstTestFactory.formalParameterList(),
+                AstTestFactory.expressionFunctionBody(e)))
       ],
       featureSet: nonNullable
           ? FeatureSet.latestLanguageVersion()

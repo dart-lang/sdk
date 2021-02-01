@@ -13,27 +13,26 @@ import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/linked_library_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
-import 'package:meta/meta.dart';
 
 /// The context of a unit - the context of the bundle, and the unit tokens.
 class LinkedUnitContext {
   final LinkedLibraryContext libraryContext;
   final int indexInLibrary;
-  final String partUriStr;
+  final String? partUriStr;
   final String uriStr;
   final Reference reference;
   final bool isSynthetic;
-  final CompilationUnit unit;
-  final UnitReader unitReader;
+  final CompilationUnit? unit;
+  final UnitReader? unitReader;
 
   bool _hasDirectivesRead = false;
 
   LinkedUnitContext(this.libraryContext, this.indexInLibrary, this.partUriStr,
       this.uriStr, this.reference, this.isSynthetic,
-      {@required this.unit, @required this.unitReader});
+      {required this.unit, required this.unitReader});
 
   CompilationUnitElementImpl get element {
-    return reference.element;
+    return reference.element as CompilationUnitElementImpl;
   }
 
   LinkedElementFactory get elementFactory => libraryContext.elementFactory;
@@ -58,7 +57,7 @@ class LinkedUnitContext {
 
   CompilationUnit get unit_withDeclarations {
     unitReader?.readDeclarations();
-    return unit;
+    return unit!;
   }
 
   /// Ensure that [unit] has directives ready (because we are linking,
@@ -67,9 +66,10 @@ class LinkedUnitContext {
   CompilationUnit get unit_withDirectives {
     if (unitReader != null && !_hasDirectivesRead) {
       _hasDirectivesRead = true;
-      unitReader.readDirectives();
-      var libraryElement = libraryContext.reference.element;
-      for (var directive in unit.directives) {
+      unitReader!.readDirectives();
+      var libraryElement =
+          libraryContext.reference.element as LibraryElementImpl;
+      for (var directive in unit!.directives) {
         if (directive is ExportDirective) {
           if (directive.element == null) {
             ExportElementImpl.forLinkedNode(libraryElement, directive);
@@ -81,12 +81,12 @@ class LinkedUnitContext {
         }
       }
     }
-    return unit;
+    return unit!;
   }
 
   void applyResolution(AstNode node) {
     if (node is VariableDeclaration) {
-      node = node.parent.parent;
+      node = node.parent!.parent!;
     }
     if (node is HasAstLinkedContext) {
       var astLinkedContext = (node as HasAstLinkedContext).linkedContext;
@@ -98,7 +98,7 @@ class LinkedUnitContext {
     var containerRef = this.reference.getChild('@genericFunctionType');
     var reference = containerRef.getChild('$id');
     var element = GenericFunctionTypeElementImpl.forLinkedNode(
-      this.reference.element,
+      this.reference.element as ElementImpl,
       reference,
       node,
     );
@@ -112,7 +112,7 @@ class LinkedUnitContext {
     }
 
     if (node is CompilationUnitImpl) {
-      var data = node.summaryData as SummaryDataForCompilationUnit;
+      var data = node.summaryData as SummaryDataForCompilationUnit?;
       if (data != null) {
         return data.codeLength;
       } else {
@@ -125,8 +125,8 @@ class LinkedUnitContext {
     } else if (node is TypeParameter) {
       return node.length;
     } else if (node is VariableDeclaration) {
-      var parent2 = node.parent.parent;
-      var linked = (parent2 as HasAstLinkedContext).linkedContext;
+      var parent2 = node.parent!.parent!;
+      var linked = (parent2 as HasAstLinkedContext).linkedContext!;
       return linked.getVariableDeclarationCodeLength(node);
     }
     throw UnimplementedError('${node.runtimeType}');
@@ -147,8 +147,8 @@ class LinkedUnitContext {
     } else if (node is TypeParameter) {
       return node.offset;
     } else if (node is VariableDeclaration) {
-      var parent2 = node.parent.parent;
-      var linked = (parent2 as HasAstLinkedContext).linkedContext;
+      var parent2 = node.parent!.parent!;
+      var linked = (parent2 as HasAstLinkedContext).linkedContext!;
       return linked.getVariableDeclarationCodeOffset(node);
     }
     throw UnimplementedError('${node.runtimeType}');
@@ -160,30 +160,30 @@ class LinkedUnitContext {
     return node.initializers;
   }
 
-  ConstructorName getConstructorRedirected(ConstructorDeclaration node) {
+  ConstructorName? getConstructorRedirected(ConstructorDeclaration node) {
     return node.redirectedConstructor;
   }
 
-  List<ConstructorDeclaration> getConstructors(AstNode node) {
+  List<ConstructorDeclarationImpl> getConstructors(AstNode node) {
     if (node is ClassOrMixinDeclaration) {
       return _getClassOrExtensionOrMixinMembers(node)
-          .whereType<ConstructorDeclaration>()
+          .whereType<ConstructorDeclarationImpl>()
           .toList();
     }
-    return const <ConstructorDeclaration>[];
+    return const <ConstructorDeclarationImpl>[];
   }
 
   int getDirectiveOffset(Directive node) {
     return node.keyword.offset;
   }
 
-  Comment getDocumentationComment(AstNode node) {
+  Comment? getDocumentationComment(AstNode node) {
     if (node is HasAstLinkedContext) {
       var linkedContext = (node as HasAstLinkedContext).linkedContext;
       linkedContext?.readDocumentationComment();
       return (node as AnnotatedNode).documentationComment;
     } else if (node is VariableDeclaration) {
-      return getDocumentationComment(node.parent.parent);
+      return getDocumentationComment(node.parent!.parent!);
     } else {
       throw UnimplementedError('${node.runtimeType}');
     }
@@ -215,11 +215,12 @@ class LinkedUnitContext {
       return getFormalParameterName(node.parameter);
     } else if (node is NormalFormalParameter) {
       return node.identifier?.name ?? '';
+    } else {
+      throw UnimplementedError('${node.runtimeType}');
     }
-    return null;
   }
 
-  List<FormalParameter> getFormalParameters(AstNode node) {
+  List<FormalParameter>? getFormalParameters(AstNode node) {
     if (node is ConstructorDeclaration) {
       return node.parameters.parameters;
     } else if (node is FunctionDeclaration) {
@@ -247,7 +248,7 @@ class LinkedUnitContext {
     }
   }
 
-  ImplementsClause getImplementsClause(AstNode node) {
+  ImplementsClause? getImplementsClause(AstNode node) {
     if (node is ClassDeclaration) {
       return node.implementsClause;
     } else if (node is ClassTypeAlias) {
@@ -259,7 +260,7 @@ class LinkedUnitContext {
     }
   }
 
-  Expression getInitializer(AstNode node) {
+  Expression? getInitializer(AstNode node) {
     if (node is DefaultFormalParameter) {
       return node.defaultValue;
     } else if (node is VariableDeclaration) {
@@ -270,10 +271,10 @@ class LinkedUnitContext {
   }
 
   LibraryLanguageVersion getLanguageVersion(CompilationUnit node) {
-    return (node as CompilationUnitImpl).languageVersion;
+    return (node as CompilationUnitImpl).languageVersion!;
   }
 
-  Comment getLibraryDocumentationComment() {
+  Comment? getLibraryDocumentationComment() {
     for (var directive in unit_withDirectives.directives) {
       if (directive is LibraryDirectiveImpl) {
         var data = directive.summaryData as SummaryDataForLibraryDirective;
@@ -286,8 +287,8 @@ class LinkedUnitContext {
 
   List<Annotation> getLibraryMetadata() {
     unit_withDirectives;
-    unitReader.applyDirectivesResolution(this);
-    for (var directive in unit.directives) {
+    unitReader!.applyDirectivesResolution(this);
+    for (var directive in unit!.directives) {
       if (directive is LibraryDirective) {
         return directive.metadata;
       }
@@ -334,7 +335,7 @@ class LinkedUnitContext {
     } else if (node is TypeParameter) {
       return node.metadata;
     } else if (node is VariableDeclaration) {
-      var parent2 = node.parent.parent;
+      var parent2 = node.parent!.parent!;
       if (parent2 is FieldDeclaration) {
         return parent2.metadata;
       } else if (parent2 is TopLevelVariableDeclaration) {
@@ -353,7 +354,7 @@ class LinkedUnitContext {
   int getNameOffset(AstNode node) {
     if (node is ConstructorDeclaration) {
       if (node.name != null) {
-        return node.name.offset;
+        return node.name!.offset;
       } else {
         return node.returnType.offset;
       }
@@ -383,7 +384,7 @@ class LinkedUnitContext {
     throw UnimplementedError('${node.runtimeType}');
   }
 
-  TypeName getSuperclass(AstNode node) {
+  TypeName? getSuperclass(AstNode node) {
     if (node is ClassDeclaration) {
       return node.extendsClause?.superclass;
     } else if (node is ClassTypeAlias) {
@@ -393,7 +394,7 @@ class LinkedUnitContext {
     }
   }
 
-  TypeParameterList getTypeParameters2(AstNode node) {
+  TypeParameterList? getTypeParameters2(AstNode node) {
     if (node is ClassDeclaration) {
       return node.typeParameters;
     } else if (node is ClassTypeAlias) {
@@ -429,7 +430,7 @@ class LinkedUnitContext {
     }
   }
 
-  WithClause getWithClause(AstNode node) {
+  WithClause? getWithClause(AstNode node) {
     if (node is ClassDeclaration) {
       return node.withClause;
     } else if (node is ClassTypeAlias) {
@@ -455,7 +456,7 @@ class LinkedUnitContext {
     } else if (node is SimpleFormalParameter) {
       return node.type == null;
     } else if (node is VariableDeclaration) {
-      VariableDeclarationList parent = node.parent;
+      var parent = node.parent as VariableDeclarationList;
       return parent.type == null;
     }
     return false;
@@ -500,7 +501,7 @@ class LinkedUnitContext {
     } else if (node is FunctionDeclaration) {
       return isAsynchronous(node.functionExpression);
     } else if (node is FunctionExpression) {
-      return node.body.isAsynchronous;
+      return node.body!.isAsynchronous;
     } else if (node is MethodDeclaration) {
       return node.body.isAsynchronous;
     } else {
@@ -513,7 +514,7 @@ class LinkedUnitContext {
       return node.isConst;
     }
     if (node is VariableDeclaration) {
-      VariableDeclarationList parent = node.parent;
+      var parent = node.parent as VariableDeclarationList;
       return parent.isConst;
     }
     throw UnimplementedError('${node.runtimeType}');
@@ -527,7 +528,7 @@ class LinkedUnitContext {
     } else if (node is FormalParameter) {
       return node.covariantKeyword != null;
     } else if (node is VariableDeclaration) {
-      var parent2 = node.parent.parent;
+      var parent2 = node.parent!.parent!;
       return parent2 is FieldDeclaration && parent2.covariantKeyword != null;
     } else {
       throw StateError('${node.runtimeType}');
@@ -567,7 +568,7 @@ class LinkedUnitContext {
       return false;
     }
     if (node is VariableDeclaration) {
-      VariableDeclarationList parent = node.parent;
+      var parent = node.parent as VariableDeclarationList;
       return parent.isFinal;
     }
     throw UnimplementedError('${node.runtimeType}');
@@ -579,7 +580,7 @@ class LinkedUnitContext {
     } else if (node is FunctionDeclaration) {
       return isGenerator(node.functionExpression);
     } else if (node is FunctionExpression) {
-      return node.body.isGenerator;
+      return node.body!.isGenerator;
     } else if (node is MethodDeclaration) {
       return node.body.isGenerator;
     } else {
@@ -631,7 +632,7 @@ class LinkedUnitContext {
     } else if (node is MethodDeclaration) {
       return node.modifierKeyword != null;
     } else if (node is VariableDeclaration) {
-      var parent2 = node.parent.parent;
+      var parent2 = node.parent!.parent!;
       return parent2 is FieldDeclaration && parent2.isStatic;
     }
     throw UnimplementedError('${node.runtimeType}');
@@ -639,10 +640,10 @@ class LinkedUnitContext {
 
   bool shouldBeConstFieldElement(AstNode node) {
     if (node is VariableDeclaration) {
-      VariableDeclarationList variableList = node.parent;
+      var variableList = node.parent as VariableDeclarationList;
       if (variableList.isConst) return true;
 
-      FieldDeclaration fieldDeclaration = variableList.parent;
+      var fieldDeclaration = variableList.parent as FieldDeclaration;
       if (fieldDeclaration.staticKeyword != null) return false;
 
       if (variableList.isFinal) {

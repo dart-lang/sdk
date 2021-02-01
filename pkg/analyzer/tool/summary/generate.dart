@@ -1,3 +1,4 @@
+// @dart = 2.9
 // Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -114,6 +115,11 @@ class _BaseGenerator {
     }
   }
 
+  /// Return the nullable [encodedType] of the [type].
+  String encodedType2(idl_model.FieldType type) {
+    return encodedType(type) + '?';
+  }
+
   /// Add the prefix `idl.` to a type name, unless that type name is the name of
   /// a built-in type.
   String idlPrefix(String s) {
@@ -173,6 +179,10 @@ class _BaseGenerator {
     return allVariants.toList()..sort();
   }
 
+  bool _isNullable(idl_model.FieldType type) {
+    return !type.isList && _idl.classes.containsKey(type.typeName);
+  }
+
   String _variantAssertStatement(
     idl_model.ClassDeclaration class_,
     idl_model.LogicalProperty property,
@@ -229,8 +239,8 @@ class _BuilderGenerator extends _BaseGenerator {
         });
         out('} else {');
         indent(() {
-          out('signature.addInt($ref.length);');
-          out('for (var x in $ref) {');
+          out('signature.addInt($ref!.length);');
+          out('for (var x in $ref!) {');
           indent(() {
             _generateSignatureCall(type.typeName, 'x', false);
           });
@@ -297,7 +307,7 @@ class _BuilderGenerator extends _BaseGenerator {
             for (var logicalName in field.logicalProperties.keys) {
               var logicalProperty = field.logicalProperties[logicalName];
               if (logicalProperty.variants.contains(variant)) {
-                out('${encodedType(field.type)} $logicalName,');
+                out('${encodedType2(field.type)} $logicalName,');
               }
             }
           }
@@ -339,7 +349,7 @@ class _BuilderGenerator extends _BaseGenerator {
     for (idl_model.FieldDeclaration field in cls.fields) {
       String fieldName = field.name;
       idl_model.FieldType type = field.type;
-      String typeStr = encodedType(type);
+      String typeStr = encodedType2(type);
       out('$typeStr _$fieldName;');
     }
   }
@@ -355,7 +365,7 @@ class _BuilderGenerator extends _BaseGenerator {
         if (fieldType.isList ||
             fieldType.typeName == 'String' ||
             _idl.classes.containsKey(fieldType.typeName)) {
-          out('fb.Offset $offsetName;');
+          out('fb.Offset? $offsetName;');
         }
       }
 
@@ -366,31 +376,32 @@ class _BuilderGenerator extends _BaseGenerator {
         String condition;
         String writeCode;
         if (fieldType.isList) {
-          condition = ' || $valueName.isEmpty';
+          condition = ' || $valueName!.isEmpty';
           if (_idl.classes.containsKey(fieldType.typeName)) {
             String itemCode = 'b.finish(fbBuilder)';
-            String listCode = '$valueName.map((b) => $itemCode).toList()';
+            String listCode = '$valueName!.map((b) => $itemCode).toList()';
             writeCode = '$offsetName = fbBuilder.writeList($listCode);';
           } else if (_idl.enums.containsKey(fieldType.typeName)) {
             String itemCode = 'b.index';
-            String listCode = '$valueName.map((b) => $itemCode).toList()';
+            String listCode = '$valueName!.map((b) => $itemCode).toList()';
             writeCode = '$offsetName = fbBuilder.writeListUint8($listCode);';
           } else if (fieldType.typeName == 'bool') {
-            writeCode = '$offsetName = fbBuilder.writeListBool($valueName);';
+            writeCode = '$offsetName = fbBuilder.writeListBool($valueName!);';
           } else if (fieldType.typeName == 'int') {
-            writeCode = '$offsetName = fbBuilder.writeListUint32($valueName);';
+            writeCode = '$offsetName = fbBuilder.writeListUint32($valueName!);';
           } else if (fieldType.typeName == 'double') {
-            writeCode = '$offsetName = fbBuilder.writeListFloat64($valueName);';
+            writeCode =
+                '$offsetName = fbBuilder.writeListFloat64($valueName!);';
           } else {
             assert(fieldType.typeName == 'String');
             String itemCode = 'fbBuilder.writeString(b)';
-            String listCode = '$valueName.map((b) => $itemCode).toList()';
+            String listCode = '$valueName!.map((b) => $itemCode).toList()';
             writeCode = '$offsetName = fbBuilder.writeList($listCode);';
           }
         } else if (fieldType.typeName == 'String') {
-          writeCode = '$offsetName = fbBuilder.writeString($valueName);';
+          writeCode = '$offsetName = fbBuilder.writeString($valueName!);';
         } else if (_idl.classes.containsKey(fieldType.typeName)) {
-          writeCode = '$offsetName = $valueName.finish(fbBuilder);';
+          writeCode = '$offsetName = $valueName!.finish(fbBuilder);';
         }
         if (writeCode != null) {
           if (condition == null) {
@@ -430,7 +441,7 @@ class _BuilderGenerator extends _BaseGenerator {
           writeCode = 'fbBuilder.addUint32($index, $valueName);';
         } else if (_idl.enums.containsKey(fieldType.typeName)) {
           condition += ' && $valueName != ${defaultValue(fieldType, true)}';
-          writeCode = 'fbBuilder.addUint8($index, $valueName.index);';
+          writeCode = 'fbBuilder.addUint8($index, $valueName!.index);';
         }
         if (writeCode == null) {
           throw UnimplementedError('Writing type ${fieldType.typeName}');
@@ -529,11 +540,12 @@ class _BuilderGenerator extends _BaseGenerator {
           }
         } else {
           out('@override');
-          out('$typeStr get $fieldName => _$fieldName$defSuffix;');
+          var nn = _isNullable(field.type) ? '?' : '';
+          out('$typeStr$nn get $fieldName => _$fieldName$defSuffix;');
         }
         out();
 
-        constructorParams.add('$typeStr $fieldName');
+        constructorParams.add('$typeStr? $fieldName');
 
         outDoc(field.documentation);
 
@@ -550,7 +562,8 @@ class _BuilderGenerator extends _BaseGenerator {
             out();
           }
         } else {
-          out('set $fieldName($typeStr value) {');
+          var nn = _isNullable(field.type) ? '?' : '';
+          out('set $fieldName($typeStr$nn value) {');
           indent(() {
             _generateNonNegativeInt(fieldType);
             out('this._$fieldName = value;');
@@ -564,9 +577,9 @@ class _BuilderGenerator extends _BaseGenerator {
   void _generateNonNegativeInt(idl_model.FieldType fieldType) {
     if (fieldType.typeName == 'int') {
       if (!fieldType.isList) {
-        out('assert(value == null || value >= 0);');
+        out('assert(value >= 0);');
       } else {
-        out('assert(value == null || value.every((e) => e >= 0));');
+        out('assert(value.every((e) => e >= 0));');
       }
     }
   }
@@ -578,15 +591,17 @@ class _BuilderGenerator extends _BaseGenerator {
   void _generateSignatureCall(String typeName, String ref, bool couldBeNull) {
     if (_idl.enums.containsKey(typeName)) {
       if (couldBeNull) {
-        out('signature.addInt($ref == null ? 0 : $ref.index);');
+        out('signature.addInt($ref == null ? 0 : $ref!.index);');
       } else {
         out('signature.addInt($ref.index);');
       }
     } else if (_idl.classes.containsKey(typeName)) {
       if (couldBeNull) {
         out('signature.addBool($ref != null);');
+        out('$ref?.collectApiSignature(signature);');
+      } else {
+        out('$ref.collectApiSignature(signature);');
       }
-      out('$ref?.collectApiSignature(signature);');
     } else {
       switch (typeName) {
         case 'String':
@@ -1196,7 +1211,7 @@ class _ImplGenerator extends _BaseGenerator {
       for (idl_model.FieldDeclaration field in cls.fields) {
         String returnType = _dartType(field.type);
         String fieldName = field.name;
-        out('$returnType _$fieldName;');
+        out('$returnType? _$fieldName;');
       }
       // Write getters.
       for (idl_model.FieldDeclaration field in cls.allFields) {
@@ -1255,20 +1270,26 @@ class _ImplGenerator extends _BaseGenerator {
                 out(_variantAssertStatement(cls, logicalProperty));
                 String readExpr =
                     '$readCode.vTableGet(_bc, _bcOffset, $index, $def)';
-                out('_$fieldName ??= $readExpr;');
-                out('return _$fieldName;');
+                out('return _$fieldName ??= $readExpr;');
               });
               out('}');
               out();
             }
           } else {
             out('@override');
-            out('$returnType get $fieldName {');
+            if (_isNullable(type)) {
+              out('$returnType? get $fieldName {');
+            } else {
+              out('$returnType get $fieldName {');
+            }
             indent(() {
-              String readExpr =
-                  '$readCode.vTableGet(_bc, _bcOffset, $index, $def)';
-              out('_$fieldName ??= $readExpr;');
-              out('return _$fieldName;');
+              String readExpr;
+              if (_isNullable(type)) {
+                readExpr = '$readCode.vTableGetOrNull(_bc, _bcOffset, $index)';
+              } else {
+                readExpr = '$readCode.vTableGet(_bc, _bcOffset, $index, $def)';
+              }
+              out('return _$fieldName ??= $readExpr;');
             });
             out('}');
           }
@@ -1309,7 +1330,8 @@ class _MixinGenerator extends _BaseGenerator {
         }
       }
 
-      String jsonStore(idl_model.FieldType type, String name) {
+      String jsonStore(
+          idl_model.FieldType type, String name, String localName) {
         _StringToString convertItem;
         if (_idl.classes.containsKey(type.typeName)) {
           convertItem = (String name) => '$name.toJson()';
@@ -1323,12 +1345,12 @@ class _MixinGenerator extends _BaseGenerator {
         }
         String convertField;
         if (convertItem == null) {
-          convertField = name;
+          convertField = localName;
         } else if (type.isList) {
-          convertField = '$name.map((_value) =>'
+          convertField = '$localName.map((_value) =>'
               ' ${convertItem('_value')}).toList()';
         } else {
-          convertField = convertItem(name);
+          convertField = convertItem(localName);
         }
         return '_result[${quoted(name)}] = $convertField';
       }
@@ -1349,8 +1371,10 @@ class _MixinGenerator extends _BaseGenerator {
           indent(() {
             for (idl_model.FieldDeclaration field in cls.fields) {
               if (field.logicalProperties == null) {
-                var condition = jsonCondition(field.type, field.name);
-                var storeField = jsonStore(field.type, field.name);
+                var localName = 'local_${field.name}';
+                out('var $localName = ${field.name};');
+                var condition = jsonCondition(field.type, localName);
+                var storeField = jsonStore(field.type, field.name, localName);
                 writeConditionalStatement(condition, storeField);
               }
             }
@@ -1363,8 +1387,11 @@ class _MixinGenerator extends _BaseGenerator {
                     for (var logicalName in logicalProperties.keys) {
                       var logicalProperty = logicalProperties[logicalName];
                       if (logicalProperty.variants.contains(variant)) {
-                        var condition = jsonCondition(field.type, logicalName);
-                        var storeField = jsonStore(field.type, logicalName);
+                        var localName = 'local_${field.name}';
+                        out('var $localName = ${field.name};');
+                        var condition = jsonCondition(field.type, localName);
+                        var storeField =
+                            jsonStore(field.type, logicalName, localName);
                         writeConditionalStatement(condition, storeField);
                       }
                     }
@@ -1377,8 +1404,10 @@ class _MixinGenerator extends _BaseGenerator {
         } else {
           indent(() {
             for (idl_model.FieldDeclaration field in cls.fields) {
-              String condition = jsonCondition(field.type, field.name);
-              String storeField = jsonStore(field.type, field.name);
+              var localName = 'local_${field.name}';
+              out('var $localName = ${field.name};');
+              String condition = jsonCondition(field.type, localName);
+              String storeField = jsonStore(field.type, field.name, localName);
               writeConditionalStatement(condition, storeField);
             }
           });
@@ -1417,7 +1446,7 @@ class _MixinGenerator extends _BaseGenerator {
         out('throw StateError("Unexpected \$${cls.variantField}");');
         out('}');
       } else {
-        out('Map<String, Object> toMap() => {');
+        out('Map<String, Object?> toMap() => {');
         indent(() {
           for (idl_model.FieldDeclaration field in cls.fields) {
             String fieldName = field.name;

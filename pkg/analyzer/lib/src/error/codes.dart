@@ -12836,10 +12836,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   const CompileTimeErrorCode(
     String name,
     String message, {
-    String correction,
+    String? correction,
     bool hasPublishedDocs = false,
     bool isUnresolvedIdentifier = false,
-    String uniqueName,
+    String? uniqueName,
   }) : super(
           correction: correction,
           hasPublishedDocs: hasPublishedDocs,
@@ -12929,7 +12929,7 @@ class LanguageCode extends ErrorCode {
    * created from the optional [correction] template.
    */
   const LanguageCode(String name, String message,
-      {String correction, bool hasPublishedDocs = false})
+      {String? correction, bool hasPublishedDocs = false})
       : super(
           correction: correction,
           hasPublishedDocs: hasPublishedDocs,
@@ -13253,10 +13253,10 @@ class StaticWarningCode extends AnalyzerErrorCode {
   const StaticWarningCode(
     String name,
     String message, {
-    String correction,
+    String? correction,
     bool hasPublishedDocs = false,
     bool isUnresolvedIdentifier = false,
-    String uniqueName,
+    String? uniqueName,
   }) : super(
           correction: correction,
           hasPublishedDocs: hasPublishedDocs,
@@ -13333,7 +13333,7 @@ class StrongModeCode extends ErrorCode {
    * created from the optional [correction] template.
    */
   const StrongModeCode(ErrorType type, String name, String message,
-      {String correction, bool hasPublishedDocs = false})
+      {String? correction, bool hasPublishedDocs = false})
       : type = type,
         super(
           correction: correction,

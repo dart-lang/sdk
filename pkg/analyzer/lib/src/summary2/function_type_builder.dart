@@ -28,13 +28,13 @@ class FunctionTypeBuilder extends TypeBuilder {
   /// The node for which this builder is created, or `null` if the builder
   /// was detached from its node, e.g. during computing default types for
   /// type parameters.
-  final GenericFunctionTypeImpl node;
+  final GenericFunctionTypeImpl? node;
 
   /// The actual built type, not a [TypeBuilder] anymore.
   ///
   /// When [build] is called, the type is built, stored into this field,
   /// and set for the [node].
-  DartType _type;
+  DartType? _type;
 
   FunctionTypeBuilder(
     this.typeFormals,
@@ -47,7 +47,7 @@ class FunctionTypeBuilder extends TypeBuilder {
   /// [isNNBD] indicates whether the containing library is opted into NNBD.
   factory FunctionTypeBuilder.of(
     bool isNNBD,
-    GenericFunctionType node,
+    GenericFunctionTypeImpl node,
     NullabilitySuffix nullabilitySuffix,
   ) {
     return FunctionTypeBuilder(
@@ -60,7 +60,7 @@ class FunctionTypeBuilder extends TypeBuilder {
   }
 
   @override
-  Element get element => null;
+  Element? get element => null;
 
   @override
   R accept<R>(TypeVisitor<R> visitor) {
@@ -75,15 +75,19 @@ class FunctionTypeBuilder extends TypeBuilder {
   @override
   DartType build() {
     if (_type != null) {
-      return _type;
+      return _type!;
     }
 
-    for (TypeParameterElementImpl typeParameter in typeFormals) {
-      typeParameter.bound = _buildType(typeParameter.bound);
+    for (var typeParameter in typeFormals) {
+      var typeParameterImpl = typeParameter as TypeParameterElementImpl;
+      var bound = typeParameterImpl.bound;
+      if (bound != null) {
+        typeParameterImpl.bound = _buildType(bound);
+      }
     }
 
-    for (ParameterElementImpl parameter in parameters) {
-      parameter.type = _buildType(parameter.type);
+    for (var parameter in parameters) {
+      (parameter as ParameterElementImpl).type = _buildType(parameter.type);
     }
 
     var builtReturnType = _buildType(returnType);
@@ -95,10 +99,10 @@ class FunctionTypeBuilder extends TypeBuilder {
     );
 
     if (node != null) {
-      node.type = _type;
+      node?.type = _type;
     }
 
-    return _type;
+    return _type!;
   }
 
   @override
@@ -160,11 +164,11 @@ class FunctionTypeBuilder extends TypeBuilder {
   }
 
   /// Return the type of the [node] as is, possibly a [TypeBuilder].
-  static DartType _getNodeType(TypeAnnotation node) {
+  static DartType _getNodeType(TypeAnnotation? node) {
     if (node == null) {
       return _dynamicType;
     } else {
-      return node.type;
+      return node.type!;
     }
   }
 
@@ -197,8 +201,10 @@ class FunctionTypeBuilder extends TypeBuilder {
     }
   }
 
-  static List<TypeParameterElement> _getTypeParameters(TypeParameterList node) {
+  static List<TypeParameterElement> _getTypeParameters(
+    TypeParameterList? node,
+  ) {
     if (node == null) return const [];
-    return node.typeParameters.map((n) => n.declaredElement).toList();
+    return node.typeParameters.map((n) => n.declaredElement!).toList();
   }
 }

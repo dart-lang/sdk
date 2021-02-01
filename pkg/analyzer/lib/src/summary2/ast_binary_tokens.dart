@@ -78,6 +78,10 @@ class Tokens {
   static final PERIOD_PERIOD_PERIOD_QUESTION =
       TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD_PERIOD_QUESTION);
   static final QUESTION = TokenFactory.tokenFromType(TokenType.QUESTION);
+  static final QUESTION_PERIOD =
+      TokenFactory.tokenFromType(TokenType.QUESTION_PERIOD);
+  static final QUESTION_PERIOD_PERIOD =
+      TokenFactory.tokenFromType(TokenType.QUESTION_PERIOD_PERIOD);
   static final REQUIRED = TokenFactory.tokenFromKeyword(Keyword.REQUIRED);
   static final RETHROW = TokenFactory.tokenFromKeyword(Keyword.RETHROW);
   static final RETURN = TokenFactory.tokenFromKeyword(Keyword.RETURN);
@@ -100,11 +104,11 @@ class Tokens {
   static final WHILE = TokenFactory.tokenFromKeyword(Keyword.WHILE);
   static final YIELD = TokenFactory.tokenFromKeyword(Keyword.YIELD);
 
-  static Token choose(bool if1, Token then1, bool if2, Token then2,
-      [bool if3, Token then3]) {
+  static Token? choose(bool if1, Token then1, bool if2, Token then2,
+      [bool? if3, Token? then3]) {
     if (if1) return then1;
     if (if2) return then2;
-    if (if2 == true) return then3;
+    if (if3 == true) return then3!;
     return null;
   }
 

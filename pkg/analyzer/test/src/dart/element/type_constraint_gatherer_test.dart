@@ -6,7 +6,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -20,10 +19,10 @@ main() {
 
 @reflectiveTest
 class TypeConstraintGathererTest extends AbstractTypeSystemNullSafetyTest {
-  /*late*/ TypeParameterElement T;
-  /*late*/ TypeParameterType T_none;
-  /*late*/ TypeParameterType T_question;
-  /*late*/ TypeParameterType T_star;
+  late final TypeParameterElement T;
+  late final TypeParameterType T_none;
+  late final TypeParameterType T_question;
+  late final TypeParameterType T_star;
 
   UnknownInferredType get unknownType => UnknownInferredType.instance;
 
@@ -442,10 +441,10 @@ class TypeConstraintGathererTest extends AbstractTypeSystemNullSafetyTest {
 
   test_functionType_noTypeFormals_parameters_leftOptionalPositional() {
     void check({
-      @required DartType left,
-      @required ParameterElement right,
-      @required bool leftSchema,
-      @required String expected,
+      required DartType left,
+      required ParameterElement right,
+      required bool leftSchema,
+      required String? expected,
     }) {
       var P = functionTypeNone(
         returnType: voidNone,
@@ -520,10 +519,10 @@ class TypeConstraintGathererTest extends AbstractTypeSystemNullSafetyTest {
 
   test_functionType_noTypeFormals_parameters_leftRequiredPositional() {
     void check({
-      @required DartType left,
-      @required ParameterElement right,
-      @required bool leftSchema,
-      @required String expected,
+      required DartType left,
+      required ParameterElement right,
+      required bool leftSchema,
+      required String? expected,
     }) {
       var P = functionTypeNone(
         returnType: voidNone,

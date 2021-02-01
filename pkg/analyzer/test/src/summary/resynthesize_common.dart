@@ -24,14 +24,14 @@ import 'element_text.dart';
 /// The return type separator: →
 abstract class AbstractResynthesizeTest with ResourceProviderMixin {
   /// The set of features enabled in this test.
-  FeatureSet featureSet;
+  late FeatureSet featureSet;
 
   DeclaredVariables declaredVariables = DeclaredVariables();
-  /*late final*/ SourceFactory sourceFactory;
-  /*late final*/ MockSdk sdk;
+  late final SourceFactory sourceFactory;
+  late final MockSdk sdk;
 
-  /*late final*/ String testFile;
-  Source testSource;
+  late String testFile;
+  late Source testSource;
   Set<Source> otherLibrarySources = <Source>{};
 
   AbstractResynthesizeTest() {
@@ -48,7 +48,7 @@ abstract class AbstractResynthesizeTest with ResourceProviderMixin {
   }
 
   void addLibrary(String uri) {
-    var source = sourceFactory.forUri(uri);
+    var source = sourceFactory.forUri(uri)!;
     otherLibrarySources.add(source);
   }
 
@@ -64,7 +64,7 @@ abstract class AbstractResynthesizeTest with ResourceProviderMixin {
     return source;
   }
 
-  Source addTestSource(String code, [Uri uri]) {
+  Source addTestSource(String code, [Uri? uri]) {
     testSource = addSource(testFile, code);
     return testSource;
   }
@@ -2924,18 +2924,18 @@ const Object y = const
         C/*location: test.dart;C*/.
         named/*location: test.dart;C;named*/(0);
 ''');
-    TopLevelVariableElementImpl x =
-        library.definingCompilationUnit.topLevelVariables[0];
-    InstanceCreationExpression xExpr = x.constantInitializer;
-    var xType = xExpr.constructorName.staticElement.returnType;
+    var x = library.definingCompilationUnit.topLevelVariables[0]
+        as TopLevelVariableElementImpl;
+    var xExpr = x.constantInitializer as InstanceCreationExpression;
+    var xType = xExpr.constructorName.staticElement!.returnType;
     _assertTypeStr(
       xType,
       'C<int>',
     );
-    TopLevelVariableElementImpl y =
-        library.definingCompilationUnit.topLevelVariables[0];
-    InstanceCreationExpression yExpr = y.constantInitializer;
-    var yType = yExpr.constructorName.staticElement.returnType;
+    var y = library.definingCompilationUnit.topLevelVariables[0]
+        as TopLevelVariableElementImpl;
+    var yExpr = y.constantInitializer as InstanceCreationExpression;
+    var yType = yExpr.constructorName.staticElement!.returnType;
     _assertTypeStr(yType, 'C<int>');
   }
 
@@ -3066,6 +3066,7 @@ int foo() {}
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   test_const_invalid_intLiteral() async {
     var library = await checkLibrary(r'''
 const int x = 0x;
@@ -3684,6 +3685,7 @@ const Object x = const <
         withTypes: true);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   test_const_map_if_else() async {
     var library = await checkLibrary('''
 const Object x = const <int, int>{if (true) 1: 2 else 3: 4];
@@ -4346,6 +4348,7 @@ const Object x = const <
         withTypes: true);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   test_const_set_if_else() async {
     var library = await checkLibrary('''
 const Object x = const <int>{if (true) 1 else 2];
@@ -4525,6 +4528,7 @@ const List<int?> b;
     ListLiteral
       elements
         PropertyAccess
+          operator: ?.
           propertyName: SimpleIdentifier
             staticElement: dart:core::@class::String::@getter::length
             staticType: int
@@ -5823,6 +5827,36 @@ void f(dynamic Function({dynamic a}) g) {}
         withFullyResolvedAst: true);
   }
 
+  test_defaultValue_methodMember_legacy() async {
+    featureSet = FeatureSets.beforeNullSafe;
+    var library = await checkLibrary('''
+void f([Comparator<T> compare = Comparable.compare]) {}
+''');
+    checkElementText(
+        library,
+        r'''
+void f([int* Function(dynamic, dynamic)* compare]) {}
+  compare
+    PrefixedIdentifier
+      identifier: SimpleIdentifier
+        staticElement: MethodMember
+          base: dart:core::@class::Comparable::@method::compare
+          substitution: {}
+        staticType: int* Function(Comparable<dynamic>*, Comparable<dynamic>*)*
+        token: compare
+      period: .
+      prefix: SimpleIdentifier
+        staticElement: dart:core::@class::Comparable
+        staticType: null
+        token: Comparable
+      staticElement: MethodMember
+        base: dart:core::@class::Comparable::@method::compare
+        substitution: {}
+      staticType: int* Function(Comparable<dynamic>*, Comparable<dynamic>*)*
+''',
+        withFullyResolvedAst: true);
+  }
+
   test_defaultValue_refersToExtension_method_inside() async {
     var library = await checkLibrary('''
 class A {}
@@ -6437,7 +6471,7 @@ Exports:
   A: foo.dart;A
 ''',
         withExportScope: true);
-    expect(library.exports[0].exportedLibrary.source.shortName, 'foo.dart');
+    expect(library.exports[0].exportedLibrary!.source.shortName, 'foo.dart');
   }
 
   test_export_configurations_useFirst() async {
@@ -6463,7 +6497,7 @@ Exports:
   A: foo_io.dart;A
 ''',
         withExportScope: true);
-    expect(library.exports[0].exportedLibrary.source.shortName, 'foo_io.dart');
+    expect(library.exports[0].exportedLibrary!.source.shortName, 'foo_io.dart');
   }
 
   test_export_configurations_useSecond() async {
@@ -6490,7 +6524,7 @@ Exports:
 ''',
         withExportScope: true);
     ExportElement export = library.exports[0];
-    expect(export.exportedLibrary.source.shortName, 'foo_html.dart');
+    expect(export.exportedLibrary!.source.shortName, 'foo_html.dart');
   }
 
   test_export_function() async {
@@ -6693,7 +6727,7 @@ import 'bar.dart';
 class B extends A {
 }
 ''');
-    var typeA = library.definingCompilationUnit.getType('B').supertype;
+    var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo.dart');
   }
 
@@ -6719,7 +6753,7 @@ import 'bar.dart';
 class B extends A {
 }
 ''');
-    var typeA = library.definingCompilationUnit.getType('B').supertype;
+    var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_io.dart');
   }
 
@@ -6745,7 +6779,7 @@ import 'bar.dart';
 class B extends A {
 }
 ''');
-    var typeA = library.definingCompilationUnit.getType('B').supertype;
+    var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_html.dart');
   }
 
@@ -7411,10 +7445,10 @@ F<int> a;
     var type = unit.topLevelVariables[0].type as FunctionType;
 
     expect(type.aliasElement, same(unit.typeAliases[0]));
-    _assertTypeStrings(type.aliasArguments, ['int']);
+    _assertTypeStrings(type.aliasArguments!, ['int']);
 
     // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
-    expect(type.element.enclosingElement, same(unit.typeAliases[0]));
+    expect(type.element!.enclosingElement, same(unit.typeAliases[0]));
     _assertTypeStrings(type.typeArguments, ['int']);
   }
 
@@ -7843,7 +7877,7 @@ import 'foo.dart';
 class B extends A {
 }
 ''');
-    var typeA = library.definingCompilationUnit.getType('B').supertype;
+    var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo.dart');
   }
 
@@ -7867,7 +7901,7 @@ import 'foo_io.dart';
 class B extends A {
 }
 ''');
-    var typeA = library.definingCompilationUnit.getType('B').supertype;
+    var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_io.dart');
   }
 
@@ -7891,7 +7925,7 @@ import 'foo_io.dart';
 class B extends A {
 }
 ''');
-    var typeA = library.definingCompilationUnit.getType('B').supertype;
+    var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_io.dart');
   }
 
@@ -7915,7 +7949,7 @@ import 'foo_html.dart';
 class B extends A {
 }
 ''');
-    var typeA = library.definingCompilationUnit.getType('B').supertype;
+    var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_html.dart');
   }
 
@@ -7939,7 +7973,7 @@ import 'foo_html.dart';
 class B extends A {
 }
 ''');
-    var typeA = library.definingCompilationUnit.getType('B').supertype;
+    var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_html.dart');
   }
 
@@ -8025,8 +8059,8 @@ Future<dynamic> f;
     addLibrarySource('/a.dart', 'library a; class C {}');
     var library = await checkLibrary('import "a.dart" as a; a.C c;');
 
-    expect(library.imports[0].prefix.nameOffset, 19);
-    expect(library.imports[0].prefix.nameLength, 1);
+    expect(library.imports[0].prefix!.nameOffset, 19);
+    expect(library.imports[0].prefix!.nameLength, 1);
 
     checkElementText(library, r'''
 import 'a.dart' as a;
@@ -8041,8 +8075,8 @@ class C {}
 class D extends p.C {} // Prevent "unused import" warning
 ''');
     expect(library.imports, hasLength(2));
-    expect(library.imports[0].importedLibrary.location, library.location);
-    expect(library.imports[1].importedLibrary.isDartCore, true);
+    expect(library.imports[0].importedLibrary!.location, library.location);
+    expect(library.imports[1].importedLibrary!.isDartCore, true);
     checkElementText(library, r'''
 import 'test.dart' as p;
 class C {
@@ -8591,7 +8625,7 @@ class B extends A {
     // This test should verify that we correctly record inferred types,
     // when the type is defined in a part of an SDK library. So, test that
     // the type is actually in a part.
-    Element streamElement = p.type.element;
+    Element streamElement = p.type.element!;
     if (streamElement is ClassElement) {
       expect(streamElement.source, isNot(streamElement.library.source));
     }
@@ -9200,17 +9234,9 @@ export '<unresolved>';
 export 'a2.dart';
 export '<unresolved>';
 export '<unresolved>';
-part '<unresolved>';
 part 'a3.dart';
-part '<unresolved>';
---------------------
-unit: null
-
 --------------------
 unit: a3.dart
-
---------------------
-unit: null
 
 ''');
   }
@@ -11305,10 +11331,6 @@ part "${foo}/bar.dart";
 ''');
     checkElementText(library, r'''
 library my.lib;
-part '<unresolved>';
---------------------
-unit: null
-
 ''');
   }
 
@@ -13311,7 +13333,7 @@ export 'foo.dart';
 
   test_unresolved_import() async {
     var library = await checkLibrary("import 'foo.dart';", allowErrors: true);
-    LibraryElement importedLibrary = library.imports[0].importedLibrary;
+    var importedLibrary = library.imports[0].importedLibrary!;
     expect(importedLibrary.loadLibraryFunction, isNotNull);
     expect(importedLibrary.publicNamespace, isNotNull);
     expect(importedLibrary.exportNamespace, isNotNull);
@@ -13462,14 +13484,14 @@ void set x(int _) {}
 
     // We intentionally don't check the text, because we want to test
     // requesting individual elements, not all accessors/variables at once.
-    var getter = _elementOfDefiningUnit(library, '@getter', 'x')
+    var getter = _elementOfDefiningUnit(library, ['@getter', 'x'])
         as PropertyAccessorElementImpl;
     var variable = getter.variable as TopLevelVariableElementImpl;
     expect(variable, isNotNull);
     expect(variable.isFinal, isTrue);
     expect(variable.getter, same(getter));
     expect('${variable.type}', 'int');
-    expect(variable, same(_elementOfDefiningUnit(library, '@field', 'x')));
+    expect(variable, same(_elementOfDefiningUnit(library, ['@field', 'x'])));
   }
 
   test_variable_implicit_type() async {
@@ -13729,16 +13751,13 @@ int j;
     expect(typeStringList, expected);
   }
 
-  Element _elementOfDefiningUnit(LibraryElementImpl library,
-      [String name1, String name2, String name3]) {
+  Element _elementOfDefiningUnit(
+      LibraryElementImpl library, List<String> names) {
     var unit = library.definingCompilationUnit as CompilationUnitElementImpl;
-    var reference = unit.reference;
+    var reference = unit.reference!;
+    names.forEach((name) => reference = reference.getChild(name));
 
-    [name1, name2, name3].takeWhile((e) => e != null).forEach((name) {
-      reference = reference.getChild(name);
-    });
-
-    var elementFactory = unit.linkedContext.elementFactory;
-    return elementFactory.elementOfReference(reference);
+    var elementFactory = unit.linkedContext!.elementFactory;
+    return elementFactory.elementOfReference(reference)!;
   }
 }

@@ -3244,10 +3244,10 @@ Definition* UnboxInstr::Canonicalize(FlowGraph* flow_graph) {
     UnboxedConstantInstr* uc = NULL;
 
     const Object& val = value()->BoundConstant();
-    if (val.IsSmi()) {
+    if (val.IsInteger()) {
       const Double& double_val = Double::ZoneHandle(
           flow_graph->zone(),
-          Double::NewCanonical(Smi::Cast(val).AsDoubleValue()));
+          Double::NewCanonical(Integer::Cast(val).AsDoubleValue()));
       uc = new UnboxedConstantInstr(double_val, kUnboxedDouble);
     } else if (val.IsDouble()) {
       uc = new UnboxedConstantInstr(val, kUnboxedDouble);
@@ -3308,10 +3308,10 @@ Definition* UnboxInt32Instr::Canonicalize(FlowGraph* flow_graph) {
   }
 
   ConstantInstr* c = value()->definition()->AsConstant();
-  if ((c != NULL) && c->value().IsSmi()) {
+  if ((c != NULL) && c->value().IsInteger()) {
     if (!is_truncating()) {
       // Check that constant fits into 32-bit integer.
-      const int64_t value = static_cast<int64_t>(Smi::Cast(c->value()).Value());
+      const int64_t value = Integer::Cast(c->value()).AsInt64Value();
       if (!Utils::IsInt(32, value)) {
         return this;
       }

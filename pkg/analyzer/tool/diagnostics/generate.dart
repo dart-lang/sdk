@@ -8,8 +8,8 @@ import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer_utilities/package_root.dart' as package_root;
 import 'package:path/src/context.dart';
 
@@ -58,7 +58,7 @@ class CodePath {
 
   /// The path to the file containing the generated definition of the diagnostic
   /// codes that include the message, or `null` if the
-  final String declarationPath;
+  final String? declarationPath;
 
   /// Initialize a newly created code path from the [documentationPath] and
   /// [declarationPath].
@@ -67,14 +67,16 @@ class CodePath {
   /// Return a list of code paths computed by joining the path segments in the
   /// corresponding lists from [documentationPaths] and [declarationPaths].
   static List<CodePath> from(List<List<String>> documentationPaths,
-      List<List<String>> declarationPaths) {
+      List<List<String>?> declarationPaths) {
     Context pathContext = PhysicalResourceProvider.INSTANCE.pathContext;
     List<CodePath> paths = [];
     for (int i = 0; i < documentationPaths.length; i++) {
       String docPath = pathContext.joinAll(documentationPaths[i]);
-      String declPath;
-      if (declarationPaths[i] != null) {
-        declPath = pathContext.joinAll(declarationPaths[i]);
+
+      String? declPath;
+      var declarationPath = declarationPaths[i];
+      if (declarationPath != null) {
+        declPath = pathContext.joinAll(declarationPath);
       }
       paths.add(CodePath(docPath, declPath));
     }
@@ -92,7 +94,7 @@ class DiagnosticInformation {
   List<String> messages;
 
   /// The lines of documentation associated with the diagnostic.
-  List<String> documentation;
+  List<String>? documentation;
 
   /// Initialize a newly created information holder with the given [name] and
   /// [message].
@@ -119,7 +121,7 @@ class DiagnosticInformation {
       }
     }
     sink.writeln();
-    for (String line in documentation) {
+    for (String line in documentation!) {
       sink.writeln(line);
     }
   }
@@ -186,7 +188,7 @@ class DocumentationGenerator {
         resourceProvider: PhysicalResourceProvider.INSTANCE);
     for (CodePath codePath in codePaths) {
       String docPath = codePath.documentationPath;
-      String declPath = codePath.declarationPath;
+      var declPath = codePath.declarationPath;
       if (declPath == null) {
         _extractDocs(_parse(collection, docPath), null);
       } else {
@@ -205,9 +207,9 @@ class DocumentationGenerator {
   /// the expression does not appear to be creating an error code. If the
   /// expression is the name of a generated code, then the [generatedResult]
   /// should have the unit in which the information can be found.
-  DiagnosticInformation _extractDiagnosticInformation(
-      Expression expression, ParsedUnitResult generatedResult) {
-    List<Expression> arguments;
+  DiagnosticInformation? _extractDiagnosticInformation(
+      Expression expression, ParsedUnitResult? generatedResult) {
+    List<Expression>? arguments;
     if (expression is InstanceCreationExpression) {
       arguments = expression.argumentList.arguments;
     } else if (expression is MethodInvocation) {
@@ -219,7 +221,7 @@ class DocumentationGenerator {
     if (arguments != null) {
       String name = _extractName(arguments);
       String message = _extractMessage(arguments);
-      DiagnosticInformation info = infoByName[name];
+      var info = infoByName[name];
       if (info == null) {
         info = DiagnosticInformation(name, message);
         infoByName[name] = info;
@@ -230,10 +232,9 @@ class DocumentationGenerator {
     }
 
     if (expression is SimpleIdentifier && generatedResult != null) {
-      VariableDeclaration variable =
-          _findVariable(expression.name, generatedResult.unit);
+      var variable = _findVariable(expression.name, generatedResult.unit);
       if (variable != null) {
-        return _extractDiagnosticInformation(variable.initializer, null);
+        return _extractDiagnosticInformation(variable.initializer!, null);
       }
     }
 
@@ -241,8 +242,8 @@ class DocumentationGenerator {
   }
 
   /// Extract documentation from the given [field] declaration.
-  List<String> _extractDoc(FieldDeclaration field) {
-    Token comments = field.firstTokenAfterCommentAndMetadata.precedingComments;
+  List<String>? _extractDoc(FieldDeclaration field) {
+    var comments = field.firstTokenAfterCommentAndMetadata.precedingComments;
     if (comments == null) {
       return null;
     }
@@ -272,7 +273,7 @@ class DocumentationGenerator {
       } else if (lexeme == '//') {
         docs.add('');
       }
-      comments = comments.next;
+      comments = comments.next as CommentToken?;
     }
     if (docs.isEmpty) {
       return null;
@@ -283,7 +284,8 @@ class DocumentationGenerator {
   /// Extract documentation from the file that was parsed to produce the given
   /// [result]. If a [generatedResult] is provided, then the messages might be
   /// in the file parsed to produce the result.
-  void _extractDocs(ParsedUnitResult result, ParsedUnitResult generatedResult) {
+  void _extractDocs(
+      ParsedUnitResult result, ParsedUnitResult? generatedResult) {
     CompilationUnit unit = result.unit;
     for (CompilationUnitMember declaration in unit.declarations) {
       if (declaration is ClassDeclaration &&
@@ -293,10 +295,10 @@ class DocumentationGenerator {
               member.isStatic &&
               !_isDeprecated(member)) {
             VariableDeclaration variable = member.fields.variables[0];
-            DiagnosticInformation info = _extractDiagnosticInformation(
-                variable.initializer, generatedResult);
+            var info = _extractDiagnosticInformation(
+                variable.initializer!, generatedResult);
             if (info != null) {
-              List<String> docs = _extractDoc(member);
+              var docs = _extractDoc(member);
               if (docs != null) {
                 if (info.documentation != null) {
                   throw StateError(
@@ -312,7 +314,7 @@ class DocumentationGenerator {
   }
 
   /// Return the message extracted from the list of [arguments].
-  String _extractMessage(NodeList<Expression> arguments) {
+  String _extractMessage(List<Expression> arguments) {
     int positionalCount =
         arguments.where((expression) => expression is! NamedExpression).length;
     if (positionalCount == 2) {
@@ -326,19 +328,19 @@ class DocumentationGenerator {
   }
 
   /// Return the name extracted from the list of [arguments].
-  String _extractName(NodeList<Expression> arguments) =>
+  String _extractName(List<Expression> arguments) =>
       _extractString(arguments[0]);
 
   String _extractString(Expression expression) {
     if (expression is StringLiteral) {
-      return expression.stringValue;
+      return expression.stringValue!;
     }
     throw StateError('Cannot extract string from $expression');
   }
 
   /// Return the declaration of the top-level variable with the [name] in the
   /// compilation unit, or `null` if there is no such variable.
-  VariableDeclaration _findVariable(String name, CompilationUnit unit) {
+  VariableDeclaration? _findVariable(String name, CompilationUnit unit) {
     for (CompilationUnitMember member in unit.declarations) {
       if (member is TopLevelVariableDeclaration) {
         for (VariableDeclaration variable in member.variables.variables) {
@@ -359,9 +361,6 @@ class DocumentationGenerator {
   /// [path] and return the result.
   ParsedUnitResult _parse(AnalysisContextCollection collection, String path) {
     AnalysisSession session = collection.contextFor(path).currentSession;
-    if (session == null) {
-      throw StateError('No session for "$path"');
-    }
     ParsedUnitResult result = session.getParsedUnit(path);
     if (result.state != ResultState.VALID) {
       throw StateError('Unable to parse "$path"');
@@ -382,7 +381,7 @@ that might work in unexpected ways.
     List<String> errorCodes = infoByName.keys.toList();
     errorCodes.sort();
     for (String errorCode in errorCodes) {
-      DiagnosticInformation info = infoByName[errorCode];
+      DiagnosticInformation info = infoByName[errorCode]!;
       if (info.hasDocumentation) {
         sink.writeln();
         info.writeOn(sink);

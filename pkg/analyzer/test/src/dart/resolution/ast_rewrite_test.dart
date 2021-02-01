@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -352,16 +351,16 @@ f() {
     List<String> expectedArguments,
   ) {
     var argumentStrings = argumentList.arguments
-        .map((e) => result.content.substring(e.offset, e.end))
+        .map((e) => result.content!.substring(e.offset, e.end))
         .toList();
     expect(argumentStrings, expectedArguments);
   }
 
   void _assertExtensionOverride(
     ExtensionOverride override, {
-    @required ExtensionElement expectedElement,
-    @required List<String> expectedTypeArguments,
-    @required String expectedExtendedType,
+    required ExtensionElement expectedElement,
+    required List<String> expectedTypeArguments,
+    required String expectedExtendedType,
   }) {
     expect(override.staticElement, expectedElement);
 
@@ -376,11 +375,15 @@ f() {
   }
 
   void _assertTypeArgumentList(
-    TypeArgumentList argumentList,
+    TypeArgumentList? argumentList,
     List<String> expectedArguments,
   ) {
+    if (argumentList == null) {
+      fail('Expected TypeArgumentList, actually null.');
+    }
+
     var argumentStrings = argumentList.arguments
-        .map((e) => result.content.substring(e.offset, e.end))
+        .map((e) => result.content!.substring(e.offset, e.end))
         .toList();
     expect(argumentStrings, expectedArguments);
   }

@@ -1,0 +1,51 @@
+NOTICE: Stream was rewritten by parser!
+
+foo(int a, int b){
+if (a == null || b == null){
+return null;
+}
+}
+
+foo2(int a, int b, int c){
+if (a == null || b == null || c == null){
+return null;
+}
+}
+
+bar(int a, int b){
+if (a == null && b == null){
+return null;
+}
+}
+
+bar2(int a, int b, int c){
+if (a == null && b == null && c == null){
+return null;
+}
+}
+
+
+foo[StringToken]([BeginToken]int[StringToken] a[StringToken],[SimpleToken] int[StringToken] b[StringToken])[SimpleToken]{[BeginToken]
+if[KeywordToken] ([BeginToken]a[StringToken] ==[SimpleToken] null[KeywordToken] ||[ReplacementToken] b[StringToken] ==[SimpleToken] null[KeywordToken])[SimpleToken]{[BeginToken]
+return[KeywordToken] null[KeywordToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+
+foo2[StringToken]([BeginToken]int[StringToken] a[StringToken],[SimpleToken] int[StringToken] b[StringToken],[SimpleToken] int[StringToken] c[StringToken])[SimpleToken]{[BeginToken]
+if[KeywordToken] ([BeginToken]a[StringToken] ==[SimpleToken] null[KeywordToken] ||[ReplacementToken] b[StringToken] ==[SimpleToken] null[KeywordToken] ||[ReplacementToken] c[StringToken] ==[SimpleToken] null[KeywordToken])[SimpleToken]{[BeginToken]
+return[KeywordToken] null[KeywordToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+
+bar[StringToken]([BeginToken]int[StringToken] a[StringToken],[SimpleToken] int[StringToken] b[StringToken])[SimpleToken]{[BeginToken]
+if[KeywordToken] ([BeginToken]a[StringToken] ==[SimpleToken] null[KeywordToken] &&[ReplacementToken] b[StringToken] ==[SimpleToken] null[KeywordToken])[SimpleToken]{[BeginToken]
+return[KeywordToken] null[KeywordToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+
+bar2[StringToken]([BeginToken]int[StringToken] a[StringToken],[SimpleToken] int[StringToken] b[StringToken],[SimpleToken] int[StringToken] c[StringToken])[SimpleToken]{[BeginToken]
+if[KeywordToken] ([BeginToken]a[StringToken] ==[SimpleToken] null[KeywordToken] &&[ReplacementToken] b[StringToken] ==[SimpleToken] null[KeywordToken] &&[ReplacementToken] c[StringToken] ==[SimpleToken] null[KeywordToken])[SimpleToken]{[BeginToken]
+return[KeywordToken] null[KeywordToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

@@ -13,7 +13,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   final StringBuffer _buffer;
   final LineInfo _lineInfo;
 
-  Token _last;
+  Token? _last;
   int _lastEnd = 0;
   int _lastEndLine = 0;
 
@@ -56,7 +56,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     _tokenIfNot(node.condition.endToken.next, node.rightParenthesis);
 
     node.message?.accept(this);
-    _tokenIfNot(node.message?.endToken?.next, node.rightParenthesis);
+    _tokenIfNot(node.message?.endToken.next, node.rightParenthesis);
 
     _token(node.rightParenthesis);
   }
@@ -70,7 +70,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     _tokenIfNot(node.condition.endToken.next, node.rightParenthesis);
 
     node.message?.accept(this);
-    _tokenIfNot(node.message?.endToken?.next, node.rightParenthesis);
+    _tokenIfNot(node.message?.endToken.next, node.rightParenthesis);
 
     _token(node.rightParenthesis);
     _token(node.semicolon);
@@ -164,7 +164,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     node.name.accept(this);
     node.typeParameters?.accept(this);
     _token(node.equals);
-    node.superclass?.accept(this);
+    node.superclass.accept(this);
     node.withClause.accept(this);
     node.implementsClause?.accept(this);
     _token(node.semicolon);
@@ -207,14 +207,14 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     _token(node.externalKeyword);
     _token(node.constKeyword);
     _token(node.factoryKeyword);
-    node.returnType?.accept(this);
+    node.returnType.accept(this);
     _token(node.period);
     node.name?.accept(this);
     node.parameters.accept(this);
     _token(node.separator);
-    _nodeList(node.initializers, node.body.beginToken);
+    _nodeList(node.initializers, node.body!.beginToken);
     node.redirectedConstructor?.accept(this);
-    node.body.accept(this);
+    node.body!.accept(this);
   }
 
   @override
@@ -308,7 +308,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     _directive(node);
     _token(node.keyword);
     node.uri.accept(this);
-    node.configurations?.accept(this);
+    node.configurations.accept(this);
     _nodeList(node.combinators);
     _token(node.semicolon);
   }
@@ -349,7 +349,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitExtensionOverride(ExtensionOverride node) {
     node.extensionName.accept(this);
-    node.typeArguments.accept(this);
+    node.typeArguments?.accept(this);
     node.argumentList.accept(this);
   }
 
@@ -412,10 +412,10 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
 
       parameter.accept(this);
 
-      var itemSeparator = parameter.endToken.next;
+      var itemSeparator = parameter.endToken.next!;
       if (itemSeparator != node.rightParenthesis) {
         _token(itemSeparator);
-        itemSeparator = itemSeparator.next;
+        itemSeparator = itemSeparator.next!;
       }
 
       if (itemSeparator == node.rightDelimiter) {
@@ -473,7 +473,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   void visitFunctionExpression(FunctionExpression node) {
     node.typeParameters?.accept(this);
     node.parameters?.accept(this);
-    node.body.accept(this);
+    node.body!.accept(this);
   }
 
   @override
@@ -563,7 +563,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     _directive(node);
     _token(node.keyword);
     node.uri.accept(this);
-    node.configurations?.accept(this);
+    node.configurations.accept(this);
     _token(node.deferredKeyword);
     _token(node.asKeyword);
     node.prefix?.accept(this);
@@ -664,7 +664,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     node.name.accept(this);
     node.typeParameters?.accept(this);
     node.parameters?.accept(this);
-    node.body?.accept(this);
+    node.body.accept(this);
   }
 
   @override
@@ -698,7 +698,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitNativeClause(NativeClause node) {
     _token(node.nativeKeyword);
-    node.name.accept(this);
+    node.name?.accept(this);
   }
 
   @override
@@ -941,7 +941,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
     // added to the interface.
     _token((node as TypeParameterImpl).varianceKeyword);
-    node.name?.accept(this);
+    node.name.accept(this);
     _token(node.extendsKeyword);
     node.bound?.accept(this);
   }
@@ -1029,7 +1029,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   ///
   /// If the [endToken] is not `null`, print one token after every node,
   /// unless it is the [endToken].
-  void _nodeList(List<AstNode> nodeList, [Token endToken]) {
+  void _nodeList(List<AstNode> nodeList, [Token? endToken]) {
     var length = nodeList.length;
     for (var i = 0; i < length; ++i) {
       var node = nodeList[i];
@@ -1047,13 +1047,13 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     _token(node.covariantKeyword);
   }
 
-  void _token(Token token) {
+  void _token(Token? token) {
     if (token == null) return;
 
     if (_last != null) {
-      if (_last.next != token) {
+      if (_last!.next != token) {
         throw StateError(
-          '|$_last| must be followed by |${_last.next}|, got |$token|',
+          '|$_last| must be followed by |${_last!.next}|, got |$token|',
         );
       }
     }
@@ -1062,7 +1062,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     if (token.precedingComments != null) {
       var lastToken = _last;
       _last = null;
-      for (var c = token.precedingComments; c != null; c = c.next) {
+      for (Token? c = token.precedingComments; c != null; c = c.next) {
         _token(c);
       }
       _last = lastToken;
@@ -1088,7 +1088,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     _lastEndLine = endLocation.lineNumber - 1;
   }
 
-  void _tokenIfNot(Token maybe, Token ifNot) {
+  void _tokenIfNot(Token? maybe, Token ifNot) {
     if (maybe == null) return;
     if (maybe == ifNot) return;
     _token(maybe);

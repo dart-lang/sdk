@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:test/test.dart';
 
@@ -17,7 +16,7 @@ import '../src/dart/resolution/context_collection_resolution.dart';
 class ResolutionVerifier extends RecursiveAstVisitor<void> {
   /// A set containing nodes that are known to not be resolvable and should
   /// therefore not cause the test to fail.
-  final Set<AstNode> _knownExceptions;
+  final Set<AstNode>? _knownExceptions;
 
   /// A list containing all of the AST nodes that were not resolved.
   final List<AstNode> _unresolvedNodes = <AstNode>[];
@@ -56,9 +55,9 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitAnnotation(Annotation node) {
     node.visitChildren(this);
-    ElementAnnotation elementAnnotation = node.elementAnnotation;
+    var elementAnnotation = node.elementAnnotation;
     if (elementAnnotation == null) {
-      if (_knownExceptions == null || !_knownExceptions.contains(node)) {
+      if (_knownExceptions == null || !_knownExceptions!.contains(node)) {
         _unresolvedNodes.add(node);
       }
     } else if (elementAnnotation is! ElementAnnotation) {
@@ -72,7 +71,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
     if (!node.operator.isUserDefinableOperator) {
       return;
     }
-    DartType operandType = node.leftOperand.staticType;
+    var operandType = node.leftOperand.staticType;
     if (operandType == null || operandType.isDynamic) {
       return;
     }
@@ -115,7 +114,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
     // Not sure how to test the combinators given that it isn't an error if the
     // names are not defined.
     _checkResolved(node, node.element, (node) => node is ImportElement);
-    SimpleIdentifier prefix = node.prefix;
+    var prefix = node.prefix;
     if (prefix == null) {
       return;
     }
@@ -126,11 +125,11 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitIndexExpression(IndexExpression node) {
     node.visitChildren(this);
-    DartType targetType = node.realTarget.staticType;
+    var targetType = node.realTarget.staticType;
     if (targetType == null || targetType.isDynamic) {
       return;
     }
-    AstNode parent = node.parent;
+    var parent = node.parent;
     if (parent is AssignmentExpression && parent.leftHandSide == node) {
       return;
     }
@@ -164,7 +163,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
     if (!node.operator.isUserDefinableOperator) {
       return;
     }
-    DartType operandType = node.operand.staticType;
+    var operandType = node.operand.staticType;
     if (operandType == null || operandType.isDynamic) {
       return;
     }
@@ -175,7 +174,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     SimpleIdentifier prefix = node.prefix;
     prefix.accept(this);
-    DartType prefixType = prefix.staticType;
+    var prefixType = prefix.staticType;
     if (prefixType == null || prefixType.isDynamic) {
       return;
     }
@@ -188,7 +187,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
     if (!node.operator.isUserDefinableOperator) {
       return;
     }
-    DartType operandType = node.operand.staticType;
+    var operandType = node.operand.staticType;
     if (operandType == null || operandType.isDynamic) {
       return;
     }
@@ -199,11 +198,11 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
   void visitPropertyAccess(PropertyAccess node) {
     Expression target = node.realTarget;
     target.accept(this);
-    DartType targetType = target.staticType;
+    var targetType = target.staticType;
     if (targetType == null || targetType.isDynamic) {
       return;
     }
-    AstNode parent = node.parent;
+    var parent = node.parent;
     if (parent is AssignmentExpression && parent.leftHandSide == node) {
       return;
     }
@@ -215,20 +214,23 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
     if (node.name == "void") {
       return;
     }
-    if (node.staticType != null &&
-        node.staticType.isDynamic &&
+
+    var staticType = node.staticType;
+    if (staticType != null &&
+        staticType.isDynamic &&
         node.staticElement == null) {
       return;
     }
-    AstNode parent = node.parent;
+
+    var parent = node.parent;
     if (parent is AssignmentExpression && parent.leftHandSide == node) {
       return;
     }
     if (parent is MethodInvocation) {
       MethodInvocation invocation = parent;
       if (identical(invocation.methodName, node)) {
-        Expression target = invocation.realTarget;
-        DartType targetType = target == null ? null : target.staticType;
+        var target = invocation.realTarget;
+        var targetType = target == null ? null : target.staticType;
         if (targetType == null || targetType.isDynamic) {
           return;
         }
@@ -238,9 +240,9 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkResolved(
-      AstNode node, Element element, Predicate<Element> predicate) {
+      AstNode node, Element? element, Predicate<Element>? predicate) {
     if (element == null) {
-      if (_knownExceptions == null || !_knownExceptions.contains(node)) {
+      if (_knownExceptions == null || !_knownExceptions!.contains(node)) {
         _unresolvedNodes.add(node);
       }
     } else if (predicate != null) {
@@ -250,7 +252,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  String _getFileName(AstNode node) {
+  String _getFileName(AstNode? node) {
     // TODO (jwren) there are two copies of this method, one here and one in
     // StaticTypeVerifier, they should be resolved into a single method
     if (node != null) {
@@ -258,7 +260,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
       if (root is CompilationUnit) {
         CompilationUnit rootCU = root;
         if (rootCU.declaredElement != null) {
-          return rootCU.declaredElement.source.fullName;
+          return rootCU.declaredElement!.source.fullName;
         } else {
           return "<unknown file- CompilationUnit.getElement() returned null>";
         }
@@ -287,11 +289,11 @@ class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest {
   /// Looks up the identifier with [name] and validates that its type type
   /// stringifies to [type] and that its generics match the given stringified
   /// output.
-  FunctionTypeImpl expectFunctionType(String name, String type,
+  FunctionType expectFunctionType(String name, String type,
       {String typeParams = '[]',
       String typeArgs = '[]',
       String typeFormals = '[]',
-      String identifierType}) {
+      String? identifierType}) {
     identifierType ??= type;
 
     String typeParametersStr(List<TypeParameterElement> elements) {
@@ -313,7 +315,7 @@ class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest {
   /// Looks up the identifier with [name] and validates that its element type
   /// stringifies to [type] and that its generics match the given stringified
   /// output.
-  FunctionTypeImpl expectFunctionType2(String name, String type) {
+  FunctionType expectFunctionType2(String name, String type) {
     var identifier = findNode.simple(name);
     var functionType = _getFunctionTypedElementType(identifier);
     assertType(functionType, type);
@@ -338,9 +340,8 @@ class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest {
   /// to match the type.
   void expectInitializerType(String name, type) {
     SimpleIdentifier identifier = findNode.simple(name);
-    VariableDeclaration declaration =
-        identifier.thisOrAncestorOfType<VariableDeclaration>();
-    Expression initializer = declaration.initializer;
+    var declaration = identifier.thisOrAncestorOfType<VariableDeclaration>()!;
+    var initializer = declaration.initializer!;
     _expectType(initializer.staticType, type);
   }
 
@@ -349,7 +350,7 @@ class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest {
   /// If [expected] is a string, validates that the type stringifies to that
   /// text. Otherwise, [expected] is used directly a [Matcher] to match the
   /// type.
-  _expectType(DartType type, expected) {
+  _expectType(DartType? type, expected) {
     if (expected is String) {
       assertType(type, expected);
     } else {
@@ -357,12 +358,12 @@ class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest {
     }
   }
 
-  FunctionTypeImpl _getFunctionTypedElementType(SimpleIdentifier identifier) {
+  FunctionType _getFunctionTypedElementType(SimpleIdentifier identifier) {
     var element = identifier.staticElement;
     if (element is ExecutableElement) {
       return element.type;
     } else if (element is VariableElement) {
-      return element.type;
+      return element.type as FunctionType;
     } else {
       fail('Unexpected element: (${element.runtimeType}) $element');
     }

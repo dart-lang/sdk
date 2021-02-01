@@ -30,7 +30,7 @@ main(List<String> args) async {
 }
 
 class FlowTestBase {
-  FlowAnalysisDataForTesting flowResult;
+  late final FlowAnalysisDataForTesting flowResult;
 
   /// Resolve the given [code] and track nullability in the unit.
   Future<void> trackCode(String code) async {
@@ -61,10 +61,9 @@ class _ReachabilityDataComputer
   @override
   void computeUnitData(TestingData testingData, CompilationUnit unit,
       Map<Id, ActualData<Set<_ReachabilityAssertion>>> actualMap) {
-    var flowResult =
-        testingData.uriToFlowAnalysisData[unit.declaredElement.source.uri];
-    _ReachabilityDataExtractor(
-            unit.declaredElement.source.uri, actualMap, flowResult)
+    var unitElement = unit.declaredElement!;
+    var flowResult = testingData.uriToFlowAnalysisData[unitElement.source.uri]!;
+    _ReachabilityDataExtractor(unitElement.source.uri, actualMap, flowResult)
         .run(unit);
   }
 }
@@ -80,7 +79,7 @@ class _ReachabilityDataExtractor
       : super(uri, actualMap);
 
   @override
-  Set<_ReachabilityAssertion> computeNodeValue(Id id, AstNode node) {
+  Set<_ReachabilityAssertion>? computeNodeValue(Id id, AstNode node) {
     Set<_ReachabilityAssertion> result = {};
     if (node is Expression && node.parent is ExpressionStatement) {
       // The reachability of an expression statement and the statement it
@@ -103,7 +102,7 @@ class _ReachabilityDataExtractor
   }
 
   void _checkBodyCompletion(
-      FunctionBody body, Set<_ReachabilityAssertion> result) {
+      FunctionBody? body, Set<_ReachabilityAssertion> result) {
     if (body != null &&
         _flowResult.functionBodiesThatDontComplete.contains(body)) {
       result.add(_ReachabilityAssertion.doesNotComplete);
@@ -117,12 +116,12 @@ class _ReachabilityDataInterpreter
 
   @override
   String getText(Set<_ReachabilityAssertion> actualData,
-          [String indentation]) =>
+          [String? indentation]) =>
       _sortedRepresentation(_toStrings(actualData));
 
   @override
-  String isAsExpected(
-      Set<_ReachabilityAssertion> actualData, String expectedData) {
+  String? isAsExpected(
+      Set<_ReachabilityAssertion> actualData, String? expectedData) {
     var actualStrings = _toStrings(actualData);
     var actualSorted = _sortedRepresentation(actualStrings);
     var expectedSorted = _sortedRepresentation(expectedData?.split(','));
@@ -136,7 +135,7 @@ class _ReachabilityDataInterpreter
   @override
   bool isEmpty(Set<_ReachabilityAssertion> actualData) => actualData.isEmpty;
 
-  String _sortedRepresentation(Iterable<String> values) {
+  String _sortedRepresentation(Iterable<String>? values) {
     var list = values == null || values.isEmpty ? ['none'] : values.toList();
     list.sort();
     return list.join(',');

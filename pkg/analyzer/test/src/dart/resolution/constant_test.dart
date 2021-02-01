@@ -33,14 +33,14 @@ import 'a.dart';
 const a = const A();
 ''');
 
-    var aLib = findElement.import('package:test/a.dart').importedLibrary;
-    var aConstructor = aLib.getType('A').constructors.single;
-    DefaultParameterElementImpl p = aConstructor.parameters.single;
+    var aLib = findElement.import('package:test/a.dart').importedLibrary!;
+    var aConstructor = aLib.getType('A')!.constructors.single;
+    var p = aConstructor.parameters.single as DefaultParameterElementImpl;
 
     // To evaluate `const A()` we have to evaluate `{int p}`.
     // Even if its value is `null`.
     expect(p.isConstantEvaluated, isTrue);
-    expect(p.computeConstantValue().isNull, isTrue);
+    expect(p.computeConstantValue()!.isNull, isTrue);
   }
 
   test_constFactoryRedirection_super() async {
@@ -64,8 +64,8 @@ main() {}
 ''');
 
     var node = findNode.annotation('@I');
-    var value = node.elementAnnotation.computeConstantValue();
-    expect(value.getField('(super)').getField('f').toIntValue(), 42);
+    var value = node.elementAnnotation!.computeConstantValue()!;
+    expect(value.getField('(super)')!.getField('f')!.toIntValue(), 42);
   }
 
   test_constNotInitialized() async {
@@ -120,7 +120,7 @@ const v = a;
 ''');
 
     var v = findElement.topVar('v') as ConstVariableElement;
-    var value = v.computeConstantValue();
+    var value = v.computeConstantValue()!;
 
     var type = value.type as InterfaceType;
     assertType(type, 'C<double Function(int)>');
@@ -137,7 +137,7 @@ const v = a;
 
     // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
     expect(typeArgument.element, alias.aliasedElement);
-    expect(typeArgument.element.enclosingElement, alias);
+    expect(typeArgument.element!.enclosingElement, alias);
     assertElementTypeStrings(typeArgument.typeArguments, ['double']);
   }
 
@@ -155,7 +155,7 @@ import 'a.dart';
 
     var import_ = findElement.importFind('package:test/a.dart');
     var a = import_.topVar('a') as ConstVariableElement;
-    expect(a.computeConstantValue().toIntValue(), 42);
+    expect(a.computeConstantValue()!.toIntValue(), 42);
   }
 
   test_imported_prefixedIdentifier_staticField_extension() async {
@@ -172,7 +172,7 @@ import 'a.dart';
 
     var import_ = findElement.importFind('package:test/a.dart');
     var a = import_.topVar('a') as ConstVariableElement;
-    expect(a.computeConstantValue().toIntValue(), 42);
+    expect(a.computeConstantValue()!.toIntValue(), 42);
   }
 
   test_imported_prefixedIdentifier_staticField_mixin() async {
@@ -191,7 +191,7 @@ import 'a.dart';
 
     var import_ = findElement.importFind('package:test/a.dart');
     var a = import_.topVar('a') as ConstVariableElement;
-    expect(a.computeConstantValue().toIntValue(), 42);
+    expect(a.computeConstantValue()!.toIntValue(), 42);
   }
 
   test_imported_super_defaultFieldFormalParameter() async {
@@ -219,10 +219,10 @@ class B extends A {
     result = await resolveFile(convertPath('$testPackageLibPath/a.dart'));
     assertErrorsInResolvedUnit(result, []);
 
-    var bElement = FindElement(result.unit).field('b') as ConstVariableElement;
-    var bValue = bElement.evaluationResult.value;
+    var bElement = FindElement(result.unit!).field('b') as ConstVariableElement;
+    var bValue = bElement.evaluationResult!.value!;
     var superFields = bValue.getField(GenericState.SUPERCLASS_FIELD);
-    expect(superFields.getField('f1').toBoolValue(), false);
+    expect(superFields!.getField('f1')!.toBoolValue(), false);
   }
 
   test_local_prefixedIdentifier_staticField_extension() async {
@@ -234,7 +234,7 @@ extension E on int {
 }
 ''');
     var a = findElement.topVar('a') as ConstVariableElement;
-    expect(a.computeConstantValue().toIntValue(), 42);
+    expect(a.computeConstantValue()!.toIntValue(), 42);
   }
 
   /// See https://github.com/dart-lang/sdk/issues/43462
@@ -280,7 +280,7 @@ const b = B(a);
 ''');
 
     var b = findElement.topVar('b');
-    assertType(b.computeConstantValue().type, 'B*');
+    assertType(b.computeConstantValue()!.type, 'B*');
   }
 
   test_constructor_nullSafe_fromLegacy_this() async {
@@ -300,7 +300,7 @@ const b = A(a);
 ''');
 
     var b = findElement.topVar('b');
-    assertType(b.computeConstantValue().type, 'A*');
+    assertType(b.computeConstantValue()!.type, 'A*');
   }
 
   test_context_eliminateTypeVariables() async {
@@ -362,7 +362,7 @@ const vString = cString;
     ]);
 
     DartObjectImpl evaluate(String name) {
-      return findElement.topVar(name).computeConstantValue();
+      return findElement.topVar(name).computeConstantValue() as DartObjectImpl;
     }
 
     expect(evaluate('vBool').toBoolValue(), false);
@@ -429,6 +429,6 @@ const b = a;
   }
 
   void _assertIntValue(VariableElement element, int value) {
-    expect(element.computeConstantValue().toIntValue(), value);
+    expect(element.computeConstantValue()!.toIntValue(), value);
   }
 }

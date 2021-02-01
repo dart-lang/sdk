@@ -18,7 +18,7 @@ class SdkConstraintExtractor {
 
   /// The text of the constraint, or `null` if the range has not yet been
   /// computed or if there was an error when attempting to compute the range.
-  String _constraintText;
+  String? _constraintText;
 
   /// The offset of the constraint text, or `-1` if the offset is not known.
   int _constraintOffset = -1;
@@ -26,7 +26,7 @@ class SdkConstraintExtractor {
   /// The cached range of supported versions, or `null` if the range has not yet
   /// been computed or if there was an error when attempting to compute the
   /// range.
-  VersionConstraint _constraint;
+  VersionConstraint? _constraint;
 
   /// Initialize a newly created extractor to extract the SDK version constraint
   /// from the given `pubspec.yaml` file.
@@ -34,9 +34,9 @@ class SdkConstraintExtractor {
 
   /// Return the range of supported versions, or `null` if the range could not
   /// be computed.
-  VersionConstraint constraint() {
+  VersionConstraint? constraint() {
     if (_constraint == null) {
-      String text = constraintText();
+      var text = constraintText();
       if (text != null) {
         try {
           _constraint = VersionConstraint.parse(text);
@@ -48,7 +48,8 @@ class SdkConstraintExtractor {
     return _constraint;
   }
 
-  /// Return the offset of the constraint text.
+  /// Return the offset of the constraint text, or `-1` if there is an
+  /// error or if the pubspec does not contain an sdk constraint.
   int constraintOffset() {
     if (_constraintText == null) {
       _initializeTextAndOffset();
@@ -56,8 +57,9 @@ class SdkConstraintExtractor {
     return _constraintOffset;
   }
 
-  /// Return the constraint text following "sdk:".
-  String constraintText() {
+  /// Return the constraint text following "sdk:", or `null` if there is an
+  /// error or if the pubspec does not contain an sdk constraint.
+  String? constraintText() {
     if (_constraintText == null) {
       _initializeTextAndOffset();
     }
@@ -74,9 +76,9 @@ class SdkConstraintExtractor {
         YamlDocument document = loadYamlDocument(fileContent);
         YamlNode contents = document.contents;
         if (contents is YamlMap) {
-          YamlNode environment = contents.nodes['environment'];
+          YamlNode? environment = contents.nodes['environment'];
           if (environment is YamlMap) {
-            YamlNode sdk = environment.nodes['sdk'];
+            YamlNode? sdk = environment.nodes['sdk'];
             if (sdk is YamlScalar) {
               _constraintText = sdk.value;
               _constraintOffset = sdk.span.start.offset;

@@ -61,7 +61,7 @@ class ContentCache {
   /// Visit all entries of this cache.
   void accept(ContentCacheVisitor visitor) {
     _contentMap.forEach((String fullPath, String contents) {
-      int stamp = _stampMap[fullPath];
+      int stamp = _stampMap[fullPath]!;
       visitor(fullPath, stamp, contents);
     });
   }
@@ -71,14 +71,14 @@ class ContentCache {
   ///
   /// <b>Note:</b> This method is not intended to be used except by
   /// [AnalysisContext.getContents].
-  String getContents(Source source) => _contentMap[source.fullName];
+  String? getContents(Source source) => _contentMap[source.fullName];
 
   /// Return `true` if the given [source] exists, `false` if it does not exist,
   /// or `null` if this cache does not override existence of the source.
   ///
   /// <b>Note:</b> This method is not intended to be used except by
   /// [AnalysisContext.exists].
-  bool getExists(Source source) {
+  bool? getExists(Source source) {
     return _contentMap.containsKey(source.fullName) ? true : null;
   }
 
@@ -87,20 +87,20 @@ class ContentCache {
   ///
   /// <b>Note:</b> This method is not intended to be used except by
   /// [AnalysisContext.getModificationStamp].
-  int getModificationStamp(Source source) => _stampMap[source.fullName];
+  int? getModificationStamp(Source source) => _stampMap[source.fullName];
 
   /// Set the contents of the given [source] to the given [contents]. This has
   /// the effect of overriding the default contents of the source. If the
   /// contents are `null` the override is removed so that the default contents
   /// will be returned.
-  String setContents(Source source, String contents) {
+  String? setContents(Source source, String? contents) {
     String fullName = source.fullName;
     if (contents == null) {
       _stampMap.remove(fullName);
       return _contentMap.remove(fullName);
     } else {
       int newStamp = _nextStamp++;
-      int oldStamp = _stampMap[fullName];
+      var oldStamp = _stampMap[fullName];
       _stampMap[fullName] = newStamp;
       // Occasionally, if this method is called in rapid succession, the
       // timestamps are equal. Guard against this by artificially incrementing
@@ -108,7 +108,7 @@ class ContentCache {
       if (newStamp == oldStamp) {
         _stampMap[fullName] = newStamp + 1;
       }
-      String oldContent = _contentMap[fullName];
+      var oldContent = _contentMap[fullName];
       _contentMap[fullName] = contents;
       return oldContent;
     }
@@ -137,7 +137,7 @@ class DartUriResolver extends UriResolver {
   DartSdk get dartSdk => _sdk;
 
   @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+  Source? resolveAbsolute(Uri uri, [Uri? actualUri]) {
     if (!isDartUri(uri)) {
       return null;
     }
@@ -145,8 +145,8 @@ class DartUriResolver extends UriResolver {
   }
 
   @override
-  Uri restoreAbsolute(Source source) {
-    Source dartSource = _sdk.fromFileUri(source.uri);
+  Uri? restoreAbsolute(Source source) {
+    var dartSource = _sdk.fromFileUri(source.uri);
     return dartSource?.uri;
   }
 
@@ -154,7 +154,7 @@ class DartUriResolver extends UriResolver {
   ///
   /// @param uriContent the textual representation of the URI being tested
   /// @return `true` if the given URI is a `dart-ext:` URI
-  static bool isDartExtUri(String uriContent) =>
+  static bool isDartExtUri(String? uriContent) =>
       uriContent != null && uriContent.startsWith(_DART_EXT_SCHEME);
 
   /// Return `true` if the given URI is a `dart:` URI.
@@ -294,7 +294,7 @@ abstract class Source implements AnalysisTarget {
   bool get isInSystemLibrary;
 
   @override
-  Source get librarySource => null;
+  Source get librarySource => throw UnimplementedError();
 
   /// Return the modification stamp for this source, or a negative value if the
   /// source does not exist. A modification stamp is a non-negative integer with
@@ -366,11 +366,11 @@ abstract class SourceFactory {
   ///
   /// @return the [DartSdk] associated with this [SourceFactory], or `null` if
   ///         there is no such SDK
-  DartSdk get dartSdk;
+  DartSdk? get dartSdk;
 
   /// A table mapping package names to paths of directories containing
   /// the package (or [null] if there is no registered package URI resolver).
-  Map<String, List<Folder>> get packageMap;
+  Map<String, List<Folder>>? get packageMap;
 
   /// Clear any cached URI resolution information in the [SourceFactory] itself,
   /// and also ask each [UriResolver]s to clear its caches.
@@ -381,28 +381,28 @@ abstract class SourceFactory {
   ///
   /// @param absoluteUri the absolute URI to be resolved
   /// @return a source object representing the absolute URI
-  Source forUri(String absoluteUri);
+  Source? forUri(String absoluteUri);
 
   /// Return a source object representing the given absolute URI, or `null` if
   /// the URI is not an absolute URI.
   ///
   /// @param absoluteUri the absolute URI to be resolved
   /// @return a source object representing the absolute URI
-  Source forUri2(Uri absoluteUri);
+  Source? forUri2(Uri absoluteUri);
 
   /// Return a source representing the URI that results from resolving the given
   /// (possibly relative) [containedUri] against the URI associated with the
   /// [containingSource], whether or not the resulting source exists, or `null`
   /// if either the [containedUri] is invalid or if it cannot be resolved
   /// against the [containingSource]'s URI.
-  Source resolveUri(Source containingSource, String containedUri);
+  Source? resolveUri(Source? containingSource, String? containedUri);
 
   /// Return an absolute URI that represents the given source, or `null` if a
   /// valid URI cannot be computed.
   ///
   /// @param source the source to get URI for
   /// @return the absolute URI representing the given source
-  Uri restoreUri(Source source);
+  Uri? restoreUri(Source source);
 }
 
 /// The enumeration `SourceKind` defines the different kinds of sources that are
@@ -484,7 +484,7 @@ class UriKind implements Comparable<UriKind> {
 
   /// Return the URI kind represented by the given [encoding], or `null` if
   /// there is no kind with the given encoding.
-  static UriKind fromEncoding(int encoding) {
+  static UriKind? fromEncoding(int encoding) {
     while (true) {
       if (encoding == 0x64) {
         return DART_URI;
@@ -532,11 +532,11 @@ abstract class UriResolver {
   /// @param actualUri the actual uri for this source -- if `null`, the value of
   /// [uri] will be used
   /// @return a [Source] representing the file to which given URI was resolved
-  Source resolveAbsolute(Uri uri, [Uri actualUri]);
+  Source? resolveAbsolute(Uri uri, [Uri actualUri]);
 
   /// Return an absolute URI that represents the given [source], or `null` if a
   /// valid URI cannot be computed.
   ///
   /// The computation should be based solely on [source.fullName].
-  Uri restoreAbsolute(Source source) => null;
+  Uri? restoreAbsolute(Source source) => null;
 }

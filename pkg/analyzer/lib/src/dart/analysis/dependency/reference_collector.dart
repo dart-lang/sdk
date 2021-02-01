@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/dependency/node.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:meta/meta.dart';
 
 /// Collector of information about external nodes referenced by a node.
 ///
@@ -55,24 +54,24 @@ class ReferenceCollector {
   /// Construct and return a new [Dependencies] with the given [tokenSignature]
   /// and all recorded references to external nodes in the given AST nodes.
   Dependencies collect(List<int> tokenSignature,
-      {String enclosingClassName,
-      String thisNodeName,
-      List<ConstructorInitializer> constructorInitializers,
-      TypeName enclosingSuperClass,
-      Expression expression,
-      ExtendsClause extendsClause,
-      FormalParameterList formalParameters,
-      FormalParameterList formalParametersForImpl,
-      FunctionBody functionBody,
-      ImplementsClause implementsClause,
-      OnClause onClause,
-      ConstructorName redirectedConstructor,
-      TypeAnnotation returnType,
-      TypeName superClass,
-      TypeAnnotation type,
-      TypeParameterList typeParameters,
-      TypeParameterList typeParameters2,
-      WithClause withClause}) {
+      {String? enclosingClassName,
+      String? thisNodeName,
+      List<ConstructorInitializer>? constructorInitializers,
+      TypeName? enclosingSuperClass,
+      Expression? expression,
+      ExtendsClause? extendsClause,
+      FormalParameterList? formalParameters,
+      FormalParameterList? formalParametersForImpl,
+      FunctionBody? functionBody,
+      ImplementsClause? implementsClause,
+      OnClause? onClause,
+      ConstructorName? redirectedConstructor,
+      TypeAnnotation? returnType,
+      TypeName? superClass,
+      TypeAnnotation? type,
+      TypeParameterList? typeParameters,
+      TypeParameterList? typeParameters2,
+      WithClause? withClause}) {
     _localScopes.enter();
 
     // The name of the node shadows any external names.
@@ -113,25 +112,14 @@ class ReferenceCollector {
     var unprefixedReferencedNames = _unprefixedReferences.toList();
     _unprefixedReferences = _NameSet();
 
-    var importPrefixCount = 0;
-    for (var i = 0; i < _importPrefixedReferences.length; i++) {
-      var import = _importPrefixedReferences[i];
-      if (import.names.isNotEmpty) {
-        importPrefixCount++;
-      }
-    }
-
-    var importPrefixes = List<String>.filled(importPrefixCount, null);
-    var importPrefixedReferencedNames =
-        List<List<String>>.filled(importPrefixCount, null);
-    var importIndex = 0;
+    var importPrefixes = <String>[];
+    var importPrefixedReferencedNames = <List<String>>[];
     for (var i = 0; i < _importPrefixedReferences.length; i++) {
       var import = _importPrefixedReferences[i];
 
       if (import.names.isNotEmpty) {
-        importPrefixes[importIndex] = import.prefix;
-        importPrefixedReferencedNames[importIndex] = import.names.toList();
-        importIndex++;
+        importPrefixes.add(import.prefix);
+        importPrefixedReferencedNames.add(import.names.toList());
       }
 
       import.clear();
@@ -162,11 +150,11 @@ class ReferenceCollector {
         return references;
       }
     }
-    return null;
+    throw StateError('Expected prefix: $name');
   }
 
   void _recordClassMemberReference(
-      {Expression target, DartType targetType, String name}) {
+      {Expression? target, DartType? targetType, required String name}) {
     if (target is Identifier) {
       var element = target.staticElement;
       if (element is ClassElement) {
@@ -174,7 +162,7 @@ class ReferenceCollector {
         return;
       }
     }
-    targetType ??= target.staticType;
+    targetType ??= target!.staticType;
 
     if (targetType is InterfaceType) {
       _memberReferences.add(targetType.element, name);
@@ -195,7 +183,9 @@ class ReferenceCollector {
     }
   }
 
-  void _visitArgumentList(ArgumentList node) {
+  void _visitArgumentList(ArgumentList? node) {
+    if (node == null) return;
+
     var arguments = node.arguments;
     for (var i = 0; i < arguments.length; i++) {
       var argument = arguments[i];
@@ -235,7 +225,7 @@ class ReferenceCollector {
     _visitExpression(node.rightOperand);
   }
 
-  void _visitBlock(Block node) {
+  void _visitBlock(Block? node) {
     if (node == null) return;
 
     _visitStatements(node.statements);
@@ -250,7 +240,7 @@ class ReferenceCollector {
     }
   }
 
-  void _visitCollectionElement(CollectionElement node) {
+  void _visitCollectionElement(CollectionElement? node) {
     if (node == null) {
       return;
     } else if (node is Expression) {
@@ -273,7 +263,7 @@ class ReferenceCollector {
   }
 
   /// Record reference to the constructor of the [type] with the given [name].
-  void _visitConstructor(TypeName type, SimpleIdentifier name) {
+  void _visitConstructor(TypeName type, SimpleIdentifier? name) {
     _visitTypeAnnotation(type);
 
     if (name != null) {
@@ -284,7 +274,7 @@ class ReferenceCollector {
   }
 
   void _visitConstructorInitializers(
-      TypeName superClass, List<ConstructorInitializer> initializers) {
+      TypeName? superClass, List<ConstructorInitializer>? initializers) {
     if (initializers == null) return;
 
     for (var i = 0; i < initializers.length; i++) {
@@ -295,7 +285,7 @@ class ReferenceCollector {
       } else if (initializer is ConstructorFieldInitializer) {
         _visitExpression(initializer.expression);
       } else if (initializer is SuperConstructorInvocation) {
-        _visitConstructor(superClass, initializer.constructorName);
+        _visitConstructor(superClass!, initializer.constructorName);
         _visitArgumentList(initializer.argumentList);
       } else if (initializer is RedirectingConstructorInvocation) {
         _visitArgumentList(initializer.argumentList);
@@ -309,13 +299,13 @@ class ReferenceCollector {
     }
   }
 
-  void _visitConstructorName(ConstructorName node) {
+  void _visitConstructorName(ConstructorName? node) {
     if (node == null) return;
 
     _visitConstructor(node.type, node.name);
   }
 
-  void _visitExpression(Expression node, {bool get = true, bool set = false}) {
+  void _visitExpression(Expression? node, {bool get = true, bool set = false}) {
     if (node == null) return;
 
     if (node is AdjacentStrings) {
@@ -405,7 +395,7 @@ class ReferenceCollector {
     }
   }
 
-  void _visitForLoopParts(ForLoopParts node) {
+  void _visitForLoopParts(ForLoopParts? node) {
     if (node == null) {
       return;
     } else if (node is ForPartsWithDeclarations) {
@@ -429,7 +419,7 @@ class ReferenceCollector {
     }
   }
 
-  void _visitFormalParameterList(FormalParameterList node) {
+  void _visitFormalParameterList(FormalParameterList? node) {
     if (node == null) return;
 
     var parameters = node.parameters;
@@ -440,7 +430,7 @@ class ReferenceCollector {
         parameter = defaultParameter.parameter;
       }
       if (parameter.identifier != null) {
-        _localScopes.add(parameter.identifier.name);
+        _localScopes.add(parameter.identifier!.name);
       }
       if (parameter is FieldFormalParameter) {
         _visitTypeAnnotation(parameter.type);
@@ -459,7 +449,7 @@ class ReferenceCollector {
     }
   }
 
-  void _visitFormalParameterListImpl(FormalParameterList node) {
+  void _visitFormalParameterListImpl(FormalParameterList? node) {
     if (node == null) return;
 
     var parameters = node.parameters;
@@ -473,7 +463,7 @@ class ReferenceCollector {
       }
 
       if (parameter.identifier != null) {
-        _localScopes.add(parameter.identifier.name);
+        _localScopes.add(parameter.identifier!.name);
       }
     }
   }
@@ -487,7 +477,7 @@ class ReferenceCollector {
     _localScopes.exit();
   }
 
-  void _visitFunctionBody(FunctionBody node) {
+  void _visitFunctionBody(FunctionBody? node) {
     if (node == null) return;
 
     if (node is BlockFunctionBody) {
@@ -517,7 +507,7 @@ class ReferenceCollector {
   }
 
   void _visitIndexExpression(IndexExpression node,
-      {@required bool get, @required bool set}) {
+      {required bool get, required bool set}) {
     var target = node.target;
     if (target == null) {
       // no dependencies
@@ -616,7 +606,7 @@ class ReferenceCollector {
   }
 
   void _visitPropertyAccess(PropertyAccess node,
-      {@required bool get, @required bool set}) {
+      {required bool get, required bool set}) {
     var realTarget = node.realTarget;
     var name = node.propertyName.name;
 
@@ -648,7 +638,7 @@ class ReferenceCollector {
   }
 
   void _visitSimpleIdentifier(SimpleIdentifier node,
-      {@required bool get, @required bool set}) {
+      {required bool get, required bool set}) {
     if (node.isSynthetic) return;
 
     var name = node.name;
@@ -667,7 +657,7 @@ class ReferenceCollector {
     }
   }
 
-  void _visitStatement(Statement node) {
+  void _visitStatement(Statement? node) {
     if (node == null) return;
 
     if (node is AssertStatement) {
@@ -787,14 +777,14 @@ class ReferenceCollector {
     _visitBlock(node.finallyBlock);
   }
 
-  void _visitTypeAnnotation(TypeAnnotation node) {
+  void _visitTypeAnnotation(TypeAnnotation? node) {
     if (node == null) return;
 
     if (node is GenericFunctionType) {
       _localScopes.enter();
 
       if (node.typeParameters != null) {
-        var typeParameters = node.typeParameters.typeParameters;
+        var typeParameters = node.typeParameters!.typeParameters;
         for (var i = 0; i < typeParameters.length; i++) {
           var typeParameter = typeParameters[i];
           _localScopes.add(typeParameter.name.name);
@@ -818,7 +808,7 @@ class ReferenceCollector {
     }
   }
 
-  void _visitTypeAnnotations(List<TypeAnnotation> typeAnnotations) {
+  void _visitTypeAnnotations(List<TypeAnnotation>? typeAnnotations) {
     if (typeAnnotations == null) return;
 
     for (var i = 0; i < typeAnnotations.length; i++) {
@@ -827,13 +817,13 @@ class ReferenceCollector {
     }
   }
 
-  void _visitTypeArguments(TypeArgumentList node) {
+  void _visitTypeArguments(TypeArgumentList? node) {
     if (node == null) return;
 
     _visitTypeAnnotations(node.arguments);
   }
 
-  void _visitTypeParameterList(TypeParameterList node) {
+  void _visitTypeParameterList(TypeParameterList? node) {
     if (node == null) return;
 
     var typeParameters = node.typeParameters;
@@ -851,7 +841,7 @@ class ReferenceCollector {
     }
   }
 
-  void _visitVariableList(VariableDeclarationList node) {
+  void _visitVariableList(VariableDeclarationList? node) {
     if (node == null) return;
 
     _visitTypeAnnotation(node.type);

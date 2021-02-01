@@ -17,7 +17,7 @@ import 'cache.dart';
 abstract class ByteStore {
   /// Return the bytes associated with the given [key].
   /// Return `null` if the association does not exist.
-  List<int> get(String key);
+  List<int>? get(String key);
 
   /// Associate the given [bytes] with the [key].
   void put(String key, List<int> bytes);
@@ -28,7 +28,7 @@ class MemoryByteStore implements ByteStore {
   final Map<String, List<int>> _map = {};
 
   @override
-  List<int> get(String key) {
+  List<int>? get(String key) {
     return _map[key];
   }
 
@@ -47,7 +47,7 @@ class MemoryCachingByteStore implements ByteStore {
       : _cache = Cache<String, List<int>>(maxSizeBytes, (v) => v.length);
 
   @override
-  List<int> get(String key) {
+  List<int>? get(String key) {
     return _cache.get(key, () => _store.get(key));
   }
 
@@ -61,7 +61,7 @@ class MemoryCachingByteStore implements ByteStore {
 /// [ByteStore] which does not store any data.
 class NullByteStore implements ByteStore {
   @override
-  List<int> get(String key) => null;
+  List<int>? get(String key) => null;
 
   @override
   void put(String key, List<int> bytes) {}

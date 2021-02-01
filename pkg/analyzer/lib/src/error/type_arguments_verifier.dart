@@ -27,7 +27,8 @@ class TypeArgumentsVerifier {
     this._errorReporter,
   );
 
-  TypeSystemImpl get _typeSystem => _libraryElement.typeSystem;
+  TypeSystemImpl get _typeSystem =>
+      _libraryElement.typeSystem as TypeSystemImpl;
 
   void checkFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     _checkTypeArguments(node);
@@ -35,7 +36,7 @@ class TypeArgumentsVerifier {
   }
 
   void checkListLiteral(ListLiteral node) {
-    TypeArgumentList typeArguments = node.typeArguments;
+    var typeArguments = node.typeArguments;
     if (typeArguments != null) {
       if (node.isConst) {
         _checkTypeArgumentConst(
@@ -50,7 +51,7 @@ class TypeArgumentsVerifier {
   }
 
   void checkMapLiteral(SetOrMapLiteral node) {
-    TypeArgumentList typeArguments = node.typeArguments;
+    var typeArguments = node.typeArguments;
     if (typeArguments != null) {
       if (node.isConst) {
         _checkTypeArgumentConst(
@@ -70,7 +71,7 @@ class TypeArgumentsVerifier {
   }
 
   void checkSetLiteral(SetOrMapLiteral node) {
-    TypeArgumentList typeArguments = node.typeArguments;
+    var typeArguments = node.typeArguments;
     if (typeArguments != null) {
       if (node.isConst) {
         _checkTypeArgumentConst(
@@ -86,29 +87,28 @@ class TypeArgumentsVerifier {
 
   void checkTypeName(TypeName node) {
     _checkForTypeArgumentNotMatchingBounds(node);
-    if (node.parent is! ConstructorName ||
-        node.parent.parent is! InstanceCreationExpression) {
+    var parent = node.parent;
+    if (parent is! ConstructorName ||
+        parent.parent is! InstanceCreationExpression) {
       _checkForRawTypeName(node);
     }
   }
 
   void _checkForImplicitDynamicInvoke(InvocationExpression node) {
-    if (_options.implicitDynamic ||
-        node == null ||
-        node.typeArguments != null) {
+    if (_options.implicitDynamic || node.typeArguments != null) {
       return;
     }
-    DartType invokeType = node.staticInvokeType;
-    DartType declaredType = node.function.staticType;
+    var invokeType = node.staticInvokeType;
+    var declaredType = node.function.staticType;
     if (invokeType is FunctionType &&
         declaredType is FunctionType &&
         declaredType.typeFormals.isNotEmpty) {
-      List<DartType> typeArgs = node.typeArgumentTypes;
+      List<DartType> typeArgs = node.typeArgumentTypes!;
       if (typeArgs.any((t) => t.isDynamic)) {
         // Issue an error depending on what we're trying to call.
         Expression function = node.function;
         if (function is Identifier) {
-          Element element = function.staticElement;
+          var element = function.staticElement;
           if (element is MethodElement) {
             _errorReporter.reportErrorForNode(
                 LanguageCode.IMPLICIT_DYNAMIC_METHOD,
@@ -138,7 +138,7 @@ class TypeArgumentsVerifier {
     if (_options.implicitDynamic || node.typeArguments != null) {
       return;
     }
-    DartType type = node.staticType;
+    DartType type = node.staticType!;
     // It's an error if either the key or value was inferred as dynamic.
     if (type is InterfaceType && type.typeArguments.any((t) => t.isDynamic)) {
       // TODO(brianwilkerson) Add StrongModeCode.IMPLICIT_DYNAMIC_SET_LITERAL
@@ -157,23 +157,23 @@ class TypeArgumentsVerifier {
   /// [HintCode.STRICT_RAW_TYPE].
   void _checkForRawTypeName(TypeName node) {
     AstNode parentEscapingTypeArguments(TypeName node) {
-      AstNode parent = node.parent;
+      var parent = node.parent!;
       while (parent is TypeArgumentList || parent is TypeName) {
         if (parent.parent == null) {
           return parent;
         }
-        parent = parent.parent;
+        parent = parent.parent!;
       }
       return parent;
     }
 
-    if (!_options.strictRawTypes || node == null) return;
+    if (!_options.strictRawTypes) return;
     if (node.typeArguments != null) {
       // Type has explicit type arguments.
       return;
     }
     if (_isMissingTypeArguments(
-        node, node.type, node.name.staticElement, null)) {
+        node, node.type!, node.name.staticElement, null)) {
       AstNode unwrappedParent = parentEscapingTypeArguments(node);
       if (unwrappedParent is AsExpression || unwrappedParent is IsExpression) {
         // Do not report a "Strict raw type" error in this case; too noisy.
@@ -188,14 +188,14 @@ class TypeArgumentsVerifier {
   /// Verify that the type arguments in the given [typeName] are all within
   /// their bounds.
   void _checkForTypeArgumentNotMatchingBounds(TypeName typeName) {
-    var type = typeName.type;
+    var type = typeName.type!;
 
     List<TypeParameterElement> typeParameters;
     List<DartType> typeArguments;
     var aliasElement = type.aliasElement;
     if (aliasElement != null) {
       typeParameters = aliasElement.typeParameters;
-      typeArguments = type.aliasArguments;
+      typeArguments = type.aliasArguments!;
     } else if (type is InterfaceType) {
       typeParameters = type.element.typeParameters;
       typeArguments = type.typeArguments;
@@ -208,7 +208,7 @@ class TypeArgumentsVerifier {
     }
 
     // Check for regular-bounded.
-    List<_TypeArgumentIssue> issues;
+    List<_TypeArgumentIssue>? issues;
     var substitution = Substitution.fromPairs(typeParameters, typeArguments);
     for (var i = 0; i < typeArguments.length; i++) {
       var typeParameter = typeParameters[i];
@@ -258,7 +258,7 @@ class TypeArgumentsVerifier {
     // Prepare type arguments for checking for super-bounded.
     type = _typeSystem.replaceTopAndBottom(type);
     if (type.aliasElement != null) {
-      typeArguments = type.aliasArguments;
+      typeArguments = type.aliasArguments!;
     } else if (type is InterfaceType) {
       typeArguments = type.typeArguments;
     } else {
@@ -323,7 +323,7 @@ class TypeArgumentsVerifier {
   /// Verify that the given [typeArguments] are all within their bounds, as
   /// defined by the given [element].
   void _checkTypeArguments(InvocationExpression node) {
-    NodeList<TypeAnnotation> typeArgumentList = node.typeArguments?.arguments;
+    var typeArgumentList = node.typeArguments?.arguments;
     if (typeArgumentList == null) {
       return;
     }
@@ -332,7 +332,7 @@ class TypeArgumentsVerifier {
     var instantiatedType = node.staticInvokeType;
     if (genericType is FunctionType && instantiatedType is FunctionType) {
       var fnTypeParams = genericType.typeFormals;
-      var typeArgs = typeArgumentList.map((t) => t.type).toList();
+      var typeArgs = typeArgumentList.map((t) => t.type!).toList();
 
       // If the amount mismatches, clean up the lists to be substitutable. The
       // mismatch in size is reported elsewhere, but we must successfully
@@ -393,12 +393,12 @@ class TypeArgumentsVerifier {
   ///   contain `_`
   /// - [type] does not have any `dynamic` type arguments.
   /// - the element is marked with `@optionalTypeArgs` from "package:meta".
-  bool _isMissingTypeArguments(AstNode node, DartType type, Element element,
-      Expression inferenceContextNode) {
+  bool _isMissingTypeArguments(AstNode node, DartType type, Element? element,
+      Expression? inferenceContextNode) {
     List<DartType> typeArguments;
     var aliasElement = type.aliasElement;
     if (aliasElement != null) {
-      typeArguments = type.aliasArguments;
+      typeArguments = type.aliasArguments!;
     } else if (type is InterfaceType) {
       typeArguments = type.typeArguments;
     } else {
@@ -418,7 +418,7 @@ class TypeArgumentsVerifier {
           return false;
         }
       }
-      if (element.hasOptionalTypeArgs) {
+      if (element != null && element.hasOptionalTypeArgs) {
         return false;
       }
       return true;

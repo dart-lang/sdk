@@ -27,7 +27,7 @@ const String sdkSummaryPathOption = 'dart-sdk-summary';
 
 /// Update [options] with the value of each analysis option command line flag.
 void applyAnalysisOptionFlags(AnalysisOptionsImpl options, ArgResults args,
-    {void Function(String text) verbosePrint}) {
+    {void Function(String text)? verbosePrint}) {
   void verbose(String text) {
     if (verbosePrint != null) {
       verbosePrint('Analysis options: $text');
@@ -57,7 +57,7 @@ ContextBuilderOptions createContextBuilderOptions(
   ResourceProvider resourceProvider,
   ArgResults args,
 ) {
-  String absoluteNormalizedPath(String path) {
+  String? absoluteNormalizedPath(String? path) {
     if (path == null) {
       return null;
     }
@@ -222,11 +222,11 @@ List<String> filterUnknownArguments(List<String> args, ArgParser parser) {
   Set<String> knownAbbreviations = HashSet<String>();
   parser.options.forEach((String name, Option option) {
     knownOptions.add(name);
-    String abbreviation = option.abbr;
+    String? abbreviation = option.abbr;
     if (abbreviation != null) {
       knownAbbreviations.add(abbreviation);
     }
-    if (option.negatable) {
+    if (option.negatable ?? false) {
       knownOptions.add('no-$name');
     }
   });

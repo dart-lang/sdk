@@ -39,7 +39,7 @@ class PackageMapUriResolver extends UriResolver {
   }
 
   @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+  Source? resolveAbsolute(Uri uri, [Uri? actualUri]) {
     if (!isPackageUri(uri)) {
       return null;
     }
@@ -53,7 +53,7 @@ class PackageMapUriResolver extends UriResolver {
     String pkgName = pathSegments[0];
 
     // If the package is known, return the corresponding file.
-    List<Folder> packageDirs = packageMap[pkgName];
+    var packageDirs = packageMap[pkgName];
     if (packageDirs != null) {
       Folder packageDir = packageDirs.single;
       String relPath = pathSegments.skip(1).join('/');
@@ -64,11 +64,11 @@ class PackageMapUriResolver extends UriResolver {
   }
 
   @override
-  Uri restoreAbsolute(Source source) {
+  Uri? restoreAbsolute(Source source) {
     String sourcePath = source.fullName;
     pathos.Context pathContext = resourceProvider.pathContext;
     for (String pkgName in packageMap.keys) {
-      Folder pkgFolder = packageMap[pkgName][0];
+      Folder pkgFolder = packageMap[pkgName]![0];
       String pkgFolderPath = pkgFolder.path;
       if (sourcePath.startsWith(pkgFolderPath + pathContext.separator)) {
         String relPath = sourcePath.substring(pkgFolderPath.length + 1);

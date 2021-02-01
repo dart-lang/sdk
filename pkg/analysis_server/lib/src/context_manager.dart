@@ -60,18 +60,9 @@ class ChangeSet {
   /// A list containing paths of removed files.
   final List<String> removedFiles = [];
 
-  /// Return `true` if this change set does not contain any changes.
-  bool get isEmpty =>
-      addedFiles.isEmpty && changedFiles.isEmpty && removedFiles.isEmpty;
-
   /// Record that the file with the specified [path] has been added.
   void addedSource(String path) {
     addedFiles.add(path);
-  }
-
-  /// Record that the file with the specified [path] has been changed.
-  void changedSource(String path) {
-    changedFiles.add(path);
   }
 
   /// Record that the file with the specified [path] has been removed.
@@ -171,11 +162,6 @@ class ContextInfo {
 
   /// Returns `true` if  [path] should be ignored.
   bool ignored(String path) => pathFilter.ignored(path);
-
-  /// Returns `true` if [path] is the package description file for this context
-  /// (pubspec.yaml or .packages).
-  bool isPathToPackageDescription(String path) =>
-      path == packageDescriptionPath;
 
   /// Update the set of dependencies for this context.
   void setDependencies(Iterable<String> newDependencies) {
@@ -346,9 +332,6 @@ class ContextManagerImpl implements ContextManager {
   /// The name of the `doc` directory.
   static const String DOC_DIR_NAME = 'doc';
 
-  /// The name of the `lib` directory.
-  static const String LIB_DIR_NAME = 'lib';
-
   /// File name of Android manifest files.
   static const String MANIFEST_NAME = 'AndroidManifest.xml';
 
@@ -357,11 +340,6 @@ class ContextManagerImpl implements ContextManager {
 
   /// File name of package spec files.
   static const String PACKAGE_SPEC_NAME = '.packages';
-
-  /// The name of the key in an embedder file whose value is the list of
-  /// libraries in the SDK.
-  /// TODO(brianwilkerson) This is also defined in sdk.dart.
-  static const String _EMBEDDED_LIB_MAP_KEY = 'embedded_libs';
 
   /// The [ResourceProvider] using which paths are converted into [Resource]s.
   final ResourceProvider resourceProvider;
@@ -418,9 +396,6 @@ class ContextManagerImpl implements ContextManager {
   ) {
     pathContext = resourceProvider.pathContext;
   }
-
-  /// Check if this map defines embedded libraries.
-  bool definesEmbeddedLibs(Map map) => map[_EMBEDDED_LIB_MAP_KEY] != null;
 
   @override
   Folder getContextFolderFor(String path) {
@@ -1621,14 +1596,6 @@ abstract class FolderDisposition {
   /// object that resulted from parsing the ".packages" file.
   Packages get packages;
 
-  /// Create all the [UriResolver]s which should be used to resolve packages in
-  /// contexts governed by this [FolderDisposition].
-  ///
-  /// [resourceProvider] is provided since it is needed to construct most
-  /// [UriResolver]s.
-  Iterable<UriResolver> createPackageUriResolvers(
-      ResourceProvider resourceProvider);
-
   /// Return the locator used to locate the _embedder.yaml file used to
   /// configure the SDK. The [resourceProvider] is used to access the file
   /// system in cases where that is necessary.
@@ -1645,11 +1612,6 @@ class NoPackageFolderDisposition extends FolderDisposition {
 
   @override
   Packages get packages => null;
-
-  @override
-  Iterable<UriResolver> createPackageUriResolvers(
-          ResourceProvider resourceProvider) =>
-      const <UriResolver>[];
 
   @override
   EmbedderYamlLocator getEmbedderLocator(ResourceProvider resourceProvider) =>
@@ -1681,19 +1643,6 @@ class PackagesFileDisposition extends FolderDisposition {
       }
     }
     return packageMap;
-  }
-
-  @override
-  Iterable<UriResolver> createPackageUriResolvers(
-      ResourceProvider resourceProvider) {
-    if (packages != null) {
-      var packageMap = buildPackageMap(resourceProvider);
-      return <UriResolver>[
-        PackageMapUriResolver(resourceProvider, packageMap),
-      ];
-    } else {
-      return const <UriResolver>[];
-    }
   }
 
   @override

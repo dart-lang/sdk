@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/util/yaml.dart';
+import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
 import 'package:yaml/src/event.dart';
 import 'package:yaml/yaml.dart';
@@ -102,8 +103,9 @@ final Merger merger = Merger();
 bool containsKey(Map<dynamic, YamlNode> map, dynamic key) =>
     _getValue(map, key) != null;
 
-void expectEquals(YamlNode actual, YamlNode expected) {
+void expectEquals(YamlNode? actual, YamlNode? expected) {
   if (expected is YamlScalar) {
+    actual!;
     expect(actual, TypeMatcher<YamlScalar>());
     expect(expected.value, actual.value);
   } else if (expected is YamlList) {
@@ -150,20 +152,23 @@ Object valueOf(Object object) => object is YamlNode ? object.value : object;
 
 YamlNode wrap(Object value) {
   if (value is List) {
-    List wrappedElements = value.map((e) => wrap(e)).toList();
-    return YamlList.internal(wrappedElements, null, CollectionStyle.BLOCK);
+    var wrappedElements = value.map((e) => wrap(e)).toList();
+    return YamlList.internal(
+        wrappedElements, _FileSpanMock.instance, CollectionStyle.BLOCK);
   } else if (value is Map) {
     Map<dynamic, YamlNode> wrappedEntries = <dynamic, YamlNode>{};
     value.forEach((k, v) {
       wrappedEntries[wrap(k)] = wrap(v);
     });
-    return YamlMap.internal(wrappedEntries, null, CollectionStyle.BLOCK);
+    return YamlMap.internal(
+        wrappedEntries, _FileSpanMock.instance, CollectionStyle.BLOCK);
   } else {
-    return YamlScalar.internal(value, ScalarEvent(null, '', ScalarStyle.PLAIN));
+    return YamlScalar.internal(
+        value, ScalarEvent(_FileSpanMock.instance, '', ScalarStyle.PLAIN));
   }
 }
 
-YamlNode _getValue(Map map, Object key) {
+YamlNode? _getValue(Map map, Object key) {
   Object keyValue = valueOf(key);
   for (var existingKey in map.keys) {
     if (valueOf(existingKey) == keyValue) {
@@ -171,4 +176,11 @@ YamlNode _getValue(Map map, Object key) {
     }
   }
   return null;
+}
+
+class _FileSpanMock implements FileSpan {
+  static final FileSpan instance = _FileSpanMock();
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

@@ -364,7 +364,7 @@ abstract class DataRegistry<T> {
   /// Registers [value] with [id] in [actualMap].
   ///
   /// Checks for duplicate data for [id].
-  void registerValue(Uri uri, int offset, Id id, T value, Object object) {
+  void registerValue(Uri uri, int offset, Id id, T? value, Object object) {
     if (value != null) {
       ActualData<T> newData = new ActualData<T>(id, value, uri, offset, object);
       if (actualMap.containsKey(id)) {

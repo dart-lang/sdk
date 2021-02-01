@@ -1,4 +1,5 @@
-## 0.41.2-dev
+## 0.42.0
+* Migrated to null safety, min SDK is `2.12.0`.
 * Deprecated `FunctionTypeAliasElement.function`.
   Use `TypeAliasElement.aliasedElement` instead.
 * Widened the dependency on package:crypto to include version 3.0.0.

@@ -38,7 +38,8 @@ class ConstantAstCloner extends AstCloner {
 
   @override
   FunctionExpression visitFunctionExpression(FunctionExpression node) {
-    FunctionExpressionImpl expression = super.visitFunctionExpression(node);
+    var expression =
+        super.visitFunctionExpression(node) as FunctionExpressionImpl;
     expression.declaredElement = node.declaredElement;
     return expression;
   }
@@ -77,14 +78,14 @@ class ConstantAstCloner extends AstCloner {
 
   @override
   PrefixedIdentifier visitPrefixedIdentifier(PrefixedIdentifier node) {
-    PrefixedIdentifierImpl copy = super.visitPrefixedIdentifier(node);
+    var copy = super.visitPrefixedIdentifier(node) as PrefixedIdentifierImpl;
     copy.staticType = node.staticType;
     return copy;
   }
 
   @override
   PropertyAccess visitPropertyAccess(PropertyAccess node) {
-    PropertyAccessImpl copy = super.visitPropertyAccess(node);
+    var copy = super.visitPropertyAccess(node) as PropertyAccessImpl;
     copy.staticType = node.staticType;
     return copy;
   }
@@ -110,7 +111,7 @@ class ConstantAstCloner extends AstCloner {
 
   @override
   SimpleIdentifier visitSimpleIdentifier(SimpleIdentifier node) {
-    SimpleIdentifierImpl copy = super.visitSimpleIdentifier(node);
+    var copy = super.visitSimpleIdentifier(node) as SimpleIdentifierImpl;
     copy.staticElement = node.staticElement;
     copy.staticType = node.staticType;
     copy.tearOffTypeArgumentTypes = node.tearOffTypeArgumentTypes;
@@ -190,10 +191,8 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor {
   /// Add dependencies of a [CollectionElement] or [Expression] (which is a type
   /// of [CollectionElement]).
   void _find(CollectionElement node) {
-    if (node != null) {
-      ReferenceFinder referenceFinder = ReferenceFinder(dependencies.add);
-      node.accept(referenceFinder);
-    }
+    ReferenceFinder referenceFinder = ReferenceFinder(dependencies.add);
+    node.accept(referenceFinder);
   }
 }
 
@@ -213,7 +212,7 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
   @override
   void visitAnnotation(Annotation node) {
     super.visitAnnotation(node);
-    ElementAnnotation elementAnnotation = node.elementAnnotation;
+    var elementAnnotation = node.elementAnnotation;
     if (elementAnnotation == null) {
       // Analyzer ignores annotations on "part of" directives and on enum
       // constant declarations.
@@ -228,7 +227,7 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     bool prevTreatFinalInstanceVarAsConst = treatFinalInstanceVarAsConst;
-    if (node.declaredElement.constructors
+    if (node.declaredElement!.constructors
         .any((ConstructorElement e) => e.isConst)) {
       // Instance vars marked "final" need to be included in the dependency
       // graph, since constant constructors implicitly use the values in their
@@ -246,7 +245,7 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     super.visitConstructorDeclaration(node);
     if (node.constKeyword != null) {
-      ConstructorElement element = node.declaredElement;
+      var element = node.declaredElement;
       if (element != null) {
         constantsToCompute.add(element);
         constantsToCompute.addAll(element.parameters);
@@ -257,26 +256,24 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     super.visitDefaultFormalParameter(node);
-    Expression defaultValue = node.defaultValue;
+    var defaultValue = node.defaultValue;
     if (defaultValue != null && node.declaredElement != null) {
-      constantsToCompute.add(node.declaredElement);
+      constantsToCompute.add(node.declaredElement!);
     }
   }
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
-    Expression initializer = node.initializer;
-    VariableElement element = node.declaredElement;
+    var initializer = node.initializer;
+    var element = node.declaredElement!;
     if (initializer != null &&
         (node.isConst ||
             treatFinalInstanceVarAsConst &&
                 element is FieldElement &&
                 node.isFinal &&
                 !element.isStatic)) {
-      if (element != null) {
-        constantsToCompute.add(element);
-      }
+      constantsToCompute.add(element);
     }
   }
 }
@@ -296,8 +293,7 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.isConst) {
-      ConstructorElement constructor =
-          node.constructorName.staticElement?.declaration;
+      var constructor = node.constructorName.staticElement?.declaration;
       if (constructor != null) {
         _callback(constructor);
       }
@@ -318,7 +314,7 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     super.visitRedirectingConstructorInvocation(node);
-    ConstructorElement target = node.staticElement?.declaration;
+    var target = node.staticElement?.declaration;
     if (target != null) {
       _callback(target);
     }
@@ -326,8 +322,8 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    Element staticElement = node.staticElement;
-    Element element = staticElement is PropertyAccessorElement
+    var staticElement = node.staticElement;
+    var element = staticElement is PropertyAccessorElement
         ? staticElement.variable
         : staticElement;
     if (element is VariableElement && element.isConst) {
@@ -338,7 +334,7 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     super.visitSuperConstructorInvocation(node);
-    ConstructorElement constructor = node.staticElement?.declaration;
+    var constructor = node.staticElement?.declaration;
     if (constructor != null) {
       _callback(constructor);
     }

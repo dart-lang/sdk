@@ -21,11 +21,11 @@ class LiteralElementVerifier {
 
   final bool forList;
   final bool forSet;
-  final DartType elementType;
+  final DartType? elementType;
 
   final bool forMap;
-  final DartType mapKeyType;
-  final DartType mapValueType;
+  final DartType? mapKeyType;
+  final DartType? mapValueType;
 
   LiteralElementVerifier(
     this.typeProvider,
@@ -38,7 +38,7 @@ class LiteralElementVerifier {
     this.forMap = false,
     this.mapKeyType,
     this.mapValueType,
-    this.featureSet,
+    required this.featureSet,
   });
 
   void verify(CollectionElement element) {
@@ -48,7 +48,7 @@ class LiteralElementVerifier {
   /// Check that the given [type] is assignable to the [elementType], otherwise
   /// report the list or set error on the [errorNode].
   void _checkAssignableToElementType(DartType type, AstNode errorNode) {
-    if (!typeSystem.isAssignableTo2(type, elementType)) {
+    if (!typeSystem.isAssignableTo2(type, elementType!)) {
       var errorCode = forList
           ? CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
           : CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE;
@@ -62,13 +62,13 @@ class LiteralElementVerifier {
 
   /// Verify that the given [element] can be assigned to the [elementType] of
   /// the enclosing list, set, of map literal.
-  void _verifyElement(CollectionElement element) {
+  void _verifyElement(CollectionElement? element) {
     if (element is Expression) {
       if (forList || forSet) {
-        if (!elementType.isVoid && checkForUseOfVoidResult(element)) {
+        if (!elementType!.isVoid && checkForUseOfVoidResult(element)) {
           return;
         }
-        _checkAssignableToElementType(element.staticType, element);
+        _checkAssignableToElementType(element.staticType!, element);
       } else {
         errorReporter.reportErrorForNode(
             CompileTimeErrorCode.EXPRESSION_IN_MAP, element);
@@ -99,16 +99,16 @@ class LiteralElementVerifier {
   /// Verify that the [entry]'s key and value are assignable to [mapKeyType]
   /// and [mapValueType].
   void _verifyMapLiteralEntry(MapLiteralEntry entry) {
-    if (!mapKeyType.isVoid && checkForUseOfVoidResult(entry.key)) {
+    if (!mapKeyType!.isVoid && checkForUseOfVoidResult(entry.key)) {
       return;
     }
 
-    if (!mapValueType.isVoid && checkForUseOfVoidResult(entry.value)) {
+    if (!mapValueType!.isVoid && checkForUseOfVoidResult(entry.value)) {
       return;
     }
 
-    var keyType = entry.key.staticType;
-    if (!typeSystem.isAssignableTo2(keyType, mapKeyType)) {
+    var keyType = entry.key.staticType!;
+    if (!typeSystem.isAssignableTo2(keyType, mapKeyType!)) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
         entry.key,
@@ -116,8 +116,8 @@ class LiteralElementVerifier {
       );
     }
 
-    var valueType = entry.value.staticType;
-    if (!typeSystem.isAssignableTo2(valueType, mapValueType)) {
+    var valueType = entry.value.staticType!;
+    if (!typeSystem.isAssignableTo2(valueType, mapValueType!)) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
         entry.value,
@@ -129,7 +129,7 @@ class LiteralElementVerifier {
   /// Verify that the type of the elements of the given [expression] can be
   /// assigned to the [elementType] of the enclosing collection.
   void _verifySpreadForListOrSet(bool isNullAware, Expression expression) {
-    var expressionType = expression.staticType;
+    var expressionType = expression.staticType!;
     if (expressionType.isDynamic) return;
 
     if (typeSystem.isNonNullableByDefault) {
@@ -171,7 +171,7 @@ class LiteralElementVerifier {
     }
 
     var iterableElementType = iterableType.typeArguments[0];
-    if (!typeSystem.isAssignableTo2(iterableElementType, elementType)) {
+    if (!typeSystem.isAssignableTo2(iterableElementType, elementType!)) {
       var errorCode = forList
           ? CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
           : CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE;
@@ -186,7 +186,7 @@ class LiteralElementVerifier {
   /// Verify that the [expression] is a subtype of `Map<Object, Object>`, and
   /// its key and values are assignable to [mapKeyType] and [mapValueType].
   void _verifySpreadForMap(bool isNullAware, Expression expression) {
-    var expressionType = expression.staticType;
+    var expressionType = expression.staticType!;
     if (expressionType.isDynamic) return;
 
     if (typeSystem.isNonNullableByDefault) {
@@ -228,7 +228,7 @@ class LiteralElementVerifier {
     }
 
     var keyType = mapType.typeArguments[0];
-    if (!typeSystem.isAssignableTo2(keyType, mapKeyType)) {
+    if (!typeSystem.isAssignableTo2(keyType, mapKeyType!)) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
         expression,
@@ -237,7 +237,7 @@ class LiteralElementVerifier {
     }
 
     var valueType = mapType.typeArguments[1];
-    if (!typeSystem.isAssignableTo2(valueType, mapValueType)) {
+    if (!typeSystem.isAssignableTo2(valueType, mapValueType!)) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
         expression,

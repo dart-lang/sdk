@@ -18,45 +18,7 @@ import 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
 import 'package:front_end/src/fasta/dill/dill_library_builder.dart'
     show DillLibraryBuilder;
 
-import 'package:kernel/ast.dart'
-    show
-        Arguments,
-        AsyncMarker,
-        Class,
-        Constructor,
-        ConstructorInvocation,
-        DartType,
-        DynamicType,
-        Expression,
-        Extension,
-        Field,
-        FunctionNode,
-        InterfaceType,
-        InvalidType,
-        Library,
-        LibraryDependency,
-        LibraryPart,
-        ListLiteral,
-        MapLiteral,
-        Member,
-        Name,
-        NeverType,
-        NonNullableByDefaultCompiledMode,
-        NullType,
-        Nullability,
-        Procedure,
-        ProcedureKind,
-        Reference,
-        SetLiteral,
-        StaticInvocation,
-        StringLiteral,
-        Supertype,
-        TypeParameter,
-        TypeParameterType,
-        Typedef,
-        VariableDeclaration,
-        Version,
-        VoidType;
+import 'package:kernel/ast.dart' hide Combinator, MapEntry;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -2956,7 +2918,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   int finishTypeVariables(ClassBuilder object, TypeBuilder dynamicType) {
     int count = boundlessTypeVariables.length;
-    for (TypeVariableBuilder builder in boundlessTypeVariables) {
+    // Ensure that type parameters are built after their dependencies by sorting
+    // them topologically using references in bounds.
+    for (TypeVariableBuilder builder
+        in _sortTypeVariablesTopologically(boundlessTypeVariables)) {
       builder.finish(this, object, dynamicType);
     }
     boundlessTypeVariables.clear();
@@ -3734,8 +3699,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         declaration.checkTypesInOutline(typeEnvironment);
       } else if (declaration is SourceExtensionBuilder) {
         declaration.checkTypesInOutline(typeEnvironment);
+      } else if (declaration is SourceTypeAliasBuilder) {
+        declaration.checkTypesInOutline(typeEnvironment);
       } else {
-        //assert(false, "Unexpected declaration ${declaration.runtimeType}");
+        assert(
+            declaration is! TypeDeclarationBuilder ||
+                declaration is BuiltinTypeDeclarationBuilder,
+            "Unexpected declaration ${declaration.runtimeType}");
       }
     }
     inferredTypes.clear();
@@ -4174,5 +4144,79 @@ class ImplicitLanguageVersion implements LanguageVersion {
   @override
   String toString() {
     return 'ImplicitLanguageVersion(version=$version)';
+  }
+}
+
+List<TypeVariableBuilder> _sortTypeVariablesTopologically(
+    List<TypeVariableBuilder> typeVariables) {
+  Set<TypeVariableBuilder> unhandled = new Set<TypeVariableBuilder>.identity()
+    ..addAll(typeVariables);
+  List<TypeVariableBuilder> result = <TypeVariableBuilder>[];
+  while (unhandled.isNotEmpty) {
+    TypeVariableBuilder rootVariable = unhandled.first;
+    unhandled.remove(rootVariable);
+    if (rootVariable.bound != null) {
+      _sortTypeVariablesTopologicallyFromRoot(
+          rootVariable.bound, unhandled, result);
+    }
+    result.add(rootVariable);
+  }
+  return result;
+}
+
+void _sortTypeVariablesTopologicallyFromRoot(TypeBuilder root,
+    Set<TypeVariableBuilder> unhandled, List<TypeVariableBuilder> result) {
+  assert(root != null);
+
+  List<TypeVariableBuilder> typeVariables;
+  List<TypeBuilder> internalDependents;
+
+  if (root is NamedTypeBuilder) {
+    TypeDeclarationBuilder declaration = root.declaration;
+    if (declaration is ClassBuilder) {
+      if (declaration.typeVariables != null &&
+          declaration.typeVariables.isNotEmpty) {
+        typeVariables = declaration.typeVariables;
+      }
+    } else if (declaration is TypeAliasBuilder) {
+      if (declaration.typeVariables != null &&
+          declaration.typeVariables.isNotEmpty) {
+        typeVariables = declaration.typeVariables;
+      }
+      internalDependents = <TypeBuilder>[declaration.type];
+    } else if (declaration is TypeVariableBuilder) {
+      typeVariables = <TypeVariableBuilder>[declaration];
+    }
+  } else if (root is FunctionTypeBuilder) {
+    if (root.typeVariables != null && root.typeVariables.isNotEmpty) {
+      typeVariables = root.typeVariables;
+    }
+    if (root.formals != null && root.formals.isNotEmpty) {
+      internalDependents = <TypeBuilder>[];
+      for (FormalParameterBuilder formal in root.formals) {
+        internalDependents.add(formal.type);
+      }
+    }
+    if (root.returnType != null) {
+      (internalDependents ??= <TypeBuilder>[]).add(root.returnType);
+    }
+  }
+
+  if (typeVariables != null && typeVariables.isNotEmpty) {
+    for (TypeVariableBuilder variable in typeVariables) {
+      if (unhandled.contains(variable)) {
+        unhandled.remove(variable);
+        if (variable.bound != null) {
+          _sortTypeVariablesTopologicallyFromRoot(
+              variable.bound, unhandled, result);
+        }
+        result.add(variable);
+      }
+    }
+  }
+  if (internalDependents != null && internalDependents.isNotEmpty) {
+    for (TypeBuilder type in internalDependents) {
+      _sortTypeVariablesTopologicallyFromRoot(type, unhandled, result);
+    }
   }
 }

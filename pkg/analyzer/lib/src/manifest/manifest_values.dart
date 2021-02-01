@@ -95,7 +95,7 @@ const String USES_FEATURE_TAG = 'uses-feature';
 
 const String USES_PERMISSION_TAG = 'uses-permission';
 
-String getImpliedUnsupportedHardware(String permission) {
+String? getImpliedUnsupportedHardware(String? permission) {
   switch (permission) {
     case ANDROID_PERMISSION_CAMERA:
       return HARDWARE_FEATURE_CAMERA;

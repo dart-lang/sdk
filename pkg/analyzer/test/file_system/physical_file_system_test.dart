@@ -6,7 +6,6 @@ import 'dart:io' as io;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -25,24 +24,24 @@ main() {
 abstract class BaseTest extends FileSystemTestSupport {
   /// The resource provider to be used by the tests. Tests should use [provider]
   /// to access the resource provider.
-  PhysicalResourceProvider _provider;
+  PhysicalResourceProvider? _provider;
 
   /// A temporary directory on disk. All files and folders created by the tests
   /// should be inside this directory.
-  /*late*/ io.Directory tempDirectory;
+  late final io.Directory tempDirectory;
 
   /// The absolute path to the [tempDirectory]. This path will contain a
   /// symbolic link on some operating systems.
   @override
-  /*late*/ String tempPath;
+  late final String tempPath;
 
   /// A path to a folder within the [tempDirectory] that can be used by tests.
   @override
-  /*late*/ String defaultFolderPath;
+  late final String defaultFolderPath;
 
   /// A path to a file within the [defaultFolderPath] that can be used by tests.
   @override
-  /*late*/ String defaultFilePath;
+  late final String defaultFilePath;
 
   /// The content used for the file at the [defaultFilePath] if it is created
   /// and no other content is provided.
@@ -59,17 +58,17 @@ abstract class BaseTest extends FileSystemTestSupport {
   PhysicalResourceProvider createProvider() => PhysicalResourceProvider();
 
   @override
-  File getFile({@required bool exists, String content, String filePath}) {
+  File getFile({required bool exists, String? content, String? filePath}) {
     File file = provider.getFile(filePath ?? defaultFilePath);
     if (exists) {
-      file.parent.create();
+      file.parent!.create();
       file.writeAsStringSync(content ?? defaultFileContent);
     }
     return file;
   }
 
   @override
-  Folder getFolder({@required bool exists, String folderPath}) {
+  Folder getFolder({required bool exists, String? folderPath}) {
     Folder folder = provider.getFolder(folderPath ?? defaultFolderPath);
     if (exists) {
       folder.create();

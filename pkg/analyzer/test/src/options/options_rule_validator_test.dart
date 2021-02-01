@@ -22,9 +22,12 @@ main() {
 class DeprecatedLint extends LintRule {
   DeprecatedLint()
       : super(
-            name: 'deprecated_lint',
-            group: Group.style,
-            maturity: Maturity.deprecated);
+          name: 'deprecated_lint',
+          group: Group.style,
+          maturity: Maturity.deprecated,
+          description: '',
+          details: '',
+        );
 }
 
 @reflectiveTest
@@ -41,7 +44,7 @@ class OptionsRuleValidatorTest extends Object with ResourceProviderMixin {
       StringSource(content, 'analysis_options.yaml'),
       isNonNullableByDefault: false,
     );
-    validator.validate(reporter, loadYamlNode(content));
+    validator.validate(reporter, loadYamlNode(content) as YamlMap);
     listener.assertErrorsWithCodes(expectedErrorCodes);
   }
 
@@ -89,13 +92,25 @@ linter:
 }
 
 class RuleNeg extends LintRule {
-  RuleNeg() : super(name: 'rule_neg', group: Group.style);
+  RuleNeg()
+      : super(
+          name: 'rule_neg',
+          group: Group.style,
+          description: '',
+          details: '',
+        );
   @override
   List<String> get incompatibleRules => ['rule_pos'];
 }
 
 class RulePos extends LintRule {
-  RulePos() : super(name: 'rule_pos', group: Group.style);
+  RulePos()
+      : super(
+          name: 'rule_pos',
+          group: Group.style,
+          description: '',
+          details: '',
+        );
   @override
   List<String> get incompatibleRules => ['rule_neg'];
 }
@@ -103,5 +118,10 @@ class RulePos extends LintRule {
 class StableLint extends LintRule {
   StableLint()
       : super(
-            name: 'stable_lint', group: Group.style, maturity: Maturity.stable);
+          name: 'stable_lint',
+          group: Group.style,
+          maturity: Maturity.stable,
+          description: '',
+          details: '',
+        );
 }

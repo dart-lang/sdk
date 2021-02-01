@@ -670,7 +670,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(expression, isNotNull);
     assertNoErrors();
     expect(expression, isInstanceCreationExpression);
-    InstanceCreationExpression instanceCreation = expression;
+    var instanceCreation = expression as InstanceCreationExpression;
     expect(instanceCreation.keyword, isNotNull);
     ConstructorName name = instanceCreation.constructorName;
     expect(name, isNotNull);
@@ -806,8 +806,8 @@ class ExpressionParserTest extends FastaParserTestCase {
     Expression expression = parseExpression('() async {}');
     var functionExpression = expression as FunctionExpression;
     expect(functionExpression.body, isNotNull);
-    expect(functionExpression.body.isAsynchronous, isTrue);
-    expect(functionExpression.body.isGenerator, isFalse);
+    expect(functionExpression.body!.isAsynchronous, isTrue);
+    expect(functionExpression.body!.isGenerator, isFalse);
     expect(functionExpression.parameters, isNotNull);
   }
 
@@ -815,8 +815,8 @@ class ExpressionParserTest extends FastaParserTestCase {
     Expression expression = parseExpression('() async* {}');
     var functionExpression = expression as FunctionExpression;
     expect(functionExpression.body, isNotNull);
-    expect(functionExpression.body.isAsynchronous, isTrue);
-    expect(functionExpression.body.isGenerator, isTrue);
+    expect(functionExpression.body!.isAsynchronous, isTrue);
+    expect(functionExpression.body!.isGenerator, isTrue);
     expect(functionExpression.parameters, isNotNull);
   }
 
@@ -824,8 +824,8 @@ class ExpressionParserTest extends FastaParserTestCase {
     Expression expression = parseExpression('() {}');
     var functionExpression = expression as FunctionExpression;
     expect(functionExpression.body, isNotNull);
-    expect(functionExpression.body.isAsynchronous, isFalse);
-    expect(functionExpression.body.isGenerator, isFalse);
+    expect(functionExpression.body!.isAsynchronous, isFalse);
+    expect(functionExpression.body!.isGenerator, isFalse);
     expect(functionExpression.parameters, isNotNull);
   }
 
@@ -833,8 +833,8 @@ class ExpressionParserTest extends FastaParserTestCase {
     Expression expression = parseExpression('() sync* {}');
     var functionExpression = expression as FunctionExpression;
     expect(functionExpression.body, isNotNull);
-    expect(functionExpression.body.isAsynchronous, isFalse);
-    expect(functionExpression.body.isGenerator, isTrue);
+    expect(functionExpression.body!.isAsynchronous, isFalse);
+    expect(functionExpression.body!.isGenerator, isTrue);
     expect(functionExpression.parameters, isNotNull);
   }
 
@@ -863,20 +863,20 @@ class ExpressionParserTest extends FastaParserTestCase {
   void test_parseExpression_sendWithTypeParam_afterIndex() {
     final unit = parseCompilationUnit('main() { factories[C]<num, int>(); }');
     expect(unit.declarations, hasLength(1));
-    FunctionDeclaration mainMethod = unit.declarations[0];
-    BlockFunctionBody body = mainMethod.functionExpression.body;
+    var mainMethod = unit.declarations[0] as FunctionDeclaration;
+    var body = mainMethod.functionExpression.body as BlockFunctionBody;
     NodeList<Statement> statements = body.block.statements;
     expect(statements, hasLength(1));
-    ExpressionStatement statement = statements[0];
-    FunctionExpressionInvocation expression = statement.expression;
+    var statement = statements[0] as ExpressionStatement;
+    var expression = statement.expression as FunctionExpressionInvocation;
 
-    IndexExpression function = expression.function;
-    SimpleIdentifier target = function.target;
+    var function = expression.function as IndexExpression;
+    var target = function.target as SimpleIdentifier;
     expect(target.name, 'factories');
-    SimpleIdentifier index = function.index;
+    var index = function.index as SimpleIdentifier;
     expect(index.name, 'C');
 
-    NodeList<TypeAnnotation> typeArguments = expression.typeArguments.arguments;
+    List<TypeAnnotation> typeArguments = expression.typeArguments!.arguments;
     expect(typeArguments, hasLength(2));
     expect((typeArguments[0] as NamedType).name.name, 'num');
     expect((typeArguments[1] as NamedType).name.name, 'int');
@@ -887,22 +887,22 @@ class ExpressionParserTest extends FastaParserTestCase {
   void test_parseExpression_sendWithTypeParam_afterSend() {
     final unit = parseCompilationUnit('main() { factories(C)<num, int>(); }');
     expect(unit.declarations, hasLength(1));
-    FunctionDeclaration mainMethod = unit.declarations[0];
-    BlockFunctionBody body = mainMethod.functionExpression.body;
+    var mainMethod = unit.declarations[0] as FunctionDeclaration;
+    var body = mainMethod.functionExpression.body as BlockFunctionBody;
     NodeList<Statement> statements = body.block.statements;
     expect(statements, hasLength(1));
-    ExpressionStatement statement = statements[0];
-    FunctionExpressionInvocation expression = statement.expression;
+    var statement = statements[0] as ExpressionStatement;
+    var expression = statement.expression as FunctionExpressionInvocation;
 
-    MethodInvocation invocation = expression.function;
+    var invocation = expression.function as MethodInvocation;
     expect(invocation.methodName.name, 'factories');
     NodeList<Expression> invocationArguments =
         invocation.argumentList.arguments;
     expect(invocationArguments, hasLength(1));
-    SimpleIdentifier index = invocationArguments[0];
+    var index = invocationArguments[0] as SimpleIdentifier;
     expect(index.name, 'C');
 
-    NodeList<TypeAnnotation> typeArguments = expression.typeArguments.arguments;
+    List<TypeAnnotation> typeArguments = expression.typeArguments!.arguments;
     expect(typeArguments, hasLength(2));
     expect((typeArguments[0] as NamedType).name.name, 'num');
     expect((typeArguments[1] as NamedType).name.name, 'int');
@@ -931,7 +931,7 @@ class ExpressionParserTest extends FastaParserTestCase {
   void test_parseExpression_superMethodInvocation_typeArguments_chained() {
     Expression expression = parseExpression('super.b.c<D>()');
     MethodInvocation invocation = expression as MethodInvocation;
-    Expression target = invocation.target;
+    var target = invocation.target as Expression;
     expect(target, isPropertyAccess);
     expect(invocation.methodName, isNotNull);
     expect(invocation.methodName.name, 'c');
@@ -1024,8 +1024,8 @@ class ExpressionParserTest extends FastaParserTestCase {
     Expression expression = parseExpression('<test(' ', (){});>[0, 1, 2]',
         codes: [ParserErrorCode.EXPECTED_TOKEN]);
     expect(expression, isNotNull);
-    ListLiteral literal = expression;
-    expect(literal.typeArguments.arguments, hasLength(1));
+    var literal = expression as ListLiteral;
+    expect(literal.typeArguments!.arguments, hasLength(1));
   }
 
   void test_parseFunctionExpression_typeParameters() {
@@ -1044,7 +1044,7 @@ class ExpressionParserTest extends FastaParserTestCase {
         parseInstanceCreationExpression('A.B()', token);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression.keyword.keyword, Keyword.NEW);
+    expect(expression.keyword!.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
     TypeName type = name.type;
@@ -1061,7 +1061,7 @@ class ExpressionParserTest extends FastaParserTestCase {
         parseInstanceCreationExpression('A.B.c()', token);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression.keyword.keyword, Keyword.NEW);
+    expect(expression.keyword!.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
     TypeName type = name.type;
@@ -1079,12 +1079,12 @@ class ExpressionParserTest extends FastaParserTestCase {
         parseInstanceCreationExpression('A.B<E>.c()', token);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression.keyword.keyword, Keyword.NEW);
+    expect(expression.keyword!.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
     TypeName type = name.type;
     expect(type, isNotNull);
-    expect(type.typeArguments.arguments, hasLength(1));
+    expect(type.typeArguments!.arguments, hasLength(1));
     expect(name.period, isNotNull);
     expect(name.name, isNotNull);
     expect(expression.argumentList, isNotNull);
@@ -1096,12 +1096,12 @@ class ExpressionParserTest extends FastaParserTestCase {
         parseInstanceCreationExpression('A.B<E>()', token);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression.keyword.keyword, Keyword.NEW);
+    expect(expression.keyword!.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
     TypeName type = name.type;
     expect(type, isNotNull);
-    expect(type.typeArguments.arguments, hasLength(1));
+    expect(type.typeArguments!.arguments, hasLength(1));
     expect(name.period, isNull);
     expect(name.name, isNull);
     expect(expression.argumentList, isNotNull);
@@ -1113,7 +1113,7 @@ class ExpressionParserTest extends FastaParserTestCase {
         parseInstanceCreationExpression('A()', token);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression.keyword.keyword, Keyword.NEW);
+    expect(expression.keyword!.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
     TypeName type = name.type;
@@ -1130,7 +1130,7 @@ class ExpressionParserTest extends FastaParserTestCase {
         parseInstanceCreationExpression('A.c()', token);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression.keyword.keyword, Keyword.NEW);
+    expect(expression.keyword!.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
     TypeName type = name.type;
@@ -1143,16 +1143,16 @@ class ExpressionParserTest extends FastaParserTestCase {
 
   void test_parseInstanceCreationExpression_type_named_typeArguments() {
     Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
-    InstanceCreationExpressionImpl expression =
-        parseInstanceCreationExpression('A<B>.c()', token);
+    var expression = parseInstanceCreationExpression('A<B>.c()', token)
+        as InstanceCreationExpressionImpl;
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression.keyword.keyword, Keyword.NEW);
+    expect(expression.keyword!.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
     TypeName type = name.type;
     expect(type, isNotNull);
-    expect(type.typeArguments.arguments, hasLength(1));
+    expect(type.typeArguments!.arguments, hasLength(1));
     expect(name.period, isNotNull);
     expect(name.name, isNotNull);
     expect(expression.argumentList, isNotNull);
@@ -1160,13 +1160,12 @@ class ExpressionParserTest extends FastaParserTestCase {
   }
 
   void test_parseInstanceCreationExpression_type_named_typeArguments_34403() {
-    InstanceCreationExpressionImpl expression =
-        parseExpression('new a.b.c<C>()', errors: [
+    var expression = parseExpression('new a.b.c<C>()', errors: [
       expectedError(
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 8, 1)
-    ]);
+    ]) as InstanceCreationExpressionImpl;
     expect(expression, isNotNull);
-    expect(expression.keyword.keyword, Keyword.NEW);
+    expect(expression.keyword!.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
     TypeName type = name.type;
@@ -1175,7 +1174,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(name.period, isNotNull);
     expect(name.name, isNotNull);
     expect(expression.argumentList, isNotNull);
-    expect(expression.typeArguments.arguments, hasLength(1));
+    expect(expression.typeArguments!.arguments, hasLength(1));
   }
 
   void test_parseInstanceCreationExpression_type_typeArguments() {
@@ -1184,12 +1183,12 @@ class ExpressionParserTest extends FastaParserTestCase {
         parseInstanceCreationExpression('A<B>()', token);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression.keyword.keyword, Keyword.NEW);
+    expect(expression.keyword!.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
     TypeName type = name.type;
     expect(type, isNotNull);
-    expect(type.typeArguments.arguments, hasLength(1));
+    expect(type.typeArguments!.arguments, hasLength(1));
     expect(name.period, isNull);
     expect(name.name, isNull);
     expect(expression.argumentList, isNotNull);
@@ -1200,7 +1199,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     ListLiteral literal = parseListLiteral(token, null, '[]');
     expect(literal, isNotNull);
     assertNoErrors();
-    expect(literal.constKeyword.keyword, Keyword.CONST);
+    expect(literal.constKeyword!.keyword, Keyword.CONST);
     expect(literal.typeArguments, isNull);
     expect(literal.leftBracket, isNotNull);
     expect(literal.elements, hasLength(0));
@@ -1225,7 +1224,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     ListLiteral literal = parseListLiteral(token, null, '[ ]');
     expect(literal, isNotNull);
     assertNoErrors();
-    expect(literal.constKeyword.keyword, Keyword.CONST);
+    expect(literal.constKeyword!.keyword, Keyword.CONST);
     expect(literal.typeArguments, isNull);
     expect(literal.leftBracket, isNotNull);
     expect(literal.elements, hasLength(0));
@@ -1341,7 +1340,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     SetOrMapLiteral literal = parseMapLiteral(token, '<String, int>', '{}');
     expect(literal, isNotNull);
     assertNoErrors();
-    expect(literal.constKeyword.keyword, Keyword.CONST);
+    expect(literal.constKeyword!.keyword, Keyword.CONST);
     expect(literal.typeArguments, isNotNull);
     expect(literal.leftBracket, isNotNull);
     expect(literal.elements, hasLength(0));
@@ -1473,7 +1472,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     assertNoErrors();
     var methodInvocation = expression as MethodInvocation;
     expect(methodInvocation.target, isNotNull);
-    expect(methodInvocation.operator.type, TokenType.PERIOD);
+    expect(methodInvocation.operator!.type, TokenType.PERIOD);
     expect(methodInvocation.methodName, isNotNull);
     expect(methodInvocation.typeArguments, isNull);
     expect(methodInvocation.argumentList, isNotNull);
@@ -1485,7 +1484,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     assertNoErrors();
     var methodInvocation = expression as MethodInvocation;
     expect(methodInvocation.target, isNotNull);
-    expect(methodInvocation.operator.type, TokenType.QUESTION_PERIOD);
+    expect(methodInvocation.operator!.type, TokenType.QUESTION_PERIOD);
     expect(methodInvocation.methodName, isNotNull);
     expect(methodInvocation.typeArguments, isNull);
     expect(methodInvocation.argumentList, isNotNull);
@@ -1498,7 +1497,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     assertNoErrors();
     var methodInvocation = expression as MethodInvocation;
     expect(methodInvocation.target, isNotNull);
-    expect(methodInvocation.operator.type, TokenType.QUESTION_PERIOD);
+    expect(methodInvocation.operator!.type, TokenType.QUESTION_PERIOD);
     expect(methodInvocation.methodName, isNotNull);
     expect(methodInvocation.typeArguments, isNotNull);
     expect(methodInvocation.argumentList, isNotNull);
@@ -1510,7 +1509,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     assertNoErrors();
     var methodInvocation = expression as MethodInvocation;
     expect(methodInvocation.target, isNotNull);
-    expect(methodInvocation.operator.type, TokenType.PERIOD);
+    expect(methodInvocation.operator!.type, TokenType.PERIOD);
     expect(methodInvocation.methodName, isNotNull);
     expect(methodInvocation.typeArguments, isNotNull);
     expect(methodInvocation.argumentList, isNotNull);
@@ -1649,7 +1648,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     assertNoErrors();
     var literal = expression as ListLiteral;
     expect(literal.typeArguments, isNotNull);
-    expect(literal.typeArguments.arguments, hasLength(1));
+    expect(literal.typeArguments!.arguments, hasLength(1));
   }
 
   void test_parsePrimaryExpression_mapLiteral() {
@@ -1667,7 +1666,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     assertNoErrors();
     var literal = expression as SetOrMapLiteral;
     expect(literal.typeArguments, isNotNull);
-    expect(literal.typeArguments.arguments, hasLength(2));
+    expect(literal.typeArguments!.arguments, hasLength(2));
   }
 
   void test_parsePrimaryExpression_new() {
@@ -1683,7 +1682,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(expression, isNotNull);
     assertNoErrors();
     expect(expression, isNullLiteral);
-    NullLiteral literal = expression;
+    var literal = expression as NullLiteral;
     expect(literal.literal, isNotNull);
   }
 
@@ -1774,13 +1773,14 @@ class ExpressionParserTest extends FastaParserTestCase {
   }
 
   void test_parseRelationalExpression_as_chained() {
-    AsExpression asExpression = parseExpression('x as Y as Z',
-        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 2)]);
+    var asExpression = parseExpression('x as Y as Z',
+            errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 2)])
+        as AsExpression;
     expect(asExpression, isNotNull);
-    SimpleIdentifier identifier = asExpression.expression;
+    var identifier = asExpression.expression as SimpleIdentifier;
     expect(identifier.name, 'x');
     expect(asExpression.asOperator, isNotNull);
-    TypeName typeName = asExpression.type;
+    var typeName = asExpression.type as TypeName;
     expect(typeName.name.name, 'Y');
   }
 
@@ -1847,13 +1847,14 @@ class ExpressionParserTest extends FastaParserTestCase {
   }
 
   void test_parseRelationalExpression_is_chained() {
-    IsExpression isExpression = parseExpression('x is Y is! Z',
-        errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 2)]);
+    var isExpression = parseExpression('x is Y is! Z',
+            errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 2)])
+        as IsExpression;
     expect(isExpression, isNotNull);
-    SimpleIdentifier identifier = isExpression.expression;
+    var identifier = isExpression.expression as SimpleIdentifier;
     expect(identifier.name, 'x');
     expect(isExpression.isOperator, isNotNull);
-    TypeName typeName = isExpression.type;
+    var typeName = isExpression.type as TypeName;
     expect(typeName.name.name, 'Y');
   }
 
@@ -1959,15 +1960,15 @@ class ExpressionParserTest extends FastaParserTestCase {
     var interpolation = expression as StringInterpolation;
     expect(interpolation.elements, hasLength(3));
     expect(interpolation.elements[0], isInterpolationString);
-    InterpolationString element0 = interpolation.elements[0];
+    var element0 = interpolation.elements[0] as InterpolationString;
     expect(element0.value, 'x');
     expect(interpolation.elements[1], isInterpolationExpression);
-    InterpolationExpression element1 = interpolation.elements[1];
+    var element1 = interpolation.elements[1] as InterpolationExpression;
     expect(element1.leftBracket.lexeme, '\$');
     expect(element1.expression, isSimpleIdentifier);
     expect(element1.rightBracket, isNull);
     expect(interpolation.elements[2], isInterpolationString);
-    InterpolationString element2 = interpolation.elements[2];
+    var element2 = interpolation.elements[2] as InterpolationString;
     expect(element2.value, '');
   }
 
@@ -1976,7 +1977,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(expression, isNotNull);
     assertNoErrors();
     expect(expression, isStringInterpolation);
-    StringInterpolation literal = expression;
+    var literal = expression as StringInterpolation;
     NodeList<InterpolationElement> elements = literal.elements;
     expect(elements, hasLength(5));
     expect(elements[0] is InterpolationString, isTrue);
@@ -1985,7 +1986,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(elements[3] is InterpolationExpression, isTrue);
     expect(elements[4] is InterpolationString, isTrue);
     expect((elements[1] as InterpolationExpression).leftBracket.lexeme, '\${');
-    expect((elements[1] as InterpolationExpression).rightBracket.lexeme, '}');
+    expect((elements[1] as InterpolationExpression).rightBracket!.lexeme, '}');
     expect((elements[3] as InterpolationExpression).leftBracket.lexeme, '\$');
     expect((elements[3] as InterpolationExpression).rightBracket, isNull);
   }
@@ -2023,13 +2024,13 @@ class ExpressionParserTest extends FastaParserTestCase {
     var interpolation = expression as StringInterpolation;
     expect(interpolation.elements, hasLength(3));
     expect(interpolation.elements[0], isInterpolationString);
-    InterpolationString element0 = interpolation.elements[0];
+    var element0 = interpolation.elements[0] as InterpolationString;
     expect(element0.value, 'x');
     expect(interpolation.elements[1], isInterpolationExpression);
-    InterpolationExpression element1 = interpolation.elements[1];
+    var element1 = interpolation.elements[1] as InterpolationExpression;
     expect(element1.expression, isSimpleIdentifier);
     expect(interpolation.elements[2], isInterpolationString);
-    InterpolationString element2 = interpolation.elements[2];
+    var element2 = interpolation.elements[2] as InterpolationString;
     expect(element2.value, '');
   }
 
@@ -2112,13 +2113,13 @@ class ExpressionParserTest extends FastaParserTestCase {
     var interpolation = expression as StringInterpolation;
     expect(interpolation.elements, hasLength(3));
     expect(interpolation.elements[0], isInterpolationString);
-    InterpolationString element0 = interpolation.elements[0];
+    var element0 = interpolation.elements[0] as InterpolationString;
     expect(element0.value, '');
     expect(interpolation.elements[1], isInterpolationExpression);
-    InterpolationExpression element1 = interpolation.elements[1];
+    var element1 = interpolation.elements[1] as InterpolationExpression;
     expect(element1.expression, isSimpleIdentifier);
     expect(interpolation.elements[2], isInterpolationString);
-    InterpolationString element2 = interpolation.elements[2];
+    var element2 = interpolation.elements[2] as InterpolationString;
     expect(element2.value, "'y");
   }
 
@@ -2129,13 +2130,13 @@ class ExpressionParserTest extends FastaParserTestCase {
     var interpolation = expression as StringInterpolation;
     expect(interpolation.elements, hasLength(3));
     expect(interpolation.elements[0], isInterpolationString);
-    InterpolationString element0 = interpolation.elements[0];
+    var element0 = interpolation.elements[0] as InterpolationString;
     expect(element0.value, '');
     expect(interpolation.elements[1], isInterpolationExpression);
-    InterpolationExpression element1 = interpolation.elements[1];
+    var element1 = interpolation.elements[1] as InterpolationExpression;
     expect(element1.expression, isSimpleIdentifier);
     expect(interpolation.elements[2], isInterpolationString);
-    InterpolationString element2 = interpolation.elements[2];
+    var element2 = interpolation.elements[2] as InterpolationString;
     expect(element2.value, 'y');
   }
 
@@ -2173,13 +2174,13 @@ class ExpressionParserTest extends FastaParserTestCase {
     var interpolation = expression as StringInterpolation;
     expect(interpolation.elements, hasLength(3));
     expect(interpolation.elements[0], isInterpolationString);
-    InterpolationString element0 = interpolation.elements[0];
+    var element0 = interpolation.elements[0] as InterpolationString;
     expect(element0.value, '');
     expect(interpolation.elements[1], isInterpolationExpression);
-    InterpolationExpression element1 = interpolation.elements[1];
+    var element1 = interpolation.elements[1] as InterpolationExpression;
     expect(element1.expression, isSimpleIdentifier);
     expect(interpolation.elements[2], isInterpolationString);
-    InterpolationString element2 = interpolation.elements[2];
+    var element2 = interpolation.elements[2] as InterpolationString;
     expect(element2.value, '"');
   }
 
@@ -2199,13 +2200,13 @@ class ExpressionParserTest extends FastaParserTestCase {
     var interpolation = expression as StringInterpolation;
     expect(interpolation.elements, hasLength(3));
     expect(interpolation.elements[0], isInterpolationString);
-    InterpolationString element0 = interpolation.elements[0];
+    var element0 = interpolation.elements[0] as InterpolationString;
     expect(element0.value, '');
     expect(interpolation.elements[1], isInterpolationExpression);
-    InterpolationExpression element1 = interpolation.elements[1];
+    var element1 = interpolation.elements[1] as InterpolationExpression;
     expect(element1.expression, isSimpleIdentifier);
     expect(interpolation.elements[2], isInterpolationString);
-    InterpolationString element2 = interpolation.elements[2];
+    var element2 = interpolation.elements[2] as InterpolationString;
     expect(element2.value, 'y');
   }
 
@@ -2303,7 +2304,7 @@ class ExpressionParserTest extends FastaParserTestCase {
   }
 
   void test_parseUnaryExpression_decrement_identifier_index() {
-    PrefixExpression expression = parseExpression('--a[0]');
+    var expression = parseExpression('--a[0]') as PrefixExpression;
     expect(expression, isNotNull);
     assertNoErrors();
     expect(expression.operator, isNotNull);
@@ -2376,7 +2377,7 @@ class ExpressionParserTest extends FastaParserTestCase {
   }
 
   void test_parseUnaryExpression_increment_identifier_index() {
-    PrefixExpression expression = parseExpression('++a[0]');
+    var expression = parseExpression('++a[0]') as PrefixExpression;
     expect(expression, isNotNull);
     assertNoErrors();
     expect(expression.operator, isNotNull);
@@ -2421,7 +2422,7 @@ class ExpressionParserTest extends FastaParserTestCase {
   }
 
   void test_parseUnaryExpression_minus_identifier_index() {
-    PrefixExpression expression = parseExpression('-a[0]');
+    var expression = parseExpression('-a[0]') as PrefixExpression;
     expect(expression, isNotNull);
     assertNoErrors();
     expect(expression.operator, isNotNull);
@@ -2487,7 +2488,7 @@ class ExpressionParserTest extends FastaParserTestCase {
   }
 
   void test_parseUnaryExpression_tilde_identifier_index() {
-    PrefixExpression expression = parseExpression('~a[0]');
+    var expression = parseExpression('~a[0]') as PrefixExpression;
     expect(expression, isNotNull);
     assertNoErrors();
     expect(expression.operator, isNotNull);
@@ -2499,60 +2500,60 @@ class ExpressionParserTest extends FastaParserTestCase {
   }
 
   void test_setLiteral() {
-    SetOrMapLiteral set = parseExpression('{3}');
+    var set = parseExpression('{3}') as SetOrMapLiteral;
     expect(set.constKeyword, isNull);
     expect(set.typeArguments, isNull);
     expect(set.elements, hasLength(1));
-    IntegerLiteral value = set.elements[0];
+    var value = set.elements[0] as IntegerLiteral;
     expect(value.value, 3);
   }
 
   void test_setLiteral_const() {
-    SetOrMapLiteral set = parseExpression('const {3, 6}');
+    var set = parseExpression('const {3, 6}') as SetOrMapLiteral;
     expect(set.constKeyword, isNotNull);
     expect(set.typeArguments, isNull);
     expect(set.elements, hasLength(2));
-    IntegerLiteral value1 = set.elements[0];
+    var value1 = set.elements[0] as IntegerLiteral;
     expect(value1.value, 3);
-    IntegerLiteral value2 = set.elements[1];
+    var value2 = set.elements[1] as IntegerLiteral;
     expect(value2.value, 6);
   }
 
   void test_setLiteral_const_typed() {
-    SetOrMapLiteral set = parseExpression('const <int>{3}');
+    var set = parseExpression('const <int>{3}') as SetOrMapLiteral;
     expect(set.constKeyword, isNotNull);
-    expect(set.typeArguments.arguments, hasLength(1));
-    NamedType typeArg = set.typeArguments.arguments[0];
+    expect(set.typeArguments!.arguments, hasLength(1));
+    var typeArg = set.typeArguments!.arguments[0] as NamedType;
     expect(typeArg.name.name, 'int');
     expect(set.elements.length, 1);
-    IntegerLiteral value = set.elements[0];
+    var value = set.elements[0] as IntegerLiteral;
     expect(value.value, 3);
   }
 
   void test_setLiteral_nested_typeArgument() {
-    SetOrMapLiteral set = parseExpression('<Set<int>>{{3}}');
+    var set = parseExpression('<Set<int>>{{3}}') as SetOrMapLiteral;
     expect(set.constKeyword, isNull);
-    expect(set.typeArguments.arguments, hasLength(1));
-    NamedType typeArg1 = set.typeArguments.arguments[0];
+    expect(set.typeArguments!.arguments, hasLength(1));
+    var typeArg1 = set.typeArguments!.arguments[0] as NamedType;
     expect(typeArg1.name.name, 'Set');
-    expect(typeArg1.typeArguments.arguments, hasLength(1));
-    NamedType typeArg2 = typeArg1.typeArguments.arguments[0];
+    expect(typeArg1.typeArguments!.arguments, hasLength(1));
+    var typeArg2 = typeArg1.typeArguments!.arguments[0] as NamedType;
     expect(typeArg2.name.name, 'int');
     expect(set.elements.length, 1);
-    SetOrMapLiteral intSet = set.elements[0];
+    var intSet = set.elements[0] as SetOrMapLiteral;
     expect(intSet.elements, hasLength(1));
-    IntegerLiteral value = intSet.elements[0];
+    var value = intSet.elements[0] as IntegerLiteral;
     expect(value.value, 3);
   }
 
   void test_setLiteral_typed() {
-    SetOrMapLiteral set = parseExpression('<int>{3}');
+    var set = parseExpression('<int>{3}') as SetOrMapLiteral;
     expect(set.constKeyword, isNull);
-    expect(set.typeArguments.arguments, hasLength(1));
-    NamedType typeArg = set.typeArguments.arguments[0];
+    expect(set.typeArguments!.arguments, hasLength(1));
+    var typeArg = set.typeArguments!.arguments[0] as NamedType;
     expect(typeArg.name.name, 'int');
     expect(set.elements.length, 1);
-    IntegerLiteral value = set.elements[0];
+    var value = set.elements[0] as IntegerLiteral;
     expect(value.value, 3);
   }
 }

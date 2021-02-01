@@ -11,22 +11,23 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
-import 'package:meta/meta.dart';
 
 MicroContextObjects createMicroContextObjects({
-  @required FileResolver fileResolver,
-  @required AnalysisOptionsImpl analysisOptions,
-  @required SourceFactory sourceFactory,
-  @required ContextRootImpl root,
-  @required ResourceProvider resourceProvider,
-  @required Workspace workspace,
+  required FileResolver fileResolver,
+  required AnalysisOptionsImpl analysisOptions,
+  required SourceFactory sourceFactory,
+  required ContextRootImpl root,
+  required ResourceProvider resourceProvider,
+  required Workspace workspace,
 }) {
   var declaredVariables = DeclaredVariables();
   var synchronousSession = SynchronousSession(
@@ -74,11 +75,11 @@ class MicroContextObjects {
   final _MicroAnalysisContextImpl analysisContext2;
 
   MicroContextObjects({
-    @required this.declaredVariables,
-    @required this.synchronousSession,
-    @required this.analysisSession,
-    @required this.analysisContext,
-    @required this.analysisContext2,
+    required this.declaredVariables,
+    required this.synchronousSession,
+    required this.analysisSession,
+    required this.analysisContext,
+    required this.analysisContext2,
   });
 
   set analysisOptions(AnalysisOptionsImpl analysisOptions) {
@@ -88,6 +89,11 @@ class MicroContextObjects {
   InheritanceManager3 get inheritanceManager {
     return analysisSession.inheritanceManager;
   }
+}
+
+class _FakeAnalysisDriver implements AnalysisDriver {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _MicroAnalysisContextImpl implements AnalysisContext {
@@ -100,12 +106,12 @@ class _MicroAnalysisContextImpl implements AnalysisContext {
   final ContextRoot contextRoot;
 
   @override
-  _MicroAnalysisSessionImpl currentSession;
+  late _MicroAnalysisSessionImpl currentSession;
 
   final DeclaredVariables declaredVariables;
 
   final SourceFactory sourceFactory;
-  Workspace _workspace;
+  Workspace? _workspace;
 
   _MicroAnalysisContextImpl(
     this.fileResolver,
@@ -114,7 +120,7 @@ class _MicroAnalysisContextImpl implements AnalysisContext {
     this.declaredVariables,
     this.sourceFactory,
     this.resourceProvider, {
-    Workspace workspace,
+    Workspace? workspace,
   }) : _workspace = workspace;
 
   @override
@@ -123,7 +129,7 @@ class _MicroAnalysisContextImpl implements AnalysisContext {
   }
 
   @override
-  Folder get sdkRoot => null;
+  Folder? get sdkRoot => null;
 
   @override
   Workspace get workspace {
@@ -148,12 +154,12 @@ class _MicroAnalysisSessionImpl extends AnalysisSessionImpl {
   final SourceFactory sourceFactory;
 
   @override
-  _MicroAnalysisContextImpl analysisContext;
+  late _MicroAnalysisContextImpl analysisContext;
 
   _MicroAnalysisSessionImpl(
     this.declaredVariables,
     this.sourceFactory,
-  ) : super(null);
+  ) : super(_FakeAnalysisDriver());
 
   @override
   ResourceProvider get resourceProvider =>
@@ -169,11 +175,15 @@ class _MicroAnalysisSessionImpl extends AnalysisSessionImpl {
 
   @override
   FileResult getFile(String path) {
+    var fileContext = analysisContext.fileResolver.getFileContext(
+      path: path,
+      performance: OperationPerformanceImpl('<default>'),
+    );
     return FileResultImpl(
       this,
       path,
-      uriConverter.pathToUri(path),
-      null,
+      fileContext.file.uri,
+      fileContext.file.lineInfo,
       false,
     );
   }
@@ -206,14 +216,14 @@ class _UriConverterImpl implements UriConverter {
   _UriConverterImpl(this.resourceProvider, this.sourceFactory);
 
   @override
-  Uri pathToUri(String path, {String containingPath}) {
+  Uri? pathToUri(String path, {String? containingPath}) {
     var fileUri = resourceProvider.pathContext.toUri(path);
-    var fileSource = sourceFactory.forUri2(fileUri);
+    var fileSource = sourceFactory.forUri2(fileUri)!;
     return sourceFactory.restoreUri(fileSource);
   }
 
   @override
-  String uriToPath(Uri uri) {
+  String? uriToPath(Uri uri) {
     return sourceFactory.forUri2(uri)?.fullName;
   }
 }

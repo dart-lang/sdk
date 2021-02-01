@@ -27,28 +27,28 @@ import 'package:analyzer/src/summary2/scope.dart';
 /// There is only one reference object per [Element].
 class Reference {
   /// The parent of this reference, or `null` if the root.
-  final Reference parent;
+  final Reference? parent;
 
   /// The simple name of the reference in its [parent].
   final String name;
 
   /// The node accessor, used to read nodes lazily.
   /// Or `null` if a named container.
-  ReferenceNodeAccessor nodeAccessor;
+  ReferenceNodeAccessor? nodeAccessor;
 
   /// The corresponding [AstNode], or `null` if a named container.
-  AstNode node;
+  AstNode? node;
 
   /// The corresponding [Element], or `null` if a named container.
-  Element element;
+  Element? element;
 
   /// Temporary index used during serialization and linking.
-  int index;
+  int? index;
 
-  Map<String, Reference> _children;
+  Map<String, Reference>? _children;
 
   /// If this reference is an import prefix, the scope of this prefix.
-  Scope prefixScope;
+  Scope? prefixScope;
 
   Reference.root() : this._(null, '');
 
@@ -56,38 +56,38 @@ class Reference {
 
   Iterable<Reference> get children {
     if (_children != null) {
-      return _children.values;
+      return _children!.values;
     }
     return const [];
   }
 
-  bool get isClass => parent != null && parent.name == '@class';
+  bool get isClass => parent != null && parent!.name == '@class';
 
-  bool get isConstructor => parent != null && parent.name == '@constructor';
+  bool get isConstructor => parent != null && parent!.name == '@constructor';
 
   bool get isDynamic => name == 'dynamic' && parent?.name == 'dart:core';
 
-  bool get isEnum => parent != null && parent.name == '@enum';
+  bool get isEnum => parent != null && parent!.name == '@enum';
 
-  bool get isGetter => parent != null && parent.name == '@getter';
+  bool get isGetter => parent != null && parent!.name == '@getter';
 
-  bool get isLibrary => parent != null && parent.isRoot;
+  bool get isLibrary => parent != null && parent!.isRoot;
 
-  bool get isParameter => parent != null && parent.name == '@parameter';
+  bool get isParameter => parent != null && parent!.name == '@parameter';
 
-  bool get isPrefix => parent != null && parent.name == '@prefix';
+  bool get isPrefix => parent != null && parent!.name == '@prefix';
 
   bool get isRoot => parent == null;
 
-  bool get isSetter => parent != null && parent.name == '@setter';
+  bool get isSetter => parent != null && parent!.name == '@setter';
 
-  bool get isTypeAlias => parent != null && parent.name == '@typeAlias';
+  bool get isTypeAlias => parent != null && parent!.name == '@typeAlias';
 
-  bool get isUnit => parent != null && parent.name == '@unit';
+  bool get isUnit => parent != null && parent!.name == '@unit';
 
   /// Return the child with the given name, or `null` if does not exist.
-  Reference operator [](String name) {
-    return _children != null ? _children[name] : null;
+  Reference? operator [](String name) {
+    return _children != null ? _children![name] : null;
   }
 
   /// Return the child with the given name, create if does not exist yet.
@@ -104,7 +104,7 @@ class Reference {
     if (element != null && this.node == node) {
       return true;
     } else {
-      if (node == null) {
+      if (this.node == null) {
         this.node = node;
       }
       return false;
@@ -112,7 +112,7 @@ class Reference {
   }
 
   void removeChild(String name) {
-    _children.remove(name);
+    _children!.remove(name);
   }
 
   @override

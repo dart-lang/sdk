@@ -139,32 +139,33 @@ main() { // missing async
   }
 
   void test_breakOutsideOfLoop_breakInDoStatement() {
-    DoStatement statement = parseStatement('do {break;} while (x);');
+    var statement = parseStatement('do {break;} while (x);') as DoStatement;
     expectNotNullIfNoErrors(statement);
     assertNoErrors();
   }
 
   void test_breakOutsideOfLoop_breakInForStatement() {
-    Statement statement = parseStatement('for (; x;) {break;}');
+    var statement = parseStatement('for (; x;) {break;}');
     expectNotNullIfNoErrors(statement);
     assertNoErrors();
   }
 
   void test_breakOutsideOfLoop_breakInIfStatement() {
-    IfStatement statement = parseStatement('if (x) {break;}');
+    var statement = parseStatement('if (x) {break;}') as IfStatement;
     expectNotNullIfNoErrors(statement);
     listener.assertErrors(
         [expectedError(ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, 8, 5)]);
   }
 
   void test_breakOutsideOfLoop_breakInSwitchStatement() {
-    SwitchStatement statement = parseStatement('switch (x) {case 1: break;}');
+    var statement =
+        parseStatement('switch (x) {case 1: break;}') as SwitchStatement;
     expectNotNullIfNoErrors(statement);
     assertNoErrors();
   }
 
   void test_breakOutsideOfLoop_breakInWhileStatement() {
-    WhileStatement statement = parseStatement('while (x) {break;}');
+    var statement = parseStatement('while (x) {break;}') as WhileStatement;
     expectNotNullIfNoErrors(statement);
     assertNoErrors();
   }
@@ -427,33 +428,33 @@ main() { // missing async
   }
 
   void test_continueOutsideOfLoop_continueInDoStatement() {
-    DoStatement statement = parseStatement('do {continue;} while (x);');
+    var statement = parseStatement('do {continue;} while (x);') as DoStatement;
     expectNotNullIfNoErrors(statement);
     assertNoErrors();
   }
 
   void test_continueOutsideOfLoop_continueInForStatement() {
-    Statement statement = parseStatement('for (; x;) {continue;}');
+    var statement = parseStatement('for (; x;) {continue;}');
     expectNotNullIfNoErrors(statement);
     assertNoErrors();
   }
 
   void test_continueOutsideOfLoop_continueInIfStatement() {
-    IfStatement statement = parseStatement('if (x) {continue;}');
+    var statement = parseStatement('if (x) {continue;}') as IfStatement;
     expectNotNullIfNoErrors(statement);
     listener.assertErrors(
         [expectedError(ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, 8, 8)]);
   }
 
   void test_continueOutsideOfLoop_continueInSwitchStatement() {
-    SwitchStatement statement =
-        parseStatement('switch (x) {case 1: continue a;}');
+    var statement =
+        parseStatement('switch (x) {case 1: continue a;}') as SwitchStatement;
     expectNotNullIfNoErrors(statement);
     assertNoErrors();
   }
 
   void test_continueOutsideOfLoop_continueInWhileStatement() {
-    WhileStatement statement = parseStatement('while (x) {continue;}');
+    var statement = parseStatement('while (x) {continue;}') as WhileStatement;
     expectNotNullIfNoErrors(statement);
     assertNoErrors();
   }
@@ -469,23 +470,24 @@ main() { // missing async
   }
 
   void test_continueWithoutLabelInCase_error() {
-    SwitchStatement statement =
-        parseStatement('switch (x) {case 1: continue;}');
+    var statement =
+        parseStatement('switch (x) {case 1: continue;}') as SwitchStatement;
     expectNotNullIfNoErrors(statement);
     listener.assertErrors(
         [expectedError(ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE, 20, 8)]);
   }
 
   void test_continueWithoutLabelInCase_noError() {
-    SwitchStatement statement =
-        parseStatement('switch (x) {case 1: continue a;}');
+    var statement =
+        parseStatement('switch (x) {case 1: continue a;}') as SwitchStatement;
     expectNotNullIfNoErrors(statement);
     assertNoErrors();
   }
 
   void test_continueWithoutLabelInCase_noError_switchInLoop() {
-    WhileStatement statement =
-        parseStatement('while (a) { switch (b) {default: continue;}}');
+    var statement =
+        parseStatement('while (a) { switch (b) {default: continue;}}')
+            as WhileStatement;
     expectNotNullIfNoErrors(statement);
     assertNoErrors();
   }
@@ -523,7 +525,7 @@ main() { // missing async
 
   void test_covariantConstructor() {
     createParser('class C { covariant C(); }');
-    ClassDeclaration member = parseFullCompilationUnitMember();
+    var member = parseFullCompilationUnitMember() as ClassDeclaration;
     expectNotNullIfNoErrors(member);
     listener
         .assertErrors([expectedError(ParserErrorCode.COVARIANT_MEMBER, 10, 9)]);
@@ -555,7 +557,7 @@ main() { // missing async
 
   void test_covariantTopLevelDeclaration_class() {
     createParser('covariant class C {}');
-    ClassDeclaration member = parseFullCompilationUnitMember();
+    var member = parseFullCompilationUnitMember() as ClassDeclaration;
     expectNotNullIfNoErrors(member);
     listener.assertErrors(
         [expectedError(ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION, 0, 9)]);
@@ -563,7 +565,7 @@ main() { // missing async
 
   void test_covariantTopLevelDeclaration_enum() {
     createParser('covariant enum E { v }');
-    EnumDeclaration member = parseFullCompilationUnitMember();
+    var member = parseFullCompilationUnitMember() as EnumDeclaration;
     expectNotNullIfNoErrors(member);
     listener.assertErrors(
         [expectedError(ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION, 0, 9)]);
@@ -674,8 +676,9 @@ main() { // missing async
   }
 
   void test_duplicateLabelInSwitchStatement() {
-    SwitchStatement statement =
-        parseStatement('switch (e) {l1: case 0: break; l1: case 1: break;}');
+    var statement =
+        parseStatement('switch (e) {l1: case 0: break; l1: case 1: break;}')
+            as SwitchStatement;
     expectNotNullIfNoErrors(statement);
     listener.assertErrors([
       expectedError(ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT, 31, 2)
@@ -684,7 +687,7 @@ main() { // missing async
 
   void test_emptyEnumBody() {
     createParser('enum E {}');
-    EnumDeclaration declaration = parseFullCompilationUnitMember();
+    var declaration = parseFullCompilationUnitMember() as EnumDeclaration;
     expectNotNullIfNoErrors(declaration);
     // TODO(brianwilkerson) Convert codes to errors when highlighting is fixed.
     listener.assertErrorsWithCodes([ParserErrorCode.EMPTY_ENUM_BODY]);
@@ -726,7 +729,7 @@ class Foo {
   }
 
   void test_expectedCaseOrDefault() {
-    SwitchStatement statement = parseStatement('switch (e) {break;}');
+    var statement = parseStatement('switch (e) {break;}') as SwitchStatement;
     expectNotNullIfNoErrors(statement);
     listener
         .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 5)]);
@@ -804,8 +807,9 @@ class Foo {
   }
 
   void test_expectedInterpolationIdentifier() {
-    StringLiteral literal = parseExpression("'\$x\$'",
-        errors: [expectedError(ScannerErrorCode.MISSING_IDENTIFIER, 4, 1)]);
+    var literal = parseExpression("'\$x\$'",
+            errors: [expectedError(ScannerErrorCode.MISSING_IDENTIFIER, 4, 1)])
+        as StringLiteral;
     expectNotNullIfNoErrors(literal);
   }
 
@@ -813,8 +817,9 @@ class Foo {
     // The scanner inserts an empty string token between the two $'s; we need to
     // make sure that the MISSING_IDENTIFIER error that is generated has a
     // nonzero width so that it will show up in the editor UI.
-    StringLiteral literal = parseExpression("'\$\$foo'",
-        errors: [expectedError(ScannerErrorCode.MISSING_IDENTIFIER, 2, 1)]);
+    var literal = parseExpression("'\$\$foo'",
+            errors: [expectedError(ScannerErrorCode.MISSING_IDENTIFIER, 2, 1)])
+        as StringLiteral;
     expectNotNullIfNoErrors(literal);
   }
 
@@ -1292,7 +1297,7 @@ class Wrong<T> {
         parseStatement("get x { return _x; }", expectedEndOffset: 4);
     // Fasta considers `get` to be an identifier in this situation.
     // TODO(danrubel): Investigate better recovery.
-    ExpressionStatement statement = result;
+    var statement = result as ExpressionStatement;
     listener
         .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 3)]);
     expect(statement.expression.toSource(), 'get');
@@ -1411,7 +1416,7 @@ class Wrong<T> {
   }
 
   void test_initializedVariableInForEach() {
-    Statement statement = parseStatement('for (int a = 0 in foo) {}');
+    var statement = parseStatement('for (int a = 0 in foo) {}');
     expectNotNullIfNoErrors(statement);
     listener.assertErrors([
       expectedError(ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH, 11, 1)
@@ -1419,7 +1424,7 @@ class Wrong<T> {
   }
 
   void test_initializedVariableInForEach_annotation() {
-    Statement statement = parseStatement('for (@Foo var a = 0 in foo) {}');
+    var statement = parseStatement('for (@Foo var a = 0 in foo) {}');
     expectNotNullIfNoErrors(statement);
     listener.assertErrors([
       expectedError(ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH, 16, 1)
@@ -1427,7 +1432,7 @@ class Wrong<T> {
   }
 
   void test_initializedVariableInForEach_localFunction() {
-    Statement statement = parseStatement('for (f()) {}');
+    var statement = parseStatement('for (f()) {}');
     expectNotNullIfNoErrors(statement);
     listener.assertErrors([
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1),
@@ -1437,7 +1442,7 @@ class Wrong<T> {
   }
 
   void test_initializedVariableInForEach_localFunction2() {
-    Statement statement = parseStatement('for (T f()) {}');
+    var statement = parseStatement('for (T f()) {}');
     expectNotNullIfNoErrors(statement);
     listener.assertErrors([
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1),
@@ -1447,7 +1452,7 @@ class Wrong<T> {
   }
 
   void test_initializedVariableInForEach_var() {
-    Statement statement = parseStatement('for (var a = 0 in foo) {}');
+    var statement = parseStatement('for (var a = 0 in foo) {}');
     expectNotNullIfNoErrors(statement);
     listener.assertErrors([
       expectedError(ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH, 11, 1)
@@ -1455,15 +1460,16 @@ class Wrong<T> {
   }
 
   void test_invalidAwaitInFor() {
-    Statement statement = parseStatement('await for (; ;) {}');
+    var statement = parseStatement('await for (; ;) {}');
     expectNotNullIfNoErrors(statement);
     listener.assertErrors(
         [expectedError(ParserErrorCode.INVALID_AWAIT_IN_FOR, 0, 5)]);
   }
 
   void test_invalidCodePoint() {
-    StringLiteral literal = parseExpression("'begin \\u{110000}'",
-        errors: [expectedError(ParserErrorCode.INVALID_CODE_POINT, 7, 9)]);
+    var literal = parseExpression("'begin \\u{110000}'",
+            errors: [expectedError(ParserErrorCode.INVALID_CODE_POINT, 7, 9)])
+        as StringLiteral;
     expectNotNullIfNoErrors(literal);
   }
 
@@ -1471,7 +1477,7 @@ class Wrong<T> {
   void test_invalidCommentReference__new_nonIdentifier() {
     // This test fails because the method parseCommentReference returns null.
     createParser('');
-    CommentReference reference = parseCommentReference('new 42', 0);
+    var reference = parseCommentReference('new 42', 0) as CommentReference;
     expectNotNullIfNoErrors(reference);
     listener.assertErrors(
         [expectedError(ParserErrorCode.INVALID_COMMENT_REFERENCE, 0, 6)]);
@@ -1480,7 +1486,7 @@ class Wrong<T> {
   @failingTest
   void test_invalidCommentReference__new_tooMuch() {
     createParser('');
-    CommentReference reference = parseCommentReference('new a.b.c.d', 0);
+    var reference = parseCommentReference('new a.b.c.d', 0) as CommentReference;
     expectNotNullIfNoErrors(reference);
     listener.assertErrors(
         [expectedError(ParserErrorCode.INVALID_COMMENT_REFERENCE, 0, 11)]);
@@ -1490,7 +1496,7 @@ class Wrong<T> {
   void test_invalidCommentReference__nonNew_nonIdentifier() {
     // This test fails because the method parseCommentReference returns null.
     createParser('');
-    CommentReference reference = parseCommentReference('42', 0);
+    var reference = parseCommentReference('42', 0) as CommentReference;
     expectNotNullIfNoErrors(reference);
     listener.assertErrors(
         [expectedError(ParserErrorCode.INVALID_COMMENT_REFERENCE, 0, 2)]);
@@ -1499,7 +1505,7 @@ class Wrong<T> {
   @failingTest
   void test_invalidCommentReference__nonNew_tooMuch() {
     createParser('');
-    CommentReference reference = parseCommentReference('a.b.c.d', 0);
+    var reference = parseCommentReference('a.b.c.d', 0) as CommentReference;
     expectNotNullIfNoErrors(reference);
     listener.assertErrors(
         [expectedError(ParserErrorCode.INVALID_COMMENT_REFERENCE, 0, 7)]);
@@ -1541,14 +1547,16 @@ class Wrong<T> {
   }
 
   void test_invalidHexEscape_invalidDigit() {
-    StringLiteral literal = parseExpression("'not \\x0 a'",
-        errors: [expectedError(ParserErrorCode.INVALID_HEX_ESCAPE, 5, 3)]);
+    var literal = parseExpression("'not \\x0 a'",
+            errors: [expectedError(ParserErrorCode.INVALID_HEX_ESCAPE, 5, 3)])
+        as StringLiteral;
     expectNotNullIfNoErrors(literal);
   }
 
   void test_invalidHexEscape_tooFewDigits() {
-    StringLiteral literal = parseExpression("'\\x0'",
-        errors: [expectedError(ParserErrorCode.INVALID_HEX_ESCAPE, 1, 3)]);
+    var literal = parseExpression("'\\x0'",
+            errors: [expectedError(ParserErrorCode.INVALID_HEX_ESCAPE, 1, 3)])
+        as StringLiteral;
     expectNotNullIfNoErrors(literal);
   }
 
@@ -1572,8 +1580,9 @@ class Wrong<T> {
   }
 
   void test_invalidInterpolationIdentifier_startWithDigit() {
-    StringLiteral literal = parseExpression("'\$1'",
-        errors: [expectedError(ScannerErrorCode.MISSING_IDENTIFIER, 2, 1)]);
+    var literal = parseExpression("'\$1'",
+            errors: [expectedError(ScannerErrorCode.MISSING_IDENTIFIER, 2, 1)])
+        as StringLiteral;
     expectNotNullIfNoErrors(literal);
   }
 
@@ -1755,12 +1764,12 @@ class Wrong<T> {
     CompilationUnit unit =
         parseCompilationUnit("class C { m() { @Foo f() {} } }");
     expect(unit.declarations, hasLength(1));
-    ClassDeclaration declaration = unit.declarations[0];
+    var declaration = unit.declarations[0] as ClassDeclaration;
     expect(declaration.members, hasLength(1));
-    MethodDeclaration member = declaration.members[0];
-    BlockFunctionBody body = member.body;
+    var member = declaration.members[0] as MethodDeclaration;
+    var body = member.body as BlockFunctionBody;
     expect(body.block.statements, hasLength(1));
-    FunctionDeclarationStatement statement = body.block.statements[0];
+    var statement = body.block.statements[0] as FunctionDeclarationStatement;
     expect(statement.functionDeclaration.metadata, hasLength(1));
     Annotation metadata = statement.functionDeclaration.metadata[0];
     expect(metadata.name.name, 'Foo');
@@ -1796,7 +1805,7 @@ class Wrong<T> {
     listener
         .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 7)]);
     expect(member, isMethodDeclaration);
-    MethodDeclaration method = member;
+    var method = member as MethodDeclaration;
     expect(method.parameters.toString(), '(E)',
         reason: 'parser recovers what it can');
   }
@@ -1808,7 +1817,7 @@ class Wrong<T> {
     listener
         .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 5)]);
     expect(member, isMethodDeclaration);
-    MethodDeclaration method = member;
+    var method = member as MethodDeclaration;
     expect(method.typeParameters.toString(), '<E, hello>',
         reason: 'parser recovers what it can');
   }
@@ -1853,12 +1862,12 @@ class Wrong<T> {
     CompilationUnit unit = parseCompilationUnit('main() {super;}', errors: [
       expectedError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 8, 5)
     ]);
-    FunctionDeclaration declaration = unit.declarations.first;
-    BlockFunctionBody blockBody = declaration.functionExpression.body;
-    ExpressionStatement statement = blockBody.block.statements.first;
-    Expression expression = statement.expression;
+    var declaration = unit.declarations.first as FunctionDeclaration;
+    var blockBody = declaration.functionExpression.body as BlockFunctionBody;
+    var statement = blockBody.block.statements.first as ExpressionStatement;
+    var expression = statement.expression;
     expect(expression, isSuperExpression);
-    SuperExpression superExpression = expression;
+    var superExpression = expression as SuperExpression;
     expect(superExpression.superKeyword, isNotNull);
   }
 
@@ -1867,7 +1876,7 @@ class Wrong<T> {
   }
 
   void test_missingCatchOrFinally() {
-    TryStatement statement = parseStatement('try {}');
+    var statement = parseStatement('try {}') as TryStatement;
     expectNotNullIfNoErrors(statement);
     listener.assertErrors(
         [expectedError(ParserErrorCode.MISSING_CATCH_OR_FINALLY, 0, 3)]);
@@ -1897,7 +1906,7 @@ class Wrong<T> {
 
   void test_missingEnumBody() {
     createParser('enum E;', expectedEndOffset: 6);
-    EnumDeclaration declaration = parseFullCompilationUnitMember();
+    var declaration = parseFullCompilationUnitMember() as EnumDeclaration;
     expectNotNullIfNoErrors(declaration);
     listener
         .assertErrors([expectedError(ParserErrorCode.MISSING_ENUM_BODY, 6, 1)]);
@@ -1905,15 +1914,15 @@ class Wrong<T> {
 
   void test_missingEnumComma() {
     createParser('enum E {one two}');
-    EnumDeclaration declaration = parseFullCompilationUnitMember();
+    var declaration = parseFullCompilationUnitMember() as EnumDeclaration;
     expectNotNullIfNoErrors(declaration);
     listener
         .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 3)]);
   }
 
   void test_missingExpressionInThrow() {
-    ThrowExpression expression =
-        (parseStatement('throw;') as ExpressionStatement).expression;
+    var expression = (parseStatement('throw;') as ExpressionStatement)
+        .expression as ThrowExpression;
     expectNotNullIfNoErrors(expression);
     listener.assertErrors(
         [expectedError(ParserErrorCode.MISSING_EXPRESSION_IN_THROW, 5, 1)]);
@@ -1983,7 +1992,7 @@ class Wrong<T> {
     CompilationUnit unit = parseCompilationUnit("void f { return x;}", errors: [
       expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 5, 1)
     ]);
-    FunctionDeclaration funct = unit.declarations[0];
+    var funct = unit.declarations[0] as FunctionDeclaration;
     expect(funct.functionExpression.parameters, hasLength(0));
   }
 
@@ -1991,13 +2000,13 @@ class Wrong<T> {
     CompilationUnit unit = parseCompilationUnit("void f => x;", errors: [
       expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 5, 1)
     ]);
-    FunctionDeclaration funct = unit.declarations[0];
+    var funct = unit.declarations[0] as FunctionDeclaration;
     expect(funct.functionExpression.parameters, hasLength(0));
   }
 
   void test_missingIdentifier_afterOperator() {
     createParser('1 *');
-    BinaryExpression expression = parser.parseMultiplicativeExpression();
+    var expression = parser.parseMultiplicativeExpression() as BinaryExpression;
     expectNotNullIfNoErrors(expression);
     listener.assertErrors(
         [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 3, 0)]);
@@ -2015,7 +2024,7 @@ class Wrong<T> {
 
   void test_missingIdentifier_inEnum() {
     createParser('enum E {, TWO}');
-    EnumDeclaration declaration = parseFullCompilationUnitMember();
+    var declaration = parseFullCompilationUnitMember() as EnumDeclaration;
     expectNotNullIfNoErrors(declaration);
     listener.assertErrors(
         [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 1)]);
@@ -2061,7 +2070,7 @@ class Wrong<T> {
 
   void test_missingKeywordOperator() {
     createParser('+(x) {}');
-    MethodDeclaration method = parser.parseClassMember('C');
+    var method = parser.parseClassMember('C') as MethodDeclaration;
     expectNotNullIfNoErrors(method);
     listener.assertErrors(
         [expectedError(ParserErrorCode.MISSING_KEYWORD_OPERATOR, 0, 1)]);
@@ -2098,7 +2107,7 @@ class Wrong<T> {
     listener.assertErrors(
         [expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 5, 1)]);
     expect(member, isMethodDeclaration);
-    MethodDeclaration method = member;
+    var method = member as MethodDeclaration;
     expect(method.parameters, hasLength(0));
   }
 
@@ -2164,7 +2173,8 @@ class Wrong<T> {
 
   void test_missingStartAfterSync() {
     createParser('sync {}');
-    FunctionBody functionBody = parser.parseFunctionBody(false, null, false);
+    FunctionBody functionBody = parser.parseFunctionBody(
+        false, ParserErrorCode.MISSING_FUNCTION_BODY, false);
     expectNotNullIfNoErrors(functionBody);
     listener.assertErrors(
         [expectedError(ParserErrorCode.MISSING_STAR_AFTER_SYNC, 0, 4)]);
@@ -2220,7 +2230,7 @@ class Wrong<T> {
   }
 
   void test_missingVariableInForEach() {
-    Statement statement = parseStatement('for (a < b in foo) {}');
+    var statement = parseStatement('for (a < b in foo) {}');
     expectNotNullIfNoErrors(statement);
     listener
         .assertErrors([expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 1)]);
@@ -2288,7 +2298,7 @@ class Wrong<T> {
   }
 
   void test_multipleVariablesInForEach() {
-    Statement statement = parseStatement('for (int a, b in foo) {}');
+    var statement = parseStatement('for (int a, b in foo) {}');
     expectNotNullIfNoErrors(statement);
     listener
         .assertErrors([expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 10, 1)]);
@@ -2388,7 +2398,7 @@ class Wrong<T> {
   }
 
   void test_parseCascadeSection_missingIdentifier() {
-    MethodInvocation methodInvocation = parseCascadeSection('..()');
+    var methodInvocation = parseCascadeSection('..()') as MethodInvocation;
     expectNotNullIfNoErrors(methodInvocation);
     listener.assertErrors([
       // Cascade section is preceded by `null` in this test
@@ -2402,7 +2412,7 @@ class Wrong<T> {
   }
 
   void test_parseCascadeSection_missingIdentifier_typeArguments() {
-    MethodInvocation methodInvocation = parseCascadeSection('..<E>()');
+    var methodInvocation = parseCascadeSection('..<E>()') as MethodInvocation;
     expectNotNullIfNoErrors(methodInvocation);
     listener.assertErrors([
       // Cascade section is preceded by `null` in this test
@@ -2599,23 +2609,25 @@ m() {
   }
 
   void test_switchCase_missingColon() {
-    SwitchStatement statement = parseStatement('switch (a) {case 1 return 0;}');
+    var statement =
+        parseStatement('switch (a) {case 1 return 0;}') as SwitchStatement;
     expect(statement, isNotNull);
     listener
         .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 19, 6)]);
   }
 
   void test_switchDefault_missingColon() {
-    SwitchStatement statement =
-        parseStatement('switch (a) {default return 0;}');
+    var statement =
+        parseStatement('switch (a) {default return 0;}') as SwitchStatement;
     expect(statement, isNotNull);
     listener
         .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 20, 6)]);
   }
 
   void test_switchHasCaseAfterDefaultCase() {
-    SwitchStatement statement =
-        parseStatement('switch (a) {default: return 0; case 1: return 1;}');
+    var statement =
+        parseStatement('switch (a) {default: return 0; case 1: return 1;}')
+            as SwitchStatement;
     expectNotNullIfNoErrors(statement);
     listener.assertErrors([
       expectedError(ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE, 31, 4)
@@ -2623,8 +2635,9 @@ m() {
   }
 
   void test_switchHasCaseAfterDefaultCase_repeated() {
-    SwitchStatement statement = parseStatement(
-        'switch (a) {default: return 0; case 1: return 1; case 2: return 2;}');
+    var statement = parseStatement(
+            'switch (a) {default: return 0; case 1: return 1; case 2: return 2;}')
+        as SwitchStatement;
     expectNotNullIfNoErrors(statement);
     listener.assertErrors([
       expectedError(ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE, 31, 4),
@@ -2633,8 +2646,9 @@ m() {
   }
 
   void test_switchHasMultipleDefaultCases() {
-    SwitchStatement statement =
-        parseStatement('switch (a) {default: return 0; default: return 1;}');
+    var statement =
+        parseStatement('switch (a) {default: return 0; default: return 1;}')
+            as SwitchStatement;
     expectNotNullIfNoErrors(statement);
     listener.assertErrors([
       expectedError(ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES, 31, 7)
@@ -2642,8 +2656,9 @@ m() {
   }
 
   void test_switchHasMultipleDefaultCases_repeated() {
-    SwitchStatement statement = parseStatement(
-        'switch (a) {default: return 0; default: return 1; default: return 2;}');
+    var statement = parseStatement(
+            'switch (a) {default: return 0; default: return 1; default: return 2;}')
+        as SwitchStatement;
     expectNotNullIfNoErrors(statement);
     listener.assertErrors([
       expectedError(ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES, 31, 7),
@@ -2652,8 +2667,8 @@ m() {
   }
 
   void test_switchMissingBlock() {
-    SwitchStatement statement =
-        parseStatement('switch (a) return;', expectedEndOffset: 11);
+    var statement = parseStatement('switch (a) return;', expectedEndOffset: 11)
+        as SwitchStatement;
     expect(statement, isNotNull);
     listener.assertErrors([expectedError(ParserErrorCode.EXPECTED_BODY, 9, 1)]);
   }
@@ -2664,7 +2679,7 @@ m() {
     expectNotNullIfNoErrors(member);
     assertNoErrors();
     expect(member, isFunctionDeclaration);
-    FunctionDeclaration function = member;
+    var function = member as FunctionDeclaration;
     expect(function.functionExpression.parameters, isNull);
   }
 
@@ -2792,7 +2807,7 @@ main() {
 
   void test_unexpectedToken_semicolonBetweenClassMembers() {
     createParser('class C { int x; ; int y;}');
-    ClassDeclaration declaration = parseFullCompilationUnitMember();
+    var declaration = parseFullCompilationUnitMember() as ClassDeclaration;
     expectNotNullIfNoErrors(declaration);
     listener.assertErrors(
         [expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 17, 1)]);
@@ -2890,10 +2905,10 @@ void main() {
     expectNotNullIfNoErrors(expression);
     listener.assertErrors(
         [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 0, 1)]);
-    BinaryExpression binaryExpression = expression;
+    var binaryExpression = expression as BinaryExpression;
     expect(binaryExpression.leftOperand.isSynthetic, isTrue);
     expect(binaryExpression.rightOperand.isSynthetic, isFalse);
-    SimpleIdentifier identifier = binaryExpression.rightOperand;
+    var identifier = binaryExpression.rightOperand as SimpleIdentifier;
     expect(identifier.name, 'x');
   }
 
@@ -2965,8 +2980,8 @@ void main() {
   }
 
   void test_voidParameter() {
-    NormalFormalParameter parameter =
-        parseFormalParameterList('(void a)').parameters[0];
+    var parameter = parseFormalParameterList('(void a)').parameters[0]
+        as NormalFormalParameter;
     expectNotNullIfNoErrors(parameter);
     assertNoErrors();
   }
@@ -3024,7 +3039,7 @@ void main() {
 
   void test_withWithoutExtends() {
     createParser('class A with B, C {}');
-    ClassDeclaration declaration = parseFullCompilationUnitMember();
+    var declaration = parseFullCompilationUnitMember() as ClassDeclaration;
     expectNotNullIfNoErrors(declaration);
     listener.assertNoErrors();
   }

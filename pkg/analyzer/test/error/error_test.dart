@@ -5,7 +5,9 @@
 import 'dart:core';
 import 'dart:io';
 
+import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -21,7 +23,7 @@ main() {
   });
 }
 
-List<String> _analyzerRootComponents;
+late List<String> _analyzerRootComponents;
 
 @reflectiveTest
 class ErrorCodeValuesTest extends ParserTestCase {
@@ -34,7 +36,7 @@ class ErrorCodeValuesTest extends ParserTestCase {
     CompilationUnit definingUnit = parseFile(relativeComponents);
     for (CompilationUnitMember declaration in definingUnit.declarations) {
       if (declaration is ClassDeclaration) {
-        ExtendsClause extendsClause = declaration.extendsClause;
+        var extendsClause = declaration.extendsClause;
         if (extendsClause != null &&
             extendsClause.superclass.name.name == 'ErrorCode') {
           String className = declaration.name.name;
@@ -42,7 +44,7 @@ class ErrorCodeValuesTest extends ParserTestCase {
             if (member is FieldDeclaration && member.isStatic) {
               var fields = member.fields;
               if ((fields.type == null ? bad() : true) &&
-                  fields.type.toSource() == className) {
+                  fields.type!.toSource() == className) {
                 String fieldName = fields.variables[0].name.name;
                 declaredCodes.add(className + '.' + fieldName);
               }
@@ -59,11 +61,10 @@ class ErrorCodeValuesTest extends ParserTestCase {
     CompilationUnit listingUnit = parseFile(['lib', 'error', 'error.dart']);
     TopLevelVariableDeclaration declaration = listingUnit.declarations
         .whereType<TopLevelVariableDeclaration>()
-        .firstWhere(
-            (member) =>
-                member.variables.variables[0].name.name == 'errorCodeValues',
-            orElse: () => null);
-    ListLiteral listLiteral = declaration.variables.variables[0].initializer;
+        .firstWhere((member) =>
+            member.variables.variables[0].name.name == 'errorCodeValues');
+    var listLiteral =
+        declaration.variables.variables[0].initializer as ListLiteral;
     for (var element in listLiteral.elements.cast<PrefixedIdentifier>()) {
       listedCodes.add(element.name);
     }
@@ -74,7 +75,11 @@ class ErrorCodeValuesTest extends ParserTestCase {
     List<String> pathComponents = _analyzerRootComponents.toList()
       ..addAll(relativeComponents);
     String filePath = path.normalize(path.joinAll(pathComponents));
-    return parseCompilationUnit(File(filePath).readAsStringSync());
+    return parseString(
+      path: filePath,
+      content: File(filePath).readAsStringSync(),
+      featureSet: ExperimentStatus.latestWithNullSafety,
+    ).unit;
   }
 
   test_errorCodeValues() {

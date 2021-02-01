@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
-import 'package:meta/meta.dart';
 
 /// A collection of analysis contexts.
 ///
@@ -19,9 +18,9 @@ abstract class AnalysisContextCollection {
   /// If a [resourceProvider] is given, then it will be used to access the file
   /// system, otherwise the default resource provider will be used.
   factory AnalysisContextCollection(
-      {@required List<String> includedPaths,
-      List<String> excludedPaths,
-      ResourceProvider resourceProvider}) = AnalysisContextCollectionImpl;
+      {required List<String> includedPaths,
+      List<String>? excludedPaths,
+      ResourceProvider? resourceProvider}) = AnalysisContextCollectionImpl;
 
   /// Return all of the analysis contexts in this collection.
   List<AnalysisContext> get contexts;

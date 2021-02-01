@@ -27,14 +27,14 @@ class PubWorkspacePackageTest extends WorkspacePackageTest {
           'p1': [getFolder('/.pubcache/p1/lib')],
           'workspace': [getFolder('/workspace/lib')]
         },
-        convertPath('/workspace'));
+        convertPath('/workspace'))!;
     expect(workspace.isBazel, isFalse);
   }
 
   void test_contains_differentWorkspace() {
     newFile('/workspace2/project/lib/file.dart');
 
-    var package = findPackage('/workspace/project/lib/code.dart');
+    var package = findPackage('/workspace/project/lib/code.dart')!;
     expect(
         package.contains(
             TestSource(convertPath('/workspace2/project/lib/file.dart'))),
@@ -44,7 +44,7 @@ class PubWorkspacePackageTest extends WorkspacePackageTest {
   void test_contains_sameWorkspace() {
     newFile('/workspace/project/lib/file2.dart');
 
-    var package = findPackage('/workspace/project/lib/code.dart');
+    var package = findPackage('/workspace/project/lib/code.dart')!;
     expect(
         package.contains(
             TestSource(convertPath('/workspace/project/lib/file2.dart'))),
@@ -62,8 +62,7 @@ class PubWorkspacePackageTest extends WorkspacePackageTest {
   void test_findPackageFor_includedFile() {
     newFile('/workspace/project/lib/file.dart');
 
-    var package = findPackage('/workspace/project/lib/file.dart');
-    expect(package, isNotNull);
+    var package = findPackage('/workspace/project/lib/file.dart')!;
     expect(package.root, convertPath('/workspace'));
     expect(package.workspace, equals(workspace));
   }
@@ -77,7 +76,7 @@ class PubWorkspacePackageTest extends WorkspacePackageTest {
 
   void test_packagesAvailableTo() {
     var libraryPath = convertPath('/workspace/lib/test.dart');
-    var package = findPackage(libraryPath);
+    var package = findPackage(libraryPath)!;
     var packageMap = package.packagesAvailableTo(libraryPath);
     expect(packageMap.keys, unorderedEquals(['p1', 'workspace']));
   }
@@ -87,8 +86,8 @@ class PubWorkspacePackageTest extends WorkspacePackageTest {
 class PubWorkspaceTest with ResourceProviderMixin {
   void test_find_directory() {
     newFile('/workspace/pubspec.yaml', content: 'name: project');
-    PubWorkspace workspace =
-        PubWorkspace.find(resourceProvider, {}, convertPath('/workspace'));
+    var workspace =
+        PubWorkspace.find(resourceProvider, {}, convertPath('/workspace'))!;
     expect(workspace.isBazel, isFalse);
     expect(workspace.root, convertPath('/workspace'));
   }
@@ -102,13 +101,13 @@ class PubWorkspaceTest with ResourceProviderMixin {
 
   void test_find_file() {
     newFile('/workspace/pubspec.yaml', content: 'name: project');
-    PubWorkspace workspace = PubWorkspace.find(
-        resourceProvider, {}, convertPath('/workspace/lib/lib1.dart'));
+    var workspace = PubWorkspace.find(
+        resourceProvider, {}, convertPath('/workspace/lib/lib1.dart'))!;
     expect(workspace.root, convertPath('/workspace'));
   }
 
   void test_find_missingPubspec() {
-    PubWorkspace workspace = PubWorkspace.find(
+    var workspace = PubWorkspace.find(
         resourceProvider, {}, convertPath('/workspace/lib/lib1.dart'));
     expect(workspace, isNull);
   }

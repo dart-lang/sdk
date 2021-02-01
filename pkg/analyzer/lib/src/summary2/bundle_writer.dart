@@ -16,9 +16,8 @@ import 'package:analyzer/src/summary2/ast_binary_writer.dart';
 import 'package:analyzer/src/summary2/binary_format_doc.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/reference.dart';
-import 'package:meta/meta.dart';
 
-Uint8List writeUnitToBytes({@required CompilationUnit unit}) {
+Uint8List writeUnitToBytes({required CompilationUnit unit}) {
   var byteSink = ByteSink();
   var sink = BufferedSink(byteSink);
   var stringIndexer = StringIndexer();
@@ -45,9 +44,9 @@ Uint8List writeUnitToBytes({@required CompilationUnit unit}) {
     sink.writeUInt30(declaration.offset);
     sink.writeByte(declaration.tag);
     if (declaration.name != null) {
-      _writeStringReference(declaration.name);
+      _writeStringReference(declaration.name!);
     } else {
-      sink.writeList(declaration.variableNames, _writeStringReference);
+      sink.writeList(declaration.variableNames!, _writeStringReference);
     }
     if (declaration.classIndexOffset != 0) {
       sink.writeUInt30(declaration.classIndexOffset);
@@ -95,8 +94,8 @@ Uint8List writeUnitToBytes({@required CompilationUnit unit}) {
 
 class BundleWriter {
   final bool withInformative;
-  BundleWriterAst _astWriter;
-  BundleWriterResolution _resolutionWriter;
+  late final BundleWriterAst _astWriter;
+  late final BundleWriterResolution _resolutionWriter;
 
   BundleWriter(this.withInformative, Reference dynamicReference) {
     _astWriter = BundleWriterAst(withInformative);
@@ -143,7 +142,7 @@ class BundleWriter {
 class BundleWriterAst {
   final bool withInformative;
   final ByteSink _byteSink = ByteSink();
-  BufferedSink sink;
+  late final BufferedSink sink;
   final StringIndexer stringIndexer = StringIndexer();
 
   final List<int> _libraryOffsets = [];
@@ -221,9 +220,9 @@ class BundleWriterAst {
       sink.writeUInt30(declaration.offset);
       sink.writeByte(declaration.tag);
       if (declaration.name != null) {
-        _writeStringReference(declaration.name);
+        _writeStringReference(declaration.name!);
       } else {
-        sink.writeList(declaration.variableNames, _writeStringReference);
+        sink.writeList(declaration.variableNames!, _writeStringReference);
       }
       if (declaration.classIndexOffset != 0) {
         sink.writeUInt30(declaration.classIndexOffset);
@@ -240,10 +239,10 @@ class BundleWriterAst {
 }
 
 class BundleWriterResolution {
-  _BundleWriterReferences _references;
+  late final _BundleWriterReferences _references;
   final ByteSink _byteSink = ByteSink();
-  BufferedSink _sink;
-  ResolutionSink _resolutionSink;
+  late final BufferedSink _sink;
+  late final ResolutionSink _resolutionSink;
 
   final StringIndexer _stringIndexer = StringIndexer();
 
@@ -336,8 +335,8 @@ class BundleWriterResult {
   final Uint8List resolutionBytes;
 
   BundleWriterResult({
-    @required this.astBytes,
-    @required this.resolutionBytes,
+    required this.astBytes,
+    required this.resolutionBytes,
   });
 }
 
@@ -345,7 +344,7 @@ class LibraryToWriteAst {
   final List<UnitToWriteAst> units;
 
   LibraryToWriteAst({
-    @required this.units,
+    required this.units,
   });
 }
 
@@ -355,9 +354,9 @@ class LibraryToWriteResolution {
   final List<UnitToWriteResolution> units;
 
   LibraryToWriteResolution({
-    @required this.uriStr,
-    @required this.exports,
-    @required this.units,
+    required this.uriStr,
+    required this.exports,
+    required this.units,
   });
 }
 
@@ -368,10 +367,10 @@ class ResolutionSink {
   final _LocalElementIndexer localElements = _LocalElementIndexer();
 
   ResolutionSink({
-    @required StringIndexer stringIndexer,
-    @required BufferedSink sink,
-    @required _BundleWriterReferences references,
-  })  : _stringIndexer = stringIndexer,
+    required StringIndexer stringIndexer,
+    required BufferedSink sink,
+    required _BundleWriterReferences references,
+  })   : _stringIndexer = stringIndexer,
         _sink = sink,
         _references2 = references;
 
@@ -384,7 +383,7 @@ class ResolutionSink {
 
   /// TODO(scheglov) Triage places where we write elements.
   /// Some of then cannot be members, e.g. type names.
-  void writeElement(Element element) {
+  void writeElement(Element? element) {
     if (element is Member) {
       var declaration = element.declaration;
       var isLegacy = element.isLegacy;
@@ -408,7 +407,7 @@ class ResolutionSink {
     }
   }
 
-  void writeElement0(Element element) {
+  void writeElement0(Element? element) {
     assert(element is! Member, 'Use writeMemberOrElement()');
     var elementIndex = _indexOfElement(element);
     _sink.writeUInt30(elementIndex);
@@ -421,7 +420,7 @@ class ResolutionSink {
     }
   }
 
-  void writeType(DartType type) {
+  void writeType(DartType? type) {
     if (type == null) {
       writeByte(Tag.NullType);
     } else if (type is DynamicType) {
@@ -470,7 +469,7 @@ class ResolutionSink {
     _sink.writeUInt30(value);
   }
 
-  int _indexOfElement(Element element) {
+  int _indexOfElement(Element? element) {
     if (element == null) return 0;
     if (element is MultiplyDefinedElement) return 0;
     assert(element is! Member);
@@ -532,7 +531,7 @@ class ResolutionSink {
     var aliasElement = type.aliasElement;
     writeElement(aliasElement);
     if (aliasElement != null) {
-      _writeTypeList(type.aliasArguments);
+      _writeTypeList(type.aliasArguments!);
     }
 
     writeType(type.returnType);
@@ -541,7 +540,6 @@ class ResolutionSink {
     _sink.writeUInt30(parameters.length);
     for (var parameter in parameters) {
       _writeFormalParameterKind(parameter);
-      assert(parameter.type != null);
       writeType(parameter.type);
       // TODO(scheglov) Don't write names of positional parameters
       _writeStringReference(parameter.name);
@@ -572,6 +570,11 @@ class ResolutionSink {
     Element declaration,
     Map<TypeParameterElement, DartType> substitution,
   ) {
+    // TODO(scheglov) Just keep it null in class Member?
+    if (substitution.isEmpty) {
+      return const [];
+    }
+
     var enclosing = declaration.enclosingElement;
     if (enclosing is TypeParameterizedElement) {
       if (enclosing is! ClassElement && enclosing is! ExtensionElement) {
@@ -584,7 +587,7 @@ class ResolutionSink {
       }
 
       return typeParameters
-          .map((typeParameter) => substitution[typeParameter])
+          .map((typeParameter) => substitution[typeParameter]!)
           .toList(growable: false);
     }
 
@@ -617,9 +620,9 @@ class ResolutionUnit {
   final List<int> offsets = [];
 
   ResolutionUnit({
-    @required this.library,
-    @required this.unit,
-    @required this.directivesOffset,
+    required this.library,
+    required this.unit,
+    required this.directivesOffset,
   });
 
   /// Should be called on enter into a new declaration on which level
@@ -710,21 +713,21 @@ class UnitToWriteAst {
   final CompilationUnit node;
 
   UnitToWriteAst({
-    @required this.node,
+    required this.node,
   });
 }
 
 class UnitToWriteResolution {
   final String uriStr;
-  final String partUriStr;
+  final String? partUriStr;
   final CompilationUnit node;
   final bool isSynthetic;
 
   UnitToWriteResolution({
-    @required this.uriStr,
-    @required this.partUriStr,
-    @required this.node,
-    @required this.isSynthetic,
+    required this.uriStr,
+    required this.partUriStr,
+    required this.node,
+    required this.isSynthetic,
   });
 }
 
@@ -736,7 +739,8 @@ class _BundleWriterReferences {
 
   /// References used in all libraries being linked.
   /// Element references in nodes are indexes in this list.
-  final List<Reference> references = [null];
+  /// TODO(scheglov) Do we really use this list?
+  final List<Reference?> references = [null];
 
   final List<int> _referenceParents = [0];
   final List<String> _referenceNames = [''];
@@ -753,10 +757,10 @@ class _BundleWriterReferences {
     }
   }
 
-  int _indexOfReference(Reference reference) {
+  int _indexOfReference(Reference? reference) {
     if (reference == null) return 0;
     if (reference.parent == null) return 0;
-    if (reference.index != null) return reference.index;
+    if (reference.index != null) return reference.index!;
 
     var parentIndex = _indexOfReference(reference.parent);
     _referenceParents.add(parentIndex);
@@ -764,7 +768,7 @@ class _BundleWriterReferences {
 
     reference.index = references.length;
     references.add(reference);
-    return reference.index;
+    return reference.index!;
   }
 }
 
@@ -797,8 +801,8 @@ class _ResolutionLibrary {
   final List<ResolutionUnit> units = [];
 
   _ResolutionLibrary({
-    @required this.sink,
-    @required this.library,
+    required this.sink,
+    required this.library,
   });
 
   ResolutionUnit enterUnit(UnitToWriteResolution unitToWrite) {

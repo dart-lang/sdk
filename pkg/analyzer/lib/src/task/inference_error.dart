@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:meta/meta.dart';
-
 /// The top-level type inference error.
 class TopLevelInferenceError {
   /// The kind of the error.
@@ -13,8 +11,8 @@ class TopLevelInferenceError {
   final List<String> arguments;
 
   TopLevelInferenceError({
-    @required this.kind,
-    @required this.arguments,
+    required this.kind,
+    required this.arguments,
   });
 }
 

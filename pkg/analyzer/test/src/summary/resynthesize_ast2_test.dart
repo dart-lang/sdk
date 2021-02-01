@@ -18,7 +18,6 @@ import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
-import 'package:meta/meta.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'resynthesize_common.dart';
@@ -34,17 +33,17 @@ main() {
 class ResynthesizeAst2Test extends AbstractResynthesizeTest
     with ResynthesizeTestCases {
   /// The shared SDK bundle, computed once and shared among test invocations.
-  static _SdkBundle _sdkBundle;
+  static _SdkBundle? _sdkBundle;
 
   _SdkBundle get sdkBundle {
     if (_sdkBundle != null) {
-      return _sdkBundle;
+      return _sdkBundle!;
     }
 
     var featureSet = FeatureSet.latestLanguageVersion();
     var inputLibraries = <LinkInputLibrary>[];
     for (var sdkLibrary in sdk.sdkLibraries) {
-      var source = sourceFactory.resolveUri(null, sdkLibrary.shortName);
+      var source = sourceFactory.resolveUri(null, sdkLibrary.shortName)!;
       var text = getFile(source.fullName).readAsStringSync();
       var unit = parseText(text, featureSet);
 
@@ -118,7 +117,7 @@ class ResynthesizeAst2Test extends AbstractResynthesizeTest
       ),
     );
 
-    return elementFactory.libraryOfUri('${source.uri}');
+    return elementFactory.libraryOfUri('${source.uri}')!;
   }
 
   void setUp() {
@@ -149,11 +148,6 @@ class ResynthesizeAst2Test extends AbstractResynthesizeTest
           units.add(
             LinkInputUnit(relativeUriStr, partSource, false, unit),
           );
-        } else {
-          var unit = parseText('', featureSet);
-          units.add(
-            LinkInputUnit(relativeUriStr, partSource, false, unit),
-          );
         }
       }
     }
@@ -162,7 +156,7 @@ class ResynthesizeAst2Test extends AbstractResynthesizeTest
   void _addNonDartLibraries(
     Set<Source> addedLibraries,
     List<LinkInputLibrary> libraries,
-    Source source,
+    Source? source,
   ) {
     if (source == null ||
         source.uri.isScheme('dart') ||
@@ -221,7 +215,7 @@ class _SdkBundle {
   final Uint8List resolutionBytes;
 
   _SdkBundle({
-    @required this.astBytes,
-    @required this.resolutionBytes,
+    required this.astBytes,
+    required this.resolutionBytes,
   });
 }

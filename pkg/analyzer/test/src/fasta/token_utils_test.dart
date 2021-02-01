@@ -18,15 +18,15 @@ class PreviousTokenTest {
   void test_findPrevious() {
     Token a =
         scanString('a b c /* comment */ d e', includeComments: true).tokens;
-    Token b = a.next;
-    Token c = b.next;
-    Token d = c.next;
-    Token e = d.next;
+    Token b = a.next!;
+    Token c = b.next!;
+    Token d = c.next!;
+    Token e = d.next!;
 
     expect(findPrevious(a, b), a);
     expect(findPrevious(a, c), b);
     expect(findPrevious(a, d), c);
-    expect(findPrevious(d.precedingComments, e), d);
+    expect(findPrevious(d.precedingComments!, e), d);
 
     Token x = scanString('x').tokens;
     expect(findPrevious(a, x), null);

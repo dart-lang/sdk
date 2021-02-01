@@ -11,7 +11,7 @@ export 'package:analyzer/exception/exception.dart';
 typedef Predicate<E> = bool Function(E argument);
 
 class FileNameUtilities {
-  static String getExtension(String fileName) {
+  static String getExtension(String? fileName) {
     if (fileName == null) {
       return "";
     }
@@ -141,11 +141,11 @@ class StringUtilities {
   }
 
   static String intern(String string) => INTERNER.intern(string);
-  static bool isEmpty(String s) {
+  static bool isEmpty(String? s) {
     return s == null || s.isEmpty;
   }
 
-  static bool isTagName(String s) {
+  static bool isTagName(String? s) {
     if (s == null || s.isEmpty) {
       return false;
     }
@@ -171,7 +171,7 @@ class StringUtilities {
   ///
   /// @param names the names to be printed
   /// @return the result of printing the names
-  static String printListOfQuotedNames(List<String> names) {
+  static String printListOfQuotedNames(List<String>? names) {
     if (names == null) {
       throw ArgumentError("The list must not be null");
     }
@@ -237,7 +237,7 @@ class StringUtilities {
         str.codeUnitAt(start + 5) == c6;
   }
 
-  static String substringBefore(String str, String separator) {
+  static String? substringBefore(String? str, String? separator) {
     if (str == null || str.isEmpty) {
       return str;
     }

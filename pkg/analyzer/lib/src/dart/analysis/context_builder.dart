@@ -23,7 +23,6 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart'
 import 'package:analyzer/src/generated/sdk.dart' show DartSdkManager;
 import 'package:analyzer/src/generated/source.dart' show ContentCache;
 import 'package:cli_util/cli_util.dart';
-import 'package:meta/meta.dart';
 
 /// An implementation of a context builder.
 class ContextBuilderImpl implements ContextBuilder {
@@ -33,22 +32,22 @@ class ContextBuilderImpl implements ContextBuilder {
   /// Initialize a newly created context builder. If a [resourceProvider] is
   /// given, then it will be used to access the file system, otherwise the
   /// default resource provider will be used.
-  ContextBuilderImpl({ResourceProvider resourceProvider})
+  ContextBuilderImpl({ResourceProvider? resourceProvider})
       : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE;
 
   @override
   AnalysisContext createContext(
-      {ByteStore byteStore,
-      @required ContextRoot contextRoot,
-      DeclaredVariables declaredVariables,
+      {ByteStore? byteStore,
+      required ContextRoot contextRoot,
+      DeclaredVariables? declaredVariables,
       bool enableIndex = false,
-      List<String> librarySummaryPaths,
-      @deprecated PerformanceLog performanceLog,
-        bool retainDataForTesting = false,
-      @deprecated AnalysisDriverScheduler scheduler,
-      String sdkPath,
-      String sdkSummaryPath}) {
+      List<String>? librarySummaryPaths,
+      @deprecated PerformanceLog? performanceLog,
+      bool retainDataForTesting = false,
+      @deprecated AnalysisDriverScheduler? scheduler,
+      String? sdkPath,
+      String? sdkSummaryPath}) {
     // TODO(scheglov) Remove this, and make `sdkPath` required.
     sdkPath ??= getSdkPath();
     ArgumentError.checkNotNull(sdkPath, 'sdkPath');
@@ -108,7 +107,7 @@ class ContextBuilderImpl implements ContextBuilder {
   Map<String, String> _toMap(DeclaredVariables declaredVariables) {
     Map<String, String> map = <String, String>{};
     for (String name in declaredVariables.variableNames) {
-      map[name] = declaredVariables.get(name);
+      map[name] = declaredVariables.get(name)!;
     }
     return map;
   }

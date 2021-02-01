@@ -36,7 +36,7 @@ class StaticMemberContributor extends DartCompletionContributor {
           if (accessor.isStatic &&
               !accessor.isSynthetic &&
               isVisible(accessor)) {
-            builder.suggestAccessor(accessor, inheritanceDistance: -1.0);
+            builder.suggestAccessor(accessor, inheritanceDistance: 0.0);
           }
         }
         for (var constructor in element.constructors) {
@@ -48,12 +48,12 @@ class StaticMemberContributor extends DartCompletionContributor {
           if (field.isStatic &&
               (!field.isSynthetic || element.isEnum) &&
               isVisible(field)) {
-            builder.suggestField(field, inheritanceDistance: -1.0);
+            builder.suggestField(field, inheritanceDistance: 0.0);
           }
         }
         for (var method in element.methods) {
           if (method.isStatic && isVisible(method)) {
-            builder.suggestMethod(method, inheritanceDistance: -1.0);
+            builder.suggestMethod(method, inheritanceDistance: 0.0);
           }
         }
       } else if (element is ExtensionElement) {
@@ -61,17 +61,17 @@ class StaticMemberContributor extends DartCompletionContributor {
           if (accessor.isStatic &&
               !accessor.isSynthetic &&
               isVisible(accessor)) {
-            builder.suggestAccessor(accessor, inheritanceDistance: -1.0);
+            builder.suggestAccessor(accessor, inheritanceDistance: 0.0);
           }
         }
         for (var field in element.fields) {
           if (field.isStatic && !field.isSynthetic && isVisible(field)) {
-            builder.suggestField(field, inheritanceDistance: -1.0);
+            builder.suggestField(field, inheritanceDistance: 0.0);
           }
         }
         for (var method in element.methods) {
           if (method.isStatic && isVisible(method)) {
-            builder.suggestMethod(method, inheritanceDistance: -1.0);
+            builder.suggestMethod(method, inheritanceDistance: 0.0);
           }
         }
       }

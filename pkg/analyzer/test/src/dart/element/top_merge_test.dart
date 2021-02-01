@@ -344,9 +344,9 @@ class TopMergeTest extends _Base {
 
 abstract class _Base with ElementsTypesMixin {
   @override
-  TypeProvider typeProvider;
+  late final TypeProvider typeProvider;
 
-  TypeSystemImpl typeSystem;
+  late final TypeSystemImpl typeSystem;
 
   FeatureSet get testFeatureSet {
     return FeatureSet.forTesting();

@@ -11,7 +11,6 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/context_builder.dart';
 import 'package:cli_util/cli_util.dart';
-import 'package:meta/meta.dart';
 
 /// An implementation of [AnalysisContextCollection].
 class AnalysisContextCollectionImpl implements AnalysisContextCollection {
@@ -24,22 +23,20 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
 
   /// Initialize a newly created analysis context manager.
   AnalysisContextCollectionImpl({
-    ByteStore byteStore,
-    Map<String, String> declaredVariables,
+    ByteStore? byteStore,
+    Map<String, String>? declaredVariables,
     bool enableIndex = false,
-    @required List<String> includedPaths,
-    List<String> excludedPaths,
-    ResourceProvider resourceProvider,
+    required List<String> includedPaths,
+    List<String>? excludedPaths,
+    ResourceProvider? resourceProvider,
     bool retainDataForTesting = false,
-    String sdkPath,
+    String? sdkPath,
   }) : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE {
     sdkPath ??= getSdkPath();
 
     _throwIfAnyNotAbsoluteNormalizedPath(includedPaths);
-    if (sdkPath != null) {
-      _throwIfNotAbsoluteNormalizedPath(sdkPath);
-    }
+    _throwIfNotAbsoluteNormalizedPath(sdkPath);
 
     var contextLocator = ContextLocator(
       resourceProvider: this.resourceProvider,

@@ -336,12 +336,20 @@ sdk.dart.weakNullSafetyWarnings(
 sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
 sdk.dart.nonNullAsserts($nonNullAsserts);
 sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
-dart_library.start('$basename', '$libname');
+
+// Invoke main through the d8 preamble to ensure the code is running
+// within the fake event loop.
+self.dartMainRunner(function () {
+  dart_library.start("$basename", "$libname");
+});
 ''';
+      var dart2jsD8Preamble =
+          '$sdkRoot/sdk/lib/_internal/js_runtime/lib/preambles/d8.js';
       var d8File = p.setExtension(out, '.d8.js');
       File(d8File).writeAsStringSync(runjs);
       var d8Binary = binary ?? p.join(dartCheckoutPath, _d8executable);
-      var process = await startProcess('D8', d8Binary, [d8File]);
+      var process =
+          await startProcess('D8', d8Binary, [dart2jsD8Preamble, d8File]);
       if (await process.exitCode != 0) exit(await process.exitCode);
     }
   }

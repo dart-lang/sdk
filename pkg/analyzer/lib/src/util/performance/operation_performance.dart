@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:meta/meta.dart';
+import 'package:collection/collection.dart';
 
 /// The performance of an operation.
 abstract class OperationPerformance {
@@ -22,11 +22,11 @@ abstract class OperationPerformance {
   /// The name of the operation.
   String get name;
 
-  OperationPerformance getChild(String name);
+  OperationPerformance? getChild(String name);
 
   /// Write this operation and its children into the [buffer].
   void write({
-    @required StringBuffer buffer,
+    required StringBuffer buffer,
     String indent = '',
   });
 }
@@ -72,7 +72,7 @@ class OperationPerformanceImpl implements OperationPerformance {
   final String name;
 
   final Stopwatch _timer = Stopwatch();
-  final List<OperationPerformance> _children = [];
+  final List<OperationPerformanceImpl> _children = [];
 
   final Map<String, OperationPerformanceData<Object>> _data = {};
 
@@ -106,18 +106,21 @@ class OperationPerformanceImpl implements OperationPerformance {
   }
 
   @override
-  OperationPerformance getChild(String name) {
-    return children.firstWhere(
+  OperationPerformanceImpl? getChild(String name) {
+    return _children.firstWhereOrNull(
       (child) => child.name == name,
-      orElse: () => null,
     );
   }
 
   OperationPerformanceDataImpl_int getDataInt(String name) {
-    return _data.putIfAbsent(
-      name,
-      () => OperationPerformanceDataImpl_int(name),
-    );
+    var data = _data[name];
+    if (data is OperationPerformanceDataImpl_int) {
+      return data;
+    } else if (data != null) {
+      throw StateError('Not int: ${data.runtimeType}');
+    } else {
+      return _data[name] = OperationPerformanceDataImpl_int(name);
+    }
   }
 
   /// Run the [operation] as a child with the given [name].
@@ -166,7 +169,7 @@ class OperationPerformanceImpl implements OperationPerformance {
   }
 
   @override
-  void write({@required StringBuffer buffer, String indent = ''}) {
+  void write({required StringBuffer buffer, String indent = ''}) {
     buffer.write('$indent${toString()}');
 
     if (_data.isNotEmpty) {

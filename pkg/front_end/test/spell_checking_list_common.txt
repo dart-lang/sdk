@@ -794,6 +794,7 @@ dependence
 dependencies
 dependency
 dependent
+dependents
 depending
 depends
 deprecate
@@ -3126,6 +3127,7 @@ two
 type
 typed
 typedef
+typedef's
 typedefs
 types
 typically

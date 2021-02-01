@@ -5,6 +5,7 @@
 @deprecated
 library analyzer.test.constant_test;
 
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -60,12 +61,11 @@ class Center extends Align {
 ''',
     );
     expect(result.isValid, isTrue);
-    DartObject value = result.value;
-    expect(value, isNotNull);
+    DartObject value = result.value!;
     assertType(value.type, 'Center');
-    DartObject superclassFields = value.getField(GenericState.SUPERCLASS_FIELD);
-    DartObject widthFactor = superclassFields.getField('widthFactor');
-    expect(widthFactor, isNotNull);
+    DartObject superclassFields =
+        value.getField(GenericState.SUPERCLASS_FIELD)!;
+    DartObject widthFactor = superclassFields.getField('widthFactor')!;
     expect(widthFactor.isNull, isTrue);
   }
 
@@ -76,8 +76,7 @@ class C {
 }
 ''');
     expect(result.isValid, isTrue);
-    DartObject value = result.value;
-    expect(value, isNotNull);
+    DartObject value = result.value!;
     assertType(value.type, 'C');
   }
 
@@ -89,11 +88,9 @@ class C {
 }
 ''');
     expect(result.isValid, isTrue);
-    DartObject value = result.value;
-    expect(value, isNotNull);
+    DartObject value = result.value!;
     assertType(value.type, 'C');
-    DartObject x = value.getField('x');
-    expect(x, isNotNull);
+    DartObject x = value.getField('x')!;
     assertType(x.type, 'int');
     expect(x.toIntValue(), 2);
   }
@@ -104,8 +101,7 @@ class C {
       context: 'class C {const C();}',
     );
     expect(result.isValid, isTrue);
-    DartObject value = result.value;
-    expect(value, isNotNull);
+    DartObject value = result.value!;
     assertType(value.type, 'C');
   }
 
@@ -115,7 +111,7 @@ class C {
       context: 'class C {}',
     );
     expect(result.isValid, isFalse);
-    DartObject value = result.value;
+    var value = result.value;
     expect(value, isNull);
   }
 
@@ -126,8 +122,7 @@ class C {
 }
 ''');
     expect(result.isValid, isTrue);
-    DartObject value = result.value;
-    expect(value, isNotNull);
+    DartObject value = result.value!;
     assertType(value.type, 'C');
   }
 
@@ -138,9 +133,9 @@ class C {
   test_divide_double_double_byZero() async {
     var result = await _getExpressionValue("3.2 / 0.0");
     expect(result.isValid, isTrue);
-    DartObject value = result.value;
+    DartObject value = result.value!;
     assertType(value.type, "double");
-    expect(value.toDoubleValue().isInfinite, isTrue);
+    expect(value.toDoubleValue()!.isInfinite, isTrue);
   }
 
   test_divide_int_int() async {
@@ -186,7 +181,7 @@ class C {
   test_identifier_class() async {
     var result = await _getExpressionValue("?");
     expect(result.isValid, isTrue);
-    DartObject value = result.value;
+    var value = result.value;
     expect(value, null);
   }
 
@@ -194,7 +189,7 @@ class C {
   test_identifier_function() async {
     var result = await _getExpressionValue("?");
     expect(result.isValid, isTrue);
-    DartObject value = result.value;
+    var value = result.value;
     expect(value, null);
   }
 
@@ -202,7 +197,7 @@ class C {
   test_identifier_static() async {
     var result = await _getExpressionValue("?");
     expect(result.isValid, isTrue);
-    DartObject value = result.value;
+    var value = result.value;
     expect(value, null);
   }
 
@@ -210,7 +205,7 @@ class C {
   test_identifier_staticMethod() async {
     var result = await _getExpressionValue("?");
     expect(result.isValid, isTrue);
-    DartObject value = result.value;
+    var value = result.value;
     expect(value, null);
   }
 
@@ -218,7 +213,7 @@ class C {
   test_identifier_topLevel() async {
     var result = await _getExpressionValue("?");
     expect(result.isValid, isTrue);
-    DartObject value = result.value;
+    var value = result.value;
     expect(value, null);
   }
 
@@ -226,7 +221,7 @@ class C {
   test_identifier_typeParameter() async {
     var result = await _getExpressionValue("?");
     expect(result.isValid, isTrue);
-    DartObject value = result.value;
+    var value = result.value;
     expect(value, null);
   }
 
@@ -268,14 +263,14 @@ const [for (var i = 0; i < 4; i++) i]
       "const {'a' : 'm', 'b' : 'n', 'c' : 'o'}",
     );
     expect(result.isValid, isTrue);
-    Map<DartObject, DartObject> map = result.value.toMapValue();
-    expect(map.keys.map((k) => k.toStringValue()), ['a', 'b', 'c']);
+    var map = result.value!.toMapValue()!;
+    expect(map.keys.map((k) => k!.toStringValue()), ['a', 'b', 'c']);
   }
 
   test_literal_null() async {
     var result = await _getExpressionValue("null");
     expect(result.isValid, isTrue);
-    DartObject value = result.value;
+    DartObject value = result.value!;
     expect(value.isNull, isTrue);
   }
 
@@ -379,7 +374,7 @@ const [for (var i = 0; i < 4; i++) i]
   test_prefixedIdentifier_invalid() async {
     var result = await _getExpressionValue("?");
     expect(result.isValid, isTrue);
-    DartObject value = result.value;
+    var value = result.value;
     expect(value, null);
   }
 
@@ -387,7 +382,7 @@ const [for (var i = 0; i < 4; i++) i]
   test_prefixedIdentifier_valid() async {
     var result = await _getExpressionValue("?");
     expect(result.isValid, isTrue);
-    DartObject value = result.value;
+    var value = result.value;
     expect(value, null);
   }
 
@@ -395,7 +390,7 @@ const [for (var i = 0; i < 4; i++) i]
   test_propertyAccess_invalid() async {
     var result = await _getExpressionValue("?");
     expect(result.isValid, isTrue);
-    DartObject value = result.value;
+    var value = result.value;
     expect(value, null);
   }
 
@@ -403,7 +398,7 @@ const [for (var i = 0; i < 4; i++) i]
   test_propertyAccess_valid() async {
     var result = await _getExpressionValue("?");
     expect(result.isValid, isTrue);
-    DartObject value = result.value;
+    var value = result.value;
     expect(value, null);
   }
 
@@ -423,7 +418,7 @@ const [for (var i = 0; i < 4; i++) i]
   test_simpleIdentifier_invalid() async {
     var result = await _getExpressionValue("?");
     expect(result.isValid, isTrue);
-    DartObject value = result.value;
+    var value = result.value;
     expect(value, null);
   }
 
@@ -431,7 +426,7 @@ const [for (var i = 0; i < 4; i++) i]
   test_simpleIdentifier_valid() async {
     var result = await _getExpressionValue("?");
     expect(result.isValid, isTrue);
-    DartObject value = result.value;
+    var value = result.value;
     expect(value, null);
   }
 
@@ -461,7 +456,7 @@ const [for (var i = 0; i < 4; i++) i]
 
   Future<void> _assertValueBool(bool expectedValue, String contents) async {
     var result = await _getExpressionValue(contents);
-    DartObject value = result.value;
+    DartObject value = result.value!;
     assertType(value.type, "bool");
     expect(value.toBoolValue(), expectedValue);
   }
@@ -469,7 +464,7 @@ const [for (var i = 0; i < 4; i++) i]
   Future<void> _assertValueDouble(double expectedValue, String contents) async {
     var result = await _getExpressionValue(contents);
     expect(result.isValid, isTrue);
-    DartObject value = result.value;
+    DartObject value = result.value!;
     assertType(value.type, "double");
     expect(value.toDoubleValue(), expectedValue);
   }
@@ -477,14 +472,14 @@ const [for (var i = 0; i < 4; i++) i]
   Future<void> _assertValueInt(int expectedValue, String contents) async {
     var result = await _getExpressionValue(contents);
     expect(result.isValid, isTrue);
-    DartObject value = result.value;
+    DartObject value = result.value!;
     assertType(value.type, "int");
     expect(value.toIntValue(), expectedValue);
   }
 
   Future<void> _assertValueString(String expectedValue, String contents) async {
     var result = await _getExpressionValue(contents);
-    DartObject value = result.value;
+    DartObject value = result.value!;
     assertType(value.type, 'String');
   }
 
@@ -496,12 +491,12 @@ var x = $expressionCode;
 $context
 ''');
 
-    var expression = findNode.variableDeclaration('x =').initializer;
+    var expression = findNode.variableDeclaration('x =').initializer!;
 
-    var file = getFile(result.path);
+    var file = getFile(result.path!);
     var evaluator = ConstantEvaluator(
       file.createSource(result.uri),
-      result.libraryElement,
+      result.libraryElement as LibraryElementImpl,
     );
 
     return evaluator.evaluate(expression);

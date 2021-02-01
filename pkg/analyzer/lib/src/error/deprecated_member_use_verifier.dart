@@ -3,16 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:collection/collection.dart';
 
 class DeprecatedMemberUseVerifier {
-  final WorkspacePackage _workspacePackage;
+  final WorkspacePackage? _workspacePackage;
   final ErrorReporter _errorReporter;
 
   /// We push a new value every time when we enter into a scope which
@@ -107,7 +106,7 @@ class DeprecatedMemberUseVerifier {
     }
 
     // Report full ConstructorName, not just the constructor name.
-    AstNode parent = node.parent;
+    var parent = node.parent;
     if (parent is ConstructorName && identical(node, parent.name)) {
       return;
     }
@@ -134,7 +133,7 @@ class DeprecatedMemberUseVerifier {
   /// Given some [element], look at the associated metadata and report the use
   /// of the member if it is declared as deprecated. If a diagnostic is reported
   /// it should be reported at the given [node].
-  void _checkForDeprecated(Element element, AstNode node) {
+  void _checkForDeprecated(Element? element, AstNode node) {
     if (!_isDeprecated(element)) {
       return;
     }
@@ -161,7 +160,7 @@ class DeprecatedMemberUseVerifier {
       errorNode = node.name.label;
     }
 
-    String displayName = element.displayName;
+    String displayName = element!.displayName;
     if (element is ConstructorElement) {
       // TODO(jwren) We should modify ConstructorElement.getDisplayName(),
       // or have the logic centralized elsewhere, instead of doing this logic
@@ -180,9 +179,8 @@ class DeprecatedMemberUseVerifier {
         displayName = "${invokeClass.name}.${element.displayName}";
       }
     }
-    LibraryElement library =
-        element is LibraryElement ? element : element.library;
-    String message = _deprecatedMessage(element);
+    var library = element is LibraryElement ? element : element.library;
+    var message = _deprecatedMessage(element);
     if (message == null || message.isEmpty) {
       _errorReporter.reportErrorForNode(
         _isLibraryInWorkspacePackage(library)
@@ -202,7 +200,7 @@ class DeprecatedMemberUseVerifier {
     }
   }
 
-  void _invocationArguments(Element element, ArgumentList arguments) {
+  void _invocationArguments(Element? element, ArgumentList arguments) {
     element = element?.declaration;
     if (element is ExecutableElement) {
       _visitParametersAndArguments(
@@ -217,13 +215,13 @@ class DeprecatedMemberUseVerifier {
     }
   }
 
-  bool _isLibraryInWorkspacePackage(LibraryElement library) {
+  bool _isLibraryInWorkspacePackage(LibraryElement? library) {
     // Better to not make a big claim that they _are_ in the same package,
     // if we were unable to determine what package [_currentLibrary] is in.
     if (_workspacePackage == null || library == null) {
       return false;
     }
-    return _workspacePackage.contains(library.source);
+    return _workspacePackage!.contains(library.source);
   }
 
   void _simpleIdentifier(SimpleIdentifier identifier) {
@@ -233,33 +231,30 @@ class DeprecatedMemberUseVerifier {
   /// Return the message in the deprecated annotation on the given [element], or
   /// `null` if the element doesn't have a deprecated annotation or if the
   /// annotation does not have a message.
-  static String _deprecatedMessage(Element element) {
+  static String? _deprecatedMessage(Element element) {
     // Implicit getters/setters.
     if (element.isSynthetic && element is PropertyAccessorElement) {
-      element = (element as PropertyAccessorElement).variable;
+      element = element.variable;
     }
-    ElementAnnotationImpl annotation = element.metadata.firstWhere(
-      (e) => e.isDeprecated,
-      orElse: () => null,
-    );
+    var annotation = element.metadata.firstWhereOrNull((e) => e.isDeprecated);
     if (annotation == null || annotation.element is PropertyAccessorElement) {
       return null;
     }
-    DartObject constantValue = annotation.computeConstantValue();
+    var constantValue = annotation.computeConstantValue();
     return constantValue?.getField('message')?.toStringValue() ??
         constantValue?.getField('expires')?.toStringValue();
   }
 
   static bool _hasDeprecatedAnnotation(List<Annotation> annotations) {
     for (var i = 0; i < annotations.length; i++) {
-      if (annotations[i].elementAnnotation.isDeprecated) {
+      if (annotations[i].elementAnnotation!.isDeprecated) {
         return true;
       }
     }
     return false;
   }
 
-  static bool _isDeprecated(Element element) {
+  static bool _isDeprecated(Element? element) {
     if (element == null) {
       return false;
     }
@@ -267,18 +262,15 @@ class DeprecatedMemberUseVerifier {
     if (element is PropertyAccessorElement && element.isSynthetic) {
       // TODO(brianwilkerson) Why isn't this the implementation for PropertyAccessorElement?
       Element variable = element.variable;
-      if (variable == null) {
-        return false;
-      }
       return variable.hasDeprecated;
     }
     return element.hasDeprecated;
   }
 
   /// Return `true` if [element] is a [ParameterElement] declared in [node].
-  static bool _isLocalParameter(Element element, AstNode node) {
+  static bool _isLocalParameter(Element? element, AstNode? node) {
     if (element is ParameterElement) {
-      ExecutableElement definingFunction = element.enclosingElement;
+      var definingFunction = element.enclosingElement as ExecutableElement;
 
       for (; node != null; node = node.parent) {
         if (node is ConstructorDeclaration) {
@@ -304,7 +296,7 @@ class DeprecatedMemberUseVerifier {
     List<Expression> arguments,
     void Function(ParameterElement, Expression) f,
   ) {
-    Map<String, ParameterElement> namedParameters;
+    Map<String, ParameterElement>? namedParameters;
 
     var positionalIndex = 0;
     for (var argument in arguments) {

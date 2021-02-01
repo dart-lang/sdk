@@ -1,0 +1,11 @@
+foo(int a, int b){
+  if (a == null or b == null){
+    return null
+  }
+}
+
+bar(int a, int b){
+  if (a == null and b == null){
+    return null
+  }
+}

@@ -23,7 +23,7 @@ G<int> g;
 
 typedef T G<T>();
 ''');
-    FunctionType type = findElement.topVar('g').type;
+    var type = findElement.topVar('g').type as FunctionType;
     assertType(type, 'int Function()');
 
     var typedefG = findElement.typeAlias('G');

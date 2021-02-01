@@ -88,7 +88,7 @@ typedef RunBinaryHandler = R Function<R, T1, T2>(Zone self, ZoneDelegate parent,
 typedef RegisterCallbackHandler = ZoneCallback<R> Function<R>(
     Zone self, ZoneDelegate parent, Zone zone, R Function() f);
 
-/// The type of a custom [Zone.registerUnary] implementation function.
+/// The type of a custom [Zone.registerUnaryCallback] implementation function.
 ///
 /// Receives the [Zone] that the handler was registered on as [self],
 /// a delegate forwarding to the handlers of [self]'s parent zone as [parent],
@@ -96,7 +96,7 @@ typedef RegisterCallbackHandler = ZoneCallback<R> Function<R>(
 /// which will have [self] as a parent zone.
 ///
 /// The function [f] is the function which was passed to the
-/// which was passed to the [Zone.registerUnary] of [zone].
+/// which was passed to the [Zone.registerUnaryCallback] of [zone].
 ///
 /// The handler should return either the function [f]
 /// or another function replacing [f],
@@ -105,7 +105,7 @@ typedef RegisterCallbackHandler = ZoneCallback<R> Function<R>(
 typedef RegisterUnaryCallbackHandler = ZoneUnaryCallback<R, T> Function<R, T>(
     Zone self, ZoneDelegate parent, Zone zone, R Function(T arg) f);
 
-/// The type of a custom [Zone.registerBinary] implementation function.
+/// The type of a custom [Zone.registerBinaryCallback] implementation function.
 ///
 /// Receives the [Zone] that the handler was registered on as [self],
 /// a delegate forwarding to the handlers of [self]'s parent zone as [parent],
@@ -113,7 +113,7 @@ typedef RegisterUnaryCallbackHandler = ZoneUnaryCallback<R, T> Function<R, T>(
 /// which will have [self] as a parent zone.
 ///
 /// The function [f] is the function which was passed to the
-/// which was passed to the [Zone.registerBinary] of [zone].
+/// which was passed to the [Zone.registerBinaryCallback] of [zone].
 ///
 /// The handler should return either the function [f]
 /// or another function replacing [f],
@@ -187,7 +187,7 @@ typedef Timer CreateTimerHandler(
 /// and the current zone where the error was uncaught as [zone],
 /// which will have [self] as a parent zone.
 ///
-/// The callback function [f] and [duration] are the ones which were
+/// The callback function [f] and [period] are the ones which were
 /// passed to [Zone.createPeriodicTimer] of [zone]
 /// (possibly through the [Timer.periodic] constructor).
 ///
@@ -306,7 +306,7 @@ abstract class ZoneSpecification {
   ///
   /// If the [handleUncaughtError] is provided, the new zone will be a new
   /// "error zone" which will prevent errors from flowing into other
-  /// error zones (see [errorZone], [sameErrorZone]).
+  /// error zones (see [Zone.errorZone], [Zone.inSameErrorZone]).
   const factory ZoneSpecification(
       {HandleUncaughtErrorHandler? handleUncaughtError,
       RunHandler? run,

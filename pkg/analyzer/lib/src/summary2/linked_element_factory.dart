@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
@@ -62,13 +63,13 @@ class LinkedElementFactory {
           '[exportedReference: $exportedReference]',
         );
       }
-      exportedNames[element.name] = element;
+      exportedNames[element.name!] = element;
     }
 
     return Namespace(exportedNames);
   }
 
-  LibraryElementImpl createLibraryElementForLinking(
+  LibraryElementImpl? createLibraryElementForLinking(
     LinkedLibraryContext libraryContext,
   ) {
     var sourceFactory = analysisContext.sourceFactory;
@@ -79,7 +80,7 @@ class LinkedElementFactory {
     if (librarySource == null) return null;
 
     var definingUnitContext = libraryContext.units[0];
-    var definingUnitNode = definingUnitContext.unit;
+    var definingUnitNode = definingUnitContext.unit!;
 
     // TODO(scheglov) Do we need this?
     var name = '';
@@ -109,9 +110,11 @@ class LinkedElementFactory {
     var units = <CompilationUnitElementImpl>[];
     var unitContainerRef = libraryContext.reference.getChild('@unit');
     for (var unitContext in libraryContext.units) {
-      var unitNode = unitContext.unit;
+      var unitNode = unitContext.unit as CompilationUnitImpl;
 
       var unitSource = sourceFactory.forUri(unitContext.uriStr);
+      if (unitSource == null) continue;
+
       var unitElement = CompilationUnitElementImpl.forLinkedNode(
         libraryElement,
         unitContext,
@@ -133,7 +136,7 @@ class LinkedElementFactory {
     return libraryElement;
   }
 
-  LibraryElementImpl createLibraryElementForReading(String uriStr) {
+  LibraryElementImpl? createLibraryElementForReading(String uriStr) {
     var sourceFactory = analysisContext.sourceFactory;
     var librarySource = sourceFactory.forUri(uriStr);
 
@@ -185,9 +188,11 @@ class LinkedElementFactory {
 
     var units = <CompilationUnitElementImpl>[];
     for (var unitContext in unitContexts) {
-      var unitNode = unitContext.unit;
+      var unitNode = unitContext.unit as CompilationUnitImpl;
 
       var unitSource = sourceFactory.forUri(unitContext.uriStr);
+      if (unitSource == null) continue;
+
       var unitElement = CompilationUnitElementImpl.forLinkedNode(
         libraryElement,
         unitContext,
@@ -213,7 +218,7 @@ class LinkedElementFactory {
     LibraryElementImpl /*!*/ dartCore,
     LibraryElementImpl /*!*/ dartAsync,
   ) {
-    if (analysisContext.typeProviderNonNullableByDefault != null) {
+    if (analysisContext.hasTypeProvider) {
       return;
     }
 
@@ -233,14 +238,14 @@ class LinkedElementFactory {
     // During linking we create libraries when typeProvider is not ready.
     // Update these libraries now, when typeProvider is ready.
     for (var reference in rootReference.children) {
-      var libraryElement = reference.element as LibraryElementImpl;
-      if (libraryElement != null && libraryElement.typeProvider == null) {
+      var libraryElement = reference.element as LibraryElementImpl?;
+      if (libraryElement != null && !libraryElement.hasTypeProviderSystemSet) {
         _setLibraryTypeSystem(libraryElement);
       }
     }
   }
 
-  Element elementOfReference(Reference reference) {
+  Element? elementOfReference(Reference reference) {
     if (reference.element != null) {
       return reference.element;
     }
@@ -253,7 +258,7 @@ class LinkedElementFactory {
       return createLibraryElementForReading(uriStr);
     }
 
-    var parent = reference.parent.parent;
+    var parent = reference.parent!.parent!;
     var parentElement = elementOfReference(parent);
 
     // Named formal parameters are created when we apply resolution to the
@@ -292,75 +297,87 @@ class LinkedElementFactory {
     }
 
     // For class, mixin, extension - index members.
-    parent.nodeAccessor.readIndex();
+    parent.nodeAccessor!.readIndex();
 
     // For any element - class, method, etc - read the node.
-    var node = reference.nodeAccessor.node;
+    var node = reference.nodeAccessor!.node;
 
     if (node is ClassDeclaration) {
-      ClassElementImpl.forLinkedNode(parentElement, reference, node);
+      ClassElementImpl.forLinkedNode(
+          parentElement as CompilationUnitElementImpl, reference, node);
       assert(reference.element != null);
       return reference.element;
     } else if (node is ClassTypeAlias) {
-      ClassElementImpl.forLinkedNode(parentElement, reference, node);
+      ClassElementImpl.forLinkedNode(
+          parentElement as CompilationUnitElementImpl, reference, node);
       assert(reference.element != null);
       return reference.element;
-    } else if (node is ConstructorDeclaration) {
-      ConstructorElementImpl.forLinkedNode(parentElement, reference, node);
+    } else if (node is ConstructorDeclarationImpl) {
+      ConstructorElementImpl.forLinkedNode(
+          parentElement as ClassElementImpl, reference, node);
       var element = reference.element as ConstructorElementImpl;
-      assert(element != null);
       return element;
     } else if (node is EnumDeclaration) {
-      EnumElementImpl.forLinkedNode(parentElement, reference, node);
+      EnumElementImpl.forLinkedNode(
+          parentElement as CompilationUnitElementImpl, reference, node);
       assert(reference.element != null);
       return reference.element;
-    } else if (node is ExtensionDeclaration) {
-      ExtensionElementImpl.forLinkedNode(parentElement, reference, node);
+    } else if (node is ExtensionDeclarationImpl) {
+      ExtensionElementImpl.forLinkedNode(
+          parentElement as CompilationUnitElementImpl, reference, node);
       assert(reference.element != null);
       return reference.element;
     } else if (node is FieldDeclaration) {
       var variable = _variableDeclaration(node.fields, reference.name);
       if (variable.isConst) {
-        ConstFieldElementImpl.forLinkedNode(parentElement, reference, variable);
+        ConstFieldElementImpl.forLinkedNode(
+            parentElement as ElementImpl, reference, variable);
       } else {
         FieldElementImpl.forLinkedNodeFactory(
-            parentElement, reference, variable);
+            parentElement as ElementImpl, reference, variable);
       }
       assert(reference.element != null);
       return reference.element;
     } else if (node is FunctionDeclaration) {
       if (node.propertyKeyword != null) {
-        _topLevelPropertyAccessor(parent, parentElement, reference, node);
+        _topLevelPropertyAccessor(parent,
+            parentElement as CompilationUnitElementImpl, reference, node);
       } else {
-        FunctionElementImpl.forLinkedNode(parentElement, reference, node);
+        FunctionElementImpl.forLinkedNode(
+            parentElement as CompilationUnitElementImpl, reference, node);
       }
       assert(reference.element != null);
       return reference.element;
     } else if (node is FunctionTypeAlias || node is GenericTypeAlias) {
-      TypeAliasElementImpl.forLinkedNodeFactory(parentElement, reference, node);
+      TypeAliasElementImpl.forLinkedNodeFactory(
+          parentElement as CompilationUnitElementImpl,
+          reference,
+          node as TypeAlias);
       assert(reference.element != null);
       return reference.element;
     } else if (node is MethodDeclaration) {
       if (node.propertyKeyword != null) {
-        PropertyAccessorElementImpl.forLinkedNode(
-            parentElement, reference, node);
+        _classPropertyAccessor(
+            parent, parentElement as ElementImpl, reference, node);
       } else {
-        MethodElementImpl.forLinkedNode(parentElement, reference, node);
+        MethodElementImpl.forLinkedNode(
+            parentElement as TypeParameterizedElementMixin, reference, node);
       }
       assert(reference.element != null);
       return reference.element;
     } else if (node is MixinDeclaration) {
-      MixinElementImpl.forLinkedNode(parentElement, reference, node);
+      MixinElementImpl.forLinkedNode(
+          parentElement as CompilationUnitElementImpl, reference, node);
       assert(reference.element != null);
       return reference.element;
     } else if (node is TopLevelVariableDeclaration) {
       var variable = _variableDeclaration(node.variables, reference.name);
       if (variable.isConst) {
         ConstTopLevelVariableElementImpl.forLinkedNode(
-            parentElement, reference, variable);
+            parentElement as ElementImpl, reference, variable);
       } else {
         TopLevelVariableElementImpl.forLinkedNode(
-            parentElement, reference, variable);
+            parentElement as CompilationUnitElementImpl, reference, variable);
       }
       assert(reference.element != null);
       return reference.element;
@@ -386,13 +403,21 @@ class LinkedElementFactory {
   }
 
   bool isLibraryUri(String uriStr) {
-    var libraryContext = libraryReaders[uriStr];
+    var libraryContext = libraryReaders[uriStr]!;
     return !libraryContext.hasPartOfDirective;
   }
 
-  LibraryElementImpl libraryOfUri(String uriStr) {
+  LibraryElementImpl? libraryOfUri(String uriStr) {
     var reference = rootReference.getChild(uriStr);
-    return elementOfReference(reference);
+    return elementOfReference(reference) as LibraryElementImpl?;
+  }
+
+  LibraryElementImpl libraryOfUri2(String uriStr) {
+    var element = libraryOfUri(uriStr);
+    if (element == null) {
+      throw StateError('No library: $uriStr');
+    }
+    return element;
   }
 
   /// We have linked the bundle, and need to disconnect its libraries, so
@@ -434,6 +459,42 @@ class LinkedElementFactory {
     analysisSession.inheritanceManager.removeOfLibraries(uriStrSet);
   }
 
+  void _classPropertyAccessor(
+    Reference parentReference,
+    ElementImpl parentElement,
+    Reference reference,
+    MethodDeclaration node,
+  ) {
+    var accessor = PropertyAccessorElementImpl.forLinkedNode(
+        parentElement, reference, node);
+
+    var name = reference.name;
+    var fieldRef = parentReference.getChild('@field').getChild(name);
+    var field = fieldRef.element as FieldElementImpl?;
+    if (field == null) {
+      field = FieldElementImpl(name, -1);
+      fieldRef.element = field;
+      field.enclosingElement = parentElement;
+      field.isSynthetic = true;
+      field.isFinal = node.isGetter;
+      field.isStatic = accessor.isStatic;
+    } else {
+      field.isFinal = false;
+    }
+
+    var isSetter = node.isSetter;
+    if (isSetter) {
+      field.isFinal = false;
+    }
+
+    accessor.variable = field;
+    if (isSetter) {
+      field.setter = accessor;
+    } else {
+      field.getter = accessor;
+    }
+  }
+
   void _declareDartCoreDynamicNever() {
     var dartCoreRef = rootReference.getChild('dart:core');
     dartCoreRef.getChild('dynamic').element = DynamicElementImpl.instance;
@@ -444,7 +505,7 @@ class LinkedElementFactory {
     // During linking we create libraries when typeProvider is not ready.
     // And if we link dart:core and dart:async, we cannot create it.
     // We will set typeProvider later, during [createTypeProviders].
-    if (analysisContext.typeProviderNonNullableByDefault == null) {
+    if (!analysisContext.hasTypeProvider) {
       return;
     }
 
@@ -455,6 +516,7 @@ class LinkedElementFactory {
     libraryElement.typeSystem = isNonNullable
         ? analysisContext.typeSystemNonNullableByDefault
         : analysisContext.typeSystemLegacy;
+    libraryElement.hasTypeProviderSystemSet = true;
 
     libraryElement.createLoadLibraryFunction();
   }
@@ -470,7 +532,7 @@ class LinkedElementFactory {
 
     var name = reference.name;
     var fieldRef = parentReference.getChild('@field').getChild(name);
-    var field = fieldRef.element as TopLevelVariableElementImpl;
+    var field = fieldRef.element as TopLevelVariableElementImpl?;
     if (field == null) {
       field = TopLevelVariableElementImpl(name, -1);
       fieldRef.element = field;

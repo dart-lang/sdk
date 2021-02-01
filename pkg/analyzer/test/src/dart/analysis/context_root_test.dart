@@ -16,9 +16,9 @@ main() {
 
 @reflectiveTest
 class ContextRootTest with ResourceProviderMixin {
-  String rootPath;
-  Folder rootFolder;
-  ContextRootImpl contextRoot;
+  late final String rootPath;
+  late final Folder rootFolder;
+  late ContextRootImpl contextRoot;
 
   void setUp() {
     rootPath = convertPath('/test/root');

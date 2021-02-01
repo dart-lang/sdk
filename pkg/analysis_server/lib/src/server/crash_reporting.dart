@@ -17,7 +17,7 @@ class CrashReportingInstrumentation extends NoopInstrumentationService {
   @override
   void logException(dynamic exception,
       [StackTrace stackTrace,
-      List<InstrumentationServiceAttachment> attachments]) {
+      List<InstrumentationServiceAttachment> attachments = const []]) {
     var crashReportAttachments = (attachments ?? []).map((e) {
       return CrashReportAttachment.string(
         field: 'attachment_${e.id}',
