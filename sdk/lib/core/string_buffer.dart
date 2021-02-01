@@ -35,7 +35,7 @@ class StringBuffer implements StringSink {
   /// Writes all [objects] separated by [separator].
   ///
   /// Writes each individual object in [objects] in iteration order,
-  /// and writes [separtor] between any two objects.
+  /// and writes [separator] between any two objects.
   external void writeAll(Iterable<dynamic> objects, [String separator = ""]);
 
   external void writeln([Object? obj = ""]);
