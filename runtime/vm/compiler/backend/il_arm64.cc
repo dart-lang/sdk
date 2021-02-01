@@ -4186,11 +4186,8 @@ void BoxUint8Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register out = locs()->out(0).reg();
   ASSERT(value != out);
 
-  ASSERT(kSmiTagSize == 1);
-  const intptr_t shift = kBitsPerWord - kBitsPerByte;
-  // TODO(vegorov) implement and use UBFM/SBFM for this.
-  __ LslImmediate(out, value, shift);
-  __ LsrImmediate(out, out, shift - kSmiTagSize);
+  ASSERT(compiler::target::kSmiBits >= 8);
+  __ ubfiz(out, value, kSmiTagSize, 8);
 }
 
 LocationSummary* BoxInteger32Instr::MakeLocationSummary(Zone* zone,
@@ -4211,14 +4208,12 @@ void BoxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register out = locs()->out(0).reg();
   ASSERT(value != out);
 
-  ASSERT(kSmiTagSize == 1);
-  // TODO(vegorov) implement and use UBFM/SBFM for this.
-  __ LslImmediate(out, value, 32);
+  ASSERT(compiler::target::kSmiBits >= 32);
   if (from_representation() == kUnboxedInt32) {
-    __ AsrImmediate(out, out, 32 - kSmiTagSize);
+    __ sbfiz(out, value, kSmiTagSize, 32);
   } else {
     ASSERT(from_representation() == kUnboxedUint32);
-    __ LsrImmediate(out, out, 32 - kSmiTagSize);
+    __ ubfiz(out, value, kSmiTagSize, 32);
   }
 }
 
