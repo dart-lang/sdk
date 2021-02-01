@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
@@ -126,6 +127,39 @@ class RelevanceData {
   /// Initialize a newly created set of relevance data to be empty.
   RelevanceData();
 
+  /// Initialize a newly created set of relevance data based on the content of
+  /// the JSON encoded string.
+  RelevanceData.fromJson(String encoded) {
+    var map = json.decode(encoded) as Map<String, Map<String, String>>;
+    for (var contextEntry in map.entries) {
+      var contextMap = byKind.putIfAbsent(contextEntry.key, () => {});
+      for (var kindEntry in contextEntry.value.entries) {
+        _Kind kind;
+        var key = kindEntry.key;
+        if (key.startsWith('e')) {
+          kind = _ElementKind(ElementKind(key.substring(1)));
+        } else if (key.startsWith('k')) {
+          kind = _Keyword(Keyword.keywords[key.substring(1)]);
+        } else {
+          throw StateError('Invalid initial character in unique key "$key"');
+        }
+        contextMap[kind] = int.parse(kindEntry.value);
+      }
+    }
+  }
+
+  /// Add the data from the given relevance [data] to this set of relevance
+  /// data.
+  void addData(RelevanceData data) {
+    for (var contextEntry in data.byKind.entries) {
+      var contextMap = byKind.putIfAbsent(contextEntry.key, () => {});
+      for (var kindEntry in contextEntry.value.entries) {
+        var kind = kindEntry.key;
+        contextMap[kind] = (contextMap[kind] ?? 0) + kindEntry.value;
+      }
+    }
+  }
+
   /// Add the data from the given relevance [data] to this set of data.
   void addDataFrom(RelevanceData data) {
     _addToMap(byKind, data.byKind);
@@ -144,6 +178,19 @@ class RelevanceData {
     var contextMap = byKind.putIfAbsent(context, () => {});
     var key = _Keyword(keyword);
     contextMap[key] = (contextMap[key] ?? 0) + 1;
+  }
+
+  /// Convert this data to a JSON encoded format.
+  String toJson() {
+    var map = <String, Map<String, String>>{};
+    for (var contextEntry in byKind.entries) {
+      var kindMap = <String, String>{};
+      for (var kindEntry in contextEntry.value.entries) {
+        kindMap[kindEntry.key.uniqueKey] = kindEntry.value.toString();
+      }
+      map[contextEntry.key] = kindMap;
+    }
+    return json.encode(map);
   }
 
   /// Add the data in the [source] map to the [target] map.
@@ -1590,6 +1637,9 @@ class _ElementKind extends _Kind {
       instances.putIfAbsent(elementKind, () => _ElementKind._(elementKind));
 
   _ElementKind._(this.elementKind);
+
+  @override
+  String get uniqueKey => 'e${elementKind.name}';
 }
 
 /// A wrapper for a keyword to allow keywords and element kinds to be used as
@@ -1603,8 +1653,15 @@ class _Keyword extends _Kind {
       instances.putIfAbsent(keyword, () => _Keyword._(keyword));
 
   _Keyword._(this.keyword);
+
+  @override
+  String get uniqueKey => 'k${keyword.lexeme}';
 }
 
 /// A superclass for [_ElementKind] and [_Keyword] to allow keywords and element
 /// kinds to be used as keys in a single table.
-class _Kind {}
+abstract class _Kind {
+  /// Return the unique key used when representing an instance of a subclass in
+  /// a JSON format.
+  String get uniqueKey;
+}
