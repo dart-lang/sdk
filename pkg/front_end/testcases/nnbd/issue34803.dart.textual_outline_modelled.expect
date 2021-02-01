@@ -1,0 +1,4 @@
+class A<X extends G<num>> {}
+
+main() {}
+typedef G<X> = void Function<Y extends X>();

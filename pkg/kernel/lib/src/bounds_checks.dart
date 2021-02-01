@@ -350,7 +350,11 @@ List<TypeArgumentIssue> findTypeArgumentIssues(Library library, DartType type,
     return const <TypeArgumentIssue>[];
   }
 
-  if (variables.isEmpty) return const <TypeArgumentIssue>[];
+  if (variables.isEmpty) {
+    return typedefRhsResult.isNotEmpty
+        ? typedefRhsResult
+        : const <TypeArgumentIssue>[];
+  }
 
   List<TypeArgumentIssue> result = <TypeArgumentIssue>[];
   List<TypeArgumentIssue> argumentsResult = <TypeArgumentIssue>[];

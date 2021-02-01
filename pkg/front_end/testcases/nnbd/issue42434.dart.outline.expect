@@ -1,0 +1,25 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue42434.dart:7:21: Error: Type argument 'X/*1*/' doesn't conform to the bound 'A<X/*2*/>' of the type variable 'X' on 'A'.
+//  - 'X/*1*/' is from 'pkg/front_end/testcases/nnbd/issue42434.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/issue42434.dart'.
+//  - 'X/*2*/' is from 'pkg/front_end/testcases/nnbd/issue42434.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// typedef AAlias<X> = Function<X1 extends A<X>> ();
+//                     ^
+// pkg/front_end/testcases/nnbd/issue42434.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<X extends A<X>> {}
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef AAlias<invariant X extends core::Object? = dynamic> = <X1 extends self::A<X%> = dynamic>() → dynamic;
+class A<X extends self::A<self::A::X> = self::A<dynamic>> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X>
+    ;
+}
+static method main() → dynamic
+  ;

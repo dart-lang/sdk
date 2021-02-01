@@ -1,0 +1,7 @@
+class A<X extends F<X>> {}
+
+class A2<X extends F2<X>> {}
+
+main() {}
+typedef F<Y extends num> = Y Function();
+typedef F2<Y extends num> = Y Function();
