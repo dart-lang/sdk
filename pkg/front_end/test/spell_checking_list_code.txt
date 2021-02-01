@@ -868,7 +868,6 @@ printer
 printf
 println
 proc
-proceeds
 producers
 product
 progresses

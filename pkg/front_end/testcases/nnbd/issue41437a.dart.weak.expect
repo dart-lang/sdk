@@ -34,61 +34,61 @@ import "dart:core" as core;
 static method getNull() → dynamic
   return null;
 static method getFutureNull() → asy::Future<dynamic> async {
-  return let final Null #t1 = null in #t1 is asy::Future<dynamic> ?{FutureOr<dynamic>} await #t1 : #t1;
+  return null;
 }
 static method getFutureBool() → asy::Future<core::bool> async {
-  return let final core::bool #t2 = true in #t2 is asy::Future<core::bool> ?{FutureOr<core::bool>} await #t2 : #t2;
+  return true;
 }
 static method test1() → asy::Future<core::bool> async 
-  return let final dynamic #t3 = await self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} FutureOr<core::bool> in #t3 is asy::Future<core::bool> ?{FutureOr<core::bool>} await #t3 : #t3;
+  return await self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} FutureOr<core::bool>;
 static method test2() → asy::Future<core::bool>
   return self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Future<core::bool>;
 static method test3() → core::bool
   return self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
 static method test4() → asy::Future<core::bool> async 
-  return let final dynamic #t4 = await self::getFutureNull() as{TypeError,ForDynamic,ForNonNullableByDefault} FutureOr<core::bool> in #t4 is asy::Future<core::bool> ?{FutureOr<core::bool>} await #t4 : #t4;
+  return await self::getFutureNull() as{TypeError,ForDynamic,ForNonNullableByDefault} FutureOr<core::bool>;
 static method test5() → asy::Future<core::bool>
-  return let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437a.dart:18:25: Error: A value of type 'Future<dynamic>' can't be returned from a function with return type 'Future<bool>'.
+  return let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437a.dart:18:25: Error: A value of type 'Future<dynamic>' can't be returned from a function with return type 'Future<bool>'.
  - 'Future' is from 'dart:async'.
 Future<bool> test5() => getFutureNull(); // error
                         ^" in self::getFutureNull() as{TypeError,ForNonNullableByDefault} asy::Future<core::bool>;
 static method test6() → asy::Future<core::bool>
   return self::getFutureBool();
 static method test7() → asy::Future<core::bool> async 
-  return let final asy::Future<core::bool> #t6 = self::getFutureBool() in #t6 is asy::Future<core::bool> ?{FutureOr<core::bool>} await #t6 : #t6;
+  return self::getFutureBool();
 static method test() → dynamic async {
   function test1() → asy::Future<core::bool> async 
-    return let final dynamic #t7 = await self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} FutureOr<core::bool> in #t7 is asy::Future<core::bool> ?{FutureOr<core::bool>} await #t7 : #t7;
+    return await self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} FutureOr<core::bool>;
   function test2() → asy::Future<core::bool>
     return self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Future<core::bool>;
   function test3() → core::bool
     return self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
   function test4() → asy::Future<core::bool> async 
-    return let final dynamic #t8 = await self::getFutureNull() as{TypeError,ForDynamic,ForNonNullableByDefault} FutureOr<core::bool> in #t8 is asy::Future<core::bool> ?{FutureOr<core::bool>} await #t8 : #t8;
+    return await self::getFutureNull() as{TypeError,ForDynamic,ForNonNullableByDefault} FutureOr<core::bool>;
   function test5() → asy::Future<core::bool>
-    return let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437a.dart:27:27: Error: A value of type 'Future<dynamic>' can't be returned from a function with return type 'Future<bool>'.
+    return let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437a.dart:27:27: Error: A value of type 'Future<dynamic>' can't be returned from a function with return type 'Future<bool>'.
  - 'Future' is from 'dart:async'.
   Future<bool> test5() => getFutureNull(); // error
                           ^" in self::getFutureNull() as{TypeError,ForNonNullableByDefault} asy::Future<core::bool>;
   function test6() → asy::Future<core::bool>
     return self::getFutureBool();
   function test7() → asy::Future<core::bool> async 
-    return let final asy::Future<core::bool> #t10 = self::getFutureBool() in #t10 is asy::Future<core::bool> ?{FutureOr<core::bool>} await #t10 : #t10;
-  asy::Future<core::bool> var1 = let final<BottomType> #t11 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437a.dart:31:52: Error: A value of type 'Future<dynamic>' can't be assigned to a variable of type 'Future<bool>'.
+    return self::getFutureBool();
+  asy::Future<core::bool> var1 = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437a.dart:31:52: Error: A value of type 'Future<dynamic>' can't be assigned to a variable of type 'Future<bool>'.
  - 'Future' is from 'dart:async'.
   Future<bool> var1 = (() async => await getNull())(); // error
-                                                   ^" in (() → asy::Future<dynamic> async => let final dynamic #t12 = await self::getNull() in #t12 is asy::Future<dynamic> ?{FutureOr<dynamic>} await #t12 : #t12).call() as{TypeError,ForNonNullableByDefault} asy::Future<core::bool>;
+                                                   ^" in (() → asy::Future<dynamic> async => await self::getNull()).call() as{TypeError,ForNonNullableByDefault} asy::Future<core::bool>;
   asy::Future<core::bool> var2 = (() → dynamic => self::getNull()).call() as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Future<core::bool>;
   core::bool var3 = (() → dynamic => self::getNull()).call() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
-  asy::Future<core::bool> var4 = let final<BottomType> #t13 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437a.dart:34:58: Error: A value of type 'Future<dynamic>' can't be assigned to a variable of type 'Future<bool>'.
+  asy::Future<core::bool> var4 = let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437a.dart:34:58: Error: A value of type 'Future<dynamic>' can't be assigned to a variable of type 'Future<bool>'.
  - 'Future' is from 'dart:async'.
   Future<bool> var4 = (() async => await getFutureNull())(); // error
-                                                         ^" in (() → asy::Future<dynamic> async => let final dynamic #t14 = await self::getFutureNull() in #t14 is asy::Future<dynamic> ?{FutureOr<dynamic>} await #t14 : #t14).call() as{TypeError,ForNonNullableByDefault} asy::Future<core::bool>;
-  asy::Future<core::bool> var5 = let final<BottomType> #t15 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437a.dart:35:46: Error: A value of type 'Future<dynamic>' can't be assigned to a variable of type 'Future<bool>'.
+                                                         ^" in (() → asy::Future<dynamic> async => await self::getFutureNull()).call() as{TypeError,ForNonNullableByDefault} asy::Future<core::bool>;
+  asy::Future<core::bool> var5 = let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437a.dart:35:46: Error: A value of type 'Future<dynamic>' can't be assigned to a variable of type 'Future<bool>'.
  - 'Future' is from 'dart:async'.
   Future<bool> var5 = (() => getFutureNull())(); // error
                                              ^" in (() → asy::Future<dynamic> => self::getFutureNull()).call() as{TypeError,ForNonNullableByDefault} asy::Future<core::bool>;
   asy::Future<core::bool> var6 = (() → asy::Future<core::bool> => self::getFutureBool()).call();
-  asy::Future<core::bool> var7 = (() → asy::Future<core::bool> async => let final asy::Future<core::bool> #t16 = self::getFutureBool() in #t16 is asy::Future<core::bool> ?{FutureOr<dynamic>} await #t16 : #t16).call();
+  asy::Future<core::bool> var7 = (() → asy::Future<core::bool> async => self::getFutureBool()).call();
 }
 static method main() → dynamic {}

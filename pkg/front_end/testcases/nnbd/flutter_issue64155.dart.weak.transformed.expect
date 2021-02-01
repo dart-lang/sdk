@@ -14,7 +14,6 @@ abstract class TestMixin<R extends core::Object? = dynamic, T extends core::Obje
     core::int :await_jump_var = 0;
     dynamic :await_ctx_var;
     dynamic :saved_try_context_var0;
-    FutureOr<self::TestMixin::T%>:async_temporary_0;
     function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
       try {
         #L1:
@@ -36,15 +35,7 @@ abstract class TestMixin<R extends core::Object? = dynamic, T extends core::Obje
               else {
                 throw core::Exception::•("Invalid response type");
               }
-          final self::TestMixin::T% #t2 = result;
-          if(#t2 is asy::Future<self::TestMixin::T%>) {
-            [yield] let dynamic #t3 = asy::_awaitHelper(#t2, :async_op_then, :async_op_error, :async_op) in null;
-            :async_temporary_0 = _in::unsafeCast<self::TestMixin::T%>(:result);
-          }
-          else {
-            :async_temporary_0 = #t2;
-          }
-          :return_value = :async_temporary_0;
+          :return_value = result;
           break #L1;
         }
         asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
@@ -91,12 +82,11 @@ abstract class _Class1&Object&TestMixin extends core::Object implements self::Te
     core::int :await_jump_var = 0;
     dynamic :await_ctx_var;
     dynamic :saved_try_context_var0;
-    FutureOr<core::String>:async_temporary_0;
     function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
       try {
         #L2:
         {
-          [yield] let dynamic #t4 = asy::_awaitHelper(fetch, :async_op_then, :async_op_error, :async_op) in null;
+          [yield] let dynamic #t2 = asy::_awaitHelper(fetch, :async_op_then, :async_op_error, :async_op) in null;
           final self::Response<core::String> response = _in::unsafeCast<self::Response<core::String>>(:result);
           core::String result;
           if(response is{ForNonNullableByDefault} self::Response<dynamic>) {
@@ -113,15 +103,7 @@ abstract class _Class1&Object&TestMixin extends core::Object implements self::Te
               else {
                 throw core::Exception::•("Invalid response type");
               }
-          final core::String #t5 = result;
-          if(#t5 is asy::Future<core::String>) {
-            [yield] let dynamic #t6 = asy::_awaitHelper(#t5, :async_op_then, :async_op_error, :async_op) in null;
-            :async_temporary_0 = _in::unsafeCast<core::String>(:result);
-          }
-          else {
-            :async_temporary_0 = #t5;
-          }
-          :return_value = :async_temporary_0;
+          :return_value = result;
           break #L2;
         }
         asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
@@ -159,12 +141,11 @@ abstract class _Class2&Object&TestMixin extends core::Object implements self::Te
     core::int :await_jump_var = 0;
     dynamic :await_ctx_var;
     dynamic :saved_try_context_var0;
-    FutureOr<core::String>:async_temporary_0;
     function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
       try {
         #L3:
         {
-          [yield] let dynamic #t7 = asy::_awaitHelper(fetch, :async_op_then, :async_op_error, :async_op) in null;
+          [yield] let dynamic #t3 = asy::_awaitHelper(fetch, :async_op_then, :async_op_error, :async_op) in null;
           final self::PagingResponse<core::String> response = _in::unsafeCast<self::PagingResponse<core::String>>(:result);
           core::String result;
           if(response is{ForNonNullableByDefault} self::Response<dynamic>) {
@@ -181,15 +162,7 @@ abstract class _Class2&Object&TestMixin extends core::Object implements self::Te
               else {
                 throw core::Exception::•("Invalid response type");
               }
-          final core::String #t8 = result;
-          if(#t8 is asy::Future<core::String>) {
-            [yield] let dynamic #t9 = asy::_awaitHelper(#t8, :async_op_then, :async_op_error, :async_op) in null;
-            :async_temporary_0 = _in::unsafeCast<core::String>(:result);
-          }
-          else {
-            :async_temporary_0 = #t8;
-          }
-          :return_value = :async_temporary_0;
+          :return_value = result;
           break #L3;
         }
         asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
