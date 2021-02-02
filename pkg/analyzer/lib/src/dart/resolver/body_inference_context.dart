@@ -130,7 +130,7 @@ class BodyInferenceContext {
     }
 
     // Otherwise, if `T <: R` then let `S` be `T`.
-    if (_typeSystem.isSubtypeOf2(T, R)) {
+    if (_typeSystem.isSubtypeOf(T, R)) {
       return T;
     }
 

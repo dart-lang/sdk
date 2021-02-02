@@ -99,7 +99,7 @@ class FunctionExpressionResolver {
 
         // If the greatest closure of `K` is `S` and `S` is a subtype of
         // `Null`, then `T` is `Object?`. Otherwise, `T` is `S`.
-        if (_typeSystem.isSubtypeOf2(inferredType, _typeSystem.nullNone)) {
+        if (_typeSystem.isSubtypeOf(inferredType, _typeSystem.nullNone)) {
           inferredType = _isNonNullableByDefault
               ? _typeSystem.objectQuestion
               : _typeSystem.objectStar;

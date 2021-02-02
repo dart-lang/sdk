@@ -39,7 +39,7 @@ class CorrectOverrideHelper {
     superMember = _library.toLegacyElementIfOptOut(superMember);
 
     var superType = superMember.type;
-    return _typeSystem.isSubtypeOf2(_thisTypeForSubtype!, superType);
+    return _typeSystem.isSubtypeOf(_thisTypeForSubtype!, superType);
   }
 
   /// If [_thisMember] is not a correct override of [superMember], report the
@@ -120,8 +120,8 @@ class CovariantParametersVerifier {
       for (var superParameter in entry.value) {
         var thisType = parameter.type;
         var superType = superParameter.type;
-        if (!_typeSystem.isSubtypeOf2(superType, thisType) &&
-            !_typeSystem.isSubtypeOf2(thisType, superType)) {
+        if (!_typeSystem.isSubtypeOf(superType, thisType) &&
+            !_typeSystem.isSubtypeOf(thisType, superType)) {
           var superMember = superParameter.member;
           errorReporter.reportErrorForNode(
             CompileTimeErrorCode.INVALID_OVERRIDE,

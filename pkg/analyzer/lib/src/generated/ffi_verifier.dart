@@ -628,11 +628,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       InterfaceType objectType = typeSystem.objectStar;
       return checkCovariance
           ? /* everything is subtype of objectStar */ true
-          : typeSystem.isSubtypeOf2(objectType, dartType);
+          : typeSystem.isSubtypeOf(objectType, dartType);
     } else if (dartType is InterfaceType && nativeType is InterfaceType) {
       return checkCovariance
-          ? typeSystem.isSubtypeOf2(dartType, nativeType)
-          : typeSystem.isSubtypeOf2(nativeType, dartType);
+          ? typeSystem.isSubtypeOf(dartType, nativeType)
+          : typeSystem.isSubtypeOf(nativeType, dartType);
     } else {
       // If the [nativeType] is not a primitive int/double type then it has to
       // be a Pointer type atm.

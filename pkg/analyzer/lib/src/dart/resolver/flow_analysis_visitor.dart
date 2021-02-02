@@ -372,7 +372,7 @@ class TypeSystemTypeOperations
 
   @override
   bool isSubtypeOf(DartType leftType, DartType rightType) {
-    return typeSystem.isSubtypeOf2(leftType, rightType);
+    return typeSystem.isSubtypeOf(leftType, rightType);
   }
 
   @override

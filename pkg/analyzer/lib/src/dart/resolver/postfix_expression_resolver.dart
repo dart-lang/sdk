@@ -74,7 +74,7 @@ class PostfixExpressionResolver {
   void _checkForInvalidAssignmentIncDec(
       PostfixExpression node, Expression operand, DartType type) {
     var operandWriteType = node.writeType!;
-    if (!_typeSystem.isAssignableTo2(type, operandWriteType)) {
+    if (!_typeSystem.isAssignableTo(type, operandWriteType)) {
       _resolver.errorReporter.reportErrorForNode(
         CompileTimeErrorCode.INVALID_ASSIGNMENT,
         node,

@@ -8,7 +8,6 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
@@ -21,14 +20,12 @@ main(List<String> args) async {
   Directory dataDir = Directory.fromUri(Platform.script.resolve(
       '../../../_fe_analyzer_shared/test/flow_analysis/definite_unassignment/'
       'data'));
-  await NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
-    return runTests<String>(dataDir,
-        args: args,
-        createUriForFileName: createUriForFileName,
-        onFailure: onFailure,
-        runTest: runTestFor(
-            const _DefiniteAssignmentDataComputer(), [analyzerNnbdConfig]));
-  });
+  return runTests<String>(dataDir,
+      args: args,
+      createUriForFileName: createUriForFileName,
+      onFailure: onFailure,
+      runTest: runTestFor(
+          const _DefiniteAssignmentDataComputer(), [analyzerNnbdConfig]));
 }
 
 class _DefiniteAssignmentDataComputer extends DataComputer<String> {

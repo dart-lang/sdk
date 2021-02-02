@@ -183,10 +183,10 @@ class InterfaceLeastUpperBoundHelper {
     type1 = type1.withNullability(NullabilitySuffix.none);
     type2 = type2.withNullability(NullabilitySuffix.none);
 
-    if (typeSystem.isSubtypeOf2(type1, type2)) {
+    if (typeSystem.isSubtypeOf(type1, type2)) {
       return type2.withNullability(nullability);
     }
-    if (typeSystem.isSubtypeOf2(type2, type1)) {
+    if (typeSystem.isSubtypeOf(type2, type1)) {
       return type1.withNullability(nullability);
     }
 
@@ -212,8 +212,8 @@ class InterfaceLeastUpperBoundHelper {
             args.add(typeSystem.getLeastUpperBound(args1[i], args2[i]));
           }
         } else if (parameterVariance.isInvariant) {
-          if (!typeSystem.isSubtypeOf2(args1[i], args2[i]) ||
-              !typeSystem.isSubtypeOf2(args2[i], args1[i])) {
+          if (!typeSystem.isSubtypeOf(args1[i], args2[i]) ||
+              !typeSystem.isSubtypeOf(args2[i], args1[i])) {
             // No bound will be valid, find bound at the interface level.
             return _computeLeastUpperBound(
               InstantiatedClass.of(type1),
@@ -637,11 +637,11 @@ class LeastUpperBoundHelper {
     // UP(X1 & B1, T2)
     if (T1 is TypeParameterTypeImpl) {
       // T2 if X1 <: T2
-      if (_typeSystem.isSubtypeOf2(T1, T2)) {
+      if (_typeSystem.isSubtypeOf(T1, T2)) {
         return T2;
       }
       // otherwise X1 if T2 <: X1
-      if (_typeSystem.isSubtypeOf2(T2, T1)) {
+      if (_typeSystem.isSubtypeOf(T2, T1)) {
         return T1;
       }
       // otherwise UP(B1a, T2)
@@ -655,12 +655,12 @@ class LeastUpperBoundHelper {
     // UP(T1, X2 & B2)
     if (T2 is TypeParameterTypeImpl) {
       // X2 if T1 <: X2
-      if (_typeSystem.isSubtypeOf2(T1, T2)) {
+      if (_typeSystem.isSubtypeOf(T1, T2)) {
         // TODO(scheglov) How to get here?
         return T2;
       }
       // otherwise T1 if X2 <: T1
-      if (_typeSystem.isSubtypeOf2(T2, T1)) {
+      if (_typeSystem.isSubtypeOf(T2, T1)) {
         return T1;
       }
       // otherwise UP(T1, B2a)

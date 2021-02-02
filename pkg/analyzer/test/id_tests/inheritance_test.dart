@@ -8,7 +8,6 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
@@ -20,21 +19,19 @@ import '../util/id_testing_helper.dart';
 main(List<String> args) async {
   Directory dataDir = Directory.fromUri(Platform.script
       .resolve('../../../_fe_analyzer_shared/test/inheritance/data'));
-  await NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
-    return runTests<String>(dataDir,
-        args: args,
-        createUriForFileName: createUriForFileName,
-        onFailure: onFailure,
-        runTest:
-            runTestFor(const _InheritanceDataComputer(), [analyzerNnbdConfig]),
-        skipMap: {
-          analyzerMarker: [
-            // These are CFE-centric tests for an opt-in/opt-out sdk.
-            'object_opt_in',
-            'object_opt_out',
-          ]
-        });
-  });
+  return runTests<String>(dataDir,
+      args: args,
+      createUriForFileName: createUriForFileName,
+      onFailure: onFailure,
+      runTest:
+          runTestFor(const _InheritanceDataComputer(), [analyzerNnbdConfig]),
+      skipMap: {
+        analyzerMarker: [
+          // These are CFE-centric tests for an opt-in/opt-out sdk.
+          'object_opt_in',
+          'object_opt_out',
+        ]
+      });
 }
 
 String supertypeToString(InterfaceType type) {

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
@@ -63,15 +62,13 @@ class ReplaceTopBottomLegacyTest extends AbstractTypeSystemTest {
   }
 
   void _check(DartType type, String expectedStr, {String? typeStr}) {
-    NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
-      if (typeStr != null) {
-        expect(_typeString(type), typeStr);
-      }
+    if (typeStr != null) {
+      expect(_typeString(type), typeStr);
+    }
 
-      var result = typeSystem.replaceTopAndBottom(type);
-      var resultStr = _typeString(result);
-      expect(resultStr, expectedStr);
-    });
+    var result = typeSystem.replaceTopAndBottom(type);
+    var resultStr = _typeString(result);
+    expect(resultStr, expectedStr);
   }
 
   String _typeString(DartType type) {
@@ -163,15 +160,13 @@ class ReplaceTopBottomNullSafetyTest extends AbstractTypeSystemNullSafetyTest {
   }
 
   void _check(DartType type, String expectedStr, {String? typeStr}) {
-    NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
-      if (typeStr != null) {
-        expect(_typeString(type), typeStr);
-      }
+    if (typeStr != null) {
+      expect(_typeString(type), typeStr);
+    }
 
-      var result = typeSystem.replaceTopAndBottom(type);
-      var resultStr = _typeString(result);
-      expect(resultStr, expectedStr);
-    });
+    var result = typeSystem.replaceTopAndBottom(type);
+    var resultStr = _typeString(result);
+    expect(resultStr, expectedStr);
   }
 
   String _typeString(DartType type) {

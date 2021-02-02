@@ -606,13 +606,13 @@ class CodeChecker extends RecursiveAstVisitor {
       return null; // unrelated
     }
 
-    if (rules.isSubtypeOf2(from, to)) {
+    if (rules.isSubtypeOf(from, to)) {
       // Sound subtype.
       // However we may still need cast if we have a call tearoff.
       return callTearoff;
     }
 
-    if (rules.isSubtypeOf2(to, from)) {
+    if (rules.isSubtypeOf(to, from)) {
       // Assignable, but needs cast.
       return true;
     }
@@ -799,12 +799,12 @@ class CodeChecker extends RecursiveAstVisitor {
     }
 
     // fromT <: toT, no coercion needed.
-    if (rules.isSubtypeOf2(from, to)) {
+    if (rules.isSubtypeOf(from, to)) {
       return false;
     }
 
     // Down cast or legal sideways cast, coercion needed.
-    if (rules.isAssignableTo2(from, to)) {
+    if (rules.isAssignableTo(from, to)) {
       return true;
     }
 
@@ -837,7 +837,7 @@ class CodeChecker extends RecursiveAstVisitor {
     // want to warn if it's a legal subtype.
     if (from is InterfaceType && rules.acceptsFunctionType(to)) {
       var type = rules.getCallMethodType(from);
-      if (type != null && rules.isSubtypeOf2(type, to)) {
+      if (type != null && rules.isSubtypeOf(type, to)) {
         return;
       }
     }
@@ -959,7 +959,7 @@ class CodeChecker extends RecursiveAstVisitor {
         nullabilitySuffix: _noneOrStarSuffix,
       );
 
-      if (rules.isSubtypeOf2(sequenceType, iterableType)) {
+      if (rules.isSubtypeOf(sequenceType, iterableType)) {
         _recordImplicitCast(node.iterable, sequenceType, from: iterableType);
         elementType = DynamicTypeImpl.instance;
       }

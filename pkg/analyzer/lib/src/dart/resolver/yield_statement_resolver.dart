@@ -83,7 +83,7 @@ class YieldStatementResolver {
       impliedReturnType = _typeProvider.streamType2(expressionType);
     }
 
-    if (!_typeSystem.isAssignableTo2(impliedReturnType, declaredReturnType)) {
+    if (!_typeSystem.isAssignableTo(impliedReturnType, declaredReturnType)) {
       _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
         expression,
@@ -103,7 +103,7 @@ class YieldStatementResolver {
         requiredReturnType = _typeProvider.streamDynamicType;
       }
 
-      if (!_typeSystem.isAssignableTo2(impliedReturnType, requiredReturnType)) {
+      if (!_typeSystem.isAssignableTo(impliedReturnType, requiredReturnType)) {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
           expression,

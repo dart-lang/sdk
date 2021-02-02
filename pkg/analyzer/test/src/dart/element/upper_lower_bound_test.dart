@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
@@ -1435,8 +1434,8 @@ actual: $resultStr
 
     // Check that the result is a lower bound.
     if (checkSubtype) {
-      expect(typeSystem.isSubtypeOf2(result, T1), true);
-      expect(typeSystem.isSubtypeOf2(result, T2), true);
+      expect(typeSystem.isSubtypeOf(result, T1), true);
+      expect(typeSystem.isSubtypeOf(result, T2), true);
     }
 
     // Check for symmetry.
@@ -3423,28 +3422,26 @@ class _BoundsTestBase extends AbstractTypeSystemNullSafetyTest {
   }
 
   void _checkLeastUpperBound(DartType T1, DartType T2, DartType expected) {
-    NullSafetyUnderstandingFlag.enableNullSafetyTypes(() async {
-      var expectedStr = _typeString(expected);
+    var expectedStr = _typeString(expected);
 
-      var result = typeSystem.getLeastUpperBound(T1, T2);
-      var resultStr = _typeString(result);
-      expect(result, expected, reason: '''
+    var result = typeSystem.getLeastUpperBound(T1, T2);
+    var resultStr = _typeString(result);
+    expect(result, expected, reason: '''
 expected: $expectedStr
 actual: $resultStr
 ''');
 
-      // Check that the result is an upper bound.
-      expect(typeSystem.isSubtypeOf2(T1, result), true);
-      expect(typeSystem.isSubtypeOf2(T2, result), true);
+    // Check that the result is an upper bound.
+    expect(typeSystem.isSubtypeOf(T1, result), true);
+    expect(typeSystem.isSubtypeOf(T2, result), true);
 
-      // Check for symmetry.
-      result = typeSystem.getLeastUpperBound(T2, T1);
-      resultStr = _typeString(result);
-      expect(result, expected, reason: '''
+    // Check for symmetry.
+    result = typeSystem.getLeastUpperBound(T2, T1);
+    resultStr = _typeString(result);
+    expect(result, expected, reason: '''
 expected: $expectedStr
 actual: $resultStr
 ''');
-    });
   }
 
   String _typeParametersStr(DartType type) {

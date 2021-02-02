@@ -6,7 +6,6 @@ import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
@@ -103,11 +102,7 @@ class ResynthesizeAst2Test extends AbstractResynthesizeTest
       ),
     );
 
-    var linkResult = NullSafetyUnderstandingFlag.enableNullSafetyTypes(
-      () {
-        return link(elementFactory, inputLibraries, true);
-      },
-    );
+    var linkResult = link(elementFactory, inputLibraries, true);
 
     elementFactory.addBundle(
       BundleReader(

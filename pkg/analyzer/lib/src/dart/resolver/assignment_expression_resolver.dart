@@ -108,7 +108,7 @@ class AssignmentExpressionResolver {
       return;
     }
 
-    if (_typeSystem.isAssignableTo2(rightType, writeType)) {
+    if (_typeSystem.isAssignableTo(rightType, writeType)) {
       return;
     }
 

@@ -230,7 +230,7 @@ class TypeArgumentsVerifier {
       bound = _libraryElement.toLegacyTypeIfOptOut(bound);
       bound = substitution.substituteType(bound);
 
-      if (!_typeSystem.isSubtypeOf2(typeArgument, bound)) {
+      if (!_typeSystem.isSubtypeOf(typeArgument, bound)) {
         issues ??= <_TypeArgumentIssue>[];
         issues.add(
           _TypeArgumentIssue(i, typeParameter, typeArgument),
@@ -279,7 +279,7 @@ class TypeArgumentsVerifier {
       bound = _libraryElement.toLegacyTypeIfOptOut(bound);
       bound = substitution.substituteType(bound);
 
-      if (!_typeSystem.isSubtypeOf2(typeArgument, bound)) {
+      if (!_typeSystem.isSubtypeOf(typeArgument, bound)) {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
           _typeArgumentErrorNode(typeName, i),
@@ -367,7 +367,7 @@ class TypeArgumentsVerifier {
 
         var substitution = Substitution.fromPairs(fnTypeParams, typeArgs);
         var bound = substitution.substituteType(rawBound);
-        if (!_typeSystem.isSubtypeOf2(argType, bound)) {
+        if (!_typeSystem.isSubtypeOf(argType, bound)) {
           _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
               typeArgumentList[i],
