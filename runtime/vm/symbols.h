@@ -498,7 +498,8 @@ class ObjectPointerVisitor;
   V(vm_recognized, "vm:recognized")                                            \
   V(vm_trace_entrypoints, "vm:testing.unsafe.trace-entrypoints-fn")            \
   V(vm_procedure_attributes_metadata, "vm.procedure-attributes.metadata")      \
-  V(vm_ffi_struct_fields, "vm:ffi:struct-fields")
+  V(vm_ffi_struct_fields, "vm:ffi:struct-fields")                              \
+  V(vm_unsafe_no_interrupts, "vm:unsafe:no-interrupts")
 
 // Contains a list of frequently used strings in a canonicalized form. This
 // list is kept in the vm_isolate in order to share the copy across isolates

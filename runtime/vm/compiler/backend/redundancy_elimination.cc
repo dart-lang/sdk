@@ -4225,7 +4225,17 @@ void DeadCodeElimination::EliminateDeadCode(FlowGraph* flow_graph) {
   }
 }
 
+// Returns true if function is marked with vm:unsafe:no-interrupts pragma.
+static bool IsMarkedWithNoInterrupts(const Function& function) {
+  Object& options = Object::Handle();
+  return Library::FindPragma(dart::Thread::Current(),
+                             /*only_core=*/false, function,
+                             Symbols::vm_unsafe_no_interrupts(), &options);
+}
+
 void CheckStackOverflowElimination::EliminateStackOverflow(FlowGraph* graph) {
+  const bool should_remove_all = IsMarkedWithNoInterrupts(graph->function());
+
   CheckStackOverflowInstr* first_stack_overflow_instr = NULL;
   for (BlockIterator block_it = graph->reverse_postorder_iterator();
        !block_it.Done(); block_it.Advance()) {
@@ -4235,6 +4245,11 @@ void CheckStackOverflowElimination::EliminateStackOverflow(FlowGraph* graph) {
       Instruction* current = it.Current();
 
       if (CheckStackOverflowInstr* instr = current->AsCheckStackOverflow()) {
+        if (should_remove_all) {
+          it.RemoveCurrentFromGraph();
+          continue;
+        }
+
         if (first_stack_overflow_instr == NULL) {
           first_stack_overflow_instr = instr;
           ASSERT(!first_stack_overflow_instr->in_loop());

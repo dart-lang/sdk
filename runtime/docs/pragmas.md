@@ -11,6 +11,16 @@ These pragmas are part of the VM's API and are safe for use in external code.
 | `vm:prefer-inline` | [Inline a function or method when possible](compiler/pragmas_recognized_by_compiler.md#requesting-a-function-be-inlined) |
 | `vm:notify-debugger-on-exception` | Marks a function that catches exceptions, making the VM treat any caught exception as if they were uncaught. This can be used to notify an attached debugger during debugging, without pausing the app during regular execution. |
 
+## Unsafe pragmas for general use
+
+These pragmas are available for use in third-party code but are potentially
+unsafe. The use of these pragmas is discouraged unless the developer fully
+understands potential repercussions.
+
+| Pragma | Meaning |
+| --- | --- |
+| `vm:unsafe:no-interrupts` | Removes all `CheckStackOverflow` instructions from the optimized version of the marked function, which disables stack overflow checking and interruption within that function. This pragma exists mainly for performance evaluation and should not be used in a general-purpose code, because VM relies on these checks for OOB message delivery and GC scheduling. |
+
 ## Pragmas for internal use
 
 These pragmas can cause unsound behavior if used incorrectly and therefore are only allowed within the core SDK libraries.
