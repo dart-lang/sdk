@@ -575,6 +575,8 @@ class SuggestionBuilder {
     var isConstant = request.inConstantContext
         ? featureComputer.isConstantFeature(method)
         : 0.0;
+    var isNoSuchMethod = featureComputer.isNoSuchMethodFeature(
+        _containingMemberName, method.name);
     var startsWithDollar = featureComputer.startsWithDollarFeature(method.name);
     var superMatches =
         featureComputer.superMatchesFeature(_containingMemberName, method.name);
@@ -584,6 +586,7 @@ class SuggestionBuilder {
         hasDeprecated: hasDeprecated,
         inheritanceDistance: inheritanceDistance,
         isConstant: isConstant,
+        isNoSuchMethod: isNoSuchMethod,
         startsWithDollar: startsWithDollar,
         superMatches: superMatches);
     listener?.computedFeatures(
@@ -592,6 +595,7 @@ class SuggestionBuilder {
         hasDeprecated: hasDeprecated,
         inheritanceDistance: inheritanceDistance,
         isConstant: isConstant,
+        isNoSuchMethod: isNoSuchMethod,
         startsWithDollar: startsWithDollar,
         superMatches: superMatches);
 
@@ -944,22 +948,14 @@ class SuggestionBuilder {
     return elementKind;
   }
 
-  /// Compute a relevance value from the given feature scores:
-  /// - [contextType] is higher if the type of the element matches the context
-  ///   type,
-  /// - [hasDeprecated] is higher if the element is not deprecated,
-  /// - [inheritanceDistance] is higher if the element is defined closer to the
-  ///   target type,
-  /// - [startsWithDollar] is higher if the element's name doe _not_ start with
-  ///   a dollar sign, and
-  /// - [superMatches] is higher if the element is being invoked through `super`
-  ///   and the element's name matches the name of the enclosing method.
+  /// Compute a relevance value from the given feature scores.
   int _computeMemberRelevance(
       {@required double contextType,
       @required double elementKind,
       @required double hasDeprecated,
       @required double inheritanceDistance,
       @required double isConstant,
+      double isNoSuchMethod = 0.0,
       @required double startsWithDollar,
       @required double superMatches}) {
     var score = weightedAverage(
@@ -968,6 +964,7 @@ class SuggestionBuilder {
         hasDeprecated: hasDeprecated,
         inheritanceDistance: inheritanceDistance,
         isConstant: isConstant,
+        isNoSuchMethod: isNoSuchMethod,
         startsWithDollar: startsWithDollar,
         superMatches: superMatches);
     return toRelevance(score);
@@ -1145,6 +1142,7 @@ abstract class SuggestionListener {
       double hasDeprecated,
       double inheritanceDistance,
       double isConstant,
+      double isNoSuchMethod,
       double keyword,
       double localVariableDistance,
       double startsWithDollar,

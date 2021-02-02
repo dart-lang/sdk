@@ -1121,6 +1121,7 @@ class CompletionMetricsComputer {
           'hasDeprecated',
           'inheritanceDistance',
           'isConstant',
+          'isNoSuchMethod',
           'keyword',
           'localVariableDistance',
           'startsWithDollar',
@@ -1464,7 +1465,7 @@ class MetricsSuggestionListener implements SuggestionListener {
   @override
   void builtSuggestion(protocol.CompletionSuggestion suggestion) {
     featureMap[suggestion] = cachedFeatures;
-    cachedFeatures = const [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+    cachedFeatures = const [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
   }
 
   @override
@@ -1474,6 +1475,7 @@ class MetricsSuggestionListener implements SuggestionListener {
       double hasDeprecated = 0.0,
       double inheritanceDistance = 0.0,
       double isConstant = 0.0,
+      double isNoSuchMethod = 0.0,
       double keyword = 0.0,
       double localVariableDistance = 0.0,
       double startsWithDollar = 0.0,
@@ -1484,6 +1486,7 @@ class MetricsSuggestionListener implements SuggestionListener {
       hasDeprecated,
       inheritanceDistance,
       isConstant,
+      isNoSuchMethod,
       keyword,
       localVariableDistance,
       startsWithDollar,
