@@ -21,6 +21,14 @@ class DecoratedTypeOperations
       this._typeSystem, this._variableRepository, this._graph);
 
   @override
+  DecoratedType get topType {
+    // This is only needed for explaining to the user why fields aren't
+    // promoted, functionality of flow analysis that we don't take advantage of
+    // during migration.  So this method should never be called.
+    throw StateError('Unexpected call to topType');
+  }
+
+  @override
   TypeClassification classifyType(DecoratedType type) {
     if (type.type.isDartCoreNull) {
       return TypeClassification.nullOrEquivalent;

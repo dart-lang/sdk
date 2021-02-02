@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -32,13 +33,16 @@ class NullableDereferenceVerifier {
   }
 
   void report(AstNode errorNode, DartType receiverType,
-      {ErrorCode? errorCode, List<String> arguments = const <String>[]}) {
+      {ErrorCode? errorCode,
+      List<String> arguments = const <String>[],
+      List<DiagnosticMessage>? messages}) {
     if (receiverType == _typeSystem.typeProvider.nullType) {
       errorCode = CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE;
     } else {
       errorCode ??= CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE;
     }
-    _errorReporter.reportErrorForNode(errorCode, errorNode, arguments);
+    _errorReporter.reportErrorForNode(
+        errorCode, errorNode, arguments, messages);
   }
 
   /// If the [receiverType] is potentially nullable, report it.

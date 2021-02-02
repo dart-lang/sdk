@@ -1158,8 +1158,7 @@ class ResolverVisitor extends ScopedVisitor {
     _enclosingFunction = node.declaredElement!;
 
     if (flowAnalysis != null) {
-      flowAnalysis!
-          .topLevelDeclaration_enter(node, node.parameters, node.body);
+      flowAnalysis!.topLevelDeclaration_enter(node, node.parameters, node.body);
       flowAnalysis!.executableDeclaration_enter(node, node.parameters, false);
     } else {
       _promoteManager.enterFunctionBody(node.body!);
@@ -1655,8 +1654,7 @@ class ResolverVisitor extends ScopedVisitor {
     _enclosingFunction = node.declaredElement!;
 
     if (flowAnalysis != null) {
-      flowAnalysis!
-          .topLevelDeclaration_enter(node, node.parameters, node.body);
+      flowAnalysis!.topLevelDeclaration_enter(node, node.parameters, node.body);
       flowAnalysis!.executableDeclaration_enter(node, node.parameters, false);
     } else {
       _promoteManager.enterFunctionBody(node.body);

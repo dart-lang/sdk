@@ -284,6 +284,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
   @override
   void visitSuperExpression(SuperExpression node) {
+    _resolver.flowAnalysis?.flow?.thisOrSuper(node);
     var thisType = _resolver.thisType;
     if (thisType == null ||
         node.thisOrAncestorOfType<ExtensionDeclaration>() != null) {
@@ -304,6 +305,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// interface of the immediately enclosing class.</blockquote>
   @override
   void visitThisExpression(ThisExpression node) {
+    _resolver.flowAnalysis?.flow?.thisOrSuper(node);
     var thisType = _resolver.thisType;
     if (thisType == null) {
       // TODO(brianwilkerson) Report this error if it hasn't already been

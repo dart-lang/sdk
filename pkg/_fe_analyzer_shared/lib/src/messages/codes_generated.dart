@@ -4033,6 +4033,29 @@ const MessageCode messageFieldInitializerOutsideConstructor = const MessageCode(
     tip: r"""Try removing 'this.'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateFieldNotPromoted =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""'#name' refers to a property so it could not be promoted.""",
+        withArguments: _withArgumentsFieldNotPromoted);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeFieldNotPromoted =
+    const Code<Message Function(String name)>(
+  "FieldNotPromoted",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFieldNotPromoted(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFieldNotPromoted,
+      message:
+          """'${name}' refers to a property so it could not be promoted.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFinalAndCovariant = messageFinalAndCovariant;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9619,6 +9642,34 @@ const MessageCode messageVarReturnType = const MessageCode("VarReturnType",
     message: r"""The return type can't be 'var'.""",
     tip:
         r"""Try removing the keyword 'var', or replacing it with the name of the return type.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateVariableCouldBeNullDueToWrite = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Variable '#name' could be null due to a write occurring here.""",
+    tipTemplate: r"""Try null checking the variable after the write.""",
+    withArguments: _withArgumentsVariableCouldBeNullDueToWrite);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeVariableCouldBeNullDueToWrite =
+    const Code<Message Function(String name)>(
+  "VariableCouldBeNullDueToWrite",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsVariableCouldBeNullDueToWrite(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeVariableCouldBeNullDueToWrite,
+      message:
+          """Variable '${name}' could be null due to a write occurring here.""",
+      tip: """Try null checking the variable after the write.""",
+      arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeVerificationErrorOriginContext =

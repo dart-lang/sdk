@@ -257,6 +257,14 @@ class FlowAnalysisResult {
 
   /// The assigned variables information that computed for the member.
   AssignedVariablesForTesting<TreeNode, VariableDeclaration> assignedVariables;
+
+  /// For each expression that led to an error because it was not promoted, a
+  /// string describing the reason it was not promoted.
+  final Map<TreeNode, String> nonPromotionReasons = {};
+
+  /// For each auxiliary AST node pointed to by a non-promotion reason, a string
+  /// describing the non-promotion reason pointing to it.
+  final Map<TreeNode, String> nonPromotionReasonTargets = {};
 }
 
 /// CFE-specific implementation of [TypeOperations].
@@ -264,6 +272,9 @@ class TypeOperationsCfe extends TypeOperations<VariableDeclaration, DartType> {
   final TypeEnvironment typeEnvironment;
 
   TypeOperationsCfe(this.typeEnvironment);
+
+  @override
+  DartType get topType => typeEnvironment.objectNullableRawType;
 
   @override
   TypeClassification classifyType(DartType type) {

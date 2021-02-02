@@ -20,6 +20,7 @@ front_end/lib/src/fasta/incremental_compiler/ImportsTwice: Fail
 front_end/lib/src/fasta/kernel/body_builder/ImportsTwice: Fail
 front_end/lib/src/fasta/kernel/constant_evaluator/ExplicitType: Pass
 front_end/lib/src/fasta/kernel/expression_generator_helper/ImportsTwice: Fail
+front_end/lib/src/fasta/kernel/inference_visitor/ImportsTwice: Fail
 front_end/lib/src/fasta/kernel/kernel_api/Exports: Fail
 front_end/lib/src/fasta/kernel/kernel_ast_api/Exports: Fail
 front_end/lib/src/fasta/kernel/kernel_builder/Exports: Fail

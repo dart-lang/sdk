@@ -94,16 +94,18 @@ class ErrorReporter {
   /// Report an error with the given [errorCode] and [arguments].
   /// The [node] is used to compute the location of the error.
   void reportErrorForNode(ErrorCode errorCode, AstNode node,
-      [List<Object?>? arguments]) {
-    reportErrorForOffset(errorCode, node.offset, node.length, arguments);
+      [List<Object?>? arguments, List<DiagnosticMessage>? messages]) {
+    reportErrorForOffset(
+        errorCode, node.offset, node.length, arguments, messages);
   }
 
   /// Report an error with the given [errorCode] and [arguments]. The location
   /// of the error is specified by the given [offset] and [length].
   void reportErrorForOffset(ErrorCode errorCode, int offset, int length,
-      [List<Object?>? arguments]) {
+      [List<Object?>? arguments, List<DiagnosticMessage>? messages]) {
     _convertElements(arguments);
-    var messages = _convertTypeNames(arguments);
+    messages ??= [];
+    messages.addAll(_convertTypeNames(arguments));
     _errorListener.onError(
         AnalysisError(_source, offset, length, errorCode, arguments, messages));
   }

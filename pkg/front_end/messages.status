@@ -344,6 +344,8 @@ FieldNonNullableWithoutInitializerError/analyzerCode: Fail
 FieldNonNullableWithoutInitializerError/example: Fail
 FieldNonNullableWithoutInitializerWarning/analyzerCode: Fail
 FieldNonNullableWithoutInitializerWarning/example: Fail
+FieldNotPromoted/analyzerCode: Fail
+FieldNotPromoted/example: Fail
 FinalAndCovariant/part_wrapped_script2: Fail
 FinalAndCovariant/script2: Fail
 FinalFieldWithoutInitializer/example: Fail
@@ -793,6 +795,8 @@ ValueForRequiredParameterNotProvidedWarning/analyzerCode: Fail
 ValueForRequiredParameterNotProvidedWarning/example: Fail
 VarAsTypeName/part_wrapped_script1: Fail
 VarAsTypeName/script1: Fail # Too many problems
+VariableCouldBeNullDueToWrite/analyzerCode: Fail
+VariableCouldBeNullDueToWrite/example: Fail
 WeakWithStrongDillLibrary/analyzerCode: Fail
 WeakWithStrongDillLibrary/example: Fail
 WebLiteralCannotBeRepresentedExactly/analyzerCode: Fail

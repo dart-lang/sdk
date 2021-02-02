@@ -1784,7 +1784,8 @@ class TypeInferrerImpl implements TypeInferrer {
     return createNullAwareExpressionInferenceResult(
         result.inferredType,
         helper.wrapInProblem(
-            result.nullAwareAction, message, fileOffset, length),
+            result.nullAwareAction, message, fileOffset, length,
+            context: context),
         result.nullAwareGuards);
   }
 

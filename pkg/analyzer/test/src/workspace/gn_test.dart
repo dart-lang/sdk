@@ -163,8 +163,8 @@ class GnWorkspaceTest with ResourceProviderMixin {
     newFile('/workspace/.fx-build-dir', content: '$buildDir\n');
     newFile(
         '/workspace/out/debug-x87_128/dartlang/gen/some/code/foo_package_config.json');
-    var workspace =
-        GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'))!;
+    var workspace = GnWorkspace.find(
+        resourceProvider, convertPath('/workspace/some/code'))!;
     expect(workspace.root, convertPath('/workspace'));
   }
 
@@ -189,8 +189,8 @@ class GnWorkspaceTest with ResourceProviderMixin {
     }
   ]
 }''');
-    var workspace =
-        GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'))!;
+    var workspace = GnWorkspace.find(
+        resourceProvider, convertPath('/workspace/some/code'))!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.packageMap.length, 1);
     expect(workspace.packageMap['flutter']![0].path,
@@ -218,8 +218,8 @@ class GnWorkspaceTest with ResourceProviderMixin {
     }
   ]
 }''');
-    var workspace =
-        GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'))!;
+    var workspace = GnWorkspace.find(
+        resourceProvider, convertPath('/workspace/some/code'))!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.packageMap.length, 1);
     expect(workspace.packageMap['flutter']![0].path,
@@ -245,8 +245,8 @@ class GnWorkspaceTest with ResourceProviderMixin {
     }
   ]
 }''');
-    var workspace =
-        GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'))!;
+    var workspace = GnWorkspace.find(
+        resourceProvider, convertPath('/workspace/some/code'))!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.packageMap.length, 1);
     expect(workspace.packageMap['flutter']![0].path,
@@ -273,8 +273,8 @@ class GnWorkspaceTest with ResourceProviderMixin {
     }
   ]
 }''');
-    var workspace =
-        GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'))!;
+    var workspace = GnWorkspace.find(
+        resourceProvider, convertPath('/workspace/some/code'))!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.packageMap.length, 1);
     expect(workspace.packageMap['flutter']![0].path,
@@ -318,8 +318,8 @@ class GnWorkspaceTest with ResourceProviderMixin {
     }
   ]
 }''');
-    var workspace =
-        GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'))!;
+    var workspace = GnWorkspace.find(
+        resourceProvider, convertPath('/workspace/some/code'))!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.packageMap.length, 1);
     expect(workspace.packageMap['rettulf']![0].path,
@@ -363,8 +363,8 @@ class GnWorkspaceTest with ResourceProviderMixin {
     }
   ]
 }''');
-    var workspace =
-        GnWorkspace.find(resourceProvider, convertPath('/workspace/some/code'))!;
+    var workspace = GnWorkspace.find(
+        resourceProvider, convertPath('/workspace/some/code'))!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.packageMap.length, 2);
     expect(workspace.packageMap['flutter']![0].path,

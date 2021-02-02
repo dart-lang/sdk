@@ -25,7 +25,7 @@ class FunctionExpressionResolver {
     required ResolverVisitor resolver,
     required MigrationResolutionHooks? migrationResolutionHooks,
     required TypePromotionManager promoteManager,
-  })  : _resolver = resolver,
+  })   : _resolver = resolver,
         _migrationResolutionHooks = migrationResolutionHooks,
         _inferenceHelper = resolver.inferenceHelper,
         _promoteManager = promoteManager;
