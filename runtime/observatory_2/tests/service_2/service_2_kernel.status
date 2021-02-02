@@ -13,7 +13,6 @@ debugger_location_second_test: SkipByDesign # No script sources available.
 eval_internal_class_test: SkipByDesign # No incremental compiler available.
 eval_regression_flutter20255_test: SkipByDesign # No incremental compiler available.
 eval_test: SkipByDesign # No incremental compiler available.
-evaluate_activation_in_method_class_test: RuntimeError # Issue 35505
 evaluate_activation_test: SkipByDesign # No incremental compiler available.
 evaluate_async_closure_test: SkipByDesign # No incremental compiler available.
 evaluate_class_type_parameters_test: SkipByDesign # No incremental compiler available.
@@ -33,7 +32,6 @@ rewind_test: SkipByDesign # No incremental compiler available.
 [ $compiler == dartk ]
 bad_reload_test: RuntimeError # Issue 34025
 coverage_optimized_function_test: Pass, Slow
-evaluate_activation_in_method_class_test: RuntimeError # Issue 35505
 evaluate_activation_test/instance: RuntimeError # http://dartbug.com/20047
 evaluate_activation_test/scope: RuntimeError # http://dartbug.com/20047
 get_source_report_test: RuntimeError # Should pass again when constant evaluation is relanded, see http://dartbug.com/36600
