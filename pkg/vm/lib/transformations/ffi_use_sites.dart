@@ -316,8 +316,29 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
         _ensureNativeTypeValid(nativeType, node);
 
-        // TODO(http://dartbug.com/38721): Inline the body to get rid of a
-        // generic invocation of sizeOf.
+        // TODO(http://dartbug.com/38721): Change this to an error.
+        if (nativeType is TypeParameterType) {
+          // Do not rewire generic invocations.
+          return node;
+        }
+
+        // Inline the body to get rid of a generic invocation of sizeOf.
+        // TODO(http://dartbug.com/39964): Add `allignmentOf<T>()` call.
+        Expression sizeInBytes = _inlineSizeOf(nativeType);
+        if (sizeInBytes != null) {
+          if (node.arguments.positional.length == 2) {
+            sizeInBytes = MethodInvocation(
+                node.arguments.positional[1],
+                numMultiplication.name,
+                Arguments([sizeInBytes]),
+                numMultiplication);
+          }
+          return MethodInvocation(
+              node.arguments.positional[0],
+              allocatorAllocateMethod.name,
+              Arguments([sizeInBytes], types: node.arguments.types),
+              allocatorAllocateMethod);
+        }
       }
     } on _FfiStaticTypeError {
       // It's OK to swallow the exception because the diagnostics issued will
