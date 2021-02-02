@@ -509,7 +509,33 @@ class LibraryAnalyzer {
   ) {
     if (completionPath != null) {
       var completionUnit = units.values.first;
-      completionUnit.element = _unitElementWithPath(completionPath);
+      var unitElement = _unitElementWithPath(completionPath);
+      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44840
+      if (unitElement == null) {
+        String shortString(String s) {
+          const maxLength = 1000;
+          if (s.length > maxLength) {
+            return s.substring(0, maxLength);
+          }
+          return s;
+        }
+
+        var libraryContent = '<unknown>';
+        try {
+          libraryContent = _library.getContent();
+          libraryContent = shortString(libraryContent);
+        } catch (_) {}
+
+        var libraryUnitPaths =
+            _libraryElement.units.map((e) => e.source.fullName).toList();
+        throw '[completionPath: $completionPath]'
+            '[library.path: ${_library.path}]'
+            '[library.uri: ${_library.uri}]'
+            '[libraryUnitPaths: $libraryUnitPaths]'
+            '[libraryContent: $libraryContent]'
+            '[unitStr: ${shortString('$completionUnit')}]';
+      }
+      completionUnit.element = unitElement;
       return;
     }
 
