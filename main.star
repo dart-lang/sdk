@@ -1404,8 +1404,11 @@ dart_ci_builder(
     "debianpackage-linux",
     category = "misc|dp",
     channels = RELEASE_CHANNELS,
-    notifies = "infra",
     lkgr = True,
+    notifies = "infra",
+    properties = {
+        "clobber": False,
+    },
 )
 
 # external

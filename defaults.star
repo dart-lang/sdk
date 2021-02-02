@@ -5,7 +5,7 @@
 Defaults for properties and dimensions used in main.star.
 """
 
-_PROPERTIES = {"clobber": "true"}
+_PROPERTIES = {"clobber": True}
 _DIMENSIONS = {
     "cpu": "x86-64",
     "host_class": "default",
