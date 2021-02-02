@@ -6,6 +6,7 @@
 
 #include "platform/text_buffer.h"
 #include "platform/unaligned.h"
+#include "vm/code_comments.h"
 #include "vm/code_patcher.h"
 #include "vm/dart_entry.h"
 #include "vm/deopt_instructions.h"
@@ -161,7 +162,7 @@ void Disassembler::Disassemble(uword start,
                                uword end,
                                DisassemblyFormatter* formatter,
                                const Code& code,
-                               const Code::Comments* comments) {
+                               const CodeComments* comments) {
   if (comments == nullptr) {
     comments = code.IsNull() ? &Code::Comments::New(0) : &code.comments();
   }
@@ -177,9 +178,7 @@ void Disassembler::Disassemble(uword start,
     const intptr_t old_comment_finger = comment_finger;
     while (comment_finger < comments->Length() &&
            comments->PCOffsetAt(comment_finger) <= offset) {
-      formatter->Print(
-          "        ;; %s\n",
-          String::Handle(comments->CommentAt(comment_finger)).ToCString());
+      formatter->Print("        ;; %s\n", comments->CommentAt(comment_finger));
       comment_finger++;
     }
     if (old_comment_finger != comment_finger && !code.IsNull()) {

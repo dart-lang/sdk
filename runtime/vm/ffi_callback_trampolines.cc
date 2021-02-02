@@ -73,13 +73,12 @@ void NativeCallbackTrampolines::AllocateTrampoline() {
     ASSERT(!Thread::Current()->IsAtSafepoint());
     if (CodeObservers::AreActive()) {
       const auto& comments = CreateCommentsFrom(&assembler);
-      CodeCommentsWrapper wrapper(comments);
       CodeObservers::NotifyAll(name,
                                /*base=*/memory->start(),
                                /*prologue_offset=*/0,
                                /*size=*/assembler.CodeSize(),
                                /*optimized=*/false,  // not really relevant
-                               &wrapper);
+                               &comments);
     }
 #endif
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)

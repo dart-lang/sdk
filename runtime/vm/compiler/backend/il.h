@@ -146,9 +146,9 @@ class Value : public ZoneAllocated {
   void SetReachingType(CompileType* type);
   void RefineReachingType(CompileType* type);
 
-#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+#if defined(INCLUDE_IL_PRINTER)
   void PrintTo(BaseTextBuffer* f) const;
-#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+#endif  // defined(INCLUDE_IL_PRINTER)
 
   SExpression* ToSExpression(FlowGraphSerializer* s) const;
 
@@ -560,18 +560,14 @@ FOR_EACH_ABSTRACT_INSTRUCTION(FORWARD_DECLARATION)
   DECLARE_INSTRUCTION_NO_BACKEND(type)                                         \
   DECLARE_COMPARISON_METHODS
 
-#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+#if defined(INCLUDE_IL_PRINTER)
 #define PRINT_TO_SUPPORT virtual void PrintTo(BaseTextBuffer* f) const;
-#else
-#define PRINT_TO_SUPPORT
-#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
-
-#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 #define PRINT_OPERANDS_TO_SUPPORT                                              \
   virtual void PrintOperandsTo(BaseTextBuffer* f) const;
 #else
+#define PRINT_TO_SUPPORT
 #define PRINT_OPERANDS_TO_SUPPORT
-#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+#endif  // defined(INCLUDE_IL_PRINTER)
 
 #define TO_S_EXPRESSION_SUPPORT                                                \
   virtual SExpression* ToSExpression(FlowGraphSerializer* s) const;
@@ -934,10 +930,8 @@ class Instruction : public ZoneAllocated {
 
   // Printing support.
   const char* ToCString() const;
-#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
-  virtual void PrintTo(BaseTextBuffer* f) const;
-  virtual void PrintOperandsTo(BaseTextBuffer* f) const;
-#endif
+  PRINT_TO_SUPPORT
+  PRINT_OPERANDS_TO_SUPPORT
   virtual SExpression* ToSExpression(FlowGraphSerializer* s) const;
   virtual void AddOperandsToSExpression(SExpList* sexp,
                                         FlowGraphSerializer* s) const;
@@ -2397,7 +2391,7 @@ class Definition : public Instruction {
     type_ = type;
   }
 
-#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+#if defined(INCLUDE_IL_PRINTER)
   const char* TypeAsCString() const {
     return HasType() ? type_->ToCString() : "";
   }

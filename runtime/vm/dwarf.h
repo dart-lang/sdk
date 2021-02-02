@@ -16,6 +16,7 @@ namespace dart {
 #ifdef DART_PRECOMPILER
 
 class InliningNode;
+class LineNumberProgramWriter;
 
 struct ScriptIndexPair {
   // Typedefs needed for the DirectChainedHashMap template.
@@ -250,6 +251,8 @@ class Dwarf : public ZoneAllocated {
   void WriteLineNumberProgram(DwarfWriteStream* stream);
 
  private:
+  friend class LineNumberProgramWriter;
+
   static const intptr_t DW_TAG_compile_unit = 0x11;
   static const intptr_t DW_TAG_inlined_subroutine = 0x1d;
   static const intptr_t DW_TAG_subprogram = 0x2e;
@@ -306,6 +309,10 @@ class Dwarf : public ZoneAllocated {
                          InliningNode* node,
                          const char* root_code_name,
                          const Script& parent_script);
+
+  void WriteSyntheticLineNumberProgram(LineNumberProgramWriter* writer);
+  void WriteLineNumberProgramFromCodeSourceMaps(
+      LineNumberProgramWriter* writer);
 
   const char* Deobfuscate(const char* cstr);
   static Trie<const char>* CreateReverseObfuscationTrie(Zone* zone);

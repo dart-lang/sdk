@@ -18,6 +18,7 @@
 #include "platform/thread_sanitizer.h"
 #include "platform/utils.h"
 #include "vm/bitmap.h"
+#include "vm/code_comments.h"
 #include "vm/code_entry_kind.h"
 #include "vm/compiler/assembler/object_pool_builder.h"
 #include "vm/compiler/method_recognizer.h"
@@ -6181,17 +6182,18 @@ class Code : public Object {
 
   void Disassemble(DisassemblyFormatter* formatter = NULL) const;
 
-  class Comments : public ZoneAllocated {
+#if defined(INCLUDE_IL_PRINTER)
+  class Comments : public ZoneAllocated, public CodeComments {
    public:
     static Comments& New(intptr_t count);
 
-    intptr_t Length() const;
+    intptr_t Length() const override;
 
     void SetPCOffsetAt(intptr_t idx, intptr_t pc_offset);
     void SetCommentAt(intptr_t idx, const String& comment);
 
-    intptr_t PCOffsetAt(intptr_t idx) const;
-    StringPtr CommentAt(intptr_t idx) const;
+    intptr_t PCOffsetAt(intptr_t idx) const override;
+    const char* CommentAt(intptr_t idx) const override;
 
    private:
     explicit Comments(const Array& comments);
@@ -6204,14 +6206,16 @@ class Code : public Object {
     };
 
     const Array& comments_;
+    String& string_;
 
     friend class Code;
 
     DISALLOW_COPY_AND_ASSIGN(Comments);
   };
 
-  const Comments& comments() const;
-  void set_comments(const Comments& comments) const;
+  const CodeComments& comments() const;
+  void set_comments(const CodeComments& comments) const;
+#endif  // defined(INCLUDE_IL_PRINTER)
 
   ObjectPtr return_address_metadata() const {
 #if defined(PRODUCT)

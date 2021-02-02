@@ -1547,15 +1547,12 @@ void FlowGraphCompiler::GenerateListTypeCheck(
 }
 
 void FlowGraphCompiler::EmitComment(Instruction* instr) {
-  if (!FLAG_support_il_printer || !FLAG_support_disassembler) {
-    return;
-  }
-#ifndef PRODUCT
+#if defined(INCLUDE_IL_PRINTER)
   char buffer[256];
   BufferFormatter f(buffer, sizeof(buffer));
   instr->PrintTo(&f);
   assembler()->Comment("%s", buffer);
-#endif
+#endif  // defined(INCLUDE_IL_PRINTER)
 }
 
 bool FlowGraphCompiler::NeedsEdgeCounter(BlockEntryInstr* block) {

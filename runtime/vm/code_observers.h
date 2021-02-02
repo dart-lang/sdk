@@ -10,25 +10,10 @@
 
 #include "include/dart_api.h"
 
+#if !defined(PRODUCT)
 namespace dart {
 
-#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
-
-// An abstract representation of comments associated with the given code
-// object. We assume that comments are sorted by PCOffset.
-class CodeComments : public ValueObject {
- public:
-  CodeComments() = default;
-  virtual ~CodeComments() = default;
-
-  virtual intptr_t Length() const = 0;
-  virtual intptr_t PCOffsetAt(intptr_t index) const = 0;
-  virtual const char* CommentAt(intptr_t index) const = 0;
-};
-
-#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
-
-#if !defined(PRODUCT)
+class CodeComments;
 
 // Object observing code creation events. Used by external profilers and
 // debuggers to map address ranges to function names.
@@ -86,8 +71,7 @@ class CodeObservers : public AllStatic {
   static CodeObserver** observers_;
 };
 
-#endif  // !defined(PRODUCT)
-
 }  // namespace dart
+#endif  // !defined(PRODUCT)
 
 #endif  // RUNTIME_VM_CODE_OBSERVERS_H_
