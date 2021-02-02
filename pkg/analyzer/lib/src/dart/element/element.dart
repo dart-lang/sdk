@@ -2907,7 +2907,7 @@ abstract class ElementImpl implements Element {
 
   @override
   AnalysisSession get session {
-    return _enclosingElement!.session;
+    return enclosingElement!.session;
   }
 
   @override
