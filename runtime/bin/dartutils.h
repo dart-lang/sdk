@@ -353,6 +353,7 @@ class CObject {
                                              Dart_HandleFinalizer callback);
 
   static Dart_CObject* NewIOBuffer(int64_t length);
+  static void ShrinkIOBuffer(Dart_CObject* cobject, int64_t new_length);
   static void FreeIOBufferData(Dart_CObject* object);
 
   Dart_CObject* AsApiCObject() { return cobject_; }
@@ -567,9 +568,6 @@ class CObjectExternalUint8Array : public CObject {
 
   intptr_t Length() const {
     return cobject_->value.as_external_typed_data.length;
-  }
-  void SetLength(intptr_t length) {
-    cobject_->value.as_external_typed_data.length = length;
   }
   uint8_t* Data() const { return cobject_->value.as_external_typed_data.data; }
   void* Peer() const { return cobject_->value.as_external_typed_data.peer; }
