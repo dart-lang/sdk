@@ -13,6 +13,7 @@ import '../compiler.dart';
 import '../elements/entities.dart';
 import '../js_backend/inferred_data.dart';
 import '../js_model/elements.dart' show JClosureCallMethod;
+import '../js_model/locals.dart';
 import '../world.dart';
 import 'abstract_value_domain.dart';
 import 'inferrer_engine.dart';
@@ -53,11 +54,12 @@ class TypeGraphInferrer implements TypesInferrer {
   final JClosedWorld closedWorld;
 
   final Compiler _compiler;
+  final GlobalLocalsMap _globalLocalsMap;
   final InferredDataBuilder _inferredDataBuilder;
   Metrics /*?*/ _metrics;
 
-  TypeGraphInferrer(
-      this._compiler, this.closedWorld, this._inferredDataBuilder);
+  TypeGraphInferrer(this._compiler, this.closedWorld, this._globalLocalsMap,
+      this._inferredDataBuilder);
 
   String get name => 'Graph inferrer';
 
@@ -82,6 +84,7 @@ class TypeGraphInferrer implements TypesInferrer {
         _compiler.outputProvider,
         closedWorld,
         main,
+        _globalLocalsMap,
         _inferredDataBuilder);
   }
 
@@ -134,8 +137,7 @@ class TypeGraphInferrer implements TypesInferrer {
       if (member is JClosureCallMethod) {
         ClosureRepresentationInfo info =
             closedWorld.closureDataLookup.getScopeInfo(member);
-        info.forEachFreeVariable(
-            closedWorld.globalLocalsMap.getLocalsMap(member),
+        info.forEachFreeVariable(_globalLocalsMap.getLocalsMap(member),
             (Local from, FieldEntity to) {
           freeVariables.add(to);
         });
@@ -169,6 +171,7 @@ class TypeGraphInferrer implements TypesInferrer {
 
     GlobalTypeInferenceResults results = new GlobalTypeInferenceResultsImpl(
         closedWorld,
+        _globalLocalsMap,
         _inferredDataBuilder.close(closedWorld),
         memberResults,
         parameterResults,

@@ -38,7 +38,8 @@ class ClosureDataComputer extends DataComputer<String> {
       {bool verbose: false}) {
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
-    GlobalLocalsMap localsMap = closedWorld.globalLocalsMap;
+    GlobalLocalsMap localsMap =
+        compiler.globalInference.resultsForTesting.globalLocalsMap;
     ClosureData closureDataLookup = closedWorld.closureDataLookup;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     assert(

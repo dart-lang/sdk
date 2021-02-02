@@ -55,7 +55,7 @@ runTest() async {
       AbstractValue expectedReturnType,
       GlobalTypeInferenceResults results) {
     closedWorld.elementEnvironment.forEachParameterAsLocal(
-        closedWorld.globalLocalsMap, function, (Local parameter) {
+        results.globalLocalsMap, function, (Local parameter) {
       AbstractValue type = results.resultOfParameter(parameter);
       Expect.equals(
           expectedParameterType, simplify(type, commonMasks), "$parameter");

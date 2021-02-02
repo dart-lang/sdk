@@ -35,6 +35,14 @@ abstract class ClosureData {
   /// Accessor to the information about scopes that closures capture. Used by
   /// the SSA builder.
   CapturedScope getCapturedScope(MemberEntity entity);
+
+  /// If [entity] is a closure call method or closure signature method, the
+  /// original enclosing member is returned. Otherwise [entity] is returned.
+  ///
+  /// A member and its nested closure share the underlying AST, we need to
+  /// ensure that locals are shared between them. We therefore store the
+  /// locals in the global locals map using the enclosing member as key.
+  MemberEntity getEnclosingMember(MemberEntity entity);
 }
 
 /// Enum used for identifying [ScopeInfo] subclasses in serialization.

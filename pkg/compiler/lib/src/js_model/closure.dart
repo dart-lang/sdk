@@ -21,7 +21,6 @@ import '../ssa/type_builder.dart';
 import '../universe/selector.dart';
 import 'elements.dart';
 import 'js_world_builder.dart' show JsClosedWorldBuilder;
-import 'locals.dart';
 
 class ClosureDataImpl implements ClosureData {
   /// Tag used for identifying serialized [ClosureData] objects in a
@@ -40,8 +39,15 @@ class ClosureDataImpl implements ClosureData {
   final Map<ir.LocalFunction, ClosureRepresentationInfo>
       _localClosureRepresentationMap;
 
-  ClosureDataImpl(this._elementMap, this._scopeMap, this._capturedScopesMap,
-      this._capturedScopeForSignatureMap, this._localClosureRepresentationMap);
+  final Map<MemberEntity, MemberEntity> _enclosingMembers;
+
+  ClosureDataImpl(
+      this._elementMap,
+      this._scopeMap,
+      this._capturedScopesMap,
+      this._capturedScopeForSignatureMap,
+      this._localClosureRepresentationMap,
+      this._enclosingMembers);
 
   /// Deserializes a [ClosureData] object from [source].
   factory ClosureDataImpl.readFromDataSource(
@@ -58,9 +64,16 @@ class ClosureDataImpl implements ClosureData {
     Map<ir.LocalFunction, ClosureRepresentationInfo>
         localClosureRepresentationMap = source.readTreeNodeMap(
             () => new ClosureRepresentationInfo.readFromDataSource(source));
+    Map<MemberEntity, MemberEntity> enclosingMembers =
+        source.readMemberMap((member) => source.readMember());
     source.end(tag);
-    return new ClosureDataImpl(elementMap, scopeMap, capturedScopesMap,
-        capturedScopeForSignatureMap, localClosureRepresentationMap);
+    return new ClosureDataImpl(
+        elementMap,
+        scopeMap,
+        capturedScopesMap,
+        capturedScopeForSignatureMap,
+        localClosureRepresentationMap,
+        enclosingMembers);
   }
 
   /// Serializes this [ClosureData] to [sink].
@@ -79,6 +92,10 @@ class ClosureDataImpl implements ClosureData {
     sink.writeTreeNodeMap(_localClosureRepresentationMap,
         (ClosureRepresentationInfo info) {
       info.writeToDataSink(sink);
+    });
+    sink.writeMemberMap(_enclosingMembers,
+        (MemberEntity member, MemberEntity value) {
+      sink.writeMember(value);
     });
     sink.end(tag);
   }
@@ -132,6 +149,11 @@ class ClosureDataImpl implements ClosureData {
         "Closures found for ${_localClosureRepresentationMap.keys}");
     return closure;
   }
+
+  @override
+  MemberEntity getEnclosingMember(MemberEntity member) {
+    return _enclosingMembers[member] ?? member;
+  }
 }
 
 /// Closure conversion code using our new Entity model. Closure conversion is
@@ -149,7 +171,6 @@ class ClosureDataImpl implements ClosureData {
 
 class ClosureDataBuilder {
   final JsToElementMap _elementMap;
-  final GlobalLocalsMap _globalLocalsMap;
   final AnnotationsData _annotationsData;
 
   /// Map of the scoping information that corresponds to a particular entity.
@@ -162,8 +183,9 @@ class ClosureDataBuilder {
   Map<ir.LocalFunction, ClosureRepresentationInfo>
       _localClosureRepresentationMap = {};
 
-  ClosureDataBuilder(
-      this._elementMap, this._globalLocalsMap, this._annotationsData);
+  Map<MemberEntity, MemberEntity> _enclosingMembers = {};
+
+  ClosureDataBuilder(this._elementMap, this._annotationsData);
 
   void _updateScopeBasedOnRtiNeed(KernelScopeInfo scope, ClosureRtiNeed rtiNeed,
       MemberEntity outermostEntity) {
@@ -360,8 +382,13 @@ class ClosureDataBuilder {
         callMethods.add(closureClassInfo.callMethod);
       }
     });
-    return new ClosureDataImpl(_elementMap, _scopeMap, _capturedScopesMap,
-        _capturedScopeForSignatureMap, _localClosureRepresentationMap);
+    return new ClosureDataImpl(
+        _elementMap,
+        _scopeMap,
+        _capturedScopesMap,
+        _capturedScopeForSignatureMap,
+        _localClosureRepresentationMap,
+        _enclosingMembers);
   }
 
   /// Given what variables are captured at each point, construct closure classes
@@ -379,17 +406,15 @@ class ClosureDataBuilder {
       ClosureRtiNeed rtiNeed,
       {bool createSignatureMethod}) {
     _updateScopeBasedOnRtiNeed(info, rtiNeed, member);
-    KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
     JsClosureClassInfo closureClassInfo = closedWorldBuilder.buildClosureClass(
         member, node, member.library, boxedVariables, info,
         createSignatureMethod: createSignatureMethod);
 
     // We want the original declaration where that function is used to point
     // to the correct closure class.
-    _globalLocalsMap.setLocalsMap(closureClassInfo.callMethod, localsMap);
+    _enclosingMembers[closureClassInfo.callMethod] = member;
     if (closureClassInfo.signatureMethod != null) {
-      _globalLocalsMap.setLocalsMap(
-          closureClassInfo.signatureMethod, localsMap);
+      _enclosingMembers[closureClassInfo.signatureMethod] = member;
     }
     if (node.parent is ir.Member) {
       assert(_elementMap.getMember(node.parent) == member);
