@@ -11,8 +11,6 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart' as lsp;
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart' as lsp;
-import 'package:analysis_server/lsp_protocol/protocol_special.dart'
-    show ErrorOr, Either2, Either4;
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/constants.dart' as lsp;
 import 'package:analysis_server/src/lsp/constants.dart';

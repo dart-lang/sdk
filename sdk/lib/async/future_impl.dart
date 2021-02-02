@@ -187,18 +187,18 @@ class _FutureListener<S, T> {
 
 class _Future<T> implements Future<T> {
   /// Initial state, waiting for a result. In this state, the
-  /// [resultOrListeners] field holds a single-linked list of
+  /// [_resultOrListeners] field holds a single-linked list of
   /// [_FutureListener] listeners.
   static const int _stateIncomplete = 0;
 
   /// Pending completion. Set when completed using [_asyncComplete] or
   /// [_asyncCompleteError]. It is an error to try to complete it again.
-  /// [resultOrListeners] holds listeners.
+  /// [_resultOrListeners] holds listeners.
   static const int _statePendingComplete = 1;
 
   /// The future has been chained to another future. The result of that
   /// other future becomes the result of this future as well.
-  /// [resultOrListeners] contains the source future.
+  /// [_resultOrListeners] contains the source future.
   static const int _stateChained = 2;
 
   /// The future has been completed with a value result.
@@ -226,7 +226,7 @@ class _Future<T> implements Future<T> {
   /// Listeners are only remembered while the future is not yet complete,
   /// and it is not chained to another future.
   ///
-  /// The future is another future that his future is chained to. This future
+  /// The future is another future that this future is chained to. This future
   /// is waiting for the other future to complete, and when it does, this future
   /// will complete with the same result.
   /// All listeners are forwarded to the other future.
@@ -767,6 +767,7 @@ class _Future<T> implements Future<T> {
           return;
         }
       }
+
       _Future result = listener.result;
       listeners = result._removeListeners();
       if (!listenerHasError) {

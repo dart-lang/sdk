@@ -4,6 +4,7 @@
 
 #include "vm/dwarf.h"
 
+#include "vm/code_comments.h"
 #include "vm/code_descriptors.h"
 #include "vm/elf.h"
 #include "vm/image_snapshot.h"
@@ -12,6 +13,11 @@
 namespace dart {
 
 #if defined(DART_PRECOMPILER)
+
+DEFINE_FLAG(charp,
+            write_code_comments_as_synthetic_source_to,
+            nullptr,
+            "Print comments associated with instructions into the given file");
 
 class DwarfPosition {
  public:
@@ -506,6 +512,212 @@ void Dwarf::WriteInliningNode(DwarfWriteStream* stream,
   stream->uleb128(0);  // End of children.
 }
 
+// Helper class for tracking state of DWARF registers and emitting
+// line number program commands to set these registers to the right
+// state.
+class LineNumberProgramWriter {
+ public:
+  explicit LineNumberProgramWriter(DwarfWriteStream* stream)
+      : stream_(stream) {}
+
+  void SetFile(intptr_t file) {
+    if (file != file_) {
+      stream_->u1(Dwarf::DW_LNS_set_file);
+      stream_->uleb128(file);
+      file_ = file;
+    }
+  }
+
+  void SetLine(intptr_t line) {
+    if (line != line_) {
+      stream_->u1(Dwarf::DW_LNS_advance_line);
+      stream_->sleb128(line - line_);
+      line_ = line;
+    }
+  }
+
+  void SetColumn(intptr_t column) {
+    if (column != column_) {
+      stream_->u1(Dwarf::DW_LNS_set_column);
+      stream_->uleb128(column);
+      column_ = column;
+    }
+  }
+
+  void SetPCOffset(const char* asm_name, intptr_t pc_offset) {
+    if (asm_name_ == nullptr) {
+      auto const instr_size = 1 + compiler::target::kWordSize;
+      stream_->u1(0);           // This is an extended opcode
+      stream_->u1(instr_size);  // that is 5 or 9 bytes long
+      stream_->u1(Dwarf::DW_LNE_set_address);
+      stream_->OffsetFromSymbol(asm_name, pc_offset);
+    } else {
+      // Emit LNP row if the address register has been updated to a
+      // non-zero value (dartbug.com/41756).
+      stream_->u1(Dwarf::DW_LNS_copy);
+      stream_->u1(Dwarf::DW_LNS_advance_pc);
+      stream_->DistanceBetweenSymbolOffsets(asm_name, pc_offset, asm_name_,
+                                            pc_offset_);
+    }
+    asm_name_ = asm_name;
+    pc_offset_ = pc_offset;
+  }
+
+ private:
+  DwarfWriteStream* const stream_;
+  // The initial values for the line number program state machine registers
+  // according to the DWARF standard.
+  intptr_t pc_offset_ = 0;
+  intptr_t file_ = 1;
+  intptr_t line_ = 1;
+  intptr_t column_ = 0;
+
+  // Other info not stored in the state machine registers.
+  const char* asm_name_ = nullptr;
+};
+
+void Dwarf::WriteSyntheticLineNumberProgram(LineNumberProgramWriter* writer) {
+  // We emit it last after all other scripts.
+  const intptr_t comments_file_index = scripts_.length() + 1;
+
+  auto file_open = Dart::file_open_callback();
+  auto file_write = Dart::file_write_callback();
+  auto file_close = Dart::file_close_callback();
+  if ((file_open == nullptr) || (file_write == nullptr) ||
+      (file_close == nullptr)) {
+    return;
+  }
+
+  TextBuffer comments_buffer(128 * KB);
+
+  auto comments_file = file_open(
+      FLAG_write_code_comments_as_synthetic_source_to, /*write=*/true);
+  if (comments_file == nullptr) {
+    OS::PrintErr("Failed to open file %s\n",
+                 FLAG_write_code_comments_as_synthetic_source_to);
+    return;
+  }
+
+  intptr_t current_line = 0;
+
+  writer->SetFile(comments_file_index);
+
+  for (intptr_t i = 0; i < codes_.length(); i++) {
+    const Code& code = *(codes_[i]);
+    auto const asm_name = code_to_name_.LookupValue(&code);
+    ASSERT(asm_name != nullptr);
+
+    auto& comments = code.comments();
+    for (intptr_t i = 0, len = comments.Length(); i < len;) {
+      intptr_t current_pc_offset = comments.PCOffsetAt(i);
+      writer->SetPCOffset(asm_name, current_pc_offset);
+      while (i < len && current_pc_offset == comments.PCOffsetAt(i)) {
+        comments_buffer.AddString(comments.CommentAt(i));
+        comments_buffer.AddChar('\n');
+        current_line++;
+        i++;
+      }
+
+      writer->SetLine(current_line);
+    }
+  }
+
+  file_write(comments_buffer.buffer(), comments_buffer.length(), comments_file);
+  file_close(comments_file);
+}
+
+void Dwarf::WriteLineNumberProgramFromCodeSourceMaps(
+    LineNumberProgramWriter* writer) {
+  Function& root_function = Function::Handle(zone_);
+  Script& script = Script::Handle(zone_);
+  CodeSourceMap& map = CodeSourceMap::Handle(zone_);
+  Array& functions = Array::Handle(zone_);
+  GrowableArray<const Function*> function_stack(zone_, 8);
+  GrowableArray<DwarfPosition> token_positions(zone_, 8);
+
+  for (intptr_t i = 0; i < codes_.length(); i++) {
+    const Code& code = *(codes_[i]);
+    auto const asm_name = code_to_name_.LookupValue(&code);
+    ASSERT(asm_name != nullptr);
+
+    map = code.code_source_map();
+    if (map.IsNull()) {
+      continue;
+    }
+    root_function = code.function();
+    functions = code.inlined_id_to_function();
+
+    NoSafepointScope no_safepoint;
+    ReadStream code_map_stream(map.Data(), map.Length());
+
+    function_stack.Clear();
+    token_positions.Clear();
+
+    int32_t current_pc_offset = 0;
+    function_stack.Add(&root_function);
+    token_positions.Add(kNoDwarfPositionInfo);
+
+    while (code_map_stream.PendingBytes() > 0) {
+      int32_t arg1;
+      int32_t arg2 = -1;
+      const uint8_t opcode =
+          CodeSourceMapOps::Read(&code_map_stream, &arg1, &arg2);
+      switch (opcode) {
+        case CodeSourceMapOps::kChangePosition: {
+          const DwarfPosition& old_pos =
+              token_positions[token_positions.length() - 1];
+          token_positions[token_positions.length() - 1] = DwarfPosition(
+              Utils::AddWithWrapAround(old_pos.line(), arg1), arg2);
+          break;
+        }
+        case CodeSourceMapOps::kAdvancePC: {
+          current_pc_offset += arg1;
+
+          const Function& function = *(function_stack.Last());
+          script = function.script();
+          intptr_t file = LookupScript(script);
+
+          // 1. Update LNP file.
+          writer->SetFile(file);
+
+          // 2. Update LNP line.
+          // The DWARF standard uses 0 to denote missing line or column
+          // information.
+          writer->SetLine(token_positions.Last().line() < 0
+                              ? 0
+                              : token_positions.Last().line());
+          writer->SetColumn(token_positions.Last().column() < 0
+                                ? 0
+                                : token_positions.Last().column());
+
+          writer->SetPCOffset(asm_name, current_pc_offset);
+          break;
+        }
+        case CodeSourceMapOps::kPushFunction: {
+          auto child_func =
+              &Function::Handle(zone_, Function::RawCast(functions.At(arg1)));
+          function_stack.Add(child_func);
+          token_positions.Add(kNoDwarfPositionInfo);
+          break;
+        }
+        case CodeSourceMapOps::kPopFunction: {
+          // We never pop the root function.
+          ASSERT(function_stack.length() > 1);
+          ASSERT(token_positions.length() > 1);
+          function_stack.RemoveLast();
+          token_positions.RemoveLast();
+          break;
+        }
+        case CodeSourceMapOps::kNullCheck: {
+          break;
+        }
+        default:
+          UNREACHABLE();
+      }
+    }
+  }
+}
+
 void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
   // 6.2.4 The Line Number Program Header
 
@@ -559,141 +771,21 @@ void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
     stream->uleb128(0);        // File modification time.
     stream->uleb128(0);        // File length.
   }
+  if (FLAG_write_code_comments_as_synthetic_source_to != nullptr) {
+    stream->string(FLAG_write_code_comments_as_synthetic_source_to);  // NOLINT
+    stream->uleb128(0);  // Include directory index.
+    stream->uleb128(0);  // File modification time.
+    stream->uleb128(0);  // File length.
+  }
   stream->u1(0);  // End of file names.
   stream->SetSize(lineheader_size_fixup, lineheader_prefix, lineheader_start);
 
   // 6.2.5 The Line Number Program
-
-  // The initial values for the line number program state machine registers
-  // according to the DWARF standard.
-  intptr_t previous_pc_offset = 0;
-  intptr_t previous_file = 1;
-  intptr_t previous_line = 1;
-  intptr_t previous_column = 0;
-  // Other info not stored in the state machine registers.
-  const char* previous_asm_name = nullptr;
-
-  Function& root_function = Function::Handle(zone_);
-  Script& script = Script::Handle(zone_);
-  CodeSourceMap& map = CodeSourceMap::Handle(zone_);
-  Array& functions = Array::Handle(zone_);
-  GrowableArray<const Function*> function_stack(zone_, 8);
-  GrowableArray<DwarfPosition> token_positions(zone_, 8);
-
-  for (intptr_t i = 0; i < codes_.length(); i++) {
-    const Code& code = *(codes_[i]);
-    auto const asm_name = code_to_name_.LookupValue(&code);
-    ASSERT(asm_name != nullptr);
-
-    map = code.code_source_map();
-    if (map.IsNull()) {
-      continue;
-    }
-    root_function = code.function();
-    functions = code.inlined_id_to_function();
-
-    NoSafepointScope no_safepoint;
-    ReadStream code_map_stream(map.Data(), map.Length());
-
-    function_stack.Clear();
-    token_positions.Clear();
-
-    int32_t current_pc_offset = 0;
-    function_stack.Add(&root_function);
-    token_positions.Add(kNoDwarfPositionInfo);
-
-    while (code_map_stream.PendingBytes() > 0) {
-      int32_t arg1;
-      int32_t arg2 = -1;
-      const uint8_t opcode =
-          CodeSourceMapOps::Read(&code_map_stream, &arg1, &arg2);
-      switch (opcode) {
-        case CodeSourceMapOps::kChangePosition: {
-          const DwarfPosition& old_pos =
-              token_positions[token_positions.length() - 1];
-          token_positions[token_positions.length() - 1] = DwarfPosition(
-              Utils::AddWithWrapAround(old_pos.line(), arg1), arg2);
-          break;
-        }
-        case CodeSourceMapOps::kAdvancePC: {
-          current_pc_offset += arg1;
-
-          const Function& function = *(function_stack.Last());
-          script = function.script();
-          intptr_t file = LookupScript(script);
-
-          // 1. Update LNP file.
-          if (file != previous_file) {
-            stream->u1(DW_LNS_set_file);
-            stream->uleb128(file);
-            previous_file = file;
-          }
-
-          // 2. Update LNP line.
-          // The DWARF standard uses 0 to denote missing line or column
-          // information.
-          const intptr_t line = token_positions.Last().line() < 0
-                                    ? 0
-                                    : token_positions.Last().line();
-          const intptr_t column = token_positions.Last().column() < 0
-                                      ? 0
-                                      : token_positions.Last().column();
-          if (line != previous_line) {
-            stream->u1(DW_LNS_advance_line);
-            stream->sleb128(line - previous_line);
-            previous_line = line;
-          }
-          if (column != previous_column) {
-            stream->u1(DW_LNS_set_column);
-            stream->uleb128(column);
-            previous_column = column;
-          }
-
-          // 3. Emit LNP row if the address register has been updated to a
-          // non-zero value (dartbug.com/41756).
-          if (previous_asm_name != nullptr) {
-            stream->u1(DW_LNS_copy);
-          }
-
-          // 4. Update LNP pc.
-          if (previous_asm_name == nullptr) {
-            auto const instr_size = 1 + compiler::target::kWordSize;
-            stream->u1(0);           // This is an extended opcode
-            stream->u1(instr_size);  // that is 5 or 9 bytes long
-            stream->u1(DW_LNE_set_address);
-            stream->OffsetFromSymbol(asm_name, current_pc_offset);
-          } else {
-            stream->u1(DW_LNS_advance_pc);
-            stream->DistanceBetweenSymbolOffsets(asm_name, current_pc_offset,
-                                                 previous_asm_name,
-                                                 previous_pc_offset);
-          }
-          previous_asm_name = asm_name;
-          previous_pc_offset = current_pc_offset;
-          break;
-        }
-        case CodeSourceMapOps::kPushFunction: {
-          const Function& child_func =
-              Function::Handle(zone_, Function::RawCast(functions.At(arg1)));
-          function_stack.Add(&child_func);
-          token_positions.Add(kNoDwarfPositionInfo);
-          break;
-        }
-        case CodeSourceMapOps::kPopFunction: {
-          // We never pop the root function.
-          ASSERT(function_stack.length() > 1);
-          ASSERT(token_positions.length() > 1);
-          function_stack.RemoveLast();
-          token_positions.RemoveLast();
-          break;
-        }
-        case CodeSourceMapOps::kNullCheck: {
-          break;
-        }
-        default:
-          UNREACHABLE();
-      }
-    }
+  LineNumberProgramWriter lnp_writer(stream);
+  if (FLAG_write_code_comments_as_synthetic_source_to != nullptr) {
+    WriteSyntheticLineNumberProgram(&lnp_writer);
+  } else {
+    WriteLineNumberProgramFromCodeSourceMaps(&lnp_writer);
   }
 
   // Advance pc to end of the compilation unit if not already there.
@@ -703,16 +795,7 @@ void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
     const intptr_t last_pc_offset = last_code.Size();
     const char* last_asm_name = code_to_name_.LookupValue(&last_code);
     ASSERT(last_asm_name != nullptr);
-
-    stream->u1(DW_LNS_advance_pc);
-    if (previous_asm_name != nullptr) {
-      stream->DistanceBetweenSymbolOffsets(
-          last_asm_name, last_pc_offset, previous_asm_name, previous_pc_offset);
-    } else {
-      // No LNP entries (e.g., only stub code).
-      ASSERT(previous_pc_offset == 0);
-      stream->uleb128(last_pc_offset);
-    }
+    lnp_writer.SetPCOffset(last_asm_name, last_pc_offset);
   }
 
   // End of contiguous machine code.

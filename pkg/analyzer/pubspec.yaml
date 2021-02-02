@@ -15,11 +15,11 @@ dependencies:
   crypto: ^3.0.0-nullsafety.0
   glob: ^2.0.0-nullsafety.0
   meta: ^1.3.0-nullsafety.6
-  package_config: ^1.0.0
+  package_config: ^2.0.0-nullsafety.0
   path: ^1.8.0-nullsafety.3
   pub_semver: ^2.0.0-nullsafety.0
   source_span: ^1.8.0-nullsafety.4
-  watcher: ^0.9.6
+  watcher: ^1.0.0-nullsafety.0
   yaml: ^3.0.0-nullsafety.0
 dev_dependencies:
   analyzer_utilities:

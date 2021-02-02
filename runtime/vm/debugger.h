@@ -317,7 +317,7 @@ class ActivationFrame : public ZoneAllocated {
 
   ArrayPtr GetLocalVariables();
   ObjectPtr GetParameter(intptr_t index);
-  ObjectPtr GetClosure();
+  ClosurePtr GetClosure();
   ObjectPtr GetReceiver();
 
   const Context& GetSavedCurrentContext();

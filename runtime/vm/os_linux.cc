@@ -22,6 +22,7 @@
 
 #include "platform/memory_sanitizer.h"
 #include "platform/utils.h"
+#include "vm/code_comments.h"
 #include "vm/code_observers.h"
 #include "vm/dart.h"
 #include "vm/flags.h"

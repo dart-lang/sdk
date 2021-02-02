@@ -19,15 +19,39 @@ class CallerClosureFinder {
  public:
   explicit CallerClosureFinder(Zone* zone);
 
+  // Recursively follow any `_FutureListener.result`.
+  // If no `result`, then return (bottom) `_FutureListener.callback`
   ClosurePtr GetCallerInFutureImpl(const Object& future_);
 
+  // Get caller closure from _FutureListener.
+  // Returns closure found either via the `result` Future, or the `callback`.
   ClosurePtr GetCallerInFutureListener(const Object& future_listener);
 
-  ClosurePtr FindCallerInAsyncClosure(const Context& receiver_context);
-
+  // Find caller closure from an async* function receiver context.
+  // Returns either the `onData` or the Future awaiter.
   ClosurePtr FindCallerInAsyncGenClosure(const Context& receiver_context);
 
+  // Find caller closure from a function receiver closure.
+  // For async* functions, async functions, `Future.timeout` and `Future.wait`,
+  // we can do this by finding and following their awaited Futures.
   ClosurePtr FindCaller(const Closure& receiver_closure);
+
+  // Finds the awaited Future from an async function receiver closure.
+  ObjectPtr GetAsyncFuture(const Closure& receiver_closure);
+
+  // Get sdk/lib/async/future_impl.dart:_FutureListener.state.
+  intptr_t GetFutureListenerState(const Object& future_listener);
+
+  // Get sdk/lib/async/future_impl.dart:_FutureListener.callback.
+  ClosurePtr GetFutureListenerCallback(const Object& future_listener);
+
+  // Get sdk/lib/async/future_impl.dart:_FutureListener.result.
+  ObjectPtr GetFutureListenerResult(const Object& future_listener);
+
+  // Get sdk/lib/async/future_impl.dart:_Future._resultOrListeners.
+  ObjectPtr GetFutureFutureListener(const Object& future);
+
+  bool HasCatchError(const Object& future_listener);
 
   static bool IsRunningAsync(const Closure& receiver_closure);
 

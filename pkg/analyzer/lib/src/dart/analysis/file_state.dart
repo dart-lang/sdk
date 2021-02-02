@@ -454,33 +454,10 @@ class FileState {
     }
 
     // Prepare bytes of the unlinked bundle - existing or new.
-    // TODO(migration): should not be nullable
-    List<int>? bytes;
-    {
-      bytes = _fsState._byteStore.get(_unlinkedKey!);
-      if (bytes == null || bytes.isEmpty) {
-        CompilationUnit unit = parse();
-        _fsState._logger.run('Create unlinked for $path', () {
-          var unlinkedUnit = serializeAstUnlinked2(unit);
-          var definedNames = computeDefinedNames(unit);
-          var referencedNames = computeReferencedNames(unit).toList();
-          var subtypedNames = computeSubtypedNames(unit).toList();
-          bytes = AnalysisDriverUnlinkedUnitBuilder(
-            unit2: unlinkedUnit,
-            definedTopLevelNames: definedNames.topLevelNames.toList(),
-            definedClassMemberNames: definedNames.classMemberNames.toList(),
-            referencedNames: referencedNames,
-            subtypedNames: subtypedNames,
-          ).toBuffer();
-          _fsState._byteStore.put(_unlinkedKey!, bytes!);
-          counterUnlinkedBytes += bytes!.length;
-          counterUnlinkedLinkedBytes += bytes!.length;
-        });
-      }
-    }
+    var bytes = _getUnlinkedBytes();
 
     // Read the unlinked bundle.
-    _driverUnlinkedUnit = AnalysisDriverUnlinkedUnit.fromBuffer(bytes!);
+    _driverUnlinkedUnit = AnalysisDriverUnlinkedUnit.fromBuffer(bytes);
     _unlinked2 = _driverUnlinkedUnit!.unit2;
     _lineInfo = LineInfo(_unlinked2!.lineStarts);
 
@@ -583,6 +560,33 @@ class FileState {
     }
 
     return _fsState.getFileForUri(absoluteUri);
+  }
+
+  /// Return the bytes of the unlinked summary - existing or new.
+  List<int> _getUnlinkedBytes() {
+    var bytes = _fsState._byteStore.get(_unlinkedKey!);
+    if (bytes != null && bytes.isNotEmpty) {
+      return bytes;
+    }
+
+    var unit = parse();
+    return _fsState._logger.run('Create unlinked for $path', () {
+      var unlinkedUnit = serializeAstUnlinked2(unit);
+      var definedNames = computeDefinedNames(unit);
+      var referencedNames = computeReferencedNames(unit).toList();
+      var subtypedNames = computeSubtypedNames(unit).toList();
+      var bytes = AnalysisDriverUnlinkedUnitBuilder(
+        unit2: unlinkedUnit,
+        definedTopLevelNames: definedNames.topLevelNames.toList(),
+        definedClassMemberNames: definedNames.classMemberNames.toList(),
+        referencedNames: referencedNames,
+        subtypedNames: subtypedNames,
+      ).toBuffer();
+      _fsState._byteStore.put(_unlinkedKey!, bytes);
+      counterUnlinkedBytes += bytes.length;
+      counterUnlinkedLinkedBytes += bytes.length;
+      return bytes;
+    });
   }
 
   /// Invalidate any data that depends on the current unlinked data of the file,

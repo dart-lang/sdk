@@ -146,37 +146,17 @@ CallerClosureFinder::CallerClosureFinder(Zone* zone)
 ClosurePtr CallerClosureFinder::GetCallerInFutureImpl(const Object& future) {
   ASSERT(!future.IsNull());
   ASSERT(future.GetClassId() == future_impl_class.id());
-
   // Since this function is recursive, we have to keep a local ref.
-  auto& listener = Object::Handle(
-      Instance::Cast(future).GetField(future_result_or_listeners_field));
-  if (listener.GetClassId() != future_listener_class.id()) {
+  auto& listener = Object::Handle(GetFutureFutureListener(future));
+  if (listener.IsNull()) {
     return Closure::null();
   }
-
-  callback_ = GetCallerInFutureListener(listener);
-  if (callback_.IsInstance() && !callback_.IsNull()) {
-    return Closure::Cast(callback_).ptr();
-  }
-
-  callback_ = Instance::Cast(listener).GetField(callback_field);
-  // This happens for e.g.: await f().catchError(..);
-  if (callback_.IsNull()) {
-    return Closure::null();
-  }
-  ASSERT(callback_.IsClosure());
-
-  return Closure::Cast(callback_).ptr();
-}
-
-ClosurePtr CallerClosureFinder::FindCallerInAsyncClosure(
-    const Context& receiver_context) {
-  future_ = receiver_context.At(Context::kAsyncFutureIndex);
-  return GetCallerInFutureImpl(future_);
+  return GetCallerInFutureListener(listener);
 }
 
 ClosurePtr CallerClosureFinder::FindCallerInAsyncGenClosure(
     const Context& receiver_context) {
+  // Get the async* _StreamController.
   context_entry_ = receiver_context.At(Context::kControllerIndex);
   ASSERT(context_entry_.IsInstance());
   ASSERT(context_entry_.GetClassId() ==
@@ -187,13 +167,14 @@ ClosurePtr CallerClosureFinder::FindCallerInAsyncGenClosure(
   ASSERT(!controller_.IsNull());
   ASSERT(controller_.GetClassId() == async_stream_controller_class.id());
 
+  // Get the _StreamController._state field.
   state_ = Instance::Cast(controller_).GetField(state_field);
   ASSERT(state_.IsSmi());
   if (Smi::Cast(state_).Value() != k_StreamController__STATE_SUBSCRIBED) {
     return Closure::null();
   }
 
-  // _StreamController._varData
+  // Get the _StreamController._varData field.
   var_data_ = Instance::Cast(controller_).GetField(var_data_field);
   ASSERT(var_data_.GetClassId() == controller_subscription_class.id());
 
@@ -228,36 +209,35 @@ ClosurePtr CallerClosureFinder::FindCallerInAsyncGenClosure(
 
 ClosurePtr CallerClosureFinder::GetCallerInFutureListener(
     const Object& future_listener) {
-  ASSERT(future_listener.GetClassId() == future_listener_class.id());
+  auto value = GetFutureListenerState(future_listener);
 
-  state_ =
-      Instance::Cast(future_listener).GetField(future_listener_state_field);
-
-  auto value = Smi::Cast(state_).Value();
   // If the _FutureListener is a `then`, `catchError`, or `whenComplete`
   // listener, follow the Future being completed, `result`, instead of the
   // dangling whenComplete `callback`.
   if (value == k_FutureListener_stateThen ||
       value == k_FutureListener_stateCatchError ||
       value == k_FutureListener_stateWhenComplete) {
-    future_ =
-        Instance::Cast(future_listener).GetField(future_listener_result_field);
+    future_ = GetFutureListenerResult(future_listener);
     return GetCallerInFutureImpl(future_);
   }
 
-  return Closure::null();
+  // If no chained futures, fall back on _FutureListener.callback.
+  return GetFutureListenerCallback(future_listener);
 }
 
 ClosurePtr CallerClosureFinder::FindCaller(const Closure& receiver_closure) {
   receiver_function_ = receiver_closure.function();
   receiver_context_ = receiver_closure.context();
 
-  if (receiver_function_.IsAsyncClosure()) {
-    return FindCallerInAsyncClosure(receiver_context_);
-  }
   if (receiver_function_.IsAsyncGenClosure()) {
     return FindCallerInAsyncGenClosure(receiver_context_);
   }
+
+  if (receiver_function_.IsAsyncClosure()) {
+    future_ = receiver_context_.At(Context::kAsyncFutureIndex);
+    return GetCallerInFutureImpl(future_);
+  }
+
   if (receiver_function_.IsLocalFunction()) {
     parent_function_ = receiver_function_.parent_function();
     if (parent_function_.recognized_kind() ==
@@ -265,6 +245,7 @@ ClosurePtr CallerClosureFinder::FindCaller(const Closure& receiver_closure) {
       context_entry_ = receiver_context_.At(Context::kFutureTimeoutFutureIndex);
       return GetCallerInFutureImpl(context_entry_);
     }
+
     if (parent_function_.recognized_kind() == MethodRecognizer::kFutureWait) {
       receiver_context_ = receiver_context_.parent();
       ASSERT(!receiver_context_.IsNull());
@@ -274,6 +255,60 @@ ClosurePtr CallerClosureFinder::FindCaller(const Closure& receiver_closure) {
   }
 
   return Closure::null();
+}
+
+ObjectPtr CallerClosureFinder::GetAsyncFuture(const Closure& receiver_closure) {
+  // Closure -> Context -> _Future.
+  receiver_context_ = receiver_closure.context();
+  return receiver_context_.At(Context::kAsyncFutureIndex);
+}
+
+ObjectPtr CallerClosureFinder::GetFutureFutureListener(const Object& future) {
+  ASSERT(future.GetClassId() == future_impl_class.id());
+  auto& listener = Object::Handle(
+      Instance::Cast(future).GetField(future_result_or_listeners_field));
+  // This field can either hold a _FutureListener, Future, or the Future result.
+  if (listener.GetClassId() != future_listener_class.id()) {
+    return Closure::null();
+  }
+  return listener.ptr();
+}
+
+intptr_t CallerClosureFinder::GetFutureListenerState(
+    const Object& future_listener) {
+  ASSERT(future_listener.GetClassId() == future_listener_class.id());
+  state_ =
+      Instance::Cast(future_listener).GetField(future_listener_state_field);
+  return Smi::Cast(state_).Value();
+}
+
+ClosurePtr CallerClosureFinder::GetFutureListenerCallback(
+    const Object& future_listener) {
+  ASSERT(future_listener.GetClassId() == future_listener_class.id());
+  return Closure::RawCast(
+      Instance::Cast(future_listener).GetField(callback_field));
+}
+
+ObjectPtr CallerClosureFinder::GetFutureListenerResult(
+    const Object& future_listener) {
+  ASSERT(future_listener.GetClassId() == future_listener_class.id());
+  return Instance::Cast(future_listener).GetField(future_listener_result_field);
+}
+
+bool CallerClosureFinder::HasCatchError(const Object& future_listener) {
+  ASSERT(future_listener.GetClassId() == future_listener_class.id());
+  listener_ = future_listener.ptr();
+  Object& result = Object::Handle();
+  // Iterate through any `.then()` chain.
+  while (!listener_.IsNull()) {
+    if (GetFutureListenerState(listener_) == k_FutureListener_stateCatchError) {
+      return true;
+    }
+    result = GetFutureListenerResult(listener_);
+    RELEASE_ASSERT(!result.IsNull());
+    listener_ = GetFutureFutureListener(result);
+  }
+  return false;
 }
 
 bool CallerClosureFinder::IsRunningAsync(const Closure& receiver_closure) {

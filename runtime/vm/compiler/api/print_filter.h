@@ -4,7 +4,10 @@
 
 #ifndef RUNTIME_VM_COMPILER_API_PRINT_FILTER_H_
 #define RUNTIME_VM_COMPILER_API_PRINT_FILTER_H_
-#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+
+#include "platform/globals.h"  // For INCLUDE_IL_PRINTER
+
+#if defined(INCLUDE_IL_PRINTER)
 
 #include "platform/allocation.h"
 
@@ -23,5 +26,5 @@ class PrintFilter : public AllStatic {
 
 }  // namespace dart
 
-#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+#endif  // defined(INCLUDE_IL_PRINTER)
 #endif  // RUNTIME_VM_COMPILER_API_PRINT_FILTER_H_

@@ -4,7 +4,6 @@
 
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show AbstractScanner;
-import 'package:_fe_analyzer_shared/src/scanner/errors.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -12,7 +11,6 @@ import 'package:analyzer/src/dart/ast/ast.dart'
     show InstanceCreationExpressionImpl;
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:pub_semver/src/version.dart';
 import 'package:test/test.dart';

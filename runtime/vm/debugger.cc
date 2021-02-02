@@ -706,13 +706,8 @@ ObjectPtr ActivationFrame::GetAsyncContextVariable(const String& name) {
 
 ObjectPtr ActivationFrame::GetAsyncAwaiter(
     CallerClosureFinder* caller_closure_finder) {
-  if (!function_.IsNull() &&
+  if (fp() != 0 && !function_.IsNull() &&
       (function_.IsAsyncClosure() || function_.IsAsyncGenClosure())) {
-    // This is only possible for frames that are active on the stack.
-    if (fp() == 0) {
-      return Object::null();
-    }
-
     // Look up caller's closure on the stack.
     ObjectPtr* last_caller_obj = reinterpret_cast<ObjectPtr*>(GetCallerSp());
     Closure& closure = Closure::Handle();
@@ -768,6 +763,23 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
     }
     try_index = handlers.OuterTryIndex(try_index);
   }
+  // Async functions might have indirect exception handlers in the form of
+  // `Future.catchError`. Check the Closure's _FutureListeners.
+  if (fp() != 0 && is_async) {
+    CallerClosureFinder caller_closure_finder(Thread::Current()->zone());
+    ObjectPtr* last_caller_obj = reinterpret_cast<ObjectPtr*>(GetCallerSp());
+    Closure& closure = Closure::Handle(
+        StackTraceUtils::FindClosureInFrame(last_caller_obj, function()));
+    if (!caller_closure_finder.IsRunningAsync(closure)) {
+      return false;
+    }
+    Object& futureOrListener =
+        Object::Handle(caller_closure_finder.GetAsyncFuture(closure));
+    futureOrListener =
+        caller_closure_finder.GetFutureFutureListener(futureOrListener);
+    return caller_closure_finder.HasCatchError(futureOrListener);
+  }
+
   return false;
 }
 
@@ -986,6 +998,11 @@ ObjectPtr ActivationFrame::GetParameter(intptr_t index) {
   intptr_t num_parameters = function().num_fixed_parameters();
   ASSERT(0 <= index && index < num_parameters);
 
+  // fp will be a nullptr if the frame isn't active on the stack.
+  if (fp() == 0) {
+    return Object::null();
+  }
+
   if (function().NumOptionalParameters() > 0) {
     // If the function has optional parameters, the first positional parameter
     // can be in a number of places in the caller's frame depending on how many
@@ -1000,9 +1017,12 @@ ObjectPtr ActivationFrame::GetParameter(intptr_t index) {
   }
 }
 
-ObjectPtr ActivationFrame::GetClosure() {
+ClosurePtr ActivationFrame::GetClosure() {
   ASSERT(function().IsClosureFunction());
-  return GetParameter(0);
+  Object& param = Object::Handle(GetParameter(0));
+  ASSERT(param.IsInstance());
+  ASSERT(Instance::Cast(param).IsClosure());
+  return Closure::Cast(param).ptr();
 }
 
 ObjectPtr ActivationFrame::GetStackVar(VariableIndex variable_index) {
@@ -1975,7 +1995,6 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
 
     deopt_frame = DeoptimizeToArray(thread, frame, code);
     bool found_async_awaiter = false;
-    bool abort_attempt_to_navigate_through_sync_async = false;
     for (InlinedFunctionsIterator it(code, frame->pc()); !it.Done();
          it.Advance()) {
       inlined_code = it.code();
@@ -2008,7 +2027,7 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
     }
 
     // Break out of outer loop.
-    if (found_async_awaiter || abort_attempt_to_navigate_through_sync_async) {
+    if (found_async_awaiter) {
       break;
     }
   }
@@ -3764,9 +3783,7 @@ Breakpoint* Debugger::FindHitBreakpoint(BreakpointLocation* location,
   bpt = location->breakpoints();
   while (bpt != NULL) {
     if (bpt->IsPerClosure()) {
-      Object& closure = Object::Handle(top_frame->GetClosure());
-      ASSERT(closure.IsInstance());
-      ASSERT(Instance::Cast(closure).IsClosure());
+      Closure& closure = Closure::Handle(top_frame->GetClosure());
       if (closure.ptr() == bpt->closure()) {
         return bpt;
       }

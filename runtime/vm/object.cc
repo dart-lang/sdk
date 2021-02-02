@@ -16057,6 +16057,7 @@ ObjectPtr WeakSerializationReference::Wrap(Zone* zone, const Object& target) {
 }
 #endif
 
+#if defined(INCLUDE_IL_PRINTER)
 Code::Comments& Code::Comments::New(intptr_t count) {
   Comments* comments;
   if (count < 0 || count > (kIntptrMax / kNumberOfEntries)) {
@@ -16091,15 +16092,18 @@ void Code::Comments::SetPCOffsetAt(intptr_t idx, intptr_t pc) {
                   Smi::Handle(Smi::New(pc)));
 }
 
-StringPtr Code::Comments::CommentAt(intptr_t idx) const {
-  return String::RawCast(comments_.At(idx * kNumberOfEntries + kCommentEntry));
+const char* Code::Comments::CommentAt(intptr_t idx) const {
+  string_ ^= comments_.At(idx * kNumberOfEntries + kCommentEntry);
+  return string_.ToCString();
 }
 
 void Code::Comments::SetCommentAt(intptr_t idx, const String& comment) {
   comments_.SetAt(idx * kNumberOfEntries + kCommentEntry, comment);
 }
 
-Code::Comments::Comments(const Array& comments) : comments_(comments) {}
+Code::Comments::Comments(const Array& comments)
+    : comments_(comments), string_(String::Handle()) {}
+#endif  // defined(INCLUDE_IL_PRINTER)
 
 const char* Code::EntryKindToCString(EntryKind kind) {
   switch (kind) {
@@ -16368,23 +16372,67 @@ void Code::Disassemble(DisassemblyFormatter* formatter) const {
 #endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 }
 
-const Code::Comments& Code::comments() const {
+#if defined(INCLUDE_IL_PRINTER)
 #if defined(PRODUCT)
-  Comments* comments = new Code::Comments(Array::Handle());
-#else
-  Comments* comments = new Code::Comments(Array::Handle(untag()->comments()));
+// In PRODUCT builds we don't have space in Code object to store code comments
+// so we move them into malloced heap (and leak them). This functionality
+// is only indended to be used in AOT compiler so leaking is fine.
+class MallocCodeComments final : public CodeComments {
+ public:
+  explicit MallocCodeComments(const CodeComments& comments)
+      : length_(comments.Length()), comments_(new Comment[comments.Length()]) {
+    for (intptr_t i = 0; i < length_; i++) {
+      comments_[i].pc_offset = comments.PCOffsetAt(i);
+      comments_[i].comment =
+          Utils::CreateCStringUniquePtr(strdup(comments.CommentAt(i)));
+    }
+  }
+
+  intptr_t Length() const override { return length_; }
+
+  intptr_t PCOffsetAt(intptr_t i) const override {
+    return comments_[i].pc_offset;
+  }
+
+  const char* CommentAt(intptr_t i) const override {
+    return comments_[i].comment.get();
+  }
+
+ private:
+  struct Comment {
+    intptr_t pc_offset;
+    Utils::CStringUniquePtr comment{nullptr, std::free};
+  };
+
+  intptr_t length_;
+  std::unique_ptr<Comment[]> comments_;
+};
 #endif
-  return *comments;
+
+const CodeComments& Code::comments() const {
+#if defined(PRODUCT)
+  auto comments =
+      static_cast<CodeComments*>(Thread::Current()->heap()->GetPeer(ptr()));
+  return (comments != nullptr) ? *comments : Code::Comments::New(0);
+#else
+  return *new Code::Comments(Array::Handle(untag()->comments()));
+#endif
 }
 
-void Code::set_comments(const Code::Comments& comments) const {
-#if defined(PRODUCT)
-  UNREACHABLE();
+void Code::set_comments(const CodeComments& comments) const {
+#if !defined(PRODUCT)
+  auto& wrapper = static_cast<const Code::Comments&>(comments);
+  ASSERT(wrapper.comments_.IsOld());
+  untag()->set_comments(wrapper.comments_.ptr());
 #else
-  ASSERT(comments.comments_.IsOld());
-  untag()->set_comments(comments.comments_.ptr());
+  if (FLAG_code_comments && comments.Length() > 0) {
+    Thread::Current()->heap()->SetPeer(ptr(), new MallocCodeComments(comments));
+  } else {
+    Thread::Current()->heap()->SetPeer(ptr(), nullptr);
+  }
 #endif
 }
+#endif  // defined(INCLUDE_IL_PRINTER)
 
 void Code::SetPrologueOffset(intptr_t offset) const {
 #if defined(PRODUCT)
@@ -16436,7 +16484,9 @@ CodePtr Code::New(intptr_t pointer_offsets_length) {
     result.set_is_optimized(false);
     result.set_is_force_optimized(false);
     result.set_is_alive(false);
-    NOT_IN_PRODUCT(result.set_comments(Comments::New(0)));
+#if defined(INCLUDE_IL_PRINTER)
+    result.set_comments(Comments::New(0));
+#endif
     NOT_IN_PRODUCT(result.set_compile_timestamp(0));
     result.set_pc_descriptors(Object::empty_descriptors());
     result.set_compressed_stackmaps(Object::empty_compressed_stackmaps());
@@ -16603,9 +16653,12 @@ CodePtr Code::FinalizeCode(FlowGraphCompiler* compiler,
     CPU::FlushICache(instrs.PayloadStart(), instrs.Size());
   }
 
+#if defined(INCLUDE_IL_PRINTER)
+  code.set_comments(CreateCommentsFrom(assembler));
+#endif  // defined(INCLUDE_IL_PRINTER)
+
 #ifndef PRODUCT
   code.set_compile_timestamp(OS::GetCurrentMonotonicMicros());
-  code.set_comments(CreateCommentsFrom(assembler));
   if (assembler->prologue_offset() >= 0) {
     code.SetPrologueOffset(assembler->prologue_offset());
   } else {
@@ -16656,10 +16709,9 @@ void Code::NotifyCodeObservers(const char* name,
   ASSERT(!Thread::Current()->IsAtSafepoint());
   if (CodeObservers::AreActive()) {
     const auto& instrs = Instructions::Handle(code.instructions());
-    CodeCommentsWrapper comments_wrapper(code.comments());
     CodeObservers::NotifyAll(name, instrs.PayloadStart(),
                              code.GetPrologueOffset(), instrs.Size(), optimized,
-                             &comments_wrapper);
+                             &code.comments());
   }
 #endif
 }
