@@ -8,6 +8,19 @@ import 'dart:ffi';
 
 import "package:expect/expect.dart";
 
+import "coordinate.dart";
+
+get is32Bit => 4 == sizeOf<IntPtr>();
+get is64Bit => 8 == sizeOf<IntPtr>();
+
 void main() async {
-  Expect.equals(true, 4 == sizeOf<Pointer>() || 8 == sizeOf<Pointer>());
+  if (is32Bit) {
+    Expect.equals(4, sizeOf<Pointer>());
+    Expect.equals(20, sizeOf<Coordinate>());
+  }
+  if (is64Bit) {
+    Expect.equals(8, sizeOf<Pointer>());
+    Expect.equals(24, sizeOf<Coordinate>());
+  }
+  Expect.throws(() => sizeOf<Void>());
 }

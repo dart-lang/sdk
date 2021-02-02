@@ -27,7 +27,15 @@ import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_environment.dart';
 
 import 'ffi.dart'
-    show FfiTransformerData, NativeType, FfiTransformer, optimizedTypes;
+    show
+        FfiTransformerData,
+        NativeType,
+        FfiTransformer,
+        optimizedTypes,
+        nativeTypeSizes,
+        WORD_SIZE,
+        UNKNOWN,
+        wordSize;
 
 /// Checks and replaces calls to dart:ffi struct fields and methods.
 void transformLibraries(
@@ -184,12 +192,18 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       } else if (target == sizeOfMethod) {
         final DartType nativeType = node.arguments.types[0];
 
+        // TODO(http://dartbug.com/38721): Change this to an error after
+        // package:ffi is no longer using sizeOf generically.
         if (!isFfiLibrary) {
           _warningNativeTypeValid(nativeType, node);
         }
 
-        // TODO(http://dartbug.com/38721): Replace calls with constant
-        // expressions.
+        if (nativeType is InterfaceType) {
+          Expression inlineSizeOf = _inlineSizeOf(nativeType);
+          if (inlineSizeOf != null) {
+            return inlineSizeOf;
+          }
+        }
       } else if (target == lookupFunctionMethod) {
         final DartType nativeType = InterfaceType(
             nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
@@ -313,6 +327,28 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     }
 
     return node;
+  }
+
+  Expression _inlineSizeOf(InterfaceType nativeType) {
+    final Class nativeClass = nativeType.classNode;
+    final NativeType nt = getType(nativeClass);
+    if (nt == null) {
+      // User-defined structs.
+      Field sizeOfField = nativeClass.fields.single;
+      return StaticGet(sizeOfField);
+    }
+    final int size = nativeTypeSizes[nt.index];
+    if (size == WORD_SIZE) {
+      return runtimeBranchOnLayout(wordSize);
+    }
+    if (size != UNKNOWN) {
+      return ConstantExpression(
+          IntConstant(size),
+          InterfaceType(listClass, Nullability.legacy,
+              [InterfaceType(intClass, Nullability.legacy)]));
+    }
+    // Size unknown.
+    return null;
   }
 
   // We need to replace calls to 'DynamicLibrary.lookupFunction' with explicit
