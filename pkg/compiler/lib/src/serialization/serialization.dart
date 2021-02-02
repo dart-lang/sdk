@@ -329,6 +329,15 @@ abstract class DataSink {
   /// Writes a reference to the indexed type variable [value] to this data sink.
   void writeTypeVariable(IndexedTypeVariable value);
 
+  /// Writes the [map] from references to indexed type variables to [V] values
+  /// to this data sink, calling [f] to write each value to the data sink. If
+  /// [allowNull] is `true`, [map] is allowed to be `null`.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSource.readTypeVariableMap].
+  void writeTypeVariableMap<V>(Map<IndexedTypeVariable, V> map, void f(V value),
+      {bool allowNull: false});
+
   /// Writes a reference to the local [value] to this data sink.
   void writeLocal(Local local);
 
@@ -741,6 +750,15 @@ abstract class DataSource {
 
   /// Reads a reference to an indexed type variable from this data source.
   IndexedTypeVariable readTypeVariable();
+
+  /// Reads a map from indexed type variable to [V] values from this data
+  /// source, calling [f] to read each value from the data source. If
+  /// [emptyAsNull] is `true`, `null` is returned instead of an empty map.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSink.writeTypeVariableMap].
+  Map<K, V> readTypeVariableMap<K extends IndexedTypeVariable, V>(V f(),
+      {bool emptyAsNull: false});
 
   /// Reads a reference to a local from this data source.
   Local readLocal();

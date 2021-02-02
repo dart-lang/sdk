@@ -158,7 +158,7 @@ class ClosureIrChecker extends IrDataExtractor<String> {
     capturedScopeStack =
         capturedScopeStack.prepend(closureDataLookup.getCapturedScope(member));
     if (capturedScope.requiresContextBox) {
-      boxNames[capturedScope.context] = 'box${boxNames.length}';
+      boxNames[capturedScope.contextBox] = 'box${boxNames.length}';
     }
     dump(member);
   }
@@ -174,7 +174,7 @@ class ClosureIrChecker extends IrDataExtractor<String> {
     capturedScopeStack = capturedScopeStack
         .prepend(closureDataLookup.getCapturedLoopScope(node));
     if (capturedScope.requiresContextBox) {
-      boxNames[capturedScope.context] = 'box${boxNames.length}';
+      boxNames[capturedScope.contextBox] = 'box${boxNames.length}';
     }
     dump(node);
   }
@@ -199,37 +199,38 @@ class ClosureIrChecker extends IrDataExtractor<String> {
     print('object: $object');
     if (object is MemberEntity) {
       print(' capturedScope (${capturedScope.runtimeType})');
-      capturedScope.forEachBoxedVariable((a, b) => print('  boxed: $a->$b'));
+      capturedScope.forEachBoxedVariable(
+          _localsMap, (a, b) => print('  boxed: $a->$b'));
     }
     print(
         ' closureRepresentationInfo (${closureRepresentationInfo.runtimeType})');
-    closureRepresentationInfo
-        ?.forEachFreeVariable((a, b) => print('  free: $a->$b'));
-    closureRepresentationInfo
-        ?.forEachBoxedVariable((a, b) => print('  boxed: $a->$b'));
+    closureRepresentationInfo?.forEachFreeVariable(
+        _localsMap, (a, b) => print('  free: $a->$b'));
+    closureRepresentationInfo?.forEachBoxedVariable(
+        _localsMap, (a, b) => print('  boxed: $a->$b'));
   }
 
   /// Compute a string representation of the data stored for [local] in [info].
   String computeLocalValue(Local local) {
     Features features = new Features();
-    if (scopeInfo.localIsUsedInTryOrSync(local)) {
+    if (scopeInfo.localIsUsedInTryOrSync(_localsMap, local)) {
       features.add('inTry');
       // TODO(johnniwinther,efortuna): Should this be enabled and checked?
       //Expect.isTrue(capturedScope.localIsUsedInTryOrSync(local));
     } else {
       //Expect.isFalse(capturedScope.localIsUsedInTryOrSync(local));
     }
-    if (capturedScope.isBoxedVariable(local)) {
+    if (capturedScope.isBoxedVariable(_localsMap, local)) {
       features.add('boxed');
     }
-    if (capturedScope.context == local) {
+    if (capturedScope.contextBox == local) {
       // TODO(johnniwinther): This shouldn't happen! Remove branch/throw error
       // when we verify it can't happen.
       features.add('error-box');
     }
     if (capturedScope is CapturedLoopScope) {
       CapturedLoopScope loopScope = capturedScope;
-      if (loopScope.boxedLoopVariables.contains(local)) {
+      if (loopScope.getBoxedLoopVariables(_localsMap).contains(local)) {
         features.add('loop');
       }
     }
@@ -240,9 +241,10 @@ class ClosureIrChecker extends IrDataExtractor<String> {
   String computeObjectValue(MemberEntity member) {
     Features features = new Features();
 
-    void addLocals(String name, forEach(f(Local local, _))) {
+    void addLocals(
+        String name, forEach(KernelToLocalsMap localsMap, f(Local local, _))) {
       List<String> names = <String>[];
-      forEach((Local local, _) {
+      forEach(_localsMap, (Local local, _) {
         if (local is BoxLocal) {
           names.add(boxNames[local]);
         } else {
@@ -263,7 +265,7 @@ class ClosureIrChecker extends IrDataExtractor<String> {
     if (capturedScope.requiresContextBox) {
       var keyword = 'boxed';
       addLocals(keyword, capturedScope.forEachBoxedVariable);
-      features['box'] = '(${boxNames[capturedScope.context]} which holds '
+      features['box'] = '(${boxNames[capturedScope.contextBox]} which holds '
           '${features[keyword]})';
       features.remove(keyword);
     }
@@ -271,12 +273,13 @@ class ClosureIrChecker extends IrDataExtractor<String> {
     if (closureRepresentationInfo != null) {
       addLocals('free', closureRepresentationInfo.forEachFreeVariable);
       if (closureRepresentationInfo.closureClassEntity != null) {
-        addLocals('fields', (f(Local local, _)) {
+        addLocals('fields', (KernelToLocalsMap localsMap, f(Local local, _)) {
           _closedWorld.elementEnvironment.forEachInstanceField(
               closureRepresentationInfo.closureClassEntity,
               (_, FieldEntity field) {
             if (_closedWorld.fieldAnalysis.getFieldData(field).isElided) return;
-            f(closureRepresentationInfo.getLocalForField(field), field);
+            f(closureRepresentationInfo.getLocalForField(localsMap, field),
+                field);
           });
         });
       }
