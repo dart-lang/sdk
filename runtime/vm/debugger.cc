@@ -767,7 +767,9 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
   // `Future.catchError`. Check the Closure's _FutureListeners.
   if (fp() != 0 && is_async) {
     CallerClosureFinder caller_closure_finder(Thread::Current()->zone());
-    Closure& closure = Closure::Handle(GetClosure());
+    ObjectPtr* last_caller_obj = reinterpret_cast<ObjectPtr*>(GetCallerSp());
+    Closure& closure = Closure::Handle(
+        StackTraceUtils::FindClosureInFrame(last_caller_obj, function()));
     if (!caller_closure_finder.IsRunningAsync(closure)) {
       return false;
     }
