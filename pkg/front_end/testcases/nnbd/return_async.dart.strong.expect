@@ -28,6 +28,6 @@ static method customErrorZone() → asy::Future<void> async {
   }, (core::Object e, core::StackTrace s) → void {
     completer.{asy::Completer::completeError}(e, s);
   });
-  return let final asy::Future<void> #t1 = completer.{asy::Completer::future} in #t1 is asy::Future<void> ?{FutureOr<void>} await #t1 : #t1;
+  return completer.{asy::Completer::future};
 }
 static method main() → dynamic {}

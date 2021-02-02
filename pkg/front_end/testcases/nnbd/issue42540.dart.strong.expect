@@ -7,6 +7,6 @@ static method getNull() → dynamic
   return null;
 static method fn() → asy::Future<core::Object> async {
   core::Object o = await self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} core::Object;
-  return let final dynamic #t1 = await self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} FutureOr<core::Object> in #t1 is asy::Future<core::Object> ?{FutureOr<core::Object>} await #t1 : #t1;
+  return await self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} FutureOr<core::Object>;
 }
 static method main() → dynamic {}

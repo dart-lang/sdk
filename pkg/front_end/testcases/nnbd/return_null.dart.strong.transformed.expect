@@ -55,7 +55,6 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
-import "dart:_internal" as _in;
 
 import "dart:async";
 
@@ -227,21 +226,11 @@ static method returnAsync6() → asy::Future<core::int?> /* originally async */ 
   (core::Object, core::StackTrace) → dynamic :async_op_error;
   core::int :await_jump_var = 0;
   dynamic :await_ctx_var;
-  dynamic :saved_try_context_var0;
-  FutureOr<core::int?>:async_temporary_0;
   function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
     try {
       #L6:
       {
-        final Null #t8 = null;
-        if(#t8 is asy::Future<core::int?>) {
-          [yield] let dynamic #t9 = asy::_awaitHelper(#t8, :async_op_then, :async_op_error, :async_op) in null;
-          :async_temporary_0 = _in::unsafeCast<Null>(:result);
-        }
-        else {
-          :async_temporary_0 = #t8;
-        }
-        :return_value = :async_temporary_0;
+        :return_value = null;
         break #L6;
       }
       asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
@@ -343,7 +332,7 @@ static method caseReturn2(self::Enum e) → self::Enum {
     default:
       {}
   }
-  return let final<BottomType> #t10 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:54:6: Error: A non-null value must be returned since the return type 'Enum' doesn't allow null.
+  return let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:54:6: Error: A non-null value must be returned since the return type 'Enum' doesn't allow null.
  - 'Enum' is from 'pkg/front_end/testcases/nnbd/return_null.dart'.
 Enum caseReturn2(Enum e) /* error */ {
      ^" in null;
@@ -351,24 +340,24 @@ Enum caseReturn2(Enum e) /* error */ {
 static method localFunctions() → dynamic {
   function returnImplicit() → core::String {
     core::print("foo");
-    return let final<BottomType> #t11 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:63:3: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+    return let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:63:3: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   String returnImplicit() /* error */ {
   ^" in null;
   }
   function returnExplicit() → core::String {
     core::print("foo");
-    return let final<BottomType> #t12 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:69:12: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
+    return let final<BottomType> #t10 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:69:12: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
     return null; // error
-           ^" in let Null #t13 = null in #t13.==(null) ?{core::String} #t13 as{TypeError,ForNonNullableByDefault} core::String : #t13{core::String};
+           ^" in let Null #t11 = null in #t11.==(null) ?{core::String} #t11 as{TypeError,ForNonNullableByDefault} core::String : #t11{core::String};
   }
   function returnMixed(core::bool b) → core::String {
     if(b) {
       core::print("foo");
-      return let final<BottomType> #t14 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:75:14: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
+      return let final<BottomType> #t12 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:75:14: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
       return null; // error
-             ^" in let Null #t15 = null in #t15.==(null) ?{core::String} #t15 as{TypeError,ForNonNullableByDefault} core::String : #t15{core::String};
+             ^" in let Null #t13 = null in #t13.==(null) ?{core::String} #t13 as{TypeError,ForNonNullableByDefault} core::String : #t13{core::String};
     }
-    return let final<BottomType> #t16 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:72:3: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+    return let final<BottomType> #t14 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:72:3: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   String returnMixed(bool b) /* error */ {
   ^" in null;
   }
@@ -432,7 +421,7 @@ static method localFunctions() → dynamic {
       try {
         #L15:
         {
-          :return_value = let final<BottomType> #t17 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:83:3: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
+          :return_value = let final<BottomType> #t15 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:83:3: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
   FutureOr<int> returnAsync3() async {} // error
   ^" in null;
           break #L15;
@@ -505,21 +494,11 @@ static method localFunctions() → dynamic {
     (core::Object, core::StackTrace) → dynamic :async_op_error;
     core::int :await_jump_var = 0;
     dynamic :await_ctx_var;
-    dynamic :saved_try_context_var0;
-    FutureOr<core::int?>:async_temporary_0;
     function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
       try {
         #L18:
         {
-          final Null #t18 = null;
-          if(#t18 is asy::Future<core::int?>) {
-            [yield] let dynamic #t19 = asy::_awaitHelper(#t18, :async_op_then, :async_op_error, :async_op) in null;
-            :async_temporary_0 = _in::unsafeCast<Null>(:result);
-          }
-          else {
-            :async_temporary_0 = #t18;
-          }
-          :return_value = :async_temporary_0;
+          :return_value = null;
           break #L18;
         }
         asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
@@ -621,7 +600,7 @@ static method localFunctions() → dynamic {
       default:
         {}
     }
-    return let final<BottomType> #t20 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:108:3: Error: A non-null value must be returned since the return type 'Enum' doesn't allow null.
+    return let final<BottomType> #t16 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:108:3: Error: A non-null value must be returned since the return type 'Enum' doesn't allow null.
  - 'Enum' is from 'pkg/front_end/testcases/nnbd/return_null.dart'.
   Enum caseReturn2(Enum e) /* error */ {
   ^" in null;
@@ -663,7 +642,7 @@ Evaluated: VariableGet @ org-dartlang-testcase:///return_null.dart:69:12 -> Null
 Evaluated: MethodInvocation @ org-dartlang-testcase:///return_null.dart:75:14 -> BoolConstant(true)
 Evaluated: VariableGet @ org-dartlang-testcase:///return_null.dart:75:14 -> NullConstant(null)
 Evaluated: VariableGet @ org-dartlang-testcase:///return_null.dart:75:14 -> NullConstant(null)
-Extra constant evaluation: evaluated: 422, effectively constant: 12
+Extra constant evaluation: evaluated: 394, effectively constant: 12
 
 
 Constructor coverage from constants:
