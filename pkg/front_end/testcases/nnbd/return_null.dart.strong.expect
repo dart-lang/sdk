@@ -103,7 +103,7 @@ FutureOr<int> returnAsync3() async {} // error
 static method returnAsync4() → FutureOr<core::int?> async {}
 static method returnAsync5() → dynamic async {}
 static method returnAsync6() → asy::Future<core::int?> async {
-  return let final Null #t6 = null in #t6 is asy::Future<core::int?> ?{FutureOr<core::int?>} await #t6 : #t6;
+  return null;
 }
 static method returnAsync7() → asy::Future<core::int?> async {}
 static method yieldSync() → core::Iterable<dynamic> sync* {}
@@ -133,7 +133,7 @@ static method caseReturn2(self::Enum e) → self::Enum {
     default:
       {}
   }
-  return let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:54:6: Error: A non-null value must be returned since the return type 'Enum' doesn't allow null.
+  return let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:54:6: Error: A non-null value must be returned since the return type 'Enum' doesn't allow null.
  - 'Enum' is from 'pkg/front_end/testcases/nnbd/return_null.dart'.
 Enum caseReturn2(Enum e) /* error */ {
      ^" in null;
@@ -141,38 +141,38 @@ Enum caseReturn2(Enum e) /* error */ {
 static method localFunctions() → dynamic {
   function returnImplicit() → core::String {
     core::print("foo");
-    return let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:63:3: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+    return let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:63:3: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   String returnImplicit() /* error */ {
   ^" in null;
   }
   function returnExplicit() → core::String {
     core::print("foo");
-    return let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:69:12: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
+    return let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:69:12: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
     return null; // error
            ^" in null as{TypeError,ForNonNullableByDefault} core::String;
   }
   function returnMixed(core::bool b) → core::String {
     if(b) {
       core::print("foo");
-      return let final<BottomType> #t10 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:75:14: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
+      return let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:75:14: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
       return null; // error
              ^" in null as{TypeError,ForNonNullableByDefault} core::String;
     }
-    return let final<BottomType> #t11 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:72:3: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+    return let final<BottomType> #t10 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:72:3: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   String returnMixed(bool b) /* error */ {
   ^" in null;
   }
   function returnAsync1() → asy::Future<dynamic> async {}
   function returnAsync2() → FutureOr<dynamic> async {}
   function returnAsync3() → FutureOr<core::int> async {
-    return let final<BottomType> #t12 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:83:3: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
+    return let final<BottomType> #t11 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:83:3: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
   FutureOr<int> returnAsync3() async {} // error
   ^" in null;
   }
   function returnAsync4() → FutureOr<core::int?> async {}
   function returnAsync5() → asy::Future<Null> async {}
   function returnAsync6() → asy::Future<core::int?> async {
-    return let final Null #t13 = null in #t13 is asy::Future<core::int?> ?{FutureOr<core::int?>} await #t13 : #t13;
+    return null;
   }
   function returnAsync7() → asy::Future<core::int?> async {}
   function yieldSync() → core::Iterable<dynamic> sync* {}
@@ -202,7 +202,7 @@ static method localFunctions() → dynamic {
       default:
         {}
     }
-    return let final<BottomType> #t14 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:108:3: Error: A non-null value must be returned since the return type 'Enum' doesn't allow null.
+    return let final<BottomType> #t12 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:108:3: Error: A non-null value must be returned since the return type 'Enum' doesn't allow null.
  - 'Enum' is from 'pkg/front_end/testcases/nnbd/return_null.dart'.
   Enum caseReturn2(Enum e) /* error */ {
   ^" in null;

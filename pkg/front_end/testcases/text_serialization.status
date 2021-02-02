@@ -173,6 +173,7 @@ nnbd/covariant_late_field: TypeCheckError
 nnbd/duplicates_instance_extension: VerificationError
 nnbd/getter_vs_setter_type: TypeCheckError
 nnbd/issue41180: RuntimeError
+nnbd/issue42546: TypeCheckError
 nnbd/issue42603: TypeCheckError
 nnbd/no_support_for_old_null_aware_index_access_syntax: RuntimeError # Expected.
 nnbd/nullable_object_access: TypeCheckError
