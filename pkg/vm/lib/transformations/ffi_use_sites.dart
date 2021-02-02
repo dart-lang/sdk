@@ -186,8 +186,13 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
         _warningNativeTypeValid(nativeType, node, allowStructItself: false);
 
-        // TODO(http://dartbug.com/38721): Replace calls with direct
-        // constructor invocations.
+        // TODO(http://dartbug.com/38721): Change this to an error.
+        if (nativeType is TypeParameterType) {
+          // Do not rewire generic invocations.
+          return node;
+        }
+
+        return _replaceRef(node);
       } else if (target == sizeOfMethod) {
         final DartType nativeType = node.arguments.types[0];
 
@@ -439,6 +444,28 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     return StaticGet(field);
   }
 
+  Expression _replaceRef(StaticInvocation node) {
+    final dartType = node.arguments.types[0];
+    final clazz = (dartType as InterfaceType).classNode;
+    final constructor = clazz.constructors
+        .firstWhere((c) => c.name == Name("#fromTypedDataBase"));
+    Expression pointer = NullCheck(node.arguments.positional[0]);
+    if (node.arguments.positional.length == 2) {
+      pointer = MethodInvocation(
+          pointer,
+          offsetByMethod.name,
+          Arguments([
+            MethodInvocation(
+                node.arguments.positional[1],
+                numMultiplication.name,
+                Arguments([_inlineSizeOf(dartType)]),
+                numMultiplication)
+          ]),
+          offsetByMethod);
+    }
+    return ConstructorInvocation(constructor, Arguments([pointer]));
+  }
+
   @override
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
@@ -470,7 +497,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
                     numMultiplication.name,
                     Arguments([inlineSizeOf]),
                     numMultiplication)
-              ], types: node.arguments.types),
+              ]),
               offsetByMethod);
         }
       }

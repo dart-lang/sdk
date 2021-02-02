@@ -21,7 +21,7 @@ class Coordinate extends ffi::Struct {
     : super ffi::Struct::_fromPointer(#pointer)
     ;
   static factory allocate(ffi::Allocator* allocator, core::double* x, core::double* y, ffi::Pointer<self::Coordinate*>* next) → self::Coordinate* {
-    return let final self::Coordinate* #t1 = ffi::StructPointer|get#ref<self::Coordinate*>(ffi::AllocatorAlloc|call<self::Coordinate*>(allocator)) in block {
+    return let final self::Coordinate* #t1 = new self::Coordinate::#fromTypedDataBase(allocator.{ffi::Allocator::allocate}<self::Coordinate*>(self::Coordinate::#sizeOf)!) in block {
       #t1.{self::Coordinate::x} = x;
       #t1.{self::Coordinate::y} = y;
       #t1.{self::Coordinate::next} = next;

@@ -18,6 +18,7 @@ void main() {
   for (int i = 0; i < 100; i++) {
     testStructAllocate();
     testStructFromAddress();
+    testStructIndexedAccess();
     testStructWithNulls();
     testTypeTest();
     testUtf8();
@@ -25,7 +26,7 @@ void main() {
   }
 }
 
-/// allocates each coordinate separately in c memory
+/// Allocates each coordinate separately in c memory.
 void testStructAllocate() {
   final c1 = calloc<Coordinate>()
     ..ref.x = 10.0
@@ -54,7 +55,7 @@ void testStructAllocate() {
   calloc.free(c3);
 }
 
-/// allocates coordinates consecutively in c memory
+/// Allocates coordinates consecutively in c memory.
 void testStructFromAddress() {
   Pointer<Coordinate> c1 = calloc(3);
   Pointer<Coordinate> c2 = c1.elementAt(1);
@@ -82,6 +83,34 @@ void testStructFromAddress() {
   Expect.equals(10.0, currentCoordinate.x);
 
   calloc.free(c1);
+}
+
+/// Allocates coordinates consecutively in c memory.
+void testStructIndexedAccess() {
+  Pointer<Coordinate> cs = calloc(3);
+  cs[0]
+    ..x = 10.0
+    ..y = 10.0
+    ..next = cs.elementAt(2);
+  cs[1]
+    ..x = 20.0
+    ..y = 20.0
+    ..next = cs;
+  cs[2]
+    ..x = 30.0
+    ..y = 30.0
+    ..next = cs.elementAt(1);
+
+  Coordinate currentCoordinate = cs.ref;
+  Expect.equals(10.0, currentCoordinate.x);
+  currentCoordinate = currentCoordinate.next.ref;
+  Expect.equals(30.0, currentCoordinate.x);
+  currentCoordinate = currentCoordinate.next.ref;
+  Expect.equals(20.0, currentCoordinate.x);
+  currentCoordinate = currentCoordinate.next.ref;
+  Expect.equals(10.0, currentCoordinate.x);
+
+  calloc.free(cs);
 }
 
 void testStructWithNulls() {
