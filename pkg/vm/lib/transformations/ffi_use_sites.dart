@@ -31,7 +31,6 @@ import 'ffi.dart'
         FfiTransformerData,
         NativeType,
         FfiTransformer,
-        optimizedTypes,
         nativeTypeSizes,
         WORD_SIZE,
         UNKNOWN,
@@ -432,20 +431,26 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
         _warningNativeTypeValid(nativeType, node);
 
+        // TODO(http://dartbug.com/38721): Change this to an error.
         if (nativeType is TypeParameterType) {
           // Do not rewire generic invocations.
           return node;
         }
-        final Class nativeClass = (nativeType as InterfaceType).classNode;
-        final NativeType nt = getType(nativeClass);
-        if (optimizedTypes.contains(nt)) {
-          final typeArguments = [
-            if (nt == NativeType.kPointer) _pointerTypeGetTypeArg(nativeType)
-          ];
-          return StaticInvocation(
-              elementAtMethods[nt],
-              Arguments([node.receiver, node.arguments.positional[0]],
-                  types: typeArguments));
+
+        Expression inlineSizeOf = _inlineSizeOf(nativeType);
+        if (inlineSizeOf != null) {
+          // Generates `receiver.offsetBy(inlineSizeOfExpression)`.
+          return MethodInvocation(
+              node.receiver,
+              offsetByMethod.name,
+              Arguments([
+                MethodInvocation(
+                    node.arguments.positional.single,
+                    numMultiplication.name,
+                    Arguments([inlineSizeOf]),
+                    numMultiplication)
+              ], types: node.arguments.types),
+              offsetByMethod);
         }
       }
     } on _FfiStaticTypeError {

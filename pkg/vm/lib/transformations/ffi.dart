@@ -206,6 +206,7 @@ class FfiTransformer extends Transformer {
   final Field pragmaOptions;
   final Procedure listElementAt;
   final Procedure numAddition;
+  final Procedure numMultiplication;
 
   final Library ffiLibrary;
   final Class allocatorClass;
@@ -267,6 +268,7 @@ class FfiTransformer extends Transformer {
         pragmaOptions = coreTypes.pragmaOptions,
         listElementAt = coreTypes.index.getMember('dart:core', 'List', '[]'),
         numAddition = coreTypes.index.getMember('dart:core', 'num', '+'),
+        numMultiplication = coreTypes.index.getMember('dart:core', 'num', '*'),
         ffiLibrary = index.getLibrary('dart:ffi'),
         allocatorClass = index.getClass('dart:ffi', 'Allocator'),
         nativeFunctionClass = index.getClass('dart:ffi', 'NativeFunction'),
