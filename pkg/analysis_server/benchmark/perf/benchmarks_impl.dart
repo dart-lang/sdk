@@ -5,10 +5,8 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analysis_server/src/protocol_server.dart';
 import 'package:path/path.dart' as path;
 
-import '../../test/integration/support/integration_tests.dart';
 import '../benchmarks.dart';
 import 'memory_tests.dart';
 
@@ -18,11 +16,13 @@ import 'memory_tests.dart';
 ///   - analysis-server-edit
 ///   - analysis-server-completion
 class AnalysisBenchmark extends Benchmark {
-  AnalysisBenchmark()
-      : super(
-            'analysis-server',
-            'Analysis server benchmarks of a large project, with an existing '
-                'driver cache.',
+  final AbstractBenchmarkTest Function() testConstructor;
+  AnalysisBenchmark(ServerBenchmark benchmarkTest)
+      : testConstructor = benchmarkTest.testConstructor,
+        super(
+            benchmarkTest.id,
+            '${benchmarkTest.name} benchmarks of a large project, with an existing '
+            'driver cache.',
             kind: 'group');
 
   @override
@@ -32,13 +32,11 @@ class AnalysisBenchmark extends Benchmark {
   }) async {
     var stopwatch = Stopwatch()..start();
 
-    var test = AnalysisServerMemoryUsageTest();
+    var test = testConstructor();
     if (verbose) {
       test.debugStdio();
     }
-    await test.setUp();
-    await test.subscribeToStatusNotifications();
-    await test.sendAnalysisSetAnalysisRoots(getProjectRoots(quick: quick), []);
+    await test.setUp(getProjectRoots(quick: quick));
     await test.analysisFinished;
 
     stopwatch.stop();
@@ -64,37 +62,20 @@ class AnalysisBenchmark extends Benchmark {
     return result;
   }
 
-  Future<int> _calcCompletionTiming(
-      AbstractAnalysisServerIntegrationTest test) async {
+  Future<int> _calcCompletionTiming(AbstractBenchmarkTest test) async {
     const kGroupCount = 10;
 
     var filePath =
         path.join(analysisServerSrcPath, 'lib/src/analysis_server.dart');
     var contents = File(filePath).readAsStringSync();
 
-    await test
-        .sendAnalysisUpdateContent({filePath: AddContentOverlay(contents)});
+    await test.openFile(filePath, contents);
 
     var completionCount = 0;
     var stopwatch = Stopwatch()..start();
 
     Future _complete(int offset) async {
-      // Create a new non-broadcast stream and subscribe to
-      // test.onCompletionResults before sending a request.
-      // Otherwise we could skip results which where posted to
-      // test.onCompletionResults after request is sent but
-      // before subscribing to test.onCompletionResults.
-      final completionResults = StreamController<CompletionResultsParams>();
-      completionResults.sink.addStream(test.onCompletionResults);
-
-      var result = await test.sendCompletionGetSuggestions(filePath, offset);
-
-      var future = completionResults.stream
-          .where((CompletionResultsParams params) =>
-              params.id == result.id && params.isLast)
-          .first;
-      await future;
-
+      await test.complete(filePath, offset);
       completionCount++;
     }
 
@@ -116,26 +97,25 @@ class AnalysisBenchmark extends Benchmark {
         contents = contents.substring(0, index + 1) +
             ' ' +
             contents.substring(index + 1);
-        await test
-            .sendAnalysisUpdateContent({filePath: AddContentOverlay(contents)});
+        await test.updateFile(filePath, contents);
       }
     }
 
     stopwatch.stop();
 
+    await test.closeFile(filePath);
+
     return stopwatch.elapsedMicroseconds ~/ completionCount;
   }
 
-  Future<int> _calcEditTiming(
-      AbstractAnalysisServerIntegrationTest test) async {
+  Future<int> _calcEditTiming(AbstractBenchmarkTest test) async {
     const kGroupCount = 5;
 
     var filePath =
         path.join(analysisServerSrcPath, 'lib/src/analysis_server.dart');
     var contents = File(filePath).readAsStringSync();
 
-    await test
-        .sendAnalysisUpdateContent({filePath: AddContentOverlay(contents)});
+    await test.openFile(filePath, contents);
 
     var stopwatch = Stopwatch()..start();
 
@@ -145,12 +125,13 @@ class AnalysisBenchmark extends Benchmark {
       contents = contents.substring(0, index + 1) +
           ' ' +
           contents.substring(index + 1);
-      await test
-          .sendAnalysisUpdateContent({filePath: AddContentOverlay(contents)});
+      await test.updateFile(filePath, contents);
       await test.analysisFinished;
     }
 
     stopwatch.stop();
+
+    await test.closeFile(filePath);
 
     return stopwatch.elapsedMicroseconds ~/ kGroupCount;
   }
@@ -160,10 +141,12 @@ class AnalysisBenchmark extends Benchmark {
 ///   - analysis-server-cold-analysis
 ///   - analysis-server-cold-memory
 class ColdAnalysisBenchmark extends Benchmark {
-  ColdAnalysisBenchmark()
-      : super(
-            'analysis-server-cold',
-            'Analysis server benchmarks of a large project on start-up, no '
+  final AbstractBenchmarkTest Function() testConstructor;
+  ColdAnalysisBenchmark(ServerBenchmark benchmarkTest)
+      : testConstructor = benchmarkTest.testConstructor,
+        super(
+            '${benchmarkTest.id}-cold',
+            '${benchmarkTest.name} benchmarks of a large project on start-up, no '
                 'existing driver cache.',
             kind: 'group');
 
@@ -181,10 +164,8 @@ class ColdAnalysisBenchmark extends Benchmark {
 
     var stopwatch = Stopwatch()..start();
 
-    var test = AnalysisServerMemoryUsageTest();
-    await test.setUp();
-    await test.subscribeToStatusNotifications();
-    await test.sendAnalysisSetAnalysisRoots(getProjectRoots(quick: quick), []);
+    var test = testConstructor();
+    await test.setUp(getProjectRoots(quick: quick));
     await test.analysisFinished;
 
     stopwatch.stop();
@@ -199,4 +180,17 @@ class ColdAnalysisBenchmark extends Benchmark {
 
     return result;
   }
+}
+
+class ServerBenchmark {
+  static final das = ServerBenchmark('analysis-server', 'Analysis Server',
+      () => AnalysisServerBenchmarkTest());
+  static final lsp = ServerBenchmark('lsp-analysis-server',
+      'LSP Analysis Server', () => LspAnalysisServerBenchmarkTest());
+  final String id;
+
+  final String name;
+  final AbstractBenchmarkTest Function() testConstructor;
+
+  ServerBenchmark(this.id, this.name, this.testConstructor);
 }

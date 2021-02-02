@@ -8,12 +8,14 @@ import 'dart:io';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_byte_stream_channel.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 
 import '../../lsp/server_abstract.dart';
 
-class AbstractLspAnalysisServerIntegrationTest
+abstract class AbstractLspAnalysisServerIntegrationTest
     with ClientCapabilitiesHelperMixin, LspAnalysisServerTestMixin {
+  final List<String> vmArgs = [];
   LspServerClient client;
 
   final Map<int, Completer<ResponseMessage>> _completers = {};
@@ -63,7 +65,8 @@ class AbstractLspAnalysisServerIntegrationTest
   void sendResponseToServer(ResponseMessage response) =>
       client.channel.sendResponse(response);
 
-  Future setUp() async {
+  @mustCallSuper
+  Future<void> setUp() async {
     // Set up temporary folder for the test.
     projectFolderPath = Directory.systemTemp
         .createTempSync('analysisServer')
@@ -77,7 +80,7 @@ class AbstractLspAnalysisServerIntegrationTest
     analysisOptionsUri = Uri.file(analysisOptionsPath);
 
     client = LspServerClient();
-    await client.start();
+    await client.start(vmArgs: vmArgs);
     client.serverToClient.listen((message) {
       if (message is ResponseMessage) {
         final id = message.id.map((number) => number,
@@ -128,7 +131,7 @@ class LspServerClient {
     return dirname(pathname);
   }
 
-  Future start() async {
+  Future start({List<String> vmArgs}) async {
     if (_process != null) {
       throw Exception('Process already started');
     }
@@ -154,7 +157,7 @@ class LspServerClient {
       serverPath = normalize(join(rootDir, 'bin', 'server.dart'));
     }
 
-    final arguments = [serverPath, '--lsp', '--suppress-analytics'];
+    final arguments = [...?vmArgs, serverPath, '--lsp', '--suppress-analytics'];
     _process = await Process.start(dartBinary, arguments);
     _process.exitCode.then((int code) {
       if (code != 0) {
