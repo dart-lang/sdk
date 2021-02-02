@@ -3009,17 +3009,25 @@ void DeoptimizeAt(const Code& optimized_code, StackFrame* frame) {
 // Currently checks only that all optimized frames have kDeoptIndex
 // and unoptimized code has the kDeoptAfter.
 void DeoptimizeFunctionsOnStack() {
-  DartFrameIterator iterator(Thread::Current(),
-                             StackFrameIterator::kNoCrossThreadIteration);
-  StackFrame* frame = iterator.NextFrame();
-  Code& optimized_code = Code::Handle();
-  while (frame != NULL) {
-    optimized_code = frame->LookupDartCode();
-    if (optimized_code.is_optimized() && !optimized_code.is_force_optimized()) {
-      DeoptimizeAt(optimized_code, frame);
+  auto isolate_group = IsolateGroup::Current();
+  isolate_group->RunWithStoppedMutators([&]() {
+    auto current = isolate_group->thread_registry()->active_list();
+    Code& optimized_code = Code::Handle();
+    while (current != nullptr) {
+      DartFrameIterator iterator(
+          current, StackFrameIterator::kAllowCrossThreadIteration);
+      StackFrame* frame = iterator.NextFrame();
+      while (frame != NULL) {
+        optimized_code = frame->LookupDartCode();
+        if (optimized_code.is_optimized() &&
+            !optimized_code.is_force_optimized()) {
+          DeoptimizeAt(optimized_code, frame);
+        }
+        frame = iterator.NextFrame();
+      }
+      current = current->next();
     }
-    frame = iterator.NextFrame();
-  }
+  });
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
