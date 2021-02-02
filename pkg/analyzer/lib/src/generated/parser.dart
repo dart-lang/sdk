@@ -4,9 +4,6 @@
 
 library analyzer.parser;
 
-import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart'
-    as fasta;
-import 'package:_fe_analyzer_shared/src/parser/member_kind.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/parser/type_info.dart' as fasta;
 import 'package:analyzer/dart/analysis/features.dart';
