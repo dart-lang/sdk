@@ -335,7 +335,16 @@ class FileResolver {
         performance: performance!,
       );
       var file = fileContext.file;
-      var libraryFile = file.partOfLibrary ?? file;
+
+      // If we have a `part of` directive, we want to analyze this library.
+      // But the library must include the file, so have its element.
+      var libraryFile = file;
+      var partOfLibrary = file.partOfLibrary;
+      if (partOfLibrary != null) {
+        if (partOfLibrary.libraryFiles.contains(file)) {
+          libraryFile = partOfLibrary;
+        }
+      }
 
       int? completionOffset;
       if (completionLine != null && completionColumn != null) {

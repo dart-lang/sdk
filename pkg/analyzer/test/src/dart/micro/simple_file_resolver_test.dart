@@ -502,6 +502,13 @@ void f(int? a) {}
     );
   }
 
+  test_part_notInLibrary_libraryDoesNotExist() async {
+    // TODO(scheglov) Should report CompileTimeErrorCode.URI_DOES_NOT_EXIST
+    await assertNoErrorsInCode(r'''
+part of 'a.dart';
+''');
+  }
+
   test_resolve_part_of() async {
     newFile('/workspace/dart/test/lib/a.dart', content: r'''
 part 'test.dart';
