@@ -867,6 +867,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
     builder.performanceLog = analysisServer.analysisPerformanceLogger;
     builder.byteStore = analysisServer.byteStore;
     builder.enableIndex = true;
+    builder.lookForBazelBuildFileSubstitutes = false;
     return builder;
   }
 
