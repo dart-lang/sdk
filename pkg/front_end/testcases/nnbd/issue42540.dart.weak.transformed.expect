@@ -2,7 +2,6 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:async" as asy;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 static method getNull() → dynamic
   return null;
@@ -15,7 +14,6 @@ static method fn() → asy::Future<core::Object> /* originally async */ {
   core::int :await_jump_var = 0;
   dynamic :await_ctx_var;
   dynamic :saved_try_context_var0;
-  FutureOr<core::Object>:async_temporary_0;
   function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
     try {
       #L1:
@@ -23,15 +21,7 @@ static method fn() → asy::Future<core::Object> /* originally async */ {
         [yield] let dynamic #t1 = asy::_awaitHelper(self::getNull(), :async_op_then, :async_op_error, :async_op) in null;
         core::Object o = :result;
         [yield] let dynamic #t2 = asy::_awaitHelper(self::getNull(), :async_op_then, :async_op_error, :async_op) in null;
-        final FutureOr<core::Object>#t3 = :result;
-        if(#t3 is asy::Future<core::Object>) {
-          [yield] let dynamic #t4 = asy::_awaitHelper(#t3, :async_op_then, :async_op_error, :async_op) in null;
-          :async_temporary_0 = _in::unsafeCast<core::Object>(:result);
-        }
-        else {
-          :async_temporary_0 = #t3;
-        }
-        :return_value = :async_temporary_0;
+        :return_value = :result;
         break #L1;
       }
       asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);

@@ -11,6 +11,6 @@ static method main() → dynamic async {
   };
   (dynamic _) → asy::Future<core::int?> async {
     if(b)
-      return let final core::int #t1 = 42 in #t1 is asy::Future<core::int?> ?{FutureOr<dynamic>} await #t1 : #t1;
+      return 42;
   };
 }

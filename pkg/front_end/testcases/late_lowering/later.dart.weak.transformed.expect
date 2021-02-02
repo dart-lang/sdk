@@ -168,8 +168,6 @@ static method hest() → dynamic /* originally async */ {
   dynamic :saved_try_context_var1;
   dynamic :exception0;
   dynamic :stack_trace0;
-  FutureOr<dynamic>:async_temporary_0;
-  FutureOr<dynamic>:async_temporary_1;
   function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
     try {
       #L1:
@@ -197,15 +195,7 @@ static method hest() → dynamic /* originally async */ {
               :result;
             }
         }
-        final core::String #t11 = "hest";
-        if(#t11 is asy::Future<dynamic>) {
-          [yield] let dynamic #t12 = asy::_awaitHelper(#t11, :async_op_then, :async_op_error, :async_op) in null;
-          :async_temporary_1 = _in::unsafeCast<core::String>(:result);
-        }
-        else {
-          :async_temporary_1 = #t11;
-        }
-        :return_value = :async_temporary_1;
+        :return_value = "hest";
         break #L1;
       }
       asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
@@ -243,9 +233,9 @@ static method fisk() → dynamic /* originally async */ {
           }
           return #s1{core::String};
         }
-        function #s1#set(core::String #t13) → dynamic {
+        function #s1#set(core::String #t11) → dynamic {
           #s1#isSet = true;
-          return #s1 = #t13;
+          return #s1 = #t11;
         }
         lowered core::String? #s2;
         lowered core::bool #s2#isSet = false;
@@ -258,9 +248,9 @@ static method fisk() → dynamic /* originally async */ {
           }
           return #s2{core::String};
         }
-        function #s2#set(core::String #t14) → dynamic {
+        function #s2#set(core::String #t12) → dynamic {
           #s2#isSet = true;
-          return #s2 = #t14;
+          return #s2 = #t12;
         }
         lowered core::Function? #f;
         lowered core::bool #f#isSet = false;
@@ -275,21 +265,12 @@ static method fisk() → dynamic /* originally async */ {
               core::int :await_jump_var = 0;
               dynamic :await_ctx_var;
               dynamic :saved_try_context_var0;
-              FutureOr<dynamic>:async_temporary_0;
               function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
                 try {
                   #L4:
                   {
-                    [yield] let dynamic #t15 = asy::_awaitHelper(self::hest(), :async_op_then, :async_op_error, :async_op) in null;
-                    final dynamic #t16 = :result;
-                    if(#t16 is asy::Future<dynamic>) {
-                      [yield] let dynamic #t17 = asy::_awaitHelper(#t16, :async_op_then, :async_op_error, :async_op) in null;
-                      :async_temporary_0 = :result;
-                    }
-                    else {
-                      :async_temporary_0 = #t16;
-                    }
-                    :return_value = :async_temporary_0;
+                    [yield] let dynamic #t13 = asy::_awaitHelper(self::hest(), :async_op_then, :async_op_error, :async_op) in null;
+                    :return_value = :result;
                     break #L4;
                   }
                   asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
@@ -308,9 +289,9 @@ static method fisk() → dynamic /* originally async */ {
           }
           return #f{core::Function};
         }
-        function #f#set(core::Function #t18) → dynamic {
+        function #f#set(core::Function #t14) → dynamic {
           #f#isSet = true;
-          return #f = #t18;
+          return #f = #t14;
         }
       }
       asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);

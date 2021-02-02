@@ -116,20 +116,16 @@ class DeserializationCluster : public ZoneAllocated {
 
   // Allocate memory for all objects in the cluster and write their addresses
   // into the ref array. Do not touch this memory.
-  virtual void ReadAlloc(Deserializer* deserializer, bool stamp_canonical) = 0;
+  virtual void ReadAlloc(Deserializer* deserializer, bool is_canonical) = 0;
 
   // Initialize the cluster's objects. Do not touch the memory of other objects.
-  virtual void ReadFill(Deserializer* deserializer, bool stamp_canonical) = 0;
+  virtual void ReadFill(Deserializer* deserializer, bool is_canonical) = 0;
 
   // Complete any action that requires the full graph to be deserialized, such
   // as rehashing.
   virtual void PostLoad(Deserializer* deserializer,
                         const Array& refs,
-                        bool canonicalize) {
-    if (canonicalize) {
-      FATAL1("%s needs canonicalization but doesn't define PostLoad", name());
-    }
-  }
+                        bool is_canonical) {}
 
   const char* name() const { return name_; }
 
@@ -351,7 +347,7 @@ class Serializer : public ThreadStackResource {
     Write<int32_t>(cid);
   }
 
-  void PrepareInstructions();
+  void PrepareInstructions(GrowableArray<CodePtr>* codes);
   void WriteInstructions(InstructionsPtr instr,
                          uint32_t unchecked_offset,
                          CodePtr code,
@@ -384,7 +380,6 @@ class Serializer : public ThreadStackResource {
   void set_loading_units(GrowableArray<LoadingUnitSerializationData*>* units) {
     loading_units_ = units;
   }
-  intptr_t current_loading_unit_id() { return current_loading_unit_id_; }
   void set_current_loading_unit_id(intptr_t id) {
     current_loading_unit_id_ = id;
   }
@@ -417,13 +412,6 @@ class Serializer : public ThreadStackResource {
       return RefId(Object::null());
     }
     FATAL("Missing ref");
-  }
-
-  bool HasRef(ObjectPtr object) const {
-    return heap_->GetObjectId(object) != kUnreachableReference;
-  }
-  bool IsWritten(ObjectPtr object) const {
-    return heap_->GetObjectId(object) > num_base_objects_;
   }
 
  private:
@@ -585,8 +573,6 @@ class Deserializer : public ThreadStackResource {
 
   uword ReadWordWith32BitReads() { return stream_.ReadWordWith32BitReads(); }
 
-  intptr_t position() const { return stream_.Position(); }
-  void set_position(intptr_t p) { stream_.SetPosition(p); }
   const uint8_t* CurrentBufferAddress() const {
     return stream_.AddressOfCurrentPosition();
   }

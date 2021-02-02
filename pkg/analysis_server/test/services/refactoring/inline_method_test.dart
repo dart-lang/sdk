@@ -203,10 +203,10 @@ class A {
   Future<void> test_bad_propertyAccessor_synthetic() async {
     await indexTestUnit(r'''
 class A {
-  int fff;
+  int fff = 0;
 }
 
-main(A a) {
+void f(A a) {
   print(a.fff);
 }
 ''');
@@ -252,12 +252,12 @@ main() {
   Future<void> test_cascadeInCascade() async {
     await indexTestUnit(r'''
 class Inner {
-  String a;
-  String b;
+  String a = '';
+  String b = '';
 }
 
 class Outer {
-  Inner inner;
+  Inner inner = Inner();
 }
 
 void main() {
@@ -273,12 +273,12 @@ void main() {
     // validate change
     return _assertSuccessfulRefactoring(r'''
 class Inner {
-  String a;
-  String b;
+  String a = '';
+  String b = '';
 }
 
 class Outer {
-  Inner inner;
+  Inner inner = Inner();
 }
 
 void main() {
@@ -923,10 +923,10 @@ class A {
   Future<void> test_getter_classMember_instance() async {
     await indexTestUnit(r'''
 class A {
-  int f;
+  int f = 0;
   int get result => f + 1;
 }
-main(A a) {
+void f(A a) {
   print(a.result);
 }
 ''');
@@ -934,9 +934,9 @@ main(A a) {
     // validate change
     return _assertSuccessfulRefactoring(r'''
 class A {
-  int f;
+  int f = 0;
 }
-main(A a) {
+void f(A a) {
   print(a.f + 1);
 }
 ''');
@@ -1063,7 +1063,7 @@ class A {
 abstract class A {
   test();
 }
-main(A a) {
+void f(A a) {
   print(a.test());
 }
 ''');
@@ -1182,7 +1182,7 @@ class B extends A {
   }
   mb() {}
 }
-main(B b) {
+void f(B b) {
   b.test();
 }
 ''');
@@ -1199,7 +1199,7 @@ class B extends A {
   }
   mb() {}
 }
-main(B b) {
+void f(B b) {
   b.ma();
   b.mb();
 }
@@ -1219,7 +1219,7 @@ class B extends A {
     B.mb();
   }
 }
-main(B b) {
+void f(B b) {
   b.test();
 }
 ''');
@@ -1237,7 +1237,7 @@ class B extends A {
     B.mb();
   }
 }
-main(B b) {
+void f(B b) {
   B.mb();
   A.ma();
   B.mb();
@@ -1559,12 +1559,12 @@ class A {
   Future<void> test_setter_classMember_instance() async {
     await indexTestUnit(r'''
 class A {
-  int f;
+  int f = 0;
   void set result(x) {
     f = x + 1;
   }
 }
-main(A a) {
+void f(A a) {
   a.result = 5;
 }
 ''');
@@ -1572,9 +1572,9 @@ main(A a) {
     // validate change
     return _assertSuccessfulRefactoring(r'''
 class A {
-  int f;
+  int f = 0;
 }
-main(A a) {
+void f(A a) {
   a.f = 5 + 1;
 }
 ''');
@@ -1725,7 +1725,7 @@ main() {
 test(bool a, bool b) {
   return a || b;
 }
-main(bool p, bool p2, bool p3) {
+void f(bool p, bool p2, bool p3) {
   var res1 = p && test(p2, p3);
   var res2 = p || test(p2, p3);
 }
@@ -1733,7 +1733,7 @@ main(bool p, bool p2, bool p3) {
     _createRefactoring('test(bool a, bool b)');
     // validate change
     return _assertSuccessfulRefactoring(r'''
-main(bool p, bool p2, bool p3) {
+void f(bool p, bool p2, bool p3) {
   var res1 = p && (p2 || p3);
   var res2 = p || p2 || p3;
 }
