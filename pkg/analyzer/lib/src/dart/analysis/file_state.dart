@@ -628,22 +628,9 @@ class FileState {
     );
     parser.enableOptionalNewAndConst = true;
 
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/41023
-    CompilationUnit unit;
-    try {
-      unit = parser.parseCompilationUnit(token);
-      unit.lineInfo = lineInfo;
-    } catch (e) {
-      throw StateError('''
-Parser error.
-path: $path
-${'-' * 40}
-$content
-''');
-    }
-
-    var unitImpl = unit as CompilationUnitImpl;
-    unitImpl.languageVersion = LibraryLanguageVersion(
+    var unit = parser.parseCompilationUnit(token) as CompilationUnitImpl;
+    unit.lineInfo = lineInfo;
+    unit.languageVersion = LibraryLanguageVersion(
       package: packageLanguageVersion!,
       override: scanner.overrideVersion,
     );
