@@ -11,7 +11,6 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart' as lsp;
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart' as lsp;
-import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/constants.dart' as lsp;
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/dartdoc.dart';
@@ -212,7 +211,7 @@ lsp.CompletionItem declarationToCompletionItem(
   HashSet<lsp.CompletionItemKind> supportedCompletionItemKinds,
   String file,
   int offset,
-  IncludedSuggestionSet includedSuggestionSet,
+  server.IncludedSuggestionSet includedSuggestionSet,
   Library library,
   Map<String, int> tagBoosts,
   server.LineInfo lineInfo,
@@ -667,7 +666,7 @@ lsp.Diagnostic pluginToDiagnostic(
   server.LineInfo Function(String) getLineInfo,
   plugin.AnalysisError error,
 ) {
-  List<DiagnosticRelatedInformation> relatedInformation;
+  List<lsp.DiagnosticRelatedInformation> relatedInformation;
   if (error.contextMessages != null && error.contextMessages.isNotEmpty) {
     relatedInformation = error.contextMessages
         .map((message) =>
@@ -792,18 +791,20 @@ lsp.ClosingLabel toClosingLabel(
         range: toRange(lineInfo, label.offset, label.length),
         label: label.label);
 
-CodeActionKind toCodeActionKind(String id, lsp.CodeActionKind fallback) {
+lsp.CodeActionKind toCodeActionKind(String id, lsp.CodeActionKind fallback) {
   if (id == null) {
     return fallback;
   }
   // Dart fixes and assists start with "dart.assist." and "dart.fix." but in LSP
   // we want to use the predefined prefixes for CodeActions.
   final newId = id
-      .replaceAll('dart.assist', CodeActionKind.Refactor.toString())
-      .replaceAll('dart.fix', CodeActionKind.QuickFix.toString())
-      .replaceAll('analysisOptions.assist', CodeActionKind.Refactor.toString())
-      .replaceAll('analysisOptions.fix', CodeActionKind.QuickFix.toString());
-  return CodeActionKind(newId);
+      .replaceAll('dart.assist', lsp.CodeActionKind.Refactor.toString())
+      .replaceAll('dart.fix', lsp.CodeActionKind.QuickFix.toString())
+      .replaceAll(
+          'analysisOptions.assist', lsp.CodeActionKind.Refactor.toString())
+      .replaceAll(
+          'analysisOptions.fix', lsp.CodeActionKind.QuickFix.toString());
+  return lsp.CodeActionKind(newId);
 }
 
 lsp.CompletionItem toCompletionItem(
@@ -931,7 +932,7 @@ lsp.Diagnostic toDiagnostic(
   // Default to the error's severity if none is specified.
   errorSeverity ??= errorCode.errorSeverity;
 
-  List<DiagnosticRelatedInformation> relatedInformation;
+  List<lsp.DiagnosticRelatedInformation> relatedInformation;
   if (error.contextMessages.isNotEmpty) {
     relatedInformation = error.contextMessages
         .map((message) => toDiagnosticRelatedInformation(result, message))
@@ -1232,7 +1233,7 @@ lsp.TextDocumentEdit toTextDocumentEdit(FileEditInformation edit) {
   return lsp.TextDocumentEdit(
     textDocument: edit.doc,
     edits: edit.edits
-        .map((e) => Either2<TextEdit, AnnotatedTextEdit>.t1(
+        .map((e) => Either2<lsp.TextEdit, lsp.AnnotatedTextEdit>.t1(
             toTextEdit(edit.lineInfo, e)))
         .toList(),
   );
