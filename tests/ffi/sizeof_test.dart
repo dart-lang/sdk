@@ -16,9 +16,10 @@ get is64Bit => 8 == sizeOf<IntPtr>();
 void main() async {
   if (is32Bit) {
     Expect.equals(4, sizeOf<Pointer>());
-    Expect.equals(20, sizeOf<Coordinate>());
-  }
-  if (is64Bit) {
+    // Struct is 20 bytes on ia32 and arm32-iOS, but 24 bytes on arm32-Android
+    // and arm32-Linux due to alignment.
+    Expect.isTrue(20 == sizeOf<Coordinate>() || 24 == sizeOf<Coordinate>());
+  } else if (is64Bit) {
     Expect.equals(8, sizeOf<Pointer>());
     Expect.equals(24, sizeOf<Coordinate>());
   }
