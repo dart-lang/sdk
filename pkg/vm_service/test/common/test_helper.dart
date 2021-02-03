@@ -133,7 +133,7 @@ class _ServiceTesteeLauncher {
       fullArgs.add('--pause-isolates-on-start');
     }
     if (pause_on_exit) {
-      fullArgs.add('--pause-isolates-on-exit');
+      fullArgs.add('--pause-isolates-on-io.exit');
     }
     if (!useAuthToken) {
       fullArgs.add('--disable-service-auth-codes');

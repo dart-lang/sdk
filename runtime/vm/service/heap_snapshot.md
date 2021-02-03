@@ -41,7 +41,7 @@ type SnapshotGraph {
   // The amount of memory reserved for this heap. At least as large as |shallowSize|.
   capacity : uleb128,
 
-  // The sum of sizes of all external properties in this graph.
+  // The sum of sizes of all external properites in this graph.
   externalSize : uleb128,
 
   classCount : uleb128,
@@ -54,14 +54,6 @@ type SnapshotGraph {
 
   externalPropertyCount : uleb128,
   externalProperties : SnapshotExternalProperty[externalPropertyCount],
-
-  // The list of identity hash codes corresponding to each entry in objects.
-  // A hash code of zero is invalid and cannot be used to determine equality
-  // between objects. If the same object is included in multiple
-  // HeapSnapshots, it will report the same identityHashCode. The converse is
-  // not true: two different objects may report the same identityHashCode
-  // (with low probability).
-  identityHashCodes: uint32[objectCount],
 }
 ```
 

@@ -15,9 +15,6 @@ class _ReadStream {
 
   _ReadStream(this._chunks);
 
-  bool get atEnd => ((_byteIndex >= _chunks[_chunkIndex].lengthInBytes) &&
-      (_chunkIndex + 1 >= _chunks.length));
-
   int readByte() {
     while (_byteIndex >= _chunks[_chunkIndex].lengthInBytes) {
       _chunkIndex++;
@@ -120,9 +117,6 @@ class HeapSnapshotField {
 
 /// A representation of a class type captured in a memory snapshot.
 class HeapSnapshotClass {
-  /// The class ID representing this type.
-  int get classId => _classId;
-
   /// The simple (not qualified) name of the class.
   String get name => _name;
 
@@ -135,13 +129,12 @@ class HeapSnapshotClass {
   /// The list of fields in the class.
   List<HeapSnapshotField> get fields => _fields;
 
-  final int _classId;
   String _name = '';
   String _libraryName = '';
   late final Uri _libraryUri;
   final List<HeapSnapshotField> _fields = <HeapSnapshotField>[];
 
-  HeapSnapshotClass._read(this._classId, _ReadStream reader) {
+  HeapSnapshotClass._read(_ReadStream reader) {
     // flags (reserved).
     reader.readUnsigned();
 
@@ -154,18 +147,6 @@ class HeapSnapshotClass {
 
     _populateFields(reader);
   }
-
-  HeapSnapshotClass._root()
-      : _classId = 0,
-        _name = 'Root',
-        _libraryName = '',
-        _libraryUri = Uri();
-
-  HeapSnapshotClass._sentinel()
-      : _classId = 0,
-        _name = 'Sentinel',
-        _libraryName = '',
-        _libraryUri = Uri();
 
   void _populateFields(_ReadStream reader) {
     final fieldCount = reader.readUnsigned();
@@ -180,14 +161,6 @@ class HeapSnapshotObject {
   /// The class ID representing the type of this object.
   int get classId => _classId;
 
-  /// The class representing the type of this object.
-  HeapSnapshotClass get klass {
-    if (_classId <= 0) {
-      return HeapSnapshotClass._sentinel();
-    }
-    return _graph._classes[_classId];
-  }
-
   /// The space used by this object in bytes.
   int get shallowSize => _shallowSize;
 
@@ -197,54 +170,22 @@ class HeapSnapshotObject {
   /// A list of 1-origin indicies into [HeapSnapshotGraph.objects].
   List<int> get references => _references;
 
-  /// The identity hash code of this object.
-  ///
-  /// If `identityHashCode` is 0, either the snapshot did not contain the list
-  /// of identity hash codes or this object cannot be compared across
-  /// snapshots.
-  int get identityHashCode => _identityHashCode;
-
-  Iterable<HeapSnapshotObject> get successors sync* {
-    final startSuccessorIndex = _graph._firstSuccessors[_oid];
-    final limitSuccessorIndex = _graph._firstSuccessors[_oid + 1];
-
-    for (int nextSuccessorIndex = startSuccessorIndex;
-        nextSuccessorIndex < limitSuccessorIndex;
-        ++nextSuccessorIndex) {
-      final successorId = _graph._successors[nextSuccessorIndex];
-      yield _graph.objects[successorId];
-    }
-  }
-
-  final HeapSnapshotGraph _graph;
-  final int _oid;
   int _classId = -1;
   int _shallowSize = -1;
-  int _identityHashCode = 0;
   late final dynamic _data;
   final List<int> _references = <int>[];
 
-  HeapSnapshotObject._sentinel(this._graph)
-      : _oid = 0,
-        _data = HeapSnapshotObjectNoData() {
-    _graph._firstSuccessors[_oid] = _graph._eid;
-  }
-
-  HeapSnapshotObject._read(this._graph, this._oid, _ReadStream reader) {
+  HeapSnapshotObject._read(_ReadStream reader) {
     _classId = reader.readUnsigned();
     _shallowSize = reader.readUnsigned();
     _data = _getNonReferenceData(reader);
-    _graph._firstSuccessors[_oid] = _graph._eid;
     _populateReferences(reader);
   }
 
   void _populateReferences(_ReadStream reader) {
     final referencesCount = reader.readUnsigned();
     for (int i = 0; i < referencesCount; ++i) {
-      int childOid = reader.readUnsigned();
-      _references.add(childOid);
-      _graph._successors[_graph._eid] = childOid;
-      _graph._eid++;
+      _references.add(reader.readUnsigned());
     }
   }
 }
@@ -308,10 +249,6 @@ class HeapSnapshotGraph {
   final List<HeapSnapshotExternalProperty> _externalProperties =
       <HeapSnapshotExternalProperty>[];
 
-  late Uint32List _firstSuccessors;
-  late Uint32List _successors;
-  int _eid = 0;
-
   /// Requests a heap snapshot for a given isolate and builds a
   /// [HeapSnapshotGraph].
   ///
@@ -353,60 +290,29 @@ class HeapSnapshotGraph {
     _capacity = reader.readUnsigned();
     _externalSize = reader.readUnsigned();
     _populateClasses(reader);
+    _referenceCount = reader.readUnsigned();
     _populateObjects(reader);
     _populateExternalProperties(reader);
-    _populateIdentityHashCodes(reader);
   }
 
   void _populateClasses(_ReadStream reader) {
     final classCount = reader.readUnsigned();
-    _classes.add(HeapSnapshotClass._root());
-    for (int i = 1; i <= classCount; ++i) {
-      final klass = HeapSnapshotClass._read(i, reader);
-      _classes.add(klass);
+    for (int i = 0; i < classCount; ++i) {
+      _classes.add(HeapSnapshotClass._read(reader));
     }
   }
 
   void _populateObjects(_ReadStream reader) {
-    _referenceCount = reader.readUnsigned();
     final objectCount = reader.readUnsigned();
-    _firstSuccessors = _newUint32Array(objectCount + 2);
-    _successors = _newUint32Array(_referenceCount);
-
-    _objects.add(HeapSnapshotObject._sentinel(this));
-    for (int i = 1; i <= objectCount; ++i) {
-      _objects.add(HeapSnapshotObject._read(this, i, reader));
+    for (int i = 0; i < objectCount; ++i) {
+      _objects.add(HeapSnapshotObject._read(reader));
     }
-    _firstSuccessors[objectCount + 1] = _eid;
   }
 
   void _populateExternalProperties(_ReadStream reader) {
     final propertiesCount = reader.readUnsigned();
     for (int i = 0; i < propertiesCount; ++i) {
       _externalProperties.add(HeapSnapshotExternalProperty._read(reader));
-    }
-  }
-
-  void _populateIdentityHashCodes(_ReadStream reader) {
-    if (reader.atEnd) {
-      // Older VMs don't include identity hash codes.
-      return;
-    }
-    final objectCount = _objects.length;
-    for (int i = 1; i < objectCount; ++i) {
-      _objects[i]._identityHashCode = reader.readUnsigned();
-    }
-  }
-
-  Uint32List _newUint32Array(int size) {
-    try {
-      return Uint32List(size);
-    } on ArgumentError {
-      // JS throws a misleading invalid argument error. Convert to a more
-      // user-friendly message.
-      throw Exception(
-        'OutOfMemoryError: Not enough memory available to analyze the snapshot.',
-      );
     }
   }
 }

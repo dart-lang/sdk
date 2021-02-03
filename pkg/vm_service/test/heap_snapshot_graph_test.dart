@@ -44,8 +44,7 @@ var tests = <IsolateTest>[
     int actualShallowSize = 0;
     int actualRefCount = 0;
     snapshotGraph.objects.forEach((HeapSnapshotObject o) {
-      // -1 is the CID used by the sentinel.
-      expect(o.classId >= -1, isTrue);
+      expect(o.classId >= 0, isTrue);
       expect(o.data, isNotNull);
       expect(o.references, isNotNull);
       actualShallowSize += o.shallowSize;
@@ -92,7 +91,7 @@ var tests = <IsolateTest>[
     foosFound = 0;
     snapshotGraph.objects.forEach((HeapSnapshotObject o) {
       if (o.classId == 0) return;
-      if (o.classId == fooClassId) {
+      if (o.classId - 1 == fooClassId) {
         foosFound++;
       }
     });
