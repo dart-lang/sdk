@@ -199,7 +199,7 @@ part of 'syntactic_errors.dart';
       }
       throw shouldRunFastaGenerateMessagesFirst;
     }
-    out.writeln('final fastaAnalyzerErrorCodes = <ErrorCode>[null,');
+    out.writeln('final fastaAnalyzerErrorCodes = <ErrorCode?>[null,');
     for (var entry in sorted) {
       List<String> name = nameForEntry(entry);
       out.writeln('_${name[1]},');
