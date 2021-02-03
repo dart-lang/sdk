@@ -3250,7 +3250,7 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dartdoc",
           "arguments": [
             "--exclude",
-            "dart:ffi,dart:html,dart:web_sql,dart:web_audio,dart:svg,dart:indexed_db,dart:io",
+            "dart:ffi,dart:html,dart:web_sql,dart:web_audio,dart:svg,dart:indexed_db",
             "--sdk-docs",
             "--no-generate-docs"
           ],

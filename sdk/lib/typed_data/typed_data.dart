@@ -10,6 +10,7 @@
 /// import 'dart:typed_data';
 /// ```
 /// {@category Core}
+/// {@canonicalFor dart:_internal.BytesBuilder}
 library dart.typed_data;
 
 import "dart:_internal" show Since, UnmodifiableListBase;
