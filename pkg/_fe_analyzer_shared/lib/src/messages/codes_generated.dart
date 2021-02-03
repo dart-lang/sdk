@@ -5950,6 +5950,17 @@ const MessageCode messageJsInteropEnclosingClassJSAnnotationContext =
         message: r"""This is the enclosing class.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropExternalMemberNotJSAnnotated =
+    messageJsInteropExternalMemberNotJSAnnotated;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropExternalMemberNotJSAnnotated = const MessageCode(
+    "JsInteropExternalMemberNotJSAnnotated",
+    message: r"""Only JS interop members may be 'external'.""",
+    tip:
+        r"""Try removing the 'external' keyword or adding a JS interop annotation.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropIndexNotSupported =
     messageJsInteropIndexNotSupported;
 

@@ -49,9 +49,9 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
 
   @override
   void extractJsInteropAnnotations(LibraryEntity library) {
-    DiagnosticReporter reporter = elementMap.reporter;
+    // Unused reporter, add back in if uncommenting report lines down below.
+    // DiagnosticReporter reporter = elementMap.reporter;
     KElementEnvironment elementEnvironment = elementMap.elementEnvironment;
-    KCommonElements commonElements = elementMap.commonElements;
 
     ir.Library libraryNode = elementMap.getLibraryNode(library);
     String libraryName = annotationData.getJsInteropLibraryName(libraryNode);
@@ -85,10 +85,6 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
             // implicitly js-interop. For now we allow it.
             isJsLibrary = true;
           }
-        } else if (function.isExternal &&
-            !commonElements.isExternalAllowed(function)) {
-          reporter.reportErrorMessage(
-              function, MessageKind.NON_NATIVE_EXTERNAL);
         }
       }
     });
@@ -144,29 +140,10 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
           }
         });
       } else {
-        elementEnvironment.forEachLocalClassMember(cls, (MemberEntity member) {
-          String memberName = getJsInteropName(
-              library, elementEnvironment.getMemberMetadata(member));
-          if (memberName == null && member is FunctionEntity) {
-            if (member.isExternal &&
-                !commonElements.isExternalAllowed(member)) {
-              reporter.reportErrorMessage(
-                  member, MessageKind.NON_NATIVE_EXTERNAL);
-            }
-          }
-        });
-        elementEnvironment.forEachConstructor(cls,
-            (ConstructorEntity constructor) {
-          String memberName = getJsInteropName(
-              library, elementEnvironment.getMemberMetadata(constructor));
-          if (memberName == null) {
-            if (constructor.isExternal &&
-                !commonElements.isExternalAllowed(constructor)) {
-              reporter.reportErrorMessage(
-                  constructor, MessageKind.NON_NATIVE_EXTERNAL);
-            }
-          }
-        });
+        // TODO(44754): For now, this call is required to correctly load
+        // the environment for some of the tests in the _2 directories.
+        elementEnvironment.forEachConstructor(
+            cls, (ConstructorEntity constructor) {});
       }
     });
 

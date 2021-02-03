@@ -2084,6 +2084,8 @@ class KernelNativeMemberResolver implements NativeMemberResolver {
     assert(annotationData != null);
     if (!maybeEnableNative(node.enclosingLibrary.importUri)) return false;
     bool hasNativeBody = annotationData.hasNativeBody(node);
+    // TODO(rileyporter): Move this check on non-native external usage to
+    // js_interop_checks when `native` and `external` can be disambiguated.
     if (!hasNativeBody &&
         node.isExternal &&
         !_nativeBasicData.isJsInteropMember(_elementMap.getMember(node))) {

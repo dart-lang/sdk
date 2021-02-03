@@ -4676,6 +4676,10 @@ JsInteropEnclosingClassJSAnnotationContext:
   template: "This is the enclosing class."
   severity: CONTEXT
 
+JsInteropExternalMemberNotJSAnnotated:
+  template: "Only JS interop members may be 'external'."
+  tip: "Try removing the 'external' keyword or adding a JS interop annotation."
+
 JsInteropIndexNotSupported:
   template: "JS interop classes do not support [] and []= operator methods."
   tip: "Try replacing with a normal method."

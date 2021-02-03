@@ -18,6 +18,7 @@ assert/initializer_const_error2_test/*: SkipByDesign # DDC does not support non-
 
 [ $compiler == dartdevc || $compiler == dartdevk ]
 async_star/throw_in_catch_test: Skip # Times out. Issue 29920
+external_abstract_fields/external_fields_test: SkipByDesign # Non-JS-interop external members are not supported
 number/int64_literal_runtime*_test: Skip # This is testing Dart 2.0 int64 semantics.
 superinterface_variance/*: Skip # Issue dart-lang/language#113
 vm/*: SkipByDesign # VM only tests.; VM only tests.
