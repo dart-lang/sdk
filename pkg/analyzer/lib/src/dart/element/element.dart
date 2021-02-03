@@ -2333,12 +2333,13 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   @override
   bool get isDeprecated {
-    if (element?.library!.isDartCore == true) {
-      if (element is ConstructorElement) {
-        return element!.enclosingElement!.name == _DEPRECATED_CLASS_NAME;
-      } else if (element is PropertyAccessorElement) {
-        return element!.name == _DEPRECATED_VARIABLE_NAME;
-      }
+    var element = this.element;
+    if (element is ConstructorElement) {
+      return element.library.isDartCore &&
+          element.enclosingElement.name == _DEPRECATED_CLASS_NAME;
+    } else if (element is PropertyAccessorElement) {
+      return element.library.isDartCore &&
+          element.name == _DEPRECATED_VARIABLE_NAME;
     }
     return false;
   }
