@@ -26,7 +26,8 @@ import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
-import 'package:test/test.dart';
+import 'package:test/test.dart' hide expect;
+import 'package:test/test.dart' as test show expect;
 
 import '../mocks.dart';
 import '../src/utilities/mock_packages.dart';
@@ -723,6 +724,9 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     );
     return expectSuccessfulResponseTo(request, (result) => result);
   }
+
+  void expect(actual, matcher, {String reason}) =>
+      test.expect(actual, matcher, reason: reason);
 
   void expectDocumentVersion(
     TextDocumentEdit edit,

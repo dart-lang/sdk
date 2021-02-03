@@ -5,10 +5,13 @@
 // @dart = 2.9
 
 import 'dart:core' hide MapEntry;
+import 'dart:core' as core;
 
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
-import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart'
+    hide Reference; // Work around https://github.com/dart-lang/sdk/issues/44667
 import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart';
@@ -4738,12 +4741,31 @@ class InferenceVisitor
 
     readResult ??= new ExpressionInferenceResult(readType, read);
     if (!inferrer.isTopLevel && readTarget.isNullable) {
+      Map<DartType, NonPromotionReason> whyNotPromoted =
+          inferrer.flowAnalysis?.whyNotPromoted(receiver);
+      List<LocatedMessage> context;
+      if (whyNotPromoted != null && whyNotPromoted.isNotEmpty) {
+        _WhyNotPromotedVisitor whyNotPromotedVisitor =
+            new _WhyNotPromotedVisitor(inferrer);
+        for (core.MapEntry<DartType, NonPromotionReason> entry
+            in whyNotPromoted.entries) {
+          if (entry.key.isPotentiallyNullable) continue;
+          if (inferrer.dataForTesting != null) {
+            inferrer.dataForTesting.flowAnalysisResult
+                .nonPromotionReasons[read] = entry.value.shortName;
+          }
+          LocatedMessage message = entry.value.accept(whyNotPromotedVisitor);
+          context = [message];
+          break;
+        }
+      }
       readResult = inferrer.wrapExpressionInferenceResultInProblem(
           readResult,
           templateNullablePropertyAccessError.withArguments(
               propertyName.text, receiverType, inferrer.isNonNullableByDefault),
           read.fileOffset,
-          propertyName.text.length);
+          propertyName.text.length,
+          context: context);
     }
     return readResult;
   }
@@ -5709,8 +5731,13 @@ class InferenceVisitor
     ExpressionInferenceResult readResult = _computePropertyGet(
         node.fileOffset, receiver, receiverType, node.name, typeContext,
         isThisReceiver: node.receiver is ThisExpression);
-    return inferrer.createNullAwareExpressionInferenceResult(
-        readResult.inferredType, readResult.expression, nullAwareGuards);
+    inferrer.flowAnalysis.propertyGet(node, node.receiver, node.name.name);
+    ExpressionInferenceResult expressionInferenceResult =
+        inferrer.createNullAwareExpressionInferenceResult(
+            readResult.inferredType, readResult.expression, nullAwareGuards);
+    inferrer.flowAnalysis
+        .forwardExpression(expressionInferenceResult.nullAwareAction, node);
+    return expressionInferenceResult;
   }
 
   @override
@@ -5973,6 +6000,7 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitSuperPropertyGet(
       SuperPropertyGet node, DartType typeContext) {
+    inferrer.flowAnalysis.thisOrSuperPropertyGet(node, node.name.name);
     if (node.interfaceTarget != null) {
       inferrer.instrumentation?.record(
           inferrer.uriForInstrumentation,
@@ -6160,6 +6188,7 @@ class InferenceVisitor
 
   ExpressionInferenceResult visitThisExpression(
       ThisExpression node, DartType typeContext) {
+    inferrer.flowAnalysis.thisOrSuper(node);
     return new ExpressionInferenceResult(inferrer.thisType, node);
   }
 
@@ -6280,7 +6309,7 @@ class InferenceVisitor
         fileOffset: node.fileOffset,
         isVoidAllowed: declaredOrInferredType is VoidType);
     inferrer.flowAnalysis
-        .write(variable, rhsResult.inferredType, rhsResult.expression);
+        .write(node, variable, rhsResult.inferredType, rhsResult.expression);
     DartType resultType = rhsResult.inferredType;
     Expression resultExpression;
     if (variable.lateSetter != null) {
@@ -6956,6 +6985,44 @@ class InferenceVisitor
   }
 }
 
+class _WhyNotPromotedVisitor
+    implements
+        NonPromotionReasonVisitor<LocatedMessage, Node, Expression,
+            VariableDeclaration> {
+  final TypeInferrerImpl inferrer;
+
+  _WhyNotPromotedVisitor(this.inferrer);
+
+  @override
+  LocatedMessage visitDemoteViaExplicitWrite(
+      DemoteViaExplicitWrite<VariableDeclaration, Expression> reason) {
+    if (inferrer.dataForTesting != null) {
+      inferrer.dataForTesting.flowAnalysisResult
+          .nonPromotionReasonTargets[reason.writeExpression] = reason.shortName;
+    }
+    int offset = reason.writeExpression.fileOffset;
+    return templateVariableCouldBeNullDueToWrite
+        .withArguments(reason.variable.name)
+        .withLocation(inferrer.helper.uri, offset, noLength);
+  }
+
+  @override
+  LocatedMessage visitDemoteViaForEachVariableWrite(
+      DemoteViaForEachVariableWrite<VariableDeclaration, Node> reason) {
+    int offset = (reason.node as TreeNode).fileOffset;
+    return templateVariableCouldBeNullDueToWrite
+        .withArguments(reason.variable.name)
+        .withLocation(inferrer.helper.uri, offset, noLength);
+  }
+
+  @override
+  LocatedMessage visitFieldNotPromoted(FieldNotPromoted reason) {
+    return templateFieldNotPromoted
+        .withArguments(reason.propertyName)
+        .withoutLocation();
+  }
+}
+
 class ForInResult {
   final VariableDeclaration variable;
   final Expression iterable;
@@ -7005,7 +7072,8 @@ class LocalForInVariable implements ForInVariable {
         isVoidAllowed: true);
 
     variableSet.value = rhs..parent = variableSet;
-    inferrer.flowAnalysis.write(variableSet.variable, rhsType, null);
+    inferrer.flowAnalysis
+        .write(variableSet, variableSet.variable, rhsType, null);
     return variableSet;
   }
 }

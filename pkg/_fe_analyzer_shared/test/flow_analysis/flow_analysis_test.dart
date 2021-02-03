@@ -499,6 +499,94 @@ main() {
       ]);
     });
 
+    test('equalityOp_end on property get preserves target variable', () {
+      // This is a regression test for a mistake made during the implementation
+      // of "why not promoted" functionality: when storing information about an
+      // attempt to promote a field (e.g. `x.y != null`) we need to make sure we
+      // don't wipe out information about the target variable (`x`).
+      var h = Harness();
+      var x = Var('x', 'C');
+      h.run([
+        declare(x, initialized: true),
+        checkAssigned(x, true),
+        if_(x.read.propertyGet('y').notEq(nullLiteral), [
+          checkAssigned(x, true),
+        ], [
+          checkAssigned(x, true),
+        ]),
+      ]);
+    });
+
+    test('equalityOp_end does not set reachability for `this`', () {
+      var h = Harness();
+      h.addSubtype('C', 'Object', true);
+      h.run([
+        if_(this_('C').is_('Null'), [
+          if_(this_('C').eq(nullLiteral), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ]),
+        ]),
+      ]);
+    });
+
+    group('equalityOp_end does not set reachability for property gets', () {
+      test('on a variable', () {
+        var h = Harness();
+        var x = Var('x', 'C');
+        h.run([
+          declare(x, initialized: true),
+          if_(x.read.propertyGet('f').is_('Null'), [
+            if_(x.read.propertyGet('f').eq(nullLiteral), [
+              checkReachable(true),
+            ], [
+              checkReachable(true),
+            ]),
+          ]),
+        ]);
+      });
+
+      test('on an arbitrary expression', () {
+        var h = Harness();
+        h.run([
+          if_(expr('C').propertyGet('f').is_('Null'), [
+            if_(expr('C').propertyGet('f').eq(nullLiteral), [
+              checkReachable(true),
+            ], [
+              checkReachable(true),
+            ]),
+          ]),
+        ]);
+      });
+
+      test('on explicit this', () {
+        var h = Harness();
+        h.run([
+          if_(this_('C').propertyGet('f').is_('Null'), [
+            if_(this_('C').propertyGet('f').eq(nullLiteral), [
+              checkReachable(true),
+            ], [
+              checkReachable(true),
+            ]),
+          ]),
+        ]);
+      });
+
+      test('on implicit this/super', () {
+        var h = Harness();
+        h.run([
+          if_(thisOrSuperPropertyGet('f').is_('Null'), [
+            if_(thisOrSuperPropertyGet('f').eq(nullLiteral), [
+              checkReachable(true),
+            ], [
+              checkReachable(true),
+            ]),
+          ]),
+        ]);
+      });
+    });
+
     test('finish checks proper nesting', () {
       var h = Harness();
       var e = expr('Null');
@@ -1370,6 +1458,65 @@ main() {
           x.write(expr('Null')).stmt,
         ]),
       ]);
+    });
+
+    test('isExpression_end() does not set reachability for `this`', () {
+      var h = Harness();
+      h.run([
+        if_(this_('C').is_('Never'), [
+          checkReachable(true),
+        ], [
+          checkReachable(true),
+        ]),
+      ]);
+    });
+
+    group('isExpression_end() does not set reachability for property gets', () {
+      test('on a variable', () {
+        var h = Harness();
+        var x = Var('x', 'C');
+        h.run([
+          declare(x, initialized: true),
+          if_(x.read.propertyGet('f').is_('Never'), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+
+      test('on an arbitrary expression', () {
+        var h = Harness();
+        h.run([
+          if_(expr('C').propertyGet('f').is_('Never'), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+
+      test('on explicit this', () {
+        var h = Harness();
+        h.run([
+          if_(this_('C').propertyGet('f').is_('Never'), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
+
+      test('on implicit this/super', () {
+        var h = Harness();
+        h.run([
+          if_(thisOrSuperPropertyGet('f').is_('Never'), [
+            checkReachable(true),
+          ], [
+            checkReachable(true),
+          ]),
+        ]);
+      });
     });
 
     test('labeledBlock without break', () {
@@ -3262,7 +3409,7 @@ main() {
         // This should not happen in valid code, but test that we don't crash.
         var h = Harness();
         var s = FlowModel<Var, Type>(Reachability.initial).write(
-            objectQVar, Type('Object?'), new SsaNode<Var, Type>(null), h);
+            null, objectQVar, Type('Object?'), new SsaNode<Var, Type>(null), h);
         expect(s.variableInfo[objectQVar], isNull);
       });
 
@@ -3271,7 +3418,7 @@ main() {
         var s1 = FlowModel<Var, Type>(Reachability.initial)
             .declare(objectQVar, true);
         var s2 = s1.write(
-            objectQVar, Type('Object?'), new SsaNode<Var, Type>(null), h);
+            null, objectQVar, Type('Object?'), new SsaNode<Var, Type>(null), h);
         expect(s2, isNot(same(s1)));
         expect(s2.reachable, same(s1.reachable));
         expect(
@@ -3287,8 +3434,8 @@ main() {
         var h = Harness();
         var s1 = FlowModel<Var, Type>(Reachability.initial)
             .declare(objectQVar, false);
-        var s2 =
-            s1.write(objectQVar, Type('int?'), new SsaNode<Var, Type>(null), h);
+        var s2 = s1.write(
+            null, objectQVar, Type('int?'), new SsaNode<Var, Type>(null), h);
         expect(s2.reachable.overallReachable, true);
         expect(
             s2.infoFor(objectQVar),
@@ -3306,8 +3453,8 @@ main() {
             .tryPromoteForTypeCheck(h, _varRef(objectQVar), Type('int'))
             .ifTrue;
         expect(s1.variableInfo, contains(objectQVar));
-        var s2 =
-            s1.write(objectQVar, Type('int?'), new SsaNode<Var, Type>(null), h);
+        var s2 = s1.write(_MockNonPromotionReason(), objectQVar, Type('int?'),
+            new SsaNode<Var, Type>(null), h);
         expect(s2.reachable.overallReachable, true);
         expect(s2.variableInfo, {
           objectQVar: _matchVariableModel(
@@ -3333,8 +3480,8 @@ main() {
               assigned: true,
               unassigned: false)
         });
-        var s2 =
-            s1.write(objectQVar, Type('num'), new SsaNode<Var, Type>(null), h);
+        var s2 = s1.write(_MockNonPromotionReason(), objectQVar, Type('num'),
+            new SsaNode<Var, Type>(null), h);
         expect(s2.reachable.overallReachable, true);
         expect(s2.variableInfo, {
           objectQVar: _matchVariableModel(
@@ -3362,8 +3509,8 @@ main() {
               assigned: true,
               unassigned: false)
         });
-        var s2 =
-            s1.write(objectQVar, Type('num'), new SsaNode<Var, Type>(null), h);
+        var s2 = s1.write(_MockNonPromotionReason(), objectQVar, Type('num'),
+            new SsaNode<Var, Type>(null), h);
         expect(s2.reachable.overallReachable, true);
         expect(s2.variableInfo, {
           objectQVar: _matchVariableModel(
@@ -3389,8 +3536,8 @@ main() {
               assigned: true,
               unassigned: false)
         });
-        var s2 =
-            s1.write(objectQVar, Type('num'), new SsaNode<Var, Type>(null), h);
+        var s2 = s1.write(
+            null, objectQVar, Type('num'), new SsaNode<Var, Type>(null), h);
         expect(s2.reachable.overallReachable, true);
         expect(s2.variableInfo, isNot(same(s1.variableInfo)));
         expect(s2.variableInfo, {
@@ -3417,8 +3564,8 @@ main() {
               assigned: true,
               unassigned: false)
         });
-        var s2 =
-            s1.write(objectQVar, Type('int'), new SsaNode<Var, Type>(null), h);
+        var s2 = s1.write(
+            null, objectQVar, Type('int'), new SsaNode<Var, Type>(null), h);
         expect(s2.reachable.overallReachable, true);
         expect(s2.variableInfo, isNot(same(s1.variableInfo)));
         expect(s2.variableInfo, {
@@ -3440,7 +3587,8 @@ main() {
             x: _matchVariableModel(chain: null),
           });
 
-          var s2 = s1.write(x, Type('int'), new SsaNode<Var, Type>(null), h);
+          var s2 =
+              s1.write(null, x, Type('int'), new SsaNode<Var, Type>(null), h);
           expect(s2.variableInfo, {
             x: _matchVariableModel(chain: ['int']),
           });
@@ -3461,7 +3609,8 @@ main() {
           });
 
           // 'x' is write-captured, so not promoted
-          var s3 = s2.write(x, Type('int'), new SsaNode<Var, Type>(null), h);
+          var s3 =
+              s2.write(null, x, Type('int'), new SsaNode<Var, Type>(null), h);
           expect(s3.variableInfo, {
             x: _matchVariableModel(chain: null, writeCaptured: true),
           });
@@ -3480,7 +3629,7 @@ main() {
             ),
           });
           var s2 = s1.write(
-              objectQVar, Type('int'), new SsaNode<Var, Type>(null), h);
+              null, objectQVar, Type('int'), new SsaNode<Var, Type>(null), h);
           expect(s2.variableInfo, {
             objectQVar: _matchVariableModel(
               chain: ['int?', 'int'],
@@ -3502,7 +3651,7 @@ main() {
             ),
           });
           var s2 = s1.write(
-              objectQVar, Type('int'), new SsaNode<Var, Type>(null), h);
+              null, objectQVar, Type('int'), new SsaNode<Var, Type>(null), h);
           expect(s2.variableInfo, {
             objectQVar: _matchVariableModel(
               chain: ['Object', 'int'],
@@ -3524,8 +3673,8 @@ main() {
             ofInterest: ['num?'],
           ),
         });
-        var s2 =
-            s1.write(objectQVar, Type('num?'), new SsaNode<Var, Type>(null), h);
+        var s2 = s1.write(_MockNonPromotionReason(), objectQVar, Type('num?'),
+            new SsaNode<Var, Type>(null), h);
         expect(s2.variableInfo, {
           objectQVar: _matchVariableModel(
             chain: ['num?'],
@@ -3548,8 +3697,8 @@ main() {
             ofInterest: ['num?', 'int?'],
           ),
         });
-        var s2 =
-            s1.write(objectQVar, Type('int?'), new SsaNode<Var, Type>(null), h);
+        var s2 = s1.write(_MockNonPromotionReason(), objectQVar, Type('int?'),
+            new SsaNode<Var, Type>(null), h);
         expect(s2.variableInfo, {
           objectQVar: _matchVariableModel(
             chain: ['num?', 'int?'],
@@ -3618,7 +3767,8 @@ main() {
               ),
             });
 
-            var s2 = s1.write(x, Type('C'), new SsaNode<Var, Type>(null), h);
+            var s2 =
+                s1.write(null, x, Type('C'), new SsaNode<Var, Type>(null), h);
             expect(s2.variableInfo, {
               x: _matchVariableModel(
                 chain: ['Object', 'B'],
@@ -3643,7 +3793,8 @@ main() {
               ),
             });
 
-            var s2 = s1.write(x, Type('C'), new SsaNode<Var, Type>(null), h);
+            var s2 =
+                s1.write(null, x, Type('C'), new SsaNode<Var, Type>(null), h);
             expect(s2.variableInfo, {
               x: _matchVariableModel(
                 chain: ['Object', 'B'],
@@ -3668,7 +3819,8 @@ main() {
               ),
             });
 
-            var s2 = s1.write(x, Type('B'), new SsaNode<Var, Type>(null), h);
+            var s2 =
+                s1.write(null, x, Type('B'), new SsaNode<Var, Type>(null), h);
             expect(s2.variableInfo, {
               x: _matchVariableModel(
                 chain: ['Object', 'A'],
@@ -3694,7 +3846,7 @@ main() {
               ),
             });
             var s2 = s1.write(
-                objectQVar, Type('int'), new SsaNode<Var, Type>(null), h);
+                null, objectQVar, Type('int'), new SsaNode<Var, Type>(null), h);
             // It's ambiguous whether to promote to num? or num*, so we don't
             // promote.
             expect(s2, isNot(same(s1)));
@@ -3721,8 +3873,8 @@ main() {
               ofInterest: ['num?', 'num*'],
             ),
           });
-          var s2 = s1.write(
-              objectQVar, Type('num?'), new SsaNode<Var, Type>(null), h);
+          var s2 = s1.write(_MockNonPromotionReason(), objectQVar, Type('num?'),
+              new SsaNode<Var, Type>(null), h);
           // It's ambiguous whether to promote to num? or num*, but since the
           // written type is exactly num?, we use that.
           expect(s2.variableInfo, {
@@ -3754,7 +3906,8 @@ main() {
           ),
         });
 
-        var s2 = s1.write(x, Type('double'), new SsaNode<Var, Type>(null), h);
+        var s2 = s1.write(_MockNonPromotionReason(), x, Type('double'),
+            new SsaNode<Var, Type>(null), h);
         expect(s2.variableInfo, {
           x: _matchVariableModel(
             chain: ['num?', 'num'],
@@ -3908,11 +4061,11 @@ main() {
             .declare(c, false)
             .declare(d, false);
         var s1 = s0
-            .write(a, Type('int'), new SsaNode<Var, Type>(null), h)
-            .write(b, Type('int'), new SsaNode<Var, Type>(null), h);
+            .write(null, a, Type('int'), new SsaNode<Var, Type>(null), h)
+            .write(null, b, Type('int'), new SsaNode<Var, Type>(null), h);
         var s2 = s0
-            .write(a, Type('int'), new SsaNode<Var, Type>(null), h)
-            .write(c, Type('int'), new SsaNode<Var, Type>(null), h);
+            .write(null, a, Type('int'), new SsaNode<Var, Type>(null), h)
+            .write(null, c, Type('int'), new SsaNode<Var, Type>(null), h);
         var result = s1.rebaseForward(h, s2);
         expect(result.infoFor(a).assigned, true);
         expect(result.infoFor(b).assigned, true);
@@ -3978,7 +4131,8 @@ main() {
           var s0 = FlowModel<Var, Type>(Reachability.initial).declare(x, true);
           var s1 = s0;
           if (unsafe) {
-            s1 = s1.write(x, Type('Object?'), new SsaNode<Var, Type>(null), h);
+            s1 = s1.write(
+                null, x, Type('Object?'), new SsaNode<Var, Type>(null), h);
           }
           if (thisType != null) {
             s1 =
@@ -5363,6 +5517,173 @@ main() {
       ]);
     });
   });
+
+  group('why not promoted', () {
+    test('due to assignment', () {
+      var h = Harness();
+      var x = Var('x', 'int?');
+      late Expression writeExpression;
+      h.run([
+        declare(x, initialized: true),
+        if_(x.read.eq(nullLiteral), [
+          return_(),
+        ]),
+        checkPromoted(x, 'int'),
+        (writeExpression = x.write(expr('int?'))).stmt,
+        checkNotPromoted(x),
+        x.read.whyNotPromoted((reasons) {
+          expect(reasons.keys, unorderedEquals([Type('int')]));
+          var nonPromotionReason =
+              reasons.values.single as DemoteViaExplicitWrite<Var, Expression>;
+          expect(nonPromotionReason.writeExpression, same(writeExpression));
+        }).stmt,
+      ]);
+    });
+
+    test('due to assignment, multiple demotions', () {
+      var h = Harness();
+      var x = Var('x', 'Object?');
+      late Expression writeExpression;
+      h.run([
+        declare(x, initialized: true),
+        if_(x.read.isNot('int?'), [
+          return_(),
+        ]),
+        if_(x.read.eq(nullLiteral), [
+          return_(),
+        ]),
+        checkPromoted(x, 'int'),
+        (writeExpression = x.write(expr('Object?'))).stmt,
+        checkNotPromoted(x),
+        x.read.whyNotPromoted((reasons) {
+          expect(reasons.keys, unorderedEquals([Type('int'), Type('int?')]));
+          expect(
+              (reasons[Type('int')] as DemoteViaExplicitWrite<Var, Expression>)
+                  .writeExpression,
+              same(writeExpression));
+          expect(
+              (reasons[Type('int?')] as DemoteViaExplicitWrite<Var, Expression>)
+                  .writeExpression,
+              same(writeExpression));
+        }).stmt,
+      ]);
+    });
+
+    test('preserved in join when one branch unreachable', () {
+      var h = Harness();
+      var x = Var('x', 'int?');
+      late Expression writeExpression;
+      h.run([
+        declare(x, initialized: true),
+        if_(x.read.eq(nullLiteral), [
+          return_(),
+        ]),
+        checkPromoted(x, 'int'),
+        (writeExpression = x.write(expr('int?'))).stmt,
+        checkNotPromoted(x),
+        if_(expr('bool'), [
+          return_(),
+        ]),
+        x.read.whyNotPromoted((reasons) {
+          expect(reasons.keys, unorderedEquals([Type('int')]));
+          var nonPromotionReason =
+              reasons.values.single as DemoteViaExplicitWrite<Var, Expression>;
+          expect(nonPromotionReason.writeExpression, same(writeExpression));
+        }).stmt,
+      ]);
+    });
+
+    test('preserved in later promotions', () {
+      var h = Harness();
+      var x = Var('x', 'Object');
+      late Expression writeExpression;
+      h.run([
+        declare(x, initialized: true),
+        if_(x.read.is_('int', isInverted: true), [
+          return_(),
+        ]),
+        checkPromoted(x, 'int'),
+        (writeExpression = x.write(expr('Object'))).stmt,
+        checkNotPromoted(x),
+        if_(x.read.is_('num', isInverted: true), [
+          return_(),
+        ]),
+        checkPromoted(x, 'num'),
+        x.read.whyNotPromoted((reasons) {
+          var nonPromotionReason =
+              reasons[Type('int')] as DemoteViaExplicitWrite;
+          expect(nonPromotionReason.writeExpression, same(writeExpression));
+        }).stmt,
+      ]);
+    });
+
+    test('re-promotion', () {
+      var h = Harness();
+      var x = Var('x', 'int?');
+      h.run([
+        declare(x, initialized: true),
+        if_(x.read.eq(nullLiteral), [
+          return_(),
+        ]),
+        checkPromoted(x, 'int'),
+        x.write(expr('int?')).stmt,
+        checkNotPromoted(x),
+        if_(x.read.eq(nullLiteral), [
+          return_(),
+        ]),
+        checkPromoted(x, 'int'),
+        x.read.whyNotPromoted((reasons) {
+          expect(reasons, isEmpty);
+        }).stmt,
+      ]);
+    });
+
+    group('because field', () {
+      test('via explicit this', () {
+        var h = Harness();
+        h.run([
+          if_(this_('C').propertyGet('field').eq(nullLiteral), [
+            return_(),
+          ]),
+          this_('C').propertyGet('field').whyNotPromoted((reasons) {
+            expect(reasons.keys, unorderedEquals([Type('Object')]));
+            var nonPromotionReason = reasons.values.single;
+            expect(nonPromotionReason, TypeMatcher<FieldNotPromoted>());
+          }).stmt,
+        ]);
+      });
+
+      test('via implicit this/super', () {
+        var h = Harness();
+        h.run([
+          if_(thisOrSuperPropertyGet('field').eq(nullLiteral), [
+            return_(),
+          ]),
+          thisOrSuperPropertyGet('field').whyNotPromoted((reasons) {
+            expect(reasons.keys, unorderedEquals([Type('Object')]));
+            var nonPromotionReason = reasons.values.single;
+            expect(nonPromotionReason, TypeMatcher<FieldNotPromoted>());
+          }).stmt,
+        ]);
+      });
+
+      test('via variable', () {
+        var h = Harness();
+        var x = Var('x', 'C');
+        h.run([
+          declare(x, initialized: true),
+          if_(x.read.propertyGet('field').eq(nullLiteral), [
+            return_(),
+          ]),
+          x.read.propertyGet('field').whyNotPromoted((reasons) {
+            expect(reasons.keys, unorderedEquals([Type('Object')]));
+            var nonPromotionReason = reasons.values.single;
+            expect(nonPromotionReason, TypeMatcher<FieldNotPromoted>());
+          }).stmt,
+        ]);
+      });
+    });
+  });
 }
 
 /// Returns the appropriate matcher for expecting an assertion error to be
@@ -5434,3 +5755,12 @@ Matcher _matchVariableModel(
 
 Reference<Var, Type> _varRef(Var variable) =>
     new VariableReference<Var, Type>(variable);
+
+class _MockNonPromotionReason extends NonPromotionReason {
+  String get shortName => fail('Unexpected call to shortName');
+
+  R accept<R, Node extends Object, Expression extends Object,
+              Variable extends Object>(
+          NonPromotionReasonVisitor<R, Node, Expression, Variable> visitor) =>
+      fail('Unexpected call to accept');
+}

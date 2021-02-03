@@ -48,6 +48,8 @@ void main(List<String> args) {
         'pkg/_fe_analyzer_shared/test/flow_analysis/reachability/'),
     packageDirectory(
         'pkg/_fe_analyzer_shared/test/flow_analysis/type_promotion/'),
+    packageDirectory(
+        'pkg/_fe_analyzer_shared/test/flow_analysis/why_not_promoted//'),
     packageDirectory('pkg/_fe_analyzer_shared/test/inheritance/'),
   ];
 

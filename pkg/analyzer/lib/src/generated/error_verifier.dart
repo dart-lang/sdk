@@ -1465,14 +1465,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // Report specific problem when return type is incompatible
     FunctionType constructorType = declaration.declaredElement!.type;
     DartType constructorReturnType = constructorType.returnType;
-    if (!_typeSystem.isAssignableTo2(
+    if (!_typeSystem.isAssignableTo(
         redirectedReturnType, constructorReturnType)) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.REDIRECT_TO_INVALID_RETURN_TYPE,
           redirectedConstructor,
           [redirectedReturnType, constructorReturnType]);
       return;
-    } else if (!_typeSystem.isSubtypeOf2(redirectedType, constructorType)) {
+    } else if (!_typeSystem.isSubtypeOf(redirectedType, constructorType)) {
       // Check parameters.
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.REDIRECT_TO_INVALID_FUNCTION_TYPE,
@@ -1622,7 +1622,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       DartType actualStaticType,
       DartType expectedStaticType,
       ErrorCode errorCode) {
-    if (!_typeSystem.isAssignableTo2(actualStaticType, expectedStaticType)) {
+    if (!_typeSystem.isAssignableTo(actualStaticType, expectedStaticType)) {
       AstNode getErrorNode(AstNode node) {
         if (node is CascadeExpression) {
           return getErrorNode(node.target);
@@ -2327,7 +2327,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       iterableType = requiredSequenceType;
     }
 
-    if (!_typeSystem.isAssignableTo2(iterableType, requiredSequenceType)) {
+    if (!_typeSystem.isAssignableTo(iterableType, requiredSequenceType)) {
       _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE,
         node.iterable,
@@ -2351,7 +2351,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return true;
     }
 
-    if (!_typeSystem.isAssignableTo2(sequenceElementType, variableType)) {
+    if (!_typeSystem.isAssignableTo(sequenceElementType, variableType)) {
       _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
         node.iterable,
@@ -2521,7 +2521,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     Expression expression = initializer.expression;
     // test the static type of the expression
     DartType staticType = expression.staticType!;
-    if (_typeSystem.isAssignableTo2(staticType, fieldType)) {
+    if (_typeSystem.isAssignableTo(staticType, fieldType)) {
       return;
     }
     // report problem
@@ -3122,7 +3122,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       var first = positional.first;
       var type = first.declaredElement!.type;
       var listOfString = _typeProvider.listType2(_typeProvider.stringType);
-      if (!_typeSystem.isSubtypeOf2(listOfString, type)) {
+      if (!_typeSystem.isSubtypeOf(listOfString, type)) {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.MAIN_FIRST_POSITIONAL_PARAMETER_TYPE,
           first.notDefault.typeOrSelf,
@@ -3281,11 +3281,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         superType = superType.withNullability(NullabilitySuffix.none);
       }
 
-      bool isSatisfied = _typeSystem.isSubtypeOf2(superType, constraint);
+      bool isSatisfied = _typeSystem.isSubtypeOf(superType, constraint);
       if (!isSatisfied) {
         for (int i = 0; i < mixinIndex && !isSatisfied; i++) {
           isSatisfied =
-              _typeSystem.isSubtypeOf2(_enclosingClass!.mixins[i], constraint);
+              _typeSystem.isSubtypeOf(_enclosingClass!.mixins[i], constraint);
         }
       }
       if (!isSatisfied) {
@@ -4176,7 +4176,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     DartType caseType = caseExpression.staticType!;
 
     // check types
-    if (!_typeSystem.isAssignableTo2(expressionType, caseType)) {
+    if (!_typeSystem.isAssignableTo(expressionType, caseType)) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE,
           expression,
@@ -4190,7 +4190,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     var expression = node.expression;
     var type = node.expression.staticType!;
 
-    if (!_typeSystem.isAssignableTo2(type, _typeSystem.objectNone)) {
+    if (!_typeSystem.isAssignableTo(type, _typeSystem.objectNone)) {
       _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.THROW_OF_INVALID_TYPE,
         expression,

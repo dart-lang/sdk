@@ -187,10 +187,10 @@ class TypedLiteralResolver {
       }
 
       if (_typeSystem.isNonNullableByDefault) {
-        if (_typeSystem.isSubtypeOf2(expressionType, NeverTypeImpl.instance)) {
+        if (_typeSystem.isSubtypeOf(expressionType, NeverTypeImpl.instance)) {
           return NeverTypeImpl.instance;
         }
-        if (_typeSystem.isSubtypeOf2(expressionType, _typeSystem.nullNone)) {
+        if (_typeSystem.isSubtypeOf(expressionType, _typeSystem.nullNone)) {
           if (element.isNullAware) {
             return NeverTypeImpl.instance;
           }
@@ -380,14 +380,14 @@ class TypedLiteralResolver {
       }
 
       if (_typeSystem.isNonNullableByDefault) {
-        if (_typeSystem.isSubtypeOf2(expressionType, NeverTypeImpl.instance)) {
+        if (_typeSystem.isSubtypeOf(expressionType, NeverTypeImpl.instance)) {
           return _InferredCollectionElementTypeInformation(
             elementType: NeverTypeImpl.instance,
             keyType: NeverTypeImpl.instance,
             valueType: NeverTypeImpl.instance,
           );
         }
-        if (_typeSystem.isSubtypeOf2(expressionType, _typeSystem.nullNone)) {
+        if (_typeSystem.isSubtypeOf(expressionType, _typeSystem.nullNone)) {
           if (element.isNullAware) {
             return _InferredCollectionElementTypeInformation(
               elementType: NeverTypeImpl.instance,

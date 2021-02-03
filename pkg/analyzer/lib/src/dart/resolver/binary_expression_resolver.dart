@@ -28,7 +28,7 @@ class BinaryExpressionResolver {
   BinaryExpressionResolver({
     required ResolverVisitor resolver,
     required TypePromotionManager promoteManager,
-  })  : _resolver = resolver,
+  })   : _resolver = resolver,
         _promoteManager = promoteManager,
         _typePropertyResolver = resolver.typePropertyResolver,
         _inferenceHelper = resolver.inferenceHelper;

@@ -111,7 +111,7 @@ class GreatestLowerBoundHelper {
     if (T1_nullability == NullabilitySuffix.none && T1.isDartCoreNull) {
       // * Null if Null <: T2
       // * Never otherwise
-      if (_typeSystem.isSubtypeOf2(_nullNone, T2)) {
+      if (_typeSystem.isSubtypeOf(_nullNone, T2)) {
         return _nullNone;
       } else {
         return NeverTypeImpl.instance;
@@ -122,7 +122,7 @@ class GreatestLowerBoundHelper {
     if (T2_nullability == NullabilitySuffix.none && T2.isDartCoreNull) {
       // * Null if Null <: T1
       // * Never otherwise
-      if (_typeSystem.isSubtypeOf2(_nullNone, T1)) {
+      if (_typeSystem.isSubtypeOf(_nullNone, T1)) {
         return _nullNone;
       } else {
         return NeverTypeImpl.instance;
@@ -209,12 +209,12 @@ class GreatestLowerBoundHelper {
     }
 
     // DOWN(T1, T2) = T1 if T1 <: T2
-    if (_typeSystem.isSubtypeOf2(T1, T2)) {
+    if (_typeSystem.isSubtypeOf(T1, T2)) {
       return T1;
     }
 
     // DOWN(T1, T2) = T2 if T2 <: T1
-    if (_typeSystem.isSubtypeOf2(T2, T1)) {
+    if (_typeSystem.isSubtypeOf(T2, T1)) {
       return T2;
     }
 

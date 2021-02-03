@@ -48,7 +48,7 @@ class LiteralElementVerifier {
   /// Check that the given [type] is assignable to the [elementType], otherwise
   /// report the list or set error on the [errorNode].
   void _checkAssignableToElementType(DartType type, AstNode errorNode) {
-    if (!typeSystem.isAssignableTo2(type, elementType!)) {
+    if (!typeSystem.isAssignableTo(type, elementType!)) {
       var errorCode = forList
           ? CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
           : CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE;
@@ -108,7 +108,7 @@ class LiteralElementVerifier {
     }
 
     var keyType = entry.key.staticType!;
-    if (!typeSystem.isAssignableTo2(keyType, mapKeyType!)) {
+    if (!typeSystem.isAssignableTo(keyType, mapKeyType!)) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
         entry.key,
@@ -117,7 +117,7 @@ class LiteralElementVerifier {
     }
 
     var valueType = entry.value.staticType!;
-    if (!typeSystem.isAssignableTo2(valueType, mapValueType!)) {
+    if (!typeSystem.isAssignableTo(valueType, mapValueType!)) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
         entry.value,
@@ -133,10 +133,10 @@ class LiteralElementVerifier {
     if (expressionType.isDynamic) return;
 
     if (typeSystem.isNonNullableByDefault) {
-      if (typeSystem.isSubtypeOf2(expressionType, NeverTypeImpl.instance)) {
+      if (typeSystem.isSubtypeOf(expressionType, NeverTypeImpl.instance)) {
         return;
       }
-      if (typeSystem.isSubtypeOf2(expressionType, typeSystem.nullNone)) {
+      if (typeSystem.isSubtypeOf(expressionType, typeSystem.nullNone)) {
         if (isNullAware) {
           return;
         }
@@ -171,7 +171,7 @@ class LiteralElementVerifier {
     }
 
     var iterableElementType = iterableType.typeArguments[0];
-    if (!typeSystem.isAssignableTo2(iterableElementType, elementType!)) {
+    if (!typeSystem.isAssignableTo(iterableElementType, elementType!)) {
       var errorCode = forList
           ? CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
           : CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE;
@@ -190,10 +190,10 @@ class LiteralElementVerifier {
     if (expressionType.isDynamic) return;
 
     if (typeSystem.isNonNullableByDefault) {
-      if (typeSystem.isSubtypeOf2(expressionType, NeverTypeImpl.instance)) {
+      if (typeSystem.isSubtypeOf(expressionType, NeverTypeImpl.instance)) {
         return;
       }
-      if (typeSystem.isSubtypeOf2(expressionType, typeSystem.nullNone)) {
+      if (typeSystem.isSubtypeOf(expressionType, typeSystem.nullNone)) {
         if (isNullAware) {
           return;
         }
@@ -228,7 +228,7 @@ class LiteralElementVerifier {
     }
 
     var keyType = mapType.typeArguments[0];
-    if (!typeSystem.isAssignableTo2(keyType, mapKeyType!)) {
+    if (!typeSystem.isAssignableTo(keyType, mapKeyType!)) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
         expression,
@@ -237,7 +237,7 @@ class LiteralElementVerifier {
     }
 
     var valueType = mapType.typeArguments[1];
-    if (!typeSystem.isAssignableTo2(valueType, mapValueType!)) {
+    if (!typeSystem.isAssignableTo(valueType, mapValueType!)) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
         expression,

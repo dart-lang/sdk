@@ -97,6 +97,11 @@ class ContextBuilder {
   /// indexing and search.
   bool enableIndex = false;
 
+  /// Sometimes `BUILD` files are not preserved, and other files are created
+  /// instead. But looking for them is expensive, so we want to avoid this
+  /// in cases when `BUILD` files are always available.
+  bool lookForBazelBuildFileSubstitutes = true;
+
   /// Initialize a newly created builder to be ready to build a context rooted in
   /// the directory with the given [rootDirectoryPath].
   ContextBuilder(this.resourceProvider, this.sdkManager, this.contentCache,
@@ -113,8 +118,9 @@ class ContextBuilder {
     if (builderOptions.librarySummaryPaths != null) {
       summaryData = SummaryDataStore(builderOptions.librarySummaryPaths!);
     }
-    Workspace workspace =
-        ContextBuilder.createWorkspace(resourceProvider, path, this);
+    Workspace workspace = ContextBuilder.createWorkspace(
+        resourceProvider, path, this,
+        lookForBazelBuildFileSubstitutes: lookForBazelBuildFileSubstitutes);
     final sf =
         createSourceFactoryFromWorkspace(workspace, summaryData: summaryData);
 
@@ -397,7 +403,8 @@ class ContextBuilder {
   }
 
   static Workspace createWorkspace(ResourceProvider resourceProvider,
-      String rootPath, ContextBuilder contextBuilder) {
+      String rootPath, ContextBuilder contextBuilder,
+      {bool lookForBazelBuildFileSubstitutes = true}) {
     var packages = contextBuilder.createPackageMap(rootPath);
     var packageMap = <String, List<Folder>>{};
     for (var package in packages.packages) {
@@ -413,7 +420,8 @@ class ContextBuilder {
           PubWorkspace.find(resourceProvider, packageMap, rootPath) ??
           BasicWorkspace.find(resourceProvider, packageMap, rootPath);
     }
-    Workspace? workspace = BazelWorkspace.find(resourceProvider, rootPath);
+    Workspace? workspace = BazelWorkspace.find(resourceProvider, rootPath,
+        lookForBuildFileSubstitutes: lookForBazelBuildFileSubstitutes);
     workspace ??= GnWorkspace.find(resourceProvider, rootPath);
     workspace ??=
         PackageBuildWorkspace.find(resourceProvider, packageMap, rootPath);

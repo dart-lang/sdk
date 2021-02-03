@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -147,8 +146,6 @@ class TypeParameterTypeTest extends AbstractTypeSystemNullSafetyTest {
   }
 
   void _assertEqual(DartType T1, DartType T2, matcher) {
-    NullSafetyUnderstandingFlag.enableNullSafetyTypes(() async {
-      expect(T1 == T2, matcher);
-    });
+    expect(T1 == T2, matcher);
   }
 }

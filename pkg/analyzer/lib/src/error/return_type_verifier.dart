@@ -207,7 +207,7 @@ class ReturnTypeVerifier {
       // It is a compile-time error if `S` is not `void`,
       // and `S` is not assignable to `T`.
       if (!S.isVoid) {
-        if (!_typeSystem.isAssignableTo2(S, T)) {
+        if (!_typeSystem.isAssignableTo(S, T)) {
           reportTypeError();
           return;
         }
@@ -244,7 +244,7 @@ class ReturnTypeVerifier {
       // and `Future<flatten(S)>` is not assignable to `T`.
       if (!flatten_S.isVoid) {
         var future_flatten_S = _typeProvider.futureType2(flatten_S);
-        if (!_typeSystem.isAssignableTo2(future_flatten_S, T)) {
+        if (!_typeSystem.isAssignableTo(future_flatten_S, T)) {
           reportTypeError();
           return;
         }
@@ -314,7 +314,7 @@ class ReturnTypeVerifier {
       // It is a compile-time error if `S` is not `void`,
       // and `S` is not assignable to `T`.
       if (!S.isVoid) {
-        if (!_typeSystem.isAssignableTo2(S, T)) {
+        if (!_typeSystem.isAssignableTo(S, T)) {
           reportTypeError();
           return;
         }
@@ -345,8 +345,8 @@ class ReturnTypeVerifier {
       // It is a compile-time error if `flatten(S)` is not `void`,
       // and `Future<flatten(S)>` is not assignable to `T`.
       if (!flatten_S.isVoid) {
-        if (!_typeSystem.isAssignableTo2(S, T_v) &&
-            !_typeSystem.isSubtypeOf2(flatten_S, T_v)) {
+        if (!_typeSystem.isAssignableTo(S, T_v) &&
+            !_typeSystem.isSubtypeOf(flatten_S, T_v)) {
           reportTypeError();
           return;
         }
@@ -406,7 +406,7 @@ class ReturnTypeVerifier {
       typeArguments: [NeverTypeImpl.instance],
       nullabilitySuffix: NullabilitySuffix.star,
     );
-    return _typeSystem.isSubtypeOf2(lowerBound, returnType);
+    return _typeSystem.isSubtypeOf(lowerBound, returnType);
   }
 
   static bool _isVoidDynamic(DartType type) {

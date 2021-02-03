@@ -4584,6 +4584,13 @@ MultipleVarianceModifiers:
   tip: "Use at most one of the 'in', 'out', or 'inout' modifiers."
   analyzerCode: ParserErrorCode.MULTIPLE_VARIANCE_MODIFIERS
 
+VariableCouldBeNullDueToWrite:
+  template: "Variable '#name' could be null due to a write occurring here."
+  tip: "Try null checking the variable after the write."
+
+FieldNotPromoted:
+  template: "'#name' refers to a property so it could not be promoted."
+
 NullablePropertyAccessError:
   template: "Property '#name' cannot be accessed on '#type' because it is potentially null."
   tip: "Try accessing using ?. instead."
@@ -4668,6 +4675,10 @@ JsInteropEnclosingClassJSAnnotation:
 JsInteropEnclosingClassJSAnnotationContext:
   template: "This is the enclosing class."
   severity: CONTEXT
+
+JsInteropExternalMemberNotJSAnnotated:
+  template: "Only JS interop members may be 'external'."
+  tip: "Try removing the 'external' keyword or adding a JS interop annotation."
 
 JsInteropIndexNotSupported:
   template: "JS interop classes do not support [] and []= operator methods."

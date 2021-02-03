@@ -368,6 +368,11 @@ class BazelWorkspace extends Workspace
   /// The absolute path to the `bazel-genfiles` folder.
   final String genfiles;
 
+  /// Sometimes `BUILD` files are not preserved, and `xyz.packages` files
+  /// are created instead. But looking for them is expensive, so we want
+  /// to avoid this in cases when `BUILD` files are always available.
+  final bool _lookForBuildFileSubstitutes;
+
   /// The cache of packages. The key is the directory path, the value is
   /// the corresponding package.
   final Map<String, BazelWorkspacePackage> _directoryToPackage = {};
@@ -376,7 +381,13 @@ class BazelWorkspace extends Workspace
       StreamController<BazelFileNotification>.broadcast();
 
   BazelWorkspace._(
-      this.provider, this.root, this.readonly, this.binPaths, this.genfiles);
+    this.provider,
+    this.root,
+    this.readonly,
+    this.binPaths,
+    this.genfiles, {
+    required bool lookForBuildFileSubstitutes,
+  }) : _lookForBuildFileSubstitutes = lookForBuildFileSubstitutes;
 
   /// Stream of files that we tried to find along with their potential or actual
   /// paths.
@@ -511,35 +522,49 @@ class BazelWorkspace extends Workspace
         return packageRootedHere();
       }
 
-      // In some distributed build environments, BUILD files are not preserved.
-      // We can still look for a ".packages" file in order to determine a
-      // package's root. A ".packages" file found in [folder]'s sister path
-      // under a "bin" path among [binPaths] denotes a Dart package.
-      //
-      // For example, if this BazelWorkspace's [root] is
-      // "/build/work/abc123/workspace" with two "bin" folders,
-      // "/build/work/abc123/workspace/blaze-out/host/bin/" and
-      // "/build/work/abc123/workspace/blaze-out/k8-opt/bin/", and [folder]
-      // is at "/build/work/abc123/workspace/foo/bar", then we  must look for a
-      // file ending in ".packages" in the folders
-      // "/build/work/abc123/workspace/blaze-out/host/bin/foo/bar" and
-      // "/build/work/abc123/workspace/blaze-out/k8-opt/bin/foo/bar".
-
-      // [folder]'s path, relative to [root]. For example, "foo/bar".
-      String relative = context.relative(folder.path, from: root);
-      for (String bin in binPaths) {
-        Folder binChild =
-            provider.getFolder(context.normalize(context.join(bin, relative)));
-        if (binChild.exists &&
-            binChild.getChildren().any((c) => c.path.endsWith('.packages'))) {
-          // [folder]'s sister folder within [bin] contains a ".packages" file.
-          return packageRootedHere();
-        }
+      if (_hasBuildFileSubstitute(folder)) {
+        return packageRootedHere();
       }
 
       // Go up a folder.
       folder = parent;
     }
+  }
+
+  /// In some distributed build environments, BUILD files are not preserved.
+  /// We can still look for a ".packages" file in order to determine a
+  /// package's root. A ".packages" file found in [folder]'s sister path
+  /// under a "bin" path among [binPaths] denotes a Dart package.
+  ///
+  /// For example, if the [root] of this BazelWorkspace is
+  /// "/build/work/abc123/workspace" with two "bin" folders,
+  /// "/build/work/abc123/workspace/blaze-out/host/bin/" and
+  /// "/build/work/abc123/workspace/blaze-out/k8-opt/bin/", and [folder]
+  /// is at "/build/work/abc123/workspace/foo/bar", then we  must look for a
+  /// file ending in ".packages" in the folders
+  /// "/build/work/abc123/workspace/blaze-out/host/bin/foo/bar" and
+  /// "/build/work/abc123/workspace/blaze-out/k8-opt/bin/foo/bar".
+  bool _hasBuildFileSubstitute(Folder folder) {
+    if (!_lookForBuildFileSubstitutes) {
+      return false;
+    }
+
+    path.Context context = provider.pathContext;
+
+    // [folder]'s path, relative to [root]. For example, "foo/bar".
+    String relative = context.relative(folder.path, from: root);
+
+    for (String bin in binPaths) {
+      Folder binChild =
+          provider.getFolder(context.normalize(context.join(bin, relative)));
+      if (binChild.exists &&
+          binChild.getChildren().any((c) => c.path.endsWith('.packages'))) {
+        // [folder]'s sister folder within [bin] contains a ".packages" file.
+        return true;
+      }
+    }
+
+    return false;
   }
 
   String? _relativeToRoot(String p) {
@@ -582,7 +607,11 @@ class BazelWorkspace extends Workspace
   ///   BazelWorkspace rooted at _f_ is returned.
   /// * If _f_ has a child file named "WORKSPACE", then a BazelWorkspace rooted
   ///   at _f_ is returned.
-  static BazelWorkspace? find(ResourceProvider provider, String filePath) {
+  static BazelWorkspace? find(
+    ResourceProvider provider,
+    String filePath, {
+    bool lookForBuildFileSubstitutes = true,
+  }) {
     Resource resource = provider.getResource(filePath);
     if (resource is File && resource.parent != null) {
       filePath = resource.parent!.path;
@@ -607,7 +636,8 @@ class BazelWorkspace extends Workspace
               _findSymlinkPrefix(provider, root, binPaths: binPaths);
           binPaths ??= [context.join(root, '$symlinkPrefix-bin')];
           return BazelWorkspace._(provider, root, readonlyRoot, binPaths,
-              context.join(root, '$symlinkPrefix-genfiles'));
+              context.join(root, '$symlinkPrefix-genfiles'),
+              lookForBuildFileSubstitutes: lookForBuildFileSubstitutes);
         }
       }
 
@@ -619,7 +649,8 @@ class BazelWorkspace extends Workspace
             _findSymlinkPrefix(provider, root, binPaths: binPaths);
         binPaths ??= [context.join(root, '$symlinkPrefix-bin')];
         return BazelWorkspace._(provider, root, null /* readonly */, binPaths,
-            context.join(root, '$symlinkPrefix-genfiles'));
+            context.join(root, '$symlinkPrefix-genfiles'),
+            lookForBuildFileSubstitutes: lookForBuildFileSubstitutes);
       }
 
       // Found the WORKSPACE file, must be a non-git workspace.
@@ -630,7 +661,8 @@ class BazelWorkspace extends Workspace
             _findSymlinkPrefix(provider, root, binPaths: binPaths);
         binPaths ??= [context.join(root, '$symlinkPrefix-bin')];
         return BazelWorkspace._(provider, root, null /* readonly */, binPaths,
-            context.join(root, '$symlinkPrefix-genfiles'));
+            context.join(root, '$symlinkPrefix-genfiles'),
+            lookForBuildFileSubstitutes: lookForBuildFileSubstitutes);
       }
 
       // Go up the folder.

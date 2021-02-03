@@ -26,7 +26,7 @@ class AssignmentExpressionResolver {
 
   AssignmentExpressionResolver({
     required ResolverVisitor resolver,
-  })  : _resolver = resolver,
+  })   : _resolver = resolver,
         _typePropertyResolver = resolver.typePropertyResolver,
         _inferenceHelper = resolver.inferenceHelper,
         _assignmentShared = AssignmentExpressionShared(
@@ -88,7 +88,8 @@ class AssignmentExpressionResolver {
 
     if (flow != null) {
       if (writeElement is PromotableElement) {
-        flow.write(writeElement, node.staticType!, hasRead ? null : right);
+        flow.write(
+            node, writeElement, node.staticType!, hasRead ? null : right);
       }
       if (isIfNull) {
         flow.ifNullExpression_end();
@@ -107,7 +108,7 @@ class AssignmentExpressionResolver {
       return;
     }
 
-    if (_typeSystem.isAssignableTo2(rightType, writeType)) {
+    if (_typeSystem.isAssignableTo(rightType, writeType)) {
       return;
     }
 

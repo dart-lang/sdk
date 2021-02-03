@@ -56,6 +56,11 @@
       "packageUri": ".nonexisting/"
     },
     {
+      "name": "_fe_analyzer_shared_why_not_promoted",
+      "rootUri": "../pkg/_fe_analyzer_shared/test/flow_analysis/why_not_promoted",
+      "packageUri": ".nonexisting/"
+    },
+    {
       "name": "_js_interop_checks",
       "rootUri": "../pkg/_js_interop_checks",
       "packageUri": "lib/",

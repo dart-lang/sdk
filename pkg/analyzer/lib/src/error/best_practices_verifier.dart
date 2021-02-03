@@ -1611,7 +1611,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     // The cast is necessary.
-    if (!typeSystem.isSubtypeOf2(leftType, rightType)) {
+    if (!typeSystem.isSubtypeOf(leftType, rightType)) {
       return false;
     }
 

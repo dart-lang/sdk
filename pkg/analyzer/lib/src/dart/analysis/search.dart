@@ -503,8 +503,7 @@ class SearchedFiles {
   }
 
   void ownAnalyzed(Search search) {
-    var contextRoot = search._driver.analysisContext!.contextRoot;
-    for (var path in contextRoot.analyzedFiles()) {
+    for (var path in search._driver.analyzedFiles.files) {
       if (path.endsWith('.dart')) {
         add(path, search);
       }

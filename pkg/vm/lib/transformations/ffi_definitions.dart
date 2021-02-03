@@ -496,23 +496,6 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         InterfaceType(pragmaClass, Nullability.nonNullable, [])));
   }
 
-  /// Expression that queries VM internals at runtime to figure out on which ABI
-  /// we are.
-  Expression _runtimeBranchOnLayout(Map<Abi, int> values) {
-    return MethodInvocation(
-        ConstantExpression(
-            ListConstant(InterfaceType(intClass, Nullability.legacy), [
-              IntConstant(values[Abi.wordSize64]),
-              IntConstant(values[Abi.wordSize32Align32]),
-              IntConstant(values[Abi.wordSize32Align64])
-            ]),
-            InterfaceType(listClass, Nullability.legacy,
-                [InterfaceType(intClass, Nullability.legacy)])),
-        Name("[]"),
-        Arguments([StaticInvocation(abiMethod, Arguments([]))]),
-        listElementAt);
-  }
-
   Statement _generateGetterStatement(DartType dartType, NativeType type,
       int fileOffset, Map<Abi, int> offsets) {
     final bool isPointer = type == NativeType.kPointer;
@@ -558,7 +541,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
                               addressGetter)
                             ..fileOffset = fileOffset,
                           numAddition.name,
-                          Arguments([_runtimeBranchOnLayout(offsets)]),
+                          Arguments([runtimeBranchOnLayout(offsets)]),
                           numAddition)
                     ], types: [
                       dartType
@@ -594,9 +577,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
                               typedDataOffsetInBytesGetter)
                             ..fileOffset = fileOffset,
                           numAddition.name,
-                          Arguments([_runtimeBranchOnLayout(offsets)]),
+                          Arguments([runtimeBranchOnLayout(offsets)]),
                           numAddition),
-                      _runtimeBranchOnLayout(lengths)
+                      runtimeBranchOnLayout(lengths)
                     ]),
                     byteBufferAsUint8List),
                 InterfaceType(objectClass, Nullability.nonNullable))
@@ -610,7 +593,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         Arguments([
           PropertyGet(ThisExpression(), addressOfField.name, addressOfField)
             ..fileOffset = fileOffset,
-          _runtimeBranchOnLayout(offsets)
+          runtimeBranchOnLayout(offsets)
         ]))
       ..fileOffset = fileOffset;
     if (isPointer) {
@@ -646,12 +629,12 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           Arguments([
             PropertyGet(ThisExpression(), addressOfField.name, addressOfField)
               ..fileOffset = fileOffset,
-            _runtimeBranchOnLayout(offsets),
+            runtimeBranchOnLayout(offsets),
             PropertyGet(
                 VariableGet(argument), addressOfField.name, addressOfField)
               ..fileOffset = fileOffset,
             ConstantExpression(IntConstant(0)),
-            _runtimeBranchOnLayout(lengths),
+            runtimeBranchOnLayout(lengths),
           ]))
         ..fileOffset = fileOffset);
     }
@@ -669,7 +652,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         Arguments([
           PropertyGet(ThisExpression(), addressOfField.name, addressOfField)
             ..fileOffset = fileOffset,
-          _runtimeBranchOnLayout(offsets),
+          runtimeBranchOnLayout(offsets),
           argumentExpression
         ]))
       ..fileOffset = fileOffset);
@@ -719,7 +702,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     final Field sizeOf = Field.immutable(name,
         isStatic: true,
         isFinal: true,
-        initializer: _runtimeBranchOnLayout(sizes),
+        initializer: runtimeBranchOnLayout(sizes),
         type: InterfaceType(intClass, Nullability.legacy),
         fileUri: struct.fileUri,
         getterReference: getterReference)

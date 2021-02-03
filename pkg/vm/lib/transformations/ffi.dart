@@ -206,6 +206,7 @@ class FfiTransformer extends Transformer {
   final Field pragmaOptions;
   final Procedure listElementAt;
   final Procedure numAddition;
+  final Procedure numMultiplication;
 
   final Library ffiLibrary;
   final Class allocatorClass;
@@ -267,6 +268,7 @@ class FfiTransformer extends Transformer {
         pragmaOptions = coreTypes.pragmaOptions,
         listElementAt = coreTypes.index.getMember('dart:core', 'List', '[]'),
         numAddition = coreTypes.index.getMember('dart:core', 'num', '+'),
+        numMultiplication = coreTypes.index.getMember('dart:core', 'num', '*'),
         ffiLibrary = index.getLibrary('dart:ffi'),
         allocatorClass = index.getClass('dart:ffi', 'Allocator'),
         nativeFunctionClass = index.getClass('dart:ffi', 'NativeFunction'),
@@ -410,12 +412,31 @@ class FfiTransformer extends Transformer {
     return FunctionType(argumentTypes, returnType, Nullability.legacy);
   }
 
+  /// The [NativeType] corresponding to [c]. Returns `null` for user-defined
+  /// structs.
   NativeType getType(Class c) {
     final int index = nativeTypesClasses.indexOf(c);
     if (index == -1) {
       return null;
     }
     return NativeType.values[index];
+  }
+
+  /// Expression that queries VM internals at runtime to figure out on which ABI
+  /// we are.
+  Expression runtimeBranchOnLayout(Map<Abi, int> values) {
+    return MethodInvocation(
+        ConstantExpression(
+            ListConstant(InterfaceType(intClass, Nullability.legacy), [
+              IntConstant(values[Abi.wordSize64]),
+              IntConstant(values[Abi.wordSize32Align32]),
+              IntConstant(values[Abi.wordSize32Align64])
+            ]),
+            InterfaceType(listClass, Nullability.legacy,
+                [InterfaceType(intClass, Nullability.legacy)])),
+        Name("[]"),
+        Arguments([StaticInvocation(abiMethod, Arguments([]))]),
+        listElementAt);
   }
 }
 

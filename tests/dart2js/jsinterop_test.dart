@@ -52,10 +52,10 @@ class Class {
   Class.generative();
   factory Class.fact() => null as dynamic;
 
-  // NON_NATIVE_EXTERNAL               //# 08: compile-time error
+  // GENERIC  //# 08: compile-time error
   external Class.externalGenerative(); //# 08: continued
 
-  // NON_NATIVE_EXTERNAL                 //# 09: compile-time error
+  // GENERIC  //# 09: compile-time error
   external factory Class.externalFact(); //# 09: continued
 
   @JS('a') // GENERIC  //# 10: compile-time error
@@ -104,22 +104,22 @@ class Class {
   @JS('a') // GENERIC  //# 21: compile-time error
   static staticJsInteropMethod() {} //# 21: continued
 
-  // NON_NATIVE_EXTERNAL               //# 22: compile-time error
+  // GENERIC  //# 22: compile-time error
   external get externalInstanceGetter; //# 22: continued
 
-  // NON_NATIVE_EXTERNAL                  //# 23: compile-time error
+  // GENERIC  //# 23: compile-time error
   external set externalInstanceSetter(_); //# 23: continued
 
-  // NON_NATIVE_EXTERNAL             //# 24: compile-time error
+  // GENERIC  //# 24: compile-time error
   external externalInstanceMethod(); //# 24: continued
 
-  // NON_NATIVE_EXTERNAL             //# 25: compile-time error
+  // GENERIC  //# 25: compile-time error
   external static get externalStaticGetter; //# 25: continued
 
-  // NON_NATIVE_EXTERNAL                //# 26: compile-time error
+  // GENERIC  //# 26: compile-time error
   external static set externalStaticSetter(_); //# 26: continued
 
-  // NON_NATIVE_EXTERNAL           //# 27: compile-time error
+  // GENERIC  //# 27: compile-time error
   external static externalStaticMethod(); //# 27: continued
 
   @JS('a') // GENERIC  //# 28: compile-time error

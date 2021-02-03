@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -40,6 +41,14 @@ class FlowAnalysisDataForTesting {
   final Map<Declaration,
           AssignedVariablesForTesting<AstNode, PromotableElement>>
       assignedVariables = {};
+
+  /// For each expression that led to an error because it was not promoted, a
+  /// string describing the reason it was not promoted.
+  Map<SyntacticEntity, String> nonPromotionReasons = {};
+
+  /// For each auxiliary AST node pointed to by a non-promotion reason, a string
+  /// describing the non-promotion reason pointing to it.
+  Map<AstNode, String> nonPromotionReasonTargets = {};
 }
 
 /// The helper for performing flow analysis during resolution.
@@ -333,6 +342,9 @@ class TypeSystemTypeOperations
   TypeSystemTypeOperations(this.typeSystem);
 
   @override
+  DartType get topType => typeSystem.objectQuestion;
+
+  @override
   TypeClassification classifyType(DartType type) {
     if (isSubtypeOf(type, typeSystem.typeProvider.objectType)) {
       return TypeClassification.nonNullable;
@@ -360,7 +372,7 @@ class TypeSystemTypeOperations
 
   @override
   bool isSubtypeOf(DartType leftType, DartType rightType) {
-    return typeSystem.isSubtypeOf2(leftType, rightType);
+    return typeSystem.isSubtypeOf(leftType, rightType);
   }
 
   @override

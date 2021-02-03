@@ -27,7 +27,14 @@ import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_environment.dart';
 
 import 'ffi.dart'
-    show FfiTransformerData, NativeType, FfiTransformer, optimizedTypes;
+    show
+        FfiTransformerData,
+        NativeType,
+        FfiTransformer,
+        nativeTypeSizes,
+        WORD_SIZE,
+        UNKNOWN,
+        wordSize;
 
 /// Checks and replaces calls to dart:ffi struct fields and methods.
 void transformLibraries(
@@ -177,19 +184,24 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       if (target == structPointerRef || target == structPointerElemAt) {
         final DartType nativeType = node.arguments.types[0];
 
-        _warningNativeTypeValid(nativeType, node, allowStructItself: false);
+        _ensureNativeTypeValid(nativeType, node, allowStructItself: false);
 
-        // TODO(http://dartbug.com/38721): Replace calls with direct
-        // constructor invocations.
+        return _replaceRef(node);
       } else if (target == sizeOfMethod) {
         final DartType nativeType = node.arguments.types[0];
 
+        // TODO(http://dartbug.com/38721): Change this to an error after
+        // package:ffi is no longer using sizeOf generically.
         if (!isFfiLibrary) {
           _warningNativeTypeValid(nativeType, node);
         }
 
-        // TODO(http://dartbug.com/38721): Replace calls with constant
-        // expressions.
+        if (nativeType is InterfaceType) {
+          Expression inlineSizeOf = _inlineSizeOf(nativeType);
+          if (inlineSizeOf != null) {
+            return inlineSizeOf;
+          }
+        }
       } else if (target == lookupFunctionMethod) {
         final DartType nativeType = InterfaceType(
             nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
@@ -303,8 +315,29 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
         _ensureNativeTypeValid(nativeType, node);
 
-        // TODO(http://dartbug.com/38721): Inline the body to get rid of a
-        // generic invocation of sizeOf.
+        // TODO(http://dartbug.com/38721): Change this to an error.
+        if (nativeType is TypeParameterType) {
+          // Do not rewire generic invocations.
+          return node;
+        }
+
+        // Inline the body to get rid of a generic invocation of sizeOf.
+        // TODO(http://dartbug.com/39964): Add `allignmentOf<T>()` call.
+        Expression sizeInBytes = _inlineSizeOf(nativeType);
+        if (sizeInBytes != null) {
+          if (node.arguments.positional.length == 2) {
+            sizeInBytes = MethodInvocation(
+                node.arguments.positional[1],
+                numMultiplication.name,
+                Arguments([sizeInBytes]),
+                numMultiplication);
+          }
+          return MethodInvocation(
+              node.arguments.positional[0],
+              allocatorAllocateMethod.name,
+              Arguments([sizeInBytes], types: node.arguments.types),
+              allocatorAllocateMethod);
+        }
       }
     } on _FfiStaticTypeError {
       // It's OK to swallow the exception because the diagnostics issued will
@@ -313,6 +346,28 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     }
 
     return node;
+  }
+
+  Expression _inlineSizeOf(InterfaceType nativeType) {
+    final Class nativeClass = nativeType.classNode;
+    final NativeType nt = getType(nativeClass);
+    if (nt == null) {
+      // User-defined structs.
+      Field sizeOfField = nativeClass.fields.single;
+      return StaticGet(sizeOfField);
+    }
+    final int size = nativeTypeSizes[nt.index];
+    if (size == WORD_SIZE) {
+      return runtimeBranchOnLayout(wordSize);
+    }
+    if (size != UNKNOWN) {
+      return ConstantExpression(
+          IntConstant(size),
+          InterfaceType(listClass, Nullability.legacy,
+              [InterfaceType(intClass, Nullability.legacy)]));
+    }
+    // Size unknown.
+    return null;
   }
 
   // We need to replace calls to 'DynamicLibrary.lookupFunction' with explicit
@@ -383,6 +438,28 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     return StaticGet(field);
   }
 
+  Expression _replaceRef(StaticInvocation node) {
+    final dartType = node.arguments.types[0];
+    final clazz = (dartType as InterfaceType).classNode;
+    final constructor = clazz.constructors
+        .firstWhere((c) => c.name == Name("#fromTypedDataBase"));
+    Expression pointer = NullCheck(node.arguments.positional[0]);
+    if (node.arguments.positional.length == 2) {
+      pointer = MethodInvocation(
+          pointer,
+          offsetByMethod.name,
+          Arguments([
+            MethodInvocation(
+                node.arguments.positional[1],
+                numMultiplication.name,
+                Arguments([_inlineSizeOf(dartType)]),
+                numMultiplication)
+          ]),
+          offsetByMethod);
+    }
+    return ConstructorInvocation(constructor, Arguments([pointer]));
+  }
+
   @override
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
@@ -396,20 +473,26 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
         _warningNativeTypeValid(nativeType, node);
 
+        // TODO(http://dartbug.com/38721): Change this to an error.
         if (nativeType is TypeParameterType) {
           // Do not rewire generic invocations.
           return node;
         }
-        final Class nativeClass = (nativeType as InterfaceType).classNode;
-        final NativeType nt = getType(nativeClass);
-        if (optimizedTypes.contains(nt)) {
-          final typeArguments = [
-            if (nt == NativeType.kPointer) _pointerTypeGetTypeArg(nativeType)
-          ];
-          return StaticInvocation(
-              elementAtMethods[nt],
-              Arguments([node.receiver, node.arguments.positional[0]],
-                  types: typeArguments));
+
+        Expression inlineSizeOf = _inlineSizeOf(nativeType);
+        if (inlineSizeOf != null) {
+          // Generates `receiver.offsetBy(inlineSizeOfExpression)`.
+          return MethodInvocation(
+              node.receiver,
+              offsetByMethod.name,
+              Arguments([
+                MethodInvocation(
+                    node.arguments.positional.single,
+                    numMultiplication.name,
+                    Arguments([inlineSizeOf]),
+                    numMultiplication)
+              ]),
+              offsetByMethod);
         }
       }
     } on _FfiStaticTypeError {

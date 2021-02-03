@@ -2,18 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/source.dart';
 
 /// Helper for resolving properties (getters, setters, or methods).
 class TypePropertyResolver {
@@ -114,9 +119,30 @@ class TypePropertyResolver {
         }
       }
 
+      var whyNotPromoted = receiver == null
+          ? null
+          : _resolver.flowAnalysis?.flow?.whyNotPromoted(receiver);
+      List<DiagnosticMessage> messages = [];
+      if (whyNotPromoted != null) {
+        for (var entry in whyNotPromoted.entries) {
+          var whyNotPromotedVisitor = _WhyNotPromotedVisitor(
+              _resolver.source, _resolver.flowAnalysis!.dataForTesting);
+          if (_typeSystem.isPotentiallyNullable(entry.key)) continue;
+          if (_resolver.flowAnalysis!.dataForTesting != null) {
+            _resolver.flowAnalysis!.dataForTesting!
+                .nonPromotionReasons[nameErrorEntity] = entry.value.shortName;
+          }
+          var message = entry.value.accept(whyNotPromotedVisitor);
+          if (message != null) {
+            messages = [message];
+          }
+          break;
+        }
+      }
+
       _resolver.nullableDereferenceVerifier.report(
           receiverErrorNode, receiverType,
-          errorCode: errorCode, arguments: [name]);
+          errorCode: errorCode, arguments: [name], messages: messages);
       _reportedGetterError = true;
       _reportedSetterError = true;
 
@@ -262,5 +288,73 @@ class TypePropertyResolver {
       setter: setter,
       needsSetterError: _needsSetterError && !_reportedSetterError,
     );
+  }
+}
+
+class _WhyNotPromotedVisitor
+    implements
+        NonPromotionReasonVisitor<DiagnosticMessage?, AstNode, Expression,
+            PromotableElement> {
+  final Source source;
+
+  final FlowAnalysisDataForTesting? _dataForTesting;
+
+  _WhyNotPromotedVisitor(this.source, this._dataForTesting);
+
+  @override
+  DiagnosticMessage? visitDemoteViaExplicitWrite(
+      DemoteViaExplicitWrite<PromotableElement, Expression> reason) {
+    var writeExpression = reason.writeExpression;
+    if (_dataForTesting != null) {
+      _dataForTesting!.nonPromotionReasonTargets[writeExpression] =
+          reason.shortName;
+    }
+    var variableName = reason.variable.name;
+    if (variableName == null) return null;
+    return _contextMessageForWrite(variableName, writeExpression);
+  }
+
+  @override
+  DiagnosticMessage? visitDemoteViaForEachVariableWrite(
+      DemoteViaForEachVariableWrite<PromotableElement, AstNode> reason) {
+    var node = reason.node;
+    var variableName = reason.variable.name;
+    if (variableName == null) return null;
+    ForLoopParts parts;
+    if (node is ForStatement) {
+      parts = node.forLoopParts;
+    } else if (node is ForElement) {
+      parts = node.forLoopParts;
+    } else {
+      assert(false, 'Unexpected node type');
+      return null;
+    }
+    if (parts is ForEachPartsWithIdentifier) {
+      var identifier = parts.identifier;
+      if (_dataForTesting != null) {
+        _dataForTesting!.nonPromotionReasonTargets[identifier] =
+            reason.shortName;
+      }
+      return _contextMessageForWrite(variableName, identifier);
+    } else {
+      assert(false, 'Unexpected parts type');
+      return null;
+    }
+  }
+
+  @override
+  DiagnosticMessage? visitFieldNotPromoted(FieldNotPromoted reason) {
+    // TODO(paulberry): how to report this?
+    return null;
+  }
+
+  DiagnosticMessageImpl _contextMessageForWrite(
+      String variableName, Expression writeExpression) {
+    return DiagnosticMessageImpl(
+        filePath: source.fullName,
+        message:
+            "Variable '$variableName' could be null due to a write occurring here.",
+        offset: writeExpression.offset,
+        length: writeExpression.length);
   }
 }

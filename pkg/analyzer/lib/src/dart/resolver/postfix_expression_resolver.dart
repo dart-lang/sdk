@@ -26,7 +26,7 @@ class PostfixExpressionResolver {
 
   PostfixExpressionResolver({
     required ResolverVisitor resolver,
-  })  : _resolver = resolver,
+  })   : _resolver = resolver,
         _typePropertyResolver = resolver.typePropertyResolver,
         _inferenceHelper = resolver.inferenceHelper,
         _assignmentShared = AssignmentExpressionShared(
@@ -74,7 +74,7 @@ class PostfixExpressionResolver {
   void _checkForInvalidAssignmentIncDec(
       PostfixExpression node, Expression operand, DartType type) {
     var operandWriteType = node.writeType!;
-    if (!_typeSystem.isAssignableTo2(type, operandWriteType)) {
+    if (!_typeSystem.isAssignableTo(type, operandWriteType)) {
       _resolver.errorReporter.reportErrorForNode(
         CompileTimeErrorCode.INVALID_ASSIGNMENT,
         node,
@@ -173,7 +173,7 @@ class PostfixExpressionResolver {
         var element = operand.staticElement;
         if (element is PromotableElement) {
           _resolver.flowAnalysis?.flow
-              ?.write(element, operatorReturnType, null);
+              ?.write(node, element, operatorReturnType, null);
         }
       }
     }

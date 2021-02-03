@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -2272,11 +2273,16 @@ class ToSourceVisitor2Test {
     _assertSource("@deprecated part 'a.dart';", directive);
   }
 
-  void test_visitPartOfDirective() {
-    _assertSource(
-        "part of l;",
-        AstTestFactory.partOfDirective(
-            AstTestFactory.libraryIdentifier2(["l"])));
+  void test_visitPartOfDirective_name() {
+    var unit = parseString(content: 'part of l;').unit;
+    var directive = unit.directives[0] as PartOfDirective;
+    _assertSource("part of l;", directive);
+  }
+
+  void test_visitPartOfDirective_uri() {
+    var unit = parseString(content: "part of 'a.dart';").unit;
+    var directive = unit.directives[0] as PartOfDirective;
+    _assertSource("part of 'a.dart';", directive);
   }
 
   void test_visitPartOfDirective_withMetadata() {

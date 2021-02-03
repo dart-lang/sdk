@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -1325,15 +1324,12 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
     bool concrete = false,
     bool forSuper = false,
   }) {
-    ExecutableElement? member;
-    NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
-      member = manager.getMember2(
-        findElement.classOrMixin(className),
-        Name(null, name),
-        concrete: concrete,
-        forSuper: forSuper,
-      );
-    });
+    var member = manager.getMember2(
+      findElement.classOrMixin(className),
+      Name(null, name),
+      concrete: concrete,
+      forSuper: forSuper,
+    );
 
     _assertExecutable(member, expected);
   }

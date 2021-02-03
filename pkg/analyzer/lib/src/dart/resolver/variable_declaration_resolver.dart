@@ -20,7 +20,7 @@ class VariableDeclarationResolver {
   VariableDeclarationResolver({
     required ResolverVisitor resolver,
     required bool strictInference,
-  })  : _resolver = resolver,
+  })   : _resolver = resolver,
         _strictInference = strictInference;
 
   void resolve(VariableDeclarationImpl node) {

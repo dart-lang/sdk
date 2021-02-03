@@ -297,7 +297,19 @@ class LinkedElementFactory {
     }
 
     // For class, mixin, extension - index members.
-    parent.nodeAccessor!.readIndex();
+    var parentNodeAccessor = parent.nodeAccessor;
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44841
+    if (parentNodeAccessor == null) {
+      var parentNodeCode = '<unknown>';
+      try {
+        parentNodeCode = '${parent.node}';
+      } catch (_) {}
+      throw '[reference: $reference]'
+          '[parent: $parent]'
+          '[parentNodeCode: $parentNodeCode]';
+    } else {
+      parentNodeAccessor.readIndex();
+    }
 
     // For any element - class, method, etc - read the node.
     var node = reference.nodeAccessor!.node;

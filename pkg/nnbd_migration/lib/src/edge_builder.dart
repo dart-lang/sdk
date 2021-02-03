@@ -407,7 +407,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
 
     var expressionType = _handleAssignment(node.rightHandSide,
-        destinationExpression: node.leftHandSide,
+        assignmentExpression: node,
         compoundOperatorInfo: isCompound ? node : null,
         questionAssignNode: isQuestionAssign ? node : null,
         sourceIsSetupCall: sourceIsSetupCall);
@@ -1387,7 +1387,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       if (operand is SimpleIdentifier) {
         var element = getWriteOrReadElement(operand);
         if (element is PromotableElement) {
-          _flowAnalysis.write(element, writeType, null);
+          _flowAnalysis.write(node, element, writeType, null);
         }
       }
       return targetType;
@@ -1438,7 +1438,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         if (operand is SimpleIdentifier) {
           var element = getWriteOrReadElement(operand);
           if (element is PromotableElement) {
-            _flowAnalysis.write(element, staticType, null);
+            _flowAnalysis.write(node, element, staticType, null);
           }
         }
       }
@@ -2285,26 +2285,28 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// Creates the necessary constraint(s) for an assignment of the given
   /// [expression] to a destination whose type is [destinationType].
   ///
-  /// Optionally, the caller may supply a [destinationExpression] instead of
+  /// Optionally, the caller may supply an [assignmentExpression] instead of
   /// [destinationType].  In this case, then the type comes from visiting the
-  /// destination expression.  If the destination expression refers to a local
-  /// variable, we mark it as assigned in flow analysis at the proper time.
+  /// LHS of the assignment expression.  If the LHS of the assignment expression
+  /// refers to a local variable, we mark it as assigned in flow analysis at the
+  /// proper time.
   ///
   /// Set [wrapFuture] to true to handle assigning Future<flatten(T)> to R.
   DecoratedType _handleAssignment(Expression expression,
       {DecoratedType destinationType,
-      Expression destinationExpression,
+      AssignmentExpression assignmentExpression,
       AssignmentExpression compoundOperatorInfo,
       AssignmentExpression questionAssignNode,
       bool fromDefaultValue = false,
       bool wrapFuture = false,
       bool sourceIsSetupCall = false}) {
     assert(
-        (destinationExpression == null) != (destinationType == null),
-        'Either destinationExpression or destinationType should be supplied, '
+        (assignmentExpression == null) != (destinationType == null),
+        'Either assignmentExpression or destinationType should be supplied, '
         'but not both');
     PromotableElement destinationLocalVariable;
     if (destinationType == null) {
+      var destinationExpression = assignmentExpression.leftHandSide;
       if (destinationExpression is SimpleIdentifier) {
         var element = getWriteOrReadElement(destinationExpression);
         if (element is PromotableElement) {
@@ -2345,7 +2347,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
               source: destinationType,
               destination: _createNonNullableType(compoundOperatorInfo),
               hard: _postDominatedLocals
-                  .isReferenceInScope(destinationExpression));
+                  .isReferenceInScope(assignmentExpression.leftHandSide));
           DecoratedType compoundOperatorType = getOrComputeElementType(
               compoundOperatorMethod,
               targetType: destinationType);
@@ -2403,8 +2405,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         }
       }
       if (destinationLocalVariable != null) {
-        _flowAnalysis.write(destinationLocalVariable, sourceType,
-            compoundOperatorInfo == null ? expression : null);
+        _flowAnalysis.write(assignmentExpression, destinationLocalVariable,
+            sourceType, compoundOperatorInfo == null ? expression : null);
       }
       if (questionAssignNode != null) {
         _flowAnalysis.ifNullExpression_end();
@@ -2419,9 +2421,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _guards.removeLast();
       }
     }
-    if (destinationExpression != null) {
-      var element =
-          _postDominatedLocals.referencedElement(destinationExpression);
+    if (assignmentExpression != null) {
+      var element = _postDominatedLocals
+          .referencedElement(assignmentExpression.leftHandSide);
       if (element != null) {
         _postDominatedLocals.removeFromAllScopes(element);
         _elementsWrittenToInLocalFunction?.add(element);

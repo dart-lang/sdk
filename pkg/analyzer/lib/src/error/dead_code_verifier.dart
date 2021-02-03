@@ -633,7 +633,7 @@ class _CatchClausesVerifier {
     // An on-catch clause was found; verify that the exception type is not a
     // subtype of a previous on-catch exception type.
     for (var type in _visitedTypes) {
-      if (_typeSystem.isSubtypeOf2(currentType, type)) {
+      if (_typeSystem.isSubtypeOf(currentType, type)) {
         _errorReporter(
           catchClause,
           catchClauses.last,

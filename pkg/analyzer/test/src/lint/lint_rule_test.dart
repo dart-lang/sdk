@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -80,7 +81,7 @@ class CollectingReporter extends ErrorReporter {
 
   @override
   void reportErrorForNode(ErrorCode errorCode, AstNode node,
-      [List<Object?>? arguments]) {
+      [List<Object?>? arguments, List<DiagnosticMessage>? messages]) {
     code = errorCode;
   }
 

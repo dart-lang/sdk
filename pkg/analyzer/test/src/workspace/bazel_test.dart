@@ -676,6 +676,23 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
     expect(package, isNull);
   }
 
+  void test_findPackageFor_noBuildFile_disabledPackagesFile() {
+    _addResources([
+      '/ws/blaze-out/host/bin/some/code/code.packages',
+      '/ws/some/code/lib/code.dart',
+    ]);
+    workspace = BazelWorkspace.find(
+      resourceProvider,
+      convertPath('/ws/some/code'),
+      lookForBuildFileSubstitutes: false,
+    )!;
+
+    package = workspace.findPackageFor(
+      convertPath('/ws/some/code/lib/code.dart'),
+    );
+    expect(package, isNull);
+  }
+
   void test_findPackageFor_packagesFileExistsInOneOfSeveralBinPaths() {
     _addResources([
       '/ws/blaze-out/host/bin/some/code/code.packages',

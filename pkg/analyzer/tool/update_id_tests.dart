@@ -17,4 +17,5 @@ const List<String> idTests = <String>[
   'pkg/analyzer/test/id_tests/nullability_test.dart',
   'pkg/analyzer/test/id_tests/reachability_test.dart',
   'pkg/analyzer/test/id_tests/type_promotion_test.dart',
+  'pkg/analyzer/test/id_tests/why_not_promoted_test.dart',
 ];

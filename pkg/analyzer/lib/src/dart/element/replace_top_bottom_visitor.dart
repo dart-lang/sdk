@@ -27,7 +27,7 @@ class ReplaceTopBottomVisitor {
       if (variance.isContravariant) {
         // ...replacing every occurrence in `T` of a type `S` in a contravariant
         // position where `S <: Never` by `Object?`
-        if (_typeSystem.isSubtypeOf2(type, NeverTypeImpl.instance)) {
+        if (_typeSystem.isSubtypeOf(type, NeverTypeImpl.instance)) {
           return _topType;
         }
       } else {

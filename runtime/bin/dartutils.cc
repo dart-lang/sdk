@@ -946,6 +946,32 @@ Dart_CObject* CObject::NewIOBuffer(int64_t length) {
                                IOBuffer::Finalizer);
 }
 
+void CObject::ShrinkIOBuffer(Dart_CObject* cobject, int64_t new_length) {
+  if (cobject == nullptr) return;
+  ASSERT(cobject->type == Dart_CObject_kExternalTypedData);
+
+  const auto old_data = cobject->value.as_external_typed_data.data;
+  const auto old_length = cobject->value.as_external_typed_data.length;
+
+  // We only shrink IOBuffers, never grow them.
+  ASSERT(0 <= new_length && new_length <= old_length);
+
+  // We only reallocate if we think the freed space is worth reallocating.
+  // We consider it worthwhile when freed space is >=25% and we have at
+  // least 100 free bytes.
+  const auto free_memory = old_length - new_length;
+  if ((old_length >> 2) <= free_memory && 100 <= free_memory) {
+    const auto new_data = IOBuffer::Reallocate(old_data, new_length);
+    if (new_data != nullptr) {
+      cobject->value.as_external_typed_data.data = new_data;
+      cobject->value.as_external_typed_data.peer = new_data;
+    }
+  }
+
+  // The typed data object always has to have the shranken length.
+  cobject->value.as_external_typed_data.length = new_length;
+}
+
 void CObject::FreeIOBufferData(Dart_CObject* cobject) {
   ASSERT(cobject->type == Dart_CObject_kExternalTypedData);
   cobject->value.as_external_typed_data.callback(

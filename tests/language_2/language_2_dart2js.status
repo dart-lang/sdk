@@ -4,6 +4,7 @@
 # Sections in this file should contain "$compiler == dart2js".
 
 [ $compiler == dart2js ]
+external_abstract_fields/external_fields_test: SkipByDesign # Non-JS-interop external members are not supported
 mixin_method_override_test/G5: Skip # Issue 34354
 number/int64_literal_runtime*_test: Skip # This is testing Dart 2.0 int64 semantics
 vm/*: SkipByDesign # Tests for the VM.

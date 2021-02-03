@@ -628,11 +628,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       InterfaceType objectType = typeSystem.objectStar;
       return checkCovariance
           ? /* everything is subtype of objectStar */ true
-          : typeSystem.isSubtypeOf2(objectType, dartType);
+          : typeSystem.isSubtypeOf(objectType, dartType);
     } else if (dartType is InterfaceType && nativeType is InterfaceType) {
       return checkCovariance
-          ? typeSystem.isSubtypeOf2(dartType, nativeType)
-          : typeSystem.isSubtypeOf2(nativeType, dartType);
+          ? typeSystem.isSubtypeOf(dartType, nativeType)
+          : typeSystem.isSubtypeOf(nativeType, dartType);
     } else {
       // If the [nativeType] is not a primitive int/double type then it has to
       // be a Pointer type atm.
@@ -785,7 +785,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (!_isValidFfiNativeType(targetType, false, true)) {
       final AstNode errorNode = node;
       _errorReporter.reportErrorForNode(
-          FfiCode.NON_CONSTANT_TYPE_ARGUMENT_WARNING, errorNode, ['[]']);
+          FfiCode.NON_CONSTANT_TYPE_ARGUMENT, errorNode, ['[]']);
     }
   }
 
@@ -796,7 +796,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (!_isValidFfiNativeType(targetType, false, true)) {
       final AstNode errorNode = node;
       _errorReporter.reportErrorForNode(
-          FfiCode.NON_CONSTANT_TYPE_ARGUMENT_WARNING, errorNode, ['ref']);
+          FfiCode.NON_CONSTANT_TYPE_ARGUMENT, errorNode, ['ref']);
     }
   }
 
@@ -805,7 +805,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (!_isValidFfiNativeType(targetType, false, true)) {
       final AstNode errorNode = node;
       _errorReporter.reportErrorForNode(
-          FfiCode.NON_CONSTANT_TYPE_ARGUMENT_WARNING, errorNode, ['ref']);
+          FfiCode.NON_CONSTANT_TYPE_ARGUMENT, errorNode, ['ref']);
     }
   }
 

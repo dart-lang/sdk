@@ -11,7 +11,6 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart' show LibraryElement;
-import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -247,6 +246,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Whether resolved units should be indexed.
   final bool enableIndex;
 
+  late final DriverAnalyzedFiles analyzedFiles = DriverAnalyzedFiles(this);
+
   /// The current analysis session.
   late AnalysisSessionImpl _currentSession;
 
@@ -445,6 +446,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (!_fsState.hasUri(path)) {
       return;
     }
+    analyzedFiles.reset();
     if (AnalysisEngine.isDartFileName(path)) {
       _fileTracker.addFile(path);
       // If the file is known, it has already been read, even if it did not
@@ -1198,6 +1200,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// but does not guarantee this.
   void removeFile(String path) {
     _throwIfNotAbsolutePath(path);
+    analyzedFiles.reset();
     _fileTracker.removeFile(path);
     clearLibraryContext();
     _priorityResults.clear();
@@ -1249,21 +1252,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// the resolved signature of the file in its library is the same as the one
   /// that was the most recently produced to the client.
   AnalysisResult? _computeAnalysisResult(String path,
-      {bool withUnit = false,
-      bool asIsIfPartWithoutLibrary = false,
-      bool skipIfSameSignature = false}) {
-    return NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
-      return _computeAnalysisResult2(
-        path,
-        withUnit: withUnit,
-        asIsIfPartWithoutLibrary: asIsIfPartWithoutLibrary,
-        skipIfSameSignature: skipIfSameSignature,
-      );
-    });
-  }
-
-  /// Unwrapped implementation of [_computeAnalysisResult].
-  AnalysisResult? _computeAnalysisResult2(String path,
       {bool withUnit = false,
       bool asIsIfPartWithoutLibrary = false,
       bool skipIfSameSignature = false}) {
@@ -1403,12 +1391,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Return the newly computed resolution result of the library with the
   /// given [path].
   ResolvedLibraryResultImpl _computeResolvedLibrary(String path) {
-    return NullSafetyUnderstandingFlag.enableNullSafetyTypes(
-        () => _computeResolvedLibrary2(path));
-  }
-
-  /// Unwrapped implementation of [_computeResolvedLibrary].
-  ResolvedLibraryResultImpl _computeResolvedLibrary2(String path) {
     FileState library = _fsState.getFileForPath(path);
 
     return _logger.run('Compute resolved library $path', () {
@@ -1545,23 +1527,21 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       }
     }
 
-    NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
-      if (_libraryContext == null) {
-        _libraryContext = LibraryContext(
-          testView: _testView.libraryContext,
-          session: currentSession,
-          logger: _logger,
-          byteStore: _byteStore,
-          analysisOptions: _analysisOptions,
-          declaredVariables: declaredVariables,
-          sourceFactory: _sourceFactory,
-          externalSummaries: _externalSummaries,
-          targetLibrary: library,
-        );
-      } else {
-        _libraryContext!.load2(library);
-      }
-    });
+    if (_libraryContext == null) {
+      _libraryContext = LibraryContext(
+        testView: _testView.libraryContext,
+        session: currentSession,
+        logger: _logger,
+        byteStore: _byteStore,
+        analysisOptions: _analysisOptions,
+        declaredVariables: declaredVariables,
+        sourceFactory: _sourceFactory,
+        externalSummaries: _externalSummaries,
+        targetLibrary: library,
+      );
+    } else {
+      _libraryContext!.load2(library);
+    }
 
     return _libraryContext!;
   }
@@ -2101,6 +2081,29 @@ class AnalysisResult extends ResolvedUnitResultImpl {
       this._index)
       : super(session, path, uri, exists, content, lineInfo, isPart, unit,
             errors);
+}
+
+/// The cache of files analyzed in the driver.
+class DriverAnalyzedFiles {
+  final AnalysisDriver _driver;
+  List<String>? _files;
+
+  DriverAnalyzedFiles(this._driver);
+
+  List<String> get files {
+    var files = _files;
+
+    if (files == null) {
+      var contextRoot = _driver.analysisContext!.contextRoot;
+      _files = files = contextRoot.analyzedFiles().toList();
+    }
+
+    return files;
+  }
+
+  void reset() {
+    _files = null;
+  }
 }
 
 /// An object that watches for the creation and removal of analysis drivers.

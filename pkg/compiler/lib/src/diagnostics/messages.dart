@@ -527,10 +527,10 @@ become a compile-time error in the future."""),
 
       MessageKind.NON_NATIVE_EXTERNAL: const MessageTemplate(
           MessageKind.NON_NATIVE_EXTERNAL,
-          "Only external js-interop functions are supported.",
+          "Non-native external members must be js-interop.",
           howToFix:
-              "Try removing 'external' keyword or annotating the function "
-              "as a js-interop function."),
+              "Try removing the 'external' keyword, making it 'native', or "
+              "annotating the function as a js-interop function."),
 
       MessageKind.NATIVE_NON_INSTANCE_IN_NON_NATIVE_CLASS: const MessageTemplate(
           MessageKind.NATIVE_NON_INSTANCE_IN_NON_NATIVE_CLASS,

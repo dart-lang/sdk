@@ -26,7 +26,7 @@ class PrefixExpressionResolver {
 
   PrefixExpressionResolver({
     required ResolverVisitor resolver,
-  })  : _resolver = resolver,
+  })   : _resolver = resolver,
         _typePropertyResolver = resolver.typePropertyResolver,
         _inferenceHelper = resolver.inferenceHelper,
         _assignmentShared = AssignmentExpressionShared(
@@ -78,7 +78,7 @@ class PrefixExpressionResolver {
   void _checkForInvalidAssignmentIncDec(
       PrefixExpressionImpl node, DartType type) {
     var operandWriteType = node.writeType!;
-    if (!_typeSystem.isAssignableTo2(type, operandWriteType)) {
+    if (!_typeSystem.isAssignableTo(type, operandWriteType)) {
       _resolver.errorReporter.reportErrorForNode(
         CompileTimeErrorCode.INVALID_ASSIGNMENT,
         node,
@@ -209,7 +209,8 @@ class PrefixExpressionResolver {
         if (operand is SimpleIdentifier) {
           var element = operand.staticElement;
           if (element is PromotableElement) {
-            _resolver.flowAnalysis?.flow?.write(element, staticType, null);
+            _resolver.flowAnalysis?.flow
+                ?.write(node, element, staticType, null);
           }
         }
       }

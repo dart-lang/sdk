@@ -80,6 +80,7 @@ double weightedAverage(
     double hasDeprecated = 0.0,
     double inheritanceDistance = 0.0,
     double isConstant = 0.0,
+    double isNoSuchMethod = 0.0,
     double localVariableDistance = 0.0,
     double startsWithDollar = 0.0,
     double superMatches = 0.0}) {
@@ -97,6 +98,7 @@ double weightedAverage(
     hasDeprecated,
     inheritanceDistance,
     isConstant,
+    isNoSuchMethod,
     localVariableDistance,
     startsWithDollar,
     superMatches,
@@ -106,6 +108,7 @@ double weightedAverage(
     0.50, // hasDeprecated
     1.00, // inheritanceDistance
     1.00, // isConstant
+    1.00, // isNoSuchMethod
     1.00, // localVariableDistance
     0.50, // startsWithDollar
     1.00, // superMatches
@@ -287,6 +290,17 @@ class FeatureComputer {
       return 1.0;
     }
     return 0.0;
+  }
+
+  /// Return the value of the _is noSuchMethod_ feature.
+  double isNoSuchMethodFeature(
+      String containingMethodName, String proposedMemberName) {
+    if (proposedMemberName == containingMethodName) {
+      // Don't penalize `noSuchMethod` when completing after `super` in an
+      // override of `noSuchMethod`.
+      return 0.0;
+    }
+    return proposedMemberName == 'noSuchMethod' ? -1.0 : 0.0;
   }
 
   /// Return the value of the _keyword_ feature for the [keyword] when

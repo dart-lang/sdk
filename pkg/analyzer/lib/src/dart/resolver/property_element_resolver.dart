@@ -143,6 +143,7 @@ class PropertyElementResolver {
     }
 
     return _resolve(
+      node: node,
       target: prefix,
       isCascaded: false,
       isNullAware: false,
@@ -171,6 +172,7 @@ class PropertyElementResolver {
 
     if (target is SuperExpression) {
       return _resolveTargetSuperExpression(
+        node: node,
         target: target,
         propertyName: propertyName,
         hasRead: hasRead,
@@ -179,6 +181,7 @@ class PropertyElementResolver {
     }
 
     return _resolve(
+      node: node,
       target: target,
       isCascaded: node.target == null,
       isNullAware: node.isNullAware,
@@ -198,6 +201,9 @@ class PropertyElementResolver {
     if (hasRead) {
       var readLookup = _resolver.lexicalLookup(node: node, setter: false);
       readElementRequested = readLookup.requested;
+      if (readElementRequested is PropertyAccessorElement) {
+        _resolver.flowAnalysis?.flow?.thisOrSuperPropertyGet(node, node.name);
+      }
       _resolver.checkReadOfNotAssignedLocalVariable(node, readElementRequested);
     }
 
@@ -282,6 +288,7 @@ class PropertyElementResolver {
   }
 
   PropertyElementResolverResult _resolve({
+    required Expression node,
     required Expression target,
     required bool isCascaded,
     required bool isNullAware,
@@ -363,6 +370,8 @@ class PropertyElementResolver {
       receiverErrorNode: target,
       nameErrorEntity: propertyName,
     );
+
+    _resolver.flowAnalysis?.flow?.propertyGet(node, target, propertyName.name);
 
     if (hasRead && result.needsGetterError) {
       _errorReporter.reportErrorForNode(
@@ -595,6 +604,7 @@ class PropertyElementResolver {
   }
 
   PropertyElementResolverResult _resolveTargetSuperExpression({
+    required Expression node,
     required SuperExpression target,
     required SimpleIdentifier propertyName,
     required bool hasRead,
@@ -610,6 +620,8 @@ class PropertyElementResolver {
 
     if (targetType is InterfaceTypeImpl) {
       if (hasRead) {
+        _resolver.flowAnalysis?.flow
+            ?.propertyGet(node, target, propertyName.name);
         var name = Name(_definingLibrary.source.uri, propertyName.name);
         readElement = _resolver.inheritance
             .getMember2(targetType.element, name, forSuper: true);

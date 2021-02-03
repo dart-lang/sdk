@@ -7,7 +7,6 @@ import 'dart:collection';
 import 'package:analyzer/dart/ast/ast.dart' show AstNode;
 import 'package:analyzer/dart/ast/token.dart' show TokenType;
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
@@ -169,7 +168,7 @@ class TypeSystemImpl implements TypeSystem {
   /// promotion during flow analysis.
   DartType factor(DartType T, DartType S) {
     // * If T <: S then Never
-    if (isSubtypeOf2(T, S)) {
+    if (isSubtypeOf(T, S)) {
       return NeverTypeImpl.instance;
     }
 
@@ -180,7 +179,7 @@ class TypeSystemImpl implements TypeSystem {
     if (T_nullability == NullabilitySuffix.question) {
       var R = (T as TypeImpl).withNullability(NullabilitySuffix.none);
       var factor_RS = factor(R, S) as TypeImpl;
-      if (isSubtypeOf2(nullNone, S)) {
+      if (isSubtypeOf(nullNone, S)) {
         return factor_RS;
       } else {
         return factor_RS.withNullability(NullabilitySuffix.question);
@@ -192,7 +191,7 @@ class TypeSystemImpl implements TypeSystem {
     if (T_nullability == NullabilitySuffix.star) {
       var R = (T as TypeImpl).withNullability(NullabilitySuffix.none);
       var factor_RS = factor(R, S) as TypeImpl;
-      if (isSubtypeOf2(nullNone, S)) {
+      if (isSubtypeOf(nullNone, S)) {
         return factor_RS;
       } else {
         return factor_RS.withNullability(NullabilitySuffix.star);
@@ -204,10 +203,10 @@ class TypeSystemImpl implements TypeSystem {
     if (T is InterfaceType && T.isDartAsyncFutureOr) {
       var R = T.typeArguments[0];
       var future_R = typeProvider.futureType2(R);
-      if (isSubtypeOf2(future_R, S)) {
+      if (isSubtypeOf(future_R, S)) {
         return factor(R, S);
       }
-      if (isSubtypeOf2(R, S)) {
+      if (isSubtypeOf(R, S)) {
         return factor(future_R, S);
       }
     }
@@ -688,16 +687,8 @@ class TypeSystemImpl implements TypeSystem {
 
   @override
   bool isAssignableTo(DartType fromType, DartType toType) {
-    if (!NullSafetyUnderstandingFlag.isEnabled) {
-      fromType = NullabilityEliminator.perform(typeProvider, fromType);
-      toType = NullabilityEliminator.perform(typeProvider, toType);
-    }
-    return isAssignableTo2(fromType, toType);
-  }
-
-  bool isAssignableTo2(DartType fromType, DartType toType) {
     // An actual subtype
-    if (isSubtypeOf2(fromType, toType)) {
+    if (isSubtypeOf(fromType, toType)) {
       return true;
     }
 
@@ -706,7 +697,7 @@ class TypeSystemImpl implements TypeSystem {
         !isNullable(fromType) &&
         acceptsFunctionType(toType)) {
       var callMethodType = getCallMethodType(fromType);
-      if (callMethodType != null && isAssignableTo2(callMethodType, toType)) {
+      if (callMethodType != null && isAssignableTo(callMethodType, toType)) {
         return true;
       }
     }
@@ -741,7 +732,7 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     // If the subtype relation goes the other way, allow the implicit downcast.
-    if (isSubtypeOf2(toType, fromType)) {
+    if (isSubtypeOf(toType, fromType)) {
       // TODO(leafp,jmesserly): we emit warnings/hints for these in
       // src/task/strong/checker.dart, which is a bit inconsistent. That
       // code should be handled into places that use isAssignableTo, such as
@@ -945,7 +936,7 @@ class TypeSystemImpl implements TypeSystem {
   /// In strong mode, this is equivalent to [isSubtypeOf].
   @Deprecated('Use isSubtypeOf() instead.')
   bool isMoreSpecificThan(DartType leftType, DartType rightType) {
-    return isSubtypeOf2(leftType, rightType);
+    return isSubtypeOf(leftType, rightType);
   }
 
   /// Defines a total order on top and Object types.
@@ -1141,14 +1132,6 @@ class TypeSystemImpl implements TypeSystem {
   /// See `resources/type-system/subtyping.md`
   @override
   bool isSubtypeOf(DartType leftType, DartType rightType) {
-    if (!NullSafetyUnderstandingFlag.isEnabled) {
-      leftType = NullabilityEliminator.perform(typeProvider, leftType);
-      rightType = NullabilityEliminator.perform(typeProvider, rightType);
-    }
-    return isSubtypeOf2(leftType, rightType);
-  }
-
-  bool isSubtypeOf2(DartType leftType, DartType rightType) {
     return _subtypeHelper.isSubtypeOf(leftType, rightType);
   }
 
@@ -1254,10 +1237,6 @@ class TypeSystemImpl implements TypeSystem {
 
   @override
   DartType leastUpperBound(DartType leftType, DartType rightType) {
-    if (!NullSafetyUnderstandingFlag.isEnabled) {
-      leftType = NullabilityEliminator.perform(typeProvider, leftType);
-      rightType = NullabilityEliminator.perform(typeProvider, rightType);
-    }
     return getLeastUpperBound(leftType, rightType);
   }
 
@@ -1511,13 +1490,13 @@ class TypeSystemImpl implements TypeSystem {
     //
     // This allows the variable to be used wherever the supertype (here `Base`)
     // is expected, while gaining a more precise type.
-    if (isSubtypeOf2(to, from)) {
+    if (isSubtypeOf(to, from)) {
       return to;
     }
     // For a type parameter `T extends U`, allow promoting the upper bound
     // `U` to `S` where `S <: U`, yielding a type parameter `T extends S`.
     if (from is TypeParameterType) {
-      if (isSubtypeOf2(to, from.bound)) {
+      if (isSubtypeOf(to, from.bound)) {
         var declaration = from.element.declaration;
         return TypeParameterTypeImpl(
           element: declaration,

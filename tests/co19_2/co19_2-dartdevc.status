@@ -56,6 +56,9 @@ Language/Expressions/Function_Invocation/async_generator_invokation_t08: Skip # 
 Language/Expressions/Function_Invocation/async_generator_invokation_t10: Skip # Times out
 Language/Expressions/Null/instance_of_class_null_t01: Skip # dart:mirrors not supported https://github.com/dart-lang/co19/issues/522.
 Language/Expressions/Spawning_an_Isolate/new_isolate_t01: SkipByDesign # dart:isolate not supported.
+Language/Functions/External_Functions/not_connected_to_a_body_t01: SkipByDesign # External variables are not supported
+Language/Libraries_and_Scripts/Scripts/top_level_syntax_t01: SkipByDesign # External variables are not supported
+Language/Libraries_and_Scripts/top_level_syntax_t01: SkipByDesign # External variables are not supported
 Language/Metadata/before*: Skip # dart:mirrors not supported https://github.com/dart-lang/co19/issues/523.
 Language/Types/Interface_Types/subtype_t27: Skip # Times out
 Language/Types/Interface_Types/subtype_t28: Skip # Times out

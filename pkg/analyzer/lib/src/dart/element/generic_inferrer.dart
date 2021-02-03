@@ -552,8 +552,7 @@ class _TypeConstraint extends _TypeRange {
   bool get isDownwards => origin is! _TypeConstraintFromArgument;
 
   bool isSatisfiedBy(TypeSystemImpl ts, DartType type) {
-    return ts.isSubtypeOf2(lowerBound, type) &&
-        ts.isSubtypeOf2(type, upperBound);
+    return ts.isSubtypeOf(lowerBound, type) && ts.isSubtypeOf(type, upperBound);
   }
 
   /// Converts this constraint to a message suitable for a type inference error.

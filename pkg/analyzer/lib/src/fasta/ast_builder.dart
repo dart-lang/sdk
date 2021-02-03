@@ -1530,18 +1530,12 @@ class AstBuilder extends StackListener {
     debugEvent("FunctionTypeAlias");
 
     if (equals == null) {
-      var parameters = pop() as FormalParameterList?;
+      var parameters = pop() as FormalParameterList;
       var typeParameters = pop() as TypeParameterList?;
       var name = pop() as SimpleIdentifier;
       var returnType = pop() as TypeAnnotation?;
       var metadata = pop() as List<Annotation>?;
       var comment = _findComment(metadata, typedefKeyword);
-
-      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/41023
-      if (parameters == null) {
-        throw StateError('FunctionTypeAlias without parameters.');
-      }
-
       declarations.add(ast.functionTypeAlias(comment, metadata, typedefKeyword,
           returnType, name, typeParameters, parameters, semicolon));
     } else {

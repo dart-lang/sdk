@@ -815,7 +815,7 @@ class ConstantEvaluationEngine {
       return true;
     }
     var objType = obj.type;
-    return library.typeSystem.isSubtypeOf2(objType, type);
+    return library.typeSystem.isSubtypeOf(objType, type);
   }
 
   DartObjectImpl _nullObject(LibraryElementImpl library) {
@@ -1538,7 +1538,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         // TODO(brianwilkerson) Figure out why the static type is sometimes null.
         var staticType = condition.staticType;
         if (staticType == null ||
-            typeSystem.isAssignableTo2(staticType, _typeProvider.boolType)) {
+            typeSystem.isAssignableTo(staticType, _typeProvider.boolType)) {
           // If the static type is not assignable, then we will have already
           // reported this error.
           // TODO(mfairhurst) get the FeatureSet to suppress this for nnbd too.

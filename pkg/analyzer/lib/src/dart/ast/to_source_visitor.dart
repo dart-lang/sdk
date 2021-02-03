@@ -891,6 +891,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
     sink.write("part of ");
     safelyVisitNode(node.libraryName);
+    safelyVisitNode(node.uri);
     sink.write(';');
   }
 

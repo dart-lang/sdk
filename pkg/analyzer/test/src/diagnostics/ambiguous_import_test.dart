@@ -19,6 +19,27 @@ main() {
 
 @reflectiveTest
 class AmbiguousImportTest extends PubPackageResolutionTest {
+  test_annotation_getter() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+const foo = 0;
+''');
+
+    newFile('$testPackageLibPath/b.dart', content: r'''
+const foo = 0;
+''');
+
+    await assertErrorsInCode(r'''
+import 'a.dart';
+import 'b.dart';
+
+@foo
+class A {}
+''', [
+      error(CompileTimeErrorCode.INVALID_ANNOTATION, 35, 4),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 36, 3),
+    ]);
+  }
+
   test_as() async {
     newFile("$testPackageLibPath/lib1.dart", content: '''
 library lib1;

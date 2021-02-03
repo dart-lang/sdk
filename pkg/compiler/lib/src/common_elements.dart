@@ -14,7 +14,6 @@ import 'elements/types.dart';
 import 'inferrer/abstract_value_domain.dart';
 import 'js_backend/native_data.dart' show NativeBasicData;
 import 'js_model/locals.dart';
-import 'kernel/dart2js_target.dart';
 import 'universe/selector.dart' show Selector;
 
 /// The common elements and types in Dart.
@@ -572,15 +571,6 @@ abstract class KCommonElements implements CommonElements {
   ClassEntity get metaNoInlineClass;
 
   ClassEntity get metaTryInlineClass;
-
-  /// Returns `true` if [function] is allowed to be external.
-  ///
-  /// This returns `true` for foreign helpers, from environment constructors and
-  /// members of libraries that support native.
-  ///
-  /// This returns `false` for JS interop members which therefore must be
-  /// allowed to be external through the JS interop annotation handling.
-  bool isExternalAllowed(FunctionEntity function);
 }
 
 abstract class JCommonElements implements CommonElements {
@@ -2149,17 +2139,6 @@ class CommonElementsImpl
   bool isForeignHelper(MemberEntity member) {
     return member.library == foreignLibrary ||
         isCreateInvocationMirrorHelper(member);
-  }
-
-  @override
-  bool isExternalAllowed(FunctionEntity function) {
-    return isForeignHelper(function) ||
-        (function is ConstructorEntity &&
-            function.isFromEnvironmentConstructor) ||
-        maybeEnableNative(function.library.canonicalUri) ||
-        // TODO(johnniwinther): Remove this when importing dart:mirrors is
-        // a compile-time error.
-        function.library.canonicalUri == Uris.dart_mirrors;
   }
 
   @override

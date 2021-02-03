@@ -210,7 +210,7 @@ class IsExpired {
     for (var key in keysSorted) {
       var entry = features[key] as YamlMap;
       bool shipped = entry['enabledIn'] != null;
-      bool expired = entry['expired'];
+      bool? expired = entry['expired'];
       out.write('''
       /// Expiration status of the experiment "$key"
       static const bool ${keyToIdentifier(key)} = ${expired == true};

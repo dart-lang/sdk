@@ -6,7 +6,6 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
@@ -222,10 +221,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
 
     if (other is FunctionTypeImpl) {
-      if (NullSafetyUnderstandingFlag.isEnabled) {
-        if (other.nullabilitySuffix != nullabilitySuffix) {
-          return false;
-        }
+      if (other.nullabilitySuffix != nullabilitySuffix) {
+        return false;
       }
 
       if (other.typeFormals.length != typeFormals.length) {
@@ -841,10 +838,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return true;
     }
     if (other is InterfaceTypeImpl) {
-      if (NullSafetyUnderstandingFlag.isEnabled) {
-        if (other.nullabilitySuffix != nullabilitySuffix) {
-          return false;
-        }
+      if (other.nullabilitySuffix != nullabilitySuffix) {
+        return false;
       }
       return other.element == element &&
           TypeImpl.equalArrays(other.typeArguments, typeArguments);
@@ -1386,7 +1381,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     for (DartType type in types) {
       // If any existing type in the bucket is more specific than this type,
       // then we can ignore this type.
-      if (bucket.any((DartType t) => typeSystem.isSubtypeOf2(t, type))) {
+      if (bucket.any((DartType t) => typeSystem.isSubtypeOf(t, type))) {
         continue;
       }
       // Otherwise, we need to add this type to the bucket and remove any types
@@ -1394,7 +1389,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       bool added = false;
       int i = 0;
       while (i < bucket.length) {
-        if (typeSystem.isSubtypeOf2(type, bucket[i])) {
+        if (typeSystem.isSubtypeOf(type, bucket[i])) {
           if (added) {
             if (i < bucket.length - 1) {
               bucket[i] = bucket.removeLast();
@@ -1852,10 +1847,8 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     }
 
     if (other is TypeParameterTypeImpl && other.element == element) {
-      if (NullSafetyUnderstandingFlag.isEnabled) {
-        if (other.nullabilitySuffix != nullabilitySuffix) {
-          return false;
-        }
+      if (other.nullabilitySuffix != nullabilitySuffix) {
+        return false;
       }
       return other.promotedBound == promotedBound;
     }
