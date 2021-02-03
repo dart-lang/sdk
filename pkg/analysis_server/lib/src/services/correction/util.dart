@@ -861,6 +861,10 @@ class CorrectionUtils {
       }
     }
 
+    if (type is VoidType) {
+      return 'void';
+    }
+
     throw StateError('(${type.runtimeType}) $type');
   }
 

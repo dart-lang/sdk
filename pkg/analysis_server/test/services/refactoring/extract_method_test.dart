@@ -2431,7 +2431,7 @@ main() async {
 // end
 }
 
-Future<dynamic> res() async {
+Future<void> res() async {
   int v = await getValue();
   print(v);
 }
