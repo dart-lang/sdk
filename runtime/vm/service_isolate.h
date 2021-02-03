@@ -50,7 +50,9 @@ class ServiceIsolate : public AllStatic {
 
   static void BootVmServiceLibrary();
 
-  static void RegisterRunningIsolate(Isolate* isolate);
+  static void RegisterRunningIsolates(
+      const GrowableArray<Dart_Port>& isolate_ports,
+      const GrowableArray<const String*>& isolate_names);
 
   static void RequestServerInfo(const SendPort& sp);
   static void ControlWebServer(const SendPort& sp,
