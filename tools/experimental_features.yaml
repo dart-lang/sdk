@@ -115,6 +115,10 @@ features:
 
   value-class:
     help: "Value class"
+
+  generic-metadata:
+    help: "Allow annotations to accept type arguments; also allow generic function types as type arguments"
+
 #
 # Flags below this line are shipped, retired, or rejected, cannot be specified
 # on the command line, and will eventually be removed.
