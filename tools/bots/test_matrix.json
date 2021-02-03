@@ -623,6 +623,24 @@
         ]
       }
     },
+    "dart2js-o0-(linux|mac|win)-d8": {
+      "options": {
+        "builder-tag": "dart2js_o0",
+        "use-sdk": true,
+        "dart2js-options": [
+          "-O0"
+        ]
+      }
+    },
+    "dart2js-modern-(linux|mac|win)-d8": {
+      "options": {
+        "builder-tag": "dart2js_modern",
+        "use-sdk": true,
+        "dart2js-options": [
+          "--no-legacy-javascript"
+        ]
+      }
+    },
     "dart2js-hostasserts-(linux|mac|win)-(ia32|x64)-d8": {
       "options": {
         "host-checked": true,
@@ -2441,6 +2459,22 @@
           "name": "dart2js production extra tests",
           "arguments": [
             "-ndart2js-production-linux-d8",
+            "--dart2js-batch",
+            "dart2js_2"
+          ]
+        },
+        {
+          "name": "dart2js -O0 smoke tests",
+          "arguments": [
+            "-ndart2js-o0-linux-d8",
+            "--dart2js-batch",
+            "dart2js_2"
+          ]
+        },
+        {
+          "name": "dart2js --no-legacy-javascript smoke tests",
+          "arguments": [
+            "-ndart2js-modern-linux-d8",
             "--dart2js-batch",
             "dart2js_2"
           ]
