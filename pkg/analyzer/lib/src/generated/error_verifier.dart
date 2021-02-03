@@ -1718,7 +1718,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, expression);
     } else if (element is ClassElement ||
         element is DynamicElementImpl ||
-        element is FunctionTypeAliasElement ||
         element is TypeParameterElement) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, expression);

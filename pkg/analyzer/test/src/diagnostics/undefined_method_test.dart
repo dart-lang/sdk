@@ -14,7 +14,8 @@ main() {
 }
 
 @reflectiveTest
-class UndefinedMethodTest extends PubPackageResolutionTest {
+class UndefinedMethodTest extends PubPackageResolutionTest
+    with WithNonFunctionTypeAliasesMixin {
   test_constructor_defined() async {
     await assertNoErrorsInCode(r'''
 class C {
@@ -97,9 +98,10 @@ class C {
 
   test_leastUpperBoundWithNull() async {
     await assertErrorsInCode('''
+// @dart = 2.9
 f(bool b, int i) => (b ? null : i).foo();
 ''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 35, 3),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 50, 3),
     ]);
   }
 
@@ -159,12 +161,13 @@ f(M m) {
 
   test_method_undefined_onNull() async {
     await assertErrorsInCode(r'''
+// @dart = 2.9
 Null f(int x) => null;
 main() {
   f(42).abs();
 }
 ''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 40, 3),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 55, 3),
     ]);
   }
 
@@ -195,6 +198,30 @@ void main() {
 }
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_METHOD, 96, 5),
+    ]);
+  }
+
+  test_typeAlias_functionType() async {
+    await assertErrorsInCode(r'''
+typedef A = void Function();
+
+void f() {
+  A.foo();
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 45, 3),
+    ]);
+  }
+
+  test_typeAlias_interfaceType() async {
+    await assertErrorsInCode(r'''
+typedef A = List<int>;
+
+void f() {
+  A.foo();
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 39, 3),
     ]);
   }
 

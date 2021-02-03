@@ -125,12 +125,6 @@ class MethodInvocationResolver {
       if (element is ClassElement) {
         _resolveReceiverTypeLiteral(node, element, nameNode, name);
         return;
-      } else if (element is FunctionTypeAliasElement) {
-        _reportUndefinedMethod(
-          node,
-          name,
-          _resolver.typeProvider.typeType.element,
-        );
       } else if (element is TypeAliasElement) {
         var aliasedType = element.aliasedType;
         if (aliasedType is InterfaceType) {
