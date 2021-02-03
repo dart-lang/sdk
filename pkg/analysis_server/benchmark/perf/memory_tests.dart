@@ -69,8 +69,11 @@ class AnalysisServerBenchmarkTest extends AbstractBenchmarkTest {
   Future<int> getMemoryUsage() => _test.getMemoryUsage();
 
   @override
-  Future<void> openFile(String filePath, String contents) =>
-      _test.sendAnalysisUpdateContent({filePath: AddContentOverlay(contents)});
+  Future<void> openFile(String filePath, String contents) async {
+    await _test
+        .sendAnalysisUpdateContent({filePath: AddContentOverlay(contents)});
+    await _test.sendAnalysisSetPriorityFiles([filePath]);
+  }
 
   @override
   Future<void> setUp(List<String> roots) async {
