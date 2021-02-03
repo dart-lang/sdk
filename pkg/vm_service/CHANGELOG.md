@@ -1,5 +1,12 @@
 # Changelog
 
+## 6.1.0
+- Added `identityHashCode` property to `HeapSnapshotObject`, which can be used to compare
+  objects across heap snapshots.
+- Added `successors` iterable to `HeapSnapshotObject`, which provides a convenient way to
+  access children of a given object.
+- Added `klass` getter to `HeapSnapshotObject`.
+
 ## 6.0.1
 - Stable null-safe release.
 
