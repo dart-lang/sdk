@@ -2323,10 +2323,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
   AnalysisContext get context => compilationUnit.library.context;
 
   @override
-  bool get isAlwaysThrows =>
-      element is PropertyAccessorElement &&
-      element!.name == _ALWAYS_THROWS_VARIABLE_NAME &&
-      element!.library!.name == _META_LIB_NAME;
+  bool get isAlwaysThrows => _isPackageMetaGetter(_ALWAYS_THROWS_VARIABLE_NAME);
 
   @override
   bool get isConstantEvaluated => evaluationResult != null;
@@ -2345,121 +2342,71 @@ class ElementAnnotationImpl implements ElementAnnotation {
   }
 
   @override
-  bool get isDoNotStore =>
-      element is PropertyAccessorElement &&
-      element!.name == _DO_NOT_STORE_VARIABLE_NAME &&
-      element!.library!.name == _META_LIB_NAME;
+  bool get isDoNotStore => _isPackageMetaGetter(_DO_NOT_STORE_VARIABLE_NAME);
 
   @override
-  bool get isFactory =>
-      element is PropertyAccessorElement &&
-      element!.name == _FACTORY_VARIABLE_NAME &&
-      element!.library!.name == _META_LIB_NAME;
+  bool get isFactory => _isPackageMetaGetter(_FACTORY_VARIABLE_NAME);
 
   @override
-  bool get isImmutable =>
-      element is PropertyAccessorElement &&
-      element!.name == _IMMUTABLE_VARIABLE_NAME &&
-      element!.library!.name == _META_LIB_NAME;
+  bool get isImmutable => _isPackageMetaGetter(_IMMUTABLE_VARIABLE_NAME);
 
   @override
-  bool get isInternal =>
-      element is PropertyAccessorElement &&
-      element!.name == _INTERNAL_VARIABLE_NAME &&
-      element!.library!.name == _META_LIB_NAME;
+  bool get isInternal => _isPackageMetaGetter(_INTERNAL_VARIABLE_NAME);
 
   @override
-  bool get isIsTest =>
-      element is PropertyAccessorElement &&
-      element!.name == _IS_TEST_VARIABLE_NAME &&
-      element!.library!.name == _META_LIB_NAME;
+  bool get isIsTest => _isPackageMetaGetter(_IS_TEST_VARIABLE_NAME);
 
   @override
-  bool get isIsTestGroup =>
-      element is PropertyAccessorElement &&
-      element!.name == _IS_TEST_GROUP_VARIABLE_NAME &&
-      element!.library!.name == _META_LIB_NAME;
+  bool get isIsTestGroup => _isPackageMetaGetter(_IS_TEST_GROUP_VARIABLE_NAME);
 
   @override
   bool get isJS =>
-      element is ConstructorElement &&
-      element!.enclosingElement!.name == _JS_CLASS_NAME &&
-      element!.library!.name == _JS_LIB_NAME;
+      _isConstructor(libraryName: _JS_LIB_NAME, className: _JS_CLASS_NAME);
 
   @override
-  bool get isLiteral =>
-      element is PropertyAccessorElement &&
-      element!.name == _LITERAL_VARIABLE_NAME &&
-      element!.library!.name == _META_LIB_NAME;
+  bool get isLiteral => _isPackageMetaGetter(_LITERAL_VARIABLE_NAME);
 
   @override
   bool get isMustCallSuper =>
-      element is PropertyAccessorElement &&
-      element!.name == _MUST_CALL_SUPER_VARIABLE_NAME &&
-      element!.library!.name == _META_LIB_NAME;
+      _isPackageMetaGetter(_MUST_CALL_SUPER_VARIABLE_NAME);
 
   @override
-  bool get isNonVirtual =>
-      element is PropertyAccessorElement &&
-      element!.name == _NON_VIRTUAL_VARIABLE_NAME &&
-      element!.library!.name == _META_LIB_NAME;
+  bool get isNonVirtual => _isPackageMetaGetter(_NON_VIRTUAL_VARIABLE_NAME);
 
   @override
   bool get isOptionalTypeArgs =>
-      element is PropertyAccessorElement &&
-      element!.name == _OPTIONAL_TYPE_ARGS_VARIABLE_NAME &&
-      element!.library!.name == _META_LIB_NAME;
+      _isPackageMetaGetter(_OPTIONAL_TYPE_ARGS_VARIABLE_NAME);
 
   @override
-  bool get isOverride =>
-      element is PropertyAccessorElement &&
-      element!.name == _OVERRIDE_VARIABLE_NAME &&
-      element!.library!.isDartCore == true;
+  bool get isOverride => _isDartCoreGetter(_OVERRIDE_VARIABLE_NAME);
 
   @override
-  bool get isProtected =>
-      element is PropertyAccessorElement &&
-      element!.name == _PROTECTED_VARIABLE_NAME &&
-      element!.library!.name == _META_LIB_NAME;
+  bool get isProtected => _isPackageMetaGetter(_PROTECTED_VARIABLE_NAME);
 
   @override
-  bool get isProxy =>
-      element is PropertyAccessorElement &&
-      element!.name == PROXY_VARIABLE_NAME &&
-      element!.library!.isDartCore == true;
+  bool get isProxy => _isDartCoreGetter(PROXY_VARIABLE_NAME);
 
   @override
   bool get isRequired =>
-      element is ConstructorElement &&
-          element!.enclosingElement!.name == _REQUIRED_CLASS_NAME &&
-          element!.library!.name == _META_LIB_NAME ||
-      element is PropertyAccessorElement &&
-          element!.name == _REQUIRED_VARIABLE_NAME &&
-          element!.library!.name == _META_LIB_NAME;
+      _isConstructor(
+          libraryName: _META_LIB_NAME, className: _REQUIRED_CLASS_NAME) ||
+      _isPackageMetaGetter(_REQUIRED_VARIABLE_NAME);
 
   @override
-  bool get isSealed =>
-      element is PropertyAccessorElement &&
-      element!.name == _SEALED_VARIABLE_NAME &&
-      element!.library!.name == _META_LIB_NAME;
+  bool get isSealed => _isPackageMetaGetter(_SEALED_VARIABLE_NAME);
 
   @override
-  bool get isTarget =>
-      element is ConstructorElement &&
-      element!.enclosingElement!.name == _TARGET_CLASS_NAME &&
-      element!.library!.name == _META_META_LIB_NAME;
+  bool get isTarget => _isConstructor(
+      libraryName: _META_META_LIB_NAME, className: _TARGET_CLASS_NAME);
 
   @override
-  bool get isVisibleForTemplate =>
-      element is PropertyAccessorElement &&
-      element!.name == _VISIBLE_FOR_TEMPLATE_VARIABLE_NAME &&
-      element!.library!.name == _NG_META_LIB_NAME;
+  bool get isVisibleForTemplate => _isTopGetter(
+      libraryName: _NG_META_LIB_NAME,
+      name: _VISIBLE_FOR_TEMPLATE_VARIABLE_NAME);
 
   @override
   bool get isVisibleForTesting =>
-      element is PropertyAccessorElement &&
-      element!.name == _VISIBLE_FOR_TESTING_VARIABLE_NAME &&
-      element!.library!.name == _META_LIB_NAME;
+      _isPackageMetaGetter(_VISIBLE_FOR_TESTING_VARIABLE_NAME);
 
   @override
   LibraryElement get library => compilationUnit.library;
@@ -2487,6 +2434,40 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   @override
   String toString() => '@$element';
+
+  bool _isConstructor({
+    required String libraryName,
+    required String className,
+  }) {
+    var element = this.element;
+    return element is ConstructorElement &&
+        element.enclosingElement.name == className &&
+        element.library.name == libraryName;
+  }
+
+  bool _isDartCoreGetter(String name) {
+    return _isTopGetter(
+      libraryName: 'dart.core',
+      name: name,
+    );
+  }
+
+  bool _isPackageMetaGetter(String name) {
+    return _isTopGetter(
+      libraryName: _META_LIB_NAME,
+      name: name,
+    );
+  }
+
+  bool _isTopGetter({
+    required String libraryName,
+    required String name,
+  }) {
+    var element = this.element;
+    return element is PropertyAccessorElement &&
+        element.name == name &&
+        element.library.name == libraryName;
+  }
 }
 
 /// A base class for concrete implementations of an [Element].
