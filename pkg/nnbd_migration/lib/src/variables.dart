@@ -395,7 +395,7 @@ class Variables {
       // case) `Function(T)`. Without this we would get `Function<T>(T)` which
       // is incorrect. This is a known issue with `.type` on typedefs in the
       // analyzer.
-      element = (element as FunctionTypeAliasElement).aliasedElement;
+      element = (element as TypeAliasElement).aliasedElement;
     }
 
     var target = NullabilityNodeTarget.element(element, _getLineInfo);
