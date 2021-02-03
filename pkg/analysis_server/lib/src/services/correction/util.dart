@@ -24,6 +24,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show SourceChange, SourceEdit;
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as pathos;
 
 /// Adds edits to the given [change] that ensure that all the [libraries] are
@@ -813,23 +814,19 @@ class CorrectionUtils {
   /// used by the generated source, but not imported.
   String getTypeSource(DartType type, Set<Source> librariesToImport,
       {StringBuffer parametersBuffer}) {
-    var sb = StringBuffer();
-    // type parameter
-    if (!_isTypeVisible(type)) {
+    if (type.aliasElement != null) {
+      return _getTypeCodeElementArguments(
+        librariesToImport: librariesToImport,
+        element: type.aliasElement,
+        typeArguments: type.aliasArguments,
+      );
+    }
+
+    if (type is DynamicType) {
       return 'dynamic';
     }
 
-    var element = type.element;
-
-    // Typedef(s) are represented as FunctionTypeAliasElement(s).
-    if (element is GenericFunctionTypeElement &&
-        element.typeParameters.isEmpty &&
-        element.enclosingElement is FunctionTypeAliasElement) {
-      element = element.enclosingElement;
-    }
-
-    // just a Function, not FunctionTypeAliasElement
-    if (type is FunctionType && element is! FunctionTypeAliasElement) {
+    if (type is FunctionType) {
       if (parametersBuffer == null) {
         return 'Function';
       }
@@ -846,68 +843,25 @@ class CorrectionUtils {
       parametersBuffer.write(')');
       return getTypeSource(type.returnType, librariesToImport);
     }
-    // <Bottom>, Null
-    if (type.isBottom || type.isDartCoreNull) {
-      return 'dynamic';
+
+    if (type is InterfaceType) {
+      return _getTypeCodeElementArguments(
+        librariesToImport: librariesToImport,
+        element: type.element,
+        typeArguments: type.typeArguments,
+      );
     }
-    // prepare element
-    if (element == null) {
-      var source = type.toString();
-      source = source.replaceAll('<dynamic>', '');
-      source = source.replaceAll('<dynamic, dynamic>', '');
-      return source;
-    }
-    // check if imported
-    var library = element.library;
-    if (library != null && library != _library) {
-      // no source, if private
-      if (element.isPrivate) {
-        return null;
-      }
-      // ensure import
-      var importElement = _getImportElement(element);
-      if (importElement != null) {
-        if (importElement.prefix != null) {
-          sb.write(importElement.prefix.displayName);
-          sb.write('.');
-        }
+
+    if (type is TypeParameterType) {
+      var element = type.element;
+      if (_isTypeParameterVisible(element)) {
+        return element.name;
       } else {
-        librariesToImport.add(library.source);
+        return 'dynamic';
       }
     }
-    // append simple name
-    var name = element.displayName;
-    sb.write(name);
-    // may be type arguments
-    if (type is ParameterizedType) {
-      var arguments = type.typeArguments;
-      // check if has arguments
-      var hasArguments = false;
-      var allArgumentsVisible = true;
-      for (var argument in arguments) {
-        hasArguments = hasArguments || !argument.isDynamic;
-        allArgumentsVisible = allArgumentsVisible && _isTypeVisible(argument);
-      }
-      // append type arguments
-      if (hasArguments && allArgumentsVisible) {
-        sb.write('<');
-        for (var i = 0; i < arguments.length; i++) {
-          var argument = arguments[i];
-          if (i != 0) {
-            sb.write(', ');
-          }
-          var argumentSrc = getTypeSource(argument, librariesToImport);
-          if (argumentSrc != null) {
-            sb.write(argumentSrc);
-          } else {
-            return null;
-          }
-        }
-        sb.write('>');
-      }
-    }
-    // done
-    return sb.toString();
+
+    throw StateError('(${type.runtimeType}) $type');
   }
 
   /// Indents given source left or right.
@@ -1145,6 +1099,58 @@ class CorrectionUtils {
     return null;
   }
 
+  String _getTypeCodeElementArguments({
+    @required Set<Source> librariesToImport,
+    @required Element element,
+    @required List<DartType> typeArguments,
+  }) {
+    var sb = StringBuffer();
+
+    // check if imported
+    var library = element.library;
+    if (library != null && library != _library) {
+      // no source, if private
+      if (element.isPrivate) {
+        return null;
+      }
+      // ensure import
+      var importElement = _getImportElement(element);
+      if (importElement != null) {
+        if (importElement.prefix != null) {
+          sb.write(importElement.prefix.displayName);
+          sb.write('.');
+        }
+      } else {
+        librariesToImport.add(library.source);
+      }
+    }
+
+    // append simple name
+    var name = element.displayName;
+    sb.write(name);
+
+    // append type arguments
+    if (typeArguments.isNotEmpty) {
+      sb.write('<');
+      for (var i = 0; i < typeArguments.length; i++) {
+        var argument = typeArguments[i];
+        if (i != 0) {
+          sb.write(', ');
+        }
+        var argumentSrc = getTypeSource(argument, librariesToImport);
+        if (argumentSrc != null) {
+          sb.write(argumentSrc);
+        } else {
+          return null;
+        }
+      }
+      sb.write('>');
+    }
+
+    // done
+    return sb.toString();
+  }
+
   /// @return the [InvertedCondition] for the given logical expression.
   _InvertedCondition _invertCondition0(Expression expression) {
     if (expression is BooleanLiteral) {
@@ -1213,16 +1219,12 @@ class CorrectionUtils {
     return _InvertedCondition._simple(getNodeText(expression));
   }
 
-  /// Checks if [type] is visible in [targetExecutableElement] or
+  /// Checks if [element] is visible in [targetExecutableElement] or
   /// [targetClassElement].
-  bool _isTypeVisible(DartType type) {
-    if (type is TypeParameterType) {
-      var parameterElement = type.element;
-      var parameterClassElement = parameterElement.enclosingElement;
-      return identical(parameterClassElement, targetExecutableElement) ||
-          identical(parameterClassElement, targetClassElement);
-    }
-    return true;
+  bool _isTypeParameterVisible(TypeParameterElement element) {
+    var enclosing = element.enclosingElement;
+    return identical(enclosing, targetExecutableElement) ||
+        identical(enclosing, targetClassElement);
   }
 
   /// Return `true` if [selection] covers [range] and there are any
