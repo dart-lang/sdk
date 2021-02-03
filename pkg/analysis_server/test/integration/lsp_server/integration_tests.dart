@@ -17,6 +17,7 @@ abstract class AbstractLspAnalysisServerIntegrationTest
     with ClientCapabilitiesHelperMixin, LspAnalysisServerTestMixin {
   final List<String> vmArgs = [];
   LspServerClient client;
+  InstrumentationService instrumentationService;
 
   final Map<int, Completer<ResponseMessage>> _completers = {};
 
@@ -79,7 +80,7 @@ abstract class AbstractLspAnalysisServerIntegrationTest
     analysisOptionsPath = join(projectFolderPath, 'analysis_options.yaml');
     analysisOptionsUri = Uri.file(analysisOptionsPath);
 
-    client = LspServerClient();
+    client = LspServerClient(instrumentationService);
     await client.start(vmArgs: vmArgs);
     client.serverToClient.listen((message) {
       if (message is ResponseMessage) {
@@ -104,10 +105,13 @@ abstract class AbstractLspAnalysisServerIntegrationTest
 }
 
 class LspServerClient {
+  final InstrumentationService instrumentationService;
   Process _process;
   LspByteStreamServerChannel channel;
   final StreamController<Message> _serverToClient =
       StreamController<Message>.broadcast();
+
+  LspServerClient(this.instrumentationService);
 
   Future<int> get exitCode => _process.exitCode;
 
@@ -172,8 +176,35 @@ class LspServerClient {
       throw 'Analysis Server wrote to stderr:\n\n$message';
     });
 
-    channel = LspByteStreamServerChannel(
-        _process.stdout, _process.stdin, InstrumentationService.NULL_SERVICE);
+    channel = LspByteStreamServerChannel(_process.stdout, _process.stdin,
+        instrumentationService ?? InstrumentationService.NULL_SERVICE);
     channel.listen(_serverToClient.add);
+  }
+}
+
+/// An [InstrumentationLogger] that buffers logs until [debugStdio()] is called.
+class PrintableLogger extends InstrumentationLogger {
+  bool _printLogs = false;
+  final _buffer = StringBuffer();
+
+  void debugStdio() {
+    print(_buffer.toString());
+    _buffer.clear();
+    _printLogs = true;
+  }
+
+  @override
+  void log(String message) {
+    if (_printLogs) {
+      print(message);
+    } else {
+      _buffer.writeln(message);
+    }
+  }
+
+  @override
+  Future<void> shutdown() async {
+    _printLogs = false;
+    _buffer.clear();
   }
 }

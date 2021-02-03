@@ -10,6 +10,7 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_completion.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:test/test.dart';
 
 import '../../test/integration/lsp_server/integration_tests.dart';
@@ -138,6 +139,7 @@ class AnalysisServerMemoryUsageTest
 class LspAnalysisServerBenchmarkTest extends AbstractBenchmarkTest
     with ClientCapabilitiesHelperMixin {
   final _test = LspAnalysisServerMemoryUsageTest();
+  final PrintableLogger _logger = PrintableLogger();
 
   /// Track the file contents so we can easily convert offsets (used in
   /// the interface) to Positions required by LSP without having to keep
@@ -162,7 +164,7 @@ class LspAnalysisServerBenchmarkTest extends AbstractBenchmarkTest
   }
 
   @override
-  void debugStdio() {}
+  void debugStdio() => _logger.debugStdio();
 
   @override
   Future<int> getMemoryUsage() => _test.getMemoryUsage();
@@ -170,11 +172,13 @@ class LspAnalysisServerBenchmarkTest extends AbstractBenchmarkTest
   @override
   Future<void> openFile(String filePath, String contents) {
     _fileContents[filePath] = contents;
-    return _test.openFile(Uri.file(filePath), contents);
+    return _test.openFile(Uri.file(filePath), contents,
+        version: _fileVersion++);
   }
 
   @override
   Future<void> setUp(List<String> roots) async {
+    _test.instrumentationService = InstrumentationLogAdapter(_logger);
     await _test.setUp();
     _test.projectFolderPath = roots.single;
     _test.projectFolderUri = Uri.file(_test.projectFolderPath);
@@ -197,7 +201,10 @@ class LspAnalysisServerBenchmarkTest extends AbstractBenchmarkTest
   }
 
   @override
-  Future<void> shutdown() async => _test.tearDown();
+  Future<void> shutdown() async {
+    _test.tearDown();
+    _logger.shutdown();
+  }
 
   @override
   Future<void> updateFile(String filePath, String contents) {
