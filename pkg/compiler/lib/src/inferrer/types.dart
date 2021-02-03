@@ -13,8 +13,6 @@ import '../compiler.dart' show Compiler;
 import '../elements/entities.dart';
 import '../js_backend/inferred_data.dart';
 import '../js_model/element_map.dart';
-import '../js_model/js_world.dart';
-import '../js_model/locals.dart';
 import '../inferrer/type_graph_inferrer.dart' show TypeGraphInferrer;
 import '../serialization/serialization.dart';
 import '../universe/selector.dart' show Selector;
@@ -113,23 +111,19 @@ abstract class GlobalTypeInferenceResults {
       DataSource source,
       JsToElementMap elementMap,
       JClosedWorld closedWorld,
-      GlobalLocalsMap globalLocalsMap,
       InferredData inferredData) {
     bool isTrivial = source.readBool();
     if (isTrivial) {
-      return new TrivialGlobalTypeInferenceResults(
-          closedWorld, globalLocalsMap);
+      return new TrivialGlobalTypeInferenceResults(closedWorld);
     }
     return new GlobalTypeInferenceResultsImpl.readFromDataSource(
-        source, elementMap, closedWorld, globalLocalsMap, inferredData);
+        source, elementMap, closedWorld, inferredData);
   }
 
   /// Serializes this [GlobalTypeInferenceResults] to [sink].
   void writeToDataSink(DataSink sink, JsToElementMap elementMap);
 
   JClosedWorld get closedWorld;
-
-  GlobalLocalsMap get globalLocalsMap;
 
   InferredData get inferredData;
 
@@ -177,20 +171,16 @@ class GlobalTypeInferenceTask extends CompilerTask {
   Metrics get metrics => _metrics;
 
   /// Runs the global type-inference algorithm once.
-  GlobalTypeInferenceResults runGlobalTypeInference(
-      FunctionEntity mainElement,
-      JClosedWorld closedWorld,
-      GlobalLocalsMap globalLocalsMap,
-      InferredDataBuilder inferredDataBuilder) {
+  GlobalTypeInferenceResults runGlobalTypeInference(FunctionEntity mainElement,
+      JClosedWorld closedWorld, InferredDataBuilder inferredDataBuilder) {
     return measure(() {
       GlobalTypeInferenceResults results;
       if (compiler.disableTypeInference) {
-        results =
-            new TrivialGlobalTypeInferenceResults(closedWorld, globalLocalsMap);
+        results = new TrivialGlobalTypeInferenceResults(closedWorld);
         _metrics = Metrics.none();
       } else {
-        typesInferrerInternal ??= compiler.backendStrategy.createTypesInferrer(
-            closedWorld, globalLocalsMap, inferredDataBuilder);
+        typesInferrerInternal ??= compiler.backendStrategy
+            .createTypesInferrer(closedWorld, inferredDataBuilder);
         results = typesInferrerInternal.analyzeMain(mainElement);
         _metrics = typesInferrerInternal.metrics;
       }
@@ -211,8 +201,6 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
   @override
   final JClosedWorld closedWorld;
   @override
-  final GlobalLocalsMap globalLocalsMap;
-  @override
   final InferredData inferredData;
   final GlobalTypeInferenceMemberResult _deadFieldResult;
   final GlobalTypeInferenceMemberResult _deadMethodResult;
@@ -226,7 +214,6 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
 
   GlobalTypeInferenceResultsImpl(
       this.closedWorld,
-      this.globalLocalsMap,
       this.inferredData,
       this.memberResults,
       this.parameterResults,
@@ -243,10 +230,7 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
       DataSource source,
       JsToElementMap elementMap,
       JClosedWorld closedWorld,
-      GlobalLocalsMap globalLocalsMap,
       InferredData inferredData) {
-    source.registerLocalLookup(new LocalLookupImpl(globalLocalsMap));
-
     source.begin(tag);
     Map<MemberEntity, GlobalTypeInferenceMemberResult> memberResults =
         source.readMemberMap((MemberEntity member) =>
@@ -266,7 +250,6 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
     source.end(tag);
     return new GlobalTypeInferenceResultsImpl(
         closedWorld,
-        globalLocalsMap,
         inferredData,
         memberResults,
         parameterResults,
@@ -489,10 +472,8 @@ class TrivialGlobalTypeInferenceResults implements GlobalTypeInferenceResults {
   final AbstractValue _trivialParameterResult;
   @override
   final InferredData inferredData = new TrivialInferredData();
-  @override
-  final GlobalLocalsMap globalLocalsMap;
 
-  TrivialGlobalTypeInferenceResults(this.closedWorld, this.globalLocalsMap)
+  TrivialGlobalTypeInferenceResults(this.closedWorld)
       : _trivialMemberResult = new TrivialGlobalTypeInferenceMemberResult(
             closedWorld.abstractValueDomain.dynamicType),
         _trivialParameterResult = closedWorld.abstractValueDomain.dynamicType;

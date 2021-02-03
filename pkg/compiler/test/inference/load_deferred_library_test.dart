@@ -51,9 +51,8 @@ runTest(List<String> options, {bool trust: true}) async {
       helperLibrary, 'loadDeferredLibrary');
   TypeMask typeMask;
 
-  KernelToLocalsMap localsMap = compiler
-      .globalInference.resultsForTesting.globalLocalsMap
-      .getLocalsMap(loadDeferredLibrary);
+  KernelToLocalsMap localsMap =
+      closedWorld.globalLocalsMap.getLocalsMap(loadDeferredLibrary);
   MemberDefinition definition =
       closedWorld.elementMap.getMemberDefinition(loadDeferredLibrary);
   ir.Procedure procedure = definition.node;

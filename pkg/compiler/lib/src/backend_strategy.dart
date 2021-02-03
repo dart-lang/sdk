@@ -16,7 +16,6 @@ import 'js_backend/backend.dart';
 import 'js_backend/enqueuer.dart';
 import 'js_backend/inferred_data.dart';
 import 'js_emitter/code_emitter_task.dart';
-import 'js_model/locals.dart';
 import 'serialization/serialization.dart';
 import 'ssa/ssa.dart';
 import 'universe/codegen_world_builder.dart';
@@ -66,8 +65,8 @@ abstract class BackendStrategy {
   SourceSpan spanFromSpannable(Spannable spannable, Entity currentElement);
 
   /// Creates the [TypesInferrer] used by this strategy.
-  TypesInferrer createTypesInferrer(JClosedWorld closedWorld,
-      GlobalLocalsMap globalLocalsMap, InferredDataBuilder inferredDataBuilder);
+  TypesInferrer createTypesInferrer(
+      JClosedWorld closedWorld, InferredDataBuilder inferredDataBuilder);
 
   /// Calls [f] for every member that needs to be serialized for modular code
   /// generation and returns an [EntityWriter] for encoding these members in

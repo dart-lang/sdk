@@ -19,7 +19,6 @@ import '../inferrer/types.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/inferred_data.dart';
 import '../js_model/js_world.dart';
-import '../js_model/locals.dart';
 import '../options.dart';
 import '../util/sink_adapter.dart';
 import '../world.dart';
@@ -28,10 +27,8 @@ import 'serialization.dart';
 void serializeGlobalTypeInferenceResultsToSink(
     GlobalTypeInferenceResults results, DataSink sink) {
   JsClosedWorld closedWorld = results.closedWorld;
-  GlobalLocalsMap globalLocalsMap = results.globalLocalsMap;
   InferredData inferredData = results.inferredData;
   closedWorld.writeToDataSink(sink);
-  globalLocalsMap.writeToDataSink(sink);
   inferredData.writeToDataSink(sink);
   results.writeToDataSink(sink, closedWorld.elementMap);
   sink.close();
@@ -45,16 +42,10 @@ GlobalTypeInferenceResults deserializeGlobalAnalysisFromSource(
     ir.Component component,
     JsClosedWorld newClosedWorld,
     DataSource source) {
-  GlobalLocalsMap newGlobalLocalsMap = GlobalLocalsMap.readFromDataSource(
-      newClosedWorld.closureDataLookup.getEnclosingMember, source);
   InferredData newInferredData =
       InferredData.readFromDataSource(source, newClosedWorld);
   return GlobalTypeInferenceResults.readFromDataSource(
-      source,
-      newClosedWorld.elementMap,
-      newClosedWorld,
-      newGlobalLocalsMap,
-      newInferredData);
+      source, newClosedWorld.elementMap, newClosedWorld, newInferredData);
 }
 
 GlobalTypeInferenceResults deserializeGlobalTypeInferenceResultsFromSource(
@@ -66,16 +57,10 @@ GlobalTypeInferenceResults deserializeGlobalTypeInferenceResultsFromSource(
     DataSource source) {
   JsClosedWorld newClosedWorld = new JsClosedWorld.readFromDataSource(
       options, reporter, environment, abstractValueStrategy, component, source);
-  GlobalLocalsMap newGlobalLocalsMap = GlobalLocalsMap.readFromDataSource(
-      newClosedWorld.closureDataLookup.getEnclosingMember, source);
   InferredData newInferredData =
       new InferredData.readFromDataSource(source, newClosedWorld);
   return new GlobalTypeInferenceResults.readFromDataSource(
-      source,
-      newClosedWorld.elementMap,
-      newClosedWorld,
-      newGlobalLocalsMap,
-      newInferredData);
+      source, newClosedWorld.elementMap, newClosedWorld, newInferredData);
 }
 
 void serializeClosedWorldToSink(JsClosedWorld closedWorld, DataSink sink) {

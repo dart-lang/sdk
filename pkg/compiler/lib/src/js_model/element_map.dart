@@ -150,8 +150,8 @@ abstract class JsToElementMap {
 
   /// Make a record to ensure variables that are are declared in one scope and
   /// modified in another get their values updated correctly.
-  Map<ir.VariableDeclaration, JRecordField> makeRecordContainer(
-      KernelScopeInfo info, MemberEntity member);
+  Map<Local, JRecordField> makeRecordContainer(
+      KernelScopeInfo info, MemberEntity member, KernelToLocalsMap localsMap);
 
   /// Returns a provider for static types for [member].
   StaticTypeProvider getStaticTypeProvider(MemberEntity member);
@@ -217,8 +217,8 @@ abstract class KernelToLocalsMap {
   /// Returns the [Local] for [node].
   Local getLocalVariable(ir.VariableDeclaration node);
 
-  /// Returns the [Local] for the [typeVariable].
-  Local getLocalTypeVariableEntity(TypeVariableEntity typeVariable);
+  Local getLocalTypeVariable(
+      ir.TypeParameterType node, JsToElementMap elementMap);
 
   /// Returns the [ir.FunctionNode] that declared [parameter].
   ir.FunctionNode getFunctionNodeForParameter(Local parameter);

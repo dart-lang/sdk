@@ -169,10 +169,12 @@ class JsBackendStrategy implements BackendStrategy {
         strategy.elementMap,
         closedWorld.liveMemberUsage,
         closedWorld.annotationsData);
-    ClosureDataBuilder closureDataBuilder =
-        new ClosureDataBuilder(_elementMap, closedWorld.annotationsData);
+    GlobalLocalsMap _globalLocalsMap = new GlobalLocalsMap();
+    ClosureDataBuilder closureDataBuilder = new ClosureDataBuilder(
+        _elementMap, _globalLocalsMap, closedWorld.annotationsData);
     JsClosedWorldBuilder closedWorldBuilder = new JsClosedWorldBuilder(
         _elementMap,
+        _globalLocalsMap,
         closureDataBuilder,
         _compiler.options,
         _compiler.abstractValueStrategy);
@@ -381,11 +383,8 @@ class JsBackendStrategy implements BackendStrategy {
 
   @override
   TypesInferrer createTypesInferrer(
-      JClosedWorld closedWorld,
-      GlobalLocalsMap globalLocalsMap,
-      InferredDataBuilder inferredDataBuilder) {
-    return new TypeGraphInferrer(
-        _compiler, closedWorld, globalLocalsMap, inferredDataBuilder);
+      JClosedWorld closedWorld, InferredDataBuilder inferredDataBuilder) {
+    return new TypeGraphInferrer(_compiler, closedWorld, inferredDataBuilder);
   }
 
   @override

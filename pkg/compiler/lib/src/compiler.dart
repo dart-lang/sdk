@@ -39,7 +39,6 @@ import 'js_backend/backend.dart' show CodegenInputs, JavaScriptImpactStrategy;
 import 'js_backend/inferred_data.dart';
 import 'js_model/js_strategy.dart';
 import 'js_model/js_world.dart';
-import 'js_model/locals.dart';
 import 'kernel/kernel_strategy.dart';
 import 'kernel/loader.dart' show KernelLoaderTask, KernelResult;
 import 'null_compiler_output.dart' show NullCompilerOutput;
@@ -402,12 +401,10 @@ abstract class Compiler {
       JClosedWorld closedWorld) {
     FunctionEntity mainFunction = closedWorld.elementEnvironment.mainFunction;
     reporter.log('Performing global type inference');
-    GlobalLocalsMap globalLocalsMap =
-        new GlobalLocalsMap(closedWorld.closureDataLookup.getEnclosingMember);
     InferredDataBuilder inferredDataBuilder =
         new InferredDataBuilderImpl(closedWorld.annotationsData);
     return globalInference.runGlobalTypeInference(
-        mainFunction, closedWorld, globalLocalsMap, inferredDataBuilder);
+        mainFunction, closedWorld, inferredDataBuilder);
   }
 
   void runCodegenEnqueuer(CodegenResults codegenResults) {

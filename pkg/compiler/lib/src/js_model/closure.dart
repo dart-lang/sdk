@@ -21,6 +21,7 @@ import '../ssa/type_builder.dart';
 import '../universe/selector.dart';
 import 'elements.dart';
 import 'js_world_builder.dart' show JsClosedWorldBuilder;
+import 'locals.dart';
 
 class ClosureDataImpl implements ClosureData {
   /// Tag used for identifying serialized [ClosureData] objects in a
@@ -39,15 +40,8 @@ class ClosureDataImpl implements ClosureData {
   final Map<ir.LocalFunction, ClosureRepresentationInfo>
       _localClosureRepresentationMap;
 
-  final Map<MemberEntity, MemberEntity> _enclosingMembers;
-
-  ClosureDataImpl(
-      this._elementMap,
-      this._scopeMap,
-      this._capturedScopesMap,
-      this._capturedScopeForSignatureMap,
-      this._localClosureRepresentationMap,
-      this._enclosingMembers);
+  ClosureDataImpl(this._elementMap, this._scopeMap, this._capturedScopesMap,
+      this._capturedScopeForSignatureMap, this._localClosureRepresentationMap);
 
   /// Deserializes a [ClosureData] object from [source].
   factory ClosureDataImpl.readFromDataSource(
@@ -64,16 +58,9 @@ class ClosureDataImpl implements ClosureData {
     Map<ir.LocalFunction, ClosureRepresentationInfo>
         localClosureRepresentationMap = source.readTreeNodeMap(
             () => new ClosureRepresentationInfo.readFromDataSource(source));
-    Map<MemberEntity, MemberEntity> enclosingMembers =
-        source.readMemberMap((member) => source.readMember());
     source.end(tag);
-    return new ClosureDataImpl(
-        elementMap,
-        scopeMap,
-        capturedScopesMap,
-        capturedScopeForSignatureMap,
-        localClosureRepresentationMap,
-        enclosingMembers);
+    return new ClosureDataImpl(elementMap, scopeMap, capturedScopesMap,
+        capturedScopeForSignatureMap, localClosureRepresentationMap);
   }
 
   /// Serializes this [ClosureData] to [sink].
@@ -92,10 +79,6 @@ class ClosureDataImpl implements ClosureData {
     sink.writeTreeNodeMap(_localClosureRepresentationMap,
         (ClosureRepresentationInfo info) {
       info.writeToDataSink(sink);
-    });
-    sink.writeMemberMap(_enclosingMembers,
-        (MemberEntity member, MemberEntity value) {
-      sink.writeMember(value);
     });
     sink.end(tag);
   }
@@ -149,11 +132,6 @@ class ClosureDataImpl implements ClosureData {
         "Closures found for ${_localClosureRepresentationMap.keys}");
     return closure;
   }
-
-  @override
-  MemberEntity getEnclosingMember(MemberEntity member) {
-    return _enclosingMembers[member] ?? member;
-  }
 }
 
 /// Closure conversion code using our new Entity model. Closure conversion is
@@ -171,6 +149,7 @@ class ClosureDataImpl implements ClosureData {
 
 class ClosureDataBuilder {
   final JsToElementMap _elementMap;
+  final GlobalLocalsMap _globalLocalsMap;
   final AnnotationsData _annotationsData;
 
   /// Map of the scoping information that corresponds to a particular entity.
@@ -183,9 +162,8 @@ class ClosureDataBuilder {
   Map<ir.LocalFunction, ClosureRepresentationInfo>
       _localClosureRepresentationMap = {};
 
-  Map<MemberEntity, MemberEntity> _enclosingMembers = {};
-
-  ClosureDataBuilder(this._elementMap, this._annotationsData);
+  ClosureDataBuilder(
+      this._elementMap, this._globalLocalsMap, this._annotationsData);
 
   void _updateScopeBasedOnRtiNeed(KernelScopeInfo scope, ClosureRtiNeed rtiNeed,
       MemberEntity outermostEntity) {
@@ -324,23 +302,24 @@ class ClosureDataBuilder {
       ClosureRtiNeed rtiNeed,
       List<FunctionEntity> callMethods) {
     closureModels.forEach((MemberEntity member, ClosureScopeModel model) {
-      Map<ir.VariableDeclaration, JRecordField> allBoxedVariables =
-          _elementMap.makeRecordContainer(model.scopeInfo, member);
+      KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
+      Map<Local, JRecordField> allBoxedVariables =
+          _elementMap.makeRecordContainer(model.scopeInfo, member, localsMap);
       _scopeMap[member] = new JsScopeInfo.from(
-          allBoxedVariables, model.scopeInfo, member.enclosingClass);
+          allBoxedVariables, model.scopeInfo, localsMap, _elementMap);
 
       model.capturedScopesMap
           .forEach((ir.Node node, KernelCapturedScope scope) {
-        Map<ir.VariableDeclaration, JRecordField> boxedVariables =
-            _elementMap.makeRecordContainer(scope, member);
+        Map<Local, JRecordField> boxedVariables =
+            _elementMap.makeRecordContainer(scope, member, localsMap);
         _updateScopeBasedOnRtiNeed(scope, rtiNeed, member);
 
         if (scope is KernelCapturedLoopScope) {
           _capturedScopesMap[node] = new JsCapturedLoopScope.from(
-              boxedVariables, scope, member.enclosingClass);
+              boxedVariables, scope, localsMap, _elementMap);
         } else {
           _capturedScopesMap[node] = new JsCapturedScope.from(
-              boxedVariables, scope, member.enclosingClass);
+              boxedVariables, scope, localsMap, _elementMap);
         }
         allBoxedVariables.addAll(boxedVariables);
       });
@@ -349,7 +328,7 @@ class ClosureDataBuilder {
           model.closuresToGenerate;
       for (ir.LocalFunction node in closuresToGenerate.keys) {
         ir.FunctionNode functionNode = node.function;
-        JsClosureClassInfo closureClassInfo = _produceSyntheticElements(
+        KernelClosureClassInfo closureClassInfo = _produceSyntheticElements(
             closedWorldBuilder,
             member,
             functionNode,
@@ -376,19 +355,14 @@ class ClosureDataBuilder {
             _updateScopeBasedOnRtiNeed(signatureCapturedScope, rtiNeed, member);
             _capturedScopeForSignatureMap[closureClassInfo.signatureMethod] =
                 new JsCapturedScope.from(
-                    {}, signatureCapturedScope, member.enclosingClass);
+                    {}, signatureCapturedScope, localsMap, _elementMap);
           }
         }
         callMethods.add(closureClassInfo.callMethod);
       }
     });
-    return new ClosureDataImpl(
-        _elementMap,
-        _scopeMap,
-        _capturedScopesMap,
-        _capturedScopeForSignatureMap,
-        _localClosureRepresentationMap,
-        _enclosingMembers);
+    return new ClosureDataImpl(_elementMap, _scopeMap, _capturedScopesMap,
+        _capturedScopeForSignatureMap, _localClosureRepresentationMap);
   }
 
   /// Given what variables are captured at each point, construct closure classes
@@ -397,24 +371,27 @@ class ClosureDataBuilder {
   /// the closure accesses a variable that gets accessed at some point), then
   /// boxForCapturedVariables stores the local context for those variables.
   /// If no variables are captured, this parameter is null.
-  JsClosureClassInfo _produceSyntheticElements(
+  KernelClosureClassInfo _produceSyntheticElements(
       JsClosedWorldBuilder closedWorldBuilder,
       MemberEntity member,
       ir.FunctionNode node,
       KernelScopeInfo info,
-      Map<ir.VariableDeclaration, JRecordField> boxedVariables,
+      Map<Local, JRecordField> boxedVariables,
       ClosureRtiNeed rtiNeed,
       {bool createSignatureMethod}) {
     _updateScopeBasedOnRtiNeed(info, rtiNeed, member);
-    JsClosureClassInfo closureClassInfo = closedWorldBuilder.buildClosureClass(
-        member, node, member.library, boxedVariables, info,
-        createSignatureMethod: createSignatureMethod);
+    KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
+    KernelClosureClassInfo closureClassInfo =
+        closedWorldBuilder.buildClosureClass(
+            member, node, member.library, boxedVariables, info, localsMap,
+            createSignatureMethod: createSignatureMethod);
 
     // We want the original declaration where that function is used to point
     // to the correct closure class.
-    _enclosingMembers[closureClassInfo.callMethod] = member;
+    _globalLocalsMap.setLocalsMap(closureClassInfo.callMethod, localsMap);
     if (closureClassInfo.signatureMethod != null) {
-      _enclosingMembers[closureClassInfo.signatureMethod] = member;
+      _globalLocalsMap.setLocalsMap(
+          closureClassInfo.signatureMethod, localsMap);
     }
     if (node.parent is ir.Member) {
       assert(_elementMap.getMember(node.parent) == member);
@@ -426,102 +403,98 @@ class ClosureDataBuilder {
   }
 }
 
+/// Helper method to get or create a Local variable out of a variable
+/// declaration or type parameter.
+Local _getLocal(
+    ir.Node variable, KernelToLocalsMap localsMap, JsToElementMap elementMap) {
+  assert(variable is ir.VariableDeclaration ||
+      variable is TypeVariableTypeWithContext);
+  if (variable is ir.VariableDeclaration) {
+    return localsMap.getLocalVariable(variable);
+  } else if (variable is TypeVariableTypeWithContext) {
+    return localsMap.getLocalTypeVariable(variable.type, elementMap);
+  }
+  throw new ArgumentError('Only know how to get/create locals for '
+      'VariableDeclarations or TypeParameterTypeWithContext. Recieved '
+      '${variable.runtimeType}');
+}
+
 class JsScopeInfo extends ScopeInfo {
   /// Tag used for identifying serialized [JsScopeInfo] objects in a
   /// debugging data stream.
   static const String tag = 'scope-info';
 
-  final Iterable<ir.VariableDeclaration> _localsUsedInTryOrSync;
-
-  Set<Local> _localsUsedInTryOrSyncCache;
-
+  final Iterable<Local> localsUsedInTryOrSync;
   @override
   final Local thisLocal;
+  final Map<Local, JRecordField> boxedVariables;
 
-  final Map<ir.VariableDeclaration, JRecordField> _boxedVariables;
+  /// The set of variables that were defined in another scope, but are used in
+  /// this scope.
+  final Set<Local> freeVariables;
 
-  Map<Local, JRecordField> _boxedVariablesCache;
+  JsScopeInfo.internal(this.localsUsedInTryOrSync, this.thisLocal,
+      this.boxedVariables, this.freeVariables);
 
-  JsScopeInfo.internal(
-      this._localsUsedInTryOrSync, this.thisLocal, this._boxedVariables);
-
-  JsScopeInfo.from(
-      this._boxedVariables, KernelScopeInfo info, ClassEntity enclosingClass)
-      : this.thisLocal =
-            info.hasThisLocal ? new ThisLocal(enclosingClass) : null,
-        this._localsUsedInTryOrSync = info.localsUsedInTryOrSync;
-
-  void _ensureBoxedVariableCache(KernelToLocalsMap localsMap) {
-    if (_boxedVariablesCache == null) {
-      if (_boxedVariables.isEmpty) {
-        _boxedVariablesCache = const {};
-      } else {
-        _boxedVariablesCache = {};
-        _boxedVariables
-            .forEach((ir.VariableDeclaration node, JRecordField field) {
-          _boxedVariablesCache[localsMap.getLocalVariable(node)] = field;
-        });
-      }
+  JsScopeInfo.from(this.boxedVariables, KernelScopeInfo info,
+      KernelToLocalsMap localsMap, JsToElementMap elementMap)
+      : this.thisLocal = info.hasThisLocal
+            ? new ThisLocal(localsMap.currentMember.enclosingClass)
+            : null,
+        this.localsUsedInTryOrSync =
+            info.localsUsedInTryOrSync.map(localsMap.getLocalVariable).toSet(),
+        this.freeVariables = info.freeVariables
+            .map((ir.Node node) => _getLocal(node, localsMap, elementMap))
+            .toSet() {
+    if (info.thisUsedAsFreeVariable) {
+      this.freeVariables.add(this.thisLocal);
     }
   }
 
   @override
-  void forEachBoxedVariable(
-      KernelToLocalsMap localsMap, f(Local local, FieldEntity field)) {
-    _ensureBoxedVariableCache(localsMap);
-    _boxedVariablesCache.forEach(f);
+  void forEachBoxedVariable(f(Local local, FieldEntity field)) {
+    boxedVariables.forEach((Local l, JRecordField box) {
+      f(l, box);
+    });
   }
 
   @override
-  bool localIsUsedInTryOrSync(KernelToLocalsMap localsMap, Local variable) {
-    if (_localsUsedInTryOrSyncCache == null) {
-      if (_localsUsedInTryOrSync.isEmpty) {
-        _localsUsedInTryOrSyncCache = const {};
-      } else {
-        _localsUsedInTryOrSyncCache = {};
-        for (ir.VariableDeclaration node in _localsUsedInTryOrSync) {
-          _localsUsedInTryOrSyncCache.add(localsMap.getLocalVariable(node));
-        }
-      }
-    }
-    return _localsUsedInTryOrSyncCache.contains(variable);
-  }
+  bool localIsUsedInTryOrSync(Local variable) =>
+      localsUsedInTryOrSync.contains(variable);
 
   @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('this=$thisLocal,');
-    sb.write('localsUsedInTryOrSync={${_localsUsedInTryOrSync.join(', ')}}');
+    sb.write('localsUsedInTryOrSync={${localsUsedInTryOrSync.join(', ')}}');
     return sb.toString();
   }
 
   @override
-  bool isBoxedVariable(KernelToLocalsMap localsMap, Local variable) {
-    _ensureBoxedVariableCache(localsMap);
-    return _boxedVariablesCache.containsKey(variable);
-  }
+  bool isBoxedVariable(Local variable) => boxedVariables.containsKey(variable);
 
   factory JsScopeInfo.readFromDataSource(DataSource source) {
     source.begin(tag);
-    Iterable<ir.VariableDeclaration> localsUsedInTryOrSync =
-        source.readTreeNodes<ir.VariableDeclaration>();
+    Iterable<Local> localsUsedInTryOrSync = source.readLocals();
     Local thisLocal = source.readLocalOrNull();
-    Map<ir.VariableDeclaration, JRecordField> boxedVariables =
-        source.readTreeNodeMap<ir.VariableDeclaration, JRecordField>(
-            () => source.readMember());
+    Map<Local, JRecordField> boxedVariables =
+        source.readLocalMap<Local, JRecordField>(() => source.readMember());
+    Set<Local> freeVariables = source.readLocals().toSet();
     source.end(tag);
     if (boxedVariables.isEmpty) boxedVariables = const {};
+    if (freeVariables.isEmpty) freeVariables = const {};
     return JsScopeInfo.internal(
-        localsUsedInTryOrSync, thisLocal, boxedVariables);
+        localsUsedInTryOrSync, thisLocal, boxedVariables, freeVariables);
   }
 
   @override
   void writeToDataSink(DataSink sink) {
     sink.writeEnum(ScopeInfoKind.scopeInfo);
     sink.begin(tag);
-    sink.writeTreeNodes(_localsUsedInTryOrSync);
+    sink.writeLocals(localsUsedInTryOrSync);
     sink.writeLocalOrNull(thisLocal);
-    sink.writeTreeNodeMap(_boxedVariables, sink.writeMember);
+    sink.writeLocalMap(boxedVariables, sink.writeMember);
+    sink.writeLocals(freeVariables);
     sink.end(tag);
   }
 }
@@ -532,46 +505,51 @@ class JsCapturedScope extends JsScopeInfo implements CapturedScope {
   static const String tag = 'captured-scope';
 
   @override
-  final Local contextBox;
+  final Local context;
 
   JsCapturedScope.internal(
-      Iterable<ir.VariableDeclaration> localsUsedInTryOrSync,
+      Iterable<Local> localsUsedInTryOrSync,
       Local thisLocal,
-      Map<ir.VariableDeclaration, JRecordField> boxedVariables,
-      this.contextBox)
-      : super.internal(localsUsedInTryOrSync, thisLocal, boxedVariables);
+      Map<Local, JRecordField> boxedVariables,
+      Set<Local> freeVariables,
+      this.context)
+      : super.internal(
+            localsUsedInTryOrSync, thisLocal, boxedVariables, freeVariables);
 
-  JsCapturedScope.from(Map<ir.VariableDeclaration, JRecordField> boxedVariables,
-      KernelCapturedScope capturedScope, ClassEntity enclosingClass)
-      : this.contextBox =
+  JsCapturedScope.from(
+      Map<Local, JRecordField> boxedVariables,
+      KernelCapturedScope capturedScope,
+      KernelToLocalsMap localsMap,
+      JsToElementMap elementMap)
+      : this.context =
             boxedVariables.isNotEmpty ? boxedVariables.values.first.box : null,
-        super.from(boxedVariables, capturedScope, enclosingClass);
+        super.from(boxedVariables, capturedScope, localsMap, elementMap);
 
   @override
-  bool get requiresContextBox => _boxedVariables.isNotEmpty;
+  bool get requiresContextBox => boxedVariables.isNotEmpty;
 
   factory JsCapturedScope.readFromDataSource(DataSource source) {
     source.begin(tag);
-    Iterable<ir.VariableDeclaration> localsUsedInTryOrSync =
-        source.readTreeNodes<ir.VariableDeclaration>();
+    Iterable<Local> localsUsedInTryOrSync = source.readLocals();
     Local thisLocal = source.readLocalOrNull();
-    Map<ir.VariableDeclaration, JRecordField> boxedVariables =
-        source.readTreeNodeMap<ir.VariableDeclaration, JRecordField>(
-            () => source.readMember());
+    Map<Local, JRecordField> boxedVariables =
+        source.readLocalMap<Local, JRecordField>(() => source.readMember());
+    Set<Local> freeVariables = source.readLocals().toSet();
     Local context = source.readLocalOrNull();
     source.end(tag);
-    return new JsCapturedScope.internal(
-        localsUsedInTryOrSync, thisLocal, boxedVariables, context);
+    return new JsCapturedScope.internal(localsUsedInTryOrSync, thisLocal,
+        boxedVariables, freeVariables, context);
   }
 
   @override
   void writeToDataSink(DataSink sink) {
     sink.writeEnum(ScopeInfoKind.capturedScope);
     sink.begin(tag);
-    sink.writeTreeNodes(_localsUsedInTryOrSync);
+    sink.writeLocals(localsUsedInTryOrSync);
     sink.writeLocalOrNull(thisLocal);
-    sink.writeTreeNodeMap(_boxedVariables, sink.writeMember);
-    sink.writeLocalOrNull(contextBox);
+    sink.writeLocalMap(boxedVariables, sink.writeMember);
+    sink.writeLocals(freeVariables);
+    sink.writeLocalOrNull(context);
     sink.end(tag);
   }
 }
@@ -581,69 +559,65 @@ class JsCapturedLoopScope extends JsCapturedScope implements CapturedLoopScope {
   /// debugging data stream.
   static const String tag = 'captured-loop-scope';
 
-  final List<ir.VariableDeclaration> _boxedLoopVariables;
+  @override
+  final List<Local> boxedLoopVariables;
 
   JsCapturedLoopScope.internal(
-      Iterable<ir.VariableDeclaration> localsUsedInTryOrSync,
+      Iterable<Local> localsUsedInTryOrSync,
       Local thisLocal,
-      Map<ir.VariableDeclaration, JRecordField> boxedVariables,
+      Map<Local, JRecordField> boxedVariables,
+      Set<Local> freeVariables,
       Local context,
-      this._boxedLoopVariables)
-      : super.internal(
-            localsUsedInTryOrSync, thisLocal, boxedVariables, context);
+      this.boxedLoopVariables)
+      : super.internal(localsUsedInTryOrSync, thisLocal, boxedVariables,
+            freeVariables, context);
 
   JsCapturedLoopScope.from(
-      Map<ir.VariableDeclaration, JRecordField> boxedVariables,
+      Map<Local, JRecordField> boxedVariables,
       KernelCapturedLoopScope capturedScope,
-      ClassEntity enclosingClass)
-      : this._boxedLoopVariables = capturedScope.boxedLoopVariables,
-        super.from(boxedVariables, capturedScope, enclosingClass);
+      KernelToLocalsMap localsMap,
+      JsToElementMap elementMap)
+      : this.boxedLoopVariables = capturedScope.boxedLoopVariables
+            .map(localsMap.getLocalVariable)
+            .toList(),
+        super.from(boxedVariables, capturedScope, localsMap, elementMap);
 
   @override
-  bool get hasBoxedLoopVariables => _boxedLoopVariables.isNotEmpty;
+  bool get hasBoxedLoopVariables => boxedLoopVariables.isNotEmpty;
 
   factory JsCapturedLoopScope.readFromDataSource(DataSource source) {
     source.begin(tag);
-    Iterable<ir.VariableDeclaration> localsUsedInTryOrSync =
-        source.readTreeNodes<ir.VariableDeclaration>();
+    Iterable<Local> localsUsedInTryOrSync = source.readLocals();
     Local thisLocal = source.readLocalOrNull();
-    Map<ir.VariableDeclaration, JRecordField> boxedVariables =
-        source.readTreeNodeMap<ir.VariableDeclaration, JRecordField>(
-            () => source.readMember());
+    Map<Local, JRecordField> boxedVariables =
+        source.readLocalMap<Local, JRecordField>(() => source.readMember());
+    Set<Local> freeVariables = source.readLocals().toSet();
     Local context = source.readLocalOrNull();
-    List<ir.VariableDeclaration> boxedLoopVariables =
-        source.readTreeNodes<ir.VariableDeclaration>();
+    List<Local> boxedLoopVariables = source.readLocals();
     source.end(tag);
     return new JsCapturedLoopScope.internal(localsUsedInTryOrSync, thisLocal,
-        boxedVariables, context, boxedLoopVariables);
+        boxedVariables, freeVariables, context, boxedLoopVariables);
   }
 
   @override
   void writeToDataSink(DataSink sink) {
     sink.writeEnum(ScopeInfoKind.capturedLoopScope);
     sink.begin(tag);
-    sink.writeTreeNodes(_localsUsedInTryOrSync);
+    sink.writeLocals(localsUsedInTryOrSync);
     sink.writeLocalOrNull(thisLocal);
-    sink.writeTreeNodeMap(_boxedVariables, sink.writeMember);
-    sink.writeLocalOrNull(contextBox);
-    sink.writeTreeNodes(_boxedLoopVariables);
+    sink.writeLocalMap(boxedVariables, sink.writeMember);
+    sink.writeLocals(freeVariables);
+    sink.writeLocalOrNull(context);
+    sink.writeLocals(boxedLoopVariables);
     sink.end(tag);
-  }
-
-  @override
-  List<Local> getBoxedLoopVariables(KernelToLocalsMap localsMap) {
-    List<Local> locals = [];
-    for (ir.VariableDeclaration boxedLoopVariable in _boxedLoopVariables) {
-      locals.add(localsMap.getLocalVariable(boxedLoopVariable));
-    }
-    return locals;
   }
 }
 
+// TODO(johnniwinther): Rename this class.
 // TODO(johnniwinther): Add unittest for the computed [ClosureClass].
-class JsClosureClassInfo extends JsScopeInfo
+class KernelClosureClassInfo extends JsScopeInfo
     implements ClosureRepresentationInfo {
-  /// Tag used for identifying serialized [JsClosureClassInfo] objects in a
+  /// Tag used for identifying serialized [KernelClosureClassInfo] objects in a
   /// debugging data stream.
   static const String tag = 'closure-representation-info';
 
@@ -651,194 +625,110 @@ class JsClosureClassInfo extends JsScopeInfo
   JFunction callMethod;
   @override
   JSignatureMethod signatureMethod;
-
-  /// The local used for this closure, if it is an anonymous closure, i.e.
-  /// an `ir.FunctionExpression`.
-  final Local _closureEntity;
-
-  /// The local variable that defines this closure, if it is a local function
-  /// declaration.
-  final ir.VariableDeclaration _closureEntityVariable;
-
+  @override
+  final Local closureEntity;
   @override
   final Local thisLocal;
-
   @override
   final JClass closureClassEntity;
 
-  final Map<ir.VariableDeclaration, JField> _variableToFieldMap;
-  final Map<JTypeVariable, JField> _typeVariableToFieldMap;
-  final Map<Local, JField> _localToFieldMap;
-  Map<JField, Local> _fieldToLocalsMap;
+  final Map<Local, JField> localToFieldMap;
 
-  JsClosureClassInfo.internal(
-      Iterable<ir.VariableDeclaration> localsUsedInTryOrSync,
+  KernelClosureClassInfo.internal(
+      Iterable<Local> localsUsedInTryOrSync,
       this.thisLocal,
-      Map<ir.VariableDeclaration, JRecordField> boxedVariables,
+      Map<Local, JRecordField> boxedVariables,
+      Set<Local> freeVariables,
       this.callMethod,
       this.signatureMethod,
-      this._closureEntity,
-      this._closureEntityVariable,
+      this.closureEntity,
       this.closureClassEntity,
-      this._variableToFieldMap,
-      this._typeVariableToFieldMap,
-      this._localToFieldMap)
-      : super.internal(localsUsedInTryOrSync, thisLocal, boxedVariables);
+      this.localToFieldMap)
+      : super.internal(
+            localsUsedInTryOrSync, thisLocal, boxedVariables, freeVariables);
 
-  JsClosureClassInfo.fromScopeInfo(
+  KernelClosureClassInfo.fromScopeInfo(
       this.closureClassEntity,
       ir.FunctionNode closureSourceNode,
-      Map<ir.VariableDeclaration, JRecordField> boxedVariables,
+      Map<Local, JRecordField> boxedVariables,
       KernelScopeInfo info,
-      ClassEntity enclosingClass,
-      this._closureEntity,
-      this._closureEntityVariable,
-      this.thisLocal)
-      : _variableToFieldMap = {},
-        _typeVariableToFieldMap = {},
-        _localToFieldMap = {},
-        super.from(boxedVariables, info, enclosingClass);
+      KernelToLocalsMap localsMap,
+      this.closureEntity,
+      this.thisLocal,
+      JsToElementMap elementMap)
+      : localToFieldMap = new Map<Local, JField>(),
+        super.from(boxedVariables, info, localsMap, elementMap);
 
-  factory JsClosureClassInfo.readFromDataSource(DataSource source) {
+  factory KernelClosureClassInfo.readFromDataSource(DataSource source) {
     source.begin(tag);
-    Iterable<ir.VariableDeclaration> localsUsedInTryOrSync =
-        source.readTreeNodes<ir.VariableDeclaration>();
+    Iterable<Local> localsUsedInTryOrSync = source.readLocals();
     Local thisLocal = source.readLocalOrNull();
-    Map<ir.VariableDeclaration, JRecordField> boxedVariables =
-        source.readTreeNodeMap<ir.VariableDeclaration, JRecordField>(
-            () => source.readMember());
+    Map<Local, JRecordField> boxedVariables =
+        source.readLocalMap<Local, JRecordField>(() => source.readMember());
+    Set<Local> freeVariables = source.readLocals().toSet();
     JFunction callMethod = source.readMember();
     JSignatureMethod signatureMethod = source.readMemberOrNull();
     Local closureEntity = source.readLocalOrNull();
-    ir.VariableDeclaration closureEntityVariable = source.readTreeNodeOrNull();
     JClass closureClassEntity = source.readClass();
-    Map<ir.VariableDeclaration, JField> localToFieldMap =
-        source.readTreeNodeMap<ir.VariableDeclaration, JField>(
-            () => source.readMember());
-    Map<JTypeVariable, JField> typeVariableToFieldMap = source
-        .readTypeVariableMap<JTypeVariable, JField>(() => source.readMember());
-    Map<Local, JField> thisLocalToFieldMap =
+    Map<Local, JField> localToFieldMap =
         source.readLocalMap(() => source.readMember());
     source.end(tag);
     if (boxedVariables.isEmpty) boxedVariables = const {};
+    if (freeVariables.isEmpty) freeVariables = const {};
     if (localToFieldMap.isEmpty) localToFieldMap = const {};
-    return JsClosureClassInfo.internal(
+    return KernelClosureClassInfo.internal(
         localsUsedInTryOrSync,
         thisLocal,
         boxedVariables,
+        freeVariables,
         callMethod,
         signatureMethod,
         closureEntity,
-        closureEntityVariable,
         closureClassEntity,
-        localToFieldMap,
-        typeVariableToFieldMap,
-        thisLocalToFieldMap);
+        localToFieldMap);
   }
 
   @override
   void writeToDataSink(DataSink sink) {
     sink.writeEnum(ScopeInfoKind.closureRepresentationInfo);
     sink.begin(tag);
-    sink.writeTreeNodes(_localsUsedInTryOrSync);
+    sink.writeLocals(localsUsedInTryOrSync);
     sink.writeLocalOrNull(thisLocal);
-    sink.writeTreeNodeMap(_boxedVariables, sink.writeMember);
+    sink.writeLocalMap(boxedVariables, sink.writeMember);
+    sink.writeLocals(freeVariables);
     sink.writeMember(callMethod);
     sink.writeMemberOrNull(signatureMethod);
-    sink.writeLocalOrNull(_closureEntity);
-    sink.writeTreeNodeOrNull(_closureEntityVariable);
+    sink.writeLocalOrNull(closureEntity);
     sink.writeClass(closureClassEntity);
-    sink.writeTreeNodeMap(_variableToFieldMap, sink.writeMember);
-    sink.writeTypeVariableMap(_typeVariableToFieldMap, sink.writeMember);
-    sink.writeLocalMap(_localToFieldMap, sink.writeMember);
+    sink.writeLocalMap(localToFieldMap, sink.writeMember);
     sink.end(tag);
   }
 
-  bool hasFieldForLocal(Local local) => _localToFieldMap.containsKey(local);
+  @override
+  List<Local> get createdFieldEntities => localToFieldMap.keys.toList();
 
-  void registerFieldForLocal(Local local, JField field) {
-    assert(_fieldToLocalsMap == null);
-    _localToFieldMap[local] = field;
-  }
-
-  void registerFieldForVariable(ir.VariableDeclaration node, JField field) {
-    assert(_fieldToLocalsMap == null);
-    _variableToFieldMap[node] = field;
-  }
-
-  bool hasFieldForTypeVariable(JTypeVariable typeVariable) =>
-      _typeVariableToFieldMap.containsKey(typeVariable);
-
-  void registerFieldForTypeVariable(JTypeVariable typeVariable, JField field) {
-    assert(_fieldToLocalsMap == null);
-    _typeVariableToFieldMap[typeVariable] = field;
-  }
-
-  void registerFieldForBoxedVariable(
-      ir.VariableDeclaration node, JField field) {
-    assert(_boxedVariablesCache == null);
-    _boxedVariables[node] = field;
-  }
-
-  void _ensureFieldToLocalsMap(KernelToLocalsMap localsMap) {
-    if (_fieldToLocalsMap == null) {
-      _fieldToLocalsMap = {};
-      _variableToFieldMap.forEach((ir.VariableDeclaration node, JField field) {
-        _fieldToLocalsMap[field] = localsMap.getLocalVariable(node);
-      });
-      _typeVariableToFieldMap
-          .forEach((TypeVariableEntity typeVariable, JField field) {
-        _fieldToLocalsMap[field] =
-            localsMap.getLocalTypeVariableEntity(typeVariable);
-      });
-      _localToFieldMap.forEach((Local local, JField field) {
-        _fieldToLocalsMap[field] = local;
-      });
-      if (_fieldToLocalsMap.isEmpty) {
-        _fieldToLocalsMap = const {};
+  @override
+  Local getLocalForField(FieldEntity field) {
+    for (Local local in localToFieldMap.keys) {
+      if (localToFieldMap[local] == field) {
+        return local;
       }
     }
+    failedAt(field, "No local for $field. Options: $localToFieldMap");
+    return null;
   }
 
   @override
-  List<Local> getCreatedFieldEntities(KernelToLocalsMap localsMap) {
-    _ensureFieldToLocalsMap(localsMap);
-    return _fieldToLocalsMap.values.toList();
-  }
+  FieldEntity get thisFieldEntity => localToFieldMap[thisLocal];
 
   @override
-  Local getLocalForField(KernelToLocalsMap localsMap, FieldEntity field) {
-    _ensureFieldToLocalsMap(localsMap);
-    Local local = _fieldToLocalsMap[field];
-    if (local == null) {
-      failedAt(field, "No local for $field. Options: $_fieldToLocalsMap");
-    }
-    return local;
-  }
-
-  @override
-  FieldEntity get thisFieldEntity => _localToFieldMap[thisLocal];
-
-  @override
-  void forEachFreeVariable(
-      KernelToLocalsMap localsMap, f(Local variable, JField field)) {
-    _ensureFieldToLocalsMap(localsMap);
-    _ensureBoxedVariableCache(localsMap);
-    _fieldToLocalsMap.forEach((JField field, Local local) {
-      f(local, field);
-    });
-    _boxedVariablesCache.forEach(f);
+  void forEachFreeVariable(f(Local variable, JField field)) {
+    localToFieldMap.forEach(f);
+    boxedVariables.forEach(f);
   }
 
   @override
   bool get isClosure => true;
-
-  @override
-  Local getClosureEntity(KernelToLocalsMap localsMap) {
-    return _closureEntityVariable != null
-        ? localsMap.getLocalVariable(_closureEntityVariable)
-        : _closureEntity;
-  }
 }
 
 class JClosureClass extends JClass {
@@ -905,7 +795,7 @@ class JClosureField extends JField implements PrivatelyNamedJSEntity {
   final String declaredName;
 
   JClosureField(
-      String name, JsClosureClassInfo containingClass, String declaredName,
+      String name, KernelClosureClassInfo containingClass, String declaredName,
       {bool isConst, bool isAssignable})
       : this.internal(
             containingClass.closureClassEntity.library,

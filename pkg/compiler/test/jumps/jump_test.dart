@@ -39,8 +39,7 @@ class JumpDataComputer extends DataComputer<String> {
       {bool verbose: false}) {
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
-    GlobalLocalsMap localsMap =
-        compiler.globalInference.resultsForTesting.globalLocalsMap;
+    GlobalLocalsMap localsMap = closedWorld.globalLocalsMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new JumpsIrChecker(
             compiler.reporter, actualMap, localsMap.getLocalsMap(member))

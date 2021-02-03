@@ -35,14 +35,6 @@ abstract class ClosureData {
   /// Accessor to the information about scopes that closures capture. Used by
   /// the SSA builder.
   CapturedScope getCapturedScope(MemberEntity entity);
-
-  /// If [entity] is a closure call method or closure signature method, the
-  /// original enclosing member is returned. Otherwise [entity] is returned.
-  ///
-  /// A member and its nested closure share the underlying AST, we need to
-  /// ensure that locals are shared between them. We therefore store the
-  /// locals in the global locals map using the enclosing member as key.
-  MemberEntity getEnclosingMember(MemberEntity entity);
 }
 
 /// Enum used for identifying [ScopeInfo] subclasses in serialization.
@@ -76,7 +68,7 @@ class ScopeInfo {
       case ScopeInfoKind.capturedLoopScope:
         return new JsCapturedLoopScope.readFromDataSource(source);
       case ScopeInfoKind.closureRepresentationInfo:
-        return new JsClosureClassInfo.readFromDataSource(source);
+        return new KernelClosureClassInfo.readFromDataSource(source);
     }
     throw new UnsupportedError('Unexpected ScopeInfoKind $kind');
   }
@@ -100,8 +92,7 @@ class ScopeInfo {
   /// Also parameters to a `sync*` generator must be boxed, because of the way
   /// we rewrite sync* functions. See also comments in
   /// [ClosureClassMap.useLocal].
-  bool localIsUsedInTryOrSync(KernelToLocalsMap localsMap, Local variable) =>
-      false;
+  bool localIsUsedInTryOrSync(Local variable) => false;
 
   /// Loop through each variable that has been defined in this scope, modified
   /// anywhere (this scope or another scope) and used in another scope. Because
@@ -113,11 +104,10 @@ class ScopeInfo {
   /// In the case of loops, this is the set of iteration variables (or any
   /// variables declared in the for loop expression (`for (...here...)`) that
   /// need to be boxed to snapshot their value.
-  void forEachBoxedVariable(
-      KernelToLocalsMap localsMap, f(Local local, FieldEntity field)) {}
+  void forEachBoxedVariable(f(Local local, FieldEntity field)) {}
 
   /// True if [variable] has been mutated and is also used in another scope.
-  bool isBoxedVariable(KernelToLocalsMap localsMap, Local variable) => false;
+  bool isBoxedVariable(Local variable) => false;
 }
 
 /// Class representing the usage of a scope that has been captured in the
@@ -151,7 +141,7 @@ class CapturedScope extends ScopeInfo {
   /// executed. This will encapsulate the value of any variables that have been
   /// scoped into this context from outside. This is an accessor to the
   /// contextBox that [requiresContextBox] is testing is required.
-  Local get contextBox => null;
+  Local get context => null;
 }
 
 /// Class that describes the actual mechanics of how values of variables
@@ -205,8 +195,7 @@ class CapturedLoopScope extends CapturedScope {
   ///
   /// `i` would be a part of the boxedLoopVariables AND boxedVariables, but b
   /// would only be a part of boxedVariables.
-  List<Local> getBoxedLoopVariables(KernelToLocalsMap localsMap) =>
-      const <Local>[];
+  List<Local> get boxedLoopVariables => const <Local>[];
 }
 
 /// Class that describes the actual mechanics of how the converted, rewritten
@@ -250,7 +239,7 @@ class ClosureRepresentationInfo extends ScopeInfo {
         throw new UnsupportedError(
             'Unexpected ClosureRepresentationInfo kind $kind');
       case ScopeInfoKind.closureRepresentationInfo:
-        return new JsClosureClassInfo.readFromDataSource(source);
+        return new KernelClosureClassInfo.readFromDataSource(source);
     }
     throw new UnsupportedError('Unexpected ScopeInfoKind $kind');
   }
@@ -258,7 +247,7 @@ class ClosureRepresentationInfo extends ScopeInfo {
   /// The original local function before any translation.
   ///
   /// Will be null for methods.
-  Local getClosureEntity(KernelToLocalsMap localsMap) => null;
+  Local get closureEntity => null;
 
   /// The entity for the class used to represent the rewritten closure in the
   /// emitted JavaScript.
@@ -277,14 +266,13 @@ class ClosureRepresentationInfo extends ScopeInfo {
   /// List of locals that this closure class has created corresponding field
   /// entities for.
   @deprecated
-  List<Local> getCreatedFieldEntities(KernelToLocalsMap localsMap) =>
-      const <Local>[];
+  List<Local> get createdFieldEntities => const <Local>[];
 
   /// As shown in the example in the comments at the top of this class, we
   /// create fields in the closure class for each captured variable. This is an
   /// accessor the [local] for which [field] was created.
   /// Returns the [local] for which [field] was created.
-  Local getLocalForField(KernelToLocalsMap localsMap, FieldEntity field) {
+  Local getLocalForField(FieldEntity field) {
     failedAt(field, "No local for $field.");
     return null;
   }
@@ -301,14 +289,12 @@ class ClosureRepresentationInfo extends ScopeInfo {
   /// strictly variables defined in this closure, unlike the behavior in
   /// the superclass ScopeInfo.
   @override
-  void forEachBoxedVariable(
-      KernelToLocalsMap localsMap, f(Local local, FieldEntity field)) {}
+  void forEachBoxedVariable(f(Local local, FieldEntity field)) {}
 
   /// Loop through each free variable in this closure. Free variables are the
   /// variables that have been captured *just* in this closure, not in nested
   /// scopes.
-  void forEachFreeVariable(
-      KernelToLocalsMap localsMap, f(Local variable, FieldEntity field)) {}
+  void forEachFreeVariable(f(Local variable, FieldEntity field)) {}
 
   // TODO(efortuna): Remove this method. The old system was using
   // ClosureClassMaps for situations other than closure class maps, and that's

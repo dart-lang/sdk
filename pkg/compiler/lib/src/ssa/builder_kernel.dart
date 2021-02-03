@@ -34,7 +34,7 @@ import '../js_backend/namer.dart' show ModularNamer;
 import '../js_backend/native_data.dart';
 import '../js_backend/runtime_types_resolution.dart';
 import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
-import '../js_model/locals.dart' show GlobalLocalsMap, JumpVisitor;
+import '../js_model/locals.dart' show JumpVisitor;
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../js_model/element_map.dart';
 import '../js_model/js_strategy.dart';
@@ -211,9 +211,6 @@ class KernelSsaGraphBuilder extends ir.Visitor {
   InterceptorData get _interceptorData => closedWorld.interceptorData;
 
   RuntimeTypesNeed get _rtiNeed => closedWorld.rtiNeed;
-
-  GlobalLocalsMap get _globalLocalsMap =>
-      globalInferenceResults.globalLocalsMap;
 
   InferredData get _inferredData => globalInferenceResults.inferredData;
 
@@ -411,7 +408,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         _currentFrame,
         member,
         asyncMarker,
-        _globalLocalsMap.getLocalsMap(member),
+        closedWorld.globalLocalsMap.getLocalsMap(member),
         {},
         new KernelToTypeInferenceMapImpl(member, globalInferenceResults),
         _currentFrame != null
@@ -865,7 +862,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         CapturedScope scopeData =
             _closureDataLookup.getCapturedScope(constructorBody);
         if (scopeData.requiresContextBox) {
-          bodyCallInputs.add(localsHandler.readLocal(scopeData.contextBox));
+          bodyCallInputs.add(localsHandler.readLocal(scopeData.context));
         }
 
         // Pass type arguments.
@@ -1169,7 +1166,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     var index = 0;
 
     ConstructorEntity element = _elementMap.getConstructor(constructor);
-    MemberEntity oldScopeMember = localsHandler.scopeMember;
+    ScopeInfo oldScopeInfo = localsHandler.scopeInfo;
 
     _inlinedFrom(
         element, _sourceInformationBuilder.buildCall(initializer, initializer),
@@ -1193,12 +1190,13 @@ class KernelSsaGraphBuilder extends ir.Visitor {
           constructorData, element.enclosingClass);
 
       // Set the locals handler state as if we were inlining the constructor.
-      localsHandler.setupScope(element);
+      ScopeInfo newScopeInfo = _closureDataLookup.getScopeInfo(element);
+      localsHandler.scopeInfo = newScopeInfo;
       localsHandler.enterScope(_closureDataLookup.getCapturedScope(element),
           _sourceInformationBuilder.buildDeclaration(element));
       _buildInitializers(constructor, constructorData);
     });
-    localsHandler.setupScope(oldScopeMember);
+    localsHandler.scopeInfo = oldScopeInfo;
   }
 
   /// Constructs a special signature function for a closure.
@@ -1393,7 +1391,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       if (nodeIsConstructorBody &&
           _closureDataLookup
               .getCapturedScope(targetElement)
-              .isBoxedVariable(_localsMap, local)) {
+              .isBoxedVariable(local)) {
         // If local is boxed, then `variable` will be a field inside the box
         // passed as the last parameter, so no need to update our locals
         // handler or check types at this point.
@@ -1432,10 +1430,9 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         closedWorld.annotationsData.getParameterCheckPolicy(method).isEmitted) {
       ir.FunctionNode function = getFunctionNode(_elementMap, method);
       for (ir.TypeParameter typeParameter in function.typeParameters) {
-        Local local = _localsMap.getLocalTypeVariableEntity(_elementMap
-            .getTypeVariableType(new ir.TypeParameterType(
-                typeParameter, ir.Nullability.nonNullable))
-            .element);
+        Local local = _localsMap.getLocalTypeVariable(
+            new ir.TypeParameterType(typeParameter, ir.Nullability.nonNullable),
+            _elementMap);
         HInstruction newParameter = localsHandler.directLocals[local];
         DartType bound = _getDartTypeIfValid(typeParameter.bound);
         if (!dartTypes.isTopType(bound)) {
@@ -1632,7 +1629,12 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     close(new HGoto(_abstractValueDomain)).addSuccessor(block);
     open(block);
 
-    localsHandler.startFunction(targetElement, parameterMap, elidedParameterSet,
+    localsHandler.startFunction(
+        targetElement,
+        _closureDataLookup.getScopeInfo(targetElement),
+        _closureDataLookup.getCapturedScope(targetElement),
+        parameterMap,
+        elidedParameterSet,
         _sourceInformationBuilder.buildDeclaration(targetElement),
         isGenerativeConstructorBody: targetElement is ConstructorBodyEntity);
 
@@ -5111,8 +5113,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     _elementEnvironment.forEachInstanceField(closureClassEntity,
         (_, FieldEntity field) {
       if (_fieldAnalysis.getFieldData(field).isElided) return;
-      capturedVariables.add(localsHandler
-          .readLocal(closureInfo.getLocalForField(_localsMap, field)));
+      capturedVariables
+          .add(localsHandler.readLocal(closureInfo.getLocalForField(field)));
     });
 
     AbstractValue type =
@@ -6015,7 +6017,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         instanceType ?? _elementMap.getMemberThisType(function),
         _nativeData,
         _interceptorData);
-    localsHandler.setupScope(function);
+    localsHandler.scopeInfo = _closureDataLookup.getScopeInfo(function);
 
     CapturedScope scopeData = _closureDataLookup.getCapturedScope(function);
     bool forGenerativeConstructorBody = function is ConstructorBodyEntity;
@@ -6027,13 +6029,14 @@ class KernelSsaGraphBuilder extends ir.Visitor {
 
     int argumentIndex = 0;
     if (function.isInstanceMember) {
-      localsHandler.updateLocal(
-          localsHandler.thisLocal, compiledArguments[argumentIndex++]);
+      localsHandler.updateLocal(localsHandler.scopeInfo.thisLocal,
+          compiledArguments[argumentIndex++]);
     }
 
     ir.Member memberContextNode = _elementMap.getMemberContextNode(function);
     bool hasBox = false;
-    KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(function);
+    KernelToLocalsMap localsMap =
+        closedWorld.globalLocalsMap.getLocalsMap(function);
     forEachOrderedParameter(_elementMap, function,
         (ir.VariableDeclaration variable, {bool isElided}) {
       Local local = localsMap.getLocalVariable(variable);
@@ -6042,8 +6045,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
             local, _defaultValueForParameter(memberContextNode, variable));
         return;
       }
-      if (forGenerativeConstructorBody &&
-          scopeData.isBoxedVariable(_localsMap, local)) {
+      if (forGenerativeConstructorBody && scopeData.isBoxedVariable(local)) {
         // The parameter will be a field in the box passed as the last
         // parameter. So no need to have it.
         hasBox = true;
@@ -6200,7 +6202,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       _checkTypeVariableBounds(function);
     }
 
-    KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(function);
+    KernelToLocalsMap localsMap =
+        closedWorld.globalLocalsMap.getLocalsMap(function);
     forEachOrderedParameter(_elementMap, function,
         (ir.VariableDeclaration variable, {bool isElided}) {
       Local parameter = localsMap.getLocalVariable(variable);

@@ -52,9 +52,7 @@ class TypeMaskDataComputer extends DataComputer<String> {
       {bool verbose: false}) {
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
-    GlobalTypeInferenceResults results =
-        compiler.globalInference.resultsForTesting;
-    GlobalLocalsMap localsMap = results.globalLocalsMap;
+    GlobalLocalsMap localsMap = closedWorld.globalLocalsMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new TypeMaskIrComputer(
             compiler.reporter,
@@ -62,7 +60,7 @@ class TypeMaskDataComputer extends DataComputer<String> {
             elementMap,
             member,
             localsMap.getLocalsMap(member),
-            results,
+            compiler.globalInference.resultsForTesting,
             closedWorld.closureDataLookup)
         .run(definition.node);
   }

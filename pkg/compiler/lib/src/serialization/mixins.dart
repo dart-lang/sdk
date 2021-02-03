@@ -185,20 +185,6 @@ abstract class DataSourceMixin implements DataSource {
   }
 
   @override
-  Map<K, V> readTypeVariableMap<K extends IndexedTypeVariable, V>(V f(),
-      {bool emptyAsNull: false}) {
-    int count = readInt();
-    if (count == 0 && emptyAsNull) return null;
-    Map<K, V> map = {};
-    for (int i = 0; i < count; i++) {
-      IndexedTypeVariable node = readTypeVariable();
-      V value = f();
-      map[node] = value;
-    }
-    return map;
-  }
-
-  @override
   List<E> readLocals<E extends Local>({bool emptyAsNull: false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -614,21 +600,6 @@ abstract class DataSinkMixin implements DataSink {
       writeInt(map.length);
       map.forEach((ir.TreeNode key, V value) {
         writeTreeNode(key);
-        f(value);
-      });
-    }
-  }
-
-  @override
-  void writeTypeVariableMap<V>(Map<IndexedTypeVariable, V> map, void f(V value),
-      {bool allowNull: false}) {
-    if (map == null) {
-      assert(allowNull);
-      writeInt(0);
-    } else {
-      writeInt(map.length);
-      map.forEach((IndexedTypeVariable key, V value) {
-        writeTypeVariable(key);
         f(value);
       });
     }

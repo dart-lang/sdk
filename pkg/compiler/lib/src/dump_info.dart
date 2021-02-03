@@ -271,7 +271,7 @@ class ElementInfoCollector {
     List<String> inferredParameterTypes = <String>[];
 
     closedWorld.elementEnvironment.forEachParameterAsLocal(
-        _globalInferenceResults.globalLocalsMap, function, (parameter) {
+        closedWorld.globalLocalsMap, function, (parameter) {
       inferredParameterTypes.add('${_resultOfParameter(parameter)}');
     });
     int parameterIndex = 0;
