@@ -6,6 +6,7 @@
 - Added `successors` iterable to `HeapSnapshotObject`, which provides a convenient way to
   access children of a given object.
 - Added `klass` getter to `HeapSnapshotObject`.
+- Fixed issue where `null` could be returned instead of `InstanceRef` of type `Null`.
 
 ## 6.0.1
 - Stable null-safe release.
