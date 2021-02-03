@@ -116,7 +116,7 @@ static ObjectPtr LoadValueStruct(Zone* zone,
 DEFINE_NATIVE_ENTRY(Ffi_loadStruct, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Pointer, pointer, arguments->NativeArgAt(0));
   const AbstractType& pointer_type_arg =
-      AbstractType::Handle(pointer.type_argument());
+      AbstractType::Handle(arguments->NativeTypeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, index, arguments->NativeArgAt(1));
 
   // TODO(36370): Make representation consistent with kUnboxedFfiIntPtr.

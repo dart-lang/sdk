@@ -785,7 +785,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (!_isValidFfiNativeType(targetType, false, true)) {
       final AstNode errorNode = node;
       _errorReporter.reportErrorForNode(
-          FfiCode.NON_CONSTANT_TYPE_ARGUMENT_WARNING, errorNode, ['[]']);
+          FfiCode.NON_CONSTANT_TYPE_ARGUMENT, errorNode, ['[]']);
     }
   }
 
@@ -796,7 +796,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (!_isValidFfiNativeType(targetType, false, true)) {
       final AstNode errorNode = node;
       _errorReporter.reportErrorForNode(
-          FfiCode.NON_CONSTANT_TYPE_ARGUMENT_WARNING, errorNode, ['ref']);
+          FfiCode.NON_CONSTANT_TYPE_ARGUMENT, errorNode, ['ref']);
     }
   }
 
@@ -805,7 +805,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (!_isValidFfiNativeType(targetType, false, true)) {
       final AstNode errorNode = node;
       _errorReporter.reportErrorForNode(
-          FfiCode.NON_CONSTANT_TYPE_ARGUMENT_WARNING, errorNode, ['ref']);
+          FfiCode.NON_CONSTANT_TYPE_ARGUMENT, errorNode, ['ref']);
     }
   }
 

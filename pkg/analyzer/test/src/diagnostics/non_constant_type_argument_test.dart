@@ -72,6 +72,6 @@ import 'dart:ffi';
 
 T genericRef<T extends Struct>(Pointer<T> p) =>
     p.ref;
-''', [error(FfiCode.NON_CONSTANT_TYPE_ARGUMENT_WARNING, 72, 5)]);
+''', [error(FfiCode.NON_CONSTANT_TYPE_ARGUMENT, 72, 5)]);
   }
 }

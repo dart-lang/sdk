@@ -204,6 +204,13 @@ double _loadDouble(Pointer pointer, int offsetInBytes) native "Ffi_loadDouble";
 Pointer<S> _loadPointer<S extends NativeType>(
     Pointer pointer, int offsetInBytes) native "Ffi_loadPointer";
 
+S _loadStructNoStruct<S extends Struct>(Pointer<S> pointer, int index) {
+  if (S == Struct) {
+    throw ArgumentError("S should be a subtype of Struct.");
+  }
+  return _loadStruct(pointer, index);
+}
+
 S _loadStruct<S extends Struct>(Pointer<S> pointer, int index)
     native "Ffi_loadStruct";
 
@@ -511,10 +518,10 @@ extension PointerPointer<T extends NativeType> on Pointer<Pointer<T>> {
 
 extension StructPointer<T extends Struct> on Pointer<T> {
   @patch
-  T get ref => _loadStruct(this, 0);
+  T get ref => _loadStructNoStruct(this, 0);
 
   @patch
-  T operator [](int index) => _loadStruct(this, index);
+  T operator [](int index) => _loadStructNoStruct(this, index);
 }
 
 extension NativePort on SendPort {

@@ -184,13 +184,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       if (target == structPointerRef || target == structPointerElemAt) {
         final DartType nativeType = node.arguments.types[0];
 
-        _warningNativeTypeValid(nativeType, node, allowStructItself: false);
-
-        // TODO(http://dartbug.com/38721): Change this to an error.
-        if (nativeType is TypeParameterType) {
-          // Do not rewire generic invocations.
-          return node;
-        }
+        _ensureNativeTypeValid(nativeType, node, allowStructItself: false);
 
         return _replaceRef(node);
       } else if (target == sizeOfMethod) {

@@ -608,18 +608,18 @@ void testAllocateNativeType() {
 void testRefStruct() {
   final myStructPointer = calloc<TestStruct13>();
   Pointer<Struct> structPointer = myStructPointer;
-  structPointer.ref; //# 1330: ok
+  structPointer.ref; //# 1330: compile-time error
   calloc.free(myStructPointer);
 }
 
-T genericRef<T extends Struct>(Pointer<T> p) => //# 1200: ok
-    p.ref; //# 1200: ok
+T genericRef<T extends Struct>(Pointer<T> p) => //# 1200: compile-time error
+    p.ref; //# 1200: compile-time error
 
-T genericRef2<T extends Struct>(Pointer<T> p) => //# 1201: ok
-    p.cast<T>().ref; //# 1201: ok
+T genericRef2<T extends Struct>(Pointer<T> p) => //# 1201: compile-time error
+    p.cast<T>().ref; //# 1201: compile-time error
 
-T genericRef3<T extends Struct>(Pointer<T> p) => //# 1202: ok
-    p[0]; //# 1202: ok
+T genericRef3<T extends Struct>(Pointer<T> p) => //# 1202: compile-time error
+    p[0]; //# 1202: compile-time error
 
 void testSizeOfGeneric() {
   int generic<T extends Pointer>() {
