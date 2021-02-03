@@ -105,6 +105,17 @@ main() {
 ''');
   }
 
+  Future<void> test_function_hasZero_partOfName_noLibrary() async {
+    await resolveTestCode('''
+part of my_lib;
+test() {}
+main() {
+  test(1);
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_method_hasOne() async {
     await resolveTestCode('''
 class A {
