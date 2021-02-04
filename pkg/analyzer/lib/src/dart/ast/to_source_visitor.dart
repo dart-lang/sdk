@@ -136,6 +136,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   void visitAnnotation(Annotation node) {
     sink.write('@');
     safelyVisitNode(node.name);
+    safelyVisitNode(node.typeArguments);
     safelyVisitNodeWithPrefix(".", node.constructorName);
     safelyVisitNode(node.arguments);
   }

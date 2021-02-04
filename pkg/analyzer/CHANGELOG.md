@@ -8,6 +8,7 @@
 * Added `AnalysisContext.sdkRoot`.
 * Removed `NullSafetyUnderstandingFlag`.
 * Removed `functionTypeAliasElement` from `TypeSystem.instantiateToBounds2`.
+* Added `Annotation.typeArguments` in preparation for supporting #44838.
 
 ## 0.41.1
 * Updated `PackageBuildWorkspace` that supports `package:build` to stop

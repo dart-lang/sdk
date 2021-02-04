@@ -262,11 +262,11 @@ class AstBinaryReader {
     var constructorName = _readOptionalNode() as SimpleIdentifier?;
     var arguments = _readOptionalNode() as ArgumentList?;
     return astFactory.annotation(
-      Tokens.AT,
-      name,
-      Tokens.PERIOD,
-      constructorName,
-      arguments,
+      atSign: Tokens.AT,
+      name: name,
+      period: Tokens.PERIOD,
+      constructorName: constructorName,
+      arguments: arguments,
     );
   }
 

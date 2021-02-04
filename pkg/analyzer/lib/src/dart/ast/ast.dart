@@ -180,6 +180,14 @@ class AnnotationImpl extends AstNodeImpl implements Annotation {
   /// the name of the field that is being referenced.
   late IdentifierImpl _name;
 
+  /// The type arguments to the constructor being invoked, or `null` if (a) this
+  /// annotation is not the invocation of a constructor or (b) this annotation
+  /// does not specify type arguments explicitly.
+  ///
+  /// Note that type arguments are only valid if [Feature.generic_metadata] is
+  /// enabled.
+  TypeArgumentListImpl? _typeArguments;
+
   /// The period before the constructor name, or `null` if this annotation is
   /// not the invocation of a named constructor.
   @override
@@ -206,9 +214,18 @@ class AnnotationImpl extends AstNodeImpl implements Annotation {
   /// [constructorName] can be `null` if the annotation is not referencing a
   /// named constructor. The [arguments] can be `null` if the annotation is not
   /// referencing a constructor.
-  AnnotationImpl(this.atSign, IdentifierImpl name, this.period,
-      SimpleIdentifierImpl? constructorName, ArgumentListImpl? arguments) {
+  ///
+  /// Note that type arguments are only valid if [Feature.generic_metadata] is
+  /// enabled.
+  AnnotationImpl(
+      this.atSign,
+      IdentifierImpl name,
+      TypeArgumentListImpl? typeArguments,
+      this.period,
+      SimpleIdentifierImpl? constructorName,
+      ArgumentListImpl? arguments) {
     _name = _becomeParentOf(name)!;
+    _typeArguments = _becomeParentOf(typeArguments);
     _constructorName = _becomeParentOf(constructorName);
     _arguments = _becomeParentOf(arguments);
   }
@@ -228,6 +245,7 @@ class AnnotationImpl extends AstNodeImpl implements Annotation {
   Iterable<SyntacticEntity> get childEntities => ChildEntities()
     ..add(atSign)
     ..add(_name)
+    ..add(_typeArguments)
     ..add(period)
     ..add(_constructorName)
     ..add(_arguments);
@@ -277,11 +295,21 @@ class AnnotationImpl extends AstNodeImpl implements Annotation {
   AstNode get parent => super.parent!;
 
   @override
+  TypeArgumentList? get typeArguments => _typeArguments;
+
+  /// Sets the type arguments to the constructor being invoked to the given
+  /// [typeArguments].
+  set typeArguments(TypeArgumentList? typeArguments) {
+    _typeArguments = _becomeParentOf(typeArguments as TypeArgumentListImpl?);
+  }
+
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAnnotation(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
     _name.accept(visitor);
+    _typeArguments?.accept(visitor);
     _constructorName?.accept(visitor);
     _arguments?.accept(visitor);
   }

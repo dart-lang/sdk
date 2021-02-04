@@ -1372,6 +1372,12 @@ class Getter_NodeReplacerTest_test_annotation_3
   SimpleIdentifier? get(Annotation node) => node.constructorName;
 }
 
+class Getter_NodeReplacerTest_test_annotation_4
+    implements NodeReplacerTest_Getter<Annotation, TypeArgumentList> {
+  @override
+  TypeArgumentList? get(Annotation node) => node.typeArguments;
+}
+
 class Getter_NodeReplacerTest_test_asExpression
     implements NodeReplacerTest_Getter<AsExpression, TypeAnnotation> {
   @override
@@ -2622,6 +2628,18 @@ class NodeReplacerTest {
         AstTestFactory.identifier3("C"),
         AstTestFactory.identifier3("c"),
         AstTestFactory.argumentList([AstTestFactory.integer(0)]));
+    _assertReplace(node, Getter_NodeReplacerTest_test_annotation());
+    _assertReplace(node, Getter_NodeReplacerTest_test_annotation_3());
+    _assertReplace(node, Getter_NodeReplacerTest_test_annotation_2());
+  }
+
+  void test_annotation_generic() {
+    Annotation node = AstTestFactory.annotation2(
+        AstTestFactory.identifier3("C"),
+        AstTestFactory.identifier3("c"),
+        AstTestFactory.argumentList([AstTestFactory.integer(0)]),
+        typeArguments:
+            AstTestFactory.typeArgumentList2([AstTestFactory.typeName4('T')]));
     _assertReplace(node, Getter_NodeReplacerTest_test_annotation());
     _assertReplace(node, Getter_NodeReplacerTest_test_annotation_3());
     _assertReplace(node, Getter_NodeReplacerTest_test_annotation_2());
