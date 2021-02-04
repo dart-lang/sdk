@@ -1008,6 +1008,7 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "testRunner": true,
           "arguments": [
+            "--enable-asserts",
             "pkg/front_end/test/unit_test_suites.dart",
             "-ncfe-unittest-asserts-${mode}-${system}",
             "--skipTestsThatRequireGit"
@@ -1027,6 +1028,7 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "testRunner": true,
           "arguments": [
+            "--enable-asserts",
             "pkg/front_end/test/unit_test_suites.dart",
             "-ncfe-unittest-asserts-${mode}-${system}",
             "--onlyTestsThatRequireGit"
