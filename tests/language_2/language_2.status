@@ -27,7 +27,6 @@ parameter/named_type_test/02: SkipByDesign # Requires checked mode.
 parameter/named_type_test/03: SkipByDesign # Requires checked mode.
 parameter/positional_type_test/01: SkipByDesign # Requires checked mode.
 parameter/positional_type_test/02: SkipByDesign # Requires checked mode.
-regress/regress13474_test: SkipByDesign # Requires checked mode.
 regress/regress29784_test/02: SkipByDesign # Requires checked mode.
 stack_trace/demangle_ctors_test: SkipByDesign # Names are not scrubbed.
 type/checks_in_factory_method_test: SkipByDesign # Requires checked mode.

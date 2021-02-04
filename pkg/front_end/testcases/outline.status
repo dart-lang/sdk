@@ -37,7 +37,6 @@ inference/infer_assign_to_index: Fail
 inference/infer_assign_to_property_custom: Fail
 inference/infer_assign_to_property: Fail
 inference/infer_method_missing_params: TypeCheckError
-inference/infer_type_cast: Fail
 inference/infer_types_on_generic_instantiations_infer: TypeCheckError
 inference/mixin_inference_outwards_3: TypeCheckError
 inference/mixin_inference_outwards_4: TypeCheckError

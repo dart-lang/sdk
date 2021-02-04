@@ -44,9 +44,6 @@ js/parameters_test: SkipByDesign # Issue 42085.
 [ $compiler != dart2js && $compiler != dartdevk ]
 web/*: SkipByDesign
 
-[ $runtime == chrome && $system == linux ]
-mirrors/native_class_test: Slow, Pass
-
 [ $runtime == chrome && $system == macos ]
 convert/streamed_conversion_utf8_encode_test: SkipSlow # Times out. Issue 22050
 html/canvasrendering/arc_test: Skip # Issue 42048
@@ -65,9 +62,6 @@ convert/utf85_test: Skip # Pass, Slow Issue 12644.
 
 [ $arch != x64 || $runtime != vm ]
 isolate/int32_length_overflow_test: SkipSlow
-
-[ $mode == product || $runtime != vm ]
-isolate/checked_test: Skip # Unsupported.
 
 [ $runtime == chrome || $runtime == ff ]
 async/slow_consumer2_test: SkipSlow # Times out. Issue 22050

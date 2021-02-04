@@ -65,6 +65,3 @@ dwarf_stack_trace_test: Pass, RuntimeError # Results will flake due to identical
 
 [ $runtime == dart_precompiled && $checked ]
 io/namespace_test: RuntimeError
-
-[ $mode == product || $runtime == dart_precompiled ]
-no_assert_test: SkipByDesign # Requires checked mode.

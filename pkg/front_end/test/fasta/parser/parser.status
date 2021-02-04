@@ -81,7 +81,6 @@ runtime/lib/uri_patch: Fail
 runtime/lib/vmservice_patch: Fail
 runtime/lib/weak_property: Fail
 runtime/observatory/tests/service/developer_extension_test: Fail
-runtime/observatory/tests/service/get_isolate_after_language_error_test: Fail
 samples/sample_extension/sample_asynchronous_extension: Fail
 samples/sample_extension/sample_synchronous_extension: Fail
 sdk/lib/_blink/dartium/_blink_dartium: Fail

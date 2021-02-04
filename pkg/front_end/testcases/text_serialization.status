@@ -7,6 +7,7 @@
 # Kernel files are produced by compiling Dart code via Fasta.
 
 extensions/call_methods: TypeCheckError
+extensions/compounds: Crash # assert error
 extensions/extension_setter_error: TypeCheckError
 extensions/instance_access_of_static: RuntimeError
 extensions/invalid_explicit_access: RuntimeError
@@ -172,12 +173,13 @@ late_lowering/covariant_late_field: TypeCheckError
 nnbd/covariant_late_field: TypeCheckError
 nnbd/duplicates_instance_extension: VerificationError
 nnbd/getter_vs_setter_type: TypeCheckError
-nnbd/issue41180: RuntimeError
 nnbd/issue42546: TypeCheckError
 nnbd/issue42603: TypeCheckError
 nnbd/no_support_for_old_null_aware_index_access_syntax: RuntimeError # Expected.
 nnbd/nullable_object_access: TypeCheckError
 nnbd/nullable_receiver: TypeCheckError
+nnbd/null_shorting_explicit_extension: Crash # assert error
+nnbd/null_shorting_index: Crash # assert error
 nnbd/potentially_nullable_access: TypeCheckError
 none/equals: TypeCheckError
 none/method_invocation: TypeCheckError

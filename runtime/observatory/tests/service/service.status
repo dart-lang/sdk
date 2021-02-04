@@ -21,7 +21,6 @@ process_service_test: Pass, Fail # Issue 24344
 # Tests with known analyzer issues
 [ $compiler == dart2analyzer ]
 developer_extension_test: SkipByDesign
-get_isolate_after_language_error_test: SkipByDesign
 
 # The _1 versions of this test can be slow due to stress testing flags.
 [ $mode == debug ]

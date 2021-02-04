@@ -20,7 +20,6 @@ override_field_test/02: Slow, Pass # TODO(kasperl): Please triage.
 
 [ $compiler == dart2js && $runtime == d8 ]
 import/conditional_string_test: SkipByDesign # No XHR in d8
-import/conditional_test: SkipByDesign # No XHR in d8
 
 [ $compiler == dart2js && $runtime == jsshell ]
 await/for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
