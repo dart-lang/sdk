@@ -204,16 +204,6 @@ double _loadDouble(Pointer pointer, int offsetInBytes) native "Ffi_loadDouble";
 Pointer<S> _loadPointer<S extends NativeType>(
     Pointer pointer, int offsetInBytes) native "Ffi_loadPointer";
 
-S _loadStructNoStruct<S extends Struct>(Pointer<S> pointer, int index) {
-  if (S == Struct) {
-    throw ArgumentError("S should be a subtype of Struct.");
-  }
-  return _loadStruct(pointer, index);
-}
-
-S _loadStruct<S extends Struct>(Pointer<S> pointer, int index)
-    native "Ffi_loadStruct";
-
 @pragma("vm:recognized", "other")
 void _storeInt8(Pointer pointer, int offsetInBytes, int value)
     native "Ffi_storeInt8";
@@ -518,10 +508,12 @@ extension PointerPointer<T extends NativeType> on Pointer<Pointer<T>> {
 
 extension StructPointer<T extends Struct> on Pointer<T> {
   @patch
-  T get ref => _loadStructNoStruct(this, 0);
+  T get ref =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
 
   @patch
-  T operator [](int index) => _loadStructNoStruct(this, index);
+  T operator [](int index) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
 }
 
 extension NativePort on SendPort {

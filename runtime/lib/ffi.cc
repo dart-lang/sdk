@@ -88,45 +88,8 @@ DEFINE_NATIVE_ENTRY(Ffi_loadPointer, 1, 2) {
   UNREACHABLE();
 }
 
-static ObjectPtr LoadValueStruct(Zone* zone,
-                                 const Pointer& target,
-                                 const AbstractType& instance_type_arg) {
-  // Result is a struct class -- find <class name>.#fromTypedDataBase
-  // constructor and call it.
-  const Class& cls = Class::Handle(zone, instance_type_arg.type_class());
-  const Function& constructor =
-      Function::Handle(cls.LookupFunctionAllowPrivate(String::Handle(
-          String::Concat(String::Handle(String::Concat(
-                             String::Handle(cls.Name()), Symbols::Dot())),
-                         Symbols::StructFromTypedDataBase()))));
-  ASSERT(!constructor.IsNull());
-  ASSERT(constructor.IsGenerativeConstructor());
-  ASSERT(!Object::Handle(constructor.VerifyCallEntryPoint()).IsError());
-  const Instance& new_object = Instance::Handle(Instance::New(cls));
-  ASSERT(cls.is_allocated() || Dart::vm_snapshot_kind() != Snapshot::kFullAOT);
-  const Array& args = Array::Handle(zone, Array::New(2));
-  args.SetAt(0, new_object);
-  args.SetAt(1, target);
-  const Object& constructorResult =
-      Object::Handle(DartEntry::InvokeFunction(constructor, args));
-  ASSERT(!constructorResult.IsError());
-  return new_object.ptr();
-}
-
 DEFINE_NATIVE_ENTRY(Ffi_loadStruct, 0, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Pointer, pointer, arguments->NativeArgAt(0));
-  const AbstractType& pointer_type_arg =
-      AbstractType::Handle(arguments->NativeTypeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, index, arguments->NativeArgAt(1));
-
-  // TODO(36370): Make representation consistent with kUnboxedFfiIntPtr.
-  const size_t address =
-      pointer.NativeAddress() + static_cast<intptr_t>(index.AsInt64Value()) *
-                                    SizeOf(zone, pointer_type_arg);
-  const Pointer& pointer_offset =
-      Pointer::Handle(zone, Pointer::New(pointer_type_arg, address));
-
-  return LoadValueStruct(zone, pointer_offset, pointer_type_arg);
+  UNREACHABLE();
 }
 
 #define DEFINE_NATIVE_ENTRY_STORE(type)                                        \
