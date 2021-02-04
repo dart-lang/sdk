@@ -852,6 +852,10 @@ class CorrectionUtils {
       );
     }
 
+    if (type is NeverType) {
+      return 'Never';
+    }
+
     if (type is TypeParameterType) {
       var element = type.element;
       if (_isTypeParameterVisible(element)) {
@@ -865,7 +869,7 @@ class CorrectionUtils {
       return 'void';
     }
 
-    throw StateError('(${type.runtimeType}) $type');
+    throw UnimplementedError('(${type.runtimeType}) $type');
   }
 
   /// Indents given source left or right.
