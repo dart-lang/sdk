@@ -97,7 +97,7 @@
 # default 'language' "category" with code generated for both CFE and Analyzer,
 # while other categories can be tailored more specifically.
 
-current-version: '2.12.0'
+current-version: '2.13.0'
 
 features:
   triple-shift:
