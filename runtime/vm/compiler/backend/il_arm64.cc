@@ -4152,9 +4152,11 @@ void UnboxInstr::EmitLoadInt32FromBoxOrSmi(FlowGraphCompiler* compiler) {
   const Register result = locs()->out(0).reg();
   ASSERT(value != result);
   compiler::Label done;
-  __ SmiUntag(result, value);
+  __ sbfx(result, value, kSmiTagSize,
+          Utils::Minimum(static_cast<intptr_t>(32), kSmiBits));
   __ BranchIfSmi(value, &done);
-  __ LoadFieldFromOffset(result, value, Mint::value_offset());
+  __ LoadFieldFromOffset(result, value, Mint::value_offset(),
+                         compiler::kFourBytes);
   __ Bind(&done);
 }
 
