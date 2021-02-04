@@ -70,20 +70,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldInitializer() {
                            B->last_used_block_id_, prologue_info);
 }
 
-void StreamingFlowGraphBuilder::EvaluateConstFieldValue(const Field& field) {
-  ASSERT(field.is_const() && field.IsUninitialized());
-
-  FieldHelper field_helper(this);
-  field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
-  Tag initializer_tag = ReadTag();  // read first part of initializer.
-
-  ASSERT(initializer_tag == kSomething);
-
-  Instance& value =
-      Instance::Handle(Z, constant_reader_.ReadConstantExpression());
-  field.SetStaticValue(value);
-}
-
 void StreamingFlowGraphBuilder::SetupDefaultParameterValues() {
   intptr_t optional_parameter_count =
       parsed_function()->function().NumOptionalParameters();
@@ -1024,10 +1010,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
     case UntaggedFunction::kImplicitGetter:
     case UntaggedFunction::kImplicitStaticGetter:
     case UntaggedFunction::kImplicitSetter: {
-      const Field& field = Field::Handle(Z, function.accessor_field());
-      if (field.is_const() && field.IsUninitialized()) {
-        EvaluateConstFieldValue(field);
-      }
       return B->BuildGraphOfFieldAccessor(function);
     }
     case UntaggedFunction::kFieldInitializer:

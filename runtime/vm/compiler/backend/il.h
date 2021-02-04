@@ -5543,7 +5543,7 @@ class LoadStaticFieldInstr : public TemplateDefinition<0, Throws> {
   virtual CompileType ComputeType() const;
 
   const Field& field() const { return field_; }
-  bool IsFieldInitialized() const;
+  bool IsFieldInitialized(Instance* field_value = nullptr) const;
 
   bool calls_initializer() const { return calls_initializer_; }
   void set_calls_initializer(bool value) { calls_initializer_ = value; }

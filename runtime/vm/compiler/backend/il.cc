@@ -1135,10 +1135,32 @@ bool LoadStaticFieldInstr::AttributesEqual(Instruction* other) const {
   return field().ptr() == other->AsLoadStaticField()->field().ptr();
 }
 
-bool LoadStaticFieldInstr::IsFieldInitialized() const {
+bool LoadStaticFieldInstr::IsFieldInitialized(Instance* field_value) const {
+  if (FLAG_fields_may_be_reset) {
+    return false;
+  }
+
+  // Since new isolates will be spawned, the JITed code cannot depend on whether
+  // global field was initialized when running with --enable-isolate-groups.
+  if (IsolateGroup::AreIsolateGroupsEnabled()) return false;
+
   const Field& field = this->field();
-  return (field.StaticValue() != Object::sentinel().ptr()) &&
-         (field.StaticValue() != Object::transition_sentinel().ptr());
+  Isolate* only_isolate = IsolateGroup::Current()->FirstIsolate();
+  if (only_isolate == nullptr) {
+    // This can happen if background compiler executes this code but the mutator
+    // is being shutdown and the isolate was already unregistered from the group
+    // (and is trying to stop this BG compiler).
+    if (field_value != nullptr) {
+      *field_value = Object::sentinel().ptr();
+    }
+    return false;
+  }
+  if (field_value == nullptr) {
+    field_value = &Instance::Handle();
+  }
+  *field_value = only_isolate->field_table()->At(field.field_id());
+  return (field_value->ptr() != Object::sentinel().ptr()) &&
+         (field_value->ptr() != Object::transition_sentinel().ptr());
 }
 
 Definition* LoadStaticFieldInstr::Canonicalize(FlowGraph* flow_graph) {
@@ -1146,8 +1168,7 @@ Definition* LoadStaticFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   // make it safe to omit code that checks if the field needs initialization
   // because the field will be reset so it starts uninitialized in the process
   // running the precompiled code. We must be prepared to reinitialize fields.
-  if (calls_initializer() && !FLAG_fields_may_be_reset &&
-      IsFieldInitialized()) {
+  if (calls_initializer() && IsFieldInitialized()) {
     set_calls_initializer(false);
   }
   return this;

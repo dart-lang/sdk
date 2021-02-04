@@ -321,8 +321,9 @@ class SwitchableCall : public SwitchableCallBase {
     // No need to flush the instruction cache, since the code is not modified.
   }
 
-  CodePtr target() const {
-    return static_cast<CodePtr>(object_pool_.ObjectAt(target_index()));
+  uword target_entry() const {
+    return Code::Handle(Code::RawCast(object_pool_.ObjectAt(target_index())))
+        .MonomorphicEntryPoint();
   }
 };
 
@@ -395,18 +396,7 @@ class BareSwitchableCall : public SwitchableCallBase {
     object_pool_.SetRawValueAt(target_index(), target.MonomorphicEntryPoint());
   }
 
-  CodePtr target() const {
-    const uword pc = object_pool_.RawValueAt(target_index());
-    CodePtr result = ReversePc::Lookup(IsolateGroup::Current(), pc);
-    if (result != Code::null()) {
-      return result;
-    }
-    result = ReversePc::Lookup(Dart::vm_isolate_group(), pc);
-    if (result != Code::null()) {
-      return result;
-    }
-    UNREACHABLE();
-  }
+  uword target_entry() const { return object_pool_.RawValueAt(target_index()); }
 };
 
 CodePtr CodePatcher::GetStaticCallTargetAt(uword return_address,
@@ -511,15 +501,15 @@ void CodePatcher::PatchSwitchableCallAtWithMutatorsStopped(
   }
 }
 
-CodePtr CodePatcher::GetSwitchableCallTargetAt(uword return_address,
-                                               const Code& caller_code) {
+uword CodePatcher::GetSwitchableCallTargetEntryAt(uword return_address,
+                                                  const Code& caller_code) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     BareSwitchableCall call(return_address, caller_code);
-    return call.target();
+    return call.target_entry();
   } else {
     SwitchableCall call(return_address, caller_code);
-    return call.target();
+    return call.target_entry();
   }
 }
 

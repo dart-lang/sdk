@@ -292,9 +292,11 @@ SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
   ASSERT(reg == CODE_REG);
 }
 
-CodePtr SwitchableCallPattern::target() const {
-  return static_cast<CodePtr>(object_pool_.ObjectAt(target_pool_index_));
+uword SwitchableCallPattern::target_entry() const {
+  return Code::Handle(Code::RawCast(object_pool_.ObjectAt(target_pool_index_)))
+      .MonomorphicEntryPoint();
 }
+
 void SwitchableCallPattern::SetTarget(const Code& target) const {
   ASSERT(Object::Handle(object_pool_.ObjectAt(target_pool_index_)).IsCode());
   object_pool_.SetObjectAt(target_pool_index_, target);
@@ -316,17 +318,8 @@ BareSwitchableCallPattern::BareSwitchableCallPattern(uword pc, const Code& code)
   ASSERT(reg == LINK_REGISTER);
 }
 
-CodePtr BareSwitchableCallPattern::target() const {
-  const uword pc = object_pool_.RawValueAt(target_pool_index_);
-  CodePtr result = ReversePc::Lookup(IsolateGroup::Current(), pc);
-  if (result != Code::null()) {
-    return result;
-  }
-  result = ReversePc::Lookup(Dart::vm_isolate_group(), pc);
-  if (result != Code::null()) {
-    return result;
-  }
-  UNREACHABLE();
+uword BareSwitchableCallPattern::target_entry() const {
+  return object_pool_.RawValueAt(target_pool_index_);
 }
 
 void BareSwitchableCallPattern::SetTarget(const Code& target) const {

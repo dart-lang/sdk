@@ -1446,9 +1446,9 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
   AbstractType* abstract_type = &AbstractType::ZoneHandle(field.type());
   TraceStrongModeType(this, *abstract_type);
   ASSERT(field.is_static());
-  const bool is_initialized = IsFieldInitialized() && !FLAG_fields_may_be_reset;
+  auto& obj = Instance::Handle();
+  const bool is_initialized = IsFieldInitialized(&obj);
   if (field.is_final() && is_initialized) {
-    const Instance& obj = Instance::Handle(field.StaticValue());
     if (!obj.IsNull()) {
       is_nullable = CompileType::kNonNullable;
       cid = obj.GetClassId();
