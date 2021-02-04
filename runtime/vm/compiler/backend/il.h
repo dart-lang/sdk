@@ -3509,6 +3509,10 @@ class ReachabilityFenceInstr : public TemplateInstruction<1, NoThrow> {
 
   DECLARE_INSTRUCTION(ReachabilityFence)
 
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    return kNoRepresentation;
+  }
+
   Value* value() const { return inputs_[0]; }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
