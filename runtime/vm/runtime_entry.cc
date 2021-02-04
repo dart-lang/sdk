@@ -2952,7 +2952,9 @@ const char* DeoptReasonToCString(ICData::DeoptReasonId deopt_reason) {
   }
 }
 
-void DeoptimizeAt(const Code& optimized_code, StackFrame* frame) {
+void DeoptimizeAt(Isolate* isolate,
+                  const Code& optimized_code,
+                  StackFrame* frame) {
   ASSERT(optimized_code.is_optimized());
 
   // Force-optimized code is optimized code which cannot deoptimize and doesn't
@@ -2993,7 +2995,7 @@ void DeoptimizeAt(const Code& optimized_code, StackFrame* frame) {
 
     // N.B.: Update the pending deopt table before updating the frame. The
     // profiler may attempt a stack walk in between.
-    thread->isolate()->AddPendingDeopt(frame->fp(), deopt_pc);
+    isolate->AddPendingDeopt(frame->fp(), deopt_pc);
     frame->MarkForLazyDeopt();
 
     if (FLAG_trace_deoptimization) {
@@ -3011,22 +3013,21 @@ void DeoptimizeAt(const Code& optimized_code, StackFrame* frame) {
 void DeoptimizeFunctionsOnStack() {
   auto isolate_group = IsolateGroup::Current();
   isolate_group->RunWithStoppedMutators([&]() {
-    auto current = isolate_group->thread_registry()->active_list();
     Code& optimized_code = Code::Handle();
-    while (current != nullptr) {
+    isolate_group->ForEachIsolate([&](Isolate* isolate) {
       DartFrameIterator iterator(
-          current, StackFrameIterator::kAllowCrossThreadIteration);
+          isolate->mutator_thread(),
+          StackFrameIterator::kAllowCrossThreadIteration);
       StackFrame* frame = iterator.NextFrame();
-      while (frame != NULL) {
+      while (frame != nullptr) {
         optimized_code = frame->LookupDartCode();
         if (optimized_code.is_optimized() &&
             !optimized_code.is_force_optimized()) {
-          DeoptimizeAt(optimized_code, frame);
+          DeoptimizeAt(isolate, optimized_code, frame);
         }
         frame = iterator.NextFrame();
       }
-      current = current->next();
-    }
+    });
   });
 }
 
