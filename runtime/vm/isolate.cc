@@ -338,6 +338,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       isolates_(),
       start_time_micros_(OS::GetCurrentMonotonicMicros()),
       is_system_isolate_group_(source->flags.is_system_isolate),
+      random_(),
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
       last_reload_timestamp_(OS::GetCurrentTimeMillis()),
 #endif
@@ -373,6 +374,8 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
           NOT_IN_PRODUCT("IsolateGroup::kernel_data_class_cache_mutex_")),
       kernel_constants_mutex_(
           NOT_IN_PRODUCT("IsolateGroup::kernel_constants_mutex_")),
+      field_list_mutex_(NOT_IN_PRODUCT("Isolate::field_list_mutex_")),
+      boxed_field_list_(GrowableObjectArray::null()),
       program_lock_(new SafepointRwLock()),
       active_mutators_monitor_(new Monitor()),
       max_active_mutators_(Scavenger::MaxMutatorThreadCount()) {
@@ -851,19 +854,19 @@ NoOOBMessageScope::~NoOOBMessageScope() {
   thread()->RestoreOOBMessageInterrupts();
 }
 
-NoReloadScope::NoReloadScope(Isolate* isolate, Thread* thread)
-    : ThreadStackResource(thread), isolate_(isolate) {
+NoReloadScope::NoReloadScope(IsolateGroup* isolate_group, Thread* thread)
+    : ThreadStackResource(thread), isolate_group_(isolate_group) {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  ASSERT(isolate_ != NULL);
-  isolate_->no_reload_scope_depth_.fetch_add(1);
-  ASSERT(isolate_->no_reload_scope_depth_ >= 0);
+  ASSERT(isolate_group_ != NULL);
+  isolate_group_->no_reload_scope_depth_.fetch_add(1);
+  ASSERT(isolate_group_->no_reload_scope_depth_ >= 0);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 NoReloadScope::~NoReloadScope() {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  isolate_->no_reload_scope_depth_.fetch_sub(1);
-  ASSERT(isolate_->no_reload_scope_depth_ >= 0);
+  isolate_group_->no_reload_scope_depth_.fetch_sub(1);
+  ASSERT(isolate_group_->no_reload_scope_depth_ >= 0);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 }
 
@@ -1473,7 +1476,7 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
         T->isolate()->name(), result.ToErrorCString());
   }
 
-  NoReloadScope no_reload_scope(T->isolate(), T);
+  NoReloadScope no_reload_scope(T->isolate_group(), T);
   // Generate the error and stacktrace strings for the error message.
   const char* exception_cstr = nullptr;
   const char* stacktrace_cstr = nullptr;
@@ -1688,10 +1691,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       mutex_(NOT_IN_PRODUCT("Isolate::mutex_")),
       pending_deopts_(new MallocGrowableArray<PendingLazyDeopt>()),
       tag_table_(GrowableObjectArray::null()),
-      deoptimized_code_array_(GrowableObjectArray::null()),
       sticky_error_(Error::null()),
-      field_list_mutex_(NOT_IN_PRODUCT("Isolate::field_list_mutex_")),
-      boxed_field_list_(GrowableObjectArray::null()),
       spawn_count_monitor_(),
       handler_info_cache_(),
       catch_entry_moves_cache_() {
@@ -1971,7 +1971,7 @@ void Isolate::BuildName(const char* name_prefix) {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 bool Isolate::CanReload() const {
   return !Isolate::IsSystemIsolate(this) && is_runnable() &&
-         !group()->IsReloading() && (no_reload_scope_depth_ == 0) &&
+         !group()->IsReloading() && (group()->no_reload_scope_depth_ == 0) &&
          IsolateCreationEnabled() &&
          OSThread::Current()->HasStackHeadroom(64 * KB);
 }
@@ -2575,7 +2575,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&default_tag_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&ic_miss_code_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&tag_table_));
-  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&deoptimized_code_array_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&sticky_error_));
   if (isolate_group_ != nullptr) {
     if (isolate_group_->source()->loaded_blobs_ != nullptr) {
@@ -2589,11 +2588,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(
       reinterpret_cast<ObjectPtr*>(&registered_service_extension_handlers_));
 #endif  // !defined(PRODUCT)
-  // Visit the boxed_field_list_.
-  // 'boxed_field_list_' access via mutator and background compilation threads
-  // is guarded with a monitor. This means that we can visit it only
-  // when at safepoint or the field_list_mutex_ lock has been taken.
-  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&boxed_field_list_));
 
   if (background_compiler() != nullptr) {
     background_compiler()->VisitPointers(visitor);
@@ -2746,6 +2740,12 @@ void IsolateGroup::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&saved_unlinked_calls_));
   initial_field_table()->VisitObjectPointers(visitor);
   VisitStackPointers(visitor, validate_frames);
+
+  // Visit the boxed_field_list_.
+  // 'boxed_field_list_' access via mutator and background compilation threads
+  // is guarded with a monitor. This means that we can visit it only
+  // when at safepoint or the field_list_mutex_ lock has been taken.
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&boxed_field_list_));
 }
 
 void IsolateGroup::VisitStackPointers(ObjectPointerVisitor* visitor,
@@ -3079,24 +3079,6 @@ void Isolate::set_ic_miss_code(const Code& code) {
   ic_miss_code_ = code.ptr();
 }
 
-void Isolate::set_deoptimized_code_array(const GrowableObjectArray& value) {
-  ASSERT(Thread::Current()->IsMutatorThread());
-  deoptimized_code_array_ = value.ptr();
-}
-
-void Isolate::TrackDeoptimizedCode(const Code& code) {
-  ASSERT(!code.IsNull());
-  const GrowableObjectArray& deoptimized_code =
-      GrowableObjectArray::Handle(deoptimized_code_array());
-  if (deoptimized_code.IsNull()) {
-    // Not tracking deoptimized code.
-    return;
-  }
-  // TODO(johnmccutchan): Scan this array and the isolate's profile before
-  // old space GC and remove the keep_code flag.
-  deoptimized_code.Add(code);
-}
-
 ErrorPtr Isolate::StealStickyError() {
   NoSafepointScope no_safepoint;
   ErrorPtr return_value = sticky_error_;
@@ -3116,7 +3098,7 @@ void Isolate::set_registered_service_extension_handlers(
 }
 #endif  // !defined(PRODUCT)
 
-void Isolate::AddDeoptimizingBoxedField(const Field& field) {
+void IsolateGroup::AddDeoptimizingBoxedField(const Field& field) {
   ASSERT(Compiler::IsBackgroundCompilation());
   ASSERT(!field.IsOriginal());
   // The enclosed code allocates objects and can potentially trigger a GC,
@@ -3130,7 +3112,7 @@ void Isolate::AddDeoptimizingBoxedField(const Field& field) {
   array.Add(Field::Handle(field.Original()), Heap::kOld);
 }
 
-FieldPtr Isolate::GetDeoptimizingBoxedField() {
+FieldPtr IsolateGroup::GetDeoptimizingBoxedField() {
   ASSERT(Thread::Current()->IsMutatorThread());
   SafepointMutexLocker ml(&field_list_mutex_);
   if (boxed_field_list_ == GrowableObjectArray::null()) {

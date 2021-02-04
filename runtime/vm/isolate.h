@@ -157,11 +157,11 @@ class NoOOBMessageScope : public ThreadStackResource {
 // Disallow isolate reload.
 class NoReloadScope : public ThreadStackResource {
  public:
-  NoReloadScope(Isolate* isolate, Thread* thread);
+  NoReloadScope(IsolateGroup* isolate_group, Thread* thread);
   ~NoReloadScope();
 
  private:
-  Isolate* isolate_;
+  IsolateGroup* isolate_group_;
   DISALLOW_COPY_AND_ASSIGN(NoReloadScope);
 };
 
@@ -420,6 +420,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   void set_obfuscation_map(const char** map) { obfuscation_map_ = map; }
   const char** obfuscation_map() const { return obfuscation_map_; }
+
+  Random* random() { return &random_; }
 
   bool is_system_isolate_group() const { return is_system_isolate_group_; }
 
@@ -690,6 +692,12 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   uword FindPendingDeoptAtSafepoint(uword fp);
 
+  // Used by background compiler which field became boxed and must trigger
+  // deoptimization in the mutator thread.
+  void AddDeoptimizingBoxedField(const Field& field);
+  // Returns Field::null() if none available in the list.
+  FieldPtr GetDeoptimizingBoxedField();
+
   void RememberLiveTemporaries();
   void DeferredMarkLiveTemporaries();
 
@@ -728,6 +736,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   friend class StackFrame;  // For `[isolates_].First()`.
   // For `object_store_shared_untag()`, `class_table_shared_untag()`
   friend class Isolate;
+  friend class NoReloadScope;  // no_reload_scope_depth_
 
 #define ISOLATE_GROUP_FLAG_BITS(V)                                             \
   V(CompactionInProgress)                                                      \
@@ -774,10 +783,13 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Dart_DeferredLoadHandler deferred_load_handler_ = nullptr;
   int64_t start_time_micros_;
   bool is_system_isolate_group_;
+  Random random_;
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   int64_t last_reload_timestamp_;
   std::shared_ptr<IsolateGroupReloadContext> group_reload_context_;
+  RelaxedAtomic<intptr_t> no_reload_scope_depth_ =
+      0;  // we can only reload when this is 0.
 #endif
 
 #define ISOLATE_METRIC_VARIABLE(type, variable, name, unit)                    \
@@ -836,6 +848,11 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   Mutex initializer_functions_mutex_;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+  // Protect access to boxed_field_list_.
+  Mutex field_list_mutex_;
+  // List of fields that became boxed and that trigger deoptimization.
+  GrowableObjectArrayPtr boxed_field_list_;
 
   // Ensures synchronized access to classes functions, fields and other
   // program structure elements to accommodate concurrent modification done
@@ -1280,12 +1297,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   void set_ic_miss_code(const Code& code);
 
-  GrowableObjectArrayPtr deoptimized_code_array() const {
-    return deoptimized_code_array_;
-  }
-  void set_deoptimized_code_array(const GrowableObjectArray& value);
-  void TrackDeoptimizedCode(const Code& code);
-
   // Also sends a paused at exit event over the service protocol.
   void SetStickyError(ErrorPtr sticky_error);
 
@@ -1306,12 +1317,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   void set_remapping_cids(bool value) {
     isolate_flags_ = RemappingCidsBit::update(value, isolate_flags_);
   }
-
-  // Used by background compiler which field became boxed and must trigger
-  // deoptimization in the mutator thread.
-  void AddDeoptimizingBoxedField(const Field& field);
-  // Returns Field::null() if none available in the list.
-  FieldPtr GetDeoptimizingBoxedField();
 
 #ifndef PRODUCT
   ErrorPtr InvokePendingServiceExtensionCalls();
@@ -1616,8 +1621,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
 #undef ISOLATE_METRIC_VARIABLE
 
-  RelaxedAtomic<intptr_t> no_reload_scope_depth_ =
-      0;  // we can only reload when this is 0.
   // Per-isolate copy of FLAG_reload_every.
   intptr_t reload_every_n_stack_overflow_checks_;
   ProgramReloadContext* program_reload_context_ = nullptr;
@@ -1649,17 +1652,10 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   GrowableObjectArrayPtr tag_table_;
 
-  GrowableObjectArrayPtr deoptimized_code_array_;
-
   ErrorPtr sticky_error_;
 
   std::unique_ptr<Bequest> bequest_;
   Dart_Port beneficiary_ = 0;
-
-  // Protect access to boxed_field_list_.
-  Mutex field_list_mutex_;
-  // List of fields that became boxed and that trigger deoptimization.
-  GrowableObjectArrayPtr boxed_field_list_;
 
   // This guards spawn_count_. An isolate cannot complete shutdown and be
   // destroyed while there are child isolates in the midst of a spawn.

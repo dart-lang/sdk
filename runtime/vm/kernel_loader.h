@@ -125,8 +125,7 @@ class ClassIndex {
  public:
   // |class_offset| is the offset of class' kernel data in |buffer| of
   // size |size|. The size of the class' kernel data is |class_size|.
-  ClassIndex(const uint8_t* buffer,
-             intptr_t buffer_size,
+  ClassIndex(const ProgramBinary& binary,
              intptr_t class_offset,
              intptr_t class_size);
 
@@ -264,16 +263,14 @@ class KernelLoader : public ValueObject {
   }
 
   intptr_t library_offset(intptr_t index) {
-    kernel::Reader reader(program_->kernel_data(),
-                          program_->kernel_data_size());
+    kernel::Reader reader(program_->binary());
     return reader.ReadFromIndexNoReset(reader.size(),
                                        LibraryCountFieldCountFromEnd + 1,
                                        program_->library_count() + 1, index);
   }
 
   NameIndex library_canonical_name(intptr_t index) {
-    kernel::Reader reader(program_->kernel_data(),
-                          program_->kernel_data_size());
+    kernel::Reader reader(program_->binary());
     reader.set_offset(library_offset(index));
 
     // Start reading library.

@@ -113,11 +113,12 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @override
   Annotation visitAnnotation(Annotation node) => astFactory.annotation(
-      cloneToken(node.atSign),
-      cloneNode(node.name),
-      cloneNullableToken(node.period),
-      cloneNullableNode(node.constructorName),
-      cloneNullableNode(node.arguments));
+      atSign: cloneToken(node.atSign),
+      name: cloneNode(node.name),
+      typeArguments: cloneNullableNode(node.typeArguments),
+      period: cloneNullableToken(node.period),
+      constructorName: cloneNullableNode(node.constructorName),
+      arguments: cloneNullableNode(node.arguments));
 
   @override
   ArgumentList visitArgumentList(ArgumentList node) => astFactory.argumentList(
@@ -1214,6 +1215,7 @@ class AstComparator implements AstVisitor<bool> {
     Annotation other = _other as Annotation;
     return isEqualTokens(node.atSign, other.atSign) &&
         isEqualNodes(node.name, other.name) &&
+        isEqualNodes(node.typeArguments, other.typeArguments) &&
         isEqualTokens(node.period, other.period) &&
         isEqualNodes(node.constructorName, other.constructorName) &&
         isEqualNodes(node.arguments, other.arguments);
@@ -2657,6 +2659,9 @@ class NodeReplacer implements AstVisitor<bool> {
     if (identical(node.arguments, _oldNode)) {
       node.arguments = _newNode as ArgumentList;
       return true;
+    } else if (identical(node.typeArguments, _oldNode)) {
+      (node as AnnotationImpl).typeArguments = _newNode as TypeArgumentList?;
+      return true;
     } else if (identical(node.constructorName, _oldNode)) {
       node.constructorName = _newNode as SimpleIdentifier;
       return true;
@@ -4013,6 +4018,7 @@ class ResolutionCopier implements AstVisitor<bool> {
     if (_and(
         _isEqualTokens(node.atSign, toNode.atSign),
         _isEqualNodes(node.name, toNode.name),
+        _isEqualNodes(node.typeArguments, toNode.typeArguments),
         _isEqualTokens(node.period, toNode.period),
         _isEqualNodes(node.constructorName, toNode.constructorName),
         _isEqualNodes(node.arguments, toNode.arguments))) {

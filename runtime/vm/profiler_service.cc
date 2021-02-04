@@ -25,73 +25,6 @@ DECLARE_FLAG(bool, profile_vm);
 
 #ifndef PRODUCT
 
-class DeoptimizedCodeSet : public ZoneAllocated {
- public:
-  explicit DeoptimizedCodeSet(Isolate* isolate)
-      : previous_(
-            GrowableObjectArray::ZoneHandle(isolate->deoptimized_code_array())),
-        current_(GrowableObjectArray::ZoneHandle(
-            previous_.IsNull() ? GrowableObjectArray::null()
-                               : GrowableObjectArray::New())) {}
-
-  void Add(const Code& code) {
-    if (current_.IsNull()) {
-      return;
-    }
-    if (!Contained(code, previous_) || Contained(code, current_)) {
-      return;
-    }
-    current_.Add(code);
-  }
-
-  void UpdateIsolate(Isolate* isolate) {
-    intptr_t size_before = SizeOf(previous_);
-    intptr_t size_after = SizeOf(current_);
-    if ((size_before > 0) && FLAG_trace_profiler) {
-      intptr_t length_before = previous_.Length();
-      intptr_t length_after = current_.Length();
-      OS::PrintErr(
-          "Updating isolate deoptimized code array: "
-          "%" Pd " -> %" Pd " [%" Pd " -> %" Pd "]\n",
-          size_before, size_after, length_before, length_after);
-    }
-    isolate->set_deoptimized_code_array(current_);
-  }
-
- private:
-  bool Contained(const Code& code, const GrowableObjectArray& array) {
-    if (array.IsNull() || code.IsNull()) {
-      return false;
-    }
-    NoSafepointScope no_safepoint_scope;
-    for (intptr_t i = 0; i < array.Length(); i++) {
-      if (code.ptr() == array.At(i)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  intptr_t SizeOf(const GrowableObjectArray& array) {
-    if (array.IsNull()) {
-      return 0;
-    }
-    Code& code = Code::ZoneHandle();
-    intptr_t size = 0;
-    for (intptr_t i = 0; i < array.Length(); i++) {
-      code ^= array.At(i);
-      ASSERT(!code.IsNull());
-      size += code.Size();
-    }
-    return size;
-  }
-
-  // Array holding code that is being kept around only for the profiler.
-  const GrowableObjectArray& previous_;
-  // Array holding code that should continue to be kept around for the profiler.
-  const GrowableObjectArray& current_;
-};
-
 ProfileFunctionSourcePosition::ProfileFunctionSourcePosition(
     TokenPosition token_pos)
     : token_pos_(token_pos), exclusive_ticks_(0), inclusive_ticks_(0) {}
@@ -990,7 +923,6 @@ class ProfileBuilder : public ValueObject {
         filter_(filter),
         sample_buffer_(sample_buffer),
         profile_(profile),
-        deoptimized_code_(new DeoptimizedCodeSet(thread->isolate())),
         null_code_(Code::null()),
         null_function_(Function::ZoneHandle()),
         inclusive_tree_(false),
@@ -1506,7 +1438,6 @@ class ProfileBuilder : public ValueObject {
   SampleFilter* filter_;
   SampleBuffer* sample_buffer_;
   Profile* profile_;
-  DeoptimizedCodeSet* deoptimized_code_;
   const AbstractCode null_code_;
   const Function& null_function_;
   bool inclusive_tree_;

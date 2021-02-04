@@ -88,7 +88,12 @@ abstract class AnnotatedNode implements AstNode {
 ///        annotation*
 ///
 ///    annotation ::=
-///        '@' [Identifier] ('.' [SimpleIdentifier])? [ArgumentList]?
+///        '@' metadatum
+///
+///    metadatum ::=
+///        [Identifier]
+///      | qualifiedName
+///      | constructorDesignation argumentPart
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class Annotation implements AstNode {
@@ -146,6 +151,14 @@ abstract class Annotation implements AstNode {
 
   /// Set the period before the constructor name to the given [token].
   set period(Token? token);
+
+  /// Returns the type arguments to the constructor being invoked, or `null` if
+  /// (a) this annotation is not the invocation of a constructor or (b) this
+  /// annotation does not specify type arguments explicitly.
+  ///
+  /// Note that type arguments are only valid if [Feature.generic_metadata] is
+  /// enabled.
+  TypeArgumentList? get typeArguments;
 }
 
 /// A list of arguments in the invocation of an executable element (that is, a

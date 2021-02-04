@@ -20,8 +20,16 @@ abstract class AstFactory {
   /// [constructorName] can be `null` if the annotation is not referencing a
   /// named constructor. The [arguments] can be `null` if the annotation is not
   /// referencing a constructor.
-  Annotation annotation(Token atSign, Identifier name, Token? period,
-      SimpleIdentifier? constructorName, ArgumentList? arguments);
+  ///
+  /// Note that type arguments are only valid if [Feature.generic_metadata] is
+  /// enabled.
+  Annotation annotation(
+      {required Token atSign,
+      required Identifier name,
+      TypeArgumentList? typeArguments,
+      Token? period,
+      SimpleIdentifier? constructorName,
+      ArgumentList? arguments});
 
   /// Returns a newly created list of arguments. The list of [arguments] can
   /// be `null` if there are no arguments.

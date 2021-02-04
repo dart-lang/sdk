@@ -3667,9 +3667,9 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionExpression() {
   return BuildFunctionNode(TokenPosition::kNoSource, StringIndex());
 }
 
-Fragment StreamingFlowGraphBuilder::BuildLet(TokenPosition* position) {
-  if (position != NULL) *position = TokenPosition::kNoSource;
-
+Fragment StreamingFlowGraphBuilder::BuildLet(TokenPosition* p) {
+  const TokenPosition position = ReadPosition();  // read position.
+  if (p != nullptr) *p = position;
   Fragment instructions = BuildVariableDeclaration();  // read variable.
   instructions += BuildExpression();                   // read body.
   return instructions;

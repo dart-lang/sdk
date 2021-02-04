@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 54;
+  UInt32 formatVersion = 55;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -510,6 +510,7 @@ type FunctionNode {
   List<VariableDeclarationPlain> positionalParameters;
   List<VariableDeclarationPlain> namedParameters;
   DartType returnType;
+  Option<DartType> futureValueType;
   Option<Statement> body;
 }
 
@@ -1063,6 +1064,7 @@ type FunctionExpression extends Expression {
 
 type Let extends Expression {
   Byte tag = 53;
+  FileOffset fileOffset;
   VariableDeclarationPlain variable;
   Expression body;
 }

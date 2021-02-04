@@ -31,18 +31,20 @@ class AstTestFactory {
       astFactory.adjacentStrings(strings);
 
   static Annotation annotation(Identifier name) => astFactory.annotation(
-      TokenFactory.tokenFromType(TokenType.AT), name, null, null, null);
+      atSign: TokenFactory.tokenFromType(TokenType.AT), name: name);
 
   static Annotation annotation2(Identifier name,
-          SimpleIdentifier? constructorName, ArgumentList arguments) =>
+          SimpleIdentifier? constructorName, ArgumentList arguments,
+          {TypeArgumentList? typeArguments}) =>
       astFactory.annotation(
-          TokenFactory.tokenFromType(TokenType.AT),
-          name,
-          constructorName == null
+          atSign: TokenFactory.tokenFromType(TokenType.AT),
+          name: name,
+          typeArguments: typeArguments,
+          period: constructorName == null
               ? null
               : TokenFactory.tokenFromType(TokenType.PERIOD),
-          constructorName,
-          arguments);
+          constructorName: constructorName,
+          arguments: arguments);
 
   static ArgumentList argumentList([List<Expression> arguments = const []]) =>
       astFactory.argumentList(TokenFactory.tokenFromType(TokenType.OPEN_PAREN),

@@ -1686,6 +1686,7 @@ class BinaryBuilder {
     List<VariableDeclaration> positional = readAndPushVariableDeclarationList();
     List<VariableDeclaration> named = readAndPushVariableDeclarationList();
     DartType returnType = readDartType();
+    DartType futureValueType = readDartTypeOption();
     int oldLabelStackBase = labelStackBase;
     int oldSwitchCaseStackBase = switchCaseStackBase;
 
@@ -1708,7 +1709,8 @@ class BinaryBuilder {
         namedParameters: named,
         returnType: returnType,
         asyncMarker: asyncMarker,
-        dartAsyncMarker: dartAsyncMarker)
+        dartAsyncMarker: dartAsyncMarker,
+        futureValueType: futureValueType)
       ..fileOffset = offset
       ..fileEndOffset = endOffset;
 
@@ -2404,12 +2406,13 @@ class BinaryBuilder {
   }
 
   Expression _readLet() {
+    int offset = readOffset();
     VariableDeclaration variable = readVariableDeclaration();
     int stackHeight = variableStack.length;
     pushVariableDeclaration(variable);
     Expression body = readExpression();
     variableStack.length = stackHeight;
-    return new Let(variable, body);
+    return new Let(variable, body)..fileOffset = offset;
   }
 
   Expression _readBlockExpression() {

@@ -190,6 +190,37 @@ class ResolutionCopierTest with ElementsTypesMixin {
     expect(toNode.element, same(element));
   }
 
+  void test_visitAnnotation_generic() {
+    var annotationClassName = "A";
+    var annotationConstructorName = "named";
+    var argumentName = "x";
+    var fromNode = AstTestFactory.annotation2(
+        AstTestFactory.identifier3(annotationClassName),
+        AstTestFactory.identifier3(annotationConstructorName),
+        AstTestFactory.argumentList(
+            [AstTestFactory.identifier3(argumentName)])) as AnnotationImpl;
+    var elementA = ElementFactory.classElement2(annotationClassName, ['T']);
+    var element = ElementFactory.constructorElement(
+        elementA, annotationConstructorName, true, [typeProvider.dynamicType]);
+    fromNode.element = element;
+    var typeArgumentName = 'U';
+    var elementU = ElementFactory.classElement2(typeArgumentName);
+    fromNode.typeArguments =
+        AstTestFactory.typeArgumentList2([AstTestFactory.typeName(elementU)]);
+    var toNode = AstTestFactory.annotation2(
+        AstTestFactory.identifier3(annotationClassName),
+        AstTestFactory.identifier3(annotationConstructorName),
+        AstTestFactory.argumentList(
+            [AstTestFactory.identifier3(argumentName)])) as AnnotationImpl;
+    toNode.typeArguments = AstTestFactory.typeArgumentList2(
+        [AstTestFactory.typeName4(typeArgumentName)]);
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.element, same(element));
+    expect(
+        (toNode.typeArguments!.arguments.single as TypeName).name.staticElement,
+        same(elementU));
+  }
+
   void test_visitAsExpression() {
     AsExpression fromNode = AstTestFactory.asExpression(
         AstTestFactory.identifier3("x"), AstTestFactory.typeName4("A"));

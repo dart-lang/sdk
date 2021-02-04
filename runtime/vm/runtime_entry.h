@@ -160,7 +160,9 @@ extern "C" LocalHandle* DLRT_AllocateHandle(ApiLocalScope* scope);
 
 const char* DeoptReasonToCString(ICData::DeoptReasonId deopt_reason);
 
-void DeoptimizeAt(const Code& optimized_code, StackFrame* frame);
+void DeoptimizeAt(Isolate* isolate,
+                  const Code& optimized_code,
+                  StackFrame* frame);
 void DeoptimizeFunctionsOnStack();
 
 double DartModulo(double a, double b);

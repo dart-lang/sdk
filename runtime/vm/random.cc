@@ -53,19 +53,26 @@ Random::~Random() {
 // The algorithm used here is Multiply with Carry (MWC) with a Base b = 2^32.
 // http://en.wikipedia.org/wiki/Multiply-with-carry
 // The constant A is selected from "Numerical Recipes 3rd Edition" p.348 B1.
-void Random::NextState() {
+uint64_t Random::NextState() {
   const uint64_t MASK_32 = 0xffffffff;
   const uint64_t A = 0xffffda61;
 
-  uint64_t state_lo = _state & MASK_32;
-  uint64_t state_hi = (_state >> 32) & MASK_32;
-  _state = (A * state_lo) + state_hi;
+  uint64_t old_state = _state;
+  while (true) {
+    const uint64_t state_lo = old_state & MASK_32;
+    const uint64_t state_hi = (old_state >> 32) & MASK_32;
+    const uint64_t new_state = (A * state_lo) + state_hi;
+    if (_state.compare_exchange_weak(old_state, new_state,
+                                     std::memory_order_relaxed,
+                                     std::memory_order_relaxed)) {
+      return new_state;
+    }
+  }
 }
 
 uint32_t Random::NextUInt32() {
   const uint64_t MASK_32 = 0xffffffff;
-  NextState();
-  return static_cast<uint32_t>(_state & MASK_32);
+  return static_cast<uint32_t>(NextState() & MASK_32);
 }
 
 }  // namespace dart

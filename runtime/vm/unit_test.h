@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_UNIT_TEST_H_
 #define RUNTIME_VM_UNIT_TEST_H_
 
+#include <functional>
+
 #include "include/dart_native_api.h"
 
 #include "platform/globals.h"
@@ -378,6 +380,7 @@ class TestCase : TestCaseBase {
   // Initiates the reload.
   static Dart_Handle TriggerReload(const uint8_t* kernel_buffer,
                                    intptr_t kernel_buffer_size);
+  static Dart_Handle TriggerReload(const char* root_script_url);
 
   // Helper function which reloads the current isolate using |script|.
   static Dart_Handle ReloadTestScript(const char* script);
@@ -397,6 +400,9 @@ class TestCase : TestCaseBase {
   static const char* LateTag() { return IsNNBD() ? "late" : ""; }
 
  private:
+  static Dart_Handle TriggerReload(
+      std::function<bool(Isolate*, JSONStream*)> do_reload);
+
   // |data_buffer| can either be snapshot data, or kernel binary data.
   // If |data_buffer| is snapshot data, then |len| should be zero as snapshot
   // size is encoded within them. If |len| is non-zero, then |data_buffer|

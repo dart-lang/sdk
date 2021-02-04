@@ -2527,7 +2527,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
 
     const char* script_uri;
     {
-      NoReloadScope no_reload(isolate, thread);
+      NoReloadScope no_reload(isolate_group, thread);
       const Library& lib =
           Library::Handle(isolate_group->object_store()->_internal_library());
       const Class& cls = Class::Handle(
@@ -2753,7 +2753,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
         SafepointWriteRwLocker ml(thread,
                                   thread->isolate_group()->program_lock());
         Field& field =
-            Field::Handle(zone, isolate->GetDeoptimizingBoxedField());
+            Field::Handle(zone, isolate->group()->GetDeoptimizingBoxedField());
         while (!field.IsNull()) {
           if (FLAG_trace_optimization || FLAG_trace_field_guards) {
             THR_Print("Lazy disabling unboxing of %s\n", field.ToCString());
@@ -2761,7 +2761,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
           field.set_is_unboxing_candidate(false);
           field.DeoptimizeDependentCode();
           // Get next field.
-          field = isolate->GetDeoptimizingBoxedField();
+          field = isolate->group()->GetDeoptimizingBoxedField();
         }
       }
       if (!BackgroundCompiler::IsDisabled(isolate,
@@ -2952,7 +2952,9 @@ const char* DeoptReasonToCString(ICData::DeoptReasonId deopt_reason) {
   }
 }
 
-void DeoptimizeAt(const Code& optimized_code, StackFrame* frame) {
+void DeoptimizeAt(Isolate* isolate,
+                  const Code& optimized_code,
+                  StackFrame* frame) {
   ASSERT(optimized_code.is_optimized());
 
   // Force-optimized code is optimized code which cannot deoptimize and doesn't
@@ -2993,7 +2995,7 @@ void DeoptimizeAt(const Code& optimized_code, StackFrame* frame) {
 
     // N.B.: Update the pending deopt table before updating the frame. The
     // profiler may attempt a stack walk in between.
-    thread->isolate()->AddPendingDeopt(frame->fp(), deopt_pc);
+    isolate->AddPendingDeopt(frame->fp(), deopt_pc);
     frame->MarkForLazyDeopt();
 
     if (FLAG_trace_deoptimization) {
@@ -3011,22 +3013,21 @@ void DeoptimizeAt(const Code& optimized_code, StackFrame* frame) {
 void DeoptimizeFunctionsOnStack() {
   auto isolate_group = IsolateGroup::Current();
   isolate_group->RunWithStoppedMutators([&]() {
-    auto current = isolate_group->thread_registry()->active_list();
     Code& optimized_code = Code::Handle();
-    while (current != nullptr) {
+    isolate_group->ForEachIsolate([&](Isolate* isolate) {
       DartFrameIterator iterator(
-          current, StackFrameIterator::kAllowCrossThreadIteration);
+          isolate->mutator_thread(),
+          StackFrameIterator::kAllowCrossThreadIteration);
       StackFrame* frame = iterator.NextFrame();
-      while (frame != NULL) {
+      while (frame != nullptr) {
         optimized_code = frame->LookupDartCode();
         if (optimized_code.is_optimized() &&
             !optimized_code.is_force_optimized()) {
-          DeoptimizeAt(optimized_code, frame);
+          DeoptimizeAt(isolate, optimized_code, frame);
         }
         frame = iterator.NextFrame();
       }
-      current = current->next();
-    }
+    });
   });
 }
 

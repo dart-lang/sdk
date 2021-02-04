@@ -19,6 +19,7 @@ void main(List<String> args) {
     ...listSubdirectories('pkg'),
     ...listSubdirectories('third_party/pkg'),
     ...listSubdirectories('third_party/pkg_tested'),
+    ...listSubdirectories('third_party/pkg/file/packages'),
     ...listSubdirectories('third_party/pkg/test/pkgs'),
     packageDirectory('runtime/observatory'),
     packageDirectory(
@@ -27,7 +28,6 @@ void main(List<String> args) {
     packageDirectory(
         'runtime/observatory_2/tests/service_2/observatory_test_package_2'),
     packageDirectory('sdk/lib/_internal/sdk_library_metadata'),
-    packageDirectory('sdk/lib/_internal/js_runtime'),
     packageDirectory('third_party/pkg/protobuf/protobuf'),
     packageDirectory('tools/package_deps'),
   ];

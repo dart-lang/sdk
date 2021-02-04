@@ -41,6 +41,15 @@ class ToSourceVisitor2Test {
             AstTestFactory.identifier3("c"), AstTestFactory.argumentList()));
   }
 
+  void test_visitAnnotation_constructor_generic() {
+    _assertSource(
+        "@A<T>.c()",
+        AstTestFactory.annotation2(AstTestFactory.identifier3("A"),
+            AstTestFactory.identifier3("c"), AstTestFactory.argumentList(),
+            typeArguments: AstTestFactory.typeArgumentList2(
+                [AstTestFactory.typeName4('T')])));
+  }
+
   void test_visitArgumentList() {
     _assertSource(
         "(a, b)",

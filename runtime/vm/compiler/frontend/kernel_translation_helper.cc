@@ -897,6 +897,10 @@ void FunctionNodeHelper::ReadUntilExcluding(Field field) {
       helper_->SkipDartType();  // read return type.
       if (++next_read_ == field) return;
       FALL_THROUGH;
+    case kFutureValueType:
+      helper_->SkipOptionalDartType();  // read future value type.
+      if (++next_read_ == field) return;
+      FALL_THROUGH;
     case kBody:
       if (helper_->ReadTag() == kSomething)
         helper_->SkipStatement();  // read body.
@@ -2444,6 +2448,7 @@ void KernelReaderHelper::SkipExpression() {
       SkipFunctionNode();  // read function node.
       return;
     case kLet:
+      ReadPosition();             // read position.
       SkipVariableDeclaration();  // read variable declaration.
       SkipExpression();           // read expression.
       return;

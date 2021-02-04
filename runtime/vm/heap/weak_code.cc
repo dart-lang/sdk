@@ -76,24 +76,20 @@ void WeakCodeReferences::DisableCode() {
   // Deoptimize stacks and disable code with mutators stopped.
   isolate_group->RunWithStoppedMutators([&]() {
     Code& code = Code::Handle();
-    Thread* current = isolate_group->thread_registry()->active_list();
-    while (current != NULL) {
-      // Disable all code on stack.
-      {
-        DartFrameIterator iterator(
-            current, StackFrameIterator::kAllowCrossThreadIteration);
-        StackFrame* frame = iterator.NextFrame();
-        while (frame != NULL) {
-          code = frame->LookupDartCode();
-          if (IsOptimizedCode(code_objects, code)) {
-            ReportDeoptimization(code);
-            DeoptimizeAt(code, frame);
-          }
-          frame = iterator.NextFrame();
+    isolate_group->ForEachIsolate([&](Isolate* isolate) {
+      DartFrameIterator iterator(
+          isolate->mutator_thread(),
+          StackFrameIterator::kAllowCrossThreadIteration);
+      StackFrame* frame = iterator.NextFrame();
+      while (frame != nullptr) {
+        code = frame->LookupDartCode();
+        if (IsOptimizedCode(code_objects, code)) {
+          ReportDeoptimization(code);
+          DeoptimizeAt(isolate, code, frame);
         }
+        frame = iterator.NextFrame();
       }
-      current = current->next();
-    }
+    });
 
     // Switch functions that use dependent code to unoptimized code.
     WeakProperty& weak_property = WeakProperty::Handle();

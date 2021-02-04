@@ -162,11 +162,10 @@ LibraryIndex::LibraryIndex(const ExternalTypedData& kernel_data,
   source_references_offset_ = reader_.ReadUInt32At(class_index_offset_ - 4);
 }
 
-ClassIndex::ClassIndex(const uint8_t* buffer,
-                       intptr_t buffer_size,
+ClassIndex::ClassIndex(const ProgramBinary& binary,
                        intptr_t class_offset,
                        intptr_t class_size)
-    : reader_(buffer, buffer_size) {
+    : reader_(binary) {
   Init(class_offset, class_size);
 }
 
@@ -202,9 +201,8 @@ KernelLoader::KernelLoader(Program* program,
       translation_helper_(this, thread_, Heap::kOld),
       helper_(zone_,
               &translation_helper_,
-              program_->kernel_data(),
-              program_->kernel_data_size(),
-              0),
+              program_->binary(),
+              /*data_program_offset=*/0),
       constant_reader_(&helper_, &active_class_),
       type_translator_(&helper_,
                        &constant_reader_,
@@ -247,7 +245,7 @@ Object& KernelLoader::LoadEntireProgram(Program* program,
     return Object::Handle(loader.LoadProgram(process_pending_classes));
   }
 
-  kernel::Reader reader(program->kernel_data(), program->kernel_data_size());
+  kernel::Reader reader(program->binary());
   GrowableArray<intptr_t> subprogram_file_starts;
   index_programs(&reader, &subprogram_file_starts);
 
@@ -264,9 +262,9 @@ Object& KernelLoader::LoadEntireProgram(Program* program,
     Thread* thread_ = Thread::Current();
     Zone* zone_ = thread_->zone();
     TranslationHelper translation_helper(thread);
-    KernelReaderHelper helper_(zone_, &translation_helper,
-                               program->kernel_data() + subprogram_start,
-                               subprogram_end - subprogram_start, 0);
+    KernelReaderHelper helper_(
+        zone_, &translation_helper,
+        program->binary().SubView(subprogram_start, subprogram_end), 0);  // ,
     const intptr_t source_table_size = helper_.SourceTableSize();
     for (intptr_t index = 0; index < source_table_size; ++index) {
       const String& uri_string = helper_.SourceTableUriFor(index);
@@ -361,8 +359,11 @@ StringPtr KernelLoader::FindSourceForScript(const uint8_t* kernel_buffer,
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   TranslationHelper translation_helper(thread);
-  KernelReaderHelper reader(zone, &translation_helper, kernel_buffer,
-                            kernel_buffer_length, 0);
+  // Note: it is okay to have typed_data be nullptr here because we are not
+  // creating any long living views into the kernel_buffer.
+  const ProgramBinary binary = {/*typed_data=*/nullptr, kernel_buffer,
+                                kernel_buffer_length};
+  KernelReaderHelper reader(zone, &translation_helper, binary, 0);
   intptr_t source_table_size = reader.SourceTableSize();
   for (intptr_t i = 0; i < source_table_size; ++i) {
     const String& source_uri = reader.SourceTableUriFor(i);
@@ -380,7 +381,7 @@ void KernelLoader::InitializeFields(UriToSourceTable* uri_to_source_table) {
 
   // Copy the Kernel string offsets out of the binary and into the VM's heap.
   ASSERT(program_->string_table_offset() >= 0);
-  Reader reader(program_->kernel_data(), program_->kernel_data_size());
+  Reader reader(program_->binary());
   reader.set_offset(program_->string_table_offset());
   intptr_t count = reader.ReadUInt() + 1;
   TypedData& offsets = TypedData::Handle(
@@ -498,7 +499,7 @@ void KernelLoader::EvaluateDelayedPragmas() {
 
   Thread* thread = Thread::Current();
   NoOOBMessageScope no_msg_scope(thread);
-  NoReloadScope no_reload_scope(thread->isolate(), thread);
+  NoReloadScope no_reload_scope(thread->isolate_group(), thread);
 
   Function& function = Function::Handle();
   Library& library = Library::Handle();
@@ -874,7 +875,7 @@ void KernelLoader::FindModifiedLibraries(Program* program,
       loader.walk_incremental_kernel(modified_libs, is_empty_program,
                                      p_num_classes, p_num_procedures);
     }
-    kernel::Reader reader(program->kernel_data(), program->kernel_data_size());
+    kernel::Reader reader(program->binary());
     GrowableArray<intptr_t> subprogram_file_starts;
     index_programs(&reader, &subprogram_file_starts);
 
@@ -1460,8 +1461,8 @@ void KernelLoader::LoadClass(const Library& library,
                              intptr_t class_end,
                              Class* out_class) {
   intptr_t class_offset = helper_.ReaderOffset();
-  ClassIndex class_index(program_->kernel_data(), program_->kernel_data_size(),
-                         class_offset, class_end - class_offset);
+  ClassIndex class_index(program_->binary(), class_offset,
+                         class_end - class_offset);
 
   ClassHelper class_helper(&helper_);
   class_helper.ReadUntilIncluding(ClassHelper::kCanonicalName);
@@ -2088,7 +2089,7 @@ void KernelLoader::LoadProcedure(const Library& library,
     } else {
       Thread* thread = Thread::Current();
       NoOOBMessageScope no_msg_scope(thread);
-      NoReloadScope no_reload_scope(thread->isolate(), thread);
+      NoReloadScope no_reload_scope(thread->isolate_group(), thread);
       library.GetMetadata(function);
     }
   }

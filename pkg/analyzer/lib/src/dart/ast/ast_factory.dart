@@ -17,11 +17,17 @@ class AstFactoryImpl extends AstFactory {
       AdjacentStringsImpl(strings);
 
   @override
-  Annotation annotation(Token atSign, Identifier name, Token? period,
-          SimpleIdentifier? constructorName, ArgumentList? arguments) =>
+  Annotation annotation(
+          {required Token atSign,
+          required Identifier name,
+          TypeArgumentList? typeArguments,
+          Token? period,
+          SimpleIdentifier? constructorName,
+          ArgumentList? arguments}) =>
       AnnotationImpl(
           atSign,
           name as IdentifierImpl,
+          typeArguments as TypeArgumentListImpl?,
           period,
           constructorName as SimpleIdentifierImpl?,
           arguments as ArgumentListImpl?);

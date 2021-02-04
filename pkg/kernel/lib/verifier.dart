@@ -413,6 +413,13 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
     bool savedInCatchBlock = inCatchBlock;
     AsyncMarker savedAsyncMarker = currentAsyncMarker;
     currentAsyncMarker = node.asyncMarker;
+    if (!isOutline &&
+        currentMember.isNonNullableByDefault &&
+        node.asyncMarker == AsyncMarker.Async &&
+        node.futureValueType == null) {
+      problem(node,
+          "No future value type set for async function in opt-in library.");
+    }
     inCatchBlock = false;
     visitWithLocalScope(node);
     inCatchBlock = savedInCatchBlock;

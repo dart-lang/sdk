@@ -2899,6 +2899,19 @@ class FunctionNode extends TreeNode {
   DartType returnType; // Not null.
   Statement _body;
 
+  /// The future value type of this is an async function, otherwise `null`.
+  ///
+  /// The future value type is the element type returned by an async function.
+  /// For instance
+  ///
+  ///     Future<Foo> method1() async => new Foo();
+  ///     FutureOr<Foo> method2() async => new Foo();
+  ///
+  /// here the return types are `Future<Foo>` and `FutureOr<Foo>` for `method1`
+  /// and `method2`, respectively, but the future value type is in both cases
+  /// `Foo`.
+  DartType futureValueType;
+
   void Function() lazyBuilder;
 
   void _buildLazy() {
@@ -2926,7 +2939,8 @@ class FunctionNode extends TreeNode {
       int requiredParameterCount,
       this.returnType: const DynamicType(),
       this.asyncMarker: AsyncMarker.Sync,
-      this.dartAsyncMarker})
+      this.dartAsyncMarker,
+      this.futureValueType})
       : this.positionalParameters =
             positionalParameters ?? <VariableDeclaration>[],
         this.requiredParameterCount =

@@ -1833,8 +1833,12 @@ class AstBuilder extends StackListener {
         periodBeforeName != null ? pop() as SimpleIdentifier : null;
     pop(); // Type arguments, not allowed.
     var name = pop() as Identifier;
-    push(ast.annotation(atSign, name, periodBeforeName, constructorName,
-        invocation?.argumentList));
+    push(ast.annotation(
+        atSign: atSign,
+        name: name,
+        period: periodBeforeName,
+        constructorName: constructorName,
+        arguments: invocation?.argumentList));
   }
 
   @override

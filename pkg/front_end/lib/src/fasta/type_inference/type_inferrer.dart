@@ -149,7 +149,7 @@ abstract class TypeInferrer {
       InferenceHelper helper, DartType declaredType, Expression initializer);
 
   /// Performs type inference on the given function body.
-  Statement inferFunctionBody(InferenceHelper helper, int fileOffset,
+  InferredFunctionBody inferFunctionBody(InferenceHelper helper, int fileOffset,
       DartType returnType, AsyncMarker asyncMarker, Statement body);
 
   /// Performs type inference on the given constructor initializer.
@@ -1909,7 +1909,7 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   @override
-  Statement inferFunctionBody(InferenceHelper helper, int fileOffset,
+  InferredFunctionBody inferFunctionBody(InferenceHelper helper, int fileOffset,
       DartType returnType, AsyncMarker asyncMarker, Statement body) {
     assert(body != null);
     assert(closureContext == null);
@@ -1924,10 +1924,17 @@ class TypeInferrerImpl implements TypeInferrer {
     }
     result =
         closureContext.handleImplicitReturn(this, body, result, fileOffset);
+    DartType futureValueType = closureContext.futureValueType;
+    assert(
+        !(isNonNullableByDefault &&
+            asyncMarker == AsyncMarker.Async &&
+            futureValueType == null),
+        "No future value type computed.");
     closureContext = null;
     this.helper = null;
     flowAnalysis.finish();
-    return result.hasChanged ? result.statement : body;
+    return new InferredFunctionBody(
+        result.hasChanged ? result.statement : body, futureValueType);
   }
 
   InvocationInferenceResult inferInvocation(DartType typeContext, int offset,
@@ -2531,6 +2538,12 @@ class TypeInferrerImpl implements TypeInferrer {
     }
     bodyResult = closureContext.handleImplicitReturn(
         this, function.body, bodyResult, fileOffset);
+    function.futureValueType = closureContext.futureValueType;
+    assert(
+        !(isNonNullableByDefault &&
+            function.asyncMarker == AsyncMarker.Async &&
+            function.futureValueType == null),
+        "No future value type computed.");
 
     if (bodyResult.hasChanged) {
       function.body = bodyResult.statement..parent = function;
@@ -4818,4 +4831,11 @@ FunctionType replaceReturnType(FunctionType functionType, DartType returnType) {
       requiredParameterCount: functionType.requiredParameterCount,
       namedParameters: functionType.namedParameters,
       typeParameters: functionType.typeParameters);
+}
+
+class InferredFunctionBody {
+  final Statement body;
+  final DartType futureValueType;
+
+  InferredFunctionBody(this.body, this.futureValueType);
 }

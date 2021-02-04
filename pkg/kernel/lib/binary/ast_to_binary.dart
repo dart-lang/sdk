@@ -1384,6 +1384,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeVariableDeclarationList(node.positionalParameters);
     writeVariableDeclarationList(node.namedParameters);
     writeNode(node.returnType);
+    writeOptionalNode(node.futureValueType);
     writeOptionalNode(node.body);
     _labelIndexer = oldLabels;
     _switchCaseIndexer = oldCases;
@@ -1899,6 +1900,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitLet(Let node) {
     writeByte(Tag.Let);
+    writeOffset(node.fileOffset);
     _variableIndexer ??= new VariableIndexer();
     _variableIndexer.pushScope();
     writeVariableDeclaration(node.variable);

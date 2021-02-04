@@ -978,10 +978,6 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
   const UserTag& default_tag = UserTag::Handle(UserTag::DefaultTag());
   I->set_current_tag(default_tag);
 
-  if (FLAG_keep_code) {
-    I->set_deoptimized_code_array(
-        GrowableObjectArray::Handle(GrowableObjectArray::New()));
-  }
   return Error::null();
 }
 
