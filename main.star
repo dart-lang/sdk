@@ -804,7 +804,6 @@ dart_ci_sandbox_builder(
             "add_to_app_life_cycle_tests",
             "framework_coverage",
             "framework_tests",
-            "tool_coverage",
             "tool_tests",
         ],
     },
