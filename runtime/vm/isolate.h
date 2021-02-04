@@ -421,6 +421,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void set_obfuscation_map(const char** map) { obfuscation_map_ = map; }
   const char** obfuscation_map() const { return obfuscation_map_; }
 
+  Random* random() { return &random_; }
+
   bool is_system_isolate_group() const { return is_system_isolate_group_; }
 
   // IsolateGroup-specific flag handling.
@@ -781,6 +783,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Dart_DeferredLoadHandler deferred_load_handler_ = nullptr;
   int64_t start_time_micros_;
   bool is_system_isolate_group_;
+  Random random_;
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   int64_t last_reload_timestamp_;
