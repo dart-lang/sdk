@@ -71,8 +71,7 @@ def HostCpuForArch(arch):
     if arch in ['ia32', 'arm', 'armv6', 'simarm', 'simarmv6', 'simarm_x64']:
         return 'x86'
     if arch in [
-            'x64', 'arm64', 'simarm64', 'arm_x64', 'x64_comp_ptr',
-            'arm64_comp_ptr', 'simarm64_comp_ptr'
+            'x64', 'arm64', 'simarm64', 'arm_x64', 'x64c', 'arm64c', 'simarm64c'
     ]:
         return 'x64'
 
@@ -81,13 +80,11 @@ def HostCpuForArch(arch):
 def TargetCpuForArch(arch, target_os):
     if arch in ['ia32', 'simarm', 'simarmv6']:
         return 'x86'
-    if arch in [
-            'x64', 'simarm64', 'simarm_x64', 'x64_comp_ptr', 'simarm64_comp_ptr'
-    ]:
+    if arch in ['x64', 'simarm64', 'simarm_x64', 'x64c', 'simarm64c']:
         return 'x64'
     if arch == 'arm_x64':
         return 'arm'
-    if arch == 'arm64_comp_ptr':
+    if arch == 'arm64c':
         return 'arm64'
     return arch
 
@@ -96,19 +93,19 @@ def TargetCpuForArch(arch, target_os):
 def DartTargetCpuForArch(arch):
     if arch in ['ia32']:
         return 'ia32'
-    if arch in ['x64', 'x64_comp_ptr']:
+    if arch in ['x64', 'x64c']:
         return 'x64'
     if arch in ['arm', 'simarm', 'simarm_x64', 'arm_x64']:
         return 'arm'
     if arch in ['armv6', 'simarmv6']:
         return 'armv6'
-    if arch in ['arm64', 'simarm64', 'arm64_comp_ptr', 'simarm64_comp_ptr']:
+    if arch in ['arm64', 'simarm64', 'arm64c', 'simarm64c']:
         return 'arm64'
     return arch
 
 
 def IsCompressedPointerArch(arch):
-    return arch in ['x64_comp_ptr', 'arm64_comp_ptr', 'simarm64_comp_ptr']
+    return arch in ['x64c', 'arm64c', 'simarm64c']
 
 
 def HostOsForGn(host_os):
@@ -297,7 +294,7 @@ def ProcessOsOption(os_name):
 
 def ProcessOptions(args):
     if args.arch == 'all':
-        args.arch = 'ia32,x64,simarm,simarm64'
+        args.arch = 'ia32,x64,simarm,simarm64,x64c,simarm64c'
     if args.mode == 'all':
         args.mode = 'debug,release,product'
     if args.os == 'all':

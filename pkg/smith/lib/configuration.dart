@@ -574,26 +574,32 @@ class Configuration {
 class Architecture extends NamedEnum {
   static const ia32 = Architecture._('ia32');
   static const x64 = Architecture._('x64');
+  static const x64c = Architecture._('x64c');
   static const arm = Architecture._('arm');
   static const arm_x64 = Architecture._('arm_x64');
   static const armv6 = Architecture._('armv6');
   static const arm64 = Architecture._('arm64');
+  static const arm64c = Architecture._('arm64c');
   static const simarm = Architecture._('simarm');
   static const simarmv6 = Architecture._('simarmv6');
   static const simarm64 = Architecture._('simarm64');
+  static const simarm64c = Architecture._('simarm64c');
 
   static final List<String> names = _all.keys.toList();
 
   static final _all = Map<String, Architecture>.fromIterable([
     ia32,
     x64,
+    x64c,
     arm,
     armv6,
     arm_x64,
     arm64,
+    arm64c,
     simarm,
     simarmv6,
     simarm64,
+    simarm64c,
   ], key: (architecture) => (architecture as Architecture).name);
 
   static Architecture find(String name) {

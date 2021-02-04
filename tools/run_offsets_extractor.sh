@@ -43,8 +43,8 @@ run release simarm ReleaseSIMARM
 run release x64 ReleaseX64
 run release ia32 ReleaseIA32
 run release simarm64 ReleaseSIMARM64
-run release x64_comp_ptr ReleaseX64_COMP_PTR
-run release simarm64_comp_ptr ReleaseSIMARM64_COMP_PTR
+run release x64c ReleaseX64C
+run release simarm64c ReleaseSIMARM64C
 echo "" >>"$TEMP_JIT"
 echo "" >>"$TEMP_AOT"
 echo "#else  // !defined(PRODUCT)" >>"$TEMP_JIT"
@@ -53,8 +53,8 @@ run product simarm ProductSIMARM
 run product x64 ProductX64
 run product ia32 ProductIA32
 run product simarm64 ProductSIMARM64
-run product x64_comp_ptr ProductX64_COMP_PTR
-run product simarm64_comp_ptr ProductSIMARM64_COMP_PTR
+run product x64c ProductX64C
+run product simarm64c ProductSIMARM64C
 echo "" >>"$TEMP_JIT"
 echo "" >>"$TEMP_AOT"
 echo "#endif  // !defined(PRODUCT)" >>"$TEMP_JIT"

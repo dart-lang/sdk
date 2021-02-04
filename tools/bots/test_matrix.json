@@ -272,16 +272,20 @@
       "benchmarks/",
       "out/DebugIA32/",
       "out/DebugX64/",
+      "out/DebugX64C/",
       "out/DebugSIMARM/",
       "out/DebugSIMARM64/",
+      "out/DebugSIMARM64C/",
       "out/DebugSIMARM_X64/",
       "out/DebugAndroidARM/",
       "out/DebugAndroidARM_X64/",
       "out/DebugAndroidARM64/",
       "out/ReleaseIA32/",
       "out/ReleaseX64/",
+      "out/ReleaseX64C/",
       "out/ReleaseSIMARM/",
       "out/ReleaseSIMARM64/",
+      "out/ReleaseSIMARM64C/",
       "out/ReleaseSIMARM_X64/",
       "out/ReleaseAndroidARM/",
       "out/ReleaseAndroidARM_X64/",
@@ -294,20 +298,27 @@
       "out/ReleaseXARM64/",
       "out/ProductIA32/",
       "out/ProductX64/",
+      "out/ProductX64C/",
       "out/ProductSIMARM/",
       "out/ProductSIMARM64/",
+      "out/ProductSIMARM64C/",
       "out/ProductSIMARM_X64/",
       "out/ProductAndroidARM/",
       "out/ProductAndroidARM64/",
       "xcodebuild/DebugIA32/",
       "xcodebuild/DebugSIMARM/",
       "xcodebuild/DebugSIMARM64/",
+      "xcodebuild/DebugSIMARM64C/",
       "xcodebuild/DebugX64/",
+      "xcodebuild/DebugX64C/",
       "xcodebuild/ProductX64/",
+      "xcodebuild/ProductX64C/",
       "xcodebuild/ReleaseIA32/",
       "xcodebuild/ReleaseSIMARM/",
       "xcodebuild/ReleaseSIMARM64/",
+      "xcodebuild/ReleaseSIMARM64C/",
       "xcodebuild/ReleaseX64/",
+      "xcodebuild/ReleaseX64C/",
       "samples/",
       "samples_2/",
       "samples-dev/",
@@ -730,13 +741,13 @@
         "use-elf": true
       }
     },
-    "dartkp-android-(debug|product|release)-(arm|arm64)": {
+    "dartkp-android-(debug|product|release)-(arm|arm64|arm64c)": {
       "options": {
         "use-elf": true
       }
     },
-    "dartk-android-(debug|product|release)-(arm|arm64)": {},
-    "dartkp-(linux|win|mac)-(debug|product|release)-(arm64|simarm|simarm64)": {
+    "dartk-android-(debug|product|release)-(arm|arm64|arm64c)": {},
+    "dartkp-(linux|win|mac)-(debug|product|release)-(arm64|arm64c|simarm|simarm64|simarm64c)": {
       "options": {
         "use-elf": true
       }
@@ -762,19 +773,19 @@
         "use-elf": true
       }
     },
-    "dartkp-win-(product|release)-x64": {
+    "dartkp-win-(product|release)-(x64|x64c)": {
       "options": {
         "use-elf": true
       }
     },
-    "dartkp-win-debug-x64": {
+    "dartkp-win-debug-(x64|x64c)": {
       "options": {
         "use-elf": true,
         "vm-options": []
       }
     },
-    "dartkp-(linux|mac)-(product|release)-x64": {},
-    "dartkp-obfuscate-(linux|mac|win)-(debug|product|release)-x64": {
+    "dartkp-(linux|mac)-(product|release)-(x64|x64c)": {},
+    "dartkp-obfuscate-(linux|mac|win)-(debug|product|release)-(x64|x64c)": {
       "options": {
         "builder-tag": "obfuscated",
         "vm-options": [
@@ -782,19 +793,19 @@
         ]
       }
     },
-    "dartkp-(linux|mac)-debug-x64": {
+    "dartkp-(linux|mac)-debug-(x64|x64c)": {
       "options": {
         "vm-options": []
       }
     },
-    "dartkp-no-bare-(linux|mac|win)-(debug|product|release)-x64": {
+    "dartkp-no-bare-(linux|mac|win)-(debug|product|release)-(x64|x64c)": {
       "options": {
         "vm-options": [
           "--no-use-bare-instructions"
         ]
       }
     },
-    "dartkp-no-bare-(linux|mac|win)-(debug|product|release)-(simarm|simarm64)": {
+    "dartkp-no-bare-(linux|mac|win)-(debug|product|release)-(simarm|simarm64|simarm64c)": {
       "options": {
         "vm-options": [
           "--no-use-bare-instructions"
@@ -802,68 +813,68 @@
         "use-elf": true
       }
     },
-    "dartk-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {},
-    "dartk-fuchsia-(debug|product|release)-x64": {},
+    "dartk-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c)": {},
+    "dartk-fuchsia-(debug|product|release)-(x64|x64c)": {},
     "dartk-linux-debug-(ia32|x64)-canary": {
       "options": {
         "builder-tag": "canary"
       }
     },
-    "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-x64": {
+    "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-(x64|x64c)": {
       "options": {
         "enable-asserts": true,
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-(simarm|simarm64)": {
-      "options": {
-        "enable-asserts": true,
-        "use-elf": true,
-        "builder-tag": "vm_nnbd"
-      }
-    },
-    "dartkp-weak-asserts-win-(debug|product|release)-(simarm64|x64)": {
+    "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-(simarm|simarm64|simarm64c)": {
       "options": {
         "enable-asserts": true,
         "use-elf": true,
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartk-weak-asserts-(linux|mac|win)-(debug|product|release)-(ia32|simarm|simarm64|x64)": {
+    "dartkp-weak-asserts-win-(debug|product|release)-(simarm64|simarm64c|x64|x64c)": {
+      "options": {
+        "enable-asserts": true,
+        "use-elf": true,
+        "builder-tag": "vm_nnbd"
+      }
+    },
+    "dartk-weak-asserts-(linux|mac|win)-(debug|product|release)-(ia32|simarm|simarm64|simarm64c|x64|x64c)": {
       "options": {
         "enable-asserts": true,
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartk-strong-(linux|mac|win)-(debug|product|release)-(ia32|simarm|simarm64|x64)": {
+    "dartk-strong-(linux|mac|win)-(debug|product|release)-(ia32|simarm|simarm64|simarm64c|x64|x64c)": {
       "options": {
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartkp-strong-(linux|mac)-(debug|product|release)-x64": {
+    "dartkp-strong-(linux|mac)-(debug|product|release)-(x64|x64c)": {
       "options": {
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartkp-strong-(linux|mac)-(debug|product|release)-(simarm|simarm64)": {
-      "options": {
-        "use-elf": true,
-        "builder-tag": "vm_nnbd"
-      }
-    },
-    "dartkp-strong-win-(debug|product|release)-(simarm64|x64)": {
+    "dartkp-strong-(linux|mac)-(debug|product|release)-(simarm|simarm64|simarm64c)": {
       "options": {
         "use-elf": true,
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartk-checked-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
+    "dartkp-strong-win-(debug|product|release)-(simarm64|simarm64c|x64|x64c)": {
+      "options": {
+        "use-elf": true,
+        "builder-tag": "vm_nnbd"
+      }
+    },
+    "dartk-checked-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c)": {
       "options": {
         "enable-asserts": true
       }
     },
-    "dartk-(linux|mac|win)-(debug|product|release)-(arm64|simarm|simarm64)": {},
-    "dartk-optcounter-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
+    "dartk-(linux|mac|win)-(debug|product|release)-(arm64|arm64c|simarm|simarm64|simarm64c)": {},
+    "dartk-optcounter-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c|simarm|simarm64|simarm64c)": {
       "options": {
         "builder-tag": "optimization_counter_threshold",
         "vm-options": [
@@ -872,27 +883,27 @@
         ]
       }
     },
-    "dartk-reload-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
+    "dartk-reload-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c)": {
       "options": {
         "hot-reload": true
       }
     },
-    "dartk-reload-rollback-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
+    "dartk-reload-rollback-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c)": {
       "options": {
         "hot-reload-rollback": true
       }
     },
-    "dartk-linux-(debug|product|release)-(arm|arm64)-qemu": {
+    "dartk-linux-(debug|product|release)-(arm|arm64|arm64c)-qemu": {
       "options": {
         "use-qemu": true
       }
     },
-    "dartkp-linux-(debug|product|release)-(arm|arm64)-qemu": {
+    "dartkp-linux-(debug|product|release)-(arm|arm64|arm64c)-qemu": {
       "options": {
         "use-qemu": true
       }
     },
-    "app_jitk-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {},
+    "app_jitk-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c)": {},
     "dartdevk-checked-(linux|mac|win)-(debug|product|release)-(chrome|firefox)": {
       "options": {
         "checked": true,
@@ -1133,7 +1144,8 @@
       "builders": [
         "vm-kernel-precomp-android-release-arm",
         "vm-kernel-precomp-android-release-arm_x64",
-        "vm-kernel-precomp-android-release-arm64"
+        "vm-kernel-precomp-android-release-arm64",
+        "vm-kernel-precomp-android-release-arm64c"
       ],
       "meta": {
         "description": "This configuration is used by the vm precomp builders on Android."
@@ -1162,10 +1174,13 @@
     {
       "builders": [
         "vm-ffi-android-debug-arm64",
+        "vm-ffi-android-debug-arm64c",
         "vm-ffi-android-debug-arm",
         "vm-ffi-android-release-arm64",
+        "vm-ffi-android-release-arm64c",
         "vm-ffi-android-release-arm",
         "vm-ffi-android-product-arm64",
+        "vm-ffi-android-product-arm64c",
         "vm-ffi-android-product-arm"
       ],
       "meta": {
@@ -1245,9 +1260,13 @@
       "builders": [
         "vm-kernel-precomp-nnbd-linux-debug-x64",
         "vm-kernel-precomp-nnbd-linux-release-simarm64",
+        "vm-kernel-precomp-nnbd-linux-release-simarm64c",
         "vm-kernel-precomp-nnbd-linux-release-x64",
+        "vm-kernel-precomp-nnbd-linux-release-x64c",
         "vm-kernel-precomp-nnbd-mac-release-simarm64",
-        "vm-kernel-precomp-nnbd-win-release-x64"
+        "vm-kernel-precomp-nnbd-mac-release-simarm64c",
+        "vm-kernel-precomp-nnbd-win-release-x64",
+        "vm-kernel-precomp-nnbd-win-release-x64c"
       ],
       "meta": {
         "description": "This configuration is for the VM AOT nnbd builder group."
@@ -1354,10 +1373,14 @@
     {
       "builders": [
         "vm-kernel-precomp-linux-product-x64",
+        "vm-kernel-precomp-linux-product-x64c",
         "vm-kernel-precomp-linux-release-simarm",
         "vm-kernel-precomp-linux-release-simarm64",
+        "vm-kernel-precomp-linux-release-simarm64c",
         "vm-kernel-precomp-mac-release-simarm64",
-        "vm-kernel-precomp-win-release-x64"
+        "vm-kernel-precomp-mac-release-simarm64c",
+        "vm-kernel-precomp-win-release-x64",
+        "vm-kernel-precomp-win-release-x64c"
       ],
       "meta": {
         "description": "This configuration is used by the vm kernel precomp builders."
@@ -1383,7 +1406,8 @@
     },
     {
       "builders": [
-        "vm-kernel-precomp-linux-debug-x64"
+        "vm-kernel-precomp-linux-debug-x64",
+        "vm-kernel-precomp-linux-debug-x64c"
       ],
       "meta": {
         "description": "This configuration is used by the vm kernel precomp debug builders. It uses 15 shards for testing to avoid 1 hour shard timeouts."
@@ -1410,8 +1434,10 @@
     {
       "builders": [
         "vm-kernel-precomp-bare-linux-release-x64",
+        "vm-kernel-precomp-bare-linux-release-x64c",
         "vm-kernel-precomp-bare-linux-release-simarm",
-        "vm-kernel-precomp-bare-linux-release-simarm64"
+        "vm-kernel-precomp-bare-linux-release-simarm64",
+        "vm-kernel-precomp-bare-linux-release-simarm64c"
       ],
       "meta": {
         "description": "This configuration is used by the vm kernel precomp builders using bare instructions."
@@ -1437,7 +1463,8 @@
     },
     {
       "builders": [
-        "vm-kernel-precomp-obfuscate-linux-release-x64"
+        "vm-kernel-precomp-obfuscate-linux-release-x64",
+        "vm-kernel-precomp-obfuscate-linux-release-x64c"
       ],
       "meta": {
         "description": "This configuration is used by the obfuscated vm kernel precomp builders."
@@ -1599,10 +1626,13 @@
       "builders": [
         "vm-kernel-linux-release-simarm",
         "vm-kernel-linux-release-simarm64",
+        "vm-kernel-linux-release-simarm64c",
         "vm-kernel-linux-release-ia32",
         "vm-kernel-win-debug-ia32",
         "vm-kernel-win-debug-x64",
+        "vm-kernel-win-debug-x64c",
         "vm-kernel-win-product-x64",
+        "vm-kernel-win-product-x64c",
         "vm-kernel-win-release-ia32"
       ],
       "meta": {
@@ -1630,15 +1660,22 @@
       "builders": [
         "vm-kernel-nnbd-linux-debug-ia32",
         "vm-kernel-nnbd-linux-debug-x64",
+        "vm-kernel-nnbd-linux-debug-x64c",
         "vm-kernel-nnbd-linux-release-ia32",
         "vm-kernel-nnbd-linux-release-simarm",
         "vm-kernel-nnbd-linux-release-simarm64",
+        "vm-kernel-nnbd-linux-release-simarm64c",
         "vm-kernel-nnbd-linux-release-x64",
+        "vm-kernel-nnbd-linux-release-x64c",
         "vm-kernel-nnbd-mac-debug-x64",
+        "vm-kernel-nnbd-mac-debug-x64c",
         "vm-kernel-nnbd-mac-release-x64",
+        "vm-kernel-nnbd-mac-release-x64c",
         "vm-kernel-nnbd-win-release-ia32",
         "vm-kernel-nnbd-win-debug-x64",
-        "vm-kernel-nnbd-win-release-x64"
+        "vm-kernel-nnbd-win-debug-x64c",
+        "vm-kernel-nnbd-win-release-x64",
+        "vm-kernel-nnbd-win-release-x64c"
       ],
       "meta": {
         "description": "This configuration is for the VM nnbd builder group."
@@ -1710,13 +1747,20 @@
     {
       "builders": [
         "vm-kernel-linux-product-x64",
+        "vm-kernel-linux-product-x64c",
         "vm-kernel-linux-release-x64",
+        "vm-kernel-linux-release-x64c",
         "vm-kernel-linux-debug-ia32",
         "vm-kernel-linux-debug-x64",
+        "vm-kernel-linux-debug-x64c",
         "vm-kernel-mac-product-x64",
+        "vm-kernel-mac-product-x64c",
         "vm-kernel-mac-release-x64",
+        "vm-kernel-mac-release-x64c",
         "vm-kernel-mac-debug-x64",
-        "vm-kernel-win-release-x64"
+        "vm-kernel-mac-debug-x64c",
+        "vm-kernel-win-release-x64",
+        "vm-kernel-win-release-x64c"
       ],
       "meta": {
         "description": "This configuration is for the co19_2 kernel builder group."
@@ -1750,7 +1794,8 @@
     },
     {
       "builders": [
-        "vm-kernel-checked-linux-release-x64"
+        "vm-kernel-checked-linux-release-x64",
+        "vm-kernel-checked-linux-release-x64c"
       ],
       "meta": {
         "description": "This configuration is for the kernel builder group in checked mode."
@@ -1766,7 +1811,7 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-ndartk-checked-linux-release-x64"
+            "-ndartk-checked-linux-release-${arch}"
           ],
           "fileset": "vm-kernel",
           "shards": 10
@@ -1797,7 +1842,8 @@
     },
     {
       "builders": [
-        "cross-vm-linux-release-arm64"
+        "cross-vm-linux-release-arm64",
+        "cross-vm-linux-release-arm64c"
       ],
       "meta": {
         "description": "This configuration is for the cross arm builders."
@@ -1822,7 +1868,8 @@
     },
     {
       "builders": [
-        "cross-vm-precomp-linux-release-arm64"
+        "cross-vm-precomp-linux-release-arm64",
+        "cross-vm-precomp-linux-release-arm64c"
       ],
       "meta": {
         "description": "This configuration is for the cross arm AOT builders."
@@ -1850,8 +1897,11 @@
     {
       "builders": [
         "app-kernel-linux-debug-x64",
+        "app-kernel-linux-debug-x64c",
         "app-kernel-linux-product-x64",
-        "app-kernel-linux-release-x64"
+        "app-kernel-linux-product-x64c",
+        "app-kernel-linux-release-x64",
+        "app-kernel-linux-release-x64c"
       ],
       "meta": {
         "description": "This configuration is used by the vm kernel app builder group."
@@ -1867,7 +1917,7 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-napp_jitk-linux-${mode}-x64"
+            "-napp_jitk-linux-${mode}-${arch}"
           ],
           "shards": 6,
           "fileset": "vm-kernel"
@@ -2147,7 +2197,11 @@
     {
       "builders": [
         "vm-kernel-optcounter-threshold-linux-release-ia32",
-        "vm-kernel-optcounter-threshold-linux-release-x64"
+        "vm-kernel-optcounter-threshold-linux-release-x64",
+        "vm-kernel-optcounter-threshold-linux-release-x64c",
+        "vm-kernel-optcounter-threshold-linux-release-simarm",
+        "vm-kernel-optcounter-threshold-linux-release-simarm64",
+        "vm-kernel-optcounter-threshold-linux-release-simarm64c"
       ],
       "meta": {
         "description": "This is the configuration for the kernel optcounter builders, under the vm-kernel group. They run the same tests as the ordinary VM kernel builders, but add extra options to the vm."
@@ -2173,7 +2227,9 @@
     {
       "builders": [
         "vm-kernel-reload-linux-debug-x64",
-        "vm-kernel-reload-linux-release-x64"
+        "vm-kernel-reload-linux-debug-x64c",
+        "vm-kernel-reload-linux-release-x64",
+        "vm-kernel-reload-linux-release-x64c"
       ],
       "meta": {
         "description": "This is the configuration for the kernel hot reload builders."
@@ -2199,7 +2255,9 @@
     {
       "builders": [
         "vm-kernel-reload-rollback-linux-debug-x64",
-        "vm-kernel-reload-rollback-linux-release-x64"
+        "vm-kernel-reload-rollback-linux-debug-x64c",
+        "vm-kernel-reload-rollback-linux-release-x64",
+        "vm-kernel-reload-rollback-linux-release-x64c"
       ],
       "meta": {
         "description": "This is the configuration for kernel reload rollback builders."
@@ -2215,7 +2273,7 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-ndartk-reload-rollback-linux-${mode}-x64"
+            "-ndartk-reload-rollback-linux-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
           "shards": 10
