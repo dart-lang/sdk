@@ -450,8 +450,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void registerVariableDeclaration(VariableDeclaration variable) {
+  VariableDeclaration createVariableDeclarationForValue(Expression expression) {
+    VariableDeclaration variable =
+        forest.createVariableDeclarationForValue(expression);
     typeInferrer?.assignedVariables?.declare(variable);
+    return variable;
   }
 
   @override
@@ -1696,8 +1699,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         reportMissingNonNullableSupport(token);
       }
       VariableDeclaration variable =
-          forest.createVariableDeclarationForValue(expression);
-      registerVariableDeclaration(variable);
+          createVariableDeclarationForValue(expression);
       push(new Cascade(variable, isNullAware: isNullAware)
         ..fileOffset = expression.fileOffset);
       push(_createReadOnlyVariableAccess(variable, token, expression.fileOffset,
@@ -6318,8 +6320,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
     if (isNullAware) {
       VariableDeclaration variable =
-          forest.createVariableDeclarationForValue(receiver);
-      registerVariableDeclaration(variable);
+          createVariableDeclarationForValue(receiver);
       return new NullAwareMethodInvocation(
           variable,
           forest.createMethodInvocation(

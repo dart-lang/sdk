@@ -154,6 +154,9 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   void reportDuplicatedDeclaration(
       Builder existing, String name, int charOffset);
 
+  /// Creates a synthetic variable declaration for the value of [expression].
+  VariableDeclaration createVariableDeclarationForValue(Expression expression);
+
   /// Creates a [VariableGet] of the [variable] using [charOffset] as the file
   /// offset of the created node.
   Expression createVariableGet(VariableDeclaration variable, int charOffset,
@@ -163,6 +166,4 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   ///
   /// This is needed for type promotion.
   void registerVariableAssignment(VariableDeclaration variable);
-
-  void registerVariableDeclaration(VariableDeclaration variable);
 }
