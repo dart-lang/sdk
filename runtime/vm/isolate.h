@@ -474,6 +474,20 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     return null_safety() || FLAG_strict_null_safety_checks;
   }
 
+#if !defined(PRODUCT)
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  bool HasAttemptedReload() const {
+    return HasAttemptedReloadBit::decode(isolate_group_flags_);
+  }
+  void SetHasAttemptedReload(bool value) {
+    isolate_group_flags_ =
+        HasAttemptedReloadBit::update(value, isolate_group_flags_);
+  }
+#else
+  bool HasAttemptedReload() const { return false; }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(PRODUCT)
+
 #if defined(PRODUCT)
   void set_use_osr(bool use_osr) { ASSERT(!use_osr); }
 #else   // defined(PRODUCT)
@@ -741,6 +755,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 #define ISOLATE_GROUP_FLAG_BITS(V)                                             \
   V(CompactionInProgress)                                                      \
   V(EnableAsserts)                                                             \
+  V(HasAttemptedReload)                                                        \
   V(NullSafety)                                                                \
   V(NullSafetySet)                                                             \
   V(Obfuscate)                                                                 \
@@ -1239,13 +1254,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   void DeleteReloadContext();
 
-  bool HasAttemptedReload() const {
-    return HasAttemptedReloadBit::decode(isolate_flags_);
-  }
-  void SetHasAttemptedReload(bool value) {
-    isolate_flags_ = HasAttemptedReloadBit::update(value, isolate_flags_);
-  }
-
   bool CanReload() const;
 #else
   bool IsReloading() const { return false; }
@@ -1567,7 +1575,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   V(AllClassesFinalized)                                                       \
   V(RemappingCids)                                                             \
   V(ResumeRequest)                                                             \
-  V(HasAttemptedReload)                                                        \
   V(HasAttemptedStepping)                                                      \
   V(ShouldPausePostServiceRequest)                                             \
   V(CopyParentCode)                                                            \

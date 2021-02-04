@@ -5812,7 +5812,7 @@ void Class::RehashConstants(Zone* zone) const {
     // Shape changes lose the canonical bit because they may result/ in merging
     // constants. E.g., [x1, y1], [x1, y2] -> [x1].
     DEBUG_ASSERT(constant.IsCanonical() ||
-                 Isolate::Current()->HasAttemptedReload());
+                 IsolateGroup::Current()->HasAttemptedReload());
     InsertCanonicalConstant(zone, constant);
   }
   set.Release();
@@ -8976,7 +8976,7 @@ FunctionPtr Function::ImplicitClosureTarget(Zone* zone) const {
       Function::Handle(zone, Resolver::ResolveFunction(zone, owner, func_name));
 
   if (!target.IsNull() && (target.ptr() != parent.ptr())) {
-    DEBUG_ASSERT(Isolate::Current()->HasAttemptedReload());
+    DEBUG_ASSERT(IsolateGroup::Current()->HasAttemptedReload());
     if ((target.is_static() != parent.is_static()) ||
         (target.kind() != parent.kind())) {
       target = Function::null();
@@ -10299,8 +10299,8 @@ void Field::InitializeNew(const Field& result,
       FLAG_precompiled_mode || isolate_group->use_field_guards();
 #else
   const bool use_guarded_cid =
-      FLAG_precompiled_mode ||
-      (isolate_group->use_field_guards() && !isolate->HasAttemptedReload());
+      FLAG_precompiled_mode || (isolate_group->use_field_guards() &&
+                                !isolate_group->HasAttemptedReload());
 #endif  // !defined(PRODUCT)
   result.set_guarded_cid_unsafe(use_guarded_cid ? kIllegalCid : kDynamicCid);
   result.set_is_nullable_unsafe(use_guarded_cid ? false : true);
@@ -10594,7 +10594,7 @@ FunctionPtr Field::EnsureInitializerFunction() const {
     UNREACHABLE();
 #else
     SafepointMutexLocker ml(
-        thread->isolate()->group()->initializer_functions_mutex());
+        thread->isolate_group()->initializer_functions_mutex());
     // Double check after grabbing the lock.
     initializer = InitializerFunction();
     if (initializer.IsNull()) {
@@ -18390,7 +18390,7 @@ void Instance::CanonicalizeFieldsLocked(Thread* thread) const {
     const intptr_t instance_size = SizeFromClass();
     ASSERT(instance_size != 0);
     const auto unboxed_fields_bitmap =
-        thread->isolate()->group()->shared_class_table()->GetUnboxedFieldsMapAt(
+        thread->isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(
             class_id);
     for (intptr_t offset = Instance::NextFieldOffset(); offset < instance_size;
          offset += kWordSize) {

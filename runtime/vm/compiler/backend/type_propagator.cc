@@ -1463,7 +1463,7 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
   }
   if (field.needs_load_guard()) {
     // Should be kept in sync with Slot::Get.
-    DEBUG_ASSERT(Isolate::Current()->HasAttemptedReload());
+    DEBUG_ASSERT(IsolateGroup::Current()->HasAttemptedReload());
     return CompileType::Dynamic();
   }
   return CompileType(is_nullable, cid, abstract_type);

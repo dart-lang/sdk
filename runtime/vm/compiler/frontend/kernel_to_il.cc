@@ -3422,7 +3422,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
     body += NullConstant();
   } else if (is_getter && is_method) {
     ASSERT(!field.needs_load_guard()
-                NOT_IN_PRODUCT(|| I->HasAttemptedReload()));
+                NOT_IN_PRODUCT(|| IG->HasAttemptedReload()));
     body += LoadLocal(parsed_function_->ParameterVariable(0));
     body += LoadField(
         field, /*calls_initializer=*/field.NeedsInitializationCheckOnLoad());
@@ -3455,7 +3455,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
 #if defined(PRODUCT)
       UNREACHABLE();
 #else
-      ASSERT(Isolate::Current()->HasAttemptedReload());
+      ASSERT(IsolateGroup::Current()->HasAttemptedReload());
       body += CheckAssignable(AbstractType::Handle(Z, field.type()),
                               Symbols::FunctionResult());
 #endif

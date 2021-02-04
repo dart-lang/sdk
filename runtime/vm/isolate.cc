@@ -961,9 +961,7 @@ void Isolate::ValidateConstants() {
     // TODO(27003)
     return;
   }
-  if (HasAttemptedReload()) {
-    return;
-  }
+
   // Verify that all canonical instances are correctly setup in the
   // corresponding canonical tables.
   BackgroundCompiler::Stop(this);
@@ -1993,8 +1991,8 @@ bool IsolateGroup::ReloadSources(JSONStream* js,
       new IsolateGroupReloadContext(this, shared_class_table, js));
   group_reload_context_ = group_reload_context;
 
+  SetHasAttemptedReload(true);
   ForEachIsolate([&](Isolate* isolate) {
-    isolate->SetHasAttemptedReload(true);
     isolate->program_reload_context_ =
         new ProgramReloadContext(group_reload_context_, isolate);
   });
@@ -2026,8 +2024,8 @@ bool IsolateGroup::ReloadKernel(JSONStream* js,
       new IsolateGroupReloadContext(this, shared_class_table, js));
   group_reload_context_ = group_reload_context;
 
+  SetHasAttemptedReload(true);
   ForEachIsolate([&](Isolate* isolate) {
-    isolate->SetHasAttemptedReload(true);
     isolate->program_reload_context_ =
         new ProgramReloadContext(group_reload_context_, isolate);
   });
@@ -2448,7 +2446,7 @@ void Isolate::Shutdown() {
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_check_reloaded && is_runnable() && !Isolate::IsSystemIsolate(this)) {
-    if (!HasAttemptedReload()) {
+    if (!group()->HasAttemptedReload()) {
       FATAL(
           "Isolate did not reload before exiting and "
           "--check-reloaded is enabled.\n");

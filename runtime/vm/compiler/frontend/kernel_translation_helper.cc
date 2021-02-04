@@ -526,7 +526,7 @@ const String& TranslationHelper::DartFactoryName(NameIndex factory) {
 static void CheckStaticLookup(const Object& target) {
   if (target.IsNull()) {
 #ifndef PRODUCT
-    ASSERT(Isolate::Current()->HasAttemptedReload());
+    ASSERT(IsolateGroup::Current()->HasAttemptedReload());
     Report::LongJump(LanguageError::Handle(LanguageError::New(String::Handle(
         String::New("Unimplemented handling of missing static target")))));
 #else
