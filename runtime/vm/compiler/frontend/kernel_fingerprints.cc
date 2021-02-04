@@ -507,6 +507,7 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       CalculateFunctionNodeFingerprint();  // read function node.
       return;
     case kLet:
+      ReadPosition();                             // read position.
       CalculateVariableDeclarationFingerprint();  // read variable declaration.
       CalculateExpressionFingerprint();           // read expression.
       return;
@@ -754,6 +755,7 @@ void KernelFingerprintHelper::CalculateFunctionNodeFingerprint() {
   CalculateListOfVariableDeclarationsFingerprint();  // read positionals
   CalculateListOfVariableDeclarationsFingerprint();  // read named
   CalculateDartTypeFingerprint();                    // read return type.
+  CalculateOptionalDartTypeFingerprint();            // read future value type.
 
   if (ReadTag() == kSomething) {
     CalculateStatementFingerprint();  // Read body.

@@ -111,7 +111,8 @@ import '../source/stack_listener_impl.dart' show offsetForToken;
 
 import '../source/value_kinds.dart';
 
-import '../type_inference/type_inferrer.dart' show TypeInferrer;
+import '../type_inference/type_inferrer.dart'
+    show TypeInferrer, InferredFunctionBody;
 
 import '../type_inference/type_promotion.dart'
     show TypePromoter, TypePromotionFact, TypePromotionScope;
@@ -992,9 +993,16 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           builder.fileUri);
     }
 
+    InferredFunctionBody inferredFunctionBody;
     if (body != null) {
-      body = typeInferrer?.inferFunctionBody(this, member.charOffset,
-          _computeReturnTypeContext(member), asyncModifier, body);
+      inferredFunctionBody = typeInferrer?.inferFunctionBody(
+          this,
+          member.charOffset,
+          _computeReturnTypeContext(member),
+          asyncModifier,
+          body);
+      body = inferredFunctionBody.body;
+      builder.function.futureValueType = inferredFunctionBody.futureValueType;
       libraryBuilder.loader.transformPostInference(body, transformSetLiterals,
           transformCollections, libraryBuilder.library);
     }
@@ -1426,10 +1434,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         typeInferrer?.flowAnalysis?.declare(formals[i].variable, true);
       }
     }
-    Statement inferredStatement = typeInferrer?.inferFunctionBody(
+    InferredFunctionBody inferredFunctionBody = typeInferrer?.inferFunctionBody(
         this, fileOffset, const DynamicType(), AsyncMarker.Sync, fakeReturn);
     assert(
-        fakeReturn == inferredStatement,
+        fakeReturn == inferredFunctionBody.body,
         "Previously implicit assumption about inferFunctionBody "
         "not returning anything different.");
 

@@ -856,6 +856,7 @@ void ScopeBuilder::VisitExpression() {
 
       EnterScope(offset);
 
+      helper_.ReadPosition();      // read position.
       VisitVariableDeclaration();  // read variable declaration.
       VisitExpression();           // read expression.
 

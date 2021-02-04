@@ -270,6 +270,7 @@ class FunctionNodeHelper {
     kPositionalParameters,
     kNamedParameters,
     kReturnType,
+    kFutureValueType,
     kBody,
     kEnd,
   };
