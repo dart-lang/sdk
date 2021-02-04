@@ -60,6 +60,16 @@ const uint8_t kNativeYieldFlags = 0x2;
 
 enum LogicalOperator { kAnd, kOr };
 
+struct ProgramBinary {
+  ProgramBinary SubView(intptr_t start, intptr_t end) const {
+    return {typed_data, kernel_data + start, end - start};
+  }
+
+  const ExternalTypedData* typed_data;
+  const uint8_t* kernel_data;
+  intptr_t kernel_data_size;
+};
+
 class Program {
  public:
   // Read a kernel Program from the given Reader. Note the returned Program
@@ -89,14 +99,16 @@ class Program {
     return metadata_mappings_offset_;
   }
   intptr_t constant_table_offset() { return constant_table_offset_; }
-  const ExternalTypedData* typed_data() { return typed_data_; }
-  const uint8_t* kernel_data() { return kernel_data_; }
-  intptr_t kernel_data_size() { return kernel_data_size_; }
   intptr_t library_count() { return library_count_; }
   NNBDCompiledMode compilation_mode() const { return compilation_mode_; }
 
+  const ProgramBinary& binary() const { return binary_; }
+  const ExternalTypedData* typed_data() { return binary().typed_data; }
+  const uint8_t* kernel_data() { return binary().kernel_data; }
+  intptr_t kernel_data_size() { return binary().kernel_data_size; }
+
  private:
-  Program() : typed_data_(NULL), kernel_data_(NULL), kernel_data_size_(-1) {}
+  Program() : binary_() {}
 
   bool single_program_;
   uint32_t binary_version_;
@@ -122,9 +134,7 @@ class Program {
   // The offset from the start of the binary to the start of the string table.
   intptr_t string_table_offset_;
 
-  const ExternalTypedData* typed_data_;
-  const uint8_t* kernel_data_;
-  intptr_t kernel_data_size_;
+  ProgramBinary binary_;
 
   DISALLOW_COPY_AND_ASSIGN(Program);
 };

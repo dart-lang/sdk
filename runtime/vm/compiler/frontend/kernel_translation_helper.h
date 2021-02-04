@@ -1167,12 +1167,11 @@ class KernelReaderHelper {
 
   KernelReaderHelper(Zone* zone,
                      TranslationHelper* translation_helper,
-                     const uint8_t* data_buffer,
-                     intptr_t buffer_length,
+                     const ProgramBinary& binary,
                      intptr_t data_program_offset)
       : zone_(zone),
         translation_helper_(*translation_helper),
-        reader_(data_buffer, buffer_length),
+        reader_(binary),
         script_(Script::Handle(zone_)),
         data_program_offset_(data_program_offset) {}
 
