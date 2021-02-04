@@ -115,7 +115,6 @@ nnbd/duplicates_static_extension: FormatterCrash
 nnbd/field_vs_setter: FormatterCrash
 nnbd/forbidden_supers: FormatterCrash
 nnbd/getter_vs_setter_type_late: FormatterCrash
-nnbd/inheritance_from_opt_in: FormatterCrash
 nnbd/issue40805: FormatterCrash
 nnbd/issue41597: FormatterCrash
 nnbd/issue42967: FormatterCrash

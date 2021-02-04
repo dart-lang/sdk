@@ -31,7 +31,6 @@ map_insert_remove_oom_test: Skip # Heap limit too low.
 [ $compiler == dartk && $mode == debug && $runtime == vm ]
 io/file_lock_test: Slow, Pass
 io/raw_socket_test: Crash
-io/socket_exception_test: Crash
 io/socket_finalizer_test: Crash
 io/socket_info_ipv4_test: Crash
 io/socket_info_ipv6_test: Crash
@@ -80,7 +79,6 @@ io/web_socket_test: Skip # Timeout
 
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled ]
 io/raw_socket_test: Crash
-io/socket_exception_test: Crash
 io/socket_finalizer_test: Crash
 io/socket_info_ipv4_test: Crash
 io/socket_info_ipv6_test: Crash

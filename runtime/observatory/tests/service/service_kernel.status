@@ -87,7 +87,6 @@ debugger_location_test: SkipByDesign # Debugger is disabled in AOT mode.
 debugging_inlined_finally_test: SkipByDesign # Debugger is disabled in AOT mode.
 debugging_test: SkipByDesign # Debugger is disabled in AOT mode.
 deferred_import_reload_test: SkipByDesign # Hot reload is disabled in AOT mode.
-dev_fs_spawn_test: SkipByDesign # Debugger is disabled in AOT mode.
 developer_extension_test: SkipByDesign # Debugger is disabled in AOT mode.
 developer_service_get_isolate_id_test: SkipByDesign # Debugger is disabled in AOT mode.
 eval_internal_class_test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -107,7 +106,6 @@ evaluate_with_escaping_closure_test: SkipByDesign # Debugger is disabled in AOT 
 evaluate_with_scope_test: SkipByDesign # Debugger is disabled in AOT mode.
 field_script_test: SkipByDesign # Debugger is disabled in AOT mode.
 get_allocation_samples_test: SkipByDesign # Debugger is disabled in AOT mode.
-get_isolate_after_language_error_test: CompileTimeError
 get_object_rpc_test: SkipByDesign # Debugger is disabled in AOT mode.
 get_source_report_const_coverage_test: SkipByDesign # Debugger is disabled in AOT mode.
 get_source_report_test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -194,9 +192,6 @@ validate_timer_port_behavior_test: SkipByDesign # Debugger is disabled in AOT mo
 vm_timeline_flags_test: SkipByDesign # Debugger is disabled in AOT mode.
 weak_properties_test: CompileTimeError
 yield_positions_with_finally_test: SkipByDesign # Debugger is disabled in AOT mode.
-
-[ $fasta ]
-get_isolate_after_language_error_test: CompileTimeError
 
 [ $arch == arm64 && $compiler == dartk ]
 coverage_optimized_function_test: Pass, Slow
