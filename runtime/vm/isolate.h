@@ -704,6 +704,23 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
         CompactionInProgressBit::update(value, isolate_group_flags_);
   }
 
+  // In precompilation we finalize all regular classes before compiling.
+  bool all_classes_finalized() const {
+    return AllClassesFinalizedBit::decode(isolate_group_flags_);
+  }
+  void set_all_classes_finalized(bool value) {
+    isolate_group_flags_ =
+        AllClassesFinalizedBit::update(value, isolate_group_flags_);
+  }
+
+  bool remapping_cids() const {
+    return RemappingCidsBit::decode(isolate_group_flags_);
+  }
+  void set_remapping_cids(bool value) {
+    isolate_group_flags_ =
+        RemappingCidsBit::update(value, isolate_group_flags_);
+  }
+
   uword FindPendingDeoptAtSafepoint(uword fp);
 
   // Used by background compiler which field became boxed and must trigger
@@ -753,10 +770,12 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   friend class NoReloadScope;  // no_reload_scope_depth_
 
 #define ISOLATE_GROUP_FLAG_BITS(V)                                             \
+  V(AllClassesFinalized)                                                       \
   V(CompactionInProgress)                                                      \
   V(EnableAsserts)                                                             \
   V(HasAttemptedReload)                                                        \
   V(NullSafety)                                                                \
+  V(RemappingCids)                                                             \
   V(NullSafetySet)                                                             \
   V(Obfuscate)                                                                 \
   V(UseFieldGuards)                                                            \
@@ -1311,21 +1330,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   ErrorPtr sticky_error() const { return sticky_error_; }
   DART_WARN_UNUSED_RESULT ErrorPtr StealStickyError();
 
-  // In precompilation we finalize all regular classes before compiling.
-  bool all_classes_finalized() const {
-    return AllClassesFinalizedBit::decode(isolate_flags_);
-  }
-  void set_all_classes_finalized(bool value) {
-    isolate_flags_ = AllClassesFinalizedBit::update(value, isolate_flags_);
-  }
-
-  bool remapping_cids() const {
-    return RemappingCidsBit::decode(isolate_flags_);
-  }
-  void set_remapping_cids(bool value) {
-    isolate_flags_ = RemappingCidsBit::update(value, isolate_flags_);
-  }
-
 #ifndef PRODUCT
   ErrorPtr InvokePendingServiceExtensionCalls();
   void AppendServiceExtensionCall(const Instance& closure,
@@ -1572,8 +1576,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   V(IsRunnable)                                                                \
   V(IsServiceIsolate)                                                          \
   V(IsKernelIsolate)                                                           \
-  V(AllClassesFinalized)                                                       \
-  V(RemappingCids)                                                             \
   V(ResumeRequest)                                                             \
   V(HasAttemptedStepping)                                                      \
   V(ShouldPausePostServiceRequest)                                             \

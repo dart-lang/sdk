@@ -2815,7 +2815,7 @@ ClassPtr Isolate::GetClassForHeapWalkAt(intptr_t cid) {
   raw_class = group()->class_table()->At(cid);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   ASSERT(raw_class != nullptr);
-  ASSERT(remapping_cids() || raw_class->untag()->id_ == cid);
+  ASSERT(group()->remapping_cids() || raw_class->untag()->id_ == cid);
   return raw_class;
 }
 

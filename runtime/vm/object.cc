@@ -3806,7 +3806,7 @@ ArrayPtr Class::invocation_dispatcher_cache() const {
 void Class::Finalize() const {
   auto thread = Thread::Current();
   auto isolate_group = thread->isolate_group();
-  ASSERT(!thread->isolate()->all_classes_finalized());
+  ASSERT(!thread->isolate_group()->all_classes_finalized());
   ASSERT(!is_finalized());
   // Prefinalized classes have a VM internal representation and no Dart fields.
   // Their instance size  is precomputed and field offsets are known.

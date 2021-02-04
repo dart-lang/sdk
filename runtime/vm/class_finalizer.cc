@@ -1452,11 +1452,8 @@ void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
     HeapIterationScope his(T);
 
     IG->shared_class_table()->Remap(old_to_new_cid);
-    IG->ForEachIsolate(
-        [&](Isolate* I) {
-          I->set_remapping_cids(true);
-        },
-        /*is_at_safepoint=*/true);
+    IG->set_remapping_cids(true);
+
     // Update the class table. Do it before rewriting cids in headers, as
     // the heap walkers load an object's size *after* calling the visitor.
     IG->class_table()->Remap(old_to_new_cid);
@@ -1468,11 +1465,7 @@ void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
       IG->heap()->VisitObjects(&visitor);
     }
 
-    IG->ForEachIsolate(
-        [&](Isolate* I) {
-          I->set_remapping_cids(false);
-        },
-        /*is_at_safepoint=*/true);
+    IG->set_remapping_cids(false);
 #if defined(DEBUG)
     IG->class_table()->Validate();
 #endif

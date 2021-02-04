@@ -2504,7 +2504,7 @@ void Precompiler::FinalizeAllClasses() {
   if (!error_.IsNull()) {
     Jump(error_);
   }
-  I->set_all_classes_finalized(true);
+  IG->set_all_classes_finalized(true);
 }
 
 void PrecompileParsedFunctionHelper::FinalizeCompilation(
