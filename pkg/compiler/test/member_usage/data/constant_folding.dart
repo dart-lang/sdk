@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-// Derived from tests/dart2js_2/constant_folding_test
+// Derived from tests/web_2/constant_folding_test
 
 import "package:expect/expect.dart";
 

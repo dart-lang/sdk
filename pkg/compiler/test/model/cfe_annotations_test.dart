@@ -19,7 +19,7 @@ import 'package:kernel/ast.dart' as ir;
 import '../helpers/args_helper.dart';
 import '../helpers/memory_compiler.dart';
 
-const String pathPrefix = 'sdk/tests/dart2js_2/native/';
+const String pathPrefix = 'sdk/tests/web_2/native/';
 
 const Map<String, String> source = {
   '$pathPrefix/main.dart': '''

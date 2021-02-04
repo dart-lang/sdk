@@ -28,7 +28,7 @@
       'filepath': (
         '^pkg/compiler|'
         '^sdk/lib/_internal/js_runtime|'
-        '^tests/dart2js'
+        '^tests/web'
       )
     },
     'dartdevc': {

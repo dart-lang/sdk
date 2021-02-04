@@ -27,12 +27,10 @@ export 'package:compiler/src/util/util.dart';
 export 'output_collector.dart';
 
 String _commonTestPath(bool soundNullSafety) {
-  // Pretend this is a dart2js_native test to allow use of 'native' keyword
+  // Pretend this is a web/native test to allow use of 'native' keyword
   // and import of private libraries. However, we have to choose the correct
   // folder to enable / disable  implicit cfe opt out of null safety.
-  return soundNullSafety
-      ? 'sdk/tests/dart2js/native'
-      : 'sdk/tests/dart2js_2/native';
+  return soundNullSafety ? 'sdk/tests/web/native' : 'sdk/tests/web_2/native';
 }
 
 /// Compile [code] and returns either the code for [methodName] or, if

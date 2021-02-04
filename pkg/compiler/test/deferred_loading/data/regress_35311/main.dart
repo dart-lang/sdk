@@ -15,12 +15,12 @@ main() async {
   await lib.loadLibrary();
 
   // inferred return-type in closures:
-  // lib.B f1() => lib.B(); // Compile time error(see tests/dart2js)
+  // lib.B f1() => lib.B(); // Compile time error(see tests/web)
   var f2 = /*closure_unit=main{}*/ () =>
       lib.B(); // no compile error, but f1 has inferred type: () -> d.B
 
   // inferred type-arguments
-  // lib.list = <lib.B>[]; // Compile time error(see tests/dart2js)
+  // lib.list = <lib.B>[]; // Compile time error(see tests/web)
   lib.list = []; // no error, but type parameter was injected here
   lib.list = lib.list
       .map(/*closure_unit=main{}*/ (x) => x.value)
