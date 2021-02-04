@@ -666,7 +666,7 @@ DEFINE_NATIVE_ENTRY(IsolateMirror_loadUri, 0, 1) {
     ThrowLanguageError("no library handler registered");
   }
 
-  NoReloadScope no_reload(isolate, thread);
+  NoReloadScope no_reload(isolate->group(), thread);
 
   // Canonicalize library URI.
   String& canonical_uri = String::Handle(zone);

@@ -853,19 +853,19 @@ NoOOBMessageScope::~NoOOBMessageScope() {
   thread()->RestoreOOBMessageInterrupts();
 }
 
-NoReloadScope::NoReloadScope(Isolate* isolate, Thread* thread)
-    : ThreadStackResource(thread), isolate_(isolate) {
+NoReloadScope::NoReloadScope(IsolateGroup* isolate_group, Thread* thread)
+    : ThreadStackResource(thread), isolate_group_(isolate_group) {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  ASSERT(isolate_ != NULL);
-  isolate_->no_reload_scope_depth_.fetch_add(1);
-  ASSERT(isolate_->no_reload_scope_depth_ >= 0);
+  ASSERT(isolate_group_ != NULL);
+  isolate_group_->no_reload_scope_depth_.fetch_add(1);
+  ASSERT(isolate_group_->no_reload_scope_depth_ >= 0);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 NoReloadScope::~NoReloadScope() {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  isolate_->no_reload_scope_depth_.fetch_sub(1);
-  ASSERT(isolate_->no_reload_scope_depth_ >= 0);
+  isolate_group_->no_reload_scope_depth_.fetch_sub(1);
+  ASSERT(isolate_group_->no_reload_scope_depth_ >= 0);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 }
 
@@ -1475,7 +1475,7 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
         T->isolate()->name(), result.ToErrorCString());
   }
 
-  NoReloadScope no_reload_scope(T->isolate(), T);
+  NoReloadScope no_reload_scope(T->isolate_group(), T);
   // Generate the error and stacktrace strings for the error message.
   const char* exception_cstr = nullptr;
   const char* stacktrace_cstr = nullptr;
@@ -1971,7 +1971,7 @@ void Isolate::BuildName(const char* name_prefix) {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 bool Isolate::CanReload() const {
   return !Isolate::IsSystemIsolate(this) && is_runnable() &&
-         !group()->IsReloading() && (no_reload_scope_depth_ == 0) &&
+         !group()->IsReloading() && (group()->no_reload_scope_depth_ == 0) &&
          IsolateCreationEnabled() &&
          OSThread::Current()->HasStackHeadroom(64 * KB);
 }

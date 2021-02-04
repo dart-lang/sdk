@@ -10754,7 +10754,7 @@ ObjectPtr Field::EvaluateInitializer() const {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   NoOOBMessageScope no_msg_scope(thread);
-  NoReloadScope no_reload_scope(thread->isolate(), thread);
+  NoReloadScope no_reload_scope(thread->isolate_group(), thread);
   const Function& initializer = Function::Handle(EnsureInitializerFunction());
   return DartEntry::InvokeFunction(initializer, Object::empty_array());
 }
@@ -17969,7 +17969,7 @@ StringPtr LanguageError::FormatMessage() const {
 
 const char* LanguageError::ToErrorCString() const {
   Thread* thread = Thread::Current();
-  NoReloadScope no_reload_scope(thread->isolate(), thread);
+  NoReloadScope no_reload_scope(thread->isolate_group(), thread);
   const String& msg_str = String::Handle(FormatMessage());
   return msg_str.ToCString();
 }
@@ -18018,9 +18018,8 @@ void UnhandledException::set_stacktrace(const Instance& stacktrace) const {
 
 const char* UnhandledException::ToErrorCString() const {
   Thread* thread = Thread::Current();
-  auto isolate = thread->isolate();
   auto isolate_group = thread->isolate_group();
-  NoReloadScope no_reload_scope(isolate, thread);
+  NoReloadScope no_reload_scope(isolate_group, thread);
   HANDLESCOPE(thread);
   Object& strtmp = Object::Handle();
   const char* exc_str;

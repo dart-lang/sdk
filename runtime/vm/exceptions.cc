@@ -1194,7 +1194,7 @@ ObjectPtr Exceptions::Create(ExceptionType type, const Array& arguments) {
   }
 
   Thread* thread = Thread::Current();
-  NoReloadScope no_reload_scope(thread->isolate(), thread);
+  NoReloadScope no_reload_scope(thread->isolate_group(), thread);
   return DartLibraryCalls::InstanceCreate(library, *class_name,
                                           *constructor_name, arguments);
 }
