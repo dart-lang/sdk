@@ -7,6 +7,7 @@
   Use `CompilationUnitElement.typeAliases` instead.
 * Added `AnalysisContext.sdkRoot`.
 * Removed `NullSafetyUnderstandingFlag`.
+* Removed `functionTypeAliasElement` from `TypeSystem.instantiateToBounds2`.
 
 ## 0.41.1
 * Updated `PackageBuildWorkspace` that supports `package:build` to stop

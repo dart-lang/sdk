@@ -55,7 +55,8 @@ Object? createServiceObject(dynamic json, List<String> expectedTypes) {
       } else {
         return null;
       }
-    } else if (_isNullInstance(json) && (!expectedTypes.contains(type))) {
+    } else if (_isNullInstance(json) &&
+        (!expectedTypes.contains('InstanceRef'))) {
       // Replace null instances with null when we don't expect an instance to
       // be returned.
       return null;

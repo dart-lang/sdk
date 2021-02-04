@@ -762,7 +762,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     } else if (_returnType == null) {
       variableType = null;
       if (_hasAwait) {
-        returnType = _getTypeCode(typeProvider.futureDynamicType);
+        var futureVoid = typeProvider.futureType2(typeProvider.voidType);
+        returnType = _getTypeCode(futureVoid);
       } else {
         returnType = 'void';
       }

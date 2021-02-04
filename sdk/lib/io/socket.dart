@@ -310,11 +310,11 @@ abstract class ServerSocket implements Stream<Socket> {
   /// the system.
   ///
   /// The optional argument [shared] specifies whether additional ServerSocket
-  /// objects can bind to the same combination of [address], [port] [and] [v6Only].
-  /// If [shared] is `true` and more [ServerSockets] from this isolate or other
-  /// isolates are bound to the port, then the incoming connections will be
-  /// distributed among all the bound [ServerSockets]. Connections can be
-  /// distributed over multiple isolates this way.
+  /// objects can bind to the same combination of [address], [port] and
+  /// [v6Only]. If [shared] is `true` and more server sockets from this
+  /// isolate or other isolates are bound to the port, then the incoming
+  /// connections will be distributed among all the bound server sockets.
+  /// Connections can be distributed over multiple isolates this way.
   static Future<ServerSocket> bind(address, int port,
       {int backlog = 0, bool v6Only = false, bool shared = false}) {
     final IOOverrides? overrides = IOOverrides.current;

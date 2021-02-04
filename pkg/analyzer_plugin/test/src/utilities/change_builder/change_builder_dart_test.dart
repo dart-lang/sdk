@@ -106,6 +106,14 @@ class DartEditBuilderImpl_WithNullSafetyTest extends DartEditBuilderImplTest
     var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('required a'));
   }
+
+  Future<void> test_writeType_Never_none() async {
+    await _assertWriteType('Never');
+  }
+
+  Future<void> test_writeType_Never_question() async {
+    await _assertWriteType('Never?');
+  }
 }
 
 class DartEditBuilderImplTest extends AbstractContextTest

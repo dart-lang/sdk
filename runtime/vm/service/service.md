@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.42
+# Dart VM Service Protocol 3.43
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.42_ of the Dart VM Service Protocol. This
+This document describes of _version 3.43_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -3948,5 +3948,6 @@ version | comments
 3.40 | Added `IsolateFlag` object and `isolateFlags` property to `Isolate`.
 3.41 | Added `PortList` object, `ReceivePort` `InstanceKind`, and `getPorts` RPC.
 3.42 | Added `limit` optional parameter to `getStack` RPC.
+3.43 | Updated heap snapshot format to include identity hash codes.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

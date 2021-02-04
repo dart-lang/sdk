@@ -38,30 +38,6 @@ class StackTraceBuilder : public ValueObject {
   virtual void AddFrame(const Object& code, const Smi& offset) = 0;
 };
 
-class RegularStackTraceBuilder : public StackTraceBuilder {
- public:
-  explicit RegularStackTraceBuilder(Zone* zone)
-      : code_list_(
-            GrowableObjectArray::Handle(zone, GrowableObjectArray::New())),
-        pc_offset_list_(
-            GrowableObjectArray::Handle(zone, GrowableObjectArray::New())) {}
-  ~RegularStackTraceBuilder() {}
-
-  const GrowableObjectArray& code_list() const { return code_list_; }
-  const GrowableObjectArray& pc_offset_list() const { return pc_offset_list_; }
-
-  virtual void AddFrame(const Object& code, const Smi& offset) {
-    code_list_.Add(code);
-    pc_offset_list_.Add(offset);
-  }
-
- private:
-  const GrowableObjectArray& code_list_;
-  const GrowableObjectArray& pc_offset_list_;
-
-  DISALLOW_COPY_AND_ASSIGN(RegularStackTraceBuilder);
-};
-
 class PreallocatedStackTraceBuilder : public StackTraceBuilder {
  public:
   explicit PreallocatedStackTraceBuilder(const Instance& stacktrace)

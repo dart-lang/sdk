@@ -623,6 +623,24 @@
         ]
       }
     },
+    "dart2js-o0-(linux|mac|win)-d8": {
+      "options": {
+        "builder-tag": "dart2js_o0",
+        "use-sdk": true,
+        "dart2js-options": [
+          "-O0"
+        ]
+      }
+    },
+    "dart2js-modern-(linux|mac|win)-d8": {
+      "options": {
+        "builder-tag": "dart2js_modern",
+        "use-sdk": true,
+        "dart2js-options": [
+          "--no-legacy-javascript"
+        ]
+      }
+    },
     "dart2js-hostasserts-(linux|mac|win)-(ia32|x64)-d8": {
       "options": {
         "host-checked": true,
@@ -2444,6 +2462,22 @@
             "--dart2js-batch",
             "dart2js_2"
           ]
+        },
+        {
+          "name": "dart2js -O0 smoke tests",
+          "arguments": [
+            "-ndart2js-o0-linux-d8",
+            "--dart2js-batch",
+            "dart2js_2"
+          ]
+        },
+        {
+          "name": "dart2js --no-legacy-javascript smoke tests",
+          "arguments": [
+            "-ndart2js-modern-linux-d8",
+            "--dart2js-batch",
+            "dart2js_2"
+          ]
         }
       ]
     },
@@ -3250,7 +3284,7 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dartdoc",
           "arguments": [
             "--exclude",
-            "dart:ffi,dart:html,dart:web_sql,dart:web_audio,dart:svg,dart:indexed_db,dart:io",
+            "dart:ffi,dart:html,dart:web_sql,dart:web_audio,dart:svg,dart:indexed_db",
             "--sdk-docs",
             "--no-generate-docs"
           ],

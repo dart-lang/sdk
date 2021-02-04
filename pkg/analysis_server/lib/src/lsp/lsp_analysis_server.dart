@@ -121,6 +121,12 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// A progress reporter for analysis status.
   ProgressReporter analyzingProgressReporter;
 
+  /// The last paths that were set as included analysis roots.
+  Set<String> _lastIncludedRootPaths;
+
+  /// The last paths that were set as excluded analysis roots.
+  Set<String> _lastExcludedRootPaths;
+
   /// Initialize a newly created server to send and receive messages to the
   /// given [channel].
   LspAnalysisServer(
@@ -671,9 +677,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   void _refreshAnalysisRoots() {
     // Always include any temporary analysis roots for open files.
-    final includedPaths = HashSet<String>.of(_explicitAnalysisRoots)
-      ..addAll(_temporaryAnalysisRoots.values)
-      ..toList();
+    final includedPaths = _explicitAnalysisRoots.toSet()
+      ..addAll(_temporaryAnalysisRoots.values);
 
     final excludedPaths = clientConfiguration.analysisExcludedFolders
         .expand((excludePath) => isAbsolute(excludePath)
@@ -683,11 +688,27 @@ class LspAnalysisServer extends AbstractAnalysisServer {
             // calling workspace/configuration whenever workspace folders change
             // and caching the config for each one.
             : _explicitAnalysisRoots.map((root) => join(root, excludePath)))
-        .toList();
+        .toSet();
+
+    // If the roots didn't actually change from the last time they were set
+    // (this can happen a lot as temporary roots are collected for open files)
+    // we can avoid doing expensive work like discarding/re-scanning the
+    // declarations.
+    final rootsChanged =
+        includedPaths.length != _lastIncludedRootPaths?.length ||
+            !includedPaths.every(_lastIncludedRootPaths.contains) ||
+            excludedPaths.length != _lastExcludedRootPaths?.length ||
+            !excludedPaths.every(_lastExcludedRootPaths.contains);
+
+    if (!rootsChanged) return;
+
+    _lastIncludedRootPaths = includedPaths;
+    _lastExcludedRootPaths = excludedPaths;
 
     declarationsTracker?.discardContexts();
-    notificationManager.setAnalysisRoots(includedPaths.toList(), excludedPaths);
-    contextManager.setRoots(includedPaths.toList(), excludedPaths);
+    notificationManager.setAnalysisRoots(
+        includedPaths.toList(), excludedPaths.toList());
+    contextManager.setRoots(includedPaths.toList(), excludedPaths.toList());
     addContextsToDeclarationsTracker();
   }
 

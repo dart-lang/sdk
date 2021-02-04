@@ -24,6 +24,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:dart_style/dart_style.dart';
+import 'package:meta/meta.dart';
 
 /// A [ChangeBuilder] used to build changes in Dart files.
 @Deprecated('Use ChangeBuilder')
@@ -1178,22 +1179,19 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       }
       return false;
     }
-    // The type `void` does not have an element.
-    if (type is VoidType) {
-      write('void');
+
+    var aliasElement = type.aliasElement;
+    if (aliasElement != null) {
+      _writeTypeElementArguments(
+        element: aliasElement,
+        typeArguments: type.aliasArguments,
+        methodBeingCopied: methodBeingCopied,
+      );
+      _writeTypeNullability(type);
       return true;
     }
 
-    var element = type.element;
-    // Typedef(s) are represented as GenericFunctionTypeElement(s).
-    if (element is GenericFunctionTypeElement &&
-        element.typeParameters.isEmpty &&
-        element.enclosingElement is FunctionTypeAliasElement) {
-      element = element.enclosingElement;
-    }
-
-    // Just a Function, not FunctionTypeAliasElement.
-    if (type is FunctionType && element is! FunctionTypeAliasElement) {
+    if (type is FunctionType) {
       if (_writeType(type.returnType, methodBeingCopied: methodBeingCopied)) {
         write(' ');
       }
@@ -1204,6 +1202,41 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       return true;
     }
 
+    if (type is InterfaceType) {
+      _writeTypeElementArguments(
+        element: type.element,
+        typeArguments: type.typeArguments,
+        methodBeingCopied: methodBeingCopied,
+      );
+      _writeTypeNullability(type);
+      return true;
+    }
+
+    if (type is NeverType) {
+      write('Never');
+      _writeTypeNullability(type);
+      return true;
+    }
+
+    if (type is TypeParameterType) {
+      write(type.element.name);
+      _writeTypeNullability(type);
+      return true;
+    }
+
+    if (type is VoidType) {
+      write('void');
+      return true;
+    }
+
+    throw UnimplementedError('(${type.runtimeType}) $type');
+  }
+
+  void _writeTypeElementArguments({
+    @required Element element,
+    @required List<DartType> typeArguments,
+    @required ExecutableElement methodBeingCopied,
+  }) {
     // Ensure that the element is imported.
     _writeLibraryReference(element);
 
@@ -1212,12 +1245,11 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     write(name);
 
     // Write type arguments.
-    if (type is ParameterizedType) {
-      var arguments = type.typeArguments;
+    if (typeArguments.isNotEmpty) {
       // Check if has arguments.
       var hasArguments = false;
       var allArgumentsVisible = true;
-      for (var argument in arguments) {
+      for (var argument in typeArguments) {
         hasArguments = hasArguments || !argument.isDynamic;
         allArgumentsVisible = allArgumentsVisible &&
             _getVisibleType(argument, methodBeingCopied: methodBeingCopied) !=
@@ -1226,8 +1258,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       // Write type arguments only if they are useful.
       if (hasArguments && allArgumentsVisible) {
         write('<');
-        for (var i = 0; i < arguments.length; i++) {
-          var argument = arguments[i];
+        for (var i = 0; i < typeArguments.length; i++) {
+          var argument = typeArguments[i];
           if (i != 0) {
             write(', ');
           }
@@ -1237,12 +1269,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         write('>');
       }
     }
+  }
 
+  void _writeTypeNullability(DartType type) {
     if (type.nullabilitySuffix == NullabilitySuffix.question) {
       write('?');
     }
-
-    return true;
   }
 }
 

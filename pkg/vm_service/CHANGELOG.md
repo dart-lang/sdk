@@ -1,11 +1,15 @@
 # Changelog
 
-## 6.1.0-nullsafety.0
+## 6.1.0
 - Added `identityHashCode` property to `HeapSnapshotObject`, which can be used to compare
   objects across heap snapshots.
 - Added `successors` iterable to `HeapSnapshotObject`, which provides a convenient way to
   access children of a given object.
 - Added `klass` getter to `HeapSnapshotObject`.
+- Fixed issue where `null` could be returned instead of `InstanceRef` of type `Null`.
+
+## 6.0.1
+- Stable null-safe release.
 
 ## 6.0.1-nullsafety.1
 - Fix issue where some `Instance` properties were not being populated correctly.
@@ -16,6 +20,7 @@
 ## 6.0.0-nullsafety.4
 - Fixed issue where response parsing could fail for `SourceReportRange.coverage`
   if no coverage information was provided.
+
 ## 6.0.0-nullsafety.3
 - Fixed issue where `Response.type` and classes which override `Response.type` were
   returning the name of the `package:vm_service` reference object (e.g., InstanceRef) instead of
