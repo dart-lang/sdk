@@ -35,13 +35,8 @@ dart/transferable_throws_oom_test: SkipByDesign # This test tries to allocate to
 dart_2/transferable_throws_oom_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188
 
 [ $builder_tag == obfuscated ]
-dart/causal_stacks/async_throws_stack_lazy_test: SkipByDesign # Asserts exact stacktrace output.
-dart/causal_stacks/async_throws_stack_no_causal_test: SkipByDesign # Asserts exact stacktrace output.
-dart/causal_stacks/async_throws_stack_test: SkipByDesign # Asserts exact stacktrace output.
-dart/causal_stacks/sync_async_start_pkg_test_test: SkipByDesign # Asserts exact stacktrace output.
 dart_2/causal_stacks/async_throws_stack_lazy_test: SkipByDesign # Asserts exact stacktrace output.
 dart_2/causal_stacks/async_throws_stack_no_causal_test: SkipByDesign # Asserts exact stacktrace output.
-dart_2/causal_stacks/async_throws_stack_test: SkipByDesign # Asserts exact stacktrace output.
 dart_2/causal_stacks/sync_async_start_pkg_test_test: SkipByDesign # Asserts exact stacktrace output.
 
 [ $builder_tag == optimization_counter_threshold ]
@@ -94,14 +89,10 @@ dart_2/entrypoints/jit/*: SkipByDesign # These tests should only run on JIT.
 [ $compiler == dartkp ]
 dart/causal_stacks/async_throws_stack_no_causal_non_symbolic_test: SkipByDesign # --no-lazy... does nothing on precompiler.
 dart/causal_stacks/async_throws_stack_no_causal_test: SkipByDesign # --no-lazy... does nothing on precompiler.
-dart/causal_stacks/async_throws_stack_non_symbolic_test: SkipByDesign # --no-lazy... does nothing on precompiler.
-dart/causal_stacks/async_throws_stack_test: SkipByDesign # --no-lazy... does nothing on precompiler.
 dart/scavenger_abort_test: SkipSlow
 dart/v8_snapshot_profile_writer_test: Pass, Slow # Can be slow due to re-invoking the precompiler.
 dart_2/causal_stacks/async_throws_stack_no_causal_non_symbolic_test: SkipByDesign # --no-lazy... does nothing on precompiler.
 dart_2/causal_stacks/async_throws_stack_no_causal_test: SkipByDesign # --no-lazy... does nothing on precompiler.
-dart_2/causal_stacks/async_throws_stack_non_symbolic_test: SkipByDesign # --no-lazy... does nothing on precompiler.
-dart_2/causal_stacks/async_throws_stack_test: SkipByDesign # --no-lazy... does nothing on precompiler.
 dart_2/scavenger_abort_test: SkipSlow
 dart_2/v8_snapshot_profile_writer_test: Pass, Slow # Can be slow due to re-invoking the precompiler.
 
