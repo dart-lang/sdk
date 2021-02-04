@@ -690,6 +690,12 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   uword FindPendingDeoptAtSafepoint(uword fp);
 
+  // Used by background compiler which field became boxed and must trigger
+  // deoptimization in the mutator thread.
+  void AddDeoptimizingBoxedField(const Field& field);
+  // Returns Field::null() if none available in the list.
+  FieldPtr GetDeoptimizingBoxedField();
+
   void RememberLiveTemporaries();
   void DeferredMarkLiveTemporaries();
 
@@ -836,6 +842,11 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   Mutex initializer_functions_mutex_;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+  // Protect access to boxed_field_list_.
+  Mutex field_list_mutex_;
+  // List of fields that became boxed and that trigger deoptimization.
+  GrowableObjectArrayPtr boxed_field_list_;
 
   // Ensures synchronized access to classes functions, fields and other
   // program structure elements to accommodate concurrent modification done
@@ -1307,12 +1318,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     isolate_flags_ = RemappingCidsBit::update(value, isolate_flags_);
   }
 
-  // Used by background compiler which field became boxed and must trigger
-  // deoptimization in the mutator thread.
-  void AddDeoptimizingBoxedField(const Field& field);
-  // Returns Field::null() if none available in the list.
-  FieldPtr GetDeoptimizingBoxedField();
-
 #ifndef PRODUCT
   ErrorPtr InvokePendingServiceExtensionCalls();
   void AppendServiceExtensionCall(const Instance& closure,
@@ -1655,11 +1660,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   std::unique_ptr<Bequest> bequest_;
   Dart_Port beneficiary_ = 0;
-
-  // Protect access to boxed_field_list_.
-  Mutex field_list_mutex_;
-  // List of fields that became boxed and that trigger deoptimization.
-  GrowableObjectArrayPtr boxed_field_list_;
 
   // This guards spawn_count_. An isolate cannot complete shutdown and be
   // destroyed while there are child isolates in the midst of a spawn.

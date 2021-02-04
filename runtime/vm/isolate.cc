@@ -373,6 +373,8 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
           NOT_IN_PRODUCT("IsolateGroup::kernel_data_class_cache_mutex_")),
       kernel_constants_mutex_(
           NOT_IN_PRODUCT("IsolateGroup::kernel_constants_mutex_")),
+      field_list_mutex_(NOT_IN_PRODUCT("Isolate::field_list_mutex_")),
+      boxed_field_list_(GrowableObjectArray::null()),
       program_lock_(new SafepointRwLock()),
       active_mutators_monitor_(new Monitor()),
       max_active_mutators_(Scavenger::MaxMutatorThreadCount()) {
@@ -1690,8 +1692,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       tag_table_(GrowableObjectArray::null()),
       deoptimized_code_array_(GrowableObjectArray::null()),
       sticky_error_(Error::null()),
-      field_list_mutex_(NOT_IN_PRODUCT("Isolate::field_list_mutex_")),
-      boxed_field_list_(GrowableObjectArray::null()),
       spawn_count_monitor_(),
       handler_info_cache_(),
       catch_entry_moves_cache_() {
@@ -2589,11 +2589,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(
       reinterpret_cast<ObjectPtr*>(&registered_service_extension_handlers_));
 #endif  // !defined(PRODUCT)
-  // Visit the boxed_field_list_.
-  // 'boxed_field_list_' access via mutator and background compilation threads
-  // is guarded with a monitor. This means that we can visit it only
-  // when at safepoint or the field_list_mutex_ lock has been taken.
-  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&boxed_field_list_));
 
   if (background_compiler() != nullptr) {
     background_compiler()->VisitPointers(visitor);
@@ -2746,6 +2741,12 @@ void IsolateGroup::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&saved_unlinked_calls_));
   initial_field_table()->VisitObjectPointers(visitor);
   VisitStackPointers(visitor, validate_frames);
+
+  // Visit the boxed_field_list_.
+  // 'boxed_field_list_' access via mutator and background compilation threads
+  // is guarded with a monitor. This means that we can visit it only
+  // when at safepoint or the field_list_mutex_ lock has been taken.
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&boxed_field_list_));
 }
 
 void IsolateGroup::VisitStackPointers(ObjectPointerVisitor* visitor,
@@ -3116,7 +3117,7 @@ void Isolate::set_registered_service_extension_handlers(
 }
 #endif  // !defined(PRODUCT)
 
-void Isolate::AddDeoptimizingBoxedField(const Field& field) {
+void IsolateGroup::AddDeoptimizingBoxedField(const Field& field) {
   ASSERT(Compiler::IsBackgroundCompilation());
   ASSERT(!field.IsOriginal());
   // The enclosed code allocates objects and can potentially trigger a GC,
@@ -3130,7 +3131,7 @@ void Isolate::AddDeoptimizingBoxedField(const Field& field) {
   array.Add(Field::Handle(field.Original()), Heap::kOld);
 }
 
-FieldPtr Isolate::GetDeoptimizingBoxedField() {
+FieldPtr IsolateGroup::GetDeoptimizingBoxedField() {
   ASSERT(Thread::Current()->IsMutatorThread());
   SafepointMutexLocker ml(&field_list_mutex_);
   if (boxed_field_list_ == GrowableObjectArray::null()) {

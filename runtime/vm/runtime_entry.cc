@@ -2753,7 +2753,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
         SafepointWriteRwLocker ml(thread,
                                   thread->isolate_group()->program_lock());
         Field& field =
-            Field::Handle(zone, isolate->GetDeoptimizingBoxedField());
+            Field::Handle(zone, isolate->group()->GetDeoptimizingBoxedField());
         while (!field.IsNull()) {
           if (FLAG_trace_optimization || FLAG_trace_field_guards) {
             THR_Print("Lazy disabling unboxing of %s\n", field.ToCString());
@@ -2761,7 +2761,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
           field.set_is_unboxing_candidate(false);
           field.DeoptimizeDependentCode();
           // Get next field.
-          field = isolate->GetDeoptimizingBoxedField();
+          field = isolate->group()->GetDeoptimizingBoxedField();
         }
       }
       if (!BackgroundCompiler::IsDisabled(isolate,
