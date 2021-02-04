@@ -1520,11 +1520,12 @@ class PatchableCallHandler {
 
  private:
   FunctionPtr ResolveTargetFunction(const Object& data);
-  void HandleMiss(const Object& old_data,
-                  const Code& old_target,
-                  const Function& target_function);
 
 #if defined(DART_PRECOMPILED_RUNTIME)
+  void HandleMissAOT(const Object& old_data,
+                     uword old_entry,
+                     const Function& target_function);
+
   void DoUnlinkedCallAOT(const UnlinkedCall& unlinked,
                          const Function& target_function);
   void DoMonomorphicMissAOT(const Object& data,
@@ -1538,6 +1539,10 @@ class PatchableCallHandler {
                                   intptr_t* lower,
                                   intptr_t* upper);
 #else
+  void HandleMissJIT(const Object& old_data,
+                     const Code& old_target,
+                     const Function& target_function);
+
   void DoMonomorphicMissJIT(const Object& data,
                             const Function& target_function);
   void DoICDataMissJIT(const ICData& data,
@@ -2086,7 +2091,6 @@ void PatchableCallHandler::ResolveSwitchAndReturn(const Object& old_data) {
   const auto& target_function =
       Function::Handle(zone_, ResolveTargetFunction(old_data));
 
-  auto& code = Code::Handle(zone_);
   auto& data = Object::Handle(zone_);
 
   // We ensure any transition in a patchable calls are done in an atomic
@@ -2100,9 +2104,12 @@ void PatchableCallHandler::ResolveSwitchAndReturn(const Object& old_data) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   data =
       CodePatcher::GetSwitchableCallDataAt(caller_frame_->pc(), caller_code_);
-  DEBUG_ONLY(code = CodePatcher::GetSwitchableCallTargetAt(caller_frame_->pc(),
-                                                           caller_code_));
+  uword target_entry = 0;
+  DEBUG_ONLY(target_entry = CodePatcher::GetSwitchableCallTargetEntryAt(
+                 caller_frame_->pc(), caller_code_));
+  HandleMissAOT(data, target_entry, target_function);
 #else
+  auto& code = Code::Handle(zone_);
   if (should_consider_patching()) {
     code ^= CodePatcher::GetInstanceCallAt(caller_frame_->pc(), caller_code_,
                                            &data);
@@ -2110,34 +2117,52 @@ void PatchableCallHandler::ResolveSwitchAndReturn(const Object& old_data) {
     ASSERT(old_data.IsICData() || old_data.IsMegamorphicCache());
     data = old_data.ptr();
   }
+  HandleMissJIT(data, code, target_function);
 #endif
-  HandleMiss(data, code, target_function);
 }
 
-void PatchableCallHandler::HandleMiss(const Object& old_data,
-                                      const Code& old_code,
-                                      const Function& target_function) {
-  switch (old_data.GetClassId()) {
 #if defined(DART_PRECOMPILED_RUNTIME)
+
+void PatchableCallHandler::HandleMissAOT(const Object& old_data,
+                                         uword old_entry,
+                                         const Function& target_function) {
+  switch (old_data.GetClassId()) {
     case kUnlinkedCallCid:
-      ASSERT(old_code.ptr() == StubCode::SwitchableCallMiss().ptr());
+      ASSERT(old_entry ==
+             StubCode::SwitchableCallMiss().MonomorphicEntryPoint());
       DoUnlinkedCallAOT(UnlinkedCall::Cast(old_data), target_function);
       break;
     case kMonomorphicSmiableCallCid:
-      ASSERT(old_code.ptr() == StubCode::MonomorphicSmiableCheck().ptr());
+      ASSERT(old_entry ==
+             StubCode::MonomorphicSmiableCheck().MonomorphicEntryPoint());
       FALL_THROUGH;
     case kSmiCid:
       DoMonomorphicMissAOT(old_data, target_function);
       break;
     case kSingleTargetCacheCid:
-      ASSERT(old_code.ptr() == StubCode::SingleTargetCall().ptr());
+      ASSERT(old_entry == StubCode::SingleTargetCall().MonomorphicEntryPoint());
       DoSingleTargetMissAOT(SingleTargetCache::Cast(old_data), target_function);
       break;
     case kICDataCid:
-      ASSERT(old_code.ptr() == StubCode::ICCallThroughCode().ptr());
+      ASSERT(old_entry ==
+             StubCode::ICCallThroughCode().MonomorphicEntryPoint());
       DoICDataMissAOT(ICData::Cast(old_data), target_function);
       break;
+    case kMegamorphicCacheCid:
+      ASSERT(old_entry == StubCode::MegamorphicCall().MonomorphicEntryPoint());
+      DoMegamorphicMiss(MegamorphicCache::Cast(old_data), target_function);
+      break;
+    default:
+      UNREACHABLE();
+  }
+}
+
 #else
+
+void PatchableCallHandler::HandleMissJIT(const Object& old_data,
+                                         const Code& old_code,
+                                         const Function& target_function) {
+  switch (old_data.GetClassId()) {
     case kArrayCid:
       // ICData three-element array: Smi(receiver CID), Smi(count),
       // Function(target). It is the Array from ICData::entries_.
@@ -2146,7 +2171,6 @@ void PatchableCallHandler::HandleMiss(const Object& old_data,
     case kICDataCid:
       DoICDataMissJIT(ICData::Cast(old_data), old_code, target_function);
       break;
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
     case kMegamorphicCacheCid:
       ASSERT(old_code.ptr() == StubCode::MegamorphicCall().ptr() ||
              (old_code.IsNull() && !should_consider_patching()));
@@ -2156,6 +2180,7 @@ void PatchableCallHandler::HandleMiss(const Object& old_data,
       UNREACHABLE();
   }
 }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 static void InlineCacheMissHandler(Thread* thread,
                                    Zone* zone,

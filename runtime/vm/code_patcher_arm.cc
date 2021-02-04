@@ -108,15 +108,15 @@ void CodePatcher::PatchSwitchableCallAtWithMutatorsStopped(
   }
 }
 
-CodePtr CodePatcher::GetSwitchableCallTargetAt(uword return_address,
-                                               const Code& caller_code) {
+uword CodePatcher::GetSwitchableCallTargetEntryAt(uword return_address,
+                                                  const Code& caller_code) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     BareSwitchableCallPattern call(return_address, caller_code);
-    return call.target();
+    return call.target_entry();
   } else {
     SwitchableCallPattern call(return_address, caller_code);
-    return call.target();
+    return call.target_entry();
   }
 }
 
