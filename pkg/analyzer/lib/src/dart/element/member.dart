@@ -561,7 +561,7 @@ abstract class Member implements Element {
   int get nameOffset => _declaration.nameOffset;
 
   @override
-  AnalysisSession get session => _declaration.session;
+  AnalysisSession? get session => _declaration.session;
 
   @override
   Source get source => _declaration.source!;

@@ -418,6 +418,9 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
   /// unit.
   List<ClassElement> get mixins;
 
+  @override
+  AnalysisSession get session;
+
   /// Return a list containing all of the top-level variables contained in this
   /// compilation unit.
   List<TopLevelVariableElement> get topLevelVariables;
@@ -655,7 +658,7 @@ abstract class Element implements AnalysisTarget {
   int get nameOffset;
 
   /// Return the analysis session in which this element is defined.
-  AnalysisSession get session;
+  AnalysisSession? get session;
 
   @override
   Source? get source;
@@ -1376,6 +1379,9 @@ abstract class LibraryElement implements _ExistingElement {
   /// Return the name lookup scope for this library. It consists of elements
   /// that are either declared in the library, or imported into it.
   Scope get scope;
+
+  @override
+  AnalysisSession get session;
 
   /// Return the top-level elements defined in each of the compilation units
   /// that are included in this library. This includes both public and private
