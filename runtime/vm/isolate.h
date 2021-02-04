@@ -1294,12 +1294,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   void set_ic_miss_code(const Code& code);
 
-  GrowableObjectArrayPtr deoptimized_code_array() const {
-    return deoptimized_code_array_;
-  }
-  void set_deoptimized_code_array(const GrowableObjectArray& value);
-  void TrackDeoptimizedCode(const Code& code);
-
   // Also sends a paused at exit event over the service protocol.
   void SetStickyError(ErrorPtr sticky_error);
 
@@ -1654,8 +1648,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   DeoptContext* deopt_context_ = nullptr;
 
   GrowableObjectArrayPtr tag_table_;
-
-  GrowableObjectArrayPtr deoptimized_code_array_;
 
   ErrorPtr sticky_error_;
 

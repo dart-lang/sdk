@@ -1690,7 +1690,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       mutex_(NOT_IN_PRODUCT("Isolate::mutex_")),
       pending_deopts_(new MallocGrowableArray<PendingLazyDeopt>()),
       tag_table_(GrowableObjectArray::null()),
-      deoptimized_code_array_(GrowableObjectArray::null()),
       sticky_error_(Error::null()),
       spawn_count_monitor_(),
       handler_info_cache_(),
@@ -2575,7 +2574,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&default_tag_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&ic_miss_code_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&tag_table_));
-  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&deoptimized_code_array_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&sticky_error_));
   if (isolate_group_ != nullptr) {
     if (isolate_group_->source()->loaded_blobs_ != nullptr) {
@@ -3078,24 +3076,6 @@ void Isolate::set_default_tag(const UserTag& tag) {
 
 void Isolate::set_ic_miss_code(const Code& code) {
   ic_miss_code_ = code.ptr();
-}
-
-void Isolate::set_deoptimized_code_array(const GrowableObjectArray& value) {
-  ASSERT(Thread::Current()->IsMutatorThread());
-  deoptimized_code_array_ = value.ptr();
-}
-
-void Isolate::TrackDeoptimizedCode(const Code& code) {
-  ASSERT(!code.IsNull());
-  const GrowableObjectArray& deoptimized_code =
-      GrowableObjectArray::Handle(deoptimized_code_array());
-  if (deoptimized_code.IsNull()) {
-    // Not tracking deoptimized code.
-    return;
-  }
-  // TODO(johnmccutchan): Scan this array and the isolate's profile before
-  // old space GC and remove the keep_code flag.
-  deoptimized_code.Add(code);
 }
 
 ErrorPtr Isolate::StealStickyError() {

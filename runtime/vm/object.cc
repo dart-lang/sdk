@@ -6768,7 +6768,6 @@ void Function::SwitchToUnoptimizedCode() const {
   Thread* thread = Thread::Current();
   DEBUG_ASSERT(
       thread->isolate_group()->program_lock()->IsCurrentThreadWriter());
-  Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
   // TODO(35224): DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
   const Code& current_code = Code::Handle(zone, CurrentCode());
@@ -6786,7 +6785,6 @@ void Function::SwitchToUnoptimizedCode() const {
   const Code& unopt_code = Code::Handle(zone, unoptimized_code());
   unopt_code.Enable();
   AttachCode(unopt_code);
-  isolate->TrackDeoptimizedCode(current_code);
 }
 
 void Function::SwitchToLazyCompiledUnoptimizedCode() const {
