@@ -1725,6 +1725,62 @@ enum E {
     expect(alias.semicolon, isNotNull);
   }
 
+  void test_parseGenericTypeAlias_TypeParametersInProgress1() {
+    createParser('typedef F< = int Function(int);');
+    GenericTypeAlias alias =
+        parseFullCompilationUnitMember() as GenericTypeAlias;
+    expect(alias, isNotNull);
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 11, 1),
+    ]);
+    expect(alias.name, isNotNull);
+    expect(alias.name.name, 'F');
+    expect(alias.typeParameters, isNotNull);
+    expect(alias.typeParameters!.typeParameters.length, 1);
+    expect(alias.typeParameters!.typeParameters.single.name.name, '');
+    expect(alias.equals, isNotNull);
+    expect(alias.functionType, isNotNull);
+    expect(alias.semicolon, isNotNull);
+  }
+
+  void test_parseGenericTypeAlias_TypeParametersInProgress2() {
+    createParser('typedef F<>= int Function(int);');
+    GenericTypeAlias alias =
+        parseFullCompilationUnitMember() as GenericTypeAlias;
+    expect(alias, isNotNull);
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 10, 2),
+    ]);
+    expect(alias.name, isNotNull);
+    expect(alias.name.name, 'F');
+    expect(alias.name.name, 'F');
+    expect(alias.typeParameters, isNotNull);
+    expect(alias.typeParameters!.typeParameters.length, 1);
+    expect(alias.typeParameters!.typeParameters.single.name.name, '');
+    expect(alias.equals, isNotNull);
+    expect(alias.functionType, isNotNull);
+    expect(alias.semicolon, isNotNull);
+  }
+
+  void test_parseGenericTypeAlias_TypeParametersInProgress3() {
+    createParser('typedef F<> = int Function(int);');
+    GenericTypeAlias alias =
+        parseFullCompilationUnitMember() as GenericTypeAlias;
+    expect(alias, isNotNull);
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 10, 1),
+    ]);
+    expect(alias.name, isNotNull);
+    expect(alias.name.name, 'F');
+    expect(alias.name.name, 'F');
+    expect(alias.typeParameters, isNotNull);
+    expect(alias.typeParameters!.typeParameters.length, 1);
+    expect(alias.typeParameters!.typeParameters.single.name.name, '');
+    expect(alias.equals, isNotNull);
+    expect(alias.functionType, isNotNull);
+    expect(alias.semicolon, isNotNull);
+  }
+
   void test_parseImportDirective_configuration_multiple() {
     createParser("import 'lib/lib.dart' if (a) 'b.dart' if (c) 'd.dart';");
     var directive = parseFullDirective() as ImportDirective;
