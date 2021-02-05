@@ -78,6 +78,13 @@ class AstClonerTest {
     _assertCloneUnitMember('@A.c() main() {}');
   }
 
+  void test_visitAnnotation_constructor_generic() {
+    _assertCloneUnitMember('@A<int>.c() main() {}',
+        featureSet: FeatureSet.forTesting(
+            sdkVersion: '2.12',
+            additionalFeatures: [Feature.generic_metadata]));
+  }
+
   void test_visitAnnotation_withComment() {
     CompilationUnitMember clazz =
         _parseUnitMember('/** comment */ @deprecated class A {}');
@@ -1160,8 +1167,8 @@ library l;''');
     _assertClone(node);
   }
 
-  void _assertCloneUnitMember(String code) {
-    AstNode node = _parseUnitMember(code);
+  void _assertCloneUnitMember(String code, {FeatureSet? featureSet}) {
+    AstNode node = _parseUnitMember(code, featureSet: featureSet);
     _assertClone(node);
   }
 
@@ -1178,10 +1185,10 @@ library l;''');
     return body.block.statements.single;
   }
 
-  CompilationUnit _parseUnit(String code) {
+  CompilationUnit _parseUnit(String code, {FeatureSet? featureSet}) {
     GatheringErrorListener listener = GatheringErrorListener();
     CharSequenceReader reader = CharSequenceReader(code);
-    var featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
+    featureSet ??= FeatureSet.forTesting(sdkVersion: '2.2.2');
     Scanner scanner = Scanner(TestSource(), reader, listener)
       ..configureFeatures(
         featureSetForOverriding: featureSet,
@@ -1199,8 +1206,9 @@ library l;''');
     return unit;
   }
 
-  CompilationUnitMember _parseUnitMember(String code) {
-    CompilationUnit unit = _parseUnit(code);
+  CompilationUnitMember _parseUnitMember(String code,
+      {FeatureSet? featureSet}) {
+    CompilationUnit unit = _parseUnit(code, featureSet: featureSet);
     return unit.declarations.single;
   }
 
