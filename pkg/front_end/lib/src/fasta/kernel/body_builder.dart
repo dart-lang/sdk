@@ -630,7 +630,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (arguments != null) {
       push(arguments);
       _buildConstructorReferenceInvocation(
-          beginToken.next, beginToken.offset, Constness.explicitConst);
+          beginToken.next, beginToken.offset, Constness.explicitConst,
+          inMetadata: true);
       push(popForValue());
     } else {
       pop(); // Name last identifier
@@ -4360,11 +4361,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void endNewExpression(Token token) {
     debugEvent("NewExpression");
     _buildConstructorReferenceInvocation(
-        token.next, token.offset, Constness.explicitNew);
+        token.next, token.offset, Constness.explicitNew,
+        inMetadata: false);
   }
 
   void _buildConstructorReferenceInvocation(
-      Token nameToken, int offset, Constness constness) {
+      Token nameToken, int offset, Constness constness,
+      {bool inMetadata}) {
     assert(checkState(nameToken, [
       /*arguments*/ ValueKinds.Arguments,
       /*constructor name identifier*/ ValueKinds.IdentifierOrNull,
@@ -4381,6 +4384,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Token nameLastToken = nameLastIdentifier?.token ?? nameToken;
     String name = pop();
     List<UnresolvedType> typeArguments = pop();
+    if (inMetadata && typeArguments != null) {
+      handleRecoverableError(fasta.messageMetadataTypeArguments,
+          nameLastToken.next, nameLastToken.next);
+    }
 
     Object type = pop();
 
@@ -4406,7 +4413,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void endImplicitCreationExpression(Token token) {
     debugEvent("ImplicitCreationExpression");
     _buildConstructorReferenceInvocation(
-        token.next, token.offset, Constness.implicit);
+        token.next, token.offset, Constness.implicit,
+        inMetadata: false);
   }
 
   @override
@@ -4660,7 +4668,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void endConstExpression(Token token) {
     debugEvent("endConstExpression");
     _buildConstructorReferenceInvocation(
-        token.next, token.offset, Constness.explicitConst);
+        token.next, token.offset, Constness.explicitConst,
+        inMetadata: false);
   }
 
   @override

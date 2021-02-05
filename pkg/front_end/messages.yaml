@@ -1501,6 +1501,13 @@ MetadataTypeArguments:
   template: "An annotation (metadata) can't use type arguments."
   analyzerCode: ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS
 
+MetadataTypeArgumentsUninstantiated:
+  index: 114
+  template: "An annotation (metadata) with type arguments must be followed by an argument list."
+  analyzerCode: ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED
+  script:
+    - "@deprecated<int> class C {}"
+
 ConstructorNotFound:
   template: "Couldn't find constructor '#name'."
   analyzerCode: CONSTRUCTOR_NOT_FOUND

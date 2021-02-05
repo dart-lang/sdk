@@ -22,6 +22,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageInvalidInitializer,
         messageInvalidSuperInInitializer,
         messageInvalidThisInInitializer,
+        messageMetadataTypeArguments,
         messageMissingAssignableSelector,
         messageNativeClauseShouldBeAnnotation,
         messageOperatorWithTypeParameters,
@@ -1831,7 +1832,12 @@ class AstBuilder extends StackListener {
     var invocation = pop() as MethodInvocation?;
     var constructorName =
         periodBeforeName != null ? pop() as SimpleIdentifier : null;
-    pop(); // Type arguments, not allowed.
+    var typeArguments = pop() as TypeArgumentList?;
+    if (typeArguments != null &&
+        !_featureSet.isEnabled(Feature.generic_metadata)) {
+      handleRecoverableError(messageMetadataTypeArguments,
+          typeArguments.beginToken, typeArguments.beginToken);
+    }
     var name = pop() as Identifier;
     push(ast.annotation(
         atSign: atSign,

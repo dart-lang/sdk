@@ -1055,15 +1055,17 @@ class Parser {
     token = ensureIdentifier(atToken, IdentifierContext.metadataReference);
     token =
         parseQualifiedRestOpt(token, IdentifierContext.metadataContinuation);
-    if (optional("<", token.next!)) {
-      reportRecoverableError(token.next!, codes.messageMetadataTypeArguments);
-    }
+    bool hasTypeArguments = optional("<", token.next!);
     token = computeTypeParamOrArg(token).parseArguments(token, this);
     Token? period = null;
     if (optional('.', token.next!)) {
       period = token.next!;
       token = ensureIdentifier(
           period, IdentifierContext.metadataContinuationAfterTypeArguments);
+    }
+    if (hasTypeArguments && !optional("(", token.next!)) {
+      reportRecoverableError(
+          token, codes.messageMetadataTypeArgumentsUninstantiated);
     }
     token = parseArgumentsOpt(token);
     listener.endMetadata(atToken, period, token.next!);
