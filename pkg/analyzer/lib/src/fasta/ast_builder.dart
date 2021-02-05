@@ -1842,6 +1842,7 @@ class AstBuilder extends StackListener {
     push(ast.annotation(
         atSign: atSign,
         name: name,
+        typeArguments: typeArguments,
         period: periodBeforeName,
         constructorName: constructorName,
         arguments: invocation?.argumentList));
