@@ -167,7 +167,7 @@ vars = {
   "web_socket_channel_rev": "680358915e331fda823908234f80beba1ed4ec83",
   "WebCore_rev": "fb11e887f77919450e497344da570d780e078bc8",
   "yaml_rev": "cca02c9e4f6826d62644901ed65c6d72b90a0713",
-  "zlib_rev": "c44fb7248079cc3d5563b14b3f758aee60d6b415",
+  "zlib_rev": "bf44340d1b6be1af8950bbdf664fec0cf5a831cc",
   "crashpad_rev": "bf327d8ceb6a669607b0dbab5a83a275d03f99ed",
   "minichromium_rev": "8d641e30a8b12088649606b912c2bc4947419ccc",
   "googletest_rev": "f854f1d27488996dc8a6db3c9453f80b02585e12",
