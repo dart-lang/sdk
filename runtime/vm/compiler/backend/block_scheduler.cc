@@ -63,7 +63,7 @@ void BlockScheduler::AssignEdgeWeights(FlowGraph* flow_graph) {
         DeoptId::kNone, "BlockScheduler: ICData array cleared");
   }
   if (ic_data_array.IsNull()) {
-    DEBUG_ASSERT(Isolate::Current()->HasAttemptedReload() ||
+    DEBUG_ASSERT(IsolateGroup::Current()->HasAttemptedReload() ||
                  function.ForceOptimize());
     return;
   }

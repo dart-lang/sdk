@@ -1161,7 +1161,7 @@ bool CallSpecializer::TypeCheckAsClassEquality(const AbstractType& type) {
   if (!type_class.IsPrivate()) {
     // In AOT mode we can't use CHA deoptimizations.
     ASSERT(!CompilerState::Current().is_aot() || !FLAG_use_cha_deopt);
-    if (FLAG_use_cha_deopt || isolate()->all_classes_finalized()) {
+    if (FLAG_use_cha_deopt || isolate_group()->all_classes_finalized()) {
       if (FLAG_trace_cha) {
         THR_Print(
             "  **(CHA) Typecheck as class equality since no "

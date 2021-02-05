@@ -76,7 +76,7 @@ var v = 0;
       fileResolver,
     ).compute(
       convertPath(testPath),
-      _correctionContext.offset,
+      _correctionContext.line,
     );
   }
 
@@ -105,8 +105,8 @@ var v = 0;
     _correctionContext = _CorrectionContext(
       content,
       offset,
-      location.lineNumber - 1,
-      location.columnNumber - 1,
+      location.lineNumber,
+      location.columnNumber,
     );
   }
 }

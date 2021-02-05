@@ -474,6 +474,20 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     return null_safety() || FLAG_strict_null_safety_checks;
   }
 
+#if !defined(PRODUCT)
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  bool HasAttemptedReload() const {
+    return HasAttemptedReloadBit::decode(isolate_group_flags_);
+  }
+  void SetHasAttemptedReload(bool value) {
+    isolate_group_flags_ =
+        HasAttemptedReloadBit::update(value, isolate_group_flags_);
+  }
+#else
+  bool HasAttemptedReload() const { return false; }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(PRODUCT)
+
 #if defined(PRODUCT)
   void set_use_osr(bool use_osr) { ASSERT(!use_osr); }
 #else   // defined(PRODUCT)
@@ -690,6 +704,23 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
         CompactionInProgressBit::update(value, isolate_group_flags_);
   }
 
+  // In precompilation we finalize all regular classes before compiling.
+  bool all_classes_finalized() const {
+    return AllClassesFinalizedBit::decode(isolate_group_flags_);
+  }
+  void set_all_classes_finalized(bool value) {
+    isolate_group_flags_ =
+        AllClassesFinalizedBit::update(value, isolate_group_flags_);
+  }
+
+  bool remapping_cids() const {
+    return RemappingCidsBit::decode(isolate_group_flags_);
+  }
+  void set_remapping_cids(bool value) {
+    isolate_group_flags_ =
+        RemappingCidsBit::update(value, isolate_group_flags_);
+  }
+
   uword FindPendingDeoptAtSafepoint(uword fp);
 
   // Used by background compiler which field became boxed and must trigger
@@ -739,9 +770,12 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   friend class NoReloadScope;  // no_reload_scope_depth_
 
 #define ISOLATE_GROUP_FLAG_BITS(V)                                             \
+  V(AllClassesFinalized)                                                       \
   V(CompactionInProgress)                                                      \
   V(EnableAsserts)                                                             \
+  V(HasAttemptedReload)                                                        \
   V(NullSafety)                                                                \
+  V(RemappingCids)                                                             \
   V(NullSafetySet)                                                             \
   V(Obfuscate)                                                                 \
   V(UseFieldGuards)                                                            \
@@ -1239,13 +1273,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   void DeleteReloadContext();
 
-  bool HasAttemptedReload() const {
-    return HasAttemptedReloadBit::decode(isolate_flags_);
-  }
-  void SetHasAttemptedReload(bool value) {
-    isolate_flags_ = HasAttemptedReloadBit::update(value, isolate_flags_);
-  }
-
   bool CanReload() const;
 #else
   bool IsReloading() const { return false; }
@@ -1302,21 +1329,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   ErrorPtr sticky_error() const { return sticky_error_; }
   DART_WARN_UNUSED_RESULT ErrorPtr StealStickyError();
-
-  // In precompilation we finalize all regular classes before compiling.
-  bool all_classes_finalized() const {
-    return AllClassesFinalizedBit::decode(isolate_flags_);
-  }
-  void set_all_classes_finalized(bool value) {
-    isolate_flags_ = AllClassesFinalizedBit::update(value, isolate_flags_);
-  }
-
-  bool remapping_cids() const {
-    return RemappingCidsBit::decode(isolate_flags_);
-  }
-  void set_remapping_cids(bool value) {
-    isolate_flags_ = RemappingCidsBit::update(value, isolate_flags_);
-  }
 
 #ifndef PRODUCT
   ErrorPtr InvokePendingServiceExtensionCalls();
@@ -1564,10 +1576,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   V(IsRunnable)                                                                \
   V(IsServiceIsolate)                                                          \
   V(IsKernelIsolate)                                                           \
-  V(AllClassesFinalized)                                                       \
-  V(RemappingCids)                                                             \
   V(ResumeRequest)                                                             \
-  V(HasAttemptedReload)                                                        \
   V(HasAttemptedStepping)                                                      \
   V(ShouldPausePostServiceRequest)                                             \
   V(CopyParentCode)                                                            \

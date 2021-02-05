@@ -237,7 +237,6 @@ class FfiTransformer extends Transformer {
   final Map<NativeType, Procedure> loadMethods;
   final Map<NativeType, Procedure> storeMethods;
   final Map<NativeType, Procedure> elementAtMethods;
-  final Procedure loadStructMethod;
   final Procedure memCopy;
   final Procedure allocationTearoff;
   final Procedure asFunctionTearoff;
@@ -322,7 +321,6 @@ class FfiTransformer extends Transformer {
           final name = nativeTypeClassNames[t.index];
           return index.getTopLevelMember('dart:ffi', "_elementAt$name");
         }),
-        loadStructMethod = index.getTopLevelMember('dart:ffi', '_loadStruct'),
         memCopy = index.getTopLevelMember('dart:ffi', '_memCopy'),
         allocationTearoff = index.getMember(
             'dart:ffi', 'AllocatorAlloc', LibraryIndex.tearoffPrefix + 'call'),

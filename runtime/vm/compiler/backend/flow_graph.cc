@@ -482,7 +482,7 @@ bool FlowGraph::IsReceiver(Definition* def) const {
 FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
     InstanceCallInstr* call,
     UntaggedFunction::Kind kind) const {
-  if (!FLAG_use_cha_deopt && !isolate()->all_classes_finalized()) {
+  if (!FLAG_use_cha_deopt && !isolate_group()->all_classes_finalized()) {
     // Even if class or function are private, lazy class finalization
     // may later add overriding methods.
     return ToCheck::kCheckCid;

@@ -731,7 +731,7 @@ intptr_t CompileType::ToNullableCid() {
           // Type of a private class cannot change through later loaded libs.
           cid_ = type_class.id();
         } else if (FLAG_use_cha_deopt ||
-                   thread->isolate()->all_classes_finalized()) {
+                   thread->isolate_group()->all_classes_finalized()) {
           if (FLAG_trace_cha) {
             THR_Print("  **(CHA) Compile type not subclassed: %s\n",
                       type_class.ToCString());
@@ -1096,7 +1096,7 @@ CompileType ParameterInstr::ComputeType() const {
           cid = type_class.id();
         } else {
           if (FLAG_use_cha_deopt ||
-              thread->isolate()->all_classes_finalized()) {
+              thread->isolate_group()->all_classes_finalized()) {
             if (FLAG_trace_cha) {
               THR_Print(
                   "  **(CHA) Computing exact type of receiver, "
@@ -1463,7 +1463,7 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
   }
   if (field.needs_load_guard()) {
     // Should be kept in sync with Slot::Get.
-    DEBUG_ASSERT(Isolate::Current()->HasAttemptedReload());
+    DEBUG_ASSERT(IsolateGroup::Current()->HasAttemptedReload());
     return CompileType::Dynamic();
   }
   return CompileType(is_nullable, cid, abstract_type);

@@ -451,26 +451,26 @@ class Thread : public ThreadState {
   }
 
   HierarchyInfo* hierarchy_info() const {
-    ASSERT(isolate_ != NULL);
+    ASSERT(isolate_group_ != nullptr);
     return hierarchy_info_;
   }
 
   void set_hierarchy_info(HierarchyInfo* value) {
-    ASSERT(isolate_ != NULL);
-    ASSERT((hierarchy_info_ == NULL && value != NULL) ||
-           (hierarchy_info_ != NULL && value == NULL));
+    ASSERT(isolate_group_ != nullptr);
+    ASSERT((hierarchy_info_ == nullptr && value != nullptr) ||
+           (hierarchy_info_ != nullptr && value == nullptr));
     hierarchy_info_ = value;
   }
 
   TypeUsageInfo* type_usage_info() const {
-    ASSERT(isolate_ != NULL);
+    ASSERT(isolate_group_ != nullptr);
     return type_usage_info_;
   }
 
   void set_type_usage_info(TypeUsageInfo* value) {
-    ASSERT(isolate_ != NULL);
-    ASSERT((type_usage_info_ == NULL && value != NULL) ||
-           (type_usage_info_ != NULL && value == NULL));
+    ASSERT(isolate_group_ != nullptr);
+    ASSERT((type_usage_info_ == nullptr && value != nullptr) ||
+           (type_usage_info_ != nullptr && value == nullptr));
     type_usage_info_ = value;
   }
 

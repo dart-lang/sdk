@@ -72,9 +72,9 @@ ARCH_FAMILY = {
     'simarmv6': 'ia32',
     'simarm64': 'ia32',
     'simarm_x64': 'ia32',
-    'x64_comp_ptr': 'ia32',
-    'arm64_comp_ptr': 'arm',
-    'simarm64_comp_ptr': 'ia32',
+    'x64c': 'ia32',
+    'arm64c': 'arm',
+    'simarm64c': 'ia32',
 }
 
 BASE_DIR = os.path.abspath(os.path.join(os.curdir, '..'))
