@@ -941,8 +941,8 @@ class AstFactoryImpl extends AstFactory {
           nativeKeyword, stringLiteral as StringLiteralImpl?, semicolon);
 
   @override
-  NodeList<E> nodeList<E extends AstNode>(AstNode owner, [List<E>? elements]) =>
-      NodeListImpl<E>(owner as AstNodeImpl, elements);
+  NodeList<E> nodeList<E extends AstNode>(AstNode owner) =>
+      NodeListImpl<E>(owner: owner as AstNodeImpl);
 
   @override
   NullLiteral nullLiteral(Token literal) => NullLiteralImpl(literal);

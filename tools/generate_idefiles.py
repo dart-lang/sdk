@@ -105,8 +105,8 @@ def GenerateAnalysisOptions(options):
     - tests/co19_2/**
     - tests/corelib/**
     - tests/corelib_2/**
-    - tests/dart2js/**
-    - tests/dart2js_2/**
+    - tests/web/**
+    - tests/web_2/**
     - tests/dartdevc/**
     - tests/dartdevc_2/**
     - tests/ffi/**

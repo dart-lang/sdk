@@ -4694,6 +4694,7 @@ JsInteropNamedParameters:
 
 JsInteropNativeClassInAnnotation:
   template: "JS interop class '#name' conflicts with natively supported class '#name2' in '#string3'."
+  tip: "Try making the @JS class into an @anonymous class or use js_util on the JS object."
 
 JsInteropNonExternalConstructor:
   template: "JS interop classes do not support non-external constructors."

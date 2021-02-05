@@ -1384,6 +1384,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
+  AnalysisSession get session => enclosingElement.session;
+
+  @override
   List<TopLevelVariableElement> get topLevelVariables {
     if (_variables != null) return _variables!;
 
@@ -2888,8 +2891,8 @@ abstract class ElementImpl implements Element {
   }
 
   @override
-  AnalysisSession get session {
-    return enclosingElement!.session;
+  AnalysisSession? get session {
+    return enclosingElement?.session;
   }
 
   @override

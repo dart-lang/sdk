@@ -694,9 +694,8 @@ abstract class AstFactory {
       Token nativeKeyword, StringLiteral? stringLiteral, Token semicolon);
 
   /// Returns a newly created list of nodes such that all of the nodes that
-  /// are added to the list will have their parent set to the given [owner]. The
-  /// list will initially be populated with the given [elements].
-  NodeList<E> nodeList<E extends AstNode>(AstNode owner, [List<E>? elements]);
+  /// are added to the list will have their parent set to the given [owner].
+  NodeList<E> nodeList<E extends AstNode>(AstNode owner);
 
   /// Returns a newly created null literal.
   NullLiteral nullLiteral(Token literal);

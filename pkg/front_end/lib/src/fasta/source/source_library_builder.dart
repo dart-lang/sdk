@@ -442,7 +442,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   static const List<String> optOutTestPaths = [
     'co19_2/',
     'corelib_2/',
-    'dart2js_2/',
+    'web_2/',
     'ffi_2',
     'language_2/',
     'lib_2/',

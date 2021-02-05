@@ -3584,6 +3584,8 @@ static bool HandleNativeMetric(Thread* thread, JSONStream* js, const char* id) {
 static bool HandleDartMetricsList(Thread* thread, JSONStream* js) {
   Zone* zone = thread->zone();
   const Class& metrics_cls = Class::Handle(zone, GetMetricsClass(thread));
+  const auto& error = metrics_cls.EnsureIsFinalized(Thread::Current());
+  ASSERT(error == Error::null());
   const String& print_metrics_name =
       String::Handle(String::New("_printMetrics"));
   ASSERT(!print_metrics_name.IsNull());

@@ -421,7 +421,7 @@
       "command-lines": [
         "--checked dart2js",
         "-cdart2js -rd8 --exclude-suite=observatory_ui",
-        "-cdart2js -rd8 dart2js_2"
+        "-cdart2js -rd8 web_2"
       ]
     },
     {
@@ -433,7 +433,7 @@
       "common": "--time -pcolor --report -ax64 -mrelease --write-result-log",
       "command-lines": [
         "-t240 pkg/(kernel|front_end|fasta) --checked",
-        "-t240 dart2js/analyze_test",
+        "-t240 web/analyze_test",
         "-cdartk -rvm"
       ]
     },
@@ -448,7 +448,7 @@
         "-t240 --checked pkg/(kernel|front_end|fasta) dart2js",
         "-cdartk -rvm",
         "-cdart2js -rd8 --exclude-suite=observatory_ui",
-        "-cdart2js -rd8 dart2js_2"
+        "-cdart2js -rd8 web_2"
       ]
     },
     {
@@ -459,7 +459,7 @@
       "mode": "release",
       "common": "--dart2js-batch --time -pcolor --report -ax64 -mrelease --write-result-log",
       "command-lines": [
-        "-cdart2js -rd8 --use-sdk --minified language language_2 dart2js_2 corelib corelib_2"
+        "-cdart2js -rd8 --use-sdk --minified language language_2 web_2 corelib corelib_2"
       ]
     }
   ],

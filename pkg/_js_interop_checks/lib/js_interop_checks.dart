@@ -53,18 +53,15 @@ class JsInteropChecks extends RecursiveVisitor<void> {
   /// Native tests to exclude from checks on external.
   // TODO(rileyporter): Use ExternalName from CFE to exclude native tests.
   List<Pattern> _allowedNativeTestPatterns = [
-    RegExp(r'(?<!generated_)tests/dart2js/native'),
-    RegExp(r'(?<!generated_)tests/dart2js/internal'),
-    'generated_tests/dart2js/native/native_test',
-    RegExp(r'(?<!generated_)tests/dart2js_2/native'),
-    RegExp(r'(?<!generated_)tests/dart2js_2/internal'),
-    'generated_tests/dart2js_2/native/native_test',
+    RegExp(r'(?<!generated_)tests/web/native'),
+    RegExp(r'(?<!generated_)tests/web/internal'),
+    'generated_tests/web/native/native_test',
+    RegExp(r'(?<!generated_)tests/web_2/native'),
+    RegExp(r'(?<!generated_)tests/web_2/internal'),
+    'generated_tests/web_2/native/native_test',
   ];
 
   bool _libraryIsGlobalNamespace = false;
-  // TODO(srujzs): This currently disables this check always. This check should
-  // instead only be disabled up until a given language version.
-  bool _disableJSNativeClassConflict = true;
 
   JsInteropChecks(
       this._coreTypes, this._diagnosticsReporter, this._nativeClasses);
@@ -118,7 +115,8 @@ class JsInteropChecks extends RecursiveVisitor<void> {
             cls.location.file);
       }
     }
-    if (!_disableJSNativeClassConflict &&
+    // Since this is a breaking check, it is language-versioned.
+    if (cls.enclosingLibrary.languageVersion >= Version(2, 13) &&
         _classHasJSAnnotation &&
         !_classHasAnonymousAnnotation &&
         _libraryIsGlobalNamespace) {

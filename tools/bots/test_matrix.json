@@ -43,7 +43,7 @@
       "tests/co19/co19-kernel.status",
       "tests/co19/co19-runtime.status",
       "tests/corelib_2/",
-      "tests/dart2js_2/",
+      "tests/web_2/",
       "tests/dartdevc_2/",
       "tests/language/",
       "tests/language_2/",
@@ -83,7 +83,7 @@
       "tests/co19/co19-kernel.status",
       "tests/co19/co19-runtime.status",
       "tests/corelib/",
-      "tests/dart2js/",
+      "tests/web/",
       "tests/dartdevc/",
       "tests/language/",
       "tests/language_2/",
@@ -130,7 +130,7 @@
       "tests/co19_2/co19_2-kernel.status",
       "tests/co19_2/co19_2-runtime.status",
       "tests/corelib_2/",
-      "tests/dart2js_2/",
+      "tests/web_2/",
       "tests/dartdevc_2/",
       "tests/language/",
       "tests/language_2/",
@@ -173,7 +173,7 @@
       "tests/co19/co19-kernel.status",
       "tests/co19/co19-runtime.status",
       "tests/corelib/",
-      "tests/dart2js/",
+      "tests/web/",
       "tests/dartdevc/",
       "tests/language/",
       "tests/language_2/",
@@ -218,8 +218,8 @@
       "tests/co19_2/co19_2-runtime.status",
       "tests/corelib/",
       "tests/corelib_2/",
-      "tests/dart2js/",
-      "tests/dart2js_2/",
+      "tests/web/",
+      "tests/web_2/",
       "tests/dartdevc/",
       "tests/dartdevc_2/",
       "tests/language/",
@@ -345,8 +345,8 @@
       "tests/co19_2/co19_2-runtime.status",
       "tests/corelib/",
       "tests/corelib_2/",
-      "tests/dart2js/",
-      "tests/dart2js_2/",
+      "tests/web/",
+      "tests/web_2/",
       "tests/dartdevc",
       "tests/dartdevc_2",
       "tests/language/",
@@ -2378,7 +2378,7 @@
           "arguments": [
             "-ndart2js-hostasserts-linux-ia32-d8",
             "--dart2js-batch",
-            "dart2js_2"
+            "web_2"
           ]
         }
       ]
@@ -2451,7 +2451,7 @@
             "-ndart2js-${system}-${runtime}",
             "--dart2js-batch",
             "--reset-browser-configuration",
-            "dart2js_2"
+            "web_2"
           ]
         }
       ]
@@ -2502,7 +2502,7 @@
           "arguments": [
             "-ndart2js-minified-linux-d8",
             "--dart2js-batch",
-            "dart2js_2"
+            "web_2"
           ]
         },
         {
@@ -2520,7 +2520,7 @@
           "arguments": [
             "-ndart2js-production-linux-d8",
             "--dart2js-batch",
-            "dart2js_2"
+            "web_2"
           ]
         },
         {
@@ -2590,7 +2590,7 @@
           "arguments": [
             "-ndart2js-minified-csp-linux-chrome",
             "--dart2js-batch",
-            "dart2js_2"
+            "web_2"
           ]
         }
       ]
@@ -2636,7 +2636,7 @@
           "arguments": [
             "-ndart2js-hostasserts-weak-max-fragments-linux-x64-d8",
             "--dart2js-batch",
-            "dart2js/deferred/"
+            "web/deferred/"
           ],
           "shards": 1,
           "fileset": "web_platform_hostasserts_nnbd"
@@ -2646,7 +2646,7 @@
           "arguments": [
             "-ndart2js-hostasserts-weak-linux-x64-chrome",
             "--dart2js-batch",
-            "dart2js"
+            "web"
           ],
           "shards": 3,
           "fileset": "web_platform_hostasserts_nnbd"
@@ -2687,7 +2687,7 @@
           "arguments": [
             "-ndart2js-hostasserts-strong-max-fragments-linux-x64-d8",
             "--dart2js-batch",
-            "dart2js/deferred/"
+            "web/deferred/"
           ],
           "shards": 1,
           "fileset": "web_platform_hostasserts_nnbd"
@@ -2697,7 +2697,7 @@
           "arguments": [
             "-ndart2js-hostasserts-strong-linux-x64-chrome",
             "--dart2js-batch",
-            "dart2js"
+            "web"
           ],
           "shards": 3,
           "fileset": "web_platform_hostasserts_nnbd"
