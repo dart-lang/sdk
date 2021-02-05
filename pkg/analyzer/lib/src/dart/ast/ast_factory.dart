@@ -942,7 +942,7 @@ class AstFactoryImpl extends AstFactory {
 
   @override
   NodeList<E> nodeList<E extends AstNode>(AstNode owner) =>
-      NodeListImpl<E>(owner: owner as AstNodeImpl);
+      NodeListImpl<E>(owner as AstNodeImpl);
 
   @override
   NullLiteral nullLiteral(Token literal) => NullLiteralImpl(literal);

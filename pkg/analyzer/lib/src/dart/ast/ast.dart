@@ -31,7 +31,7 @@ import 'package:analyzer/src/summary2/linked_unit_context.dart';
 ///        [StringLiteral] [StringLiteral]+
 class AdjacentStringsImpl extends StringLiteralImpl implements AdjacentStrings {
   /// The strings that are implicitly concatenated.
-  final NodeListImpl<StringLiteral> _strings = NodeListImpl();
+  final NodeListImpl<StringLiteral> _strings = NodeListImpl._();
 
   /// Initialize a newly created list of adjacent strings. To be syntactically
   /// valid, the list of [strings] must contain at least two elements.
@@ -78,7 +78,7 @@ abstract class AnnotatedNodeImpl extends AstNodeImpl implements AnnotatedNode {
   CommentImpl? _comment;
 
   /// The annotations associated with this node.
-  final NodeListImpl<Annotation> _metadata = NodeListImpl();
+  final NodeListImpl<Annotation> _metadata = NodeListImpl._();
 
   /// Initialize a newly created annotated node. Either or both of the [comment]
   /// and [metadata] can be `null` if the node does not have the corresponding
@@ -330,7 +330,7 @@ class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   Token leftParenthesis;
 
   /// The expressions producing the values of the arguments.
-  final NodeListImpl<Expression> _arguments = NodeListImpl();
+  final NodeListImpl<Expression> _arguments = NodeListImpl._();
 
   /// The right parenthesis.
   @override
@@ -1055,7 +1055,7 @@ class BlockImpl extends StatementImpl implements Block {
   Token leftBracket;
 
   /// The statements contained in the block.
-  final NodeListImpl<Statement> _statements = NodeListImpl();
+  final NodeListImpl<Statement> _statements = NodeListImpl._();
 
   /// The right curly bracket.
   @override
@@ -1208,7 +1208,7 @@ class CascadeExpressionImpl extends ExpressionImpl
   late ExpressionImpl _target;
 
   /// The cascade sections sharing the common target.
-  final NodeListImpl<Expression> _cascadeSections = NodeListImpl();
+  final NodeListImpl<Expression> _cascadeSections = NodeListImpl._();
 
   /// Initialize a newly created cascade expression. The list of
   /// [cascadeSections] must contain at least one element.
@@ -1594,7 +1594,7 @@ abstract class ClassOrMixinDeclarationImpl
   Token leftBracket;
 
   /// The members defined by the class or mixin.
-  final NodeListImpl<ClassMember> _members = NodeListImpl();
+  final NodeListImpl<ClassMember> _members = NodeListImpl._();
 
   /// The right curly bracket.
   @override
@@ -1853,7 +1853,7 @@ class CommentImpl extends AstNodeImpl implements Comment {
   /// The references embedded within the documentation comment. This list will
   /// be empty unless this is a documentation comment that has references embedded
   /// within it.
-  final NodeListImpl<CommentReference> _references = NodeListImpl();
+  final NodeListImpl<CommentReference> _references = NodeListImpl._();
 
   /// Initialize a newly created comment. The list of [tokens] must contain at
   /// least one token. The [_type] is the type of the comment. The list of
@@ -2011,10 +2011,10 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   ScriptTagImpl? _scriptTag;
 
   /// The directives contained in this compilation unit.
-  final NodeListImpl<Directive> _directives = NodeListImpl();
+  final NodeListImpl<Directive> _directives = NodeListImpl._();
 
   /// The declarations contained in this compilation unit.
-  final NodeListImpl<CompilationUnitMember> _declarations = NodeListImpl();
+  final NodeListImpl<CompilationUnitMember> _declarations = NodeListImpl._();
 
   /// The last token in the token stream that was parsed to form this
   /// compilation unit. This token should always have a type of [TokenType.EOF].
@@ -2429,7 +2429,7 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   Token? separator;
 
   /// The initializers associated with the constructor.
-  final NodeListImpl<ConstructorInitializer> _initializers = NodeListImpl();
+  final NodeListImpl<ConstructorInitializer> _initializers = NodeListImpl._();
 
   /// The name of the constructor to which this constructor will be redirected,
   /// or `null` if this is not a redirecting factory constructor.
@@ -3125,7 +3125,7 @@ class DoStatementImpl extends StatementImpl implements DoStatement {
 ///        [SimpleIdentifier] ('.' [SimpleIdentifier])*
 class DottedNameImpl extends AstNodeImpl implements DottedName {
   /// The components of the identifier.
-  final NodeListImpl<SimpleIdentifier> _components = NodeListImpl();
+  final NodeListImpl<SimpleIdentifier> _components = NodeListImpl._();
 
   /// Initialize a newly created dotted name.
   DottedNameImpl(List<SimpleIdentifier> components) {
@@ -3327,7 +3327,7 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   Token leftBracket;
 
   /// The enumeration constants being declared.
-  final NodeListImpl<EnumConstantDeclaration> _constants = NodeListImpl();
+  final NodeListImpl<EnumConstantDeclaration> _constants = NodeListImpl._();
 
   /// The right curly bracket.
   @override
@@ -3751,7 +3751,7 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   Token leftBracket;
 
   /// The members being added to the extended class.
-  final NodeListImpl<ClassMember> _members = NodeListImpl();
+  final NodeListImpl<ClassMember> _members = NodeListImpl._();
 
   @override
   Token rightBracket;
@@ -4423,7 +4423,7 @@ class FormalParameterListImpl extends AstNodeImpl
   Token leftParenthesis;
 
   /// The parameters associated with the method.
-  final NodeListImpl<FormalParameter> _parameters = NodeListImpl();
+  final NodeListImpl<FormalParameter> _parameters = NodeListImpl._();
 
   /// The left square bracket ('[') or left curly brace ('{') introducing the
   /// optional parameters, or `null` if there are no optional parameters.
@@ -4537,7 +4537,7 @@ abstract class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
   Token rightSeparator;
 
   /// The list of expressions run after each execution of the loop body.
-  final NodeListImpl<Expression> _updaters = NodeListImpl();
+  final NodeListImpl<Expression> _updaters = NodeListImpl._();
 
   /// Initialize a newly created for statement. Either the [variableList] or the
   /// [initialization] must be `null`. Either the [condition] and the list of
@@ -5505,7 +5505,7 @@ mixin HasAstLinkedContext {
 ///        'hide' [SimpleIdentifier] (',' [SimpleIdentifier])*
 class HideCombinatorImpl extends CombinatorImpl implements HideCombinator {
   /// The list of names from the library that are hidden by this combinator.
-  final NodeListImpl<SimpleIdentifier> _hiddenNames = NodeListImpl();
+  final NodeListImpl<SimpleIdentifier> _hiddenNames = NodeListImpl._();
 
   /// Initialize a newly created import show combinator.
   HideCombinatorImpl(Token keyword, List<SimpleIdentifier> hiddenNames)
@@ -5728,7 +5728,7 @@ class ImplementsClauseImpl extends AstNodeImpl implements ImplementsClause {
   Token implementsKeyword;
 
   /// The interfaces that are being implemented.
-  final NodeListImpl<TypeName> _interfaces = NodeListImpl();
+  final NodeListImpl<TypeName> _interfaces = NodeListImpl._();
 
   /// Initialize a newly created implements clause.
   ImplementsClauseImpl(this.implementsKeyword, List<TypeName> interfaces) {
@@ -6472,7 +6472,7 @@ class IsExpressionImpl extends ExpressionImpl implements IsExpression {
 ///       [Label]+ [Statement]
 class LabeledStatementImpl extends StatementImpl implements LabeledStatement {
   /// The labels being associated with the statement.
-  final NodeListImpl<Label> _labels = NodeListImpl();
+  final NodeListImpl<Label> _labels = NodeListImpl._();
 
   /// The statement with which the labels are being associated.
   late StatementImpl _statement;
@@ -6635,7 +6635,7 @@ class LibraryDirectiveImpl extends DirectiveImpl implements LibraryDirective {
 class LibraryIdentifierImpl extends IdentifierImpl
     implements LibraryIdentifier {
   /// The components of the identifier.
-  final NodeListImpl<SimpleIdentifier> _components = NodeListImpl();
+  final NodeListImpl<SimpleIdentifier> _components = NodeListImpl._();
 
   /// Initialize a newly created prefixed identifier.
   LibraryIdentifierImpl(List<SimpleIdentifier> components) {
@@ -6694,7 +6694,7 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   Token leftBracket;
 
   /// The expressions used to compute the elements of the list.
-  final NodeListImpl<CollectionElement> _elements = NodeListImpl();
+  final NodeListImpl<CollectionElement> _elements = NodeListImpl._();
 
   /// The right square bracket.
   @override
@@ -7395,10 +7395,10 @@ abstract class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
 
   /// The configurations used to control which library will actually be loaded
   /// at run-time.
-  final NodeListImpl<Configuration> _configurations = NodeListImpl();
+  final NodeListImpl<Configuration> _configurations = NodeListImpl._();
 
   /// The combinators used to control which names are imported or exported.
-  final NodeListImpl<Combinator> _combinators = NodeListImpl();
+  final NodeListImpl<Combinator> _combinators = NodeListImpl._();
 
   /// The semicolon terminating the directive.
   @override
@@ -7545,16 +7545,17 @@ class NativeFunctionBodyImpl extends FunctionBodyImpl
 /// A list of AST nodes that have a common parent.
 class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
   /// The node that is the parent of each of the elements in the list.
-  AstNodeImpl? _owner;
+  late final AstNodeImpl _owner;
 
   /// The elements contained in the list.
   List<E> _elements = <E>[];
 
   /// Initialize a newly created list of nodes such that all of the nodes that
   /// are added to the list will have their parent set to the given [owner].
-  NodeListImpl({AstNodeImpl? owner}) {
-    _owner = owner;
-  }
+  NodeListImpl(AstNodeImpl owner) : _owner = owner;
+
+  /// Create a partially initialized instance, [_initialize] must be called.
+  NodeListImpl._();
 
   @override
   Token? get beginToken {
@@ -7582,7 +7583,7 @@ class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
   }
 
   @override
-  AstNode get owner => _owner!;
+  AstNode get owner => _owner;
 
   @override
   E operator [](int index) {
@@ -7597,8 +7598,8 @@ class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
     if (index < 0 || index >= _elements.length) {
       throw RangeError("Index: $index, Size: ${_elements.length}");
     }
-    _owner!._becomeParentOf(node as AstNodeImpl);
     _elements[index] = node;
+    _owner._becomeParentOf(node as AstNodeImpl);
   }
 
   @override
@@ -7615,24 +7616,11 @@ class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
   }
 
   @override
-  bool addAll(Iterable<E>? nodes) {
-    if (nodes != null && nodes.isNotEmpty) {
-      if (nodes is List<E>) {
-        int length = nodes.length;
-        for (int i = 0; i < length; i++) {
-          E node = nodes[i];
-          _elements.add(node);
-          _owner!._becomeParentOf(node as AstNodeImpl);
-        }
-      } else {
-        for (E node in nodes) {
-          _elements.add(node);
-          _owner!._becomeParentOf(node as AstNodeImpl);
-        }
-      }
-      return true;
+  void addAll(Iterable<E> nodes) {
+    for (E node in nodes) {
+      _elements.add(node);
+      _owner._becomeParentOf(node as AstNodeImpl);
     }
-    return false;
   }
 
   @override
@@ -7642,16 +7630,8 @@ class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
 
   @override
   void insert(int index, E node) {
-    int length = _elements.length;
-    if (index < 0 || index > length) {
-      throw RangeError("Index: $index, Size: ${_elements.length}");
-    }
-    _owner!._becomeParentOf(node as AstNodeImpl);
-    if (length == 0) {
-      _elements.add(node);
-    } else {
-      _elements.insert(index, node);
-    }
+    _elements.insert(index, node);
+    _owner._becomeParentOf(node as AstNodeImpl);
   }
 
   @override
@@ -7659,28 +7639,20 @@ class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
     if (index < 0 || index >= _elements.length) {
       throw RangeError("Index: $index, Size: ${_elements.length}");
     }
-    E removedNode = _elements[index];
-    _elements.removeAt(index);
-    return removedNode;
-  }
-
-  /// This is non-API and may be changed or removed at any point.
-  ///
-  /// Changes the length of this list
-  /// If [newLength] is greater than the current length,
-  /// entries are initialized to `null`.
-  ///
-  /// This list should NOT contain any `null` elements,
-  /// so be sure to immediately follow a call to this method with calls
-  /// to replace all the `null` elements with non-`null` elements.
-  void setLength(int newLength) {
-    _elements.length = newLength;
+    return _elements.removeAt(index);
   }
 
   /// Set the [owner] of this container, and populate it with [elements].
   void _initialize(AstNodeImpl owner, List<E>? elements) {
     _owner = owner;
-    addAll(elements);
+    if (elements != null) {
+      var length = elements.length;
+      for (var i = 0; i < length; i++) {
+        var node = elements[i];
+        _elements.add(node);
+        owner._becomeParentOf(node as AstNodeImpl);
+      }
+    }
   }
 }
 
@@ -7697,7 +7669,7 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
   CommentImpl? _comment;
 
   /// The annotations associated with this parameter.
-  final NodeListImpl<Annotation> _metadata = NodeListImpl();
+  final NodeListImpl<Annotation> _metadata = NodeListImpl._();
 
   /// The 'covariant' keyword, or `null` if the keyword was not used.
   @override
@@ -7873,7 +7845,7 @@ class OnClauseImpl extends AstNodeImpl implements OnClause {
   Token onKeyword;
 
   /// The classes are super-class constraints for the mixin.
-  final NodeListImpl<TypeName> _superclassConstraints = NodeListImpl();
+  final NodeListImpl<TypeName> _superclassConstraints = NodeListImpl._();
 
   /// Initialize a newly created on clause.
   OnClauseImpl(this.onKeyword, List<TypeName> superclassConstraints) {
@@ -8651,7 +8623,7 @@ class SetOrMapLiteralImpl extends TypedLiteralImpl implements SetOrMapLiteral {
   Token leftBracket;
 
   /// The syntactic elements in the set.
-  final NodeListImpl<CollectionElement> _elements = NodeListImpl();
+  final NodeListImpl<CollectionElement> _elements = NodeListImpl._();
 
   @override
   Token rightBracket;
@@ -8748,7 +8720,7 @@ class SetOrMapLiteralImpl extends TypedLiteralImpl implements SetOrMapLiteral {
 class ShowCombinatorImpl extends CombinatorImpl implements ShowCombinator {
   /// The list of names from the library that are made visible by this
   /// combinator.
-  final NodeListImpl<SimpleIdentifier> _shownNames = NodeListImpl();
+  final NodeListImpl<SimpleIdentifier> _shownNames = NodeListImpl._();
 
   /// Initialize a newly created import show combinator.
   ShowCombinatorImpl(Token keyword, List<SimpleIdentifier> shownNames)
@@ -9224,7 +9196,7 @@ abstract class StatementImpl extends AstNodeImpl implements Statement {
 class StringInterpolationImpl extends SingleStringLiteralImpl
     implements StringInterpolation {
   /// The elements that will be composed to produce the resulting string.
-  final NodeListImpl<InterpolationElement> _elements = NodeListImpl();
+  final NodeListImpl<InterpolationElement> _elements = NodeListImpl._();
 
   /// Initialize a newly created string interpolation expression.
   StringInterpolationImpl(List<InterpolationElement> elements) {
@@ -9592,7 +9564,7 @@ class SwitchDefaultImpl extends SwitchMemberImpl implements SwitchDefault {
 ///      | switchDefault
 abstract class SwitchMemberImpl extends AstNodeImpl implements SwitchMember {
   /// The labels associated with the switch member.
-  final NodeListImpl<Label> _labels = NodeListImpl();
+  final NodeListImpl<Label> _labels = NodeListImpl._();
 
   /// The token representing the 'case' or 'default' keyword.
   @override
@@ -9603,7 +9575,7 @@ abstract class SwitchMemberImpl extends AstNodeImpl implements SwitchMember {
   Token colon;
 
   /// The statements that will be executed if this switch member is selected.
-  final NodeListImpl<Statement> _statements = NodeListImpl();
+  final NodeListImpl<Statement> _statements = NodeListImpl._();
 
   /// Initialize a newly created switch member. The list of [labels] can be
   /// `null` if there are no labels.
@@ -9662,7 +9634,7 @@ class SwitchStatementImpl extends StatementImpl implements SwitchStatement {
   Token leftBracket;
 
   /// The switch members that can be selected by the expression.
-  final NodeListImpl<SwitchMember> _members = NodeListImpl();
+  final NodeListImpl<SwitchMember> _members = NodeListImpl._();
 
   /// The right curly bracket.
   @override
@@ -9919,7 +9891,7 @@ class TryStatementImpl extends StatementImpl implements TryStatement {
   late BlockImpl _body;
 
   /// The catch clauses contained in the try statement.
-  final NodeListImpl<CatchClause> _catchClauses = NodeListImpl();
+  final NodeListImpl<CatchClause> _catchClauses = NodeListImpl._();
 
   /// The token representing the 'finally' keyword, or `null` if the statement
   /// does not contain a finally clause.
@@ -10047,7 +10019,7 @@ class TypeArgumentListImpl extends AstNodeImpl implements TypeArgumentList {
   Token leftBracket;
 
   /// The type arguments associated with the type.
-  final NodeListImpl<TypeAnnotation> _arguments = NodeListImpl();
+  final NodeListImpl<TypeAnnotation> _arguments = NodeListImpl._();
 
   /// The right bracket.
   @override
@@ -10299,7 +10271,7 @@ class TypeParameterListImpl extends AstNodeImpl implements TypeParameterList {
   final Token leftBracket;
 
   /// The type parameters in the list.
-  final NodeListImpl<TypeParameter> _typeParameters = NodeListImpl();
+  final NodeListImpl<TypeParameter> _typeParameters = NodeListImpl._();
 
   /// The right angle bracket.
   @override
@@ -10578,7 +10550,7 @@ class VariableDeclarationListImpl extends AnnotatedNodeImpl
   TypeAnnotationImpl? _type;
 
   /// A list containing the individual variables being declared.
-  final NodeListImpl<VariableDeclaration> _variables = NodeListImpl();
+  final NodeListImpl<VariableDeclaration> _variables = NodeListImpl._();
 
   /// Initialize a newly created variable declaration list. Either or both of
   /// the [comment] and [metadata] can be `null` if the variable list does not
@@ -10778,7 +10750,7 @@ class WithClauseImpl extends AstNodeImpl implements WithClause {
   Token withKeyword;
 
   /// The names of the mixins that were specified.
-  final NodeListImpl<TypeName> _mixinTypes = NodeListImpl();
+  final NodeListImpl<TypeName> _mixinTypes = NodeListImpl._();
 
   /// Initialize a newly created with clause.
   WithClauseImpl(this.withKeyword, List<TypeName> mixinTypes) {
