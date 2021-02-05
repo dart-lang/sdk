@@ -6026,6 +6026,8 @@ const Template<
         Message Function(String name, String name2, String string3)>(
     messageTemplate:
         r"""JS interop class '#name' conflicts with natively supported class '#name2' in '#string3'.""",
+    tipTemplate:
+        r"""Try making the @JS class into an @anonymous class or use js_util on the JS object.""",
     withArguments: _withArgumentsJsInteropNativeClassInAnnotation);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6046,6 +6048,7 @@ Message _withArgumentsJsInteropNativeClassInAnnotation(
   return new Message(codeJsInteropNativeClassInAnnotation,
       message:
           """JS interop class '${name}' conflicts with natively supported class '${name2}' in '${string3}'.""",
+      tip: """Try making the @JS class into an @anonymous class or use js_util on the JS object.""",
       arguments: {'name': name, 'name2': name2, 'string3': string3});
 }
 
