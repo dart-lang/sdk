@@ -2679,7 +2679,7 @@ void IsolateGroup::ForEachIsolate(
 }
 
 Isolate* IsolateGroup::FirstIsolate() const {
-  SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
+  SafepointReadRwLocker ml(Thread::Current(), isolates_lock_.get());
   return FirstIsolateLocked();
 }
 
