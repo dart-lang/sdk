@@ -203,6 +203,7 @@ const Map<String, ValueSpecification> optionSpecification =
   Flags.noDeps: const BoolValue(false),
   Flags.invocationModes: const StringValue(),
   "-D": const DefineValue(),
+  "--define": const AliasValue("-D"),
   "-h": const AliasValue(Flags.help),
   "--out": const AliasValue(Flags.output),
   "-o": const AliasValue(Flags.output),
