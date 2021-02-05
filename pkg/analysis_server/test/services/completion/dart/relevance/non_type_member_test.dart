@@ -9,12 +9,12 @@ import 'completion_relevance.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(NonTypeMemberRelevanceTest);
+    defineReflectiveTests(NonTypeMemberTest);
   });
 }
 
 @reflectiveTest
-class NonTypeMemberRelevanceTest extends CompletionRelevanceTest {
+class NonTypeMemberTest extends CompletionRelevanceTest {
   Future<void> test_contextType_constructorInvocation_before_type() async {
     await addTestFile('''
 class StrWrap {

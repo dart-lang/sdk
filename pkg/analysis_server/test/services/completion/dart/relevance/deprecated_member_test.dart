@@ -9,34 +9,34 @@ import 'completion_relevance.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(LocalVariableRelevanceTest);
+    defineReflectiveTests(DeprecatedMemberTest);
   });
 }
 
 @reflectiveTest
-class LocalVariableRelevanceTest extends CompletionRelevanceTest {
-  Future<void> test_localVariables() async {
+class DeprecatedMemberTest extends CompletionRelevanceTest {
+  Future<void> test_deprecated() async {
     await addTestFile('''
-int f() {
-  var a = 0;
-  var b = 1;
-  var c = 2;
-  var d = ^;
+class A {
+  void a1() { }
+  @deprecated
+  void a2() { }
+}
+
+void main() {
+  var a = A();
+  a.^
 }
 ''');
 
     assertOrder([
       suggestionWith(
-          completion: 'c',
-          element: ElementKind.LOCAL_VARIABLE,
+          completion: 'a1',
+          element: ElementKind.METHOD,
           kind: CompletionSuggestionKind.INVOCATION),
       suggestionWith(
-          completion: 'b',
-          element: ElementKind.LOCAL_VARIABLE,
-          kind: CompletionSuggestionKind.INVOCATION),
-      suggestionWith(
-          completion: 'a',
-          element: ElementKind.LOCAL_VARIABLE,
+          completion: 'a2',
+          element: ElementKind.METHOD,
           kind: CompletionSuggestionKind.INVOCATION),
     ]);
   }

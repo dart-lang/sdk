@@ -8,12 +8,15 @@ import 'completion_relevance.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(StaticMemberRelevanceTest);
+    defineReflectiveTests(InstanceMemberTest);
   });
 }
 
 @reflectiveTest
-class StaticMemberRelevanceTest extends CompletionRelevanceTest {
+class InstanceMemberTest extends CompletionRelevanceTest {
+  @override
+  bool get supportsAvailableSuggestions => true;
+
   Future<void> test_contextType() async {
     await addTestFile(r'''
 class A {}
@@ -22,15 +25,15 @@ class C extends B {}
 class D {}
 
 class E {
-  static A a() {}
-  static B b() {}
-  static C c() {}
-  static D d() {}
+  A a() {}
+  B b() {}
+  C c() {}
+  D d() {}
 }
 
 void f(B b) {}
-void g() {
-  f(E.^);
+void g(E e) {
+  f(e.^);
 }
 ''');
     assertOrder([
@@ -43,24 +46,22 @@ void g() {
 
   Future<void> test_elementKind() async {
     await addTestFile('''
-class C {
-  static int f = 0;
-  static void get g {}
-  static set s(int x) {}
-  static void m() {}
+class A {
+  int get g => 0;
+  void m() { }
+  set s(int x) {}
 }
 
-void g() {
-  C.^
+void f(A a) {
+  a.^
 }
 ''');
     // The order below is dependent on generated data, so it can validly change
     // when the data is re-generated.
     // Getters, setters and fields now all have the same relevance.
     assertOrder([
-//      suggestionWith(completion: 'g'),
+      suggestionWith(completion: 'g'),
 //      suggestionWith(completion: 's'),
-      suggestionWith(completion: 'f'),
       suggestionWith(completion: 'm'),
     ]);
   }
@@ -68,18 +69,75 @@ void g() {
   Future<void> test_hasDeprecated() async {
     await addTestFile('''
 class C {
-  static void a() {}
+  void a() {}
   @deprecated
-  static void b() {}
+  void b() {}
 }
 
-void f() {
-  C.^
+void f(C c) {
+  c.^
 }
 ''');
     assertOrder([
       suggestionWith(completion: 'a'),
       suggestionWith(completion: 'b'),
+    ]);
+  }
+
+  Future<void> test_inheritanceDepth() async {
+    await addTestFile('''
+class A {
+  void a() { }
+}
+
+class B extends A {
+  void b() { }
+}
+
+void f(B b) {
+  b.^
+}
+''');
+    assertOrder([
+      suggestionWith(completion: 'b'),
+      suggestionWith(completion: 'a'),
+      suggestionWith(completion: 'toString'),
+    ]);
+  }
+
+  Future<void> test_startsWithDollar() async {
+    await addTestFile(r'''
+class A {
+  void a() { }
+  void $b() { }
+}
+
+void f(A a) {
+  a.^
+}
+''');
+    assertOrder([
+      suggestionWith(completion: 'a'),
+      suggestionWith(completion: r'$b'),
+    ]);
+  }
+
+  Future<void> test_superMatches() async {
+    await addTestFile('''
+class A {
+  void a() { }
+  void b() { }
+}
+
+class B extends A {
+  void b() {
+    super.^
+  }
+}
+''');
+    assertOrder([
+      suggestionWith(completion: 'b'),
+      suggestionWith(completion: 'a'),
     ]);
   }
 }

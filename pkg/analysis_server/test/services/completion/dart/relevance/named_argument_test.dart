@@ -9,13 +9,13 @@ import 'completion_relevance.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(NamedArgumentRelevanceTest);
-    defineReflectiveTests(NamedArgumentRelevanceWithNullSafetyTest);
+    defineReflectiveTests(NamedArgumentTest);
+    defineReflectiveTests(NamedArgumentWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class NamedArgumentRelevanceTest extends CompletionRelevanceTest {
+class NamedArgumentTest extends CompletionRelevanceTest {
   @override
   void setUp() {
     super.setUp();
@@ -44,8 +44,7 @@ void g() => f(^);
 }
 
 @reflectiveTest
-class NamedArgumentRelevanceWithNullSafetyTest
-    extends NamedArgumentRelevanceTest {
+class NamedArgumentWithNullSafetyTest extends NamedArgumentTest {
   Future<void> test_required() async {
     await addTestFile('''
 void f({int a = 0, required int b}) {}
