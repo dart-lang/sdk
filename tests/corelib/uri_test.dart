@@ -474,6 +474,105 @@ void testReplace() {
   Expect.listEquals(["43", "38"], params["y"]!);
 }
 
+void testPackageUris() {
+  // A URI is recognized as a package URI if it has:
+  // * "package" as scheme
+  // * no authority
+  // * a first path segment
+  //     * containing no `%`,
+  //     * which is not all "." characters,
+  //     * and which ends with a `/`.
+  //
+  // If so, the package name is unaffected by path resolution.
+  var uri = Uri.parse("package:foo/bar/baz"); // Simple base URI.
+
+  Expect.stringEquals("package:foo/qux", // Resolve simple URI.
+      uri.resolve("../../qux").toString());
+
+  Expect.stringEquals("package:foo/qux",
+      uri.resolve("/qux").toString());
+
+  Expect.stringEquals("package:foo/qux?%2F", // Resolve non-simple URI.
+      uri.resolve("../../qux?%2F").toString());
+
+  Expect.stringEquals("package:foo/qux?%2F",
+      uri.resolve("/qux?%2F").toString());
+
+  uri = Uri.parse("package:foo/%62ar/baz"); // Non-simple base URI.
+
+  Expect.stringEquals("package:foo/qux", // Resolve simple URI.
+      uri.resolve("../../qux").toString());
+
+  Expect.stringEquals("package:foo/qux",
+      uri.resolve("/qux").toString());
+
+  Expect.stringEquals("package:foo/qux?%2F", // Resolve non-simple URI.
+      uri.resolve("../../qux?%2F").toString());
+
+  Expect.stringEquals("package:foo/qux?%2F",
+      uri.resolve("/qux?%2F").toString());
+
+  // The following base URIs are not recognized as package URIs:
+  uri = Uri.parse("puckage:foo/bar/baz"); // Not "package" scheme.
+
+  Expect.stringEquals("puckage:/qux",
+      uri.resolve("../../qux").toString());
+
+  Expect.stringEquals("puckage:/qux",
+      uri.resolve("/qux").toString());
+
+  uri = Uri.parse("package://foo/bar/baz"); // Has authority.
+
+  Expect.stringEquals("package://foo/qux",
+      uri.resolve("../../qux").toString());
+
+  Expect.stringEquals("package://foo/qux",
+      uri.resolve("/qux").toString());
+
+  uri = Uri.parse("package:/foo/bar/baz"); // Has empty package name.
+
+  Expect.stringEquals("package:/qux",
+      uri.resolve("../../qux").toString());
+
+  Expect.stringEquals("package:/qux",
+      uri.resolve("/qux").toString());
+
+  uri = Uri.parse("package:f%2fo/bar/baz"); // Has escape in package name.
+
+  Expect.stringEquals("package:/qux",
+      uri.resolve("../../qux").toString());
+
+  Expect.stringEquals("package:/qux",
+      uri.resolve("/qux").toString());
+
+  uri = Uri.parse("package:f:o/bar/baz"); // Has colon in package name.
+
+  Expect.stringEquals("package:/qux",
+      uri.resolve("../../qux").toString());
+
+  Expect.stringEquals("package:/qux",
+      uri.resolve("/qux").toString());
+
+  uri = Uri.parse("package:.../bar/baz"); // Has only '.' in package name.
+
+  Expect.stringEquals("package:/qux",
+      uri.resolve("../../qux").toString());
+
+  Expect.stringEquals("package:/qux",
+      uri.resolve("/qux").toString());
+
+  uri = Uri.parse("package:foo?/"); // Has no `/` after package name.
+
+  // Resolving relative against non-absolute path gives
+  // a non-absolute path again.
+  // TODO(lrn): Is this a bug?
+  Expect.stringEquals("package:qux",
+      uri.resolve("../../qux").toString());
+
+  Expect.stringEquals("package:/qux",
+      uri.resolve("/qux").toString());
+}
+
 main() {
   testUri("http:", true);
   testUri("file:///", true);
@@ -625,6 +724,7 @@ main() {
   testInvalidUrls();
   testNormalization();
   testReplace();
+  testPackageUris();
 }
 
 String dump(Uri uri) {
