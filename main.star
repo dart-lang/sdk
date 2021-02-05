@@ -1171,6 +1171,26 @@ nightly_builder(
     category = "vm|misc|reload|rrb",
     channels = ["try"],
 )
+nightly_builder(
+    "vm-kernel-linux-debug-x64c",
+    category = "vm|misc|compressed|ji",
+    channels = ["try"],
+)
+nightly_builder(
+    "vm-kernel-linux-debug-simarm64c",
+    category = "vm|misc|compressed|ja",
+    channels = ["try"],
+)
+nightly_builder(
+    "vm-kernel-precomp-linux-debug-x64c",
+    category = "vm|misc|compressed|ai",
+    channels = ["try"],
+)
+nightly_builder(
+    "vm-kernel-precomp-linux-debug-simarm64c",
+    category = "vm|misc|compressed|aa",
+    channels = ["try"],
+)
 dart_vm_low_priority_builder("vm-fuchsia-release-x64", category = "vm|misc|f")
 
 # vm|ffi
