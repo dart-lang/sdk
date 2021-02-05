@@ -139,11 +139,6 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
                 constructor, memberName);
           }
         });
-      } else {
-        // TODO(44754): For now, this call is required to correctly load
-        // the environment for some of the tests in the _2 directories.
-        elementEnvironment.forEachConstructor(
-            cls, (ConstructorEntity constructor) {});
       }
     });
 

@@ -275,6 +275,12 @@ abstract class KClassEnv {
   /// the members in [liveMembers].
   JClassEnv convert(IrToElementMap elementMap,
       Map<MemberEntity, MemberUsage> liveMemberUsage);
+
+  /// Returns `true` if [node] is a known member of this class.
+  ///
+  /// This method is used for checking the integrity of the K-model and does
+  /// not alter the state of this class environment.
+  bool checkHasMember(ir.Member node);
 }
 
 int orderByFileOffset(ir.TreeNode a, ir.TreeNode b) {
@@ -313,6 +319,14 @@ class KClassEnvImpl implements KClassEnv {
   bool get isMixinApplicationWithMembers {
     assert(_isMixinApplicationWithMembers != null);
     return _isMixinApplicationWithMembers;
+  }
+
+  @override
+  bool checkHasMember(ir.Member node) {
+    if (_memberMap == null) return false;
+    return _memberMap.values.contains(node) ||
+        _setterMap.values.contains(node) ||
+        _constructorMap.values.contains(node);
   }
 
   @override

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../common.dart';
 import '../common/names.dart';
 import '../common_elements.dart';
 import '../elements/entities.dart';
@@ -135,6 +136,23 @@ class KClosedWorldImpl implements KClosedWorld {
       this.instantiatedTypes})
       : _implementedClasses = implementedClasses {
     _rtiNeed = rtiNeedBuilder.computeRuntimeTypesNeed(this, options);
+    assert(_checkIntegrity());
+  }
+
+  bool _checkIntegrity() {
+    for (MemberEntity member in liveMemberUsage.keys) {
+      if (member.enclosingClass != null) {
+        if (!elementMap.classes
+            .getEnv(member.enclosingClass)
+            .checkHasMember(elementMap.getMemberNode(member))) {
+          throw new SpannableAssertionFailure(
+              member,
+              "Member $member is in the environment of its enclosing class"
+              " ${member.enclosingClass}.");
+        }
+      }
+    }
+    return true;
   }
 
   @override
