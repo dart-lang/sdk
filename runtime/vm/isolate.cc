@@ -961,6 +961,11 @@ void Isolate::ValidateConstants() {
     // TODO(27003)
     return;
   }
+  // Issue(https://dartbug.com/44862): Figure out why hot-reload causes
+  // existence of non-canonical constants.
+  if (group()->HasAttemptedReload()) {
+    return;
+  }
 
   // Verify that all canonical instances are correctly setup in the
   // corresponding canonical tables.
@@ -2674,7 +2679,7 @@ void IsolateGroup::ForEachIsolate(
 }
 
 Isolate* IsolateGroup::FirstIsolate() const {
-  SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
+  SafepointReadRwLocker ml(Thread::Current(), isolates_lock_.get());
   return FirstIsolateLocked();
 }
 

@@ -353,6 +353,8 @@ class FrontendCompiler implements CompilerInterface {
   final List<String> errors = <String>[];
 
   _onDiagnostic(DiagnosticMessage message) {
+    // TODO(https://dartbug.com/44867): The frontend server should take a
+    // verbosity argument and put that in CompilerOptions and use it here.
     bool printMessage;
     switch (message.severity) {
       case Severity.error:
@@ -361,8 +363,10 @@ class FrontendCompiler implements CompilerInterface {
         errors.addAll(message.plainTextFormatted);
         break;
       case Severity.warning:
-      case Severity.info:
         printMessage = true;
+        break;
+      case Severity.info:
+        printMessage = false;
         break;
       case Severity.context:
       case Severity.ignored:
