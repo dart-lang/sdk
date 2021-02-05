@@ -219,8 +219,22 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     });
   }
 
-  void ensureClassMembers(ir.Class node) {
-    classes.getEnv(getClassInternal(node)).ensureMembers(this);
+  /// Returns the [ClassEntity] for [node] while ensuring that the member
+  /// environment for [node] is computed.
+  ///
+  /// This is needed to ensure that live members are always included in the
+  /// environment of a class. Static members and mixed in members a member
+  /// can be become live through static access and mixin application,
+  /// respectively, which does not require lookup into the class members.
+  ///
+  /// Since the J-model class environment is computed from the K-model
+  /// environment, not ensuring the computation of the class members, can result
+  /// in a live member being present in the J-model but unavailable when queried
+  /// as a member of its enclosing class.
+  ClassEntity getClassForMemberInternal(ir.Class node) {
+    ClassEntity cls = getClassInternal(node);
+    classes.getEnv(cls).ensureMembers(this);
+    return cls;
   }
 
   MemberEntity lookupClassMember(IndexedClass cls, String name,
@@ -1234,7 +1248,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         "Environment of $this is closed. Trying to create "
         "constructor for $node.");
     ir.FunctionNode functionNode;
-    ClassEntity enclosingClass = getClassInternal(node.enclosingClass);
+    ClassEntity enclosingClass = getClassForMemberInternal(node.enclosingClass);
     Name name = getName(node.name);
     bool isExternal = node.isExternal;
 
@@ -1281,7 +1295,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     LibraryEntity library;
     ClassEntity enclosingClass;
     if (node.enclosingClass != null) {
-      enclosingClass = getClassInternal(node.enclosingClass);
+      enclosingClass = getClassForMemberInternal(node.enclosingClass);
       library = enclosingClass.library;
     } else {
       library = getLibraryInternal(node.enclosingLibrary);
@@ -1333,7 +1347,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     LibraryEntity library;
     ClassEntity enclosingClass;
     if (node.enclosingClass != null) {
-      enclosingClass = getClassInternal(node.enclosingClass);
+      enclosingClass = getClassForMemberInternal(node.enclosingClass);
       library = enclosingClass.library;
     } else {
       library = getLibraryInternal(node.enclosingLibrary);
