@@ -34,23 +34,20 @@ import '../universe/selector.dart';
 import '../world.dart';
 import 'closure.dart';
 import 'elements.dart';
-import 'element_map.dart';
 import 'element_map_impl.dart';
 import 'js_world.dart';
-import 'locals.dart';
 
 class JsClosedWorldBuilder {
   final JsKernelToElementMap _elementMap;
   final Map<ClassEntity, ClassHierarchyNode> _classHierarchyNodes =
       new ClassHierarchyNodesMap();
   final Map<ClassEntity, ClassSet> _classSets = <ClassEntity, ClassSet>{};
-  final GlobalLocalsMap _globalLocalsMap;
   final ClosureDataBuilder _closureDataBuilder;
   final CompilerOptions _options;
   final AbstractValueStrategy _abstractValueStrategy;
 
-  JsClosedWorldBuilder(this._elementMap, this._globalLocalsMap,
-      this._closureDataBuilder, this._options, this._abstractValueStrategy);
+  JsClosedWorldBuilder(this._elementMap, this._closureDataBuilder,
+      this._options, this._abstractValueStrategy);
 
   ElementEnvironment get _elementEnvironment => _elementMap.elementEnvironment;
   CommonElements get _commonElements => _elementMap.commonElements;
@@ -236,7 +233,6 @@ class JsClosedWorldBuilder {
             _elementMap.commonElements, _classHierarchyNodes, _classSets),
         _abstractValueStrategy,
         annotationsData,
-        _globalLocalsMap,
         closureData,
         outputUnitData,
         memberAccess);
@@ -414,23 +410,21 @@ class JsClosedWorldBuilder {
 
   /// Construct a closure class and set up the necessary class inference
   /// hierarchy.
-  KernelClosureClassInfo buildClosureClass(
+  JsClosureClassInfo buildClosureClass(
       MemberEntity member,
       ir.FunctionNode originalClosureFunctionNode,
       JLibrary enclosingLibrary,
-      Map<Local, JRecordField> boxedVariables,
+      Map<ir.VariableDeclaration, JRecordField> boxedVariables,
       KernelScopeInfo info,
-      KernelToLocalsMap localsMap,
       {bool createSignatureMethod}) {
     ClassEntity superclass = _commonElements.closureClass;
 
-    KernelClosureClassInfo closureClassInfo = _elementMap.constructClosureClass(
+    JsClosureClassInfo closureClassInfo = _elementMap.constructClosureClass(
         member,
         originalClosureFunctionNode,
         enclosingLibrary,
         boxedVariables,
         info,
-        localsMap,
         _dartTypes.interfaceType(superclass, const []),
         createSignatureMethod: createSignatureMethod);
 
