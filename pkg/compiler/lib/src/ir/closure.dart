@@ -343,7 +343,7 @@ enum TypeVariableKind { cls, method, local, function }
 /// A fake ir.Node that holds the TypeParameterType as well as the context in
 /// which it occurs.
 class TypeVariableTypeWithContext implements ir.Node {
-  final ir.Node context;
+  final ir.TreeNode context;
   final ir.TypeParameterType type;
   final TypeVariableKind kind;
   final ir.TreeNode typeDeclaration;

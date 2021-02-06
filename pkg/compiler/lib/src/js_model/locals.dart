@@ -272,12 +272,11 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   }
 
   @override
-  Local getLocalTypeVariable(
-      ir.TypeParameterType node, JsToElementMap elementMap) {
+  Local getLocalTypeVariableEntity(TypeVariableEntity typeVariable) {
     // TODO(efortuna, johnniwinther): We're not registering the type variables
     // like we are for the variable declarations. Is that okay or do we need to
     // make TypeVariableLocal a JLocal?
-    return TypeVariableLocal(elementMap.getTypeVariableType(node).element);
+    return TypeVariableLocal(typeVariable);
   }
 
   @override

@@ -218,7 +218,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // each update, and reading them yields the type that was found in a
     // previous analysis of [outermostElement].
     ScopeInfo scopeInfo = _closureDataLookup.getScopeInfo(_analyzedMember);
-    scopeInfo.forEachBoxedVariable((variable, field) {
+    scopeInfo.forEachBoxedVariable(_localsMap, (variable, field) {
       _capturedAndBoxed[variable] = field;
     });
 
@@ -1722,8 +1722,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // Record the types of captured non-boxed variables. Types of
     // these variables may already be there, because of an analysis of
     // a previous closure.
-    info.forEachFreeVariable((Local variable, FieldEntity field) {
-      if (!info.isBoxedVariable(variable)) {
+    info.forEachFreeVariable(_localsMap, (Local variable, FieldEntity field) {
+      if (!info.isBoxedVariable(_localsMap, variable)) {
         if (variable == info.thisLocal) {
           _inferrer.recordTypeOfField(field, thisType);
         }

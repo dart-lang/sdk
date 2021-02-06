@@ -134,7 +134,9 @@ class TypeGraphInferrer implements TypesInferrer {
       if (member is JClosureCallMethod) {
         ClosureRepresentationInfo info =
             closedWorld.closureDataLookup.getScopeInfo(member);
-        info.forEachFreeVariable((Local from, FieldEntity to) {
+        info.forEachFreeVariable(
+            closedWorld.globalLocalsMap.getLocalsMap(member),
+            (Local from, FieldEntity to) {
           freeVariables.add(to);
         });
       }
