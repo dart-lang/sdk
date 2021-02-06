@@ -517,7 +517,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
           if (offset <= argument.offset) {
             return typeOfIndexPositionalParameter();
           }
-          if (argument.contains(offset)) {
+          if (argument.contains(offset) && offset >= argument.name.end) {
             return argument.staticParameterElement?.type;
           }
           return null;
