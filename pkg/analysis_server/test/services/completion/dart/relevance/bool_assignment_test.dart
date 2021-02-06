@@ -9,12 +9,12 @@ import 'completion_relevance.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(BoolAssignmentRelevanceTest);
+    defineReflectiveTests(BoolAssignmentTest);
   });
 }
 
 @reflectiveTest
-class BoolAssignmentRelevanceTest extends CompletionRelevanceTest {
+class BoolAssignmentTest extends CompletionRelevanceTest {
   Future<void> test_boolLiterals_imported() async {
     await addTestFile('''
 foo() {

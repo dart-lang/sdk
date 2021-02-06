@@ -1268,6 +1268,7 @@ unification
 unifier
 unify
 uninstantiable
+uninstantiated
 unions
 uniqueness
 unittest

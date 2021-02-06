@@ -6431,6 +6431,17 @@ const MessageCode messageMetadataTypeArguments = const MessageCode(
     message: r"""An annotation (metadata) can't use type arguments.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMetadataTypeArgumentsUninstantiated =
+    messageMetadataTypeArgumentsUninstantiated;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMetadataTypeArgumentsUninstantiated = const MessageCode(
+    "MetadataTypeArgumentsUninstantiated",
+    index: 114,
+    message:
+        r"""An annotation (metadata) with type arguments must be followed by an argument list.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateMethodNotFound =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Method not found: '#name'.""",

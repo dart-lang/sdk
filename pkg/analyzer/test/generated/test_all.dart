@@ -16,6 +16,7 @@ import 'error_suppression_test.dart' as error_suppression;
 import 'expression_parser_test.dart' as expression_parser;
 import 'extension_methods_parser_test.dart' as extension_methods_parser;
 import 'formal_parameter_parser_test.dart' as formal_parameter_parser;
+import 'generic_metadata_parser_test.dart' as generic_metadata_parser;
 import 'invalid_code_test.dart' as invalid_code;
 import 'issues_test.dart' as issues;
 import 'java_core_test.dart' as java_core_test;
@@ -55,6 +56,7 @@ main() {
     expression_parser.main();
     extension_methods_parser.main();
     formal_parameter_parser.main();
+    generic_metadata_parser.main();
     invalid_code.main();
     issues.main();
     java_core_test.main();

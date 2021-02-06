@@ -61,6 +61,9 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode ANNOTATION_WITH_TYPE_ARGUMENTS =
       _ANNOTATION_WITH_TYPE_ARGUMENTS;
 
+  static const ParserErrorCode ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED =
+      _ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED;
+
   /**
    * 16.32 Identifier Reference: It is a compile-time error if any of the
    * identifiers async, await, or yield is used as an identifier in a function
