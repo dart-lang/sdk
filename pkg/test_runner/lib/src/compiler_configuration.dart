@@ -1197,6 +1197,7 @@ abstract class VMKernelCompilerMixin {
       arguments.where((name) => name.endsWith('.dart')).single,
       ...arguments.where((name) =>
           name.startsWith('-D') ||
+          name.startsWith('--define') ||
           name.startsWith('--packages=') ||
           name.startsWith('--enable-experiment=')),
       '-Ddart.vm.product=$isProductMode',

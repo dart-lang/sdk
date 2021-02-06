@@ -269,6 +269,9 @@ abstract class LinterContext {
   /// Return the result of evaluating the given expression.
   LinterConstantEvaluationResult evaluateConstant(Expression node);
 
+  /// Return `true` if the given [unit] is in a test directory.
+  bool inTestDir(CompilationUnit unit);
+
   /// Return `true` if the [feature] is enabled in the library being linted.
   bool isEnabled(Feature feature);
 
@@ -281,6 +284,13 @@ abstract class LinterContext {
 
 /// Implementation of [LinterContext]
 class LinterContextImpl implements LinterContext {
+  static final _testDirectories = [
+    '${p.separator}test${p.separator}',
+    '${p.separator}integration_test${p.separator}',
+    '${p.separator}test_driver${p.separator}',
+    '${p.separator}testing${p.separator}',
+  ];
+
   @override
   final List<LinterContextUnit> allUnits;
 
@@ -366,6 +376,12 @@ class LinterContextImpl implements LinterContext {
 
     var value = node.accept(visitor);
     return LinterConstantEvaluationResult(value, errorListener.errors);
+  }
+
+  @override
+  bool inTestDir(CompilationUnit unit) {
+    var path = unit.declaredElement?.source.fullName;
+    return path != null && _testDirectories.any(path.contains);
   }
 
   @override

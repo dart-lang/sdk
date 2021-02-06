@@ -1716,7 +1716,7 @@ class FlowModel<Variable extends Object, Type extends Object> {
           info.discardPromotionsAndMarkNotUnassigned();
       if (!identical(info, newInfo)) {
         (newVariableInfo ??=
-            new Map<Variable?, VariableModel<Variable, Type>>.from(
+            new Map<Variable?, VariableModel<Variable, Type>>.of(
                 variableInfo))[variable] = newInfo;
       }
     }
@@ -1725,7 +1725,7 @@ class FlowModel<Variable extends Object, Type extends Object> {
       VariableModel<Variable, Type>? info = variableInfo[variable];
       if (info == null) {
         (newVariableInfo ??=
-            new Map<Variable, VariableModel<Variable, Type>>.from(
+            new Map<Variable?, VariableModel<Variable, Type>>.of(
                 variableInfo))[variable] = new VariableModel<Variable, Type>(
             promotedTypes: null,
             tested: const [],
@@ -1734,7 +1734,7 @@ class FlowModel<Variable extends Object, Type extends Object> {
             ssaNode: null);
       } else if (!info.writeCaptured) {
         (newVariableInfo ??=
-            new Map<Variable, VariableModel<Variable, Type>>.from(
+            new Map<Variable?, VariableModel<Variable, Type>>.of(
                 variableInfo))[variable] = info.writeCapture();
       }
     }
@@ -2194,7 +2194,7 @@ class FlowModel<Variable extends Object, Type extends Object> {
       {Reachability? reachable}) {
     reachable ??= this.reachable;
     Map<Variable?, VariableModel<Variable, Type>> newVariableInfo =
-        new Map<Variable?, VariableModel<Variable, Type>>.from(variableInfo);
+        new Map<Variable?, VariableModel<Variable, Type>>.of(variableInfo);
     reference.storeInfo(newVariableInfo, model);
     return new FlowModel<Variable, Type>.withInfo(reachable, newVariableInfo);
   }
@@ -3274,7 +3274,7 @@ class VariableModel<Variable extends Object, Type extends Object> {
           Type newType,
           TypeOperations<Variable, Type> typeOperations) {
     if (_typeListContains(typeOperations, types, newType)) return types;
-    return new List<Type>.from(types)..add(newType);
+    return new List<Type>.of(types)..add(newType);
   }
 
   /// Creates a new [VariableModel] object, unless it is equivalent to either
@@ -4732,7 +4732,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
           _assignedVariables._anywhere._written.contains(entry.key)) {
         continue;
       }
-      (newKnownTypes ??= new Map<Variable, Type>.from(_knownTypes))[entry.key] =
+      (newKnownTypes ??= new Map<Variable, Type>.of(_knownTypes))[entry.key] =
           entry.value;
     }
     if (newKnownTypes != null) _knownTypes = newKnownTypes;
@@ -4877,8 +4877,8 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
             _assignedVariables._anywhere._written.contains(entry.key)) {
           continue;
         }
-        (newKnownTypes ??=
-            new Map<Variable, Type>.from(_knownTypes))[entry.key] = entry.value;
+        (newKnownTypes ??= new Map<Variable, Type>.of(_knownTypes))[entry.key] =
+            entry.value;
       }
       if (newKnownTypes != null) _knownTypes = newKnownTypes;
     }
@@ -5012,7 +5012,7 @@ class _PropertyGetReference<Variable extends Object, Type extends Object>
       VariableModel<Variable, Type> variableModel) {
     VariableModel<Variable, Type> targetInfo = target.getInfo(variableInfo);
     Map<String, VariableModel<Variable, Type>> newProperties =
-        new Map<String, VariableModel<Variable, Type>>.from(
+        new Map<String, VariableModel<Variable, Type>>.of(
             targetInfo.properties);
     newProperties[propertyName] = variableModel;
     target.storeInfo(variableInfo, targetInfo.setProperties(newProperties));

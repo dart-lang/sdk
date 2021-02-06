@@ -189,6 +189,21 @@ f(int a, double b, double c) {
         expectedType: 'num');
   }
 
+  test_clamp_int_double_dynamic() async {
+    await assertNoErrorsInCode('''
+f(int a, double b, dynamic c) {
+  a.clamp(b, c);
+}
+''');
+
+    assertMethodInvocation(
+        findNode.methodInvocation('clamp'),
+        elementMatcher(numElement.getMethod('clamp'),
+            isLegacy: isNullSafetySdkAndLegacyLibrary),
+        'num Function(num, num)',
+        expectedType: 'num');
+  }
+
   test_clamp_int_double_int() async {
     await assertNoErrorsInCode('''
 f(int a, double b, int c) {
@@ -204,9 +219,54 @@ f(int a, double b, int c) {
         expectedType: 'num');
   }
 
+  test_clamp_int_dynamic_double() async {
+    await assertNoErrorsInCode('''
+f(int a, dynamic b, double c) {
+  a.clamp(b, c);
+}
+''');
+
+    assertMethodInvocation(
+        findNode.methodInvocation('clamp'),
+        elementMatcher(numElement.getMethod('clamp'),
+            isLegacy: isNullSafetySdkAndLegacyLibrary),
+        'num Function(num, num)',
+        expectedType: 'num');
+  }
+
+  test_clamp_int_dynamic_int() async {
+    await assertNoErrorsInCode('''
+f(int a, dynamic b, int c) {
+  a.clamp(b, c);
+}
+''');
+
+    assertMethodInvocation(
+        findNode.methodInvocation('clamp'),
+        elementMatcher(numElement.getMethod('clamp'),
+            isLegacy: isNullSafetySdkAndLegacyLibrary),
+        'num Function(num, num)',
+        expectedType: 'num');
+  }
+
   test_clamp_int_int_double() async {
     await assertNoErrorsInCode('''
 f(int a, int b, double c) {
+  a.clamp(b, c);
+}
+''');
+
+    assertMethodInvocation(
+        findNode.methodInvocation('clamp'),
+        elementMatcher(numElement.getMethod('clamp'),
+            isLegacy: isNullSafetySdkAndLegacyLibrary),
+        'num Function(num, num)',
+        expectedType: 'num');
+  }
+
+  test_clamp_int_int_dynamic() async {
+    await assertNoErrorsInCode('''
+f(int a, int b, dynamic c) {
   a.clamp(b, c);
 }
 ''');

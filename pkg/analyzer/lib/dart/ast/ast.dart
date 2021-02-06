@@ -4684,7 +4684,7 @@ abstract class SimpleIdentifier implements Identifier {
 ///    rawStringLiteral ::=
 ///        'r' basicStringLiteral
 ///
-///    simpleStringLiteral ::=
+///    basicStringLiteral ::=
 ///        multiLineStringLiteral
 ///      | singleLineStringLiteral
 ///

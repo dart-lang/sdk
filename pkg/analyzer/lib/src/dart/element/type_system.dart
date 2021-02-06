@@ -1795,8 +1795,6 @@ class TypeSystemImpl implements TypeSystem {
         var numTypeQuestion = typeProvider.numTypeQuestion;
         if (isSubtypeOf(t1, numTypeQuestion) && !t2.isBottom && !t3.isBottom) {
           assert(!t1.isBottom);
-          assert(isSubtypeOf(t2, numTypeQuestion));
-          assert(isSubtypeOf(t3, numTypeQuestion));
           // Then:
           // - If T1, T2 and T3 are all subtypes of int, the static type of e is
           //   int.
