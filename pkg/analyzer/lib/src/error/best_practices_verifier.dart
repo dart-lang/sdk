@@ -35,7 +35,6 @@ import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta.dart';
 import 'package:meta/meta_meta.dart';
-import 'package:path/path.dart' as path;
 
 /// Instances of the class `BestPracticesVerifier` traverse an AST structure
 /// looking for violations of Dart best practices.
@@ -128,6 +127,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       analysisOptions,
       _workspacePackage,
     );
+    _invalidAccessVerifier._inTestDirectory = _linterContext.inTestDir(unit);
   }
 
   bool get _inPublicPackageApi {
@@ -1684,12 +1684,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
 class _InvalidAccessVerifier {
   static final _templateExtension = '.template';
-  static final _testDirectories = [
-    '${path.separator}test${path.separator}',
-    '${path.separator}integration_test${path.separator}',
-    '${path.separator}test_driver${path.separator}',
-    '${path.separator}testing${path.separator}',
-  ];
 
   final ErrorReporter _errorReporter;
   final LibraryElement _library;
@@ -1704,7 +1698,6 @@ class _InvalidAccessVerifier {
       this._errorReporter, this._library, this._workspacePackage) {
     var path = _library.source.fullName;
     _inTemplateSource = path.contains(_templateExtension);
-    _inTestDirectory = _testDirectories.any(path.contains);
   }
 
   /// Produces a hint if [identifier] is accessed from an invalid location.
