@@ -14,7 +14,7 @@ import '../io/source_information.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_model/closure.dart' show JRecordField, JClosureField;
-import '../js_model/locals.dart' show JLocal;
+import '../js_model/locals.dart' show GlobalLocalsMap, JLocal;
 import '../world.dart' show JClosedWorld;
 
 import 'builder_kernel.dart';
@@ -79,6 +79,9 @@ class LocalsHandler {
   GlobalTypeInferenceResults get _globalInferenceResults =>
       builder.globalInferenceResults;
 
+  GlobalLocalsMap get _globalLocalsMap =>
+      _globalInferenceResults.globalLocalsMap;
+
   /// Substituted type variables occurring in [type] into the context of
   /// [contextClass].
   DartType substInContext(DartType type) {
@@ -123,7 +126,7 @@ class LocalsHandler {
     _scopeInfoMember = member;
     if (member != null) {
       _scopeInfo = _closedWorld.closureDataLookup.getScopeInfo(member);
-      _localsMap = _closedWorld.globalLocalsMap.getLocalsMap(member);
+      _localsMap = _globalLocalsMap.getLocalsMap(member);
     } else {
       _scopeInfo = null;
       _localsMap = null;

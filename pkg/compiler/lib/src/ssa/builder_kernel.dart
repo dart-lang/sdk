@@ -34,7 +34,7 @@ import '../js_backend/namer.dart' show ModularNamer;
 import '../js_backend/native_data.dart';
 import '../js_backend/runtime_types_resolution.dart';
 import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
-import '../js_model/locals.dart' show JumpVisitor;
+import '../js_model/locals.dart' show GlobalLocalsMap, JumpVisitor;
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../js_model/element_map.dart';
 import '../js_model/js_strategy.dart';
@@ -211,6 +211,9 @@ class KernelSsaGraphBuilder extends ir.Visitor {
   InterceptorData get _interceptorData => closedWorld.interceptorData;
 
   RuntimeTypesNeed get _rtiNeed => closedWorld.rtiNeed;
+
+  GlobalLocalsMap get _globalLocalsMap =>
+      globalInferenceResults.globalLocalsMap;
 
   InferredData get _inferredData => globalInferenceResults.inferredData;
 
@@ -408,7 +411,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         _currentFrame,
         member,
         asyncMarker,
-        closedWorld.globalLocalsMap.getLocalsMap(member),
+        _globalLocalsMap.getLocalsMap(member),
         {},
         new KernelToTypeInferenceMapImpl(member, globalInferenceResults),
         _currentFrame != null
@@ -6030,8 +6033,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
 
     ir.Member memberContextNode = _elementMap.getMemberContextNode(function);
     bool hasBox = false;
-    KernelToLocalsMap localsMap =
-        closedWorld.globalLocalsMap.getLocalsMap(function);
+    KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(function);
     forEachOrderedParameter(_elementMap, function,
         (ir.VariableDeclaration variable, {bool isElided}) {
       Local local = localsMap.getLocalVariable(variable);
@@ -6198,8 +6200,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       _checkTypeVariableBounds(function);
     }
 
-    KernelToLocalsMap localsMap =
-        closedWorld.globalLocalsMap.getLocalsMap(function);
+    KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(function);
     forEachOrderedParameter(_elementMap, function,
         (ir.VariableDeclaration variable, {bool isElided}) {
       Local parameter = localsMap.getLocalVariable(variable);

@@ -22,14 +22,23 @@ class GlobalLocalsMap {
   /// debugging data stream.
   static const String tag = 'global-locals-map';
 
+  /// Lookup up the key used to store a LocalsMap for a member.
+  ///
+  /// While procedures are keyed by their own entity, closures use the
+  /// enclosing member as a key. This ensures that the member and all
+  /// nested closures share the same local map.
+  MemberEntity Function(MemberEntity) _localMapKeyLookup;
+
   final Map<MemberEntity, KernelToLocalsMap> _localsMaps;
 
-  GlobalLocalsMap() : _localsMaps = {};
+  GlobalLocalsMap(this._localMapKeyLookup) : _localsMaps = {};
 
-  GlobalLocalsMap.internal(this._localsMaps);
+  GlobalLocalsMap.internal(this._localMapKeyLookup, this._localsMaps);
 
   /// Deserializes a [GlobalLocalsMap] object from [source].
-  factory GlobalLocalsMap.readFromDataSource(DataSource source) {
+  factory GlobalLocalsMap.readFromDataSource(
+      MemberEntity Function(MemberEntity) localMapKeyLookup,
+      DataSource source) {
     source.begin(tag);
     Map<MemberEntity, KernelToLocalsMap> _localsMaps = {};
     int mapCount = source.readInt();
@@ -42,7 +51,7 @@ class GlobalLocalsMap {
       }
     }
     source.end(tag);
-    return new GlobalLocalsMap.internal(_localsMaps);
+    return new GlobalLocalsMap.internal(localMapKeyLookup, _localsMaps);
   }
 
   /// Serializes this [GlobalLocalsMap] to [sink].
@@ -68,26 +77,19 @@ class GlobalLocalsMap {
 
   /// Returns the [KernelToLocalsMap] for [member].
   KernelToLocalsMap getLocalsMap(MemberEntity member) {
-    // If element is a ConstructorBodyEntity, its localsMap is the same as for
+    // If [member] is a closure call method or closure signature method, its
+    // localsMap is the same as for the enclosing member since the locals are
+    // derived from the same kernel AST.
+    MemberEntity key = _localMapKeyLookup(member);
+    // If [member] is a ConstructorBodyEntity, its localsMap is the same as for
     // ConstructorEntity, because both of these entities came from the same
     // constructor node. The entities are two separate parts because JS does not
     // have the concept of an initializer list, so the constructor (initializer
     // list) and the constructor body are implemented as two separate
     // constructor steps.
-    MemberEntity entity = member;
-    if (entity is ConstructorBodyEntity) member = entity.constructor;
-    return _localsMaps.putIfAbsent(
-        member, () => new KernelToLocalsMapImpl(member));
-  }
-
-  /// Associates [localsMap] with [member].
-  ///
-  /// Use this for sharing maps between members that share IR nodes.
-  void setLocalsMap(MemberEntity member, KernelToLocalsMap localsMap) {
-    assert(member != null, "No member provided.");
-    assert(!_localsMaps.containsKey(member),
-        "Locals map already created for $member.");
-    _localsMaps[member] = localsMap;
+    MemberEntity entity = key;
+    if (entity is ConstructorBodyEntity) key = entity.constructor;
+    return _localsMaps.putIfAbsent(key, () => new KernelToLocalsMapImpl(key));
   }
 }
 
