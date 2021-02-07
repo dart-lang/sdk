@@ -19,11 +19,11 @@ class FieldInitializerFactoryConstructorTest extends PubPackageResolutionTest {
   test_fieldFormalParameter() async {
     await assertErrorsInCode(r'''
 class A {
-  int x;
+  int x = 0;
   factory A(this.x) => throw 0;
 }
 ''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR, 31, 6),
+      error(CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR, 35, 6),
     ]);
   }
 

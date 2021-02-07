@@ -25,7 +25,7 @@ class InvalidVisibilityAnnotationTest extends PubPackageResolutionTest {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class C {
-  @visibleForTesting int _a, b;
+  @visibleForTesting int _a = 0, b = 0;
 }
 ''', [
       error(HintCode.INVALID_VISIBILITY_ANNOTATION, 45, 18),
@@ -37,13 +37,13 @@ class C {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class C {
-  @visibleForTesting int _a, _b;
+  @visibleForTesting int _a = 0, _b = 0;
 }
 ''', [
       error(HintCode.INVALID_VISIBILITY_ANNOTATION, 45, 18),
       error(HintCode.INVALID_VISIBILITY_ANNOTATION, 45, 18),
       error(HintCode.UNUSED_FIELD, 68, 2),
-      error(HintCode.UNUSED_FIELD, 72, 2),
+      error(HintCode.UNUSED_FIELD, 76, 2),
     ]);
   }
 
@@ -51,7 +51,7 @@ class C {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class C {
-  @visibleForTesting int a, b;
+  @visibleForTesting int a = 0, b = 0;
 }
 ''');
   }
@@ -91,7 +91,7 @@ void f(_E e) => e == _E.a || e == _E.b;
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class C {
-  @visibleForTesting int _a;
+  @visibleForTesting int _a = 1;
 }
 ''', [
       error(HintCode.INVALID_VISIBILITY_ANNOTATION, 45, 18),

@@ -19,7 +19,7 @@ class InitializingFormalForStaticFieldTest extends PubPackageResolutionTest {
     await assertErrorsInCode(r'''
 class A {
   static int x;
-  A([this.x]) {}
+  A([this.x = 0]) {}
 }
 ''', [
       error(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD, 31, 6),

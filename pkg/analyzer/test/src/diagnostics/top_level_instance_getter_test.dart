@@ -29,7 +29,7 @@ var b = a.g();
   test_field() async {
     await assertNoErrorsInCode('''
 class A {
-  int g;
+  int g = 0;
 }
 var b = new A().g;
 ''');
@@ -39,7 +39,7 @@ var b = new A().g;
   test_field_call() async {
     await assertNoErrorsInCode('''
 class A {
-  int Function() g;
+  int Function() g = () => 0;
 }
 var a = new A();
 var b = a.g();
@@ -50,7 +50,7 @@ var b = a.g();
   test_field_imported() async {
     newFile('$testPackageLibPath/a.dart', content: '''
 class A {
-  int f;
+  int f = 0;
 }
 ''');
     await assertNoErrorsInCode('''
@@ -63,7 +63,7 @@ var b = new A().f;
   test_field_prefixedIdentifier() async {
     await assertNoErrorsInCode('''
 class A {
-  int g;
+  int g = 0;
 }
 var a = new A();
 var b = a.g;
@@ -443,12 +443,12 @@ class A {
   int operator[](int value) => 0;
 }
 class B {
-  int y;
+  int y = 0;
 }
 var a = new A();
 var b = (a.x).y;
 ''', [
-      error(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, 114, 1),
+      error(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, 118, 1),
     ]);
   }
 

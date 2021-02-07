@@ -29,11 +29,11 @@ class A {
   test_defaultParameter() async {
     await assertErrorsInCode(r'''
 class A {
-  int x;
-  m([this.x]) {}
+  int x = 0;
+  m([this.x = 0]) {}
 }
 ''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, 24, 6),
+      error(CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, 28, 6),
     ]);
   }
 

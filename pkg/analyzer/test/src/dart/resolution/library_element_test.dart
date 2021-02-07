@@ -291,7 +291,7 @@ class LibraryElementTest_featureSet extends PubPackageResolutionTest {
 class LibraryElementTest_scope extends PubPackageResolutionTest {
   test_lookup() async {
     await assertNoErrorsInCode(r'''
-int foo;
+int foo = 0;
 ''');
 
     var scope = result.libraryElement.scope;

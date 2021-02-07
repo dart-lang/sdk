@@ -53,10 +53,10 @@ class C {
   test_field_withType() async {
     await assertNoErrorsInCode(r'''
 class C {
-  static int c;
+  static int c = 0;
   static final int d = 5;
 
-  int a;
+  int a = 0;
   final int b;
 
   C(this.b);
@@ -99,16 +99,16 @@ void f() {
   test_localVariable_withType() async {
     await assertErrorsInCode(r'''
 void f() {
-  int a;
+  int a = 0;
   dynamic b;
-  Object c;
+  Object c = Object();
   Null d;
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 42, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 34, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 67, 1),
     ]);
   }
 
@@ -138,9 +138,9 @@ var a = 7;
 
   test_topLevelVariable_withType() async {
     await assertNoErrorsInCode(r'''
-int a;
+int a = 0;
 dynamic b;
-Object c;
+Object c = Object();
 Null d;
 ''');
   }

@@ -28,13 +28,15 @@ void foo() {
   }
 
   test_imported() async {
-    newFile('$testPackageLibPath/lib.dart', content: "class B {}");
+    newFile('$testPackageLibPath/lib.dart', content: '''
+class B {}
+''');
     await assertErrorsInCode('''
 import 'lib.dart' as lib;
 void f() {
   new lib.A();
 }
-lib.B b;
+lib.B b = lib.B();
 ''', [
       error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 47, 1),
     ]);

@@ -18,7 +18,7 @@ class WrongNumberOfTypeArgumentsTest extends PubPackageResolutionTest {
   test_class_tooFew() async {
     await assertErrorsInCode(r'''
 class A<E, F> {}
-A<A> a = null;
+A<A> a;
 ''', [
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 17, 4),
     ]);
@@ -27,7 +27,7 @@ A<A> a = null;
   test_class_tooMany() async {
     await assertErrorsInCode(r'''
 class A<E> {}
-A<A, A> a = null;
+A<A, A> a;
 ''', [
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 14, 7),
     ]);
@@ -134,11 +134,11 @@ f() {
 class A<K, V> {
   K element;
 }
-main(A<int> a) {
+f(A<int> a) {
   a.element.anyGetterExistsInDynamic;
 }
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 36, 6),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 33, 6),
     ]);
   }
 
@@ -147,11 +147,11 @@ main(A<int> a) {
 class A<E> {
   E element;
 }
-main(A<int,int> a) {
+f(A<int, int> a) {
   a.element.anyGetterExistsInDynamic;
 }
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 33, 10),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 30, 11),
     ]);
   }
 

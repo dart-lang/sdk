@@ -37,7 +37,7 @@ class B extends A {
   test_getter_invokeTarget() async {
     await assertErrorsInCode(r'''
 class A {
-  static int foo;
+  static int foo = 1;
 }
 
 class B extends A {
@@ -46,7 +46,7 @@ class B extends A {
   }
 }
 ''', [
-      error(_errorCode, 72, 3),
+      error(_errorCode, 76, 3),
     ]);
   }
 

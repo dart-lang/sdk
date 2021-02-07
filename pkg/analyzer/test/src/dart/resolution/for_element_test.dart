@@ -62,7 +62,7 @@ class A implements Iterable<int> {
 // @dart = 2.7
 import 'a.dart';
 
-main(A a) {
+f(A a) {
   for (var v in a) {
     v;
   }
@@ -75,7 +75,7 @@ main(A a) {
 class ForLoopElementTest extends PubPackageResolutionTest {
   test_condition_rewrite() async {
     await assertNoErrorsInCode(r'''
-main(bool Function() b) {
+f(bool Function() b) {
   <int>[for (; b(); ) 0];
 }
 ''');

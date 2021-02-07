@@ -17,26 +17,24 @@ main() {
 class ForInOfInvalidElementTypeTest extends PubPackageResolutionTest {
   test_await_declaredVariableWrongType() async {
     await assertErrorsInCode('''
-f() async {
-  Stream<String> stream;
+f(Stream<String> stream) async {
   await for (int i in stream) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 54, 1),
-      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 59, 6),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 50, 1),
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 55, 6),
     ]);
   }
 
   test_await_existingVariableWrongType() async {
     await assertErrorsInCode('''
-f() async {
-  Stream<String> stream;
+f(Stream<String> stream) async {
   int i;
   await for (i in stream) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 43, 1),
-      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 64, 6),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 39, 1),
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 60, 6),
     ]);
   }
 

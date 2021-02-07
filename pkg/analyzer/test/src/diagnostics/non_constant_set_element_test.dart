@@ -106,10 +106,10 @@ f(a) {
 
   test_const_spread_final() async {
     await assertErrorsInCode(r'''
-final Set x = null;
+final Set x = {};
 var v = const {...x};
 ''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 38, 1),
+      error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 36, 1),
     ]);
   }
 

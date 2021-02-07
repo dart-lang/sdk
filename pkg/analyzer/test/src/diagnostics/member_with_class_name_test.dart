@@ -28,10 +28,10 @@ class A {
   test_field_multiple() async {
     await assertErrorsInCode(r'''
 class A {
-  int z, A, b = 0;
+  int z = 0, A = 0, b = 0;
 }
 ''', [
-      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 19, 1),
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 23, 1),
     ]);
   }
 

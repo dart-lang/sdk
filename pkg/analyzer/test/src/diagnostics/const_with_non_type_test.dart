@@ -29,12 +29,12 @@ void f() {
 
   test_variable() async {
     await assertErrorsInCode(r'''
-int A;
+int A = 0;
 f() {
   return const A();
 }
 ''', [
-      error(CompileTimeErrorCode.CONST_WITH_NON_TYPE, 28, 1),
+      error(CompileTimeErrorCode.CONST_WITH_NON_TYPE, 32, 1),
     ]);
   }
 }

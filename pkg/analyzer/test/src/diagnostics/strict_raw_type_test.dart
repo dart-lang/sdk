@@ -29,7 +29,13 @@ class StrictRawTypeTest extends PubPackageResolutionTest {
     await assertNoErrorsInCode(r'''
 void f(dynamic x) {
   print(x as List);
-  print(x as List<dynamic>);
+}
+''');
+  }
+
+  test_asExpression_typeArgument() async {
+    await assertNoErrorsInCode(r'''
+void f(dynamic x) {
   print(x as List<List>);
 }
 ''');
@@ -41,8 +47,8 @@ void f(dynamic x) {
 import 'package:meta/meta.dart';
 @optionalTypeArgs
 class C<T> {}
-C f(int a) => null;
-void g(C a) => print(a);
+C f(int a) => C();
+void g(C a) {}
 ''');
   }
 
@@ -139,7 +145,7 @@ class D extends Object with C<int> {}
 
   test_topLevelField_missingTypeArg() async {
     await assertErrorsInCode(r'''
-List a;
+List a = [];
 ''', [error(HintCode.STRICT_RAW_TYPE, 0, 4)]);
   }
 
@@ -149,15 +155,15 @@ List a;
 import 'package:meta/meta.dart';
 @optionalTypeArgs
 class C<T> {}
-C a;
-C get g => null;
+C a = C();
+C get g => C();
 void set s(C a) {}
 ''');
   }
 
   test_topLevelField_withTypeArg() async {
     await assertNoErrorsInCode(r'''
-List<int> a;
+List<int> a = [];
 List<num> get g => [];
 void set s(List<double> a) {}
 ''');
@@ -178,14 +184,14 @@ void set s(List a) {}
   test_typedef_classic_missingTypeArg() async {
     await assertErrorsInCode(r'''
 typedef T F1<T>(T _);
-F1 func;
+F1 func = (a) => a;
 ''', [error(HintCode.STRICT_RAW_TYPE, 22, 2)]);
   }
 
   test_typedef_modern_missingTypeArg() async {
     await assertErrorsInCode(r'''
 typedef F1<T> = T Function(T);
-F1 func;
+F1 func = (a) => a;
 ''', [error(HintCode.STRICT_RAW_TYPE, 31, 2)]);
   }
 
@@ -197,8 +203,8 @@ import 'package:meta/meta.dart';
 typedef T F1<T>(T _);
 @optionalTypeArgs
 typedef F2<T> = T Function(T);
-F1 f1;
-F2 f2;
+F1 f1 = (a) => a;
+F2 f2 = (a) => a;
 ''');
   }
 
@@ -207,9 +213,9 @@ F2 f2;
 typedef T F1<T>(T _);
 typedef F2<T> = T Function(T);
 typedef F3 = T Function<T>(T);
-F1<int> f1;
-F2<int> f2;
-F3 f3;
+F1<int> f1 = (a) => a;
+F2<int> f2 = (a) => a;
+F3 f3 = <T>(T a) => a;
 ''');
   }
 

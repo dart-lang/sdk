@@ -34,7 +34,7 @@ class A {}
     await assertErrorsInCode(r'''
 import 'lib1.dart';
 import 'lib1.dart' as one;
-one.A a;
+one.A a = one.A();
 ''', [
       error(HintCode.UNUSED_IMPORT, 7, 11),
     ]);
@@ -50,8 +50,8 @@ class B {}
     await assertNoErrorsInCode(r'''
 import 'lib1.dart' as one;
 import 'lib2.dart' as one;
-one.A a;
-one.B b;
+one.A a = one.A();
+one.B b = one.B();
 ''');
   }
 
@@ -68,8 +68,8 @@ export 'lib2.dart';
     await assertNoErrorsInCode(r'''
 import 'lib1.dart' as one;
 import 'lib3.dart' as one;
-one.A a;
-one.B b;
+one.A a = one.A();
+one.B b = one.B();
 ''');
   }
 
@@ -83,7 +83,7 @@ class B {}
     await assertErrorsInCode(r'''
 import 'lib1.dart' as one;
 import 'lib2.dart' as one;
-one.A a;
+one.A a = one.A();
 ''', [
       error(HintCode.UNUSED_IMPORT, 34, 11),
     ]);
@@ -125,20 +125,17 @@ class A {
 class One {}
 topLevelFunction() {}
 ''');
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 import 'lib1.dart' hide topLevelFunction;
 import 'lib1.dart' as one show topLevelFunction;
 import 'lib1.dart' as two show topLevelFunction;
 class A {
-  static void x() {
-    One o;
+  static void x(One o) {
     one.topLevelFunction();
     two.topLevelFunction();
   }
 }
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 178, 1),
-    ]);
+''');
   }
 
   test_core_library() async {
@@ -157,7 +154,7 @@ class Two {}
 ''');
     await assertNoErrorsInCode(r'''
 import 'lib1.dart';
-Two two;
+Two two = Two();
 ''');
   }
 
@@ -426,7 +423,7 @@ class B {}
     await assertErrorsInCode(r'''
 import 'lib1.dart' show A;
 import 'lib1.dart' show B;
-A a;
+A a = A();
 ''', [
       error(HintCode.UNUSED_IMPORT, 34, 11),
     ]);

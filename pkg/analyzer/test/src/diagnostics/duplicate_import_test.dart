@@ -25,7 +25,7 @@ class A {}''');
 library L;
 import 'lib1.dart';
 import 'lib1.dart';
-A a;''');
+A a = A();''');
 
     await _resolveFile('$testPackageLibPath/lib1.dart');
     await _resolveFile('$testPackageLibPath/lib2.dart', [
@@ -37,13 +37,15 @@ A a;''');
     newFile('$testPackageLibPath/lib1.dart', content: r'''
 library lib1;
 class A {}
-class B {}''');
+class B {}
+''');
 
     newFile('$testPackageLibPath/lib2.dart', content: r'''
 library L;
 import 'lib1.dart' as M show A hide B;
 import 'lib1.dart' as M show A hide B;
-M.A a;''');
+M.A a = M.A();
+''');
 
     await _resolveFile('$testPackageLibPath/lib1.dart');
     await _resolveFile('$testPackageLibPath/lib2.dart', [
@@ -61,8 +63,9 @@ class B {}''');
 library L;
 import 'lib1.dart';
 import 'lib1.dart' hide A;
-A a;
-B b;''');
+A a = A();
+B b = B();
+''');
 
     await _resolveFile('$testPackageLibPath/lib1.dart');
     await _resolveFile('$testPackageLibPath/lib2.dart');
@@ -78,8 +81,9 @@ class B {}''');
 library L;
 import 'lib1.dart';
 import 'lib1.dart' show A;
-A a;
-B b;''');
+A a = A();
+B b = B();
+''');
 
     await _resolveFile('$testPackageLibPath/lib1.dart');
     await _resolveFile('$testPackageLibPath/lib2.dart');
@@ -94,8 +98,9 @@ class A {}''');
 library L;
 import 'lib1.dart';
 import 'lib1.dart' as one;
-A a;
-one.A a2;''');
+A a = A();
+one.A a2 = one.A();
+''');
 
     await _resolveFile('$testPackageLibPath/lib1.dart');
     await _resolveFile('$testPackageLibPath/lib2.dart');
@@ -111,7 +116,8 @@ library L;
 import 'lib1.dart';
 import 'lib1.dart';
 import 'lib1.dart';
-A a;''');
+A a = A();
+''');
 
     await _resolveFile('$testPackageLibPath/lib1.dart');
     await _resolveFile('$testPackageLibPath/lib2.dart', [

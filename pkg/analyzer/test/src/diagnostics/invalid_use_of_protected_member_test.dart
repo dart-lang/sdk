@@ -99,7 +99,7 @@ class B extends A {
 import 'package:meta/meta.dart';
 class A {
   @protected
-  int a;
+  int a = 0;
 }
 ''');
     newFile('$testPackageLibPath/lib2.dart', content: r'''
@@ -120,7 +120,7 @@ abstract class B {
 import 'package:meta/meta.dart';
 class A {
   @protected
-  int a;
+  int a = 0;
 }
 abstract class B implements A {
   int b() => a;
@@ -220,14 +220,14 @@ class A {
     newFile('$testPackageLibPath/lib2.dart', content: r'''
 import 'lib1.dart';
 class B {
-  A a;
+  A a = A();
   int b() => a.a;
 }
 ''');
 
     await _resolveFile('$testPackageLibPath/lib1.dart');
     await _resolveFile('$testPackageLibPath/lib2.dart', [
-      error(HintCode.INVALID_USE_OF_PROTECTED_MEMBER, 52, 1),
+      error(HintCode.INVALID_USE_OF_PROTECTED_MEMBER, 58, 1),
     ]);
   }
 
@@ -365,7 +365,7 @@ class A {
     newFile('$testPackageLibPath/lib2.dart', content: r'''
 import 'lib1.dart';
 class B {
-  A a;
+  A a = A();
   b(int i) {
     a.a = i;
   }
@@ -374,7 +374,7 @@ class B {
 
     await _resolveFile('$testPackageLibPath/lib1.dart');
     await _resolveFile('$testPackageLibPath/lib2.dart', [
-      error(HintCode.INVALID_USE_OF_PROTECTED_MEMBER, 56, 1),
+      error(HintCode.INVALID_USE_OF_PROTECTED_MEMBER, 62, 1),
     ]);
   }
 
@@ -382,7 +382,7 @@ class B {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class A {
-  int _a;
+  int _a = 0;
   @protected
   void set a(int a) { _a = a; }
   A(int a) {

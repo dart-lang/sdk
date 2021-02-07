@@ -24,7 +24,7 @@ class B<U> {
   factory B(U a) = A<U>;
 }
 
-B<int> b;
+B<int> b = B(0);
 ''');
     var classB_constructor = findElement.class_('B').unnamedConstructor!;
     assertMember(

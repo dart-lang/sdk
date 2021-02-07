@@ -47,22 +47,22 @@ class B extends A {
   test_this_named() async {
     await assertErrorsInCode(r'''
 class A {
-  int x;
+  int x = 0;
   const A.a();
 }
 ''', [
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, 27, 3),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, 31, 3),
     ]);
   }
 
   test_this_unnamed() async {
     await assertErrorsInCode(r'''
 class A {
-  int x;
+  int x = 0;
   const A();
 }
 ''', [
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, 27, 1),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, 31, 1),
     ]);
   }
 }

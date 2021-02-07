@@ -18,9 +18,9 @@ class InvalidUriTest extends PubPackageResolutionTest {
   test_emptyUri() async {
     await assertNoErrorsInCode('''
 import '' as top;
-int x;
+int x = 1;
 class C {
-  int x;
+  int x = 1;
   int get y => top.x; // ref
 }
 ''');
