@@ -729,10 +729,15 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   @override
   void visitForElement(ForElement node) {
     _writeByte(Tag.ForElement);
+    _writeByte(
+      AstBinaryFlags.encode(
+        hasAwait: node.awaitKeyword != null,
+      ),
+    );
+    _writeMarker(MarkerTag.ForElement_forLoopParts);
+    _writeNode(node.forLoopParts);
     _writeMarker(MarkerTag.ForElement_body);
     _writeNode(node.body);
-    _writeMarker(MarkerTag.ForElement_forMixin);
-    _storeForMixin(node as ForElementImpl);
     _writeMarker(MarkerTag.ForElement_end);
   }
 
@@ -1922,16 +1927,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       _writeMarker(MarkerTag.FormalParameter_type);
       _writeActualType(node.declaredElement!.type);
     }
-  }
-
-  void _storeForMixin(ForMixin node) {
-    _writeByte(
-      AstBinaryFlags.encode(
-        hasAwait: node.awaitKeyword != null,
-      ),
-    );
-    _writeMarker(MarkerTag.ForMixin_forLoopParts);
-    _writeNode(node.forLoopParts);
   }
 
   void _storeForParts(ForParts node) {

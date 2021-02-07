@@ -4245,9 +4245,7 @@ class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   }
 }
 
-class ForElementImpl extends CollectionElementImpl
-    with ForMixin
-    implements ForElement {
+class ForElementImpl extends CollectionElementImpl implements ForElement {
   @override
   Token? awaitKeyword;
 
@@ -4273,6 +4271,9 @@ class ForElementImpl extends CollectionElementImpl
   }
 
   @override
+  Token get beginToken => awaitKeyword ?? forKeyword;
+
+  @override
   CollectionElement get body => _body;
 
   set body(CollectionElement statement) {
@@ -4281,7 +4282,11 @@ class ForElementImpl extends CollectionElementImpl
 
   @override
   Iterable<SyntacticEntity> get childEntities => ChildEntities()
-    ..addAll(super.childEntities)
+    ..add(awaitKeyword)
+    ..add(forKeyword)
+    ..add(leftParenthesis)
+    ..add(_forLoopParts)
+    ..add(rightParenthesis)
     ..add(_body);
 
   @override
@@ -4474,29 +4479,6 @@ class FormalParameterListImpl extends AstNodeImpl
   }
 }
 
-mixin ForMixin on AstNodeImpl {
-  Token? get awaitKeyword;
-
-  @override
-  Token get beginToken => awaitKeyword ?? forKeyword;
-
-  @override
-  Iterable<SyntacticEntity> get childEntities => ChildEntities()
-    ..add(awaitKeyword)
-    ..add(forKeyword)
-    ..add(leftParenthesis)
-    ..add(forLoopParts)
-    ..add(rightParenthesis);
-
-  Token get forKeyword;
-
-  ForLoopParts get forLoopParts;
-
-  Token get leftParenthesis;
-
-  Token get rightParenthesis;
-}
-
 abstract class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
   @override
   Token leftSeparator;
@@ -4644,9 +4626,7 @@ class ForPartsWithExpressionImpl extends ForPartsImpl
   }
 }
 
-class ForStatementImpl extends StatementImpl
-    with ForMixin
-    implements ForStatement {
+class ForStatementImpl extends StatementImpl implements ForStatement {
   @override
   Token? awaitKeyword;
 
@@ -4672,6 +4652,9 @@ class ForStatementImpl extends StatementImpl
   }
 
   @override
+  Token get beginToken => awaitKeyword ?? forKeyword;
+
+  @override
   Statement get body => _body;
 
   set body(Statement statement) {
@@ -4680,7 +4663,11 @@ class ForStatementImpl extends StatementImpl
 
   @override
   Iterable<SyntacticEntity> get childEntities => ChildEntities()
-    ..addAll(super.childEntities)
+    ..add(awaitKeyword)
+    ..add(forKeyword)
+    ..add(leftParenthesis)
+    ..add(_forLoopParts)
+    ..add(rightParenthesis)
     ..add(_body);
 
   @override
@@ -5525,9 +5512,7 @@ abstract class IdentifierImpl extends ExpressionImpl implements Identifier {
   bool get isAssignable => true;
 }
 
-class IfElementImpl extends CollectionElementImpl
-    with IfMixin
-    implements IfElement {
+class IfElementImpl extends CollectionElementImpl implements IfElement {
   @override
   Token ifKeyword;
 
@@ -5565,8 +5550,14 @@ class IfElementImpl extends CollectionElementImpl
   }
 
   @override
+  Token get beginToken => ifKeyword;
+
+  @override
   Iterable<SyntacticEntity> get childEntities => ChildEntities()
-    ..addAll(super.childEntities)
+    ..add(ifKeyword)
+    ..add(leftParenthesis)
+    ..add(_condition)
+    ..add(rightParenthesis)
     ..add(_thenElement)
     ..add(elseKeyword)
     ..add(_elseElement);
@@ -5600,37 +5591,9 @@ class IfElementImpl extends CollectionElementImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _condition.accept(visitor);
     _thenElement.accept(visitor);
     _elseElement?.accept(visitor);
-  }
-}
-
-mixin IfMixin on AstNodeImpl {
-  Token? elseKeyword;
-
-  @override
-  Token get beginToken => ifKeyword;
-
-  @override
-  Iterable<SyntacticEntity> get childEntities => ChildEntities()
-    ..add(ifKeyword)
-    ..add(leftParenthesis)
-    ..add(condition)
-    ..add(rightParenthesis);
-
-  /// The condition used to determine which of the branches is executed next.
-  Expression get condition;
-
-  Token get ifKeyword;
-
-  Token get leftParenthesis;
-
-  Token get rightParenthesis;
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    condition.accept(visitor);
   }
 }
 
@@ -5638,9 +5601,7 @@ mixin IfMixin on AstNodeImpl {
 ///
 ///    ifStatement ::=
 ///        'if' '(' [Expression] ')' [Statement] ('else' [Statement])?
-class IfStatementImpl extends StatementImpl
-    with IfMixin
-    implements IfStatement {
+class IfStatementImpl extends StatementImpl implements IfStatement {
   @override
   Token ifKeyword;
 
@@ -5683,7 +5644,10 @@ class IfStatementImpl extends StatementImpl
 
   @override
   Iterable<SyntacticEntity> get childEntities => ChildEntities()
-    ..addAll(super.childEntities)
+    ..add(ifKeyword)
+    ..add(leftParenthesis)
+    ..add(_condition)
+    ..add(rightParenthesis)
     ..add(_thenStatement)
     ..add(elseKeyword)
     ..add(_elseStatement);
