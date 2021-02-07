@@ -139,7 +139,7 @@ void main() => print(_A.f1);
   test_isUsed_reference_implicitThis() async {
     await assertNoErrorsInCode(r'''
 class A {
-  int _f;
+  int _f = 0;
   main() {
     print(_f);
   }
@@ -151,7 +151,7 @@ print(x) {}
   test_isUsed_reference_implicitThis_expressionFunctionBody() async {
     await assertNoErrorsInCode(r'''
 class A {
-  int _f;
+  int _f = 0;
   m() => _f;
 }
 ''');
@@ -160,13 +160,13 @@ class A {
   test_isUsed_reference_implicitThis_subclass() async {
     await assertNoErrorsInCode(r'''
 class A {
-  int _f;
+  int _f = 0;
   main() {
     print(_f);
   }
 }
 class B extends A {
-  int _f;
+  int _f = 0;
 }
 print(x) {}
 ''');
@@ -175,7 +175,7 @@ print(x) {}
   test_isUsed_reference_qualified_propagatedElement() async {
     await assertNoErrorsInCode(r'''
 class A {
-  int _f;
+  int _f = 0;
 }
 main() {
   var a = new A();
@@ -188,7 +188,7 @@ print(x) {}
   test_isUsed_reference_qualified_staticElement() async {
     await assertNoErrorsInCode(r'''
 class A {
-  int _f;
+  int _f = 0;
 }
 main() {
   A a = new A();
@@ -201,7 +201,7 @@ print(x) {}
   test_isUsed_reference_qualified_unresolved() async {
     await assertNoErrorsInCode(r'''
 class A {
-  int _f;
+  int _f = 0;
 }
 main(a) {
   print(a._f);
@@ -213,7 +213,7 @@ print(x) {}
   test_notUsed_compoundAssign() async {
     await assertErrorsInCode(r'''
 class A {
-  int _f;
+  int _f = 0;
   main() {
     _f += 2;
   }
@@ -281,7 +281,7 @@ mixin M on Foo {}
   test_notUsed_noReference() async {
     await assertErrorsInCode(r'''
 class A {
-  int _f;
+  int _f = 0;
 }
 ''', [
       error(HintCode.UNUSED_FIELD, 16, 2),
@@ -379,7 +379,7 @@ void main() => print(_A);
     await assertErrorsInCode(r'''
 /// [A._f] is great.
 class A {
-  int _f;
+  int _f = 0;
 }
 ''', [
       error(HintCode.UNUSED_FIELD, 37, 2),
@@ -389,12 +389,12 @@ class A {
   test_notUsed_simpleAssignment() async {
     await assertErrorsInCode(r'''
 class A {
-  int _f;
+  int _f = 0;
   m() {
     _f = 1;
   }
 }
-main(A a) {
+f(A a) {
   a._f = 2;
 }
 ''', [

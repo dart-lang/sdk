@@ -23,33 +23,33 @@ class DuplicateDefinitionClassTest extends PubPackageResolutionTest {
   test_instance_field_field() async {
     await assertErrorsInCode(r'''
 class C {
-  int foo;
-  int foo;
-}
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 27, 3),
-    ]);
-  }
-
-  test_instance_field_getter() async {
-    await assertErrorsInCode(r'''
-class C {
-  int foo;
-  int get foo => 0;
+  int foo = 0;
+  int foo = 0;
 }
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 31, 3),
     ]);
   }
 
+  test_instance_field_getter() async {
+    await assertErrorsInCode(r'''
+class C {
+  int foo = 0;
+  int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 35, 3),
+    ]);
+  }
+
   test_instance_field_method() async {
     await assertErrorsInCode(r'''
 class C {
-  int foo;
+  int foo = 0;
   void foo() {}
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 28, 3),
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 32, 3),
     ]);
   }
 
@@ -171,33 +171,33 @@ class C {
   test_static_field_field() async {
     await assertErrorsInCode(r'''
 class C {
-  static int foo;
-  static int foo;
-}
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 41, 3),
-    ]);
-  }
-
-  test_static_field_getter() async {
-    await assertErrorsInCode(r'''
-class C {
-  static int foo;
-  static int get foo => 0;
+  static int foo = 0;
+  static int foo = 0;
 }
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 45, 3),
     ]);
   }
 
+  test_static_field_getter() async {
+    await assertErrorsInCode(r'''
+class C {
+  static int foo = 0;
+  static int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 49, 3),
+    ]);
+  }
+
   test_static_field_method() async {
     await assertErrorsInCode(r'''
 class C {
-  static int foo;
+  static int foo = 0;
   static void foo() {}
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 42, 3),
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 46, 3),
     ]);
   }
 
@@ -468,11 +468,11 @@ extension E on A {
     await assertErrorsInCode(r'''
 class A {}
 extension E on A {
-  static int foo;
-  static int foo;
+  static int foo = 0;
+  static int foo = 0;
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 61, 3),
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 65, 3),
     ]);
   }
 
@@ -480,11 +480,11 @@ extension E on A {
     await assertErrorsInCode(r'''
 class A {}
 extension E on A {
-  static int foo;
+  static int foo = 0;
   static int get foo => 0;
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 65, 3),
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 69, 3),
     ]);
   }
 
@@ -492,11 +492,11 @@ extension E on A {
     await assertErrorsInCode(r'''
 class A {}
 extension E on A {
-  static int foo;
+  static int foo = 0;
   static void foo() {}
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 62, 3),
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 66, 3),
     ]);
   }
 
@@ -641,33 +641,33 @@ class DuplicateDefinitionMixinTest extends PubPackageResolutionTest {
   test_instance_field_field() async {
     await assertErrorsInCode(r'''
 mixin M {
-  int foo;
-  int foo;
-}
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 27, 3),
-    ]);
-  }
-
-  test_instance_field_getter() async {
-    await assertErrorsInCode(r'''
-mixin M {
-  int foo;
-  int get foo => 0;
+  int foo = 0;
+  int foo = 0;
 }
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 31, 3),
     ]);
   }
 
+  test_instance_field_getter() async {
+    await assertErrorsInCode(r'''
+mixin M {
+  int foo = 0;
+  int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 35, 3),
+    ]);
+  }
+
   test_instance_field_method() async {
     await assertErrorsInCode(r'''
 mixin M {
-  int foo;
+  int foo = 0;
   void foo() {}
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 28, 3),
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 32, 3),
     ]);
   }
 
@@ -789,33 +789,33 @@ mixin M {
   test_static_field_field() async {
     await assertErrorsInCode(r'''
 mixin M {
-  static int foo;
-  static int foo;
-}
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 41, 3),
-    ]);
-  }
-
-  test_static_field_getter() async {
-    await assertErrorsInCode(r'''
-mixin M {
-  static int foo;
-  static int get foo => 0;
+  static int foo = 0;
+  static int foo = 0;
 }
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 45, 3),
     ]);
   }
 
+  test_static_field_getter() async {
+    await assertErrorsInCode(r'''
+mixin M {
+  static int foo = 0;
+  static int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 49, 3),
+    ]);
+  }
+
   test_static_field_method() async {
     await assertErrorsInCode(r'''
 mixin M {
-  static int foo;
+  static int foo = 0;
   static void foo() {}
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 42, 3),
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 46, 3),
     ]);
   }
 
@@ -1040,11 +1040,11 @@ main() {
   test_parameters_constructor_field_first() async {
     await assertErrorsInCode(r'''
 class A {
-  int a;
+  int? a;
   A(this.a, int a);
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 35, 1),
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 36, 1),
     ]);
   }
 

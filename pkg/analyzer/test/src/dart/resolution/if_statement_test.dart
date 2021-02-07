@@ -16,7 +16,7 @@ main() {
 class IfStatementResolutionTest extends PubPackageResolutionTest {
   test_condition_rewrite() async {
     await assertNoErrorsInCode(r'''
-main(bool Function() b) {
+f(bool Function() b) {
   if ( b() ) {
     print(0);
   }

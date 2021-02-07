@@ -42,7 +42,7 @@ f() {
 
   test_isTypeParameter() async {
     await assertErrorsInCode(r'''
-class A<T> {
+class A<T extends Object> {
   f() {
     try {
     } on T catch (e) {
@@ -50,7 +50,7 @@ class A<T> {
   }
 }
 ''', [
-      error(HintCode.UNUSED_CATCH_CLAUSE, 49, 1),
+      error(HintCode.UNUSED_CATCH_CLAUSE, 64, 1),
     ]);
   }
 

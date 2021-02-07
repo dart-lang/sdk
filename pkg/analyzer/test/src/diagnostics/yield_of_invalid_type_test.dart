@@ -10,7 +10,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(YieldOfInvalidTypeTest);
-    defineReflectiveTests(YieldOfInvalidTypeTest2);
+    defineReflectiveTests(YieldOfInvalidTypeWithNullSafetyTest);
   });
 }
 
@@ -410,5 +410,5 @@ Iterable<String> g() => throw 0;
 }
 
 @reflectiveTest
-class YieldOfInvalidTypeTest2 extends YieldOfInvalidTypeTest
+class YieldOfInvalidTypeWithNullSafetyTest extends YieldOfInvalidTypeTest
     with WithNullSafetyMixin {}

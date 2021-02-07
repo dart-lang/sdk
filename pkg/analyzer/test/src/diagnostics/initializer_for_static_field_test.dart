@@ -18,11 +18,11 @@ class InitializerForStaticFieldTest extends PubPackageResolutionTest {
   test_static() async {
     await assertErrorsInCode(r'''
 class A {
-  static int x;
+  static int x = 1;
   A() : x = 0 {}
 }
 ''', [
-      error(CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD, 34, 5),
+      error(CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD, 38, 5),
     ]);
   }
 }

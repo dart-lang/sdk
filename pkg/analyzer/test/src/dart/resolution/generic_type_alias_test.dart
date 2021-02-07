@@ -45,14 +45,14 @@ C<Function<S>()> x;
 
   test_genericFunctionTypeCannotBeTypeArgument_literal_function() async {
     await assertErrorsInCode(r'''
-T f<T>(T) => null;
+void f<T>(T) {}
 
 main() {
   f<Function<S>()>(null);
 }
 ''', [
       error(CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
-          33, 13),
+          30, 13),
     ]);
   }
 
@@ -72,7 +72,7 @@ main() {
   test_genericFunctionTypeCannotBeTypeArgument_literal_method() async {
     await assertErrorsInCode(r'''
 class C {
-  T f<T>(T) => null;
+  void f<T>(T) {}
 }
 
 main() {
@@ -80,7 +80,7 @@ main() {
 }
 ''', [
       error(CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
-          55, 13),
+          52, 13),
     ]);
   }
 
@@ -101,7 +101,7 @@ class C<T> {}
 
 typedef G = Function();
 
-C<G> x;
+C<G> x = C();
 ''');
   }
 
@@ -109,7 +109,7 @@ C<G> x;
     await assertNoErrorsInCode(r'''
 class C<T> {}
 
-C<Function()> x;
+C<Function()> x = C();
 ''');
   }
 

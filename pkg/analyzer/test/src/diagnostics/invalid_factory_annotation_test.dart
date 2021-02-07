@@ -37,7 +37,7 @@ class X {
 import 'package:meta/meta.dart';
 class X {
   @factory
-  int x;
+  int x = 0;
 }
 ''', [
       error(HintCode.INVALID_FACTORY_ANNOTATION, 45, 8),

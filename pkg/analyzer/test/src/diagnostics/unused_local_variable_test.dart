@@ -58,7 +58,7 @@ class A {
     await assertNoErrorsInCode(r'''
 typedef Foo();
 main() {
-  Foo foo;
+  Foo foo = () {};
   foo();
 }
 ''');

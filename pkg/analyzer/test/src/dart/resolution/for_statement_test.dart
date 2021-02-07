@@ -82,7 +82,7 @@ void f(List<int> a) {
 class ForLoopStatementResolutionTest extends PubPackageResolutionTest {
   test_condition_rewrite() async {
     await assertNoErrorsInCode(r'''
-main(bool Function() b) {
+f(bool Function() b) {
   for (; b(); ) {
     print(0);
   }
