@@ -816,9 +816,9 @@ class AstBinaryReader {
   }
 
   ForElement _readForElement() {
-    var body = readNode() as CollectionElement;
     var flags = _readByte();
     var forLoopParts = readNode() as ForLoopParts;
+    var body = readNode() as CollectionElement;
     return astFactory.forElement(
       awaitKeyword: AstBinaryFlags.hasAwait(flags) ? Tokens.AWAIT : null,
       body: body,

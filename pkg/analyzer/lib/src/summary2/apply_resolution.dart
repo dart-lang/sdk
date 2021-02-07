@@ -508,10 +508,10 @@ resolution.byteOffset: ${_resolution.byteOffset}
 
   @override
   void visitForElement(ForElement node) {
+    _expectMarker(MarkerTag.ForElement_forLoopParts);
+    node.forLoopParts.accept(this);
     _expectMarker(MarkerTag.ForElement_body);
     node.body.accept(this);
-    _expectMarker(MarkerTag.ForElement_forMixin);
-    _forMixin(node as ForElementImpl);
     _expectMarker(MarkerTag.ForElement_end);
   }
 
@@ -1430,11 +1430,6 @@ resolution.byteOffset: ${_resolution.byteOffset}
   void _formalParameter(FormalParameter node) {
     _expectMarker(MarkerTag.FormalParameter_type);
     (node.declaredElement as ParameterElementImpl).type = _nextType()!;
-  }
-
-  void _forMixin(ForMixin node) {
-    _expectMarker(MarkerTag.ForMixin_forLoopParts);
-    node.forLoopParts.accept(this);
   }
 
   void _forParts(ForParts node) {
