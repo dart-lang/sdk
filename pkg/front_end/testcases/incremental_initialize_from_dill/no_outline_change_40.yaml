@@ -34,7 +34,7 @@ worlds:
           method(new A());
         }
         extension Extension2 on A {
-          boz() => 87;
+          boz() { return 87; }
         }
     expectedLibraryCount: 3
   - entry: main.dart
@@ -73,8 +73,7 @@ worlds:
           method(new A());
         }
         extension Extension2 on A {
-          boz() => 123;
+          boz() { return 123; }
         }
     expectedLibraryCount: 3
     expectsRebuildBodiesOnly: true
-

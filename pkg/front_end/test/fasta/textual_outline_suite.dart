@@ -83,12 +83,15 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
       TestDescription description, Context context) async {
     List<int> bytes = new File.fromUri(description.uri).readAsBytesSync();
     for (bool modelled in [false, true]) {
-      String result = textualOutline(bytes,
-          throwOnUnexpected: true,
-          performModelling: modelled,
-          addMarkerForUnknownForTest: modelled,
-          configuration:
-              const ScannerConfiguration(enableExtensionMethods: true));
+      // TODO(jensj): NNBD should be configured correctly.
+      String result = textualOutline(
+        bytes,
+        const ScannerConfiguration(enableExtensionMethods: true),
+        throwOnUnexpected: true,
+        performModelling: modelled,
+        addMarkerForUnknownForTest: modelled,
+        returnNullOnError: false,
+      );
       if (result == null) {
         return new Result(
             null, context.expectationSet["EmptyOutput"], description.uri);

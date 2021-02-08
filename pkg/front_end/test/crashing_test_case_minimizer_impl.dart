@@ -983,7 +983,8 @@ worlds:
       // instead.
       if (uri.toString().endsWith(".dart")) {
         String textualOutlined =
-            textualOutline(data)?.replaceAll(RegExp(r'\n+'), "\n");
+            textualOutline(data, _getScannerConfiguration(uri))
+                ?.replaceAll(RegExp(r'\n+'), "\n");
 
         bool outlined = false;
         if (textualOutlined != null) {
@@ -1765,7 +1766,14 @@ worlds:
     return false;
   }
 
-  bool _isUriNnbd(Uri uri) {
+  ScannerConfiguration _getScannerConfiguration(Uri uri) {
+    return new ScannerConfiguration(
+        enableExtensionMethods: true,
+        enableNonNullable: _isUriNnbd(uri, crashOnFail: false),
+        enableTripleShift: false);
+  }
+
+  bool _isUriNnbd(Uri uri, {bool crashOnFail: true}) {
     Uri asImportUri = _getImportUri(uri);
     LibraryBuilder libraryBuilder = _latestCrashingIncrementalCompiler
         .userCode.loader.builders[asImportUri];
@@ -1788,7 +1796,11 @@ worlds:
         }
       }
     }
-    throw "Couldn't lookup $uri at all!";
+    if (crashOnFail) {
+      throw "Couldn't lookup $uri at all!";
+    } else {
+      return false;
+    }
   }
 
   Future<bool> _crashesOnCompile(Component initialComponent) async {

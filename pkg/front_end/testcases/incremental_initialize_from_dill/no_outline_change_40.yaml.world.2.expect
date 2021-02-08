@@ -57,8 +57,9 @@ library from "org-dartlang-test:///main.dart" as main {
   static method main() → dynamic {
     lib2::method(new main::A::•());
   }
-  static method Extension2|boz(lowered final main::A* #this) → dynamic
+  static method Extension2|boz(lowered final main::A* #this) → dynamic {
     return 87;
+  }
   static method Extension2|get#boz(lowered final main::A* #this) → () →* dynamic
     return () → dynamic => main::Extension2|boz(#this);
 }
