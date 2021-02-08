@@ -102,6 +102,7 @@ cf
 charset
 checkme
 checkout
+chunked
 cipd
 circular
 class1a
@@ -183,6 +184,7 @@ denylist
 depended
 depfile
 desc
+descending
 descriptors
 detector
 deviation
@@ -229,7 +231,6 @@ echo
 edits
 elapse
 ell
-enm
 entrypoint
 entrypoints
 eoo
@@ -422,6 +423,7 @@ koo
 la
 launch
 launching
+layers
 le
 legs
 lengths
@@ -604,6 +606,8 @@ reload
 remap
 remaps
 rendition
+reorder
+reordering
 repaint
 repro
 reproduce
@@ -654,6 +658,7 @@ slight
 smoke
 snull
 somehow
+sorter
 spans
 spawn
 spell
@@ -773,6 +778,7 @@ week
 wherever
 whiskers
 wins
+wording
 workflow
 worlds
 wrongly

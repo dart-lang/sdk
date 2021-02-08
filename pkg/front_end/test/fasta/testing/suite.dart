@@ -6,9 +6,14 @@
 
 library fasta.testing.suite;
 
-import 'dart:convert' show jsonDecode;
+import 'dart:convert' show jsonDecode, utf8;
 
 import 'dart:io' show Directory, File, Platform;
+
+import 'dart:typed_data' show Uint8List;
+
+import 'package:_fe_analyzer_shared/src/scanner/token.dart'
+    show LanguageVersionToken, Token;
 
 import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
 import 'package:compiler/src/kernel/dart2js_target.dart';
@@ -34,6 +39,9 @@ import 'package:front_end/src/api_prototype/experimental_flags.dart'
         defaultAllowedExperimentalFlags,
         isExperimentEnabled;
 
+import 'package:front_end/src/api_prototype/file_system.dart'
+    show FileSystem, FileSystemEntity, FileSystemException;
+
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
     show StandardFileSystem;
 
@@ -46,9 +54,12 @@ import 'package:front_end/src/base/processed_options.dart'
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation, computePlatformDillName;
 
-import 'package:front_end/src/base/command_line_options.dart';
+import 'package:front_end/src/base/command_line_options.dart' show Flags;
 
-import 'package:front_end/src/base/nnbd_mode.dart';
+import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
+
+import 'package:front_end/src/fasta/builder/library_builder.dart'
+    show LibraryBuilder;
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
@@ -74,6 +85,11 @@ import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 
 import 'package:front_end/src/fasta/kernel/verifier.dart' show verifyComponent;
 
+import 'package:front_end/src/fasta/util/direct_parser_ast.dart'
+    show DirectParserASTContentVisitor, getAST;
+
+import 'package:front_end/src/fasta/util/direct_parser_ast_helper.dart';
+
 import 'package:kernel/ast.dart'
     show
         AwaitExpression,
@@ -86,6 +102,7 @@ import 'package:kernel/ast.dart'
         FileUriNode,
         InvalidExpression,
         Library,
+        LibraryPart,
         Member,
         Node,
         NonNullableByDefaultCompiledMode,
@@ -198,6 +215,10 @@ const String EXPECTATIONS = '''
   },
   {
     "name": "SemiFuzzFailure",
+    "group": "Fail"
+  },
+  {
+    "name": "SemiFuzzCrash",
     "group": "Fail"
   }
 ]
@@ -981,17 +1002,27 @@ class StressConstantEvaluatorVisitor extends RecursiveVisitor<Node>
 class CompilationSetup {
   final TestOptions testOptions;
   final FolderOptions folderOptions;
+  final CompilerOptions compilerOptions;
   final ProcessedOptions options;
   final List<Iterable<String>> errors;
-  final ProcessedOptions Function(
+  final CompilerOptions Function(
           NnbdMode nnbdMode,
           AllowedExperimentalFlags allowedExperimentalFlags,
           Map<ExperimentalFlag, Version> experimentEnabledVersion,
           Map<ExperimentalFlag, Version> experimentReleasedVersion)
+      createCompilerOptions;
+
+  final ProcessedOptions Function(CompilerOptions compilerOptions)
       createProcessedOptions;
 
-  CompilationSetup(this.testOptions, this.folderOptions, this.options,
-      this.errors, this.createProcessedOptions);
+  CompilationSetup(
+      this.testOptions,
+      this.folderOptions,
+      this.compilerOptions,
+      this.options,
+      this.errors,
+      this.createCompilerOptions,
+      this.createProcessedOptions);
 }
 
 CompilationSetup createCompilationSetup(
@@ -1011,7 +1042,7 @@ CompilationSetup createCompilationSetup(
       : (folderOptions.nnbdAgnosticMode ? NnbdMode.Agnostic : NnbdMode.Strong);
   List<Uri> inputs = <Uri>[description.uri];
 
-  ProcessedOptions createProcessedOptions(
+  CompilerOptions createCompilerOptions(
       NnbdMode nnbdMode,
       AllowedExperimentalFlags allowedExperimentalFlags,
       Map<ExperimentalFlag, Version> experimentEnabledVersion,
@@ -1033,6 +1064,10 @@ CompilationSetup createCompilationSetup(
       compilerOptions.currentSdkVersion =
           folderOptions.overwriteCurrentSdkVersion;
     }
+    return compilerOptions;
+  }
+
+  ProcessedOptions createProcessedOptions(CompilerOptions compilerOptions) {
     return new ProcessedOptions(options: compilerOptions, inputs: inputs);
   }
 
@@ -1040,14 +1075,14 @@ CompilationSetup createCompilationSetup(
   // platforms and independent of stdin/stderr.
   colors.enableColors = false;
 
-  ProcessedOptions options = createProcessedOptions(
+  CompilerOptions compilerOptions = createCompilerOptions(
       nnbdMode,
       testOptions.allowedExperimentalFlags,
       testOptions.experimentEnabledVersion,
       testOptions.experimentReleasedVersion);
-
-  return new CompilationSetup(
-      testOptions, folderOptions, options, errors, createProcessedOptions);
+  ProcessedOptions options = createProcessedOptions(compilerOptions);
+  return new CompilationSetup(testOptions, folderOptions, compilerOptions,
+      options, errors, createCompilerOptions, createProcessedOptions);
 }
 
 class FuzzCompiles
@@ -1080,6 +1115,34 @@ class FuzzCompiles
 
     Component platform = await context.loadPlatform(
         backendTarget, compilationSetup.options.nnbdMode);
+    Result<ComponentResult> passResult = await performFileInvalidation(
+        compilationSetup,
+        platform,
+        uriTranslator,
+        result,
+        context,
+        originalFlag);
+    if (passResult != null) return passResult;
+
+    passResult = await performChunkReordering(compilationSetup, platform,
+        uriTranslator, result, context, originalFlag);
+    if (passResult != null) return passResult;
+
+    return pass(result);
+  }
+
+  /// Perform a number of compilations where each user-file is invalidated
+  /// one at a time, and the code recompiled after each invalidation.
+  /// Verifies that either it's an error in all cases or in no cases.
+  /// Verifies that the same libraries comes out as a result.
+  Future<Result<ComponentResult>> performFileInvalidation(
+      CompilationSetup compilationSetup,
+      Component platform,
+      UriTranslator uriTranslator,
+      ComponentResult result,
+      FastaContext context,
+      bool originalFlag) async {
+    compilationSetup.errors.clear();
     IncrementalCompiler incrementalCompiler =
         new IncrementalCompiler.fromComponent(
             new CompilerContext(compilationSetup.options), platform);
@@ -1157,7 +1220,410 @@ class FuzzCompiles
     context.explicitExperimentalFlags[
         ExperimentalFlag.alternativeInvalidationStrategy] = originalFlag;
 
-    return pass(result);
+    return null;
+  }
+
+  /// Perform a number of compilations where each user-file is in turn sorted
+  /// in both ascending and descending order (i.e. the procedures and classes
+  /// etc are sorted).
+  /// Verifies that either it's an error in all cases or in no cases.
+  /// Verifies that the same libraries comes out as a result.
+  Future<Result<ComponentResult>> performChunkReordering(
+      CompilationSetup compilationSetup,
+      Component platform,
+      UriTranslator uriTranslator,
+      ComponentResult result,
+      FastaContext context,
+      bool originalFlag) async {
+    compilationSetup.errors.clear();
+
+    FileSystem orgFileSystem = compilationSetup.options.fileSystem;
+    compilationSetup.options.clearFileSystemCache();
+    _FakeFileSystem fs = new _FakeFileSystem(orgFileSystem);
+    compilationSetup.compilerOptions.fileSystem = fs;
+    IncrementalCompiler incrementalCompiler =
+        new IncrementalCompiler.fromComponent(
+            new CompilerContext(compilationSetup.options), platform);
+    await incrementalCompiler.computeDelta();
+
+    final bool expectErrors = compilationSetup.errors.isNotEmpty;
+    List<Iterable<String>> originalErrors =
+        new List<Iterable<String>>.from(compilationSetup.errors);
+    compilationSetup.errors.clear();
+
+    // Create lookup-table from file uri to whatever.
+    Map<Uri, LibraryBuilder> builders = {};
+    for (LibraryBuilder builder
+        in incrementalCompiler.userCode.loader.builders.values) {
+      if (builder.importUri.scheme == "dart" && !builder.isSynthetic) continue;
+      builders[builder.fileUri] = builder;
+      for (LibraryPart part in builder.library.parts) {
+        Uri thisPartUri = builder.importUri.resolve(part.partUri);
+        if (thisPartUri.scheme == "package") {
+          thisPartUri =
+              incrementalCompiler.userCode.uriTranslator.translate(thisPartUri);
+        }
+        builders[thisPartUri] = builder;
+      }
+    }
+
+    for (Uri uri in fs.data.keys) {
+      print("Work on $uri");
+      LibraryBuilder builder = builders[uri];
+      if (builder == null) {
+        print("Skipping $uri -- couldn't find builder for it.");
+        continue;
+      }
+      Uint8List orgData = fs.data[uri];
+      FuzzAstVisitorSorter fuzzAstVisitorSorter =
+          new FuzzAstVisitorSorter(orgData, builder.isNonNullableByDefault);
+
+      // Sort ascending and then compile. Then sort descending and try again.
+      for (void Function() sorter in [
+        () => fuzzAstVisitorSorter.sortAscending(),
+        () => fuzzAstVisitorSorter.sortDescending(),
+      ]) {
+        sorter();
+        StringBuffer sb = new StringBuffer();
+        for (FuzzAstVisitorSorterChunk chunk in fuzzAstVisitorSorter.chunks) {
+          sb.writeln(chunk.getSource());
+        }
+        Uint8List sortedData = utf8.encode(sb.toString());
+        fs.data[uri] = sortedData;
+        incrementalCompiler = new IncrementalCompiler.fromComponent(
+            new CompilerContext(compilationSetup.options), platform);
+        try {
+          await incrementalCompiler.computeDelta();
+        } catch (e, st) {
+          return new Result<ComponentResult>(
+              result,
+              context.expectationSet["SemiFuzzCrash"],
+              "Crashed with '$e' after reordering '$uri' to\n\n"
+              "$sb\n\n"
+              "$st");
+        }
+        final bool gotErrors = compilationSetup.errors.isNotEmpty;
+        String errorsString = compilationSetup.errors
+            .map((error) => error.join('\n'))
+            .join('\n\n');
+        compilationSetup.errors.clear();
+
+        // TODO(jensj): When we get errors we should try to verify it's
+        // "the same" errors (note, though, that they will naturally be at a
+        // changed location --- some will likely have different wording).
+        if (expectErrors != gotErrors) {
+          if (expectErrors) {
+            String errorsString =
+                originalErrors.map((error) => error.join('\n')).join('\n\n');
+            return new Result<ComponentResult>(
+                result,
+                context.expectationSet["SemiFuzzFailure"],
+                "Expected these errors:\n${errorsString}\n\n"
+                "but didn't get any after reordering $uri "
+                "to have this content:\n\n"
+                "$sb");
+          } else {
+            return new Result<ComponentResult>(
+                result,
+                context.expectationSet["SemiFuzzFailure"],
+                "Unexpected errors:\n${errorsString}\n\n"
+                "after reordering $uri to have this content:\n\n"
+                "$sb");
+          }
+        }
+      }
+    }
+
+    compilationSetup.options.clearFileSystemCache();
+    compilationSetup.compilerOptions.fileSystem = orgFileSystem;
+    return null;
+  }
+}
+
+class FuzzAstVisitorSorterChunk {
+  final String data;
+  final String metadataAndComments;
+  final int layer;
+
+  FuzzAstVisitorSorterChunk(this.data, this.metadataAndComments, this.layer);
+
+  String toString() {
+    return "FuzzAstVisitorSorterChunk[${getSource()}]";
+  }
+
+  String getSource() {
+    if (metadataAndComments != null) {
+      return "$metadataAndComments\n$data";
+    }
+    return "$data";
+  }
+}
+
+enum FuzzSorterState { nonSortable, importExportSortable, sortableRest }
+
+class FuzzAstVisitorSorter extends DirectParserASTContentVisitor {
+  final Uint8List bytes;
+  final String asString;
+  final bool nnbd;
+
+  FuzzAstVisitorSorter(this.bytes, this.nnbd) : asString = utf8.decode(bytes) {
+    DirectParserASTContentCompilationUnitEnd ast = getAST(bytes,
+        includeBody: false,
+        includeComments: true,
+        enableExtensionMethods: true,
+        enableNonNullable: nnbd);
+    accept(ast);
+    if (metadataStart != null) {
+      String metadata = asString.substring(
+          metadataStart.charOffset, metadataEndInclusive.charEnd);
+      layer++;
+      chunks.add(new FuzzAstVisitorSorterChunk(
+        "",
+        metadata,
+        layer,
+      ));
+    }
+  }
+
+  void sortAscending() {
+    chunks.sort(_ascendingSorter);
+  }
+
+  void sortDescending() {
+    chunks.sort(_descendingSorter);
+  }
+
+  int _ascendingSorter(
+      FuzzAstVisitorSorterChunk a, FuzzAstVisitorSorterChunk b) {
+    if (a.layer < b.layer) return -1;
+    if (a.layer > b.layer) return 1;
+    return a.data.compareTo(b.data);
+  }
+
+  int _descendingSorter(
+      FuzzAstVisitorSorterChunk a, FuzzAstVisitorSorterChunk b) {
+    // Only sort layers differently internally.
+    if (a.layer < b.layer) return -1;
+    if (a.layer > b.layer) return 1;
+    return b.data.compareTo(a.data);
+  }
+
+  List<FuzzAstVisitorSorterChunk> chunks = [];
+  Token metadataStart;
+  Token metadataEndInclusive;
+  int layer = 0;
+  FuzzSorterState state = null;
+
+  /// If there's any LanguageVersionToken in the comment preceding the given
+  /// token add it as a separate chunk to keep it in place.
+  void _chunkOutLanguageVersionComment(Token fromToken) {
+    Token comment = fromToken.precedingComments;
+    bool hasLanguageVersion = comment is LanguageVersionToken;
+    while (comment.next != null) {
+      comment = comment.next;
+      hasLanguageVersion |= comment is LanguageVersionToken;
+    }
+    if (hasLanguageVersion) {
+      layer++;
+      chunks.add(new FuzzAstVisitorSorterChunk(
+        asString.substring(
+            fromToken.precedingComments.charOffset, comment.charEnd),
+        null,
+        layer,
+      ));
+      layer++;
+    }
+  }
+
+  void handleData(
+      FuzzSorterState thisState, Token startInclusive, Token endInclusive) {
+    // Non-sortable things always gets a new layer.
+    if (state != thisState || thisState == FuzzSorterState.nonSortable) {
+      state = thisState;
+      layer++;
+    }
+
+    // "Chunk out" any language version at the top, i.e. if there are no other
+    // chunks and there is a metadata, any language version chunk on the
+    // metadata will be "chunked out". If there is no metadata, any language
+    // version on the non-metadata will be "chunked out".
+    // Note that if there is metadata and there is a language version on the
+    // non-metadata it will not be chunked out as it's in an illegal place
+    // anyway, so possibly allowing it to be sorted (and put in another place)
+    // won't make it more or less illegal.
+    if (metadataStart != null &&
+        metadataStart.precedingComments != null &&
+        chunks.isEmpty) {
+      _chunkOutLanguageVersionComment(metadataStart);
+    } else if (metadataStart == null &&
+        startInclusive.precedingComments != null &&
+        chunks.isEmpty) {
+      _chunkOutLanguageVersionComment(startInclusive);
+    }
+
+    String metadata;
+    if (metadataStart != null || metadataEndInclusive != null) {
+      metadata = asString.substring(
+          metadataStart.charOffset, metadataEndInclusive.charEnd);
+    }
+    chunks.add(new FuzzAstVisitorSorterChunk(
+      asString.substring(startInclusive.charOffset, endInclusive.charEnd),
+      metadata,
+      layer,
+    ));
+    metadataStart = null;
+    metadataEndInclusive = null;
+  }
+
+  @override
+  void visitExport(DirectParserASTContentExportEnd node, Token startInclusive,
+      Token endInclusive) {
+    handleData(
+        FuzzSorterState.importExportSortable, startInclusive, endInclusive);
+  }
+
+  @override
+  void visitImport(DirectParserASTContentImportEnd node, Token startInclusive,
+      Token endInclusive) {
+    handleData(
+        FuzzSorterState.importExportSortable, startInclusive, endInclusive);
+  }
+
+  @override
+  void visitClass(DirectParserASTContentClassDeclarationEnd node,
+      Token startInclusive, Token endInclusive) {
+    // TODO(jensj): Possibly sort stuff inside of this too.
+    handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
+  }
+
+  @override
+  void visitEnum(DirectParserASTContentEnumEnd node, Token startInclusive,
+      Token endInclusive) {
+    handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
+  }
+
+  @override
+  void visitExtension(DirectParserASTContentExtensionDeclarationEnd node,
+      Token startInclusive, Token endInclusive) {
+    // TODO(jensj): Possibly sort stuff inside of this too.
+    handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
+  }
+
+  @override
+  void visitLibraryName(DirectParserASTContentLibraryNameEnd node,
+      Token startInclusive, Token endInclusive) {
+    handleData(FuzzSorterState.nonSortable, startInclusive, endInclusive);
+  }
+
+  @override
+  void visitMetadata(DirectParserASTContentMetadataEnd node,
+      Token startInclusive, Token endInclusive) {
+    if (metadataStart == null) {
+      metadataStart = startInclusive;
+      metadataEndInclusive = endInclusive;
+    } else {
+      metadataEndInclusive = endInclusive;
+    }
+  }
+
+  @override
+  void visitMixin(DirectParserASTContentMixinDeclarationEnd node,
+      Token startInclusive, Token endInclusive) {
+    // TODO(jensj): Possibly sort stuff inside of this too.
+    handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
+  }
+
+  @override
+  void visitNamedMixin(DirectParserASTContentNamedMixinApplicationEnd node,
+      Token startInclusive, Token endInclusive) {
+    // TODO(jensj): Possibly sort stuff inside of this too.
+    handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
+  }
+
+  @override
+  void visitPart(DirectParserASTContentPartEnd node, Token startInclusive,
+      Token endInclusive) {
+    handleData(FuzzSorterState.nonSortable, startInclusive, endInclusive);
+  }
+
+  @override
+  void visitPartOf(DirectParserASTContentPartOfEnd node, Token startInclusive,
+      Token endInclusive) {
+    handleData(FuzzSorterState.nonSortable, startInclusive, endInclusive);
+  }
+
+  @override
+  void visitTopLevelFields(DirectParserASTContentTopLevelFieldsEnd node,
+      Token startInclusive, Token endInclusive) {
+    handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
+  }
+
+  @override
+  void visitTopLevelMethod(DirectParserASTContentTopLevelMethodEnd node,
+      Token startInclusive, Token endInclusive) {
+    handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
+  }
+
+  @override
+  void visitTypedef(DirectParserASTContentFunctionTypeAliasEnd node,
+      Token startInclusive, Token endInclusive) {
+    handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
+  }
+}
+
+class _FakeFileSystem extends FileSystem {
+  bool redirectAndRecord = true;
+  final Map<Uri, Uint8List> data = {};
+  final FileSystem fs;
+  _FakeFileSystem(this.fs);
+
+  @override
+  FileSystemEntity entityForUri(Uri uri) {
+    return new _FakeFileSystemEntity(this, uri);
+  }
+}
+
+class _FakeFileSystemEntity extends FileSystemEntity {
+  final _FakeFileSystem fs;
+  final Uri uri;
+  _FakeFileSystemEntity(this.fs, this.uri);
+
+  Future<void> _ensureCachedIfOk() async {
+    if (fs.data.containsKey(uri)) return;
+    if (!fs.redirectAndRecord) {
+      throw "Asked for file in non-recording mode that wasn't known";
+    }
+
+    FileSystemEntity f = fs.fs.entityForUri(uri);
+    if (!await f.exists()) {
+      fs.data[uri] = null;
+      return;
+    }
+    fs.data[uri] = await f.readAsBytes();
+  }
+
+  @override
+  Future<bool> exists() async {
+    await _ensureCachedIfOk();
+    Uint8List data = fs.data[uri];
+    if (data == null) return false;
+    return true;
+  }
+
+  @override
+  Future<List<int>> readAsBytes() async {
+    await _ensureCachedIfOk();
+    Uint8List data = fs.data[uri];
+    if (data == null) throw new FileSystemException(uri, "File doesn't exist.");
+    return data;
+  }
+
+  @override
+  Future<String> readAsString() async {
+    await _ensureCachedIfOk();
+    Uint8List data = fs.data[uri];
+    if (data == null) throw new FileSystemException(uri, "File doesn't exist.");
+    return utf8.decode(data);
   }
 }
 
@@ -1240,10 +1706,11 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
       ProcessedOptions linkOptions = compilationSetup.options;
       if (compilationSetup.testOptions.nnbdMode != null) {
         linkOptions = compilationSetup.createProcessedOptions(
-            compilationSetup.testOptions.nnbdMode,
-            compilationSetup.testOptions.allowedExperimentalFlags,
-            compilationSetup.testOptions.experimentEnabledVersion,
-            compilationSetup.testOptions.experimentReleasedVersion);
+            compilationSetup.createCompilerOptions(
+                compilationSetup.testOptions.nnbdMode,
+                compilationSetup.testOptions.allowedExperimentalFlags,
+                compilationSetup.testOptions.experimentEnabledVersion,
+                compilationSetup.testOptions.experimentReleasedVersion));
       }
       await CompilerContext.runWithOptions(linkOptions, (_) async {
         KernelTarget sourceTarget = await outlineInitialization(
