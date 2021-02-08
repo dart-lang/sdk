@@ -1,0 +1,2 @@
+typedef F = Never Function(void Function<T extends Never>(T));
+void main() {}

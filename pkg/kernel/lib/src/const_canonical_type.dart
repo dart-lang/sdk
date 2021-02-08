@@ -112,14 +112,15 @@ DartType computeConstCanonicalType(DartType type, CoreTypes coreTypes,
     assert(type.declaredNullability == Nullability.nonNullable);
 
     List<TypeParameter> canonicalizedTypeParameters;
-    Map<TypeParameter, DartType> substitutionMap;
+    Substitution substitution;
     if (type.typeParameters.isEmpty) {
       canonicalizedTypeParameters = const <TypeParameter>[];
-      substitutionMap = const <TypeParameter, DartType>{};
+      substitution = null;
     } else {
-      substitutionMap = <TypeParameter, DartType>{};
-      canonicalizedTypeParameters =
-          new List<TypeParameter>.of(type.typeParameters, growable: false);
+      FreshTypeParameters freshTypeParameters =
+          getFreshTypeParameters(type.typeParameters);
+      substitution = freshTypeParameters.substitution;
+      canonicalizedTypeParameters = freshTypeParameters.freshTypeParameters;
       for (TypeParameter parameter in canonicalizedTypeParameters) {
         parameter.bound = computeConstCanonicalType(parameter.bound, coreTypes,
             isNonNullableByDefault: isNonNullableByDefault);
@@ -129,11 +130,6 @@ DartType computeConstCanonicalType(DartType type, CoreTypes coreTypes,
           isNonNullableByDefault: isNonNullableByDefault);
       for (int i = 0; i < canonicalizedTypeParameters.length; ++i) {
         canonicalizedTypeParameters[i].defaultType = defaultTypes[i];
-      }
-      for (int i = 0; i < canonicalizedTypeParameters.length; ++i) {
-        substitutionMap[canonicalizedTypeParameters[i]] =
-            new TypeParameterType.forAlphaRenaming(
-                type.typeParameters[i], canonicalizedTypeParameters[i]);
       }
     }
 
@@ -147,8 +143,8 @@ DartType computeConstCanonicalType(DartType type, CoreTypes coreTypes,
         DartType canonicalized = computeConstCanonicalType(
             canonicalizedPositionalParameters[i], coreTypes,
             isNonNullableByDefault: isNonNullableByDefault);
-        if (substitutionMap.isNotEmpty) {
-          canonicalized = substitute(canonicalized, substitutionMap);
+        if (substitution != null) {
+          canonicalized = substitution.substituteType(canonicalized);
         }
         canonicalizedPositionalParameters[i] = canonicalized;
       }
@@ -164,8 +160,8 @@ DartType computeConstCanonicalType(DartType type, CoreTypes coreTypes,
         DartType canonicalized = computeConstCanonicalType(
             canonicalizedNamedParameters[i].type, coreTypes,
             isNonNullableByDefault: isNonNullableByDefault);
-        if (substitutionMap.isNotEmpty) {
-          canonicalized = substitute(canonicalized, substitutionMap);
+        if (substitution != null) {
+          canonicalized = substitution.substituteType(canonicalized);
         }
         canonicalizedNamedParameters[i] = new NamedType(
             canonicalizedNamedParameters[i].name, canonicalized,
@@ -176,9 +172,9 @@ DartType computeConstCanonicalType(DartType type, CoreTypes coreTypes,
     DartType canonicalizedReturnType = computeConstCanonicalType(
         type.returnType, coreTypes,
         isNonNullableByDefault: isNonNullableByDefault);
-    if (substitutionMap.isNotEmpty) {
+    if (substitution != null) {
       canonicalizedReturnType =
-          substitute(canonicalizedReturnType, substitutionMap);
+          substitution.substituteType(canonicalizedReturnType);
     }
 
     // Canonicalize typedef type, just in case.

@@ -6,6 +6,9 @@
 
 library fasta.incremental_compiler;
 
+import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
+    show ScannerConfiguration;
+
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/base/nnbd_mode.dart';
@@ -1021,7 +1024,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (previousSource == null || previousSource.isEmpty) {
         return null;
       }
-      String before = textualOutline(previousSource, performModelling: true);
+      ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
+          enableExtensionMethods: true /* can't be disabled */,
+          enableNonNullable: builder
+              .isNonNullableByDefault /* depends on language version etc */,
+          enableTripleShift:
+              /* should this be on the library? */
+              /* this is what the constant evaluator does */
+              userCode
+                  .isExperimentEnabledGlobally(ExperimentalFlag.tripleShift));
+      String before = textualOutline(previousSource, scannerConfiguration,
+          performModelling: true);
       if (before == null) {
         return null;
       }
@@ -1029,8 +1042,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       FileSystemEntity entity =
           c.options.fileSystem.entityForUri(builder.fileUri);
       if (await entity.exists()) {
-        now =
-            textualOutline(await entity.readAsBytes(), performModelling: true);
+        now = textualOutline(await entity.readAsBytes(), scannerConfiguration,
+            performModelling: true);
       }
       if (before != now) {
         return null;
