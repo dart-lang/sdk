@@ -53,13 +53,13 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
 
   /// A list containing all of the accessors (getters and setters) contained in
   /// this class.
-  List<PropertyAccessorElement>? _accessors;
+  List<PropertyAccessorElement> _accessors = _Sentinel.propertyAccessorElement;
 
   /// A list containing all of the fields contained in this class.
-  List<FieldElement>? _fields;
+  List<FieldElement> _fields = _Sentinel.fieldElement;
 
   /// A list containing all of the methods contained in this class.
-  List<MethodElement>? _methods;
+  List<MethodElement> _methods = _Sentinel.methodElement;
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
@@ -73,11 +73,6 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   AbstractClassElementImpl.forSerialized(
       CompilationUnitElementImpl enclosingUnit)
       : super.forSerialized(enclosingUnit);
-
-  @override
-  List<PropertyAccessorElement> get accessors {
-    return _accessors ?? const <PropertyAccessorElement>[];
-  }
 
   /// Set the accessors contained in this class to the given [accessors].
   set accessors(List<PropertyAccessorElement> accessors) {
@@ -94,9 +89,6 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   CompilationUnitElementImpl get enclosingElement {
     return _enclosingElement as CompilationUnitElementImpl;
   }
-
-  @override
-  List<FieldElement> get fields => _fields ?? const <FieldElement>[];
 
   /// Set the fields contained in this class to the given [fields].
   set fields(List<FieldElement> fields) {
@@ -430,11 +422,11 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   /// A list containing all of the mixins that are applied to the class being
   /// extended in order to derive the superclass of this class.
-  List<InterfaceType>? _mixins;
+  List<InterfaceType> _mixins = _Sentinel.interfaceType;
 
   /// A list containing all of the interfaces that are implemented by this
   /// class.
-  List<InterfaceType>? _interfaces;
+  List<InterfaceType> _interfaces = _Sentinel.interfaceType;
 
   /// For classes which are not mixin applications, a list containing all of the
   /// constructors contained in this class, or `null` if the list of
@@ -443,7 +435,7 @@ class ClassElementImpl extends AbstractClassElementImpl
   /// For classes which are mixin applications, the list of constructors is
   /// computed on the fly by the [constructors] getter, and this field is
   /// `null`.
-  List<ConstructorElement>? _constructors;
+  List<ConstructorElement> _constructors = _Sentinel.constructorElement;
 
   /// A flag indicating whether the types associated with the instance members
   /// of this class have been inferred.
@@ -472,19 +464,20 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   List<PropertyAccessorElement> get accessors {
-    if (_accessors != null) return _accessors!;
+    if (!identical(_accessors, _Sentinel.propertyAccessorElement)) {
+      return _accessors;
+    }
 
     if (linkedNode != null) {
       if (linkedNode is ClassOrMixinDeclaration) {
         _createPropertiesAndAccessors();
-        assert(_accessors != null);
-        return _accessors!;
+        return _accessors;
       } else {
         return _accessors = const [];
       }
     }
 
-    return _accessors ??= const <PropertyAccessorElement>[];
+    return _accessors;
   }
 
   @override
@@ -511,8 +504,8 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   List<ConstructorElement> get constructors {
-    if (_constructors != null) {
-      return _constructors!;
+    if (!identical(_constructors, _Sentinel.constructorElement)) {
+      return _constructors;
     }
 
     if (isMixinApplication) {
@@ -531,7 +524,7 @@ class ClassElementImpl extends AbstractClassElementImpl
         return element;
       }).toList();
 
-      if (_constructors!.isEmpty) {
+      if (_constructors.isEmpty) {
         return _constructors = [
           ConstructorElementImpl.forLinkedNode(
             this,
@@ -546,14 +539,14 @@ class ClassElementImpl extends AbstractClassElementImpl
       }
     }
 
-    if (_constructors!.isEmpty) {
+    if (_constructors.isEmpty) {
       var constructor = ConstructorElementImpl('', -1);
       constructor.isSynthetic = true;
       constructor.enclosingElement = this;
       _constructors = <ConstructorElement>[constructor];
     }
 
-    return _constructors!;
+    return _constructors;
   }
 
   /// Set the constructors contained in this class to the given [constructors].
@@ -579,20 +572,21 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   List<FieldElement> get fields {
-    if (_fields != null) return _fields!;
+    if (!identical(_fields, _Sentinel.fieldElement)) {
+      return _fields;
+    }
 
     if (linkedNode != null) {
       if (linkedNode is ClassOrMixinDeclaration) {
         linkedContext!.applyResolution(linkedNode!);
         _createPropertiesAndAccessors();
-        assert(_fields != null);
-        return _fields!;
+        return _fields;
       } else {
         _fields = const [];
       }
     }
 
-    return _fields ?? const <FieldElement>[];
+    return _fields;
   }
 
   @override
@@ -662,8 +656,8 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   List<InterfaceType> get interfacesInternal {
-    if (_interfaces != null) {
-      return _interfaces!;
+    if (!identical(_interfaces, _Sentinel.interfaceType)) {
+      return _interfaces;
     }
 
     if (linkedNode != null) {
@@ -680,7 +674,7 @@ class ClassElementImpl extends AbstractClassElementImpl
         return _interfaces = const [];
       }
     }
-    return _interfaces = const <InterfaceType>[];
+    return _interfaces;
   }
 
   @override
@@ -745,8 +739,8 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   List<MethodElement> get methods {
-    if (_methods != null) {
-      return _methods!;
+    if (!identical(_methods, _Sentinel.methodElement)) {
+      return _methods;
     }
 
     if (linkedNode != null) {
@@ -765,7 +759,7 @@ class ClassElementImpl extends AbstractClassElementImpl
       }).toList();
     }
 
-    return _methods = const <MethodElement>[];
+    return _methods;
   }
 
   /// Set the methods contained in this class to the given [methods].
@@ -779,11 +773,14 @@ class ClassElementImpl extends AbstractClassElementImpl
   @override
   List<InterfaceType> get mixins {
     if (linkedMixinInferenceCallback != null) {
-      _mixins = linkedMixinInferenceCallback!(this);
+      var mixins = linkedMixinInferenceCallback!(this);
+      if (mixins != null) {
+        return _mixins = mixins;
+      }
     }
 
-    if (_mixins != null) {
-      return _mixins!;
+    if (!identical(_mixins, _Sentinel.interfaceType)) {
+      return _mixins;
     }
 
     if (linkedNode != null) {
@@ -800,7 +797,8 @@ class ClassElementImpl extends AbstractClassElementImpl
         return _mixins = const [];
       }
     }
-    return _mixins = const <InterfaceType>[];
+
+    return _mixins;
   }
 
   set mixins(List<InterfaceType> mixins) {
@@ -1000,8 +998,8 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   void _createPropertiesAndAccessors() {
-    assert(_accessors == null);
-    assert(_fields == null);
+    assert(identical(_accessors, _Sentinel.propertyAccessorElement));
+    assert(identical(_fields, _Sentinel.fieldElement));
 
     var context = enclosingUnit.linkedContext;
     var accessorList = <PropertyAccessorElement>[];
@@ -1135,36 +1133,37 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   /// A list containing all of the top-level accessors (getters and setters)
   /// contained in this compilation unit.
-  List<PropertyAccessorElement>? _accessors;
+  List<PropertyAccessorElement> _accessors = _Sentinel.propertyAccessorElement;
 
   /// A list containing all of the enums contained in this compilation unit.
-  List<ClassElement>? _enums;
+  List<ClassElement> _enums = _Sentinel.classElement;
 
   /// A list containing all of the extensions contained in this compilation
   /// unit.
-  List<ExtensionElement>? _extensions;
+  List<ExtensionElement> _extensions = _Sentinel.extensionElement;
 
   /// A list containing all of the top-level functions contained in this
   /// compilation unit.
-  List<FunctionElement>? _functions;
+  List<FunctionElement> _functions = _Sentinel.functionElement;
 
   /// A list containing all of the mixins contained in this compilation unit.
-  List<ClassElement>? _mixins;
+  List<ClassElement> _mixins = _Sentinel.classElement;
 
   /// A list containing all of the function type aliases contained in this
   /// compilation unit.
   @Deprecated('Use typeAliases instead')
-  List<FunctionTypeAliasElement>? _functionTypeAliases;
+  List<FunctionTypeAliasElement> _functionTypeAliases =
+      _Sentinel.functionTypeAliasElement;
 
   /// A list containing all of the type aliases contained in this compilation
   /// unit.
-  List<TypeAliasElement>? _typeAliases;
+  List<TypeAliasElement> _typeAliases = _Sentinel.typeAliasElement;
 
   /// A list containing all of the classes contained in this compilation unit.
-  List<ClassElement>? _types;
+  List<ClassElement> _types = _Sentinel.classElement;
 
   /// A list containing all of the variables contained in this compilation unit.
-  List<TopLevelVariableElement>? _variables;
+  List<TopLevelVariableElement> _variables = _Sentinel.topLevelVariables;
 
   /// Initialize a newly created compilation unit element to have the given
   /// [name].
@@ -1181,15 +1180,16 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<PropertyAccessorElement> get accessors {
-    if (_accessors != null) return _accessors!;
+    if (!identical(_accessors, _Sentinel.propertyAccessorElement)) {
+      return _accessors;
+    }
 
     if (linkedNode != null) {
       _createPropertiesAndAccessors(this);
-      assert(_accessors != null);
-      return _accessors!;
+      return _accessors;
     }
 
-    return _accessors ?? const <PropertyAccessorElement>[];
+    return _accessors;
   }
 
   /// Set the top-level accessors (getters and setters) contained in this
@@ -1228,7 +1228,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<ClassElement> get enums {
-    if (_enums != null) return _enums!;
+    if (!identical(_enums, _Sentinel.classElement)) {
+      return _enums;
+    }
 
     if (linkedNode != null) {
       var containerRef = reference!.getChild('@enum');
@@ -1242,7 +1244,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       }).toList();
     }
 
-    return _enums ??= const <ClassElement>[];
+    return _enums;
   }
 
   /// Set the enums contained in this compilation unit to the given [enums].
@@ -1255,9 +1257,8 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<ExtensionElement> get extensions {
-    if (_extensions != null) {
-      /// TODO(migration): use empty sentinel value instead of null
-      return _extensions!;
+    if (!identical(_extensions, _Sentinel.extensionElement)) {
+      return _extensions;
     }
 
     if (linkedNode != null) {
@@ -1274,12 +1275,13 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
           var reference = containerRef.getChild(refName);
           var element = node.declaredElement;
           element ??= ExtensionElementImpl.forLinkedNode(this, reference, node);
-          _extensions!.add(element);
+          _extensions.add(element);
         }
       }
-      return _extensions!;
+      return _extensions;
     }
-    return _extensions ?? const <ExtensionElement>[];
+
+    return _extensions;
   }
 
   /// Set the extensions contained in this compilation unit to the given
@@ -1293,7 +1295,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<FunctionElement> get functions {
-    if (_functions != null) return _functions!;
+    if (!identical(_functions, _Sentinel.functionElement)) {
+      return _functions;
+    }
 
     if (linkedNode != null) {
       var containerRef = reference!.getChild('@function');
@@ -1308,7 +1312,8 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
         return element;
       }).toList();
     }
-    return _functions ?? const <FunctionElement>[];
+
+    return _functions;
   }
 
   /// Set the top-level functions contained in this compilation unit to the
@@ -1323,7 +1328,10 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @Deprecated('Use typeAliases instead')
   @override
   List<FunctionTypeAliasElement> get functionTypeAliases {
-    return _functionTypeAliases ??=
+    if (!identical(_functionTypeAliases, _Sentinel.functionTypeAliasElement)) {
+      return _functionTypeAliases;
+    }
+    return _functionTypeAliases =
         typeAliases.whereType<FunctionTypeAliasElement>().toList();
   }
 
@@ -1357,7 +1365,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<ClassElement> get mixins {
-    if (_mixins != null) return _mixins!;
+    if (!identical(_mixins, _Sentinel.classElement)) {
+      return _mixins;
+    }
 
     if (linkedNode != null) {
       var linkedNode = this.linkedNode as CompilationUnit;
@@ -1372,7 +1382,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       }).toList();
     }
 
-    return _mixins ?? const <ClassElement>[];
+    return _mixins;
   }
 
   /// Set the mixins contained in this compilation unit to the given [mixins].
@@ -1388,15 +1398,16 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<TopLevelVariableElement> get topLevelVariables {
-    if (_variables != null) return _variables!;
+    if (!identical(_variables, _Sentinel.topLevelVariables)) {
+      return _variables;
+    }
 
     if (linkedNode != null) {
       _createPropertiesAndAccessors(this);
-      assert(_variables != null);
-      return _variables!;
+      return _variables;
     }
 
-    return _variables ?? const <TopLevelVariableElement>[];
+    return _variables;
   }
 
   /// Set the top-level variables contained in this compilation unit to the
@@ -1410,7 +1421,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<TypeAliasElement> get typeAliases {
-    if (_typeAliases != null) return _typeAliases!;
+    if (!identical(_typeAliases, _Sentinel.typeAliasElement)) {
+      return _typeAliases;
+    }
 
     if (linkedNode != null) {
       var containerRef = reference!.getChild('@typeAlias');
@@ -1429,11 +1442,11 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
         var element = node.declaredElement as TypeAliasElement?;
         element ??= TypeAliasElementImpl.forLinkedNodeFactory(
             this, reference, node as TypeAlias);
-        _typeAliases!.add(element);
+        _typeAliases.add(element);
       }
     }
 
-    return _typeAliases ?? const <TypeAliasElement>[];
+    return _typeAliases;
   }
 
   /// Set the type aliases contained in this compilation unit to [typeAliases].
@@ -1449,7 +1462,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   @override
   List<ClassElement> get types {
-    if (_types != null) return _types!;
+    if (!identical(_types, _Sentinel.classElement)) {
+      return _types;
+    }
 
     if (linkedNode != null) {
       var containerRef = reference!.getChild('@class');
@@ -1460,19 +1475,19 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
           var reference = containerRef.getChild(name);
           var element = node.declaredElement;
           element ??= ClassElementImpl.forLinkedNode(this, reference, node);
-          _types!.add(element);
+          _types.add(element);
         } else if (node is ClassTypeAlias) {
           var name = node.name.name;
           var reference = containerRef.getChild(name);
           var element = node.declaredElement;
           element ??= ClassElementImpl.forLinkedNode(this, reference, node);
-          _types!.add(element);
+          _types.add(element);
         }
       }
-      return _types!;
+      return _types;
     }
 
-    return _types ?? const <ClassElement>[];
+    return _types;
   }
 
   /// Set the types contained in this compilation unit to the given [types].
@@ -1536,8 +1551,10 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   static void _createPropertiesAndAccessors(CompilationUnitElementImpl unit) {
-    if (unit._variables != null) return;
-    assert(unit._accessors == null);
+    if (!identical(unit._variables, _Sentinel.topLevelVariables)) {
+      return;
+    }
+    assert(identical(unit._accessors, _Sentinel.propertyAccessorElement));
 
     var accessorMap =
         <CompilationUnitElementImpl, List<PropertyAccessorElement>>{};
@@ -1621,8 +1638,8 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
     for (var unit in units) {
       var unitImpl = unit as CompilationUnitElementImpl;
-      unitImpl._accessors = accessorMap[unit];
-      unitImpl._variables = variableMap[unit];
+      unitImpl._accessors = accessorMap[unit]!;
+      unitImpl._variables = variableMap[unit]!;
     }
   }
 }
@@ -1835,7 +1852,8 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   /// The initializers for this constructor (used for evaluating constant
   /// instance creation expressions).
-  List<ConstructorInitializer>? _constantInitializers;
+  List<ConstructorInitializer> _constantInitializers =
+      _Sentinel.constructorInitializer;
 
   /// The offset of the `.` before this constructor name or `null` if not named.
   int? _periodOffset;
@@ -1865,7 +1883,9 @@ class ConstructorElementImpl extends ExecutableElementImpl
   /// Return the constant initializers for this element, which will be empty if
   /// there are no initializers, or `null` if there was an error in the source.
   List<ConstructorInitializer> get constantInitializers {
-    if (_constantInitializers != null) return _constantInitializers!;
+    if (!identical(_constantInitializers, _Sentinel.constructorInitializer)) {
+      return _constantInitializers;
+    }
 
     if (linkedNode != null) {
       linkedContext!.applyResolution(linkedNode!);
@@ -1874,7 +1894,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
       );
     }
 
-    return _constantInitializers!;
+    return _constantInitializers;
   }
 
   set constantInitializers(List<ConstructorInitializer> constantInitializers) {
@@ -2502,7 +2522,7 @@ abstract class ElementImpl implements Element {
   int _modifiers = 0;
 
   /// A list containing all of the metadata associated with this element.
-  List<ElementAnnotation>? _metadata;
+  List<ElementAnnotation> _metadata = _Sentinel.elementAnnotation;
 
   /// A cached copy of the calculated hashCode for this element.
   int? _cachedHashCode;
@@ -2855,7 +2875,9 @@ abstract class ElementImpl implements Element {
 
   @override
   List<ElementAnnotation> get metadata {
-    if (_metadata != null) return _metadata!;
+    if (!identical(_metadata, _Sentinel.elementAnnotation)) {
+      return _metadata;
+    }
 
     if (linkedNode != null) {
       linkedContext!.applyResolution(linkedNode!);
@@ -2863,7 +2885,7 @@ abstract class ElementImpl implements Element {
       return _metadata = _buildAnnotations2(enclosingUnit, metadata);
     }
 
-    return _metadata ?? const <ElementAnnotation>[];
+    return _metadata;
   }
 
   set metadata(List<ElementAnnotation> metadata) {
@@ -3205,12 +3227,15 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   List<PropertyAccessorElement> get accessors {
-    if (_accessors == null) {
-      if (linkedNode != null) {
-        _resynthesizeMembers2();
-      }
+    if (!identical(_accessors, _Sentinel.propertyAccessorElement)) {
+      return _accessors;
     }
-    return _accessors ?? const <PropertyAccessorElement>[];
+
+    if (linkedNode != null) {
+      _resynthesizeMembers2();
+    }
+
+    return _accessors;
   }
 
   @override
@@ -3257,12 +3282,15 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   List<FieldElement> get fields {
-    if (_fields == null) {
-      if (linkedNode != null) {
-        _resynthesizeMembers2();
-      }
+    if (!identical(_fields, _Sentinel.fieldElement)) {
+      return _fields;
     }
-    return _fields ?? const <FieldElement>[];
+
+    if (linkedNode != null) {
+      _resynthesizeMembers2();
+    }
+
+    return _fields;
   }
 
   @override
@@ -3294,12 +3322,15 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   List<MethodElement> get methods {
-    if (_methods == null) {
-      if (linkedNode != null) {
-        _resynthesizeMembers2();
-      }
+    if (!identical(_methods, _Sentinel.methodElement)) {
+      return _methods;
     }
-    return _methods ?? const <MethodElement>[];
+
+    if (linkedNode != null) {
+      _resynthesizeMembers2();
+    }
+
+    return _methods;
   }
 
   @override
@@ -3403,7 +3434,7 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
     implements ExecutableElement, ElementImplWithFunctionType {
   /// A list containing all of the parameters defined by this executable
   /// element.
-  List<ParameterElement>? _parameters;
+  List<ParameterElement> _parameters = _Sentinel.parameterElement;
 
   /// The inferred return type of this executable element.
   DartType? _returnType;
@@ -3566,7 +3597,9 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   ///
   /// In most cases, the [parameters] getter should be used instead.
   List<ParameterElement> get parametersInternal {
-    if (_parameters != null) return _parameters!;
+    if (!identical(_parameters, _Sentinel.parameterElement)) {
+      return _parameters;
+    }
 
     if (linkedNode != null) {
       linkedContext!.applyResolution(linkedNode!);
@@ -3581,7 +3614,7 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
       );
     }
 
-    return _parameters ??= const <ParameterElement>[];
+    return _parameters;
   }
 
   @override
@@ -3662,7 +3695,7 @@ class ExportElementImpl extends UriReferencedElementImpl
 
   /// The combinators that were specified as part of the export directive in the
   /// order in which they were specified.
-  List<NamespaceCombinator>? _combinators;
+  List<NamespaceCombinator> _combinators = _Sentinel.namespaceCombinator;
 
   /// Initialize a newly created export element at the given [offset].
   ExportElementImpl(int offset) : super(null, offset);
@@ -3675,7 +3708,9 @@ class ExportElementImpl extends UriReferencedElementImpl
 
   @override
   List<NamespaceCombinator> get combinators {
-    if (_combinators != null) return _combinators!;
+    if (!identical(_combinators, _Sentinel.namespaceCombinator)) {
+      return _combinators;
+    }
 
     if (linkedNode != null) {
       var node = linkedNode as ExportDirective;
@@ -3685,7 +3720,7 @@ class ExportElementImpl extends UriReferencedElementImpl
       );
     }
 
-    return _combinators ?? const <NamespaceCombinator>[];
+    return _combinators;
   }
 
   set combinators(List<NamespaceCombinator> combinators) {
@@ -3756,13 +3791,13 @@ class ExtensionElementImpl extends _ExistingElementImpl
 
   /// A list containing all of the accessors (getters and setters) contained in
   /// this extension.
-  List<PropertyAccessorElement>? _accessors;
+  List<PropertyAccessorElement> _accessors = _Sentinel.propertyAccessorElement;
 
   /// A list containing all of the fields contained in this extension.
-  List<FieldElement>? _fields;
+  List<FieldElement> _fields = _Sentinel.fieldElement;
 
   /// A list containing all of the methods contained in this extension.
-  List<MethodElement>? _methods;
+  List<MethodElement> _methods = _Sentinel.methodElement;
 
   /// Initialize a newly created extension element to have the given [name] at
   /// the given [offset] in the file that contains the declaration of this
@@ -3778,21 +3813,18 @@ class ExtensionElementImpl extends _ExistingElementImpl
 
   @override
   List<PropertyAccessorElement> get accessors {
-    if (_accessors != null) {
-      return _accessors!;
+    if (!identical(_accessors, _Sentinel.propertyAccessorElement)) {
+      return _accessors;
     }
 
     if (linkedNode != null) {
       if (linkedNode is ExtensionDeclaration) {
         _createPropertiesAndAccessors();
-        assert(_accessors != null);
-        return _accessors!;
-      } else {
-        return _accessors = const [];
+        return _accessors;
       }
     }
 
-    return _accessors ??= const <PropertyAccessorElement>[];
+    return _accessors;
   }
 
   set accessors(List<PropertyAccessorElement> accessors) {
@@ -3858,21 +3890,20 @@ class ExtensionElementImpl extends _ExistingElementImpl
 
   @override
   List<FieldElement> get fields {
-    if (_fields != null) {
-      return _fields!;
+    if (!identical(_fields, _Sentinel.fieldElement)) {
+      return _fields;
     }
 
     if (linkedNode != null) {
       if (linkedNode is ExtensionDeclaration) {
         _createPropertiesAndAccessors();
-        assert(_fields != null);
-        return _fields!;
+        return _fields;
       } else {
-        return _fields = const [];
+        return _fields;
       }
     }
 
-    return _fields ?? const <FieldElement>[];
+    return _fields;
   }
 
   set fields(List<FieldElement> fields) {
@@ -3898,8 +3929,8 @@ class ExtensionElementImpl extends _ExistingElementImpl
 
   @override
   List<MethodElement> get methods {
-    if (_methods != null) {
-      return _methods!;
+    if (!identical(_methods, _Sentinel.methodElement)) {
+      return _methods;
     }
 
     if (linkedNode != null) {
@@ -3916,7 +3947,8 @@ class ExtensionElementImpl extends _ExistingElementImpl
         return element;
       }).toList();
     }
-    return _methods = const <MethodElement>[];
+
+    return _methods;
   }
 
   /// Set the methods contained in this extension to the given [methods].
@@ -4004,8 +4036,8 @@ class ExtensionElementImpl extends _ExistingElementImpl
 
   /// Create the accessors and fields when [linkedNode] is not `null`.
   void _createPropertiesAndAccessors() {
-    assert(_accessors == null);
-    assert(_fields == null);
+    assert(identical(_accessors, _Sentinel.propertyAccessorElement));
+    assert(identical(_fields, _Sentinel.fieldElement));
 
     var context = enclosingUnit.linkedContext!;
     var accessorList = <PropertyAccessorElement>[];
@@ -4352,7 +4384,7 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   DartType? _returnType;
 
   /// The elements representing the parameters of the function.
-  List<ParameterElement>? _parameters;
+  List<ParameterElement> _parameters = _Sentinel.parameterElement;
 
   /// Is `true` if the type has the question mark, so is nullable.
   bool _isNullable = false;
@@ -4397,18 +4429,21 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
 
   @override
   List<ParameterElement> get parameters {
-    if (_parameters == null) {
-      if (linkedNode != null) {
-        var context = enclosingUnit.linkedContext!;
-        return _parameters = ParameterElementImpl.forLinkedNodeList(
-          this,
-          context,
-          null,
-          context.getFormalParameters(linkedNode!),
-        );
-      }
+    if (!identical(_parameters, _Sentinel.parameterElement)) {
+      return _parameters;
     }
-    return _parameters ?? const <ParameterElement>[];
+
+    if (linkedNode != null) {
+      var context = enclosingUnit.linkedContext!;
+      return _parameters = ParameterElementImpl.forLinkedNodeList(
+        this,
+        context,
+        null,
+        context.getFormalParameters(linkedNode!),
+      );
+    }
+
+    return _parameters;
   }
 
   /// Set the parameters defined by this function type element to the given
@@ -4510,7 +4545,7 @@ class HideElementCombinatorImpl implements HideElementCombinator {
 
   /// The names that are not to be made visible in the importing library even if
   /// they are defined in the imported library.
-  List<String>? _hiddenNames;
+  List<String> _hiddenNames = _Sentinel.string;
 
   HideElementCombinatorImpl()
       : linkedContext = null,
@@ -4520,13 +4555,15 @@ class HideElementCombinatorImpl implements HideElementCombinator {
 
   @override
   List<String> get hiddenNames {
-    if (_hiddenNames != null) return _hiddenNames!;
+    if (!identical(_hiddenNames, _Sentinel.string)) {
+      return _hiddenNames;
+    }
 
     if (linkedNode != null) {
       return _hiddenNames = linkedNode!.hiddenNames.map((i) => i.name).toList();
     }
 
-    return _hiddenNames ?? const <String>[];
+    return _hiddenNames;
   }
 
   set hiddenNames(List<String> hiddenNames) {
@@ -4560,7 +4597,7 @@ class ImportElementImpl extends UriReferencedElementImpl
 
   /// The combinators that were specified as part of the import directive in the
   /// order in which they were specified.
-  List<NamespaceCombinator>? _combinators;
+  List<NamespaceCombinator> _combinators = _Sentinel.namespaceCombinator;
 
   /// The prefix that was specified as part of the import directive, or `null
   ///` if there was no prefix specified.
@@ -4581,7 +4618,9 @@ class ImportElementImpl extends UriReferencedElementImpl
 
   @override
   List<NamespaceCombinator> get combinators {
-    if (_combinators != null) return _combinators!;
+    if (!identical(_combinators, _Sentinel.namespaceCombinator)) {
+      return _combinators;
+    }
 
     if (linkedNode != null) {
       var node = linkedNode as ImportDirective;
@@ -4591,7 +4630,7 @@ class ImportElementImpl extends UriReferencedElementImpl
       );
     }
 
-    return _combinators ?? const <NamespaceCombinator>[];
+    return _combinators;
   }
 
   set combinators(List<NamespaceCombinator> combinators) {
@@ -4808,11 +4847,11 @@ class LibraryElementImpl extends _ExistingElementImpl
 
   /// A list containing specifications of all of the imports defined in this
   /// library.
-  List<ImportElement>? _imports;
+  List<ImportElement> _imports = _Sentinel.importElement;
 
   /// A list containing specifications of all of the exports defined in this
   /// library.
-  List<ExportElement>? _exports;
+  List<ExportElement> _exports = _Sentinel.exportElement;
 
   /// A list containing all of the compilation units that are included in this
   /// library using a `part` directive.
@@ -4948,7 +4987,9 @@ class LibraryElementImpl extends _ExistingElementImpl
 
   @override
   List<ExportElement> get exports {
-    if (_exports != null) return _exports!;
+    if (!identical(_exports, _Sentinel.exportElement)) {
+      return _exports;
+    }
 
     if (linkedNode != null) {
       var unit = linkedContext!.unit_withDirectives;
@@ -4958,7 +4999,7 @@ class LibraryElementImpl extends _ExistingElementImpl
           .toList();
     }
 
-    return _exports ??= const <ExportElement>[];
+    return _exports;
   }
 
   /// Set the specifications of all of the exports defined in this library to
@@ -5023,7 +5064,9 @@ class LibraryElementImpl extends _ExistingElementImpl
 
   @override
   List<ImportElement> get imports {
-    if (_imports != null) return _imports!;
+    if (!identical(_imports, _Sentinel.importElement)) {
+      return _imports;
+    }
 
     if (linkedNode != null) {
       var unit = linkedContext!.unit_withDirectives;
@@ -5031,22 +5074,22 @@ class LibraryElementImpl extends _ExistingElementImpl
           .whereType<ImportDirective>()
           .map((node) => node.element!)
           .toList();
-      var hasCore = _imports!.any((import) {
+      var hasCore = _imports.any((import) {
         return import.importedLibrary?.isDartCore ?? false;
       });
       if (!hasCore) {
         var elements = linkedContext!.elementFactory;
-        _imports!.add(
+        _imports.add(
           ImportElementImpl(-1)
             ..importedLibrary = elements.libraryOfUri2('dart:core')
             ..isSynthetic = true
             ..uri = 'dart:core',
         );
       }
-      return _imports!;
+      return _imports;
     }
 
-    return _imports ??= const <ImportElement>[];
+    return _imports;
   }
 
   /// Set the specifications of all of the imports defined in this library to
@@ -5151,7 +5194,9 @@ class LibraryElementImpl extends _ExistingElementImpl
 
   @override
   List<ElementAnnotation> get metadata {
-    if (_metadata != null) return _metadata!;
+    if (!identical(_metadata, _Sentinel.elementAnnotation)) {
+      return _metadata;
+    }
 
     if (linkedNode != null) {
       var metadata = linkedContext!.getLibraryMetadata();
@@ -5448,7 +5493,7 @@ class MixinElementImpl extends ClassElementImpl {
 
   /// A list containing all of the superclass constraints that are defined for
   /// the mixin.
-  List<InterfaceType>? _superclassConstraints;
+  List<InterfaceType> _superclassConstraints = _Sentinel.interfaceType;
 
   @override
   late List<String> superInvokedNames;
@@ -5474,7 +5519,9 @@ class MixinElementImpl extends ClassElementImpl {
 
   @override
   List<InterfaceType> get superclassConstraints {
-    if (_superclassConstraints != null) return _superclassConstraints!;
+    if (!identical(_superclassConstraints, _Sentinel.interfaceType)) {
+      return _superclassConstraints;
+    }
 
     var linkedNode = this.linkedNode;
     if (linkedNode is MixinDeclaration) {
@@ -5494,7 +5541,7 @@ class MixinElementImpl extends ClassElementImpl {
       return _superclassConstraints = constraints;
     }
 
-    return _superclassConstraints ?? const <InterfaceType>[];
+    return _superclassConstraints;
   }
 
   set superclassConstraints(List<InterfaceType> superclassConstraints) {
@@ -5942,12 +5989,12 @@ class ParameterElementImpl extends VariableElementImpl
   /// A list containing all of the parameters defined by this parameter element.
   /// There will only be parameters if this parameter is a function typed
   /// parameter.
-  List<ParameterElement>? _parameters;
+  List<ParameterElement> _parameters = _Sentinel.parameterElement;
 
   /// A list containing all of the type parameters defined for this parameter
   /// element. There will only be parameters if this parameter is a function
   /// typed parameter.
-  List<TypeParameterElement>? _typeParameters;
+  List<TypeParameterElement> _typeParameters = _Sentinel.typeParameterElement;
 
   /// The kind of this parameter.
   ParameterKind? _parameterKind;
@@ -6107,7 +6154,9 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   List<ParameterElement> get parameters {
-    if (_parameters != null) return _parameters!;
+    if (!identical(_parameters, _Sentinel.parameterElement)) {
+      return _parameters;
+    }
 
     if (linkedNode != null) {
       var context = enclosingUnit.linkedContext!;
@@ -6120,11 +6169,11 @@ class ParameterElementImpl extends VariableElementImpl
           formalParameters,
         );
       } else {
-        return _parameters ??= const <ParameterElement>[];
+        return _parameters;
       }
     }
 
-    return _parameters ??= const <ParameterElement>[];
+    return _parameters;
   }
 
   /// Set the parameters defined by this executable element to the given
@@ -6138,7 +6187,9 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   List<TypeParameterElement> get typeParameters {
-    if (_typeParameters != null) return _typeParameters!;
+    if (!identical(_typeParameters, _Sentinel.typeParameterElement)) {
+      return _typeParameters;
+    }
 
     if (linkedNode != null) {
       var typeParameters = linkedContext!.getTypeParameters2(linkedNode!);
@@ -6153,7 +6204,7 @@ class ParameterElementImpl extends VariableElementImpl
       }).toList();
     }
 
-    return _typeParameters ??= const <TypeParameterElement>[];
+    return _typeParameters;
   }
 
   /// Set the type parameters defined by this parameter element to the given
@@ -6603,7 +6654,11 @@ class PropertyAccessorElementImpl_ImplicitSetter
 
   @override
   List<ParameterElement> get parametersInternal {
-    return _parameters ??= <ParameterElement>[
+    if (!identical(_parameters, _Sentinel.parameterElement)) {
+      return _parameters;
+    }
+
+    return _parameters = <ParameterElement>[
       ParameterElementImpl_ofImplicitSetter(this)
     ];
   }
@@ -6755,7 +6810,7 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
 
   /// The names that are to be made visible in the importing library if they are
   /// defined in the imported library.
-  List<String>? _shownNames;
+  List<String> _shownNames = _Sentinel.string;
 
   /// The offset of the character immediately following the last character of
   /// this node.
@@ -6796,13 +6851,15 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
 
   @override
   List<String> get shownNames {
-    if (_shownNames != null) return _shownNames!;
+    if (!identical(_shownNames, _Sentinel.string)) {
+      return _shownNames;
+    }
 
     if (linkedNode != null) {
       return _shownNames = linkedNode!.shownNames.map((i) => i.name).toList();
     }
 
-    return _shownNames ?? const <String>[];
+    return _shownNames;
   }
 
   set shownNames(List<String> shownNames) {
@@ -7293,14 +7350,17 @@ mixin TypeParameterizedElementMixin
   /// A cached list containing the type parameters declared by this element
   /// directly, or `null` if the elements have not been created yet. This does
   /// not include type parameters that are declared by any enclosing elements.
-  List<TypeParameterElement>? _typeParameterElements;
+  List<TypeParameterElement> _typeParameterElements =
+      _Sentinel.typeParameterElement;
 
   @override
   bool get isSimplyBounded => true;
 
   @override
   List<TypeParameterElement> get typeParameters {
-    if (_typeParameterElements != null) return _typeParameterElements!;
+    if (!identical(_typeParameterElements, _Sentinel.typeParameterElement)) {
+      return _typeParameterElements;
+    }
 
     if (linkedNode != null) {
       linkedContext!.applyResolution(linkedNode!);
@@ -7316,7 +7376,7 @@ mixin TypeParameterizedElementMixin
       }).toList();
     }
 
-    return _typeParameterElements ?? const <TypeParameterElement>[];
+    return _typeParameterElements;
   }
 }
 
@@ -7510,4 +7570,36 @@ mixin _HasLibraryMixin on ElementImpl {
 
   @override
   Source get source => enclosingElement!.source!;
+}
+
+/// Instances of [List]s that are used as "not yet computed" values, they
+/// must be not `null`, and not identical to `const <T>[]`.
+class _Sentinel {
+  static final List<ClassElement> classElement = List.unmodifiable([]);
+  static final List<ConstructorElement> constructorElement =
+      List.unmodifiable([]);
+  static final List<ConstructorInitializer> constructorInitializer =
+      List.unmodifiable([]);
+  static final List<ElementAnnotation> elementAnnotation =
+      List.unmodifiable([]);
+  static final List<ExportElement> exportElement = List.unmodifiable([]);
+  static final List<ExtensionElement> extensionElement = List.unmodifiable([]);
+  static final List<FieldElement> fieldElement = List.unmodifiable([]);
+  static final List<FunctionElement> functionElement = List.unmodifiable([]);
+  static final List<FunctionTypeAliasElement> functionTypeAliasElement =
+      List.unmodifiable([]);
+  static final List<ImportElement> importElement = List.unmodifiable([]);
+  static final List<InterfaceType> interfaceType = List.unmodifiable([]);
+  static final List<MethodElement> methodElement = List.unmodifiable([]);
+  static final List<NamespaceCombinator> namespaceCombinator =
+      List.unmodifiable([]);
+  static final List<ParameterElement> parameterElement = List.unmodifiable([]);
+  static final List<PropertyAccessorElement> propertyAccessorElement =
+      List.unmodifiable([]);
+  static final List<String> string = List.unmodifiable([]);
+  static final List<TopLevelVariableElement> topLevelVariables =
+      List.unmodifiable([]);
+  static final List<TypeAliasElement> typeAliasElement = List.unmodifiable([]);
+  static final List<TypeParameterElement> typeParameterElement =
+      List.unmodifiable([]);
 }
