@@ -269,6 +269,15 @@ class KClosedWorldImpl implements KClosedWorld {
           if (type == null) return;
           if (dartTypes.canAssignGenericFunctionTo(type)) {
             _genericCallablePropertiesCache[member] = type;
+          } else {
+            type = type.withoutNullability;
+            if (type is InterfaceType) {
+              FunctionType callType = dartTypes.getCallType(type);
+              if (callType != null &&
+                  dartTypes.canAssignGenericFunctionTo(callType)) {
+                _genericCallablePropertiesCache[member] = callType;
+              }
+            }
           }
         }
       });

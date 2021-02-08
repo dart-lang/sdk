@@ -671,7 +671,7 @@ class InferrerEngine {
 
   /// Returns `true` if [cls] has a 'call' method.
   bool _hasCallType(ClassEntity cls) {
-    return closedWorld.elementMap.types
+    return closedWorld.dartTypes
             .getCallType(closedWorld.elementEnvironment.getThisType(cls)) !=
         null;
   }
