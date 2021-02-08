@@ -100,7 +100,7 @@ main() {
     print(result.runtimeType);
 
     var mint = 0x7FFFFFFFFFFFFFFF; // 2 ^ 63 - 1
-    result = intComputation(1, 1, 0, mint);
+    result = intComputation(1, 1, 1, mint);
     print(result);
     print(result.runtimeType);
   }
