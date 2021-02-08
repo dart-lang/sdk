@@ -128,9 +128,12 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
 
   DartType buildThisType() {
     if (thisType != null) {
-      if (identical(thisType, cyclicTypeAliasMarker)) {
+      if (identical(thisType, pendingTypeAliasMarker)) {
+        thisType = cyclicTypeAliasMarker;
         library.addProblem(templateCyclicTypedef.withArguments(name),
             charOffset, noLength, fileUri);
+        return const InvalidType();
+      } else if (identical(thisType, cyclicTypeAliasMarker)) {
         return const InvalidType();
       }
       return thisType;
@@ -138,7 +141,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     // It is a compile-time error for an alias (typedef) to refer to itself. We
     // detect cycles by detecting recursive calls to this method using an
     // instance of InvalidType that isn't identical to `const InvalidType()`.
-    thisType = cyclicTypeAliasMarker;
+    thisType = pendingTypeAliasMarker;
     TypeBuilder type = this.type;
     if (type != null) {
       DartType builtType =
@@ -150,7 +153,11 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
             tv.bound?.build(library);
           }
         }
-        return thisType = builtType;
+        if (identical(thisType, cyclicTypeAliasMarker)) {
+          return thisType = const InvalidType();
+        } else {
+          return thisType = builtType;
+        }
       } else {
         return thisType = const InvalidType();
       }

@@ -7,9 +7,8 @@ library;
 //                ^
 //
 import self as self;
-import "dart:core" as core;
 
-typedef Handle = (core::String*) →* invalid-type;
+typedef Handle = invalid-type;
 static method main() → dynamic {
-  (core::String*) →* invalid-type h;
+  invalid-type h;
 }
