@@ -190,7 +190,7 @@ abstract class AbstractDataSource extends DataSourceMixin
         return const DoesNotCompleteType();
       case DartTypeNodeKind.neverType:
         ir.Nullability nullability = readEnum(ir.Nullability.values);
-        return ir.NeverType(nullability);
+        return ir.NeverType.fromNullability(nullability);
       case DartTypeNodeKind.typeParameterType:
         ir.TypeParameter typeParameter = readTypeParameterNode();
         ir.Nullability typeParameterTypeNullability =

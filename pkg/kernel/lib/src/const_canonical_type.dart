@@ -30,7 +30,7 @@ DartType computeConstCanonicalType(DartType type, CoreTypes coreTypes,
   // CONST_CANONICAL_TYPE(T) = T* if T is Never or Object
   if (type is NeverType &&
       type.declaredNullability == Nullability.nonNullable) {
-    return const NeverType(Nullability.legacy);
+    return const NeverType.legacy();
   }
   if (type == coreTypes.objectNonNullableRawType) {
     return coreTypes.objectLegacyRawType;

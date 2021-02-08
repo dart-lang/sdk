@@ -6,6 +6,7 @@
 # the round trip for Kernel textual serialization where the initial binary
 # Kernel files are produced by compiling Dart code via Fasta.
 
+dartdevc/private_covariant: TextSerializationFailure
 extensions/call_methods: TypeCheckError
 extensions/extension_setter_error: TypeCheckError
 extensions/instance_access_of_static: RuntimeError

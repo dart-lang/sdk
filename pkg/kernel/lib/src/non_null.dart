@@ -65,12 +65,12 @@ class _NonNullVisitor implements DartTypeVisitor<DartType> {
     if (node.declaredNullability == Nullability.nonNullable) {
       return null;
     }
-    return const NeverType(Nullability.nonNullable);
+    return const NeverType.nonNullable();
   }
 
   @override
   DartType visitNullType(NullType node) {
-    return const NeverType(Nullability.nonNullable);
+    return const NeverType.nonNullable();
   }
 
   @override

@@ -7,6 +7,10 @@
 # strong-mode enabled.
 
 # general/platform_invalid_uris/main: SemiFuzzFailure # semi fuzz fails but isn't currently enabled by default.
+# general/error_recovery/issue_39058.crash: SemiFuzzFailure # semi fuzz fails but isn't currently enabled by default.
+# general/error_recovery/issue_39058_prime.crash: SemiFuzzFailure # semi fuzz fails but isn't currently enabled by default.
+# general/error_recovery/issue_39202.crash: SemiFuzzCrash # semi fuzz fails but isn't currently enabled by default.
+# regress/utf_16_le_content.crash: Crash # semi fuzz fails but isn't currently enabled by default.
 
 extensions/call_methods: TypeCheckError
 extensions/extension_setter_error: TypeCheckError

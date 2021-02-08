@@ -322,7 +322,8 @@ class _SyncClosureContext implements ClosureContext {
       } else {
         // No explicit return and the function doesn't complete normally; that
         // is, it throws.
-        actualReturnedType = new NeverType(inferrer.library.nonNullable);
+        actualReturnedType =
+            NeverType.fromNullability(inferrer.library.nonNullable);
       }
       // Use the types seen from the explicit return statements.
       for (int i = 0; i < _returnStatements.length; i++) {
@@ -721,7 +722,7 @@ class _AsyncClosureContext implements ClosureContext {
       } else {
         // No explicit return and the function doesn't complete normally; that
         // is, it throws.
-        inferredType = new NeverType(inferrer.library.nonNullable);
+        inferredType = NeverType.fromNullability(inferrer.library.nonNullable);
       }
       // Use the types seen from the explicit return statements.
       for (int i = 0; i < _returnStatements.length; i++) {
@@ -954,7 +955,8 @@ class _SyncStarClosureContext implements ClosureContext {
       // No explicit return and the function doesn't complete normally; that is,
       // it throws.
       if (inferrer.isNonNullableByDefault) {
-        inferredElementType = new NeverType(inferrer.library.nonNullable);
+        inferredElementType =
+            NeverType.fromNullability(inferrer.library.nonNullable);
       } else {
         inferredElementType = const NullType();
       }
@@ -1082,7 +1084,8 @@ class _AsyncStarClosureContext implements ClosureContext {
       // No explicit return and the function doesn't complete normally; that is,
       // it throws.
       if (inferrer.isNonNullableByDefault) {
-        inferredElementType = new NeverType(inferrer.library.nonNullable);
+        inferredElementType =
+            NeverType.fromNullability(inferrer.library.nonNullable);
       } else {
         inferredElementType = const NullType();
       }

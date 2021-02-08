@@ -245,9 +245,8 @@ class TypeInferrerImpl implements TypeInferrer {
   bool get useNewMethodInvocationEncoding =>
       library.loader.target.backendTarget.supportsNewMethodInvocationEncoding;
 
-  DartType get bottomType => isNonNullableByDefault
-      ? const NeverType(Nullability.nonNullable)
-      : const NullType();
+  DartType get bottomType =>
+      isNonNullableByDefault ? const NeverType.nonNullable() : const NullType();
 
   DartType computeGreatestClosure(DartType type) {
     return greatestClosure(type, const DynamicType(), bottomType);
@@ -271,9 +270,7 @@ class TypeInferrerImpl implements TypeInferrer {
 
   DartType computeNonNullable(DartType type) {
     if (type is NullType) {
-      return isNonNullableByDefault
-          ? const NeverType(Nullability.nonNullable)
-          : type;
+      return isNonNullableByDefault ? const NeverType.nonNullable() : type;
     }
     if (type is TypeParameterType && type.promotedBound != null) {
       return new TypeParameterType(type.parameter, Nullability.nonNullable,
@@ -1190,7 +1187,7 @@ class TypeInferrerImpl implements TypeInferrer {
       case ObjectAccessTargetKind.ambiguous:
         return const DynamicType();
       case ObjectAccessTargetKind.never:
-        return const NeverType(Nullability.nonNullable);
+        return const NeverType.nonNullable();
       case ObjectAccessTargetKind.instanceMember:
       case ObjectAccessTargetKind.objectMember:
       case ObjectAccessTargetKind.nullableInstanceMember:
@@ -1385,7 +1382,7 @@ class TypeInferrerImpl implements TypeInferrer {
         }
         break;
       case ObjectAccessTargetKind.never:
-        return const NeverType(Nullability.nonNullable);
+        return const NeverType.nonNullable();
       case ObjectAccessTargetKind.invalid:
         return const InvalidType();
       case ObjectAccessTargetKind.callFunction:
@@ -2649,7 +2646,7 @@ class TypeInferrerImpl implements TypeInferrer {
         ..fileOffset = fileOffset;
     }
     return createNullAwareExpressionInferenceResult(
-        const NeverType(Nullability.nonNullable),
+        const NeverType.nonNullable(),
         result.applyResult(expression),
         nullAwareGuards);
   }

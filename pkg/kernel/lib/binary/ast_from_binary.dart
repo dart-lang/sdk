@@ -2821,7 +2821,7 @@ class BinaryBuilder {
 
   DartType _readNeverType() {
     int nullabilityIndex = readByte();
-    return new NeverType(Nullability.values[nullabilityIndex]);
+    return NeverType.fromNullability(Nullability.values[nullabilityIndex]);
   }
 
   DartType _readInterfaceType() {

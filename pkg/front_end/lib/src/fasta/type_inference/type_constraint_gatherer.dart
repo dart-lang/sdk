@@ -799,7 +799,7 @@ abstract class TypeConstraintGatherer {
               new NullabilityAwareTypeVariableEliminator(
                   eliminationTargets:
                       freshTypeParameters.freshTypeParameters.toSet(),
-                  bottomType: const NeverType(Nullability.nonNullable),
+                  bottomType: const NeverType.nonNullable(),
                   topType: coreTypes.objectNullableRawType,
                   topFunctionType: coreTypes.functionNonNullableRawType,
                   unhandledTypeHandler: (DartType type, ignored) =>

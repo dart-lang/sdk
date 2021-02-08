@@ -191,7 +191,7 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType, int> {
       // No nullability needed to be substituted.
       return null;
     } else {
-      return new NeverType(newNullability);
+      return NeverType.fromNullability(newNullability);
     }
   }
 

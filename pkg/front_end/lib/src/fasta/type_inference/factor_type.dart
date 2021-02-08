@@ -13,7 +13,7 @@ import 'package:kernel/type_environment.dart';
 DartType factorType(TypeEnvironment typeEnvironment, DartType T, DartType S) {
   // * If T <: S then Never
   if (typeEnvironment.isSubtypeOf(T, S, SubtypeCheckMode.withNullabilities)) {
-    return const NeverType(Nullability.nonNullable);
+    return const NeverType.nonNullable();
   }
 
   // * Else if T is R? and Null <: S then factor(R, S)

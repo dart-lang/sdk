@@ -276,7 +276,8 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
     } else if (name == "Never") {
       // Don't return a const object to ensure we test implementations that use
       // identical.
-      return new NeverType(interpretParsedNullability(node.parsedNullability));
+      return NeverType.fromNullability(
+          interpretParsedNullability(node.parsedNullability));
     } else if (name == "Null") {
       // Don't return a const object to ensure we test implementations that use
       // identical.

@@ -3460,7 +3460,7 @@ class DynamicGet extends Expression {
       case DynamicAccessKind.Dynamic:
         return const DynamicType();
       case DynamicAccessKind.Never:
-        return const NeverType(Nullability.nonNullable);
+        return const NeverType.nonNullable();
       case DynamicAccessKind.Invalid:
       case DynamicAccessKind.Unresolved:
         return const InvalidType();
@@ -4359,7 +4359,7 @@ class DynamicInvocation extends InvocationExpression {
       case DynamicAccessKind.Dynamic:
         return const DynamicType();
       case DynamicAccessKind.Never:
-        return const NeverType(Nullability.nonNullable);
+        return const NeverType.nonNullable();
       case DynamicAccessKind.Invalid:
       case DynamicAccessKind.Unresolved:
         return const InvalidType();
@@ -6137,7 +6137,7 @@ class NullCheck extends Expression {
   DartType getStaticTypeInternal(StaticTypeContext context) {
     DartType operandType = operand.getStaticType(context);
     return operandType is NullType
-        ? const NeverType(Nullability.nonNullable)
+        ? const NeverType.nonNullable()
         : operandType.withDeclaredNullability(Nullability.nonNullable);
   }
 
@@ -6413,7 +6413,7 @@ class Rethrow extends Expression {
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) =>
       context.isNonNullableByDefault
-          ? const NeverType(Nullability.nonNullable)
+          ? const NeverType.nonNullable()
           : const BottomType();
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitRethrow(this);
@@ -6447,7 +6447,7 @@ class Throw extends Expression {
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) =>
       context.isNonNullableByDefault
-          ? const NeverType(Nullability.nonNullable)
+          ? const NeverType.nonNullable()
           : const BottomType();
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitThrow(this);
@@ -8715,7 +8715,29 @@ class NeverType extends DartType {
   @override
   final Nullability declaredNullability;
 
-  const NeverType(this.declaredNullability);
+  const NeverType.nullable() : this.internal(Nullability.nullable);
+
+  const NeverType.nonNullable() : this.internal(Nullability.nonNullable);
+
+  const NeverType.legacy() : this.internal(Nullability.legacy);
+
+  const NeverType.undetermined() : this.internal(Nullability.undetermined);
+
+  const NeverType.internal(this.declaredNullability);
+
+  static NeverType fromNullability(Nullability nullability) {
+    switch (nullability) {
+      case Nullability.nullable:
+        return const NeverType.nullable();
+      case Nullability.nonNullable:
+        return const NeverType.nonNullable();
+      case Nullability.legacy:
+        return const NeverType.legacy();
+      case Nullability.undetermined:
+        return const NeverType.undetermined();
+    }
+    throw new StateError("Unhandled nullability value '${nullability}'.");
+  }
 
   @override
   Nullability get nullability => declaredNullability;
@@ -8746,7 +8768,7 @@ class NeverType extends DartType {
   NeverType withDeclaredNullability(Nullability declaredNullability) {
     return this.declaredNullability == declaredNullability
         ? this
-        : new NeverType(declaredNullability);
+        : NeverType.fromNullability(declaredNullability);
   }
 
   @override

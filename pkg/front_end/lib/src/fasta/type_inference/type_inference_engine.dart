@@ -323,7 +323,7 @@ class TypeOperationsCfe extends TypeOperations<VariableDeclaration, DartType> {
       }
       return type;
     } else if (type is NullType) {
-      return const NeverType(Nullability.nonNullable);
+      return const NeverType.nonNullable();
     }
     return type.withDeclaredNullability(Nullability.nonNullable);
   }
