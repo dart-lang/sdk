@@ -17,7 +17,10 @@ void main() {
 }
 
 @reflectiveTest
-class InferredTypeTest extends PubPackageResolutionTest {
+class InferredTypeTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
+  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
+  //  test cases.
   CompilationUnitElement get _resultUnitElement {
     return result.unit!.declaredElement!;
   }

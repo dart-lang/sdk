@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class CouldNotInferTest extends PubPackageResolutionTest {
+class CouldNotInferTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_constructors_inferenceFBounded() async {
     await assertErrorsInCode('''
 class C<T> {}

@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class YieldOfInvalidTypeTest extends PubPackageResolutionTest {
+class YieldOfInvalidTypeTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_none_asyncStar_dynamic_to_streamInt() async {
     await assertErrorsInCode(
         '''

@@ -16,7 +16,8 @@ main() {
 }
 
 @reflectiveTest
-class TopLevelVariableTest extends PubPackageResolutionTest {
+class TopLevelVariableTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_session_getterSetter() async {
     await resolveTestCode('''
 var v = 0;

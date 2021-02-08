@@ -435,7 +435,8 @@ main() {
 }
 
 @reflectiveTest
-class NullableTest extends PubPackageResolutionTest {
+class NullableTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   @override
   bool get typeToStringWithNullability => true;
 

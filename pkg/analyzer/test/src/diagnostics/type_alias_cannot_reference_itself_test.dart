@@ -39,7 +39,7 @@ typedef A(A b());
 typedef F = void Function(List<G> l);
 typedef G = void Function(List<F> l);
 main() {
-  F foo(G g) => g;
+  F? foo(G? g) => g;
   foo(null);
 }
 ''', [
@@ -69,7 +69,7 @@ typedef F<X extends F<X>> = F Function();
 typedef void F(List<G> l);
 typedef void G(List<F> l);
 main() {
-  F foo(G g) => g;
+  F? foo(G? g) => g;
   foo(null);
 }
 ''', [
@@ -127,7 +127,7 @@ typedef A(List<A> a);
     await assertNoErrorsInCode(r'''
 typedef B A();
 class B {
-  A a;
+  A? a;
 }
 ''');
   }
@@ -138,7 +138,7 @@ class B {
 typedef C A();
 typedef A B();
 class C {
-  B a;
+  B? a;
 }
 ''');
   }

@@ -16,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class FieldTest extends PubPackageResolutionTest {
+class FieldTest extends PubPackageResolutionTest with WithoutNullSafetyMixin {
   test_session_getterSetter() async {
     await resolveTestCode('''
 class A {

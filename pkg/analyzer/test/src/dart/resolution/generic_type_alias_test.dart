@@ -25,7 +25,7 @@ class C<T> {}
 
 typedef G = Function<S>();
 
-C<G> x;
+C<G>? x;
 ''', [
       error(CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
           45, 1),
@@ -36,7 +36,7 @@ C<G> x;
     await assertErrorsInCode(r'''
 class C<T> {}
 
-C<Function<S>()> x;
+C<Function<S>()>? x;
 ''', [
       error(CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
           17, 13),
@@ -58,14 +58,14 @@ main() {
 
   test_genericFunctionTypeCannotBeTypeArgument_literal_functionType() async {
     await assertErrorsInCode(r'''
-T Function<T>(T) f;
+late T Function<T>(T?) f;
 
 main() {
   f<Function<S>()>(null);
 }
 ''', [
       error(CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
-          34, 13),
+          40, 13),
     ]);
   }
 
@@ -88,7 +88,7 @@ main() {
     await assertErrorsInCode(r'''
 typedef T F<T>(T t);
 
-F<Function<S>()> x;
+F<Function<S>()>? x;
 ''', [
       error(CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
           24, 13),
@@ -145,12 +145,12 @@ void f() {
 
   test_type_element() async {
     await assertNoErrorsInCode(r'''
-G<int> g;
+G<int>? g;
 
 typedef G<T> = T Function(double);
 ''');
     var type = findElement.topVar('g').type as FunctionType;
-    assertType(type, 'int Function(double)');
+    assertType(type, 'int Function(double)?');
 
     var typedefG = findElement.typeAlias('G');
     var functionG = typedefG.aliasedElement as GenericFunctionTypeElement;

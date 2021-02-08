@@ -23,7 +23,7 @@ main() {
 
 @reflectiveTest
 class MethodInvocationResolutionTest extends PubPackageResolutionTest
-    with MethodInvocationResolutionTestCases {}
+    with WithoutNullSafetyMixin, MethodInvocationResolutionTestCases {}
 
 mixin MethodInvocationResolutionTestCases on PubPackageResolutionTest {
   test_clamp_double_context_double() async {

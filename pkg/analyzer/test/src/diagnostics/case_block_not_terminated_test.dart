@@ -10,6 +10,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CaseBlockNotTerminatedTest);
+    defineReflectiveTests(CaseBlockNotTerminatedWithoutNullSafetyTest);
   });
 }
 
@@ -24,20 +25,6 @@ f(int a) {
   }
 }
 ''');
-  }
-
-  test_notTerminated() async {
-    await assertErrorsInCode('''
-void f(int a) {
-  switch (a) {
-    case 0:
-      print(0);
-    default:
-      return;
-  }
-}''', [
-      error(CompileTimeErrorCode.CASE_BLOCK_NOT_TERMINATED, 35, 4),
-    ]);
   }
 
   test_terminated_break() async {
@@ -106,5 +93,23 @@ void f(int a) {
   }
 }
 ''');
+  }
+}
+
+@reflectiveTest
+class CaseBlockNotTerminatedWithoutNullSafetyTest
+    extends PubPackageResolutionTest with WithoutNullSafetyMixin {
+  test_notTerminated() async {
+    await assertErrorsInCode('''
+void f(int a) {
+  switch (a) {
+    case 0:
+      print(0);
+    default:
+      return;
+  }
+}''', [
+      error(CompileTimeErrorCode.CASE_BLOCK_NOT_TERMINATED, 35, 4),
+    ]);
   }
 }

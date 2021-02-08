@@ -20,6 +20,9 @@ main() {
 @reflectiveTest
 class InvalidLanguageOverrideGreaterTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
+  @override
+  String? get testPackageLanguageVersion => null;
+
   test_greaterThanLatest() async {
     var latestVersion = ExperimentStatus.currentVersion;
     await assertErrorsInCode('''

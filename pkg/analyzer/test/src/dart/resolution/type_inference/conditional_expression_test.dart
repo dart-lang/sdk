@@ -14,7 +14,8 @@ main() {
 }
 
 @reflectiveTest
-class ConditionalExpressionTest extends PubPackageResolutionTest {
+class ConditionalExpressionTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_upward() async {
     await resolveTestCode('''
 void f(bool a, int b, int c) {

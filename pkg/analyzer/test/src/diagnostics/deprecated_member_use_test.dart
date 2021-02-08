@@ -109,7 +109,7 @@ class B extends A {
 
 @reflectiveTest
 class DeprecatedMemberUse_BasicWorkspaceTest extends PubPackageResolutionTest
-    with DeprecatedMemberUse_BasicWorkspaceTestCases {}
+    with WithoutNullSafetyMixin, DeprecatedMemberUse_BasicWorkspaceTestCases {}
 
 mixin DeprecatedMemberUse_BasicWorkspaceTestCases on PubPackageResolutionTest {
   @override
@@ -467,7 +467,7 @@ void f(A a) {}
 
 @reflectiveTest
 class DeprecatedMemberUseFromSamePackage_BasicWorkspaceTest
-    extends PubPackageResolutionTest {
+    extends PubPackageResolutionTest with WithoutNullSafetyMixin {
   test_assignmentExpression_compound_deprecatedGetter() async {
     await assertErrorsInCode(r'''
 @deprecated

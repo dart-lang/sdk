@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class ReturnOfInvalidTypeForCatchErrorTest extends PubPackageResolutionTest {
+class ReturnOfInvalidTypeForCatchErrorTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_async_okReturnType() async {
     await assertNoErrorsInCode('''
 void f(Future<int> future) {

@@ -247,11 +247,14 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   String get testFilePath => '$testPackageLibPath/test.dart';
 
   /// The language version to use by default for `package:test`.
-  String? get testPackageLanguageVersion => '2.9';
+  String? get testPackageLanguageVersion => '2.12';
 
   String get testPackageLibPath => '$testPackageRootPath/lib';
 
   String get testPackageRootPath => '$workspaceRootPath/test';
+
+  @override
+  bool get typeToStringWithNullability => true;
 
   String get workspaceRootPath => '/home';
 
@@ -346,9 +349,6 @@ mixin WithNonFunctionTypeAliasesMixin on PubPackageResolutionTest {
   @override
   String? get testPackageLanguageVersion => null;
 
-  @override
-  bool get typeToStringWithNullability => true;
-
   @nonVirtual
   @override
   void setUp() {
@@ -363,9 +363,19 @@ mixin WithNonFunctionTypeAliasesMixin on PubPackageResolutionTest {
 }
 
 mixin WithNullSafetyMixin on PubPackageResolutionTest {
+  // TODO(https://github.com/dart-lang/sdk/issues/44666): This mixin is a no-op
+  // on PubPackageResolutionTest; remove its usage and remove it.
   @override
-  String? get testPackageLanguageVersion => null;
+  String? get testPackageLanguageVersion => '2.12';
 
   @override
   bool get typeToStringWithNullability => true;
+}
+
+mixin WithoutNullSafetyMixin on PubPackageResolutionTest {
+  @override
+  String? get testPackageLanguageVersion => '2.9';
+
+  @override
+  bool get typeToStringWithNullability => false;
 }

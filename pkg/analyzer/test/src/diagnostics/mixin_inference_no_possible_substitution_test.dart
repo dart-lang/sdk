@@ -18,7 +18,9 @@ main() {
 
 @reflectiveTest
 class MixinInferenceNoPossibleSubstitutionTest extends PubPackageResolutionTest
-    with MixinInferenceNoPossibleSubstitutionTestCases {}
+    with
+        WithoutNullSafetyMixin,
+        MixinInferenceNoPossibleSubstitutionTestCases {}
 
 mixin MixinInferenceNoPossibleSubstitutionTestCases on ResolutionTest {
   test_valid_single() async {

@@ -14,7 +14,8 @@ main() {
 }
 
 @reflectiveTest
-class IfElementTest extends PubPackageResolutionTest {
+class IfElementTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_condition_rewrite() async {
     await assertNoErrorsInCode(r'''
 void f(bool Function() b) {

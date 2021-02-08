@@ -19,7 +19,9 @@ main() {
 @reflectiveTest
 class MainHasTooManyRequiredPositionalParametersTest
     extends PubPackageResolutionTest
-    with MainHasTooManyRequiredPositionalParametersTestCases {}
+    with
+        WithoutNullSafetyMixin,
+        MainHasTooManyRequiredPositionalParametersTestCases {}
 
 mixin MainHasTooManyRequiredPositionalParametersTestCases
     on PubPackageResolutionTest {

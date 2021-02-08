@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class MainHasRequiredNamedParametersTest extends PubPackageResolutionTest
-    with MainHasRequiredNamedParametersTestCases {}
+    with WithoutNullSafetyMixin, MainHasRequiredNamedParametersTestCases {}
 
 mixin MainHasRequiredNamedParametersTestCases on PubPackageResolutionTest {
   test_namedOptional() async {

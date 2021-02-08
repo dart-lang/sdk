@@ -16,7 +16,8 @@ main() {
 }
 
 @reflectiveTest
-class MissingRequiredParamTest extends PubPackageResolutionTest {
+class MissingRequiredParamTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   @override
   void setUp() {
     super.setUp();

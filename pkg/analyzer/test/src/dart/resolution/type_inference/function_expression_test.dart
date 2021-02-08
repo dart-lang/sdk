@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class FunctionExpressionTest extends PubPackageResolutionTest {
+class FunctionExpressionTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_contextFunctionType_returnType_async_blockBody_futureOrVoid() async {
     var expectedErrors = expectedErrorsByNullability(
       nullable: [

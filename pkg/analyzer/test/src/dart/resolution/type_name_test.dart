@@ -19,7 +19,8 @@ main() {
 }
 
 @reflectiveTest
-class TypeNameResolutionTest extends PubPackageResolutionTest {
+class TypeNameResolutionTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   @override
   bool get typeToStringWithNullability => true;
 

@@ -13,8 +13,8 @@ import '../src/dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(NonErrorResolverTest);
     defineReflectiveTests(NonConstantValueInInitializer);
+    defineReflectiveTests(NonErrorResolverTest);
   });
 }
 
@@ -53,7 +53,10 @@ void main() {
 }
 
 @reflectiveTest
-class NonErrorResolverTest extends PubPackageResolutionTest {
+class NonErrorResolverTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
+  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
+  //  test cases.
   test_ambiguousExport() async {
     newFile("$testPackageLibPath/lib1.dart", content: r'''
 library lib1;

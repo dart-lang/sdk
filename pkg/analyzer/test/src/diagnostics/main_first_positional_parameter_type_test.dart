@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class MainFirstPositionalParameterTest extends PubPackageResolutionTest
-    with MainFirstPositionalParameterTestCases {}
+    with WithoutNullSafetyMixin, MainFirstPositionalParameterTestCases {}
 
 mixin MainFirstPositionalParameterTestCases on PubPackageResolutionTest {
   test_positionalOptional_listOfInt() async {

@@ -93,7 +93,8 @@ class B<T> {
 }
 
 @reflectiveTest
-class InvalidAssignmentTest extends PubPackageResolutionTest {
+class InvalidAssignmentTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_assignment_to_dynamic() async {
     await assertErrorsInCode(r'''
 f() {

@@ -18,7 +18,9 @@ main() {
 @reflectiveTest
 class NonAbstractClassInheritsAbstractMemberTest
     extends PubPackageResolutionTest
-    with NonAbstractClassInheritsAbstractMemberTestCases {}
+    with
+        WithoutNullSafetyMixin,
+        NonAbstractClassInheritsAbstractMemberTestCases {}
 
 mixin NonAbstractClassInheritsAbstractMemberTestCases
     on PubPackageResolutionTest {

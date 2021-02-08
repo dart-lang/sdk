@@ -21,7 +21,8 @@ main() {
 }
 
 @reflectiveTest
-class ConstantResolutionTest extends PubPackageResolutionTest {
+class ConstantResolutionTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_constantValue_defaultParameter_noDefaultValue() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 class A {

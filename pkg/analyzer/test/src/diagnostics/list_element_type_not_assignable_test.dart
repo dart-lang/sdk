@@ -92,7 +92,7 @@ var v = const <String>[x];
 
   test_const_stringNull() async {
     await assertNoErrorsInCode('''
-var v = const <String>[null];
+var v = const <String?>[null];
 ''');
   }
 

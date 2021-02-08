@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class NonConstantCaseExpressionTest extends PubPackageResolutionTest {
+class NonConstantCaseExpressionTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_constField() async {
     await assertNoErrorsInCode(r'''
 void f(C e) {

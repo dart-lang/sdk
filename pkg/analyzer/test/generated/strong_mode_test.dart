@@ -26,7 +26,10 @@ main() {
 
 /// Strong mode static analyzer local type inference tests
 @reflectiveTest
-class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
+class StrongModeLocalInferenceTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
+  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
+  //  test cases.
   TypeAssertions? _assertions;
 
   late final Asserter<DartType> _isDynamic;

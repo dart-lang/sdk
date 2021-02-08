@@ -14,7 +14,8 @@ main() {
 }
 
 @reflectiveTest
-class InstanceMemberInferenceClassTest extends PubPackageResolutionTest {
+class InstanceMemberInferenceClassTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_invalid_inheritanceCycle() async {
     await resolveTestCode('''
 class A extends C {}

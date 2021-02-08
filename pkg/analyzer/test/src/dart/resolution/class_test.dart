@@ -18,7 +18,9 @@ main() {
 
 @reflectiveTest
 class ClassDriverResolutionTest extends PubPackageResolutionTest
-    with ElementsTypesMixin {
+    with WithoutNullSafetyMixin, ElementsTypesMixin {
+  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
+  //  test cases.
   test_element_allSupertypes() async {
     await assertNoErrorsInCode(r'''
 class A {}

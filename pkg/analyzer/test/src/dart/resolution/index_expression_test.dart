@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class IndexExpressionTest extends PubPackageResolutionTest {
+class IndexExpressionTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_invalid_inDefaultValue_nullAware() async {
     await assertInvalidTestCode(r'''
 void f({a = b?[0]}) {}

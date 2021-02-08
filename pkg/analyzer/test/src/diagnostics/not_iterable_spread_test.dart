@@ -28,7 +28,8 @@ void f<T extends List<int>?>(T a) {
 }
 
 @reflectiveTest
-class NotIterableSpreadTest extends PubPackageResolutionTest {
+class NotIterableSpreadTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_iterable_list() async {
     await assertNoErrorsInCode('''
 var a = [0];

@@ -29,7 +29,7 @@ class B {
   static const x = const A<bool Function()>();
 }
 
-int Function(int a) y;
+int Function(int a)? y;
 ''');
   }
 
@@ -44,7 +44,7 @@ class A<T> {
 
 const x = const A<bool Function()>();
 
-int Function(int a) y;
+int Function(int a)? y;
 ''');
   }
 
@@ -52,7 +52,7 @@ int Function(int a) y;
     await assertNoErrorsInCode(r'''
 const a = 42;
 
-Function<@a T>() x;
+Function<@a T>()? x;
 ''');
     var T = findNode.typeParameter('T');
     var annotation = T.declaredElement!.metadata[0];
@@ -63,15 +63,15 @@ Function<@a T>() x;
   /// [FunctionDeclaration], all of them are resolved correctly.
   test_typeAnnotation_function() async {
     await assertNoErrorsInCode('''
-void Function() f<T extends bool Function()>(int Function() a) {
+void Function()? f<T extends bool Function()>(int Function() a) {
   return null;
 }
 
-double Function() x;
+double Function()? x;
 ''');
     assertType(
-      findNode.genericFunctionType('void Function()'),
-      'void Function()',
+      findNode.genericFunctionType('void Function()?'),
+      'void Function()?',
     );
     assertType(
       findNode.genericFunctionType('bool Function()'),
@@ -82,8 +82,8 @@ double Function() x;
       'int Function()',
     );
     assertType(
-      findNode.genericFunctionType('double Function()'),
-      'double Function()',
+      findNode.genericFunctionType('double Function()?'),
+      'double Function()?',
     );
   }
 
@@ -116,16 +116,16 @@ void f(
   test_typeAnnotation_method() async {
     await assertNoErrorsInCode('''
 class C {
-  void Function() m<T extends bool Function()>(int Function() a) {
+  void Function()? m<T extends bool Function()>(int Function() a) {
     return null;
   }
 }
 
-double Function() x;
+double Function()? x;
 ''');
     assertType(
-      findNode.genericFunctionType('void Function()'),
-      'void Function()',
+      findNode.genericFunctionType('void Function()?'),
+      'void Function()?',
     );
     assertType(
       findNode.genericFunctionType('bool Function()'),
@@ -136,8 +136,8 @@ double Function() x;
       'int Function()',
     );
     assertType(
-      findNode.genericFunctionType('double Function()'),
-      'double Function()',
+      findNode.genericFunctionType('double Function()?'),
+      'double Function()?',
     );
   }
 

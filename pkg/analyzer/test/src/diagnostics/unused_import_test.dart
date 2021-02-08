@@ -172,7 +172,7 @@ class Three {}
 ''');
     await assertNoErrorsInCode(r'''
 import 'lib1.dart';
-Three three;
+Three? three;
 ''');
   }
 
@@ -191,7 +191,7 @@ class Three {}
 ''');
     await assertNoErrorsInCode(r'''
 import 'lib1.dart';
-Two two;
+Two? two;
 ''');
   }
 
@@ -365,7 +365,7 @@ class A {}
     await assertErrorsInCode(r'''
 import 'lib1.dart';
 import 'lib1.dart' hide A;
-A a;
+A? a;
 ''', [
       error(HintCode.UNUSED_IMPORT, 27, 11),
     ]);

@@ -21,7 +21,10 @@ main() {
 
 @reflectiveTest
 class AssignmentDriverResolutionTest extends PubPackageResolutionTest
-    with AssignmentDriverResolutionTestCases {}
+    with WithoutNullSafetyMixin, AssignmentDriverResolutionTestCases {
+  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
+  //  test cases.
+}
 
 mixin AssignmentDriverResolutionTestCases on PubPackageResolutionTest {
   test_compound_plus_int_context_int() async {

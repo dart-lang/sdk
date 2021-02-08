@@ -1016,7 +1016,10 @@ const b = 3;''');
   }
 }
 
-class ConstantVisitorTestSupport extends PubPackageResolutionTest {
+class ConstantVisitorTestSupport extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
+  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
+  //  test cases.
   DartObjectImpl _evaluateConstant(
     String name, {
     List<ErrorCode>? errorCodes,

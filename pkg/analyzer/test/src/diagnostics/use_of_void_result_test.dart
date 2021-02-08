@@ -16,7 +16,8 @@ main() {
 }
 
 @reflectiveTest
-class UseOfVoidResultTest extends PubPackageResolutionTest {
+class UseOfVoidResultTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_andVoidLhsError() async {
     await assertErrorsInCode('''
 void main() {

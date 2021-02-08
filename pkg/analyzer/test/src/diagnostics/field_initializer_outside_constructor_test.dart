@@ -41,23 +41,23 @@ class A {
     // TODO(srawlins) Fix the duplicate error messages.
     await assertErrorsInCode(r'''
 class A {
-  int Function() x;
+  int Function()? x;
   m(int this.x()) {}
 }
 ''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, 34, 12),
-      error(ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, 38, 4),
+      error(CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, 35, 12),
+      error(ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, 39, 4),
     ]);
   }
 
   test_inFunctionTypedParameter() async {
     await assertErrorsInCode(r'''
 class A {
-  int x;
+  int? x;
   A(int p(this.x));
 }
 ''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, 29, 6),
+      error(CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, 30, 6),
     ]);
   }
 
@@ -65,12 +65,12 @@ class A {
     // TODO(brianwilkerson) Fix the duplicate error messages.
     await assertErrorsInCode(r'''
 class A {
-  int x;
+  int? x;
   m(this.x) {}
 }
 ''', [
-      error(ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, 23, 4),
-      error(CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, 23, 6),
+      error(ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, 24, 4),
+      error(CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, 24, 6),
     ]);
   }
 

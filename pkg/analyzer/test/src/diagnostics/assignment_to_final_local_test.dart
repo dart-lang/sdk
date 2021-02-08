@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class AssignmentToFinalLocalTest extends PubPackageResolutionTest {
+class AssignmentToFinalLocalTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_localVariable() async {
     await assertErrorsInCode('''
 f() {

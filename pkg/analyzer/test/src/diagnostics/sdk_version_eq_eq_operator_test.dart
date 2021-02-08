@@ -5,6 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../dart/resolution/context_collection_resolution.dart';
 import 'sdk_constraint_verifier_support.dart';
 
 main() {
@@ -14,7 +15,10 @@ main() {
 }
 
 @reflectiveTest
-class SdkVersionEqEqOperatorTest extends SdkConstraintVerifierTest {
+class SdkVersionEqEqOperatorTest extends SdkConstraintVerifierTest
+    with WithoutNullSafetyMixin {
+  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
+  //  test cases.
   test_left_equals() async {
     await verifyVersion('2.5.0', '''
 class A {

@@ -19,7 +19,10 @@ main() {
 /// errors generated, but we want to make sure that there is at least one,
 /// and analysis finishes without exceptions.
 @reflectiveTest
-class InvalidCodeTest extends PubPackageResolutionTest {
+class InvalidCodeTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
+  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
+  //  test cases.
   test_const_AwaitExpression() async {
     await _assertCanBeAnalyzed(r'''
 const a = await b();

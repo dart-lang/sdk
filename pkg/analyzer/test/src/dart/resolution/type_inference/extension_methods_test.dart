@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class ExtensionMethodsTest extends PubPackageResolutionTest
-    with ExtensionMethodsTestCases {}
+    with WithoutNullSafetyMixin, ExtensionMethodsTestCases {}
 
 mixin ExtensionMethodsTestCases on ResolutionTest {
   test_implicit_getter() async {

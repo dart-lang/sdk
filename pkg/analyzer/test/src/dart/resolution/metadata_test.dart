@@ -20,7 +20,8 @@ main() {
 }
 
 @reflectiveTest
-class MetadataResolutionTest extends PubPackageResolutionTest {
+class MetadataResolutionTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_genericClass_instanceGetter() async {
     await resolveTestCode(r'''
 class A<T> {

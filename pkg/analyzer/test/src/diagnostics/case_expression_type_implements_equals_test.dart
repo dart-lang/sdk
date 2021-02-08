@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class CaseExpressionTypeImplementsEqualsTest extends PubPackageResolutionTest {
+class CaseExpressionTypeImplementsEqualsTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_declares() async {
     await assertNoErrorsInCode(r'''
 abstract class A {

@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class NonBoolNegationExpressionTest extends PubPackageResolutionTest {
+class NonBoolNegationExpressionTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_nonBool() async {
     await assertErrorsInCode(r'''
 f() {

@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class DeadCodeTest extends PubPackageResolutionTest {
+class DeadCodeTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   @override
   void setUp() {
     super.setUp();

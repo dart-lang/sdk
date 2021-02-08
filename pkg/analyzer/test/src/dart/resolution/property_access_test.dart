@@ -16,7 +16,8 @@ main() {
 }
 
 @reflectiveTest
-class PropertyAccessResolutionTest extends PubPackageResolutionTest {
+class PropertyAccessResolutionTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_extensionOverride_read() async {
     await assertNoErrorsInCode('''
 class A {}

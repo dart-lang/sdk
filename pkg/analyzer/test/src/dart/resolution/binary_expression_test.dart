@@ -18,7 +18,7 @@ main() {
 
 @reflectiveTest
 class BinaryExpressionResolutionTest extends PubPackageResolutionTest
-    with BinaryExpressionResolutionTestCases {}
+    with WithoutNullSafetyMixin, BinaryExpressionResolutionTestCases {}
 
 mixin BinaryExpressionResolutionTestCases on PubPackageResolutionTest {
   test_bangEq() async {

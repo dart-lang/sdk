@@ -19,7 +19,8 @@ main() {
 }
 
 @reflectiveTest
-class ExtensionOverrideTest extends PubPackageResolutionTest {
+class ExtensionOverrideTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   late ExtensionElement extension;
   late ExtensionOverride extensionOverride;
 

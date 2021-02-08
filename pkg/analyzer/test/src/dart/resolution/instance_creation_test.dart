@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class InstanceCreationTest extends PubPackageResolutionTest
-    with InstanceCreationTestCases {}
+    with WithoutNullSafetyMixin, InstanceCreationTestCases {}
 
 mixin InstanceCreationTestCases on PubPackageResolutionTest {
   test_demoteType() async {

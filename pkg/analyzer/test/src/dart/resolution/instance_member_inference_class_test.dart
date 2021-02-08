@@ -16,7 +16,8 @@ main() {
 }
 
 @reflectiveTest
-class InstanceMemberInferenceClassTest extends PubPackageResolutionTest {
+class InstanceMemberInferenceClassTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_field_covariant_fromField() async {
     await resolveTestCode('''
 class A {

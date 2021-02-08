@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class MainIsNotFunctionTest extends PubPackageResolutionTest
-    with MainIsNotFunctionTestCases {}
+    with WithoutNullSafetyMixin, MainIsNotFunctionTestCases {}
 
 mixin MainIsNotFunctionTestCases on PubPackageResolutionTest {
   test_class() async {

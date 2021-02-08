@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class ConcreteClassWithAbstractMemberTest extends PubPackageResolutionTest
-    with ConcreteClassWithAbstractMemberTestCases {}
+    with WithoutNullSafetyMixin, ConcreteClassWithAbstractMemberTestCases {}
 
 mixin ConcreteClassWithAbstractMemberTestCases on PubPackageResolutionTest {
   test_direct() async {

@@ -14,7 +14,10 @@ main() {
 }
 
 @reflectiveTest
-class NullAwareInConditionTest extends PubPackageResolutionTest {
+class NullAwareInConditionTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
+  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
+  //  test cases.
   test_assert() async {
     await assertErrorsInCode(r'''
 m(x) {

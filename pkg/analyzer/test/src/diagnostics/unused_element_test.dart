@@ -16,7 +16,8 @@ main() {
 }
 
 @reflectiveTest
-class UnusedElementTest extends PubPackageResolutionTest {
+class UnusedElementTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   @override
   bool get enableUnusedElement => true;
 

@@ -14,7 +14,10 @@ main() {
 }
 
 @reflectiveTest
-class SwitchExpressionNotAssignableTest extends PubPackageResolutionTest {
+class SwitchExpressionNotAssignableTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
+  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
+  //  test cases.
   test_simple() async {
     await assertErrorsInCode('''
 f(int p) {

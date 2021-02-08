@@ -14,7 +14,8 @@ main() {
 }
 
 @reflectiveTest
-class ImportResolutionTest extends PubPackageResolutionTest {
+class ImportResolutionTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_overrideCoreType_Never() async {
     newFile('$testPackageLibPath/declares_never.dart', content: '''
 class Never {}

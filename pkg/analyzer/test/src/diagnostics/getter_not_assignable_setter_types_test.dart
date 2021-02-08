@@ -14,7 +14,10 @@ main() {
 }
 
 @reflectiveTest
-class GetterNotAssignableSetterTypesTest extends PubPackageResolutionTest {
+class GetterNotAssignableSetterTypesTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
+  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
+  //  test cases.
   test_class_instance_dynamicGetter() async {
     await assertNoErrorsInCode(r'''
 class C {

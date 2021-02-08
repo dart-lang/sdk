@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class ForEachElementTest extends PubPackageResolutionTest {
+class ForEachElementTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_withDeclaration_scope() async {
     await assertNoErrorsInCode(r'''
 main() {

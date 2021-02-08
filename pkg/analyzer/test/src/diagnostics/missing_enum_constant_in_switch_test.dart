@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class MissingEnumConstantInSwitchTest extends PubPackageResolutionTest {
+class MissingEnumConstantInSwitchTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_default() async {
     await assertNoErrorsInCode('''
 enum E { one, two, three }

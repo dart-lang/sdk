@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class TryStatementTest extends PubPackageResolutionTest {
+class TryStatementTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_catch_withoutType() async {
     await assertNoErrorsInCode(r'''
 main() {
