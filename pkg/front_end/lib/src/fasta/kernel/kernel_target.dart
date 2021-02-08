@@ -113,7 +113,6 @@ import 'constant_evaluator.dart' as constants
         transformProcedure,
         ConstantCoverage;
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
-import 'metadata_collector.dart' show MetadataCollector;
 import 'verifier.dart' show verifyComponent, verifyGetStaticType;
 
 class KernelTarget extends TargetImplementation {
@@ -124,9 +123,6 @@ class KernelTarget extends TargetImplementation {
   final bool includeComments;
 
   final DillTarget dillTarget;
-
-  /// The [MetadataCollector] to write metadata to.
-  final MetadataCollector metadataCollector;
 
   SourceLoader loader;
 
@@ -177,10 +173,8 @@ class KernelTarget extends TargetImplementation {
   final List<ClonedFunctionNode> clonedFunctionNodes = <ClonedFunctionNode>[];
 
   KernelTarget(this.fileSystem, this.includeComments, DillTarget dillTarget,
-      UriTranslator uriTranslator,
-      {MetadataCollector metadataCollector})
+      UriTranslator uriTranslator)
       : dillTarget = dillTarget,
-        metadataCollector = metadataCollector,
         super(dillTarget.ticker, uriTranslator, dillTarget.backendTarget) {
     loader = createLoader();
   }
@@ -479,9 +473,6 @@ class KernelTarget extends TargetImplementation {
     }
     component.setMainMethodAndMode(mainReference, true, compiledMode);
 
-    if (metadataCollector != null) {
-      component.addMetadataRepository(metadataCollector.repository);
-    }
     assert(_getLibraryNnbdModeError(component) == null,
         "Got error: ${_getLibraryNnbdModeError(component)}");
 

@@ -94,8 +94,6 @@ import '../kernel/kernel_builder.dart'
         compareProcedures,
         toKernelCombinators;
 
-import '../kernel/metadata_collector.dart';
-
 import '../kernel/type_algorithms.dart'
     show
         calculateBounds,
@@ -167,8 +165,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       <ImplementationInfo>[];
 
   final List<Object> accessors = <Object>[];
-
-  String documentationComment;
 
   String name;
 
@@ -733,13 +729,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  void addFields(
-      String documentationComment,
-      List<MetadataBuilder> metadata,
-      int modifiers,
-      bool isTopLevel,
-      TypeBuilder type,
-      List<FieldInfo> fieldInfos) {
+  void addFields(List<MetadataBuilder> metadata, int modifiers, bool isTopLevel,
+      TypeBuilder type, List<FieldInfo> fieldInfos) {
     for (FieldInfo info in fieldInfos) {
       bool isConst = modifiers & constMask != 0;
       bool isFinal = modifiers & finalMask != 0;
@@ -756,17 +747,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         new Token.eof(startToken.previous.offset).setNext(startToken);
       }
       bool hasInitializer = info.initializerToken != null;
-      addField(
-          documentationComment,
-          metadata,
-          modifiers,
-          isTopLevel,
-          type,
-          info.name,
-          info.charOffset,
-          info.charEndOffset,
-          startToken,
-          hasInitializer,
+      addField(metadata, modifiers, isTopLevel, type, info.name,
+          info.charOffset, info.charEndOffset, startToken, hasInitializer,
           constInitializerToken:
               potentiallyNeedInitializerInOutline ? startToken : null);
     }
@@ -935,9 +917,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     library.isSynthetic = isSynthetic;
     addDependencies(library, new Set<SourceLibraryBuilder>());
-
-    loader.target.metadataCollector
-        ?.setDocumentationComment(library, documentationComment);
 
     library.name = name;
     library.procedures.sort(compareProcedures);
@@ -1443,7 +1422,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void addClass(
-      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       String className,
@@ -1456,7 +1434,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int supertypeOffset) {
     _addClass(
         TypeParameterScopeKind.classDeclaration,
-        documentationComment,
         metadata,
         modifiers,
         className,
@@ -1470,7 +1447,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void addMixinDeclaration(
-      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       String className,
@@ -1483,7 +1459,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int supertypeOffset) {
     _addClass(
         TypeParameterScopeKind.mixinDeclaration,
-        documentationComment,
         metadata,
         modifiers,
         className,
@@ -1498,7 +1473,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   void _addClass(
       TypeParameterScopeKind kind,
-      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       String className,
@@ -1565,8 +1539,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         referencesFromClass,
         _currentClassReferencesFromIndexed,
         isMixinDeclaration: isMixinDeclaration);
-    loader.target.metadataCollector
-        ?.setDocumentationComment(classBuilder.cls, documentationComment);
 
     constructorReferences.clear();
     Map<String, TypeVariableBuilder> typeVariablesByName =
@@ -1735,7 +1707,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void addExtensionDeclaration(
-      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       String extensionName,
@@ -1775,8 +1746,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         nameOffset,
         endOffset,
         referenceFrom);
-    loader.target.metadataCollector?.setDocumentationComment(
-        extensionBuilder.extension, documentationComment);
 
     constructorReferences.clear();
     Map<String, TypeVariableBuilder> typeVariablesByName =
@@ -1814,8 +1783,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   TypeBuilder applyMixins(TypeBuilder type, int startCharOffset, int charOffset,
       int charEndOffset, String subclassName, bool isMixinDeclaration,
-      {String documentationComment,
-      List<MetadataBuilder> metadata,
+      {List<MetadataBuilder> metadata,
       String name,
       List<TypeVariableBuilder> typeVariables,
       int modifiers,
@@ -1823,10 +1791,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (name == null) {
       // The following parameters should only be used when building a named
       // mixin application.
-      if (documentationComment != null) {
-        unhandled("documentationComment", "unnamed mixin application",
-            charOffset, fileUri);
-      } else if (metadata != null) {
+      if (metadata != null) {
         unhandled("metadata", "unnamed mixin application", charOffset, fileUri);
       } else if (interfaces != null) {
         unhandled(
@@ -2041,10 +2006,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           referencesFromIndexedClass,
           mixedInTypeBuilder: isMixinDeclaration ? null : mixin,
         );
-        if (isNamedMixinApplication) {
-          loader.target.metadataCollector
-              ?.setDocumentationComment(application.cls, documentationComment);
-        }
         // TODO(ahe, kmillikin): Should always be true?
         // pkg/analyzer/test/src/summary/resynthesize_kernel_test.dart can't
         // handle that :(
@@ -2061,7 +2022,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void addNamedMixinApplication(
-      String documentationComment,
       List<MetadataBuilder> metadata,
       String name,
       List<TypeVariableBuilder> typeVariables,
@@ -2076,7 +2036,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         .resolveTypes(typeVariables, this);
     NamedTypeBuilder supertype = applyMixins(mixinApplication, startCharOffset,
         charOffset, charEndOffset, name, false,
-        documentationComment: documentationComment,
         metadata: metadata,
         name: name,
         typeVariables: typeVariables,
@@ -2086,7 +2045,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void addField(
-      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       bool isTopLevel,
@@ -2200,12 +2158,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         registerImplicitlyTypedField(fieldBuilder);
       }
     }
-    loader.target.metadataCollector
-        ?.setDocumentationComment(fieldBuilder.field, documentationComment);
   }
 
   void addConstructor(
-      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       TypeBuilder returnType,
@@ -2219,7 +2174,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int charEndOffset,
       String nativeMethodName,
       {Token beginInitializers}) {
-    MetadataCollector metadataCollector = loader.target.metadataCollector;
     Member referenceFrom;
     if (_currentClassReferencesFromIndexed != null) {
       referenceFrom = _currentClassReferencesFromIndexed.lookupConstructor(
@@ -2240,10 +2194,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         charEndOffset,
         referenceFrom,
         nativeMethodName);
-    metadataCollector?.setDocumentationComment(
-        constructorBuilder.constructor, documentationComment);
-    metadataCollector?.setConstructorNameOffset(
-        constructorBuilder.constructor, name);
     checkTypeVariables(typeVariables, constructorBuilder);
     addBuilder(constructorName, constructorBuilder, charOffset,
         getterReference: referenceFrom?.reference);
@@ -2260,7 +2210,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void addProcedure(
-      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       TypeBuilder returnType,
@@ -2279,7 +2228,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     assert(isTopLevel != null);
     assert(isExtensionInstanceMember != null);
 
-    MetadataCollector metadataCollector = loader.target.metadataCollector;
     if (returnType == null) {
       if (kind == ProcedureKind.Operator &&
           identical(name, indexSetName.text)) {
@@ -2358,8 +2306,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         asyncModifier,
         isExtensionInstanceMember,
         nativeMethodName);
-    metadataCollector?.setDocumentationComment(
-        procedureBuilder.procedure, documentationComment);
     checkTypeVariables(typeVariables, procedureBuilder);
     addBuilder(name, procedureBuilder, charOffset,
         getterReference: procedureReference);
@@ -2369,7 +2315,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void addFactoryMethod(
-      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       Object name,
@@ -2449,12 +2394,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           nativeMethodName);
     }
 
-    MetadataCollector metadataCollector = loader.target.metadataCollector;
-    metadataCollector?.setDocumentationComment(
-        procedureBuilder.procedure, documentationComment);
-    metadataCollector?.setConstructorNameOffset(
-        procedureBuilder.procedure, name);
-
     TypeParameterScopeBuilder savedDeclaration =
         currentTypeParameterScopeBuilder;
     currentTypeParameterScopeBuilder = factoryDeclaration;
@@ -2474,14 +2413,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void addEnum(
-      String documentationComment,
       List<MetadataBuilder> metadata,
       String name,
       List<EnumConstantInfo> enumConstantInfos,
       int startCharOffset,
       int charOffset,
       int charEndOffset) {
-    MetadataCollector metadataCollector = loader.target.metadataCollector;
     Class referencesFromClass;
     IndexedClass referencesFromIndexedClass;
     if (referencesFrom != null) {
@@ -2490,7 +2427,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           referencesFromIndexed.lookupIndexedClass(name);
     }
     EnumBuilder builder = new EnumBuilder(
-        metadataCollector,
         metadata,
         name,
         enumConstantInfos,
@@ -2502,12 +2438,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         referencesFromIndexedClass);
     addBuilder(name, builder, charOffset,
         getterReference: referencesFromClass?.reference);
-    metadataCollector?.setDocumentationComment(
-        builder.cls, documentationComment);
   }
 
   void addFunctionTypeAlias(
-      String documentationComment,
       List<MetadataBuilder> metadata,
       String name,
       List<TypeVariableBuilder> typeVariables,
@@ -2522,8 +2455,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     TypeAliasBuilder typedefBuilder = new SourceTypeAliasBuilder(
         metadata, name, typeVariables, type, this, charOffset,
         referenceFrom: referenceFrom);
-    loader.target.metadataCollector
-        ?.setDocumentationComment(typedefBuilder.typedef, documentationComment);
     checkTypeVariables(typeVariables, typedefBuilder);
     // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
     endNestedDeclaration(TypeParameterScopeKind.typedef, "#typedef")
