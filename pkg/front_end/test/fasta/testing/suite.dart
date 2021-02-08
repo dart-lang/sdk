@@ -11,6 +11,8 @@ import 'dart:convert' show jsonDecode;
 import 'dart:io' show Directory, File, Platform;
 
 import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
+import 'package:compiler/src/kernel/dart2js_target.dart';
+import 'package:dev_compiler/dev_compiler.dart';
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show
@@ -42,7 +44,7 @@ import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 
 import 'package:front_end/src/compute_platform_binaries_location.dart'
-    show computePlatformBinariesLocation;
+    show computePlatformBinariesLocation, computePlatformDillName;
 
 import 'package:front_end/src/base/command_line_options.dart';
 
@@ -311,9 +313,7 @@ class FastaContext extends ChainContext with MatchContext {
   final ExpectationSet expectationSet =
       new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
 
-  Uri platformUri;
-
-  Component platform;
+  Map<Uri, Component> _platforms = {};
 
   FastaContext(
       this.baseUri,
@@ -656,19 +656,16 @@ class FastaContext extends ChainContext with MatchContext {
 
   Expectation get verificationError => expectationSet["VerificationError"];
 
-  Future ensurePlatformUris() async {
-    if (platformUri == null) {
-      platformUri = platformBinaries.resolve("vm_platform_strong.dill");
-    }
-  }
-
-  Future<Component> loadPlatform() async {
-    if (platform == null) {
-      await ensurePlatformUris();
-      platform = loadComponentFromBytes(
-          new File.fromUri(platformUri).readAsBytesSync());
-    }
-    return platform;
+  Future<Component> loadPlatform(Target target, NnbdMode nnbdMode) async {
+    String fileName = computePlatformDillName(
+        target,
+        nnbdMode,
+        () => throw new UnsupportedError(
+            "No platform dill for target '${target.name}' with $nnbdMode."));
+    Uri uri = platformBinaries.resolve(fileName);
+    return _platforms.putIfAbsent(uri, () {
+      return loadComponentFromBytes(new File.fromUri(uri).readAsBytesSync());
+    });
   }
 
   @override
@@ -761,7 +758,7 @@ class Run extends Step<ComponentResult, ComponentResult, FastaContext> {
         .computeExplicitExperimentalFlags(context.explicitExperimentalFlags);
     switch (folderOptions.target) {
       case "vm":
-        if (context.platformUri == null) {
+        if (context._platforms.isEmpty) {
           throw "Executed `Run` step before initializing the context.";
         }
         File generated = new File.fromUri(result.outputUri);
@@ -796,6 +793,9 @@ class Run extends Step<ComponentResult, ComponentResult, FastaContext> {
             result, runResult.outcome, runResult.error);
       case "none":
       case "noneWithJs":
+      case "dart2js":
+      case "dartdevc":
+        // TODO(johnniwinther): Support running dart2js and/or dartdevc.
         return pass(result);
       default:
         throw new ArgumentError(
@@ -1069,16 +1069,17 @@ class FuzzCompiles
         createCompilationSetup(result.description, context);
 
     Target backendTarget = compilationSetup.options.target;
-    if (backendTarget is TestVmTarget) {
+    if (backendTarget is TestTarget) {
       // For the fuzzing we want to run the VM transformations, i.e. have the
       // incremental compiler behave as normal.
-      backendTarget.enabled = true;
+      backendTarget.performModularTransformations = true;
     }
 
     UriTranslator uriTranslator =
         await context.computeUriTranslator(result.description);
 
-    Component platform = await context.loadPlatform();
+    Component platform = await context.loadPlatform(
+        backendTarget, compilationSetup.options.nnbdMode);
     IncrementalCompiler incrementalCompiler =
         new IncrementalCompiler.fromComponent(
             new CompilerContext(compilationSetup.options), platform);
@@ -1181,6 +1182,12 @@ Target createTarget(FolderOptions folderOptions, FastaContext context) {
     case "noneWithJs":
       target = new NoneWithJsTarget(targetFlags);
       break;
+    case "dart2js":
+      target = new TestDart2jsTarget('dart2js', targetFlags);
+      break;
+    case "dartdevc":
+      target = new TestDevCompilerTarget(targetFlags);
+      break;
     default:
       throw new ArgumentError(
           "Unsupported test target '${folderOptions.target}'.");
@@ -1259,16 +1266,16 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
         // of the user of this linked dependency we have to transform this too.
         // We do that now.
         Target backendTarget = sourceTarget.backendTarget;
-        if (backendTarget is TestVmTarget) {
-          backendTarget.enabled = true;
+        if (backendTarget is TestTarget) {
+          backendTarget.performModularTransformations = true;
         }
         try {
           if (sourceTarget.loader.coreTypes != null) {
             sourceTarget.runBuildTransformations();
           }
         } finally {
-          if (backendTarget is TestVmTarget) {
-            backendTarget.enabled = false;
+          if (backendTarget is TestTarget) {
+            backendTarget.performModularTransformations = false;
           }
         }
 
@@ -1338,7 +1345,8 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
       ProcessedOptions options,
       List<Uri> entryPoints,
       {Component alsoAppend}) async {
-    Component platform = await context.loadPlatform();
+    Component platform =
+        await context.loadPlatform(options.target, options.nnbdMode);
     Ticker ticker = new Ticker();
     UriTranslator uriTranslator =
         await context.computeUriTranslator(description);
@@ -1372,19 +1380,19 @@ class Transform extends Step<ComponentResult, ComponentResult, FastaContext> {
       KernelTarget sourceTarget = context.componentToTarget[component];
       context.componentToTarget.remove(component);
       Target backendTarget = sourceTarget.backendTarget;
-      if (backendTarget is TestVmTarget) {
-        backendTarget.enabled = true;
+      if (backendTarget is TestTarget) {
+        backendTarget.performModularTransformations = true;
       }
       try {
         if (sourceTarget.loader.coreTypes != null) {
           sourceTarget.runBuildTransformations();
         }
       } finally {
-        if (backendTarget is TestVmTarget) {
-          backendTarget.enabled = false;
+        if (backendTarget is TestTarget) {
+          backendTarget.performModularTransformations = false;
         }
       }
-      List<String> errors = VerifyTransformed.verify(component);
+      List<String> errors = VerifyTransformed.verify(component, backendTarget);
       if (errors.isNotEmpty) {
         return new Result<ComponentResult>(
             result,
@@ -1442,7 +1450,10 @@ class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
 // TODO(johnniwinther): Add checks for all nodes that are unsupported after
 // transformation.
 class VerifyTransformed extends Visitor<void> {
+  final Target target;
   List<String> errors = [];
+
+  VerifyTransformed(this.target);
 
   @override
   void defaultNode(Node node) {
@@ -1451,22 +1462,20 @@ class VerifyTransformed extends Visitor<void> {
 
   @override
   void visitAwaitExpression(AwaitExpression node) {
-    errors.add("ERROR: Untransformed await expression: $node");
+    if (target is VmTarget) {
+      errors.add("ERROR: Untransformed await expression: $node");
+    }
   }
 
-  static List<String> verify(Component component) {
-    VerifyTransformed visitor = new VerifyTransformed();
+  static List<String> verify(Component component, Target target) {
+    VerifyTransformed visitor = new VerifyTransformed(target);
     component.accept(visitor);
     return visitor.errors;
   }
 }
 
-class TestVmTarget extends VmTarget {
-  bool enabled = false;
-
-  TestVmTarget(TargetFlags flags) : super(flags);
-
-  String get name => "vm";
+mixin TestTarget on Target {
+  bool performModularTransformations = false;
 
   @override
   void performModularTransformationsOnLibraries(
@@ -1479,7 +1488,7 @@ class TestVmTarget extends VmTarget {
       ReferenceFromIndex referenceFromIndex,
       {void logger(String msg),
       ChangedStructureNotifier changedStructureNotifier}) {
-    if (enabled) {
+    if (performModularTransformations) {
       super.performModularTransformationsOnLibraries(
           component,
           coreTypes,
@@ -1491,6 +1500,10 @@ class TestVmTarget extends VmTarget {
           logger: logger);
     }
   }
+}
+
+class TestVmTarget extends VmTarget with TestTarget {
+  TestVmTarget(TargetFlags flags) : super(flags);
 }
 
 class EnsureNoErrors
@@ -1567,4 +1580,12 @@ class NoneConstantsBackendWithJs extends NoneConstantsBackend {
 
   @override
   NumberSemantics get numberSemantics => NumberSemantics.js;
+}
+
+class TestDart2jsTarget extends Dart2jsTarget with TestTarget {
+  TestDart2jsTarget(String name, TargetFlags flags) : super(name, flags);
+}
+
+class TestDevCompilerTarget extends DevCompilerTarget with TestTarget {
+  TestDevCompilerTarget(TargetFlags flags) : super(flags);
 }

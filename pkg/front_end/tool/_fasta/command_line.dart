@@ -30,7 +30,7 @@ import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 
 import 'package:front_end/src/compute_platform_binaries_location.dart'
-    show computePlatformBinariesLocation;
+    show computePlatformBinariesLocation, computePlatformDillName;
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
@@ -399,32 +399,15 @@ ProcessedOptions analyzeCommandLine(String programName,
 
   final Uri librariesJson = options[Flags.librariesJson];
 
-  String computePlatformDillName() {
-    switch (target.name) {
-      case 'dartdevc':
-        return 'dartdevc.dill';
-      case 'dart2js':
-        return 'dart2js_platform.dill';
-      case 'dart2js_server':
-        return 'dart2js_platform.dill';
-      case 'vm':
-        // TODO(johnniwinther): Stop generating 'vm_platform.dill' and rename
-        // 'vm_platform_strong.dill' to 'vm_platform.dill'.
-        return "vm_platform_strong.dill";
-      case 'none':
-        return "vm_platform_strong.dill";
-      default:
-        throwCommandLineProblem("Target '${target.name}' requires an explicit "
-            "'${Flags.platform}' option.");
-    }
-    return null;
-  }
-
   final Uri platform = compileSdk
       ? null
       : (options[Flags.platform] ??
           computePlatformBinariesLocation(forceBuildDir: true)
-              .resolve(computePlatformDillName()));
+              .resolve(computePlatformDillName(target, nnbdMode, () {
+            throwCommandLineProblem(
+                "Target '${target.name}' requires an explicit "
+                "'${Flags.platform}' option.");
+          })));
   compilerOptions
     ..sdkRoot = sdk
     ..sdkSummary = platform
