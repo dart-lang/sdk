@@ -319,14 +319,6 @@ class WrappedAbstractValueDomain implements AbstractValueDomain {
       _abstractValueDomain.isTruthy(value._abstractValue);
 
   @override
-  AbstractBool isDoubleOrNull(covariant WrappedAbstractValue value) =>
-      _abstractValueDomain.isDoubleOrNull(value._abstractValue);
-
-  @override
-  AbstractBool isDouble(covariant WrappedAbstractValue value) =>
-      _abstractValueDomain.isDouble(value._abstractValue);
-
-  @override
   AbstractBool isNumberOrNull(covariant WrappedAbstractValue value) =>
       _abstractValueDomain.isNumberOrNull(value._abstractValue);
 

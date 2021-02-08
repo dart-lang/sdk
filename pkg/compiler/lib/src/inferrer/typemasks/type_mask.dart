@@ -354,7 +354,6 @@ abstract class TypeMask implements AbstractValue {
   bool get isValue;
 
   bool containsOnlyInt(JClosedWorld closedWorld);
-  bool containsOnlyDouble(JClosedWorld closedWorld);
   bool containsOnlyNum(JClosedWorld closedWorld);
   bool containsOnlyBool(JClosedWorld closedWorld);
   bool containsOnlyString(JClosedWorld closedWorld);

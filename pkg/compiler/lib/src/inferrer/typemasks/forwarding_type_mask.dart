@@ -53,11 +53,6 @@ abstract class ForwardingTypeMask implements TypeMask {
   }
 
   @override
-  bool containsOnlyDouble(JClosedWorld closedWorld) {
-    return forwardTo.containsOnlyDouble(closedWorld);
-  }
-
-  @override
   bool containsOnlyNum(JClosedWorld closedWorld) {
     return forwardTo.containsOnlyNum(closedWorld);
   }

@@ -404,11 +404,6 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
           .isDefinitelyTrue) {
         return closedWorld.abstractValueDomain.intType;
       }
-      if (operand
-          .isDoubleOrNull(closedWorld.abstractValueDomain)
-          .isDefinitelyTrue) {
-        return closedWorld.abstractValueDomain.doubleType;
-      }
       return closedWorld.abstractValueDomain.numType;
     }
     return super.computeTypeFromInputTypes(instruction, results, closedWorld);
@@ -492,14 +487,6 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
       return closedWorld.abstractValueDomain.intType;
     }
     if (left.isNumberOrNull(closedWorld.abstractValueDomain).isDefinitelyTrue) {
-      if (left
-              .isDoubleOrNull(closedWorld.abstractValueDomain)
-              .isDefinitelyTrue ||
-          right
-              .isDoubleOrNull(closedWorld.abstractValueDomain)
-              .isDefinitelyTrue) {
-        return closedWorld.abstractValueDomain.doubleType;
-      }
       return closedWorld.abstractValueDomain.numType;
     }
     return super.computeTypeFromInputTypes(instruction, results, closedWorld);
@@ -621,7 +608,7 @@ class DivideSpecializer extends BinaryArithmeticSpecializer {
       GlobalTypeInferenceResults results, JClosedWorld closedWorld) {
     HInstruction left = instruction.inputs[1];
     if (left.isNumberOrNull(closedWorld.abstractValueDomain).isDefinitelyTrue) {
-      return closedWorld.abstractValueDomain.doubleType;
+      return closedWorld.abstractValueDomain.numType;
     }
     return super.computeTypeFromInputTypes(instruction, results, closedWorld);
   }
@@ -630,7 +617,7 @@ class DivideSpecializer extends BinaryArithmeticSpecializer {
   HInstruction newBuiltinVariant(HInvokeDynamic instruction,
       GlobalTypeInferenceResults results, JClosedWorld closedWorld) {
     return new HDivide(instruction.inputs[1], instruction.inputs[2],
-        closedWorld.abstractValueDomain.doubleType);
+        closedWorld.abstractValueDomain.numType);
   }
 
   @override

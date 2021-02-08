@@ -165,13 +165,6 @@ class TypeSystem {
         getConcreteTypeFor(_abstractValueDomain.positiveIntType);
   }
 
-  TypeInformation doubleTypeCache;
-  TypeInformation get doubleType {
-    if (doubleTypeCache != null) return doubleTypeCache;
-    return doubleTypeCache =
-        getConcreteTypeFor(_abstractValueDomain.doubleType);
-  }
-
   TypeInformation numTypeCache;
   TypeInformation get numType {
     if (numTypeCache != null) return numTypeCache;

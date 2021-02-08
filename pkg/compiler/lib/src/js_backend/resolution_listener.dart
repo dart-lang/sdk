@@ -373,8 +373,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       _addInterceptors(_commonElements.jsUInt32Class, impactBuilder);
       _addInterceptors(_commonElements.jsUInt31Class, impactBuilder);
       _addInterceptors(_commonElements.jsNumberClass, impactBuilder);
-    } else if (cls == _commonElements.doubleClass ||
-        cls == _commonElements.jsDoubleClass) {
+    } else if (cls == _commonElements.jsDoubleClass) {
       _addInterceptors(_commonElements.jsDoubleClass, impactBuilder);
       _addInterceptors(_commonElements.jsNumberClass, impactBuilder);
     } else if (cls == _commonElements.boolClass ||
@@ -383,7 +382,8 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     } else if (cls == _commonElements.nullClass ||
         cls == _commonElements.jsNullClass) {
       _addInterceptors(_commonElements.jsNullClass, impactBuilder);
-    } else if (cls == _commonElements.numClass ||
+    } else if (cls == _commonElements.doubleClass ||
+        cls == _commonElements.numClass ||
         cls == _commonElements.jsNumberClass) {
       _addInterceptors(_commonElements.jsIntClass, impactBuilder);
       _addInterceptors(_commonElements.jsPositiveIntClass, impactBuilder);

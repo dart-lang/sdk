@@ -154,8 +154,6 @@ class HInstructionStringifier implements HVisitor<String> {
       prefix = 'b';
     } else if (instruction.isInteger(_abstractValueDomain).isDefinitelyTrue) {
       prefix = 'i';
-    } else if (instruction.isDouble(_abstractValueDomain).isDefinitelyTrue) {
-      prefix = 'd';
     } else if (instruction.isNumber(_abstractValueDomain).isDefinitelyTrue) {
       prefix = 'n';
     } else if (_abstractValueDomain

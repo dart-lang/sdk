@@ -133,8 +133,6 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       }
     } else if (_abstractValueDomain.isIntegerOrNull(type).isDefinitelyTrue) {
       return _commonElements.jsIntClass;
-    } else if (_abstractValueDomain.isDoubleOrNull(type).isDefinitelyTrue) {
-      return _commonElements.jsDoubleClass;
     } else if (_abstractValueDomain.isBooleanOrNull(type).isDefinitelyTrue) {
       return _commonElements.jsBoolClass;
     } else if (_abstractValueDomain.isStringOrNull(type).isDefinitelyTrue) {

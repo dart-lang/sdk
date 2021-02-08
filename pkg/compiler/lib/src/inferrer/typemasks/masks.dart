@@ -628,17 +628,6 @@ class CommonMasks implements AbstractValueDomain {
   }
 
   @override
-  AbstractBool isDouble(TypeMask value) {
-    return AbstractBool.trueOrMaybe(
-        value.containsOnlyDouble(_closedWorld) && !value.isNullable);
-  }
-
-  @override
-  AbstractBool isDoubleOrNull(TypeMask value) {
-    return AbstractBool.trueOrMaybe(value.containsOnlyDouble(_closedWorld));
-  }
-
-  @override
   AbstractBool isBoolean(TypeMask value) {
     return AbstractBool.trueOrMaybe(
         value.containsOnlyBool(_closedWorld) && !value.isNullable);
