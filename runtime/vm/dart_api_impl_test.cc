@@ -5792,6 +5792,130 @@ TEST_CASE(DartAPI_New) {
   EXPECT(!instanceOf);
 }
 
+TEST_CASE(DartAPI_New_Issue44205) {
+  const char* kScriptChars =
+      "class MyIntClass {\n"
+      "  MyIntClass(this.value);\n"
+      "  int value;\n"
+      "}\n"
+      "\n"
+      "class MyClass<T> {\n"
+      "  T value;\n"
+      "  MyClass(this.value);\n"
+      "  factory MyClass.foo(T x) => MyClass<T>(x);\n"
+      "}\n"
+      "\n"
+      "Type getIntType() { return int; }\n"
+      "\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle int_wrapper_type =
+      Dart_GetNonNullableType(lib, NewString("MyIntClass"), 0, NULL);
+
+  Dart_Handle args[1];
+  args[0] = Dart_EmptyString();
+
+  Dart_Handle result = Dart_New(int_wrapper_type, Dart_EmptyString(), 1, args);
+  EXPECT_ERROR(result,
+               "type 'String' is not a subtype of type 'int' of 'value'");
+
+  Dart_Handle int_type = Dart_Invoke(lib, NewString("getIntType"), 0, args);
+  EXPECT_VALID(int_type);
+  Dart_Handle type_args = Dart_NewList(1);
+  EXPECT_VALID(type_args);
+  EXPECT_VALID(Dart_ListSetAt(type_args, 0, int_type));
+  Dart_Handle my_class_type =
+      Dart_GetNonNullableType(lib, NewString("MyClass"), 1, &type_args);
+  EXPECT_VALID(my_class_type);
+
+  // Generic generative constructor
+  args[0] = Dart_EmptyString();
+  result = Dart_New(my_class_type, Dart_EmptyString(), 1, args);
+  EXPECT_ERROR(result,
+               "type 'String' is not a subtype of type 'int' of 'value'");
+
+  // Generic factory constructor
+  result = Dart_New(my_class_type, NewString("foo"), 1, args);
+  EXPECT_ERROR(result, "type 'String' is not a subtype of type 'int' of 'x'");
+}
+
+TEST_CASE(DartAPI_InvokeConstructor_Issue44205) {
+  const char* kScriptChars =
+      "class MyIntClass {\n"
+      "  MyIntClass(this.value);\n"
+      "  int value;\n"
+      "}\n"
+      "\n"
+      "class MyClass<T> {\n"
+      "  T value;\n"
+      "  MyClass(this.value);\n"
+      "}\n"
+      "\n"
+      "Type getIntType() { return int; }\n"
+      "\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle int_wrapper_type =
+      Dart_GetNonNullableType(lib, NewString("MyIntClass"), 0, NULL);
+
+  Dart_Handle args[1];
+  args[0] = Dart_EmptyString();
+  Dart_Handle result = Dart_Allocate(int_wrapper_type);
+  EXPECT_VALID(result);
+
+  result = Dart_InvokeConstructor(result, Dart_EmptyString(), 1, args);
+  EXPECT_ERROR(result,
+               "type 'String' is not a subtype of type 'int' of 'value'");
+
+  Dart_Handle int_type = Dart_Invoke(lib, NewString("getIntType"), 0, args);
+  EXPECT_VALID(int_type);
+  Dart_Handle type_args = Dart_NewList(1);
+  EXPECT_VALID(type_args);
+  EXPECT_VALID(Dart_ListSetAt(type_args, 0, int_type));
+  Dart_Handle my_class_type =
+      Dart_GetNonNullableType(lib, NewString("MyClass"), 1, &type_args);
+  EXPECT_VALID(my_class_type);
+
+  result = Dart_Allocate(my_class_type);
+  EXPECT_VALID(result);
+  result = Dart_InvokeConstructor(result, Dart_EmptyString(), 1, args);
+  EXPECT_ERROR(result,
+               "type 'String' is not a subtype of type 'int' of 'value'");
+}
+
+TEST_CASE(DartAPI_InvokeClosure_Issue44205) {
+  const char* kScriptChars =
+      "class InvokeClosure {\n"
+      "  InvokeClosure(int i, int j) : fld1 = i, fld2 = j {}\n"
+      "  Function method1(int i) {\n"
+      "    f(int j) => j + i + fld1 + fld2 + fld4; \n"
+      "    return f;\n"
+      "  }\n"
+      "  int fld1;\n"
+      "  final int fld2;\n"
+      "  static const int fld4 = 10;\n"
+      "}\n"
+      "Function testMain1() {\n"
+      "  InvokeClosure obj = new InvokeClosure(10, 20);\n"
+      "  return obj.method1(10);\n"
+      "}\n";
+  Dart_Handle result;
+  CHECK_API_SCOPE(thread);
+
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  // Invoke a function which returns a closure.
+  Dart_Handle retobj = Dart_Invoke(lib, NewString("testMain1"), 0, NULL);
+  EXPECT_VALID(retobj);
+
+  // Now invoke the closure and check the result.
+  Dart_Handle dart_arguments[1];
+  dart_arguments[0] = Dart_EmptyString();
+  result = Dart_InvokeClosure(retobj, 1, dart_arguments);
+  EXPECT_ERROR(result, "type 'String' is not a subtype of type 'int' of 'j'");
+}
+
 TEST_CASE(DartAPI_New_Issue2971) {
   // Issue 2971: We were unable to use Dart_New to construct an
   // instance of List, due to problems implementing interface

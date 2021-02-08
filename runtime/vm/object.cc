@@ -8138,10 +8138,14 @@ ObjectPtr Function::DoArgumentTypesMatch(
     // Adjust for type arguments when they're present.
     const intptr_t param_index = arg_index - arg_offset;
     type = ParameterTypeAt(param_index);
-
     if (!check_argument(argument, type, instantiator_type_arguments,
                         function_type_arguments)) {
       auto& name = String::Handle(zone, ParameterNameAt(param_index));
+      if (!type.IsInstantiated()) {
+        type =
+            type.InstantiateFrom(instantiator_type_arguments,
+                                 function_type_arguments, kAllFree, Heap::kNew);
+      }
       return ThrowTypeError(token_pos(), argument, type, name);
     }
   }
