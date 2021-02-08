@@ -1333,7 +1333,7 @@ class InferenceVisitor
       DartType spreadType, DartType spreadTypeBound, bool isNullAware) {
     if (inferrer.coreTypes.isNull(spreadTypeBound)) {
       if (inferrer.isNonNullableByDefault) {
-        return isNullAware ? const NeverType(Nullability.nonNullable) : null;
+        return isNullAware ? const NeverType.nonNullable() : null;
       } else {
         return isNullAware ? const NullType() : null;
       }
@@ -1349,7 +1349,7 @@ class InferenceVisitor
     } else if (spreadType is DynamicType) {
       return const DynamicType();
     } else if (inferrer.coreTypes.isBottom(spreadType)) {
-      return const NeverType(Nullability.nonNullable);
+      return const NeverType.nonNullable();
     }
     return null;
   }
@@ -1802,8 +1802,7 @@ class InferenceVisitor
     if (inferrer.coreTypes.isNull(typeBound)) {
       if (isNullAware) {
         if (inferrer.isNonNullableByDefault) {
-          output[offset] =
-              output[offset + 1] = const NeverType(Nullability.nonNullable);
+          output[offset] = output[offset + 1] = const NeverType.nonNullable();
         } else {
           output[offset] = output[offset + 1] = const NullType();
         }
@@ -1818,8 +1817,7 @@ class InferenceVisitor
     } else if (spreadMapEntryType is DynamicType) {
       output[offset] = output[offset + 1] = const DynamicType();
     } else if (inferrer.coreTypes.isBottom(spreadMapEntryType)) {
-      output[offset] =
-          output[offset + 1] = const NeverType(Nullability.nonNullable);
+      output[offset] = output[offset + 1] = const NeverType.nonNullable();
     }
   }
 
@@ -3809,10 +3807,8 @@ class InferenceVisitor
           ..fileOffset = fileOffset;
       } else {
         assert(equalsTarget.isNever);
-        FunctionType functionType = new FunctionType(
-            [const DynamicType()],
-            const NeverType(Nullability.nonNullable),
-            inferrer.library.nonNullable);
+        FunctionType functionType = new FunctionType([const DynamicType()],
+            const NeverType.nonNullable(), inferrer.library.nonNullable);
         // Ensure operator == member even for `Never`.
         Member target = inferrer
             .findInterfaceMember(const DynamicType(), equalsName, -1,
@@ -3841,7 +3837,7 @@ class InferenceVisitor
         notEqual: isNot);
     return new ExpressionInferenceResult(
         equalsTarget.isNever
-            ? const NeverType(Nullability.nonNullable)
+            ? const NeverType.nonNullable()
             : inferrer.coreTypes.boolRawType(inferrer.library.nonNullable),
         equals);
   }
@@ -5768,7 +5764,7 @@ class InferenceVisitor
     inferrer.flowAnalysis.handleExit();
     return new ExpressionInferenceResult(
         inferrer.isNonNullableByDefault
-            ? const NeverType(Nullability.nonNullable)
+            ? const NeverType.nonNullable()
             : const BottomType(),
         node);
   }
@@ -6215,7 +6211,7 @@ class InferenceVisitor
     // Return BottomType in legacy mode for compatibility.
     return new ExpressionInferenceResult(
         inferrer.isNonNullableByDefault
-            ? const NeverType(Nullability.nonNullable)
+            ? const NeverType.nonNullable()
             : const BottomType(),
         node);
   }

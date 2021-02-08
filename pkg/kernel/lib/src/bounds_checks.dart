@@ -194,7 +194,7 @@ List<DartType> calculateBoundsInternal(
   List<List<int>> stronglyConnected = computeStrongComponents(graph);
   final DartType topType = const DynamicType();
   final DartType bottomType = isNonNullableByDefault
-      ? const NeverType(Nullability.nonNullable)
+      ? const NeverType.nonNullable()
       : const BottomType();
   for (List<int> component in stronglyConnected) {
     Map<TypeParameter, DartType> upperBounds = <TypeParameter, DartType>{};
@@ -461,8 +461,7 @@ List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
     DartType bottomType,
     {Map<FunctionType, List<DartType>> typedefInstantiations}) {
   assert(arguments.length == parameters.length);
-  assert(bottomType == const NeverType(Nullability.nonNullable) ||
-      bottomType is NullType);
+  assert(bottomType == const NeverType.nonNullable() || bottomType is NullType);
   List<TypeArgumentIssue> result = <TypeArgumentIssue>[];
   Map<TypeParameter, DartType> substitutionMap = <TypeParameter, DartType>{};
   for (int i = 0; i < arguments.length; ++i) {
@@ -541,7 +540,7 @@ class _SuperBoundedTypeInverter extends ReplacementVisitor {
 
   DartType get bottomType {
     return isNonNullableByDefault
-        ? const NeverType(Nullability.nonNullable)
+        ? const NeverType.nonNullable()
         : const NullType();
   }
 

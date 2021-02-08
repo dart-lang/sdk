@@ -1461,7 +1461,7 @@ class TypeSchemaEnvironmentTest {
         typeSchemaEnvironment.solveTypeConstraint(
             parseConstraint(constraint),
             coreTypes.objectNullableRawType,
-            new NeverType(Nullability.nonNullable),
+            new NeverType.internal(Nullability.nonNullable),
             grounded: grounded),
         parseType(expected));
   }

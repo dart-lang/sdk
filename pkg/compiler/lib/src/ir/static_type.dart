@@ -1009,7 +1009,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     ir.DartType operandType = visitNode(node.operand);
     handleNullCheck(node, operandType);
     ir.DartType resultType = operandType is ir.NullType
-        ? const ir.NeverType(ir.Nullability.nonNullable)
+        ? const ir.NeverType.nonNullable()
         : operandType.withDeclaredNullability(ir.Nullability.nonNullable);
     _staticTypeCache._expressionTypes[node] = resultType;
     return resultType;

@@ -95,8 +95,7 @@ class _Norm extends ReplacementVisitor {
     if (node.promotedBound == null) {
       DartType bound = node.parameter.bound;
       if (normalizesToNever(bound)) {
-        DartType result = new NeverType(Nullability.nonNullable)
-            .withDeclaredNullability(node.nullability);
+        DartType result = NeverType.fromNullability(node.nullability);
         return result.accept1(this, variance) ?? result;
       }
       assert(!coreTypes.isBottom(bound));

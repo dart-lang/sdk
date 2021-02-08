@@ -203,7 +203,7 @@ class MergeVisitor implements DartTypeVisitor1<DartType, DartType> {
     if (b is NeverType) {
       Nullability nullability = mergeNullability(a.nullability, b.nullability);
       if (nullability != null) {
-        return new NeverType(nullability);
+        return NeverType.fromNullability(nullability);
       }
     }
     return null;

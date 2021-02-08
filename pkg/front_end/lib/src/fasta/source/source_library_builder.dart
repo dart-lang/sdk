@@ -1341,7 +1341,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     addBuilder(
         "Never",
         new NeverTypeDeclarationBuilder(
-            const NeverType(Nullability.nonNullable), this, -1),
+            const NeverType.nonNullable(), this, -1),
         -1);
   }
 
@@ -3516,7 +3516,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (parameters.length != arguments.length) return;
 
     final DartType bottomType = isNonNullableByDefault
-        ? const NeverType(Nullability.nonNullable)
+        ? const NeverType.nonNullable()
         : const NullType();
     List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
         library,
@@ -3593,7 +3593,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
 
     final DartType bottomType = isNonNullableByDefault
-        ? const NeverType(Nullability.nonNullable)
+        ? const NeverType.nonNullable()
         : const NullType();
     List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
         library,

@@ -331,14 +331,14 @@ mixin StandardBounds {
           type2Nullability == Nullability.nullable) {
         return type1;
       }
-      return const NeverType(Nullability.nonNullable);
+      return const NeverType.nonNullable();
     } else if (coreTypes.isNull(type2)) {
       Nullability type1Nullability = type1.declaredNullability;
       if (type1Nullability == Nullability.legacy ||
           type1Nullability == Nullability.nullable) {
         return type2;
       }
-      return const NeverType(Nullability.nonNullable);
+      return const NeverType.nonNullable();
     }
 
     // DOWN(T1, T2) where OBJECT(T1) and OBJECT(T2) =
@@ -363,7 +363,7 @@ mixin StandardBounds {
       if (type2.nullability == Nullability.nonNullable) {
         return type2;
       }
-      return const NeverType(Nullability.nonNullable);
+      return const NeverType.nonNullable();
     } else if (coreTypes.isObject(type2)) {
       if (type1.nullability == Nullability.nonNullable) {
         return type1;
@@ -372,7 +372,7 @@ mixin StandardBounds {
       if (type1.nullability == Nullability.nonNullable) {
         return type1;
       }
-      return const NeverType(Nullability.nonNullable);
+      return const NeverType.nonNullable();
     }
 
     // DOWN(T1*, T2*) = S* where S is DOWN(T1, T2)
@@ -500,7 +500,7 @@ mixin StandardBounds {
     }
 
     // DOWN(T1, T2) = Never otherwise.
-    return new NeverType(intersectNullabilities(
+    return NeverType.fromNullability(intersectNullabilities(
         type1.declaredNullability, type2.declaredNullability));
   }
 
@@ -939,7 +939,7 @@ mixin StandardBounds {
 
     // The fallback result for whenever the following rule applies:
     //     DOWN(T Function<...>(...), S Function<...>(...)) = Never otherwise.
-    final DartType fallbackResult = new NeverType(
+    final DartType fallbackResult = NeverType.fromNullability(
         intersectNullabilities(f.declaredNullability, g.declaredNullability));
 
     if (haveNamed && haveOptionalPositional) return fallbackResult;
@@ -1244,7 +1244,7 @@ mixin StandardBounds {
       NullabilityAwareTypeVariableEliminator eliminator =
           new NullabilityAwareTypeVariableEliminator(
               eliminationTargets: <TypeParameter>{type1.parameter},
-              bottomType: const NeverType(Nullability.nonNullable),
+              bottomType: const NeverType.nonNullable(),
               topType: coreTypes.objectNullableRawType,
               topFunctionType: coreTypes.functionNonNullableRawType,
               unhandledTypeHandler: (type, recursor) => false);
@@ -1276,7 +1276,7 @@ mixin StandardBounds {
       NullabilityAwareTypeVariableEliminator eliminator =
           new NullabilityAwareTypeVariableEliminator(
               eliminationTargets: <TypeParameter>{type1.parameter},
-              bottomType: const NeverType(Nullability.nonNullable),
+              bottomType: const NeverType.nonNullable(),
               topType: coreTypes.objectNullableRawType,
               topFunctionType: coreTypes.functionNonNullableRawType,
               unhandledTypeHandler: (type, recursor) => false);

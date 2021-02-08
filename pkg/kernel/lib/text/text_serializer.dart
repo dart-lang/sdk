@@ -881,7 +881,7 @@ const TextSerializer<NeverType> neverTypeSerializer =
 
 void unwrapNeverType(NeverType type) {}
 
-NeverType wrapNeverType(void ignored) => const NeverType(Nullability.legacy);
+NeverType wrapNeverType(void ignored) => const NeverType.legacy();
 
 // TODO(dmitryas):  Also handle nameParameters, and typedefType.
 TextSerializer<FunctionType> functionTypeSerializer = new Wrapped(

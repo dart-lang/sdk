@@ -266,7 +266,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       if (isConst) {
         returnContextType = new TypeVariableEliminator(
                 clientLibrary.isNonNullableByDefault
-                    ? const NeverType(Nullability.nonNullable)
+                    ? const NeverType.nonNullable()
                     : const NullType(),
                 clientLibrary.isNonNullableByDefault
                     ? objectNullableRawType
@@ -430,7 +430,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   DartType solveTypeConstraint(
       TypeConstraint constraint, DartType topType, DartType bottomType,
       {bool grounded: false, bool isContravariant: false}) {
-    assert(bottomType == const NeverType(Nullability.nonNullable) ||
+    assert(bottomType == const NeverType.nonNullable() ||
         bottomType == const NullType());
     if (!isContravariant) {
       // Prefer the known bound, if any.
@@ -503,7 +503,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
             ? coreTypes.objectNullableRawType
             : const DynamicType(),
         clientLibrary.isNonNullableByDefault
-            ? const NeverType(Nullability.nonNullable)
+            ? const NeverType.nonNullable()
             : const NullType(),
         grounded: true,
         isContravariant: isContravariant);
@@ -517,7 +517,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
             ? coreTypes.objectNullableRawType
             : const DynamicType(),
         clientLibrary.isNonNullableByDefault
-            ? const NeverType(Nullability.nonNullable)
+            ? const NeverType.nonNullable()
             : const NullType());
     if (!isKnown(t)) {
       return t;
@@ -539,7 +539,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
               ? coreTypes.objectNullableRawType
               : const DynamicType(),
           clientLibrary.isNonNullableByDefault
-              ? const NeverType(Nullability.nonNullable)
+              ? const NeverType.nonNullable()
               : const NullType());
     }
     return t;
