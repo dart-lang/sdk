@@ -149,11 +149,11 @@ const ParserErrorCode _ANNOTATION_ON_TYPE_ARGUMENT = ParserErrorCode(
 
 const ParserErrorCode _ANNOTATION_WITH_TYPE_ARGUMENTS = ParserErrorCode(
     'ANNOTATION_WITH_TYPE_ARGUMENTS',
-    r"An annotation (metadata) can't use type arguments.");
+    r"An annotation can't use type arguments.");
 
 const ParserErrorCode _ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED =
     ParserErrorCode('ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED',
-        r"An annotation (metadata) with type arguments must be followed by an argument list.");
+        r"An annotation with type arguments must be followed by an argument list.");
 
 const ParserErrorCode _BINARY_OPERATOR_WRITTEN_OUT = ParserErrorCode(
     'BINARY_OPERATOR_WRITTEN_OUT',
