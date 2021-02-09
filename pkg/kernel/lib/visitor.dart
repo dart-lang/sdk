@@ -14,7 +14,7 @@ import 'ast.dart';
 abstract class ExpressionVisitor<R> {
   const ExpressionVisitor();
 
-  R defaultExpression(Expression node) => null;
+  R defaultExpression(Expression node);
   R defaultBasicLiteral(BasicLiteral node) => defaultExpression(node);
 
   R visitInvalidExpression(InvalidExpression node) => defaultExpression(node);
@@ -87,7 +87,7 @@ abstract class ExpressionVisitor<R> {
 abstract class StatementVisitor<R> {
   const StatementVisitor();
 
-  R defaultStatement(Statement node) => null;
+  R defaultStatement(Statement node);
 
   R visitExpressionStatement(ExpressionStatement node) =>
       defaultStatement(node);
@@ -118,7 +118,7 @@ abstract class StatementVisitor<R> {
 abstract class MemberVisitor<R> {
   const MemberVisitor();
 
-  R defaultMember(Member node) => null;
+  R defaultMember(Member node);
 
   R visitConstructor(Constructor node) => defaultMember(node);
   R visitProcedure(Procedure node) => defaultMember(node);
@@ -131,7 +131,7 @@ abstract class MemberVisitor<R> {
 abstract class InitializerVisitor<R> {
   const InitializerVisitor();
 
-  R defaultInitializer(Initializer node) => null;
+  R defaultInitializer(Initializer node);
 
   R visitInvalidInitializer(InvalidInitializer node) =>
       defaultInitializer(node);
@@ -143,7 +143,7 @@ abstract class InitializerVisitor<R> {
   R visitAssertInitializer(AssertInitializer node) => defaultInitializer(node);
 }
 
-class TreeVisitor<R>
+abstract class TreeVisitor<R>
     implements
         ExpressionVisitor<R>,
         StatementVisitor<R>,
@@ -151,7 +151,7 @@ class TreeVisitor<R>
         InitializerVisitor<R> {
   const TreeVisitor();
 
-  R defaultTreeNode(TreeNode node) => null;
+  R defaultTreeNode(TreeNode node);
 
   // Expressions
   R defaultExpression(Expression node) => defaultTreeNode(node);
@@ -289,10 +289,10 @@ class TreeVisitor<R>
   R visitComponent(Component node) => defaultTreeNode(node);
 }
 
-class DartTypeVisitor<R> {
+abstract class DartTypeVisitor<R> {
   const DartTypeVisitor();
 
-  R defaultDartType(DartType node) => null;
+  R defaultDartType(DartType node);
 
   R visitInvalidType(InvalidType node) => defaultDartType(node);
   R visitDynamicType(DynamicType node) => defaultDartType(node);
@@ -307,8 +307,8 @@ class DartTypeVisitor<R> {
   R visitNullType(NullType node) => defaultDartType(node);
 }
 
-class DartTypeVisitor1<R, T> {
-  R defaultDartType(DartType node, T arg) => null;
+abstract class DartTypeVisitor1<R, T> {
+  R defaultDartType(DartType node, T arg);
 
   R visitInvalidType(InvalidType node, T arg) => defaultDartType(node, arg);
   R visitDynamicType(DynamicType node, T arg) => defaultDartType(node, arg);
@@ -332,10 +332,10 @@ class DartTypeVisitor1<R, T> {
 ///
 /// Use [ComputeOnceConstantVisitor] or [VisitOnceConstantVisitor] to visit
 /// a constant node while ensuring each subnode is only visited once.
-class ConstantVisitor<R> {
+abstract class ConstantVisitor<R> {
   const ConstantVisitor();
 
-  R defaultConstant(Constant node) => null;
+  R defaultConstant(Constant node);
 
   R visitNullConstant(NullConstant node) => defaultConstant(node);
   R visitBoolConstant(BoolConstant node) => defaultConstant(node);
@@ -435,7 +435,7 @@ class _ConstantCallbackVisitor<R> implements ConstantVisitor<R> {
 /// Visitor-like class used for visiting a [Constant] node while computing a
 /// value for each subnode. The visitor caches the computed values ensuring that
 /// each subnode is only visited once.
-class ComputeOnceConstantVisitor<R> implements _ConstantCallback<R> {
+abstract class ComputeOnceConstantVisitor<R> implements _ConstantCallback<R> {
   _ConstantCallbackVisitor<R> _visitor;
   Map<Constant, R> cache = new LinkedHashMap.identity();
 
@@ -461,7 +461,7 @@ class ComputeOnceConstantVisitor<R> implements _ConstantCallback<R> {
     return value;
   }
 
-  R defaultConstant(Constant node) => null;
+  R defaultConstant(Constant node);
 
   R visitNullConstant(NullConstant node) => defaultConstant(node);
   R visitBoolConstant(BoolConstant node) => defaultConstant(node);
@@ -484,7 +484,7 @@ class ComputeOnceConstantVisitor<R> implements _ConstantCallback<R> {
 ///
 /// The visitor records the visited node to ensure that each subnode is only
 /// visited once.
-class VisitOnceConstantVisitor implements _ConstantCallback<void> {
+abstract class VisitOnceConstantVisitor implements _ConstantCallback<void> {
   _ConstantCallbackVisitor<void> _visitor;
   Set<Constant> cache = new LinkedHashSet.identity();
 
@@ -502,7 +502,7 @@ class VisitOnceConstantVisitor implements _ConstantCallback<void> {
     }
   }
 
-  void defaultConstant(Constant node) => null;
+  void defaultConstant(Constant node);
 
   void visitNullConstant(NullConstant node) => defaultConstant(node);
   void visitBoolConstant(BoolConstant node) => defaultConstant(node);
@@ -523,10 +523,10 @@ class VisitOnceConstantVisitor implements _ConstantCallback<void> {
       defaultConstant(node);
 }
 
-class MemberReferenceVisitor<R> {
+abstract class MemberReferenceVisitor<R> {
   const MemberReferenceVisitor();
 
-  R defaultMemberReference(Member node) => null;
+  R defaultMemberReference(Member node);
 
   R visitFieldReference(Field node) => defaultMemberReference(node);
   R visitConstructorReference(Constructor node) => defaultMemberReference(node);
@@ -537,7 +537,7 @@ class MemberReferenceVisitor<R> {
   }
 }
 
-class Visitor<R> extends TreeVisitor<R>
+abstract class Visitor<R> extends TreeVisitor<R>
     implements
         DartTypeVisitor<R>,
         ConstantVisitor<R>,
@@ -545,7 +545,7 @@ class Visitor<R> extends TreeVisitor<R>
   const Visitor();
 
   /// The catch-all case, except for references.
-  R defaultNode(Node node) => null;
+  R defaultNode(Node node);
   R defaultTreeNode(TreeNode node) => defaultNode(node);
 
   // DartTypes
@@ -581,11 +581,13 @@ class Visitor<R> extends TreeVisitor<R>
   R visitUnevaluatedConstant(UnevaluatedConstant node) => defaultConstant(node);
 
   // Class references
-  R visitClassReference(Class node) => null;
-  R visitTypedefReference(Typedef node) => null;
+  R visitClassReference(Class node);
+
+  R visitTypedefReference(Typedef node);
 
   // Constant references
-  R defaultConstantReference(Constant node) => null;
+  R defaultConstantReference(Constant node);
+
   R visitNullConstantReference(NullConstant node) =>
       defaultConstantReference(node);
   R visitBoolConstantReference(BoolConstant node) =>
@@ -617,7 +619,8 @@ class Visitor<R> extends TreeVisitor<R>
       defaultConstantReference(node);
 
   // Member references
-  R defaultMemberReference(Member node) => null;
+  R defaultMemberReference(Member node);
+
   R visitFieldReference(Field node) => defaultMemberReference(node);
   R visitConstructorReference(Constructor node) => defaultMemberReference(node);
   R visitProcedureReference(Procedure node) => defaultMemberReference(node);
@@ -631,8 +634,114 @@ class Visitor<R> extends TreeVisitor<R>
   R visitNamedType(NamedType node) => defaultNode(node);
 }
 
-class RecursiveVisitor<R> extends Visitor<R> {
+/// Visitor mixin that throws as its base case.
+mixin VisitorThrowingMixin<R> implements Visitor<R> {
+  @override
+  R defaultNode(Node node) {
+    throw new UnimplementedError('Unimplemented ${runtimeType}.defaultNode for '
+        '${node} (${node.runtimeType})');
+  }
+
+  @override
+  R visitClassReference(Class node) {
+    throw new UnimplementedError(
+        'Unimplemented ${runtimeType}.visitClassReference for '
+        '${node} (${node.runtimeType})');
+  }
+
+  @override
+  R visitTypedefReference(Typedef node) {
+    throw new UnimplementedError(
+        'Unimplemented ${runtimeType}.visitTypedefReference for '
+        '${node} (${node.runtimeType})');
+  }
+
+  @override
+  R defaultConstantReference(Constant node) {
+    throw new UnimplementedError(
+        'Unimplemented ${runtimeType}.defaultConstantReference for '
+        '${node} (${node.runtimeType})');
+  }
+
+  @override
+  R defaultMemberReference(Member node) {
+    throw new UnimplementedError(
+        'Unimplemented ${runtimeType}.defaultMemberReference for '
+        '${node} (${node.runtimeType})');
+  }
+}
+
+/// Visitor mixin that returns a value of type [R] or `null` and uses `null` as
+/// its base case.
+mixin VisitorNullMixin<R> implements Visitor<R /*?*/ > {
+  @override
+  R defaultNode(Node node) => null;
+
+  @override
+  R visitClassReference(Class node) => null;
+
+  @override
+  R visitTypedefReference(Typedef node) => null;
+
+  @override
+  R defaultConstantReference(Constant node) => null;
+
+  @override
+  R defaultMemberReference(Member node) => null;
+}
+
+/// Visitor mixin that returns void.
+mixin VisitorVoidMixin implements Visitor<void> {
+  @override
+  void defaultNode(Node node) {}
+
+  @override
+  void visitClassReference(Class node) {}
+
+  @override
+  void visitTypedefReference(Typedef node) {}
+
+  @override
+  void defaultConstantReference(Constant node) {}
+
+  @override
+  void defaultMemberReference(Member node) {}
+}
+
+/// Visitor mixin that returns a [defaultValue] of type [R] as its base case.
+mixin VisitorDefaultValueMixin<R> implements Visitor<R> {
+  R get defaultValue;
+
+  @override
+  R defaultNode(Node node) => defaultValue;
+
+  @override
+  R visitClassReference(Class node) => defaultValue;
+
+  @override
+  R visitTypedefReference(Typedef node) => defaultValue;
+
+  @override
+  R defaultConstantReference(Constant node) => defaultValue;
+
+  @override
+  R defaultMemberReference(Member node) => defaultValue;
+}
+
+/// Recursive visitor that doesn't return anything from its visit methods.
+class RecursiveVisitor extends Visitor<void> with VisitorVoidMixin {
   const RecursiveVisitor();
+
+  void defaultNode(Node node) {
+    node.visitChildren(this);
+  }
+}
+
+/// Recursive visitor that returns a result of type [R] or `null` from its
+/// visit methods.
+class RecursiveResultVisitor<R> extends Visitor<R /*?*/ >
+    with VisitorNullMixin<R> {
+  const RecursiveResultVisitor();
 
   R defaultNode(Node node) {
     node.visitChildren(this);
@@ -685,7 +794,7 @@ class Transformer extends TreeVisitor<TreeNode> {
 abstract class ExpressionVisitor1<R, T> {
   const ExpressionVisitor1();
 
-  R defaultExpression(Expression node, T arg) => null;
+  R defaultExpression(Expression node, T arg);
   R defaultBasicLiteral(BasicLiteral node, T arg) =>
       defaultExpression(node, arg);
   R visitInvalidExpression(InvalidExpression node, T arg) =>
@@ -784,7 +893,7 @@ abstract class ExpressionVisitor1<R, T> {
 abstract class StatementVisitor1<R, T> {
   const StatementVisitor1();
 
-  R defaultStatement(Statement node, T arg) => null;
+  R defaultStatement(Statement node, T arg);
 
   R visitExpressionStatement(ExpressionStatement node, T arg) =>
       defaultStatement(node, arg);
@@ -825,7 +934,7 @@ abstract class BodyVisitor1<R, T> extends ExpressionVisitor1<R, T>
     implements StatementVisitor1<R, T> {
   const BodyVisitor1();
 
-  R defaultStatement(Statement node, T arg) => null;
+  R defaultStatement(Statement node, T arg);
   R visitExpressionStatement(ExpressionStatement node, T arg) =>
       defaultStatement(node, arg);
   R visitBlock(Block node, T arg) => defaultStatement(node, arg);

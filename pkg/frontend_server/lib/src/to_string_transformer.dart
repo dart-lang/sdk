@@ -11,7 +11,7 @@ import '../frontend_server.dart';
 
 /// A [RecursiveVisitor] that replaces [Object.toString] overrides with
 /// `super.toString()`.
-class ToStringVisitor extends RecursiveVisitor<void> {
+class ToStringVisitor extends RecursiveVisitor {
   /// The [packageUris] must not be null.
   ToStringVisitor(this._packageUris) : assert(_packageUris != null);
 

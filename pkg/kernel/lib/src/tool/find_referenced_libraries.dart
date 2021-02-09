@@ -23,10 +23,10 @@ bool duplicateLibrariesReachable(List<Library> from) {
   return false;
 }
 
-class _LibraryCollector extends RecursiveVisitor<Null> {
+class _LibraryCollector extends RecursiveVisitor {
   Set<Library> allSeenLibraries = {};
 
-  Null defaultNode(Node node) {
+  void defaultNode(Node node) {
     if (node is NamedNode) {
       // Named nodes can be linked to.
       seen(node);
@@ -38,7 +38,7 @@ class _LibraryCollector extends RecursiveVisitor<Null> {
     super.defaultNode(node);
   }
 
-  Null defaultMemberReference(Member node) {
+  void defaultMemberReference(Member node) {
     seen(node);
     super.defaultMemberReference(node);
   }
