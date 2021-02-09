@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../scanner/error_token.dart' show UnmatchedToken;
-
 import '../scanner/token.dart'
     show
         BeginToken,
@@ -227,28 +226,21 @@ abstract class TokenStreamChange {
 }
 
 class NextTokenStreamChange implements TokenStreamChange {
-  late Token setOn;
-  Token? setOnNext;
-  late Token nextToken;
-  Token? nextTokenPrevious;
-  Token? nextTokenBeforeSynthetic;
+  final Token setOn;
+  final Token? setOnNext;
+  final Token nextToken;
+  final Token? nextTokenPrevious;
+  final Token? nextTokenBeforeSynthetic;
 
-  NextTokenStreamChange(UndoableTokenStreamRewriter rewriter) {
+  NextTokenStreamChange(
+      UndoableTokenStreamRewriter rewriter, this.setOn, this.nextToken)
+      : setOnNext = setOn.next,
+        nextTokenPrevious = nextToken.previous,
+        nextTokenBeforeSynthetic = nextToken.beforeSynthetic {
     rewriter._changes.add(this);
-  }
-
-  Token setNext(Token setOn, Token nextToken) {
-    this.setOn = setOn;
-    this.setOnNext = setOn.next;
-    this.nextToken = nextToken;
-    this.nextTokenPrevious = nextToken.previous;
-    this.nextTokenBeforeSynthetic = nextToken.beforeSynthetic;
-
     setOn.next = nextToken;
     nextToken.previous = setOn;
     nextToken.beforeSynthetic = setOn;
-
-    return nextToken;
   }
 
   @override
@@ -260,17 +252,13 @@ class NextTokenStreamChange implements TokenStreamChange {
 }
 
 class EndGroupTokenStreamChange implements TokenStreamChange {
-  late BeginToken setOn;
-  Token? endGroup;
+  final BeginToken setOn;
+  final Token? endGroup;
 
-  EndGroupTokenStreamChange(UndoableTokenStreamRewriter rewriter) {
+  EndGroupTokenStreamChange(
+      UndoableTokenStreamRewriter rewriter, this.setOn, Token endGroup)
+      : endGroup = setOn.endGroup {
     rewriter._changes.add(this);
-  }
-
-  void setEndGroup(BeginToken setOn, Token endGroup) {
-    this.setOn = setOn;
-    this.endGroup = setOn.endGroup;
-
     setOn.endGroup = endGroup;
   }
 
@@ -281,17 +269,13 @@ class EndGroupTokenStreamChange implements TokenStreamChange {
 }
 
 class OffsetTokenStreamChange implements TokenStreamChange {
-  late Token setOn;
-  late int offset;
+  final Token setOn;
+  final int offset;
 
-  OffsetTokenStreamChange(UndoableTokenStreamRewriter rewriter) {
+  OffsetTokenStreamChange(
+      UndoableTokenStreamRewriter rewriter, this.setOn, int offset)
+      : offset = setOn.offset {
     rewriter._changes.add(this);
-  }
-
-  void setOffset(Token setOn, int offset) {
-    this.setOn = setOn;
-    this.offset = setOn.offset;
-
     setOn.offset = offset;
   }
 
@@ -302,17 +286,13 @@ class OffsetTokenStreamChange implements TokenStreamChange {
 }
 
 class PrecedingCommentsTokenStreamChange implements TokenStreamChange {
-  late SimpleToken setOn;
-  CommentToken? comment;
+  final SimpleToken setOn;
+  final CommentToken? comment;
 
-  PrecedingCommentsTokenStreamChange(UndoableTokenStreamRewriter rewriter) {
+  PrecedingCommentsTokenStreamChange(
+      UndoableTokenStreamRewriter rewriter, this.setOn, CommentToken? comment)
+      : comment = setOn.precedingComments {
     rewriter._changes.add(this);
-  }
-
-  void setPrecedingComments(SimpleToken setOn, CommentToken? comment) {
-    this.setOn = setOn;
-    this.comment = setOn.precedingComments;
-
     setOn.precedingComments = comment;
   }
 
@@ -323,17 +303,13 @@ class PrecedingCommentsTokenStreamChange implements TokenStreamChange {
 }
 
 class PreviousTokenStreamChange implements TokenStreamChange {
-  late Token setOn;
-  late Token previous;
+  final Token setOn;
+  final Token previous;
 
-  PreviousTokenStreamChange(UndoableTokenStreamRewriter rewriter) {
+  PreviousTokenStreamChange(
+      UndoableTokenStreamRewriter rewriter, this.setOn, Token previous)
+      : previous = setOn.previous! {
     rewriter._changes.add(this);
-  }
-
-  void setPrevious(Token setOn, Token previous) {
-    this.setOn = setOn;
-    this.previous = setOn.previous!;
-
     setOn.previous = previous;
   }
 
@@ -359,27 +335,26 @@ class UndoableTokenStreamRewriter extends TokenStreamRewriter {
 
   @override
   void _setEndGroup(BeginToken setOn, Token endGroup) {
-    new EndGroupTokenStreamChange(this).setEndGroup(setOn, endGroup);
+    new EndGroupTokenStreamChange(this, setOn, endGroup);
   }
 
   @override
   Token _setNext(Token setOn, Token nextToken) {
-    return new NextTokenStreamChange(this).setNext(setOn, nextToken);
+    return new NextTokenStreamChange(this, setOn, nextToken).nextToken;
   }
 
   @override
   void _setOffset(Token setOn, int offset) {
-    new OffsetTokenStreamChange(this).setOffset(setOn, offset);
+    new OffsetTokenStreamChange(this, setOn, offset);
   }
 
   @override
   void _setPrecedingComments(SimpleToken setOn, CommentToken? comment) {
-    new PrecedingCommentsTokenStreamChange(this)
-        .setPrecedingComments(setOn, comment);
+    new PrecedingCommentsTokenStreamChange(this, setOn, comment);
   }
 
   @override
   void _setPrevious(Token setOn, Token previous) {
-    new PreviousTokenStreamChange(this).setPrevious(setOn, previous);
+    new PreviousTokenStreamChange(this, setOn, previous);
   }
 }

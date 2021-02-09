@@ -60,21 +60,20 @@ class CharSequenceReader implements CharacterReader {
   /**
    * The number of characters in the string.
    */
-  late int _stringLength;
+  int _stringLength;
 
   /**
    * The index, relative to the string, of the next character to be read.
    */
-  late int _charOffset;
+  int _charOffset;
 
   /**
    * Initialize a newly created reader to read the characters in the given
    * [_sequence].
    */
-  CharSequenceReader(this._sequence) {
-    this._stringLength = _sequence.length;
-    this._charOffset = 0;
-  }
+  CharSequenceReader(this._sequence)
+      : _stringLength = _sequence.length,
+        _charOffset = 0;
 
   @override
   int get offset => _charOffset - 1;

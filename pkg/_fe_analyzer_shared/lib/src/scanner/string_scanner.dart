@@ -22,10 +22,10 @@ import 'error_token.dart' show ErrorToken;
  */
 class StringScanner extends AbstractScanner {
   /** The file content. */
-  late String string;
+  final String string;
 
   /** The current offset in [string]. */
-  late int scanOffset = -1;
+  int scanOffset = -1;
 
   StringScanner(String string,
       {ScannerConfiguration? configuration,
@@ -35,10 +35,9 @@ class StringScanner extends AbstractScanner {
         super(configuration, includeComments, languageVersionChanged);
 
   StringScanner.recoveryOptionScanner(StringScanner copyFrom)
-      : super.recoveryOptionScanner(copyFrom) {
-    string = copyFrom.string;
-    scanOffset = copyFrom.scanOffset;
-  }
+      : string = copyFrom.string,
+        scanOffset = copyFrom.scanOffset,
+        super.recoveryOptionScanner(copyFrom);
 
   StringScanner createRecoveryOptionScanner() {
     return new StringScanner.recoveryOptionScanner(this);

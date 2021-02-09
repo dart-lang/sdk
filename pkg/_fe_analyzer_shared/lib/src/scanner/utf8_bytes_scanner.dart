@@ -28,7 +28,7 @@ class Utf8BytesScanner extends AbstractScanner {
    *
    * The content is zero-terminated.
    */
-  late List<int> bytes;
+  final List<int> bytes;
 
   /**
    * Points to the offset of the last byte returned by [advance].
@@ -98,8 +98,8 @@ class Utf8BytesScanner extends AbstractScanner {
   }
 
   Utf8BytesScanner.createRecoveryOptionScanner(Utf8BytesScanner copyFrom)
-      : super.recoveryOptionScanner(copyFrom) {
-    this.bytes = copyFrom.bytes;
+      : bytes = copyFrom.bytes,
+        super.recoveryOptionScanner(copyFrom) {
     this.byteOffset = copyFrom.byteOffset;
     this.scanSlack = copyFrom.scanSlack;
     this.scanSlackOffset = copyFrom.scanSlackOffset;
