@@ -289,10 +289,8 @@ class BinaryBuilder {
   void readStringTable(List<String> table) {
     // Read the table of end offsets.
     int length = readUInt30();
-    List<int> endOffsets = new List<int>.filled(length, null);
-    for (int i = 0; i < length; ++i) {
-      endOffsets[i] = readUInt30();
-    }
+    List<int> endOffsets =
+        new List<int>.generate(length, (_) => readUInt30(), growable: false);
     // Read the WTF-8 encoded strings.
     table.length = length;
     int startOffset = 0;
@@ -376,12 +374,11 @@ class BinaryBuilder {
     final DartType valueType = readDartType();
     final int length = readUInt30();
     final List<ConstantMapEntry> entries =
-        new List<ConstantMapEntry>.filled(length, null, growable: true);
-    for (int i = 0; i < length; i++) {
+        new List<ConstantMapEntry>.generate(length, (_) {
       final Constant key = readConstantReference();
       final Constant value = readConstantReference();
-      entries[i] = new ConstantMapEntry(key, value);
-    }
+      return new ConstantMapEntry(key, value);
+    }, growable: true);
     return new MapConstant(keyType, valueType, entries);
   }
 
@@ -441,12 +438,8 @@ class BinaryBuilder {
 
   List<Constant> _readConstantReferenceList() {
     final int length = readUInt30();
-    final List<Constant> list =
-        new List<Constant>.filled(length, null, growable: true);
-    for (int i = 0; i < length; i++) {
-      list[i] = readConstantReference();
-    }
-    return list;
+    return new List<Constant>.generate(length, (_) => readConstantReference(),
+        growable: true);
   }
 
   Uri readUriReference() {
@@ -459,11 +452,8 @@ class BinaryBuilder {
 
   List<String> readStringReferenceList() {
     int length = readUInt30();
-    List<String> result = new List<String>.filled(length, null, growable: true);
-    for (int i = 0; i < length; ++i) {
-      result[i] = readStringReference();
-    }
-    return result;
+    return new List<String>.generate(length, (_) => readStringReference(),
+        growable: true);
   }
 
   String readStringOrNullIfEmpty() {
@@ -485,12 +475,9 @@ class BinaryBuilder {
   List<Expression> readAnnotationList(TreeNode parent) {
     int length = readUInt30();
     if (length == 0) return const <Expression>[];
-    List<Expression> list =
-        new List<Expression>.filled(length, null, growable: true);
-    for (int i = 0; i < length; ++i) {
-      list[i] = readExpression()..parent = parent;
-    }
-    return list;
+    return new List<Expression>.generate(
+        length, (_) => readExpression()..parent = parent,
+        growable: true);
   }
 
   void _fillTreeNodeList(
@@ -528,7 +515,11 @@ class BinaryBuilder {
 
   void readLinkTable(CanonicalName linkRoot) {
     int length = readUInt30();
-    _linkTable = new List<CanonicalName>.filled(length, null);
+    _linkTable = new List<CanonicalName>.filled(
+        length,
+        // Use [linkRoot] as a dummy default value.
+        linkRoot,
+        growable: false);
     for (int i = 0; i < length; ++i) {
       int biasedParentIndex = readUInt30();
       String name = readStringReference();
@@ -739,7 +730,11 @@ class BinaryBuilder {
     result.libraryCount = readUint32();
     // Library offsets are used for start and end offsets, so there is one extra
     // element that this the end offset of the last library
-    result.libraryOffsets = new List<int>.filled(result.libraryCount + 1, null);
+    result.libraryOffsets = new List<int>.filled(
+        result.libraryCount + 1,
+        // Use `-1` as a dummy default value.
+        -1,
+        growable: false);
     result.componentFileSizeInBytes = readUint32();
     if (result.componentFileSizeInBytes != componentFileSize) {
       throw "Malformed binary: This component file's component index indicates "
@@ -851,16 +846,16 @@ class BinaryBuilder {
     SubComponentView result;
     if (createView) {
       result = new SubComponentView(
-          new List<Library>.filled(numberOfLibraries, null),
+          new List<Library>.generate(numberOfLibraries, (int i) {
+            _byteOffset = index.libraryOffsets[i];
+            return readLibrary(component, index.libraryOffsets[i + 1]);
+          }, growable: false),
           _componentStartOffset,
           componentFileSize);
-    }
-
-    for (int i = 0; i < numberOfLibraries; ++i) {
-      _byteOffset = index.libraryOffsets[i];
-      Library library = readLibrary(component, index.libraryOffsets[i + 1]);
-      if (createView) {
-        result.libraries[i] = library;
+    } else {
+      for (int i = 0; i < numberOfLibraries; ++i) {
+        _byteOffset = index.libraryOffsets[i];
+        readLibrary(component, index.libraryOffsets[i + 1]);
       }
     }
 
@@ -879,13 +874,8 @@ class BinaryBuilder {
   List<String> readListOfStrings() {
     int length = readUInt30();
     if (length == 0) return null;
-    List<String> strings =
-        new List<String>.filled(length, null, growable: true);
-    for (int i = 0; i < length; i++) {
-      String s = readString();
-      strings[i] = s;
-    }
-    return strings;
+    return new List<String>.generate(length, (_) => readString(),
+        growable: true);
   }
 
   /// Read the uri-to-source part of the binary.
@@ -907,7 +897,11 @@ class BinaryBuilder {
       _sourceUriTable[i] = uri;
       Uint8List sourceCode = readByteList();
       int lineCount = readUInt30();
-      List<int> lineStarts = new List<int>.filled(lineCount, null);
+      List<int> lineStarts = new List<int>.filled(
+          lineCount,
+          // Use `-1` as a dummy default value.
+          -1,
+          growable: false);
       int previousLineStart = 0;
       for (int j = 0; j < lineCount; ++j) {
         int lineStart = readUInt30() + previousLineStart;
@@ -1067,7 +1061,11 @@ class BinaryBuilder {
     // There is a field for the procedure count.
     _byteOffset = endOffset - (1) * 4;
     int procedureCount = readUint32();
-    List<int> procedureOffsets = new List<int>.filled(procedureCount + 1, null);
+    List<int> procedureOffsets = new List<int>.filled(
+        procedureCount + 1,
+        // Use `-1` as a dummy default value.
+        -1,
+        growable: false);
 
     // There is a field for the procedure count, that number + 1 (for the end)
     // offsets, and then the class count (i.e. procedure count + 3 fields).
@@ -1076,7 +1074,11 @@ class BinaryBuilder {
     for (int i = 0; i < procedureCount + 1; i++) {
       procedureOffsets[i] = _componentStartOffset + readUint32();
     }
-    List<int> classOffsets = new List<int>.filled(classCount + 1, null);
+    List<int> classOffsets = new List<int>.filled(
+        classCount + 1,
+        // Use `-1` as a dummy default value.
+        -1,
+        growable: false);
 
     // There is a field for the procedure count, that number + 1 (for the end)
     // offsets, then the class count and that number + 1 (for the end) offsets.
@@ -1200,12 +1202,8 @@ class BinaryBuilder {
 
   List<Combinator> readCombinatorList() {
     int length = readUInt30();
-    List<Combinator> result =
-        new List<Combinator>.filled(length, null, growable: true);
-    for (int i = 0; i < length; ++i) {
-      result[i] = readCombinator();
-    }
-    return result;
+    return new List<Combinator>.generate(length, (_) => readCombinator(),
+        growable: true);
   }
 
   void _readLibraryParts(Library library) {
@@ -1263,13 +1261,12 @@ class BinaryBuilder {
     // There is a field for the procedure count.
     _byteOffset = endOffset - (1) * 4;
     int procedureCount = readUint32();
-    List<int> procedureOffsets = new List<int>.filled(procedureCount + 1, null);
     // There is a field for the procedure count, that number + 1 (for the end)
     // offsets (i.e. procedure count + 2 fields).
     _byteOffset = endOffset - (procedureCount + 2) * 4;
-    for (int i = 0; i < procedureCount + 1; i++) {
-      procedureOffsets[i] = _componentStartOffset + readUint32();
-    }
+    List<int> procedureOffsets = new List<int>.generate(
+        procedureCount + 1, (_) => _componentStartOffset + readUint32(),
+        growable: false);
     _byteOffset = savedByteOffset;
 
     CanonicalName canonicalName = readCanonicalNameReference();
@@ -1786,12 +1783,8 @@ class BinaryBuilder {
 
   List<Expression> readExpressionList() {
     int length = readUInt30();
-    List<Expression> result =
-        new List<Expression>.filled(length, null, growable: true);
-    for (int i = 0; i < length; ++i) {
-      result[i] = readExpression();
-    }
-    return result;
+    return new List<Expression>.generate(length, (_) => readExpression(),
+        growable: true);
   }
 
   Expression readExpressionOption() {
@@ -2253,11 +2246,9 @@ class BinaryBuilder {
       fieldValues[fieldRef] = value;
     }
     int assertCount = readUInt30();
-    List<AssertStatement> asserts =
-        new List<AssertStatement>.filled(assertCount, null);
-    for (int i = 0; i < assertCount; i++) {
-      asserts[i] = readStatement();
-    }
+    List<AssertStatement> asserts = new List<AssertStatement>.generate(
+        assertCount, (_) => readStatement(),
+        growable: false);
     List<Expression> unusedArguments = readExpressionList();
     return new InstanceCreation(
         classReference, typeArguments, fieldValues, asserts, unusedArguments)
@@ -2438,12 +2429,8 @@ class BinaryBuilder {
 
   List<MapEntry> readMapEntryList() {
     int length = readUInt30();
-    List<MapEntry> result =
-        new List<MapEntry>.filled(length, null, growable: true);
-    for (int i = 0; i < length; ++i) {
-      result[i] = readMapEntry();
-    }
-    return result;
+    return new List<MapEntry>.generate(length, (_) => readMapEntry(),
+        growable: true);
   }
 
   MapEntry readMapEntry() {
@@ -2452,12 +2439,8 @@ class BinaryBuilder {
 
   List<Statement> readStatementList() {
     int length = readUInt30();
-    List<Statement> result =
-        new List<Statement>.filled(length, null, growable: true);
-    for (int i = 0; i < length; ++i) {
-      result[i] = readStatement();
-    }
-    return result;
+    return new List<Statement>.generate(length, (_) => readStatement(),
+        growable: true);
   }
 
   Statement readStatementOrNullIfEmpty() {
@@ -2594,11 +2577,9 @@ class BinaryBuilder {
     int offset = readOffset();
     Expression expression = readExpression();
     int count = readUInt30();
-    List<SwitchCase> cases =
-        new List<SwitchCase>.filled(count, null, growable: true);
-    for (int i = 0; i < count; ++i) {
-      cases[i] = new SwitchCase.empty();
-    }
+    List<SwitchCase> cases = new List<SwitchCase>.generate(
+        count, (_) => new SwitchCase.empty(),
+        growable: true);
     switchCaseStack.addAll(cases);
     for (int i = 0; i < cases.length; ++i) {
       readSwitchCaseInto(cases[i]);
@@ -2674,11 +2655,7 @@ class BinaryBuilder {
 
   List<Catch> readCatchList() {
     int length = readUInt30();
-    List<Catch> result = new List<Catch>.filled(length, null, growable: true);
-    for (int i = 0; i < length; ++i) {
-      result[i] = readCatch();
-    }
-    return result;
+    return new List<Catch>.generate(length, (_) => readCatch(), growable: true);
   }
 
   Catch readCatch() {
@@ -2727,32 +2704,20 @@ class BinaryBuilder {
 
   List<Supertype> readSupertypeList() {
     int length = readUInt30();
-    List<Supertype> result =
-        new List<Supertype>.filled(length, null, growable: true);
-    for (int i = 0; i < length; ++i) {
-      result[i] = readSupertype();
-    }
-    return result;
+    return new List<Supertype>.generate(length, (_) => readSupertype(),
+        growable: true);
   }
 
   List<DartType> readDartTypeList() {
     int length = readUInt30();
-    List<DartType> result =
-        new List<DartType>.filled(length, null, growable: true);
-    for (int i = 0; i < length; ++i) {
-      result[i] = readDartType();
-    }
-    return result;
+    return new List<DartType>.generate(length, (_) => readDartType(),
+        growable: true);
   }
 
   List<NamedType> readNamedTypeList() {
     int length = readUInt30();
-    List<NamedType> result =
-        new List<NamedType>.filled(length, null, growable: true);
-    for (int i = 0; i < length; ++i) {
-      result[i] = readNamedType();
-    }
-    return result;
+    return new List<NamedType>.generate(length, (_) => readNamedType(),
+        growable: true);
   }
 
   NamedType readNamedType() {
@@ -2897,10 +2862,9 @@ class BinaryBuilder {
     int length = readUInt30();
     if (length == 0) return list ?? <TypeParameter>[];
     if (list == null) {
-      list = new List<TypeParameter>.filled(length, null, growable: true);
-      for (int i = 0; i < length; ++i) {
-        list[i] = new TypeParameter(null, null)..parent = parent;
-      }
+      list = new List<TypeParameter>.generate(
+          length, (_) => new TypeParameter(null, null)..parent = parent,
+          growable: true);
     } else if (list.length != length) {
       list.length = length;
       for (int i = 0; i < length; ++i) {
@@ -2939,12 +2903,9 @@ class BinaryBuilder {
 
   List<NamedExpression> readNamedExpressionList() {
     int length = readUInt30();
-    List<NamedExpression> result =
-        new List<NamedExpression>.filled(length, null, growable: true);
-    for (int i = 0; i < length; ++i) {
-      result[i] = readNamedExpression();
-    }
-    return result;
+    return new List<NamedExpression>.generate(
+        length, (_) => readNamedExpression(),
+        growable: true);
   }
 
   NamedExpression readNamedExpression() {
@@ -2953,12 +2914,9 @@ class BinaryBuilder {
 
   List<VariableDeclaration> readAndPushVariableDeclarationList() {
     int length = readUInt30();
-    List<VariableDeclaration> result =
-        new List<VariableDeclaration>.filled(length, null, growable: true);
-    for (int i = 0; i < length; ++i) {
-      result[i] = readAndPushVariableDeclaration();
-    }
-    return result;
+    return new List<VariableDeclaration>.generate(
+        length, (_) => readAndPushVariableDeclaration(),
+        growable: true);
   }
 
   VariableDeclaration readAndPushVariableDeclarationOption() {

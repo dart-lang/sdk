@@ -168,89 +168,95 @@ void _memCopy(Object target, int targetOffsetInBytes, Object source,
 // and GCing new spaces takes a lot of the benchmark time. The next speedup is
 // getting rid of these allocations by inlining these functions.
 @pragma("vm:recognized", "other")
-int _loadInt8(Pointer pointer, int offsetInBytes) native "Ffi_loadInt8";
+int _loadInt8(Object typedDataBase, int offsetInBytes) native "Ffi_loadInt8";
 
 @pragma("vm:recognized", "other")
-int _loadInt16(Pointer pointer, int offsetInBytes) native "Ffi_loadInt16";
+int _loadInt16(Object typedDataBase, int offsetInBytes) native "Ffi_loadInt16";
 
 @pragma("vm:recognized", "other")
-int _loadInt32(Pointer pointer, int offsetInBytes) native "Ffi_loadInt32";
+int _loadInt32(Object typedDataBase, int offsetInBytes) native "Ffi_loadInt32";
 
 @pragma("vm:recognized", "other")
-int _loadInt64(Pointer pointer, int offsetInBytes) native "Ffi_loadInt64";
+int _loadInt64(Object typedDataBase, int offsetInBytes) native "Ffi_loadInt64";
 
 @pragma("vm:recognized", "other")
-int _loadUint8(Pointer pointer, int offsetInBytes) native "Ffi_loadUint8";
+int _loadUint8(Object typedDataBase, int offsetInBytes) native "Ffi_loadUint8";
 
 @pragma("vm:recognized", "other")
-int _loadUint16(Pointer pointer, int offsetInBytes) native "Ffi_loadUint16";
+int _loadUint16(Object typedDataBase, int offsetInBytes)
+    native "Ffi_loadUint16";
 
 @pragma("vm:recognized", "other")
-int _loadUint32(Pointer pointer, int offsetInBytes) native "Ffi_loadUint32";
+int _loadUint32(Object typedDataBase, int offsetInBytes)
+    native "Ffi_loadUint32";
 
 @pragma("vm:recognized", "other")
-int _loadUint64(Pointer pointer, int offsetInBytes) native "Ffi_loadUint64";
+int _loadUint64(Object typedDataBase, int offsetInBytes)
+    native "Ffi_loadUint64";
 
 @pragma("vm:recognized", "other")
-int _loadIntPtr(Pointer pointer, int offsetInBytes) native "Ffi_loadIntPtr";
+int _loadIntPtr(Object typedDataBase, int offsetInBytes)
+    native "Ffi_loadIntPtr";
 
 @pragma("vm:recognized", "other")
-double _loadFloat(Pointer pointer, int offsetInBytes) native "Ffi_loadFloat";
+double _loadFloat(Object typedDataBase, int offsetInBytes)
+    native "Ffi_loadFloat";
 
 @pragma("vm:recognized", "other")
-double _loadDouble(Pointer pointer, int offsetInBytes) native "Ffi_loadDouble";
+double _loadDouble(Object typedDataBase, int offsetInBytes)
+    native "Ffi_loadDouble";
 
 @pragma("vm:recognized", "other")
 Pointer<S> _loadPointer<S extends NativeType>(
-    Pointer pointer, int offsetInBytes) native "Ffi_loadPointer";
+    Object typedDataBase, int offsetInBytes) native "Ffi_loadPointer";
 
 @pragma("vm:recognized", "other")
-void _storeInt8(Pointer pointer, int offsetInBytes, int value)
+void _storeInt8(Object typedDataBase, int offsetInBytes, int value)
     native "Ffi_storeInt8";
 
 @pragma("vm:recognized", "other")
-void _storeInt16(Pointer pointer, int offsetInBytes, int value)
+void _storeInt16(Object typedDataBase, int offsetInBytes, int value)
     native "Ffi_storeInt16";
 
 @pragma("vm:recognized", "other")
-void _storeInt32(Pointer pointer, int offsetInBytes, int value)
+void _storeInt32(Object typedDataBase, int offsetInBytes, int value)
     native "Ffi_storeInt32";
 
 @pragma("vm:recognized", "other")
-void _storeInt64(Pointer pointer, int offsetInBytes, int value)
+void _storeInt64(Object typedDataBase, int offsetInBytes, int value)
     native "Ffi_storeInt64";
 
 @pragma("vm:recognized", "other")
-void _storeUint8(Pointer pointer, int offsetInBytes, int value)
+void _storeUint8(Object typedDataBase, int offsetInBytes, int value)
     native "Ffi_storeUint8";
 
 @pragma("vm:recognized", "other")
-void _storeUint16(Pointer pointer, int offsetInBytes, int value)
+void _storeUint16(Object typedDataBase, int offsetInBytes, int value)
     native "Ffi_storeUint16";
 
 @pragma("vm:recognized", "other")
-void _storeUint32(Pointer pointer, int offsetInBytes, int value)
+void _storeUint32(Object typedDataBase, int offsetInBytes, int value)
     native "Ffi_storeUint32";
 
 @pragma("vm:recognized", "other")
-void _storeUint64(Pointer pointer, int offsetInBytes, int value)
+void _storeUint64(Object typedDataBase, int offsetInBytes, int value)
     native "Ffi_storeUint64";
 
 @pragma("vm:recognized", "other")
-void _storeIntPtr(Pointer pointer, int offsetInBytes, int value)
+void _storeIntPtr(Object typedDataBase, int offsetInBytes, int value)
     native "Ffi_storeIntPtr";
 
 @pragma("vm:recognized", "other")
-void _storeFloat(Pointer pointer, int offsetInBytes, double value)
+void _storeFloat(Object typedDataBase, int offsetInBytes, double value)
     native "Ffi_storeFloat";
 
 @pragma("vm:recognized", "other")
-void _storeDouble(Pointer pointer, int offsetInBytes, double value)
+void _storeDouble(Object typedDataBase, int offsetInBytes, double value)
     native "Ffi_storeDouble";
 
 @pragma("vm:recognized", "other")
-void _storePointer<S extends NativeType>(Pointer pointer, int offsetInBytes,
-    Pointer<S> value) native "Ffi_storePointer";
+void _storePointer<S extends NativeType>(Object typedDataBase,
+    int offsetInBytes, Pointer<S> value) native "Ffi_storePointer";
 
 Pointer<Int8> _elementAtInt8(Pointer<Int8> pointer, int index) =>
     Pointer.fromAddress(pointer.address + 1 * index);

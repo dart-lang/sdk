@@ -166,30 +166,30 @@ namespace dart {
   V(::, _abi, FfiAbi, 0x7c4ab775)                                              \
   V(::, _asFunctionInternal, FfiAsFunctionInternal, 0xbbcb235a)                \
   V(::, _nativeCallbackFunction, FfiNativeCallbackFunction, 0x3ff5ae9c)        \
-  V(::, _loadInt8, FfiLoadInt8, 0xa54bed8c)                                    \
-  V(::, _loadInt16, FfiLoadInt16, 0x828b3ee3)                                  \
-  V(::, _loadInt32, FfiLoadInt32, 0x84694d79)                                  \
-  V(::, _loadInt64, FfiLoadInt64, 0x7536cd59)                                  \
-  V(::, _loadUint8, FfiLoadUint8, 0x77952a87)                                  \
-  V(::, _loadUint16, FfiLoadUint16, 0xa31d6aa0)                                \
-  V(::, _loadUint32, FfiLoadUint32, 0x8cb59e0b)                                \
-  V(::, _loadUint64, FfiLoadUint64, 0x9b4d0b82)                                \
-  V(::, _loadIntPtr, FfiLoadIntPtr, 0x8220c1f4)                                \
-  V(::, _loadFloat, FfiLoadFloat, 0x8f209213)                                  \
-  V(::, _loadDouble, FfiLoadDouble, 0x8d53d3cf)                                \
-  V(::, _loadPointer, FfiLoadPointer, 0xc50e1486)                              \
-  V(::, _storeInt8, FfiStoreInt8, 0x000b2742)                                  \
-  V(::, _storeInt16, FfiStoreInt16, 0xf9086b68)                                \
-  V(::, _storeInt32, FfiStoreInt32, 0x1ca0a493)                                \
-  V(::, _storeInt64, FfiStoreInt64, 0x128e85b0)                                \
-  V(::, _storeUint8, FfiStoreUint8, 0x26284b2c)                                \
-  V(::, _storeUint16, FfiStoreUint16, 0x03b82314)                              \
-  V(::, _storeUint32, FfiStoreUint32, 0x069260fb)                              \
-  V(::, _storeUint64, FfiStoreUint64, 0x0393aa6f)                              \
-  V(::, _storeIntPtr, FfiStoreIntPtr, 0x28bcdede)                              \
-  V(::, _storeFloat, FfiStoreFloat, 0x853f68b4)                                \
-  V(::, _storeDouble, FfiStoreDouble, 0x6354049a)                              \
-  V(::, _storePointer, FfiStorePointer, 0x0cfd005b)                            \
+  V(::, _loadInt8, FfiLoadInt8, 0x0f04dfd6)                                    \
+  V(::, _loadInt16, FfiLoadInt16, 0xec44312d)                                  \
+  V(::, _loadInt32, FfiLoadInt32, 0xee223fc3)                                  \
+  V(::, _loadInt64, FfiLoadInt64, 0xdeefbfa3)                                  \
+  V(::, _loadUint8, FfiLoadUint8, 0xe14e1cd1)                                  \
+  V(::, _loadUint16, FfiLoadUint16, 0x0cd65cea)                                \
+  V(::, _loadUint32, FfiLoadUint32, 0xf66e9055)                                \
+  V(::, _loadUint64, FfiLoadUint64, 0x0505fdcc)                                \
+  V(::, _loadIntPtr, FfiLoadIntPtr, 0xebd9b43e)                                \
+  V(::, _loadFloat, FfiLoadFloat, 0xf8d9845d)                                  \
+  V(::, _loadDouble, FfiLoadDouble, 0xf70cc619)                                \
+  V(::, _loadPointer, FfiLoadPointer, 0x4e79d0fc)                              \
+  V(::, _storeInt8, FfiStoreInt8, 0xdf50af0c)                                  \
+  V(::, _storeInt16, FfiStoreInt16, 0xd84df332)                                \
+  V(::, _storeInt32, FfiStoreInt32, 0xfbe62c5d)                                \
+  V(::, _storeInt64, FfiStoreInt64, 0xf1d40d7a)                                \
+  V(::, _storeUint8, FfiStoreUint8, 0x056dd2f6)                                \
+  V(::, _storeUint16, FfiStoreUint16, 0xe2fdaade)                              \
+  V(::, _storeUint32, FfiStoreUint32, 0xe5d7e8c5)                              \
+  V(::, _storeUint64, FfiStoreUint64, 0xe2d93239)                              \
+  V(::, _storeIntPtr, FfiStoreIntPtr, 0x080266a8)                              \
+  V(::, _storeFloat, FfiStoreFloat, 0x6484f07e)                                \
+  V(::, _storeDouble, FfiStoreDouble, 0x42998c64)                              \
+  V(::, _storePointer, FfiStorePointer, 0xea6b7751)                            \
   V(::, _fromAddress, FfiFromAddress, 0xfd8cb1cc)                              \
   V(Pointer, get:address, FfiGetAddress, 0x7cde87be)                           \
   V(::, reachabilityFence, ReachabilityFence, 0x619235c1)                      \
