@@ -4495,27 +4495,17 @@ void f() {
     await assertErrorsInCode('''
 class Base {
   var x;
-  Base() : x = print('Base.1') { print('Base.2'); }
+  Base() : x = 1;
 }
 
 class Derived extends Base {
   var y, z;
-  Derived()
-      : y = print('Derived.1'),
-        super(),
-        z = print('Derived.2') {
-    print('Derived.3');
-  }
+  Derived() : y = 1, super(), z = 2;
 }
 
 class Valid extends Base {
   var y, z;
-  Valid()
-      : y = print('Valid.1'),
-        z = print('Valid.2'),
-        super() {
-    print('Valid.3');
-  }
+  Valid(): y = 1, z = 2, super();
 }
 
 class AlsoValid extends Base {
@@ -4524,7 +4514,7 @@ class AlsoValid extends Base {
 
 main() => new Derived();
 ''', [
-      error(CompileTimeErrorCode.INVALID_SUPER_INVOCATION, 170, 5),
+      error(CompileTimeErrorCode.INVALID_SUPER_INVOCATION, 105, 5),
     ]);
   }
 
