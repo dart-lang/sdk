@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class ExtensionOverrideArgumentNotAssignableTest
-    extends PubPackageResolutionTest {
+    extends PubPackageResolutionTest with WithoutNullSafetyMixin {
   test_subtype() async {
     await assertNoErrorsInCode('''
 class A {}

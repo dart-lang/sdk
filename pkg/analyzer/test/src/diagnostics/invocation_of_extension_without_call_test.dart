@@ -14,7 +14,8 @@ main() {
 }
 
 @reflectiveTest
-class InvocationOfExtensionWithoutCallTest extends PubPackageResolutionTest {
+class InvocationOfExtensionWithoutCallTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_instance_differentKind() async {
     await assertErrorsInCode('''
 extension E on Object {}

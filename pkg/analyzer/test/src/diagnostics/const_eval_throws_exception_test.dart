@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class ConstEvalThrowsExceptionTest extends PubPackageResolutionTest
-    with ConstEvalThrowsExceptionTestCases {
+    with WithoutNullSafetyMixin, ConstEvalThrowsExceptionTestCases {
   test_binaryMinus_null() async {
     await assertErrorsInCode('''
 const dynamic D = null;

@@ -9,13 +9,32 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ForEachElementTest);
-    defineReflectiveTests(ForEachElementWithNullSafetyTest);
     defineReflectiveTests(ForLoopElementTest);
   });
 }
 
 @reflectiveTest
-class ForEachElementTest extends PubPackageResolutionTest {
+class ForEachElementTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
+  test_optIn_fromOptOut() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A implements Iterable<int> {
+  Iterator<int> iterator => throw 0;
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.7
+import 'a.dart';
+
+f(A a) {
+  for (var v in a) {
+    v;
+  }
+}
+''');
+  }
+
   test_withDeclaration_scope() async {
     await assertNoErrorsInCode(r'''
 main() {
@@ -45,29 +64,6 @@ main() {
       findNode.simple('v];'),
       findElement.topGet('v'),
     );
-  }
-}
-
-@reflectiveTest
-class ForEachElementWithNullSafetyTest extends ForEachElementTest
-    with WithNullSafetyMixin {
-  test_optIn_fromOptOut() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-class A implements Iterable<int> {
-  Iterator<int> iterator => throw 0;
-}
-''');
-
-    await assertNoErrorsInCode(r'''
-// @dart = 2.7
-import 'a.dart';
-
-f(A a) {
-  for (var v in a) {
-    v;
-  }
-}
-''');
   }
 }
 

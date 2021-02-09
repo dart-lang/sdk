@@ -16,7 +16,8 @@ main() {
 }
 
 @reflectiveTest
-class LogicalAndTest extends PubPackageResolutionTest {
+class LogicalAndTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_upward() async {
     await resolveTestCode('''
 void f(bool a, bool b) {
@@ -47,7 +48,8 @@ T b<T>() => throw '';
 }
 
 @reflectiveTest
-class LogicalOrTest extends PubPackageResolutionTest {
+class LogicalOrTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_upward() async {
     await resolveTestCode('''
 void f(bool a, bool b) {

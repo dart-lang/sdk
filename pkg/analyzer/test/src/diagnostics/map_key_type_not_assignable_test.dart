@@ -10,6 +10,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MapKeyTypeNotAssignableTest);
+    defineReflectiveTests(MapKeyTypeNotAssignableWithoutNullSafetyTest);
   });
 }
 
@@ -187,12 +188,6 @@ var v = <int, String>{...{1: 'a'}};
 ''');
   }
 
-  test_nonConst_spread_intNum() async {
-    await assertNoErrorsInCode('''
-var v = <int, int>{...<num, num>{1: 1}};
-''');
-  }
-
   test_nonConst_spread_intString() async {
     await assertErrorsInCode('''
 var v = <int, String>{...{'a': 'a'}};
@@ -205,6 +200,17 @@ var v = <int, String>{...{'a': 'a'}};
     await assertNoErrorsInCode('''
 dynamic a = 'a';
 var v = <int, String>{...{a: 'a'}};
+''');
+  }
+}
+
+@reflectiveTest
+class MapKeyTypeNotAssignableWithoutNullSafetyTest
+    extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin, MapKeyTypeNotAssignableTestCases {
+  test_nonConst_spread_intNum() async {
+    await assertNoErrorsInCode('''
+var v = <int, int>{...<num, num>{1: 1}};
 ''');
   }
 }

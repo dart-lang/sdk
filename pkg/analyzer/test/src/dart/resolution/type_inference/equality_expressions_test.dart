@@ -16,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class EqualTest extends PubPackageResolutionTest {
+class EqualTest extends PubPackageResolutionTest with WithoutNullSafetyMixin {
   test_simple() async {
     await resolveTestCode('''
 void f(Object a, Object b) {
@@ -32,7 +32,8 @@ void f(Object a, Object b) {
 class EqualWithNullSafetyTest extends EqualTest with WithNullSafetyMixin {}
 
 @reflectiveTest
-class NotEqualTest extends PubPackageResolutionTest {
+class NotEqualTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_simple() async {
     await resolveTestCode('''
 void f(Object a, Object b) {

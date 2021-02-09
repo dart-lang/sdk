@@ -9,7 +9,6 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImportResolutionTest);
-    defineReflectiveTests(ImportResolutionWithNullSafetyTest);
   });
 }
 
@@ -26,7 +25,3 @@ Never f() => throw 'foo';
 ''');
   }
 }
-
-@reflectiveTest
-class ImportResolutionWithNullSafetyTest extends ImportResolutionTest
-    with WithNullSafetyMixin {}

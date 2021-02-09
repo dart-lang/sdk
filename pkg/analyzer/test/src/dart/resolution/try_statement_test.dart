@@ -10,7 +10,6 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TryStatementTest);
-    defineReflectiveTests(TryStatementWithNullSafetyTest);
   });
 }
 
@@ -63,7 +62,3 @@ main() {
     expect(node.stackTraceParameter!.staticElement, st);
   }
 }
-
-@reflectiveTest
-class TryStatementWithNullSafetyTest extends TryStatementTest
-    with WithNullSafetyMixin {}

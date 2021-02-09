@@ -558,7 +558,8 @@ void f(Never? x) {
 }
 
 @reflectiveTest
-class InvalidUseOfNeverTest_Legacy extends PubPackageResolutionTest {
+class InvalidUseOfNeverTest_Legacy extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_binaryExpression_eqEq() async {
     await assertNoErrorsInCode(r'''
 void f() {

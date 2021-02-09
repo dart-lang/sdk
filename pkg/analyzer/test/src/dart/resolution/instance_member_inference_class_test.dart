@@ -11,7 +11,6 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InstanceMemberInferenceClassTest);
-    defineReflectiveTests(InstanceMemberInferenceClassWithNullSafetyTest);
   });
 }
 
@@ -159,6 +158,28 @@ class X implements A, B, C {
     _assertFieldTypeDynamic(foo);
   }
 
+  test_field_multiple_gettersSetters_final_nonNullify() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+// @dart = 2.7
+abstract class A {
+  int get foo;
+}
+abstract class B {
+  set foo(num _);
+}
+''');
+
+    await resolveTestCode('''
+import 'a.dart';
+
+class X implements A, B {
+  final foo;
+}
+''');
+    var foo = findElement.field('foo', of: 'X');
+    _assertFieldType(foo, 'int');
+  }
+
   test_field_multiple_gettersSetters_notFinal_combined_notSame() async {
     await resolveTestCode('''
 class A {
@@ -236,6 +257,28 @@ class X implements A, B, C {
     _assertFieldTypeDynamic(foo);
   }
 
+  test_field_multiple_gettersSetters_notFinal_nonNullify() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+// @dart = 2.7
+abstract class A {
+  int get foo;
+}
+abstract class B {
+  set foo(int _);
+}
+''');
+
+    await resolveTestCode('''
+import 'a.dart';
+
+class X implements A, B {
+  var foo;
+}
+''');
+    var foo = findElement.field('foo', of: 'X');
+    _assertFieldType(foo, 'int');
+  }
+
   test_field_multiple_setters_combined() async {
     await resolveTestCode('''
 class A {
@@ -266,6 +309,42 @@ class C implements A, B {
 ''');
     var foo = findElement.field('foo', of: 'C');
     _assertFieldTypeDynamic(foo);
+  }
+
+  test_field_single_getter_nonNullify() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+// @dart = 2.7
+abstract class A {
+  int get foo;
+}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+
+abstract class B implements A {
+  var foo;
+}
+''');
+    var foo = findElement.field('foo', of: 'B');
+    _assertFieldType(foo, 'int');
+  }
+
+  test_field_single_setter_nonNullify() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+// @dart = 2.7
+abstract class A {
+  set foo(int _);
+}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+
+abstract class B implements A {
+  var foo;
+}
+''');
+    var foo = findElement.field('foo', of: 'B');
+    _assertFieldType(foo, 'int');
   }
 
   test_getter_multiple_getters_combined() async {
@@ -384,6 +463,42 @@ class C implements A, B {
 ''');
     var foo = findElement.getter('foo', of: 'C');
     _assertGetterTypeDynamic(foo);
+  }
+
+  test_getter_single_getter_nonNullify() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+// @dart = 2.7
+abstract class A {
+  int get foo;
+}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+
+abstract class B implements A {
+  get foo;
+}
+''');
+    var foo = findElement.getter('foo', of: 'B');
+    _assertGetterType(foo, 'int');
+  }
+
+  test_getter_single_setter_nonNullify() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+// @dart = 2.7
+abstract class A {
+  set foo(int _);
+}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+
+abstract class B implements A {
+  get foo;
+}
+''');
+    var foo = findElement.getter('foo', of: 'B');
+    _assertGetterType(foo, 'int');
   }
 
   test_invalid_field_overrides_method() async {
@@ -536,6 +651,24 @@ class C implements A, B {
     assertType(p.type, 'num');
   }
 
+  test_method_parameter_required_multiple_different_merge() async {
+    await resolveTestCode('''
+class A {
+  void foo(Object? p) {}
+}
+
+class B {
+  void foo(dynamic p) {}
+}
+
+class C implements A, B {
+  void foo(p) {}
+}
+''');
+    var p = findElement.method('foo', of: 'C').parameters[0];
+    assertType(p.type, 'Object?');
+  }
+
   test_method_parameter_required_multiple_incompatible() async {
     await resolveTestCode('''
 class A {
@@ -579,6 +712,24 @@ class C<T> implements A<T> {
 ''');
     var p = findElement.method('foo', of: 'C').parameters[0];
     assertType(p.type, 'T');
+  }
+
+  test_method_parameter_required_single_nonNullify() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+// @dart = 2.7
+class A {
+  void foo(int p) {}
+}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+
+class B implements A {
+  void foo(p) {}
+}
+''');
+    var p = findElement.method('foo', of: 'B').parameters[0];
+    assertType(p.type, 'int');
   }
 
   test_method_parameter_requiredAndPositional() async {
@@ -661,6 +812,24 @@ class C implements A, B {
     assertTypeDynamic(foo.returnType);
   }
 
+  test_method_return_multiple_different_merge() async {
+    await resolveTestCode('''
+class A {
+  Object? foo() => throw 0;
+}
+
+class B {
+  dynamic foo() => throw 0;
+}
+
+class C implements A, B {
+  foo() => throw 0;
+}
+''');
+    var foo = findElement.method('foo', of: 'C');
+    assertType(foo.returnType, 'Object?');
+  }
+
   test_method_return_multiple_different_void() async {
     await resolveTestCode('''
 class A {
@@ -723,6 +892,24 @@ class C implements A, B {
 ''');
     var foo = findElement.method('foo', of: 'C');
     assertType(foo.returnType, 'void');
+  }
+
+  test_method_return_nonNullify() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+// @dart = 2.7
+abstract class A {
+  int foo();
+}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+
+abstract class B implements A {
+  foo();
+}
+''');
+    var foo = findElement.method('foo', of: 'B');
+    assertType(foo.returnType, 'int');
   }
 
   test_method_return_single() async {
@@ -869,6 +1056,42 @@ class C implements A, B {
     _assertSetterTypeDynamic(foo);
   }
 
+  test_setter_single_getter_nonNullify() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+// @dart = 2.7
+abstract class A {
+  int get foo;
+}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+
+abstract class B implements A {
+  set foo(_);
+}
+''');
+    var foo = findElement.setter('foo', of: 'B');
+    _assertSetterType(foo, 'int');
+  }
+
+  test_setter_single_setter_nonNullify() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+// @dart = 2.7
+abstract class A {
+  set foo(int _);
+}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+
+abstract class B implements A {
+  set foo(_);
+}
+''');
+    var foo = findElement.setter('foo', of: 'B');
+    _assertSetterType(foo, 'int');
+  }
+
   test_setter_single_setter_withoutParameter() async {
     await resolveTestCode('''
 class A {
@@ -939,233 +1162,5 @@ class B implements A {
   void _assertSetterTypeDynamic(PropertyAccessorElement? accessor) {
     accessor!;
     assertTypeDynamic(accessor.parameters.single.type);
-  }
-}
-
-@reflectiveTest
-class InstanceMemberInferenceClassWithNullSafetyTest
-    extends InstanceMemberInferenceClassTest with WithNullSafetyMixin {
-  test_field_multiple_gettersSetters_final_nonNullify() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-// @dart = 2.7
-abstract class A {
-  int get foo;
-}
-abstract class B {
-  set foo(num _);
-}
-''');
-
-    await resolveTestCode('''
-import 'a.dart';
-
-class X implements A, B {
-  final foo;
-}
-''');
-    var foo = findElement.field('foo', of: 'X');
-    _assertFieldType(foo, 'int');
-  }
-
-  test_field_multiple_gettersSetters_notFinal_nonNullify() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-// @dart = 2.7
-abstract class A {
-  int get foo;
-}
-abstract class B {
-  set foo(int _);
-}
-''');
-
-    await resolveTestCode('''
-import 'a.dart';
-
-class X implements A, B {
-  var foo;
-}
-''');
-    var foo = findElement.field('foo', of: 'X');
-    _assertFieldType(foo, 'int');
-  }
-
-  test_field_single_getter_nonNullify() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-// @dart = 2.7
-abstract class A {
-  int get foo;
-}
-''');
-    await resolveTestCode('''
-import 'a.dart';
-
-abstract class B implements A {
-  var foo;
-}
-''');
-    var foo = findElement.field('foo', of: 'B');
-    _assertFieldType(foo, 'int');
-  }
-
-  test_field_single_setter_nonNullify() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-// @dart = 2.7
-abstract class A {
-  set foo(int _);
-}
-''');
-    await resolveTestCode('''
-import 'a.dart';
-
-abstract class B implements A {
-  var foo;
-}
-''');
-    var foo = findElement.field('foo', of: 'B');
-    _assertFieldType(foo, 'int');
-  }
-
-  test_getter_single_getter_nonNullify() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-// @dart = 2.7
-abstract class A {
-  int get foo;
-}
-''');
-    await resolveTestCode('''
-import 'a.dart';
-
-abstract class B implements A {
-  get foo;
-}
-''');
-    var foo = findElement.getter('foo', of: 'B');
-    _assertGetterType(foo, 'int');
-  }
-
-  test_getter_single_setter_nonNullify() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-// @dart = 2.7
-abstract class A {
-  set foo(int _);
-}
-''');
-    await resolveTestCode('''
-import 'a.dart';
-
-abstract class B implements A {
-  get foo;
-}
-''');
-    var foo = findElement.getter('foo', of: 'B');
-    _assertGetterType(foo, 'int');
-  }
-
-  test_method_parameter_required_multiple_different_merge() async {
-    await resolveTestCode('''
-class A {
-  void foo(Object? p) {}
-}
-
-class B {
-  void foo(dynamic p) {}
-}
-
-class C implements A, B {
-  void foo(p) {}
-}
-''');
-    var p = findElement.method('foo', of: 'C').parameters[0];
-    assertType(p.type, 'Object?');
-  }
-
-  test_method_parameter_required_single_nonNullify() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-// @dart = 2.7
-class A {
-  void foo(int p) {}
-}
-''');
-    await resolveTestCode('''
-import 'a.dart';
-
-class B implements A {
-  void foo(p) {}
-}
-''');
-    var p = findElement.method('foo', of: 'B').parameters[0];
-    assertType(p.type, 'int');
-  }
-
-  test_method_return_multiple_different_merge() async {
-    await resolveTestCode('''
-class A {
-  Object? foo() => throw 0;
-}
-
-class B {
-  dynamic foo() => throw 0;
-}
-
-class C implements A, B {
-  foo() => throw 0;
-}
-''');
-    var foo = findElement.method('foo', of: 'C');
-    assertType(foo.returnType, 'Object?');
-  }
-
-  test_method_return_nonNullify() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-// @dart = 2.7
-abstract class A {
-  int foo();
-}
-''');
-    await resolveTestCode('''
-import 'a.dart';
-
-abstract class B implements A {
-  foo();
-}
-''');
-    var foo = findElement.method('foo', of: 'B');
-    assertType(foo.returnType, 'int');
-  }
-
-  test_setter_single_getter_nonNullify() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-// @dart = 2.7
-abstract class A {
-  int get foo;
-}
-''');
-    await resolveTestCode('''
-import 'a.dart';
-
-abstract class B implements A {
-  set foo(_);
-}
-''');
-    var foo = findElement.setter('foo', of: 'B');
-    _assertSetterType(foo, 'int');
-  }
-
-  test_setter_single_setter_nonNullify() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-// @dart = 2.7
-abstract class A {
-  set foo(int _);
-}
-''');
-    await resolveTestCode('''
-import 'a.dart';
-
-abstract class B implements A {
-  set foo(_);
-}
-''');
-    var foo = findElement.setter('foo', of: 'B');
-    _assertSetterType(foo, 'int');
   }
 }

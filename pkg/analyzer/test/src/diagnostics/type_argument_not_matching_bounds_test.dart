@@ -21,7 +21,7 @@ main() {
 
 @reflectiveTest
 class TypeArgumentNotMatchingBoundsTest extends PubPackageResolutionTest
-    with TypeArgumentNotMatchingBoundsTestCases {
+    with WithoutNullSafetyMixin, TypeArgumentNotMatchingBoundsTestCases {
   test_regression_42196_Null() async {
     await assertNoErrorsInCode(r'''
 typedef G<X> = Function(X);

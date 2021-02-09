@@ -16,7 +16,8 @@ main() {
 }
 
 @reflectiveTest
-class ArgumentTypeNotAssignableTest extends PubPackageResolutionTest {
+class ArgumentTypeNotAssignableTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_ambiguousClassName() async {
     // See dartbug.com/19624
     newFile('$testPackageLibPath/lib2.dart', content: '''

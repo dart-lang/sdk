@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class NoDefaultSuperConstructorTest extends PubPackageResolutionTest
-    with NoDefaultSuperConstructorTestCases {}
+    with WithoutNullSafetyMixin, NoDefaultSuperConstructorTestCases {}
 
 mixin NoDefaultSuperConstructorTestCases on PubPackageResolutionTest {
   test_explicitDefaultSuperConstructor() async {

@@ -27,7 +27,8 @@ main() {
 /// Tests that show that extension declarations and the members inside them are
 /// resolved correctly.
 @reflectiveTest
-class ExtensionMethodsDeclarationTest extends PubPackageResolutionTest {
+class ExtensionMethodsDeclarationTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   @override
   List<MockSdkLibrary> get additionalMockSdkLibraries => [
         MockSdkLibrary([
@@ -355,7 +356,8 @@ extension E<T extends Object> on T {
 /// Tests that show that extension declarations support all of the possible
 /// types in the `on` clause.
 @reflectiveTest
-class ExtensionMethodsExtendedTypeTest extends PubPackageResolutionTest {
+class ExtensionMethodsExtendedTypeTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_named_generic() async {
     await assertNoErrorsInCode('''
 class C<T> {}
@@ -482,7 +484,8 @@ class ExtensionMethodsExtendedTypeWithNullSafetyTest
 /// Tests that extension members can be correctly resolved when referenced
 /// by code external to the extension declaration.
 @reflectiveTest
-class ExtensionMethodsExternalReferenceTest extends PubPackageResolutionTest {
+class ExtensionMethodsExternalReferenceTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   /// Corresponds to: extension_member_resolution_t07
   test_dynamicInvocation() async {
     await assertNoErrorsInCode(r'''
@@ -1747,7 +1750,8 @@ f(int? a) {
 /// Tests that extension members can be correctly resolved when referenced
 /// by code internal to (within) the extension declaration.
 @reflectiveTest
-class ExtensionMethodsInternalReferenceTest extends PubPackageResolutionTest {
+class ExtensionMethodsInternalReferenceTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_instance_call() async {
     await assertNoErrorsInCode('''
 class C {}

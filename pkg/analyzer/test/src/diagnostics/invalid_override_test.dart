@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class InvalidOverrideTest extends PubPackageResolutionTest {
+class InvalidOverrideTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_getter_returnType() async {
     await assertErrorsInCode('''
 class A {

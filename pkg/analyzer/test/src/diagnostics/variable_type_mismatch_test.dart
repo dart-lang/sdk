@@ -10,6 +10,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(VariableTypeMismatchTest);
+    defineReflectiveTests(VariableTypeMismatchWithoutNullSafetyTest);
   });
 }
 
@@ -17,7 +18,7 @@ main() {
 class VariableTypeMismatchTest extends PubPackageResolutionTest {
   test_assignNullToInt() async {
     await assertNoErrorsInCode('''
-const int x = null;
+const int? x = null;
 ''');
   }
 
@@ -45,7 +46,11 @@ const Unresolved x = 'foo';
       error(CompileTimeErrorCode.UNDEFINED_CLASS, 6, 10),
     ]);
   }
+}
 
+@reflectiveTest
+class VariableTypeMismatchWithoutNullSafetyTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_int_to_double_variable_reference_is_not_promoted() async {
     // Note: in the following code, the declaration of `y` should produce an
     // error because we should only promote literal ints to doubles; we

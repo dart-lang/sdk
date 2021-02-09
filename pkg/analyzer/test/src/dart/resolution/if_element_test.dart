@@ -9,7 +9,6 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IfElementTest);
-    defineReflectiveTests(IfElementWithNullSafetyTest);
   });
 }
 
@@ -31,7 +30,3 @@ void f(bool Function() b) {
     );
   }
 }
-
-@reflectiveTest
-class IfElementWithNullSafetyTest extends IfElementTest
-    with WithNullSafetyMixin {}

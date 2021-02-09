@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class ArgumentTypeNotAssignableCatchErrorOnErrorTest
-    extends PubPackageResolutionTest {
+    extends PubPackageResolutionTest with WithoutNullSafetyMixin {
   void test_firstParameterIsDynamic() async {
     await assertNoErrorsInCode('''
 void f(Future<int> future, Future<int> Function(dynamic a) callback) {

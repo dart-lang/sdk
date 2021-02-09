@@ -3272,7 +3272,7 @@ const Code<Null> codeExpressionNotMetadata = messageExpressionNotMetadata;
 const MessageCode messageExpressionNotMetadata = const MessageCode(
     "ExpressionNotMetadata",
     message:
-        r"""This can't be used as metadata; metadata should be a reference to a compile-time constant variable, or a call to a constant constructor.""");
+        r"""This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExtendFunction = messageExtendFunction;
@@ -6428,7 +6428,7 @@ const Code<Null> codeMetadataTypeArguments = messageMetadataTypeArguments;
 const MessageCode messageMetadataTypeArguments = const MessageCode(
     "MetadataTypeArguments",
     index: 91,
-    message: r"""An annotation (metadata) can't use type arguments.""");
+    message: r"""An annotation can't use type arguments.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMetadataTypeArgumentsUninstantiated =
@@ -6439,7 +6439,7 @@ const MessageCode messageMetadataTypeArgumentsUninstantiated = const MessageCode
     "MetadataTypeArgumentsUninstantiated",
     index: 114,
     message:
-        r"""An annotation (metadata) with type arguments must be followed by an argument list.""");
+        r"""An annotation with type arguments must be followed by an argument list.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateMethodNotFound =

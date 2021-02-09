@@ -16,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class IsNotTest extends PubPackageResolutionTest {
+class IsNotTest extends PubPackageResolutionTest with WithoutNullSafetyMixin {
   test_simple() async {
     await resolveTestCode('''
 void f(Object a) {
@@ -32,7 +32,7 @@ void f(Object a) {
 class IsNotWithNullSafetyTest extends IsNotTest with WithNullSafetyMixin {}
 
 @reflectiveTest
-class IsTest extends PubPackageResolutionTest {
+class IsTest extends PubPackageResolutionTest with WithoutNullSafetyMixin {
   test_simple() async {
     await resolveTestCode('''
 void f(Object a) {

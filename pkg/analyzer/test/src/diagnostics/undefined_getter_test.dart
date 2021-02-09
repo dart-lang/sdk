@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class UndefinedGetterTest extends PubPackageResolutionTest
-    with UndefinedGetterTestCases {}
+    with WithoutNullSafetyMixin, UndefinedGetterTestCases {}
 
 mixin UndefinedGetterTestCases on PubPackageResolutionTest {
   test_compoundAssignment_hasSetter_instance() async {

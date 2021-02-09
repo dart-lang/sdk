@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class MissingReturnTest extends PubPackageResolutionTest {
+class MissingReturnTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_alwaysThrows() async {
     writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode(r'''

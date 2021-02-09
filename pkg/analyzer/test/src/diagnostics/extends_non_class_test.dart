@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class ExtendsNonClassTest extends PubPackageResolutionTest {
+class ExtendsNonClassTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_undefined() async {
     await assertErrorsInCode(r'''
 class C extends A {}

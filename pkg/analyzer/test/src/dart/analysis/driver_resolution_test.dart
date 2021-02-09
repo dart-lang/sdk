@@ -35,7 +35,9 @@ final isVoidType = TypeMatcher<VoidTypeImpl>();
 /// Integration tests for resolution.
 @reflectiveTest
 class AnalysisDriverResolutionTest extends PubPackageResolutionTest
-    with ElementsTypesMixin {
+    with WithoutNullSafetyMixin, ElementsTypesMixin {
+  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
+  //  test cases.
   void assertDeclaredVariableType(SimpleIdentifier node, String expected) {
     var element = node.staticElement as VariableElement;
     assertType(element.type, expected);

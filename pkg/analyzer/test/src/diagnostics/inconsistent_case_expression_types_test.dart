@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class InconsistentCaseExpressionTypesTest extends PubPackageResolutionTest {
+class InconsistentCaseExpressionTypesTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_dynamic() async {
     // Even though A.S and S have a static type of "dynamic", we should see
     // that they match 'abc', because they are constant strings.

@@ -19,7 +19,8 @@ main() {
 }
 
 @reflectiveTest
-class PrefixedIdentifierResolutionTest extends PubPackageResolutionTest {
+class PrefixedIdentifierResolutionTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_dynamic_explicitCore_withPrefix() async {
     await assertNoErrorsInCode(r'''
 import 'dart:core' as mycore;

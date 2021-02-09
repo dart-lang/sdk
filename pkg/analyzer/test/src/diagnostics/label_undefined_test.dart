@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class LabelUndefinedTest extends PubPackageResolutionTest {
+class LabelUndefinedTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_break() async {
     await assertErrorsInCode(r'''
 f() {

@@ -28,7 +28,8 @@ void f<T extends Map<int, String>?>(T a) {
 }
 
 @reflectiveTest
-class NotMapSpreadTest extends PubPackageResolutionTest {
+class NotMapSpreadTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_map() async {
     await assertNoErrorsInCode('''
 var a = {0: 0};

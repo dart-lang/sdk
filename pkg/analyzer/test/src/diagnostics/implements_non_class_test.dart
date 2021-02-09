@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class ImplementsNonClassTest extends PubPackageResolutionTest {
+class ImplementsNonClassTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_class() async {
     await assertErrorsInCode(r'''
 int A = 7;

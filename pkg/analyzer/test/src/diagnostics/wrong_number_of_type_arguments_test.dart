@@ -18,18 +18,18 @@ class WrongNumberOfTypeArgumentsTest extends PubPackageResolutionTest {
   test_class_tooFew() async {
     await assertErrorsInCode(r'''
 class A<E, F> {}
-A<A> a;
+A<A>? a;
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 17, 4),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 17, 5),
     ]);
   }
 
   test_class_tooMany() async {
     await assertErrorsInCode(r'''
 class A<E> {}
-A<A, A> a;
+A<A, A>? a;
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 14, 7),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 14, 8),
     ]);
   }
 
@@ -132,36 +132,36 @@ f() {
   test_type_tooFew() async {
     await assertErrorsInCode(r'''
 class A<K, V> {
-  K element;
+  late K element;
 }
 f(A<int> a) {
   a.element.anyGetterExistsInDynamic;
 }
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 33, 6),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 38, 6),
     ]);
   }
 
   test_type_tooMany() async {
     await assertErrorsInCode(r'''
 class A<E> {
-  E element;
+  late E element;
 }
 f(A<int, int> a) {
   a.element.anyGetterExistsInDynamic;
 }
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 30, 11),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 35, 11),
     ]);
   }
 
   test_typeParameter() async {
     await assertErrorsInCode(r'''
 class C<T> {
-  T<int> f;
+  late T<int> f;
 }
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 15, 6),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 20, 6),
     ]);
   }
 

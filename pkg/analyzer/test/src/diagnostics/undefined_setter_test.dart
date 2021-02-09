@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class UndefinedSetterTest extends PubPackageResolutionTest
-    with UndefinedSetterTestCases {}
+    with WithoutNullSafetyMixin, UndefinedSetterTestCases {}
 
 mixin UndefinedSetterTestCases on PubPackageResolutionTest {
   test_importWithPrefix_defined() async {

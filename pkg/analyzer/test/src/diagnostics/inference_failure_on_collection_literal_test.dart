@@ -136,11 +136,11 @@ void f() => [];
 
   test_inferredFromNullAware() async {
     await assertErrorsInCode(r'''
-void f(List<int> a) {
+void f(List<int>? a) {
   var x = a ?? [];
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 28, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
     ]);
   }
 

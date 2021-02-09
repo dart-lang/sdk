@@ -12,7 +12,6 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssignmentDriverResolutionTest);
-    defineReflectiveTests(AssignmentDriverResolutionWithNullSafetyTest);
     defineReflectiveTests(
       AssignmentDriverResolutionWithNonFunctionTypeAliasesTest,
     );
@@ -2425,8 +2424,3 @@ void f() {
     assertType(assignment.rightHandSide, 'int');
   }
 }
-
-@reflectiveTest
-class AssignmentDriverResolutionWithNullSafetyTest
-    extends PubPackageResolutionTest
-    with WithNullSafetyMixin, AssignmentDriverResolutionTestCases {}

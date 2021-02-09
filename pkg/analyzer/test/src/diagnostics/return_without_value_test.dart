@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class ReturnWithoutValueTest extends PubPackageResolutionTest {
+class ReturnWithoutValueTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_async_futureInt() async {
     await assertErrorsInCode('''
 Future<int> f() async {

@@ -11,13 +11,12 @@ import '../resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionMethodsTest);
-    defineReflectiveTests(ExtensionMethodsWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class ExtensionMethodsTest extends PubPackageResolutionTest
-    with ExtensionMethodsTestCases {}
+    with WithoutNullSafetyMixin, ExtensionMethodsTestCases {}
 
 mixin ExtensionMethodsTestCases on ResolutionTest {
   test_implicit_getter() async {
@@ -618,7 +617,3 @@ void f(A<int> a) {
     }
   }
 }
-
-@reflectiveTest
-class ExtensionMethodsWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin, ExtensionMethodsTestCases {}

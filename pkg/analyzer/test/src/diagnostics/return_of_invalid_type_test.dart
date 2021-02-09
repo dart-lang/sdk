@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class ReturnOfInvalidTypeTest extends PubPackageResolutionTest {
+class ReturnOfInvalidTypeTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_closure() async {
     await assertErrorsInCode('''
 typedef Td = int Function();

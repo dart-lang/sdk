@@ -84,17 +84,15 @@ String get v3 => _v;
 import 'package:meta/meta.dart';
 
 @doNotStore
-String _v = '';
+String? _v = '';
 
 @doNotStore
-String _v2 = '';
+String? _v2 = '';
 
-var b = true;
-
-String get v => _v ?? _v2;
+String? get v => _v ?? _v2;
 ''', [
-      error(HintCode.RETURN_OF_DO_NOT_STORE, 124, 2, messageContains: '_v'),
-      error(HintCode.RETURN_OF_DO_NOT_STORE, 130, 3, messageContains: '_v2'),
+      error(HintCode.RETURN_OF_DO_NOT_STORE, 112, 2, messageContains: '_v'),
+      error(HintCode.RETURN_OF_DO_NOT_STORE, 118, 3, messageContains: '_v2'),
     ]);
   }
 

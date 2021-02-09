@@ -391,14 +391,6 @@ abstract class AbstractValueDomain {
   /// number or `null` at runtime.
   AbstractBool isNumberOrNull(covariant AbstractValue value);
 
-  /// Returns an [AbstractBool] that describes whether [value] is a non-integer
-  /// number at runtime.
-  AbstractBool isDouble(covariant AbstractValue value);
-
-  /// Returns an [AbstractBool] that describes whether [value] is a non-integer
-  /// number or `null` at runtime.
-  AbstractBool isDoubleOrNull(covariant AbstractValue value);
-
   /// Returns an [AbstractBool] that describes whether [value] is a JavaScript
   /// bool at runtime.
   AbstractBool isBoolean(covariant AbstractValue value);

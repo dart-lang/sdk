@@ -79,6 +79,8 @@ typedef ScopedCFType<SecPolicyRef> ScopedSecPolicyRef;
 typedef ScopedCFType<SecCertificateRef> ScopedSecCertificateRef;
 typedef ScopedCFType<SecTrustRef> ScopedSecTrustRef;
 
+const int kNumTrustEvaluateRequestParams = 5;
+
 static SecCertificateRef CreateSecCertificateFromX509(X509* cert) {
   if (cert == NULL) {
     return NULL;
@@ -206,11 +208,21 @@ static ssl_verify_result_t CertificateVerificationCallback(SSL* ssl,
     return ssl_verify_invalid;
   }
 
-  // Handler should release trust and root_cert.
+  // TrustEvaluateHandler should release all handles.
   Dart_CObject dart_cobject_trust;
   dart_cobject_trust.type = Dart_CObject_kInt64;
   dart_cobject_trust.value.as_int64 =
-      reinterpret_cast<intptr_t>(CFRetain(trust.get()));
+      reinterpret_cast<intptr_t>(trust.release());
+
+  Dart_CObject dart_cobject_cert_chain;
+  dart_cobject_cert_chain.type = Dart_CObject_kInt64;
+  dart_cobject_cert_chain.value.as_int64 =
+      reinterpret_cast<intptr_t>(cert_chain.release());
+
+  Dart_CObject dart_cobject_trusted_certs;
+  dart_cobject_trusted_certs.type = Dart_CObject_kInt64;
+  dart_cobject_trusted_certs.value.as_int64 =
+      reinterpret_cast<intptr_t>(trusted_certs.release());
 
   Dart_CObject dart_cobject_root_cert;
   dart_cobject_root_cert.type = Dart_CObject_kInt64;
@@ -222,9 +234,10 @@ static ssl_verify_result_t CertificateVerificationCallback(SSL* ssl,
 
   Dart_CObject array;
   array.type = Dart_CObject_kArray;
-  array.value.as_array.length = 3;
-  Dart_CObject* values[] = {&dart_cobject_trust, &dart_cobject_root_cert,
-                            &reply_send_port};
+  array.value.as_array.length = kNumTrustEvaluateRequestParams;
+  Dart_CObject* values[] = {&dart_cobject_trust, &dart_cobject_cert_chain,
+                            &dart_cobject_trusted_certs,
+                            &dart_cobject_root_cert, &reply_send_port};
   array.value.as_array.values = values;
 
   Dart_PostCObject(filter->trust_evaluate_reply_port(), &array);
@@ -265,12 +278,23 @@ static void TrustEvaluateHandler(Dart_Port dest_port_id,
   }
 
   CObjectArray request(message);
-  ASSERT(request.Length() == 3);
+  if (request.Length() != kNumTrustEvaluateRequestParams) {
+    FATAL2("Malformed trust evaluate message: got %" Pd
+           " parameters "
+           "expected %d\n",
+           request.Length(), kNumTrustEvaluateRequestParams);
+  }
   CObjectIntptr trust_cobject(request[0]);
   ScopedSecTrustRef trust(reinterpret_cast<SecTrustRef>(trust_cobject.Value()));
-  CObjectIntptr root_cert_cobject(request[1]);
+  CObjectIntptr cert_chain_cobject(request[1]);
+  ScopedCFMutableArrayRef cert_chain(
+      reinterpret_cast<CFMutableArrayRef>(cert_chain_cobject.Value()));
+  CObjectIntptr trusted_certs_cobject(request[2]);
+  ScopedCFMutableArrayRef trusted_certs(
+      reinterpret_cast<CFMutableArrayRef>(trusted_certs_cobject.Value()));
+  CObjectIntptr root_cert_cobject(request[3]);
   X509* root_cert = reinterpret_cast<X509*>(root_cert_cobject.Value());
-  CObjectSendPort reply_port(request[2]);
+  CObjectSendPort reply_port(request[4]);
   Dart_Port reply_port_id = reply_port.Value();
 
   SecTrustResultType trust_result;
@@ -278,23 +302,20 @@ static void TrustEvaluateHandler(Dart_Port dest_port_id,
     usleep(3000 * 1000 /* 3 s*/);
   }
 
+  OSStatus status = noErr;
   // Perform the certificate verification.
-#if ((defined(__MAC_OS_X_VERSION_MIN_REQUIRED) && defined(__MAC_10_14_0) &&    \
-      __MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_14_0) ||                     \
-     (defined(__IPHONE_OS_VERSION_MIN_REQUIRED) && defined(__IPHONE_12_0) &&   \
-      _IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_12_0))
-  // SecTrustEvaluateWithError available as of OSX 10.14 and iOS 12.
-  // The result is ignored as we get more information from the following call to
-  // SecTrustGetTrustResult which also happens to match the information we get
-  // from calling SecTrustEvaluate.
-  bool res = SecTrustEvaluateWithError(trust.get(), NULL);
-  USE(res);
-  OSStatus status = SecTrustGetTrustResult(trust.get(), &trust_result);
-#else
-
-  // SecTrustEvaluate is deprecated as of OSX 10.15 and iOS 13.
-  OSStatus status = SecTrustEvaluate(trust.get(), &trust_result);
-#endif
+  if (__builtin_available(iOS 12.0, macOS 10.14, *)) {
+    // SecTrustEvaluateWithError available as of OSX 10.14 and iOS 12.
+    // The result is ignored as we get more information from the following call
+    // to SecTrustGetTrustResult which also happens to match the information we
+    // get from calling SecTrustEvaluate.
+    bool res = SecTrustEvaluateWithError(trust.get(), NULL);
+    USE(res);
+    status = SecTrustGetTrustResult(trust.get(), &trust_result);
+  } else {
+    // SecTrustEvaluate is deprecated as of OSX 10.15 and iOS 13.
+    status = SecTrustEvaluate(trust.get(), &trust_result);
+  }
 
   postReply(reply_port_id,
             status == noErr && (trust_result == kSecTrustResultProceed ||

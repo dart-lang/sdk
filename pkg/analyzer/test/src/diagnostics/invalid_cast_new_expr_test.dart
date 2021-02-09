@@ -14,7 +14,10 @@ main() {
 }
 
 @reflectiveTest
-class InvalidCastNewExprTest extends PubPackageResolutionTest {
+class InvalidCastNewExprTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
+  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
+  //  test cases.
   test_listLiteral_const() async {
     await assertErrorsInCode(r'''
 const c = <B>[A()];

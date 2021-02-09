@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class ConstNotInitializedTest extends PubPackageResolutionTest {
+class ConstNotInitializedTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_extension_static() async {
     await assertErrorsInCode('''
 extension E on String {

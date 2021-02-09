@@ -35,7 +35,9 @@ class ExpectedLocation {
 
 @reflectiveTest
 class IndexTest extends PubPackageResolutionTest
-    with _IndexMixin, WithNonFunctionTypeAliasesMixin {
+    with WithoutNullSafetyMixin, _IndexMixin, WithNonFunctionTypeAliasesMixin {
+  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
+  //  test cases.
   test_fieldFormalParameter_noSuchField() async {
     await _indexTestUnit('''
 class B<T> {

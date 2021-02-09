@@ -218,7 +218,7 @@ class N {}''');
 import 'lib1.dart';
 import 'lib2.dart';
 class A<T> {}
-A<N> f() { return null; }''', [
+A<N>? f() { return null; }''', [
       error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 56, 1),
     ]);
   }

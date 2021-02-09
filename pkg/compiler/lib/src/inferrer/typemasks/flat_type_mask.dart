@@ -157,7 +157,7 @@ class FlatTypeMask implements TypeMask {
     }
   }
 
-  bool isSingleImplementationOf(ClassEntity cls, JClosedWorld closedWorld) {
+  bool _isSingleImplementationOf(ClassEntity cls, JClosedWorld closedWorld) {
     // Special case basic types so that, for example, JSString is the
     // single implementation of String.
     // The general optimization is to realize there is only one class that
@@ -179,10 +179,6 @@ class FlatTypeMask implements TypeMask {
           cls == commonElements.jsUInt32Class ||
           cls == commonElements.jsUInt31Class;
     }
-    if (containsOnlyDouble(closedWorld)) {
-      return cls == closedWorld.commonElements.doubleClass ||
-          cls == commonElements.jsDoubleClass;
-    }
     return false;
   }
 
@@ -200,10 +196,10 @@ class FlatTypeMask implements TypeMask {
     FlatTypeMask flatOther = other;
     ClassEntity otherBase = flatOther.base;
     // If other is exact, it only contains its base.
-    // TODO(herhut): Get rid of isSingleImplementationOf.
+    // TODO(herhut): Get rid of _isSingleImplementationOf.
     if (flatOther.isExact) {
       return (isExact && base == otherBase) ||
-          isSingleImplementationOf(otherBase, closedWorld);
+          _isSingleImplementationOf(otherBase, closedWorld);
     }
     // If other is subclass, this has to be subclass, as well. Unless
     // flatOther.base covers all subtypes of this. Currently, we only
@@ -228,7 +224,7 @@ class FlatTypeMask implements TypeMask {
   @override
   bool containsOnlyInt(JClosedWorld closedWorld) {
     CommonElements commonElements = closedWorld.commonElements;
-    return base == closedWorld.commonElements.intClass ||
+    return base == commonElements.intClass ||
         base == commonElements.jsIntClass ||
         base == commonElements.jsPositiveIntClass ||
         base == commonElements.jsUInt31Class ||
@@ -236,15 +232,10 @@ class FlatTypeMask implements TypeMask {
   }
 
   @override
-  bool containsOnlyDouble(JClosedWorld closedWorld) {
-    return base == closedWorld.commonElements.doubleClass ||
-        base == closedWorld.commonElements.jsDoubleClass;
-  }
-
-  @override
   bool containsOnlyNum(JClosedWorld closedWorld) {
     return containsOnlyInt(closedWorld) ||
-        containsOnlyDouble(closedWorld) ||
+        base == closedWorld.commonElements.doubleClass ||
+        base == closedWorld.commonElements.jsDoubleClass ||
         base == closedWorld.commonElements.numClass ||
         base == closedWorld.commonElements.jsNumberClass;
   }

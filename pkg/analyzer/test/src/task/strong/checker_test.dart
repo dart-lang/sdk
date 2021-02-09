@@ -15,7 +15,9 @@ void main() {
 }
 
 @reflectiveTest
-class CheckerTest extends PubPackageResolutionTest {
+class CheckerTest extends PubPackageResolutionTest with WithoutNullSafetyMixin {
+  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
+  //  test cases.
   test_awaitForInCastsStreamElementToVariable() async {
     await assertErrorsInCode('''
 abstract class MyStream<T> extends Stream<T> {

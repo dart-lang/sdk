@@ -82,12 +82,12 @@ const x = const A();
     await assertErrorsInCode('''
 class C<T> {
   const C();
-  T get t => null;
+  T? get t => null;
 }
 
 const x = const C().t;
 ''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 58,
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 59,
           11),
     ]);
   }

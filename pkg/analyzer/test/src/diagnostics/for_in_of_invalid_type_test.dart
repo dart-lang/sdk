@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class ForInOfInvalidTypeTest extends PubPackageResolutionTest {
+class ForInOfInvalidTypeTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_awaitForIn_dynamic() async {
     await assertNoErrorsInCode('''
 f(dynamic e) async {

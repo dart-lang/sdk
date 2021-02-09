@@ -62,6 +62,8 @@ f() {
   }
 }
 ''', [
+      // TODO(srawlins): Ideally the first error should not be reported.
+      error(HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, 21, 1),
       error(CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE, 21, 1),
       error(HintCode.UNUSED_CATCH_CLAUSE, 30, 1),
     ]);
@@ -76,6 +78,8 @@ f() {
   }
 }
 ''', [
+      // TODO(srawlins): Ideally the first error should not be reported.
+      error(HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, 32, 1),
       error(CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE, 32, 1),
       error(HintCode.UNUSED_CATCH_CLAUSE, 41, 1),
     ]);

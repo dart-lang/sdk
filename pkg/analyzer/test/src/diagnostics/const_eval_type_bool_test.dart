@@ -58,7 +58,7 @@ const int i = (1 ? 'alpha' : 'beta').length;
   test_logicalOr_trueLeftOperand() async {
     await assertNoErrorsInCode(r'''
 class C {
-  final int x;
+  final int? x;
   const C({this.x}) : assert(x == null || x >= 0);
 }
 const c = const C();

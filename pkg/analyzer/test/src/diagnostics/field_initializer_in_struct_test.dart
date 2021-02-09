@@ -19,11 +19,11 @@ class FieldInitializerInStructTest extends PubPackageResolutionTest {
     await assertErrorsInCode('''
 import 'dart:ffi';
 class C extends Struct {
-  @Int32() int f;
+  @Int32() int? f;
   C() : f = 0;
 }
 ''', [
-      error(FfiCode.FIELD_INITIALIZER_IN_STRUCT, 70, 5),
+      error(FfiCode.FIELD_INITIALIZER_IN_STRUCT, 71, 5),
     ]);
   }
 
@@ -31,7 +31,7 @@ class C extends Struct {
     await assertNoErrorsInCode('''
 import 'dart:ffi';
 class C extends Struct {
-  @Int32() int f;
+  @Int32() int? f;
   C() : super();
 }
 ''');

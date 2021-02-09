@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class UnnecessaryCastTest extends PubPackageResolutionTest {
+class UnnecessaryCastTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_conditionalExpression_changesResultType_left() async {
     await assertNoErrorsInCode(r'''
 class A {}

@@ -17,7 +17,8 @@ main() {
 }
 
 @reflectiveTest
-class PrefixExpressionResolutionTest extends PubPackageResolutionTest {
+class PrefixExpressionResolutionTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_bang_bool_context() async {
     await assertNoErrorsInCode(r'''
 T f<T>() {

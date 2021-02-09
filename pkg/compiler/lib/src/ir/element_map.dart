@@ -61,7 +61,7 @@ abstract class IrToElementMap {
   Iterable<InterfaceType> getInterfaces(IndexedClass cls);
   InterfaceType asInstanceOf(InterfaceType type, ClassEntity cls);
   DartType substByContext(DartType type, InterfaceType context);
-  DartType getCallType(InterfaceType type);
+  FunctionType getCallType(InterfaceType type);
   int getHierarchyDepth(IndexedClass cls);
   DartType getTypeVariableBound(IndexedTypeVariable typeVariable);
   List<Variance> getTypeVariableVariances(IndexedClass cls);

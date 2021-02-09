@@ -241,14 +241,14 @@ class A{
 import 'package:meta/meta.dart';
 
 @doNotStore
-final v = '';
+final String? v = '';
 
 class A {
   final f = v ?? v;
 }
 ''', [
-      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 83, 1),
-      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 88, 1),
+      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 91, 1),
+      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 96, 1),
     ]);
   }
 

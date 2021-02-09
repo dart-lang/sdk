@@ -179,7 +179,10 @@ class A<T> {
 }
 
 @reflectiveTest
-class PotentiallyConstantTest extends PubPackageResolutionTest {
+class PotentiallyConstantTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
+  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
+  //  test cases.
   test_adjacentStrings() async {
     await _assertConst(r'''
 var x = 'a' 'b';

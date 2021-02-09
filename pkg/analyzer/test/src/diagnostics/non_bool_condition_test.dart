@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class NonBoolConditionTest extends PubPackageResolutionTest {
+class NonBoolConditionTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_conditional() async {
     await assertErrorsInCode('''
 f() { return 3 ? 2 : 1; }

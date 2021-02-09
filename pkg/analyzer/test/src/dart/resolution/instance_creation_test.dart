@@ -10,7 +10,6 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InstanceCreationTest);
-    defineReflectiveTests(InstanceCreationWithNullSafetyTest);
   });
 }
 
@@ -171,7 +170,3 @@ main() {
     );
   }
 }
-
-@reflectiveTest
-class InstanceCreationWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin, InstanceCreationTestCases {}

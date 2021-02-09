@@ -446,7 +446,7 @@ abstract class JClassData {
   InterfaceType get mixedInType;
   List<InterfaceType> get interfaces;
   OrderedTypeSet get orderedTypeSet;
-  DartType get callType;
+  FunctionType get callType;
 
   bool get isEnumClass;
   bool get isMixinApplication;
@@ -464,7 +464,6 @@ class JClassDataImpl implements JClassData {
   final ClassDefinition definition;
   @override
   bool isMixinApplication;
-  bool isCallTypeComputed = false;
 
   @override
   InterfaceType thisType;
@@ -508,7 +507,8 @@ class JClassDataImpl implements JClassData {
   bool get isEnumClass => cls != null && cls.isEnum;
 
   @override
-  DartType get callType => null;
+  FunctionType callType;
+  bool isCallTypeComputed = false;
 
   @override
   List<Variance> getVariances() =>

@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class ConflictingGenericInterfacesTest extends PubPackageResolutionTest {
+class ConflictingGenericInterfacesTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_class_extends_implements() async {
     await assertErrorsInCode('''
 class I<T> {}

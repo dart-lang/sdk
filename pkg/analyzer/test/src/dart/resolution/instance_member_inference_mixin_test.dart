@@ -9,7 +9,6 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InstanceMemberInferenceClassTest);
-    defineReflectiveTests(InstanceMemberInferenceClassWithNullSafetyTest);
   });
 }
 
@@ -101,6 +100,24 @@ mixin M on A, B {
 ''');
     var p = findElement.method('foo', of: 'M').parameters[0];
     assertType(p.type, 'num');
+  }
+
+  test_method_parameter_required_multiple_different_merge() async {
+    await resolveTestCode('''
+class A {
+  void foo(Object? p) {}
+}
+
+class B {
+  void foo(dynamic p) {}
+}
+
+mixin M on A, B {
+  void foo(p) {}
+}
+''');
+    var p = findElement.method('foo', of: 'M').parameters[0];
+    assertType(p.type, 'Object?');
   }
 
   test_method_parameter_required_multiple_incompatible() async {
@@ -228,6 +245,24 @@ mixin M on A, B {
     assertTypeDynamic(foo.returnType);
   }
 
+  test_method_return_multiple_different_merge() async {
+    await resolveTestCode('''
+class A {
+  Object? foo() => throw 0;
+}
+
+class B {
+  dynamic foo() => throw 0;
+}
+
+mixin M on A, B {
+  foo() => throw 0;
+}
+''');
+    var foo = findElement.method('foo', of: 'M');
+    assertType(foo.returnType, 'Object?');
+  }
+
   test_method_return_multiple_different_void() async {
     await resolveTestCode('''
 class A {
@@ -316,45 +351,5 @@ class B<T> extends A<T> {
 ''');
     var foo = findElement.method('foo', of: 'B');
     assertType(foo.returnType, 'T');
-  }
-}
-
-@reflectiveTest
-class InstanceMemberInferenceClassWithNullSafetyTest
-    extends InstanceMemberInferenceClassTest with WithNullSafetyMixin {
-  test_method_parameter_required_multiple_different_merge() async {
-    await resolveTestCode('''
-class A {
-  void foo(Object? p) {}
-}
-
-class B {
-  void foo(dynamic p) {}
-}
-
-mixin M on A, B {
-  void foo(p) {}
-}
-''');
-    var p = findElement.method('foo', of: 'M').parameters[0];
-    assertType(p.type, 'Object?');
-  }
-
-  test_method_return_multiple_different_merge() async {
-    await resolveTestCode('''
-class A {
-  Object? foo() => throw 0;
-}
-
-class B {
-  dynamic foo() => throw 0;
-}
-
-mixin M on A, B {
-  foo() => throw 0;
-}
-''');
-    var foo = findElement.method('foo', of: 'M');
-    assertType(foo.returnType, 'Object?');
   }
 }

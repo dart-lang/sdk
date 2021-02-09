@@ -244,10 +244,6 @@ class PowersetBitsDomain {
     return AbstractBool.Maybe;
   }
 
-  AbstractBool isDoubleOrNull(int value) => isDouble(excludeNull(value));
-
-  AbstractBool isDouble(int value) => isOther(value);
-
   AbstractBool isNumberOrNull(int value) => isNumber(excludeNull(value));
 
   AbstractBool isNumber(int value) => isOther(value);

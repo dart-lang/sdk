@@ -998,7 +998,7 @@ class RecordClassData implements JClassData {
   bool get isEnumClass => false;
 
   @override
-  DartType get callType => null;
+  FunctionType get callType => null;
 
   @override
   List<InterfaceType> get interfaces => const <InterfaceType>[];

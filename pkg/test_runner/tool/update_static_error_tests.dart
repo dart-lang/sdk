@@ -13,6 +13,7 @@ import 'package:glob/list_local_fs.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:test_runner/src/command_output.dart';
+import 'package:test_runner/src/feature.dart' show Feature;
 import 'package:test_runner/src/path.dart';
 import 'package:test_runner/src/static_error.dart';
 import 'package:test_runner/src/test_file.dart';
@@ -61,8 +62,6 @@ Future<void> main(List<String> args) async {
       allowed: sources);
 
   parser.addSeparator("Other flags:");
-  parser.addFlag("null-safety",
-      help: "Enable the 'non-nullable' experiment.", negatable: false);
 
   var results = parser.parse(args);
 
@@ -76,7 +75,6 @@ Future<void> main(List<String> args) async {
   }
 
   var dryRun = results["dry-run"] as bool;
-  var nullSafety = results["null-safety"] as bool;
 
   var removeSources = <ErrorSource>{};
   var insertSources = <ErrorSource>{};
@@ -134,10 +132,7 @@ Future<void> main(List<String> args) async {
 
     if (entry is pkg_file.File) {
       await _processFile(entry,
-          dryRun: dryRun,
-          remove: removeSources,
-          insert: insertSources,
-          nullSafety: nullSafety);
+          dryRun: dryRun, remove: removeSources, insert: insertSources);
     }
   }
 }
@@ -151,16 +146,12 @@ void _usageError(ArgParser parser, String message) {
 }
 
 Future<void> _processFile(File file,
-    {bool dryRun,
-    Set<ErrorSource> remove,
-    Set<ErrorSource> insert,
-    bool nullSafety}) async {
+    {bool dryRun, Set<ErrorSource> remove, Set<ErrorSource> insert}) async {
   stdout.write("${file.path}...");
   var source = file.readAsStringSync();
   var testFile = TestFile.parse(Path("."), file.absolute.path, source);
 
   var experiments = [
-    if (nullSafety) "non-nullable",
     if (testFile.experiments.isNotEmpty) ...testFile.experiments
   ];
 
@@ -184,10 +175,15 @@ Future<void> _processFile(File file,
   // tell which web errors are web-specific.
   List<StaticError> cfeErrors;
   if (insert.contains(ErrorSource.cfe) || insert.contains(ErrorSource.web)) {
+    var cfeOptions = [
+      if (testFile.requirements.contains(Feature.nnbdWeak)) "--nnbd-weak",
+      if (testFile.requirements.contains(Feature.nnbdStrong)) "--nnbd-strong",
+      ...options
+    ];
     // Clear the previous line.
     stdout.write("\r${file.path}                      ");
     stdout.write("\r${file.path} (Running CFE...)");
-    cfeErrors = await runCfe(file.absolute.path, options);
+    cfeErrors = await runCfe(file.absolute.path, cfeOptions);
     if (cfeErrors == null) {
       print("Error: failed to update ${file.path}");
     } else if (insert.contains(ErrorSource.cfe)) {

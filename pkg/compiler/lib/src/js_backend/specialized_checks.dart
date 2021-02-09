@@ -57,8 +57,7 @@ class SpecializedChecks {
         return IsTestSpecialization.bool;
       }
 
-      if (element == commonElements.jsDoubleClass ||
-          element == commonElements.doubleClass ||
+      if (element == commonElements.doubleClass ||
           element == commonElements.jsNumberClass ||
           element == commonElements.numClass) {
         return IsTestSpecialization.num;
@@ -166,8 +165,7 @@ class SpecializedChecks {
       return commonElements.specializedAsBool;
     }
 
-    if (element == commonElements.jsDoubleClass ||
-        element == commonElements.doubleClass) {
+    if (element == commonElements.doubleClass) {
       if (legacy) return commonElements.specializedAsDoubleLegacy;
       if (nullable) return commonElements.specializedAsDoubleNullable;
       return commonElements.specializedAsDouble;

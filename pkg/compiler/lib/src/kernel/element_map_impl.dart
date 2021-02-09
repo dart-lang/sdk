@@ -269,6 +269,20 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return data.supertype;
   }
 
+  void _ensureCallType(ClassEntity cls, KClassData data) {
+    assert(checkFamily(cls));
+    if (data is KClassDataImpl && !data.isCallTypeComputed) {
+      MemberEntity callMember =
+          _elementEnvironment.lookupClassMember(cls, Identifiers.call);
+      if (callMember is FunctionEntity &&
+          callMember.isFunction &&
+          !callMember.isAbstract) {
+        data.callType = _elementEnvironment.getFunctionType(callMember);
+      }
+      data.isCallTypeComputed = true;
+    }
+  }
+
   void _ensureThisAndRawType(ClassEntity cls, KClassData data) {
     assert(checkFamily(cls));
     if (data is KClassDataImpl && data.thisType == null) {
@@ -575,14 +589,14 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
 
   /// Returns the type of the `call` method on 'type'.
   ///
-  /// If [type] doesn't have a `call` member `null` is returned. If [type] has
-  /// an invalid `call` member (non-method or a synthesized method with both
-  /// optional and named parameters) a [DynamicType] is returned.
+  /// If [type] doesn't have a `call` member or has a non-method `call` member,
+  /// `null` is returned.
   @override
-  DartType getCallType(InterfaceType type) {
+  FunctionType getCallType(InterfaceType type) {
     IndexedClass cls = type.element;
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
+    _ensureCallType(cls, data);
     if (data.callType != null) {
       return substByContext(data.callType, type);
     }

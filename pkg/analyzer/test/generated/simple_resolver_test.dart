@@ -530,7 +530,7 @@ f() {
     await assertNoErrorsInCode(r'''
 typedef bool P(e);
 class A {
-  P p;
+  late P p;
   m(e) {
     if (p(e)) {}
   }
@@ -604,7 +604,7 @@ import 'lib2.dart';
 main() {
   foo = 0;
 }
-A a;''');
+A a = A();''');
     verifyTestResolved();
   }
 
@@ -693,11 +693,11 @@ main() {
   test_indexExpression_typeParameters() async {
     await assertNoErrorsInCode(r'''
 f() {
-  List<int> a;
+  List<int> a = [];
   a[0];
-  List<List<int>> b;
+  List<List<int>> b = [];
   b[0][0];
-  List<List<List<int>>> c;
+  List<List<List<int>>> c = [];
   c[0][0][0];
 }''');
     verifyTestResolved();
@@ -706,10 +706,10 @@ f() {
   test_indexExpression_typeParameters_invalidAssignmentWarning() async {
     await assertErrorsInCode(r'''
 f() {
-  List<List<int>> b;
+  List<List<int>> b = [];
   b[0][0] = 'hi';
 }''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 39, 4),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 44, 4),
     ]);
     verifyTestResolved();
   }
@@ -854,7 +854,7 @@ const A = null;
     await assertNoErrorsInCode(r'''
 const A = null;
 class C {
-  @A int f;
+  @A int f = 1;
 }''');
     verifyTestResolved();
 
@@ -1077,7 +1077,7 @@ class A {
   test_methodCascades_withSetter() async {
     await assertNoErrorsInCode(r'''
 class A {
-  String name;
+  String name = '';
   void m1() {}
   void m2() {}
   void m() {

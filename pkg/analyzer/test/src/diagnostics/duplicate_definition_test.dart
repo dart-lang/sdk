@@ -1051,11 +1051,11 @@ class A {
   test_parameters_constructor_field_second() async {
     await assertErrorsInCode(r'''
 class A {
-  int a;
+  int? a;
   A(int a, this.a);
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 35, 1),
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 36, 1),
     ]);
   }
 

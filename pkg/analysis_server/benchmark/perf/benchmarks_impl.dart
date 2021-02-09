@@ -116,6 +116,7 @@ class AnalysisBenchmark extends Benchmark {
     var contents = File(filePath).readAsStringSync();
 
     await test.openFile(filePath, contents);
+    await test.analysisFinished;
 
     var stopwatch = Stopwatch()..start();
 

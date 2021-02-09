@@ -15,7 +15,11 @@ main() {
 }
 
 @reflectiveTest
-class InconsistentLanguageVersionOverrideTest extends PubPackageResolutionTest {
+class InconsistentLanguageVersionOverrideTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
+  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
+  //  test cases.
+
   CompileTimeErrorCode get _errorCode =>
       CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE;
 

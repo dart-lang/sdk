@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class FinalNotInitializedTest extends PubPackageResolutionTest {
+class FinalNotInitializedTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_class_instanceField_final_factoryConstructor_only() async {
     await assertNoErrorsInCode('''
 class A {

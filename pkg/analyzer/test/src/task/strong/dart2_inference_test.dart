@@ -22,7 +22,10 @@ void main() {
 ///
 /// https://github.com/dart-lang/sdk/issues/31638
 @reflectiveTest
-class Dart2InferenceTest extends PubPackageResolutionTest {
+class Dart2InferenceTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
+  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
+  //  test cases.
   test_bool_assert() async {
     var code = r'''
 T f<T>(int _) => null;

@@ -615,7 +615,6 @@ class KClassDataImpl implements KClassData {
   final ir.Class node;
   @override
   bool isMixinApplication;
-  bool isCallTypeComputed = false;
 
   @override
   InterfaceType thisType;
@@ -643,7 +642,8 @@ class KClassDataImpl implements KClassData {
   bool get isEnumClass => node.isEnum;
 
   @override
-  DartType get callType => null;
+  FunctionType callType;
+  bool isCallTypeComputed = false;
 
   @override
   Iterable<ConstantValue> getMetadata(

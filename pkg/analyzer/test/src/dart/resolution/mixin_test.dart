@@ -19,7 +19,9 @@ main() {
 
 @reflectiveTest
 class MixinDriverResolutionTest extends PubPackageResolutionTest
-    with ElementsTypesMixin {
+    with WithoutNullSafetyMixin, ElementsTypesMixin {
+  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
+  //  test cases.
   test_accessor_getter() async {
     await assertNoErrorsInCode(r'''
 mixin M {

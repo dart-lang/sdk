@@ -805,6 +805,15 @@ class CodegenWorldImpl implements CodegenWorld {
           if (type == null) return;
           if (_closedWorld.dartTypes.canAssignGenericFunctionTo(type)) {
             _genericCallablePropertiesCache[member] = type;
+          } else {
+            type = type.withoutNullability;
+            if (type is InterfaceType) {
+              FunctionType callType = _closedWorld.dartTypes.getCallType(type);
+              if (callType != null &&
+                  _closedWorld.dartTypes.canAssignGenericFunctionTo(callType)) {
+                _genericCallablePropertiesCache[member] = callType;
+              }
+            }
           }
         }
       });

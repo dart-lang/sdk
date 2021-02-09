@@ -277,7 +277,10 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
 /// The class `StrictModeTest` contains tests to ensure that the correct errors
 /// and warnings are reported when the analysis engine is run in strict mode.
 @reflectiveTest
-class StrictModeTest extends PubPackageResolutionTest {
+class StrictModeTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
+  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
+  //  test cases.
   test_assert_is() async {
     await assertErrorsInCode(r'''
 int f(num n) {
@@ -417,7 +420,10 @@ int f() {
 }
 
 @reflectiveTest
-class TypePropagationTest extends PubPackageResolutionTest {
+class TypePropagationTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
+  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
+  //  test cases.
   test_assignment_null() async {
     String code = r'''
 main() {

@@ -271,8 +271,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       registerInstantiation(_commonElements.jsUInt32Class);
       registerInstantiation(_commonElements.jsUInt31Class);
       registerInstantiation(_commonElements.jsNumberClass);
-    } else if (cls == _commonElements.doubleClass ||
-        cls == _commonElements.jsDoubleClass) {
+    } else if (cls == _commonElements.jsDoubleClass) {
       registerInstantiation(_commonElements.jsDoubleClass);
       registerInstantiation(_commonElements.jsNumberClass);
     } else if (cls == _commonElements.boolClass ||
@@ -281,7 +280,8 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     } else if (cls == _commonElements.nullClass ||
         cls == _commonElements.jsNullClass) {
       registerInstantiation(_commonElements.jsNullClass);
-    } else if (cls == _commonElements.numClass ||
+    } else if (cls == _commonElements.doubleClass ||
+        cls == _commonElements.numClass ||
         cls == _commonElements.jsNumberClass) {
       registerInstantiation(_commonElements.jsIntClass);
       registerInstantiation(_commonElements.jsPositiveIntClass);

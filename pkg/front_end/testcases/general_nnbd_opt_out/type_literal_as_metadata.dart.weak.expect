@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general_nnbd_opt_out/type_literal_as_metadata.dart:11:2: Error: This can't be used as metadata; metadata should be a reference to a compile-time constant variable, or a call to a constant constructor.
+// pkg/front_end/testcases/general_nnbd_opt_out/type_literal_as_metadata.dart:11:2: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 // @A
 //  ^
 //
@@ -24,7 +24,7 @@ class A extends core::Object /*hasConstConstructor*/  {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-@invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/type_literal_as_metadata.dart:11:2: Error: This can't be used as metadata; metadata should be a reference to a compile-time constant variable, or a call to a constant constructor.
+@invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/type_literal_as_metadata.dart:11:2: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 @A
  ^"
 class B extends core::Object {
