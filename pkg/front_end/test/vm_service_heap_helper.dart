@@ -218,7 +218,7 @@ class VMServiceHeapHelperSpecificExactLeakFinder
       vmService.HeapSnapshotGraph graph) {
     for (vmService.HeapSnapshotField field in class_.fields) {
       if (field.name == name) {
-        int index = o.references[field.index] - 1;
+        int index = o.references[field.index];
         if (index < 0) {
           // Sentinel object.
           return null;
@@ -233,10 +233,10 @@ class VMServiceHeapHelperSpecificExactLeakFinder
       vmService.HeapSnapshotObject o,
       vmService.HeapSnapshotGraph graph,
       Map<Uri, Map<String, List<String>>> prettyPrints) {
-    if (o.classId == 0) {
+    if (o.classId <= 0) {
       return "Class sentinel";
     }
-    vmService.HeapSnapshotClass class_ = graph.classes[o.classId - 1];
+    vmService.HeapSnapshotClass class_ = o.klass;
 
     if (class_.name == "_OneByteString") {
       return '"${o.data}"';
@@ -293,7 +293,7 @@ class VMServiceHeapHelperSpecificExactLeakFinder
         new List<bool>.filled(graph.classes.length, false);
     for (int i = 0; i < graph.objects.length; i++) {
       vmService.HeapSnapshotObject o = graph.objects[i];
-      if (o.classId == 0) {
+      if (o.classId <= 0) {
         // Sentinel.
         continue;
       }
@@ -301,7 +301,7 @@ class VMServiceHeapHelperSpecificExactLeakFinder
         // Class is not interesting.
         continue;
       }
-      vmService.HeapSnapshotClass c = graph.classes[o.classId - 1];
+      vmService.HeapSnapshotClass c = o.klass;
       Map<String, List<String>> interests = _interests[c.libraryUri];
       if (interests == null || interests.isEmpty) {
         // Not an object we care about.
