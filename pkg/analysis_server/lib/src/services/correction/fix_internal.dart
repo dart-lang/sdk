@@ -163,6 +163,7 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError, Element, ElementKind;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart' hide FixContributor;
 
@@ -278,10 +279,8 @@ class FixInFileProcessor {
 
   Future<List<Fix>> compute() async {
     var error = context.error;
-    var errors = context.resolveResult.errors.toList();
-    // Remove any analysis errors that don't have the expected error code name
-    errors.removeWhere((e) => error.errorCode.name != e.errorCode.name);
-
+    var errors = context.resolveResult.errors
+        .where((e) => error.errorCode.name == e.errorCode.name);
     if (errors.length < 2) {
       return const <Fix>[];
     }
@@ -303,7 +302,7 @@ class FixInFileProcessor {
 
     var fixes = <Fix>[];
     for (var generator in generators) {
-      var builder = ChangeBuilder(workspace: workspace);
+      var fixInfo = FixInfo(workspace);
       for (var error in errors) {
         var fixContext = DartFixContextImpl(
           instrumentationService,
@@ -312,13 +311,12 @@ class FixInFileProcessor {
           error,
           (name) => [],
         );
-        builder = await _fixError(fixContext, builder, generator(), error);
+        await _fixError(fixContext, fixInfo, generator(), error);
       }
-      var sourceChange = builder.sourceChange;
+      var sourceChange = fixInfo.builder.sourceChange;
       if (sourceChange.edits.isNotEmpty) {
-        var fixKind = generator().fixKind;
-        // todo (pq): with a table redesign we can bail earlier.
-        if (fixKind.canBeAppliedTogether()) {
+        var fixKind = fixInfo.fixKind;
+        if (fixKind.canBeAppliedTogether() && fixInfo.fixCount > 1) {
           sourceChange.message = fixKind.appliedTogetherMessage;
           fixes.add(Fix(fixKind, sourceChange));
         }
@@ -327,11 +325,8 @@ class FixInFileProcessor {
     return fixes;
   }
 
-  Future<ChangeBuilder> _fixError(
-      DartFixContext fixContext,
-      ChangeBuilder builder,
-      CorrectionProducer producer,
-      AnalysisError diagnostic) async {
+  Future<void> _fixError(DartFixContext fixContext, FixInfo fixInfo,
+      CorrectionProducer producer, AnalysisError diagnostic) async {
     var context = CorrectionProducerContext(
       applyingBulkFixes: true,
       dartFixContext: fixContext,
@@ -344,21 +339,23 @@ class FixInFileProcessor {
 
     var setupSuccess = context.setupCompute();
     if (!setupSuccess) {
-      return null;
+      return;
     }
 
     producer.configure(context);
 
     try {
-      var localBuilder = builder.copy();
+      var localBuilder = fixInfo.builder.copy();
       await producer.compute(localBuilder);
-      builder = localBuilder;
+      fixInfo.builder = localBuilder;
+      // todo (pq): consider discarding the change if the producer's fixKind
+      // doesn't match a previously cached one.
+      fixInfo.fixKind = producer.fixKind;
+      fixInfo.fixCount++;
     } on ConflictingEditException {
       // If a conflicting edit was added in [compute], then the [localBuilder]
       // is discarded and we revert to the previous state of the builder.
     }
-
-    return builder;
   }
 
   List<ProducerGenerator> _getGenerators(
@@ -380,6 +377,15 @@ class FixInFileProcessor {
     }
     return producers;
   }
+}
+
+/// Info used while producing fix all in file fixes.
+class FixInfo {
+  ChangeBuilder builder;
+  FixKind fixKind;
+  int fixCount = 0;
+  FixInfo(ChangeWorkspace workspace)
+      : builder = ChangeBuilder(workspace: workspace);
 }
 
 /// The computer for Dart fixes.

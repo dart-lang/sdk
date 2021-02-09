@@ -99,6 +99,10 @@ abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
     var fileEdits = fix.change.edits;
     expect(fileEdits, hasLength(1));
 
+    if (useLineEndingsForPlatform) {
+      expected = normalizeNewlinesForPlatform(expected);
+    }
+
     var fileContent = testCode;
     resultCode = SourceEdit.applySequence(fileContent, fileEdits[0].edits);
     expect(resultCode, expected);
