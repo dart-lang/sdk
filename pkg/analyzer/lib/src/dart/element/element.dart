@@ -3055,17 +3055,6 @@ abstract class ElementImpl implements Element {
     }
     return annotations;
   }
-
-  /// If the given [type] is a generic function type, then the element
-  /// associated with the type is implicitly a child of this element and should
-  /// be visited by the given [visitor].
-  void _safelyVisitPossibleChild(DartType? type, ElementVisitor visitor) {
-    var element = type?.element;
-    if (element is GenericFunctionTypeElementImpl &&
-        element.enclosingElement is! FunctionTypeAliasElement) {
-      element.accept(visitor);
-    }
-  }
 }
 
 /// Abstract base class for elements whose type is guaranteed to be a function
@@ -3681,7 +3670,6 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitPossibleChild(returnType, visitor);
     safelyVisitChildren(typeParameters, visitor);
     safelyVisitChildren(parameters, visitor);
   }
@@ -4532,7 +4520,6 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitPossibleChild(returnType, visitor);
     safelyVisitChildren(typeParameters, visitor);
     safelyVisitChildren(parameters, visitor);
   }
