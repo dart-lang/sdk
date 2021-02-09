@@ -11,12 +11,11 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FieldTest);
-    defineReflectiveTests(FieldWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class FieldTest extends PubPackageResolutionTest with WithoutNullSafetyMixin {
+class FieldTest extends PubPackageResolutionTest {
   test_session_getterSetter() async {
     await resolveTestCode('''
 class A {
@@ -63,19 +62,6 @@ class A {
     assertType(findElement.field('f').type, 'dynamic');
   }
 
-  test_type_inferred_null() async {
-    await resolveTestCode('''
-class A {
-  var f = null;
-}
-''');
-    assertType(findElement.field('f').type, 'dynamic');
-  }
-}
-
-@reflectiveTest
-class FieldWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
   test_type_inferred_nonNullify() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
@@ -93,5 +79,14 @@ class A {
     ]);
 
     assertType(findElement.field('f').type, 'int');
+  }
+
+  test_type_inferred_null() async {
+    await resolveTestCode('''
+class A {
+  var f = null;
+}
+''');
+    assertType(findElement.field('f').type, 'dynamic');
   }
 }

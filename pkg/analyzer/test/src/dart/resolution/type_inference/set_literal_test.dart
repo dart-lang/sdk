@@ -11,14 +11,14 @@ import '../context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetLiteralTest);
-    defineReflectiveTests(SetLiteralWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class SetLiteralTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+class SetLiteralTest extends PubPackageResolutionTest {
   AstNode setLiteral(String search) => findNode.setOrMapLiteral(search);
+
+  AstNode setOrMapLiteral(String search) => findNode.setOrMapLiteral(search);
 
   test_context_noTypeArgs_expression_conflict() async {
     await assertErrorsInCode('''
@@ -104,6 +104,28 @@ class A<E extends Set<dynamic>> {
 }
 ''', expectedErrors);
     assertType(setLiteral('{}'), 'Set<dynamic>');
+  }
+
+  test_context_noTypeArgs_noEntries() async {
+    await assertNoErrorsInCode('''
+Set<String> a = {};
+''');
+    assertType(setOrMapLiteral('{'), 'Set<String>');
+  }
+
+  test_context_noTypeArgs_noEntries_typeParameterNullable() async {
+    await assertNoErrorsInCode('''
+class C<T extends Object?> {
+  Set<T> a = {}; // 1
+  Set<T>? b = {}; // 2
+  Set<T?> c = {}; // 3
+  Set<T?>? d = {}; // 4
+}
+''');
+    assertType(setOrMapLiteral('{}; // 1'), 'Set<T>');
+    assertType(setOrMapLiteral('{}; // 2'), 'Set<T>');
+    assertType(setOrMapLiteral('{}; // 3'), 'Set<T?>');
+    assertType(setOrMapLiteral('{}; // 4'), 'Set<T?>');
   }
 
   test_context_typeArgs_expression_conflictingExpression() async {
@@ -287,6 +309,41 @@ var a = {if (0 < 1) ...c else ...d};
     assertType(setLiteral('{if'), 'Set<dynamic>');
   }
 
+  test_noContext_noTypeArgs_spread_never() async {
+    await assertErrorsInCode('''
+void f(Never a, bool b) async {
+  // ignore:unused_local_variable
+  var v = {...a, if (b) throw 0};
+}
+''', [
+      error(HintCode.DEAD_CODE, 87, 12),
+    ]);
+    assertType(setLiteral('{...'), 'Set<Never>');
+  }
+
+  test_noContext_noTypeArgs_spread_nullAware_never() async {
+    await assertErrorsInCode('''
+void f(Never a, bool b) async {
+  // ignore:unused_local_variable
+  var v = {...?a, if (b) throw 0};
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 77, 4),
+      error(HintCode.DEAD_CODE, 88, 12),
+    ]);
+    assertType(setLiteral('{...'), 'Set<Never>');
+  }
+
+  test_noContext_noTypeArgs_spread_nullAware_null() async {
+    await assertNoErrorsInCode('''
+void f(Null a, bool b) async {
+  // ignore:unused_local_variable
+  var v = {...?a, if (b) throw 0};
+}
+''');
+    assertType(setLiteral('{...'), 'Set<Never>');
+  }
+
   test_noContext_noTypeArgs_spread_nullAware_nullAndNotNull() async {
     await assertNoErrorsInCode('''
 void f(Null a) {
@@ -297,6 +354,29 @@ void f(Null a) {
     assertType(setLiteral('{1'), 'Set<int>');
   }
 
+  test_noContext_noTypeArgs_spread_nullAware_typeParameter_never() async {
+    await assertErrorsInCode('''
+void f<T extends Never>(T a, bool b) async {
+  // ignore:unused_local_variable
+  var v = {...?a, if (b) throw 0};
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 90, 4),
+      error(HintCode.DEAD_CODE, 101, 12),
+    ]);
+    assertType(setLiteral('{...'), 'Set<Never>');
+  }
+
+  test_noContext_noTypeArgs_spread_nullAware_typeParameter_null() async {
+    await assertNoErrorsInCode('''
+void f<T extends Null>(T a, bool b) async {
+  // ignore:unused_local_variable
+  var v = {...?a, if (b) throw 0};
+}
+''');
+    assertType(setLiteral('{...'), 'Set<Never>');
+  }
+
   test_noContext_noTypeArgs_spread_typeParameter_implementsIterable() async {
     await assertNoErrorsInCode('''
 void f<T extends List<int>>(T a) {
@@ -305,6 +385,18 @@ void f<T extends List<int>>(T a) {
 }
 ''');
     assertType(setLiteral('{...'), 'Set<int>');
+  }
+
+  test_noContext_noTypeArgs_spread_typeParameter_never() async {
+    await assertErrorsInCode('''
+void f<T extends Never>(T a, bool b) async {
+  // ignore:unused_local_variable
+  var v = {...a, if (b) throw 0};
+}
+''', [
+      error(HintCode.DEAD_CODE, 100, 12),
+    ]);
+    assertType(setLiteral('{...'), 'Set<Never>');
   }
 
   test_noContext_noTypeArgs_spread_typeParameter_notImplementsIterable() async {
@@ -360,103 +452,5 @@ var a = <int, String>{1, 2};
 var a = <num>{};
 ''');
     assertType(setLiteral('{'), 'Set<num>');
-  }
-}
-
-@reflectiveTest
-class SetLiteralWithNullSafetyTest extends SetLiteralTest
-    with WithNullSafetyMixin {
-  AstNode setOrMapLiteral(String search) => findNode.setOrMapLiteral(search);
-
-  test_context_noTypeArgs_noEntries() async {
-    await assertNoErrorsInCode('''
-Set<String> a = {};
-''');
-    assertType(setOrMapLiteral('{'), 'Set<String>');
-  }
-
-  test_context_noTypeArgs_noEntries_typeParameterNullable() async {
-    await assertNoErrorsInCode('''
-class C<T extends Object?> {
-  Set<T> a = {}; // 1
-  Set<T>? b = {}; // 2
-  Set<T?> c = {}; // 3
-  Set<T?>? d = {}; // 4
-}
-''');
-    assertType(setOrMapLiteral('{}; // 1'), 'Set<T>');
-    assertType(setOrMapLiteral('{}; // 2'), 'Set<T>');
-    assertType(setOrMapLiteral('{}; // 3'), 'Set<T?>');
-    assertType(setOrMapLiteral('{}; // 4'), 'Set<T?>');
-  }
-
-  test_noContext_noTypeArgs_spread_never() async {
-    await assertErrorsInCode('''
-void f(Never a, bool b) async {
-  // ignore:unused_local_variable
-  var v = {...a, if (b) throw 0};
-}
-''', [
-      error(HintCode.DEAD_CODE, 87, 12),
-    ]);
-    assertType(setLiteral('{...'), 'Set<Never>');
-  }
-
-  test_noContext_noTypeArgs_spread_nullAware_never() async {
-    await assertErrorsInCode('''
-void f(Never a, bool b) async {
-  // ignore:unused_local_variable
-  var v = {...?a, if (b) throw 0};
-}
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 77, 4),
-      error(HintCode.DEAD_CODE, 88, 12),
-    ]);
-    assertType(setLiteral('{...'), 'Set<Never>');
-  }
-
-  test_noContext_noTypeArgs_spread_nullAware_null() async {
-    await assertNoErrorsInCode('''
-void f(Null a, bool b) async {
-  // ignore:unused_local_variable
-  var v = {...?a, if (b) throw 0};
-}
-''');
-    assertType(setLiteral('{...'), 'Set<Never>');
-  }
-
-  test_noContext_noTypeArgs_spread_nullAware_typeParameter_never() async {
-    await assertErrorsInCode('''
-void f<T extends Never>(T a, bool b) async {
-  // ignore:unused_local_variable
-  var v = {...?a, if (b) throw 0};
-}
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 90, 4),
-      error(HintCode.DEAD_CODE, 101, 12),
-    ]);
-    assertType(setLiteral('{...'), 'Set<Never>');
-  }
-
-  test_noContext_noTypeArgs_spread_nullAware_typeParameter_null() async {
-    await assertNoErrorsInCode('''
-void f<T extends Null>(T a, bool b) async {
-  // ignore:unused_local_variable
-  var v = {...?a, if (b) throw 0};
-}
-''');
-    assertType(setLiteral('{...'), 'Set<Never>');
-  }
-
-  test_noContext_noTypeArgs_spread_typeParameter_never() async {
-    await assertErrorsInCode('''
-void f<T extends Never>(T a, bool b) async {
-  // ignore:unused_local_variable
-  var v = {...a, if (b) throw 0};
-}
-''', [
-      error(HintCode.DEAD_CODE, 100, 12),
-    ]);
-    assertType(setLiteral('{...'), 'Set<Never>');
   }
 }
