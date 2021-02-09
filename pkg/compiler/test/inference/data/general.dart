@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-/*member: returnNum1:Union([exact=JSDouble], [exact=JSUInt31])*/
+/*member: returnNum1:Union([exact=JSNumNotInt], [exact=JSUInt31])*/
 returnNum1(/*Value([exact=JSBool], value: true)*/ a) {
   if (a)
     return 1;
@@ -12,7 +12,7 @@ returnNum1(/*Value([exact=JSBool], value: true)*/ a) {
     return 2.5;
 }
 
-/*member: returnNum2:Union([exact=JSDouble], [exact=JSUInt31])*/
+/*member: returnNum2:Union([exact=JSNumNotInt], [exact=JSUInt31])*/
 returnNum2(/*Value([exact=JSBool], value: true)*/ a) {
   if (a)
     return 1.4;
@@ -28,7 +28,7 @@ returnInt1(/*Value([exact=JSBool], value: true)*/ a) {
     return 2;
 }
 
-/*member: returnDouble:[exact=JSDouble]*/
+/*member: returnDouble:[exact=JSNumNotInt]*/
 returnDouble(/*Value([exact=JSBool], value: true)*/ a) {
   if (a)
     return 1.5;
@@ -396,7 +396,7 @@ testLabeledIf(/*Value([exact=JSBool], value: true)*/ a) {
   return c;
 }
 
-/*member: testSwitch1:Union(null, [exact=JSDouble], [exact=JSUInt31])*/
+/*member: testSwitch1:Union(null, [exact=JSNumNotInt], [exact=JSUInt31])*/
 testSwitch1() {
   var a = null;
   switch (topLevelGetter) {
@@ -572,7 +572,7 @@ testDoWhile3() {
   return a;
 }
 
-/*member: testDoWhile4:Union([exact=JSDouble], [exact=JSUInt31])*/
+/*member: testDoWhile4:Union([exact=JSNumNotInt], [exact=JSUInt31])*/
 testDoWhile4() {
   dynamic a = 'foo';
   do {

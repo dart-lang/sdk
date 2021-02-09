@@ -25,9 +25,9 @@ main() {
   List.length=,
   int.+],
  type=[
-  inst:JSDouble,
   inst:JSInt,
   inst:JSNull,
+  inst:JSNumNotInt,
   inst:JSNumber,
   inst:JSPositiveInt,
   inst:JSUInt31,
@@ -49,9 +49,9 @@ effectivelyFinalList() {
   length,
   length=],
  type=[
-  inst:JSDouble,
   inst:JSInt,
   inst:JSNull,
+  inst:JSNumNotInt,
   inst:JSNumber,
   inst:JSPositiveInt,
   inst:JSUInt31,
@@ -113,8 +113,8 @@ num _method1() => null;
  type=[
   inst:Closure,
   inst:JSBool,
-  inst:JSDouble,
   inst:JSInt,
+  inst:JSNumNotInt,
   inst:JSNumber,
   inst:JSPositiveInt,
   inst:JSUInt31,
@@ -176,8 +176,8 @@ String _method2() => null;
  type=[
   inst:Closure,
   inst:JSBool,
-  inst:JSDouble,
   inst:JSInt,
+  inst:JSNumNotInt,
   inst:JSNumber,
   inst:JSPositiveInt,
   inst:JSString,

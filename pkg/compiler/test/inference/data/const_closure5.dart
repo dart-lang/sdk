@@ -4,9 +4,9 @@
 
 // @dart = 2.7
 
-/*member: method:Union([exact=JSDouble], [exact=JSUInt31])*/
+/*member: method:Union([exact=JSNumNotInt], [exact=JSUInt31])*/
 // Called only via [foo2] with a small integer.
-method(/*Union([exact=JSDouble], [exact=JSUInt31])*/ a) {
+method(/*Union([exact=JSNumNotInt], [exact=JSUInt31])*/ a) {
   return a;
 }
 

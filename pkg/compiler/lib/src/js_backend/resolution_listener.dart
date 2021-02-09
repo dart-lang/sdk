@@ -373,8 +373,8 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       _addInterceptors(_commonElements.jsUInt32Class, impactBuilder);
       _addInterceptors(_commonElements.jsUInt31Class, impactBuilder);
       _addInterceptors(_commonElements.jsNumberClass, impactBuilder);
-    } else if (cls == _commonElements.jsDoubleClass) {
-      _addInterceptors(_commonElements.jsDoubleClass, impactBuilder);
+    } else if (cls == _commonElements.jsNumNotIntClass) {
+      _addInterceptors(_commonElements.jsNumNotIntClass, impactBuilder);
       _addInterceptors(_commonElements.jsNumberClass, impactBuilder);
     } else if (cls == _commonElements.boolClass ||
         cls == _commonElements.jsBoolClass) {
@@ -389,7 +389,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       _addInterceptors(_commonElements.jsPositiveIntClass, impactBuilder);
       _addInterceptors(_commonElements.jsUInt32Class, impactBuilder);
       _addInterceptors(_commonElements.jsUInt31Class, impactBuilder);
-      _addInterceptors(_commonElements.jsDoubleClass, impactBuilder);
+      _addInterceptors(_commonElements.jsNumNotIntClass, impactBuilder);
       _addInterceptors(_commonElements.jsNumberClass, impactBuilder);
     } else if (cls == _commonElements.jsJavaScriptObjectClass) {
       _addInterceptors(_commonElements.jsJavaScriptObjectClass, impactBuilder);

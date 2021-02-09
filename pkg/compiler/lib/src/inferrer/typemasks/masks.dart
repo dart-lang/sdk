@@ -52,7 +52,7 @@ class CommonMasks implements AbstractValueDomain {
   TypeMask _uint32Type;
   TypeMask _uint31Type;
   TypeMask _positiveIntType;
-  TypeMask _doubleType;
+  TypeMask _numNotIntType;
   TypeMask _numType;
   TypeMask _boolType;
   TypeMask _functionType;
@@ -114,8 +114,8 @@ class CommonMasks implements AbstractValueDomain {
           commonElements.jsPositiveIntClass, _closedWorld);
 
   @override
-  TypeMask get doubleType => _doubleType ??=
-      new TypeMask.nonNullExact(commonElements.jsDoubleClass, _closedWorld);
+  TypeMask get numNotIntType => _numNotIntType ??=
+      new TypeMask.nonNullExact(commonElements.jsNumNotIntClass, _closedWorld);
 
   @override
   TypeMask get numType => _numType ??=
@@ -500,14 +500,14 @@ class CommonMasks implements AbstractValueDomain {
       AbstractBool.maybeOrFalse(_canBePrimitiveNumber(value));
 
   bool _canBePrimitiveNumber(TypeMask value) {
-    // TODO(sra): It should be possible to test only jsDoubleClass and
+    // TODO(sra): It should be possible to test only jsNumNotIntClass and
     // jsUInt31Class, since all others are superclasses of these two.
     return _containsType(value, commonElements.jsNumberClass) ||
         _containsType(value, commonElements.jsIntClass) ||
         _containsType(value, commonElements.jsPositiveIntClass) ||
         _containsType(value, commonElements.jsUInt32Class) ||
         _containsType(value, commonElements.jsUInt31Class) ||
-        _containsType(value, commonElements.jsDoubleClass);
+        _containsType(value, commonElements.jsNumNotIntClass);
   }
 
   @override

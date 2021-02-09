@@ -4,13 +4,29 @@
 
 part of _interceptors;
 
-/// The super interceptor class for [JSInt] and [JSDouble]. The compiler
-/// recognizes this class as an interceptor, and changes references to
-/// [:this:] to actually use the receiver of the method, which is
-/// generated as an extra argument added to each member.
+/// Interceptor class for all Dart [num] implementations.
 ///
-/// Note that none of the methods here delegate to a method defined on JSInt or
-/// JSDouble.  This is exploited in [tryComputeConstantInterceptor].
+/// JavaScript numbers (doubles) are used to represent both Dart [int] and Dart
+/// [double] values. Some values, e.g. `3.0` are both Dart [int] values and Dart
+/// [double] values. Other values are just [double] values, e.g. `3.1`.
+///
+/// There are two disjoint subclasses of [JSNumber]: [JSInt] and [JSNumNotInt].
+///
+/// Most methods are on [JSNumber]. Since some values can 'be' (i.e. implement)
+/// both [int] and [double], the int and double operations have to be the same.
+/// Consider the JavaScript value `0`. This is both Dart int 0, and Dart double
+/// 0.0. From the dynamic type we can't tell the intention, so the
+/// `0.0.toString()` on the web returns `0`, and not `0.0` like on the Dart VM
+/// implementation. For `toString` we prefer the `int` version. For negation, we
+/// prefer the `double` version (returning `-0.0`, not `0`). This is usually
+/// hidden because the JavaScript `-0.0` value is also considered to implement
+/// [int].
+///
+/// Note that none of the methods in [JSNumber] delegate to a method defined on
+/// JSInt (or JSNumNotInt).  This is exploited in
+/// [tryComputeConstantInterceptor] to avoid most interceptor lookups on
+/// numbers.
+
 class JSNumber extends Interceptor implements double {
   const JSNumber();
 
@@ -66,7 +82,11 @@ class JSNumber extends Interceptor implements double {
       r'Math.abs(#)',
       this);
 
-  JSNumber get sign => (this > 0 ? 1 : this < 0 ? -1 : this) as JSNumber;
+  JSNumber get sign => (this > 0
+      ? 1
+      : this < 0
+          ? -1
+          : this) as JSNumber;
 
   static const int _MIN_INT32 = -0x80000000;
   static const int _MAX_INT32 = 0x7FFFFFFF;
@@ -467,7 +487,11 @@ class JSInt extends JSNumber implements int {
       this);
 
   @override
-  JSInt get sign => (this > 0 ? 1 : this < 0 ? -1 : this) as JSInt;
+  JSInt get sign => (this > 0
+      ? 1
+      : this < 0
+          ? -1
+          : this) as JSInt;
 
   @override
   JSInt operator -() => JS('int', r'-#', this);
@@ -695,8 +719,9 @@ class JSInt extends JSNumber implements int {
   int operator ~() => JS('JSUInt32', r'(~#) >>> 0', this);
 }
 
-class JSDouble extends JSNumber implements double {
-  const JSDouble();
+/// Interceptor for JavaScript values that are not a subclass of [JSInt].
+class JSNumNotInt extends JSNumber implements double {
+  const JSNumNotInt();
   Type get runtimeType => double;
 }
 

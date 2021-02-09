@@ -56,18 +56,18 @@ _returnInt() => 0;
 staticCallWithPositionalArguments1() => _returnFirst(0, 0.5);
 
 /*member: _returnFirst:[exact=JSUInt31]*/
-_returnFirst(/*[exact=JSUInt31]*/ a, /*[exact=JSDouble]*/ b) => a;
+_returnFirst(/*[exact=JSUInt31]*/ a, /*[exact=JSNumNotInt]*/ b) => a;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Call a static method that has two positional parameters, the second argument
 /// is returned.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: staticCallWithPositionalArguments2:[exact=JSDouble]*/
+/*member: staticCallWithPositionalArguments2:[exact=JSNumNotInt]*/
 staticCallWithPositionalArguments2() => _returnSecond(0, 0.5);
 
-/*member: _returnSecond:[exact=JSDouble]*/
-_returnSecond(/*[exact=JSUInt31]*/ a, /*[exact=JSDouble]*/ b) => b;
+/*member: _returnSecond:[exact=JSNumNotInt]*/
+_returnSecond(/*[exact=JSUInt31]*/ a, /*[exact=JSNumNotInt]*/ b) => b;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// A static method that has an optional parameter with no explicit default
@@ -132,11 +132,11 @@ _returnDefaultZero([/*[exact=JSUInt31]*/ a = 0]) => a;
 /// Only one call site with an argument of a different type.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: staticCallWithOptionalArguments6:[exact=JSDouble]*/
+/*member: staticCallWithOptionalArguments6:[exact=JSNumNotInt]*/
 staticCallWithOptionalArguments6() => _returnDefaultZeroCalled(0.5);
 
-/*member: _returnDefaultZeroCalled:[exact=JSDouble]*/
-_returnDefaultZeroCalled([/*[exact=JSDouble]*/ a = 0]) => a;
+/*member: _returnDefaultZeroCalled:[exact=JSNumNotInt]*/
+_returnDefaultZeroCalled([/*[exact=JSNumNotInt]*/ a = 0]) => a;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// A static method that has a named parameter with a default value of `0`.
@@ -154,25 +154,25 @@ _returnNamedDefaultZero({/*[exact=JSUInt31]*/ a: 0}) => a;
 /// Only one call site with an argument of a different type.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: staticCallWithNamedArguments2:[exact=JSDouble]*/
+/*member: staticCallWithNamedArguments2:[exact=JSNumNotInt]*/
 staticCallWithNamedArguments2() => _returnNamedDefaultZeroCalled(a: 0.5);
 
-/*member: _returnNamedDefaultZeroCalled:[exact=JSDouble]*/
-_returnNamedDefaultZeroCalled({/*[exact=JSDouble]*/ a: 0}) => a;
+/*member: _returnNamedDefaultZeroCalled:[exact=JSNumNotInt]*/
+_returnNamedDefaultZeroCalled({/*[exact=JSNumNotInt]*/ a: 0}) => a;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// A static method that has a named parameter. Two call sites, one with an
 /// explicit argument and one with no arguments.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: staticCallWithNamedArguments3a:[null|exact=JSDouble]*/
+/*member: staticCallWithNamedArguments3a:[null|exact=JSNumNotInt]*/
 staticCallWithNamedArguments3a() => _returnNamedNullCalledTwice();
 
-/*member: staticCallWithNamedArguments3b:[null|exact=JSDouble]*/
+/*member: staticCallWithNamedArguments3b:[null|exact=JSNumNotInt]*/
 staticCallWithNamedArguments3b() => _returnNamedNullCalledTwice(a: 0.5);
 
-/*member: _returnNamedNullCalledTwice:[null|exact=JSDouble]*/
-_returnNamedNullCalledTwice({/*[null|exact=JSDouble]*/ a}) => a;
+/*member: _returnNamedNullCalledTwice:[null|exact=JSNumNotInt]*/
+_returnNamedNullCalledTwice({/*[null|exact=JSNumNotInt]*/ a}) => a;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Call an uninitialized top level field.

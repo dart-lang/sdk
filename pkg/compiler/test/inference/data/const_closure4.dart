@@ -4,16 +4,16 @@
 
 // @dart = 2.7
 
-/*member: method:Union([exact=JSDouble], [exact=JSUInt31])*/
+/*member: method:Union([exact=JSNumNotInt], [exact=JSUInt31])*/
 // Called via [foo] with integer then double.
-method(/*Union([exact=JSDouble], [exact=JSUInt31])*/ a) {
+method(/*Union([exact=JSNumNotInt], [exact=JSUInt31])*/ a) {
   return a;
 }
 
 const foo = method;
 
 /*member: returnNum:[null|subclass=Object]*/
-returnNum(/*Union([exact=JSDouble], [exact=JSUInt31])*/ x) {
+returnNum(/*Union([exact=JSNumNotInt], [exact=JSUInt31])*/ x) {
   return foo(x);
 }
 

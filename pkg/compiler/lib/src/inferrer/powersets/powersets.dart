@@ -767,8 +767,8 @@ class PowersetDomain implements AbstractValueDomain {
       PowersetValue(_abstractValueDomain.numType, _powersetBitsDomain.numType);
 
   @override
-  AbstractValue get doubleType => PowersetValue(
-      _abstractValueDomain.doubleType, _powersetBitsDomain.doubleType);
+  AbstractValue get numNotIntType => PowersetValue(
+      _abstractValueDomain.numNotIntType, _powersetBitsDomain.numNotIntType);
 
   @override
   AbstractValue get intType =>

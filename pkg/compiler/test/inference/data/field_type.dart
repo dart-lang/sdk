@@ -640,7 +640,7 @@ class A24 {
   /*member: A24.f24d:[exact=JSUInt31]*/
   final f24d;
 
-  /*member: A24.f24e:Union(null, [exact=JSDouble], [exact=JSUInt31])*/
+  /*member: A24.f24e:Union(null, [exact=JSNumNotInt], [exact=JSUInt31])*/
   var f24e;
 
 /*member: A24.f24f:Value([null|exact=JSString], value: "foo")*/
@@ -667,7 +667,7 @@ class A24 {
   /*member: A24.+:Value([exact=JSString], value: "foo")*/
   operator +(/*[empty]*/ other) => 'foo';
 
-  /*member: A24.bar24:[exact=JSDouble]*/
+  /*member: A24.bar24:[exact=JSNumNotInt]*/
   bar24() => 42.5;
 }
 

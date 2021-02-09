@@ -33,32 +33,28 @@ main() {
   testAssertWithMessage();
 }
 
-/*member: testIfThen:
- type=[
+/*member: testIfThen:type=[
   inst:JSBool,
-  inst:JSDouble,
   inst:JSInt,
+  inst:JSNumNotInt,
   inst:JSNumber,
   inst:JSPositiveInt,
   inst:JSUInt31,
-  inst:JSUInt32]
-*/
+  inst:JSUInt32]*/
 testIfThen() {
   // ignore: DEAD_CODE
   if (false) return 42;
   return 1;
 }
 
-/*member: testIfThenElse:
- type=[
+/*member: testIfThenElse:type=[
   inst:JSBool,
-  inst:JSDouble,
   inst:JSInt,
+  inst:JSNumNotInt,
   inst:JSNumber,
   inst:JSPositiveInt,
   inst:JSUInt31,
-  inst:JSUInt32]
-*/
+  inst:JSUInt32]*/
 testIfThenElse() {
   if (true)
     return 42;
@@ -260,8 +256,8 @@ testTryFinally() {
   throwExpression(1),
   wrapException(1)],
  type=[
-  inst:JSDouble,
   inst:JSInt,
+  inst:JSNumNotInt,
   inst:JSNumber,
   inst:JSPositiveInt,
   inst:JSString,
