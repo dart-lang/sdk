@@ -4,9 +4,6 @@
 
 library generate_vm_service_dart;
 
-// TODO(bkonyi): remove once markdown and pub_semver deps are updated to null
-// safety for the SDK.
-// ignore_for_file: import_of_legacy_library_into_null_safe
 import 'package:markdown/markdown.dart';
 
 import '../common/generate_common.dart';
@@ -497,7 +494,7 @@ class Api extends Member with ApiParseUtil {
       return n.text;
     } else if (n is Element) {
       if (n.tag != 'h3') return n.tag;
-      return '${n.tag}:[${n.children.map((c) => printNode(c)).join(', ')}]';
+      return '${n.tag}:[${n.children!.map((c) => printNode(c)).join(', ')}]';
     } else {
       return '${n}';
     }

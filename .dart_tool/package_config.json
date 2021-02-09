@@ -404,7 +404,7 @@
       "name": "markdown",
       "rootUri": "../third_party/pkg/markdown",
       "packageUri": "lib/",
-      "languageVersion": "2.6"
+      "languageVersion": "2.12"
     },
     {
       "name": "matcher",
