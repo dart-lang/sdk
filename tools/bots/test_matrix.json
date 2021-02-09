@@ -1407,7 +1407,9 @@
     {
       "builders": [
         "vm-kernel-precomp-linux-debug-x64",
-        "vm-kernel-precomp-linux-debug-x64c"
+        "vm-kernel-precomp-linux-debug-x64c",
+        "vm-kernel-precomp-linux-debug-simarm64",
+        "vm-kernel-precomp-linux-debug-simarm64c"
       ],
       "meta": {
         "description": "This configuration is used by the vm kernel precomp debug builders. It uses 15 shards for testing to avoid 1 hour shard timeouts."
@@ -1624,6 +1626,8 @@
     },
     {
       "builders": [
+        "vm-kernel-linux-debug-simarm64",
+        "vm-kernel-linux-debug-simarm64c",
         "vm-kernel-linux-release-simarm",
         "vm-kernel-linux-release-simarm64",
         "vm-kernel-linux-release-simarm64c",

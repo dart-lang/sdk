@@ -125,7 +125,7 @@ abstract class AbstractValueDomain {
 
   /// The [AbstractValue] that represents a non-null subtype of `double` at
   /// runtime.
-  AbstractValue get doubleType;
+  AbstractValue get numNotIntType;
 
   /// The [AbstractValue] that represents a non-null subtype of `num` at
   /// runtime.

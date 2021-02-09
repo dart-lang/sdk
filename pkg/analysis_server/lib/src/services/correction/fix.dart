@@ -425,7 +425,7 @@ class DartFixKind {
       FixKind('dart.fix.remove.unusedField', 50, 'Remove unused field');
   static const REMOVE_UNUSED_IMPORT = FixKind(
       'dart.fix.remove.unusedImport', 50, 'Remove unused import',
-      appliedTogetherMessage: 'Remove all unused imports in this file');
+      appliedTogetherMessage: 'Remove all unused imports in file');
   static const REMOVE_UNUSED_LABEL =
       FixKind('dart.fix.remove.unusedLabel', 50, 'Remove unused label');
   static const REMOVE_UNUSED_LOCAL_VARIABLE = FixKind(
@@ -438,7 +438,7 @@ class DartFixKind {
       FixKind('dart.fix.rename.toCamelCase', 50, "Rename to '{0}'");
   static const REPLACE_BOOLEAN_WITH_BOOL = FixKind(
       'dart.fix.replace.booleanWithBool', 50, "Replace 'boolean' with 'bool'",
-      appliedTogetherMessage: "Replace all 'boolean' with 'bool' in file");
+      appliedTogetherMessage: "Replace all 'boolean's with 'bool' in file");
   static const REPLACE_CASCADE_WITH_DOT =
       FixKind('dart.fix.replace.cascadeWithDot', 50, "Replace '..' with '.'");
   static const REPLACE_COLON_WITH_EQUALS =

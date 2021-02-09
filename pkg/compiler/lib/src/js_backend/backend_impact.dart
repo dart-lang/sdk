@@ -212,7 +212,7 @@ class BackendImpacts {
       _commonElements.jsUInt32Class,
       _commonElements.jsUInt31Class,
       _commonElements.jsNumberClass,
-      _commonElements.jsDoubleClass
+      _commonElements.jsNumNotIntClass,
     ]);
   }
 

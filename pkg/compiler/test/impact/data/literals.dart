@@ -73,10 +73,22 @@ testTrue() => true;
 /*member: testFalse:type=[inst:JSBool]*/
 testFalse() => false;
 
-/*member: testInt:type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]*/
+/*member: testInt:type=[
+  inst:JSInt,
+  inst:JSNumNotInt,
+  inst:JSNumber,
+  inst:JSPositiveInt,
+  inst:JSUInt31,
+  inst:JSUInt32]*/
 testInt() => 42;
 
-/*member: testDouble:type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]*/
+/*member: testDouble:type=[
+  inst:JSInt,
+  inst:JSNumNotInt,
+  inst:JSNumber,
+  inst:JSPositiveInt,
+  inst:JSUInt31,
+  inst:JSUInt32]*/
 testDouble() => 37.5;
 
 /*member: testString:type=[inst:JSString]*/

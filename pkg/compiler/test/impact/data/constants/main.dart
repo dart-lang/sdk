@@ -70,13 +70,25 @@ boolLiteral() {
   return local;
 }
 
-/*member: intLiteral:type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]*/
+/*member: intLiteral:type=[
+  inst:JSInt,
+  inst:JSNumNotInt,
+  inst:JSNumber,
+  inst:JSPositiveInt,
+  inst:JSUInt31,
+  inst:JSUInt32]*/
 intLiteral() {
   const dynamic local = 42;
   return local;
 }
 
-/*member: doubleLiteral:type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]*/
+/*member: doubleLiteral:type=[
+  inst:JSInt,
+  inst:JSNumNotInt,
+  inst:JSNumber,
+  inst:JSPositiveInt,
+  inst:JSUInt31,
+  inst:JSUInt32]*/
 doubleLiteral() {
   const dynamic local = 0.5;
   return local;
@@ -149,10 +161,22 @@ nullLiteralRef() => nullLiteralField;
 /*member: boolLiteralRef:type=[inst:JSBool]*/
 boolLiteralRef() => boolLiteralField;
 
-/*member: intLiteralRef:type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]*/
+/*member: intLiteralRef:type=[
+  inst:JSInt,
+  inst:JSNumNotInt,
+  inst:JSNumber,
+  inst:JSPositiveInt,
+  inst:JSUInt31,
+  inst:JSUInt32]*/
 intLiteralRef() => intLiteralField;
 
-/*member: doubleLiteralRef:type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]*/
+/*member: doubleLiteralRef:type=[
+  inst:JSInt,
+  inst:JSNumNotInt,
+  inst:JSNumber,
+  inst:JSPositiveInt,
+  inst:JSUInt31,
+  inst:JSUInt32]*/
 doubleLiteralRef() => doubleLiteralField;
 
 /*member: stringLiteralRef:type=[inst:JSString]*/
@@ -207,10 +231,22 @@ nullLiteralDeferred() => defer.nullLiteralField;
 /*member: boolLiteralDeferred:type=[inst:JSBool]*/
 boolLiteralDeferred() => defer.boolLiteralField;
 
-/*member: intLiteralDeferred:type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]*/
+/*member: intLiteralDeferred:type=[
+  inst:JSInt,
+  inst:JSNumNotInt,
+  inst:JSNumber,
+  inst:JSPositiveInt,
+  inst:JSUInt31,
+  inst:JSUInt32]*/
 intLiteralDeferred() => defer.intLiteralField;
 
-/*member: doubleLiteralDeferred:type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]*/
+/*member: doubleLiteralDeferred:type=[
+  inst:JSInt,
+  inst:JSNumNotInt,
+  inst:JSNumber,
+  inst:JSPositiveInt,
+  inst:JSUInt31,
+  inst:JSUInt32]*/
 doubleLiteralDeferred() => defer.doubleLiteralField;
 
 /*member: stringLiteralDeferred:type=[inst:JSString]*/

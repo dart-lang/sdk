@@ -18,9 +18,7 @@ main() {
 
 @reflectiveTest
 class ClassDriverResolutionTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, ElementsTypesMixin {
-  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
-  //  test cases.
+    with ElementsTypesMixin {
   test_element_allSupertypes() async {
     await assertNoErrorsInCode(r'''
 class A {}
@@ -42,11 +40,11 @@ class X5 extends A with B, C implements D, E {}
     var d = findElement.class_('D');
     var e = findElement.class_('E');
 
-    var typeA = interfaceTypeStar(a);
-    var typeB = interfaceTypeStar(b);
-    var typeC = interfaceTypeStar(c);
-    var typeD = interfaceTypeStar(d);
-    var typeE = interfaceTypeStar(e);
+    var typeA = interfaceTypeNone(a);
+    var typeB = interfaceTypeNone(b);
+    var typeC = interfaceTypeNone(c);
+    var typeD = interfaceTypeNone(d);
+    var typeE = interfaceTypeNone(e);
 
     assertElementTypes(
       findElement.class_('X1').allSupertypes,
@@ -87,16 +85,16 @@ class X3 extends C<double> {}
     assertElementTypes(
       findElement.class_('X1').allSupertypes,
       [
-        interfaceTypeStar(a, typeArguments: [stringType]),
+        interfaceTypeNone(a, typeArguments: [stringType]),
         objectType
       ],
     );
     assertElementTypes(
       findElement.class_('X2').allSupertypes,
       [
-        interfaceTypeStar(b, typeArguments: [
+        interfaceTypeNone(b, typeArguments: [
           stringType,
-          interfaceTypeStar(listElement, typeArguments: [intType])
+          interfaceTypeNone(listElement, typeArguments: [intType])
         ]),
         objectType
       ],
@@ -104,8 +102,8 @@ class X3 extends C<double> {}
     assertElementTypes(
       findElement.class_('X3').allSupertypes,
       [
-        interfaceTypeStar(c, typeArguments: [doubleType]),
-        interfaceTypeStar(b, typeArguments: [intType, doubleType]),
+        interfaceTypeNone(c, typeArguments: [doubleType]),
+        interfaceTypeNone(b, typeArguments: [intType, doubleType]),
         objectType
       ],
     );
@@ -129,7 +127,7 @@ class X extends A {}
     var c = findElement.class_('C');
     assertElementTypes(
       findElement.class_('X').allSupertypes,
-      [interfaceTypeStar(a), interfaceTypeStar(b), interfaceTypeStar(c)],
+      [interfaceTypeNone(a), interfaceTypeNone(b), interfaceTypeNone(c)],
     );
   }
 
@@ -155,8 +153,8 @@ class C implements A, Function, B {}
     assertElementTypes(
       c.interfaces,
       [
-        interfaceTypeStar(a),
-        interfaceTypeStar(b),
+        interfaceTypeNone(a),
+        interfaceTypeNone(b),
       ],
     );
   }
@@ -175,8 +173,8 @@ class C extends Object with A, Function, B {}
     assertElementTypes(
       c.mixins,
       [
-        interfaceTypeStar(a),
-        interfaceTypeStar(b),
+        interfaceTypeNone(a),
+        interfaceTypeNone(b),
       ],
     );
   }

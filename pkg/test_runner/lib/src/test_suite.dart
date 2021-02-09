@@ -309,7 +309,8 @@ class VMTestSuite extends TestSuite {
         hasRuntimeError: testExpectation == Expectation.runtimeError,
         hasStaticWarning: false,
         hasCrash: testExpectation == Expectation.crash);
-    var filename = configuration.architecture == Architecture.x64
+    var filename = configuration.architecture == Architecture.x64 ||
+            configuration.architecture == Architecture.x64c
         ? '$buildDir/gen/kernel-service.dart.snapshot'
         : '$buildDir/gen/kernel_service.dill';
     var dfePath = Path(filename).absolute.toNativePath();

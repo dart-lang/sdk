@@ -3101,34 +3101,6 @@ void Isolate::set_registered_service_extension_handlers(
 }
 #endif  // !defined(PRODUCT)
 
-void IsolateGroup::AddDeoptimizingBoxedField(const Field& field) {
-  ASSERT(Compiler::IsBackgroundCompilation());
-  ASSERT(!field.IsOriginal());
-  // The enclosed code allocates objects and can potentially trigger a GC,
-  // ensure that we account for safepoints when grabbing the lock.
-  SafepointMutexLocker ml(&field_list_mutex_);
-  if (boxed_field_list_ == GrowableObjectArray::null()) {
-    boxed_field_list_ = GrowableObjectArray::New(Heap::kOld);
-  }
-  const GrowableObjectArray& array =
-      GrowableObjectArray::Handle(boxed_field_list_);
-  array.Add(Field::Handle(field.Original()), Heap::kOld);
-}
-
-FieldPtr IsolateGroup::GetDeoptimizingBoxedField() {
-  ASSERT(Thread::Current()->IsMutatorThread());
-  SafepointMutexLocker ml(&field_list_mutex_);
-  if (boxed_field_list_ == GrowableObjectArray::null()) {
-    return Field::null();
-  }
-  const GrowableObjectArray& array =
-      GrowableObjectArray::Handle(boxed_field_list_);
-  if (array.Length() == 0) {
-    return Field::null();
-  }
-  return Field::RawCast(array.RemoveLast());
-}
-
 #ifndef PRODUCT
 ErrorPtr Isolate::InvokePendingServiceExtensionCalls() {
   GrowableObjectArray& calls =

@@ -188,20 +188,6 @@ void JitCallSpecializer::VisitStoreInstanceField(
       }
     }
     if (!unboxed_field) {
-      // TODO(http://dartbug.com/36097): Once we support optimized compiles with
-      // --enable-isolate-groups we could deoptimize dependent code right here -
-      // which involves stopping mutators.
-      // We could also continue to bailout of the compilation and let any
-      // mutator do the work in it's lazy compile slow path. The benefit of this
-      // would be to avoid stopping mutator here.
-      // The latter is better for single-isolate scenarios, we should measure
-      // and then decide which approach to take.
-      if (Compiler::IsBackgroundCompilation()) {
-        isolate_group()->AddDeoptimizingBoxedField(field);
-        Compiler::AbortBackgroundCompilation(
-            DeoptId::kNone, "Unboxing instance field while compiling");
-        UNREACHABLE();
-      }
       if (FLAG_trace_optimization || FLAG_trace_field_guards) {
         THR_Print("Disabling unboxing of %s\n", field.ToCString());
         if (!setter.IsNull()) {

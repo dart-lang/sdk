@@ -10560,7 +10560,8 @@ void Field::RegisterDependentCode(const Code& code) const {
 }
 
 void Field::DeoptimizeDependentCode() const {
-  ASSERT(Thread::Current()->IsMutatorThread());
+  DEBUG_ASSERT(
+      IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   ASSERT(IsOriginal());
   FieldDependentArray a(*this);
   if (FLAG_trace_deoptimization && a.HasCodes()) {

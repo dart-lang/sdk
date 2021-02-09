@@ -566,8 +566,8 @@ class WrappedAbstractValueDomain implements AbstractValueDomain {
       WrappedAbstractValue(_abstractValueDomain.numType);
 
   @override
-  AbstractValue get doubleType =>
-      WrappedAbstractValue(_abstractValueDomain.doubleType);
+  AbstractValue get numNotIntType =>
+      WrappedAbstractValue(_abstractValueDomain.numNotIntType);
 
   @override
   AbstractValue get intType =>

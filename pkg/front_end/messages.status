@@ -76,10 +76,10 @@ ConflictingModifiers/script1: Fail
 ConflictsWithConstructor/example: Fail
 ConflictsWithFactory/analyzerCode: Fail
 ConflictsWithFactory/example: Fail
+ConflictsWithImplicitSetter/example: Fail
 ConflictsWithMember/example: Fail
 ConflictsWithMemberWarning/example: Fail
 ConflictsWithSetter/example: Fail
-ConflictsWithSetterWarning/example: Fail
 ConflictsWithTypeVariable/example: Fail
 ConstAndFinal/declaration3: Fail
 ConstAndFinal/declaration4: Fail

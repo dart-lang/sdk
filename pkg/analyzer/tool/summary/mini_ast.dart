@@ -40,7 +40,7 @@ class Annotation {
 class ClassDeclaration extends CompilationUnitMember {
   final String name;
 
-  final TypeName superclass;
+  final TypeName? superclass;
 
   final List<ClassMember> members;
 
@@ -106,7 +106,7 @@ class EnumConstantDeclaration extends AnnotatedNode {
   final String name;
 
   EnumConstantDeclaration(
-      Comment? documentationComment, List<Annotation> metadata, this.name)
+      Comment? documentationComment, List<Annotation>? metadata, this.name)
       : super(documentationComment, metadata);
 }
 
@@ -155,7 +155,7 @@ class MethodDeclaration extends ClassMember {
 
   final String name;
 
-  final TypeName returnType;
+  final TypeName? returnType;
 
   MethodDeclaration(Comment? documentationComment, List<Annotation>? metadata,
       this.isGetter, this.name, this.returnType)
@@ -223,7 +223,7 @@ class MiniAstBuilder extends StackListener {
   void endClassDeclaration(Token beginToken, Token endToken) {
     debugEvent("ClassDeclaration");
     var members = popTypedList<ClassMember>() ?? [];
-    var superclass = pop() as TypeName;
+    var superclass = pop() as TypeName?;
     pop(); // Type variables
     var name = pop() as String;
     var metadata = popTypedList<Annotation>();
@@ -253,7 +253,7 @@ class MiniAstBuilder extends StackListener {
     pop(); // Formal parameters
     pop(); // Type variables
     var name = pop() as String;
-    var returnType = pop() as TypeName;
+    var returnType = pop() as TypeName?;
     var metadata = popTypedList<Annotation>();
     var comment = pop() as Comment?;
     push(MethodDeclaration(
@@ -359,7 +359,7 @@ class MiniAstBuilder extends StackListener {
     debugEvent("Metadata");
     inMetadata = false;
     var arguments = pop() as List?;
-    var constructorName = popIfNotNull(periodBeforeName) as String;
+    var constructorName = popIfNotNull(periodBeforeName) as String?;
     pop(); // Type arguments
     var name = pop() as String;
     push(Annotation(name, constructorName,
@@ -434,7 +434,7 @@ class MiniAstBuilder extends StackListener {
   @override
   void handleIdentifier(Token token, IdentifierContext context) {
     if (context == IdentifierContext.enumValueDeclaration) {
-      var metadata = popTypedList() as List<Annotation>;
+      var metadata = popTypedList() as List<Annotation>?;
       var comment = pop() as Comment?;
       push(EnumConstantDeclaration(comment, metadata, token.lexeme));
     } else {

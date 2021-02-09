@@ -27,8 +27,6 @@ import '../fasta_codes.dart'
         messagePatchDeclarationMismatch,
         messagePatchDeclarationOrigin,
         noLength,
-        templateConflictsWithMember,
-        templateConflictsWithSetter,
         templateExtensionMemberConflictsWithObjectMember;
 
 import '../problems.dart';
@@ -86,6 +84,10 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
   Extension build(
       SourceLibraryBuilder libraryBuilder, LibraryBuilder coreLibrary,
       {bool addMembersToLibrary}) {
+    SourceLibraryBuilder.checkMemberConflicts(library, scope,
+        checkForInstanceVsStaticConflict: true,
+        checkForMethodVsSetterConflict: true);
+
     ClassBuilder objectClassBuilder =
         coreLibrary.lookupLocalMember('Object', required: true);
     void buildBuilders(String name, Builder declaration) {
@@ -114,8 +116,10 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
               (Member member, BuiltMemberKind memberKind) {
             if (addMembersToLibrary &&
                 !memberBuilder.isPatch &&
-                !memberBuilder.isDuplicate) {
+                !memberBuilder.isDuplicate &&
+                !memberBuilder.isConflictingSetter) {
               ExtensionMemberKind kind;
+              String name = memberBuilder.name;
               switch (memberKind) {
                 case BuiltMemberKind.Constructor:
                 case BuiltMemberKind.RedirectingFactory:
@@ -162,7 +166,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
                     member.fileOffset, member.fileUri);
               }
               extension.members.add(new ExtensionMemberDescriptor(
-                  name: new Name(memberBuilder.name, libraryBuilder.library),
+                  name: new Name(name, libraryBuilder.library),
                   member: memberReference,
                   isStatic: declaration.isStatic,
                   kind: kind));
@@ -177,32 +181,6 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
     }
 
     scope.forEach(buildBuilders);
-
-    scope.forEachLocalSetter((String name, MemberBuilder setter) {
-      Builder member = scopeBuilder[name];
-      if (member == null) {
-        // Setter without getter.
-        return;
-      }
-      bool conflict = member.isDeclarationInstanceMember !=
-          setter.isDeclarationInstanceMember;
-      if (member.isField) {
-        if (!member.isConst && !member.isFinal) {
-          // Setter with writable field.
-          conflict = true;
-        }
-      } else if (member.isRegularMethod) {
-        // Setter with method.
-        conflict = true;
-      }
-      if (conflict) {
-        addProblem(templateConflictsWithMember.withArguments(name),
-            setter.charOffset, noLength);
-        // TODO(ahe): Context argument to previous message?
-        addProblem(templateConflictsWithSetter.withArguments(name),
-            member.charOffset, noLength);
-      }
-    });
 
     _extension.onType = onType?.build(libraryBuilder);
 

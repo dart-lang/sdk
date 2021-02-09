@@ -592,9 +592,10 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
       : <ClassMember>[new SourceProcedureMember(this)];
 
   @override
-  List<ClassMember> get localSetters => _localSetters ??= isSetter
-      ? <ClassMember>[new SourceProcedureMember(this)]
-      : const <ClassMember>[];
+  List<ClassMember> get localSetters =>
+      _localSetters ??= isSetter && !isConflictingSetter
+          ? <ClassMember>[new SourceProcedureMember(this)]
+          : const <ClassMember>[];
 }
 
 class SourceProcedureMember extends BuilderClassMember {

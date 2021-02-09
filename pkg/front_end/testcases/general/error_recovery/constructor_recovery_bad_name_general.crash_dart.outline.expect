@@ -237,13 +237,17 @@ library;
 //   int Foo;
 //       ^^^
 //
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:24:7: Error: Conflicts with member 'Foo'.
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:24:7: Error: Conflicts with the implicit setter of the field 'Foo'.
 //   set Foo {
 //       ^
 //
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:40:10: Error: Conflicts with setter 'Foo'.
 //   int A, Foo, B;
 //          ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:23:7: Error: Conflicts with the implicit setter of the field 'Foo'.
+//   set Foo => 0;
+//       ^
 //
 import self as self;
 import "dart:core" as core;
@@ -260,8 +264,6 @@ class Foo extends core::Object {
   constructor •() → self::Foo*
     ;
   get Foo() → dynamic
-    ;
-  set Foo(dynamic #synthetic) → void
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

@@ -16,7 +16,7 @@
 /*prod.class: global#double:*/
 /*spec.class: global#double:implicit=[double]*/
 
-/*class: global#JSDouble:*/
+/*class: global#JSNumNotInt:*/
 
 main() {
   <int, double>{}[0] = 0.5;

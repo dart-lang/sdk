@@ -915,7 +915,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
   final bool allowsVariance;
 
   @override
-  late int typeArgumentCount;
+  int typeArgumentCount = 0;
 
   /// The `>` token which ends the type parameter or argument.
   /// This closer may be synthetic, points to the next token in the stream,
@@ -938,7 +938,6 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
   TypeParamOrArgInfo compute() {
     Token token;
     Token next = start;
-    typeArgumentCount = 0;
     while (true) {
       TypeInfo typeInfo =
           computeType(next, /* required = */ true, inDeclaration);

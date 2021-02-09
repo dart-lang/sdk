@@ -2116,6 +2116,10 @@ ConflictsWithMember:
   template: "Conflicts with member '#name'."
   analyzerCode: CONFLICTS_WITH_MEMBER
 
+ConflictsWithImplicitSetter:
+  template: "Conflicts with the implicit setter of the field '#name'."
+  analyzerCode: CONFLICTS_WITH_MEMBER
+
 ConflictsWithSetter:
   template: "Conflicts with setter '#name'."
   analyzerCode: CONFLICTS_WITH_MEMBER

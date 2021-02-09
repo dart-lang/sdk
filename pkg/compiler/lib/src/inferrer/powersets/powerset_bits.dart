@@ -611,9 +611,9 @@ class PowersetBitsDomain {
   int get numType =>
       _numType ??= createNonNullSubclass(commonElements.jsNumberClass);
 
-  int _doubleType;
-  int get doubleType =>
-      _doubleType ??= createNonNullExact(commonElements.jsDoubleClass);
+  int _numNotIntType;
+  int get numNotIntType =>
+      _numNotIntType ??= createNonNullExact(commonElements.jsNumNotIntClass);
 
   int _intType;
   int get intType =>

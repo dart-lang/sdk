@@ -20,11 +20,11 @@ TypeMask objectType;
 TypeMask jsBoolean;
 TypeMask jsNumber;
 TypeMask jsInteger;
-TypeMask jsDouble;
+TypeMask jsNumNotInt;
 TypeMask jsBooleanOrNull;
 TypeMask jsNumberOrNull;
 TypeMask jsIntegerOrNull;
-TypeMask jsDoubleOrNull;
+TypeMask jsNumNotIntOrNull;
 TypeMask emptyType;
 TypeMask dynamicType;
 
@@ -121,7 +121,7 @@ void testUnion(JClosedWorld closedWorld) {
   rule(emptyType, jsBoolean, jsBoolean);
   rule(emptyType, jsNumber, jsNumber);
   rule(emptyType, jsInteger, jsInteger);
-  rule(emptyType, jsDouble, jsDouble);
+  rule(emptyType, jsNumNotInt, jsNumNotInt);
   rule(emptyType, jsIndexable, jsIndexable);
   rule(emptyType, jsString, jsString);
   rule(emptyType, jsReadableArray, jsReadableArray);
@@ -135,7 +135,7 @@ void testUnion(JClosedWorld closedWorld) {
   rule(emptyType, jsBooleanOrNull, jsBooleanOrNull);
   rule(emptyType, jsNumberOrNull, jsNumberOrNull);
   rule(emptyType, jsIntegerOrNull, jsIntegerOrNull);
-  rule(emptyType, jsDoubleOrNull, jsDoubleOrNull);
+  rule(emptyType, jsNumNotIntOrNull, jsNumNotIntOrNull);
   rule(emptyType, jsStringOrNull, jsStringOrNull);
   rule(emptyType, nullType, nullType);
   rule(emptyType, jsFixedArray, jsFixedArray);
@@ -144,7 +144,7 @@ void testUnion(JClosedWorld closedWorld) {
   rule(dynamicType, jsBoolean, dynamicType);
   rule(dynamicType, jsNumber, dynamicType);
   rule(dynamicType, jsInteger, dynamicType);
-  rule(dynamicType, jsDouble, dynamicType);
+  rule(dynamicType, jsNumNotInt, dynamicType);
   rule(dynamicType, jsIndexable, dynamicType);
   rule(dynamicType, jsString, dynamicType);
   rule(dynamicType, jsReadableArray, dynamicType);
@@ -158,7 +158,7 @@ void testUnion(JClosedWorld closedWorld) {
   rule(dynamicType, jsBooleanOrNull, dynamicType);
   rule(dynamicType, jsNumberOrNull, dynamicType);
   rule(dynamicType, jsIntegerOrNull, dynamicType);
-  rule(dynamicType, jsDoubleOrNull, dynamicType);
+  rule(dynamicType, jsNumNotIntOrNull, dynamicType);
   rule(dynamicType, jsStringOrNull, dynamicType);
   rule(dynamicType, nullType, dynamicType);
   rule(dynamicType, jsFixedArray, dynamicType);
@@ -166,7 +166,7 @@ void testUnion(JClosedWorld closedWorld) {
   rule(jsBoolean, jsBoolean, jsBoolean);
   rule(jsBoolean, jsNumber, jsInterceptor);
   rule(jsBoolean, jsInteger, jsInterceptor);
-  rule(jsBoolean, jsDouble, jsInterceptor);
+  rule(jsBoolean, jsNumNotInt, jsInterceptor);
   rule(jsBoolean, jsIndexable, objectType);
   rule(jsBoolean, jsString, jsInterceptor);
   rule(jsBoolean, jsReadableArray, jsInterceptor);
@@ -180,14 +180,14 @@ void testUnion(JClosedWorld closedWorld) {
   rule(jsBoolean, jsBooleanOrNull, jsBooleanOrNull);
   rule(jsBoolean, jsNumberOrNull, jsInterceptorOrNull);
   rule(jsBoolean, jsIntegerOrNull, jsInterceptorOrNull);
-  rule(jsBoolean, jsDoubleOrNull, jsInterceptorOrNull);
+  rule(jsBoolean, jsNumNotIntOrNull, jsInterceptorOrNull);
   rule(jsBoolean, jsStringOrNull, jsInterceptorOrNull);
   rule(jsBoolean, nullType, jsBooleanOrNull);
   rule(jsBoolean, jsFixedArray, jsInterceptor);
 
   rule(jsNumber, jsNumber, jsNumber);
   rule(jsNumber, jsInteger, jsNumber);
-  rule(jsNumber, jsDouble, jsNumber);
+  rule(jsNumber, jsNumNotInt, jsNumber);
   rule(jsNumber, jsIndexable, objectType);
   rule(jsNumber, jsString, jsInterceptorOrComparable);
   rule(jsNumber, jsReadableArray, jsInterceptor);
@@ -201,13 +201,13 @@ void testUnion(JClosedWorld closedWorld) {
   rule(jsNumber, jsBooleanOrNull, jsInterceptorOrNull);
   rule(jsNumber, jsNumberOrNull, jsNumberOrNull);
   rule(jsNumber, jsIntegerOrNull, jsNumberOrNull);
-  rule(jsNumber, jsDoubleOrNull, jsNumberOrNull);
+  rule(jsNumber, jsNumNotIntOrNull, jsNumberOrNull);
   rule(jsNumber, jsStringOrNull, jsInterceptorOrComparableOrNull);
   rule(jsNumber, nullType, jsNumberOrNull);
   rule(jsNumber, jsFixedArray, jsInterceptor);
 
   rule(jsInteger, jsInteger, jsInteger);
-  rule(jsInteger, jsDouble, jsNumber);
+  rule(jsInteger, jsNumNotInt, jsNumber);
   rule(jsInteger, jsIndexable, objectType);
   rule(jsInteger, jsString, jsInterceptorOrComparable);
   rule(jsInteger, jsReadableArray, jsInterceptor);
@@ -221,29 +221,29 @@ void testUnion(JClosedWorld closedWorld) {
   rule(jsInteger, jsBooleanOrNull, jsInterceptorOrNull);
   rule(jsInteger, jsNumberOrNull, jsNumberOrNull);
   rule(jsInteger, jsIntegerOrNull, jsIntegerOrNull);
-  rule(jsInteger, jsDoubleOrNull, jsNumberOrNull);
+  rule(jsInteger, jsNumNotIntOrNull, jsNumberOrNull);
   rule(jsInteger, jsStringOrNull, jsInterceptorOrComparableOrNull);
   rule(jsInteger, nullType, jsIntegerOrNull);
   rule(jsInteger, jsFixedArray, jsInterceptor);
 
-  rule(jsDouble, jsDouble, jsDouble);
-  rule(jsDouble, jsIndexable, objectType);
-  rule(jsDouble, jsString, jsInterceptorOrComparable);
-  rule(jsDouble, jsReadableArray, jsInterceptor);
-  rule(jsDouble, jsMutableArray, jsInterceptor);
-  rule(jsDouble, jsExtendableArray, jsInterceptor);
-  rule(jsDouble, jsUnmodifiableArray, jsInterceptor);
-  rule(jsDouble, nonPrimitive1, objectType);
-  rule(jsDouble, nonPrimitive2, objectType);
-  rule(jsDouble, potentialArray, dynamicType);
-  rule(jsDouble, potentialString, dynamicType);
-  rule(jsDouble, jsBooleanOrNull, jsInterceptorOrNull);
-  rule(jsDouble, jsNumberOrNull, jsNumberOrNull);
-  rule(jsDouble, jsIntegerOrNull, jsNumberOrNull);
-  rule(jsDouble, jsDoubleOrNull, jsDoubleOrNull);
-  rule(jsDouble, jsStringOrNull, jsInterceptorOrComparableOrNull);
-  rule(jsDouble, nullType, jsDoubleOrNull);
-  rule(jsDouble, jsFixedArray, jsInterceptor);
+  rule(jsNumNotInt, jsNumNotInt, jsNumNotInt);
+  rule(jsNumNotInt, jsIndexable, objectType);
+  rule(jsNumNotInt, jsString, jsInterceptorOrComparable);
+  rule(jsNumNotInt, jsReadableArray, jsInterceptor);
+  rule(jsNumNotInt, jsMutableArray, jsInterceptor);
+  rule(jsNumNotInt, jsExtendableArray, jsInterceptor);
+  rule(jsNumNotInt, jsUnmodifiableArray, jsInterceptor);
+  rule(jsNumNotInt, nonPrimitive1, objectType);
+  rule(jsNumNotInt, nonPrimitive2, objectType);
+  rule(jsNumNotInt, potentialArray, dynamicType);
+  rule(jsNumNotInt, potentialString, dynamicType);
+  rule(jsNumNotInt, jsBooleanOrNull, jsInterceptorOrNull);
+  rule(jsNumNotInt, jsNumberOrNull, jsNumberOrNull);
+  rule(jsNumNotInt, jsIntegerOrNull, jsNumberOrNull);
+  rule(jsNumNotInt, jsNumNotIntOrNull, jsNumNotIntOrNull);
+  rule(jsNumNotInt, jsStringOrNull, jsInterceptorOrComparableOrNull);
+  rule(jsNumNotInt, nullType, jsNumNotIntOrNull);
+  rule(jsNumNotInt, jsFixedArray, jsInterceptor);
 
   rule(jsIndexable, jsIndexable, jsIndexable);
   rule(jsIndexable, jsString, jsIndexable);
@@ -258,7 +258,7 @@ void testUnion(JClosedWorld closedWorld) {
   rule(jsIndexable, jsBooleanOrNull, dynamicType);
   rule(jsIndexable, jsNumberOrNull, dynamicType);
   rule(jsIndexable, jsIntegerOrNull, dynamicType);
-  rule(jsIndexable, jsDoubleOrNull, dynamicType);
+  rule(jsIndexable, jsNumNotIntOrNull, dynamicType);
   rule(jsIndexable, jsStringOrNull, jsIndexableOrNull);
   rule(jsIndexable, nullType, jsIndexableOrNull);
   rule(jsIndexable, jsFixedArray, jsIndexable);
@@ -275,7 +275,7 @@ void testUnion(JClosedWorld closedWorld) {
   rule(jsString, jsBooleanOrNull, jsInterceptorOrNull);
   rule(jsString, jsNumberOrNull, jsInterceptorOrComparableOrNull);
   rule(jsString, jsIntegerOrNull, jsInterceptorOrComparableOrNull);
-  rule(jsString, jsDoubleOrNull, jsInterceptorOrComparableOrNull);
+  rule(jsString, jsNumNotIntOrNull, jsInterceptorOrComparableOrNull);
   rule(jsString, jsStringOrNull, jsStringOrNull);
   rule(jsString, nullType, jsStringOrNull);
   rule(jsString, jsFixedArray, jsIndexable);
@@ -291,7 +291,7 @@ void testUnion(JClosedWorld closedWorld) {
   rule(jsReadableArray, jsBooleanOrNull, jsInterceptorOrNull);
   rule(jsReadableArray, jsNumberOrNull, jsInterceptorOrNull);
   rule(jsReadableArray, jsIntegerOrNull, jsInterceptorOrNull);
-  rule(jsReadableArray, jsDoubleOrNull, jsInterceptorOrNull);
+  rule(jsReadableArray, jsNumNotIntOrNull, jsInterceptorOrNull);
   rule(jsReadableArray, jsStringOrNull, jsIndexableOrNull);
   rule(jsReadableArray, nullType, jsArrayOrNull);
   rule(jsReadableArray, jsFixedArray, jsReadableArray);
@@ -306,7 +306,7 @@ void testUnion(JClosedWorld closedWorld) {
   rule(jsMutableArray, jsBooleanOrNull, jsInterceptorOrNull);
   rule(jsMutableArray, jsNumberOrNull, jsInterceptorOrNull);
   rule(jsMutableArray, jsIntegerOrNull, jsInterceptorOrNull);
-  rule(jsMutableArray, jsDoubleOrNull, jsInterceptorOrNull);
+  rule(jsMutableArray, jsNumNotIntOrNull, jsInterceptorOrNull);
   rule(jsMutableArray, jsStringOrNull, jsIndexableOrNull);
   rule(jsMutableArray, nullType, jsMutableArrayOrNull);
   rule(jsMutableArray, jsFixedArray, jsMutableArray);
@@ -320,7 +320,7 @@ void testUnion(JClosedWorld closedWorld) {
   rule(jsExtendableArray, jsBooleanOrNull, jsInterceptorOrNull);
   rule(jsExtendableArray, jsNumberOrNull, jsInterceptorOrNull);
   rule(jsExtendableArray, jsIntegerOrNull, jsInterceptorOrNull);
-  rule(jsExtendableArray, jsDoubleOrNull, jsInterceptorOrNull);
+  rule(jsExtendableArray, jsNumNotIntOrNull, jsInterceptorOrNull);
   rule(jsExtendableArray, jsStringOrNull, jsIndexableOrNull);
   rule(jsExtendableArray, nullType, jsExtendableArrayOrNull);
   rule(jsExtendableArray, jsFixedArray, jsMutableArray);
@@ -333,7 +333,7 @@ void testUnion(JClosedWorld closedWorld) {
   rule(jsUnmodifiableArray, jsBooleanOrNull, jsInterceptorOrNull);
   rule(jsUnmodifiableArray, jsNumberOrNull, jsInterceptorOrNull);
   rule(jsUnmodifiableArray, jsIntegerOrNull, jsInterceptorOrNull);
-  rule(jsUnmodifiableArray, jsDoubleOrNull, jsInterceptorOrNull);
+  rule(jsUnmodifiableArray, jsNumNotIntOrNull, jsInterceptorOrNull);
   rule(jsUnmodifiableArray, jsStringOrNull, jsIndexableOrNull);
   rule(jsUnmodifiableArray, nullType, jsUnmodifiableArrayOrNull);
   rule(jsUnmodifiableArray, jsFixedArray, jsReadableArray);
@@ -345,7 +345,7 @@ void testUnion(JClosedWorld closedWorld) {
   rule(nonPrimitive1, jsBooleanOrNull, dynamicType);
   rule(nonPrimitive1, jsNumberOrNull, dynamicType);
   rule(nonPrimitive1, jsIntegerOrNull, dynamicType);
-  rule(nonPrimitive1, jsDoubleOrNull, dynamicType);
+  rule(nonPrimitive1, jsNumNotIntOrNull, dynamicType);
   rule(nonPrimitive1, jsStringOrNull, dynamicType);
   rule(nonPrimitive1, jsFixedArray, objectType);
 
@@ -355,7 +355,7 @@ void testUnion(JClosedWorld closedWorld) {
   rule(nonPrimitive2, jsBooleanOrNull, dynamicType);
   rule(nonPrimitive2, jsNumberOrNull, dynamicType);
   rule(nonPrimitive2, jsIntegerOrNull, dynamicType);
-  rule(nonPrimitive2, jsDoubleOrNull, dynamicType);
+  rule(nonPrimitive2, jsNumNotIntOrNull, dynamicType);
   rule(nonPrimitive2, jsStringOrNull, dynamicType);
   rule(nonPrimitive2, jsFixedArray, objectType);
 
@@ -364,7 +364,7 @@ void testUnion(JClosedWorld closedWorld) {
   rule(potentialArray, jsBooleanOrNull, dynamicType);
   rule(potentialArray, jsNumberOrNull, dynamicType);
   rule(potentialArray, jsIntegerOrNull, dynamicType);
-  rule(potentialArray, jsDoubleOrNull, dynamicType);
+  rule(potentialArray, jsNumNotIntOrNull, dynamicType);
   rule(potentialArray, jsStringOrNull, dynamicType);
   rule(potentialArray, nullType, potentialArray);
   rule(potentialArray, jsFixedArray, potentialArray);
@@ -373,7 +373,7 @@ void testUnion(JClosedWorld closedWorld) {
   rule(potentialString, jsBooleanOrNull, dynamicType);
   rule(potentialString, jsNumberOrNull, dynamicType);
   rule(potentialString, jsIntegerOrNull, dynamicType);
-  rule(potentialString, jsDoubleOrNull, dynamicType);
+  rule(potentialString, jsNumNotIntOrNull, dynamicType);
   rule(potentialString, jsStringOrNull, potentialString);
   rule(potentialString, nullType, potentialString);
   rule(potentialString, jsFixedArray, dynamicType);
@@ -381,28 +381,28 @@ void testUnion(JClosedWorld closedWorld) {
   rule(jsBooleanOrNull, jsBooleanOrNull, jsBooleanOrNull);
   rule(jsBooleanOrNull, jsNumberOrNull, jsInterceptorOrNull);
   rule(jsBooleanOrNull, jsIntegerOrNull, jsInterceptorOrNull);
-  rule(jsBooleanOrNull, jsDoubleOrNull, jsInterceptorOrNull);
+  rule(jsBooleanOrNull, jsNumNotIntOrNull, jsInterceptorOrNull);
   rule(jsBooleanOrNull, jsStringOrNull, jsInterceptorOrNull);
   rule(jsBooleanOrNull, nullType, jsBooleanOrNull);
   rule(jsBooleanOrNull, jsFixedArray, jsInterceptorOrNull);
 
   rule(jsNumberOrNull, jsNumberOrNull, jsNumberOrNull);
   rule(jsNumberOrNull, jsIntegerOrNull, jsNumberOrNull);
-  rule(jsNumberOrNull, jsDoubleOrNull, jsNumberOrNull);
+  rule(jsNumberOrNull, jsNumNotIntOrNull, jsNumberOrNull);
   rule(jsNumberOrNull, jsStringOrNull, jsInterceptorOrComparableOrNull);
   rule(jsNumberOrNull, nullType, jsNumberOrNull);
   rule(jsNumberOrNull, jsFixedArray, jsInterceptorOrNull);
 
   rule(jsIntegerOrNull, jsIntegerOrNull, jsIntegerOrNull);
-  rule(jsIntegerOrNull, jsDoubleOrNull, jsNumberOrNull);
+  rule(jsIntegerOrNull, jsNumNotIntOrNull, jsNumberOrNull);
   rule(jsIntegerOrNull, jsStringOrNull, jsInterceptorOrComparableOrNull);
   rule(jsIntegerOrNull, nullType, jsIntegerOrNull);
   rule(jsIntegerOrNull, jsFixedArray, jsInterceptorOrNull);
 
-  rule(jsDoubleOrNull, jsDoubleOrNull, jsDoubleOrNull);
-  rule(jsDoubleOrNull, jsStringOrNull, jsInterceptorOrComparableOrNull);
-  rule(jsDoubleOrNull, nullType, jsDoubleOrNull);
-  rule(jsDoubleOrNull, jsFixedArray, jsInterceptorOrNull);
+  rule(jsNumNotIntOrNull, jsNumNotIntOrNull, jsNumNotIntOrNull);
+  rule(jsNumNotIntOrNull, jsStringOrNull, jsInterceptorOrComparableOrNull);
+  rule(jsNumNotIntOrNull, nullType, jsNumNotIntOrNull);
+  rule(jsNumNotIntOrNull, jsFixedArray, jsInterceptorOrNull);
 
   rule(jsStringOrNull, jsStringOrNull, jsStringOrNull);
   rule(jsStringOrNull, nullType, jsStringOrNull);
@@ -431,7 +431,7 @@ void testIntersection(JClosedWorld closedWorld) {
   rule(emptyType, jsBoolean, emptyType);
   rule(emptyType, jsNumber, emptyType);
   rule(emptyType, jsInteger, emptyType);
-  rule(emptyType, jsDouble, emptyType);
+  rule(emptyType, jsNumNotInt, emptyType);
   rule(emptyType, jsIndexable, emptyType);
   rule(emptyType, jsString, emptyType);
   rule(emptyType, jsReadableArray, emptyType);
@@ -445,7 +445,7 @@ void testIntersection(JClosedWorld closedWorld) {
   rule(emptyType, jsBooleanOrNull, emptyType);
   rule(emptyType, jsNumberOrNull, emptyType);
   rule(emptyType, jsIntegerOrNull, emptyType);
-  rule(emptyType, jsDoubleOrNull, emptyType);
+  rule(emptyType, jsNumNotIntOrNull, emptyType);
   rule(emptyType, jsStringOrNull, emptyType);
   rule(emptyType, nullType, emptyType);
   rule(emptyType, jsFixedArray, emptyType);
@@ -454,7 +454,7 @@ void testIntersection(JClosedWorld closedWorld) {
   rule(dynamicType, jsBoolean, jsBoolean);
   rule(dynamicType, jsNumber, jsNumber);
   rule(dynamicType, jsInteger, jsInteger);
-  rule(dynamicType, jsDouble, jsDouble);
+  rule(dynamicType, jsNumNotInt, jsNumNotInt);
   rule(dynamicType, jsIndexable, jsIndexable);
   rule(dynamicType, jsString, jsString);
   rule(dynamicType, jsReadableArray, jsReadableArray);
@@ -468,7 +468,7 @@ void testIntersection(JClosedWorld closedWorld) {
   rule(dynamicType, jsBooleanOrNull, jsBooleanOrNull);
   rule(dynamicType, jsNumberOrNull, jsNumberOrNull);
   rule(dynamicType, jsIntegerOrNull, jsIntegerOrNull);
-  rule(dynamicType, jsDoubleOrNull, jsDoubleOrNull);
+  rule(dynamicType, jsNumNotIntOrNull, jsNumNotIntOrNull);
   rule(dynamicType, jsStringOrNull, jsStringOrNull);
   rule(dynamicType, nullType, nullType);
   rule(dynamicType, jsFixedArray, jsFixedArray);
@@ -476,7 +476,7 @@ void testIntersection(JClosedWorld closedWorld) {
   rule(jsBoolean, jsBoolean, jsBoolean);
   rule(jsBoolean, jsNumber, emptyType);
   rule(jsBoolean, jsInteger, emptyType);
-  rule(jsBoolean, jsDouble, emptyType);
+  rule(jsBoolean, jsNumNotInt, emptyType);
   rule(jsBoolean, jsIndexable, emptyType);
   rule(jsBoolean, jsString, emptyType);
   rule(jsBoolean, jsReadableArray, emptyType);
@@ -490,14 +490,14 @@ void testIntersection(JClosedWorld closedWorld) {
   rule(jsBoolean, jsBooleanOrNull, jsBoolean);
   rule(jsBoolean, jsNumberOrNull, emptyType);
   rule(jsBoolean, jsIntegerOrNull, emptyType);
-  rule(jsBoolean, jsDoubleOrNull, emptyType);
+  rule(jsBoolean, jsNumNotIntOrNull, emptyType);
   rule(jsBoolean, jsStringOrNull, emptyType);
   rule(jsBoolean, nullType, emptyType);
   rule(jsBoolean, jsFixedArray, emptyType);
 
   rule(jsNumber, jsNumber, jsNumber);
   rule(jsNumber, jsInteger, jsInteger);
-  rule(jsNumber, jsDouble, jsDouble);
+  rule(jsNumber, jsNumNotInt, jsNumNotInt);
   rule(jsNumber, jsIndexable, emptyType);
   rule(jsNumber, jsString, emptyType);
   rule(jsNumber, jsReadableArray, emptyType);
@@ -511,13 +511,13 @@ void testIntersection(JClosedWorld closedWorld) {
   rule(jsNumber, jsBooleanOrNull, emptyType);
   rule(jsNumber, jsNumberOrNull, jsNumber);
   rule(jsNumber, jsIntegerOrNull, jsInteger);
-  rule(jsNumber, jsDoubleOrNull, jsDouble);
+  rule(jsNumber, jsNumNotIntOrNull, jsNumNotInt);
   rule(jsNumber, jsStringOrNull, emptyType);
   rule(jsNumber, nullType, emptyType);
   rule(jsNumber, jsFixedArray, emptyType);
 
   rule(jsInteger, jsInteger, jsInteger);
-  rule(jsInteger, jsDouble, emptyType);
+  rule(jsInteger, jsNumNotInt, emptyType);
   rule(jsInteger, jsIndexable, emptyType);
   rule(jsInteger, jsString, emptyType);
   rule(jsInteger, jsReadableArray, emptyType);
@@ -531,29 +531,29 @@ void testIntersection(JClosedWorld closedWorld) {
   rule(jsInteger, jsBooleanOrNull, emptyType);
   rule(jsInteger, jsNumberOrNull, jsInteger);
   rule(jsInteger, jsIntegerOrNull, jsInteger);
-  rule(jsInteger, jsDoubleOrNull, emptyType);
+  rule(jsInteger, jsNumNotIntOrNull, emptyType);
   rule(jsInteger, jsStringOrNull, emptyType);
   rule(jsInteger, nullType, emptyType);
   rule(jsInteger, jsFixedArray, emptyType);
 
-  rule(jsDouble, jsDouble, jsDouble);
-  rule(jsDouble, jsIndexable, emptyType);
-  rule(jsDouble, jsString, emptyType);
-  rule(jsDouble, jsReadableArray, emptyType);
-  rule(jsDouble, jsMutableArray, emptyType);
-  rule(jsDouble, jsExtendableArray, emptyType);
-  rule(jsDouble, jsUnmodifiableArray, emptyType);
-  rule(jsDouble, nonPrimitive1, emptyType);
-  rule(jsDouble, nonPrimitive2, emptyType);
-  rule(jsDouble, potentialArray, emptyType);
-  rule(jsDouble, potentialString, emptyType);
-  rule(jsDouble, jsBooleanOrNull, emptyType);
-  rule(jsDouble, jsNumberOrNull, jsDouble);
-  rule(jsDouble, jsIntegerOrNull, emptyType);
-  rule(jsDouble, jsDoubleOrNull, jsDouble);
-  rule(jsDouble, jsStringOrNull, emptyType);
-  rule(jsDouble, nullType, emptyType);
-  rule(jsDouble, jsFixedArray, emptyType);
+  rule(jsNumNotInt, jsNumNotInt, jsNumNotInt);
+  rule(jsNumNotInt, jsIndexable, emptyType);
+  rule(jsNumNotInt, jsString, emptyType);
+  rule(jsNumNotInt, jsReadableArray, emptyType);
+  rule(jsNumNotInt, jsMutableArray, emptyType);
+  rule(jsNumNotInt, jsExtendableArray, emptyType);
+  rule(jsNumNotInt, jsUnmodifiableArray, emptyType);
+  rule(jsNumNotInt, nonPrimitive1, emptyType);
+  rule(jsNumNotInt, nonPrimitive2, emptyType);
+  rule(jsNumNotInt, potentialArray, emptyType);
+  rule(jsNumNotInt, potentialString, emptyType);
+  rule(jsNumNotInt, jsBooleanOrNull, emptyType);
+  rule(jsNumNotInt, jsNumberOrNull, jsNumNotInt);
+  rule(jsNumNotInt, jsIntegerOrNull, emptyType);
+  rule(jsNumNotInt, jsNumNotIntOrNull, jsNumNotInt);
+  rule(jsNumNotInt, jsStringOrNull, emptyType);
+  rule(jsNumNotInt, nullType, emptyType);
+  rule(jsNumNotInt, jsFixedArray, emptyType);
 
   rule(jsIndexable, jsIndexable, jsIndexable);
   rule(jsIndexable, jsString, jsString);
@@ -576,7 +576,7 @@ void testIntersection(JClosedWorld closedWorld) {
   rule(jsIndexable, jsBooleanOrNull, emptyType);
   rule(jsIndexable, jsNumberOrNull, emptyType);
   rule(jsIndexable, jsIntegerOrNull, emptyType);
-  rule(jsIndexable, jsDoubleOrNull, emptyType);
+  rule(jsIndexable, jsNumNotIntOrNull, emptyType);
   rule(jsIndexable, jsStringOrNull, jsString);
   rule(jsIndexable, nullType, emptyType);
   rule(jsIndexable, jsFixedArray, jsFixedArray);
@@ -593,7 +593,7 @@ void testIntersection(JClosedWorld closedWorld) {
   rule(jsString, jsBooleanOrNull, emptyType);
   rule(jsString, jsNumberOrNull, emptyType);
   rule(jsString, jsIntegerOrNull, emptyType);
-  rule(jsString, jsDoubleOrNull, emptyType);
+  rule(jsString, jsNumNotIntOrNull, emptyType);
   rule(jsString, jsStringOrNull, jsString);
   rule(jsString, nullType, emptyType);
   rule(jsString, jsFixedArray, emptyType);
@@ -609,7 +609,7 @@ void testIntersection(JClosedWorld closedWorld) {
   rule(jsReadableArray, jsBooleanOrNull, emptyType);
   rule(jsReadableArray, jsNumberOrNull, emptyType);
   rule(jsReadableArray, jsIntegerOrNull, emptyType);
-  rule(jsReadableArray, jsDoubleOrNull, emptyType);
+  rule(jsReadableArray, jsNumNotIntOrNull, emptyType);
   rule(jsReadableArray, jsStringOrNull, emptyType);
   rule(jsReadableArray, nullType, emptyType);
   rule(jsReadableArray, jsFixedArray, jsFixedArray);
@@ -624,7 +624,7 @@ void testIntersection(JClosedWorld closedWorld) {
   rule(jsMutableArray, jsBooleanOrNull, emptyType);
   rule(jsMutableArray, jsNumberOrNull, emptyType);
   rule(jsMutableArray, jsIntegerOrNull, emptyType);
-  rule(jsMutableArray, jsDoubleOrNull, emptyType);
+  rule(jsMutableArray, jsNumNotIntOrNull, emptyType);
   rule(jsMutableArray, jsStringOrNull, emptyType);
   rule(jsMutableArray, nullType, emptyType);
   rule(jsMutableArray, jsFixedArray, jsFixedArray);
@@ -638,7 +638,7 @@ void testIntersection(JClosedWorld closedWorld) {
   rule(jsExtendableArray, jsBooleanOrNull, emptyType);
   rule(jsExtendableArray, jsNumberOrNull, emptyType);
   rule(jsExtendableArray, jsIntegerOrNull, emptyType);
-  rule(jsExtendableArray, jsDoubleOrNull, emptyType);
+  rule(jsExtendableArray, jsNumNotIntOrNull, emptyType);
   rule(jsExtendableArray, jsStringOrNull, emptyType);
   rule(jsExtendableArray, nullType, emptyType);
   rule(jsExtendableArray, jsFixedArray, emptyType);
@@ -651,7 +651,7 @@ void testIntersection(JClosedWorld closedWorld) {
   rule(jsUnmodifiableArray, jsBooleanOrNull, emptyType);
   rule(jsUnmodifiableArray, jsNumberOrNull, emptyType);
   rule(jsUnmodifiableArray, jsIntegerOrNull, emptyType);
-  rule(jsUnmodifiableArray, jsDoubleOrNull, emptyType);
+  rule(jsUnmodifiableArray, jsNumNotIntOrNull, emptyType);
   rule(jsUnmodifiableArray, jsStringOrNull, emptyType);
   rule(jsUnmodifiableArray, nullType, emptyType);
   rule(jsUnmodifiableArray, jsFixedArray, emptyType);
@@ -663,7 +663,7 @@ void testIntersection(JClosedWorld closedWorld) {
   rule(nonPrimitive1, jsBooleanOrNull, emptyType);
   rule(nonPrimitive1, jsNumberOrNull, emptyType);
   rule(nonPrimitive1, jsIntegerOrNull, emptyType);
-  rule(nonPrimitive1, jsDoubleOrNull, emptyType);
+  rule(nonPrimitive1, jsNumNotIntOrNull, emptyType);
   rule(nonPrimitive1, jsStringOrNull, emptyType);
   rule(nonPrimitive1, nullType, emptyType);
   rule(nonPrimitive1, jsFixedArray, emptyType);
@@ -674,7 +674,7 @@ void testIntersection(JClosedWorld closedWorld) {
   rule(nonPrimitive2, jsBooleanOrNull, emptyType);
   rule(nonPrimitive2, jsNumberOrNull, emptyType);
   rule(nonPrimitive2, jsIntegerOrNull, emptyType);
-  rule(nonPrimitive2, jsDoubleOrNull, emptyType);
+  rule(nonPrimitive2, jsNumNotIntOrNull, emptyType);
   rule(nonPrimitive2, jsStringOrNull, emptyType);
   rule(nonPrimitive2, nullType, emptyType);
   rule(nonPrimitive2, jsFixedArray, emptyType);
@@ -684,7 +684,7 @@ void testIntersection(JClosedWorld closedWorld) {
   rule(potentialArray, jsBooleanOrNull, nullType);
   rule(potentialArray, jsNumberOrNull, nullType);
   rule(potentialArray, jsIntegerOrNull, nullType);
-  rule(potentialArray, jsDoubleOrNull, nullType);
+  rule(potentialArray, jsNumNotIntOrNull, nullType);
   rule(potentialArray, jsStringOrNull, nullType);
   rule(potentialArray, nullType, nullType);
   rule(potentialArray, jsFixedArray, jsFixedArray);
@@ -693,7 +693,7 @@ void testIntersection(JClosedWorld closedWorld) {
   rule(potentialString, jsBooleanOrNull, nullType);
   rule(potentialString, jsNumberOrNull, nullType);
   rule(potentialString, jsIntegerOrNull, nullType);
-  rule(potentialString, jsDoubleOrNull, nullType);
+  rule(potentialString, jsNumNotIntOrNull, nullType);
   rule(potentialString, jsStringOrNull, jsStringOrNull);
   rule(potentialString, nullType, nullType);
   rule(potentialString, jsFixedArray, emptyType);
@@ -701,28 +701,28 @@ void testIntersection(JClosedWorld closedWorld) {
   rule(jsBooleanOrNull, jsBooleanOrNull, jsBooleanOrNull);
   rule(jsBooleanOrNull, jsNumberOrNull, nullType);
   rule(jsBooleanOrNull, jsIntegerOrNull, nullType);
-  rule(jsBooleanOrNull, jsDoubleOrNull, nullType);
+  rule(jsBooleanOrNull, jsNumNotIntOrNull, nullType);
   rule(jsBooleanOrNull, jsStringOrNull, nullType);
   rule(jsBooleanOrNull, nullType, nullType);
   rule(jsBooleanOrNull, jsFixedArray, emptyType);
 
   rule(jsNumberOrNull, jsNumberOrNull, jsNumberOrNull);
   rule(jsNumberOrNull, jsIntegerOrNull, jsIntegerOrNull);
-  rule(jsNumberOrNull, jsDoubleOrNull, jsDoubleOrNull);
+  rule(jsNumberOrNull, jsNumNotIntOrNull, jsNumNotIntOrNull);
   rule(jsNumberOrNull, jsStringOrNull, nullType);
   rule(jsNumberOrNull, nullType, nullType);
   rule(jsNumberOrNull, jsFixedArray, emptyType);
 
   rule(jsIntegerOrNull, jsIntegerOrNull, jsIntegerOrNull);
-  rule(jsIntegerOrNull, jsDoubleOrNull, nullType);
+  rule(jsIntegerOrNull, jsNumNotIntOrNull, nullType);
   rule(jsIntegerOrNull, jsStringOrNull, nullType);
   rule(jsIntegerOrNull, nullType, nullType);
   rule(jsIntegerOrNull, jsFixedArray, emptyType);
 
-  rule(jsDoubleOrNull, jsDoubleOrNull, jsDoubleOrNull);
-  rule(jsDoubleOrNull, jsStringOrNull, nullType);
-  rule(jsDoubleOrNull, nullType, nullType);
-  rule(jsDoubleOrNull, jsFixedArray, emptyType);
+  rule(jsNumNotIntOrNull, jsNumNotIntOrNull, jsNumNotIntOrNull);
+  rule(jsNumNotIntOrNull, jsStringOrNull, nullType);
+  rule(jsNumNotIntOrNull, nullType, nullType);
+  rule(jsNumNotIntOrNull, jsFixedArray, emptyType);
 
   rule(jsStringOrNull, jsStringOrNull, jsStringOrNull);
   rule(jsStringOrNull, nullType, nullType);
@@ -821,16 +821,16 @@ runTests() async {
       closedWorld.commonElements.jsNumberClass, closedWorld);
   jsInteger = new TypeMask.nonNullExact(
       closedWorld.commonElements.jsIntClass, closedWorld);
-  jsDouble = new TypeMask.nonNullExact(
-      closedWorld.commonElements.jsDoubleClass, closedWorld);
+  jsNumNotInt = new TypeMask.nonNullExact(
+      closedWorld.commonElements.jsNumNotIntClass, closedWorld);
   jsBooleanOrNull =
       new TypeMask.exact(closedWorld.commonElements.jsBoolClass, closedWorld);
   jsNumberOrNull = new TypeMask.subclass(
       closedWorld.commonElements.jsNumberClass, closedWorld);
   jsIntegerOrNull =
       new TypeMask.exact(closedWorld.commonElements.jsIntClass, closedWorld);
-  jsDoubleOrNull =
-      new TypeMask.exact(closedWorld.commonElements.jsDoubleClass, closedWorld);
+  jsNumNotIntOrNull = new TypeMask.exact(
+      closedWorld.commonElements.jsNumNotIntClass, closedWorld);
   nullType = const TypeMask.empty();
   objectType = new TypeMask.nonNullSubclass(
       closedWorld.commonElements.objectClass, closedWorld);

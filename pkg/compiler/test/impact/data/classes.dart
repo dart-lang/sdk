@@ -268,8 +268,8 @@ enum Enum { A }
   Enum.index=IntConstant(0)],
  type=[
   const:Enum,
-  inst:JSDouble,
   inst:JSInt,
+  inst:JSNumNotInt,
   inst:JSNumber,
   inst:JSPositiveInt,
   inst:JSString,

@@ -696,7 +696,7 @@ class StringToken extends SimpleToken {
   /**
    * The lexeme represented by this token.
    */
-  late String _value;
+  final String _value;
 
   /**
    * Initialize a newly created token to represent a token of the given [type]
@@ -704,9 +704,8 @@ class StringToken extends SimpleToken {
    */
   StringToken(TokenType type, String value, int offset,
       [CommentToken? precedingComment])
-      : super(type, offset, precedingComment) {
-    this._value = StringUtilities.intern(value);
-  }
+      : _value = StringUtilities.intern(value),
+        super(type, offset, precedingComment);
 
   @override
   bool get isIdentifier => identical(kind, IDENTIFIER_TOKEN);

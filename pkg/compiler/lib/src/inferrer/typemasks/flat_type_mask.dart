@@ -235,7 +235,7 @@ class FlatTypeMask implements TypeMask {
   bool containsOnlyNum(JClosedWorld closedWorld) {
     return containsOnlyInt(closedWorld) ||
         base == closedWorld.commonElements.doubleClass ||
-        base == closedWorld.commonElements.jsDoubleClass ||
+        base == closedWorld.commonElements.jsNumNotIntClass ||
         base == closedWorld.commonElements.numClass ||
         base == closedWorld.commonElements.jsNumberClass;
   }

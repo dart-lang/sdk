@@ -80,52 +80,33 @@ extension Extension on int {
 
 test() {
   int c = 0;
+  c.instanceMethod();
+  (c.instanceMethod)();
+  c.instanceGetter;
+  c.instanceSetter = 0;
   c.instanceField;
   c.instanceField = 0;
   c.instanceFieldAndSetter1;
+  c.instanceFieldAndSetter1 = 0;
   c.instanceFieldAndSetter2;
+  c.instanceFieldAndSetter2 = 0;
   c.instanceLateFinalFieldAndSetter1;
+  c.instanceLateFinalFieldAndSetter1 = 0;
   c.instanceLateFinalFieldAndSetter2;
+  c.instanceLateFinalFieldAndSetter2 = 0;
   c.instanceDuplicateFieldAndSetter;
   c.instanceFieldAndDuplicateSetter;
+  c.instanceFieldAndDuplicateSetter = 0;
   c.instanceDuplicateFieldAndDuplicateSetter;
+  c.instanceDuplicateFieldAndDuplicateSetter = 0;
 }
 
 main() {
   int c = 0;
 
-  expect(1, c.instanceMethod());
-
-  expect(1, (c.instanceMethod)());
-
-  result = null;
-  expect(1, c.instanceGetter);
-  c.instanceSetter = 0;
-  expect(1, result);
-
-  result = null;
-  c.instanceFieldAndSetter1 = 0;
-  expect(2, result);
-
-  result = null;
-  c.instanceFieldAndSetter2 = 0;
-  expect(null, result);
-
-  result = null;
-  c.instanceLateFinalFieldAndSetter1 = 0;
-  expect(2, result);
-
-  result = null;
-  c.instanceLateFinalFieldAndSetter2 = 0;
-  expect(2, result);
-
   result = null;
   c.instanceDuplicateFieldAndSetter = 0;
-  expect(2, result);
-
-  result = null;
-  c.instanceDuplicateFieldAndDuplicateSetter = 0;
-  expect(2, result);
+  expect(3, result);
 
   result = null;
   expect(1, c.instanceMethodAndSetter1());

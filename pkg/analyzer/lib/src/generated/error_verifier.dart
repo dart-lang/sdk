@@ -2521,6 +2521,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // test the static type of the expression
     DartType staticType = expression.staticType!;
     if (_typeSystem.isAssignableTo(staticType, fieldType)) {
+      if (!fieldType.isVoid) {
+        _checkForUseOfVoidResult(expression);
+      }
       return;
     }
     // report problem

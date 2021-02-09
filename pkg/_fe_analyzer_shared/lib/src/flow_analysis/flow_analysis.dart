@@ -3485,7 +3485,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   final Map<Statement, _BranchTargetContext<Variable, Type>>
       _statementToContext = {};
 
-  late FlowModel<Variable, Type> _current;
+  FlowModel<Variable, Type> _current =
+      new FlowModel<Variable, Type>(Reachability.initial);
 
   /// The most recently visited expression for which an [ExpressionInfo] object
   /// exists, or `null` if no expression has been visited that has a
@@ -3519,9 +3520,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       {bool allowLocalBooleanVarsToPromote = false})
       : allowLocalBooleanVarsToPromote =
             allowLocalBooleanVarsToPromoteByDefault ||
-                allowLocalBooleanVarsToPromote {
-    _current = new FlowModel<Variable, Type>(Reachability.initial);
-  }
+                allowLocalBooleanVarsToPromote;
 
   @override
   bool get isReachable => _current.reachable.overallReachable;
@@ -4141,7 +4140,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       Variable? exceptionVariable, Variable? stackTraceVariable) {
     _TryContext<Variable, Type> context =
         _stack.last as _TryContext<Variable, Type>;
-    _current = context._beforeCatch!;
+    _current = context._beforeCatch;
     if (exceptionVariable != null) {
       _current = _current.declare(exceptionVariable, true);
     }
@@ -4162,7 +4161,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   void tryCatchStatement_end() {
     _TryContext<Variable, Type> context =
         _stack.removeLast() as _TryContext<Variable, Type>;
-    _current = context._afterBodyAndCatches!.unsplit();
+    _current = context._afterBodyAndCatches.unsplit();
   }
 
   @override
@@ -4177,11 +4176,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _TryFinallyContext<Variable, Type> context =
         _stack.removeLast() as _TryFinallyContext<Variable, Type>;
     if (allowLocalBooleanVarsToPromote) {
-      _current = context._afterBodyAndCatches!
+      _current = context._afterBodyAndCatches
           .attachFinally(typeOperations, context._beforeFinally, _current);
     } else {
       _current = _current.restrict(
-          typeOperations, context._afterBodyAndCatches!, info._written);
+          typeOperations, context._afterBodyAndCatches, info._written);
     }
   }
 
@@ -5122,14 +5121,14 @@ class _TryContext<Variable extends Object, Type extends Object>
     extends _SimpleContext<Variable, Type> {
   /// If the statement is a "try/catch" statement, the flow model representing
   /// program state at the top of any `catch` block.
-  FlowModel<Variable, Type>? _beforeCatch;
+  late final FlowModel<Variable, Type> _beforeCatch;
 
   /// If the statement is a "try/catch" statement, the accumulated flow model
   /// representing program state after the `try` block or one of the `catch`
   /// blocks has finished executing.  If the statement is a "try/finally"
   /// statement, the flow model representing program state after the `try` block
   /// has finished executing.
-  FlowModel<Variable, Type>? _afterBodyAndCatches;
+  late FlowModel<Variable, Type> _afterBodyAndCatches;
 
   _TryContext(FlowModel<Variable, Type> previous) : super(previous);
 
@@ -5143,7 +5142,7 @@ class _TryFinallyContext<Variable extends Object, Type extends Object>
     extends _TryContext<Variable, Type> {
   /// The flow model representing program state at the top of the `finally`
   /// block.
-  late FlowModel<Variable, Type> _beforeFinally;
+  late final FlowModel<Variable, Type> _beforeFinally;
 
   _TryFinallyContext(FlowModel<Variable, Type> previous) : super(previous);
 }

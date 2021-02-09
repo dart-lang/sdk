@@ -64,7 +64,7 @@ library /*isNonNullableByDefault*/;
 //
 // pkg/front_end/testcases/nnbd/duplicates_toplevel.dart: Error: 'topLevelDuplicateFieldAndDuplicateSetter' is exported from both 'pkg/front_end/testcases/nnbd/duplicates_toplevel.dart' and 'pkg/front_end/testcases/nnbd/duplicates_toplevel.dart'.
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:25:10: Error: Conflicts with member 'topLevelFieldAndSetter1'.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:25:10: Error: Conflicts with the implicit setter of the field 'topLevelFieldAndSetter1'.
 // void set topLevelFieldAndSetter1(int value) {
 //          ^
 //
@@ -72,12 +72,44 @@ library /*isNonNullableByDefault*/;
 // int topLevelFieldAndSetter1 = 1;
 //     ^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:29:10: Error: Conflicts with member 'topLevelFieldAndSetter2'.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:29:10: Error: Conflicts with the implicit setter of the field 'topLevelFieldAndSetter2'.
 // void set topLevelFieldAndSetter2(int value) {
 //          ^
 //
 // pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:33:5: Error: Conflicts with setter 'topLevelFieldAndSetter2'.
 // int topLevelFieldAndSetter2 = 1;
+//     ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:36:10: Error: Conflicts with the implicit setter of the field 'topLevelLateFinalFieldAndSetter1'.
+// void set topLevelLateFinalFieldAndSetter1(int value) {
+//          ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:35:16: Error: Conflicts with setter 'topLevelLateFinalFieldAndSetter1'.
+// late final int topLevelLateFinalFieldAndSetter1;
+//                ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:40:10: Error: Conflicts with the implicit setter of the field 'topLevelLateFinalFieldAndSetter2'.
+// void set topLevelLateFinalFieldAndSetter2(int value) {
+//          ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:44:16: Error: Conflicts with setter 'topLevelLateFinalFieldAndSetter2'.
+// late final int topLevelLateFinalFieldAndSetter2;
+//                ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:72:10: Error: Conflicts with member 'topLevelMethodAndSetter1'.
+// void set topLevelMethodAndSetter1(int value) {
+//          ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:71:5: Error: Conflicts with setter 'topLevelMethodAndSetter1'.
+// int topLevelMethodAndSetter1() => 1;
+//     ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:76:10: Error: Conflicts with member 'topLevelMethodAndSetter2'.
+// void set topLevelMethodAndSetter2(int value) {
+//          ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:80:5: Error: Conflicts with setter 'topLevelMethodAndSetter2'.
+// int topLevelMethodAndSetter2() => 1;
 //     ^
 //
 // pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:83:3: Error: Can't use 'topLevelMethod' because it is declared more than once.
@@ -152,18 +184,6 @@ static get topLevelGetter() → core::int
 static set topLevelSetter(dynamic value) → void {
   self::result = 1;
 }
-static set topLevelFieldAndSetter1(core::int value) → void {
-  self::result = 2;
-}
-static set topLevelFieldAndSetter2(core::int value) → void {
-  self::result = 2;
-}
-static set topLevelLateFinalFieldAndSetter1(core::int value) → void {
-  self::result = 2;
-}
-static set topLevelLateFinalFieldAndSetter2(core::int value) → void {
-  self::result = 2;
-}
 static set topLevelDuplicateFieldAndSetter(core::int value) → void {
   self::result = 3;
 }
@@ -236,8 +256,8 @@ static method main() → dynamic {
   self::expect(0, self::topLevelFieldAndSetter2);
   self::result = null;
   self::topLevelLateFinalFieldAndSetter1 = 0;
-  self::expect(2, self::result);
-  self::throws(() → core::int => self::topLevelLateFinalFieldAndSetter1);
+  self::expect(null, self::result);
+  self::expect(0, self::topLevelLateFinalFieldAndSetter1);
   self::result = null;
   self::topLevelLateFinalFieldAndSetter2 = 0;
   self::expect(null, self::result);

@@ -1647,7 +1647,7 @@ String suffixForGetInterceptor(CommonElements commonElements,
     if (cls == commonElements.objectClass) return "o";
     if (cls == commonElements.jsStringClass) return "s";
     if (cls == commonElements.jsArrayClass) return "a";
-    if (cls == commonElements.jsDoubleClass) return "d";
+    if (cls == commonElements.jsNumNotIntClass) return "d";
     if (cls == commonElements.jsIntClass) return "i";
     if (cls == commonElements.jsNumberClass) return "n";
     if (cls == commonElements.jsNullClass) return "u";

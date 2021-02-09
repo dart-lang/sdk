@@ -729,6 +729,26 @@ main(void x) sync* {
 @reflectiveTest
 class UseOfVoidResultTest_NonNullable extends PubPackageResolutionTest
     with WithNullSafetyMixin {
+  test_assignment_toDynamic() async {
+    await assertErrorsInCode('''
+void f(void x) {
+  // ignore:unused_local_variable
+  dynamic v = x;
+}
+''', [
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 65, 1),
+    ]);
+  }
+
+  test_assignment_toVoid() async {
+    await assertNoErrorsInCode('''
+void f(void x) {
+  // ignore:unused_local_variable
+  void v = x;
+}
+''');
+  }
+
   test_await() async {
     await assertErrorsInCode('''
 main(void x) async {
@@ -737,6 +757,26 @@ main(void x) async {
 ''', [
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 29, 1),
     ]);
+  }
+
+  test_constructorFieldInitializer_toDynamic() async {
+    await assertErrorsInCode('''
+class A {
+  dynamic f;
+  A(void x) : f = x;
+}
+''', [
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 41, 1),
+    ]);
+  }
+
+  test_constructorFieldInitializer_toVoid() async {
+    await assertNoErrorsInCode('''
+class A {
+  void f;
+  A(void x) : f = x;
+}
+''');
   }
 
   test_nullCheck() async {

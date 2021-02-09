@@ -4,9 +4,6 @@
 
 library src_gen_common;
 
-// TODO(bkonyi): remove once markdown and pub_semver deps are updated to null
-// safety for the SDK.
-// ignore_for_file: import_of_legacy_library_into_null_safe
 import 'package:markdown/markdown.dart';
 
 const int RUNE_SPACE = 32;
@@ -27,9 +24,9 @@ bool isH1(Node node) => node is Element && node.tag == 'h1';
 bool isH3(Node node) => node is Element && node.tag == 'h3';
 bool isHeader(Node node) => node is Element && node.tag.startsWith('h');
 String textForElement(Node node) =>
-    (((node as Element).children.first) as Text).text;
+    (((node as Element).children!.first) as Text).text;
 String textForCode(Node node) =>
-    textForElement((node as Element).children.first);
+    textForElement((node as Element).children!.first);
 
 /// foo ==> Foo
 String titleCase(String str) =>

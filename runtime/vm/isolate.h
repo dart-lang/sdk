@@ -723,12 +723,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   uword FindPendingDeoptAtSafepoint(uword fp);
 
-  // Used by background compiler which field became boxed and must trigger
-  // deoptimization in the mutator thread.
-  void AddDeoptimizingBoxedField(const Field& field);
-  // Returns Field::null() if none available in the list.
-  FieldPtr GetDeoptimizingBoxedField();
-
   void RememberLiveTemporaries();
   void DeferredMarkLiveTemporaries();
 

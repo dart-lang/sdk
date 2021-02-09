@@ -355,6 +355,9 @@ class Scope extends MutableScope {
           builder, charOffset, fileUri);
     } else if (!isInstanceScope && builder.isDeclarationInstanceMember) {
       return null;
+    } else if (builder is MemberBuilder && builder.isConflictingSetter) {
+      // TODO(johnniwinther): Use a variant of [AmbiguousBuilder] for this case.
+      return null;
     } else {
       return builder;
     }
@@ -777,6 +780,9 @@ mixin ErroneousMemberBuilderMixin implements MemberBuilder {
 
   @override
   bool get isAbstract => false;
+
+  @override
+  bool get isConflictingSetter => false;
 
   @override
   void set parent(Builder value) {

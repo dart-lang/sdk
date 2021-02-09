@@ -4,9 +4,6 @@
 
 import 'dart:io';
 
-// TODO(bkonyi): remove once markdown and pub_semver deps are updated to null
-// safety for the SDK.
-// ignore_for_file: import_of_legacy_library_into_null_safe
 import 'package:markdown/markdown.dart';
 import 'package:path/path.dart';
 import 'package:pub_semver/pub_semver.dart';

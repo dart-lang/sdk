@@ -420,7 +420,7 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
   AbstractValue get numType => const TrivialAbstractValue();
 
   @override
-  AbstractValue get doubleType => const TrivialAbstractValue();
+  AbstractValue get numNotIntType => const TrivialAbstractValue();
 
   @override
   AbstractValue get intType => const TrivialAbstractValue();

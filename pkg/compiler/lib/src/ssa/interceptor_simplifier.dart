@@ -141,7 +141,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       return _commonElements.jsArrayClass;
     } else if (_abstractValueDomain.isNumberOrNull(type).isDefinitelyTrue &&
         !interceptedClasses.contains(_commonElements.jsIntClass) &&
-        !interceptedClasses.contains(_commonElements.jsDoubleClass)) {
+        !interceptedClasses.contains(_commonElements.jsNumNotIntClass)) {
       // If the method being intercepted is not defined in [int] or [double] we
       // can safely use the number interceptor.  This is because none of the
       // [int] or [double] methods are called from a method defined on [num].
@@ -259,7 +259,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       // If we found that we need number, we must still go through all
       // uses to check if they require int, or double.
       if (interceptedClasses.contains(_commonElements.jsNumberClass) &&
-          !(interceptedClasses.contains(_commonElements.jsDoubleClass) ||
+          !(interceptedClasses.contains(_commonElements.jsNumNotIntClass) ||
               interceptedClasses.contains(_commonElements.jsIntClass))) {
         Set<ClassEntity> required;
         for (HInstruction user in node.usedBy) {
@@ -270,9 +270,9 @@ class SsaSimplifyInterceptors extends HBaseVisitor
               required ??= {};
               required.add(_commonElements.jsIntClass);
             }
-            if (intercepted.contains(_commonElements.jsDoubleClass)) {
+            if (intercepted.contains(_commonElements.jsNumNotIntClass)) {
               required ??= {};
-              required.add(_commonElements.jsDoubleClass);
+              required.add(_commonElements.jsNumNotIntClass);
             }
           }
         }

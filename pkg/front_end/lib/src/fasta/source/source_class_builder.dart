@@ -133,6 +133,12 @@ class SourceClassBuilder extends ClassBuilderImpl
   SourceLibraryBuilder get library => super.library;
 
   Class build(SourceLibraryBuilder library, LibraryBuilder coreLibrary) {
+    SourceLibraryBuilder.checkMemberConflicts(library, scope,
+        // These checks are performed as part of the class hierarchy
+        // computation.
+        checkForInstanceVsStaticConflict: false,
+        checkForMethodVsSetterConflict: false);
+
     void buildBuilders(String name, Builder declaration) {
       do {
         if (declaration.parent != this) {
@@ -148,7 +154,9 @@ class SourceClassBuilder extends ClassBuilderImpl
           memberBuilder.buildMembers(library,
               (Member member, BuiltMemberKind memberKind) {
             member.parent = cls;
-            if (!memberBuilder.isPatch && !memberBuilder.isDuplicate) {
+            if (!memberBuilder.isPatch &&
+                !memberBuilder.isDuplicate &&
+                !memberBuilder.isConflictingSetter) {
               if (member is Procedure) {
                 cls.addProcedure(member);
               } else if (member is Field) {
@@ -267,20 +275,6 @@ class SourceClassBuilder extends ClassBuilderImpl
             member.charOffset,
             noLength);
       }
-    });
-
-    scope.forEachLocalSetter((String name, Builder setter) {
-      Builder member = scopeBuilder[name];
-      if (member == null ||
-          !(member.isField && !member.isFinal && !member.isConst ||
-              member.isRegularMethod && member.isStatic && setter.isStatic)) {
-        return;
-      }
-      addProblem(templateConflictsWithMember.withArguments(name),
-          setter.charOffset, noLength);
-      // TODO(ahe): Context argument to previous message?
-      addProblem(templateConflictsWithSetter.withArguments(name),
-          member.charOffset, noLength);
     });
 
     scope.forEachLocalSetter((String name, Builder setter) {

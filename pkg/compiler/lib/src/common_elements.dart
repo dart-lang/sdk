@@ -285,7 +285,7 @@ abstract class CommonElements {
 
   ClassEntity get jsIntClass;
 
-  ClassEntity get jsDoubleClass;
+  ClassEntity get jsNumNotIntClass;
 
   ClassEntity get jsNullClass;
 
@@ -1293,10 +1293,10 @@ class CommonElementsImpl
   @override
   ClassEntity get jsIntClass => _jsIntClass ??= _findInterceptorsClass('JSInt');
 
-  ClassEntity _jsDoubleClass;
+  ClassEntity _jsNumNotIntClass;
   @override
-  ClassEntity get jsDoubleClass =>
-      _jsDoubleClass ??= _findInterceptorsClass('JSDouble');
+  ClassEntity get jsNumNotIntClass =>
+      _jsNumNotIntClass ??= _findInterceptorsClass('JSNumNotInt');
 
   ClassEntity _jsNullClass;
   @override

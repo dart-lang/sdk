@@ -17,7 +17,7 @@ const LiteralEntryInfo spreadOperator = const SpreadOperator();
 
 /// The first step when processing a `for` control flow collection entry.
 class ForCondition extends LiteralEntryInfo {
-  late bool inStyle;
+  bool _inStyle = false;
 
   ForCondition() : super(false, 0);
 
@@ -39,12 +39,12 @@ class ForCondition extends LiteralEntryInfo {
 
     if (optional('in', token.next!) || optional(':', token.next!)) {
       // Process `for ( ... in ... )`
-      inStyle = true;
+      _inStyle = true;
       token = parser.parseForInLoopPartsRest(
           token, awaitToken, forToken, identifier);
     } else {
       // Process `for ( ... ; ... ; ... )`
-      inStyle = false;
+      _inStyle = false;
       token = parser.parseForLoopPartsRest(token, forToken, awaitToken);
     }
     return token;
@@ -57,17 +57,17 @@ class ForCondition extends LiteralEntryInfo {
         (optional('await', next) && optional('for', next.next!))) {
       return new Nested(
         new ForCondition(),
-        inStyle ? const ForInComplete() : const ForComplete(),
+        _inStyle ? const ForInComplete() : const ForComplete(),
       );
     } else if (optional('if', next)) {
       return new Nested(
         ifCondition,
-        inStyle ? const ForInComplete() : const ForComplete(),
+        _inStyle ? const ForInComplete() : const ForComplete(),
       );
     } else if (optional('...', next) || optional('...?', next)) {
-      return inStyle ? const ForInSpread() : const ForSpread();
+      return _inStyle ? const ForInSpread() : const ForSpread();
     }
-    return inStyle ? const ForInEntry() : const ForEntry();
+    return _inStyle ? const ForInEntry() : const ForEntry();
   }
 }
 

@@ -58,7 +58,7 @@ library /*isNonNullableByDefault*/;
 //   void set instanceDuplicateFieldAndDuplicateSetter(int value) {
 //            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:26:12: Error: Conflicts with member 'instanceFieldAndSetter1'.
+// pkg/front_end/testcases/nnbd/duplicates_instance.dart:26:12: Error: Conflicts with the implicit setter of the field 'instanceFieldAndSetter1'.
 //   void set instanceFieldAndSetter1(int value) {
 //            ^
 //
@@ -66,13 +66,29 @@ library /*isNonNullableByDefault*/;
 //   int instanceFieldAndSetter1 = 1;
 //       ^
 //
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:30:12: Error: Conflicts with member 'instanceFieldAndSetter2'.
+// pkg/front_end/testcases/nnbd/duplicates_instance.dart:30:12: Error: Conflicts with the implicit setter of the field 'instanceFieldAndSetter2'.
 //   void set instanceFieldAndSetter2(int value) {
 //            ^
 //
 // pkg/front_end/testcases/nnbd/duplicates_instance.dart:34:7: Error: Conflicts with setter 'instanceFieldAndSetter2'.
 //   int instanceFieldAndSetter2 = 1;
 //       ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance.dart:37:12: Error: Conflicts with the implicit setter of the field 'instanceLateFinalFieldAndSetter1'.
+//   void set instanceLateFinalFieldAndSetter1(int value) {
+//            ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance.dart:36:18: Error: Conflicts with setter 'instanceLateFinalFieldAndSetter1'.
+//   late final int instanceLateFinalFieldAndSetter1;
+//                  ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance.dart:41:12: Error: Conflicts with the implicit setter of the field 'instanceLateFinalFieldAndSetter2'.
+//   void set instanceLateFinalFieldAndSetter2(int value) {
+//            ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance.dart:45:18: Error: Conflicts with setter 'instanceLateFinalFieldAndSetter2'.
+//   late final int instanceLateFinalFieldAndSetter2;
+//                  ^
 //
 // pkg/front_end/testcases/nnbd/duplicates_instance.dart:73:12: Error: 'instanceMethodAndSetter1' is already declared in this scope.
 //   void set instanceMethodAndSetter1(int value) {
@@ -107,14 +123,6 @@ class Class extends core::Object {
   get instanceGetter() → core::int
     ;
   set instanceSetter(dynamic value) → void
-    ;
-  set instanceFieldAndSetter1(core::int value) → void
-    ;
-  set instanceFieldAndSetter2(core::int value) → void
-    ;
-  set instanceLateFinalFieldAndSetter1(core::int value) → void
-    ;
-  set instanceLateFinalFieldAndSetter2(core::int value) → void
     ;
   set instanceDuplicateFieldAndSetter(core::int value) → void
     ;

@@ -7,7 +7,7 @@
 /*member: closure:[exact=JSUInt31]*/
 int closure(
     int
-        /*spec.Union([exact=JSDouble], [exact=JSUInt31])*/
+        /*spec.Union([exact=JSNumNotInt], [exact=JSUInt31])*/
         /*prod.[exact=JSUInt31]*/
         x) {
   return x;
