@@ -35,9 +35,6 @@ class Stringifier extends ir.ExpressionVisitor<String> {
     }
     return null;
   }
-
-  @override
-  String defaultExpression(ir.Expression node) => null;
 }
 
 /// Visitor that converts kernel dart types into [DartType].
@@ -184,11 +181,6 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
   @override
   DartType visitNullType(ir.NullType node) {
     return elementMap.commonElements.nullType;
-  }
-
-  @override
-  DartType defaultDartType(ir.DartType node) {
-    throw UnsupportedError('Unsupported type $node (${node.runtimeType})');
   }
 }
 

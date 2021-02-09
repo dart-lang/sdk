@@ -1618,7 +1618,7 @@ _writeProgramToFile(Component component, File outputFile) async {
   await sink.close();
 }
 
-class LibraryReferenceCollector extends RecursiveVisitor {
+class LibraryReferenceCollector extends RecursiveVisitor<void> {
   Set<Library> librariesReferenced = {};
 
   void defaultMemberReference(Member node) {

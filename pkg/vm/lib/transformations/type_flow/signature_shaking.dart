@@ -198,7 +198,7 @@ class _ParameterInfo {
   }
 }
 
-class _Collect extends RecursiveVisitor {
+class _Collect extends RecursiveVisitor<void> {
   final SignatureShaker shaker;
 
   /// Parameters of the current function.
@@ -332,7 +332,7 @@ class _Collect extends RecursiveVisitor {
   }
 }
 
-class _Transform extends RecursiveVisitor {
+class _Transform extends RecursiveVisitor<void> {
   final SignatureShaker shaker;
 
   StaticTypeContext typeContext;

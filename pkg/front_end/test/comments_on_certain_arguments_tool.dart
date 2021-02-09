@@ -159,7 +159,7 @@ api.CompilerOptions getOptions() {
   return options;
 }
 
-class InvocationVisitor extends RecursiveVisitor {
+class InvocationVisitor extends RecursiveVisitor<void> {
   void visitProcedure(Procedure node) {
     if (node.isNoSuchMethodForwarder) return;
     super.visitProcedure(node);

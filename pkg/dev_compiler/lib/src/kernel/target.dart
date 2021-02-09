@@ -245,7 +245,7 @@ class DevCompilerTarget extends Target {
 /// members can be eliminated, and adjusts the flags to remove those checks.
 ///
 /// See [_CovarianceTransformer.transform].
-class _CovarianceTransformer extends RecursiveVisitor {
+class _CovarianceTransformer extends RecursiveVisitor<void> {
   /// The set of private instance members in [_library] that (potentially) need
   /// covariance checks.
   ///

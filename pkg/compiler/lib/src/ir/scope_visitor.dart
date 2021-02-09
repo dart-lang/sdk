@@ -14,7 +14,7 @@ import 'scope.dart';
 /// a [VariableScopeModel] that can respond to queries about how a particular
 /// variable is being used at any point in the code.
 class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
-    with VariableCollectorMixin, ir.VisitorNullMixin<EvaluationComplexity> {
+    with VariableCollectorMixin {
   final Dart2jsConstantEvaluator _constantEvaluator;
   ir.StaticTypeContext _staticTypeContext;
 

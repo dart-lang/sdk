@@ -36,9 +36,7 @@ import 'package:kernel/ast.dart'
         TreeNode,
         TypeParameter,
         VariableDeclaration,
-        Visitor,
-        VisitorNullMixin,
-        VisitorVoidMixin;
+        Visitor;
 
 DiagnosticMessage _createInternalError(Uri uri, int line, int col, String msg) {
   return Message(Code<String>('Expression Compiler Internal error'),
@@ -86,7 +84,7 @@ class DartScope {
 /// - locals
 /// - formals
 /// - captured variables (for closures)
-class DartScopeBuilder extends Visitor<void> with VisitorVoidMixin {
+class DartScopeBuilder extends Visitor<void> {
   final Component _component;
   final int _line;
   final int _column;
@@ -198,7 +196,7 @@ class DartScopeBuilder extends Visitor<void> with VisitorVoidMixin {
 /// that do not have .fileEndOffset field.
 ///
 /// For example - [Block]
-class FileEndOffsetCalculator extends Visitor<int> with VisitorNullMixin<int> {
+class FileEndOffsetCalculator extends Visitor<int> {
   static const int noOffset = -1;
 
   final int _startOffset;
@@ -268,7 +266,7 @@ class FileEndOffsetCalculator extends Visitor<int> with VisitorNullMixin<int> {
 /// in the JavaScript scope, so we need to redefine them.
 ///
 /// See [_addSymbolDefinitions]
-class PrivateFieldsVisitor extends Visitor<void> with VisitorVoidMixin {
+class PrivateFieldsVisitor extends Visitor<void> {
   final Map<String, Library> privateFields = {};
 
   @override
