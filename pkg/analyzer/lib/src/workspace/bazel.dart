@@ -271,7 +271,7 @@ class BazelPackageUriResolver extends UriResolver {
     if (uri.scheme != 'package') {
       return null;
     }
-    String uriPath = uri.path;
+    String uriPath = Uri.decodeComponent(uri.path);
     int slash = uriPath.indexOf('/');
 
     // If the path either starts with a slash or has no slash, it is invalid.

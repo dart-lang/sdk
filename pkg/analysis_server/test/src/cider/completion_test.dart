@@ -558,6 +558,17 @@ mixin M {
     _assertHasMethod(text: 'foo');
   }
 
+  Future<void> test_limitedResolution_path_hasSpace() async {
+    testPath = convertPath('/workspace/dart/test name/lib/a.dart');
+    await _compute(r'''
+class A {}
+^
+''');
+
+    _assertHasClass(text: 'int');
+    _assertHasClass(text: 'A');
+  }
+
   Future<void> test_limitedResolution_unit_function_body() async {
     _configureToCheckNotResolved(
       identifiers: {'print'},
