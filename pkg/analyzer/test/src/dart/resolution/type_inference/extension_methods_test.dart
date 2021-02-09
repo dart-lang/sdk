@@ -11,7 +11,6 @@ import '../resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionMethodsTest);
-    defineReflectiveTests(ExtensionMethodsWithNullSafetyTest);
   });
 }
 
@@ -618,7 +617,3 @@ void f(A<int> a) {
     }
   }
 }
-
-@reflectiveTest
-class ExtensionMethodsWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin, ExtensionMethodsTestCases {}

@@ -12,7 +12,6 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssignmentDriverResolutionTest);
-    defineReflectiveTests(AssignmentDriverResolutionWithNullSafetyTest);
     defineReflectiveTests(
       AssignmentDriverResolutionWithNonFunctionTypeAliasesTest,
     );
@@ -21,10 +20,7 @@ main() {
 
 @reflectiveTest
 class AssignmentDriverResolutionTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, AssignmentDriverResolutionTestCases {
-  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
-  //  test cases.
-}
+    with AssignmentDriverResolutionTestCases {}
 
 mixin AssignmentDriverResolutionTestCases on PubPackageResolutionTest {
   test_compound_plus_int_context_int() async {
@@ -2428,8 +2424,3 @@ void f() {
     assertType(assignment.rightHandSide, 'int');
   }
 }
-
-@reflectiveTest
-class AssignmentDriverResolutionWithNullSafetyTest
-    extends PubPackageResolutionTest
-    with WithNullSafetyMixin, AssignmentDriverResolutionTestCases {}

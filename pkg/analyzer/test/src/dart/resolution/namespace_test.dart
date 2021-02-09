@@ -9,13 +9,11 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImportResolutionTest);
-    defineReflectiveTests(ImportResolutionWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class ImportResolutionTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+class ImportResolutionTest extends PubPackageResolutionTest {
   test_overrideCoreType_Never() async {
     newFile('$testPackageLibPath/declares_never.dart', content: '''
 class Never {}
@@ -27,7 +25,3 @@ Never f() => throw 'foo';
 ''');
   }
 }
-
-@reflectiveTest
-class ImportResolutionWithNullSafetyTest extends ImportResolutionTest
-    with WithNullSafetyMixin {}

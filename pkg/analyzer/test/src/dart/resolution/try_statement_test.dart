@@ -10,13 +10,11 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TryStatementTest);
-    defineReflectiveTests(TryStatementWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class TryStatementTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+class TryStatementTest extends PubPackageResolutionTest {
   test_catch_withoutType() async {
     await assertNoErrorsInCode(r'''
 main() {
@@ -64,7 +62,3 @@ main() {
     expect(node.stackTraceParameter!.staticElement, st);
   }
 }
-
-@reflectiveTest
-class TryStatementWithNullSafetyTest extends TryStatementTest
-    with WithNullSafetyMixin {}

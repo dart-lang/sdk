@@ -9,13 +9,11 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IfElementTest);
-    defineReflectiveTests(IfElementWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class IfElementTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+class IfElementTest extends PubPackageResolutionTest {
   test_condition_rewrite() async {
     await assertNoErrorsInCode(r'''
 void f(bool Function() b) {
@@ -32,7 +30,3 @@ void f(bool Function() b) {
     );
   }
 }
-
-@reflectiveTest
-class IfElementWithNullSafetyTest extends IfElementTest
-    with WithNullSafetyMixin {}

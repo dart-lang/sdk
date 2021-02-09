@@ -10,13 +10,12 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InstanceCreationTest);
-    defineReflectiveTests(InstanceCreationWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class InstanceCreationTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, InstanceCreationTestCases {}
+    with InstanceCreationTestCases {}
 
 mixin InstanceCreationTestCases on PubPackageResolutionTest {
   test_demoteType() async {
@@ -171,7 +170,3 @@ main() {
     );
   }
 }
-
-@reflectiveTest
-class InstanceCreationWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin, InstanceCreationTestCases {}
