@@ -53,6 +53,14 @@ class FfiCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  static const FfiCode EXTRA_SIZE_ANNOTATION_CARRAY = FfiCode(
+      name: 'EXTRA_SIZE_ANNOTATION_CARRAY',
+      message: "'CArray's must have exactly one 'CArraySize' annotation.",
+      correction: "Try removing the extra annotation.");
+
+  /**
+   * No parameters.
+   */
   static const FfiCode FIELD_IN_STRUCT_WITH_INITIALIZER = FfiCode(
       name: 'FIELD_IN_STRUCT_WITH_INITIALIZER',
       message: "Fields in subclasses of 'Struct' can't have initializers.",
@@ -97,9 +105,11 @@ class FfiCode extends AnalyzerErrorCode {
       name: 'INVALID_FIELD_TYPE_IN_STRUCT',
       message:
           "Fields in struct classes can't have the type '{0}'. They can only "
-          "be declared as 'int', 'double', 'Pointer', or subtype of 'Struct'.",
+          "be declared as 'int', 'double', 'CArray', 'Pointer', or subtype of "
+          "'Struct'.",
       correction:
-          "Try using 'int', 'double', 'Pointer', or subtype of 'Struct'.");
+          "Try using 'int', 'double', 'CArray', 'Pointer', or subtype of "
+          "'Struct'.");
 
   /**
    * No parameters.
@@ -141,6 +151,14 @@ class FfiCode extends AnalyzerErrorCode {
           "Fields in struct classes must have an explicitly declared type of "
           "'int', 'double' or 'Pointer'.",
       correction: "Try using 'int', 'double' or 'Pointer'.");
+
+  /**
+   * No parameters.
+   */
+  static const FfiCode MISSING_SIZE_ANNOTATION_CARRAY = FfiCode(
+      name: 'MISSING_SIZE_ANNOTATION_CARRAY',
+      message: "'CArray's must have exactly one 'CArraySize' annotation.",
+      correction: "Try adding a 'CArraySize' annotation.");
 
   /**
    * Parameters:
@@ -199,6 +217,19 @@ class FfiCode extends AnalyzerErrorCode {
       message: "The type argument for the pointer '{0}' must be a "
           "'NativeFunction' in order to use 'asFunction'.",
       correction: "Try changing the type argument to be a 'NativeFunction'.");
+
+  /**
+   * Parameters:
+   * 0: the type of the field
+   */
+  static const FfiCode NON_SIZED_TYPE_ARGUMENT = FfiCode(
+      name: 'NON_SIZED_TYPE_ARGUMENT',
+      message:
+          "Type arguments to '{0}' can't have the type '{1}'. They can only "
+          "be declared as native integer, 'Float', 'Double', 'Pointer', or "
+          "subtype of Struct'.",
+      correction: "Try using a native integer, 'Float', 'Double', 'Pointer', "
+          "or subtype of 'Struct'.");
 
   /**
    * Parameters:
