@@ -688,6 +688,14 @@ class DartRepresentationOf {
   const DartRepresentationOf(String nativeType);
 }
 
+class CArray<T extends NativeType> extends NativeType {}
+
+class CArraySize {
+  final int numberOfElements;
+
+  const CArraySize(this.numberOfElements);
+}
+
 extension StructPointer<T extends Struct> on Pointer<T> {
   external T get ref;
 

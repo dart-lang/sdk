@@ -180,6 +180,7 @@ import 'external_variable_initializer_test.dart'
 import 'extra_annotation_on_struct_field_test.dart'
     as extra_annotation_on_struct_field;
 import 'extra_positional_arguments_test.dart' as extra_positional_arguments;
+import 'extra_size_annotation_carray_test.dart' as extra_size_annotation_carray;
 import 'field_in_struct_with_initializer_test.dart'
     as field_in_struct_with_initializer;
 import 'field_initialized_by_multiple_initializers_test.dart'
@@ -376,6 +377,8 @@ import 'missing_field_type_in_struct_test.dart' as missing_field_type_in_struct;
 import 'missing_js_lib_annotation_test.dart' as missing_js_lib_annotation;
 import 'missing_required_param_test.dart' as missing_required_param;
 import 'missing_return_test.dart' as missing_return;
+import 'missing_size_annotation_carray_test.dart'
+    as missing_size_annotation_carray;
 import 'mixin_application_not_implemented_interface_test.dart'
     as mixin_application_not_implemented_interface;
 import 'mixin_class_declares_constructor_test.dart'
@@ -451,6 +454,7 @@ import 'non_generative_implicit_constructor_test.dart'
 import 'non_native_function_type_argument_to_pointer_test.dart'
     as non_native_function_type_argument_to_pointer;
 import 'non_null_opt_out_test.dart' as non_null_opt_out;
+import 'non_sized_type_argument_test.dart' as non_sized_type_argument;
 import 'non_type_as_type_argument_test.dart' as non_type_as_type_argument;
 import 'non_type_in_catch_clause_test.dart' as non_type_in_catch_clause;
 import 'non_void_return_for_operator_test.dart' as non_void_return_for_operator;
@@ -789,6 +793,7 @@ main() {
     external_variable_initializer.main();
     extra_annotation_on_struct_field.main();
     extra_positional_arguments.main();
+    extra_size_annotation_carray.main();
     field_in_struct_with_initializer.main();
     field_initialized_by_multiple_initializers.main();
     final_initialized_in_declaration_and_constructor.main();
@@ -912,6 +917,7 @@ main() {
     missing_js_lib_annotation.main();
     missing_required_param.main();
     missing_return.main();
+    missing_size_annotation_carray.main();
     mixin_application_not_implemented_interface.main();
     mixin_class_declares_constructor.main();
     mixin_declares_constructor.main();
@@ -961,6 +967,7 @@ main() {
     non_generative_implicit_constructor.main();
     non_native_function_type_argument_to_pointer.main();
     non_null_opt_out.main();
+    non_sized_type_argument.main();
     non_type_as_type_argument.main();
     non_type_in_catch_clause.main();
     non_void_return_for_operator.main();
