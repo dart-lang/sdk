@@ -156,7 +156,7 @@ vars = {
   "test_descriptor_tag": "1.1.1",
   "test_process_tag": "1.0.3",
   "term_glyph_rev": "6a0f9b6fb645ba75e7a00a4e20072678327a0347",
-  "test_reflective_loader_rev": "b76ae201ab9c6f3b90643958965e7cc215a38e9b",
+  "test_reflective_loader_rev": "54e930a11c372683792e22bddad79197728c91ce",
   "test_rev": "bb98af3d17a821c28488ef8e2881e3ca173baf94",
   "typed_data_tag": "f94fc57b8e8c0e4fe4ff6cfd8290b94af52d3719",
   "usage_rev": "6c64d9e7b6b3758d06d030efcb5afe20bfc04dde",
