@@ -17,8 +17,8 @@ class Foo {
   int x, y, z;
 
   Foo(int a, int b)
-      : this. /*sl:2*/ x = a, // `s:2` fails, DDK is missing hover info
-        this. /*sl:3*/ y = b {
+      : /*sl:2*/ x = a, // `s:2` fails, DDK is missing hover info
+        /*sl:3*/ y = b {
     // `s:3` fails, DDK is missing hover info
     z = a /*sl:4*/ + b;
   }
