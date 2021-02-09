@@ -63,14 +63,14 @@ class BazelFileUriResolver extends ResourceUriResolver {
         super(workspace.provider);
 
   @override
-  Source? resolveAbsolute(Uri uri, [Uri? actualUri]) {
+  Source? resolveAbsolute(Uri uri) {
     if (!ResourceUriResolver.isFileUri(uri)) {
       return null;
     }
     String filePath = fileUriToNormalizedPath(provider.pathContext, uri);
     var file = workspace.findFile(filePath);
     if (file != null) {
-      return file.createSource(actualUri ?? uri);
+      return file.createSource(uri);
     }
     return null;
   }
@@ -228,7 +228,7 @@ class BazelPackageUriResolver extends UriResolver {
   }
 
   @override
-  Source? resolveAbsolute(Uri uri, [Uri? actualUri]) {
+  Source? resolveAbsolute(Uri uri) {
     var source = _sourceCache[uri];
     if (source == null) {
       source = _resolveAbsolute(uri);

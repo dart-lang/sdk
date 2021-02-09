@@ -18,13 +18,13 @@ class ResourceUriResolver extends UriResolver {
   ResourceProvider get provider => _provider;
 
   @override
-  Source? resolveAbsolute(Uri uri, [Uri? actualUri]) {
+  Source? resolveAbsolute(Uri uri) {
     if (!isFileUri(uri)) {
       return null;
     }
     String path = fileUriToNormalizedPath(_provider.pathContext, uri);
     File file = _provider.getFile(path);
-    return file.createSource(actualUri ?? uri);
+    return file.createSource(uri);
   }
 
   @override

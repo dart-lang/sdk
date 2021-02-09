@@ -31,7 +31,7 @@ class MockUriResolver implements UriResolver {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
-  Source? resolveAbsolute(Uri uri, [Uri? actualUri]) {
+  Source? resolveAbsolute(Uri uri) {
     return uriToFile[uri]?.createSource(uri);
   }
 

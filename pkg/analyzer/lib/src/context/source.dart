@@ -186,14 +186,12 @@ class SourceFactoryImpl implements SourceFactory {
           utils.resolveRelativeUri(containingSource.uri, containedUri);
     }
 
-    Uri actualUri = containedUri;
-
-    var result = _absoluteUriToSourceCache[actualUri];
+    var result = _absoluteUriToSourceCache[containedUri];
     if (result == null) {
       for (UriResolver resolver in resolvers) {
-        result = resolver.resolveAbsolute(containedUri, actualUri);
+        result = resolver.resolveAbsolute(containedUri);
         if (result != null) {
-          _absoluteUriToSourceCache[actualUri] = result;
+          _absoluteUriToSourceCache[containedUri] = result;
           break;
         }
       }

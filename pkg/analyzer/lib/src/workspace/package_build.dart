@@ -27,7 +27,7 @@ class PackageBuildFileUriResolver extends ResourceUriResolver {
         super(workspace.provider);
 
   @override
-  Source? resolveAbsolute(Uri uri, [Uri? actualUri]) {
+  Source? resolveAbsolute(Uri uri) {
     if (!ResourceUriResolver.isFileUri(uri)) {
       return null;
     }
@@ -38,7 +38,7 @@ class PackageBuildFileUriResolver extends ResourceUriResolver {
     }
     var file = workspace.findFile(filePath);
     if (file != null) {
-      return file.createSource(actualUri ?? uri);
+      return file.createSource(uri);
     }
     return null;
   }
@@ -59,8 +59,7 @@ class PackageBuildPackageUriResolver extends UriResolver {
   Map<String, List<Folder>> get packageMap => _workspace._packageMap;
 
   @override
-  Source? resolveAbsolute(Uri _ignore, [Uri? uri]) {
-    uri ??= _ignore;
+  Source? resolveAbsolute(Uri uri) {
     if (uri.scheme != 'package') {
       return null;
     }

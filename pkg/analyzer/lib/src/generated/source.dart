@@ -137,7 +137,7 @@ class DartUriResolver extends UriResolver {
   DartSdk get dartSdk => _sdk;
 
   @override
-  Source? resolveAbsolute(Uri uri, [Uri? actualUri]) {
+  Source? resolveAbsolute(Uri uri) {
     if (!isDartUri(uri)) {
       return null;
     }
@@ -524,15 +524,10 @@ abstract class UriResolver {
   /// Clear any cached URI resolution information.
   void clearCache() {}
 
-  /// Resolve the given absolute URI. Return a [Source] representing the file to
-  /// which it was resolved, whether or not the resulting source exists, or
+  /// Resolve the given absolute [uri]. Return a [Source] representing the file
+  /// to which it was resolved, whether or not the resulting source exists, or
   /// `null` if it could not be resolved because the URI is invalid.
-  ///
-  /// @param uri the URI to be resolved
-  /// @param actualUri the actual uri for this source -- if `null`, the value of
-  /// [uri] will be used
-  /// @return a [Source] representing the file to which given URI was resolved
-  Source? resolveAbsolute(Uri uri, [Uri actualUri]);
+  Source? resolveAbsolute(Uri uri);
 
   /// Return an absolute URI that represents the given [source], or `null` if a
   /// valid URI cannot be computed.
