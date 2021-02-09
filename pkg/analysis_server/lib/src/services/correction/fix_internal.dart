@@ -271,6 +271,117 @@ class DartFixContributor implements FixContributor {
   }
 }
 
+/// Computer for Dart "fix all in file" fixes.
+class FixInFileProcessor {
+  final DartFixContext context;
+  FixInFileProcessor(this.context);
+
+  Future<List<Fix>> compute() async {
+    var error = context.error;
+    var errors = context.resolveResult.errors.toList();
+    // Remove any analysis errors that don't have the expected error code name
+    errors.removeWhere((e) => error.errorCode.name != e.errorCode.name);
+
+    if (errors.length < 2) {
+      return const <Fix>[];
+    }
+
+    var instrumentationService = context.instrumentationService;
+    var workspace = context.workspace;
+    var resolveResult = context.resolveResult;
+
+    var generators = _getGenerators(
+        error.errorCode,
+        CorrectionProducerContext(
+          dartFixContext: context,
+          diagnostic: error,
+          resolvedResult: resolveResult,
+          selectionOffset: context.error.offset,
+          selectionLength: context.error.length,
+          workspace: workspace,
+        ));
+
+    var fixes = <Fix>[];
+    for (var generator in generators) {
+      var builder = ChangeBuilder(workspace: workspace);
+      for (var error in errors) {
+        var fixContext = DartFixContextImpl(
+          instrumentationService,
+          workspace,
+          resolveResult,
+          error,
+          (name) => [],
+        );
+        builder = await _fixError(fixContext, builder, generator(), error);
+      }
+      var sourceChange = builder.sourceChange;
+      if (sourceChange.edits.isNotEmpty) {
+        var fixKind = generator().fixKind;
+        // todo (pq): with a table redesign we can bail earlier.
+        if (fixKind.canBeAppliedTogether()) {
+          sourceChange.message = fixKind.appliedTogetherMessage;
+          fixes.add(Fix(fixKind, sourceChange));
+        }
+      }
+    }
+    return fixes;
+  }
+
+  Future<ChangeBuilder> _fixError(
+      DartFixContext fixContext,
+      ChangeBuilder builder,
+      CorrectionProducer producer,
+      AnalysisError diagnostic) async {
+    var context = CorrectionProducerContext(
+      applyingBulkFixes: true,
+      dartFixContext: fixContext,
+      diagnostic: diagnostic,
+      resolvedResult: fixContext.resolveResult,
+      selectionOffset: diagnostic.offset,
+      selectionLength: diagnostic.length,
+      workspace: fixContext.workspace,
+    );
+
+    var setupSuccess = context.setupCompute();
+    if (!setupSuccess) {
+      return null;
+    }
+
+    producer.configure(context);
+
+    try {
+      var localBuilder = builder.copy();
+      await producer.compute(localBuilder);
+      builder = localBuilder;
+    } on ConflictingEditException {
+      // If a conflicting edit was added in [compute], then the [localBuilder]
+      // is discarded and we revert to the previous state of the builder.
+    }
+
+    return builder;
+  }
+
+  List<ProducerGenerator> _getGenerators(
+      ErrorCode errorCode, CorrectionProducerContext context) {
+    var producers = <ProducerGenerator>[];
+    if (errorCode is LintCode) {
+      var generators = FixProcessor.lintProducerMap[errorCode.name];
+      if (generators != null) {
+        producers.addAll(generators);
+      }
+    } else {
+      var generators = FixProcessor.nonLintProducerMap[errorCode];
+      if (generators != null) {
+        if (generators != null) {
+          producers.addAll(generators);
+        }
+      }
+      // todo (pq): consider support for multiGenerators
+    }
+    return producers;
+  }
+}
+
 /// The computer for Dart fixes.
 class FixProcessor extends BaseProcessor {
   /// A map from the names of lint rules to a list of generators used to create
