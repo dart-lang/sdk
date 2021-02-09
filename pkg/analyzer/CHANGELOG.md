@@ -1,4 +1,4 @@
-## 0.42.0
+## 0.42.0-nullsafety.0
 * Migrated to null safety, min SDK is `2.12.0`.
 * Deprecated `FunctionTypeAliasElement.function`.
   Use `TypeAliasElement.aliasedElement` instead.
