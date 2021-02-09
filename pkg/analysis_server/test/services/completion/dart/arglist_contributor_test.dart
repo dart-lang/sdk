@@ -1067,6 +1067,18 @@ main() { f("16", radix: ^);}''');
     assertNoSuggestions();
   }
 
+  Future<void> test_ArgumentList_local_functionExpression_params() async {
+    // https://github.com/dart-lang/sdk/issues/42064
+    addTestSource('''
+    void main2() {
+      final add1 = ({int a}) => a + 1;
+      add1(^);
+    }
+    ''');
+    await computeSuggestions();
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'a': 'int'});
+  }
+
   Future<void> test_ArgumentList_local_method_0() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addSource('/home/test/lib/a.dart', '''

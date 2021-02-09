@@ -111,6 +111,11 @@ class CompletionTarget {
   /// invoked [ExecutableElement], otherwise this is `null`.
   ExecutableElement _executableElement;
 
+  /// If the target is in an argument list of a [FunctionExpressionInvocation],
+  /// then this is the static type of the function being invoked, otherwise this
+  /// is `null`.
+  FunctionType _functionType;
+
   /// If the target is an argument in an [ArgumentList], then this is the
   /// corresponding [ParameterElement] in the invoked [ExecutableElement],
   /// otherwise this is `null`.
@@ -268,6 +273,32 @@ class CompletionTarget {
       }
     }
     return _executableElement;
+  }
+
+  /// If the target is in an argument list of a [FunctionExpressionInvocation],
+  /// then this is the static type of the function being invoked, otherwise this
+  /// is `null`.
+  FunctionType get functionType {
+    if (_functionType == null) {
+      var argumentList = containingNode;
+      if (argumentList is NamedExpression) {
+        argumentList = argumentList.parent;
+      }
+      if (argumentList is! ArgumentList) {
+        return null;
+      }
+
+      var invocation = argumentList.parent;
+
+      if (invocation is FunctionExpressionInvocation) {
+        final invokeType = invocation.staticInvokeType;
+        if (invokeType is FunctionType) {
+          _functionType = invokeType;
+        }
+      }
+    }
+
+    return _functionType;
   }
 
   /// Return `true` if the [containingNode] is a cascade
