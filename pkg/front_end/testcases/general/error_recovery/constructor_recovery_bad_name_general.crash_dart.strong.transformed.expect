@@ -237,13 +237,17 @@ library;
 //   int Foo;
 //       ^^^
 //
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:24:7: Error: Conflicts with member 'Foo'.
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:24:7: Error: Conflicts with the implicit setter of the field 'Foo'.
 //   set Foo {
 //       ^
 //
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:40:10: Error: Conflicts with setter 'Foo'.
 //   int A, Foo, B;
 //          ^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:23:7: Error: Conflicts with the implicit setter of the field 'Foo'.
+//   set Foo => 0;
+//       ^
 //
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:5:13: Error: 'initializer' isn't an instance field of this class.
 //   foo.x() : initializer = true {
@@ -354,12 +358,6 @@ Try removing the return type.
                           ^";
   get Foo() → dynamic
     return 0;
-  set Foo(dynamic #synthetic) → void {
-    invalid-expression "pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:23:11: Error: A setter should have exactly one formal parameter.
-  set Foo => 0;
-          ^";
-    return 0;
-  }
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf

@@ -161,9 +161,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   Uri get packageUriForTesting => _packageUri;
 
-  final List<ImplementationInfo> implementationBuilders =
-      <ImplementationInfo>[];
-
   final List<Object> accessors = <Object>[];
 
   String name;
@@ -179,8 +176,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// to create a builder and this object records its members and types until,
   /// for example, [addClass] is called.
   TypeParameterScopeBuilder currentTypeParameterScopeBuilder;
-
-  bool canAddImplementationBuilders = false;
 
   /// Non-null if this library causes an error upon access, that is, there was
   /// an error reading its source.
@@ -881,37 +876,84 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return true;
   }
 
+  /// Checks [scope] for conflicts between setters and non-setters and reports
+  /// them in [sourceLibraryBuilder].
+  ///
+  /// If [checkForInstanceVsStaticConflict] is `true`, conflicts between
+  /// instance and static members of the same name are reported.
+  ///
+  /// If [checkForMethodVsSetterConflict] is `true`, conflicts between
+  /// methods and setters of the same name are reported.
+  static void checkMemberConflicts(
+      SourceLibraryBuilder sourceLibraryBuilder, Scope scope,
+      {bool checkForInstanceVsStaticConflict,
+      bool checkForMethodVsSetterConflict}) {
+    assert(checkForInstanceVsStaticConflict != null);
+    assert(checkForMethodVsSetterConflict != null);
+
+    scope.forEachLocalSetter((String name, MemberBuilder setter) {
+      Builder member = scope.lookupLocalMember(name, setter: false);
+      if (member == null) {
+        // Setter without getter.
+        return;
+      }
+      MemberBuilderImpl setterBuilder = setter;
+      do {
+        bool conflict = checkForInstanceVsStaticConflict &&
+            member.isDeclarationInstanceMember !=
+                setterBuilder.isDeclarationInstanceMember;
+        if (member is FieldBuilder) {
+          if (member.isAssignable) {
+            // Setter with writable field.
+            setterBuilder.isConflictingSetter = true;
+            conflict = true;
+          }
+        } else if (checkForMethodVsSetterConflict && !member.isGetter) {
+          // Setter with method.
+          conflict = true;
+        }
+        if (conflict) {
+          if (setterBuilder.isConflictingSetter) {
+            sourceLibraryBuilder.addProblem(
+                templateConflictsWithImplicitSetter.withArguments(name),
+                setterBuilder.charOffset,
+                noLength,
+                setterBuilder.fileUri);
+            // TODO(ahe): Context argument to previous message?
+            sourceLibraryBuilder.addProblem(
+                templateConflictsWithSetter.withArguments(name),
+                member.charOffset,
+                noLength,
+                member.fileUri);
+          } else {
+            sourceLibraryBuilder.addProblem(
+                templateConflictsWithMember.withArguments(name),
+                setterBuilder.charOffset,
+                noLength,
+                setterBuilder.fileUri);
+            // TODO(ahe): Context argument to previous message?
+            sourceLibraryBuilder.addProblem(
+                templateConflictsWithSetter.withArguments(name),
+                member.charOffset,
+                noLength,
+                member.fileUri);
+          }
+        }
+        setterBuilder = setterBuilder.next;
+      } while (setterBuilder != null);
+    });
+  }
+
   /// Builds the core AST structure of this library as needed for the outline.
   Library build(LibraryBuilder coreLibrary, {bool modifyTarget}) {
-    assert(implementationBuilders.isEmpty);
-    canAddImplementationBuilders = true;
+    checkMemberConflicts(this, scope,
+        checkForInstanceVsStaticConflict: false,
+        checkForMethodVsSetterConflict: true);
+
     Iterator<Builder> iterator = this.iterator;
     while (iterator.moveNext()) {
       buildBuilder(iterator.current, coreLibrary);
     }
-    for (ImplementationInfo info in implementationBuilders) {
-      String name = info.name;
-      Builder declaration = info.declaration;
-      int charOffset = info.charOffset;
-      addBuilder(name, declaration, charOffset);
-      buildBuilder(declaration, coreLibrary);
-    }
-    canAddImplementationBuilders = false;
-
-    scope.forEachLocalSetter((String name, Builder setter) {
-      Builder member = scopeBuilder[name];
-      if (member == null ||
-          !member.isField ||
-          member.isFinal ||
-          member.isConst) {
-        return;
-      }
-      addProblem(templateConflictsWithMember.withArguments(name),
-          setter.charOffset, noLength, fileUri);
-      // TODO(ahe): Context to previous message?
-      addProblem(templateConflictsWithSetter.withArguments(name),
-          member.charOffset, noLength, fileUri);
-    });
 
     if (modifyTarget == false) return library;
 
@@ -933,17 +975,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
 
     return library;
-  }
-
-  /// Used to add implementation builder during the call to [build] above.
-  /// Currently, only anonymous mixins are using implementation builders (see
-  /// [MixinApplicationBuilder]
-  /// (../kernel/kernel_mixin_application_builder.dart)).
-  void addImplementationBuilder(
-      String name, Builder declaration, int charOffset) {
-    assert(canAddImplementationBuilders, "$importUri");
-    implementationBuilders
-        .add(new ImplementationInfo(name, declaration, charOffset));
   }
 
   void validatePart(SourceLibraryBuilder library, Set<Uri> usedParts) {
@@ -2548,7 +2579,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           }
         } else if (member is Procedure) {
           member.isStatic = true;
-          if (!declaration.isPatch && !declaration.isDuplicate) {
+          if (!declaration.isPatch &&
+              !declaration.isDuplicate &&
+              !declaration.isConflictingSetter) {
             library.addProcedure(member);
           }
         } else {
@@ -3959,14 +3992,6 @@ class FieldInfo {
 
   const FieldInfo(this.name, this.charOffset, this.initializerToken,
       this.beforeLast, this.charEndOffset);
-}
-
-class ImplementationInfo {
-  final String name;
-  final Builder declaration;
-  final int charOffset;
-
-  const ImplementationInfo(this.name, this.declaration, this.charOffset);
 }
 
 Uri computeLibraryUri(Builder declaration) {

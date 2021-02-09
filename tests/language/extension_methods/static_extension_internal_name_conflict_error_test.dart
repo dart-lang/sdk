@@ -115,6 +115,7 @@ extension E5 on int {
   static void set property(int value) {}
   //              ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
+  // [cfe] Conflicts with member 'property'.
   static int get property2 => 1;
   //             ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
@@ -137,6 +138,8 @@ extension E5 on int {
   int get property => 1;
   //      ^
   // [cfe] 'property' is already declared in this scope.
+  //      ^
+  // [cfe] Conflicts with setter 'property'.
   void set property(int value) {}
   //       ^
   // [cfe] 'property' is already declared in this scope.
@@ -148,7 +151,7 @@ extension E5 on int {
   // [cfe] Conflicts with setter 'property3'.
   void set field(int value) {}
   //       ^
-  // [cfe] Conflicts with member 'field'.
+  // [cfe] Conflicts with the implicit setter of the field 'field'.
   int get field2 => 1;
   //      ^
   // [cfe] 'field2' is already declared in this scope.

@@ -171,7 +171,6 @@ inference_new/infer_assign_to_property_custom: TypeCheckError
 inference_new/invalid_assignment_during_toplevel_inference: TypeCheckError
 late_lowering/covariant_late_field: TypeCheckError
 nnbd/covariant_late_field: TypeCheckError
-nnbd/duplicates_instance_extension: VerificationError
 nnbd/getter_vs_setter_type: TypeCheckError
 nnbd/issue42546: TypeCheckError
 nnbd/issue42603: TypeCheckError

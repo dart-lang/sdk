@@ -70,6 +70,10 @@ abstract class MemberBuilder implements ModifierBuilder {
 
   bool get isAbstract;
 
+  /// Returns `true` if this member is a setter that conflicts with the implicit
+  /// setter of a field.
+  bool get isConflictingSetter;
+
   void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes);
 
   /// Returns the [ClassMember]s for the non-setter members created for this
@@ -136,6 +140,19 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
 
   @override
   bool get isAbstract => (modifiers & abstractMask) != 0;
+
+  bool _isConflictingSetter;
+
+  @override
+  bool get isConflictingSetter {
+    return _isConflictingSetter ??= false;
+  }
+
+  void set isConflictingSetter(bool value) {
+    assert(_isConflictingSetter == null,
+        '$this.isConflictingSetter has already been fixed.');
+    _isConflictingSetter = value;
+  }
 
   @override
   LibraryBuilder get library {

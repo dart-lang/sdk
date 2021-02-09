@@ -116,8 +116,8 @@ main() {
 
   result = null;
   Extension.staticLateFinalFieldAndSetter2 = 0;
-  expect(2, result);
-  throws(() => Extension.staticLateFinalFieldAndSetter2);
+  expect(null, result);
+  expect(0, Extension.staticLateFinalFieldAndSetter2);
 
   expect(1, Extension.staticMethodAndSetter1());
 

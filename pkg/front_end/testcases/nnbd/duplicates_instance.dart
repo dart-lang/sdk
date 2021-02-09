@@ -100,8 +100,8 @@ test() {
 main() {
   Class c = new Class();
   c.instanceFieldAndSetter1 = 0;
-  expect(2, result);
-  expect(1, c.instanceFieldAndSetter1);
+  expect(null, result);
+  expect(0, c.instanceFieldAndSetter1);
 
   result = null;
   c.instanceFieldAndSetter2 = 0;
@@ -110,8 +110,8 @@ main() {
 
   result = null;
   c.instanceLateFinalFieldAndSetter1 = 0;
-  expect(2, result);
-  throws(() => c.instanceLateFinalFieldAndSetter1);
+  expect(null, result);
+  expect(0, c.instanceLateFinalFieldAndSetter1);
 
   result = null;
   c.instanceLateFinalFieldAndSetter2 = 0;

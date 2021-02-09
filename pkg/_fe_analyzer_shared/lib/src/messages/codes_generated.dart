@@ -1079,6 +1079,28 @@ Message _withArgumentsConflictsWithFactory(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateConflictsWithImplicitSetter =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Conflicts with the implicit setter of the field '#name'.""",
+        withArguments: _withArgumentsConflictsWithImplicitSetter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeConflictsWithImplicitSetter =
+    const Code<Message Function(String name)>("ConflictsWithImplicitSetter",
+        analyzerCodes: <String>["CONFLICTS_WITH_MEMBER"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConflictsWithImplicitSetter(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeConflictsWithImplicitSetter,
+      message: """Conflicts with the implicit setter of the field '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateConflictsWithMember =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Conflicts with member '#name'.""",

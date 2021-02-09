@@ -113,7 +113,7 @@ library /*isNonNullableByDefault*/;
 //   void set instanceDuplicateFieldAndDuplicateSetter(int value) {
 //            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:26:12: Error: Conflicts with member 'instanceFieldAndSetter1'.
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:26:12: Error: Conflicts with the implicit setter of the field 'instanceFieldAndSetter1'.
 //   void set instanceFieldAndSetter1(int value) {
 //            ^
 //
@@ -121,13 +121,29 @@ library /*isNonNullableByDefault*/;
 //   int instanceFieldAndSetter1 = 1;
 //       ^
 //
-// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:30:12: Error: Conflicts with member 'instanceFieldAndSetter2'.
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:30:12: Error: Conflicts with the implicit setter of the field 'instanceFieldAndSetter2'.
 //   void set instanceFieldAndSetter2(int value) {
 //            ^
 //
 // pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:33:7: Error: Conflicts with setter 'instanceFieldAndSetter2'.
 //   int instanceFieldAndSetter2 = 1;
 //       ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:36:12: Error: Conflicts with the implicit setter of the field 'instanceLateFinalFieldAndSetter1'.
+//   void set instanceLateFinalFieldAndSetter1(int value) {
+//            ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:35:18: Error: Conflicts with setter 'instanceLateFinalFieldAndSetter1'.
+//   late final int instanceLateFinalFieldAndSetter1;
+//                  ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:40:12: Error: Conflicts with the implicit setter of the field 'instanceLateFinalFieldAndSetter2'.
+//   void set instanceLateFinalFieldAndSetter2(int value) {
+//            ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:43:18: Error: Conflicts with setter 'instanceLateFinalFieldAndSetter2'.
+//   late final int instanceLateFinalFieldAndSetter2;
+//                  ^
 //
 // pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:71:12: Error: Conflicts with member 'instanceMethodAndSetter1'.
 //   void set instanceMethodAndSetter1(int value) {
@@ -165,10 +181,6 @@ extension Extension on core::int {
   method instanceMethodAndSetter2 = self::Extension|instanceMethodAndSetter2;
   tearoff instanceMethodAndSetter2 = self::Extension|get#instanceMethodAndSetter2;
   set instanceSetter = self::Extension|set#instanceSetter;
-  set instanceFieldAndSetter1 = self::Extension|set#instanceFieldAndSetter1;
-  set instanceFieldAndSetter2 = self::Extension|set#instanceFieldAndSetter2;
-  set instanceLateFinalFieldAndSetter1 = self::Extension|set#instanceLateFinalFieldAndSetter1;
-  set instanceLateFinalFieldAndSetter2 = self::Extension|set#instanceLateFinalFieldAndSetter2;
   set instanceDuplicateFieldAndSetter = self::Extension|set#instanceDuplicateFieldAndSetter;
   set instanceFieldAndDuplicateSetter = self::Extension|set#instanceFieldAndDuplicateSetter;
   set instanceDuplicateFieldAndDuplicateSetter = self::Extension|set#instanceDuplicateFieldAndDuplicateSetter;
@@ -191,14 +203,6 @@ static method Extension|get#instanceMethod(lowered final core::int #this) → ()
 static method Extension|get#instanceGetter(lowered final core::int #this) → core::int
   ;
 static method Extension|set#instanceSetter(lowered final core::int #this, dynamic value) → void
-  ;
-static method Extension|set#instanceFieldAndSetter1(lowered final core::int #this, core::int value) → void
-  ;
-static method Extension|set#instanceFieldAndSetter2(lowered final core::int #this, core::int value) → void
-  ;
-static method Extension|set#instanceLateFinalFieldAndSetter1(lowered final core::int #this, core::int value) → void
-  ;
-static method Extension|set#instanceLateFinalFieldAndSetter2(lowered final core::int #this, core::int value) → void
   ;
 static method Extension|set#instanceDuplicateFieldAndSetter(lowered final core::int #this, core::int value) → void
   ;

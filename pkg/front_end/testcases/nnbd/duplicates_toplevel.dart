@@ -109,8 +109,8 @@ main() {
 
   result = null;
   topLevelLateFinalFieldAndSetter1 = 0;
-  expect(2, result);
-  throws(() => topLevelLateFinalFieldAndSetter1);
+  expect(null, result);
+  expect(0, topLevelLateFinalFieldAndSetter1);
 
   result = null;
   topLevelLateFinalFieldAndSetter2 = 0;

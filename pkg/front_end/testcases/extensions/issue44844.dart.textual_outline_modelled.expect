@@ -1,0 +1,7 @@
+extension on int {
+  static int foo = 2;
+  void foo() {}
+}
+
+main() {}
+void test() {}

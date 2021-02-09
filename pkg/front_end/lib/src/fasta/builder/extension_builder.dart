@@ -36,6 +36,11 @@ abstract class ExtensionBuilder implements DeclarationBuilder {
   /// If [setter] is `true` the sought member is a setter or assignable field.
   /// If [required] is `true` and no member is found an internal problem is
   /// reported.
+  ///
+  /// If the extension member is a duplicate, `null` is returned.
+  // TODO(johnniwinther): Support [AmbiguousBuilder] here and in instance
+  // member lookup to avoid reporting that the member doesn't exist when it is
+  // duplicate.
   Builder lookupLocalMemberByName(Name name,
       {bool setter: false, bool required: false});
 
@@ -122,8 +127,18 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
       {bool setter: false, bool required: false}) {
     Builder builder =
         lookupLocalMember(name.text, setter: setter, required: required);
-    if (builder != null && name.isPrivate && library.library != name.library) {
-      builder = null;
+    if (builder != null) {
+      if (name.isPrivate && library.library != name.library) {
+        builder = null;
+      } else if (builder.isDuplicate) {
+        // Duplicates are not visible in the instance scope.
+        builder = null;
+      } else if (builder is MemberBuilder && builder.isConflictingSetter) {
+        // Conflicting setters are not visible in the instance scope.
+        // TODO(johnniwinther): Should we return an [AmbiguousBuilder] here and
+        // above?
+        builder = null;
+      }
     }
     return builder;
   }
