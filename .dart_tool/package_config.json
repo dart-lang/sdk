@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-02-04T09:42:25.936196",
+  "generated": "2021-02-08T17:50:36.420568",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -112,7 +112,7 @@
       "name": "async",
       "rootUri": "../third_party/pkg/async",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     },
     {
       "name": "async_helper",
@@ -166,7 +166,7 @@
       "name": "collection",
       "rootUri": "../third_party/pkg/collection",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     },
     {
       "name": "compiler",
@@ -497,7 +497,7 @@
       "name": "path",
       "rootUri": "../third_party/pkg/path",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     },
     {
       "name": "pedantic",
@@ -665,19 +665,19 @@
       "name": "test",
       "rootUri": "../third_party/pkg/test/pkgs/test",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     },
     {
       "name": "test_api",
       "rootUri": "../third_party/pkg/test/pkgs/test_api",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     },
     {
       "name": "test_core",
       "rootUri": "../third_party/pkg/test/pkgs/test_core",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     },
     {
       "name": "test_descriptor",
