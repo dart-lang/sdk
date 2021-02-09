@@ -1,4 +1,3 @@
-// @dart = 2.9
 // Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -74,7 +73,7 @@ class _BaseGenerator {
   ///
   /// If [builder] is `true`, the returned type should be appropriate for use in
   /// a builder class.
-  String defaultValue(idl_model.FieldType type, bool builder) {
+  String? defaultValue(idl_model.FieldType type, bool builder) {
     if (type.isList) {
       if (builder) {
         idl_model.FieldType elementType =
@@ -83,9 +82,11 @@ class _BaseGenerator {
       } else {
         return 'const <${idlPrefix(type.typeName)}>[]';
       }
-    } else if (_idl.enums.containsKey(type.typeName)) {
-      return '${idlPrefix(type.typeName)}.'
-          '${_idl.enums[type.typeName].values[0].name}';
+    }
+
+    var enum_ = _idl.enums[type.typeName];
+    if (enum_ != null) {
+      return '${idlPrefix(type.typeName)}.${enum_.values[0].name}';
     } else if (type.typeName == 'double') {
       return '0.0';
     } else if (type.typeName == 'int') {
@@ -155,10 +156,17 @@ class _BaseGenerator {
     }
   }
 
-  void outDoc(String documentation) {
+  void outDoc(String? documentation) {
     if (documentation != null) {
       documentation.split('\n').forEach(out);
     }
+  }
+
+  /// Execute [out] of [s] in [indent].
+  void outWithIndent(String s) {
+    indent(() {
+      out(s);
+    });
   }
 
   /// Enclose [s] in quotes, escaping as necessary.
@@ -188,8 +196,8 @@ class _BaseGenerator {
     idl_model.LogicalProperty property,
   ) {
     var assertCondition = property.variants
-        ?.map((key) => '${class_.variantField} == idl.$key')
-        ?.join(' || ');
+        .map((key) => '${class_.variantField} == idl.$key')
+        .join(' || ');
     return 'assert($assertCondition);';
   }
 }
@@ -269,8 +277,9 @@ class _BuilderGenerator extends _BaseGenerator {
             for (var field in sortedFields) {
               var logicalProperties = field.logicalProperties;
               if (logicalProperties != null) {
-                for (var logicalName in logicalProperties.keys) {
-                  var logicalProperty = logicalProperties[logicalName];
+                for (var logicalEntry in logicalProperties.entries) {
+                  var logicalName = logicalEntry.key;
+                  var logicalProperty = logicalEntry.value;
                   if (logicalProperty.variants.contains(variant)) {
                     writeField(
                       logicalName,
@@ -303,9 +312,11 @@ class _BuilderGenerator extends _BaseGenerator {
         out('$builderName.$constructorName({');
 
         for (var field in cls.fields) {
-          if (field.logicalProperties != null) {
-            for (var logicalName in field.logicalProperties.keys) {
-              var logicalProperty = field.logicalProperties[logicalName];
+          var logicalProperties = field.logicalProperties;
+          if (logicalProperties != null) {
+            for (var logicalEntry in logicalProperties.entries) {
+              var logicalName = logicalEntry.key;
+              var logicalProperty = logicalEntry.value;
               if (logicalProperty.variants.contains(variant)) {
                 out('${encodedType2(field.type)} $logicalName,');
               }
@@ -319,9 +330,11 @@ class _BuilderGenerator extends _BaseGenerator {
 
         var separator = ',';
         for (var field in cls.fields) {
-          if (field.logicalProperties != null) {
-            for (var logicalName in field.logicalProperties.keys) {
-              var logicalProperty = field.logicalProperties[logicalName];
+          var logicalProperties = field.logicalProperties;
+          if (logicalProperties != null) {
+            for (var logicalEntry in logicalProperties.entries) {
+              var logicalName = logicalEntry.key;
+              var logicalProperty = logicalEntry.value;
               if (logicalProperty.variants.contains(variant)) {
                 out('$separator _${field.name} = $logicalName');
                 separator = ', ';
@@ -373,8 +386,8 @@ class _BuilderGenerator extends _BaseGenerator {
         idl_model.FieldType fieldType = field.type;
         String valueName = '_' + field.name;
         String offsetName = 'offset_' + field.name;
-        String condition;
-        String writeCode;
+        String? condition;
+        String? writeCode;
         if (fieldType.isList) {
           condition = ' || $valueName!.isEmpty';
           if (_idl.classes.containsKey(fieldType.typeName)) {
@@ -409,9 +422,7 @@ class _BuilderGenerator extends _BaseGenerator {
           } else {
             out('if (!($valueName == null$condition)) {');
           }
-          indent(() {
-            out(writeCode);
-          });
+          outWithIndent(writeCode);
           out('}');
         }
       }
@@ -423,7 +434,7 @@ class _BuilderGenerator extends _BaseGenerator {
         idl_model.FieldType fieldType = field.type;
         String valueName = '_' + field.name;
         String condition = '$valueName != null';
-        String writeCode;
+        String? writeCode;
         if (fieldType.isList ||
             fieldType.typeName == 'String' ||
             _idl.classes.containsKey(fieldType.typeName)) {
@@ -447,9 +458,7 @@ class _BuilderGenerator extends _BaseGenerator {
           throw UnimplementedError('Writing type ${fieldType.typeName}');
         }
         out('if ($condition) {');
-        indent(() {
-          out(writeCode);
-        });
+        outWithIndent(writeCode);
         out('}');
       }
       out('return fbBuilder.endTable();');
@@ -488,8 +497,9 @@ class _BuilderGenerator extends _BaseGenerator {
             for (var field in cls.fields) {
               var logicalProperties = field.logicalProperties;
               if (logicalProperties != null) {
-                for (var logicalName in logicalProperties.keys) {
-                  var logicalProperty = logicalProperties[logicalName];
+                for (var logicalEntry in logicalProperties.entries) {
+                  var logicalName = logicalEntry.key;
+                  var logicalProperty = logicalEntry.value;
                   if (logicalProperty.variants.contains(variant)) {
                     writeField(
                       logicalName,
@@ -519,16 +529,18 @@ class _BuilderGenerator extends _BaseGenerator {
       String fieldName = field.name;
       idl_model.FieldType fieldType = field.type;
       String typeStr = encodedType(fieldType);
-      String def = defaultValue(fieldType, true);
+      String? def = defaultValue(fieldType, true);
       String defSuffix = def == null ? '' : ' ??= $def';
       out();
       if (field.isDeprecated) {
         out('@override');
         out('Null get $fieldName => ${_BaseGenerator._throwDeprecated};');
       } else {
-        if (field.logicalProperties != null) {
-          for (var logicalName in field.logicalProperties.keys) {
-            var logicalProperty = field.logicalProperties[logicalName];
+        var logicalProperties = field.logicalProperties;
+        if (logicalProperties != null) {
+          for (var logicalEntry in logicalProperties.entries) {
+            var logicalName = logicalEntry.key;
+            var logicalProperty = logicalEntry.value;
             out('@override');
             out('$typeStr get $logicalName {');
             indent(() {
@@ -549,9 +561,10 @@ class _BuilderGenerator extends _BaseGenerator {
 
         outDoc(field.documentation);
 
-        if (field.logicalProperties != null) {
-          for (var logicalName in field.logicalProperties.keys) {
-            var logicalProperty = field.logicalProperties[logicalName];
+        if (logicalProperties != null) {
+          for (var logicalEntry in logicalProperties.entries) {
+            var logicalName = logicalEntry.key;
+            var logicalProperty = logicalEntry.value;
             out('set $logicalName($typeStr value) {');
             indent(() {
               out(_variantAssertStatement(cls, logicalProperty));
@@ -640,8 +653,8 @@ class _BuilderGenerator extends _BaseGenerator {
       out('List<int> toBuffer() {');
       indent(() {
         out('fb.Builder fbBuilder = fb.Builder();');
-        String fileId =
-            cls.fileIdentifier == null ? '' : ', ${quoted(cls.fileIdentifier)}';
+        var idOrNull = cls.fileIdentifier;
+        var fileId = idOrNull == null ? '' : ', ${quoted(idOrNull)}';
         out('return fbBuilder.finish(finish(fbBuilder)$fileId);');
       });
       out('}');
@@ -654,7 +667,7 @@ class _CodeGenerator {
   final StringBuffer _outBuffer = StringBuffer();
 
   /// Semantic model of the "IDL" input file.
-  idl_model.Idl _idl;
+  final idl_model.Idl _idl = idl_model.Idl();
 
   _CodeGenerator(String idlPath) {
     // Parse the input "IDL" file.
@@ -674,12 +687,13 @@ class _CodeGenerator {
   /// [extractIdl]).
   void checkIdl() {
     _idl.classes.forEach((String name, idl_model.ClassDeclaration cls) {
-      if (cls.fileIdentifier != null) {
-        if (cls.fileIdentifier.length != 4) {
+      var fileIdentifier = cls.fileIdentifier;
+      if (fileIdentifier != null) {
+        if (fileIdentifier.length != 4) {
           throw Exception('$name: file identifier must be 4 characters');
         }
-        for (int i = 0; i < cls.fileIdentifier.length; i++) {
-          if (cls.fileIdentifier.codeUnitAt(i) >= 256) {
+        for (int i = 0; i < fileIdentifier.length; i++) {
+          if (fileIdentifier.codeUnitAt(i) >= 256) {
             throw Exception(
                 '$name: file identifier must be encodable as Latin-1');
           }
@@ -724,21 +738,21 @@ class _CodeGenerator {
   /// Process the AST in [idlParsed] and store the resulting semantic model in
   /// [_idl].  Also perform some error checking.
   void extractIdl(CompilationUnit idlParsed) {
-    _idl = idl_model.Idl();
     for (CompilationUnitMember decl in idlParsed.declarations) {
       if (decl is ClassDeclaration) {
         bool isTopLevel = false;
         bool isDeprecated = false;
-        String fileIdentifier;
+        String? fileIdentifier;
         String clsName = decl.name;
-        String variantField;
+        String? variantField;
         for (Annotation annotation in decl.metadata) {
-          if (annotation.arguments != null &&
+          var arguments = annotation.arguments;
+          if (arguments != null &&
               annotation.name == 'TopLevel' &&
               annotation.constructorName == null) {
             isTopLevel = true;
-            if (annotation.arguments.length == 1) {
-              Expression arg = annotation.arguments[0];
+            if (arguments.length == 1) {
+              Expression arg = arguments[0];
               if (arg is StringLiteral) {
                 fileIdentifier = arg.stringValue;
               } else {
@@ -746,19 +760,19 @@ class _CodeGenerator {
                     'Class `$clsName`: TopLevel argument must be a string'
                     ' literal');
               }
-            } else if (annotation.arguments.isNotEmpty) {
+            } else if (arguments.isNotEmpty) {
               throw Exception(
                   'Class `$clsName`: TopLevel requires 0 or 1 arguments');
             }
-          } else if (annotation.arguments == null &&
+          } else if (arguments == null &&
               annotation.name == 'deprecated' &&
               annotation.constructorName == null) {
             isDeprecated = true;
-          } else if (annotation.arguments != null &&
+          } else if (arguments != null &&
               annotation.name == 'Variant' &&
               annotation.constructorName == null) {
-            if (annotation.arguments.length == 1) {
-              Expression arg = annotation.arguments[0];
+            if (arguments.length == 1) {
+              Expression arg = arguments[0];
               if (arg is StringLiteral) {
                 variantField = arg.stringValue;
               } else {
@@ -766,7 +780,7 @@ class _CodeGenerator {
                   'Class `$clsName`: @Variant argument must be a string literal',
                 );
               }
-            } else if (annotation.arguments.isNotEmpty) {
+            } else if (arguments.isNotEmpty) {
               throw Exception(
                 'Class `$clsName`: @Variant requires 1 argument',
               );
@@ -783,7 +797,8 @@ class _CodeGenerator {
         );
         _idl.classes[clsName] = cls;
         String expectedBase = 'base.SummaryClass';
-        if (decl.superclass == null || decl.superclass.name != expectedBase) {
+        var superclass = decl.superclass;
+        if (superclass == null || superclass.name != expectedBase) {
           throw Exception('Class `$clsName` needs to extend `$expectedBase`');
         }
         for (ClassMember classMember in decl.members) {
@@ -798,12 +813,12 @@ class _CodeGenerator {
           }
         }
       } else if (decl is EnumDeclaration) {
-        String doc = _getNodeDoc(decl);
+        var doc = _getNodeDoc(decl);
         idl_model.EnumDeclaration enm =
             idl_model.EnumDeclaration(doc, decl.name);
         _idl.enums[enm.name] = enm;
         for (EnumConstantDeclaration constDecl in decl.constants) {
-          String doc = _getNodeDoc(constDecl);
+          var doc = _getNodeDoc(constDecl);
           enm.values.add(idl_model.EnumValueDeclaration(doc, constDecl.name));
         }
       } else {
@@ -879,41 +894,43 @@ class _CodeGenerator {
     MethodDeclaration getter,
   ) {
     var desc = '${cls.name}.${getter.name}';
-    if (getter.returnType == null) {
+
+    var type = getter.returnType;
+    if (type == null) {
       throw Exception('Getter needs a type: $desc');
     }
 
-    var type = getter.returnType;
-
     var isList = false;
-    if (type.name == 'List' &&
-        type.typeArguments != null &&
-        type.typeArguments.length == 1) {
-      isList = true;
-      type = type.typeArguments[0];
+    if (type.name == 'List') {
+      var typeArguments = type.typeArguments;
+      if (typeArguments != null && typeArguments.length == 1) {
+        isList = true;
+        type = typeArguments[0];
+      }
     }
     if (type.typeArguments != null) {
       throw Exception('Cannot handle type arguments in `$type`');
     }
 
-    int id;
-    List<String> variants;
+    int? id;
+    List<String>? variants;
     bool isDeprecated = false;
     bool isInformative = false;
 
     for (Annotation annotation in getter.metadata) {
+      var arguments = annotation.arguments;
       if (annotation.name == 'Id') {
         if (id != null) {
           throw Exception('Duplicate @id annotation ($getter)');
         }
-        if (annotation.arguments == null) {
+        if (arguments == null) {
           throw Exception('@Id must be passed an argument ($desc)');
         }
-        if (annotation.arguments.length != 1) {
+        if (arguments.length != 1) {
           throw Exception('@Id must be passed exactly one argument ($desc)');
         }
 
-        var idExpression = annotation.arguments[0];
+        var idExpression = arguments[0];
         if (idExpression is IntegerLiteral) {
           id = idExpression.value;
         } else {
@@ -922,7 +939,7 @@ class _CodeGenerator {
           );
         }
       } else if (annotation.name == 'deprecated') {
-        if (annotation.arguments != null) {
+        if (arguments != null) {
           throw Exception('@deprecated does not take args ($desc)');
         }
         isDeprecated = true;
@@ -936,16 +953,16 @@ class _CodeGenerator {
           throw Exception('Duplicate @VariantId annotation ($getter)');
         }
 
-        if (annotation.arguments == null) {
+        if (arguments == null) {
           throw Exception('@VariantId must be given arguments ($desc)');
         }
-        if (annotation.arguments.length != 2) {
+        if (arguments.length != 2) {
           throw Exception(
             '@VariantId must be given exactly two arguments ($desc)',
           );
         }
 
-        var idExpression = annotation.arguments[0];
+        var idExpression = arguments[0];
         if (idExpression is IntegerLiteral) {
           id = idExpression.value;
         } else {
@@ -954,7 +971,7 @@ class _CodeGenerator {
           );
         }
 
-        var variantExpression = annotation.arguments[1];
+        var variantExpression = arguments[1];
         if (variantExpression is NamedExpression) {
           if (variantExpression.name == 'variant') {
             variants = [variantExpression.expression.toCode()];
@@ -982,21 +999,22 @@ class _CodeGenerator {
     var fieldType = idl_model.FieldType(type.name, isList);
 
     String name = getter.name;
-    Map<String, idl_model.LogicalProperty> logicalProperties;
+    Map<String, idl_model.LogicalProperty>? logicalProperties;
     if (variants != null) {
       var fieldsWithSameId =
           cls.allFields.where((field) => field.id == id).toList();
       if (fieldsWithSameId.isNotEmpty) {
         var existingField = fieldsWithSameId.single;
-        if (existingField.logicalProperties == null) {
+        var logicalProperties = existingField.logicalProperties;
+        if (logicalProperties == null) {
           throw Exception('$desc: id $id is already used as a non-variant '
               'field: ${existingField.name}');
         }
 
-        var map = existingField.logicalProperties;
         for (var variant in variants) {
-          for (var logicalName in map.keys) {
-            if (map[logicalName].variants.contains(variant)) {
+          for (var entry in logicalProperties.entries) {
+            if (entry.value.variants.contains(variant)) {
+              var logicalName = entry.key;
               throw Exception('$desc: id $id is already used for $logicalName');
             }
           }
@@ -1008,13 +1026,13 @@ class _CodeGenerator {
           );
         }
 
-        if (map[getter.name] != null) {
+        if (logicalProperties[getter.name] != null) {
           throw Exception(
             '$desc: logical property ${getter.name} is already used',
           );
         }
 
-        map[getter.name] = idl_model.LogicalProperty(
+        logicalProperties[getter.name] = idl_model.LogicalProperty(
           isDeprecated: isDeprecated,
           isInformative: isInformative,
           variants: variants,
@@ -1047,8 +1065,8 @@ class _CodeGenerator {
 
   /// Return the documentation text of the given [node], or `null` if the [node]
   /// does not have a comment.  Each line is `\n` separated.
-  String _getNodeDoc(AnnotatedNode node) {
-    Comment comment = node.documentationComment;
+  String? _getNodeDoc(AnnotatedNode node) {
+    var comment = node.documentationComment;
     if (comment != null && comment.isDocumentation) {
       if (comment.tokens.length == 1 &&
           comment.tokens.first.lexeme.startsWith('/*')) {
@@ -1146,11 +1164,12 @@ class _FlatBufferSchemaGenerator extends _BaseGenerator {
     // Standard flatbuffers only support one root type.  We support multiple
     // root types.  For now work around this by forcing PackageBundle to be the
     // root type.  TODO(paulberry): come up with a better solution.
-    idl_model.ClassDeclaration rootType = _idl.classes['PackageBundle'];
+    idl_model.ClassDeclaration rootType = _idl.classes['PackageBundle']!;
     out('root_type ${rootType.name};');
-    if (rootType.fileIdentifier != null) {
+    var rootFileIdentifier = rootType.fileIdentifier;
+    if (rootFileIdentifier != null) {
       out();
-      out('file_identifier ${quoted(rootType.fileIdentifier)};');
+      out('file_identifier ${quoted(rootFileIdentifier)};');
     }
   }
 
@@ -1221,7 +1240,7 @@ class _ImplGenerator extends _BaseGenerator {
         String typeName = type.typeName;
         // Prepare "readCode" + "def"
         String readCode;
-        String def = defaultValue(type, false);
+        String? def = defaultValue(type, false);
         if (type.isList) {
           if (typeName == 'bool') {
             readCode = 'const fb.BoolListReader()';
@@ -1235,10 +1254,11 @@ class _ImplGenerator extends _BaseGenerator {
           } else if (_idl.classes.containsKey(typeName)) {
             String itemCode = '_${typeName}Reader()';
             readCode = 'const fb.ListReader<${idlPrefix(typeName)}>($itemCode)';
-          } else {
-            assert(_idl.enums.containsKey(typeName));
+          } else if (_idl.enums.containsKey(typeName)) {
             String itemCode = '_${typeName}Reader()';
             readCode = 'const fb.ListReader<${idlPrefix(typeName)}>($itemCode)';
+          } else {
+            throw Exception('$name.$fieldName: illegal type ($type)');
           }
         } else if (typeName == 'bool') {
           readCode = 'const fb.BoolReader()';
@@ -1248,12 +1268,13 @@ class _ImplGenerator extends _BaseGenerator {
           readCode = 'const fb.Uint32Reader()';
         } else if (typeName == 'String') {
           readCode = 'const fb.StringReader()';
-        } else if (_idl.enums.containsKey(typeName)) {
-          readCode = 'const _${typeName}Reader()';
         } else if (_idl.classes.containsKey(typeName)) {
           readCode = 'const _${typeName}Reader()';
+        } else if (_idl.enums.containsKey(typeName)) {
+          readCode = 'const _${typeName}Reader()';
+        } else {
+          throw Exception('$name.$fieldName: illegal type ($type)');
         }
-        assert(readCode != null);
         // Write the getter implementation.
         out();
         String returnType = _dartType(type);
@@ -1261,9 +1282,11 @@ class _ImplGenerator extends _BaseGenerator {
           out('@override');
           out('Null get $fieldName => ${_BaseGenerator._throwDeprecated};');
         } else {
-          if (field.logicalProperties != null) {
-            for (var logicalName in field.logicalProperties.keys) {
-              var logicalProperty = field.logicalProperties[logicalName];
+          var logicalProperties = field.logicalProperties;
+          if (logicalProperties != null) {
+            for (var logicalEntry in logicalProperties.entries) {
+              var logicalName = logicalEntry.key;
+              var logicalProperty = logicalEntry.value;
               out('@override');
               out('$returnType get $logicalName {');
               indent(() {
@@ -1332,7 +1355,7 @@ class _MixinGenerator extends _BaseGenerator {
 
       String jsonStore(
           idl_model.FieldType type, String name, String localName) {
-        _StringToString convertItem;
+        _StringToString? convertItem;
         if (_idl.classes.containsKey(type.typeName)) {
           convertItem = (String name) => '$name.toJson()';
         } else if (_idl.enums.containsKey(type.typeName)) {
@@ -1384,8 +1407,9 @@ class _MixinGenerator extends _BaseGenerator {
                 for (idl_model.FieldDeclaration field in cls.fields) {
                   var logicalProperties = field.logicalProperties;
                   if (logicalProperties != null) {
-                    for (var logicalName in logicalProperties.keys) {
-                      var logicalProperty = logicalProperties[logicalName];
+                    for (var logicalEntry in logicalProperties.entries) {
+                      var logicalName = logicalEntry.key;
+                      var logicalProperty = logicalEntry.value;
                       if (logicalProperty.variants.contains(variant)) {
                         var localName = 'local_${field.name}';
                         out('var $localName = ${field.name};');
@@ -1427,9 +1451,11 @@ class _MixinGenerator extends _BaseGenerator {
           indent(() {
             out('return {');
             for (idl_model.FieldDeclaration field in cls.fields) {
-              if (field.logicalProperties != null) {
-                for (var logicalName in field.logicalProperties.keys) {
-                  var logicalProperty = field.logicalProperties[logicalName];
+              var logicalProperties = field.logicalProperties;
+              if (logicalProperties != null) {
+                for (var logicalEntry in logicalProperties.entries) {
+                  var logicalName = logicalEntry.key;
+                  var logicalProperty = logicalEntry.value;
                   if (logicalProperty.variants.contains(variant)) {
                     out('${quoted(logicalName)}: $logicalName,');
                   }
