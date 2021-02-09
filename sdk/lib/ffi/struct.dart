@@ -27,10 +27,10 @@ part of dart.ffi;
 ///
 /// ```
 /// class MyStruct extends Struct {
-///   @Int32
+///   @Int32()
 ///   external int a;
 ///
-///   @Float
+///   @Float()
 ///   external double b;
 ///
 ///   external Pointer<Void> c;
