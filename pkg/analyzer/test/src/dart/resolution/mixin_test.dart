@@ -19,9 +19,7 @@ main() {
 
 @reflectiveTest
 class MixinDriverResolutionTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, ElementsTypesMixin {
-  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
-  //  test cases.
+    with ElementsTypesMixin {
   test_accessor_getter() async {
     await assertNoErrorsInCode(r'''
 mixin M {
@@ -96,7 +94,7 @@ class A extends Object with M {} // A
     var mElement = findElement.mixin('M');
 
     var aElement = findElement.class_('A');
-    assertElementTypes(aElement.mixins, [interfaceTypeStar(mElement)]);
+    assertElementTypes(aElement.mixins, [interfaceTypeNone(mElement)]);
 
     var mRef = findNode.typeName('M {} // A');
     assertTypeName(mRef, mElement, 'M');
@@ -111,7 +109,7 @@ class A = Object with M;
     var mElement = findElement.mixin('M');
 
     var aElement = findElement.class_('A');
-    assertElementTypes(aElement.mixins, [interfaceTypeStar(mElement)]);
+    assertElementTypes(aElement.mixins, [interfaceTypeNone(mElement)]);
 
     var mRef = findNode.typeName('M;');
     assertTypeName(mRef, mElement, 'M');
@@ -168,15 +166,15 @@ mixin M2 on A implements B, C {}
     var c = findElement.class_('C');
     assertElementTypes(
       findElement.mixin('M1').allSupertypes,
-      [interfaceTypeStar(a), interfaceTypeStar(b), objectType],
+      [interfaceTypeNone(a), interfaceTypeNone(b), objectType],
     );
     assertElementTypes(
       findElement.mixin('M2').allSupertypes,
       [
-        interfaceTypeStar(a),
+        interfaceTypeNone(a),
         objectType,
-        interfaceTypeStar(b),
-        interfaceTypeStar(c)
+        interfaceTypeNone(b),
+        interfaceTypeNone(c)
       ],
     );
   }
@@ -195,15 +193,15 @@ mixin M2 on B<String> {}
     assertElementTypes(
       findElement.mixin('M1').allSupertypes,
       [
-        interfaceTypeStar(a, typeArguments: [intType, doubleType]),
+        interfaceTypeNone(a, typeArguments: [intType, doubleType]),
         objectType
       ],
     );
     assertElementTypes(
       findElement.mixin('M2').allSupertypes,
       [
-        interfaceTypeStar(b, typeArguments: [stringType]),
-        interfaceTypeStar(a, typeArguments: [intType, stringType]),
+        interfaceTypeNone(b, typeArguments: [stringType]),
+        interfaceTypeNone(a, typeArguments: [intType, stringType]),
         objectType
       ],
     );
@@ -325,7 +323,7 @@ mixin M implements math.Random {}
     var randomElement = mathImport.importedLibrary!.getType('Random')!;
 
     var element = findElement.mixin('M');
-    assertElementTypes(element.interfaces, [interfaceTypeStar(randomElement)]);
+    assertElementTypes(element.interfaces, [interfaceTypeNone(randomElement)]);
 
     var typeRef = findNode.typeName('Random {}');
     assertTypeName(typeRef, randomElement, 'Random',
@@ -413,15 +411,15 @@ mixin M {
   test_error_mixinApplicationConcreteSuperInvokedMemberType_method() async {
     await assertErrorsInCode(r'''
 class I {
-  void foo([int p]) {}
+  void foo([int? p]) {}
 }
 
 class A {
-  void foo(int p) {}
+  void foo(int? p) {}
 }
 
 abstract class B extends A implements I {
-  void foo([int p]);
+  void foo([int? p]);
 }
 
 mixin M on I {
@@ -435,7 +433,7 @@ abstract class X extends B with M {}
       error(
           CompileTimeErrorCode
               .MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE,
-          224,
+          227,
           1),
     ]);
   }
@@ -447,7 +445,7 @@ class A<T> {
 }
 
 mixin M<U> on A<U> {
-  void remove(Object x) {
+  void remove(Object? x) {
     super.remove(x as U);
   }
 }
@@ -858,7 +856,7 @@ mixin M on math.Random {}
 
     var element = findElement.mixin('M');
     assertElementTypes(element.superclassConstraints, [
-      interfaceTypeStar(randomElement),
+      interfaceTypeNone(randomElement),
     ]);
 
     var typeRef = findNode.typeName('Random {}');
@@ -937,7 +935,7 @@ mixin B on A {} // ref
     var a = findElement.mixin('A');
     var b = findElement.mixin('B');
     assertElementTypes(b.superclassConstraints, [
-      interfaceTypeStar(a),
+      interfaceTypeNone(a),
     ]);
   }
 
@@ -972,7 +970,7 @@ mixin M on A {
   test_field() async {
     await assertNoErrorsInCode(r'''
 mixin M<T> {
-  T f;
+  late T f;
 }
 ''');
 
@@ -992,7 +990,7 @@ mixin M<T> {
     expect(fields, hasLength(1));
 
     var fElement = fields[0];
-    assertElementName(fElement, 'f', offset: 17);
+    assertElementName(fElement, 'f', offset: 22);
     assertEnclosingElement(fElement, element);
 
     var fNode = findNode.variableDeclaration('f;');
@@ -1018,11 +1016,11 @@ mixin M implements A, B {} // M
     assertElementTypes(element.interfaces, [
       findElement.class_('A').instantiate(
         typeArguments: const [],
-        nullabilitySuffix: NullabilitySuffix.star,
+        nullabilitySuffix: NullabilitySuffix.none,
       ),
       findElement.class_('B').instantiate(
         typeArguments: const [],
-        nullabilitySuffix: NullabilitySuffix.star,
+        nullabilitySuffix: NullabilitySuffix.none,
       ),
     ]);
 
@@ -1089,19 +1087,17 @@ mixin M {}
 
   test_methodCallTypeInference_mixinType() async {
     await assertErrorsInCode('''
-main() {
+g(M<T> f<T>()) {
   C<int> c = f();
 }
 
 class C<T> {}
 
 mixin M<T> on C<T> {}
-
-M<T> f<T>() => null;
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 1),
     ]);
-    var fInvocation = findNode.methodInvocation('f()');
+    var fInvocation = findNode.functionExpressionInvocation('f()');
     assertInvokeType(fInvocation, 'M<int> Function()');
   }
 
@@ -1117,11 +1113,11 @@ mixin M on A, B {} // M
     assertElementTypes(element.superclassConstraints, [
       findElement.class_('A').instantiate(
         typeArguments: const [],
-        nullabilitySuffix: NullabilitySuffix.star,
+        nullabilitySuffix: NullabilitySuffix.none,
       ),
       findElement.class_('B').instantiate(
         typeArguments: const [],
-        nullabilitySuffix: NullabilitySuffix.star,
+        nullabilitySuffix: NullabilitySuffix.none,
       ),
     ]);
 

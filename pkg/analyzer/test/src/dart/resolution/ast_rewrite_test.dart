@@ -392,12 +392,7 @@ f() {
 @reflectiveTest
 class AstRewriteMethodInvocationWithNonFunctionTypeAliasesTest
     extends PubPackageResolutionTest
-    with
-        WithoutNullSafetyMixin,
-        WithNonFunctionTypeAliasesMixin,
-        AstRewriteMethodInvocationTestCases {
-  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
-  //  test cases.
+    with WithNonFunctionTypeAliasesMixin, AstRewriteMethodInvocationTestCases {
   test_targetNull_typeAlias_interfaceType() async {
     await assertNoErrorsInCode(r'''
 class A<T, U> {
