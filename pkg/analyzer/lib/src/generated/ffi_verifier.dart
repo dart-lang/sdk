@@ -883,13 +883,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   void _validateSizeOfAnnotation(
       AstNode errorNode, NodeList<Annotation> annotations) {
     final ffiSizeAnnotations = annotations.where((annotation) {
-      if (!_isDartFfiElement(annotation.element)) {
-        return false;
-      }
-      if (annotation.element is! ConstructorElement) {
-        return false;
-      }
-      return annotation.element?.enclosingElement?.name == 'CArraySize';
+      final element = annotation.element;
+      return element is ConstructorElement &&
+          _isDartFfiElement(element) &&
+          element.enclosingElement.name == 'CArraySize';
     }).toList();
 
     if (ffiSizeAnnotations.isEmpty) {
