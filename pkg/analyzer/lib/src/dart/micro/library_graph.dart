@@ -556,9 +556,16 @@ class FileSystemState {
       var fileUri = _resourceProvider.pathContext.toUri(path);
       var uri = _sourceFactory.restoreUri(
         _FakeSource(path, fileUri),
-      )!;
+      );
+      if (uri == null) {
+        throw StateError('Unable to convert path to URI: $path');
+      }
 
-      var source = _sourceFactory.forUri2(uri)!;
+      var source = _sourceFactory.forUri2(uri);
+      if (source == null) {
+        throw StateError('Unable to resolve URI: $uri, path: $path');
+      }
+
       var workspacePackage = _workspace.findPackageFor(path);
       var featureSet = contextFeatureSet(path, uri, workspacePackage);
       var packageLanguageVersion =
