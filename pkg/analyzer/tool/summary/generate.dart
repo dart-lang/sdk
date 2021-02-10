@@ -19,7 +19,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
-import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:analyzer_utilities/tools.dart';
 
 import 'idl_model.dart' as idl_model;
