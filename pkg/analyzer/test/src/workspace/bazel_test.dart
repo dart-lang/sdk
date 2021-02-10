@@ -473,6 +473,17 @@ class BazelPackageUriResolverTest with ResourceProviderMixin {
         exists: true);
   }
 
+  void test_resolveAbsolute_workspace_exists_hasSpace() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+      '/workspace/my/foo/lib/foo .dart',
+    ]);
+    _assertResolve(
+        'package:my.foo/foo .dart', '/workspace/my/foo/lib/foo .dart',
+        exists: true, restore: false);
+  }
+
   void test_restoreAbsolute_noPackageName_workspace() {
     _addResources([
       '/workspace/WORKSPACE',

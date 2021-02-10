@@ -27,10 +27,12 @@ class ArgListContributor extends DartCompletionContributor {
   @override
   Future<void> computeSuggestions(
       DartCompletionRequest request, SuggestionBuilder builder) async {
-    var executable = request.target.executableElement;
-    if (executable == null) {
+    var parameters = request.target.executableElement?.parameters ??
+        request.target.functionType?.parameters;
+    if (parameters == null) {
       return;
     }
+
     var node = request.target.containingNode;
     if (node is ArgumentList) {
       argumentList = node;
@@ -38,7 +40,7 @@ class ArgListContributor extends DartCompletionContributor {
 
     this.request = request;
     this.builder = builder;
-    _addSuggestions(executable.parameters);
+    _addSuggestions(parameters);
   }
 
   void _addDefaultParamSuggestions(Iterable<ParameterElement> parameters,

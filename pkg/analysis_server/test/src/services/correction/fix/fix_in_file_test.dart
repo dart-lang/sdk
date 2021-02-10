@@ -54,7 +54,7 @@ void main() {
 
 @reflectiveTest
 class SingleFixInFileTest extends FixInFileProcessorTest {
-  Future<void> test_isNull() async {
+  Future<void> test_fix_isNull() async {
     await resolveTestCode('''
 bool f(p, q) {
   return p is Null && q is Null;
@@ -68,6 +68,17 @@ bool f(p, q) {
   return p == null && q == null;
 }
 ''');
+  }
+
+  Future<void> test_noFixes() async {
+    await resolveTestCode('''
+bool f(p, q) {
+  return p is Null;
+}
+''');
+
+    var fixes = await getFixes();
+    expect(fixes, isEmpty);
   }
 }
 

@@ -154,7 +154,7 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
 }
 
 class _GeneratedUriResolverMock implements UriResolver {
-  Source? Function(Uri, Uri?)? resolveAbsoluteFunction;
+  Source? Function(Uri)? resolveAbsoluteFunction;
 
   Uri? Function(Source)? restoreAbsoluteFunction;
 
@@ -167,9 +167,9 @@ class _GeneratedUriResolverMock implements UriResolver {
   }
 
   @override
-  Source? resolveAbsolute(Uri uri, [Uri? actualUri]) {
+  Source? resolveAbsolute(Uri uri) {
     if (resolveAbsoluteFunction != null) {
-      return resolveAbsoluteFunction!(uri, actualUri);
+      return resolveAbsoluteFunction!(uri);
     }
     return null;
   }

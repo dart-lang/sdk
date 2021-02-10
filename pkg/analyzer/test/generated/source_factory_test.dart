@@ -27,10 +27,10 @@ class AbsoluteUriResolver extends UriResolver {
   AbsoluteUriResolver(this.resourceProvider);
 
   @override
-  Source resolveAbsolute(Uri uri, [Uri? actualUri]) {
+  Source resolveAbsolute(Uri uri) {
     return FileSource(
         resourceProvider.getFile(resourceProvider.pathContext.fromUri(uri)),
-        actualUri);
+        uri);
   }
 }
 
@@ -115,7 +115,7 @@ class UriResolver_absolute extends UriResolver {
   UriResolver_absolute();
 
   @override
-  Source? resolveAbsolute(Uri uri, [Uri? actualUri]) {
+  Source? resolveAbsolute(Uri uri) {
     invoked = true;
     return null;
   }
@@ -127,7 +127,7 @@ class UriResolver_restoreUri extends UriResolver {
   UriResolver_restoreUri(this.source1, this.expected1);
 
   @override
-  Source? resolveAbsolute(Uri uri, [Uri? actualUri]) => null;
+  Source? resolveAbsolute(Uri uri) => null;
 
   @override
   Uri? restoreAbsolute(Source source) {
@@ -144,7 +144,7 @@ class UriResolver_SourceFactoryTest_test_fromEncoding_valid
   UriResolver_SourceFactoryTest_test_fromEncoding_valid(this.encoding);
 
   @override
-  Source? resolveAbsolute(Uri uri, [Uri? actualUri]) {
+  Source? resolveAbsolute(Uri uri) {
     if (uri.toString() == encoding) {
       return TestSource();
     }

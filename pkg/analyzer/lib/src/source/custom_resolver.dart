@@ -13,7 +13,7 @@ class CustomUriResolver extends UriResolver {
   CustomUriResolver(this.resourceProvider, this._urlMappings);
 
   @override
-  Source? resolveAbsolute(Uri uri, [Uri? actualUri]) {
+  Source? resolveAbsolute(Uri uri) {
     var mapping = _urlMappings[uri.toString()];
     if (mapping == null) {
       return null;
@@ -24,6 +24,6 @@ class CustomUriResolver extends UriResolver {
     }
     var pathContext = resourceProvider.pathContext;
     var path = fileUriToNormalizedPath(pathContext, fileUri);
-    return resourceProvider.getFile(path).createSource(actualUri ?? uri);
+    return resourceProvider.getFile(path).createSource(uri);
   }
 }

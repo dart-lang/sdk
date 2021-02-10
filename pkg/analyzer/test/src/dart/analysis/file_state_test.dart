@@ -415,8 +415,7 @@ class D implements C {}
 
     Source generatedSource = _SourceMock(generatedPath, uri);
 
-    generatedUriResolver.resolveAbsoluteFunction =
-        (uri, actualUri) => generatedSource;
+    generatedUriResolver.resolveAbsoluteFunction = (uri) => generatedSource;
 
     expect(fileSystemState.hasUri(templatePath), isFalse);
     expect(fileSystemState.hasUri(generatedPath), isTrue);
@@ -700,7 +699,7 @@ part of 'a.dart';
 }
 
 class _GeneratedUriResolverMock implements UriResolver {
-  Source? Function(Uri, Uri?)? resolveAbsoluteFunction;
+  Source? Function(Uri)? resolveAbsoluteFunction;
 
   Uri? Function(Source)? restoreAbsoluteFunction;
 
@@ -710,9 +709,9 @@ class _GeneratedUriResolverMock implements UriResolver {
   }
 
   @override
-  Source? resolveAbsolute(Uri uri, [Uri? actualUri]) {
+  Source? resolveAbsolute(Uri uri) {
     if (resolveAbsoluteFunction != null) {
-      return resolveAbsoluteFunction!(uri, actualUri);
+      return resolveAbsoluteFunction!(uri);
     }
     return null;
   }

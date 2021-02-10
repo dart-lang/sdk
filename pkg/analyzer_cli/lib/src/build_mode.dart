@@ -629,8 +629,8 @@ class TrackingInSummaryUriResolver extends UriResolver {
       this.inSummaryUriResolver, this.dependencyTracker);
 
   @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
-    var source = inSummaryUriResolver.resolveAbsolute(uri, actualUri);
+  Source resolveAbsolute(Uri uri) {
+    var source = inSummaryUriResolver.resolveAbsolute(uri);
     if (dependencyTracker != null &&
         source != null &&
         source is InSummarySource) {

@@ -1105,8 +1105,7 @@ bbb() {}
 
     Source generatedSource = _SourceMock(generatedPath, uri);
 
-    generatedUriResolver.resolveAbsoluteFunction =
-        (uri, actualUri) => generatedSource;
+    generatedUriResolver.resolveAbsoluteFunction = (uri) => generatedSource;
     generatedUriResolver.restoreAbsoluteFunction = (Source source) {
       String path = source.fullName;
       if (path == templatePath || path == generatedPath) {
@@ -2997,7 +2996,7 @@ A a;
 
     // Configure UriResolver to provide this generated file.
     generatedUriResolver.resolveAbsoluteFunction =
-        (uri, actualUri) => aGeneratedFile.createSource(actualUri);
+        (uri) => aGeneratedFile.createSource(uri);
     generatedUriResolver.restoreAbsoluteFunction = (source) {
       String path = source.fullName;
       if (path == a || path == aGeneratedPath) {

@@ -95,12 +95,11 @@ class InSummaryUriResolver extends UriResolver {
   InSummaryUriResolver(this.resourceProvider, this._dataStore);
 
   @override
-  Source? resolveAbsolute(Uri uri, [Uri? actualUri]) {
-    actualUri ??= uri;
+  Source? resolveAbsolute(Uri uri) {
     String uriString = uri.toString();
     String? summaryPath = _dataStore.uriToSummaryPath[uriString];
     if (summaryPath != null) {
-      return InSummarySource(actualUri, summaryPath);
+      return InSummarySource(uri, summaryPath);
     }
     return null;
   }
