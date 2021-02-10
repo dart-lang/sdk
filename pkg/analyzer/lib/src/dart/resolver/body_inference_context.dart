@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 
@@ -56,7 +57,7 @@ class BodyInferenceContext {
     if (expression == null) {
       _returnTypes.add(_typeProvider.nullType);
     } else {
-      var type = expression.staticType!;
+      var type = expression.typeOrThrow;
       if (_isAsynchronous) {
         type = _typeSystem.flatten(type);
       }
@@ -65,7 +66,7 @@ class BodyInferenceContext {
   }
 
   void addYield(YieldStatement node) {
-    var expressionType = node.expression.staticType!;
+    var expressionType = node.expression.typeOrThrow;
 
     if (node.star == null) {
       _returnTypes.add(expressionType);

@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
@@ -155,7 +156,7 @@ class TypedLiteralResolver {
 
   DartType _computeElementType(CollectionElement element) {
     if (element is Expression) {
-      return element.staticType!;
+      return element.typeOrThrow;
     } else if (element is ForElement) {
       return _computeElementType(element.body);
     } else if (element is IfElement) {
@@ -173,7 +174,7 @@ class TypedLiteralResolver {
       // This error will be reported elsewhere.
       return _typeProvider.dynamicType;
     } else if (element is SpreadElement) {
-      var expressionType = element.expression.staticType!;
+      var expressionType = element.expression.typeOrThrow;
 
       var iterableType = expressionType.asInstanceOf(
         _typeProvider.iterableElement,
@@ -328,7 +329,7 @@ class TypedLiteralResolver {
       CollectionElement? element) {
     if (element is Expression) {
       return _InferredCollectionElementTypeInformation(
-          elementType: element.staticType!, keyType: null, valueType: null);
+          elementType: element.typeOrThrow, keyType: null, valueType: null);
     } else if (element is ForElement) {
       return _inferCollectionElementType(element.body);
     } else if (element is IfElement) {
@@ -347,7 +348,7 @@ class TypedLiteralResolver {
           keyType: element.key.staticType,
           valueType: element.value.staticType);
     } else if (element is SpreadElement) {
-      var expressionType = element.expression.staticType!;
+      var expressionType = element.expression.typeOrThrow;
 
       var iterableType = expressionType.asInstanceOf(
         _typeProvider.iterableElement,

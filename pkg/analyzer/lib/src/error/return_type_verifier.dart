@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -151,7 +152,7 @@ class ReturnTypeVerifier {
     // `T` is the declared return type.
     // `S` is the static type of the expression.
     var T = enclosingExecutable.returnType;
-    var S = expression.staticType!;
+    var S = expression.typeOrThrow;
 
     void reportTypeError() {
       if (enclosingExecutable.catchErrorOnErrorReturnType != null) {
@@ -258,7 +259,7 @@ class ReturnTypeVerifier {
     // `T` is the declared return type.
     // `S` is the static type of the expression.
     var T = enclosingExecutable.returnType;
-    var S = expression.staticType!;
+    var S = expression.typeOrThrow;
 
     void reportTypeError() {
       if (enclosingExecutable.catchErrorOnErrorReturnType != null) {

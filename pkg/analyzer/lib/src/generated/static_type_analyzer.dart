@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
@@ -111,7 +112,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   ///   the static type of e.
   @override
   void visitAwaitExpression(AwaitExpression node) {
-    var resultType = node.expression.staticType!;
+    var resultType = node.expression.typeOrThrow;
     resultType = _typeSystem.flatten(resultType);
     recordStaticType(node, resultType);
   }
@@ -128,7 +129,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// t;}(e)</i>.</blockquote>
   @override
   void visitCascadeExpression(CascadeExpression node) {
-    recordStaticType(node, node.target.staticType!);
+    recordStaticType(node, node.target.typeOrThrow);
   }
 
   /// The Dart Language Specification, 12.19: <blockquote> ... a conditional expression <i>c</i> of
@@ -245,7 +246,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   @override
   void visitNamedExpression(NamedExpression node) {
     Expression expression = node.expression;
-    recordStaticType(node, expression.staticType!);
+    recordStaticType(node, expression.typeOrThrow);
   }
 
   /// The Dart Language Specification, 12.2: <blockquote>The static type of `null` is bottom.
@@ -258,7 +259,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
     Expression expression = node.expression;
-    recordStaticType(node, expression.staticType!);
+    recordStaticType(node, expression.typeOrThrow);
   }
 
   /// The Dart Language Specification, 12.9: <blockquote>The static type of a rethrow expression is
@@ -327,8 +328,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// types of subexpressions [expr1] and [expr2].
   void _analyzeLeastUpperBound(
       Expression node, Expression expr1, Expression expr2) {
-    var staticType1 = expr1.staticType!;
-    var staticType2 = expr2.staticType!;
+    var staticType1 = expr1.typeOrThrow;
+    var staticType2 = expr2.typeOrThrow;
 
     _analyzeLeastUpperBoundTypes(node, staticType1, staticType2);
   }

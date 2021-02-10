@@ -623,7 +623,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitPostfixExpression(PostfixExpression node) {
     _deprecatedVerifier.postfixExpression(node);
     if (node.operator.type == TokenType.BANG &&
-        node.operand.staticType!.isDartCoreNull) {
+        node.operand.typeOrThrow.isDartCoreNull) {
       _errorReporter.reportErrorForNode(HintCode.NULL_CHECK_ALWAYS_FAILS, node);
     }
     super.visitPostfixExpression(node);
@@ -1073,14 +1073,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
     void checkLeftRight(HintCode errorCode) {
       if (node.leftOperand is NullLiteral) {
-        var rightType = node.rightOperand.staticType!;
+        var rightType = node.rightOperand.typeOrThrow;
         if (_typeSystem.isStrictlyNonNullable(rightType)) {
           reportStartEnd(errorCode, node.leftOperand, node.operator);
         }
       }
 
       if (node.rightOperand is NullLiteral) {
-        var leftType = node.leftOperand.staticType!;
+        var leftType = node.leftOperand.typeOrThrow;
         if (_typeSystem.isStrictlyNonNullable(leftType)) {
           reportStartEnd(errorCode, node.operator, node.rightOperand);
         }
@@ -1591,7 +1591,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// Returns `true` if and only if an unnecessary cast hint should be generated
   /// on [node].  See [HintCode.UNNECESSARY_CAST].
   static bool isUnnecessaryCast(AsExpression node, TypeSystemImpl typeSystem) {
-    var leftType = node.expression.staticType!;
+    var leftType = node.expression.typeOrThrow;
     var rightType = node.type.type!;
 
     // `dynamicValue as SomeType` is a valid use case.
@@ -1624,13 +1624,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           : parent.thenExpression;
 
       var currentType = typeSystem.leastUpperBound(
-        node.staticType!,
-        other.staticType!,
+        node.typeOrThrow,
+        other.typeOrThrow,
       );
 
       var typeWithoutCast = typeSystem.leastUpperBound(
-        node.expression.staticType!,
-        other.staticType!,
+        node.expression.typeOrThrow,
+        other.typeOrThrow,
       );
 
       if (typeWithoutCast != currentType) {

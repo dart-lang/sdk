@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -36,7 +37,7 @@ class CatchErrorVerifier {
     }
     var methodName = node.methodName;
     if (!(methodName.name == 'catchError' &&
-        target.staticType!.isDartAsyncFuture)) {
+        target.typeOrThrow.isDartAsyncFuture)) {
       return;
     }
     if (node.argumentList.arguments.isEmpty) {

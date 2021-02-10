@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
@@ -154,7 +155,7 @@ class PrefixExpressionResolver {
         return;
       }
 
-      var readType = node.readType ?? operand.staticType!;
+      var readType = node.readType ?? operand.typeOrThrow;
       if (identical(readType, NeverTypeImpl.instance)) {
         _resolver.errorReporter.reportErrorForNode(
           HintCode.RECEIVER_OF_TYPE_NEVER,

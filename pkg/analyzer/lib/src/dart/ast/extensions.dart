@@ -76,6 +76,21 @@ DartType? _writeType(AstNode node) {
   return null;
 }
 
+extension ExpressionExtension on Expression {
+  /// Return the static type of this expression.
+  ///
+  /// This accessor should be used on expressions that are expected to
+  /// be already resolved. Every such expression must have the type set,
+  /// at least `dynamic`.
+  DartType get typeOrThrow {
+    var type = staticType;
+    if (type == null) {
+      throw StateError('No type: $this');
+    }
+    return type;
+  }
+}
+
 extension FormalParameterExtension on FormalParameter {
   FormalParameter get notDefault {
     var self = this;

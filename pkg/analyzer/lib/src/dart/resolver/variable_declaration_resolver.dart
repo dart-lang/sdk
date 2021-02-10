@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -54,7 +55,7 @@ class VariableDeclarationResolver {
     initializer = node.initializer;
 
     if (parent.type == null) {
-      _setInferredType(element, initializer!.staticType!);
+      _setInferredType(element, initializer!.typeOrThrow);
     }
 
     if (isTopLevel) {

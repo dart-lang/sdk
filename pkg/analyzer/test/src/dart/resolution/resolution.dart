@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -793,7 +794,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertTypeLegacy(Expression? expression) {
     expression!;
-    NullabilitySuffix actual = expression.staticType!.nullabilitySuffix;
+    NullabilitySuffix actual = expression.typeOrThrow.nullabilitySuffix;
     expect(actual, NullabilitySuffix.star);
   }
 

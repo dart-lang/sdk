@@ -15,6 +15,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart'
@@ -886,14 +887,14 @@ class ResolverVisitor extends ScopedVisitor {
       if (isIdentical && length > 1 && i == 1) {
         var firstArg = arguments[0];
         flowAnalysis?.flow
-            ?.equalityOp_rightBegin(firstArg, firstArg.staticType!);
+            ?.equalityOp_rightBegin(firstArg, firstArg.typeOrThrow);
       }
       arguments[i].accept(this);
     }
     if (isIdentical && length > 1) {
       var secondArg = arguments[1];
       flowAnalysis?.flow?.equalityOp_end(
-          node.parent as Expression, secondArg, secondArg.staticType!);
+          node.parent as Expression, secondArg, secondArg.typeOrThrow);
     }
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
@@ -1925,7 +1926,7 @@ class ResolverVisitor extends ScopedVisitor {
       expression.accept(this);
       expression = node.expression;
 
-      _enclosingSwitchStatementExpressionType = expression.staticType!;
+      _enclosingSwitchStatementExpressionType = expression.typeOrThrow;
 
       if (flowAnalysis != null) {
         var flow = flowAnalysis!.flow!;
@@ -2026,7 +2027,7 @@ class ResolverVisitor extends ScopedVisitor {
     var parent = node.parent as VariableDeclarationList;
     var declaredType = parent.type;
     if (initializer != null) {
-      var initializerStaticType = initializer.staticType!;
+      var initializerStaticType = initializer.typeOrThrow;
       if (declaredType == null) {
         if (initializerStaticType is TypeParameterType) {
           flowAnalysis?.flow?.promote(
@@ -2357,7 +2358,7 @@ class ResolverVisitorForMigration extends ResolverVisitor {
       var subexpressionToKeep =
           conditionalKnownValue ? node.thenExpression : node.elseExpression;
       subexpressionToKeep.accept(this);
-      typeAnalyzer.recordStaticType(node, subexpressionToKeep.staticType!);
+      typeAnalyzer.recordStaticType(node, subexpressionToKeep.typeOrThrow);
     }
   }
 

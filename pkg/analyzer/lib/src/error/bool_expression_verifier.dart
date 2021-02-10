@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -43,7 +44,7 @@ class BoolExpressionVerifier {
   /// [errorCode] if not, or a nullability error if its improperly nullable.
   void checkForNonBoolExpression(Expression expression,
       {required ErrorCode errorCode, List<Object>? arguments}) {
-    var type = expression.staticType!;
+    var type = expression.typeOrThrow;
     if (!_checkForUseOfVoidResult(expression) &&
         !_typeSystem.isAssignableTo(type, _boolType)) {
       if (type.isDartCoreBool) {

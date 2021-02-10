@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -138,7 +139,7 @@ class TypeArgumentsVerifier {
     if (_options.implicitDynamic || node.typeArguments != null) {
       return;
     }
-    DartType type = node.staticType!;
+    DartType type = node.typeOrThrow;
     // It's an error if either the key or value was inferred as dynamic.
     if (type is InterfaceType && type.typeArguments.any((t) => t.isDynamic)) {
       // TODO(brianwilkerson) Add StrongModeCode.IMPLICIT_DYNAMIC_SET_LITERAL

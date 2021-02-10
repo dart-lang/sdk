@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 
@@ -235,7 +236,7 @@ class TypePromotionManager {
         return;
       }
       // prepare current variable type
-      DartType type = _getPromotedType(element) ?? expression.staticType!;
+      DartType type = _getPromotedType(element) ?? expression.typeOrThrow;
 
       // Check if we can promote to potentialType from type.
       var promoteType = _typeSystem.tryPromoteToType(potentialType, type);

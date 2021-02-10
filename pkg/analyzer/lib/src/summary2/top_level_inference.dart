@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -418,7 +419,7 @@ class _VariableInferenceNode extends _InferenceNode {
     _resolveInitializer(forDependencies: false);
 
     if (!_elementImpl.hasTypeInferred) {
-      var initializerType = _node.initializer!.staticType!;
+      var initializerType = _node.initializer!.typeOrThrow;
       initializerType = _refineType(initializerType);
       _elementImpl.type = initializerType;
     }

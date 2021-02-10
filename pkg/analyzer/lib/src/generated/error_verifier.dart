@@ -764,7 +764,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return super.visitFunctionExpressionInvocation(node);
     }
 
-    DartType expressionType = functionExpression.staticType!;
+    DartType expressionType = functionExpression.typeOrThrow;
     if (!_checkForUseOfVoidResult(functionExpression) &&
         !_checkForUseOfNever(functionExpression) &&
         node.staticElement == null &&
@@ -1594,7 +1594,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       DartType? expectedStaticType,
       ErrorCode errorCode) {
     _checkForArgumentTypeNotAssignable(
-        expression, expectedStaticType, expression.staticType!, errorCode);
+        expression, expectedStaticType, expression.typeOrThrow, errorCode);
   }
 
   /// Verify that the arguments in the given [argumentList] can be assigned to
@@ -1612,7 +1612,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   bool _checkForAssignableExpression(
       Expression expression, DartType expectedStaticType, ErrorCode errorCode) {
-    DartType actualStaticType = expression.staticType!;
+    DartType actualStaticType = expression.typeOrThrow;
     return _checkForAssignableExpressionAtType(
         expression, actualStaticType, expectedStaticType, errorCode);
   }
@@ -2284,7 +2284,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
 
-    DartType iterableType = node.iterable.staticType!;
+    DartType iterableType = node.iterable.typeOrThrow;
 
     // TODO(scheglov) use NullableDereferenceVerifier
     if (_isNonNullableByDefault) {
@@ -2519,7 +2519,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // prepare expression type
     Expression expression = initializer.expression;
     // test the static type of the expression
-    DartType staticType = expression.staticType!;
+    DartType staticType = expression.typeOrThrow;
     if (_typeSystem.isAssignableTo(staticType, fieldType)) {
       if (!fieldType.isVoid) {
         _checkForUseOfVoidResult(expression);
@@ -2885,7 +2885,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     } else {
       var leftVariableElement = getVariableElement(lhs);
       leftType = (leftVariableElement == null)
-          ? lhs.staticType!
+          ? lhs.typeOrThrow
           : leftVariableElement.type;
     }
 
@@ -3051,7 +3051,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // Determine the list's element type. We base this on the static type and
     // not the literal's type arguments because in strong mode, the type
     // arguments may be inferred.
-    DartType listType = literal.staticType!;
+    DartType listType = literal.typeOrThrow;
     assert(listType is InterfaceTypeImpl);
 
     List<DartType> typeArguments =
@@ -3137,7 +3137,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // Determine the map's key and value types. We base this on the static type
     // and not the literal's type arguments because in strong mode, the type
     // arguments may be inferred.
-    DartType mapType = literal.staticType!;
+    DartType mapType = literal.typeOrThrow;
     assert(mapType is InterfaceTypeImpl);
 
     List<DartType> typeArguments = (mapType as InterfaceTypeImpl).typeArguments;
@@ -4095,7 +4095,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // Determine the set's element type. We base this on the static type and
     // not the literal's type arguments because in strong mode, the type
     // arguments may be inferred.
-    DartType setType = literal.staticType!;
+    DartType setType = literal.typeOrThrow;
     assert(setType is InterfaceTypeImpl);
 
     List<DartType> typeArguments = (setType as InterfaceTypeImpl).typeArguments;
@@ -4166,7 +4166,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     // prepare 'switch' expression type
-    DartType expressionType = expression.staticType!;
+    DartType expressionType = expression.typeOrThrow;
 
     // compare with type of the first non-default 'case'
     var switchCase = statement.members.whereType<SwitchCase>().firstOrNull;
@@ -4175,7 +4175,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     Expression caseExpression = switchCase.expression;
-    DartType caseType = caseExpression.staticType!;
+    DartType caseType = caseExpression.typeOrThrow;
 
     // check types
     if (!_typeSystem.isAssignableTo(expressionType, caseType)) {
@@ -4190,7 +4190,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (!_isNonNullableByDefault) return;
 
     var expression = node.expression;
-    var type = node.expression.staticType!;
+    var type = node.expression.typeOrThrow;
 
     if (!_typeSystem.isAssignableTo(type, _typeSystem.objectNone)) {
       _errorReporter.reportErrorForNode(
@@ -4416,7 +4416,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (target is ExtensionOverride) {
       var arguments = target.argumentList.arguments;
       if (arguments.length == 1) {
-        targetType = arguments[0].staticType!;
+        targetType = arguments[0].typeOrThrow;
       } else {
         return;
       }

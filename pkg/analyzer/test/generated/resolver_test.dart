@@ -7,6 +7,7 @@ import 'dart:collection';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
@@ -200,7 +201,7 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     // In cases where we have a prefixed identifier where the prefix is dynamic,
     // we don't want to assert that the node will have a type.
-    if (node.staticType == null && node.prefix.staticType!.isDynamic) {
+    if (node.staticType == null && node.prefix.typeOrThrow.isDynamic) {
       return;
     }
     super.visitPrefixedIdentifier(node);

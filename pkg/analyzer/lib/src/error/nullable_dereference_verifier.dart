@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -28,7 +29,7 @@ class NullableDereferenceVerifier {
       return false;
     }
 
-    type ??= expression.staticType!;
+    type ??= expression.typeOrThrow;
     return _check(expression, type, errorCode: errorCode);
   }
 
