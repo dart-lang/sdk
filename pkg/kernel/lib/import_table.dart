@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library kernel.import_table;
 
+// ignore: import_of_legacy_library_into_null_safe
 import 'ast.dart';
 
 abstract class ImportTable {
@@ -43,7 +42,7 @@ class LibraryImportTable implements ImportTable {
   List<Library> get importedLibraries => _importedLibraries;
 
   int addImport(Library target, String importPath) {
-    int index = _libraryIndex[target];
+    int? index = _libraryIndex[target];
     if (index != null) return index;
     index = _importPaths.length;
     _importPaths.add(importPath);
@@ -76,11 +75,12 @@ class _ImportTableBuilder extends RecursiveVisitor {
     table.addImport(referenceLibrary, '');
   }
 
-  void addLibraryImport(Library target) {
+  void addLibraryImport(Library? target) {
     if (target == referenceLibrary) return; // Self-reference is special.
     if (target == null) return;
     Uri referenceUri = referenceLibrary.importUri;
-    Uri targetUri = target.importUri;
+    Uri? targetUri = target.importUri;
+    // ignore: unnecessary_null_comparison
     if (targetUri == null) {
       throw '$referenceUri cannot refer to library without an import URI';
     }
@@ -111,7 +111,7 @@ class _ImportTableBuilder extends RecursiveVisitor {
   visitLibrary(Library node) {
     super.visitLibrary(node);
     for (Reference exportedReference in node.additionalExports) {
-      addLibraryImport(exportedReference.node.parent);
+      addLibraryImport(exportedReference.node.parent as Library);
     }
   }
 

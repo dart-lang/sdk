@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library kernel.transformations.flags;
 
+// ignore: import_of_legacy_library_into_null_safe
 import '../ast.dart';
 
 /// Flags summarizing the kinds of AST nodes contained in a given member or
