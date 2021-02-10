@@ -13,9 +13,10 @@ main() {
   });
 }
 
+/// TODO(https://github.com/dart-lang/sdk/issues/44666): Combine this class
+/// with the one above it.
 @reflectiveTest
-class NullableTypeInOnClauseTest extends PubPackageResolutionTest
-    with WithNonFunctionTypeAliasesMixin {
+class NullableTypeInOnClauseTest extends PubPackageResolutionTest {
   test_nonNullable() async {
     await assertNoErrorsInCode('''
 class A {}

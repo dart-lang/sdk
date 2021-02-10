@@ -293,7 +293,7 @@ f(Never a) {}
 
 @reflectiveTest
 class TypeNameResolutionWithNonFunctionTypeAliasesTest
-    extends PubPackageResolutionTest with WithNonFunctionTypeAliasesMixin {
+    extends PubPackageResolutionTest {
   test_typeAlias_asInstanceCreation_explicitNew_typeArguments_interfaceType_none() async {
     await assertNoErrorsInCode(r'''
 class A<T> {}

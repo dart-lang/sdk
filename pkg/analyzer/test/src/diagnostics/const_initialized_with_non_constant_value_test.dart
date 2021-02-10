@@ -107,9 +107,11 @@ const c = a.m;
   }
 }
 
+/// TODO(https://github.com/dart-lang/sdk/issues/44666): Combine this class
+/// with the one above it.
 @reflectiveTest
 class ConstInitializedWithNonConstantValueWithNonFunctionTypeAliasesTest
-    extends PubPackageResolutionTest with WithNonFunctionTypeAliasesMixin {
+    extends PubPackageResolutionTest {
   test_typeLiteral_interfaceType() async {
     await assertNoErrorsInCode(r'''
 const a = int;

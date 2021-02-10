@@ -418,12 +418,12 @@ class C extends Object with G<B>{}
   }
 }
 
+/// TODO(https://github.com/dart-lang/sdk/issues/44666): Combine this class
+/// with the one it extends.
 @reflectiveTest
 class TypeArgumentNotMatchingBoundsWithNonFunctionTypeAliasesTest
     extends PubPackageResolutionTest
-    with
-        WithNonFunctionTypeAliasesMixin,
-        TypeArgumentNotMatchingBoundsTestCases {
+    with TypeArgumentNotMatchingBoundsTestCases {
   test_nonFunctionTypeAlias_interfaceType_parameter() async {
     await assertErrorsInCode(r'''
 class A {}

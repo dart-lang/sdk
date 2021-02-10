@@ -247,7 +247,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   String get testFilePath => '$testPackageLibPath/test.dart';
 
   /// The language version to use by default for `package:test`.
-  String? get testPackageLanguageVersion => '2.12';
+  String? get testPackageLanguageVersion => null;
 
   String get testPackageLibPath => '$testPackageRootPath/lib';
 
@@ -261,6 +261,11 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   @override
   void setUp() {
     super.setUp();
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(
+        experiments: [EnableString.nonfunction_type_aliases],
+      ),
+    );
     writeTestPackageConfig(
       PackageConfigFileBuilder(),
     );
@@ -342,23 +347,6 @@ class PubspecYamlFileConfig {
     }
 
     return buffer.toString();
-  }
-}
-
-mixin WithNonFunctionTypeAliasesMixin on PubPackageResolutionTest {
-  @override
-  String? get testPackageLanguageVersion => null;
-
-  @nonVirtual
-  @override
-  void setUp() {
-    super.setUp();
-
-    writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(
-        experiments: [EnableString.nonfunction_type_aliases],
-      ),
-    );
   }
 }
 

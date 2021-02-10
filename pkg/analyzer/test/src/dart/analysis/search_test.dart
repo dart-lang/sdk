@@ -60,8 +60,7 @@ class ExpectedResult {
 }
 
 @reflectiveTest
-class SearchTest extends PubPackageResolutionTest
-    with WithNonFunctionTypeAliasesMixin {
+class SearchTest extends PubPackageResolutionTest {
   AnalysisDriver get driver => driverFor(testFilePath);
 
   CompilationUnitElement get resultUnitElement => result.unit!.declaredElement!;

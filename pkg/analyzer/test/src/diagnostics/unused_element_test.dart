@@ -1578,9 +1578,11 @@ main() {
   }
 }
 
+/// TODO(https://github.com/dart-lang/sdk/issues/44666): Combine this class
+/// with the one it extends.
 @reflectiveTest
 class UnusedElementWithNonFunctionTypeAliasesTest
-    extends PubPackageResolutionTest with WithNonFunctionTypeAliasesMixin {
+    extends PubPackageResolutionTest {
   test_typeAlias_interfaceType_isUsed_typeName_isExpression() async {
     await assertNoErrorsInCode(r'''
 typedef _A = List<int>;

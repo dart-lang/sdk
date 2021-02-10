@@ -936,8 +936,7 @@ mixin M {
 }
 
 @reflectiveTest
-class DuplicateDefinitionTest extends PubPackageResolutionTest
-    with WithNonFunctionTypeAliasesMixin {
+class DuplicateDefinitionTest extends PubPackageResolutionTest {
   test_catch() async {
     await assertErrorsInCode(r'''
 main() {
